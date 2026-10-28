@@ -165,7 +165,7 @@ const said = 'one $more';
       '-Dword=c',
       a,
     ]);
-    expect(res.stdout, 'a\n');
+    expect('${res.stdout}'.replaceAll('\r\n', '\n'), 'a\n');
   });
 
   test('not in product mode, as `dart <program>` runs it, unless asked '
@@ -190,7 +190,9 @@ const said = 'one $more';
     expect(a, b);
     expect(await run(a), 'one\n');
     expect(
-      Directory(cache).listSync().map((f) => f.path.split('/').last),
+      Directory(cache)
+          .listSync()
+          .map((f) => Uri.file(f.path).pathSegments.last),
       unorderedEquals([
         matches(r'^app-[0-9a-f]{16}\.dill$'),
         matches(r'^app-[0-9a-f]{16}\.deps$'),

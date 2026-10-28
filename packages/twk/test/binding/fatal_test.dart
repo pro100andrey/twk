@@ -4,6 +4,7 @@
 // at, and the stack. Those lines are of the first frame neither in the
 // SDK, nor in twk, nor in the pub cache, read from its file, and left out
 // where that can't be read.
+import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
@@ -230,7 +231,12 @@ ${error.source}''');
 
   test('unhandled, it is printed after the restore: message, path, the '
       'lines it was thrown at and the stack', () async {
-    final res = await runProcess(Platform.resolvedExecutable, [app]);
+    final res = await runProcess(
+      Platform.resolvedExecutable,
+      [app],
+      // UTF-8 whatever the system's code page (Windows'): the path's →
+      stderrEncoding: utf8,
+    );
     expect(res.stdout, '');
     final at = lineOf(
       "onEvent: (e) => throw StateError('boom'),",
