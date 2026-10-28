@@ -392,8 +392,9 @@ void main() {
       answers++;
     }
     expect(transport.maxQueuedSeen, lessThan(SshTransport.maxQueued + 1024));
-    // some 7 s on an idle machine: what the ciphers cost, both ways
-  }, timeout: const Timeout(Duration(seconds: 90)));
+    // some 7 s on an idle machine: what the ciphers cost, both ways; past
+    // 90 s on a CI runner of 4 cores, running every package's suite at once
+  }, timeout: const Timeout(Duration(minutes: 5)));
 
   test(
     "the server's output waits while a rekey the client started runs",
