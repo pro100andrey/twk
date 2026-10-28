@@ -1,8 +1,9 @@
 /// Where the local services of a project listen (a `twk shell`, an app's
-/// log): a Unix domain socket, or TCP on the loopback interface where
-/// there are none (Windows), with a token a client opens with. Each
-/// service's address is kept in a file beside the project,
-/// `.dart_tool/twk/<service>`.
+/// log): a Unix domain socket, or on Windows TCP on the loopback
+/// interface, with a token a client opens with. Windows has Unix domain
+/// sockets too, but node's net, the VS Code extension's, takes a path
+/// there for a named pipe: TCP is what every side has. Each service's
+/// address is kept in a file beside the project, `.dart_tool/twk/<service>`.
 library;
 
 import 'dart:convert';
