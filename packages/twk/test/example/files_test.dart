@@ -143,7 +143,8 @@ List<String> ls(String path) => [
 /// What the file [path] below [root] holds.
 String read(String path) => File('$root/$path').readAsStringSync();
 
-String _name(String path) => path.substring(path.lastIndexOf(sep) + 1);
+/// The last name of [path], after a separator of either kind on Windows.
+String _name(String path) => Uri.file(path).pathSegments.last;
 
 /// The platform's separator: `\` on Windows, `/` elsewhere.
 final String sep = Platform.pathSeparator;
@@ -154,10 +155,13 @@ String native(String posix) => posix.replaceAll('/', sep);
 
 void main() {
   setUp(() {
-    // under /tmp: macOS's own temporary directory (/var/folders/…/T) is a
-    // path too long for the table's title to show whole
-    final temp = (Platform.isWindows ? Directory.systemTemp : Directory('/tmp'))
-        .createTempSync('files_');
+    // in a directory of a path short enough for the table's title to show
+    // whole: /tmp, not macOS's own (/var/folders/…/T), and on Windows the
+    // root of the drive of its own (C:\Users\…\AppData\Local\Temp)
+    final base = Platform.isWindows
+        ? Directory(Directory.systemTemp.path.substring(0, 3))
+        : Directory('/tmp');
+    final temp = base.createTempSync('files_');
     addTearDown(() => temp.deleteSync(recursive: true));
     root = '${temp.resolveSymbolicLinksSync()}${sep}work';
     for (final d in ['', '/docs', '/src', '/src/lib', '/.git']) {

@@ -196,6 +196,6 @@ void main() {
     }
     await t.pumpUntilIdle();
     expect(t.lines.first.trim(), isEmpty);
-    expect(t.lines[1].trim(), '../');
+    expect(t.lines[1].trim(), '..${Platform.pathSeparator}');
   });
 }
