@@ -876,12 +876,30 @@ void main() {
       final reader = File(file).openSync();
       addTearDown(reader.closeSync);
       if (Platform.isWindows) {
-        expect(() => newer.write(file), throwsA(isA<PathAccessException>()));
+        expect(
+          () => newer.write(file),
+          throwsA(
+            isA<PathAccessException>().having((e) => e.path, 'path', file),
+          ),
+        );
         expect(LocalAddress.read(file), older);
       } else {
         newer.write(file);
         expect(LocalAddress.read(file), newer);
       }
+      expect(File('$file.$pid').existsSync(), isFalse);
+    });
+
+    test('a directory where the address file goes: what fails is of the '
+        'address file, and the file written for it is not left', () async {
+      final file = '${dir.path}/shell';
+      Directory(file).createSync();
+      final (server, address) = await LocalAddress.bind(dir.path, 'a');
+      addTearDown(server.close);
+      expect(
+        () => address.write(file),
+        throwsA(isA<FileSystemException>().having((e) => e.path, 'path', file)),
+      );
       expect(File('$file.$pid').existsSync(), isFalse);
     });
   });
