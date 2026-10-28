@@ -147,7 +147,10 @@ String _name(String path) => path.substring(path.lastIndexOf('/') + 1);
 
 void main() {
   setUp(() {
-    final temp = Directory.systemTemp.createTempSync('files_');
+    // under /tmp: macOS's own temporary directory (/var/folders/…/T) is a
+    // path too long for the table's title to show whole
+    final temp = (Platform.isWindows ? Directory.systemTemp : Directory('/tmp'))
+        .createTempSync('files_');
     addTearDown(() => temp.deleteSync(recursive: true));
     root = '${temp.resolveSymbolicLinksSync()}/work';
     for (final d in ['', '/docs', '/src', '/src/lib', '/.git']) {
