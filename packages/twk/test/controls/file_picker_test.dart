@@ -39,7 +39,11 @@ String osError(void Function() list) {
   try {
     list();
   } on FileSystemException catch (e) {
-    return e.osError?.message ?? e.message;
+    final error = e.osError;
+    if (error != null && error.message.isNotEmpty) {
+      return error.message;
+    }
+    fail('the system said nothing: $e');
   }
   fail('it listed');
 }
