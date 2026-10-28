@@ -9,6 +9,8 @@ import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
+import '../platform/native_paths.dart';
+
 String? focused(TwkTester t) => t.binding.focusManager.primaryFocus?.debugLabel;
 
 Future<void> press(TwkTester t, String keys) async {
@@ -291,14 +293,14 @@ void main() {
   group('FilePickerController', () {
     final files = PickerFileSystem.memory(
       [
-        '/home/docs/b.md',
-        '/home/docs/c.md',
-        '/home/a.txt',
-        '/home/z.txt',
-        '/srv/',
+        rooted('/home/docs/b.md'),
+        rooted('/home/docs/c.md'),
+        rooted('/home/a.txt'),
+        rooted('/home/z.txt'),
+        rooted('/srv/'),
       ],
-      currentDirectory: '/home',
-      homeDirectory: '/home',
+      currentDirectory: rooted('/home'),
+      homeDirectory: rooted('/home'),
     );
 
     FilePickerController controller() {
@@ -330,36 +332,36 @@ void main() {
       expect(c.directory, isNull);
       await t.pumpWidget(picker(c), size: (30, 10));
       await until(t, () => c.highlighted != null);
-      expect(c.directory, '/home');
-      expect(c.highlighted, '/home/docs');
+      expect(c.directory, rooted('/home'));
+      expect(c.highlighted, rooted('/home/docs'));
       expect(calls[0], greaterThan(0));
       final before = calls[0];
       t.binding.focusManager.primaryFocus?.unfocus();
       await press(t, 'tab tab down');
-      expect(c.highlighted, '/home/a.txt');
+      expect(c.highlighted, rooted('/home/a.txt'));
       expect(calls[0], greaterThan(before));
       c.goTo('docs');
       await until(t, () => c.highlighted != null);
-      expect(c.directory, '/home/docs');
-      expect(c.highlighted, '/home/docs/b.md');
+      expect(c.directory, rooted('/home/docs'));
+      expect(c.highlighted, rooted('/home/docs/b.md'));
       // the name typed is kept
-      expect(t.lines.first, startsWith('/home/docs/new'));
+      expect(t.lines.first, startsWith(rooted('/home/docs/new')));
       c.goTo('~/z.txt');
       await until(t, () => c.highlighted != null);
-      expect(c.directory, '/home');
-      expect(c.highlighted, '/home/z.txt');
-      c.goTo('/nowhere');
+      expect(c.directory, rooted('/home'));
+      expect(c.highlighted, rooted('/home/z.txt'));
+      c.goTo(rooted('/nowhere'));
       await until(t, () => t.lines.any((l) => l.contains('cannot list')));
-      expect(c.directory, '/nowhere');
+      expect(c.directory, rooted('/nowhere'));
     });
 
     testTwk('goTo before the picker has it is where the picker starts', (
       t,
     ) async {
-      final c = controller()..goTo('/srv');
+      final c = controller()..goTo(rooted('/srv'));
       await t.pumpWidget(picker(c), size: (30, 10));
-      expect(c.directory, '/srv');
-      expect(t.lines.first, startsWith('/srv/new'));
+      expect(c.directory, rooted('/srv'));
+      expect(t.lines.first, startsWith(rooted('/srv/new')));
     });
 
     testTwk('goTo a file before the picker has it starts in its directory, '
@@ -367,8 +369,8 @@ void main() {
       final c = controller()..goTo('~/z.txt');
       await t.pumpWidget(picker(c), size: (30, 10));
       await until(t, () => c.highlighted != null);
-      expect(c.directory, '/home');
-      expect(c.highlighted, '/home/z.txt');
+      expect(c.directory, rooted('/home'));
+      expect(c.highlighted, rooted('/home/z.txt'));
     });
 
     testTwk('a picker built in place of the one that had it takes it over, '
@@ -387,14 +389,18 @@ void main() {
       await until(t, () => c.highlighted != null);
       c.goTo('docs');
       await until(t, () => c.highlighted != null);
-      expect(c.directory, '/home/docs');
+      expect(c.directory, rooted('/home/docs'));
       await t.pumpWidget(keyed(FilePickerMode.save), size: (30, 10));
       await until(t, () => c.highlighted != null);
-      expect(c.directory, '/home', reason: 'the new picker, where it starts');
-      c.goTo('/srv');
+      expect(
+        c.directory,
+        rooted('/home'),
+        reason: 'the new picker, where it starts',
+      );
+      c.goTo(rooted('/srv'));
       await t.pump();
-      expect(c.directory, '/srv');
-      expect(t.lines.first, startsWith('/srv/'));
+      expect(c.directory, rooted('/srv'));
+      expect(t.lines.first, startsWith(rooted('/srv/')));
     });
 
     testTwk('selected: the files marked, in order; refresh lists the '
@@ -409,11 +415,11 @@ void main() {
       expect(c.selected, isEmpty);
       t.binding.focusManager.primaryFocus?.unfocus();
       await press(t, 'tab tab end space up space');
-      expect(c.selected, ['/home/z.txt', '/home/a.txt']);
+      expect(c.selected, [rooted('/home/z.txt'), rooted('/home/a.txt')]);
       expect(() => c.selected.add('x'), throwsUnsupportedError);
       changing.files = PickerFileSystem.memory(
-        ['/home/a.txt', '/home/b.txt', '/home/z.txt'],
-        currentDirectory: '/home',
+        [rooted('/home/a.txt'), rooted('/home/b.txt'), rooted('/home/z.txt')],
+        currentDirectory: rooted('/home'),
       );
       await t.pump();
       expect(t.lines.any((l) => l.contains('b.txt')), isFalse);
@@ -427,10 +433,8 @@ void main() {
       hold.complete();
       await until(t, () => t.lines.any((l) => l.contains('b.txt')));
       expect(t.lines.any((l) => l.contains('docs')), isFalse);
-      expect(c.highlighted, '/home/a.txt');
-      expect(c.directory, '/home');
+      expect(c.highlighted, rooted('/home/a.txt'));
+      expect(c.directory, rooted('/home'));
     });
-    // the fixtures' paths are POSIX ones, as the picker shows them there:
-    // on Windows it shows them in Windows' form (paths_test.dart)
-  }, testOn: '!windows');
+  });
 }

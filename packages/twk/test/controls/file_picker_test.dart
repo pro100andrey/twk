@@ -5,12 +5,6 @@
 // taken in the open, save and directory modes; files marked and picked
 // together; a directory that cannot be listed; showFilePicker's dialog
 // picking and cancelled.
-//
-// The paths are written with `/`, as Linux and macOS show them; Windows
-// shows them with `\` (its forms are paths_test.dart's).
-@TestOn('!windows')
-library;
-
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
@@ -18,6 +12,8 @@ import 'dart:math';
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
+
+import '../platform/native_paths.dart';
 
 late String root;
 
@@ -36,6 +32,17 @@ Future<void> until(TwkTester t, bool Function() done) =>
     ).onError<TestFailure>(
       (e, _) => fail('${e.message}: nothing came:\n${t.lines.join('\n')}'),
     );
+
+/// What the system says [list] fails with, in its own words and language:
+/// what the picker says of a directory it cannot list.
+String osError(void Function() list) {
+  try {
+    list();
+  } on FileSystemException catch (e) {
+    return e.osError?.message ?? e.message;
+  }
+  fail('it listed');
+}
 
 /// The machine's file system, counting the listings it has going: begun
 /// and neither ended nor cancelled.
@@ -250,23 +257,23 @@ void main() {
         'the cursor on the first below ../', (t) async {
       await t.pumpWidget(picker(), size: (columns, 12));
       final first = t.frames.firstWhere((f) => f.lines.first.isNotEmpty);
-      expect(first.lines.sublist(0, 3), ['$root/', ' listing', '']);
+      expect(first.lines.sublist(0, 3), [native('$root/'), ' listing', '']);
       // while listing, no row is there for the cursor to be on
       expect(first.lines.sublist(1, first.lines.length - 1).toSet(), {
         ' listing',
         '',
       });
       await listed(t);
-      expect(field(t), '$root/');
+      expect(field(t), native('$root/'));
       expect(rows(t), [
-        '../',
-        'docs/',
-        'src/',
+        native('../'),
+        native('docs/'),
+        native('src/'),
         'notes.txt',
         'pubspec.yaml',
         'README.md',
       ]);
-      expect(cursor(t), 'docs/');
+      expect(cursor(t), native('docs/'));
       expect(t, styleAt(1, 2, hasAttr(Attr.bold)));
       expect(t, isNot(styleAt(1, 4, hasAttr(Attr.bold))));
       expect(focused(t), 'file picker field');
@@ -292,10 +299,10 @@ void main() {
       expect(hints(t), contains('alt+h hidden'));
       await press(t, 'alt+h');
       expect(rows(t), [
-        '../',
-        '.git/',
-        'docs/',
-        'src/',
+        native('../'),
+        native('.git/'),
+        native('docs/'),
+        native('src/'),
         '.env',
         'notes.txt',
         'pubspec.yaml',
@@ -311,8 +318,8 @@ void main() {
     testTwk('shows them from the first with showHidden', (t) async {
       await start(t, picker(showHidden: true, directory: '$root/src'));
       expect(rows(t), [
-        '../',
-        'util/',
+        native('../'),
+        native('util/'),
         '.secret.dart',
         'main.dart',
         'Model.dart',
@@ -323,7 +330,7 @@ void main() {
     testTwk('a screen reader reads the field as a textbox named Path, the '
         'path in it as its value', (t) async {
       await start(t, picker());
-      expect(t.binding.semantics.lines, contains('textbox Path: $root/'));
+      expect(t.binding.semantics.lines, contains('textbox Path: $root$sep'));
     });
 
     testTwk('lists the files the filter chosen accepts, by their extension '
@@ -338,13 +345,19 @@ void main() {
           ],
         ),
       );
-      expect(rows(t), ['../', 'docs/', 'src/', 'notes.txt', 'README.md']);
+      expect(rows(t), [
+        native('../'),
+        native('docs/'),
+        native('src/'),
+        'notes.txt',
+        'README.md',
+      ]);
       expect(bottom(t), startsWith(' Docs'));
       await press(t, 'tab tab enter down enter');
       expect(rows(t), [
-        '../',
-        'docs/',
-        'src/',
+        native('../'),
+        native('docs/'),
+        native('src/'),
         'notes.txt',
         'pubspec.yaml',
         'README.md',
@@ -361,7 +374,12 @@ void main() {
           ],
         ),
       );
-      expect(rows(t), ['../', 'docs/', 'src/', 'pubspec.yaml']);
+      expect(rows(t), [
+        native('../'),
+        native('docs/'),
+        native('src/'),
+        'pubspec.yaml',
+      ]);
       expect(bottom(t), startsWith('[ ] hidden'));
     });
 
@@ -385,14 +403,14 @@ void main() {
           ),
         ),
       );
-      expect(t.lines[2], startsWith('docs/'));
+      expect(t.lines[2], startsWith(native('docs/')));
       expect(t.cell(0, 2).bg, dark.selection.bg);
       expect(t.cell(0, 0).bg, dark.well.bg);
     });
 
     testTwk('the directory mode lists no files, nor suggests them', (t) async {
       await start(t, picker(mode: FilePickerMode.directory));
-      expect(rows(t), ['../', 'docs/', 'src/']);
+      expect(rows(t), [native('../'), native('docs/'), native('src/')]);
       await type(t, 'n');
       await t.pump();
       expect(t.lines.where((line) => line.contains('notes.txt')), isEmpty);
@@ -400,18 +418,26 @@ void main() {
 
     testTwk('says why a directory cannot be listed, below ../', (t) async {
       await start(t, picker(directory: '$root/gone'));
-      expect(rows(t), ['../', 'cannot list: No such file or directory']);
+      expect(rows(t), [
+        native('../'),
+        'cannot list: ${osError(() => Directory('$root/gone').listSync())}',
+      ]);
       expect(t.cell(1, 2).fg, ThemeData.dark.error.fg);
       await press(t, 'enter');
       await listed(t);
-      expect(field(t), '$root/');
-      expect(cursor(t), 'docs/');
+      expect(field(t), native('$root/'));
+      expect(cursor(t), native('docs/'));
     });
 
     testTwk('shows no ../ in the root', (t) async {
-      await start(t, picker(directory: '/'));
-      expect(field(t), '/');
-      expect(rows(t), isNot(contains('../')));
+      // `/`, or on Windows the root of the drive the directory is on
+      var top = Directory(root);
+      while (top.parent.path != top.path) {
+        top = top.parent;
+      }
+      await start(t, picker(directory: top.path));
+      expect(field(t), top.path);
+      expect(rows(t), isNot(contains(native('../'))));
       expect(cursor(t), rows(t).first);
     });
   });
@@ -428,46 +454,51 @@ void main() {
       expect(focused(t), 'file picker list');
       expect(hints(t), containsAll(['enter open', 'left parent']));
       await press(t, 'down');
-      expect(cursor(t), 'src/');
+      expect(cursor(t), native('src/'));
       await press(t, 'end');
       expect(cursor(t), 'README.md');
       await press(t, 'home');
-      expect(cursor(t), '../');
+      expect(cursor(t), native('../'));
       await press(t, 'pagedown');
       expect(cursor(t), 'README.md');
       await press(t, 'pageup');
-      expect(cursor(t), '../');
+      expect(cursor(t), native('../'));
       await press(t, 'down down');
-      expect(cursor(t), 'src/');
+      expect(cursor(t), native('src/'));
       await press(t, 'enter');
       await listed(t);
-      expect(field(t), '$root/src/');
-      expect(rows(t), ['../', 'util/', 'main.dart', 'Model.dart']);
-      expect(cursor(t), 'util/');
+      expect(field(t), native('$root/src/'));
+      expect(rows(t), [
+        native('../'),
+        native('util/'),
+        'main.dart',
+        'Model.dart',
+      ]);
+      expect(cursor(t), native('util/'));
       await press(t, 'right');
       await listed(t);
-      expect(field(t), '$root/src/util/');
-      expect(rows(t), ['../']);
+      expect(field(t), native('$root/src/util/'));
+      expect(rows(t), [native('../')]);
       await press(t, 'left');
       await listed(t);
-      expect(cursor(t), 'util/');
+      expect(cursor(t), native('util/'));
       await press(t, 'down right');
-      expect(field(t), '$root/src/');
+      expect(field(t), native('$root/src/'));
       expect(cursor(t), 'main.dart');
       expect(picked, isEmpty);
       await press(t, 'home enter');
       await listed(t);
-      expect(field(t), '$root/');
-      expect(cursor(t), 'src/');
+      expect(field(t), native('$root/'));
+      expect(cursor(t), native('src/'));
       await press(t, 'enter');
       await listed(t);
       await press(t, 'backspace');
       await listed(t);
-      expect(field(t), '$root/');
-      expect(cursor(t), 'src/');
+      expect(field(t), native('$root/'));
+      expect(cursor(t), native('src/'));
       await press(t, 'up up enter');
       await listed(t);
-      expect(field(t), '${Directory(root).parent.path}/');
+      expect(field(t), '${Directory(root).parent.path}$sep');
     });
 
     testTwk('Up, Down, Page Up and Page Down move the cursor from the '
@@ -476,15 +507,15 @@ void main() {
       await start(t, picker(fileSystem: files));
       await type(t, 'gu');
       await press(t, 'down');
-      expect(cursor(t), 'src/');
+      expect(cursor(t), native('src/'));
       expect(focused(t), 'file picker field');
       await press(t, 'up up');
-      expect(cursor(t), '../');
+      expect(cursor(t), native('../'));
       await press(t, 'pagedown');
       expect(cursor(t), 'README.md');
       await press(t, 'pageup down tab enter');
       await listed(t);
-      expect(field(t), '$root/docs/gu');
+      expect(field(t), native('$root/docs/gu'));
       // what a listing for suggestions would bring has come, and would
       // have faded in (160 ms)
       await waitUntil(
@@ -499,9 +530,19 @@ void main() {
     testTwk('the list scrolls to show the cursor', (t) async {
       await t.pumpWidget(picker(), size: (columns, 6));
       await listed(t);
-      expect(rows(t), ['../', 'docs/', 'src/', 'notes.txt']);
+      expect(rows(t), [
+        native('../'),
+        native('docs/'),
+        native('src/'),
+        'notes.txt',
+      ]);
       await press(t, 'tab end');
-      expect(rows(t), ['src/', 'notes.txt', 'pubspec.yaml', 'README.md']);
+      expect(rows(t), [
+        native('src/'),
+        'notes.txt',
+        'pubspec.yaml',
+        'README.md',
+      ]);
       expect(cursor(t), 'README.md');
     });
 
@@ -518,12 +559,12 @@ void main() {
       await t.click(2, 3);
       await t.pump();
       await listed(t);
-      expect(field(t), '$root/src/');
+      expect(field(t), native('$root/src/'));
       await t.click(2, 3);
       await t.click(2, 3);
       await t.pump();
       expect(picked, [
-        ['$root/src/main.dart'],
+        [native('$root/src/main.dart')],
       ]);
     });
   });
@@ -535,16 +576,16 @@ void main() {
       await start(t, picker(picked: picked));
       await press(t, 'down down down enter');
       expect(picked, [
-        ['$root/pubspec.yaml'],
+        [native('$root/pubspec.yaml')],
       ]);
       await press(t, 'tab enter');
       expect(picked, hasLength(2));
       await press(t, 'up up up enter');
       await listed(t);
-      expect(field(t), '$root/docs/');
+      expect(field(t), native('$root/docs/'));
       await t.click(columns - 2, 11);
       await t.pump();
-      expect(picked.last, ['$root/docs/guide.md']);
+      expect(picked.last, [native('$root/docs/guide.md')]);
     });
 
     testTwk('the field takes the path typed, relative to the directory '
@@ -557,13 +598,18 @@ void main() {
       await clear(t);
       await type(t, 'src/../docs/./guide.md\r');
       expect(picked, [
-        ['$root/docs/guide.md'],
+        [native('$root/docs/guide.md')],
       ]);
       await clear(t);
       await type(t, '$root/src\r');
       await listed(t);
-      expect(field(t), '$root/src/');
-      expect(rows(t), ['../', 'util/', 'main.dart', 'Model.dart']);
+      expect(field(t), native('$root/src/'));
+      expect(rows(t), [
+        native('../'),
+        native('util/'),
+        'main.dart',
+        'Model.dart',
+      ]);
       await type(t, 'main.darts\r');
       expect(bottom(t), contains('not found'));
       expect(picked, hasLength(1));
@@ -572,7 +618,7 @@ void main() {
       await press(t, 'backspace');
       expect(bottom(t), isNot(contains('not found')));
       await press(t, 'enter');
-      expect(picked.last, ['$root/src/main.dart']);
+      expect(picked.last, [native('$root/src/main.dart')]);
       await type(t, '/\r');
       expect(bottom(t), contains('not a directory'));
     });
@@ -582,7 +628,9 @@ void main() {
       await clear(t);
       await type(t, '~\r');
       await listed(t);
-      expect(field(t), '${Platform.environment['HOME']}/');
+      final home =
+          Platform.environment[Platform.isWindows ? 'USERPROFILE' : 'HOME'];
+      expect(field(t), '$home$sep');
     });
 
     testTwk('with multiple, Space, hinted, marks the file under the cursor '
@@ -593,9 +641,9 @@ void main() {
       final picked = <List<String>>[];
       await start(t, picker(picked: picked, multiple: true));
       expect(rows(t), [
-        '    ../',
-        '    docs/',
-        '    src/',
+        native('    ../'),
+        native('    docs/'),
+        native('    src/'),
         '[ ] notes.txt',
         '[ ] pubspec.yaml',
         '[ ] README.md',
@@ -603,7 +651,7 @@ void main() {
       await press(t, 'tab');
       expect(hints(t), contains('space mark'));
       await press(t, 'space');
-      expect(rows(t)[1], '    docs/');
+      expect(rows(t)[1], native('    docs/'));
       expect(bottom(t), isNot(contains('marked')));
       await press(t, 'end space up up space');
       expect(rows(t).sublist(3), [
@@ -620,14 +668,17 @@ void main() {
       await press(t, 'down space');
       expect(bottom(t), contains('2 marked'));
       await press(t, 'up');
-      expect(cursor(t), '    util/');
+      expect(cursor(t), native('    util/'));
       await press(t, 'down down enter');
       expect(picked, [
-        ['$root/README.md', '$root/src/main.dart'],
+        [native('$root/README.md'), native('$root/src/main.dart')],
       ]);
       await press(t, 'shift+tab up up enter');
       expect(picked, hasLength(2));
-      expect(picked.last, ['$root/README.md', '$root/src/main.dart']);
+      expect(picked.last, [
+        native('$root/README.md'),
+        native('$root/src/main.dart'),
+      ]);
     });
   });
 
@@ -640,18 +691,18 @@ void main() {
         t,
         picker(picked: picked, mode: FilePickerMode.save, name: 'out.txt'),
       );
-      expect(field(t), '$root/out.txt');
+      expect(field(t), native('$root/out.txt'));
       expect(bottom(t), endsWith('Save'));
       await press(t, 'enter');
       expect(picked, [
-        ['$root/out.txt'],
+        [native('$root/out.txt')],
       ]);
       await clear(t);
       await type(t, 'missing/out.txt\r');
       expect(bottom(t), contains('no such directory'));
       await clear(t);
       await type(t, 'notes.txt\r');
-      expect(picked.last, ['$root/notes.txt']);
+      expect(picked.last, [native('$root/notes.txt')]);
       await clear(t);
       await type(t, 'new/\r');
       expect(bottom(t), contains('not found'));
@@ -666,7 +717,7 @@ void main() {
       expect(bottom(t), contains('no such directory'));
       await press(t, 'tab end enter');
       expect(picked, [
-        ['$root/README.md'],
+        [native('$root/README.md')],
       ]);
       expect(bottom(t), isNot(contains('no such directory')));
     });
@@ -680,10 +731,10 @@ void main() {
       expect(bottom(t), endsWith('Choose'));
       await press(t, 'tab down enter shift+tab');
       await listed(t);
-      expect(field(t), '$root/src/');
+      expect(field(t), native('$root/src/'));
       await press(t, 'enter');
       expect(picked, [
-        ['$root/src'],
+        [native('$root/src')],
       ]);
       await type(t, 'main.dart\r');
       expect(bottom(t), contains('not a directory'));
@@ -692,7 +743,7 @@ void main() {
       await listed(t);
       await t.click(columns - 3, 11);
       await t.pump();
-      expect(picked.last, ['$root/docs']);
+      expect(picked.last, [native('$root/docs')]);
     });
   });
 
@@ -702,11 +753,16 @@ void main() {
         'Enter on a directory goes into it', (t) async {
       await start(t, picker());
       await type(t, 's');
-      expect(suggestions(t), ['src/']);
+      expect(suggestions(t), [native('src/')]);
       await press(t, 'enter');
       await listed(t);
-      expect(field(t), '$root/src/');
-      expect(rows(t), ['../', 'util/', 'main.dart', 'Model.dart']);
+      expect(field(t), native('$root/src/'));
+      expect(rows(t), [
+        native('../'),
+        native('util/'),
+        'main.dart',
+        'Model.dart',
+      ]);
       await type(t, 'M');
       expect(suggestions(t), ['main.dart', 'Model.dart']);
       await clear(t);
@@ -790,18 +846,18 @@ void main() {
       );
       await listed(t);
       String bar() => t.lines.last;
-      expect(field(t), '$root/new');
+      expect(field(t), native('$root/new'));
       expect(bar(), isNot(contains('ctrl+z')));
       await type(t, 'x');
       expect(bar(), contains('ctrl+z undo'));
       await press(t, 'ctrl+z');
-      expect(field(t), '$root/new');
+      expect(field(t), native('$root/new'));
       expect(bar(), isNot(contains('ctrl+z')));
       await clear(t);
       await type(t, 'docs');
       await press(t, 'enter');
       await listed(t);
-      expect(field(t), '$root/docs/');
+      expect(field(t), native('$root/docs/'));
       expect(bar(), isNot(contains('ctrl+z')));
     });
   });
@@ -819,10 +875,10 @@ void main() {
       await opened(t);
       expect(t, containsLine(endsWith('  Open')));
       expect(focused(t), 'file picker field');
-      expect(t, containsLine(endsWith('  $root/')));
+      expect(t, containsLine(endsWith('  $root$sep')));
       await press(t, 'down down enter');
       expect(results, [
-        ['$root/notes.txt'],
+        [native('$root/notes.txt')],
       ]);
       expect(t, isNot(containsLine(contains('Open'))));
       await press(t, 'o');
@@ -847,15 +903,15 @@ void main() {
 /// directory the project.
 final memory = PickerFileSystem.memory(
   [
-    '/home/me/app/lib/main.dart',
-    '/home/me/app/lib/src/',
-    '/home/me/app/README.md',
-    '/home/me/.profile',
-    '/home/me/notes.txt',
-    '/tmp/',
+    rooted('/home/me/app/lib/main.dart'),
+    rooted('/home/me/app/lib/src/'),
+    rooted('/home/me/app/README.md'),
+    rooted('/home/me/.profile'),
+    rooted('/home/me/notes.txt'),
+    rooted('/tmp/'),
   ],
-  currentDirectory: '/home/me/app',
-  homeDirectory: '/home/me',
+  currentDirectory: rooted('/home/me/app'),
+  homeDirectory: rooted('/home/me'),
 );
 
 /// A [FilePicker] over [memory], its field focused, in an overlay in the
@@ -882,41 +938,47 @@ void memoryTests() {
   group('a file system of its own', () {
     test('a directory is every path above one, and one ending in a '
         'separator', () async {
-      expect(memory.kindOf('/'), FileKind.directory);
-      expect(memory.kindOf('/home/me/app/lib/src'), FileKind.directory);
-      expect(memory.kindOf('/home/me/app/lib/src/'), FileKind.directory);
-      expect(memory.kindOf('/home/me/notes.txt'), FileKind.file);
-      expect(memory.kindOf('/home/me/none'), FileKind.none);
-      expect(memory.kindOf('/home/me/notes.txt/x'), FileKind.none);
-      expect(await memory.list('/home/me').toList(), [
-        (path: '/home/me/app', isDirectory: true),
-        (path: '/home/me/.profile', isDirectory: false),
-        (path: '/home/me/notes.txt', isDirectory: false),
+      expect(memory.kindOf(rooted('/')), FileKind.directory);
+      expect(memory.kindOf(rooted('/home/me/app/lib/src')), FileKind.directory);
+      expect(
+        memory.kindOf(rooted('/home/me/app/lib/src/')),
+        FileKind.directory,
+      );
+      expect(memory.kindOf(rooted('/home/me/notes.txt')), FileKind.file);
+      expect(memory.kindOf(rooted('/home/me/none')), FileKind.none);
+      expect(memory.kindOf(rooted('/home/me/notes.txt/x')), FileKind.none);
+      expect(await memory.list(rooted('/home/me')).toList(), [
+        (path: rooted('/home/me/app'), isDirectory: true),
+        (path: rooted('/home/me/.profile'), isDirectory: false),
+        (path: rooted('/home/me/notes.txt'), isDirectory: false),
       ]);
-      expect(await memory.list('/tmp').toList(), isEmpty);
-      await expectLater(memory.list('/none').toList(), throwsA(anything));
+      expect(await memory.list(rooted('/tmp')).toList(), isEmpty);
       await expectLater(
-        memory.list('/home/me/notes.txt').toList(),
+        memory.list(rooted('/none')).toList(),
+        throwsA(anything),
+      );
+      await expectLater(
+        memory.list(rooted('/home/me/notes.txt')).toList(),
         throwsA(anything),
       );
     });
 
     testTwk('lists its working directory, the picker given none', (t) async {
       await start(t, memoryPicker());
-      expect(field(t), '/home/me/app/');
-      expect(rows(t), ['../', 'lib/', 'README.md']);
+      expect(field(t), rooted('/home/me/app/'));
+      expect(rows(t), [native('../'), native('lib/'), 'README.md']);
     });
 
     testTwk('a directory given relative is below its working directory, '
         'and ~ is its home', (t) async {
       await start(t, memoryPicker(directory: 'lib'));
-      expect(field(t), '/home/me/app/lib/');
-      expect(rows(t), ['../', 'src/', 'main.dart']);
+      expect(field(t), rooted('/home/me/app/lib/'));
+      expect(rows(t), [native('../'), native('src/'), 'main.dart']);
       await clear(t);
       await type(t, '~\r');
       await listed(t);
-      expect(field(t), '/home/me/');
-      expect(rows(t), ['../', 'app/', 'notes.txt']);
+      expect(field(t), rooted('/home/me/'));
+      expect(rows(t), [native('../'), native('app/'), 'notes.txt']);
     });
 
     testTwk('a file typed is picked, one not there refused, and a new name '
@@ -924,27 +986,27 @@ void memoryTests() {
       final picked = <List<String>>[];
       await start(t, memoryPicker(picked: picked));
       await type(t, 'lib/main.dart\r');
-      expect(picked.last, ['/home/me/app/lib/main.dart']);
+      expect(picked.last, [rooted('/home/me/app/lib/main.dart')]);
       await clear(t);
-      await type(t, '/home/me/app/none.dart\r');
+      await type(t, '${rooted('/home/me/app/none.dart')}\r');
       expect(bottom(t), contains('not found'));
       await t.pumpWidget(
         memoryPicker(picked: picked, mode: FilePickerMode.save),
       );
       await listed(t);
       await clear(t);
-      await type(t, '/tmp/new.txt\r');
-      expect(picked.last, ['/tmp/new.txt']);
+      await type(t, '${rooted('/tmp/new.txt')}\r');
+      expect(picked.last, [rooted('/tmp/new.txt')]);
     });
 
     testTwk('says why a directory cannot be listed', (t) async {
-      await start(t, memoryPicker(directory: '/home/me/gone'));
-      expect(rows(t), ['../', 'cannot list: no such directory']);
+      await start(t, memoryPicker(directory: rooted('/home/me/gone')));
+      expect(rows(t), [native('../'), 'cannot list: no such directory']);
     });
 
     test('without a working directory, a tree is in the root', () {
-      final tree = PickerFileSystem.memory(['/srv/www/index.html']);
-      expect(tree.currentDirectory, '/');
+      final tree = PickerFileSystem.memory([rooted('/srv/www/index.html')]);
+      expect(tree.currentDirectory, rooted('/'));
       expect(tree.homeDirectory, isNull);
     });
 
@@ -956,19 +1018,19 @@ void memoryTests() {
         child: Overlay(
           child: FilePicker(
             fileSystem: files,
-            directory: '/home/me',
+            directory: rooted('/home/me'),
             onPicked: (_) {},
           ),
         ),
       );
       await start(t, over(memory));
-      expect(rows(t), ['../', 'app/', 'notes.txt']);
+      expect(rows(t), [native('../'), native('app/'), 'notes.txt']);
       await t.pumpWidget(
-        over(PickerFileSystem.memory(['/home/me/todo.md'])),
+        over(PickerFileSystem.memory([rooted('/home/me/todo.md')])),
       );
       await listed(t);
-      expect(field(t), '/home/me/');
-      expect(rows(t), ['../', 'todo.md']);
+      expect(field(t), rooted('/home/me/'));
+      expect(rows(t), [native('../'), 'todo.md']);
     });
   });
 }

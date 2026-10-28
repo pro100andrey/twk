@@ -17,6 +17,8 @@ import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
+import '../platform/native_paths.dart';
+
 /// Where the widget built anew is: the only child of its parent, which
 /// lets the old one go before the new one starts, or one of its children,
 /// whose new one starts first.
@@ -533,8 +535,8 @@ void main() {
 
   group('a FilePickerController', () {
     final files = PickerFileSystem.memory(
-      ['/home/docs/b.md', '/home/a.txt'],
-      currentDirectory: '/home',
+      [rooted('/home/docs/b.md'), rooted('/home/a.txt')],
+      currentDirectory: rooted('/home'),
     );
 
     Widget picker(FilePickerController c) => FilePicker(
@@ -560,8 +562,8 @@ void main() {
         size: (30, 10),
       );
       await t.pumpUntilIdle();
-      expect(c.highlighted, '/home/docs');
-      expect(seen.last, '/home /home/docs');
+      expect(c.highlighted, rooted('/home/docs'));
+      expect(seen.last, '${rooted('/home')} ${rooted('/home/docs')}');
       final before = seen.length;
       key.currentState!.swap();
       await t.pumpUntilIdle();
@@ -590,9 +592,7 @@ void main() {
       expect(t.lines.first, 'gone');
       noErrors(t);
     });
-    // its file system's paths are POSIX ones, which the picker resolves
-    // in Windows' form on Windows (paths_test.dart)
-  }, testOn: '!windows');
+  });
 }
 
 /// A [FilePicker] of [build] with a controller of its own, disposed with it.
