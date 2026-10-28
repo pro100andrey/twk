@@ -1,0 +1,14 @@
+# Every checkout has the bytes of the index: LF, on Windows too, where
+# core.autocrlf would otherwise turn the text files to CRLF and fail the
+# tests that read them (the README's ```dart blocks, the skill's front
+# matter, the goldens, the SVG shots, the spec files).
+* text=auto eol=lf
+
+# Bytes as they are: images, raw pixels, and the fixtures of terminal
+# output, whose escapes and line endings are what the tests parse.
+*.png binary
+*.jpg binary
+*.rgba binary
+*.bin binary
+*.ansi binary
+*.diff binary
