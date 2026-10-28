@@ -41,7 +41,8 @@ void main() => print(said);
   Future<String> run(String kernel) async {
     final res = await runProcess(Platform.resolvedExecutable, [kernel]);
     expect(res.exitCode, 0, reason: '${res.stderr}');
-    return '${res.stdout}';
+    // a line ends in CR LF on Windows
+    return '${res.stdout}'.replaceAll('\r\n', '\n');
   }
 
   test('compiled to a kernel in the cache, which runs', () async {
