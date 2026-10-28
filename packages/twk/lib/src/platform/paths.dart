@@ -89,6 +89,21 @@ int _rootLength(String path) {
   return at;
 }
 
+/// The letter of the drive [path] is on, a capital, from its root (`D:\`
+/// or `\\?\D:\`); null for none.
+int? _driveOf(String path) {
+  if (_isDrive(path, 0)) {
+    return path.codeUnitAt(0) & 0xDF;
+  }
+  final long =
+      path.length > 4 &&
+      isSeparator(path.codeUnitAt(0)) &&
+      isSeparator(path.codeUnitAt(1)) &&
+      (path.codeUnitAt(2) == 0x3F || path.codeUnitAt(2) == 0x2E) && // ? .
+      isSeparator(path.codeUnitAt(3));
+  return long && _isDrive(path, 4) ? path.codeUnitAt(4) & 0xDF : null;
+}
+
 /// The root [path] starts at, `/` or on Windows a drive's (`C:\`, its
 /// letter a capital) or a share's (`\\server\share\`); null for a relative
 /// path.
@@ -130,11 +145,14 @@ String resolvePath(String dir, String path, String? home) {
   if (_rootLength(p) > 0) {
     full = p;
   } else if (isWindows && p.isNotEmpty && isSeparator(p.codeUnitAt(0))) {
-    full = '${rootOf(dir) ?? ''}$p';
+    // the root's separator for the path's: two would start a share's name
+    final root = rootOf(dir);
+    full = root == null ? p : '$root${p.substring(1)}';
   } else if (isWindows && _isDrive(p, 0)) {
-    final drive = _driveRoots[(p.codeUnitAt(0) | 0x20) - 0x61];
     final rest = p.substring(2);
-    full = rootOf(dir) == drive ? joinPath(dir, rest) : '$drive$rest';
+    full = _driveOf(dir) == p.codeUnitAt(0) & 0xDF
+        ? joinPath(dir, rest)
+        : '${_driveRoots[(p.codeUnitAt(0) | 0x20) - 0x61]}$rest';
   } else {
     // one separator between them: two at the start are a share's root
     full = joinPath(dir, p);

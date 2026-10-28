@@ -100,6 +100,8 @@ void main() {
       expect(resolvePath(r'C:\proj', 'd:report', null), r'D:\report');
       expect(resolvePath(r'C:\proj', 'C:x', null), r'C:\proj\x');
       expect(resolvePath(r'c:\proj', 'c:..', null), r'C:\');
+      // a long path's drive is its drive too
+      expect(resolvePath(r'\\?\D:\proj', 'D:sub', null), r'\\?\D:\proj\sub');
     });
 
     test('a share typed in part stays one, not a path on the drive', () {
@@ -107,6 +109,8 @@ void main() {
       expect(resolvePath(r'C:\Users\me', r'\\nas\sh', null), r'\\nas\sh\');
       expect(resolvePath(r'C:\Users\me', r'\\nas\sh\..', null), r'\\nas\sh\');
       expect(parentOf(r'\\nas\'), r'\\nas\');
+      // \x from a share typed in part names its share
+      expect(resolvePath(r'\\nas', r'\x', null), r'\\nas\x\');
     });
 
     test(r'resolvePath on a share; \x from the root of the directory, a '
