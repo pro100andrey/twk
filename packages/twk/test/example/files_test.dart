@@ -13,6 +13,7 @@ import 'package:twk/twk.dart' hide Link;
 import 'package:twk_test/twk_test.dart';
 
 import '../../example/files.dart' show FileManager;
+import '../platform/native_paths.dart';
 
 /// The terminal the tests run the app on.
 const size = (80, 16);
@@ -145,13 +146,6 @@ String read(String path) => File('$root/$path').readAsStringSync();
 
 /// The last name of [path], after a separator of either kind on Windows.
 String _name(String path) => Uri.file(path).pathSegments.last;
-
-/// The platform's separator: `\` on Windows, `/` elsewhere.
-final String sep = Platform.pathSeparator;
-
-/// [posix], a path or a line of the screen written with `/`, as the app
-/// shows it on this platform.
-String native(String posix) => posix.replaceAll('/', sep);
 
 void main() {
   setUp(() {
