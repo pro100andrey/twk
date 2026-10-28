@@ -101,10 +101,15 @@ final class FrameReader {
 
   final void Function(int type, Uint8List payload) _onFrame;
 
-  /// The size the buffer is made, and made again once a longer frame it
-  /// grew for is read: one such frame is not held for the connection's
-  /// life.
+  /// The size the buffer is made, and made again once a frame longer than
+  /// [_kept] it grew for is read: one such frame is not held for the
+  /// connection's life.
   static const int _size = 1 << 12;
+
+  /// The longest buffer kept once emptied: the frames of a screen drawn
+  /// whole, tens of kilobytes each, would make it grow and be dropped
+  /// again for each one.
+  static const int _kept = 1 << 20;
   var _buffer = Uint8List(_size);
   late var _data = ByteData.sublistView(_buffer);
   var _length = 0;
@@ -141,7 +146,7 @@ final class FrameReader {
       _buffer.setRange(0, _length - at, _buffer, at);
       _length -= at;
     }
-    if (_length == 0 && _buffer.length > _size) {
+    if (_length == 0 && _buffer.length > _kept) {
       _use(Uint8List(_size));
     }
   }
