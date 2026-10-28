@@ -21,7 +21,9 @@ final class LogServer {
   static var _served = 0;
 
   /// Serves the lines of [backlog], asked for as each client is let in,
-  /// then those given to [send], for the project [directory] is in.
+  /// then those given to [send], for the project [directory] is in. When
+  /// the address can't be kept in its file, the socket is closed before
+  /// that is thrown: left open, it would keep the process alive.
   static Future<LogServer> start(
     String? directory,
     Iterable<String> Function() backlog,
@@ -32,7 +34,15 @@ final class LogServer {
       'logs-$pid-${_served++}',
     );
     final file = LocalAddress.fileOf('logs', project);
-    address.write(file);
+    try {
+      address.write(file);
+    } on Object {
+      // on Windows the socket is TCP's, bound before anything is made in
+      // the project, so the address directory fails only here
+      await server.close();
+      address.unlink();
+      rethrow;
+    }
     return LogServer._(backlog, server, address, file);
   }
 
