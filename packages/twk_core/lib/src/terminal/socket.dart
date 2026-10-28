@@ -455,7 +455,8 @@ final class TerminalShell {
   /// ([LocalAddress.bind]) whose address goes to the project's address
   /// file `.dart_tool/twk/shell`, where `Terminal.open` finds it. Throws
   /// [TerminalException] when stdin or stdout is not a terminal, or a
-  /// shell serves the project already.
+  /// shell serves the project already; when the address can't be kept in
+  /// its file, what that throws, the socket closed first.
   static Future<TerminalShell> start({
     String? directory,
     void Function(ShellEvent event)? onEvent,
@@ -478,7 +479,15 @@ final class TerminalShell {
       LocalAddress.directoryOf(project),
       'shell',
     );
-    address.write(file);
+    try {
+      address.write(file);
+    } on Object {
+      // left open, the socket would keep the process alive: on Windows it
+      // is TCP's, bound before anything is made in the project
+      await server.close();
+      address.unlink();
+      rethrow;
+    }
     return TerminalShell.serve(
       StdioLink(),
       server,
