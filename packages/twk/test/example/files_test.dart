@@ -143,7 +143,14 @@ List<String> ls(String path) => [
 /// What the file [path] below [root] holds.
 String read(String path) => File('$root/$path').readAsStringSync();
 
-String _name(String path) => path.substring(path.lastIndexOf('/') + 1);
+String _name(String path) => path.substring(path.lastIndexOf(sep) + 1);
+
+/// The platform's separator: `\` on Windows, `/` elsewhere.
+final String sep = Platform.pathSeparator;
+
+/// [posix], a path or a line of the screen written with `/`, as the app
+/// shows it on this platform.
+String native(String posix) => posix.replaceAll('/', sep);
 
 void main() {
   setUp(() {
@@ -152,7 +159,7 @@ void main() {
     final temp = (Platform.isWindows ? Directory.systemTemp : Directory('/tmp'))
         .createTempSync('files_');
     addTearDown(() => temp.deleteSync(recursive: true));
-    root = '${temp.resolveSymbolicLinksSync()}/work';
+    root = '${temp.resolveSymbolicLinksSync()}${sep}work';
     for (final d in ['', '/docs', '/src', '/src/lib', '/.git']) {
       Directory('$root$d').createSync();
     }
@@ -179,23 +186,27 @@ void main() {
       'bar counts them and says where F5 copies to', (t) async {
     await start(t);
     expect(t.lines.first, ' File  View  Options');
-    expect(tree(t), ['▾ work/', '├── docs/', '└─▸ src/']);
+    expect(tree(t), [
+      native('▾ work/'),
+      native('├── docs/'),
+      native('└─▸ src/'),
+    ]);
     expect(title(t), root);
     expect(t.lines[2].substring(27), startsWith('Name '));
     expect(files(t), [
-      '../ up',
-      'docs/ dir',
-      'src/ dir',
+      native('../ up'),
+      native('docs/ dir'),
+      native('src/ dir'),
       'notes.txt 2.9K',
       'README.md 100',
     ]);
     expect(t.lines[6], endsWith(' 2.9K 2026-01-02 03:04│'));
     expect(focused(t), 'files');
-    expect(selected(t), 'docs/ dir', reason: 'the first below ../');
+    expect(selected(t), native('docs/ dir'), reason: 'the first below ../');
     for (final x in [27, 50, 60, 70]) {
       expect(t, styleAt(x, 4, hasBg(theme.selection.bg!)), reason: 'the row');
     }
-    expect(selectedInTree(t), 'work/');
+    expect(selectedInTree(t), native('work/'));
     expect(status(t), endsWith(' 4 entries'));
     expect(status(t), startsWith(' to $root '));
     expect(
@@ -209,26 +220,31 @@ void main() {
       'and Enter opens it in the table', (t) async {
     await start(t);
     await press(t, 'enter');
-    expect(title(t), '$root/docs');
-    expect(files(t), ['../ up', 'guide.md 4.9K']);
+    expect(title(t), native('$root/docs'));
+    expect(files(t), [native('../ up'), 'guide.md 4.9K']);
     expect(selected(t), 'guide.md 4.9K');
     await press(t, 'backspace');
     expect(title(t), root);
-    expect(selected(t), 'docs/ dir');
+    expect(selected(t), native('docs/ dir'));
 
     await press(t, 'down enter up enter');
     expect(title(t), root, reason: '../ of src');
-    expect(selected(t), 'src/ dir');
+    expect(selected(t), native('src/ dir'));
 
     await press(t, 'tab');
     expect(focused(t), 'tree');
     expect(status(t), startsWith(' to $root '), reason: "the table's");
     await press(t, 'down down right');
-    expect(tree(t), ['▾ work/', '├── docs/', '└─▾ src/', '  └── lib/']);
+    expect(tree(t), [
+      native('▾ work/'),
+      native('├── docs/'),
+      native('└─▾ src/'),
+      native('  └── lib/'),
+    ]);
     await press(t, 'down enter');
-    expect(selectedInTree(t), 'lib/');
-    expect(title(t), '$root/src/lib');
-    expect(files(t), ['../ up', 'util.dart 1.5K']);
+    expect(selectedInTree(t), native('lib/'));
+    expect(title(t), native('$root/src/lib'));
+    expect(files(t), [native('../ up'), 'util.dart 1.5K']);
     expect(focused(t), 'tree', reason: 'the focus left in the tree');
   });
 
@@ -237,7 +253,7 @@ void main() {
       'frame until they are copied, and a toast says so', (t) async {
     await start(t);
     await click(t, 6, 3);
-    expect(selectedInTree(t), 'docs/');
+    expect(selectedInTree(t), native('docs/'));
     expect(focused(t), 'tree');
     await click(t, 40, 6);
     expect(focused(t), 'files');
@@ -247,12 +263,12 @@ void main() {
       theme.warning.fg!.value,
       reason: 'notes.txt marked',
     );
-    expect(status(t), startsWith(' to $root/docs '));
+    expect(status(t), startsWith(native(' to $root/docs ')));
     expect(status(t), endsWith(' 4 entries, 2 marked, 3.0K'));
 
     await press(t, 'f5');
     await see(t, '  Copy 2 entries to ');
-    await see(t, '  $root/docs ');
+    await see(t, native('  $root/docs '));
     await see(t, '   Copy    Cancel ');
 
     await press(t, 'enter');
@@ -350,7 +366,12 @@ void main() {
     expect(ls('src/lib'), ['README.md', 'util.dart']);
     expect(read('src/lib/README.md'), startsWith('README.md'));
     await t.pump(const Duration(seconds: 3));
-    expect(files(t), ['../ up', 'docs/ dir', 'src/ dir', 'notes.txt 2.9K']);
+    expect(files(t), [
+      native('../ up'),
+      native('docs/ dir'),
+      native('src/ dir'),
+      'notes.txt 2.9K',
+    ]);
     expect(selected(t), 'notes.txt 2.9K');
   });
 
@@ -359,9 +380,9 @@ void main() {
       'itself', (t) async {
     await start(t);
     await press(t, 'down enter');
-    expect(title(t), '$root/src');
+    expect(title(t), native('$root/src'));
     await press(t, 'tab down down right down');
-    expect(selectedInTree(t), 'lib/');
+    expect(selectedInTree(t), native('lib/'));
     await press(t, 'up f5');
     await see(t, '  Copy src to ');
     await press(t, 'enter');
@@ -373,16 +394,30 @@ void main() {
     await press(t, 'escape');
 
     await click(t, 6, 3);
-    expect(selectedInTree(t), 'docs/');
+    expect(selectedInTree(t), native('docs/'));
     await press(t, 'f6 enter');
     await until(t, () => shows(t, 'Moved'));
     await see(t, '▌ Moved docs to src.');
     expect(ls(''), ['.env', '.git', 'README.md', 'notes.txt', 'src']);
     expect(read('src/docs/guide.md'), startsWith('guide.md'));
-    expect(tree(t), ['▾ work/', '└─▾ src/', '  ├── docs/', '  └── lib/']);
-    expect(selectedInTree(t), 'work/', reason: 'docs is gone from there');
+    expect(tree(t), [
+      native('▾ work/'),
+      native('└─▾ src/'),
+      native('  ├── docs/'),
+      native('  └── lib/'),
+    ]);
+    expect(
+      selectedInTree(t),
+      native('work/'),
+      reason: 'docs is gone from there',
+    );
     await t.pump(const Duration(seconds: 3));
-    expect(files(t), ['../ up', 'docs/ dir', 'lib/ dir', 'main.dart 2.0K']);
+    expect(files(t), [
+      native('../ up'),
+      native('docs/ dir'),
+      native('lib/ dir'),
+      'main.dart 2.0K',
+    ]);
   });
 
   testTwk('a copy that fails stops there and says why', (t) async {
@@ -390,7 +425,7 @@ void main() {
     await start(t);
     await click(t, 6, 3);
     await click(t, 40, 5);
-    expect(selected(t), 'src/ dir');
+    expect(selected(t), native('src/ dir'));
     await press(t, 'f5 enter');
     await until(t, () => shows(t, 'failed'));
     await see(t, '▌ Copy failed: ');
@@ -407,7 +442,7 @@ void main() {
     await see(t, '  A name, please. ');
     await type(t, 'a/b');
     await press(t, 'enter');
-    await see(t, '  A name has no /. ');
+    await see(t, native('  A name has no /. '));
     await press(t, 'ctrl+a ctrl+k');
     await type(t, 'README.md');
     await press(t, 'enter');
@@ -425,8 +460,13 @@ void main() {
     await type(t, 'build');
     await press(t, 'enter');
     expect(Directory('$root/build').existsSync(), isTrue);
-    expect(selected(t), 'build/ dir');
-    expect(tree(t), ['▾ work/', '├── build/', '├── docs/', '└─▸ src/']);
+    expect(selected(t), native('build/ dir'));
+    expect(tree(t), [
+      native('▾ work/'),
+      native('├── build/'),
+      native('├── docs/'),
+      native('└─▸ src/'),
+    ]);
 
     await press(t, 'f2 escape');
     expect(ls(''), contains('build'), reason: 'Escape renamed nothing');
@@ -441,7 +481,7 @@ void main() {
       'was under it', (t) async {
     await start(t);
     await press(t, 'enter');
-    expect(title(t), '$root/docs');
+    expect(title(t), native('$root/docs'));
     await press(t, 'f9');
     expect(
       t,
@@ -466,27 +506,36 @@ space toggle   ctrl+s save   esc back
     );
     await press(t, 'space tab space tab tab right');
     await press(t, 'escape');
-    expect(title(t), '$root/docs', reason: 'back, the table as it was');
+    expect(title(t), native('$root/docs'), reason: 'back, the table as it was');
     expect(selected(t), 'guide.md 4.9K');
     expect(focused(t), 'files');
-    expect(tree(t), ['▾ work/', '├── docs/', '└─▸ src/'], reason: 'unsaved');
+    expect(tree(t), [
+      native('▾ work/'),
+      native('├── docs/'),
+      native('└─▸ src/'),
+    ], reason: 'unsaved');
 
     await press(t, 'backspace f9');
     expect(t, hasLine('│ [ ] show hidden files '));
     expect(t, hasLine('│ (●) name  ( ) size '));
     await press(t, 'space tab space tab tab right ctrl+s');
     expect(focused(t), 'files');
-    expect(tree(t), ['▾ work/', '    .git/', '    docs/', '  ▸ src/']);
+    expect(tree(t), [
+      native('▾ work/'),
+      native('    .git/'),
+      native('    docs/'),
+      native('  ▸ src/'),
+    ]);
     expect(files(t), [
-      '../ up',
-      '.git/ dir',
-      'docs/ dir',
-      'src/ dir',
+      native('../ up'),
+      native('.git/ dir'),
+      native('docs/ dir'),
+      native('src/ dir'),
       'notes.txt 2.9K',
       'README.md 100',
       '.env 10',
     ]);
-    expect(selected(t), 'docs/ dir');
+    expect(selected(t), native('docs/ dir'));
     await press(t, 'f9');
     expect(t, hasLine('│ [x] show hidden files '));
     expect(t, hasLine('│ [ ] show the lines of the tree '));
@@ -512,7 +561,7 @@ space toggle   ctrl+s save   esc back
     await drag(t, (30, 6), (8, 4));
     await see(t, '  Copy or move');
     await see(t, '  Copy or move notes.txt to ');
-    await see(t, '  $root/src ');
+    await see(t, native('  $root/src '));
     await see(t, '   Copy    Move    Cancel ');
     await press(t, 'tab tab enter');
     await until(t, () => shows(t, 'Moved'));
@@ -521,10 +570,10 @@ space toggle   ctrl+s save   esc back
 
     await click(t, 30, 5);
     await press(t, 'enter');
-    expect(title(t), '$root/src');
+    expect(title(t), native('$root/src'));
     await drag(t, (6, 3), (40, 9));
     await see(t, '  Copy or move docs to ');
-    await see(t, '  $root/src ');
+    await see(t, native('  $root/src '));
     await press(t, 'enter');
     await until(t, () => shows(t, 'Copied'));
     expect(ls('src/docs'), ['guide.md']);

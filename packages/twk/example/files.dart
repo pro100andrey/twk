@@ -26,7 +26,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
-import 'dart:math' show min;
+import 'dart:math' show max, min;
 import 'dart:typed_data';
 
 import 'package:twk/twk.dart' hide Link;
@@ -555,7 +555,7 @@ final class _BrowserState extends State<_Browser> {
 
   /// Whether [path] is the root of the tree or holds it, which stays
   /// where it is.
-  bool _holdsRoot(String path) => _root == path || _root.startsWith('$path/');
+  bool _holdsRoot(String path) => _root == path || _isWithin(_root, path);
 
   /// Where F5 and F6 put them: in the other pane's directory.
   String get _target => _treeActive ? _directory : _treeDirectory;
@@ -756,7 +756,7 @@ final class _BrowserState extends State<_Browser> {
       showToast(context, 'Rename failed: ${_message(e)}');
       return;
     }
-    if (_directory == path || _directory.startsWith('$path/')) {
+    if (_directory == path || _isWithin(_directory, path)) {
       _directory = to + _directory.substring(path.length);
     }
     if (_treeActive) {
@@ -1064,7 +1064,7 @@ final class _TreePane extends StatelessWidget {
               data: _Paths([path]),
               feedback: _DragFeedback([path]),
               child: Text(
-                '${_name(path)}/',
+                '${_name(path)}$_separator',
                 style: hovered ? _dropStyle(theme) : const Style(),
                 wrap: .none,
                 overflow: .ellipsis,
@@ -1195,7 +1195,7 @@ final class _NameCell extends StatelessWidget {
     }
     Widget name(Style over) {
       final text = Text(
-        entry.isDirectory ? '${entry.name}/' : entry.name,
+        entry.isDirectory ? '${entry.name}$_separator' : entry.name,
         style: style.merge(over),
         wrap: .none,
         overflow: .ellipsis,
@@ -1249,7 +1249,7 @@ final class _TransferDialogState extends State<_TransferDialog> {
 
   /// The directory [text] names, its links resolved; null for none.
   String? _directory(String text) {
-    final path = text.startsWith('/') ? text : _join(widget.base, text);
+    final path = File(text).isAbsolute ? text : _join(widget.base, text);
     return text.trim().isNotEmpty && FileSystemEntity.isDirectorySync(path)
         ? Directory(path).resolveSymbolicLinksSync()
         : null;
@@ -1459,8 +1459,8 @@ final class _NameDialogState extends State<_NameDialog> {
     if (name.isEmpty) {
       return 'A name, please.';
     }
-    if (name.contains('/')) {
-      return 'A name has no /.';
+    if (name.contains('/') || name.contains(_separator)) {
+      return 'A name has no $_separator.';
     }
     if (name == '.' || name == '..') {
       return 'That is no name for an entry.';
@@ -1626,7 +1626,7 @@ String? _refusal(List<String> sources, String directory) {
     if (_parent(source) == directory) {
       return '${_name(source)} is there already.';
     }
-    if (directory == source || directory.startsWith('$source/')) {
+    if (directory == source || _isWithin(directory, source)) {
       return '${_name(source)} cannot go into itself.';
     }
   }
@@ -1647,23 +1647,36 @@ int _byName(String a, String b) {
   return byCase != 0 ? byCase : a.compareTo(b);
 }
 
-/// The last part of [path].
+/// `\` on Windows, `/` elsewhere: between the names of a path, and after
+/// a directory's.
+final String _separator = Platform.pathSeparator;
+
+/// The index of the last separator in [path]: `/`, and on Windows `\`
+/// too; -1 for none.
+int _lastSeparator(String path) => Platform.isWindows
+    ? max(path.lastIndexOf('/'), path.lastIndexOf(r'\'))
+    : path.lastIndexOf('/');
+
+/// The last part of [path]; a root's is the root (`/`, `C:\`).
 String _name(String path) {
-  final i = path.lastIndexOf('/');
-  return i < 0 || path.length == 1 ? path : path.substring(i + 1);
+  final i = _lastSeparator(path);
+  return i < 0 || i == path.length - 1 ? path : path.substring(i + 1);
 }
 
-/// The directory [path] is in; null for the root.
+/// The directory [path] is in; null for a root.
 String? _parent(String path) {
-  if (path == '/') {
-    return null;
-  }
-  final i = path.lastIndexOf('/');
-  return i <= 0 ? '/' : path.substring(0, i);
+  final parent = FileSystemEntity.parentOf(path);
+  return parent == path ? null : parent;
 }
 
-String _join(String directory, String name) =>
-    directory.endsWith('/') ? '$directory$name' : '$directory/$name';
+String _join(String directory, String name) => directory.endsWith(_separator)
+    ? '$directory$name'
+    : '$directory$_separator$name';
+
+/// Whether [path] is below [directory].
+bool _isWithin(String path, String directory) => path.startsWith(
+  directory.endsWith(_separator) ? directory : '$directory$_separator',
+);
 
 /// [bytes] as `512`, `2.9K`, `14M`.
 String _size(int bytes) {
