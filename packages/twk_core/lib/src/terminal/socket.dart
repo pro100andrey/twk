@@ -100,7 +100,13 @@ final class FrameReader {
   FrameReader(this._onFrame);
 
   final void Function(int type, Uint8List payload) _onFrame;
-  var _buffer = Uint8List(1 << 12);
+
+  /// The size the buffer is made, and made again once a longer frame it
+  /// grew for is read: one such frame is not held for the connection's
+  /// life.
+  static const int _size = 1 << 12;
+  var _buffer = Uint8List(_size);
+  late var _data = ByteData.sublistView(_buffer);
   var _length = 0;
 
   /// Takes [bytes] read from the socket; calls back with each frame they
@@ -112,13 +118,13 @@ final class FrameReader {
       while (size < _length + bytes.length) {
         size *= 2;
       }
-      _buffer = Uint8List(size)..setRange(0, _length, _buffer);
+      _use(Uint8List(size)..setRange(0, _length, _buffer));
     }
     _buffer.setRange(_length, _length + bytes.length, bytes);
     _length += bytes.length;
     var at = 0;
     while (_length - at >= 5) {
-      final length = _buffer.buffer.asByteData().getUint32(at + 1);
+      final length = _data.getUint32(at + 1);
       if (length > Wire.maxPayload) {
         throw FormatException('a frame of $length bytes');
       }
@@ -126,9 +132,8 @@ final class FrameReader {
         break;
       }
       final type = _buffer[at];
-      final payload = Uint8List.fromList(
-        Uint8List.sublistView(_buffer, at + 5, at + 5 + length),
-      );
+      // a copy of its own: the buffer is written over by what comes next
+      final payload = _buffer.sublist(at + 5, at + 5 + length);
       at += 5 + length;
       _onFrame(type, payload);
     }
@@ -136,6 +141,14 @@ final class FrameReader {
       _buffer.setRange(0, _length - at, _buffer, at);
       _length -= at;
     }
+    if (_length == 0 && _buffer.length > _size) {
+      _use(Uint8List(_size));
+    }
+  }
+
+  void _use(Uint8List buffer) {
+    _buffer = buffer;
+    _data = ByteData.sublistView(buffer);
   }
 }
 
