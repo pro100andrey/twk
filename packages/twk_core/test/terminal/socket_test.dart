@@ -836,6 +836,8 @@ void main() {
         Platform.resolvedExecutable,
         [socketApp],
         workingDirectory: dir.path,
+        // not plain, as an app in CI is, whose log this may be
+        environment: {'CI': 'false'},
       );
       expect(res.stderr, '');
       expect(res.stdout, 'opened 33x7\n');
@@ -886,7 +888,7 @@ void main() {
         Platform.resolvedExecutable,
         [socketApp],
         workingDirectory: dir.path,
-        environment: {'TWK_SHELL': variable},
+        environment: {'TWK_SHELL': variable, 'CI': 'false'},
       );
       expect(res.stderr, '');
       expect(res.stdout, 'opened 41x9\n');
@@ -942,7 +944,7 @@ void main() {
         Platform.resolvedExecutable,
         [socketApp],
         workingDirectory: dir.path,
-        environment: {'TWK_SHELL': ''},
+        environment: {'TWK_SHELL': '', 'CI': 'false'},
       );
       expect(res.stdout, 'opened 33x7\n');
     });

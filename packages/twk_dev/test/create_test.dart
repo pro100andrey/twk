@@ -33,6 +33,8 @@ Future<ProcessResult> dart(String dir, List<String> arguments) async {
     Platform.resolvedExecutable,
     arguments,
     workingDirectory: dir,
+    // dart test's own reporter, not GitHub's, whose output is read
+    environment: {'GITHUB_ACTIONS': ''},
     group: true,
   );
   expect(

@@ -6,7 +6,8 @@ color_scheme_test.dart.
 Runs COMMAND in a pseudo-terminal that answers the capability probe as a
 dark terminal with mode 2031, reports a switch to a light color scheme
 once the mode is turned on, and answers the query for the background
-that follows with the colors of a light terminal. What the command wrote
+that follows with the colors of a light terminal. COMMAND runs with
+CI=false, as in tool/pty_run.py: in a terminal, not a CI log. What the command wrote
 to the terminal goes to the file OUT, its stderr to stderr. Exits with the
 command's status, killing it after 30 seconds. POSIX only.
 """
@@ -43,6 +44,7 @@ def main():
 
     proc = subprocess.Popen(cmd, stdin=slave, stdout=slave,
                             stderr=subprocess.PIPE,
+                            env=dict(os.environ, CI='false'),
                             preexec_fn=make_controlling_tty)
     out, err = bytearray(), bytearray()
     steps = list(STEPS)

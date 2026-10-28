@@ -91,10 +91,10 @@ class HeadlessTwkTerminal {
   }
 }
 
-/** The environment of the app: this process's, none of twk's own variables in it but its TWK_SHELL. */
+/** The environment of the app: this process's, none of twk's own variables in it but its TWK_SHELL, and not CI's (an app in CI writes plain text). */
 function appEnvironment(variable: string): NodeJS.ProcessEnv {
   const env = Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith('TWK_') && k !== 'NO_COLOR'));
-  return { ...env, TWK_SHELL: variable };
+  return { ...env, CI: 'false', TWK_SHELL: variable };
 }
 
 describe('what twk finds out about the twk terminal, switch by switch', function () {
