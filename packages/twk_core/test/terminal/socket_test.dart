@@ -445,6 +445,9 @@ void main() {
       }
       expect(reset, 3);
     },
+    // macOS queues the connect before the close and resets the read
+    // after it, never the connect: the race is Linux's
+    testOn: '!mac-os',
   );
 
   test('a connect reset by a server closing is a SocketException', () async {
@@ -470,7 +473,8 @@ void main() {
       address.unlink();
     }
     expect(failed, 3);
-  });
+    // the reset of the connect: Linux's, as above
+  }, testOn: '!mac-os');
 
   group('TerminalShell', () {
     late FakeLink link;
