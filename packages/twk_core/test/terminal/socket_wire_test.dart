@@ -177,7 +177,7 @@ void main() {
         LocalAddress.directoryOf(dir.path),
         'shell',
       );
-      address.write(LocalAddress.fileOf('shell', dir.path));
+      await address.write(LocalAddress.fileOf('shell', dir.path));
       await server.close();
       address.unlink();
       expect(await SocketLink.toShell(dir.path), isNull);
@@ -225,7 +225,7 @@ void main() {
       LocalAddress.directoryOf(dir.path),
       'shell',
     );
-    address.write(file);
+    await address.write(file);
     final shell = TerminalShell.serve(link, server, address, file: file);
     addTearDown(shell.stop);
     final process = await startProcess(

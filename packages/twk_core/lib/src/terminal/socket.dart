@@ -491,7 +491,7 @@ final class TerminalShell {
       'shell',
     );
     try {
-      address.write(file);
+      await address.write(file);
       return TerminalShell.serve(
         StdioLink(),
         server,

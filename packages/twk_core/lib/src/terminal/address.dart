@@ -236,9 +236,9 @@ final class LocalAddress {
   ///
   /// On Windows a file open in another process can't be replaced: one
   /// reading it (a client, an editor, the virus scanner) is waited for,
-  /// for a few tenths of a second, the isolate blocked meanwhile; a
-  /// directory in its place is not.
-  void write(String file) {
+  /// for up to about a second and a quarter, the isolate going on
+  /// meanwhile; a directory in its place is not.
+  Future<void> write(String file) async {
     File(file).parent.createSync(recursive: true);
     final written = File('$file.$pid');
     try {
@@ -249,13 +249,13 @@ final class LocalAddress {
           return;
         } on PathAccessException {
           if (!Platform.isWindows ||
-              wait > 160 ||
+              wait > 640 ||
               FileSystemEntity.typeSync(file, followLinks: false) !=
                   FileSystemEntityType.file) {
             rethrow;
           }
-          sleep(Duration(milliseconds: wait));
         }
+        await Future<void>.delayed(Duration(milliseconds: wait));
       }
     } on FileSystemException catch (e, stack) {
       try {

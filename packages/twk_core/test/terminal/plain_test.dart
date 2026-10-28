@@ -198,7 +198,7 @@ void main() {
         LocalAddress.directoryOf(dir.path),
         'shell',
       );
-      address.write(file);
+      await address.write(file);
       final shell = TerminalShell.serve(link, server, address, file: file);
       addTearDown(shell.stop);
       final out = Output();

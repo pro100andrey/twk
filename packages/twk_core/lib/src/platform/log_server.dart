@@ -35,7 +35,7 @@ final class LogServer {
     );
     final file = LocalAddress.fileOf('logs', project);
     try {
-      address.write(file);
+      await address.write(file);
     } on Object {
       // on Windows the socket is TCP's, bound before anything is made in
       // the project, so the address directory fails only here
