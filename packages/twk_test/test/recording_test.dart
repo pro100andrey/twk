@@ -135,11 +135,13 @@ void main() {
 
   test('a test that fails prints the last frames of its app that changed '
       'the screen, as many as it asks for; none when none did', () async {
-    final run = await runProcess(Platform.resolvedExecutable, [
-      'test',
-      '--reporter=json',
-      'test/fixtures/frames_on_failure.dart',
-    ], group: true);
+    final run = await runProcess(
+      Platform.resolvedExecutable,
+      ['test', '--reporter=json', 'test/fixtures/frames_on_failure.dart'],
+      group: true,
+      // JSON, UTF-8 whatever the system's code page (Windows')
+      stdoutEncoding: utf8,
+    );
     final names = <int, String>{};
     final prints = <String, List<String>>{};
     for (final line in LineSplitter.split('${run.stdout}')) {
