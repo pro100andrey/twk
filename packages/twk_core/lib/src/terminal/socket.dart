@@ -469,13 +469,9 @@ final class TerminalShell {
     final project = LocalAddress.projectOf(directory);
     final file = LocalAddress.fileOf('shell', project);
     final running = LocalAddress.read(file);
-    if (running != null) {
-      try {
-        (await running.connect()).destroy();
-        throw TerminalException('a twk shell serves $project already');
-      } on SocketException {
-        // left behind by a shell that didn't stop
-      }
+    // or else left behind by a shell that didn't stop
+    if (running != null && await answers(running)) {
+      throw TerminalException('a twk shell serves $project already');
     }
     final (server, address) = await LocalAddress.bind(
       LocalAddress.directoryOf(project),
@@ -500,6 +496,52 @@ final class TerminalShell {
         ..forget(file)
         ..unlink();
       rethrow;
+    }
+  }
+
+  /// Whether a shell answers at [address] within [timeout]: a twk shell,
+  /// or the VS Code extension's, refuses a hello of protocol 0, which
+  /// takes nothing from the app that has its terminal.
+  ///
+  /// That somebody listens there is not enough: on Windows the address is
+  /// a TCP port, which another program may have been given since the
+  /// shell that wrote it went away.
+  static Future<bool> answers(
+    LocalAddress address, {
+    Duration timeout = const Duration(seconds: 2),
+  }) async {
+    final Socket socket;
+    try {
+      socket = await address.connect();
+    } on SocketException {
+      return false;
+    }
+    final refused = Completer<bool>();
+    void answer(bool shell) {
+      if (!refused.isCompleted) {
+        refused.complete(shell);
+      }
+    }
+
+    final reader = FrameReader((type, _) => answer(type == Wire.refused));
+    unawaited(socket.done.then<void>((_) {}, onError: (Object _) {}));
+    socket
+      ..listen(
+        (bytes) {
+          try {
+            reader.add(bytes);
+          } on FormatException {
+            answer(false);
+          }
+        },
+        onError: (Object _) => answer(false),
+        onDone: () => answer(false),
+      )
+      ..add(jsonFrame(Wire.hello, {'protocol': 0}));
+    try {
+      return await refused.future.timeout(timeout, onTimeout: () => false);
+    } finally {
+      socket.destroy();
     }
   }
 

@@ -498,6 +498,46 @@ void main() {
     });
     tearDown(() => shell.stop());
 
+    test('answers where it listens, to a hello that takes the terminal '
+        'from no app; a server of another kind there, or none, does not '
+        'answer', () async {
+      final term = await Terminal.connect(
+        shell.address,
+        const TerminalOptions(probeTimeout: Duration(milliseconds: 50)),
+      );
+      expect(await TerminalShell.answers(shell.address), isTrue);
+      expect(events, [ShellEvent.connected]);
+      expect(shell.serving, isTrue);
+      await term.close();
+
+      // another program given the port of a shell that went away: one that
+      // says nothing, one that says something else
+      final accepted = <Socket>[];
+      final (silent, quiet) = await LocalAddress.bind(dir.path, 'silent');
+      silent.listen(accepted.add);
+      addTearDown(() async {
+        for (final s in accepted) {
+          s.destroy();
+        }
+        await silent.close();
+      });
+      expect(
+        await TerminalShell.answers(
+          quiet,
+          timeout: const Duration(milliseconds: 100),
+        ),
+        isFalse,
+      );
+      final (other, talks) = await LocalAddress.bind(dir.path, 'other');
+      other.listen((s) {
+        s.write('HTTP/1.1 400 Bad Request\r\n\r\n');
+        unawaited(s.close());
+      });
+      expect(await TerminalShell.answers(talks), isFalse);
+      await other.close();
+      expect(await TerminalShell.answers(talks), isFalse);
+    });
+
     test('serves its terminal to an app: raw mode while the app has it, '
         'input and sizes passed on, frames written, put back as the app '
         'leaves it when it closes', () async {
