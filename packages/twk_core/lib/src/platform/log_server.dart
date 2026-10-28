@@ -58,22 +58,17 @@ final class LogServer {
   /// sent the lines.
   final _clients = <Socket, bool>{};
 
-  /// How many clients sent the token.
-  var _letIn = 0;
-
   /// Whether a client sent the token: with none, a line need not be made
   /// to be [send].
-  bool get serving => _letIn > 0;
+  bool get serving => _clients.containsValue(true);
 
-  /// Sends [line] and a line feed to every client that sent the token.
+  /// Sends [line] and a line feed to every client that sent the token; its
+  /// bytes are made only for one.
   void send(String line) {
-    if (_letIn == 0) {
-      return;
-    }
-    final bytes = utf8.encode('$line\n');
+    List<int>? bytes;
     for (final MapEntry(key: client, value: served) in _clients.entries) {
       if (served) {
-        client.add(bytes);
+        client.add(bytes ??= utf8.encode('$line\n'));
       }
     }
   }
@@ -121,7 +116,6 @@ final class LogServer {
           client.add(utf8.encode(backlog.toString()));
         }
         _clients[client] = true;
-        _letIn++;
       },
       onError: (Object _) => end(),
       onDone: end,
@@ -129,11 +123,7 @@ final class LogServer {
   }
 
   void _drop(Socket client) {
-    final served = _clients.remove(client);
-    if (served != null) {
-      if (served) {
-        _letIn--;
-      }
+    if (_clients.remove(client) != null) {
       client.destroy();
     }
   }
