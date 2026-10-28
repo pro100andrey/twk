@@ -116,6 +116,23 @@ void main() {
     await expectLater(address.connect(), throwsA(isA<SocketException>()));
   });
 
+  test('a record added while no client is let in comes to the next one '
+      'with the backlog', () async {
+    final sink = LogSink();
+    final address = await sink.serve(directory: dir.path);
+    addTearDown(sink.close);
+    final first = await Client.connect(address);
+    sink.add(record('to the first'));
+    await first.waitFor('to the first');
+    first.socket.destroy();
+    sink.add(record('while none'));
+    final second = await Client.connect(address);
+    await second.waitFor('while none');
+    expect(second.messages, ['to the first', 'while none']);
+    sink.add(record('live'));
+    await second.waitFor('live');
+  });
+
   test('a client without the token gets nothing', () async {
     final sink = LogSink()..add(record('secret'));
     final address = await sink.serve(directory: dir.path);

@@ -58,8 +58,18 @@ final class LogServer {
   /// sent the lines.
   final _clients = <Socket, bool>{};
 
+  /// How many clients sent the token.
+  var _letIn = 0;
+
+  /// Whether a client sent the token: with none, a line need not be made
+  /// to be [send].
+  bool get serving => _letIn > 0;
+
   /// Sends [line] and a line feed to every client that sent the token.
   void send(String line) {
+    if (_letIn == 0) {
+      return;
+    }
     final bytes = utf8.encode('$line\n');
     for (final MapEntry(key: client, value: served) in _clients.entries) {
       if (served) {
@@ -100,10 +110,18 @@ final class LogServer {
           end();
           return;
         }
+        // the backlog in one write, not one of each line
+        final backlog = StringBuffer();
         for (final line in _backlog()) {
-          client.add(utf8.encode('$line\n'));
+          backlog
+            ..write(line)
+            ..writeCharCode(0x0A);
+        }
+        if (backlog.isNotEmpty) {
+          client.add(utf8.encode(backlog.toString()));
         }
         _clients[client] = true;
+        _letIn++;
       },
       onError: (Object _) => end(),
       onDone: end,
@@ -111,7 +129,11 @@ final class LogServer {
   }
 
   void _drop(Socket client) {
-    if (_clients.remove(client) != null) {
+    final served = _clients.remove(client);
+    if (served != null) {
+      if (served) {
+        _letIn--;
+      }
       client.destroy();
     }
   }

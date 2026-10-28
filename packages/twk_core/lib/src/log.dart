@@ -223,8 +223,14 @@ final class LogSink {
     return server.address;
   }
 
-  /// Sends [record] to the clients of the socket being served.
-  void _send(LogRecord record) => _server?.send(_line(record));
+  /// Sends [record] to the clients of the socket being served; with none,
+  /// it is not made a line of JSON.
+  void _send(LogRecord record) {
+    final server = _server;
+    if (server != null && server.serving) {
+      server.send(_line(record));
+    }
+  }
 
   /// [record] as a line of JSON ([LogRecord.toJson]), without its line
   /// feed.
