@@ -57,6 +57,17 @@ final class ShellCommand extends Command<int> {
     } on TerminalException catch (e) {
       stderr.writeln('twk shell: ${e.message}');
       return 1;
+    } on FileSystemException catch (e) {
+      // the address file, or the directory it goes in (.dart_tool a file)
+      stderr.writeln(
+        'twk shell: cannot write ${e.path}: ${e.osError?.message ?? e.message}',
+      );
+      return 1;
+    } on SocketException catch (e) {
+      stderr.writeln(
+        'twk shell: cannot listen: ${e.osError?.message ?? e.message}',
+      );
+      return 1;
     }
     _shell = shell;
     var code = 0;

@@ -78,6 +78,17 @@ void main() {
     );
   });
 
+  test("says why it cannot keep its address, the project's .dart_tool a "
+      'file, and ends with 1', () async {
+    File(p.join(project, '.dart_tool')).writeAsStringSync('');
+    final t = await Terminal.twk(['shell', '-C', project]);
+    expect(await t.ended(), exits(1));
+    expect(
+      t.text,
+      contains('twk shell: cannot write ${p.join(project, '.dart_tool')}'),
+    );
+  });
+
   test('stopped by SIGTERM ends with 143', () async {
     final t = await shell();
     t.pty.kill();
