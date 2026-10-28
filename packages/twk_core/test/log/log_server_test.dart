@@ -133,6 +133,26 @@ void main() {
     await second.waitFor('live');
   });
 
+  test('calls of serve that overlap serve one socket; close while it '
+      'starts closes it once started', () async {
+    final sink = LogSink()..add(record('kept'));
+    final both = await Future.wait([
+      sink.serve(directory: dir.path),
+      sink.serve(directory: dir.path),
+    ]);
+    expect(both[1], both[0]);
+    final client = await Client.connect(both[0]);
+    await client.waitFor('kept');
+    await sink.close();
+    await client.closed;
+
+    final starting = sink.serve(directory: dir.path);
+    await sink.close();
+    final address = await starting;
+    await expectLater(address.connect(), throwsA(isA<SocketException>()));
+    expect(File(LocalAddress.fileOf('logs', dir.path)).existsSync(), isFalse);
+  });
+
   test('a client without the token gets nothing', () async {
     final sink = LogSink()..add(record('secret'));
     final address = await sink.serve(directory: dir.path);
