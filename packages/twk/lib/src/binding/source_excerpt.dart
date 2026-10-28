@@ -6,7 +6,13 @@ library;
 import 'dart:math' show max, min;
 
 import '../platform/platform.dart'
-    show currentDirectory, environment, pathSeparator, readLines, sourcePath;
+    show
+        currentDirectory,
+        environment,
+        isWindows,
+        pathSeparator,
+        readLines,
+        sourcePath;
 
 // Examples can assume:
 // late StackTrace stack;
@@ -194,5 +200,10 @@ String shownPath(String path) => _shownPath(path);
 
 String _shownPath(String path) {
   final cwd = '$currentDirectory$pathSeparator';
-  return path.startsWith(cwd) ? path.substring(cwd.length) : path;
+  // Windows' paths are of any case, the drive's letter of a stack's file:
+  // URI small where the working directory's is a capital
+  final within = isWindows
+      ? path.toLowerCase().startsWith(cwd.toLowerCase())
+      : path.startsWith(cwd);
+  return within ? path.substring(cwd.length) : path;
 }
