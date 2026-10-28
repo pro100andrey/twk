@@ -146,6 +146,16 @@ List<String> mouseModes(String text) => [
 RenderText textOf(TwkApp app, String text) =>
     RenderText(text, app.screen.styles.pen(const Pen()));
 
+/// The files beside the address file [file] named for it, those
+/// LocalAddress.write writes it from (`shell.<pid>.<n>`).
+List<String> writtenFor(String file) {
+  final name = file.substring(file.lastIndexOf('/') + 1);
+  return [
+    for (final entry in File(file).parent.listSync())
+      if (entry.uri.pathSegments.last.startsWith('$name.')) entry.path,
+  ];
+}
+
 void main() {
   // the programs run in processes of their own, compiled once
   late String shellApp;
@@ -879,7 +889,25 @@ void main() {
       reader.closeSync();
       await writing;
       expect(LocalAddress.read(file), newer);
-      expect(File('$file.$pid').existsSync(), isFalse);
+      expect(writtenFor(file), isEmpty);
+    });
+
+    test('two writes of one process waiting at once each replace the '
+        'address file, the last one kept', () async {
+      final file = '${dir.path}/shell';
+      final (s1, older) = await LocalAddress.bind(dir.path, 'a');
+      final (s2, newer) = await LocalAddress.bind(dir.path, 'b');
+      addTearDown(s1.close);
+      addTearDown(s2.close);
+      await older.write(file);
+      final reader = File(file).openSync();
+      final first = older.write(file);
+      final second = newer.write(file);
+      reader.closeSync();
+      await first;
+      await second;
+      expect(LocalAddress.read(file), anyOf(older, newer));
+      expect(writtenFor(file), isEmpty);
     });
 
     test('an address file held open past the wait is not replaced, what '
@@ -897,7 +925,7 @@ void main() {
         throwsA(isA<PathAccessException>().having((e) => e.path, 'path', file)),
       );
       expect(LocalAddress.read(file), older);
-      expect(File('$file.$pid').existsSync(), isFalse);
+      expect(writtenFor(file), isEmpty);
     }, testOn: 'windows');
 
     test('a directory where the address file goes: what fails is of the '
@@ -910,7 +938,7 @@ void main() {
         address.write(file),
         throwsA(isA<FileSystemException>().having((e) => e.path, 'path', file)),
       );
-      expect(File('$file.$pid').existsSync(), isFalse);
+      expect(writtenFor(file), isEmpty);
     });
   });
 

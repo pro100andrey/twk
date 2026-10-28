@@ -242,13 +242,15 @@ final class LocalAddress {
   /// directories it is in are made as needed. Throws what writing it
   /// throws, of [file], leaving no file of its own behind.
   ///
-  /// On Windows a file open in another process can't be replaced: one
-  /// reading it (a client, an editor, the virus scanner) is waited for,
-  /// for up to about a second and a quarter, the isolate going on
-  /// meanwhile; a directory in its place is not.
+  /// On Windows a file open in another process can't be replaced, nor
+  /// renamed: one reading it, or reading the file written for it (a
+  /// client, an editor, the virus scanner), is waited for, for up to about
+  /// a second and a quarter, the isolate going on meanwhile; a directory
+  /// in its place is not.
   Future<void> write(String file) async {
     File(file).parent.createSync(recursive: true);
-    final written = File('$file.$pid');
+    // a file of each write's own: two of this process may wait at once
+    final written = File('$file.$pid.${_writes++}');
     try {
       written.writeAsStringSync(encode(), flush: true);
       for (var wait = 10; ; wait *= 2) {
@@ -258,8 +260,8 @@ final class LocalAddress {
         } on PathAccessException {
           if (!Platform.isWindows ||
               wait > 640 ||
-              FileSystemEntity.typeSync(file, followLinks: false) !=
-                  FileSystemEntityType.file) {
+              FileSystemEntity.typeSync(file, followLinks: false) ==
+                  FileSystemEntityType.directory) {
             rethrow;
           }
         }
@@ -274,17 +276,20 @@ final class LocalAddress {
       if (e.path != written.path) {
         rethrow;
       }
-      // of the file written for it, which is gone: what failed is [file]
+      // of the file written for it, which is gone: what failed is [file],
+      // said as it was
+      final os = e.osError ?? OSError(e.message);
       Error.throwWithStackTrace(switch (e) {
-        PathAccessException() => PathAccessException(
-          file,
-          e.osError ?? const OSError(),
-          e.message,
-        ),
-        _ => FileSystemException(e.message, file, e.osError),
+        PathAccessException() => PathAccessException(file, os, e.message),
+        PathNotFoundException() => PathNotFoundException(file, os, e.message),
+        PathExistsException() => PathExistsException(file, os, e.message),
+        _ => FileSystemException(e.message, file, os),
       }, stack);
     }
   }
+
+  /// How many writes this process made: each one's file is its own.
+  static var _writes = 0;
 
   /// Removes [file] if it still holds this address: a newer server may
   /// have replaced it.
