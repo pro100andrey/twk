@@ -13,6 +13,9 @@ import 'console_test.dart' show record;
 /// A stack as the VM writes it: the app's code (a file in the working
 /// directory, a package the program does not resolve) between the SDK's
 /// and twk's.
+/// The platform's separator, in the paths a stack's file: URIs give.
+final String sep = Platform.pathSeparator;
+
 StackTrace vmStack() {
   final app = Uri.file('${Directory.current.path}/lib/main.dart');
   return StackTrace.fromString('''
@@ -51,14 +54,14 @@ void main() {
       expect(
         [for (final l in lines.skip(1)) l.text],
         [
-          'lib/main.dart:12:5  main.<fn>',
+          'lib${sep}main.dart:12:5  main.<fn>',
           '… 2 frames of dart:async, twk',
           'package:my_app/widgets.dart:30:9  MyWidget.build',
           '… 2 frames of dart:async',
         ],
       );
       final frame = lines[1].frame!;
-      expect(frame.path, '${Directory.current.path}/lib/main.dart');
+      expect(frame.path, '${Directory.current.path}${sep}lib${sep}main.dart');
       expect((frame.line, frame.column), (12, 5));
       // a package the program does not resolve has no path
       expect(lines[3].frame!.path, isNull);
@@ -123,7 +126,7 @@ void main() {
         ' failed',
         ' while building',
         ' boom',
-        '   lib/main.dart:12:5  main.<fn>',
+        '   lib${sep}main.dart:12:5  main.<fn>',
         '   … 2 frames of dart:async, twk',
         '   package:my_app/widgets.dart:30:9  MyWidget.build',
         '   … 2 frames of dart:async',

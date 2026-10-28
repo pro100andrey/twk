@@ -14,7 +14,8 @@ void main() {
     // under the working directory, so that it is shown from it
     dir = Directory('.dart_tool').createTempSync('source_excerpt_');
     addTearDown(() => dir.deleteSync(recursive: true));
-    file = File('${dir.absolute.path}/app.dart')
+    // the path a stack's file: URI gives, with the platform's separator
+    file = File('${dir.absolute.path}${Platform.pathSeparator}app.dart')
       ..writeAsStringSync(
         [for (var i = 1; i <= 12; i++) 'line $i'].join('\n'),
       );
@@ -34,7 +35,7 @@ void main() {
     expect((excerpt.firstLine, excerpt.lastLine), (3, 7));
     expect(excerpt.lines, ['line 3', 'line 4', 'line 5', 'line 6', 'line 7']);
     expect(excerpt.fileLines, hasLength(12));
-    final shown = '.dart_tool/${dir.path.split('/').last}/app.dart';
+    final shown = '${dir.path}${Platform.pathSeparator}app.dart';
     expect(excerpt.shownPath, shown);
     expect(excerpt.location, '$shown:5:3');
     expect('$excerpt', '''

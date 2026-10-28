@@ -9,6 +9,9 @@ import 'package:twk_test/twk_test.dart';
 
 import 'console_record_test.dart' show vmStack;
 
+/// The platform's separator, in the paths a stack's file: URIs give.
+final String sep = Platform.pathSeparator;
+
 void main() {
   group('editorCommand', () {
     EditorCommand? of(Map<String, String> env) =>
@@ -116,7 +119,7 @@ void main() {
       expect(ran.single.executable, 'nvim');
       expect(ran.single.arguments, [
         '+12',
-        '${Directory.current.path}/lib/main.dart',
+        '${Directory.current.path}${sep}lib${sep}main.dart',
       ]);
       expect(suspendedWhileRunning, isTrue);
       expect(t.binding.debug.console.shownRecord, isNotNull);
@@ -133,7 +136,7 @@ void main() {
       await t.pump();
       expect(ran.single.arguments, [
         '-g',
-        '${Directory.current.path}/lib/main.dart:12:5',
+        '${Directory.current.path}${sep}lib${sep}main.dart:12:5',
       ]);
       expect(t.terminal.suspends, 0);
       expect(t.logs.records.last.message, 'code ended with 2');
