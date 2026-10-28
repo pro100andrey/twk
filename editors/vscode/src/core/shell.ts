@@ -94,7 +94,8 @@ export class TerminalShell {
   /**
    * Listens on a new local socket: `shell.sock` in a new directory of
    * [ShellOptions.temporaryRoot], or TCP on 127.0.0.1. Throws what the
-   * listen threw, nothing of it left behind.
+   * listen threw, or that the socket's path is too long, nothing of it
+   * left behind.
    */
   static async start(pane: TerminalPane, options: ShellOptions): Promise<TerminalShell> {
     const token = options.token ?? crypto.randomBytes(16).toString('hex');
@@ -120,6 +121,13 @@ export class TerminalShell {
     const directory = fs.mkdtempSync(path.join(options.temporaryRoot, 'twk-shell-'));
     const socketPath = path.join(directory, 'shell.sock');
     try {
+      // a socket's path has room for 107 bytes (103 on macOS); node 22
+      // binds a longer one where the kernel cut it, which no app finds
+      const most = process.platform === 'darwin' ? 103 : 107;
+      const length = Buffer.byteLength(socketPath);
+      if (length > most) {
+        throw new Error(`the shell's socket path is too long, ${length} bytes of at most ${most}: ${socketPath}`);
+      }
       await listening((done) => server.listen(socketPath, done));
     } catch (e) {
       // the directory is this shell's alone

@@ -368,7 +368,8 @@ dart run packages/twk_dev/bin/twk.dart play --speed=2 s.cast
 ```
 
 `twk record` runs `<command>` in a pseudo-terminal (twk_term's `Pty`) of
-this terminal's size, with this terminal's `TERM`, and passes this
+this terminal's size, with this terminal's `TERM` and `CI=false` (a
+twk app in CI writes plain text, which a terminal is not), and passes this
 terminal through to it until the command ends: raw mode (`cfmakeraw`,
 through `dart:ffi`), so every byte typed reaches the command as it is,
 Ctrl+C and Ctrl+Z included, and what the command writes comes out
@@ -492,7 +493,8 @@ the first that does something. Paths are the current directory's, a
 file's directory made when missing; the program runs in it too.
 
 The program's terminal is `xterm-256color` with `COLORTERM=truecolor`,
-of the theme's colours: the emulator answers the program's queries
+of the theme's colours, and `CI=false`, so that a twk app draws in it in
+CI too (where it would write plain text, as for a log): the emulator answers the program's queries
 (the cursor's position, the colours by OSC 10, 11 and 4, the modes) as
 a terminal does, and what the tape types goes through it too, encoded
 as the program's modes want it (an arrow as `ESC O A` once the program

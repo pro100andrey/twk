@@ -206,7 +206,8 @@ void guardedSignal(
   send(target, signal);
 }
 
-/// The process group the tests run in, from `/proc/self/stat`; read once.
+/// The process group the tests run in, from `/proc/self/stat` (Linux's,
+/// where [startProcess] makes groups); read once.
 @visibleForTesting
 int get runnerGroup => _runnerGroup ??= _stat('self')!.group;
 int? _runnerGroup;
@@ -319,7 +320,9 @@ final class _Started {
     ProcessSignal.sigkill,
     started: process.pid,
     group: _group,
-    runnerGroup: runnerGroup,
+    // read where a group was made only, which is on Linux: without one
+    // the guard sends to the process alone and never looks at it
+    runnerGroup: _group == null ? 0 : runnerGroup,
     send: (target, signal) =>
         target > 0 ? process.kill(signal) : Process.killPid(target, signal),
   );

@@ -149,7 +149,9 @@ export class HotApps {
     const run = this.deps.runner({
       file,
       cwd: project,
-      env: { TWK_DEBUG: this.debugKeys(), [shellVariable]: terminal.variable },
+      // CI=false: the app has a terminal, the twk terminal, also where the
+      // extension inherited CI=true, which makes a twk app write plain text
+      env: { CI: 'false', TWK_DEBUG: this.debugKeys(), [shellVariable]: terminal.variable },
       onOutput: (text) => this.deps.log.append(text),
       onStatus: (s) => hot !== undefined && this.running.has(hot) && this.show(s),
       onApp: (service) => this.connections.fire({ terminal, service }),
@@ -207,7 +209,7 @@ export class HotApps {
       program,
       cwd: request.cwd ?? project,
       console: 'debugConsole',
-      env: { ...request.env, TWK_DEBUG: this.debugKeys(request.env.TWK_DEBUG), [shellVariable]: terminal.variable },
+      env: { CI: 'false', ...request.env, TWK_DEBUG: this.debugKeys(request.env.TWK_DEBUG), [shellVariable]: terminal.variable },
       twkSession: key,
       others: request.others,
     };

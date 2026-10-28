@@ -14,6 +14,10 @@ terminal, and checks after exit that the terminal was handed back intact:
     told the terminal reorders right-to-left text itself until told not
     to, as VTE does, so the command resets it for its own order).
 
+The command runs with CI=false, whatever the environment says: in a real
+terminal, a user's, and not a CI log, where a twk_core app writes plain
+text only (runsInCi) and these tests are run.
+
 Input times count from the command's first output: for a twk_core app that
 is its capability probe, sent once the terminal is in raw mode, so a slow
 start can't make the input arrive while the tty still echoes it. Every
@@ -448,6 +452,7 @@ def main():
 
     proc = subprocess.Popen(cmd, stdin=slave, stdout=slave,
                             stderr=subprocess.PIPE,
+                            env=dict(os.environ, CI='false'),
                             preexec_fn=make_controlling_tty)
     out, err = bytearray(), bytearray()
     start = time.time()
@@ -554,7 +559,13 @@ def main():
         if not data:
             break
         out += data
-    after = termios.tcgetattr(slave)
+    try:
+        after = termios.tcgetattr(slave)
+    except termios.error:
+        # macOS revokes the slave once the session leader it was the
+        # controlling terminal of has exited; the master shares its tty,
+        # and so its modes, there (on Linux it has modes of its own)
+        after = termios.tcgetattr(master)
 
     if args.out:
         with open(args.out, 'wb') as f:

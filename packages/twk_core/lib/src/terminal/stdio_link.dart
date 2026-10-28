@@ -37,6 +37,9 @@ final class StdioLink implements TerminalLink {
         win.enable();
         return;
       }
+      if (!stdin.hasTerminal) {
+        throw const TerminalException('not a terminal');
+      }
       final first = WindowsConsole();
       if (!first.enable()) {
         throw const TerminalException(

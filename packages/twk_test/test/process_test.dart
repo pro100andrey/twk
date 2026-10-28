@@ -132,10 +132,12 @@ void main() {
     });
   });
 
+  // the groups are Linux's: elsewhere startProcess makes none, and the
+  // runner's is not read
   test("the runner's group is the one ps lists", () async {
     expect(runnerGroup, (await groupOf(pid)).$1);
     expect(runnerGroup, greaterThan(1));
-  });
+  }, testOn: 'linux');
 
   test('a process started in a group leads it and a session, its pid '
       'their id, and gets what it is sent only', () async {
@@ -146,12 +148,12 @@ void main() {
     await cat.stdin.close();
     expect(await cat.stdout.transform(utf8.decoder).join(), 'said\n');
     expect(await cat.exitCode, 0);
-  });
+  }, testOn: 'linux');
 
   test('a process started alone is in the group of the runner', () async {
     final cat = await startProcess('cat', []);
     expect((await groupOf(cat.pid)).$1, runnerGroup);
-  });
+  }, testOn: 'linux');
 
   test('runProcess is Process.run: exit code, output, as text or bytes; a '
       'group too', () async {
@@ -288,5 +290,6 @@ void main() {
       await gone(f.held, count: 3);
       survived();
     }, timeout: const Timeout(Duration(minutes: 4)));
-  });
+    // setsid and /proc: Linux's
+  }, testOn: 'linux');
 }

@@ -4,6 +4,7 @@
 // at, and the stack. Those lines are of the first frame neither in the
 // SDK, nor in twk, nor in the pub cache, read from its file, and left out
 // where that can't be read.
+import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
@@ -12,6 +13,10 @@ import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart' show compiledProgram, runProcess;
 
 import 'harness.dart';
+
+/// The platform's separator, as a pattern: in the paths shown from the
+/// working directory.
+final String _s = RegExp.escape(Platform.pathSeparator);
 
 /// The number of the line of [file], this one by default, that starts with
 /// [start] after its indentation, which only one does.
@@ -94,7 +99,7 @@ void main() {
     expect('$error'.split('\n'), [
       'Bad state: boom',
       'in Column → InputListener',
-      matches('^at test/binding/fatal_test\\.dart:$at:\\d+\$'),
+      matches('^at test${_s}binding${_s}fatal_test\\.dart:$at:\\d+\$'),
       "  ${at - 2} |           const Label('x'),",
       '  ${at - 1} |           InputListener(',
       "> $at |             onEvent: (e) => throw StateError('boom'),",
@@ -122,7 +127,7 @@ void main() {
     expect(
       twk.source!.split('\n').take(4),
       [
-        matches('^at test/binding/fatal_test\\.dart:$twkAt:\\d+\$'),
+        matches('^at test${_s}binding${_s}fatal_test\\.dart:$twkAt:\\d+\$'),
         anything,
         anything,
         startsWith('> $twkAt |'),
@@ -137,7 +142,7 @@ void main() {
     setUp(() {
       dir = Directory.systemTemp.createTempSync('twk_fatal_');
       addTearDown(() => dir.deleteSync(recursive: true));
-      app = '${dir.path}/app.dart';
+      app = '${dir.path}${Platform.pathSeparator}app.dart';
       File(app).writeAsStringSync(
         [for (var i = 1; i <= 12; i++) 'line $i'].join('\n'),
       );
@@ -193,7 +198,12 @@ Bad state: boom
 in Column → InputListener
 ${error.source}''');
 
-      final vt = '${Directory.current.parent.path}/twk_test/lib/vt.dart';
+      final vt = [
+        Directory.current.parent.path,
+        'twk_test',
+        'lib',
+        'vt.dart',
+      ].join(Platform.pathSeparator);
       final first = File(vt).readAsLinesSync().first;
       expect(
         thrownAt('#0      vt (package:twk_test/vt.dart:1:1)\n').source,
@@ -221,19 +231,25 @@ ${error.source}''');
 
   test('unhandled, it is printed after the restore: message, path, the '
       'lines it was thrown at and the stack', () async {
-    final res = await runProcess(Platform.resolvedExecutable, [app]);
+    final res = await runProcess(
+      Platform.resolvedExecutable,
+      [app],
+      // UTF-8 whatever the system's code page (Windows'): the path's →
+      stderrEncoding: utf8,
+    );
     expect(res.stdout, '');
     final at = lineOf(
       "onEvent: (e) => throw StateError('boom'),",
       'test/binding/fatal_app.dart',
     );
-    final lines = (res.stderr as String).split('\n');
+    // a line ends in CR LF on Windows
+    final lines = (res.stderr as String).replaceAll('\r\n', '\n').split('\n');
     expect(lines.take(10), [
       'restored',
       'Unhandled exception:',
       'Bad state: boom',
       'in Column → InputListener',
-      matches('^at test/binding/fatal_app\\.dart:$at:\\d+\$'),
+      matches('^at test${_s}binding${_s}fatal_app\\.dart:$at:\\d+\$'),
       '  ${at - 2} |       children: [',
       '  ${at - 1} |         InputListener(',
       "> $at |           onEvent: (e) => throw StateError('boom'),",

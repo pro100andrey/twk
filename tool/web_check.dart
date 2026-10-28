@@ -98,12 +98,15 @@ const _cases = [
 
 /// Loads the prelude, if any, and the build, and runs its main with the
 /// case's bound, in milliseconds:
-/// `node run.mjs app.mjs app.wasm bound [prelude.mjs]`.
+/// `node run.mjs app.mjs app.wasm bound [prelude.mjs]`. The modules by
+/// their file: URLs, which an import takes on Windows too, where a path
+/// (`C:\...`) reads as a URL of the scheme `c:`.
 const _runner = '''
 import { readFile } from 'node:fs/promises';
+import { pathToFileURL } from 'node:url';
 const [mjs, wasm, bound, prelude] = process.argv.slice(2);
-if (prelude) await import(prelude);
-const app = await import(mjs);
+if (prelude) await import(pathToFileURL(prelude).href);
+const app = await import(pathToFileURL(mjs).href);
 const compiled = await app.compile(await readFile(wasm));
 const instance = await compiled.instantiate({});
 instance.invokeMain(bound);

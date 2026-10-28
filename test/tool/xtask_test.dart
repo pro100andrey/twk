@@ -71,8 +71,9 @@ void main() {
       Platform.resolvedExecutable,
       [entry, ...args],
       workingDirectory: tree.path,
-      // empty unless given: a TWK_PACKAGES of the run's own is refused
-      environment: {'TWK_PACKAGES': '', ...env},
+      // empty unless given: a TWK_PACKAGES of the run's own is refused;
+      // its output as on a terminal of a developer's, not GitHub's groups
+      environment: {'TWK_PACKAGES': '', 'GITHUB_ACTIONS': '', ...env},
     );
 
     String out(ProcessResult res) => '${res.stdout}${res.stderr}';

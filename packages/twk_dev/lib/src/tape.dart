@@ -197,6 +197,9 @@ final class TapeRunner {
         height: settings.height,
         environment: {
           'COLORTERM': 'truecolor',
+          // a terminal, the recording's, also in CI, where an app that
+          // inherited CI=true would write plain text only
+          'CI': 'false',
           // the shell's prompt, not the user's
           if (tape.command == null) ...{'PS1': r'$ ', 'HISTFILE': '/dev/null'},
           ...tape.environment,

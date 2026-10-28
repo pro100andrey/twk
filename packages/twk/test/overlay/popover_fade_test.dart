@@ -180,7 +180,10 @@ void main() {
     );
     await t.type('x');
     await t.pumpUntilIdle();
-    expect(t.lines.first.trim(), '${dir.path}/notesx');
+    expect(
+      t.lines.first.trim(),
+      '${dir.path}${Platform.pathSeparator}notesx',
+    );
     await t.press('ctrl+z');
     // the suggestion over ../, fading in
     await until(
@@ -193,6 +196,6 @@ void main() {
     }
     await t.pumpUntilIdle();
     expect(t.lines.first.trim(), isEmpty);
-    expect(t.lines[1].trim(), '../');
+    expect(t.lines[1].trim(), '..${Platform.pathSeparator}');
   });
 }

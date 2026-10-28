@@ -43,6 +43,10 @@ void main() {
     final res = await runProcess(Platform.resolvedExecutable, [
       File('test/platform/web_print.dart').absolute.path,
     ]);
-    expect(res.stdout, 'to the console\nthe zone caught 0\n');
+    // a line ends in CR LF on Windows
+    expect(
+      '${res.stdout}'.replaceAll('\r\n', '\n'),
+      'to the console\nthe zone caught 0\n',
+    );
   }, timeout: const Timeout(Duration(minutes: 2)));
 }

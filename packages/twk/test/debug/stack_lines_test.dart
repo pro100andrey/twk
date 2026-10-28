@@ -6,6 +6,9 @@ import 'dart:io';
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 
+/// The platform's separator, in the paths a stack's file: URIs give.
+final String sep = Platform.pathSeparator;
+
 void main() {
   final app = Uri.file('${Directory.current.path}/bin/tool.dart');
   final cached = Uri.file(
@@ -26,9 +29,9 @@ void main() {
     expect(
       [for (final l in stackLines(stack)) (l.kind, l.text)],
       [
-        (RecordLineKind.frame, 'bin/tool.dart:42:7  Config.load'),
+        (RecordLineKind.frame, 'bin${sep}tool.dart:42:7  Config.load'),
         (RecordLineKind.folded, '… 3 frames of dart:async, twk_cli, packages'),
-        (RecordLineKind.frame, 'bin/tool.dart:12:3  main'),
+        (RecordLineKind.frame, 'bin${sep}tool.dart:12:3  main'),
         (RecordLineKind.folded, '… 1 frame of twk'),
       ],
     );

@@ -134,7 +134,9 @@ void main() {
       expect(await run.ended(), exits(0));
       final name = run.pty.ttyName;
       expect(name, startsWith('/dev/'));
-      expect(run.text, '$name\r\n$name\r\n$name\r\n');
+      // each line ended by the terminal's CR LF, or by nothing where tty
+      // writes the name alone (uutils', Ubuntu 26.04's coreutils)
+      expect(run.text.replaceAll('\r\n', ''), '$name$name$name');
       // /dev/tty opens only in a process with a controlling terminal; not
       // in a shell, which would make the terminal its own.
       final head = Run('head', ['-c', '0', '/dev/tty']);

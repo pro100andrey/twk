@@ -41,7 +41,8 @@ void main() => print(said);
   Future<String> run(String kernel) async {
     final res = await runProcess(Platform.resolvedExecutable, [kernel]);
     expect(res.exitCode, 0, reason: '${res.stderr}');
-    return '${res.stdout}';
+    // a line ends in CR LF on Windows
+    return '${res.stdout}'.replaceAll('\r\n', '\n');
   }
 
   test('compiled to a kernel in the cache, which runs', () async {
@@ -49,6 +50,26 @@ void main() => print(said);
     expect(kernel, startsWith('$cache/app-'));
     expect(kernel, endsWith('.dill'));
     expect(await run(kernel), 'one\n');
+  });
+
+  test('a program in a directory below, by a path with / or with the '
+      "platform's separator: its kernel in the cache itself", () async {
+    final below = Directory('${dir.path}/lib/src')..createSync(recursive: true);
+    File('${below.path}/deep.dart').writeAsStringSync(
+      "void main() => print('deep');\n",
+    );
+    for (final path in [
+      '${dir.path}/lib/src/deep.dart',
+      [dir.path, 'lib', 'src', 'deep.dart'].join(Platform.pathSeparator),
+    ]) {
+      final kernel = await compiledProgram(
+        path,
+        packages: packages,
+        cache: cache,
+      );
+      expect(kernel, startsWith('$cache/deep-'));
+      expect(await run(kernel), 'deep\n');
+    }
   });
 
   test('called again, its files unchanged: the kernel kept, nothing '
@@ -144,7 +165,7 @@ const said = 'one $more';
       '-Dword=c',
       a,
     ]);
-    expect(res.stdout, 'a\n');
+    expect('${res.stdout}'.replaceAll('\r\n', '\n'), 'a\n');
   });
 
   test('not in product mode, as `dart <program>` runs it, unless asked '
@@ -169,7 +190,9 @@ const said = 'one $more';
     expect(a, b);
     expect(await run(a), 'one\n');
     expect(
-      Directory(cache).listSync().map((f) => f.path.split('/').last),
+      Directory(cache)
+          .listSync()
+          .map((f) => Uri.file(f.path).pathSegments.last),
       unorderedEquals([
         matches(r'^app-[0-9a-f]{16}\.dill$'),
         matches(r'^app-[0-9a-f]{16}\.deps$'),

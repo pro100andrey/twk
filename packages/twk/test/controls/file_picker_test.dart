@@ -5,6 +5,12 @@
 // taken in the open, save and directory modes; files marked and picked
 // together; a directory that cannot be listed; showFilePicker's dialog
 // picking and cancelled.
+//
+// The paths are written with `/`, as Linux and macOS show them; Windows
+// shows them with `\` (its forms are paths_test.dart's).
+@TestOn('!windows')
+library;
+
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';

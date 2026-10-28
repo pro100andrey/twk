@@ -90,7 +90,7 @@ describe('HotApps', () => {
     const [run] = runs;
     assert.equal(run.options.file, file);
     assert.equal(run.options.cwd, project);
-    assert.deepEqual(run.options.env, { TWK_DEBUG: 'console,keys', TWK_SHELL: terminal.variable });
+    assert.deepEqual(run.options.env, { CI: 'false', TWK_DEBUG: 'console,keys', TWK_SHELL: terminal.variable });
     assert.equal(apps.hots().length, 1);
     assert.equal(apps.hots()[0].terminal, terminal);
     assert.deepEqual(context, [true]);
@@ -151,7 +151,7 @@ describe('HotApps', () => {
       program: file,
       cwd: project,
       console: 'debugConsole',
-      env: { TWK_DEBUG: 'console,keys', TWK_SHELL: terminal.variable },
+      env: { CI: 'false', TWK_DEBUG: 'console,keys', TWK_SHELL: terminal.variable },
       twkSession: launch.twkSession,
       others: {},
     });
@@ -200,7 +200,7 @@ describe('HotApps', () => {
     const [terminal] = terminals.all();
     assert.equal(launch.name, 'mine');
     assert.equal(launch.cwd, path.join(project, 'bin'));
-    assert.deepEqual(launch.env, { A: '1', TWK_DEBUG: 'rainbow,keys', TWK_SHELL: terminal.variable });
+    assert.deepEqual(launch.env, { CI: 'false', A: '1', TWK_DEBUG: 'rainbow,keys', TWK_SHELL: terminal.variable });
     assert.deepEqual(launch.others, { args: ['--x'], toolArgs: ['--enable-asserts'] });
     await assert.rejects(apps.debugLaunch({ program: path.join(os.tmpdir(), 'nowhere', 'x.dart'), env: {}, others: {} }), /in no Dart project/);
   });

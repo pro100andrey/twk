@@ -46,9 +46,11 @@ void main() {
       File('$root/f').writeAsStringSync('');
       Link('$root/to_d').createSync('$root/d');
       final entries = await listDirectory(root).toList();
+      // the paths as dart:io gives them, with the platform's separator
+      final s = Platform.pathSeparator;
       expect(
         {for (final e in entries) e.path: e.isDirectory},
-        {'$root/d': true, '$root/f': false, '$root/to_d': true},
+        {'$root${s}d': true, '$root${s}f': false, '$root${s}to_d': true},
       );
     });
 
@@ -73,10 +75,11 @@ void main() {
 
     test('sourcePath is the file of a file: URI or of a package the program '
         'resolves, null for another', () {
-      expect(sourcePath(Uri.file('$root/a.dart')), '$root/a.dart');
+      final s = Platform.pathSeparator;
+      expect(sourcePath(Uri.file('$root/a.dart')), '$root${s}a.dart');
       expect(
         sourcePath(Uri.parse('package:twk/twk.dart')),
-        '${Directory.current.path}/lib/twk.dart',
+        '${Directory.current.path}${s}lib${s}twk.dart',
       );
       expect(sourcePath(Uri.parse('package:no_such_package/a.dart')), isNull);
       expect(sourcePath(Uri.parse('dart:core/errors.dart')), isNull);

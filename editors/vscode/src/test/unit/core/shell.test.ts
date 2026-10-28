@@ -129,7 +129,14 @@ describe('TerminalShell', () => {
     // longer than a Unix domain socket's path may be: listen fails (EINVAL)
     const deep = path.join(root, 'x'.repeat(120));
     fs.mkdirSync(deep);
-    await assert.rejects(start(deep), /EINVAL|ENAMETOOLONG|too long/);
+    await assert.rejects(
+      // a shell that listened after all is stopped, or it keeps the run alive
+      start(deep).then(async (s) => {
+        await s.stop();
+        return s;
+      }),
+      /EINVAL|ENAMETOOLONG|too long/,
+    );
     assert.deepEqual(fs.readdirSync(deep), []);
   });
 

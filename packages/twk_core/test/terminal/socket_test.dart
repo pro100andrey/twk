@@ -445,6 +445,9 @@ void main() {
       }
       expect(reset, 3);
     },
+    // macOS and Windows queue the connect before the close and reset what
+    // follows it, never the connect: the race is Linux's
+    testOn: 'linux',
   );
 
   test('a connect reset by a server closing is a SocketException', () async {
@@ -470,7 +473,8 @@ void main() {
       address.unlink();
     }
     expect(failed, 3);
-  });
+    // the reset of the connect: Linux's, as above
+  }, testOn: 'linux');
 
   group('TerminalShell', () {
     late FakeLink link;
@@ -738,9 +742,14 @@ void main() {
       );
       final said = '${res.stdout}${res.stderr}';
       expect(res.exitCode, 0, reason: said);
+      // the project's directory as the app finds it, its links resolved
+      // (macOS's /var is /private/var)
       expect(
         said,
-        contains('a second shell: a twk shell serves ${dir.path} already'),
+        contains(
+          'a second shell: a twk shell serves '
+          '${dir.resolveSymbolicLinksSync()} already',
+        ),
       );
       expect(said, contains('the app got 100x30'));
       expect(said, contains('the shell heard: connected, disconnected'));
@@ -773,9 +782,10 @@ void main() {
       final deep = Directory('${dir.path}/lib/src')
         ..createSync(recursive: true);
       expect(LocalAddress.projectOf(deep.path), dir.path);
+      final s = Platform.pathSeparator;
       expect(
         LocalAddress.fileOf('shell', deep.path),
-        '${dir.path}/.dart_tool/twk/shell',
+        '${dir.path}$s.dart_tool${s}twk${s}shell',
       );
     });
 
@@ -832,6 +842,8 @@ void main() {
         Platform.resolvedExecutable,
         [socketApp],
         workingDirectory: dir.path,
+        // not plain, as an app in CI is, whose log this may be
+        environment: {'CI': 'false'},
       );
       expect(res.stderr, '');
       expect(res.stdout, 'opened 33x7\n');
@@ -882,7 +894,7 @@ void main() {
         Platform.resolvedExecutable,
         [socketApp],
         workingDirectory: dir.path,
-        environment: {'TWK_SHELL': variable},
+        environment: {'TWK_SHELL': variable, 'CI': 'false'},
       );
       expect(res.stderr, '');
       expect(res.stdout, 'opened 41x9\n');
@@ -938,7 +950,7 @@ void main() {
         Platform.resolvedExecutable,
         [socketApp],
         workingDirectory: dir.path,
-        environment: {'TWK_SHELL': ''},
+        environment: {'TWK_SHELL': '', 'CI': 'false'},
       );
       expect(res.stdout, 'opened 33x7\n');
     });
@@ -1001,42 +1013,48 @@ void main() {
       expect(own.closed, isTrue);
     });
 
-    test("an app run so in a pseudo-terminal finds the project's twk "
-        'shell', () async {
-      File('${dir.path}/pubspec.yaml').writeAsStringSync('name: app\n');
-      final link = FakeLink(columns: 33, lines: 7);
-      final file = LocalAddress.fileOf('shell', dir.path);
-      final (server, address) = await LocalAddress.bind(
-        LocalAddress.directoryOf(dir.path),
-        'shell',
-      );
-      address.write(file);
-      final shell = TerminalShell.serve(link, server, address, file: file);
-      addTearDown(shell.stop);
-      final out = '${dir.path}/out.bin';
-      final res = await runProcess(
-        'python3',
-        [
-          File('../../tool/pty_run.py').absolute.path,
-          '--input',
-          'none',
-          '--out',
-          out,
-          '--',
-          'sh',
-          '-c',
-          r'exec "$0" "$1" </dev/null',
-          Platform.resolvedExecutable,
-          socketApp,
-        ],
-        workingDirectory: dir.path,
-        group: true,
-      );
-      expect(res.exitCode, 0, reason: '${res.stdout}');
-      expect(File(out).readAsStringSync(), 'opened 33x7\r\n');
-      expect(link.text, contains('from the app'));
-      expect(link.rawChanges, [true, false]);
-    }, timeout: const Timeout(Duration(minutes: 3)));
+    test(
+      "an app run so in a pseudo-terminal finds the project's twk "
+      'shell',
+      () async {
+        File('${dir.path}/pubspec.yaml').writeAsStringSync('name: app\n');
+        final link = FakeLink(columns: 33, lines: 7);
+        final file = LocalAddress.fileOf('shell', dir.path);
+        final (server, address) = await LocalAddress.bind(
+          LocalAddress.directoryOf(dir.path),
+          'shell',
+        );
+        address.write(file);
+        final shell = TerminalShell.serve(link, server, address, file: file);
+        addTearDown(shell.stop);
+        final out = '${dir.path}/out.bin';
+        final res = await runProcess(
+          'python3',
+          [
+            File('../../tool/pty_run.py').absolute.path,
+            '--input',
+            'none',
+            '--out',
+            out,
+            '--',
+            'sh',
+            '-c',
+            r'exec "$0" "$1" </dev/null',
+            Platform.resolvedExecutable,
+            socketApp,
+          ],
+          workingDirectory: dir.path,
+          group: true,
+        );
+        expect(res.exitCode, 0, reason: '${res.stdout}');
+        expect(File(out).readAsStringSync(), 'opened 33x7\r\n');
+        expect(link.text, contains('from the app'));
+        expect(link.rawChanges, [true, false]);
+        // pty_run.py, sh and /dev/null
+      },
+      timeout: const Timeout(Duration(minutes: 3)),
+      testOn: 'linux || mac-os',
+    );
   });
 }
 

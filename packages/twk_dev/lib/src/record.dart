@@ -193,7 +193,8 @@ final class Recorder {
         command.sublist(1),
         width: width,
         height: height,
-        environment: {'TERM': ?env['TERM']},
+        // a terminal, the recording's: not plain, CI or not
+        environment: {'TERM': ?env['TERM'], 'CI': 'false'},
       );
     } on Object catch (e) {
       file.closeSync();
