@@ -554,7 +554,13 @@ def main():
         if not data:
             break
         out += data
-    after = termios.tcgetattr(slave)
+    try:
+        after = termios.tcgetattr(slave)
+    except termios.error:
+        # macOS revokes the slave once the session leader it was the
+        # controlling terminal of has exited; the master shares its tty,
+        # and so its modes, there (on Linux it has modes of its own)
+        after = termios.tcgetattr(master)
 
     if args.out:
         with open(args.out, 'wb') as f:
