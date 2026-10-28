@@ -7,6 +7,12 @@
 // kept, a collapsed one no longer listed; the controller revealing a
 // path, expanding, collapsing and listing again; Enter and a double click
 // opening a file and toggling a directory.
+//
+// The paths are written with `/`, as Linux and macOS show them; Windows
+// shows them with `\` (its forms are paths_test.dart's).
+@TestOn('!windows')
+library;
+
 import 'dart:async';
 
 import 'package:test/test.dart';

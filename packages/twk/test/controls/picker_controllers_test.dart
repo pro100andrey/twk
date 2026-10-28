@@ -430,5 +430,7 @@ void main() {
       expect(c.highlighted, '/home/a.txt');
       expect(c.directory, '/home');
     });
-  });
+    // the fixtures' paths are POSIX ones, as the picker shows them there:
+    // on Windows it shows them in Windows' form (paths_test.dart)
+  }, testOn: '!windows');
 }

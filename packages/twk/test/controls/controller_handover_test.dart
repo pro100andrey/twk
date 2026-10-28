@@ -590,7 +590,9 @@ void main() {
       expect(t.lines.first, 'gone');
       noErrors(t);
     });
-  });
+    // its file system's paths are POSIX ones, which the picker resolves
+    // in Windows' form on Windows (paths_test.dart)
+  }, testOn: '!windows');
 }
 
 /// A [FilePicker] of [build] with a controller of its own, disposed with it.
