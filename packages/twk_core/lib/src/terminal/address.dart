@@ -223,12 +223,36 @@ final class LocalAddress {
   }
 
   /// Keeps the address in [file], replacing the one there; the
-  /// directories it is in are made as needed.
+  /// directories it is in are made as needed. Throws what writing it
+  /// throws, leaving no file of its own behind.
+  ///
+  /// On Windows a file open in another process can't be replaced: one
+  /// reading it (a client, an editor, the virus scanner) is waited for,
+  /// for a few tenths of a second.
   void write(String file) {
     File(file).parent.createSync(recursive: true);
-    File('$file.$pid')
-      ..writeAsStringSync(encode(), flush: true)
-      ..renameSync(file);
+    final written = File('$file.$pid');
+    try {
+      written.writeAsStringSync(encode(), flush: true);
+      for (var wait = 10; ; wait *= 2) {
+        try {
+          written.renameSync(file);
+          return;
+        } on PathAccessException {
+          if (!Platform.isWindows || wait > 160) {
+            rethrow;
+          }
+          sleep(Duration(milliseconds: wait));
+        }
+      }
+    } on FileSystemException {
+      try {
+        written.deleteSync();
+      } on FileSystemException {
+        // never made
+      }
+      rethrow;
+    }
   }
 
   /// Removes [file] if it still holds this address: a newer server may

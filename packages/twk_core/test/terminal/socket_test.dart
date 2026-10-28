@@ -823,6 +823,27 @@ void main() {
       await s1.close();
       await s2.close();
     });
+
+    test('an address file a reader holds open is replaced where the OS '
+        'lets it; on Windows, held past the wait, it is not, and the file '
+        'written for it is not left behind', () async {
+      final file = '${dir.path}/shell';
+      final (s1, older) = await LocalAddress.bind(dir.path, 'a');
+      final (s2, newer) = await LocalAddress.bind(dir.path, 'b');
+      addTearDown(s1.close);
+      addTearDown(s2.close);
+      older.write(file);
+      final reader = File(file).openSync();
+      addTearDown(reader.closeSync);
+      if (Platform.isWindows) {
+        expect(() => newer.write(file), throwsA(isA<PathAccessException>()));
+        expect(LocalAddress.read(file), older);
+      } else {
+        newer.write(file);
+        expect(LocalAddress.read(file), newer);
+      }
+      expect(File('$file.$pid').existsSync(), isFalse);
+    });
   });
 
   test(
