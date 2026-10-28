@@ -1,0 +1,104 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Controls  ›  Link                                                         ctrl+p search      ◐ Light  │
+│                                                                                                                        │
+│   ⌕ Filter             /      Link                                                                           18 of 20  │
+│                               Text linked to a URL, which a terminal that knows hyperlinks opens.                      │
+│     ConfirmInput                                                                                                       │
+│     Slider                    Preview   Code                                                                           │
+│     NumberInput            ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     DatePicker                                                                           │                             │
+│     FilePicker                 ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│     Form, FormField                                                                      │                             │
+│     TabBar, TabView            ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  style             primary  │
+│     KeyHintsBar                                                                          │  ██ ██ ██                   │
+│     StatusMessage, Badge       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  ▔▔                         │
+│     Callout                                                                              │                             │
+│ ▎   Link                       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  shows                      │
+│     ListTile                                                                             │   text  url                 │
+│     StatusBar             ▐    ·   ·   ·   ·   ┌                   ┐   ·   ·   ·   ·     │                             │
+│                           ▐                      The Dart language                       │                             │
+│   OVERLAYS            11  ▐    ·   ·   ·   ·                           ·   ·   ·   ·     │                             │
+│     Overlay               ▐                      https://pub.dev                         │                             │
+│     Dialog                ▐    ·   ·   ·   ·                           ·   ·   ·   ·     │                             │
+│     Toast                                        the README                              │                             │
+│     Tooltip                    ·   ·   ·   ·   └                   ┘   ·   ·   ·   ·     │                             │
+│     Popover                                                  17 × 5                      │                             │
+│     MenuBar                    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     ContextMenu                                                                          │                             │
+│     CommandPalette             ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     OptionList                                                                           │                             │
+│     ModalBarrier               ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     WindowLayer                                                                          │                             │
+│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│   ANIMATION           16                                                                 │                             │
+│     Spinner                    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     ProgressBar                                                                          │                             │
+│                                                                                          │                             │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaaDDDDDDDDaafaaddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaDDDDDDaaaaaadadddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaiEiEEEEEEiiiiiiiiiiiiiFiaahhhllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhGGhGGhGGhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnhnnnnnnhnnhnhnnnnhnnnnnhnhnnnnnnnnhnnnnhnnnnnhnnnnnnnnnnhnnnnnnhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaoooooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaoooooooaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnhhhhhhhhhhhhhGGGGGGGhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhqqhrrhsshhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooaoooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhtthhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aHIIIJJJJIIIIIIIIIIIIIIIIIIahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhIJJJJIBCCCBhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhhhhhhhhhhhhhhhhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhyyyyyyyyyyyyyyyyyhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddddaaaaaaaaaaaaDDaadhhhhphhhphhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhzzzzzzzzzzzzzzzhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaadhhhhphhhphhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhAAAAAAAAAAhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhhhhhhhhhhhhhhhhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhGGhGhGhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddddddaaaaaaaaaaaDDaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #f3f5f7
+b #0969da on #f3f5f7
+c bold #1f2328 on #f3f5f7
+d #656d76 on #f3f5f7
+D #838991 on #f3f5f7
+f #dcdfe4 on #f3f5f7
+g bold #656d76 on #f3f5f7
+h on #fafafb
+i on #fefefe
+E #838991 on #fefefe
+F bold #838991 on #fefefe
+l bold #1f2328 on #fafafb
+G #838991 on #fafafb
+n #656d76 on #fafafb
+o #1f2328 on #f3f5f7
+p #dcdfe4 on #fafafb
+q #0969da on #fafafb
+r #8250df on #fafafb
+s #0a7ea4 on #fafafb
+t #1f2328 on #fafafb
+H #0969da on #b6d4fe
+I on #b6d4fe
+J bold #1f2328 on #b6d4fe
+B on #eef0f3
+C #656d76 on #eef0f3
+y underline #0969da on #fafafb link=https://dart.dev
+z underline #0969da on #fafafb link=https://pub.dev
+A underline #0969da on #fafafb link=file:///home/user/twk/README.md

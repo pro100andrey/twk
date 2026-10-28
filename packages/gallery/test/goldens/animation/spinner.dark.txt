@@ -1,0 +1,102 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Animation  ›  Spinner                                                      ctrl+p search      ◐ Dark  │
+│                                                                                                                        │
+│   ⌕ Filter             /      Spinner                                                                         1 of 16  │
+│                               Frames shown in turn while something goes on; spinners of the same frames step           │
+│     Tooltip                   together.                                                                                │
+│     Popover                                                                                                            │
+│     MenuBar                   Preview   Code                                                                           │
+│     ContextMenu            ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     CommandPalette                                                                       │                             │
+│     OptionList                 ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│     ModalBarrier                                                                         │                             │
+│     WindowLayer                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  frames                     │
+│                                                                                          │   dots  line  arc           │
+│   ANIMATION           16       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│ ▎   Spinner                                                                              │  style             primary  │
+│     ProgressBar                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  ██ ██ ██ ██ ██             │
+│     ProgressList                                                                         │  ▔▔                         │
+│     Skeleton, Skeletoni…       ·   ·   ·   · ┌                       ┐ ·   ·   ·   ·     │                             │
+│     AnimationController                        ⠴ Resolving packages…                     │                             │
+│     AnimatedBuilder       ▐    ·   ·   ·   ·                           ·   ·   ·   ·     │                             │
+│     AnimatedAlign, Anim…  ▐                    ⠴ Compiling…                              │                             │
+│     AnimatedPositioned    ▐    ·   ·   ·   ·                           ·   ·   ·   ·     │                             │
+│     AnimatedBox           ▐                    ⠴ Running 214 tests…                      │                             │
+│     AnimatedOpacity, Op…  ▐    ·   ·   ·   · └                       ┘ ·   ·   ·   ·     │                             │
+│     AnimatedDefaultText…                                       21 × 5                    │                             │
+│     AnimatedSize               ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     TweenAnimationBuild…                                                                 │                             │
+│     AnimatedSwitcher           ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Dissolve, Fractiona…                                                                 │                             │
+│     Effect                     ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│                                                                                          │                             │
+│   MOUSE                5       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     GestureDetector                                                                      │                             │
+│     Listener, MouseRegi…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│                                                                                          │                             │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaaBBBBBBBBBaafaadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaBBBBBBaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaiCiCCCCCCiiiiiiiiiiiiiDiaahhhlllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhEhEEhEEhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnnnhnnnnnhnnhnnnnhnnnnnhnnnnnnnnnhnnnnhnnnhnnnnnnnnhnnhnnnhnnnnhnnnnnnhnnnnhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhnnnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaooooooooooooooaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhrssssrittttiitttihhhhhhhhhh│
+│aaadddddddddaaaaaaaaaaaBBaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aurrrsssssssrrrrrrrrrrrrrrrahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnhhhhhhhhhhhhhEEEEEEEhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhqqhvvhwwhxxhyyhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhzzhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaooooooooooaaahhhhphhhphhhphhhphphhhhhhhhhhhhhhhhhhhhhhhphphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooooooaaaahhhhhhhhhhhhhhhhhhhhqhzzzzzzzzzhzzzzzzzzzhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaadhhhhphhhphhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooaoooooaadhhhhhhhhhhhhhhhhhhhhqhzzzzzzzzzzhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooaaaadhhhhphhhphhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhqhzzzzzzzhzzzhzzzzzzhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaoooaadhhhhphhhphhhphhhphphhhhhhhhhhhhhhhhhhhhhhhphphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhEEhEhEhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaooooooooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddaaaaaaaaaaaaaaaaBaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaooooooooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+B #747a83 on #1c1f25
+f #2c3039 on #1c1f25
+g bold #8b929c on #1c1f25
+h on #16181d
+i on #13151a
+C #747a83 on #13151a
+D bold #747a83 on #13151a
+l bold #e6e8eb on #16181d
+E #747a83 on #16181d
+n #8b929c on #16181d
+o #e6e8eb on #1c1f25
+p #2c3039 on #16181d
+q #5fa8ff on #16181d
+r on #2b4566
+s bold #e6e8eb on #2b4566
+t #8b929c on #13151a
+u #5fa8ff on #2b4566
+v #c792ea on #16181d
+w #5fd38d on #16181d
+x #f5c04a on #16181d
+y #5cc8e6 on #16181d
+z #e6e8eb on #16181d

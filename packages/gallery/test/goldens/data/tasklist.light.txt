@@ -1,0 +1,105 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Data  ›  TaskList                                                         ctrl+p search      ◐ Light  │
+│                                                                                                                        │
+│   ⌕ Filter             /      TaskList                                                                       13 of 13  │
+│                               Tasks and how far they have got: pending, running with a spinner and the time it has     │
+│     BarChart                  run, done, failed or skipped; their steps below.                                         │
+│     Chart                                                                                                              │
+│     DotCanvas                 Preview   Code                                                                           │
+│     Calendar               ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     Heatmap, ActivityHe…                                                                 │                             │
+│     Table                      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│     DescriptionList                                                                      │                             │
+│     TreeView                   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  step                       │
+│     TreeTable             ▐                                                              │   live  fetch  compile      │
+│     DirectoryTree         ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   test  deploy  done        │
+│ ▎   TaskList              ▐                                                              │                             │
+│                           ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  failed              ▐●  ▌  │
+│   EDITING              4  ▐         ┌                                          ┐         │                             │
+│     TextField                  ·      ✓ Fetch dependencies 1.4 s                   ·     │  elapsed             ▐  ●▌  │
+│     InputDecoration                   ⠴ Compile 00:00                                    │                             │
+│     TextArea                   ·        ⠴ lib/core.dart 00:00                      ·     │  spinner                    │
+│     Autocomplete                        ◦ lib/widgets.dart                               │   dots  line  arc           │
+│                                ·      ◦ Run the tests                              ·     │                             │
+│   CONTROLS            20              ◦ Deploy                                           │                             │
+│     Button                     ·    └                                          ┘   ·     │                             │
+│     Pressable                                                            40 × 6          │                             │
+│     Checkbox, Switch           ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     RadioGroup                                                                           │                             │
+│     SegmentedButton            ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     SelectionList                                                                        │                             │
+│     Select, MultiSelect        ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     ConfirmInput                                                                         │                             │
+│     Slider                     ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     NumberInput                                                                          │                             │
+│     DatePicker                 ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│                                                                                          │                             │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaaEEEEaafaaddddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaEEEEEEaaaaaadadddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaiFiFFFFFFiiiiiiiiiiiiiGiaahhhllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhHHhHHhHHhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnnhnnnhnnnhnnnhnnnnhnnnnhnnnnhnnnnnnnnhnnnnnnnhnnnnhnhnnnnnnnhnnnhnnnhnnnnhnnhnnnhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhnnnnhnnnnnhnnnnnnhnnhnnnnnnnnhnnnnnhnnnnnhnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaooooooooaoooooooooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhIJJJJIuvvvvvuuvvvvvvvuhhhhh│
+│aaaaaoooooooooooooaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhuvvvvuuvvvvvvuuvvvvuhhhhhhh│
+│aKIIIJJJJJJJJIIIIIIIIIIIIIIdhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnhhhhhhhhhhhhhhxyzzxhh│
+│aaadddddddaaaaaaaaaaaaaaEaadhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhhhhAhBBBBBhBBBBBBBBBBBBhnnnhnhhhhhhhhhhhhhhhhhhhphhhhhphhnnnnnnnhhhhhhhhhhhhhqCCDqhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhhhhhhhhqhBBBBBBBhnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhhhhhhqhBBBBBBBBBBBBBhnnnnnhhhhhhhhhhhhhhhhhhhhhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhnhBBBBBBBBBBBBBBBBhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhIJJJJIuvvvvuuvvvuhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhhhhnhBBBhBBBhBBBBBhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddddaaaaaaaaaaaaEEaaahhhhhhhhhhhnhBBBBBBhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhHHhHhHhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaooooooaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaoooooooooooaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #f3f5f7
+b #0969da on #f3f5f7
+c bold #1f2328 on #f3f5f7
+d #656d76 on #f3f5f7
+E #838991 on #f3f5f7
+f #dcdfe4 on #f3f5f7
+g bold #656d76 on #f3f5f7
+h on #fafafb
+i on #fefefe
+F #838991 on #fefefe
+G bold #838991 on #fefefe
+l bold #1f2328 on #fafafb
+H #838991 on #fafafb
+n #656d76 on #fafafb
+o #1f2328 on #f3f5f7
+p #dcdfe4 on #fafafb
+q #0969da on #fafafb
+I on #b6d4fe
+J bold #1f2328 on #b6d4fe
+u on #eef0f3
+v #656d76 on #eef0f3
+K #0969da on #b6d4fe
+x #c8cdd5 on #fafafb
+y #ffffff on #c8cdd5
+z on #c8cdd5
+A #1a7f37 on #fafafb
+B #1f2328 on #fafafb
+C on #0969da
+D #ffffff on #0969da

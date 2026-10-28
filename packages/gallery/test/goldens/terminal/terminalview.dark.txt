@@ -1,0 +1,101 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Terminal  ›  TerminalView                                                  ctrl+p search      ◐ Dark  │
+│                                                                                                                        │
+│   ⌕ Filter             /      TerminalView                                                                     1 of 1  │
+│                               A program's terminal in a view: keys, pastes, the mouse and resizes sent to it, its      │
+│     TerminalProgress          scrollback scrolled; here a scripted shell, not a program in a pseudo-terminal.          │
+│     Viewport                                                                                                           │
+│     Window title              Preview   Code                                                                           │
+│     Notifications          ───━━━━━━━──────────────────────────────────────────────────────────────────────────────────│
+│     Cli                       ┌                                                                                    ┐   │
+│                                 ╭ user@twk: ~/twk ───────────────────────────────────────────────────────────────╮     │
+│   SCREEN READERS       1        │user@twk:~/twk$ ls                                                              │     │
+│     Semantics                   │analysis_options.yaml  lib                    README.md                         │     │
+│                                 │CHANGELOG.md           LICENSE                run.sh                            │     │
+│   DEBUGGING            4        │design                 packages               test                              │     │
+│     Console                     │example                pubspec.yaml           tool                              │     │
+│     FrameOverlay                │user@twk:~/twk$                                                                 │     │
+│     Repaint rainbow             │                                                                                │     │
+│     RepaintBoundary             │                                                                                │     │
+│                                 │                                                                                │     │
+│   RICH                 8        │                                                                                │     │
+│     MarkdownView                │                                                                                │     │
+│     CodeView                    │                                                                                │     │
+│     SyntaxThemeScope            │                                                                                │     │
+│     DiffView                    │                                                                                │     │
+│     JsonView                    │                                                                                │     │
+│     BigText                     │                                                                                │     │
+│     QrCode                      │                                                                                │     │
+│     ANSI                        │                                                                                │     │
+│                                 │                                                                                │     │
+│   IMAGES               1  ▐     ╰────────────────────────────────────────────────────────────────────────────────╯     │
+│     Image                 ▐   └                                                                                    ┘   │
+│                           ▐────────────────────────────────────────────────────────────────────────────────────────────│
+│   TERMINAL             1  ▐   wheel lines   1  3  10                                                                   │
+│ ▎   TerminalView          ▐                                                                                            │
+│                                                                                                                        │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaaAAAAAAAAaafaaddddddddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaAAAAAAaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaiBiBBBBBBiiiiiiiiiiiiiCiaahhhllllllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhDhDDhDhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnhnnnnnnnnnhnnnnnnnnhnnhnhnnnnnhnnnnnhnnnnnnnhnnnhnnnnnhnnnhnnnnnnnhnnnnhnnhnnnhnnnhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhnnnnnnnnnnhnnnnnnnnnhnnnnhnhnnnnnnnnhnnnnnnhnnnhnhnnnnnnnhnnhnhnnnnnnnnnnnnnnnnhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaoooooaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaoooaaaaaaaaaaaaaaaaaaaahhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhrhnnnnnnnnnhnnnnnhrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrhhhhh│
+│aaaddddddadddddddaaaaaaaAaaahhhhhrsssssssstuuuuuthtthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhrttttttttttttttttttttthhuuuhhhhhhhhhhhhhhhhhhhhttttttttthhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhrtttttttttttthhhhhhhhhhhttttttthhhhhhhhhhhhhhhhsssssshhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
+│aaadddddddddaaaaaaaaaaaaAaaahhhhhruuuuuuhhhhhhhhhhhhhhhhhuuuuuuuuhhhhhhhhhhhhhhhuuuuhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhruuuuuuuhhhhhhhhhhhhhhhhtttttttttttthhhhhhhhhhhuuuuhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhrsssssssstuuuuuthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
+│aaaaaoooooooaoooooooaaaaaaaahhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
+│aaaddddaaaaaaaaaaaaaaaaaAaaahhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
+│aaaaaooooaaaaaaaaaaaaaaaaaaahhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
+│aaaddddddaaaaaaaaaaaaaaaAaadhhhhhrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaadhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaadpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaddddddddaaaaaaaaaaaaaAaadhhhnnnnnhnnnnnhhizixyxizzihhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│awxxxyyyyyyyyyyyyxxxxxxxxxxdhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+A #747a83 on #1c1f25
+f #2c3039 on #1c1f25
+g bold #8b929c on #1c1f25
+h on #16181d
+i on #13151a
+B #747a83 on #13151a
+C bold #747a83 on #13151a
+l bold #e6e8eb on #16181d
+D #747a83 on #16181d
+n #8b929c on #16181d
+o #e6e8eb on #1c1f25
+p #2c3039 on #16181d
+q #5fa8ff on #16181d
+r #3e444f on #16181d
+s bold green on #16181d
+t #e6e8eb on #16181d
+u bold blue on #16181d
+z #8b929c on #13151a
+x on #2b4566
+y bold #e6e8eb on #2b4566
+w #5fa8ff on #2b4566

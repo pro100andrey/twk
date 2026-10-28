@@ -1,0 +1,110 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Debugging  ›  Console                                                     ctrl+p search      ◐ Light  │
+│                                                                                                                        │
+│   ⌕ Filter             /      Console                                                                          1 of 4  │
+│                               Log records listed over the app, newest last; the app has one of its own, which          │
+│     TerminalProgress          Ctrl+G then c opens.                                                                     │
+│     Viewport                                                                                                           │
+│     Window title              Preview   Code                                                                           │
+│     Notifications          ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     Cli                                                                                  │                             │
+│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│   SCREEN READERS       1                                                                 │                             │
+│     Semantics                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  level                      │
+│                                                                                          │   debug  info  warning      │
+│   DEBUGGING            4       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   error                     │
+│ ▎   Console                     ┌                                                  ┐     │                             │
+│     FrameOverlay                   Info   Warn   Fail   Close                            │  rows                       │
+│     Repaint rainbow                                                                      │   4  6  8                   │
+│     RepaintBoundary               The app, under its console.                            │                             │
+│                                                                                          │  traffic             ▐  ●▌  │
+│   RICH                 8           console  debug+  6 of 6                               │                             │
+│     MarkdownView                   09:05:06.242 DEBUG cache hit: items?page=2            │  open on error       ▐●  ▌  │
+│     CodeView                       09:05:06.942 INFO  GET /api/user/42 200 in 8 ms       │                             │
+│     SyntaxThemeScope               09:05:07.642 DEBUG pool: 3 of 8 connections bus       │                             │
+│     DiffView                       09:05:08.342 WARN  slow query: 412 ms on orders       │                             │
+│     JsonView                       09:05:09.042 INFO  POST /api/orders 201 in 31 m       │                             │
+│     BigText                     └                                                  ┘     │                             │
+│     QrCode                                                                  48 × 10      │                             │
+│     ANSI                       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│                                                                                          │                             │
+│   IMAGES               1  ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Image                 ▐                                                              │                             │
+│                           ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│   TERMINAL             1  ▐                                                              │                             │
+│     TerminalView          ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│                                                                                          │                             │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaaJJJJJJJJJaafaadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaJJJJJJaaaaaadadddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaiKiKKKKKKiiiiiiiiiiiiiLiaahhhlllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhMhMMhMhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnhnnnnnnnhnnnnnnhnnnnhnnnhnnnnhnnnnnnhnnnnnhnnnhnnnhnnnhnnnhnnhnnnhnnnnhnnnnnhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhnnnnnnhnnnnhnhnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaoooooaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaoooaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddadddddddaaaaaaaJaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhNOOOOONtuuuuttuuuuuuuthhhhh│
+│aaadddddddddaaaaaaaaaaaaJaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhtuuuuuthhhhhhhhhhhhhhhhhhhh│
+│aPNNNOOOOOOONNNNNNNNNNNNNNNahhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhhtwwwwthtwwwwthtwwwwthtwwwwwthhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaoooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhtutNONtuthhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhhhhnnnhnnnnhnnnnnhnnnhnnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnnnhhhhhhhhhhhhhqxxyqhh│
+│aaaddddaaaaaaaaaaaaaaaaaJaaahhhhhhhzAAAAAAAzzBBBBBBBBBBBBBBzzzzzzzzzzzzzzzzzzzzzzzzhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhhtuuuuuuuuuuuutuuuuutCCCCCtCCCCtCCCCCCCCCCCCttttthhhhhhhphhnnnnhnnhnnnnnhhhhhhhDEFFDhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhtuuuuuuuuuuuutGGGGttCCCtCCCCCCCCCCCCtCCCtCCtCtCChhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhhhhhtuuuuuuuuuuuutuuuuutCCCCCtCtCCtCtCCCCCCCCCCCtCCChhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhtuuuuuuuuuuuutHHHHttCCCCtCCCCCCtCCCtCCtCCtCCCCCChhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhtuuuuuuuuuuuutGGGGttCCCCtCCCCCCCCCCCtCCCtCCtCCtChhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhMMhMhMMhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddaaaaaaaaaaaaaaaJaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddddaaaaaaaaaaaaaJaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #f3f5f7
+b #0969da on #f3f5f7
+c bold #1f2328 on #f3f5f7
+d #656d76 on #f3f5f7
+J #838991 on #f3f5f7
+f #dcdfe4 on #f3f5f7
+g bold #656d76 on #f3f5f7
+h on #fafafb
+i on #fefefe
+K #838991 on #fefefe
+L bold #838991 on #fefefe
+l bold #1f2328 on #fafafb
+M #838991 on #fafafb
+n #656d76 on #fafafb
+o #1f2328 on #f3f5f7
+p #dcdfe4 on #fafafb
+q #0969da on #fafafb
+N on #b6d4fe
+O bold #1f2328 on #b6d4fe
+t on #eef0f3
+u #656d76 on #eef0f3
+P #0969da on #b6d4fe
+w bold #0969da on #eef0f3
+x on #0969da
+y #ffffff on #0969da
+z underline #1f2328 on #eef0f3
+A bold underline #0969da on #eef0f3
+B underline #656d76 on #eef0f3
+C #1f2328 on #eef0f3
+D #c8cdd5 on #fafafb
+E #ffffff on #c8cdd5
+F on #c8cdd5
+G #0a7ea4 on #eef0f3
+H #9a6700 on #eef0f3

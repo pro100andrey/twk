@@ -1,0 +1,130 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Style  ›  GradientForeground                                               ctrl+p search      ◐ Dark  │
+│                                                                                                                        │
+│   ⌕ Filter             /      GradientForeground                                                               4 of 4  │
+│                               Text whose color changes from glyph to glyph along each line, or from line to line       │
+│     Wrap                      down the rows.                                                                           │
+│     CustomPaint                                                                                                        │
+│     SplitView                 Preview   Code                                                                           │
+│     DockArea               ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     Scaffold              ▐                                                              │                             │
+│                           ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│   STYLE                4  ▐                                                              │                             │
+│     Theme                 ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  colors                     │
+│     TerminalBrightness    ▐                                                              │   theme  sunset  ocean      │
+│     GradientBackground         ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   palette                   │
+│ ▎   GradientForeground               ┌                                        ┐          │                             │
+│                                ·   ·   ████████╗██╗   ██╗██╗                       ·     │  direction                  │
+│   SCROLLING            5               ╚══██╔══╝██║   ██║██║                             │   columns  rows             │
+│     SingleChildScrollVi…       ·   ·      ██║   ██║   ██║██║                       ·     │                             │
+│     Scrollable                            ██║   ██║   ██║██║                             │  stops                      │
+│     ListView                   ·   ·      ██║   ╚██████╔╝██║                       ·     │   even  inset  early        │
+│     LogView                               ╚═╝    ╚═════╝ ╚═╝                             │                             │
+│     Scrollbar                  ·   ·                                               ·     │  flow                ▐  ●▌  │
+│                                        Colors that change from glyph to glyph            │                             │
+│   DATA                13       ·   ·   along each line, or down the rows.          ·     │                             │
+│     Sparkline                                                                            │                             │
+│     Gauge, LineGauge           ·   ·   a span: Span.gradient, glyph by glyph       ·     │                             │
+│     BarChart                         └                                        ┘          │                             │
+│     Chart                      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   38 × 11 ·   ·     │                             │
+│     DotCanvas                                                                            │                             │
+│     Calendar                   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Heatmap, ActivityHe…                                                                 │                             │
+│     Table                      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     DescriptionList                                                                      │                             │
+│     TreeView                   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│                                                                                          │                             │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaa33333aafaaddddddddddddddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaagggggga333333aaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aai4i444444iiiiiiiiiiiii5iaahhhllllllllllllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh6h66h6hh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnhnnnnnhnnnnnhnnnnnnnhnnnnhnnnnnhnnhnnnnnhnnnnnhnnnnhnnnnnhnnhnnnnhnnnnhnnhnnnnhhhhhhh│
+│aaaaaooooaaaaaaaaaaaaaaaaaaahhhnnnnhnnnhnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaooooooooaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaadddddaaaaaaaaaaaaaaaa3aadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhstttttsiuuuuuuiiuuuuuihhhhh│
+│aaaaaooooooooooooooooooaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhiuuuuuuuihhhhhhhhhhhhhhhhhh│
+│avsssttttttttttttttttttssssahhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhwxyzABCDEFGHhhhIJKLLKhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhnnnnnnnnnhhhhhhhhhhhhhhhhhh│
+│aaadddddddddaaaaaaaaaaaa3aaahhhhhhhhhhhhwxyzABCDEFGHhhhIJKLLKhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhstttttttsiuuuuihhhhhhhhhhhh│
+│aaaaaooooooooooooooooooooaaahhhhphhhphhhhhhzABhhhFGHhhhIJKLLKhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhhhhhhhzABhhhFGHhhhIJKLLKhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhphhhhhhzABhhhFGHOPQIJKLLKhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhsttttsiuuuuuiiuuuuuihhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhzABhhhhGHOPQIJhLLKhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhnnnnhhhhhhhhhhhhhhhhqMMNqhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhwxyzABhDEFGhOPQIJKhLKJIhPOHGFhDChAzyxwhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddaaaaaaaaaaaaaaaa33aaahhhhphhhphhhwxyzAhCDEFhHOPQIhKLhKJIQhOHGhEDCBAhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaoooooooooaaaaaaahhhhphhhphhhnhnnnnnhwRSATUVWXOYZ01h10ZYOh2VhTASRwhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhh66h6h66hphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaoooooooooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+3 #747a83 on #1c1f25
+f #2c3039 on #1c1f25
+g bold #8b929c on #1c1f25
+h on #16181d
+i on #13151a
+4 #747a83 on #13151a
+5 bold #747a83 on #13151a
+l bold #e6e8eb on #16181d
+6 #747a83 on #16181d
+n #8b929c on #16181d
+o #e6e8eb on #1c1f25
+p #2c3039 on #16181d
+q #5fa8ff on #16181d
+s on #2b4566
+t bold #e6e8eb on #2b4566
+u #8b929c on #13151a
+v #5fa8ff on #2b4566
+w #c792ea on #16181d
+x #c193eb on #16181d
+y #bc94ec on #16181d
+z #b696ed on #16181d
+A #b197ef on #16181d
+B #ab98f0 on #16181d
+C #a599f1 on #16181d
+D #a09af2 on #16181d
+E #9a9bf3 on #16181d
+F #949df4 on #16181d
+G #8f9ef5 on #16181d
+H #899ff7 on #16181d
+I #73a4fb on #16181d
+J #6da5fc on #16181d
+K #68a6fd on #16181d
+L #62a7fe on #16181d
+O #84a0f8 on #16181d
+P #7ea1f9 on #16181d
+Q #78a3fa on #16181d
+M on #5fa8ff
+N #ffffff on #5fa8ff
+R #c094eb on #16181d
+S #b895ed on #16181d
+T #a998f0 on #16181d
+U #a29af1 on #16181d
+V #9b9bf3 on #16181d
+W #939df5 on #16181d
+X #8b9ff6 on #16181d
+Y #7da2f9 on #16181d
+Z #75a3fa on #16181d
+0 #6ea5fc on #16181d
+1 #66a6fe on #16181d
+2 #939df4 on #16181d

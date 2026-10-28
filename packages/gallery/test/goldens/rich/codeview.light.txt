@@ -1,0 +1,111 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Rich  ›  CodeView                                                         ctrl+p search      ◐ Light  │
+│                                                                                                                        │
+│   ⌕ Filter             /      CodeView                                                                         2 of 8  │
+│                               Source code highlighted for its language, with line numbers, its long lines wrapped      │
+│     TerminalProgress          or cut off at the width; a CodeViewController scrolls it to a line, highlights lines     │
+│     Viewport                  and finds text.                                                                          │
+│     Window title                                                                                                       │
+│     Notifications             Preview   Code                                                                           │
+│     Cli                    ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│                             ┌                                                          ┐ │                             │
+│   SCREEN READERS       1       1 import 'package:twk/twk.dart';                          │  OPTIONS                    │
+│     Semantics                  2                                                         │                             │
+│                                3 /// Counts the presses of the space bar.                │  language                   │
+│   DEBUGGING            4       4 final class Counter extends StatefulWidget {            │   Dart  Python  Rust  Go    │
+│     Console                    5   const Counter({super.key, this.start = 0});           │   JavaScript  TypeScript    │
+│     FrameOverlay               6                                                         │   JSON  YAML  Bash  diff    │
+│     Repaint rainbow            7   final int start;                                      │   plain                     │
+│     RepaintBoundary            8                                                         │                             │
+│                                9   @override                                             │  line numbers        ▐  ●▌  │
+│   RICH                 8      10   State<Counter> createState() => _CounterState();      │                             │
+│     MarkdownView              11 }                                                       │  changes             ▐●  ▌  │
+│ ▎   CodeView                  12                                                         │                             │
+│     SyntaxThemeScope          13 final class _CounterState extends State<Counter> {      │  wrap                       │
+│     DiffView                  14   late var _count = widget.start;                       │   none  word  grapheme      │
+│     JsonView                  15                                                         │                             │
+│     BigText                   16   @override                                             │  width            56 cells  │
+│     QrCode                    17   Widget build(BuildContext context) => KeyBindings(    │  ─────────────▊▊──────────  │
+│     ANSI                      18     {'space': () => setState(() => _count++)},          │                             │
+│                               19     child: Text('Pressed $_count times,                 │  rows                       │
+│   IMAGES               1  ▐      ${_count.isEven ? 'even' : 'odd'}'),                    │   all  10                   │
+│     Image                 ▐   20   );                                                    │                             │
+│                           ▐   21 }                                                       │  first line                 │
+│   TERMINAL             1  ▐ └                                                          ┘ │   1  120                    │
+│     TerminalView          ▐                                                     56 × 22  │                             │
+│                                                                                          │  to line 18                 │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaaKKKKaafaaddddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaKKKKKKaaaaaadadddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaiLiLLLLLLiiiiiiiiiiiiiMiaahhhllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhNhNNhNhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnnnhnnnnhnnnnnnnnnnnhnnnhnnnhnnnnnnnnnhnnnnhnnnnhnnnnnnnnhnnnhnnnnhnnnnnhnnnnnnnhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhnnhnnnhnnnhnnhnnnhnnnnnnhnhnnnnnnnnnnnnnnnnnnhnnnnnnnhnnhnnhnhnnnnnhnnnnnnnnnnhnnnnnhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhnnnhnnnnnhnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaoooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooaaaaaaaaaaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddadddddddaaaaaaaKaaahhhhnhrrrrrrhssssssssssssssssssssssthhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhnhuuuhuuuuuuhuuuhuuuuuuuhuuhuuuhuuuuuhuuuuhhhhhhhhhhhhhhhhphhnnnnnnnnhhhhhhhhhhhhhhhhhhh│
+│aaadddddddddaaaaaaaaaaaaKaaahhhhnhrrrrrhrrrrrhvvvvvvvhrrrrrrrhvvvvvvvvvvvvvvhthhhhhhhhhhhhphhOPPPPOyzzzzzzyyzzzzyyzzyhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhnhhhrrrrrhvvvvvvvttrrrrrttttthrrrrtttttthvhAttthhhhhhhhhhhphhyzzzzzzzzzzyyzzzzzzzzzzyhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhyzzzzyyzzzzyyzzzzyyzzzzyhhh│
+│aaaaaoooooooaoooooooaaaaaaaahhhhnhhhrrrrrhvvvhtttttthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhyzzzzzyhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhnhhhAAAAAAAAAhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnhnnnnnnnhhhhhhhhqBBCqhh│
+│aaaddddaaaaaaaaaaaaaaaaaKaaahhhnnhhhvvvvvvvvvvvvvvhqqqqqqqqqqqtthvvhvvvvvvvvvvvvvttthhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhnnhthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnnnhhhhhhhhhhhhhDEFFDhh│
+│aQOOOPPPPPPPPOOOOOOOOOOOOOOahhhnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhnnhrrrrrhrrrrrhvvvvvvvvvvvvvhrrrrrrrhvvvvvvvvvvvvvvhthhhhhhphhnnnnhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhnnhhhrrrrhrrrhtttttthvhttttttttttttthhhhhhhhhhhhhhhhhhhhhhhphhyzzzzyOPPPPOyzzzzzzzzyhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhnnhhhAAAAAAAAAhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnhhhhhhhhhhhhNNhNNNNNhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhnnhhhvvvvvvhqqqqqtvvvvvvvvvvvvhtttttttthvvhvvvvvvvvvvvthhhhphhtttttttttttttHtnnnnnnnnnnhh│
+│aaaaaooooaaaaaaaaaaaaaaaaaaahhhnnhhhhhtsssssssthtthvvhqqqqqqqqttthvvhttttttvvttthhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnhhhhhtttttthvvvvtsssssssshIIIIIIIhsssssshhhhhhhhhhhhhhhhhphhnnnnhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddaaaaaaaaaaaaaaaKaadhhhhhhttttttttttttttthvhsssssshthssssststthhhhhhhhhhhhhhhhhhhhphhOPPPOyzzyhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaadhhhnnhhhtthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhnnhthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnhnnnnhhhhhhhhhhhhhhhhh│
+│aaaddddddddaaaaaaaaaaaaaKaadhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhOPOyzzzyhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhNNhNhNNhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnhnnnnhnnhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #f3f5f7
+b #0969da on #f3f5f7
+c bold #1f2328 on #f3f5f7
+d #656d76 on #f3f5f7
+K #838991 on #f3f5f7
+f #dcdfe4 on #f3f5f7
+g bold #656d76 on #f3f5f7
+h on #fafafb
+i on #fefefe
+L #838991 on #fefefe
+M bold #838991 on #fefefe
+l bold #1f2328 on #fafafb
+N #838991 on #fafafb
+n #656d76 on #fafafb
+o #1f2328 on #f3f5f7
+p #dcdfe4 on #fafafb
+q #0969da on #fafafb
+r #8250df on #fafafb
+s #1a7f37 on #fafafb
+t #1f2328 on #fafafb
+u italic #656d76 on #fafafb
+v #0a7ea4 on #fafafb
+O on #b6d4fe
+P bold #1f2328 on #b6d4fe
+y on #eef0f3
+z #656d76 on #eef0f3
+A #9a6700 on #fafafb
+B on #0969da
+C #ffffff on #0969da
+D #c8cdd5 on #fafafb
+E #ffffff on #c8cdd5
+F on #c8cdd5
+Q #0969da on #b6d4fe
+H reverse #1f2328 on #fafafb
+I #cf222e on #fafafb

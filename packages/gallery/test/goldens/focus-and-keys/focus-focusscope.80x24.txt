@@ -1,0 +1,77 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     Focus, FocusScope                       Preview   Code  │
+│                        Nodes the keys go to: Tab moves the focus from one to   │
+│     Listener, Mou…     the next, a click takes it; in a scope Tab goes round…  │
+│     IgnorePointer…   ──────────────────────────────────────────────────────────│
+│     SelectionArea                                                              │
+│     Draggable, Dr…      ·   · ┌                                     ┐   ·   ·  │
+│                                                 ╭ FocusScope ─────╮            │
+│   FOCUS AND KEYS 4      ·   ·   ╭─────╮ ╭─────╮ │╭───────╮╭──────╮│     ·   ·  │
+│ ▎   Focus, FocusS…              │ one │ │ two │ ││ three ││ four ││            │
+│     ExcludeFocus        ·   ·   ╰─────╯ ╰─────╯ │╰───────╯╰──────╯│     ·   ·  │
+│     KeyBindings,…                               ╰─────────────────╯            │
+│     Shortcuts, Ac…      ·   ·                                           ·   ·  │
+│                                 focus: none                                    │
+│   NAVIGATION     5      ·   · └                                     ┘   ·   ·  │
+│     Navigator       ▐                                         35 × 7           │
+│     PopScope, Nav…  ▐                                                          │
+│     Breadcrumbs      ──────────────────────────────────────────────────────────│
+│     Pagination         FocusScope  ▐  ●▌                                       │
+│     Stepper            node two     focusable  skips Tab  unfocusable          │
+│                                                                                │
+│                                                                                │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeaAAAAAAaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahBhBBBBBBhhhhhhhChaaggkkkkkkgkkkkkkkkkkggggggggggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmgmmmgmmmmgmmgmmmgmmmgmmmmmgmmmgmmmmmgmmmmgmmmgmmggg│
+│aaaaannnnnnnnnannnnaaaggmmmgmmmmmgmgmmmmmgmmmmmgmmmgmmgmgmmmmmgmmmgmmmmgmmmmmmgg│
+│aaaaannnnnnnnnnnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnnnaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnannnaaagggogggogogggggggggggggggggggggggggggggggggggggogggogggogg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggpgmmmmmmmmmmgppppppgggggggggggg│
+│aaadddddadddaddddaAaaagggogggogggpppppppgpppppppgpppppppppppppppppppgggggogggogg│
+│aqrrrssssssrsssssssrragggggggggggpgtttgpgpgtttgpgppgtttttgppgttttgppgggggggggggg│
+│aaaaannnnnnnnnnnnaaaaagggogggogggpppppppgpppppppgpppppppppppppppppppgggggogggogg│
+│aaaaannnnnnnnnnnnnaaaagggggggggggggggggggggggggggpppppppppppppppppppgggggggggggg│
+│aaaaannnnnnnnnnannnaaagggogggogggggggggggggggggggggggggggggggggggggggggggogggogg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggmmmmmmgmmmmgggggggggggggggggggggggggggggggggggg│
+│aaaddddddddddaaaaaAaaagggogggogogggggggggggggggggggggggggggggggggggggogggogggogg│
+│aaaaannnnnnnnnaaaaaaadgggggggggggggggggggggggggggggggggggggggggDDgDgDggggggggggg│
+│aaaaannnnnnnnnannnnaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnaaaaaaaggmmmmmmmmmmggwxxywggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnaaaaaaaaaaggmmmmgmmmggggrsssssssssrhzzzzzhzzzhhzzzzzzzzzzzhggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+A #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+B #747a83 on #13151a
+C bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+n #e6e8eb on #1c1f25
+o #2c3039 on #16181d
+p #3e444f on #16181d
+q #5fa8ff on #2b4566
+r on #2b4566
+s bold #e6e8eb on #2b4566
+t #e6e8eb on #16181d
+D #747a83 on #16181d
+w #5fa8ff on #16181d
+x on #5fa8ff
+y #ffffff on #5fa8ff
+z #8b929c on #13151a

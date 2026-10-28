@@ -1,0 +1,103 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   App  ›  TerminalProgress                                                  ctrl+p search      ◐ Light  │
+│                                                                                                                        │
+│   ⌕ Filter             /      TerminalProgress                                                                 4 of 8  │
+│                               The program's progress in the terminal's tab or taskbar, where the terminal shows        │
+│                               one (Ghostty, kitty, Windows Terminal, ConEmu).                                          │
+│   FRAMEWORK            3                                                                                               │
+│     LayoutBuilder             Preview   Code                                                                           │
+│     NotificationListener   ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     Slot, SlotScope                                                                      │                             │
+│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│   APP                  8                                                                 │                             │
+│     InputListener              ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  state                      │
+│     ErrorWidget                                                                          │   none  normal  error       │
+│     Static                     ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   indeterminate  paused     │
+│ ▎   TerminalProgress                                                                     │                             │
+│     Viewport                   · ┌                                                ┐      │  value known         ▐  ●▌  │
+│     Window title                   ╭────────────────────────────────────────────╮        │                             │
+│     Notifications              ·   │ ◔ build  33%   zsh                         │        │  value                 33%  │
+│     Cli                            │ ━━━━━━━━━━━━                               │        │  ───────▉▉────────────────  │
+│                                ·   │                                            │        │                             │
+│   SCREEN READERS       1           │  In the tab: normal, 33%                   │        │  terminal shows it   ▐  ●▌  │
+│     Semantics                  ·   │  wrote: ESC]9;4;1;33ESC\                   │        │                             │
+│                                    │                                            │        │                             │
+│   DEBUGGING            4       ·   ╰────────────────────────────────────────────╯        │                             │
+│     Console                      └                                                ┘      │                             │
+│     FrameOverlay               ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·46 × 8 ·     │                             │
+│     Repaint rainbow                                                                      │                             │
+│     RepaintBoundary       ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│                           ▐                                                              │                             │
+│   RICH                 8  ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     MarkdownView          ▐                                                              │                             │
+│     CodeView              ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     SyntaxThemeScope                                                                     │                             │
+│     DiffView                   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│                                                                                          │                             │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaaCCCaafaaddddddddddddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaCCCCCCaaaaaadadddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaiDiDDDDDDiiiiiiiiiiiiiEiaahhhllllllllllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhFhFFhFhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnhnnnnnnnnnhnnnnnnnnhnnhnnnhnnnnnnnnnnhnnnhnnhnnnnnnnnhnnnnnhnnnhnnnnnnnnhnnnnnhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnhnnnnnnnnnhnnnnnnhnnnnnnnhnnnnnnnnnhnnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddddddaaaaaaaaaaaaCaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooooaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaoooooaoooooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaadddaaaaaaaaaaaaaaaaaaCaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhrssssrGHHHHHHGrsssssrhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhrsssssssssssssrrssssssrhhhh│
+│aIGGGHHHHHHHHHHHHHHHHGGGGGGahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhphphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhphhnnnnnhnnnnnhhhhhhhhhqwwxqhh│
+│aaaaaooooooaoooooaaaaaaaaaaahhhhhhhhyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaahhhhphhhyhqhlllllhhnnnhrrsssrrrrrrrrrrrrrrrrrrrrrrrrryhhhhhhhhphhnnnnnhhhhhhhhhhhhhhhhhFFFhh│
+│aaaaaoooaaaaaaaaaaaaaaaaaaaahhhhhhhhyhqqqqpppppppphrrrrrrrrrrrrrrrrrrrrrrrrrrrrrryhhhhhhhhphhzzzzzzzAznnnnnnnnnnnnnnnnhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhyhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhyhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddadddddddaaaaaaaCaaahhhhhhhhyhhzzhzzzhzzzzhzzzzzzzhzzzhhhhhhhhhhhhhhhhhhhyhhhhhhhhphhnnnnnnnnhnnnnnhnnhhhqwwxqhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhyhhnnnnnnhnnnzzzzzzzzznnnzhhhhhhhhhhhhhhhhhhhyhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhyhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhyhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddddddaaaaaaaaaaaaCaaahhhhphhhyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhpFFhFhFhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaoooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddaaaaaaaaaaaaaaaaaCaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #f3f5f7
+b #0969da on #f3f5f7
+c bold #1f2328 on #f3f5f7
+d #656d76 on #f3f5f7
+C #838991 on #f3f5f7
+f #dcdfe4 on #f3f5f7
+g bold #656d76 on #f3f5f7
+h on #fafafb
+i on #fefefe
+D #838991 on #fefefe
+E bold #838991 on #fefefe
+l bold #1f2328 on #fafafb
+F #838991 on #fafafb
+n #656d76 on #fafafb
+o #1f2328 on #f3f5f7
+p #dcdfe4 on #fafafb
+q #0969da on #fafafb
+r on #eef0f3
+s #656d76 on #eef0f3
+G on #b6d4fe
+H bold #1f2328 on #b6d4fe
+I #0969da on #b6d4fe
+w on #0969da
+x #ffffff on #0969da
+y #c8cdd5 on #fafafb
+z #1f2328 on #fafafb
+A reverse #1f2328 on #fafafb

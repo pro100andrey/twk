@@ -1,0 +1,103 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Editing  ›  TextField                                                     ctrl+p search      ◐ Light  │
+│                                                                                                                        │
+│   ⌕ Filter             /      TextField                                                                        1 of 4  │
+│                               A line of text to edit: Tab to it and type; Enter submits it, Ctrl+Z undoes.             │
+│     Calendar                                                                                                           │
+│     Heatmap, ActivityHe…      Preview   Code                                                                           │
+│     Table                  ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     DescriptionList                                                                      │                             │
+│     TreeView                   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│     TreeTable                                                                            │                             │
+│     DirectoryTree              ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  obscured            ▐●  ▌  │
+│     TaskList                                                                             │                             │
+│                           ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  max length                 │
+│   EDITING              4  ▐                                                              │   none  8                   │
+│ ▎   TextField             ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     InputDecoration       ▐                                                              │  cursor                     │
+│     TextArea              ▐    ·   ·   · ┌                                ┐    ·   ·     │   bar  block  underline     │
+│     Autocomplete                           ╭────────────────────────────╮                │   terminal                  │
+│                                ·   ·   ·   │type here                   │      ·   ·     │                             │
+│   CONTROLS            20                   ╰────────────────────────────╯                │  blinking            ▐●  ▌  │
+│     Button                     ·   ·   ·                                       ·   ·     │                             │
+│     Pressable                              submitted: nothing                            │  text align                 │
+│     Checkbox, Switch           ·   ·   ·   heard: nothing                      ·   ·     │   left  center  right       │
+│     RadioGroup                           └                                ┘              │   start  end                │
+│     SegmentedButton            ·   ·   ·   ·   ·   ·   ·   ·   ·   ·30 × 6 ·   ·   ·     │                             │
+│     SelectionList                                                                        │  read only           ▐●  ▌  │
+│     Select, MultiSelect        ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     ConfirmInput                                                                         │  enabled             ▐  ●▌  │
+│     Slider                     ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     NumberInput                                                                          │  a paste                    │
+│     DatePicker                 ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   goes in  taken            │
+│     FilePicker                                                                           │                             │
+│     Form, FormField            ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     TabBar, TabView                                                                      │                             │
+│                                                                                          │                             │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaaCCCCCCCaafaadddddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaCCCCCCaaaaaadadddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaiDiDDDDDDiiiiiiiiiiiiiEiaahhhlllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhFhFFhFhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnhnnnnhnnhnnnnhnnhnnnnnhnnnhnnhnnhnnnhnnnnnhnnnnnhnnnnnnnhnnnhnnnnnnhnnnnnnnhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaoooooooooooaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaoooooooooooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnnhhhhhhhhhhhhrsttrhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnhnnnnnnhhhhhhhhhhhhhhhhh│
+│aaadddddddaaaaaaaaaaaaaaCaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhGHHHHGxyxhhhhhhhhhhhhhhhhhh│
+│aIGGGHHHHHHHHHGGGGGGGGGGGGGdhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnnhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaadhhhhphhhphhhphphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhphhhphhhhhphhGHHHGxyyyyyxxyyyyyyyyyxhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrhhhhhhhhhhhhhhhhphhxyyyyyyyyxhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhrnnnnhnnnnhhhhhhhhhhhhhhhhhhhrhhhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddddaaaaaaaaaaaaCCaaahhhhhhhhhhhhhhhhrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrhhhhhhhhhhhhhhhhphhnnnnnnnnhhhhhhhhhhhhrsttrhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhphhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhnnnnnnnnnnhnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnhnnnnnhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaooooooaaaaaaahhhhphhhphhhphhhnnnnnnhnnnnnnnhhhhhhhhhhhhhhhhhhhhhhphhhphhhhhphhGHHHHGxyyyyyyxxyyyyyxhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhphhxyyyyyxxyyyxhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhpFFhFhFhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnhnnnnhhhhhhhhhhhrsttrhh│
+│aaaaaoooooooaoooooooooooaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnnnhhhhhhhhhhhhhqAABqhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnhnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhGHHHHGHHGxyyyyyxhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaoooooooooaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaoooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #f3f5f7
+b #0969da on #f3f5f7
+c bold #1f2328 on #f3f5f7
+d #656d76 on #f3f5f7
+C #838991 on #f3f5f7
+f #dcdfe4 on #f3f5f7
+g bold #656d76 on #f3f5f7
+h on #fafafb
+i on #fefefe
+D #838991 on #fefefe
+E bold #838991 on #fefefe
+l bold #1f2328 on #fafafb
+F #838991 on #fafafb
+n #656d76 on #fafafb
+o #1f2328 on #f3f5f7
+p #dcdfe4 on #fafafb
+q #0969da on #fafafb
+r #c8cdd5 on #fafafb
+s #ffffff on #c8cdd5
+t on #c8cdd5
+G on #b6d4fe
+H bold #1f2328 on #b6d4fe
+x on #eef0f3
+y #656d76 on #eef0f3
+I #0969da on #b6d4fe
+A on #0969da
+B #ffffff on #0969da

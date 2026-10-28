@@ -1,0 +1,101 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Framework  ›  LayoutBuilder                                               ctrl+p search      ◐ Light  │
+│                                                                                                                        │
+│   ⌕ Filter             /      LayoutBuilder                                                                    1 of 3  │
+│                               What is built by the constraints it is laid out within: side by side when wide, one      │
+│     PopScope, Navigator…      under another when narrow.                                                               │
+│     Breadcrumbs                                                                                                        │
+│     Pagination                Preview   Code                                                                           │
+│     Stepper                ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│                                                                                          │                             │
+│   FOUNDATION           2       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│     ListenableBuilder                                                                    │                             │
+│     FutureBuilder, Stre…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  width            40 cells  │
+│                                                                                          │  ─────────────────▋▋──────  │
+│   FRAMEWORK            3       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│ ▎   LayoutBuilder                                                                        │  wide from                  │
+│     NotificationListener       ·    ┌                                          ┐   ·     │   24  30  36                │
+│     Slot, SlotScope                   40×8: wide                                         │                             │
+│                                ·      ╭ one ─────────────╮╭ two ─────────────╮     ·     │                             │
+│   APP                  8              │                  ││                  │           │                             │
+│     InputListener              ·      │                  ││                  │     ·     │                             │
+│     ErrorWidget                       │       18×5       ││       18×5       │           │                             │
+│     Static                     ·      │                  ││                  │     ·     │                             │
+│     TerminalProgress                  │                  ││                  │           │                             │
+│     Viewport                   ·      ╰──────────────────╯╰──────────────────╯     ·     │                             │
+│     Window title                    └                                          ┘         │                             │
+│     Notifications              ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   · 40 × 8·   ·     │                             │
+│     Cli                   ▐                                                              │                             │
+│                           ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│   SCREEN READERS       1  ▐                                                              │                             │
+│     Semantics             ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│                           ▐                                                              │                             │
+│   DEBUGGING            4       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Console                                                                              │                             │
+│     FrameOverlay               ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│                                                                                          │                             │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaaAAAAAAAAAaafaadddddddddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaAAAAAAaaaaaadadddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaiBiBBBBBBiiiiiiiiiiiiiCiaahhhlllllllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhDhDDhDhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnhnnhnnnnnhnnhnnnhnnnnnnnnnnnhnnhnnhnnnnhnnnhnnnnnnnhnnnnhnnhnnnnhnnnnhnnnnnhnnnhhhhhh│
+│aaaaaoooooooooaooooooooooaaahhhnnnnnhnnnnnnnhnnnnhnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddddddaaaaaaaaaaaAaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooooaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooaoooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnhhhhhhhhhhhhDDhDDDDDhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhrrrrrrrrrrrrrrrrrsrnnnnnnhh│
+│aaadddddddddaaaaaaaaaaaaAaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aEFFFGGGGGGGGGGGGGFFFFFFFFFahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnhnnnnhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooooaaahhhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhhhphhwxxwFGGFwxxwhhhhhhhhhhhhhhh│
+│aaaaaoooooaoooooooooaaaaaaaahhhhhhhhhhhrrrrrhqqqqhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhhhhyhyyyhyyyyyyyyyyyyyyyhyyyhyyyyyyyyyyyyyyhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddaaaaaaaaaaaaaaaaaaAaaahhhhhhhhhhhyhhhhhhhhhhhhhhhhhhyyhhhhhhhhhhhhhhhhhhyhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaahhhhphhhhhhyhhhhhhhhhhhhhhhhhhyyhhhhhhhhhhhhhhhhhhyhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhyhhhhhhhnnnnhhhhhhhyyhhhhhhhnnnnhhhhhhhyhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhphhhhhhyhhhhhhhhhhhhhhhhhhyyhhhhhhhhhhhhhhhhhhyhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhhhhhhhhhyhhhhhhhhhhhhhhhhhhyyhhhhhhhhhhhhhhhhhhyhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhhhhyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaoooooaaaaaaaaaaahhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphDDhDhDphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooaaaaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddadddddddaaaaaaaAaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddddddaaaaaaaaaaaaAaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #f3f5f7
+b #0969da on #f3f5f7
+c bold #1f2328 on #f3f5f7
+d #656d76 on #f3f5f7
+A #838991 on #f3f5f7
+f #dcdfe4 on #f3f5f7
+g bold #656d76 on #f3f5f7
+h on #fafafb
+i on #fefefe
+B #838991 on #fefefe
+C bold #838991 on #fefefe
+l bold #1f2328 on #fafafb
+D #838991 on #fafafb
+n #656d76 on #fafafb
+o #1f2328 on #f3f5f7
+p #dcdfe4 on #fafafb
+q #0969da on #fafafb
+r #1f2328 on #fafafb
+s reverse #1f2328 on #fafafb
+E #0969da on #b6d4fe
+F on #b6d4fe
+G bold #1f2328 on #b6d4fe
+w on #eef0f3
+x #656d76 on #eef0f3
+y #c8cdd5 on #fafafb

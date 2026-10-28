@@ -1,0 +1,105 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Animation  ›  Effect                                                      ctrl+p search      ◐ Light  │
+│                                                                                                                        │
+│   ⌕ Filter             /      Effect                                                                         16 of 16  │
+│                               A child shown through an effect over its cells, run on the app's clock: recolored,       │
+│     AnimatedBuilder           swept, dissolved, typed or glitched in, while the child repaints underneath.             │
+│     AnimatedAlign, Anim…                                                                                               │
+│     AnimatedPositioned        Preview   Code                                                                           │
+│     AnimatedBox            ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     AnimatedOpacity, Op…                                                                 │                             │
+│     AnimatedDefaultText…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│     AnimatedSize                                                                         │                             │
+│     TweenAnimationBuild…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  effect                     │
+│     AnimatedSwitcher                                                                     │   sweep  dissolve           │
+│     Dissolve, Fractiona…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   typewriter  glitch  dim   │
+│ ▎   Effect                                                                               │   desaturate  tint          │
+│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   scanlines  grade          │
+│   MOUSE                5           ┌                                           ┐         │   sweep down, glitch        │
+│     GestureDetector            ·     ╭────────────────────────────────╮            ·     │                             │
+│     Listener, MouseRegi…             │Effects over a subtree          │                  │  cycle               ▐  ●▌  │
+│     IgnorePointer, Abso…       ·     │⠴ repainting underneath         │            ·     │                             │
+│     SelectionArea                    │the cells it paints, filtered   │                  │                             │
+│     Draggable, DragTarg…       ·     ╰────────────────────────────────╯            ·     │                             │
+│                           ▐                                                              │                             │
+│   FOCUS AND KEYS       4  ▐    ·      Again   a new key runs it from its start     ·     │                             │
+│     Focus, FocusScope     ▐        └                                           ┘         │                             │
+│     ExcludeFocus          ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   · 41 × 7·   ·     │                             │
+│     KeyBindings, Leader…  ▐                                                              │                             │
+│     Shortcuts, Actions         ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│                                                                                          │                             │
+│   NAVIGATION           5       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Navigator                                                                            │                             │
+│     PopScope, Navigator…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Breadcrumbs                                                                          │                             │
+│     Pagination                 ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│                                                                                          │                             │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaaEEEEEEEEEaafaaddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaEEEEEEaaaaaadadddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaiFiFFFFFFiiiiiiiiiiiiiGiaahhhllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhHHhHHhHHhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnhnnnnnhnnnnnhnnnnnnnhnnhnnnnnnhnnnnhnnnhnnnnnnhnnnhnnhnnnhnnnnnhnnnnnnhnnnnnnnnnnhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhnnnnnnhnnnnnnnnnnhnnnnnhnnhnnnnnnnnhnnnhnnnnnhnnnhnnnnnhnnnnnnnnhnnnnnnnnnnnhhhhhhhhhhhhh│
+│aaaaaooooooooooooooaoooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaooooooooooooooooaoooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhrsssssrIJJJJJJJJIhhhhhhhhhh│
+│aaaaaoooooooooaooooooooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhrssssssssssrrssssssrrsssrhh│
+│aKIIIJJJJJJIIIIIIIIIIIIIIIIahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhrssssssssssrrssssrhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhrsssssssssrrsssssrhhhhhhhhh│
+│aaadddddaaaaaaaaaaaaaaaaEaaahhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhphhrsssssrsssssrssssssrhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhphhhhhwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaooooooooooaaahhhhhhhhhhwxxxxxxxrxxxxrxrxxxxxxxrrrrrrrrrrwhhhhhhhhhhhhhhhhhhphhnnnnnhhhhhhhhhhhhhhhqyyzqhh│
+│aaaaaooooooooooooooaoooooaaahhhhphhhhhwArBBBBBBBBBBrBBBBBBBBBBrrrrrrrrrwhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaahhhhhhhhhhwsssrsssssrssrsssssssrssssssssrrrwhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaoooooooooaaahhhhphhhhhwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddadddaddddaaaaaaaEaadhhhhphhhhhrDDDDDrhhnhnnnhnnnhnnnnhnnhnnnnhnnnhnnnnnhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaooooooooooaaaaadhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphHHhHhHphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaoooooooaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaoooooooaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddddddaaaaaaaaaaaEaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaooooooooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #f3f5f7
+b #0969da on #f3f5f7
+c bold #1f2328 on #f3f5f7
+d #656d76 on #f3f5f7
+E #838991 on #f3f5f7
+f #dcdfe4 on #f3f5f7
+g bold #656d76 on #f3f5f7
+h on #fafafb
+i on #fefefe
+F #838991 on #fefefe
+G bold #838991 on #fefefe
+l bold #1f2328 on #fafafb
+H #838991 on #fafafb
+n #656d76 on #fafafb
+o #1f2328 on #f3f5f7
+p #dcdfe4 on #fafafb
+q #0969da on #fafafb
+r on #eef0f3
+s #656d76 on #eef0f3
+I on #b6d4fe
+J bold #1f2328 on #b6d4fe
+K #0969da on #b6d4fe
+w #c8cdd5 on #eef0f3
+x #0969da on #eef0f3
+y on #0969da
+z #ffffff on #0969da
+A #8250df on #eef0f3
+B #1f2328 on #eef0f3
+D bold #0969da on #eef0f3

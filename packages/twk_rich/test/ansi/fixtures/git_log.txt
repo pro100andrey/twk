@@ -1,0 +1,35 @@
+6473e80 (HEAD -> main) Bubble notifications up to the listeners above a context
+2026-10-19
+
+ packages/twk/lib/src/framework/framework.dart      |  77 +++++++++-
+ packages/twk/test/framework/contracts_test.dart    |  13 +-
+ packages/twk/test/framework/notification_test.dart | 167 +++++++++++++++++++++
+ 3 files changed, 252 insertions(+), 5 deletions(-)
+99dc39a Rename the keyboard enum Key to KeyCode and KeyEvent's key to code
+2026-10-19
+
+ README.md                                 |   5 +-
+ example/chat_demo.dart                    |  24 +++--
+ lib/src/input/events.dart                 |  17 ++--
+ lib/src/input/parser.dart                 | 164 +++++++++++++++---------------
+ lib/src/terminal/terminal.dart            |   2 +-
+ test/headless/headless_terminal_test.dart |  16 +--
+ test/inline/inline_demo.dart              |   8 +-
+ test/input_parser_test.dart               | 120 +++++++++++-----------
+ test/log/log_app.dart                     |   2 +-
+ test/terminal/suspend_app.dart            |  10 +-
+ 10 files changed, 190 insertions(+), 178 deletions(-)
+f87234d Commit finished lines to the scrollback above the inline region
+2026-10-19
+
+ README.md                        |  55 +++++---
+ lib/src/app.dart                 | 145 +++++++++++++++++++--
+ lib/src/presenter.dart           | 270 ++++++++++++++++++++++++++++++++++++---
+ lib/src/screen.dart              |   6 +
+ test/inline/inline_app_test.dart | 110 +++++++++++++++-
+ test/inline/inline_demo.dart     |  24 ++--
+ test/presenter_fuzz_test.dart    |  45 ++++++-
+ test/presenter_test.dart         | 163 +++++++++++++++++++++++
+ test/screen_test.dart            |  24 ++++
+ test/support/harness.dart        |  79 +++++++++++-
+ 10 files changed, 864 insertions(+), 57 deletions(-)

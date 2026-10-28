@@ -1,0 +1,99 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Scrolling  ›  Scrollable                                                  ctrl+p search      ◐ Light  │
+│                                                                                                                        │
+│   ⌕ Filter             /      Scrollable                                                                       2 of 5  │
+│                               What scrolls a viewport: here one of the page's own, a ruler that tells the              │
+│     Scaffold                  scrollable how long it is as it is laid out.                                             │
+│                                                                                                                        │
+│   STYLE                4      Preview   Code                                                                           │
+│     Theme                  ───━━━━━━━──────────────────────────────────────────────────────────────────────────────────│
+│     TerminalBrightness                                                                                                 │
+│     GradientBackground    ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   │
+│     GradientForeground    ▐                                                                                            │
+│                           ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   │
+│   SCROLLING            5  ▐                                                                                            │
+│     SingleChildScrollVi…  ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   │
+│ ▎   Scrollable                                        ┌                                    ┐                           │
+│     ListView                   ·   ·   ·   ·   ·   ·    ╭────────────────────────────────╮     ·   ·   ·   ·   ·   ·   │
+│     LogView                                             │  1 ├─                          │                             │
+│     Scrollbar                  ·   ·   ·   ·   ·   ·    │  2 ├─                          │     ·   ·   ·   ·   ·   ·   │
+│                                                         │  3 ├─                          │                             │
+│   DATA                13       ·   ·   ·   ·   ·   ·    │  4 ├─                          │     ·   ·   ·   ·   ·   ·   │
+│     Sparkline                                           │  5 ├────                       │                             │
+│     Gauge, LineGauge           ·   ·   ·   ·   ·   ·    │  6 ├─                          │     ·   ·   ·   ·   ·   ·   │
+│     BarChart                                            ╰────────────────────────────────╯                             │
+│     Chart                      ·   ·   ·   ·   ·   ·                                           ·   ·   ·   ·   ·   ·   │
+│     DotCanvas                                           offset 0 of 94                                                 │
+│     Calendar                   ·   ·   ·   ·   ·   ·  └                                    ┘   ·   ·   ·   ·   ·   ·   │
+│     Heatmap, ActivityHe…                                                            34 × 10                            │
+│     Table                      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   │
+│     DescriptionList                                                                                                    │
+│     TreeView                   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   │
+│     TreeTable                                                                                                          │
+│     DirectoryTree              ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   │
+│     TaskList                                                                                                           │
+│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   │
+│                                                                                                                        │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaayyyyyyyyyaafaaddddddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggayyyyyyaaaaaadadddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaizizzzzzziiiiiiiiiiiiiAiaahhhllllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhBhBBhBhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnhnnnnnnnhnhnnnnnnnnnhnnnnhnnnhnnhnnnhnnnnnnhnnnnhnhnnnnnhnnnnhnnnnnhnnnhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhnnnnnnnnnnhnnnhnnnnhnnhnnhnnhnnhnnhnnnnhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddaaaaaaaaaaaaaaaayaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaooooooooooooooooooaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhh│
+│aaaaaooooooooooooooooooaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhh│
+│aaadddddddddaaaaaaaaaaaayaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooooaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhh│
+│aCDDDEEEEEEEEEEDDDDDDDDDDDDahhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhhvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvhhhhhphhhphhhphhhphhhphhhphhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhvhhwhxxhhhhhhhhhhhhhhhhhhhhhhhhhhvhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhhvhhwhxxhhhhhhhhhhhhhhhhhhhhhhhhhhvhhhhhphhhphhhphhhphhhphhhphhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhvhhwhxxhhhhhhhhhhhhhhhhhhhhhhhhhhvhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddaaaaaaaaaaaaaaaayyaaahhhhphhhphhhphhhphhhphhhphhhhvhhwhxxhhhhhhhhhhhhhhhhhhhhhhhhhhvhhhhhphhhphhhphhhphhhphhhphhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhvhhwhxxxxxhhhhhhhhhhhhhhhhhhhhhhhvhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaoooooooooaaaaaaahhhhphhhphhhphhhphhhphhhphhhhvhhwhxxhhhhhhhhhhhhhhhhhhhhhhhhhhvhhhhhphhhphhhphhhphhhphhhphhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhphhhphhhphhhphhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhnnnnnnhwhnnhwwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhphhhphhhphhhphhhphhh│
+│aaaaaooooooooaoooooooooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhBBhBhBBhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #f3f5f7
+b #0969da on #f3f5f7
+c bold #1f2328 on #f3f5f7
+d #656d76 on #f3f5f7
+y #838991 on #f3f5f7
+f #dcdfe4 on #f3f5f7
+g bold #656d76 on #f3f5f7
+h on #fafafb
+i on #fefefe
+z #838991 on #fefefe
+A bold #838991 on #fefefe
+l bold #1f2328 on #fafafb
+B #838991 on #fafafb
+n #656d76 on #fafafb
+o #1f2328 on #f3f5f7
+p #dcdfe4 on #fafafb
+q #0969da on #fafafb
+C #0969da on #b6d4fe
+D on #b6d4fe
+E bold #1f2328 on #b6d4fe
+v #c8cdd5 on #fafafb
+w #1f2328 on #fafafb
+x dim #1f2328 on #fafafb

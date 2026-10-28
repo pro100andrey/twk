@@ -1,0 +1,19 @@
+// A widget written when AppBinding's app was tuiApp (before 6d4f947).
+import 'package:twk/twk.dart';
+
+final class Uptime extends StatelessWidget {
+  const Uptime({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final binding = AppBinding.of(context);
+    final elapsed = binding.tuiApp.clock.elapsed;
+    AppBinding.maybeOf(context)?.tuiApp.requestFrame();
+    return Text('up ${elapsed.inSeconds} s');
+  }
+}
+
+int fps(AppBinding binding) {
+  final app = binding.tuiApp;
+  return app.maxFps;
+}

@@ -1,0 +1,109 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Controls  ›  FilePicker                                                    ctrl+p search      ◐ Dark  │
+│                                                                                                                        │
+│   ⌕ Filter             /      FilePicker                                                                     12 of 20  │
+│                               A file picked from the directory listed under a field that names its path: the           │
+│     Pressable                 arrows and Enter go through it, Tab completes a name; a FilePickerController goes to     │
+│     Checkbox, Switch          a directory.                                                                             │
+│     RadioGroup                                                                                                         │
+│     SegmentedButton           Preview   Code                                                                           │
+│     SelectionList          ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     Select, MultiSelect                                                                  │                             │
+│     ConfirmInput               ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│     Slider                                                                               │                             │
+│     NumberInput                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  mode                       │
+│     DatePicker                                                                           │   open  open several        │
+│ ▎   FilePicker                 ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   save  directory           │
+│     Form, FormField       ▐    ┌                                                    ┐    │                             │
+│     TabBar, TabView       ▐      /home/user/twk/                                         │  show hidden         ▐●  ▌  │
+│     KeyHintsBar           ▐       ../                                                    │                             │
+│     StatusMessage, Badge  ▐      ▎example/                                               │                             │
+│     Callout               ▐       lib/                                                   │                             │
+│     Link                          test/                                                  │                             │
+│     ListTile                                                                             │                             │
+│     StatusBar                                                                            │                             │
+│                                   Dart      ▾ [ ] hidden                      Open       │                             │
+│   OVERLAYS            11                                                                 │                             │
+│     Overlay                       In a dialog    lib/src   picked: nothing               │                             │
+│     Dialog                     └                                                    ┘    │                             │
+│     Toast                                                                    50 × 10     │                             │
+│     Tooltip                    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Popover                                                                              │                             │
+│     MenuBar                    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     ContextMenu                                                                          │                             │
+│     CommandPalette             ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     OptionList                                                                           │                             │
+│                                                                                          │                             │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaaIIIIIIIIaafaaddddddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaIIIIIIaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaiJiJJJJJJiiiiiiiiiiiiiKiaahhhllllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhLLhLLhLLhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnhnnnnhnnnnnnhnnnnhnnnhnnnnnnnnnhnnnnnnhnnnnnhnhnnnnnhnnnnhnnnnnhnnnhnnnnnhnnnhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhnnnnnnhnnnhnnnnnhnnhnnnnnnnhnnnhnnnhnnnnnnnnnhnhnnnnnhnhnnnnnnnnnnnnnnnnnnnnhnnnnhnnhhhhh│
+│aaaaaoooooooooaooooooaaaaaaahhhnhnnnnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaoooooooaoooooooooooaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhrssssrittttitttttttihhhhhhh│
+│aurrrssssssssssrrrrrrrrrrrrahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhittttiitttttttttihhhhhhhhhh│
+│aaaaaoooooaoooooooooaaaaaaadhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaoooooooaaaaaaadhhhhhhHHHHHHHHHHHHHHHiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiihhhhhhphhnnnnhnnnnnnhhhhhhhhhEFGGEhh│
+│aaaaaoooooooooooaaaaaaaaaaadhhhhhhhlllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooaoooooaadhhhhhhMNNNNNNNNOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaadhhhhhhhllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooaaaaaaaaaaaaaaaaaaahhhhhhhlllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhxwwwwxxxxxxBhnhnhCCCCCChhhhhhhhhhhhhhhhhhhhhxDDDDxhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddddaaaaaaaaaaaaIIaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhxDDxDxDDDDDDxhhxDDDDDDDxhhnnnnnnnhnnnnnnnhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhLLhLhLLhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+I #747a83 on #1c1f25
+f #2c3039 on #1c1f25
+g bold #8b929c on #1c1f25
+h on #16181d
+i on #13151a
+J #747a83 on #13151a
+K bold #747a83 on #13151a
+l bold #e6e8eb on #16181d
+L #747a83 on #16181d
+n #8b929c on #16181d
+o #e6e8eb on #1c1f25
+p #2c3039 on #16181d
+q #5fa8ff on #16181d
+r on #2b4566
+s bold #e6e8eb on #2b4566
+t #8b929c on #13151a
+u #5fa8ff on #2b4566
+H #e6e8eb on #13151a
+E #383d48 on #16181d
+F #e6e8eb on #383d48
+G on #383d48
+M #8b929c on #24354c
+N bold #e6e8eb on #24354c
+O on #24354c
+x on #22252c
+w #e6e8eb on #22252c
+B #8b929c on #22252c
+C #e6e8eb on #16181d
+D bold #5fa8ff on #22252c

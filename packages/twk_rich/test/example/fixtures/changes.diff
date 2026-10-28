@@ -1,0 +1,48 @@
+[1mdiff --git a/docs/usage.md b/docs/greet.md[m
+[1msimilarity index 75%[m
+[1mrename from docs/usage.md[m
+[1mrename to docs/greet.md[m
+[1mindex 72a94dd..224cbe4 100644[m
+[1m--- a/docs/usage.md[m
+[1m+++ b/docs/greet.md[m
+[36m@@ -1,6 +1,6 @@[m
+ # Greet[m
+ [m
+[31m-Run it with a name:[m
+[32m+[m[32mRun it with names:[m
+ [m
+     dart run lib/greet.dart[m
+ [m
+[1mdiff --git a/lib/greet.dart b/lib/greet.dart[m
+[1mindex f29c4d9..e9c8b2f 100644[m
+[1m--- a/lib/greet.dart[m
+[1m+++ b/lib/greet.dart[m
+[36m@@ -1,9 +1,14 @@[m
+ /// Greetings in a few languages.[m
+ library;[m
+ [m
+[31m-/// Greets [name].[m
+[31m-String greet(String name) {[m
+[31m-  return 'Hello, ' + name + '!';[m
+[32m+[m[32m/// Greets [name], in [language] when given.[m
+[32m+[m[32mString greet(String name, {String language = 'en'}) {[m
+[32m+[m[32m  final hello = switch (language) {[m
+[32m+[m[32m    'uk' => 'Привіт',[m
+[32m+[m[32m    'ja' => 'こんにちは',[m
+[32m+[m[32m    _ => 'Hello',[m
+[32m+[m[32m  };[m
+[32m+[m[32m  return '$hello, $name!';[m
+ }[m
+ [m
+ /// Says goodbye to [name].[m
+[36m@@ -25,7 +30,7 @@[m [mvoid greetAll(List<String> names) {[m
+ /// How many names were greeted.[m
+ int get count => greeted.length;[m
+ [m
+[31m-void main() {[m
+[31m-  greetAll(['world', 'Dart']);[m
+[31m-  print(farewell('world'));[m
+[32m+[m[32mvoid main(List<String> args) {[m
+[32m+[m[32m  greetAll(args.isEmpty ? ['world'] : args);[m
+[32m+[m[32m  print(farewell(args.firstOrNull ?? 'world'));[m
+ }[m

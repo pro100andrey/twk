@@ -1,0 +1,78 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     Cli                                     Preview   Code  │
+│                        A command-line tool's console (twk_cli) as it runs:     │
+│     ErrorWidget        questions that leave their answer as a line, a spinne…  │
+│     Static           ──────────────────────────────────────────────────────────│
+│     TerminalProgr…    ┌                                                      ┐ │
+│     Viewport            ╭ terminal ────────────────────────────────────────╮   │
+│     Window title        │$ dart run lib/cli/create.dart                    │   │
+│     Notifications       │✔ Project name? todo_cli                          │   │
+│ ▎   Cli                 │? Template?                                       │   │
+│                         │▎console                                          │   │
+│   SCREEN READERS 1      │ package                                          │   │
+│     Semantics           │ server                                           │   │
+│                         │ web                                              │   │
+│   DEBUGGING      4      │                                                  │   │
+│     Console             │                                                  │   │
+│     FrameOverlay        ╰──────────────────────────────────────────────────╯   │
+│     Repaint rainb…    └                                                      ┘ │
+│     RepaintBounda…  ▐──────────────────────────────────────────────────────────│
+│                     ▐  program   create  install  check                        │
+│   RICH           8                                                             │
+│                                                                                │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeawwwwwwaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahxhxxxxxxhhhhhhhDhaaggkkkggggggggggggggggggggggggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmgmmmmmmmmmmmmgmmmmmmgmmmmmmmgmmmmmmmmmgmmgmmgmmmmmggggg│
+│aaaaannnnnnnnnnnaaaaaaggmmmmmmmmmgmmmmgmmmmmgmmmmmgmmmmmmgmmgmgmmmmmgmgmmmmmmmgg│
+│aaaaannnnnnaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnnnnaaagoggggggggggggggggggggggggggggggggggggggggggggggggggggggog│
+│aaaaannnnnnnnaaaaaaaaagggpgmmmmmmmmgpppppppppppppppppppppppppppppppppppppppppggg│
+│aaaaannnnnnannnnnaaaaagggpqgrrrrgrrrgrrrrrrrrrrrrrrrrrrrggggggggggggggggggggpggg│
+│aaaaannnnnnnnnnnnnaaaagggpqgkkkkkkkgkkkkkgssssssssggggggggggggggggggggggggggpggg│
+│atuuuvvvuuuuuuuuuuuuuagggpsgkkkkkkkkkgggggggggggggggggggggggggggggggggggggggpggg│
+│aaaaaaaaaaaaaaaaaaaaaagggpABBBBBBBCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCpggg│
+│aaaddddddadddddddawaaagggpgrrrrrrrggggggggggggggggggggggggggggggggggggggggggpggg│
+│aaaaannnnnnnnnaaaaaaaagggpgrrrrrrgggggggggggggggggggggggggggggggggggggggggggpggg│
+│aaaaaaaaaaaaaaaaaaaaaagggpgrrrggggggggggggggggggggggggggggggggggggggggggggggpggg│
+│aaadddddddddaaaaaawaaagggpggggggggggggggggggggggggggggggggggggggggggggggggggpggg│
+│aaaaannnnnnnaaaaaaaaaagggpggggggggggggggggggggggggggggggggggggggggggggggggggpggg│
+│aaaaannnnnnnnnnnnaaaaagggppppppppppppppppppppppppppppppppppppppppppppppppppppggg│
+│aaaaannnnnnnannnnnnaaagoggggggggggggggggggggggggggggggggggggggggggggggggggggggog│
+│aaaaannnnnnnnnnnnnnaadoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaaaaaaaaaaaaaaaaaadggmmmmmmmgguvvvvvvuhzzzzzzzhhzzzzzhggggggggggggggggggggggg│
+│aaaddddaaaaaaaaaaawaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+w #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+x #747a83 on #13151a
+D bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+n #e6e8eb on #1c1f25
+o #2c3039 on #16181d
+p #3e444f on #16181d
+q green on #16181d
+r #e6e8eb on #16181d
+s blue on #16181d
+t #5fa8ff on #2b4566
+u on #2b4566
+v bold #e6e8eb on #2b4566
+A blue on indexed(237)
+B #e6e8eb on indexed(237)
+C on indexed(237)
+z #8b929c on #13151a

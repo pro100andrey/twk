@@ -1,0 +1,108 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Screen readers  ›  Semantics                                              ctrl+p search      ◐ Light  │
+│                                                                                                                        │
+│   ⌕ Filter             /      Semantics                                                                        1 of 1  │
+│                               What a widget is to a screen reader: a role, a label, a value and a state, read as a     │
+│     InputListener             line of text. TWK_SCREEN_READER=1 reads an app out so.                                   │
+│     ErrorWidget                                                                                                        │
+│     Static                    Preview   Code                                                                           │
+│     TerminalProgress       ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     Viewport                                                                             │                             │
+│     Window title               ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│     Notifications                                                                        │                             │
+│     Cli                        ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  view                       │
+│                                                                                          │   beside the form           │
+│   SCREEN READERS       1       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   TWK_SCREEN_READER=1       │
+│ ▎   Semantics               ┌                                                          ┐ │                             │
+│                               Sign in              A screen reader reads:                │  BlockSemantics      ▐  ●▌  │
+│   DEBUGGING            4      [ ] Remember me        heading Sign in                     │                             │
+│     Console                   ▐  ●▌ Dark mode        checkbox Remember me, not checked   │  progress label      ▐  ●▌  │
+│     FrameOverlay                                     switch Dark mode, on                │                             │
+│     Repaint rainbow           Upload ████▊           progressbar Upload: 40%             │  ExcludeSemantics    ▐●  ▌  │
+│     RepaintBoundary                                  button More                         │                             │
+│                                More   Cancel         button Cancel                       │                             │
+│   RICH                 8                             dialog Popup                        │                             │
+│     MarkdownView               the page under it     the notice on top                   │                             │
+│     CodeView                   the notice on top                                         │                             │
+│     SyntaxThemeScope        └                                                          ┘ │                             │
+│     DiffView                                                                    56 × 10  │                             │
+│     JsonView                   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     BigText                                                                              │                             │
+│     QrCode                ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     ANSI                  ▐                                                              │                             │
+│                           ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│   IMAGES               1  ▐                                                              │                             │
+│     Image                 ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│                                                                                          │                             │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaaHHHHHHaHHHHHHHaafaadddddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaHHHHHHaaaaaadadddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaiIiIIIIIIiiiiiiiiiiiiiJiaahhhlllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhKhKKhKhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnhnhnnnnnnhnnhnnhnhnnnnnnhnnnnnnnhnhnnnnnhnhnnnnnnhnhnnnnnhnnnhnhnnnnnnhnnnnhnnhnhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaahhhnnnnhnnhnnnnnhnnnnnnnnnnnnnnnnnnnhnnnnnhnnhnnnhnnnhnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaoooooaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhLMMMMMMLMMMLMMMMLhhhhhhhhhh│
+│aaaddddddadddddddaaaaaaaHaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhtuuuuuuuuuuuuuuuuuuuthhhhhh│
+│aNLLLMMMMMMMMMLLLLLLLLLLLLLahphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhwwwwhwwhhhhhhhhhhhhhhnhnnnnnnhnnnnnnhnnnnnnhhhhhhhhhhhhhhhhphhnnnnnnnnnnnnnnhhhhhhqxxyqhh│
+│aaadddddddddaaaaaaaaaaaaHaaahhhnhnhzzzzzzzzhzzhhhhhhhhnnnnnnnhzzzzhzzhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhqxxyqhzzzzhzzzzhhhhhhhhnnnnnnnnhzzzzzzzzhzzzhzzzhzzzzzzzhhhphhnnnnnnnnhnnnnnhhhhhhqxxyqhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhnnnnnnhzzzzhzzzzzhzzhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaoooooooaaaaaaaahhhnnnnnnhAAAAAttttttthhhhnnnnnnnnnnnhzzzzzzzhzzzhhhhhhhhhhhhhphhnnnnnnnnnnnnnnnnhhhhBCDDBhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhnnnnnnhzzzzhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhtEEEEthtEEEEEEthhhhhhhhnnnnnnhzzzzzzhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddaaaaaaaaaaaaaaaaaHaaahhhhhhhhhhhhhhhhhhhhhhhhhhnnnnnnhzzzzzhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhtuuutuuuutuuuuutuuthhhhzzzhzzzzzzhzzhzzzhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhtFFFtFFFFFFtFFtFFFthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhKKhKhKKhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooaaaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddaaaaaaaaaaaaaaaHaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #f3f5f7
+b #0969da on #f3f5f7
+c bold #1f2328 on #f3f5f7
+d #656d76 on #f3f5f7
+H #838991 on #f3f5f7
+f #dcdfe4 on #f3f5f7
+g bold #656d76 on #f3f5f7
+h on #fafafb
+i on #fefefe
+I #838991 on #fefefe
+J bold #838991 on #fefefe
+l bold #1f2328 on #fafafb
+K #838991 on #fafafb
+n #656d76 on #fafafb
+o #1f2328 on #f3f5f7
+p #dcdfe4 on #fafafb
+q #0969da on #fafafb
+L on #b6d4fe
+M bold #1f2328 on #b6d4fe
+t on #eef0f3
+u #656d76 on #eef0f3
+N #0969da on #b6d4fe
+w bold #0969da on #fafafb
+x on #0969da
+y #ffffff on #0969da
+z #1f2328 on #fafafb
+A #0969da on #eef0f3
+B #c8cdd5 on #fafafb
+C #ffffff on #c8cdd5
+D on #c8cdd5
+E bold #0969da on #eef0f3
+F #1f2328 on #eef0f3

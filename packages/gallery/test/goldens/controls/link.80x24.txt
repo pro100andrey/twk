@@ -1,0 +1,79 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     Link                                    Preview   Code  │
+│                        Text linked to a URL, which a terminal that knows       │
+│     FilePicker         hyperlinks opens.                                       │
+│     Form, FormFie…   ──────────────────────────────────────────────────────────│
+│     TabBar, TabVi…                                                             │
+│     KeyHintsBar         ·   ·   ·   ·  ┌                   ┐    ·   ·   ·   ·  │
+│     StatusMessage…                       The Dart language                     │
+│     Callout             ·   ·   ·   ·                           ·   ·   ·   ·  │
+│ ▎   Link                                 https://pub.dev                       │
+│     ListTile            ·   ·   ·   ·                           ·   ·   ·   ·  │
+│     StatusBar       ▐                    the README                            │
+│                     ▐   ·   ·   ·   ·  └                   ┘    ·   ·   ·   ·  │
+│   OVERLAYS      11                                   17 × 5                    │
+│     Overlay             ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│     Dialog                                                                     │
+│     Toast            ──────────────────────────────────────────────────────────│
+│     Tooltip            style  ██ ██ ██  primary                                │
+│     Popover                   ▔▔                                               │
+│     MenuBar            shows   text  url                                       │
+│     ContextMenu                                                                │
+│                                                                                │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeaCCCCCCaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahDhDDDDDDhhhhhhhEhaaggkkkkgggggggggggggggggggggggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmgmmmmmmgmmgmgmmmmgmmmmmgmgmmmmmmmmgmmmmgmmmmmggggggg│
+│aaaaannnnnnnnnnaaaaaaaggmmmmmmmmmmgmmmmmmggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnannnnnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnannnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnaaaaaagggogggogggogggoggogggggggggggggggggggoggggogggogggogggogg│
+│aaaaannnnnnnnnnnnnnaaaggggggggggggggggggggpppppppppppppppppggggggggggggggggggggg│
+│aaaaannnnnnnaaaaaaaaaagggogggogggogggogggggggggggggggggggggggggggogggogggogggogg│
+│aqrrrssssrrrrrrrrrrrraggggggggggggggggggggtttttttttttttttggggggggggggggggggggggg│
+│aaaaannnnnnnnaaaaaaaaagggogggogggogggogggggggggggggggggggggggggggogggogggogggogg│
+│aaaaannnnnnnnnaaaaaaadggggggggggggggggggggvvvvvvvvvvgggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaadgggogggogggogggoggogggggggggggggggggggoggggogggogggogggogg│
+│aaaddddddddaaaaaaCCaaaggggggggggggggggggggggggggggggggFFgFgFgggggggggggggggggggg│
+│aaaaannnnnnnaaaaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
+│aaaaannnnnnaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnaaaaaaaaaaggmmmmmggxxgyygzzggFFFFFFFgggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnaaaaaaaaaagggggggggAAggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnaaaaaaaaaaggmmmmmggrssssrhBBBhgggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+C #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+D #747a83 on #13151a
+E bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+n #e6e8eb on #1c1f25
+o #2c3039 on #16181d
+p underline #5fa8ff on #16181d link=https://dart.dev
+q #5fa8ff on #2b4566
+r on #2b4566
+s bold #e6e8eb on #2b4566
+t underline #5fa8ff on #16181d link=https://pub.dev
+v underline #5fa8ff on #16181d link=file:///home/user/twk/README.md
+F #747a83 on #16181d
+x #5fa8ff on #16181d
+y #c792ea on #16181d
+z #5cc8e6 on #16181d
+A #e6e8eb on #16181d
+B #8b929c on #13151a

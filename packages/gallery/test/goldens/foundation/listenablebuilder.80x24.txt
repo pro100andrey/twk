@@ -1,0 +1,77 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     ListenableBuilder                       Preview   Code  │
+│                        What is built again each time a listenable notifies;    │
+│     PopScope, Nav…     ValueListenableBuilder is given its value.              │
+│     Breadcrumbs      ──────────────────────────────────────────────────────────│
+│     Pagination                                                                 │
+│     Stepper             ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│                                    ┌                           ┐               │
+│   FOUNDATION     2      ·   ·   ·     Count    Reset                ·   ·   ·  │
+│ ▎   ListenableBui…                                                             │
+│     FutureBuilder…      ·   ·   ·    ListenableBuilder: 2           ·   ·   ·  │
+│                                                                                │
+│   FRAMEWORK      3      ·   ·   ·    ValueListenableBuilder: 2      ·   ·   ·  │
+│     LayoutBuilder                  └                           ┘               │
+│     NotificationL…      ·   ·   ·   ·   ·   ·   ·   ·   ·25 × 5 ·   ·   ·   ·  │
+│     Slot, SlotSco…                                                             │
+│                     ▐   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│   APP            8  ▐                                                          │
+│     InputListener    ──────────────────────────────────────────────────────────│
+│     ErrorWidget        timer  ▐  ●▌                                            │
+│     Static                                                                     │
+│                                                                                │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeaAAAAAAaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahBhBBBBBBhhhhhhhChaaggkkkkkkkkkkkkkkkkkggggggggggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmgmmgmmmmmgmmmmmgmmmmgmmmmgmgmmmmmmmmmmgmmmmmmmmmgggg│
+│aaaaaoooooooooaooooaaaggmmmmmmmmmmmmmmmmmmmmmmgmmgmmmmmgmmmgmmmmmmgggggggggggggg│
+│aaaaaoooooooooooaaaaaannnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn│
+│aaaaaooooooooooaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaoooooooaaaaaaaaaagggngggngggngggngggngggngggngggngggngggngggngggngggngggngg│
+│aaaaaaaaaaaaaaaaaaaaaaggggggggggggggngggggggggggggggggggggggggggnggggggggggggggg│
+│aaaddddddddddaaaaaAaaagggngggngggnggggpqqqqqpggpqqqqqpgggggggggggggggngggngggngg│
+│arsssttttttttttttttssagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaooooooooooooooaaagggngggngggngggguuuuuuuuuuuuuuuuuugugggggggggggngggngggngg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaadddddddddaaaaaaAaaagggngggngggngggguuuuuuuuuuuuuuuuuuuuuuuguggggggngggngggngg│
+│aaaaaoooooooooooooaaaaggggggggggggggngggggggggggggggggggggggggggnggggggggggggggg│
+│aaaaaooooooooooooooaaagggngggngggngggngggngggngggngggngggnDDgDgDgngggngggngggngg│
+│aaaaaoooooaooooooooaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaadgggngggngggngggngggngggngggngggngggngggngggngggngggngggngg│
+│aaadddaaaaaaaaaaaaAaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaoooooooooooooaaaannnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn│
+│aaaaaoooooooooooaaaaaaggmmmmmggxyyzxgggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaooooooaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+A #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+B #747a83 on #13151a
+C bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+o #e6e8eb on #1c1f25
+n #2c3039 on #16181d
+p on #22252c
+q bold #5fa8ff on #22252c
+r #5fa8ff on #2b4566
+s on #2b4566
+t bold #e6e8eb on #2b4566
+u #e6e8eb on #16181d
+D #747a83 on #16181d
+x #5fa8ff on #16181d
+y on #5fa8ff
+z #ffffff on #5fa8ff

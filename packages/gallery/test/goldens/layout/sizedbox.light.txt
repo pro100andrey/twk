@@ -1,0 +1,102 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Layout  ›  SizedBox                                                       ctrl+p search      ◐ Light  │
+│                                                                                                                        │
+│   ⌕ Filter             /      SizedBox                                                                        8 of 24  │
+│                               A child of a size: SizedBox.expand fills the room, SizedBox.shrink takes none.           │
+│   TEXT                 4  ▐                                                                                            │
+│     Text                  ▐   Preview   Code                                                                           │
+│     Rich text             ▐───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     DefaultTextStyle      ▐                                                              │                             │
+│     Right to left         ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│                                                                                          │                             │
+│   LAYOUT              24       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  constructor                │
+│     Box                                                                                  │   width, height  .expand    │
+│     ColoredBox, Decorat…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   .shrink                   │
+│     Container                                                                            │                             │
+│     Divider                    ·    ┌                                          ┐   ·     │  width            16 cells  │
+│     Shadow                            ╭──────────────────────────────────────╮           │  ────────▊▊───────────────  │
+│     Padding                    ·      │                                      │     ·     │                             │
+│     Align, Center                     │                                      │           │  height             3 rows  │
+│ ▎   SizedBox                   ·      │           16 × 3                     │     ·     │  ──────── ────────────────  │
+│     ConstrainedBox                    │                                      │           │                             │
+│     LimitedBox, Overflo…       ·      │                                      │     ·     │                             │
+│     FractionallySizedBox              │                                      │           │                             │
+│     IntrinsicWidth/Heig…       ·      │                                      │     ·     │                             │
+│     Row, Column, Flex                 ╰──────────────────────────────────────╯           │                             │
+│     Expanded, Spacer           ·    └                                          ┘   ·     │                             │
+│     Stack, Positioned                                                    40 × 9          │                             │
+│     Transform                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Visibility, Offstage                                                                 │                             │
+│     ExpansionTile, Acco…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Grid, GridPlacement                                                                  │                             │
+│     Wrap                       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     CustomPaint                                                                          │                             │
+│     SplitView                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     DockArea                                                                             │                             │
+│                                                                                          │                             │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaaBBBBBBaafaaddddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaBBBBBBaaaaaadadddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaiCiCCCCCCiiiiiiiiiiiiiDiaahhhllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhEhEEhEEhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnhnnnnnhnnhnhnnnnnhnnnnnnnnnnnnnnnhnnnnnhnnnhnnnnnhnnnnnnnnnnnnnnnhnnnnnhnnnnnhhhhhhhhhhh│
+│aaaddddaaaaaaaaaaaaaaaaaBaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppaaaaaaaaaaaaaaaaaadhhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppappppaaaaaaaaaaaaadqqqrrrrrrrqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq│
+│aaaaappppppppppppppppaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppappappppaaaaaaaaadhhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddaaaaaaaaaaaaaaBBaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhnnnnnnnnnnnhhhhhhhhhhhhhhhh│
+│aaaaapppaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhFGGGGGGFGGGGGGFuvvvvvvvuhhh│
+│aaaaapppppppppppappppppppaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhuvvvvvvvuhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppaaaaaaaaaaaaaaaahhhhqhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhqhhhhhqhhnnnnnhhhhhhhhhhhhEEhEEEEEhh│
+│aaaaappppppaaaaaaaaaaaaaaaaahhhhhhhhhhhwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwhhhhhhhhhhhqhhxxxxxxxxyxnnnnnnnnnnnnnnnhh│
+│aaaaapppppppaaaaaaaaaaaaaaaahhhhqhhhhhhwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhwhhhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppappppppaaaaaaaaaahhhhhhhhhhhwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhwhhhhhhhhhhhqhhnnnnnnhhhhhhhhhhhhhEhEEEEhh│
+│aHFFFGGGGGGGGFFFFFFFFFFFFFFahhhhqhhhhhhwhhhhhhhhhhhIIFIFIFFFFFFFFFFhhhhhhhhhhhwhhhhhqhhhhhqhhxxxxxxxxynnnnnnnnnnnnnnnnhh│
+│aaaaappppppppppppppaaaaaaaaahhhhhhhhhhhwhhhhhhhhhhhFFFFFFFFFFFFFFFFhhhhhhhhhhhwhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppppappppppppaaahhhhqhhhhhhwhhhhhhhhhhhFFFFFFFFFFFFFFFFhhhhhhhhhhhwhhhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppppppppppppppaaahhhhhhhhhhhwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhwhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppppppppppppppaaahhhhqhhhhhhwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhwhhhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppapppppppappppaaaaaahhhhhhhhhhhwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppappppppaaaaaaahhhhqhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppappppppppppaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhEEhEhEhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppppappppppppaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppppppppapppppaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppapppppppppppppaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppaaaaaaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppppaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #f3f5f7
+b #0969da on #f3f5f7
+c bold #1f2328 on #f3f5f7
+d #656d76 on #f3f5f7
+B #838991 on #f3f5f7
+f #dcdfe4 on #f3f5f7
+g bold #656d76 on #f3f5f7
+h on #fafafb
+i on #fefefe
+C #838991 on #fefefe
+D bold #838991 on #fefefe
+l bold #1f2328 on #fafafb
+E #838991 on #fafafb
+n #656d76 on #fafafb
+p #1f2328 on #f3f5f7
+q #dcdfe4 on #fafafb
+r #0969da on #fafafb
+F on #b6d4fe
+G bold #1f2328 on #b6d4fe
+u on #eef0f3
+v #656d76 on #eef0f3
+w #c8cdd5 on #fafafb
+x #1f2328 on #fafafb
+y reverse #1f2328 on #fafafb
+H #0969da on #b6d4fe
+I #1f2328 on #b6d4fe

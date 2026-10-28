@@ -1,0 +1,16 @@
+name: twk_frame_scenarios
+description: >-
+  The frame benchmark's scenarios: workloads of the core rendered a frame
+  at a time, which tool/bench.dart times and tool/alloc counts the
+  allocations of.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.13.5
+resolution: workspace
+dependencies:
+  twk_core:
+    path: ../../packages/twk_core
+dev_dependencies:
+  pro_lints: ^6.2.0

@@ -1,0 +1,27 @@
+// An app written when the core's app was TuiApp (before 6d4f947).
+import 'package:twk_core/twk_core.dart';
+
+Future<void> main() async {
+  final TwkApp app = TwkApp(await Terminal.open(), maxFps: 30);
+  final pen = app.screen.styles.pen(const Pen(fg: Color.green));
+  await app.run(RenderText('hello', pen), (event) => app.quit());
+}
+
+TwkApp? current;
+
+void stop(TwkApp app) => app.quit();
+
+final List<TwkApp> apps = <TwkApp>[];
+
+final TwkApp Function(Terminal) open = TwkApp.new;
+
+TwkApp asApp(Object o) => o as TwkApp;
+
+// Left as it is: an undefined name in a type test reports
+// type_test_with_undefined_name, which no data-driven fix answers. Rename
+// this one by hand (the analyzer still reports it after dart fix).
+bool isApp(Object o) => o is TuiApp;
+
+void ifApp(Object o) {
+  if (o case TwkApp(:final terminal)) print(terminal.info);
+}

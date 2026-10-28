@@ -1,0 +1,100 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Text  ›  Right to left                                                    ctrl+p search      ◐ Light  │
+│                                                                                                                        │
+│   ⌕ Filter             /      Right to left                                                                    4 of 4  │
+│                               Hebrew and Arabic among left-to-right text: put in the order it reads where the app      │
+│   TEXT                 4  ▐   reorders it (TextOrder.visual), left as stored where the terminal reorders it            │
+│     Text                  ▐   itself.                                                                                  │
+│     Rich text             ▐                                                                                            │
+│     DefaultTextStyle      ▐   Preview   Code                                                                           │
+│ ▎   Right to left         ▐───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│                                                                                          │                             │
+│   LAYOUT              24       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│     Box                                                                                  │                             │
+│     ColoredBox, Decorat…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  text order                 │
+│     Container                                                                            │   visual  logical           │
+│     Divider                    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Shadow                                                                               │  align                      │
+│     Padding                    ·   ·    ┌                                  ┐   ·   ·     │   start  end  left  right   │
+│     Align, Center                         ╭──────────────────────────────╮               │                             │
+│     SizedBox                   ·   ·      │ Hello is םולש in Hebrew,     │     ·   ·     │                             │
+│     ConstrainedBox                        │ and ابحرم in Arabic.         │               │                             │
+│     LimitedBox, Overflo…       ·   ·      │     (hello world) !םלוע םולש │     ·   ·     │                             │
+│     FractionallySizedBox                  ╰──────────────────────────────╯               │                             │
+│     IntrinsicWidth/Heig…       ·   ·                                           ·   ·     │                             │
+│     Row, Column, Flex                     text order: visual                             │                             │
+│     Expanded, Spacer           ·   ·    └                                  ┘   ·   ·     │                             │
+│     Stack, Positioned                                                32 × 7              │                             │
+│     Transform                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Visibility, Offstage                                                                 │                             │
+│     ExpansionTile, Acco…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Grid, GridPlacement                                                                  │                             │
+│     Wrap                       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     CustomPaint                                                                          │                             │
+│     SplitView                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     DockArea                                                                             │                             │
+│                                                                                          │                             │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaazzzzaafaadddddaddaddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggazzzzzzaaaaaadadddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaiAiAAAAAAiiiiiiiiiiiiiBiaahhhlllllhllhllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhChCChChh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnnnhnnnhnnnnnnhnnnnnhnnnnnnnnnnnnnhnnnnnhnnnhnnhnnnhnnnnnhnnhnnnnnhnnnnnhnnnhnnnhhhhhh│
+│aaaddddaaaaaaaaaaaaaaaaazaadhhhnnnnnnnnhnnhnnnnnnnnnnnnnnnnnnnhnnnnhnnhnnnnnnhnnnnnhnnnhnnnnnnnnhnnnnnnnnhnnhhhhhhhhhhhh│
+│aaaaappppaaaaaaaaaaaaaaaaaadhhhnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppappppaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppppppppppaaaaaadhhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aDEEEFFFFFEFFEFFFFEEEEEEEEEdtttuuuuuuutttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddaaaaaaaaaaaaaazzaaahhhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhhhthhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppppappppppppaaahhhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhhhthhnnnnhnnnnnhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhEFFFFFFEvwwwwwwwvhhhhhhhhhh│
+│aaaaapppppppaaaaaaaaaaaaaaaahhhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhnnnnnhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppaaaaaaaaaaaaaaaahhhhthhhthhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhthhhthhhhhthhEFFFFFEvwwwvvwwwwvvwwwwwvhh│
+│aaaaappppppappppppaaaaaaaaaahhhhhhhhhhhhhhhxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppaaaaaaaaaaaaaaahhhhthhhthhhhhhxhyyyyyhyyhyyyyhyyhyyyyyyyhhhhhxhhhhhthhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppppppppaaaaaaaaahhhhhhhhhhhhhhhxhyyyhyyyyyhyyhyyyyyyyhhhhhhhhhxhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppppappppppppaaahhhhthhhthhhhhhxhhhhhyyyyyyhyyyyyyhyyyyyhyyyyhxhhhhhthhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppppppppppppppaaahhhhhhhhhhhhhhhxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppppppppppppppaaahhhhthhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppapppppppappppaaaaaahhhhhhhhhhhhhhhnnnnhnnnnnnhyyyyyyhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppappppppaaaaaaahhhhthhhthhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhthhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppappppppppppaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhCChChChhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppaaaaaaaaaaaaaahhhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppppappppppppaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppppppppapppppaaahhhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppapppppppppppppaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppaaaaaaaaaaaaaaaaaaahhhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppppaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppaaaaaaaaaaaaaahhhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #f3f5f7
+b #0969da on #f3f5f7
+c bold #1f2328 on #f3f5f7
+d #656d76 on #f3f5f7
+z #838991 on #f3f5f7
+f #dcdfe4 on #f3f5f7
+g bold #656d76 on #f3f5f7
+h on #fafafb
+i on #fefefe
+A #838991 on #fefefe
+B bold #838991 on #fefefe
+l bold #1f2328 on #fafafb
+C #838991 on #fafafb
+n #656d76 on #fafafb
+p #1f2328 on #f3f5f7
+D #0969da on #b6d4fe
+E on #b6d4fe
+F bold #1f2328 on #b6d4fe
+t #dcdfe4 on #fafafb
+u #0969da on #fafafb
+v on #eef0f3
+w #656d76 on #eef0f3
+x #c8cdd5 on #fafafb
+y #1f2328 on #fafafb

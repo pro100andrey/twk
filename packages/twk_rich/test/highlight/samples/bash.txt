@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# A sample of Bash for the highlighting tests.
+set -euo pipefail
+
+readonly ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+COUNT=0 DEBUG=${DEBUG:-false} ./run.sh --flag=1
+
+log() {
+  local level=$1; shift
+  printf '%s [%s] %s\n' "$(date +%T)" "$level" "$*" >&2
+}
+
+function cleanup {
+  rm -rf "$TMP" 2>/dev/null || true
+}
+trap cleanup EXIT
+
+for f in "$ROOT"/*.dart; do
+  if [[ -f $f && ! -L $f ]]; then
+    (( COUNT += 1 ))
+    echo "found: $f (#$COUNT)"
+  elif [ -d "$f" ]; then
+    continue
+  fi
+done
+
+case "${1:-}" in
+  -h|--help) usage; exit 0 ;;
+  build) make -j"$(nproc)" all ;;
+  *) log error "unknown: $1"; exit 2 ;;
+esac
+
+cat <<EOF > "$ROOT/out.txt"
+Built at $(date) by $USER
+Cost: \$5, home: ~/x "quoted"
+EOF
+
+cat <<-'END'
+	literal $HOME and `cmd`
+	END
+
+message="one line
+and another with $COUNT"
+echo $'tab\there' 'single
+quoted' `echo old style`
+total=$((COUNT * 2 + ${#ROOT}))
+result=$(
+  find . -name '*.txt' |
+    wc -l
+)
+echo "$total $result" | tee -a log.txt # done

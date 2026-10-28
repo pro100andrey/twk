@@ -1,0 +1,101 @@
+screen 120×36, cursor at 8,2
+text
+│  ◆ twk gallery   Text  ›  Text                                                              ctrl+p search      ◐ Dark  │
+│                                                                                                                        │
+│ ▎ ⌕ tab               13      Text                                                                             1 of 4  │
+│                               A paragraph in one style, its lines broken to fit, cut off and aligned as asked.         │
+│   LAYOUT               2                                                                                               │
+│     ConstrainedBox            Preview   Code                                                                           │
+│     FractionallySizedBox   ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│                                                                                          │                             │
+│   STYLE                1       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│     TerminalBrightness                                                                   │                             │
+│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  wrap                       │
+│   DATA                 2                                                                 │   word  grapheme  none      │
+│     Table                      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     TreeTable                                                                            │  overflow                   │
+│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   clip  ellipsis            │
+│   CONTROLS             3                ┌                                  ┐             │   ellipsisStart             │
+│     TabBar, TabView            ·   ·      ╭──────────────────────────────╮     ·   ·     │   ellipsisMiddle            │
+│     StatusMessage, Badge                  │Terminals draw text in a grid │               │                             │
+│     StatusBar                  ·   ·      │of cells. A paragraph breaks  │     ·   ·     │  align                      │
+│                                           │its lines between words to fit│               │   left  center  right       │
+│   ANIMATION            1       ·   ·      │its width; wide characters, 漢│     ·   ·     │   justify                   │
+│     TweenAnimationBuild…                  │字 and 🙂, take two cells     │               │                             │
+│                                ·   ·      │each.                         │     ·   ·     │  max lines                  │
+│   MOUSE                1                  ╰──────────────────────────────╯               │   all  3  1                 │
+│     IgnorePointer, Abso…       ·   ·    └                                  ┘   ·   ·     │                             │
+│                                                                      32 × 8              │  width            32 cells  │
+│   FOUNDATION           2       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  ──────────── ────────────  │
+│     ListenableBuilder                                                                    │                             │
+│     FutureBuilder, Stre…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│                                                                                          │                             │
+│   DEBUGGING            1       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Repaint rainbow                                                                      │                             │
+│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│                                                                                          │                             │
+│                                                                                          │                             │
+│  type to filter   enter to the list   esc clear                                                                        │
+styles
+│aabacccadddddddaaazzzzaafaaddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggazzzzzzaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│abijikkkiiiiiiiiiiiiiiiAAiaahhhmmmmhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhBhBBhBhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhohooooooooohoohooohoooooohooohooooohoooooohoohoooohooohooohooohooooooohoohoooooohhhhhhhhh│
+│aaaddddddaaaaaaaaaaaaaaazaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppqpqppppqppaaaaaaaaahhhmmmmmmmhhhoooohhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppqpppqppppppppqppaaarrrsssssssrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddaaaaaaaaaaaaaaaazaaahhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhhhrhhooooooohhhhhhhhhhhhhhhhhhhh│
+│aaaaaqpppppqpqpppppppppaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhhhrhhoooohhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddaaaaaaaaaaaaaaaaazaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhtuuuutivvvvvvvviivvvvihhhhh│
+│aaaaaqqqppaaaaaaaaaaaaaaaaaahhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppqqqppaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhoooooooohhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhhhrhhivvvvituuuuuuuuthhhhhhhhhhh│
+│aaaddddddddaaaaaaaaaaaaazaaahhhhhhhhhhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhhhhhhhhhhrhhivvvvvvvvvvvvvihhhhhhhhhhhh│
+│aaaaaqqpqpppapppppppaaaaaaaahhhhrhhhrhhhhhhwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwhhhhhrhhhrhhhhhrhhivvvvvvvvvvvvvvihhhhhhhhhhh│
+│aaaaapqqpppppppppppaqppppaaahhhhhhhhhhhhhhhwxxxxxxxxxhxxxxhxxxxhxxhxhxxxxhwhhhhhhhhhhhhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapqqpppqppaaaaaaaaaaaaaahhhhrhhhrhhhhhhwxxhxxxxxxhxhxxxxxxxxxhxxxxxxhhwhhhhhrhhhrhhhhhrhhooooohhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhwxxxhxxxxxhxxxxxxxhxxxxxhxxhxxxwhhhhhhhhhhhhhhhrhhtuuuutivvvvvviivvvvvihhhhhh│
+│aaadddddddddaaaaaaaaaaaazaaahhhhrhhhrhhhhhhwxxxhxxxxxxhxxxxhxxxxxxxxxxxhxxwhhhhhrhhhrhhhhhrhhivvvvvvvihhhhhhhhhhhhhhhhhh│
+│aaaaaqppppqppppppppqpppppaaahhhhhhhhhhhhhhhwxxhxxxhxxxhxxxxhxxxhxxxxxhhhhhwhhhhhhhhhhhhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhrhhhrhhhhhhwxxxxxhhhhhhhhhhhhhhhhhhhhhhhhhwhhhhhrhhhrhhhhhrhhooohooooohhhhhhhhhhhhhhhhhh│
+│aaadddddaaaaaaaaaaaaaaaazaaahhhhhhhhhhhhhhhwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwhhhhhhhhhhhhhhhrhhtuuutiviivihhhhhhhhhhhhhhhh│
+│aaaaappppppppppqpppaqqpppaaahhhhrhhhrhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhrhhhrhhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhBBhBhBhhhhhhhhhhhhhhrhhooooohhhhhhhhhhhhBBhBBBBBhh│
+│aaaddddddddddaaaaaaaaaaazaaahhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhhhrhhxxxxxxxxxxxxyoooooooooooohh│
+│aaaaapppqppqpppqppppppaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappqpppppppppppappppqaaahhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddddddaaaaaaaaaaaazaaahhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppqapqppqppaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccccaddaddddddaaacccccaddadddaddddaaacccadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+z #747a83 on #1c1f25
+f #2c3039 on #1c1f25
+g bold #8b929c on #1c1f25
+h on #16181d
+i on #13151a
+j #5fa8ff on #13151a
+k #e6e8eb on #13151a
+A #747a83 on #13151a
+m bold #e6e8eb on #16181d
+B #747a83 on #16181d
+o #8b929c on #16181d
+p #e6e8eb on #1c1f25
+q bold #5fa8ff on #1c1f25
+r #2c3039 on #16181d
+s #5fa8ff on #16181d
+t on #2b4566
+u bold #e6e8eb on #2b4566
+v #8b929c on #13151a
+w #3e444f on #16181d
+x #e6e8eb on #16181d
+y reverse #e6e8eb on #16181d

@@ -1,0 +1,98 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Controls  ›  NumberInput                                                  ctrl+p search      ◐ Light  │
+│                                                                                                                        │
+│   ⌕ Filter             /      NumberInput                                                                    10 of 20  │
+│                               A number typed, or stepped by Up and Down, the wheel or a click on ▴▾; kept within       │
+│   CONTROLS            20      its bounds.                                                                              │
+│     Button                                                                                                             │
+│     Pressable                 Preview   Code                                                                           │
+│     Checkbox, Switch       ───━━━━━━━──────────────────────────────────────────────────────────────────────────────────│
+│     RadioGroup                                                                                                         │
+│     SegmentedButton            ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   │
+│     SelectionList                                                                                                      │
+│     Select, MultiSelect        ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   │
+│     ConfirmInput                                                                                                       │
+│     Slider                     ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   │
+│ ▎   NumberInput                                                                                                        │
+│     DatePicker            ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   │
+│     FilePicker            ▐                                                                                            │
+│     Form, FormField       ▐    ·   ·   ·   ·   ·   ·   ·  ┌                            ┐   ·   ·   ·   ·   ·   ·   ·   │
+│     TabBar, TabView       ▐                                 copies, 1 to 99 1       ▴▾                                 │
+│     KeyHintsBar           ▐    ·   ·   ·   ·   ·   ·   ·                                   ·   ·   ·   ·   ·   ·   ·   │
+│     StatusMessage, Badge                                    price, by 0.25  9.50    ▴▾                                 │
+│     Callout                    ·   ·   ·   ·   ·   ·   ·                                   ·   ·   ·   ·   ·   ·   ·   │
+│     Link                                                    1 × 9.50 = 9.50                                            │
+│     ListTile                   ·   ·   ·   ·   ·   ·   ·  └                            ┘   ·   ·   ·   ·   ·   ·   ·   │
+│     StatusBar                                                                    26 × 5                                │
+│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   │
+│   OVERLAYS            11                                                                                               │
+│     Overlay                    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   │
+│     Dialog                                                                                                             │
+│     Toast                      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   │
+│     Tooltip                                                                                                            │
+│     Popover                    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   │
+│     MenuBar                                                                                                            │
+│     ContextMenu                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   │
+│                                                                                                                        │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaawwwwwwwwaafaadddddddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggawwwwwwaaaaaadadddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaixixxxxxxiiiiiiiiiiiiiziaahhhlllllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhAAhAAhAAhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnhnnnnnnhnnnnnnhnnhnnnnnnnhnnhnnhnnnhnnnnnhnnnhnnnnnhnnhnhnnnnnhnnhnnnhnnnnhnnnnnnhhhhhhh│
+│aaaddddddddaaaaaaaaaaaawwaaahhhnnnhnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaooooooaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhh│
+│aaaaaoooooooooooooaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaoooooooooooaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhh│
+│aBCCCDDDDDDDDDDDCCCCCCCCCCCahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhh│
+│aaaaaooooooooooaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaoooooooooaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhphhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhphhhphhhphhhphhhphhhphhh│
+│aaaaaoooooooaoooooooaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhvvvvvvvhvhvvhvvhyiiiiiihnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhphhhphhhphhhphhhphhh│
+│aaaaaooooooooooooooaoooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhvvvvvvhvvhvvvvhhyyyyiiihnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhphhhphhhphhhphhhphhh│
+│aaaaaooooaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhvhvhvvvvhvhvvvvhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhphhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhphhhphhhphhhphhhphhhphhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhAAhAhAhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhh│
+│aaaddddddddaaaaaaaaaaaawwaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #f3f5f7
+b #0969da on #f3f5f7
+c bold #1f2328 on #f3f5f7
+d #656d76 on #f3f5f7
+w #838991 on #f3f5f7
+f #dcdfe4 on #f3f5f7
+g bold #656d76 on #f3f5f7
+h on #fafafb
+i on #fefefe
+x #838991 on #fefefe
+z bold #838991 on #fefefe
+l bold #1f2328 on #fafafb
+A #838991 on #fafafb
+n #656d76 on #fafafb
+o #1f2328 on #f3f5f7
+p #dcdfe4 on #fafafb
+q #0969da on #fafafb
+B #0969da on #b6d4fe
+C on #b6d4fe
+D bold #1f2328 on #b6d4fe
+v #1f2328 on #fafafb
+y #1f2328 on #fefefe

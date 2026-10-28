@@ -1,0 +1,109 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Layout  ›  DockArea                                                        ctrl+p search      ◐ Dark  │
+│                                                                                                                        │
+│   ⌕ Filter             /      DockArea                                                                       23 of 24  │
+│                               Panels in splits and tabs: a tab dragged onto a target of a group docks its panel        │
+│     Rich text             ▐   there, and dropped elsewhere floats it; a window's title bar dragged onto one docks      │
+│     DefaultTextStyle      ▐   it again.                                                                                │
+│     Right to left         ▐                                                                                            │
+│                           ▐   Preview   Code                                                                           │
+│   LAYOUT              24  ▐───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     Box                                                                                  │                             │
+│     ColoredBox, Decorat…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│     Container                                                                            │                             │
+│     Divider                    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  tab strip           ▐  ●▌  │
+│     Shadow                                                                               │                             │
+│     Padding                    ┌                                                    ┐    │  window frame               │
+│     Align, Center                 Files  Find    │ Editor                                │   by the theme  raised      │
+│     SizedBox                      Drag a tab     │ count: 0                              │   bordered                  │
+│     ConstrainedBox                onto a target  │  Add one                              │                             │
+│     LimitedBox, Overflo…          to dock it     │                                       │                             │
+│     FractionallySizedBox          there.         │        Log                ─ □         │                             │
+│     IntrinsicWidth/Heig…                         │        Drop a tab off the             │                             │
+│     Row, Column, Flex                            │        targets to float it.           │                             │
+│     Expanded, Spacer                             │                                       │                             │
+│     Stack, Positioned                            │                                       │                             │
+│     Transform                                    │                                       │                             │
+│     Visibility, Offstage                                                                 │                             │
+│     ExpansionTile, Acco…          Dock them as they were                                 │                             │
+│     Grid, GridPlacement        └                                                    ┘    │                             │
+│     Wrap                       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   · 50 × 12     │                             │
+│     CustomPaint                                                                          │                             │
+│     SplitView                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│ ▎   DockArea                                                                             │                             │
+│     Scaffold                   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│                                                                                          │                             │
+│                                                                                          │                             │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaaIIIIIIaafaaddddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaIIIIIIaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaiJiJJJJJJiiiiiiiiiiiiiKiaahhhllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhLLhLLhLLhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnnnhnnhnnnnnnhnnnhnnnnnhnhnnnhnnnnnnnhnnnnhnhnnnnnnhnnhnhnnnnnhnnnnnhnnnhnnnnnhhhhhhhh│
+│aaaaaooooaooooaaaaaaaaaaaaadhhhnnnnnnhnnnhnnnnnnnhnnnnnnnnnhnnnnnnhnnnhnhnnnnnnnnhnnnnnhnnnhnnnnnnnhnnnnhnnnhnnnnnhhhhhh│
+│aaaaaooooooooooooooooaaaaaadhhhnnhnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaooaooooaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddaaaaaaaaaaaaaaIIaadqqqrrrrrrrqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq│
+│aaaaaoooaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaooooooooaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhnnnhnnnnnhhhhhhhhhhhrBBCrhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhqhhnnnnnnhnnnnnhhhhhhhhhhhhhhh│
+│aaaaaooooooaooooooaaaaaaaaaahhhhhhhssssshtuuuuttttvhsssssshttttttttttttttttttttttttthhhhhhqhhzAAzAAAzAAAAAziDDDDDDihhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhwwwwhwhwwwhhhhhvhnnnnnnhwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhiDDDDDDDDihhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooaaaaaaaaahhhhhhhwwwwhwhwwwwwwhhvhtxxxtxxxthhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaooooooooaaahhhhhhhwwhwwwwhwwhhhhhvhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooooaaahhhhhhhwwwwwwhhhhhhhhhvhhhhhhEEFFFEEEEEEEEEEEEEEEEGEGEEhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooooaaahhhhhhhhhhhhhhhhhhhhhhvhhhhhhttHHHHtHtHHHtHHHtHHHtttttthhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooaoooooooaooooaaaaaahhhhhhhhhhhhhhhhhhhhhhvhhhhhhttHHHHHHHtHHtHHHHHtHHHtttthhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaooooooaaaaaaahhhhhhhhhhhhhhhhhhhhhhvhhhhhhtttttttttttttttttttttttttthhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaooooooooooaaaaaahhhhhhhhhhhhhhhhhhhhhhvhhhhhhtttttttttttttttttttttttttthhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhvhhhhhhtttttttttttttttttttttttttthhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaooooooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooaoooooaaahhhhhhtxxxxtxxxxtxxtxxxxtxxxxthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaoooooooooooooaaaahhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooaaaaaaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhLLhLhLLhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│ayzzzAAAAAAAAzzzzzzzzzzzzzzahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+I #747a83 on #1c1f25
+f #2c3039 on #1c1f25
+g bold #8b929c on #1c1f25
+h on #16181d
+i on #13151a
+J #747a83 on #13151a
+K bold #747a83 on #13151a
+l bold #e6e8eb on #16181d
+L #747a83 on #16181d
+n #8b929c on #16181d
+o #e6e8eb on #1c1f25
+q #2c3039 on #16181d
+r #5fa8ff on #16181d
+B on #5fa8ff
+C #ffffff on #5fa8ff
+s bold #5fa8ff on #16181d
+t on #22252c
+u #8b929c on #22252c
+v #3e444f on #16181d
+z on #2b4566
+A bold #e6e8eb on #2b4566
+D #8b929c on #13151a
+w #e6e8eb on #16181d
+x bold #5fa8ff on #22252c
+E on #32353b
+F bold #8b929c on #32353b
+G #8b929c on #32353b
+H #e6e8eb on #22252c
+y #5fa8ff on #2b4566

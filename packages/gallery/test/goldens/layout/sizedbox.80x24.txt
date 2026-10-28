@@ -1,0 +1,76 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     SizedBox                                Preview   Code  │
+│                        A child of a size: SizedBox.expand fills the room,      │
+│   TEXT           4  ▐  SizedBox.shrink takes none.                             │
+│     Text            ▐──────────────────────────────────────────────────────────│
+│     Rich text               ┌                                          ┐       │
+│     DefaultTextSt…      ·     ╭──────────────────────────────────────╮      ·  │
+│     Right to left             │                                      │         │
+│                         ·     │                                      │      ·  │
+│   LAYOUT        24            │           16 × 3                     │         │
+│     Box                 ·     │                                      │      ·  │
+│     ColoredBox, D…            │                                      │         │
+│     Container           ·     │                                      │      ·  │
+│     Divider                   │                                      │         │
+│     Shadow              ·     ╰──────────────────────────────────────╯      ·  │
+│     Padding                 └                                          ┘       │
+│     Align, Center    ──────────────────────────────────────────────────────────│
+│ ▎   SizedBox           constructor   width, height  .expand  .shrink           │
+│     ConstrainedBox     width        ─────────▉▉─────────────────  16 cells     │
+│     LimitedBox, O…     height       ───────── ──────────────────  3 rows       │
+│     FractionallyS…                                                             │
+│                                                                                │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeazzzzzzaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahAhAAAAAAhhhhhhhBhaaggkkkkkkkkgggggggggggggggggggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmgmmmmmgmmgmgmmmmmgmmmmmmmmmmmmmmmgmmmmmgmmmgmmmmmgggggg│
+│aaaddddaaaaaaaaaaazaadggmmmmmmmmmmmmmmmgmmmmmgmmmmmggggggggggggggggggggggggggggg│
+│aaaaaooooaaaaaaaaaaaadpppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaooooaooooaaaaaaaagggggggpggggggggggggggggggggggggggggggggggggggggggpggggggg│
+│aaaaaooooooooooooooaaagggpgggggqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqggggggpgg│
+│aaaaaoooooaooaooooaaaagggggggggqggggggggggggggggggggggggggggggggggggggqggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggpgggggqggggggggggggggggggggggggggggggggggggggqggggggpgg│
+│aaaddddddaaaaaaaazzaaagggggggggqgggggggggggrrsrsrssssssssssgggggggggggqggggggggg│
+│aaaaaoooaaaaaaaaaaaaaagggpgggggqgggggggggggssssssssssssssssgggggggggggqggggggpgg│
+│aaaaaoooooooooooaooaaagggggggggqgggggggggggssssssssssssssssgggggggggggqggggggggg│
+│aaaaaoooooooooaaaaaaaagggpgggggqggggggggggggggggggggggggggggggggggggggqggggggpgg│
+│aaaaaoooooooaaaaaaaaaagggggggggqggggggggggggggggggggggggggggggggggggggqggggggggg│
+│aaaaaooooooaaaaaaaaaaagggpgggggqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqggggggpgg│
+│aaaaaoooooooaaaaaaaaaagggggggpggggggggggggggggggggggggggggggggggggggggggpggggggg│
+│aaaaaooooooaooooooaaaapppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│atsssuuuuuuuussssssssaggmmmmmmmmmmmggsuuuuuusuuuuuushvvvvvvvhhvvvvvvvhgggggggggg│
+│aaaaaooooooooooooooaaaggmmmmmggggggggwwwwwwwwwxwmmmmmmmmmmmmmmmmmggCCgCCCCCggggg│
+│aaaaaoooooooooooaooaaaggmmmmmmgggggggwwwwwwwwwxmmmmmmmmmmmmmmmmmmggCgCCCCggggggg│
+│aaaaaooooooooooooooaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+z #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+A #747a83 on #13151a
+B bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+o #e6e8eb on #1c1f25
+p #2c3039 on #16181d
+q #3e444f on #16181d
+r #e6e8eb on #2b4566
+s on #2b4566
+t #5fa8ff on #2b4566
+u bold #e6e8eb on #2b4566
+v #8b929c on #13151a
+w #e6e8eb on #16181d
+x reverse #e6e8eb on #16181d
+C #747a83 on #16181d

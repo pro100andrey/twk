@@ -1,0 +1,88 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     Gauge, LineGauge                        Preview   Code  │
+│                        How much of something there is: a block filled to a     │
+│     ListView           ratio, or a line.                                       │
+│     LogView          ──────────────────────────────────────────────────────────│
+│     Scrollbar               ┌                                          ┐       │
+│                         ·     ███████████▍                                  ·  │
+│   DATA          13  ▐         ███████████▍      29%                            │
+│     Sparkline       ▐   ·     ███████████▍                                  ·  │
+│ ▎   Gauge, LineGa…                                                             │
+│     BarChart            ·     used 29% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━      ·  │
+│     Chart                   └                                          ┘       │
+│     DotCanvas        ──────────────────────────────────────────────────────────│
+│     Calendar           live       ▐  ●▌                                        │
+│     Heatmap, Acti…     ratio      ────────────────────▎▎──────  75%            │
+│     Table              line        single  heavy  double  ascii                │
+│     DescriptionLi…     label       own  ratio  none                            │
+│     TreeView           style      ██ ██ ██ ██ ██  primary                      │
+│     TreeTable                     ▔▔                                           │
+│     DirectoryTree      segmented  ▐●  ▌                                        │
+│     TaskList                                                                   │
+│                                                                                │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeaLLLLLLaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahMhMMMMMMhhhhhhhNhaaggkkkkkkgkkkkkkkkkgggggggggggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmgmmmmgmmgmmmmmmmmmgmmmmmgmmmgmgmmmmmgmmmmmmgmmgmggggg│
+│aaaaannnnnnnnaaaaaaaaaggmmmmmmgmmgmgmmmmmggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnaaaaaaaagggggggoggggggggggggggggggggggggggggggggggggggggggoggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggogggggppppppppppppqqqqqqqqqqqqqqqqqqqqqqqqqqqqggggggogg│
+│aaaddddaaaaaaaaaaLLaadgggggggggppppppppppppqqqqqqsssqqqqqqqqqqqqqqqqqqqggggggggg│
+│aaaaannnnnnnnnaaaaaaadgggogggggppppppppppppqqqqqqqqqqqqqqqqqqqqqqqqqqqqggggggogg│
+│atuuuvvvvvvuvvvvvvvuuagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnaaaaaaaaagggogggggwwwwgwwwgxxxxxxxxxyyyyyyyyyyyyyyyyyyyyyyggggggogg│
+│aaaaannnnnaaaaaaaaaaaagggggggoggggggggggggggggggggggggggggggggggggggggggoggggggg│
+│aaaaannnnnnnnnaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnaaaaaaaaaggmmmmgggggggABBCAgggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnannnnnaaaggmmmmmggggggwwwwwwwwwwwwwwwwwwwwDwmmmmmmggOOOgggggggggggg│
+│aaaaannnnnaaaaaaaaaaaaggmmmmggggggghEEEEEEhuvvvvvuhEEEEEEhhEEEEEhggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaaaggmmmmmgggggguvvvuhEEEEEhhEEEEhggggggggggggggggggggggggggg│
+│aaaaannnnnnnnaaaaaaaaaggmmmmmggggggAAgFFgxxgGGgHHggOOOOOOOgggggggggggggggggggggg│
+│aaaaannnnnnnnnaaaaaaaagggggggggggggwwggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnaaaaggmmmmmmmmmggIJKKIgggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+L #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+M #747a83 on #13151a
+N bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+n #e6e8eb on #1c1f25
+o #2c3039 on #16181d
+p #5fa8ff on #22252c
+q on #22252c
+s bold #5fa8ff on #22252c
+t #5fa8ff on #2b4566
+u on #2b4566
+v bold #e6e8eb on #2b4566
+w #e6e8eb on #16181d
+x #5fd38d on #16181d
+y #3e444f on #16181d
+A #5fa8ff on #16181d
+B on #5fa8ff
+C #ffffff on #5fa8ff
+D reverse #e6e8eb on #16181d
+O #747a83 on #16181d
+E #8b929c on #13151a
+F #c792ea on #16181d
+G #f5c04a on #16181d
+H #5cc8e6 on #16181d
+I #383d48 on #16181d
+J #e6e8eb on #383d48
+K on #383d48

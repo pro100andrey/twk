@@ -1,0 +1,76 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     AnimatedBox                             Preview   Code  │
+│                        A box whose size, padding, background and border        │
+│     ProgressList       colors run to the new ones; a border of another type…   │
+│     Skeleton, Ske…   ──────────────────────────────────────────────────────────│
+│     AnimationCont…             ┌                                    ┐          │
+│     AnimatedBuild…      ·   ·    ╔════════════════════════════════╗     ·   ·  │
+│     AnimatedAlign…               ║                                ║            │
+│     AnimatedPosit…      ·   ·    ║    a box                       ║     ·   ·  │
+│ ▎   AnimatedBox                  ║                                ║            │
+│     AnimatedOpaci…      ·   ·    ║                                ║     ·   ·  │
+│     AnimatedDefau…               ║                                ║            │
+│     AnimatedSize        ·   ·    ╚════════════════════════════════╝     ·   ·  │
+│     TweenAnimatio…  ▐          └                                    ┘          │
+│     AnimatedSwitc…  ▐──────────────────────────────────────────────────────────│
+│     Dissolve, Fra…     big    ▐  ●▌                                            │
+│     Effect             curve   linear  ease  easeIn  easeOut  easeInOut        │
+│                                fastOutSlowIn  decelerate  bounceOut            │
+│   MOUSE          5             elasticOut                                      │
+│     GestureDetect…     cycle  ▐  ●▌                                            │
+│     Listener, Mou…                                                             │
+│                                                                                │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeavvvvvvaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahAhAAAAAAhhhhhhhBhaaggkkkkkkkkkkkggggggggggggggggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmgmmmgmmmmmgmmmmmgmmmmmmmmgmmmmmmmmmmgmmmgmmmmmmgggggggg│
+│aaaaannnnnnnnnnnnaaaaaggmmmmmmgmmmgmmgmmmgmmmgmmmmmgmgmmmmmmgmmgmmmmmmmgmmmmmggg│
+│aaaaannnnnnnnnannnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnnnnaaaggggggggggoggggggggggggggggggggggggggggggggggggogggggggggg│
+│aaaaannnnnnnnnnnnnnaaagggogggoggggppppppppppppppppppppppppppppppppppgggggogggogg│
+│aaaaannnnnnnnnnnnnnaaaggggggggggggpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpgggggggggggg│
+│aaaaannnnnnnnnnnnnnaaagggogggoggggpqqqqrqrrrqqqqqqqqqqqqqqqqqqqqqqqpgggggogggogg│
+│asqqqtttttttttttqqqqqaggggggggggggpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpgggggggggggg│
+│aaaaannnnnnnnnnnnnnaaagggogggoggggpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpgggggogggogg│
+│aaaaannnnnnnnnnnnnnaaaggggggggggggpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpgggggggggggg│
+│aaaaannnnnnnnnnnnaaaaagggogggoggggppppppppppppppppppppppppppppppppppgggggogggogg│
+│aaaaannnnnnnnnnnnnnaadggggggggggoggggggggggggggggggggggggggggggggggggogggggggggg│
+│aaaaannnnnnnnnnnnnnaadoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnannnnaaaggmmmggggwxxywgggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnaaaaaaaaaaaggmmmmmgghzzzzzzhhzzzzhhzzzzzzhhzzzzzzzhqtttttttttqggggggg│
+│aaaaaaaaaaaaaaaaaaaaaaggggggggghzzzzzzzzzzzzzhhzzzzzzzzzzhhzzzzzzzzzhggggggggggg│
+│aaadddddaaaaaaaaaavaaaggggggggghzzzzzzzzzzhggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaaaggmmmmmggwxxywgggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnannnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+v #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+A #747a83 on #13151a
+B bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+n #e6e8eb on #1c1f25
+o #2c3039 on #16181d
+p #c792ea on #2b4566
+q on #2b4566
+r #e6e8eb on #2b4566
+s #5fa8ff on #2b4566
+t bold #e6e8eb on #2b4566
+w #5fa8ff on #16181d
+x on #5fa8ff
+y #ffffff on #5fa8ff
+z #8b929c on #13151a

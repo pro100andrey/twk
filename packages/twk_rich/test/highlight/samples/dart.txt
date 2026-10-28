@@ -1,0 +1,54 @@
+#!/usr/bin/env dart
+/// A sample of Dart for the highlighting tests.
+library;
+
+import 'dart:async' show Future;
+import 'package:twk/twk.dart' as twk;
+
+/* A block comment
+   /* with one nested in it */
+   that ends here. */
+@immutable
+final class Point<T extends num> {
+  const Point(this.x, this.y);
+
+  final T x, y;
+
+  static const origin = Point(0, 0);
+  static final _cache = <String, Point<int>>{};
+
+  int get hash => Object.hash(x, y) ^ 0x7FFF_FFFF;
+
+  Point<T> operator +(Point<T> other) =>
+      Point(x + other.x as T, y + other.y as T);
+
+  @override
+  String toString() => 'Point($x, ${y.toStringAsFixed(2)})';
+}
+
+extension type Meters(double value) {}
+
+enum Mode { dark, light }
+
+Future<void> main(List<String> args) async {
+  final p = Point(1.5, -2e3)..toString();
+  var name = args.isEmpty ? null : args.first;
+  name ??= r'raw \n $not interpolated';
+  final text = '''
+Hello, $name!
+  The point is ${p.x + p.y} and ${{'k': [1, 2]}['k']}.
+\t"Quoted" and 'quoted' and \u{1F600}.
+''';
+  final mode = switch (args.length) {
+    0 => Mode.dark,
+    _ when args.contains('--light') => Mode.light,
+    _ => Mode.dark,
+  };
+  for (final (i, s) in args.indexed) {
+    if (i.isEven && s != '' || s.length >= 3) continue;
+    print("$i: ${s.toUpperCase()} \"$s\"");
+  }
+  await Future<void>.delayed(const Duration(milliseconds: 10));
+  print(#symbol);
+  print(text.split('\n').length ~/ 2); // lines /* not a comment */
+}

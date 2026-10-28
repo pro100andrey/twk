@@ -1,0 +1,74 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     IgnorePointer, AbsorbPointer            Preview   Code  │
+│                        A subtree the mouse passes by: IgnorePointer lets it    │
+│     Dissolve, Fra…     through to what is under it, AbsorbPointer stops it t…  │
+│     Effect           ──────────────────────────────────────────────────────────│
+│                               ┌                                      ┐         │
+│   MOUSE          5      ·   ·   ╭ backdrop ────────────────────────╮    ·   ·  │
+│     GestureDetect…              │                                  │           │
+│     Listener, Mou…      ·   ·   │          ╭────────────╮          │    ·   ·  │
+│ ▎   IgnorePointer…              │          │  click me  │          │           │
+│     SelectionArea       ·   ·   │          ╰────────────╯          │    ·   ·  │
+│     Draggable, Dr…              │                                  │           │
+│                         ·   ·   ╰──────────────────────────────────╯    ·   ·  │
+│   FOCUS AND KEYS 4                                                             │
+│     Focus, FocusS…  ▐   ·   ·   heard: nothing                          ·   ·  │
+│     ExcludeFocus    ▐         └                                      ┘         │
+│     KeyBindings,…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  36 × 9   ·   ·  │
+│     Shortcuts, Ac…                                                             │
+│                      ──────────────────────────────────────────────────────────│
+│   NAVIGATION     5     around the button   none  IgnorePointer                 │
+│     Navigator                              AbsorbPointer                       │
+│                                                                                │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeaxxxxxxaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahyhyyyyyyhhhhhhhzhaaggkkkkkkkkkkkkkkgkkkkkkkkkkkkkgggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmgmmmmmmmgmmmgmmmmmgmmmmmmgmmmgmmmmmmmmmmmmmgmmmmgmmgggg│
+│aaaaannnnnnnnnannnnaaaggmmmmmmmgmmgmmmmgmmgmmmmmgmmmgmmmmmmmmmmmmmgmmmmmgmmgmmgg│
+│aaaaannnnnnaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggoggggggggggggggggggggggggggggggggggggggoggggggggg│
+│aaadddddaaaaaaaaaaxaaagggogggogggpgmmmmmmmmgpppppppppppppppppppppppppggggogggogg│
+│aaaaannnnnnnnnnnnnnaaagggggggggggpggggggggggggggggggggggggggggggggggpggggggggggg│
+│aaaaannnnnnnnnannnnaaagggogggogggpggggggggggppppppppppppppggggggggggpggggogggogg│
+│aqrrrssssssssssssssrragggggggggggpggggggggggpggtttttgttggpggggggggggpggggggggggg│
+│aaaaannnnnnnnnnnnnaaaagggogggogggpggggggggggppppppppppppppggggggggggpggggogggogg│
+│aaaaannnnnnnnnnannnaaagggggggggggpggggggggggggggggggggggggggggggggggpggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggogggogggppppppppppppppppppppppppppppppppppppggggogggogg│
+│aaadddddadddaddddaxaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnannnnnnnaadgggogggogggmmmmmmgmmmmmmmggggggggggggggggggggggggggogggogg│
+│aaaaannnnnnnnnnnnaaaadgggggggggoggggggggggggggggggggggggggggggggggggggoggggggggg│
+│aaaaannnnnnnnnnnnnaaaagggogggogggogggogggogggogggogggogggogggoggAAgAgAgggogggogg│
+│aaaaannnnnnnnnnannnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaddddddddddaaaaaxaaaggmmmmmmgmmmgmmmmmmgghwwwwhrsssssssssssssrgggggggggggggggg│
+│aaaaannnnnnnnnaaaaaaaaggggggggggggggggggggghwwwwwwwwwwwwwhgggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+x #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+y #747a83 on #13151a
+z bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+n #e6e8eb on #1c1f25
+o #2c3039 on #16181d
+p #3e444f on #16181d
+q #5fa8ff on #2b4566
+r on #2b4566
+s bold #e6e8eb on #2b4566
+t #e6e8eb on #16181d
+A #747a83 on #16181d
+w #8b929c on #13151a

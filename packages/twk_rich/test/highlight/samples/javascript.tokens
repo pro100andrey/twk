@@ -1,0 +1,47 @@
+comment"#!/usr/bin/env node"
+comment"// A sample of JavaScript for the highlighting tests."
+string"'use strict'" punctuation";"
+
+keyword"import" " " punctuation"{" " readFile " punctuation"}" " " keyword"from" " " string"'node:fs/promises'" punctuation";"
+keyword"import" " " operator"*" " " keyword"as" " path " keyword"from" " " string"\"node:path\"" punctuation";"
+
+comment"/* A block comment"
+comment"   /* that does not nest"
+comment"   and ends here. */"
+annotation"@sealed"
+keyword"export" " " keyword"default" " " keyword"class" " " type"Counter" " " keyword"extends" " " type"EventTarget" " " punctuation"{"
+"  #count " operator"=" " " number"0" punctuation";"
+"  " keyword"static" " " type"MAX" " " operator"=" " " number"0x7FFF_FFFFn" punctuation";"
+
+"  " keyword"get" " " function"count" punctuation"()" " " punctuation"{" " " keyword"return" " " keyword"this" punctuation"." "#count" punctuation";" " " punctuation"}"
+
+"  " function"increment" punctuation"(" "by " operator"=" " " number"1" punctuation")" " " punctuation"{"
+"    " keyword"this" punctuation"." "#count " operator"+=" " by" punctuation";"
+"    " keyword"return" " " keyword"this" punctuation"." "#count " operator"/" " " number"2" " " operator">" " " number"10" " " operator"?" " " constant"null" " " punctuation":" " " constant"undefined" punctuation";"
+"  " punctuation"}"
+punctuation"}"
+
+keyword"const" " pattern " operator"=" " " string"/^[a-z/]+\\/(\\d{2,})$/giu" punctuation";"
+keyword"const" " ratio " operator"=" " total " operator"/" " count " operator"/" " " number"2" punctuation";"
+keyword"const" " name " operator"=" " " string"'it" escape"\\'" string"s a \"name\"'" punctuation";"
+keyword"const" " long " operator"=" " " string"\"first part " escape"\\"
+string"second part\"" punctuation";"
+keyword"const" " message " operator"=" " " string"`Hello, " punctuation"${" "name" punctuation"}" string"!"
+string"  Nested: " punctuation"${" "items" punctuation"." function"map" punctuation"((" "item" punctuation")" " " operator"=>" " " string"`<li>" punctuation"${" "item" punctuation"." "label" punctuation"}" string"</li>`" punctuation")." function"join" punctuation"(" string"''" punctuation")}"
+string"  Escapes: " escape"\\n" string" " escape"\\u{1F600}" string" " escape"\\$" string"{not interpolated} $notEither"
+string"  Code: " punctuation"${{"
+"    a" punctuation":" " " number"1" punctuation"," " " comment"// a comment in code in a template"
+"  " punctuation"}." "a" punctuation"}"
+string"  Done.`" punctuation";"
+
+keyword"async" " " keyword"function" operator"*" " " function"lines" punctuation"(" "file" punctuation")" " " punctuation"{"
+"  " keyword"const" " text " operator"=" " " keyword"await" " " function"readFile" punctuation"(" "file" punctuation"," " " string"'utf8'" punctuation");"
+"  " keyword"for" " " punctuation"(" keyword"const" " line " keyword"of" " text" punctuation"." function"split" punctuation"(" string"/\\r?\\n/" punctuation"))" " " punctuation"{"
+"    " keyword"if" " " punctuation"(" "line" punctuation"." "length " operator"===" " " number"0" " " operator"||" " " operator"!" constant"NaN" punctuation")" " " keyword"continue" punctuation";"
+"    " keyword"yield" " line" punctuation"." function"trim" punctuation"();"
+"  " punctuation"}"
+punctuation"}"
+
+keyword"let" " typed " operator"=" " " keyword"typeof" " value " operator"===" " " string"'string'" " " operator"&&" " value " keyword"instanceof" " " type"String" punctuation";"
+"x " operator"=" " a" operator"++" " " operator"/" " b" punctuation";" " " comment"// division after a value"
+

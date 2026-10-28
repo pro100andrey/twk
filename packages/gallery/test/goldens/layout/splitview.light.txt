@@ -1,0 +1,102 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Layout  ›  SplitView                                                      ctrl+p search      ◐ Light  │
+│                                                                                                                        │
+│   ⌕ Filter             /      SplitView                                                                      22 of 24  │
+│                               Panes the mouse or the arrows resize by their dividers; Tab focuses one. The last        │
+│     Text                  ▐   one collapses.                                                                           │
+│     Rich text             ▐                                                                                            │
+│     DefaultTextStyle      ▐   Preview   Code                                                                           │
+│     Right to left         ▐───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│                           ▐                                                              │                             │
+│   LAYOUT              24       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│     Box                                                                                  │                             │
+│     ColoredBox, Decorat…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  direction                  │
+│     Container                                                                            │   horizontal  vertical      │
+│     Divider                     ┌                                                  ┐     │                             │
+│     Shadow                        ╭files──────┬editor─────────────────┬outline───╮       │  share edges         ▐  ●▌  │
+│     Padding                       │ box.dart  │ Drag a divider, or Tab│ Drag its │       │                             │
+│     Align, Center                 │ flex.dart │ to one and press the  │ divider  │       │  dividers                   │
+│     SizedBox                      │ grid.dart │ arrows.               │ to the   │       │   single  rounded  double   │
+│     ConstrainedBox                │ wrap.dart │                       │ edge.    │       │   heavy  ascii              │
+│     LimitedBox, Overflo…          │           │                       │          │       │                             │
+│     FractionallySizedBox          │           │                       │          │       │                             │
+│     IntrinsicWidth/Heig…          │           │                       │          │       │                             │
+│     Row, Column, Flex             │           │                       │          │       │                             │
+│     Expanded, Spacer              │           │                       │          │       │                             │
+│     Stack, Positioned             ╰───────────┴───────────────────────┴──────────╯       │                             │
+│     Transform                                                                            │                             │
+│     Visibility, Offstage          fractions: 0.25  0.50  0.25                            │                             │
+│     ExpansionTile, Acco…        └                                                  ┘     │                             │
+│     Grid, GridPlacement                                                     48 × 13      │                             │
+│     Wrap                       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     CustomPaint                                                                          │                             │
+│ ▎   SplitView                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     DockArea                                                                             │                             │
+│     Scaffold                   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│                                                                                          │                             │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaaBBBBBBaafaadddddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaBBBBBBaaaaaadadddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaiCiCCCCCCiiiiiiiiiiiiiDiaahhhlllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhEEhEEhEEhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnnhnnnhnnnnnhnnhnnnhnnnnnnhnnnnnnhnnhnnnnnhnnnnnnnnnhnnnhnnnnnnnhnnnnhnnnhnnnnhhhhhhhh│
+│aaaaappppaaaaaaaaaaaaaaaaaadhhhnnnhnnnnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppappppaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppppppppppaaaaaadhhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppappappppaaaaaaaaadqqqrrrrrrrqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddaaaaaaaaaaaaaaBBaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppppappppppppaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhnnnnnnnnnhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhFGGGGGGGGGGFuvvvvvvvvuhhhhh│
+│aaaaapppppppaaaaaaaaaaaaaaaahhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppaaaaaaaaaaaaaaaaahhhhhhhwnnnnnwwwwwwwnnnnnnwwwwwwwwwwwwwwwwwwnnnnnnnwwwwhhhhhhhqhhnnnnnhnnnnnhhhhhhhhhrxxyrhh│
+│aaaaapppppppaaaaaaaaaaaaaaaahhhhhhhwhzzzzzzzzhhwhzzzzhzhzzzzzzzzhzzhzzzwhzzzzhzzzhwhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppappppppaaaaaaaaaahhhhhhhwhzzzzzzzzzhwhzzhzzzhzzzhzzzzzhzzzhhwhzzzzzzzhhwhhhhhhhqhhnnnnnnnnhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppaaaaaaaaaaaaaaahhhhhhhwhzzzzzzzzzhwhzzzzzzzhhhhhhhhhhhhhhhwhzzhzzzhhhwhhhhhhhqhhFGGGGGGFuvvvvvvvuuvvvvvvuhh│
+│aaaaappppppppppppppaaaaaaaaahhhhhhhwhzzzzzzzzzhwhhhhhhhhhhhhhhhhhhhhhhhwhzzzzzhhhhwhhhhhhhqhhuvvvvvuuvvvvvuhhhhhhhhhhhhh│
+│aaaaapppppppppppappppppppaaahhhhhhhwhhhhhhhhhhhwhhhhhhhhhhhhhhhhhhhhhhhwhhhhhhhhhhwhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppppppppppppppaaahhhhhhhwhhhhhhhhhhhwhhhhhhhhhhhhhhhhhhhhhhhwhhhhhhhhhhwhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppppppppppppppaaahhhhhhhwhhhhhhhhhhhwhhhhhhhhhhhhhhhhhhhhhhhwhhhhhhhhhhwhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppapppppppappppaaaaaahhhhhhhwhhhhhhhhhhhwhhhhhhhhhhhhhhhhhhhhhhhwhhhhhhhhhhwhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppappppppaaaaaaahhhhhhhwhhhhhhhhhhhwhhhhhhhhhhhhhhhhhhhhhhhwhhhhhhhhhhwhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppappppppppppaaaaaahhhhhhhwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppppappppppppaaahhhhhhhnnnnnnnnnnhzzzzhhzzzzhhzzzzhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppppppppapppppaaahhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppapppppppppppppaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhEEhEhEEhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppaaaaaaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppppaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aHFFFGGGGGGGGGFFFFFFFFFFFFFahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppaaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #f3f5f7
+b #0969da on #f3f5f7
+c bold #1f2328 on #f3f5f7
+d #656d76 on #f3f5f7
+B #838991 on #f3f5f7
+f #dcdfe4 on #f3f5f7
+g bold #656d76 on #f3f5f7
+h on #fafafb
+i on #fefefe
+C #838991 on #fefefe
+D bold #838991 on #fefefe
+l bold #1f2328 on #fafafb
+E #838991 on #fafafb
+n #656d76 on #fafafb
+p #1f2328 on #f3f5f7
+q #dcdfe4 on #fafafb
+r #0969da on #fafafb
+F on #b6d4fe
+G bold #1f2328 on #b6d4fe
+u on #eef0f3
+v #656d76 on #eef0f3
+w #c8cdd5 on #fafafb
+x on #0969da
+y #ffffff on #0969da
+z #1f2328 on #fafafb
+H #0969da on #b6d4fe

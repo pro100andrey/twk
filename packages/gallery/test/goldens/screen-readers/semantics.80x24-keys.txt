@@ -1,0 +1,86 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     Semantics                               Preview   Code  │
+│                        What a widget is to a screen reader: a role, a label,   │
+│     Viewport           a value and a state, read as a line of text. TWK_SCRE…  │
+│     Window title     ──────────────────────────────────────────────────────────│
+│     Notifications     ┌                                                      ┐ │
+│     Cli                 Sign in              A screen reader reads:            │
+│                         [x] Remember me        heading Sign in                 │
+│   SCREEN READERS 1      ▐  ●▌ Dark mode        checkbox Remember me, checked   │
+│ ▎   Semantics                                  switch Dark mode, on            │
+│                         Upload ██████          progressbar Upload: 50%         │
+│   DEBUGGING      4                           ▎ button More                     │
+│     Console              More   Cancel         button Cancel                   │
+│     FrameOverlay                               dialog Popup                    │
+│     Repaint rainb…       the page under it     the notice on top               │
+│     RepaintBounda…       the notice on top                                     │
+│                       └                                                      ┘ │
+│   RICH           8   ──────────────────────────────────────────────────────────│
+│     MarkdownView    ▐  view               beside the form                     ▐│
+│     CodeView        ▐                     TWK_SCREEN_READER=1                 ▐│
+│     SyntaxThemeSc…     BlockSemantics    ▐  ●▌                                 │
+│                                                                                │
+│  enter press   tab next   shift+tab back   esc pages                           │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeaKKKKKKaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahLhLLLLLLhhhhhhhMhaaggkkkkkkkkkggggggggggggggggggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmgmgmmmmmmgmmgmmgmgmmmmmmgmmmmmmmgmgmmmmmgmgmmmmmmggg│
+│aaaaannnnnnnnaaaaaaaaaggmgmmmmmgmmmgmgmmmmmmgmmmmgmmgmgmmmmgmmgmmmmmgmmmmmmmmmgg│
+│aaaaannnnnnannnnnaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnnnaaaagmggggggggggggggggggggggggggggggggggggggggggggggggggggggmg│
+│aaaaannnaaaaaaaaaaaaaagggllllgllggggggggggggggmgmmmmmmgmmmmmmgmmmmmmgggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggmlmgppppppppgppggggggggmmmmmmmgppppgppggggggggggggggggg│
+│aaaddddddadddddddaKaaagggqrrsqgppppgppppggggggggmmmmmmmmgppppppppgpppgpppppppggg│
+│aNOOOPPPPPPPPPOOOOOOOaggggggggggggggggggggggggggmmmmmmgppppgpppppgppgggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggmmmmmmgwwwwwwxxxxxxggggmmmmmmmmmmmgpppppppgpppggggggggg│
+│aaadddddddddaaaaaaKaaaggggggggggggggggggggggggyzAAAAAAzBBBBzzzzzzzzzzzzzzzzzzggg│
+│aaaaannnnnnnaaaaaaaaaagggrCCCCrgxDDDDDDxggggggggmmmmmmgppppppggggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaaaggggggggggggggggggggggggggmmmmmmgpppppgggggggggggggggggggg│
+│aaaaannnnnnnannnnnnaaagggxEEExEEEExEEEEExEExggggpppgppppppgppgpppggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaaagggxFFFxFFFFFFxFFxFFFxgggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagmggggggggggggggggggggggggggggggggggggggggggggggggggggggmg│
+│aaaddddaaaaaaaaaaaKaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnnaaaadggmmmmggggggggggggggzHHHHHHzHHHzHHHHzggggggggggggggggggggm│
+│aaaaannnnnnnnaaaaaaaadgggggggggggggggggggghJJJJJJJJJJJJJJJJJJJhggggggggggggggggm│
+│aaaaannnnnnnnnnnnnnaaaggmmmmmmmmmmmmmmggggqrrsqggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aacccccadddddaaacccaddddaaacccccccccaddddaaacccadddddaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+K #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+L #747a83 on #13151a
+M bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+n #e6e8eb on #1c1f25
+o #2c3039 on #16181d
+p #e6e8eb on #16181d
+q #5fa8ff on #16181d
+r on #5fa8ff
+s #ffffff on #5fa8ff
+N #8b929c on #24354c
+O on #24354c
+P bold #e6e8eb on #24354c
+w #5fa8ff on #22252c
+x on #22252c
+y #5fa8ff on #2b4566
+z on #2b4566
+A #8b929c on #2b4566
+B #e6e8eb on #2b4566
+C bold #16181d on #5fa8ff
+D bold #5fa8ff on #22252c
+E #8b929c on #22252c
+F #e6e8eb on #22252c
+H bold #e6e8eb on #2b4566
+J #8b929c on #13151a

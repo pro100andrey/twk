@@ -1,0 +1,24 @@
+00:00 [32m+0[0m: [1m[90mloading test/sample_test.dart[0m[0m
+00:00 [32m+0[0m: test/sample_test.dart: adds[0m
+00:00 [32m+1[0m: test/sample_test.dart: is skipped[0m
+  [33mSkip: not yet[0m
+00:00 [32m+1[0m[33m ~1[0m: test/sample_test.dart: compares[0m
+00:00 [32m+1[0m[33m ~1[0m[31m -1[0m: test/sample_test.dart: compares [1m[31m[E][0m[0m
+  Expected: 'tab here'
+    Actual: 'tab\there'
+     Which: is different.
+            Expected: tab here
+              Actual: tab\there
+                         ^
+             Differ at offset 3
+  
+  package:matcher             expect
+  test/sample_test.dart 6:26  main.<fn>
+  
+00:00 [32m+1[0m[33m ~1[0m[31m -1[0m: [31mSome tests failed.[0m
+
+[31mFailing tests:[0m
+  test/sample_test.dart: compares
+
+Consider enabling the flag chain-stack-traces to receive more detailed exceptions.
+For example, 'dart test --chain-stack-traces'.

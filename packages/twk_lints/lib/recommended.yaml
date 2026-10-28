@@ -1,0 +1,27 @@
+# twk_lints' recommended set: the plugin with every rule on. An app that
+# depends on twk_lints (a dev dependency) includes it from the root
+# analysis_options.yaml of its package:
+#
+#   include: package:twk_lints/recommended.yaml
+#
+# or beside other sets, as a list:
+#
+#   include:
+#     - package:pro_lints/recommended.yaml
+#     - package:twk_lints/recommended.yaml
+#
+# The warnings (set_state_after_dispose, context_after_await,
+# dispose_controllers, key_names) are on wherever the plugin is; the lints
+# are turned on here. An app's own `plugins:` section replaces this one
+# whole rather than merging with it: to turn a rule off, name the plugin
+# there with its path and every rule it keeps (README, "Enabling it").
+plugins:
+  twk_lints:
+    # this package, the one above lib/, wherever it is resolved from
+    path: ..
+    diagnostics:
+      missing_key_in_children: true
+      untyped_table: true
+      prefer_key_bindings: true
+      unnamed_control: true
+      wall_time_in_tests: true

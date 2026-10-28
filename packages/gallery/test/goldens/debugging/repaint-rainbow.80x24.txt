@@ -1,0 +1,83 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     Repaint rainbow                         Preview   Code  │
+│                        Each repaint boundary tinted a new colour when it       │
+│   SCREEN READERS 1     paints, and relayouts marked, to see what a change re…  │
+│     Semantics        ──────────────────────────────────────────────────────────│
+│                       ┌                                                      ┐ │
+│   DEBUGGING      4                                                             │
+│     Console              ⠴ syncing                                             │
+│     FrameOverlay                                                               │
+│ ▎   Repaint rainb…       copy █                                                │
+│     RepaintBounda…                                                             │
+│                          load ▄▅▇▆▄▅█▆▄▄▃▄▄▅▇▆                                 │
+│   RICH           8                                                             │
+│     MarkdownView                                                               │
+│     CodeView                                                                   │
+│     SyntaxThemeSc…    └                                                      ┘ │
+│     DiffView         ──────────────────────────────────────────────────────────│
+│     JsonView           rainbow             ▐  ●▌                               │
+│     BigText         ▐                                                          │
+│     QrCode          ▐  relayout highlight  ▐●  ▌                               │
+│     ANSI                                                                       │
+│                                                                                │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeavvvvvvaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahHhHHHHHHhhhhhhhIhaaggkkkkkkkgkkkkkkkggggggggggggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmgmmmmmmmgmmmmmmmmgmmmmmmgmgmmmgmmmmmmgmmmmgmmggggggg│
+│aaaddddddadddddddavaaaggmmmmmmmgmmmgmmmmmmmmmgmmmmmmmgmmgmmmgmmmmgmgmmmmmmgmmmgg│
+│aaaaannnnnnnnnaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaaaaaaaaaaaaaaaaaaagoggggggggggggggggggggggggggggggggggggggggggggggggggggggog│
+│aaadddddddddaaaaaavaaagggppppppppppppppppppppppppppppppppppppppppppppppppppppggg│
+│aaaaannnnnnnaaaaaaaaaagggpqprrrrrrrppppppppppppppppppppppppppppppppppppppppppggg│
+│aaaaannnnnnnnnnnnaaaaagggppppppppppppppppppppppppppppppppppppppppppppppppppppggg│
+│astttuuuuuuutuuuuuuttagggpGGGGpwxxxxxxxxxxxxxxxppppppppppppppppppppppppppppppggg│
+│aaaaannnnnnnnnnnnnnaaagggppppppppppppppppppppppppppppppppppppppppppppppppppppggg│
+│aaaaaaaaaaaaaaaaaaaaaagggpGGGGpyyyyyyyyyyyyyyyyppppppppppppppppppppppppppppppggg│
+│aaaddddaaaaaaaaaaavaaagggppppppppppppppppppppppppppppppppppppppppppppppppppppggg│
+│aaaaannnnnnnnnnnnaaaaagggppppppppppppppppppppppppppppppppppppppppppppppppppppggg│
+│aaaaannnnnnnnaaaaaaaaagggppppppppppppppppppppppppppppppppppppppppppppppppppppggg│
+│aaaaannnnnnnnnnnnnnaaagoggggggggggggggggggggggggggggggggggggggggggggggggggggggog│
+│aaaaannnnnnnnaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnaaaaaaaaaggmmmmmmmgggggggggggggzAABzggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnaaaaaaaaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnaaaaaaaaaadggmmmmmmmmgmmmmmmmmmggDEFFDggggggggggggggggggggggggggggggg│
+│aaaaannnnaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+v #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+H #747a83 on #13151a
+I bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+n #e6e8eb on #1c1f25
+o #2c3039 on #16181d
+p on #5f1014
+q blue on #0f1064
+r #e6e8eb on #5f1014
+s #5fa8ff on #2b4566
+t on #2b4566
+u bold #e6e8eb on #2b4566
+G indexed(245) on #5f1014
+w blue on #0f603c
+x on #0f603c
+y cyan on #371064
+z #5fa8ff on #16181d
+A on #5fa8ff
+B #ffffff on #5fa8ff
+D #383d48 on #16181d
+E #e6e8eb on #383d48
+F on #383d48

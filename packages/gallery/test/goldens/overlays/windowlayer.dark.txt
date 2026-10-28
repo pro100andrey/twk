@@ -1,0 +1,107 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Overlays  ›  WindowLayer                                                   ctrl+p search      ◐ Dark  │
+│                                                                                                                        │
+│   ⌕ Filter             /      WindowLayer                                                                    11 of 11  │
+│                               Windows over the app: a title bar drags one, an edge resizes it, its buttons             │
+│     Overlay                   minimise, maximise and close it; Tab to a title bar, then the arrows move it.            │
+│     Dialog                                                                                                             │
+│     Toast                     Preview   Code                                                                           │
+│     Tooltip                ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     Popover                                                                              │                             │
+│     MenuBar                    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│     ContextMenu                                                                          │                             │
+│     CommandPalette             ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  frame                      │
+│     OptionList                                                                           │   raised  bordered          │
+│     ModalBarrier               ┌                                                    ┐    │                             │
+│ ▎   WindowLayer                  The app, under its windows.                             │  shadow              ▐  ●▌  │
+│                                   Open the windows closed                                │                             │
+│   ANIMATION           16                                                                 │  resizable           ▐  ●▌  │
+│     Spinner                          Notes                ─ □ ×                          │                             │
+│     ProgressBar                      Drag me by the title bar,                           │  minimisable         ▐  ●▌  │
+│     ProgressList          ▐          or resize me by an e  Counter          ─ □ ×        │                             │
+│     Skeleton, Skeletoni…  ▐                                count: 0                      │  maximisable         ▐  ●▌  │
+│     AnimationController   ▐                                 Add one                      │                             │
+│     AnimatedBuilder       ▐                                                              │                             │
+│     AnimatedAlign, Anim…  ▐                                                              │                             │
+│     AnimatedPositioned                                                                   │                             │
+│     AnimatedBox                                                                          │                             │
+│     AnimatedOpacity, Op…       └                                                    ┘    │                             │
+│     AnimatedDefaultText…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   · 50 × 12     │                             │
+│     AnimatedSize                                                                         │                             │
+│     TweenAnimationBuild…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     AnimatedSwitcher                                                                     │                             │
+│     Dissolve, Fractiona…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Effect                                                                               │                             │
+│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│                                                                                          │                             │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaaGGGGGGGGaafaadddddddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaGGGGGGaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaiHiHHHHHHiiiiiiiiiiiiiIiaahhhlllllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhJJhJJhJJhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnnnnhnnnnhnnnhnnnnhnhnnnnnhnnnhnnnnnhnnnnhnnhnnnnhnnnnnnnhnnnhnnnhnnnnnnnhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhnnnnnnnnnhnnnnnnnnhnnnhnnnnnhnnnhnnnhnnhnhnnnnnhnnnnhnnnnhnnnhnnnnnnhnnnnhnnnhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhuvvvvvvuiFFFFFFFFihhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│atuuuvvvvvvvvvvvuuuuuuuuuuuahhhhhhwwwhwwwwhwwwwwhwwwhwwwwwwwwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnnhhhhhhhhhhhhhhqrrsqhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhaddddadddadddddddaddddddahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddddddaaaaaaaaaaaGGaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnnnnnhhhhhhhhhhhqrrsqhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhxxyyyyyxxxxxxxxxxxxxxxxzxzxzxxhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhAABBBBABBABBABBBABBBBBABBBBAAACChhhhhhhhhhhhhhhhhhhhhhphhnnnnnnnnnnnhhhhhhhhhqrrsqhh│
+│aaaaaooooooooooooaaaaaaaaaadhhhhhhhhAABBABBBBBBABBABBABBABxxyyyyyyyxxxxxxxxxxzxzxzxxhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaooooooooooaadhhhhhhhhAAAAAAAAAAAAAAAAAAAAAAAABBBBBBABAAAAAAAAAAAAAAAAhhhhhhphhnnnnnnnnnnnhhhhhhhhhqrrsqhh│
+│aaaaaoooooooooooooooooooaaadhhhhhhhhAAAAAAAAAAAAAAAAAAAAAAAAxEEExEEExAAAAAAAAAAAAAAAhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaadhhhhhhhhAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooaoooooaadhhhhhhhhhhCCCCCCCCCCCCCCCCCCCCAAAAAAAAAAAAAAAAAAAAAAAAAAhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhAAAAAAAAAAAAAAAAAAAAAAAAAAhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhCCCCCCCCCCCCCCCCCCCCCCCChhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaoooaaahhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphJJhJhJJhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaooooooooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+G #747a83 on #1c1f25
+f #2c3039 on #1c1f25
+g bold #8b929c on #1c1f25
+h on #16181d
+i on #13151a
+H #747a83 on #13151a
+I bold #747a83 on #13151a
+l bold #e6e8eb on #16181d
+J #747a83 on #16181d
+n #8b929c on #16181d
+o #e6e8eb on #1c1f25
+p #2c3039 on #16181d
+q #5fa8ff on #16181d
+u on #2b4566
+v bold #e6e8eb on #2b4566
+F #8b929c on #13151a
+t #5fa8ff on #2b4566
+w #e6e8eb on #16181d
+r on #5fa8ff
+s #ffffff on #5fa8ff
+x on #32353b
+y bold #8b929c on #32353b
+z #8b929c on #32353b
+A on #22252c
+B #e6e8eb on #22252c
+C on #0a0b0d
+E bold #5fa8ff on #32353b

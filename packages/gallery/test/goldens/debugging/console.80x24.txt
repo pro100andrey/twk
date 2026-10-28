@@ -1,0 +1,83 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     Console                                 Preview   Code  │
+│                        Log records listed over the app, newest last; the app   │
+│     Cli                has one of its own, which Ctrl+G then c opens.          │
+│                      ──────────────────────────────────────────────────────────│
+│   SCREEN READERS 1      ┌                                                  ┐   │
+│     Semantics              Info   Warn   Fail   Close                          │
+│                                                                                │
+│   DEBUGGING      4        The app, under its console.                          │
+│ ▎   Console                                                                    │
+│     FrameOverlay           console  debug+  6 of 6                             │
+│     Repaint rainb…         09:05:06.242 DEBUG cache hit: items?page=2          │
+│     RepaintBounda…         09:05:06.942 INFO  GET /api/user/42 200 in 8 ms     │
+│                            09:05:07.642 DEBUG pool: 3 of 8 connections bus     │
+│   RICH           8         09:05:08.342 WARN  slow query: 412 ms on orders     │
+│     MarkdownView           09:05:09.042 INFO  POST /api/orders 201 in 31 m     │
+│     CodeView            └                                                  ┘   │
+│     SyntaxThemeSc…   ──────────────────────────────────────────────────────────│
+│     DiffView        ▐  level           debug  info  warning  error            ▐│
+│     JsonView        ▐  rows            4  6  8                                ▐│
+│     BigText            traffic        ▐  ●▌                                   ▐│
+│                                                                                │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeaHHHHHHaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahIhIIIIIIhhhhhhhJhaaggkkkkkkkggggggggggggggggggggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmgmmmmmmmgmmmmmmgmmmmgmmmgmmmmgmmmmmmgmmmmmgmmmgmmmggg│
+│aaaaannnaaaaaaaaaaaaaaggmmmgmmmgmmgmmmgmmmmgmmmmmgmmmmmmgmmmmgmgmmmmmmgggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaddddddadddddddaHaaagggoggggggggggggggggggggggggggggggggggggggggggggggggggoggg│
+│aaaaannnnnnnnnaaaaaaaagggggpqqqqpgpqqqqpgpqqqqpgpqqqqqpggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaadddddddddaaaaaaHaaagggggmmmgmmmmgmmmmmgmmmgmmmmmmmmgggggggggggggggggggggggggg│
+│arssstttttttsssssssssagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaaaggggguvvvvvvvuuwwwwwwwwwwwwwwuuuuuuuuuuuuuuuuuuuuuuuuggggg│
+│aaaaannnnnnnannnnnnaaagggggpxxxxxxxxxxxxpxxxxxpyyyyypyyyypyyyyyyyyyyyypppppggggg│
+│aaaaannnnnnnnnnnnnnaaagggggpxxxxxxxxxxxxpzzzzppyyypyyyyyyyyyyyypyyypyypypyyggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggpxxxxxxxxxxxxpxxxxxpyyyyypypyypypyyyyyyyyyyypyyyggggg│
+│aaaddddaaaaaaaaaaaHaaagggggpxxxxxxxxxxxxpAAAAppyyyypyyyyyypyyypyypyypyyyyyyggggg│
+│aaaaannnnnnnnnnnnaaaaagggggpxxxxxxxxxxxxpzzzzppyyyypyyyyyyyyyyypyyypyypyypyggggg│
+│aaaaannnnnnnnaaaaaaaaagggoggggggggggggggggggggggggggggggggggggggggggggggggggoggg│
+│aaaaannnnnnnnnnnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnaaaaaaaadggmmmmmggggggggggstttttshCCCChhCCCCCCChhCCCCChgggggggggggm│
+│aaaaannnnnnnnaaaaaaaadggmmmmggggggggggghChstshChgggggggggggggggggggggggggggggggm│
+│aaaaannnnnnnaaaaaaaaaaggmmmmmmmggggggggEFFGEgggggggggggggggggggggggggggggggggggm│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+H #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+I #747a83 on #13151a
+J bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+n #e6e8eb on #1c1f25
+o #2c3039 on #16181d
+p on #22252c
+q bold #5fa8ff on #22252c
+r #5fa8ff on #2b4566
+s on #2b4566
+t bold #e6e8eb on #2b4566
+u underline #e6e8eb on #22252c
+v bold underline #5fa8ff on #22252c
+w underline #8b929c on #22252c
+x #8b929c on #22252c
+y #e6e8eb on #22252c
+z #5cc8e6 on #22252c
+A #f5c04a on #22252c
+C #8b929c on #13151a
+E #5fa8ff on #16181d
+F on #5fa8ff
+G #ffffff on #5fa8ff

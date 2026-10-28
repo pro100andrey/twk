@@ -1,0 +1,22 @@
+name: twk_web
+description: >-
+  Runs a twk app in the browser: a terminal link over xterm.js through
+  dart:js_interop, and runWebApp, which mounts an app into a DOM element.
+  Built with dart2wasm.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.13.5
+resolution: workspace
+dependencies:
+  twk:
+    path: ../twk
+  twk_core:
+    path: ../twk_core
+  web: ^1.1.1
+dev_dependencies:
+  pro_lints: ^6.2.0
+  test: ^1.33.0
+  twk_test:
+    path: ../twk_test

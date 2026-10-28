@@ -1,0 +1,74 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     Right to left                           Preview   Code  │
+│                        Hebrew and Arabic among left-to-right text: put in the  │
+│   TEXT           4  ▐  order it reads where the app reorders it (TextOrder.v…  │
+│     Text            ▐──────────────────────────────────────────────────────────│
+│     Rich text                                                                  │
+│     DefaultTextSt…      ·   ·   ┌                                  ┐    ·   ·  │
+│ ▎   Right to left                 ╭──────────────────────────────╮             │
+│                         ·   ·     │ Hello is םולש in Hebrew,     │      ·   ·  │
+│   LAYOUT        24                │ and ابحرم in Arabic.         │             │
+│     Box                 ·   ·     │     (hello world) !םלוע םולש │      ·   ·  │
+│     ColoredBox, D…                ╰──────────────────────────────╯             │
+│     Container           ·   ·                                           ·   ·  │
+│     Divider                       text order: visual                           │
+│     Shadow              ·   ·   └                                  ┘    ·   ·  │
+│     Padding                                                  32 × 7            │
+│     Align, Center                                                              │
+│     SizedBox         ──────────────────────────────────────────────────────────│
+│     ConstrainedBox     text order   visual  logical                            │
+│     LimitedBox, O…     align        start  end  left  right                    │
+│     FractionallyS…                                                             │
+│                                                                                │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeaxxxxxxaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahyhyyyyyyhhhhhhhzhaaggkkkkkgkkgkkkkggggggggggggggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmmgmmmgmmmmmmgmmmmmgmmmmmmmmmmmmmgmmmmmgmmmgmmgmmmgg│
+│aaaddddaaaaaaaaaaaxaadggmmmmmgmmgmmmmmgmmmmmgmmmgmmmgmmmmmmmmgmmgmmmmmmmmmmmmmgg│
+│aaaaaooooaaaaaaaaaaaadpppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaooooaooooaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaooooooooooooooaaagggpgggpgggpggggggggggggggggggggggggggggggggggpggggpgggpgg│
+│aqrrrsssssrssrssssrrragggggggggggggttttttttttttttttttttttttttttttttggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggpgggpgggggtguuuuuguuguuuuguuguuuuuuugggggtggggggpgggpgg│
+│aaaddddddaaaaaaaaxxaaagggggggggggggtguuuguuuuuguuguuuuuuugggggggggtggggggggggggg│
+│aaaaaoooaaaaaaaaaaaaaagggpgggpgggggtggggguuuuuuguuuuuuguuuuuguuuugtggggggpgggpgg│
+│aaaaaoooooooooooaooaaagggggggggggggttttttttttttttttttttttttttttttttggggggggggggg│
+│aaaaaoooooooooaaaaaaaagggpgggpgggggggggggggggggggggggggggggggggggggggggggpgggpgg│
+│aaaaaoooooooaaaaaaaaaagggggggggggggmmmmgmmmmmmguuuuuuggggggggggggggggggggggggggg│
+│aaaaaooooooaaaaaaaaaaagggpgggpgggpggggggggggggggggggggggggggggggggggpggggpgggpgg│
+│aaaaaoooooooaaaaaaaaaaggggggggggggggggggggggggggggggggggggggggAAgAgAgggggggggggg│
+│aaaaaooooooaooooooaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaooooooooaaaaaaaaapppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaooooooooooooooaaaggmmmmgmmmmmggrssssssrhwwwwwwwhggggggggggggggggggggggggggg│
+│aaaaaoooooooooooaooaaaggmmmmmgggggggrsssssrhwwwhhwwwwhhwwwwwhggggggggggggggggggg│
+│aaaaaooooooooooooooaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+x #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+y #747a83 on #13151a
+z bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+o #e6e8eb on #1c1f25
+p #2c3039 on #16181d
+q #5fa8ff on #2b4566
+r on #2b4566
+s bold #e6e8eb on #2b4566
+t #3e444f on #16181d
+u #e6e8eb on #16181d
+A #747a83 on #16181d
+w #8b929c on #13151a

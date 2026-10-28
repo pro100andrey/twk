@@ -1,0 +1,109 @@
+screen 120×36, cursor at 32,2
+text
+│  ◆ twk gallery   Text  ›  Text                                                              ctrl+p search      ◐ Dark  │
+│                                                                                                                        │
+│   ⌕ Filter               › spin                                                             7                  1 of 4  │
+│                          ────────────────────────────────────────────────────────────────────  igned as asked.         │
+│   TEXT                  ▎ Spinner                                                  Animation                           │
+│ ▎   Text                  Stack, Positioned                                           Layout                           │
+│     Rich text             Sparkline                                                     Data   ────────────────────────│
+│     DefaultTextStyle      CustomPaint                                                 Layout                           │
+│     Right to left         IgnorePointer, AbsorbPointer                                 Mouse   IONS                    │
+│                           DescriptionList                                               Data                           │
+│   LAYOUT              2   Reset the options                                           action   p                       │
+│     Box                                                                                        rd  grapheme  none      │
+│     ColoredBox, Decorat                                                                                                │
+│     Container                                                                            │  overflow                   │
+│     Divider                    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   clip  ellipsis            │
+│     Shadow                              ┌                                  ┐             │   ellipsisStart             │
+│     Padding                    ·   ·      ╭──────────────────────────────╮     ·   ·     │   ellipsisMiddle            │
+│     Align, Center                         │Terminals draw text in a grid │               │                             │
+│     SizedBox                   ·   ·      │of cells. A paragraph breaks  │     ·   ·     │  align                      │
+│     ConstrainedBox                        │its lines between words to fit│               │   left  center  right       │
+│     LimitedBox, Overflo…       ·   ·      │its width; wide characters, 漢│     ·   ·     │   justify                   │
+│     FractionallySizedBox                  │字 and 🙂, take two cells     │               │                             │
+│     IntrinsicWidth/Heig…       ·   ·      │each.                         │     ·   ·     │  max lines                  │
+│     Row, Column, Flex                     ╰──────────────────────────────╯               │   all  3  1                 │
+│     Expanded, Spacer           ·   ·    └                                  ┘   ·   ·     │                             │
+│     Stack, Positioned                                                32 × 8              │  width            32 cells  │
+│     Transform                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  ──────────── ────────────  │
+│     Visibility, Offstage                                                                 │                             │
+│     ExpansionTile, Acco…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Grid, GridPlacement                                                                  │                             │
+│     Wrap                       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     CustomPaint                                                                          │                             │
+│     SplitView                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     DockArea                                                                             │                             │
+│                                                                                          │                             │
+│  enter run   esc close                                                                                                 │
+styles
+│aabacccadddddddaaaHHHHaafaaddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaHHHHHHaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhiiiiiiiiiiiiiiiiiiiiiiii│
+│aajIjIIIIIIjjjjjjjjjjjjjhhlhmmmmhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhJhhiiiiiiiiiiiiiiiiKiKKiKii│
+│aaaaaaaaaaaaaaaaaaaaaaaahhpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppphhqqqqqiqqiqqqqqqiiiiiiiii│
+│aaaddddaaaaaaaaaaaaaaaaahrsttttuuussssssssssssssssssssssssssssssssssssssssssssssssssvvvvvvvvvsshiiiiiiiiiiiiiiiiiiiiiiii│
+│aLMMMNNNNMMMMMMMMMMMMMMMhhhlmmmmmhlmmlmmmlmmhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhJJJJJJhhhiiiiiiiiiiiiiiiiiiiiiiii│
+│aaaaazzzzazzzzaaaaaaaaaahhhllmmmmllmhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhJJJJhhhAAAAAAAAAAAAAAAAAAAAAAAA│
+│aaaaazzzzzzzzzzzzzzzzaaahhhmmlmmmlmllmhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhJJJJJJhhhiiiiiiiiiiiiiiiiiiiiiiii│
+│aaaaazzzzzazzazzzzaaaaaahhhmmmmmmmmmmmmmmhmmlmmmlmllmmmhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhJJJJJhhhqqqqiiiiiiiiiiiiiiiiiiii│
+│aaaaaaaaaaaaaaaaaaaaaaaahhhmmlmmmlmlmlmmmmhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhJJJJhhhiiiiiiiiiiiiiiiiiiiiiiii│
+│aaaddddddaaaaaaaaaaaaaaHhhhmmlmmhmmmhmlmlmlmhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhJJJJJJhhhqiiiiiiiiiiiiiiiiiiiiiii│
+│aaaaazzzaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhBBCjDDDDDDDDjjDDDDjiiiii│
+│aaaaazzzzzzzzzzzazzzzzzzhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhiiiiiiiiiiiiiiiiiiiiiiii│
+│aaaaazzzzzzzzzaaaaaaaaaaaaaaiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiAiiqqqqqqqqiiiiiiiiiiiiiiiiiii│
+│aaaaazzzzzzzaaaaaaaaaaaaaaaaiiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiiiAiijDDDDjCBBBBBBBBCiiiiiiiiiii│
+│aaaaazzzzzzaaaaaaaaaaaaaaaaaiiiiiiiiiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiAiiiiiiiiiiiiiAiijDDDDDDDDDDDDDjiiiiiiiiiiii│
+│aaaaazzzzzzzaaaaaaaaaaaaaaaaiiiiAiiiAiiiiiiEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEiiiiiAiiiAiiiiiAiijDDDDDDDDDDDDDDjiiiiiiiiiii│
+│aaaaazzzzzzazzzzzzaaaaaaaaaaiiiiiiiiiiiiiiiEFFFFFFFFFiFFFFiFFFFiFFiFiFFFFiEiiiiiiiiiiiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiii│
+│aaaaazzzzzzzzaaaaaaaaaaaaaaaiiiiAiiiAiiiiiiEFFiFFFFFFiFiFFFFFFFFFiFFFFFFiiEiiiiiAiiiAiiiiiAiiqqqqqiiiiiiiiiiiiiiiiiiiiii│
+│aaaaazzzzzzzzzzzzzzaaaaaaaaaiiiiiiiiiiiiiiiEFFFiFFFFFiFFFFFFFiFFFFFiFFiFFFEiiiiiiiiiiiiiiiAiiCBBBBCjDDDDDDjjDDDDDjiiiiii│
+│aaaaazzzzzzzzzzzazzzzzzzzaaaiiiiAiiiAiiiiiiEFFFiFFFFFFiFFFFiFFFFFFFFFFFiFFEiiiiiAiiiAiiiiiAiijDDDDDDDjiiiiiiiiiiiiiiiiii│
+│aaaaazzzzzzzzzzzzzzzzzzzzaaaiiiiiiiiiiiiiiiEFFiFFFiFFFiFFFFiFFFiFFFFFiiiiiEiiiiiiiiiiiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiii│
+│aaaaazzzzzzzzzzzzzzzzzzzzaaaiiiiAiiiAiiiiiiEFFFFFiiiiiiiiiiiiiiiiiiiiiiiiiEiiiiiAiiiAiiiiiAiiqqqiqqqqqiiiiiiiiiiiiiiiiii│
+│aaaaazzzzazzzzzzzazzzzaaaaaaiiiiiiiiiiiiiiiEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEiiiiiiiiiiiiiiiAiiCBBBCjDjjDjiiiiiiiiiiiiiiii│
+│aaaaazzzzzzzzzazzzzzzaaaaaaaiiiiAiiiAiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiAiiiAiiiAiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiii│
+│aaaaazzzzzzazzzzzzzzzzaaaaaaiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiKKiKiKiiiiiiiiiiiiiiAiiqqqqqiiiiiiiiiiiiKKiKKKKKii│
+│aaaaazzzzzzzzzaaaaaaaaaaaaaaiiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiiiAiiFFFFFFFFFFFFGqqqqqqqqqqqqii│
+│aaaaazzzzzzzzzzzazzzzzzzzaaaiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiii│
+│aaaaazzzzzzzzzzzzzzazzzzzaaaiiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiii│
+│aaaaazzzzzazzzzzzzzzzzzzaaaaiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiii│
+│aaaaazzzzaaaaaaaaaaaaaaaaaaaiiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiii│
+│aaaaazzzzzzzzzzzaaaaaaaaaaaaiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiii│
+│aaaaazzzzzzzzzaaaaaaaaaaaaaaiiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiii│
+│aaaaazzzzzzzzaaaaaaaaaaaaaaaiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiii│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaaiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiii│
+│aacccccadddaaacccadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #121317
+b #3b699f on #121317
+c bold #909193 on #121317
+d #575b62 on #121317
+H #494c52 on #121317
+f #1c1e24 on #121317
+g bold #575b62 on #121317
+h on #22252c
+i on #0e0f12
+j on #0c0d10
+I #494c52 on #0c0d10
+l bold #5fa8ff on #22252c
+m #e6e8eb on #22252c
+J #747a83 on #22252c
+K #494c52 on #0e0f12
+p #383e48 on #22252c
+q #575b62 on #0e0f12
+r #5fa8ff on #2b4566
+s on #2b4566
+t bold #5fa8ff on #2b4566
+u bold #e6e8eb on #2b4566
+v #8b929c on #2b4566
+L #575b62 on #172130
+M on #172130
+N bold #909193 on #172130
+z #909193 on #121317
+A #1c1e24 on #0e0f12
+B bold #909193 on #1b2b40
+C on #1b2b40
+D #575b62 on #0c0d10
+E #272b31 on #0e0f12
+F #909193 on #0e0f12
+G reverse #909193 on #0e0f12

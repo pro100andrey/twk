@@ -1,0 +1,46 @@
+// A sample of TypeScript for the highlighting tests.
+import type { Readable } from 'node:stream';
+
+export interface Point<T extends number = number> {
+  readonly x: T;
+  y?: T;
+}
+
+type Shape =
+  | { kind: 'circle'; radius: number }
+  | { kind: 'square'; side: number };
+
+declare module 'lib' {
+  export function area(shape: Shape): number;
+}
+
+enum Mode { Dark = 'dark', Light = 'light' }
+
+abstract class Base<T> implements Iterable<T> {
+  private readonly items: T[] = [];
+  protected constructor(public name: string) {}
+
+  abstract render(): void;
+
+  *[Symbol.iterator](): Iterator<T> {
+    yield* this.items;
+  }
+}
+
+function isPoint(value: unknown): value is Point {
+  return typeof value === 'object' && value !== null && 'x' in value;
+}
+
+const config = {
+  name: 'demo',
+  retries: 3,
+} as const satisfies Record<string, string | number>;
+
+let keys: keyof typeof config = 'name';
+const doubled = [1, 2, 3].map((n): number => n * 2) as number[];
+const query = `SELECT *
+  FROM ${table}
+  WHERE id IN (${ids.map((id) => `'${id}'`).join(', ')})`;
+/** A doc comment
+ * @param x the value
+ */

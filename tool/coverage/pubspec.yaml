@@ -1,0 +1,21 @@
+name: twk_coverage
+description: >-
+  Test coverage per package of the repository: dart test with coverage in
+  each, the lines no test runs, and the public declarations they are in.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.13.5
+resolution: workspace
+dependencies:
+  coverage: ^1.15.0
+  twk_doc_snippets:
+    path: ../doc_snippets
+  vm_service: ^15.0.0
+dev_dependencies:
+  pro_lints: ^6.2.0
+  test: ^1.33.0
+  # waitUntil: what a process does, awaited with a bound
+  twk_test:
+    path: ../../packages/twk_test

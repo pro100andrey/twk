@@ -1,0 +1,16 @@
+name: twk_doc_snippets
+description: >-
+  The docs checks of the repository: the ```dart examples of every doc
+  comment analyzed in their package (doc_snippets), and the public members
+  without a doc comment counted per package (undocumented).
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.13.5
+resolution: workspace
+dependencies:
+  analyzer: 14.5.0
+dev_dependencies:
+  pro_lints: ^6.2.0
+  test: ^1.33.0

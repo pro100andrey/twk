@@ -1,0 +1,110 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Editing  ›  InputDecoration                                                ctrl+p search      ◐ Dark  │
+│                                                                                                                        │
+│   ⌕ Filter             /      InputDecoration                                                                  2 of 4  │
+│                               What is drawn around a field: a label, an icon, a prefix and a suffix, a helper, an      │
+│     Heatmap, ActivityHe…      error and a counter, in a box, over a line or bare, filled.                              │
+│     Table                                                                                                              │
+│     DescriptionList           Preview   Code                                                                           │
+│     TreeView               ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     TreeTable                                                                            │                             │
+│     DirectoryTree              ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│     TaskList                                                                             │                             │
+│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  border                     │
+│   EDITING              4                                                                 │   outline  underline        │
+│     TextField             ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   none                      │
+│ ▎   InputDecoration       ▐                                                              │                             │
+│     TextArea              ▐    ┌                                                    ┐    │  filled              ▐●  ▌  │
+│     Autocomplete          ▐        ╭ Theme ─────────────╮  ╭ Search ──────────────╮      │                             │
+│                           ▐      ◐ │ Dark             ▾ │  │ ⌕ files, commands  ↵ │      │  enabled             ▐  ●▌  │
+│   CONTROLS            20           ╰────────────────────╯  ╰──────────────────────╯      │                             │
+│     Button                         ▎Dark                   by name                       │                             │
+│     Pressable                       Light                                                │                             │
+│     Checkbox, Switch             ╭  Nord                   ╭ Password ────────────╮      │                             │
+│     RadioGroup                   │ https://twk     .dev │  │ secret               │      │                             │
+│     SegmentedButton              ╰──────────────────────╯  ╰──────────────────────╯      │                             │
+│     SelectionList                where it lives                                0/16      │                             │
+│     Select, MultiSelect        └                                                    ┘    │                             │
+│     ConfirmInput                                                              50 × 9     │                             │
+│     Slider                     ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     NumberInput                                                                          │                             │
+│     DatePicker                 ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     FilePicker                                                                           │                             │
+│     Form, FormField            ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     TabBar, TabView                                                                      │                             │
+│     KeyHintsBar                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│                                                                                          │                             │
+│  enter choose   esc close   tab next   shift+tab back                                                                  │
+styles
+│aabacccadddddddaaaeeeeeeeaafaadddddddddddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaeeeeeeaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaijijjjjjjiiiiiiiiiiiiikiaahhhlllllllllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhmhmmhmhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnhnnhnnnnnhnnnnnnhnhnnnnnnhnhnnnnnnhnnhnnnnnhnhnnnnnnhnnnhnhnnnnnnnhnhnnnnnnnhnnhhhhhh│
+│aaaaaooooooooaoooooooooooaaahhhnnnnnhnnnhnhnnnnnnnnhnnhnhnnnnhnnnnhnhnnnnhnnhnnnnnhnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddddaaaaaaaaaaaaaaeaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhrsssssssritttttttttihhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhittttihhhhhhhhhhhhhhhhhhhhh│
+│auvvvwwwwwwwwwwwwwwwvvvvvvvdhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaadhhhhnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhnhhhhphhnnnnnnhhhhhhhhhhhhhhxyzzxhh│
+│aaaaaooooooooooooaaaaaaaaaadhhhhhhhhqhqqqqqhqqqqqqqqqqqqqqhhAhnnnnnnhAAAAAAAAAAAAAAAhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhhhqhqhBBBBhhhhhhhhhhhhhqhqhhAhnhnnnnnnhnnnnnnnnhhnhAhhhhhhphhnnnnnnnhhhhhhhhhhhhhqCCDqhh│
+│aaaddddddddaaaaaaaaaaaaeeaaahhhhhhhhqqqqqqqqqqqqqqqqqqqqqqhhAAAAAAAAAAAAAAAAAAAAAAAAhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhhhhhEFFFFrrrrrrrrrrrrrrrrrhhnnhnnnnhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhGHHHHHGGGGGGGGGGGGGGGGhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaooooooaaaaaaahhhhhhAhGHHHHGGGGGGGGGGGGGGGGGhhAhnnnnnnnnhAAAAAAAAAAAAAhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhhhAhnnnnnnnnnnnhhhhhnnnnhAhhAhnnnnnnhhhhhhhhhhhhhhhAhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhhhAAAAAAAAAAAAAAAAAAAAAAAAhhAAAAAAAAAAAAAAAAAAAAAAAAhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaahhhhhhnnnnnhnnhnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhnnnnhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaoooooooooooaaaahhhhnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhnhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhmmhmhmhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaoooooooooaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaoooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aacccccaddddddaaacccadddddaaacccaddddaaacccccccccaddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e #747a83 on #1c1f25
+f #2c3039 on #1c1f25
+g bold #8b929c on #1c1f25
+h on #16181d
+i on #13151a
+j #747a83 on #13151a
+k bold #747a83 on #13151a
+l bold #e6e8eb on #16181d
+m #747a83 on #16181d
+n #8b929c on #16181d
+o #e6e8eb on #1c1f25
+p #2c3039 on #16181d
+q #5fa8ff on #16181d
+r on #2b4566
+s bold #e6e8eb on #2b4566
+t #8b929c on #13151a
+u #8b929c on #24354c
+v on #24354c
+w bold #e6e8eb on #24354c
+x #383d48 on #16181d
+y #e6e8eb on #383d48
+z on #383d48
+A #3e444f on #16181d
+B #e6e8eb on #16181d
+C on #5fa8ff
+D #ffffff on #5fa8ff
+E #5fa8ff on #2b4566
+F #e6e8eb on #2b4566
+G on #22252c
+H #e6e8eb on #22252c

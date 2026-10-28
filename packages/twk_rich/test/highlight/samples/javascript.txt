@@ -1,0 +1,46 @@
+#!/usr/bin/env node
+// A sample of JavaScript for the highlighting tests.
+'use strict';
+
+import { readFile } from 'node:fs/promises';
+import * as path from "node:path";
+
+/* A block comment
+   /* that does not nest
+   and ends here. */
+@sealed
+export default class Counter extends EventTarget {
+  #count = 0;
+  static MAX = 0x7FFF_FFFFn;
+
+  get count() { return this.#count; }
+
+  increment(by = 1) {
+    this.#count += by;
+    return this.#count / 2 > 10 ? null : undefined;
+  }
+}
+
+const pattern = /^[a-z/]+\/(\d{2,})$/giu;
+const ratio = total / count / 2;
+const name = 'it\'s a "name"';
+const long = "first part \
+second part";
+const message = `Hello, ${name}!
+  Nested: ${items.map((item) => `<li>${item.label}</li>`).join('')}
+  Escapes: \n \u{1F600} \${not interpolated} $notEither
+  Code: ${{
+    a: 1, // a comment in code in a template
+  }.a}
+  Done.`;
+
+async function* lines(file) {
+  const text = await readFile(file, 'utf8');
+  for (const line of text.split(/\r?\n/)) {
+    if (line.length === 0 || !NaN) continue;
+    yield line.trim();
+  }
+}
+
+let typed = typeof value === 'string' && value instanceof String;
+x = a++ / b; // division after a value

@@ -1,0 +1,111 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Overlays  ›  Dialog                                                        ctrl+p search      ◐ Dark  │
+│                                                                                                                        │
+│   ⌕ Filter             /      Dialog                                                                          2 of 11  │
+│                               A box over the app, the rest dimmed behind a barrier; Tab stays in it, Escape closes     │
+│     TabBar, TabView           it.                                                                                      │
+│     KeyHintsBar                                                                                                        │
+│     StatusMessage, Badge      Preview   Code                                                                           │
+│     Callout                ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     Link                                                                                 │                             │
+│     ListTile                   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│     StatusBar                                                                            │                             │
+│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  alignment                  │
+│   OVERLAYS            11                                                                 │   center  topCenter         │
+│     Overlay                    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   bottomRight               │
+│ ▎   Dialog                                                                               │                             │
+│     Toast                      ·   ·   ·   ·   ·                       ·   ·   ·   ·     │  shadow              ▐●  ▌  │
+│     Tooltip                                        Delete                                │                             │
+│     Popover               ▐    ·   ·   ·   ·    ┌  Delete 3 files?     ·   ·   ·   ·     │  look                       │
+│     MenuBar               ▐                                                              │   raised  bordered          │
+│     ContextMenu           ▐    ·   ·   ·   ·        Delete    Keep     ·   ·   ·   ·     │                             │
+│     CommandPalette        ▐                                                              │  dismissible         ▐  ●▌  │
+│     OptionList            ▐    ·   ·   ·   ·    └                 ┘    ·   ·   ·   ·     │                             │
+│     ModalBarrier                                            15 × 3                       │                             │
+│     WindowLayer                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│                                                                                          │                             │
+│   ANIMATION           16       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Spinner                                                                              │                             │
+│     ProgressBar                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     ProgressList                                                                         │                             │
+│     Skeleton, Skeletoni…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     AnimationController                                                                  │                             │
+│     AnimatedBuilder            ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     AnimatedAlign, Anim…                                                                 │                             │
+│     AnimatedPositioned         ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│                                                                                          │                             │
+│  enter press   tab next   esc close                                                                                    │
+styles
+│aabacccadddddddaaaKKKKKKKKaafaaddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaKKKKKKaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaiLiLLLLLLiiiiiiiiiiiiiMiaahhhllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhNhNNhNNhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnhnnnhnnnnhnnnhnnnnhnnnhnnnnhnnnnnnhnnnnnnhnhnnnnnnnnhnnnhnnnnnhnnhnnnhnnnnnnhnnnnnnhhhhh│
+│aaaaaoooooooaoooooooaaaaaaaahhhnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooaoooooaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaooooaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnnnhhhhhhhhhhhhhhhhhh│
+│aaaddddddddaaaaaaaaaaaaKKaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhrssssssritttttttttihhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhitttttttttttihhhhhhhhhhhhhh│
+│aOPPPQQQQQQPPPPPPPPPPPPPPPPahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphxxxxxxxxxxxxxxxxxxxxhhphhhphhhphhhphhhhhphhnnnnnnhhhhhhhhhhhhhhyzAAyhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhxxBBBBBBxxxxxxxxxxxxhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaadhhhhphhhphhhphhhphhhhnxxDDDDDDxDxDDDDDDxxxhhphhhphhhphhhphhhhhphhnnnnhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhxxxxxxxxxxxxxxxxxxxxhhhhhhhhhhhhhhhhhhhhphhrssssssrittttttttihhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaadhhhhphhhphhhphhhphhhhhxxEFFFFFFExxGHHHHGxxhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhxxxxxxxxxxxxxxxxxxxxhhhhhhhhhhhhhhhhhhhhphhnnnnnnnnnnnhhhhhhhhhqIIJqhh│
+│aaaaaooooooooooaaaaaaaaaaaadhhhhphhhphhhphhhphhhhnhhhhhhhhhhhhhhhhhnhhhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhNNhNhNhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddddddaaaaaaaaaaaKKaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaooooooooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooooooaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooaoooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aacccccadddddaaacccaddddaaacccadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #0e1013
+b #305480 on #0e1013
+c bold #737476 on #0e1013
+d #46494e on #0e1013
+K #3a3d42 on #0e1013
+f #16181d on #0e1013
+g bold #46494e on #0e1013
+h on #0b0c0f
+i on #0a0b0d
+L #3a3d42 on #0a0b0d
+M bold #3a3d42 on #0a0b0d
+l bold #737476 on #0b0c0f
+N #3a3d42 on #0b0c0f
+n #46494e on #0b0c0f
+o #737476 on #0e1013
+p #16181d on #0b0c0f
+q #305480 on #0b0c0f
+r on #162333
+s bold #737476 on #162333
+t #46494e on #0a0b0d
+O #46494e on #121b26
+P on #121b26
+Q bold #737476 on #121b26
+x on #22252c
+y #1c1f24 on #0b0c0f
+z #737476 on #1c1f24
+A on #1c1f24
+B bold #e6e8eb on #22252c
+D #e6e8eb on #22252c
+E on #5fa8ff
+F bold #16181d on #5fa8ff
+G on #32353b
+H bold #5fa8ff on #32353b
+I on #305480
+J #808080 on #305480

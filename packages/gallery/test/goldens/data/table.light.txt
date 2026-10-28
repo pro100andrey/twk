@@ -1,0 +1,108 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Data  ›  Table                                                            ctrl+p search      ◐ Light  │
+│                                                                                                                        │
+│   ⌕ Filter             /      Table                                                                           8 of 13  │
+│                               Rows in columns that size by their content or a share, sorted by a click on a title;     │
+│     Scrollbar                 the arrows select a row or a cell.                                                       │
+│                                                                                                                        │
+│   DATA                13      Preview   Code                                                                           │
+│     Sparkline              ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     Gauge, LineGauge                                                                     │                             │
+│     BarChart                   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│     Chart                                                                                │                             │
+│     DotCanvas             ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  selection                  │
+│     Calendar              ▐                                                              │   none  row  cell           │
+│     Heatmap, ActivityHe…  ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│ ▎   Table                 ▐                                                              │  border                     │
+│     DescriptionList       ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   none  single  rounded     │
+│     TreeView                   ┌                                                    ┐    │   double  heavy  ascii      │
+│     TreeTable                    name       │   lines │ covered                          │                             │
+│     DirectoryTree                ───────────┼─────────┼────────────────────────────      │  header              ▐  ●▌  │
+│     TaskList                     box.dart   │     412 │  90% ━━━━━━━━━━━━━━━━━━━━━━      │                             │
+│                                  text.dart  │     230 │  75% ━━━━━━━━━━━━━━━━╸━━━━━      │  rows                       │
+│   EDITING              4         flex.dart  │     388 │  60% ━━━━━━━━━━━━━━━━━━━━━━      │   5  10 000                 │
+│     TextField                    grid.dart  │     520 │  40% ━━━━━━━━━━━━━━━━━━━━━━      │                             │
+│     InputDecoration              stack.dart │     145 │ 100% ━━━━━━━━━━━━━━━━━━━━━━      │                             │
+│     TextArea                   └                                                    ┘    │                             │
+│     Autocomplete               ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  50 × 7     │                             │
+│                                                                                          │                             │
+│   CONTROLS            20       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Button                                                                               │                             │
+│     Pressable                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Checkbox, Switch                                                                     │                             │
+│     RadioGroup                 ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     SegmentedButton                                                                      │                             │
+│     SelectionList              ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│                                                                                          │                             │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaaHHHHaafaadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaHHHHHHaaaaaadadddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaiIiIIIIIIiiiiiiiiiiiiiJiaahhhlllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhKhKKhKKhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnhnnhnnnnnnnhnnnnhnnnnhnnhnnnnnhnnnnnnnhnnhnhnnnnnnhnnnnnnhnnhnhnnnnnhnnhnhnnnnnnhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhnnnhnnnnnnhnnnnnnhnhnnnhnnhnhnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddaaaaaaaaaaaaaaaaHHaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaooooooaoooooooooaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnnnhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhsttttsLMMMLsttttshhhhhhhhhh│
+│aaaaaooooooooaoooooooooooaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aNLLLMMMMMLLLLLLLLLLLLLLLLLdhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnnhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhsttttsLMMMMMMLstttttttshhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhphhsttttttsstttttsstttttshhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhllllhhhhhhhxhhhlllllhxhlllllllhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaahhhhhhxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxhhhhhhphhnnnnnnhhhhhhhhhhhhhhqFFGqhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhOOOOOOOOPPPQPPPPPRRRPQPPOOOPSSSSSSSSSSSSSSSSSSSSQQhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhDDDDDDDDDhhEhhhhhlllhEhhDDDhqqqqqqqqqqqqqqqqqEEEEEhhhhhhphhnnnnhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddddaaaaaaaaaaaaaaHaaahhhhhhDDDDDDDDDhhEhhhhhlllhEhhDDDhqqqqqqqqqqqqqEEEEEEEEEhhhhhhphhLMLsttstttshhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhDDDDDDDDDhhEhhhhhlllhEhhDDDhqqqqqqqqqEEEEEEEEEEEEEhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhhhDDDDDDDDDDhEhhhhhlllhEhDDDDhqqqqqqqqqqqqqqqqqqqqqqhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhKKhKhKhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddddaaaaaaaaaaaaHHaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaooooooaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #f3f5f7
+b #0969da on #f3f5f7
+c bold #1f2328 on #f3f5f7
+d #656d76 on #f3f5f7
+H #838991 on #f3f5f7
+f #dcdfe4 on #f3f5f7
+g bold #656d76 on #f3f5f7
+h on #fafafb
+i on #fefefe
+I #838991 on #fefefe
+J bold #838991 on #fefefe
+l bold #1f2328 on #fafafb
+K #838991 on #fafafb
+n #656d76 on #fafafb
+o #1f2328 on #f3f5f7
+p #dcdfe4 on #fafafb
+q #0969da on #fafafb
+s on #eef0f3
+t #656d76 on #eef0f3
+L on #b6d4fe
+M bold #1f2328 on #b6d4fe
+N #0969da on #b6d4fe
+x bold #c8cdd5 on #fafafb
+F on #0969da
+G #ffffff on #0969da
+O #1f2328 on #cee1fd
+P on #cee1fd
+Q #c8cdd5 on #cee1fd
+R bold #1f2328 on #cee1fd
+S #0969da on #cee1fd
+D #1f2328 on #fafafb
+E #c8cdd5 on #fafafb

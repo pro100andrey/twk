@@ -1,0 +1,107 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Rich  ›  JsonView                                                         ctrl+p search      ◐ Light  │
+│                                                                                                                        │
+│   ⌕ Filter             /      JsonView                                                                         5 of 8  │
+│                               JSON or a Dart value as a tree that folds, each kind of value in its color: c copies     │
+│     TerminalProgress          the path of the value selected, y the value, / filters the keys.                         │
+│     Viewport                                                                                                           │
+│     Window title              Preview   Code                                                                           │
+│     Notifications          ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     Cli                                                                                  │                             │
+│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│   SCREEN READERS       1                                                                 │                             │
+│     Semantics                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  expanded depth             │
+│                                ┌                                                    ┐    │   1  2  0                   │
+│   DEBUGGING            4         ▾ {                                                     │                             │
+│     Console                      ├── "name": "twk",                                      │  sort keys           ▐●  ▌  │
+│     FrameOverlay                 ├── "version": "0.1.0",                                 │                             │
+│     Repaint rainbow              ├── "description": "Widgets for terminal apps, lai      │  strings cut at             │
+│     RepaintBoundary              ├── "private": true,                                    │   200  24                   │
+│                                  ├── "score": 0.97,                                      │                             │
+│   RICH                 8         ├── "homepage": null,                                   │                             │
+│     MarkdownView                 ├─▸ "environment": { 1 key },                           │                             │
+│     CodeView                     ├─▸ "dependencies": { 3 keys },                         │                             │
+│     SyntaxThemeScope             ├─▸ "scripts": [ 3 items ]                              │                             │
+│     DiffView                     └── }                                                   │                             │
+│ ▎   JsonView                                                                             │                             │
+│     BigText                                                                              │                             │
+│     QrCode                                                                               │                             │
+│     ANSI                                                                                 │                             │
+│                                  copied: nothing                                         │                             │
+│   IMAGES               1  ▐    └                                                    ┘    │                             │
+│     Image                 ▐                                                  50 × 16     │                             │
+│                           ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│   TERMINAL             1  ▐                                                              │                             │
+│     TerminalView          ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│                                                                                          │                             │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaaGGGGaafaaddddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaGGGGGGaaaaaadadddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaiHiHHHHHHiiiiiiiiiiiiiIiaahhhllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhJhJJhJhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnhnnhnhnnnnhnnnnnhnnhnhnnnnhnnnnhnnnnnnhnnnnhnnnnhnnhnnnnnhnnhnnnhnnnnnnhnhnnnnnnhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhnnnhnnnnhnnhnnnhnnnnnhnnnnnnnnnhnhnnnhnnnnnnhnhnnnnnnnhnnnhnnnnnhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaoooooaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaoooaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddadddddddaaaaaaaGaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnnhnnnnnhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhphhKLKtuttuthhhhhhhhhhhhhhhhhh│
+│aaadddddddddaaaaaaaaaaaaGaaahhhhhhMNMNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhxxxhqqqqqqyhzzzzzyhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnhnnnnhhhhhhhhhhhxABBxhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhxxxhqqqqqqqqqyhzzzzzzzyhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaoooooooaaaaaaaahhhhhhxxxhqqqqqqqqqqqqqyhzzzzzzzzhzzzhzzzzzzzzhzzzzzhzzzhhhhhhphhnnnnnnnhnnnhnnhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhhhxxxhqqqqqqqqqyhCCCCyhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhKLLLKtuuthhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhxxxhqqqqqqqyhCCCCyhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddaaaaaaaaaaaaaaaaaGaaahhhhhhxxxhqqqqqqqqqqyhCCCCyhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhxxyhqqqqqqqqqqqqqyhyhDhDDDhyyhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhxxyhqqqqqqqqqqqqqqyhyhDhDDDDhyyhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhhhhxxyhqqqqqqqqqyhyhDhDDDDDhyhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhxxxhyhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aOKKKLLLLLLLLKKKKKKKKKKKKKKahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhnnnnnnnhnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddaaaaaaaaaaaaaaaGaadhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhJJhJhJJhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddddaaaaaaaaaaaaaGaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #f3f5f7
+b #0969da on #f3f5f7
+c bold #1f2328 on #f3f5f7
+d #656d76 on #f3f5f7
+G #838991 on #f3f5f7
+f #dcdfe4 on #f3f5f7
+g bold #656d76 on #f3f5f7
+h on #fafafb
+i on #fefefe
+H #838991 on #fefefe
+I bold #838991 on #fefefe
+l bold #1f2328 on #fafafb
+J #838991 on #fafafb
+n #656d76 on #fafafb
+o #1f2328 on #f3f5f7
+p #dcdfe4 on #fafafb
+q #0969da on #fafafb
+K on #b6d4fe
+L bold #1f2328 on #b6d4fe
+t on #eef0f3
+u #656d76 on #eef0f3
+M #1f2328 on #cee1fd
+N on #cee1fd
+x #c8cdd5 on #fafafb
+y #1f2328 on #fafafb
+z #1a7f37 on #fafafb
+A #ffffff on #c8cdd5
+B on #c8cdd5
+C #9a6700 on #fafafb
+D italic #656d76 on #fafafb
+O #0969da on #b6d4fe

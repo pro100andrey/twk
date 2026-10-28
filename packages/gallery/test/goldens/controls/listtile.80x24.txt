@@ -1,0 +1,74 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     ListTile                                Preview   Code  │
+│                        A row of a list: a title over a subtitle, something     │
+│     Form, FormFie…     before and after them; tapped by a click or Enter, li…  │
+│     TabBar, TabVi…   ──────────────────────────────────────────────────────────│
+│     KeyHintsBar       ┌                                                      ┐ │
+│     StatusMessage…      ▤ notes.md                                         ›   │
+│     Callout               2 KB, an hour ago                                    │
+│     Link                ▤ todo.md                                          ›   │
+│ ▎   ListTile              640 B, today                                         │
+│     StatusBar           ▤ photo.png                                        ›   │
+│                     ▐     1.2 MB, last week                                    │
+│   OVERLAYS      11  ▐   ▤ locked.txt                                       ›   │
+│     Overlay               no access                                            │
+│     Dialog            └                                                      ┘ │
+│     Toast            ──────────────────────────────────────────────────────────│
+│     Tooltip            leading   ▐  ●▌                                         │
+│     Popover                                                                    │
+│     MenuBar            subtitle  ▐  ●▌                                         │
+│     ContextMenu                                                                │
+│     CommandPalette     trailing  ▐  ●▌                                         │
+│                                                                                │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeaxxxxxxaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahyhyyyyyyhhhhhhhzhaaggkkkkkkkkgggggggggggggggggggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmgmmmgmmgmgmmmmmgmgmmmmmgmmmmgmgmmmmmmmmmgmmmmmmmmmggggg│
+│aaaaannnnnannnnnnnnaaaggmmmmmmgmmmgmmmmmgmmmmmgmmmmmmgmmgmgmmmmmgmmgmmmmmmgmmmgg│
+│aaaaannnnnnnannnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnaaaaaagoggggggggggggggggggggggggggggggggggggggggggggggggggggggog│
+│aaaaannnnnnnnnnnnnnaaagggpgllllllllgggggggggggggggggggggggggggggggggggggggggmggg│
+│aaaaannnnnnnaaaaaaaaaagggggmgmmmgmmgmmmmgmmmgggggggggggggggggggggggggggggggggggg│
+│aaaaannnnaaaaaaaaaaaaagggpgpppppppggggggggggggggggggggggggggggggggggggggggggmggg│
+│aqrrrssssssssrrrrrrrragggggmmmgmmgmmmmmggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnaaaaaaaagggpgpppppppppggggggggggggggggggggggggggggggggggggggggmggg│
+│aaaaaaaaaaaaaaaaaaaaadgggggmmmgmmmgmmmmgmmmmgggggggggggggggggggggggggggggggggggg│
+│aaaddddddddaaaaaaxxaadgggmgmmmmmmmmmmgggggggggggggggggggggggggggggggggggggggmggg│
+│aaaaannnnnnnaaaaaaaaaagggggmmgmmmmmmgggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnaaaaaaaaaaagoggggggggggggggggggggggggggggggggggggggggggggggggggggggog│
+│aaaaannnnnaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnaaaaaaaaaaggmmmmmmmggguvvwuggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnaaaaaaaaaaggmmmmmmmmgguvvwuggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaaaggmmmmmmmmgguvvwuggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+x #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+y #747a83 on #13151a
+z bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+n #e6e8eb on #1c1f25
+o #2c3039 on #16181d
+p #e6e8eb on #16181d
+q #5fa8ff on #2b4566
+r on #2b4566
+s bold #e6e8eb on #2b4566
+u #5fa8ff on #16181d
+v on #5fa8ff
+w #ffffff on #5fa8ff

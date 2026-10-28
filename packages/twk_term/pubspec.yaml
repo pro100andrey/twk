@@ -1,0 +1,21 @@
+name: twk_term
+description: >-
+  An embedded terminal for twk: a permissive VT emulator whose screen the
+  core's Canvas draws, a pseudo-terminal through dart:ffi, and the
+  TerminalView widget that runs a program in one.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.13.5
+resolution: workspace
+dependencies:
+  twk:
+    path: ../twk
+  twk_core:
+    path: ../twk_core
+dev_dependencies:
+  pro_lints: ^6.2.0
+  test: ^1.33.0
+  twk_test:
+    path: ../twk_test

@@ -1,0 +1,103 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     DiffView                                Preview   Code  │
+│                        The changes between two texts, unified or side by       │
+│     Repaint rainb…     side, the words that changed marked and both sides hi…  │
+│     RepaintBounda…   ──────────────────────────────────────────────────────────│
+│                       ┌                                                      ┐ │
+│   RICH           8      bin/greet.dart                                         │
+│     MarkdownView         1  1   import 'dart:io';                              │
+│     CodeView             2  2                                              ▅   │
+│     SyntaxThemeSc…       3    - /// Greets [name] on the terminal.             │
+│ ▎   DiffView             4    - String greet(String name) {                    │
+│     JsonView             5    -   return 'Hello, ' + name + '!';               │
+│     BigText                 3 + /// Greets [name] on the terminal, in [lang    │
+│     QrCode                  4 + String greet(String name, {String language     │
+│     ANSI              └                                                      ┘ │
+│                      ──────────────────────────────────────────────────────────│
+│   IMAGES         1     layout      unified  sideBySide                         │
+│     Image              context     3 lines  1  0                               │
+│                        edit live  ▐●  ▌                                        │
+│   TERMINAL       1  ▐  language    the path's  plain                           │
+│     TerminalView    ▐                                                          │
+│                                                                                │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeaVVVVVVaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahWhWWWWWWhhhhhhhXhaaggkkkkkkkkgggggggggggggggggggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmgmmmmmmmgmmmmmmmgmmmgmmmmmmgmmmmmmmgmmgmmmmgmmggggggg│
+│aaaaannnnnnnannnnnnaaaggmmmmmgmmmgmmmmmgmmmmgmmmmmmmgmmmmmmgmmmgmmmmgmmmmmgmmmgg│
+│aaaaannnnnnnnnnnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaaaaaaaaaaaaaaaaaaagoggggggggggggggggggggggggggggggggggggggggggggggggggggggog│
+│aaaddddaaaaaaaaaaaVaaagggppppppppppppppqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqrggg│
+│aaaaannnnnnnnnnnnaaaaaggggmggmgggssssssgtttttttttuggggggggggggggggggggggggggrggg│
+│aaaaannnnnnnnaaaaaaaaaggggmggmggggggggggggggggggggggggggggggggggggggggggggggrggg│
+│aaaaannnnnnnnnnnnnnaaagggvwvvvvxvyyyvyyyyyyvyyyyyyvyyvyyyvyyyyyyyyyvvvvvvvvvgggg│
+│aCDDDEEEEEEEEDDDDDDDDagggvwvvvvxvzzzzzzvAAAAABzzzzzzvBBBBBvBvvvvvvvvvvvvvvvvgggg│
+│aaaaannnnnnnnaaaaaaaaagggvwvvvvxvvvFFFFFFvGHHHHHGvHIJIBBBBIJIHGGBvvvvvvvvvvvgggg│
+│aaaaannnnnnnaaaaaaaaaagggKKKKLKMKNNNKNNNNNNKNNNNNNKNNKNNNKNNNNNNNNOPOOPOOOOOgggg│
+│aaaaannnnnnaaaaaaaaaaagggKKKKLKMKQQQQQQKRRRRRSQQQQQQKSSSSTPTUUUUUUPTTTTTTTTPgggg│
+│aaaaannnnaaaaaaaaaaaaagoggggggggggggggggggggggggggggggggggggggggggggggggggggggog│
+│aaaaaaaaaaaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaddddddaaaaaaaaaVaaaggmmmmmmgggggDEEEEEEEDhYYYYYYYYYYhgggggggggggggggggggggggg│
+│aaaaannnnnaaaaaaaaaaaaggmmmmmmmggggDEDEEEEEDhYhhYhgggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmgmmmmgg01220gggggggggggggggggggggggggggggggggggggggg│
+│aaaddddddddaaaaaaaVaadggmmmmmmmmgggDEEEDEEEEEEDhYYYYYhgggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+V #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+W #747a83 on #13151a
+X bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+n #e6e8eb on #1c1f25
+o #2c3039 on #16181d
+p bold #5cc8e6 on #22252c
+q on #22252c
+r reverse #3e444f on #16181d
+s #c792ea on #16181d
+t #5fd38d on #16181d
+u #e6e8eb on #16181d
+v on #42282c
+w #8b929c on #42282c
+x #ff6b6b on #42282c
+y italic #8b929c on #42282c
+C #5fa8ff on #2b4566
+D on #2b4566
+E bold #e6e8eb on #2b4566
+z #5cc8e6 on #42282c
+A #5fa8ff on #42282c
+B #e6e8eb on #42282c
+F #c792ea on #42282c
+G #5fd38d on #42282c
+H #5fd38d on #954548
+I on #954548
+J #5cc8e6 on #954548
+K on #243b32
+L #8b929c on #243b32
+M #5fd38d on #243b32
+N italic #8b929c on #243b32
+O italic #8b929c on #3e7e5a
+P on #3e7e5a
+Q #5cc8e6 on #243b32
+R #5fa8ff on #243b32
+S #e6e8eb on #243b32
+T #e6e8eb on #3e7e5a
+U #5cc8e6 on #3e7e5a
+Y #8b929c on #13151a
+0 #383d48 on #16181d
+1 #e6e8eb on #383d48
+2 on #383d48

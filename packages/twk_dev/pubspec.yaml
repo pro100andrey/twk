@@ -1,0 +1,26 @@
+name: twk_dev
+description: Developer tools for apps built on twk, as the `twk` command.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.13.5
+resolution: workspace
+executables:
+  twk:
+dependencies:
+  args: ^2.7.0
+  mold: ^0.3.0
+  path: ^1.9.1
+  twk:
+    path: ../twk
+  twk_core:
+    path: ../twk_core
+  twk_term:
+    path: ../twk_term
+  twk_test:
+    path: ../twk_test
+  vm_service: ^15.4.0
+dev_dependencies:
+  pro_lints: ^6.2.0
+  test: ^1.33.0

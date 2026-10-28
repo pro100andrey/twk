@@ -1,0 +1,80 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     TreeTable                               Preview   Code  │
+│                        A tree in the first column of a table: rows that        │
+│     DotCanvas          expand and collapse, sorted within their parents, sel…  │
+│     Calendar         ──────────────────────────────────────────────────────────│
+│     Heatmap, Acti…          ┌                                          ┐       │
+│     Table               ·     name                           │   lines      ·  │
+│     DescriptionLi…            ───────────────────────────────┼────────         │
+│     TreeView        ▐   ·     ▾ lib                          │    2038      ·  │
+│ ▎   TreeTable       ▐         ├─▾ src                        │    1990         │
+│     DirectoryTree       ·     │ ├── box.dart                 │     412      ·  │
+│     TaskList                  │ ├── flex.dart                │     388         │
+│                         ·     │ ├── table.dart               │     960      ·  │
+│   EDITING        4            │ └── text.dart                │     230         │
+│     TextField               └                                          ┘       │
+│     InputDecorati…   ──────────────────────────────────────────────────────────│
+│     TextArea           selection   none  row  cell                             │
+│     Autocomplete       border      none  single  rounded  double  heavy        │
+│                                    ascii                                       │
+│   CONTROLS      20     guides     ▐  ●▌                                        │
+│     Button                                                                     │
+│                                                                                │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeaDDDDDDaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahEhEEEEEEhhhhhhhFhaaggkkkkkkkkkggggggggggggggggggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmgmmmmgmmgmmmgmmmmmgmmmmmmgmmgmgmmmmmmgmmmmgmmmmgggggggg│
+│aaaaannnnnnnnnaaaaaaaaggmmmmmmgmmmgmmmmmmmmmgmmmmmmgmmmmmmgmmmmmgmmmmmmmmgmmmmgg│
+│aaaaannnnnnnnaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnannnnnaaagggggggoggggggggggggggggggggggggggggggggggggggggggoggggggg│
+│aaaaannnnnaaaaaaaaaaaagggogggggkkkkgggggggggggggggggggggggggggpgggkkkkkggggggogg│
+│aaaaannnnnnnnnnnnnnaaagggggggggppppppppppppppppppppppppppppppppppppppppggggggggg│
+│aaaaannnnnnnnaaaaaaaadgggogggggrgrrrggggggggggggggggggggggggggsggggrrrrggggggogg│
+│atuuuvvvvvvvvvuuuuuuudgggggggggssrgrrrggggggggggggggggggggggggsggggrrrrggggggggg│
+│aaaaannnnnnnnnnnnnaaaagggogggggsgsssgrrrrrrrrgggggggggggggggggsgggggrrrggggggogg│
+│aaaaannnnnnnnaaaaaaaaagggggggggsgsssgrrrrrrrrrggggggggggggggggsgggggrrrggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggogggggGHGGGHIIIIIIIIIIHHHHHHHHHHHHHHHGHHHHHIIIggggggogg│
+│aaadddddddaaaaaaaaDaaagggggggggsgsssgrrrrrrrrrggggggggggggggggsgggggrrrggggggggg│
+│aaaaannnnnnnnnaaaaaaaagggggggoggggggggggggggggggggggggggggggggggggggggggoggggggg│
+│aaaaannnnnnnnnnnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnaaaaaaaaaggmmmmmmmmmgghzzzzhuvvvuhzzzzhgggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaaaggmmmmmmggggghzzzzhuvvvvvvuhzzzzzzzhhzzzzzzhhzzzzzhggggggg│
+│aaaaaaaaaaaaaaaaaaaaaaggggggggggggghzzzzzhgggggggggggggggggggggggggggggggggggggg│
+│aaaddddddddaaaaaaDDaaaggmmmmmmgggggABBCAgggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+D #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+E #747a83 on #13151a
+F bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+n #e6e8eb on #1c1f25
+o #2c3039 on #16181d
+p bold #3e444f on #16181d
+r #e6e8eb on #16181d
+s #3e444f on #16181d
+t #5fa8ff on #2b4566
+u on #2b4566
+v bold #e6e8eb on #2b4566
+G #3e444f on #24354c
+H on #24354c
+I #e6e8eb on #24354c
+z #8b929c on #13151a
+A #5fa8ff on #16181d
+B on #5fa8ff
+C #ffffff on #5fa8ff

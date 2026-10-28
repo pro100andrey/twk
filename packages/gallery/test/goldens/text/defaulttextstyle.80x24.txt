@@ -1,0 +1,73 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     DefaultTextStyle                        Preview   Code  │
+│                        The style of the text below it, which a Text merges     │
+│   TEXT           4  ▐  its own over.                                           │
+│     Text            ▐──────────────────────────────────────────────────────────│
+│     Rich text                                                                  │
+│ ▎   DefaultTextSt…      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│     Right to left                                                              │
+│                         ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│   LAYOUT        24              ┌                                  ┐           │
+│     Box                 ·   ·     This text has the default style.      ·   ·  │
+│     ColoredBox, D…                This one merges yellow over it.              │
+│     Container           ·   ·   └                                  ┘    ·   ·  │
+│     Divider                                                  32 × 2            │
+│     Shadow              ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│     Padding                                                                    │
+│     Align, Center       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│     SizedBox                                                                   │
+│     ConstrainedBox   ──────────────────────────────────────────────────────────│
+│     LimitedBox, O…     style   bold  italic  green  on navy                    │
+│     FractionallyS…                                                             │
+│                                                                                │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeawwwwwwaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahxhxxxxxxhhhhhhhyhaaggkkkkkkkkkkkkkkkkgggggggggggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmgmmmmmgmmgmmmgmmmmgmmmmmgmmmgmmmmmgmgmmmmgmmmmmmggggg│
+│aaaddddaaaaaaaaaaawaadggmmmgmmmgmmmmmggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaooooaaaaaaaaaaaadpppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaooooaooooaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aqrrrssssssssssssssrragggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgg│
+│aaaaaoooooaooaooooaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgg│
+│aaaddddddaaaaaaaawwaaagggggggggggpggggggggggggggggggggggggggggggggggpggggggggggg│
+│aaaaaoooaaaaaaaaaaaaaagggpgggpgggggkkkkgkkkkgkkkgkkkgkkkkkkkgkkkkkkggggggpgggpgg│
+│aaaaaoooooooooooaooaaagggggggggggggttttgtttgttttttgttttttgttttgtttgggggggggggggg│
+│aaaaaoooooooooaaaaaaaagggpgggpgggpggggggggggggggggggggggggggggggggggpggggpgggpgg│
+│aaaaaoooooooaaaaaaaaaaggggggggggggggggggggggggggggggggggggggggzzgzgzgggggggggggg│
+│aaaaaooooooaaaaaaaaaaagggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgg│
+│aaaaaoooooooaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaooooooaooooooaaaagggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgg│
+│aaaaaooooooooaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaooooooooooooooaaapppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaoooooooooooaooaaaggmmmmmggrssssrhvvvvvvhhvvvvvhhvvhvvvvhggggggggggggggggggg│
+│aaaaaooooooooooooooaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+w #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+x #747a83 on #13151a
+y bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+o #e6e8eb on #1c1f25
+p #2c3039 on #16181d
+q #5fa8ff on #2b4566
+r on #2b4566
+s bold #e6e8eb on #2b4566
+t bold yellow on #16181d
+z #747a83 on #16181d
+v #8b929c on #13151a

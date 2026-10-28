@@ -1,0 +1,55 @@
+comment"#!/usr/bin/env dart"
+comment"/// A sample of Dart for the highlighting tests."
+keyword"library" punctuation";"
+
+keyword"import" " " string"'dart:async'" " " keyword"show" " " type"Future" punctuation";"
+keyword"import" " " string"'package:twk/twk.dart'" " " keyword"as" " twk" punctuation";"
+
+comment"/* A block comment"
+comment"   /* with one nested in it */"
+comment"   that ends here. */"
+annotation"@immutable"
+keyword"final" " " keyword"class" " " type"Point" operator"<" type"T" " " keyword"extends" " " type"num" operator">" " " punctuation"{"
+"  " keyword"const" " " type"Point" punctuation"(" keyword"this" punctuation"." "x" punctuation"," " " keyword"this" punctuation"." "y" punctuation");"
+
+"  " keyword"final" " " type"T" " x" punctuation"," " y" punctuation";"
+
+"  " keyword"static" " " keyword"const" " origin " operator"=" " " type"Point" punctuation"(" number"0" punctuation"," " " number"0" punctuation");"
+"  " keyword"static" " " keyword"final" " _cache " operator"=" " " operator"<" type"String" punctuation"," " " type"Point" operator"<" type"int" operator">>" punctuation"{};"
+
+"  " type"int" " " keyword"get" " hash " operator"=>" " " type"Object" punctuation"." function"hash" punctuation"(" "x" punctuation"," " y" punctuation")" " " operator"^" " " number"0x7FFF_FFFF" punctuation";"
+
+"  " type"Point" operator"<" type"T" operator">" " " keyword"operator" " " operator"+" punctuation"(" type"Point" operator"<" type"T" operator">" " other" punctuation")" " " operator"=>"
+"      " type"Point" punctuation"(" "x " operator"+" " other" punctuation"." "x " keyword"as" " " type"T" punctuation"," " y " operator"+" " other" punctuation"." "y " keyword"as" " " type"T" punctuation");"
+
+"  " annotation"@override"
+"  " type"String" " " function"toString" punctuation"()" " " operator"=>" " " string"'Point(" variable"$x" string", " punctuation"${" "y" punctuation"." function"toStringAsFixed" punctuation"(" number"2" punctuation")}" string")'" punctuation";"
+punctuation"}"
+
+keyword"extension" " type " type"Meters" punctuation"(" type"double" " value" punctuation")" " " punctuation"{}"
+
+keyword"enum" " " type"Mode" " " punctuation"{" " dark" punctuation"," " light " punctuation"}"
+
+type"Future" operator"<" type"void" operator">" " " function"main" punctuation"(" type"List" operator"<" type"String" operator">" " args" punctuation")" " " keyword"async" " " punctuation"{"
+"  " keyword"final" " p " operator"=" " " type"Point" punctuation"(" number"1.5" punctuation"," " " operator"-" number"2e3" punctuation").." function"toString" punctuation"();"
+"  " keyword"var" " name " operator"=" " args" punctuation"." "isEmpty " operator"?" " " constant"null" " " punctuation":" " args" punctuation"." "first" punctuation";"
+"  name " operator"??=" " " string"r'raw \\n $not interpolated'" punctuation";"
+"  " keyword"final" " text " operator"=" " " string"'''"
+string"Hello, " variable"$name" string"!"
+string"  The point is " punctuation"${" "p" punctuation"." "x " operator"+" " p" punctuation"." "y" punctuation"}" string" and " punctuation"${{" string"'k'" punctuation":" " " punctuation"[" number"1" punctuation"," " " number"2" punctuation"]}[" string"'k'" punctuation"]}" string"."
+escape"\\t" string"\"Quoted\" and 'quoted' and " escape"\\u{1F600}" string"."
+string"'''" punctuation";"
+"  " keyword"final" " mode " operator"=" " " keyword"switch" " " punctuation"(" "args" punctuation"." "length" punctuation")" " " punctuation"{"
+"    " number"0" " " operator"=>" " " type"Mode" punctuation"." "dark" punctuation","
+"    _ " keyword"when" " args" punctuation"." function"contains" punctuation"(" string"'--light'" punctuation")" " " operator"=>" " " type"Mode" punctuation"." "light" punctuation","
+"    _ " operator"=>" " " type"Mode" punctuation"." "dark" punctuation","
+"  " punctuation"};"
+"  " keyword"for" " " punctuation"(" keyword"final" " " punctuation"(" "i" punctuation"," " s" punctuation")" " " keyword"in" " args" punctuation"." "indexed" punctuation")" " " punctuation"{"
+"    " keyword"if" " " punctuation"(" "i" punctuation"." "isEven " operator"&&" " s " operator"!=" " " string"''" " " operator"||" " s" punctuation"." "length " operator">=" " " number"3" punctuation")" " " keyword"continue" punctuation";"
+"    " function"print" punctuation"(" string"\"" variable"$i" string": " punctuation"${" "s" punctuation"." function"toUpperCase" punctuation"()}" string" " escape"\\\"" variable"$s" escape"\\\"" string"\"" punctuation");"
+"  " punctuation"}"
+"  " keyword"await" " " type"Future" operator"<" type"void" operator">" punctuation"." function"delayed" punctuation"(" keyword"const" " " type"Duration" punctuation"(" "milliseconds" punctuation":" " " number"10" punctuation"));"
+"  " function"print" punctuation"(" constant"#symbol" punctuation");"
+"  " function"print" punctuation"(" "text" punctuation"." function"split" punctuation"(" string"'" escape"\\n" string"'" punctuation")." "length " operator"~/" " " number"2" punctuation");" " " comment"// lines /* not a comment */"
+punctuation"}"
+

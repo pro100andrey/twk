@@ -1,0 +1,90 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     Rich text                               Preview   Code  │
+│                        Spans in styles of their own: attributes, colors and    │
+│   TEXT           4  ▐  links, 'text'.bold.fg(…) for short.                     │
+│     Text            ▐──────────────────────────────────────────────────────────│
+│ ▎   Rich text               ┌                                         ┐        │
+│     DefaultTextSt…      ·     attributes                                ·   ·  │
+│     Right to left             bold dim italic reverse strike overline          │
+│                         ·                                               ·   ·  │
+│   LAYOUT        24            underlines                                       │
+│     Box                 ·     underline double curly dotted dashed      ·   ·  │
+│     ColoredBox, D…                                                             │
+│     Container           ·     colors                                    ·   ·  │
+│     Divider                   red color 166 rgb  on navy  red curly            │
+│     Shadow              ·                                               ·   ·  │
+│     Padding                   links                                            │
+│     Align, Center       ·     a link to dart.dev                        ·   ·  │
+│     SizedBox                └                                         ┘        │
+│     ConstrainedBox   ──────────────────────────────────────────────────────────│
+│     LimitedBox, O…     row labels  ▐  ●▌                                       │
+│     FractionallyS…                                                             │
+│                                                                                │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeaNNNNNNaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahOhOOOOOOhhhhhhhPhaaggkkkkgkkkkggggggggggggggggggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmgmmgmmmmmmgmmgmmmmmgmmmmgmmmmmmmmmmmgmmmmmmgmmmgggg│
+│aaaddddaaaaaaaaaaaNaadggmmmmmmgmmmmmmmmmmmmmmmmmgmmmgmmmmmmggggggggggggggggggggg│
+│aaaaaooooaaaaaaaaaaaadpppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aqrrrssssrssssrrrrrrragggggggpgggggggggggggggggggggggggggggggggggggggggpgggggggg│
+│aaaaaooooooooooooooaaagggpgggggmmmmmmmmmmggggggggggggggggggggggggggggggggpgggpgg│
+│aaaaaoooooaooaooooaaaagggggggggkkkkgtttguuuuuugvvvvvvvgwwwwwwgxxxxxxxxgggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggpgggggggggggggggggggggggggggggggggggggggggggggggpgggpgg│
+│aaaddddddaaaaaaaaNNaaagggggggggmmmmmmmmmmggggggggggggggggggggggggggggggggggggggg│
+│aaaaaoooaaaaaaaaaaaaaagggpgggggyyyyyyyyygzzzzzzgAAAAAgBBBBBBgCCCCCCggggggpgggpgg│
+│aaaaaoooooooooooaooaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaoooooooooaaaaaaaagggpgggggmmmmmmggggggggggggggggggggggggggggggggggggpgggpgg│
+│aaaaaoooooooaaaaaaaaaagggggggggDDDgEEEEEgEEEgFFFgGHHGHHHHGgIIIIIIIIIgggggggggggg│
+│aaaaaooooooaaaaaaaaaaagggpgggggggggggggggggggggggggggggggggggggggggggggggpgggpgg│
+│aaaaaoooooooaaaaaaaaaagggggggggmmmmmgggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaooooooaooooooaaaagggpgggggJJJJJJJJJJJJJJJJJJggggggggggggggggggggggggpgggpgg│
+│aaaaaooooooooaaaaaaaaagggggggpgggggggggggggggggggggggggggggggggggggggggpgggggggg│
+│aaaaaooooooooooooooaaapppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaoooooooooooaooaaaggmmmgmmmmmmggKLLMKggggggggggggggggggggggggggggggggggggggg│
+│aaaaaooooooooooooooaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+N #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+O #747a83 on #13151a
+P bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+o #e6e8eb on #1c1f25
+p #2c3039 on #16181d
+q #5fa8ff on #2b4566
+r on #2b4566
+s bold #e6e8eb on #2b4566
+t dim #e6e8eb on #16181d
+u italic #e6e8eb on #16181d
+v reverse #e6e8eb on #16181d
+w strike #e6e8eb on #16181d
+x overline #e6e8eb on #16181d
+y underline #e6e8eb on #16181d
+z doubleUnderline #e6e8eb on #16181d
+A curlyUnderline #e6e8eb on #16181d
+B dottedUnderline #e6e8eb on #16181d
+C dashedUnderline #e6e8eb on #16181d
+D red on #16181d
+E indexed(166) on #16181d
+F #4080e0 on #16181d
+G on indexed(17)
+H white on indexed(17)
+I curlyUnderline #e6e8eb on #16181d ul=red
+J underline #e6e8eb on #16181d link=https://dart.dev
+K #5fa8ff on #16181d
+L on #5fa8ff
+M #ffffff on #5fa8ff

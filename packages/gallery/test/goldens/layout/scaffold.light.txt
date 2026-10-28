@@ -1,0 +1,105 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Layout  ›  Scaffold                                                       ctrl+p search      ◐ Light  │
+│                                                                                                                        │
+│   ⌕ Filter             /      Scaffold                                                                       24 of 24  │
+│                               An app's frame: a header, a sidebar beside the body, a status bar and the key hints,     │
+│     Expanded, Spacer          each part a zone of the focus; the sidebar collapsed on a narrow screen and resized      │
+│     Stack, Positioned         by a drag.                                                                               │
+│     Transform                                                                                                          │
+│     Visibility, Offstage  ▐   Preview   Code                                                                           │
+│     ExpansionTile, Acco…  ▐───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     Grid, GridPlacement   ▐                                                              │                             │
+│     Wrap                  ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│     CustomPaint           ▐                                                              │                             │
+│     SplitView                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  width            48 cells  │
+│     DockArea                                                                             │  ────────────────────────   │
+│ ▎   Scaffold                    ┌                                                  ┐     │                             │
+│                                     ≡  notes                                             │  sidebar side               │
+│   STYLE                4                        │                                        │   left  right               │
+│     Theme                          [x] inbox    │  New note                              │                             │
+│     TerminalBrightness             [ ] archive  │                                        │  resizable           ▐  ●▌  │
+│     GradientBackground                          │ notes: 3                               │                             │
+│     GradientForeground                          │                                        │  key hints           ▐  ●▌  │
+│                                                 │                                        │                             │
+│   SCROLLING            5                        │                                        │  header              ▐  ●▌  │
+│     SingleChildScrollVi…                        │                                        │                             │
+│     Scrollable                                  │                                        │  status bar          ▐  ●▌  │
+│     ListView                      3 notes                                    saved       │                             │
+│     LogView                         ↑↓ pages   tab into the page   / filter   c…         │  collapsed below            │
+│     Scrollbar                   └                                                  ┘     │   none  36  40  44          │
+│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·48 × 12·     │                             │
+│   DATA                13                                                                 │                             │
+│     Sparkline                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Gauge, LineGauge                                                                     │                             │
+│     BarChart                   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Chart                                                                                │                             │
+│                                                                                          │                             │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaaEEEEEEaafaaddddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaEEEEEEaaaaaadadddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaiFiFFFFFFiiiiiiiiiiiiiGiaahhhllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhHHhHHhHHhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnhnnnnnhnnnnnnhnhnnnnnnnhnhnnnnnnnhnnnnnnhnnnhnnnnnhnhnnnnnnhnnnhnnnhnnnhnnnhnnnnnnhhhhh│
+│aaaaaoooooooooaooooooaaaaaaahhhnnnnhnnnnhnhnnnnhnnhnnnhnnnnnnhnnnhnnnnnnnhnnnnnnnnnhnnhnhnnnnnnhnnnnnnhnnnhnnnnnnnhhhhhh│
+│aaaaaooooooaooooooooooaaaaaahhhnnhnhnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaooooooooaadhhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooaoooooaadqqqrrrrrrrqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq│
+│aaaaaoooooaoooooooooooooaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooaaaaaaaaaaaaaaaaaadhhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhnnnnnhhhhhhhhhhhhHHhHHHHHhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhssssssssssssssssssssssssthh│
+│aIJJJKKKKKKKKJJJJJJJJJJJJJJahhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhaaoaaoooooaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhqhhnnnnnnnhnnnnhhhhhhhhhhhhhhh│
+│aaadddddaaaaaaaaaaaaaaaaEaaahhhhhhhaaaaaaaaaaaaaaqhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhJKKKKJwxxxxxwhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaaahhhhhhhadydaoooooaaaaqhwzzzwzzzzwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooaaaaahhhhhhhadadaoooooooaaqhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhnnnnnnnnnhhhhhhhhhhhrAABrhh│
+│aaaaaooooooooooooooooooaaaaahhhhhhhaaaaaaaaaaaaaaqhnnnnnnhshhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooaaaaahhhhhhhaaaaaaaaaaaaaaqhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhnnnhnnnnnhhhhhhhhhhhrAABrhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhaaaaaaaaaaaaaaqhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddddddaaaaaaaaaaaaEaaahhhhhhhaaaaaaaaaaaaaaqhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhnnnnnnhhhhhhhhhhhhhhrAABrhh│
+│aaaaaooooooooooooooooooooaaahhhhhhhaaaaaaaaaaaaaaqhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhhhhaaaaaaaaaaaaaaqhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhnnnnnnhnnnhhhhhhhhhhrAABrhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhCwCCCCCwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwCCCCChhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhaaccadddddaaacccaddddadddaddddaaacaddddddaaaccaahhhhhhhqhhnnnnnnnnnhnnnnnhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhqhhwxxxxwwxxwJKKJwxxwhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqHHhHhHHqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddaaaaaaaaaaaaaaaaEEaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaoooooooooaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #f3f5f7
+b #0969da on #f3f5f7
+c bold #1f2328 on #f3f5f7
+d #656d76 on #f3f5f7
+E #838991 on #f3f5f7
+f #dcdfe4 on #f3f5f7
+g bold #656d76 on #f3f5f7
+h on #fafafb
+i on #fefefe
+F #838991 on #fefefe
+G bold #838991 on #fefefe
+l bold #1f2328 on #fafafb
+H #838991 on #fafafb
+n #656d76 on #fafafb
+o #1f2328 on #f3f5f7
+q #dcdfe4 on #fafafb
+r #0969da on #fafafb
+s #1f2328 on #fafafb
+t reverse #1f2328 on #fafafb
+I #0969da on #b6d4fe
+J on #b6d4fe
+K bold #1f2328 on #b6d4fe
+w on #eef0f3
+x #656d76 on #eef0f3
+y bold #0969da on #f3f5f7
+z bold #0969da on #eef0f3
+A on #0969da
+B #ffffff on #0969da
+C #1f2328 on #eef0f3

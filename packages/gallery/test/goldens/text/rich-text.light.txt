@@ -1,0 +1,115 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Text  ›  Rich text                                                        ctrl+p search      ◐ Light  │
+│                                                                                                                        │
+│   ⌕ Filter             /      Rich text                                                                        2 of 4  │
+│                               Spans in styles of their own: attributes, colors and links, 'text'.bold.fg(…) for        │
+│   TEXT                 4  ▐   short.                                                                                   │
+│     Text                  ▐                                                                                            │
+│ ▎   Rich text             ▐   Preview   Code                                                                           │
+│     DefaultTextStyle      ▐───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     Right to left         ▐                                                              │                             │
+│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│   LAYOUT              24                                                                 │                             │
+│     Box                        ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  row labels          ▐  ●▌  │
+│     ColoredBox, Decorat…                                                                 │                             │
+│     Container                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Divider                         ┌                                         ┐          │                             │
+│     Shadow                     ·      attributes                                   ·     │                             │
+│     Padding                           bold dim italic reverse strike overline            │                             │
+│     Align, Center              ·                                                   ·     │                             │
+│     SizedBox                          underlines                                         │                             │
+│     ConstrainedBox             ·      underline double curly dotted dashed         ·     │                             │
+│     LimitedBox, Overflo…                                                                 │                             │
+│     FractionallySizedBox       ·      colors                                       ·     │                             │
+│     IntrinsicWidth/Heig…              red color 166 rgb  on navy  red curly              │                             │
+│     Row, Column, Flex          ·                                                   ·     │                             │
+│     Expanded, Spacer                  links                                              │                             │
+│     Stack, Positioned          ·      a link to dart.dev                           ·     │                             │
+│     Transform                       └                                         ┘          │                             │
+│     Visibility, Offstage       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   39 × 11 ·   ·     │                             │
+│     ExpansionTile, Acco…                                                                 │                             │
+│     Grid, GridPlacement        ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Wrap                                                                                 │                             │
+│     CustomPaint                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     SplitView                                                                            │                             │
+│     DockArea                   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│                                                                                          │                             │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaaOOOOaafaaddddaddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaOOOOOOaaaaaadadddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaiPiPPPPPPiiiiiiiiiiiiiQiaahhhllllhllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhRhRRhRhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnnhnnhnnnnnnhnnhnnnnnhnnnnhnnnnnnnnnnnhnnnnnnhnnnhnnnnnnhnnnnnnnnnnnnnnnnnhnnnhhhhhhhh│
+│aaaddddaaaaaaaaaaaaaaaaaOaadhhhnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppaaaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aSTTTUUUUTUUUUTTTTTTTTTTTTTdhhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppppppppppaaaaaadtttuuuuuuutttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt│
+│aaaaapppppappappppaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhhhthhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddaaaaaaaaaaaaaaOOaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppaaaaaaaaaaaaaaaaaaaahhhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhhhthhnnnhnnnnnnhhhhhhhhhhuvvwuhh│
+│aaaaapppppppppppappppppppaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppaaaaaaaaaaaaaahhhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppaaaaaaaaaaaaaaaahhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppaaaaaaaaaaaaaaaaahhhhthhhhhhnnnnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppaaaaaaaaaaaaaaaahhhhhhhhhhhllllhxxxhyyyyyyhzzzzzzzhAAAAAAhBBBBBBBBhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppappppppaaaaaaaaaahhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppaaaaaaaaaaaaaaahhhhhhhhhhhnnnnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppppppppaaaaaaaaahhhhthhhhhhCCCCCCCCChDDDDDDhEEEEEhFFFFFFhGGGGGGhhhhhhhhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppppappppppppaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppppppppppppppaaahhhhthhhhhhnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppppppppppppppaaahhhhhhhhhhhHHHhIIIIIhIIIhJJJhKLLKLLLLKhMMMMMMMMMhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppapppppppappppaaaaaahhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppappppppaaaaaaahhhhhhhhhhhnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppappppppppppaaaaaahhhhthhhhhhNNNNNNNNNNNNNNNNNNhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppaaaaaaaaaaaaaahhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppppappppppppaaahhhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhRRhRhRRhthhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppppppppapppppaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppapppppppppppppaaaahhhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppppaaaaaaaaaaaahhhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppaaaaaaaaaaaaaaahhhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #f3f5f7
+b #0969da on #f3f5f7
+c bold #1f2328 on #f3f5f7
+d #656d76 on #f3f5f7
+O #838991 on #f3f5f7
+f #dcdfe4 on #f3f5f7
+g bold #656d76 on #f3f5f7
+h on #fafafb
+i on #fefefe
+P #838991 on #fefefe
+Q bold #838991 on #fefefe
+l bold #1f2328 on #fafafb
+R #838991 on #fafafb
+n #656d76 on #fafafb
+p #1f2328 on #f3f5f7
+S #0969da on #b6d4fe
+T on #b6d4fe
+U bold #1f2328 on #b6d4fe
+t #dcdfe4 on #fafafb
+u #0969da on #fafafb
+v on #0969da
+w #ffffff on #0969da
+x dim #1f2328 on #fafafb
+y italic #1f2328 on #fafafb
+z reverse #1f2328 on #fafafb
+A strike #1f2328 on #fafafb
+B overline #1f2328 on #fafafb
+C underline #1f2328 on #fafafb
+D doubleUnderline #1f2328 on #fafafb
+E curlyUnderline #1f2328 on #fafafb
+F dottedUnderline #1f2328 on #fafafb
+G dashedUnderline #1f2328 on #fafafb
+H red on #fafafb
+I indexed(166) on #fafafb
+J #4080e0 on #fafafb
+K on indexed(17)
+L white on indexed(17)
+M curlyUnderline #1f2328 on #fafafb ul=red
+N underline #1f2328 on #fafafb link=https://dart.dev

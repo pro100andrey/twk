@@ -1,0 +1,79 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     TaskList                                Preview   Code  │
+│                        Tasks and how far they have got: pending, running with  │
+│     Heatmap, Acti…     a spinner and the time it has run, done, failed or sk…  │
+│     Table            ──────────────────────────────────────────────────────────│
+│     DescriptionLi…          ┌                                          ┐       │
+│     TreeView            ·     ✓ Fetch dependencies 1.4 s                    ·  │
+│     TreeTable                 ⠴ Compile 00:00                                  │
+│     DirectoryTree   ▐   ·       ⠴ lib/core.dart 00:00                       ·  │
+│ ▎   TaskList        ▐           ◦ lib/widgets.dart                             │
+│                         ·     ◦ Run the tests                               ·  │
+│   EDITING        4            ◦ Deploy                                         │
+│     TextField               └                                          ┘       │
+│     InputDecorati…   ──────────────────────────────────────────────────────────│
+│     TextArea           step      live  fetch  compile  test  deploy  done      │
+│     Autocomplete       failed   ▐●  ▌                                          │
+│                                                                                │
+│   CONTROLS      20     elapsed  ▐  ●▌                                          │
+│     Button             spinner   dots  line  arc                               │
+│     Pressable                                                                  │
+│     Checkbox, Swi…                                                             │
+│                                                                                │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeaCCCCCCaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahDhDDDDDDhhhhhhhEhaaggkkkkkkkkgggggggggggggggggggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmgmmmgmmmgmmmgmmmmgmmmmgmmmmgmmmmmmmmgmmmmmmmgmmmmgg│
+│aaaaannnnnnnnannnnnaaaggmgmmmmmmmgmmmgmmmgmmmmgmmgmmmgmmmmgmmmmmgmmmmmmgmmgmmmgg│
+│aaaaannnnnaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnnnnaaagggggggoggggggggggggggggggggggggggggggggggggggggggoggggggg│
+│aaaaannnnnnnnaaaaaaaaagggogggggpgqqqqqgqqqqqqqqqqqqgmmmgmggggggggggggggggggggogg│
+│aaaaannnnnnnnnaaaaaaaagggggggggrgqqqqqqqgmmmmmgggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnaaadgggogggggggrgqqqqqqqqqqqqqgmmmmmgggggggggggggggggggggggogg│
+│atuuuvvvvvvvvuuuuuuuudgggggggggggmgqqqqqqqqqqqqqqqqggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggogggggmgqqqgqqqgqqqqqgggggggggggggggggggggggggggggggogg│
+│aaadddddddaaaaaaaaCaaagggggggggmgqqqqqqggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnaaaaaaaagggggggoggggggggggggggggggggggggggggggggggggggggggoggggggg│
+│aaaaannnnnnnnnnnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnaaaaaaaaaggmmmmggggguvvvvuhwwwwwhhwwwwwwwhhwwwwhhwwwwwwhhwwwwhggggg│
+│aaaaannnnnnnnnnnnaaaaaggmmmmmmgggxyzzxgggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaddddddddaaaaaaCCaaaggmmmmmmmggrAABrgggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnaaaaaaaaaaaggmmmmmmmgguvvvvuhwwwwhhwwwhgggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnannnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+C #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+D #747a83 on #13151a
+E bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+n #e6e8eb on #1c1f25
+o #2c3039 on #16181d
+p #5fd38d on #16181d
+q #e6e8eb on #16181d
+r #5fa8ff on #16181d
+t #5fa8ff on #2b4566
+u on #2b4566
+v bold #e6e8eb on #2b4566
+w #8b929c on #13151a
+x #383d48 on #16181d
+y #e6e8eb on #383d48
+z on #383d48
+A on #5fa8ff
+B #ffffff on #5fa8ff

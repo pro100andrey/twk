@@ -1,0 +1,53 @@
+// A sample of Go for the highlighting tests.
+package main
+
+import (
+	"fmt"
+	"strings"
+)
+
+/* A block comment
+   that ends here. */
+type Shape interface {
+	Area() float64
+}
+
+type Point struct {
+	X, Y float64 `json:"x"`
+}
+
+func (p *Point) Dist(q Point) float64 {
+	dx, dy := p.X-q.X, p.Y-q.Y
+	return dx*dx + dy*dy
+}
+
+func Map[T, U any](xs []T, f func(T) U) []U {
+	out := make([]U, 0, len(xs))
+	for _, x := range xs {
+		out = append(out, f(x))
+	}
+	return out
+}
+
+const (
+	Big   = 1 << 62
+	Small = Big >> 61
+	Mask  = 0x7F_FF
+	Ratio = 1.5e3 + 2i
+	first = iota
+)
+
+func main() {
+	var err error = nil
+	ch := make(chan string, 1)
+	go func() { ch <- "done\t\x41\u00e9\101" }()
+	usage := `Usage:
+  tool [flags] <file>
+  \n is not an escape here`
+	r := '\n' + 'a'
+	if !strings.Contains(usage, "flags") && err == nil {
+		fmt.Println(<-ch, r, Mask) /* a comment
+		in a block */
+	}
+	defer fmt.Printf("%v\n", Map([]int{1, 2}, func(i int) string { return fmt.Sprint(i) }))
+}

@@ -1,0 +1,86 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     CodeView                                Preview   Code  │
+│                        Source code highlighted for its language, with line     │
+│     FrameOverlay       numbers, its long lines wrapped or cut off at the wid…  │
+│     Repaint rainb…   ──────────────────────────────────────────────────────────│
+│     RepaintBounda…    ┌                                                      ┐ │
+│                          1 import 'package:twk/twk.dart';                      │
+│   RICH           8       2                                                 ▄   │
+│     MarkdownView         3 /// Counts the presses of the space bar.            │
+│ ▎   CodeView             4 final class Counter extends StatefulWidget {        │
+│     SyntaxThemeSc…       5   const Counter({super.key, this.start = 0});       │
+│     DiffView             6                                                     │
+│     JsonView          └                                                      ┘ │
+│     BigText          ──────────────────────────────────────────────────────────│
+│     QrCode             language       Dart  Python  Rust  Go  JavaScript      ▐│
+│     ANSI                              TypeScript  JSON  YAML  Bash  diff      ▐│
+│                                       plain                                   ▐│
+│   IMAGES         1     line numbers  ▐  ●▌                                    ▐│
+│     Image                                                                     ▐│
+│                     ▐  changes       ▐●  ▌                                     │
+│   TERMINAL       1  ▐  wrap           none  word  grapheme                     │
+│                        width         ───────────────▍▍───────────  56 cells    │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeaKKKKKKaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahLhLLLLLLhhhhhhhMhaaggkkkkkkkkgggggggggggggggggggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmmgmmmmgmmmmmmmmmmmgmmmgmmmgmmmmmmmmmgmmmmgmmmmggggg│
+│aaaaannnnnnnnnnnnaaaaaggmmmmmmmmgmmmgmmmmgmmmmmgmmmmmmmgmmgmmmgmmmgmmgmmmgmmmmgg│
+│aaaaannnnnnnannnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnnnnaaagoggggggggggggggggggggggggggggggggggggggggggggggggggggggog│
+│aaaaaaaaaaaaaaaaaaaaaaggggmgppppppgqqqqqqqqqqqqqqqqqqqqqqrggggggggggggggggggsggg│
+│aaaddddaaaaaaaaaaaKaaaggggmgggggggggggggggggggggggggggggggggggggggggggggggggsggg│
+│aaaaannnnnnnnnnnnaaaaaggggmgGGGgGGGGGGgGGGgGGGGGGGgGGgGGGgGGGGGgGGGGgggggggggggg│
+│atuuuvvvvvvvvuuuuuuuuaggggmgpppppgpppppgHHHHHHHgpppppppgHHHHHHHHHHHHHHgrgggggggg│
+│aaaaannnnnnnnnnnnnnaaaggggmgggpppppgHHHHHHHrrppppprrrrrgpppprrrrrrgHgIrrrggggggg│
+│aaaaannnnnnnnaaaaaaaaaggggmggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnaaaaaaaaagoggggggggggggggggggggggggggggggggggggggggggggggggggggggog│
+│aaaaannnnnnnaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnaaaaaaaaaaaggmmmmmmmmgggggguvvvvuhwwwwwwhhwwwwhhwwhhwwwwwwwwwwhgggggm│
+│aaaaannnnaaaaaaaaaaaaagggggggggggggggghwwwwwwwwwwhhwwwwhhwwwwhhwwwwhhwwwwhgggggm│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggghwwwwwhggggggggggggggggggggggggggggggggggm│
+│aaaddddddaaaaaaaaaKaaaggmmmmgmmmmmmmggxyyzxggggggggggggggggggggggggggggggggggggm│
+│aaaaannnnnaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggm│
+│aaaaaaaaaaaaaaaaaaaaadggmmmmmmmgggggggABCCAggggggggggggggggggggggggggggggggggggg│
+│aaaddddddddaaaaaaaKaadggmmmmgggggggggghwwwwhuvvvvuhwwwwwwwwhgggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmgggggggggrrrrrrrrrrrrrrrDrmmmmmmmmmmmggNNgNNNNNgggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+K #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+L #747a83 on #13151a
+M bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+n #e6e8eb on #1c1f25
+o #2c3039 on #16181d
+p #c792ea on #16181d
+q #5fd38d on #16181d
+r #e6e8eb on #16181d
+s reverse #3e444f on #16181d
+G italic #8b929c on #16181d
+t #5fa8ff on #2b4566
+u on #2b4566
+v bold #e6e8eb on #2b4566
+H #5cc8e6 on #16181d
+I #f5c04a on #16181d
+w #8b929c on #13151a
+x #5fa8ff on #16181d
+y on #5fa8ff
+z #ffffff on #5fa8ff
+A #383d48 on #16181d
+B #e6e8eb on #383d48
+C on #383d48
+D reverse #e6e8eb on #16181d
+N #747a83 on #16181d

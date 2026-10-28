@@ -1,0 +1,44 @@
+<!doctype html>
+<!--
+  The gallery in a browser (web/main.dart): xterm.js 6.0.0 and its fit
+  and Unicode 11
+  addons from jsDelivr, pinned by version and hash, then the app's build
+  (main.mjs and main.wasm from `dart compile wasm`) in #terminal.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>twk gallery</title>
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@xterm/xterm@6.0.0/css/xterm.css"
+        integrity="sha384-n2n7twoohnW+d3myBKaUgl7DSiwidw6MkQy9oesGzkPpMjejKRR3XlnD+5yCdtBD"
+        crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/@xterm/xterm@6.0.0/lib/xterm.js"
+          integrity="sha384-f/1U6Z9wM4D71a5eRXEZnyOTMOvjqxr2XLwh+Go1OvIl3L3tOcvUrzudnhbECwl4"
+          crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.11.0/lib/addon-fit.js"
+          integrity="sha384-txoiwu4RR2GD3qySbaj+BbzibkLbSJRcfqGYMu6z1EqHil4A2dyBiBW5dlacG6OR"
+          crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-unicode11@0.9.0/lib/addon-unicode11.js"
+          integrity="sha384-s7G1tpQVHxwemnFdH7ZEOPEAMxRSbFGsvrhaHpxYuMssFdike2DQuIBzg43+p5/3"
+          crossorigin="anonymous"></script>
+  <style>
+    html, body { height: 100%; margin: 0; background: #16181d; color: #e6e8eb; }
+    #terminal { position: absolute; inset: 8px; font: 15px monospace; }
+  </style>
+</head>
+<body>
+  <div id="terminal"></div>
+  <script type="module">
+    try {
+      const { compileStreaming } = await import('./main.mjs');
+      const app = await compileStreaming(fetch('main.wasm'));
+      (await app.instantiate({})).invokeMain();
+    } catch (e) {
+      document.querySelector('#terminal').textContent =
+          `The app did not start (it needs WebAssembly GC): ${e}`;
+    }
+  </script>
+</body>
+</html>

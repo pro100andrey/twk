@@ -1,0 +1,79 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     DotCanvas                               Preview   Code  │
+│                        Shapes drawn finer than the cells, in data              │
+│                        coordinates, with labels over them.                     │
+│   DATA          13   ──────────────────────────────────────────────────────────│
+│     Sparkline               ┌                                          ┐       │
+│     Gauge, LineGa…      ·                12                                 ·  │
+│     BarChart        ▐               ⢀⡠⠔⠒⠉⠉⠉⠒⠒⠤⣀⡀         dots                  │
+│     Chart           ▐   ·         ⡠⠔⠁          ⠈⠑⢢   ⢰⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⠒⢲         ·  │
+│ ▎   DotCanvas                    ⡜                ⢱  ⢸   ⢀⠔⠑⢄     ⢸            │
+│     Calendar            ·        ⡇        ⠤⣀      ⢸  ⢸   ⡎  ⠈⡆    ⢸         ·  │
+│     Heatmap, Acti…               ⠱⡀         ⠉⠑⠒⠤⣀ ⡸  ⢸  ⡜    ⠘⡄  ⢠⢻            │
+│     Table               ·         ⠑⠤⡀          ⢀⡠⠔⠁  ⢸⣀⠜      ⠘⢄⡠⠃⢸         ·  │
+│     DescriptionLi…                  ⠈⠑⠢⠤⣀⣀⡠⠤⠤⠒⠉⠁     ⢸⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣸            │
+│     TreeView            ·                                                   ·  │
+│     TreeTable               └                                          ┘       │
+│     DirectoryTree    ──────────────────────────────────────────────────────────│
+│     TaskList           marker   braille  halfBlock  quadrant  sextant          │
+│                                 octant  block  dot  bar  custom                │
+│   EDITING        4     live    ▐  ●▌                                           │
+│     TextField                                                                  │
+│                                                                                │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeaCCCCCCaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahDhDDDDDDhhhhhhhEhaaggkkkkkkkkkggggggggggggggggggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmmgmmmmmgmmmmmgmmmmgmmmgmmmmmmgmmgmmmmgggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmmmmmmmmgmmmmgmmmmmmgmmmmgmmmmmggggggggggggggggggggg│
+│aaaddddaaaaaaaaaaCCaaannnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn│
+│aaaaaoooooooooaaaaaaaagggggggnggggggggggggggggggggggggggggggggggggggggggnggggggg│
+│aaaaaooooooaoooooooaaagggnggggggggggggggggppgggggggggggggggggggggggggggggggggngg│
+│aaaaaooooooooaaaaaaaadgggggggggggggggqqqqqqqqqqqqgggggggggppppgggggggggggggggggg│
+│aaaaaoooooaaaaaaaaaaadgggngggggggggqqqggggggggggqqqgggssssssssssssssgggggggggngg│
+│atuuuvvvvvvvvvuuuuuuuaggggggggggggqggggggggggggggggqggsgggwwwwgggggsgggggggggggg│
+│aaaaaooooooooaaaaaaaaagggnggggggggqggggggggxxggggggqggsgggwggwwggggsgggggggggngg│
+│aaaaaooooooooaoooooaaaggggggggggggqqgggggggggxxxxxgqggsggwggggwwggwwgggggggggggg│
+│aaaaaoooooaaaaaaaaaaaagggngggggggggqqqggggggggggqqqqggswwggggggwwwwsgggggggggngg│
+│aaaaaooooooooooooooaaagggggggggggggggqqqqqqqqqqqqgggggssssssssssssssgggggggggggg│
+│aaaaaooooooooaaaaaaaaagggngggggggggggggggggggggggggggggggggggggggggggggggggggngg│
+│aaaaaoooooooooaaaaaaaagggggggnggggggggggggggggggggggggggggggggggggggggggnggggggg│
+│aaaaaoooooooooooooaaaannnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn│
+│aaaaaooooooooaaaaaaaaaggmmmmmmgguvvvvvvvuhyyyyyyyyyhhyyyyyyyyhhyyyyyyyhggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggghyyyyyyhhyyyyyhhyyyhhyyyhhyyyyyyhggggggggggggggg│
+│aaadddddddaaaaaaaaCaaaggmmmmggggzAABzggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaoooooooooaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+C #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+D #747a83 on #13151a
+E bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+n #2c3039 on #16181d
+o #e6e8eb on #1c1f25
+p #e6e8eb on #16181d
+q cyan on #16181d
+s yellow on #16181d
+t #5fa8ff on #2b4566
+u on #2b4566
+v bold #e6e8eb on #2b4566
+w green on #16181d
+x magenta on #16181d
+y #8b929c on #13151a
+z #5fa8ff on #16181d
+A on #5fa8ff
+B #ffffff on #5fa8ff

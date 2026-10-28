@@ -1,0 +1,656 @@
+{
+  "about": "The wire between a twk app (SocketLink) and a twk shell (TerminalShell): packages/twk_core/lib/src/terminal/socket.dart, and its second implementation, the VS Code extension's editors/vscode/src/core/wire.ts and shell.ts. Each frame is a type byte, the payload's length (4 bytes, big endian) and the payload; hex below is written 'type length payload'. twk_core's test/terminal/shell_wire_golden_test.dart holds the Dart side to this file, the extension's src/test/unit/core/wire_golden.test.ts the TypeScript one: a change to either side's wire that is not made here, and so to the other side, fails a test.",
+  "protocol": 1,
+  "maxPayload": 67108864,
+  "kinds": [
+    {
+      "name": "hello",
+      "type": 1,
+      "from": "app",
+      "payload": "JSON {protocol, token}",
+      "description": "The app's first frame: the protocol it speaks and the token of the shell's address."
+    },
+    {
+      "name": "output",
+      "type": 2,
+      "from": "app",
+      "payload": "bytes",
+      "description": "Bytes for the terminal, written a whole frame at a time."
+    },
+    {
+      "name": "flush",
+      "type": 3,
+      "from": "app",
+      "payload": "empty",
+      "description": "Answer with flushed once the output before it is written."
+    },
+    {
+      "name": "lost",
+      "type": 4,
+      "from": "app",
+      "payload": "bytes",
+      "description": "What puts the terminal back as it was, written by the shell if the app goes away without writing it (empty once the app has)."
+    },
+    {
+      "name": "raw",
+      "type": 5,
+      "from": "app",
+      "payload": "[1] or [0]",
+      "description": "[1] raw mode, [0] the console modes as found; input reaches the app only in raw mode."
+    },
+    {
+      "name": "welcome",
+      "type": 16,
+      "from": "shell",
+      "payload": "JSON {columns, lines, eraseChar, windows, environment, declares?}",
+      "description": "The shell takes the app: the terminal's size, its erase character, whether it is a Windows console, the environment the app sees over the link (TWK_SCREEN_READER and TWK_DEBUG in it are the app's settings, TerminalInfo.settings), and, where the terminal declares what it does, declares: an object of notifications (none, osc9, osc777, osc99), progressReports, pointerShapes and repeatChar (booleans) and graphics (none, kitty, sixel, iterm2), each only where declared, in that order (TerminalDeclaration), which the app takes over its guess by the environment. A shell whose terminal declares nothing sends no declares."
+    },
+    {
+      "name": "refused",
+      "type": 17,
+      "from": "shell",
+      "payload": "UTF-8 text",
+      "description": "The shell does not take the app, and why; it closes the connection."
+    },
+    {
+      "name": "input",
+      "type": 18,
+      "from": "shell",
+      "payload": "bytes",
+      "description": "The terminal's input."
+    },
+    {
+      "name": "size",
+      "type": 19,
+      "from": "shell",
+      "payload": "JSON {columns, lines}",
+      "description": "The terminal's new size."
+    },
+    {
+      "name": "flushed",
+      "type": 20,
+      "from": "shell",
+      "payload": "empty",
+      "description": "What was asked with flush is written."
+    }
+  ],
+  "frames": [
+    {
+      "name": "hello",
+      "kind": "hello",
+      "description": "The app opens with protocol 1 and the address's token, as SocketLink.connect sends it.",
+      "json": {
+        "protocol": 1,
+        "token": "00112233445566778899aabbccddeeff"
+      },
+      "hex": "01 00000039 7b2270726f746f636f6c223a312c22746f6b656e223a223030313132323333343435353636373738383939616162626363646465656666227d"
+    },
+    {
+      "name": "hello, wrong token",
+      "kind": "hello",
+      "description": "A token that is not the shell's.",
+      "json": {
+        "protocol": 1,
+        "token": "not-the-token"
+      },
+      "hex": "01 00000026 7b2270726f746f636f6c223a312c22746f6b656e223a226e6f742d7468652d746f6b656e227d"
+    },
+    {
+      "name": "hello, protocol 2",
+      "kind": "hello",
+      "description": "A protocol this shell does not speak.",
+      "json": {
+        "protocol": 2,
+        "token": "00112233445566778899aabbccddeeff"
+      },
+      "hex": "01 00000039 7b2270726f746f636f6c223a322c22746f6b656e223a223030313132323333343435353636373738383939616162626363646465656666227d"
+    },
+    {
+      "name": "hello, no protocol",
+      "kind": "hello",
+      "description": "No protocol named.",
+      "json": {
+        "token": "00112233445566778899aabbccddeeff"
+      },
+      "hex": "01 0000002c 7b22746f6b656e223a223030313132323333343435353636373738383939616162626363646465656666227d"
+    },
+    {
+      "name": "hello, a list",
+      "kind": "hello",
+      "description": "JSON, but not an object.",
+      "json": [
+        1
+      ],
+      "hex": "01 00000003 5b315d"
+    },
+    {
+      "name": "hello, not JSON",
+      "kind": "hello",
+      "description": "No JSON at all.",
+      "text": "{not json",
+      "hex": "01 00000009 7b6e6f74206a736f6e"
+    },
+    {
+      "name": "hello, not UTF-8",
+      "kind": "hello",
+      "description": "The right JSON but for a token byte that is no UTF-8 (0xff).",
+      "bytes": "7b2270726f746f636f6c223a312c22746f6b656e223a22ff227d",
+      "hex": "01 0000001a 7b2270726f746f636f6c223a312c22746f6b656e223a22ff227d"
+    },
+    {
+      "name": "welcome",
+      "kind": "welcome",
+      "description": "An 80x24 terminal whose Backspace sends DEL, not a Windows console, whose environment says xterm-256color with 24-bit color and switches the screen reader and the frame overlay on, and which declares notifications by OSC 777, progress reports, pointer shapes, REP and sixel images.",
+      "json": {
+        "columns": 80,
+        "lines": 24,
+        "eraseChar": 127,
+        "windows": false,
+        "environment": {
+          "TERM": "xterm-256color",
+          "COLORTERM": "truecolor",
+          "TWK_SCREEN_READER": "1",
+          "TWK_DEBUG": "keys,overlay"
+        },
+        "declares": {
+          "notifications": "osc777",
+          "progressReports": true,
+          "pointerShapes": true,
+          "repeatChar": true,
+          "graphics": "sixel"
+        }
+      },
+      "hex": "10 00000123 7b22636f6c756d6e73223a38302c226c696e6573223a32342c22657261736543686172223a3132372c2277696e646f7773223a66616c73652c22656e7669726f6e6d656e74223a7b225445524d223a22787465726d2d323536636f6c6f72222c22434f4c4f525445524d223a2274727565636f6c6f72222c2254574b5f53435245454e5f524541444552223a2231222c2254574b5f4445425547223a226b6579732c6f7665726c6179227d2c226465636c61726573223a7b226e6f74696669636174696f6e73223a226f7363373737222c2270726f67726573735265706f727473223a747275652c22706f696e746572536861706573223a747275652c2272657065617443686172223a747275652c226772617068696373223a22736978656c227d7d"
+    },
+    {
+      "name": "refused, token",
+      "kind": "refused",
+      "description": "Why a wrong token is refused.",
+      "text": "not the token of this shell",
+      "hex": "11 0000001b 6e6f742074686520746f6b656e206f662074686973207368656c6c"
+    },
+    {
+      "name": "refused, protocol 2",
+      "kind": "refused",
+      "description": "Why protocol 2 is refused.",
+      "text": "the app speaks protocol 2, this shell 1",
+      "hex": "11 00000027 7468652061707020737065616b732070726f746f636f6c20322c2074686973207368656c6c2031"
+    },
+    {
+      "name": "refused, no protocol",
+      "kind": "refused",
+      "description": "Why a hello naming no protocol is refused: its protocol is null.",
+      "text": "the app speaks protocol null, this shell 1",
+      "hex": "11 0000002a 7468652061707020737065616b732070726f746f636f6c206e756c6c2c2074686973207368656c6c2031"
+    },
+    {
+      "name": "refused, no hello",
+      "kind": "refused",
+      "description": "Why a first frame that is no hello, or a hello that is no JSON object of UTF-8, is refused.",
+      "text": "no hello",
+      "hex": "11 00000008 6e6f2068656c6c6f"
+    },
+    {
+      "name": "raw on",
+      "kind": "raw",
+      "description": "The console in raw mode.",
+      "bytes": "01",
+      "hex": "05 00000001 01"
+    },
+    {
+      "name": "raw off",
+      "kind": "raw",
+      "description": "The console modes as found.",
+      "bytes": "00",
+      "hex": "05 00000001 00"
+    },
+    {
+      "name": "output",
+      "kind": "output",
+      "description": "Two characters for the terminal.",
+      "text": "hi",
+      "hex": "02 00000002 6869"
+    },
+    {
+      "name": "flush",
+      "kind": "flush",
+      "description": "A flush.",
+      "text": "",
+      "hex": "03 00000000"
+    },
+    {
+      "name": "flushed",
+      "kind": "flushed",
+      "description": "A flush answered.",
+      "text": "",
+      "hex": "14 00000000"
+    },
+    {
+      "name": "input",
+      "kind": "input",
+      "description": "The q key.",
+      "text": "q",
+      "hex": "12 00000001 71"
+    },
+    {
+      "name": "size",
+      "kind": "size",
+      "description": "The terminal is now 100x30.",
+      "json": {
+        "columns": 100,
+        "lines": 30
+      },
+      "hex": "13 0000001a 7b22636f6c756d6e73223a3130302c226c696e6573223a33307d"
+    },
+    {
+      "name": "lost",
+      "kind": "lost",
+      "description": "Leave the alternate screen, if the app goes away without doing so.",
+      "text": "\u001b[?1049l",
+      "hex": "04 00000008 1b5b3f313034396c"
+    },
+    {
+      "name": "unknown",
+      "type": 99,
+      "description": "A type of no kind of protocol 1: a shell cuts the app off.",
+      "text": "",
+      "hex": "63 00000000"
+    },
+    {
+      "name": "too long",
+      "kind": "output",
+      "description": "Only a header, announcing a payload one byte longer than maxPayload: a reader refuses it and the connection is dropped.",
+      "header": 67108865,
+      "hex": "02 04000001"
+    }
+  ],
+  "conversations": [
+    {
+      "name": "an app's visit",
+      "side": "shell",
+      "description": "An app is welcomed, writes and flushes, gets the terminal's input and size, says what puts the terminal back and goes away without doing so: the shell writes it.",
+      "steps": [
+        {
+          "sends": "hello"
+        },
+        {
+          "gets": "welcome"
+        },
+        {
+          "sends": "raw on"
+        },
+        {
+          "sends": "output"
+        },
+        {
+          "sends": "flush"
+        },
+        {
+          "gets": "flushed"
+        },
+        {
+          "shows": "hi"
+        },
+        {
+          "types": "q"
+        },
+        {
+          "gets": "input"
+        },
+        {
+          "resizes": [
+            100,
+            30
+          ]
+        },
+        {
+          "gets": "size"
+        },
+        {
+          "sends": "lost"
+        },
+        {
+          "closes": true
+        },
+        {
+          "shows": "hi\u001b[?1049l"
+        }
+      ]
+    },
+    {
+      "name": "input out of raw mode",
+      "side": "shell",
+      "description": "Input that comes while the app has the console out of raw mode is dropped; in raw mode again it reaches the app.",
+      "steps": [
+        {
+          "sends": "hello"
+        },
+        {
+          "gets": "welcome"
+        },
+        {
+          "sends": "raw off"
+        },
+        {
+          "sends": "flush"
+        },
+        {
+          "gets": "flushed"
+        },
+        {
+          "types": "q"
+        },
+        {
+          "sends": "flush"
+        },
+        {
+          "gets": "flushed"
+        },
+        {
+          "sends": "raw on"
+        },
+        {
+          "sends": "flush"
+        },
+        {
+          "gets": "flushed"
+        },
+        {
+          "types": "q"
+        },
+        {
+          "gets": "input"
+        },
+        {
+          "closes": true
+        }
+      ]
+    },
+    {
+      "name": "a wrong token",
+      "side": "shell",
+      "description": "Refused, and the connection closed.",
+      "steps": [
+        {
+          "sends": "hello, wrong token"
+        },
+        {
+          "gets": "refused, token"
+        },
+        {
+          "closed": true
+        }
+      ]
+    },
+    {
+      "name": "another protocol",
+      "side": "shell",
+      "description": "Refused, and the connection closed.",
+      "steps": [
+        {
+          "sends": "hello, protocol 2"
+        },
+        {
+          "gets": "refused, protocol 2"
+        },
+        {
+          "closed": true
+        }
+      ]
+    },
+    {
+      "name": "no protocol",
+      "side": "shell",
+      "description": "Refused, and the connection closed.",
+      "steps": [
+        {
+          "sends": "hello, no protocol"
+        },
+        {
+          "gets": "refused, no protocol"
+        },
+        {
+          "closed": true
+        }
+      ]
+    },
+    {
+      "name": "a hello that is a list",
+      "side": "shell",
+      "description": "Refused, and the connection closed.",
+      "steps": [
+        {
+          "sends": "hello, a list"
+        },
+        {
+          "gets": "refused, no hello"
+        },
+        {
+          "closed": true
+        }
+      ]
+    },
+    {
+      "name": "a hello that is no JSON",
+      "side": "shell",
+      "description": "Refused, and the connection closed.",
+      "steps": [
+        {
+          "sends": "hello, not JSON"
+        },
+        {
+          "gets": "refused, no hello"
+        },
+        {
+          "closed": true
+        }
+      ]
+    },
+    {
+      "name": "a hello that is no UTF-8",
+      "side": "shell",
+      "description": "Refused, and the connection closed.",
+      "steps": [
+        {
+          "sends": "hello, not UTF-8"
+        },
+        {
+          "gets": "refused, no hello"
+        },
+        {
+          "closed": true
+        }
+      ]
+    },
+    {
+      "name": "no hello first",
+      "side": "shell",
+      "description": "A first frame of another kind is refused, and the connection closed.",
+      "steps": [
+        {
+          "sends": "output"
+        },
+        {
+          "gets": "refused, no hello"
+        },
+        {
+          "closed": true
+        }
+      ]
+    },
+    {
+      "name": "a frame of no kind",
+      "side": "shell",
+      "description": "The app is cut off and the terminal put back.",
+      "steps": [
+        {
+          "sends": "hello"
+        },
+        {
+          "gets": "welcome"
+        },
+        {
+          "sends": "lost"
+        },
+        {
+          "sends": "unknown"
+        },
+        {
+          "closed": true
+        },
+        {
+          "shows": "\u001b[?1049l"
+        }
+      ]
+    },
+    {
+      "name": "a frame too long",
+      "side": "shell",
+      "description": "The app is cut off and the terminal put back.",
+      "steps": [
+        {
+          "sends": "hello"
+        },
+        {
+          "gets": "welcome"
+        },
+        {
+          "sends": "lost"
+        },
+        {
+          "sends": "too long"
+        },
+        {
+          "closed": true
+        },
+        {
+          "shows": "\u001b[?1049l"
+        }
+      ]
+    },
+    {
+      "name": "a takeover",
+      "side": "shell",
+      "description": "A newer app takes the terminal over: the one that had it is cut off and the terminal put back after it; the newer one writes.",
+      "steps": [
+        {
+          "sends": "hello"
+        },
+        {
+          "gets": "welcome"
+        },
+        {
+          "sends": "lost"
+        },
+        {
+          "sends": "flush"
+        },
+        {
+          "gets": "flushed"
+        },
+        {
+          "by": 2,
+          "sends": "hello"
+        },
+        {
+          "by": 2,
+          "gets": "welcome"
+        },
+        {
+          "closed": true
+        },
+        {
+          "shows": "\u001b[?1049l"
+        },
+        {
+          "by": 2,
+          "sends": "output"
+        },
+        {
+          "by": 2,
+          "sends": "flush"
+        },
+        {
+          "by": 2,
+          "gets": "flushed"
+        },
+        {
+          "shows": "\u001b[?1049lhi"
+        },
+        {
+          "by": 2,
+          "closes": true
+        }
+      ]
+    },
+    {
+      "name": "the app's end",
+      "side": "app",
+      "description": "What an app's link (SocketLink) sends and how it takes what the shell sends: the test plays the shell. TypeScript has no app's end: only twk_core's test runs it.",
+      "steps": [
+        {
+          "gets": "hello"
+        },
+        {
+          "sends": "welcome"
+        },
+        {
+          "link": "enterRaw"
+        },
+        {
+          "gets": "raw on"
+        },
+        {
+          "link": "add",
+          "text": "hi"
+        },
+        {
+          "gets": "output"
+        },
+        {
+          "link": "flush"
+        },
+        {
+          "gets": "flush"
+        },
+        {
+          "sends": "flushed"
+        },
+        {
+          "link": "restoreWith",
+          "text": "\u001b[?1049l"
+        },
+        {
+          "gets": "lost"
+        },
+        {
+          "sends": "input"
+        },
+        {
+          "reads": "q"
+        },
+        {
+          "sends": "size"
+        },
+        {
+          "sized": [
+            100,
+            30
+          ]
+        },
+        {
+          "link": "restore"
+        },
+        {
+          "gets": "raw off"
+        },
+        {
+          "link": "close"
+        },
+        {
+          "closed": true
+        }
+      ]
+    }
+  ]
+}

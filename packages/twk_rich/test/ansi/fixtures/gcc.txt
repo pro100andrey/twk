@@ -1,0 +1,8 @@
+main.c: In function ‘main’:
+main.c:3:16: error: ‘missing’ undeclared (first use in this function)
+    3 |         return missing;
+      |                ^~~~~~~
+main.c:3:16: note: each undeclared identifier is reported only once for each function it appears in
+main.c:2:13: warning: unused variable ‘unused’ [-Wunused-variable]
+    2 |         int unused = 1;
+      |             ^~~~~~

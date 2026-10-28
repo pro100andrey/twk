@@ -1,0 +1,72 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     Heatmap, ActivityHeatmap                Preview   Code  │
+│                        Values over a grid as shades or colors, its rows and    │
+│     Sparkline          columns labelled; counts by day over weeks, a column…   │
+│     Gauge, LineGa…   ──────────────────────────────────────────────────────────│
+│     BarChart              ┌                                             ┐      │
+│     Chart               ·       Jun   Jul     Aug       Sep     Oct         ·  │
+│     DotCanvas       ▐       Mon ▒ ▓ ▒ ▒ ▒ ▒ · █ ▒ ░ █ ▓ █ █ █ ▓ ▒ · ▓ ▒        │
+│     Calendar        ▐   ·       ▓ ▒ ▓ ▓ ░ ▓ ▒ ▒ ▓ ░ ▒ ▓ ░ █ ▒ ░ ▓ ▓ ▓       ·  │
+│ ▎   Heatmap, Acti…          Wed · ░ ▒ ▓ ░ ▒ · ▓ ▒ ▒ · ▒ ▓ ░ █ █ ░ █ ░          │
+│     Table               ·       ▓ ░ ▓ █ ░ ▒ ▒ · ░ · █ █ █ ▒ ▓ ▒ █ ▒ ▒       ·  │
+│     DescriptionLi…          Fri ▓ █ █ ▓ ▒ ▒ ░ ▒ ▒ ▓ ░ ▓ █ █ ▓ ░ ▓ ▓ ▒          │
+│     TreeView            ·       ░ ░ ░ ░ · ░ ░ ░ ░ ░ ░ · ░ · ░ ░ ░ · ░       ·  │
+│     TreeTable               Sun ░ ░ ░ ░ ░ · ░ · · · ░ · ░ ░ ░ ░ ░ ░ ·          │
+│     DirectoryTree       ·                               less ·░▒▓█ more     ·  │
+│     TaskList                                                                   │
+│                         ·   selected: nothing                               ·  │
+│   EDITING        4        └                                             ┘      │
+│     TextField        ──────────────────────────────────────────────────────────│
+│     InputDecorati…     widget       ActivityHeatmap  Heatmap                  ▐│
+│     TextArea           first day    monday  sunday                            ▐│
+│                        scale        shades  colors                             │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeawwwwwwaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahxhxxxxxxhhhhhhhyhaaggkkkkkkkkgkkkkkkkkkkkkkkkgggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmmgmmmmgmgmmmmgmmgmmmmmmgmmgmmmmmmmgmmmgmmmmgmmmgggg│
+│aaaaannnnnnnnnaaaaaaaaggmmmmmmmgmmmmmmmmmgmmmmmmgmmgmmmgmmmmgmmmmmmgmgmmmmmmmggg│
+│aaaaannnnnnannnnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnaaaaaaaaagggggogggggggggggggggggggggggggggggggggggggggggggggogggggg│
+│aaaaannnnnaaaaaaaaaaaagggogggggggmmmgggmmmgggggmmmgggggggmmmgggggmmmgggggggggogg│
+│aaaaannnnnnnnnaaaaaaadgggggggmmmgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgggggggg│
+│aaaaannnnnnnnaaaaaaaadgggogggggggpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgggggggogg│
+│arsssttttttttstttttssagggggggmmmgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgggggggggg│
+│aaaaannnnnaaaaaaaaaaaagggogggggggpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgggggggogg│
+│aaaaannnnnnnnnnnnnnaaagggggggmmmgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgggggggggg│
+│aaaaannnnnnnnaaaaaaaaagggogggggggpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgggggggogg│
+│aaaaannnnnnnnnaaaaaaaagggggggmmmgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgggggggggg│
+│aaaaannnnnnnnnnnnnaaaagggogggggggggggggggggggggggggggggggmmmmgpppppgmmmmgggggogg│
+│aaaaannnnnnnnaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggogggmmmmmmmmmgmmmmmmmgggggggggggggggggggggggggggggggogg│
+│aaadddddddaaaaaaaawaaagggggogggggggggggggggggggggggggggggggggggggggggggggogggggg│
+│aaaaannnnnnnnnaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnnnnaaaggmmmmmmggggggstttttttttttttttshuuuuuuuhgggggggggggggggggm│
+│aaaaannnnnnnnaaaaaaaaaggmmmmmgmmmgggsttttttshuuuuuuhgggggggggggggggggggggggggggm│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmgggggggsttttttshuuuuuuhgggggggggggggggggggggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+w #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+x #747a83 on #13151a
+y bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+n #e6e8eb on #1c1f25
+o #2c3039 on #16181d
+p #e6e8eb on #16181d
+r #5fa8ff on #2b4566
+s on #2b4566
+t bold #e6e8eb on #2b4566
+u #8b929c on #13151a

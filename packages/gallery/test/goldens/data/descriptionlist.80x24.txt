@@ -1,0 +1,79 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     DescriptionList                         Preview   Code  │
+│                        Terms and their values, the values in a column of       │
+│     BarChart           their own, aligned group by group; a long value wraps…  │
+│     Chart            ──────────────────────────────────────────────────────────│
+│     DotCanvas             ┌                                              ┐     │
+│     Calendar            ·   Status:     ● Running (healthy)                 ·  │
+│     Heatmap, Acti…          IP Address: 192.168.1.42                           │
+│     Table           ▐   ·   Uptime:     3 days, 4 hours                     ·  │
+│ ▎   DescriptionLi…  ▐       Image:      twk/server:0.1.0                       │
+│     TreeView            ·                                                   ·  │
+│     TreeTable               Limits                                             │
+│     DirectoryTree       ·   CPU:            2 cores                         ·  │
+│     TaskList                Memory:         ███████                            │
+│                         ·   Restart policy: unless stopped, 5 times at      ·  │
+│   EDITING        4                          most in a minute                   │
+│     TextField             └                                              ┘     │
+│     InputDecorati…   ──────────────────────────────────────────────────────────│
+│     TextArea           width      ────────────────▎▎──────────  44 cells       │
+│     Autocomplete       terms       left  center  right                         │
+│                        separator   colon  none                                 │
+│                        groups     ▐  ●▌                                        │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeaCCCCCCaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahDhDDDDDDhhhhhhhEhaaggkkkkkkkkkkkkkkkggggggggggggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmgmmmgmmmmmgmmmmmmmgmmmgmmmmmmgmmgmgmmmmmmgmmggggggg│
+│aaaaannnnnnnnaaaaaaaaaggmmmmmgmmmmgmmmmmmmgmmmmmgmmgmmmmmmgmgmmmmgmmmmmgmmmmmmgg│
+│aaaaannnnnaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnaaaaaaaagggggoggggggggggggggggggggggggggggggggggggggggggggggoggggg│
+│aaaaannnnnnnnaaaaaaaaagggogggmmmmmmmgggggpgqqqqqqqgqqqqqqqqqgggggggggggggggggogg│
+│aaaaannnnnnnnannnnnaaagggggggmmgmmmmmmmmgqqqqqqqqqqqqggggggggggggggggggggggggggg│
+│aaaaannnnnaaaaaaaaaaadgggogggmmmmmmmgggggqgqqqqqgqgqqqqqgggggggggggggggggggggogg│
+│astttuuuuuuuuuuuuuuttdgggggggmmmmmmggggggqqqqqqqqqqqqqqqqggggggggggggggggggggggg│
+│aaaaannnnnnnnaaaaaaaaagggogggggggggggggggggggggggggggggggggggggggggggggggggggogg│
+│aaaaannnnnnnnnaaaaaaaagggggggkkkkkkggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnaaaagggogggmmmmggggggggggggqgqqqqqgggggggggggggggggggggggggogg│
+│aaaaannnnnnnnaaaaaaaaagggggggmmmmmmmgggggggggvvvvvvv                     ggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggogggmmmmmmmgmmmmmmmgqqqqqqgqqqqqqqqgqgqqqqqgqqggggggogg│
+│aaadddddddaaaaaaaaCaaagggggggggggggggggggggggqqqqgqqgqgqqqqqqggggggggggggggggggg│
+│aaaaannnnnnnnnaaaaaaaagggggoggggggggggggggggggggggggggggggggggggggggggggggoggggg│
+│aaaaannnnnnnnnnnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnaaaaaaaaaggmmmmmggggggqqqqqqqqqqqqqqqqwqmmmmmmmmmmggFFgFFFFFggggggg│
+│aaaaannnnnnnnnnnnaaaaaggmmmmmggggggtuuuuthyyyyyyhhyyyyyhgggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmmmmmggtuuuuuthyyyyhgggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmmgggggzAABzgggggggggggggggggggggggggggggggggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+C #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+D #747a83 on #13151a
+E bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+n #e6e8eb on #1c1f25
+o #2c3039 on #16181d
+p #5fd38d on #16181d
+q #e6e8eb on #16181d
+s #5fa8ff on #2b4566
+t on #2b4566
+u bold #e6e8eb on #2b4566
+v #5fa8ff
+w reverse #e6e8eb on #16181d
+F #747a83 on #16181d
+y #8b929c on #13151a
+z #5fa8ff on #16181d
+A on #5fa8ff
+B #ffffff on #5fa8ff

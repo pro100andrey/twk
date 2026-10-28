@@ -1,0 +1,111 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Rich  ›  MarkdownView                                                     ctrl+p search      ◐ Light  │
+│                                                                                                                        │
+│   ⌕ Filter             /      MarkdownView                                                                     1 of 8  │
+│                               A Markdown document as widgets, a blank row between the blocks; its links the app's      │
+│     TerminalProgress          with onLinkTap, a MarkdownController scrolling to a heading.                             │
+│     Viewport                                                                                                           │
+│     Window title              Preview   Code                                                                           │
+│     Notifications          ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     Cli                        ┌                                                    ┐    │                             │
+│                                  Release notes                                           │  OPTIONS                    │
+│   SCREEN READERS       1                                                                 │                             │
+│     Semantics                    twk_rich puts rich text in the terminal:                │  content                    │
+│                                  Markdown, code and diffs, each a widget.                │   document  chat answer     │
+│   DEBUGGING            4                                                                 │                             │
+│     Console                      Jump to what is new or still to come.                   │  code wrap                  │
+│     FrameOverlay                                                                         │   grapheme  word  none      │
+│     Repaint rainbow              What is new                                             │                             │
+│     RepaintBoundary                                                                      │  width            50 cells  │
+│                                  • MarkdownView streams an answer in                     │  ───────────▍▍────────────  │
+│   RICH                 8         • CodeView highlights ten languages                     │                             │
+│ ▎   MarkdownView                   ◦ Dart, Rust, Go and Python                           │  links go to                │
+│     CodeView                       ◦ JSON, YAML and Bash                                 │   the terminal  the app     │
+│     SyntaxThemeScope             • DiffView marks the words that changed          ▇      │   the app only              │
+│     DiffView                                                                             │                             │
+│     JsonView                     1. Add the package:                                     │                             │
+│     BigText                      2. Import package:twk_rich/twk_rich.dart                │                             │
+│     QrCode                       3. Show a document                                      │                             │
+│     ANSI                                                                                 │                             │
+│                                   dart pub add twk_rich                                  │                             │
+│   IMAGES               1  ▐                                                              │                             │
+│     Image                 ▐       final notes = await File('NOTES.md').readAsStri        │                             │
+│                           ▐       ng();                                                  │                             │
+│   TERMINAL             1  ▐       runApp(SingleChildScrollView(                          │                             │
+│     TerminalView          ▐    └                                                    ┘    │                             │
+│                                                                              50 × 24     │                             │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaaKKKKaafaaddddddddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaKKKKKKaaaaaadadddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaiLiLLLLLLiiiiiiiiiiiiiMiaahhhllllllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhNhNNhNhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnhnnnnnnnnhnnnnnnnnhnnhnnnnnnnnhnhnnnnnhnnnhnnnnnnnhnnnhnnnnnnnhnnnhnnnnnhnnnhnnnnnhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhnnnnhnnnnnnnnnnhnhnnnnnnnnnnnnnnnnnnhnnnnnnnnnhnnhnhnnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaoooooaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaoooaaaaaaaaaaaaaaaaaaaahhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhrrrrrrrrrrrrrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhshhhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddadddddddaaaaaaaKaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhshhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhllllllllhtttthuuuuhuuuuhtthttthttttttttthhhhhhhhhshhhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhttttttttthtttthttthtttttthtttththttttttthhhhhhhhhshhhhhhphhOPPPPPPPPOxyyyyxyyyyyyxhhhh│
+│aaadddddddddaaaaaaaaaaaaKaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhshhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhtttthtthzzzzzzzzzzzhtthAAAAAAAAAAAAAthhhhhhhhhhhhshhhhhhphhnnnnhnnnnhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhshhhhhhphhOPPPPPPPPOxyyyyxxyyyyxhhhhh│
+│aaaaaoooooooaoooooooaaaaaaaahhhhhhBBBBhBBhBBBhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhshhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhshhhhhhphhnnnnnhhhhhhhhhhhhNNhNNNNNhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhnhCCCCCCCCCCCChttttttthtthtttttthtthhhhhhhhhhhhhhshhhhhhphhtttttttttttDtnnnnnnnnnnnnhh│
+│aaaddddaaaaaaaaaaaaaaaaaKaaahhhhhhnhCCCCCCCChtttttttttthttthttttttttthhhhhhhhhhhhhhshhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aQOOOPPPPPPPPPPPPOOOOOOOOOOahhhhhhhhnhttttthttttthtthttthtttttthhhhhhhhhhhhhhhhhhhhshhhhhhphhnnnnnhnnhnnhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhnhttttthtttthttthtttthhhhhhhhhhhhhhhhhhhhhhhhhhshhhhhhphhOPPPOPPPPPPPPOxyyyxyyyxhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhhhhnhCCCCCCCChttttthttthttttthtttthttttttthhhhhhhhhhshhhhhhphhxyyyxyyyxyyyyxhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhnnhttthttthtttttttthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhnnhtttttthCCCCCCCCCCCCCCCCCCCCCCCCCCCCCChhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhhhnnhtttththtttttttthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhxFFFFxGGGxGGGxGGGGGGGGxxxxxxxxxxxxxxxxxxxxxxxxxxxhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddaaaaaaaaaaaaaaaKaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaadhhhhhhxCCCCCxGGGGGxIxCCCCCxIIIIGJJJJJJJJJJGGFFFFFFFFFFxhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhhhxFFGGGxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddddaaaaaaaaaaaaaKaadhhhhhhxFFFFFFGIIIIIIIIIIIIIIIIIIIIIGxxxxxxxxxxxxxxxxxxxhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaadhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhNNhNhNNhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #f3f5f7
+b #0969da on #f3f5f7
+c bold #1f2328 on #f3f5f7
+d #656d76 on #f3f5f7
+K #838991 on #f3f5f7
+f #dcdfe4 on #f3f5f7
+g bold #656d76 on #f3f5f7
+h on #fafafb
+i on #fefefe
+L #838991 on #fefefe
+M bold #838991 on #fefefe
+l bold #1f2328 on #fafafb
+N #838991 on #fafafb
+n #656d76 on #fafafb
+o #1f2328 on #f3f5f7
+p #dcdfe4 on #fafafb
+q #0969da on #fafafb
+r bold underline #0969da on #fafafb
+s reverse #c8cdd5 on #fafafb
+t #1f2328 on #fafafb
+u italic #1f2328 on #fafafb
+O on #b6d4fe
+P bold #1f2328 on #b6d4fe
+x on #eef0f3
+y #656d76 on #eef0f3
+z underline #0969da on #fafafb link=#what-is-new
+A underline #0969da on #fafafb link=#still-to-come
+B bold #0969da on #fafafb
+C #8250df on #eef0f3
+D reverse #1f2328 on #fafafb
+Q #0969da on #b6d4fe
+F #0969da on #eef0f3
+G #1f2328 on #eef0f3
+I #0a7ea4 on #eef0f3
+J #1a7f37 on #eef0f3

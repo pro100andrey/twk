@@ -1,0 +1,458 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Images  ›  Image                                                          ctrl+p search      ◐ Light  │
+│                                                                                                                        │
+│   ⌕ Filter             /      Image                                                                            1 of 1  │
+│                               A PNG or JPEG fitted to its cells. Where the terminal has a graphics protocol            │
+│     TerminalProgress          (kitty, sixel, iTerm2) its pixels are placed over the cells; where it has none, or       │
+│     Viewport                  with forceBlocks, as here, it is drawn in half blocks or quadrants.                      │
+│     Window title                                                                                                       │
+│     Notifications             Preview   Code                                                                           │
+│     Cli                    ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│                                                                                          │                             │
+│   SCREEN READERS       1       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│     Semantics                                                                            │                             │
+│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  picture                    │
+│   DEBUGGING            4                                                                 │   lake.jpg  logo.png        │
+│     Console                    ·  ┌                                              ┐ ·     │                             │
+│     FrameOverlay                        ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀             │  fit                        │
+│     Repaint rainbow            ·        ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀       ·     │   contain  cover  fill      │
+│     RepaintBoundary                     ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀             │   scaleDown                 │
+│                                ·        ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀       ·     │                             │
+│   RICH                 8                ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀             │  alignment                  │
+│     MarkdownView               ·        ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀       ·     │   center  topLeft           │
+│     CodeView                            ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀             │   centerLeft  centerRight   │
+│     SyntaxThemeScope           ·        ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀       ·     │   bottomRight               │
+│     DiffView                            ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀             │                             │
+│     JsonView                   ·        ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀       ·     │  blocks                     │
+│     BigText                             ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀             │   half  quadrant            │
+│     QrCode                     ·        ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀       ·     │                             │
+│     ANSI                          └                                              ┘       │  width            44 cells  │
+│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  44 × 12  ·     │  ──────────── ────────────  │
+│   IMAGES               1  ▐                                                              │                             │
+│ ▎   Image                 ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  height            12 rows  │
+│                           ▐                                                              │  ──────── ────────────────  │
+│   TERMINAL             1  ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     TerminalView          ▐                                                              │                             │
+│                                                                                          │                             │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaaǡǡǡǡǡǡaafaadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaǡǡǡǡǡǡaaaaaadadddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaiǢiǢǢǢǢǢǢiiiiiiiiiiiiiǣiaahhhlllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhǤhǤǤhǤhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnhnnnhnnhnnnnhnnnnnnhnnhnnnhnnnnnnhnnnnnhnnnhnnnnnnnnhnnnhnhnnnnnnnnhnnnnnnnnhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhnnnnnnnhnnnnnnhnnnnnnnhnnnhnnnnnnhnnnhnnnnnnhnnnnhnnnhnnnnnnhnnnnnhnnhnnnhnnnnnhnnhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhnnnnhnnnnnnnnnnnnhnnhnnnnnhnnhnnhnnnnnhnnhnnnnhnnnnnnhnnhnnnnnnnnnnhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaoooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooaaaaaaaaaaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddadddddddaaaaaaaǡaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaadddddddddaaaaaaaaaaaaǡaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhǥǦǦǦǦǦǦǦǦǥtuuuuuuuuthhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhphhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhvvvvvvvvvvwxyxzABCDEFGHHIIJJKKCBLMyyhhhhhhhhhhhhhphhnnnhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaoooooooaaaaaaaahhhhphhhhhhhhNNOOOOOPOOOQRSTUVWXYZ0123456X7V89S!"hhhhhhhphhhhhphhǥǦǦǦǦǦǦǦǥtuuuuuttuuuuthhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhhhhhhhhhh####$%&'(#)*+,-./:;<=>?@[\]^_`{|}~ÀÁhhhhhhhhhhhhhphhtuuuuuuuuuthhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhhhhhhÂÂÃÄÂÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddaaaaaaaaaaaaaaaaaǡaaahhhhhhhhhhhhhäääåæçèéêëìíîïðñòóôõö÷øùúûüýþÿĀāĂăĄąhhhhhhhhhhhhhphhnnnnnnnnnhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhphhhhhhhhĆĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħħhhhhhhhphhhhhphhǥǦǦǦǦǦǦǥtuuuuuuuthhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhĨĩĪīĬĭĮĮĮįİıĲĳĴĵĶķĸĹĺĻļĽľĿŀŁłŃńŅņŇĭĮhhhhhhhhhhhhhphhtuuuuuuuuuuttuuuuuuuuuuuthh│
+│aaaaaooooooooooooooooaaaaaaahhhhphhhhhhhhňŉŊŋŌōŎŏŐőŒœŔŔŕŖŗŘŘřŚśŜŝŞşŠšŢţŤťŦŧŐŐhhhhhhhphhhhhphhtuuuuuuuuuuuthhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƀƁƂƃƄƅƆƇƈƉƊƊhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhhhhhhƍƎƏƐƑƒƓƔƕƖƗƘƙƚƛƜƝƞƟƠơƢƣƤƥƦƧƨƩƪƫƬƭƮƯưhhhhhhhphhhhhphhnnnnnnhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhƱƲƳƴƵƶƷƸƹƺƻƼƽƾƿǀǁǂǃǄǅǆǇǈǉǊǋǌǍǎǏǐǑǒǓǔhhhhhhhhhhhhhphhǥǦǦǦǦǥtuuuuuuuuthhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhphhhhhhhhǕǖƳƳƳƳǗǘǙǖƳƳƳƳƳƳƳƳƳƳƳƳƳƳƳƳǖǚǛǜƳƳƳǖǝǞhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooaaaaaaaaaaaaaaaaaaahhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhphhnnnnnhhhhhhhhhhhhǤǤhǤǤǤǤǤhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhǤǤhǤhǤǤhhphhhhhphhƋƋƋƋƋƋƋƋƋƋƋƋƌnnnnnnnnnnnnhh│
+│aaaddddddaaaaaaaaaaaaaaaǡaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aǧǥǥǥǦǦǦǦǦǥǥǥǥǥǥǥǥǥǥǥǥǥǥǥǥǥdhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnhhhhhhhhhhhhǤǤhǤǤǤǤhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhƋƋƋƋƋƋƋƋƌnnnnnnnnnnnnnnnnhh│
+│aaaddddddddaaaaaaaaaaaaaǡaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #f3f5f7
+b #0969da on #f3f5f7
+c bold #1f2328 on #f3f5f7
+d #656d76 on #f3f5f7
+ǡ #838991 on #f3f5f7
+f #dcdfe4 on #f3f5f7
+g bold #656d76 on #f3f5f7
+h on #fafafb
+i on #fefefe
+Ǣ #838991 on #fefefe
+ǣ bold #838991 on #fefefe
+l bold #1f2328 on #fafafb
+Ǥ #838991 on #fafafb
+n #656d76 on #fafafb
+o #1f2328 on #f3f5f7
+p #dcdfe4 on #fafafb
+q #0969da on #fafafb
+ǥ on #b6d4fe
+Ǧ bold #1f2328 on #b6d4fe
+t on #eef0f3
+u #656d76 on #eef0f3
+v #18204c on #1f2759
+w #18214d on #1f2759
+x #18214d on #20275a
+y #18214d on #202759
+z #19204c on #21275a
+A #19204b on #22285a
+B #1a214c on #22285a
+C #1a214c on #222859
+D #1a214c on #23295a
+E #1b224c on #232a5a
+F #1b224c on #242a5a
+G #1c234c on #252b5a
+H #1c234d on #252b5a
+I #1c234e on #242b5a
+J #1b224d on #242a5b
+K #1b224d on #23295a
+L #19204b on #21275a
+M #19204c on #20275a
+N #262d66 on #2f3474
+O #272d66 on #2f3474
+P #272d66 on #2e3474
+Q #282e67 on #2f3474
+R #282e65 on #2f3474
+S #282e66 on #303574
+T #282e66 on #2f3574
+U #292f67 on #303674
+V #2a2f67 on #323775
+W #2b2f67 on #333775
+X #2c3168 on #353975
+Y #2c3268 on #363a76
+Z #2d3268 on #373b75
+0 #2e3368 on #393c75
+1 #2f3368 on #3a3d75
+2 #2f3468 on #3b3d75
+3 #2f3467 on #3b3d74
+4 #2f3367 on #3a3c75
+5 #2e3368 on #383c75
+6 #2d3268 on #363b75
+7 #2b3067 on #333875
+8 #292f67 on #313675
+9 #292f67 on #303675
+! #282e66 on #2f3474
+" #282e65 on #2f3473
+# #3a3a7d on #513f7f
+$ #3a3a7d on #513f80
+% #393a7e on #513f7d
+& #3b3b7d on #84699b
+' #444382 on #987ca5
+( #3a3a7e on #513f7e
+) #3a3a7d on #523f80
+* #3a3b7e on #524080
++ #3b3b7e on #52407f
+, #3b3b7e on #53417f
+- #3c3c7d on #544180
+. #3d3c7d on #55427f
+/ #3f3d7d on #56447f
+: #403f7e on #59467f
+; #42417e on #5c487e
+< #45437e on #5f4a7f
+= #47447e on #624d80
+> #49467e on #655080
+? #4a477f on #68537f
+@ #4c487f on #69537f
+[ #4b487f on #68537f
+\ #4a477f on #67527f
+] #48457f on #644f80
+^ #46437e on #604c7f
+_ #43427e on #5d4a7e
+` #41407e on #5a477f
+{ #3f3e7e on #584480
+| #3e3d7e on #56437f
+} #3d3c7e on #55427f
+~ #3c3b7e on #54417f
+À #3b3b7e on #53417e
+Á #3b3b7e on #52407e
+Â #6a457f on #824a7e
+Ã #6a457f on #814b7e
+Ä #6a457f on #814a7e
+Å #64437b on #5b3663
+Æ #523e64 on #2d2245
+Ç #443356 on #2e2245
+È #5e4076 on #3e2950
+É #69467f on #804b7d
+Ê #6b467e on #814b7f
+Ë #6b467e on #834b7e
+Ì #6b467e on #895485
+Í #6c477f on #8a5586
+Î #6c487f on #854d7f
+Ï #6d497f on #864f80
+Ð #6e4b7f on #885180
+Ñ #714d80 on #8b547f
+Ò #755080 on #8e587f
+Ó #79547f on #935d80
+Ô #7e587f on #9a6480
+Õ #825d80 on #a06b80
+Ö #866180 on #a67281
+× #896280 on #aa7481
+Ø #87627f on #a87480
+Ù #855f81 on #a46f81
+Ú #815b80 on #9d6881
+Û #7b567f on #96617f
+Ü #76537f on #915b7f
+Ý #734f7e on #8d567f
+Þ #714c7f on #895280
+ß #6e4a7e on #86507f
+à #6c487e on #854e80
+á #6c4780 on #844c80
+â #6e4980 on #9f7399
+ã #6c4780 on #a57ba1
+ä #9a4f80 on #b15b77
+å #99507d on #b35a77
+æ #934e7d on #5f3858
+ç #352546 on #2f2245
+è #302347 on #322449
+é #312447 on #33254b
+ê #2d2143 on #2f2246
+ë #57315a on #2c2142
+ì #9a517f on #864867
+í #9b517d on #ad5a75
+î #925f84 on #382547
+ï #ab7aa0 on #37274a
+ð #9c537f on #9c5570
+ñ #9e557f on #b46179
+ò #a0577f on #b66478
+ó #a35b7f on #b86878
+ô #a7607f on #bd6d78
+õ #ac6780 on #c2767a
+ö #b47180 on #cc817c
+÷ #bc7d82 on #d6917e
+ø #c68783 on #e4b191
+ù #cb8d82 on #efd6ad
+ú #c88b83 on #eac8a1
+û #c28282 on #dc9d82
+ü #b87782 on #cf8a7d
+ý #b06c80 on #c67c7a
+þ #aa6380 on #c0727a
+ÿ #a55d7f on #bb6b79
+Ā #a1597f on #b76679
+ā #9f567e on #b66278
+Ă #9f537d on #8e4e6c
+ă #78436c on #2e2143
+Ą #4f3b5e on #2e2244
+ą #443355 on #2e2345
+Ć #c86c6d on #e17c63
+ć #c96b6f on #bf6b5c
+Ĉ #854d5c on #2f2144
+ĉ #2e2043 on #2e2244
+Ċ #302347 on #31254a
+ċ #34264c on #35264e
+Č #35264c on #35264e
+č #322348 on #33254b
+Ď #302144 on #312348
+ď #412b48 on #2d2244
+Đ #6d4059 on #2d2043
+đ #2d2245 on #2f2447
+Ē #2e2245 on #312348
+ē #6b3e52 on #342443
+Ĕ #cc7070 on #b86d69
+ĕ #cc736f on #a7626e
+Ė #cf7770 on #a4646f
+ė #d37c72 on #925d72
+Ę #cd7f77 on #815573
+ę #ce8a79 on #815676
+Ě #e8a882 on #9f747c
+ě #faf0c1 on #c6b5ad
+Ĝ #fdf4c7 on #c6b7ad
+ĝ #fcf4c8 on #c8b9ae
+Ğ #f0cea3 on #ddc1a2
+ğ #e29b78 on #f0a474
+Ġ #d98b75 on #d58b70
+ġ #d58174 on #b9746f
+Ģ #d17a70 on #ba726e
+ģ #ce756f on #d87e66
+Ĥ #c36d6c on #8b5355
+ĥ #3c2946 on #2e2144
+Ħ #2d2244 on #2f2347
+ħ #2f2347 on #31254b
+Ĩ #e28b63 on #855d75
+ĩ #ec9266 on #755368
+Ī #664149 on #2d2144
+ī #2d2145 on #2f2347
+Ĭ #302349 on #34244a
+ĭ #34254c on #35264d
+Į #35264d on #35264d
+į #32254a on #34264d
+İ #2f2347 on #302449
+ı #2e2345 on #2f2347
+Ĳ #33244b on #34254c
+ĳ #33244b on #35264d
+Ĵ #2e2247 on #302349
+ĵ #583b5a on #332546
+Ķ #805573 on #7c5a73
+ķ #805674 on #825e76
+ĸ #815774 on #835e77
+Ĺ #815874 on #835e77
+ĺ #815a75 on #825f78
+Ļ #825c77 on #835f79
+ļ #856785 on #826179
+Ľ #856c8c on #83627d
+ľ #846b8b on #82617c
+Ŀ #83617d on #83607a
+ŀ #825b76 on #835f78
+Ł #825974 on #825e77
+ł #815773 on #835e77
+Ń #825673 on #7e5b75
+ń #75506f on #412f4e
+Ņ #312244 on #2d2246
+ņ #2f2346 on #302449
+Ň #312449 on #33264c
+ň #755870 on #835a62
+ŉ #4f3a56 on #4f3846
+Ŋ #2d2142 on #292040
+ŋ #2c2346 on #282042
+Ō #30244a on #2a2245
+ō #30244a on #292041
+Ŏ #30244b on #2c2348
+ŏ #30244a on #2c2347
+Ő #30244a on #2c2348
+ő #30244a on #2b2246
+Œ #2e2348 on #292143
+œ #2e2346 on #292043
+Ŕ #30244a on #2b2247
+ŕ #2d2347 on #282143
+Ŗ #2b2043 on #382b4c
+ŗ #5c4460 on #664a65
+Ř #755870 on #674a67
+ř #765871 on #664b68
+Ś #755871 on #664c68
+ś #755972 on #684e69
+Ŝ #7d6272 on #775e72
+ŝ #836776 on #887179
+Ş #816474 on #856e78
+ş #755971 on #6c526a
+Š #745972 on #664d67
+š #755871 on #674c67
+Ţ #765870 on #674c67
+ţ #56415d on #674a66
+Ť #292041 on #483754
+ť #2b2244 on #272043
+Ŧ #2d244a on #2b2043
+ŧ #302449 on #2a2246
+Ũ #aa6554 on #915359
+ũ #4b3135 on #322131
+Ū #543742 on #633846
+ū #201a37 on #271b2d
+Ŭ #281f40 on #231d39
+ŭ #1b152f on #151126
+Ů #2a2246 on #292145
+ů #2a2246 on #292244
+Ű #292146 on #282143
+ű #282044 on #272041
+Ų #261f41 on #312543
+ų #251f41 on #442e48
+Ŵ #272044 on #261f41
+ŵ #282145 on #272041
+Ŷ #282041 on #48314a
+ŷ #6a4558 on #925659
+Ÿ #66435e on #90585f
+Ź #654360 on #935a5e
+ź #634362 on #8e5a60
+Ż #614464 on #82565f
+ż #624666 on #865e61
+Ž #674d65 on #a57f6f
+ž #86747f on #baae95
+ſ #a08d88 on #c7bc9e
+ƀ #928183 on #c2b99c
+Ɓ #90797a on #b29981
+Ƃ #936863 on #a07263
+ƃ #845a62 on #9b6860
+Ƅ #704c63 on #98605f
+ƅ #704c60 on #955c5d
+Ɔ #83535d on #72454d
+Ƈ #4c3243 on #67404e
+ƈ #231d3c on #261f36
+Ɖ #201a37 on #1c152f
+Ɗ #292146 on #272042
+ƍ #73425f on #553458
+Ǝ #1c1326 on #161026
+Ə #3f283f on #1f162c
+Ɛ #171126 on #130e22
+Ƒ #2f203c on #22172d
+ƒ #121023 on #120f22
+Ɠ #251f3f on #211b3a
+Ɣ #272042 on #231f42
+ƕ #251f41 on #241e3e
+Ɩ #251e40 on #402b50
+Ɨ #583654 on #5f3960
+Ƙ #72435f on #603a60
+ƙ #2f2344 on #66486c
+ƚ #332848 on #6a5071
+ƛ #653d59 on #623b61
+Ɯ #784661 on #613c5f
+Ɲ #794861 on #623e60
+ƞ #7c4a61 on #644061
+Ɵ #7f4e62 on #674361
+Ơ #815363 on #6b4762
+ơ #855c63 on #714d62
+Ƣ #946e68 on #805e69
+ƣ #a98a7b on #92716e
+Ƥ #bda58b on #a38476
+ƥ #b09884 on #91716d
+Ʀ #9f7a6e on #8c6a6e
+Ƨ #8c6263 on #775464
+ƨ #845862 on #6d4962
+Ʃ #805163 on #684562
+ƪ #7d4c62 on #674062
+ƫ #472b3e on #2b1e35
+Ƭ #4b2f45 on #2e1f38
+ƭ #40273f on #2a1c34
+Ʈ #15142a on #171228
+Ư #241f40 on #483b5c
+ư #241f41 on #3e3455
+Ʊ #3e2b50 on #2b2446
+Ʋ #130f23 on #120f21
+Ƴ #120f22 on #120f22
+ƴ #111022 on #120f22
+Ƶ #151024 on #120f22
+ƶ #120f22 on #120f21
+Ʒ #1c1833 on #342c44
+Ƹ #231e3f on #463e5e
+ƹ #382a50 on #322951
+ƺ #4b335e on #2f264c
+ƻ #4b335f on #2b2245
+Ƽ #4b3360 on #271f3e
+ƽ #4b3560 on #221b37
+ƾ #4d355f on #1f1933
+ƿ #4c355f on #19142b
+ǀ #4d355e on #171328
+ǁ #4e375e on #120e23
+ǂ #50395f on #120f22
+ǃ #513a5f on #120f22
+Ǆ #533d5e on #130f23
+ǅ #5b445f on #140f24
+ǆ #6b5466 on #1b162b
+Ǉ #7f666b on #241d31
+ǈ #8e7371 on #3c333d
+ǉ #7b6169 on #3c3443
+Ǌ #78606b on #3f3746
+ǋ #644c65 on #392f4a
+ǌ #563f5f on #3a2f51
+Ǎ #523c5f on #3b3055
+ǎ #4d375b on #302748
+Ǐ #171226 on #120f23
+ǐ #1b162b on #140e23
+Ǒ #1a142a on #141125
+ǒ #150f25 on #110f23
+Ǔ #4e3b61 on #2d254a
+ǔ #564067 on #382e5c
+Ǖ #130f24 on #120f21
+ǖ #120f21 on #120f22
+Ǘ #140e22 on #120f22
+ǘ #130f23 on #110f22
+Ǚ #120e24 on #120f22
+ǚ #120f21 on #120f23
+Ǜ #120f22 on #120f23
+ǜ #120f23 on #120f22
+ǝ #141127 on #120f22
+Ǟ #18142d on #120f23
+Ƌ #1f2328 on #fafafb
+ƌ reverse #1f2328 on #fafafb
+ǧ #0969da on #b6d4fe

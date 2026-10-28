@@ -1,0 +1,73 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     SplitView                               Preview   Code  │
+│                        Panes the mouse or the arrows resize by their           │
+│     Transform          dividers; Tab focuses one. The last one collapses.      │
+│     Visibility, O…   ──────────────────────────────────────────────────────────│
+│     ExpansionTile…  ▐   ┌                                                  ┐   │
+│     Grid, GridPla…  ▐     ╭files──────┬editor─────────────────┬outline───╮     │
+│     Wrap                  │ box.dart  │ Drag a divider, or Tab│ Drag its │     │
+│     CustomPaint           │ flex.dart │ to one and press the  │ divider  │     │
+│ ▎   SplitView             │ grid.dart │ arrows.               │ to the   │     │
+│     DockArea              │ wrap.dart │                       │ edge.    │     │
+│     Scaffold              │           │                       │          │     │
+│                           │           │                       │          │     │
+│   STYLE          4        │           │                       │          │     │
+│     Theme                 │           │                       │          │     │
+│     TerminalBrigh…        │           │                       │          │     │
+│     GradientBackg…        ╰───────────┴───────────────────────┴──────────╯     │
+│     GradientForeg…                                                             │
+│                           fractions: 0.25  0.50  0.25                          │
+│   SCROLLING      5      └                                                  ┘   │
+│     SingleChildSc…   ──────────────────────────────────────────────────────────│
+│                        direction     horizontal  vertical                     ▐│
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeawwwwwwaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahxhxxxxxxhhhhhhhyhaaggkkkkkkkkkggggggggggggggggggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmgmmmgmmmmmgmmgmmmgmmmmmmgmmmmmmgmmgmmmmmggggggggggg│
+│aaaaannnnnnnnnaaaaaaaaggmmmmmmmmmgmmmgmmmmmmmgmmmmgmmmgmmmmgmmmgmmmmmmmmmmgggggg│
+│aaaaannnnnnnnnnnannaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnnnnaadgggoggggggggggggggggggggggggggggggggggggggggggggggggggoggg│
+│aaaaannnnnannnnnnnnaadgggggqmmmmmqqqqqqqmmmmmmqqqqqqqqqqqqqqqqqqmmmmmmmqqqqggggg│
+│aaaaannnnaaaaaaaaaaaaagggggqgrrrrrrrrggqgrrrrgrgrrrrrrrrgrrgrrrqgrrrrgrrrgqggggg│
+│aaaaannnnnnnnnnnaaaaaagggggqgrrrrrrrrrgqgrrgrrrgrrrgrrrrrgrrrggqgrrrrrrrggqggggg│
+│astttuuuuuuuuutttttttagggggqgrrrrrrrrrgqgrrrrrrrgggggggggggggggqgrrgrrrgggqggggg│
+│aaaaannnnnnnnaaaaaaaaagggggqgrrrrrrrrrgqgggggggggggggggggggggggqgrrrrrggggqggggg│
+│aaaaannnnnnnnaaaaaaaaagggggqgggggggggggqgggggggggggggggggggggggqggggggggggqggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggqgggggggggggqgggggggggggggggggggggggqggggggggggqggggg│
+│aaadddddaaaaaaaaaawaaagggggqgggggggggggqgggggggggggggggggggggggqggggggggggqggggg│
+│aaaaannnnnaaaaaaaaaaaagggggqgggggggggggqgggggggggggggggggggggggqggggggggggqggggg│
+│aaaaannnnnnnnnnnnnnaaagggggqgggggggggggqgggggggggggggggggggggggqggggggggggqggggg│
+│aaaaannnnnnnnnnnnnnaaagggggqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqggggg│
+│aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggmmmmmmmmmmgrrrrggrrrrggrrrrgggggggggggggggggggggggggg│
+│aaadddddddddaaaaaawaaagggoggggggggggggggggggggggggggggggggggggggggggggggggggoggg│
+│aaaaannnnnnnnnnnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmmmmmggggtuuuuuuuuuuthvvvvvvvvhggggggggggggggggggggm│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+w #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+x #747a83 on #13151a
+y bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+n #e6e8eb on #1c1f25
+o #2c3039 on #16181d
+q #3e444f on #16181d
+r #e6e8eb on #16181d
+s #5fa8ff on #2b4566
+t on #2b4566
+u bold #e6e8eb on #2b4566
+v #8b929c on #13151a

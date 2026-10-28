@@ -1,0 +1,5 @@
+# what `dart compile wasm web/main.dart -o web/main.wasm` writes
+/web/main.mjs
+/web/main.support.js
+/web/main.wasm
+/web/main.wasm.map

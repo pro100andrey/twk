@@ -1,0 +1,25 @@
+name: twk_cli
+description: >-
+  A console for command-line tools on twk: levels, themes, styled messages
+  and any twk widget printed, written as the terminal, a pipe or CI takes
+  them, with prompts and progress live in an inline session.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.13.5
+resolution: workspace
+dependencies:
+  meta: ^1.19.0
+  twk:
+    path: ../twk
+  twk_core:
+    path: ../twk_core
+  twk_rich:
+    path: ../twk_rich
+  # package:twk_cli/testing.dart: the emulator and the fake clock
+  twk_test:
+    path: ../twk_test
+dev_dependencies:
+  pro_lints: ^6.2.0
+  test: ^1.33.0

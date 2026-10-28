@@ -1,0 +1,76 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     NotificationListener                    Preview   Code  │
+│                        The notifications that bubble up to it from below,      │
+│   FOUNDATION     2     such as those of a list as it scrolls: the wheel over…  │
+│     ListenableBui…   ──────────────────────────────────────────────────────────│
+│     FutureBuilder…     ┌                                                    ┐  │
+│                          ╭──────────────╮               Δ  inner  outer        │
+│   FRAMEWORK      3       │ item 1       │  nothing yet                         │
+│     LayoutBuilder        │ item 2       │                                      │
+│ ▎   NotificationL…       │ item 3       │                                      │
+│     Slot, SlotSco…       │ item 4       │                                      │
+│                          │ item 5       │                                      │
+│   APP            8       │ item 6       │  inner ScrollUpdateNotification      │
+│     InputListener        ╰──────────────╯  outer ScrollNotification            │
+│     ErrorWidget                                                                │
+│     Static               heard: nothing                                        │
+│     TerminalProgr…     └                                                    ┘  │
+│     Viewport        ▐──────────────────────────────────────────────────────────│
+│     Window title    ▐  outer hears        Scroll  ScrollUpdate  Overscroll     │
+│     Notifications      inner stops them  ▐●  ▌                                 │
+│     Cli                                                                        │
+│                                                                                │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeazzzzzzaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahAhAAAAAAhhhhhhhBhaaggkkkkkkkkkkkkkkkkkkkkgggggggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmgmmmmmmmmmmmmmgmmmmgmmmmmmgmmgmmgmmgmmmmgmmmmmmgggggg│
+│aaaddddddddddaaaaazaaaggmmmmgmmgmmmmmgmmgmgmmmmgmmgmmgmmmmmmmmgmmmgmmmmmgmmmmmgg│
+│aaaaannnnnnnnnnnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnnnnaaaggoggggggggggggggggggggggggggggggggggggggggggggggggggggogg│
+│aaaaaaaaaaaaaaaaaaaaaaggggppppppppppppppppgggggggggggggggmggmmmmmggmmmmmgggggggg│
+│aaadddddddddaaaaaazaaaggggpgqqqqgqgggggggpggmmmmmmmgmmmggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnaaaaggggpgqqqqgqgggggggpgggggggggggggggggggggggggggggggggggggg│
+│arsssttttttttttttttssaggggpgqqqqgqgggggggpgggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnannnnnnnnaaaggggpgqqqqgqgggggggpgggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaaggggpgqqqqgqgggggggpgggggggggggggggggggggggggggggggggggggg│
+│aaadddaaaaaaaaaaaazaaaggggpgqqqqgqgggggggpggmmmmmgqqqqqqqqqqqqqqqqqqqqqqqqgggggg│
+│aaaaannnnnnnnnnnnnaaaaggggppppppppppppppppggmmmmmgqqqqqqqqqqqqqqqqqqgggggggggggg│
+│aaaaannnnnnnnnnnaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnaaaaaaaaaaaggggmmmmmmgmmmmmmmgggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaaaggoggggggggggggggggggggggggggggggggggggggggggggggggggggogg│
+│aaaaannnnnnnnaaaaaaaadoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnannnnnaaaadggmmmmmgmmmmmgggggggsttttttshvvvvvvvvvvvvhhvvvvvvvvvvhgggg│
+│aaaaannnnnnnnnnnnnaaaaggmmmmmgmmmmmgmmmmggwxyywggggggggggggggggggggggggggggggggg│
+│aaaaannnaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+z #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+A #747a83 on #13151a
+B bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+n #e6e8eb on #1c1f25
+o #2c3039 on #16181d
+p #3e444f on #16181d
+q #e6e8eb on #16181d
+r #5fa8ff on #2b4566
+s on #2b4566
+t bold #e6e8eb on #2b4566
+v #8b929c on #13151a
+w #383d48 on #16181d
+x #e6e8eb on #383d48
+y on #383d48

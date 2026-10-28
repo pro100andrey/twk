@@ -1,0 +1,2 @@
+# a test that hangs fails in seconds, not minutes
+timeout: 30s

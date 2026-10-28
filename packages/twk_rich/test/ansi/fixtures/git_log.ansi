@@ -1,0 +1,35 @@
+[33m6473e80[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m Bubble notifications up to the listeners above a context
+[34m2026-10-19[m
+
+ packages/twk/lib/src/framework/framework.dart      |  77 [32m+++++++++[m[31m-[m
+ packages/twk/test/framework/contracts_test.dart    |  13 [32m+[m[31m-[m
+ packages/twk/test/framework/notification_test.dart | 167 [32m+++++++++++++++++++++[m
+ 3 files changed, 252 insertions(+), 5 deletions(-)
+[33m99dc39a[m Rename the keyboard enum Key to KeyCode and KeyEvent's key to code
+[34m2026-10-19[m
+
+ README.md                                 |   5 [32m+[m[31m-[m
+ example/chat_demo.dart                    |  24 [32m+++[m[31m--[m
+ lib/src/input/events.dart                 |  17 [32m++[m[31m--[m
+ lib/src/input/parser.dart                 | 164 [32m+++++++++++++++[m[31m---------------[m
+ lib/src/terminal/terminal.dart            |   2 [32m+[m[31m-[m
+ test/headless/headless_terminal_test.dart |  16 [32m+[m[31m--[m
+ test/inline/inline_demo.dart              |   8 [32m+[m[31m-[m
+ test/input_parser_test.dart               | 120 [32m+++++++++++[m[31m-----------[m
+ test/log/log_app.dart                     |   2 [32m+[m[31m-[m
+ test/terminal/suspend_app.dart            |  10 [32m+[m[31m-[m
+ 10 files changed, 190 insertions(+), 178 deletions(-)
+[33mf87234d[m Commit finished lines to the scrollback above the inline region
+[34m2026-10-19[m
+
+ README.md                        |  55 [32m+++++[m[31m---[m
+ lib/src/app.dart                 | 145 [32m+++++++++++++++++++[m[31m--[m
+ lib/src/presenter.dart           | 270 [32m++++++++++++++++++++++++++++++++++++[m[31m---[m
+ lib/src/screen.dart              |   6 [32m+[m
+ test/inline/inline_app_test.dart | 110 [32m+++++++++++++++[m[31m-[m
+ test/inline/inline_demo.dart     |  24 [32m++[m[31m--[m
+ test/presenter_fuzz_test.dart    |  45 [32m++++++[m[31m-[m
+ test/presenter_test.dart         | 163 [32m+++++++++++++++++++++++[m
+ test/screen_test.dart            |  24 [32m++++[m
+ test/support/harness.dart        |  79 [32m+++++++++++[m[31m-[m
+ 10 files changed, 864 insertions(+), 57 deletions(-)

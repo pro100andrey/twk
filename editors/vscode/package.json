@@ -1,0 +1,468 @@
+{
+  "name": "twk-vscode",
+  "displayName": "twk",
+  "description": "Run and debug twk terminal apps in a terminal of the extension's own, with switches for what the terminal can do.",
+  "version": "0.0.1",
+  "private": true,
+  "publisher": "twk",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Debuggers",
+    "Other"
+  ],
+  "activationEvents": [
+    "workspaceContains:pubspec.yaml",
+    "onDebugResolve:twk",
+    "onDebugDynamicConfigurations:twk",
+    "onDebugInitialConfigurations"
+  ],
+  "main": "./out/vscode/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "twk.openTerminal",
+        "title": "Open twk Terminal for Any App",
+        "category": "twk"
+      },
+      {
+        "command": "twk.runFile",
+        "title": "Run Dart File in twk Terminal",
+        "category": "twk"
+      },
+      {
+        "command": "twk.debugFile",
+        "title": "Debug Dart File in twk Terminal",
+        "category": "twk"
+      },
+      {
+        "command": "twk.hotReload",
+        "title": "Hot Reload",
+        "category": "twk",
+        "enablement": "twk.hotApp"
+      },
+      {
+        "command": "twk.hotRestart",
+        "title": "Hot Restart",
+        "category": "twk",
+        "enablement": "twk.hotApp"
+      },
+      {
+        "command": "twk.chooseProfile",
+        "title": "Choose twk Terminal Capabilities (Presets, Each Switch)",
+        "category": "twk"
+      },
+      {
+        "command": "twk.chooseSwitches",
+        "title": "Choose twk Terminal Switches (Screen Reader, Debug Aids)",
+        "category": "twk"
+      },
+      {
+        "command": "twk.showOutput",
+        "title": "Show twk Output",
+        "category": "twk"
+      },
+      {
+        "command": "twk.inspector.refresh",
+        "title": "Refresh the Widget Tree",
+        "category": "twk",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "twk.inspector.pick",
+        "title": "Pick Widgets in the twk Terminal (Pick Mode On)",
+        "category": "twk",
+        "icon": "$(inspect)"
+      },
+      {
+        "command": "twk.inspector.stopPicking",
+        "title": "Stop Picking Widgets (Pick Mode Off)",
+        "category": "twk",
+        "icon": "$(circle-large-filled)"
+      },
+      {
+        "command": "twk.inspector.toggles",
+        "title": "Inspector Debug Aids (Frame Overlay, Repaint Rainbow, Relayout, Console)",
+        "category": "twk",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "twk.inspector.goToSource",
+        "title": "Go to Where the Widget Was Made",
+        "category": "twk",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "twk.inspector.goToBuild",
+        "title": "Go to the Build Method",
+        "category": "twk",
+        "icon": "$(symbol-method)"
+      },
+      {
+        "command": "twk.showLog",
+        "title": "Show the Sequence Log of the twk Terminal",
+        "category": "twk",
+        "icon": "$(list-flat)"
+      },
+      {
+        "command": "twk.copyScreen",
+        "title": "Copy the twk Terminal's Screen as Text",
+        "category": "twk",
+        "icon": "$(copy)"
+      },
+      {
+        "command": "twk.record",
+        "title": "Record the twk Terminal as asciicast (Start or Stop)",
+        "category": "twk",
+        "icon": "$(record)"
+      },
+      {
+        "command": "twk.stopRecordings",
+        "title": "Stop Recording the twk Terminals",
+        "category": "twk",
+        "enablement": "twk.recording"
+      },
+      {
+        "command": "twk.play",
+        "title": "Play a Recording (asciicast) in a twk Terminal",
+        "category": "twk",
+        "icon": "$(play)"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "twk.hotReload",
+        "key": "ctrl+alt+r",
+        "mac": "cmd+alt+r",
+        "when": "twk.hotApp && (editorLangId == dart || activeWebviewPanelId == 'twk.terminal')"
+      },
+      {
+        "command": "twk.hotRestart",
+        "key": "ctrl+alt+shift+r",
+        "mac": "cmd+alt+shift+r",
+        "when": "twk.hotApp && (editorLangId == dart || activeWebviewPanelId == 'twk.terminal')"
+      }
+    ],
+    "configuration": {
+      "title": "twk",
+      "properties": {
+        "twk.terminal.profile": {
+          "type": "string",
+          "enum": [
+            "xterm.js",
+            "everything",
+            "256 colors",
+            "16 colors",
+            "no color",
+            "no synchronized output",
+            "bare",
+            "no answers"
+          ],
+          "default": "xterm.js",
+          "description": "The twk terminal's preset of capabilities for the apps that connect: what its environment tells (TERM, COLORTERM, NO_COLOR), what it declares it does in its welcome (notifications, progress, pointer shapes, REP, images), and which of the probe's queries the webview answers; twk.terminal.capabilities changes switches of it."
+        },
+        "twk.terminal.capabilities": {
+          "type": "object",
+          "default": {},
+          "additionalProperties": false,
+          "properties": {
+            "colors": {
+              "type": "string",
+              "enum": [
+                "truecolor",
+                "256",
+                "16",
+                "none"
+              ],
+              "description": "How many colours: COLORTERM=truecolor, TERM=xterm-256color, TERM=xterm, or NO_COLOR=1."
+            },
+            "graphics": {
+              "type": "string",
+              "enum": [
+                "none",
+                "sixel",
+                "iterm2"
+              ],
+              "description": "How images are shown, by xterm.js's image addon (kitty's protocol is not in its release for xterm.js 6.0): declared to the app."
+            },
+            "answers": {
+              "type": "boolean",
+              "description": "Whether the probe's queries are answered at all."
+            },
+            "synchronizedOutput": {
+              "type": "boolean",
+              "description": "DEC mode 2026 (off: not recognised)."
+            },
+            "kittyKeyboard": {
+              "type": "boolean",
+              "description": "kitty's keyboard protocol, emulated by the webview: Escape, Ctrl and Alt keys as CSI u."
+            },
+            "cellSize": {
+              "type": "boolean",
+              "description": "CSI 16 t answered: a cell's size in pixels."
+            },
+            "notifications": {
+              "type": "boolean",
+              "description": "OSC 777 notifications shown by VS Code; declared."
+            },
+            "progress": {
+              "type": "boolean",
+              "description": "OSC 9;4 progress shown in VS Code's status bar; declared."
+            },
+            "pointerShapes": {
+              "type": "boolean",
+              "description": "OSC 22: the mouse pointer's shape; declared."
+            },
+            "repeatChar": {
+              "type": "boolean",
+              "description": "REP (CSI n b); declared."
+            },
+            "links": {
+              "type": "boolean",
+              "description": "OSC 8 hyperlinks opened through VS Code (http, https, mailto)."
+            },
+            "clipboard": {
+              "type": "boolean",
+              "description": "OSC 52 put on VS Code's clipboard."
+            }
+          },
+          "description": "The switches of the twk terminal changed from its preset (twk.terminal.profile), for the apps that connect; twk: Choose twk Terminal Capabilities sets them."
+        },
+        "twk.terminal.screenReader": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether the twk terminal has the apps that connect read out as lines of text, as for a screen reader (TWK_SCREEN_READER=1 in its environment, which twk reads in place of the app's own)."
+        },
+        "twk.terminal.debugAids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "overlay",
+              "console",
+              "frames",
+              "timeline",
+              "logs",
+              "rainbow",
+              "relayout"
+            ]
+          },
+          "uniqueItems": true,
+          "default": [],
+          "description": "The twk debug aids the twk terminal turns on in the apps that connect: TWK_DEBUG in its environment, with keys (the app's own hot reload and restart keys), which twk reads in place of the app's own TWK_DEBUG. None: the app's own decides."
+        },
+        "twk.terminal.columns": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "default": null,
+          "description": "A fixed number of columns for the twk terminal; null fits it to the panel."
+        },
+        "twk.terminal.lines": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "default": null,
+          "description": "A fixed number of rows for the twk terminal; null fits it to the panel."
+        },
+        "twk.hotReloadOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether saving a Dart file hot reloads the apps the extension runs or debugs in the twk terminal (their sources reloaded, every widget rebuilt, each State kept). Leave Dart-Code's dart.hotReloadOnSave at \"never\": it reloads without the rebuild."
+        }
+      }
+    },
+    "debuggers": [
+      {
+        "type": "twk",
+        "label": "Dart in a twk Terminal",
+        "languages": [
+          "dart"
+        ],
+        "configurationAttributes": {
+          "launch": {
+            "properties": {
+              "program": {
+                "type": "string",
+                "description": "The Dart file of the app's main.",
+                "default": "${file}"
+              },
+              "cwd": {
+                "type": "string",
+                "description": "The directory the app runs in; the project of the program by default."
+              },
+              "args": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "The arguments of the app's main."
+              },
+              "env": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "description": "Added to the app's environment (TWK_SHELL and TWK_DEBUG's keys are the extension's)."
+              },
+              "toolArgs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Arguments to dart run, as in Dart-Code's configurations."
+              },
+              "vmAdditionalArgs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Arguments to the Dart VM, as in Dart-Code's configurations."
+              }
+            }
+          }
+        },
+        "initialConfigurations": [
+          {
+            "type": "twk",
+            "request": "launch",
+            "name": "twk: current file",
+            "program": "${file}"
+          }
+        ],
+        "configurationSnippets": [
+          {
+            "label": "twk: Debug in a twk Terminal",
+            "description": "Debug a twk app with Dart-Code, in a twk terminal of its own, with hot reload and restart",
+            "body": {
+              "type": "twk",
+              "request": "launch",
+              "name": "twk: current file",
+              "program": "^\"\\${file}\""
+            }
+          }
+        ]
+      }
+    ],
+    "views": {
+      "debug": [
+        {
+          "id": "twk.inspector",
+          "name": "twk Inspector",
+          "contextualTitle": "twk"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "twk.inspector.pick",
+          "when": "view == twk.inspector && !twk.inspector.picking",
+          "group": "navigation@1"
+        },
+        {
+          "command": "twk.inspector.stopPicking",
+          "when": "view == twk.inspector && twk.inspector.picking",
+          "group": "navigation@1"
+        },
+        {
+          "command": "twk.inspector.toggles",
+          "when": "view == twk.inspector",
+          "group": "navigation@2"
+        },
+        {
+          "command": "twk.inspector.refresh",
+          "when": "view == twk.inspector",
+          "group": "navigation@3"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "twk.inspector.goToSource",
+          "when": "view == twk.inspector",
+          "group": "inline@1"
+        },
+        {
+          "command": "twk.inspector.goToSource",
+          "when": "view == twk.inspector",
+          "group": "navigation@1"
+        },
+        {
+          "command": "twk.inspector.goToBuild",
+          "when": "view == twk.inspector && viewItem == twkBuilds",
+          "group": "navigation@2"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "twk.inspector.pick",
+          "when": "!twk.inspector.picking"
+        },
+        {
+          "command": "twk.inspector.stopPicking",
+          "when": "twk.inspector.picking"
+        },
+        {
+          "command": "twk.inspector.goToSource",
+          "when": "focusedView == twk.inspector"
+        },
+        {
+          "command": "twk.inspector.goToBuild",
+          "when": "focusedView == twk.inspector"
+        },
+        {
+          "command": "twk.stopRecordings",
+          "when": "twk.recording"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "twk.copyScreen",
+          "when": "activeWebviewPanelId == 'twk.terminal'",
+          "group": "navigation@1"
+        },
+        {
+          "command": "twk.showLog",
+          "when": "activeWebviewPanelId == 'twk.terminal'",
+          "group": "navigation@2"
+        },
+        {
+          "command": "twk.record",
+          "when": "activeWebviewPanelId == 'twk.terminal'",
+          "group": "navigation@3"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "twk.play",
+          "when": "resourceExtname == .cast",
+          "group": "navigation"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p . && tsc -p tsconfig.webview.json",
+    "watch": "tsc -watch -p . & tsc -watch -p tsconfig.webview.json",
+    "test:unit": "npm run compile && mocha 'out/test/unit/**/*.test.js'",
+    "test": "npm run compile && node out/test/runTest.js"
+  },
+  "dependencies": {
+    "@xterm/addon-fit": "0.11.0",
+    "@xterm/addon-image": "0.9.0",
+    "@xterm/xterm": "6.0.0"
+  },
+  "devDependencies": {
+    "@types/mocha": "10.0.10",
+    "@types/node": "^22.0.0",
+    "@types/vscode": "~1.95.0",
+    "@vscode/test-electron": "3.1.0",
+    "@xterm/headless": "6.0.0",
+    "mocha": "^11.0.0",
+    "typescript": "^5.9.0"
+  }
+}

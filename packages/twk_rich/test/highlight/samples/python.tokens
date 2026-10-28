@@ -1,0 +1,49 @@
+comment"#!/usr/bin/env python3"
+string"\"\"\"A sample of Python for the highlighting tests."
+
+string"It spans lines, as a docstring does: 'quotes' and \"quotes\" and " escape"\\t" string"."
+string"\"\"\""
+keyword"from" " __future__ " keyword"import" " annotations"
+
+keyword"import" " re"
+keyword"from" " dataclasses " keyword"import" " dataclass" punctuation"," " field"
+
+
+annotation"@dataclass" punctuation"(" "frozen" operator"=" constant"True" punctuation")"
+keyword"class" " " type"Point" punctuation":"
+"    x" punctuation":" " " type"float" " " operator"=" " " number"0.0"
+"    y" punctuation":" " " type"float" " " operator"=" " " function"field" punctuation"(" "default" operator"=" number"0.0" punctuation")"
+
+"    " keyword"def" " " function"__add__" punctuation"(" "self" punctuation"," " other" punctuation":" " " type"Point" punctuation")" " " operator"->" " " type"Point" punctuation":"
+"        " keyword"return" " " type"Point" punctuation"(" "self" punctuation"." "x " operator"+" " other" punctuation"." "x" punctuation"," " self" punctuation"." "y " operator"+" " other" punctuation"." "y" punctuation")"
+
+"    " annotation"@property"
+"    " keyword"def" " " function"norm" punctuation"(" "self" punctuation")" " " operator"->" " " type"float" punctuation":"
+"        " keyword"return" " " punctuation"(" "self" punctuation"." "x " operator"**" " " number"2" " " operator"+" " self" punctuation"." "y " operator"**" " " number"2" punctuation")" " " operator"**" " " number"0.5" " " operator"@" " matrix"
+
+
+keyword"type" " " type"Pair" " " operator"=" " " type"tuple" punctuation"[" type"int" punctuation"," " " type"int" punctuation"]"
+type"PATTERN" " " operator"=" " re" punctuation"." function"compile" punctuation"(" string"r'^(\\d+)\\s*([a-z]+)\\'$'" punctuation"," " re" punctuation"." type"I" punctuation")"
+
+
+keyword"async" " " keyword"def" " " function"main" punctuation"(" "args" punctuation":" " " type"list" punctuation"[" type"str" punctuation"]," " width" punctuation":" " " type"int" " " operator"=" " " number"10" punctuation")" " " operator"->" " " constant"None" punctuation":"
+"    total " operator"=" " " number"0x_FF" " " operator"+" " " number"1_000" " " operator"*" " " number"1.5e-3" " " operator"+" " " number"2j"
+"    names " operator"=" " " punctuation"[" "n " keyword"for" " n " keyword"in" " args " keyword"if" " n " keyword"is" " " keyword"not" " " constant"None" " " keyword"and" " " keyword"not" " n" punctuation"." function"startswith" punctuation"(" string"'-'" punctuation")]"
+"    " keyword"match" " names" punctuation":"
+"        " keyword"case" " " punctuation"[" "first" punctuation"," " " operator"*" "rest" punctuation"]:"
+"            " function"print" punctuation"(" string"f'" punctuation"{" "first" operator"!" "r" punctuation":" string">" punctuation"{" "width" punctuation"}}" string" and " punctuation"{" function"len" punctuation"(" "rest" punctuation")}" string" more, " escape"{{" string"literal" escape"}}" string"'" punctuation")"
+"        " keyword"case" " _" punctuation":"
+"            " keyword"pass"
+"    data " operator"=" " " string"b'" escape"\\x00\\n" string"'" " " operator"+" " " string"rb'\\d'" " " operator"+" " " string"u'" escape"\\N{EM DASH}" string"'"
+"    report " operator"=" " " string"f\"\"\""
+string"Total: " punctuation"{" "total" punctuation":" string".2f" punctuation"}"
+string"Names: " punctuation"{" string"', '" punctuation"." function"join" punctuation"("
+"    name" punctuation"." function"upper" punctuation"()" " " keyword"for" " name " keyword"in" " names  " comment"# a comment in a field"
+punctuation")}"
+string"\"\"\""
+"    long " operator"=" " " string"'first part " escape"\\"
+string"second part'"
+"    " keyword"if" " " punctuation"(" "n " operator":=" " " function"len" punctuation"(" "names" punctuation"))" " " operator">" " " number"10" punctuation":"
+"        " keyword"raise" " " type"ValueError" punctuation"(" string"f\"too many: " punctuation"{" "n" punctuation"}" string"\"" punctuation")"
+"    " keyword"return" " " constant"None"
+

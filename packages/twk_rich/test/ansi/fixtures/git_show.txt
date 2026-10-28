@@ -1,0 +1,62 @@
+a91fabf Stack children on top of each other, aligned or pinned to its edges
+
+diff --git a/packages/twk/lib/src/layout/flex.dart b/packages/twk/lib/src/layout/flex.dart
+index 9f98c83..41783d9 100644
+--- a/packages/twk/lib/src/layout/flex.dart
++++ b/packages/twk/lib/src/layout/flex.dart
+@@ -16,6 +16,7 @@ import 'package:twk_core/twk_core.dart'
+ 
+ import '../framework/framework.dart';
+ import 'basic.dart';
++import 'child_list.dart';
+ 
+ export 'package:twk_core/twk_core.dart'
+     show Axis, CrossAxisAlignment, FlexFit, MainAxisAlignment, MainAxisSize;
+@@ -52,7 +53,7 @@ final class Flex extends MultiChildRenderObjectWidget {
+   final int gap;
+ 
+   @override
+-  MultiChildRenderObjectElement createElement() => _FlexElement(this);
++  MultiChildRenderObjectElement createElement() => ChildListElement(this);
+ 
+   @override
+   RenderFlex createRenderObject(BuildContext context) => RenderFlex(
+@@ -146,29 +147,3 @@ final class Spacer extends StatelessWidget {
+   Widget build(BuildContext context) =>
+       Expanded(flex: flex, child: const SizedBox.shrink());
+ }
+-
+-/// The element of a [Flex]: keeps the render objects of its children in
+-/// the [RenderFlex], in order.
+-final class _FlexElement extends MultiChildRenderObjectElement {
+-  _FlexElement(Flex super.widget);
+-
+-  @override
+-  RenderFlex get renderObject => super.renderObject as RenderFlex;
+-
+-  @override
+-  void insertRenderObjectChild(
+-    RenderObject child,
+-    IndexedSlot<Element?> slot,
+-  ) => renderObject.insert(child, after: slot.value?.renderObject);
+-
+-  @override
+-  void moveRenderObjectChild(
+-    RenderObject child,
+-    IndexedSlot<Element?> oldSlot,
+-    IndexedSlot<Element?> newSlot,
+-  ) => renderObject.move(child, after: newSlot.value?.renderObject);
+-
+-  @override
+-  void removeRenderObjectChild(RenderObject child, Object? slot) =>
+-      renderObject.remove(child);
+-}
+diff --git a/packages/twk/lib/src/layout/layout.dart b/packages/twk/lib/src/layout/layout.dart
+index 229b029..00d8eee 100644
+--- a/packages/twk/lib/src/layout/layout.dart
++++ b/packages/twk/lib/src/layout/layout.dart
+@@ -5,3 +5,4 @@ library;
+ export 'basic.dart';
+ export 'box.dart';
+ export 'flex.dart';
++export 'stack.dart';

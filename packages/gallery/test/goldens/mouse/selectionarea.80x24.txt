@@ -1,0 +1,76 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     SelectionArea                           Preview   Code  │
+│                        Text selected with the mouse as in a terminal, and      │
+│     Effect             copied to the clipboard: drag over it, or click twice…  │
+│                      ──────────────────────────────────────────────────────────│
+│   MOUSE          5        ┌                                              ┐     │
+│     GestureDetect…      ·   An app that reads the mouse keeps the           ·  │
+│     Listener, Mou…          terminal from selecting its text, so it            │
+│     IgnorePointer…      ·   selects the text itself.                        ·  │
+│ ▎   SelectionArea                                                              │
+│     Draggable, Dr…      ·   A drag goes on from one paragraph to the        ·  │
+│                             next.                                              │
+│   FOCUS AND KEYS 4      ·                                                   ·  │
+│     Focus, FocusS…          copied: nothing                                    │
+│     ExcludeFocus    ▐   · └                                              ┘  ·  │
+│     KeyBindings,…   ▐                                              44 × 8      │
+│     Shortcuts, Ac…   ──────────────────────────────────────────────────────────│
+│                        selected in       two Texts  a painted log              │
+│   NAVIGATION     5     copy on release  ▐  ●▌                                  │
+│     Navigator          style             the theme's  reverse                  │
+│     PopScope, Nav…                                                             │
+│                                                                                │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeazzzzzzaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahAhAAAAAAhhhhhhhBhaaggkkkkkkkkkkkkkggggggggggggggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmgmmmmmmmmgmmmmgmmmgmmmmmgmmgmmgmgmmmmmmmmmgmmmgggggg│
+│aaaaannnnnnaaaaaaaaaaaggmmmmmmgmmgmmmgmmmmmmmmmmgmmmmgmmmmgmmmgmmgmmmmmgmmmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaadddddaaaaaaaaaazaaagggggoggggggggggggggggggggggggggggggggggggggggggggggoggggg│
+│aaaaannnnnnnnnnnnnnaaagggogggppgpppgppppgpppppgpppgpppppgpppppgpppgggggggggggogg│
+│aaaaannnnnnnnnannnnaaagggggggppppppppgppppgpppppppppgpppgpppppgppgppgggggggggggg│
+│aaaaannnnnnnnnnnnnnaaagggogggpppppppgpppgppppgpppppppggggggggggggggggggggggggogg│
+│aqrrrsssssssssssssrrragggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnannnaaagggogggpgppppgppppgppgppppgpppgpppppppppgppgpppggggggggogg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggpppppgggggggggggggggggggggggggggggggggggggggggggggg│
+│aaadddddadddaddddazaaagggogggggggggggggggggggggggggggggggggggggggggggggggggggogg│
+│aaaaannnnnnannnnnnnaaagggggggmmmmmmmgmmmmmmmgggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaadgggogoggggggggggggggggggggggggggggggggggggggggggggggoggogg│
+│aaaaannnnnnnnnnnnnaaadggggggggggggggggggggggggggggggggggggggggggggggCCgCgCgggggg│
+│aaaaannnnnnnnnnannnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmmmmgmmggggggrsssrsssssrhvhvvvvvvvhvvvhggggggggggggg│
+│aaaddddddddddaaaaazaaaggmmmmgmmgmmmmmmmggwxxywgggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnaaaaaaaaggmmmmmggggggggggggrsssrsssssssrhvvvvvvvhggggggggggggggggg│
+│aaaaannnnnnnnnannnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+z #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+A #747a83 on #13151a
+B bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+n #e6e8eb on #1c1f25
+o #2c3039 on #16181d
+p #e6e8eb on #16181d
+q #5fa8ff on #2b4566
+r on #2b4566
+s bold #e6e8eb on #2b4566
+C #747a83 on #16181d
+v #8b929c on #13151a
+w #5fa8ff on #16181d
+x on #5fa8ff
+y #ffffff on #5fa8ff

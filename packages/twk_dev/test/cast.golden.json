@@ -1,0 +1,244 @@
+{
+  "about": "asciicast v2 as twk_dev writes and reads it (packages/twk_dev/lib/src/cast.dart's CastHeader, CastEvent, CastWriter, Cast.parse; cast_frames.dart's castFrames), and its second implementation, the VS Code extension's editors/vscode/src/core/cast.ts. twk_dev's test/cast_golden_test.dart holds the Dart side to this file, the extension's src/test/unit/core/cast_golden.test.ts the TypeScript one: a recording either writes, the other reads and plays the same. writes: a CastWriter given a header (as its JSON) and an idle limit (microseconds, null for none), then events at microseconds since the start (output and input as hex bytes, a resize, close), and the lines it wrote. reads: the lines of a file, and what Cast.parse read of them (the header as toJson writes it, the events, the duration) or the message it threw. frames: the lines of a file, and castFrames' frames of it: number, time, size and the rows of the screen (the test emulator's, without the blanks that end them).",
+  "writes": [
+    {
+      "name": "a session: the header, output, a key, a resize, a pause cut to the idle limit",
+      "header": {
+        "version": 2,
+        "width": 80,
+        "height": 24,
+        "timestamp": 1700000000,
+        "idle_time_limit": 2,
+        "command": "dart run example/counter.dart",
+        "title": "counter.dart",
+        "env": {"TERM": "xterm-256color"}
+      },
+      "idleLimitMicros": 2000000,
+      "events": [
+        {
+          "at": 0,
+          "output": "1b5b3f31303439681b5b3f32303236681b5b313b3148436f756e743a20301b5b3f323032366c"
+        },
+        {"at": 1500000, "input": "1b5b41"},
+        {"at": 1600250, "output": "1b5b3f32303236681b5b313b3848311b5b3f323032366c"},
+        {"at": 2000000, "resize": [100, 30]},
+        {"at": 10000000, "output": "6c61746572"},
+        {"at": 10000001, "input": "71"},
+        {"at": 11000000, "close": true}
+      ],
+      "lines": [
+        "{\"version\":2,\"width\":80,\"height\":24,\"timestamp\":1700000000,\"idle_time_limit\":2.0,\"command\":\"dart run example/counter.dart\",\"title\":\"counter.dart\",\"env\":{\"TERM\":\"xterm-256color\"}}",
+        "[0.000000, \"o\", \"\\u001b[?1049h\\u001b[?2026h\\u001b[1;1HCount: 0\\u001b[?2026l\"]",
+        "[1.500000, \"i\", \"\\u001b[A\"]",
+        "[1.600250, \"o\", \"\\u001b[?2026h\\u001b[1;8H1\\u001b[?2026l\"]",
+        "[2.000000, \"r\", \"100x30\"]",
+        "[4.000000, \"o\", \"later\"]",
+        "[4.000001, \"i\", \"q\"]"
+      ]
+    },
+    {
+      "name": "UTF-8 cut between reads put together, a malformed byte, a character cut off at the end",
+      "header": {"version": 2, "width": 40, "height": 10},
+      "idleLimitMicros": null,
+      "events": [
+        {"at": 100000, "output": "e294"},
+        {"at": 200000, "output": "8041"},
+        {"at": 300000, "output": "ff41"},
+        {"at": 400000, "output": "f09f98"},
+        {"at": 500000, "output": "8020"},
+        {"at": 600000, "input": "c3"},
+        {"at": 700000, "output": "e2"},
+        {"at": 800000, "close": true}
+      ],
+      "lines": [
+        "{\"version\":2,\"width\":40,\"height\":10}",
+        "[0.200000, \"o\", \"─A\"]",
+        "[0.300000, \"o\", \"�A\"]",
+        "[0.500000, \"o\", \"😀 \"]",
+        "[0.800000, \"o\", \"�\"]",
+        "[0.800000, \"i\", \"�\"]"
+      ]
+    },
+    {
+      "name": "what JSON escapes, and what it does not",
+      "header": {"version": 2, "width": 20, "height": 5, "title": "a \"title\" \\ é"},
+      "idleLimitMicros": null,
+      "events": [
+        {
+          "at": 1,
+          "output": "000708090a0b0c0d1b1f7f225c2f20c3a920e2948020f09f988020e280a8e280a920efbfbd"
+        },
+        {"at": 1234567, "output": "78"},
+        {"at": 59999999, "output": "79"}
+      ],
+      "lines": [
+        "{\"version\":2,\"width\":20,\"height\":5,\"title\":\"a \\\"title\\\" \\\\ é\"}",
+        "[0.000001, \"o\", \"\\u0000\\u0007\\b\\t\\n\\u000b\\f\\r\\u001b\\u001f\\\"\\\\/ é ─ 😀    �\"]",
+        "[1.234567, \"o\", \"x\"]",
+        "[59.999999, \"o\", \"y\"]"
+      ]
+    },
+    {
+      "name": "no idle limit: each pause kept; an empty read is no event, a resize always is",
+      "header": {"version": 2, "width": 40, "height": 10, "idle_time_limit": 0.5},
+      "idleLimitMicros": null,
+      "events": [
+        {"at": 0, "output": ""},
+        {"at": 5000000, "resize": [40, 10]},
+        {"at": 125000000, "output": "61"},
+        {"at": 125000000, "close": true}
+      ],
+      "lines": [
+        "{\"version\":2,\"width\":40,\"height\":10,\"idle_time_limit\":0.5}",
+        "[5.000000, \"r\", \"40x10\"]",
+        "[125.000000, \"o\", \"a\"]"
+      ]
+    }
+  ],
+  "reads": [
+    {
+      "name": "the header and an event a line, blank lines aside, an integer time",
+      "lines": [
+        "",
+        "{\"version\": 2, \"width\": 80, \"height\": 24, \"timestamp\": 1700000000, \"idle_time_limit\": 1.5, \"command\": \"sh\", \"title\": \"a shell\", \"env\": {\"TERM\": \"xterm-256color\", \"SHELL\": \"/bin/sh\"}}",
+        "[0.5, \"o\", \"\\u001b[1mhi\\r\\n\"]",
+        "",
+        "[1, \"i\", \"q\"]",
+        "[2.25, \"r\", \"100x30\"]",
+        "[3.0, \"m\", \"a marker\"]",
+        "[3.5, \"x\", \"a code of no kind cast.dart names\"]"
+      ],
+      "header": {
+        "version": 2,
+        "width": 80,
+        "height": 24,
+        "timestamp": 1700000000,
+        "idle_time_limit": 1.5,
+        "command": "sh",
+        "title": "a shell",
+        "env": {"TERM": "xterm-256color", "SHELL": "/bin/sh"}
+      },
+      "events": [
+        [0.5, "o", "\u001b[1mhi\r\n"],
+        [1, "i", "q"],
+        [2.25, "r", "100x30"],
+        [3, "m", "a marker"],
+        [3.5, "x", "a code of no kind cast.dart names"]
+      ],
+      "duration": 3.5
+    },
+    {
+      "name": "fields of the wrong kind are left out",
+      "lines": [
+        "{\"version\": 2, \"width\": 10, \"height\": 3, \"timestamp\": 17.9, \"idle_time_limit\": 2, \"command\": 7, \"title\": null, \"env\": {\"TERM\": \"xterm\", \"N\": 1}}",
+        "[0.000001, \"o\", \"\"]"
+      ],
+      "header": {
+        "version": 2,
+        "width": 10,
+        "height": 3,
+        "timestamp": 17,
+        "idle_time_limit": 2,
+        "env": {"TERM": "xterm"}
+      },
+      "events": [[0.000001, "o", ""]],
+      "duration": 0.000001
+    },
+    {"name": "an empty file", "lines": ["", "  "], "error": "no header"},
+    {
+      "name": "another version",
+      "lines": ["{\"version\": 1, \"width\": 80, \"height\": 24}"],
+      "error": "asciicast version 1; this reads version 2"
+    },
+    {
+      "name": "no version",
+      "lines": ["{\"width\": 80, \"height\": 24}"],
+      "error": "asciicast version null; this reads version 2"
+    },
+    {
+      "name": "no height",
+      "lines": ["{\"version\": 2, \"width\": 80}"],
+      "error": "the header has no width and height"
+    },
+    {
+      "name": "a width of 0",
+      "lines": ["{\"version\": 2, \"width\": 0, \"height\": 24}"],
+      "error": "the header has no width and height"
+    },
+    {
+      "name": "a header that is no object",
+      "lines": ["[2, 80, 24]"],
+      "error": "the header is no JSON object"
+    },
+    {
+      "name": "an event that is not [time, code, data]",
+      "lines": [
+        "{\"version\": 2, \"width\": 80, \"height\": 24}",
+        "[0.5, \"o\", \"a\"]",
+        "[0.5, \"o\"]"
+      ],
+      "error": "line 3: no [time, code, data] event"
+    },
+    {
+      "name": "an event whose data is no string",
+      "lines": ["{\"version\": 2, \"width\": 80, \"height\": 24}", "[0.5, \"o\", 1]"],
+      "error": "line 2: no [time, code, data] event"
+    }
+  ],
+  "frames": [
+    {
+      "name": "each output event a frame, a resize resizing the screen as a terminal that keeps what it shows",
+      "lines": [
+        "{\"version\": 2, \"width\": 10, \"height\": 3}",
+        "[0.1, \"o\", \"one\"]",
+        "[0.2, \"i\", \"x\"]",
+        "[0.3, \"r\", \"12x4\"]",
+        "[0.4, \"o\", \"\\r\\ntwo\"]",
+        "[0.5, \"m\", \"a marker\"]",
+        "[0.6, \"o\", \"\"]"
+      ],
+      "frames": [
+        {"number": 1, "time": 0.1, "width": 10, "height": 3, "lines": ["one", "", ""]},
+        {"number": 2, "time": 0.4, "width": 12, "height": 4, "lines": ["one", "two", "", ""]},
+        {"number": 3, "time": 0.6, "width": 12, "height": 4, "lines": ["one", "two", "", ""]}
+      ]
+    },
+    {
+      "name": "a synchronized update is one frame, however many events it takes",
+      "lines": [
+        "{\"version\": 2, \"width\": 10, \"height\": 2}",
+        "[0.1, \"o\", \"\\u001b[?2026hab\"]",
+        "[0.2, \"o\", \"cd\"]",
+        "[0.3, \"o\", \"\\u001b[?2026l\"]",
+        "[0.4, \"o\", \"\\u001b[?2026h\\u001b[1;1HX\\u001b[?2026l\"]"
+      ],
+      "frames": [
+        {"number": 1, "time": 0.3, "width": 10, "height": 2, "lines": ["abcd", ""]},
+        {"number": 2, "time": 0.4, "width": 10, "height": 2, "lines": ["Xbcd", ""]}
+      ]
+    },
+    {
+      "name": "a sequence cut between events: the event before its end is a frame, its screen as it was",
+      "lines": [
+        "{\"version\": 2, \"width\": 10, \"height\": 2}",
+        "[0.1, \"o\", \"a\\u001b[?20\"]",
+        "[0.2, \"o\", \"26hb\"]",
+        "[0.3, \"o\", \"c\\u001b[?2026\"]",
+        "[0.4, \"o\", \"l\"]"
+      ],
+      "frames": [
+        {"number": 1, "time": 0.1, "width": 10, "height": 2, "lines": ["a", ""]},
+        {"number": 2, "time": 0.4, "width": 10, "height": 2, "lines": ["abc", ""]}
+      ]
+    },
+    {
+      "name": "an update left open at the end shows no frame",
+      "lines": [
+        "{\"version\": 2, \"width\": 10, \"height\": 2}",
+        "[0.1, \"o\", \"a\"]",
+        "[0.2, \"o\", \"\\u001b[?2026hb\"]"
+      ],
+      "frames": [{"number": 1, "time": 0.1, "width": 10, "height": 2, "lines": ["a", ""]}]
+    }
+  ]
+}

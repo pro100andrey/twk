@@ -1,0 +1,80 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     Stepper                                 Preview   Code  │
+│                        A wizard of steps under their headers, each left        │
+│                        forward once its validation takes it: Next or PageDow…  │
+│   NAVIGATION     5   ──────────────────────────────────────────────────────────│
+│     Navigator          ┌                                                    ┐  │
+│     PopScope, Nav…       ● 1. Name ── ○ 2. Packages ── ○ 3. Confirm            │
+│     Breadcrumbs          What the package is called                            │
+│     Pagination           my_app                                                │
+│ ▎   Stepper               Back                                        Next     │
+│                                                                                │
+│   FOUNDATION     2       created: nothing                                      │
+│     ListenableBui…     └                                                    ┘  │
+│     FutureBuilder…   ──────────────────────────────────────────────────────────│
+│                        direction           horizontal  vertical                │
+│   FRAMEWORK      3     linear             ▐  ●▌                                │
+│     LayoutBuilder   ▐                                                          │
+│     NotificationL…  ▐  back and next      ▐  ●▌                                │
+│     Slot, SlotSco…                                                             │
+│                        packages disabled  ▐●  ▌                                │
+│   APP            8                                                             │
+│                                                                                │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeattttttaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahwhwwwwwwhhhhhhhFhaaggkkkkkkkggggggggggggggggggggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmgmmmmmmgmmgmmmmmgmmmmmgmmmmmgmmmmmmmmgmmmmgmmmmgggggggg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmmmgmmmmgmmmgmmmmmmmmmmgmmmmmgmmmgmmmmgmmgmmmmmmmmgg│
+│aaaddddddddddaaaaataaannnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn│
+│aaaaaoooooooooaaaaaaaaggnggggggggggggggggggggggggggggggggggggggggggggggggggggngg│
+│aaaaaoooooooooaooooaaagggglgkkgkkkkgmmgmgppgppppppppgmmgmgppgpppppppgggggggggggg│
+│aaaaaoooooooooooaaaaaaggggmmmmgmmmgmmmmmmmgmmgmmmmmmgggggggggggggggggggggggggggg│
+│aaaaaooooooooooaaaaaaaggggppppppgggggggggggggggggggggggggggggggggggggggggggggggg│
+│aqrrrsssssssrrrrrrrrraggggaddddagggggggggggggggggggggggggggggggggggggguvvvvugggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaddddddddddaaaaataaaggggmmmmmmmmgmmmmmmmgggggggggggggggggggggggggggggggggggggg│
+│aaaaaooooooooooooooaaaggnggggggggggggggggggggggggggggggggggggggggggggggggggggngg│
+│aaaaaooooooooooooooaaannnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmmmmmggggggggggrssssssssssrhyyyyyyyyhggggggggggggggg│
+│aaadddddddddaaaaaataaaggmmmmmmgggggggggggggzAABzgggggggggggggggggggggggggggggggg│
+│aaaaaoooooooooooooaaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaooooooooooooooaadggmmmmgmmmgmmmmggggggzAABzgggggggggggggggggggggggggggggggg│
+│aaaaaoooooaooooooooaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmmmmgmmmmmmmmggCDEECgggggggggggggggggggggggggggggggg│
+│aaadddaaaaaaaaaaaataaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+t #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+w #747a83 on #13151a
+F bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+n #2c3039 on #16181d
+o #e6e8eb on #1c1f25
+p #e6e8eb on #16181d
+q #5fa8ff on #2b4566
+r on #2b4566
+s bold #e6e8eb on #2b4566
+u on #22252c
+v bold #5fa8ff on #22252c
+y #8b929c on #13151a
+z #5fa8ff on #16181d
+A on #5fa8ff
+B #ffffff on #5fa8ff
+C #383d48 on #16181d
+D #e6e8eb on #383d48
+E on #383d48

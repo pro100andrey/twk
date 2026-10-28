@@ -1,0 +1,81 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     JsonView                                Preview   Code  │
+│                        JSON or a Dart value as a tree that folds, each kind    │
+│     Repaint rainb…     of value in its color: c copies the path of the value…  │
+│     RepaintBounda…   ──────────────────────────────────────────────────────────│
+│                        ┌                                                    ┐  │
+│   RICH           8       ▾ {                                                   │
+│     MarkdownView         ├── "name": "twk",                                    │
+│     CodeView             ├── "version": "0.1.0",                               │
+│     SyntaxThemeSc…       ├── "description": "Widgets for terminal apps, lai    │
+│     DiffView             ├── "private": true,                                  │
+│ ▎   JsonView             ├── "score": 0.97,                                    │
+│     BigText              ├── "homepage": null,                                 │
+│     QrCode                                                                     │
+│     ANSI                 copied: nothing                                       │
+│                        └                                                    ┘  │
+│   IMAGES         1   ──────────────────────────────────────────────────────────│
+│     Image              expanded depth   1  2  0                                │
+│                        sort keys       ▐●  ▌                                   │
+│   TERMINAL       1  ▐  strings cut at   200  24                                │
+│     TerminalView    ▐                                                          │
+│                                                                                │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeazzzzzzaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahFhFFFFFFhhhhhhhGhaaggkkkkkkkkgggggggggggggggggggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmgmmgmgmmmmgmmmmmgmmgmgmmmmgmmmmgmmmmmmgmmmmgmmmmgggg│
+│aaaaannnnnnnannnnnnaaaggmmgmmmmmgmmgmmmgmmmmmmgmgmmmmmmgmmmgmmmmgmmgmmmgmmmmmmgg│
+│aaaaannnnnnnnnnnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaaaaaaaaaaaaaaaaaaaggoggggggggggggggggggggggggggggggggggggggggggggggggggggogg│
+│aaaddddaaaaaaaaaaazaaaggggHIHIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIgggg│
+│aaaaannnnnnnnnnnnaaaaaggggrrrgsssssstguuuuutgggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnaaaaaaaaaggggrrrgssssssssstguuuuuuutggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaaaggggrrrgssssssssssssstguuuuuuuuguuuguuuuuuuuguuuuuguuugggg│
+│aaaaannnnnnnnaaaaaaaaaggggrrrgssssssssstgvvvvtgggggggggggggggggggggggggggggggggg│
+│awxxxyyyyyyyyxxxxxxxxaggggrrrgssssssstgvvvvtgggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnaaaaaaaaaaggggrrrgsssssssssstgvvvvtggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnaaaaaaaaaaaaaggggmmmmmmmgmmmmmmmggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaaggoggggggggggggggggggggggggggggggggggggggggggggggggggggogg│
+│aaaddddddaaaaaaaaazaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnaaaaaaaaaaaaggmmmmmmmmgmmmmmggxyxhBhhBhggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmgmmmmgggggggCDEECggggggggggggggggggggggggggggggggggg│
+│aaaddddddddaaaaaaazaadggmmmmmmmgmmmgmmggxyyyxhBBhggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+z #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+F #747a83 on #13151a
+G bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+n #e6e8eb on #1c1f25
+o #2c3039 on #16181d
+H #e6e8eb on #24354c
+I on #24354c
+r #3e444f on #16181d
+s #5fa8ff on #16181d
+t #e6e8eb on #16181d
+u #5fd38d on #16181d
+v #f5c04a on #16181d
+w #5fa8ff on #2b4566
+x on #2b4566
+y bold #e6e8eb on #2b4566
+B #8b929c on #13151a
+C #383d48 on #16181d
+D #e6e8eb on #383d48
+E on #383d48

@@ -1,0 +1,17 @@
+# The template of `twk create --template=form`: this package, packed by
+# tool/pack_templates.dart into lib/src/templates/form.g.dart, where `twk
+# create` unpacks it under the new package's name. The pubspec's paths to
+# twk, twk_dev and twk_test are rewritten by `twk create` as mold plans the
+# unpack.
+name: form
+version: 0.1.0
+
+exclude:
+  - mold.yaml
+  - pubspec.lock
+
+variables:
+  package_name:
+    description: The name of the new package.
+    default: my_app
+    replaces: form_template

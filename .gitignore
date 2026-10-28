@@ -1,0 +1,15 @@
+.dart_tool/
+tool/.ucd_cache/
+build/
+*.exe
+
+# Personal tooling: the agent's instructions and settings, DevTools'.
+.claude/
+CLAUDE.md
+AGENTS.md
+.tm/
+devtools_options.yaml
+
+# Reports written on demand (`xtask undocumented`, `xtask coverage`).
+doc/internals/quality/coverage/
+doc/internals/quality/undocumented/

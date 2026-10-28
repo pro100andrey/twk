@@ -1,0 +1,74 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     TabBar, TabView                         Preview   Code  │
+│                        Tabs to pick a view by: Left and Right, or a click.     │
+│     ConfirmInput     ──────────────────────────────────────────────────────────│
+│     Slider                                                                     │
+│     NumberInput         ·   ┌                                          ┐    ·  │
+│     DatePicker                 General  Editor  Keys                           │
+│     FilePicker          ·     ╭──────────────────────────────────────╮      ·  │
+│     Form, FormFie…            │ [x] wrap lines                       │         │
+│ ▎   TabBar, TabVi…      ·     │ [ ] show hidden files                │      ·  │
+│     KeyHintsBar     ▐         │                                      │         │
+│     StatusMessage…  ▐   ·     │                                      │      ·  │
+│     Callout                   ╰──────────────────────────────────────╯         │
+│     Link                ·   └                                          ┘    ·  │
+│     ListTile                                                     40 × 7        │
+│     StatusBar           ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│                                                                                │
+│   OVERLAYS      11   ──────────────────────────────────────────────────────────│
+│     Overlay            tabs   3  7                                             │
+│     Dialog             look   plain  strip                                     │
+│     Toast                                                                      │
+│                                                                                │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeaxxxxxxaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahyhyyyyyyhhhhhhhzhaaggkkkkkkkgkkkkkkkggggggggggggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmgmmgmmmmgmgmmmmgmmmgmmmmgmmmgmmmmmmgmmgmgmmmmmmggggg│
+│aaaaannnnnnnnnnnnaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnaaaaaagggogggoggggggggggggggggggggggggggggggggggggggggggoggggogg│
+│aaaaannnnnnnnnnaaaaaaagggggggggglllllllggmmmmmmggmmmmggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnaaaaaaagggogggggppppppppppppppppppppppppppppppppppppppppggggggogg│
+│aaaaannnnnannnnnnnnaaagggggggggpgmlmgttttgtttttgggggggggggggggggggggggpggggggggg│
+│aqrrrsssssssrssssssrragggogggggpgmgmgttttgttttttgtttttggggggggggggggggpggggggogg│
+│aaaaannnnnnnnnnnaaaaadgggggggggpggggggggggggggggggggggggggggggggggggggpggggggggg│
+│aaaaannnnnnnnnnnnnnaadgggogggggpggggggggggggggggggggggggggggggggggggggpggggggogg│
+│aaaaannnnnnnaaaaaaaaaagggggggggppppppppppppppppppppppppppppppppppppppppggggggggg│
+│aaaaannnnaaaaaaaaaaaaagggogggoggggggggggggggggggggggggggggggggggggggggggoggggogg│
+│aaaaannnnnnnnaaaaaaaaaggggggggggggggggggggggggggggggggggggggggggggAAgAgAgggggggg│
+│aaaaannnnnnnnnaaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaddddddddaaaaaaxxaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnaaaaaaaaaaggmmmmggrsrhwhgggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnaaaaaaaaaaaggmmmmggrsssssrhwwwwwhgggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+x #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+y #747a83 on #13151a
+z bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+n #e6e8eb on #1c1f25
+o #2c3039 on #16181d
+p #3e444f on #16181d
+t #e6e8eb on #16181d
+q #5fa8ff on #2b4566
+r on #2b4566
+s bold #e6e8eb on #2b4566
+A #747a83 on #16181d
+w #8b929c on #13151a

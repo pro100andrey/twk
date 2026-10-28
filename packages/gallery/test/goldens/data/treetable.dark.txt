@@ -1,0 +1,105 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Data  ›  TreeTable                                                         ctrl+p search      ◐ Dark  │
+│                                                                                                                        │
+│   ⌕ Filter             /      TreeTable                                                                      11 of 13  │
+│                               A tree in the first column of a table: rows that expand and collapse, sorted within      │
+│     Sparkline                 their parents, selected one or many at a time.                                           │
+│     Gauge, LineGauge                                                                                                   │
+│     BarChart                  Preview   Code                                                                           │
+│     Chart                  ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     DotCanvas                                                                            │                             │
+│     Calendar                   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│     Heatmap, ActivityHe…                                                                 │                             │
+│     Table                      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  selection                  │
+│     DescriptionList       ▐                                                              │   none  row  cell           │
+│     TreeView              ▐    ·    ┌                                          ┐   ·     │                             │
+│ ▎   TreeTable             ▐           name                           │   lines           │  border                     │
+│     DirectoryTree         ▐    ·      ───────────────────────────────┼────────     ·     │   none  single  rounded     │
+│     TaskList              ▐           ▾ lib                          │    2038           │   double  heavy  ascii      │
+│                                ·      ├─▾ src                        │    1990     ·     │                             │
+│   EDITING              4              │ ├── box.dart                 │     412           │  guides              ▐  ●▌  │
+│     TextField                  ·      │ ├── flex.dart                │     388     ·     │                             │
+│     InputDecoration                   │ ├── table.dart               │     960           │                             │
+│     TextArea                   ·      │ └── text.dart                │     230     ·     │                             │
+│     Autocomplete                      └── twk.dart                   │      48           │                             │
+│                                ·      ▸ test                         │     965     ·     │                             │
+│   CONTROLS            20                README.md                    │     120           │                             │
+│     Button                     ·        pubspec.yaml                 │      22     ·     │                             │
+│     Pressable                       └                                          ┘         │                             │
+│     Checkbox, Switch           ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·40 × 12·   ·     │                             │
+│     RadioGroup                                                                           │                             │
+│     SegmentedButton            ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     SelectionList                                                                        │                             │
+│     Select, MultiSelect        ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     ConfirmInput                                                                         │                             │
+│     Slider                     ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│                                                                                          │                             │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaaEEEEaafaadddddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaEEEEEEaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaiFiFFFFFFiiiiiiiiiiiiiGiaahhhlllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhHHhHHhHHhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnhnnnnhnnhnnnhnnnnnhnnnnnnhnnhnhnnnnnnhnnnnhnnnnhnnnnnnhnnnhnnnnnnnnnhnnnnnnhnnnnnnhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhnnnnnhnnnnnnnnhnnnnnnnnhnnnhnnhnnnnhnnhnhnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaoooooooooaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaoooooooooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnnnhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhissssituuutissssihhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaadhhhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│avtttuuuuuuuuutttttttttttttdhhhhhhhhhhhllllhhhhhhhhhhhhhhhhhhhhhhhhhhhwhhhlllllhhhhhhhhhhhphhnnnnnnhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaadhhhhphhhhhhwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwhhhhhphhhhhphhissssituuuuuutisssssssihhhh│
+│aaaaaooooooooaaaaaaaaaaaaaadhhhhhhhhhhhxhxxxhhhhhhhhhhhhhhhhhhhhhhhhhhyhhhhxxxxhhhhhhhhhhhphhissssssiisssssiisssssihhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhhhhyyxhxxxhhhhhhhhhhhhhhhhhhhhhhhhyhhhhxxxxhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddddaaaaaaaaaaaaaaEaaahhhhhhhhhhhyhyyyhxxxxxxxxhhhhhhhhhhhhhhhhhyhhhhhxxxhhhhhhhhhhhphhnnnnnnhhhhhhhhhhhhhhqzzAqhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhhhhyhyyyhxxxxxxxxxhhhhhhhhhhhhhhhhyhhhhhxxxhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhhhhhhhhIJIIIJKKKKKKKKKKJJJJJJJJJJJJJJJIJJJJJKKKhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhhhhyhyyyhxxxxxxxxxhhhhhhhhhhhhhhhhyhhhhhxxxhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhyyyhxxxxxxxxhhhhhhhhhhhhhhhhhhhyhhhhhhxxhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhhhhxhxxxxhhhhhhhhhhhhhhhhhhhhhhhhhyhhhhhxxxhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddddaaaaaaaaaaaaEEaaahhhhhhhhhhhhhxxxxxxxxxhhhhhhhhhhhhhhhhhhhhyhhhhhxxxhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhphhhhhhhhxxxxxxxxxxxxhhhhhhhhhhhhhhhhhyhhhhhhxxhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaooooooaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhpHHhHhHHphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaoooooooooooaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+E #747a83 on #1c1f25
+f #2c3039 on #1c1f25
+g bold #8b929c on #1c1f25
+h on #16181d
+i on #13151a
+F #747a83 on #13151a
+G bold #747a83 on #13151a
+l bold #e6e8eb on #16181d
+H #747a83 on #16181d
+n #8b929c on #16181d
+o #e6e8eb on #1c1f25
+p #2c3039 on #16181d
+q #5fa8ff on #16181d
+s #8b929c on #13151a
+t on #2b4566
+u bold #e6e8eb on #2b4566
+v #5fa8ff on #2b4566
+w bold #3e444f on #16181d
+x #e6e8eb on #16181d
+y #3e444f on #16181d
+z on #5fa8ff
+A #ffffff on #5fa8ff
+I #3e444f on #24354c
+J on #24354c
+K #e6e8eb on #24354c

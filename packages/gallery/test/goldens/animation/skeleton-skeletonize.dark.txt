@@ -1,0 +1,104 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Animation  ›  Skeleton, Skeletonize                                        ctrl+p search      ◐ Dark  │
+│                                                                                                                        │
+│   ⌕ Filter             /      Skeleton, Skeletonize                                                           4 of 16  │
+│                               Placeholders while content loads: blocks where it will be, or a subtree drawn as         │
+│     ContextMenu               blocks in the layout it has, a shimmer sweeping over them as a SkeletonTheme says.       │
+│     CommandPalette                                                                                                     │
+│     OptionList                Preview   Code                                                                           │
+│     ModalBarrier           ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     WindowLayer                                                                          │                             │
+│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│   ANIMATION           16                                                                 │                             │
+│     Spinner                    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  loading             ▐  ●▌  │
+│     ProgressBar                                                                          │                             │
+│     ProgressList               ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  shimmer             ▐  ●▌  │
+│ ▎   Skeleton, Skeletoni…            ┌                                          ┐         │                             │
+│     AnimationController        ·      ╭──────────────────────────────────────╮     ·     │  glyph                      │
+│     AnimatedBuilder                   │ ░░░░░░░░                             │           │   ░  ▒  ▓                   │
+│     AnimatedAlign, Anim…       ·      │ ░░░░░░░░░ ░░░ ░░░ ░░░ ░░░░░░░░       │     ·     │                             │
+│     AnimatedPositioned                │ ░░░░░░ ░░ ░░░░░░░ ░░░░               │           │  band                       │
+│     AnimatedBox                ·      ╰──────────────────────────────────────╯     ·     │   8  4  16                  │
+│     AnimatedOpacity, Op…  ▐                                                              │                             │
+│     AnimatedDefaultText…  ▐    ·      ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░     ·     │                             │
+│     AnimatedSize          ▐           ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░           │                             │
+│     TweenAnimationBuild…  ▐    ·      ░░░░░░░░░░░░░░░░░░░░░░░░                     ·     │                             │
+│     AnimatedSwitcher      ▐                                                              │                             │
+│     Dissolve, Fractiona…       ·      ░░░░░░░░ ░░░░░░░░░░░░                        ·     │                             │
+│     Effect                          └                                          ┘         │                             │
+│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·40 × 11·   ·     │                             │
+│   MOUSE                5                                                                 │                             │
+│     GestureDetector            ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Listener, MouseRegi…                                                                 │                             │
+│     IgnorePointer, Abso…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     SelectionArea                                                                        │                             │
+│     Draggable, DragTarg…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│                                                                                          │                             │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaaDDDDDDDDDaafaadddddddddadddddddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaDDDDDDaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaiEiEEEEEEiiiiiiiiiiiiiFiaahhhlllllllllhlllllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhGhGGhGGhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnnnnnnnnnhnnnnnhnnnnnnnhnnnnnnhnnnnnnhnnnnnhnnhnnnnhnnnhnnhnhnnnnnnnhnnnnnhnnhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhnnnnnnhnnhnnnhnnnnnnhnnhnnnnhnhnnnnnnnhnnnnnnnnhnnnnhnnnnhnnhnhnnnnnnnnnnnnnhnnnnnhhhhhhh│
+│aaaaaooooooooooooooaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaadddddddddaaaaaaaaaaaDDaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhqrrsqhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhqrrsqhh│
+│atuuuvvvvvvvvvuvvvvvvvvvvuuahhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooooooaaaahhhhphhhhhhwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwhhhhhphhhhhphhnnnnnhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhhhhhhhhwhnnnnnnnxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhwhhhhhhhhhhhphhuvuiyiiyihhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooaoooooaaahhhhphhhhhhwhnnnnnnnxzhABzhnnnhnnnhnnnnnnnnhhhhhhhwhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooaaaaahhhhhhhhhhhwhnnnnnnhxzhABzxnnnhnnnnhhhhhhhhhhhhhhhwhhhhhhhhhhhphhnnnnhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhphhhhhhwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwhhhhhphhhhhphhuvuiyiiyyihhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaoooaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooooaadhhhhphhhhhhnnnnnnnnxzBAABzxnnnnnnnnnnnnnnnnnnnnnnnnhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaadhhhhhhhhhhhnnnnnnnnxzBAABzxnnnnnnnnnnnnnnnnnnnnnnnnhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooooaadhhhhphhhhhhnnnnnnnnxzBAABzxnnnnnnnnhhhhhhhhhhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaooooooooooaaahhhhphhhhhhBABzxnnnhzBABzxnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhpGGhGhGGphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddaaaaaaaaaaaaaaaaDaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaooooooooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooaoooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaoooooooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+D #747a83 on #1c1f25
+f #2c3039 on #1c1f25
+g bold #8b929c on #1c1f25
+h on #16181d
+i on #13151a
+E #747a83 on #13151a
+F bold #747a83 on #13151a
+l bold #e6e8eb on #16181d
+G #747a83 on #16181d
+n #8b929c on #16181d
+o #e6e8eb on #1c1f25
+p #2c3039 on #16181d
+q #5fa8ff on #16181d
+r on #5fa8ff
+s #ffffff on #5fa8ff
+t #5fa8ff on #2b4566
+u on #2b4566
+v bold #e6e8eb on #2b4566
+w #3e444f on #16181d
+x #a2a8b0 on #16181d
+y #8b929c on #13151a
+z #b9bdc4 on #16181d
+A #e6e8eb on #16181d
+B #cfd3d7 on #16181d

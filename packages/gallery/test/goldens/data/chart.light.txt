@@ -1,0 +1,102 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Data  ›  Chart                                                            ctrl+p search      ◐ Light  │
+│                                                                                                                        │
+│   ⌕ Filter             /      Chart                                                                           4 of 13  │
+│                               Datasets of points on two axes, as lines or dots, with a legend.                         │
+│     SingleChildScrollVi…                                                                                               │
+│     Scrollable                Preview   Code                                                                           │
+│     ListView               ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     LogView                                                                              │                             │
+│     Scrollbar                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│                                                                                          │                             │
+│   DATA                13  ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  graph                      │
+│     Sparkline             ▐                                                              │   scatter  line             │
+│     Gauge, LineGauge      ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     BarChart              ▐    ┌                                                    ┐    │  marker                     │
+│ ▎   Chart                 ▐       1┤                         ⢀⠤⠊⠉⠉⠉⠑⠒⠤⡀  ⡠⠔⠊⠉⠉┌───┐      │   braille  halfBlock        │
+│     DotCanvas                      │⠑⢄                     ⡔⠊⠁        ⠈⠱⣀     │sin│      │   quadrant  sextant         │
+│     Calendar                       │  ⠉⢆                ⢀⡰⠉         ⢀⠔⠁  ⠑⢄   │cos│      │   octant  block  dot  bar   │
+│     Heatmap, ActivityHe…           │    ⠱⣀             ⡠⠃         ⢀⠔⠁      ⠱⣀ └───┘      │   custom                    │
+│     Table                         0┤      ⠣⡀         ⢀⠜          ⡠⠃          ⠣⡀          │                             │
+│     DescriptionList                │       ⠘⢄      ⢀⠔⠁         ⡠⠊             ⠘⢄         │  legend                     │
+│     TreeView                       │         ⠉⢆⡀ ⢀⡰⠁         ⢀⠔⠁                ⠑⢄       │   topLeft  top  topRight    │
+│     TreeTable                      │⠢⢄         ⢀⠔⠁         ⡠⠊⠁                    ⠑      │   left  right  bottomLeft   │
+│     DirectoryTree                -1┤  ⠉⠢⢄⣀⣀⣀⠤⠤⠊⠁ ⠈⠑⠤⣀⣀⣀⣀⠤⠔⠉                              │   bottom  bottomRight       │
+│     TaskList                       └┬──────────────────────┬──────────────────────┬      │   none                      │
+│                                     0                      π                     2π      │                             │
+│   EDITING              4                                                          x      │  live                ▐  ●▌  │
+│     TextField                  └                                                    ┘    │                             │
+│     InputDecoration                                                          50 × 12     │                             │
+│     TextArea                   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Autocomplete                                                                         │                             │
+│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│   CONTROLS            20                                                                 │                             │
+│     Button                     ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Pressable                                                                            │                             │
+│                                                                                          │                             │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaaBBBBaafaadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaBBBBBBaaaaaadadddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaiCiCCCCCCiiiiiiiiiiiiiDiaahhhlllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhEhEEhEEhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnnnnnhnnhnnnnnnhnnhnnnhnnnnnhnnhnnnnnhnnhnnnnnhnnnnhnhnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddaaaaaaaaaaaaaaaaBBaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhstttttttsFGGGGFhhhhhhhhhhhh│
+│aaaaaooooooaoooooooooaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaadhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhphhnnnnnnhhhhhhhhhhhhhhhhhhhhh│
+│aHFFFGGGGGFFFFFFFFFFFFFFFFFdhhhhhhhnnhhhhhhhhhhhhhhhhhhhhhhhhhxxxxxxxxxxhhyyyyynnnnnhhhhhhphhFGGGGGGGFstttttttttshhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhnyyhhhhhhhhhhhhhhhhhhhhhxxxhhhhhhhhxxxhhhhhnyyynhhhhhhphhsttttttttsstttttttshhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhnhhyyhhhhhhhhhhhhhhhhxxxhhhhhhhhhyyyhhxxhhhnxxxnhhhhhhphhsttttttsstttttsstttsstttshh│
+│aaaaaooooooooaoooooooooooaaahhhhhhhhnhhhhyyhhhhhhhhhhhhhxxhhhhhhhhhyyyhhhhhhxxhnnnnnhhhhhhphhsttttttshhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaaahhhhhhhnnhhhhhhyyhhhhhhhhhxxhhhhhhhhhhyyhhhhhhhhhhxxhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhhhhhnhhhhhhhyyhhhhhhxxxhhhhhhhhhyyhhhhhhhhhhhhhxxhhhhhhhhhphhnnnnnnhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhnhhhhhhhhhyyyhxxxhhhhhhhhhyyyhhhhhhhhhhhhhhhhxxhhhhhhhphhstttttttsstttsFGGGGGGGGFhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhnxxhhhhhhhhhxxxhhhhhhhhhyyyhhhhhhhhhhhhhhhhhhhhxhhhhhhphhsttttsstttttssttttttttttshh│
+│aaaaaoooooooooooooaaaaaaaaaahhhhhhnnnhhxxxxxxxxxxhyyyyyyyyyyhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhsttttttsstttttttttttshhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnhhhhhhphhsttttshhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhnhhhhhhhhhhhhhhhhhhhhhhnhhhhhhhhhhhhhhhhhhhhhnnhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddddaaaaaaaaaaaaaaBaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhnhhhhhhphhnnnnhhhhhhhhhhhhhhhhqzzAqhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhEEhEhEEhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddddaaaaaaaaaaaaBBaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #f3f5f7
+b #0969da on #f3f5f7
+c bold #1f2328 on #f3f5f7
+d #656d76 on #f3f5f7
+B #838991 on #f3f5f7
+f #dcdfe4 on #f3f5f7
+g bold #656d76 on #f3f5f7
+h on #fafafb
+i on #fefefe
+C #838991 on #fefefe
+D bold #838991 on #fefefe
+l bold #1f2328 on #fafafb
+E #838991 on #fafafb
+n #656d76 on #fafafb
+o #1f2328 on #f3f5f7
+p #dcdfe4 on #fafafb
+q #0969da on #fafafb
+s on #eef0f3
+t #656d76 on #eef0f3
+F on #b6d4fe
+G bold #1f2328 on #b6d4fe
+H #0969da on #b6d4fe
+x yellow on #fafafb
+y cyan on #fafafb
+z on #0969da
+A #ffffff on #0969da

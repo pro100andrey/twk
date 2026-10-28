@@ -1,0 +1,20 @@
+name: twk_bloc
+description: >-
+  Bloc for twk widgets: blocs and cubits provided to a subtree, and widgets
+  that build and listen as their state changes.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.13.5
+resolution: workspace
+dependencies:
+  bloc: ^9.2.1
+  meta: ^1.19.0
+  twk:
+    path: ../twk
+dev_dependencies:
+  pro_lints: ^6.2.0
+  test: ^1.33.0
+  twk_test:
+    path: ../twk_test

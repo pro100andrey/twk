@@ -1,0 +1,62 @@
+[33ma91fabf[m Stack children on top of each other, aligned or pinned to its edges
+
+[1mdiff --git a/packages/twk/lib/src/layout/flex.dart b/packages/twk/lib/src/layout/flex.dart[m
+[1mindex 9f98c83..41783d9 100644[m
+[1m--- a/packages/twk/lib/src/layout/flex.dart[m
+[1m+++ b/packages/twk/lib/src/layout/flex.dart[m
+[36m@@ -16,6 +16,7 @@[m [mimport 'package:twk_core/twk_core.dart'[m
+ [m
+ import '../framework/framework.dart';[m
+ import 'basic.dart';[m
+[32m+[m[32mimport 'child_list.dart';[m
+ [m
+ export 'package:twk_core/twk_core.dart'[m
+     show Axis, CrossAxisAlignment, FlexFit, MainAxisAlignment, MainAxisSize;[m
+[36m@@ -52,7 +53,7 @@[m [mfinal class Flex extends MultiChildRenderObjectWidget {[m
+   final int gap;[m
+ [m
+   @override[m
+[31m-  MultiChildRenderObjectElement createElement() => _FlexElement(this);[m
+[32m+[m[32m  MultiChildRenderObjectElement createElement() => ChildListElement(this);[m
+ [m
+   @override[m
+   RenderFlex createRenderObject(BuildContext context) => RenderFlex([m
+[36m@@ -146,29 +147,3 @@[m [mfinal class Spacer extends StatelessWidget {[m
+   Widget build(BuildContext context) =>[m
+       Expanded(flex: flex, child: const SizedBox.shrink());[m
+ }[m
+[31m-[m
+[31m-/// The element of a [Flex]: keeps the render objects of its children in[m
+[31m-/// the [RenderFlex], in order.[m
+[31m-final class _FlexElement extends MultiChildRenderObjectElement {[m
+[31m-  _FlexElement(Flex super.widget);[m
+[31m-[m
+[31m-  @override[m
+[31m-  RenderFlex get renderObject => super.renderObject as RenderFlex;[m
+[31m-[m
+[31m-  @override[m
+[31m-  void insertRenderObjectChild([m
+[31m-    RenderObject child,[m
+[31m-    IndexedSlot<Element?> slot,[m
+[31m-  ) => renderObject.insert(child, after: slot.value?.renderObject);[m
+[31m-[m
+[31m-  @override[m
+[31m-  void moveRenderObjectChild([m
+[31m-    RenderObject child,[m
+[31m-    IndexedSlot<Element?> oldSlot,[m
+[31m-    IndexedSlot<Element?> newSlot,[m
+[31m-  ) => renderObject.move(child, after: newSlot.value?.renderObject);[m
+[31m-[m
+[31m-  @override[m
+[31m-  void removeRenderObjectChild(RenderObject child, Object? slot) =>[m
+[31m-      renderObject.remove(child);[m
+[31m-}[m
+[1mdiff --git a/packages/twk/lib/src/layout/layout.dart b/packages/twk/lib/src/layout/layout.dart[m
+[1mindex 229b029..00d8eee 100644[m
+[1m--- a/packages/twk/lib/src/layout/layout.dart[m
+[1m+++ b/packages/twk/lib/src/layout/layout.dart[m
+[36m@@ -5,3 +5,4 @@[m [mlibrary;[m
+ export 'basic.dart';[m
+ export 'box.dart';[m
+ export 'flex.dart';[m
+[32m+[m[32mexport 'stack.dart';[m

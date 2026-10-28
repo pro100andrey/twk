@@ -1,0 +1,456 @@
+twk_rich is under the MIT License, copyright 2026 Andrii Ivanov: LICENSE.
+
+The third-party material it bundles keeps its own licence, which the MIT
+License neither replaces nor extends: the spec examples its Markdown tests
+run (section 1), and the parts of the JPEG decoder of
+package:twk_rich/image.dart derived from the Independent JPEG Group's
+software, libjpeg (section 2), and from jpgjs, as pdf.js and package:image
+keep it (section 3). Sections 2 and 3 name the parts, the files and lines
+they follow and what was changed; the licences follow at the end: A, the
+IJG's, with README.ijg beside this file; B, the Apache License 2.0 of
+pdf.js; C, the MIT License of package:image.
+
+Sections 2 and 3 and licences A, B and C apply only to an executable that
+imports package:twk_rich/image.dart. The code they cover is in
+lib/src/image/jpeg.dart, which no library of twk_rich but image.dart
+reaches: package:twk_rich/twk_rich.dart neither exports nor imports it, so
+a program that imports twk_rich.dart alone compiles none of that code. For
+a program that imports image.dart, and for twk_rich's source:
+
+This software is based in part on the work of the Independent JPEG Group.
+
+
+1. CommonMark and GFM spec examples (CC BY-SA 4.0)
+
+   test/markdown/spec.json
+     The examples of the CommonMark Spec 0.31.2 by John MacFarlane
+     (https://spec.commonmark.org/0.31.2/), as published in
+     https://spec.commonmark.org/0.31.2/spec.json.
+
+   test/markdown/gfm.json
+     The examples of the tables, task list items, strikethrough and
+     autolinks extensions in the GitHub Flavored Markdown Spec 0.29-gfm
+     (https://github.github.com/gfm/), which is based on the CommonMark
+     Spec by John MacFarlane: those four sections' examples only, written
+     out as JSON.
+
+   Both specs are licensed under the Creative Commons
+   Attribution-ShareAlike 4.0 International License,
+   https://creativecommons.org/licenses/by-sa/4.0/.
+
+
+2. libjpeg (the IJG's licence), in package:twk_rich/image.dart
+
+   lib/src/image/jpeg.dart translates the parts of libjpeg below into
+   Dart, so that it decodes as `djpeg -dct int -nosmooth` does. They were
+   compared with libjpeg-turbo 3.2.0
+   (https://github.com/libjpeg-turbo/libjpeg-turbo/tree/3.2.0), whose
+   files carry this code of the IJG's; the line numbers are that
+   release's.
+
+   _idct, the inverse DCT and dequantization of a block
+     jpeg_idct_islow in src/jidctint.c (lines 102-143 and 190-436): the
+     slow-but-accurate integer IDCT, after Loeffler, Ligtenberg and
+     Moschytz — its 13-bit constants, two bits more kept between the
+     passes, the columns first and the rows second, the same variables,
+     order of operations and rounding, and the shortcut for a column or
+     row whose AC terms are all zero.
+     Changed: for 8-bit samples only, without the scaled IDCTs; the
+     MULTIPLY, DEQUANTIZE and DESCALE macros written out; each result
+     clamped to 0..255 after 128 is added, in place of the range-limit
+     table, which gives the same samples unless corrupt coefficients take
+     the sum beyond the table's range; the samples written into a plane
+     at a stride rather than into rows.
+     src/jidctint.c: Copyright (C) 1991-1998, Thomas G. Lane.
+     Modification developed 2002-2018 by Guido Vollbeding. libjpeg-turbo
+     Modifications: Copyright (C) 2015, 2020, 2022, 2026, D. R. Commander.
+
+   _crToR, _cbToB, _crToG and _cbToG, the YCbCr to RGB tables
+     build_ycc_rgb_table in src/jdcolor.c (lines 82-84 and 212-256; the
+     same in src/jdmerge.c, lines 160-201): Cr to R and Cb to B rounded in
+     advance, Cr to G and Cb to G kept with 16 bits of fraction and half
+     added to Cb's. _Decoder._output adds them to Y as ycc_rgb_convert
+     does in src/jdcolext.c (lines 55-64), and inverts the result for
+     YCCK as ycck_cmyk_convert does in src/jdcolor.c (lines 436-445).
+     Changed: the tables made once for 8-bit samples; a clamp to 0..255 in
+     place of the range-limit table; the YCCK inks inverted after the
+     clamp rather than before it, which gives the same values.
+     src/jdcolor.c: Copyright (C) 1991-1997, Thomas G. Lane. Modified 2011
+     by Guido Vollbeding. libjpeg-turbo Modifications: Copyright 2009
+     Pierre Ossman <ossman@cendio.se> for Cendio AB; Copyright (C) 2009,
+     2011-2012, 2014-2015, 2022, 2024-2025, D. R. Commander; Copyright
+     (C) 2013, Linaro Limited.
+
+   _Decoder._refineAc, a progressive scan's refinement of AC coefficients
+     decode_mcu_AC_refine in src/jdphuff.c (lines 497-645): p1 and m1, the
+     run of zero coefficients counted down while correction bits are
+     appended to the non-zero ones, the newly non-zero coefficient placed
+     where the run ends, and the end-of-band run.
+     Changed: without input suspension, and so without undoing the newly
+     non-zero coefficients; a coefficient of any size taken as one of
+     size 1 without a warning; a coefficient past position 63 dropped;
+     the restart handling and the bit reader the decoder's own.
+     src/jdphuff.c: Copyright (C) 1995-1997, Thomas G. Lane. libjpeg-turbo
+     Modifications: Copyright (C) 2015-2016, 2018-2022, D. R. Commander.
+
+   _zigzag, the zigzag order of ITU-T T.81, ends with 16 entries of 63 as
+   jpeg_natural_order does in src/jutils.c (lines 59-70), so that a run in
+   corrupt data stays within its block.
+   src/jutils.c: Copyright (C) 1991-1996, Thomas G. Lane. libjpeg-turbo
+   Modifications: Copyright (C) 2022, D. R. Commander.
+
+   The rest of the decoder is not taken from libjpeg's code: reading the
+   markers, the Huffman tables and codes, the entropy-coded bits and
+   restart markers, the scans (section 3), the colour space a file is in,
+   chroma replicated to the full size, and CMYK to RGB.
+
+
+3. jpgjs, as pdf.js (Apache License 2.0) and package:image (MIT License)
+   keep it, in package:twk_rich/image.dart
+
+   The way lib/src/image/jpeg.dart walks a scan and decodes the blocks of
+   a baseline scan and of a progressive scan's first passes follows jpgjs,
+   the JPEG decoder notmasteryet wrote and pdf.js took in, and its Dart
+   port in package:image. They were compared with
+     pdf.js v4.10.38, src/core/jpg.js
+       (https://github.com/mozilla/pdf.js/blob/v4.10.38/src/core/jpg.js),
+       cited below as jpg.js;
+     package:image 4.5.4, lib/src/formats/jpeg/jpeg_scan.dart and
+       jpeg_frame.dart
+       (https://github.com/brendan-duncan/image/tree/4.5.4/lib/src/formats/jpeg),
+       cited as jpeg_scan.dart and jpeg_frame.dart;
+     and, where they came from, jpgjs's jpg.js at commit f1d3092
+       (https://github.com/notmasteryet/jpgjs/blob/f1d30922fda93417669246f5a25cf2393dd9c108/jpg.js),
+       cited as jpgjs.
+   The line numbers are those versions'.
+
+   _Decoder._scan, the walk through a scan
+     The step that decodes a block chosen once a scan, from whether the
+     file is progressive and the scan's spectral selection and successive
+     approximation; a scan of one component taken block by block, the
+     row mcu ~/ width and the column mcu % width; an interleaved scan
+     taken MCU by MCU, each component's v × h blocks in turn at row
+     mcuRow × v + j and column mcuColumn × h + i; the count of MCUs from
+     either; the predictions and the end-of-band run reset at each
+     restart.
+     jpg.js lines 357-430 (decodeMcu, decodeBlock, the choice of
+     decodeFn, mcuExpected and the loop over the MCUs); jpeg_scan.dart
+     lines 52-108 and 325-350; jpgjs lines 342-404.
+
+   _Decoder._block, modes 0 to 3, and _Decoder._extend
+     The baseline block, the first DC scan, the DC refinement and the
+     first AC scan: the DC difference as t == 0 ? 0 : extend(t) added to
+     the component's prediction; rs split into s = rs & 15 and r = rs >> 4,
+     a zero s ending the block (r < 15) or skipping 16 coefficients
+     (r = 15); otherwise k += r and the coefficient at zigzag position k;
+     in a first AC scan, an end-of-band run going on skipping the block,
+     a new one of (1 << r) - 1 plus r bits, and each coefficient times
+     1 << Al. _extend as receiveAndExtend.
+     jpg.js lines 208-287 (receive, receiveAndExtend, decodeBaseline,
+     decodeDCFirst, decodeDCSuccessive, decodeACFirst); jpeg_scan.dart
+     lines 162-259; jpgjs lines 204-275.
+
+   blocksPerLine, blocksPerColumn, _mcusPerLine and _mcusPerColumn
+     The names of _Component's and _Decoder's counts of blocks and MCUs,
+     as jpg.js lines 747-768 (prepareComponents) and jpeg_frame.dart
+     lines 16-51 have them.
+
+   The colour transform of three components
+     An Adobe marker's transform, where there is one, outweighing any
+     other sign: none where it says 0, or, without one, where the
+     components are named R, G and B (0x52, 0x47, 0x42), as
+     _isColorConversionNeeded in jpg.js lines 1232-1262.
+
+   Changed: written as cases of one switch over the block's step rather
+   than a function for each; Huffman codes decoded through lookup tables
+   rather than a tree, and bits read up to 32 at a time, data cut short
+   or ending at a marker reading as zero bits rather than failing;
+   restart markers found by the decoder's own search; the counts named
+   blocksPerLine and blocksPerColumn here are those padded to whole MCUs
+   (jpgjs's blocksPerLineForMcu and blocksPerColumnForMcu), and a scan of
+   one component takes ceil(ceil(X × h / hmax) / 8) blocks across, as
+   T.81 A.1.1 and A.2.2 have it, where jpgjs takes ceil(ceil(X / 8) × h /
+   hmax); the first DC scan shifts the prediction by Al rather than each
+   difference, as libjpeg does; an end-of-band run's extra bits read only
+   when r > 0; the R, G and B names counted only where there is no JFIF
+   marker, as in libjpeg; the AC refinement libjpeg's (section 2), not
+   jpgjs's.
+   jpg.js: Copyright 2014 Mozilla Foundation. jpgjs: Copyright (C) 2011
+   notmasteryet; contributors Yury Delendik and Brendan Dahl; its jpg.js
+   Copyright 2015 Mozilla Foundation. Both under the Apache License,
+   Version 2.0 (section B). pdf.js has no NOTICE file at v4.10.38.
+   package:image: Copyright (c) 2013-2022 Brendan Duncan, under the MIT
+   License (section C).
+
+
+Not third-party: the big-text fonts (lib/src/bigtext/glyphs.dart) were
+drawn for this package, the pixel fonts after the common 5×7 and 3×5
+dot-matrix letterforms, no glyph copied from another font; they are
+under its MIT License like the rest of it.
+
+
+A. The Independent JPEG Group's licence
+
+README.ijg, beside this file, is libjpeg-turbo 3.2.0's README.ijg, whole
+and unaltered, as the licence asks of a distribution of any part of the
+IJG's source code. Its LEGAL ISSUES section is repeated here, unaltered:
+
+LEGAL ISSUES
+============
+
+In plain English:
+
+1. We don't promise that this software works.  (But if you find any bugs,
+   please let us know!)
+2. You can use this software for whatever you want.  You don't have to pay us.
+3. You may not pretend that you wrote this software.  If you use it in a
+   program, you must acknowledge somewhere in your documentation that
+   you've used the IJG code.
+
+In legalese:
+
+The authors make NO WARRANTY or representation, either express or implied,
+with respect to this software, its quality, accuracy, merchantability, or
+fitness for a particular purpose.  This software is provided "AS IS", and you,
+its user, assume the entire risk as to its quality and accuracy.
+
+This software is copyright (C) 1991-2020, Thomas G. Lane, Guido Vollbeding.
+All Rights Reserved except as specified below.
+
+Permission is hereby granted to use, copy, modify, and distribute this
+software (or portions thereof) for any purpose, without fee, subject to these
+conditions:
+(1) If any part of the source code for this software is distributed, then this
+README file must be included, with this copyright and no-warranty notice
+unaltered; and any additions, deletions, or changes to the original files
+must be clearly indicated in accompanying documentation.
+(2) If only executable code is distributed, then the accompanying
+documentation must state that "this software is based in part on the work of
+the Independent JPEG Group".
+(3) Permission for use of this software is granted only if the user accepts
+full responsibility for any undesirable consequences; the authors accept
+NO LIABILITY for damages of any kind.
+
+These conditions apply to any software derived from or based on the IJG code,
+not just to the unmodified library.  If you use our work, you ought to
+acknowledge us.
+
+Permission is NOT granted for the use of any IJG author's name or company name
+in advertising or publicity relating to this software or products derived from
+it.  This software may be referred to only as "the Independent JPEG Group's
+software".
+
+We specifically permit and encourage the use of this software as the basis of
+commercial products, provided that all warranty or liability claims are
+assumed by the product vendor.
+
+
+B. Apache License 2.0, as pdf.js grants it
+
+The LICENSE file of pdf.js v4.10.38, unaltered:
+
+
+                                 Apache License
+                           Version 2.0, January 2004
+                        http://www.apache.org/licenses/
+
+   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+
+   1. Definitions.
+
+      "License" shall mean the terms and conditions for use, reproduction,
+      and distribution as defined by Sections 1 through 9 of this document.
+
+      "Licensor" shall mean the copyright owner or entity authorized by
+      the copyright owner that is granting the License.
+
+      "Legal Entity" shall mean the union of the acting entity and all
+      other entities that control, are controlled by, or are under common
+      control with that entity. For the purposes of this definition,
+      "control" means (i) the power, direct or indirect, to cause the
+      direction or management of such entity, whether by contract or
+      otherwise, or (ii) ownership of fifty percent (50%) or more of the
+      outstanding shares, or (iii) beneficial ownership of such entity.
+
+      "You" (or "Your") shall mean an individual or Legal Entity
+      exercising permissions granted by this License.
+
+      "Source" form shall mean the preferred form for making modifications,
+      including but not limited to software source code, documentation
+      source, and configuration files.
+
+      "Object" form shall mean any form resulting from mechanical
+      transformation or translation of a Source form, including but
+      not limited to compiled object code, generated documentation,
+      and conversions to other media types.
+
+      "Work" shall mean the work of authorship, whether in Source or
+      Object form, made available under the License, as indicated by a
+      copyright notice that is included in or attached to the work
+      (an example is provided in the Appendix below).
+
+      "Derivative Works" shall mean any work, whether in Source or Object
+      form, that is based on (or derived from) the Work and for which the
+      editorial revisions, annotations, elaborations, or other modifications
+      represent, as a whole, an original work of authorship. For the purposes
+      of this License, Derivative Works shall not include works that remain
+      separable from, or merely link (or bind by name) to the interfaces of,
+      the Work and Derivative Works thereof.
+
+      "Contribution" shall mean any work of authorship, including
+      the original version of the Work and any modifications or additions
+      to that Work or Derivative Works thereof, that is intentionally
+      submitted to Licensor for inclusion in the Work by the copyright owner
+      or by an individual or Legal Entity authorized to submit on behalf of
+      the copyright owner. For the purposes of this definition, "submitted"
+      means any form of electronic, verbal, or written communication sent
+      to the Licensor or its representatives, including but not limited to
+      communication on electronic mailing lists, source code control systems,
+      and issue tracking systems that are managed by, or on behalf of, the
+      Licensor for the purpose of discussing and improving the Work, but
+      excluding communication that is conspicuously marked or otherwise
+      designated in writing by the copyright owner as "Not a Contribution."
+
+      "Contributor" shall mean Licensor and any individual or Legal Entity
+      on behalf of whom a Contribution has been received by Licensor and
+      subsequently incorporated within the Work.
+
+   2. Grant of Copyright License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      copyright license to reproduce, prepare Derivative Works of,
+      publicly display, publicly perform, sublicense, and distribute the
+      Work and such Derivative Works in Source or Object form.
+
+   3. Grant of Patent License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      (except as stated in this section) patent license to make, have made,
+      use, offer to sell, sell, import, and otherwise transfer the Work,
+      where such license applies only to those patent claims licensable
+      by such Contributor that are necessarily infringed by their
+      Contribution(s) alone or by combination of their Contribution(s)
+      with the Work to which such Contribution(s) was submitted. If You
+      institute patent litigation against any entity (including a
+      cross-claim or counterclaim in a lawsuit) alleging that the Work
+      or a Contribution incorporated within the Work constitutes direct
+      or contributory patent infringement, then any patent licenses
+      granted to You under this License for that Work shall terminate
+      as of the date such litigation is filed.
+
+   4. Redistribution. You may reproduce and distribute copies of the
+      Work or Derivative Works thereof in any medium, with or without
+      modifications, and in Source or Object form, provided that You
+      meet the following conditions:
+
+      (a) You must give any other recipients of the Work or
+          Derivative Works a copy of this License; and
+
+      (b) You must cause any modified files to carry prominent notices
+          stating that You changed the files; and
+
+      (c) You must retain, in the Source form of any Derivative Works
+          that You distribute, all copyright, patent, trademark, and
+          attribution notices from the Source form of the Work,
+          excluding those notices that do not pertain to any part of
+          the Derivative Works; and
+
+      (d) If the Work includes a "NOTICE" text file as part of its
+          distribution, then any Derivative Works that You distribute must
+          include a readable copy of the attribution notices contained
+          within such NOTICE file, excluding those notices that do not
+          pertain to any part of the Derivative Works, in at least one
+          of the following places: within a NOTICE text file distributed
+          as part of the Derivative Works; within the Source form or
+          documentation, if provided along with the Derivative Works; or,
+          within a display generated by the Derivative Works, if and
+          wherever such third-party notices normally appear. The contents
+          of the NOTICE file are for informational purposes only and
+          do not modify the License. You may add Your own attribution
+          notices within Derivative Works that You distribute, alongside
+          or as an addendum to the NOTICE text from the Work, provided
+          that such additional attribution notices cannot be construed
+          as modifying the License.
+
+      You may add Your own copyright statement to Your modifications and
+      may provide additional or different license terms and conditions
+      for use, reproduction, or distribution of Your modifications, or
+      for any such Derivative Works as a whole, provided Your use,
+      reproduction, and distribution of the Work otherwise complies with
+      the conditions stated in this License.
+
+   5. Submission of Contributions. Unless You explicitly state otherwise,
+      any Contribution intentionally submitted for inclusion in the Work
+      by You to the Licensor shall be under the terms and conditions of
+      this License, without any additional terms or conditions.
+      Notwithstanding the above, nothing herein shall supersede or modify
+      the terms of any separate license agreement you may have executed
+      with Licensor regarding such Contributions.
+
+   6. Trademarks. This License does not grant permission to use the trade
+      names, trademarks, service marks, or product names of the Licensor,
+      except as required for reasonable and customary use in describing the
+      origin of the Work and reproducing the content of the NOTICE file.
+
+   7. Disclaimer of Warranty. Unless required by applicable law or
+      agreed to in writing, Licensor provides the Work (and each
+      Contributor provides its Contributions) on an "AS IS" BASIS,
+      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+      implied, including, without limitation, any warranties or conditions
+      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
+      PARTICULAR PURPOSE. You are solely responsible for determining the
+      appropriateness of using or redistributing the Work and assume any
+      risks associated with Your exercise of permissions under this License.
+
+   8. Limitation of Liability. In no event and under no legal theory,
+      whether in tort (including negligence), contract, or otherwise,
+      unless required by applicable law (such as deliberate and grossly
+      negligent acts) or agreed to in writing, shall any Contributor be
+      liable to You for damages, including any direct, indirect, special,
+      incidental, or consequential damages of any character arising as a
+      result of this License or out of the use or inability to use the
+      Work (including but not limited to damages for loss of goodwill,
+      work stoppage, computer failure or malfunction, or any and all
+      other commercial damages or losses), even if such Contributor
+      has been advised of the possibility of such damages.
+
+   9. Accepting Warranty or Additional Liability. While redistributing
+      the Work or Derivative Works thereof, You may choose to offer,
+      and charge a fee for, acceptance of support, warranty, indemnity,
+      or other liability obligations and/or rights consistent with this
+      License. However, in accepting such obligations, You may act only
+      on Your own behalf and on Your sole responsibility, not on behalf
+      of any other Contributor, and only if You agree to indemnify,
+      defend, and hold each Contributor harmless for any liability
+      incurred by, or claims asserted against, such Contributor by reason
+      of your accepting any such warranty or additional liability.
+
+   END OF TERMS AND CONDITIONS
+
+
+C. MIT License, as package:image grants it
+
+The LICENSE file of package:image 4.5.4, unaltered:
+
+The MIT License
+
+Copyright (c) 2013-2022 Brendan Duncan.
+All rights reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.

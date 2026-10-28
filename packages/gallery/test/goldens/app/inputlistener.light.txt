@@ -1,0 +1,99 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   App  ›  InputListener                                                     ctrl+p search      ◐ Light  │
+│                                                                                                                        │
+│   ⌕ Filter             /      InputListener                                                                    1 of 8  │
+│                               The input no widget took: keys nothing is bound to, the mouse where no Listener is,      │
+│   FOUNDATION           2      pastes, focus and resizes.                                                               │
+│     ListenableBuilder                                                                                                  │
+│     FutureBuilder, Stre…      Preview   Code                                                                           │
+│                            ───━━━━━━━──────────────────────────────────────────────────────────────────────────────────│
+│   FRAMEWORK            3                                                                                               │
+│     LayoutBuilder              ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   │
+│     NotificationListener                                                                                               │
+│     Slot, SlotScope            ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   │
+│                                                                                                                        │
+│   APP                  8       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   │
+│ ▎   InputListener                               ┌                                                ┐                     │
+│     ErrorWidget                ·   ·   ·   ·      Press a key nothing takes, such as x    Clear    ·   ·   ·   ·   ·   │
+│     Static                                        ╭────────────────────────────────────────────╮                       │
+│     TerminalProgress           ·   ·   ·   ·      │ nothing yet                                │   ·   ·   ·   ·   ·   │
+│     Viewport                                      │                                            │                       │
+│     Window title               ·   ·   ·   ·      │                                            │   ·   ·   ·   ·   ·   │
+│     Notifications                                 │                                            │                       │
+│     Cli                        ·   ·   ·   ·      │                                            │   ·   ·   ·   ·   ·   │
+│                                                   │                                            │                       │
+│   SCREEN READERS       1       ·   ·   ·   ·      │                                            │   ·   ·   ·   ·   ·   │
+│     Semantics                                     │                                            │                       │
+│                                ·   ·   ·   ·      ╰────────────────────────────────────────────╯   ·   ·   ·   ·   ·   │
+│   DEBUGGING            4                        └                                                ┘                     │
+│     Console               ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  46 × 11  ·   ·   ·   ·   ·   │
+│     FrameOverlay          ▐                                                                                            │
+│     Repaint rainbow       ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   │
+│     RepaintBoundary       ▐                                                                                            │
+│                           ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   │
+│   RICH                 8                                                                                               │
+│     MarkdownView               ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   │
+│                                                                                                                        │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaayyyaafaadddddddddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggayyyyyyaaaaaadadddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaizizzzzzziiiiiiiiiiiiiAiaahhhlllllllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhBhBBhBhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnhnnnnnhnnhnnnnnnhnnnnnhnnnnhnnnnnnnhnnhnnnnnhnnnhnnnhnnnnnhnnnnnhnnhnnnnnnnnhnnnhhhhhh│
+│aaaddddddddddaaaaaaaaaaayaaahhhnnnnnnnhnnnnnhnnnhnnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooooaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooaoooooaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaadddddddddaaaaaaaaaaaayaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhh│
+│aaaaaooooooooooooooooooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaoooooooooaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddaaaaaaaaaaaaaaaaaayaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhh│
+│aCDDDEEEEEEEEEEEEEDDDDDDDDDahhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhphhhphhhphhhphhhhhhnnnnnhnhnnnhnnnnnnnhnnnnnnhnnnnhnnhnhhhuvvvvvuhhhphhhphhhphhhphhhphhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhhphhhphhhphhhphhhhhhwhnnnnnnnhnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhwhhhphhhphhhphhhphhhphhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhwhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaoooooaaaaaaaaaaahhhhphhhphhhphhhphhhhhhwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhwhhhphhhphhhphhhphhhphhh│
+│aaaaaoooooooooooooaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhwhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhhhhwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhwhhhphhhphhhphhhphhhphhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhwhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddadddddddaaaaaaayaaahhhhphhhphhhphhhphhhhhhwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhwhhhphhhphhhphhhphhhphhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhwhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhhhhwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwhhhphhhphhhphhhphhhphhh│
+│aaadddddddddaaaaaaaaaaaayaaahhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhBBhBhBBhhphhhphhhphhhphhhphhh│
+│aaaaaooooooooooooaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaoooooooaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhh│
+│aaaaaoooooooooooooooaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhh│
+│aaaddddaaaaaaaaaaaaaaaaayaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #f3f5f7
+b #0969da on #f3f5f7
+c bold #1f2328 on #f3f5f7
+d #656d76 on #f3f5f7
+y #838991 on #f3f5f7
+f #dcdfe4 on #f3f5f7
+g bold #656d76 on #f3f5f7
+h on #fafafb
+i on #fefefe
+z #838991 on #fefefe
+A bold #838991 on #fefefe
+l bold #1f2328 on #fafafb
+B #838991 on #fafafb
+n #656d76 on #fafafb
+o #1f2328 on #f3f5f7
+p #dcdfe4 on #fafafb
+q #0969da on #fafafb
+C #0969da on #b6d4fe
+D on #b6d4fe
+E bold #1f2328 on #b6d4fe
+u on #eef0f3
+v bold #0969da on #eef0f3
+w #c8cdd5 on #fafafb

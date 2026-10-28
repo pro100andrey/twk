@@ -1,0 +1,79 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     Visibility, Offstage                    Preview   Code  │
+│                        A child hidden: Offstage keeps it laid out and running  │
+│     FractionallyS…     without painting it; Visibility takes its room away t…  │
+│     IntrinsicWidt…   ──────────────────────────────────────────────────────────│
+│     Row, Column,…   ▐                                                          │
+│     Expanded, Spa…  ▐   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│     Stack, Positi…                      ┌                 ┐                    │
+│     Transform           ·   ·   ·   ·     above the child   ·   ·   ·   ·   ·  │
+│ ▎   Visibility, O…                        below the child                      │
+│     ExpansionTile…      ·   ·   ·   ·   └                 ┘ ·   ·   ·   ·   ·  │
+│     Grid, GridPla…                                  15 × 2                     │
+│     Wrap                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│     CustomPaint                                                                │
+│     SplitView                                                                  │
+│     DockArea         ──────────────────────────────────────────────────────────│
+│     Scaffold           widget        Visibility  Offstage                      │
+│                        hidden       ▐  ●▌                                      │
+│   STYLE          4     keeps         nothing  state  size                      │
+│     Theme              replacement  ▐●  ▌                                      │
+│     TerminalBrigh…                                                             │
+│                                                                                │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeaCCCCCCaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahDhDDDDDDhhhhhhhEhaaggkkkkkkkkkkkgkkkkkkkkgggggggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmgmmmmmgmmmmmmmgmmmmmmmmgmmmmmgmmgmmmmgmmmgmmmgmmmmmmmgg│
+│aaaaannnnnnnnnnnnnnaaaggmmmmmmmgmmmmmmmmgmmmgmmmmmmmmmmgmmmmmgmmmgmmmmgmmmmgmmgg│
+│aaaaannnnnnnnnnnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnannnnnnnnaaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnannnnaadgggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
+│aaaaannnnnnannnnnnnaaagggggggggggggggggggogggggggggggggggggogggggggggggggggggggg│
+│aaaaannnnnnnnnaaaaaaaagggogggogggogggogggggtttttgtttgtttttgggogggogggogggogggogg│
+│aqrrrsssssssssssrssrragggggggggggggggggggggtttttgtttgtttttgggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaaagggogggogggogggogggogggggggggggggggggogogggogggogggogggogg│
+│aaaaannnnnannnnnnnnaaagggggggggggggggggggggggggggggggFFgFgFggggggggggggggggggggg│
+│aaaaannnnaaaaaaaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
+│aaaaannnnnnnnnnnaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnaaaaaaaaaggmmmmmmgggggggrssssssssssrhvvvvvvvvhggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmmgggggggwxxywgggggggggggggggggggggggggggggggggggggg│
+│aaadddddaaaaaaaaaaCaaaggmmmmmggggggggrsssssssrhvvvvvhhvvvvhggggggggggggggggggggg│
+│aaaaannnnnaaaaaaaaaaaaggmmmmmmmmmmmggzABBzgggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+C #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+D #747a83 on #13151a
+E bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+n #e6e8eb on #1c1f25
+o #2c3039 on #16181d
+t #e6e8eb on #16181d
+q #5fa8ff on #2b4566
+r on #2b4566
+s bold #e6e8eb on #2b4566
+F #747a83 on #16181d
+v #8b929c on #13151a
+w #5fa8ff on #16181d
+x on #5fa8ff
+y #ffffff on #5fa8ff
+z #383d48 on #16181d
+A #e6e8eb on #383d48
+B on #383d48

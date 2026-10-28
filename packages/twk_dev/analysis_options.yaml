@@ -1,0 +1,33 @@
+include: package:pro_lints/recommended.yaml
+
+analyzer:
+  errors:
+    # The `plugins:` below configures twk_lints' diagnostics for this
+    # package's files. In the workspace the plugin itself is loaded from the
+    # root's analysis_options.yaml, and the analyzer warns of a `plugins:`
+    # anywhere else; its diagnostics, though, are what this file says.
+    plugins_in_inner_options: ignore
+  exclude:
+    # the inputs of the data-driven fixes' tests: the old API, on purpose
+    - test_fixes/**
+    # packages of their own, each analyzed by itself (xtask.yaml's
+    # pkg-analyze): here they would be context roots of this analysis too,
+    # whose plugin snapshot two servers would build at once
+    - templates/**
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+
+linter:
+  rules:
+    # every public member documented: doc/internals/quality/README.md
+    public_member_api_docs: true
+
+# twk_lints, the repository's analyzer plugin: no test waits on the wall
+# clock (doc/internals/quality/README.md, "Time in tests").
+plugins:
+  twk_lints:
+    path: ../twk_lints
+    diagnostics:
+      wall_time_in_tests: true

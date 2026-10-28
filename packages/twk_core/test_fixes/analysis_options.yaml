@@ -1,0 +1,4 @@
+# test_fixes/ holds code written against an older API, so it does not
+# analyze clean: the package's analysis_options.yaml excludes it, and this
+# file makes it a context of its own, where
+# `dart fix --compare-to-golden test_fixes` still finds its diagnostics.

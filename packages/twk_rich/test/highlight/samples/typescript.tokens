@@ -1,0 +1,47 @@
+comment"// A sample of TypeScript for the highlighting tests."
+keyword"import" " " keyword"type" " " punctuation"{" " " type"Readable" " " punctuation"}" " " keyword"from" " " string"'node:stream'" punctuation";"
+
+keyword"export" " " keyword"interface" " " type"Point" operator"<" type"T" " " keyword"extends" " " type"number" " " operator"=" " " type"number" operator">" " " punctuation"{"
+"  " keyword"readonly" " x" punctuation":" " " type"T" punctuation";"
+"  y" operator"?" punctuation":" " " type"T" punctuation";"
+punctuation"}"
+
+keyword"type" " " type"Shape" " " operator"="
+"  " operator"|" " " punctuation"{" " kind" punctuation":" " " string"'circle'" punctuation";" " radius" punctuation":" " " type"number" " " punctuation"}"
+"  " operator"|" " " punctuation"{" " kind" punctuation":" " " string"'square'" punctuation";" " side" punctuation":" " " type"number" " " punctuation"};"
+
+keyword"declare" " " keyword"module" " " string"'lib'" " " punctuation"{"
+"  " keyword"export" " " keyword"function" " " function"area" punctuation"(" "shape" punctuation":" " " type"Shape" punctuation"):" " " type"number" punctuation";"
+punctuation"}"
+
+keyword"enum" " " type"Mode" " " punctuation"{" " " type"Dark" " " operator"=" " " string"'dark'" punctuation"," " " type"Light" " " operator"=" " " string"'light'" " " punctuation"}"
+
+keyword"abstract" " " keyword"class" " " type"Base" operator"<" type"T" operator">" " " keyword"implements" " " type"Iterable" operator"<" type"T" operator">" " " punctuation"{"
+"  " keyword"private" " " keyword"readonly" " items" punctuation":" " " type"T" punctuation"[]" " " operator"=" " " punctuation"[];"
+"  " keyword"protected" " " function"constructor" punctuation"(" keyword"public" " name" punctuation":" " " type"string" punctuation")" " " punctuation"{}"
+
+"  " keyword"abstract" " " function"render" punctuation"():" " " type"void" punctuation";"
+
+"  " operator"*" punctuation"[" type"Symbol" punctuation"." "iterator" punctuation"]():" " " type"Iterator" operator"<" type"T" operator">" " " punctuation"{"
+"    " keyword"yield" operator"*" " " keyword"this" punctuation"." "items" punctuation";"
+"  " punctuation"}"
+punctuation"}"
+
+keyword"function" " " function"isPoint" punctuation"(" "value" punctuation":" " " type"unknown" punctuation"):" " value " keyword"is" " " type"Point" " " punctuation"{"
+"  " keyword"return" " " keyword"typeof" " value " operator"===" " " string"'object'" " " operator"&&" " value " operator"!==" " " constant"null" " " operator"&&" " " string"'x'" " " keyword"in" " value" punctuation";"
+punctuation"}"
+
+keyword"const" " config " operator"=" " " punctuation"{"
+"  name" punctuation":" " " string"'demo'" punctuation","
+"  retries" punctuation":" " " number"3" punctuation","
+punctuation"}" " " keyword"as" " " keyword"const" " " keyword"satisfies" " " type"Record" operator"<" type"string" punctuation"," " " type"string" " " operator"|" " " type"number" operator">" punctuation";"
+
+keyword"let" " keys" punctuation":" " " keyword"keyof" " " keyword"typeof" " config " operator"=" " " string"'name'" punctuation";"
+keyword"const" " doubled " operator"=" " " punctuation"[" number"1" punctuation"," " " number"2" punctuation"," " " number"3" punctuation"]." function"map" punctuation"((" "n" punctuation"):" " " type"number" " " operator"=>" " n " operator"*" " " number"2" punctuation")" " " keyword"as" " " type"number" punctuation"[];"
+keyword"const" " query " operator"=" " " string"`SELECT *"
+string"  FROM " punctuation"${" "table" punctuation"}"
+string"  WHERE id IN (" punctuation"${" "ids" punctuation"." function"map" punctuation"((" "id" punctuation")" " " operator"=>" " " string"`'" punctuation"${" "id" punctuation"}" string"'`" punctuation")." function"join" punctuation"(" string"', '" punctuation")}" string")`" punctuation";"
+comment"/** A doc comment"
+comment" * @param x the value"
+comment" */"
+

@@ -1,0 +1,76 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     Calendar                                Preview   Code  │
+│                        A month to pick a day of: the arrows move the cursor,   │
+│   DATA          13     PageUp and PageDown a month, Enter or a click picks t…  │
+│     Sparkline        ──────────────────────────────────────────────────────────│
+│     Gauge, LineGa…                    ┌                      ┐                 │
+│     BarChart            ·   ·   ·   ·       October 2026        ·   ·   ·   ·  │
+│     Chart           ▐                   Mo Tu We Th Fr Sa Su                   │
+│     DotCanvas       ▐   ·   ·   ·   ·             1  2  3  4    ·   ·   ·   ·  │
+│ ▎   Calendar                             5  6  7  8  9 10 11                   │
+│     Heatmap, Acti…      ·   ·   ·   ·   12 13 14 15 16 17 18    ·   ·   ·   ·  │
+│     Table                               19 20 21 22 23 24 25                   │
+│     DescriptionLi…      ·   ·   ·   ·   26 27 28 29 30 31       ·   ·   ·   ·  │
+│     TreeView                                                                   │
+│     TreeTable           ·   ·   ·   ·                           ·   ·   ·   ·  │
+│     DirectoryTree                       selected: nothing                      │
+│     TaskList                          └                      ┘                 │
+│                      ──────────────────────────────────────────────────────────│
+│   EDITING        4     first day      monday  sunday                          ▐│
+│     TextField          week numbers  ▐●  ▌                                    ▐│
+│     InputDecorati…                                                            ▐│
+│                        outside days  ▐●  ▌                                     │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeaAAAAAAaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahBhBBBBBBhhhhhhhChaaggkkkkkkkkgggggggggggggggggggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmgmmmmmgmmgmmmmgmgmmmgmmmgmmmgmmmmmmgmmmmgmmmgmmmmmmmggg│
+│aaaddddaaaaaaaaaaAAaaaggmmmmmmgmmmgmmmmmmmmgmgmmmmmmgmmmmmgmmgmgmmmmmgmmmmmgmmgg│
+│aaaaannnnnnnnnaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnannnnnnnaaagggggggggggggggggoggggggggggggggggggggggoggggggggggggggggg│
+│aaaaannnnnnnnaaaaaaaaagggogggogggogggogggggggkkkkkkkgkkkkggggggggogggogggogggogg│
+│aaaaannnnnaaaaaaaaaaadgggggggggggggggggggmmgmmgmmgmmgmmgmmgmmggggggggggggggggggg│
+│aaaaannnnnnnnnaaaaaaadgggogggogggogggogggggggggggggqggqggqggqggggogggogggogggogg│
+│arsssttttttttssssssssaggggggggggggggggggggqggqggqggqggqgqqgqqggggggggggggggggggg│
+│aaaaannnnnnnnannnnnaaagggogggogggogggogggqqgqqgqqgqqgqqgqqgqqggggogggogggogggogg│
+│aaaaannnnnaaaaaaaaaaaaggggggggggggggggggguugqqgqqgqqgqqgqqgqqggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaaagggogggogggogggogggqqgqqgqqgqqgqqgqqgggggggogggogggogggogg│
+│aaaaannnnnnnnaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnaaaaaaaagggogggogggogggogggggggggggggggggggggggggggogggogggogggogg│
+│aaaaannnnnnnnnnnnnaaaagggggggggggggggggggmmmmmmmmmgmmmmmmmgggggggggggggggggggggg│
+│aaaaannnnnnnnaaaaaaaaagggggggggggggggggoggggggggggggggggggggggoggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaadddddddaaaaaaaaAaaaggmmmmmgmmmgggggsttttttshvvvvvvhgggggggggggggggggggggggggm│
+│aaaaannnnnnnnnaaaaaaaaggmmmmgmmmmmmmggwxyywggggggggggggggggggggggggggggggggggggm│
+│aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggm│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmmmgmmmmggwxyywggggggggggggggggggggggggggggggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+A #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+B #747a83 on #13151a
+C bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+n #e6e8eb on #1c1f25
+o #2c3039 on #16181d
+q #e6e8eb on #16181d
+r #5fa8ff on #2b4566
+s on #2b4566
+t bold #e6e8eb on #2b4566
+u bold #c792ea on #16181d
+v #8b929c on #13151a
+w #383d48 on #16181d
+x #e6e8eb on #383d48
+y on #383d48

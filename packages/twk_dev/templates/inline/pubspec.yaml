@@ -1,0 +1,27 @@
+name: inline_template
+description: A terminal app built on twk.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.13.5
+
+dependencies:
+  twk:
+    path: ../../../twk
+
+dev_dependencies:
+  pro_lints: ^6.2.0
+  test: ^1.33.0
+  twk_dev:
+    path: ../..
+  twk_lints:
+    path: ../../../twk_lints
+  twk_test:
+    path: ../../../twk_test
+
+dependency_overrides:
+  twk:
+    path: ../../../twk
+  twk_core:
+    path: ../../../twk_core

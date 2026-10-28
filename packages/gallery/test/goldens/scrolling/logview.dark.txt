@@ -1,0 +1,107 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Scrolling  ›  LogView                                                      ctrl+p search      ◐ Dark  │
+│                                                                                                                        │
+│   ⌕ Filter             /      LogView                                                                          4 of 5  │
+│                               Lines that keep coming, followed at the bottom: levels, a filter and a search, a         │
+│   STYLE                4      count of the new lines while it is scrolled up.                                          │
+│     Theme                                                                                                              │
+│     TerminalBrightness        Preview   Code                                                                           │
+│     GradientBackground     ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     GradientForeground                                                                   │                             │
+│                           ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│   SCROLLING            5  ▐                                                              │                             │
+│     SingleChildScrollVi…  ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  level                      │
+│     Scrollable            ▐                                                              │   debug  info  warning      │
+│     ListView              ▐    ┌                                                    ┐    │   error                     │
+│ ▎   LogView                      ╭────────────────────────────────────────────────╮      │                             │
+│     Scrollbar                    │12:00:10.000 INFO  GET /api/items/425 200 58 ms │      │  filter                     │
+│                                  │12:00:10.400 DEBUG cache hit items/462          │      │   none  GET  slow           │
+│   DATA                13         │12:00:10.800 INFO  GET /api/items/499 200 84 ms │      │                             │
+│     Sparkline                    │12:00:11.200 INFO  GET /api/items/36 200 7 ms   │      │  search                     │
+│     Gauge, LineGauge             │12:00:11.600 INFO  GET /api/items/73 200 20 ms  │      │   none  items  timeout      │
+│     BarChart                     │12:00:12.000 INFO  GET /api/items/110 200 33 ms │      │                             │
+│     Chart                        │12:00:12.400 ERROR POST /api/orders 500 upstrea │      │  time                ▐  ●▌  │
+│     DotCanvas                    │12:00:12.800 INFO  GET /api/items/184 200 59 ms▇│      │                             │
+│     Calendar                     │12:00:13.200 INFO  GET /api/items/221 200 72 ms │      │  show level          ▐  ●▌  │
+│     Heatmap, ActivityHe…         │12:00:13.600 INFO  GET /api/items/258 200 85 ms │      │                             │
+│     Table                        ╰────────────────────────────────────────────────╯      │  wrap                ▐●  ▌  │
+│     DescriptionList            └                                                    ┘    │                             │
+│     TreeView                   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   · 50 × 12     │  live                ▐  ●▌  │
+│     TreeTable                                                                            │                             │
+│     DirectoryTree              ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  scrollbar                  │
+│     TaskList                                                                             │   always  onScroll  never   │
+│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│   EDITING              4                                                                 │                             │
+│     TextField                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│                                                                                          │                             │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaaGGGGGGGGGaafaadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaGGGGGGaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaiHiHHHHHHiiiiiiiiiiiiiIiaahhhlllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhJhJJhJhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnnhnnnnhnnnnhnnnnnnnhnnnnnnnnhnnhnnnhnnnnnnnhnnnnnnnhnhnnnnnnhnnnhnhnnnnnnnhnhhhhhhhhh│
+│aaadddddaaaaaaaaaaaaaaaaGaaahhhnnnnnhnnhnnnhnnnhnnnnnhnnnnnhnnhnnhnnnnnnnnhnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaooooooooooooooooooaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaadddddddddaaaaaaaaaaaaGaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooooaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhstttttsiuuuuiiuuuuuuuihhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaadhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhphhiuuuuuihhhhhhhhhhhhhhhhhhhh│
+│avssstttttttsssssssssssssssahhhhhhwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhwnnnnnnnnnnnnhxxxxhhyyyhyyyyyyyyyyyyyyhyyyhyyhyyhwhhhhhhphhnnnnnnhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhwnnnnnnnnnnnnhnnnnnhnnnnnhnnnhnnnnnnnnnhhhhhhhhhhwhhhhhhphhsttttsiuuuiiuuuuihhhhhhhhhh│
+│aaaddddaaaaaaaaaaaaaaaaGGaaahhhhhhwnnnnnnnnnnnnhxxxxhhyyyhyyyyyyyyyyyyyyhyyyhyyhyyhwhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhwnnnnnnnnnnnnhxxxxhhyyyhyyyyyyyyyyyyyhyyyhyhyyhhhwhhhhhhphhnnnnnnhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaoooooooooaaaaaaahhhhhhwnnnnnnnnnnnnhxxxxhhyyyhyyyyyyyyyyyyyhyyyhyyhyyhhwhhhhhhphhsttttsiuuuuuiiuuuuuuuihhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhwnnnnnnnnnnnnhxxxxhhyyyhyyyyyyyyyyyyyyhyyyhyyhyyhwhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaaahhhhhhwnnnnnnnnnnnnhzzzzzhyyyyhyyyyyyyyyyyhyyyhyyyyyyyhwhhhhhhphhnnnnhhhhhhhhhhhhhhhhqAABqhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhwnnnnnnnnnnnnhxxxxhhyyyhyyyyyyyyyyyyyyhyyyhyyhyynwhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhwnnnnnnnnnnnnhxxxxhhyyyhyyyyyyyyyyyyyyhyyyhyyhyyCwhhhhhhphhnnnnhnnnnnhhhhhhhhhhqAABqhh│
+│aaaaaooooooooaoooooooooooaaahhhhhhwnnnnnnnnnnnnhxxxxhhyyyhyyyyyyyyyyyyyyhyyyhyyhyyCwhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaaahhhhhhwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwhhhhhhphhnnnnhhhhhhhhhhhhhhhhDEFFDhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphJJhJhJJhhhhhphhnnnnhhhhhhhhhhhhhhhhqAABqhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnnnhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhsttttttsiuuuuuuuuiiuuuuuihh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddddaaaaaaaaaaaaaaGaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+G #747a83 on #1c1f25
+f #2c3039 on #1c1f25
+g bold #8b929c on #1c1f25
+h on #16181d
+i on #13151a
+H #747a83 on #13151a
+I bold #747a83 on #13151a
+l bold #e6e8eb on #16181d
+J #747a83 on #16181d
+n #8b929c on #16181d
+o #e6e8eb on #1c1f25
+p #2c3039 on #16181d
+q #5fa8ff on #16181d
+s on #2b4566
+t bold #e6e8eb on #2b4566
+u #8b929c on #13151a
+v #5fa8ff on #2b4566
+w #3e444f on #16181d
+x #5cc8e6 on #16181d
+y #e6e8eb on #16181d
+z #ff6b6b on #16181d
+A on #5fa8ff
+B #ffffff on #5fa8ff
+C reverse #8b929c on #16181d
+D #383d48 on #16181d
+E #e6e8eb on #383d48
+F on #383d48

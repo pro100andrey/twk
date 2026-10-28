@@ -1,0 +1,19 @@
+name: twk_test
+description: >-
+  Tests for twk apps: the real app on a terminal in memory under a fake
+  clock, input as a terminal's bytes, the screen read by an emulator.
+version: 0.1.0
+repository: https://github.com/pro100andrey/twk/tree/main/packages/twk_test
+issue_tracker: https://github.com/pro100andrey/twk/issues
+topics: [terminal, tui, testing, widgets]
+
+environment:
+  sdk: ^3.13.5
+resolution: workspace
+dependencies:
+  meta: ^1.19.0
+  test: ^1.33.0
+  twk: ^0.1.0
+  twk_core: ^0.1.0
+dev_dependencies:
+  pro_lints: ^6.2.0

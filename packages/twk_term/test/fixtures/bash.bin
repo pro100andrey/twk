@@ -1,0 +1,12 @@
+]0;bash: work[?2004h[32muser@host[0m:[34m~/work[0m$ echo hello world
+[?2004lhello world
+]0;bash: work[?2004h[32muser@host[0m:[34m~/work[0m$ ls
+[?2004lnotes.txt
+]0;bash: work[?2004h[32muser@host[0m:[34m~/work[0m$ printf "\033[1;31mred\033[0m plain\n"
+[?2004l[1;31mred[0m plain
+]0;bash: work[?2004h[32muser@host[0m:[34m~/work[0m$ echo 0123456789abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0123456789
+[?2004l0123456789abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0123456789
+]0;bash: work[?2004h[32muser@host[0m:[34m~/work[0m$ printf "a\tb\t\xe4\xb8\xad\xe6\x96\x87 e\xcc\x81\n"
+[?2004la	b	中文 é
+]0;bash: work[?2004h[32muser@host[0m:[34m~/work[0m$ exit
+[?2004lexit

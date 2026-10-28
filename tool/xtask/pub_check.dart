@@ -1,0 +1,239 @@
+// Whether a package is ready for pub.dev, as pub.dev would say:
+//
+//   pub [--min=N] PATH...
+//
+// For each package (a path in it, relative to the root): `publish_to` must
+// not be `none` (which the dry-run doesn't check; the rest is still run
+// and shown); `dart pub publish --dry-run` must find no error (its
+// warnings are shown, not failed: one of them is any uncommitted file);
+// and pana's score out of 160 is shown with what lost points, failed when
+// it is under N (no floor without --min). pana is `dart pub global run
+// pana` (skipped, said so, where it isn't activated); it scores a copy of
+// the package resolved from pub.dev, so a package that depends on another
+// of this repository's, by a path or not published yet, is not scored, and
+// said so. Both need the network.
+import 'dart:convert';
+
+import 'package:xtask/xtask.dart';
+
+import 'cpus.dart';
+import 'verbs.dart';
+
+/// The verb: checks each package [c]'s arguments name.
+Future<int> pubCheck(VerbContext c, Cpus cpus) async {
+  int? min;
+  final paths = <String>[];
+  for (final arg in c.args) {
+    if (arg.startsWith('--min=')) {
+      min = int.tryParse(arg.substring('--min='.length));
+      if (min == null) {
+        c.log('pub: --min takes a number of points, not $arg');
+        return ExitCode.invalidFile;
+      }
+    } else {
+      paths.add(arg);
+    }
+  }
+  if (paths.isEmpty) {
+    c.log('pub: give a path in each package to check');
+    return ExitCode.invalidFile;
+  }
+  final globals = await c.capture(['dart', 'pub', 'global', 'list']);
+  final pana = RegExp('^pana ', multiLine: true).hasMatch(globals.stdout);
+  var failed = false;
+  for (final path in paths) {
+    final dir = packageOf(c.root, path);
+    if (dir == null) {
+      c.log('pub: no pubspec.yaml in $path or above it');
+      return ExitCode.invalidFile;
+    }
+    if (isPrivate(c.file('$dir/pubspec.yaml').readAsStringSync())) {
+      // the rest still said: what else stands in the way
+      c.log('$dir: publish_to: none, so not publishable');
+      failed = true;
+    }
+    c.log('$dir: dart pub publish --dry-run');
+    final dry = await c.capture(
+      offBenchCore(c, cpus, ['dart', 'pub', 'publish', '--dry-run']),
+      workingDirectory: dir,
+    );
+    final validation = validationOf(
+      '${dry.stdout}\n${dry.stderr}',
+      exitCode: dry.exitCode,
+    );
+    validation.lines.forEach(c.log);
+    if (validation.hasErrors) {
+      failed = true;
+    }
+    if (!pana) {
+      c.log(
+        '$dir: pana skipped, not activated (dart pub global activate pana)',
+      );
+      continue;
+    }
+    c.log('$dir: pana');
+    final run = await c.capture(
+      offBenchCore(c, cpus, [
+        'dart',
+        'pub',
+        'global',
+        'run',
+        'pana',
+        '--no-warning',
+        '--json',
+        dir,
+      ]),
+      timeout: const Duration(minutes: 15),
+    );
+    final score = PanaScore.parse(run.stdout);
+    if (score == null) {
+      c.log('$dir: pana gave no report (exit ${run.exitCode})');
+      c.log(run.stderr.trim());
+      failed = true;
+      continue;
+    }
+    if (score.unpublished case final missing?) {
+      c.log(
+        '$dir: not scored, it depends on $missing, which pana cannot '
+        'resolve outside this repository (by a path, or not on pub.dev yet)',
+      );
+      continue;
+    }
+    score.lines.forEach(c.log);
+    if (min != null && score.granted < min) {
+      c.log('$dir: ${score.granted} points, under --min=$min');
+      failed = true;
+    }
+  }
+  return failed ? ExitCode.taskFailed : ExitCode.success;
+}
+
+/// Whether a pubspec's text says `publish_to: none`.
+bool isPrivate(String pubspec) => RegExp(
+  r'''^publish_to:\s*['"]?none['"]?\s*(#.*)?$''',
+  multiLine: true,
+).hasMatch(pubspec);
+
+/// What `dart pub publish --dry-run` said of a package, which exited with
+/// [exitCode]: its validation, from `Validating package...` on (the file
+/// list before it left out), and whether it found an error. It exits
+/// non-zero on a warning too, so the exit code alone doesn't tell them
+/// apart: an error is an error said, or a non-zero exit with no count of
+/// warnings (`Package has 1 warning.`), as when the dependencies do not
+/// resolve or the pubspec does not parse.
+({List<String> lines, bool hasErrors}) validationOf(
+  String output, {
+  int exitCode = 0,
+}) {
+  final lines = const LineSplitter().convert(output);
+  final at = lines.indexWhere((l) => l.startsWith('Validating package'));
+  final kept = [
+    for (final line in at < 0 ? lines : lines.skip(at))
+      if (line.trim().isNotEmpty) line,
+  ];
+  return (
+    lines: kept,
+    hasErrors:
+        lines.any(
+          (l) =>
+              l.startsWith('Package validation found the following error') ||
+              l.contains("can't be published yet"),
+        ) ||
+        (exitCode != 0 &&
+            !lines.any(
+              (l) => RegExp(r'^Package has \d+ warnings?\.').hasMatch(l),
+            )),
+  );
+}
+
+/// pana's report of a package, read from its `--json` output.
+final class PanaScore {
+  PanaScore._(this.granted, this.max, this.sections, this.unpublished);
+
+  /// The report in pana's [stdout], which before it holds what `pub`
+  /// printed while pana resolved itself; null when there is none.
+  static PanaScore? parse(String stdout) {
+    final at = stdout.indexOf(RegExp(r'^\{', multiLine: true));
+    if (at < 0) {
+      return null;
+    }
+    final Object? json;
+    try {
+      json = jsonDecode(stdout.substring(at));
+    } on FormatException {
+      return null;
+    }
+    if (json case {
+      'scores': {
+        'grantedPoints': final int granted,
+        'maxPoints': final int max,
+      },
+      'report': {'sections': final List<Object?> raw},
+    }) {
+      final sections = [
+        for (final s in raw)
+          if (s case {
+            'title': final String title,
+            'grantedPoints': final int got,
+            'maxPoints': final int of,
+            'summary': final String summary,
+          })
+            (title: title, granted: got, max: of, summary: summary),
+      ];
+      final missing = RegExp(
+        r'could not find package (\w+) at ',
+      ).firstMatch(sections.map((s) => s.summary).join('\n'));
+      return PanaScore._(granted, max, sections, missing?.group(1));
+    }
+    return null;
+  }
+
+  /// The points granted, of [max].
+  final int granted;
+
+  /// The points there are, 160 today.
+  final int max;
+
+  /// Each section of the report: its title, points and pana's Markdown.
+  final List<({String title, int granted, int max, String summary})> sections;
+
+  /// The dependency pana could not resolve the package's copy without, or
+  /// null: one of this repository's, by a path or not on pub.dev yet.
+  final String? unpublished;
+
+  /// The score, then each section's, and under a section short of its
+  /// points the items that lost them with the first line of pana's reason.
+  List<String> get lines => [
+    'pana: $granted/$max points',
+    for (final s in sections) ...[
+      '  ${s.granted}/${s.max} ${s.title}',
+      if (s.granted < s.max) ...lostIn(s.summary),
+    ],
+  ];
+
+  /// The items of a section's summary that lost points (`### [x] ...`),
+  /// each with the first line of what pana says under it.
+  static List<String> lostIn(String summary) {
+    final lines = const LineSplitter().convert(summary);
+    final out = <String>[];
+    for (var i = 0; i < lines.length; i++) {
+      final item = RegExp(r'^### \[x\] (.*)$').firstMatch(lines[i]);
+      if (item == null) {
+        continue;
+      }
+      out.add('    - ${item.group(1)}');
+      final reason = lines
+          .skip(i + 1)
+          .takeWhile((l) => !l.startsWith('### '))
+          .map((l) => l.trim())
+          .firstWhere(
+            (l) => l.isNotEmpty && !l.startsWith('<'),
+            orElse: () => '',
+          );
+      if (reason.isNotEmpty) {
+        out.add('      $reason');
+      }
+    }
+    return out;
+  }
+}

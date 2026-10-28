@@ -1,0 +1,95 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     Theme                                   Preview   Code  │
+│                        The styles of an app by what they are for, which the    │
+│     CustomPaint        widgets below it draw in: a preset, or the terminal's…  │
+│     SplitView        ──────────────────────────────────────────────────────────│
+│     DockArea             ┌                                                ┐    │
+│     Scaffold        ▐      ╭ nord ──────────────────────────────────────╮   ·  │
+│                     ▐      │  text  muted  primary  accent  border      │      │
+│   STYLE          4         │  error  warning  success  info             │   ·  │
+│ ▎   Theme                  │                                            │      │
+│     TerminalBrigh…         │  ╭ surface ─────────────────────────────╮  │   ·  │
+│     GradientBackg…         │  │ a panel, with  selection  in it      │  │      │
+│     GradientForeg…         │  ╰──────────────────────────────────────╯  │   ·  │
+│                            │                                            │      │
+│   SCROLLING      5         │   Button    [x] Checkbox   ▐  ●▌ Switch    │   ·  │
+│     SingleChildSc…         ╰────────────────────────────────────────────╯      │
+│     Scrollable           └                                                ┘    │
+│     ListView         ──────────────────────────────────────────────────────────│
+│     LogView            theme   terminal  dark  light  nord  mocha  latte       │
+│     Scrollbar          cycle  ▐●  ▌                                            │
+│                                                                                │
+│                                                                                │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeaSSSSSSaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahThTTTTTThhhhhhhUhaaggkkkkkggggggggggggggggggggggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmgmmmmmmgmmgmmgmmmgmmgmmmmgmmmmgmmmgmmmmgmmmmmgmmmgggg│
+│aaaaannnnnnnnnnnaaaaaaggmmmmmmmgmmmmmgmmgmmmmgmmmgmgmmmmmmmgmmgmmmgmmmmmmmmmmmgg│
+│aaaaannnnnnnnnaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnaaaaaaaaaggggoggggggggggggggggggggggggggggggggggggggggggggggggogggg│
+│aaaaannnnnnnnaaaaaaaadggggggqrssssrqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqgggogg│
+│aaaaaaaaaaaaaaaaaaaaadggggggqrrttttrrVVVVVrrvvvvvvvrrwwwwwwrrqqqqqqrrrrrrqgggggg│
+│aaadddddaaaaaaaaaaSaaaggggggqrrxxxxxrryyyyyyyrrzzzzzzzrrAAAArrrrrrrrrrrrrqgggogg│
+│aBCCCDDDDDCCCCCCCCCCCaggggggqrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrqgggggg│
+│aaaaannnnnnnnnnnnnnaaaggggggqrrEFWWWWWWWFEEEEEEEEEEEEEEEEEEEEEEEEEEEEEErrqgggogg│
+│aaaaannnnnnnnnnnnnnaaaggggggqrrEFHFHHHHHHFHHHHFXYYYYYYYYYXFHHFHHFFFFFFErrqgggggg│
+│aaaaannnnnnnnnnnnnnaaaggggggqrrEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEErrqgggogg│
+│aaaaaaaaaaaaaaaaaaaaaaggggggqrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrqgggggg│
+│aaadddddddddaaaaaaSaaaggggggqrrFKKKKKKFrrrVLVrttttttttrrrvMMNvrttttttrrrrqgggogg│
+│aaaaannnnnnnnnnnnnnaaaggggggqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqgggggg│
+│aaaaannnnnnnnnnaaaaaaaggggoggggggggggggggggggggggggggggggggggggggggggggggggogggg│
+│aaaaannnnnnnnaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnaaaaaaaaaaggmmmmmgghOOOOOOOOhhOOOOhhOOOOOhCDDDDChOOOOOhhOOOOOhgggggg│
+│aaaaannnnnnnnnaaaaaaaaggmmmmmggPQRRPgggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+S #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+T #747a83 on #13151a
+U bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+n #e6e8eb on #1c1f25
+o #2c3039 on #16181d
+q #4c566a on #2e3440
+r on #2e3440
+s bold #d8dee9 on #2e3440
+t #d8dee9 on #2e3440
+V #949aa5 on #2e3440
+v #88c0d0 on #2e3440
+w #b48ead on #2e3440
+x #bf616a on #2e3440
+y #ebcb8b on #2e3440
+z #a3be8c on #2e3440
+A #81a1c1 on #2e3440
+B #5fa8ff on #2b4566
+C on #2b4566
+D bold #e6e8eb on #2b4566
+E #4c566a on #3b4252
+F on #3b4252
+W #949aa5 on #3b4252
+H #d8dee9 on #3b4252
+X on #4c566a
+Y #d8dee9 on #4c566a
+K bold #88c0d0 on #3b4252
+L bold #88c0d0 on #2e3440
+M on #88c0d0
+N #ffffff on #88c0d0
+O #8b929c on #13151a
+P #383d48 on #16181d
+Q #e6e8eb on #383d48
+R on #383d48

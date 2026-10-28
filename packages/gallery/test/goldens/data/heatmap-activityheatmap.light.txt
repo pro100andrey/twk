@@ -1,0 +1,101 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Data  ›  Heatmap, ActivityHeatmap                                         ctrl+p search      ◐ Light  │
+│                                                                                                                        │
+│   ⌕ Filter             /      Heatmap, ActivityHeatmap                                                        7 of 13  │
+│                               Values over a grid as shades or colors, its rows and columns labelled; counts by day     │
+│     LogView                   over weeks, a column a week. The arrows move a cursor, its tooltip saying what is        │
+│     Scrollbar                 there.                                                                                   │
+│                                                                                                                        │
+│   DATA                13      Preview   Code                                                                           │
+│     Sparkline              ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     Gauge, LineGauge                                                                     │                             │
+│     BarChart                   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│     Chart                 ▐                                                              │                             │
+│     DotCanvas             ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  widget                     │
+│     Calendar              ▐                                                              │   ActivityHeatmap           │
+│ ▎   Heatmap, ActivityHe…  ▐    ·  ┌                                             ┐  ·     │   Heatmap                   │
+│     Table                 ▐             Jun   Jul     Aug       Sep     Oct              │                             │
+│     DescriptionList            ·    Mon ▒ ▓ ▒ ▒ ▒ ▒ · █ ▒ ░ █ ▓ █ █ █ ▓ ▒ · ▓ ▒    ·     │  first day                  │
+│     TreeView                            ▓ ▒ ▓ ▓ ░ ▓ ▒ ▒ ▓ ░ ▒ ▓ ░ █ ▒ ░ ▓ ▓ ▓            │   monday  sunday            │
+│     TreeTable                  ·    Wed · ░ ▒ ▓ ░ ▒ · ▓ ▒ ▒ · ▒ ▓ ░ █ █ ░ █ ░      ·     │                             │
+│     DirectoryTree                       ▓ ░ ▓ █ ░ ▒ ▒ · ░ · █ █ █ ▒ ▓ ▒ █ ▒ ▒            │  scale                      │
+│     TaskList                   ·    Fri ▓ █ █ ▓ ▒ ▒ ░ ▒ ▒ ▓ ░ ▓ █ █ ▓ ░ ▓ ▓ ▒      ·     │   shades  colors            │
+│                                         ░ ░ ░ ░ · ░ ░ ░ ░ ░ ░ · ░ · ░ ░ ░ · ░            │                             │
+│   EDITING              4       ·    Sun ░ ░ ░ ░ ░ · ░ · · · ░ · ░ ░ ░ ░ ░ ░ ·      ·     │  legend              ▐  ●▌  │
+│     TextField                                                   less ·░▒▓█ more          │                             │
+│     InputDecoration            ·                                                   ·     │  cell width                 │
+│     TextArea                        selected: nothing                                    │   2 columns  1 column       │
+│     Autocomplete               ·  └                                             ┘  ·     │                             │
+│                                                                          43 × 11         │                             │
+│   CONTROLS            20       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Button                                                                               │                             │
+│     Pressable                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Checkbox, Switch                                                                     │                             │
+│     RadioGroup                 ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     SegmentedButton                                                                      │                             │
+│                                                                                          │                             │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaaAAAAaafaaddddddddadddddddddddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaAAAAAAaaaaaadadddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaiBiBBBBBBiiiiiiiiiiiiiCiaahhhllllllllhlllllllllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhDhDDhDDhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnnnhnnnnhnhnnnnhnnhnnnnnnhnnhnnnnnnnhnnnhnnnnhnnnhnnnnnnnhnnnnnnnnnhnnnnnnhnnhnnnhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhnnnnhnnnnnnhnhnnnnnnhnhnnnnnhnnnhnnnnnnhnnnnhnhnnnnnnnhnnnhnnnnnnnhnnnnnnhnnnnhnnhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddaaaaaaaaaaaaaaaaAAaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaooooooaoooooooooaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhEFFFFFFFFFFFFFFFEhhhhhhhhhh│
+│aGEEEFFFFFFFFEFFFFFFFFFFFEEdhhhhphhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhphhhhhphhvwwwwwwwvhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaadhhhhhhhhhhhhhnnnhhhnnnhhhhhnnnhhhhhhhnnnhhhhhnnnhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhphhhhnnnhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhhhhphhhhhphhnnnnnhnnnhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhhhhhhhhhhhhphhEFFFFFFEvwwwwwwvhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhhnnnhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaahhhhhhhhhhhhhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhhhhhhhhhhhhphhnnnnnhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhhnnnhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhhhhhhphhhhhphhEFFFFFFEvwwwwwwvhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddddaaaaaaaaaaaaaaAaaahhhhphhhhnnnhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhxhhhhhhphhhhhphhnnnnnnhhhhhhhhhhhhhhqyyzqhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhnnnnhxxxxxhnnnnhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhnnnnhnnnnnhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhnnnnnnnnnhnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhEFEFFFFFFFEvwvwwwwwwvhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhphhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhDDhDhDDhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddddaaaaaaaaaaaaAAaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaooooooaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #f3f5f7
+b #0969da on #f3f5f7
+c bold #1f2328 on #f3f5f7
+d #656d76 on #f3f5f7
+A #838991 on #f3f5f7
+f #dcdfe4 on #f3f5f7
+g bold #656d76 on #f3f5f7
+h on #fafafb
+i on #fefefe
+B #838991 on #fefefe
+C bold #838991 on #fefefe
+l bold #1f2328 on #fafafb
+D #838991 on #fafafb
+n #656d76 on #fafafb
+o #1f2328 on #f3f5f7
+p #dcdfe4 on #fafafb
+q #0969da on #fafafb
+E on #b6d4fe
+F bold #1f2328 on #b6d4fe
+G #0969da on #b6d4fe
+v on #eef0f3
+w #656d76 on #eef0f3
+x #1f2328 on #fafafb
+y on #0969da
+z #ffffff on #0969da

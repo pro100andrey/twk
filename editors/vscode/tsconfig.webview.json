@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "module": "ES2022",
+    "moduleResolution": "bundler",
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "outDir": "out/media",
+    "rootDir": "src",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noImplicitReturns": true,
+    "sourceMap": true,
+    "types": []
+  },
+  "include": [
+    "src/webview/main.ts",
+    "src/webview/protocol.ts",
+    "src/webview/answers.ts",
+    "src/webview/pick.ts",
+    "src/webview/log.ts",
+    "src/webview/log_protocol.ts",
+    "src/core/seqlog.ts",
+    "src/core/sequences.ts",
+    "src/core/capabilities.ts",
+    "src/core/emulation.ts",
+    "src/core/kitty_keyboard.ts"
+  ]
+}

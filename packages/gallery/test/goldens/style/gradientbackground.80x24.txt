@@ -1,0 +1,98 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     GradientBackground                      Preview   Code  │
+│                        A background whose color changes from cell to cell,     │
+│     DockArea           along the columns or down the rows, from stop to stop.  │
+│     Scaffold         ──────────────────────────────────────────────────────────│
+│                           ┌                                              ┐     │
+│   STYLE          4  ▐   ·                                                   ·  │
+│     Theme           ▐                                                          │
+│     TerminalBrigh…      ·                                                   ·  │
+│ ▎   GradientBackg…                                                             │
+│     GradientForeg…      ·              a box over a gradient                ·  │
+│                                                                                │
+│   SCROLLING      5      ·                                                   ·  │
+│     SingleChildSc…                                                             │
+│     Scrollable          ·                                                   ·  │
+│     ListView              └                                              ┘     │
+│     LogView          ──────────────────────────────────────────────────────────│
+│     Scrollbar          colors      theme  sunset  ocean  palette               │
+│                        direction   columns  rows                               │
+│   DATA          13     stops       even  inset  early                          │
+│     Sparkline          flow       ▐  ●▌                                        │
+│                                                                                │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeaVVVVVVaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahWhWWWWWWhhhhhhhXhaaggkkkkkkkkkkkkkkkkkkgggggggggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmgmmmmmmmmmmgmmmmmgmmmmmgmmmmmmmgmmmmgmmmmgmmgmmmmmggggg│
+│aaaaannnnnnnnaaaaaaaaaggmmmmmgmmmgmmmmmmmgmmgmmmmgmmmgmmmmmgmmmmgmmmmgmmgmmmmmgg│
+│aaaaannnnnnnnaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaaaaaaaaaaaaaaaaaaagggggoggggggggggggggggggggggggggggggggggggggggggggggoggggg│
+│aaadddddaaaaaaaaaaVaadgggogggqrstuvwxyzABCDEFGHIJKLLKJIHGFEDCBAzyxwvutsrqggggogg│
+│aaaaannnnnaaaaaaaaaaadgggggggqrstuvwxyzABCDEFGHIJKLLKJIHGFEDCBAzyxwvutsrqggggggg│
+│aaaaannnnnnnnnnnnnnaaagggogggqrstuvwxyzABCDEFGHIJKLLKJIHGFEDCBAzyxwvutsrqggggogg│
+│aMNNNOOOOOOOOOOOOOONNagggggggqrstuvwxyPPPPPPPPPPPPPPPPPPPPPPPPPzyxwvutsrqggggggg│
+│aaaaannnnnnnnnnnnnnaaagggogggqrstuvwxyPPQPQQQPQQQQPQPQQQQQQQQPPzyxwvutsrqggggogg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggqrstuvwxyPPPPPPPPPPPPPPPPPPPPPPPPPzyxwvutsrqggggggg│
+│aaadddddddddaaaaaaVaaagggogggqrstuvwxyzABCDEFGHIJKLLKJIHGFEDCBAzyxwvutsrqggggogg│
+│aaaaannnnnnnnnnnnnnaaagggggggqrstuvwxyzABCDEFGHIJKLLKJIHGFEDCBAzyxwvutsrqggggggg│
+│aaaaannnnnnnnnnaaaaaaagggogggqrstuvwxyzABCDEFGHIJKLLKJIHGFEDCBAzyxwvutsrqggggogg│
+│aaaaannnnnnnnaaaaaaaaagggggoggggggggggggggggggggggggggggggggggggggggggggggoggggg│
+│aaaaannnnnnnaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnaaaaaaaaggmmmmmmggggghRRRRRhNOOOOOONhRRRRRhhRRRRRRRhgggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmmmmmggNOOOOOOONhRRRRhgggggggggggggggggggggggggggggg│
+│aaaddddaaaaaaaaaaVVaaaggmmmmmggggggNOOOONhRRRRRhhRRRRRhggggggggggggggggggggggggg│
+│aaaaannnnnnnnnaaaaaaaaggmmmmgggggggSTTUSgggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+V #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+W #747a83 on #13151a
+X bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+n #e6e8eb on #1c1f25
+o #2c3039 on #16181d
+q on #ffc371
+r on #ffbe71
+s on #ffba71
+t on #ffb570
+u on #ffb170
+v on #ffac70
+w on #ffa770
+x on #ffa270
+y on #ff9e70
+z on #ff996f
+A on #ff946f
+B on #ff906f
+C on #ff8b6f
+D on #ff876f
+E on #ff826e
+F on #ff7d6e
+G on #ff786e
+H on #ff746e
+I on #ff6f6e
+J on #ff6b6d
+K on #ff666d
+L on #ff616d
+M #5fa8ff on #2b4566
+N on #2b4566
+O bold #e6e8eb on #2b4566
+P on #22252c
+Q #e6e8eb on #22252c
+R #8b929c on #13151a
+S #5fa8ff on #16181d
+T on #5fa8ff
+U #ffffff on #5fa8ff

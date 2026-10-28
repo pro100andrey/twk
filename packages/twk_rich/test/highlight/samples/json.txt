@@ -1,0 +1,17 @@
+{
+  "name": "twk_rich",
+  "version": "0.1.0",
+  "private": true,
+  "license": null,
+  "tags": ["rich", "text", "highlight"],
+  "counts": {"dart": 4, "ratio": -0.25, "big": 6.02e+23},
+  // JSON with comments
+  "escapes": "tab\there \"quoted\" back\\slash \u00e9 \/",
+  /* a comment
+     over lines */
+  "nested": [
+    {"empty": {}, "list": [[], [1, [2, [3]]]]},
+    "key-like": "not a key"
+  ],
+  "unclosed": "a string that
+}

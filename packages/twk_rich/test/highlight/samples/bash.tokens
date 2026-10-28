@@ -1,0 +1,52 @@
+comment"#!/usr/bin/env bash"
+comment"# A sample of Bash for the highlighting tests."
+function"set" " -euo pipefail"
+
+function"readonly" " " variable"ROOT" operator"=" string"\"" punctuation"$(" function"cd" " " string"\"" punctuation"$(" function"dirname" " " string"\"" variable"${BASH_SOURCE[0]}" string"\"" punctuation")" string"\"" " " operator"&&" " " function"pwd" punctuation")" string"\""
+variable"COUNT" operator"=" number"0" " " variable"DEBUG" operator"=" variable"${DEBUG:-false}" " " function"./run.sh" " --flag=1"
+
+function"log" punctuation"()" " " punctuation"{"
+"  " function"local" " " variable"level" operator"=" variable"$1" operator";" " " function"shift"
+"  " function"printf" " " string"'%s [%s] %s\\n'" " " string"\"" punctuation"$(" function"date" " +%T" punctuation")" string"\"" " " string"\"" variable"$level" string"\"" " " string"\"" variable"$*" string"\"" " " operator">&" number"2"
+punctuation"}"
+
+keyword"function" " " function"cleanup" " " punctuation"{"
+"  " function"rm" " -rf " string"\"" variable"$TMP" string"\"" " " number"2" operator">" "/dev/null " operator"||" " " function"true"
+punctuation"}"
+function"trap" " cleanup EXIT"
+
+keyword"for" " f " keyword"in" " " string"\"" variable"$ROOT" string"\"" "/*.dart" operator";" " " keyword"do"
+"  " keyword"if" " " punctuation"[[" " -f " variable"$f" " " operator"&&" " " operator"!" " -L " variable"$f" " " punctuation"]]" operator";" " " keyword"then"
+"    " punctuation"((" " " variable"COUNT" " " operator"+=" " " number"1" " " punctuation"))"
+"    " function"echo" " " string"\"found: " variable"$f" string" (#" variable"$COUNT" string")\""
+"  " keyword"elif" " " punctuation"[" " -d " string"\"" variable"$f" string"\"" " " punctuation"]" operator";" " " keyword"then"
+"    " function"continue"
+"  " keyword"fi"
+keyword"done"
+
+keyword"case" " " string"\"" variable"${1:-}" string"\"" " " keyword"in"
+"  -h" operator"|" "--help" punctuation")" " " function"usage" operator";" " " function"exit" " " number"0" " " operator";;"
+"  build" punctuation")" " " function"make" " -j" string"\"" punctuation"$(" function"nproc" punctuation")" string"\"" " all " operator";;"
+"  *" punctuation")" " " function"log" " error " string"\"unknown: " variable"$1" string"\"" operator";" " " function"exit" " " number"2" " " operator";;"
+keyword"esac"
+
+function"cat" " " operator"<<" string"EOF" " " operator">" " " string"\"" variable"$ROOT" string"/out.txt\""
+string"Built at " punctuation"$(" function"date" punctuation")" string" by " variable"$USER"
+string"Cost: " escape"\\$" string"5, home: ~/x \"quoted\""
+string"EOF"
+
+function"cat" " " operator"<<-" string"'END'"
+string"\tliteral $HOME and `cmd`"
+string"\tEND"
+
+variable"message" operator"=" string"\"one line"
+string"and another with " variable"$COUNT" string"\""
+function"echo" " " string"$'tab" escape"\\t" string"here'" " " string"'single"
+string"quoted'" " " punctuation"`" function"echo" " old style" punctuation"`"
+variable"total" operator"=" punctuation"$((" variable"COUNT" " " operator"*" " " number"2" " " operator"+" " " variable"${#ROOT}" punctuation"))"
+variable"result" operator"=" punctuation"$("
+"  " function"find" " . -name " string"'*.txt'" " " operator"|"
+"    " function"wc" " -l"
+punctuation")"
+function"echo" " " string"\"" variable"$total" string" " variable"$result" string"\"" " " operator"|" " " function"tee" " -a log.txt " comment"# done"
+

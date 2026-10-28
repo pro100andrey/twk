@@ -1,0 +1,27 @@
+name: twk_ssh
+description: >-
+  Serves twk apps to SSH clients: a minimal SSH server running one app
+  per session, on a terminal fed by the session's channel.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.13.5
+resolution: workspace
+dependencies:
+  # ML-KEM-768 of mlkem768x25519-sha256 (FIPS 203), pure Dart; see README
+  cipherlib: ^0.7.2
+  # reads and writes the key files; the tests' client too
+  dartssh2: ^4.1.0
+  meta: ^1.19.0
+  pinenacl: ^0.6.0
+  pointycastle: ^4.0.0
+  twk:
+    path: ../twk
+  twk_core:
+    path: ../twk_core
+dev_dependencies:
+  pro_lints: ^6.2.0
+  test: ^1.33.0
+  twk_test:
+    path: ../twk_test

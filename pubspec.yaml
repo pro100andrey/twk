@@ -1,0 +1,45 @@
+name: twk_workspace
+description: >-
+  The twk repository's pub workspace: the packages under packages/ (the
+  core, packages/twk_core, among them) and the tools' packages under tool/,
+  resolved together, and the dev tools the root's tool/ runs (xtask, the
+  frame benchmark).
+publish_to: none
+
+environment:
+  sdk: ^3.13.5
+# One resolution for the packages and the tools' packages: one
+# pubspec.lock and one .dart_tool/package_config.json, here. The templates
+# under packages/twk_dev/templates/ stay out: each is the scaffold of an
+# app of its own, which `twk create` copies out of the repository.
+workspace:
+  - packages/gallery
+  - packages/twk
+  - packages/twk_bloc
+  - packages/twk_cli
+  - packages/twk_core
+  - packages/twk_dev
+  - packages/twk_lints
+  - packages/twk_rich
+  - packages/twk_riverpod
+  - packages/twk_ssh
+  - packages/twk_term
+  - packages/twk_test
+  - packages/twk_web
+  - tool/alloc
+  - tool/coverage
+  - tool/doc_snippets
+  - tool/frame_scenarios
+dev_dependencies:
+  pro_lints: ^6.2.0
+  test: ^1.33.0
+  # tool/bench.dart and tool/replay.dart
+  twk_core:
+    path: packages/twk_core
+  # tool/bench.dart's scenarios
+  twk_frame_scenarios:
+    path: tool/frame_scenarios
+  twk_test:
+    path: packages/twk_test
+  xtask: ^0.5.1
+  xtask_kit: ^0.1.1

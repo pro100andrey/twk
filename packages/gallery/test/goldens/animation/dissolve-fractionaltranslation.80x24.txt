@@ -1,0 +1,79 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     Dissolve, FractionalTranslation         Preview   Code  │
+│                        What the transitions are made of: a share of the cells  │
+│     AnimatedBox        of a child, and a child moved a share of its size.      │
+│     AnimatedOpaci…   ──────────────────────────────────────────────────────────│
+│     AnimatedDefau…                                                             │
+│     AnimatedSize        ·   · ┌                                     ┐   ·   ·  │
+│     TweenAnimatio…              Dissolve(shown: 0.51)                          │
+│     AnimatedSwitc…      ·   ·    a c   d, i s  e  s   ow   r   ved      ·   ·  │
+│ ▎   Dissolve, Fra…                                                             │
+│     Effect              ·   ·   FractionalTranslation(x: -0.49)         ·   ·  │
+│                                 ls shown or moved                              │
+│   MOUSE          5      ·   · └                                     ┘   ·   ·  │
+│     GestureDetect…                                            35 × 5           │
+│     Listener, Mou…  ▐                                                          │
+│     IgnorePointer…  ▐──────────────────────────────────────────────────────────│
+│     SelectionArea      share     0  ¼  ½  ¾  1                                 │
+│     Draggable, Dr…     run      ▐  ●▌                                          │
+│                                                                                │
+│   FOCUS AND KEYS 4     inverse  ▐●  ▌                                          │
+│     Focus, FocusS…                                                             │
+│                                                                                │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeaCCCCCCaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahDhDDDDDDhhhhhhhEhaaggkkkkkkkkkgkkkkkkkkkkkkkkkkkkkkkggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmgmmmgmmmmmmmmmmmgmmmgmmmmgmmmgmgmmmmmgmmgmmmgmmmmmgg│
+│aaaaannnnnnnnnnnaaaaaaggmmgmgmmmmmmgmmmgmgmmmmmgmmmmmgmgmmmmmgmmgmmmgmmmmmgggggg│
+│aaaaannnnnnnnnnnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaaagggogggogogggggggggggggggggggggggggggggggggggggogggogggogg│
+│aaaaannnnnnnnnnnnnnaaagggggggggggmmmmmmmmmmmmmmmgmmmmmgggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaaagggogggogggqsqsgggssqsgsggsggsgggssgggsqggsssqgggggogggogg│
+│apqqqrrrrrrrrrqrrrrqqagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnaaaaaaaaaaagggogggogggmmmmmmmmmmmmmmmmmmmmmmmmgmmmmmmgggggggggogggogg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggssqsssssqssqsssssqggggggggggggggggggggggggggggg│
+│aaadddddaaaaaaaaaaCaaagggogggogogggggggggggggggggggggggggggggggggggggogggogggogg│
+│aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggFFgFgFggggggggggg│
+│aaaaannnnnnnnnannnnaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaadoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnnnaaaaggmmmmmgggghvhhvhqrqhvhhvhgggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnannnaaaggmmmggggggwxxywgggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaadddddadddaddddaCaaaggmmmmmmmggzABBzgggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnannnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+C #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+D #747a83 on #13151a
+E bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+n #e6e8eb on #1c1f25
+o #2c3039 on #16181d
+q on #2b4566
+s #e6e8eb on #2b4566
+p #5fa8ff on #2b4566
+r bold #e6e8eb on #2b4566
+F #747a83 on #16181d
+v #8b929c on #13151a
+w #5fa8ff on #16181d
+x on #5fa8ff
+y #ffffff on #5fa8ff
+z #383d48 on #16181d
+A #e6e8eb on #383d48
+B on #383d48

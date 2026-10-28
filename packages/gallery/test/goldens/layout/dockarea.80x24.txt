@@ -1,0 +1,83 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     DockArea                                Preview   Code  │
+│                        Panels in splits and tabs: a tab dragged onto a target  │
+│     Visibility, O…     of a group docks its panel there, and dropped elsewhe…  │
+│     ExpansionTile…   ──────────────────────────────────────────────────────────│
+│     Grid, GridPla…  ▐  ┌                                                    ┐  │
+│     Wrap            ▐     Files  Find    │ Editor                              │
+│     CustomPaint           Drag a tab     │ count: 0                            │
+│     SplitView             onto a target  │  Add one                            │
+│ ▎   DockArea              to dock it     │                                     │
+│     Scaffold              there.         │        Log                ─ □       │
+│                                          │        Drop a tab off the           │
+│   STYLE          4                       │        targets to float it.         │
+│     Theme                                │                                     │
+│     TerminalBrigh…                       │                                     │
+│     GradientBackg…                       │                                     │
+│     GradientForeg…                                                             │
+│                           Dock them as they were                               │
+│   SCROLLING      5     └                                                    ┘  │
+│     SingleChildSc…   ──────────────────────────────────────────────────────────│
+│     Scrollable         tab strip     ▐  ●▌                                     │
+│                        window frame   by the theme  raised  bordered           │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeayyyyyyaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahHhHHHHHHhhhhhhhIhaaggkkkkkkkkgggggggggggggggggggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmmgmmgmmmmmmgmmmgmmmmmgmgmmmgmmmmmmmgmmmmgmgmmmmmmgg│
+│aaaaannnnnnnnnnnannaaaggmmgmgmmmmmgmmmmmgmmmgmmmmmgmmmmmmgmmmgmmmmmmmgmmmmmmmmgg│
+│aaaaannnnnnnnnnnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnannnnnnnnaadggoggggggggggggggggggggggggggggggggggggggggggggggggggggogg│
+│aaaaannnnaaaaaaaaaaaadggggglllllgqrrrrqqqqsgllllllgqqqqqqqqqqqqqqqqqqqqqqqqqgggg│
+│aaaaannnnnnnnnnnaaaaaagggggttttgtgtttgggggsgmmmmmmgtgggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnaaaaaaaagggggttttgtgttttttggsgqxxxqxxxqggggggggggggggggggggggggggg│
+│auvvvwwwwwwwwvvvvvvvvagggggttgttttgttgggggsggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnaaaaaaaaagggggttttttgggggggggsggggggzzAAAzzzzzzzzzzzzzzzzBzBzzggggg│
+│aaaaaaaaaaaaaaaaaaaaaaggggggggggggggggggggsggggggqqCCCCqCqCCCqCCCqCCCqqqqqqggggg│
+│aaadddddaaaaaaaaaayaaaggggggggggggggggggggsggggggqqCCCCCCCqCCqCCCCCqCCCqqqqggggg│
+│aaaaannnnnaaaaaaaaaaaaggggggggggggggggggggsggggggqqqqqqqqqqqqqqqqqqqqqqqqqqggggg│
+│aaaaannnnnnnnnnnnnnaaaggggggggggggggggggggsggggggqqqqqqqqqqqqqqqqqqqqqqqqqqggggg│
+│aaaaannnnnnnnnnnnnnaaaggggggggggggggggggggsggggggqqqqqqqqqqqqqqqqqqqqqqqqqqggggg│
+│aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaaggggqxxxxqxxxxqxxqxxxxqxxxxqgggggggggggggggggggggggggggggg│
+│aaadddddddddaaaaaayaaaggoggggggggggggggggggggggggggggggggggggggggggggggggggggogg│
+│aaaaannnnnnnnnnnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnaaaaaaaggmmmgmmmmmgggggDEEFDggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmmgmmmmmggvwwvwwwvwwwwwvhGGGGGGhhGGGGGGGGhgggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+y #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+H #747a83 on #13151a
+I bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+n #e6e8eb on #1c1f25
+o #2c3039 on #16181d
+q on #22252c
+r #8b929c on #22252c
+s #3e444f on #16181d
+t #e6e8eb on #16181d
+x bold #5fa8ff on #22252c
+u #5fa8ff on #2b4566
+v on #2b4566
+w bold #e6e8eb on #2b4566
+z on #32353b
+A bold #8b929c on #32353b
+B #8b929c on #32353b
+C #e6e8eb on #22252c
+D #5fa8ff on #16181d
+E on #5fa8ff
+F #ffffff on #5fa8ff
+G #8b929c on #13151a

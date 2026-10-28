@@ -1,0 +1,79 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     Window title                            Preview   Code  │
+│                        The title of the terminal's window or tab while the     │
+│   APP            8     app runs; the user's own comes back when it ends.       │
+│     InputListener    ──────────────────────────────────────────────────────────│
+│     ErrorWidget          ┌                                                ┐    │
+│     Static                 ╭────────────────────────────────────────────╮   ·  │
+│     TerminalProgr…         │                twk gallery                 │      │
+│     Viewport               │                                            │   ·  │
+│ ▎   Window title           │  In the title bar: twk gallery             │      │
+│     Notifications          │                                            │   ·  │
+│     Cli                    │                                            │      │
+│                            ╰────────────────────────────────────────────╯   ·  │
+│   SCREEN READERS 1       └                                                ┘    │
+│     Semantics           ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   46 × 7  ·  │
+│                                                                                │
+│   DEBUGGING      4   ──────────────────────────────────────────────────────────│
+│     Console         ▐  title         twk gallery  build: 3 of 5                │
+│     FrameOverlay    ▐                chat · ~/project                          │
+│     Repaint rainb…     app running  ▐  ●▌                                      │
+│     RepaintBounda…                                                             │
+│                                                                                │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeaCCCCCCaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahDhDDDDDDhhhhhhhEhaaggkkkkkkgkkkkkgggggggggggggggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmgmmmmmgmmgmmmgmmmmmmmmmmgmmmmmmgmmgmmmgmmmmmgmmmggggg│
+│aaadddaaaaaaaaaaaaCaaaggmmmgmmmmmgmmmgmmmmmmgmmmgmmmmmgmmmmgmmmmgmmgmmmmmggggggg│
+│aaaaannnnnnnnnnnnnaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnaaaaaaggggoggggggggggggggggggggggggggggggggggggggggggggggggogggg│
+│aaaaannnnnnaaaaaaaaaaaggggggppppppppppppppppppppppppppppppppppppppppppppppgggogg│
+│aaaaannnnnnnnnnnnnnaaaggggggpqqqqqqqqqqqqqqqqrrrqrrrrrrrqqqqqqqqqqqqqqqqqpgggggg│
+│aaaaannnnnnnnaaaaaaaaaggggggpggggggggggggggggggggggggggggggggggggggggggggpgggogg│
+│astttuuuuuutuuuuuttttaggggggpggvvgvvvgvvvvvgvvvvgvvvgvvvvvvvgggggggggggggpgggggg│
+│aaaaannnnnnnnnnnnnaaaaggggggpggggggggggggggggggggggggggggggggggggggggggggpgggogg│
+│aaaaannnaaaaaaaaaaaaaaggggggpggggggggggggggggggggggggggggggggggggggggggggpgggggg│
+│aaaaaaaaaaaaaaaaaaaaaaggggggppppppppppppppppppppppppppppppppppppppppppppppgggogg│
+│aaaddddddadddddddaCaaaggggoggggggggggggggggggggggggggggggggggggggggggggggggogggg│
+│aaaaannnnnnnnnaaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggFFgFgFggogg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaadddddddddaaaaaaCaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnaaaaaaaaadggmmmmmggggggggtuuutuuuuuuuthyyyyyyhyhyyhyhggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaadggggggggggggggghyyyyhyhyyyyyyyyyhggggggggggggggggggggggggg│
+│aaaaannnnnnnannnnnnaaaggmmmgmmmmmmmggzAABzgggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+C #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+D #747a83 on #13151a
+E bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+n #e6e8eb on #1c1f25
+o #2c3039 on #16181d
+p #3e444f on #16181d
+q on #21242b
+r bold #e6e8eb on #21242b
+s #5fa8ff on #2b4566
+t on #2b4566
+u bold #e6e8eb on #2b4566
+v #e6e8eb on #16181d
+F #747a83 on #16181d
+y #8b929c on #13151a
+z #5fa8ff on #16181d
+A on #5fa8ff
+B #ffffff on #5fa8ff

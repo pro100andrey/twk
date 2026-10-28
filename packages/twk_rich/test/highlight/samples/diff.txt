@@ -1,0 +1,28 @@
+diff --git a/lib/greet.py b/lib/greet.py
+index 3b18e51..a2f5c3d 100644
+--- a/lib/greet.py
++++ b/lib/greet.py
+@@ -1,6 +1,7 @@ import sys
+ def greet(name):
+-    print("Hello, " + name)
++    print(f"Hello, {name}")
++    return name
+ 
+--- a/old/line
++++ b/new/line
+ # end
+ main()
+\ No newline at end of file
+diff --git a/README.md b/README.md
+new file mode 100644
+index 0000000..e69de29
+--- /dev/null
++++ b/README.md
+@@ -0,0 +1,2 @@
++# Title
++Text
+Binary files a/logo.png and b/logo.png differ
+@@ a hunk without counts @@ in a snippet
+- removed
++ added
+--- a header again

@@ -1,0 +1,75 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     FutureBuilder, StreamBuilder            Preview   Code  │
+│                        What is built from the latest snapshot of a future or   │
+│     Breadcrumbs        a stream: waiting, done, or each event.                 │
+│     Pagination       ──────────────────────────────────────────────────────────│
+│     Stepper                                                                    │
+│                         ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│   FOUNDATION     2             ┌                                   ┐           │
+│     ListenableBui…      ·   ·     Load                                  ·   ·  │
+│ ▎   FutureBuilder…                                                             │
+│                         ·   ·    future: not started        none        ·   ·  │
+│   FRAMEWORK      3                                                             │
+│     LayoutBuilder       ·   ·    stream: 2 s                active      ·   ·  │
+│     NotificationL…             └                                   ┘           │
+│     Slot, SlotSco…      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·33 × 5 ·   ·   ·  │
+│                                                                                │
+│   APP            8  ▐                                                          │
+│     InputListener   ▐──────────────────────────────────────────────────────────│
+│     ErrorWidget        future   value  error                                   │
+│     Static             stream   endless  take(5)                               │
+│     TerminalProgr…                                                             │
+│                                                                                │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeayyyyyyaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahzhzzzzzzhhhhhhhAhaaggkkkkkkkkkkkkkkgkkkkkkkkkkkkkgggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmgmmgmmmmmgmmmmgmmmgmmmmmmgmmmmmmmmgmmgmgmmmmmmgmmggg│
+│aaaaannnnnnnnnnnaaaaaaggmgmmmmmmmgmmmmmmmmgmmmmmgmmgmmmmgmmmmmmggggggggggggggggg│
+│aaaaannnnnnnnnnaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
+│aaaddddddddddaaaaayaaaggggggggggogggggggggggggggggggggggggggggggggggoggggggggggg│
+│aaaaannnnnnnnnnnnnnaaagggogggoggggpqqqqpgggggggggggggggggggggggggggggggggogggogg│
+│arsssttttttttttttttssagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggogggogggguuuuuuuguuuguuuuuuuggggggggmmmmggggggggogggogg│
+│aaadddddddddaaaaaayaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnaaaagggogggogggguuuuuuuguguggggggggggggggggmmmmmmggggggogggogg│
+│aaaaannnnnnnnnnnnnnaaaggggggggggogggggggggggggggggggggggggggggggggggoggggggggggg│
+│aaaaannnnnannnnnnnnaaagggogggogggogggogggogggogggogggogggogggoBBgBgBgogggogggogg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaadddaaaaaaaaaaaayaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnaaadoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnaaaaaaggmmmmmmggstttttshxxxxxhgggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnaaaaaaaaaaaggmmmmmmggstttttttshxxxxxxxhgggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+y #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+z #747a83 on #13151a
+A bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+n #e6e8eb on #1c1f25
+o #2c3039 on #16181d
+p on #22252c
+q bold #5fa8ff on #22252c
+r #5fa8ff on #2b4566
+s on #2b4566
+t bold #e6e8eb on #2b4566
+u #e6e8eb on #16181d
+B #747a83 on #16181d
+x #8b929c on #13151a

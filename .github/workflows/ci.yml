@@ -1,0 +1,76 @@
+# The checks are xtask.yaml's: each job runs one of its gates, nothing
+# beside it (`dart run tool/xtask.dart --check-ci`, the workflows-check
+# task, holds this file to that). What a gate runs is in xtask.yaml and
+# CONTRIBUTING.md.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  linux:
+    # Everything: analyze, format, every package's tests, the end to end
+    # runs, the gallery's Code tab, the VS Code extension's unit tests,
+    # twk_web's tests in Chrome, pub-check (pana), then the frame benchmark
+    # against the commit the change started from. The runner has no CPU to
+    # pin the benchmark to, so its times are reported, not failed; more
+    # bytes per frame still fail.
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # the benchmark builds its baseline from history
+          fetch-depth: 0
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.13.7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: editors/vscode/package-lock.json
+      - uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: pub-${{ runner.os }}-
+      - run: dart pub global activate pana # xtask: not a gate — pub-check's scorer, which no action installs
+      - run: dart run tool/xtask.dart ci -j auto --keep-going --report xtask-report.json
+        env:
+          # a pull request against its base; a push against itself, which
+          # shows the times and compares nothing (a first push has no parent)
+          BENCH_BASELINE: ${{ github.event.pull_request.base.sha || 'HEAD' }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: xtask-report-linux
+          path: xtask-report.json
+
+  other-os:
+    # The published packages' tests where the terminal is another's: the
+    # core's backends for macOS and Windows, and twk over them. The end to
+    # end runs and the benchmark are Linux's (their `platforms:`).
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.13.7
+      - run: dart run tool/xtask.dart ci-os -j auto --keep-going --report xtask-report.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: xtask-report-${{ matrix.os }}
+          path: xtask-report.json

@@ -1,0 +1,74 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     KeyBindings, LeaderKey                  Preview   Code  │
+│                        Keys and sequences bound to callbacks while the focus   │
+│     SelectionArea      is below them: Tab to the box, then +, -, g g or the…   │
+│     Draggable, Dr…   ──────────────────────────────────────────────────────────│
+│                                                                                │
+│   FOCUS AND KEYS 4      ·   ·   ·    ┌                        ┐ ·   ·   ·   ·  │
+│     Focus, FocusS…                     ╭──────────╮                            │
+│     ExcludeFocus        ·   ·   ·      │ focus me │  count: 0   ·   ·   ·   ·  │
+│ ▎   KeyBindings,…                      ╰──────────╯                            │
+│     Shortcuts, Ac…      ·   ·   ·                               ·   ·   ·   ·  │
+│                                                                                │
+│   NAVIGATION     5      ·   ·   ·    └                        ┘ ·   ·   ·   ·  │
+│     Navigator                                           22 × 5                 │
+│     PopScope, Nav…      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│     Breadcrumbs     ▐                                                          │
+│     Pagination      ▐──────────────────────────────────────────────────────────│
+│     Stepper            leader             ,  space  \                          │
+│                        sequence timeout   1 s  none                            │
+│   FOUNDATION     2     unmatched keys     drop  replay                         │
+│     ListenableBui…                                                             │
+│                                                                                │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeaxxxxxxaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahyhyyyyyyhhhhhhhzhaaggkkkkkkkkkkkkgkkkkkkkkkgggggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmgmmmgmmmmmmmmmgmmmmmgmmgmmmmmmmmmgmmmmmgmmmgmmmmmggg│
+│aaaaannnnnnnnnnnnnaaaaggmmgmmmmmgmmmmmgmmmgmmgmmmgmmmmgmmmmgmmgmmgmgmgmmgmmmmggg│
+│aaaaannnnnnnnnnannnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaadddddadddaddddaxaaagggogggogggoggggoggggggggggggggggggggggggogogggogggogggogg│
+│aaaaannnnnnannnnnnnaaaggggggggggggggggggppppppppppppgggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaaagggogggogggoggggggpgqqqqqgqqgpggmmmmmmgqgggogggogggogggogg│
+│arssstttttttttttttsssaggggggggggggggggggppppppppppppgggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnannnaaagggogggogggogggggggggggggggggggggggggggggggogggogggogggogg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaddddddddddaaaaaxaaagggogggogggoggggoggggggggggggggggggggggggogogggogggogggogg│
+│aaaaannnnnnnnnaaaaaaaagggggggggggggggggggggggggggggggggggAAgAgAggggggggggggggggg│
+│aaaaannnnnnnnnannnnaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
+│aaaaannnnnnnnnnnaaaaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnaaaaaadoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnaaaaaaaaaaggmmmmmmggggggggggggstshwwwwwhhwhggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmmmmgmmmmmmmggststshwwwwhggggggggggggggggggggggggggg│
+│aaaddddddddddaaaaaxaaaggmmmmmmmmmgmmmmggggsttttshwwwwwwhgggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+x #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+y #747a83 on #13151a
+z bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+n #e6e8eb on #1c1f25
+o #2c3039 on #16181d
+p #3e444f on #16181d
+q #e6e8eb on #16181d
+r #5fa8ff on #2b4566
+s on #2b4566
+t bold #e6e8eb on #2b4566
+A #747a83 on #16181d
+w #8b929c on #13151a

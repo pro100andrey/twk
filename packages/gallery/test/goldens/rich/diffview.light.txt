@@ -1,0 +1,136 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Rich  ›  DiffView                                                         ctrl+p search      ◐ Light  │
+│                                                                                                                        │
+│   ⌕ Filter             /      DiffView                                                                         4 of 8  │
+│                               The changes between two texts, unified or side by side, the words that changed           │
+│     TerminalProgress          marked and both sides highlighted.                                                       │
+│     Viewport                                                                                                           │
+│     Window title              Preview   Code                                                                           │
+│     Notifications          ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     Cli                                                                                  │                             │
+│                             ┌                                                          ┐ │  OPTIONS                    │
+│   SCREEN READERS       1      bin/greet.dart                                             │                             │
+│     Semantics                  1  1   import 'dart:io';                                  │  layout                     │
+│                                2  2                                                      │   unified  sideBySide       │
+│   DEBUGGING            4       3    - /// Greets [name] on the terminal.                 │                             │
+│     Console                    4    - String greet(String name) {                        │  context                    │
+│     FrameOverlay               5    -   return 'Hello, ' + name + '!';                   │   3 lines  1  0             │
+│     Repaint rainbow               3 + /// Greets [name] on the terminal, in [language    │                             │
+│     RepaintBoundary               4 + String greet(String name, {String language = 'e    │  edit live           ▐●  ▌  │
+│                                   5 +   return '${hello[language]}, $name!';             │                             │
+│   RICH                 8       6  6   }                                                  │  language                   │
+│     MarkdownView               7  7                                                      │   the path's  plain         │
+│     CodeView                      8 + const hello = {'en': 'Hello', 'uk': 'Привіт'};     │                             │
+│     SyntaxThemeScope              9 +                                                    │                             │
+│ ▎   DiffView                   8 10   /// The names to greet, one a line.                │                             │
+│     JsonView                   9 11   List<String> readNames(String path) {              │                             │
+│     BigText                   10 12     final file = File(path);                         │                             │
+│     QrCode                          ⋯ 3 unchanged lines                                  │                             │
+│     ANSI                      14 16                                                  ▁   │                             │
+│                               15 17   void main(List<String> args) {                     │                             │
+│   IMAGES               1  ▐   16 18     final names = readNames(args.first);             │                             │
+│     Image                 ▐      19 +   final language = args.length > 1 ? args[1] :     │                             │
+│                           ▐   17 20     for (final name in names) {                      │                             │
+│   TERMINAL             1  ▐ └                                                          ┘ │                             │
+│     TerminalView          ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·56 × 22  │                             │
+│                                                                                          │                             │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaa9999aafaaddddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaagggggga999999aaaaaadadddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aai!i!!!!!!iiiiiiiiiiiii"iaahhhllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh#h##h#hh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnhnnnnnnnhnnnnnnnhnnnhnnnnnnhnnnnnnnhnnhnnnnhnnhnnnnnhnnnhnnnnnhnnnnhnnnnnnnhhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhnnnnnnhnnnhnnnnhnnnnnhnnnnnnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaoooooaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaoooaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddadddddddaaaaaaa9aaahhhrrrrrrrrrrrrrrsssssssssssssssssssssssssssssssssssssssssthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhnhhnhhhuuuuuuhvvvvvvvvvwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhphhnnnnnnhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhnhhnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhphh$%%%%%%%$szzzzzzzzzzshhhhhh│
+│aaadddddddddaaaaaaaaaaaa9aaahhhABAAAACADDDADDDDDDADDDDDDADDADDDADDDDDDDDDAAAAAAAAAAAAAthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhABAAAACAEEEEEEAFFFFFGEEEEEEAGGGGGAGAAAAAAAAAAAAAAAAAAAAthhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhABAAAACAAAHHHHHHAIJJJJJIAJKLKGGGGKLKJIIGAAAAAAAAAAAAAAAthhhphh$%$%%%%%$szsszshhhhhhhhhhhh│
+│aaaaaoooooooaoooooooaaaaaaaahhhMMMMNMOMPPPMPPPPPPMPPPPPPMPPMPPPMPPPPPPPPQRQQRQQQQQQQQQthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhMMMMNMOMSSSSSSMTTTTTUSSSSSSMUUUUVRVWWWWWWRVVVVVVVVRWRXXthhhphhnnnnhnnnnhhhhhhhhhhhYZ00Yhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhMMMMNMOMMM111111MOVVVVVVVVVVVVVVVVVVOM23333OOUMMMMMMMMMthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddaaaaaaaaaaaaaaaaa9aaahhhhnhhnhhhwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhphhnnnnnnnnhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhnhhnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhphh$%%%$%%%%%%$szzzzzshhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhMMMMNMOM11111MUUUUUMSMUOOOOUMOOOOOOOUMOOOOUMOOOOOOOOUUMthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhMMMMNMOMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│a&$$$%%%%%%%%$$$$$$$$$$$$$$ahhhhnhnnhhh444h444h44444h44h444444h444h4h44444hhhhhhhhhhhhthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhnhnnhhh666666666666hqqqqqqqqqw666666hwwwwwhwhhhhhhhhhhthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhnnhnnhhhhhuuuuuhwwwwh6h6666wwwwwwwhhhhhhhhhhhhhhhhhhhhhthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhsssssszszszzzzzzzzzszzzzzssssssssssssssssssssssssssssssthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooaaaaaaaaaaaaaaaaaaahhhnnhnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnhnnhhh6666hqqqqw666666666666hwwwwwhwhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddaaaaaaaaaaaaaaa9aadhhhnnhnnhhhhhuuuuuhwwwwwh6hqqqqqqqqqwwwwwwwwwwwwwhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaadhhhMMMNNMOMMM11111MUUUUUUUUMSMUUUUUUUUUUUMSM8MSMUUUUU8UMUMhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhnnhnnhhhhhuuuhwuuuuuhwwwwhuuhwwwwwwhwhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddddaaaaaaaaaaaaa9aadhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhp##h#h##hhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #f3f5f7
+b #0969da on #f3f5f7
+c bold #1f2328 on #f3f5f7
+d #656d76 on #f3f5f7
+9 #838991 on #f3f5f7
+f #dcdfe4 on #f3f5f7
+g bold #656d76 on #f3f5f7
+h on #fafafb
+i on #fefefe
+! #838991 on #fefefe
+" bold #838991 on #fefefe
+l bold #1f2328 on #fafafb
+# #838991 on #fafafb
+n #656d76 on #fafafb
+o #1f2328 on #f3f5f7
+p #dcdfe4 on #fafafb
+q #0969da on #fafafb
+r bold #0a7ea4 on #eef0f3
+s on #eef0f3
+t reverse #c8cdd5 on #fafafb
+u #8250df on #fafafb
+v #1a7f37 on #fafafb
+w #1f2328 on #fafafb
+$ on #b6d4fe
+% bold #1f2328 on #b6d4fe
+z #656d76 on #eef0f3
+A on #f2d1d4
+B #656d76 on #f2d1d4
+C #cf222e on #f2d1d4
+D italic #656d76 on #f2d1d4
+E #0a7ea4 on #f2d1d4
+F #0969da on #f2d1d4
+G #1f2328 on #f2d1d4
+H #8250df on #f2d1d4
+I #1a7f37 on #f2d1d4
+J #1a7f37 on #e3848b
+K on #e3848b
+L #0a7ea4 on #e3848b
+M on #d0e3d6
+N #656d76 on #d0e3d6
+O #1a7f37 on #d0e3d6
+P italic #656d76 on #d0e3d6
+Q italic #656d76 on #80b790
+R on #80b790
+S #0a7ea4 on #d0e3d6
+T #0969da on #d0e3d6
+U #1f2328 on #d0e3d6
+V #1f2328 on #80b790
+W #0a7ea4 on #80b790
+X #1a7f37 on #80b790
+Y #c8cdd5 on #fafafb
+Z #ffffff on #c8cdd5
+0 on #c8cdd5
+1 #8250df on #d0e3d6
+2 #cf222e on #80b790
+3 #cf222e on #d0e3d6
+& #0969da on #b6d4fe
+4 italic #656d76 on #fafafb
+6 #0a7ea4 on #fafafb
+8 #9a6700 on #d0e3d6

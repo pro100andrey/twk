@@ -1,0 +1,106 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Scrolling  ›  ListView                                                    ctrl+p search      ◐ Light  │
+│                                                                                                                        │
+│   ⌕ Filter             /      ListView                                                                         3 of 5  │
+│                               Items built as they come into view, however many there are; the wheel and the keys       │
+│                               scroll it. Separated, reversed as a chat, or kept on what it shows as items come         │
+│   STYLE                4      before it.                                                                               │
+│     Theme                                                                                                              │
+│     TerminalBrightness        Preview   Code                                                                           │
+│     GradientBackground     ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     GradientForeground    ▐                                                              │                             │
+│                           ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│   SCROLLING            5  ▐                                                              │                             │
+│     SingleChildScrollVi…  ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  items                      │
+│     Scrollable            ▐                                                              │   100  10 000  1 000 000    │
+│ ▎   ListView                   ·   ·   ┌                                    ┐  ·   ·     │   growing  chat  feed       │
+│     LogView                              ╭────────────────────────────────╮              │                             │
+│     Scrollbar                  ·   ·     │item 1                          │    ·   ·     │  heights                    │
+│                                          │item 2                          │              │   one row  different        │
+│   DATA                13       ·   ·     │item 3                          │    ·   ·     │                             │
+│     Sparkline                            │item 4                          │              │  separated           ▐●  ▌  │
+│     Gauge, LineGauge           ·   ·     │item 5                          │    ·   ·     │                             │
+│     BarChart                             │item 6                          │              │  stuck by                   │
+│     Chart                      ·   ·     ╰────────────────────────────────╯    ·   ·     │   stickToBottom             │
+│     DotCanvas                                                                            │   stickToEnd                │
+│     Calendar                   ·   ·      top   item 40   middle               ·   ·     │                             │
+│     Heatmap, ActivityHe…                                                                 │                             │
+│     Table                      ·   ·     offset 0 of 94                        ·   ·     │                             │
+│     DescriptionList                    └                                    ┘            │                             │
+│     TreeView                   ·   ·   ·   ·   ·   ·   ·   ·   ·   · 34 × 12   ·   ·     │                             │
+│     TreeTable                                                                            │                             │
+│     DirectoryTree              ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     TaskList                                                                             │                             │
+│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│   EDITING              4                                                                 │                             │
+│                                                                                          │                             │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaaFFFFFFFFFaafaaddddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaFFFFFFaaaaaadadddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaiGiGGGGGGiiiiiiiiiiiiiHiaahhhllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhIhIIhIhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnnhnnnnnhnnhnnnnhnnnnhnnnnhnnnnnhnnnnnnnhnnnnhnnnnnhnnnnhnnnhnnnnnhnnnhnnnhnnnnhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnnnhnnnhnnnnnnnnnnhnnnnnnnnhnnhnhnnnnnhnnhnnnnhnnhnnnnhnnhnnnnnhnnhnnnnnhnnnnhhhhhhhhh│
+│aaadddddaaaaaaaaaaaaaaaaFaaahhhnnnnnnhnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaooooooooooooooooooaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaadddddddddaaaaaaaaaaaaFaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooooaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhJKKKJuvvuvvvuuvuvvvuvvvuhhh│
+│aLJJJKKKKKKKKJJJJJJJJJJJJJJahhhhphhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhphhhphhhhhphhuvvvvvvvuuvvvvuuvvvvuhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhphhhhhxyyyyhyhhhhhhhhhhhhhhhhhhhhhhhhhhxhhhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhxyyyyhyhhhhhhhhhhhhhhhhhhhhhhhhhhxhhhhhhhhhhhhhhphhJKKKJKKKJuvvvvvvvvvuhhhhhhh│
+│aaaddddaaaaaaaaaaaaaaaaFFaaahhhhphhhphhhhhxyyyyhyhhhhhhhhhhhhhhhhhhhhhhhhhhxhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhxyyyyhyhhhhhhhhhhhhhhhhhhhhhhhhhhxhhhhhhhhhhhhhhphhnnnnnnnnnhhhhhhhhhhhxzAAxhh│
+│aaaaaooooooaoooooooooaaaaaaahhhhphhhphhhhhxyyyyhyhhhhhhhhhhhhhhhhhhhhhhhhhhxhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhxyyyyhyhhhhhhhhhhhhhhhhhhhhhhhhhhxhhhhhhhhhhhhhhphhIIIIIhIIhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaaahhhhphhhphhhhhxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxhhhhphhhphhhhhphhMNNNNNNNNNNNNNMhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhuOOOOOOOOOOuhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhphhhhhuEEEuhuEEEEuEEuhuEEEEEEuhhhhhhhhhhhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaoooooooooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaaahhhhphhhphhhhhnnnnnnhyhnnhyyhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphIIhIhIIhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddddaaaaaaaaaaaaaaFaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #f3f5f7
+b #0969da on #f3f5f7
+c bold #1f2328 on #f3f5f7
+d #656d76 on #f3f5f7
+F #838991 on #f3f5f7
+f #dcdfe4 on #f3f5f7
+g bold #656d76 on #f3f5f7
+h on #fafafb
+i on #fefefe
+G #838991 on #fefefe
+H bold #838991 on #fefefe
+l bold #1f2328 on #fafafb
+I #838991 on #fafafb
+n #656d76 on #fafafb
+o #1f2328 on #f3f5f7
+p #dcdfe4 on #fafafb
+q #0969da on #fafafb
+J on #b6d4fe
+K bold #1f2328 on #b6d4fe
+u on #eef0f3
+v #656d76 on #eef0f3
+L #0969da on #b6d4fe
+x #c8cdd5 on #fafafb
+y #1f2328 on #fafafb
+z #ffffff on #c8cdd5
+A on #c8cdd5
+M on #d8e5f7
+N #656d76 on #d8e5f7
+O #838991 on #eef0f3
+E bold #0969da on #eef0f3

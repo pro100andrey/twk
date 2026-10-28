@@ -1,0 +1,25 @@
+name: twk_alloc
+description: >-
+  What frames and events allocate, and the collections they cost, measured
+  through the VM service: the scenarios of tool/bench.dart and apps of twk,
+  twk_rich and the gallery.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.13.5
+resolution: workspace
+dependencies:
+  gallery:
+    path: ../../packages/gallery
+  twk:
+    path: ../../packages/twk
+  twk_core:
+    path: ../../packages/twk_core
+  # the frame benchmark's scenarios, which bin/alloc.dart runs too
+  twk_frame_scenarios:
+    path: ../frame_scenarios
+  twk_rich:
+    path: ../../packages/twk_rich
+dev_dependencies:
+  pro_lints: ^6.2.0
