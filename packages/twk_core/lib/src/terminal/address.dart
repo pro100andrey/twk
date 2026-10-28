@@ -107,14 +107,22 @@ final class LocalAddress {
     return (server, LocalAddress._bound(address, token, temporary));
   }
 
-  /// Connects to the socket; throws [SocketException] when that fails.
+  /// Connects to the socket; throws [SocketException] when that fails, or
+  /// when it hasn't within [timeout].
+  ///
+  /// A local socket answers at once, but on Windows a TCP port nobody
+  /// listens at is refused only after about 2 s, the connect tried again:
+  /// an address file left by a server that was killed held every client
+  /// up that long. The timeout cuts that short.
   ///
   /// A connect reset by a server that closes before it answers (ECONNRESET)
   /// is thrown by dart:io as a bare [OSError]: it is thrown here as the
   /// [SocketException] every other failed connect is.
-  Future<Socket> connect() async {
+  Future<Socket> connect({
+    Duration timeout = const Duration(milliseconds: 500),
+  }) async {
     try {
-      return await Socket.connect(address, port);
+      return await Socket.connect(address, port, timeout: timeout);
     } on OSError catch (e) {
       throw SocketException(
         'Connection failed',
