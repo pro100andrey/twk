@@ -81,11 +81,32 @@ void main() {
       expect(rootOf(r'\\?\UNC\server\share\x'), r'\\?\UNC\server\share\');
       expect(rootOf(r'c:\x'), r'C:\');
       expect(rootOf(r'\\?\c:\x'), r'\\?\C:\');
-      // a server without its share, a separator alone, a drive's letter
-      // without one
-      expect(rootOf(r'\\server'), isNull);
+      expect(rootOf(r'\\.\pipe\x'), r'\\.\pipe\');
+      // a share not named yet, as one is typed: a root, which nothing lists,
+      // not a path on the drive of the directory
+      expect(rootOf(r'\\server'), r'\\server\');
+      expect(rootOf(r'\\server\'), r'\\server\');
+      expect(rootOf(r'\\'), r'\\');
+      expect(rootOf(r'\\?\UNC\server'), r'\\?\UNC\server\');
+      // a separator alone, a drive's letter without one
       expect(rootOf(r'\x'), isNull);
       expect(rootOf('C:x'), isNull);
+      expect(rootOf('C:'), isNull);
+    });
+
+    test("a drive's letter without a separator, D: or D:x, is on that drive: "
+        'below the directory where it is on it, else from its root', () {
+      expect(resolvePath(r'C:\proj', 'D:', null), r'D:\');
+      expect(resolvePath(r'C:\proj', 'd:report', null), r'D:\report');
+      expect(resolvePath(r'C:\proj', 'C:x', null), r'C:\proj\x');
+      expect(resolvePath(r'c:\proj', 'c:..', null), r'C:\');
+    });
+
+    test('a share typed in part stays one, not a path on the drive', () {
+      expect(resolvePath(r'C:\Users\me', r'\\nas', null), r'\\nas\');
+      expect(resolvePath(r'C:\Users\me', r'\\nas\sh', null), r'\\nas\sh\');
+      expect(resolvePath(r'C:\Users\me', r'\\nas\sh\..', null), r'\\nas\sh\');
+      expect(parentOf(r'\\nas\'), r'\\nas\');
     });
 
     test(r'resolvePath on a share; \x from the root of the directory, a '
