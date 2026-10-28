@@ -51,6 +51,26 @@ void main() => print(said);
     expect(await run(kernel), 'one\n');
   });
 
+  test('a program in a directory below, by a path with / or with the '
+      "platform's separator: its kernel in the cache itself", () async {
+    final below = Directory('${dir.path}/lib/src')..createSync(recursive: true);
+    File('${below.path}/deep.dart').writeAsStringSync(
+      "void main() => print('deep');\n",
+    );
+    for (final path in [
+      '${dir.path}/lib/src/deep.dart',
+      [dir.path, 'lib', 'src', 'deep.dart'].join(Platform.pathSeparator),
+    ]) {
+      final kernel = await compiledProgram(
+        path,
+        packages: packages,
+        cache: cache,
+      );
+      expect(kernel, startsWith('$cache/deep-'));
+      expect(await run(kernel), 'deep\n');
+    }
+  });
+
   test('called again, its files unchanged: the kernel kept, nothing '
       'compiled', () async {
     final kernel = await compile();

@@ -87,8 +87,10 @@ Future<String> compiledProgram(
       '-D$key=$value',
   ]..sort();
   // the place of the program's kernel: one per program, packages and
-  // declarations
-  final name = source.split(Platform.pathSeparator).last.split('.').first;
+  // declarations; named by the program's file, which Uri.file finds after
+  // the last separator of either kind on Windows, where an absolute path
+  // keeps the `/` of the relative one it was made of
+  final name = Uri.file(source).pathSegments.last.split('.').first;
   final place = [source, config, ...declarations].join('\n');
   final slot = '${dir.path}/$name-${_hex(_hash([utf8.encode(place)]))}';
   final kernel = '$slot.dill';
