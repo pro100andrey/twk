@@ -14,9 +14,9 @@ text
 │     AnimatedSwitc…      ·   ·   ·   ·   ·   ·   ·   ·   ·   · 35 × 1·   ·   ·  │
 │     Dissolve, Fra…                                                             │
 │     Effect              ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
-│                     ▐                                                          │
+│                                                                                │
 │   MOUSE          5  ▐──────────────────────────────────────────────────────────│
-│     GestureDetect…     value   0  ¼  ½  ¾  1                                   │
+│     GestureDetect…  ▐  value   0  ¼  ½  ¾  1                                   │
 │     Listener, Mou…     curve   linear  ease  easeIn  easeOut  easeInOut        │
 │     IgnorePointer…             fastOutSlowIn  decelerate  bounceOut            │
 │     SelectionArea              elasticOut                                      │
@@ -39,9 +39,9 @@ styles
 │aaaaannnnnnnnnnnnnnaaagggogggogggogggogggogggogggogggogggogggogEEgEgEogggogggogg│
 │aaaaannnnnnnnnannnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnaaaaaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
-│aaaaaaaaaaaaaaaaaaaaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaadddddaaaaaaaaaaBaadoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnnnnnnnnaaaggmmmmmgghxhhxhhxhqrqhxhgggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaadggmmmmmgghxhhxhhxhqrqhxhgggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnannnnaaaggmmmmmgghxxxxxxhhxxxxhhxxxxxxhhxxxxxxxhqrrrrrrrrrqggggggg│
 │aaaaannnnnnnnnnnnnnaaaggggggggghxxxxxxxxxxxxxhhxxxxxxxxxxhhxxxxxxxxxhggggggggggg│
 │aaaaannnnnnnnnnnnnaaaaggggggggghxxxxxxxxxxhggggggggggggggggggggggggggggggggggggg│

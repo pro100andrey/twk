@@ -21,12 +21,12 @@ text
 │     Listener, MouseRegi…             │Effects over a subtree          │                  │  cycle               ▐  ●▌  │
 │     IgnorePointer, Abso…       ·     │⠴ repainting underneath         │            ·     │                             │
 │     SelectionArea                    │the cells it paints, filtered   │                  │                             │
-│     Draggable, DragTarg…  ▐    ·     ╰────────────────────────────────╯            ·     │                             │
+│     Draggable, DragTarg…       ·     ╰────────────────────────────────╯            ·     │                             │
 │                           ▐                                                              │                             │
 │   FOCUS AND KEYS       5  ▐    ·      Again   a new key runs it from its start     ·     │                             │
 │     Focus, FocusScope     ▐        └                                           ┘         │                             │
 │     ActiveItem            ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   · 41 × 7·   ·     │                             │
-│     ExcludeFocus                                                                         │                             │
+│     ExcludeFocus          ▐                                                              │                             │
 │     KeyBindings, Leader…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     Shortcuts, Actions                                                                   │                             │
 │                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
@@ -58,12 +58,12 @@ styles
 │aaaaaoooooooooaooooooooooaaahhhhhhhhhhvwwwwwwwxwwwwxwxwwwwwwwxxxxxxxxxxvhhhhhhhhhhhhhhhhhhphhnnnnnhhhhhhhhhhhhhhhqyyzqhh│
 │aaaaaooooooooooooooaoooooaaahhhhphhhhhvAxBBBBBBBBBBxBBBBBBBBBBxxxxxxxxxvhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooaaaaaaaaaahhhhhhhhhhvCCCxCCCCCxCCxCCCCCCCxCCCCCCCCxxxvhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooaoooooooooaadhhhhphhhhhvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaoooooooooaaahhhhphhhhhvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaadddddadddaddddaaaaaaaFaadhhhhphhhhhxEEEEExhhnhnnnhnnnhnnnnhnnhnnnnhnnnhnnnnnhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooaooooooooooaaaaadhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphIIhIhIphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooaoooooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooaoooooooaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

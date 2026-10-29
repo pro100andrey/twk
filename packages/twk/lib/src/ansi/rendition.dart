@@ -2,8 +2,9 @@
 /// after them.
 library;
 
-import 'package:twk/twk.dart' show Style;
 import 'package:twk_core/twk_core.dart' show Attr, Color;
+
+import '../style/style.dart' show Style;
 
 /// The colors, attributes and link a terminal writes text in, as SGR
 /// sequences (`CSI … m`) and OSC 8 set them. What is reset is unset in

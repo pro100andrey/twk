@@ -14,7 +14,7 @@ text
 │     Repaint rainb…                            paint µs           10       9    │
 │     RepaintBounda…       load ▄▅▇▆▄▅█▆▄▄▃▄▄▅▇ present µs          7       8    │
 │                                               bytes               6       6    │
-│   RICH           8                            cells written       1       1    │
+│   RICH           7                            cells written       1       1    │
 │     MarkdownView                              cells compared      1       1    │
 │     CodeView                                  rows scrolled       0       0    │
 │     SyntaxThemeSc…                            repaints            1       1    │

@@ -25,7 +25,7 @@ text
 │     Repaint rainbow           │                                                      │   │                             │
 │     RepaintBoundary           │                                                      │   │                             │
 │                               │                                                      │   │                             │
-│   RICH                 8      │                                                      │   │                             │
+│   RICH                 7      │                                                      │   │                             │
 │     MarkdownView              │                                                      │   │                             │
 │     CodeView                  │                                                      │   │                             │
 │     SyntaxThemeScope      ▐   │                                                      │   │                             │
@@ -33,7 +33,7 @@ text
 │     JsonView              ▐   │                                                      │   │                             │
 │     BigText               ▐   ╰──────────────────────────────────────────────────────╯   │                             │
 │     QrCode                ▐ └                                                          ┘ │                             │
-│     ANSI                       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·56 × 22  │                             │
+│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·56 × 22  │                             │
 │                                                                                          │                             │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
 styles
@@ -70,7 +70,7 @@ styles
 │aaaaaooooooooaaaaaaaaaaaaaadhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaaaaaaaaaaaaaaadhhhrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooaaaaaaaaaaaaaaaadhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhpFFhFhFFhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhpFFhFhFFhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
 legend

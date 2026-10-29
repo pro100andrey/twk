@@ -11,7 +11,6 @@ import 'package:twk_rich/twk_rich.dart';
 
 /// The topics of the package, each a library `src/<topic>/<topic>.dart`.
 const topics = [
-  'ansi',
   'bigtext',
   'diff',
   'highlight',

@@ -9,12 +9,12 @@ text
 │     GradientBackground        Preview   Code                                                                           │
 │     GradientForeground     ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
 │                                                                                          │                             │
-│   SCROLLING            5  ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│   SCROLLING            5       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
 │     SingleChildScrollVi…  ▐                                                              │                             │
 │     Scrollable            ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  visibility                 │
 │     ListView              ▐                                                              │   always  onScroll  never   │
 │     LogView               ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│ ▎   Scrollbar                          ┌                                    ┐            │  bars                       │
+│ ▎   Scrollbar             ▐            ┌                                    ┐            │  bars                       │
 │                                ·   ·     ╭────────────────────────────────╮    ·   ·     │   vertical  horizontal      │
 │   DATA                13                 │row 1                           │              │   both                      │
 │     Sparkline                  ·   ·     │row 2                           │    ·   ·     │                             │
@@ -46,12 +46,12 @@ styles
 │aaaaaooooooooooooooooooaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooooooaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaadddddddddaaaaaaaaaaaaDaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaadddddddddaaaaaaaaaaaaDaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooooooooaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnnnnhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhsttttttsiuuuuuuuuiiuuuuuihh│
 │aaaaaoooooooaaaaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│avssstttttttttsssssssssssssahhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhphhnnnnhhhhhhhhhhhhhhhhhhhhhhh│
+│avssstttttttttsssssssssssssdhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhphhnnnnhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhhhwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwhhhhphhhphhhhhphhsttttttttsiuuuuuuuuuuihhhhh│
 │aaaddddaaaaaaaaaaaaaaaaDDaaahhhhhhhhhhhhhhwxxxhxhhhhhhhhhhhhhhhhhhhhhhhhhhywhhhhhhhhhhhhhhphhiuuuuihhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhphhhhhwxxxhxhhhhhhhhhhhhhhhhhhhhhhhhhhhwhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

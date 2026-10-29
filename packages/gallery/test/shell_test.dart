@@ -123,7 +123,7 @@ void main() {
       await open(t, '#/text/text?t=2000');
       await keys(t, 'down');
       expect(t.lines[0], contains('Text  ›  Rich text'));
-      expect(t.lines[2], contains('2 of 4'));
+      expect(t.lines[2], contains('2 of 5'));
       await keys(t, 'up,up');
       expect(t.lines[0], contains('Text  ›  Text'));
       await keys(t, 'end');

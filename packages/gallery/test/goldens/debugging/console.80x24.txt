@@ -15,7 +15,7 @@ text
 │     Repaint rainb…         09:05:06.242 DEBUG cache hit: items?page=2          │
 │     RepaintBounda…         09:05:06.942 INFO  GET /api/user/42 200 in 8 ms     │
 │                            09:05:07.642 DEBUG pool: 3 of 8 connections bus     │
-│   RICH           8         09:05:08.342 WARN  slow query: 412 ms on orders     │
+│   RICH           7         09:05:08.342 WARN  slow query: 412 ms on orders     │
 │     MarkdownView           09:05:09.042 INFO  POST /api/orders 201 in 31 m     │
 │     CodeView            └                                                  ┘   │
 │     SyntaxThemeSc…   ──────────────────────────────────────────────────────────│

@@ -4,36 +4,36 @@ text
 │                                                                                                                        │
 │   ⌕ Filter             /      Container                                                                       3 of 24  │
 │                               Align, Padding, a color or a decoration, a size and a margin put together around one     │
-│   TEXT                 4  ▐   child, as Flutter's Container puts them.                                                 │
+│   TEXT                 5  ▐   child, as Flutter's Container puts them.                                                 │
 │     Text                  ▐                                                                                            │
 │     Rich text             ▐   Preview   Code                                                                           │
 │     DefaultTextStyle      ▐───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
 │     Right to left         ▐                                                              │                             │
-│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
-│   LAYOUT              24                                                                 │                             │
-│     Box                        ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  fill                       │
-│     ColoredBox, Decorat…                                                                 │   decoration  color         │
-│ ▎   Container                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     Divider                                                                              │  alignment                  │
-│     Shadow                     ·   ·    ┌                                  ┐   ·   ·     │   none  topLeft  center     │
-│     Padding                                                                              │   bottomRight               │
-│     Align, Center              ·   ·       ╭────────────────────────────╮      ·   ·     │                             │
-│     SizedBox                               │                            │                │  width                      │
-│     ConstrainedBox             ·   ·       │                            │      ·   ·     │   none  24  30  36          │
-│     LimitedBox, Overflo…                   │     deploy to staging      │                │                             │
-│     FractionallySizedBox       ·   ·       │                            │      ·   ·     │  height                     │
-│     IntrinsicWidth/Heig…                   │                            │                │   none  5  7  9             │
-│     Row, Column, Flex          ·   ·       ╰────────────────────────────╯      ·   ·     │                             │
-│     Expanded, Spacer                                                                     │  padding                    │
-│     Stack, Positioned          ·   ·    └                                  ┘   ·   ·     │   0  1  2                   │
-│     Transform                                                        32 × 9              │                             │
-│     Visibility, Offstage       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  margin                     │
-│     ExpansionTile, Acco…                                                                 │   0  1  2                   │
-│     Grid, GridPlacement        ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     Wrap                                                                                 │  foreground          ▐●  ▌  │
-│     CustomPaint                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     SplitView                                                                            │                             │
-│     DockArea                   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     ANSI                       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│                                                                                          │                             │
+│   LAYOUT              24       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  fill                       │
+│     Box                                                                                  │   decoration  color         │
+│     ColoredBox, Decorat…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│ ▎   Container                                                                            │  alignment                  │
+│     Divider                    ·   ·    ┌                                  ┐   ·   ·     │   none  topLeft  center     │
+│     Shadow                                                                               │   bottomRight               │
+│     Padding                    ·   ·       ╭────────────────────────────╮      ·   ·     │                             │
+│     Align, Center                          │                            │                │  width                      │
+│     SizedBox                   ·   ·       │                            │      ·   ·     │   none  24  30  36          │
+│     ConstrainedBox                         │     deploy to staging      │                │                             │
+│     LimitedBox, Overflo…       ·   ·       │                            │      ·   ·     │  height                     │
+│     FractionallySizedBox                   │                            │                │   none  5  7  9             │
+│     IntrinsicWidth/Heig…       ·   ·       ╰────────────────────────────╯      ·   ·     │                             │
+│     Row, Column, Flex                                                                    │  padding                    │
+│     Expanded, Spacer           ·   ·    └                                  ┘   ·   ·     │   0  1  2                   │
+│     Stack, Positioned                                                32 × 9              │                             │
+│     Transform                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  margin                     │
+│     Visibility, Offstage                                                                 │   0  1  2                   │
+│     ExpansionTile, Acco…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Grid, GridPlacement                                                                  │  foreground          ▐●  ▌  │
+│     Wrap                       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     CustomPaint                                                                          │                             │
+│     SplitView                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │                                                                                          │                             │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
 styles
@@ -46,31 +46,31 @@ styles
 │aaaaappppappppaaaaaaaaaaaaadhhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaappppppppppppppppaaaaaadqqqrrrrrrrqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq│
 │aaaaapppppappappppaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
-│aaaddddddaaaaaaaaaaaaaaCCaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaapppaaaaaaaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhnnnnhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaapppppppppppappppppppaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhGHHHHHHHHHHGuvvvvvuhhhhhhhh│
-│aIGGGHHHHHHHHHGGGGGGGGGGGGGahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaapppppppaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhnnnnnnnnnhhhhhhhhhhhhhhhhhh│
-│aaaaappppppaaaaaaaaaaaaaaaaahhhhqhhhqhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhqhhhqhhhhhqhhuvvvvuuvvvvvvvuGHHHHHHGhhhh│
-│aaaaapppppppaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhuvvvvvvvvvvvuhhhhhhhhhhhhhh│
-│aaaaappppppappppppaaaaaaaaaahhhhqhhhqhhhhhhhxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxhhhhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaappppppppaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhxuuuuuuuuuuuuuuuuuuuuuuuuuuuuxhhhhhhhhhhhhhhhhqhhnnnnnhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaappppppppppppppaaaaaaaaahhhhqhhhqhhhhhhhxuuuuuuuuuuuuuuuuuuuuuuuuuuuuxhhhhhhqhhhqhhhhhqhhuvvvvuuvvuGHHGuvvuhhhhhhhhh│
-│aaaaapppppppppppappppppppaaahhhhhhhhhhhhhhhhxuuuuuyyyyyyuyyuyyyyyyyuuuuuuxhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaappppppppppppppppppppaaahhhhqhhhqhhhhhhhxuuuuuuuuuuuuuuuuuuuuuuuuuuuuxhhhhhhqhhhqhhhhhqhhnnnnnnhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppaaaaaaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddaaaaaaaaaaaaaaCCaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhnnnnhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhGHHHHHHHHHHGuvvvvvuhhhhhhhh│
+│aaaaapppppppppppappppppppaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aIGGGHHHHHHHHHGGGGGGGGGGGGGahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhnnnnnnnnnhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppaaaaaaaaaaaaaaaahhhhqhhhqhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhqhhhqhhhhhqhhuvvvvuuvvvvvvvuGHHHHHHGhhhh│
+│aaaaappppppaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhuvvvvvvvvvvvuhhhhhhhhhhhhhh│
+│aaaaapppppppaaaaaaaaaaaaaaaahhhhqhhhqhhhhhhhxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxhhhhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppappppppaaaaaaaaaahhhhhhhhhhhhhhhhxuuuuuuuuuuuuuuuuuuuuuuuuuuuuxhhhhhhhhhhhhhhhhqhhnnnnnhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppaaaaaaaaaaaaaaahhhhqhhhqhhhhhhhxuuuuuuuuuuuuuuuuuuuuuuuuuuuuxhhhhhhqhhhqhhhhhqhhuvvvvuuvvuGHHGuvvuhhhhhhhhh│
+│aaaaappppppppppppppaaaaaaaaahhhhhhhhhhhhhhhhxuuuuuyyyyyyuyyuyyyyyyyuuuuuuxhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppppappppppppaaahhhhqhhhqhhhhhhhxuuuuuuuuuuuuuuuuuuuuuuuuuuuuxhhhhhhqhhhqhhhhhqhhnnnnnnhhhhhhhhhhhhhhhhhhhhh│
 │aaaaappppppppppppppppppppaaahhhhhhhhhhhhhhhhxuuuuuuuuuuuuuuuuuuuuuuuuuuuuxhhhhhhhhhhhhhhhhqhhuvvvvuuvuGHGuvuhhhhhhhhhhhh│
-│aaaaappppapppppppappppaaaaaahhhhqhhhqhhhhhhhxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxhhhhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaapppppppppappppppaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
-│aaaaappppppappppppppppaaaaaahhhhqhhhqhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhqhhhqhhhhhqhhuvuGHGuvuhhhhhhhhhhhhhhhhhh│
-│aaaaapppppppppaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhFFhFhFhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaapppppppppppappppppppaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhnnnnnnhhhhhhhhhhhhhhhhhhhhh│
-│aaaaappppppppppppppapppppaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhuvuGHGuvuhhhhhhhhhhhhhhhhhh│
-│aaaaapppppapppppppppppppaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaappppaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhnnnnnnnnnnhhhhhhhhhhzABBzhh│
-│aaaaapppppppppppaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaapppppppppaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaappppppppaaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppppppppppppppaaahhhhqhhhqhhhhhhhxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxhhhhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppapppppppappppaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppappppppaaaaaaahhhhqhhhqhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhqhhhqhhhhhqhhuvuGHGuvuhhhhhhhhhhhhhhhhhh│
+│aaaaappppppappppppppppaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhFFhFhFhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhnnnnnnhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppppappppppppaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhuvuGHGuvuhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppppppppapppppaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppapppppppppppppaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhnnnnnnnnnnhhhhhhhhhhzABBzhh│
+│aaaaappppaaaaaaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppppaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
 legend

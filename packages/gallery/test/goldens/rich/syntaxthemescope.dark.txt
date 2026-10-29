@@ -2,32 +2,32 @@ screen 120×36, cursor hidden
 text
 │  ◆ twk gallery   Rich  ›  SyntaxThemeScope                                                  ctrl+p search      ◐ Dark  │
 │                                                                                                                        │
-│   ⌕ Filter             /      SyntaxThemeScope                                                                 3 of 8  │
+│   ⌕ Filter             /      SyntaxThemeScope                                                                 3 of 7  │
 │                               The styles of the code below it, a style for each kind of token, in place of those       │
-│     TerminalProgress          derived from the theme: a SyntaxTheme of its own, or the derived one with a few          │
-│     Viewport                  changed.                                                                                 │
-│     Window title                                                                                                       │
-│     Notifications             Preview   Code                                                                           │
-│     Cli                    ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
-│                                                                                          │                             │
-│   SCREEN READERS       1       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
-│     Semantics                                                                            │                             │
-│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  syntax theme               │
-│   DEBUGGING            4                                                                 │   copyWith  own  none       │
-│     Console                    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     FrameOverlay                                                                         │                             │
-│     Repaint rainbow            ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     RepaintBoundary                 ┌                                          ┐         │                             │
-│                                ·      /// Says hello to the user, twice.           ·     │                             │
-│   RICH                 8              @override                                          │                             │
-│     MarkdownView               ·      Widget build(BuildContext context) {         ·     │                             │
-│     CodeView                            final name = 'user', times = 2;                  │                             │
-│ ▎   SyntaxThemeScope           ·        return Text('Hello, $name! ' * times);     ·     │                             │
-│     DiffView                          }                                                  │                             │
-│     JsonView                   ·    └                                          ┘   ·     │                             │
-│     BigText                                                              40 × 6          │                             │
-│     QrCode                     ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     ANSI                                                                                 │                             │
+│     Static                    derived from the theme: a SyntaxTheme of its own, or the derived one with a few          │
+│     TerminalProgress          changed.                                                                                 │
+│     Viewport                                                                                                           │
+│     Window title              Preview   Code                                                                           │
+│     Notifications          ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     Cli                                                                                  │                             │
+│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│   SCREEN READERS       1                                                                 │                             │
+│     Semantics                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  syntax theme               │
+│                                                                                          │   copyWith  own  none       │
+│   DEBUGGING            4       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Console                                                                              │                             │
+│     FrameOverlay               ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Repaint rainbow                 ┌                                          ┐         │                             │
+│     RepaintBoundary            ·      /// Says hello to the user, twice.           ·     │                             │
+│                                       @override                                          │                             │
+│   RICH                 7       ·      Widget build(BuildContext context) {         ·     │                             │
+│     MarkdownView                        final name = 'user', times = 2;                  │                             │
+│     CodeView                   ·        return Text('Hello, $name! ' * times);     ·     │                             │
+│ ▎   SyntaxThemeScope                  }                                                  │                             │
+│     DiffView                   ·    └                                          ┘   ·     │                             │
+│     JsonView                                                             40 × 6          │                             │
+│     BigText                    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     QrCode                                                                               │                             │
 │                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │   IMAGES               1  ▐                                                              │                             │
 │     Image                 ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
@@ -41,30 +41,30 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaiCiCCCCCCiiiiiiiiiiiiiDiaahhhllllllllllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhEhEEhEhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnhnnnnnnhnnhnnnhnnnnhnnnnnhnnnhnhnnnnnhnnnhnnnnhnnnnhnnhnnnnnnhnnhnnnnnhnnhnnnnnhhhhhhh│
-│aaaaaooooooooooooooooaaaaaaahhhnnnnnnnhnnnnhnnnhnnnnnnhnhnnnnnnnnnnnhnnhnnnhnnnnhnnhnnnhnnnnnnnhnnnhnnnnhnhnnnhhhhhhhhhh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhnnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooaoooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooaaaaaaaaaaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaddddddadddddddaaaaaaaBaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnhnnnnnhhhhhhhhhhhhhhh│
-│aaadddddddddaaaaaaaaaaaaBaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhrssssssssritttiittttihhhhhh│
-│aaaaaoooooooaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaoooooooaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooooaaaaaaaahhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhhhhnnnhnnnnhnnnnnhnnhnnnhnnnnnhnnnnnnhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaddddaaaaaaaaaaaaaaaaaBaaahhhhhhhhhhhuuuuuuuuuhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhhphhhhhhvvvvvvhqqqqqwvvvvvvvvvvvvhwwwwwwwwhwhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhxxxxxhwwwwhvhuuuuuuwhwwwwwhvhuwhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│azrrrssssssssssssssssrrrrrrahhhhphhhhhhhhxxxxxxhvvvvwuuuuuuuhyyyyyuhuhvhwwwwwwwhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhnnnnnnnhnnnnhnnnhnnnnnnhnhnnnnnnnnnnnhnnhnnnhnnnnhnnhnnnhnnnnnnnhnnnhnnnnhnhnnnhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhnnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaoooooaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaoooaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddadddddddaaaaaaaBaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnhnnnnnhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhrssssssssritttiittttihhhhhh│
+│aaadddddddddaaaaaaaaaaaaBaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaoooooooaaaaaaaahhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhphhhhhhnnnhnnnnhnnnnnhnnhnnnhnnnnnhnnnnnnhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhuuuuuuuuuhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddaaaaaaaaaaaaaaaaaBaaahhhhphhhhhhvvvvvvhqqqqqwvvvvvvvvvvvvhwwwwwwwwhwhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhxxxxxhwwwwhvhuuuuuuwhwwwwwhvhuwhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhhhhhhxxxxxxhvvvvwuuuuuuuhyyyyyuhuhvhwwwwwwwhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│azrrrssssssssssssssssrrrrrrahhhhhhhhhhhwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhEEhEhEhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhEEhEhEhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaddddddaaaaaaaaaaaaaaaBaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooaaaaaaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
@@ -98,5 +98,5 @@ u #f5c04a on #16181d
 v #5cc8e6 on #16181d
 w #e6e8eb on #16181d
 x bold #ff6b6b on #16181d
-z #5fa8ff on #2b4566
 y #ff6b6b on #16181d
+z #5fa8ff on #2b4566

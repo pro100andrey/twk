@@ -4,30 +4,30 @@ text
 │                                                                                                                        │
 │   ⌕ Filter             /      Console                                                                          1 of 4  │
 │                               Log records listed over the app, newest last; the app has one of its own, which          │
-│     TerminalProgress          Ctrl+G then c opens.                                                                     │
-│     Viewport                                                                                                           │
-│     Window title              Preview   Code                                                                           │
-│     Notifications          ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
-│     Cli                                                                                  │                             │
-│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
-│   SCREEN READERS       1                                                                 │                             │
-│     Semantics                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  level                      │
-│                                                                                          │   debug  info  warning      │
-│   DEBUGGING            4       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   error                     │
-│ ▎   Console                     ┌                                                  ┐     │                             │
-│     FrameOverlay                   Info   Warn   Fail   Close                            │  rows                       │
-│     Repaint rainbow                                                                      │   4  6  8                   │
-│     RepaintBoundary               The app, under its console.                            │                             │
-│                                                                                          │  traffic             ▐  ●▌  │
-│   RICH                 8           console  debug+  6 of 6                               │                             │
-│     MarkdownView                   09:05:06.242 DEBUG cache hit: items?page=2            │  open on error       ▐●  ▌  │
-│     CodeView                       09:05:06.942 INFO  GET /api/user/42 200 in 8 ms       │                             │
-│     SyntaxThemeScope               09:05:07.642 DEBUG pool: 3 of 8 connections bus       │                             │
-│     DiffView                       09:05:08.342 WARN  slow query: 412 ms on orders       │                             │
-│     JsonView                       09:05:09.042 INFO  POST /api/orders 201 in 31 m       │                             │
-│     BigText                     └                                                  ┘     │                             │
-│     QrCode                                                                  48 × 10      │                             │
-│     ANSI                       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Static                    Ctrl+G then c opens.                                                                     │
+│     TerminalProgress                                                                                                   │
+│     Viewport                  Preview   Code                                                                           │
+│     Window title           ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     Notifications                                                                        │                             │
+│     Cli                        ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│                                                                                          │                             │
+│   SCREEN READERS       1       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  level                      │
+│     Semantics                                                                            │   debug  info  warning      │
+│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   error                     │
+│   DEBUGGING            4        ┌                                                  ┐     │                             │
+│ ▎   Console                        Info   Warn   Fail   Close                            │  rows                       │
+│     FrameOverlay                                                                         │   4  6  8                   │
+│     Repaint rainbow               The app, under its console.                            │                             │
+│     RepaintBoundary                                                                      │  traffic             ▐  ●▌  │
+│                                    console  debug+  6 of 6                               │                             │
+│   RICH                 7           09:05:06.242 DEBUG cache hit: items?page=2            │  open on error       ▐●  ▌  │
+│     MarkdownView                   09:05:06.942 INFO  GET /api/user/42 200 in 8 ms       │                             │
+│     CodeView                       09:05:07.642 DEBUG pool: 3 of 8 connections bus       │                             │
+│     SyntaxThemeScope               09:05:08.342 WARN  slow query: 412 ms on orders       │                             │
+│     DiffView                       09:05:09.042 INFO  POST /api/orders 201 in 31 m       │                             │
+│     JsonView                    └                                                  ┘     │                             │
+│     BigText                                                                 48 × 10      │                             │
+│     QrCode                     ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │                                                                                          │                             │
 │   IMAGES               1  ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     Image                 ▐                                                              │                             │
@@ -41,30 +41,30 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaiKiKKKKKKiiiiiiiiiiiiiLiaahhhlllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhMhMMhMhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnhnnnnnnnhnnnnnnhnnnnhnnnhnnnnhnnnnnnhnnnnnhnnnhnnnhnnnhnnnhnnhnnnhnnnnhnnnnnhhhhhhhhhh│
-│aaaaaooooooooooooooooaaaaaaahhhnnnnnnhnnnnhnhnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooaoooooaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
-│aaaaaoooaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
-│aaaddddddadddddddaaaaaaaJaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhNOOOOONtuuuuttuuuuuuuthhhhh│
-│aaadddddddddaaaaaaaaaaaaJaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhtuuuuuthhhhhhhhhhhhhhhhhhhh│
-│aPNNNOOOOOOONNNNNNNNNNNNNNNahhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhhhhhtwwwwthtwwwwthtwwwwthtwwwwwthhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaoooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhtutNONtuthhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooooaaaaaaaahhhhhhhnnnhnnnnhnnnnnhnnnhnnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnnnhhhhhhhhhhhhhqxxyqhh│
-│aaaddddaaaaaaaaaaaaaaaaaJaaahhhhhhhzAAAAAAAzzBBBBBBBBBBBBBBzzzzzzzzzzzzzzzzzzzzzzzzhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhhhhhtuuuuuuuuuuuutuuuuutCCCCCtCCCCtCCCCCCCCCCCCttttthhhhhhhphhnnnnhnnhnnnnnhhhhhhhDEFFDhh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhtuuuuuuuuuuuutGGGGttCCCtCCCCCCCCCCCCtCCCtCCtCtCChhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooooooaaaaaaahhhhhhhtuuuuuuuuuuuutuuuuutCCCCCtCtCCtCtCCCCCCCCCCCtCCChhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhtuuuuuuuuuuuutHHHHttCCCCtCCCCCCtCCCtCCtCCtCCCCCChhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhnnnnnnhnnnnhnhnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaoooooaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaoooooooooooooaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddadddddddaaaaaaaJaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhNOOOOONtuuuuttuuuuuuuthhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhtuuuuuthhhhhhhhhhhhhhhhhhhh│
+│aaadddddddddaaaaaaaaaaaaJaaahhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aPNNNOOOOOOONNNNNNNNNNNNNNNahhhhhhhtwwwwthtwwwwthtwwwwthtwwwwwthhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhtutNONtuthhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaoooooooaaaaaaaahhhhhhhnnnhnnnnhnnnnnhnnnhnnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnnnhhhhhhhhhhhhhqxxyqhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhzAAAAAAAzzBBBBBBBBBBBBBBzzzzzzzzzzzzzzzzzzzzzzzzhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddaaaaaaaaaaaaaaaaaJaaahhhhhhhtuuuuuuuuuuuutuuuuutCCCCCtCCCCtCCCCCCCCCCCCttttthhhhhhhphhnnnnhnnhnnnnnhhhhhhhDEFFDhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhhtuuuuuuuuuuuutGGGGttCCCtCCCCCCCCCCCCtCCCtCCtCtCChhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhtuuuuuuuuuuuutuuuuutCCCCCtCtCCtCtCCCCCCCCCCCtCCChhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhhhhhtuuuuuuuuuuuutHHHHttCCCCtCCCCCCtCCCtCCtCCtCCCCCChhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhtuuuuuuuuuuuutGGGGttCCCCtCCCCCCCCCCCtCCCtCCtCCtChhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhMMhMhMMhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhMMhMhMMhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaddddddaaaaaaaaaaaaaaaJaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooaaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

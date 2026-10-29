@@ -4,8 +4,9 @@ library;
 
 import 'dart:typed_data';
 
-import 'package:twk/twk.dart' show Span, Style;
 import 'package:twk_core/twk_core.dart' show ClusterScan, TextSegmenter;
+
+import '../style/style.dart' show Span, Style;
 
 /// A cell that holds the second column of the wide character before it.
 const _wide = -1;

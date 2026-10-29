@@ -4,18 +4,18 @@ text
 │                                                                                │
 │   ⌕ Filter       /     Image                                   Preview   Code  │
 │                        A PNG or JPEG fitted to its cells. Where the terminal   │
-│     Repaint rainb…     has a graphics protocol (kitty, sixel, iTerm2) its pi…  │
-│     RepaintBounda…   ──────────────────────────────────────────────────────────│
-│                           ┌                                              ┐     │
-│   RICH           8      ·                ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀                 ·  │
-│     MarkdownView                         ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀                    │
-│     CodeView            ·                ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀                 ·  │
-│     SyntaxThemeSc…                       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀                    │
-│     DiffView            ·                ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀                 ·  │
-│     JsonView                             ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀                    │
-│     BigText               └                                              ┘     │
-│     QrCode           ──────────────────────────────────────────────────────────│
-│     ANSI               picture     lake.jpg  logo.png                          │
+│     FrameOverlay       has a graphics protocol (kitty, sixel, iTerm2) its pi…  │
+│     Repaint rainb…   ──────────────────────────────────────────────────────────│
+│     RepaintBounda…        ┌                                              ┐     │
+│                         ·                ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀                 ·  │
+│   RICH           7                       ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀                    │
+│     MarkdownView        ·                ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀                 ·  │
+│     CodeView                             ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀                    │
+│     SyntaxThemeSc…      ·                ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀                 ·  │
+│     DiffView                             ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀                    │
+│     JsonView              └                                              ┘     │
+│     BigText          ──────────────────────────────────────────────────────────│
+│     QrCode             picture     lake.jpg  logo.png                          │
 │                        fit         contain  cover  fill  scaleDown             │
 │   IMAGES         1     alignment   center  topLeft  centerLeft  centerRight    │
 │ ▎   Image                          bottomRight                                 │
@@ -29,18 +29,18 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahÚhÚÚÚÚÚÚhhhhhhhÛhaaggkkkkkggggggggggggggggggggggggggggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmgmmmgmmgmmmmgmmmmmmgmmgmmmgmmmmmmgmmmmmgmmmgmmmmmmmmggg│
-│aaaaannnnnnnannnnnnaaaggmmmgmgmmmmmmmmgmmmmmmmmgmmmmmmmgmmmmmmgmmmmmmmgmmmgmmmgg│
-│aaaaannnnnnnnnnnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaaaaaaaaaaaaaaaaaaagggggoggggggggggggggggggggggggggggggggggggggggggggggoggggg│
-│aaaddddaaaaaaaaaaa×aaagggoggggggggggggggggpqqrstuvwxyzABCDvEgggggggggggggggggogg│
-│aaaaannnnnnnnnnnnaaaaaggggggggggggggggggggFFGHIJKLMNOPQRSTUVgggggggggggggggggggg│
-│aaaaannnnnnnnaaaaaaaaagggoggggggggggggggggWXYZ0123456789!"#$gggggggggggggggggogg│
-│aaaaannnnnnnnnnnnnnaaagggggggggggggggggggg%&'()*+,-./:;<=>?(gggggggggggggggggggg│
-│aaaaannnnnnnnaaaaaaaaagggogggggggggggggggg@[\]^_`{|}~ÀÁÂÃÄÅÆgggggggggggggggggogg│
+│aaaaannnnnnnnnnnnaaaaaggmmmgmgmmmmmmmmgmmmmmmmmgmmmmmmmgmmmmmmgmmmmmmmgmmmgmmmgg│
+│aaaaannnnnnnannnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnnnnaaagggggoggggggggggggggggggggggggggggggggggggggggggggggoggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggoggggggggggggggggpqqrstuvwxyzABCDvEgggggggggggggggggogg│
+│aaaddddaaaaaaaaaaa×aaaggggggggggggggggggggFFGHIJKLMNOPQRSTUVgggggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaaagggoggggggggggggggggWXYZ0123456789!"#$gggggggggggggggggogg│
+│aaaaannnnnnnnaaaaaaaaagggggggggggggggggggg%&'()*+,-./:;<=>?(gggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaaagggogggggggggggggggg@[\]^_`{|}~ÀÁÂÃÄÅÆgggggggggggggggggogg│
 │aaaaannnnnnnnaaaaaaaaaggggggggggggggggggggÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙgggggggggggggggggggg│
-│aaaaannnnnnnaaaaaaaaaagggggoggggggggggggggggggggggggggggggggggggggggggggggoggggg│
-│aaaaannnnnnaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnaaaaaaaaaaaaaggmmmmmmmggggþÿÿÿÿÿÿÿÿþhααααααααhggggggggggggggggggggggggg│
+│aaaaannnnnnnnaaaaaaaaagggggoggggggggggggggggggggggggggggggggggggggggggggggoggggg│
+│aaaaannnnnnnaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnaaaaaaaaaaaggmmmmmmmggggþÿÿÿÿÿÿÿÿþhααααααααhggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaaggmmmggggggggþÿÿÿÿÿÿÿþhαααααhhααααhhαααααααααhgggggggggggg│
 │aaaddddddaaaaaaaaa×aaaggmmmmmmmmmggþÿÿÿÿÿÿþhαααααααhhααααααααααhhαααααααααααhggg│
 │aβþþþÿÿÿÿÿþþþþþþþþþþþaggggggggggggghαααααααααααhgggggggggggggggggggggggggggggggg│

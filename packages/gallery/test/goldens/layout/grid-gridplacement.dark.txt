@@ -4,36 +4,36 @@ text
 │                                                                                                                        │
 │   ⌕ Filter             /      Grid, GridPlacement                                                            19 of 24  │
 │                               Children in the cells of tracks: fixed, a share of the rest, or as long as their         │
-│   TEXT                 4  ▐   content; a child may span several.                                                       │
+│   TEXT                 5  ▐   content; a child may span several.                                                       │
 │     Text                  ▐                                                                                            │
 │     Rich text             ▐   Preview   Code                                                                           │
 │     DefaultTextStyle      ▐───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
 │     Right to left         ▐                                                              │                             │
-│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
-│   LAYOUT              24                                                                 │                             │
-│     Box                        ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  third column               │
-│     ColoredBox, Decorat…                                                                 │   .content()  .fixed(14)    │
-│     Container                  ·  ┌                                              ┐ ·     │   .fr(1)                    │
-│     Divider                         ╭──────────────────────────────────────────╮         │                             │
-│     Shadow                     ·    │header · columnSpan: 3                    │   ·     │  column gap                 │
-│     Padding                         ╰──────────────────────────────────────────╯         │   0  1  2                   │
-│     Align, Center              ·    ╭──────────╮ ╭─────────────────╮ ╭─────────╮   ·     │                             │
-│     SizedBox                        │fixed(12) │ │fr(1)            │ │content()│         │  row gap                    │
-│     ConstrainedBox             ·    │          │ │                 │ │         │   ·     │   0  1                      │
-│     LimitedBox, Overflo…            │          │ │                 │ │         │         │                             │
-│     FractionallySizedBox       ·    │          │ │                 │ │         │   ·     │  width            44 cells  │
-│     IntrinsicWidth/Heig…            ╰──────────╯ ╰─────────────────╯ ╰─────────╯         │  ──────────────── ────────  │
-│     Row, Column, Flex          ·                 ╭─────────────────────────────╮   ·     │                             │
-│     Expanded, Spacer                             │columnSpan: 2                │         │                             │
-│     Stack, Positioned          ·                 ╰─────────────────────────────╯   ·     │                             │
-│     Transform                     └                                              ┘       │                             │
-│     Visibility, Offstage       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  44 × 12  ·     │                             │
-│     ExpansionTile, Acco…                                                                 │                             │
-│ ▎   Grid, GridPlacement        ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     Wrap                                                                                 │                             │
-│     CustomPaint                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     SplitView                                                                            │                             │
-│     DockArea                   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     ANSI                       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│                                                                                          │                             │
+│   LAYOUT              24       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  third column               │
+│     Box                                                                                  │   .content()  .fixed(14)    │
+│     ColoredBox, Decorat…       ·  ┌                                              ┐ ·     │   .fr(1)                    │
+│     Container                       ╭──────────────────────────────────────────╮         │                             │
+│     Divider                    ·    │header · columnSpan: 3                    │   ·     │  column gap                 │
+│     Shadow                          ╰──────────────────────────────────────────╯         │   0  1  2                   │
+│     Padding                    ·    ╭──────────╮ ╭─────────────────╮ ╭─────────╮   ·     │                             │
+│     Align, Center                   │fixed(12) │ │fr(1)            │ │content()│         │  row gap                    │
+│     SizedBox                   ·    │          │ │                 │ │         │   ·     │   0  1                      │
+│     ConstrainedBox                  │          │ │                 │ │         │         │                             │
+│     LimitedBox, Overflo…       ·    │          │ │                 │ │         │   ·     │  width            44 cells  │
+│     FractionallySizedBox            ╰──────────╯ ╰─────────────────╯ ╰─────────╯         │  ──────────────── ────────  │
+│     IntrinsicWidth/Heig…       ·                 ╭─────────────────────────────╮   ·     │                             │
+│     Row, Column, Flex                            │columnSpan: 2                │         │                             │
+│     Expanded, Spacer           ·                 ╰─────────────────────────────╯   ·     │                             │
+│     Stack, Positioned             └                                              ┘       │                             │
+│     Transform                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  44 × 12  ·     │                             │
+│     Visibility, Offstage                                                                 │                             │
+│     ExpansionTile, Acco…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│ ▎   Grid, GridPlacement                                                                  │                             │
+│     Wrap                       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     CustomPaint                                                                          │                             │
+│     SplitView                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │                                                                                          │                             │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
 styles
@@ -46,31 +46,31 @@ styles
 │aaaaappppappppaaaaaaaaaaaaadhhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaappppppppppppppppaaaaaadqqqrrrrrrrqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq│
 │aaaaapppppappappppaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
-│aaaddddddaaaaaaaaaaaaaazzaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaapppaaaaaaaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhnnnnnhnnnnnnhhhhhhhhhhhhhhh│
-│aaaaapppppppppppappppppppaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhsttttttttttsiuuuuuuuuuuihhh│
-│aaaaapppppppppaaaaaaaaaaaaaahhhhqhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhqhhhhhqhhiuuuuuuihhhhhhhhhhhhhhhhhhh│
-│aaaaapppppppaaaaaaaaaaaaaaaahhhhhhhhhvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaappppppaaaaaaaaaaaaaaaaahhhhqhhhhvwwwwwwhwhwwwwwwwwwwwhwhhhhhhhhhhhhhhhhhhhhvhhhqhhhhhqhhnnnnnnhnnnhhhhhhhhhhhhhhhhh│
-│aaaaapppppppaaaaaaaaaaaaaaaahhhhhhhhhvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvhhhhhhhhhqhhiuistsiuihhhhhhhhhhhhhhhhhh│
-│aaaaappppppappppppaaaaaaaaaahhhhqhhhhvvvvvvvvvvvvhvvvvvvvvvvvvvvvvvvvhvvvvvvvvvvvhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaappppppppaaaaaaaaaaaaaaahhhhhhhhhvwwwwwwwwwhvhvwwwwwhhhhhhhhhhhhvhvwwwwwwwwwvhhhhhhhhhqhhnnnhnnnhhhhhhhhhhhhhhhhhhhh│
-│aaaaappppppppppppppaaaaaaaaahhhhqhhhhvhhhhhhhhhhvhvhhhhhhhhhhhhhhhhhvhvhhhhhhhhhvhhhqhhhhhqhhstsiuihhhhhhhhhhhhhhhhhhhhh│
-│aaaaapppppppppppappppppppaaahhhhhhhhhvhhhhhhhhhhvhvhhhhhhhhhhhhhhhhhvhvhhhhhhhhhvhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaappppppppppppppppppppaaahhhhqhhhhvhhhhhhhhhhvhvhhhhhhhhhhhhhhhhhvhvhhhhhhhhhvhhhqhhhhhqhhnnnnnhhhhhhhhhhhhCChCCCCChh│
+│aaaaappppaaaaaaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddaaaaaaaaaaaaaazzaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhnnnnnhnnnnnnhhhhhhhhhhhhhhh│
+│aaaaapppaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhsttttttttttsiuuuuuuuuuuihhh│
+│aaaaapppppppppppappppppppaaahhhhqhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhqhhhhhqhhiuuuuuuihhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppaaaaaaaaaaaaaahhhhhhhhhvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppaaaaaaaaaaaaaaaahhhhqhhhhvwwwwwwhwhwwwwwwwwwwwhwhhhhhhhhhhhhhhhhhhhhvhhhqhhhhhqhhnnnnnnhnnnhhhhhhhhhhhhhhhhh│
+│aaaaappppppaaaaaaaaaaaaaaaaahhhhhhhhhvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvhhhhhhhhhqhhiuistsiuihhhhhhhhhhhhhhhhhh│
+│aaaaapppppppaaaaaaaaaaaaaaaahhhhqhhhhvvvvvvvvvvvvhvvvvvvvvvvvvvvvvvvvhvvvvvvvvvvvhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppappppppaaaaaaaaaahhhhhhhhhvwwwwwwwwwhvhvwwwwwhhhhhhhhhhhhvhvwwwwwwwwwvhhhhhhhhhqhhnnnhnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppaaaaaaaaaaaaaaahhhhqhhhhvhhhhhhhhhhvhvhhhhhhhhhhhhhhhhhvhvhhhhhhhhhvhhhqhhhhhqhhstsiuihhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppppppppaaaaaaaaahhhhhhhhhvhhhhhhhhhhvhvhhhhhhhhhhhhhhhhhvhvhhhhhhhhhvhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppppappppppppaaahhhhqhhhhvhhhhhhhhhhvhvhhhhhhhhhhhhhhhhhvhvhhhhhhhhhvhhhqhhhhhqhhnnnnnhhhhhhhhhhhhCChCCCCChh│
 │aaaaappppppppppppppppppppaaahhhhhhhhhvvvvvvvvvvvvhvvvvvvvvvvvvvvvvvvvhvvvvvvvvvvvhhhhhhhhhqhhwwwwwwwwwwwwwwwwxnnnnnnnnhh│
-│aaaaappppapppppppappppaaaaaahhhhqhhhhhhhhhhhhhhhhhvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaapppppppppappppppaaaaaaahhhhhhhhhhhhhhhhhhhhhhvwwwwwwwwwwwhwhhhhhhhhhhhhhhhhvhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaappppppappppppppppaaaaaahhhhqhhhhhhhhhhhhhhhhhvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaapppppppppaaaaaaaaaaaaaahhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaapppppppppppappppppppaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhCChChCChhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaappppppppppppppapppppaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│ayssstttttstttttttttttttsssahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaappppaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaapppppppppppaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaapppppppppaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaappppppppaaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppppppppppppppaaahhhhqhhhhhhhhhhhhhhhhhvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppapppppppappppaaaaaahhhhhhhhhhhhhhhhhhhhhhvwwwwwwwwwwwhwhhhhhhhhhhhhhhhhvhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppappppppaaaaaaahhhhqhhhhhhhhhhhhhhhhhvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppappppppppppaaaaaahhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhCChChCChhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppppappppppppaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppppppppapppppaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│ayssstttttstttttttttttttsssahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppaaaaaaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppppaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
 legend

@@ -7,9 +7,9 @@ text
 │     GradientForeg…     levels, a filter and a search, a count of the new lin…  │
 │                      ──────────────────────────────────────────────────────────│
 │   SCROLLING      5     ┌                                                    ┐  │
-│     SingleChildSc…  ▐    ╭────────────────────────────────────────────────╮    │
+│     SingleChildSc…       ╭────────────────────────────────────────────────╮    │
 │     Scrollable      ▐    │12:00:12.400 ERROR POST /api/orders 500 upstrea │    │
-│     ListView             │12:00:12.800 INFO  GET /api/items/184 200 59 ms │    │
+│     ListView        ▐    │12:00:12.800 INFO  GET /api/items/184 200 59 ms │    │
 │ ▎   LogView              │12:00:13.200 INFO  GET /api/items/221 200 72 ms │    │
 │     Scrollbar            │12:00:13.600 INFO  GET /api/items/258 200 85 ms │    │
 │                          ╰────────────────────────────────────────────────╯    │
@@ -32,9 +32,9 @@ styles
 │aaaaannnnnnnnnnnnnnaaaggmmmmmmmgmgmmmmmmgmmmgmgmmmmmmmgmgmmmmmgmmgmmmgmmmgmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaadddddddddaaaaaaFaaaggoggggggggggggggggggggggggggggggggggggggggggggggggggggogg│
-│aaaaannnnnnnnnnnnnnaadggggppppppppppppppppppppppppppppppppppppppppppppppppppgggg│
+│aaaaannnnnnnnnnnnnnaaaggggppppppppppppppppppppppppppppppppppppppppppppppppppgggg│
 │aaaaannnnnnnnnnaaaaaadggggpmmmmmmmmmmmmgrrrrrgssssgsssssssssssgsssgsssssssgpgggg│
-│aaaaannnnnnnnaaaaaaaaaggggpmmmmmmmmmmmmgttttggsssgssssssssssssssgsssgssgssgpgggg│
+│aaaaannnnnnnnaaaaaaaadggggpmmmmmmmmmmmmgttttggsssgssssssssssssssgsssgssgssgpgggg│
 │auvvvwwwwwwwvvvvvvvvvaggggpmmmmmmmmmmmmgttttggsssgssssssssssssssgsssgssgssgpgggg│
 │aaaaannnnnnnnnaaaaaaaaggggpmmmmmmmmmmmmgttttggsssgssssssssssssssgsssgssgssxpgggg│
 │aaaaaaaaaaaaaaaaaaaaaaggggppppppppppppppppppppppppppppppppppppppppppppppppppgggg│

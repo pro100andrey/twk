@@ -43,6 +43,12 @@ const catalog = [
           'reads where the app reorders it (TextOrder.visual), left as stored '
           'where the terminal reorders it itself.',
     ),
+    CatalogPage(
+      'ANSI',
+      'Output with ANSI colour codes, from a program or a log, as styled '
+          'spans: all at once with parseAnsi, or as it streams in with '
+          'AnsiStream.',
+    ),
   ]),
   CatalogGroup('Layout', 'layout.dart', [
     CatalogPage(
@@ -787,12 +793,6 @@ const catalog = [
       "Text as a QR code a phone's camera reads: in half blocks, two modules "
           'to a cell, black on white whatever the theme, with as much of the '
           'quiet zone around it as the rows allow.',
-    ),
-    CatalogPage(
-      'ANSI',
-      'Output with ANSI colour codes, from a program or a log, as styled '
-          'spans: all at once with parseAnsi, or as it streams in with '
-          'AnsiStream.',
     ),
   ]),
   CatalogGroup('Images', 'packages/twk_rich', [

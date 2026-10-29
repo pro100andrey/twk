@@ -15,9 +15,9 @@ text
 │   FOCUS AND KEYS 5       │ ● grape     │  │             │  │             │     │
 │     Focus, FocusS…       ╰─────────────╯  ╰─────────────╯  ╰─────────────╯     │
 │     ActiveItem                                                                 │
-│     ExcludeFocus    ▐    dropped: nothing                                      │
+│     ExcludeFocus         dropped: nothing                                      │
 │     KeyBindings,…   ▐  └                                                   ┘   │
-│     Shortcuts, Ac…      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·49 × 8 ·  │
+│     Shortcuts, Ac…  ▐   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·49 × 8 ·  │
 │                                                                                │
 │   NAVIGATION     5   ──────────────────────────────────────────────────────────│
 │     Navigator          child when dragging  ▐  ●▌                              │
@@ -40,9 +40,9 @@ styles
 │aaadddddadddaddddaCaaaggggpgwgrrrrrgggggpggpgggggggggggggpggpgggggggggggggpggggg│
 │aaaaaooooooaoooooooaaaggggpppppppppppppppggpppppppppppppppggpppppppppppppppggggg│
 │aaaaaooooooooooaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaaooooooooooooaaaadggggmmmmmmmmgmmmmmmmgggggggggggggggggggggggggggggggggggggg│
+│aaaaaooooooooooooaaaaaggggmmmmmmmmgmmmmmmmgggggggggggggggggggggggggggggggggggggg│
 │aaaaaoooooooooooooaaadggngggggggggggggggggggggggggggggggggggggggggggggggggggnggg│
-│aaaaaooooooooooaoooaaagggngggngggngggngggngggngggngggngggngggngggngggnFFgFgFgngg│
+│aaaaaooooooooooaoooaadgggngggngggngggngggngggngggngggngggngggngggngggnFFgFgFgngg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaddddddddddaaaaaCaaannnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn│
 │aaaaaoooooooooaaaaaaaaggmmmmmgmmmmgmmmmmmmmggzAABzgggggggggggggggggggggggggggggg│

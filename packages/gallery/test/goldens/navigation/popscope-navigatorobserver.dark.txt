@@ -24,12 +24,12 @@ text
 │     FutureBuilder, Stre…       ·    │                                          │   ·     │                             │
 │                                     │                                          │         │                             │
 │   FRAMEWORK            3       ·    ╰──────────────────────────────────────────╯   ·     │                             │
-│     LayoutBuilder         ▐                                                              │                             │
+│     LayoutBuilder                                                                        │                             │
 │     NotificationListener  ▐    ·    heard: pushed /                                ·     │                             │
 │     Slot, SlotScope       ▐       └                                              ┘       │                             │
 │                           ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  44 × 11  ·     │                             │
 │   APP                  8  ▐                                                              │                             │
-│     InputListener              ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     InputListener         ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     ErrorWidget                                                                          │                             │
 │     Static                     ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     TerminalProgress                                                                     │                             │
@@ -61,12 +61,12 @@ styles
 │aaaaaooooooooooooooaoooooaaahhhhphhhhxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhxhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhxhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaadddddddddaaaaaaaaaaaaCaaahhhhphhhhxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooooooooaadhhhhphhhhnnnnnnhyyyyyyhyhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooaoooooooooaaaaaaadhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhFFhFhFFhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaadddaaaaaaaaaaaaaaaaaaCaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooooaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

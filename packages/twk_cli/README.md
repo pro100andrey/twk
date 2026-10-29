@@ -25,8 +25,9 @@ Future<void> main(List<String> args) => Cli.runWithArgs(args, (cli, rest) async 
 });
 ```
 
-It depends on twk, twk_core, twk_rich (a string's escapes are read with
-its `parseAnsi`) and twk_test (the fake terminal of
+It depends on twk (a string's escapes are read with its `parseAnsi`),
+twk_core, twk_rich (the highlighting of a traceback and of `inspect`) and
+twk_test (the fake terminal of
 `package:twk_cli/testing.dart` reads its screen through twk_test's
 emulator), all as path dependencies.
 

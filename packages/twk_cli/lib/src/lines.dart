@@ -9,7 +9,6 @@ library;
 import 'package:twk/twk.dart';
 import 'package:twk_core/twk_core.dart'
     show LineEncoder, PaintContext, PipelineOwner, Screen;
-import 'package:twk_rich/twk_rich.dart' show parseAnsi;
 
 /// The lines of [message], each a list of spans, every span's style merged
 /// onto [style].

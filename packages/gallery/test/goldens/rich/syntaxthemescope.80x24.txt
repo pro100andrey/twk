@@ -4,18 +4,18 @@ text
 │                                                                                │
 │   ⌕ Filter       /     SyntaxThemeScope                        Preview   Code  │
 │                        The styles of the code below it, a style for each kind  │
-│     Repaint rainb…     of token, in place of those derived from the theme: a…  │
-│     RepaintBounda…   ──────────────────────────────────────────────────────────│
-│                                                                                │
-│   RICH           8      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
-│     MarkdownView            ┌                                          ┐       │
-│     CodeView            ·     /// Says hello to the user, twice.            ·  │
-│ ▎   SyntaxThemeSc…            @override                                        │
-│     DiffView            ·     Widget build(BuildContext context) {          ·  │
-│     JsonView                    final name = 'user', times = 2;                │
-│     BigText             ·       return Text('Hello, $name! ' * times);      ·  │
-│     QrCode                    }                                                │
-│     ANSI                ·   └                                          ┘    ·  │
+│     FrameOverlay       of token, in place of those derived from the theme: a…  │
+│     Repaint rainb…   ──────────────────────────────────────────────────────────│
+│     RepaintBounda…                                                             │
+│                         ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│   RICH           7          ┌                                          ┐       │
+│     MarkdownView        ·     /// Says hello to the user, twice.            ·  │
+│     CodeView                  @override                                        │
+│ ▎   SyntaxThemeSc…      ·     Widget build(BuildContext context) {          ·  │
+│     DiffView                    final name = 'user', times = 2;                │
+│     JsonView            ·       return Text('Hello, $name! ' * times);      ·  │
+│     BigText                   }                                                │
+│     QrCode              ·   └                                          ┘    ·  │
 │                                                                  40 × 6        │
 │   IMAGES         1      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
 │     Image                                                                      │
@@ -29,18 +29,18 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahChCCCCCChhhhhhhDhaaggkkkkkkkkkkkkkkkkgggggggggggggggggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmmmgmmmmmmgmmgmmmgmmmmgmmmmmgmmmgmgmmmmmgmmmgmmmmgmmmmgg│
-│aaaaannnnnnnannnnnnaaaggmmgmmmmmmgmmgmmmmmgmmgmmmmmgmmmmmmmgmmmmgmmmgmmmmmmgmmgg│
-│aaaaannnnnnnnnnnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaddddaaaaaaaaaaaBaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
-│aaaaannnnnnnnnnnnaaaaagggggggoggggggggggggggggggggggggggggggggggggggggggoggggggg│
-│aaaaannnnnnnnaaaaaaaaagggogggggmmmgmmmmgmmmmmgmmgmmmgmmmmmgmmmmmmggggggggggggogg│
-│aqrrrssssssssssssssrragggggggggpppppppppgggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnaaaaaaaaagggogggggttttttguuuuuvttttttttttttgvvvvvvvvgvggggggggggogg│
+│aaaaannnnnnnnnnnnaaaaaggmmgmmmmmmgmmgmmmmmgmmgmmmmmgmmmmmmmgmmmmgmmmgmmmmmmgmmgg│
+│aaaaannnnnnnannnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
+│aaaddddaaaaaaaaaaaBaaagggggggoggggggggggggggggggggggggggggggggggggggggggoggggggg│
+│aaaaannnnnnnnnnnnaaaaagggogggggmmmgmmmmgmmmmmgmmgmmmgmmmmmgmmmmmmggggggggggggogg│
+│aaaaannnnnnnnaaaaaaaaagggggggggpppppppppgggggggggggggggggggggggggggggggggggggggg│
+│aqrrrssssssssssssssrragggogggggttttttguuuuuvttttttttttttgvvvvvvvvgvggggggggggogg│
 │aaaaannnnnnnnaaaaaaaaagggggggggggwwwwwgvvvvgtgppppppvgvvvvvgtgpvgggggggggggggggg│
-│aaaaannnnnnnaaaaaaaaaagggogggggggwwwwwwgttttvpppppppgxxxxxpgpgtgvvvvvvvggggggogg│
-│aaaaannnnnnaaaaaaaaaaagggggggggvgggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnaaaaaaaaaaaaagggogggoggggggggggggggggggggggggggggggggggggggggggoggggogg│
+│aaaaannnnnnnnaaaaaaaaagggogggggggwwwwwwgttttvpppppppgxxxxxpgpgtgvvvvvvvggggggogg│
+│aaaaannnnnnnaaaaaaaaaagggggggggvgggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnaaaaaaaaaaagggogggoggggggggggggggggggggggggggggggggggggggggggoggggogg│
 │aaaaaaaaaaaaaaaaaaaaaaggggggggggggggggggggggggggggggggggggggggggggEEgEgEgggggggg│
 │aaaddddddaaaaaaaaaBaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
 │aaaaannnnnaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
@@ -65,10 +65,10 @@ l bold #5fa8ff on #16181d
 m #8b929c on #16181d
 n #e6e8eb on #1c1f25
 o #2c3039 on #16181d
+p #f5c04a on #16181d
 q #5fa8ff on #2b4566
 r on #2b4566
 s bold #e6e8eb on #2b4566
-p #f5c04a on #16181d
 t #5cc8e6 on #16181d
 u #5fa8ff on #16181d
 v #e6e8eb on #16181d

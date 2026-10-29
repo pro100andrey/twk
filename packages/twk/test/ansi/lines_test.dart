@@ -1,9 +1,7 @@
 // How text, line endings, carriage returns, backspaces, tabs and erasing
 // in the line write the lines, as a terminal would show them.
 import 'package:test/test.dart';
-import 'package:twk/twk.dart' show Span, Style;
-import 'package:twk_core/twk_core.dart' show Color;
-import 'package:twk_rich/twk_rich.dart';
+import 'package:twk/twk.dart';
 
 /// The text of the lines of [text], one string per line.
 List<String> plain(String text, {int tabWidth = 8}) => [

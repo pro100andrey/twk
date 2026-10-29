@@ -1,8 +1,6 @@
 // SGR sequences and OSC 8 links: the style of the text written after them.
 import 'package:test/test.dart';
-import 'package:twk/twk.dart' show Span, Style;
-import 'package:twk_core/twk_core.dart' show Attr, Color;
-import 'package:twk_rich/twk_rich.dart';
+import 'package:twk/twk.dart';
 
 /// The style of `x` written after `CSI [params] m`.
 Style after(String params) {

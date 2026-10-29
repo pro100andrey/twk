@@ -4,24 +4,24 @@ text
 │                                                                                │
 │   ⌕ Filter       /     Padding                                 Preview   Code  │
 │                        Empty cells around a child.                             │
-│   TEXT           4  ▐──────────────────────────────────────────────────────────│
+│   TEXT           5  ▐──────────────────────────────────────────────────────────│
 │     Text            ▐                                                          │
 │     Rich text           ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
 │     DefaultTextSt…                                                             │
 │     Right to left       ·   ·    ┌                               ┐  ·   ·   ·  │
-│                                    ╭───────────────────────────╮               │
-│   LAYOUT        24      ·   ·      │    the child,             │    ·   ·   ·  │
-│     Box                            │    padded from the box    │               │
-│     ColoredBox, D…      ·   ·      ╰───────────────────────────╯    ·   ·   ·  │
-│     Container                    └                               ┘             │
-│     Divider             ·   ·   ·   ·   ·   ·   ·   ·   ·  29 × 4   ·   ·   ·  │
-│     Shadow                                                                     │
-│ ▎   Padding             ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│     ANSI                           ╭───────────────────────────╮               │
+│                         ·   ·      │    the child,             │    ·   ·   ·  │
+│   LAYOUT        24                 │    padded from the box    │               │
+│     Box                 ·   ·      ╰───────────────────────────╯    ·   ·   ·  │
+│     ColoredBox, D…               └                               ┘             │
+│     Container           ·   ·   ·   ·   ·   ·   ·   ·   ·  29 × 4   ·   ·   ·  │
+│     Divider                                                                    │
+│     Shadow              ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│ ▎   Padding                                                                    │
 │     Align, Center                                                              │
-│     SizedBox                                                                   │
-│     ConstrainedBox   ──────────────────────────────────────────────────────────│
-│     LimitedBox, O…     padding   all 1  x 4  y 2  left 8  left 3, top 1        │
-│     FractionallyS…                                                             │
+│     SizedBox         ──────────────────────────────────────────────────────────│
+│     ConstrainedBox     padding   all 1  x 4  y 2  left 8  left 3, top 1        │
+│     LimitedBox, O…                                                             │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -34,19 +34,19 @@ styles
 │aaaaappppappppaaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
 │aaaaappppppppppppppaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaapppppappappppaaaagggogggoggggogggggggggggggggggggggggggggggggoggogggogggogg│
-│aaaaaaaaaaaaaaaaaaaaaaggggggggggggggqqqqqqqqqqqqqqqqqqqqqqqqqqqqqggggggggggggggg│
-│aaaddddddaaaaaaaaxxaaagggogggoggggggqggggrrrsrrrrrrsssssssssggggqggggogggogggogg│
-│aaaaapppaaaaaaaaaaaaaaggggggggggggggqggggrrrrrrsrrrrsrrrsrrrggggqggggggggggggggg│
-│aaaaapppppppppppappaaagggogggoggggggqqqqqqqqqqqqqqqqqqqqqqqqqqqqqggggogggogggogg│
-│aaaaapppppppppaaaaaaaaggggggggggggogggggggggggggggggggggggggggggggoggggggggggggg│
-│aaaaapppppppaaaaaaaaaagggogggogggogggogggogggogggogggogggoggAAgAgAgggogggogggogg│
-│aaaaappppppaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│ausssvvvvvvvsssssssssagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
+│aaaaappppaaaaaaaaaaaaaggggggggggggggqqqqqqqqqqqqqqqqqqqqqqqqqqqqqggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggogggoggggggqggggrrrsrrrrrrsssssssssggggqggggogggogggogg│
+│aaaddddddaaaaaaaaxxaaaggggggggggggggqggggrrrrrrsrrrrsrrrsrrrggggqggggggggggggggg│
+│aaaaapppaaaaaaaaaaaaaagggogggoggggggqqqqqqqqqqqqqqqqqqqqqqqqqqqqqggggogggogggogg│
+│aaaaapppppppppppappaaaggggggggggggogggggggggggggggggggggggggggggggoggggggggggggg│
+│aaaaapppppppppaaaaaaaagggogggogggogggogggogggogggogggogggoggAAgAgAgggogggogggogg│
+│aaaaapppppppaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaappppppaaaaaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
+│ausssvvvvvvvsssssssssagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaappppppappppppaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaappppppppaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaappppppppppppppaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaapppppppppppappaaaggmmmmmmmgghwwwhwhsvsvshwhwhhwwwwhwhhwwwwhwwhwwwhwhggggggg│
-│aaaaappppppppppppppaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaappppppppaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaappppppppppppppaaaggmmmmmmmgghwwwhwhsvsvshwhwhhwwwwhwhhwwwwhwwhwwwhwhggggggg│
+│aaaaapppppppppppappaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

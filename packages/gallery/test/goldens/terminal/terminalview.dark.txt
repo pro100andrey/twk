@@ -4,22 +4,23 @@ text
 │                                                                                                                        │
 │   ⌕ Filter             /      TerminalView                                                                     1 of 1  │
 │                               A program's terminal in a view: keys, pastes, the mouse and resizes sent to it, its      │
-│     TerminalProgress          scrollback scrolled; here a scripted shell, not a program in a pseudo-terminal.          │
-│     Viewport                                                                                                           │
-│     Window title              Preview   Code                                                                           │
-│     Notifications          ───━━━━━━━──────────────────────────────────────────────────────────────────────────────────│
-│     Cli                       ┌                                                                                    ┐   │
-│                                 ╭ user@twk: ~/twk ───────────────────────────────────────────────────────────────╮     │
-│   SCREEN READERS       1        │user@twk:~/twk$ ls                                                              │     │
-│     Semantics                   │analysis_options.yaml  lib                    README.md                         │     │
-│                                 │CHANGELOG.md           LICENSE                run.sh                            │     │
-│   DEBUGGING            4        │design                 packages               test                              │     │
-│     Console                     │example                pubspec.yaml           tool                              │     │
-│     FrameOverlay                │user@twk:~/twk$                                                                 │     │
+│     Static                    scrollback scrolled; here a scripted shell, not a program in a pseudo-terminal.          │
+│     TerminalProgress                                                                                                   │
+│     Viewport                  Preview   Code                                                                           │
+│     Window title           ───━━━━━━━──────────────────────────────────────────────────────────────────────────────────│
+│     Notifications             ┌                                                                                    ┐   │
+│     Cli                         ╭ user@twk: ~/twk ───────────────────────────────────────────────────────────────╮     │
+│                                 │user@twk:~/twk$ ls                                                              │     │
+│   SCREEN READERS       1        │analysis_options.yaml  lib                    README.md                         │     │
+│     Semantics                   │CHANGELOG.md           LICENSE                run.sh                            │     │
+│                                 │design                 packages               test                              │     │
+│   DEBUGGING            4        │example                pubspec.yaml           tool                              │     │
+│     Console                     │user@twk:~/twk$                                                                 │     │
+│     FrameOverlay                │                                                                                │     │
 │     Repaint rainbow             │                                                                                │     │
 │     RepaintBoundary             │                                                                                │     │
 │                                 │                                                                                │     │
-│   RICH                 8        │                                                                                │     │
+│   RICH                 7        │                                                                                │     │
 │     MarkdownView                │                                                                                │     │
 │     CodeView                    │                                                                                │     │
 │     SyntaxThemeScope            │                                                                                │     │
@@ -27,7 +28,6 @@ text
 │     JsonView                    │                                                                                │     │
 │     BigText                     │                                                                                │     │
 │     QrCode                      │                                                                                │     │
-│     ANSI                        │                                                                                │     │
 │                                 │                                                                                │     │
 │   IMAGES               1  ▐     ╰────────────────────────────────────────────────────────────────────────────────╯     │
 │     Image                 ▐   └                                                                                    ┘   │
@@ -41,18 +41,19 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaiBiBBBBBBiiiiiiiiiiiiiCiaahhhllllllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhDhDDhDhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnhnnnnnnnnnhnnnnnnnnhnnhnhnnnnnhnnnnnhnnnnnnnhnnnhnnnnnhnnnhnnnnnnnhnnnnhnnhnnnhnnnhhhhhh│
-│aaaaaooooooooooooooooaaaaaaahhhnnnnnnnnnnhnnnnnnnnnhnnnnhnhnnnnnnnnhnnnnnnhnnnhnhnnnnnnnhnnhnhnnnnnnnnnnnnnnnnhhhhhhhhhh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooaoooooaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
-│aaaaaoooaaaaaaaaaaaaaaaaaaaahhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhrhnnnnnnnnnhnnnnnhrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrhhhhh│
-│aaaddddddadddddddaaaaaaaAaaahhhhhrsssssssstuuuuuthtthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
-│aaaaaoooooooooaaaaaaaaaaaaaahhhhhrttttttttttttttttttttthhuuuhhhhhhhhhhhhhhhhhhhhttttttttthhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhrtttttttttttthhhhhhhhhhhttttttthhhhhhhhhhhhhhhhsssssshhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
-│aaadddddddddaaaaaaaaaaaaAaaahhhhhruuuuuuhhhhhhhhhhhhhhhhhuuuuuuuuhhhhhhhhhhhhhhhuuuuhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
-│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhruuuuuuuhhhhhhhhhhhhhhhhtttttttttttthhhhhhhhhhhuuuuhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhhhrsssssssstuuuuuthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhnnnnnnnnnnhnnnnnnnnnhnnnnhnhnnnnnnnnhnnnnnnhnnnhnhnnnnnnnhnnhnhnnnnnnnnnnnnnnnnhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaoooooaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaoooooooooooooaaaaaaaaaahhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhh│
+│aaaaaoooaaaaaaaaaaaaaaaaaaaahhhhhrhnnnnnnnnnhnnnnnhrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhrsssssssstuuuuuthtthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
+│aaaddddddadddddddaaaaaaaAaaahhhhhrttttttttttttttttttttthhuuuhhhhhhhhhhhhhhhhhhhhttttttttthhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhrtttttttttttthhhhhhhhhhhttttttthhhhhhhhhhhhhhhhsssssshhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhruuuuuuhhhhhhhhhhhhhhhhhuuuuuuuuhhhhhhhhhhhhhhhuuuuhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
+│aaadddddddddaaaaaaaaaaaaAaaahhhhhruuuuuuuhhhhhhhhhhhhhhhhtttttttttttthhhhhhhhhhhuuuuhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhrsssssssstuuuuuthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
 │aaaaaoooooooaoooooooaaaaaaaahhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
 │aaaaaoooooooooooooooaaaaaaaahhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
@@ -64,7 +65,6 @@ styles
 │aaaaaooooooooaaaaaaaaaaaaaaahhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
 │aaaaaoooooooaaaaaaaaaaaaaaaahhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
 │aaaaaooooooaaaaaaaaaaaaaaaaahhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
-│aaaaaooooaaaaaaaaaaaaaaaaaaahhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhh│
 │aaaddddddaaaaaaaaaaaaaaaAaadhhhhhrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrhhhhh│
 │aaaaaoooooaaaaaaaaaaaaaaaaadhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhh│

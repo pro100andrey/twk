@@ -2,32 +2,32 @@ screen 120×36, cursor hidden
 text
 │  ◆ twk gallery   Rich  ›  QrCode                                                           ctrl+p search      ◐ Light  │
 │                                                                                                                        │
-│   ⌕ Filter             /      QrCode                                                                           7 of 8  │
+│   ⌕ Filter             /      QrCode                                                                           7 of 7  │
 │                               Text as a QR code a phone's camera reads: in half blocks, two modules to a cell,         │
-│     TerminalProgress          black on white whatever the theme, with as much of the quiet zone around it as the       │
-│     Viewport                  rows allow.                                                                              │
-│     Window title                                                                                                       │
-│     Notifications             Preview   Code                                                                           │
-│     Cli                    ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
-│                                                                                          │                             │
-│   SCREEN READERS       1       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
-│     Semantics                                                                            │                             │
-│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  text                       │
-│   DEBUGGING            4          ┌                                             ┐        │   link  wifi  digits        │
-│     Console                    ·                                   version 1       ·     │                             │
-│     FrameOverlay                                                   mask 2                │  level                      │
-│     Repaint rainbow            ·        █▀▀▀▀▀█  ▀▄▀▀ █▀▀▀▀▀█      mode numeric    ·     │   low  medium  quartile     │
-│     RepaintBoundary                     █ ███ █ █ █   █ ███ █                            │   high                      │
-│                                ·        █ ▀▀▀ █ █  ▀█ █ ▀▀▀ █                      ·     │                             │
-│   RICH                 8                ▀▀▀▀▀▀▀ █ ▀▄█ ▀▀▀▀▀▀▀                            │  quiet zone      4 modules  │
-│     MarkdownView               ·        █ █▀▀▀▀▄ █▀ █ ▀█▀▀▀ ▄                      ·     │  ────────────────────────   │
-│     CodeView                            ▄██▀█ ▀▄▄ ▀▀ ▀ ▄█▀▀ ▀                            │                             │
-│     SyntaxThemeScope           ·        ▀▀▀▀▀▀▀ ▄  █▄█▄ ▀ ▀▀▀                      ·     │  inverted            ▐●  ▌  │
-│     DiffView                            █▀▀▀▀▀█ ▄▄▀▄█▄█▀  ▀ ▄                            │                             │
-│     JsonView                   ·        █ ███ █ █ ▀ █  █ ▀▀                        ·     │                             │
-│     BigText                             █ ▀▀▀ █ ▀▄█▀ ▀ ▄█ █▄                             │                             │
-│ ▎   QrCode                     ·        ▀▀▀▀▀▀▀ ▀ ▀▀ ▀  ▀ ▀                        ·     │                             │
-│     ANSI                                                                                 │                             │
+│     Static                    black on white whatever the theme, with as much of the quiet zone around it as the       │
+│     TerminalProgress          rows allow.                                                                              │
+│     Viewport                                                                                                           │
+│     Window title              Preview   Code                                                                           │
+│     Notifications          ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     Cli                                                                                  │                             │
+│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│   SCREEN READERS       1                                                                 │                             │
+│     Semantics                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  text                       │
+│                                   ┌                                             ┐        │   link  wifi  digits        │
+│   DEBUGGING            4       ·                                   version 1       ·     │                             │
+│     Console                                                        mask 2                │  level                      │
+│     FrameOverlay               ·        █▀▀▀▀▀█  ▀▄▀▀ █▀▀▀▀▀█      mode numeric    ·     │   low  medium  quartile     │
+│     Repaint rainbow                     █ ███ █ █ █   █ ███ █                            │   high                      │
+│     RepaintBoundary            ·        █ ▀▀▀ █ █  ▀█ █ ▀▀▀ █                      ·     │                             │
+│                                         ▀▀▀▀▀▀▀ █ ▀▄█ ▀▀▀▀▀▀▀                            │  quiet zone      4 modules  │
+│   RICH                 7       ·        █ █▀▀▀▀▄ █▀ █ ▀█▀▀▀ ▄                      ·     │  ────────────────────────   │
+│     MarkdownView                        ▄██▀█ ▀▄▄ ▀▀ ▀ ▄█▀▀ ▀                            │                             │
+│     CodeView                   ·        ▀▀▀▀▀▀▀ ▄  █▄█▄ ▀ ▀▀▀                      ·     │  inverted            ▐●  ▌  │
+│     SyntaxThemeScope                    █▀▀▀▀▀█ ▄▄▀▄█▄█▀  ▀ ▄                            │                             │
+│     DiffView                   ·        █ ███ █ █ ▀ █  █ ▀▀                        ·     │                             │
+│     JsonView                            █ ▀▀▀ █ ▀▄█▀ ▀ ▄█ █▄                             │                             │
+│     BigText                    ·        ▀▀▀▀▀▀▀ ▀ ▀▀ ▀  ▀ ▀                        ·     │                             │
+│ ▎   QrCode                                                                               │                             │
 │                                ·                                                   ·     │                             │
 │   IMAGES               1  ▐       └                                             ┘        │                             │
 │     Image                 ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   · 43 × 15   ·     │                             │
@@ -41,30 +41,30 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaiFiFFFFFFiiiiiiiiiiiiiGiaahhhllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhHhHHhHhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnhnnhnhnnhnnnnhnhnnnnnnnhnnnnnnhnnnnnnhnnhnnnnhnnnnnnnhnnnhnnnnnnnhnnhnhnnnnnhhhhhhhhh│
-│aaaaaooooooooooooooooaaaaaaahhhnnnnnhnnhnnnnnhnnnnnnnnhnnnhnnnnnnhnnnnhnnhnnnnhnnhnnnhnnnnnhnnnnhnnnnnnhnnhnnhnnnhhhhhhh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhnnnnhnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooaoooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooaaaaaaaaaaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaddddddadddddddaaaaaaaEaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnhhhhhhhhhhhhhhhhhhhhhhh│
-│aaadddddddddaaaaaaaaaaaaEaaahhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhphhrssssrrssssrIJJJJJJIhhhhhhh│
-│aaaaaoooooooaaaaaaaaaaaaaaaahhhhphhhhvvvvvvvvvvvvvvvvvvvvvvvvvvvvvhhnnnnnnnhwhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhvvvvvvvvvvvvvvvvvvvvvvvvvvvvvhhnnnnhwhhhhhhhhhhhhhhhhphhnnnnnhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaoooooooaaaaaaaahhhhphhhhvvvvxxxxxxxvvxxxxvxxxxxxxvvvvhhnnnnhwwwwwwwhhhhphhhhhphhrsssrIJJJJJJIrssssssssrhhhh│
-│aaaaaoooooooooooooooaaaaaaaahhhhhhhhhvvvvxvxxxvxvxvxvvvxvxxxvxvvvvhhhhhhhhhhhhhhhhhhhhhhhhphhrssssrhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhhvvvvxvxxxvxvxvvxxvxvxxxvxvvvvhhhhhhhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaddddaaaaaaaaaaaaaaaaaEaaahhhhhhhhhvvvvxxxxxxxvxvxxxvxxxxxxxvvvvhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnhnnnnhhhhhhHhHHHHHHHhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhhphhhhvvvvxvxxxxxxvxxvxvxxxxxvxvvvvhhhhhhhhhhhhhhhhhhphhhhhphhwwwwwwwwwwwwwwwwwwwwwwwwyhh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhvvvvxxxxxvxxxvxxvxvxxxxvxvvvvhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooooooaaaaaaahhhhphhhhvvvvxxxxxxxvxvvxxxxvxvxxxvvvvhhhhhhhhhhhhhhhhhhphhhhhphhnnnnnnnnhhhhhhhhhhhhBCDDBhh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhvvvvxxxxxxxvxxxxxxxxvvxvxvvvvhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhnnnnnhnnhnnnnnhnnnnnnnnhnnnhnnnnnnhnnnnhnnhnnnnhnnhnnnhnnnnnhnnnnhnnnnnnhnnhnnhnnnhhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhnnnnhnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaoooooaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaoooaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddadddddddaaaaaaaEaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhphhrssssrrssssrIJJJJJJIhhhhhhh│
+│aaadddddddddaaaaaaaaaaaaEaaahhhhphhhhvvvvvvvvvvvvvvvvvvvvvvvvvvvvvhhnnnnnnnhwhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhvvvvvvvvvvvvvvvvvvvvvvvvvvvvvhhnnnnhwhhhhhhhhhhhhhhhhphhnnnnnhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhphhhhvvvvxxxxxxxvvxxxxvxxxxxxxvvvvhhnnnnhwwwwwwwhhhhphhhhhphhrsssrIJJJJJJIrssssssssrhhhh│
+│aaaaaoooooooaoooooooaaaaaaaahhhhhhhhhvvvvxvxxxvxvxvxvvvxvxxxvxvvvvhhhhhhhhhhhhhhhhhhhhhhhhphhrssssrhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhphhhhvvvvxvxxxvxvxvvxxvxvxxxvxvvvvhhhhhhhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhvvvvxxxxxxxvxvxxxvxxxxxxxvvvvhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnhnnnnhhhhhhHhHHHHHHHhh│
+│aaaddddaaaaaaaaaaaaaaaaaEaaahhhhphhhhvvvvxvxxxxxxvxxvxvxxxxxvxvvvvhhhhhhhhhhhhhhhhhhphhhhhphhwwwwwwwwwwwwwwwwwwwwwwwwyhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhvvvvxxxxxvxxxvxxvxvxxxxvxvvvvhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhhvvvvxxxxxxxvxvvxxxxvxvxxxvvvvhhhhhhhhhhhhhhhhhhphhhhhphhnnnnnnnnhhhhhhhhhhhhBCDDBhh│
+│aaaaaooooooooooooooooaaaaaaahhhhhhhhhvvvvxxxxxxxvxxxxxxxxvvxvxvvvvhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhhvvvvxvxxxvxvxvxvxvvxvxxvvvvvvhhhhhhhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhvvvvxvxxxvxvxxxxvxvxxvxxvvvvvhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aKIIIJJJJJJIIIIIIIIIIIIIIIIahhhhphhhhvvvvxxxxxxxvxvxxvxvvxvxvvvvvvhhhhhhhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooaaaaaaaaaaaaaaaaaaahhhhhhhhhvvvvvvvvvvvvvvvvvvvvvvvvvvvvvhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhvvvvxvxxxvxvxxxxvxvxxvxxvvvvvhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhphhhhvvvvxxxxxxxvxvxxvxvvxvxvvvvvvhhhhhhhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aKIIIJJJJJJIIIIIIIIIIIIIIIIahhhhhhhhhvvvvvvvvvvvvvvvvvvvvvvvvvvvvvhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhhvvvvvvvvvvvvvvvvvvvvvvvvvvvvvhhhhhhhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaddddddaaaaaaaaaaaaaaaEaadhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooaaaaaaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphHHhHhHHhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

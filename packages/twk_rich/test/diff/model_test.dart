@@ -10,6 +10,7 @@
 import 'dart:io';
 
 import 'package:test/test.dart';
+import 'package:twk/twk.dart' show stripAnsi;
 import 'package:twk_rich/twk_rich.dart';
 
 /// [file]'s hunks as a unified diff writes them, without the headers.

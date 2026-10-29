@@ -16,9 +16,9 @@ text
 │     Pagination          ·   │                                          │    ·  │
 │     Stepper                 │                                          │       │
 │                         ·   ╰──────────────────────────────────────────╯    ·  │
-│   FOUNDATION     2  ▐     └                                              ┘     │
+│   FOUNDATION     2        └                                              ┘     │
 │     ListenableBui…  ▐   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  44 × 9   ·  │
-│     FutureBuilder…                                                             │
+│     FutureBuilder…  ▐                                                          │
 │                      ──────────────────────────────────────────────────────────│
 │   FRAMEWORK      3     back key   escape  backspace  none                      │
 │     LayoutBuilder                                                              │
@@ -41,9 +41,9 @@ styles
 │aaaaannnnnnnnnnaaaaaaagggogggpggggggggggggggggggggggggggggggggggggggggggpggggogg│
 │aaaaannnnnnnaaaaaaaaaagggggggpggggggggggggggggggggggggggggggggggggggggggpggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggogggppppppppppppppppppppppppppppppppppppppppppppggggogg│
-│aaaddddddddddaaaaazaadgggggoggggggggggggggggggggggggggggggggggggggggggggggoggggg│
+│aaaddddddddddaaaaazaaagggggoggggggggggggggggggggggggggggggggggggggggggggggoggggg│
 │aaaaannnnnnnnnnnnnnaadgggogggogggogggogggogggogggogggogggogggogggoggCCgCgCgggogg│
-│aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaadddddddddaaaaaazaaaggmmmmgmmmggsttttttshyyyyyyyyyhhyyyyhggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│

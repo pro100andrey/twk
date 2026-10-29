@@ -15,6 +15,7 @@ import 'sample_app.dart' as sample;
 /// The topics of the package, each a library `src/<topic>/<topic>.dart`.
 const topics = [
   'animation',
+  'ansi',
   'binding',
   'controls',
   'data',

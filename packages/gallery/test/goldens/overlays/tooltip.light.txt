@@ -17,12 +17,12 @@ text
 │ ▎   Tooltip                    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     Popover                                                                              │  on hover            ▐  ●▌  │
 │     MenuBar                    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     ContextMenu           ▐                                                              │  on focus            ▐  ●▌  │
+│     ContextMenu                                                                          │  on focus            ▐  ●▌  │
 │     CommandPalette        ▐    ·   ·   ·    ┌                         ┐    ·   ·   ·     │                             │
 │     OptionList            ▐                    Save    Open    Share                     │  look                       │
 │     ModalBarrier          ▐    ·   ·   ·                                   ·   ·   ·     │   raised  bordered          │
 │     WindowLayer           ▐                    Show the tip                              │                             │
-│                                ·   ·   ·    └                         ┘    ·   ·   ·     │                             │
+│                           ▐    ·   ·   ·    └                         ┘    ·   ·   ·     │                             │
 │   ANIMATION           16                                        23 × 3                   │                             │
 │     Spinner                    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     ProgressBar                                                                          │                             │
@@ -54,12 +54,12 @@ styles
 │aGEEEFFFFFFFEEEEEEEEEEEEEEEahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnhnnnnnhhhhhhhhhhhhqwwxqhh│
 │aaaaaoooooooaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnhnnnnnhhhhhhhhhhhhqwwxqhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnhnnnnnhhhhhhhhhhhhqwwxqhh│
 │aaaaaooooooooooooooaaaaaaaadhhhhphhhphhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhphhhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhrzzzzrhhrzzzzrhhrzzzzzrhhhhhhhhhhhhhhhhhhhhphhnnnnhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooaaaaaaaaaadhhhhphhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhphhhhhphhEFFFFFFErssssssssrhhhhhhhhh│
 │aaaaaoooooooooooaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhrzzzzrzzzrzzzrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhphhhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhphhhphhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhphhhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaadddddddddaaaaaaaaaaaAAaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhDDhDhDhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

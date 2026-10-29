@@ -55,6 +55,7 @@ const _pages = {
   'text/rich-text': 'overline',
   'text/defaulttextstyle': 'This one merges yellow over it.',
   'text/right-to-left': 'text order: visual',
+  'text/ansi': 'read: 613 characters at once, 7 lines',
   'style/theme': 'catppuccinMocha',
   'style/terminalbrightness': 'The terminal is dark.',
   'style/gradientbackground': 'a box over a gradient',
@@ -78,6 +79,18 @@ void main() {
   });
 
   group('the options apply', () {
+    testTwk('ANSI: streamed a piece at a time', (t) async {
+      await open(t, '#/text/ansi?o=read:AnsiStream;piece:16', ms: 200);
+      expect(screen(t), contains('read: 80 of 613 characters, 16 at a time'));
+      expect(screen(t), contains('piece: '));
+    });
+
+    testTwk('ANSI: ls', (t) async {
+      await open(t, '#/text/ansi?o=output:ls');
+      expect(screen(t), contains('CHANGELOG.md'));
+      expect(screen(t), contains('ls --color'));
+    });
+
     testTwk('Rich text: no row labels', (t) async {
       await open(t, '#/text/rich-text');
       expect(screen(t), contains('underlines'));

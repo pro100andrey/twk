@@ -11,9 +11,9 @@ text
 │     KeyHintsBar             │ A newer version of twk is out: 0.2.0.    │       │
 │     StatusMessage…      ·   │                                  Update  │    ·  │
 │ ▎   Callout                 └──────────────────────────────────────────┘       │
-│     Link            ▐   ·                                                   ·  │
+│     Link                ·                                                   ·  │
 │     ListTile        ▐       did: nothing                                       │
-│     StatusBar             └                                              ┘     │
+│     StatusBar       ▐     └                                              ┘     │
 │                      ──────────────────────────────────────────────────────────│
 │   OVERLAYS      11     kind          info  success  warning  error             │
 │     Overlay            dismissible  ▐  ●▌                                      │
@@ -36,9 +36,9 @@ styles
 │aaaaannnnnnnnnnnaaaaaagggggggpgrgrrrrrgrrrrrrrgrrgrrrgrrgrrrrgrrrrrrggggpggggggg│
 │aaaaannnnnnnnnnnnnnaaagggogggpgggggggggggggggggggggggggggggggggsttttttsgpggggogg│
 │auvvvwwwwwwwvvvvvvvvvagggggggppppppppppppppppppppppppppppppppppppppppppppggggggg│
-│aaaaannnnaaaaaaaaaaaadgggogggggggggggggggggggggggggggggggggggggggggggggggggggogg│
+│aaaaannnnaaaaaaaaaaaaagggogggggggggggggggggggggggggggggggggggggggggggggggggggogg│
 │aaaaannnnnnnnaaaaaaaadgggggggmmmmgmmmmmmmggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnaaaaaaaagggggoggggggggggggggggggggggggggggggggggggggggggggggoggggg│
+│aaaaannnnnnnnnaaaaaaadgggggoggggggggggggggggggggggggggggggggggggggggggggggoggggg│
 │aaaaaaaaaaaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaddddddddaaaaaaEEaaaggmmmmgggggggggvwwwwvhzzzzzzzhhzzzzzzzhhzzzzzhgggggggggggg│
 │aaaaannnnnnnaaaaaaaaaaggmmmmmmmmmmmggABBCAgggggggggggggggggggggggggggggggggggggg│

@@ -22,12 +22,12 @@ text
 │     ActiveItem                      selects the text itself.                             │   the theme's  reverse      │
 │     ExcludeFocus               ·                                                   ·     │                             │
 │     KeyBindings, Leader…            A drag goes on from one paragraph to the             │                             │
-│     Shortcuts, Actions    ▐    ·    next.                                          ·     │                             │
+│     Shortcuts, Actions         ·    next.                                          ·     │                             │
 │                           ▐                                                              │                             │
 │   NAVIGATION           5  ▐    ·    copied: nothing                                ·     │                             │
 │     Navigator             ▐       └                                              ┘       │                             │
 │     PopScope, Navigator…  ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   44 × 8  ·     │                             │
-│     Breadcrumbs                                                                          │                             │
+│     Breadcrumbs           ▐                                                              │                             │
 │     Pagination                 ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     Stepper                                                                              │                             │
 │                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
@@ -59,12 +59,12 @@ styles
 │aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhxxxxxxxhxxxhxxxxhxxxxxxxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhrsssrsssssssriuuuuuuuihhhhh│
 │aaaaaooooooooooooaaaaaaaaaaahhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooaoooooooaaahhhhhhhhhxhxxxxhxxxxhxxhxxxxhxxxhxxxxxxxxxhxxhxxxhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooaoooooooaaaadhhhhphhhhxxxxxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaoooooooaaaaahhhhphhhhxxxxxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaddddddddddaaaaaaaaaaazaadhhhhphhhhnnnnnnnhnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooaaaaaaaaaaaaadhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooaooooooooooaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhCChChChhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

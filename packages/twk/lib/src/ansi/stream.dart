@@ -1,18 +1,17 @@
 /// Output of a program with ANSI escape sequences turned into lines of
 /// spans, whole or as it streams in: [parseAnsi], [AnsiStream].
 ///
-/// @docImport 'package:twk/twk.dart';
+/// @docImport '../../twk.dart';
 /// @docImport 'strip.dart';
 library;
 
 // Examples can assume:
 // import 'dart:io';
-// import 'package:twk/twk.dart';
 // void setState(void Function() fn) {}
 
 import 'dart:convert';
 
-import 'package:twk/twk.dart' show Span, Style;
+import '../style/style.dart' show Span, Style;
 
 import 'escapes.dart';
 import 'line.dart';

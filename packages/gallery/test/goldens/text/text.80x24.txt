@@ -4,24 +4,24 @@ text
 │                                                                                │
 │   ⌕ Filter       /     Text                                    Preview   Code  │
 │                        A paragraph in one style, its lines broken to fit, cut  │
-│   TEXT           4  ▐  off and aligned as asked.                               │
+│   TEXT           5  ▐  off and aligned as asked.                               │
 │ ▎   Text            ▐──────────────────────────────────────────────────────────│
 │     Rich text                   ┌                                  ┐           │
 │     DefaultTextSt…      ·   ·     ╭──────────────────────────────╮      ·   ·  │
 │     Right to left                 │Terminals draw text in a grid │             │
-│                         ·   ·     │of cells. A paragraph breaks  │      ·   ·  │
-│   LAYOUT        24                │its lines between words to fit│             │
-│     Box                 ·   ·     │its width; wide characters, 漢│      ·   ·  │
-│     ColoredBox, D…                ╰──────────────────────────────╯             │
-│     Container                   └                                  ┘           │
-│     Divider          ──────────────────────────────────────────────────────────│
-│     Shadow             wrap        word  grapheme  none                        │
-│     Padding            overflow    clip  ellipsis  ellipsisStart               │
-│     Align, Center                  ellipsisMiddle                              │
-│     SizedBox           align       left  center  right  justify                │
-│     ConstrainedBox     max lines   all  3  1                                   │
-│     LimitedBox, O…     width      ─────────────▌▌─────────────  32 cells       │
-│     FractionallyS…                                                             │
+│     ANSI                ·   ·     │of cells. A paragraph breaks  │      ·   ·  │
+│                                   │its lines between words to fit│             │
+│   LAYOUT        24      ·   ·     │its width; wide characters, 漢│      ·   ·  │
+│     Box                           ╰──────────────────────────────╯             │
+│     ColoredBox, D…              └                                  ┘           │
+│     Container        ──────────────────────────────────────────────────────────│
+│     Divider            wrap        word  grapheme  none                        │
+│     Shadow             overflow    clip  ellipsis  ellipsisStart               │
+│     Padding                        ellipsisMiddle                              │
+│     Align, Center      align       left  center  right  justify                │
+│     SizedBox           max lines   all  3  1                                   │
+│     ConstrainedBox     width      ─────────────▌▌─────────────  32 cells       │
+│     LimitedBox, O…                                                             │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -34,19 +34,19 @@ styles
 │aaaaassssassssaaaaaaaagggggggggggrggggggggggggggggggggggggggggggggggrggggggggggg│
 │aaaaassssssssssssssaaagggrgggrgggggttttttttttttttttttttttttttttttttggggggrgggrgg│
 │aaaaasssssassassssaaaagggggggggggggtuuuuuuuuuguuuuguuuuguuguguuuugtggggggggggggg│
-│aaaaaaaaaaaaaaaaaaaaaagggrgggrgggggtuuguuuuuuguguuuuuuuuuguuuuuuggtggggggrgggrgg│
-│aaaddddddaaaaaaaayyaaagggggggggggggtuuuguuuuuguuuuuuuguuuuuguuguuutggggggggggggg│
-│aaaaasssaaaaaaaaaaaaaagggrgggrgggggtuuuguuuuuuguuuuguuuuuuuuuuuguutggggggrgggrgg│
-│aaaaasssssssssssassaaagggggggggggggttttttttttttttttttttttttttttttttggggggggggggg│
-│aaaaasssssssssaaaaaaaagggggggggggrggggggggggggggggggggggggggggggggggrggggggggggg│
-│aaaaasssssssaaaaaaaaaarrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr│
-│aaaaassssssaaaaaaaaaaaggmmmmgggggggpqqqqphvvvvvvvvhhvvvvhggggggggggggggggggggggg│
-│aaaaasssssssaaaaaaaaaaggmmmmmmmmggghvvvvhpqqqqqqqqphvvvvvvvvvvvvvhgggggggggggggg│
-│aaaaassssssassssssaaaaggggggggggggghvvvvvvvvvvvvvvhggggggggggggggggggggggggggggg│
-│aaaaassssssssaaaaaaaaaggmmmmmggggggpqqqqphvvvvvvhhvvvvvhhvvvvvvvhggggggggggggggg│
-│aaaaassssssssssssssaaaggmmmgmmmmmggpqqqphvhhvhgggggggggggggggggggggggggggggggggg│
-│aaaaasssssssssssassaaaggmmmmmgggggguuuuuuuuuuuuuwummmmmmmmmmmmmggBBgBBBBBggggggg│
-│aaaaassssssssssssssaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaassssaaaaaaaaaaaaagggrgggrgggggtuuguuuuuuguguuuuuuuuuguuuuuuggtggggggrgggrgg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggtuuuguuuuuguuuuuuuguuuuuguuguuutggggggggggggg│
+│aaaddddddaaaaaaaayyaaagggrgggrgggggtuuuguuuuuuguuuuguuuuuuuuuuuguutggggggrgggrgg│
+│aaaaasssaaaaaaaaaaaaaagggggggggggggttttttttttttttttttttttttttttttttggggggggggggg│
+│aaaaasssssssssssassaaagggggggggggrggggggggggggggggggggggggggggggggggrggggggggggg│
+│aaaaasssssssssaaaaaaaarrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr│
+│aaaaasssssssaaaaaaaaaaggmmmmgggggggpqqqqphvvvvvvvvhhvvvvhggggggggggggggggggggggg│
+│aaaaassssssaaaaaaaaaaaggmmmmmmmmggghvvvvhpqqqqqqqqphvvvvvvvvvvvvvhgggggggggggggg│
+│aaaaasssssssaaaaaaaaaaggggggggggggghvvvvvvvvvvvvvvhggggggggggggggggggggggggggggg│
+│aaaaassssssassssssaaaaggmmmmmggggggpqqqqphvvvvvvhhvvvvvhhvvvvvvvhggggggggggggggg│
+│aaaaassssssssaaaaaaaaaggmmmgmmmmmggpqqqphvhhvhgggggggggggggggggggggggggggggggggg│
+│aaaaassssssssssssssaaaggmmmmmgggggguuuuuuuuuuuuuwummmmmmmmmmmmmggBBgBBBBBggggggg│
+│aaaaasssssssssssassaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

@@ -2,38 +2,38 @@ screen 120×36, cursor hidden
 text
 │  ◆ twk gallery   Text  ›  Text                                                             ctrl+p search      ◐ Light  │
 │                                                                                                                        │
-│   ⌕ Filter             /      Text                                                                             1 of 4  │
+│   ⌕ Filter             /      Text                                                                             1 of 5  │
 │                               A paragraph in one style, its lines broken to fit, cut off and aligned as asked.         │
-│   TEXT                 4  ▐                                                                                            │
+│   TEXT                 5  ▐                                                                                            │
 │ ▎   Text                  ▐   Preview   Code                                                                y  ⧉ copy  │
 │     Rich text             ▐─────────────━━━━─────────────────────────────────────────────┬─────────────────────────────│
 │     DefaultTextStyle      ▐                                                              │                             │
 │     Right to left         ▐     1  final theme = Theme.of(context);                      │  OPTIONS                    │
-│                                 2  return SizedBox(                                      │                             │
-│   LAYOUT              24        3    width: 32,                                          │  wrap                       │
-│     Box                         4    child: Box(                                         │   word  grapheme  none      │
-│     ColoredBox, Decorat…        5      border: .all(type: .rounded, style: theme.border› │                             │
-│     Container                   6      child: Text(                                      │  overflow                   │
-│     Divider                     7        'Terminals draw text in a grid of cells. A par› │   clip  ellipsis            │
-│     Shadow                      8        'lines between words to fit its width; wide ch› │   ellipsisStart             │
-│     Padding                     9        '🙂, take two cells each.',                     │   ellipsisMiddle            │
-│     Align, Center              10        wrap: .grapheme,                                │                             │
-│     SizedBox                   11        overflow: .ellipsis,                            │▎ align                      │
-│     ConstrainedBox             12        align: .center,                                 │   left  center  right       │
-│     LimitedBox, Overflo…       13      ),                                                │   justify                   │
-│     FractionallySizedBox       14    ),                                                  │                             │
-│     IntrinsicWidth/Heig…       15  );                                                    │  max lines                  │
-│     Row, Column, Flex                                                                    │   all  3  1                 │
-│     Expanded, Spacer                                                                     │                             │
-│     Stack, Positioned                                                                    │  width            32 cells  │
-│     Transform                                                                            │  ──────────── ────────────  │
-│     Visibility, Offstage                                                                 │                             │
-│     ExpansionTile, Acco…                                                                 │       ▌                     │
-│     Grid, GridPlacement                                                                  │       ▌  ℹ Theme: Light     │
-│     Wrap                                                                                 │       ▌                     │
-│     CustomPaint                                                                          │                             │
-│     SplitView                                                                         ▌                                │
-│     DockArea                                                                          ▌  ✓ Copied 15 lines of Dart     │
+│     ANSI                        2  return SizedBox(                                      │                             │
+│                                 3    width: 32,                                          │  wrap                       │
+│   LAYOUT              24        4    child: Box(                                         │   word  grapheme  none      │
+│     Box                         5      border: .all(type: .rounded, style: theme.border› │                             │
+│     ColoredBox, Decorat…        6      child: Text(                                      │  overflow                   │
+│     Container                   7        'Terminals draw text in a grid of cells. A par› │   clip  ellipsis            │
+│     Divider                     8        'lines between words to fit its width; wide ch› │   ellipsisStart             │
+│     Shadow                      9        '🙂, take two cells each.',                     │   ellipsisMiddle            │
+│     Padding                    10        wrap: .grapheme,                                │                             │
+│     Align, Center              11        overflow: .ellipsis,                            │▎ align                      │
+│     SizedBox                   12        align: .center,                                 │   left  center  right       │
+│     ConstrainedBox             13      ),                                                │   justify                   │
+│     LimitedBox, Overflo…       14    ),                                                  │                             │
+│     FractionallySizedBox       15  );                                                    │  max lines                  │
+│     IntrinsicWidth/Heig…                                                                 │   all  3  1                 │
+│     Row, Column, Flex                                                                    │                             │
+│     Expanded, Spacer                                                                     │  width            32 cells  │
+│     Stack, Positioned                                                                    │  ──────────── ────────────  │
+│     Transform                                                                            │                             │
+│     Visibility, Offstage                                                                 │       ▌                     │
+│     ExpansionTile, Acco…                                                                 │       ▌  ℹ Theme: Light     │
+│     Grid, GridPlacement                                                                  │       ▌                     │
+│     Wrap                                                                                 │                             │
+│     CustomPaint                                                                       ▌                                │
+│     SplitView                                                                         ▌  ✓ Copied 15 lines of Dart     │
 │                                                                                       ▌                                │
 │  ← previous   → next   tab next   shift+tab back   esc pages                                                           │
 styles
@@ -46,31 +46,31 @@ styles
 │aaaaattttattttaaaaaaaaaaaaaduuuuuuuuuuuuuvvvvuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu│
 │aaaaattttttttttttttttaaaaaadaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaatttttattattttaaaaaaaaadaaaaaLaawwwwwatttttaxaxxxxxtbbttttttttttaaaaaaaaaaaaaaaaaaaaaauhhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaLaawwwwwwaxxxxxxxxtaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaddddddaaaaaaaaaaaaaaLLaaaaaaaaLaaaattttttayytaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhnnnnhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaatttaaaaaaaaaaaaaaaaaaaaaaaaaLaaaattttttaxxxtaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhzAAAAzTUUUUUUUUTzAAAAzhhhhh│
-│aaaaatttttttttttattttttttaaaaaaaaLaaaaaatttttttatbbbttttttatttttttttattttttattttttttttttLauhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaatttttttttaaaaaaaaaaaaaaaaaaaLaaaaaattttttaxxxxtaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhnnnnnnnnhhhhhhhhhhhhhhhhhhh│
-│aaaaatttttttaaaaaaaaaaaaaaaaaaaaaLaaaaaaaaDDDDDDDDDDaDDDDaDDDDaDDaDaDDDDaDDaDDDDDDaDaDDDLauhhzAAAAzTUUUUUUUUThhhhhhhhhhh│
-│aaaaattttttaaaaaaaaaaaaaaaaaaaaaaLaaaaaaaaDDDDDDaDDDDDDDaDDDDDaDDaDDDaDDDaDDDDDDaDDDDaDDLauhhzAAAAAAAAAAAAAzhhhhhhhhhhhh│
-│aaaaatttttttaaaaaaaaaaaaaaaaaaaaaLaaaaaaaaDDDDaDDDDaDDDaDDDDDaDDDDDDtaaaaaaaaaaaaaaaaaaaaauhhzAAAAAAAAAAAAAAzhhhhhhhhhhh│
-│aaaaattttttattttttaaaaaaaaaaaaaaLLaaaaaaaatttttattttttttttaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaattttttttaaaaaaaaaaaaaaaaaaaLLaaaaaaaatttttttttattttttttttaaaaaaaaaaaaaaaaaaaaaaaaaaaauvhlllllhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaattttttttttttttaaaaaaaaaaaaaLLaaaaaaaattttttattttttttaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhzAAAAzEFFFFFFEzAAAAAzhhhhhh│
-│aaaaatttttttttttattttttttaaaaaaaLLaaaaaattaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhzAAAAAAAzhhhhhhhhhhhhhhhhhh│
-│aaaaattttttttttttttttttttaaaaaaaLLaaaattaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaattttaaaaaaaaaaaaaaaaaaaaaaaaLaawwwwwwaxxxxxxxxtaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaLaaaattttttayytaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhnnnnhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddaaaaaaaaaaaaaaLLaaaaaaaaLaaaattttttaxxxtaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhzAAAAzTUUUUUUUUTzAAAAzhhhhh│
+│aaaaatttaaaaaaaaaaaaaaaaaaaaaaaaaLaaaaaatttttttatbbbttttttatttttttttattttttattttttttttttLauhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaatttttttttttattttttttaaaaaaaaLaaaaaattttttaxxxxtaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhnnnnnnnnhhhhhhhhhhhhhhhhhhh│
+│aaaaatttttttttaaaaaaaaaaaaaaaaaaaLaaaaaaaaDDDDDDDDDDaDDDDaDDDDaDDaDaDDDDaDDaDDDDDDaDaDDDLauhhzAAAAzTUUUUUUUUThhhhhhhhhhh│
+│aaaaatttttttaaaaaaaaaaaaaaaaaaaaaLaaaaaaaaDDDDDDaDDDDDDDaDDDDDaDDaDDDaDDDaDDDDDDaDDDDaDDLauhhzAAAAAAAAAAAAAzhhhhhhhhhhhh│
+│aaaaattttttaaaaaaaaaaaaaaaaaaaaaaLaaaaaaaaDDDDaDDDDaDDDaDDDDDaDDDDDDtaaaaaaaaaaaaaaaaaaaaauhhzAAAAAAAAAAAAAAzhhhhhhhhhhh│
+│aaaaatttttttaaaaaaaaaaaaaaaaaaaaLLaaaaaaaatttttattttttttttaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaattttttattttttaaaaaaaaaaaaaaLLaaaaaaaatttttttttattttttttttaaaaaaaaaaaaaaaaaaaaaaaaaaaauvhlllllhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaattttttttaaaaaaaaaaaaaaaaaaaLLaaaaaaaattttttattttttttaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhzAAAAzEFFFFFFEzAAAAAzhhhhhh│
+│aaaaattttttttttttttaaaaaaaaaaaaaLLaaaaaattaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhzAAAAAAAzhhhhhhhhhhhhhhhhhh│
+│aaaaatttttttttttattttttttaaaaaaaLLaaaattaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaattttttttttttttttttttaaaaaaaLLaattaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhnnnhnnnnnhhhhhhhhhhhhhhhhhh│
-│aaaaattttatttttttattttaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhTUUUTzAzzAzhhhhhhhhhhhhhhhh│
-│aaaaatttttttttattttttaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaattttttattttttttttaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhnnnnnhhhhhhhhhhhhOOhOOOOOhh│
-│aaaaatttttttttaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhGGGGGGGGGGGGHnnnnnnnnnnnnhh│
-│aaaaatttttttttttattttttttaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaattttttttttttttatttttaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhhhhhhIzzzzzzzzzzzzzzzzzzzhh│
-│aaaaatttttatttttttttttttaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhhhhhhIzzIzJJJJJJzJJJJJzzzhh│
-│aaaaattttaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhhhhhhIzzzzzzzzzzzzzzzzzzzhh│
-│aaaaatttttttttttaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaatttttttttaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaKzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzhh│
-│aaaaattttttttaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaKzzKzJJJJJJzJJzJJJJJzJJzJJJJzzzhh│
+│aaaaattttttttttttttttttttaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhTUUUTzAzzAzhhhhhhhhhhhhhhhh│
+│aaaaattttatttttttattttaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaatttttttttattttttaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhnnnnnhhhhhhhhhhhhOOhOOOOOhh│
+│aaaaattttttattttttttttaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhGGGGGGGGGGGGHnnnnnnnnnnnnhh│
+│aaaaatttttttttaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaatttttttttttattttttttaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhhhhhhIzzzzzzzzzzzzzzzzzzzhh│
+│aaaaattttttttttttttatttttaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhhhhhhIzzIzJJJJJJzJJJJJzzzhh│
+│aaaaatttttatttttttttttttaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhhhhhhIzzzzzzzzzzzzzzzzzzzhh│
+│aaaaattttaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaatttttttttttaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaKzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzhh│
+│aaaaatttttttttaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaKzzKzJJJJJJzJJzJJJJJzJJzJJJJzzzhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaKzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzhh│
 │aacaddddddddaaacaddddaaacccaddddaaacccccccccaddddaaacccadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
 legend

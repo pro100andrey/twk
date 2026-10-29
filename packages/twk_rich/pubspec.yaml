@@ -1,7 +1,7 @@
 name: twk_rich
 description: >-
-  Rich text for twk widgets: Markdown, syntax highlighting, diffs, ANSI
-  output, big text and QR codes.
+  Rich text for twk widgets: Markdown, syntax highlighting, diffs, JSON
+  trees, big text and QR codes.
 version: 0.1.0
 publish_to: none
 

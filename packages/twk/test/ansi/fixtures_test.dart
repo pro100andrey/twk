@@ -18,9 +18,7 @@
 import 'dart:io';
 
 import 'package:test/test.dart';
-import 'package:twk/twk.dart' show Span, Style;
-import 'package:twk_core/twk_core.dart' show Attr, Color;
-import 'package:twk_rich/twk_rich.dart';
+import 'package:twk/twk.dart';
 
 /// The lines of fixture [name].ansi, read as bytes.
 List<List<Span>> parsed(String name) {

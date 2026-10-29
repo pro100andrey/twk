@@ -4,24 +4,24 @@ text
 │                                                                                │
 │   ⌕ Filter       /     Right to left                           Preview   Code  │
 │                        Hebrew and Arabic among left-to-right text: put in the  │
-│   TEXT           4  ▐  order it reads where the app reorders it (TextOrder.v…  │
+│   TEXT           5  ▐  order it reads where the app reorders it (TextOrder.v…  │
 │     Text            ▐──────────────────────────────────────────────────────────│
 │     Rich text                                                                  │
 │     DefaultTextSt…      ·   ·   ┌                                  ┐    ·   ·  │
 │ ▎   Right to left                 ╭──────────────────────────────╮             │
-│                         ·   ·     │ Hello is םולש in Hebrew,     │      ·   ·  │
-│   LAYOUT        24                │ and ابحرم in Arabic.         │             │
-│     Box                 ·   ·     │     (hello world) !םלוע םולש │      ·   ·  │
-│     ColoredBox, D…                ╰──────────────────────────────╯             │
-│     Container           ·   ·                                           ·   ·  │
-│     Divider                       text order: visual                           │
-│     Shadow              ·   ·   └                                  ┘    ·   ·  │
-│     Padding                                                  32 × 7            │
-│     Align, Center                                                              │
-│     SizedBox         ──────────────────────────────────────────────────────────│
-│     ConstrainedBox     text order   visual  logical                            │
-│     LimitedBox, O…     align        start  end  left  right                    │
-│     FractionallyS…                                                             │
+│     ANSI                ·   ·     │ Hello is םולש in Hebrew,     │      ·   ·  │
+│                                   │ and ابحرم in Arabic.         │             │
+│   LAYOUT        24      ·   ·     │     (hello world) !םלוע םולש │      ·   ·  │
+│     Box                           ╰──────────────────────────────╯             │
+│     ColoredBox, D…      ·   ·                                           ·   ·  │
+│     Container                     text order: visual                           │
+│     Divider             ·   ·   └                                  ┘    ·   ·  │
+│     Shadow                                                   32 × 7            │
+│     Padding                                                                    │
+│     Align, Center    ──────────────────────────────────────────────────────────│
+│     SizedBox           text order   visual  logical                            │
+│     ConstrainedBox     align        start  end  left  right                    │
+│     LimitedBox, O…                                                             │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -34,19 +34,19 @@ styles
 │aaaaaooooaooooaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaooooooooooooooaaagggpgggpgggpggggggggggggggggggggggggggggggggggpggggpgggpgg│
 │aqrrrsssssrssrssssrrragggggggggggggttttttttttttttttttttttttttttttttggggggggggggg│
-│aaaaaaaaaaaaaaaaaaaaaagggpgggpgggggtguuuuuguuguuuuguuguuuuuuugggggtggggggpgggpgg│
-│aaaddddddaaaaaaaaxxaaagggggggggggggtguuuguuuuuguuguuuuuuugggggggggtggggggggggggg│
-│aaaaaoooaaaaaaaaaaaaaagggpgggpgggggtggggguuuuuuguuuuuuguuuuuguuuugtggggggpgggpgg│
-│aaaaaoooooooooooaooaaagggggggggggggttttttttttttttttttttttttttttttttggggggggggggg│
-│aaaaaoooooooooaaaaaaaagggpgggpgggggggggggggggggggggggggggggggggggggggggggpgggpgg│
-│aaaaaoooooooaaaaaaaaaagggggggggggggmmmmgmmmmmmguuuuuuggggggggggggggggggggggggggg│
-│aaaaaooooooaaaaaaaaaaagggpgggpgggpggggggggggggggggggggggggggggggggggpggggpgggpgg│
-│aaaaaoooooooaaaaaaaaaaggggggggggggggggggggggggggggggggggggggggAAgAgAgggggggggggg│
-│aaaaaooooooaooooooaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaaooooooooaaaaaaaaapppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
-│aaaaaooooooooooooooaaaggmmmmgmmmmmggrssssssrhwwwwwwwhggggggggggggggggggggggggggg│
-│aaaaaoooooooooooaooaaaggmmmmmgggggggrsssssrhwwwhhwwwwhhwwwwwhggggggggggggggggggg│
-│aaaaaooooooooooooooaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaooooaaaaaaaaaaaaagggpgggpgggggtguuuuuguuguuuuguuguuuuuuugggggtggggggpgggpgg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggtguuuguuuuuguuguuuuuuugggggggggtggggggggggggg│
+│aaaddddddaaaaaaaaxxaaagggpgggpgggggtggggguuuuuuguuuuuuguuuuuguuuugtggggggpgggpgg│
+│aaaaaoooaaaaaaaaaaaaaagggggggggggggttttttttttttttttttttttttttttttttggggggggggggg│
+│aaaaaoooooooooooaooaaagggpgggpgggggggggggggggggggggggggggggggggggggggggggpgggpgg│
+│aaaaaoooooooooaaaaaaaagggggggggggggmmmmgmmmmmmguuuuuuggggggggggggggggggggggggggg│
+│aaaaaoooooooaaaaaaaaaagggpgggpgggpggggggggggggggggggggggggggggggggggpggggpgggpgg│
+│aaaaaooooooaaaaaaaaaaaggggggggggggggggggggggggggggggggggggggggAAgAgAgggggggggggg│
+│aaaaaoooooooaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaooooooaooooooaaaapppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaooooooooaaaaaaaaaggmmmmgmmmmmggrssssssrhwwwwwwwhggggggggggggggggggggggggggg│
+│aaaaaooooooooooooooaaaggmmmmmgggggggrsssssrhwwwhhwwwwhhwwwwwhggggggggggggggggggg│
+│aaaaaoooooooooooaooaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

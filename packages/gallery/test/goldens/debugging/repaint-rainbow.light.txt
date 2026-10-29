@@ -4,30 +4,30 @@ text
 │                                                                                                                        │
 │   ⌕ Filter             /      Repaint rainbow                                                                  3 of 4  │
 │                               Each repaint boundary tinted a new colour when it paints, and relayouts marked, to       │
-│     TerminalProgress          see what a change redraws; Ctrl+G then r, and l.                                         │
-│     Viewport                                                                                                           │
-│     Window title              Preview   Code                                                                           │
-│     Notifications          ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
-│     Cli                                                                                  │                             │
-│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
-│   SCREEN READERS       1                                                                 │                             │
-│     Semantics                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  rainbow             ▐  ●▌  │
-│                             ┌                                                          ┐ │                             │
-│   DEBUGGING            4                                                                 │  relayout highlight  ▐●  ▌  │
-│     Console                    ⠴ syncing                                                 │                             │
-│     FrameOverlay                                                                         │                             │
-│ ▎   Repaint rainbow            copy █                                                    │                             │
-│     RepaintBoundary                                                                      │                             │
-│                                load ▄▅▇▆▄▅█▆▄▄▃▄▄▅▇▆                                     │                             │
-│   RICH                 8                                                                 │                             │
+│     Static                    see what a change redraws; Ctrl+G then r, and l.                                         │
+│     TerminalProgress                                                                                                   │
+│     Viewport                  Preview   Code                                                                           │
+│     Window title           ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     Notifications                                                                        │                             │
+│     Cli                        ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│                                                                                          │                             │
+│   SCREEN READERS       1       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  rainbow             ▐  ●▌  │
+│     Semantics               ┌                                                          ┐ │                             │
+│                                                                                          │  relayout highlight  ▐●  ▌  │
+│   DEBUGGING            4       ⠴ syncing                                                 │                             │
+│     Console                                                                              │                             │
+│     FrameOverlay               copy █                                                    │                             │
+│ ▎   Repaint rainbow                                                                      │                             │
+│     RepaintBoundary            load ▄▅▇▆▄▅█▆▄▄▃▄▄▅▇▆                                     │                             │
+│                                                                                          │                             │
+│   RICH                 7                                                                 │                             │
 │     MarkdownView                                                                         │                             │
 │     CodeView                                                                             │                             │
 │     SyntaxThemeScope                                                                     │                             │
 │     DiffView                                                                             │                             │
 │     JsonView                                                                             │                             │
 │     BigText                                                                              │                             │
-│     QrCode                                                                               │                             │
-│     ANSI                    └                                                          ┘ │                             │
+│     QrCode                  └                                                          ┘ │                             │
 │                                                                                 56 × 14  │                             │
 │   IMAGES               1  ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     Image                 ▐                                                              │                             │
@@ -41,21 +41,22 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaiIiIIIIIIiiiiiiiiiiiiiJiaahhhlllllllhlllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhKhKKhKhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnhnnnnnnnhnnnnnnnnhnnnnnnhnhnnnhnnnnnnhnnnnhnnhnnnnnnnhnnnhnnnnnnnnnhnnnnnnnhnnhhhhhhh│
-│aaaaaooooooooooooooooaaaaaaahhhnnnhnnnnhnhnnnnnnhnnnnnnnnhnnnnnnhnnnnhnnhnnnhnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooaoooooaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
-│aaaaaoooaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
-│aaaddddddadddddddaaaaaaazaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhqrrsqhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaadddddddddaaaaaaaaaaaazaaahhhtttttttttttttttttttttttttttttttttttttttttttttttttttttttthhhphhnnnnnnnnhnnnnnnnnnhhuvwwuhh│
-│aaaaaoooooooaaaaaaaaaaaaaaaahhhtxtyyyyyyytttttttttttttttttttttttttttttttttttttttttttttthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhtttttttttttttttttttttttttttttttttttttttttttttttttttttttthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aLMMMNNNNNNNMNNNNNNNMMMMMMMahhhtHHHHtABBBBBBBBBBBBBBBtttttttttttttttttttttttttttttttttthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooooaaaaaaaahhhtttttttttttttttttttttttttttttttttttttttttttttttttttttttthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhtHHHHtFFFFFFFFFFFFFFFFtttttttttttttttttttttttttttttttttthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhnnnhnnnnhnhnnnnnnhnnnnnnnnhnnnnnnhnnnnhnnhnnnhnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaoooooaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaoooooooooooooaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddadddddddaaaaaaazaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhqrrsqhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhtttttttttttttttttttttttttttttttttttttttttttttttttttttttthhhphhnnnnnnnnhnnnnnnnnnhhuvwwuhh│
+│aaadddddddddaaaaaaaaaaaazaaahhhtxtyyyyyyytttttttttttttttttttttttttttttttttttttttttttttthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhtttttttttttttttttttttttttttttttttttttttttttttttttttttttthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhtHHHHtABBBBBBBBBBBBBBBtttttttttttttttttttttttttttttttttthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aLMMMNNNNNNNMNNNNNNNMMMMMMMahhhtttttttttttttttttttttttttttttttttttttttttttttttttttttttthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhtHHHHtFFFFFFFFFFFFFFFFtttttttttttttttttttttttttttttttttthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhtttttttttttttttttttttttttttttttttttttttttttttttttttttttthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaddddaaaaaaaaaaaaaaaaazaaahhhtttttttttttttttttttttttttttttttttttttttttttttttttttttttthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooaaaaaaaaaaahhhtttttttttttttttttttttttttttttttttttttttttttttttttttttttthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaaahhhtttttttttttttttttttttttttttttttttttttttttttttttttttttttthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
@@ -63,8 +64,7 @@ styles
 │aaaaaooooooooaaaaaaaaaaaaaaahhhtttttttttttttttttttttttttttttttttttttttttttttttttttttttthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaaahhhtttttttttttttttttttttttttttttttttttttttttttttttttttttttthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaaaaaaaaaaaaaaaahhhtttttttttttttttttttttttttttttttttttttttttttttttttttttttthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooaaaaaaaaaaaaaaaaahhhtttttttttttttttttttttttttttttttttttttttttttttttttttttttthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooaaaaaaaaaaaaaaaaaaahphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhKKhKhKKhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaddddddaaaaaaaaaaaaaaazaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooaaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
@@ -99,10 +99,10 @@ v #ffffff on #c8cdd5
 w on #c8cdd5
 x blue on #acacfc
 y #1f2328 on #fcacac
-L #0969da on #b6d4fe
-M on #b6d4fe
-N bold #1f2328 on #b6d4fe
 H indexed(243) on #fcacac
 A blue on #acfcd4
 B on #acfcd4
+L #0969da on #b6d4fe
+M on #b6d4fe
+N bold #1f2328 on #b6d4fe
 F cyan on #d4acfc

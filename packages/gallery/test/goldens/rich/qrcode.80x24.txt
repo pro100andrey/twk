@@ -4,18 +4,18 @@ text
 │                                                                                │
 │   ⌕ Filter       /     QrCode                                  Preview   Code  │
 │                        Text as a QR code a phone's camera reads: in half       │
-│     Repaint rainb…     blocks, two modules to a cell, black on white whateve…  │
-│     RepaintBounda…   ──────────────────────────────────────────────────────────│
-│                               ┌                                     ┐          │
-│   RICH           8      ·   ·   █▀▀▀▀▀█  ▀▄▀▀ █▀▀▀▀▀█  version 1        ·   ·  │
-│     MarkdownView                █ ███ █ █ █   █ ███ █  mask 2                  │
-│     CodeView            ·   ·   █ ▀▀▀ █ █  ▀█ █ ▀▀▀ █  mode numeric     ·   ·  │
-│     SyntaxThemeSc…              ▀▀▀▀▀▀▀ █ ▀▄█ ▀▀▀▀▀▀▀                          │
-│     DiffView            ·   ·   █ █▀▀▀▀▄ █▀ █ ▀█▀▀▀ ▄                   ·   ·  │
-│     JsonView                    ▄██▀█ ▀▄▄ ▀▀ ▀ ▄█▀▀ ▀                          │
-│     BigText             ·   ·   ▀▀▀▀▀▀▀ ▄  █▄█▄ ▀ ▀▀▀                   ·   ·  │
-│ ▎   QrCode                      █▀▀▀▀▀█ ▄▄▀▄█▄█▀  ▀ ▄                          │
-│     ANSI                ·   ·   █ ███ █ █ ▀ █  █ ▀▀                     ·   ·  │
+│     FrameOverlay       blocks, two modules to a cell, black on white whateve…  │
+│     Repaint rainb…   ──────────────────────────────────────────────────────────│
+│     RepaintBounda…            ┌                                     ┐          │
+│                         ·   ·   █▀▀▀▀▀█  ▀▄▀▀ █▀▀▀▀▀█  version 1        ·   ·  │
+│   RICH           7              █ ███ █ █ █   █ ███ █  mask 2                  │
+│     MarkdownView        ·   ·   █ ▀▀▀ █ █  ▀█ █ ▀▀▀ █  mode numeric     ·   ·  │
+│     CodeView                    ▀▀▀▀▀▀▀ █ ▀▄█ ▀▀▀▀▀▀▀                          │
+│     SyntaxThemeSc…      ·   ·   █ █▀▀▀▀▄ █▀ █ ▀█▀▀▀ ▄                   ·   ·  │
+│     DiffView                    ▄██▀█ ▀▄▄ ▀▀ ▀ ▄█▀▀ ▀                          │
+│     JsonView            ·   ·   ▀▀▀▀▀▀▀ ▄  █▄█▄ ▀ ▀▀▀                   ·   ·  │
+│     BigText                     █▀▀▀▀▀█ ▄▄▀▄█▄█▀  ▀ ▄                          │
+│ ▎   QrCode              ·   ·   █ ███ █ █ ▀ █  █ ▀▀                     ·   ·  │
 │                                 █ ▀▀▀ █ ▀▄█▀ ▀ ▄█ █▄                           │
 │   IMAGES         1      ·   ·   ▀▀▀▀▀▀▀ ▀ ▀▀ ▀  ▀ ▀                     ·   ·  │
 │     Image                     └                                     ┘          │
@@ -29,18 +29,18 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahBhBBBBBBhhhhhhhChaaggkkkkkkgggggggggggggggggggggggggggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmmmmgmmgmgmmgmmmmgmgmmmmmmmgmmmmmmgmmmmmmgmmgmmmmggggggg│
-│aaaaannnnnnnannnnnnaaaggmmmmmmmgmmmgmmmmmmmgmmgmgmmmmmgmmmmmgmmgmmmmmgmmmmmmmmgg│
-│aaaaannnnnnnnnnnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaaaaaaaaaaaaaaaaaaagggggggggogggggggggggggggggggggggggggggggggggggogggggggggg│
-│aaaddddaaaaaaaaaaaAaaagggogggogggpppppppqqppppqpppppppggmmmmmmmgrggggggggogggogg│
-│aaaaannnnnnnnnnnnaaaaagggggggggggpqpppqpqpqpqqqpqpppqpggmmmmgrgggggggggggggggggg│
-│aaaaannnnnnnnaaaaaaaaagggogggogggpqpppqpqpqqppqpqpppqpggmmmmgrrrrrrrgggggogggogg│
-│aaaaannnnnnnnnnnnnnaaagggggggggggpppppppqpqpppqpppppppgggggggggggggggggggggggggg│
-│aaaaannnnnnnnaaaaaaaaagggogggogggpqppppppqppqpqpppppqpgggggggggggggggggggogggogg│
+│aaaaannnnnnnnnnnnaaaaaggmmmmmmmgmmmgmmmmmmmgmmgmgmmmmmgmmmmmgmmgmmmmmgmmmmmmmmgg│
+│aaaaannnnnnnannnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnnnnaaagggggggggogggggggggggggggggggggggggggggggggggggogggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggogggogggpppppppqqppppqpppppppggmmmmmmmgrggggggggogggogg│
+│aaaddddaaaaaaaaaaaAaaagggggggggggpqpppqpqpqpqqqpqpppqpggmmmmgrgggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaaagggogggogggpqpppqpqpqqppqpqpppqpggmmmmgrrrrrrrgggggogggogg│
+│aaaaannnnnnnnaaaaaaaaagggggggggggpppppppqpqpppqpppppppgggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaaagggogggogggpqppppppqppqpqpppppqpgggggggggggggggggggogggogg│
 │aaaaannnnnnnnaaaaaaaaagggggggggggpppppqpppqppqpqppppqpgggggggggggggggggggggggggg│
-│aaaaannnnnnnaaaaaaaaaagggogggogggpppppppqpqqppppqpqpppgggggggggggggggggggogggogg│
-│astttuuuuuuttttttttttagggggggggggpppppppqppppppppqqpqpgggggggggggggggggggggggggg│
-│aaaaannnnaaaaaaaaaaaaagggogggogggpqpppqpqpqpqpqqpqppqqgggggggggggggggggggogggogg│
+│aaaaannnnnnnnaaaaaaaaagggogggogggpppppppqpqqppppqpqpppgggggggggggggggggggogggogg│
+│aaaaannnnnnnaaaaaaaaaagggggggggggpppppppqppppppppqqpqpgggggggggggggggggggggggggg│
+│astttuuuuuuttttttttttagggogggogggpqpppqpqpqpqpqqpqppqqgggggggggggggggggggogggogg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggpqpppqpqppppqpqppqppqgggggggggggggggggggggggggg│
 │aaaddddddaaaaaaaaaAaaagggogggogggpppppppqpqppqpqqpqpqqgggggggggggggggggggogggogg│
 │aaaaannnnnaaaaaaaaaaaagggggggggogggggggggggggggggggggggggggggggggggggogggggggggg│

@@ -1610,7 +1610,7 @@ List<String> _dartAnsi(String name, String text) {
 }
 
 final _ansi = GalleryPage(
-  group: 'Rich',
+  group: 'Text',
   title: 'ANSI',
   options: const [
     ChoiceOption(

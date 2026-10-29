@@ -20,12 +20,12 @@ text
 │     AnimatedSize               ·   ·     ╔════════════════════════════════╗    ·   ·     │   decelerate  bounceOut     │
 │     TweenAnimationBuild…                 ║                                ║              │   elasticOut                │
 │     AnimatedSwitcher           ·   ·     ║    a box                       ║    ·   ·     │                             │
-│     Dissolve, Fractiona…  ▐              ║                                ║              │  cycle               ▐  ●▌  │
+│     Dissolve, Fractiona…                 ║                                ║              │  cycle               ▐  ●▌  │
 │     Effect                ▐    ·   ·     ║                                ║    ·   ·     │                             │
 │                           ▐              ║                                ║              │                             │
 │   MOUSE                5  ▐    ·   ·     ╚════════════════════════════════╝    ·   ·     │                             │
 │     GestureDetector       ▐            └                                    ┘            │                             │
-│     Listener, MouseRegi…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  34 × 7   ·   ·     │                             │
+│     Listener, MouseRegi…  ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  34 × 7   ·   ·     │                             │
 │     IgnorePointer, Abso…                                                                 │                             │
 │     SelectionArea              ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     Draggable, DragTarg…                                                                 │                             │
@@ -57,12 +57,12 @@ styles
 │aaaaaooooooooooooaaaaaaaaaaahhhhphhhphhhhhxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxhhhhphhhphhhhhphhiwwwwwwwwwwiiwwwwwwwwwihhhh│
 │aaaaaooooooooooooooooooooaaahhhhhhhhhhhhhhxuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuxhhhhhhhhhhhhhhphhiwwwwwwwwwwihhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooooaaaaaaahhhhphhhphhhhhxuuuuyuyyyuuuuuuuuuuuuuuuuuuuuuuuxhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooaooooooooooaadhhhhhhhhhhhhhhxuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuxhhhhhhhhhhhhhhphhnnnnnhhhhhhhhhhhhhhhqrrsqhh│
+│aaaaaoooooooooaooooooooooaaahhhhhhhhhhhhhhxuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuxhhhhhhhhhhhhhhphhnnnnnhhhhhhhhhhhhhhhqrrsqhh│
 │aaaaaooooooaaaaaaaaaaaaaaaadhhhhphhhphhhhhxuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuxhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhxuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuxhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaadddddaaaaaaaaaaaaaaaaAaadhhhhphhhphhhhhxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooooaaaaaaadhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooaooooooooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhDDhDhDhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaooooooooooaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhDDhDhDhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooaoooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooaoooooooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

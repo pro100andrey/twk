@@ -161,7 +161,7 @@ const _runApp =
 final _rich = RegExp(
   r'\b(MarkdownView|CodeView|DiffView|BigText|BigFont|QrCode|QrSymbol|'
   'Highlighter|DiffLine|parseDiff|Markdown|Syntax|Language|CodeTheme|'
-  r'AnsiText|AnsiStream|parseAnsi|stripAnsi|JsonView|jsonPath|jsonLines)\b',
+  r'JsonView|jsonPath|jsonLines)\b',
 );
 final _image = RegExp(
   r'\b(Image|ImageMode|ImageFit|Picture|decodeImage|ImageProvider|'

@@ -61,7 +61,6 @@ const _pages = {
   'rich/codeview': "import 'package:twk/twk.dart';",
   'rich/diffview': 'bin/greet.dart',
   'rich/bigtext': 'Hello',
-  'rich/ansi': 'read: 613 characters at once, 7 lines',
   'images/image': '▀▀▀▀▀▀',
   'terminal/terminalview': r'user@twk:~/twk$ ls',
 };
@@ -199,18 +198,6 @@ void main() {
       final s = screen(t);
       expect(s, isNot(contains('type here')));
       expect(s, isNot(contains('Hello')));
-    });
-
-    testTwk('ANSI: streamed a piece at a time', (t) async {
-      await open(t, '#/rich/ansi?o=read:AnsiStream;piece:16&t=200');
-      expect(screen(t), contains('read: 80 of 613 characters, 16 at a time'));
-      expect(screen(t), contains('piece: '));
-    });
-
-    testTwk('ANSI: ls', (t) async {
-      await open(t, '#/rich/ansi?o=output:ls');
-      expect(screen(t), contains('CHANGELOG.md'));
-      expect(screen(t), contains('ls --color'));
     });
   });
 

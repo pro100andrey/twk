@@ -4,10 +4,10 @@ text
 │                                                                                │
 │   ⌕ Filter       /     LimitedBox, OverflowBox                 Preview   Code  │
 │                        Other constraints than the room gives: LimitedBox       │
-│     Text            ▐  limits a child only where the room has no limit, Over…  │
-│     Rich text       ▐──────────────────────────────────────────────────────────│
-│     DefaultTextSt…                                                             │
-│     Right to left       ·   ·    ┌                                ┐ ·   ·   ·  │
+│     Rich text       ▐  limits a child only where the room has no limit, Over…  │
+│     DefaultTextSt…  ▐──────────────────────────────────────────────────────────│
+│     Right to left                                                              │
+│     ANSI                ·   ·    ┌                                ┐ ·   ·   ·  │
 │                                    ╭ 28 × 3 ────────────────────╮              │
 │   LAYOUT        24      ·   ·      │der than the box, cut off at│   ·   ·   ·  │
 │     Box                            │                            │              │
@@ -29,10 +29,10 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahyhyyyyyyhhhhhhhzhaaggkkkkkkkkkkkgkkkkkkkkkkkggggggggggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmmmmmgmmmmmmmmmmmgmmmmgmmmgmmmmgmmmmmmgmmmmmmmmmmggggggg│
-│aaaaannnnaaaaaaaaaaaadggmmmmmmgmgmmmmmgmmmmgmmmmmgmmmgmmmmgmmmgmmgmmmmmmgmmmmmgg│
-│aaaaannnnannnnaaaaaaadpppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
-│aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnannannnnaaaagggpgggpggggpggggggggggggggggggggggggggggggggpgpgggpgggpgg│
+│aaaaannnnannnnaaaaaaadggmmmmmmgmgmmmmmgmmmmgmmmmmgmmmgmmmmgmmmgmmgmmmmmmgmmmmmgg│
+│aaaaannnnnnnnnnnnnnaadpppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaannnnnannannnnaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnaaaaaaaaaaaaagggpgggpggggpggggggggggggggggggggggggggggggggpgpgggpgggpgg│
 │aaaaaaaaaaaaaaaaaaaaaaggggggggggggggqgmmgmgmgqqqqqqqqqqqqqqqqqqqqqgggggggggggggg│
 │aaaddddddaaaaaaaaxxaaagggpgggpggggggqrrrsrrrrsrrrsrrrrsrrrsrrrsrrqgggpgggpgggpgg│
 │aaaaannnaaaaaaaaaaaaaaggggggggggggggqggggggggggggggggggggggggggggqgggggggggggggg│

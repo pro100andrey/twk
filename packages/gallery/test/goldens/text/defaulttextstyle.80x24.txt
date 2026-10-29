@@ -4,24 +4,24 @@ text
 │                                                                                │
 │   ⌕ Filter       /     DefaultTextStyle                        Preview   Code  │
 │                        The style of the text below it, which a Text merges     │
-│   TEXT           4  ▐  its own over.                                           │
+│   TEXT           5  ▐  its own over.                                           │
 │     Text            ▐──────────────────────────────────────────────────────────│
 │     Rich text                                                                  │
 │ ▎   DefaultTextSt…      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
 │     Right to left                                                              │
-│                         ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
-│   LAYOUT        24              ┌                                  ┐           │
-│     Box                 ·   ·     This text has the default style.      ·   ·  │
-│     ColoredBox, D…                This one merges yellow over it.              │
-│     Container           ·   ·   └                                  ┘    ·   ·  │
-│     Divider                                                  32 × 2            │
-│     Shadow              ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
-│     Padding                                                                    │
-│     Align, Center       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
-│     SizedBox                                                                   │
-│     ConstrainedBox   ──────────────────────────────────────────────────────────│
-│     LimitedBox, O…     style   bold  italic  green  on navy                    │
-│     FractionallyS…                                                             │
+│     ANSI                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│                                 ┌                                  ┐           │
+│   LAYOUT        24      ·   ·     This text has the default style.      ·   ·  │
+│     Box                           This one merges yellow over it.              │
+│     ColoredBox, D…      ·   ·   └                                  ┘    ·   ·  │
+│     Container                                                32 × 2            │
+│     Divider             ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│     Shadow                                                                     │
+│     Padding             ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│     Align, Center                                                              │
+│     SizedBox         ──────────────────────────────────────────────────────────│
+│     ConstrainedBox     style   bold  italic  green  on navy                    │
+│     LimitedBox, O…                                                             │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -34,19 +34,19 @@ styles
 │aaaaaooooaooooaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aqrrrssssssssssssssrragggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgg│
 │aaaaaoooooaooaooooaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaaaaaaaaaaaaaaaaaaagggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgg│
-│aaaddddddaaaaaaaawwaaagggggggggggpggggggggggggggggggggggggggggggggggpggggggggggg│
-│aaaaaoooaaaaaaaaaaaaaagggpgggpgggggkkkkgkkkkgkkkgkkkgkkkkkkkgkkkkkkggggggpgggpgg│
-│aaaaaoooooooooooaooaaagggggggggggggttttgtttgttttttgttttttgttttgtttgggggggggggggg│
-│aaaaaoooooooooaaaaaaaagggpgggpgggpggggggggggggggggggggggggggggggggggpggggpgggpgg│
-│aaaaaoooooooaaaaaaaaaaggggggggggggggggggggggggggggggggggggggggzzgzgzgggggggggggg│
-│aaaaaooooooaaaaaaaaaaagggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgg│
-│aaaaaoooooooaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaaooooooaooooooaaaagggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgg│
-│aaaaaooooooooaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaaooooooooooooooaaapppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
-│aaaaaoooooooooooaooaaaggmmmmmggrssssrhvvvvvvhhvvvvvhhvvhvvvvhggggggggggggggggggg│
-│aaaaaooooooooooooooaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaooooaaaaaaaaaaaaagggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggpggggggggggggggggggggggggggggggggggpggggggggggg│
+│aaaddddddaaaaaaaawwaaagggpgggpgggggkkkkgkkkkgkkkgkkkgkkkkkkkgkkkkkkggggggpgggpgg│
+│aaaaaoooaaaaaaaaaaaaaagggggggggggggttttgtttgttttttgttttttgttttgtttgggggggggggggg│
+│aaaaaoooooooooooaooaaagggpgggpgggpggggggggggggggggggggggggggggggggggpggggpgggpgg│
+│aaaaaoooooooooaaaaaaaaggggggggggggggggggggggggggggggggggggggggzzgzgzgggggggggggg│
+│aaaaaoooooooaaaaaaaaaagggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgg│
+│aaaaaooooooaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaoooooooaaaaaaaaaagggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgg│
+│aaaaaooooooaooooooaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaooooooooaaaaaaaaapppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaooooooooooooooaaaggmmmmmggrssssrhvvvvvvhhvvvvvhhvvhvvvvhggggggggggggggggggg│
+│aaaaaoooooooooooaooaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

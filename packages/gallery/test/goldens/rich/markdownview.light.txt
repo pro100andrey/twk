@@ -2,32 +2,32 @@ screen 120×36, cursor hidden
 text
 │  ◆ twk gallery   Rich  ›  MarkdownView                                                     ctrl+p search      ◐ Light  │
 │                                                                                                                        │
-│   ⌕ Filter             /      MarkdownView                                                                     1 of 8  │
+│   ⌕ Filter             /      MarkdownView                                                                     1 of 7  │
 │                               A Markdown document as widgets, a blank row between the blocks; its links the app's      │
-│     TerminalProgress          with onLinkTap, a MarkdownController scrolling to a heading.                             │
-│     Viewport                                                                                                           │
-│     Window title              Preview   Code                                                                           │
-│     Notifications          ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
-│     Cli                        ┌                                                    ┐    │                             │
-│                                  Release notes                                           │  OPTIONS                    │
-│   SCREEN READERS       1                                                                 │                             │
-│     Semantics                    twk_rich puts rich text in the terminal:                │  content                    │
-│                                  Markdown, code and diffs, each a widget.                │   document  chat answer     │
-│   DEBUGGING            4                                                                 │                             │
-│     Console                      Jump to what is new or still to come.                   │  code wrap                  │
-│     FrameOverlay                                                                         │   grapheme  word  none      │
-│     Repaint rainbow              What is new                                             │                             │
-│     RepaintBoundary                                                                      │  width            50 cells  │
-│                                  • MarkdownView streams an answer in                     │  ───────────▍▍────────────  │
-│   RICH                 8         • CodeView highlights ten languages                     │                             │
-│ ▎   MarkdownView                   ◦ Dart, Rust, Go and Python                           │  links go to                │
-│     CodeView                       ◦ JSON, YAML and Bash                                 │   the terminal  the app     │
-│     SyntaxThemeScope             • DiffView marks the words that changed          ▇      │   the app only              │
-│     DiffView                                                                             │                             │
-│     JsonView                     1. Add the package:                                     │                             │
-│     BigText                      2. Import package:twk_rich/twk_rich.dart                │                             │
-│     QrCode                       3. Show a document                                      │                             │
-│     ANSI                                                                                 │                             │
+│     Static                    with onLinkTap, a MarkdownController scrolling to a heading.                             │
+│     TerminalProgress                                                                                                   │
+│     Viewport                  Preview   Code                                                                           │
+│     Window title           ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     Notifications              ┌                                                    ┐    │                             │
+│     Cli                          Release notes                                           │  OPTIONS                    │
+│                                                                                          │                             │
+│   SCREEN READERS       1         twk_rich puts rich text in the terminal:                │  content                    │
+│     Semantics                    Markdown, code and diffs, each a widget.                │   document  chat answer     │
+│                                                                                          │                             │
+│   DEBUGGING            4         Jump to what is new or still to come.                   │  code wrap                  │
+│     Console                                                                              │   grapheme  word  none      │
+│     FrameOverlay                 What is new                                             │                             │
+│     Repaint rainbow                                                                      │  width            50 cells  │
+│     RepaintBoundary              • MarkdownView streams an answer in                     │  ───────────▍▍────────────  │
+│                                  • CodeView highlights ten languages                     │                             │
+│   RICH                 7           ◦ Dart, Rust, Go and Python                           │  links go to                │
+│ ▎   MarkdownView                   ◦ JSON, YAML and Bash                                 │   the terminal  the app     │
+│     CodeView                     • DiffView marks the words that changed          ▇      │   the app only              │
+│     SyntaxThemeScope                                                                     │                             │
+│     DiffView                     1. Add the package:                                     │                             │
+│     JsonView                     2. Import package:twk_rich/twk_rich.dart                │                             │
+│     BigText                      3. Show a document                                      │                             │
+│     QrCode                                                                               │                             │
 │                                   dart pub add twk_rich                                  │                             │
 │   IMAGES               1  ▐                                                              │                             │
 │     Image                 ▐       final notes = await File('NOTES.md').readAsStri        │                             │
@@ -41,30 +41,30 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaiLiLLLLLLiiiiiiiiiiiiiMiaahhhllllllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhNhNNhNhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnhnnnnnnnnhnnnnnnnnhnnhnnnnnnnnhnhnnnnnhnnnhnnnnnnnhnnnhnnnnnnnhnnnhnnnnnhnnnhnnnnnhhhhhh│
-│aaaaaooooooooooooooooaaaaaaahhhnnnnhnnnnnnnnnnhnhnnnnnnnnnnnnnnnnnnhnnnnnnnnnhnnhnhnnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooaoooooaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
-│aaaaaoooaaaaaaaaaaaaaaaaaaaahhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhrrrrrrrrrrrrrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhshhhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
-│aaaddddddadddddddaaaaaaaKaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhshhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhllllllllhtttthuuuuhuuuuhtthttthttttttttthhhhhhhhhshhhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhttttttttthtttthttthtttttthtttththttttttthhhhhhhhhshhhhhhphhOPPPPPPPPOxyyyyxyyyyyyxhhhh│
-│aaadddddddddaaaaaaaaaaaaKaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhshhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhtttthtthzzzzzzzzzzzhtthAAAAAAAAAAAAAthhhhhhhhhhhhshhhhhhphhnnnnhnnnnhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhshhhhhhphhOPPPPPPPPOxyyyyxxyyyyxhhhhh│
-│aaaaaoooooooaoooooooaaaaaaaahhhhhhBBBBhBBhBBBhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhshhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhshhhhhhphhnnnnnhhhhhhhhhhhhNNhNNNNNhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhnhCCCCCCCCCCCChttttttthtthtttttthtthhhhhhhhhhhhhhshhhhhhphhtttttttttttDtnnnnnnnnnnnnhh│
-│aaaddddaaaaaaaaaaaaaaaaaKaaahhhhhhnhCCCCCCCChtttttttttthttthttttttttthhhhhhhhhhhhhhshhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aQOOOPPPPPPPPPPPPOOOOOOOOOOahhhhhhhhnhttttthttttthtthttthtttttthhhhhhhhhhhhhhhhhhhhshhhhhhphhnnnnnhnnhnnhhhhhhhhhhhhhhhh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhnhttttthtttthttthtttthhhhhhhhhhhhhhhhhhhhhhhhhhshhhhhhphhOPPPOPPPPPPPPOxyyyxyyyxhhhh│
-│aaaaaooooooooooooooooaaaaaaahhhhhhnhCCCCCCCChttttthttthttttthtttthttttttthhhhhhhhhhshhhhhhphhxyyyxyyyxyyyyxhhhhhhhhhhhhh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhnnnnhnnnnnnnnnnhnhnnnnnnnnnnnnnnnnnnhnnnnnnnnnhnnhnhnnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaoooooaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaoooooooooooooaaaaaaaaaahhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooaaaaaaaaaaaaaaaaaaaahhhhhhrrrrrrrrrrrrrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhshhhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhshhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddadddddddaaaaaaaKaaahhhhhhllllllllhtttthuuuuhuuuuhtthttthttttttttthhhhhhhhhshhhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhttttttttthtttthttthtttttthtttththttttttthhhhhhhhhshhhhhhphhOPPPPPPPPOxyyyyxyyyyyyxhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhshhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddddddaaaaaaaaaaaaKaaahhhhhhtttthtthzzzzzzzzzzzhtthAAAAAAAAAAAAAthhhhhhhhhhhhshhhhhhphhnnnnhnnnnhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhshhhhhhphhOPPPPPPPPOxyyyyxxyyyyxhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhBBBBhBBhBBBhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhshhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaoooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhshhhhhhphhnnnnnhhhhhhhhhhhhNNhNNNNNhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhhhnhCCCCCCCCCCCChttttttthtthtttttthtthhhhhhhhhhhhhhshhhhhhphhtttttttttttDtnnnnnnnnnnnnhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhnhCCCCCCCChtttttttttthttthttttttttthhhhhhhhhhhhhhshhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddaaaaaaaaaaaaaaaaaKaaahhhhhhhhnhttttthttttthtthttthtttttthhhhhhhhhhhhhhhhhhhhshhhhhhphhnnnnnhnnhnnhhhhhhhhhhhhhhhh│
+│aQOOOPPPPPPPPPPPPOOOOOOOOOOahhhhhhhhnhttttthtttthttthtttthhhhhhhhhhhhhhhhhhhhhhhhhhshhhhhhphhOPPPOPPPPPPPPOxyyyxyyyxhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhnhCCCCCCCChttttthttthttttthtttthttttttthhhhhhhhhhshhhhhhphhxyyyxyyyxyyyyxhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaaahhhhhhnnhttthttthtttttttthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhnnhtttttthCCCCCCCCCCCCCCCCCCCCCCCCCCCCCChhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooaaaaaaaaaaaaaaaaahhhhhhnnhtttththtttttttthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhnnhtttttthCCCCCCCCCCCCCCCCCCCCCCCCCCCCCChhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhnnhtttththtttttttthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhxFFFFxGGGxGGGxGGGGGGGGxxxxxxxxxxxxxxxxxxxxxxxxxxxhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaddddddaaaaaaaaaaaaaaaKaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooaaaaaaaaaaaaaaaaadhhhhhhxCCCCCxGGGGGxIxCCCCCxIIIIGJJJJJJJJJJGGFFFFFFFFFFxhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

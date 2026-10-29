@@ -21,7 +21,7 @@ text
 │     Repaint rainb…    └                                                      ┘ │
 │     RepaintBounda…  ▐──────────────────────────────────────────────────────────│
 │                     ▐  program   create  install  check                        │
-│   RICH           8                                                             │
+│   RICH           7                                                             │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles

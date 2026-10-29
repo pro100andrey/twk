@@ -31,7 +31,7 @@ text
 │     Repaint rainbow       ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     RepaintBoundary       ▐                                                              │                             │
 │                           ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│   RICH                 8  ▐                                                              │                             │
+│   RICH                 7  ▐                                                              │                             │
 │     MarkdownView               ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     CodeView                                                                             │                             │
 │                                                                                          │                             │

@@ -1,0 +1,104 @@
+screen 120×36, cursor hidden
+text
+│  ◆ twk gallery   Text  ›  ANSI                                                             ctrl+p search      ◐ Light  │
+│                                                                                                                        │
+│   ⌕ Filter             /      ANSI                                                                             5 of 5  │
+│                               Output with ANSI colour codes, from a program or a log, as styled spans: all at once     │
+│   TEXT                 5  ▐   with parseAnsi, or as it streams in with AnsiStream.                                     │
+│     Text                  ▐                                                                                            │
+│     Rich text             ▐   Preview   Code                                                                           │
+│     DefaultTextStyle      ▐───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     Right to left         ▐                                                              │                             │
+│ ▎   ANSI                       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│                                                                                          │                             │
+│   LAYOUT              24       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  output                     │
+│     Box                                                                                  │   dart test  ls  log        │
+│     ColoredBox, Decorat…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Container               ┌                                                          ┐ │  read with                  │
+│     Divider                   ╭ dart test ───────────────────────────────────────────╮   │   parseAnsi  AnsiStream     │
+│     Shadow                    │00:02 +16 ~1 -1: test/diff_test.dart: a gap row [E]   │   │                             │
+│     Padding                   │  Expected: '⋯ 21 unchanged lines'                    │   │  piece                      │
+│     Align, Center             │    Actual: '⋯ 20 unchanged lines'                    │   │   7 chars  16  64           │
+│     SizedBox                  │     Which: is different.                             │   │                             │
+│     ConstrainedBox            │                                                      │   │                             │
+│     LimitedBox, Overflo…      │  test/diff_test.dart 88:7  main.<fn>                 │   │                             │
+│     FractionallySizedBox      │00:03 +21 ~1 -1: Some tests failed.                   │   │                             │
+│     IntrinsicWidth/Heig…      ╰──────────────────────────────────────────────────────╯   │                             │
+│     Row, Column, Flex                                                                    │                             │
+│     Expanded, Spacer          read: 613 characters at once, 7 lines                      │                             │
+│     Stack, Positioned       └                                                          ┘ │                             │
+│     Transform                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·56 × 11  │                             │
+│     Visibility, Offstage                                                                 │                             │
+│     ExpansionTile, Acco…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Grid, GridPlacement                                                                  │                             │
+│     Wrap                       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     CustomPaint                                                                          │                             │
+│     SplitView                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│                                                                                          │                             │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
+styles
+│aabacccadddddddaaaeeeeaafaaddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaeeeeeeaaaaaadadddddaa│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaijijjjjjjiiiiiiiiiiiiikiaahhhllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhmhmmhmhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnnnhnnnnhnnnnhnnnnnnhnnnnnnhnnnnhnhnnnnnnnhnnhnhnnnnhnnhnnnnnnhnnnnnnhnnnhnnhnnnnhhhhh│
+│aaaddddaaaaaaaaaaaaaaaaaeaadhhhnnnnhnnnnnnnnnnhnnhnnhnnhnnnnnnnhnnhnnnnhnnnnnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooaaaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooaooooaaaaaaaaaaaaadhhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaadpppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaoooooaooaooooaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│arsssttttssssssssssssssssssahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddaaaaaaaaaaaaaaeeaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhsttttsttttsuvvuuvvvuhhhhhhh│
+│aaaaaoooooooooooaooooooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhnnnnhnnnnhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhwhnnnnhnnnnhwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwhhhphhstttttttttsuvvvvvvvvvvuhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhwxxxxxhyyyhzzhAAxhxxxxxxxxxxxxxxxxxxxxhxhxxxhxxxhxxxhhhwhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhwhhxxxxxxxxxhxxhxxhxxxxxxxxxhxxxxxxhhhhhhhhhhhhhhhhhhhhwhhhphhnnnnnhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaooooooaaaaaaaaaahhhwhhhhxxxxxxxhxxhxxhxxxxxxxxxhxxxxxxhhhhhhhhhhhhhhhhhhhhwhhhphhststttttsuvvuuvvuhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhwhhhhhxxxxxxhxxhxxxxxxxxxxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhwhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooaaaaaaaaahhhwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhwhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaooooooooaaahhhwhhBBBBBBBBBBBBBBBBBBBhBBBBhhBBBBBBBBBhhhhhhhhhhhhhhhhhwhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooooaaahhhwxxxxxhyyyhzzhAAxhAAAAhAAAAAhAAAAAAAhhhhhhhhhhhhhhhhhhhwhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooooaaahhhwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooaoooooooaooooaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaooooooaaaaaaahhhnnnnnhxxxhxxxxxxxxxxhxxhxxxxxhxhxxxxxhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaooooooooooaaaaaahphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhpmmhmhmmhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaooooooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooaoooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaoooooooooooooaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
+legend
+a on #f3f5f7
+b #0969da on #f3f5f7
+c bold #1f2328 on #f3f5f7
+d #656d76 on #f3f5f7
+e #838991 on #f3f5f7
+f #dcdfe4 on #f3f5f7
+g bold #656d76 on #f3f5f7
+h on #fafafb
+i on #fefefe
+j #838991 on #fefefe
+k bold #838991 on #fefefe
+l bold #1f2328 on #fafafb
+m #838991 on #fafafb
+n #656d76 on #fafafb
+o #1f2328 on #f3f5f7
+p #dcdfe4 on #fafafb
+q #0969da on #fafafb
+r #0969da on #b6d4fe
+s on #b6d4fe
+t bold #1f2328 on #b6d4fe
+u on #eef0f3
+v #656d76 on #eef0f3
+w #c8cdd5 on #fafafb
+x #1f2328 on #fafafb
+y green on #fafafb
+z yellow on #fafafb
+A red on #fafafb
+B dim #1f2328 on #fafafb

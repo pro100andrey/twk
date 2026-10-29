@@ -2,38 +2,38 @@ screen 120×36, cursor hidden
 text
 │  ◆ twk gallery   Text  ›  Right to left                                                     ctrl+p search      ◐ Dark  │
 │                                                                                                                        │
-│   ⌕ Filter             /      Right to left                                                                    4 of 4  │
+│   ⌕ Filter             /      Right to left                                                                    4 of 5  │
 │                               Hebrew and Arabic among left-to-right text: put in the order it reads where the app      │
-│   TEXT                 4  ▐   reorders it (TextOrder.visual), left as stored where the terminal reorders it            │
+│   TEXT                 5  ▐   reorders it (TextOrder.visual), left as stored where the terminal reorders it            │
 │     Text                  ▐   itself.                                                                                  │
 │     Rich text             ▐                                                                                            │
 │     DefaultTextStyle      ▐   Preview   Code                                                                           │
 │ ▎   Right to left         ▐───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
-│                                                                                          │                             │
-│   LAYOUT              24       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
-│     Box                                                                                  │                             │
-│     ColoredBox, Decorat…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  text order                 │
-│     Container                                                                            │   visual  logical           │
-│     Divider                    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     Shadow                                                                               │  align                      │
-│     Padding                    ·   ·    ┌                                  ┐   ·   ·     │   start  end  left  right   │
-│     Align, Center                         ╭──────────────────────────────╮               │                             │
-│     SizedBox                   ·   ·      │ Hello is םולש in Hebrew,     │     ·   ·     │                             │
-│     ConstrainedBox                        │ and ابحرم in Arabic.         │               │                             │
-│     LimitedBox, Overflo…       ·   ·      │     (hello world) !םלוע םולש │     ·   ·     │                             │
-│     FractionallySizedBox                  ╰──────────────────────────────╯               │                             │
-│     IntrinsicWidth/Heig…       ·   ·                                           ·   ·     │                             │
-│     Row, Column, Flex                     text order: visual                             │                             │
-│     Expanded, Spacer           ·   ·    └                                  ┘   ·   ·     │                             │
-│     Stack, Positioned                                                32 × 7              │                             │
-│     Transform                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     Visibility, Offstage                                                                 │                             │
-│     ExpansionTile, Acco…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     Grid, GridPlacement                                                                  │                             │
-│     Wrap                       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     CustomPaint                                                                          │                             │
-│     SplitView                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     DockArea                                                                             │                             │
+│     ANSI                                                                                 │                             │
+│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│   LAYOUT              24                                                                 │                             │
+│     Box                        ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  text order                 │
+│     ColoredBox, Decorat…                                                                 │   visual  logical           │
+│     Container                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Divider                                                                              │  align                      │
+│     Shadow                     ·   ·    ┌                                  ┐   ·   ·     │   start  end  left  right   │
+│     Padding                               ╭──────────────────────────────╮               │                             │
+│     Align, Center              ·   ·      │ Hello is םולש in Hebrew,     │     ·   ·     │                             │
+│     SizedBox                              │ and ابحرم in Arabic.         │               │                             │
+│     ConstrainedBox             ·   ·      │     (hello world) !םלוע םולש │     ·   ·     │                             │
+│     LimitedBox, Overflo…                  ╰──────────────────────────────╯               │                             │
+│     FractionallySizedBox       ·   ·                                           ·   ·     │                             │
+│     IntrinsicWidth/Heig…                  text order: visual                             │                             │
+│     Row, Column, Flex          ·   ·    └                                  ┘   ·   ·     │                             │
+│     Expanded, Spacer                                                 32 × 7              │                             │
+│     Stack, Positioned          ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Transform                                                                            │                             │
+│     Visibility, Offstage       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     ExpansionTile, Acco…                                                                 │                             │
+│     Grid, GridPlacement        ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Wrap                                                                                 │                             │
+│     CustomPaint                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     SplitView                                                                            │                             │
 │                                                                                          │                             │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
 styles
@@ -46,31 +46,31 @@ styles
 │aaaaappppappppaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaappppppppppppppppaaaaaadhhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aqrrrsssssrssrssssrrrrrrrrrdtttuuuuuuutttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaddddddaaaaaaaaaaaaaayyaaahhhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhhhthhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
-│aaaaapppaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaapppppppppppappppppppaaahhhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhhhthhnnnnhnnnnnhhhhhhhhhhhhhhhhh│
-│aaaaapppppppppaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhrssssssrivvvvvvvihhhhhhhhhh│
-│aaaaapppppppaaaaaaaaaaaaaaaahhhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaappppppaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhnnnnnhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaapppppppaaaaaaaaaaaaaaaahhhhthhhthhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhthhhthhhhhthhrsssssrivvviivvvviivvvvvihh│
-│aaaaappppppappppppaaaaaaaaaahhhhhhhhhhhhhhhwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaappppppppaaaaaaaaaaaaaaahhhhthhhthhhhhhwhxxxxxhxxhxxxxhxxhxxxxxxxhhhhhwhhhhhthhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaappppppppppppppaaaaaaaaahhhhhhhhhhhhhhhwhxxxhxxxxxhxxhxxxxxxxhhhhhhhhhwhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaapppppppppppappppppppaaahhhhthhhthhhhhhwhhhhhxxxxxxhxxxxxxhxxxxxhxxxxhwhhhhhthhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaappppppppppppppppppppaaahhhhhhhhhhhhhhhwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhhhthhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddaaaaaaaaaaaaaayyaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppaaaaaaaaaaaaaaaaaaaahhhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhhhthhnnnnhnnnnnhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppppappppppppaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhrssssssrivvvvvvvihhhhhhhhhh│
+│aaaaapppppppppaaaaaaaaaaaaaahhhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhnnnnnhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppaaaaaaaaaaaaaaaaahhhhthhhthhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhthhhthhhhhthhrsssssrivvviivvvviivvvvvihh│
+│aaaaapppppppaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppappppppaaaaaaaaaahhhhthhhthhhhhhwhxxxxxhxxhxxxxhxxhxxxxxxxhhhhhwhhhhhthhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppaaaaaaaaaaaaaaahhhhhhhhhhhhhhhwhxxxhxxxxxhxxhxxxxxxxhhhhhhhhhwhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppppppppaaaaaaaaahhhhthhhthhhhhhwhhhhhxxxxxxhxxxxxxhxxxxxhxxxxhwhhhhhthhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppppappppppppaaahhhhhhhhhhhhhhhwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaappppppppppppppppppppaaahhhhthhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaappppapppppppappppaaaaaahhhhhhhhhhhhhhhnnnnhnnnnnnhxxxxxxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaapppppppppappppppaaaaaaahhhhthhhthhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhthhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaappppppappppppppppaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhBBhBhBhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaapppppppppaaaaaaaaaaaaaahhhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaapppppppppppappppppppaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaappppppppppppppapppppaaahhhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaapppppapppppppppppppaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaappppaaaaaaaaaaaaaaaaaaahhhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaapppppppppppaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaapppppppppaaaaaaaaaaaaaahhhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaappppppppaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppppppppppppppaaahhhhhhhhhhhhhhhnnnnhnnnnnnhxxxxxxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppapppppppappppaaaaaahhhhthhhthhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhthhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppappppppaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhBBhBhBhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppappppppppppaaaaaahhhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppppappppppppaaahhhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppppppppapppppaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppapppppppppppppaaaahhhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppppaaaaaaaaaaaahhhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
 legend

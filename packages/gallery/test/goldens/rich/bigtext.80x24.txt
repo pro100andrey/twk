@@ -4,18 +4,18 @@ text
 │                                                                                │
 │   ⌕ Filter       /     BigText                                 Preview   Code  │
 │                        Text in letters several cells tall, drawn with full or  │
-│     Repaint rainb…     half blocks or with box drawing, in a font of its own.  │
-│     RepaintBounda…   ──────────────────────────────────────────────────────────│
-│                                  ┌                                ┐            │
-│   RICH           8      ·   ·           █ █ █▀▀ █   █   ▄▀▄         ·   ·   ·  │
-│     MarkdownView                        █▀█ █▀  █   █   █ █                    │
-│     CodeView            ·   ·           ▀ ▀ ▀▀▀ ▀▀▀ ▀▀▀  ▀          ·   ·   ·  │
-│     SyntaxThemeSc…                                                             │
-│     DiffView            ·   ·      ╭────────────────────────────╮   ·   ·   ·  │
-│     JsonView                       │Hello                       │              │
-│ ▎   BigText             ·   ·      ╰────────────────────────────╯   ·   ·   ·  │
-│     QrCode                       └                                ┘            │
-│     ANSI             ──────────────────────────────────────────────────────────│
+│     FrameOverlay       half blocks or with box drawing, in a font of its own.  │
+│     Repaint rainb…   ──────────────────────────────────────────────────────────│
+│     RepaintBounda…               ┌                                ┐            │
+│                         ·   ·           █ █ █▀▀ █   █   ▄▀▄         ·   ·   ·  │
+│   RICH           7                      █▀█ █▀  █   █   █ █                    │
+│     MarkdownView        ·   ·           ▀ ▀ ▀▀▀ ▀▀▀ ▀▀▀  ▀          ·   ·   ·  │
+│     CodeView                                                                   │
+│     SyntaxThemeSc…      ·   ·      ╭────────────────────────────╮   ·   ·   ·  │
+│     DiffView                       │Hello                       │              │
+│     JsonView            ·   ·      ╰────────────────────────────╯   ·   ·   ·  │
+│ ▎   BigText                      └                                ┘            │
+│     QrCode           ──────────────────────────────────────────────────────────│
 │                        font    fit  large  block  thin  small                  │
 │   IMAGES         1     text    typed  clock  two lines                         │
 │     Image              align   left  center  right                             │
@@ -29,18 +29,18 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahvhvvvvvvhhhhhhhGhaaggkkkkkkkggggggggggggggggggggggggggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmmmmgmmgmmmmmmmgmmmmmmmgmmmmmgmmmmmgmmmmmgmmmmgmmmmgmmgg│
-│aaaaannnnnnnannnnnnaaaggmmmmgmmmmmmgmmgmmmmgmmmgmmmmmmmmgmmgmgmmmmgmmgmmmgmmmmgg│
-│aaaaannnnnnnnnnnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaaaaaaaaaaaaaaaaaaaggggggggggggoggggggggggggggggggggggggggggggggogggggggggggg│
-│aaaddddaaaaaaaaaaauaaagggogggogggggggggggpgpgpppgpgggpgggpppgggggggggogggogggogg│
-│aaaaannnnnnnnnnnnaaaaagggggggggggggggggggpppgppggpgggpgggpgpgggggggggggggggggggg│
-│aaaaannnnnnnnaaaaaaaaagggogggogggggggggggpgpgpppgpppgpppggpggggggggggogggogggogg│
-│aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnaaaaaaaaagggogggoggggggqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqgggogggogggogg│
+│aaaaannnnnnnnnnnnaaaaaggmmmmgmmmmmmgmmgmmmmgmmmgmmmmmmmmgmmgmgmmmmgmmgmmmgmmmmgg│
+│aaaaannnnnnnannnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnnnnaaaggggggggggggoggggggggggggggggggggggggggggggggogggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggogggogggggggggggpgpgpppgpgggpgggpppgggggggggogggogggogg│
+│aaaddddaaaaaaaaaaauaaagggggggggggggggggggpppgppggpgggpgggpgpgggggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaaagggogggogggggggggggpgpgpppgpppgpppggpggggggggggogggogggogg│
+│aaaaannnnnnnnaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaaagggogggoggggggqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqgggogggogggogg│
 │aaaaannnnnnnnaaaaaaaaaggggggggggggggqDDDDDgggggggggggggggggggggggqgggggggggggggg│
-│arssstttttttsssssssssagggogggoggggggqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqgggogggogggogg│
-│aaaaannnnnnaaaaaaaaaaaggggggggggggoggggggggggggggggggggggggggggggggogggggggggggg│
-│aaaaannnnaaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnaaaaaaaaagggogggoggggggqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqgggogggogggogg│
+│arssstttttttsssssssssaggggggggggggoggggggggggggggggggggggggggggggggogggggggggggg│
+│aaaaannnnnnaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaaaaaaaaaaaaaaaaaaaggmmmmgggstttshwwwwwhhwwwwwhhwwwwhhwwwwwhggggggggggggggggg│
 │aaaddddddaaaaaaaaauaaaggmmmmgggstttttshwwwwwhhwwwhwwwwwhgggggggggggggggggggggggg│
 │aaaaannnnnaaaaaaaaaaaaggHHHHHggEFFFFEhvvvvvvhhvvvvvhgggggggggggggggggggggggggggg│

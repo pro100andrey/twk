@@ -1,0 +1,77 @@
+screen 80×24, cursor hidden
+text
+│  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
+│                                                                                │
+│   ⌕ Filter       /     ANSI                                    Preview   Code  │
+│                        Output with ANSI colour codes, from a program or a      │
+│   TEXT           5  ▐  log, as styled spans: all at once with parseAnsi, or…   │
+│     Text            ▐──────────────────────────────────────────────────────────│
+│     Rich text         ┌                                                      ┐ │
+│     DefaultTextSt…      ╭ dart test ───────────────────────────────────────╮   │
+│     Right to left       │00:02 +16 ~1 -1: test/diff_test.dart: a gap row [E│   │
+│ ▎   ANSI                │  Expected: '⋯ 21 unchanged lines'                │   │
+│                         │    Actual: '⋯ 20 unchanged lines'                │   │
+│   LAYOUT        24      │     Which: is different.                         │   │
+│     Box                 │                                                  │   │
+│     ColoredBox, D…      │  test/diff_test.dart 88:7  main.<fn>             │   │
+│     Container           │00:03 +21 ~1 -1: Some tests failed.               │   │
+│     Divider             ╰──────────────────────────────────────────────────╯   │
+│     Shadow                                                                     │
+│     Padding             read: 613 characters at once, 7 lines                  │
+│     Align, Center     └                                                      ┘ │
+│     SizedBox         ──────────────────────────────────────────────────────────│
+│     ConstrainedBox     output      dart test  ls  log                          │
+│     LimitedBox, O…     read with   parseAnsi  AnsiStream                       │
+│                        piece       7 chars  16  64                             │
+│  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
+styles
+│aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeaffffffaaaaaadaddddaa│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aahihiiiiiihhhhhhhjhaaggkkkkgggggggggggggggggggggggggggggggggggglllllllgggmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmmgmmmmgmmmmgmmmmmmgmmmmmmgmmmmgmgmmmmmmmgmmgmgggggg│
+│aaaddddaaaaaaaaaaafaadggmmmmgmmgmmmmmmgmmmmmmgmmmgmmgmmmmgmmmmgmmmmmmmmmmgmmmggg│
+│aaaaannnnaaaaaaaaaaaadoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnannnnaaaaaaaagoggggggggggggggggggggggggggggggggggggggggggggggggggggggog│
+│aaaaannnnnnnnnnnnnnaaagggpgmmmmgmmmmgppppppppppppppppppppppppppppppppppppppppggg│
+│aaaaannnnnannannnnaaaagggpqqqqqgrrrgssgttqgqqqqqqqqqqqqqqqqqqqqgqgqqqgqqqgqqpggg│
+│auvvvwwwwvvvvvvvvvvvvagggpggqqqqqqqqqgqqgqqgqqqqqqqqqgqqqqqqggggggggggggggggpggg│
+│aaaaaaaaaaaaaaaaaaaaaagggpggggqqqqqqqgqqgqqgqqqqqqqqqgqqqqqqggggggggggggggggpggg│
+│aaaddddddaaaaaaaaffaaagggpgggggqqqqqqgqqgqqqqqqqqqqgggggggggggggggggggggggggpggg│
+│aaaaannnaaaaaaaaaaaaaagggpggggggggggggggggggggggggggggggggggggggggggggggggggpggg│
+│aaaaannnnnnnnnnnannaaagggpggxxxxxxxxxxxxxxxxxxxgxxxxggxxxxxxxxxgggggggggggggpggg│
+│aaaaannnnnnnnnaaaaaaaagggpqqqqqgrrrgssgttqgttttgtttttgtttttttgggggggggggggggpggg│
+│aaaaannnnnnnaaaaaaaaaagggppppppppppppppppppppppppppppppppppppppppppppppppppppggg│
+│aaaaannnnnnaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnaaaaaaaaaagggmmmmmgqqqgqqqqqqqqqqgqqgqqqqqgqgqqqqqgggggggggggggggggg│
+│aaaaannnnnnannnnnnaaaagoggggggggggggggggggggggggggggggggggggggggggggggggggggggog│
+│aaaaannnnnnnnaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnnnnaaaggmmmmmmgggggvwwwwvwwwwvhyyhhyyyhggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnannaaaggmmmmgmmmmggvwwwwwwwwwvhyyyyyyyyyyhgggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmggggggvwvwwwwwvhyyhhyyhgggggggggggggggggggggggggggg│
+│aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
+legend
+a on #1c1f25
+b #5fa8ff on #1c1f25
+c bold #e6e8eb on #1c1f25
+d #8b929c on #1c1f25
+e bold #8b929c on #1c1f25
+f #747a83 on #1c1f25
+g on #16181d
+h on #13151a
+i #747a83 on #13151a
+j bold #747a83 on #13151a
+k bold #e6e8eb on #16181d
+l bold #5fa8ff on #16181d
+m #8b929c on #16181d
+n #e6e8eb on #1c1f25
+o #2c3039 on #16181d
+p #3e444f on #16181d
+q #e6e8eb on #16181d
+r green on #16181d
+s yellow on #16181d
+t red on #16181d
+u #5fa8ff on #2b4566
+v on #2b4566
+w bold #e6e8eb on #2b4566
+x dim #e6e8eb on #16181d
+y #8b929c on #13151a

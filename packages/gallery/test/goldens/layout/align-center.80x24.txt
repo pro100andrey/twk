@@ -4,24 +4,24 @@ text
 │                                                                                │
 │   ⌕ Filter       /     Align, Center                           Preview   Code  │
 │                        A child placed in the room it is given; Center in the   │
-│   TEXT           4  ▐  middle of it.                                           │
+│   TEXT           5  ▐  middle of it.                                           │
 │     Text            ▐──────────────────────────────────────────────────────────│
 │     Rich text                    ┌                                ┐            │
 │     DefaultTextSt…      ·   ·      ╭ .bottomRight ──────────────╮   ·   ·   ·  │
 │     Right to left                  │                            │              │
-│                         ·   ·      │                            │   ·   ·   ·  │
-│   LAYOUT        24                 │                     aligned│              │
-│     Box                 ·   ·      ╰────────────────────────────╯   ·   ·   ·  │
-│     ColoredBox, D…                                                             │
-│     Container           ·   ·      ╭ Center ────────────────────╮   ·   ·   ·  │
-│     Divider                        │                            │              │
-│     Shadow              ·   ·      │          centred           │   ·   ·   ·  │
-│     Padding                        │                            │              │
-│ ▎   Align, Center       ·   ·      ╰────────────────────────────╯   ·   ·   ·  │
-│     SizedBox                     └                                ┘            │
-│     ConstrainedBox   ──────────────────────────────────────────────────────────│
-│     LimitedBox, O…     alignment x     left  center  right                    ▐│
-│     FractionallyS…     alignment y     top  center  bottom                    ▐│
+│     ANSI                ·   ·      │                            │   ·   ·   ·  │
+│                                    │                     aligned│              │
+│   LAYOUT        24      ·   ·      ╰────────────────────────────╯   ·   ·   ·  │
+│     Box                                                                        │
+│     ColoredBox, D…      ·   ·      ╭ Center ────────────────────╮   ·   ·   ·  │
+│     Container                      │                            │              │
+│     Divider             ·   ·      │          centred           │   ·   ·   ·  │
+│     Shadow                         │                            │              │
+│     Padding             ·   ·      ╰────────────────────────────╯   ·   ·   ·  │
+│ ▎   Align, Center                └                                ┘            │
+│     SizedBox         ──────────────────────────────────────────────────────────│
+│     ConstrainedBox     alignment x     left  center  right                    ▐│
+│     LimitedBox, O…     alignment y     top  center  bottom                    ▐│
 │                        width factor    none  1  2  3                           │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -34,19 +34,19 @@ styles
 │aaaaaooooaooooaaaaaaaaggggggggggggpggggggggggggggggggggggggggggggggpgggggggggggg│
 │aaaaaooooooooooooooaaagggpgggpggggggqgmmmmmmmmmmmmgqqqqqqqqqqqqqqqgggpgggpgggpgg│
 │aaaaaoooooaooaooooaaaaggggggggggggggqggggggggggggggggggggggggggggqgggggggggggggg│
-│aaaaaaaaaaaaaaaaaaaaaagggpgggpggggggqggggggggggggggggggggggggggggqgggpgggpgggpgg│
-│aaaddddddaaaaaaaawwaaaggggggggggggggqgggggggggggggggggggggrrrrrrrqgggggggggggggg│
-│aaaaaoooaaaaaaaaaaaaaagggpgggpggggggqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqgggpgggpgggpgg│
-│aaaaaoooooooooooaooaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaaoooooooooaaaaaaaagggpgggpggggggqgmmmmmmgqqqqqqqqqqqqqqqqqqqqqgggpgggpgggpgg│
-│aaaaaoooooooaaaaaaaaaaggggggggggggggqggggggggggggggggggggggggggggqgggggggggggggg│
-│aaaaaooooooaaaaaaaaaaagggpgggpggggggqggggggggggrrrrrrrgggggggggggqgggpgggpgggpgg│
-│aaaaaoooooooaaaaaaaaaaggggggggggggggqggggggggggggggggggggggggggggqgggggggggggggg│
-│astttuuuuuutuuuuuutttagggpgggpggggggqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqgggpgggpgggpgg│
-│aaaaaooooooooaaaaaaaaaggggggggggggpggggggggggggggggggggggggggggggggpgggggggggggg│
-│aaaaaooooooooooooooaaapppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
-│aaaaaoooooooooooaooaaaggmmmmmmmmmgmgggghvvvvhhvvvvvvhtuuuuutgggggggggggggggggggm│
-│aaaaaooooooooooooooaaaggmmmmmmmmmgmgggghvvvhhvvvvvvhtuuuuuutgggggggggggggggggggm│
+│aaaaaooooaaaaaaaaaaaaagggpgggpggggggqggggggggggggggggggggggggggggqgggpgggpgggpgg│
+│aaaaaaaaaaaaaaaaaaaaaaggggggggggggggqgggggggggggggggggggggrrrrrrrqgggggggggggggg│
+│aaaddddddaaaaaaaawwaaagggpgggpggggggqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqgggpgggpgggpgg│
+│aaaaaoooaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaoooooooooooaooaaagggpgggpggggggqgmmmmmmgqqqqqqqqqqqqqqqqqqqqqgggpgggpgggpgg│
+│aaaaaoooooooooaaaaaaaaggggggggggggggqggggggggggggggggggggggggggggqgggggggggggggg│
+│aaaaaoooooooaaaaaaaaaagggpgggpggggggqggggggggggrrrrrrrgggggggggggqgggpgggpgggpgg│
+│aaaaaooooooaaaaaaaaaaaggggggggggggggqggggggggggggggggggggggggggggqgggggggggggggg│
+│aaaaaoooooooaaaaaaaaaagggpgggpggggggqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqgggpgggpgggpgg│
+│astttuuuuuutuuuuuutttaggggggggggggpggggggggggggggggggggggggggggggggpgggggggggggg│
+│aaaaaooooooooaaaaaaaaapppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaooooooooooooooaaaggmmmmmmmmmgmgggghvvvvhhvvvvvvhtuuuuutgggggggggggggggggggm│
+│aaaaaoooooooooooaooaaaggmmmmmmmmmgmgggghvvvhhvvvvvvhtuuuuuutgggggggggggggggggggm│
 │aaaaaaaaaaaaaaaaaaaaaaggmmmmmgmmmmmmgggtuuuuthvhhvhhvhgggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

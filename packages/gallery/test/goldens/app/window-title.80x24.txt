@@ -18,9 +18,9 @@ text
 │     Semantics           ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   46 × 7  ·  │
 │                                                                                │
 │   DEBUGGING      4   ──────────────────────────────────────────────────────────│
-│     Console         ▐  title         twk gallery  build: 3 of 5                │
+│     Console            title         twk gallery  build: 3 of 5                │
 │     FrameOverlay    ▐                chat · ~/project                          │
-│     Repaint rainb…     app running  ▐  ●▌                                      │
+│     Repaint rainb…  ▐  app running  ▐  ●▌                                      │
 │     RepaintBounda…                                                             │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
@@ -43,9 +43,9 @@ styles
 │aaaaannnnnnnnnaaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggFFgFgFggogg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaadddddddddaaaaaaCaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnaaaaaaaaadggmmmmmggggggggtuuutuuuuuuuthyyyyyyhyhyyhyhggggggggggggggg│
+│aaaaannnnnnnaaaaaaaaaaggmmmmmggggggggtuuutuuuuuuuthyyyyyyhyhyyhyhggggggggggggggg│
 │aaaaannnnnnnnnnnnaaaadggggggggggggggghyyyyhyhyyyyyyyyyhggggggggggggggggggggggggg│
-│aaaaannnnnnnannnnnnaaaggmmmgmmmmmmmggzAABzgggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnannnnnnaadggmmmgmmmmmmmggzAABzgggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│

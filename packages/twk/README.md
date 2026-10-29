@@ -15,7 +15,8 @@ writes only the cells that changed.
   `Stack`, `Grid`, `Wrap`, `Padding`, `Align`, `SizedBox`, `Box` with
   borders and titles, and `SplitView`.
 - **Text:** `Text` and `Text.rich` with styled spans, wrapping and
-  ellipsis, links, and bidirectional text.
+  ellipsis, links, and bidirectional text; the output of a command with
+  ANSI escape sequences read into spans (`parseAnsi`, `AnsiStream`).
 - **Input:** a focus tree with Tab traversal, `KeyBindings` and
   `Shortcuts`, and the mouse through a hit test (`Listener`, hover,
   drag, the wheel).

@@ -1,11 +1,11 @@
 ---
 title: "ANSI"
-group: "Rich"
-package: "twk_rich"
+group: "Text"
+package: "twk"
 about: "Output with ANSI colour codes, from a program or a log, as styled spans: all at once with parseAnsi, or as it streams in with AnsiStream."
-image: "packages/gallery/doc/shots/rich/ansi.dark.svg"
-image_light: "packages/gallery/doc/shots/rich/ansi.light.svg"
-route: "#/rich/ansi"
+image: "packages/gallery/doc/shots/text/ansi.dark.svg"
+image_light: "packages/gallery/doc/shots/text/ansi.light.svg"
+route: "#/text/ansi"
 ---
 # ANSI
 
@@ -13,9 +13,7 @@ Output with ANSI colour codes, from a program or a log, as styled spans: all at 
 
 | Dark | Light |
 | --- | --- |
-| ![ANSI, dark](../../../packages/gallery/doc/shots/rich/ansi.dark.svg) | ![ANSI, light](../../../packages/gallery/doc/shots/rich/ansi.light.svg) |
-
-In [twk_rich](../../../packages/twk_rich/README.md), besides twk.
+| ![ANSI, dark](../../../packages/gallery/doc/shots/text/ansi.dark.svg) | ![ANSI, light](../../../packages/gallery/doc/shots/text/ansi.light.svg) |
 
 ## Code
 
@@ -78,7 +76,7 @@ What the gallery lets you change, and what each starts at:
 
 ## More
 
-- Also in Rich: [MarkdownView](markdownview.md), [CodeView](codeview.md), [SyntaxThemeScope](syntaxthemescope.md), [DiffView](diffview.md), [JsonView](jsonview.md), [BigText](bigtext.md), [QrCode](qrcode.md).
+- Also in Text: [Text](text.md), [Rich text](rich-text.md), [DefaultTextStyle](defaulttextstyle.md), [Right to left](right-to-left.md).
 - Live in the gallery:
-  `dart run packages/gallery/bin/gallery.dart --route='#/rich/ansi'`.
-- [Rich](../rich.md) · [All groups](../README.md)
+  `dart run packages/gallery/bin/gallery.dart --route='#/text/ansi'`.
+- [Text](../text.md) · [All groups](../README.md)

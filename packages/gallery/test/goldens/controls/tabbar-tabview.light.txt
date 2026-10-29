@@ -15,12 +15,12 @@ text
 │     FilePicker                 ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     Form, FormField                                                                      │  look                       │
 │ ▎   TabBar, TabView            ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   plain  strip              │
-│     KeyHintsBar           ▐         ┌                                          ┐         │                             │
+│     KeyHintsBar                     ┌                                          ┐         │                             │
 │     StatusMessage, Badge  ▐    ·       General  Editor  Keys                       ·     │                             │
 │     Callout               ▐           ╭──────────────────────────────────────╮           │                             │
 │     Link                  ▐    ·      │ [x] wrap lines                       │     ·     │                             │
 │     ListTile              ▐           │ [ ] show hidden files                │           │                             │
-│     StatusBar                  ·      │                                      │     ·     │                             │
+│     StatusBar             ▐    ·      │                                      │     ·     │                             │
 │                                       │                                      │           │                             │
 │   OVERLAYS            11       ·      ╰──────────────────────────────────────╯     ·     │                             │
 │     Overlay                         └                                          ┘         │                             │
@@ -52,12 +52,12 @@ styles
 │aaaaaooooooooooaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooaoooooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnhhhhhhhhhhhhhhhhhhhhhhh│
 │aGEEEFFFFFFFEFFFFFFFEEEEEEEahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhEFFFFFEtuuuuuthhhhhhhhhhhhh│
-│aaaaaoooooooooooaaaaaaaaaaadhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooaoooooaadhhhhphhhhhhhxxxxxxxhhnnnnnnhhnnnnhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaaaaaaaaaaaaaaadhhhhhhhhhhhyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooaaaaaaaaaaaaaaaaaadhhhhphhhhhhyhnxnhzzzzhzzzzzhhhhhhhhhhhhhhhhhhhhhhhyhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaadhhhhhhhhhhhyhnhnhzzzzhzzzzzzhzzzzzhhhhhhhhhhhhhhhhyhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhhhhyhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhyhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaadhhhhphhhhhhyhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhyhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhyhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhyhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaddddddddaaaaaaaaaaaaAAaaahhhhphhhhhhyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

@@ -19,12 +19,12 @@ text
 │     AnimationController                                                                  │                             │
 │     AnimatedBuilder         ┌                                                          ┐ │  spinner                    │
 │     AnimatedAlign, Anim…      ⠴ assets.zip      ███▎        30% • 510 kB/s • ETA 00:04   │   dots  line  arc           │
-│     AnimatedPositioned    ▐   ⠴ fonts.tar.gz    ███████▊    70% • 420 kB/s • ETA 00:00   │                             │
+│     AnimatedPositioned        ⠴ fonts.tar.gz    ███████▊    70% • 420 kB/s • ETA 00:00   │                             │
 │     AnimatedBox           ▐   ⠴ docs.tar.gz     █            9% • 270 kB/s • ETA 00:18   │  hide finished       ▐●  ▌  │
 │     AnimatedOpacity, Op…  ▐   ⠴ Building binary     ██                                   │                             │
 │     AnimatedDefaultText…  ▐ └                                                          ┘ │  at most                    │
 │     AnimatedSize          ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   · 56 × 4  │   all  2                    │
-│     TweenAnimationBuild…                                                                 │                             │
+│     TweenAnimationBuild…  ▐                                                              │                             │
 │     AnimatedSwitcher           ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     Dissolve, Fractiona…                                                                 │                             │
 │     Effect                     ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
@@ -56,12 +56,12 @@ styles
 │aaaaaoooooooooooooooooooaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooooaaaaaaaahphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooaoooooaaahhhqhzzzzzzzzzzhhhhhhqqqqhhhhhhhhzzzhnhnnnhnnnnhnhnnnhnnnnnhhhphhFGGGGFtuuuuttuuuthhhhhhhhhh│
-│aaaaaooooooooooooooooooaaaadhhhqhzzzzzzzzzzzzhhhhqqqqqqqqhhhhzzzhnhnnnhnnnnhnhnnnhnnnnnhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooaaaaahhhqhzzzzzzzzzzzzhhhhqqqqqqqqhhhhzzzhnhnnnhnnnnhnhnnnhnnnnnhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooaaaaaaaaaaadhhhqhzzzzzzzzzzzhhhhhqhhhhhhhhhhhhzzhnhnnnhnnnnhnhnnnhnnnnnhhhphhnnnnhnnnnnnnnhhhhhhhwxyywhh│
 │aaaaaooooooooooooooooaoooaadhhhqhzzzzzzzzhzzzzzzhhhhhqqhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooooooooaadhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhnnhnnnnhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphEEhEhEhhphhFGGGFtuthhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooooooooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooooaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooooaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooaooooooooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

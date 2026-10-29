@@ -4,9 +4,7 @@
 import 'dart:convert';
 
 import 'package:test/test.dart';
-import 'package:twk/twk.dart' show Span, Style;
-import 'package:twk_core/twk_core.dart' show Attr, Color;
-import 'package:twk_rich/twk_rich.dart';
+import 'package:twk/twk.dart';
 
 /// Output with every kind of sequence, character and control the stream
 /// keeps state for while a piece is cut off.

@@ -4,24 +4,24 @@ text
 │                                                                                │
 │   ⌕ Filter       /     Container                               Preview   Code  │
 │                        Align, Padding, a color or a decoration, a size and a   │
-│   TEXT           4  ▐  margin put together around one child, as Flutter's Co…  │
+│   TEXT           5  ▐  margin put together around one child, as Flutter's Co…  │
 │     Text            ▐──────────────────────────────────────────────────────────│
 │     Rich text                   ┌                                  ┐           │
 │     DefaultTextSt…      ·   ·                                           ·   ·  │
 │     Right to left                  ╭────────────────────────────╮              │
-│                         ·   ·      │                            │       ·   ·  │
-│   LAYOUT        24                 │                            │              │
-│     Box                 ·   ·      │     deploy to staging      │       ·   ·  │
-│     ColoredBox, D…                 │                            │              │
-│ ▎   Container           ·   ·      │                            │       ·   ·  │
-│     Divider                        ╰────────────────────────────╯              │
-│     Shadow              ·   ·                                           ·   ·  │
-│     Padding                     └                                  ┘           │
-│     Align, Center    ──────────────────────────────────────────────────────────│
-│     SizedBox           fill         decoration  color                         ▐│
-│     ConstrainedBox     alignment    none  topLeft  center  bottomRight        ▐│
-│     LimitedBox, O…     width        none  24  30  36                          ▐│
-│     FractionallyS…     height       none  5  7  9                             ▐│
+│     ANSI                ·   ·      │                            │       ·   ·  │
+│                                    │                            │              │
+│   LAYOUT        24      ·   ·      │     deploy to staging      │       ·   ·  │
+│     Box                            │                            │              │
+│     ColoredBox, D…      ·   ·      │                            │       ·   ·  │
+│ ▎   Container                      ╰────────────────────────────╯              │
+│     Divider             ·   ·                                           ·   ·  │
+│     Shadow                      └                                  ┘           │
+│     Padding          ──────────────────────────────────────────────────────────│
+│     Align, Center      fill         decoration  color                         ▐│
+│     SizedBox           alignment    none  topLeft  center  bottomRight        ▐│
+│     ConstrainedBox     width        none  24  30  36                          ▐│
+│     LimitedBox, O…     height       none  5  7  9                             ▐│
 │                        padding      0  1  2                                    │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -34,19 +34,19 @@ styles
 │aaaaaooooaooooaaaaaaaagggggggggggpggggggggggggggggggggggggggggggggggpggggggggggg│
 │aaaaaooooooooooooooaaagggpgggpgggggggggggggggggggggggggggggggggggggggggggpgggpgg│
 │aaaaaoooooaooaooooaaaaggggggggggggggqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqgggggggggggggg│
-│aaaaaaaaaaaaaaaaaaaaaagggpgggpggggggqrrrrrrrrrrrrrrrrrrrrrrrrrrrrqgggggggpgggpgg│
-│aaaddddddaaaaaaaaxxaaaggggggggggggggqrrrrrrrrrrrrrrrrrrrrrrrrrrrrqgggggggggggggg│
-│aaaaaoooaaaaaaaaaaaaaagggpgggpggggggqrrrrrssssssrssrsssssssrrrrrrqgggggggpgggpgg│
-│aaaaaoooooooooooaooaaaggggggggggggggqrrrrrrrrrrrrrrrrrrrrrrrrrrrrqgggggggggggggg│
-│atuuuvvvvvvvvvuuuuuuuagggpgggpggggggqrrrrrrrrrrrrrrrrrrrrrrrrrrrrqgggggggpgggpgg│
-│aaaaaoooooooaaaaaaaaaaggggggggggggggqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqgggggggggggggg│
-│aaaaaooooooaaaaaaaaaaagggpgggpgggggggggggggggggggggggggggggggggggggggggggpgggpgg│
-│aaaaaoooooooaaaaaaaaaagggggggggggpggggggggggggggggggggggggggggggggggpggggggggggg│
-│aaaaaooooooaooooooaaaapppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
-│aaaaaooooooooaaaaaaaaaggmmmmgggggggguvvvvvvvvvvuhwwwwwhggggggggggggggggggggggggm│
-│aaaaaooooooooooooooaaaggmmmmmmmmmggghwwwwhhwwwwwwwhuvvvvvvuhwwwwwwwwwwwhgggggggm│
-│aaaaaoooooooooooaooaaaggmmmmmggggggghwwwwhhwwhuvvuhwwhgggggggggggggggggggggggggm│
-│aaaaaooooooooooooooaaaggmmmmmmgggggghwwwwhhwhuvuhwhggggggggggggggggggggggggggggm│
+│aaaaaooooaaaaaaaaaaaaagggpgggpggggggqrrrrrrrrrrrrrrrrrrrrrrrrrrrrqgggggggpgggpgg│
+│aaaaaaaaaaaaaaaaaaaaaaggggggggggggggqrrrrrrrrrrrrrrrrrrrrrrrrrrrrqgggggggggggggg│
+│aaaddddddaaaaaaaaxxaaagggpgggpggggggqrrrrrssssssrssrsssssssrrrrrrqgggggggpgggpgg│
+│aaaaaoooaaaaaaaaaaaaaaggggggggggggggqrrrrrrrrrrrrrrrrrrrrrrrrrrrrqgggggggggggggg│
+│aaaaaoooooooooooaooaaagggpgggpggggggqrrrrrrrrrrrrrrrrrrrrrrrrrrrrqgggggggpgggpgg│
+│atuuuvvvvvvvvvuuuuuuuaggggggggggggggqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqgggggggggggggg│
+│aaaaaoooooooaaaaaaaaaagggpgggpgggggggggggggggggggggggggggggggggggggggggggpgggpgg│
+│aaaaaooooooaaaaaaaaaaagggggggggggpggggggggggggggggggggggggggggggggggpggggggggggg│
+│aaaaaoooooooaaaaaaaaaapppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaooooooaooooooaaaaggmmmmgggggggguvvvvvvvvvvuhwwwwwhggggggggggggggggggggggggm│
+│aaaaaooooooooaaaaaaaaaggmmmmmmmmmggghwwwwhhwwwwwwwhuvvvvvvuhwwwwwwwwwwwhgggggggm│
+│aaaaaooooooooooooooaaaggmmmmmggggggghwwwwhhwwhuvvuhwwhgggggggggggggggggggggggggm│
+│aaaaaoooooooooooaooaaaggmmmmmmgggggghwwwwhhwhuvuhwhggggggggggggggggggggggggggggm│
 │aaaaaaaaaaaaaaaaaaaaaaggmmmmmmmggggghwhuvuhwhggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend
