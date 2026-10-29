@@ -100,7 +100,18 @@ final class FrameReader {
   FrameReader(this._onFrame);
 
   final void Function(int type, Uint8List payload) _onFrame;
-  var _buffer = Uint8List(1 << 12);
+
+  /// The size the buffer is made, and made again once a frame longer than
+  /// [_kept] it grew for is read: one such frame is not held for the
+  /// connection's life.
+  static const int _size = 1 << 12;
+
+  /// The longest buffer kept once emptied: the frames of a screen drawn
+  /// whole, tens of kilobytes each, would make it grow and be dropped
+  /// again for each one.
+  static const int _kept = 1 << 20;
+  var _buffer = Uint8List(_size);
+  late var _data = ByteData.sublistView(_buffer);
   var _length = 0;
 
   /// Takes [bytes] read from the socket; calls back with each frame they
@@ -112,13 +123,13 @@ final class FrameReader {
       while (size < _length + bytes.length) {
         size *= 2;
       }
-      _buffer = Uint8List(size)..setRange(0, _length, _buffer);
+      _use(Uint8List(size)..setRange(0, _length, _buffer));
     }
     _buffer.setRange(_length, _length + bytes.length, bytes);
     _length += bytes.length;
     var at = 0;
     while (_length - at >= 5) {
-      final length = _buffer.buffer.asByteData().getUint32(at + 1);
+      final length = _data.getUint32(at + 1);
       if (length > Wire.maxPayload) {
         throw FormatException('a frame of $length bytes');
       }
@@ -126,9 +137,8 @@ final class FrameReader {
         break;
       }
       final type = _buffer[at];
-      final payload = Uint8List.fromList(
-        Uint8List.sublistView(_buffer, at + 5, at + 5 + length),
-      );
+      // a copy of its own: the buffer is written over by what comes next
+      final payload = _buffer.sublist(at + 5, at + 5 + length);
       at += 5 + length;
       _onFrame(type, payload);
     }
@@ -136,6 +146,14 @@ final class FrameReader {
       _buffer.setRange(0, _length - at, _buffer, at);
       _length -= at;
     }
+    if (_length == 0 && _buffer.length > _kept) {
+      _use(Uint8List(_size));
+    }
+  }
+
+  void _use(Uint8List buffer) {
+    _buffer = buffer;
+    _data = ByteData.sublistView(buffer);
   }
 }
 
@@ -455,7 +473,10 @@ final class TerminalShell {
   /// ([LocalAddress.bind]) whose address goes to the project's address
   /// file `.dart_tool/twk/shell`, where `Terminal.open` finds it. Throws
   /// [TerminalException] when stdin or stdout is not a terminal, or a
-  /// shell serves the project already.
+  /// shell serves the project already; when the address can't be kept in
+  /// its file or the terminal can't be served (stdin listened to already),
+  /// what that throws, the socket closed and the address file forgotten
+  /// first.
   static Future<TerminalShell> start({
     String? directory,
     void Function(ShellEvent event)? onEvent,
@@ -466,26 +487,80 @@ final class TerminalShell {
     final project = LocalAddress.projectOf(directory);
     final file = LocalAddress.fileOf('shell', project);
     final running = LocalAddress.read(file);
-    if (running != null) {
-      try {
-        (await running.connect()).destroy();
-        throw TerminalException('a twk shell serves $project already');
-      } on SocketException {
-        // left behind by a shell that didn't stop
-      }
+    // or else left behind by a shell that didn't stop
+    if (running != null && await answers(running)) {
+      throw TerminalException('a twk shell serves $project already');
     }
     final (server, address) = await LocalAddress.bind(
       LocalAddress.directoryOf(project),
       'shell',
     );
-    address.write(file);
-    return TerminalShell.serve(
-      StdioLink(),
-      server,
-      address,
-      file: file,
-      onEvent: onEvent,
-    );
+    try {
+      await address.write(file);
+      return TerminalShell.serve(
+        StdioLink(),
+        server,
+        address,
+        file: file,
+        onEvent: onEvent,
+      );
+    } on Object {
+      // left open, the socket would keep the process alive, and the
+      // address file would send apps to a shell that never answers: on
+      // Windows the socket is TCP's, bound before anything is made in the
+      // project; and stdin may be listened to already
+      await server.close();
+      address
+        ..forget(file)
+        ..unlink();
+      rethrow;
+    }
+  }
+
+  /// Whether a shell answers at [address] within [timeout]: a twk shell,
+  /// or the VS Code extension's, refuses a hello of protocol 0, which
+  /// takes nothing from the app that has its terminal.
+  ///
+  /// That somebody listens there is not enough: on Windows the address is
+  /// a TCP port, which another program may have been given since the
+  /// shell that wrote it went away.
+  static Future<bool> answers(
+    LocalAddress address, {
+    Duration timeout = const Duration(seconds: 2),
+  }) async {
+    final Socket socket;
+    try {
+      socket = await address.connect();
+    } on SocketException {
+      return false;
+    }
+    final refused = Completer<bool>();
+    void answer(bool shell) {
+      if (!refused.isCompleted) {
+        refused.complete(shell);
+      }
+    }
+
+    final reader = FrameReader((type, _) => answer(type == Wire.refused));
+    unawaited(socket.done.then<void>((_) {}, onError: (Object _) {}));
+    socket
+      ..listen(
+        (bytes) {
+          try {
+            reader.add(bytes);
+          } on FormatException {
+            answer(false);
+          }
+        },
+        onError: (Object _) => answer(false),
+        onDone: () => answer(false),
+      )
+      ..add(jsonFrame(Wire.hello, {'protocol': 0}));
+    try {
+      return await refused.future.timeout(timeout, onTimeout: () => false);
+    } finally {
+      socket.destroy();
+    }
   }
 
   /// Where the shell listens.

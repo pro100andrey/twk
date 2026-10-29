@@ -92,9 +92,35 @@ final class StdioLink implements TerminalLink {
 
   @override
   Stream<void> get resizes => Platform.isWindows
-      // no SIGWINCH on Windows; the size query is a cheap console call
-      ? Stream<void>.periodic(const Duration(milliseconds: 100))
+      ? _consoleResizes()
       : ProcessSignal.sigwinch.watch().map((_) {});
+
+  /// No SIGWINCH on Windows: the size is asked for ten times a second, a
+  /// cheap console call, and told only when it is another. Told at each
+  /// ask, a shell sent the app the size it had, ten times a second.
+  static Stream<void> _consoleResizes() {
+    int? columns;
+    int? lines;
+    void ask() {
+      try {
+        columns = stdout.terminalColumns;
+        lines = stdout.terminalLines;
+      } on StdoutException {
+        columns = lines = null; // no console
+      }
+    }
+
+    // the size it starts at, then each that differs from the last
+    ask();
+    return Stream<void>.periodic(const Duration(milliseconds: 100)).where((
+      _,
+    ) {
+      final c = columns;
+      final l = lines;
+      ask();
+      return columns != c || lines != l;
+    });
+  }
 
   @override
   void restoreWith(List<int> bytes) {}

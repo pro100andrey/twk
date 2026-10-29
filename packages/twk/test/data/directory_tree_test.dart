@@ -7,17 +7,13 @@
 // kept, a collapsed one no longer listed; the controller revealing a
 // path, expanding, collapsing and listing again; Enter and a double click
 // opening a file and toggling a directory.
-//
-// The paths are written with `/`, as Linux and macOS show them; Windows
-// shows them with `\` (its forms are paths_test.dart's).
-@TestOn('!windows')
-library;
-
 import 'dart:async';
 
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
+
+import '../platform/native_paths.dart';
 
 /// [files], counting the listings of each directory.
 final class Counting extends PickerFileSystem {
@@ -54,18 +50,18 @@ final class Counting extends PickerFileSystem {
 /// A project: sources, tests, what its .gitignore ignores, hidden files.
 InMemoryFileSystem project() => InMemoryFileSystem(
   [
-    '/app/lib/src/table.dart',
-    '/app/lib/Button.dart',
-    '/app/lib/about.md',
-    '/app/test/table_test.dart',
-    '/app/build/out.o',
-    '/app/.git/HEAD',
-    '/app/.env',
-    '/app/run.log',
-    '/app/README.md',
-    '/app/analysis.yaml',
+    rooted('/app/lib/src/table.dart'),
+    rooted('/app/lib/Button.dart'),
+    rooted('/app/lib/about.md'),
+    rooted('/app/test/table_test.dart'),
+    rooted('/app/build/out.o'),
+    rooted('/app/.git/HEAD'),
+    rooted('/app/.env'),
+    rooted('/app/run.log'),
+    rooted('/app/README.md'),
+    rooted('/app/analysis.yaml'),
   ],
-  contents: {'/app/.gitignore': 'build/\n*.log\n'},
+  contents: {rooted('/app/.gitignore'): 'build/\n*.log\n'},
 );
 
 /// The tree's rows, a frame of a spinner in them as `@`.
@@ -80,15 +76,15 @@ void main() {
         'each by name in any case', (t) async {
       await t.pumpWidget(
         Theme.terminal(
-          child: DirectoryTree(root: '/app', fileSystem: project()),
+          child: DirectoryTree(root: rooted('/app'), fileSystem: project()),
         ),
         size: (24, 7),
       );
       await t.pump();
       expect(rows(t), [
-        '▾ app/',
-        '  ▸ lib/',
-        '  ▸ test/',
+        native('▾ app/'),
+        native('  ▸ lib/'),
+        native('  ▸ test/'),
         '    analysis.yaml',
         '    README.md',
         '',
@@ -103,7 +99,7 @@ void main() {
       await t.pumpWidget(
         Theme.terminal(
           child: DirectoryTree(
-            root: '/app',
+            root: rooted('/app'),
             fileSystem: files,
             controller: controller,
           ),
@@ -111,30 +107,34 @@ void main() {
         size: (24, 8),
       );
       await t.pump();
-      expect(files.listed, {'/app': 1});
+      expect(files.listed, {rooted('/app'): 1});
       controller.expand('lib');
       await t.pump(Duration.zero);
-      expect(rows(t).sublist(0, 3), ['▾ app/', '  ▾ lib/', '    @']);
+      expect(rows(t).sublist(0, 3), [
+        native('▾ app/'),
+        native('  ▾ lib/'),
+        '    @',
+      ]);
       await t.pump();
       expect(rows(t).sublist(0, 6), [
-        '▾ app/',
-        '  ▾ lib/',
-        '    ▸ src/',
+        native('▾ app/'),
+        native('  ▾ lib/'),
+        native('    ▸ src/'),
         '      about.md',
         '      Button.dart',
-        '  ▸ test/',
+        native('  ▸ test/'),
       ]);
       await t.press('down');
       await t.pump();
-      expect(files.listed, {'/app': 1, '/app/lib': 1});
+      expect(files.listed, {rooted('/app'): 1, rooted('/app/lib'): 1});
     });
 
     testTwk('a relative root is under the current directory, ~ the home '
         'directory', (t) async {
       final files = InMemoryFileSystem(
-        ['/home/me/notes/todo.md'],
-        currentDirectory: '/home',
-        homeDirectory: '/home/me',
+        [rooted('/home/me/notes/todo.md')],
+        currentDirectory: rooted('/home'),
+        homeDirectory: rooted('/home/me'),
       );
       await t.pumpWidget(
         Theme.terminal(
@@ -153,10 +153,10 @@ void main() {
       );
       await t.pump();
       expect(rows(t), [
-        '▾ me/',
-        '  ▸ notes/',
+        native('▾ me/'),
+        native('  ▸ notes/'),
         '',
-        '▾ notes/',
+        native('▾ notes/'),
         '    todo.md',
         '',
       ]);
@@ -169,7 +169,7 @@ void main() {
       await t.pumpWidget(
         Theme.terminal(
           child: DirectoryTree(
-            root: '/app',
+            root: rooted('/app'),
             fileSystem: project(),
             showHidden: true,
           ),
@@ -178,9 +178,9 @@ void main() {
       );
       await t.pump();
       expect(rows(t), [
-        '▾ app/',
-        '  ▸ lib/',
-        '  ▸ test/',
+        native('▾ app/'),
+        native('  ▸ lib/'),
+        native('  ▸ test/'),
         '    .env',
         '    .gitignore',
         '    analysis.yaml',
@@ -193,7 +193,7 @@ void main() {
       await t.pumpWidget(
         Theme.terminal(
           child: DirectoryTree(
-            root: '/app',
+            root: rooted('/app'),
             fileSystem: project(),
             showHidden: true,
             gitignore: false,
@@ -203,11 +203,11 @@ void main() {
       );
       await t.pump();
       expect(rows(t), [
-        '▾ app/',
-        '  ▸ .git/',
-        '  ▸ build/',
-        '  ▸ lib/',
-        '  ▸ test/',
+        native('▾ app/'),
+        native('  ▸ .git/'),
+        native('  ▸ build/'),
+        native('  ▸ lib/'),
+        native('  ▸ test/'),
         '    .env',
         '    .gitignore',
         '    analysis.yaml',
@@ -220,18 +220,22 @@ void main() {
     testTwk('a .gitignore deeper down decides before one above it, of the '
         'paths below its own directory', (t) async {
       final files = InMemoryFileSystem(
-        ['/app/lib/debug.log', '/app/lib/gen/a.g.dart', '/app/lib/a.dart'],
+        [
+          rooted('/app/lib/debug.log'),
+          rooted('/app/lib/gen/a.g.dart'),
+          rooted('/app/lib/a.dart'),
+        ],
         contents: {
-          '/app/.gitignore': '*.log\ngen/\n',
-          '/app/lib/.gitignore': '!debug.log\n*.dart\n',
-          '/app/lib/gen/.gitignore': '!*.dart\n',
+          rooted('/app/.gitignore'): '*.log\ngen/\n',
+          rooted('/app/lib/.gitignore'): '!debug.log\n*.dart\n',
+          rooted('/app/lib/gen/.gitignore'): '!*.dart\n',
         },
       );
-      final controller = DirectoryTreeController()..expand('/app/lib');
+      final controller = DirectoryTreeController()..expand(rooted('/app/lib'));
       await t.pumpWidget(
         Theme.terminal(
           child: DirectoryTree(
-            root: '/app',
+            root: rooted('/app'),
             fileSystem: files,
             controller: controller,
           ),
@@ -240,7 +244,12 @@ void main() {
       );
       await t.pump();
       await t.pump();
-      expect(rows(t), ['▾ app/', '  ▾ lib/', '      debug.log', '']);
+      expect(rows(t), [
+        native('▾ app/'),
+        native('  ▾ lib/'),
+        '      debug.log',
+        '',
+      ]);
     });
 
     testTwk('a filter shows the files it accepts, and every directory', (
@@ -249,7 +258,7 @@ void main() {
       await t.pumpWidget(
         Theme.terminal(
           child: DirectoryTree(
-            root: '/app/lib',
+            root: rooted('/app/lib'),
             fileSystem: project(),
             filter: const FileFilter('Dart', ['dart']),
           ),
@@ -257,20 +266,25 @@ void main() {
         size: (20, 4),
       );
       await t.pump();
-      expect(rows(t), ['▾ lib/', '  ▸ src/', '    Button.dart', '']);
+      expect(rows(t), [
+        native('▾ lib/'),
+        native('  ▸ src/'),
+        '    Button.dart',
+        '',
+      ]);
     });
 
     testTwk("showSizes puts each file's size at the end of its row, in "
         'decimal units as a ProgressList writes bytes; icon what goes before '
         'a name', (t) async {
       final files = InMemoryFileSystem(
-        ['/p/src/'],
-        contents: {'/p/a.txt': 'x' * 4096, '/p/b.txt': 'hi'},
+        [rooted('/p/src/')],
+        contents: {rooted('/p/a.txt'): 'x' * 4096, rooted('/p/b.txt'): 'hi'},
       );
       await t.pumpWidget(
         Theme.terminal(
           child: DirectoryTree(
-            root: '/p',
+            root: rooted('/p'),
             fileSystem: files,
             showSizes: true,
             icon: (entry) => entry.isDirectory ? 'D' : null,
@@ -280,8 +294,8 @@ void main() {
       );
       await t.pump();
       expect(rows(t), [
-        '▾ D p/',
-        '  ▸ D src/',
+        native('▾ D p/'),
+        native('  ▸ D src/'),
         '    a.txt       4.1 kB',
         '    b.txt          2 B',
         '',
@@ -292,14 +306,15 @@ void main() {
       t,
     ) async {
       final files = InMemoryFileSystem(
-        ['/app/a.txt'],
-        unreadable: ['/app/secret'],
+        [rooted('/app/a.txt')],
+        unreadable: [rooted('/app/secret')],
       );
-      final controller = DirectoryTreeController()..expand('/app/secret');
+      final controller = DirectoryTreeController()
+        ..expand(rooted('/app/secret'));
       await t.pumpWidget(
         Theme.terminal(
           child: DirectoryTree(
-            root: '/app',
+            root: rooted('/app'),
             fileSystem: files,
             controller: controller,
           ),
@@ -309,8 +324,8 @@ void main() {
       await t.pump();
       await t.pump();
       expect(rows(t), [
-        '▾ app/',
-        '  ▾ secret/',
+        native('▾ app/'),
+        native('  ▾ secret/'),
         '      (permission denied)',
         '    a.txt',
       ]);
@@ -325,37 +340,37 @@ void main() {
       final memory = files.files as InMemoryFileSystem;
       await t.pumpWidget(
         Theme.terminal(
-          child: DirectoryTree(root: '/app', fileSystem: files),
+          child: DirectoryTree(root: rooted('/app'), fileSystem: files),
         ),
         size: (24, 6),
       );
       await t.pump();
       memory
-        ..write('/app/CHANGELOG.md', '')
-        ..remove('/app/analysis.yaml');
+        ..write(rooted('/app/CHANGELOG.md'), '')
+        ..remove(rooted('/app/analysis.yaml'));
       await t.pump(const Duration(milliseconds: 50));
       expect(rows(t)[3], '    analysis.yaml');
       await t.pump(const Duration(milliseconds: 60));
       await t.pump();
       expect(rows(t), [
-        '▾ app/',
-        '  ▸ lib/',
-        '  ▸ test/',
+        native('▾ app/'),
+        native('  ▸ lib/'),
+        native('  ▸ test/'),
         '    CHANGELOG.md',
         '    README.md',
         '',
       ]);
-      expect(files.listed['/app'], 2);
+      expect(files.listed[rooted('/app')], 2);
     });
 
     testTwk('listed again, the selection and what is expanded stay, and no '
         'spinner shows', (t) async {
       final files = project();
-      final controller = DirectoryTreeController()..expand('/app/lib');
+      final controller = DirectoryTreeController()..expand(rooted('/app/lib'));
       await t.pumpWidget(
         Theme.terminal(
           child: DirectoryTree(
-            root: '/app',
+            root: rooted('/app'),
             fileSystem: files,
             controller: controller,
             autofocus: true,
@@ -365,39 +380,39 @@ void main() {
       );
       await t.pump();
       await t.pump();
-      await controller.reveal('/app/lib/Button.dart');
-      files.write('/app/lib/Aardvark.dart', '');
+      await controller.reveal(rooted('/app/lib/Button.dart'));
+      files.write(rooted('/app/lib/Aardvark.dart'), '');
       await t.pump(const Duration(milliseconds: 90));
       expect(rows(t).sublist(0, 6), [
-        '▾ app/',
-        '  ▾ lib/',
-        '    ▸ src/',
+        native('▾ app/'),
+        native('  ▾ lib/'),
+        native('    ▸ src/'),
         '      about.md',
         '      Button.dart',
-        '  ▸ test/',
+        native('  ▸ test/'),
       ]);
       await t.pump(const Duration(milliseconds: 10));
       expect(rows(t).sublist(0, 7), [
-        '▾ app/',
-        '  ▾ lib/',
-        '    ▸ src/',
+        native('▾ app/'),
+        native('  ▾ lib/'),
+        native('    ▸ src/'),
         '      Aardvark.dart',
         '      about.md',
         '      Button.dart',
-        '  ▸ test/',
+        native('  ▸ test/'),
       ]);
-      expect(controller.selected, '/app/lib/Button.dart');
-      expect(controller.isExpanded('/app/lib'), isTrue);
+      expect(controller.selected, rooted('/app/lib/Button.dart'));
+      expect(controller.isExpanded(rooted('/app/lib')), isTrue);
     });
 
     testTwk('a change to a .gitignore shows what it ignores no longer, '
         'below it too', (t) async {
       final files = project();
-      final controller = DirectoryTreeController()..expand('/app/lib');
+      final controller = DirectoryTreeController()..expand(rooted('/app/lib'));
       await t.pumpWidget(
         Theme.terminal(
           child: DirectoryTree(
-            root: '/app',
+            root: rooted('/app'),
             fileSystem: files,
             controller: controller,
           ),
@@ -407,13 +422,13 @@ void main() {
       await t.pump();
       await t.pump();
       expect(rows(t)[4], '      Button.dart');
-      files.write('/app/.gitignore', 'build/\n*.log\n*.dart\ntest/\n');
+      files.write(rooted('/app/.gitignore'), 'build/\n*.log\n*.dart\ntest/\n');
       await t.pump(const Duration(milliseconds: 100));
       await t.pump();
       expect(rows(t), [
-        '▾ app/',
-        '  ▾ lib/',
-        '    ▸ src/',
+        native('▾ app/'),
+        native('  ▾ lib/'),
+        native('    ▸ src/'),
         '      about.md',
         '    analysis.yaml',
         '    README.md',
@@ -424,11 +439,11 @@ void main() {
         'is listed again', (t) async {
       final files = Counting(project());
       final memory = files.files as InMemoryFileSystem;
-      final controller = DirectoryTreeController()..expand('/app/lib');
+      final controller = DirectoryTreeController()..expand(rooted('/app/lib'));
       await t.pumpWidget(
         Theme.terminal(
           child: DirectoryTree(
-            root: '/app',
+            root: rooted('/app'),
             fileSystem: files,
             controller: controller,
           ),
@@ -437,14 +452,14 @@ void main() {
       );
       await t.pump();
       await t.pump();
-      controller.collapse('/app/lib');
-      memory.write('/app/lib/new.dart', '');
+      controller.collapse(rooted('/app/lib'));
+      memory.write(rooted('/app/lib/new.dart'), '');
       await t.pump(const Duration(milliseconds: 200));
-      expect(files.listed['/app/lib'], 1);
-      controller.expand('/app/lib');
+      expect(files.listed[rooted('/app/lib')], 1);
+      controller.expand(rooted('/app/lib'));
       await t.pump();
       await t.pump();
-      expect(files.listed['/app/lib'], 2);
+      expect(files.listed[rooted('/app/lib')], 2);
       expect(rows(t)[5], '      new.dart');
     });
 
@@ -456,7 +471,7 @@ void main() {
       await t.pumpWidget(
         Theme.terminal(
           child: DirectoryTree(
-            root: '/app',
+            root: rooted('/app'),
             fileSystem: files,
             controller: controller,
             watch: false,
@@ -465,10 +480,10 @@ void main() {
         size: (24, 6),
       );
       await t.pump();
-      files.remove('/app/README.md');
+      files.remove(rooted('/app/README.md'));
       await t.pump(const Duration(milliseconds: 200));
       expect(rows(t)[4], '    README.md');
-      await controller.refresh('/app');
+      await controller.refresh(rooted('/app'));
       await t.pump();
       expect(rows(t)[4], '');
     });
@@ -484,7 +499,7 @@ void main() {
       await t.pumpWidget(
         Theme.terminal(
           child: DirectoryTree(
-            root: '/app',
+            root: rooted('/app'),
             fileSystem: project(),
             controller: controller,
             onSelected: selected.add,
@@ -496,26 +511,26 @@ void main() {
       await controller.reveal('lib/src/table.dart');
       await t.pump();
       expect(rows(t).sublist(0, 5), [
-        '▾ app/',
-        '  ▾ lib/',
-        '    ▾ src/',
+        native('▾ app/'),
+        native('  ▾ lib/'),
+        native('    ▾ src/'),
         '        table.dart',
         '      about.md',
       ]);
-      expect(controller.selected, '/app/lib/src/table.dart');
-      expect(selected, ['/app/lib/src/table.dart']);
-      expect(told.last, '/app/lib/src/table.dart');
-      expect(controller.isExpanded('/app/lib/src'), isTrue);
+      expect(controller.selected, rooted('/app/lib/src/table.dart'));
+      expect(selected, [rooted('/app/lib/src/table.dart')]);
+      expect(told.last, rooted('/app/lib/src/table.dart'));
+      expect(controller.isExpanded(rooted('/app/lib/src')), isTrue);
     });
 
     testTwk('a path revealed before a tree has the controller is revealed '
         'as the tree starts; expand works before it too', (t) async {
-      final controller = DirectoryTreeController()..expand('/app/test');
-      unawaited(controller.reveal('/app/lib/about.md'));
+      final controller = DirectoryTreeController()..expand(rooted('/app/test'));
+      unawaited(controller.reveal(rooted('/app/lib/about.md')));
       await t.pumpWidget(
         Theme.terminal(
           child: DirectoryTree(
-            root: '/app',
+            root: rooted('/app'),
             fileSystem: project(),
             controller: controller,
           ),
@@ -525,15 +540,15 @@ void main() {
       await t.pump();
       await t.pump();
       expect(rows(t).sublist(0, 7), [
-        '▾ app/',
-        '  ▾ lib/',
-        '    ▸ src/',
+        native('▾ app/'),
+        native('  ▾ lib/'),
+        native('    ▸ src/'),
         '      about.md',
         '      Button.dart',
-        '  ▾ test/',
+        native('  ▾ test/'),
         '      table_test.dart',
       ]);
-      expect(controller.selected, '/app/lib/about.md');
+      expect(controller.selected, rooted('/app/lib/about.md'));
     });
 
     testTwk('a path outside the root reveals nothing', (t) async {
@@ -541,7 +556,7 @@ void main() {
       await t.pumpWidget(
         Theme.terminal(
           child: DirectoryTree(
-            root: '/app/lib',
+            root: rooted('/app/lib'),
             fileSystem: project(),
             controller: controller,
           ),
@@ -549,9 +564,9 @@ void main() {
         size: (24, 4),
       );
       await t.pump();
-      await controller.reveal('/app/test/table_test.dart');
+      await controller.reveal(rooted('/app/test/table_test.dart'));
       expect(controller.selected, isNull);
-      expect(controller.isExpanded('/app/test'), isFalse);
+      expect(controller.isExpanded(rooted('/app/test')), isFalse);
     });
 
     testTwk('collapse hides the entries of a directory', (t) async {
@@ -559,7 +574,7 @@ void main() {
       await t.pumpWidget(
         Theme.terminal(
           child: DirectoryTree(
-            root: '/app',
+            root: rooted('/app'),
             fileSystem: project(),
             controller: controller,
           ),
@@ -567,9 +582,9 @@ void main() {
         size: (24, 3),
       );
       await t.pump();
-      controller.collapse('/app');
+      controller.collapse(rooted('/app'));
       await t.pump();
-      expect(rows(t), ['▸ app/', '', '']);
+      expect(rows(t), [native('▸ app/'), '', '']);
     });
   });
 
@@ -580,7 +595,7 @@ void main() {
       await t.pumpWidget(
         Theme.terminal(
           child: DirectoryTree(
-            root: '/app',
+            root: rooted('/app'),
             fileSystem: project(),
             onOpened: opened.add,
             autofocus: true,
@@ -594,14 +609,14 @@ void main() {
       await t.press('enter');
       await t.pump();
       await t.pump();
-      expect(rows(t)[1], '  ▾ lib/');
+      expect(rows(t)[1], native('  ▾ lib/'));
       await t.press('enter');
       await t.pump();
-      expect(rows(t)[1], '  ▸ lib/');
+      expect(rows(t)[1], native('  ▸ lib/'));
       await t.press('end');
       await t.press('enter');
       await t.pump();
-      expect(opened, ['/app/README.md']);
+      expect(opened, [rooted('/app/README.md')]);
     });
 
     testTwk('a double click opens a file and toggles a directory', (t) async {
@@ -609,7 +624,7 @@ void main() {
       await t.pumpWidget(
         Theme.terminal(
           child: DirectoryTree(
-            root: '/app',
+            root: rooted('/app'),
             fileSystem: project(),
             onOpened: opened.add,
           ),
@@ -620,12 +635,12 @@ void main() {
       await t.click(6, 4);
       await t.click(6, 4);
       await t.pump();
-      expect(opened, ['/app/README.md']);
+      expect(opened, [rooted('/app/README.md')]);
       await t.click(6, 1);
       await t.click(6, 1);
       await t.pump();
       await t.pump();
-      expect(rows(t)[1], '  ▾ lib/');
+      expect(rows(t)[1], native('  ▾ lib/'));
     });
   });
 }

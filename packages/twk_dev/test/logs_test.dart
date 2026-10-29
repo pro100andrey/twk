@@ -295,7 +295,7 @@ void main() {
       );
       socket.listen((_) => socket.destroy(), onError: (Object _) {});
     });
-    LocalAddress(
+    await LocalAddress(
       server.address,
       server.port,
       'token',

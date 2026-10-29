@@ -146,6 +146,16 @@ List<String> mouseModes(String text) => [
 RenderText textOf(TwkApp app, String text) =>
     RenderText(text, app.screen.styles.pen(const Pen()));
 
+/// The files beside the address file [file] named for it, those
+/// LocalAddress.write writes it from (`shell.<pid>.<n>`).
+List<String> writtenFor(String file) {
+  final name = file.substring(file.lastIndexOf('/') + 1);
+  return [
+    for (final entry in File(file).parent.listSync())
+      if (entry.uri.pathSegments.last.startsWith('$name.')) entry.path,
+  ];
+}
+
 void main() {
   // the programs run in processes of their own, compiled once
   late String shellApp;
@@ -430,7 +440,7 @@ void main() {
           LocalAddress.directoryOf(dir.path),
           'shell',
         );
-        address.write(file);
+        await address.write(file);
         final link = SocketLink.toShell(dir.path);
         // real time on purpose: a race of the connect against the close,
         // which no clock decides; the tries are what makes it bounded
@@ -487,7 +497,7 @@ void main() {
       events = [];
       file = '${dir.path}/shell';
       final (server, address) = await LocalAddress.bind(dir.path, 'shell');
-      address.write(file);
+      await address.write(file);
       shell = TerminalShell.serve(
         link,
         server,
@@ -497,6 +507,46 @@ void main() {
       );
     });
     tearDown(() => shell.stop());
+
+    test('answers where it listens, to a hello that takes the terminal '
+        'from no app; a server of another kind there, or none, does not '
+        'answer', () async {
+      final term = await Terminal.connect(
+        shell.address,
+        const TerminalOptions(probeTimeout: Duration(milliseconds: 50)),
+      );
+      expect(await TerminalShell.answers(shell.address), isTrue);
+      expect(events, [ShellEvent.connected]);
+      expect(shell.serving, isTrue);
+      await term.close();
+
+      // another program given the port of a shell that went away: one that
+      // says nothing, one that says something else
+      final accepted = <Socket>[];
+      final (silent, quiet) = await LocalAddress.bind(dir.path, 'silent');
+      silent.listen(accepted.add);
+      addTearDown(() async {
+        for (final s in accepted) {
+          s.destroy();
+        }
+        await silent.close();
+      });
+      expect(
+        await TerminalShell.answers(
+          quiet,
+          timeout: const Duration(milliseconds: 100),
+        ),
+        isFalse,
+      );
+      final (other, talks) = await LocalAddress.bind(dir.path, 'other');
+      other.listen((s) {
+        s.write('HTTP/1.1 400 Bad Request\r\n\r\n');
+        unawaited(s.close());
+      });
+      expect(await TerminalShell.answers(talks), isFalse);
+      await other.close();
+      expect(await TerminalShell.answers(talks), isFalse);
+    });
 
     test('serves its terminal to an app: raw mode while the app has it, '
         'input and sizes passed on, frames written, put back as the app '
@@ -718,7 +768,7 @@ void main() {
         LocalAddress.directoryOf(dir.path),
         'shell',
       );
-      left.write(file);
+      await left.write(file);
       await gone.close();
       left.unlink();
       final out = '${dir.path}/out.bin';
@@ -814,14 +864,81 @@ void main() {
       final file = '${dir.path}/shell';
       final (s1, older) = await LocalAddress.bind(dir.path, 'a');
       final (s2, newer) = await LocalAddress.bind(dir.path, 'b');
-      older.write(file);
-      newer.write(file);
+      await older.write(file);
+      await newer.write(file);
       older.forget(file);
       expect(LocalAddress.read(file), newer);
       newer.forget(file);
       expect(LocalAddress.read(file), isNull);
       await s1.close();
       await s2.close();
+    });
+
+    test('an address file a reader holds open is replaced once the reader '
+        'lets it go, on Windows too', () async {
+      final file = '${dir.path}/shell';
+      final (s1, older) = await LocalAddress.bind(dir.path, 'a');
+      final (s2, newer) = await LocalAddress.bind(dir.path, 'b');
+      addTearDown(s1.close);
+      addTearDown(s2.close);
+      await older.write(file);
+      final reader = File(file).openSync();
+      // the first try is made before write returns: on Windows it fails,
+      // the reader holding the file, and the next one finds it let go
+      final writing = newer.write(file);
+      reader.closeSync();
+      await writing;
+      expect(LocalAddress.read(file), newer);
+      expect(writtenFor(file), isEmpty);
+    });
+
+    test('two writes of one process waiting at once each replace the '
+        'address file, the last one kept', () async {
+      final file = '${dir.path}/shell';
+      final (s1, older) = await LocalAddress.bind(dir.path, 'a');
+      final (s2, newer) = await LocalAddress.bind(dir.path, 'b');
+      addTearDown(s1.close);
+      addTearDown(s2.close);
+      await older.write(file);
+      final reader = File(file).openSync();
+      final first = older.write(file);
+      final second = newer.write(file);
+      reader.closeSync();
+      await first;
+      await second;
+      expect(LocalAddress.read(file), anyOf(older, newer));
+      expect(writtenFor(file), isEmpty);
+    });
+
+    test('an address file held open past the wait is not replaced, what '
+        'fails is of it, and the file written for it is not left', () async {
+      final file = '${dir.path}/shell';
+      final (s1, older) = await LocalAddress.bind(dir.path, 'a');
+      final (s2, newer) = await LocalAddress.bind(dir.path, 'b');
+      addTearDown(s1.close);
+      addTearDown(s2.close);
+      await older.write(file);
+      final reader = File(file).openSync();
+      addTearDown(reader.closeSync);
+      await expectLater(
+        newer.write(file),
+        throwsA(isA<PathAccessException>().having((e) => e.path, 'path', file)),
+      );
+      expect(LocalAddress.read(file), older);
+      expect(writtenFor(file), isEmpty);
+    }, testOn: 'windows');
+
+    test('a directory where the address file goes: what fails is of the '
+        'address file, and the file written for it is not left', () async {
+      final file = '${dir.path}/shell';
+      Directory(file).createSync();
+      final (server, address) = await LocalAddress.bind(dir.path, 'a');
+      addTearDown(server.close);
+      await expectLater(
+        address.write(file),
+        throwsA(isA<FileSystemException>().having((e) => e.path, 'path', file)),
+      );
+      expect(writtenFor(file), isEmpty);
     });
   });
 
@@ -835,7 +952,7 @@ void main() {
         LocalAddress.directoryOf(dir.path),
         'shell',
       );
-      address.write(file);
+      await address.write(file);
       final shell = TerminalShell.serve(link, server, address, file: file);
       addTearDown(shell.stop);
       final res = await runProcess(
@@ -876,7 +993,7 @@ void main() {
         LocalAddress.directoryOf(dir.path),
         'shell',
       );
-      address.write(file);
+      await address.write(file);
       final shell = TerminalShell.serve(projects, server, address, file: file);
       addTearDown(shell.stop);
       final (other, at) = await LocalAddress.bind('${dir.path}/other', 'x');
@@ -986,7 +1103,7 @@ void main() {
       File('${dir.path}/pubspec.yaml').writeAsStringSync('name: app\n');
       final shell = await HandShell.start(dir.path);
       addTearDown(shell.close);
-      shell.address.write(LocalAddress.fileOf('shell', dir.path));
+      await shell.address.write(LocalAddress.fileOf('shell', dir.path));
       final own = FakeLink(refusesRaw: true);
       final term = await openOwnOrShell(own, options, dir.path);
       expect((term.width, term.height), (30, 5));
@@ -1024,7 +1141,7 @@ void main() {
           LocalAddress.directoryOf(dir.path),
           'shell',
         );
-        address.write(file);
+        await address.write(file);
         final shell = TerminalShell.serve(link, server, address, file: file);
         addTearDown(shell.stop);
         final out = '${dir.path}/out.bin';

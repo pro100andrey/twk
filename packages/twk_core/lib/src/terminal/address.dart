@@ -1,8 +1,9 @@
 /// Where the local services of a project listen (a `twk shell`, an app's
-/// log): a Unix domain socket, or TCP on the loopback interface where
-/// there are none (Windows), with a token a client opens with. Each
-/// service's address is kept in a file beside the project,
-/// `.dart_tool/twk/<service>`.
+/// log): a Unix domain socket, or on Windows TCP on the loopback
+/// interface, with a token a client opens with. Windows has Unix domain
+/// sockets too, but node's net, the VS Code extension's, takes a path
+/// there for a named pipe: TCP is what every side has. Each service's
+/// address is kept in a file beside the project, `.dart_tool/twk/<service>`.
 library;
 
 import 'dart:convert';
@@ -106,14 +107,30 @@ final class LocalAddress {
     return (server, LocalAddress._bound(address, token, temporary));
   }
 
-  /// Connects to the socket; throws [SocketException] when that fails.
+  /// Connects to the socket; throws [SocketException] when that fails, or
+  /// when it hasn't within [timeout], by default none for a Unix domain
+  /// socket and half a second for TCP.
+  ///
+  /// A Unix domain socket nobody listens at is refused at once, but on
+  /// Windows a TCP port is refused only after about 2 s, the connect tried
+  /// again: an address file left by a server that was killed held every
+  /// client up that long. On the loopback interface a server that listens
+  /// is connected to at once, by the OS, whatever the server is doing.
   ///
   /// A connect reset by a server that closes before it answers (ECONNRESET)
   /// is thrown by dart:io as a bare [OSError]: it is thrown here as the
   /// [SocketException] every other failed connect is.
-  Future<Socket> connect() async {
+  Future<Socket> connect({Duration? timeout}) async {
     try {
-      return await Socket.connect(address, port);
+      return await Socket.connect(
+        address,
+        port,
+        timeout:
+            timeout ??
+            (address.type == InternetAddressType.unix
+                ? null
+                : const Duration(milliseconds: 500)),
+      );
     } on OSError catch (e) {
       throw SocketException(
         'Connection failed',
@@ -222,13 +239,57 @@ final class LocalAddress {
   }
 
   /// Keeps the address in [file], replacing the one there; the
-  /// directories it is in are made as needed.
-  void write(String file) {
+  /// directories it is in are made as needed. Throws what writing it
+  /// throws, of [file], leaving no file of its own behind.
+  ///
+  /// On Windows a file open in another process can't be replaced, nor
+  /// renamed: one reading it, or reading the file written for it (a
+  /// client, an editor, the virus scanner), is waited for, for up to about
+  /// a second and a quarter, the isolate going on meanwhile; a directory
+  /// in its place is not.
+  Future<void> write(String file) async {
     File(file).parent.createSync(recursive: true);
-    File('$file.$pid')
-      ..writeAsStringSync(encode(), flush: true)
-      ..renameSync(file);
+    // a file of each write's own: two of this process may wait at once
+    final written = File('$file.$pid.${_writes++}');
+    try {
+      written.writeAsStringSync(encode(), flush: true);
+      for (var wait = 10; ; wait *= 2) {
+        try {
+          written.renameSync(file);
+          return;
+        } on PathAccessException {
+          if (!Platform.isWindows ||
+              wait > 640 ||
+              FileSystemEntity.typeSync(file, followLinks: false) ==
+                  FileSystemEntityType.directory) {
+            rethrow;
+          }
+        }
+        await Future<void>.delayed(Duration(milliseconds: wait));
+      }
+    } on FileSystemException catch (e, stack) {
+      try {
+        written.deleteSync();
+      } on FileSystemException {
+        // never made
+      }
+      if (e.path != written.path) {
+        rethrow;
+      }
+      // of the file written for it, which is gone: what failed is [file],
+      // said as it was
+      final os = e.osError ?? OSError(e.message);
+      Error.throwWithStackTrace(switch (e) {
+        PathAccessException() => PathAccessException(file, os, e.message),
+        PathNotFoundException() => PathNotFoundException(file, os, e.message),
+        PathExistsException() => PathExistsException(file, os, e.message),
+        _ => FileSystemException(e.message, file, os),
+      }, stack);
+    }
   }
+
+  /// How many writes this process made: each one's file is its own.
+  static var _writes = 0;
 
   /// Removes [file] if it still holds this address: a newer server may
   /// have replaced it.

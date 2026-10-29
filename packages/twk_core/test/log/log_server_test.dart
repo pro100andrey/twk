@@ -116,6 +116,43 @@ void main() {
     await expectLater(address.connect(), throwsA(isA<SocketException>()));
   });
 
+  test('a record added while no client is let in comes to the next one '
+      'with the backlog', () async {
+    final sink = LogSink();
+    final address = await sink.serve(directory: dir.path);
+    addTearDown(sink.close);
+    final first = await Client.connect(address);
+    sink.add(record('to the first'));
+    await first.waitFor('to the first');
+    first.socket.destroy();
+    sink.add(record('while none'));
+    final second = await Client.connect(address);
+    await second.waitFor('while none');
+    expect(second.messages, ['to the first', 'while none']);
+    sink.add(record('live'));
+    await second.waitFor('live');
+  });
+
+  test('calls of serve that overlap serve one socket; close while it '
+      'starts closes it once started', () async {
+    final sink = LogSink()..add(record('kept'));
+    final both = await Future.wait([
+      sink.serve(directory: dir.path),
+      sink.serve(directory: dir.path),
+    ]);
+    expect(both[1], both[0]);
+    final client = await Client.connect(both[0]);
+    await client.waitFor('kept');
+    await sink.close();
+    await client.closed;
+
+    final starting = sink.serve(directory: dir.path);
+    await sink.close();
+    final address = await starting;
+    await expectLater(address.connect(), throwsA(isA<SocketException>()));
+    expect(File(LocalAddress.fileOf('logs', dir.path)).existsSync(), isFalse);
+  });
+
   test('a client without the token gets nothing', () async {
     final sink = LogSink()..add(record('secret'));
     final address = await sink.serve(directory: dir.path);

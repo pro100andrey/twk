@@ -199,6 +199,10 @@ final class LogSink {
   void removeListener(void Function(LogRecord record) listener) =>
       _listeners.remove(listener);
 
+  /// The server [serve] started, or is starting.
+  Future<LogServer>? _starting;
+
+  /// The server, once started.
   LogServer? _server;
 
   /// Serves the records over a local socket ([LocalAddress.bind]) until
@@ -207,24 +211,41 @@ final class LogSink {
   /// added, as lines of JSON ([LogRecord.toJson]). The address goes to the
   /// address file `.dart_tool/twk/logs` of the project [directory] is in
   /// ([LocalAddress.projectOf]), in place of another app's. Returns the
-  /// address; the one served already when called again. The socket keeps
-  /// the process alive until [close]. Throws [UnsupportedError] on the
-  /// web, which has no local sockets.
+  /// address; the one served already, or being started, when called
+  /// again, so that one socket is served however many calls overlap. The
+  /// socket keeps the process alive until [close]. What fails fails each
+  /// call that waited for it, and the next call tries again. Throws
+  /// [UnsupportedError] on the web, which has no local sockets.
   Future<LocalAddress> serve({String? directory}) async {
-    final running = _server;
-    if (running != null) {
-      return running.address;
-    }
-    final server = _server = await LogServer.start(
+    final starting = _starting ??= LogServer.start(
       directory,
       () => records.map(_line),
     );
-    addListener(_send);
+    final LogServer server;
+    try {
+      server = await starting;
+    } on Object {
+      if (identical(_starting, starting)) {
+        _starting = null;
+      }
+      rethrow;
+    }
+    // the first call to see it started; none once closed meanwhile
+    if (identical(_starting, starting) && _server == null) {
+      _server = server;
+      addListener(_send);
+    }
     return server.address;
   }
 
-  /// Sends [record] to the clients of the socket being served.
-  void _send(LogRecord record) => _server?.send(_line(record));
+  /// Sends [record] to the clients of the socket being served; with none,
+  /// it is not made a line of JSON.
+  void _send(LogRecord record) {
+    final server = _server;
+    if (server != null && server.serving) {
+      server.send(_line(record));
+    }
+  }
 
   /// [record] as a line of JSON ([LogRecord.toJson]), without its line
   /// feed.
@@ -232,12 +253,23 @@ final class LogSink {
 
   /// Stops serving ([serve]): the clients are disconnected, the socket
   /// closed and the address file removed if it still holds this sink's
-  /// address. Does nothing when not serving.
+  /// address; one still starting is closed once it has. Does nothing when
+  /// not serving.
   Future<void> close() async {
-    final server = _server;
+    final starting = _starting;
+    _starting = null;
     _server = null;
     removeListener(_send);
-    await server?.close();
+    if (starting == null) {
+      return;
+    }
+    final LogServer server;
+    try {
+      server = await starting;
+    } on Object {
+      return; // it never started: what failed is serve's
+    }
+    await server.close();
   }
 }
 

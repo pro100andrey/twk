@@ -21,7 +21,9 @@ final class LogServer {
   static var _served = 0;
 
   /// Serves the lines of [backlog], asked for as each client is let in,
-  /// then those given to [send], for the project [directory] is in.
+  /// then those given to [send], for the project [directory] is in. When
+  /// the address can't be kept in its file, the socket is closed before
+  /// that is thrown: left open, it would keep the process alive.
   static Future<LogServer> start(
     String? directory,
     Iterable<String> Function() backlog,
@@ -32,7 +34,15 @@ final class LogServer {
       'logs-$pid-${_served++}',
     );
     final file = LocalAddress.fileOf('logs', project);
-    address.write(file);
+    try {
+      await address.write(file);
+    } on Object {
+      // on Windows the socket is TCP's, bound before anything is made in
+      // the project, so the address directory fails only here
+      await server.close();
+      address.unlink();
+      rethrow;
+    }
     return LogServer._(backlog, server, address, file);
   }
 
@@ -48,12 +58,17 @@ final class LogServer {
   /// sent the lines.
   final _clients = <Socket, bool>{};
 
-  /// Sends [line] and a line feed to every client that sent the token.
+  /// Whether a client sent the token: with none, a line need not be made
+  /// to be [send].
+  bool get serving => _clients.containsValue(true);
+
+  /// Sends [line] and a line feed to every client that sent the token; its
+  /// bytes are made only for one.
   void send(String line) {
-    final bytes = utf8.encode('$line\n');
+    List<int>? bytes;
     for (final MapEntry(key: client, value: served) in _clients.entries) {
       if (served) {
-        client.add(bytes);
+        client.add(bytes ??= utf8.encode('$line\n'));
       }
     }
   }
@@ -90,8 +105,15 @@ final class LogServer {
           end();
           return;
         }
+        // the backlog in one write, not one of each line
+        final backlog = StringBuffer();
         for (final line in _backlog()) {
-          client.add(utf8.encode('$line\n'));
+          backlog
+            ..write(line)
+            ..writeCharCode(0x0A);
+        }
+        if (backlog.isNotEmpty) {
+          client.add(utf8.encode(backlog.toString()));
         }
         _clients[client] = true;
       },

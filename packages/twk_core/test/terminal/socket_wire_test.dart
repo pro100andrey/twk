@@ -104,6 +104,23 @@ void main() {
       expect(frames[1].$2, big);
     });
 
+    test('reads on after a frame longer than its buffer, the frames whole '
+        'and their payloads their own', () {
+      final big = Uint8List.fromList(List.generate(20000, (i) => i % 251));
+      final frames = <(int, List<int>)>[];
+      final reader = FrameReader((type, payload) => frames.add((type, payload)))
+        ..add(frame(Wire.output, big))
+        ..add(frame(Wire.raw, const [1]));
+      final split = frame(Wire.output, const [7, 8, 9]);
+      reader
+        ..add(split.sublist(0, 3))
+        ..add(split.sublist(3));
+      expect(frames.map((f) => f.$1), [Wire.output, Wire.raw, Wire.output]);
+      expect(frames[0].$2, big);
+      expect(frames[1].$2, [1]);
+      expect(frames[2].$2, [7, 8, 9]);
+    });
+
     test('refuses a frame longer than the wire takes', () {
       final reader = FrameReader((_, _) => fail('no frame'));
       expect(
@@ -160,7 +177,7 @@ void main() {
         LocalAddress.directoryOf(dir.path),
         'shell',
       );
-      address.write(LocalAddress.fileOf('shell', dir.path));
+      await address.write(LocalAddress.fileOf('shell', dir.path));
       await server.close();
       address.unlink();
       expect(await SocketLink.toShell(dir.path), isNull);
@@ -208,7 +225,7 @@ void main() {
       LocalAddress.directoryOf(dir.path),
       'shell',
     );
-    address.write(file);
+    await address.write(file);
     final shell = TerminalShell.serve(link, server, address, file: file);
     addTearDown(shell.stop);
     final process = await startProcess(

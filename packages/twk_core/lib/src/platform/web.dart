@@ -122,6 +122,9 @@ abstract final class LogServer {
   /// Where the server listens.
   LocalAddress get address;
 
+  /// Whether a client is sent the lines.
+  bool get serving;
+
   /// Sends [line] to the clients.
   void send(String line);
 

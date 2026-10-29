@@ -94,8 +94,8 @@ final class FileFilter {
 /// when a directory changes. The machine's is [local];
 /// [PickerFileSystem.memory] is a tree of the app's own, for a test, a
 /// demo or files that are elsewhere, which no disk is read for. Paths are
-/// absolute, in the platform's form (`/` or on Windows a drive's root
-/// first, its separator between the names).
+/// absolute, in the platform's form (`/` or on Windows a drive's or a
+/// share's root first, its separator between the names).
 ///
 /// One of an app's own extends it, as the members [read], [sizeOf] and
 /// [watch] have a body that reads nothing: no file reads, no size is
