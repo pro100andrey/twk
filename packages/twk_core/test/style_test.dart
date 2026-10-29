@@ -209,4 +209,48 @@ void main() {
       });
     }
   });
+
+  test('styled underlines are plain ones on a terminal without them', () {
+    String sgr(List<int> bytes) =>
+        latin1.decode(bytes).replaceAll('\x1b[', '').replaceAll('m', '');
+    final t = StyleTable(styledUnderlines: false);
+    final curly = t.style(attrs: Attr.curlyUnderline);
+    final dotted = t.style(attrs: Attr.dottedUnderline, fg: Color.red);
+    final plain = t.style(attrs: Attr.underline);
+    // Terminal.app reads 4:3 as 43, a yellow background
+    expect(sgr(t.sgrFromReset(curly)), '0;4');
+    expect(sgr(t.transition(curly, dotted)), '31');
+    expect(t.transition(curly, plain), isEmpty);
+    expect(sgr(t.transition(plain, 0)), '0');
+    // nor an underline color, whose colon form it misreads too
+    final red = t.style(attrs: Attr.curlyUnderline, underlineColor: Color.red);
+    expect(sgr(t.sgrFromReset(red)), '0;4');
+    expect(t.transition(curly, red), isEmpty);
+    // a blank under it keeps the text's color for its line, the color the
+    // underline has under the text
+    final redText = t.style(
+      fg: Color.red,
+      attrs: Attr.curlyUnderline,
+      underlineColor: Color.blue,
+    );
+    expect(t.fgOf(t.blankStyleOf(redText)), Color.red);
+
+    final styled = StyleTable();
+    final c = styled.style(attrs: Attr.curlyUnderline);
+    final p = styled.style(attrs: Attr.underline);
+    final r = styled.style(
+      attrs: Attr.curlyUnderline,
+      underlineColor: Color.red,
+    );
+    expect(sgr(styled.sgrFromReset(c)), '0;4:3');
+    expect(sgr(styled.transition(c, p)), '4');
+    expect(sgr(styled.sgrFromReset(r)), '0;4:3;58:5:1');
+    // with its own color the line needs not the text's on a blank
+    final blueOnRed = styled.style(
+      fg: Color.red,
+      attrs: Attr.curlyUnderline,
+      underlineColor: Color.blue,
+    );
+    expect(styled.fgOf(styled.blankStyleOf(blueOnRed)), Color.defaultColor);
+  });
 }

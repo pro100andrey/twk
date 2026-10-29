@@ -4,7 +4,12 @@ library;
 import 'dart:convert';
 
 import 'package:twk/twk.dart'
-    show ColorMode, HeadlessTerminal, TerminalBackend, TerminalOptions;
+    show
+        ColorMode,
+        HeadlessTerminal,
+        TerminalBackend,
+        TerminalCaps,
+        TerminalOptions;
 import 'package:twk_test/twk_test.dart' show FakeClock, Vt;
 
 import '../capabilities.dart';
@@ -46,7 +51,12 @@ final class FakeCliTerminal extends CliTerminal {
   /// none where output is no terminal), [width] × [height] the screen's
   /// size where it is one; [fakeClock] times the session.
   /// [progressReports] says the terminal shows a program's progress in
-  /// its tab (OSC 9;4), which the inline session then writes.
+  /// its tab (OSC 9;4), which the inline session then writes;
+  /// [styledUnderlines] false that it shows no underline styles, as
+  /// Terminal.app, and [probedStyledUnderlines] what the inline session's
+  /// probe finds of them, [styledUnderlines] by default: false beside a
+  /// true one is Terminal.app over ssh, which its environment doesn't
+  /// tell.
   FakeCliTerminal({
     bool ansi = false,
     bool interactiveInput = false,
@@ -54,6 +64,8 @@ final class FakeCliTerminal extends CliTerminal {
     bool? errorIsTerminal,
     bool? hyperlinks,
     this.colorMode = ColorMode.trueColor,
+    bool styledUnderlines = true,
+    bool? probedStyledUnderlines,
     int? columns,
     this.width = 80,
     this.height = 24,
@@ -68,7 +80,9 @@ final class FakeCliTerminal extends CliTerminal {
          errorIsTerminal: errorIsTerminal,
          hyperlinks: hyperlinks,
          colorMode: colorMode,
+         styledUnderlines: styledUnderlines,
        ),
+       _probedUnderlines = probedStyledUnderlines ?? styledUnderlines,
        _columns = columns ?? (outputIsTerminal ? width : null),
        _lines = [...lines],
        _input = [...input],
@@ -122,6 +136,8 @@ final class FakeCliTerminal extends CliTerminal {
 
   @override
   final CliCapabilities capabilities;
+
+  final bool _probedUnderlines;
 
   /// The colors styled output is written in.
   final ColorMode colorMode;
@@ -237,6 +253,7 @@ final class FakeCliTerminal extends CliTerminal {
     final backend = _backend = HeadlessTerminal(
       width: width,
       height: height,
+      caps: TerminalCaps(styledUnderlines: _probedUnderlines),
       options: const TerminalOptions(alternateScreen: false),
       cursorColumn: screen.cx,
       progressReports: progressReports,

@@ -541,9 +541,13 @@ final class _SelectionListState<K> extends State<SelectionList<K>> {
     return GestureDetector(
       key: ValueKey<K>(key),
       onTap: enabled ? (_) => _tap(index) : null,
-      child: Box(
-        style: s,
-        child: DefaultTextStyle(style: s, child: row),
+      // the hidden cursor on the cursor's row
+      child: ActiveItem(
+        active: index == _cursorAt,
+        child: Box(
+          style: s,
+          child: DefaultTextStyle(style: s, child: row),
+        ),
       ),
     );
   }

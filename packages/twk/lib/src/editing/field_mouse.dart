@@ -31,9 +31,10 @@ import 'text_editing.dart';
 ///
 /// The press is the field's: a `SelectionArea` around it clears its
 /// selection and selects nothing by it, and its drags go to no
-/// `GestureDetector` around it that drags. A field whose node takes no
-/// focus, when it is built, takes no press, and has the terminal report
-/// none.
+/// `GestureDetector` around it that drags. The pointer is an I-beam over
+/// it ([PointerShape.text]). A field whose node takes no focus, when it is
+/// built, takes no press, has the terminal report none, and leaves the
+/// pointer as it is around it.
 final class FieldMouse extends StatefulWidget {
   /// The mouse over [child], a field of [controller] whose node is
   /// [focusNode].
@@ -167,14 +168,17 @@ final class _FieldMouseState extends State<FieldMouse> {
   Widget build(BuildContext context) {
     // a field that takes no focus has the terminal report no mouse
     final listens = widget.focusNode.canRequestFocus;
-    return Listener(
-      onDown: listens ? _down : null,
-      onUp: listens ? _up : null,
-      behavior: HitTestBehavior.opaque,
-      child: GestureDetector(
-        onDragUpdate: listens ? _drag : null,
+    return MouseRegion(
+      cursor: listens ? PointerShape.text : null,
+      child: Listener(
+        onDown: listens ? _down : null,
+        onUp: listens ? _up : null,
         behavior: HitTestBehavior.opaque,
-        child: widget.child,
+        child: GestureDetector(
+          onDragUpdate: listens ? _drag : null,
+          behavior: HitTestBehavior.opaque,
+          child: widget.child,
+        ),
       ),
     );
   }

@@ -446,6 +446,25 @@ void main() {
       expect(selected, [(0, 0), (0, 1)]);
     });
 
+    testTwk('the hidden cursor rests on the marked cell as it moves', (
+      t,
+    ) async {
+      await t.pumpWidget(
+        Theme.terminal(child: map(onSelected: (_) {})),
+        size: (30, 8),
+      );
+      await settle(t);
+      expect(t.cursorVisible, isFalse);
+      // after the row labels
+      expect(t.cursor, (2, 0));
+      await t.press('right down');
+      await settle(t);
+      expect(t.cursor, (4, 1));
+      await t.press('right down');
+      await settle(t);
+      expect(t.cursor, (6, 2));
+    });
+
     testTwk('the mouse on a cell shows its tooltip, at once; a click '
         'selects it', (t) async {
       final selected = <(int, int)>[];

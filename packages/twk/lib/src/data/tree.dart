@@ -1120,7 +1120,8 @@ final class _TreeViewState<T> extends State<TreeView<T>>
           guides: widget.showGuides,
           style: style,
           guideStyle: guideStyle,
-          child: child,
+          // the hidden cursor on the selected node's label
+          child: ActiveItem(active: selected, child: child),
         ),
       ),
     );

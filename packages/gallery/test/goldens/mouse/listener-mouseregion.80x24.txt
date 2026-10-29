@@ -15,13 +15,13 @@ text
 │     SelectionArea               │                                  │           │
 │     Draggable, Dr…      ·   ·   ╰──────────────────────────────────╯    ·   ·  │
 │                                                                                │
-│   FOCUS AND KEYS 4  ▐   ·   ·   nothing yet                             ·   ·  │
+│   FOCUS AND KEYS 5  ▐   ·   ·   nothing yet                             ·   ·  │
 │     Focus, FocusS…  ▐         └                                      ┘         │
-│     ExcludeFocus                                               36 × 9          │
-│     KeyBindings,…    ──────────────────────────────────────────────────────────│
-│     Shortcuts, Ac…     cursor   pointer  crosshair  text  grab  move           │
-│                                 notAllowed  wait  none                         │
-│   NAVIGATION     5                                                             │
+│     ActiveItem                                                 36 × 9          │
+│     ExcludeFocus     ──────────────────────────────────────────────────────────│
+│     KeyBindings,…      cursor   pointer  crosshair  text  grab  move           │
+│     Shortcuts, Ac…              notAllowed  wait  none                         │
+│                                                                                │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -42,11 +42,11 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaadddddadddaddddayaadgggogggogggmmmmmmmgmmmgggggggggggggggggggggggggggggogggogg│
 │aaaaannnnnnannnnnnnaadgggggggggoggggggggggggggggggggggggggggggggggggggoggggggggg│
-│aaaaannnnnnnnnnnnaaaaaggggggggggggggggggggggggggggggggggggggggggBBgBgBgggggggggg│
-│aaaaannnnnnnnnnnnnaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnnnnannnaaaggmmmmmmggstttttttshxxxxxxxxxhhxxxxhhxxxxhhxxxxhgggggggggg│
-│aaaaaaaaaaaaaaaaaaaaaagggggggggghxxxxxxxxxxhhxxxxhhxxxxhgggggggggggggggggggggggg│
-│aaaddddddddddaaaaayaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnaaaaaaaggggggggggggggggggggggggggggggggggggggggggBBgBgBgggggggggg│
+│aaaaannnnnnnnnnnnaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnnnaaaaggmmmmmmggstttttttshxxxxxxxxxhhxxxxhhxxxxhhxxxxhgggggggggg│
+│aaaaannnnnnnnnnannnaaagggggggggghxxxxxxxxxxhhxxxxhhxxxxhgggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

@@ -279,6 +279,30 @@ void main() {
     expect(c.match, isNull);
   });
 
+  testTwk("the hidden cursor rests on the current match's line as n and N "
+      "move it, on the view's first cell without one", (t) async {
+    final c = LogController();
+    for (var i = 0; i < 30; i++) {
+      c.add(i % 10 == 3 ? 'line $i hit' : 'line $i');
+    }
+    await t.pumpWidget(Theme.terminal(child: plain(c)), size: (30, 5));
+    c.query = 'hit';
+    await t.pump();
+    await t.press('n');
+    await t.pump();
+    await t.pump();
+    expect(t.cursorVisible, isFalse);
+    expect(t.cursor, (0, t.lines.indexOf('line 3 hit')));
+    await t.press('n');
+    await t.pump();
+    final row = t.lines.indexOf('line 13 hit');
+    expect(row, greaterThan(0));
+    expect(t.cursor, (0, row));
+    c.query = '';
+    await t.pump();
+    expect(t.cursor, (0, 0));
+  });
+
   testTwk('wraps a long line onto the rows below, or cuts it and scrolls '
       'across with Left and Right', (t) async {
     final c = LogController()

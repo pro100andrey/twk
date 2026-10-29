@@ -220,7 +220,8 @@ final class Painter {
 
 /// Paints cells by hand: what [onPaint] draws with a [Painter]
 /// of its size. As big as the constraints allow (`width` and `height`
-/// where given); a terminal cursor where [cursor] says.
+/// where given); a terminal cursor where [cursor] says, the hidden one
+/// resting where [rest] does.
 final class CellPaint extends LeafRenderObjectWidget {
   const CellPaint(
     this.onPaint, {
@@ -228,6 +229,7 @@ final class CellPaint extends LeafRenderObjectWidget {
     this.width,
     this.height,
     this.cursor,
+    this.rest,
     this.hit = true,
   });
 
@@ -238,18 +240,25 @@ final class CellPaint extends LeafRenderObjectWidget {
   /// Where the terminal's cursor shows, a bar; none when null.
   final (int, int)? cursor;
 
+  /// Where the hidden cursor rests while it has the focus ([restCursor]):
+  /// the cell of what is selected in it; its first cell when null.
+  final (int, int)? rest;
+
   /// Whether the mouse hits it, so that what is under it is not.
   final bool hit;
 
   @override
   RenderCellPaint createRenderObject(BuildContext context) =>
-      RenderCellPaint(onPaint, width, height, cursor)..hit = hit;
+      RenderCellPaint(onPaint, width, height, cursor)
+        ..rest = rest
+        ..hit = hit;
 
   @override
   void updateRenderObject(BuildContext context, RenderCellPaint renderObject) {
     renderObject
       ..onPaint = onPaint
       ..cursor = cursor
+      ..rest = rest
       ..hit = hit
       ..setSize(width, height);
   }
@@ -285,6 +294,15 @@ final class RenderCellPaint extends RenderObject {
     }
   }
 
+  (int, int)? _rest;
+  (int, int)? get rest => _rest;
+  set rest((int, int)? c) {
+    if (c != _rest) {
+      _rest = c;
+      markNeedsPaint();
+    }
+  }
+
   PaintContext? _painted;
 
   /// Whether the mouse hits it.
@@ -312,6 +330,11 @@ final class RenderCellPaint extends RenderObject {
       ..clipRect(0, 0, width, height);
     _onPaint(Painter(canvas, width, height));
     canvas.restore();
+    if (_rest case (final x, final y)) {
+      restCursor(ctx, this, x, y);
+    } else {
+      clearRestCursor(ctx, this);
+    }
     final at = _cursor;
     if (at != null) {
       showCaret(ctx, this, at.$1, at.$2);

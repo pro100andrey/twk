@@ -77,8 +77,9 @@ void _fillFlags(Uint8List a, int start, int end, int value) {
 final class TerminalCaps {
   /// Capabilities as given; left out, those nearly every terminal has:
   /// synchronized output, background color erase, hardware scrolling,
-  /// full frames cleared and ICH/DCH, without REP, Konsole's lines and
-  /// images, left and right margins or a graphics protocol.
+  /// full frames cleared, ICH/DCH and styled underlines, without REP,
+  /// Konsole's lines and images, left and right margins or a graphics
+  /// protocol.
   const TerminalCaps({
     this.synchronizedOutput = true,
     this.backgroundColorErase = true,
@@ -86,6 +87,7 @@ final class TerminalCaps {
     this.clearFullFrames = true,
     this.repeatChar = false,
     this.insertDelete = true,
+    this.styledUnderlines = true,
     this.konsoleLines = false,
     this.konsoleImages = false,
     this.leftRightMargins = false,
@@ -116,8 +118,18 @@ final class TerminalCaps {
   final bool repeatChar;
 
   /// Use ICH/DCH (insert/delete characters, VT102) when a row's change is a
-  /// shift of its tail - typing or deleting in the middle of a line.
+  /// shift of its tail - typing or deleting in the middle of a line. Off
+  /// for Terminal.app, whose DCH shifts a line only as far as it was
+  /// written without a cursor move and drops the background EL gave the
+  /// rest of it: the shifted cells are written again.
   final bool insertDelete;
+
+  /// The terminal reads the underline styles of SGR `4:2` to `4:5`
+  /// (double, curly, dotted, dashed) and the underline color (SGR 58);
+  /// without them each is written as a plain underline (`4`), in the
+  /// text's color. Terminal.app reads `4:3` as `43`, a yellow background
+  /// that SGR 24 doesn't take away ([styledUnderlinesFor]).
+  final bool styledUnderlines;
 
   /// The terminal's lines are Konsole's: each as long as what was written
   /// on it. Its ICH inserts blanks in the default colours, not the current
@@ -463,8 +475,18 @@ final class Presenter {
   var _link = 0;
 
   /// Whether the cursor is shown when a frame ends, at [cursorX],
-  /// [cursorY]; hidden by default.
+  /// [cursorY]; hidden by default. Hidden, it is put there too on the
+  /// whole screen where the app says where it rests ([restsCursor]).
   var cursorVisible = false;
+
+  /// Whether the hidden cursor rests at [cursorX], [cursorY] on the whole
+  /// screen, put back there where a frame left it elsewhere: what the app
+  /// has the focus on, which a terminal that marks the cursor's row
+  /// (iTerm2's cursor guide) or follows it (macOS zoom, a screen reader)
+  /// shows. It costs a move of the cursor a frame that writes, a few bytes.
+  /// Off by default: the cursor stays where the frame left it. twk's
+  /// binding turns it on (`AppBinding.restCursor`).
+  var restsCursor = false;
 
   /// The column of the surface the visible cursor is put in.
   var cursorX = 0;
@@ -902,6 +924,24 @@ final class Presenter {
     } else if (_cursorShown) {
       _cursorShown = false; // hidden by the prefix
       cursorChanged = true;
+    }
+    // On the whole screen a hidden cursor rests where the shown one would,
+    // not where the frame wrote last: a terminal that marks the cursor's
+    // row (iTerm2's cursor guide) or follows it (macOS zoom) keeps still,
+    // and goes along when the cell it rests on moves. An inline region and
+    // a fixed viewport leave it as they need it.
+    if (restsCursor &&
+        !cursorVisible &&
+        !inline &&
+        viewport == null &&
+        w > 0 &&
+        h > 0) {
+      final cx = cursorX.clamp(0, w - 1);
+      final cy = cursorY.clamp(0, h - 1);
+      if (_cx != cx || _cy != cy) {
+        _moveTo(cx, cy);
+        cursorChanged = true;
+      }
     }
 
     if (!bodyChanged && !cursorChanged) {

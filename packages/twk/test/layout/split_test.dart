@@ -820,11 +820,11 @@ void main() {
 
     test('is a resize across, between panes side by side', () async {
       final run = ShapeRun(split(), width: 21);
-      await run.settle();
+      await run.start();
       await run.move(10, 1);
       expect(run.shapes(), ['ew-resize']);
       await run.move(3, 1);
-      expect(run.shapes(), ['']);
+      expect(run.shapes(), ['default']);
       await run.quit();
     });
 
@@ -834,11 +834,11 @@ void main() {
         width: 10,
         height: 5,
       );
-      await run.settle();
+      await run.start();
       await run.move(3, 2);
       expect(run.shapes(), ['ns-resize']);
       await run.move(3, 0);
-      expect(run.shapes(), ['']);
+      expect(run.shapes(), ['default']);
       await run.quit();
     });
 
@@ -847,11 +847,12 @@ void main() {
         split(pointerShapes: false),
         width: 21,
       );
-      await run.settle();
+      await run.start();
       await run.move(10, 1);
       await run.move(3, 1);
       await run.quit();
-      expect(run.written(), isNot(contains('\x1b]22;')));
+      // only the terminal's own given back as the app ends
+      expect(run.shapes(), ['']);
     });
   });
 }

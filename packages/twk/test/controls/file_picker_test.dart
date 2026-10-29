@@ -531,6 +531,25 @@ void main() {
       expect(suggestions(t), isEmpty);
     });
 
+    testTwk("the hidden cursor rests on the cursor's row as it moves and "
+        'the list scrolls', (t) async {
+      await t.pumpWidget(picker(), size: (columns, 6));
+      await listed(t);
+      await press(t, 'tab');
+      expect(focused(t), 'file picker list');
+      expect(t.cursorVisible, isFalse);
+      expect(cursor(t), native('docs/'));
+      expect(t.cursor, (0, 2));
+      await press(t, 'down');
+      expect(t.cursor, (0, 3));
+      // scrolled: the cursor's row is the last one in view
+      await press(t, 'end');
+      expect(cursor(t), 'README.md');
+      expect(t.cursor, (0, 4));
+      await press(t, 'home');
+      expect(t.cursor, (0, 1));
+    });
+
     testTwk('the list scrolls to show the cursor', (t) async {
       await t.pumpWidget(picker(), size: (columns, 6));
       await listed(t);

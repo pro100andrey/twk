@@ -18,6 +18,46 @@ void main() {
       expect(terminal.screenLines, ['one', 'two']);
     });
 
+    test('of a terminal without underline styles opens a backend without '
+        'them', () async {
+      final terminal = FakeCliTerminal(
+        ansi: true,
+        interactiveInput: true,
+        outputIsTerminal: true,
+        styledUnderlines: false,
+      );
+      final backend = await terminal.openInline();
+      expect(backend.info.caps.styledUnderlines, isFalse);
+      expect(
+        (await FakeCliTerminal.interactive().openInline())
+            .info
+            .caps
+            .styledUnderlines,
+        isTrue,
+      );
+    });
+
+    test('tells the lines written after it opened what its probe found of '
+        'the underline styles', () async {
+      // Terminal.app over ssh: the environment doesn't tell it
+      final terminal = FakeCliTerminal(
+        ansi: true,
+        interactiveInput: true,
+        outputIsTerminal: true,
+        probedStyledUnderlines: false,
+      );
+      final cli = Cli(terminal: terminal)..writeLine(['a'.curlyUnderline]);
+      expect(cli.styledUnderlines, isTrue);
+      await cli.session();
+      cli.writeLine(['b'.curlyUnderline]);
+      expect(cli.styledUnderlines, isFalse);
+      expect(
+        terminal.out.toString(),
+        '\x1B[4:3ma\x1B[0m\n\x1B[4mb\x1B[0m\n',
+      );
+      await cli.close();
+    });
+
     test('is opened by show and kept until close', () async {
       final clock = FakeClock();
       final terminal = FakeCliTerminal.interactive(

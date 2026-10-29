@@ -162,6 +162,29 @@ void main() {
     expect(t, styleAt(10, 0, isNot(hasBg(const Color.indexed(237)))));
   });
 
+  testTwk('the hidden cursor rests on the highlighted segment as it '
+      'moves', (t) async {
+    final on = ValueNotifier({'errors'});
+    final node = FocusNode(debugLabel: 'views');
+    addTearDown(node.dispose);
+    await t.pumpWidget(
+      Theme.terminal(child: segmented(on, focusNode: node)),
+      size: (50, 2),
+    );
+    node.requestFocus();
+    await t.pump();
+    expect(t.cursorVisible, isFalse);
+    expect(t.cursor, (7, 0));
+    await press(t, 'right');
+    expect(t.cursor, (20, 0));
+    // past the disabled one, round to the first
+    await press(t, 'right');
+    expect(t.cursor, (1, 0));
+    await press(t, 'tab');
+    expect(focused(t), 'next');
+    expect(t.cursor, (0, 1));
+  });
+
   testTwk('1 to 9 press the segment of that number, highlighting it; a '
       'disabled one not', (t) async {
     final on = ValueNotifier({'all'});

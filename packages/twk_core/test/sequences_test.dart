@@ -102,6 +102,14 @@ void main() {
       );
     });
 
+    test('BEL (Terminal.app): the bell alone, through a multiplexer as its '
+        'own', () {
+      const p = NotificationProtocol.bell;
+      expect(notify(p, 'Build', 'done'), '\x07');
+      expect(notify(p, '', 'done'), '\x07');
+      expect(notify(p, 'Build', '', multiplexer: Multiplexer.tmux), '\x07');
+    });
+
     test('nothing where no protocol is known, or nothing to show', () {
       for (final p in NotificationProtocol.values) {
         expect(notify(p, '', ''), '', reason: p.name);

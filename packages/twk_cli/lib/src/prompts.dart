@@ -514,6 +514,7 @@ final class Prompter {
       ansi: caps.ansi,
       hyperlinks: caps.hyperlinks,
       colorMode: caps.colorMode,
+      styledUnderlines: cli.styledUnderlines,
     );
   }
 

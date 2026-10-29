@@ -143,6 +143,29 @@ void main() {
     expect(t, styleAt(0, 0, isNot(hasBg(const Color.indexed(237)))));
   });
 
+  testTwk('the hidden cursor rests on the highlighted crumb as it moves', (
+    t,
+  ) async {
+    final node = FocusNode(debugLabel: 'crumbs');
+    addTearDown(node.dispose);
+    // Root › … › src › widgets
+    await t.pumpWidget(
+      Theme.terminal(child: crumbs(25, focusNode: node)),
+      size: (50, 8),
+    );
+    node.requestFocus();
+    await t.pump();
+    expect(t.cursorVisible, isFalse);
+    expect(t.cursor, (11, 0));
+    await press(t, 'left');
+    expect(t.cursor, (7, 0));
+    await press(t, 'home');
+    expect(t.cursor, (0, 0));
+    await press(t, 'tab');
+    expect(focused(t), 'next');
+    expect(t.cursor, (0, 1));
+  });
+
   testTwk('Enter on the … opens a menu of the items it hides under the row, '
       'the first highlighted, whose items select them', (t) async {
     final selected = <int>[];

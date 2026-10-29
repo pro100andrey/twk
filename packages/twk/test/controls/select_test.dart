@@ -424,6 +424,24 @@ void main() {
       ]);
     });
 
+    testTwk('inline: the hidden cursor rests on the highlighted choice as it '
+        'moves', (t) async {
+      final value = ValueNotifier<String?>('b');
+      addTearDown(value.dispose);
+      await t.pumpWidget(
+        Theme.terminal(child: app(select(value, inline: true))),
+        size: (20, 8),
+      );
+      await press(t, 'tab');
+      expect(t.cursorVisible, isFalse);
+      // Banana, below the field and Apple
+      expect(t.cursor, (0, 2));
+      await press(t, 'down');
+      expect(t.cursor, (0, 3));
+      await press(t, 'up up');
+      expect(t.cursor, (0, 1));
+    });
+
     testTwk('the highlight stays on its choice as the choices change', (
       t,
     ) async {

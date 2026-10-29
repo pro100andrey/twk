@@ -591,6 +591,11 @@ const catalog = [
           'click takes it; in a scope Tab stays, Escape leaves.',
     ),
     CatalogPage(
+      'ActiveItem',
+      "The item a focused list's keys act on, which the terminal's hidden "
+          'cursor rests on: Tab to the list, then Up or Down.',
+    ),
+    CatalogPage(
       'ExcludeFocus',
       'A subtree Tab passes by: its nodes take no focus while it excludes '
           'them, and give it up when it starts to.',

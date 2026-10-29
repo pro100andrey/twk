@@ -143,7 +143,12 @@ hardware and compares only the exposed rows.
   the like), column 1 of `CUP` (`CSI y H`, `CSI H`), and SGR 0 (`CSI m`);
 * a visible cursor is hidden while a frame draws and shown again at its
   end; a frame that only moves it leaves it shown (it jumps once, so
-  hiding it would prevent no flicker);
+  hiding it would prevent no flicker); on the whole screen a hidden one
+  is put at `cursorX`, `cursorY` too, where the frame left it elsewhere,
+  not where it wrote last: a terminal that marks the cursor's row
+  (iTerm2's cursor guide) or follows it (macOS zoom) keeps still, and an
+  idle frame still writes nothing (an inline region and a fixed viewport
+  leave it as they need it);
 * SGR only on a style change; blanks compare by how they look (background,
   attributes visible on a space and the colour of lines drawn on it), so a
   space inside text doesn't toggle SGR; a blank that needs an SGR change
@@ -509,11 +514,14 @@ in `dart test`.
 Frame loop (`TwkApp`): frames on demand (idle means 0 CPU and 0 bytes), an
 FPS cap, and **backpressure** — the next frame doesn't start until the
 previous one reached the OS (frames don't pile up on a slow ssh link).
-`run(root, onEvent, beforeLayout:, afterPresent:)`: `beforeLayout` runs
-at the start of every frame, in the app's zone, before the tree is laid
-out (in the inline mode before the region is sized to the root), so what
-it changes in the tree (a widget tree's build) is laid out and painted by
-that frame. `afterPresent` runs at the end of every frame, in the app's
+`run(root, onEvent, beforeLayout:, beforePresent:, afterPresent:)`:
+`beforeLayout` runs at the start of every frame, in the app's zone,
+before the tree is laid out (in the inline mode before the region is
+sized to the root), so what it changes in the tree (a widget tree's
+build) is laid out and painted by that frame. `beforePresent` runs once
+the frame is laid out and painted, just before the screen is written:
+what it sets of the presenter goes with that frame (a widget tree puts
+the hidden cursor on the focus there). `afterPresent` runs at the end of every frame, in the app's
 zone, once the frame's bytes are handed to the terminal (also when it has
 none) and before they are flushed: the bytes don't wait on it, nor it on
 a slow link, and no input is handled between the paint and it (a widget

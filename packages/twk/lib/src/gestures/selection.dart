@@ -81,7 +81,9 @@ export 'selectable.dart' hide selectInSelectable;
 /// While mounted, it has the terminal report presses and drags, which
 /// keeps the terminal's own selection from working over the app; in the
 /// inline mode the mouse stays the terminal's, and nothing is selected
-/// here.
+/// here. The pointer is an I-beam over it ([PointerShape.text]), where a
+/// region inside gives it no other shape: a `Scrollbar` inside gives it
+/// the arrow.
 ///
 /// A transcript whose lines are selected across and copied on the
 /// release, Alt+C copying again:
@@ -720,18 +722,21 @@ final class _SelectionAreaState extends State<SelectionArea> {
         if (selected && copy != null) copy: 'copy',
         if (selected && clear != null) clear: 'clear',
       },
-      child: Listener(
-        onDown: _down,
-        onUp: _up,
-        behavior: HitTestBehavior.translucent,
-        child: GestureDetector(
-          onDragUpdate: _drag,
+      child: MouseRegion(
+        cursor: PointerShape.text,
+        child: Listener(
+          onDown: _down,
+          onUp: _up,
           behavior: HitTestBehavior.translucent,
-          child: _SelectionScope(
-            this,
-            version: _version,
-            style: style,
-            child: widget.child,
+          child: GestureDetector(
+            onDragUpdate: _drag,
+            behavior: HitTestBehavior.translucent,
+            child: _SelectionScope(
+              this,
+              version: _version,
+              style: style,
+              child: widget.child,
+            ),
           ),
         ),
       ),
@@ -933,6 +938,12 @@ void takePressFromSelectionArea(MouseTracker tracker) =>
 
 // How a Text takes part in the SelectionArea above it; hidden from the
 // library's exports.
+
+/// Whether [context] is below a [SelectionArea]: there, what is no text,
+/// such as a scrollbar, gives the pointer the arrow over the area's
+/// I-beam.
+bool inSelectionArea(BuildContext context) =>
+    context.getInheritedWidgetOfExactType<_SelectionScope>() != null;
 
 /// Makes [paragraph], the one of the [Text] at [context], selectable in the
 /// [SelectionArea] above [context], if there is one, which [context] then

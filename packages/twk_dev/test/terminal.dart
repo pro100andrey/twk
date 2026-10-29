@@ -241,7 +241,10 @@ final class Terminal {
   /// The exit code once the program ended and the output did.
   Future<int?> ended() async {
     final code = await pty.exitCode.timeout(wait);
-    _endModes = modes;
+    // as the pty read them at the end: macOS revokes the terminal of a
+    // session whose leader ended, which the tty held here reads no more
+    final end = pty.modesAtEnd;
+    _endModes = end != null ? Modes._(end) : modes;
     _closeTty();
     await until(() => outputDone, 'the output to end');
     return code;

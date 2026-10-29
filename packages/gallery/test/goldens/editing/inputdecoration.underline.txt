@@ -12,12 +12,12 @@ text
 │     DirectoryTree              ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
 │     TaskList                                                                             │                             │
 │                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  border                     │
-│   EDITING              4                                                                 │   outline  underline        │
+│   EDITING              4  ▐                                                              │   outline  underline        │
 │     TextField             ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   none                      │
 │ ▎   InputDecoration       ▐                                                              │                             │
 │     TextArea              ▐    ┌                                                    ┐    │  filled              ▐  ●▌  │
 │     Autocomplete          ▐        Theme                   Search                        │                             │
-│                           ▐      ◐  Dark               ▾    ⌕ files, commands    ↵       │  enabled             ▐  ●▌  │
+│                                  ◐  Dark               ▾    ⌕ files, commands    ↵       │  enabled             ▐  ●▌  │
 │   CONTROLS            20           ──────────────────────  ────────────────────────      │                             │
 │     Button                         Enter opens it          by name                       │                             │
 │     Pressable                                                                            │                             │
@@ -49,12 +49,12 @@ styles
 │aaaaaoooooooooooooaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnhhhhhhhhhhhhhhhhhhhhh│
-│aaadddddddaaaaaaaaaaaaaaeaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhirrrrrrristttttttttshhhhhhh│
+│aaadddddddaaaaaaaaaaaaaaeaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhirrrrrrristttttttttshhhhhhh│
 │aaaaaoooooooooaaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhirrrrihhhhhhhhhhhhhhhhhhhhh│
 │auvvvwwwwwwwwwwwwwwwvvvvvvvdhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaadhhhhnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhnhhhhphhnnnnnnhhhhhhhhhhhhhhqxxyqhh│
 │aaaaaooooooooooooaaaaaaaaaadhhhhhhhhnnnnnhhhhhhhhhhhhhhhhhhhnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhhhnhiDDDDiiiiiiiiiiiiiiirihhirirrrrrrirrrrrrrriiiirihhhhhhphhnnnnnnnhhhhhhhhhhhhhqxxyqhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhnhiDDDDiiiiiiiiiiiiiiirihhirirrrrrrirrrrrrrriiiirihhhhhhphhnnnnnnnhhhhhhhhhhhhhqxxyqhh│
 │aaaddddddddaaaaaaaaaaaaeeaaahhhhhhhhCCCCCCCCCCCCCCCCCCCCCChhCCCCCCCCCCCCCCCCCCCCCCCChhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooaaaaaaaaaaaaaaaaahhhhhhhhnnnnnhnnnnnhnnhhhhhhhhhhnnhnnnnhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

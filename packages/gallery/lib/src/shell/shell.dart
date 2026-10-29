@@ -1267,6 +1267,11 @@ final class GalleryShellState extends State<GalleryShell> {
               .round();
     final focusedList = _zone == Zone.list && _palette == null;
     final filterActive = _zone == Zone.filter && _palette == null;
+    // the chosen page's title on the screen, where the hidden cursor rests
+    final selRowY = lt + selY - scroll;
+    final selRow = sel >= 0 && selRowY >= lt && selRowY < lt + lh
+        ? (5, selRowY)
+        : null;
     const fx = 2;
     const fy = 1;
     final fw = sw - 4;
@@ -1360,6 +1365,9 @@ final class GalleryShellState extends State<GalleryShell> {
         p.thumb(sw - 1, lt, lh, rows.length, scroll, t.muted);
       },
       cursor: filterActive ? (fx + 3 + widthOf(shown), fy) : null,
+      // the hidden cursor on the page chosen, where a terminal that marks
+      // its row shows the selection
+      rest: selRow,
     );
     return Stack(
       children: [

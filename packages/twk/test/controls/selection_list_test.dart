@@ -312,6 +312,34 @@ void main() {
       expect(c.selected, {'d'});
     });
 
+    testTwk("the hidden cursor rests on the cursor's row as it moves and "
+        'the list scrolls', (t) async {
+      final list = ValueNotifier([for (var i = 0; i < 10; i++) 'item $i']);
+      addTearDown(list.dispose);
+      final c = SelectionController<String>(selected: ['item 1']);
+      addTearDown(c.dispose);
+      final node = FocusNode(debugLabel: 'list');
+      addTearDown(node.dispose);
+      await t.pumpWidget(
+        Theme.terminal(
+          child: names(list, controller: c, node: node),
+        ),
+        size: (10, 4),
+      );
+      node.requestFocus();
+      await t.pump();
+      expect(t.cursorVisible, isFalse);
+      expect(t.cursor, (0, 1));
+      await press(t, 'down down');
+      expect(t.cursor, (0, 3));
+      // scrolled: the cursor's row is the last one in view
+      await press(t, 'down down');
+      expect(t.lines.last, '▎item 5');
+      expect(t.cursor, (0, 3));
+      await press(t, 'home');
+      expect(t.cursor, (0, 0));
+    });
+
     testTwk('the items keep their State by their keys as the list changes', (
       t,
     ) async {

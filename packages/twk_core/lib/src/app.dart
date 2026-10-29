@@ -407,6 +407,9 @@ final class TwkApp {
   /// What [run] runs at the start of each frame.
   void Function()? _beforeLayout;
 
+  /// What [run] runs once each frame is painted, before it is written.
+  void Function()? _beforePresent;
+
   /// What [run] runs at the end of each frame.
   void Function()? _afterPresent;
 
@@ -478,6 +481,11 @@ final class TwkApp {
   /// Input waits for the first frame: an event that comes before it is
   /// handled once [beforeLayout] has run.
   ///
+  /// [beforePresent] runs in every frame once the tree is laid out and
+  /// painted, just before the screen is written: what it sets of the
+  /// presenter ([Presenter.cursorX], say) goes with that frame, what it
+  /// changes in the tree with the next.
+  ///
   /// [afterPresent] runs at the end of every frame, once its bytes are
   /// handed to the terminal (also when it has none) and before they are
   /// flushed: the frame's bytes never wait on it, nor it on a slow
@@ -504,9 +512,11 @@ final class TwkApp {
     RenderObject root,
     void Function(InputEvent e) onEvent, {
     void Function()? beforeLayout,
+    void Function()? beforePresent,
     void Function()? afterPresent,
   }) async {
     _beforeLayout = beforeLayout;
+    _beforePresent = beforePresent;
     _afterPresent = afterPresent;
     _running = true;
     runZonedGuarded(
@@ -1122,6 +1132,7 @@ final class TwkApp {
         _takeCommits();
         _end();
       }
+      _beforePresent?.call();
       final painted = _statsClock.elapsedMicroseconds;
       _begin('Present');
       final bytes = screen.render();

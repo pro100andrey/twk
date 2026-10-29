@@ -14,14 +14,14 @@ text
 │     SelectionArea       ·   ·   │          ╰────────────╯          │    ·   ·  │
 │     Draggable, Dr…              │                                  │           │
 │                         ·   ·   ╰──────────────────────────────────╯    ·   ·  │
-│   FOCUS AND KEYS 4                                                             │
+│   FOCUS AND KEYS 5                                                             │
 │     Focus, FocusS…  ▐   ·   ·   heard: nothing                          ·   ·  │
-│     ExcludeFocus    ▐         └                                      ┘         │
-│     KeyBindings,…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  36 × 9   ·   ·  │
-│     Shortcuts, Ac…                                                             │
-│                      ──────────────────────────────────────────────────────────│
-│   NAVIGATION     5     around the button   none  IgnorePointer                 │
-│     Navigator                              AbsorbPointer                       │
+│     ActiveItem      ▐         └                                      ┘         │
+│     ExcludeFocus        ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  36 × 9   ·   ·  │
+│     KeyBindings,…                                                              │
+│     Shortcuts, Ac…   ──────────────────────────────────────────────────────────│
+│                        around the button   none  IgnorePointer                 │
+│   NAVIGATION     5                         AbsorbPointer                       │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -41,12 +41,12 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggogggogggppppppppppppppppppppppppppppppppppppggggogggogg│
 │aaadddddadddaddddaxaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnannnnnnnaadgggogggogggmmmmmmgmmmmmmmggggggggggggggggggggggggggogggogg│
-│aaaaannnnnnnnnnnnaaaadgggggggggoggggggggggggggggggggggggggggggggggggggoggggggggg│
-│aaaaannnnnnnnnnnnnaaaagggogggogggogggogggogggogggogggogggogggoggAAgAgAgggogggogg│
-│aaaaannnnnnnnnnannnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaaaaaaaaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaddddddddddaaaaaxaaaggmmmmmmgmmmgmmmmmmgghwwwwhrsssssssssssssrgggggggggggggggg│
-│aaaaannnnnnnnnaaaaaaaaggggggggggggggggggggghwwwwwwwwwwwwwhgggggggggggggggggggggg│
+│aaaaannnnnnnnnnaaaaaadgggggggggoggggggggggggggggggggggggggggggggggggggoggggggggg│
+│aaaaannnnnnnnnnnnaaaaagggogggogggogggogggogggogggogggogggogggoggAAgAgAgggogggogg│
+│aaaaannnnnnnnnnnnnaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnannnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmmgmmmgmmmmmmgghwwwwhrsssssssssssssrgggggggggggggggg│
+│aaaddddddddddaaaaaxaaaggggggggggggggggggggghwwwwwwwwwwwwwhgggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

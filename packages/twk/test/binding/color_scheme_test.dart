@@ -143,6 +143,8 @@ void main() {
         'python3',
         [
           '../../tool/pty_run.py',
+          // the colours looked for below are 24-bit
+          '--env=COLORTERM=truecolor',
           '--input',
           'none',
           '--scheme',
@@ -155,9 +157,6 @@ void main() {
           // a bound: the app quits once it has shown the light background
           '--seconds=30',
         ],
-        // the colours looked for below are 24-bit, whatever the terminal
-        // the test runs from says
-        environment: const {'COLORTERM': 'truecolor'},
         group: true,
       );
       expect(res.stdout, endsWith('terminal restored\n'));

@@ -9,19 +9,19 @@ text
 │     SelectionArea                                                              │
 │     Draggable, Dr…      ·   · ┌                                     ┐   ·   ·  │
 │                                                 ╭ FocusScope ─────╮            │
-│   FOCUS AND KEYS 4      ·   ·   ╭─────╮ ╭─────╮ │╭───────╮╭──────╮│     ·   ·  │
+│   FOCUS AND KEYS 5      ·   ·   ╭─────╮ ╭─────╮ │╭───────╮╭──────╮│     ·   ·  │
 │ ▎   Focus, FocusS…              │ one │ │ two │ ││ three ││ four ││            │
-│     ExcludeFocus        ·   ·   ╰─────╯ ╰─────╯ │╰───────╯╰──────╯│     ·   ·  │
-│     KeyBindings,…                               ╰─────────────────╯            │
-│     Shortcuts, Ac…      ·   ·                                           ·   ·  │
-│                                 focus: none                                    │
-│   NAVIGATION     5      ·   · └                                     ┘   ·   ·  │
-│     Navigator       ▐                                         35 × 7           │
-│     PopScope, Nav…  ▐                                                          │
-│     Breadcrumbs      ──────────────────────────────────────────────────────────│
-│     Pagination         FocusScope  ▐  ●▌                                       │
-│     Stepper            node two     focusable  skips Tab  unfocusable          │
-│                                                                                │
+│     ActiveItem          ·   ·   ╰─────╯ ╰─────╯ │╰───────╯╰──────╯│     ·   ·  │
+│     ExcludeFocus                                ╰─────────────────╯            │
+│     KeyBindings,…       ·   ·                                           ·   ·  │
+│     Shortcuts, Ac…              focus: none                                    │
+│                         ·   · └                                     ┘   ·   ·  │
+│   NAVIGATION     5  ▐                                         35 × 7           │
+│     Navigator       ▐                                                          │
+│     PopScope, Nav…   ──────────────────────────────────────────────────────────│
+│     Breadcrumbs        FocusScope  ▐  ●▌                                       │
+│     Pagination         node two     focusable  skips Tab  unfocusable          │
+│     Stepper                                                                    │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -36,17 +36,17 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggpgmmmmmmmmmmgppppppgggggggggggg│
 │aaadddddadddaddddaAaaagggogggogggpppppppgpppppppgpppppppppppppppppppgggggogggogg│
 │aqrrrssssssrsssssssrragggggggggggpgtttgpgpgtttgpgppgtttttgppgttttgppgggggggggggg│
-│aaaaannnnnnnnnnnnaaaaagggogggogggpppppppgpppppppgpppppppppppppppppppgggggogggogg│
-│aaaaannnnnnnnnnnnnaaaagggggggggggggggggggggggggggpppppppppppppppppppgggggggggggg│
-│aaaaannnnnnnnnnannnaaagggogggogggggggggggggggggggggggggggggggggggggggggggogggogg│
-│aaaaaaaaaaaaaaaaaaaaaagggggggggggmmmmmmgmmmmgggggggggggggggggggggggggggggggggggg│
-│aaaddddddddddaaaaaAaaagggogggogogggggggggggggggggggggggggggggggggggggogggogggogg│
-│aaaaannnnnnnnnaaaaaaadgggggggggggggggggggggggggggggggggggggggggDDgDgDggggggggggg│
-│aaaaannnnnnnnnannnnaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnnnnaaaaaaaggmmmmmmmmmmggwxxywggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnaaaaaaaaaaggmmmmgmmmggggrsssssssssrhzzzzzhzzzhhzzzzzzzzzzzhggggggggg│
-│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnaaaaaaagggogggogggpppppppgpppppppgpppppppppppppppppppgggggogggogg│
+│aaaaannnnnnnnnnnnaaaaagggggggggggggggggggggggggggpppppppppppppppppppgggggggggggg│
+│aaaaannnnnnnnnnnnnaaaagggogggogggggggggggggggggggggggggggggggggggggggggggogggogg│
+│aaaaannnnnnnnnnannnaaagggggggggggmmmmmmgmmmmgggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggogggogogggggggggggggggggggggggggggggggggggggogggogggogg│
+│aaaddddddddddaaaaaAaadgggggggggggggggggggggggggggggggggggggggggDDgDgDggggggggggg│
+│aaaaannnnnnnnnaaaaaaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnannnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnaaaaaaggmmmmmmmmmmggwxxywggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnaaaaaaaggmmmmgmmmggggrsssssssssrhzzzzzhzzzhhzzzzzzzzzzzhggggggggg│
+│aaaaannnnnnnaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

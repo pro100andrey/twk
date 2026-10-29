@@ -45,10 +45,16 @@ final class InputParser {
 
   /// Whether a cursor position query (`CSI 6 n`) is out: its reply
   /// `CSI row ; col R` reads as F3 with modifiers, and is decoded as a
-  /// [CursorReport] only while this is set, which the first such reply
-  /// clears. False by default; `Terminal` sets it while its own query is
-  /// out (when it opens and when it takes the terminal back).
-  var expectCursorReport = false;
+  /// [CursorReport] only while one is expected ([cursorReportsExpected]),
+  /// each such reply taking one. False by default; `Terminal` sets it
+  /// while its own query is out (when it opens and when it takes the
+  /// terminal back). Set, one reply is expected.
+  bool get expectCursorReport => cursorReportsExpected > 0;
+  set expectCursorReport(bool expect) => cursorReportsExpected = expect ? 1 : 0;
+
+  /// How many replies to cursor position queries (`CSI 6 n`) are still
+  /// expected ([expectCursorReport]): as many as were asked in one write.
+  var cursorReportsExpected = 0;
 
   static const _pasteEnd = <int>[0x1B, 0x5B, 0x32, 0x30, 0x31, 0x7E];
 
@@ -739,8 +745,8 @@ final class InputParser {
       case 0x53: // S
         return KeyEvent(KeyCode.f4, modifiers: mods, kind: kind);
       case 0x52: // R
-        if (expectCursorReport && count == 2) {
-          expectCursorReport = false;
+        if (cursorReportsExpected > 0 && count == 2) {
+          cursorReportsExpected--;
           return CursorReport(_p(1, 1) - 1, _p(0, 1) - 1);
         }
         return KeyEvent(KeyCode.f3, modifiers: mods, kind: kind);

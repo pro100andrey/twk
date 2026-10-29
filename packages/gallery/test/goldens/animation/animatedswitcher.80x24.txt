@@ -21,7 +21,7 @@ text
 │     SelectionArea      transition   fade  slide  slide right  slide up         │
 │     Draggable, Dr…                  slide down  dissolve                       │
 │                        cycle       ▐  ●▌                                       │
-│   FOCUS AND KEYS 4                                                             │
+│   FOCUS AND KEYS 5                                                             │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles

@@ -24,6 +24,7 @@ import 'package:twk_core/twk_core.dart'
         RenderParagraph,
         stringWidth;
 
+import '../editing/caret.dart' show clearRestCursor, restCursor;
 import '../focus/focus_tree.dart' show FocusNode;
 import '../focus/shortcuts.dart' show KeyBindings;
 import '../foundation/change_notifier.dart';
@@ -1123,9 +1124,8 @@ final class _LogViewState extends State<LogView> {
         (_tags[line.level.index], look.levels[line.level.index]),
     ];
     final query = look.query;
-    final found = line.number == widget.controller._match
-        ? look.current
-        : look.match;
+    final current = line.number == widget.controller._match;
+    final found = current ? look.current : look.match;
     var at = 0;
     if (query.pattern.isNotEmpty) {
       for (var i = query.indexIn(text); i >= 0;) {
@@ -1145,6 +1145,7 @@ final class _LogViewState extends State<LogView> {
       number: line.number,
       shift: look.wrap ? null : look.shift,
       spans: spans,
+      current: current,
     );
   }
 }
@@ -1255,18 +1256,21 @@ final class _RenderSelected extends RenderObject
 }
 
 /// A line of a [LogView]: its [number], and its [spans] scrolled [shift]
-/// columns across, or wrapped when [shift] is null.
+/// columns across, or wrapped when [shift] is null; [current] the line of
+/// the current match.
 final class _Line extends LeafRenderObjectWidget {
   const _Line({
     required this.number,
     required this.shift,
     required this.spans,
+    required this.current,
     super.key,
   });
 
   final int number;
   final int? shift;
   final List<(String, Style)> spans;
+  final bool current;
 
   /// [spans], their styles merged onto the [DefaultTextStyle] above.
   List<(String, Style)> _spansIn(BuildContext context) {
@@ -1276,14 +1280,15 @@ final class _Line extends LeafRenderObjectWidget {
 
   @override
   _RenderLine createRenderObject(BuildContext context) =>
-      _RenderLine(number, shift, _spansIn(context));
+      _RenderLine(number, shift, _spansIn(context))..current = current;
 
   @override
   void updateRenderObject(BuildContext context, _RenderLine renderObject) =>
       renderObject
         ..number = number
         ..shift = shift
-        ..spans = _spansIn(context);
+        ..spans = _spansIn(context)
+        ..current = current;
 }
 
 /// What a [_Line] lays out and paints: a paragraph of its spans, what is
@@ -1291,7 +1296,9 @@ final class _Line extends LeafRenderObjectWidget {
 /// with a [shift], as wide as it likes, [shift] columns of it off to the
 /// left and what does not fit cut off. The paragraph is its own, no
 /// [Text]'s: a [SelectionArea] selects in the line through the
-/// [_RenderSelected] above.
+/// [_RenderSelected] above. The line of the current match puts the hidden
+/// cursor on its first cell (`restCursor`), as an `ActiveItem` would, the
+/// list's items left lines.
 final class _RenderLine extends RenderObject with RenderObjectWithChildMixin {
   _RenderLine(this._number, this._shift, this._spans) {
     child = RenderParagraph(
@@ -1337,6 +1344,16 @@ final class _RenderLine extends RenderObject with RenderObjectWithChildMixin {
     }
     _shift = s;
     _place();
+  }
+
+  /// Whether it is the line of the current match.
+  bool get current => _current;
+  var _current = false;
+  set current(bool c) {
+    if (c != _current) {
+      _current = c;
+      markNeedsPaint();
+    }
   }
 
   // what is selected of it, offsets in its text, and in what style
@@ -1399,6 +1416,7 @@ final class _RenderLine extends RenderObject with RenderObjectWithChildMixin {
     properties
       ..add('number', _number)
       ..add('shift', _shift, defaultValue: null)
+      ..add('current', _current, defaultValue: false)
       ..add('selected', _selected, defaultValue: null);
   }
 
@@ -1429,6 +1447,12 @@ final class _RenderLine extends RenderObject with RenderObjectWithChildMixin {
 
   @override
   void paint(PaintContext ctx) {
+    // the hidden cursor on the current match's line
+    if (_current) {
+      restCursor(ctx, this, 0, 0);
+    } else {
+      clearRestCursor(ctx, this);
+    }
     ctx.canvas
       ..save()
       ..clipRect(0, 0, width, height);

@@ -219,8 +219,9 @@ final class Vt {
   /// application's [TextSegmenter] does. [strict] throws each error as it
   /// happens; off, they are only kept in [errors]. [allowLineFeed] takes
   /// LF, [scrollback] keeps the lines scrolled off the top in [history],
-  /// and [relativeOnly] makes an absolute row an error: the three of an
-  /// inline region's normal screen. [cellPixelWidth] and [cellPixelHeight]
+  /// and [relativeOnly] makes an absolute row an error, as drawing on the
+  /// alternate screen is (going there to ask queries is not): the three of
+  /// an inline region's normal screen. [cellPixelWidth] and [cellPixelHeight]
   /// are the size of a cell in pixels, for images.
   Vt(
     this.width,
@@ -383,6 +384,14 @@ final class Vt {
   /// left.
   var altScreenSwitches = 0;
 
+  /// Whether a row was written while on the alternate screen, which this
+  /// emulator keeps no screen of its own for: an app drawn there. A probe
+  /// that asks its queries there, which write no cell, isn't.
+  var drawnOnAlternate = false;
+
+  // whether the alternate screen was entered and not left since
+  var _alternate = false;
+
   /// BDSM (ECMA-48 mode 8) reset by `CSI 8 l`: explicit mode, each
   /// character shown in the cell it is written to, which is all this
   /// emulator does either way; `CSI 8 h` sets it again (implicit mode).
@@ -524,6 +533,10 @@ final class Vt {
   }
 
   void _touch(List<VtCell> row) {
+    if (_alternate && !drawnOnAlternate) {
+      drawnOnAlternate = true;
+      _absolute('drawing on the alternate screen');
+    }
     if (_guarded.isNotEmpty && _guarded.contains(row)) {
       _err('a guarded row was changed');
     }
@@ -822,7 +835,7 @@ final class Vt {
       if (screenNeutral.contains(mode)) {
         if (mode == 1049) {
           altScreenSwitches++;
-          _absolute('the alternate screen');
+          _alternate = on;
         }
         return;
       }

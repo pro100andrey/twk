@@ -89,6 +89,37 @@ void main() {
     },
   );
 
+  testTwk('the hidden cursor rests on the choice that shows the focus as '
+      'it moves, down and across', (t) async {
+    final value = ValueNotifier<String?>('a');
+    addTearDown(value.dispose);
+    final node = FocusNode(debugLabel: 'fruit');
+    addTearDown(node.dispose);
+    await t.pumpWidget(
+      Theme.terminal(child: group(value, node: node)),
+      size: (50, 4),
+    );
+    node.requestFocus();
+    await t.pump();
+    expect(t.cursorVisible, isFalse);
+    expect(t.cursor, (0, 0));
+    // past the disabled one
+    await press(t, 'down');
+    expect(t.cursor, (0, 2));
+    await press(t, 'down');
+    expect(t.cursor, (0, 3));
+    await t.pumpWidget(
+      Theme.terminal(
+        child: group(value, node: node, direction: Axis.horizontal),
+      ),
+      size: (50, 4),
+    );
+    expect(t.lines.first, '( ) Apple  ( ) Banana  ( ) Cherry  (●) Date');
+    expect(t.cursor, (35, 0));
+    await press(t, 'home');
+    expect(t.cursor, (0, 0));
+  });
+
   testTwk('with none chosen, the first enabled one shows the focus: Space '
       'and Enter choose it, Down the first and Up the last', (t) async {
     final value = ValueNotifier<String?>(null);

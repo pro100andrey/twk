@@ -84,10 +84,10 @@ dart run tool/xtask.dart bench              # when the frame path changed (below
   errors of `dart pub publish --dry-run`, and pana's score with what lost
   points (pana activated with `dart pub global activate pana`; skipped
   without it).
-- CI (`.github/workflows/ci.yml`) runs `ci` on Linux, and `ci-os` — the
-  tests of `twk_core`, `twk` and `twk_test` — on macOS and Windows; the
-  end to end runs and the benchmark are Linux's (`platforms:` in
-  `xtask.yaml`; the end to end runs macOS's too). Each step of a workflow
+- CI (`.github/workflows/ci.yml`) runs `ci` on Linux, and `ci-os` on
+  macOS and Windows: on macOS every package's tests and the end to end
+  runs, on Windows the tests of `twk_core`, `twk` and `twk_test`; the
+  benchmark is Linux's (`platforms:` in `xtask.yaml`). Each step of a workflow
   runs one gate: `workflows-check` (`--check-ci`), in `handover`, refuses
   anything else, so a check is added to `xtask.yaml`, never to the
   workflow.

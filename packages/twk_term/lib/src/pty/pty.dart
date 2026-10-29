@@ -30,6 +30,60 @@ const _quit = 0x71; // stop reading: the terminal is closed
 const _writable = 'writable';
 const _hangup = 'hangup';
 
+/// The variables that name the terminal a program runs in, or the
+/// multiplexer: this process's, which a program in the emulator is not
+/// in, so they are left out of its environment ([Pty.start]). As
+/// tool/pty_run.py's HOST_TERMINAL, which keep in step.
+const _hostTerminal = {
+  'TERM_PROGRAM',
+  'TERM_PROGRAM_VERSION',
+  'TERM_SESSION_ID',
+  'LC_TERMINAL',
+  'LC_TERMINAL_VERSION',
+  'COLORFGBG',
+  'ITERM_SESSION_ID',
+  'KITTY_WINDOW_ID',
+  'KITTY_PID',
+  'GHOSTTY_RESOURCES_DIR',
+  'WEZTERM_PANE',
+  'WEZTERM_EXECUTABLE',
+  'KONSOLE_VERSION',
+  'KONSOLE_DBUS_SESSION',
+  'VTE_VERSION',
+  'WT_SESSION',
+  'ALACRITTY_WINDOW_ID',
+  'TMUX',
+  'TMUX_PANE',
+  'STY',
+  'XTERM_VERSION',
+  'MLTERM',
+};
+
+/// The environment of a program [Pty.start] runs: [parent] without the
+/// variables that name the terminal it runs in, TERM and COLORTERM of the
+/// emulator, [given] over all of them. Not exported.
+Map<String, String> ptyEnvironment(
+  Map<String, String> parent,
+  Map<String, String>? given,
+) => {
+  for (final MapEntry(:key, :value) in parent.entries)
+    if (!_hostTerminal.contains(key)) key: value,
+  'TERM': 'xterm-256color',
+  'COLORTERM': 'truecolor',
+  ...?given,
+};
+
+/// Bigger than `struct termios` on Linux (60 bytes) and macOS (72).
+const _termiosBytes = 256;
+
+/// The terminal's attributes as the I/O isolate read them through the
+/// master ([Pty.modesAtEnd]).
+final class _Modes {
+  const _Modes(this.bytes);
+
+  final Uint8List bytes;
+}
+
 /// The program's end, as the I/O isolate saw it.
 final class _Exited {
   const _Exited(this.code);
@@ -52,8 +106,11 @@ final class _Exited {
 /// never with a fork of the VM: a new session (POSIX_SPAWN_SETSID), the
 /// slave opened as descriptor 0 by its leader, which makes it the
 /// controlling terminal, then duplicated to 1 and 2, every other
-/// descriptor closed. The master is read by an isolate of its own polling
-/// it, which also waits for the program's end.
+/// descriptor closed. macOS opens it before the session is made: there
+/// `/bin/sh` opens it again as the leader, then execs the program through
+/// `env`, the environment given to sh as its own. The master is read by
+/// an isolate of its own polling it, which also waits for the program's
+/// end.
 ///
 /// `ls` run to its end, its output printed:
 ///
@@ -83,10 +140,17 @@ final class Pty {
   /// [width] by [height] cells.
   ///
   /// The program's environment is this process's (unless
-  /// [includeParentEnvironment] is false) with TERM set to
-  /// `xterm-256color`, the dialect the emulator speaks, and [environment]
-  /// over both; an [executable] without a slash is looked for in its PATH.
-  /// Throws a [ProcessException] when the program can't be started, an
+  /// [includeParentEnvironment] is false) without the variables that name
+  /// the terminal this process runs in (`TERM_PROGRAM`, `LC_TERMINAL`,
+  /// `KITTY_WINDOW_ID`, `TMUX` and kin), with
+  /// TERM set to `xterm-256color`, the dialect the emulator speaks, and
+  /// COLORTERM to `truecolor`, and [environment] over all of them: a
+  /// program in the emulator is not told it runs in the terminal around
+  /// it. An [executable] without a slash is looked for in its PATH.
+  /// Throws a [ProcessException] when the program can't be started (on
+  /// macOS, where sh execs it through env, one found and executable that
+  /// still won't run, of another architecture or with a bad `#!` line,
+  /// ends at once instead, its exit code env's, 126 or 127), an
   /// [ArgumentError] for an argument, a variable or a directory with a NUL
   /// character in it, an [UnsupportedError] off Linux and macOS.
   factory Pty.start(
@@ -102,11 +166,10 @@ final class Pty {
       throw UnsupportedError('Pty runs on Linux and macOS only');
     }
     _checkSize(width, height);
-    final env = {
-      if (includeParentEnvironment) ...Platform.environment,
-      'TERM': 'xterm-256color',
-      ...?environment,
-    };
+    final env = ptyEnvironment(
+      includeParentEnvironment ? Platform.environment : const {},
+      environment,
+    );
     final path = _resolve(executable, arguments, env['PATH']);
     final scope = c.NativeScope();
     final attr = scope.alloc<Void>(1024);
@@ -225,18 +288,53 @@ final class Pty {
       }
       final pid = scope.alloc<Int>(sizeOf<Int>());
       final pidfd = scope.alloc<Int>(sizeOf<Int>());
+      final entries = [
+        for (final MapEntry(:key, :value) in env.entries) '$key=$value',
+      ];
+      // macOS opens the file actions' slave before the new session is made
+      // (POSIX_SPAWN_SETSID), so it is no controlling terminal: Ctrl+C
+      // would signal nothing, a shell run no jobs, close hang up nothing.
+      // sh, the session's leader by then, opens it again, which makes it
+      // one, and execs the program through env, in the environment as
+      // given (sh's own, not in its arguments, which ps shows anyone;
+      // without what sh adds to it, PWD and SHLVL where they weren't, with
+      // the prompts it unsets) and
+      // its name as argv[0], which env finds in that environment's PATH
+      // as posix_spawn would.
+      final (
+        String spawned,
+        List<String> argv,
+        List<String> envp,
+      ) = Platform.isMacOS
+          ? (
+              '/bin/sh',
+              <String>[
+                'sh',
+                '-c',
+                r'exec 0<>"$0" 1>&0 2>&0 && exec /usr/bin/env "$@"',
+                name,
+                for (final added in const ['PWD', 'SHLVL'])
+                  if (!env.containsKey(added)) ...['-u', added],
+                '--',
+                // what sh, not interactive, unsets of it
+                for (final unset in const ['PS1', 'PS2'])
+                  if (env[unset] case final value?) '$unset=$value',
+                if (executable.contains('=')) path else executable,
+                ...arguments,
+              ],
+              entries,
+            )
+          : (path, [executable, ...arguments], entries);
       check(
         'posix_spawn $path',
         c.spawn(
           pid,
           pidfd,
-          scope.string(path),
+          scope.string(spawned),
           actions,
           attr,
-          scope.strings([executable, ...arguments]),
-          scope.strings([
-            for (final MapEntry(:key, :value) in env.entries) '$key=$value',
-          ]),
+          scope.strings(argv),
+          scope.strings(envp),
         ),
       );
       c.setNonblocking(master);
@@ -312,6 +410,7 @@ final class Pty {
   var _closed = false;
   var _hungUp = false;
   var _ended = false;
+  Uint8List? _modesAtEnd;
   int _width;
   int _height;
 
@@ -334,6 +433,17 @@ final class Pty {
   /// may take the program's end first; Linux 6.15 and later still tell it
   /// through the pidfd made with the program, elsewhere it is null then.
   Future<int?> get exitCode => _exit.future;
+
+  /// The terminal's attributes (`struct termios`, in 256 bytes) as the
+  /// program left them, read through the master when it
+  /// ended or when the terminal hung up, whichever came first; null
+  /// before, or where they could not be read.
+  ///
+  /// A descriptor of the slave of one's own reads them no more by then on
+  /// macOS, which revokes a session's controlling terminal once its
+  /// leader ends: what checks that a program put its terminal back reads
+  /// them here.
+  Uint8List? get modesAtEnd => _modesAtEnd;
 
   /// How many columns the terminal has, as [resize] set it last.
   int get width => _width;
@@ -414,6 +524,8 @@ final class Pty {
         // on close, or every descriptor of the slave closed: the master is
         // closed then, or once the program ended (_end)
         _hangUp(closeMaster: _closed);
+      case _Modes(:final bytes):
+        _modesAtEnd ??= bytes;
       case _Exited(:final code):
         _exit.complete(code);
       case [final Object error, final Object? stack]:
@@ -617,12 +729,23 @@ void _ioLoop((int, int, int, int, SendPort) args) {
   // never, before Linux 6.15).
   Stopwatch? taken;
 
+  // the terminal's attributes, through the master while it is read
+  // (closed by the main isolate once it hung up): what the program left
+  final termios = scope.alloc<Uint8>(_termiosBytes);
+  void modes() {
+    if (reading && c.tcgetattr(master, termios.cast()) == 0) {
+      port.send(_Modes(Uint8List.fromList(termios.asTypedList(_termiosBytes))));
+    }
+  }
+
   void ended(int? status) {
+    modes();
     reaped = true;
     port.send(_Exited(status == null ? null : _exitCodeOf(status)));
   }
 
   void hangUp() {
+    modes();
     reading = false;
     port.send(_hangup);
   }

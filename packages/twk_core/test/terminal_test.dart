@@ -61,6 +61,34 @@ void main() {
     expect(colorModeFor({}, windows: true), ColorMode.trueColor);
   });
 
+  test('styled underlines on all but Terminal.app', () {
+    expect(styledUnderlinesFor({'TERM_PROGRAM': 'Apple_Terminal'}), isFalse);
+    expect(styledUnderlinesFor({'TERM_PROGRAM': 'iTerm.app'}), isTrue);
+    expect(styledUnderlinesFor({'TERM': 'xterm-kitty'}), isTrue);
+    expect(styledUnderlinesFor({}), isTrue);
+    // TERM_PROGRAM inherited from the Terminal.app it was started in
+    for (final term in [
+      'alacritty',
+      'xterm-kitty',
+      'foot-extra',
+      'contour',
+      'wezterm',
+    ]) {
+      expect(
+        styledUnderlinesFor({'TERM': term, 'TERM_PROGRAM': 'Apple_Terminal'}),
+        isTrue,
+        reason: term,
+      );
+    }
+    expect(
+      styledUnderlinesFor({
+        'TERM': 'xterm-256color',
+        'TERM_PROGRAM': 'Apple_Terminal',
+      }),
+      isFalse,
+    );
+  });
+
   test('notifications by the terminal the environment names', () {
     const kitty = NotificationProtocol.osc99;
     const iterm = NotificationProtocol.osc9;
@@ -82,7 +110,10 @@ void main() {
       {'TERM': 'xterm-256color', 'VTE_VERSION': '5003'}: none,
       {'TERM': 'alacritty'}: none,
       {'TERM': 'xterm-256color'}: none,
-      {'TERM': 'xterm-256color', 'TERM_PROGRAM': 'Apple_Terminal'}: none,
+      {'TERM': 'xterm-256color', 'TERM_PROGRAM': 'Apple_Terminal'}:
+          NotificationProtocol.bell,
+      // Alacritty started from Terminal.app
+      {'TERM': 'alacritty', 'TERM_PROGRAM': 'Apple_Terminal'}: none,
       {'TERM': 'linux'}: none,
       {}: none,
       // the terminal's own TERM and TERM_PROGRAM come before variables

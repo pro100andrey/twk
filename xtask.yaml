@@ -5,7 +5,7 @@
 #   dart run tool/xtask.dart handover     # what a handover or a pull request needs
 #   dart run tool/xtask.dart bench        # the frame benchmark against HEAD
 #   dart run tool/xtask.dart ci           # all of it, the benchmark last, alone
-#   dart run tool/xtask.dart ci-os        # the published packages' tests, macOS, Windows
+#   dart run tool/xtask.dart ci-os        # every package's tests on macOS, the published ones' on Windows
 #   dart run tool/xtask.dart --list       # every task, by gate
 #
 # `entry:` below makes the installed xtask (`dart pub global activate xtask`)
@@ -30,7 +30,9 @@ version: 1
 entry: tool/xtask.dart
 
 # ci is the Linux job of .github/workflows/ci.yml; ci-os the macOS and
-# Windows ones, over the packages that are published (the `published` set).
+# Windows ones: on macOS every package's tests and the pseudo-terminal
+# runs, on Windows those of the packages that are published (the
+# `published` set).
 gates: [quick, handover, ci, ci-os]
 
 sets:
@@ -71,8 +73,7 @@ sets:
       - packages/twk_dev/templates/*/pubspec.yaml
 
   # The packages published to pub.dev, and the tester their tests take:
-  # what ci-os runs on macOS and Windows, where their terminal backends are
-  # another's.
+  # what ci-os runs on Windows, where their terminal backend is another's.
   published:
     include:
       - packages/twk_core/pubspec.yaml
@@ -208,12 +209,24 @@ tasks:
     args: [$each, --reporter=failures-only]
 
   os-test:
-    # pkg-test's, over the published packages only: ci-os, on macOS and
-    # Windows.
+    # pkg-test's, over the published packages only: ci-os, on Windows.
     desc: the tests of the published packages and their tester
     gate: [ci-os]
+    platforms: [windows]
     needs: [get]
     each: published
+    do: tests
+    args: [$each, --reporter=failures-only]
+
+  mac-test:
+    # pkg-test's on macOS, every package: its pseudo-terminal (twk_term's
+    # Pty, twk_dev's record and play, the shells and the tools they run)
+    # is another kernel's, and BSD's tools are not GNU's.
+    desc: the tests of every package that has a test/, on macOS
+    gate: [ci-os]
+    platforms: [macos]
+    needs: [get, pkg-get]
+    each: packages
     do: tests
     args: [$each, --reporter=failures-only]
 
@@ -382,7 +395,7 @@ tasks:
   e2e-fullscreen:
     # pty_run.py takes Python's pty, which Windows has not.
     desc: the chat demo in a pseudo-terminal, its output through the emulator
-    gate: [handover, ci]
+    gate: [handover, ci, ci-os]
     platforms: [linux, macos]
     exclusive: [tests]
     do: e2e
@@ -390,7 +403,7 @@ tasks:
 
   e2e-inline:
     desc: the same in the inline mode
-    gate: [handover, ci]
+    gate: [handover, ci, ci-os]
     platforms: [linux, macos]
     exclusive: [tests]
     do: e2e

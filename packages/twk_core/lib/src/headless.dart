@@ -42,11 +42,12 @@ import 'unicode/unicode.dart';
 /// terminal through tmux or screen comes wrapped for it. Its
 /// [TerminalInfo.notifications] is `notifications`: [notify] writes in
 /// that protocol, nothing for [NotificationProtocol.none]. Its
-/// [TerminalInfo.pointerShapes] and [TerminalInfo.progressReports] are
-/// `pointerShapes` and `progressReports`; the states set on it go to
-/// [frames], and are put back there as a [Terminal] puts them back
-/// ([TerminalStateBackend]). Its [TerminalInfo.bidi] is `bidi`: by default
-/// the app orders right-to-left text, as for a terminal that does no bidi.
+/// [TerminalInfo.pointerNames] is `pointerNames` with `pointerShapes`,
+/// null without, and its [TerminalInfo.progressReports] is
+/// `progressReports`; the states set on it go to [frames], and are put
+/// back there as a [Terminal] puts them back ([TerminalStateBackend]).
+/// Its [TerminalInfo.bidi] is `bidi`: by default the app orders
+/// right-to-left text, as for a terminal that does no bidi.
 /// Its [TerminalInfo.palette] is `palette`: the entries an app blends
 /// palette colors with, xterm's where it has none.
 ///
@@ -98,6 +99,7 @@ final class HeadlessTerminal
     NotificationProtocol notifications = NotificationProtocol.none,
     Multiplexer multiplexer = Multiplexer.none,
     bool pointerShapes = false,
+    PointerNames pointerNames = PointerNames.css,
     bool progressReports = false,
     BidiReordering bidi = BidiReordering.app,
     Map<String, String> settings = const {},
@@ -117,7 +119,7 @@ final class HeadlessTerminal
          cursorColumn: options.alternateScreen ? null : cursorColumn,
          notifications: notifications,
          multiplexer: multiplexer,
-         pointerShapes: pointerShapes,
+         pointerNames: pointerShapes ? pointerNames : null,
          progressReports: progressReports,
          bidi: bidi,
          settings: settings,
@@ -209,10 +211,15 @@ final class HeadlessTerminal
   void _deliver(List<InputEvent> events) =>
       deliverCoalesced(events, _deliverOne);
 
+  // whether the window has the focus, as the last focus report typed said
+  var _focused = true;
+
   void _deliverOne(InputEvent e) {
     if (e is ResizeEvent) {
       width = e.width;
       height = e.height;
+    } else if (e is FocusEvent) {
+      _focused = e.focused;
     }
     _events.add(e);
   }
@@ -259,10 +266,12 @@ final class HeadlessTerminal
   /// Writes a desktop notification of [title] and [body] to [frames] as a
   /// [Terminal] does ([Terminal.notify]), in [TerminalInfo.notifications]
   /// through [TerminalInfo.multiplexer], each under an id of its own, `1`
-  /// first; nothing once closed.
+  /// first; the bell only while the focus report typed last said the
+  /// window lost the focus; nothing once closed.
   @override
   void notify(String title, String body) {
-    if (closed) {
+    if (closed ||
+        (info.notifications == NotificationProtocol.bell && _focused)) {
       return;
     }
     final s = notifySequence(

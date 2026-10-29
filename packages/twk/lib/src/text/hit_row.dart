@@ -6,6 +6,7 @@ library;
 import 'package:twk_core/twk_core.dart' show TextSegmenter, TextWrap;
 
 import '../binding/app_binding.dart';
+import '../focus/active_item.dart';
 import '../framework/framework.dart';
 import '../gestures/mouse.dart';
 import '../style/style.dart';
@@ -74,12 +75,18 @@ final class HitRow {
   /// [segmenter]: from here on [at] finds the targets where they are
   /// drawn. With [onHover] the mouse over the row sets [hovered] and calls
   /// [onHover] with it each time it changes: on the target it comes over,
-  /// -1 between targets and when it leaves.
+  /// -1 between targets and when it leaves. With [active], the target the
+  /// keys of a focused row act on (-1 for none), the terminal's hidden
+  /// cursor rests on its first cell ([ActiveItem.column]); a row
+  /// whose keys move between its targets gives it at every build, -1 too,
+  /// so that what it builds keeps its shape as the highlight comes and
+  /// goes.
   Widget row(
     List<HitSpan> spans,
     TextSegmenter segmenter, {
     Style style = const Style(),
     void Function(int target)? onHover,
+    int? active,
   }) {
     var targets = 0;
     for (final s in spans) {
@@ -102,26 +109,34 @@ final class HitRow {
     }
     _extents = extents;
     _width = x;
-    final Widget text = Text.rich(
+    Widget text = Text.rich(
       [for (final s in spans) s.span],
       style: style,
       wrap: TextWrap.none,
       maxLines: 1,
     );
-    if (onHover == null) {
+    if (onHover != null) {
+      void hover(int target) {
+        if (target != hovered) {
+          hovered = target;
+          onHover(target);
+        }
+      }
+
+      text = MouseRegion(
+        onEnter: (event) => hover(at(event.x)),
+        onHover: (event) => hover(at(event.x)),
+        onExit: (_) => hover(-1),
+        child: text,
+      );
+    }
+    if (active == null) {
       return text;
     }
-    void hover(int target) {
-      if (target != hovered) {
-        hovered = target;
-        onHover(target);
-      }
-    }
-
-    return MouseRegion(
-      onEnter: (event) => hover(at(event.x)),
-      onHover: (event) => hover(at(event.x)),
-      onExit: (_) => hover(-1),
+    // the hidden cursor on the active target
+    return ActiveItem(
+      active: active >= 0,
+      column: active < 0 ? 0 : startOf(active),
       child: text,
     );
   }

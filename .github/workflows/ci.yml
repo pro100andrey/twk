@@ -54,15 +54,16 @@ jobs:
           path: xtask-report.json
 
   other-os:
-    # The published packages' tests where the terminal is another's: the
-    # core's backends for macOS and Windows, and twk over them. The end to
-    # end runs and the benchmark are Linux's (their `platforms:`).
+    # Where the terminal is another's: on macOS every package's tests (its
+    # pseudo-terminal and BSD's tools too) and the end to end runs, on
+    # Windows the published packages' (the core's console backend and twk
+    # over it). The benchmark is Linux's (its `platforms:`).
     strategy:
       fail-fast: false
       matrix:
         os: [macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 40
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: dart-lang/setup-dart@v1

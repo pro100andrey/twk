@@ -1289,24 +1289,28 @@ final class _FilePickerState extends State<FilePicker> {
       },
       child: GestureDetector(
         onDoubleTap: (_) => _take(entry),
-        child: Box(
-          style: style,
-          child: Text.rich(
-            [
-              if (widget.bar && cursor)
-                Span(
-                  '▎',
-                  (focused ? theme.primary : theme.muted).merge(
-                    const Style(attrsOff: Attr.bold),
-                  ),
-                )
-              else if (widget.bar)
-                const Span(' '),
-              Span('$mark${entry.label}'),
-            ],
+        // the hidden cursor on the cursor's row
+        child: ActiveItem(
+          active: cursor,
+          child: Box(
             style: style,
-            wrap: TextWrap.none,
-            maxLines: 1,
+            child: Text.rich(
+              [
+                if (widget.bar && cursor)
+                  Span(
+                    '▎',
+                    (focused ? theme.primary : theme.muted).merge(
+                      const Style(attrsOff: Attr.bold),
+                    ),
+                  )
+                else if (widget.bar)
+                  const Span(' '),
+                Span('$mark${entry.label}'),
+              ],
+              style: style,
+              wrap: TextWrap.none,
+              maxLines: 1,
+            ),
           ),
         ),
       ),

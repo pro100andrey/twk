@@ -58,6 +58,7 @@ import '../debug/editor.dart';
 import '../debug/frame_overlay.dart';
 import '../debug/inspector.dart';
 import '../debug/key_hint.dart';
+import '../editing/caret.dart' show restingCell;
 import '../focus/focus.dart';
 import '../foundation/helpers.dart';
 import '../framework/framework.dart';
@@ -69,6 +70,7 @@ import '../semantics/semantics.dart';
 import '../style/theme.dart';
 import 'error_widget.dart';
 import 'source_excerpt.dart';
+import 'terminal_status.dart' show TerminalStatus;
 
 // Examples can assume:
 // late BuildContext context;
@@ -132,7 +134,8 @@ const _product = bool.fromEnvironment('dart.vm.product');
 /// most rows the inline region grows to, null for the terminal's height,
 /// and [clearInlineOnExit] clears the region when the app ends instead of
 /// leaving it in the history; [logs] is where `log()` and `print` go (the
-/// core's `TwkApp.logs`); [exitOnCtrlC] is [AppBinding.exitOnCtrlC].
+/// core's `TwkApp.logs`); [exitOnCtrlC] is [AppBinding.exitOnCtrlC],
+/// [restCursor] [AppBinding.restCursor].
 /// [clock] is the app's clock, which spaces its frames (`TwkApp.clock`),
 /// a stopwatch started here by default: a test hands it the stopwatch of
 /// a fake clock it moves, and runs the app in that clock's zone.
@@ -157,6 +160,7 @@ Future<void> runApp(
   bool clearInlineOnExit = false,
   LogSink? logs,
   bool exitOnCtrlC = true,
+  bool restCursor = true,
   bool? screenReader,
   BidiReordering? bidi,
   Stopwatch? clock,
@@ -195,6 +199,7 @@ Future<void> runApp(
     clearInlineOnExit: clearInlineOnExit,
     logs: logs,
     exitOnCtrlC: exitOnCtrlC,
+    restCursor: restCursor,
     clock: clock,
     screenReader: screenReader,
   ).run(app);
@@ -281,8 +286,8 @@ Future<void> runApp(
 final class AppBinding {
   /// A binding of a `TwkApp` on [terminal], made with [viewport], [maxFps],
   /// [maxInlineRows], [clearInlineOnExit], [logs] and [clock] (the app's
-  /// clock, a new stopwatch by default); [exitOnCtrlC] and [screenReader]
-  /// are as [runApp] takes them. [run] runs an app on it.
+  /// clock, a new stopwatch by default); [exitOnCtrlC], [restCursor] and
+  /// [screenReader] are as [runApp] takes them. [run] runs an app on it.
   ///
   /// [environment] is what the app reads its variables from, null (the
   /// default) for the process's: given to its `TwkApp` (`TWK_LOG`,
@@ -306,6 +311,7 @@ final class AppBinding {
     bool clearInlineOnExit = false,
     LogSink? logs,
     this.exitOnCtrlC = true,
+    this.restCursor = true,
     Stopwatch? clock,
     bool? screenReader,
     Map<String, String>? environment,
@@ -349,6 +355,15 @@ final class AppBinding {
 
   /// Ctrl+C that no focus node or [InputListener] takes quits.
   final bool exitOnCtrlC;
+
+  /// Whether the terminal's cursor, while no caret shows it, rests on what
+  /// has the focus on the whole screen (`Presenter.restsCursor`), the cell
+  /// the focused widget gives by `restCursor`, as it does by default:
+  /// iTerm2's cursor guide keeps still on it, macOS zoom, a screen reader
+  /// and a braille display follow it. It costs a move of the cursor a
+  /// frame that writes, a few bytes; off, a frame leaves it where it wrote
+  /// last, for a link where each byte counts.
+  final bool restCursor;
 
   /// The focus of the app: which node gets the keys first.
   late final focusManager = FocusManager(onFlushScheduled: _focusChanged);
@@ -535,6 +550,7 @@ final class AppBinding {
         _view,
         _dispatch,
         beforeLayout: _beforeLayout,
+        beforePresent: _beforePresent,
         afterPresent: _afterPresent,
       );
     } on Object {
@@ -1055,11 +1071,34 @@ final class AppBinding {
     _trackMouse();
   }
 
+  // the TwkApp runs it once each frame is painted, before it is written:
+  // the hidden cursor rests on what has the focus (`restCursor`), where a
+  // terminal that marks its row (iTerm2's cursor guide) or follows it
+  // (macOS zoom) shows the focus, not where the frame wrote last
+  void _beforePresent() {
+    final presenter = twkApp.screen.presenter..restsCursor = restCursor;
+    if (presenter.cursorVisible || !restCursor) {
+      return;
+    }
+    // a scope's own focus is no widget's: what is in it is not focused
+    final node = focusManager.primaryFocus;
+    final focused = node is FocusScopeNode
+        ? null
+        : node?.context?.findRenderObject();
+    // with nothing focused on the screen, at home: not on a caret's cell
+    // the focus has left
+    final (x, y) = restingCell(presenter, focused) ?? (0, 0);
+    presenter
+      ..cursorX = x
+      ..cursorY = y;
+  }
+
   // the TwkApp runs it at the end of each frame
   void _afterPresent() {
     _owner.finalizeTree();
     _trackMouse();
     _mouse.afterFrame();
+    TerminalStatus.ofBinding(this).showPointer();
     final rebuilds = _owner.rebuilds;
     _rebuilt = rebuilds - _rebuildsSeen;
     _rebuildsSeen = rebuilds;

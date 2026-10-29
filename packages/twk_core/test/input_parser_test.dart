@@ -310,6 +310,16 @@ void main() {
     expect((cpr.x, cpr.y), (11, 4));
   });
 
+  test('as many cursor reports as are expected, in one read, then F3 with '
+      'modifiers again', () {
+    final p = InputParser()..cursorReportsExpected = 2;
+    expect(p.expectCursorReport, isTrue);
+    final events = p.feed(utf8.encode('\x1b[5;1R\x1b[1;2R\x1b[1;2R'));
+    expect(events.take(2), everyElement(isA<CursorReport>()));
+    expect(events.last, const KeyEvent(KeyCode.f3, modifiers: Mod.shift));
+    expect(p.expectCursorReport, isFalse);
+  });
+
   test('color scheme reports (DEC mode 2031)', () {
     expect(parse('\x1b[?997;1n\x1b[?997;2n'), [
       const ColorSchemeReport(Brightness.dark),

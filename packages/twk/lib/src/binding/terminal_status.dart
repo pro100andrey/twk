@@ -4,6 +4,7 @@
 /// its window or tab ([WindowTitle]).
 library;
 
+import 'package:meta/meta.dart' show internal;
 import 'package:twk_core/twk_core.dart'
     show
         PointerShape,
@@ -49,6 +50,11 @@ final class TerminalStatus {
   /// The status shown on [terminal]; [of] gives that of an app's.
   TerminalStatus(this.terminal);
 
+  /// The status of the app [binding] runs.
+  @internal
+  factory TerminalStatus.ofBinding(AppBinding binding) =>
+      _ofApp[binding] ??= TerminalStatus(binding.twkApp.terminal);
+
   /// What the status is shown on.
   final TerminalBackend terminal;
 
@@ -57,9 +63,7 @@ final class TerminalStatus {
   /// The status of the app [context] is in; null outside an app.
   static TerminalStatus? of(BuildContext context) {
     final binding = AppBinding.maybeOf(context);
-    return binding == null
-        ? null
-        : _ofApp[binding] ??= TerminalStatus(binding.twkApp.terminal);
+    return binding == null ? null : TerminalStatus.ofBinding(binding);
   }
 
   TerminalStateBackend? get _backend => switch (terminal) {
@@ -71,27 +75,49 @@ final class TerminalStatus {
   /// has the terminal report the mouse's motion only then.
   bool get showsPointerShape => terminal.info.pointerShapes && _backend != null;
 
-  /// The pointer's shape over the app: null for the terminal's own. Once a
-  /// [MouseRegion] has been mounted, the regions set it after each frame
-  /// and as the mouse moves ([MouseRegion.cursor]), over a shape set here:
-  /// an app shows a shape of its own with a MouseRegion around it.
+  /// The pointer's shape over the app: null for the [defaultPointerShape].
+  /// Once a [MouseRegion] has been mounted, the regions set it after each
+  /// frame and as the mouse moves ([MouseRegion.cursor]), over a shape set
+  /// here: an app shows a shape of its own with a MouseRegion around it.
   PointerShape? get pointerShape => _pointerShape;
   PointerShape? _pointerShape;
 
   set pointerShape(PointerShape? shape) {
-    final backend = _backend;
-    if (shape == _pointerShape ||
-        backend == null ||
-        !terminal.info.pointerShapes) {
+    if (shape == _pointerShape || !showsPointerShape) {
       return;
     }
     _pointerShape = shape;
+    showPointer();
+  }
+
+  /// The pointer's shape where neither a [MouseRegion] nor [pointerShape]
+  /// sets one: in the fullscreen mode the arrow, as over a window, every
+  /// cell being the app's (`TerminalInfo.alternateScreen`); inline the
+  /// terminal's own (null), the lines around the app's being the shell's.
+  PointerShape? get defaultPointerShape =>
+      terminal.info.alternateScreen ? PointerShape.arrow : null;
+
+  // the shape written last; null for the terminal's own
+  PointerShape? _shown;
+
+  /// Writes the shape of the pointer, [pointerShape] or else the
+  /// [defaultPointerShape], unless it is the one written last: the binding
+  /// does after each frame, the first one showing the default.
+  @internal
+  void showPointer() {
+    final backend = _backend;
+    final names = terminal.info.pointerNames;
+    final shape = _pointerShape ?? defaultPointerShape;
+    if (shape == _shown || backend == null || names == null) {
+      return;
+    }
+    _shown = shape;
     if (shape == null) {
       backend.restoreTerminalState(_pointerKey);
     } else {
       backend.setTerminalState(
         _pointerKey,
-        pointerShapeSequence(shape),
+        pointerShapeSequence(shape, names),
         pointerShapeSequence(null),
       );
     }

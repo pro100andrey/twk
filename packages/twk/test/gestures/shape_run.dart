@@ -6,22 +6,25 @@ library;
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart' show FakeClock;
 
 /// An app run full screen on a terminal in memory, by default 20 × 4
-/// cells, that shows the pointer's shape unless told it does not.
+/// cells, that shows the pointer's shape unless told it does not: the
+/// arrow from the first frame on, where nothing gives it another
+/// ([start]).
 ///
 /// It runs on a [FakeClock]: its frames are timers, which fire when
 /// [settle] moves the clock on, however long the machine takes to run
 /// them.
 final class ShapeRun {
-  ShapeRun(Widget app, {int width = 20, int height = 4, bool shapes = true}) {
+  ShapeRun(Widget app, {int width = 20, int height = 4, this.shows = true}) {
     clock.run(() {
       term = HeadlessTerminal(
         width: width,
         height: height,
-        pointerShapes: shapes,
+        pointerShapes: shows,
       );
       unawaited(
         AppBinding(term, maxFps: 1000, clock: clock.stopwatch)
@@ -37,6 +40,9 @@ final class ShapeRun {
     });
   }
 
+  /// Whether the terminal shows the pointer's shape.
+  final bool shows;
+
   /// The app's clock, which moves only as the test says.
   final clock = FakeClock();
   late final HeadlessTerminal term;
@@ -47,6 +53,13 @@ final class ShapeRun {
   /// Lets the frame loop run: builds, frames and the timers they start,
   /// over 30 ms of the app's clock.
   Future<void> settle() => clock.elapse(const Duration(milliseconds: 30));
+
+  /// Lets the first frames run, and reads the arrow the app shows where
+  /// the terminal shows the pointer's shape, nothing where it does not.
+  Future<void> start() async {
+    await settle();
+    expect(shapes(), shows ? ['default'] : isEmpty);
+  }
 
   /// Runs [fn] in the app's zone, then lets the frame loop run.
   Future<void> act(void Function() fn) async {
@@ -64,7 +77,7 @@ final class ShapeRun {
   }
 
   /// The shapes the app set since the last call, `` for the terminal's
-  /// own.
+  /// own, `default` for the arrow.
   List<String> shapes() => [
     for (final m in RegExp('\x1b]22;([^\x1b]*)\x1b\\\\').allMatches(written()))
       m[1]!,

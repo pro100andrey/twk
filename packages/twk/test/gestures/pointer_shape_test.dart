@@ -1,8 +1,8 @@
 // MouseRegion.cursor: the pointer's shape (OSC 22) of the deepest region
 // the mouse is in that has one, written as it changes, with the mouse or
-// with a frame; the terminal's own when the mouse leaves them and when the
-// app ends; nothing written, nor the mouse's motion asked for, where the
-// terminal is not known to show it.
+// with a frame; the app's arrow when the mouse leaves them, the terminal's
+// own when the app ends; nothing written, nor the mouse's motion asked
+// for, where the terminal is not known to show it.
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_core/twk_core.dart' show MouseTracking;
@@ -46,8 +46,8 @@ final class _StepsState extends State<_Steps> {
 }
 
 void main() {
-  test("set once as the mouse comes in, the terminal's own when it goes "
-      'out', () async {
+  test("set once as the mouse comes in, the app's arrow when it goes out, "
+      "the terminal's own as the app ends", () async {
     final run = ShapeRun(
       Stack(
         children: [
@@ -55,7 +55,7 @@ void main() {
         ],
       ),
     );
-    await run.settle();
+    await run.start();
     expect(run.term.mouseTracking, MouseTracking.motion);
     await run.move(0, 0);
     expect(run.shapes(), isEmpty);
@@ -64,9 +64,9 @@ void main() {
     await run.move(6, 2);
     expect(run.shapes(), isEmpty);
     await run.move(10, 3);
-    expect(run.shapes(), ['']);
+    expect(run.shapes(), ['default']);
     await run.quit();
-    expect(run.shapes(), isEmpty);
+    expect(run.shapes(), ['']);
   });
 
   test('of the deepest region with a cursor, one without it in that of '
@@ -96,7 +96,7 @@ void main() {
         ],
       ),
     );
-    await run.settle();
+    await run.start();
     await run.move(10, 0);
     expect(run.shapes(), ['pointer']);
     await run.move(1, 1);
@@ -106,7 +106,7 @@ void main() {
     await run.move(9, 1);
     expect(run.shapes(), ['pointer']);
     await run.move(15, 1);
-    expect(run.shapes(), ['']);
+    expect(run.shapes(), ['default']);
     await run.quit();
   });
 
@@ -130,7 +130,7 @@ void main() {
         ),
       ),
     );
-    await run.settle();
+    await run.start();
     await run.move(1, 1);
     expect(run.shapes(), isEmpty);
     final shapes = <List<String>>[];
@@ -141,9 +141,9 @@ void main() {
     expect(shapes, [
       ['grab'],
       ['move'],
-      [''],
+      ['default'],
       ['move'],
-      [''],
+      ['default'],
     ]);
     expect(run.term.mouseTracking, MouseTracking.off);
     await run.quit();
@@ -158,13 +158,38 @@ void main() {
         ],
       ),
     );
-    await run.settle();
+    await run.start();
     await run.move(1, 1);
     expect(run.shapes(), ['wait']);
     await run.quit();
     expect(run.term.closed, isTrue);
     expect(run.shapes(), ['']);
   });
+
+  test(
+    'an I-beam over a SelectionArea, the arrow over a scrollbar in it',
+    () async {
+      final run = ShapeRun(
+        SelectionArea(
+          child: Scrollbar(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [for (var i = 0; i < 10; i++) Text('line $i')],
+              ),
+            ),
+          ),
+        ),
+      );
+      await run.start();
+      await run.move(2, 1);
+      expect(run.shapes(), ['text']);
+      await run.move(19, 1);
+      expect(run.shapes(), ['default'], reason: 'the scrollbar');
+      await run.move(10, 2);
+      expect(run.shapes(), ['text']);
+      await run.quit();
+    },
+  );
 
   test('nothing where the terminal is not known to show it: a cursor alone '
       'asks for no motion', () async {
@@ -174,9 +199,9 @@ void main() {
           _region(PointerShape.text, left: 0, top: 0, width: 4, height: 4),
         ],
       ),
-      shapes: false,
+      shows: false,
     );
-    await run.settle();
+    await run.start();
     expect(run.term.mouseTracking, MouseTracking.off);
     await run.move(1, 1);
     await run.move(10, 1);
