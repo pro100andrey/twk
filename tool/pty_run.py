@@ -399,8 +399,8 @@ def main():
                     help='set the tty erase character to ^H, as for a '
                          'terminal whose Backspace sends 0x08')
     ap.add_argument('--answer-delay', type=float, default=0,
-                    help='answer the probe this many seconds late (a slow '
-                         'link)')
+                    help='answer the probe this many seconds late, each '
+                         'of its rounds (a slow link)')
     ap.add_argument('--input', default='demo',
                     help="'demo', 'none' or 'T:bytes,...' (escapes "
                          "allowed), T 't', '@t' or '#N'")
@@ -487,6 +487,7 @@ def main():
     answered = False  # a probe was answered
     answered_to = 0  # the output up to here was answered
     probe_at = None  # when the probe waiting for its answer gets it
+    round_at = None  # when a round ended by a DA1 alone gets its answers
     cursor = Cursor(cols, rows, 2 if args.ambiguous_wide else 1)
     scheme_reports = bool(schemes)
     pending = list(script)
@@ -516,13 +517,21 @@ def main():
         # probe once it is complete (up to its DA1 query) and its time came
         while not args.silent:
             probe = out.find(PROBE_START, answered_to)
-            for ask in QUERY.finditer(out, answered_to,
-                                      len(out) if probe < 0 else probe):
+            until = len(out) if probe < 0 else probe
+            # a round of queries a DA1 alone ends (the inline probe's
+            # first) is answered as late as the probe
+            if out.find(PROBE_END, answered_to, until) >= 0:
+                if round_at is None:
+                    round_at = time.time() + args.answer_delay
+                if time.time() < round_at:
+                    break
+            for ask in QUERY.finditer(out, answered_to, until):
                 which = ask.group(1)
                 if ask.group(0) == PROBE_END:
                     # DA1 on its own: the end of the inline probe's first
                     # round, where the cursor is asked first
                     os.write(master, PROBE_DA1)
+                    round_at = None
                 elif which is None:
                     os.write(master, cursor.report(out, ask.start()))
                 else:
