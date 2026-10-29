@@ -1,14 +1,17 @@
 /// What the editing widgets draw a caret with: the columns a text takes
 /// on the canvas ([TextColumns]), and the terminal's own cursor placed at
 /// the caret ([showCaret], [hideCaret]), which a render object of an app's
-/// own places at its caret too.
+/// own places at its caret too; and where the hidden cursor rests
+/// ([restCursor]).
 library;
 
+import 'package:meta/meta.dart' show internal;
 import 'package:twk_core/twk_core.dart'
     show
         ClusterScan,
         CursorShape,
         PaintContext,
+        Presenter,
         RenderObject,
         TextMode,
         TextSegmenter,
@@ -238,4 +241,51 @@ void hideCaret(PaintContext ctx, RenderObject object) {
     object.paintedWhenCutOff = false;
     p.cursorVisible = false;
   }
+}
+
+/// The cell of an object each presenter's hidden cursor rests on
+/// ([restCursor]).
+final _rests = Expando<(RenderObject, int, int)>('rest');
+
+/// Puts the terminal's cursor, while no caret shows it ([showCaret]), at
+/// [x], [y] of [object], which is being painted with [ctx]: the cell of
+/// what is focused in it, as a list's selected row, while it has the
+/// focus. From this frame on it rests there, whatever else repaints,
+/// until [object] puts it elsewhere or another object does.
+///
+/// Hidden, the cursor is not seen, but a terminal that marks its row
+/// (iTerm2's cursor guide) or follows it (macOS zoom) shows where it is.
+/// Without a cell of its own, the focused widget's first cell is where it
+/// rests; an object puts it on a cell of its own only while it is in that
+/// widget ([restingCell]).
+void restCursor(PaintContext ctx, RenderObject object, int x, int y) {
+  _rests[ctx.presenter] = (object, x, y);
+}
+
+/// Where [presenter]'s hidden cursor rests on the screen with [focused]
+/// the render object of the focused widget: the cell [restCursor] gave
+/// last, where its object is [focused] or in it and the cell is not cut
+/// off, else [focused]'s first cell; null without a focused object on the
+/// screen.
+@internal
+(int, int)? restingCell(Presenter presenter, RenderObject? focused) {
+  if (focused == null || focused.owner == null) {
+    return null;
+  }
+  if (_rests[presenter] case (final object, final x, final y)
+      when object.owner != null && _within(object, focused)) {
+    if (_onScreen(object, x, y) case final cell?) {
+      return cell;
+    }
+  }
+  return _onScreen(focused, 0, 0);
+}
+
+bool _within(RenderObject object, RenderObject ancestor) {
+  for (RenderObject? o = object; o != null; o = o.parent) {
+    if (identical(o, ancestor)) {
+      return true;
+    }
+  }
+  return false;
 }

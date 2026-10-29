@@ -475,7 +475,8 @@ final class Presenter {
   var _link = 0;
 
   /// Whether the cursor is shown when a frame ends, at [cursorX],
-  /// [cursorY]; hidden by default.
+  /// [cursorY]; hidden by default. Hidden, it is put there too on the
+  /// whole screen, where a frame left it elsewhere.
   var cursorVisible = false;
 
   /// The column of the surface the visible cursor is put in.
@@ -914,6 +915,19 @@ final class Presenter {
     } else if (_cursorShown) {
       _cursorShown = false; // hidden by the prefix
       cursorChanged = true;
+    }
+    // On the whole screen a hidden cursor rests where the shown one would,
+    // not where the frame wrote last: a terminal that marks the cursor's
+    // row (iTerm2's cursor guide) or follows it (macOS zoom) keeps still,
+    // and goes along when the cell it rests on moves. An inline region and
+    // a fixed viewport leave it as they need it.
+    if (!cursorVisible && !inline && viewport == null && w > 0 && h > 0) {
+      final cx = cursorX.clamp(0, w - 1);
+      final cy = cursorY.clamp(0, h - 1);
+      if (_cx != cx || _cy != cy) {
+        _moveTo(cx, cy);
+        cursorChanged = true;
+      }
     }
 
     if (!bodyChanged && !cursorChanged) {

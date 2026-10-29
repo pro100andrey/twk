@@ -22,14 +22,14 @@ import 'support/harness.dart';
 
 /// The digest and the byte count of every configuration's scenes.
 const _recorded = <String, (int, int)>{
-  'agreeing terminal, BCE': (0xd4072bce, 4723143),
-  'REP': (0xc170ae3f, 4163865),
-  'DECSLRM': (0xe3e8573b, 4718287),
-  'no BCE': (0x55d3e4ef, 6186491),
-  'Konsole lines': (0xf92f60b6, 4730328),
-  'no sync, no hardware scroll': (0xf77f45c1, 5227421),
-  'one scroll block, short moves': (0x83be2e9c, 4769596),
-  'no scroll detection': (0xe022898f, 4919683),
+  'agreeing terminal, BCE': (0xb47b2cb5, 4740977),
+  'REP': (0xab18cc, 4181715),
+  'DECSLRM': (0xbcc75c7, 4736223),
+  'no BCE': (0x989dac39, 6204251),
+  'Konsole lines': (0xc1077f61, 4748146),
+  'no sync, no hardware scroll': (0x403ab38e, 5244661),
+  'one scroll block, short moves': (0xab7af5d2, 4787448),
+  'no scroll detection': (0x861782ed, 4937427),
   'inline, BCE': (0x16613681, 2143799),
   'inline, no BCE, REP': (0x481a2901, 1967837),
 };

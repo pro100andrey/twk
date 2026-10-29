@@ -58,6 +58,7 @@ import '../debug/editor.dart';
 import '../debug/frame_overlay.dart';
 import '../debug/inspector.dart';
 import '../debug/key_hint.dart';
+import '../editing/caret.dart' show restingCell;
 import '../focus/focus.dart';
 import '../foundation/helpers.dart';
 import '../framework/framework.dart';
@@ -535,6 +536,7 @@ final class AppBinding {
         _view,
         _dispatch,
         beforeLayout: _beforeLayout,
+        beforePresent: _beforePresent,
         afterPresent: _afterPresent,
       );
     } on Object {
@@ -1053,6 +1055,23 @@ final class AppBinding {
       _scheduleBuild();
     }
     _trackMouse();
+  }
+
+  // the TwkApp runs it once each frame is painted, before it is written:
+  // the hidden cursor rests on what has the focus ([restCursor]), where a
+  // terminal that marks its row (iTerm2's cursor guide) or follows it
+  // (macOS zoom) shows the focus, not where the frame wrote last
+  void _beforePresent() {
+    final presenter = twkApp.screen.presenter;
+    if (presenter.cursorVisible) {
+      return;
+    }
+    final focused = focusManager.primaryFocus?.context?.findRenderObject();
+    if (restingCell(presenter, focused) case (final x, final y)) {
+      presenter
+        ..cursorX = x
+        ..cursorY = y;
+    }
   }
 
   // the TwkApp runs it at the end of each frame
