@@ -10,7 +10,7 @@ A terminal UI core with no runtime dependencies (only `dart:*`): a packed
 cell buffer, a diff driven by damaged spans, a minimal ANSI stream, its own
 Unicode segmentation, an input parser, backends for Linux / macOS / Windows,
 and a retained render tree, under the Flutter-like widget layer of
-[`packages/twk`](../../twk/doc/reference.md), the rich text of
+[`packages/twk`](../../twk/doc/reference/README.md), the rich text of
 [`packages/twk_rich`](../../twk_rich/README.md) and the console for
 command-line tools of [`packages/twk_cli`](../../twk_cli/README.md).
 
@@ -617,7 +617,7 @@ have done so, so a test sees the events the app saw.
 `frames`, `timeline` and `logs` (each also a constructor argument,
 `framesInRow`, `timeline` and `serveLogs`), `rainbow` and `relayout`;
 the widget layer's binding reads `overlay`, `console` and `keys` too
-([`packages/twk`](../../twk/doc/reference.md)). It is read from `TwkApp(environment:)`,
+([`packages/twk`](../../twk/doc/reference/README.md)). It is read from `TwkApp(environment:)`,
 and where that is not given from the process's environment, in which
 the terminal's settings take the place of the process's values
 (`TerminalInfo.settings`): `TWK_DEBUG` and `TWK_SCREEN_READER` (the
@@ -697,7 +697,7 @@ is made of; `pipeline.dart`, the `PipelineOwner`; `boxes.dart`,
 `error_box.dart`, `debug_paint.dart`), so that its private names reach
 across them. The
 widget layer of
-[`packages/twk`](../../twk/doc/reference.md) sits on it as Flutter's does:
+[`packages/twk`](../../twk/doc/reference/README.md) sits on it as Flutter's does:
 elements create these objects and set their properties, and widgets know
 nothing about diffs, bytes or terminals.
 
@@ -1569,7 +1569,7 @@ that has it; inside GNU screen, none.
 | `test/platform/` — the platform layer on the VM (`io.dart`) and its web stand-ins (`web.dart`), loaded on the VM; the own terminal link and termios on a stdin that is no terminal; a log server's client that sends no line | the process's id, platform or environment not dart:io's; an own terminal without both stdin and stdout one; plain stdio not sized by `COLUMNS` and `LINES`; a trace file not emptied or a header failure swallowed; raw mode not refused without a terminal; a stand-in that reads, watches or serves something; a client without a token kept |
 | `test/terminal/sequences_test.dart` — the pointer shape and the progress; GNU screen's pieces of a sequence passed on | the sequences, a shape or a progress written where the environment names no terminal known to show it, or where a version may read OSC 9 as a notification; a character split between pieces or its UTF-8 bytes miscounted |
 | `test/web/core_app.dart`, run by the root's `test/tool/web_check_test.dart` — `tool/web_check.dart`'s core case: an app on `HeadlessTerminal` and over a link of its own, built with dart2wasm and run in node | a library of the core reachable on the web importing dart:io or dart:ffi, or failing when run (skipped without node 22) |
-| `packages/twk/test/` — the widget layer, by topic | see [its README](../../twk/doc/reference.md) |
+| `packages/twk/test/` — the widget layer, by topic | see [its README](../../twk/doc/reference/README.md) |
 | `packages/twk_rich/test/` — rich text, by topic, and images (`test/image/`) | see [its README](../../twk_rich/README.md) |
 | `packages/twk_test/test/` — the tester, its fake clock, its keys, matchers and finders, the frames it records, the emulator's passthrough strings | see [its README](../../twk_test/README.md) |
 | `packages/twk_dev/test/` — the `twk` command | see [its README](../../twk_dev/README.md) |
@@ -1697,7 +1697,7 @@ them.
   Windows, where `suspendToShell` throws (no job control). On macOS
   dart:io takes a read that gets less input than it noted for the end of
   stdin, which input the other program read could cause (not run there).
-* The widget layer, [`packages/twk`](../../twk/doc/reference.md), covers part
+* The widget layer, [`packages/twk`](../../twk/doc/reference/README.md), covers part
   of what an app needs: `runApp` (full screen, inline or in a fixed
   viewport), the framework (widgets, elements, state, keys, inherited
   widgets, parent data, notifications, building in the layout),

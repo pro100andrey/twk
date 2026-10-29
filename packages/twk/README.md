@@ -119,7 +119,7 @@ testTwk('Up counts', (t) async {
   and testing.
 - [Widget catalog](https://github.com/pro100andrey/twk/blob/main/doc/widgets/README.md):
   every widget with its pictures, its code and its options.
-- [Reference](https://github.com/pro100andrey/twk/blob/main/packages/twk/doc/reference.md):
+- [Reference](https://github.com/pro100andrey/twk/blob/main/packages/twk/doc/reference/README.md):
   every topic, widget and parameter, and how the package is tested.
 - [The gallery](https://github.com/pro100andrey/twk/tree/main/packages/gallery):
   every widget live, with its options and the Dart that builds it.

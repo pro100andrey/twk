@@ -13,8 +13,9 @@ paddings and offsets are whole columns and rows.
 
 Paths in `packages/` and `tool/` are in the twk repository; `lib/`,
 `bin/` and `test/` are the app's. The reference is
-`packages/twk/doc/reference.md`, a row per topic naming every widget,
-parameter, key and default; `packages/twk_test/README.md` for the tester;
+`packages/twk/doc/reference/`, a page per topic (`layout.md`,
+`controls.md`, …) and a section per widget naming every parameter, key
+and default; `packages/twk_test/README.md` for the tester;
 `packages/twk_dev/README.md` for the `twk` command;
 `packages/twk_cli/README.md` for a command-line tool. Whole apps to copy
 from: `packages/twk/example/` (`counter.dart`; `interactive.dart`, a chat
@@ -295,8 +296,8 @@ void main() {
 
 ## Widgets by need
 
-Each is described, with every parameter, in its topic's row of
-`packages/twk/doc/reference.md`.
+Each is described, with every parameter, in its topic's page of
+`packages/twk/doc/reference/` (`<topic>.md`).
 
 | need | widgets |
 |------|---------|
@@ -312,7 +313,7 @@ Each is described, with every parameter, in its topic's row of
 | screens | `Scaffold` (header, sidebar, body, status bar and key hints, a focus zone each; `ScaffoldController`), `Navigator` (`push`, `pop`, named routes; Escape pops; holds an `Overlay`; `observers:`; `PageRoute(transitionDuration:)` slides in), `PopScope` (refuse or intercept a pop), `Stepper` + `Step` (a wizard whose steps validate; `StepperController`), `Breadcrumbs`, `Pagination` |
 | built inline | `Builder` (a context of its own), `StatefulBuilder` (a state of its own: `builder: (context, setState) => …`), `LayoutBuilder` (by the constraints), `FocusBuilder` (by whether the focus is in it) |
 | async and time | `FutureBuilder`, `StreamBuilder`, `ListenableBuilder`, `ValueListenableBuilder`, `AnimatedBuilder`, `Spinner`, `ProgressBar`, `ProgressList` + `ProgressTracker` (many tasks with bars, rate and time left), `Skeleton` and `Skeletonize` (placeholders that shimmer while content loads), `AnimationController` + `TickerProviderStateMixin`, `Tween`, `Curves` |
-| state over the tree, hooks | `package:twk/provider.dart`, Provider's API: `Provider`, `ChangeNotifierProvider`, `MultiProvider`, `context.read<T>()`, `context.watch<T>()`, `context.select`, `Consumer`, `Selector` (twk_bloc builds on it); `package:twk/hooks.dart`, flutter_hooks': `HookWidget`, `HookBuilder`, `useState`, `useEffect`, `useMemoized`, `useTextEditingController`. Each is imported besides `package:twk/twk.dart`, and has its section in `packages/twk/doc/reference.md` |
+| state over the tree, hooks | `package:twk/provider.dart`, Provider's API: `Provider`, `ChangeNotifierProvider`, `MultiProvider`, `context.read<T>()`, `context.watch<T>()`, `context.select`, `Consumer`, `Selector` (twk_bloc builds on it); `package:twk/hooks.dart`, flutter_hooks': `HookWidget`, `HookBuilder`, `useState`, `useEffect`, `useMemoized`, `useTextEditingController`. Each is imported besides `package:twk/twk.dart`, and has its page in `packages/twk/doc/reference/` (`provider.md`, `hooks.md`) |
 | inline output | `Static` |
 | other | `AppBinding.of(context).notify(title, body)` (a desktop notification), `debugDumpTree(context)`, `Console`, `Semantics(hint:)` and `ExcludeSemantics` (what a screen reader reads) |
 
