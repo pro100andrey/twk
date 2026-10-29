@@ -1067,12 +1067,17 @@ final class AppBinding {
     if (presenter.cursorVisible) {
       return;
     }
-    final focused = focusManager.primaryFocus?.context?.findRenderObject();
-    if (restingCell(presenter, focused) case (final x, final y)) {
-      presenter
-        ..cursorX = x
-        ..cursorY = y;
-    }
+    // a scope's own focus is no widget's: what is in it is not focused
+    final node = focusManager.primaryFocus;
+    final focused = node is FocusScopeNode
+        ? null
+        : node?.context?.findRenderObject();
+    // with nothing focused on the screen, at home: not on a caret's cell
+    // the focus has left
+    final (x, y) = restingCell(presenter, focused) ?? (0, 0);
+    presenter
+      ..cursorX = x
+      ..cursorY = y;
   }
 
   // the TwkApp runs it at the end of each frame

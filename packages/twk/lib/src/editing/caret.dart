@@ -279,10 +279,19 @@ void clearRestCursor(PaintContext ctx, RenderObject object) =>
 @internal
 void restCursorOn(Presenter presenter, RenderObject object, int x, int y) {
   // given again, it is the last given
-  (_rests[presenter] ??= {})
+  final rests = (_rests[presenter] ??= {})
     ..remove(object)
     ..[object] = (x, y);
+  // the cells of objects out of the tree forgotten here too, where no
+  // frame asks where the cursor rests (a caret shows it): a few kept
+  if (rests.length > _restsKept) {
+    rests.removeWhere(_detached);
+  }
 }
+
+/// How many cells [restCursorOn] keeps before it forgets those of objects
+/// out of the tree.
+const _restsKept = 16;
 
 /// [clearRestCursor] on [presenter], as [restCursorOn].
 @internal
@@ -298,6 +307,7 @@ void clearRestCursorOn(Presenter presenter, RenderObject object) {
 @internal
 (int, int)? restingCell(Presenter presenter, RenderObject? focused) {
   if (focused == null || focused.owner == null) {
+    _rests[presenter]?.removeWhere(_detached);
     return null;
   }
   // the last given that is on the screen, in order, allocating nothing

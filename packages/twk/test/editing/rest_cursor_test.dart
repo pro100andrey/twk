@@ -83,10 +83,11 @@ void main() {
     row.value = 2;
     await t.pump();
     expect(t.cursor, (3 + 1, 1 + 2));
-    // focus gone: no widget to rest on, it stays
+    // focus gone: no widget to rest on, at home, not on the cell left
     node.unfocus();
     await t.pump();
     expect(t.cursorVisible, isFalse);
+    expect(t.cursor, (0, 0));
   });
 
   testTwk('each object keeps its own cell: another one repainted after the '
