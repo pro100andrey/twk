@@ -31,9 +31,9 @@ and `dart:developer`: an app that imports either prefixes it.
 
 Two libraries of the package are not in `lib/twk.dart`, so that an app
 that uses neither carries neither: `package:twk/hooks.dart`, hooks in the
-flutter_hooks style ([below](hooks.md)), and
+flutter_hooks style ([its page](hooks.md)), and
 `package:twk/provider.dart`, Provider's API
-([below](provider.md)), on which
+([its page](provider.md)), on which
 [twk_bloc](../../../twk_bloc/README.md) builds. An app that uses one imports it
 besides `package:twk/twk.dart`; each builds on twk's public API alone,
 its sources in `lib/src/hooks/` and `lib/src/provider/`, its tests in
