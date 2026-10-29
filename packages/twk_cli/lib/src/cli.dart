@@ -394,6 +394,7 @@ final class Cli {
       ansi: _caps.ansi,
       hyperlinks: _caps.hyperlinks,
       colorMode: _caps.colorMode,
+      styledUnderlines: _caps.styledUnderlines,
     );
     final out = terminal.out;
     lines.forEach(out.writeln);
@@ -789,6 +790,7 @@ final class Cli {
       ansi: _caps.ansi,
       hyperlinks: _caps.hyperlinks,
       colorMode: _caps.colorMode,
+      styledUnderlines: _caps.styledUnderlines,
     ),
   );
 
@@ -897,6 +899,7 @@ final class Cli {
           ansi: _caps.ansi,
           hyperlinks: _caps.hyperlinks,
           colorMode: _caps.colorMode,
+          styledUnderlines: _caps.styledUnderlines,
         ),
       );
     }

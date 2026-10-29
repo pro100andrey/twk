@@ -184,6 +184,18 @@ void main() {
     }
   });
 
+  test('underline styles on all terminals but Terminal.app', () {
+    expect(_detect().styledUnderlines, isTrue);
+    expect(
+      _detect(env: {'TERM_PROGRAM': 'iTerm.app'}).styledUnderlines,
+      isTrue,
+    );
+    expect(
+      _detect(env: {'TERM_PROGRAM': 'Apple_Terminal'}).styledUnderlines,
+      isFalse,
+    );
+  });
+
   test('the error output is the output by default', () {
     const caps = CliCapabilities(
       ansi: false,

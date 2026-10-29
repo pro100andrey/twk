@@ -74,6 +74,16 @@ void main() {
       );
     });
 
+    test('a styled underline a plain one where the terminal shows none', () {
+      final line = ['x'.curlyUnderline];
+      expect(encodeLine(line, ansi: true), '\x1B[4:3mx\x1B[0m');
+      // Terminal.app reads 4:3 as 43, a yellow background
+      expect(
+        encodeLine(line, ansi: true, styledUnderlines: false),
+        '\x1B[4mx\x1B[0m',
+      );
+    });
+
     test('links only where hyperlinks are taken', () {
       final line = ['dart'.link('https://dart.dev')];
       expect(encodeLine(line, ansi: true), 'dart');
@@ -124,6 +134,19 @@ void main() {
           ansi: true,
         ),
         ['\x1B[44ma  \x1B[0m'],
+      );
+    });
+
+    test('a styled underline of a row a plain one where the terminal shows '
+        'none', () {
+      expect(
+        widgetLines(
+          Text.rich(['x'.dottedUnderline]),
+          1,
+          ansi: true,
+          styledUnderlines: false,
+        ),
+        ['\x1B[4mx\x1B[0m'],
       );
     });
 

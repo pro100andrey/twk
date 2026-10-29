@@ -46,7 +46,9 @@ final class FakeCliTerminal extends CliTerminal {
   /// none where output is no terminal), [width] × [height] the screen's
   /// size where it is one; [fakeClock] times the session.
   /// [progressReports] says the terminal shows a program's progress in
-  /// its tab (OSC 9;4), which the inline session then writes.
+  /// its tab (OSC 9;4), which the inline session then writes;
+  /// [styledUnderlines] false that it shows no underline styles, as
+  /// Terminal.app.
   FakeCliTerminal({
     bool ansi = false,
     bool interactiveInput = false,
@@ -54,6 +56,7 @@ final class FakeCliTerminal extends CliTerminal {
     bool? errorIsTerminal,
     bool? hyperlinks,
     this.colorMode = ColorMode.trueColor,
+    bool styledUnderlines = true,
     int? columns,
     this.width = 80,
     this.height = 24,
@@ -68,6 +71,7 @@ final class FakeCliTerminal extends CliTerminal {
          errorIsTerminal: errorIsTerminal,
          hyperlinks: hyperlinks,
          colorMode: colorMode,
+         styledUnderlines: styledUnderlines,
        ),
        _columns = columns ?? (outputIsTerminal ? width : null),
        _lines = [...lines],

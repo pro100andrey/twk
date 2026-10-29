@@ -77,8 +77,9 @@ void _fillFlags(Uint8List a, int start, int end, int value) {
 final class TerminalCaps {
   /// Capabilities as given; left out, those nearly every terminal has:
   /// synchronized output, background color erase, hardware scrolling,
-  /// full frames cleared and ICH/DCH, without REP, Konsole's lines and
-  /// images, left and right margins or a graphics protocol.
+  /// full frames cleared, ICH/DCH and styled underlines, without REP,
+  /// Konsole's lines and images, left and right margins or a graphics
+  /// protocol.
   const TerminalCaps({
     this.synchronizedOutput = true,
     this.backgroundColorErase = true,
@@ -86,6 +87,7 @@ final class TerminalCaps {
     this.clearFullFrames = true,
     this.repeatChar = false,
     this.insertDelete = true,
+    this.styledUnderlines = true,
     this.konsoleLines = false,
     this.konsoleImages = false,
     this.leftRightMargins = false,
@@ -118,6 +120,12 @@ final class TerminalCaps {
   /// Use ICH/DCH (insert/delete characters, VT102) when a row's change is a
   /// shift of its tail - typing or deleting in the middle of a line.
   final bool insertDelete;
+
+  /// The terminal reads the underline styles of SGR `4:2` to `4:5`
+  /// (double, curly, dotted, dashed); without them each is written as a
+  /// plain underline (`4`). Terminal.app reads `4:3` as `43`, a yellow
+  /// background that SGR 24 doesn't take away ([styledUnderlinesFor]).
+  final bool styledUnderlines;
 
   /// The terminal's lines are Konsole's: each as long as what was written
   /// on it. Its ICH inserts blanks in the default colours, not the current

@@ -94,7 +94,8 @@ export 'src/terminal/terminal.dart'
         TerminalOptions,
         TerminalStateBackend,
         WindowBackend,
-        colorModeFor;
+        colorModeFor,
+        styledUnderlinesFor;
 export 'src/unicode/unicode.dart'
     show
         ClusterScan,

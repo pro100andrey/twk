@@ -61,6 +61,13 @@ void main() {
     expect(colorModeFor({}, windows: true), ColorMode.trueColor);
   });
 
+  test('styled underlines on all but Terminal.app', () {
+    expect(styledUnderlinesFor({'TERM_PROGRAM': 'Apple_Terminal'}), isFalse);
+    expect(styledUnderlinesFor({'TERM_PROGRAM': 'iTerm.app'}), isTrue);
+    expect(styledUnderlinesFor({'TERM': 'xterm-kitty'}), isTrue);
+    expect(styledUnderlinesFor({}), isTrue);
+  });
+
   test('notifications by the terminal the environment names', () {
     const kitty = NotificationProtocol.osc99;
     const iterm = NotificationProtocol.osc9;

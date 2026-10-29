@@ -3,7 +3,8 @@
 library;
 
 import 'package:twk/twk.dart' show ColorMode;
-import 'package:twk_core/twk_core.dart' show colorModeFor, plainAsked, runsInCi;
+import 'package:twk_core/twk_core.dart'
+    show colorModeFor, plainAsked, runsInCi, styledUnderlinesFor;
 
 /// How a program may talk to the person at a terminal, derived from
 /// [CliCapabilities] ([CliCapabilities.mode]).
@@ -50,6 +51,7 @@ final class CliCapabilities {
     bool? errorIsTerminal,
     bool? hyperlinks,
     this.colorMode = ColorMode.trueColor,
+    this.styledUnderlines = true,
   }) : errorIsTerminal = errorIsTerminal ?? outputIsTerminal,
        hyperlinks = hyperlinks ?? (ansi && outputIsTerminal);
 
@@ -75,7 +77,9 @@ final class CliCapabilities {
   /// default of styled output on a terminal. The colors are twk_core's
   /// ([colorModeFor], [windows] for a Windows console): 24-bit, 256 or 16
   /// by `COLORTERM`, `TERM` and `TERM_PROGRAM`, and 16 where styling is
-  /// forced on an environment that takes none.
+  /// forced on an environment that takes none; the underline styles are
+  /// shown as twk_core's [styledUnderlinesFor] has it: on all terminals
+  /// but Terminal.app.
   factory CliCapabilities.detect({
     required Map<String, String> environment,
     required bool inputIsTerminal,
@@ -103,6 +107,7 @@ final class CliCapabilities {
       errorIsTerminal: errorIsTerminal,
       hyperlinks: hyperlinks,
       colorMode: colors == ColorMode.none ? ColorMode.ansi16 : colors,
+      styledUnderlines: styledUnderlinesFor(environment),
     );
   }
 
@@ -126,6 +131,10 @@ final class CliCapabilities {
 
   /// The colors styled output is written in, where it is ([ansi]).
   final ColorMode colorMode;
+
+  /// Whether the terminal shows the underline styles (double, curly,
+  /// dotted, dashed); without them each is written as a plain underline.
+  final bool styledUnderlines;
 
   /// Whether output can be redrawn in place: cursor moves and line clears
   /// reach a terminal that understands them.
@@ -163,5 +172,5 @@ final class CliCapabilities {
       'CliCapabilities(ansi: $ansi, interactiveInput: $interactiveInput, '
       'outputIsTerminal: $outputIsTerminal, '
       'errorIsTerminal: $errorIsTerminal, hyperlinks: $hyperlinks, '
-      'colorMode: ${colorMode.name})';
+      'colorMode: ${colorMode.name}, styledUnderlines: $styledUnderlines)';
 }

@@ -327,9 +327,14 @@ final class StyleTable {
   /// A table with only style 0, all defaults, and no pens.
   ///
   /// [colorMode] is the colors the terminal shows, true color by default;
-  /// [defaultBackgroundRgb] the RGB of its default background, black by
-  /// default, until the terminal tells it.
-  StyleTable({this._colorMode = ColorMode.trueColor, this._defaultBg = 0}) {
+  /// [styledUnderlines] whether it shows the underline styles, as it does
+  /// by default; [defaultBackgroundRgb] the RGB of its default background,
+  /// black by default, until the terminal tells it.
+  StyleTable({
+    this._colorMode = ColorMode.trueColor,
+    this._styledUnderlines = true,
+    this._defaultBg = 0,
+  }) {
     _intern(0, 0, 0, 0, 0); // id 0
   }
 
@@ -439,6 +444,33 @@ final class StyleTable {
     _colorMode = m;
     _sgr.clear();
     _transitions.clear();
+  }
+
+  bool _styledUnderlines;
+
+  /// Whether the terminal shows the underline styles (SGR `4:2` to `4:5`,
+  /// `TerminalCaps.styledUnderlines`); false writes each as a plain
+  /// underline (`4`).
+  ///
+  /// Setting it rewrites the SGR sequences from then on, as [colorMode].
+  bool get styledUnderlines => _styledUnderlines;
+  set styledUnderlines(bool on) {
+    if (on == _styledUnderlines) {
+      return;
+    }
+    _styledUnderlines = on;
+    _sgr.clear();
+    _transitions.clear();
+  }
+
+  /// The attributes of style [id] as written: a styled underline a plain
+  /// one where the terminal has no [styledUnderlines].
+  int _sentAttrs(int id) {
+    final a = _attrs[id];
+    if (_styledUnderlines || (a & Attr.underlineMask) == 0) {
+      return a;
+    }
+    return (a & ~Attr.underlineMask) | Attr.underline;
   }
 
   /// The id of the style of [fg] text over [bg] with [attrs], an underline
@@ -793,7 +825,7 @@ final class StyleTable {
 
   List<int> _params(int id) {
     final out = <int>[];
-    _attrParams(0, _attrs[id], out);
+    _attrParams(0, _sentAttrs(id), out);
     _colorParams(_fg[id], 30, out);
     _colorParams(_bg[id], 40, out);
     if (_ul[id] != 0 && (_attrs[id] & Attr.underlineMask) != 0) {
@@ -804,8 +836,8 @@ final class StyleTable {
 
   List<int> _deltaParams(int from, int to) {
     final out = <int>[];
-    final fa = _attrs[from];
-    final ta = _attrs[to];
+    final fa = _sentAttrs(from);
+    final ta = _sentAttrs(to);
     _attrParams(fa, ta, out);
     if (_fg[from] != _fg[to]) {
       _colorParams(_fg[to], 30, out, reset: true);

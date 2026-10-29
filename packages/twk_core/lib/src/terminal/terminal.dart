@@ -440,6 +440,16 @@ ColorMode colorModeFor(Map<String, String> env, {bool windows = false}) {
   return ColorMode.ansi16;
 }
 
+/// Whether the terminal shows the underline styles of SGR `4:2` to `4:5`
+/// ([TerminalCaps.styledUnderlines]), by its environment: all but
+/// Terminal.app, which reads `4:3` as `43`, a yellow background.
+///
+/// ```dart
+/// print(styledUnderlinesFor({'TERM_PROGRAM': 'Apple_Terminal'})); // false
+/// ```
+bool styledUnderlinesFor(Map<String, String> env) =>
+    env['TERM_PROGRAM'] != 'Apple_Terminal';
+
 /// Whether the terminal's colors are dark or light as its environment
 /// declares them: `COLORFGBG`, which rxvt, Konsole and others set to the
 /// palette indexes of their default text and background (`15;0`, or
@@ -1291,6 +1301,7 @@ final class Terminal
         // GNU screen without `defbce on` erases with the default background
         backgroundColorErase: !screenLike,
         repeatChar: repeatChar,
+        styledUnderlines: styledUnderlinesFor(env),
         konsoleLines: konsole,
         konsoleImages: konsole,
         leftRightMargins: supported(69) && !screenLike,

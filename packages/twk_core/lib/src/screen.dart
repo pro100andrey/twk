@@ -59,7 +59,10 @@ final class Screen {
     bool inline = false,
     Viewport? viewport,
     bool atLineStart = true,
-  }) : styles = StyleTable(colorMode: colorMode),
+  }) : styles = StyleTable(
+         colorMode: colorMode,
+         styledUnderlines: caps.styledUnderlines,
+       ),
        glyphs = GlyphTable(),
        surface = Surface(width, height) {
     canvas = Canvas(

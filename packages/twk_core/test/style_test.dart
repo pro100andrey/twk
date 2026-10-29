@@ -209,4 +209,21 @@ void main() {
       });
     }
   });
+
+  test('styled underlines are plain ones on a terminal without them', () {
+    String sgr(List<int> bytes) =>
+        latin1.decode(bytes).replaceAll('\x1b[', '').replaceAll('m', '');
+    final t = StyleTable(styledUnderlines: false);
+    final curly = t.style(attrs: Attr.curlyUnderline);
+    final dotted = t.style(attrs: Attr.dottedUnderline, fg: Color.red);
+    final plain = t.style(attrs: Attr.underline);
+    // Terminal.app reads 4:3 as 43, a yellow background
+    expect(sgr(t.sgrFromReset(curly)), '0;4');
+    expect(sgr(t.transition(curly, dotted)), '31');
+    expect(t.transition(curly, plain), isEmpty);
+    expect(sgr(t.transition(plain, 0)), '0');
+    t.styledUnderlines = true;
+    expect(sgr(t.sgrFromReset(curly)), '0;4:3');
+    expect(sgr(t.transition(curly, plain)), '4');
+  });
 }

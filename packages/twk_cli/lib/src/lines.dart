@@ -65,19 +65,22 @@ Span _onto(Span span, Style style) => span.gradient == null
     : Span.gradient(span.text, span.gradient!, style.merge(span.style));
 
 /// [line] as text ([LineEncoder]): with [ansi] each span's style as the
-/// SGR sequences that write it in [colorMode], its link as OSC 8 with
+/// SGR sequences that write it in [colorMode], a styled underline as a
+/// plain one without [styledUnderlines], its link as OSC 8 with
 /// [hyperlinks], and the style reset at its end; without, the text alone.
 String encodeLine(
   List<Span> line, {
   required bool ansi,
   bool hyperlinks = false,
   ColorMode colorMode = ColorMode.trueColor,
+  bool styledUnderlines = true,
 }) {
   if (!ansi) {
     return line.map((s) => s.text).join();
   }
-  final out = _encoders[(colorMode, hyperlinks)] ??= LineEncoder(
-    StyleTable(colorMode: colorMode),
+  final key = (colorMode, hyperlinks, styledUnderlines);
+  final out = _encoders[key] ??= LineEncoder(
+    StyleTable(colorMode: colorMode, styledUnderlines: styledUnderlines),
     hyperlinks: hyperlinks,
   );
   final styles = out.styles;
@@ -88,14 +91,15 @@ String encodeLine(
   final text = out.take();
   if (styles.length > _maxStyles) {
     // a table that grew past what a console's lines use starts again
-    _encoders.remove((colorMode, hyperlinks));
+    _encoders.remove(key);
   }
   return text;
 }
 
-/// The encoders of [encodeLine], by colour mode and whether links are
-/// written: its styles' SGR sequences and link targets are encoded once.
-final _encoders = <(ColorMode, bool), LineEncoder>{};
+/// The encoders of [encodeLine], by colour mode, whether links are
+/// written and whether underline styles are: its styles' SGR sequences and
+/// link targets are encoded once.
+final _encoders = <(ColorMode, bool, bool), LineEncoder>{};
 
 /// The styles an encoder of [encodeLine] keeps before it is dropped.
 const _maxStyles = 1024;
@@ -103,8 +107,9 @@ const _maxStyles = 1024;
 /// [widget] laid out [width] columns wide, as tall as its max intrinsic
 /// height there, under [theme] where there is one, painted once, and its
 /// rows as lines: without the blanks that end them, and, with [ansi], in
-/// the SGR sequences of the cells' styles and with OSC 8 links where
-/// [hyperlinks] are taken.
+/// the SGR sequences of the cells' styles, a styled underline a plain one
+/// without [styledUnderlines], and with OSC 8 links where [hyperlinks] are
+/// taken.
 ///
 /// The widget is built outside an app: what needs one (focus, a frame
 /// callback, an animation) shows its first frame. What the render tree
@@ -118,6 +123,7 @@ List<String> widgetLines(
   bool ansi = false,
   bool hyperlinks = false,
   ColorMode colorMode = ColorMode.trueColor,
+  bool styledUnderlines = true,
 }) {
   if (width < 1) {
     return const [];
@@ -133,7 +139,8 @@ List<String> widgetLines(
       return const [];
     }
     // the screen is resized to the height once the width is known
-    final screen = Screen(width, 1, colorMode: colorMode);
+    final screen = Screen(width, 1, colorMode: colorMode)
+      ..styles.styledUnderlines = styledUnderlines;
     final pipeline = PipelineOwner(() {}, segmenter: screen.canvas.segmenter)
       ..onLog = onLog
       ..root = top;
