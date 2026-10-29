@@ -243,50 +243,60 @@ void hideCaret(PaintContext ctx, RenderObject object) {
   }
 }
 
-/// The cell of an object each presenter's hidden cursor rests on
-/// ([restCursor]).
-final _rests = Expando<(RenderObject, int, int)>('rest');
+/// The cells objects put each presenter's hidden cursor on
+/// ([restCursor]), each object's own, in the order they were given: the
+/// last given last.
+final _rests = Expando<Map<RenderObject, (int, int)>>('rests');
 
 /// Puts the terminal's cursor, while no caret shows it ([showCaret]), at
 /// [x], [y] of [object], which is being painted with [ctx]: the cell of
 /// what is focused in it, as a list's selected row, while it has the
 /// focus. From this frame on it rests there, whatever else repaints,
-/// until [object] puts it elsewhere or another object does.
+/// until [object] puts it elsewhere or takes it back ([clearRestCursor]).
 ///
 /// Hidden, the cursor is not seen, but a terminal that marks its row
-/// (iTerm2's cursor guide) or follows it (macOS zoom) shows where it is.
-/// Without a cell of its own, the focused widget's first cell is where it
-/// rests; an object puts it on a cell of its own only while it is in that
-/// widget ([restingCell]). An object with no such cell any more (nothing
-/// selected, the selected row scrolled away) gives it back to the focused
-/// widget's first cell with [clearRestCursor].
+/// (iTerm2's cursor guide) or follows it (macOS zoom, a screen reader, a
+/// braille display) shows where it is. Without a cell of its own, the
+/// focused widget's first cell is where it rests; an object puts it on a
+/// cell of its own only while it is in that widget ([restingCell]). Each
+/// object keeps the cell it gave, so that one outside the focused widget
+/// that repaints after it (another list's selection, an animation) takes
+/// nothing from it. An object with no such cell any more (nothing
+/// selected, the selected row scrolled away) takes its cell back with
+/// [clearRestCursor].
 void restCursor(PaintContext ctx, RenderObject object, int x, int y) {
-  _rests[ctx.presenter] = (object, x, y);
+  // given again, it is the last given
+  (_rests[ctx.presenter] ??= {})
+    ..remove(object)
+    ..[object] = (x, y);
 }
 
 /// Forgets the cell [object] put the hidden cursor on ([restCursor]),
-/// painted with [ctx]: it rests on the focused widget's first cell again.
-/// Nothing when the cell is another object's.
+/// painted with [ctx]: where it was the focused widget's, the cursor
+/// rests on that widget's first cell again.
 void clearRestCursor(PaintContext ctx, RenderObject object) {
-  if (_rests[ctx.presenter] case (final o, _, _) when identical(o, object)) {
-    _rests[ctx.presenter] = null;
-  }
+  _rests[ctx.presenter]?.remove(object);
 }
 
 /// Where [presenter]'s hidden cursor rests on the screen with [focused]
 /// the render object of the focused widget: the cell [restCursor] gave
-/// last, where its object is [focused] or in it and the cell is not cut
+/// last of those whose object is [focused] or in it and that are not cut
 /// off, else [focused]'s first cell; null without a focused object on the
-/// screen.
+/// screen. The cells of objects out of the tree are forgotten.
 @internal
 (int, int)? restingCell(Presenter presenter, RenderObject? focused) {
   if (focused == null || focused.owner == null) {
     return null;
   }
-  if (_rests[presenter] case (final object, final x, final y)
-      when object.owner != null && _within(object, focused)) {
-    if (_onScreen(object, x, y) case final cell?) {
-      return cell;
+  if (_rests[presenter] case final rests?) {
+    rests.removeWhere((object, _) => object.owner == null);
+    for (final MapEntry(key: object, value: (x, y))
+        in rests.entries.toList().reversed) {
+      if (_within(object, focused)) {
+        if (_onScreen(object, x, y) case final cell?) {
+          return cell;
+        }
+      }
     }
   }
   return _onScreen(focused, 0, 0);

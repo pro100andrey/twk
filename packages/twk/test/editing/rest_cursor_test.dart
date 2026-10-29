@@ -88,6 +88,49 @@ void main() {
     await t.pump();
     expect(t.cursorVisible, isFalse);
   });
+
+  testTwk('each object keeps its own cell: another one repainted after the '
+      'focused one takes nothing from it', (t) async {
+    final left = FocusNode();
+    final right = FocusNode();
+    addTearDown(left.dispose);
+    addTearDown(right.dispose);
+    final leftRow = ValueNotifier(1);
+    final rightRow = ValueNotifier(0);
+    addTearDown(leftRow.dispose);
+    addTearDown(rightRow.dispose);
+    Widget list(FocusNode node, ValueNotifier<int> row) => Focus(
+      focusNode: node,
+      child: ValueListenableBuilder(
+        valueListenable: row,
+        builder: (_, r, _) => _Rows(r),
+      ),
+    );
+    await t.pumpWidget(
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          list(left, leftRow),
+          const SizedBox(width: 2),
+          list(right, rightRow),
+        ],
+      ),
+      size: (30, 6),
+    );
+    left.requestFocus();
+    await t.pump();
+    expect(t.cursor, (1, 1));
+    // the other list's selection repainted after: the cursor stays
+    rightRow.value = 3;
+    await t.pump();
+    expect(t.cursor, (1, 1));
+    right.requestFocus();
+    await t.pump();
+    expect(t.cursor, (12 + 1, 3));
+    left.requestFocus();
+    await t.pump();
+    expect(t.cursor, (1, 1));
+  });
 }
 
 /// Rows of text, the [selected] one put where the hidden cursor rests;
