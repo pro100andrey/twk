@@ -70,6 +70,7 @@ import '../semantics/semantics.dart';
 import '../style/theme.dart';
 import 'error_widget.dart';
 import 'source_excerpt.dart';
+import 'terminal_status.dart' show TerminalStatus;
 
 // Examples can assume:
 // late BuildContext context;
@@ -1079,6 +1080,7 @@ final class AppBinding {
     _owner.finalizeTree();
     _trackMouse();
     _mouse.afterFrame();
+    TerminalStatus.ofBinding(this).showPointer();
     final rebuilds = _owner.rebuilds;
     _rebuilt = rebuilds - _rebuildsSeen;
     _rebuildsSeen = rebuilds;

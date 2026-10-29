@@ -1423,13 +1423,13 @@ other'''),
     test('is a resize across in the header, as the mouse comes over it and '
         'while it drags it', () async {
       final run = ShapeRun(table());
-      await run.settle();
+      await run.start();
       expect(run.term.mouseTracking, MouseTracking.motion);
       // the name column's edge: the gap after main.dart
       await run.move(9, 0);
       expect(run.shapes(), ['ew-resize']);
       await run.move(3, 0);
-      expect(run.shapes(), ['']);
+      expect(run.shapes(), ['default']);
       await run.move(9, 0);
       await run.press(9, 0);
       await run.drag(11, 0);
@@ -1437,24 +1437,25 @@ other'''),
       await run.release(11, 0);
       // a row's cell under an edge is no edge
       await run.move(11, 2);
-      expect(run.shapes(), ['']);
+      expect(run.shapes(), ['default']);
       await run.quit();
     });
 
     test('is left alone with pointerShapes false, and the motion of the '
         'mouse is not asked for', () async {
       final run = ShapeRun(table(pointerShapes: false));
-      await run.settle();
+      await run.start();
       expect(run.term.mouseTracking, isNot(MouseTracking.motion));
       await run.move(9, 0);
       await run.move(3, 0);
       await run.quit();
-      expect(run.written(), isNot(contains('\x1b]22;')));
+      // only the terminal's own given back as the app ends
+      expect(run.shapes(), ['']);
     });
 
     test('nor where the terminal does not show it', () async {
-      final run = ShapeRun(table(), shapes: false);
-      await run.settle();
+      final run = ShapeRun(table(), shows: false);
+      await run.start();
       expect(run.term.mouseTracking, isNot(MouseTracking.motion));
       await run.quit();
     });

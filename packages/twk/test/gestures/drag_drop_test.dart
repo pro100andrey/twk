@@ -574,7 +574,7 @@ void main() {
     test('grabs over it, grabbing while it is dragged, no-drop over a '
         'target that refuses it', () async {
       final run = ShapeRun(app());
-      await run.settle();
+      await run.start();
       await run.move(1, 0);
       expect(run.shapes(), ['grab']);
       await run.press(1, 0);
@@ -589,7 +589,7 @@ void main() {
       await run.drag(11, 2);
       expect(run.shapes(), ['grabbing']);
       await run.release(11, 2);
-      expect(run.shapes(), ['']);
+      expect(run.shapes(), ['default']);
       await run.move(0, 0);
       expect(run.shapes(), ['grab']);
       await run.quit();
@@ -597,14 +597,15 @@ void main() {
 
     test('left alone with pointerShapes false', () async {
       final run = ShapeRun(app(pointerShapes: false));
-      await run.settle();
+      await run.start();
       await run.move(1, 0);
       await run.press(1, 0);
       await run.drag(2, 0);
       await run.drag(11, 1);
       await run.release(11, 1);
       await run.quit();
-      expect(run.written(), isNot(contains('\x1b]22;')));
+      // only the terminal's own given back as the app ends
+      expect(run.shapes(), ['']);
     });
   });
 }

@@ -4,11 +4,14 @@
 // selects, forward and back; a double press selects the word, a triple
 // one the line, a drag after either going on by words or lines; Shift
 // with a press selects from the base; an obscured field maps through its
-// mask; a field that takes no focus takes no mouse.
+// mask; a field that takes no focus takes no mouse. The pointer is an
+// I-beam over a field that takes the focus.
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_core/twk_core.dart' show MouseTracking;
 import 'package:twk_test/twk_test.dart';
+
+import '../gestures/shape_run.dart';
 
 /// A field of [c], [width] columns wide, at the top left.
 Widget field(
@@ -311,6 +314,43 @@ void main() {
       await t.click(2, 1);
       await t.click(2, 1);
       expect(sel(c), (4, 4));
+    });
+  });
+
+  group('the pointer', () {
+    test('is an I-beam over a field and an area, the arrow off them', () async {
+      final a = TextEditingController();
+      final b = TextEditingController();
+      final run = ShapeRun(
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            field(a, width: 10),
+            const SizedBox(height: 1),
+            area(b),
+          ],
+        ),
+      );
+      await run.start();
+      await run.move(3, 0);
+      expect(run.shapes(), ['text']);
+      await run.move(15, 0);
+      expect(run.shapes(), ['default']);
+      await run.move(3, 2);
+      expect(run.shapes(), ['text']);
+      await run.quit();
+      a.dispose();
+      b.dispose();
+    });
+
+    test('is left as it is over a field that takes no focus', () async {
+      final c = TextEditingController();
+      final run = ShapeRun(top(field(c, canRequestFocus: false)));
+      await run.start();
+      await run.move(3, 0);
+      expect(run.shapes(), isEmpty);
+      await run.quit();
+      c.dispose();
     });
   });
 }

@@ -1,6 +1,6 @@
 // The pointer over the links of a Markdown view: a hand (OSC 22
 // `pointer`) over a link or an image in a paragraph, a heading or a
-// table, the terminal's own elsewhere; the mouse's motion asked for only
+// table, the app's arrow elsewhere; the mouse's motion asked for only
 // while the view has a link and the terminal shows the pointer's shape.
 import 'dart:async';
 import 'dart:convert';
@@ -52,7 +52,7 @@ final class _Run {
   }
 
   /// The shapes the app set since the last call, `` for the terminal's
-  /// own.
+  /// own, `default` for the arrow.
   List<String> shapes() => [
     for (final m in RegExp('\x1b]22;([^\x1b]*)\x1b\\\\').allMatches(written()))
       m[1]!,
@@ -121,9 +121,10 @@ const document =
 
 void main() {
   test('a hand over a link, an image, a reference and a link in a table, '
-      "the terminal's own elsewhere", () async {
+      'the arrow elsewhere', () async {
     final run = _Run(const MarkdownView(document));
     await run.settle();
+    expect(run.shapes(), ['default']);
     expect(run.term.mouseTracking, MouseTracking.motion);
     await run.move(0, 0);
     expect(run.shapes(), isEmpty);
@@ -132,31 +133,31 @@ void main() {
     await run.move(11, 0);
     expect(run.shapes(), isEmpty);
     await run.move(12, 0);
-    expect(run.shapes(), ['']);
+    expect(run.shapes(), ['default']);
     await run.move(2, 2);
     expect(run.shapes(), ['pointer'], reason: 'a link in a heading');
     await run.move(2, 3);
-    expect(run.shapes(), [''], reason: 'the blank row under it');
+    expect(run.shapes(), ['default'], reason: 'the blank row under it');
     await run.move(3, 4);
     expect(run.shapes(), ['pointer'], reason: 'an image');
     await run.move(6, 4);
-    expect(run.shapes(), ['']);
+    expect(run.shapes(), ['default']);
     await run.move(9, 4);
     expect(run.shapes(), ['pointer'], reason: 'a reference defined later');
     await run.move(20, 4);
-    expect(run.shapes(), [''], reason: 'right of the text');
+    expect(run.shapes(), ['default'], reason: 'right of the text');
     await run.move(0, 8);
     expect(run.shapes(), ['pointer'], reason: 'a link in a table');
     await run.move(4, 8);
-    expect(run.shapes(), ['']);
+    expect(run.shapes(), ['default']);
     await run.move(0, 6);
     expect(run.shapes(), isEmpty, reason: 'the header of the table');
     await run.move(0, 8);
     expect(run.shapes(), ['pointer']);
     await run.move(0, 12);
-    expect(run.shapes(), [''], reason: 'out of the view');
+    expect(run.shapes(), ['default'], reason: 'out of the view');
     await run.quit();
-    expect(run.shapes(), isEmpty);
+    expect(run.shapes(), ['']);
   });
 
   test('the mouse followed only while the view has a link', () async {
@@ -171,20 +172,23 @@ void main() {
       ]),
     );
     await run.settle();
+    expect(run.shapes(), ['default']);
     expect(run.term.mouseTracking, MouseTracking.off);
     await run.act(key.currentState!.next);
     expect(run.term.mouseTracking, MouseTracking.motion);
     await run.move(17, 0);
     expect(run.shapes(), ['pointer']);
     await run.move(17, 2);
-    expect(run.shapes(), ['']);
+    expect(run.shapes(), ['default']);
     await run.act(key.currentState!.next);
     expect(run.term.mouseTracking, MouseTracking.motion);
     await run.move(16, 0);
     expect(run.shapes(), ['pointer']);
     await run.act(key.currentState!.next);
     expect(run.term.mouseTracking, MouseTracking.off);
-    expect(run.shapes(), [''], reason: 'the link gone from under the mouse');
+    expect(run.shapes(), [
+      'default',
+    ], reason: 'the link gone from under the mouse');
     await run.quit();
   });
 

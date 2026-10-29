@@ -19,6 +19,7 @@ import '../foundation/change_notifier.dart';
 import '../framework/framework.dart';
 import '../gestures/gesture_detector.dart';
 import '../gestures/mouse.dart';
+import '../gestures/selection.dart' show inSelectionArea;
 import '../layout/child_list.dart';
 import '../style/style.dart';
 import 'scrollable.dart';
@@ -207,15 +208,20 @@ final class _ScrollbarState extends State<Scrollbar> {
   }
 
   /// [bar] telling [_hovered] where the bar is slim, which is wide while
-  /// the mouse is over it; as it is otherwise, asking for no motion of the
-  /// mouse.
-  Widget _hoverable(Widget bar) => widget.slim
-      ? MouseRegion(
-          onEnter: (_) => _hover(true),
-          onExit: (_) => _hover(false),
-          child: bar,
-        )
-      : bar;
+  /// the mouse is over it, and giving the pointer the arrow inside a
+  /// `SelectionArea`, over the area's I-beam; as it is otherwise, asking
+  /// for no motion of the mouse.
+  Widget _hoverable(Widget bar) {
+    final arrow = inSelectionArea(context);
+    return widget.slim || arrow
+        ? MouseRegion(
+            cursor: arrow ? PointerShape.arrow : null,
+            onEnter: widget.slim ? (_) => _hover(true) : null,
+            onExit: widget.slim ? (_) => _hover(false) : null,
+            child: bar,
+          )
+        : bar;
+  }
 }
 
 /// Where the thumb of a [Scrollbar] is on its track: it follows the
