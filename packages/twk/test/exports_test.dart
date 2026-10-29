@@ -84,8 +84,7 @@ void main() {
   });
 
   test('hooks.dart and provider.dart are libraries of their own, besides '
-      'twk.dart, which exports none of their names (the libraries: lib/ '
-      'holds fix_data.yaml too)', () async {
+      'twk.dart, which exports none of their names', () async {
     final uri = await Isolate.resolvePackageUri(
       Uri.parse('package:twk/twk.dart'),
     );

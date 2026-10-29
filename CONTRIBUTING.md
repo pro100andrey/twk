@@ -37,7 +37,7 @@ dart run tool/xtask.dart bench              # when the frame path changed (below
   `dart analyze --fatal-infos` and, where it has `test/`, `dart test`;
   the root's analyze (`pro_lints/recommended`, strict casts, inference
   and raw types, and twk_lints' plugin) and its tests (`test/tool/`, the
-  tools' tests); the data-driven fixes against their `test_fixes/`;
+  tools' tests);
   every ```` ```dart ```` example of a `///` comment in `lib/` analyzed
   in its package (`doc-snippets`); each page of the gallery's Code tab
   run in twk's tester and held to what its stage shows (`gallery-code`),

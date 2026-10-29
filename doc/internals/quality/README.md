@@ -439,17 +439,24 @@ enough, and on a loaded machine the guess is wrong.
 
 ## Renames and moves
 
-A public member renamed or moved comes, in the same commit, with an
-entry in its package's `lib/fix_data.yaml` (data-driven fixes,
+A public member of a released package renamed or moved comes, in the
+same commit, with an entry in its package's `lib/fix_data.yaml` (data-driven fixes,
 https://dart.dev/go/data-driven-fixes, which `dart fix --apply` and the
 IDE's quick fixes read) and a case in the package's `test_fixes/`: a
 `.dart` file that uses the old API, and its `.dart.expect`, the file as
-dart fix leaves it. `fix-data` and `pkg-fix-data` (handover) run
-`dart fix --compare-to-golden test_fixes` in each such package. The
-package's `analysis_options.yaml` excludes `test_fixes/**`, whose inputs
-are errors on purpose; `test_fixes/analysis_options.yaml` makes the
-directory a context of its own, where dart fix still sees them. An
-entry's `uris` are the public libraries that export the element now.
+dart fix leaves it, checked by `dart fix --compare-to-golden
+test_fixes` in the package. The package's `analysis_options.yaml`
+excludes `test_fixes/**`, whose inputs are errors on purpose;
+`test_fixes/analysis_options.yaml` makes the directory a context of its
+own, where dart fix still sees them. An entry's `uris` are the public
+libraries that export the element now.
+
+Nothing has been released yet, so there is no fix data: a change before
+a package's first release needs none, nobody having code against it.
+The first entry brings back to xtask.yaml, with it, the set of the
+packages that have a `test_fixes/` (`packages/*/test_fixes/analysis_options.yaml`)
+and a `pkg-fix-data` task over it in `handover` and `ci` (the `ci`
+benchmark's `needs` too), running that compare.
 
 An entry can say: a class, function, field, getter or method renamed
 (`rename`); a named parameter renamed (`renameParameter`); a parameter
@@ -459,23 +466,13 @@ function or static member replaced by another, also in another library
 another (`library:` with `replacedBy` and `newLibrary`). It cannot say
 three things:
 
-- an import of a package the app no longer depends on (tui to twk,
-  twk_hooks to `package:twk/hooks.dart`, twk_provider to
-  `package:twk/provider.dart`, twk_image to `package:twk_rich/image.dart`):
-  the import resolves to nothing, and a fix runs only on a diagnostic of
-  a library that resolves (a `library:` transform needs the old library
-  present and deprecated);
+- an import of a package the app no longer depends on (a package
+  renamed, or merged into another): the import resolves to nothing, and
+  a fix runs only on a diagnostic of a library that resolves (a
+  `library:` transform needs the old library present and deprecated);
 - the name in a `show` or `hide` combinator;
-- a name in a type test (`o is TuiApp`).
+- a name in a type test (`o is OldName`).
 
-The cases pin the last two as dart fix leaves them. An app on an older
-revision moves in two steps. First its pubspec's dependencies and its
-imports, by hand:
-
-```bash
-sed -i -E 's#package:tui(_[a-z]+)?/tui#package:twk\1/twk#g; s#package:tui(_[a-z]+)?/#package:twk\1/#g; s#package:twk_(hooks|provider)/twk_(hooks|provider)\.dart#package:twk/\1.dart#g; s#package:twk_image/twk_image\.dart#package:twk_rich/image.dart#g' $(git ls-files '*.dart')
-```
-
-Then `dart fix --apply` for the names (TuiApp, AppBinding.tuiApp,
-TuiTester, testTui, runTui), and by hand whatever the analyzer still
-reports.
+A case pins the last two as dart fix leaves them, so that an SDK that
+starts fixing them fails the compare; the release notes say what an app
+changes by hand.

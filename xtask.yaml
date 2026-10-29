@@ -79,11 +79,6 @@ sets:
       - packages/twk/pubspec.yaml
       - packages/twk_test/pubspec.yaml
 
-  # The packages with data-driven fixes, by their test_fixes/.
-  fix-tests:
-    include:
-      - packages/*/test_fixes/analysis_options.yaml
-
 tasks:
   validate:
     desc: fail if this file is wrong (xtask --validate)
@@ -188,14 +183,6 @@ tasks:
     each: tools
     do: package
     args: [$each, dart, analyze, --fatal-infos]
-
-  pkg-fix-data:
-    desc: each package's data-driven fixes against its test_fixes/, the core's too
-    gate: [handover, ci]
-    needs: [get, plugin]
-    each: fix-tests
-    do: package
-    args: [$each, dart, fix, --compare-to-golden, test_fixes]
 
   test:
     # The root's own suite, test/tool/: the checks of this file and the
@@ -440,7 +427,6 @@ tasks:
       - analyze
       - pkg-analyze
       - tool-analyze
-      - pkg-fix-data
       - test
       - pkg-test
       - tool-test
