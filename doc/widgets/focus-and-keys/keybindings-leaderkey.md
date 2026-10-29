@@ -120,7 +120,7 @@ What the gallery lets you change, and what each starts at:
 ## More
 
 - API: [`KeyBindings`](https://pub.dev/documentation/twk/latest/twk/KeyBindings-class.html), [`LeaderKey`](https://pub.dev/documentation/twk/latest/twk/LeaderKey-class.html).
-- Also in Focus and keys: [Focus, FocusScope](focus-focusscope.md), [ExcludeFocus](excludefocus.md), [Shortcuts, Actions](shortcuts-actions.md).
+- Also in Focus and keys: [Focus, FocusScope](focus-focusscope.md), [ActiveItem](activeitem.md), [ExcludeFocus](excludefocus.md), [Shortcuts, Actions](shortcuts-actions.md).
 - Live in the gallery:
   `dart run packages/gallery/bin/gallery.dart --route='#/focus-and-keys/keybindings-leaderkey'`.
 - [Focus and keys](../focus-and-keys.md) · [All groups](../README.md)

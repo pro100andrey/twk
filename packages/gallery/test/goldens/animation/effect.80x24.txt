@@ -19,9 +19,9 @@ text
 │     SelectionArea   ▐──────────────────────────────────────────────────────────│
 │     Draggable, Dr…     effect   sweep  dissolve  typewriter  glitch  dim       │
 │                                 desaturate  tint  scanlines  grade             │
-│   FOCUS AND KEYS 4              sweep down, glitch                             │
+│   FOCUS AND KEYS 5              sweep down, glitch                             │
 │     Focus, FocusS…     cycle   ▐  ●▌                                           │
-│     ExcludeFocus                                                               │
+│     ActiveItem                                                                 │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -46,7 +46,7 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggghBBBBBBBBBBhhBBBBhhBBBBBBBBBhhBBBBBhgggggggggggg│
 │aaadddddadddaddddaFaaagggggggggghBBBBBhBBBBBhBBBBBBhgggggggggggggggggggggggggggg│
 │aaaaannnnnnannnnnnnaaaggmmmmmgggCDDECggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnnaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

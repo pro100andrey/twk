@@ -20,7 +20,7 @@ text
 │     SelectionArea      share     0  ¼  ½  ¾  1                                 │
 │     Draggable, Dr…     run      ▐  ●▌                                          │
 │                                                                                │
-│   FOCUS AND KEYS 4     inverse  ▐●  ▌                                          │
+│   FOCUS AND KEYS 5     inverse  ▐●  ▌                                          │
 │     Focus, FocusS…                                                             │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │

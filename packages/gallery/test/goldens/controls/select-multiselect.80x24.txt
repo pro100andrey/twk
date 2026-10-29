@@ -10,9 +10,9 @@ text
 │     RadioGroup          ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
 │     SegmentedButt…             ┌                                   ┐           │
 │     SelectionList       ·   ·     a fruit   ▾     some fruit     ▾      ·   ·  │
-│ ▎   Select, Multi…                                                             │
+│ ▎   Select, Multi…  ▐                                                          │
 │     ConfirmInput    ▐   ·   ·     Choose a fruit                        ·   ·  │
-│     Slider          ▐          └                                   ┘           │
+│     Slider                     └                                   ┘           │
 │     NumberInput         ·   ·   ·   ·   ·   ·   ·   ·   ·   ·33 × 3 ·   ·   ·  │
 │     DatePicker                                                                 │
 │     FilePicker          ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
@@ -35,9 +35,9 @@ styles
 │aaaaannnnnnnnnnaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
 │aaaaannnnnnnnnnnnnnaaaggggggggggogggggggggggggggggggggggggggggggggggoggggggggggg│
 │aaaaannnnnnnnnnnnnaaaagggogggoggggststttttssstggggsttttstttttssssstggggggogggogg│
-│apqqqrrrrrrrqrrrrrrqqagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│apqqqrrrrrrrqrrrrrrqqdgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnaaaadgggogggoggggsvvvvvvsvsvvvvvsgggggggggggggggggggggggogggogg│
-│aaaaannnnnnaaaaaaaaaadggggggggggogggggggggggggggggggggggggggggggggggoggggggggggg│
+│aaaaannnnnnaaaaaaaaaaaggggggggggogggggggggggggggggggggggggggggggggggoggggggggggg│
 │aaaaannnnnnnnnnnaaaaaagggogggogggogggogggogggogggogggogggogggoEEgEgEgogggogggogg│
 │aaaaannnnnnnnnnaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│

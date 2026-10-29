@@ -4,11 +4,11 @@ text
 │                                                                                │
 │   ⌕ Filter       /     KeyBindings, LeaderKey                  Preview   Code  │
 │                        Keys and sequences bound to callbacks while the focus   │
-│     SelectionArea      is below them: Tab to the box, then +, -, g g or the…   │
-│     Draggable, Dr…   ──────────────────────────────────────────────────────────│
-│                                                                                │
-│   FOCUS AND KEYS 4      ·   ·   ·    ┌                        ┐ ·   ·   ·   ·  │
-│     Focus, FocusS…                     ╭──────────╮                            │
+│     Draggable, Dr…     is below them: Tab to the box, then +, -, g g or the…   │
+│                      ──────────────────────────────────────────────────────────│
+│   FOCUS AND KEYS 5                                                             │
+│     Focus, FocusS…      ·   ·   ·    ┌                        ┐ ·   ·   ·   ·  │
+│     ActiveItem                         ╭──────────╮                            │
 │     ExcludeFocus        ·   ·   ·      │ focus me │  count: 0   ·   ·   ·   ·  │
 │ ▎   KeyBindings,…                      ╰──────────╯                            │
 │     Shortcuts, Ac…      ·   ·   ·                               ·   ·   ·   ·  │
@@ -29,11 +29,11 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahyhyyyyyyhhhhhhhzhaaggkkkkkkkkkkkkgkkkkkkkkkgggggggggggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmmmmgmmmgmmmmmmmmmgmmmmmgmmgmmmmmmmmmgmmmmmgmmmgmmmmmggg│
-│aaaaannnnnnnnnnnnnaaaaggmmgmmmmmgmmmmmgmmmgmmgmmmgmmmmgmmmmgmmgmmgmgmgmmgmmmmggg│
-│aaaaannnnnnnnnnannnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaadddddadddaddddaxaaagggogggogggoggggoggggggggggggggggggggggggogogggogggogggogg│
-│aaaaannnnnnannnnnnnaaaggggggggggggggggggppppppppppppgggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnannnaaaggmmgmmmmmgmmmmmgmmmgmmgmmmgmmmmgmmmmgmmgmmgmgmgmmgmmmmggg│
+│aaaaaaaaaaaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaadddddadddaddddaxaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnannnnnnnaaagggogggogggoggggoggggggggggggggggggggggggogogggogggogggogg│
+│aaaaannnnnnnnnnaaaaaaaggggggggggggggggggppppppppppppgggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnaaaaagggogggogggoggggggpgqqqqqgqqgpggmmmmmmgqgggogggogggogggogg│
 │arssstttttttttttttsssaggggggggggggggggggppppppppppppgggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnannnaaagggogggogggogggggggggggggggggggggggggggggggogggogggogggogg│

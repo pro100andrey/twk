@@ -4,7 +4,7 @@ text
 │                                                                                │
 │   ⌕ Filter       /     Navigator                               Preview   Code  │
 │                        Screens on a stack: a route pushed covers the one       │
-│     Focus, FocusS…     under it and takes the focus, Escape or Back pops it.   │
+│     ActiveItem         under it and takes the focus, Escape or Back pops it.   │
 │     ExcludeFocus     ──────────────────────────────────────────────────────────│
 │     KeyBindings,…         ┌                                              ┐     │
 │     Shortcuts, Ac…      ·   ╭──────────────────────────────────────────╮    ·  │
@@ -29,7 +29,7 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahAhAAAAAAhhhhhhhBhaaggkkkkkkkkkggggggggggggggggggggggggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmmmmmmmgmmgmgmmmmmmgmgmmmmmgmmmmmmgmmmmmmgmmmgmmmggggggg│
-│aaaaannnnnnannnnnnnaaaggmmmmmgmmgmmmgmmmmmgmmmgmmmmmmgmmmmmmgmmgmmmmgmmmmgmmmggg│
+│aaaaannnnnnnnnnaaaaaaaggmmmmmgmmgmmmgmmmmmgmmmgmmmmmmgmmmmmmgmmgmmmmgmmmmgmmmggg│
 │aaaaannnnnnnnnnnnaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnnnnnnnnaaaagggggoggggggggggggggggggggggggggggggggggggggggggggggoggggg│
 │aaaaannnnnnnnnnannnaaagggogggppppppppppppppppppppppppppppppppppppppppppppggggogg│

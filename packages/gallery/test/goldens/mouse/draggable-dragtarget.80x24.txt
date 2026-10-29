@@ -12,16 +12,16 @@ text
 │     SelectionArea        │ ● apple     │  │ drop here   │  │ drop here   │     │
 │ ▎   Draggable, Dr…       │ ● banana    │  │             │  │             │     │
 │                          │ ● cherry    │  │             │  │             │     │
-│   FOCUS AND KEYS 4       │ ● grape     │  │             │  │             │     │
+│   FOCUS AND KEYS 5       │ ● grape     │  │             │  │             │     │
 │     Focus, FocusS…       ╰─────────────╯  ╰─────────────╯  ╰─────────────╯     │
-│     ExcludeFocus                                                               │
-│     KeyBindings,…        dropped: nothing                                      │
-│     Shortcuts, Ac…  ▐  └                                                   ┘   │
-│                     ▐   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·49 × 8 ·  │
-│   NAVIGATION     5                                                             │
-│     Navigator        ──────────────────────────────────────────────────────────│
-│     PopScope, Nav…     child when dragging  ▐  ●▌                              │
-│     Breadcrumbs                                                                │
+│     ActiveItem                                                                 │
+│     ExcludeFocus    ▐    dropped: nothing                                      │
+│     KeyBindings,…   ▐  └                                                   ┘   │
+│     Shortcuts, Ac…      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·49 × 8 ·  │
+│                                                                                │
+│   NAVIGATION     5   ──────────────────────────────────────────────────────────│
+│     Navigator          child when dragging  ▐  ●▌                              │
+│     PopScope, Nav…                                                             │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -39,14 +39,14 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaggggpgqgrrrrrrggggpggpgggggggggggggpggpgggggggggggggpggggg│
 │aaadddddadddaddddaCaaaggggpgwgrrrrrgggggpggpgggggggggggggpggpgggggggggggggpggggg│
 │aaaaaooooooaoooooooaaaggggpppppppppppppppggpppppppppppppppggpppppppppppppppggggg│
-│aaaaaooooooooooooaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaaoooooooooooooaaaaggggmmmmmmmmgmmmmmmmgggggggggggggggggggggggggggggggggggggg│
-│aaaaaooooooooooaoooaadggngggggggggggggggggggggggggggggggggggggggggggggggggggnggg│
-│aaaaaaaaaaaaaaaaaaaaadgggngggngggngggngggngggngggngggngggngggngggngggnFFgFgFgngg│
-│aaaddddddddddaaaaaCaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaaoooooooooaaaaaaaannnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn│
-│aaaaaoooooooooaooooaaaggmmmmmgmmmmgmmmmmmmmggzAABzgggggggggggggggggggggggggggggg│
-│aaaaaoooooooooooaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaooooooooooaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaooooooooooooaaaadggggmmmmmmmmgmmmmmmmgggggggggggggggggggggggggggggggggggggg│
+│aaaaaoooooooooooooaaadggngggggggggggggggggggggggggggggggggggggggggggggggggggnggg│
+│aaaaaooooooooooaoooaaagggngggngggngggngggngggngggngggngggngggngggngggnFFgFgFgngg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaddddddddddaaaaaCaaannnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn│
+│aaaaaoooooooooaaaaaaaaggmmmmmgmmmmgmmmmmmmmggzAABzgggggggggggggggggggggggggggggg│
+│aaaaaoooooooooaooooaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

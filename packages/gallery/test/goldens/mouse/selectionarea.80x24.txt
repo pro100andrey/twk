@@ -13,15 +13,15 @@ text
 │ ▎   SelectionArea                                                              │
 │     Draggable, Dr…      ·   A drag goes on from one paragraph to the        ·  │
 │                             next.                                              │
-│   FOCUS AND KEYS 4      ·                                                   ·  │
+│   FOCUS AND KEYS 5      ·                                                   ·  │
 │     Focus, FocusS…          copied: nothing                                    │
-│     ExcludeFocus    ▐   · └                                              ┘  ·  │
-│     KeyBindings,…   ▐                                              44 × 8      │
-│     Shortcuts, Ac…   ──────────────────────────────────────────────────────────│
-│                        selected in       two Texts  a painted log              │
-│   NAVIGATION     5     copy on release  ▐  ●▌                                  │
-│     Navigator          style             the theme's  reverse                  │
-│     PopScope, Nav…                                                             │
+│     ActiveItem      ▐   · └                                              ┘  ·  │
+│     ExcludeFocus    ▐                                              44 × 8      │
+│     KeyBindings,…    ──────────────────────────────────────────────────────────│
+│     Shortcuts, Ac…     selected in       two Texts  a painted log              │
+│                        copy on release  ▐  ●▌                                  │
+│   NAVIGATION     5     style             the theme's  reverse                  │
+│     Navigator                                                                  │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -40,13 +40,13 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggpppppgggggggggggggggggggggggggggggggggggggggggggggg│
 │aaadddddadddaddddazaaagggogggggggggggggggggggggggggggggggggggggggggggggggggggogg│
 │aaaaannnnnnannnnnnnaaagggggggmmmmmmmgmmmmmmmgggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnnaaaadgggogoggggggggggggggggggggggggggggggggggggggggggggggoggogg│
-│aaaaannnnnnnnnnnnnaaadggggggggggggggggggggggggggggggggggggggggggggggCCgCgCgggggg│
-│aaaaannnnnnnnnnannnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaaaaaaaaaaaaaaaaaaaggmmmmmmmmgmmggggggrsssrsssssrhvhvvvvvvvhvvvhggggggggggggg│
-│aaaddddddddddaaaaazaaaggmmmmgmmgmmmmmmmggwxxywgggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnaaaaaaaaggmmmmmggggggggggggrsssrsssssssrhvvvvvvvhggggggggggggggggg│
-│aaaaannnnnnnnnannnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnaaaaaadgggogoggggggggggggggggggggggggggggggggggggggggggggggoggogg│
+│aaaaannnnnnnnnnnnaaaadggggggggggggggggggggggggggggggggggggggggggggggCCgCgCgggggg│
+│aaaaannnnnnnnnnnnnaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnannnaaaggmmmmmmmmgmmggggggrsssrsssssrhvhvvvvvvvhvvvhggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmgmmgmmmmmmmggwxxywgggggggggggggggggggggggggggggggggg│
+│aaaddddddddddaaaaazaaaggmmmmmggggggggggggrsssrsssssssrhvvvvvvvhggggggggggggggggg│
+│aaaaannnnnnnnnaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend
