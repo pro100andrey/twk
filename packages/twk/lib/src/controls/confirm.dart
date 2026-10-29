@@ -202,11 +202,15 @@ final class _ConfirmInputState extends State<ConfirmInput> {
         }
         Widget answer(String label, bool value) => GestureDetector(
           onTap: enabled ? (_) => _answer(value) : null,
-          child: PressChip(
-            ' $label ',
-            style: value == _highlighted ? highlighted : other,
-            presses: value ? _yeses : _nos,
-            enabled: enabled,
+          // the hidden cursor on the highlighted answer
+          child: ActiveItem(
+            active: value == _highlighted,
+            child: PressChip(
+              ' $label ',
+              style: value == _highlighted ? highlighted : other,
+              presses: value ? _yeses : _nos,
+              enabled: enabled,
+            ),
           ),
         );
         return Row(

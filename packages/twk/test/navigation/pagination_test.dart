@@ -236,6 +236,32 @@ void main() {
     expect(t.lines.first, contains('[42]'));
   });
 
+  testTwk('the hidden cursor rests on the current page as it changes', (
+    t,
+  ) async {
+    final page = ValueNotifier(1);
+    final node = FocusNode(debugLabel: 'pages');
+    addTearDown(node.dispose);
+    await t.pumpWidget(
+      Theme.terminal(child: pages(page, 70, focusNode: node)),
+      size: (70, 3),
+    );
+    node.requestFocus();
+    await t.pump();
+    expect(t.cursorVisible, isFalse);
+    expect(t.lines.first, startsWith('« First ‹ Prev 1 [2]'));
+    expect(t.cursor, (17, 0));
+    await press(t, 'right');
+    expect(t.lines.first, startsWith('« First ‹ Prev 1 2 [3]'));
+    expect(t.cursor, (19, 0));
+    await press(t, 'end');
+    expect(t.lines.first, startsWith('« First ‹ Prev 1 … 38 39 40 41 [42]'));
+    expect(t.cursor, (31, 0));
+    await press(t, 'tab');
+    expect(focused(t), 'next');
+    expect(t.cursor, (0, 1));
+  });
+
   testTwk('digits typed show after the row, Enter goes to that page, the '
       'last where there are fewer; Backspace takes one back, Escape and '
       'the focus leaving drop them', (t) async {

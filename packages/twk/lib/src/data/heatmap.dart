@@ -21,6 +21,7 @@ import 'package:twk_core/twk_core.dart'
         RenderObject,
         TextSegmenter;
 
+import '../editing/caret.dart' show clearRestCursor, restCursor;
 import '../focus/focus_tree.dart';
 import '../focus/hinted_keys.dart';
 import '../foundation/helpers.dart';
@@ -996,6 +997,12 @@ final class RenderHeatmap extends RenderObject {
 
     final look = _Look.of(_scale, styles.colorMode, seg, _cellWidth);
     final cursor = _cursor;
+    // the hidden cursor on the marked cell
+    if (cursor case (final r, final c)) {
+      restCursor(ctx, this, left + c * _cellWidth, top + r);
+    } else {
+      clearRestCursor(ctx, this);
+    }
     for (var r = 0; r < _rows; r++) {
       final y = top + r;
       for (var c = 0; c < _columns; c++) {

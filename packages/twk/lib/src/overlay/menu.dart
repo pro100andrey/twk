@@ -32,6 +32,7 @@ import 'package:twk_core/twk_core.dart'
         TextMode,
         TextSegmenter;
 
+import '../editing/caret.dart' show clearRestCursor, restCursor;
 import '../focus/focus.dart';
 import '../foundation/change_notifier.dart' show ChangeNotifier, VoidCallback;
 import '../foundation/controller_host.dart';
@@ -2229,6 +2230,13 @@ final class _RenderMenuBox extends RenderObject {
     final w = width;
     final h = height;
     final s = _styles;
+    // the hidden cursor on the highlighted entry of the menu the keys
+    // move in
+    if (_active && _highlighted >= 0 && _highlighted < h - 2 && w >= 2) {
+      restCursor(ctx, this, s.raised ? 0 : 1, _highlighted + 1);
+    } else {
+      clearRestCursor(ctx, this);
+    }
     canvas.fill(0, 0, w, h, s.box.penIn(styles));
     if (w < 2 || h < 2) {
       return;

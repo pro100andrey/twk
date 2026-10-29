@@ -15,6 +15,7 @@ import 'package:twk_core/twk_core.dart'
         StyleTable,
         TextSegmenter;
 
+import '../editing/caret.dart' show clearRestCursor, restCursor;
 import '../foundation/helpers.dart';
 import '../framework/framework.dart';
 import '../gestures/mouse.dart';
@@ -69,7 +70,8 @@ final class Option {
 /// while not all show, a `▐` in the theme's border color down the last
 /// column says where those shown are. As wide as the widest row asks for,
 /// within its constraints; a label that does not fit is cut off before the
-/// detail.
+/// detail. The terminal's hidden cursor rests on the highlighted row's
+/// first cell while the list is in the focused widget (`restCursor`).
 ///
 /// The mouse: moved onto a row, it calls [onHighlight] with its index (the
 /// app highlights it); a button pressed and released on a row calls
@@ -415,6 +417,12 @@ final class _RenderOptionList extends RenderObject {
     }
     if (_top > n - h) {
       _top = n - h < 0 ? 0 : n - h;
+    }
+    // the hidden cursor on the highlighted row
+    if (h0 >= 0 && h0 < n) {
+      restCursor(ctx, this, 0, h0 - _top);
+    } else {
+      clearRestCursor(ctx, this);
     }
     final s = _styles;
     for (var row = 0; row < h; row++) {

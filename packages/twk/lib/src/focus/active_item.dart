@@ -40,30 +40,43 @@ import '../layout/one_child.dart';
 /// );
 /// ```
 final class ActiveItem extends SingleChildRenderObjectWidget {
-  /// [child], the item its widget's keys act on while [active].
-  const ActiveItem({required this.active, super.key, super.child});
+  /// [child], the item its widget's keys act on while [active], the
+  /// cursor on [column] of its first row.
+  const ActiveItem({
+    required this.active,
+    this.column = 0,
+    super.key,
+    super.child,
+  });
 
   /// Whether it is the item the keys act on.
   final bool active;
+
+  /// The column of its first row the cursor rests on: 0, its first cell,
+  /// or where the item starts in a row its child draws of several, as
+  /// `HitRow`'s targets are.
+  final int column;
 
   @override
   SingleChildRenderObjectElement createElement() => OneChildElement(this);
 
   @override
   RenderObject createRenderObject(BuildContext context) =>
-      _RenderActiveItem(active);
+      _RenderActiveItem(active, column);
 
   @override
   void updateRenderObject(BuildContext context, RenderObject renderObject) =>
-      (renderObject as _RenderActiveItem).active = active;
+      (renderObject as _RenderActiveItem)
+        ..active = active
+        ..column = column;
 }
 
 /// What [ActiveItem] puts in the render tree: its child, as big as the
-/// child is, the hidden cursor put on its first cell as it is painted
-/// while [active].
+/// child is, the hidden cursor put on [column] of its first row as it is
+/// painted while [active].
 final class _RenderActiveItem extends RenderObject
     with RenderObjectWithChildMixin {
-  _RenderActiveItem(this._active);
+  _RenderActiveItem(this._active, this._column);
 
   /// See [ActiveItem.active].
   bool get active => _active;
@@ -72,6 +85,17 @@ final class _RenderActiveItem extends RenderObject
   set active(bool value) {
     if (value != _active) {
       _active = value;
+      markNeedsPaint();
+    }
+  }
+
+  /// See [ActiveItem.column].
+  int get column => _column;
+  int _column;
+
+  set column(int value) {
+    if (value != _column) {
+      _column = value;
       markNeedsPaint();
     }
   }
@@ -110,7 +134,7 @@ final class _RenderActiveItem extends RenderObject
     // before the child: an active item in it, painted after, is the last
     // given
     if (_active) {
-      restCursor(ctx, this, 0, 0);
+      restCursor(ctx, this, _column, 0);
     } else {
       clearRestCursor(ctx, this);
     }
@@ -123,6 +147,8 @@ final class _RenderActiveItem extends RenderObject
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
-    properties.add('active', _active);
+    properties
+      ..add('active', _active)
+      ..add('column', _column, defaultValue: 0);
   }
 }

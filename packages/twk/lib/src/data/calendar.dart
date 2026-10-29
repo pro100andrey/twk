@@ -14,6 +14,7 @@ import 'package:twk_core/twk_core.dart'
         PaintContext,
         RenderObject;
 
+import '../editing/caret.dart' show clearRestCursor, restCursor;
 import '../focus/focus_tree.dart';
 import '../focus/hinted_keys.dart';
 import '../foundation/change_notifier.dart';
@@ -855,6 +856,8 @@ final class RenderCalendar extends RenderObject {
     }
     final names = base.merge(_weekdayStyle).penIn(styles);
     final top = _top;
+    // the hidden cursor on the cursor's day, while it is marked
+    clearRestCursor(ctx, this);
     for (var col = 0; col < 7; col++) {
       final name = _weekdayNames[(_firstWeekday - 1 + col) % 7];
       _cell(canvas, left + 3 * col, top - 1, name, names);
@@ -890,16 +893,13 @@ final class RenderCalendar extends RenderObject {
         if (day == _selected) {
           s = s.merge(_selectedStyle);
         }
+        final number = utcOfDay(day).day;
         if (_showCursor && day == _cursor) {
           s = s.merge(_cursorStyle);
+          // on its first digit, the right column of a day below 10
+          restCursor(ctx, this, left + 3 * col + (number < 10 ? 1 : 0), y);
         }
-        _cell(
-          canvas,
-          left + 3 * col,
-          y,
-          '${utcOfDay(day).day}',
-          s.penIn(styles),
-        );
+        _cell(canvas, left + 3 * col, y, '$number', s.penIn(styles));
       }
     }
   }

@@ -398,6 +398,7 @@ final class _PaginationState extends State<Pagination> {
     final parts = _fit(segmenter, width);
     _parts = parts;
     final spans = <HitSpan>[];
+    var lit = -1;
     for (final (i, part) in parts.indexed) {
       if (i > 0) {
         spans.add((span: Span(' ', row), target: -1));
@@ -410,6 +411,7 @@ final class _PaginationState extends State<Pagination> {
       };
       if (part.kind == _Kind.page && part.to < 0 && enabled && focused) {
         style = style.merge(focusedRow(theme));
+        lit = i;
       } else if (live && i == _hits.hovered) {
         style = style.merge(const Style(attrs: Attr.underline));
       }
@@ -420,6 +422,8 @@ final class _PaginationState extends State<Pagination> {
       segmenter,
       style: row,
       onHover: enabled ? (_) => setState(() {}) : null,
+      // the hidden cursor on the current page
+      active: lit,
     );
   }
 }

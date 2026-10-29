@@ -334,6 +334,8 @@ final class _SegmentedButtonState<T> extends State<SegmentedButton<T>> {
       onHover: enabled && hover != const Style()
           ? (_) => setState(() {})
           : null,
+      // the hidden cursor on the highlighted segment
+      active: highlight,
     );
   }
 }

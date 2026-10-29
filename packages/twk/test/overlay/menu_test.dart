@@ -281,6 +281,26 @@ void main() {
     expect(log, isEmpty);
   });
 
+  testTwk('the hidden cursor rests on the highlighted entry of the menu '
+      'the keys move in, a submenu and back', (t) async {
+    await t.pumpWidget(Theme.terminal(child: app([])), size: (30, 10));
+    await press(t, 'f10');
+    expect(t.cursorVisible, isFalse);
+    expect(t.cursor, (1, 2));
+    await press(t, 'down down');
+    expect(t.cursor, (1, 5));
+    await press(t, 'right');
+    expect(highlighted(t), ['Recent  ▸', 'a.txt']);
+    expect(t.cursor, (14, 5));
+    await press(t, 'down');
+    expect(t.cursor, (14, 6));
+    await press(t, 'left');
+    expect(t.cursor, (1, 5));
+    await press(t, 'escape');
+    expect(focused(t), 'editor');
+    expect(t.cursor, (0, 1));
+  });
+
   testTwk('Alt and a mnemonic opens its menu; a mnemonic, in either case, '
       'chooses an item or opens a submenu, or highlights the next of the '
       'items that share it; other letters go no further', (t) async {
