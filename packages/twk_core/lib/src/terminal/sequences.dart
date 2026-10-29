@@ -353,7 +353,8 @@ String pointerShapeSequence(
 /// or GNU screen: the shape would stay over the other panes as well. A
 /// name the terminal tells, then its own `TERM` and `TERM_PROGRAM`, come
 /// before variables a terminal it was started from left in its
-/// environment.
+/// environment; xterm's `XTERM_VERSION` counts only where it told none
+/// (XTVERSION not asked, as with a graphics protocol given).
 PointerNames? pointerNamesFor(
   Map<String, String> env, {
   String version = '',
@@ -389,10 +390,18 @@ PointerNames? pointerNamesFor(
     default:
       return null;
   }
-  return env.containsKey('KITTY_WINDOW_ID') ||
-          env.containsKey('GHOSTTY_RESOURCES_DIR') ||
-          _number(env['KONSOLE_VERSION']) >= 260400
-      ? css
+  if (env.containsKey('KITTY_WINDOW_ID') ||
+      env.containsKey('GHOSTTY_RESOURCES_DIR') ||
+      _number(env['KONSOLE_VERSION']) >= 260400) {
+    return css;
+  }
+  // xterm's own variable, last: where the terminal told its name (any
+  // but xterm's) it is that of an xterm it was started from
+  final xterm = env['XTERM_VERSION'] ?? '';
+  return version.isEmpty &&
+          xterm.startsWith('XTerm(') &&
+          _atLeast(xterm.substring(6), const [367])
+      ? x11
       : null;
 }
 

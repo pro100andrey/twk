@@ -119,14 +119,16 @@ void main() {
     });
 
     test("by the X cursor font's: iTerm2 3.7 on by its TERM_PROGRAM or "
-        'XTVERSION, xterm 367 on by XTVERSION, over what it was started '
-        'from', () {
+        'XTVERSION, xterm 367 on by XTVERSION over what it was started '
+        'from, or by XTERM_VERSION where it told no name', () {
       for (final (env, version) in const [
         ({'TERM_PROGRAM': 'iTerm.app', 'TERM_PROGRAM_VERSION': '3.7.0'}, ''),
         ({'TERM_PROGRAM': 'iTerm.app', 'TERM_PROGRAM_VERSION': '3.7.7'}, ''),
         (<String, String>{}, 'iTerm2 3.7.2'),
         ({'TERM': 'xterm-256color'}, 'XTerm(367)'),
         ({'KONSOLE_VERSION': '260400'}, 'XTerm(390)'),
+        // XTVERSION not asked
+        ({'TERM': 'xterm-256color', 'XTERM_VERSION': 'XTerm(390)'}, ''),
       ]) {
         expect(
           pointerNamesFor(env, version: version),
@@ -144,7 +146,9 @@ void main() {
         ({'TERM_PROGRAM': 'iTerm.app'}, ''),
         ({'TERM_PROGRAM': 'iTerm.app', 'TERM_PROGRAM_VERSION': '3.6.11'}, ''),
         (<String, String>{}, 'iTerm2 3.6.11'),
-        ({'XTERM_VERSION': 'XTerm(390)'}, ''),
+        ({'XTERM_VERSION': 'XTerm(366)'}, ''),
+        // another terminal, which told its name, started from xterm
+        ({'XTERM_VERSION': 'XTerm(390)'}, 'mlterm(3.9.3)'),
         (<String, String>{}, 'XTerm(366)'),
         ({'TERM_PROGRAM': 'Apple_Terminal'}, ''),
         ({'TERM_PROGRAM': 'mintty'}, ''),
