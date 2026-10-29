@@ -30,6 +30,17 @@ const _quit = 0x71; // stop reading: the terminal is closed
 const _writable = 'writable';
 const _hangup = 'hangup';
 
+/// Bigger than `struct termios` on Linux (60 bytes) and macOS (72).
+const _termiosBytes = 256;
+
+/// The terminal's attributes as the I/O isolate read them through the
+/// master ([Pty.modesAtEnd]).
+final class _Modes {
+  const _Modes(this.bytes);
+
+  final Uint8List bytes;
+}
+
 /// The program's end, as the I/O isolate saw it.
 final class _Exited {
   const _Exited(this.code);
@@ -52,7 +63,9 @@ final class _Exited {
 /// never with a fork of the VM: a new session (POSIX_SPAWN_SETSID), the
 /// slave opened as descriptor 0 by its leader, which makes it the
 /// controlling terminal, then duplicated to 1 and 2, every other
-/// descriptor closed. The master is read by an isolate of its own polling
+/// descriptor closed. macOS opens it before the session is made: there
+/// `/bin/sh` opens it again as the leader, then execs the program through
+/// `env -i`. The master is read by an isolate of its own polling
 /// it, which also waits for the program's end.
 ///
 /// `ls` run to its end, its output printed:
@@ -225,18 +238,45 @@ final class Pty {
       }
       final pid = scope.alloc<Int>(sizeOf<Int>());
       final pidfd = scope.alloc<Int>(sizeOf<Int>());
+      final entries = [
+        for (final MapEntry(:key, :value) in env.entries) '$key=$value',
+      ];
+      // macOS opens the file actions' slave before the new session is made
+      // (POSIX_SPAWN_SETSID), so it is no controlling terminal: Ctrl+C
+      // would signal nothing, a shell run no jobs, close hang up nothing.
+      // sh, the session's leader by then, opens it again, which makes it
+      // one, and execs the program through env -i, in the environment as
+      // given (not with what sh adds to it) and its name as argv[0], which
+      // env finds in that environment's PATH as posix_spawn would.
+      final (
+        String spawned,
+        List<String> argv,
+        List<String> envp,
+      ) = Platform.isMacOS
+          ? (
+              '/bin/sh',
+              <String>[
+                'sh',
+                '-c',
+                r'exec 0<>"$0" 1>&0 2>&0 && exec /usr/bin/env -i -- "$@"',
+                name,
+                ...entries,
+                if (executable.contains('=')) path else executable,
+                ...arguments,
+              ],
+              const <String>[],
+            )
+          : (path, [executable, ...arguments], entries);
       check(
         'posix_spawn $path',
         c.spawn(
           pid,
           pidfd,
-          scope.string(path),
+          scope.string(spawned),
           actions,
           attr,
-          scope.strings([executable, ...arguments]),
-          scope.strings([
-            for (final MapEntry(:key, :value) in env.entries) '$key=$value',
-          ]),
+          scope.strings(argv),
+          scope.strings(envp),
         ),
       );
       c.setNonblocking(master);
@@ -312,6 +352,7 @@ final class Pty {
   var _closed = false;
   var _hungUp = false;
   var _ended = false;
+  Uint8List? _modesAtEnd;
   int _width;
   int _height;
 
@@ -334,6 +375,17 @@ final class Pty {
   /// may take the program's end first; Linux 6.15 and later still tell it
   /// through the pidfd made with the program, elsewhere it is null then.
   Future<int?> get exitCode => _exit.future;
+
+  /// The terminal's attributes (`struct termios`, in 256 bytes) as the
+  /// program left them, read through the master when it
+  /// ended or when the terminal hung up, whichever came first; null
+  /// before, or where they could not be read.
+  ///
+  /// A descriptor of the slave of one's own reads them no more by then on
+  /// macOS, which revokes a session's controlling terminal once its
+  /// leader ends: what checks that a program put its terminal back reads
+  /// them here.
+  Uint8List? get modesAtEnd => _modesAtEnd;
 
   /// How many columns the terminal has, as [resize] set it last.
   int get width => _width;
@@ -414,6 +466,8 @@ final class Pty {
         // on close, or every descriptor of the slave closed: the master is
         // closed then, or once the program ended (_end)
         _hangUp(closeMaster: _closed);
+      case _Modes(:final bytes):
+        _modesAtEnd ??= bytes;
       case _Exited(:final code):
         _exit.complete(code);
       case [final Object error, final Object? stack]:
@@ -617,12 +671,23 @@ void _ioLoop((int, int, int, int, SendPort) args) {
   // never, before Linux 6.15).
   Stopwatch? taken;
 
+  // the terminal's attributes, through the master while it is read
+  // (closed by the main isolate once it hung up): what the program left
+  final termios = scope.alloc<Uint8>(_termiosBytes);
+  void modes() {
+    if (reading && c.tcgetattr(master, termios.cast()) == 0) {
+      port.send(_Modes(Uint8List.fromList(termios.asTypedList(_termiosBytes))));
+    }
+  }
+
   void ended(int? status) {
+    modes();
     reaped = true;
     port.send(_Exited(status == null ? null : _exitCodeOf(status)));
   }
 
   void hangUp() {
+    modes();
     reading = false;
     port.send(_hangup);
   }

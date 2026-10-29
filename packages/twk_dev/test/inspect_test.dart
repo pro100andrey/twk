@@ -207,8 +207,12 @@ void main() {
   test('twk inspect in a terminal shows the widget tree of the app at an '
       'address given, or that twk run runs from the project, says when it '
       'has gone, and quits on q with 0', () async {
-    // the project twk inspect -C looks in: a directory, no app of its own
-    final dir = await Directory.systemTemp.createTemp('twk_inspect_test');
+    // the project twk inspect -C looks in: a directory, no app of its own;
+    // under /tmp on macOS, whose own temporary directory is so long that
+    // the line naming it is cut at the screen's width
+    final dir =
+        await (Platform.isMacOS ? Directory('/tmp') : Directory.systemTemp)
+            .createTemp('twk_inspect_test');
     addTearDown(() => dir.delete(recursive: true));
     final info = File(p.join(dir.path, 'service.json'));
     final app = await startProcess(Platform.resolvedExecutable, [
