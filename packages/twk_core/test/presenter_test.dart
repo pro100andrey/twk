@@ -43,10 +43,11 @@ void main() {
   });
 
   test('a hidden cursor rests where the shown one would on the whole '
-      'screen, not where the frame wrote last', () {
+      'screen, not where the frame wrote last, where it is asked to', () {
     // a terminal that marks the cursor's row (iTerm2's cursor guide)
     final hs = Harness(20, 4);
     hs.presenter
+      ..restsCursor = true
       ..cursorX = 3
       ..cursorY = 1;
     for (final (x, y) in [(10, 3), (15, 0), (0, 2)]) {
@@ -60,8 +61,22 @@ void main() {
     expect(hs.mismatches(), isEmpty);
   });
 
+  test('a hidden cursor not asked to rest stays where the frame wrote '
+      'last, no byte spent on it', () {
+    final hs = Harness(20, 4);
+    hs.presenter
+      ..cursorX = 3
+      ..cursorY = 1;
+    hs.canvas.text(10, 3, 'ab', hs.pens[1]);
+    hs.frame();
+    expect((hs.vt.cx, hs.vt.cy), (12, 3));
+    expect(hs.mismatches(), isEmpty);
+  });
+
   test('inline, a hidden cursor stays where the region left it', () {
-    final hs = Harness.inline(20, 3, screenHeight: 10)..presenter.cursorX = 3;
+    final hs = Harness.inline(20, 3, screenHeight: 10)
+      ..presenter.restsCursor = true
+      ..presenter.cursorX = 3;
     hs.canvas.text(10, 2, 'ab', hs.pens[1]);
     hs.frame();
     expect(hs.vt.cx, isNot(3));

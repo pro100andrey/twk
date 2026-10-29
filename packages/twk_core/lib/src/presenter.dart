@@ -476,8 +476,17 @@ final class Presenter {
 
   /// Whether the cursor is shown when a frame ends, at [cursorX],
   /// [cursorY]; hidden by default. Hidden, it is put there too on the
-  /// whole screen, where a frame left it elsewhere.
+  /// whole screen where the app says where it rests ([restsCursor]).
   var cursorVisible = false;
+
+  /// Whether the hidden cursor rests at [cursorX], [cursorY] on the whole
+  /// screen, put back there where a frame left it elsewhere: what the app
+  /// has the focus on, which a terminal that marks the cursor's row
+  /// (iTerm2's cursor guide) or follows it (macOS zoom, a screen reader)
+  /// shows. It costs a move of the cursor a frame that writes, a few bytes.
+  /// Off by default: the cursor stays where the frame left it. twk's
+  /// binding turns it on (`AppBinding.restCursor`).
+  var restsCursor = false;
 
   /// The column of the surface the visible cursor is put in.
   var cursorX = 0;
@@ -921,7 +930,12 @@ final class Presenter {
     // row (iTerm2's cursor guide) or follows it (macOS zoom) keeps still,
     // and goes along when the cell it rests on moves. An inline region and
     // a fixed viewport leave it as they need it.
-    if (!cursorVisible && !inline && viewport == null && w > 0 && h > 0) {
+    if (restsCursor &&
+        !cursorVisible &&
+        !inline &&
+        viewport == null &&
+        w > 0 &&
+        h > 0) {
       final cx = cursorX.clamp(0, w - 1);
       final cy = cursorY.clamp(0, h - 1);
       if (_cx != cx || _cy != cy) {

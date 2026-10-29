@@ -50,6 +50,39 @@ void main() {
     expect(t.cursor, (4, 2));
   });
 
+  test('restCursor false leaves the hidden cursor where the frame wrote '
+      'last, no byte spent on it', () async {
+    final clock = FakeClock();
+    final term = clock.run(() => HeadlessTerminal(width: 20, height: 4));
+    final binding = clock.run(
+      () => AppBinding(
+        term,
+        maxFps: 1000,
+        clock: clock.stopwatch,
+        restCursor: false,
+      ),
+    );
+    final node = FocusNode();
+    addTearDown(node.dispose);
+    final done = clock.run(
+      () => binding.run(
+        Padding(
+          padding: const EdgeInsets.only(left: 2, top: 1),
+          child: Focus(
+            focusNode: node,
+            autofocus: true,
+            child: const Text('x'),
+          ),
+        ),
+      ),
+    );
+    await clock.elapse(const Duration(milliseconds: 30));
+    final presenter = binding.twkApp.screen.presenter;
+    expect(presenter.restsCursor, isFalse);
+    binding.quit();
+    await clock.elapseUntil(done);
+  });
+
   testTwk('a focused widget puts it on a cell of its own, the selected one', (
     t,
   ) async {
