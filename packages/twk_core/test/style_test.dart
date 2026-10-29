@@ -226,9 +226,31 @@ void main() {
     final red = t.style(attrs: Attr.curlyUnderline, underlineColor: Color.red);
     expect(sgr(t.sgrFromReset(red)), '0;4');
     expect(t.transition(curly, red), isEmpty);
-    t.styledUnderlines = true;
-    expect(sgr(t.sgrFromReset(curly)), '0;4:3');
-    expect(sgr(t.transition(curly, plain)), '4');
-    expect(sgr(t.sgrFromReset(red)), '0;4:3;58:5:1');
+    // a blank under it keeps the text's color for its line, the color the
+    // underline has under the text
+    final redText = t.style(
+      fg: Color.red,
+      attrs: Attr.curlyUnderline,
+      underlineColor: Color.blue,
+    );
+    expect(t.fgOf(t.blankStyleOf(redText)), Color.red);
+
+    final styled = StyleTable();
+    final c = styled.style(attrs: Attr.curlyUnderline);
+    final p = styled.style(attrs: Attr.underline);
+    final r = styled.style(
+      attrs: Attr.curlyUnderline,
+      underlineColor: Color.red,
+    );
+    expect(sgr(styled.sgrFromReset(c)), '0;4:3');
+    expect(sgr(styled.transition(c, p)), '4');
+    expect(sgr(styled.sgrFromReset(r)), '0;4:3;58:5:1');
+    // with its own color the line needs not the text's on a blank
+    final blueOnRed = styled.style(
+      fg: Color.red,
+      attrs: Attr.curlyUnderline,
+      underlineColor: Color.blue,
+    );
+    expect(styled.fgOf(styled.blankStyleOf(blueOnRed)), Color.defaultColor);
   });
 }

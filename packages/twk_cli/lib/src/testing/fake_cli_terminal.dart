@@ -53,7 +53,10 @@ final class FakeCliTerminal extends CliTerminal {
   /// [progressReports] says the terminal shows a program's progress in
   /// its tab (OSC 9;4), which the inline session then writes;
   /// [styledUnderlines] false that it shows no underline styles, as
-  /// Terminal.app.
+  /// Terminal.app, and [probedStyledUnderlines] what the inline session's
+  /// probe finds of them, [styledUnderlines] by default: false beside a
+  /// true one is Terminal.app over ssh, which its environment doesn't
+  /// tell.
   FakeCliTerminal({
     bool ansi = false,
     bool interactiveInput = false,
@@ -62,6 +65,7 @@ final class FakeCliTerminal extends CliTerminal {
     bool? hyperlinks,
     this.colorMode = ColorMode.trueColor,
     bool styledUnderlines = true,
+    bool? probedStyledUnderlines,
     int? columns,
     this.width = 80,
     this.height = 24,
@@ -78,6 +82,7 @@ final class FakeCliTerminal extends CliTerminal {
          colorMode: colorMode,
          styledUnderlines: styledUnderlines,
        ),
+       _probedUnderlines = probedStyledUnderlines ?? styledUnderlines,
        _columns = columns ?? (outputIsTerminal ? width : null),
        _lines = [...lines],
        _input = [...input],
@@ -131,6 +136,8 @@ final class FakeCliTerminal extends CliTerminal {
 
   @override
   final CliCapabilities capabilities;
+
+  final bool _probedUnderlines;
 
   /// The colors styled output is written in.
   final ColorMode colorMode;
@@ -246,9 +253,7 @@ final class FakeCliTerminal extends CliTerminal {
     final backend = _backend = HeadlessTerminal(
       width: width,
       height: height,
-      caps: TerminalCaps(
-        styledUnderlines: capabilities.styledUnderlines,
-      ),
+      caps: TerminalCaps(styledUnderlines: _probedUnderlines),
       options: const TerminalOptions(alternateScreen: false),
       cursorColumn: screen.cx,
       progressReports: progressReports,

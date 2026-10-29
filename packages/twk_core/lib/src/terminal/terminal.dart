@@ -455,18 +455,13 @@ ColorMode colorModeFor(Map<String, String> env, {bool windows = false}) {
 bool styledUnderlinesFor(Map<String, String> env) => !_isAppleTerminal(env);
 
 /// Whether the environment names Terminal.app: its `TERM_PROGRAM`, not
-/// inherited by a terminal whose `TERM` is its own (kitty, ghostty,
-/// Alacritty, foot, WezTerm) started from it.
+/// inherited by a terminal whose `TERM` is its own
+/// ([termNamesItsOwnTerminal]) started from it.
 bool _isAppleTerminal(Map<String, String> env) {
   if (env['TERM_PROGRAM'] != 'Apple_Terminal') {
     return false;
   }
-  final term = env['TERM'] ?? '';
-  return !(term == 'xterm-kitty' ||
-      term == 'xterm-ghostty' ||
-      term == 'alacritty' ||
-      term == 'wezterm' ||
-      term.startsWith('foot'));
+  return !termNamesItsOwnTerminal(env['TERM'] ?? '');
 }
 
 /// Whether the terminal's colors are dark or light as its environment
@@ -1143,7 +1138,8 @@ final class Terminal
   /// asked where it went: a terminal that showed some of them moved it.
   /// The inline mode never leaves the normal screen, nor erases its rows
   /// below the cursor. Those that may show are asked only where the line
-  /// has room for what they may show ([_mayShow]), which then can't wrap.
+  /// has room for what they may show ([_modesMayShow],
+  /// [_graphicsMayShow]), which then can't wrap.
   static String _inPlace(String queries) => '\x1b7$queries\x1b[6n';
 
   /// The cursor put back where [_inPlace] asked (DECRC), and what the
@@ -1153,10 +1149,14 @@ final class Terminal
   static String _putBack({required bool shown}) =>
       '\x1b8${shown ? '\x1b[K' : ''}';
 
-  /// The cells the probe's queries may show on a terminal that knows none
-  /// of them, with room to spare: Terminal.app shows 36, a `p` of each
-  /// DECRQM and the body of kitty's graphics query.
-  static const _mayShow = 48;
+  /// The cells a terminal that knows no DECRQM may show of [_modeQueries]:
+  /// Terminal.app shows a `p` of each.
+  static const _modesMayShow = 6;
+
+  /// The cells a terminal that knows no APC may show of kitty's graphics
+  /// query, its body, as Terminal.app does; XTVERSION, after it, shows
+  /// nothing there.
+  static const _graphicsMayShow = 31;
 
   /// Queries the terminal; what the user types meanwhile goes to [early].
   /// Returns what it found and its answer about BDSM ([bidiModeQuery]),
@@ -1269,9 +1269,9 @@ final class Terminal
     // region starts on a line of its own), then the queries where it is
     // and where it went, putting it back and erasing what they showed on
     // its line, those that may show asked only where the line has room
-    // for them. Terminal.app, which answers neither,
-    // is asked no DECRQM, nor kitty's graphics query; the inline mode asks
-    // that one only of a terminal its environment says may have it. Among
+    // for them: the modes' 6 cells, then the graphics query's 31, a cell
+    // spare. Terminal.app, which answers neither, is asked no DECRQM, nor
+    // kitty's graphics query. Among
     // the queries are a cell's size in pixels and, unless the protocol
     // images are shown with is given, the graphics query and the
     // terminal's name and version (XTVERSION), not in a multiplexer, which
@@ -1287,11 +1287,7 @@ final class Terminal
         declared.graphics == null &&
         !GraphicsProtocol.values.any((p) => p.name == env['TWK_GRAPHICS']);
     final apple = _isAppleTerminal(env);
-    final kittyQuery =
-        !apple && (o.alternateScreen || _mayShowKittyGraphics(env));
-    final graphicsQueries = detect && multiplexerFor(env) == Multiplexer.none
-        ? '${kittyQuery ? _kittyGraphicsQuery : ''}\x1b[>0q'
-        : '';
+    final askName = detect && multiplexerFor(env) == Multiplexer.none;
     var asks = 0;
     Future<bool> ask(String queries) async {
       parser.expectCursorReport = true; // each round asks where it is
@@ -1308,15 +1304,29 @@ final class Terminal
     // inline, the cursor's column first: the queries that may show go only
     // where its line has room for them
     var answered = o.alternateScreen || await ask('\x1b[6n');
-    final room =
-        o.alternateScreen ||
-        (column != null && link.columns - column! >= _mayShow);
-    final askModes = !apple && room;
+    // the cells left on its line, one spare: a cell written in the last
+    // column wraps the next
+    var room = o.alternateScreen
+        ? 1 << 30
+        : column == null
+        ? 0
+        : link.columns - column! - 1;
+    bool fits(int cells) {
+      if (room < cells) {
+        return false;
+      }
+      room -= cells;
+      return true;
+    }
+
+    final askModes = !apple && fits(_modesMayShow);
+    final askGraphics = askName && !apple && fits(_graphicsMayShow);
     final asked =
         '${askModes ? _modeQueries : ''}'
         '\x1b]10;?\x1b\\\x1b]11;?\x1b\\$_paletteQuery'
         '${o.kittyKeyboard ? '\x1b[?u' : ''}'
-        '\x1b[16t${room ? graphicsQueries : ''}';
+        '\x1b[16t${askGraphics ? _kittyGraphicsQuery : ''}'
+        '${askName ? '\x1b[>0q' : ''}';
     if (answered) {
       answered = await ask(
         o.alternateScreen ? _onAlternateScreen(asked) : _inPlace(asked),
@@ -1453,23 +1463,6 @@ final class Terminal
   static const _modeQueries =
       '\x1b[?2026\$p\x1b[?2027\$p\x1b[?2048\$p\x1b[?69\$p'
       '\x1b[?2031\$p$bidiModeQuery';
-
-  /// Whether the environment names a terminal that may show kitty's
-  /// images (kitty, ghostty, WezTerm, Konsole), which the inline mode then
-  /// asks about: elsewhere the query's 30-odd bytes a terminal may print
-  /// could wrap past the line it erases.
-  static bool _mayShowKittyGraphics(Map<String, String> env) {
-    final term = env['TERM'] ?? '';
-    final program = env['TERM_PROGRAM'] ?? '';
-    return term == 'xterm-kitty' ||
-        term == 'xterm-ghostty' ||
-        program == 'ghostty' ||
-        program == 'WezTerm' ||
-        env.containsKey('KITTY_WINDOW_ID') ||
-        env.containsKey('GHOSTTY_RESOURCES_DIR') ||
-        env.containsKey('WEZTERM_PANE') ||
-        env.containsKey('KONSOLE_VERSION');
-  }
 
   /// kitty's graphics query: a 1x1 image it would show, answered with
   /// `APC G i=31 ; OK ST` where the protocol is there.

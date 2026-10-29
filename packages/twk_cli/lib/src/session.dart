@@ -76,6 +76,13 @@ final class CliSession {
   /// an error.
   bool get isOpen => !_ended;
 
+  /// Whether the terminal shows the underline styles, as the session's
+  /// probe of it found ([TerminalCaps.styledUnderlines]): what it
+  /// declares, its environment, and whether it answered DECRQM, which
+  /// tells Terminal.app over ssh too.
+  bool get styledUnderlines =>
+      _binding.twkApp.terminal.info.caps.styledUnderlines;
+
   /// Completes once the app has ended and the terminal is restored, with
   /// the error that ended it where one did.
   Future<void> get done => _done.future;

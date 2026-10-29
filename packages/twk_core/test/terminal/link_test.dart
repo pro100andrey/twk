@@ -118,8 +118,9 @@ void main() {
       expect(link.text, isNot(contains('\x1b[?1049')));
       expect(link.text, isNot(contains('\x1b[J')));
       expect(link.text, isNot(contains('\x1b[K')));
-      // nothing in the environment says kitty's images
-      expect(link.text, isNot(contains('\x1b_G')));
+      // the line has room for kitty's graphics query, whatever terminal
+      // the environment names
+      expect(link.text, contains('\x1b_Gi=31'));
       expect(term.info.cursorColumn, 0);
       await clock.runUntil(term.close);
     },
@@ -185,28 +186,49 @@ void main() {
     await clock.runUntil(term.close);
   });
 
-  test('inline, a line without room for what the queries may show is asked '
-      'none of those', () async {
-    // 30 cells left of 80
-    final link = FakeLink(
-      columns: 80,
-      environment: const {'TERM': 'xterm-kitty'},
-    )..type('\x1b[5;51R\x1b[?62c\x1b[?62c');
-    final term = await clock.open(
-      link,
-      const TerminalOptions(
-        probeTimeout: Duration(seconds: 5),
-        alternateScreen: false,
-      ),
-    );
-    expect(term.info.answeredQueries, isTrue);
-    expect(term.info.cursorColumn, 50);
-    expect(link.text, isNot(contains(r'$p')));
-    expect(link.text, isNot(contains('\x1b_G')));
-    expect(link.text, contains('\x1b]11;?'));
-    // not asked, so not taken for a terminal that doesn't answer them
-    expect(term.info.caps.styledUnderlines, isTrue);
-    await clock.runUntil(term.close);
+  test('inline, the queries that may show are asked as far as the line has '
+      'room for them', () async {
+    // the cells left of 80 after the cursor's column, one spare
+    Future<String> asked(int column) async {
+      final link =
+          FakeLink(
+            columns: 80,
+            environment: const {'TERM': 'xterm-kitty'},
+          )..answerRounds([
+            '\x1b[5;${column + 1}R\x1b[?62c',
+            '\x1b[?2026;2\$y\x1b[?62c',
+          ]);
+      final term = await clock.open(
+        link,
+        const TerminalOptions(
+          probeTimeout: Duration(seconds: 5),
+          alternateScreen: false,
+        ),
+      );
+      expect(term.info.answeredQueries, isTrue);
+      expect(term.info.cursorColumn, column);
+      // answered where asked, not asked where not: never taken for a
+      // terminal that doesn't answer them
+      expect(term.info.caps.styledUnderlines, isTrue);
+      await clock.runUntil(term.close);
+      return link.text;
+    }
+
+    // the modes' 6 cells and the graphics query's 31
+    final both = await asked(80 - 1 - 37);
+    expect(both, contains(r'$p'));
+    expect(both, contains('\x1b_G'));
+    final modes = await asked(80 - 1 - 36);
+    expect(modes, contains(r'$p'));
+    expect(modes, isNot(contains('\x1b_G')));
+    final none = await asked(80 - 1 - 5);
+    expect(none, isNot(contains(r'$p')));
+    expect(none, isNot(contains('\x1b_G')));
+    // what shows nothing is asked however narrow the line: XTVERSION
+    for (final text in [both, modes, none]) {
+      expect(text, contains('\x1b[>0q'));
+      expect(text, contains('\x1b]11;?'));
+    }
   });
 
   test('a terminal that answers no DECRQM shows no underline styles, as '

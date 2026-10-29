@@ -67,7 +67,13 @@ void main() {
     expect(styledUnderlinesFor({'TERM': 'xterm-kitty'}), isTrue);
     expect(styledUnderlinesFor({}), isTrue);
     // TERM_PROGRAM inherited from the Terminal.app it was started in
-    for (final term in ['alacritty', 'xterm-kitty', 'foot-extra']) {
+    for (final term in [
+      'alacritty',
+      'xterm-kitty',
+      'foot-extra',
+      'contour',
+      'wezterm',
+    ]) {
       expect(
         styledUnderlinesFor({'TERM': term, 'TERM_PROGRAM': 'Apple_Terminal'}),
         isTrue,

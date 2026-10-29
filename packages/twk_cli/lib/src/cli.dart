@@ -266,6 +266,16 @@ final class Cli {
   Future<CliSession>? _opening;
   CliSession? _session;
 
+  // what the inline session's probe found of the underline styles, kept
+  // once it ended: the same terminal
+  bool? _probedUnderlines;
+
+  /// Whether the lines written show the underline styles: as the inline
+  /// session's probe found once one was opened, the environment's guess
+  /// ([CliCapabilities.styledUnderlines]) before.
+  @internal
+  bool get styledUnderlines => _probedUnderlines ?? _caps.styledUnderlines;
+
   // the session ended: stdin is closed, so none opens again
   var _sessionEnded = false;
   var _closed = false;
@@ -394,7 +404,7 @@ final class Cli {
       ansi: _caps.ansi,
       hyperlinks: _caps.hyperlinks,
       colorMode: _caps.colorMode,
-      styledUnderlines: _caps.styledUnderlines,
+      styledUnderlines: styledUnderlines,
     );
     final out = terminal.out;
     lines.forEach(out.writeln);
@@ -790,7 +800,7 @@ final class Cli {
       ansi: _caps.ansi,
       hyperlinks: _caps.hyperlinks,
       colorMode: _caps.colorMode,
-      styledUnderlines: _caps.styledUnderlines,
+      styledUnderlines: styledUnderlines,
     ),
   );
 
@@ -806,11 +816,15 @@ final class Cli {
     if (_sessionEnded || _closed) {
       throw StateError('the inline session has ended');
     }
-    return _opening ??= CliSession.open(
-      terminal,
-      theme: theme.data,
-      onInterrupt: _interrupted,
-    ).then((session) => _session = session);
+    return _opening ??=
+        CliSession.open(
+          terminal,
+          theme: theme.data,
+          onInterrupt: _interrupted,
+        ).then((session) {
+          _probedUnderlines = session.styledUnderlines;
+          return _session = session;
+        });
   }
 
   /// Whether the inline session has ended, or the console is closed: no
@@ -899,7 +913,7 @@ final class Cli {
           ansi: _caps.ansi,
           hyperlinks: _caps.hyperlinks,
           colorMode: _caps.colorMode,
-          styledUnderlines: _caps.styledUnderlines,
+          styledUnderlines: styledUnderlines,
         ),
       );
     }

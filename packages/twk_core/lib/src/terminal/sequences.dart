@@ -483,6 +483,18 @@ const implicitBidiSequence = '\x1b[8h';
 /// cell it is written to, for an app that orders text itself.
 const explicitBidiSequence = '\x1b[8l';
 
+/// Whether [term], a `TERM`, is a terminal's own name, set by that
+/// terminal (kitty, Ghostty, foot, Alacritty, Contour, WezTerm): it comes
+/// before a `TERM_PROGRAM` or other variables a terminal it was started
+/// from left in its environment, as Terminal.app's `Apple_Terminal`.
+bool termNamesItsOwnTerminal(String term) =>
+    term == 'xterm-kitty' ||
+    term == 'xterm-ghostty' ||
+    term.startsWith('foot') ||
+    term == 'alacritty' ||
+    term == 'contour' ||
+    term == 'wezterm';
+
 /// Who puts right-to-left text in the order it reads on a terminal, by its
 /// answer to [bidiModeQuery], [mode] (the Ps of `CSI 8 ; Ps $ y`, null
 /// without one), and else by its environment and its name and version as
@@ -530,11 +542,7 @@ BidiReordering bidiReorderingFor(
   if (term.startsWith('putty') || term.startsWith('mlterm')) {
     return terminal;
   }
-  if (term == 'xterm-kitty' ||
-      term == 'xterm-ghostty' ||
-      term.startsWith('foot') ||
-      term == 'alacritty' ||
-      term == 'contour') {
+  if (termNamesItsOwnTerminal(term)) {
     return app;
   }
   switch (env['TERM_PROGRAM'] ?? '') {
