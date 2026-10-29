@@ -6,7 +6,7 @@
 (`ScreenMode`), on the process's terminal (opened with the mouse off) or a
 given one, or with `viewport: Viewport.fixed(left, top, width, height)` in
 that rectangle of the screen alone, as the core's `TwkApp(viewport:)`
-([§1.13](../../../twk_core/doc/design.md#113-fixed-viewport)), on the normal
+([§1.13](../../../twk_core/doc/design/viewport.md)), on the normal
 screen with `mode: ScreenMode.inline` (beside a shell's output, a status
 panel in a corner): the app laid out at its size as full screen, the debug
 panels over it, a `Static`'s items in place, the mouse events relative to
@@ -29,7 +29,7 @@ of the terminal's background, dark when not known, then that of each
 ends. `notify(title, body)` shows a desktop notification ("the long job
 finished") where the terminal is known to show one, as the core's
 `Terminal.notify` does
-([§1.7](../../../twk_core/doc/design.md#17-terminal-and-platforms): OSC 99,
+([§1.7](../../../twk_core/doc/design/terminal.md): OSC 99,
 777 or 9 as the terminal the environment names takes them, wrapped for tmux
 and GNU screen), on a `HeadlessTerminal` writing it to its frames in the
 protocol it was given (`pumpWidget(notifications:)` of twk_test), and does
@@ -224,7 +224,7 @@ cannot be set); `ext.twk.reassemble` reassembles the app; `ext.twk.log`
 
 `TerminalProgress(state: ProgressState.normal, value:, child:)` shows the
 program's progress in the terminal's tab or taskbar (the core's OSC 9;4,
-[§1.7](../../../twk_core/doc/design.md#17-terminal-and-platforms)) while it
+[§1.7](../../../twk_core/doc/design/terminal.md)) while it
 is in the tree, where the terminal is known to show one: as far as `value`,
 from 0 to 1, says, as `state` says (`ProgressState.none`, `normal`, `error`,
 `indeterminate`, `paused`; a null value in the normal state shows as

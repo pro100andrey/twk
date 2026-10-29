@@ -71,8 +71,10 @@ dart run packages/gallery/bin/gallery.dart         # the widget gallery
 
 [CONTRIBUTING.md](CONTRIBUTING.md) says what each check is and when the
 benchmark is owed; the core's design
-([packages/twk_core/doc/design.md](packages/twk_core/doc/design.md)), §2
-and §4, how the end to end runs and the benchmark work.
+([packages/twk_core/doc/design/](packages/twk_core/doc/design/README.md)),
+[§2](packages/twk_core/doc/design/testing.md) and
+[§4](packages/twk_core/doc/design/running.md), how the end to end runs and
+the benchmark work.
 
 ## License
 

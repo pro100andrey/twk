@@ -135,12 +135,12 @@ socket or an SSH channel.
 
 macOS and Windows are written for but not yet run by the author; reports
 of how they behave are welcome. The
-[limitations](https://github.com/pro100andrey/twk/blob/main/packages/twk_core/doc/design.md#3-limitations)
+[limitations](https://github.com/pro100andrey/twk/blob/main/packages/twk_core/doc/design/limitations.md)
 list what is known.
 
 ## Learn more
 
-- [Design](https://github.com/pro100andrey/twk/blob/main/packages/twk_core/doc/design.md):
+- [Design](https://github.com/pro100andrey/twk/blob/main/packages/twk_core/doc/design/README.md):
   how the cells, the presenter, Unicode, input and the screen modes work;
   how the core is tested and benchmarked; its limitations.
 - [The twk repository](https://github.com/pro100andrey/twk): the widget

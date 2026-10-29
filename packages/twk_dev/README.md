@@ -330,7 +330,7 @@ waits for the next, so it follows `twk run`'s restarts. With
 WebSocket one (`ws://…/token=/ws`), it inspects that app alone: nothing
 answering there
 exits with 1, as does no terminal (its output piped or in CI included:
-it takes no [plain output](../twk_core/doc/design.md#17-terminal-and-platforms));
+it takes no [plain output](../twk_core/doc/design/terminal.md#plain-output));
 more than one address with 64. The app
 is the isolate that registered `ext.twk.tree`, its first `runApp`; one
 answering in another version of the extensions' JSON than this twk's

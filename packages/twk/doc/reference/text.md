@@ -17,8 +17,8 @@ and ends at);
 text and styles does no work; new styles only repaint. Right-to-left text is
 drawn in the order the terminal needs, `AppBinding.textOrder` (a
 `TextOrder`; the core's,
-[§1.7](../../../twk_core/doc/design.md#17-terminal-and-platforms) and
-[§1.8](../../../twk_core/doc/design.md#18-flutter-like-layer)): in visual
+[§1.7](../../../twk_core/doc/design/terminal.md) and
+[§1.8](../../../twk_core/doc/design/render.md)): in visual
 order, each line in the order UAX #9 gives it, its brackets mirrored, where
 the app orders it, on a terminal that does no bidi or is not known, inside
 tmux, on a `HeadlessTerminal` by default, and on one that honours BDSM (VTE,

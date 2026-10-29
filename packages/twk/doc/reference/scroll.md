@@ -210,4 +210,5 @@ added, dropped and filtered. A `ListView` underneath: a million lines cost
 what the window does, and a line added while following is a hardware scroll
 and a row (where the terminal has DECSLRM, or with the scrollbar `never`;
 elsewhere the presenter scrolls whole rows and writes again the cells of the
-scrollbar's column that differ, the core's README, §1.11)
+scrollbar's column that differ, the core's design,
+[§1.11](../../../twk_core/doc/design/components.md))

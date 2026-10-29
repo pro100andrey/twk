@@ -10,7 +10,7 @@ package is tested, and its demos. The package's
 `lib/twk.dart` exports one library per topic, `lib/src/<topic>/<topic>.dart`,
 each with a doc comment naming what it is for. Widgets lay out and paint
 through the core's render tree
-([§1.8](../../../twk_core/doc/design.md#18-flutter-like-layer) of its README); a topic's
+([§1.8](../../../twk_core/doc/design/render.md) of its design); a topic's
 tests are in `test/<topic>/`. Those that check what reaches a terminal
 feed it to the emulator of [twk_test](../../../twk_test/README.md), a dev
 dependency by path: `package:twk_test/vt.dart`, and `VtTerminal`
@@ -43,7 +43,7 @@ its sources in `lib/src/hooks/` and `lib/src/provider/`, its tests in
 The package builds for the web with dart2wasm, where
 [twk_web](../../../twk_web/README.md) runs an app on xterm.js: what it takes
 from dart:io goes through `lib/src/platform/`, as the core's does
-([§1.7](../../../twk_core/doc/design.md#17-terminal-and-platforms)), and there the
+([§1.7](../../../twk_core/doc/design/terminal.md)), and there the
 environment is empty, so `TWK_DEBUG` and `TWK_SCREEN_READER` turn
 nothing on, a `FilePicker` lists nothing (`cannot list: no file system
 on the web`) and finds no path, a `DirectoryTree` shows `(no file

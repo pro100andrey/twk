@@ -43,7 +43,8 @@ the Dart that builds it, its options in the gallery and its API.
 
 - [twk's reference](../packages/twk/doc/reference/README.md): every topic,
   widget and parameter, and how the package is tested.
-- [twk_core's design](../packages/twk_core/doc/design.md): the cells, the
-  presenter, Unicode, input, the screen modes, and the core's limits.
+- [twk_core's design](../packages/twk_core/doc/design/README.md): the
+  cells, the presenter, Unicode, input, the screen modes, and the core's
+  limits.
 - [The gallery](../packages/gallery/README.md): every widget live,
   `dart run packages/gallery/bin/gallery.dart` in a checkout.

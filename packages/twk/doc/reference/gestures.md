@@ -28,7 +28,7 @@ only the inner one scrolls; what no `Listener` takes goes to the
 (`RenderMouseRegion`) is told when the mouse comes in, moves inside with no
 button held, and goes out, and while the mouse is in it the pointer has the
 shape of its `cursor` (a `PointerShape`, the core's OSC 22,
-[§1.7](../../../twk_core/doc/design.md#17-terminal-and-platforms)), or of
+[§1.7](../../../twk_core/doc/design/terminal.md)), or of
 the nearest region around it with one, the terminal's own outside them all:
 written as it changes, with the mouse or with a frame that moved a region,
 only where the terminal is known to show it, and the terminal's own put back
@@ -122,7 +122,8 @@ default), only the Texts whose part changed built again; it is copied on the
 release that selected it (`copyOnRelease`) and by `copyKey` (bound as
 `KeyBindings` binds a key: with nothing selected it passes on), as OSC 52
 (`clipboardSequence`) to the binding's terminal, wrapped for tmux or GNU
-screen when the app runs inside one (the core's README, §1.11), and `onCopy`
+screen when the app runs inside one (the core's design,
+[§1.11](../../../twk_core/doc/design/components.md)), and `onCopy`
 is told the text: the Texts joined by line breaks, with `trimTrailingBlanks`
 the blanks before each line break left out, and at the end of the selection
 those only blanks follow to the end of its line, as xterm, VTE, kitty,

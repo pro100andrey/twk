@@ -75,7 +75,7 @@ elements have built, a frame's the difference) and `RootWidget`;
 
 `Element.describe()`, the element and those below it as the core's
 `DiagnosticsNode`s
-([§1.8](../../../twk_core/doc/design.md#18-flutter-like-layer)), built only
+([§1.8](../../../twk_core/doc/design/render.md)), built only
 when called: its widget's type and key (`Element.toString`, `Type-key`), the
 properties of its widget and its state (`Widget.debugFillProperties`,
 `State.debugFillProperties`), for a render object element those of its
