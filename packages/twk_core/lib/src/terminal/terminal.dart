@@ -1372,6 +1372,9 @@ final class Terminal
     final multiplexer = multiplexerFor(env);
     // Konsole's lines and its images come with Konsole itself
     final konsole = konsoleLinesFor(env, version: version);
+    // asked DECRQM, a terminal that answered none of them: older than what
+    // it is taken for, Terminal.app over ssh among them
+    final silent = askModes && answered && modes.isEmpty;
     final graphics =
         o.graphics ??
         declared.graphics ??
@@ -1391,9 +1394,12 @@ final class Terminal
         // does, which isn't told apart over ssh: a plain underline it
         // shows
         styledUnderlines:
-            declared.styledUnderlines ??
-            (styledUnderlinesFor(env) &&
-                !(askModes && answered && modes.isEmpty)),
+            declared.styledUnderlines ?? (styledUnderlinesFor(env) && !silent),
+        // Terminal.app's DCH shifts a line only up to where the cursor
+        // last jumped and drops the background an EL gave the rest of it,
+        // as one that answers no DECRQM may (it over ssh): its cells are
+        // written again instead, which costs bytes, never cells
+        insertDelete: !(apple && multiplexer == Multiplexer.none) && !silent,
         konsoleLines: konsole,
         konsoleImages: konsole,
         leftRightMargins: supported(69) && !screenLike,

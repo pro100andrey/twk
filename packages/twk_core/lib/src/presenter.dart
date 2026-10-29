@@ -118,7 +118,10 @@ final class TerminalCaps {
   final bool repeatChar;
 
   /// Use ICH/DCH (insert/delete characters, VT102) when a row's change is a
-  /// shift of its tail - typing or deleting in the middle of a line.
+  /// shift of its tail - typing or deleting in the middle of a line. Off
+  /// for Terminal.app, whose DCH shifts a line only as far as it was
+  /// written without a cursor move and drops the background EL gave the
+  /// rest of it: the shifted cells are written again.
   final bool insertDelete;
 
   /// The terminal reads the underline styles of SGR `4:2` to `4:5`

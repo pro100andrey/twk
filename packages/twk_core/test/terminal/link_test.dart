@@ -145,6 +145,8 @@ void main() {
       expect(link.text, isNot(contains(r'$p')), reason: '$alternateScreen');
       expect(link.text, isNot(contains('\x1b_G')), reason: '$alternateScreen');
       expect(term.info.caps.styledUnderlines, isFalse);
+      // its DCH shifts a line only as far as it was written in one go
+      expect(term.info.caps.insertDelete, isFalse);
       await clock.runUntil(term.close);
     }
   });
@@ -225,6 +227,7 @@ void main() {
         isFalse,
         reason: '$alternateScreen',
       );
+      expect(silent.info.caps.insertDelete, isFalse);
       await clock.runUntil(silent.close);
       final answering = await open('\x1b[5;1R\x1b[?62c$_answers');
       expect(
@@ -232,6 +235,7 @@ void main() {
         isTrue,
         reason: '$alternateScreen',
       );
+      expect(answering.info.caps.insertDelete, isTrue);
       await clock.runUntil(answering.close);
     }
   });
