@@ -32,7 +32,8 @@ const _hangup = 'hangup';
 
 /// The variables that name the terminal a program runs in, or the
 /// multiplexer: this process's, which a program in the emulator is not
-/// in, so they are left out of its environment ([Pty.start]).
+/// in, so they are left out of its environment ([Pty.start]). As
+/// tool/pty_run.py's HOST_TERMINAL, which keep in step.
 const _hostTerminal = {
   'TERM_PROGRAM',
   'TERM_PROGRAM_VERSION',
@@ -107,8 +108,9 @@ final class _Exited {
 /// controlling terminal, then duplicated to 1 and 2, every other
 /// descriptor closed. macOS opens it before the session is made: there
 /// `/bin/sh` opens it again as the leader, then execs the program through
-/// `env -i`. The master is read by an isolate of its own polling
-/// it, which also waits for the program's end.
+/// `env`, the environment given to sh as its own. The master is read by
+/// an isolate of its own polling it, which also waits for the program's
+/// end.
 ///
 /// `ls` run to its end, its output printed:
 ///
@@ -145,7 +147,10 @@ final class Pty {
   /// COLORTERM to `truecolor`, and [environment] over all of them: a
   /// program in the emulator is not told it runs in the terminal around
   /// it. An [executable] without a slash is looked for in its PATH.
-  /// Throws a [ProcessException] when the program can't be started, an
+  /// Throws a [ProcessException] when the program can't be started (on
+  /// macOS, where sh execs it through env, one found and executable that
+  /// still won't run, of another architecture or with a bad `#!` line,
+  /// ends at once instead, its exit code env's, 126 or 127), an
   /// [ArgumentError] for an argument, a variable or a directory with a NUL
   /// character in it, an [UnsupportedError] off Linux and macOS.
   factory Pty.start(
@@ -290,9 +295,12 @@ final class Pty {
       // (POSIX_SPAWN_SETSID), so it is no controlling terminal: Ctrl+C
       // would signal nothing, a shell run no jobs, close hang up nothing.
       // sh, the session's leader by then, opens it again, which makes it
-      // one, and execs the program through env -i, in the environment as
-      // given (not with what sh adds to it) and its name as argv[0], which
-      // env finds in that environment's PATH as posix_spawn would.
+      // one, and execs the program through env, in the environment as
+      // given (sh's own, not in its arguments, which ps shows anyone;
+      // without what sh adds to it, PWD and SHLVL where they weren't, with
+      // the prompts it unsets) and
+      // its name as argv[0], which env finds in that environment's PATH
+      // as posix_spawn would.
       final (
         String spawned,
         List<String> argv,
@@ -303,13 +311,18 @@ final class Pty {
               <String>[
                 'sh',
                 '-c',
-                r'exec 0<>"$0" 1>&0 2>&0 && exec /usr/bin/env -i -- "$@"',
+                r'exec 0<>"$0" 1>&0 2>&0 && exec /usr/bin/env "$@"',
                 name,
-                ...entries,
+                for (final added in const ['PWD', 'SHLVL'])
+                  if (!env.containsKey(added)) ...['-u', added],
+                '--',
+                // what sh, not interactive, unsets of it
+                for (final unset in const ['PS1', 'PS2'])
+                  if (env[unset] case final value?) '$unset=$value',
                 if (executable.contains('=')) path else executable,
                 ...arguments,
               ],
-              const <String>[],
+              entries,
             )
           : (path, [executable, ...arguments], entries);
       check(

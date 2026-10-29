@@ -121,9 +121,10 @@ PROBE_DA1 = b'\x1b[?62;22c'
 PROBE_END = b'\x1b[c'
 # What names the terminal this script runs in, which a twk_core app would
 # take for its own (colorModeFor, notificationProtocolFor, styledUnderlinesFor
-# and the like): left out of the command's environment.
+# and the like): left out of the command's environment. As _hostTerminal in
+# packages/twk_term/lib/src/pty/pty.dart, which keep in step.
 HOST_TERMINAL = {
-    'TERM_PROGRAM', 'TERM_PROGRAM_VERSION', 'LC_TERMINAL',
+    'TERM_PROGRAM', 'TERM_PROGRAM_VERSION', 'TERM_SESSION_ID', 'LC_TERMINAL',
     'LC_TERMINAL_VERSION', 'COLORTERM', 'COLORFGBG', 'ITERM_SESSION_ID',
     'KITTY_WINDOW_ID', 'KITTY_PID', 'GHOSTTY_RESOURCES_DIR', 'WEZTERM_PANE',
     'WEZTERM_EXECUTABLE', 'KONSOLE_VERSION', 'KONSOLE_DBUS_SESSION',
@@ -527,9 +528,10 @@ def main():
             for ask in QUERY.finditer(out, answered_to, until):
                 which = ask.group(1)
                 if ask.group(0) == PROBE_END:
-                    # DA1 that ends a probe without DECRQM (Terminal.app,
-                    # GNU screen)
+                    # DA1 that ends a probe without DECRQM (GNU screen):
+                    # answered, as one with them is
                     os.write(master, PROBE_DA1)
+                    answered = True
                     probe_at = None
                 elif which is None:
                     os.write(master, cursor.report(out, ask.start()))
