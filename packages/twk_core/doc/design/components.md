@@ -112,7 +112,8 @@ ST` pieces of at most 252 bytes, the OSCs ended by BEL.
 | Windows Terminal | `WT_SESSION` (passed on to WSL) | OSC 777, shown from 1.26, ignored before |
 | urxvt | `TERM=rxvt-unicode…` | OSC 777, shown by a `notify` perl extension where one is installed |
 | VTE 0.52+ (GNOME Terminal, Tilix, Ptyxis) | `VTE_VERSION` | OSC 777, shown where the distribution patched VTE for it (Fedora); upstream VTE ignores it |
-| Alacritty, xterm, Terminal.app, any other `TERM_PROGRAM`, `TERM=dumb` | | nothing |
+| Terminal.app | `TERM_PROGRAM=Apple_Terminal`, or its secondary device attributes `1;95;0` (over ssh too) | BEL alone, unwrapped (a multiplexer rings it as its own bell), only while its window doesn't have the focus (`FocusEvent`): no title or body, a badge on its icon in the Dock, a bounce, a sound, as its settings say |
+| Alacritty, xterm, any other `TERM_PROGRAM`, `TERM=dumb` | | nothing |
 
 In OSC 777 a `;` would end its field (title or body), so it is sent as
 `,`; a body without a title is sent as the title. OSC 9 and OSC 777 get
