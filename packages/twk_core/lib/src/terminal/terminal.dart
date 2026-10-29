@@ -500,7 +500,8 @@ Brightness? brightnessFor(Map<String, String> env) {
 /// `TERM_PROGRAM` of another terminal gives [NotificationProtocol.none]:
 /// such variables are then those of the terminal it was started from.
 /// Terminal.app (`Apple_Terminal`), which shows none of a program's, has
-/// its bell rung ([NotificationProtocol.bell]).
+/// its bell rung ([NotificationProtocol.bell]); not a terminal of a `TERM`
+/// of its own started from it ([termNamesItsOwnTerminal]).
 NotificationProtocol notificationProtocolFor(Map<String, String> env) {
   const osc777 = NotificationProtocol.osc777;
   final term = env['TERM'] ?? '';
@@ -519,7 +520,9 @@ NotificationProtocol notificationProtocolFor(Map<String, String> env) {
     case 'iTerm.app':
       return NotificationProtocol.osc9;
     case 'Apple_Terminal':
-      return NotificationProtocol.bell;
+      return termNamesItsOwnTerminal(term)
+          ? NotificationProtocol.none
+          : NotificationProtocol.bell;
     case 'WezTerm' || 'ghostty':
       return osc777;
     case '' || 'tmux':

@@ -112,6 +112,8 @@ void main() {
       {'TERM': 'xterm-256color'}: none,
       {'TERM': 'xterm-256color', 'TERM_PROGRAM': 'Apple_Terminal'}:
           NotificationProtocol.bell,
+      // Alacritty started from Terminal.app
+      {'TERM': 'alacritty', 'TERM_PROGRAM': 'Apple_Terminal'}: none,
       {'TERM': 'linux'}: none,
       {}: none,
       // the terminal's own TERM and TERM_PROGRAM come before variables
