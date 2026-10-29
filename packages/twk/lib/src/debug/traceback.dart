@@ -1,25 +1,34 @@
-/// What a [Cli] shows of an error: [traceback], its lines of spans.
-///
-/// @docImport 'cli.dart';
+/// What a program shows of an error it ends on: [traceback], its lines of
+/// spans, the source it was thrown in given by [SourceLines].
 library;
 
-import 'package:twk/twk.dart';
-import 'package:twk_rich/twk_rich.dart'
-    show Highlighter, SyntaxTheme, dartLanguage;
+import 'package:twk_core/twk_core.dart' show Attr, Brightness;
 
-import 'theme.dart';
+import '../binding/source_excerpt.dart';
+import '../style/style.dart';
+import 'console_record.dart';
 
 // Examples can assume:
-// import 'package:twk/twk.dart';
 // void load() {}
+
+/// The lines of code of [excerpt], from its first line to its last, as
+/// spans in [theme]: what a [traceback] shows of the source an error was
+/// thrown in, after each line's number. The lines of the file
+/// ([SourceExcerpt.fileLines]) are there from its top, for code that reads
+/// the lines above to show the first of them (inside a comment or a
+/// string).
+typedef SourceLines = List<List<Span>> Function(
+  SourceExcerpt excerpt,
+  ThemeData theme,
+);
 
 /// The widest a frame's location is padded to, so that the members line
 /// up; a longer one is followed by two blanks.
 const _locationColumn = 50;
 
-/// [error] thrown at [stack] as lines of spans, for a console program to
-/// write as [Cli.error] does: what was thrown, the source of the app's own
-/// code it was thrown in, and the frames that led there.
+/// [error] thrown at [stack] as lines of spans, for a program to write
+/// where it ends on it: what was thrown, the source of the app's own code
+/// it was thrown in, and the frames that led there.
 ///
 /// ```text
 /// ✗ StateError: Bad state: the config has no "name"
@@ -38,21 +47,22 @@ const _locationColumn = 50;
 /// * The first line is the error's type and its `toString()`, the type
 ///   left out where the text starts with it (`FormatException: …`) or the
 ///   error is a string; the lines after it, where the text has more, are
-///   indented under it. All of it in [theme]'s [CliTheme.error].
+///   indented under it. All of it in [errorStyle], the [theme]'s
+///   [ThemeData.error] without.
 /// * Then the lines around the one the stack names first in the app's own
 ///   code ([RecordFrame.isAppCode]: neither the SDK, nor twk and its
 ///   packages, nor the pub cache), [context] on each side of it, under its
-///   place ([SourceExcerpt]), highlighted as Dart in [syntax]
-///   ([SyntaxTheme.from] the [theme]'s [CliTheme.data] without). Left out
-///   where there is no such frame, or its file can't be read (an AOT
-///   build, the source changed or gone).
+///   place ([SourceExcerpt]), the code as [sourceLines] gives it, the text
+///   of the lines without. Left out where there is no such frame, or its
+///   file can't be read (an AOT build, the source changed or gone).
 /// * Then the frames, a line each, the location and the member: the runs
 ///   of frames not of the app's own code between the app's folded into a
 ///   line saying how many and whose ([stackLines]), unless [allFrames].
 ///
-/// The places are paths from the working directory where they are in it,
-/// each a link to its file (OSC 8 where the terminal takes them). The VM
-/// keeps no local variables to show.
+/// The places, the line numbers and the folded frames are in [hintStyle],
+/// the [theme]'s [ThemeData.muted] without. The places are paths from the
+/// working directory where they are in it, each a link to its file. The
+/// VM keeps no local variables to show.
 ///
 /// ```dart
 /// try {
@@ -68,10 +78,13 @@ List<List<Span>> traceback(
   StackTrace stack, {
   bool allFrames = false,
   int context = 2,
-  CliTheme theme = const CliTheme(),
-  SyntaxTheme? syntax,
+  ThemeData theme = const ThemeData.terminal(Brightness.dark),
+  Style? errorStyle,
+  Style? hintStyle,
+  SourceLines? sourceLines,
 }) {
-  final style = theme.error;
+  final style = errorStyle ?? theme.error;
+  final hint = hintStyle ?? theme.muted;
   final text = _describe(error).split('\n');
   final lines = <List<Span>>[
     [Span('✗ ', style), Span(text.first, style.merge(_bold))],
@@ -100,11 +113,9 @@ List<List<Span>> traceback(
       ..addAll(
         _excerptLines(
           excerpt,
-          theme,
-          syntax ??
-              SyntaxTheme.from(
-                theme.lineData,
-              ),
+          (sourceLines ?? _plain)(excerpt, theme),
+          style,
+          hint,
         ),
       );
   }
@@ -123,10 +134,10 @@ List<List<Span>> traceback(
       final frame = line.frame;
       lines.add(
         frame == null
-            ? [Span('  ${line.text}', theme.hint)]
+            ? [Span('  ${line.text}', hint)]
             : [
                 const Span('  '),
-                Span(frame.location, _linked(theme.hint, frame.path)),
+                Span(frame.location, _linked(hint, frame.path)),
                 Span(
                   '${' ' * (width - frame.location.length).clamp(0, width)}'
                   '  ${frame.member}',
@@ -137,6 +148,12 @@ List<List<Span>> traceback(
   }
   return lines;
 }
+
+/// The lines of [excerpt] as their text, unstyled.
+List<List<Span>> _plain(SourceExcerpt excerpt, ThemeData theme) => [
+  for (var n = excerpt.firstLine; n <= excerpt.lastLine; n++)
+    [Span(excerpt.fileLines[n - 1])],
+];
 
 /// What the first line of a [traceback] says of [error]: its type and its
 /// `toString()`, the type left out where the text starts with it, or the
@@ -169,45 +186,39 @@ const _bold = Style(attrs: Attr.bold);
 Style _linked(Style style, String? path) =>
     path == null ? style : style.merge(Style(link: Uri.file(path).toString()));
 
-/// The lines of [excerpt]: its place, then its lines, numbered, the
-/// marked one after a `▶`, the code highlighted.
+/// The lines of [excerpt]: its place, then its lines of [code], numbered,
+/// the marked one after a `▶`.
 List<List<Span>> _excerptLines(
   SourceExcerpt excerpt,
-  CliTheme theme,
-  SyntaxTheme syntax,
+  List<List<Span>> code,
+  Style error,
+  Style hint,
 ) {
-  // the file lexed from its top: the lines shown start in the state the
-  // ones above leave them in, inside a comment or a string
-  final source = Highlighter(
-    dartLanguage,
-    excerpt.fileLines.take(excerpt.lastLine).join('\n'),
-  );
   final width = '${excerpt.lastLine}'.length;
   final lines = [
-    [
-      const Span('  '),
-      Span(excerpt.location, _linked(theme.hint, excerpt.path)),
-    ],
+    [const Span('  '), Span(excerpt.location, _linked(hint, excerpt.path))],
   ];
   for (var n = excerpt.firstLine; n <= excerpt.lastLine; n++) {
-    final code = [
-      for (final span in syntax.spans(source.tokens(n - 1)))
-        if (span.text.isNotEmpty)
-          Span(span.text.replaceAll('\t', '  '), span.style),
+    final i = n - excerpt.firstLine;
+    final spans = [
+      if (i < code.length)
+        for (final span in code[i])
+          if (span.text.isNotEmpty)
+            Span(span.text.replaceAll('\t', '  '), span.style),
     ];
     // no blanks at the end of a line
-    while (code.isNotEmpty && code.last.text.trim().isEmpty) {
-      code.removeLast();
+    while (spans.isNotEmpty && spans.last.text.trim().isEmpty) {
+      spans.removeLast();
     }
     lines.add([
       if (n == excerpt.line) ...[
         const Span('  '),
-        Span('▶ ', theme.error),
-        Span('$n'.padLeft(width), theme.error.merge(_bold)),
+        Span('▶ ', error),
+        Span('$n'.padLeft(width), error.merge(_bold)),
       ] else
-        Span('    ${'$n'.padLeft(width)}', theme.hint),
-      Span(code.isEmpty ? ' │' : ' │ ', theme.hint),
-      ...code,
+        Span('    ${'$n'.padLeft(width)}', hint),
+      Span(spans.isEmpty ? ' │' : ' │ ', hint),
+      ...spans,
     ]);
   }
   return lines;

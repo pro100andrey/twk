@@ -12,19 +12,21 @@
 /// does not, the outcome alone in a log.
 ///
 /// What [Cli.run]'s body throws ends the run with its [traceback] and an
-/// exit code, as [Cli.error] shows an error the program caught;
-/// [Cli.inspect] shows a value as a `JsonView` does.
+/// exit code, as [Cli.error] shows an error the program caught, its source
+/// as [Cli.sourceLines] gives it; [Cli.inspect] shows a value as a
+/// `JsonView` does.
 ///
 /// [Cli] is the console, [Cli.run] and [Cli.runWithArgs] its front door;
 /// [CliTerminal] is what it talks through and [CliMode] how. A fake
 /// terminal for tests is in `package:twk_cli/testing.dart`.
+///
+/// @docImport 'package:twk/twk.dart';
 library;
 
 import 'src/capabilities.dart';
 import 'src/cli.dart';
 import 'src/prompt_exception.dart';
 import 'src/terminal.dart';
-import 'src/traceback.dart';
 
 export 'src/capabilities.dart';
 export 'src/cli.dart';
@@ -34,4 +36,3 @@ export 'src/prompt_exception.dart';
 export 'src/session.dart' show CliLive, CliSession;
 export 'src/terminal.dart';
 export 'src/theme.dart';
-export 'src/traceback.dart' show traceback;

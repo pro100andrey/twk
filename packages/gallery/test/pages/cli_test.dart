@@ -115,12 +115,12 @@ void main() {
       '}',
       '✗ StateError: Bad state: no "name" set',
     ]);
-    expect(lines, contains('  lib/cli/check.dart:25:3'));
+    expect(lines, contains('  lib/cli/check.dart:28:3'));
     expect(
       lines,
-      contains('''  ▶ 25 │   throw StateError('no "name" set');'''),
+      contains('''  ▶ 28 │   throw StateError('no "name" set');'''),
     );
-    expect(lines, contains(startsWith('  lib/cli/check.dart:18:')));
+    expect(lines, contains(startsWith('  lib/cli/check.dart:21:')));
   });
 
   // the Code check runs the Code on the app's clock, the stage at a time

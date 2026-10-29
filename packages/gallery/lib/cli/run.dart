@@ -16,6 +16,7 @@ import 'dart:math' as math;
 import 'package:twk/twk.dart';
 import 'package:twk_cli/testing.dart';
 import 'package:twk_cli/twk_cli.dart';
+import 'package:twk_rich/twk_rich.dart' show dartSourceLines;
 
 /// What a twk_cli program's `main` hands `Cli.runWithArgs`.
 typedef CliProgram = FutureOr<void> Function(Cli cli, List<String> rest);
@@ -33,10 +34,15 @@ final class CliScript {
     required this.command,
     required this.period,
     this.typed = const [],
+    this.sourceLines,
   });
 
   /// The shell's line the program was started from.
   final String command;
+
+  /// What the program's `main` hands `Cli.runWithArgs` as its
+  /// `sourceLines`: how its traceback shows the source.
+  final SourceLines? sourceLines;
 
   /// Keys as a terminal sends them, by the time they are typed at.
   final List<(int, String)> typed;
@@ -80,6 +86,7 @@ final cliScripts = <String, CliScript>{
   'check': const CliScript(
     command: 'dart run lib/cli/check.dart',
     period: 5000,
+    sourceLines: dartSourceLines,
   ),
 };
 
@@ -162,6 +169,7 @@ final class _Run {
           (cli) => program(cli, const []),
           open: ({ansi, interactive}) => terminal,
           theme: CliTheme(data: ThemeData.terminal(brightness)),
+          sourceLines: script.sourceLines,
         ).whenComplete(() {
           // the shell's prompt again
           terminal.out.write('\x1B[32m\$\x1B[0m ');

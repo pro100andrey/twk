@@ -6,13 +6,14 @@
 /// before ended in. A [Highlighter] keeps source lexed through edits,
 /// lexing again only the lines an edit changes. [CodeView] shows source in
 /// the styles of the [SyntaxTheme] at its place, with line numbers or
-/// without.
+/// without; [dartSourceLines] the source a traceback shows, as Dart.
 library;
 
 import 'code_view.dart';
 import 'highlighter.dart';
 import 'languages.dart';
 import 'lexer.dart';
+import 'source_lines.dart';
 import 'syntax_theme.dart';
 import 'token.dart';
 
@@ -20,5 +21,6 @@ export 'code_view.dart';
 export 'highlighter.dart';
 export 'languages.dart';
 export 'lexer.dart';
+export 'source_lines.dart';
 export 'syntax_theme.dart';
 export 'token.dart';

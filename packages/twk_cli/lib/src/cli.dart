@@ -16,7 +16,6 @@ import 'prompts.dart';
 import 'session.dart';
 import 'terminal.dart';
 import 'theme.dart';
-import 'traceback.dart';
 
 // Examples can assume:
 // import 'package:twk/twk.dart';
@@ -78,10 +77,15 @@ LogLevel levelFromFlags({bool verbose = false, bool quiet = false}) => verbose
 /// ```
 final class Cli {
   /// A console on [terminal], the process's stdio unless given one,
-  /// showing what [level] lets through in [theme].
-  Cli({CliTerminal? terminal, this.level = LogLevel.info, CliTheme? theme})
-    : terminal = terminal ?? CliTerminal.system(),
-      theme = theme ?? const CliTheme();
+  /// showing what [level] lets through in [theme], the source of an error
+  /// as [sourceLines] gives it.
+  Cli({
+    CliTerminal? terminal,
+    this.level = LogLevel.info,
+    CliTheme? theme,
+    this.sourceLines,
+  }) : terminal = terminal ?? CliTerminal.system(),
+       theme = theme ?? const CliTheme();
 
   static final _zoneKey = Object();
   static Cli? _default;
@@ -119,6 +123,8 @@ final class Cli {
   /// run has ended is shown, and sets the code, all the same. Without
   /// [handleErrors] what the body throws is the run's, as it is.
   ///
+  /// [sourceLines] is the console's [Cli.sourceLines].
+  ///
   /// [open] makes the terminal from what the flags leave to detection
   /// (null) and what they decide: [CliTerminal.system] unless a test of
   /// the program passes one that makes a fake terminal.
@@ -129,6 +135,7 @@ final class Cli {
     bool color = true,
     bool input = true,
     CliTheme? theme,
+    SourceLines? sourceLines,
     bool handleErrors = true,
     int errorExitCode = 1,
     CliTerminal Function({bool? ansi, bool? interactive})? open,
@@ -141,6 +148,7 @@ final class Cli {
       terminal: terminal,
       level: levelFromFlags(verbose: verbose, quiet: quiet),
       theme: theme,
+      sourceLines: sourceLines,
     );
     if (!handleErrors) {
       try {
@@ -203,6 +211,7 @@ final class Cli {
     List<String> args,
     FutureOr<T> Function(Cli cli, List<String> rest) body, {
     CliTheme? theme,
+    SourceLines? sourceLines,
     bool handleErrors = true,
     int errorExitCode = 1,
     CliTerminal Function({bool? ansi, bool? interactive})? open,
@@ -236,6 +245,7 @@ final class Cli {
       color: color,
       input: input,
       theme: theme,
+      sourceLines: sourceLines,
       handleErrors: handleErrors,
       errorExitCode: errorExitCode,
       open: open,
@@ -254,6 +264,11 @@ final class Cli {
 
   /// The style of each channel, and what widgets are shown in.
   CliTheme theme;
+
+  /// The lines of code an error's [traceback] shows of the source it was
+  /// thrown in, as [Cli.error] and [Cli.run] show it: their text without,
+  /// highlighted as Dart with twk_rich's `dartSourceLines`.
+  final SourceLines? sourceLines;
 
   CliCapabilities get _caps => terminal.capabilities;
 
@@ -623,8 +638,10 @@ final class Cli {
       error,
       stack,
       allFrames: level.index <= LogLevel.debug.index,
-      theme: theme,
-      syntax: _syntax,
+      theme: theme.lineData,
+      errorStyle: theme.error,
+      hintStyle: theme.hint,
+      sourceLines: sourceLines,
     ),
     LogLevel.error,
     toErr: true,

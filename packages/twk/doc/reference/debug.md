@@ -51,3 +51,19 @@ so a burst of records costs a frame no more than one does. An app builds a
 `Console` and calls its controller itself (from an `InputListener`, say), or
 turns on the binding's (`AppBinding.debug`, `binding`), which shows the
 console and the frame overlay over any app
+
+## `traceback`
+
+`traceback(error, stack, allFrames:, context:, theme:, errorStyle:,
+hintStyle:, sourceLines:)`, an error a program ends on as lines of spans:
+the error's type and text in `errorStyle` (the theme's `error`), its type
+left out where the text starts with it or the error is a string; the
+`context` lines (2) around the first frame of the app's own code
+(`RecordFrame.isAppCode`), under its place (`SourceExcerpt`), numbered, the
+marked one after a `▶`, the code as `sourceLines` gives it (a
+`SourceLines`: the lines of an excerpt as spans in a theme), its text
+without; then the frames, a line each, the location and the member, the
+runs not of the app's own code folded (`stackLines`) unless `allFrames`.
+Places, numbers and folded frames are in `hintStyle` (the theme's `muted`),
+each place a link to its file. twk_rich's `dartSourceLines` highlights the
+code as Dart. `test/debug/traceback_test.dart`.

@@ -19,14 +19,14 @@ text
 │   SCREEN READERS       1      │}                                                     │   │                             │
 │     Semantics                 │✗ StateError: Bad state: no "name" set                │   │                             │
 │                               │                                                      │   │                             │
-│   DEBUGGING            4      │  lib/cli/check.dart:25:3                             │   │                             │
-│     Console                   │    23 │     return name;                             │   │                             │
-│     FrameOverlay              │    24 │   }                                          │   │                             │
-│     Repaint rainbow           │  ▶ 25 │   throw StateError('no "name" set');         │   │                             │
-│     RepaintBoundary           │    26 │ }                                            │   │                             │
+│   DEBUGGING            4      │  lib/cli/check.dart:28:3                             │   │                             │
+│     Console                   │    26 │     return name;                             │   │                             │
+│     FrameOverlay              │    27 │   }                                          │   │                             │
+│     Repaint rainbow           │  ▶ 28 │   throw StateError('no "name" set');         │   │                             │
+│     RepaintBoundary           │    29 │ }                                            │   │                             │
 │                               │                                                      │   │                             │
-│   RICH                 7      │  lib/cli/check.dart:25:3   _name                     │   │                             │
-│     MarkdownView              │  lib/cli/check.dart:18:28  check                     │   │                             │
+│   RICH                 7      │  lib/cli/check.dart:28:3   _name                     │   │                             │
+│     MarkdownView              │  lib/cli/check.dart:21:28  check                     │   │                             │
 │     CodeView                  │  … 1 frame of twk_cli                                │   │                             │
 │     SyntaxThemeScope      ▐   │$                                                     │   │                             │
 │     DiffView              ▐   │                                                      │   │                             │

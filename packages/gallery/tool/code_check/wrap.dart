@@ -177,7 +177,7 @@ String _indent(String s, int n) =>
 /// A twk_cli program's main, and the function it runs.
 final _cliMain = RegExp(
   r'^Future<void> main\(List<String> args\) =>\s*'
-  r'Cli\.runWithArgs\(args, (\w+)\);',
+  r'Cli\.runWithArgs\(args, (\w+)(?:, [^;]*)?\);',
   multiLine: true,
 );
 

@@ -26,7 +26,7 @@ Future<void> main(List<String> args) => Cli.runWithArgs(args, (cli, rest) async 
 ```
 
 It depends on twk (a string's escapes are read with its `parseAnsi`),
-twk_core, twk_rich (the highlighting of a traceback and of `inspect`) and
+twk_core, twk_rich (the highlighting of `inspect`) and
 twk_test (the fake terminal of
 `package:twk_cli/testing.dart` reads its screen through twk_test's
 emulator), all as path dependencies.
@@ -298,8 +298,10 @@ traceback on stderr, the terminal restored, the exit code set.
 ```
 
 - **The traceback** is the error's type and text, the lines around the
-  first frame of the app's own code (twk's `SourceExcerpt`), highlighted as
-  Dart, then the frames, the runs of the SDK's, twk's and its packages' and
+  first frame of the app's own code (twk's `SourceExcerpt`), as
+  `sourceLines:` gives them (on `Cli`, `Cli.run`, `Cli.runWithArgs`):
+  highlighted as Dart with twk_rich's `dartSourceLines`, their text
+  without; then the frames, the runs of the SDK's, twk's and its packages' and
   the pub cache's folded between the app's (twk's `stackLines`, as the log
   console folds them); `-v` shows every frame. The places are paths from
   the working directory, linked to their files (OSC 8) where the terminal
@@ -314,8 +316,8 @@ traceback on stderr, the terminal restored, the exit code set.
 - **`handleErrors: false`** leaves what the body throws to the caller, as
   it is.
 - **`cli.error(error, stack)`** writes the same traceback for an error the
-  program caught; `traceback(error, stack, allFrames:, context:)` gives its
-  lines of spans, for a program that writes them itself.
+  program caught; twk's `traceback(error, stack, allFrames:, context:)`
+  gives its lines of spans, for a program that writes them itself.
 - **`cli.inspect(value, label:, expandedDepth:)`** writes a value as
   twk_rich's `JsonView` shows it (its `jsonLines`), fully expanded or to
   `expandedDepth`, after its label and runtime type:

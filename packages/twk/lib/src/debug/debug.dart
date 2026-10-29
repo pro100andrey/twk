@@ -15,6 +15,7 @@ import 'console_record.dart';
 export 'console.dart' hide RenderConsolePanel;
 export 'console_record.dart' show stackLines;
 export 'editor.dart';
+export 'traceback.dart';
 
 /// Prints the element tree [context] is in, from its root down, as
 /// [DiagnosticsNode.toStringDeep] renders [Element.describe]: each

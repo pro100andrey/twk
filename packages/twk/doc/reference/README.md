@@ -80,7 +80,7 @@ A page a topic, a section a widget or a class:
 - [`overlay`](overlay.md): `Overlay`, `Overlay.of`, `OverlayState.insert`, `ModalBarrier`, `AnimatedModalBarrier`, `Dialog`, `Panel`, `OptionList`, …
 - [`navigation`](navigation.md): `Navigator`, `Navigator.of`, `PopScope<T>`, `Scaffold`, `Breadcrumbs`, `Pagination`, `Stepper`, `Axis.vertical`
 - [`controls`](controls.md): `TabController`, `KeyHintsBar`, `StatusMessage`, `Badge`, `Link`, `StatusBar`, `ListTile`, `Button.outlined`, …
-- [`debug`](debug.md): `Console`
+- [`debug`](debug.md): `Console`, `traceback`
 - [`semantics`](semantics.md): `Semantics`, `BlockSemantics`, `ExcludeSemantics`, `SemanticsNode.of`, `AppBinding.screenReader`
 
 [How the package is tested, and its demos](testing.md); [hooks](hooks.md),

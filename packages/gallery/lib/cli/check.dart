@@ -1,11 +1,14 @@
 // Reads a config and fails on it: inspect() shows what was read, and the
 // error Cli.run catches ends the run with its traceback, the line it was
-// thrown at highlighted, and exit code 1.
+// thrown at highlighted as Dart (twk_rich's dartSourceLines), and exit
+// code 1.
 import 'dart:convert';
 
 import 'package:twk_cli/twk_cli.dart';
+import 'package:twk_rich/twk_rich.dart' show dartSourceLines;
 
-Future<void> main(List<String> args) => Cli.runWithArgs(args, check);
+Future<void> main(List<String> args) =>
+    Cli.runWithArgs(args, check, sourceLines: dartSourceLines);
 
 const _text = '{"version": 2, "target": "web"}';
 
