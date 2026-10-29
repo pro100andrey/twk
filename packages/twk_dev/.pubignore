@@ -1,0 +1,5 @@
+# What `twk create` unpacks is lib/src/templates/*.g.dart, the templates
+# packed (tool/pack_templates.dart, held by test/templates_test.dart): the
+# templates themselves are packages of their own, their pubspecs taking
+# twk by path, and stay out of the archive.
+templates/

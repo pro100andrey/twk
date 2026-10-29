@@ -2,25 +2,24 @@ name: twk_lints
 description: >-
   An analyzer plugin with lints and assists for apps built on twk.
 version: 0.1.0
-publish_to: none
+repository: https://github.com/pro100andrey/twk/tree/main/packages/twk_lints
+issue_tracker: https://github.com/pro100andrey/twk/issues
+topics: [lints, analyzer, terminal, tui]
 
 environment:
   sdk: ^3.13.5
 resolution: workspace
 dependencies:
-  analysis_server_plugin: 0.3.24
-  analyzer: 14.5.0
-  analyzer_plugin: 0.14.18
+  analysis_server_plugin: ^0.3.26
+  analyzer: ^14.7.0
+  analyzer_plugin: ^0.14.20
 dev_dependencies:
-  analyzer_testing: 0.4.3
+  analyzer_testing: ^0.4.3
   pro_lints: ^6.2.0
   test: ^1.33.0
   test_reflective_loader: ^0.6.0
   # test/key_names_test.dart holds the port of twk's key names to twk's
   # own parser; dev dependencies do not reach the plugin
-  twk:
-    path: ../twk
-  twk_core:
-    path: ../twk_core
-  twk_test:
-    path: ../twk_test
+  twk: ^0.1.0
+  twk_core: ^0.1.0
+  twk_test: ^0.1.0

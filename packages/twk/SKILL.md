@@ -93,6 +93,10 @@ dependency_overrides:
     path: <twk>/packages/twk
   twk_core:
     path: <twk>/packages/twk_core
+  twk_term:
+    path: <twk>/packages/twk_term
+  twk_test:
+    path: <twk>/packages/twk_test
 ```
 
 `dart pub get`, then an app (`dart run bin/main.dart`): type a task and

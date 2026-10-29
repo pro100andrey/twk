@@ -56,7 +56,7 @@ jobs:
   other-os:
     # Where the terminal is another's: on macOS every package's tests (its
     # pseudo-terminal and BSD's tools too) and the end to end runs, on
-    # Windows the published packages' (the core's console backend and twk
+    # Windows the portable packages' (the core's console backend and twk
     # over it). The benchmark is Linux's (its `platforms:`).
     strategy:
       fail-fast: false

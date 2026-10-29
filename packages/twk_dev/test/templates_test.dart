@@ -75,8 +75,8 @@ void main() {
       ),
     );
   });
-  test('a pubspec without the overrides of twk and twk_core by path, or '
-      'with others, is a StateError', () {
+  test('a pubspec without the overrides of twk, twk_core, twk_term and '
+      'twk_test by path, or with others, is a StateError', () {
     const dependencies =
         'name: app\n'
         'dependencies:\n'
@@ -92,7 +92,8 @@ void main() {
       isA<StateError>().having(
         (e) => e.message,
         'message',
-        'The pubspec overrides $overrides by path, not twk, twk_core',
+        'The pubspec overrides $overrides by path, not twk, twk_core, '
+            'twk_term, twk_test',
       ),
     );
     expect(() => withTwkFrom(dependencies), refused('nothing'));
@@ -111,7 +112,11 @@ void main() {
         '  twk:\n'
         '    path: ../../twk\n'
         '  twk_core:\n'
-        '    path: ../../twk_core',
+        '    path: ../../twk_core\n'
+        '  twk_term:\n'
+        '    path: ../../twk_term\n'
+        '  twk_test:\n'
+        '    path: ../../twk_test',
       ),
       isNot(contains('dependency_overrides')),
     );
@@ -139,7 +144,10 @@ void main() {
       ),
     );
     const twk = '  twk:\n    path: ../../twk\n';
-    const core = '  twk_core:\n    path: ../../twk_core\n';
+    const core =
+        '  twk_core:\n    path: ../../twk_core\n'
+        '  twk_term:\n    path: ../../twk_term\n'
+        '  twk_test:\n    path: ../../twk_test\n';
     for (final block in [
       '$twk$core  meta: ^1.16.0\n',
       '  meta: ^1.16.0\n$twk$core',

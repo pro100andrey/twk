@@ -5,7 +5,7 @@
 #   dart run tool/xtask.dart handover     # what a handover or a pull request needs
 #   dart run tool/xtask.dart bench        # the frame benchmark against HEAD
 #   dart run tool/xtask.dart ci           # all of it, the benchmark last, alone
-#   dart run tool/xtask.dart ci-os        # every package's tests on macOS, the published ones' on Windows
+#   dart run tool/xtask.dart ci-os        # every package's tests on macOS, the portable ones' on Windows
 #   dart run tool/xtask.dart --list       # every task, by gate
 #
 # `entry:` below makes the installed xtask (`dart pub global activate xtask`)
@@ -31,8 +31,8 @@ entry: tool/xtask.dart
 
 # ci is the Linux job of .github/workflows/ci.yml; ci-os the macOS and
 # Windows ones: on macOS every package's tests and the pseudo-terminal
-# runs, on Windows those of the packages that are published (the
-# `published` set).
+# runs, on Windows those of the packages an app takes on every platform
+# (the `portable` set).
 gates: [quick, handover, ci, ci-os]
 
 sets:
@@ -72,9 +72,11 @@ sets:
     include:
       - packages/twk_dev/templates/*/pubspec.yaml
 
-  # The packages published to pub.dev, and the tester their tests take:
-  # what ci-os runs on Windows, where their terminal backend is another's.
-  published:
+  # The packages an app takes on every platform, and the tester their
+  # tests take: what ci-os runs on Windows, where their terminal backend is
+  # another's. twk_term's pseudo-terminal, and twk_dev on it, are Linux's
+  # and macOS's.
+  portable:
     include:
       - packages/twk_core/pubspec.yaml
       - packages/twk/pubspec.yaml
@@ -209,12 +211,12 @@ tasks:
     args: [$each, --reporter=failures-only]
 
   os-test:
-    # pkg-test's, over the published packages only: ci-os, on Windows.
-    desc: the tests of the published packages and their tester
+    # pkg-test's, over the portable packages only: ci-os, on Windows.
+    desc: the tests of the portable packages and their tester
     gate: [ci-os]
     platforms: [windows]
     needs: [get]
-    each: published
+    each: portable
     do: tests
     args: [$each, --reporter=failures-only]
 
@@ -293,18 +295,26 @@ tasks:
     # shown), and pana's score out of 160 with what lost points; `--min=N`
     # fails a score under N. pana is `dart pub global activate pana`'s,
     # skipped and said so without it.
-    desc: whether twk_core, twk and twk_test are ready for pub.dev, pana scoring them
+    desc: whether the six packages of release 1 are ready for pub.dev, pana scoring them
     gate: [ci]
     needs: [get]
     do: pub
     # pana's 160 of 160, which twk_core has: what loses a point fails.
-    args: [--min=160, packages/twk_core, packages/twk, packages/twk_test]
+    args:
+      - --min=160
+      - packages/twk_core
+      - packages/twk
+      - packages/twk_test
+      - packages/twk_lints
+      - packages/twk_term
+      - packages/twk_dev
 
   # The packages published to pub.dev, in no gate: an upload is not taken
-  # back. Each after pub-check, and after the one it takes from the
-  # registry (twk takes twk_core by version, twk_test both): pub.dev
-  # resolves it there. `dart pub login` first; publish-test publishes all
-  # three in order.
+  # back. Each after pub-check, and after those it takes from the registry
+  # (twk takes twk_core by version, twk_test both, twk_term twk and the
+  # core, twk_lints' tests the three, twk_dev twk_term and twk_test):
+  # pub.dev resolves it there. `dart pub login` first; publish-dev
+  # publishes all six in order.
   publish-core:
     desc: publish twk_core to pub.dev, once pub-check passes
     needs: [pub-check]
@@ -322,6 +332,24 @@ tasks:
     needs: [publish-twk]
     do: publish
     args: [packages/twk_test]
+
+  publish-lints:
+    desc: publish twk_lints to pub.dev, after twk_test
+    needs: [publish-test]
+    do: publish
+    args: [packages/twk_lints]
+
+  publish-term:
+    desc: publish twk_term to pub.dev, after twk
+    needs: [publish-twk]
+    do: publish
+    args: [packages/twk_term]
+
+  publish-dev:
+    desc: publish twk_dev to pub.dev, after twk_term, twk_test and twk_lints
+    needs: [publish-term, publish-lints]
+    do: publish
+    args: [packages/twk_dev]
 
   gallery-shots:
     # The gallery's pages as SVGs (packages/gallery/doc/shots/), drawn from

@@ -25,3 +25,7 @@ dependency_overrides:
     path: ../../../twk
   twk_core:
     path: ../../../twk_core
+  twk_term:
+    path: ../../../twk_term
+  twk_test:
+    path: ../../../twk_test

@@ -1,7 +1,11 @@
 name: twk_dev
-description: Developer tools for apps built on twk, as the `twk` command.
+description: >-
+  Developer tools for apps built on twk, as the `twk` command: create an
+  app, run it hot reloaded, inspect it, read its logs, record and play it.
 version: 0.1.0
-publish_to: none
+repository: https://github.com/pro100andrey/twk/tree/main/packages/twk_dev
+issue_tracker: https://github.com/pro100andrey/twk/issues
+topics: [terminal, tui, cli, hot-reload, devtools]
 
 environment:
   sdk: ^3.13.5
@@ -12,14 +16,10 @@ dependencies:
   args: ^2.7.0
   mold: ^0.3.0
   path: ^1.9.1
-  twk:
-    path: ../twk
-  twk_core:
-    path: ../twk_core
-  twk_term:
-    path: ../twk_term
-  twk_test:
-    path: ../twk_test
+  twk: ^0.1.0
+  twk_core: ^0.1.0
+  twk_term: ^0.1.0
+  twk_test: ^0.1.0
   vm_service: ^15.4.0
 dev_dependencies:
   pro_lints: ^6.2.0
