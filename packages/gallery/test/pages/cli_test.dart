@@ -1,5 +1,6 @@
-// App › Cli: twk_cli's programs of lib/cli/ run on its fake terminal, their
-// screens at the gallery's time, and the Code tab each program's file.
+// App › Cli: the console programs of lib/cli/ run on twk_test's fake
+// terminal, their screens at the gallery's time, and the Code tab each
+// program's file.
 import 'dart:io';
 
 import 'package:gallery/cli/check.dart' as check;
@@ -103,24 +104,25 @@ void main() {
     });
   });
 
-  testTwk('check: inspect, then the traceback at the line it threw', (
+  testTwk('check: what it read, then the traceback at the line it threw', (
     t,
   ) async {
     final lines = await _at(t, 'check', 2000, size: (60, 24));
-    expect(lines.sublist(1, 7), [
+    expect(lines.sublist(1, 8), [
       '✓ Read twk.yaml in 0.4 s',
-      'config: _Map<String, dynamic> {',
+      'config:',
+      '{',
       '  "version": 2,',
       '  "target": "web"',
       '}',
       '✗ StateError: Bad state: no "name" set',
     ]);
-    expect(lines, contains('  lib/cli/check.dart:28:3'));
+    expect(lines, contains('  lib/cli/check.dart:29:3'));
     expect(
       lines,
-      contains('''  ▶ 28 │   throw StateError('no "name" set');'''),
+      contains('''  ▶ 29 │   throw StateError('no "name" set');'''),
     );
-    expect(lines, contains(startsWith('  lib/cli/check.dart:21:')));
+    expect(lines, contains(startsWith('  lib/cli/check.dart:22:')));
   });
 
   // the Code check runs the Code on the app's clock, the stage at a time

@@ -767,12 +767,13 @@ The `twk` command.
 
 What it catches: see [its README](../../../twk_dev/README.md).
 
-## `packages/twk_cli/test/`
+## `packages/twk/test/cli/`
 
-The console: its modes, messages, widgets shown, prompts and progress in
-each mode, the traceback and `inspect`, its fake terminal.
+The console, `package:twk/cli.dart`: its modes, messages, widgets shown,
+prompts and progress in each mode, the traceback, on twk_test's fake
+terminal.
 
-What it catches: see [its README](../../../twk_cli/README.md).
+What it catches: see [its page](../../../twk/doc/reference/cli.md).
 
 ## `packages/twk_riverpod/test/`, `twk_bloc/test/`, `twk_lints/test/`, `twk_term/test/`, `twk_web/test/`, `gallery/test/`
 

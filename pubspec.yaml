@@ -16,7 +16,6 @@ workspace:
   - packages/gallery
   - packages/twk
   - packages/twk_bloc
-  - packages/twk_cli
   - packages/twk_core
   - packages/twk_dev
   - packages/twk_lints

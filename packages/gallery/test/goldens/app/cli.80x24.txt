@@ -3,8 +3,8 @@ text
 │  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
 │                                                                                │
 │   ⌕ Filter       /     Cli                                     Preview   Code  │
-│                        A command-line tool's console (twk_cli) as it runs:     │
-│     ErrorWidget        questions that leave their answer as a line, a spinne…  │
+│                        A command-line tool's console (twk's cli.dart) as it    │
+│     ErrorWidget        runs: questions that leave their answer as a line, a…   │
 │     Static           ──────────────────────────────────────────────────────────│
 │     TerminalProgr…    ┌                                                      ┐ │
 │     Viewport            ╭ terminal ────────────────────────────────────────╮   │
@@ -28,8 +28,8 @@ styles
 │aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeawwwwwwaaaaaadaddddaa│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahxhxxxxxxhhhhhhhDhaaggkkkggggggggggggggggggggggggggggggggggggglllllllgggmmmmgg│
-│aaaaaaaaaaaaaaaaaaaaaaggmgmmmmmmmmmmmmgmmmmmmgmmmmmmmgmmmmmmmmmgmmgmmgmmmmmggggg│
-│aaaaannnnnnnnnnnaaaaaaggmmmmmmmmmgmmmmgmmmmmgmmmmmgmmmmmmgmmgmgmmmmmgmgmmmmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmgmmmmmmmmmmmmgmmmmmmgmmmmmmmgmmmmmmgmmmmmmmmmgmmgmmgggg│
+│aaaaannnnnnnnnnnaaaaaaggmmmmmgmmmmmmmmmgmmmmgmmmmmgmmmmmgmmmmmmgmmgmgmmmmmgmmggg│
 │aaaaannnnnnaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnnnnnnnnnaaagoggggggggggggggggggggggggggggggggggggggggggggggggggggggog│
 │aaaaannnnnnnnaaaaaaaaagggpgmmmmmmmmgpppppppppppppppppppppppppppppppppppppppppggg│

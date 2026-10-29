@@ -91,6 +91,5 @@ last frame is written as plain text when it ends, and an inline app's
 
 For a command-line tool that prints lines, asks a question or two and
 shows progress — and must work just as well with nobody at the keyboard —
-there is
-[twk_cli](https://github.com/pro100andrey/twk/tree/main/packages/twk_cli),
-not on pub.dev yet.
+there is twk's console,
+[`package:twk/cli.dart`](https://github.com/pro100andrey/twk/tree/main/packages/twk/doc/reference/cli.md).

@@ -82,8 +82,8 @@
   JavaScript, TypeScript, Python, Rust, Go and diffs), shows diffs unified
   or side by side with line numbers, draws big text and QR codes, and shows
   JSON and Dart values as a tree that folds.
-  [`packages/twk_cli`](../../../twk_cli/README.md) is the console of a
-  command-line tool that is no app: where somebody answers at a terminal,
+  twk's [`package:twk/cli.dart`](../../../twk/doc/reference/cli.md) is
+  the console of a command-line tool that is no app: where somebody answers at a terminal,
   its prompts, progress and widgets are live in one inline app, the output
   committed above them; elsewhere they are lines.
 * Desktop notifications are told apart by the environment only: a

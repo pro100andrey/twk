@@ -3,6 +3,7 @@ import 'dart:isolate';
 import 'dart:mirrors';
 
 import 'package:test/test.dart';
+import 'package:twk/cli.dart' show Cli;
 import 'package:twk/hooks.dart' show HookWidget;
 import 'package:twk/provider.dart' show Provider;
 // Imported so that this file fails to load when a library that twk.dart
@@ -84,8 +85,8 @@ void main() {
     expect(exports, [for (final topic in topics) 'src/$topic/$topic.dart']);
   });
 
-  test('hooks.dart and provider.dart are libraries of their own, besides '
-      'twk.dart, which exports none of their names', () async {
+  test('cli.dart, hooks.dart and provider.dart are libraries of their own, '
+      'besides twk.dart, which exports none of their names', () async {
     final uri = await Isolate.resolvePackageUri(
       Uri.parse('package:twk/twk.dart'),
     );
@@ -95,9 +96,10 @@ void main() {
           if (entity is File && entity.path.endsWith('.dart'))
             entity.uri.pathSegments.last,
       ]..sort(),
-      ['hooks.dart', 'provider.dart', 'twk.dart'],
+      ['cli.dart', 'hooks.dart', 'provider.dart', 'twk.dart'],
     );
     for (final (library, widget) in [
+      ('cli', Cli),
       ('hooks', HookWidget),
       ('provider', Provider),
     ]) {

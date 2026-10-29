@@ -4,10 +4,10 @@ about: "Every widget the twk gallery shows, by group."
 ---
 # Widget catalog
 
-Every widget of [twk](../../packages/twk/README.md), and those of
-[twk_rich](../../packages/twk_rich/README.md),
-[twk_term](../../packages/twk_term/README.md) and
-[twk_cli](../../packages/twk_cli/README.md) the gallery shows, by group.
+Every widget of [twk](../../packages/twk/README.md), its console for
+command-line tools among them, and those of
+[twk_rich](../../packages/twk_rich/README.md) and
+[twk_term](../../packages/twk_term/README.md) the gallery shows, by group.
 Each has a page of its own: its pictures in the dark and the light theme,
 the Dart that builds it, its options in the gallery and links to its API.
 The pictures are the gallery's golden screens; to see a widget live, run

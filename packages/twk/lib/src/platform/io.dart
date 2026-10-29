@@ -2,6 +2,8 @@
 /// VM.
 library;
 
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate' show Isolate;
 
@@ -131,3 +133,58 @@ Future<int> runOnTerminal(String executable, List<String> arguments) async {
   );
   return p.exitCode;
 }
+
+/// Whether stdin is a terminal.
+bool get stdinIsTerminal => stdin.hasTerminal;
+
+/// Stdout, or stderr with [error].
+Stdout _stdio({required bool error}) => error ? stderr : stdout;
+
+/// Whether stdout, or stderr with [error], is a terminal.
+bool stdioIsTerminal({bool error = false}) => _stdio(error: error).hasTerminal;
+
+/// Whether stdout, or stderr with [error], takes ANSI escapes.
+bool stdioSupportsAnsi({bool error = false}) =>
+    _stdio(error: error).supportsAnsiEscapes;
+
+/// How many columns wide the terminal stdout (stderr with [error]) is.
+int stdioColumns({bool error = false}) => _stdio(error: error).terminalColumns;
+
+/// Stdout, or stderr with [error], as the sink text is written to.
+StringSink stdioSink({bool error = false}) => _stdio(error: error);
+
+/// Flushes stdout and stderr.
+Future<void> flushStdio() async {
+  await stdout.flush();
+  await stderr.flush();
+}
+
+/// The lines read from stdin, as UTF-8, without their line breaks.
+Stream<String> stdinLines() =>
+    stdin.transform(utf8.decoder).transform(const LineSplitter());
+
+/// Switches the echo of what is typed at stdin on or off.
+set stdinEcho(bool on) => stdin.echoMode = on;
+
+/// Calls [onInterrupt] on each SIGINT, which then does not end the
+/// process, until the subscription is cancelled; null on Windows, which
+/// has no SIGINT to watch.
+StreamSubscription<void>? watchInterrupt(void Function() onInterrupt) =>
+    Platform.isWindows
+    ? null
+    : ProcessSignal.sigint.watch().listen((_) => onInterrupt());
+
+/// Interrupts the process as Ctrl+C at a cooked terminal does: SIGINT to
+/// itself, which ends it unless it watches the signal; on Windows, its end
+/// with 130.
+void interruptProcess() {
+  if (Platform.isWindows) {
+    exit(130);
+  }
+  Process.killPid(pid, ProcessSignal.sigint);
+}
+
+/// The code the process ends with.
+int get processExitCode => exitCode;
+
+set processExitCode(int code) => exitCode = code;

@@ -6,7 +6,7 @@
 //   state-given  a `State<W>` class (W declared here when it is not);
 //   members      build() and other members of a State: put in one;
 //   body         the body of build(): put in one;
-//   cli          a twk_cli program, its main `Cli.runWithArgs(args, f)`:
+//   cli          a console program, its main `Cli.runWithArgs(args, f)`:
 //                written as it is to lib/cli/f.dart, as the gallery keeps
 //                it, and run in lib/cli/run.dart's CliRun as the stage
 //                runs it (the same file, copied beside it), so that its
@@ -29,7 +29,7 @@ enum WrapMode {
   /// The body of `build()`.
   body,
 
-  /// A twk_cli program, run in the gallery's CliRun.
+  /// A console program, run in the gallery's CliRun.
   cli,
 }
 
@@ -174,7 +174,7 @@ final _term = RegExp(
 String _indent(String s, int n) =>
     s.split('\n').map((l) => l.isEmpty ? l : '${' ' * n}$l').join('\n');
 
-/// A twk_cli program's main, and the function it runs.
+/// A console program's main, and the function it runs.
 final _cliMain = RegExp(
   r'^Future<void> main\(List<String> args\) =>\s*'
   r'Cli\.runWithArgs\(args, (\w+)(?:, [^;]*)?\);',

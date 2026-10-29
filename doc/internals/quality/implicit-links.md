@@ -20,10 +20,10 @@ Three are to change. The rest are kept, each for the reason given.
 | # | item | ends (set → read) | verdict | cost |
 | --- | --- | --- | --- | --- |
 | 1 | `TWK_*` environment read inside the app and binding | the shell → `packages/twk_core/lib/src/app.dart:38-39, 196, 199-201, 232-233`; `packages/twk/lib/src/binding/app_binding.dart:292/298, 1189, 1687` | **done in 34df707**: an `environment` given to `TwkApp` and `AppBinding`, `const {}` from the tester | 2 optional parameters (no break); the tester changes 1 line; `DebugAids.editorEnvironment` goes (4 test lines) |
-| 2 | the library's own warnings reach the log through `log()`'s zone | `packages/twk_core/lib/src/app.dart:464` → `packages/twk_core/lib/src/log.dart:273`, called from `packages/twk_core/lib/src/render/flex.dart:444`, `wrap.dart:347`, `grid.dart:452` | **done in ead30e0**: a log route on `PipelineOwner` next to its `onError` | 1 field on `PipelineOwner` (no break); 3 calls in the core; 1 line each in `TwkApp` and in twk_cli's `widgetLines` |
+| 2 | the library's own warnings reach the log through `log()`'s zone | `packages/twk_core/lib/src/app.dart:464` → `packages/twk_core/lib/src/log.dart:273`, called from `packages/twk_core/lib/src/render/flex.dart:444`, `wrap.dart:347`, `grid.dart:452` | **done in ead30e0**: a log route on `PipelineOwner` next to its `onError` | 1 field on `PipelineOwner` (no break); 3 calls in the core; 1 line each in `TwkApp` and in the console's `widgetLines` |
 | 3 | window title and notifications go through a type switch on two core classes | `packages/twk/lib/src/binding/app_binding.dart:521-526`, `terminal_status.dart:180-185` → `Terminal` / `HeadlessTerminal` | **done in f311194**: a core capability interface, checked as `TerminalStateBackend` is | 1 interface added to the core API; 2 switches in twk; no callers change |
 | 4 | `log()` called by app code finds its app's sink | `packages/twk_core/lib/src/app.dart:464` → `packages/twk_core/lib/src/log.dart:273` | keep | — |
-| 5 | `Cli.current` | `packages/twk_cli/lib/src/cli.dart:149, 176` → `:97` | keep | — |
+| 5 | `Cli.current` | `packages/twk/lib/src/cli/cli.dart:149, 176` → `:97` | keep | — |
 | 6 | `runningTester` | `packages/twk_test/lib/src/tester.dart:63` → `:89`, read at `finders.dart:89, 159` | keep | — |
 | 7 | fake time: FakeClock and SyncClock zones | `packages/twk_test/lib/src/fake_clock.dart:46`, `tool/alloc/lib/sync_clock.dart:24` | keep | — |
 | 8 | the tester's stderr through `IOOverrides` | `packages/twk_test/lib/src/tester.dart:121` → `packages/twk_core/lib/src/platform/io.dart:43` (via `packages/twk_core/lib/src/app.dart:971`) | keep | — |
@@ -97,7 +97,7 @@ it there too.
 - `AppBinding({Map<String, String>? environment})`: it gives that map to
   its `TwkApp`, and reads `TWK_SCREEN_READER`, `TWK_DEBUG` and the
   editor's variables from it. This replaces the static `editorEnvironment`.
-- `runApp` and twk_cli's session (`packages/twk_cli/lib/src/session.dart:44`)
+- `runApp` and the console's session (`packages/twk/lib/src/cli/session.dart:44`)
   pass nothing, so a real program keeps reading the process's
   environment.
 - `TwkTester` and `tool/alloc` pass `const {}`. A test that wants a debug
@@ -109,7 +109,7 @@ twk's `DebugAids` reads the names it handles from that value, instead of
 
 **Cost.** Two optional named parameters, so no public API breaks.
 `AppBinding(` is called in 4 places outside tests (`runApp`, the tester,
-twk_cli's session, `tool/alloc`) and 18 times in tests; only the tester
+the console's session, `tool/alloc`) and 18 times in tests; only the tester
 and alloc need a change, one line each. `DebugAids.editorEnvironment`,
 which is `@visibleForTesting`, goes: 4 lines of
 `packages/twk/test/debug/editor_test.dart` pass the map to the binding
@@ -129,7 +129,7 @@ twk handles both names itself. `DebugAids.editorEnvironment` is gone.
 `TwkTester.pumpWidget` takes `environment`, `const {}` by default, and
 passes it to the binding. The editor tests pass theirs there.
 `tool/alloc` passes `const {}`, and so does twk's binding test harness.
-`runApp` and twk_cli's session pass nothing. The probe after: tester_test
+`runApp` and the console's session pass nothing. The probe after: tester_test
 (and shot_test) pass in a clean shell and under each variable of the
 table, `TWK_DEBUG=logs` too. Before, `TWK_DEBUG=logs` gave +26 -2.
 
@@ -147,10 +147,10 @@ inside an `assert`. `log()` looks up its sink as the zone value
 (`packages/twk_core/lib/src/app.dart:464`). Outside it, the record is printed.
 
 **Who sets it, who reads it.** A render tree laid out outside
-`TwkApp.run` has no one to set it. twk_cli's `widgetLines`
-(`packages/twk_cli/lib/src/lines.dart:111-150`) does this whenever
+`TwkApp.run` has no one to set it. the console's `widgetLines`
+(`packages/twk/lib/src/cli/lines.dart:111-150`) does this whenever
 `Cli.show` writes a widget outside the interactive mode
-(`cli.dart:383`). twk_cli could not route the record if it tried:
+(`cli.dart:383`). The console could not route the record if it tried:
 `logSinkKey` is not exported (`lib/twk_core.dart:34` shows only
 `LogLevel, LogRecord, LogSink, log`).
 
@@ -246,11 +246,11 @@ for a backend without the interface.
   (`log.dart:125`, not exported). Only the library's own calls are a
   link between parts (item 2).
 - **5, `Cli.current`.** `Cli.run` already hands the body its `cli`
-  (`cli.dart:147-150, 165-176`). Nothing in twk_cli reads `Cli.current`
+  (`cli.dart:147-150, 165-176`). Nothing in the console reads `Cli.current`
   (0 reads in `lib/`; 4 lines in `test/cli_test.dart`; 11 doc-example
   lines). It is an accessor for a program's own helpers, as `log()` is.
   Outside a run it falls back to a `Cli` on process stdio made at first
-  use (`_default ??= Cli()`, `:97`) and never closed. The twk_cli README
+  use (`_default ??= Cli()`, `:97`) and never closed. The console's reference page
   warns about that (`:142, 219`), and it is a documented convenience
   (the `Logger()` → `Cli.current` row, `:398`), not a hidden swap.
 - **6, `runningTester`.** It exists so that `expect(find.text('x'),

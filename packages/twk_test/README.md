@@ -372,6 +372,12 @@ screen, with `--step` each frame's and with `--frame=N` frame N's.
 - `package:twk_test/vt_terminal.dart` (`VtTerminal`) is a terminal backend
   in the inline mode that feeds its output to the emulator, below lines
   printed before the app ran.
+- `package:twk_test/cli.dart` (`FakeCliTerminal`, and `FakeClock` and
+  `Vt` again) is the terminal a test of a program on twk's console
+  (`package:twk/cli.dart`) hands a `Cli` or `Cli.run`'s `open:`: it
+  captures what is written, answers the plain prompts a line each, types
+  keys into the interactive ones, and shows the inline session's screen
+  through the emulator.
 - `Shot(widget, columns, rows)` shows a widget tree without an app: on a
   screen of its own, built, laid out and painted as a frame is, each
   frame written to an emulator (`vt`). No binding, clock or input: a

@@ -717,8 +717,8 @@ const catalog = [
     ),
     CatalogPage(
       'Cli',
-      "A command-line tool's console (twk_cli) as it runs: questions that "
-          'leave their answer as a line, a spinner, tasks with bars, a '
+      "A command-line tool's console (twk's cli.dart) as it runs: questions "
+          'that leave their answer as a line, a spinner, tasks with bars, a '
           'traceback.',
     ),
   ]),

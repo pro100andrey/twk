@@ -14,7 +14,7 @@ version), in scratch and not committed. It resolved two sets of code:
 - **apps**: `packages/gallery` (76 files, its tests included), every
   `packages/*/example` (21) and `packages/twk_dev/templates/*` (12), 109
   files in all;
-- **twk**: the `lib/` of twk, twk_rich, twk_term, twk_cli, twk_dev,
+- **twk**: the `lib/` of twk, twk_rich, twk_term, twk_dev,
   twk_bloc, twk_riverpod and twk_web, 313 files. This is widget code
   written by the people who know twk best, a second check on noise.
 
@@ -235,7 +235,7 @@ Neither are custom controls built from `Focus(onKeyEvent:)` or
 `Pressable` with no `Semantics`. A class-level check for that found 2
 classes in apps (the gallery shell, the debugging page's aids) and 10 in
 twk: `Table`, `TreeView`, `TreeTable`, `Calendar`, `Scrollable`,
-`Pressable`, twk_cli's prompt views and twk_term's `TerminalView`. None
+`Pressable`, the console's prompt views and twk_term's `TerminalView`. None
 of their files has a `Semantics` (no role, no structure). That is an
 audit item for twk, not a lint: `Pressable` is a building block, and the
 shell's keys are not a control.

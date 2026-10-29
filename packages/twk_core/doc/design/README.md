@@ -12,7 +12,8 @@ Unicode segmentation, an input parser, backends for Linux / macOS / Windows,
 and a retained render tree, under the Flutter-like widget layer of
 [`packages/twk`](../../../twk/doc/reference/README.md), the rich text of
 [`packages/twk_rich`](../../../twk_rich/README.md) and the console for
-command-line tools of [`packages/twk_cli`](../../../twk_cli/README.md).
+command-line tools of `packages/twk`
+([`package:twk/cli.dart`](../../../twk/doc/reference/cli.md)).
 
 Key properties:
 

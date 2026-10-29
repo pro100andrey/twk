@@ -39,6 +39,9 @@ writes only the cells that changed.
 - **State:** hooks in the flutter_hooks style (`package:twk/hooks.dart`)
   and Provider's API (`package:twk/provider.dart`), each a library of its
   own.
+- **Command-line tools:** a console for a tool that is no app
+  (`package:twk/cli.dart`): messages by level, any widget printed,
+  prompts and progress, as a terminal, a pipe or CI takes them.
 - **The web:** an app builds with dart2wasm and runs on xterm.js.
 
 ## Getting started

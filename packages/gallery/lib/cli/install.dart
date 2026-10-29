@@ -3,8 +3,8 @@
 // terminal redraws; lines logged meanwhile land above them.
 import 'dart:async';
 
+import 'package:twk/cli.dart';
 import 'package:twk/twk.dart';
-import 'package:twk_cli/twk_cli.dart';
 
 Future<void> main(List<String> args) => Cli.runWithArgs(args, install);
 

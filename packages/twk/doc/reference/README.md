@@ -29,16 +29,16 @@ terminal's machinery stay in `package:twk_core`; the library comment of
 `lib/twk.dart` gives the rule. `log` is also a function of `dart:math`
 and `dart:developer`: an app that imports either prefixes it.
 
-Two libraries of the package are not in `lib/twk.dart`, so that an app
-that uses neither carries neither: `package:twk/hooks.dart`, hooks in the
-flutter_hooks style ([its page](hooks.md)), and
+Three libraries of the package are not in `lib/twk.dart`, so that an app
+that uses none of them carries none: `package:twk/hooks.dart`, hooks in
+the flutter_hooks style ([its page](hooks.md)),
 `package:twk/provider.dart`, Provider's API
 ([its page](provider.md)), on which
-[twk_bloc](../../../twk_bloc/README.md) builds. An app that uses one imports it
-besides `package:twk/twk.dart`; each builds on twk's public API alone,
-its sources in `lib/src/hooks/` and `lib/src/provider/`, its tests in
-`test/hooks/` and `test/provider/`, its example in `example/hooks/` and
-`example/provider/`.
+[twk_bloc](../../../twk_bloc/README.md) builds, and `package:twk/cli.dart`,
+the console of a command-line tool that is no app ([its page](cli.md)).
+A program that uses one imports it besides `package:twk/twk.dart`; each
+builds on twk's public API alone, its sources in `lib/src/<library>/`,
+its tests in `test/<library>/`, its examples in `example/<library>/`.
 
 The package builds for the web with dart2wasm, where
 [twk_web](../../../twk_web/README.md) runs an app on xterm.js: what it takes
@@ -84,7 +84,8 @@ A page a topic, a section a widget or a class:
 - [`semantics`](semantics.md): `Semantics`, `BlockSemantics`, `ExcludeSemantics`, `SemanticsNode.of`, `AppBinding.screenReader`
 
 [How the package is tested, and its demos](testing.md); [hooks](hooks.md),
-`package:twk/hooks.dart`; [Provider](provider.md), `package:twk/provider.dart`.
+`package:twk/hooks.dart`; [Provider](provider.md), `package:twk/provider.dart`;
+[the console](cli.md), `package:twk/cli.dart`.
 
 ## License
 

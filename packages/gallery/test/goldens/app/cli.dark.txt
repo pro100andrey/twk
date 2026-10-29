@@ -3,8 +3,8 @@ text
 │  ◆ twk gallery   App  ›  Cli                                                                ctrl+p search      ◐ Dark  │
 │                                                                                                                        │
 │   ⌕ Filter             /      Cli                                                                              8 of 8  │
-│                               A command-line tool's console (twk_cli) as it runs: questions that leave their           │
-│     Slot, SlotScope           answer as a line, a spinner, tasks with bars, a traceback.                               │
+│                               A command-line tool's console (twk's cli.dart) as it runs: questions that leave          │
+│     Slot, SlotScope           their answer as a line, a spinner, tasks with bars, a traceback.                         │
 │                                                                                                                        │
 │   APP                  8      Preview   Code                                                                           │
 │     InputListener          ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
@@ -40,8 +40,8 @@ styles
 │aabacccadddddddaaazzzaafaadddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggazzzzzzaaaaaadaddddaa│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaiAiAAAAAAiiiiiiiiiiiiiFiaahhhlllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhGhGGhGhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnhnnnnnnnnnnnnhnnnnnnhnnnnnnnhnnnnnnnnnhnnhnnhnnnnnhnnnnnnnnnhnnnnhnnnnnhnnnnnhhhhhhhhhhh│
-│aaaaaoooooaoooooooooaaaaaaaahhhnnnnnnhnnhnhnnnnnhnhnnnnnnnnhnnnnnhnnnnhnnnnnhnhnnnnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnhnnnnnnnnnnnnhnnnnnnhnnnnnnnhnnnnnnhnnnnnnnnnhnnhnnhnnnnnhnnnnnnnnnhnnnnhnnnnnhhhhhhhhhh│
+│aaaaaoooooaoooooooooaaaaaaaahhhnnnnnhnnnnnnhnnhnhnnnnnhnhnnnnnnnnhnnnnnhnnnnhnnnnnhnhnnnnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaadddaaaaaaaaaaaaaaaaaazaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
