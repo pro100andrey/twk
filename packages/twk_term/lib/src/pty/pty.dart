@@ -30,6 +30,48 @@ const _quit = 0x71; // stop reading: the terminal is closed
 const _writable = 'writable';
 const _hangup = 'hangup';
 
+/// The variables that name the terminal a program runs in, or the
+/// multiplexer: this process's, which a program in the emulator is not
+/// in, so they are left out of its environment ([Pty.start]).
+const _hostTerminal = {
+  'TERM_PROGRAM',
+  'TERM_PROGRAM_VERSION',
+  'TERM_SESSION_ID',
+  'LC_TERMINAL',
+  'LC_TERMINAL_VERSION',
+  'COLORFGBG',
+  'ITERM_SESSION_ID',
+  'KITTY_WINDOW_ID',
+  'KITTY_PID',
+  'GHOSTTY_RESOURCES_DIR',
+  'WEZTERM_PANE',
+  'WEZTERM_EXECUTABLE',
+  'KONSOLE_VERSION',
+  'KONSOLE_DBUS_SESSION',
+  'VTE_VERSION',
+  'WT_SESSION',
+  'ALACRITTY_WINDOW_ID',
+  'TMUX',
+  'TMUX_PANE',
+  'STY',
+  'XTERM_VERSION',
+  'MLTERM',
+};
+
+/// The environment of a program [Pty.start] runs: [parent] without the
+/// variables that name the terminal it runs in, TERM and COLORTERM of the
+/// emulator, [given] over all of them. Not exported.
+Map<String, String> ptyEnvironment(
+  Map<String, String> parent,
+  Map<String, String>? given,
+) => {
+  for (final MapEntry(:key, :value) in parent.entries)
+    if (!_hostTerminal.contains(key)) key: value,
+  'TERM': 'xterm-256color',
+  'COLORTERM': 'truecolor',
+  ...?given,
+};
+
 /// Bigger than `struct termios` on Linux (60 bytes) and macOS (72).
 const _termiosBytes = 256;
 
@@ -96,9 +138,13 @@ final class Pty {
   /// [width] by [height] cells.
   ///
   /// The program's environment is this process's (unless
-  /// [includeParentEnvironment] is false) with TERM set to
-  /// `xterm-256color`, the dialect the emulator speaks, and [environment]
-  /// over both; an [executable] without a slash is looked for in its PATH.
+  /// [includeParentEnvironment] is false) without the variables that name
+  /// the terminal this process runs in (`TERM_PROGRAM`, `LC_TERMINAL`,
+  /// `KITTY_WINDOW_ID`, `TMUX` and kin), with
+  /// TERM set to `xterm-256color`, the dialect the emulator speaks, and
+  /// COLORTERM to `truecolor`, and [environment] over all of them: a
+  /// program in the emulator is not told it runs in the terminal around
+  /// it. An [executable] without a slash is looked for in its PATH.
   /// Throws a [ProcessException] when the program can't be started, an
   /// [ArgumentError] for an argument, a variable or a directory with a NUL
   /// character in it, an [UnsupportedError] off Linux and macOS.
@@ -115,11 +161,10 @@ final class Pty {
       throw UnsupportedError('Pty runs on Linux and macOS only');
     }
     _checkSize(width, height);
-    final env = {
-      if (includeParentEnvironment) ...Platform.environment,
-      'TERM': 'xterm-256color',
-      ...?environment,
-    };
+    final env = ptyEnvironment(
+      includeParentEnvironment ? Platform.environment : const {},
+      environment,
+    );
     final path = _resolve(executable, arguments, env['PATH']);
     final scope = c.NativeScope();
     final attr = scope.alloc<Void>(1024);

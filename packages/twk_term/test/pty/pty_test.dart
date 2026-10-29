@@ -12,6 +12,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:test/test.dart';
+import 'package:twk_term/src/pty/pty.dart' show ptyEnvironment;
 import 'package:twk_term/twk_term.dart';
 import 'package:twk_test/twk_test.dart'
     show runProcess, startProcess, waitUntil;
@@ -253,6 +254,30 @@ void main() {
     expect(const LineSplitter().convert(own.text).toSet(), {
       'PATH=/usr/bin:/bin',
       'TERM=vt100',
+      'COLORTERM=truecolor',
+    });
+  });
+
+  test("the terminal this process runs in isn't the program's: its "
+      'variables left out, those given kept', () {
+    final env = ptyEnvironment(
+      {
+        'HOME': '/home/a',
+        'TERM': 'xterm-kitty',
+        'TERM_PROGRAM': 'Apple_Terminal',
+        'TERM_PROGRAM_VERSION': '466',
+        'LC_TERMINAL': 'iTerm2',
+        'KITTY_WINDOW_ID': '1',
+        'TMUX': '/tmp/t,1,0',
+        'COLORTERM': '24bit',
+      },
+      {'TERM_PROGRAM': 'mine'},
+    );
+    expect(env, {
+      'HOME': '/home/a',
+      'TERM': 'xterm-256color',
+      'COLORTERM': 'truecolor',
+      'TERM_PROGRAM': 'mine',
     });
   });
 
