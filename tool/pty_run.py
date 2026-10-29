@@ -142,8 +142,9 @@ DEC_MODE = re.compile(rb'\x1b\[\?([0-9;]+)([hl])')
 # BDSM, ECMA-48's bidirectional support mode: reset (CSI 8 l) is explicit
 # mode, which the terminal is told while the command orders text itself
 BDSM = re.compile(rb'\x1b\[8([hl])')
-# where the cursor is (CSI 6 n), the default colors (OSC 10, 11)
-QUERY = re.compile(rb'\x1b\[6n|\x1b\]1([01]);\?(?:\x07|\x1b\\)')
+# where the cursor is (CSI 6 n), the default colors (OSC 10, 11), and the
+# device attributes (DA1) asked outside a probe
+QUERY = re.compile(rb'\x1b\[6n|\x1b\]1([01]);\?(?:\x07|\x1b\\)|\x1b\[c')
 KITTY_FLAGS = re.compile(rb'\x1b\[([<>])([0-9]*)u')
 
 
@@ -492,7 +493,11 @@ def main():
             for ask in QUERY.finditer(out, answered_to,
                                       len(out) if probe < 0 else probe):
                 which = ask.group(1)
-                if which is None:
+                if ask.group(0) == PROBE_END:
+                    # DA1 on its own: the end of the inline probe's first
+                    # round, where the cursor is asked first
+                    os.write(master, PROBE_DA1)
+                elif which is None:
                     os.write(master, cursor.report(out, ask.start()))
                 else:
                     color = SCHEMES[scheme][1 if which == b'0' else 2]

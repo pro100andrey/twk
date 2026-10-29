@@ -1139,12 +1139,24 @@ final class Terminal
       '\x1b[?2026h\x1b[?1049h$queries'
       '\x1b[H\u2500\x1b[6n\x1b[?1049l\x1b[?2026l';
 
-  /// The probe's [queries] where the cursor is (DECSC), then the cursor put
-  /// back (DECRC), what the terminal showed of them erased to the end of
-  /// the line (EL), and asked where it is. What it showed past the line,
-  /// wrapped, stays: the inline mode never leaves the normal screen, nor
-  /// erases its rows below the cursor.
-  static String _inPlace(String queries) => '\x1b7$queries\x1b8\x1b[K\x1b[6n';
+  /// The probe's [queries] where the cursor is (DECSC), then the cursor
+  /// asked where it went: a terminal that showed some of them moved it.
+  /// The inline mode never leaves the normal screen, nor erases its rows
+  /// below the cursor. Those that may show are asked only where the line
+  /// has room for what they may show ([_mayShow]), which then can't wrap.
+  static String _inPlace(String queries) => '\x1b7$queries\x1b[6n';
+
+  /// The cursor put back where [_inPlace] asked (DECRC), and what the
+  /// terminal [shown] of its queries erased to the end of the line (EL):
+  /// nothing erased where it showed nothing, a fixed viewport writing
+  /// nothing outside it.
+  static String _putBack({required bool shown}) =>
+      '\x1b8${shown ? '\x1b[K' : ''}';
+
+  /// The cells the probe's queries may show on a terminal that knows none
+  /// of them, with room to spare: Terminal.app shows 36, a `p` of each
+  /// DECRQM and the body of kitty's graphics query.
+  static const _mayShow = 48;
 
   /// Queries the terminal; what the user types meanwhile goes to [early].
   /// Returns what it found and its answer about BDSM ([bidiModeQuery]),
@@ -1166,13 +1178,28 @@ final class Terminal
     var kitty = false;
     var ambiguous = 1;
     int? column;
+    int? shownTo;
     var attributes = const <int>[];
     var kittyGraphics = false;
     var version = '';
     var cellWidth = 0;
     var cellHeight = 0;
     int? bidiMode;
-    final done = Completer<bool>();
+    // a round of queries each, completed in turn by the device attributes
+    // that end it: answers that come together end each its own
+    final rounds = [Completer<bool>(), Completer<bool>()];
+    for (final round in rounds) {
+      round.future.ignore(); // the second is not asked on the alternate screen
+    }
+    var answers = 0;
+    void fail(Object e, StackTrace st) {
+      for (final round in rounds) {
+        if (!round.isCompleted) {
+          round.completeError(e, st);
+        }
+      }
+    }
+
     input
       ..onData((bytes) {
         inputTrace?.add(bytes);
@@ -1182,9 +1209,7 @@ final class Terminal
         } on Object catch (e, st) {
           // a stream callback: an error here would escape open()'s try and
           // kill the process with the console still raw
-          if (!done.isCompleted) {
-            done.completeError(e, st);
-          }
+          fail(e, st);
           return;
         }
         for (final e in events) {
@@ -1205,8 +1230,10 @@ final class Terminal
             case CursorReport(:final x):
               if (o.alternateScreen) {
                 ambiguous = x >= 2 ? 2 : 1;
-              } else {
+              } else if (column == null) {
                 column = x;
+              } else {
+                shownTo = x; // after the queries asked in place
               }
             case UnknownSequence(:final bytes) when _isProbeReply(bytes):
               final s = String.fromCharCodes(bytes);
@@ -1223,29 +1250,26 @@ final class Terminal
               }
             case DeviceAttributes(:final params):
               attributes = params;
-              if (!done.isCompleted) {
-                done.complete(true);
+              if (answers < rounds.length) {
+                rounds[answers++].complete(true);
               }
             default:
               early.add(e); // the user typed during the probe
           }
         }
       })
-      ..onError((Object e, StackTrace s) {
-        // the shell went away
-        if (!done.isCompleted) {
-          done.completeError(e, s);
-        }
-      });
+      ..onError(fail); // the shell went away
     // The queries are asked where they leave no trace (a terminal that
     // doesn't know one may print it: Terminal.app prints the last byte of
     // a DECRQM and the body of kitty's graphics query): on the alternate
     // screen, inside a synchronized update (no flash where that is
     // supported), where the ambiguous width is then measured by drawing
     // U+2500 at the home position and asking where the cursor went
-    // (CSI 6 n). The inline mode asks them where the cursor is, erases
-    // what they showed on its line and asks where it is: its region
-    // starts on a line of its own. Terminal.app, which answers neither,
+    // (CSI 6 n). The inline mode asks where the cursor is first (its
+    // region starts on a line of its own), then the queries where it is
+    // and where it went, putting it back and erasing what they showed on
+    // its line, those that may show asked only where the line has room
+    // for them. Terminal.app, which answers neither,
     // is asked no DECRQM, nor kitty's graphics query; the inline mode asks
     // that one only of a terminal its environment says may have it. Among
     // the queries are a cell's size in pixels and, unless the protocol
@@ -1268,23 +1292,44 @@ final class Terminal
     final graphicsQueries = detect && multiplexerFor(env) == Multiplexer.none
         ? '${kittyQuery ? _kittyGraphicsQuery : ''}\x1b[>0q'
         : '';
-    parser.expectCursorReport = true;
+    var asks = 0;
+    Future<bool> ask(String queries) async {
+      parser.expectCursorReport = true; // each round asks where it is
+      final bytes = utf8.encode('$queries\x1b[c');
+      link.add(bytes);
+      outputTrace?.add(bytes);
+      await link.flush();
+      return rounds[asks++].future.timeout(
+        o.probeTimeout,
+        onTimeout: () => false,
+      );
+    }
+
+    // inline, the cursor's column first: the queries that may show go only
+    // where its line has room for them
+    var answered = o.alternateScreen || await ask('\x1b[6n');
+    final room =
+        o.alternateScreen ||
+        (column != null && link.columns - column! >= _mayShow);
+    final askModes = !apple && room;
     final asked =
-        '${apple ? '' : _modeQueries}'
+        '${askModes ? _modeQueries : ''}'
         '\x1b]10;?\x1b\\\x1b]11;?\x1b\\$_paletteQuery'
         '${o.kittyKeyboard ? '\x1b[?u' : ''}'
-        '\x1b[16t$graphicsQueries';
-    final queries = utf8.encode(
-      '${o.alternateScreen ? _onAlternateScreen(asked) : _inPlace(asked)}'
-      '\x1b[c',
-    );
-    link.add(queries);
-    outputTrace?.add(queries);
-    await link.flush();
-    final answered = await done.future.timeout(
-      o.probeTimeout,
-      onTimeout: () => false,
-    );
+        '\x1b[16t${room ? graphicsQueries : ''}';
+    if (answered) {
+      answered = await ask(
+        o.alternateScreen ? _onAlternateScreen(asked) : _inPlace(asked),
+      );
+      if (!o.alternateScreen) {
+        final back = utf8.encode(
+          _putBack(shown: shownTo != null && shownTo != column),
+        );
+        link.add(back);
+        outputTrace?.add(back);
+        await link.flush();
+      }
+    }
     if (answered) {
       // a terminal that ignores CSI 6 n: Shift+F3 must stay a key
       parser.expectCursorReport = false;
@@ -1342,7 +1387,13 @@ final class Terminal
         // GNU screen without `defbce on` erases with the default background
         backgroundColorErase: !screenLike,
         repeatChar: repeatChar,
-        styledUnderlines: declared.styledUnderlines ?? styledUnderlinesFor(env),
+        // a terminal that answers no DECRQM may misread 4:3 as Terminal.app
+        // does, which isn't told apart over ssh: a plain underline it
+        // shows
+        styledUnderlines:
+            declared.styledUnderlines ??
+            (styledUnderlinesFor(env) &&
+                !(askModes && answered && modes.isEmpty)),
         konsoleLines: konsole,
         konsoleImages: konsole,
         leftRightMargins: supported(69) && !screenLike,
