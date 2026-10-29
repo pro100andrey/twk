@@ -112,7 +112,10 @@ void main() {
     );
     expect(term.info.kittyKeyboardFlags, 3);
     await term.close();
-    expect(link.text, isNot(contains('\x1b[?1049')));
+    // the probe's queries on the alternate screen, the flags after it
+    final probed = link.text.indexOf('\x1b[?1049l');
+    expect(link.text.substring(probed), isNot(contains('\x1b[?1049h')));
+    expect(link.text.indexOf('>3u'), greaterThan(probed));
     expect(_count(link.text, '\x1b[>3u'), 1);
     expect(_count(link.text, _pop), 1);
     expect(link.text.indexOf(_pop), greaterThan(link.text.indexOf('>3u')));

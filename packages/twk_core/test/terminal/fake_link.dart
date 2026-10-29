@@ -60,12 +60,6 @@ final class FakeLink implements DeclaringLink {
   /// The terminal's input: [text], UTF-8 encoded.
   void type(String text) => _input.add(utf8.encode(text));
 
-  /// What the terminal answers, typed one at each [flush] in turn: a
-  /// round of queries each, those of a round asked only once the one
-  /// before was answered.
-  void answerRounds(List<String> rounds) => _rounds.addAll(rounds);
-  final _rounds = <String>[];
-
   /// The terminal's input fails with [error]: its far end went away.
   void fail(Object error) => _input.addError(error);
 
@@ -100,9 +94,6 @@ final class FakeLink implements DeclaringLink {
   @override
   Future<void> flush() async {
     flushes++;
-    if (_rounds.isNotEmpty) {
-      type(_rounds.removeAt(0));
-    }
   }
 
   @override

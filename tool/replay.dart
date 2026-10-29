@@ -134,7 +134,8 @@ void main(List<String> args) {
   );
   // the inline region starts below what was printed before the probe, the
   // viewport is drawn over the screen it showed
-  final start = inline ? _indexOf(bytes, '\x1b[?2026\$p') : -1;
+  // (the probe's queries are asked on the alternate screen)
+  final start = inline ? _indexOf(bytes, '\x1b[?1049h') : -1;
   final probe = start < 0 ? 0 : start;
   var guarded = !inline;
   _Outside? outside;
@@ -197,12 +198,13 @@ void main(List<String> args) {
     'altScreenSwitches=${vt.altScreenSwitches} '
     'cursorVisible=${vt.cursorVisible} autowrap=${vt.autowrap}$checks',
   );
-  // in a viewport of the normal screen the alternate screen is an error
+  // in a viewport of the normal screen drawing on the alternate screen is
+  // an error
   final problems = [
     ...vt.errors.take(10),
     ...changed.take(10),
-    if (view != null && vt.altScreenSwitches > 0)
-      'the alternate screen in a viewport of the normal screen',
+    if (view != null && vt.drawnOnAlternate)
+      'drawn on the alternate screen in a viewport of the normal screen',
   ];
   for (final e in problems) {
     stdout.writeln('  $e');

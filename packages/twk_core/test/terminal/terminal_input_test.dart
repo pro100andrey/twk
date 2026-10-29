@@ -85,7 +85,9 @@ void main() {
     );
     expect(term.info.cursorColumn, 4);
     expect(term.info.ambiguousWidth, 1);
-    expect(link.text, isNot(contains('\x1b[?1049h')));
+    // the probe's queries on the alternate screen, the app never there
+    final probed = link.text.indexOf('\x1b[?1049l');
+    expect(link.text.substring(probed), isNot(contains('\x1b[?1049h')));
   });
 
   test('keys typed while the probe waits come first, in order', () async {

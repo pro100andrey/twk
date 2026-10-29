@@ -486,8 +486,7 @@ def main():
     input_start = None  # the first output
     answered = False  # a probe was answered
     answered_to = 0  # the output up to here was answered
-    probe_at = None  # when the probe waiting for its answer gets it
-    round_at = None  # when a round ended by a DA1 alone gets its answers
+    probe_at = None  # when the round of queries waiting gets its answers
     cursor = Cursor(cols, rows, 2 if args.ambiguous_wide else 1)
     scheme_reports = bool(schemes)
     pending = list(script)
@@ -518,20 +517,20 @@ def main():
         while not args.silent:
             probe = out.find(PROBE_START, answered_to)
             until = len(out) if probe < 0 else probe
-            # a round of queries a DA1 alone ends (the inline probe's
-            # first) is answered as late as the probe
-            if out.find(PROBE_END, answered_to, until) >= 0:
-                if round_at is None:
-                    round_at = time.time() + args.answer_delay
-                if time.time() < round_at:
+            # a round of queries, which a DA1 ends, is answered late as a
+            # whole: the inline probe's CSI 6 n before its DECRQM too
+            if out.find(PROBE_END, answered_to) >= 0:
+                if probe_at is None:
+                    probe_at = time.time() + args.answer_delay
+                if time.time() < probe_at:
                     break
             for ask in QUERY.finditer(out, answered_to, until):
                 which = ask.group(1)
                 if ask.group(0) == PROBE_END:
-                    # DA1 on its own: the end of the inline probe's first
-                    # round, where the cursor is asked first
+                    # DA1 that ends a probe without DECRQM (Terminal.app,
+                    # GNU screen)
                     os.write(master, PROBE_DA1)
-                    round_at = None
+                    probe_at = None
                 elif which is None:
                     os.write(master, cursor.report(out, ask.start()))
                 else:
@@ -540,10 +539,6 @@ def main():
                 answered_to = ask.end()
             end = -1 if probe < 0 else out.find(PROBE_END, probe)
             if end < 0:
-                break
-            if probe_at is None:
-                probe_at = time.time() + args.answer_delay
-            if time.time() < probe_at:
                 break
             cpr = out.find(b'\x1b[6n', probe, end)
             os.write(master, PROBE_MODES

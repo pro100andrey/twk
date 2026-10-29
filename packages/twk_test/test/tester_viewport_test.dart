@@ -124,7 +124,8 @@ void main() {
     "tool/replay.dart replays twk's viewport_app run in a pseudo-terminal "
     'with --inline and its rectangle, which plain --inline rejects for its '
     'absolute rows; the cells outside the rectangle the app wrote, blank '
-    'or not, the cursor not put back and the alternate screen fail it',
+    'or not, the cursor not put back and drawing on the alternate screen '
+    'fail it',
     () async {
       final dir = Directory.systemTemp.createTempSync('viewport');
       addTearDown(() => dir.deleteSync(recursive: true));
@@ -157,11 +158,14 @@ void main() {
         written.replaceAll('\x1b8', ''),
         encoding: latin1,
       );
+      // the frames drawn on the alternate screen, past the probe's queries
+      // asked there
       final alternate = '${dir.path}/alternate.bin';
       File(alternate).writeAsStringSync(
         written.replaceFirst(
           '\x1b[?2026h',
-          '\x1b[?1049h\x1b[?1049l\x1b[?2026h',
+          '\x1b[?1049h\x1b[?2026h',
+          written.indexOf('\x1b[?1049l'),
         ),
         encoding: latin1,
       );
@@ -213,7 +217,9 @@ void main() {
       expect(notBack, contains('outsideChanged=0 cursorPutBack=false'));
       expect(
         switched,
-        contains('the alternate screen in a viewport of the normal screen'),
+        contains(
+          'drawn on the alternate screen in a viewport of the normal screen',
+        ),
       );
     },
     testOn: 'linux || mac-os',

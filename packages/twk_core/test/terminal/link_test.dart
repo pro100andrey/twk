@@ -96,13 +96,14 @@ void main() {
   });
 
   test(
-    'inline, the probe is asked where the cursor is put back to and '
-    'what it showed on its line erased, the normal screen never left',
+    'inline, the probe is asked in one write on the alternate screen, '
+    'where the cursor is asked before it and after, nothing erased where '
+    'it did not move',
     () async {
       final link = FakeLink(
         columns: 80,
         environment: const {'TERM': 'xterm-256color'},
-      )..type('\x1b[5;1R\x1b[?62c$_answers');
+      )..type('\x1b[5;1R\x1b[?2026;2\$y\x1b[?0u\x1b[5;1R\x1b[?62;22c');
       final term = await clock.open(
         link,
         const TerminalOptions(
@@ -110,17 +111,23 @@ void main() {
           alternateScreen: false,
         ),
       );
-      // a terminal that doesn't know a query may print it
-      // the cursor first, then the queries in a round of their own
-      expect(link.text, startsWith('\x1b[6n\x1b[c\x1b7\x1b[?2026\$p'));
-      // where it went asked too: it didn't move, nothing is erased
-      expect(link.text, contains('\x1b[>0q\x1b[6n\x1b[c\x1b8\x1b[?25l'));
-      expect(link.text, isNot(contains('\x1b[?1049')));
+      // a terminal that doesn't know a query may print it: on the
+      // alternate screen, let go in the same write
+      expect(
+        link.text,
+        startsWith('\x1b[6n\x1b7\x1b[?2026h\x1b[?1049h\x1b[?2026\$p'),
+      );
+      expect(
+        link.text,
+        contains('\x1b[>c\x1b[?1049l\x1b[?2026l\x1b[6n\x1b[c\x1b8\x1b[?25l'),
+      );
+      expect('\x1b[c'.allMatches(link.text), hasLength(1), reason: 'one round');
       expect(link.text, isNot(contains('\x1b[J')));
       expect(link.text, isNot(contains('\x1b[K')));
-      // the line has room for kitty's graphics query, whatever terminal
-      // the environment names
       expect(link.text, contains('\x1b_Gi=31'));
+      expect(term.info.answeredQueries, isTrue);
+      expect(term.info.caps.synchronizedOutput, isTrue);
+      expect(term.info.kittyKeyboard, isTrue);
       expect(term.info.cursorColumn, 0);
       await clock.runUntil(term.close);
     },
@@ -135,7 +142,7 @@ void main() {
           'TERM': 'xterm-256color',
           'TERM_PROGRAM': 'Apple_Terminal',
         },
-      )..type('\x1b[5;1R\x1b[?1;2c\x1b[?1;2c');
+      )..type('\x1b[5;1R\x1b[>1;95;0c\x1b[5;1R\x1b[?1;2c');
       final term = await clock.open(
         link,
         TerminalOptions(
@@ -153,11 +160,11 @@ void main() {
   });
 
   test("inline, what the queries showed is erased on the cursor's line, "
-      'only where it moved', () async {
+      'only where it moved: a terminal without the alternate screen', () async {
     final link = FakeLink(
       columns: 80,
       environment: const {'TERM': 'xterm-256color'},
-    )..answerRounds(['\x1b[5;1R\x1b[?62c', '\x1b[5;7R\x1b[?62c']);
+    )..type('\x1b[5;1R\x1b[5;7R\x1b[?62c');
     final term = await clock.open(
       link,
       const TerminalOptions(
@@ -170,34 +177,13 @@ void main() {
     await clock.runUntil(term.close);
   });
 
-  test('inline, kitty is asked the graphics query', () async {
-    final link = FakeLink(
-      columns: 80,
-      environment: const {'TERM': 'xterm-kitty'},
-    )..type('\x1b[5;1R\x1b[?62c$_answers');
-    final term = await clock.open(
-      link,
-      const TerminalOptions(
-        probeTimeout: Duration(seconds: 5),
-        alternateScreen: false,
-      ),
-    );
-    expect(link.text, contains('\x1b_Gi=31'));
-    await clock.runUntil(term.close);
-  });
-
-  test('inline, the queries that may show are asked as far as the line has '
-      'room for them', () async {
-    // the cells left of 80 after the cursor's column, one spare
-    Future<String> asked(int column) async {
-      final link =
-          FakeLink(
-            columns: 80,
-            environment: const {'TERM': 'xterm-kitty'},
-          )..answerRounds([
-            '\x1b[5;${column + 1}R\x1b[?62c',
-            '\x1b[?2026;2\$y\x1b[?62c',
-          ]);
+  test(
+    'inline, every query is asked wherever the cursor is on its line',
+    () async {
+      final link = FakeLink(
+        columns: 80,
+        environment: const {'TERM': 'xterm-kitty'},
+      )..type('\x1b[5;79R\x1b[?2026;2\$y\x1b[5;79R\x1b[?62c');
       final term = await clock.open(
         link,
         const TerminalOptions(
@@ -205,60 +191,67 @@ void main() {
           alternateScreen: false,
         ),
       );
-      expect(term.info.answeredQueries, isTrue);
-      expect(term.info.cursorColumn, column);
-      // answered where asked, not asked where not: never taken for a
-      // terminal that doesn't answer them
-      expect(term.info.caps.styledUnderlines, isTrue);
+      expect(term.info.cursorColumn, 78);
+      expect(term.info.caps.synchronizedOutput, isTrue);
+      expect(link.text, contains(r'$p'));
+      expect(link.text, contains('\x1b_Gi=31'));
       await clock.runUntil(term.close);
-      return link.text;
-    }
+    },
+  );
 
-    // the modes' 6 cells and the graphics query's 31
-    final both = await asked(80 - 1 - 37);
-    expect(both, contains(r'$p'));
-    expect(both, contains('\x1b_G'));
-    final modes = await asked(80 - 1 - 36);
-    expect(modes, contains(r'$p'));
-    expect(modes, isNot(contains('\x1b_G')));
-    final none = await asked(80 - 1 - 5);
-    expect(none, isNot(contains(r'$p')));
-    expect(none, isNot(contains('\x1b_G')));
-    // what shows nothing is asked however narrow the line: XTVERSION
-    for (final text in [both, modes, none]) {
-      expect(text, contains('\x1b[>0q'));
-      expect(text, contains('\x1b]11;?'));
+  test('inside GNU screen, which prints a DECRQM, none is asked', () async {
+    for (final env in const [
+      {'TERM': 'screen-256color', 'STY': '1.pts-0.host'},
+      {'TERM': 'screen.xterm-256color'},
+    ]) {
+      final link = FakeLink(columns: 80, environment: env)
+        ..type('\x1b[5;1R\x1b[>83;40903;0c\x1b[5;1R\x1b[?1;2c');
+      final term = await clock.open(
+        link,
+        const TerminalOptions(
+          probeTimeout: Duration(seconds: 5),
+          alternateScreen: false,
+        ),
+      );
+      expect(link.text, isNot(contains(r'$p')), reason: '$env');
+      // its ICH and DCH are what they should be
+      expect(term.info.caps.insertDelete, isTrue, reason: '$env');
+      await clock.runUntil(term.close);
     }
   });
 
-  test('a terminal that answers no DECRQM shows no underline styles, as '
-      'Terminal.app over ssh', () async {
+  test('Terminal.app is told by its secondary device attributes, over ssh '
+      'too: no underline styles, no ICH nor DCH; another terminal that '
+      'answers no DECRQM keeps them', () async {
     for (final alternateScreen in [true, false]) {
-      Future<Terminal> open(String answers) => clock.open(
+      Future<Terminal> open(String secondary) => clock.open(
         FakeLink(columns: 80, environment: const {'TERM': 'xterm-256color'})
-          ..type(answers),
+          ..type('\x1b[5;1R$secondary\x1b[5;1R\x1b[?1;2c'),
         TerminalOptions(
           probeTimeout: const Duration(seconds: 5),
           alternateScreen: alternateScreen,
         ),
       );
-      final silent = await open('\x1b[5;1R\x1b[?1;2c\x1b[?1;2c');
-      expect(silent.info.answeredQueries, isTrue);
+      final apple = await open('\x1b[>1;95;0c');
+      expect(apple.info.answeredQueries, isTrue);
       expect(
-        silent.info.caps.styledUnderlines,
+        apple.info.caps.styledUnderlines,
         isFalse,
         reason: '$alternateScreen',
       );
-      expect(silent.info.caps.insertDelete, isFalse);
-      await clock.runUntil(silent.close);
-      final answering = await open('\x1b[5;1R\x1b[?62c$_answers');
-      expect(
-        answering.info.caps.styledUnderlines,
-        isTrue,
-        reason: '$alternateScreen',
-      );
-      expect(answering.info.caps.insertDelete, isTrue);
-      await clock.runUntil(answering.close);
+      expect(apple.info.caps.insertDelete, isFalse);
+      await clock.runUntil(apple.close);
+      // iTerm2's, and none at all (PuTTY, the Linux console)
+      for (final other in ['\x1b[>0;95;0c', '']) {
+        final term = await open(other);
+        expect(
+          term.info.caps.styledUnderlines,
+          isTrue,
+          reason: '$alternateScreen $other',
+        );
+        expect(term.info.caps.insertDelete, isTrue);
+        await clock.runUntil(term.close);
+      }
     }
   });
 

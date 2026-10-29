@@ -78,8 +78,8 @@ final class CliSession {
 
   /// Whether the terminal shows the underline styles, as the session's
   /// probe of it found ([TerminalCaps.styledUnderlines]): what it
-  /// declares, its environment, and whether it answered DECRQM, which
-  /// tells Terminal.app over ssh too.
+  /// declares, its environment, and its secondary device attributes,
+  /// which tell Terminal.app over ssh too.
   bool get styledUnderlines =>
       _binding.twkApp.terminal.info.caps.styledUnderlines;
 

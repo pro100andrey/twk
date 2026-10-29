@@ -453,8 +453,8 @@ ColorMode colorModeFor(Map<String, String> env, {bool windows = false}) {
 /// Terminal.app, which reads `4:3` as `43`, a yellow background. A `TERM`
 /// of a terminal of its own (kitty, ghostty, Alacritty, foot, WezTerm)
 /// comes before a `TERM_PROGRAM` inherited from the Terminal.app it was
-/// started in. Over ssh Terminal.app's `TERM_PROGRAM` is not passed on,
-/// and it is not told apart.
+/// started in. Over ssh Terminal.app's `TERM_PROGRAM` is not passed on:
+/// the probe tells it there by its secondary device attributes.
 ///
 /// ```dart
 /// print(styledUnderlinesFor({'TERM_PROGRAM': 'Apple_Terminal'})); // false
@@ -1148,29 +1148,21 @@ final class Terminal
       '\x1b[?2026h\x1b[?1049h$queries'
       '\x1b[H\u2500\x1b[6n\x1b[?1049l\x1b[?2026l';
 
-  /// The probe's [queries] where the cursor is (DECSC), then the cursor
-  /// asked where it went: a terminal that showed some of them moved it.
-  /// The inline mode never leaves the normal screen, nor erases its rows
-  /// below the cursor. Those that may show are asked only where the line
-  /// has room for what they may show ([_modesMayShow],
-  /// [_graphicsMayShow]), which then can't wrap.
-  static String _inPlace(String queries) => '\x1b7$queries\x1b[6n';
+  /// The probe's [queries] inline: where the cursor is asked (the region's
+  /// column), it is kept (DECSC), and the queries go to the alternate
+  /// screen, inside a synchronized update, before it is asked again where
+  /// it is: where the terminal has no alternate screen and showed some of
+  /// them, it moved ([_putBack]).
+  static String _inPlace(String queries) =>
+      '\x1b[6n\x1b7\x1b[?2026h\x1b[?1049h$queries'
+      '\x1b[?1049l\x1b[?2026l\x1b[6n';
 
-  /// The cursor put back where [_inPlace] asked (DECRC), and what the
+  /// The cursor put back where [_inPlace] kept it (DECRC), and what the
   /// terminal [shown] of its queries erased to the end of the line (EL):
   /// nothing erased where it showed nothing, a fixed viewport writing
   /// nothing outside it.
   static String _putBack({required bool shown}) =>
       '\x1b8${shown ? '\x1b[K' : ''}';
-
-  /// The cells a terminal that knows no DECRQM may show of [_modeQueries]:
-  /// Terminal.app shows a `p` of each.
-  static const _modesMayShow = 6;
-
-  /// The cells a terminal that knows no APC may show of kitty's graphics
-  /// query, its body, as Terminal.app does; XTVERSION, after it, shows
-  /// nothing there.
-  static const _graphicsMayShow = 31;
 
   /// Queries the terminal; what the user types meanwhile goes to [early].
   /// Returns what it found and its answer about BDSM ([bidiModeQuery]),
@@ -1199,18 +1191,12 @@ final class Terminal
     var cellWidth = 0;
     var cellHeight = 0;
     int? bidiMode;
-    // a round of queries each, completed in turn by the device attributes
-    // that end it: answers that come together end each its own
-    final rounds = [Completer<bool>(), Completer<bool>()];
-    for (final round in rounds) {
-      round.future.ignore(); // the second is not asked on the alternate screen
-    }
-    var answers = 0;
+    var secondary = const <int>[];
+    // the queries, all in one write, which the device attributes end
+    final round = Completer<bool>()..future.ignore();
     void fail(Object e, StackTrace st) {
-      for (final round in rounds) {
-        if (!round.isCompleted) {
-          round.completeError(e, st);
-        }
+      if (!round.isCompleted) {
+        round.completeError(e, st);
       }
     }
 
@@ -1257,6 +1243,10 @@ final class Terminal
                 version = s.substring(4).replaceFirst(_stringEnd, '');
               } else if (_bidiModeReply.firstMatch(s) case final m?) {
                 bidiMode = int.parse(m[1]!);
+              } else if (_secondaryReply.firstMatch(s) case final m?) {
+                secondary = [
+                  for (final p in m[1]!.split(';')) int.tryParse(p) ?? 0,
+                ];
               } else {
                 final m = _cellSizeReply.firstMatch(s)!;
                 cellHeight = int.parse(m[1]!);
@@ -1264,8 +1254,8 @@ final class Terminal
               }
             case DeviceAttributes(:final params):
               attributes = params;
-              if (answers < rounds.length) {
-                rounds[answers++].complete(true);
+              if (!round.isCompleted) {
+                round.complete(true);
               }
             default:
               early.add(e); // the user typed during the probe
@@ -1275,19 +1265,21 @@ final class Terminal
       ..onError(fail); // the shell went away
     // The queries are asked where they leave no trace (a terminal that
     // doesn't know one may print it: Terminal.app prints the last byte of
-    // a DECRQM and the body of kitty's graphics query): on the alternate
-    // screen, inside a synchronized update (no flash where that is
-    // supported), where the ambiguous width is then measured by drawing
-    // U+2500 at the home position and asking where the cursor went
-    // (CSI 6 n). The inline mode asks where the cursor is first (its
-    // region starts on a line of its own), then the queries where it is
-    // and where it went, putting it back and erasing what they showed on
-    // its line, those that may show asked only where the line has room
-    // for them: the modes' 6 cells, then the graphics query's 31, a cell
-    // spare. Terminal.app, which answers neither, is asked no DECRQM, nor
-    // kitty's graphics query. Among
-    // the queries are a cell's size in pixels and, unless the protocol
-    // images are shown with is given, the graphics query and the
+    // a DECRQM and the body of kitty's graphics query, GNU screen the
+    // DECRQM's): on the alternate screen, inside a synchronized update (no
+    // flash where that is supported), all in one write, answered in one
+    // round trip, as fish asks its own. Full screen, the ambiguous width
+    // is then measured by drawing U+2500 at the home position and asking
+    // where the cursor went (CSI 6 n). Inline, where the cursor is is
+    // asked first, on the normal screen (the region starts on a line of
+    // its own), and again once the alternate screen is let go: a terminal
+    // without one (GNU screen without `altscreen on`, the Linux console)
+    // moved it showing a query, whose cells on its line are then erased.
+    // Terminal.app, which answers neither, is asked no DECRQM, nor kitty's
+    // graphics query, nor is GNU screen asked a DECRQM. Among the queries
+    // are a cell's size in pixels, the secondary device attributes (DA2,
+    // by which Terminal.app is told over ssh too: `1;95;0`) and, unless the
+    // protocol images are shown with is given, the graphics query and the
     // terminal's name and version (XTVERSION), not in a multiplexer, which
     // answers them itself; sixel comes with the device attributes (DA1,
     // last).
@@ -1302,57 +1294,36 @@ final class Terminal
         !GraphicsProtocol.values.any((p) => p.name == env['TWK_GRAPHICS']);
     final apple = _isAppleTerminal(env);
     final askName = detect && multiplexerFor(env) == Multiplexer.none;
-    var asks = 0;
-    Future<bool> ask(String queries) async {
-      parser.expectCursorReport = true; // each round asks where it is
-      final bytes = utf8.encode('$queries\x1b[c');
-      link.add(bytes);
-      outputTrace?.add(bytes);
-      await link.flush();
-      return rounds[asks++].future.timeout(
-        o.probeTimeout,
-        onTimeout: () => false,
-      );
-    }
-
-    // inline, the cursor's column first: the queries that may show go only
-    // where its line has room for them
-    var answered = o.alternateScreen || await ask('\x1b[6n');
-    // the cells left on its line, one spare: a cell written in the last
-    // column wraps the next
-    var room = o.alternateScreen
-        ? 1 << 30
-        : column == null
-        ? 0
-        : link.columns - column! - 1;
-    bool fits(int cells) {
-      if (room < cells) {
-        return false;
-      }
-      room -= cells;
-      return true;
-    }
-
-    final askModes = !apple && fits(_modesMayShow);
-    final askGraphics = askName && !apple && fits(_graphicsMayShow);
+    final term = env['TERM'] ?? '';
+    final screenLike = term.startsWith('screen') || env.containsKey('STY');
     final asked =
-        '${askModes ? _modeQueries : ''}'
+        '${apple || screenLike ? '' : _modeQueries}'
         '\x1b]10;?\x1b\\\x1b]11;?\x1b\\$_paletteQuery'
         '${o.kittyKeyboard ? '\x1b[?u' : ''}'
-        '\x1b[16t${askGraphics ? _kittyGraphicsQuery : ''}'
-        '${askName ? '\x1b[>0q' : ''}';
-    if (answered) {
-      answered = await ask(
-        o.alternateScreen ? _onAlternateScreen(asked) : _inPlace(asked),
+        '\x1b[16t${askName && !apple ? _kittyGraphicsQuery : ''}'
+        '${askName ? '\x1b[>0q' : ''}'
+        // the Linux console may take it for DA1
+        '${term == 'linux' ? '' : '\x1b[>c'}';
+    // inline, where the cursor is before the queries and after them
+    parser.cursorReportsExpected = o.alternateScreen ? 1 : 2;
+    final bytes = utf8.encode(
+      '${o.alternateScreen ? _onAlternateScreen(asked) : _inPlace(asked)}'
+      '\x1b[c',
+    );
+    link.add(bytes);
+    outputTrace?.add(bytes);
+    await link.flush();
+    final answered = await round.future.timeout(
+      o.probeTimeout,
+      onTimeout: () => false,
+    );
+    if (!o.alternateScreen) {
+      final back = utf8.encode(
+        _putBack(shown: shownTo != null && shownTo != column),
       );
-      if (!o.alternateScreen) {
-        final back = utf8.encode(
-          _putBack(shown: shownTo != null && shownTo != column),
-        );
-        link.add(back);
-        outputTrace?.add(back);
-        await link.flush();
-      }
+      link.add(back);
+      outputTrace?.add(back);
+      await link.flush();
     }
     if (answered) {
       // a terminal that ignores CSI 6 n: Shift+F3 must stay a key
@@ -1360,7 +1331,6 @@ final class Terminal
     }
 
     bool supported(int mode) => modes[mode]?.supported ?? false;
-    final term = env['TERM'] ?? '';
     final program = env['TERM_PROGRAM'] ?? '';
 
     final color = colorModeFor(env, windows: link.windows);
@@ -1372,8 +1342,6 @@ final class Terminal
         term == 'xterm-kitty' ||
         env.containsKey('WT_SESSION') ||
         program == 'WezTerm';
-
-    final screenLike = term.startsWith('screen') || env.containsKey('STY');
 
     // REP (CSI n b) has no capability query; enable it only for terminals
     // that declare it, or are known to implement it.
@@ -1396,9 +1364,13 @@ final class Terminal
     final multiplexer = multiplexerFor(env);
     // Konsole's lines and its images come with Konsole itself
     final konsole = konsoleLinesFor(env, version: version);
-    // asked DECRQM, a terminal that answered none of them: older than what
-    // it is taken for, Terminal.app over ssh among them
-    final silent = askModes && answered && modes.isEmpty;
+    // Terminal.app by its secondary device attributes, also over ssh,
+    // where its TERM_PROGRAM isn't passed on (as vim tells it)
+    final appleAnswered =
+        secondary.length == 3 &&
+        secondary[0] == 1 &&
+        secondary[1] == 95 &&
+        secondary[2] == 0;
     // a terminal that declares it shows the shapes is twk's, which names
     // them by CSS's names
     final pointerNames = switch (declared.pointerShapes) {
@@ -1421,16 +1393,17 @@ final class Terminal
         // GNU screen without `defbce on` erases with the default background
         backgroundColorErase: !screenLike,
         repeatChar: repeatChar,
-        // a terminal that answers no DECRQM may misread 4:3 as Terminal.app
-        // does, which isn't told apart over ssh: a plain underline it
-        // shows
+        // Terminal.app misreads 4:3 (over ssh too, told by DA2): a plain
+        // underline it shows
         styledUnderlines:
-            declared.styledUnderlines ?? (styledUnderlinesFor(env) && !silent),
+            declared.styledUnderlines ??
+            (styledUnderlinesFor(env) && !appleAnswered),
         // Terminal.app's DCH shifts a line only up to where the cursor
-        // last jumped and drops the background an EL gave the rest of it,
-        // as one that answers no DECRQM may (it over ssh): its cells are
-        // written again instead, which costs bytes, never cells
-        insertDelete: !(apple && multiplexer == Multiplexer.none) && !silent,
+        // last jumped and drops the background an EL gave the rest of it:
+        // its cells are written again instead, which costs bytes, never
+        // cells. Not through a multiplexer, which answers DA2 itself
+        insertDelete:
+            !((apple || appleAnswered) && multiplexer == Multiplexer.none),
         konsoleLines: konsole,
         konsoleImages: konsole,
         leftRightMargins: supported(69) && !screenLike,
@@ -1499,6 +1472,10 @@ final class Terminal
   /// `CSI 8 ; Ps $ y`: the answer about BDSM ([bidiModeQuery]).
   static final _bidiModeReply = RegExp(r'^\x1b\[8;(\d+)\$y$');
 
+  /// `CSI > Pp ; Pv ; Pc c`: the secondary device attributes (DA2), the
+  /// terminal's kind, version and keyboard.
+  static final _secondaryReply = RegExp(r'^\x1b\[>([\d;]*)c$');
+
   /// What [_states] keeps BDSM under.
   static final _bidiMode = Object();
 
@@ -1510,7 +1487,8 @@ final class Terminal
     return s.startsWith('\x1b_G') ||
         s.startsWith('\x1bP>|') ||
         _cellSizeReply.hasMatch(s) ||
-        _bidiModeReply.hasMatch(s);
+        _bidiModeReply.hasMatch(s) ||
+        _secondaryReply.hasMatch(s);
   }
 
   // --------------------------------------------------------------- modes --
