@@ -1396,24 +1396,31 @@ final class _TableState<T> extends State<Table<T>> {
     final style = selected ? styles.base.merge(styles.selected) : styles.base;
     return Listener(
       onDown: w.selection == TableSelection.none ? null : onDown,
-      child: _Row(
-        columns: _columns,
-        lines: w.border,
-        background: styles.base,
-        style: style,
-        lineStyle: styles.border,
-        highlight: selected ? cursor : -1,
-        highlightStyle: styles.cursor,
-        children: [
-          for (var j = 0; j < columns.length; j++)
-            _cell(
-              columns[j],
-              columns[j].cell(row),
-              selected,
-              selected && j == cursor,
-              styles,
-            ),
-        ],
+      // the hidden cursor on the selected row, on its cursor's cell
+      child: ActiveItem(
+        active: selected,
+        child: _Row(
+          columns: _columns,
+          lines: w.border,
+          background: styles.base,
+          style: style,
+          lineStyle: styles.border,
+          highlight: selected ? cursor : -1,
+          highlightStyle: styles.cursor,
+          children: [
+            for (var j = 0; j < columns.length; j++)
+              ActiveItem(
+                active: selected && j == cursor,
+                child: _cell(
+                  columns[j],
+                  columns[j].cell(row),
+                  selected,
+                  selected && j == cursor,
+                  styles,
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
