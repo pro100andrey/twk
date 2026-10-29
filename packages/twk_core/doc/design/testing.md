@@ -853,11 +853,11 @@ same run does.
 
 ## Analysis
 
-`dart analyze` (rules: `pro_lints/recommended`, strict casts, inference
-and raw types) must report no issues, `dart test` must pass and `dart
-format` must change nothing, here as in every package of the repository:
-the checks are the repository's (`xtask.yaml` at the root, run by
-`dart run tool/xtask.dart handover`; [its README](../../../../README.md) and
-`CONTRIBUTING.md` say what they are). `dart run tool/web_check.dart` ([§1.7](terminal.md))
-builds the core, packages/twk and packages/twk_web for the web and runs
-them.
+`dart analyze` (rules: `pro_lints/recommended`, strict casts, inference and
+raw types) must report no issues, `dart test` must pass and `dart format`
+must change nothing, here as in every package of the repository: the checks
+are the repository's (`xtask.yaml` at the root, run by `dart run
+tool/xtask.dart handover`; [its README](../../../../README.md) and
+`CONTRIBUTING.md` say what they are). `dart run tool/web_check.dart`
+([§1.7](terminal.md)) builds the core, packages/twk and packages/twk_web for
+the web and runs them.

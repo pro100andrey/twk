@@ -36,11 +36,11 @@ and `cellPixelHeight` (0 where the terminal told none).
   images does no work for them (`PresentStats.images` counts those a
   frame sent or placed again).
 
-The protocol: `TerminalOptions.graphics`, else `TWK_GRAPHICS`
-(`kitty`, `sixel`, `iterm2`, `none`), else what the probe finds ([§1.7](terminal.md)):
+The protocol: `TerminalOptions.graphics`, else `TWK_GRAPHICS` (`kitty`,
+`sixel`, `iterm2`, `none`), else what the probe finds ([§1.7](terminal.md)):
 kitty's where it answers kitty's graphics query, iTerm2's where its name
-(XTVERSION) or its environment says iTerm2 or WezTerm, sixel where DA1
-lists it. Inside tmux, which answers the queries itself, sixel is tmux's
-own (3.4), and kitty's or iTerm2's go to the terminal outside through
-its passthrough (`allow-passthrough on`) where the environment names one
-that has it; inside GNU screen, none.
+(XTVERSION) or its environment says iTerm2 or WezTerm, sixel where DA1 lists
+it. Inside tmux, which answers the queries itself, sixel is tmux's own
+(3.4), and kitty's or iTerm2's go to the terminal outside through its
+passthrough (`allow-passthrough on`) where the environment names one that
+has it; inside GNU screen, none.

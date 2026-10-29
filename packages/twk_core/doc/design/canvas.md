@@ -23,17 +23,17 @@ The SGR sequence of every style and the **shortest transition between two
 styles** (an attribute delta that accounts for the shared `22` reset of
 bold/dim, or `0;…` when shorter) are computed once and cached. Colors are
 downgraded to what the terminal supports (truecolor → 256 → 16; macOS
-Terminal.app has no truecolor). The terminal's default background and
-text colors come from OSC 11 and OSC 10, so alpha over "default" blends
-with the real colors (default-colored text with alpha stays default while
-the text color is unknown). Its first 16 palette entries come from OSC 4,
-so a blend with a palette color (`Color.blue` and kin: a tint, a gradient
-between two of them) goes through the color the terminal shows, not
-xterm's (`StyleTable.paletteRgb`, `setPaletteRgb`; an entry the terminal
-didn't tell stays xterm's, and SGR still names the index; `rgbOf(color,
-text:)` any color as the RGB it shows, the default ones as told or null). When the
-terminal reports new ones (after a change of its color scheme, [§1.7](terminal.md)),
-`TwkApp` blends with those and repaints everything.
+Terminal.app has no truecolor). The terminal's default background and text
+colors come from OSC 11 and OSC 10, so alpha over "default" blends with the
+real colors (default-colored text with alpha stays default while the text
+color is unknown). Its first 16 palette entries come from OSC 4, so a blend
+with a palette color (`Color.blue` and kin: a tint, a gradient between two
+of them) goes through the color the terminal shows, not xterm's
+(`StyleTable.paletteRgb`, `setPaletteRgb`; an entry the terminal didn't tell
+stays xterm's, and SGR still names the index; `rgbOf(color, text:)` any
+color as the RGB it shows, the default ones as told or null). When the
+terminal reports new ones (after a change of its color scheme,
+[§1.7](terminal.md)), `TwkApp` blends with those and repaints everything.
 
 ## §1.3 Damage without help from widgets
 

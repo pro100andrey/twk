@@ -26,9 +26,9 @@ Key properties:
   leaves the cells of that glyph**;
 * three screen modes: fullscreen on the alternate screen; **inline**, a
   region of the normal screen under the terminal's history that grows with
-  its content and never writes above itself ([§1.12](inline.md)); and a **fixed
-  viewport**, a rectangle of the screen outside which nothing is written
-  ([§1.13](viewport.md));
+  its content and never writes above itself ([§1.12](inline.md)); and a
+  **fixed viewport**, a rectangle of the screen outside which nothing is
+  written ([§1.13](viewport.md));
 * images in reserved cells, placed with kitty graphics, sixel or iTerm2
   as the terminal shows them ([§1.14](images.md));
 * where the output is no terminal (piped, in CI), **plain text**: no
@@ -37,12 +37,12 @@ Key properties:
 * a `Terminal` over any byte link (`TerminalLink`), and a build for the
   web with dart2wasm, where xterm.js is the terminal ([§1.7](terminal.md)).
 
-This is `packages/twk_core` of the twk repository: the packages built on
-it, and the repository's tools and checks, are in [its
-README](../../../../README.md). Paths here are this package's (`lib/`, `test/`,
-`example/`); `tool/…` is the repository root's `tool/` (`../../tool/`) and
-`packages/…` a package of the repository, and the commands of [§4](running.md) run from
-the root.
+This is `packages/twk_core` of the twk repository: the packages built on it,
+and the repository's tools and checks, are in [its
+README](../../../../README.md). Paths here are this package's (`lib/`,
+`test/`, `example/`); `tool/…` is the repository root's `tool/`
+(`../../tool/`) and `packages/…` a package of the repository, and the
+commands of [§4](running.md) run from the root.
 
 ## §1 Design
 
@@ -113,10 +113,10 @@ and 8.6 MB for a program importing nothing.
 ## §5 License
 
 MIT, copyright 2026 Andrii Ivanov: [LICENSE](../../LICENSE). The third-party
-material bundled here keeps its own licence, listed in [NOTICE](../../NOTICE):
-the Unicode data the segmentation, width and bidi tables come from
-(`lib/src/unicode/tables.g.dart` and `lib/src/unicode/bidi_data.g.dart`,
-which `tool/gen_unicode.dart` writes with the licence in their headers,
-and `test/data/GraphemeBreakTest.txt`), under the Unicode License v3. The
-repository's [NOTICE](../../../../NOTICE) lists it with that of the other
-packages.
+material bundled here keeps its own licence, listed in
+[NOTICE](../../NOTICE): the Unicode data the segmentation, width and bidi
+tables come from (`lib/src/unicode/tables.g.dart` and
+`lib/src/unicode/bidi_data.g.dart`, which `tool/gen_unicode.dart` writes
+with the licence in their headers, and `test/data/GraphemeBreakTest.txt`),
+under the Unicode License v3. The repository's [NOTICE](../../../../NOTICE)
+lists it with that of the other packages.

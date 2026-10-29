@@ -4,17 +4,15 @@
 
 ## The render tree
 
-`render/render.dart` is a retained render tree, one library in part
-files by topic beside it (`object.dart`, the render object and what it
-is made of; `pipeline.dart`, the `PipelineOwner`; `boxes.dart`,
-`decoration.dart`, `flex.dart`, `stack.dart`, `grid.dart`, `wrap.dart`,
-`text.dart`, `log.dart`, `viewport.dart`, `list.dart`, `effect.dart`,
-`error_box.dart`, `debug_paint.dart`), so that its private names reach
-across them. The
-widget layer of
-[`packages/twk`](../../../twk/doc/reference/README.md) sits on it as Flutter's does:
-elements create these objects and set their properties, and widgets know
-nothing about diffs, bytes or terminals.
+`render/render.dart` is a retained render tree, one library in part files by
+topic beside it (`object.dart`, the render object and what it is made of;
+`pipeline.dart`, the `PipelineOwner`; `boxes.dart`, `decoration.dart`,
+`flex.dart`, `stack.dart`, `grid.dart`, `wrap.dart`, `text.dart`,
+`log.dart`, `viewport.dart`, `list.dart`, `effect.dart`, `error_box.dart`,
+`debug_paint.dart`), so that its private names reach across them. The widget
+layer of [`packages/twk`](../../../twk/doc/reference/README.md) sits on it
+as Flutter's does: elements create these objects and set their properties,
+and widgets know nothing about diffs, bytes or terminals.
 
 ## Layout
 
@@ -310,18 +308,18 @@ take no room.
   ones to the first gaps, in the pen of the space; the lines it leaves go
   to the start. A line wider than the paragraph starts at the edge its
   paragraph starts at;
-* the order of the text: the owner's `textOrder` (`TextOrder.logical`
-  until set; setting it lays the tree out and paints it again), which
-  `TwkApp` sets as the terminal needs (`TerminalInfo.bidi`, [§1.7](terminal.md)). In
-  `logical` order a line is drawn as stored, every paragraph left to
-  right, for a terminal that reorders right-to-left text itself. In
-  `visual` order, for one that doesn't, each line, broken as stored, is
-  drawn as UAX #9 orders it ([§1.5](unicode.md)): its right-to-left runs reversed by
-  grapheme, the clusters a legacy-mode grapheme is drawn in kept in
-  order, single-code-point glyphs at an odd level mirrored (`(` drawn as
-  `)`), an ellipsis at the lower level beside it, a right-to-left line
-  justified from the right. Text without right-to-left characters pays a
-  scan per change in visual order and nothing in logical order;
+* the order of the text: the owner's `textOrder` (`TextOrder.logical` until
+  set; setting it lays the tree out and paints it again), which `TwkApp`
+  sets as the terminal needs (`TerminalInfo.bidi`, [§1.7](terminal.md)). In
+  `logical` order a line is drawn as stored, every paragraph left to right,
+  for a terminal that reorders right-to-left text itself. In `visual` order,
+  for one that doesn't, each line, broken as stored, is drawn as UAX #9
+  orders it ([§1.5](unicode.md)): its right-to-left runs reversed by
+  grapheme, the clusters a legacy-mode grapheme is drawn in kept in order,
+  single-code-point glyphs at an odd level mirrored (`(` drawn as `)`), an
+  ellipsis at the lower level beside it, a right-to-left line justified from
+  the right. Text without right-to-left characters pays a scan per change in
+  visual order and nothing in logical order;
 * new text is split and laid out again; the same text with new pens is
   only repainted, as is a new `align`; a new `wrap`, `overflow` or
   `maxLines` lays it out again. Painting it again allocates nothing.
@@ -403,16 +401,16 @@ An object may change what is below it while it is laid out (the widget
 layer's `LayoutBuilder` builds its child there, for its constraints):
 `invokeLayoutCallback(callback)`, called in its `performLayout` before it
 lays its children out, runs a callback that may adopt, replace and drop
-children of the object and of those below it. The marks that makes stop
-at the object, or at the relayout boundaries below it (the items of a
+children of the object and of those below it. The marks that makes stop at
+the object, or at the relayout boundaries below it (the items of a
 `RenderList` with an `itemExtent`, the list itself), which `flushLayout`
 lays out after it in the same flush: what changed is laid out before
-anything is painted, leaving no layout for the next frame. When an intrinsic size the object
-answered before comes out different afterwards, its parent may have laid
-it out by the old answer: the parent is laid out again on the next frame,
-or the object itself when it is the root (an inline region is sized by
-the root's max intrinsic height, [§1.12](inline.md)). A parent that asked for no
-intrinsic size is not.
+anything is painted, leaving no layout for the next frame. When an intrinsic
+size the object answered before comes out different afterwards, its parent
+may have laid it out by the old answer: the parent is laid out again on the
+next frame, or the object itself when it is the root (an inline region is
+sized by the root's max intrinsic height, [§1.12](inline.md)). A parent that
+asked for no intrinsic size is not.
 
 ## Paint
 
@@ -597,20 +595,20 @@ tell an object's state.
 
 ## Debug paints
 
-Debug paints, flags of a `PipelineOwner` (an app's `TwkApp.owner`), off
-by default (on from the start where `TWK_DEBUG` names `rainbow` or
-`relayout`, [§1.7](terminal.md)), when they cost a frame nothing measurable: with
-`debugRepaintRainbow` each repaint of a repaint boundary, or of the
-root on its own, blends the next of 12 hues over the background of the
-cells it covered (its bounds, cut where its ancestors cut it), keeping
-their glyphs, text colours and attributes, so an area that changes
-colour repainted and one that keeps it did not. With `debugRelayoutHighlight` each repaint outlines the
-objects in it laid out since the last one: the backgrounds of the cells
-along their edges, in one tint per frame that lays anything out, the
-next of a cycle; an outline stays until its cells repaint. Turning
-either on or off repaints everything; while one is on, a boundary
-repaints all of its cells (a `RenderLog` doesn't scroll in hardware),
-so frames cost many more bytes. In 16 colours a tint may round away.
+Debug paints, flags of a `PipelineOwner` (an app's `TwkApp.owner`), off by
+default (on from the start where `TWK_DEBUG` names `rainbow` or `relayout`,
+[§1.7](terminal.md)), when they cost a frame nothing measurable: with
+`debugRepaintRainbow` each repaint of a repaint boundary, or of the root on
+its own, blends the next of 12 hues over the background of the cells it
+covered (its bounds, cut where its ancestors cut it), keeping their glyphs,
+text colours and attributes, so an area that changes colour repainted and
+one that keeps it did not. With `debugRelayoutHighlight` each repaint
+outlines the objects in it laid out since the last one: the backgrounds of
+the cells along their edges, in one tint per frame that lays anything out,
+the next of a cycle; an outline stays until its cells repaint. Turning
+either on or off repaints everything; while one is on, a boundary repaints
+all of its cells (a `RenderLog` doesn't scroll in hardware), so frames cost
+many more bytes. In 16 colours a tint may round away.
 
 ## Errors
 

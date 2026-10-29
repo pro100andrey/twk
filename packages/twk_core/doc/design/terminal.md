@@ -20,26 +20,27 @@ was entered, the console is restored before the error propagates):
    as VT sequences), QuickEdit off, UTF-8 code pages, everything restored on
    exit;
 2. **capability probe** in one batch: DECRQM 2026/2027/2048/69/2031 and
-   BDSM's `CSI 8 $ p` (below), OSC 10/11, the 16 palette entries in one
-   OSC 4 (`TerminalInfo.palette`, those answered), the kitty keyboard query
-   `CSI ? u`, a cell's size in pixels (`CSI 16 t`), kitty's graphics
-   query and the terminal's name and version (XTVERSION) where the
-   protocol for images is not given and no multiplexer answers in the
-   terminal's place ([§1.14](images.md)), the width of East Asian Ambiguous characters
-   (U+2500 drawn on the alternate screen inside a synchronized update,
-   then `CSI 6 n`; in the inline mode `CSI 6 n` asks where the cursor is
-   instead, [§1.12](inline.md)), and DA1 as the "everyone answered" marker, its
-   attribute 4 saying sixel (1 s timeout → conservative defaults;
-   answers that come later are dropped, not passed to the app as input);
+   BDSM's `CSI 8 $ p` (below), OSC 10/11, the 16 palette entries in one OSC
+   4 (`TerminalInfo.palette`, those answered), the kitty keyboard query `CSI
+   ? u`, a cell's size in pixels (`CSI 16 t`), kitty's graphics query and
+   the terminal's name and version (XTVERSION) where the protocol for images
+   is not given and no multiplexer answers in the terminal's place
+   ([§1.14](images.md)), the width of East Asian Ambiguous characters
+   (U+2500 drawn on the alternate screen inside a synchronized update, then
+   `CSI 6 n`; in the inline mode `CSI 6 n` asks where the cursor is instead,
+   [§1.12](inline.md)), and DA1 as the "everyone answered" marker, its
+   attribute 4 saying sixel (1 s timeout → conservative defaults; answers
+   that come later are dropped, not passed to the app as input);
 3. resize: in-band (2048) when available, otherwise SIGWINCH; on Windows
    the size is polled every 100 ms (a cheap console call);
-4. alternate screen (or the inline mode, [§1.12](inline.md)), mouse (on the alternate
-   screen, or with `TerminalOptions.normalScreenMouse` on the normal one
-   too, [§1.13](viewport.md)), paste, focus, kitty keyboard (the flags asked for pushed,
-   `CSI > flags u`, after the switch to the alternate screen and popped,
-   `CSI < u`, before the switch back: each screen keeps a stack of its
-   own, [§1.6](input.md)), color scheme reports (where mode 2031 is supported);
-   everything is restored on every exit path (including SIGTERM).
+4. alternate screen (or the inline mode, [§1.12](inline.md)), mouse (on the
+   alternate screen, or with `TerminalOptions.normalScreenMouse` on the
+   normal one too, [§1.13](viewport.md)), paste, focus, kitty keyboard (the
+   flags asked for pushed, `CSI > flags u`, after the switch to the
+   alternate screen and popped, `CSI < u`, before the switch back: each
+   screen keeps a stack of its own, [§1.6](input.md)), color scheme reports
+   (where mode 2031 is supported); everything is restored on every exit path
+   (including SIGTERM).
 
 ## Dark or light
 
@@ -202,23 +203,22 @@ one back. Nothing on plain output.
 
 ## Right-to-left text
 
-Right-to-left text: `TerminalInfo.bidi` (a `BidiReordering`) says who
-puts it in the order it reads, and `TwkApp` draws text in the order that
-needs (`PipelineOwner.textOrder`, [§1.8](render.md)). The app, in visual order: where
-the terminal honours BDSM, answering `CSI 8 $ p` with 1 or 2 (VTE and
+Right-to-left text: `TerminalInfo.bidi` (a `BidiReordering`) says who puts
+it in the order it reads, and `TwkApp` draws text in the order that needs
+(`PipelineOwner.textOrder`, [§1.8](render.md)). The app, in visual order:
+where the terminal honours BDSM, answering `CSI 8 $ p` with 1 or 2 (VTE and
 GNOME Terminal, WezTerm, iTerm2 3.7.5+, mintty), which is put in its
 explicit mode (`CSI 8 l`) while it is open and back in its own when it is
-closed or handed to another program; where it does no bidi (xterm,
-kitty, foot, Alacritty, Ghostty, Contour, Windows Terminal, the Linux
-console) or is not known; inside tmux and GNU screen, which pass BDSM on
-to no terminal; and on a `HeadlessTerminal`, whose `bidi` is the app's
-unless it is given another. The terminal, in logical order, as stored:
-where it reorders rows itself with no way to stop it, an answer of 3 or
-by its name (XTVERSION, `KONSOLE_VERSION`, `MLTERM`, `TERM_PROGRAM`,
-`TERM`) Konsole, mlterm, Terminal.app and PuTTY; and on plain output,
-whose reader orders each line. `TerminalOptions(bidi:)` chooses instead,
-the terminal put in the mode the choice needs, as `runApp(bidi:)` of
-`packages/twk` does.
+closed or handed to another program; where it does no bidi (xterm, kitty,
+foot, Alacritty, Ghostty, Contour, Windows Terminal, the Linux console) or
+is not known; inside tmux and GNU screen, which pass BDSM on to no terminal;
+and on a `HeadlessTerminal`, whose `bidi` is the app's unless it is given
+another. The terminal, in logical order, as stored: where it reorders rows
+itself with no way to stop it, an answer of 3 or by its name (XTVERSION,
+`KONSOLE_VERSION`, `MLTERM`, `TERM_PROGRAM`, `TERM`) Konsole, mlterm,
+Terminal.app and PuTTY; and on plain output, whose reader orders each line.
+`TerminalOptions(bidi:)` chooses instead, the terminal put in the mode the
+choice needs, as `runApp(bidi:)` of `packages/twk` does.
 
 ## The web
 
@@ -246,47 +246,45 @@ Frame loop (`TwkApp`): frames on demand (idle means 0 CPU and 0 bytes), an
 FPS cap, and **backpressure** — the next frame doesn't start until the
 previous one reached the OS (frames don't pile up on a slow ssh link).
 `run(root, onEvent, beforeLayout:, beforePresent:, afterPresent:)`:
-`beforeLayout` runs at the start of every frame, in the app's zone,
-before the tree is laid out (in the inline mode before the region is
-sized to the root), so what it changes in the tree (a widget tree's
-build) is laid out and painted by that frame. `beforePresent` runs once
-the frame is laid out and painted, just before the screen is written:
-what it sets of the presenter goes with that frame (a widget tree puts
-the hidden cursor on the focus there). `afterPresent` runs at the end of every frame, in the app's
+`beforeLayout` runs at the start of every frame, in the app's zone, before
+the tree is laid out (in the inline mode before the region is sized to the
+root), so what it changes in the tree (a widget tree's build) is laid out
+and painted by that frame. `beforePresent` runs once the frame is laid out
+and painted, just before the screen is written: what it sets of the
+presenter goes with that frame (a widget tree puts the hidden cursor on the
+focus there). `afterPresent` runs at the end of every frame, in the app's
 zone, once the frame's bytes are handed to the terminal (also when it has
-none) and before they are flushed: the bytes don't wait on it, nor it on
-a slow link, and no input is handled between the paint and it (a widget
-tree unmounts there what the frame removed); what it changes in the tree
-is laid out and painted by the next frame. Input waits for the first
-frame: an event that arrives before it is handled once `beforeLayout` has
-run. A resize, and a default color or palette entry the terminal reports
-(`ColorReport`) other than the one known, repaint everything; `onEvent` gets them too. An
-error in an event handler, in `beforeLayout` or `afterPresent`, in
-layout/paint (a commit's too) or while the inline region or a commit is
-sized (where the `owner` has no `onError`, [§1.8](render.md), [§1.12](inline.md)), while writing,
-or in anything those callbacks scheduled ends `run()` with that error
-after the terminal was restored. `suspend(run)` hands the terminal to
+none) and before they are flushed: the bytes don't wait on it, nor it on a
+slow link, and no input is handled between the paint and it (a widget tree
+unmounts there what the frame removed); what it changes in the tree is laid
+out and painted by the next frame. Input waits for the first frame: an event
+that arrives before it is handled once `beforeLayout` has run. A resize, and
+a default color or palette entry the terminal reports (`ColorReport`) other
+than the one known, repaint everything; `onEvent` gets them too. An error in
+an event handler, in `beforeLayout` or `afterPresent`, in layout/paint (a
+commit's too) or while the inline region or a commit is sized (where the
+`owner` has no `onError`, [§1.8](render.md), [§1.12](inline.md)), while
+writing, or in anything those callbacks scheduled ends `run()` with that
+error after the terminal was restored. `suspend(run)` hands the terminal to
 another program for as long as `run` takes (`Process.start(…, mode:
-ProcessStartMode.inheritStdio)` for an editor or a shell) and returns
-what it returns: frames wait, the inline region stays on the screen with
-the cursor below it, and taken back the screen is repainted in full, the
-inline region from a fresh start below whatever the other program
-printed. `suspendToShell()` is that around `Terminal.stopForShell()`, for
-Ctrl+Z (POSIX only). On a backend that isn't a `SuspendableBackend` only
-the frames wait.
-Frames are spaced by `TwkApp.clock` (`clock:`), a `Stopwatch` on which
-the gap of `maxFps` passes: by default a started one, in a test one its
-fake clock moves.
-`TwkApp.stats` (`FrameStats`) holds the time and bytes of recent frames
-(`medianMicros`, the median of the last 128) and, of the last one, the
-time of each stage, which add up to its `lastMicros`:
+ProcessStartMode.inheritStdio)` for an editor or a shell) and returns what
+it returns: frames wait, the inline region stays on the screen with the
+cursor below it, and taken back the screen is repainted in full, the inline
+region from a fresh start below whatever the other program printed.
+`suspendToShell()` is that around `Terminal.stopForShell()`, for Ctrl+Z
+(POSIX only). On a backend that isn't a `SuspendableBackend` only the frames
+wait. Frames are spaced by `TwkApp.clock` (`clock:`), a `Stopwatch` on which
+the gap of `maxFps` passes: by default a started one, in a test one its fake
+clock moves. `TwkApp.stats` (`FrameStats`) holds the time and bytes of
+recent frames (`medianMicros`, the median of the last 128) and, of the last
+one, the time of each stage, which add up to its `lastMicros`:
 `lastBuildMicros` (what runs before layout, a widget tree's build),
-`lastLayoutMicros` (with the sizing of the inline region),
-`lastPaintMicros` (with the inline mode's commits) and
-`lastPresentMicros` (the bytes encoded); and `lastRepaints`, the repaint
-boundaries, the root among them, it repainted because they were marked
-for paint (`PipelineOwner.dirtyBoundaries`, read before the paint), on
-their own or inside one marked around them.
+`lastLayoutMicros` (with the sizing of the inline region), `lastPaintMicros`
+(with the inline mode's commits) and `lastPresentMicros` (the bytes
+encoded); and `lastRepaints`, the repaint boundaries, the root among them,
+it repainted because they were marked for paint
+(`PipelineOwner.dirtyBoundaries`, read before the paint), on their own or
+inside one marked around them.
 
 ## Log sink
 
@@ -339,53 +337,51 @@ twk-trace 1 output 100x30          magic, version, input|output, size at start
 
 followed by a line feed that only keeps the next record's line apart when
 the file is read as text. `Trace.read(path)` reads one back (`records`, the
-bytes of all in a row, `truncated` for a file whose writer never closed
-it: the records before the cut are kept). `tool/replay.dart --trace`
-replays an output trace frame by frame (see [§2](testing.md)); `Trace.feed(input,
+bytes of all in a row, `truncated` for a file whose writer never closed it:
+the records before the cut are kept). `tool/replay.dart --trace` replays an
+output trace frame by frame (see [§2](testing.md)); `Trace.feed(input,
 waiting:, timeOut:)` feeds an input trace read by read to a
-`HeadlessTerminal` (`term.input`, `term.inputTimeout`,
-`term.timeOutInput`), resolving a lone ESC or a pending sequence where the
-pause before the next read was long enough for a `Terminal`'s timer to
-have done so, so a test sees the events the app saw.
+`HeadlessTerminal` (`term.input`, `term.inputTimeout`, `term.timeOutInput`),
+resolving a lone ESC or a pending sequence where the pause before the next
+read was long enough for a `Terminal`'s timer to have done so, so a test
+sees the events the app saw.
 
 ## `TWK_DEBUG`
 
 `TWK_DEBUG`, a comma-separated list, turns on debugging of `TwkApp`:
 `frames`, `timeline` and `logs` (each also a constructor argument,
-`framesInRow`, `timeline` and `serveLogs`), `rainbow` and `relayout`;
-the widget layer's binding reads `overlay`, `console` and `keys` too
-([`packages/twk`](../../../twk/doc/reference/README.md)). It is read from `TwkApp(environment:)`,
-and where that is not given from the process's environment, in which
-the terminal's settings take the place of the process's values
-(`TerminalInfo.settings`): `TWK_DEBUG` and `TWK_SCREEN_READER` (the
-widget layer's screen-reader mode) as the environment of the terminal's
-link sets them, set empty too, on a terminal of the process's
-(`Terminal.open`, its own or the `twk shell`'s it found, and
-`Terminal.connect`), so that the terminal an app is on (an editor's
-`twk shell`, part of the VS Code extension) switches them for any app;
-none over `Terminal.overLink`, whose far end (an SSH client, a browser)
-is not to turn the app's debug aids on. The rest, `TWK_LOG` and the
-editor's command among them, are the process's alone. An environment
-given is the whole of it: a test passes `const {}`, and so does
-twk_ssh's server. `logs` serves the app's log
-for `twk logs` while it runs (above); `rainbow` and `relayout` turn the
-debug paints of `TwkApp.owner` on from the start ([§1.8](render.md)); `frames`
-writes each frame in full below the last one instead of in place, for
-reading in a log: a line `--- frame 3 (412
-bytes) ---` naming it and the bytes it took in place, then its rows as
-text without styles, each ending in CR LF, in the inline mode after the rows committed with it. The frame
-is still diffed by the presenter, whose bytes are dropped: only frames
-that changed something are written. On the alternate screen the frames
-scroll by and go with it; in the inline mode they stay in the scrollback;
-`TWK_TRACE_OUTPUT` or `pty_run.py --out` keeps them either way, as text
-between a few escape sequences. `timeline` puts each frame on
-dart:developer's `Timeline` (DevTools' Performance tab) as a slice
-`Frame` holding `Build` (`beforeLayout`), `Layout`, `Paint`, `Commit`
-(inline commits), `Present` and `Finalize` (`afterPresent`). Off, a
-frame makes no `Timeline` call at all: the VM records its Dart stream by
-default (in an AOT build too), so each slice would cost some 150 ns
-whether anyone looks or not, and there is no public way to ask whether
-anyone does.
+`framesInRow`, `timeline` and `serveLogs`), `rainbow` and `relayout`; the
+widget layer's binding reads `overlay`, `console` and `keys` too
+([`packages/twk`](../../../twk/doc/reference/README.md)). It is read from
+`TwkApp(environment:)`, and where that is not given from the process's
+environment, in which the terminal's settings take the place of the
+process's values (`TerminalInfo.settings`): `TWK_DEBUG` and
+`TWK_SCREEN_READER` (the widget layer's screen-reader mode) as the
+environment of the terminal's link sets them, set empty too, on a terminal
+of the process's (`Terminal.open`, its own or the `twk shell`'s it found,
+and `Terminal.connect`), so that the terminal an app is on (an editor's `twk
+shell`, part of the VS Code extension) switches them for any app; none over
+`Terminal.overLink`, whose far end (an SSH client, a browser) is not to turn
+the app's debug aids on. The rest, `TWK_LOG` and the editor's command among
+them, are the process's alone. An environment given is the whole of it: a
+test passes `const {}`, and so does twk_ssh's server. `logs` serves the
+app's log for `twk logs` while it runs (above); `rainbow` and `relayout`
+turn the debug paints of `TwkApp.owner` on from the start
+([§1.8](render.md)); `frames` writes each frame in full below the last one
+instead of in place, for reading in a log: a line `--- frame 3 (412 bytes)
+---` naming it and the bytes it took in place, then its rows as text without
+styles, each ending in CR LF, in the inline mode after the rows committed
+with it. The frame is still diffed by the presenter, whose bytes are
+dropped: only frames that changed something are written. On the alternate
+screen the frames scroll by and go with it; in the inline mode they stay in
+the scrollback; `TWK_TRACE_OUTPUT` or `pty_run.py --out` keeps them either
+way, as text between a few escape sequences. `timeline` puts each frame on
+dart:developer's `Timeline` (DevTools' Performance tab) as a slice `Frame`
+holding `Build` (`beforeLayout`), `Layout`, `Paint`, `Commit` (inline
+commits), `Present` and `Finalize` (`afterPresent`). Off, a frame makes no
+`Timeline` call at all: the VM records its Dart stream by default (in an AOT
+build too), so each slice would cost some 150 ns whether anyone looks or
+not, and there is no public way to ask whether anyone does.
 
 ## Headless
 

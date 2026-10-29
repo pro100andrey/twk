@@ -2,10 +2,10 @@
 
 [The design](README.md)
 
-No runtime dependencies; `dev_dependencies` are `test`, `pro_lints` and,
-by path, `packages/twk_test` (the test emulator and the widget tester,
-[§2](testing.md)). The commands below run from the repository's root, where its
-`tool/` is.
+No runtime dependencies; `dev_dependencies` are `test`, `pro_lints` and, by
+path, `packages/twk_test` (the test emulator and the widget tester,
+[§2](testing.md)). The commands below run from the repository's root, where
+its `tool/` is.
 
 ```bash
 dart pub get                                               # the whole pub workspace
@@ -116,9 +116,9 @@ status line with the cost of the last frame, a message coming in every
 350 ms.
 
 * Fullscreen (the default), the messages are a `RenderLog` filling the
-  alternate screen. With `--inline` the header, input and status lines
-  are the inline region ([§1.12](inline.md)), and every message, from the 30 it starts
-  with on, is committed to the terminal's history above it, where the
+  alternate screen. With `--inline` the header, input and status lines are
+  the inline region ([§1.12](inline.md)), and every message, from the 30 it
+  starts with on, is committed to the terminal's history above it, where the
   terminal scrolls and selects it; when the demo ends the region stays on
   the screen.
 * Keys: typing and Enter send a message; Ctrl+E edits the input in an

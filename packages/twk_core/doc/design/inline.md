@@ -50,24 +50,24 @@ in that region:
   take the committed rows, instead of the history scrolling up while the
   region keeps blank rows. Underneath,
   `Screen.commit` and `Presenter.commit` take rows of a `Surface`;
-* what the root's max intrinsic height throws while the region is sized,
-  and what a commit's sizing, layout or paint throws, ends `run()` unless
-  the `owner` has `onError` ([§1.8](render.md)). Then the region's error is reported
-  there as the root's, in `RenderPhase.layout`, once while it is the
-  same: the region keeps its height (1 row on the first frame, within its
-  limits) and a `shrinkRegion()` waits for a frame that sizes it. A
+* what the root's max intrinsic height throws while the region is sized, and
+  what a commit's sizing, layout or paint throws, ends `run()` unless the
+  `owner` has `onError` ([§1.8](render.md)). Then the region's error is
+  reported there as the root's, in `RenderPhase.layout`, once while it is
+  the same: the region keeps its height (1 row on the first frame, within
+  its limits) and a `shrinkRegion()` waits for a frame that sizes it. A
   commit's is reported once as the commit's, in the phase it threw in
-  (sizing as `RenderPhase.layout`), and a `RenderErrorBox` with the
-  message, at the terminal's width and as tall as the message there,
-  goes to the history in its place. The region and later commits go on;
+  (sizing as `RenderPhase.layout`), and a `RenderErrorBox` with the message,
+  at the terminal's width and as tall as the message there, goes to the
+  history in its place. The region and later commits go on;
 * when `run()` ends it stays on the screen with the cursor at the start of
   the line below it, or with `clearInlineOnExit` it is erased and the
   cursor is back on its first row;
-* the mouse stays the terminal's (`TerminalOptions.mouse` and a switch
-  of `mouseTracking` are ignored on the normal screen unless
-  `normalScreenMouse` is set, which a fixed viewport, [§1.13](viewport.md), wants): its
-  wheel scrolls the scrollback and its selection works, and mouse
-  reports would give screen rows, which the region doesn't know.
+* the mouse stays the terminal's (`TerminalOptions.mouse` and a switch of
+  `mouseTracking` are ignored on the normal screen unless
+  `normalScreenMouse` is set, which a fixed viewport, [§1.13](viewport.md),
+  wants): its wheel scrolls the scrollback and its selection works, and
+  mouse reports would give screen rows, which the region doesn't know.
 
 The rest — damage, the diff, SGR, ICH/DCH, REP, DEC 2026 — works as in
 the fullscreen mode, in the same presenter (`Presenter.inline`).

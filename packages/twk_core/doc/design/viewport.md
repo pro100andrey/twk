@@ -33,5 +33,6 @@ corner. Nothing outside the rectangle is written, in the same presenter
 * `commit` throws: the viewport has no history above it; and
   `clearInlineOnExit` is the inline mode's.
 
-On plain output ([§1.7](terminal.md)) the viewport is laid out at its own size, neither
-cut nor placed, and its last frame written as lines like any other.
+On plain output ([§1.7](terminal.md)) the viewport is laid out at its own
+size, neither cut nor placed, and its last frame written as lines like any
+other.
