@@ -240,6 +240,9 @@ void main() {
         reason: '$alternateScreen',
       );
       expect(apple.info.caps.insertDelete, isFalse);
+      // what its TERM_PROGRAM would give: its bell, its own bidi
+      expect(apple.info.notifications, NotificationProtocol.bell);
+      expect(apple.info.bidi, BidiReordering.terminal);
       await clock.runUntil(apple.close);
       // iTerm2's, and none at all (PuTTY, the Linux console)
       for (final other in ['\x1b[>0;95;0c', '']) {
@@ -250,9 +253,32 @@ void main() {
           reason: '$alternateScreen $other',
         );
         expect(term.info.caps.insertDelete, isTrue);
+        expect(term.info.notifications, NotificationProtocol.none);
+        expect(term.info.bidi, BidiReordering.app);
         await clock.runUntil(term.close);
       }
     }
+  });
+
+  test("through tmux, which answers DA2 itself, Terminal.app's is taken "
+      'for nothing', () async {
+    final term = await clock.open(
+      FakeLink(
+        columns: 80,
+        environment: const {
+          'TERM': 'tmux-256color',
+          'TMUX': '/tmp/tmux-1000/default,1,0',
+        },
+      )..type('\x1b[5;1R\x1b[>1;95;0c\x1b[5;1R\x1b[?1;2c'),
+      const TerminalOptions(
+        probeTimeout: Duration(seconds: 5),
+        alternateScreen: false,
+      ),
+    );
+    expect(term.info.notifications, NotificationProtocol.none);
+    expect(term.info.bidi, BidiReordering.app);
+    expect(term.info.caps.insertDelete, isTrue);
+    await clock.runUntil(term.close);
   });
 
   test('writes what a terminal opened as Terminal.open opens one writes '

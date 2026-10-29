@@ -170,8 +170,10 @@ final class TerminalInfo {
   final bool colorSchemeReports;
 
   /// How the terminal shows desktop notifications ([Terminal.notify]): as
-  /// it declares ([TerminalDeclaration.notifications]), else by its
-  /// environment ([notificationProtocolFor]).
+  /// it declares ([TerminalDeclaration.notifications]), else Terminal.app's
+  /// bell where it answers the secondary device attributes as Terminal.app
+  /// (`1;95;0`, over ssh too), else by its environment
+  /// ([notificationProtocolFor]).
   final NotificationProtocol notifications;
 
   /// The multiplexer the program runs in, by its environment
@@ -235,7 +237,8 @@ final class TerminalInfo {
   /// Who puts right-to-left text in the order it reads: the app where the
   /// terminal does no bidi, or honours BDSM and is in explicit mode while
   /// it is open; the terminal where it reorders rows itself and can't be
-  /// told not to ([bidiReorderingFor]), and on plain output, whose reader
+  /// told not to ([bidiReorderingFor], or Terminal.app told by its
+  /// secondary device attributes over ssh), and on plain output, whose reader
   /// orders each line; or what [TerminalOptions.bidi] says. `TwkApp` draws
   /// text in visual order for the app (`PipelineOwner.textOrder`), in
   /// logical order for the terminal.
@@ -1365,12 +1368,17 @@ final class Terminal
     // Konsole's lines and its images come with Konsole itself
     final konsole = konsoleLinesFor(env, version: version);
     // Terminal.app by its secondary device attributes, also over ssh,
-    // where its TERM_PROGRAM isn't passed on (as vim tells it)
+    // where its TERM_PROGRAM isn't passed on (as vim tells it); not
+    // through a multiplexer, which answers them itself
     final appleAnswered =
         secondary.length == 3 &&
         secondary[0] == 1 &&
         secondary[1] == 95 &&
         secondary[2] == 0;
+    // what its TERM_PROGRAM would have given: its bell for a
+    // notification, the order of right-to-left text its own, which it
+    // can't be told to leave
+    final appleThere = appleAnswered && multiplexer == Multiplexer.none;
     // a terminal that declares it shows the shapes is twk's, which names
     // them by CSS's names
     final pointerNames = switch (declared.pointerShapes) {
@@ -1403,7 +1411,7 @@ final class Terminal
         // its cells are written again instead, which costs bytes, never
         // cells. Not through a multiplexer, which answers DA2 itself
         insertDelete:
-            !((apple || appleAnswered) && multiplexer == Multiplexer.none),
+            !(apple && multiplexer == Multiplexer.none) && !appleThere,
         konsoleLines: konsole,
         konsoleImages: konsole,
         leftRightMargins: supported(69) && !screenLike,
@@ -1433,12 +1441,20 @@ final class Terminal
       cursorColumn: column,
       colorSchemeReports: supported(2031),
       declaredBrightness: brightnessFor(env),
-      notifications: declared.notifications ?? notificationProtocolFor(env),
+      notifications:
+          declared.notifications ??
+          (appleThere
+              ? NotificationProtocol.bell
+              : notificationProtocolFor(env)),
       multiplexer: multiplexer,
       pointerNames: pointerNames,
       progressReports:
           declared.progressReports ?? progressReportsFor(env, version: version),
-      bidi: o.bidi ?? bidiReorderingFor(env, mode: bidiMode, version: version),
+      bidi:
+          o.bidi ??
+          (appleThere && bidiMode == null
+              ? BidiReordering.terminal
+              : bidiReorderingFor(env, mode: bidiMode, version: version)),
       settings: settings,
     );
     return (info, bidiMode);
