@@ -264,18 +264,30 @@ final _rests = Expando<Map<RenderObject, (int, int)>>('rests');
 /// nothing from it. An object with no such cell any more (nothing
 /// selected, the selected row scrolled away) takes its cell back with
 /// [clearRestCursor].
-void restCursor(PaintContext ctx, RenderObject object, int x, int y) {
-  // given again, it is the last given
-  (_rests[ctx.presenter] ??= {})
-    ..remove(object)
-    ..[object] = (x, y);
-}
+void restCursor(PaintContext ctx, RenderObject object, int x, int y) =>
+    restCursorOn(ctx.presenter, object, x, y);
 
 /// Forgets the cell [object] put the hidden cursor on ([restCursor]),
 /// painted with [ctx]: where it was the focused widget's, the cursor
 /// rests on that widget's first cell again.
-void clearRestCursor(PaintContext ctx, RenderObject object) {
-  _rests[ctx.presenter]?.remove(object);
+void clearRestCursor(PaintContext ctx, RenderObject object) =>
+    clearRestCursorOn(ctx.presenter, object);
+
+/// [restCursor] on [presenter], the one [object] was painted with last:
+/// for an object whose cell changes with nothing to repaint, which would
+/// otherwise repaint all up to the boundary above it.
+@internal
+void restCursorOn(Presenter presenter, RenderObject object, int x, int y) {
+  // given again, it is the last given
+  (_rests[presenter] ??= {})
+    ..remove(object)
+    ..[object] = (x, y);
+}
+
+/// [clearRestCursor] on [presenter], as [restCursorOn].
+@internal
+void clearRestCursorOn(Presenter presenter, RenderObject object) {
+  _rests[presenter]?.remove(object);
 }
 
 /// Where [presenter]'s hidden cursor rests on the screen with [focused]
@@ -288,19 +300,26 @@ void clearRestCursor(PaintContext ctx, RenderObject object) {
   if (focused == null || focused.owner == null) {
     return null;
   }
+  // the last given that is on the screen, in order, allocating nothing
+  // a frame
+  (int, int)? found;
+  var gone = false;
   if (_rests[presenter] case final rests?) {
-    rests.removeWhere((object, _) => object.owner == null);
-    for (final MapEntry(key: object, value: (x, y))
-        in rests.entries.toList().reversed) {
-      if (_within(object, focused)) {
-        if (_onScreen(object, x, y) case final cell?) {
-          return cell;
-        }
+    for (final MapEntry(key: object, value: (x, y)) in rests.entries) {
+      if (object.owner == null) {
+        gone = true;
+      } else if (_within(object, focused)) {
+        found = _onScreen(object, x, y) ?? found;
       }
     }
+    if (gone) {
+      rests.removeWhere(_detached);
+    }
   }
-  return _onScreen(focused, 0, 0);
+  return found ?? _onScreen(focused, 0, 0);
 }
+
+bool _detached(RenderObject object, (int, int) _) => object.owner == null;
 
 bool _within(RenderObject object, RenderObject ancestor) {
   for (RenderObject? o = object; o != null; o = o.parent) {

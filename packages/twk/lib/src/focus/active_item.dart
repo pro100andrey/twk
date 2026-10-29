@@ -7,10 +7,11 @@ import 'package:twk_core/twk_core.dart'
         BoxConstraints,
         DiagnosticPropertiesBuilder,
         PaintContext,
+        Presenter,
         RenderObject,
         RenderObjectWithChildMixin;
 
-import '../editing/caret.dart' show clearRestCursor, restCursor;
+import '../editing/caret.dart' show clearRestCursorOn, restCursorOn;
 import '../framework/framework.dart';
 import '../layout/one_child.dart';
 
@@ -85,7 +86,7 @@ final class _RenderActiveItem extends RenderObject
   set active(bool value) {
     if (value != _active) {
       _active = value;
-      markNeedsPaint();
+      _rest();
     }
   }
 
@@ -96,7 +97,26 @@ final class _RenderActiveItem extends RenderObject
   set column(int value) {
     if (value != _column) {
       _column = value;
-      markNeedsPaint();
+      _rest();
+    }
+  }
+
+  // what it was painted with last; null before it is painted
+  Presenter? _presenter;
+
+  /// Gives the cell where the cursor rests, or takes it back, on the
+  /// presenter it was painted with: a change of [active] or [column]
+  /// repaints nothing, which would repaint all up to the boundary above
+  /// it (a whole table for its selected row's).
+  void _rest() {
+    final presenter = _presenter;
+    if (presenter == null) {
+      return;
+    }
+    if (_active) {
+      restCursorOn(presenter, this, _column, 0);
+    } else {
+      clearRestCursorOn(presenter, this);
     }
   }
 
@@ -133,11 +153,8 @@ final class _RenderActiveItem extends RenderObject
   void paint(PaintContext ctx) {
     // before the child: an active item in it, painted after, is the last
     // given
-    if (_active) {
-      restCursor(ctx, this, _column, 0);
-    } else {
-      clearRestCursor(ctx, this);
-    }
+    _presenter = ctx.presenter;
+    _rest();
     final child = this.child;
     if (child != null) {
       paintChild(ctx, child);

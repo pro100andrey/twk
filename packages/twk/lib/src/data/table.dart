@@ -35,6 +35,7 @@ import 'package:twk_core/twk_core.dart'
         TextWrap;
 
 import '../binding/terminal_status.dart';
+import '../editing/caret.dart' show clearRestCursor, restCursor;
 import '../focus/focus.dart';
 import '../foundation/change_notifier.dart';
 import '../foundation/helpers.dart';
@@ -1396,31 +1397,25 @@ final class _TableState<T> extends State<Table<T>> {
     final style = selected ? styles.base.merge(styles.selected) : styles.base;
     return Listener(
       onDown: w.selection == TableSelection.none ? null : onDown,
-      // the hidden cursor on the selected row, on its cursor's cell
-      child: ActiveItem(
+      child: _Row(
+        columns: _columns,
+        lines: w.border,
+        background: styles.base,
+        style: style,
+        lineStyle: styles.border,
         active: selected,
-        child: _Row(
-          columns: _columns,
-          lines: w.border,
-          background: styles.base,
-          style: style,
-          lineStyle: styles.border,
-          highlight: selected ? cursor : -1,
-          highlightStyle: styles.cursor,
-          children: [
-            for (var j = 0; j < columns.length; j++)
-              ActiveItem(
-                active: selected && j == cursor,
-                child: _cell(
-                  columns[j],
-                  columns[j].cell(row),
-                  selected,
-                  selected && j == cursor,
-                  styles,
-                ),
-              ),
-          ],
-        ),
+        highlight: selected ? cursor : -1,
+        highlightStyle: styles.cursor,
+        children: [
+          for (var j = 0; j < columns.length; j++)
+            _cell(
+              columns[j],
+              columns[j].cell(row),
+              selected,
+              selected && j == cursor,
+              styles,
+            ),
+        ],
       ),
     );
   }
@@ -1904,6 +1899,7 @@ final class _Row extends MultiChildRenderObjectWidget {
     required this.style,
     required this.lineStyle,
     this.rule = false,
+    this.active = false,
     this.highlight = -1,
     this.highlightStyle = const Style(),
     super.children,
@@ -1915,6 +1911,7 @@ final class _Row extends MultiChildRenderObjectWidget {
   final Style background;
   final Style style;
   final Style lineStyle;
+  final bool active;
   final int highlight;
   final Style highlightStyle;
 
@@ -1929,6 +1926,7 @@ final class _Row extends MultiChildRenderObjectWidget {
         ..background = background
         ..style = style
         ..lineStyle = lineStyle
+        ..active = active
         ..highlight = highlight
         ..highlightStyle = highlightStyle;
 
@@ -1940,6 +1938,7 @@ final class _Row extends MultiChildRenderObjectWidget {
       ..background = background
       ..style = style
       ..lineStyle = lineStyle
+      ..active = active
       ..highlight = highlight
       ..highlightStyle = highlightStyle;
   }
@@ -2013,6 +2012,17 @@ final class _RenderTableRow extends RenderObject
   set lineStyle(Style s) {
     if (s != _lineStyle) {
       _lineStyle = s;
+      markNeedsPaint();
+    }
+  }
+
+  /// Whether it is the selected row, which the hidden cursor rests on,
+  /// on the cell of the column [highlight] where there is one.
+  bool get active => _active;
+  var _active = false;
+  set active(bool a) {
+    if (a != _active) {
+      _active = a;
       markNeedsPaint();
     }
   }
@@ -2132,6 +2142,15 @@ final class _RenderTableRow extends RenderObject
     final starts = columns.starts;
     final gap = columns.gap;
     final cells = _rule ? height - 1 : height;
+    // the hidden cursor on the selected row, on its cursor's cell
+    if (_active) {
+      final at = _highlight >= 0 && _highlight < widths.length
+          ? starts[_highlight]
+          : 0;
+      restCursor(ctx, this, at, 0);
+    } else {
+      clearRestCursor(ctx, this);
+    }
     final fill = _style.penIn(styles);
     final through = styles.penOf(fill);
     if (through.bg == null || through.bgAlpha != 255) {
