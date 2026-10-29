@@ -307,7 +307,7 @@ void main() {
           expect(trace.bytes, File(out).readAsBytesSync());
           expect(
             utf8.decode(trace.records.first.bytes),
-            startsWith('\x1b[?2026\$p'),
+            startsWith('\x1b[?2026h\x1b[?1049h\x1b[?2026\$p'),
             reason: 'the probe comes first',
           );
 

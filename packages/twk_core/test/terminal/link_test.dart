@@ -61,7 +61,8 @@ void main() {
       'the modes back', () async {
     final link = FakeLink()..type(_answers);
     final term = await clock.open(link, _options);
-    expect(link.text, startsWith('\x1b[?2026\$p'));
+    // asked on the alternate screen, which takes what they show
+    expect(link.text, startsWith('\x1b[?2026h\x1b[?1049h\x1b[?2026\$p'));
     expect(term.info.answeredQueries, isTrue);
     expect(term.info.caps.synchronizedOutput, isTrue);
     expect(term.info.kittyKeyboard, isTrue);
@@ -92,6 +93,24 @@ void main() {
     expect(exit, endsWith('\x1b[?1049l'));
     expect(link.rawChanges, [true, false]);
     expect(link.closed, isTrue);
+  });
+
+  test('inline, the probe is asked where the cursor is put back to and '
+      'what it showed erased before the cursor is asked where it is', () async {
+    final link = FakeLink()..type('\x1b[5;1R$_answers');
+    final term = await clock.open(
+      link,
+      const TerminalOptions(
+        probeTimeout: Duration(seconds: 5),
+        alternateScreen: false,
+      ),
+    );
+    // Terminal.app prints the last byte of a DECRQM, the body of APC
+    expect(link.text, startsWith('\x1b7\x1b[?2026\$p'));
+    expect(link.text, contains('\x1b[>0q\x1b8\x1b[J\x1b[6n\x1b[c'));
+    expect(link.text, isNot(contains('\x1b[?1049h')));
+    expect(term.info.cursorColumn, 0);
+    await clock.runUntil(term.close);
   });
 
   test('writes what a terminal opened as Terminal.open opens one writes '

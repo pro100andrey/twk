@@ -1112,8 +1112,19 @@ final class Terminal
     settings: settings,
   );
 
-  static const _ambiguousProbe =
-      '\x1b[?2026h\x1b[?1049h\x1b[H\u2500\x1b[6n\x1b[?1049l\x1b[?2026l';
+  /// The probe's [queries] on the alternate screen, inside a synchronized
+  /// update, then U+2500 drawn at the home position and the cursor asked
+  /// where it went: what the terminal shows of a query it doesn't know is
+  /// left on a screen that is let go.
+  static String _onAlternateScreen(String queries) =>
+      '\x1b[?2026h\x1b[?1049h$queries'
+      '\x1b[H\u2500\x1b[6n\x1b[?1049l\x1b[?2026l';
+
+  /// The probe's [queries] where the cursor is (DECSC), then the cursor put
+  /// back (DECRC), what the terminal showed of them erased to the end of
+  /// the screen (ED), and asked where it is.
+  static String _inPlace(String queries) =>
+      '\x1b7$queries\x1b8\x1b[J\x1b[6n';
 
   /// Queries the terminal; what the user types meanwhile goes to [early].
   /// Returns what it found and its answer about BDSM ([bidiModeQuery]),
@@ -1206,15 +1217,18 @@ final class Terminal
           done.completeError(e, s);
         }
       });
-    // The ambiguous width is measured where it can't leave a trace: on the
-    // alternate screen, inside a synchronized update (no flash where that
-    // is supported), by drawing U+2500 at the home position and asking
-    // where the cursor went (CSI 6 n). The inline mode asks where the
-    // cursor is instead: its region starts on a line of its own. Before
-    // that a cell's size in pixels is asked and, unless the protocol images
-    // are shown with is given, kitty's graphics query and the terminal's
-    // name and version (XTVERSION), not in a multiplexer, which answers
-    // them itself; sixel comes with the device attributes (DA1, last).
+    // The queries are asked where they can't leave a trace (Terminal.app
+    // prints the last byte of a DECRQM and the body of kitty's graphics
+    // query): on the alternate screen, inside a synchronized update (no
+    // flash where that is supported), where the ambiguous width is then
+    // measured by drawing U+2500 at the home position and asking where
+    // the cursor went (CSI 6 n). The inline mode asks them where the
+    // cursor is, puts it back, erases what they showed and asks where it
+    // is: its region starts on a line of its own. Among them are a cell's
+    // size in pixels and, unless the protocol images are shown with is
+    // given, kitty's graphics query and the terminal's name and version
+    // (XTVERSION), not in a multiplexer, which answers them itself; sixel
+    // comes with the device attributes (DA1, last).
     final env = link.environment;
     // what the terminal declares comes before the guess by its name
     final declared = link is DeclaringLink
@@ -1228,13 +1242,14 @@ final class Terminal
         ? '$_kittyGraphicsQuery\x1b[>0q'
         : '';
     parser.expectCursorReport = true;
+    final asked =
+        '\x1b[?2026\$p\x1b[?2027\$p\x1b[?2048\$p\x1b[?69\$p'
+        '\x1b[?2031\$p$bidiModeQuery'
+        '\x1b]10;?\x1b\\\x1b]11;?\x1b\\$_paletteQuery'
+        '${o.kittyKeyboard ? '\x1b[?u' : ''}'
+        '\x1b[16t$graphicsQueries';
     final queries = utf8.encode(
-      '\x1b[?2026\$p\x1b[?2027\$p\x1b[?2048\$p\x1b[?69\$p'
-      '\x1b[?2031\$p$bidiModeQuery'
-      '\x1b]10;?\x1b\\\x1b]11;?\x1b\\$_paletteQuery'
-      '${o.kittyKeyboard ? '\x1b[?u' : ''}'
-      '\x1b[16t$graphicsQueries'
-      '${o.alternateScreen ? _ambiguousProbe : '\x1b[6n'}'
+      '${o.alternateScreen ? _onAlternateScreen(asked) : _inPlace(asked)}'
       '\x1b[c',
     );
     link.add(queries);
