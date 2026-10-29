@@ -110,7 +110,8 @@ void main() {
       {'TERM': 'xterm-256color', 'VTE_VERSION': '5003'}: none,
       {'TERM': 'alacritty'}: none,
       {'TERM': 'xterm-256color'}: none,
-      {'TERM': 'xterm-256color', 'TERM_PROGRAM': 'Apple_Terminal'}: none,
+      {'TERM': 'xterm-256color', 'TERM_PROGRAM': 'Apple_Terminal'}:
+          NotificationProtocol.bell,
       {'TERM': 'linux'}: none,
       {}: none,
       // the terminal's own TERM and TERM_PROGRAM come before variables

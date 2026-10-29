@@ -499,6 +499,8 @@ Brightness? brightnessFor(Map<String, String> env) {
 /// for their programs (inherited inside tmux or screen too). A
 /// `TERM_PROGRAM` of another terminal gives [NotificationProtocol.none]:
 /// such variables are then those of the terminal it was started from.
+/// Terminal.app (`Apple_Terminal`), which shows none of a program's, has
+/// its bell rung ([NotificationProtocol.bell]).
 NotificationProtocol notificationProtocolFor(Map<String, String> env) {
   const osc777 = NotificationProtocol.osc777;
   final term = env['TERM'] ?? '';
@@ -516,6 +518,8 @@ NotificationProtocol notificationProtocolFor(Map<String, String> env) {
   switch (env['TERM_PROGRAM'] ?? '') {
     case 'iTerm.app':
       return NotificationProtocol.osc9;
+    case 'Apple_Terminal':
+      return NotificationProtocol.bell;
     case 'WezTerm' || 'ghostty':
       return osc777;
     case '' || 'tmux':
@@ -1797,6 +1801,8 @@ final class Terminal
     if (e is ResizeEvent) {
       width = e.width;
       height = e.height;
+    } else if (e is FocusEvent) {
+      _focused = e.focused;
     }
     _events.add(e);
     if (e is ColorSchemeReport) {
@@ -1968,13 +1974,20 @@ final class Terminal
 
   var _notifications = 0;
 
+  // whether the terminal's window has the focus, as its last focus report
+  // said; with none, it is taken to have it
+  var _focused = true;
+
   /// Shows a desktop notification of [title] and [body] where the terminal
   /// is known to show one ([TerminalInfo.notifications]), through tmux or
   /// screen ([TerminalInfo.multiplexer]); does nothing elsewhere. See
-  /// [notifySequence] for what is sent.
+  /// [notifySequence] for what is sent. Terminal.app's bell
+  /// ([NotificationProtocol.bell]) is rung only while its window doesn't
+  /// have the focus ([FocusEvent], [TerminalOptions.focusEvents]).
   @override
   void notify(String title, String body) {
-    if (_closed) {
+    if (_closed ||
+        (info.notifications == NotificationProtocol.bell && _focused)) {
       return;
     }
     final s = notifySequence(

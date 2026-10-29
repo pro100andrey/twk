@@ -177,6 +177,28 @@ void main() {
       );
     });
 
+    test("rings Terminal.app's bell only while its window doesn't have the "
+        'focus', () async {
+      final (term, link) = await answered(
+        '',
+        environment: const {'TERM_PROGRAM': 'Apple_Terminal'},
+      );
+      expect(term.info.notifications, NotificationProtocol.bell);
+      final events = eventsOf(term);
+      final opened = link.text.length;
+      term.notify('Build', 'done');
+      expect(link.text.length, opened, reason: 'focused, as with no report');
+      link.type('\x1b[O');
+      await clock.flushMicrotasks();
+      expect(events, const [FocusEvent(false)]);
+      term.notify('Build', 'done');
+      expect(link.text.substring(opened), '\x07');
+      link.type('\x1b[I');
+      await clock.flushMicrotasks();
+      term.notify('Build', 'done');
+      expect(link.text.substring(opened), '\x07');
+    });
+
     test('sends nothing where no notification is known to show, nor once '
         'closed', () async {
       final (term, link) = await answered('');

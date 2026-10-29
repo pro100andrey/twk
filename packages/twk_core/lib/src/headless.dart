@@ -212,10 +212,15 @@ final class HeadlessTerminal
   void _deliver(List<InputEvent> events) =>
       deliverCoalesced(events, _deliverOne);
 
+  // whether the window has the focus, as the last focus report typed said
+  var _focused = true;
+
   void _deliverOne(InputEvent e) {
     if (e is ResizeEvent) {
       width = e.width;
       height = e.height;
+    } else if (e is FocusEvent) {
+      _focused = e.focused;
     }
     _events.add(e);
   }
@@ -262,10 +267,12 @@ final class HeadlessTerminal
   /// Writes a desktop notification of [title] and [body] to [frames] as a
   /// [Terminal] does ([Terminal.notify]), in [TerminalInfo.notifications]
   /// through [TerminalInfo.multiplexer], each under an id of its own, `1`
-  /// first; nothing once closed.
+  /// first; the bell only while the focus report typed last said the
+  /// window lost the focus; nothing once closed.
   @override
   void notify(String title, String body) {
-    if (closed) {
+    if (closed ||
+        (info.notifications == NotificationProtocol.bell && _focused)) {
       return;
     }
     final s = notifySequence(

@@ -119,6 +119,13 @@ enum NotificationProtocol {
   /// OSC 99, kitty's: a title and a body, in base64 when it has line
   /// breaks.
   osc99,
+
+  /// BEL, for Terminal.app, which shows no notification of a program's:
+  /// neither title nor body, only its bell (a badge on its icon in the
+  /// Dock, a bounce, a sound, as its settings say). Rung only while the
+  /// terminal's window doesn't have the focus (`FocusEvent`), which with
+  /// no focus reports it is taken to have.
+  bell,
 }
 
 /// The terminal multiplexer between a program and the terminal, which keeps
@@ -146,7 +153,9 @@ enum Multiplexer {
 /// body without a title as the title, and `,` for `;`, which would end its
 /// field. OSC 99 sends the title and the body as two sequences under [id]
 /// (letters, digits and `_-+.`, the rest dropped): a notification with the
-/// same id that is still shown is replaced.
+/// same id that is still shown is replaced. [NotificationProtocol.bell]
+/// is BEL alone, which a multiplexer rings on the terminal outside as its
+/// own bell, unwrapped.
 String notifySequence(
   String title,
   String body, {
@@ -166,6 +175,8 @@ String notifySequence(
   switch (protocol) {
     case NotificationProtocol.none:
       return '';
+    case NotificationProtocol.bell:
+      return '\x07';
     case NotificationProtocol.osc9:
       s = '\x1b]9;${[t, b].where((p) => p.isNotEmpty).join(': ')}\x1b\\';
     case NotificationProtocol.osc777:

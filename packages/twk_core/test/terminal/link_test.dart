@@ -449,7 +449,7 @@ void main() {
         'nor does what is no object', () {
       expect(
         TerminalDeclaration.fromJson({
-          'notifications': 'bell',
+          'notifications': 'beep',
           'progressReports': 'yes',
           'pointerShapes': 1,
           'repeatChar': null,

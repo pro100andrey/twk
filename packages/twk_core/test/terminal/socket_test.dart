@@ -283,7 +283,7 @@ void main() {
       // TERM=xterm-kitty: OSC 99, pointer shapes and REP
       for (final declares in <Object?>[
         null,
-        {'notifications': 'bell', 'pointerShapes': 'no', 'repeatChar': 0},
+        {'notifications': 'beep', 'pointerShapes': 'no', 'repeatChar': 0},
         [true],
         'osc777',
       ]) {
