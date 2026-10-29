@@ -222,8 +222,13 @@ void main() {
     expect(sgr(t.transition(curly, dotted)), '31');
     expect(t.transition(curly, plain), isEmpty);
     expect(sgr(t.transition(plain, 0)), '0');
+    // nor an underline color, whose colon form it misreads too
+    final red = t.style(attrs: Attr.curlyUnderline, underlineColor: Color.red);
+    expect(sgr(t.sgrFromReset(red)), '0;4');
+    expect(t.transition(curly, red), isEmpty);
     t.styledUnderlines = true;
     expect(sgr(t.sgrFromReset(curly)), '0;4:3');
     expect(sgr(t.transition(curly, plain)), '4');
+    expect(sgr(t.sgrFromReset(red)), '0;4:3;58:5:1');
   });
 }

@@ -239,6 +239,7 @@ final class TerminalInfo {
   String toString() =>
       'sync=${caps.synchronizedOutput} rep=${caps.repeatChar} '
       'margins=${caps.leftRightMargins} konsoleLines=${caps.konsoleLines} '
+      'styledUnderlines=${caps.styledUnderlines} '
       'text=${textMode.name} ambiguous=$ambiguousWidth '
       'color=${colorMode.name} fg=${foregroundRgb?.toRadixString(16)} '
       'bg=${backgroundRgb?.toRadixString(16)} '
@@ -442,13 +443,31 @@ ColorMode colorModeFor(Map<String, String> env, {bool windows = false}) {
 
 /// Whether the terminal shows the underline styles of SGR `4:2` to `4:5`
 /// ([TerminalCaps.styledUnderlines]), by its environment: all but
-/// Terminal.app, which reads `4:3` as `43`, a yellow background.
+/// Terminal.app, which reads `4:3` as `43`, a yellow background. A `TERM`
+/// of a terminal of its own (kitty, ghostty, Alacritty, foot, WezTerm)
+/// comes before a `TERM_PROGRAM` inherited from the Terminal.app it was
+/// started in. Over ssh Terminal.app's `TERM_PROGRAM` is not passed on,
+/// and it is not told apart.
 ///
 /// ```dart
 /// print(styledUnderlinesFor({'TERM_PROGRAM': 'Apple_Terminal'})); // false
 /// ```
-bool styledUnderlinesFor(Map<String, String> env) =>
-    env['TERM_PROGRAM'] != 'Apple_Terminal';
+bool styledUnderlinesFor(Map<String, String> env) => !_isAppleTerminal(env);
+
+/// Whether the environment names Terminal.app: its `TERM_PROGRAM`, not
+/// inherited by a terminal whose `TERM` is its own (kitty, ghostty,
+/// Alacritty, foot, WezTerm) started from it.
+bool _isAppleTerminal(Map<String, String> env) {
+  if (env['TERM_PROGRAM'] != 'Apple_Terminal') {
+    return false;
+  }
+  final term = env['TERM'] ?? '';
+  return !(term == 'xterm-kitty' ||
+      term == 'xterm-ghostty' ||
+      term == 'alacritty' ||
+      term == 'wezterm' ||
+      term.startsWith('foot'));
+}
 
 /// Whether the terminal's colors are dark or light as its environment
 /// declares them: `COLORFGBG`, which rxvt, Konsole and others set to the
@@ -1122,9 +1141,10 @@ final class Terminal
 
   /// The probe's [queries] where the cursor is (DECSC), then the cursor put
   /// back (DECRC), what the terminal showed of them erased to the end of
-  /// the screen (ED), and asked where it is.
-  static String _inPlace(String queries) =>
-      '\x1b7$queries\x1b8\x1b[J\x1b[6n';
+  /// the line (EL), and asked where it is. What it showed past the line,
+  /// wrapped, stays: the inline mode never leaves the normal screen, nor
+  /// erases its rows below the cursor.
+  static String _inPlace(String queries) => '\x1b7$queries\x1b8\x1b[K\x1b[6n';
 
   /// Queries the terminal; what the user types meanwhile goes to [early].
   /// Returns what it found and its answer about BDSM ([bidiModeQuery]),
@@ -1217,18 +1237,22 @@ final class Terminal
           done.completeError(e, s);
         }
       });
-    // The queries are asked where they can't leave a trace (Terminal.app
-    // prints the last byte of a DECRQM and the body of kitty's graphics
-    // query): on the alternate screen, inside a synchronized update (no
-    // flash where that is supported), where the ambiguous width is then
-    // measured by drawing U+2500 at the home position and asking where
-    // the cursor went (CSI 6 n). The inline mode asks them where the
-    // cursor is, puts it back, erases what they showed and asks where it
-    // is: its region starts on a line of its own. Among them are a cell's
-    // size in pixels and, unless the protocol images are shown with is
-    // given, kitty's graphics query and the terminal's name and version
-    // (XTVERSION), not in a multiplexer, which answers them itself; sixel
-    // comes with the device attributes (DA1, last).
+    // The queries are asked where they leave no trace (a terminal that
+    // doesn't know one may print it: Terminal.app prints the last byte of
+    // a DECRQM and the body of kitty's graphics query): on the alternate
+    // screen, inside a synchronized update (no flash where that is
+    // supported), where the ambiguous width is then measured by drawing
+    // U+2500 at the home position and asking where the cursor went
+    // (CSI 6 n). The inline mode asks them where the cursor is, erases
+    // what they showed on its line and asks where it is: its region
+    // starts on a line of its own. Terminal.app, which answers neither,
+    // is asked no DECRQM, nor kitty's graphics query; the inline mode asks
+    // that one only of a terminal its environment says may have it. Among
+    // the queries are a cell's size in pixels and, unless the protocol
+    // images are shown with is given, the graphics query and the
+    // terminal's name and version (XTVERSION), not in a multiplexer, which
+    // answers them itself; sixel comes with the device attributes (DA1,
+    // last).
     final env = link.environment;
     // what the terminal declares comes before the guess by its name
     final declared = link is DeclaringLink
@@ -1238,13 +1262,15 @@ final class Terminal
         o.graphics == null &&
         declared.graphics == null &&
         !GraphicsProtocol.values.any((p) => p.name == env['TWK_GRAPHICS']);
+    final apple = _isAppleTerminal(env);
+    final kittyQuery =
+        !apple && (o.alternateScreen || _mayShowKittyGraphics(env));
     final graphicsQueries = detect && multiplexerFor(env) == Multiplexer.none
-        ? '$_kittyGraphicsQuery\x1b[>0q'
+        ? '${kittyQuery ? _kittyGraphicsQuery : ''}\x1b[>0q'
         : '';
     parser.expectCursorReport = true;
     final asked =
-        '\x1b[?2026\$p\x1b[?2027\$p\x1b[?2048\$p\x1b[?69\$p'
-        '\x1b[?2031\$p$bidiModeQuery'
+        '${apple ? '' : _modeQueries}'
         '\x1b]10;?\x1b\\\x1b]11;?\x1b\\$_paletteQuery'
         '${o.kittyKeyboard ? '\x1b[?u' : ''}'
         '\x1b[16t$graphicsQueries';
@@ -1316,7 +1342,7 @@ final class Terminal
         // GNU screen without `defbce on` erases with the default background
         backgroundColorErase: !screenLike,
         repeatChar: repeatChar,
-        styledUnderlines: styledUnderlinesFor(env),
+        styledUnderlines: declared.styledUnderlines ?? styledUnderlinesFor(env),
         konsoleLines: konsole,
         konsoleImages: konsole,
         leftRightMargins: supported(69) && !screenLike,
@@ -1363,6 +1389,30 @@ final class Terminal
   static const _paletteQuery =
       '\x1b]4;0;?;1;?;2;?;3;?;4;?;5;?;6;?;7;?;'
       '8;?;9;?;10;?;11;?;12;?;13;?;14;?;15;?\x1b\\';
+
+  /// DECRQM for the modes the probe asks about: synchronized output, the
+  /// grapheme mode, in-band resizes, left and right margins, color scheme
+  /// reports, and BDSM.
+  static const _modeQueries =
+      '\x1b[?2026\$p\x1b[?2027\$p\x1b[?2048\$p\x1b[?69\$p'
+      '\x1b[?2031\$p$bidiModeQuery';
+
+  /// Whether the environment names a terminal that may show kitty's
+  /// images (kitty, ghostty, WezTerm, Konsole), which the inline mode then
+  /// asks about: elsewhere the query's 30-odd bytes a terminal may print
+  /// could wrap past the line it erases.
+  static bool _mayShowKittyGraphics(Map<String, String> env) {
+    final term = env['TERM'] ?? '';
+    final program = env['TERM_PROGRAM'] ?? '';
+    return term == 'xterm-kitty' ||
+        term == 'xterm-ghostty' ||
+        program == 'ghostty' ||
+        program == 'WezTerm' ||
+        env.containsKey('KITTY_WINDOW_ID') ||
+        env.containsKey('GHOSTTY_RESOURCES_DIR') ||
+        env.containsKey('WEZTERM_PANE') ||
+        env.containsKey('KONSOLE_VERSION');
+  }
 
   /// kitty's graphics query: a 1x1 image it would show, answered with
   /// `APC G i=31 ; OK ST` where the protocol is there.

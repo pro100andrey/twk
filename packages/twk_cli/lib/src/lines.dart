@@ -139,8 +139,12 @@ List<String> widgetLines(
       return const [];
     }
     // the screen is resized to the height once the width is known
-    final screen = Screen(width, 1, colorMode: colorMode)
-      ..styles.styledUnderlines = styledUnderlines;
+    final screen = Screen(
+      width,
+      1,
+      caps: TerminalCaps(styledUnderlines: styledUnderlines),
+      colorMode: colorMode,
+    );
     final pipeline = PipelineOwner(() {}, segmenter: screen.canvas.segmenter)
       ..onLog = onLog
       ..root = top;

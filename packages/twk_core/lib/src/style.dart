@@ -450,7 +450,8 @@ final class StyleTable {
 
   /// Whether the terminal shows the underline styles (SGR `4:2` to `4:5`,
   /// `TerminalCaps.styledUnderlines`); false writes each as a plain
-  /// underline (`4`).
+  /// underline (`4`), and no underline color (SGR 58), whose colon form
+  /// such a terminal misreads too.
   ///
   /// Setting it rewrites the SGR sequences from then on, as [colorMode].
   bool get styledUnderlines => _styledUnderlines;
@@ -828,7 +829,9 @@ final class StyleTable {
     _attrParams(0, _sentAttrs(id), out);
     _colorParams(_fg[id], 30, out);
     _colorParams(_bg[id], 40, out);
-    if (_ul[id] != 0 && (_attrs[id] & Attr.underlineMask) != 0) {
+    if (_styledUnderlines &&
+        _ul[id] != 0 &&
+        (_attrs[id] & Attr.underlineMask) != 0) {
       _colorParams(_ul[id], 50, out);
     }
     return out;
@@ -845,8 +848,12 @@ final class StyleTable {
     if (_bg[from] != _bg[to]) {
       _colorParams(_bg[to], 40, out, reset: true);
     }
-    final ful = (fa & Attr.underlineMask) != 0 ? _ul[from] : 0;
-    final tul = (ta & Attr.underlineMask) != 0 ? _ul[to] : 0;
+    final ful = _styledUnderlines && (fa & Attr.underlineMask) != 0
+        ? _ul[from]
+        : 0;
+    final tul = _styledUnderlines && (ta & Attr.underlineMask) != 0
+        ? _ul[to]
+        : 0;
     if (ful != tul) {
       _colorParams(tul, 50, out, reset: true);
     }

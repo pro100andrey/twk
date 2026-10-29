@@ -18,6 +18,25 @@ void main() {
       expect(terminal.screenLines, ['one', 'two']);
     });
 
+    test('of a terminal without underline styles opens a backend without '
+        'them', () async {
+      final terminal = FakeCliTerminal(
+        ansi: true,
+        interactiveInput: true,
+        outputIsTerminal: true,
+        styledUnderlines: false,
+      );
+      final backend = await terminal.openInline();
+      expect(backend.info.caps.styledUnderlines, isFalse);
+      expect(
+        (await FakeCliTerminal.interactive().openInline())
+            .info
+            .caps
+            .styledUnderlines,
+        isTrue,
+      );
+    });
+
     test('is opened by show and kept until close', () async {
       final clock = FakeClock();
       final terminal = FakeCliTerminal.interactive(

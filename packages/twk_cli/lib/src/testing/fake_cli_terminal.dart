@@ -4,7 +4,12 @@ library;
 import 'dart:convert';
 
 import 'package:twk/twk.dart'
-    show ColorMode, HeadlessTerminal, TerminalBackend, TerminalOptions;
+    show
+        ColorMode,
+        HeadlessTerminal,
+        TerminalBackend,
+        TerminalCaps,
+        TerminalOptions;
 import 'package:twk_test/twk_test.dart' show FakeClock, Vt;
 
 import '../capabilities.dart';
@@ -241,6 +246,9 @@ final class FakeCliTerminal extends CliTerminal {
     final backend = _backend = HeadlessTerminal(
       width: width,
       height: height,
+      caps: TerminalCaps(
+        styledUnderlines: capabilities.styledUnderlines,
+      ),
       options: const TerminalOptions(alternateScreen: false),
       cursorColumn: screen.cx,
       progressReports: progressReports,

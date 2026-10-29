@@ -95,9 +95,57 @@ void main() {
     expect(link.closed, isTrue);
   });
 
-  test('inline, the probe is asked where the cursor is put back to and '
-      'what it showed erased before the cursor is asked where it is', () async {
-    final link = FakeLink()..type('\x1b[5;1R$_answers');
+  test(
+    'inline, the probe is asked where the cursor is put back to and '
+    'what it showed on its line erased, the normal screen never left',
+    () async {
+      final link = FakeLink(environment: const {'TERM': 'xterm-256color'})
+        ..type('\x1b[5;1R$_answers');
+      final term = await clock.open(
+        link,
+        const TerminalOptions(
+          probeTimeout: Duration(seconds: 5),
+          alternateScreen: false,
+        ),
+      );
+      // a terminal that doesn't know a query may print it
+      expect(link.text, startsWith('\x1b7\x1b[?2026\$p'));
+      expect(link.text, contains('\x1b[>0q\x1b8\x1b[K\x1b[6n\x1b[c'));
+      expect(link.text, isNot(contains('\x1b[?1049')));
+      expect(link.text, isNot(contains('\x1b[J')));
+      // nothing in the environment says kitty's images
+      expect(link.text, isNot(contains('\x1b_G')));
+      expect(term.info.cursorColumn, 0);
+      await clock.runUntil(term.close);
+    },
+  );
+
+  test('Terminal.app is asked no DECRQM nor the graphics query, which it '
+      'prints', () async {
+    for (final alternateScreen in [true, false]) {
+      final link = FakeLink(
+        environment: const {
+          'TERM': 'xterm-256color',
+          'TERM_PROGRAM': 'Apple_Terminal',
+        },
+      )..type('\x1b[5;1R\x1b[?1;2c');
+      final term = await clock.open(
+        link,
+        TerminalOptions(
+          probeTimeout: const Duration(seconds: 5),
+          alternateScreen: alternateScreen,
+        ),
+      );
+      expect(link.text, isNot(contains(r'$p')), reason: '$alternateScreen');
+      expect(link.text, isNot(contains('\x1b_G')), reason: '$alternateScreen');
+      expect(term.info.caps.styledUnderlines, isFalse);
+      await clock.runUntil(term.close);
+    }
+  });
+
+  test('inline, kitty is asked the graphics query', () async {
+    final link = FakeLink(environment: const {'TERM': 'xterm-kitty'})
+      ..type('\x1b[5;1R$_answers');
     final term = await clock.open(
       link,
       const TerminalOptions(
@@ -105,11 +153,7 @@ void main() {
         alternateScreen: false,
       ),
     );
-    // Terminal.app prints the last byte of a DECRQM, the body of APC
-    expect(link.text, startsWith('\x1b7\x1b[?2026\$p'));
-    expect(link.text, contains('\x1b[>0q\x1b8\x1b[J\x1b[6n\x1b[c'));
-    expect(link.text, isNot(contains('\x1b[?1049h')));
-    expect(term.info.cursorColumn, 0);
+    expect(link.text, contains('\x1b_Gi=31'));
     await clock.runUntil(term.close);
   });
 
@@ -197,6 +241,7 @@ void main() {
           pointerShapes: false,
           repeatChar: false,
           graphics: GraphicsProtocol.sixel,
+          styledUnderlines: false,
         ),
       )).info;
       expect(declared.notifications, NotificationProtocol.osc777);
@@ -204,6 +249,8 @@ void main() {
       expect(declared.pointerShapes, isFalse);
       expect(declared.caps.repeatChar, isFalse);
       expect(declared.caps.graphics, GraphicsProtocol.sixel);
+      expect(guessed.caps.styledUnderlines, isTrue);
+      expect(declared.caps.styledUnderlines, isFalse);
     });
 
     test('declaring some, the rest is guessed', () async {

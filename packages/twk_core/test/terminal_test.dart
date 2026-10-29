@@ -66,6 +66,21 @@ void main() {
     expect(styledUnderlinesFor({'TERM_PROGRAM': 'iTerm.app'}), isTrue);
     expect(styledUnderlinesFor({'TERM': 'xterm-kitty'}), isTrue);
     expect(styledUnderlinesFor({}), isTrue);
+    // TERM_PROGRAM inherited from the Terminal.app it was started in
+    for (final term in ['alacritty', 'xterm-kitty', 'foot-extra']) {
+      expect(
+        styledUnderlinesFor({'TERM': term, 'TERM_PROGRAM': 'Apple_Terminal'}),
+        isTrue,
+        reason: term,
+      );
+    }
+    expect(
+      styledUnderlinesFor({
+        'TERM': 'xterm-256color',
+        'TERM_PROGRAM': 'Apple_Terminal',
+      }),
+      isFalse,
+    );
   });
 
   test('notifications by the terminal the environment names', () {

@@ -122,9 +122,10 @@ final class TerminalCaps {
   final bool insertDelete;
 
   /// The terminal reads the underline styles of SGR `4:2` to `4:5`
-  /// (double, curly, dotted, dashed); without them each is written as a
-  /// plain underline (`4`). Terminal.app reads `4:3` as `43`, a yellow
-  /// background that SGR 24 doesn't take away ([styledUnderlinesFor]).
+  /// (double, curly, dotted, dashed) and the underline color (SGR 58);
+  /// without them each is written as a plain underline (`4`), in the
+  /// text's color. Terminal.app reads `4:3` as `43`, a yellow background
+  /// that SGR 24 doesn't take away ([styledUnderlinesFor]).
   final bool styledUnderlines;
 
   /// The terminal's lines are Konsole's: each as long as what was written
