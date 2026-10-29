@@ -133,8 +133,9 @@ hold the bytes to.
 Anywhere else, a `Terminal` over a `TerminalLink` you provide, such as a
 socket or an SSH channel.
 
-macOS and Windows are written for but not yet run by the author; reports
-of how they behave are welcome. The
+macOS is run by every package's tests and by hand in Terminal.app and
+iTerm2; Windows is written for but not yet run by the author, and reports
+of how it behaves are welcome. The
 [limitations](https://github.com/pro100andrey/twk/blob/main/packages/twk_core/doc/design/limitations.md)
 list what is known.
 

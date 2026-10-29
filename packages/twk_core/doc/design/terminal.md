@@ -19,18 +19,29 @@ was entered, the console is restored before the error propagates):
    output, `ENABLE_VIRTUAL_TERMINAL_INPUT` for input (mouse and keys arrive
    as VT sequences), QuickEdit off, UTF-8 code pages, everything restored on
    exit;
-2. **capability probe** in one batch: DECRQM 2026/2027/2048/69/2031 and
-   BDSM's `CSI 8 $ p` (below), OSC 10/11, the 16 palette entries in one OSC
+2. **capability probe** in one write, answered in one round trip, on the
+   alternate screen inside a synchronized update, where a query the terminal
+   doesn't know leaves no trace (Terminal.app prints the last byte of a
+   DECRQM and the body of kitty's graphics query): DECRQM
+   2026/2027/2048/69/2031 and BDSM's `CSI 8 $ p` (below; not inside GNU
+   screen, which prints them), OSC 10/11, the 16 palette entries in one OSC
    4 (`TerminalInfo.palette`, those answered), the kitty keyboard query `CSI
-   ? u`, a cell's size in pixels (`CSI 16 t`), kitty's graphics query and
-   the terminal's name and version (XTVERSION) where the protocol for images
-   is not given and no multiplexer answers in the terminal's place
-   ([§1.14](images.md)), the width of East Asian Ambiguous characters
-   (U+2500 drawn on the alternate screen inside a synchronized update, then
-   `CSI 6 n`; in the inline mode `CSI 6 n` asks where the cursor is instead,
-   [§1.12](inline.md)), and DA1 as the "everyone answered" marker, its
-   attribute 4 saying sixel (1 s timeout → conservative defaults; answers
-   that come later are dropped, not passed to the app as input);
+   ? u`, a cell's size in pixels (`CSI 16 t`), the secondary device
+   attributes (DA2, `CSI > c`, not on the Linux console, which may take it
+   for DA1: by them Terminal.app, `1;95;0`, is known over ssh too, where its
+   `TERM_PROGRAM` is not passed on, and a terminal started from it that
+   keeps that `TERM_PROGRAM` is not taken for it; not through a multiplexer,
+   which answers them itself), kitty's graphics query and the terminal's
+   name and version (XTVERSION) where the protocol for images is not given
+   and no multiplexer answers in the terminal's place ([§1.14](images.md)),
+   the width of East Asian Ambiguous characters (U+2500 drawn at the home
+   position, then `CSI 6 n`; in the inline mode `CSI 6 n` asks where the
+   cursor is instead, on the normal screen before the queries and again
+   after them, a terminal with no alternate screen having the cells of its
+   line that showed a query erased, [§1.12](inline.md)), and DA1 as the
+   "everyone answered" marker, its attribute 4 saying sixel (1 s timeout →
+   conservative defaults; answers that come later are dropped, not passed to
+   the app as input);
 3. resize: in-band (2048) when available, otherwise SIGWINCH; on Windows
    the size is polled every 100 ms (a cheap console call);
 4. alternate screen (or the inline mode, [§1.12](inline.md)), mouse (on the

@@ -745,7 +745,8 @@ dart:io or dart:ffi, or failing when run (skipped without node 22).
 
 The widget layer, by topic.
 
-What it catches: see [its README](../../../twk/doc/reference/README.md).
+What it catches: see [how the package is
+tested](../../../twk/doc/reference/testing.md).
 
 ## `packages/twk_rich/test/`
 

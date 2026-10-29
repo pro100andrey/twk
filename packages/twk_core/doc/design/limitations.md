@@ -9,9 +9,13 @@
   console. Older conhost builds read non-ASCII input as NUL bytes under the
   UTF-8 input code page that is set; reading through `ReadConsoleW` would
   need a Windows input backend of its own.
-* **Not run on macOS** (the POSIX path is the same as on Linux except the
-  `struct termios` layout used to turn ISIG off; Terminal.app → 256 colors
-  is detected from `TERM_PROGRAM`).
+* **macOS**: every package's tests and the end to end runs in a
+  pseudo-terminal run on it (`ci-os`); the POSIX path is the same as on
+  Linux except the `struct termios` layout used to turn ISIG off.
+  Terminal.app has 256 colors (by its `TERM_PROGRAM`), no styled or
+  coloured underlines and, of desktop notifications, only its bell
+  ([§1.11](components.md)); the last two also where its secondary device
+  attributes tell it ([§1.7](terminal.md)).
 * Raw mode beyond what `dart:io` does (ISIG, IXON, ICRNL off) needs the
   `struct termios` layout, known here for Linux and macOS only; elsewhere
   Ctrl+C arrives as a signal and is turned into a key, Ctrl+\ / Ctrl+Z act
@@ -21,17 +25,18 @@
   terminal to another program and come back there is `suspend`/`resume`
   ([§1.7](terminal.md)), which keep it paused. Over a socket
   (`Terminal.connect`) it can be opened as often as wanted.
-* `twk shell` and the sockets ([§1.7](terminal.md)): not run on Windows or
-  macOS. On Windows the socket is TCP on the loopback interface, which any
-  local user can reach (the token in the project's address file guards it).
-  Ctrl+C reaches the shell only while no app has the terminal; to stop it
-  meanwhile, stop the app. `TwkApp.suspend` on a served terminal gives the
-  shell's console back, but the other program runs in the app's own stdio;
-  `suspendToShell` stops the app with no shell to continue it.
+* `twk shell` and the sockets ([§1.7](terminal.md)): not run on Windows; on
+  macOS by their tests (`ci-os`). On Windows the socket is TCP on the
+  loopback interface, which any local user can reach (the token in the
+  project's address file guards it). Ctrl+C reaches the shell only while no
+  app has the terminal; to stop it meanwhile, stop the app. `TwkApp.suspend`
+  on a served terminal gives the shell's console back, but the other program
+  runs in the app's own stdio; `suspendToShell` stops the app with no shell
+  to continue it.
 * `twk run` (hot reload, [`packages/twk_dev`](../../../twk_dev/README.md)):
-  not run on Windows or macOS. On Windows, which has no SIGTERM, a
-  restart (Ctrl+G H) kills the app without the terminal put back. A
-  reload leaves what `main` built and code that ran already as they
+  not run on Windows; on macOS by its tests (`ci-os`). On Windows, which has
+  no SIGTERM, a restart (Ctrl+G H) kills the app without the terminal put
+  back. A reload leaves what `main` built and code that ran already as they
   were: that takes a restart.
 * Handing the terminal over: on a terminal that answers no queries, input
   the other program read can leave the app waiting for the next key once it
