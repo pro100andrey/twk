@@ -42,12 +42,12 @@ import 'unicode/unicode.dart';
 /// terminal through tmux or screen comes wrapped for it. Its
 /// [TerminalInfo.notifications] is `notifications`: [notify] writes in
 /// that protocol, nothing for [NotificationProtocol.none]. Its
-/// [TerminalInfo.pointerShapes], [TerminalInfo.pointerNames] and
-/// [TerminalInfo.progressReports] are `pointerShapes`, `pointerNames` and
-/// `progressReports`; the states set on it go to
-/// [frames], and are put back there as a [Terminal] puts them back
-/// ([TerminalStateBackend]). Its [TerminalInfo.bidi] is `bidi`: by default
-/// the app orders right-to-left text, as for a terminal that does no bidi.
+/// [TerminalInfo.pointerNames] is `pointerNames` with `pointerShapes`,
+/// null without, and its [TerminalInfo.progressReports] is
+/// `progressReports`; the states set on it go to [frames], and are put
+/// back there as a [Terminal] puts them back ([TerminalStateBackend]).
+/// Its [TerminalInfo.bidi] is `bidi`: by default the app orders
+/// right-to-left text, as for a terminal that does no bidi.
 /// Its [TerminalInfo.palette] is `palette`: the entries an app blends
 /// palette colors with, xterm's where it has none.
 ///
@@ -119,8 +119,7 @@ final class HeadlessTerminal
          cursorColumn: options.alternateScreen ? null : cursorColumn,
          notifications: notifications,
          multiplexer: multiplexer,
-         pointerShapes: pointerShapes,
-         pointerNames: pointerNames,
+         pointerNames: pointerShapes ? pointerNames : null,
          progressReports: progressReports,
          bidi: bidi,
          settings: settings,

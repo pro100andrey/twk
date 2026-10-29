@@ -106,8 +106,9 @@ final class TerminalStatus {
   @internal
   void showPointer() {
     final backend = _backend;
+    final names = terminal.info.pointerNames;
     final shape = _pointerShape ?? defaultPointerShape;
-    if (shape == _shown || backend == null || !terminal.info.pointerShapes) {
+    if (shape == _shown || backend == null || names == null) {
       return;
     }
     _shown = shape;
@@ -116,7 +117,7 @@ final class TerminalStatus {
     } else {
       backend.setTerminalState(
         _pointerKey,
-        pointerShapeSequence(shape, terminal.info.pointerNames),
+        pointerShapeSequence(shape, names),
         pointerShapeSequence(null),
       );
     }

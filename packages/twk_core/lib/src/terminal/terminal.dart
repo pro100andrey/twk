@@ -70,8 +70,7 @@ final class TerminalInfo {
     this.notifications = NotificationProtocol.none,
     this.multiplexer = Multiplexer.none,
     this.plain = false,
-    this.pointerShapes = false,
-    this.pointerNames = PointerNames.css,
+    this.pointerNames,
     this.progressReports = false,
     this.bidi = BidiReordering.app,
     this.declaredBrightness,
@@ -190,15 +189,16 @@ final class TerminalInfo {
   final bool plain;
 
   /// Whether the terminal is known to show the mouse pointer in the shape
-  /// OSC 22 sets ([pointerShapeSequence]): as it declares
-  /// ([TerminalDeclaration.pointerShapes]), else by its environment and
-  /// its name and version ([pointerNamesFor]).
-  final bool pointerShapes;
+  /// OSC 22 sets ([pointerShapeSequence]): where it names the shapes
+  /// ([pointerNames]).
+  bool get pointerShapes => pointerNames != null;
 
-  /// How the terminal names the pointer's shapes in OSC 22, where it shows
-  /// them ([pointerShapes]): by CSS's names where it declares it shows
-  /// them, else as [pointerNamesFor] says.
-  final PointerNames pointerNames;
+  /// How the terminal names the pointer's shapes in OSC 22; null where it
+  /// isn't known to show them. As it declares
+  /// ([TerminalDeclaration.pointerShapes]): by CSS's names where it shows
+  /// them; else by its environment and its name and version
+  /// ([pointerNamesFor]).
+  final PointerNames? pointerNames;
 
   /// Whether the terminal is known to show a program's progress in its tab
   /// or taskbar (OSC 9;4, [progressSequence]): as it declares
@@ -256,7 +256,7 @@ final class TerminalInfo {
       'alternateScreen=$alternateScreen cursorColumn=$cursorColumn '
       'colorSchemeReports=$colorSchemeReports '
       'notifications=${notifications.name} multiplexer=${multiplexer.name} '
-      'pointerShapes=$pointerShapes pointerNames=${pointerNames.name} '
+      'pointerNames=${pointerNames?.name} '
       'progressReports=$progressReports '
       'bidi=${bidi.name} '
       'graphics=${caps.graphics.name} konsoleImages=${caps.konsoleImages} '
@@ -1462,8 +1462,7 @@ final class Terminal
       declaredBrightness: brightnessFor(env),
       notifications: declared.notifications ?? notificationProtocolFor(env),
       multiplexer: multiplexer,
-      pointerShapes: pointerNames != null,
-      pointerNames: pointerNames ?? PointerNames.css,
+      pointerNames: pointerNames,
       progressReports:
           declared.progressReports ?? progressReportsFor(env, version: version),
       bidi: o.bidi ?? bidiReorderingFor(env, mode: bidiMode, version: version),
