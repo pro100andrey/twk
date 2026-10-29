@@ -109,6 +109,7 @@ export 'package:twk_core/twk_core.dart'
         HeadlessTerminal,
         Multiplexer,
         NotificationProtocol,
+        PointerNames,
         TerminalCaps,
         TerminalOptions,
         renderToString;

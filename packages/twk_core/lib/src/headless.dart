@@ -42,8 +42,9 @@ import 'unicode/unicode.dart';
 /// terminal through tmux or screen comes wrapped for it. Its
 /// [TerminalInfo.notifications] is `notifications`: [notify] writes in
 /// that protocol, nothing for [NotificationProtocol.none]. Its
-/// [TerminalInfo.pointerShapes] and [TerminalInfo.progressReports] are
-/// `pointerShapes` and `progressReports`; the states set on it go to
+/// [TerminalInfo.pointerShapes], [TerminalInfo.pointerNames] and
+/// [TerminalInfo.progressReports] are `pointerShapes`, `pointerNames` and
+/// `progressReports`; the states set on it go to
 /// [frames], and are put back there as a [Terminal] puts them back
 /// ([TerminalStateBackend]). Its [TerminalInfo.bidi] is `bidi`: by default
 /// the app orders right-to-left text, as for a terminal that does no bidi.
@@ -98,6 +99,7 @@ final class HeadlessTerminal
     NotificationProtocol notifications = NotificationProtocol.none,
     Multiplexer multiplexer = Multiplexer.none,
     bool pointerShapes = false,
+    PointerNames pointerNames = PointerNames.css,
     bool progressReports = false,
     BidiReordering bidi = BidiReordering.app,
     Map<String, String> settings = const {},
@@ -118,6 +120,7 @@ final class HeadlessTerminal
          notifications: notifications,
          multiplexer: multiplexer,
          pointerShapes: pointerShapes,
+         pointerNames: pointerNames,
          progressReports: progressReports,
          bidi: bidi,
          settings: settings,

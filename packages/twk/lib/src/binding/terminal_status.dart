@@ -91,7 +91,7 @@ final class TerminalStatus {
     } else {
       backend.setTerminalState(
         _pointerKey,
-        pointerShapeSequence(shape),
+        pointerShapeSequence(shape, terminal.info.pointerNames),
         pointerShapeSequence(null),
       );
     }

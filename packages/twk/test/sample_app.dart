@@ -49,6 +49,7 @@ Future<List<LogRecord>> runInMemory({required Stopwatch clock}) async {
     multiplexer: Multiplexer.tmux,
     notifications: NotificationProtocol.osc777,
     pointerShapes: true,
+    pointerNames: PointerNames.x11,
     progressReports: true,
     bidi: BidiReordering.terminal,
   )..type('q');

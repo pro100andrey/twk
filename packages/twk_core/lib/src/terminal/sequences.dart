@@ -4,7 +4,7 @@
 /// desktop notifications ([notifySequence]), progress ([progressSequence]),
 /// bidi modes; each wrapped for a [Multiplexer] where it has to pass one
 /// ([passthroughSequence]). What a terminal is known to show is told by its
-/// environment ([pointerShapesFor], [progressReportsFor],
+/// environment ([pointerNamesFor], [progressReportsFor],
 /// [bidiReorderingFor]).
 library;
 
@@ -194,146 +194,195 @@ String notifySequence(
 }
 
 /// The shapes of the mouse pointer OSC 22 sets ([pointerShapeSequence]),
-/// by the names of CSS's `cursor` ([css]), as kitty's protocol names them.
+/// by the names of CSS's `cursor` ([css]), as kitty's protocol names them,
+/// or by the X cursor font's ([x11]), as xterm and iTerm2 do.
 enum PointerShape {
   /// A shortcut or alias of something is to be made.
   alias('alias'),
 
   /// A cell or a range of cells can be selected (a thick plus).
-  cell('cell'),
+  cell('cell', 'tcross'),
 
   /// Something is to be copied.
   copy('copy'),
 
   /// A precise point (cross hairs).
-  crosshair('crosshair'),
+  crosshair('crosshair', 'crosshair'),
 
   /// The platform's own pointer, an arrow mostly (CSS `default`).
-  arrow('default'),
+  arrow('default', 'left_ptr'),
 
   /// The right (east) edge is to be moved.
-  eResize('e-resize'),
+  eResize('e-resize', 'right_side'),
 
   /// An edge is to be moved left or right.
-  ewResize('ew-resize'),
+  ewResize('ew-resize', 'sb_h_double_arrow'),
 
   /// Something can be grabbed and dragged (an open hand).
-  grab('grab'),
+  grab('grab', 'fleur'),
 
   /// Something is being dragged (a closed hand).
-  grabbing('grabbing'),
+  grabbing('grabbing', 'fleur'),
 
   /// Help is at hand (an arrow with a question mark).
-  help('help'),
+  help('help', 'question_arrow'),
 
   /// Something is to be moved.
-  move('move'),
+  move('move', 'fleur'),
 
   /// The top (north) edge is to be moved.
-  nResize('n-resize'),
+  nResize('n-resize', 'based_arrow_up'),
 
   /// The top right corner is to be moved.
-  neResize('ne-resize'),
+  neResize('ne-resize', 'top_right_corner'),
 
   /// The top right or bottom left corner is to be moved.
   neswResize('nesw-resize'),
 
   /// What is dragged can't be dropped here.
-  noDrop('no-drop'),
+  noDrop('no-drop', 'X_cursor'),
 
   /// What was asked won't be done.
-  notAllowed('not-allowed'),
+  notAllowed('not-allowed', 'X_cursor'),
 
   /// An edge is to be moved up or down.
-  nsResize('ns-resize'),
+  nsResize('ns-resize', 'sb_v_double_arrow'),
 
   /// The top left corner is to be moved.
-  nwResize('nw-resize'),
+  nwResize('nw-resize', 'top_left_corner'),
 
   /// The top left or bottom right corner is to be moved.
   nwseResize('nwse-resize'),
 
   /// A link (a pointing hand).
-  pointer('pointer'),
+  pointer('pointer', 'hand2'),
 
   /// The program is busy, but takes input meanwhile.
-  progress('progress'),
+  progress('progress', 'watch'),
 
   /// The bottom (south) edge is to be moved.
-  sResize('s-resize'),
+  sResize('s-resize', 'based_arrow_down'),
 
   /// The bottom right corner is to be moved.
-  seResize('se-resize'),
+  seResize('se-resize', 'bottom_right_corner'),
 
   /// The bottom left corner is to be moved.
-  swResize('sw-resize'),
+  swResize('sw-resize', 'bottom_left_corner'),
 
   /// Text that can be selected (an I-beam).
-  text('text'),
+  text('text', 'xterm'),
 
   /// Vertical text that can be selected.
   verticalText('vertical-text'),
 
   /// The left (west) edge is to be moved.
-  wResize('w-resize'),
+  wResize('w-resize', 'left_side'),
 
   /// The program is busy and takes no input.
-  wait('wait'),
+  wait('wait', 'watch'),
 
   /// Something can be zoomed in.
-  zoomIn('zoom-in'),
+  zoomIn('zoom-in', 'plus'),
 
   /// Something can be zoomed out.
-  zoomOut('zoom-out');
+  zoomOut('zoom-out', 'minus');
 
-  const PointerShape(this.css);
+  const PointerShape(this.css, [this.x11]);
 
   /// Its name in OSC 22 and in CSS.
   final String css;
+
+  /// The name of the X cursor font's shape nearest it, which xterm takes
+  /// and iTerm2 shows as its macOS counterpart; iTerm2 knows `minus` for
+  /// [zoomOut] as well, which the font hasn't. Null where there is none
+  /// ([alias], [copy], the diagonal resizes, [verticalText]): the terminal
+  /// shows its own pointer. A grabbing hand is an open one there.
+  final String? x11;
+}
+
+/// How a terminal names the shapes of the mouse pointer in OSC 22
+/// ([pointerShapeSequence]).
+enum PointerNames {
+  /// By CSS's names ([PointerShape.css]).
+  css,
+
+  /// By the X cursor font's ([PointerShape.x11]): a name the terminal
+  /// doesn't know shows its own pointer.
+  x11,
 }
 
 /// Returns OSC 22, which shows the mouse pointer in [shape] over the
-/// terminal, or as the terminal shows it by itself for null.
+/// terminal, by the names it knows ([names]), or as the terminal shows it
+/// by itself for null.
 ///
-/// Only some terminals show it ([pointerShapesFor]); an app sets it
+/// Only some terminals show it ([pointerNamesFor]); an app sets it
 /// through `TerminalStateBackend.setTerminalState`, so that it is put
 /// back on the way out.
-String pointerShapeSequence(PointerShape? shape) =>
-    '\x1b]22;${shape?.css ?? ''}\x1b\\';
+String pointerShapeSequence(
+  PointerShape? shape, [
+  PointerNames names = PointerNames.css,
+]) {
+  final name = switch (names) {
+    PointerNames.css => shape?.css,
+    PointerNames.x11 => shape?.x11,
+  };
+  return '\x1b]22;${name ?? ''}\x1b\\';
+}
 
-/// Whether the terminal is known to show the mouse pointer in the shape
-/// OSC 22 sets by a CSS name ([pointerShapeSequence]), from its
-/// environment: its own `TERM`, then its `TERM_PROGRAM`, then the
-/// variables terminals set for their programs. kitty (0.31 on), foot
-/// (1.12 on), Ghostty, Rio and Konsole (26.04 on) are; xterm, iTerm2 and
-/// mintty name shapes otherwise (X11's or Windows' names), Contour knows
-/// three of them, and VTE, WezTerm, Windows Terminal and Alacritty show
-/// none. Not inside tmux, which drops it, or GNU screen: the shape would
-/// stay over the other panes as well.
-bool pointerShapesFor(Map<String, String> env) {
+/// How the terminal is known to name the shapes of the mouse pointer it
+/// shows by OSC 22 ([pointerShapeSequence]), from its environment and its
+/// name and version as it tells them ([version], XTVERSION); null where it
+/// isn't known to show them. By CSS's names kitty (0.31 on), foot (1.12
+/// on), Ghostty, Rio and Konsole (26.04 on); by the X cursor font's xterm
+/// (patch 367 on) and iTerm2 (3.7 on: from 3.5 it takes them, but shows
+/// its own pointer while the mouse is reported, as it is to an app with
+/// a [PointerShape] to show). mintty names them by Windows'
+/// names, Contour knows three of them, and VTE, WezTerm, Windows Terminal,
+/// Alacritty and Terminal.app show none. Not inside tmux, which drops it,
+/// or GNU screen: the shape would stay over the other panes as well. A
+/// name the terminal tells, then its own `TERM` and `TERM_PROGRAM`, come
+/// before variables a terminal it was started from left in its
+/// environment.
+PointerNames? pointerNamesFor(
+  Map<String, String> env, {
+  String version = '',
+}) {
+  const css = PointerNames.css;
+  const x11 = PointerNames.x11;
   final term = env['TERM'] ?? '';
   if (env.containsKey('TMUX') ||
       env.containsKey('STY') ||
       term.startsWith('tmux') ||
       term.startsWith('screen')) {
-    return false;
+    return null;
+  }
+  if (version.startsWith('iTerm2 ')) {
+    return _atLeast(version.substring(7), const [3, 7]) ? x11 : null;
+  }
+  if (version.startsWith('XTerm(')) {
+    return _atLeast(version.substring(6), const [367]) ? x11 : null;
   }
   if (term == 'xterm-kitty' ||
       term == 'xterm-ghostty' ||
       term.startsWith('foot')) {
-    return true;
+    return css;
   }
   switch (env['TERM_PROGRAM'] ?? '') {
     case 'ghostty' || 'rio':
-      return true;
+      return css;
+    case 'iTerm.app':
+      final programVersion = env['TERM_PROGRAM_VERSION'] ?? '';
+      return _atLeast(programVersion, const [3, 7]) ? x11 : null;
     case '':
       break;
     default:
-      return false;
+      return null;
   }
   return env.containsKey('KITTY_WINDOW_ID') ||
-      env.containsKey('GHOSTTY_RESOURCES_DIR') ||
-      _number(env['KONSOLE_VERSION']) >= 260400;
+          env.containsKey('GHOSTTY_RESOURCES_DIR') ||
+          _number(env['KONSOLE_VERSION']) >= 260400
+      ? css
+      : null;
 }
 
 /// What a program's progress in the terminal's tab or taskbar shows

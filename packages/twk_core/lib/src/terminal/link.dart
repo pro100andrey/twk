@@ -137,7 +137,7 @@ abstract interface class TerminalLink {
 ///
 /// Each capability is declared or not: null leaves it to the guess by the
 /// environment (`notificationProtocolFor`, `progressReportsFor`,
-/// `pointerShapesFor`, the known terminals of REP, `graphicsProtocolFor`,
+/// `pointerNamesFor`, the known terminals of REP, `graphicsProtocolFor`,
 /// `styledUnderlinesFor`),
 /// as for a real terminal, which declares nothing. Declared, it is what
 /// `TerminalInfo` says, whatever the environment names. A `twk shell`'s

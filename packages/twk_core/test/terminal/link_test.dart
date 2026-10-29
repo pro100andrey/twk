@@ -358,6 +358,28 @@ void main() {
       expect(declared.caps.styledUnderlines, isFalse);
     });
 
+    test("iTerm2's pointer shapes are named by the X cursor font, a "
+        "declaring terminal's by CSS", () async {
+      const iTerm = {
+        'TERM_PROGRAM': 'iTerm.app',
+        'TERM_PROGRAM_VERSION': '3.7.2',
+      };
+      Future<TerminalInfo> info(TerminalDeclaration declaration) async {
+        final link = FakeLink(environment: iTerm, declaration: declaration)
+          ..type(_answers);
+        return (await clock.open(link, _options)).info;
+      }
+
+      final guessed = await info(const TerminalDeclaration());
+      expect(guessed.pointerShapes, isTrue);
+      expect(guessed.pointerNames, PointerNames.x11);
+      final declared = await info(
+        const TerminalDeclaration(pointerShapes: true),
+      );
+      expect(declared.pointerShapes, isTrue);
+      expect(declared.pointerNames, PointerNames.css);
+    });
+
     test('declaring some, the rest is guessed', () async {
       final info = (await open(
         const TerminalDeclaration(progressReports: true),

@@ -57,6 +57,7 @@ export 'src/terminal/sequences.dart'
         MouseTracking,
         Multiplexer,
         NotificationProtocol,
+        PointerNames,
         PointerShape,
         ProgressState,
         clipboardSequence,

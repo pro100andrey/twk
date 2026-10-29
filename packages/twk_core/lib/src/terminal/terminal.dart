@@ -71,6 +71,7 @@ final class TerminalInfo {
     this.multiplexer = Multiplexer.none,
     this.plain = false,
     this.pointerShapes = false,
+    this.pointerNames = PointerNames.css,
     this.progressReports = false,
     this.bidi = BidiReordering.app,
     this.declaredBrightness,
@@ -190,9 +191,14 @@ final class TerminalInfo {
 
   /// Whether the terminal is known to show the mouse pointer in the shape
   /// OSC 22 sets ([pointerShapeSequence]): as it declares
-  /// ([TerminalDeclaration.pointerShapes]), else by its environment
-  /// ([pointerShapesFor]).
+  /// ([TerminalDeclaration.pointerShapes]), else by its environment and
+  /// its name and version ([pointerNamesFor]).
   final bool pointerShapes;
+
+  /// How the terminal names the pointer's shapes in OSC 22, where it shows
+  /// them ([pointerShapes]): by CSS's names where it declares it shows
+  /// them, else as [pointerNamesFor] says.
+  final PointerNames pointerNames;
 
   /// Whether the terminal is known to show a program's progress in its tab
   /// or taskbar (OSC 9;4, [progressSequence]): as it declares
@@ -250,7 +256,8 @@ final class TerminalInfo {
       'alternateScreen=$alternateScreen cursorColumn=$cursorColumn '
       'colorSchemeReports=$colorSchemeReports '
       'notifications=${notifications.name} multiplexer=${multiplexer.name} '
-      'pointerShapes=$pointerShapes progressReports=$progressReports '
+      'pointerShapes=$pointerShapes pointerNames=${pointerNames.name} '
+      'progressReports=$progressReports '
       'bidi=${bidi.name} '
       'graphics=${caps.graphics.name} konsoleImages=${caps.konsoleImages} '
       'cell=${caps.cellPixelWidth}x${caps.cellPixelHeight}px plain=$plain';
@@ -1385,6 +1392,13 @@ final class Terminal
     // asked DECRQM, a terminal that answered none of them: older than what
     // it is taken for, Terminal.app over ssh among them
     final silent = askModes && answered && modes.isEmpty;
+    // a terminal that declares it shows the shapes is twk's, which names
+    // them by CSS's names
+    final pointerNames = switch (declared.pointerShapes) {
+      true => PointerNames.css,
+      false => null,
+      null => pointerNamesFor(env, version: version),
+    };
     final graphics =
         o.graphics ??
         declared.graphics ??
@@ -1441,7 +1455,8 @@ final class Terminal
       declaredBrightness: brightnessFor(env),
       notifications: declared.notifications ?? notificationProtocolFor(env),
       multiplexer: multiplexer,
-      pointerShapes: declared.pointerShapes ?? pointerShapesFor(env),
+      pointerShapes: pointerNames != null,
+      pointerNames: pointerNames ?? PointerNames.css,
       progressReports:
           declared.progressReports ?? progressReportsFor(env, version: version),
       bidi: o.bidi ?? bidiReorderingFor(env, mode: bidiMode, version: version),
