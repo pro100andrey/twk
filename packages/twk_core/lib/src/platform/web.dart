@@ -24,6 +24,9 @@ int get processId => 0;
 /// None on the web.
 TerminalLink? ownTerminalLink() => null;
 
+/// False: there is no terminal of the process's own on the web.
+bool isOwnTerminal(TerminalLink link) => false;
+
 /// False: there is no stdout on the web.
 bool get outputIsTerminal => false;
 

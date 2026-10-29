@@ -135,7 +135,8 @@ const _product = bool.fromEnvironment('dart.vm.product');
 /// and [clearInlineOnExit] clears the region when the app ends instead of
 /// leaving it in the history; [logs] is where `log()` and `print` go (the
 /// core's `TwkApp.logs`); [exitOnCtrlC] is [AppBinding.exitOnCtrlC],
-/// [restCursor] [AppBinding.restCursor].
+/// [stopOnCtrlZ] [AppBinding.stopOnCtrlZ], [restCursor]
+/// [AppBinding.restCursor].
 /// [clock] is the app's clock, which spaces its frames (`TwkApp.clock`),
 /// a stopwatch started here by default: a test hands it the stopwatch of
 /// a fake clock it moves, and runs the app in that clock's zone.
@@ -160,6 +161,7 @@ Future<void> runApp(
   bool clearInlineOnExit = false,
   LogSink? logs,
   bool exitOnCtrlC = true,
+  bool stopOnCtrlZ = true,
   bool restCursor = true,
   bool? screenReader,
   BidiReordering? bidi,
@@ -199,6 +201,7 @@ Future<void> runApp(
     clearInlineOnExit: clearInlineOnExit,
     logs: logs,
     exitOnCtrlC: exitOnCtrlC,
+    stopOnCtrlZ: stopOnCtrlZ,
     restCursor: restCursor,
     clock: clock,
     screenReader: screenReader,
@@ -286,8 +289,9 @@ Future<void> runApp(
 final class AppBinding {
   /// A binding of a `TwkApp` on [terminal], made with [viewport], [maxFps],
   /// [maxInlineRows], [clearInlineOnExit], [logs] and [clock] (the app's
-  /// clock, a new stopwatch by default); [exitOnCtrlC], [restCursor] and
-  /// [screenReader] are as [runApp] takes them. [run] runs an app on it.
+  /// clock, a new stopwatch by default); [exitOnCtrlC], [stopOnCtrlZ],
+  /// [restCursor] and [screenReader] are as [runApp] takes them. [run]
+  /// runs an app on it.
   ///
   /// [environment] is what the app reads its variables from, null (the
   /// default) for the process's: given to its `TwkApp` (`TWK_LOG`,
@@ -311,6 +315,7 @@ final class AppBinding {
     bool clearInlineOnExit = false,
     LogSink? logs,
     this.exitOnCtrlC = true,
+    this.stopOnCtrlZ = true,
     this.restCursor = true,
     Stopwatch? clock,
     bool? screenReader,
@@ -355,6 +360,15 @@ final class AppBinding {
 
   /// Ctrl+C that no focus node or [InputListener] takes quits.
   final bool exitOnCtrlC;
+
+  /// Ctrl+Z that no focus node or [InputListener] takes stops the app for
+  /// the shell it was started from, as Ctrl+Z stops a program in cooked
+  /// mode: the shell has the terminal as it was before the app took it
+  /// until `fg` continues the app, which takes it back and draws it again
+  /// (`TwkApp.suspendToShell`). Only on the process's own terminal on a
+  /// POSIX system (`Terminal.stopsForShell`); elsewhere Ctrl+Z is a key
+  /// that does nothing.
+  final bool stopOnCtrlZ;
 
   /// Whether the terminal's cursor, while no caret shows it, rests on what
   /// has the focus on the whole screen (`Presenter.restsCursor`), the cell
@@ -1259,6 +1273,13 @@ final class AppBinding {
         case KeyEvent(char: 'c', modifiers: Mod.ctrl, kind: KeyKind.press)
         when exitOnCtrlC) {
       quit();
+    } else if (event
+        case KeyEvent(char: 'z', modifiers: Mod.ctrl, kind: KeyKind.press)
+        when stopOnCtrlZ) {
+      if (twkApp.terminal case final Terminal terminal
+          when terminal.stopsForShell) {
+        unawaited(twkApp.suspendToShell());
+      }
     }
   }
 

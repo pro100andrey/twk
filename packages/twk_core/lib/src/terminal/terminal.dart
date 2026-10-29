@@ -848,6 +848,14 @@ final class Terminal
   /// and [suspend] hands the terminal to another program of the process.
   final bool _ofProcess;
 
+  /// Whether the shell the process was started from has the terminal,
+  /// with job control, while the process is stopped ([stopForShell]): the
+  /// process's own terminal (stdin and stdout, [open]) on a POSIX system,
+  /// not plain output, nor a terminal over a link or a socket ([connect]),
+  /// whose shell, where there is one, doesn't run this process.
+  bool get stopsForShell =>
+      _ofProcess && !isWindows && !info.plain && isOwnTerminal(_link);
+
   /// Where what is read and what is written are recorded
   /// (`TWK_TRACE_INPUT`, `TWK_TRACE_OUTPUT`); null when not asked for.
   final TraceWriter? _inputTrace;

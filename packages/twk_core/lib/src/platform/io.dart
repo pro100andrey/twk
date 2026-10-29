@@ -27,6 +27,10 @@ int get processId => pid;
 TerminalLink? ownTerminalLink() =>
     stdin.hasTerminal && stdout.hasTerminal ? StdioLink() : null;
 
+/// Whether [link] is the process's own terminal ([ownTerminalLink]), the
+/// controlling terminal of the shell that started it.
+bool isOwnTerminal(TerminalLink link) => link is StdioLink;
+
 /// Whether stdout is a terminal.
 bool get outputIsTerminal => stdout.hasTerminal;
 

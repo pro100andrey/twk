@@ -66,6 +66,8 @@ void main() {
     expect(term.info.answeredQueries, isTrue);
     expect(term.info.caps.synchronizedOutput, isTrue);
     expect(term.info.kittyKeyboard, isTrue);
+    // no shell of this process has it: Ctrl+Z stops nothing
+    expect(term.stopsForShell, isFalse);
     expect(link.text, contains('\x1b[?1049h'));
     expect(link.text, contains('\x1b[>1u'));
     expect(link.raw, isTrue);
