@@ -523,9 +523,9 @@ NotificationProtocol notificationProtocolFor(Map<String, String> env) {
     case 'iTerm.app':
       return NotificationProtocol.osc9;
     case 'Apple_Terminal':
-      return termNamesItsOwnTerminal(term)
-          ? NotificationProtocol.none
-          : NotificationProtocol.bell;
+      return _isAppleTerminal(env)
+          ? NotificationProtocol.bell
+          : NotificationProtocol.none;
     case 'WezTerm' || 'ghostty':
       return osc777;
     case '' || 'tmux':
@@ -1278,8 +1278,8 @@ final class Terminal
     // its own), and again once the alternate screen is let go: a terminal
     // without one (GNU screen without `altscreen on`, the Linux console)
     // moved it showing a query, whose cells on its line are then erased.
-    // Terminal.app, which answers neither, is asked no DECRQM, nor kitty's
-    // graphics query, nor is GNU screen asked a DECRQM. Among the queries
+    // GNU screen, whose alternate screen may be off, is asked no DECRQM,
+    // which it prints. Among the queries
     // are a cell's size in pixels, the secondary device attributes (DA2,
     // by which Terminal.app is told over ssh too: `1;95;0`) and, unless the
     // protocol images are shown with is given, the graphics query and the
@@ -1295,15 +1295,17 @@ final class Terminal
         o.graphics == null &&
         declared.graphics == null &&
         !GraphicsProtocol.values.any((p) => p.name == env['TWK_GRAPHICS']);
-    final apple = _isAppleTerminal(env);
     final askName = detect && multiplexerFor(env) == Multiplexer.none;
     final term = env['TERM'] ?? '';
     final screenLike = term.startsWith('screen') || env.containsKey('STY');
+    // what Terminal.app prints of them stays on the alternate screen:
+    // asked of it too, as of a terminal started from it, which keeps its
+    // TERM_PROGRAM
     final asked =
-        '${apple || screenLike ? '' : _modeQueries}'
+        '${screenLike ? '' : _modeQueries}'
         '\x1b]10;?\x1b\\\x1b]11;?\x1b\\$_paletteQuery'
         '${o.kittyKeyboard ? '\x1b[?u' : ''}'
-        '\x1b[16t${askName && !apple ? _kittyGraphicsQuery : ''}'
+        '\x1b[16t${askName ? _kittyGraphicsQuery : ''}'
         '${askName ? '\x1b[>0q' : ''}'
         // the Linux console may take it for DA1
         '${term == 'linux' ? '' : '\x1b[>c'}';
@@ -1367,24 +1369,23 @@ final class Terminal
     final multiplexer = multiplexerFor(env);
     // Konsole's lines and its images come with Konsole itself
     final konsole = konsoleLinesFor(env, version: version);
-    // Terminal.app by its secondary device attributes, also over ssh,
-    // where its TERM_PROGRAM isn't passed on (as vim tells it); not
-    // through a multiplexer, which answers them itself
-    final appleAnswered =
-        secondary.length == 3 &&
-        secondary[0] == 1 &&
-        secondary[1] == 95 &&
-        secondary[2] == 0;
-    // what its TERM_PROGRAM would have given: its bell for a
-    // notification, the order of right-to-left text its own, which it
-    // can't be told to leave
-    final appleThere = appleAnswered && multiplexer == Multiplexer.none;
+    // The environment as the terminal tells it by its secondary device
+    // attributes (as vim tells Terminal.app, `1;95;0`): Terminal.app's
+    // TERM_PROGRAM where it answers so, also over ssh, which doesn't pass
+    // it on; none where another answers, a terminal started from
+    // Terminal.app that keeps it (xterm, `41;…`). Not through a
+    // multiplexer, which answers them itself.
+    final told = _toldEnvironment(
+      env,
+      multiplexer == Multiplexer.none ? secondary : const [],
+    );
+    final apple = _isAppleTerminal(told);
     // a terminal that declares it shows the shapes is twk's, which names
     // them by CSS's names
     final pointerNames = switch (declared.pointerShapes) {
       true => PointerNames.css,
       false => null,
-      null => pointerNamesFor(env, version: version),
+      null => pointerNamesFor(told, version: version),
     };
     final graphics =
         o.graphics ??
@@ -1401,17 +1402,14 @@ final class Terminal
         // GNU screen without `defbce on` erases with the default background
         backgroundColorErase: !screenLike,
         repeatChar: repeatChar,
-        // Terminal.app misreads 4:3 (over ssh too, told by DA2): a plain
-        // underline it shows
+        // Terminal.app misreads 4:3: a plain underline it shows
         styledUnderlines:
-            declared.styledUnderlines ??
-            (styledUnderlinesFor(env) && !appleAnswered),
+            declared.styledUnderlines ?? styledUnderlinesFor(told),
         // Terminal.app's DCH shifts a line only up to where the cursor
         // last jumped and drops the background an EL gave the rest of it:
         // its cells are written again instead, which costs bytes, never
-        // cells. Not through a multiplexer, which answers DA2 itself
-        insertDelete:
-            !(apple && multiplexer == Multiplexer.none) && !appleThere,
+        // cells
+        insertDelete: !(apple && multiplexer == Multiplexer.none),
         konsoleLines: konsole,
         konsoleImages: konsole,
         leftRightMargins: supported(69) && !screenLike,
@@ -1441,20 +1439,13 @@ final class Terminal
       cursorColumn: column,
       colorSchemeReports: supported(2031),
       declaredBrightness: brightnessFor(env),
-      notifications:
-          declared.notifications ??
-          (appleThere
-              ? NotificationProtocol.bell
-              : notificationProtocolFor(env)),
+      notifications: declared.notifications ?? notificationProtocolFor(told),
       multiplexer: multiplexer,
       pointerNames: pointerNames,
       progressReports:
-          declared.progressReports ?? progressReportsFor(env, version: version),
-      bidi:
-          o.bidi ??
-          (appleThere && bidiMode == null
-              ? BidiReordering.terminal
-              : bidiReorderingFor(env, mode: bidiMode, version: version)),
+          declared.progressReports ??
+          progressReportsFor(told, version: version),
+      bidi: o.bidi ?? bidiReorderingFor(told, mode: bidiMode, version: version),
       settings: settings,
     );
     return (info, bidiMode);
@@ -1498,6 +1489,32 @@ final class Terminal
   /// A reply to one of the probe's queries the input parser doesn't know:
   /// kitty's graphics query, XTVERSION (`DCS > | name ST`), the cell size,
   /// BDSM.
+  /// [env] as the terminal's secondary device attributes, [secondary]
+  /// (none for no answer), tell it: Terminal.app's `TERM_PROGRAM` where
+  /// they are Terminal.app's, without it where they are another's.
+  static Map<String, String> _toldEnvironment(
+    Map<String, String> env,
+    List<int> secondary,
+  ) {
+    if (secondary.isEmpty) {
+      return env;
+    }
+    final apple =
+        secondary.length == 3 &&
+        secondary[0] == 1 &&
+        secondary[1] == 95 &&
+        secondary[2] == 0;
+    final named = env['TERM_PROGRAM'] == 'Apple_Terminal';
+    if (apple == named) {
+      return env;
+    }
+    return apple
+        ? {...env, 'TERM_PROGRAM': 'Apple_Terminal'}
+        : ({...env}
+            ..remove('TERM_PROGRAM')
+            ..remove('TERM_PROGRAM_VERSION'));
+  }
+
   static bool _isProbeReply(List<int> bytes) {
     final s = String.fromCharCodes(bytes);
     return s.startsWith('\x1b_G') ||

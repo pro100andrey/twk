@@ -133,8 +133,8 @@ void main() {
     },
   );
 
-  test('Terminal.app is asked no DECRQM nor the graphics query, which it '
-      'prints', () async {
+  test('Terminal.app is asked every query on the alternate screen, which '
+      'takes what it prints of them', () async {
     for (final alternateScreen in [true, false]) {
       final link = FakeLink(
         columns: 80,
@@ -150,13 +150,42 @@ void main() {
           alternateScreen: alternateScreen,
         ),
       );
-      expect(link.text, isNot(contains(r'$p')), reason: '$alternateScreen');
-      expect(link.text, isNot(contains('\x1b_G')), reason: '$alternateScreen');
+      final text = link.text;
+      final between = text.substring(
+        text.indexOf('\x1b[?1049h'),
+        text.indexOf('\x1b[?1049l'),
+      );
+      expect(between, contains(r'$p'), reason: '$alternateScreen');
+      expect(between, contains('\x1b_G'), reason: '$alternateScreen');
       expect(term.info.caps.styledUnderlines, isFalse);
       // its DCH shifts a line only as far as it was written in one go
       expect(term.info.caps.insertDelete, isFalse);
       await clock.runUntil(term.close);
     }
+  });
+
+  test('a terminal started from Terminal.app, which keeps its '
+      "TERM_PROGRAM, is told apart by its DA2: xterm's", () async {
+    final term = await clock.open(
+      FakeLink(
+        columns: 80,
+        environment: const {
+          'TERM': 'xterm',
+          'TERM_PROGRAM': 'Apple_Terminal',
+          'XTERM_VERSION': 'XTerm(390)',
+        },
+      )..type('\x1b[5;1R\x1b[?2026;2\$y\x1b[>41;390;0c\x1b[5;1R\x1b[?64c'),
+      const TerminalOptions(
+        probeTimeout: Duration(seconds: 5),
+        alternateScreen: false,
+      ),
+    );
+    expect(term.info.caps.synchronizedOutput, isTrue);
+    expect(term.info.caps.styledUnderlines, isTrue);
+    expect(term.info.caps.insertDelete, isTrue);
+    expect(term.info.notifications, NotificationProtocol.none);
+    expect(term.info.bidi, BidiReordering.app);
+    await clock.runUntil(term.close);
   });
 
   test("inline, what the queries showed is erased on the cursor's line, "
