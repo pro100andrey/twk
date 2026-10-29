@@ -332,6 +332,8 @@ final class RenderCellPaint extends RenderObject {
     canvas.restore();
     if (_rest case (final x, final y)) {
       restCursor(ctx, this, x, y);
+    } else {
+      clearRestCursor(ctx, this);
     }
     final at = _cursor;
     if (at != null) {

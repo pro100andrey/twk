@@ -5,7 +5,7 @@ library;
 
 export 'autocomplete.dart'
     hide autocompleteKeys, autocompleteShowing, autocompleteTook;
-export 'caret.dart' show hideCaret, restCursor, showCaret;
+export 'caret.dart' show clearRestCursor, hideCaret, restCursor, showCaret;
 export 'input_decoration.dart' hide decoratedField;
 export 'text_area.dart';
 export 'text_editing.dart' hide textBufferOf;

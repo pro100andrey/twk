@@ -257,9 +257,20 @@ final _rests = Expando<(RenderObject, int, int)>('rest');
 /// (iTerm2's cursor guide) or follows it (macOS zoom) shows where it is.
 /// Without a cell of its own, the focused widget's first cell is where it
 /// rests; an object puts it on a cell of its own only while it is in that
-/// widget ([restingCell]).
+/// widget ([restingCell]). An object with no such cell any more (nothing
+/// selected, the selected row scrolled away) gives it back to the focused
+/// widget's first cell with [clearRestCursor].
 void restCursor(PaintContext ctx, RenderObject object, int x, int y) {
   _rests[ctx.presenter] = (object, x, y);
+}
+
+/// Forgets the cell [object] put the hidden cursor on ([restCursor]),
+/// painted with [ctx]: it rests on the focused widget's first cell again.
+/// Nothing when the cell is another object's.
+void clearRestCursor(PaintContext ctx, RenderObject object) {
+  if (_rests[ctx.presenter] case (final o, _, _) when identical(o, object)) {
+    _rests[ctx.presenter] = null;
+  }
 }
 
 /// Where [presenter]'s hidden cursor rests on the screen with [focused]

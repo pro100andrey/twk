@@ -76,6 +76,13 @@ void main() {
     row.value = 3;
     await t.pump();
     expect(t.cursor, (3 + 1, 1 + 3));
+    // nothing selected: the widget's first cell again
+    row.value = -1;
+    await t.pump();
+    expect(t.cursor, (3, 1));
+    row.value = 2;
+    await t.pump();
+    expect(t.cursor, (3 + 1, 1 + 2));
     // focus gone: no widget to rest on, it stays
     node.unfocus();
     await t.pump();
@@ -83,7 +90,8 @@ void main() {
   });
 }
 
-/// Rows of text, the [selected] one put where the hidden cursor rests.
+/// Rows of text, the [selected] one put where the hidden cursor rests;
+/// none below 0.
 final class _Rows extends LeafRenderObjectWidget {
   const _Rows(this.selected);
 
@@ -122,6 +130,10 @@ final class _RenderRows extends RenderObject {
     for (var y = 0; y < height; y++) {
       ctx.canvas.text(0, y, y == _selected ? '> row $y' : '  row $y', 0);
     }
-    restCursor(ctx, this, 1, _selected);
+    if (_selected < 0) {
+      clearRestCursor(ctx, this);
+    } else {
+      restCursor(ctx, this, 1, _selected);
+    }
   }
 }
