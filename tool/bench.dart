@@ -20,12 +20,10 @@
 // once per round. With --baseline it also compiles itself against REF,
 // checked out in a temporary git worktree, and runs the two executables
 // alternately, so load that drifts during the run affects both alike. REF
-// is 743dca4 or later: the paragraph scenarios don't compile against a core
-// without `RenderParagraph` spans of (String, Pen). A scenario that needs a
-// core class added since ([_newer]: list-scroll, `RenderList`) is left out
-// of the build of a REF without it, and reported without a before. REF's
-// core is where REF has it: packages/twk_core, or the root of a REF from
-// before it moved there.
+// is a commit of this repository, whose history starts with the core at
+// packages/twk_core in a pub workspace with the scenarios' package; a
+// scenario that uses what REF's core lacks makes the build against REF
+// fail, said as such.
 //
 // On a busy machine timings are noise: pin the run to one core
 // (`taskset -c 23 dart run tool/bench.dart ...`; the executables inherit
@@ -291,16 +289,15 @@ Future<int> _run(_Options opts) async {
       }
       worktree = true;
       // the same scenarios on both sides: this file and the scenarios'
-      // package, against REF's core, but those that need what REF's core
-      // lacks
-      await Directory('$base/tool').create(recursive: true);
-      await File('$base/tool/bench.dart').writeAsString(
-        _forCore(
-          await File('$root/tool/bench.dart').readAsString(),
-          '${_coreDir(base)}/lib',
-        ),
-      );
-      await _scenariosFor(root, base);
+      // package, against REF's core
+      for (final file in [
+        'tool/bench.dart',
+        'tool/frame_scenarios/pubspec.yaml',
+        'tool/frame_scenarios/lib/frame_scenarios.dart',
+      ]) {
+        await File('$base/$file').parent.create(recursive: true);
+        await File('$root/$file').copy('$base/$file');
+      }
       final get = await Process.run(Platform.resolvedExecutable, [
         'pub',
         'get',
@@ -371,103 +368,6 @@ Future<int> _run(_Options opts) async {
     }
     await tmp.delete(recursive: true);
   }
-}
-
-/// The core classes added since the oldest REF that some scenarios need:
-/// their lines, from `// needs <class>` to `// end <class>` (each comment
-/// on a line of its own), are left out of the copy of this file a REF
-/// without the class compiles.
-const _newer = ['RenderList'];
-
-/// [source], this file, for the core whose library is at [lib]: importing
-/// it, and the test package, by the names its pubspec gives (an older
-/// REF's may differ),
-/// and without the lines that need a class of [_newer] the core does not
-/// declare.
-String _forCore(String source, String lib) {
-  final package = _coreName(Directory(lib).parent.path);
-  // the test package is named as the core is (tui_core and tui_test
-  // before the rename to twk)
-  final test = package.replaceFirst(RegExp(r'_core$'), '_test');
-  var out = source
-      .replaceAll(
-        "import 'package:twk_core/twk_core.dart';",
-        "import 'package:$package/$package.dart';",
-      )
-      .replaceAll("import 'package:twk_test/", "import 'package:$test/");
-  final core = [
-    for (final f in Directory(lib).listSync(recursive: true))
-      if (f is File && f.path.endsWith('.dart')) f.readAsStringSync(),
-  ].join('\n');
-  for (final name in _newer) {
-    if (!RegExp('\\bclass $name\\b').hasMatch(core)) {
-      out = out.replaceAll(
-        RegExp(
-          '^ *// needs $name\n.*?^ *// end $name\n',
-          multiLine: true,
-          dotAll: true,
-        ),
-        '',
-      );
-    }
-  }
-  return out;
-}
-
-/// Puts the scenarios' package of [root] into the checkout of REF at
-/// [base], its library for REF's core ([_forCore]) and its dependency on
-/// the core by the name REF's pubspec gives and at the path REF has it
-/// ([_coreDir]), a member of REF's pub workspace only where REF has one,
-/// and makes it a dev dependency of REF's root, so that [_forCore]'s copy
-/// of this file finds it.
-Future<void> _scenariosFor(String root, String base) async {
-  const dir = 'tool/frame_scenarios';
-  await Directory('$base/$dir/lib').create(recursive: true);
-  final coreDir = _coreDir(base);
-  final core = _coreName(coreDir);
-  await File('$base/$dir/lib/frame_scenarios.dart').writeAsString(
-    _forCore(
-      await File('$root/$dir/lib/frame_scenarios.dart').readAsString(),
-      '$coreDir/lib',
-    ),
-  );
-  final pubspec = File('$base/pubspec.yaml');
-  final text = await pubspec.readAsString();
-  final workspace = RegExp('^workspace:', multiLine: true).hasMatch(text);
-  final corePath = coreDir == base ? '../..' : '../../packages/twk_core';
-  var scenarios = (await File('$root/$dir/pubspec.yaml').readAsString())
-      .replaceFirst(
-        RegExp(r'^  twk_core:\n    path: .*$', multiLine: true),
-        '  $core:\n    path: $corePath',
-      );
-  if (!workspace) {
-    scenarios = scenarios.replaceFirst(
-      RegExp(r'^resolution: workspace\n', multiLine: true),
-      '',
-    );
-  }
-  await File('$base/$dir/pubspec.yaml').writeAsString(scenarios);
-  if (!text.contains('twk_frame_scenarios:')) {
-    await pubspec.writeAsString(
-      text.replaceFirst(
-        RegExp(r'^dev_dependencies:\n', multiLine: true),
-        'dev_dependencies:\n  twk_frame_scenarios:\n    path: $dir\n',
-      ),
-    );
-  }
-}
-
-/// The package name of the core in [dir], as its pubspec gives it.
-String _coreName(String dir) => RegExp(
-  r'^name: *(\w+)',
-  multiLine: true,
-).firstMatch(File('$dir/pubspec.yaml').readAsStringSync())![1]!;
-
-/// The core's directory in [checkout]: packages/twk_core, or [checkout]
-/// itself in a checkout from before the core moved there.
-String _coreDir(String checkout) {
-  final moved = '$checkout/packages/twk_core';
-  return File('$moved/pubspec.yaml').existsSync() ? moved : checkout;
 }
 
 /// Compiles `tool/bench.dart` of the checkout at [dir] to [out]; returns

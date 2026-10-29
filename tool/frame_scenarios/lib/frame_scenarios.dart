@@ -2,11 +2,6 @@
 /// at a time on a [FrameRig], the core wired up without a terminal. What
 /// `tool/bench.dart` times and checks against the test emulator, and
 /// `tool/alloc` counts the allocations of.
-///
-/// A scenario that needs a class of the core added since the oldest
-/// commit the benchmark compiles against keeps its lines between
-/// `// needs <class>` and `// end <class>`, which the benchmark leaves out
-/// of a build against a core without it.
 library;
 
 import 'dart:typed_data';
@@ -235,7 +230,6 @@ final frameScenarios = <FrameScenario>[
       };
     },
   ),
-  // needs RenderList
   FrameScenario(
     'list-scroll',
     'a row scrolled in a list of 100k items of 1 to 3 rows, built as they come',
@@ -249,7 +243,6 @@ final frameScenarios = <FrameScenario>[
       };
     },
   ),
-  // end RenderList
   FrameScenario('keys', '2000 key and mouse events decoded', (_) {
     final bytes = _keyBytes(200);
     final parser = InputParser();
@@ -565,7 +558,6 @@ final class _Prose extends _Scene {
   }
 }
 
-// needs RenderList
 /// A [RenderList] of 100k items over the screen, 1 to 3 rows of text each,
 /// built as they come into view.
 final class _List extends _Scene implements ListItemManager {
@@ -599,4 +591,3 @@ final class _List extends _Scene implements ListItemManager {
   @override
   void dropItem(RenderObject item) => list.remove(item);
 }
-// end RenderList
