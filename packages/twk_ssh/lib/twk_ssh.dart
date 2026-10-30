@@ -9,6 +9,6 @@ export 'src/connection.dart' show SessionHandler, SshConnection;
 export 'src/keys.dart' show AuthorizedKeys, SshHostKey, SshPublicKey;
 export 'src/link.dart' show SshTerminalLink;
 export 'src/serve.dart' show SshApp, serveSsh;
-export 'src/server.dart' show SshServer;
+export 'src/server.dart' show SshPenalty, SshServer;
 export 'src/session.dart' show SshPty, SshSession;
 export 'src/transport.dart' show SshRekeyLimit, SshTimers;

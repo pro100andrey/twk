@@ -31,7 +31,7 @@ void main() {
       () => server.connections.every((c) => c.user != null),
       'the refused connections to end',
     );
-    await clock.elapse(SshServer.maxPenalty);
+    await clock.elapse(const SshPenalty().max);
   }
 
   Matcher refused() => throwsA(isA<SSHAuthFailError>());

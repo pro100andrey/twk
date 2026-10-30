@@ -10,6 +10,26 @@ import 'keys.dart';
 import 'transport.dart';
 import 'wire.dart';
 
+/// How long [SshServer] refuses an address whose connection ended without
+/// a login after a failed attempt: [perFailure] for each such connection
+/// (those at it at once adding up), [max] at most. OpenSSH's
+/// `PerSourcePenalties`, `authfail` and `max`: guessing passwords costs
+/// time, not only connections.
+final class SshPenalty {
+  /// [perFailure] for each connection that failed, [max] at most.
+  const SshPenalty({
+    this.perFailure = const Duration(seconds: 5),
+    this.max = const Duration(minutes: 10),
+  });
+
+  /// How long an address is refused for each connection of it that ended
+  /// without a login after a failed attempt.
+  final Duration perFailure;
+
+  /// The longest an address is refused for.
+  final Duration max;
+}
+
 /// A minimal SSH server: it proves itself with its host keys, lets in whom
 /// its [SshAuth] accepts, and runs each session a client asks for with the
 /// `onSession` handler (see [SshConnection] for what a connection does).
@@ -17,6 +37,8 @@ final class SshServer {
   SshServer._(
     this._socket,
     this.maxUnauthenticated,
+    this.penalty,
+    this.penaltyExempt,
     this._clock,
     this._accept,
   );
@@ -28,10 +50,13 @@ final class SshServer {
   /// comes while that many have not logged in yet is closed at once,
   /// before a byte is sent or read, as OpenSSH's `MaxStartups` starts to
   /// do at 10. An address whose connection ends without a login after a
-  /// failed attempt is refused the same way for [failurePenalty], more for
-  /// each such connection up to [maxPenalty] (OpenSSH's
-  /// `PerSourcePenalties`): what guessing passwords costs is time, not
-  /// only connections; the time read on [clock]. Each connection's keys
+  /// failed attempt is refused the same way for a while ([penalty], read
+  /// on [clock]); null refuses none, and [penaltyExempt] says which never
+  /// are (OpenSSH's `PerSourcePenaltyExemptList`). Behind a reverse proxy,
+  /// a load balancer or Docker's userland proxy every client may come
+  /// from the one address of it, and one client's failures would refuse
+  /// them all: such a server exempts that address, or takes no penalty
+  /// and leaves the limit to what is in front of it. Each connection's keys
   /// change after [rekeyLimit], its time read on [clock] too (a stopwatch
   /// of the connection's by default; a test's runs on a fake clock), and
   /// its deadlines on [timers]
@@ -46,6 +71,8 @@ final class SshServer {
     required SessionHandler onSession,
     Duration loginTimeout = const Duration(minutes: 2),
     int maxUnauthenticated = 10,
+    SshPenalty? penalty = const SshPenalty(),
+    bool Function(InternetAddress address)? penaltyExempt,
     SshRekeyLimit rekeyLimit = const SshRekeyLimit(),
     Stopwatch? clock,
     SshTimers? timers,
@@ -66,6 +93,8 @@ final class SshServer {
     return SshServer._(
       socket,
       maxUnauthenticated,
+      penalty,
+      penaltyExempt,
       clock ?? (Stopwatch()..start()),
       (client) => SshConnection(
         client,
@@ -85,12 +114,12 @@ final class SshServer {
   /// How many clients may be connected without having logged in.
   final int maxUnauthenticated;
 
-  /// How long an address is refused for each connection of it that ended
-  /// without a login after a failed attempt.
-  static const failurePenalty = Duration(seconds: 5);
+  /// How long an address whose connection ended without a login after a
+  /// failed attempt is refused; null for none.
+  final SshPenalty? penalty;
 
-  /// The longest an address is refused for.
-  static const maxPenalty = Duration(minutes: 10);
+  /// Whether an address is never refused for [penalty].
+  final bool Function(InternetAddress address)? penaltyExempt;
 
   final Stopwatch _clock;
 
@@ -138,7 +167,9 @@ final class SshServer {
       unawaited(
         connection.done.then((_) {
           _connections.remove(connection);
-          if (connection.user == null && connection.failures > 0) {
+          if (connection.user == null &&
+              connection.failures > 0 &&
+              !(penaltyExempt?.call(from) ?? false)) {
             _penalise(from);
           }
         }),
@@ -147,10 +178,14 @@ final class SshServer {
   }
 
   void _penalise(InternetAddress address) {
+    final p = penalty;
+    if (p == null) {
+      return;
+    }
     final now = _clock.elapsed;
     final from = _penalties[address];
-    final until = (from != null && from > now ? from : now) + failurePenalty;
-    _penalties[address] = until - now > maxPenalty ? now + maxPenalty : until;
+    final until = (from != null && from > now ? from : now) + p.perFailure;
+    _penalties[address] = until - now > p.max ? now + p.max : until;
   }
 
   /// Stops listening and ends every connection.

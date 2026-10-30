@@ -128,9 +128,13 @@ than ten key exchanges at a time; it also means ten clients that never
 log in hold the door for `loginTimeout`, so a server facing the open
 internet wants a shorter one, and a firewall's per-address limit. An
 address whose connection ends without a login after a failed attempt is
-refused for 5 seconds more for each, up to 10 minutes, as OpenSSH's
-`PerSourcePenalties`: guessing passwords costs time, not only
-connections.
+refused for 5 seconds more for each, up to 10 minutes (`penalty`, an
+`SshPenalty`), as OpenSSH's `PerSourcePenalties`: guessing passwords
+costs time, not only connections. Behind a reverse proxy, a load balancer
+or Docker's userland proxy every client may come from one address, and
+one client's failures would refuse them all: `penaltyExempt` names the
+addresses never refused (OpenSSH's `PerSourcePenaltyExemptList`), and a
+`penalty` of null refuses none.
 
 The host key is an OpenSSH, PKCS#1 or SEC1 private key file, encrypted
 or not (`SshHostKey.load`), or a new ssh-ed25519 key generated into a

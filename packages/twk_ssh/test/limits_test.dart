@@ -276,16 +276,10 @@ void main() {
     });
   });
 
-  test('an address whose connection ended without a login after a failure '
-      'is refused for a penalty, then let in again', () async {
-    final clock = FakeClock();
-    final server = await serve(
-      auth: acceptKeys([alice]),
-      onSession: (session) => session.done,
-      clock: clock.stopwatch,
-    );
+  group('an address whose connection ended without a login after a '
+      'failure', () {
     // a password, which the server takes none of: a failure
-    Future<void> fail() async {
+    Future<void> fail(SshServer server) async {
       final client = await RawClient.connect(server);
       await client.exchangeKeys();
       client.sendMessage(
@@ -311,24 +305,61 @@ void main() {
       );
     }
 
-    Future<bool> refused() async {
+    Future<bool> refused(SshServer server) async {
       final client = await RawClient.connect(server);
       return client.closes(const Duration(seconds: 5));
     }
 
-    await fail();
-    expect(await refused(), isTrue);
-    await clock.elapse(SshServer.failurePenalty - const Duration(seconds: 1));
-    expect(await refused(), isTrue);
-    await clock.elapse(const Duration(seconds: 1));
-    // let in again, and failing again: refused again
-    await fail();
-    expect(await refused(), isTrue);
-    expect(server.refused, 3);
-    await clock.elapse(SshServer.failurePenalty);
-    final client = await RawClient.connect(server);
-    await client.exchangeKeys();
-    await client.logIn('alice', alice.pair);
+    /// Whether a client of [server] gets through a key exchange: let in.
+    Future<void> letIn(SshServer server) async {
+      final client = await RawClient.connect(server);
+      await client.exchangeKeys();
+      client.socket.destroy();
+    }
+
+    test('is refused for the penalty, then let in again', () async {
+      final clock = FakeClock();
+      final server = await serve(
+        auth: acceptKeys([alice]),
+        onSession: (session) => session.done,
+        clock: clock.stopwatch,
+      );
+      const penalty = SshPenalty();
+      await fail(server);
+      expect(await refused(server), isTrue);
+      await clock.elapse(penalty.perFailure - const Duration(seconds: 1));
+      expect(await refused(server), isTrue);
+      await clock.elapse(const Duration(seconds: 1));
+      // let in again, and failing again: refused again
+      await fail(server);
+      expect(await refused(server), isTrue);
+      expect(server.refused, 3);
+      await clock.elapse(penalty.perFailure);
+      final client = await RawClient.connect(server);
+      await client.exchangeKeys();
+      await client.logIn('alice', alice.pair);
+    });
+
+    test('is let in at once without a penalty, or when it is exempt, as a '
+        "proxy's that all clients come from", () async {
+      for (final server in [
+        await serve(
+          auth: acceptKeys([alice]),
+          onSession: (session) => session.done,
+          penalty: null,
+        ),
+        await serve(
+          auth: acceptKeys([alice]),
+          onSession: (session) => session.done,
+          penaltyExempt: (address) => address.isLoopback,
+        ),
+      ]) {
+        await fail(server);
+        await fail(server);
+        await letIn(server);
+        expect(server.refused, 0);
+      }
+    });
   });
 
   group('a key exchange after the first the client leaves undone', () {
