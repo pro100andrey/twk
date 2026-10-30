@@ -275,4 +275,83 @@ void main() {
       );
     });
   });
+
+  group('a key exchange after the first the client leaves undone', () {
+    // the server's clock and deadlines on one fake clock; the login is
+    // done first, so that only the exchange's deadline is left on it
+    late FakeClock clock;
+    late SshSession session;
+    late SshServer server;
+    late RawClient client;
+    late Uint8List kexInit;
+
+    setUp(() async {
+      clock = FakeClock();
+      final opened = Completer<void>();
+      server = await serve(
+        auth: acceptKeys([alice]),
+        onSession: (s) {
+          session = s;
+          opened.complete();
+          return s.done;
+        },
+        rekeyLimit: const SshRekeyLimit(time: Duration(minutes: 10)),
+        clock: clock.stopwatch,
+        timers: (duration, callback) =>
+            clock.run(() => Timer(duration, callback)),
+      );
+      client = await RawClient.connect(server);
+      await client.exchangeKeys();
+      await client.logIn('alice', alice.pair);
+      await client.openShell();
+      await opened.future;
+      await clock.elapse(const Duration(minutes: 10));
+      // the packet read past the time starts the exchange; its answer is
+      // held
+      client.send(unknown);
+      kexInit = await client.expectNext(SshMsg.kexInit);
+    });
+
+    test('ends the connection once its time is up', () async {
+      await clock.elapse(
+        SshTransport.kexTimeout - const Duration(seconds: 1),
+      );
+      expect(server.connections.single.transport.isClosed, isFalse);
+      await clock.elapse(const Duration(seconds: 1));
+      expect(await client.disconnectReason(), SshDisconnect.keyExchangeFailed);
+    });
+
+    test('ends the connection when what the server holds meanwhile goes '
+        'past its bound', () async {
+      final bound = SshTransport.maxHeld;
+      addTearDown(() => SshTransport.maxHeld = bound);
+      // each answer is 5 bytes: the first held, and ten more
+      SshTransport.maxHeld = 54;
+      for (var i = 0; i < 10; i++) {
+        client.send(unknown);
+      }
+      expect(await client.disconnectReason(), SshDisconnect.byApplication);
+    });
+
+    test("keeps the channel's output, and its flush waiting, until it is "
+        'done', () async {
+      session.add(utf8.encode('late'));
+      var flushed = false;
+      unawaited(session.flush().then((_) => flushed = true));
+      await pumpEventQueue();
+      expect(server.connections.single.transport.holding, isTrue);
+      expect(flushed, isFalse);
+      final between = await client.exchangeKeys(
+        first: false,
+        serverKexInit: kexInit,
+      );
+      expect(between, isEmpty);
+      await client.expectNext(SshMsg.unimplemented);
+      final data = SshReader(await client.expectNext(SshMsg.channelData))
+        ..byte()
+        ..uint32();
+      expect(utf8.decode(data.string()), 'late');
+      await waitUntil(() => flushed, 'the flush to complete');
+    });
+  });
 }

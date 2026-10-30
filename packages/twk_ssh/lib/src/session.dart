@@ -66,6 +66,11 @@ final class SshPty {
 abstract interface class SessionTransport {
   void send(Uint8List payload);
 
+  /// Whether what is sent now is held, a key exchange under way: the
+  /// channel's data then waits in the channel, and its flushes with it,
+  /// until [SshSession.resumeOutput].
+  bool get holding;
+
   /// The channel is closed both ways.
   void channelClosed();
 }
@@ -268,7 +273,10 @@ final class SshSession {
   }
 
   void _sendOutput() {
-    while (_output.isNotEmpty && _remoteWindow > 0 && !_closeSent) {
+    while (_output.isNotEmpty &&
+        _remoteWindow > 0 &&
+        !_closeSent &&
+        !_transport.holding) {
       final first = _output.first;
       final n = [
         first.length - _outputAt,
@@ -375,6 +383,11 @@ final class SshSession {
     _localWindow -= length;
     _consumed(length);
   }
+
+  @internal
+  /// The transport sends again, a key exchange done: the output held in
+  /// the channel meanwhile goes.
+  void resumeOutput() => _sendOutput();
 
   @internal
   /// The client grants [bytes] more of output.

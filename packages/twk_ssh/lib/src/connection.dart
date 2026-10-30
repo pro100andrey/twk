@@ -17,10 +17,6 @@ import 'wire.dart';
 /// the session ends when the future completes (see `SshConnection`).
 typedef SessionHandler = FutureOr<void> Function(SshSession session);
 
-/// Starts a timer that calls [callback] once [duration] has passed:
-/// `Timer.new`, or a test's on a fake clock.
-typedef SshTimers = Timer Function(Duration duration, void Function() callback);
-
 /// One client's connection: authentication within `loginTimeout`, then
 /// one session channel at a time; the connection ends once that channel
 /// is closed and the client doesn't close the connection itself.
@@ -56,8 +52,10 @@ final class SshConnection implements SessionTransport {
       version: version,
       onMessage: _onMessage,
       onClose: _onClose,
+      onReleased: () => _session?.resumeOutput(),
       rekeyLimit: rekeyLimit,
       clock: clock,
+      timers: _timers,
     );
     _loginTimer = _timers(
       loginTimeout,
@@ -112,6 +110,9 @@ final class SshConnection implements SessionTransport {
 
   @override
   void send(Uint8List payload) => transport.send(payload);
+
+  @override
+  bool get holding => transport.holding;
 
   @override
   void channelClosed() {

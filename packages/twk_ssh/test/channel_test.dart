@@ -18,6 +18,9 @@ final class FakeTransport implements SessionTransport {
   @override
   void channelClosed() => closed++;
 
+  @override
+  var holding = false;
+
   /// The data of the CHANNEL_DATA messages sent, each.
   List<int> get dataLengths => [
     for (final p in sent)
