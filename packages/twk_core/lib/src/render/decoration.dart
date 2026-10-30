@@ -459,6 +459,7 @@ final class RenderDecoratedBox extends RenderObject
   // each title shaped by _shapedBy for _shapedIn (null: to be shaped)
   final _runs = <GlyphRun?>[];
   GlyphTable? _shapedIn;
+  var _shapedSweeps = 0;
   TextSegmenter? _shapedBy;
 
   // the ids in _pensIn of the background, the top, right, bottom and left
@@ -855,8 +856,12 @@ final class RenderDecoratedBox extends RenderObject
 
   void _paintTitles(Canvas canvas) {
     final seg = canvas.segmenter;
-    if (!identical(canvas.glyphs, _shapedIn) || !identical(seg, _shapedBy)) {
+    // since a sweep of the glyphs, the ids may be others'
+    if (!identical(canvas.glyphs, _shapedIn) ||
+        canvas.glyphs.sweeps != _shapedSweeps ||
+        !identical(seg, _shapedBy)) {
       _shapedIn = canvas.glyphs;
+      _shapedSweeps = canvas.glyphs.sweeps;
       _shapedBy = seg;
       _runs.fillRange(0, _runs.length, null);
     }

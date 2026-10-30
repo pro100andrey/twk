@@ -39,6 +39,9 @@ final class RenderLog extends RenderObject {
   final int Function(int index, String line) itemPen;
   final _lines = <String>[];
   final _runs = <GlyphRun?>[];
+  // the glyph table the runs are of, and its sweeps when they were shaped
+  GlyphTable? _runsIn;
+  var _runsSweeps = 0;
 
   // the index of the first visible line; follows the end while stickToEnd
   var _first = 0;
@@ -171,6 +174,12 @@ final class RenderLog extends RenderObject {
     final newFrom = (_paintedLength - _first).clamp(0, height);
     final newTo = (_lines.length - _first).clamp(0, height);
     final cv = ctx.canvas;
+    if (!identical(cv.glyphs, _runsIn) || cv.glyphs.sweeps != _runsSweeps) {
+      // since a sweep of the glyphs, the ids may be others'
+      _runsIn = cv.glyphs;
+      _runsSweeps = cv.glyphs.sweeps;
+      _runs.fillRange(0, _runs.length, null);
+    }
     for (var row = 0; row < height; row++) {
       if ((row < from || row >= to) && (row < newFrom || row >= newTo)) {
         continue;

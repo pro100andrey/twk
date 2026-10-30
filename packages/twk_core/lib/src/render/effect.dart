@@ -85,6 +85,7 @@ abstract base class RenderEffect extends RenderObject
   // was under it and what the child painted, each valid in a span of
   // columns per row, from [2 * y] to [2 * y + 1]; on _surface, at its size
   Surface? _surface;
+  late final _keeper = _Kept(this);
   var _w = 0;
   var _h = 0;
   var _underCells = Uint32List(0);
@@ -137,6 +138,7 @@ abstract base class RenderEffect extends RenderObject
 
   @override
   void detach() {
+    _surface?.release(_keeper);
     _surface = null;
     super.detach();
   }
@@ -232,6 +234,12 @@ abstract base class RenderEffect extends RenderObject
 
   /// Forgets all it kept, from now on of [surface] at its size.
   void _reset(Surface surface) {
+    if (!identical(surface, _surface)) {
+      // what it keeps is the surface's, its glyphs and styles kept in a
+      // sweep
+      _surface?.release(_keeper);
+      surface.keep(_keeper);
+    }
     _surface = surface;
     _w = width;
     _h = height;
@@ -421,6 +429,25 @@ abstract base class RenderEffect extends RenderObject
         cells[row + x1 - 1] = kBlank;
       }
       surface.markDirty(y, x0, x1);
+    }
+  }
+}
+
+/// What a [RenderEffect] keeps of its surface's cells, marked in a sweep.
+final class _Kept implements CellKeeper {
+  _Kept(this.effect);
+
+  final RenderEffect effect;
+
+  @override
+  void markCells(void Function(int glyph) glyph, void Function(int id) style) {
+    final e = effect;
+    final n = e._w * e._h;
+    for (var i = 0; i < n; i++) {
+      glyph(e._underCells[i]);
+      style(e._underStyles[i]);
+      glyph(e._childCells[i]);
+      style(e._childStyles[i]);
     }
   }
 }

@@ -571,17 +571,23 @@ final class Presenter {
   /// The front buffer may have blanks under images ([_kUnder]).
   var _marked = false;
 
-  /// Marks the style of every cell it keeps: what the terminal shows, the
-  /// rows committed for the next frame, the blank they replace, and the
-  /// SGR the terminal is in ([StyleTable.sweep]).
-  void markStyles(void Function(int id) mark) {
-    for (final styles in [_fs, _ps, _blankStyles]) {
-      for (var i = 0; i < styles.length; i++) {
-        mark(styles[i]);
+  /// Marks the glyph word ([glyph]) and the style ([style]) of every cell
+  /// it keeps: what the terminal shows, the rows committed for the next
+  /// frame and the blank they replace; and the SGR the terminal is in
+  /// ([GlyphTable.sweep], [StyleTable.sweep]).
+  void markCells(void Function(int glyph) glyph, void Function(int id) style) {
+    for (final (cells, styles) in [
+      (_fc, _fs),
+      (_pc, _ps),
+      (_blankCells, _blankStyles),
+    ]) {
+      for (var i = 0; i < cells.length; i++) {
+        glyph(cells[i]);
+        style(styles[i]);
       }
     }
     if (_sgr >= 0) {
-      mark(_sgr);
+      style(_sgr);
     }
   }
 

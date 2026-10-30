@@ -130,9 +130,13 @@ final class Harness {
   /// harness keeps to check it against: roots of a sweep, as the
   /// terminal's history is no screen's. Those committed and not written
   /// yet are the presenter's to keep.
-  void markCommitted(void Function(int id) mark) {
+  void markCommitted(
+    void Function(int glyph) glyph,
+    void Function(int id) style,
+  ) {
     for (final row in committed) {
-      row.styles.forEach(mark);
+      row.cells.forEach(glyph);
+      row.styles.forEach(style);
     }
   }
 

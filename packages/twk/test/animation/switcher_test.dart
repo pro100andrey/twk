@@ -6,7 +6,7 @@
 // boundary inside an Opacity mixed as it repaints on its own.
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
-import 'package:twk_core/twk_core.dart' show kCont, kWide;
+import 'package:twk_core/twk_core.dart' show LogLevel, Screen, kCont, kWide;
 import 'package:twk_test/twk_test.dart';
 
 const ms = Duration(milliseconds: 1);
@@ -391,6 +391,48 @@ void main() {
       await t.pump(ms * 80);
     }
     expect(t.lines.single, isNot(first));
+  });
+
+  testTwk('what an Opacity keeps of the cells under it lives through the '
+      "screen's sweeps, as a repaint boundary in it repaints", (t) async {
+    final floor = Screen.sweepFloor;
+    addTearDown(() => Screen.sweepFloor = floor);
+    Screen.sweepFloor = 8;
+    await t.pumpWidget(
+      const Box(
+        // no cell but those under the Opacity has it, nor any pen, as a
+        // translucent pen's style is made over what is under it
+        style: Style(bg: Color.rgb(0, 200, 0), bgAlpha: 128),
+        child: Opacity(
+          opacity: 0.5,
+          child: Spinner(
+            style: Style(fg: white, bg: Color.rgb(0, 0, 200)),
+          ),
+        ),
+      ),
+      // all of it under the Opacity
+      size: (1, 1),
+    );
+    final screen = t.binding.twkApp.screen;
+    final first = t.lines.single;
+    for (var step = 0; step < 6; step++) {
+      // styles and glyphs no cell has: the next frames sweep them
+      for (var i = 0; i < 64; i++) {
+        screen.styles.style(fg: Color.rgb(step, i, 9));
+        screen.glyphs.intern('a${String.fromCharCode(0x300 + i)}', 0, 2);
+      }
+      await t.pump(ms * 80);
+      // the spinner's blue half over the green half under it
+      expect(t.cell(0, 0).bg, const Color.rgb(0, 50, 100).value);
+    }
+    expect(screen.styles.sweeps, greaterThan(0));
+    expect(screen.glyphs.sweeps, greaterThan(0));
+    expect(t.lines.single, isNot(first));
+    // a style kept and freed would fail an assert as it is mixed
+    expect([
+      for (final r in t.logs.records)
+        if (r.level == LogLevel.error) r,
+    ], isEmpty);
   });
 
   testTwk('Dissolve shows a share of its cells; one with inverse at 1 - t '

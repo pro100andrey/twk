@@ -54,6 +54,19 @@ others, the cells a view diffs against) makes them again when
 `StyleTable.sweeps` has changed; with asserts, a freed id read before a
 style has it again fails where it is read.
 
+The glyphs are swept the same way, on a doubling of their own
+(`GlyphTable.sweep`, `sweeps`): a cluster of several code points no
+cell has is freed and its id given out again, so a program writing ever
+new clusters in a `TerminalView`, or a client pasting them, keeps those
+in use (past the ids a cell has room for, which no screen's cells reach,
+a cluster is U+FFFD, not an error). What keeps cells of a surface from
+one frame to the next beyond it, an effect's cells under it, a
+cross-fade's of what was there, registers with the surface
+(`Surface.keep`, a `CellKeeper`) and is marked as the surface is. What
+keeps glyph ids made from text (a paragraph's clusters, a box's titles,
+a log's lines) interns them again when it paints after a sweep: a
+paragraph's layout stands, only its ids are looked up again.
+
 ## §1.3 Damage without help from widgets
 
 Every canvas primitive extends the dirty span of the rows it writes, and the

@@ -924,6 +924,8 @@ final class RenderParagraph extends RenderObject {
   // the clusters of several code points have their ids in _internedIn,
   // but for [_internFrom, _internTo), split again since
   GlyphTable? _internedIn;
+  // _internedIn's sweeps then: since a sweep, the ids may be others'
+  var _internedSweeps = 0;
   var _internFrom = 0;
   var _internTo = 0;
   var _ellipsisWidth = 1;
@@ -3144,7 +3146,8 @@ final class RenderParagraph extends RenderObject {
       _layoutLines(_constraints!.maxW);
     }
     if (_hasMulti) {
-      if (!identical(_internedIn, canvas.glyphs)) {
+      if (!identical(_internedIn, canvas.glyphs) ||
+          canvas.glyphs.sweeps != _internedSweeps) {
         _intern(canvas.glyphs, 0, _count);
         _rowsKept = false;
       } else if (_internFrom < _internTo) {
@@ -3201,6 +3204,7 @@ final class RenderParagraph extends RenderObject {
       }
     }
     _internedIn = glyphs;
+    _internedSweeps = glyphs.sweeps;
     _internFrom = 0;
     _internTo = 0;
     // the lines ordered for drawing hold copies

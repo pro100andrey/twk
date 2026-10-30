@@ -558,7 +558,21 @@ final class Canvas {
   /// [styles] ([StyleTable.style]), as they are, with no pen: for cells
   /// whose styles come whole from elsewhere (a terminal emulator's), which
   /// a pen each would keep for good.
-  int runStyled(int x, int y, GlyphRun r, int style) {
+  @pragma('vm:prefer-inline')
+  int runStyled(int x, int y, GlyphRun r, int style) =>
+      runRangeStyled(x, y, r.glyphs, 0, r.glyphs.length, style);
+
+  /// Draws glyph words [start, end) of [g] as [runStyled] draws a run of
+  /// them: a piece of a buffer, drawn without copying it out.
+  int runRangeStyled(
+    int x,
+    int y,
+    Uint32List g,
+    int start,
+    int end,
+    int style,
+  ) {
+    assert(0 <= start && start <= end && end <= g.length, 'range in g');
     final ay = y + _oy;
     if (ay < _cy0 || ay >= _cy1) {
       return 0;
@@ -572,8 +586,7 @@ final class Canvas {
     _lastIn = -1;
     _dmgLo = 1 << 30;
     _dmgHi = -1;
-    final g = r.glyphs;
-    for (var i = 0; i < g.length; i++) {
+    for (var i = start; i < end; i++) {
       if (ax >= _cx1) {
         break;
       }

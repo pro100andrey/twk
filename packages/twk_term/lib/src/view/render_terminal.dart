@@ -88,8 +88,9 @@ final class _RenderTerminal extends RenderObject {
   // painted again on the next paint
   var _shown = <TerminalLine>[];
 
-  // the sweeps of the emulator's table when _shown was painted
+  // the sweeps of the emulator's tables when _shown was painted
   var _shownSweeps = 0;
+  var _shownGlyphSweeps = 0;
   var _full = true;
   var _reverse = false;
 
@@ -272,9 +273,12 @@ final class _RenderTerminal extends RenderObject {
         _reverse = reverse;
         _full = true;
       }
-      // swept (StyleTable.sweep): the ids kept are of the table as it was
-      if (em.styles.sweeps != _shownSweeps) {
+      // swept (StyleTable.sweep, GlyphTable.sweep): the ids kept are of
+      // the tables as they were
+      if (em.styles.sweeps != _shownSweeps ||
+          em.glyphs.sweeps != _shownGlyphSweeps) {
         _shownSweeps = em.styles.sweeps;
+        _shownGlyphSweeps = em.glyphs.sweeps;
         _full = true;
       }
       _moveRows(ctx, w, h);

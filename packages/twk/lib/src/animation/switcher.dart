@@ -15,6 +15,7 @@ import 'package:twk_core/twk_core.dart'
         Attr,
         BoxConstraints,
         Canvas,
+        CellKeeper,
         Color,
         PaintContext,
         Pen,
@@ -539,6 +540,23 @@ int _rank(int x, int y) {
   return (h ^ (h >> 16)) & (_ranks - 1);
 }
 
+/// What a [_RenderMixed] keeps of the cells under it, marked in a sweep.
+final class _Kept implements CellKeeper {
+  _Kept(this.mixed);
+
+  final _RenderMixed mixed;
+
+  @override
+  void markCells(void Function(int glyph) glyph, void Function(int id) style) {
+    final m = mixed;
+    final n = (m._x1 - m._x0) * (m._y1 - m._y0);
+    for (var i = 0; i < n && i < m._cells.length; i++) {
+      glyph(m._cells[i]);
+      style(m._styles[i]);
+    }
+  }
+}
+
 /// As big as its child, which it paints over what is under it and then
 /// mixes with that cell by cell ([_mix]) in the cells the canvas lets it
 /// paint, keeping what was under them: what a repaint boundary inside the
@@ -564,6 +582,9 @@ abstract base class _RenderMixed extends RenderObject
   // what was under the cells _x0.._x1, _y0.._y1 of _surface when it last
   // painted, row by row
   Surface? _surface;
+  // the surface what it keeps is marked on in a sweep
+  Surface? _keptOn;
+  late final _keeper = _Kept(this);
   var _x0 = 0;
   var _y0 = 0;
   var _x1 = 0;
@@ -606,6 +627,8 @@ abstract base class _RenderMixed extends RenderObject
   @override
   void detach() {
     _surface = null;
+    _keptOn?.release(_keeper);
+    _keptOn = null;
     super.detach();
   }
 
@@ -682,6 +705,12 @@ abstract base class _RenderMixed extends RenderObject
       _cells.setRange(to, to + w, surface.cells, from);
       _styles.setRange(to, to + w, surface.styles, from);
     }
+    if (!identical(surface, _keptOn)) {
+      // what it keeps is the surface's, its glyphs and styles kept in a
+      // sweep
+      _keptOn?.release(_keeper);
+      _keptOn = surface..keep(_keeper);
+    }
     _surface = surface;
     _x0 = x0;
     _y0 = y0;
@@ -750,8 +779,9 @@ final class _RenderOpacity extends _RenderMixed {
   }
 
   // the styles mixed since it last painted: by the child's style, the
-  // style under it and whose text shows
+  // style under it and whose text shows; of the table's sweeps then
   final _mixed = <int, int>{};
+  var _mixedSweeps = 0;
 
   @override
   bool get _whole => _alpha >= 255;
@@ -785,6 +815,11 @@ final class _RenderOpacity extends _RenderMixed {
     }
     final child =
         !_blank(styles, c, s) && (_alpha >= 0x80 || _blank(styles, u, us));
+    if (styles.sweeps != _mixedSweeps) {
+      // swept since: the ids kept may be other styles'
+      _mixedSweeps = styles.sweeps;
+      _mixed.clear();
+    }
     _glyph = child ? c : u;
     _style = _mixed[s << 32 | us << 1 | (child ? 1 : 0)] ??= _mixStyle(
       styles,

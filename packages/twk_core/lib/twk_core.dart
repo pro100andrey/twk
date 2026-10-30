@@ -41,6 +41,7 @@ export 'src/screen.dart' show Screen;
 export 'src/style.dart' show Attr, Color, ColorMode, Pen, StyleTable;
 export 'src/surface.dart'
     show
+        CellKeeper,
         GlyphTable,
         Surface,
         kBlank,

@@ -168,42 +168,53 @@ final class Screen {
     return out;
   }
 
-  /// The fewest styles in use the [styles] are swept past; a test's may
-  /// be fewer.
+  /// The fewest styles, or glyphs, in use the [styles], or the [glyphs],
+  /// are swept past; a test's may be fewer.
   static var sweepFloor = 4096;
 
-  // swept once this many styles are in use
-  var _sweepAt = 0;
+  // each swept once this many are in use
+  var _stylesAt = 0;
+  var _glyphsAt = 0;
 
   // surfaces other than the screen's whose styles are kept
   final _kept = <Surface>[];
 
-  /// Keeps the styles of [other]'s cells in a sweep, as those of the
-  /// screen's surface: a surface painted with [styles] that is kept from
-  /// one frame to the next (an inline app's history, written a frame at
-  /// a time).
+  /// Keeps the styles and glyphs of [other]'s cells in a sweep, as those
+  /// of the screen's surface: a surface painted with [styles] and
+  /// [glyphs] that is kept from one frame to the next (an inline app's
+  /// history, written a frame at a time).
   void keepStylesOf(Surface other) => _kept.add(other);
 
   /// Sweeps [styles] ([StyleTable.sweep]) when twice as many are in use as
-  /// after the last sweep, and at least [sweepFloor]: what no cell of the
-  /// surface (or of one kept, [keepStylesOf]) and nothing the presenter
-  /// knows the terminal shows has is freed. As the styles in use double
-  /// between two sweeps, a style costs its sweep once, and an app of a
-  /// few hundred styles is never swept. [render] calls it.
+  /// after their last sweep, and at least [sweepFloor], and [glyphs]
+  /// ([GlyphTable.sweep]) the same: what no cell of the surface (of a
+  /// surface kept, [keepStylesOf], of what keeps cells of either,
+  /// [Surface.keep]) and nothing the presenter knows the terminal shows
+  /// has is freed. As what is in use doubles between two sweeps, a style or
+  /// a glyph costs its sweep once, and an app of a few hundred is never
+  /// swept. [render] calls it.
   void sweepIfDue() {
-    final live = styles.live;
-    if (live <= sweepFloor || live <= _sweepAt) {
+    final stylesDue = styles.live > sweepFloor && styles.live > _stylesAt;
+    final glyphsDue = glyphs.live > sweepFloor && glyphs.live > _glyphsAt;
+    if (!stylesDue && !glyphsDue) {
       return;
     }
-    styles.sweep((mark) {
-      for (final s in [surface, ..._kept]) {
-        final ids = s.styles;
-        for (var i = 0; i < ids.length; i++) {
-          mark(ids[i]);
-        }
+    void none(int _) {}
+    void roots(void Function(int) glyph, void Function(int) style) {
+      surface.markCells(glyph, style);
+      for (final s in _kept) {
+        s.markCells(glyph, style);
       }
-      presenter.markStyles(mark);
-    });
-    _sweepAt = 2 * styles.live;
+      presenter.markCells(glyph, style);
+    }
+
+    if (stylesDue) {
+      styles.sweep((mark) => roots(none, mark));
+      _stylesAt = 2 * styles.live;
+    }
+    if (glyphsDue) {
+      glyphs.sweep((mark) => roots(mark, none));
+      _glyphsAt = 2 * glyphs.live;
+    }
   }
 }

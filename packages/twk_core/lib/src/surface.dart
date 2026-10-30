@@ -16,6 +16,7 @@
 ///
 /// @docImport 'canvas.dart';
 /// @docImport 'presenter.dart';
+/// @docImport 'screen.dart';
 /// @docImport 'style.dart';
 library;
 
@@ -60,7 +61,13 @@ const kFirstInterned = 0x110000;
 /// A glyph of one code point is that code point and needs no entry; a
 /// cluster of more (a letter and its combining marks, an emoji sequence,
 /// a flag) gets an id from [kFirstInterned] up, the same for the same text
-/// for the table's lifetime. [stringOf] reads any glyph id back.
+/// until the table is swept ([sweep]): the clusters no cell has then are
+/// freed and their ids given out again, so that a table of ever new
+/// clusters (what a program writes in a terminal view, what a client
+/// pastes) holds those in use, not every one there ever was. What keeps
+/// glyph ids from one frame to the next, beyond the cells the sweep is
+/// told of, makes them again when [sweeps] has changed. [stringOf] reads
+/// any glyph id back.
 ///
 /// ```dart
 /// final glyphs = GlyphTable();
@@ -72,26 +79,122 @@ final class GlyphTable {
   /// A table with no glyphs interned yet.
   GlyphTable();
 
+  // by index (the id less kFirstInterned); a freed one's entries empty
   final _strings = <String>[];
   final _bytes = <Uint8List>[];
   final _maxWidth = <int>[];
   var _slots = Int32List(1024)..fillRange(0, 1024, -1);
 
-  /// How many clusters are interned.
+  // the indices sweep freed, given out again before new ones
+  final _free = <int>[];
+
+  // with asserts: which indices are free now, so that an id kept past the
+  // sweep that freed it fails where it is read
+  Uint8List? _freeMarks;
+
+  static final _noBytes = Uint8List(0);
+
+  /// How many glyph ids there are, those [sweep] freed among them until
+  /// given out again.
   int get length => _strings.length;
 
-  /// The id of the cluster `s.substring(start, end)`, interned on its
-  /// first sighting, which is the only one that allocates.
-  ///
-  /// Throws a [StateError] when the ids would run into the cell's flag
-  /// bits: past 15 million distinct clusters.
-  int intern(String s, int start, int end) {
+  /// How many clusters are in use: [length] less those [sweep] freed.
+  int get live => _strings.length - _free.length;
+
+  /// How many times [sweep] ran: an id kept from before it may be another
+  /// cluster's now.
+  int get sweeps => _sweeps;
+  var _sweeps = 0;
+
+  /// Frees the clusters [roots] marks none of (it is called with the mark,
+  /// which takes a glyph word as a cell holds it, flags and all, and
+  /// ignores a code point's): their ids are given out again, before new
+  /// ones. The roots are everything that keeps glyph ids: a screen's
+  /// surface and what its presenter knows the terminal shows
+  /// ([Screen.sweepIfDue]).
+  void sweep(void Function(void Function(int glyph) mark) roots) {
+    final n = _strings.length;
+    final marks = Uint8List(n);
+    roots((glyph) {
+      final i = (glyph & kGlyphMask) - kFirstInterned;
+      if (i >= 0 && i < n) {
+        marks[i] = 1;
+      }
+    });
+    _free.clear();
+    // the lowest last: given out first
+    for (var i = n - 1; i >= 0; i--) {
+      if (marks[i] == 0) {
+        _free.add(i);
+        // what it held goes now, not when the index is given out again
+        _strings[i] = '';
+        _bytes[i] = _noBytes;
+        _maxWidth[i] = 0;
+      }
+    }
+    _rehash(_slots.length);
+    _sweeps++;
+    assert(() {
+      _freeMarks = Uint8List(n);
+      for (final i in _free) {
+        _freeMarks![i] = 1;
+      }
+      return true;
+    }(), 'free marks');
+  }
+
+  static int _hash(String s, int start, int end) {
     var h = 0x811C9DC5;
     for (var i = start; i < end; i++) {
       h = ((h ^ s.codeUnitAt(i)) * 0x01000193) & 0x3FFFFFFF;
     }
-    var mask = _slots.length - 1;
-    var slot = h & mask;
+    return h;
+  }
+
+  /// [_slots] made anew, [size] of them, of the clusters in use.
+  void _rehash(int size) {
+    _slots = Int32List(size)..fillRange(0, size, -1);
+    final mask = size - 1;
+    for (var i = 0; i < _strings.length; i++) {
+      final t = _strings[i];
+      if (t.isEmpty) {
+        continue; // freed
+      }
+      var sl = _hash(t, 0, t.length) & mask;
+      while (_slots[sl] >= 0) {
+        sl = (sl + 1) & mask;
+      }
+      _slots[sl] = i;
+    }
+  }
+
+  /// [glyph], asserted not to be an id a sweep freed and no cluster has
+  /// again.
+  @pragma('vm:prefer-inline')
+  int _kept(int glyph) {
+    assert(
+      () {
+        final marks = _freeMarks;
+        final i = (glyph & kGlyphMask) - kFirstInterned;
+        return marks == null || i < 0 || i >= marks.length || marks[i] == 0;
+      }(),
+      'glyph ${glyph & kGlyphMask} was freed by a sweep: a glyph id kept '
+      'from one frame to the next is made again when GlyphTable.sweeps '
+      'changes',
+    );
+    return glyph;
+  }
+
+  /// The id of the cluster `s.substring(start, end)`, interned on its
+  /// first sighting, which is the only one that allocates (the cluster's
+  /// string and its UTF-8 bytes).
+  ///
+  /// In the rare table that holds more clusters in use than a cell has
+  /// room for ids (15 million: the cells of no screen hold so many), the
+  /// cluster is U+FFFD, the replacement character, rather than an error.
+  int intern(String s, int start, int end) {
+    final mask = _slots.length - 1;
+    var slot = _hash(s, start, end) & mask;
     final len = end - start;
     while (true) {
       final idx = _slots[slot];
@@ -113,31 +216,29 @@ final class GlyphTable {
       }
       slot = (slot + 1) & mask;
     }
-    final idx = _strings.length;
-    if (kFirstInterned + idx > kGlyphMask) {
-      // the id would run into the flag bits
-      throw StateError('more distinct clusters than glyph ids');
-    }
+    final int idx;
     final str = s.substring(start, end);
-    _strings.add(str);
-    _bytes.add(utf8.encode(str));
-    _maxWidth.add(maxRenderWidth(str, 0, str.length));
-    if (_strings.length * 2 > _slots.length) {
-      _slots = Int32List(_slots.length * 2)
-        ..fillRange(0, _slots.length * 2, -1);
-      mask = _slots.length - 1;
-      for (var i = 0; i < _strings.length; i++) {
-        var hh = 0x811C9DC5;
-        final t = _strings[i];
-        for (var k = 0; k < t.length; k++) {
-          hh = ((hh ^ t.codeUnitAt(k)) * 0x01000193) & 0x3FFFFFFF;
-        }
-        var sl = hh & mask;
-        while (_slots[sl] >= 0) {
-          sl = (sl + 1) & mask;
-        }
-        _slots[sl] = i;
+    if (_free.isNotEmpty) {
+      idx = _free.removeLast();
+      _strings[idx] = str;
+      _bytes[idx] = utf8.encode(str);
+      _maxWidth[idx] = maxRenderWidth(str, 0, str.length);
+      assert(() {
+        _freeMarks![idx] = 0;
+        return true;
+      }(), 'free marks');
+    } else {
+      idx = _strings.length;
+      if (kFirstInterned + idx > kGlyphMask) {
+        // the id would run into the flag bits
+        return 0xFFFD;
       }
+      _strings.add(str);
+      _bytes.add(utf8.encode(str));
+      _maxWidth.add(maxRenderWidth(str, 0, str.length));
+    }
+    if (live * 2 > _slots.length) {
+      _rehash(_slots.length * 2);
     } else {
       _slots[slot] = idx;
     }
@@ -146,7 +247,7 @@ final class GlyphTable {
 
   /// UTF-8 bytes of an interned glyph id (>= [kFirstInterned]).
   @pragma('vm:prefer-inline')
-  Uint8List bytesOf(int glyph) => _bytes[glyph - kFirstInterned];
+  Uint8List bytesOf(int glyph) => _bytes[_kept(glyph) - kFirstInterned];
 
   /// The widest any terminal may render [glyph] (an uncertain glyph can
   /// overflow its cells up to this many columns).
@@ -155,7 +256,7 @@ final class GlyphTable {
     if (g < kFirstInterned) {
       return 2;
     }
-    return _maxWidth[g - kFirstInterned];
+    return _maxWidth[_kept(g) - kFirstInterned];
   }
 
   /// The text of any glyph id.
@@ -164,7 +265,7 @@ final class GlyphTable {
     if (g < kFirstInterned) {
       return String.fromCharCode(g);
     }
-    return _strings[g - kFirstInterned];
+    return _strings[_kept(g) - kFirstInterned];
   }
 }
 
@@ -173,6 +274,16 @@ final class GlyphTable {
 /// themselves, so a frame is diffed in O(changed area) without the widget
 /// layer having to compute dirty rectangles correctly.
 ///
+/// What keeps cells of a [Surface] from one frame to the next beyond the
+/// surface itself (an effect's cells under it, a cross-fade's of what was
+/// there): kept by [Surface.keep], its glyphs and styles are marked in a
+/// sweep ([GlyphTable.sweep], [StyleTable.sweep]) as the surface's are.
+abstract interface class CellKeeper {
+  /// Marks the glyph word ([glyph]) and the style ([style]) of every cell
+  /// it keeps.
+  void markCells(void Function(int glyph) glyph, void Function(int id) style);
+}
+
 /// A [Canvas] draws on it; the [Presenter] compares its damaged spans with
 /// what the terminal shows, writes the difference, and clears the damage
 /// ([clearDamage]). Cells are indexed `y * width + x`.
@@ -203,6 +314,30 @@ final class Surface {
 
   /// How many cells wide the surface is; [resize] changes it.
   int width;
+
+  // what keeps cells of it beyond it
+  final _keepers = <CellKeeper>{};
+
+  /// Has a sweep mark what [keeper] keeps of the surface's cells, as it
+  /// marks the surface's ([Screen.sweepIfDue]), until it is [release]d.
+  void keep(CellKeeper keeper) => _keepers.add(keeper);
+
+  /// Marks no more what [keeper] keeps ([keep]).
+  void release(CellKeeper keeper) => _keepers.remove(keeper);
+
+  /// Marks the glyph word and the style of every cell, its own and those
+  /// its keepers keep ([keep]).
+  void markCells(void Function(int glyph) glyph, void Function(int id) style) {
+    final c = cells;
+    final s = styles;
+    for (var i = 0; i < c.length; i++) {
+      glyph(c[i]);
+      style(s[i]);
+    }
+    for (final keeper in _keepers) {
+      keeper.markCells(glyph, style);
+    }
+  }
 
   /// How many rows tall the surface is; [resize] changes it.
   int height;

@@ -16,7 +16,10 @@ The first release.
   swept: `Screen.render` frees the styles no cell has once twice as many
   are in use as after the last sweep (`StyleTable.sweep`, `sweeps`), so a
   screen of ever new colors keeps those it shows; `Canvas.runStyled`
-  draws in a style as it is, with no pen.
+  draws in a style as it is, with no pen. The glyphs of several code
+  points are swept the same way (`GlyphTable.sweep`, `sweeps`), and what
+  keeps cells of a surface beyond it registers to be marked
+  (`Surface.keep`, `CellKeeper`).
 - `Presenter`: the damaged spans diffed against what the terminal shows
   and written with DEC 2026, scroll regions, `ICH`/`DCH`, `REP`, `ECH`
   and `EL`, as `TerminalCaps` allow.

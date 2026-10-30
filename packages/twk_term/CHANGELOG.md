@@ -8,10 +8,11 @@ The first release.
   alternate screen, scroll margins, a scrollback, wide characters, SGR
   in 16, 256 and 24-bit colors, OSC 8 links, the mouse's and the
   keyboard's encodings), its screen drawn by the core's `Canvas`, resized
-  keeping what it shows. Its styles, in a table of its own, are swept as
-  a screen's are (`sweepFloor`) and painted as they are, with no pen each, so a program
-  of ever more 24-bit colors (a video, an image viewer) keeps those on
-  its screens and scrollback, not every one it sent.
+  keeping what it shows. Its styles and glyphs, in tables of its own, are
+  swept as a screen's are (`sweepFloor`), and its styles painted as they
+  are, with no pen each, so a program of ever more 24-bit colors or new
+  clusters (a video, an image viewer) keeps those on its screens and
+  scrollback, not every one it sent.
 - `Pty`: a pseudo-terminal through dart:ffi on Linux and macOS, a program
   run in it with its size, environment and working directory.
 - `TerminalView`: a widget that runs a program in a terminal of its own,

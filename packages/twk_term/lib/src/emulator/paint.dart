@@ -18,7 +18,11 @@ final class _Painter {
   Color _bg = Color.defaultColor;
   // the canvas's style of each of the emulator's, -1 for none made yet
   var _ids = Int32List(0);
-  final _glyphMap = <int, int>{};
+  // the canvas's glyph id of each interned one of the emulator's, by
+  // index, -1 for none made yet; the sweeps of both tables then
+  var _glyphIds = Int32List(0);
+  var _glyphSweeps = -1;
+  var _ownGlyphSweeps = -1;
   var _buf = Uint32List(256);
 
   void paint(
@@ -74,9 +78,13 @@ final class _Painter {
       _bg = bg;
       _ids = Int32List(0);
     }
-    if (!identical(canvas.glyphs, _glyphs)) {
+    if (!identical(canvas.glyphs, _glyphs) ||
+        canvas.glyphs.sweeps != _glyphSweeps ||
+        t.glyphs.sweeps != _ownGlyphSweeps) {
       _glyphs = canvas.glyphs;
-      _glyphMap.clear();
+      _glyphSweeps = canvas.glyphs.sweeps;
+      _ownGlyphSweeps = t.glyphs.sweeps;
+      _glyphIds = Int32List(0);
     }
   }
 
@@ -94,7 +102,6 @@ final class _Painter {
       _buf = Uint32List(n);
     }
     final buf = _buf;
-    final same = identical(_glyphs, t.glyphs);
     var col = 0;
     while (col < n) {
       final s = styles[col];
@@ -105,14 +112,9 @@ final class _Painter {
         if ((c & kCont) != 0) {
           continue;
         }
-        buf[k++] = same || (c & kGlyphMask) < 0x110000 ? c : _glyph(t, c);
+        buf[k++] = (c & kGlyphMask) < 0x110000 ? c : _glyph(t, c);
       }
-      canvas.runStyled(
-        x + col,
-        y,
-        GlyphRun(Uint32List.sublistView(buf, 0, k), end - col),
-        _style(t, s),
-      );
+      canvas.runRangeStyled(x + col, y, buf, 0, k, _style(t, s));
       col = end;
     }
   }
@@ -120,10 +122,22 @@ final class _Painter {
   /// [word] with its interned glyph id in the canvas's table.
   int _glyph(TerminalEmulator t, int word) {
     final g = word & kGlyphMask;
-    final mapped = _glyphMap[g] ??= () {
+    // the first interned id is past the last code point
+    final i = g - 0x110000;
+    if (i >= _glyphIds.length) {
+      var size = _glyphIds.isEmpty ? 64 : _glyphIds.length * 2;
+      while (size <= i) {
+        size *= 2;
+      }
+      _glyphIds = Int32List(size)
+        ..fillRange(0, size, -1)
+        ..setRange(0, _glyphIds.length, _glyphIds);
+    }
+    var mapped = _glyphIds[i];
+    if (mapped < 0) {
       final s = t.glyphs.stringOf(g);
-      return _glyphs!.intern(s, 0, s.length);
-    }();
+      mapped = _glyphIds[i] = _glyphs!.intern(s, 0, s.length);
+    }
     return (word & ~kGlyphMask) | mapped;
   }
 

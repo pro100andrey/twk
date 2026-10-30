@@ -19,24 +19,6 @@ Canvas canvasOf(int w, int h) =>
     Canvas(Surface(w, h), StyleTable(), GlyphTable());
 
 void main() {
-  test("glyphs carry over as they are into the canvas's glyph table, "
-      'styles made again in its style table', () {
-    final canvas = canvasOf(10, 3);
-    final t = TerminalEmulator(width: 10, height: 3, glyphs: canvas.glyphs)
-      ..feedText('\x1b[31mab\x1b[0me\u0301中\r\n\x1b[44mx\x1b[K')
-      ..paint(canvas);
-    final s = canvas.surface;
-    for (var y = 0; y < 3; y++) {
-      for (var x = 0; x < 10; x++) {
-        final i = y * 10 + x;
-        expect(s.cells[i], t.cellAt(x, y), reason: '$x,$y');
-        final id = t.styleAt(x, y);
-        expect(canvas.styles.fgOf(s.styles[i]), t.styles.fgOf(id));
-        expect(canvas.styles.bgOf(s.styles[i]), t.styles.bgOf(id));
-      }
-    }
-  });
-
   test('styles and glyphs are carried over to other tables', () {
     final t = TerminalEmulator(width: 10, height: 2)
       ..feedText(
@@ -210,6 +192,48 @@ void main() {
       }
       expect(screen.styles.sweeps, greaterThan(0));
       expect(screen.styles.length, lessThanOrEqualTo(96));
+    });
+  });
+
+  group('a program writing ever new clusters', () {
+    final floor = TerminalEmulator.sweepFloor;
+    final screenFloor = Screen.sweepFloor;
+    tearDown(() {
+      TerminalEmulator.sweepFloor = floor;
+      Screen.sweepFloor = screenFloor;
+    });
+
+    /// A cluster no other is: a letter and two combining marks.
+    String cluster(int i) =>
+        'a${String.fromCharCode(0x300 + i % 64)}'
+        '${String.fromCharCode(0x340 + i ~/ 64 % 64)}';
+
+    test('sweeps the glyphs of its own past the floor, the cells keeping '
+        'theirs, and paints them, the screen keeping only those it shows', () {
+      TerminalEmulator.sweepFloor = 32;
+      Screen.sweepFloor = 32;
+      final screen = Screen(10, 1);
+      final t = TerminalEmulator(width: 10, height: 1, scrollbackLimit: 0);
+      for (var i = 0; i < 2000; i += 10) {
+        t
+          ..feedText(
+            '\r${[for (var k = 0; k < 10; k++) cluster(i + k)].join()}',
+          )
+          ..paint(screen.canvas);
+        screen.render();
+        for (var x = 0; x < 10; x++) {
+          expect(t.cellText(x, 0), cluster(i + x), reason: 'frame $i, $x');
+          expect(
+            screen.glyphs.stringOf(screen.surface.cells[x]),
+            cluster(i + x),
+            reason: 'frame $i, cell $x',
+          );
+        }
+      }
+      expect(t.glyphs.sweeps, greaterThan(0));
+      expect(t.glyphs.length, lessThanOrEqualTo(96));
+      expect(screen.glyphs.sweeps, greaterThan(0));
+      expect(screen.glyphs.length, lessThanOrEqualTo(96));
     });
   });
 }

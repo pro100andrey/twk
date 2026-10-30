@@ -130,18 +130,15 @@ final class TerminalEmulator {
   /// An emulator of [width] x [height] cells (at least 1 x 1) in its
   /// initial state, keeping [scrollbackLimit] lines of scrollback.
   ///
-  /// Its cells' styles are in [styles], a table of its own, and their
-  /// glyphs in [glyphs], one of its own where it is null (a host that
-  /// passes its canvas's copies the glyph words as they are). Text is
-  /// split into cells by [textMode] (code points by default; DEC mode 2027
-  /// switches it), characters whose width is ambiguous taking
-  /// [ambiguousWidth] columns. [onOutput], [onEvent] and [strict] are as
-  /// the fields of those names.
+  /// Its cells' styles are in [styles] and their glyphs in [glyphs],
+  /// tables of its own. Text is split into cells by [textMode] (code
+  /// points by default; DEC mode 2027 switches it), characters whose width
+  /// is ambiguous taking [ambiguousWidth] columns. [onOutput], [onEvent]
+  /// and [strict] are as the fields of those names.
   TerminalEmulator({
     int width = 80,
     int height = 24,
     int scrollbackLimit = 1000,
-    GlyphTable? glyphs,
     TextMode textMode = TextMode.legacy,
     int ambiguousWidth = 1,
     this.onOutput,
@@ -150,7 +147,7 @@ final class TerminalEmulator {
   }) : _width = width < 1 ? 1 : width,
        _height = height < 1 ? 1 : height,
        styles = StyleTable(),
-       glyphs = glyphs ?? GlyphTable(),
+       glyphs = GlyphTable(),
        segmenter = TextSegmenter(
          mode: textMode,
          ambiguousWidth: ambiguousWidth,
@@ -196,14 +193,18 @@ final class TerminalEmulator {
   /// sweep it without the emulator's scrollback.
   final StyleTable styles;
 
-  /// The fewest styles in use [styles] is swept past; a test's may be
-  /// fewer.
+  /// The fewest styles, or glyphs, in use [styles], or [glyphs], is swept
+  /// past; a test's may be fewer.
   static var sweepFloor = 4096;
 
-  // swept once this many styles are in use
-  var _sweepAt = 0;
+  // each swept once this many are in use
+  var _stylesAt = 0;
+  var _glyphsAt = 0;
 
-  /// The multi-code-point glyphs of the cells.
+  /// The multi-code-point glyphs of the cells, a table of the emulator's
+  /// own, swept as [styles] is ([GlyphTable.sweep]): a program that writes
+  /// ever new clusters (letters with combining marks, emoji sequences)
+  /// keeps those on its screens and scrollback, not every one it sent.
   final GlyphTable glyphs;
 
   /// How printed text is split into cells; DEC mode 2027 switches its
@@ -457,33 +458,48 @@ final class TerminalEmulator {
   /// [text] as the program would write it (UTF-8).
   void feedText(String text) => feed(utf8.encode(text));
 
-  /// Sweeps [styles] when it is due.
+  /// Sweeps [styles] and [glyphs] when each is due.
   void _sweepIfDue() {
-    final live = styles.live;
-    if (live <= sweepFloor || live <= _sweepAt) {
+    final stylesDue = styles.live > sweepFloor && styles.live > _stylesAt;
+    final glyphsDue = glyphs.live > sweepFloor && glyphs.live > _glyphsAt;
+    if (!stylesDue && !glyphsDue) {
       return;
     }
-    void lines(void Function(int id) mark, TerminalLine line) {
-      final ids = line.styles;
-      for (var x = 0; x < ids.length; x++) {
-        mark(ids[x]);
+    // the words of every line of the screens and the scrollback
+    void each(
+      Uint32List Function(TerminalLine line) of,
+      void Function(int) mark,
+    ) {
+      void line(TerminalLine l) {
+        final words = of(l);
+        for (var x = 0; x < words.length; x++) {
+          mark(words[x]);
+        }
+      }
+
+      _primary.lines.forEach(line);
+      _alternate.lines.forEach(line);
+      for (var i = 0; i < _scrollback.length; i++) {
+        line(_scrollback[i]);
       }
     }
 
-    styles.sweep((mark) {
-      for (final line in _primary.lines) {
-        lines(mark, line);
-      }
-      for (final line in _alternate.lines) {
-        lines(mark, line);
-      }
-      for (var i = 0; i < _scrollback.length; i++) {
-        lines(mark, _scrollback[i]);
-      }
-    });
-    // the pen's own ids may be gone: made again as text comes
-    _styleDirty = true;
-    _sweepAt = 2 * styles.live;
+    if (stylesDue) {
+      styles.sweep((mark) => each((l) => l.styles, mark));
+      // the pen's own ids may be gone: made again as text comes
+      _styleDirty = true;
+      _stylesAt = 2 * styles.live;
+    }
+    if (glyphsDue) {
+      glyphs.sweep((mark) {
+        each((l) => l.cells, mark);
+        // what REP repeats
+        if (_lastGlyph >= 0) {
+          mark(_lastGlyph);
+        }
+      });
+      _glyphsAt = 2 * glyphs.live;
+    }
   }
 
   /// A new size; see the class comment for what happens to the screen.

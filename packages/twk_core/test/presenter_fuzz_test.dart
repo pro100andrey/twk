@@ -56,8 +56,9 @@ void runFuzz(
           randomOp(hs, rnd);
         }
         if (sweep) {
-          // cells in styles never seen before, as a video in a terminal
-          // view paints them: their ids are those the sweeps freed
+          // cells in styles and of clusters never seen before, as a video
+          // in a terminal view paints them: their ids are those the sweeps
+          // freed
           for (var k = rnd.nextInt(6); k > 0; k--) {
             final style = hs.styles.style(
               fg: Color.rgb(rnd.nextInt(256), rnd.nextInt(256), 0),
@@ -67,7 +68,10 @@ void runFuzz(
             hs.canvas.runStyled(
               rnd.nextInt(w),
               rnd.nextInt(h),
-              hs.canvas.shape('x' * (1 + rnd.nextInt(4))),
+              hs.canvas.shape(
+                [for (var n = 1 + rnd.nextInt(4); n > 0; n--) freshCluster(rnd)]
+                    .join(),
+              ),
               style,
             );
           }
@@ -298,16 +302,24 @@ void runInlineFuzz(
   });
 }
 
-/// Sweeps [hs]'s styles as a screen does, its surface and its presenter
-/// the roots, and the rows the harness keeps of the history.
-void sweepHarness(Harness hs) => hs.styles.sweep((mark) {
-  final ids = hs.surface.styles;
-  for (var i = 0; i < ids.length; i++) {
-    mark(ids[i]);
+/// A cluster of a letter and two combining marks, of 4096 there are.
+String freshCluster(Random rnd) =>
+    'a${String.fromCharCode(0x300 + rnd.nextInt(64))}'
+    '${String.fromCharCode(0x340 + rnd.nextInt(64))}';
+
+/// Sweeps [hs]'s styles and glyphs as a screen does, its surface and its
+/// presenter the roots, and the rows the harness keeps of the history.
+void sweepHarness(Harness hs) {
+  void none(int _) {}
+  void roots(void Function(int) glyph, void Function(int) style) {
+    hs.surface.markCells(glyph, style);
+    hs.presenter.markCells(glyph, style);
+    hs.markCommitted(glyph, style);
   }
-  hs.presenter.markStyles(mark);
-  hs.markCommitted(mark);
-});
+
+  hs.styles.sweep((mark) => roots(none, mark));
+  hs.glyphs.sweep((mark) => roots(mark, none));
+}
 
 /// Commits 1 to [most] random rows, some of them wider or narrower than
 /// the region, sometimes only part of what was drawn; with [fresh], some
@@ -335,7 +347,7 @@ void commitRandomRows(Harness hs, Random rnd, int most, {bool fresh = false}) {
       c.runStyled(
         rnd.nextInt(rows.width),
         y,
-        c.shape('ab'),
+        c.shape('a${freshCluster(rnd)}'),
         hs.styles.style(fg: Color.rgb(rnd.nextInt(256), 7, 7)),
       );
     }
