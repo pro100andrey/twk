@@ -606,6 +606,27 @@ final class BlockParser {
     return made;
   }
 
+  /// The code of the fenced block [block], its lines after the info
+  /// string: what of it the block it was copied from has too is joined
+  /// once, kept on that block, and only the lines added since joined
+  /// again, as a long block streams in a line at a time.
+  static String _fencedCode(_Block block) {
+    final memo = block.origin ?? block;
+    final lines = block.lines;
+    final known = memo.lines.length;
+    if (memo.codeLines < known - 1) {
+      memo.code += [
+        for (var i = 1 + memo.codeLines; i < known; i++) '${lines[i]}\n',
+      ].join();
+      memo.codeLines = known - 1;
+    }
+    return lines.length == known
+        ? memo.code
+        : memo.code +
+              [for (var i = known; i < lines.length; i++) '${lines[i]}\n']
+                  .join();
+  }
+
   MdBlock? _make(_Block block, List<MdDefinition> definitions) {
     definitions.addAll(block.definitions);
     return switch (block.kind) {
@@ -613,7 +634,7 @@ final class BlockParser {
       _Kind.heading => MdHeading(block.level, parseInlines(_trim(block.lines))),
       _Kind.thematicBreak => const MdThematicBreak(),
       _Kind.code when block.fenced => MdCodeBlock(
-        [for (final line in block.lines.skip(1)) '$line\n'].join(),
+        _fencedCode(block),
         info: unescape(block.lines.first.trim()),
         fenced: true,
       ),
@@ -846,6 +867,15 @@ final class _Block {
   /// What the block converted to once closed, with the definitions in it.
   Converted? converted;
 
+  /// The block of the parser this one's was copied from; null for one of
+  /// that parser's own.
+  _Block? origin;
+
+  /// Of fenced code, its first [codeLines] lines after the info string,
+  /// joined, each with its line feed ([BlockParser._fencedCode]).
+  var code = '';
+  var codeLines = 0;
+
   /// What the item converted to once closed, with the definitions in it.
   (MdListItem, List<MdDefinition>)? convertedItem;
 
@@ -855,6 +885,7 @@ final class _Block {
   /// blocks in them shared.
   _Block _copy(_Block parent) {
     final copy = _Block(kind, start, parent)
+      ..origin = origin ?? this
       ..end = end
       ..level = level
       ..fenced = fenced

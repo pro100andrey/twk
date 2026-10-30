@@ -96,6 +96,23 @@ void main() {
     }
   });
 
+  test('a fenced block streamed a character at a time, its code joined as '
+      'it grows, is at each one what its text so far parses to', () {
+    const text =
+        '```dart\nfinal a = 1;\n\nfinal b = 2;\n```\n'
+        '- item\n\n  ```\n  in a list\n  two\n  ```\n'
+        '> ~~~\n> in a quote\n> two\n> ~~~\n';
+    final stream = MarkdownStream();
+    for (var k = 0; k < text.length; k++) {
+      stream.add(text[k]);
+      expect(
+        stream.blocks,
+        parseMarkdown(text.substring(0, k + 1)),
+        reason: jsonEncode(text.substring(0, k + 1)),
+      );
+    }
+  });
+
   test('added a character at a time, settled blocks never change', () {
     final stream = MarkdownStream();
     final seen = <MdBlock>[];
