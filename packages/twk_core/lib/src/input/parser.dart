@@ -601,7 +601,7 @@ final class InputParser {
   /// (`ESC O 5 P`). Anything else after `ESC O` is Alt+O followed by it.
   int _ss3Sequence(Uint8List b, int pos, List<InputEvent> out, bool eof) {
     var i = pos + 2;
-    while (i < b.length && i < pos + 5 && b[i] >= 0x30 && b[i] <= 0x39) {
+    while (i < b.length && b[i] >= 0x30 && b[i] <= 0x39) {
       i++;
     }
     final digits = i > pos + 2;
@@ -627,7 +627,9 @@ final class InputParser {
     }
     final len = i + 1 - pos;
     final k = _ss3(f);
-    if (k == null) {
+    // a modifier has at most three digits: more make no key, not phantom
+    // ones of the digits left
+    if (k == null || i - pos - 2 > 3) {
       out.add(UnknownSequence(b.sublist(pos, pos + len)));
       return len;
     }
@@ -777,6 +779,9 @@ final class InputParser {
       // an ESC aborts the sequence and starts a new one
       out.add(UnknownSequence(b.sublist(pos, i)));
       return i - pos;
+    }
+    if (fin == 0x4D && prefix == 0 && pEnd == pStart && inter == 0) {
+      return _x10Mouse(b, pos, i + 1, out, eof);
     }
     final len = i + 1 - pos;
     if (fin < 0x40 || fin > 0x7E) {
@@ -941,8 +946,8 @@ final class InputParser {
           return CursorReport(_p(1, 1) - 1, _p(0, 1) - 1);
         }
         return KeyEvent(KeyCode.f3, modifiers: mods, kind: kind);
-      case 0x5A: // Z
-        return const KeyEvent(KeyCode.tab, modifiers: Mod.shift);
+      case 0x5A: // Z: Shift+Tab, with what else is held where it is told
+        return KeyEvent(KeyCode.tab, modifiers: mods | Mod.shift, kind: kind);
       case 0x49: // I
         return const FocusEvent(true);
       case 0x4F: // O
@@ -952,6 +957,9 @@ final class InputParser {
           return ResizeEvent(_p(2), _p(1));
         }
         return null;
+      case 0x7E when _p(0) == 27 && count >= 3: // ~
+        // xterm's modifyOtherKeys: CSI 27 ; mods ; code ~
+        return _codeKey(_p(2), mods, kind);
       case 0x7E: // ~
         final key = switch (_p(0)) {
           1 || 7 => KeyCode.home,
@@ -1011,6 +1019,67 @@ final class InputParser {
         );
     }
     return null;
+  }
+
+  /// The key xterm's modifyOtherKeys tells by [code], what the key types
+  /// (Shift taken into it), with [mods]: one that only Shift modifies is
+  /// the text it types, a shortcut a letter's unshifted key, modifiers
+  /// kept, as the kitty protocol's are. Null for a code point that is no
+  /// character.
+  static KeyEvent? _codeKey(int code, int mods, KeyKind kind) {
+    final key = switch (code) {
+      13 => KeyCode.enter,
+      9 => KeyCode.tab,
+      27 => KeyCode.escape,
+      127 || 8 => KeyCode.backspace,
+      _ => KeyCode.char,
+    };
+    if (key != KeyCode.char) {
+      return KeyEvent(key, modifiers: mods, kind: kind);
+    }
+    if (!_isTextCodePoint(code)) {
+      return null;
+    }
+    if (mods & ~Mod.shift == 0) {
+      return KeyEvent(
+        KeyCode.char,
+        char: String.fromCharCode(code),
+        kind: kind,
+      );
+    }
+    final letter = code >= 0x41 && code <= 0x5A ? code + 0x20 : code;
+    return KeyEvent(
+      KeyCode.char,
+      char: String.fromCharCode(letter),
+      modifiers: mods,
+      kind: kind,
+    );
+  }
+
+  /// A mouse report in X10's encoding, `CSI M` and three bytes from
+  /// [from], each 32 more than the button and the column and row from 1,
+  /// as a terminal that ignores SGR's (1006) sends: the event, and not
+  /// the three bytes as keys. A byte below 33, which no column or row is,
+  /// is read as the first.
+  int _x10Mouse(
+    Uint8List b,
+    int pos,
+    int from,
+    List<InputEvent> out,
+    bool eof,
+  ) {
+    if (from + 3 > b.length) {
+      if (!eof) {
+        return 0;
+      }
+      out.add(UnknownSequence(b.sublist(pos)));
+      return b.length - pos;
+    }
+    int at(int k) => b[from + k] < 0x21 ? 1 : b[from + k] - 0x20;
+    final cb = b[from] - 0x20;
+    final release = cb & 3 == 3 && cb & (32 | 64) == 0;
+    out.add(_sgrMouse(cb < 0 ? 3 : cb, at(1), at(2), release));
+    return from + 3 - pos;
   }
 
   /// What a kitty protocol key that types text types, where its sequence

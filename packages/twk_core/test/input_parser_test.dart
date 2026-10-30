@@ -92,6 +92,9 @@ void main() {
     expect(parse('\x1b[Z'), [
       const KeyEvent(KeyCode.tab, modifiers: Mod.shift),
     ]);
+    expect(parse('\x1b[1;5Z'), [
+      const KeyEvent(KeyCode.tab, modifiers: Mod.ctrl | Mod.shift),
+    ], reason: 'what else is held with Shift+Tab, where it is told');
     expect(parse('\x1b[1;3R'), [
       const KeyEvent(KeyCode.f3, modifiers: Mod.alt),
     ]);
@@ -132,6 +135,26 @@ void main() {
     ]);
   });
 
+  test("xterm's modifyOtherKeys: the key typed, a shortcut's letter "
+      'unshifted', () {
+    expect(
+      parse(
+        '\x1b[27;5;59~\x1b[27;6;65~\x1b[27;2;65~\x1b[27;5;13~\x1b[27;3;9~',
+      ),
+      [
+        const KeyEvent(KeyCode.char, char: ';', modifiers: Mod.ctrl),
+        const KeyEvent(
+          KeyCode.char,
+          char: 'a',
+          modifiers: Mod.ctrl | Mod.shift,
+        ),
+        const KeyEvent(KeyCode.char, char: 'A'),
+        const KeyEvent(KeyCode.enter, modifiers: Mod.ctrl),
+        const KeyEvent(KeyCode.tab, modifiers: Mod.alt),
+      ],
+    );
+  });
+
   test('ESC O followed by something that is not SS3', () {
     expect(parse('\x1bO x'), [
       const KeyEvent(KeyCode.char, char: 'O', modifiers: Mod.alt),
@@ -141,6 +164,11 @@ void main() {
     // the old form of a modified SS3 key
     expect(parse('\x1bO5P'), [
       const KeyEvent(KeyCode.f1, modifiers: Mod.ctrl),
+    ]);
+    // more digits than a modifier has: no key, and none of what is left
+    expect(parse('\x1bO1234Px'), [
+      isA<UnknownSequence>().having((e) => '$e', 'text', 'Unknown(ESCO1234P)'),
+      const KeyEvent(KeyCode.char, char: 'x'),
     ]);
   });
 
@@ -233,6 +261,21 @@ void main() {
       const MouseEvent(MouseKind.down, 4, 4, button: 8),
       const MouseEvent(MouseKind.up, 4, 4, button: 9),
       const MouseEvent(MouseKind.drag, 5, 4, button: 8),
+    ]);
+  });
+
+  test("X10 mouse, from a terminal that ignores SGR's: events, not keys", () {
+    expect(parse('\x1b[M !!\x1b[M#!!\x1b[MC5%\x1b[Ma"#x'), [
+      const MouseEvent(MouseKind.down, 0, 0),
+      const MouseEvent(MouseKind.up, 0, 0),
+      const MouseEvent(MouseKind.move, 20, 4),
+      const MouseEvent(MouseKind.wheelDown, 1, 2),
+      const KeyEvent(KeyCode.char, char: 'x'),
+    ]);
+    // the three bytes waited for; cut off, no keys
+    expect(parse('\x1b[M !', flush: false), isEmpty);
+    expect(parse('\x1b[M !'), [
+      isA<UnknownSequence>().having((e) => '$e', 'text', 'Unknown(ESC[M !)'),
     ]);
   });
 
