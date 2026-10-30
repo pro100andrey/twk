@@ -58,6 +58,28 @@ void main() {
       expect(watch.elapsed, greaterThan(const Duration(milliseconds: 50)));
     });
 
+    test('fails the same once the timeout passed while a future of the '
+        'condition or of between never completes', () async {
+      final never = Completer<bool>().future;
+      await expectLater(
+        waitUntil(
+          () => never,
+          'what never answers',
+          timeout: const Duration(milliseconds: 50),
+        ),
+        _failure('waited 0.050 s for what never answers, in vain'),
+      );
+      await expectLater(
+        waitUntil(
+          () => false,
+          'what between holds up',
+          timeout: const Duration(milliseconds: 50),
+          between: () => Completer<void>().future,
+        ),
+        _failure('waited 0.050 s for what between holds up, in vain'),
+      );
+    });
+
     test('throws what the condition throws', () async {
       await expectLater(
         waitUntil(() => throw StateError('boom'), 'boom'),
