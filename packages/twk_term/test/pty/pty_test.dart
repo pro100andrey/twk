@@ -171,14 +171,19 @@ void main() {
     await run.waitFor(r'$ ');
     run.pty.write(utf8.encode('echo started; sleep 30\r'));
     await run.waitFor('started\r\n');
-    // Again until it is the job that gets it, not bash before the job runs.
+    // Again until it is the job that gets it, not bash before the job runs:
+    // the prompt is back once the job stopped (bash's own line saying so may
+    // come later or not at all), and `jobs` lists it stopped.
     var at = run.text.length;
     await run.until(() {
       run.pty.write([0x1a]);
-      return run.text.contains('Stopped', at);
+      return run.text.contains(r'$ ', at);
     }, 'the job to stop');
     expect(run.text, isNot(contains('no job control')));
-    await run.waitFor(r'$ ', from: run.text.indexOf('Stopped'));
+    at = run.text.length;
+    run.pty.write(utf8.encode('jobs\r'));
+    await run.waitFor('Stopped', from: at);
+    await run.waitFor(r'$ ', from: run.text.indexOf('Stopped', at));
     at = run.text.length;
     run.pty.write(utf8.encode('fg\r'));
     await run.waitFor('sleep 30\r\n', from: at);
