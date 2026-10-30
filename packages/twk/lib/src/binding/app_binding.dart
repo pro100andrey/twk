@@ -928,6 +928,13 @@ final class AppBinding {
   Duration get frameTime => _frameTime;
   Duration _frameTime = Duration.zero;
 
+  /// How many frames have begun: what a widget that keeps what it found in
+  /// the layout between events looks at, as the layout changes in frames
+  /// alone.
+  @internal
+  int get framesBegun => _framesBegun;
+  var _framesBegun = 0;
+
   /// Calls [callback] once, at the start of a frame before its build, with
   /// the frame's time ([frameTime]), and asks for that frame: the next one,
   /// or with [at] the first at or after that time on the app's clock. A
@@ -1041,6 +1048,7 @@ final class AppBinding {
   void _beforeLayout() {
     final now = twkApp.clock.elapsed;
     _frameTime = now;
+    _framesBegun++;
     if (_callbacks.isNotEmpty) {
       _callFrameCallbacks(now.inMicroseconds);
     }

@@ -330,9 +330,21 @@ final class _SelectionAreaState extends State<SelectionArea> {
     super.dispose();
   }
 
+  // what _placed found last, and the frame it was found after: the layout
+  // changes in frames alone, so the events between two take it again
+  List<_Placed>? _placedFound;
+  var _placedIn = -1;
+
   /// The paragraphs of this area's Texts and the [Selectable]s below it, in
-  /// the order of the tree, each where it is in the area.
+  /// the order of the tree, each where it is in the area: as found last
+  /// where no frame began since, a drag's moves and its timers not walking
+  /// the area each.
   List<_Placed> _placed() {
+    final frame = AppBinding.maybeOf(context)?.framesBegun;
+    final found = _placedFound;
+    if (found != null && frame != null && frame == _placedIn) {
+      return found;
+    }
     final placed = <_Placed>[];
     void visit(RenderObject o, int x, int y) {
       if (o is RenderParagraph && (_mine[o] ?? false)) {
@@ -356,6 +368,8 @@ final class _SelectionAreaState extends State<SelectionArea> {
     if (root != null) {
       visit(root, 0, 0);
     }
+    _placedFound = placed;
+    _placedIn = frame ?? -1;
     return placed;
   }
 
