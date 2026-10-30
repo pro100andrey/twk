@@ -881,7 +881,10 @@ abstract class Element implements BuildContext {
   // asked anew at each step of updateChildren: a GlobalKey takes a child
   // away meanwhile
   static bool _forgotten(Set<Element>? forgottenChildren, Element child) =>
-      forgottenChildren?.contains(child) ?? false;
+      forgottenChildren != null &&
+      // an empty set's lookup still hashes the element
+      forgottenChildren.isNotEmpty &&
+      forgottenChildren.contains(child);
 
   /// Creates the element of [newWidget] and mounts it as a child of this
   /// one at [newSlot]. For a widget with a [GlobalKey], the element of the
