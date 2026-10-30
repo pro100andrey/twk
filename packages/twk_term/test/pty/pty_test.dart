@@ -342,6 +342,14 @@ void main() {
     expect(run.text, 'ready\r\n');
   });
 
+  test('a program that ignores the hang-up is killed a second after '
+      'close', () async {
+    final run = sh('trap "" HUP; echo ready; while :; do sleep 0.05; done');
+    await run.waitFor('ready\r\n');
+    run.pty.close();
+    expect(await run.ended(), exits(-ProcessSignal.sigkill.signalNumber));
+  });
+
   test('a program that closed its terminal is not hung up before it ends: '
       'the output ends, the exit code is its own', () async {
     // What cat does at the end of its input, slowed down: every descriptor

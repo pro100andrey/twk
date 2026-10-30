@@ -26,6 +26,10 @@ const _ack = 0x61; // a message of output was taken
 const _want = 0x77; // say when the master takes writes again
 const _quit = 0x71; // stop reading: the terminal is closed
 
+/// How long a program may run on after [Pty.close] hung its terminal up
+/// before it is killed.
+const _hangUpGrace = Duration(seconds: 1);
+
 // What the I/O isolate tells the main one, besides output and the end.
 const _writable = 'writable';
 const _hangup = 'hangup';
@@ -494,7 +498,9 @@ final class Pty {
   /// Hangs the terminal up, as closing its window does: [output] ends,
   /// input still waiting is dropped, and the program (with its foreground
   /// job) gets SIGHUP as the master closes, also when it closed the
-  /// terminal itself and runs on.
+  /// terminal itself and runs on. A program still running a second later,
+  /// one that ignores SIGHUP, is killed (SIGKILL): until it ends, the
+  /// terminal's resources stay and keep this process from exiting.
   void close() {
     if (_closed) {
       return;
@@ -507,6 +513,12 @@ final class Pty {
     } else {
       _wake(_quit);
     }
+    Timer(_hangUpGrace, () {
+      // once the I/O isolate ended, the program was reaped or killed
+      if (!_ended && !_exit.isCompleted) {
+        signalProcess(pid, _pidfd, ProcessSignal.sigkill);
+      }
+    });
   }
 
   void _onMessage(Object? message) {
