@@ -640,9 +640,11 @@ final class _TextFormFieldState extends FormFieldState<String> {
     }
   }
 
+  /// The field's initial value again: the text the app puts in, no step
+  /// to undo, its history afresh ([TextEditingController.reset]).
   @override
   void reset() {
     super.reset();
-    _controller.text = _value ?? '';
+    _controller.reset(_value ?? '');
   }
 }

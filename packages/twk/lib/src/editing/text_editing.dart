@@ -283,13 +283,23 @@ final class TextEditingController extends ValueNotifier<TextEditingValue> {
   @override
   set value(TextEditingValue newValue) {
     final old = super.value;
-    final v = _within(newValue, _buffer);
+    var v = _within(newValue, _buffer);
     if (identical(v._text, old._text)) {
       if (v.selection != old.selection) {
         _open = false;
       }
     } else {
-      _recordChange(old, v);
+      final (head, tail) = _changed(old.text, v.text);
+      // the composing as it was, kept by a value made from the old one
+      // (copyWith), over text changed outside it: its offsets are the old
+      // text's, and the composing has ended
+      final c = v.composing;
+      if (c.isValid &&
+          c == old.composing &&
+          (head < c.start || old.text.length - tail > c.end)) {
+        v = TextEditingValue._(v._text, v.selection, TextRange.empty);
+      }
+      _recordChange(old, v, head, tail);
     }
     super.value = v;
   }
@@ -336,15 +346,16 @@ final class TextEditingController extends ValueNotifier<TextEditingValue> {
     );
   }
 
-  /// Records the change from [old] to [now] as a step of its own: the part
-  /// of the text between what they start and end with alike.
-  void _recordChange(TextEditingValue old, TextEditingValue now) {
-    final a = old.text;
-    final b = now.text;
+  /// How many code units [a] and [b] start with alike and, after those,
+  /// end with alike, whole code points: a surrogate pair is not split.
+  static (int, int) _changed(String a, String b) {
     final shorter = a.length < b.length ? a.length : b.length;
     var head = 0;
     while (head < shorter && a.codeUnitAt(head) == b.codeUnitAt(head)) {
       head++;
+    }
+    if (head > 0 && _isHigh(a.codeUnitAt(head - 1))) {
+      head--;
     }
     var tail = 0;
     while (tail < shorter - head &&
@@ -352,6 +363,27 @@ final class TextEditingController extends ValueNotifier<TextEditingValue> {
             b.codeUnitAt(b.length - 1 - tail)) {
       tail++;
     }
+    if (tail > 0 && _isLow(a.codeUnitAt(a.length - tail))) {
+      tail--;
+    }
+    return (head, tail);
+  }
+
+  static bool _isHigh(int unit) => unit >= 0xD800 && unit <= 0xDBFF;
+
+  static bool _isLow(int unit) => unit >= 0xDC00 && unit <= 0xDFFF;
+
+  /// Records the change from [old] to [now] as a step of its own: the part
+  /// of the text between the [head] and [tail] code units they start and
+  /// end with alike ([_changed]).
+  void _recordChange(
+    TextEditingValue old,
+    TextEditingValue now,
+    int head,
+    int tail,
+  ) {
+    final a = old.text;
+    final b = now.text;
     _open = false;
     _record(
       head,
