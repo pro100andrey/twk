@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer' show Timeline;
 import 'dart:io' show Platform;
+import 'dart:typed_data';
 
 import 'package:test/test.dart';
 import 'package:twk_core/twk_core.dart';
@@ -171,10 +172,15 @@ void main() {
     ),
   );
 
-  void start({int maxFps = 1000, void Function(InputEvent e)? onEvent}) {
+  /// An app on [term], or on what [wrap] makes of it.
+  void start({
+    int maxFps = 1000,
+    void Function(InputEvent e)? onEvent,
+    TerminalBackend Function(HeadlessTerminal term)? wrap,
+  }) {
     term = HeadlessTerminal(width: 20, height: 4);
     app = TwkApp(
-      term,
+      wrap?.call(term) ?? term,
       maxFps: maxFps,
       clock: clock.stopwatch,
       environment: const {},
@@ -469,6 +475,61 @@ void main() {
     await pass();
     term.type('\r');
     await expectLater(clock.elapseUntil(done), throwsA(isA<StateError>()));
+    expect(term.closed, isTrue);
+  });
+
+  group('a terminal that fails to close', () {
+    void startFailing() => start(
+      wrap: (term) => _Failing(term)..closeError = StateError('close failed'),
+    );
+
+    test('leaves run() the error that ended the app, its own logged', () async {
+      startFailing();
+      probe.throwOnPaint = StateError('paint failed');
+      await expectLater(
+        clock.elapseUntil(runOnClock(app, probe, (_) {})),
+        throwsA(
+          isA<StateError>().having((e) => e.message, 'message', 'paint failed'),
+        ),
+      );
+      expect(term.closed, isTrue);
+      expect(
+        app.logs.records.map((r) => '${r.message}: ${r.error}'),
+        contains('the terminal was not closed: Bad state: close failed'),
+      );
+    });
+
+    test('ends run() with its error where nothing else did', () async {
+      startFailing();
+      final done = runOnClock(app, probe, (_) {});
+      await pass();
+      app.quit();
+      await expectLater(
+        clock.elapseUntil(done),
+        throwsA(
+          isA<StateError>().having((e) => e.message, 'message', 'close failed'),
+        ),
+      );
+      expect(term.closed, isTrue);
+    });
+  });
+
+  test('a terminal not taken back ends the app, though what handed it '
+      'over catches the error', () async {
+    start(
+      wrap: (term) => _Failing(term)..resumeError = StateError('not back'),
+    );
+    final done = runOnClock(app, probe, (e) {
+      unawaited(app.suspend(() async {}).catchError((Object _) {}));
+    });
+    await pass();
+    term.type('\r');
+    await expectLater(
+      clock.elapseUntil(done),
+      throwsA(
+        isA<StateError>().having((e) => e.message, 'message', 'not back'),
+      ),
+    );
     expect(term.closed, isTrue);
   });
 
@@ -890,4 +951,51 @@ final class _FailsLayout extends RenderObject {
 
   @override
   void paint(PaintContext ctx) {}
+}
+
+/// [inner], whose [close] and [resume] throw [closeError] and
+/// [resumeError] where they are set, once [inner] has done its part.
+final class _Failing implements SuspendableBackend {
+  _Failing(this.inner);
+
+  final HeadlessTerminal inner;
+  Error? closeError;
+  Error? resumeError;
+
+  @override
+  TerminalInfo get info => inner.info;
+
+  @override
+  int get width => inner.width;
+
+  @override
+  int get height => inner.height;
+
+  @override
+  Stream<InputEvent> get events => inner.events;
+
+  @override
+  void write(Uint8List bytes) => inner.write(bytes);
+
+  @override
+  Future<void> flush() => inner.flush();
+
+  @override
+  Future<void> close() async {
+    await inner.close();
+    if (closeError case final error?) {
+      throw error;
+    }
+  }
+
+  @override
+  Future<void> suspend() => inner.suspend();
+
+  @override
+  Future<void> resume() async {
+    await inner.resume();
+    if (resumeError case final error?) {
+      throw error;
+    }
+  }
 }

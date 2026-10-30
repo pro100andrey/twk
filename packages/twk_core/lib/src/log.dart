@@ -155,6 +155,12 @@ final class LogSink {
 
   /// The file every record is appended to (`TWK_LOG` for a [TwkApp]); on
   /// the web, which has no files, [add] throws [UnsupportedError] for one.
+  ///
+  /// Each record is written as it is added, the file opened and closed for
+  /// it, so that a record is on the disk before a crash that follows it. A
+  /// write that fails throws from [add]: in a [TwkApp] that ends the app,
+  /// the terminal restored, as the file was asked for to keep the log and
+  /// losing it silently is worse.
   final String? path;
 
   final _ring = <LogRecord>[];

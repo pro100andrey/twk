@@ -741,6 +741,27 @@ void main() {
       },
     );
 
+    test('a hello it fails to serve stops it, its terminal closed, done '
+        'completing with the error', () async {
+      final refusing = FakeLink(refusesRaw: true);
+      final (server, address) = await LocalAddress.bind(dir.path, 'failing');
+      final failing = TerminalShell.serve(refusing, server, address);
+      final app = await WireClient.connect(failing.address);
+      app.hello(failing.address.token);
+      await expectLater(
+        failing.done,
+        throwsA(
+          isA<TerminalException>().having(
+            (e) => e.message,
+            'message',
+            'not a terminal',
+          ),
+        ),
+      );
+      await app.closed;
+      expect((refusing.raw, refusing.closed), (false, true));
+    });
+
     test('stop disconnects the app, puts the terminal back and forgets the '
         'address file and the socket', () async {
       final app = await WireClient.connect(shell.address);

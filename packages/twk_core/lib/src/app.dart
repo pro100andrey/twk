@@ -516,6 +516,8 @@ final class TwkApp {
   /// [RenderPhase.layout] once while it is the same, the region keeping its
   /// height, and one thrown while a commit is sized, laid out or painted
   /// (see [commit]).
+  ///
+  /// An app runs once: a [StateError] when this was called before.
   Future<void> run(
     RenderObject root,
     void Function(InputEvent e) onEvent, {
@@ -523,6 +525,9 @@ final class TwkApp {
     void Function()? beforePresent,
     void Function()? afterPresent,
   }) async {
+    if (_running) {
+      throw StateError('an app runs once: run was called before');
+    }
     _beforeLayout = beforeLayout;
     _beforePresent = beforePresent;
     _afterPresent = afterPresent;
@@ -565,11 +570,34 @@ final class TwkApp {
       zoneSpecification: ZoneSpecification(print: _print),
     );
     final serving = serveLogs ? _serveLogs() : null;
+    // what ends the run: the error that ended the app, else the first of
+    // the steps below that failed; the others go to the log, so that one
+    // does not take the place of the other and the terminal is restored
+    // whatever failed
+    Object? failure;
+    StackTrace? failureStack;
+    Future<void> step(String what, FutureOr<void> Function() body) async {
+      try {
+        await body();
+      } on Object catch (error, stack) {
+        if (failure == null) {
+          failure = error;
+          failureStack = stack;
+        } else {
+          _log(what, error, stack);
+        }
+      }
+    }
+
     try {
       await _done.future;
-    } finally {
-      await _input?.cancel();
-      if (!_suspended) {
+    } on Object catch (error, stack) {
+      failure = error;
+      failureStack = stack;
+    }
+    await step('the input was not cancelled', () => _input?.cancel());
+    if (!_suspended) {
+      await step('the screen was not left', () async {
         await _writeCommits();
         if (_plain) {
           if (!screen.presenter.inline || !clearInlineOnExit) {
@@ -585,13 +613,35 @@ final class TwkApp {
             terminal.write(leave);
           }
         }
-      }
-      await terminal.close();
-      if (serving != null) {
+      });
+    }
+    await step('the terminal was not closed', terminal.close);
+    if (serving != null) {
+      await step('the log was not closed', () async {
         await serving;
         await logs.close();
-      }
-      _report();
+      });
+    }
+    _report();
+    if (failure case final error?) {
+      Error.throwWithStackTrace(error, failureStack!);
+    }
+  }
+
+  /// Adds a record of [error] to [logs], which may fail itself.
+  void _log(String message, Object error, StackTrace stack) {
+    try {
+      logs.add(
+        LogRecord(
+          DateTime.now(),
+          LogLevel.error,
+          message,
+          error: error,
+          stack: stack,
+        ),
+      );
+    } on Object {
+      // a failing sink is not to end the run before the rest is done
     }
   }
 
@@ -673,7 +723,14 @@ final class TwkApp {
       // after quit() the terminal is being closed: it stays handed over
       if (!_done.isCompleted) {
         if (term is SuspendableBackend) {
-          await term.resume();
+          try {
+            await term.resume();
+          } on Object catch (error, stack) {
+            // the terminal not taken back, the app can't go on, also when
+            // what called this catches the error: it ends with it
+            _fail(error, stack);
+            rethrow;
+          }
         }
         final presenter = screen.presenter;
         if (presenter.inline) {

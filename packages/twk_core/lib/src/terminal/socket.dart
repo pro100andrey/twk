@@ -355,6 +355,10 @@ final class SocketLink implements DeclaringLink {
     }
   }
 
+  /// Completes once the shell wrote what was added to its terminal. There
+  /// is no time limit: a shell whose terminal was paused (Ctrl+S) or which
+  /// was stopped can't be told from one that hangs, and a local app waits
+  /// for a paused terminal as well.
   @override
   Future<void> flush() {
     if (_ended) {
@@ -583,13 +587,18 @@ final class TerminalShell {
   var _stopped = false;
   final _done = Completer<void>();
 
+  /// What a connection's frame threw, which stopped the shell.
+  (Object, StackTrace)? _failure;
+
   /// How long a connection may take to say hello.
   static const helloTimeout = Duration(seconds: 5);
 
   /// Whether an app has the terminal.
   bool get serving => _session != null;
 
-  /// Completes once [stop] has run.
+  /// Completes once [stop] has run; with the error, once the terminal is
+  /// put back, where handling what an app sent threw (the console's raw
+  /// mode failing, `onEvent` throwing), which stops the shell.
   Future<void> get done => _done.future;
 
   /// Writes [text] to the terminal: a line about the shell, for when no
@@ -610,12 +619,20 @@ final class TerminalShell {
     });
     session.listen(
       (type, payload) {
-        if (_pending.contains(session)) {
-          timer.cancel();
-          _pending.remove(session);
-          _hello(session, type, payload);
-        } else if (identical(session, _session)) {
-          _frame(session, type, payload);
+        try {
+          if (_pending.contains(session)) {
+            timer.cancel();
+            _pending.remove(session);
+            _hello(session, type, payload);
+          } else if (identical(session, _session)) {
+            _frame(session, type, payload);
+          }
+        } on Object catch (error, stack) {
+          // thrown on, it would end the process with the terminal raw (the
+          // console gone, onEvent failing): the shell stops, the terminal
+          // put back, and [done] completes with it
+          _failure ??= (error, stack);
+          unawaited(stop());
         }
       },
       () {
@@ -755,7 +772,11 @@ final class TerminalShell {
       }
       address.unlink();
       await _link.close();
-      _done.complete();
+      if (_failure case (final error, final stack)) {
+        _done.completeError(error, stack);
+      } else {
+        _done.complete();
+      }
     }
   }
 }

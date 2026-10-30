@@ -92,6 +92,10 @@ final class ShellCommand extends Command<int> {
     _say('waiting for an app');
     try {
       await shell.done;
+    } on TerminalException catch (e) {
+      // what an app's connection made fail, its terminal put back
+      stderr.writeln('twk shell: ${e.message}');
+      return 1;
     } finally {
       for (final s in signals) {
         await s.cancel();

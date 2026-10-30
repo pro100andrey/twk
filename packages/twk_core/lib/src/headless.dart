@@ -300,6 +300,10 @@ final class HeadlessTerminal
     String restore, {
     Duration? refresh,
   }) {
+    assert(
+      '$sequence$restore'.codeUnits.every((c) => c < 0x80),
+      'a terminal state is set and put back in ASCII',
+    );
     if (closed) {
       return;
     }
