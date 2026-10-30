@@ -155,6 +155,9 @@ final class _Screen {
     server.listen((socket) {
       _socket = socket;
       _ends.add(_read(socket));
+      // an app restarted or ended resets its connection, which a write to
+      // it then fails on, out of the test's way: as its reads, taken
+      socket.done.ignore();
     });
   }
 

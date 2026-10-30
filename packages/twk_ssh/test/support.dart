@@ -68,12 +68,14 @@ Future<ProcessResult?> sshKeygen(List<String> arguments) async =>
     onPath('ssh-keygen') ? runProcess('ssh-keygen', arguments) : null;
 
 /// A server on the loopback interface, at a port the system picks, closed
-/// when the test ends.
+/// when the test ends. Its [loginTimeout] is the server's, two minutes of
+/// real time: a test that never logs in and makes key exchanges, which a
+/// loaded machine takes seconds each of, is not cut off by it.
 Future<SshServer> serve({
   required SshAuth auth,
   required SessionHandler onSession,
   List<SshHostKey>? hostKeys,
-  Duration loginTimeout = const Duration(seconds: 10),
+  Duration loginTimeout = const Duration(minutes: 2),
   int maxUnauthenticated = 10,
   SshRekeyLimit rekeyLimit = const SshRekeyLimit(),
   Stopwatch? clock,

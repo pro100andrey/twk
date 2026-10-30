@@ -710,6 +710,27 @@ void main() {
       }
     });
 
+    test("a package's dependencies of this repository by a version, its "
+        'dev ones too, not those by a path or of pub.dev only', () {
+      expect(
+        repositoryDependencies(
+          'name: twk_lints\n'
+          'dependencies:\n'
+          '  analyzer: ^14.7.0\n'
+          '  twk_core: ^0.1.0\n'
+          'dev_dependencies:\n'
+          '  test: ^1.33.0\n'
+          '  twk: ^0.1.0\n'
+          '  twk_test:\n'
+          '    path: ../twk_test\n'
+          'dependency_overrides:\n'
+          '  twk_term: ^0.1.0\n',
+          {'twk', 'twk_core', 'twk_test', 'twk_term'},
+        ),
+        ['twk_core', 'twk'],
+      );
+    });
+
     test('a private package is failed, the rest still run', () async {
       final root = Directory.systemTemp.createTempSync('pub_check');
       addTearDown(() => root.deleteSync(recursive: true));
