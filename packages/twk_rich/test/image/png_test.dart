@@ -47,6 +47,23 @@ void main() {
       expect(bits.pixel(1, 0), 0xFFFFFFFF);
     });
 
+    test('inflates no more than the rows IHDR declares', () {
+      // 1 × 1 RGB is 4 bytes of rows; 16 MiB of zeros deflates to some
+      // 16 KB, which a bomb of gigabytes is a few hundred times
+      final png = _png(1, 1, Uint8List(16 << 20));
+      expect(png.length, lessThan(64 << 10));
+      expect(
+        () => decodePng(png),
+        throwsA(
+          isFormatException.having(
+            (e) => e.message,
+            'message',
+            contains('more than 4 bytes'),
+          ),
+        ),
+      );
+    });
+
     test('rejects what is not a PNG file', () {
       expect(
         () => decodePng(Uint8List.fromList([1, 2, 3])),

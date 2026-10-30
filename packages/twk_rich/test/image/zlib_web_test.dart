@@ -1,11 +1,12 @@
 // The zlib of the web (lib/src/image/zlib_web.dart), run on the VM against
 // dart:io's: what dart:io deflates at every level it inflates, and what it
-// deflates dart:io inflates.
+// deflates dart:io inflates; and both inflating no further than a bound.
 import 'dart:io' show ZLibDecoder, ZLibEncoder;
 import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:test/test.dart';
+import 'package:twk_rich/src/image/zlib_io.dart' as io;
 import 'package:twk_rich/src/image/zlib_web.dart';
 
 /// Kinds of data: none, a byte, text that repeats, noise, and runs long
@@ -60,5 +61,28 @@ void main() {
     final wrong = Uint8List.fromList(good);
     wrong[wrong.length - 1] ^= 1;
     expect(() => zlibInflate(wrong), throwsFormatException);
+  });
+
+  test('inflates up to the limit given, and fails past it', () {
+    for (final (name, inflate) in [
+      ('web', zlibInflate),
+      ('dart:io', io.zlibInflate),
+    ]) {
+      for (final MapEntry(key: sample, value: data) in samples().entries) {
+        final deflated = ZLibEncoder().convert(data);
+        expect(
+          inflate(deflated, limit: data.length),
+          data,
+          reason: '$name, $sample',
+        );
+        if (data.isNotEmpty) {
+          expect(
+            () => inflate(deflated, limit: data.length - 1),
+            throwsFormatException,
+            reason: '$name, $sample',
+          );
+        }
+      }
+    }
   });
 }

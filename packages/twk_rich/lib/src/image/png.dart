@@ -132,17 +132,25 @@ Bitmap decodePng(Uint8List bytes) {
   if (color == 3 && palette == null) {
     throw const FormatException('PNG of a palette without PLTE');
   }
-  final raw = zlibInflate(compressed.takeBytes());
-  final rows = _Rows(width, height, color, depth, palette, transparency);
   final bitsPerPixel = _channels(color) * depth;
-  final bpp = bitsPerPixel < 8 ? 1 : bitsPerPixel >> 3;
-  var offset = 0;
+  // the rows IHDR declares, a filter byte each: inflated no further, as a
+  // few KB of deflate can hold gigabytes
+  final passes = <(int, int, int, int, int, int)>[];
+  var size = 0;
   for (final (x0, y0, dx, dy) in interlaced ? _adam7 : [(0, 0, 1, 1)]) {
     final passWidth = (width - x0 + dx - 1) ~/ dx;
     final passHeight = (height - y0 + dy - 1) ~/ dy;
     if (passWidth <= 0 || passHeight <= 0) {
       continue;
     }
+    passes.add((x0, y0, dx, dy, passWidth, passHeight));
+    size += passHeight * (((passWidth * bitsPerPixel + 7) >> 3) + 1);
+  }
+  final raw = zlibInflate(compressed.takeBytes(), limit: size);
+  final rows = _Rows(width, height, color, depth, palette, transparency);
+  final bpp = bitsPerPixel < 8 ? 1 : bitsPerPixel >> 3;
+  var offset = 0;
+  for (final (x0, y0, dx, dy, passWidth, passHeight) in passes) {
     final stride = (passWidth * bitsPerPixel + 7) >> 3;
     if (offset + passHeight * (stride + 1) > raw.length) {
       throw const FormatException('PNG image data cut short');
