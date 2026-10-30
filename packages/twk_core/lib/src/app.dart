@@ -200,7 +200,7 @@ final class TwkApp {
   ///
   /// The screen starts as [terminal] says ([TerminalBackend.info]): its
   /// size, capabilities, colors and how it measures text.
-  TwkApp(
+  factory TwkApp(
     TerminalBackend terminal, {
     int maxFps = 60,
     LogSink? logs,
@@ -212,20 +212,23 @@ final class TwkApp {
     bool? serveLogs,
     Stopwatch? clock,
     Map<String, String>? environment,
-  }) : this._(
-         terminal,
-         environment ?? _environmentOn(terminal),
-         _debugNames(environment ?? _environmentOn(terminal)),
-         maxFps: maxFps,
-         logs: logs,
-         maxInlineRows: maxInlineRows,
-         clearInlineOnExit: clearInlineOnExit,
-         viewport: viewport,
-         framesInRow: framesInRow,
-         timeline: timeline,
-         serveLogs: serveLogs,
-         clock: clock,
-       );
+  }) {
+    final on = environment ?? _environmentOn(terminal);
+    return TwkApp._(
+      terminal,
+      on,
+      _debugNames(on),
+      maxFps: maxFps,
+      logs: logs,
+      maxInlineRows: maxInlineRows,
+      clearInlineOnExit: clearInlineOnExit,
+      viewport: viewport,
+      framesInRow: framesInRow,
+      timeline: timeline,
+      serveLogs: serveLogs,
+      clock: clock,
+    );
+  }
 
   TwkApp._(
     this.terminal,

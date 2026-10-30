@@ -1892,6 +1892,16 @@ final class Terminal
     }
     _suspended = true;
     _input.pause();
+    // what was read before is the app's: resolved now, not by a timer
+    // while the other program has the terminal, nor joined to what comes
+    // after
+    _escTimer?.cancel();
+    _pasteTimer?.cancel();
+    if (_parser.inPaste) {
+      _parse(_parser.endPaste);
+    } else if (_parser.hasPending) {
+      _parse(_parser.flush);
+    }
     try {
       _writeString(_exitSequence());
       _link.restoreWith(const []);

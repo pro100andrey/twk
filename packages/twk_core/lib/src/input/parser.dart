@@ -78,6 +78,10 @@ final class InputParser {
   // ESC that ended a string and may be its ST's start
   _Drop _dropping = _Drop.none;
 
+  // how far into the string sequence pending at the buffer's start the
+  // reads before scanned for its end: the next read goes on from there
+  var _stringScanned = 0;
+
   /// Whether an escape sequence is waiting for more input (call [flush]
   /// after a pause: a lone ESC may be the Escape key). Never for a
   /// character split across reads, which can only be completed, Alt and
@@ -326,6 +330,10 @@ final class InputParser {
     }
     flushText();
     _buf.removeRange(0, pos);
+    if (pos > 0) {
+      // the sequence a scan went into is decoded, or no more at the start
+      _stringScanned = 0;
+    }
     // at eof every decoder takes what it was given, even cut short
     assert(!eof || _inPaste || _buf.isEmpty, 'left at eof: $_buf');
     return out;
@@ -615,7 +623,9 @@ final class InputParser {
       );
       return 2;
     }
-    for (var i = pos + 2; i < b.length; i++) {
+    final from = pos == 0 && _stringScanned > 2 ? _stringScanned : pos + 2;
+    var i = from;
+    for (; i < b.length; i++) {
       final c = b[i];
       int end;
       if (c == 0x07) {
@@ -641,6 +651,9 @@ final class InputParser {
     if (eof) {
       out.add(UnknownSequence(b.sublist(pos)));
       return b.length - pos;
+    }
+    if (pos == 0) {
+      _stringScanned = i;
     }
     return 0;
   }

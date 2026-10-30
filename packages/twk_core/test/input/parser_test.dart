@@ -115,6 +115,29 @@ void main() {
     }
   });
 
+  test('a string sequence fed a byte at a time, its scan going on where '
+      'the read before left it, reads as it does whole', () {
+    for (final s in [
+      '\x1b]11;rgb:ffff/0000/8080\x1b\\x',
+      '\x1b]11;rgb:ffff/0000/8080\x07x',
+      '\x1bP>|kitty(0.40)\x1b\\x',
+      '\x1b_Gi=1;OK\x1b\\x',
+      // an ESC that is no ST: the string given up, a key after it
+      '\x1b]0;title\x1b[Ax',
+      'a\x1b]0;t\x07\x1b]0;u\x07x',
+    ]) {
+      // a color report has no ==: what it says, as text
+      String text(InputEvent e) =>
+          e is ColorReport ? 'color ${e.which} ${e.index} ${e.rgb}' : '$e';
+      final whole = InputParser().feed(utf8.encode(s)).map(text);
+      final p = InputParser();
+      final pieces = [
+        for (final b in utf8.encode(s)) ...p.feed([b]),
+      ];
+      expect(pieces.map(text), whole, reason: jsonEncode(s));
+    }
+  });
+
   group('what it holds is bounded', () {
     const x = KeyEvent(KeyCode.char, char: 'x');
 

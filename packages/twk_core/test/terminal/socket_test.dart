@@ -381,6 +381,30 @@ void main() {
       await term.close();
     });
 
+    test('suspended, what was read before is the input it is, an ESC '
+        'the Escape key, not joined to what comes after resume', () async {
+      final term = await Terminal.connect(
+        shell.address,
+        // no timer resolves it
+        const TerminalOptions(escapeTimeout: Duration(hours: 1)),
+      );
+      final events = <InputEvent>[];
+      final listening = term.events.listen(events.add);
+      shell.input('a\x1b');
+      await waitUntil(() => events.isNotEmpty, 'the key before the ESC');
+      await term.suspend();
+      expect(events, [
+        const KeyEvent(KeyCode.char, char: 'a'),
+        const KeyEvent(KeyCode.escape),
+      ]);
+      await term.resume();
+      shell.input('b');
+      await waitUntil(() => events.length > 2, 'the key after resume');
+      expect(events.last, const KeyEvent(KeyCode.char, char: 'b'));
+      await listening.cancel();
+      await term.close();
+    });
+
     test('suspended, the terminal is put back and the console modes too; '
         'resumed, both are taken again', () async {
       final term = await Terminal.connect(shell.address);
