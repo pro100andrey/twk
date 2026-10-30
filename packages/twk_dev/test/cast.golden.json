@@ -183,6 +183,21 @@
       "name": "an event whose data is no string",
       "lines": ["{\"version\": 2, \"width\": 80, \"height\": 24}", "[0.5, \"o\", 1]"],
       "error": "line 2: no [time, code, data] event"
+    },
+    {
+      "name": "an event at a negative time",
+      "lines": ["{\"version\": 2, \"width\": 80, \"height\": 24}", "[0.5, \"o\", \"a\"]", "[-0.5, \"o\", \"b\"]"],
+      "error": "line 3: a time out of range"
+    },
+    {
+      "name": "an event at a time past 1e9 s",
+      "lines": ["{\"version\": 2, \"width\": 80, \"height\": 24}", "[0.5, \"o\", \"a\"]", "[1e10, \"o\", \"b\"]"],
+      "error": "line 3: a time out of range"
+    },
+    {
+      "name": "an event at a time JSON reads as infinity",
+      "lines": ["{\"version\": 2, \"width\": 80, \"height\": 24}", "[0.5, \"o\", \"a\"]", "[1e400, \"o\", \"b\"]"],
+      "error": "line 3: a time out of range"
     }
   ],
   "frames": [

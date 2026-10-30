@@ -158,7 +158,7 @@ final class Cast {
   Cast(this.header, this.events);
 
   /// The recording in [text]; a [FormatException] for one that isn't
-  /// asciicast v2.
+  /// asciicast v2, or has an event at a time below 0 or past [maxTime].
   factory Cast.parse(String text) {
     final lines = const LineSplitter().convert(text);
     final first = lines.indexWhere((l) => l.trim().isNotEmpty);
@@ -173,6 +173,10 @@ final class Cast {
       }
       final event = _json(lines[i], i);
       if (event case [final num time, final String code, final String data]) {
+        // 1e400 reads as infinity; past maxTime no player could wait for it
+        if (!(time >= 0 && time <= maxTime)) {
+          throw FormatException('line ${i + 1}: a time out of range');
+        }
         events.add(CastEvent(time.toDouble(), code, data));
       } else {
         throw FormatException('line ${i + 1}: no [time, code, data] event');
@@ -183,6 +187,9 @@ final class Cast {
 
   /// The recording in the file [path].
   factory Cast.read(String path) => Cast.parse(File(path).readAsStringSync());
+
+  /// The most seconds an event may be at: some 30 years.
+  static const maxTime = 1e9;
 
   static Object? _json(String line, int index) {
     try {

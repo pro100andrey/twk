@@ -133,7 +133,10 @@ function parseLine(line: string, index: number): unknown {
   }
 }
 
-/** The recording in [text], as `Cast.parse`: throws for one that isn't asciicast v2, saying which line. */
+/** The most seconds an event may be at, as `Cast.maxTime`: some 30 years. */
+export const maxCastTime = 1e9;
+
+/** The recording in [text], as `Cast.parse`: throws for one that isn't asciicast v2 or has an event at a time below 0 or past [maxCastTime], saying which line. */
 export function parseCast(text: string): Cast {
   const all = lines(text);
   const first = all.findIndex((l) => l.trim() !== '');
@@ -148,6 +151,10 @@ export function parseCast(text: string): Cast {
     }
     const e = parseLine(all[i], i);
     if (Array.isArray(e) && e.length === 3 && typeof e[0] === 'number' && typeof e[1] === 'string' && typeof e[2] === 'string') {
+      // 1e400 reads as Infinity; past maxCastTime no player could wait for it
+      if (!(e[0] >= 0 && e[0] <= maxCastTime)) {
+        throw new Error(`line ${i + 1}: a time out of range`);
+      }
       events.push({ time: e[0], code: e[1], data: e[2] });
     } else {
       throw new Error(`line ${i + 1}: no [time, code, data] event`);
