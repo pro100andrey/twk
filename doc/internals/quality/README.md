@@ -14,45 +14,21 @@ where each package stands against it.
 
 ## Where it stands
 
-From the first reports (e347734) to the last (36972df), after the docs and
-tests work package by package. `public_member_api_docs` is now on in the
-core and in every library package ([below](#the-reports)), so the first
-column stays at 0. twk_hooks and twk_provider have since become libraries
-of twk, `package:twk/hooks.dart` and `package:twk/provider.dart`, and
-their rows are what they were as packages; their lines are counted in
-twk's reports from then on. So with twk_image, now
-`package:twk_rich/image.dart`: its row is the package's, its lines are
-counted in twk_rich's reports from then on.
-
-| package | undocumented | covered | public gaps | examples |
-| --- | ---: | ---: | ---: | ---: |
-| twk_core | 557 → 0 | 94.9 → 99.1 % | 171 → 15 | 0 → 60 |
-| twk | 748 → 0 | 94.0 → 96.7 % | 228 → 5 | 4 → 261 |
-| twk_bloc | 29 → 0 | 95.0 → 100.0 % | 1 → 0 | 0 → 12 |
-| twk_dev | 87 → 0 | 64.6 → 97.5 % | 47 → 5 | 1 → 6 |
-| twk_hooks (since `package:twk/hooks.dart`) | 7 → 0 | 92.6 → 95.3 % | 4 → 0 | 0 → 24 |
-| twk_image (since `package:twk_rich/image.dart`) | 38 → 0 | 93.7 → 99.9 % | 26 → 0 | 0 → 7 |
-| twk_lints | 21 → 0 | 92.8 → 94.4 % | 4 → 0 | 0 → 17 |
-| twk_provider (since `package:twk/provider.dart`) | 35 → 0 | 94.6 → 97.3 % | 3 → 0 | 0 → 22 |
-| twk_rich | 120 → 0 | 95.4 → 97.9 % | 64 → 0 | 1 → 16 |
-| twk_riverpod | 9 → 0 | 92.7 → 100.0 % | 4 → 0 | 0 → 6 |
-| twk_term | 108 → 0 | 93.0 → 94.3 % | 19 → 3 | 0 → 6 |
-| twk_test | 48 → 0 | 84.4 → 90.7 % | 22 → 1 | 0 → 13 |
-| twk_web | 11 → 0 | 100.0 → 100.0 % | 5 → 0 | 0 → 3 |
-| **library packages** | **1818 → 0** | | **598 → 29** | **6 → 453** |
-| gallery (an app) | 149 → 149 | 91.6 → 91.6 % | 43 → 43 | 1 → 1 |
-| the four templates | 12 → 12 | 98.3–100 % | 0 → 0 | 0 → 0 |
+`public_member_api_docs` is on in the core and in every library package
+([below](#the-reports)), so no library package has a public member without
+a doc comment. The counts per package are in the tables of the reports'
+`README.md` files, and the lines no test runs in each package's coverage
+report.
 
 Examples are the ` ```dart ` blocks of `///` comments in `lib/`, each of
-them analyzed by `doc-snippets`. A public gap counted at the start may
-have been a constant, which the coverage tool no longer counts (three in
-twk_rich, one in twk_image). twk_web's five were the browser's
-(`runWebApp` and the xterm.js bindings, which no VM test loads), which
-the report now lists as browser-only rather than as gaps; many others ran
-only in a test's child process or pseudo-terminal, which the report now
-measures (below). What is left runs only on another platform, in a
-process that ends by `exit()` or a signal, or in a grandchild (the apps
-`twk run` and `twk record` start); each is in its package's report.
+them analyzed by `doc-snippets`. A constant is not a public gap: it has no
+line the coverage tool counts. The browser's side of twk_web (`runWebApp`
+and the xterm.js bindings, which no VM test loads) is listed as
+browser-only, not as gaps. Code that runs in a test's child process or
+pseudo-terminal is measured (below). What is left runs only on another
+platform, in a process that ends by `exit()` or a signal, or in a
+grandchild (the apps `twk run` and `twk record` start); each is in its
+package's report.
 
 The model is Flutter's framework documentation (its
 [style guide](https://github.com/flutter/flutter/blob/main/docs/contributing/Style-guide-for-Flutter-repo.md#documentation-dartdocs-javadocs-etc)):
@@ -440,23 +416,23 @@ enough, and on a loaded machine the guess is wrong.
 ## Renames and moves
 
 A public member of a released package renamed or moved comes, in the
-same commit, with an entry in its package's `lib/fix_data.yaml` (data-driven fixes,
-https://dart.dev/go/data-driven-fixes, which `dart fix --apply` and the
-IDE's quick fixes read) and a case in the package's `test_fixes/`: a
+same commit, with an entry in its package's `lib/fix_data.yaml`
+(data-driven fixes, https://dart.dev/go/data-driven-fixes, which
+`dart fix --apply` and the IDE's quick fixes read) and a case in the
+package's `test_fixes/`: a
 `.dart` file that uses the old API, and its `.dart.expect`, the file as
 dart fix leaves it, checked by `dart fix --compare-to-golden
 test_fixes` in the package. The package's `analysis_options.yaml`
 excludes `test_fixes/**`, whose inputs are errors on purpose;
 `test_fixes/analysis_options.yaml` makes the directory a context of its
 own, where dart fix still sees them. An entry's `uris` are the public
-libraries that export the element now.
+libraries that export the element.
 
-Nothing has been released yet, so there is no fix data: a change before
-a package's first release needs none, nobody having code against it.
-The first entry brings back to xtask.yaml, with it, the set of the
-packages that have a `test_fixes/` (`packages/*/test_fixes/analysis_options.yaml`)
-and a `pkg-fix-data` task over it in `handover` and `ci` (the `ci`
-benchmark's `needs` too), running that compare.
+The compare runs over the packages that have a `test_fixes/`, a set of
+xtask.yaml (`packages/*/test_fixes/analysis_options.yaml`) and a task over
+it in `handover` and `ci`, which the package's first entry adds with it.
+A package that is not released has no fix data: no code is written
+against it.
 
 An entry can say: a class, function, field, getter or method renamed
 (`rename`); a named parameter renamed (`renameParameter`); a parameter
@@ -466,7 +442,7 @@ function or static member replaced by another, also in another library
 another (`library:` with `replacedBy` and `newLibrary`). It cannot say
 three things:
 
-- an import of a package the app no longer depends on (a package
+- an import of a package the app does not depend on (a package
   renamed, or merged into another): the import resolves to nothing, and
   a fix runs only on a diagnostic of a library that resolves (a
   `library:` transform needs the old library present and deprecated);

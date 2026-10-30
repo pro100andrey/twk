@@ -1,6 +1,6 @@
-// The pages and options round 3 gave the Editing, Mouse and Focus and keys
-// groups: each new page builds at both sizes, its options apply, and its
-// keys and the mouse do what the design's do.
+// Pages and options of the Editing, Mouse and Focus and keys groups: each
+// page builds at both sizes, its options apply, and its keys and the mouse
+// do what the design's do.
 import 'dart:convert';
 
 import 'package:gallery/gallery.dart';
@@ -78,7 +78,7 @@ List<String> problems(TwkTester t) => [
     if (r.level.index >= LogLevel.warning.index) '${r.level}: ${r.message}',
 ];
 
-/// Each new page's route and a text its stage shows.
+/// Each page's route and a text its stage shows.
 const _pages = {
   'focus-and-keys/excludefocus': 'focus: none',
   'mouse/ignorepointer-absorbpointer': 'heard: nothing',

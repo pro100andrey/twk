@@ -1,6 +1,6 @@
-// The pages of round 3's widgets in the Navigation, Animation, Overlays,
-// Screen readers and Debugging groups: each builds at both sizes, its
-// options apply and its keys do what the design's do.
+// Pages of the Navigation, Animation, Overlays, Screen readers and
+// Debugging groups: each builds at both sizes, its options apply and its
+// keys do what the design's do.
 import 'package:gallery/gallery.dart';
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
@@ -56,7 +56,7 @@ List<String> problems(TwkTester t) => [
     if (r.level.index >= LogLevel.warning.index) '${r.level}: ${r.message}',
 ];
 
-/// Each new page, and what its stage shows at 2 s.
+/// Each page, and what its stage shows at 2 s.
 const _pages = {
   'animation/animatedbuilder': ' twk ',
   'debugging/repaintboundary': 'painted: 1',
@@ -64,7 +64,7 @@ const _pages = {
 };
 
 void main() {
-  group('every new page', () {
+  group('every page', () {
     for (final size in const [(120, 36), (80, 24)]) {
       for (final MapEntry(key: page, value: shows) in _pages.entries) {
         testTwk('$page at ${size.$1}x${size.$2}', (t) async {

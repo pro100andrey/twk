@@ -1,6 +1,6 @@
-// The pages round 3 added to Data and Scrolling, and the ListView's new
-// options: they build at both sizes, their options apply and their keys
-// do what the design's do.
+// Pages of the Data and Scrolling groups, and the ListView's options:
+// they build at both sizes, their options apply and their keys do what
+// the design's do.
 import 'package:gallery/gallery.dart';
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
@@ -42,7 +42,7 @@ List<String> problems(TwkTester t) => [
 ];
 
 void main() {
-  group('the new pages build', () {
+  group('the pages build', () {
     for (final size in const [(120, 36), (80, 24)]) {
       for (final (page, shows) in const [
         ('data/treetable', 'table.dart'),

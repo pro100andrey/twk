@@ -4,13 +4,13 @@ The extension is in `editors/vscode`: a terminal of its own for each twk
 app you run or debug from VS Code, with switches for what that terminal
 can do, hot reload and restart, a widget inspector, a log of the
 sequences between the app and its terminal, recording and replay. The
-first part says what the first version is and how to use it; the parts
-after it are how it was found out and how it is built (the prototype's
-notes, kept as they were measured), its architecture (2b) and its tests.
-Everything below was run on this machine (Linux, VS Code 1.143.1, Dart
-3.13.7, node 26.12, npm 12.2), unless it says it was not.
+first part says what it does and how to use it; the parts after it are
+how debugging a twk app was measured, how the extension is built, its
+architecture and its tests. Everything below was run on this machine
+(Linux, VS Code 1.143.1, Dart 3.13.7, node 26.12, npm 12.2), unless it
+says it was not.
 
-## 0. The first version, and how to use it
+## 0. What it does, and how to use it
 
 ### What it is
 
@@ -46,15 +46,14 @@ Everything below was run on this machine (Linux, VS Code 1.143.1, Dart
   filtered, paused, from the terminal's start.
 - **Record and replay**: a session recorded as asciicast v2, the format
   of `twk record`, `twk play` and `twk tape`, its frames twk_test's
-  `screenFrames`, and a
-  recording (any of theirs too) played back in a terminal of its own,
-  paused, a frame on or back.
+  `screenFrames`, and a recording (any of theirs too) played back in a
+  terminal of its own, paused, a frame on or back.
 - **Copy the screen** as text.
 
-### Installing it, and updating a copy
+### Installing it
 
-Not on the Marketplace yet (`private`, no `vsce` package): it runs from
-the repository.
+Not on the Marketplace (`private`, no `vsce` package): it runs from the
+repository.
 
 ```sh
 cd editors/vscode
@@ -65,18 +64,10 @@ code --extensionDevelopmentPath=$PWD path/to/your/twk/project
 
 With Dart-Code installed for Debug and F5 (Run needs only the Dart SDK).
 `--user-data-dir` and `--extensions-dir` give it a profile of its own.
-
-**Updating a copy that runs** (a window started with
-`--extensionDevelopmentPath`): after a pull, in `editors/vscode`
-
-```sh
-npm install          # what package-lock.json names
-npm run compile
-```
-
-then **Developer: Reload Window** in the window that runs it (the apps
-it runs end with it). The inspector and the debug aids take the twk of
-this repository in the app.
+After a change to the extension, `npm run compile`, then **Developer:
+Reload Window** in the window that runs it (the apps it runs end with
+it). The inspector and the debug aids take the twk of this repository in
+the app.
 
 ### Using it
 
@@ -159,7 +150,7 @@ frames before it at once. Played to its end, Play starts it again.
 **Copy the screen**: the rows the terminal shows now, without the blanks
 that end them or the blank rows at the bottom, as plain text (no colours).
 
-### Not in the first version
+### Not done
 
 Packaging (`vsce`) and the Marketplace; macOS and Windows (written for,
 not run: TCP on the loopback interface on Windows); a person's use beyond
@@ -243,28 +234,28 @@ pseudo-terminal with `--enable-vm-service=0 --write-service-info=<file>
 --pause-isolates-on-start`, attached with `vmServiceInfoFile`, breakpoint
 hit, quit, tty restored). But in attach the adapter forwards the VM's
 stdout stream to the Debug Console (`_subscribeToOutputStreams`, set in
-`attachRequest`): every frame's escape sequences show there as text, as
-they did in the run. B has no such cost.
+`attachRequest`): every frame's escape sequences show there as text. B has
+no such cost.
 
-So: debugging works today in all three ways without a change to twk or
+So: debugging works in all three ways without a change to twk or
 Dart-Code. B is the one an extension adds something to: the terminal
 survives the app (restart, kill), and is the extension's to instrument.
 
-## 2. The prototype: `editors/vscode`
+## 2. The extension: `editors/vscode`
 
 A VS Code extension in TypeScript (no Marketplace publish, `private`),
 whose terminals are xterm.js 6.0 in webviews, each served to its twk app
 by a port of `TerminalShell` to node. No node-pty: twk's socket terminal
 is the transport, so the app is started by anyone (the extension,
 Dart-Code, a shell) and finds its terminal by `TWK_SHELL` in its
-environment (part 4, change 1): one terminal per run or debug session,
+environment (part 4, item 1): one terminal per run or debug session,
 nothing written into the project.
 
 The code is in layers (part 2b); what each part does:
 
 - `src/core/wire.ts`: the frames of `Wire` (`socket.dart`), protocol 1;
   it and `shell.ts` held to twk_core's golden of the wire
-  (`test/unit/core/wire_golden.test.ts`, part 4, change 5).
+  (`test/unit/core/wire_golden.test.ts`, part 4, item 5).
 - `src/core/shell.ts`: the shell's end: binds `shell.sock` in a new
   directory of the system's temporary one (TCP on the loopback interface
   on Windows, not run), with a token, and writes no address file: its
@@ -284,7 +275,7 @@ The code is in layers (part 2b); what each part does:
   link) and kitty's keyboard protocol as pure functions, which the
   webview's bundle takes too.
 - `src/core/switches.ts`: what the terminal switches on in the app, the
-  screen reader and the debug aids (part 4, change 2): the variables of
+  screen reader and the debug aids (part 4, item 2): the variables of
   the welcome, the settings' values checked, the pick's items.
 - `src/core/vm.ts`, `hot.ts`, `runner.ts`, `process.ts`: hot reload and
   hot restart (part 2a); the run's process behind a port, node's
@@ -397,7 +388,7 @@ The code is in layers (part 2b); what each part does:
     Made** on each node (inline and in its menu) and **Go to the Build
     Method** on a node that builds.
 
-To run it (part 0 says it for the first version):
+To run it (part 0 says it too):
 
 ```sh
 cd editors/vscode
@@ -438,11 +429,9 @@ TWK_VSCODE_DART=1 VSCODE_EXECUTABLE=... TWK_VSCODE_TEST_DIR=/tmp/twk-vscode-test
 `VSCODE_EXECUTABLE` is VS Code's binary (`/opt/visual-studio-code/code`
 here), not the `code` launcher on the PATH (`/usr/bin/code`, a script):
 the launcher starts VS Code apart and ends at once, so `npm test` says
-exit 0 with no test run, and the VS Code it left on the profile has the
+exit 0 with no test run, and the VS Code it leaves on the profile has the
 next run end with "Running extension tests from the command line is
-currently only supported if no other instance of Code is running" (seen
-in vx-inspector, on the way to Dart-Code's tests; the run after the one
-left was ended passed).
+currently only supported if no other instance of Code is running".
 
 The handover runs the unit tests (`vscode-install`, `vscode-compile`,
 `vscode-unit` in `xtask.yaml`; CONTRIBUTING.md) in a copy of the extension in
@@ -451,115 +440,103 @@ neither `out/` nor `node_modules` here change under a running extension.
 `npm test` runs VS Code (@vscode/test-electron; without
 `VSCODE_EXECUTABLE` it downloads one into `.vscode-test`) on
 `packages/twk` with a user-data and an extensions directory of its own.
-State now:
+What the tests cover:
 
-- unit, 243 passing (the golden's frames and conversations among them;
-  the inspector's below, part 2d; the log's, the recordings' and the
-  replay's, 47, part 2e). Hot reload (10): `HotApp` against a VM service
-  written in the test: `reloadSources`, then `ext.twk.reassemble`, then
-  `ext.twk.log`; a failed reload's errors, no reassemble; one reload at
-  a time, those asked meanwhile one more after it; a reload asked before
-  the binding registered its extensions held until it does; the app's
+- Unit. Hot reload: `HotApp` against a VM service written in the test:
+  `reloadSources`, then `ext.twk.reassemble`, then `ext.twk.log`; a failed
+  reload's errors, no reassemble; one reload at a time, those asked
+  meanwhile one more after it; a reload asked before the binding
+  registered its extensions held until it does; the app's
   `twk.reload`/`twk.restart` events; a failed attach closes the
-  connection. `HotRun` with a real Dart VM (4) and an
-  app written in the test that answers the two extensions as twk's
-  binding does and counts what its stdin says: a reload keeps the count
-  and runs the new code, a broken file reports `Expected ';'` with the
-  app counting on, a restart is a new process whose count starts again,
-  the app's own `twk.reload`/`twk.restart` work, `stop` ends the app, a
-  dart that can't be started ends the run.
-  Seen to fail with the reassemble call taken out (3 tests) and with a
-  restart that does not start the app again (2). The node process (3): a
+  connection. `HotRun` with a real Dart VM and an app written in the test
+  that answers the two extensions as twk's binding does and counts what
+  its stdin says: a reload keeps the count and runs the new code, a broken
+  file reports `Expected ';'` with the app counting on, a restart is a new
+  process whose count starts again, the app's own
+  `twk.reload`/`twk.restart` work, `stop` ends the app, a dart that can't
+  be started ends the run. The node process (`process.test.ts`, 3): a
   character split across reads, a command that can't start, a write to
-  a closed stdin. The run's wait for its VM service (3, a fake process
-  and clock: found as written, bounded, ended with the app). The shell
-  (9): welcome, output and input, flush, resize; a wrong token
-  refused; the lost bytes written when the app goes away; a newer app
-  takes over with no disconnect told; a socket of its own in a new
-  directory, two shells two; a failed listen leaving nothing; each
-  app's welcome asked as it is taken, `declares` left out where empty;
-  the app's queries passed to the terminal as they are (what is answered
-  is the webview's); socket and directory gone on stop. Seen to fail with
-  the lost bytes not written.
-  The capabilities (8: the settings checked, the switches changed kept
-  and read back, the title, the environment, the declaration in
-  twk_core's order, the webview's answers, the presets, the toggles
-  picked), the emulation's pure parts (6: DECRQM denied, XTVERSION and
-  the cell size, colour queries, an app's requests parsed, links only to
-  the web and mail, the progress's text) and kitty's keyboard protocol
-  (3: the stacks, the keys encoded, those left to xterm.js); the
-  emulation on @xterm/headless (7: twk's probe answered in order, DA1
-  last; kitty keyboard pushed and popped per screen; off; no
-  synchronized output; no answers; the requests on and off; links);
-  and twk itself (`twk_probe.test.ts`, 8): twk_core's `info_app.dart` in
-  a Dart VM of its own on a headless xterm.js with the emulation, served
-  by core's shell and welcomed as `app/terminal.ts` welcomes, prints
-  what it found for each preset and switch (colours, everything, iTerm2,
-  no synchronized output, no cell size, bare, no answers), and reads
-  Escape, Ctrl+C, Alt+X, Shift+Enter, a, Ctrl+Q back from kitty's
-  encodings. Seen to fail: three of them with twk_core ignoring the
-  declaration, three of the emulation's and the keys' with kitty's
-  keyboard taken out.
-  TWK_SHELL's form (2, the strings of twk_core's test). The VM service's
-  messages (3) and its connect bounded (1), the webview's messages (3).
-  app/ over fakes of the view, the panel, the runner, the
-  debugger, the VM service, the status and the clock: the terminals (6:
-  served to the app its TWK_SHELL is given to, at the view's size,
-  titled by its file, input and resize on; one shell each, one closed
-  forgotten; closed before it was up; a takeover with no line between;
-  a view back empty: size again, app told, redraw; one for any app
-  showing its TWK_SHELL), the webview's view (3: ready, keys, sizes,
-  writes; a second `ready`; closed with requests in flight), the
-  configurations (4: `twk` as Dart's, wanting a terminal, what one asks
-  for, a launch there and back), the terminals' capabilities (3: each
-  app welcomed with them then, the view told its answers before the app
-  writes, and again when it comes back empty; the app's requests to the
-  desktop, a link only to the web or mail, its progress taken away as it
-  goes), the hot apps (22: run with TWK_SHELL in
-  a terminal of its own, two runs two terminals, a run's terminal closed
-  ends it, a run's terminal back empty redraws; no project, nothing to
-  reload; debug launch and reload, a configuration's launch with its
-  fields kept, two sessions two terminals, a session that did not start,
-  a session's terminal closed ends it and no restart, closed during a
-  restart, a session started after its terminal closed, a session's
-  terminal back empty redraws, debug restart in the same terminal;
-  reload on save debounced and off, a save elsewhere, dispose; a failed
-  restart, the app's own failed restart, a session with no VM service,
-  the save timer on dispose). The bugs of part 2c each seen failing
-  first.
-- VS Code, 14 passing with Dart-Code 3.145.20260930 (the log's, the
-  recording's and the replay's in part 2e; its VSIX from Open
-  VSX in the throwaway profile; on eb18101, before the inspector, all 11
-  passed, its 4 Dart-Code ones among them, which vx-capabilities had
-  left pending; the inspector's 2 in part 2d; the ones below, and hot
-  reload's: Run, and Debug under Dart-Code, part 2a), the counter run by
-  the extension drawn in a
-  new webview's xterm.js titled by its file (alternate screen, Count: 0),
-  Up counts, q ends it and the screen is back, no address file in the
-  project; its panel closed while it runs, its process gone; F5 on a
-  `"type": "twk"` configuration debugged by Dart-Code (`console`
-  `debugConsole`, `TWK_SHELL` in its `env`) in a new terminal with hot
-  reload, its panel closed ending the session; a Dart configuration with
-  `"twkTerminal": true` the same; the webview's xterm.js answers OSC 10 and 11
-  (headless xterm.js does not), so twk's probe gets the colors; with
-  Dart-Code 3.144: the breakpoint hit with the app on the twk terminal,
-  whose screen stays (alternate, Count: 0), continue, Count: 1, the cell
-  under "Count" resolved to its widget through Dart-Code's `callService`
-  (`ext.twk.select`, then `ext.twk.properties`: a Text), and the stop
-  button putting the screen back. Seen to fail with the input not passed
-  on, and with the debug launch in `"console": "terminal"` (the app then
-  in VS Code's own terminal).
-  The capabilities (2): with `everything`, twk_core's `info_app.dart`
+  a closed stdin. The run's wait for its VM service (`runner.test.ts`, 3,
+  a fake process and clock: found as written, bounded, ended with the
+  app). The shell (`shell.test.ts`, 9): welcome, output and input, flush,
+  resize; a wrong token refused; the lost bytes written when the app goes
+  away; a newer app takes over with no disconnect told; a socket of its
+  own in a new directory, two shells two; a failed listen leaving
+  nothing; each app's welcome asked as it is taken, `declares` left out
+  where empty; the app's queries passed to the terminal as they are (what
+  is answered is the webview's); socket and directory gone on stop.
+  The capabilities (`capabilities.test.ts`, 8: the settings checked, the
+  switches changed kept and read back, the title, the environment, the
+  declaration in twk_core's order, the webview's answers, the presets, the
+  toggles picked), the emulation's pure parts (`emulation.test.ts`, 6:
+  DECRQM denied, XTVERSION and the cell size, colour queries, an app's
+  requests parsed, links only to the web and mail, the progress's text)
+  and kitty's keyboard protocol (`kitty_keyboard.test.ts`, 3: the stacks,
+  the keys encoded, those left to xterm.js); the emulation on
+  @xterm/headless (`answers.test.ts`, 7: twk's probe answered in order,
+  DA1 last; kitty keyboard pushed and popped per screen; off; no
+  synchronized output; no answers; the requests on and off; links); and
+  twk itself (`twk_probe.test.ts`, 8): twk_core's `info_app.dart` in a Dart
+  VM of its own on a headless xterm.js with the emulation, served by
+  core's shell and welcomed as `app/terminal.ts` welcomes, prints what it
+  found for each preset and switch (colours, everything, iTerm2, no
+  synchronized output, no cell size, bare, no answers), and reads Escape,
+  Ctrl+C, Alt+X, Shift+Enter, a, Ctrl+Q back from kitty's encodings.
+  TWK_SHELL's form (`address.test.ts`, 2, the strings of twk_core's test).
+  The VM service's messages and its connect bounded (`vm.test.ts`, 4), the
+  webview's messages (`protocol.test.ts`). `app/` over fakes of the view,
+  the panel, the runner, the debugger, the VM service, the status and the
+  clock: the terminals (`terminals.test.ts`: 6 of its 9 are these: served
+  to the app its TWK_SHELL is given to, at the view's size, titled by its
+  file, input and resize on; one shell each, one closed forgotten; closed
+  before it was up; a takeover with no line between; a view back empty:
+  size again, app told, redraw; one for any app showing its TWK_SHELL),
+  the webview's view (`webview_view.test.ts`: ready, keys, sizes, writes; a
+  second `ready`; closed with requests in flight), the configurations
+  (`launch.test.ts`, 4: `twk` as Dart's, wanting a terminal, what one asks
+  for, a launch there and back), the terminals' capabilities (the other 3
+  of `terminals.test.ts`: each app welcomed with them, the view told its
+  answers before the app writes, and again when it comes back empty; the
+  app's requests to the desktop, a link only to the web or mail, its
+  progress taken away as it goes), the hot apps (`hot_apps.test.ts`: run
+  with TWK_SHELL in a terminal of its own, two runs two terminals, a run's
+  terminal closed ends it, a run's terminal back empty redraws; no
+  project, nothing to reload; debug launch and reload, a configuration's
+  launch with its fields kept, two sessions two terminals, a session that
+  did not start, a session's terminal closed ends it and no restart,
+  closed during a restart, a session started after its terminal closed, a
+  session's terminal back empty redraws, debug restart in the same
+  terminal; reload on save debounced and off, a save elsewhere, dispose; a
+  failed restart, the app's own failed restart, a session with no VM
+  service, the save timer on dispose). The robustness rules of part 2c are
+  each held by a test.
+- VS Code, 14 passing with Dart-Code 3.145.20260930 (its VSIX from Open
+  VSX in the throwaway profile; the log's, the recording's and the
+  replay's in part 2e; the inspector's in part 2d; hot reload's, Run and
+  Debug under Dart-Code, in part 2a; the ones below): the counter run by
+  the extension drawn in a new webview's xterm.js titled by its file
+  (alternate screen, Count: 0), Up counts, q ends it and the screen is
+  back, no address file in the project; its panel closed while it runs,
+  its process gone; F5 on a `"type": "twk"` configuration debugged by
+  Dart-Code (`console` `debugConsole`, `TWK_SHELL` in its `env`) in a new
+  terminal with hot reload, its panel closed ending the session; a Dart
+  configuration with `"twkTerminal": true` the same; the webview's
+  xterm.js answers OSC 10 and 11 (headless xterm.js does not), so twk's
+  probe gets the colors; with Dart-Code 3.144: the breakpoint hit with the
+  app on the twk terminal, whose screen stays (alternate, Count: 0),
+  continue, Count: 1, the cell under "Count" resolved to its widget
+  through Dart-Code's `callService` (`ext.twk.select`, then
+  `ext.twk.properties`: a Text), and the stop button putting the screen
+  back.
+  The capabilities: with `everything`, twk_core's `info_app.dart`
   (`TWK_INFO_WAIT=1`) shows kitty keyboard with its flags, sixel and the
   rest declared, and a cell's size the real webview measured; its
   progress in the status bar and gone as it ends; the image addon loaded
   (it answers XTSMGRAPHICS) and the terminal drawing on after a sixel
   image; with switches changed from `xterm.js`, 16 colours, no cell size,
   no progress (its OSC 9;4 dropped), no image addon, and the title saying
-  so. Seen to fail with the image addon not loaded.
-- One run, the first after Dart-Code was installed, ended before any test
-  ran with exit code 1 and no test output; the four runs after it passed.
-- Not done: a person using it (all of it was driven by the tests),
+  so.
+- Not done: a person using it (all of it is driven by the tests),
   packaging (`vsce`), macOS and Windows, keys VS Code takes before the
   webview gets them (Ctrl+P, Ctrl+Shift+P... while the panel is focused:
   not checked; nor that Ctrl+Alt+R typed in the panel reaches the key
@@ -684,148 +661,110 @@ Rules for new code:
   no cast of what came from outside (a message, a configuration, JSON)
   without a check.
 
-## 2c. Review of the prototype
+## 2c. Robustness rules
 
-The prototype as of da974f9 (753f30a, 7b9ef01, da974f9), file:line there.
-Fixed: in the restructure (3926ed5) or with a test seen failing first
-(fcfa2b8, e36055f; 16 to 20 in vx-session-terminal, each seen failing
-with its fix taken out).
+What the code holds, each by a unit test.
 
-Bugs:
+Processes and connections:
 
-1. `src/runner.ts:117,125`: a `dart` that can't be started (ENOENT)
-   gets an `error` and no `exit` from node, so the run never ended: its
-   `stop`, and so `deactivate`, waited forever, and its directory stayed.
-   Fixed (`core/process.ts`: `exited` settles on a start's error), tests
-   "a command that can't be started" and "a dart that can't be started"
-   (seen: timeouts).
-2. `src/runner.ts:121-122`: output decoded chunk by chunk (`b.toString()`),
-   a UTF-8 character cut by two reads became two U+FFFD in the output
-   channel. Fixed (a `StringDecoder` per stream), test "a character whose
-   UTF-8 bytes come in two reads" (seen: `'��\n' !== '─\n'`).
-3. `src/extension.ts:66-69`: a terminal asked for again while it was
-   starting was returned at once, not yet serving: a second Run in that
-   moment started its app before the shell's address file was there, and
-   the app found no terminal. Fixed (`app/terminals.ts`: the start shared),
-   tests "asked for twice while the first is starting" and "...the first
-   fails to start: both fail" (seen: the second not serving; no rejection).
-   Gone since with the terminal per session: each Run waits for its own
-   terminal to serve before it starts its app.
-4. `src/extension.ts:241-244,262`: a debug restart whose `stopDebugging`
-   failed left its terminate listener behind and cached the rejected
-   promise (`restarting ??=`), so no restart of that session was tried
-   again; from the app's own key (`void hot.restart()`) the rejection went
-   unhandled. Fixed, tests "a restart whose stop fails" and "the app's own
-   restart key ... failing" (seen: 2 listeners for 1; nothing logged).
-5. `src/extension.ts:270`: a debug session whose VM service could not be
-   reached stayed in the apps reloaded: `twk.hotApp` on, its reload
-   answering `ended`, a save "reloading" it. Fixed (taken out), test "a
-   debug session whose VM service can't be reached" (seen: one app left).
-6. `src/hot.ts:41-44`: a failed `HotApp.attach` (the app gone between
-   connect and `getVM`) left the VM service's WebSocket open: nobody else
-   held it. Fixed, test "fails to attach" (seen: not closed).
-7. `src/extension.ts:306`: the save's reload timer outlived
-   `deactivate`. Fixed, test "a save's reload waits for no timer once
-   disposed" (seen: 1 timer pending).
-8. `src/runner.ts:117`: the app's stdin pipe had no `error` listener; a
-   write after the app closed its stdin raised an EPIPE nobody listened
-   to, which ends the extension host. Nothing writes there but the tests,
-   so latent. Fixed, test "the broken pipe (EPIPE) ends nothing" (seen
-   failing with the app closing its stdin while it runs; its first form,
-   a write after the app had exited, raised nothing and did not bite).
+1. A `dart` that can't be started (ENOENT) gets an `error` and no `exit`
+   from node, so `core/process.ts`'s `exited` settles on a start's error:
+   the run ends, its `stop` and so `deactivate` do not wait, and its
+   directory is removed. Tests "a command that can't be started" and "a
+   dart that can't be started".
+2. Output is decoded with a `StringDecoder` per stream, so a UTF-8
+   character cut by two reads is one character in the output channel.
+   Test "a character whose UTF-8 bytes come in two reads".
+3. A terminal asked for again while it is starting shares that start
+   (`app/terminals.ts`); if the start fails, both fail. Each Run waits
+   for its own terminal to serve before it starts its app. Tests "asked
+   for twice while the first is starting" and "...the first fails to
+   start: both fail".
+4. A debug restart whose `stopDebugging` fails leaves no terminate
+   listener behind and caches no rejected promise, so a restart of that
+   session can be tried again; from the app's own key the rejection is
+   handled and logged. Tests "a restart whose stop fails" and "the app's
+   own restart key ... failing".
+5. A debug session whose VM service can't be reached is taken out of the
+   apps reloaded (`twk.hotApp` off). Test "a debug session whose VM
+   service can't be reached".
+6. A failed `HotApp.attach` (the app gone between connect and `getVM`)
+   closes the VM service's WebSocket. Test "fails to attach".
+7. The save's reload timer does not outlive `deactivate`. Test "a save's
+   reload waits for no timer once disposed".
+8. The app's stdin pipe has an `error` listener, so a write after the app
+   closed its stdin (EPIPE) does not end the extension host. Test "the
+   broken pipe (EPIPE) ends nothing".
+9. A `listen` that fails removes the temporary directory made for the
+   socket. Test "a listen that fails leaves no directory behind" (a path
+   too long for a socket: EINVAL).
+10. A newer app taking a terminal over is no `disconnected` in the shell
+    (the earlier app's lost bytes are still written). Tests in
+    `shell.test.ts` and `terminals.test.ts`.
+11. The service-info file is waited for by watching the run's directory
+    (`fs.watch`) and reading the file as it changes, with no timer but
+    the bound `serviceInfoPatience` (120 s: `dart run` compiles first) on
+    the `Clock`, said so in the output; a reload asked of an app that
+    never named a VM service is answered `ended`. `VmClient.connect`
+    fails after `connectPatience` (10 s), also when a server accepts and
+    never answers the upgrade. Tests over a fake process and a fake
+    clock.
 
-Types, state and structure (fixed in the restructure, 3926ed5):
+Terminal lifetime:
 
-9. `src/extension.ts:27,42`: the terminals and the apps were module-level
-   maps; now `Terminals` and `HotApps`, made in `activate`.
-10. `src/panel.ts:163-171`, `media/terminal.js:51`: the webview's messages
-    were cast field by field (`m.columns as number`), and the webview took
-    the extension's unchecked, in plain JavaScript; now
-    `webview/protocol.ts`'s unions, checked at both ends
-    (`isFromWebview`, `isToWebview`; tests "the webview protocol").
-11. `src/vm.ts:103-117`: the VM service's JSON was taken as a typed
-    object unchecked (`m.id!`); now `parseMessage`, tested.
-12. `src/hot.ts:44,48,113,121`: the VM's answers cast (`as { id: string }[]`,
-    `as string[]`); now read through a check.
-13. `src/extension.ts:208,213`: the debug configuration's `twkProject` and
-    the adapter's messages cast; now `twkLaunch` and a check of
-    `dart.debuggerUris` (`vscode/debugger.ts`).
-14. `src/panel.ts:25,27`: its event emitters were never disposed; the view
-    now disposes its own when the panel closes, the terminal its own.
-15. `src/extension.ts`: one file of commands, state, debug tracking,
-    status bar and save handling; now split by layer and responsibility.
-
-Fixed in vx-session-terminal (16 to 20, left as they were before):
-
-16. `src/extension.ts:157-165`: closing a terminal's panel didn't end the
-    app it ran: the app lost its terminal (twk ends it, its terminal
-    gone), but a hot restart then started the app again with no terminal
-    to find. Now a run's terminal ends its run (`HotRun.stop`, its
-    process) and a debug session's stops the session; a session that
-    starts once its terminal is gone is stopped; a debug restart checks
-    the terminal before it stops the session and again before it launches
-    it (closed while it waited for the end: not launched). Tests "closing
-    the terminal of a run ends its app...", "...of a debug session ends
-    the session; a restart then starts no app", "closed while a restart
-    waits...", "a session of a launch whose terminal was closed
-    meanwhile..." (seen failing with each check taken out; the first
-    restart check only once the fake debugger, as VS Code's, stops an
-    ended session no more: the restart then waited for an end that had
-    come); in VS Code: the run's panel closed, its process gone; F5's
-    panel closed, its session ended.
-17. `src/panel.ts:165`: a webview that loaded again (`ready` a second
-    time) was taken as nothing new. Now it is the view's `onReload`
-    (`app/webview_view.ts`, what the old webview was asked settled, so no
-    flush waits on it); the terminal fixes its size again, tells the app
-    its size, and the app is asked to paint all of itself
+12. Closing a terminal's panel ends the app it ran: a run's terminal
+    ends its run (`HotRun.stop`, its process) and a debug session's stops
+    the session; a session that starts once its terminal is gone is
+    stopped; a debug restart checks the terminal before it stops the
+    session and again before it launches it (closed while it waited for
+    the end: not launched). Tests "closing the terminal of a run ends its
+    app...", "...of a debug session ends the session; a restart then
+    starts no app", "closed while a restart waits...", "a session of a
+    launch whose terminal was closed meanwhile...".
+13. A webview that loaded again (`ready` a second time) is the view's
+    `onReload` (`app/webview_view.ts`; what the old webview was asked is
+    settled, so no flush waits on it): the terminal fixes its size again,
+    tells the app its size, and the app is asked to paint all of itself
     (`ext.twk.reassemble` without a reload: `HotRun.redraw`,
-    `HotApp.redraw`). Tests over a fake panel and fake views (seen failing
-    with the second `ready` taken as the first, the terminal's handler
-    emptied, and the run's and the session's redraw taken out). Not done:
-    the modes the app set (alternate screen, mouse) are the new xterm.js's
-    defaults until the app sets them again (a restart): twk has no "set
-    your modes again" over the wire; and no real webview was reloaded in a
-    test.
-18. `src/shell.ts:135,141`: a `listen` that failed left the temporary
-    directory made for the socket. Now removed; test "a listen that fails
-    leaves no directory behind" (a path too long for a socket: EINVAL;
-    seen failing without the removal).
-19. `src/shell.ts:240,295`: a newer app taking the terminal over had the
-    shell say "the app went away" before the new app's welcome. Now a
-    takeover is no `disconnected` (the older app's lost bytes still
-    written); tests in `shell.test.ts` and `terminals.test.ts` (seen
-    failing with the takeover told as a disconnect).
-20. `src/runner.ts:150-155`: the service-info file was polled every 50 ms
-    on the wall clock, with no limit but the app's end, so a reload asked
-    of an app that never named a VM service waited forever; `src/vm.ts:77`
-    a connect that neither opened nor failed waited forever. Now the run's
-    directory is watched (`fs.watch`) and the file read as it changes,
-    the wait bounded by `serviceInfoPatience` (120 s, `dart run` compiles
-    first) on the `Clock`, said so in the output; `VmClient.connect` fails
-    after `connectPatience` (10 s). Tests over a fake process and a fake
-    clock: the file found as it is written with no timer but the bound,
-    the bound ending the wait (a reload answered `ended`), the app's end
-    ending it; a server that accepts and never answers the upgrade (seen
-    failing with each bound taken out).
+    `HotApp.redraw`). The modes the app set (alternate screen, mouse) are
+    xterm.js's defaults until the app sets them again (a restart): twk
+    has no "set your modes again" over the wire. No test reloads a real
+    webview.
+
+Types and structure:
+
+14. The terminals and the apps are `Terminals` and `HotApps`, made in
+    `activate`, not module-level maps.
+15. The webview's messages are `webview/protocol.ts`'s unions, checked at
+    both ends (`isFromWebview`, `isToWebview`; tests "the webview
+    protocol"), not cast field by field.
+16. The VM service's JSON is read by `parseMessage` and its answers
+    through a check, not cast.
+17. The debug configuration's `twkLaunch` and the adapter's messages
+    (`dart.debuggerUris`, `vscode/debugger.ts`) are checked, not cast.
+18. A view disposes its own event emitters when its panel closes, a
+    terminal its own.
+19. The extension's code is split by layer and responsibility (part 2b),
+    not one file of commands, state, debug tracking, status bar and save
+    handling.
 
 ## 2a. Hot reload and hot restart
 
-**What Dart-Code does for a Dart CLI app** (Dart-Code master, 6f9f5f8,
+**What Dart-Code does for a Dart CLI app** (Dart-Code master of
 2026-10-23; the SDK's debug adapter, `pkg/dap_adapters` on the SDK's
-main, where it moved from `dds`'s `lib/src/dap`, and `dds` 5.4.0, the
-same there):
+main, and `dds` 5.4.0, the same there):
 
 - `dart.hotReload` (Ctrl+F5 in a Dart debug session) sends the DAP
   custom request `hotReload`; the adapter's `customRequest` answers it
   with `isolateManager.reloadSources()`, `reloadSources` in each isolate,
   and the report thrown away: a compile error says nothing. The sources
   are reloaded and nothing calls twk's `ext.twk.reassemble`, so the screen
-  stays as it was until something rebuilds (seen: with the extension's
-  reload replaced by that request, the counter's new text never showed).
+  stays as it was until something rebuilds (with the extension's reload
+  replaced by that request, the counter's new text never showed).
   `dart.hotReloadOnSave` sends the same on save; its default is `never`.
 - No restart: the CLI adapter has `supportsRestartRequest` false and no
   `hotRestart` custom request (`flutter.hotRestart` sends one; it is
-  refused: seen, the restart went no further). VS Code's own restart of
+  refused, and the restart goes no further). VS Code's own restart of
   such a session is stop and launch again.
 - The adapter tells the VM service's address (`dart.debuggerUris`) and
   each service extension an isolate adds (`dart.serviceExtensionAdded`),
@@ -840,7 +779,7 @@ project it doesn't. With pipes for stdio its app takes the twk terminal.
 But the extension would have no way to ask it for a reload or a restart
 (it watches `lib/` and the entry itself; a restart is the app's Ctrl+G H)
 and no way to know how a reload ended (it says so in the app's log
-only). Not used.
+only). The extension does not use it.
 
 **What the extension does**: the same reload as `HotRunner`, over a VM
 service connection of its own (`src/core/vm.ts`: JSON-RPC over node's
@@ -853,17 +792,17 @@ WebSocket):
   if not, the compiler's messages in the status and the log, the app
   running on with the code it had. The failure goes to the app's log as a
   warning where `twk run` logs an error: an error opens the app's
-  console, which covers the app and takes its keys (seen in the test).
-  One reload at a time. The app's own keys (Ctrl+G h, Ctrl+G H:
-  `TWK_DEBUG=keys` is set for the app) post `twk.reload` and
-  `twk.restart`, which it takes.
+  console, which covers the app and takes its keys. One reload at a time.
+  The app's own keys (Ctrl+G h, Ctrl+G H: `TWK_DEBUG=keys` is set for the
+  app) post `twk.reload` and `twk.restart`, which it takes.
 - **Run** (`HotRun`, `src/core/runner.ts`): `dart run --enable-vm-service=0
   --no-serve-devtools -DSILENT_VM_SERVICE=true --write-service-info=<a
   file of its own> <file>` with pipes and `TWK_SHELL` its terminal's,
   connects when the file names the service (the directory watched, the
-  wait bounded: 2c, 20). Restart: the app it started ended through its `ChildProcess`
-  (SIGTERM, which has twk put the terminal back, then SIGKILL after 5 s)
-  and started again; the shell takes the new app, so the terminal stays.
+  wait bounded: part 2c, item 11). Restart: the app it started ended
+  through its `ChildProcess` (SIGTERM, which has twk put the terminal
+  back, then SIGKILL after 5 s) and started again; the shell takes the new
+  app, so the terminal stays.
 - **Debug**: the launch gets `env: {TWK_DEBUG: keys, TWK_SHELL: ...}` and
   a `twkSession` field, the key of its terminal; a debug adapter tracker
   on such sessions connects to the address
@@ -889,16 +828,12 @@ Tests in VS Code (run in a git worktree, on a copy of the counter in
   with `Expected ';'`, Up still counts (`Clicks: 2`); put right, edited
   again, `Taps: 2`; twk: Hot Reload by command; twk: Hot Restart:
   `Taps: 0` in the same terminal, the same run, Up counts; q ends it, the
-  status `the app ended`. Seen to fail with the reassemble call taken out
-  (no `Clicks: 1`), and, before the failure was logged as a warning, on
-  `Clicks: 2` (the console open over the app).
+  status `the app ended`.
 - Debug, with Dart-Code 3.144: a breakpoint on the Up key's `setState`
   set before; `'Count: '` to `'Clicks: '` saved, `Clicks: 0`, status
   `reloaded`; Up stops at the breakpoint, continue, `Clicks: 1`; twk: Hot
   Restart: a new debug session, `Clicks: 0` in the same terminal, a save
   reloads that one too (`Taps: 0`); the stop button, the screen back.
-  Seen to fail with Dart-Code's `hotReload` in place of the extension's
-  reload, and with its `hotRestart` before the restart.
 
 ## 2d. The inspector
 
@@ -942,18 +877,16 @@ made in.
   opened`). The app picks itself (`ext.twk.flags` `select` and
   `selectMany`: the node under the mouse outlined between the presses,
   each press posted as `twk.select`, the app getting none of the mouse).
-  Where the
-  app can't (the inline mode, which gets no mouse) the terminal's clicks
-  do: the webview's `pick` message, each click's cell (`webview/pick.ts`)
-  told back as `picked` with the row the cursor is on in the screen shown
-  (`cursorRowShown`, scrolled back or not), neither xterm.js nor the app
-  getting the click; `ext.twk.select` takes it with `cursorY`, and twk
-  finds its region by the cursor's row in it (`Presenter.cursorRow`), so
-  a click on an inline app below a shell's lines picks what it is on
-  (before, the screen's row was taken as the region's: the widget a few
-  rows below, or none). Off (the button, or Escape in the terminal, which
-  either the app or the webview tells as a pick of none), the app picks no
-  more (`select` and `selectMany` false), its outline goes
+  Where the app can't (the inline mode, which gets no mouse) the
+  terminal's clicks do: the webview's `pick` message, each click's cell
+  (`webview/pick.ts`) told back as `picked` with the row the cursor is on
+  in the screen shown (`cursorRowShown`, scrolled back or not), neither
+  xterm.js nor the app getting the click; `ext.twk.select` takes it with
+  `cursorY`, and twk finds its region by the cursor's row in it
+  (`Presenter.cursorRow`), so a click on an inline app below a shell's
+  lines picks what it is on. Off (the button, or Escape in the terminal,
+  which either the app or the webview tells as a pick of none), the app
+  picks no more (`select` and `selectMany` false), its outline goes
   (`ext.twk.highlight` with no id) and the view selects nothing (a
   TreeView has no unselect: its items get new ids, the nodes expanded or
   collapsed by hand kept so). The mode is the terminal's: when its app
@@ -962,7 +895,7 @@ made in.
   on; a terminal closed forgets it. One terminal picks at a time: turned
   on in another, the first's ends.
 - **Go to Where the Widget Was Made**: twk keeps no creation locations
-  (part 4, change 4), so the widget is looked for in the code. The builds
+  (part 4, item 4), so the widget is looked for in the code. The builds
   above the element (`build` in the tree: a stateless widget's, a
   state's), the nearest first; in each, the calls of its type's
   constructor (`Text(`, `const Text(`, `Text.rich(`, `w.Text(`, `Foo<int>(`;
@@ -1002,7 +935,7 @@ for the 200 (57 KB), at most four times a second. A place of the code
 costs nothing while the app runs: the first "go to" read the classes and
 the builds' scripts in 150 ms (the counter's tree, 18 nodes, in the
 unit test on twk), the next in 6 ms. The frame benchmark (`bench`) is of
-twk_core's frames, which this does not change, so it was not run.
+twk_core's frames, which the inspector does not change.
 
 Tests (unit, under node):
 
@@ -1013,12 +946,13 @@ Tests (unit, under node):
   (a child passed through a build, a build that makes none of the type,
   a component made by the build above it), comments (nested), strings
   (raw, triple) blanked, the calls in their forms and in a range, lines
-  and token positions, the call picked. `webview/pick.test.ts` (2),
-  `protocol.test.ts` (the `pick` and `picked` messages).
-- `app/inspector.test.ts` (17), over a fake app, view, opener, pick
-  button, notice and clock, the terminals real over fake views: the tree
-  of an app connected, none once it went away; followed only while on
-  the screen, three events in a gap one asking; a binding after the VM
+  and token positions, the call picked. `webview/pick.test.ts` (the
+  cell's and the cursor's arithmetic), `protocol.test.ts` (the `pick` and
+  `picked` messages).
+- `app/inspector.test.ts`, over a fake app, view, opener, pick button,
+  notice and clock, the terminals real over fake views: the tree of an
+  app connected, none once it went away; followed only while on the
+  screen, three events in a gap one asking; a binding after the VM
   service; no frame yet; a reload's tree and code asked again; go to
   source and to a build through a fake VM service (a `package:` URI
   resolved, the classes read once); a node selected by hand outlined and
@@ -1026,62 +960,41 @@ Tests (unit, under node):
   revealed, outlined and opened with the focus kept, on again doing
   nothing, off (the app's pick, its outline and the selection gone, the
   button shown on and off); Escape told by the app; the terminal's picks
-  (inline),
-  `cursorY` passed, picking on until Escape, off by the button; ended
-  with its app, armed again for a restart's once bound, forgotten with
-  its terminal closed; a widget made in no build found: the build above
-  opened and why said, none found said; a pick in another app's
+  (inline), `cursorY` passed, picking on until Escape, off by the button;
+  ended with its app, armed again for a restart's once bound, forgotten
+  with its terminal closed; a widget made in no build found: the build
+  above opened and why said, none found said; a pick in another app's
   terminal; the aids given again after a restart; an answer it can't
-  read said in the view.
-  `core/hot.test.ts` (1 more: what the app posts and reloads passed on,
-  the calls in the binding's isolate) and `app/hot_apps.test.ts` (1
-  more: a run's, a debug session's and its restart's connections told).
-- `app/inspector_twk.test.ts` (1, 9 s): a twk app written in the test in
+  read said in the view. `core/hot.test.ts` also covers what the app posts
+  and reloads passed on and the calls in the binding's isolate, and
+  `app/hot_apps.test.ts` a run's, a debug session's and its restart's
+  connections told.
+- `app/inspector_twk.test.ts` (2): a twk app written in the test in
   `packages/twk/.dart_tool/twk_vscode_unit/` (git ignores it), run by
   `HotApps` over core's `HotRun` (`dart run`, its VM service) in a
-  terminal over a fake view: the tree as twk gives it, an Up key's change
-  seen through `twk.treeChanged` alone, where three widgets were made
-  (a `Text` passed through a `StatelessWidget`'s `child`, the one after
-  it, a `Padding` in that widget's build) and the state's build at its
-  name, twk's own `KeyBindings` build in `packages/twk/lib`, a pick made
-  by an SGR press on the app's screen, a hot reload that moves the lines
-  (the new place found), and a restart whose app gets the overlay again
-  and is followed; the pick mode on that app: the pick opened where the
-  widget was made, a second press picking again (`selectMany`), off
-  leaving the app's `select` false. And (1, 3 s) an inline app below
+  terminal over a fake view (about 9 s): the tree as twk gives it, an Up
+  key's change seen through `twk.treeChanged` alone, where three widgets
+  were made (a `Text` passed through a `StatelessWidget`'s `child`, the
+  one after it, a `Padding` in that widget's build) and the state's build
+  at its name, twk's own `KeyBindings` build in `packages/twk/lib`, a pick
+  made by an SGR press on the app's screen, a hot reload that moves the
+  lines (the new place found), and a restart whose app gets the overlay
+  again and is followed; the pick mode on that app: the pick opened where
+  the widget was made, a second press picking again (`selectMany`), off
+  leaving the app's `select` false. And (about 3 s) an inline app below
   three lines of a shell's in a terminal over a headless xterm.js
   (`headless_view.ts`): its click, with the cursor's row as the webview
   takes it, picks the Text it is on.
-- twk: `service_extensions_test.dart` (2 more): `ext.twk.select` with
-  `cursorY` in the inline mode, by `Presenter.cursorRow` (and a `cursorY`
-  that is no int refused); `selectMany`: two presses posted, the outline
-  following the mouse between them, the mouse reported throughout, a
-  press whose release was not reported picking too, Escape while held
-  ending it, set off picking no more. twk_core's `inline_app_test.dart`
-  (1): the cursor's row finds the region on the screen as it grows into
-  the scrollback, and after text on the cursor line.
+- twk: `service_extensions_test.dart`: `ext.twk.select` with `cursorY` in
+  the inline mode, by `Presenter.cursorRow` (and a `cursorY` that is no
+  int refused); `selectMany`: two presses posted, the outline following
+  the mouse between them, the mouse reported throughout, a press whose
+  release was not reported picking too, Escape while held ending it, set
+  off picking no more. twk_core's `inline_app_test.dart`: the cursor's row
+  finds the region on the screen as it grows into the scrollback, and
+  after text on the cursor line.
 
-Seen failing, each with its fix taken out: the event ignored (the
-follow test and the one on twk); the binding's `bound` ignored (both; it
-was the first run's failure on twk, before `bound` was there); the aids
-not given again (both); the terminal's pick not armed (the inline one);
-the reload's refresh and forgetting taken out (the unit one; on twk the
-reload's rebuilds ask for the tree anyway, so its source moves a line,
-and with the code not read again the place was a line off: 23 for 25);
-the builds that make none of the type not looked into (on twk: the
-`Text` after the passed one went to the passed one's line); the method's
-place at its metadata (on twk: the `@override` line). For the pick mode:
-the open after a pick taken out (4 unit tests, the one in VS Code: no
-editor at the counter's `Text.rich(` in 90 s); the selection not cleared
-(3 unit; in VS Code with the explicit unoutline taken out too, the Box
-selected by hand before outlined again by twk: "no the outline gone from
-the screen"); a restart's app not armed, Escape not ending it (one unit
-each); `cursorY` not passed (the inline test on twk: nothing picked in
-90 s); twk's `_picked` ending a many pick (the mouse reporting turned
-off between the presses); `select`'s `cursorY` ignored; `cursorRow`
-giving the visible cursor's row (`cursorY`).
-
-In VS Code (2, `extension.test.ts`, the view shown in Run and Debug):
+In VS Code (`extension.test.ts`, the view shown in Run and Debug):
 Run: the counter's tree with `Counter` built by `_CounterState`; Up, and
 the tree's `Count: 1` by the event; the Box selected by hand, outlined
 on the screen (the webview's snapshot tells the cells of a background of
@@ -1095,18 +1008,7 @@ the tree at `Text.rich(`, "Go to the Build Method" at `build(`; the
 overlay on (its `median` drawn) and off; a save's reload, the tree's
 `Clicks: 1`; q, the view saying no app runs. Debug under Dart-Code: the
 same tree, followed, two picks opened, off and the outline gone, over
-the extension's own connection, and gone with the stop button. Seen failing with the view's visibility not passed on
-(the tree not followed: no `Count: 1` in 90 s).
-
-Before the pick mode, the person's "pick widget не работает переход в
-код?" was run in VS Code (a worktree, Dart-Code 3.145): on
-`example/counter.dart` and on a `Text` passed through a
-`StatelessWidget`'s `child`, in Run and in Debug, a pick selected the
-widget and opened nothing, as it was made to, and Go to Where the Widget
-Was Made then opened the right line every time (the inline button and
-the palette): the jump was a missing step, not a failure. The inline
-mode's pick (Debug with `--inline`) selected the Box below the Text
-clicked: the row bug above.
+the extension's own connection, and gone with the stop button.
 
 Not done: a person using it; a real click in the webview (the tests
 type the SGR press the click would send; the webview's own pick, for
@@ -1118,8 +1020,7 @@ a node's properties beyond the tooltip.
 
 ## 2e. The sequence log, recording and replay
 
-Part 0 says what they do for the person; here, how, and their tests
-(vx-log-record).
+Part 0 says what they do for the person; here, how, and their tests.
 
 **The decoder** (`core/sequences.ts`) cuts the bytes into text runs
 (UTF-8, a character cut between reads put together), C0 controls and the
@@ -1137,7 +1038,7 @@ kitty graphics, the queries) and as the terminal sent it (`describeInput`:
 keys with their modifiers in xterm's and kitty's encodings, SGR and X10
 mouse reports, focus, bracketed paste, and the answers: DA1, DA2, DECRPM,
 CPR, kitty's flags, the cell size, OSC 4/10/11, XTVERSION, DECRQSS). It
-was written for this, not ported: twk_test's `Vt` is an emulator, whose
+is its own decoder, not a port: twk_test's `Vt` is an emulator, whose
 parsing is bound up with the screen it keeps, and twk_core's trace
 format (`trace.dart`) is raw bytes with times, which this reads as it
 reads the wire. Where the two meet, a frame, it is held to twk_dev's
@@ -1180,14 +1081,11 @@ UTF-8 cut and malformed, what JSON escapes, no idle limit), what
 `Cast.parse` reads of a file or the message it throws (fields of the
 wrong kind left out, each refusal), and the frames `screenFrames` shows of
 a file (number, time, size, rows). twk_dev's `cast_golden_test.dart`
-holds cast.dart and screenFrames to it (18), the extension's
+holds cast.dart and screenFrames to it, the extension's
 `cast_golden.test.ts` core/cast.ts, its reader, writer and steps, the
-steps played into a headless xterm.js against `Vt`'s rows (18). Seen
-failing: Dart with the golden's `2.0` written `2`; the extension with
-the idle limit written as JavaScript writes it (`2`) and with the
-updates not followed in the steps (3 of the frame cases).
+steps played into a headless xterm.js against `Vt`'s rows.
 
-Tests (unit, 47 more):
+Tests (unit):
 
 - `core/sequences.test.ts` (8): each kind cut; a sequence and a character
   cut between reads; tmux's passthrough; the names of what an app writes
@@ -1195,40 +1093,35 @@ Tests (unit, 47 more):
   2/8/9;4/11/22/52/777, sixel, kitty graphics) and of what the terminal
   sends (keys in xterm's, SS3 and kitty's encodings, paste, SGR and X10
   mouse, DECRPM, DA1, CPR, the cell size, OSC 11, XTVERSION); where an
-  update begins and ends; the bytes shown. Seen failing with a cut
-  sequence not held.
+  update begins and ends; the bytes shown.
 - `core/seqlog.test.ts` (3): entries, a frame of an update with its own
-  and its summary, one across reads, the limits. Seen failing (3) with
-  frames not grouped.
+  and its summary, one across reads, the limits.
 - `app/log_panel.test.ts` (6, with `screens`): nothing sent before
   `ready`, then all, then at most every 100 ms; the extension's lines and
   the sizes as notes; clear; a webview loaded again; the terminal's end;
   a screen followed from its start, its log opened later beginning with
-  that; one panel per screen; the active screen; the screen's text. Seen
-  failing (2) with every entry sent at once.
+  that; one panel per screen; the active screen; the screen's text.
 - `app/recording.test.ts` (5): the header, output, input and sizes at
   their times, a pause cut; begun on the alternate screen; one at a time,
-  the title; ended by the terminal's end; a sink that fails. Seen failing
-  with the pauses kept, and (4) with the redraw not asked.
+  the title; ended by the terminal's end; a sink that fails.
 - `app/player.test.ts` (4): at its size, each frame at its time, the idle
   limit, the bar's state; pause, on, back, from the start by the bar and
   by keys, the replay's answers going nowhere; to its end and again; a
-  view that came back empty. Seen failing with the idle limit ignored.
-- `app/record_twk.test.ts` (1, 4 s): packages/twk's `example/counter.dart`
-  run by `HotApps` over core's `HotRun` in a terminal over a headless
-  xterm.js, recorded from the middle of its session with its redraw, Up
-  twice: twk_test's `screenFrames` (a Dart program run in the test) shows
-  the file's frames, the first a whole screen, nothing its emulator does
-  not know; the player shows the same frames at the same times, each
-  screen row for row the same as `Vt`'s; the log names the frames, the
-  keys and the alternate screen left. Seen failing with the redraw not
-  asked (the app's screen never in the file); with the updates not followed
-  in the steps it passed, the counter writing each frame in one event:
-  the golden is what holds that.
+  view that came back empty.
+- `app/record_twk.test.ts` (1, about 4 s): packages/twk's
+  `example/counter.dart` run by `HotApps` over core's `HotRun` in a
+  terminal over a headless xterm.js, recorded from the middle of its
+  session with its redraw, Up twice: twk_test's `screenFrames` (a Dart
+  program run in the test) shows the file's frames, the first a whole
+  screen, nothing its emulator does not know; the player shows the same
+  frames at the same times, each screen row for row the same as `Vt`'s;
+  the log names the frames, the keys and the alternate screen left. The
+  counter writes each frame in one event, so the golden is what holds that
+  the steps follow synchronized updates.
 - `protocol.test.ts` and `webview_view.test.ts`: the player's and the
   log's messages, the bar's controls, `isActive`.
 
-In VS Code (1, `extension.test.ts`, "the sequence log, recording and
+In VS Code (`extension.test.ts`, "the sequence log, recording and
 replay, the screen copied"): the counter run; twk: Show the Sequence Log;
 its webview's rows (`shown`) with `key Up` and the app's `text "1"` after
 it; the log beginning with the app's start (`DECSET 1049`, a frame, the
@@ -1238,8 +1131,7 @@ the title `● recording`, Up, twk: Stop Recording, the header as cast.dart
 writes it, the key in it; q; twk: Play: the replay's terminal at the
 recording's size, played to its end on the alternate screen
 (`Count: 2`), a frame back (`Count: 1`) and on; the screen of the replay
-copied. Seen failing with the log's webview showing no new rows (its
-`append` taken out of the compiled `log.js`).
+copied.
 
 Not done: a person using it; the log's filter, pause and frames opened
 are the webview's, run in VS Code but not driven by a test (the test
@@ -1262,17 +1154,17 @@ message as each app is taken), which `webview/answers.ts` does with
 handlers on xterm.js's parser, a query denied never reaching xterm.js's
 own (answered "not recognised", DECRQM, or not at all).
 
-**What a terminal declares** (part 4, change 3): `declares` in the
+**What a terminal declares** (part 4, item 3): `declares` in the
 welcome, `{"notifications", "progressReports", "pointerShapes",
 "repeatChar", "graphics"}`, each only where declared (twk_core's
 `TerminalDeclaration`, `link.dart`; the golden of the wire has it). A
 link whose terminal declares is a `DeclaringLink` (`SocketLink`; a
 `TerminalShell` passes its own link's on); the probe takes each declared
-one over its guess, the rest guessed by the environment as before, so a
-real terminal, which declares nothing, is as it was. Under what the app
-asks itself (`TerminalOptions.graphics`), and declaring the images, the
-kitty and XTVERSION graphics queries are not sent. The twk terminal
-declares all of them, being sure of itself.
+one over its guess, the rest guessed by the environment, so a real
+terminal, which declares nothing, is guessed by the environment alone.
+Under what the app asks itself (`TerminalOptions.graphics`), and
+declaring the images, the kitty and XTVERSION graphics queries are not
+sent. The twk terminal declares all of them, being sure of itself.
 
 What xterm.js 6.0 itself answers (headless, each query alone): DECRQM 2026
 set; 2027, 2048, 69, 2031 and BDSM not recognised; DA1 `?1;2c` (no
@@ -1284,7 +1176,7 @@ OSC 10/11/4. In the webview it answers OSC 10 and 11 too (the VS Code
 test). It does REP.
 
 The switches, each held to what twk finds by a twk app in the unit tests
-(`twk_probe.test.ts`, below):
+(`twk_probe.test.ts`, above):
 
 | switch | how | twk finds |
 |---|---|---|
@@ -1322,15 +1214,15 @@ none of the names twk knows a terminal by. Offered, and why not:
 Per capability (`TerminalInfo`, `TerminalCaps`), what else there is:
 
 - **Screen reader** (`TWK_SCREEN_READER`) and `TWK_DEBUG`: the link's
-  over the process's (part 4, change 2): a switch, for any app.
+  over the process's (part 4, item 2): a switch, for any app.
 - **Size**: fixed sizes and resizes (settings; the size frame).
 
-What the repository has for the wished features:
+What the repository offers for the wished features:
 
-- **Record/replay**: done (vx-log-record, part 2e): the terminal writes
-  the asciicast `twk record` writes, without a pseudo-terminal, held to
-  twk_dev's golden, and plays one back in a webview of its own.
-- **Sequence log**: done (part 2e), of the terminal's own traffic.
+- **Record/replay**: the terminal writes the asciicast `twk record`
+  writes, without a pseudo-terminal, held to twk_dev's golden, and plays
+  one back in a webview of its own (part 2e).
+- **Sequence log**: of the terminal's own traffic (part 2e).
   `TWK_TRACE_INPUT`/`TWK_TRACE_OUTPUT` work over a shell's socket too
   (`openOwnOrShell` opens it as the process's terminal, by reading the
   code; not run); `twk_test`'s `Vt` is a strict oracle that fails on
@@ -1345,11 +1237,9 @@ What the repository has for the wished features:
   `dart.dart`). Left: a cell's colors and attributes are xterm.js's
   buffer's (`getCell`), in the webview, and no view shows them.
 
-## 4. twk-side changes a real version needs
+## 4. What the extension needs of twk
 
-None for the prototype. For a real version:
-
-1. **The shell's address by environment**: done (vx-session-terminal).
+1. **The shell's address by environment.**
    `TWK_SHELL=unix:<path>#<token>` (or `tcp:<host>:<port>#<token>`, the
    token after the last `#`: `LocalAddress.toVariable`, `fromVariable`,
    `LocalAddress.shellVariable`), read by `SocketLink.toShell` from the
@@ -1362,11 +1252,11 @@ None for the prototype. For a real version:
    one. Empty is unset. Tests in twk_core's `socket_test.dart` (an app
    in a process of its own takes the named shell over the project's,
    none where nobody listens, a value of no such form, empty, and
-   `openOwnOrShell` reading the environment it is given only; seen
-   failing with the variable ignored) and `socket_wire_test.dart` (the
-   form, the same strings as the extension's `address.test.ts`).
+   `openOwnOrShell` reading the environment it is given only) and
+   `socket_wire_test.dart` (the form, the same strings as the extension's
+   `address.test.ts`).
 2. **`TWK_SCREEN_READER` and `TWK_DEBUG` from the link's environment
-   too**: done (vx-link-env). The rule, stated where it is read
+   too.** The rule, stated where it is read
    (`TerminalInfo.settings`, `TwkApp.new`, `AppBinding.new`, `runApp`):
    - A `Terminal` of the process's (`Terminal.open`: its own terminal,
      or the `twk shell` it found by `TWK_SHELL` or the project's file;
@@ -1388,7 +1278,7 @@ None for the prototype. For a real version:
      gives `const {}` so that neither the server's process nor a client
      switches the aids (its terminal is over a link too, so a client's
      would not count anyway). On the process's own terminal the link's
-     environment is the process's, so nothing changes there.
+     environment is the process's, so the merge changes nothing there.
    - `runApp(screenReader:)` not given: the binding's to say, from that
      map. The screen is chosen before the terminal opens, by the
      process's environment, so a terminal that turns the screen reader
@@ -1403,8 +1293,8 @@ None for the prototype. For a real version:
    app's environment empty); the extension's `switches.test.ts`,
    `shell.test.ts`, `terminals.test.ts`, and in VS Code the overlay and
    the screen reader switched on and off across hot restarts.
-3. **Capabilities a terminal can declare that are guessed from known
-   terminal names**: done (vx-capabilities). The welcome's `declares`
+3. **Capabilities a terminal declares instead of twk guessing them from
+   known terminal names.** The welcome's `declares`
    (`Wire.welcome`, the golden's welcome frame), read by `SocketLink`
    into a `TerminalDeclaration` (`link.dart`: notifications, progress
    reports, pointer shapes, REP, images; each null where not declared),
@@ -1416,44 +1306,38 @@ None for the prototype. For a real version:
    another type or value declares nothing (`fromJson`). Not an
    environment variable: the process's own environment is the app's, and
    a `TWK_CAPS` there would be the program's word, not the terminal's.
-   `TerminalDeclaration` and `DeclaringLink` are not exported yet: only
-   the socket link declares; a program's own link (twk_web's xterm.js)
-   would need them in `twk_core.dart`. Tests: twk_core's `link_test.dart`
+   `TerminalDeclaration` and `DeclaringLink` are not exported: only the
+   socket link declares; a program's own link (twk_web's xterm.js) would
+   need them in `twk_core.dart`. Tests: twk_core's `link_test.dart`
    (declared over the guess by `TERM=xterm-kitty`, some declared and the
    rest guessed, the images declared and so not asked, the app's options
-   over it, the JSON both ways and the wrong kinds; seen failing, three of
-   them, with the declaration ignored), `socket_test.dart` (a shell's
-   welcome declaring reaches `TerminalInfo`, a wrong or absent one is
-   guessed; a `TerminalShell` welcomes with its link's declaration and
+   over it, the JSON both ways and the wrong kinds), `socket_test.dart` (a
+   shell's welcome declaring reaches `TerminalInfo`, a wrong or absent one
+   is guessed; a `TerminalShell` welcomes with its link's declaration and
    with no `declares` for none), `shell_wire_golden_test.dart` (the
-   golden's welcome now declares: its six conversations failed until
-   `FakeLink` declared as the golden says); the extension's
-   `wire_golden.test.ts` (the golden's `declares` is what the
-   `everything` preset declares, field by field and in order) and
-   `twk_probe.test.ts` (seen failing, three of its tests, with twk_core
-   ignoring the declaration).
-4. **A tree-changed event and where a widget was made**: done
-   (vx-inspector), part 2d. `ext.twk.flags` `treeEvents`
-   (`DebugAids.treeEvents`, off by default): after each frame in which
-   elements built (`BuildOwner.rebuilds`, which every change of the
-   element tree is), at most once a frame, the binding posts
-   `twk.treeChanged` (`version`, `rebuilds`); nothing for a frame that
-   only laid out or painted. And an element's `build` in `ext.twk.tree`
-   and `ext.twk.properties`: the type whose `build` makes its child (a
-   stateless widget's, a stateful one's state's). twk keeps no creation
-   locations: its widgets' constructors are `const` and run no code (a
-   `StackTrace` there can't be taken, and a const one is made by the
-   compiler), and `dart run` has no kernel transformer such as Flutter's
-   track-widget-creation (the SDK's frontend has one, keyed to Flutter's
-   own library). So the extension finds the place in the app's code
-   (part 2d), at no cost to the app's frames. Tests in twk's
+   golden's welcome declares, and its conversations run over a `FakeLink`
+   that declares as the golden says); the extension's `wire_golden.test.ts`
+   (the golden's `declares` is what the `everything` preset declares,
+   field by field and in order) and `twk_probe.test.ts`.
+4. **A tree-changed event and where a widget was made**, part 2d.
+   `ext.twk.flags` `treeEvents` (`DebugAids.treeEvents`, off by default):
+   after each frame in which elements built (`BuildOwner.rebuilds`, which
+   every change of the element tree is), at most once a frame, the binding
+   posts `twk.treeChanged` (`version`, `rebuilds`); nothing for a frame
+   that only laid out or painted. And an element's `build` in
+   `ext.twk.tree` and `ext.twk.properties`: the type whose `build` makes
+   its child (a stateless widget's, a stateful one's state's). twk keeps
+   no creation locations: its widgets' constructors are `const` and run no
+   code (a `StackTrace` there can't be taken, and a const one is made by
+   the compiler), and `dart run` has no kernel transformer such as
+   Flutter's track-widget-creation (the SDK's frontend has one, keyed to
+   Flutter's own library). So the extension finds the place in the app's
+   code (part 2d), at no cost to the app's frames. Tests in twk's
    `service_extensions_test.dart` (off by default, nothing posted; on, one
    event a frame that built, two changes before a frame one, a child
    replaced one more, none for a frame of paint alone, none once off; the
-   `build` of a stateful and a stateless element, none for a leaf; seen
-   failing with the post taken out of `_afterPresent`, with the flag's
-   test turned round, and with `build` left out).
-5. **A test of the wire from the outside**: done (vx-wire-golden).
+   `build` of a stateful and a stateless element, none for a leaf).
+5. **A test of the wire from the outside.**
    `packages/twk_core/test/terminal/shell_wire.golden.json` describes
    protocol 1: every kind with its type and direction, each frame as hex
    (`type length payload`) beside what it says (JSON, text or bytes),
@@ -1465,38 +1349,30 @@ None for the prototype. For a real version:
    `TerminalShell` and `SocketLink` to it; the extension's
    `wire_golden.test.ts` holds `wire.ts` and `shell.ts` to it (the app's
    end is Dart's alone). The golden is twk_core's, as `socket.dart` is
-   the wire's first statement, and in the repository both sides read. It
-   found three drifts of `shell.ts`, now as `socket.dart`: a hello that
-   is a JSON list was taken for an object, a hello naming no protocol was
-   refused as of protocol `undefined` (Dart: `null`), and one not UTF-8
-   was decoded with replacement characters (Dart: no hello). A change to
+   the wire's first statement, and in the repository both sides read. In
+   `shell.ts`, as in `socket.dart`, a hello that is a JSON list is no
+   hello (not an object), a hello naming no protocol is refused as of
+   protocol `null`, and a hello that is not UTF-8 is no hello. A change to
    the wire is made in `socket.dart`, the golden and the extension
    together: each test fails without the others.
 
-## 5. A proposed first version
+## 5. Scope
 
-About 2-3 weeks of one person, beside the twk changes 1 and 2 (a few
-days):
-
-1. **The twk terminal** (the prototype, finished): one panel per debug
-   session (done: TWK_SHELL), a launch config snippet (done: `"type":
-   "twk"`, part 2) or a "Debug in twk Terminal" code lens, status bar
-   with the size and profile, copy and paste, focus and the keys VS Code
-   would take, theme colors following VS Code's, OSC 52 to the clipboard.
-   ~1 week.
-2. **Capability switches**: done (vx-capabilities, part 3), but for
-   ambiguous width 2 and bidi (part 3 says why) and kitty's graphics
-   protocol (not in the image addon for xterm.js 6.0). The screen reader
-   and the debug aids: done (part 2).
-3. **Inspector**: done (vx-inspector, part 2d): a tree view of
-   `ext.twk.tree` that follows the app, a pick on the terminal (the
-   node revealed and highlighted), where a widget was made, the frame
-   overlay and the other `flags` as toggles, `ext.twk.reassemble` (part
-   2a).
-4. **Sequence log and recording**: done (vx-log-record, part 2e): a
-   panel of the terminal's traffic with times, decoded; recorded as
-   asciicast for `twk play`; replayed into a terminal of its own; the
-   screen copied as text.
+- **The twk terminal**: one panel per debug session (`TWK_SHELL`), a
+  launch configuration (`"type": "twk"`, part 2). Left: a "Debug in twk
+  Terminal" code lens, a status bar with the size and profile, copy and
+  paste, focus and the keys VS Code would take, theme colors following
+  VS Code's, OSC 52 to the clipboard.
+- **Capability switches** (part 3), but for ambiguous width 2 and bidi
+  (part 3 says why) and kitty's graphics protocol (not in the image addon
+  for xterm.js 6.0). The screen reader and the debug aids (part 2).
+- **Inspector** (part 2d): a tree view of `ext.twk.tree` that follows the
+  app, a pick on the terminal (the node revealed and highlighted), where
+  a widget was made, the frame overlay and the other `flags` as toggles,
+  `ext.twk.reassemble` (part 2a).
+- **Sequence log and recording** (part 2e): a panel of the terminal's
+  traffic with times, decoded; recorded as asciicast for `twk play`;
+  replayed into a terminal of its own; the screen copied as text.
 
 Left for later: kitty keyboard's flags beyond disambiguation (event
 types, all keys as escape codes, alternate keys, text), the
