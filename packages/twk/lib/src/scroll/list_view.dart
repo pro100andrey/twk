@@ -456,7 +456,7 @@ final class _ListElement extends RenderObjectElement
   // the items built, by index; the keyed items scrolled out, by key, the
   // one that left the view longest ago first, their render objects out of
   // the list
-  var _live = SplayTreeMap<int, Element>();
+  final _live = SplayTreeMap<int, Element>();
   final _kept = <Key, Element>{};
 
   ScrollPosition? _position;
@@ -741,8 +741,9 @@ final class _ListElement extends RenderObjectElement
     }
     final widgets = <Widget>[];
     final items = <Element?>[];
-    final unkept = HashSet<Element>.identity();
-    final taken = HashSet<Element>.identity();
+    // compact sets: no entry object for each item
+    final unkept = Set<Element>.identity();
+    final taken = Set<Element>.identity();
     for (var i = first; i <= last && i < count; i++) {
       final w = _build(i);
       final key = w.key;
@@ -776,19 +777,29 @@ final class _ListElement extends RenderObjectElement
         _drop(e);
       }
     }
-    final next = SplayTreeMap<int, Element>();
+    // in place: an index the list still has keeps its node
+    final end = first + widgets.length;
+    if (widgets.isEmpty) {
+      live.clear();
+    } else {
+      while (live.isNotEmpty && live.firstKey()! < first) {
+        live.remove(live.firstKey());
+      }
+      while (live.isNotEmpty && live.lastKey()! >= end) {
+        live.remove(live.lastKey());
+      }
+    }
     for (var k = 0; k < widgets.length; k++) {
       final item = items[k];
       if (item != null && unkept.contains(item)) {
         item.attachRenderObject(first + k);
       }
-      next[first + k] = updateChild(
+      live[first + k] = updateChild(
         item,
         _itemOf(widgets[k], first + k),
         first + k,
       )!;
     }
-    _live = next;
   }
 
   /// Whether the list keeps the keyed items in the window in place as

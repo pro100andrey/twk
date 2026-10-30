@@ -607,9 +607,13 @@ final class RenderList extends RenderObject
       return null;
     }
     final last = lastChild!;
-    final fromEnd =
-        (last.parentData as ListParentData).index - index <
-        index - (first.parentData as ListParentData).index;
+    final firstIndex = (first.parentData as ListParentData).index;
+    final lastIndex = (last.parentData as ListParentData).index;
+    if (!_unsorted && (index < firstIndex || index > lastIndex)) {
+      // past either end, as an item about to be built is: no walk to learn
+      return null;
+    }
+    final fromEnd = lastIndex - index < index - firstIndex;
     for (RenderObject? c = fromEnd ? last : first; c != null;) {
       final at = c.parentData as ListParentData;
       if (at.index == index) {

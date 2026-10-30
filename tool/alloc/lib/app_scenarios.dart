@@ -309,6 +309,28 @@ final appScenarios = <AppScenario>[
     steps: _pieces,
   ),
   AppScenario(
+    'log-append',
+    'a LogView following its end, a line added a frame, 1000 before',
+    (w, h) async {
+      final log = LogController();
+      for (var k = 0; k < 1000; k++) {
+        log.add(_phrases[k % _phrases.length]);
+      }
+      final r = await AppRun.start(
+        LogView(controller: log),
+        width: w,
+        height: h,
+      );
+      return (
+        r,
+        (int i) {
+          log.add(_phrases[i % _phrases.length]);
+          return r.pump();
+        },
+      );
+    },
+  ),
+  AppScenario(
     'mouse-flood',
     '100 mouse motions a frame over a screen of hover-lit cells, 8 a row',
     (w, h) async {
