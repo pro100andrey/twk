@@ -780,9 +780,6 @@ final class InputParser {
       out.add(UnknownSequence(b.sublist(pos, i)));
       return i - pos;
     }
-    if (fin == 0x4D && prefix == 0 && pEnd == pStart && inter == 0) {
-      return _x10Mouse(b, pos, i + 1, out, eof);
-    }
     final len = i + 1 - pos;
     if (fin < 0x40 || fin > 0x7E) {
       out.add(UnknownSequence(b.sublist(pos, pos + len)));
@@ -798,10 +795,19 @@ final class InputParser {
       _pasteLength = 0;
       return len;
     }
-    out.add(
-      (_readParams(b, pStart, pEnd) ? _mapCsi(prefix, inter, fin) : null) ??
-          UnknownSequence(b.sublist(pos, pos + len)),
-    );
+    final event = _readParams(b, pStart, pEnd)
+        ? _mapCsi(prefix, inter, fin)
+        : null;
+    if (event != null) {
+      out.add(event);
+      return len;
+    }
+    // what no mapping knows, off the way of those it does: an X10 mouse
+    // report's three bytes after `CSI M`
+    if (fin == 0x4D && prefix == 0 && pEnd == pStart && inter == 0) {
+      return _x10Mouse(b, pos, i + 1, out, eof);
+    }
+    out.add(UnknownSequence(b.sublist(pos, pos + len)));
     return len;
   }
 
@@ -957,11 +963,13 @@ final class InputParser {
           return ResizeEvent(_p(2), _p(1));
         }
         return null;
-      case 0x7E when _p(0) == 27 && count >= 3: // ~
-        // xterm's modifyOtherKeys: CSI 27 ; mods ; code ~
-        return _codeKey(_p(2), mods, kind);
       case 0x7E: // ~
-        final key = switch (_p(0)) {
+        final first = _p(0);
+        if (first == 27 && count >= 3) {
+          // xterm's modifyOtherKeys: CSI 27 ; mods ; code ~
+          return _codeKey(_p(2), mods, kind);
+        }
+        final key = switch (first) {
           1 || 7 => KeyCode.home,
           2 => KeyCode.insert,
           3 => KeyCode.delete,
@@ -1162,6 +1170,9 @@ final class InputParser {
     return key == null ? null : KeyEvent(key, modifiers: mods, kind: kind);
   }
 
+  // called from two places since X10's reports came, where AOT inlined
+  // it at one: a mouse event of the keys benchmark 5 % slower without
+  @pragma('vm:prefer-inline')
   static InputEvent _sgrMouse(int cb, int x, int y, bool release) {
     var mods = 0;
     if (cb & 4 != 0) {

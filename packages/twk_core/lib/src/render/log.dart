@@ -200,10 +200,12 @@ final class RenderLog extends RenderObject {
     final keepTo = _first + 2 * height < _lines.length
         ? _first + 2 * height
         : _lines.length;
-    for (var i = _runsFrom; i < _runsTo; i++) {
-      if (i < keepFrom || i >= keepTo) {
-        _runs[i] = null;
-      }
+    // only what left the window: a line a frame as the log follows its end
+    for (var i = _runsFrom; i < _runsTo && i < keepFrom; i++) {
+      _runs[i] = null;
+    }
+    for (var i = keepTo > _runsFrom ? keepTo : _runsFrom; i < _runsTo; i++) {
+      _runs[i] = null;
     }
     _runsFrom = keepFrom;
     _runsTo = keepTo;
