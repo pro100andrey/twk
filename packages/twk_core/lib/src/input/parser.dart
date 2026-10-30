@@ -432,13 +432,14 @@ final class InputParser {
     return -1;
   }
 
-  // the byte length of the character [_utf8At] decoded last
-  static var _utf8Length = 0;
+  // the byte length of the character [_utf8At] decoded last: the parser's
+  // own, read right after the call
+  var _utf8Length = 0;
 
   /// Decodes one UTF-8 character: returns its code point and sets
   /// [_utf8Length] to its byte length, or returns 0 and sets it to 0 when
   /// it is incomplete.
-  static int _utf8At(Uint8List b, int pos, bool eof) {
+  int _utf8At(Uint8List b, int pos, bool eof) {
     final c = b[pos];
     int need;
     int cp;
@@ -477,7 +478,7 @@ final class InputParser {
   }
 
   @pragma('vm:prefer-inline')
-  static int _decoded(int cp, int length) {
+  int _decoded(int cp, int length) {
     _utf8Length = length;
     return cp;
   }

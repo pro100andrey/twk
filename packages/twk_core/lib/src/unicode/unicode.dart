@@ -683,12 +683,26 @@ int stringWidth(
     'ambiguousWidth is 1 or 2 columns',
   );
   // stringWidth calls nothing that could call it again, so one segmenter
-  // serves every call
+  // serves every call: asserted, so that a change that makes it do so
+  // fails here rather than measuring with another call's settings
+  assert(!_measuring, 'stringWidth called within itself');
+  assert(() {
+    _measuring = true;
+    return true;
+  }(), 'stringWidth begins');
   final seg = _widthSegmenter
     ..mode = mode
     ..ambiguousWidth = ambiguousWidth;
-  return _columns(seg, s);
+  final columns = _columns(seg, s);
+  assert(() {
+    _measuring = false;
+    return true;
+  }(), 'stringWidth ends');
+  return columns;
 }
+
+// whether stringWidth runs, with asserts
+var _measuring = false;
 
 /// The columns [s] takes when drawn with [seg], as [stringWidth] says.
 @pragma('vm:prefer-inline')

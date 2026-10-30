@@ -56,6 +56,23 @@ void main() {
     expect(screen.render(), isNull);
   });
 
+  test('with asserts, the bytes of a frame kept past the next read as '
+      'garbage, not as that frame', () {
+    final screen = Screen(10, 1);
+    final pen = screen.styles.pen(const Pen(bg: Color.rgb(0, 0, 0)));
+    screen.canvas.text(0, 0, 'first', pen);
+    final first = screen.render()!;
+    expect(String.fromCharCodes(first), contains('first'));
+    screen.canvas.text(0, 0, 'second', pen);
+    final second = screen.render()!;
+    expect(String.fromCharCodes(second), contains('second'));
+    var asserts = false;
+    assert(asserts = true, 'asserts on');
+    if (asserts) {
+      expect(first.every((b) => b == 0x3F), isTrue);
+    }
+  });
+
   test('an empty screen renders with a visible cursor', () {
     for (final (w, h) in [(0, 0), (0, 5), (5, 0)]) {
       final screen = Screen(w, h);

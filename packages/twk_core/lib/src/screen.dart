@@ -154,7 +154,7 @@ final class Screen {
   /// back where the app found it (see [Presenter.leave]).
   Uint8List? leave({bool clear = false}) {
     final n = presenter.leave(clear: clear);
-    return n == 0 ? null : presenter.out.view;
+    return _handed(n == 0 ? null : presenter.out.view);
   }
 
   /// Encodes everything painted since the last call. Returns the bytes to
@@ -165,6 +165,23 @@ final class Screen {
     final n = presenter.present(surface);
     final out = n == 0 ? null : presenter.out.view;
     sweepIfDue();
+    return _handed(out);
+  }
+
+  // with asserts, the bytes [render] or [leave] handed out last, a copy
+  Uint8List? _lastHanded;
+
+  /// [bytes] as [render] and [leave] hand them out: with asserts, a copy,
+  /// and the copy handed out before filled with `?`, so that bytes kept
+  /// past the next call, which the presenter writes over, show as such
+  /// rather than as the next frame's.
+  Uint8List? _handed(Uint8List? bytes) {
+    var out = bytes;
+    assert(() {
+      _lastHanded?.fillRange(0, _lastHanded!.length, 0x3F);
+      out = _lastHanded = bytes == null ? null : Uint8List.fromList(bytes);
+      return true;
+    }(), 'bytes handed out as a copy');
     return out;
   }
 

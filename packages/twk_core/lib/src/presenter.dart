@@ -316,8 +316,8 @@ final class Presenter {
   /// start of a line when an inline region starts: false, the region
   /// starts on the line after it.
   Presenter(
-    this.width,
-    this.height,
+    int width,
+    int height,
     this.styles,
     this.glyphs, {
     this.caps = const TerminalCaps(),
@@ -329,6 +329,8 @@ final class Presenter {
          !inline || viewport == null,
          'an inline region is no fixed viewport',
        ),
+       _width = width,
+       _height = height,
        _ox = viewport?.left ?? 0,
        _oy = viewport?.top ?? 0,
        _fc = Uint32List(width * height),
@@ -342,11 +344,14 @@ final class Presenter {
     _forgetScreen();
   }
 
-  /// How many cells wide the surface presented is.
-  int width;
+  /// How many cells wide the surface presented is; [resize] changes it.
+  int get width => _width;
+  int _width;
 
-  /// How many rows tall the surface presented is.
-  int height;
+  /// How many rows tall the surface presented is; [resize] changes it, and
+  /// in the inline mode the region's height.
+  int get height => _height;
+  int _height;
 
   /// The styles of the cells, whose SGR sequences are written.
   final StyleTable styles;
@@ -640,12 +645,12 @@ final class Presenter {
       final cells = _pc;
       final styles = _ps;
       final old = width;
-      width = w;
+      _width = w;
       _setCommitted(Uint32List(n * w), Uint32List(n * w));
       _copyRows(cells, styles, old, 0, n, 0);
     }
-    width = w;
-    height = h;
+    _width = w;
+    _height = h;
     _fc = Uint32List(w * h);
     _fs = Uint32List(w * h);
     _fc64 = view64(_fc);
@@ -1084,7 +1089,7 @@ final class Presenter {
     if (h < height) {
       _eraseFrom = h;
     }
-    height = h;
+    _height = h;
     _fc = fc;
     _fs = fs;
     _fc64 = view64(fc);
