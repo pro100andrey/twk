@@ -174,9 +174,13 @@ describe('a recording of a twk app, read back by twk_dev', function () {
     const dart = JSON.parse(json) as DartFrame[];
     assert.ok(dart.length >= 3, `${dart.length} frames`);
     assert.deepEqual(dart.at(-1)?.errors, [], 'nothing twk_test does not know');
+    // a frame before the redraw it was asked for, or of the redraw's
+    // first part, may show nothing: the first that shows something is the
+    // whole screen
+    const shown = dart.find((f) => f.lines.some((l) => l.trim() !== ''));
     assert.ok(
-      dart[0].lines.some((l) => l.includes('Count: 0')),
-      `the first frame a whole screen:\n${dart[0].lines.join('\n')}`,
+      shown?.lines.some((l) => l.includes('Count: 0')),
+      `the first frame that shows something a whole screen:\n${(shown ?? dart[0]).lines.join('\n')}`,
     );
     assert.ok(dart.at(-1)!.lines.some((l) => l.includes('Count: 2')));
 
