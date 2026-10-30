@@ -19,22 +19,20 @@ Canvas canvasOf(int w, int h) =>
     Canvas(Surface(w, h), StyleTable(), GlyphTable());
 
 void main() {
-  test('cells carry over as they are into the same tables', () {
+  test("glyphs carry over as they are into the canvas's glyph table, "
+      'styles made again in its style table', () {
     final canvas = canvasOf(10, 3);
-    final t =
-        TerminalEmulator(
-            width: 10,
-            height: 3,
-            styles: canvas.styles,
-            glyphs: canvas.glyphs,
-          )
-          ..feedText('\x1b[31mab\x1b[0me\u0301中\r\n\x1b[44mx\x1b[K')
-          ..paint(canvas);
+    final t = TerminalEmulator(width: 10, height: 3, glyphs: canvas.glyphs)
+      ..feedText('\x1b[31mab\x1b[0me\u0301中\r\n\x1b[44mx\x1b[K')
+      ..paint(canvas);
     final s = canvas.surface;
     for (var y = 0; y < 3; y++) {
       for (var x = 0; x < 10; x++) {
-        expect(s.cells[y * 10 + x], t.cellAt(x, y), reason: '$x,$y');
-        expect(s.styles[y * 10 + x], t.styleAt(x, y), reason: '$x,$y');
+        final i = y * 10 + x;
+        expect(s.cells[i], t.cellAt(x, y), reason: '$x,$y');
+        final id = t.styleAt(x, y);
+        expect(canvas.styles.fgOf(s.styles[i]), t.styles.fgOf(id));
+        expect(canvas.styles.bgOf(s.styles[i]), t.styles.bgOf(id));
       }
     }
   });
@@ -189,18 +187,6 @@ void main() {
         final id = t.styleAt(k % 10, k ~/ 10);
         expect(t.styles.fgOf(id), Color.rgb(180 + k, 0, 0), reason: '$k');
       }
-    });
-
-    test("leaves a table the host passed to the host's sweeps", () {
-      TerminalEmulator.sweepFloor = 32;
-      final canvas = canvasOf(10, 2);
-      final t = TerminalEmulator(
-        width: 10,
-        height: 2,
-        scrollbackLimit: 0,
-        styles: canvas.styles,
-      )..feedText(reds(0, 200));
-      expect(t.styles.sweeps, 0);
     });
 
     test('paints the colors as they are, the screen keeping only those '

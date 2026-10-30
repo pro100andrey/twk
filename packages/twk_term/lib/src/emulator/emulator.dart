@@ -130,16 +130,17 @@ final class TerminalEmulator {
   /// An emulator of [width] x [height] cells (at least 1 x 1) in its
   /// initial state, keeping [scrollbackLimit] lines of scrollback.
   ///
-  /// Its cells' ids are in [styles] and [glyphs], tables of its own where
-  /// they are null. Text is split into cells by [textMode] (code points by
-  /// default; DEC mode 2027 switches it), characters whose width is
-  /// ambiguous taking [ambiguousWidth] columns. [onOutput], [onEvent] and
-  /// [strict] are as the fields of those names.
+  /// Its cells' styles are in [styles], a table of its own, and their
+  /// glyphs in [glyphs], one of its own where it is null (a host that
+  /// passes its canvas's copies the glyph words as they are). Text is
+  /// split into cells by [textMode] (code points by default; DEC mode 2027
+  /// switches it), characters whose width is ambiguous taking
+  /// [ambiguousWidth] columns. [onOutput], [onEvent] and [strict] are as
+  /// the fields of those names.
   TerminalEmulator({
     int width = 80,
     int height = 24,
     int scrollbackLimit = 1000,
-    StyleTable? styles,
     GlyphTable? glyphs,
     TextMode textMode = TextMode.legacy,
     int ambiguousWidth = 1,
@@ -148,8 +149,7 @@ final class TerminalEmulator {
     this.strict = false,
   }) : _width = width < 1 ? 1 : width,
        _height = height < 1 ? 1 : height,
-       styles = styles ?? StyleTable(),
-       _ownStyles = styles == null,
+       styles = StyleTable(),
        glyphs = glyphs ?? GlyphTable(),
        segmenter = TextSegmenter(
          mode: textMode,
@@ -183,22 +183,21 @@ final class TerminalEmulator {
   /// ignored (for tests).
   final bool strict;
 
-  /// The styles of the cells; a host that passes its canvas's table can
-  /// copy cells as they are.
+  /// The styles of the cells, a table of the emulator's own: a host's
+  /// canvas takes them as [paint] makes them again in its table.
   ///
-  /// A table of the emulator's own is swept ([StyleTable.sweep]) once
+  /// It is swept ([StyleTable.sweep]) once
   /// twice as many styles are in use as after the last sweep, and at
   /// least [sweepFloor]: a program that writes 24-bit color (a video, an
   /// image viewer) gives each color it sends a style, which would
   /// otherwise be kept as long as the emulator is. What no cell of its
   /// screens and scrollback has is freed; ids kept from before are noted
-  /// by [StyleTable.sweeps]. A table the host passed is the host's to
-  /// sweep, the emulator's cells among the roots.
+  /// by [StyleTable.sweeps]. It is no host's, as a host's screen would
+  /// sweep it without the emulator's scrollback.
   final StyleTable styles;
-  final bool _ownStyles;
 
-  /// The fewest styles in use a table of the emulator's own is swept
-  /// past (see [styles]); a test's may be fewer.
+  /// The fewest styles in use [styles] is swept past; a test's may be
+  /// fewer.
   static var sweepFloor = 4096;
 
   // swept once this many styles are in use
@@ -458,10 +457,10 @@ final class TerminalEmulator {
   /// [text] as the program would write it (UTF-8).
   void feedText(String text) => feed(utf8.encode(text));
 
-  /// Sweeps a table of the emulator's own when it is due (see [styles]).
+  /// Sweeps [styles] when it is due.
   void _sweepIfDue() {
     final live = styles.live;
-    if (!_ownStyles || live <= sweepFloor || live <= _sweepAt) {
+    if (live <= sweepFloor || live <= _sweepAt) {
       return;
     }
     void lines(void Function(int id) mark, TerminalLine line) {
