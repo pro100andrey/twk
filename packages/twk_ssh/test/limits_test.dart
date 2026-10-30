@@ -276,6 +276,61 @@ void main() {
     });
   });
 
+  test('an address whose connection ended without a login after a failure '
+      'is refused for a penalty, then let in again', () async {
+    final clock = FakeClock();
+    final server = await serve(
+      auth: acceptKeys([alice]),
+      onSession: (session) => session.done,
+      clock: clock.stopwatch,
+    );
+    // a password, which the server takes none of: a failure
+    Future<void> fail() async {
+      final client = await RawClient.connect(server);
+      await client.exchangeKeys();
+      client.sendMessage(
+        (w) => w
+          ..byte(SshMsg.serviceRequest)
+          ..utf8String('ssh-userauth'),
+      );
+      await client.expectNext(SshMsg.serviceAccept);
+      client.sendMessage(
+        (w) => w
+          ..byte(SshMsg.userauthRequest)
+          ..utf8String('mallory')
+          ..utf8String('ssh-connection')
+          ..utf8String('password')
+          ..boolean(false)
+          ..utf8String('guess'),
+      );
+      await client.expectNext(SshMsg.userauthFailure);
+      client.socket.destroy();
+      await waitUntil(
+        () => server.connections.isEmpty,
+        'the server to see it go',
+      );
+    }
+
+    Future<bool> refused() async {
+      final client = await RawClient.connect(server);
+      return client.closes(const Duration(seconds: 5));
+    }
+
+    await fail();
+    expect(await refused(), isTrue);
+    await clock.elapse(SshServer.failurePenalty - const Duration(seconds: 1));
+    expect(await refused(), isTrue);
+    await clock.elapse(const Duration(seconds: 1));
+    // let in again, and failing again: refused again
+    await fail();
+    expect(await refused(), isTrue);
+    expect(server.refused, 3);
+    await clock.elapse(SshServer.failurePenalty);
+    final client = await RawClient.connect(server);
+    await client.exchangeKeys();
+    await client.logIn('alice', alice.pair);
+  });
+
   group('a key exchange after the first the client leaves undone', () {
     // the server's clock and deadlines on one fake clock; the login is
     // done first, so that only the exchange's deadline is left on it

@@ -221,6 +221,38 @@ void main() {
       expect(s.pty!.eraseChar, 0x08);
     });
 
+    test('pty-req and window-change: a size past the most is cut to it', () {
+      final s = session(FakeTransport());
+      Uint8List size(int columns, int rows) => body(
+        (w) => w
+          ..uint32(columns)
+          ..uint32(rows)
+          ..uint32(0)
+          ..uint32(0),
+      );
+      expect(
+        s.request(
+          'pty-req',
+          SshReader(
+            Uint8List.fromList([
+              ...body((w) => w.utf8String('xterm')),
+              ...size(0xFFFFFFFF, 0xFFFFFFFF),
+              ...body((w) => w.string(Uint8List.fromList([0]))),
+            ]),
+          ),
+        ),
+        isTrue,
+      );
+      expect(
+        (s.pty!.columns, s.pty!.rows),
+        (SshPty.maxColumns, SshPty.maxRows),
+      );
+      expect(s.request('window-change', SshReader(size(100, 1 << 20))), isTrue);
+      expect((s.pty!.columns, s.pty!.rows), (100, SshPty.maxRows));
+      expect(s.request('window-change', SshReader(size(80, 24))), isTrue);
+      expect((s.pty!.columns, s.pty!.rows), (80, 24));
+    });
+
     test('env is bounded in count and size', () {
       final s = session(FakeTransport());
       bool env(String name, String value) => s.request(

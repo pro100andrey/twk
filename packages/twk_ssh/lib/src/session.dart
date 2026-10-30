@@ -1,5 +1,7 @@
 /// A session: the channel a client runs a shell or a command on, with its
 /// terminal, environment, input and output.
+///
+/// @docImport 'auth.dart';
 library;
 
 import 'dart:async';
@@ -42,6 +44,13 @@ final class SshPty {
 
   /// The terminal modes (RFC 4254 §8), by opcode.
   final Map<int, int> modes;
+
+  /// The most columns a terminal is taken as: a client's wider one (of up
+  /// to 2^32 - 1) is cut to it, as a screen of that many cells is drawn.
+  static const maxColumns = 2048;
+
+  /// The most rows a terminal is taken as, as [maxColumns].
+  static const maxRows = 1024;
 
   /// The opcode of VERASE, the byte the Backspace key sends.
   static const verase = 3;
@@ -110,7 +119,10 @@ final class SshSession {
   static const _maxEnvironment = 64;
   static const _maxEnvironmentBytes = 4096;
 
-  /// Who logged in.
+  /// The user name the client logged in as, which [SshAuth] accepted it
+  /// with. Where it accepts a key whatever the name
+  /// ([SshAuth.authorizedKeys]), it is only what the client said: who
+  /// proved to be there is [publicKey].
   final String user;
 
   /// The key [user] logged in with; null for a password.
@@ -414,6 +426,10 @@ final class SshSession {
     }
   }
 
+  static int _columns(int n) => n < SshPty.maxColumns ? n : SshPty.maxColumns;
+
+  static int _rows(int n) => n < SshPty.maxRows ? n : SshPty.maxRows;
+
   /// The connection is gone.
   @internal
   void connectionLost() {
@@ -429,8 +445,8 @@ final class SshSession {
     switch (type) {
       case 'pty-req' when _pty == null && !_started:
         final term = r.utf8String();
-        final columns = r.uint32();
-        final rows = r.uint32();
+        final columns = _columns(r.uint32());
+        final rows = _rows(r.uint32());
         final pixelWidth = r.uint32();
         final pixelHeight = r.uint32();
         _pty = SshPty(
@@ -464,8 +480,8 @@ final class SshSession {
           return false;
         }
         final resized = _pty = pty._resized(
-          r.uint32(),
-          r.uint32(),
+          _columns(r.uint32()),
+          _rows(r.uint32()),
           r.uint32(),
           r.uint32(),
         );

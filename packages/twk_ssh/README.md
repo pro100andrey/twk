@@ -88,9 +88,9 @@ goes to `onError`). The session has
 - `user`, and `publicKey`, the key they logged in with (null for a
   password); `remoteAddress` and `remotePort`;
 - `pty`, the terminal the client asked for (`TERM`, columns and rows,
-  pixel sizes, the terminal modes with the Backspace byte), null for
-  `ssh -T` or a command without `-t`, and `resizes`, the terminal after
-  each change of the client's window;
+  at most 2048 by 1024, pixel sizes, the terminal modes with the
+  Backspace byte), null for `ssh -T` or a command without `-t`, and
+  `resizes`, the terminal after each change of the client's window;
 - `environment`, what the client sent (`SendEnv`, `SetEnv`), at most 64
   variables of 4 KiB; `command`, the command of `ssh host command`, null
   for a shell; `signals`, by name (`INT`, `TERM`);
@@ -113,7 +113,9 @@ client doesn't end it itself.
 
 `SshAuth(publicKey:, password:)` takes callbacks that say who may log in
 with which key or password; `SshAuth.authorizedKeys(path)` reads an
-authorized_keys file at each attempt, any user name accepted. Lines with
+authorized_keys file at each attempt, any user name accepted (so
+`session.user` is then only the name the client gave; who proved to be
+there is `session.publicKey`). Lines with
 options (`from=`, `command=`, `restrict`) are skipped, since the server
 does not apply them: their keys are refused. There is no `none` method
 and no keyboard-interactive or host-based login. A connection gets
@@ -124,7 +126,11 @@ closed before a byte is sent or read, as OpenSSH's `MaxStartups` starts
 to do at 10. That keeps a flood of half-open logins from costing more
 than ten key exchanges at a time; it also means ten clients that never
 log in hold the door for `loginTimeout`, so a server facing the open
-internet wants a shorter one, and a firewall's per-address limit.
+internet wants a shorter one, and a firewall's per-address limit. An
+address whose connection ends without a login after a failed attempt is
+refused for 5 seconds more for each, up to 10 minutes, as OpenSSH's
+`PerSourcePenalties`: guessing passwords costs time, not only
+connections.
 
 The host key is an OpenSSH, PKCS#1 or SEC1 private key file, encrypted
 or not (`SshHostKey.load`), or a new ssh-ed25519 key generated into a
