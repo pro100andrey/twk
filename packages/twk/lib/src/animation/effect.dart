@@ -542,13 +542,18 @@ int? _rgbOf(StyleTable styles, Color color, {required bool text}) =>
 final class _StyleCache {
   StyleTable? _table;
   var _blending = 0;
+  var _sweeps = 0;
   final _styles = <int, int>{};
 
   /// The styles made for cells such as [cell].
   Map<int, int> of(EffectCell cell) {
-    if (!identical(cell._styles, _table) || cell._blending != _blending) {
+    // the ids kept are of the table as it was (StyleTable.sweep)
+    if (!identical(cell._styles, _table) ||
+        cell._blending != _blending ||
+        cell._styles.sweeps != _sweeps) {
       _table = cell._styles;
       _blending = cell._blending;
+      _sweeps = cell._styles.sweeps;
       _styles.clear();
     }
     return _styles;

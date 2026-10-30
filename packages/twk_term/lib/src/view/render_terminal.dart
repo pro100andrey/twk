@@ -87,6 +87,9 @@ final class _RenderTerminal extends RenderObject {
   // the rows as they were painted, in the emulator's ids; all of them
   // painted again on the next paint
   var _shown = <TerminalLine>[];
+
+  // the sweeps of the emulator's table when _shown was painted
+  var _shownSweeps = 0;
   var _full = true;
   var _reverse = false;
 
@@ -267,6 +270,11 @@ final class _RenderTerminal extends RenderObject {
       final reverse = em.mode(TerminalMode.reverseVideo);
       if (reverse != _reverse) {
         _reverse = reverse;
+        _full = true;
+      }
+      // swept (StyleTable.sweep): the ids kept are of the table as it was
+      if (em.styles.sweeps != _shownSweeps) {
+        _shownSweeps = em.styles.sweeps;
         _full = true;
       }
       _moveRows(ctx, w, h);

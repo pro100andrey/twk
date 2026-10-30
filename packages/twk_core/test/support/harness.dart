@@ -126,6 +126,16 @@ final class Harness {
   /// Inline mode: rows committed for the next frame.
   final _pending = <CommittedRow>[];
 
+  /// Marks the styles of the rows written to the history, which the
+  /// harness keeps to check it against: roots of a sweep, as the
+  /// terminal's history is no screen's. Those committed and not written
+  /// yet are the presenter's to keep.
+  void markCommitted(void Function(int id) mark) {
+    for (final row in committed) {
+      row.styles.forEach(mark);
+    }
+  }
+
   /// Screen row of the surface's first row.
   int get top => inline ? regionTop - vt.history.length : 0;
 

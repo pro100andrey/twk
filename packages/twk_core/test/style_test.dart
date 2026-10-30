@@ -253,4 +253,64 @@ void main() {
     );
     expect(styled.fgOf(styled.blankStyleOf(blueOnRed)), Color.defaultColor);
   });
+
+  group('sweep', () {
+    test('frees what no root marks, style 0 and the styles of pens kept, '
+        'and gives the ids out again, the lowest first', () {
+      final t = StyleTable();
+      final a = t.style(fg: Color.red);
+      final b = t.style(fg: Color.green);
+      final c = t.style(fg: Color.blue);
+      final pen = t.pen(const Pen(fg: Color.yellow, bg: Color.black));
+      final penStyle = t.opaqueStyleOf(pen);
+      expect((t.length, t.live, t.sweeps), (5, 5, 0));
+      t.sweep((mark) => mark(b));
+      expect((t.length, t.live, t.sweeps), (5, 3, 1));
+      expect(t.fgOf(b), Color.green);
+      expect(t.opaqueStyleOf(pen), penStyle);
+      expect(t.fgOf(penStyle), Color.yellow);
+      // a style kept is found again; new ones take the ids freed
+      expect(t.style(fg: Color.green), b);
+      final d = t.style(fg: Color.magenta);
+      final e = t.style(fg: Color.cyan);
+      expect([d, e], [a, c]);
+      expect(t.fgOf(d), Color.magenta);
+      expect(t.fgOf(e), Color.cyan);
+      expect(t.length, 5, reason: 'no new id while one was free');
+      expect(t.style(fg: Color.white), 5);
+    });
+
+    test('a style given a freed id writes its own SGR, transitions, blank '
+        'and compose', () {
+      final t = StyleTable();
+      final red = t.style(fg: Color.red, attrs: Attr.bold);
+      final under = t.style(bg: Color.blue);
+      final tint = t.pen(const Pen(fg: Color.white));
+      // fill the caches of the id about to go
+      t
+        ..sgrFromReset(red)
+        ..transition(under, red)
+        ..blankStyleOf(red)
+        ..compose(red, tint)
+        ..sweep((mark) => mark(under));
+      final green = t.style(fg: Color.green, attrs: Attr.underline);
+      expect(green, red, reason: 'the freed id given out again');
+      String sgr(List<int> b) => ascii.decode(b);
+      expect(sgr(t.sgrFromReset(green)), contains('32'));
+      expect(sgr(t.sgrFromReset(green)), isNot(contains(';1')));
+      expect(sgr(t.transition(under, green)), contains('32'));
+      expect(t.attrsOf(t.blankStyleOf(green)), Attr.underline);
+      expect(t.fgOf(t.compose(green, tint)), Color.white);
+      expect(t.attrsOf(t.compose(green, tint)), 0);
+    });
+
+    test('with asserts, a freed id read before a style has it again fails', () {
+      final t = StyleTable();
+      final gone = t.style(fg: Color.red);
+      t.sweep((_) {});
+      expect(() => t.fgOf(gone), throwsA(isA<AssertionError>()));
+      t.style(fg: Color.green);
+      expect(t.fgOf(gone), Color.green);
+    });
+  });
 }

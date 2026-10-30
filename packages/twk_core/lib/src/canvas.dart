@@ -554,6 +554,38 @@ final class Canvas {
   int run(int x, int y, GlyphRun r, int pen) =>
       runRange(x, y, r.glyphs, 0, r.glyphs.length, pen);
 
+  /// Draws [r] as [run] does, its cells taking [style], a style id of
+  /// [styles] ([StyleTable.style]), as they are, with no pen: for cells
+  /// whose styles come whole from elsewhere (a terminal emulator's), which
+  /// a pen each would keep for good.
+  int runStyled(int x, int y, GlyphRun r, int style) {
+    final ay = y + _oy;
+    if (ay < _cy0 || ay >= _cy1) {
+      return 0;
+    }
+    var ax = x + _ox;
+    final startX = ax;
+    _y = ay;
+    _row = ay * surface.width;
+    _pen = -1;
+    _opaque = style;
+    _lastIn = -1;
+    _dmgLo = 1 << 30;
+    _dmgHi = -1;
+    final g = r.glyphs;
+    for (var i = 0; i < g.length; i++) {
+      if (ax >= _cx1) {
+        break;
+      }
+      final word = g[i];
+      final w = (word & kWide) != 0 ? 2 : 1;
+      _place(ax, w, word & ~kWide);
+      ax += w;
+    }
+    _end();
+    return ax - startX;
+  }
+
   /// Draws glyph words [start, end) of [g] as [run] draws a run of them:
   /// a piece of a buffer that holds several (what a retained layout keeps
   /// for all its lines), drawn without copying it out.

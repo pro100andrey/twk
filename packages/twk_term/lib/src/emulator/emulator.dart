@@ -149,6 +149,7 @@ final class TerminalEmulator {
   }) : _width = width < 1 ? 1 : width,
        _height = height < 1 ? 1 : height,
        styles = styles ?? StyleTable(),
+       _ownStyles = styles == null,
        glyphs = glyphs ?? GlyphTable(),
        segmenter = TextSegmenter(
          mode: textMode,
@@ -184,7 +185,24 @@ final class TerminalEmulator {
 
   /// The styles of the cells; a host that passes its canvas's table can
   /// copy cells as they are.
+  ///
+  /// A table of the emulator's own is swept ([StyleTable.sweep]) once
+  /// twice as many styles are in use as after the last sweep, and at
+  /// least [sweepFloor]: a program that writes 24-bit color (a video, an
+  /// image viewer) gives each color it sends a style, which would
+  /// otherwise be kept as long as the emulator is. What no cell of its
+  /// screens and scrollback has is freed; ids kept from before are noted
+  /// by [StyleTable.sweeps]. A table the host passed is the host's to
+  /// sweep, the emulator's cells among the roots.
   final StyleTable styles;
+  final bool _ownStyles;
+
+  /// The fewest styles in use a table of the emulator's own is swept
+  /// past (see [styles]); a test's may be fewer.
+  static var sweepFloor = 4096;
+
+  // swept once this many styles are in use
+  var _sweepAt = 0;
 
   /// The multi-code-point glyphs of the cells.
   final GlyphTable glyphs;
@@ -432,10 +450,42 @@ final class TerminalEmulator {
   // ------------------------------------------------------------ writing --
 
   /// Takes what the program wrote; a sequence may be split across calls.
-  void feed(List<int> bytes) => _parser.feed(bytes);
+  void feed(List<int> bytes) {
+    _parser.feed(bytes);
+    _sweepIfDue();
+  }
 
   /// [text] as the program would write it (UTF-8).
-  void feedText(String text) => _parser.feed(utf8.encode(text));
+  void feedText(String text) => feed(utf8.encode(text));
+
+  /// Sweeps a table of the emulator's own when it is due (see [styles]).
+  void _sweepIfDue() {
+    final live = styles.live;
+    if (!_ownStyles || live <= sweepFloor || live <= _sweepAt) {
+      return;
+    }
+    void lines(void Function(int id) mark, TerminalLine line) {
+      final ids = line.styles;
+      for (var x = 0; x < ids.length; x++) {
+        mark(ids[x]);
+      }
+    }
+
+    styles.sweep((mark) {
+      for (final line in _primary.lines) {
+        lines(mark, line);
+      }
+      for (final line in _alternate.lines) {
+        lines(mark, line);
+      }
+      for (var i = 0; i < _scrollback.length; i++) {
+        lines(mark, _scrollback[i]);
+      }
+    });
+    // the pen's own ids may be gone: made again as text comes
+    _styleDirty = true;
+    _sweepAt = 2 * styles.live;
+  }
 
   /// A new size; see the class comment for what happens to the screen.
   void resize(int width, int height) {

@@ -66,4 +66,36 @@ void main() {
       expect(screen.render, returnsNormally, reason: '${w}x$h');
     }
   });
+
+  test('sweeps its styles once twice as many are in use as after the last '
+      'sweep, past the floor, its screen as it was', () {
+    final floor = Screen.sweepFloor;
+    addTearDown(() => Screen.sweepFloor = floor);
+    Screen.sweepFloor = 8;
+    final screen = Screen(4, 1);
+    final vt = Vt(4, 1);
+    var colors = 0;
+    // a frame of four cells in colors never seen before
+    void frame() {
+      for (var x = 0; x < 4; x++) {
+        final style = screen.styles.style(bg: Color.rgb(0, 0, ++colors));
+        screen.canvas.runStyled(x, 0, screen.canvas.shape(' '), style);
+      }
+      vt.feed(screen.render() ?? const []);
+    }
+
+    frame();
+    expect(screen.styles.sweeps, 0, reason: '5 in use, the floor 8: not yet');
+    frame();
+    expect(screen.styles.sweeps, 1, reason: '9 in use');
+    // what the screen and the terminal show, the same 4, and style 0
+    expect(screen.styles.live, 5);
+    for (var f = 0; f < 50; f++) {
+      frame();
+    }
+    expect(screen.styles.length, lessThan(32));
+    for (var x = 0; x < 4; x++) {
+      expect(vt.cell(x, 0).bg, 0x1000000 | colors - 3 + x);
+    }
+  });
 }

@@ -12,7 +12,11 @@ The first release.
   (`GlyphTable`) and styles (`StyleTable`, `Pen`, `Color`, `Attr`), drawn
   through clips and translations; images in reserved cells
   (`TerminalImage`, `ImagePlacement`) with kitty graphics, sixel or
-  iTerm2.
+  iTerm2. A pen is the table's for good, a style until the table is
+  swept: `Screen.render` frees the styles no cell has once twice as many
+  are in use as after the last sweep (`StyleTable.sweep`, `sweeps`), so a
+  screen of ever new colors keeps those it shows; `Canvas.runStyled`
+  draws in a style as it is, with no pen.
 - `Presenter`: the damaged spans diffed against what the terminal shows
   and written with DEC 2026, scroll regions, `ICH`/`DCH`, `REP`, `ECH`
   and `EL`, as `TerminalCaps` allow.

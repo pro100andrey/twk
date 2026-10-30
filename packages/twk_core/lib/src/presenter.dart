@@ -571,6 +571,20 @@ final class Presenter {
   /// The front buffer may have blanks under images ([_kUnder]).
   var _marked = false;
 
+  /// Marks the style of every cell it keeps: what the terminal shows, the
+  /// rows committed for the next frame, the blank they replace, and the
+  /// SGR the terminal is in ([StyleTable.sweep]).
+  void markStyles(void Function(int id) mark) {
+    for (final styles in [_fs, _ps, _blankStyles]) {
+      for (var i = 0; i < styles.length; i++) {
+        mark(styles[i]);
+      }
+    }
+    if (_sgr >= 0) {
+      mark(_sgr);
+    }
+  }
+
   /// Forget what the terminal shows, after something else wrote to it: the
   /// next frame rewrites every cell (with [TerminalCaps.clearFullFrames],
   /// after one `ED 2` inside the synchronized update, so nothing flashes)

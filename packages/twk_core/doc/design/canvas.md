@@ -35,6 +35,25 @@ color as the RGB it shows, the default ones as told or null). When the
 terminal reports new ones (after a change of its color scheme,
 [§1.7](terminal.md)), `TwkApp` blends with those and repaints everything.
 
+A pen is the table's for good; a style is until the table is swept. A
+table only grows by interning, so a screen of ever new colors (a video
+in a `TerminalView`, which paints the emulator's styles as they are with
+`Canvas.runStyled`, no pen each) would keep every color it ever showed.
+`Screen.render` sweeps it (`StyleTable.sweep`) once twice as many styles
+are in use as after the last sweep, and at least `Screen.sweepFloor`
+(4096): the styles no cell of its surface, of a surface kept
+(`keepStylesOf`: an inline app's history) or of what the presenter knows
+the terminal shows has are freed, and their ids given out again, lowest
+first, before new ones; live ids never move, so nothing is rewritten and
+nothing repainted. The caches by id (SGR, transitions, blanks, compose)
+are cleared and fill again within a frame. As the styles in use double
+between two sweeps, a style costs its sweep once, and an app of a few
+hundred styles is never swept. What keeps style ids from one frame to
+the next beyond those roots (a render object's cache of styles made of
+others, the cells a view diffs against) makes them again when
+`StyleTable.sweeps` has changed; with asserts, a freed id read before a
+style has it again fails where it is read.
+
 ## §1.3 Damage without help from widgets
 
 Every canvas primitive extends the dirty span of the rows it writes, and the

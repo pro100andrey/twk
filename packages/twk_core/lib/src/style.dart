@@ -312,6 +312,13 @@ final Int32List _palette = () {
 /// All lookups on the paint and encode paths are open-addressing probes into
 /// typed arrays: no allocation once the working set of styles is known.
 ///
+/// A pen is the table's for good. A style is until the table is swept
+/// ([sweep]): the styles no cell has then are freed and their ids given
+/// out again, so that a table of ever new colors (a video in a terminal
+/// view) holds those on screen, not every one there ever was. What keeps
+/// style ids from one frame to the next, beyond the cells the sweep is
+/// told of, makes them again when [sweeps] has changed.
+///
 /// ```dart
 /// final styles = StyleTable(colorMode: ColorMode.ansi256);
 /// final warning = styles.pen(const Pen(fg: Color.yellow, attrs: Attr.bold));
@@ -349,20 +356,85 @@ final class StyleTable {
   var _count = 0;
   var _styleSlots = Int32List(128)..fillRange(0, 128, -1);
 
-  /// How many styles are interned: style ids are 0 to one less.
+  /// How many style ids there are: they are 0 to one less, those [sweep]
+  /// freed among them until given out again.
   int get length => _count;
 
+  /// How many styles are in use: [length] less those [sweep] freed.
+  int get live => _count - _free.length;
+
+  /// How many times [sweep] ran: an id kept from before it may be another
+  /// style's now.
+  int get sweeps => _sweeps;
+  var _sweeps = 0;
+
+  // the ids sweep freed, given out again before new ones
+  final _free = <int>[];
+
+  // with asserts: which ids are free now, so that one kept past the sweep
+  // that freed it fails where it is read, not as another style's colors
+  Uint8List? _freeMarks;
+
+  /// [id], asserted not to be one a sweep freed and no style has again.
+  @pragma('vm:prefer-inline')
+  int _kept(int id) {
+    assert(
+      _freeMarks == null || id >= _freeMarks!.length || _freeMarks![id] == 0,
+      'style $id was freed by a sweep: a style id kept from one frame to '
+      'the next is made again when StyleTable.sweeps changes',
+    );
+    return id;
+  }
+
+  /// Frees the styles [roots] marks none of (it is called with the mark),
+  /// style 0 and the styles of pens ([opaqueStyleOf]) kept: their ids are
+  /// given out again, before new ones. The caches by style id are cleared,
+  /// to be filled again as styles are asked for.
+  ///
+  /// The roots are everything that keeps style ids: a screen's surface and
+  /// what its presenter knows the terminal shows ([Screen.sweepIfDue]).
+  void sweep(void Function(void Function(int id) mark) roots) {
+    final marks = Uint8List(_count)..[0] = 1;
+    roots((id) => marks[id] = 1);
+    for (var p = 0; p < _pens.length; p++) {
+      final o = _penOpaque[p];
+      if (o >= 0) {
+        marks[o] = 1;
+      }
+    }
+    _free.clear();
+    // the lowest last: given out first
+    for (var id = _count - 1; id > 0; id--) {
+      if (marks[id] == 0) {
+        _free.add(id);
+      }
+    }
+    _sgr.clear();
+    _transitions.clear();
+    _blank.fillRange(0, _blank.length, -1);
+    _clearComposeCache();
+    _slotsOf(marks);
+    _sweeps++;
+    assert(() {
+      _freeMarks = Uint8List(_count);
+      for (final id in _free) {
+        _freeMarks![id] = 1;
+      }
+      return true;
+    }(), 'free marks');
+  }
+
   /// The text color of style [id].
-  Color fgOf(int id) => Color._(_fg[id]);
+  Color fgOf(int id) => Color._(_fg[_kept(id)]);
 
   /// The background color of style [id].
-  Color bgOf(int id) => Color._(_bg[id]);
+  Color bgOf(int id) => Color._(_bg[_kept(id)]);
 
   /// The underline color of style [id]; the default color for the text's.
-  Color underlineColorOf(int id) => Color._(_ul[id]);
+  Color underlineColorOf(int id) => Color._(_ul[_kept(id)]);
 
   /// The attributes of style [id], bits of [Attr].
-  int attrsOf(int id) => _attrs[id];
+  int attrsOf(int id) => _attrs[_kept(id)];
 
   /// RGB the terminal's default background is assumed to have (for alpha
   /// blending over "default"). Can be filled from an OSC 11 query.
@@ -496,10 +568,10 @@ final class StyleTable {
   }
 
   /// The link id of style [id] ([linkId]); 0 for none.
-  int linkIdOf(int id) => _link[id];
+  int linkIdOf(int id) => _link[_kept(id)];
 
   /// The hyperlink target of style [id], or null for none.
-  String? linkOf(int id) => _link[id] == 0 ? null : _uris[_link[id]];
+  String? linkOf(int id) => _link[_kept(id)] == 0 ? null : _uris[_link[id]];
 
   /// The hyperlink target of [linkId] ([linkId]); empty for 0.
   String linkUri(int linkId) => _uris[linkId];
@@ -538,7 +610,19 @@ final class StyleTable {
       }
       slot = (slot + 1) & mask;
     }
-    final id = _count++;
+    final int id;
+    if (_free.isNotEmpty) {
+      id = _free.removeLast();
+      if (id < _blank.length) {
+        _blank[id] = -1;
+      }
+      assert(() {
+        _freeMarks![id] = 0;
+        return true;
+      }(), 'free marks');
+    } else {
+      id = _count++;
+    }
     if (id == _fg.length) {
       _fg = _grow(_fg);
       _bg = _grow(_bg);
@@ -551,7 +635,7 @@ final class StyleTable {
     _attrs[id] = attrs;
     _link[id] = link;
     _ul[id] = ul;
-    if (_count * 2 > _styleSlots.length) {
+    if (live * 2 > _styleSlots.length) {
       _rehashStyles();
     } else {
       _styleSlots[slot] = id;
@@ -561,9 +645,27 @@ final class StyleTable {
 
   void _rehashStyles() {
     final n = _styleSlots.length * 2;
-    _styleSlots = Int32List(n)..fillRange(0, n, -1);
+    _styleSlots = Int32List(n);
+    Uint8List? inUse;
+    if (_free.isNotEmpty) {
+      inUse = Uint8List(_count)..fillRange(0, _count, 1);
+      for (final id in _free) {
+        inUse[id] = 0;
+      }
+    }
+    _slotsOf(inUse);
+  }
+
+  /// Fills [_styleSlots] with the styles [inUse] marks, every one where it
+  /// is null.
+  void _slotsOf(Uint8List? inUse) {
+    final n = _styleSlots.length;
+    _styleSlots.fillRange(0, n, -1);
     final mask = n - 1;
     for (var id = 0; id < _count; id++) {
+      if (inUse != null && inUse[id] == 0) {
+        continue;
+      }
       var slot =
           _hash5(_fg[id], _bg[id], _attrs[id], _ul[id], _link[id]) & mask;
       while (_styleSlots[slot] >= 0) {

@@ -160,4 +160,70 @@ void main() {
     expect([rowText(canvas, 0), rowText(canvas, 1)], ['  ab', '中']);
     expect(canvas.styles.attrsOf(canvas.surface.styles[2]), Attr.reverse);
   });
+
+  group('a program writing ever more 24-bit colors', () {
+    final floor = TerminalEmulator.sweepFloor;
+    final screenFloor = Screen.sweepFloor;
+    tearDown(() {
+      TerminalEmulator.sweepFloor = floor;
+      Screen.sweepFloor = screenFloor;
+    });
+
+    /// `X` in each red of [from] to [to], one after another.
+    String reds(int from, int to) => [
+      for (var i = from; i < to; i++) '\x1b[38;2;$i;0;0mX',
+    ].join();
+
+    test('sweeps the table of its own past the floor, the cells keeping '
+        'their colors', () {
+      TerminalEmulator.sweepFloor = 32;
+      final t = TerminalEmulator(width: 10, height: 2, scrollbackLimit: 0);
+      // a read at a time, as a program's output comes
+      for (var i = 0; i < 200; i += 5) {
+        t.feedText(reds(i, i + 5));
+      }
+      expect(t.styles.sweeps, greaterThan(0));
+      expect(t.styles.length, lessThanOrEqualTo(96));
+      // the last 20 written are what the screen shows
+      for (var k = 0; k < 20; k++) {
+        final id = t.styleAt(k % 10, k ~/ 10);
+        expect(t.styles.fgOf(id), Color.rgb(180 + k, 0, 0), reason: '$k');
+      }
+    });
+
+    test("leaves a table the host passed to the host's sweeps", () {
+      TerminalEmulator.sweepFloor = 32;
+      final canvas = canvasOf(10, 2);
+      final t = TerminalEmulator(
+        width: 10,
+        height: 2,
+        scrollbackLimit: 0,
+        styles: canvas.styles,
+      )..feedText(reds(0, 200));
+      expect(t.styles.sweeps, 0);
+    });
+
+    test('paints the colors as they are, the screen keeping only those '
+        'it shows', () {
+      TerminalEmulator.sweepFloor = 32;
+      Screen.sweepFloor = 32;
+      final screen = Screen(10, 1);
+      final t = TerminalEmulator(width: 10, height: 1, scrollbackLimit: 0);
+      for (var i = 0; i < 2000; i += 10) {
+        t
+          ..feedText('\r${reds(i % 250, i % 250 + 10)}')
+          ..paint(screen.canvas);
+        screen.render();
+        for (var x = 0; x < 10; x++) {
+          expect(
+            screen.styles.fgOf(screen.surface.styles[x]),
+            Color.rgb(i % 250 + x, 0, 0),
+            reason: 'frame $i, cell $x',
+          );
+        }
+      }
+      expect(screen.styles.sweeps, greaterThan(0));
+      expect(screen.styles.length, lessThanOrEqualTo(96));
+    });
+  });
 }

@@ -752,6 +752,8 @@ final class _RenderTextArea extends RenderObject {
   var _shownWidth = 0;
   var _shownLayouts = 0;
   StyleTable? _shownStyles;
+  // the table's sweeps when _shown was painted: its style ids are of then
+  var _shownSweeps = 0;
   static const _shownInts = 7;
 
   // the rows the last paint painted: how many, the first and the last
@@ -1120,7 +1122,8 @@ final class _RenderTextArea extends RenderObject {
             shown.length == h * n &&
             _shownWidth == w &&
             _shownLayouts == rows.layouts &&
-            identical(_shownStyles, canvas.styles)
+            identical(_shownStyles, canvas.styles) &&
+            canvas.styles.sweeps == _shownSweeps
         ? text.changeSince(shownText)
         : null;
     final whole = change == null;
@@ -1270,6 +1273,7 @@ final class _RenderTextArea extends RenderObject {
     _shownWidth = w;
     _shownLayouts = rows.layouts;
     _shownStyles = canvas.styles;
+    _shownSweeps = canvas.styles.sweeps;
     return caretY;
   }
 

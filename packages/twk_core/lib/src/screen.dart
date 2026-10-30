@@ -159,9 +159,51 @@ final class Screen {
 
   /// Encodes everything painted since the last call. Returns the bytes to
   /// write to the terminal (a view valid until the next call), or null when
-  /// nothing changed.
+  /// nothing changed. Then sweeps the styles if they are due
+  /// ([sweepIfDue]).
   Uint8List? render() {
     final n = presenter.present(surface);
-    return n == 0 ? null : presenter.out.view;
+    final out = n == 0 ? null : presenter.out.view;
+    sweepIfDue();
+    return out;
+  }
+
+  /// The fewest styles in use the [styles] are swept past; a test's may
+  /// be fewer.
+  static var sweepFloor = 4096;
+
+  // swept once this many styles are in use
+  var _sweepAt = 0;
+
+  // surfaces other than the screen's whose styles are kept
+  final _kept = <Surface>[];
+
+  /// Keeps the styles of [other]'s cells in a sweep, as those of the
+  /// screen's surface: a surface painted with [styles] that is kept from
+  /// one frame to the next (an inline app's history, written a frame at
+  /// a time).
+  void keepStylesOf(Surface other) => _kept.add(other);
+
+  /// Sweeps [styles] ([StyleTable.sweep]) when twice as many are in use as
+  /// after the last sweep, and at least [sweepFloor]: what no cell of the
+  /// surface (or of one kept, [keepStylesOf]) and nothing the presenter
+  /// knows the terminal shows has is freed. As the styles in use double
+  /// between two sweeps, a style costs its sweep once, and an app of a
+  /// few hundred styles is never swept. [render] calls it.
+  void sweepIfDue() {
+    final live = styles.live;
+    if (live <= sweepFloor || live <= _sweepAt) {
+      return;
+    }
+    styles.sweep((mark) {
+      for (final s in [surface, ..._kept]) {
+        final ids = s.styles;
+        for (var i = 0; i < ids.length; i++) {
+          mark(ids[i]);
+        }
+      }
+      presenter.markStyles(mark);
+    });
+    _sweepAt = 2 * styles.live;
   }
 }

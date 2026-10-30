@@ -448,7 +448,12 @@ final class TwkApp {
     _noFrame,
     segmenter: screen.canvas.segmenter,
   )..onLog = logs.add;
-  late final _commitSurface = Surface(0, 0);
+  // what is committed, kept from one frame to the next: its styles too
+  late final Surface _commitSurface = () {
+    final surface = Surface(0, 0);
+    screen.keepStylesOf(surface);
+    return surface;
+  }();
   late final _commitCtx = PaintContext(
     Canvas(
       _commitSurface,
