@@ -166,10 +166,10 @@ final class HeadlessTerminal
   /// While set, [flush] completes only after it does: a slow connection.
   Future<void>? holdFlush;
 
-  /// Delivers [bytes] as one read of the terminal's input; dropped while
-  /// [suspended]: the other program reads it. As on a [Terminal], of a
-  /// run of motions with no button held and the same modifiers in one
-  /// read only the last is delivered.
+  /// Delivers [bytes] as one read of the terminal's input; dropped once
+  /// closed, and while [suspended]: the other program reads it. As on a
+  /// [Terminal], of a run of motions with no button held and the same
+  /// modifiers in one read only the last is delivered.
   void input(List<int> bytes) {
     if (!_suspended) {
       _deliver(_parser.feed(bytes));
@@ -201,15 +201,18 @@ final class HeadlessTerminal
 
   /// Resizes the terminal to [width] x [height] cells: a [ResizeEvent]
   /// follows, and the size changes with it, unless that is the size
-  /// already.
+  /// already or the terminal is closed.
   void resize(int width, int height) {
     if (width != this.width || height != this.height) {
       _deliver([ResizeEvent(width, height)]);
     }
   }
 
-  void _deliver(List<InputEvent> events) =>
+  void _deliver(List<InputEvent> events) {
+    if (!closed) {
       deliverCoalesced(events, _deliverOne);
+    }
+  }
 
   // whether the window has the focus, as the last focus report typed said
   var _focused = true;

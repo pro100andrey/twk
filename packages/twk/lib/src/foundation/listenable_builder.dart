@@ -146,7 +146,7 @@ abstract base class _ListeningState<W extends StatefulWidget> extends State<W> {
     super.didUpdateWidget(oldWidget);
     final old = _listenableOf(oldWidget);
     final current = _listenableOf(widget);
-    if (old != current) {
+    if (!identical(old, current)) {
       old.removeListener(_changed);
       current.addListener(_changed);
     }

@@ -169,6 +169,34 @@ void main() {
     });
   });
 
+  for (final (name, field) in [
+    (
+      'TextField',
+      (TextEditingController c) => TextField(controller: c, autofocus: true),
+    ),
+    (
+      'TextArea',
+      (TextEditingController c) => TextArea(controller: c, autofocus: true),
+    ),
+  ]) {
+    testTwk('a $name given a new controller follows that one', (t) async {
+      final a = TextEditingController();
+      final b = TextEditingController();
+      await t.pumpWidget(field(a), size: (20, 4));
+      await t.pumpWidget(field(b), size: (20, 4));
+      var told = 0;
+      t.binding.focusManager.keysChanged.addListener(() => told++);
+      b.insert('x');
+      await t.pump();
+      expect(hints(t), contains('ctrl+z undo'));
+      expect(told, greaterThan(0), reason: 'Ctrl+Z came: the hints are told');
+      told = 0;
+      a.insert('y');
+      await t.pump();
+      expect(told, 0, reason: 'the old controller is not followed');
+    });
+  }
+
   group('an Autocomplete', () {
     testTwk("while its suggestions show, their keys first, the field's "
         "Enter left out, the popover's Escape last", (t) async {

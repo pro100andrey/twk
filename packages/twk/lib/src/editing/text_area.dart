@@ -423,6 +423,7 @@ final class _TextAreaState extends State<TextArea> {
 
   // whether the suggestions of an Autocomplete show, and what tells it
   ValueListenable<bool>? _showing;
+  TextEditingController? _changing;
   Listenable? _changes;
 
   bool get _suggesting => _showing?.value ?? false;
@@ -431,10 +432,13 @@ final class _TextAreaState extends State<TextArea> {
   Listenable _changesOf(TextEditingController controller) {
     final showing = autocompleteShowing(context, controller);
     final changes = _changes;
-    if (identical(showing, _showing) && changes != null) {
+    if (identical(showing, _showing) &&
+        identical(controller, _changing) &&
+        changes != null) {
       return changes;
     }
     _showing = showing;
+    _changing = controller;
     return _changes = showing == null
         ? controller
         : Listenable.merge([controller, showing]);

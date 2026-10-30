@@ -300,6 +300,15 @@ void main() {
     expect(t.frames, isEmpty);
   });
 
+  test('input and a resize once closed are dropped', () async {
+    final t = HeadlessTerminal();
+    await t.close();
+    t
+      ..type('x')
+      ..resize(100, 30);
+    expect(t.width, 80);
+  });
+
   test('close completes with nobody listening', () async {
     await HeadlessTerminal().close();
   });
