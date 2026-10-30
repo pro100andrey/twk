@@ -1,4 +1,5 @@
-/// A terminal UI core with no dependencies but `dart:*`: [TwkApp], the
+/// A terminal UI core with no dependency but `package:meta`'s
+/// annotations: [TwkApp], the
 /// frame loop that runs a render tree ([RenderObject]) on a [Terminal];
 /// [Screen], a [Surface] of cells painted through a [Canvas] with
 /// [StyleTable] pens, which a [Presenter] writes as the fewest bytes for

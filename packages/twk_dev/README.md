@@ -1,7 +1,19 @@
 # twk_dev — the `twk` command
 
-Developer tools for apps built on [twk](../twk/README.md), as one
-executable, `twk`, with a subcommand per tool. From this directory:
+Developer tools for apps built on [twk](https://pub.dev/packages/twk), as one
+executable, `twk`, with a subcommand per tool. A new app, from a
+template, run with hot reload:
+
+```bash
+dart pub global activate twk_dev
+twk create my_app
+cd my_app
+dart run twk_dev:twk run bin/main.dart
+```
+
+The app takes twk_dev as a dev dependency, so `dart run twk_dev:twk`
+runs the version its lock file names. In a checkout of the twk
+repository, from this directory, as the rest of this README does:
 
 ```bash
 dart run twk_dev:twk --help
@@ -128,7 +140,7 @@ cd ~/my_app && dart pub get && dart run bin/main.dart
 `twk create <dir>` writes a package into `<dir>`, made if it is not
 there, with the directories on the way to it: `pubspec.yaml`, `analysis_options.yaml` (pro_lints' recommended
 rules, twk_lints' recommended set — the plugin with all its rules on,
-[twk_lints](../twk_lints/README.md) — strict casts, inference and raw
+[twk_lints](https://pub.dev/packages/twk_lints) — strict casts, inference and raw
 types), `bin/main.dart`, which runs
 the app, the app in `lib/<name>.dart`, its `testTwk` tests in
 `test/<name>_test.dart`, a `README.md` that says how to run, hot reload,
@@ -154,8 +166,7 @@ the app, and its analysis options include twk_lints' set), by
 path from the checkout of the twk repository `--path-to-twk=<dir>` names,
 or else the one the command runs from: the nearest directory from the
 command's package up that holds `packages/twk`, `packages/twk_test`,
-`packages/twk_dev` and `packages/twk_lints`. Without either, from pub at `^0.1.0`, which twk is
-not published at yet. A `--path-to-twk` that is no checkout exits with 1,
+`packages/twk_dev` and `packages/twk_lints`. Without either, from pub at `^0.1.0`. A `--path-to-twk` that is no checkout exits with 1,
 as does a `<dir>` that is a file or under one, `--force` or not, and a
 directory that is not empty unless `--force`, which writes the template's files over those of the same paths
 and leaves the others: a file already as the template has it is left
@@ -542,19 +553,16 @@ be started with 127, no tape with 64.
 
 `bin/twk.dart` only sets the exit code from `runTwk` in `lib/src/cli.dart`,
 which builds the subcommands with `package:args`; `lib/src/shell.dart`
-and `lib/src/logs.dart` are two commands over twk_core, which the
-package takes by path, and `lib/src/run.dart` is `twk run`, a client of
-the app's VM service (`package:vm_service`). `twk inspect` is
+and `lib/src/logs.dart` are two commands over twk_core, and
+`lib/src/run.dart` is `twk run`, a client of the app's VM service (`package:vm_service`). `twk inspect` is
 `lib/src/inspect.dart`, the command and `RunningApps`, the apps found by
 the service file; `lib/src/app_client.dart`, `AppClient`, what the
 inspector asks an app, and `VmAppClient`, over the VM service; and
-`lib/src/inspector_view.dart`, `InspectorView`, the screen, on twk, which
-the package takes by path. `twk create` is `lib/src/create.dart`, over
-mold's `Unbundler`; its templates are packages in `templates/`, packed by
+`lib/src/inspector_view.dart`, `InspectorView`, the screen, on twk.
+`twk create` is `lib/src/create.dart`, over mold's `Unbundler`; its templates are packages in `templates/`, packed by
 `tool/pack_templates.dart` into `lib/src/templates/`, which
 `templates.dart` names. `twk record` is `lib/src/record.dart`, over
-twk_term's `Pty`, which the package takes by path; `twk play`
-`lib/src/play.dart`; both write and read asciicast v2 with
+twk_term's `Pty`; `twk play` `lib/src/play.dart`; both write and read asciicast v2 with
 `lib/src/cast.dart` (`Cast`, `CastWriter`, exported by
 `package:twk_dev/twk_dev.dart`), put the terminal in raw mode with
 `lib/src/raw_tty.dart` and turn off what the output left on with

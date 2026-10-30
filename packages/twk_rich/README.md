@@ -1,17 +1,32 @@
 # twk_rich — rich text for twk widgets
 
-Rich text for widgets of [twk](../twk/README.md): Markdown, syntax
+Rich text for widgets of [twk](https://pub.dev/packages/twk): Markdown, syntax
 highlighting, diffs, big text, QR codes and JSON as a tree
 that folds, in a package of its own so that apps which show none of it
 do not carry it; and, in `package:twk_rich/image.dart`, a library of its
 own that `lib/twk_rich.dart` does not export, PNG and JPEG images
 decoded, scaled to cells and encoded for kitty, iTerm2 and sixel, or
 drawn in block characters, and the `Image` widget
-([below](#images-packagetwk_richimagedart)). It takes twk and [twk_core](../twk_core/README.md), the
-rendering core in packages/twk_core of this repository, as path
-dependencies, and [twk_test](../twk_test/README.md), whose tester (`testTwk`) runs the
-tests of the views and whose emulator the big text tests write their
-frames to, as a path dev dependency.
+([below](#images-packagetwk_richimagedart)). It is built on
+[twk](https://pub.dev/packages/twk) and its core,
+[twk_core](https://pub.dev/packages/twk_core).
+
+```sh
+dart pub add twk_rich
+```
+
+A Markdown document that scrolls, its text selected with the mouse
+([example/README.md](example/README.md) has the whole app):
+
+```dart
+SelectionArea(
+  child: SingleChildScrollView(child: MarkdownView(readme)),
+)
+```
+
+Its tests use [twk_test](https://pub.dev/packages/twk_test), whose tester
+(`testTwk`) runs the views and whose emulator the big text tests write
+their frames to.
 
 `lib/twk_rich.dart` exports one library per topic,
 `lib/src/<topic>/<topic>.dart`, each with a doc comment naming what it is

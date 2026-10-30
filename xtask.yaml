@@ -331,15 +331,16 @@ tasks:
 
   pub-check:
     # In no gate, as pana needs the network and takes minutes (it
-    # documents the package with dartdoc): the six at once, those whose
+    # documents the package with dartdoc): the seven at once, those whose
     # dependencies are not on pub.dev yet not scored; each upload runs its
     # own package's (check-<name>) once they are. The packages to be
     # published:
     # publish_to, `dart pub publish --dry-run`'s errors (its warnings
-    # shown), and pana's score out of 160 with what lost points; `--min=N`
+    # shown), every file git tracks in lib/ and bin/ in the archive, and
+    # pana's score out of 160 with what lost points; `--min=N`
     # fails a score under N. pana is `dart pub global activate pana`'s,
     # skipped and said so without it.
-    desc: whether the six packages of release 1 are ready for pub.dev, pana scoring them
+    desc: whether the seven packages of release 1 are ready for pub.dev, pana scoring them
     needs: [get]
     do: pub
     # pana's 160 of 160, which twk_core has: what loses a point fails.
@@ -350,15 +351,17 @@ tasks:
       - packages/twk_test
       - packages/twk_lints
       - packages/twk_term
+      - packages/twk_rich
       - packages/twk_dev
 
   # The packages published to pub.dev, in no gate: an upload is not taken
   # back. Each after those it takes from the registry (twk takes twk_core
-  # by version, twk_test both, twk_term twk and the core, twk_lints' tests
-  # the three, twk_dev twk_term and twk_test), and after its own pub-check
-  # (check-<name>), which runs once they are on pub.dev, so that pana
-  # resolves the package there and scores it (--scored: no score fails).
-  # `dart pub login` first; publish-dev publishes all six in order.
+  # by version, twk_test both, twk_term and twk_rich twk and the core,
+  # twk_lints' tests the three, twk_dev twk_term and twk_test), and after
+  # its own pub-check (check-<name>), which runs once they are on pub.dev,
+  # so that pana resolves the package there and scores it (--scored: no
+  # score fails). `dart pub login` first; publish-dev publishes all seven
+  # in order, twk_dev last, after twk_rich, which it does not take.
   check-core:
     desc: whether twk_core is ready for pub.dev, scored by pana, right before its upload
     needs: [get]
@@ -419,9 +422,21 @@ tasks:
     do: publish
     args: [packages/twk_term]
 
+  check-rich:
+    desc: whether twk_rich is ready for pub.dev, scored by pana, right before its upload
+    needs: [get, publish-twk]
+    do: pub
+    args: [--min=160, --scored, packages/twk_rich]
+
+  publish-rich:
+    desc: publish twk_rich to pub.dev, once check-rich passes
+    needs: [check-rich]
+    do: publish
+    args: [packages/twk_rich]
+
   check-dev:
     desc: whether twk_dev is ready for pub.dev, scored by pana, right before its upload
-    needs: [get, publish-term, publish-lints]
+    needs: [get, publish-term, publish-lints, publish-rich]
     do: pub
     args: [--min=160, --scored, packages/twk_dev]
 

@@ -2,7 +2,7 @@
 
 [The design](README.md)
 
-No runtime dependencies; `dev_dependencies` are `test`, `pro_lints` and, by
+No dependency but `meta` (`@visibleForTesting`); `dev_dependencies` are `test`, `pro_lints` and, by
 path, `packages/twk_test` (the test emulator and the widget tester,
 [§2](testing.md)). The commands below run from the repository's root, where
 its `tool/` is.

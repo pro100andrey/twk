@@ -689,6 +689,32 @@ void main() {
       expect(validationOf('Package has 0 warnings.\n').hasErrors, isFalse);
     });
 
+    test('code git tracks that the archive leaves out', () {
+      // twk_dev's `.pubignore` once said `templates/`, which took
+      // lib/src/templates/ out with the templates' sources
+      expect(
+        unshippedCode(
+          ['lib/a.dart', 'bin/b.dart', 'README.md'],
+          ['lib/a.dart', 'lib/src/templates/t.g.dart', 'bin/b.dart'],
+        ),
+        ['lib/src/templates/t.g.dart'],
+      );
+      expect(unshippedCode(['lib/a.dart'], ['lib/a.dart']), isEmpty);
+    });
+
+    test("screenshots need libwebp's tools, and only screenshots", () {
+      const shots = 'name: a\nscreenshots:\n  - path: a.png\n';
+      expect(screenshotTools(shots, (_) => false), [
+        'cwebp',
+        'webpinfo',
+        'gif2webp',
+      ]);
+      expect(screenshotTools(shots, (tool) => tool != 'webpinfo'), [
+        'webpinfo',
+      ]);
+      expect(screenshotTools('name: a\n', (_) => false), isEmpty);
+    });
+
     test("pana's report: the score, and what lost points", () {
       final score = PanaScore.parse(
         'Resolving dependencies...\n'
