@@ -343,7 +343,8 @@ final class TerminalOptions {
   final bool normalScreenMouse;
 
   /// Bracketed paste (mode 2004), on by default: a paste comes as one
-  /// [PasteEvent] rather than as keys. Ignored by terminals without it.
+  /// [PasteEvent] rather than as keys (a very long one as several,
+  /// [InputParser.pasteLimit]). Ignored by terminals without it.
   final bool bracketedPaste;
 
   /// Focus reports (mode 1004), on by default: [FocusEvent]s when the

@@ -1,7 +1,8 @@
 // InputParser on what test/input_parser_test.dart leaves out: F1 to F4
 // with modifiers in xterm's CSI form, the modifiers and tilted wheel of a
 // mouse report, a paste bigger than the parser holds at first, ESC and a
-// character split across reads, and what a flush leaves behind.
+// character split across reads, what a flush leaves behind, and the
+// bounds on what it holds of a paste and of an unterminated sequence.
 import 'dart:convert';
 
 import 'package:test/test.dart';
@@ -112,5 +113,85 @@ void main() {
         ], reason: reason);
       }
     }
+  });
+
+  group('what it holds is bounded', () {
+    const x = KeyEvent(KeyCode.char, char: 'x');
+
+    test('a paste over the limit comes in pieces of at most the limit, '
+        'none cutting a character or a CRLF', () {
+      final parser = InputParser();
+      // a € straddling the first cut, a CRLF the second
+      final first = 'a' * (InputParser.pasteLimit - 1);
+      final second = 'b' * (InputParser.pasteLimit - 4);
+      final text = '$first€$second\r\nend';
+      final events = [
+        ...parser.feed('\x1b[200~'.codeUnits),
+        ...parser.feed(utf8.encode(text)),
+        ...parser.feed('\x1b[201~x'.codeUnits),
+      ];
+      final pieces = [for (final e in events.whereType<PasteEvent>()) e.text];
+      expect(pieces, hasLength(3));
+      expect(pieces.join(), '$first€$second\nend');
+      for (final piece in pieces) {
+        expect(
+          utf8.encode(piece).length,
+          lessThanOrEqualTo(InputParser.pasteLimit),
+        );
+      }
+      expect(pieces[0], first);
+      expect(events.last, x);
+    });
+
+    test('a paste over the limit fed a little at a time holds no more '
+        'than the limit', () {
+      final parser = InputParser()..feed('\x1b[200~'.codeUnits);
+      final chunk = 'y' * 4096;
+      var pasted = 0;
+      for (var i = 0; i < 3 * InputParser.pasteLimit ~/ 4096; i++) {
+        for (final e in parser.feed(chunk.codeUnits)) {
+          pasted += (e as PasteEvent).text.length;
+        }
+      }
+      expect(pasted, 2 * InputParser.pasteLimit);
+      expect(parser.inPaste, isTrue);
+      final end = parser.feed('\x1b[201~'.codeUnits);
+      expect(end, [PasteEvent('y' * InputParser.pasteLimit)]);
+    });
+
+    for (final (name, start, rest, ending) in [
+      ('an OSC ended by ST', '\x1b]52;c;', 'QUFB', '\x1b\\'),
+      ('an OSC ended by BEL', '\x1b]0;', 'title ', '\x07'),
+      ('a DCS ended by ST', '\x1bP', '>|', '\x1b\\'),
+      ('a CSI', '\x1b[', '1;', 'm'),
+      ('a CSI after ESC', '\x1b\x1b[', '2;', 'A'),
+    ]) {
+      test('$name over the limit is given up and dropped to its end, the '
+          'input after it read as it comes', () {
+        final parser = InputParser();
+        final events = [
+          ...parser.feed(start.codeUnits),
+          for (var i = 0; i < 3 * InputParser.sequenceLimit ~/ 4096; i++)
+            ...parser.feed((rest * (4096 ~/ rest.length)).codeUnits),
+        ];
+        expect(events, [isA<UnknownSequence>()]);
+        final given = (events.single as UnknownSequence).bytes;
+        expect(
+          given.length,
+          lessThanOrEqualTo(InputParser.sequenceLimit + 4096),
+        );
+        expect(parser.hasPending, isFalse);
+        expect(parser.feed('$rest$ending'.codeUnits), isEmpty);
+        expect(parser.feed('x'.codeUnits), [x]);
+      });
+    }
+
+    test('an ESC ending a dropped string by itself starts what follows', () {
+      final parser = InputParser()
+        ..feed('\x1b]0;'.codeUnits)
+        ..feed(('t' * (InputParser.sequenceLimit + 1)).codeUnits);
+      expect(parser.feed([0x1B]), isEmpty);
+      expect(parser.feed('[A'.codeUnits), [const KeyEvent(KeyCode.up)]);
+    });
   });
 }

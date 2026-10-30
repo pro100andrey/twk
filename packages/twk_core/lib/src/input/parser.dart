@@ -18,6 +18,12 @@ import 'events.dart';
 /// pause. A bracketed paste is held until its end marker and comes as one
 /// [PasteEvent] ([endPaste] where the marker got lost).
 ///
+/// What it holds is bounded, as the far end of a link need not be a
+/// terminal: a paste longer than [pasteLimit] comes in [PasteEvent]s of
+/// at most that many bytes each, and a sequence still unterminated after
+/// [sequenceLimit] bytes is given up, an [UnknownSequence] of what came,
+/// and the rest of it dropped up to its end.
+///
 /// It decodes the keys of the legacy encodings and of the kitty keyboard
 /// protocol ([KittyKeyboardFlags]), SGR mouse reports (mode 1006), focus
 /// and in-band resize reports, and the replies to the queries a terminal
@@ -57,6 +63,19 @@ final class InputParser {
   var cursorReportsExpected = 0;
 
   static const _pasteEnd = <int>[0x1B, 0x5B, 0x32, 0x30, 0x31, 0x7E];
+
+  /// The most bytes of a paste held before what came is delivered, a
+  /// [PasteEvent] of its own, the paste going on: 1 MiB.
+  static const int pasteLimit = 1 << 20;
+
+  /// The most bytes of an unterminated escape sequence held: 64 KiB,
+  /// many times the longest reply a terminal sends.
+  static const int sequenceLimit = 1 << 16;
+
+  // the rest of a sequence given up at [sequenceLimit], dropped up to its
+  // end: a CSI's parameters and final byte, or a string's BEL or ST; an
+  // ESC that ended a string and may be its ST's start
+  _Drop _dropping = _Drop.none;
 
   /// Whether an escape sequence is waiting for more input (call [flush]
   /// after a pause: a lone ESC may be the Escape key). Never for a
@@ -104,9 +123,20 @@ final class InputParser {
     return [_pasteEvent()];
   }
 
-  /// Appends `b[from..to)` to the paste. A value that is no byte goes in
+  /// Appends `b[start..to)` to the paste. A value that is no byte goes in
   /// as 0xFF, which UTF-8 decodes to U+FFFD as it would decode the value.
-  void _addPaste(List<int> b, int from, int to) {
+  /// Given [out], what goes past [pasteLimit] delivers the paste so far
+  /// there, a piece of it.
+  void _addPaste(List<int> b, int start, int to, [List<InputEvent>? out]) {
+    var from = start;
+    if (out != null) {
+      while (_pasteLength + to - from > pasteLimit) {
+        final take = pasteLimit - _pasteLength;
+        _addPaste(b, from, from + take);
+        from += take;
+        out.add(_pastePiece());
+      }
+    }
     final n = to - from;
     if (_pasteLength + n > _paste.length) {
       final grown = Uint8List(
@@ -126,21 +156,90 @@ final class InputParser {
   }
 
   PasteEvent _pasteEvent() {
-    final e = PasteEvent(
-      utf8
-          .decode(
-            Uint8List.sublistView(_paste, 0, _pasteLength),
-            allowMalformed: true,
-          )
-          .replaceAll('\r\n', '\n')
-          .replaceAll('\r', '\n'),
-    );
+    final e = _pasteText(_pasteLength);
     _pasteLength = 0;
     if (_paste.length > 1 << 16) {
       _paste = Uint8List(256); // a large paste's buffer isn't kept
     }
     _inPaste = false;
     return e;
+  }
+
+  /// What of a paste over [pasteLimit] can go now: up to its last whole
+  /// character, a CR held back for the LF that may follow it; the rest
+  /// stays, the start of the next piece.
+  PasteEvent _pastePiece() {
+    final p = _paste;
+    var cut = _pasteLength;
+    var lead = cut - 1;
+    while (lead > 0 && cut - lead < 4 && p[lead] & 0xC0 == 0x80) {
+      lead--;
+    }
+    final c = p[lead];
+    final length = c < 0x80
+        ? 1
+        : c >= 0xF0
+        ? 4
+        : c >= 0xE0
+        ? 3
+        : c >= 0xC0
+        ? 2
+        : 1;
+    if (cut - lead < length) {
+      cut = lead;
+    }
+    if (cut > 0 && p[cut - 1] == 0x0D) {
+      cut--;
+    }
+    final e = _pasteText(cut);
+    p.setRange(0, _pasteLength - cut, p, cut);
+    _pasteLength -= cut;
+    return e;
+  }
+
+  PasteEvent _pasteText(int length) => PasteEvent(
+    utf8
+        .decode(Uint8List.sublistView(_paste, 0, length), allowMalformed: true)
+        .replaceAll('\r\n', '\n')
+        .replaceAll('\r', '\n'),
+  );
+
+  /// Drops what is left of a sequence given up ([_dropping]) from [pos];
+  /// returns where what follows it starts, [b]'s length while it goes on.
+  int _drop(List<int> b, int pos) {
+    var i = pos;
+    if (_dropping == _Drop.stringEsc) {
+      _dropping = _Drop.none;
+      if (b[i] == 0x5C) {
+        return i + 1;
+      }
+      // an ESC that starts what follows
+      b.insert(i, 0x1B);
+      return i;
+    }
+    for (; i < b.length; i++) {
+      final c = b[i];
+      if (_dropping == _Drop.csi) {
+        if (c >= 0x20 && c <= 0x3F) {
+          continue;
+        }
+        _dropping = _Drop.none;
+        return c >= 0x40 && c <= 0x7E ? i + 1 : i;
+      }
+      if (c == 0x07) {
+        _dropping = _Drop.none;
+        return i + 1;
+      }
+      if (c == 0x1B) {
+        if (i + 1 >= b.length) {
+          _dropping = _Drop.stringEsc;
+          return i + 1;
+        }
+        _dropping = _Drop.none;
+        return b[i + 1] == 0x5C ? i + 2 : i;
+      }
+    }
+    return i;
   }
 
   // reused across reads: typing allocates only the events themselves
@@ -167,6 +266,10 @@ final class InputParser {
     }
 
     while (pos < b.length) {
+      if (_dropping != _Drop.none) {
+        pos = _drop(b, pos);
+        continue;
+      }
       if (_inPaste) {
         final end = _indexOf(b, _pasteEnd, pos);
         if (end < 0) {
@@ -179,11 +282,11 @@ final class InputParser {
               break;
             }
           }
-          _addPaste(b, pos, b.length - keep);
+          _addPaste(b, pos, b.length - keep, out);
           pos = b.length - keep;
           break;
         }
-        _addPaste(b, pos, end);
+        _addPaste(b, pos, end, out);
         out.add(_pasteEvent());
         pos = end + _pasteEnd.length;
         continue;
@@ -194,6 +297,11 @@ final class InputParser {
         flushText();
         final n = _escape(b, pos, out, eof);
         if (n == 0) {
+          if (b.length - pos > sequenceLimit) {
+            _giveUp(b, pos, out);
+            pos = b.length;
+            continue;
+          }
           break;
         } // incomplete: wait for more bytes
         pos += n;
@@ -219,6 +327,18 @@ final class InputParser {
     // at eof every decoder takes what it was given, even cut short
     assert(!eof || _inPaste || _buf.isEmpty, 'left at eof: $_buf');
     return out;
+  }
+
+  /// Gives up the unterminated sequence at [pos], longer than
+  /// [sequenceLimit]: an [UnknownSequence] of what came, its rest dropped.
+  void _giveUp(List<int> b, int pos, List<InputEvent> out) {
+    out.add(UnknownSequence(b.sublist(pos)));
+    // after ESC ESC, the sequence the second ESC starts
+    final at = b[pos + 1] == 0x1B ? pos + 1 : pos;
+    _dropping = b[at + 1] == 0x5B ? _Drop.csi : _Drop.string;
+    if (b.last == 0x1B && _dropping == _Drop.string) {
+      _dropping = _Drop.stringEsc;
+    }
   }
 
   static bool _endsWithPrefix(List<int> b, int k) {
@@ -939,3 +1059,6 @@ final class InputParser {
     );
   }
 }
+
+/// What [InputParser] drops of a sequence it gave up.
+enum _Drop { none, csi, string, stringEsc }

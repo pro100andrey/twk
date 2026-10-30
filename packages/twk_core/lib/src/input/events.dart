@@ -350,7 +350,8 @@ final class MouseEvent extends InputEvent {
 
 /// Text pasted into the terminal, all in one event: what bracketed paste
 /// mode (`TerminalOptions.bracketedPaste`) brackets, so keys in it (an
-/// Enter, a Ctrl+C) are text and act on nothing.
+/// Enter, a Ctrl+C) are text and act on nothing. A paste longer than
+/// [InputParser.pasteLimit] comes in several, one after another.
 ///
 /// Line breaks are LF (`\n`) whatever the terminal sent (CR LF, CR);
 /// bytes that are no UTF-8 are U+FFFD. Without bracketed paste a paste

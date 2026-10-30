@@ -24,7 +24,9 @@ The first release.
   terminal restored on every exit path; titles, progress, notifications,
   the clipboard, links and pointer shapes.
 - `InputParser` and `InputEvent`s: keys (with the kitty keyboard
-  protocol), the mouse, paste, focus, resize and color scheme reports.
+  protocol), the mouse, paste, focus, resize and color scheme reports;
+  what it holds of a paste or an unterminated sequence bounded
+  (`pasteLimit`, `sequenceLimit`).
 - Unicode: grapheme segmentation, widths in two modes (`TextSegmenter`,
   `stringWidth`, `fitText`) and bidirectional text (`BidiText`).
 - `package:twk_core/terminal.dart`: the terminal, styles, input and lines
