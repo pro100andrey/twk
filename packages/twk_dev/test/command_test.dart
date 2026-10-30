@@ -105,7 +105,8 @@ void main() {
 
   test('twk record without a command or with a bad idle limit exits with '
       '$usageExitCode, with a recording it cannot write or a command it '
-      'cannot run with 1 and 127, leaving no recording', () async {
+      'cannot run with 1 and 127, leaving no recording, and one there was '
+      'as it was', () async {
     final temp = await Directory.systemTemp.createTemp('twk_record_');
     addTearDown(() => temp.delete(recursive: true));
     final cast = p.join(temp.path, 's.cast');
@@ -143,6 +144,11 @@ void main() {
       startsWith('twk record: cannot run no-such-program: '),
     );
     expect(File(cast).existsSync(), isFalse);
+
+    File(cast).writeAsStringSync('an earlier recording');
+    final again = await twkHere(['record', '--out=$cast', 'no-such-program']);
+    expect(again.exitCode, 127);
+    expect(File(cast).readAsStringSync(), 'an earlier recording');
   });
 
   test('twk record without a terminal records at 80 by 24, writing what '
