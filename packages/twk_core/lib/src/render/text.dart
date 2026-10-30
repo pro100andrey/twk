@@ -3728,6 +3728,30 @@ final class RenderParagraph extends RenderObject {
       _addRun(a, b, x, y, w);
       return x + w;
     }
+    if (gaps == 0) {
+      // a run a span, as the loop below makes them without gaps, with the
+      // arrays in locals and no test for a gap at each cluster: a line of
+      // two spans (text and a link, a highlight) is the common case
+      final spanOf = _spanOf;
+      final glyphs = _glyphs;
+      final kinds = _kinds;
+      var at = x;
+      var i = a;
+      while (i < b) {
+        final span = spanOf[i];
+        final from = i;
+        var w = 0;
+        do {
+          w += (glyphs[i] & kWide) != 0
+              ? 2
+              : ((kinds[i] & _newline) != 0 ? 0 : 1);
+          i++;
+        } while (i < b && spanOf[i] == span);
+        _addRun(from, i, at, y, w);
+        at += w;
+      }
+      return at;
+    }
     var at = x;
     var start = a;
     var w = 0;
