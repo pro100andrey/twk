@@ -201,23 +201,30 @@ final class SshSession {
   int get heldInput => _heldInput.fold(0, (n, b) => n + b.length);
 
   /// Bytes written and not yet sent: the client hasn't granted them.
-  int get pendingOutput {
-    var n = -_outputAt;
-    for (final b in _output) {
-      n += b.length;
-    }
-    return n;
-  }
+  int get pendingOutput => _pending;
+  var _pending = 0;
+
+  /// The most bytes written and not yet sent ([pendingOutput]) a session
+  /// holds: past it, the client granting none of them, the session is
+  /// closed rather than the server holding without end what it does not
+  /// take.
+  static const int maxPendingOutput = 64 << 20;
 
   /// Writes [bytes] to the client: sent as far as its window allows, the
   /// rest when it grants more. Dropped once the session has ended or
-  /// [exit] was called.
+  /// [exit] was called. Past [maxPendingOutput] of them waiting, the
+  /// session is closed: a writer that awaits [flush] holds no more than it
+  /// writes between two.
   void add(List<int> bytes) {
     if (_closeSent || isDone || bytes.isEmpty) {
       return;
     }
     _output.add(Uint8List.fromList(bytes));
+    _pending += bytes.length;
     _sendOutput();
+    if (_pending > maxPendingOutput) {
+      _sendClose();
+    }
   }
 
   /// Completes once everything [add]ed is sent, or the session ended.
@@ -269,6 +276,7 @@ final class SshSession {
     _closeSent = true;
     _output.clear();
     _outputAt = 0;
+    _pending = 0;
     _send(
       SshWriter()
         ..byte(SshMsg.channelEof)
@@ -306,6 +314,7 @@ final class SshSession {
       );
       _remoteWindow -= n;
       _outputAt += n;
+      _pending -= n;
       if (_outputAt == first.length) {
         _output.removeFirst();
         _outputAt = 0;

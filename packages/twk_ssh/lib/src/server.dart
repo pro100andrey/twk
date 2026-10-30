@@ -123,8 +123,11 @@ final class SshServer {
 
   final Stopwatch _clock;
 
-  // the addresses refused, each until a time on _clock
+  // the addresses refused, each until a time on _clock; and how many were
+  // held after the last sweep of those past their time, the next sweep
+  // coming once there are twice as many
   final _penalties = <InternetAddress, Duration>{};
+  var _penaltiesSwept = 0;
 
   final ServerSocket _socket;
   final SshConnection Function(Socket client) _accept;
@@ -186,6 +189,12 @@ final class SshServer {
     final from = _penalties[address];
     final until = (from != null && from > now ? from : now) + p.perFailure;
     _penalties[address] = until - now > p.max ? now + p.max : until;
+    // a penalty past its time went only when its address came again: one
+    // of many addresses that never come again stayed for good
+    if (_penalties.length > 2 * _penaltiesSwept + 64) {
+      _penalties.removeWhere((_, until) => until <= now);
+      _penaltiesSwept = _penalties.length;
+    }
   }
 
   /// Stops listening and ends every connection.

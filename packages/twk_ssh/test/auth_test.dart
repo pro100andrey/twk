@@ -322,4 +322,34 @@ void main() {
     final gone = await connect(server, identities: [alice.pair]);
     await expectLater(gone.authenticated, refused());
   });
+
+  test(
+    'an authorized_keys file others may write, or in a directory they may '
+    'write, lets no key in',
+    () async {
+      final dir = Directory.systemTemp.createTempSync('twk_ssh_keys');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      final file = File('${dir.path}/authorized_keys')
+        ..writeAsStringSync('${alice.publicKey} alice@laptop\n');
+      Future<void> chmod(String mode, String path) async =>
+          expect((await Process.run('chmod', [mode, path])).exitCode, 0);
+      await chmod('600', file.path);
+      await AuthorizedKeys.load(file.path);
+      await chmod('620', file.path);
+      await expectLater(
+        AuthorizedKeys.load(file.path),
+        throwsA(isA<FileSystemException>()),
+      );
+      await chmod('600', file.path);
+      await chmod('777', dir.path);
+      await expectLater(
+        AuthorizedKeys.load(file.path),
+        throwsA(isA<FileSystemException>()),
+      );
+      await chmod('1777', dir.path);
+      await AuthorizedKeys.load(file.path);
+      await chmod('700', dir.path);
+    },
+    testOn: '!windows',
+  );
 }

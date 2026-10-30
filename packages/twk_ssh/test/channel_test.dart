@@ -75,6 +75,20 @@ void main() {
       expect(s.pendingOutput, 0);
     });
 
+    test('past maxPendingOutput waiting for a client that grants none, the '
+        'session is closed and holds none of it', () {
+      final t = FakeTransport();
+      final s = session(t, window: 0)
+        ..add(Uint8List(SshSession.maxPendingOutput));
+      expect(s.pendingOutput, SshSession.maxPendingOutput);
+      expect(t.ids, isEmpty, reason: 'up to the limit it waits');
+      s.add(Uint8List(1));
+      expect(s.pendingOutput, 0);
+      expect(t.ids, [SshMsg.channelEof, SshMsg.channelClose]);
+      s.add(Uint8List(10));
+      expect(s.pendingOutput, 0, reason: 'dropped once closed');
+    });
+
     test('a window grown past 2^32 - 1 is a protocol error', () {
       final s = session(FakeTransport(), window: 0xFFFFFFF0);
       expect(() => s.receiveWindowAdjust(0x10), throwsProtocol());

@@ -20,7 +20,8 @@ final class SshAuth {
   /// Keys the authorized_keys file at [path] lists may log in, as any
   /// user (see [AuthorizedKeys] for the lines taken). The file is read at
   /// each attempt: a key added or removed counts at once, and a file that
-  /// can't be read lets no key in.
+  /// can't be read, or that others than its owner may write
+  /// ([AuthorizedKeys.load]), lets no key in.
   factory SshAuth.authorizedKeys(
     String path, {
     FutureOr<bool> Function(String user, String password)? password,
