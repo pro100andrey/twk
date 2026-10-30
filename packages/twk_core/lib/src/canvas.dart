@@ -577,8 +577,7 @@ final class Canvas {
     if (ay < _cy0 || ay >= _cy1) {
       return 0;
     }
-    var ax = x + _ox;
-    final startX = ax;
+    final ax = x + _ox;
     _y = ay;
     _row = ay * surface.width;
     _pen = -1;
@@ -586,17 +585,9 @@ final class Canvas {
     _lastIn = -1;
     _dmgLo = 1 << 30;
     _dmgHi = -1;
-    for (var i = start; i < end; i++) {
-      if (ax >= _cx1) {
-        break;
-      }
-      final word = g[i];
-      final w = (word & kWide) != 0 ? 2 : 1;
-      _place(ax, w, word & ~kWide);
-      ax += w;
-    }
+    final to = _placeRange(ax, g, start, end);
     _end();
-    return ax - startX;
+    return to - ax;
   }
 
   /// Draws glyph words [start, end) of [g] as [run] draws a run of them:
@@ -608,20 +599,71 @@ final class Canvas {
     if (ay < _cy0 || ay >= _cy1) {
       return 0;
     }
-    var ax = x + _ox;
-    final startX = ax;
+    final ax = x + _ox;
     _begin(ay, pen);
-    for (var i = start; i < end; i++) {
-      if (ax >= _cx1) {
-        break;
-      }
+    final to = _placeRange(ax, g, start, end);
+    _end();
+    return to - ax;
+  }
+
+  /// Places glyph words [start, end) of [g] from absolute column [x] on
+  /// the row [_begin] set, honouring clip; returns the column after them.
+  /// A stretch of narrow glyphs over cells that hold no half of a wide one
+  /// is written in a loop of its own, the arrays and the style in locals:
+  /// what [_place] does for each, without its calls.
+  int _placeRange(int x, Uint32List g, int start, int end) {
+    var ax = x;
+    final cells = surface.cells;
+    final sty = surface.styles;
+    final row = _row;
+    final cx1 = _cx1;
+    final opaque = _opaque;
+    var i = start;
+    while (i < end && ax < cx1) {
       final word = g[i];
+      if ((word & kWide) == 0 && ax >= _cx0) {
+        var lim = i + (cx1 - ax);
+        if (lim > end) {
+          lim = end;
+        }
+        final from = ax;
+        var lastIn = _lastIn;
+        var lastOut = _lastOut;
+        var j = i;
+        while (j < lim) {
+          final glyph = g[j];
+          final c = row + ax;
+          if ((glyph & kWide) != 0 || (cells[c] & (kWide | kCont)) != 0) {
+            break;
+          }
+          if (opaque >= 0) {
+            sty[c] = opaque;
+          } else {
+            final under = sty[c];
+            if (under != lastIn) {
+              lastIn = under;
+              lastOut = styles.compose(under, _pen);
+            }
+            sty[c] = lastOut;
+          }
+          cells[c] = glyph;
+          ax++;
+          j++;
+        }
+        _lastIn = lastIn;
+        _lastOut = lastOut;
+        if (j > i) {
+          _touch(from, ax);
+          i = j;
+          continue;
+        }
+      }
       final w = (word & kWide) != 0 ? 2 : 1;
       _place(ax, w, word & ~kWide);
       ax += w;
+      i++;
     }
-    _end();
-    return ax - startX;
+    return ax;
   }
 
   /// Draws [r], pieces of line one column each, as [run] does, but merged
