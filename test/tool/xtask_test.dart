@@ -731,6 +731,48 @@ void main() {
       );
     });
 
+    test('--scored fails a package pana cannot score, its dependencies of '
+        'this repository not on pub.dev yet', () async {
+      final root = Directory.systemTemp.createTempSync('pub_check');
+      addTearDown(() => root.deleteSync(recursive: true));
+      File('${root.path}/packages/a/pubspec.yaml')
+        ..createSync(recursive: true)
+        ..writeAsStringSync('name: a\ndependencies:\n  b: ^0.1.0\n');
+      File('${root.path}/packages/b/pubspec.yaml')
+        ..createSync(recursive: true)
+        ..writeAsStringSync('name: b\n');
+      Future<int> check(List<String> args, List<String> log) => pubCheck(
+        VerbContext(
+          args: args,
+          env: const {},
+          root: root.path,
+          workingDirectory: root.path,
+          log: log.add,
+          start: (argv, {workingDirectory}) async => 0,
+          locate: (name, {workingDirectory}) => null,
+          collect: (argv, {workingDirectory, timeout}) async => (
+            // pana activated; b not on pub.dev
+            exitCode: argv.first == 'curl' ? 22 : 0,
+            stdout: argv.contains('list') ? 'pana 0.23.19\n' : '',
+            stderr: '',
+          ),
+        ),
+        Cpus(allowed: parseCpuList('0-3'), siblings: (_) => null),
+      );
+      final log = <String>[];
+      expect(await check(const ['packages/a'], log), ExitCode.success);
+      expect(
+        log,
+        contains(startsWith('packages/a: not scored, it depends on b')),
+      );
+      final scored = <String>[];
+      expect(
+        await check(const ['--scored', 'packages/a'], scored),
+        ExitCode.taskFailed,
+      );
+      expect(scored, contains('packages/a: --scored, and pana gave no score'));
+    });
+
     test('a private package is failed, the rest still run', () async {
       final root = Directory.systemTemp.createTempSync('pub_check');
       addTearDown(() => root.deleteSync(recursive: true));

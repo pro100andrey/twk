@@ -79,23 +79,29 @@ dart run tool/xtask.dart bench              # when the frame path changed (below
 - `ci` is all of it, the benchmark last and alone, and two more:
   `browser-test`, twk_web's tests in Chrome (`CHROME_EXECUTABLE`, else the
   first of `google-chrome-stable`, `google-chrome`, `chromium` on the
-  `PATH`; skipped without one), which need the network; and `pub-check`,
-  whether `twk_core`, `twk` and `twk_test` are ready for pub.dev: `publish_to`, the
-  errors of `dart pub publish --dry-run`, and pana's score with what lost
-  points (pana activated with `dart pub global activate pana`; skipped
-  without it).
-- CI (`.github/workflows/ci.yml`) runs `ci` on Linux, and `ci-os` on
-  macOS and Windows: on macOS every package's tests and the end to end
-  runs, on Windows the tests of `twk_core`, `twk` and `twk_test`; the
+  `PATH`; skipped without one), which needs the network. Its packages'
+  tests are all but the slowest's: those of `twk_ssh`, `twk_dev` and `twk`
+  are `ci-tests`, which CI runs in a second Linux job beside it.
+- CI (`.github/workflows/ci.yml`) runs `ci` and `ci-tests` on Linux, side
+  by side, and `ci-os` on macOS and Windows: on macOS every package's
+  tests and the end to end runs, on Windows the tests of `twk_core`,
+  `twk` and `twk_test`; the
   benchmark is Linux's (`platforms:` in `xtask.yaml`). Each step of a workflow
   runs one gate: `workflows-check` (`--check-ci`), in `handover`, refuses
   anything else, so a check is added to `xtask.yaml`, never to the
   workflow.
 - On demand, not in a gate: `undocumented` and `coverage` write reports
   to `doc/internals/quality/` (not committed); `-- <package>...` makes
-  those packages' only. `publish-core`, `publish-twk` and `publish-test`
-  publish `twk_core`, `twk` and `twk_test` to pub.dev, each after
-  `pub-check` and the one before it (`publish-test` all three in order),
+  those packages' only. `pub-check` says whether the six packages of a
+  release are ready for pub.dev: `publish_to`, the errors of `dart pub
+  publish --dry-run`, and pana's score with what lost points (pana
+  activated with `dart pub global activate pana`; skipped without it; a
+  package that depends on one of this repository's not on pub.dev yet is
+  not scored). `publish-core`, `publish-twk`, `publish-test`,
+  `publish-lints`, `publish-term` and `publish-dev` publish them, each
+  after those it depends on and its own package's `check-<name>`, which
+  pana scores there, once they are on pub.dev (a package it cannot score
+  fails it), `publish-dev` all six in order,
   once `dart pub login` has: the version named in the changelog, the
   package as HEAD has it, then the upload, waited for until pub.dev
   serves it. A version pub.dev serves already is skipped, so a run again
