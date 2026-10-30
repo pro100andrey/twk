@@ -405,6 +405,26 @@ void main() {
       await term.close();
     });
 
+    test('resumed, a cursor report that comes after the wait for it is no '
+        'key', () async {
+      final term = await Terminal.connect(
+        shell.address,
+        const TerminalOptions(probeTimeout: Duration(milliseconds: 20)),
+      );
+      final events = <InputEvent>[];
+      final listening = term.events.listen(events.add);
+      await term.suspend();
+      final from = shell.output.length;
+      await term.resume();
+      expect(shell.text.substring(from), contains('\x1b[6n'));
+      // the cursor on the first row: CSI 1;2R is also Shift+F3
+      shell.input('\x1b[1;2Rb');
+      await waitUntil(() => events.isNotEmpty, 'the key after the report');
+      expect(events, [const KeyEvent(KeyCode.char, char: 'b')]);
+      await listening.cancel();
+      await term.close();
+    });
+
     test('suspended, the terminal is put back and the console modes too; '
         'resumed, both are taken again', () async {
       final term = await Terminal.connect(shell.address);

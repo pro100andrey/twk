@@ -1801,11 +1801,19 @@ final class Terminal
     _parser.expectCursorReport = false;
   }
 
+  /// Running while the answer to a resume's cursor query that came too
+  /// late may still come: it is dropped.
+  Timer? _lateCursorTimer;
+
   void _deliver(InputEvent e) {
     if (e is CursorReport) {
       final asked = _cursorAsked;
       if (asked != null && !asked.isCompleted) {
         asked.complete(e.x);
+        return;
+      }
+      if (_lateCursorTimer?.isActive ?? false) {
+        _lateCursorTimer!.cancel();
         return;
       }
     }
@@ -1954,7 +1962,16 @@ final class Terminal
         onTimeout: () => -1,
       );
       _cursorAsked = null;
-      _parser.expectCursorReport = false;
+      if (column < 0) {
+        // the answer may still come, and is no key (CSI 1;2R is Shift+F3)
+        _lateCursorTimer?.cancel();
+        _lateCursorTimer = Timer(
+          const Duration(seconds: 5),
+          () => _parser.expectCursorReport = false,
+        );
+      } else {
+        _parser.expectCursorReport = false;
+      }
     }
     if (!options.alternateScreen && column != 0 && !_closed) {
       _writeString('\r\n');
@@ -2074,6 +2091,7 @@ final class Terminal
     _escTimer?.cancel();
     _pasteTimer?.cancel();
     _lateProbeTimer?.cancel();
+    _lateCursorTimer?.cancel();
     for (final timer in _refreshes.values) {
       timer.cancel();
     }

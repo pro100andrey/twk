@@ -171,6 +171,21 @@ final class ScrollPosition with ChangeNotifier {
     }
   }
 
+  /// Whether [target] is inside the scrollable's viewport, as it was laid
+  /// out last.
+  bool _holds(RenderObject target) {
+    final viewport = _state?._viewport;
+    if (viewport == null || identical(target, viewport)) {
+      return false;
+    }
+    for (RenderObject? o = target; o != null; o = o.parent) {
+      if (identical(o, viewport)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /// Scrolls the least that shows [target], a render object inside the
   /// scrollable's viewport, as it was laid out last: its start (its end,
   /// in [reverse]) when it is longer than the window. An [ArgumentError]
@@ -279,8 +294,8 @@ final class ScrollPosition with ChangeNotifier {
 /// until it is scrolled back to the end (End, the wheel, [jumpTo]). Such a
 /// scrollable starts at the end, unless [initialOffset] says otherwise.
 ///
-/// Given to two scrollables at once, it moves both; [position] and
-/// [offset] then fail.
+/// Given to two scrollables at once, it moves both, and [ensureVisible]
+/// the one the widget is in; [position] and [offset] then fail.
 ///
 /// A view of a hundred rows, taken back to its top:
 ///
@@ -337,12 +352,31 @@ class ScrollController with ChangeNotifier {
     }
   }
 
-  /// Scrolls the least that shows the widget at [context], which is inside
-  /// the scrollable ([ScrollPosition.ensureVisible]).
+  /// Scrolls the least that shows the widget at [context] in the
+  /// scrollable it is inside ([ScrollPosition.ensureVisible]); of several,
+  /// in each it is inside. A [StateError] when the controller is given to
+  /// none, an [ArgumentError] when the widget is inside none of them.
   void ensureVisible(BuildContext context) {
     final target = context.findRenderObject();
-    if (target != null) {
-      position.ensureVisible(target);
+    if (target == null) {
+      return;
+    }
+    if (_positions.isEmpty) {
+      throw StateError('the controller is not given to a scrollable');
+    }
+    var shown = false;
+    for (final p in List.of(_positions)) {
+      if (p._holds(target)) {
+        p.ensureVisible(target);
+        shown = true;
+      }
+    }
+    if (!shown) {
+      throw ArgumentError.value(
+        context,
+        'context',
+        'not inside a scrollable of the controller',
+      );
     }
   }
 

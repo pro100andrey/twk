@@ -423,6 +423,53 @@ void main() {
       await t.pump();
       expect(t.lines, ['', '', '', '', '']);
     });
+
+    testTwk('given to two scrollables, ensureVisible scrolls the one the '
+        'widget is in', (t) async {
+      final controller = ScrollController();
+      final inSecond = GlobalKey();
+      Widget view({Key? key}) => Expanded(
+        child: SingleChildScrollView(
+          controller: controller,
+          child: rows([column(10), SizedBox(key: key, height: 1)]),
+        ),
+      );
+      await t.pumpWidget(
+        Column(
+          children: [
+            view(),
+            view(key: inSecond),
+          ],
+        ),
+        size: (20, 6),
+      );
+      controller.ensureVisible(inSecond.currentContext!);
+      await t.pump();
+      // the first stays at its top; the second shows its last row
+      expect(t.lines, [
+        'item 0',
+        'item 1',
+        'item 2',
+        'item 8',
+        'item 9',
+        '',
+      ]);
+      final outside = GlobalKey();
+      await t.pumpWidget(
+        Column(
+          children: [
+            view(),
+            view(key: inSecond),
+            SizedBox(key: outside, height: 1),
+          ],
+        ),
+        size: (20, 6),
+      );
+      expect(
+        () => controller.ensureVisible(outside.currentContext!),
+        throwsArgumentError,
+      );
+    });
   });
 
   testTwk('reverse turned the other way keeps the window on the items it '
