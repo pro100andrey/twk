@@ -26,7 +26,8 @@ The first release.
 - `InputParser` and `InputEvent`s: keys (with the kitty keyboard
   protocol), the mouse, paste, focus, resize and color scheme reports;
   what it holds of a paste or an unterminated sequence bounded
-  (`pasteLimit`, `sequenceLimit`).
+  (`pasteLimit`, `sequenceLimit`), a longer paste in pieces
+  (`PasteEvent.more`).
 - Unicode: grapheme segmentation, widths in two modes (`TextSegmenter`,
   `stringWidth`, `fitText`) and bidirectional text (`BidiText`).
 - `package:twk_core/terminal.dart`: the terminal, styles, input and lines

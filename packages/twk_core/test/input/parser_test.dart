@@ -119,7 +119,8 @@ void main() {
     const x = KeyEvent(KeyCode.char, char: 'x');
 
     test('a paste over the limit comes in pieces of at most the limit, '
-        'none cutting a character or a CRLF', () {
+        'none cutting a character or a CRLF, each but the last saying more '
+        'follows', () {
       final parser = InputParser();
       // a € straddling the first cut, a CRLF the second
       final first = 'a' * (InputParser.pasteLimit - 1);
@@ -130,8 +131,9 @@ void main() {
         ...parser.feed(utf8.encode(text)),
         ...parser.feed('\x1b[201~x'.codeUnits),
       ];
-      final pieces = [for (final e in events.whereType<PasteEvent>()) e.text];
-      expect(pieces, hasLength(3));
+      final pastes = events.whereType<PasteEvent>().toList();
+      expect([for (final e in pastes) e.more], [true, true, false]);
+      final pieces = [for (final e in pastes) e.text];
       expect(pieces.join(), '$first€$second\nend');
       for (final piece in pieces) {
         expect(
@@ -150,7 +152,9 @@ void main() {
       var pasted = 0;
       for (var i = 0; i < 3 * InputParser.pasteLimit ~/ 4096; i++) {
         for (final e in parser.feed(chunk.codeUnits)) {
-          pasted += (e as PasteEvent).text.length;
+          e as PasteEvent;
+          expect(e.more, isTrue);
+          pasted += e.text.length;
         }
       }
       expect(pasted, 2 * InputParser.pasteLimit);

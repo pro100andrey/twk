@@ -20,9 +20,10 @@ import 'events.dart';
 ///
 /// What it holds is bounded, as the far end of a link need not be a
 /// terminal: a paste longer than [pasteLimit] comes in [PasteEvent]s of
-/// at most that many bytes each, and a sequence still unterminated after
-/// [sequenceLimit] bytes is given up, an [UnknownSequence] of what came,
-/// and the rest of it dropped up to its end.
+/// at most that many bytes each ([PasteEvent.more] on all but the last),
+/// and a sequence still unterminated after [sequenceLimit] bytes is given
+/// up, an [UnknownSequence] of what came, and the rest of it dropped up
+/// to its end.
 ///
 /// It decodes the keys of the legacy encodings and of the kitty keyboard
 /// protocol ([KittyKeyboardFlags]), SGR mouse reports (mode 1006), focus
@@ -191,17 +192,18 @@ final class InputParser {
     if (cut > 0 && p[cut - 1] == 0x0D) {
       cut--;
     }
-    final e = _pasteText(cut);
+    final e = _pasteText(cut, more: true);
     p.setRange(0, _pasteLength - cut, p, cut);
     _pasteLength -= cut;
     return e;
   }
 
-  PasteEvent _pasteText(int length) => PasteEvent(
+  PasteEvent _pasteText(int length, {bool more = false}) => PasteEvent(
     utf8
         .decode(Uint8List.sublistView(_paste, 0, length), allowMalformed: true)
         .replaceAll('\r\n', '\n')
         .replaceAll('\r', '\n'),
+    more: more,
   );
 
   /// Drops what is left of a sequence given up ([_dropping]) from [pos];
