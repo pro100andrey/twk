@@ -1058,19 +1058,30 @@ final class _LogViewState extends State<LogView> {
     final fresh = c.newLines;
     // as of the last layout: none before it
     final room = _render?.width;
-    return KeyBindings(
-      {
-        if (c.query.isNotEmpty) ...{'n': c.nextMatch, 'N': c.previousMatch},
-        if (!widget.wrap) ...{
-          'left': _shift > 0 ? () => _scrollAcross(-LogView.sideStep) : null,
-          'right': room == null || _shift < _widest - room
-              ? () => _scrollAcross(LogView.sideStep)
-              : null,
+    final keysFor = (
+      c,
+      c.query.isNotEmpty,
+      widget.wrap,
+      _shift > 0,
+      room == null || _shift < _widest - room,
+    );
+    if (keysFor != _keysFor) {
+      _keysFor = keysFor;
+      final (_, matches, wrap, left, right) = keysFor;
+      _keys = {
+        if (matches) ...{'n': c.nextMatch, 'N': c.previousMatch},
+        if (!wrap) ...{
+          'left': left ? () => _scrollAcross(-LogView.sideStep) : null,
+          'right': right ? () => _scrollAcross(LogView.sideStep) : null,
         },
-      },
-      hints: {
-        if (c.query.isNotEmpty) ...{'n': 'next match', 'N': 'previous match'},
-      },
+      };
+      _keyHints = matches
+          ? const {'n': 'next match', 'N': 'previous match'}
+          : const {};
+    }
+    return KeyBindings(
+      _keys,
+      hints: _keyHints,
       child: Scrollbar(
         visibility: widget.scrollbar,
         child: Stack(
@@ -1096,6 +1107,12 @@ final class _LogViewState extends State<LogView> {
     );
   }
 
+  // the keys and their hints as last made, and what they were made of: the
+  // same maps while that is the same, which the bindings parse once
+  (LogController, bool, bool, bool, bool)? _keysFor;
+  var _keys = const <String, VoidCallback?>{};
+  var _keyHints = const <String, String>{};
+
   static bool _sameLook(_Look a, _Look? b) =>
       b != null &&
       a.time == b.time &&
@@ -1108,10 +1125,19 @@ final class _LogViewState extends State<LogView> {
       a.wrap == b.wrap &&
       a.showTime == b.showTime &&
       a.showLevel == b.showLevel &&
-      a.levels.length == b.levels.length &&
-      [
-        for (var i = 0; i < a.levels.length; i++) a.levels[i] == b.levels[i],
-      ].every((same) => same);
+      _sameStyles(a.levels, b.levels);
+
+  static bool _sameStyles(List<Style> a, List<Style> b) {
+    if (a.length != b.length) {
+      return false;
+    }
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   Widget _lineWidget(LogLine line, _Look look) {
     final time = line.time;

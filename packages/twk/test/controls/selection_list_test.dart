@@ -2,8 +2,9 @@
 // the cursor, a multiple one that Space and clicks toggle; the keys that
 // move the cursor and scroll it into view, passing disabled items by;
 // the selection and the cursor staying with their keys as the list
-// changes; a hundred thousand items built a window at a time; a disabled
-// list out of the focus and the mouse.
+// changes; a hundred thousand items built a window at a time, and not
+// again as the cursor moves; a disabled list out of the focus and the
+// mouse.
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
@@ -125,6 +126,36 @@ void main() {
   });
 
   group('SelectionList', () {
+    testTwk('a move of the cursor builds no item again: the list dresses '
+        'them; an item that shows the selection its own way listens to the '
+        'controller', (t) async {
+      final c = SelectionController<int>();
+      addTearDown(c.dispose);
+      final built = <int>[];
+      await t.pumpWidget(
+        SelectionList<int>(
+          itemCount: 4,
+          keyOf: (i) => i,
+          itemBuilder: (context, i) {
+            built.add(i);
+            return ListenableBuilder(
+              listenable: c,
+              builder: (_, _) => Text('${c.isSelected(i) ? '*' : '-'}$i'),
+            );
+          },
+          controller: c,
+          autofocus: true,
+          bar: false,
+        ),
+        size: (4, 4),
+      );
+      expect(t.lines, ['-0', '-1', '-2', '-3']);
+      built.clear();
+      await press(t, 'down down');
+      expect(built, isEmpty);
+      expect(t.lines, ['-0', '-1', '*2', '-3']);
+    });
+
     testTwk('single: Down and Up move the cursor and select its item, the '
         'list scrolling to show it; PageDown and PageUp a window, End and '
         'Home to the ends; Enter submits; the cursor reversed while '

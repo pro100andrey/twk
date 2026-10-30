@@ -692,7 +692,7 @@ final class _ListElement extends RenderObjectElement
     if (item == null && key != null) {
       item = _kept.remove(key)?..attachRenderObject(index);
     }
-    _live[index] = updateChild(item, _itemOf(widget, index), index)!;
+    _live[index] = updateChild(item, _itemOf(widget, index, item), index)!;
   }
 
   @override
@@ -732,54 +732,54 @@ final class _ListElement extends RenderObjectElement
     final first = from < 0 ? 0 : from;
     final last = live.lastKey()! + moved;
     final count = widget.view._childCount;
-    final byKey = <Key, Element>{};
-    for (final e in live.values) {
-      final key = _keyOf(e);
-      if (key != null) {
-        byKey[key] = e;
-      }
-    }
-    final widgets = <Widget>[];
-    final items = <Element?>[];
-    // compact sets: no entry object for each item
-    final unkept = Set<Element>.identity();
-    final taken = Set<Element>.identity();
-    for (var i = first; i <= last && i < count; i++) {
+    final end = last < count ? last + 1 : count;
+    final length = end > first ? end - first : 0;
+    final widgets = List<Widget>.filled(length, const SizedBox());
+    final items = List<Element?>.filled(length, null);
+    // made only for an item that moved: the keyed items by key, those taken
+    // from where they were, and those taken back from the kept
+    Map<Key, Element>? byKey;
+    Set<Element>? movedHere;
+    Set<Element>? unkept;
+    for (var k = 0; k < length; k++) {
+      final i = first + k;
       final w = _build(i);
       final key = w.key;
+      final old = live[i];
       Element? item;
-      if (key == null) {
-        final old = live[i];
-        if (old != null && _keyOf(old) == null) {
-          item = old;
-        }
-      } else {
+      if (old != null && _keyOf(old) == key) {
+        // where it was: the item of no key at its index, or of this key
+        item = old;
+      } else if (key != null) {
+        byKey ??= _byKey(live, items, k);
         item = byKey.remove(key);
-        if (item == null) {
+        if (item != null) {
+          (movedHere ??= Set.identity()).add(item);
+        } else {
           item = _kept.remove(key);
           if (item != null) {
-            unkept.add(item);
+            (unkept ??= Set.identity()).add(item);
           }
         }
       }
-      if (item != null) {
-        taken.add(item);
-      }
-      widgets.add(w);
-      items.add(item);
+      widgets[k] = w;
+      items[k] = item;
     }
     // where the items are, before those left over leave
     if (keeps) {
       _anchor(widgets, first, count - was);
     }
-    for (final e in live.values) {
-      if (!taken.contains(e)) {
+    // by index, as a walk of the map's values makes a list of its own
+    for (var i = live.firstKey()!, to = live.lastKey()!; i <= to; i++) {
+      final e = live[i];
+      if (e != null &&
+          !(i >= first && i < end && identical(items[i - first], e)) &&
+          !(movedHere?.contains(e) ?? false)) {
         _drop(e);
       }
     }
     // in place: an index the list still has keeps its node
-    final end = first + widgets.length;
-    if (widgets.isEmpty) {
+    if (length == 0) {
       live.clear();
     } else {
       while (live.isNotEmpty && live.firstKey()! < first) {
@@ -789,14 +789,14 @@ final class _ListElement extends RenderObjectElement
         live.remove(live.lastKey());
       }
     }
-    for (var k = 0; k < widgets.length; k++) {
+    for (var k = 0; k < length; k++) {
       final item = items[k];
-      if (item != null && unkept.contains(item)) {
+      if (item != null && (unkept?.contains(item) ?? false)) {
         item.attachRenderObject(first + k);
       }
       live[first + k] = updateChild(
         item,
-        _itemOf(widgets[k], first + k),
+        _itemOf(widgets[k], first + k, item),
         first + k,
       )!;
     }
@@ -945,11 +945,40 @@ final class _ListElement extends RenderObjectElement
 
   static Key? _keyOf(Element item) => (item.widget as _Item).child.key;
 
-  /// [built] as child [index] of the render list: an item, or a separator.
-  _Item _itemOf(Widget built, int index) {
+  /// The keyed items of [live] by key, but those [items] took before [k].
+  static Map<Key, Element> _byKey(
+    SplayTreeMap<int, Element> live,
+    List<Element?> items,
+    int k,
+  ) {
+    final byKey = <Key, Element>{};
+    live.forEach((_, e) {
+      if (_keyOf(e) case final key?) {
+        byKey[key] = e;
+      }
+    });
+    for (var j = 0; j < k; j++) {
+      if (items[j] case final taken?) {
+        if (_keyOf(taken) case final key? when identical(byKey[key], taken)) {
+          byKey.remove(key);
+        }
+      }
+    }
+    return byKey;
+  }
+
+  /// [built] as child [index] of the render list: an item, or a separator;
+  /// [old]'s widget where it is the same, so that an item built as it was
+  /// is not updated.
+  _Item _itemOf(Widget built, int index, [Element? old]) {
     final view = widget.view;
     final at = view.reverse ? view._childCount - 1 - index : index;
-    return _Item(built, separator: view.separatorBuilder != null && at.isOdd);
+    final separator = view.separatorBuilder != null && at.isOdd;
+    if (old?.widget case final _Item had
+        when identical(had.child, built) && had.separator == separator) {
+      return had;
+    }
+    return _Item(built, separator: separator);
   }
 
   // an item scrolled out has a null slot: its render object stays out
@@ -1104,8 +1133,11 @@ final class _RenderBottom extends RenderObject with RenderObjectWithChildMixin {
 /// of the list's own, from which a [GlobalKey] on the widget can take it
 /// elsewhere; read as a [SemanticsRole.listItem], a separator not read.
 final class _Item extends Semantics {
-  const _Item(Widget child, {bool separator = false})
+  const _Item(Widget child, {this.separator = false})
     : super(child: child, role: separator ? null : SemanticsRole.listItem);
+
+  /// Whether the item is a separator, of no role.
+  final bool separator;
 
   @override
   StatelessElement createElement() => _ItemElement(this);

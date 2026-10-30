@@ -310,11 +310,16 @@ final appScenarios = <AppScenario>[
   ),
   AppScenario(
     'log-append',
-    'a LogView following its end, a line added a frame, 1000 before',
+    'a LogView at its cap of 2000 lines following its end, a line added '
+        'a frame: the oldest goes as it comes',
     (w, h) async {
-      final log = LogController();
-      for (var k = 0; k < 1000; k++) {
-        log.add(_phrases[k % _phrases.length]);
+      // at the cap from the start, as a log that has run a while is: the
+      // same in every frame, however long the warm-up
+      final log = LogController(maxLines: 2000);
+      // one time for all: the lines are the same in every run
+      final time = DateTime(2026, 10, 30, 12);
+      for (var k = 0; k < 2000; k++) {
+        log.add(_phrases[k % _phrases.length], time: time);
       }
       final r = await AppRun.start(
         LogView(controller: log),
@@ -324,11 +329,36 @@ final appScenarios = <AppScenario>[
       return (
         r,
         (int i) {
-          log.add(_phrases[i % _phrases.length]);
+          log.add(_phrases[i % _phrases.length], time: time);
           return r.pump();
         },
       );
     },
+  ),
+  AppScenario(
+    'selection-list',
+    'a SelectionList of 1000 items, Down/Up moving the cursor',
+    (w, h) async {
+      final r = await AppRun.start(
+        SelectionList<int>(
+          itemCount: 1000,
+          keyOf: (i) => i,
+          itemBuilder: (_, i) => Text(_phrases[i % _phrases.length]),
+          autofocus: true,
+        ),
+        width: w,
+        height: h,
+      );
+      return (
+        r,
+        (int i) {
+          // down for 200 frames, past the bottom of the window, then up
+          r.input(i % 400 < 200 ? keyDown : keyUp);
+          return r.pump();
+        },
+      );
+    },
+    steps: 400,
   ),
   AppScenario(
     'mouse-flood',

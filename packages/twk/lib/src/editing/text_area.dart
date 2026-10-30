@@ -618,6 +618,10 @@ const int _unbounded = BoxConstraints.unbounded;
 /// scrolled to keep the caret's in view, and the terminal's cursor at the
 /// caret while [focused].
 final class _RenderTextArea extends RenderObject {
+  // where a row with a selection or a composing range is painted in
+  // pieces ([sortedOnce])
+  final _cuts = Int32List(6);
+
   TextBuffer _text = TextBuffer.empty;
   TextBuffer get text => _text;
   set text(TextBuffer t) {
@@ -1459,8 +1463,15 @@ final class _RenderTextArea extends RenderObject {
     final se = selected ? _inRow(_selection.end - start, from, to) : from;
     final cs = composed ? _inRow(_composing.start - start, from, to) : from;
     final ce = composed ? _inRow(_composing.end - start, from, to) : from;
-    final cuts = {from, ss, se, cs, ce, to}.toList()..sort();
-    for (var i = 0; i + 1 < cuts.length; i++) {
+    final cuts = _cuts
+      ..[0] = from
+      ..[1] = ss
+      ..[2] = se
+      ..[3] = cs
+      ..[4] = ce
+      ..[5] = to;
+    final n = sortedOnce(cuts);
+    for (var i = 0; i + 1 < n; i++) {
       final a = cuts[i];
       final b = cuts[i + 1];
       var s = base;

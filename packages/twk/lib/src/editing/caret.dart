@@ -5,6 +5,8 @@
 /// ([restCursor]).
 library;
 
+import 'dart:typed_data';
+
 import 'package:meta/meta.dart' show internal;
 import 'package:twk_core/twk_core.dart'
     show
@@ -338,4 +340,27 @@ bool _within(RenderObject object, RenderObject ancestor) {
     }
   }
   return false;
+}
+
+/// Sorts [cuts], the offsets a row of an editing widget is painted in
+/// pieces at, and keeps each once at the start: how many there are. With
+/// a scratch of the widget's own, a paint of a selection makes no list.
+@internal
+int sortedOnce(Int32List cuts) {
+  for (var i = 1; i < cuts.length; i++) {
+    final v = cuts[i];
+    var j = i;
+    while (j > 0 && cuts[j - 1] > v) {
+      cuts[j] = cuts[j - 1];
+      j--;
+    }
+    cuts[j] = v;
+  }
+  var n = 1;
+  for (var i = 1; i < cuts.length; i++) {
+    if (cuts[i] != cuts[n - 1]) {
+      cuts[n++] = cuts[i];
+    }
+  }
+  return n;
 }
