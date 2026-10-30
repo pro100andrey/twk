@@ -8,10 +8,12 @@ repository: https://github.com/pro100andrey/twk/tree/main/packages/twk_term
 issue_tracker: https://github.com/pro100andrey/twk/issues
 topics: [terminal, tui, emulator, pty, widgets]
 # the pseudo-terminal is POSIX's (libc through dart:ffi); the emulator and
-# TerminalView run anywhere
+# TerminalView run in a browser too, over a link of the app's own (Pty is
+# there a stub that throws), and compile for it with dart2js and dart2wasm
 platforms:
   linux:
   macos:
+  web:
 
 environment:
   sdk: ^3.13.5

@@ -13,3 +13,5 @@ The first release.
   run in it with its size, environment and working directory.
 - `TerminalView`: a widget that runs a program in a terminal of its own,
   keys and the mouse passed to it, its title, its bell and its selection.
+- The emulator and `TerminalView` on the web too (`platforms` lists it),
+  over a link of the app's own: `Pty` there throws `UnsupportedError`.
