@@ -2,7 +2,7 @@
 /// spans, the source it was thrown in given by [SourceLines].
 library;
 
-import 'package:twk_core/twk_core.dart' show Attr, Brightness;
+import 'package:twk_core/twk_core.dart' show Attr, Brightness, Color;
 
 import '../binding/source_excerpt.dart';
 import '../style/style.dart';
@@ -48,7 +48,7 @@ const _locationColumn = 50;
 ///   left out where the text starts with it (`FormatException: …`) or the
 ///   error is a string; the lines after it, where the text has more, are
 ///   indented under it. All of it in [errorStyle], the [theme]'s
-///   [ThemeData.error] without.
+///   [ThemeData.error] without, red without either.
 /// * Then the lines around the one the stack names first in the app's own
 ///   code ([RecordFrame.isAppCode]: neither the SDK, nor twk and its
 ///   packages, nor the pub cache), [context] on each side of it, under its
@@ -60,7 +60,10 @@ const _locationColumn = 50;
 ///   line saying how many and whose ([stackLines]), unless [allFrames].
 ///
 /// The places, the line numbers and the folded frames are in [hintStyle],
-/// the [theme]'s [ThemeData.muted] without. The places are paths from the
+/// the [theme]'s [ThemeData.muted] without, and without either in the
+/// terminal's own colour dim, which reads on a dark background and a light
+/// one alike. [sourceLines] gets the [theme], the terminal's own colours
+/// without one. The places are paths from the
 /// working directory where they are in it, each a link to its file. The
 /// VM keeps no local variables to show.
 ///
@@ -78,13 +81,16 @@ List<List<Span>> traceback(
   StackTrace stack, {
   bool allFrames = false,
   int context = 2,
-  ThemeData theme = const ThemeData.terminal(Brightness.dark),
+  ThemeData? theme,
   Style? errorStyle,
   Style? hintStyle,
   SourceLines? sourceLines,
 }) {
-  final style = errorStyle ?? theme.error;
-  final hint = hintStyle ?? theme.muted;
+  final style = errorStyle ?? theme?.error ?? const Style(fg: Color.red);
+  final hint =
+      hintStyle ??
+      theme?.muted ??
+      const Style(fg: Color.defaultColor, attrs: Attr.dim);
   final text = _describe(error).split('\n');
   final lines = <List<Span>>[
     [Span('✗ ', style), Span(text.first, style.merge(_bold))],
@@ -113,7 +119,10 @@ List<List<Span>> traceback(
       ..addAll(
         _excerptLines(
           excerpt,
-          (sourceLines ?? _plain)(excerpt, theme),
+          (sourceLines ?? _plain)(
+            excerpt,
+            theme ?? const ThemeData.terminal(Brightness.dark),
+          ),
           style,
           hint,
         ),

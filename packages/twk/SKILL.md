@@ -196,8 +196,7 @@ runs an inline twk app of its own.
 - `cli.info`, `cli.success`, `cli.detail` (shown with `-v`), `cli.warn`
   and `cli.err` (both to stderr) write lines; `await cli.show(widget)`
   prints any twk widget once, at the terminal's width (a `Table`, a
-  `Box`, a `DescriptionList`, a `Callout`); `cli.inspect(value)` prints a
-  value as a tree of JSON.
+  `Box`, a `DescriptionList`, a `Callout`).
 - `await cli.prompt(question)`, `cli.confirm`, `cli.chooseOne(question,
   choices:)` and `cli.chooseAny`: at a terminal, a widget that collapses
   into one committed line once answered (`✔ Target environment? prod`);

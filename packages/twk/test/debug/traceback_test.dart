@@ -165,26 +165,36 @@ void main() {
       expect(first(_Throwing()), '✗ Throwing: <toString() threw StateError>');
     });
 
-    test("in styles: the error in the theme's error colour, its type bold, "
-        'the code as sourceLines gives it, its text unstyled without, the '
-        'places linked to their files', () {
-      const theme = ThemeData.terminal(Brightness.dark);
+    test("in styles: the error in the theme's error colour, red without one, "
+        'its type bold, the hints muted or dim, the code as sourceLines '
+        'gives it, its text unstyled without, the places linked to their '
+        'files', () {
+      // without a theme: red, and the terminal's own colour dim, which
+      // reads on either background
+      const errorRed = Style(fg: Color.red);
+      const hintDim = Style(fg: Color.defaultColor, attrs: Attr.dim);
       final lines = traceback(error, stack());
       expect(lines[0].map((s) => s.style), [
-        theme.error,
-        theme.error.merge(const Style(attrs: Attr.bold)),
+        errorRed,
+        errorRed.merge(const Style(attrs: Attr.bold)),
       ]);
       expect(lines[2][1].text, '${shown(config)}:13:7');
       expect(lines[2][1].style.link, config.uri.toString());
       final marked = lines[5];
       expect(_text([marked]).single, startsWith('  ▶ 13 │ '));
-      expect(marked[1].style, theme.error);
-      expect(marked[3].style, theme.muted);
+      expect(marked[1].style, errorRed);
+      expect(marked[3].style, hintDim);
       expect(marked.skip(4).map((s) => s.style), everyElement(const Style()));
       final place = lines.firstWhere(
         (l) => l.length == 3 && l[1].text.startsWith(shown(tool)),
       );
-      expect(place[1].style, theme.muted.merge(Style(link: '${tool.uri}')));
+      expect(place[1].style, hintDim.merge(Style(link: '${tool.uri}')));
+
+      // a theme's error and muted
+      const theme = ThemeData.terminal(Brightness.light);
+      final themed = traceback(error, stack(), theme: theme);
+      expect(themed[0].first.style, theme.error);
+      expect(themed[5][3].style, theme.muted);
 
       // the styles given, and the lines sourceLines gives, from the first
       const red = Style(fg: Color.red);
