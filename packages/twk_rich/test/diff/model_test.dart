@@ -300,6 +300,19 @@ deleted file mode 100644
       expect(Diff.parse('hello\nworld\n').files, isEmpty);
     });
 
+    test('takes a hunk header with numbers past 9 digits for none', () {
+      final huge = '9' * 30;
+      final file = Diff.parse(
+        '--- a/x\n+++ b/x\n@@ -$huge,$huge +1 @@\n x\n'
+        '@@ -999999999 +999999999 @@\n-a\n+b\n',
+      ).files.single;
+      expect(hunks(file), [
+        '@@ -999999999,1 +999999999,1 @@',
+        '-a',
+        '+b',
+      ]);
+    });
+
     test("reads git's coloured output, its colours taken off by stripAnsi, "
         'as its plain twin, tabs and carriage returns kept', () {
       final coloured = Diff.parse(stripAnsi(fixture('git_diff.ansi')));

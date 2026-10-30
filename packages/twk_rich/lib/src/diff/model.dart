@@ -273,9 +273,10 @@ List<String> _lines(String text) {
 }
 
 /// The header of a hunk with its counts: `@@ -1,3 +1,4 @@ section`, a
-/// count left out being 1.
+/// count left out being 1. Numbers of more than 9 digits, which no file
+/// has lines for, make it no header, rather than one past an int.
 final _hunkHeader = RegExp(
-  r'^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@ ?(.*)$',
+  r'^@@ -(\d{1,9})(?:,(\d{1,9}))? \+(\d{1,9})(?:,(\d{1,9}))? @@ ?(.*)$',
 );
 
 /// The files of the unified diff of [lines]; see [Diff.parse].

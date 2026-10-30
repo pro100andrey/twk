@@ -20,6 +20,8 @@ import 'myers.dart';
   final wordsBefore = _words(before);
   final wordsAfter = _words(after);
   final changes = diffLists(wordsBefore, wordsAfter);
+  final startsBefore = _starts(wordsBefore);
+  final startsAfter = _starts(wordsAfter);
   final rangesBefore = <(int, int)>[];
   final rangesAfter = <(int, int)>[];
   // the characters other than blanks each line has, and those of them it
@@ -27,12 +29,12 @@ import 'myers.dart';
   var changed = 0;
   for (final c in changes) {
     if (c.oldEnd > c.oldStart) {
-      final range = _range(before, wordsBefore, c.oldStart, c.oldEnd);
+      final range = (startsBefore[c.oldStart], startsBefore[c.oldEnd]);
       rangesBefore.add(range);
       changed += _filled(before, range);
     }
     if (c.newEnd > c.newStart) {
-      final range = _range(after, wordsAfter, c.newStart, c.newEnd);
+      final range = (startsAfter[c.newStart], startsAfter[c.newEnd]);
       rangesAfter.add(range);
       changed += _filled(after, range);
     }
@@ -64,18 +66,14 @@ List<String> _words(String line) {
   return words;
 }
 
-/// The code units of [line] that the words from [from] up to [to] of
-/// [words], its words, take.
-(int, int) _range(String line, List<String> words, int from, int to) {
-  var start = 0;
-  for (var k = 0; k < from; k++) {
-    start += words[k].length;
+/// Where each of [words], the words of a line, starts in it, and then
+/// where the line ends.
+List<int> _starts(List<String> words) {
+  final starts = List.filled(words.length + 1, 0);
+  for (var k = 0; k < words.length; k++) {
+    starts[k + 1] = starts[k] + words[k].length;
   }
-  var end = start;
-  for (var k = from; k < to; k++) {
-    end += words[k].length;
-  }
-  return (start, end);
+  return starts;
 }
 
 /// How many code units of [range] of [line] are not blanks.
