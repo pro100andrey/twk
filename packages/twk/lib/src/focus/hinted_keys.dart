@@ -63,8 +63,9 @@ final class _HintedKeysState extends State<HintedKeys> {
   Map<String, String>? _madeFor;
   var _intents = const <String, Intent>{};
 
-  // what takes said of each key, a bit each, when it was last asked
-  var _said = 0;
+  // what takes said of each key, in the order of the hints, when it was
+  // last asked
+  var _said = const <bool>[];
 
   @override
   void initState() {
@@ -89,22 +90,13 @@ final class _HintedKeysState extends State<HintedKeys> {
     super.dispose();
   }
 
-  /// What [HintedKeys.takes] says of each key now, a bit each.
-  int _ask() {
-    var said = 0;
-    var bit = 1;
-    for (final key in widget.hints.keys) {
-      if (widget.takes(key)) {
-        said |= bit;
-      }
-      bit <<= 1;
-    }
-    return said;
-  }
+  /// What [HintedKeys.takes] says of each key now, in the order of the
+  /// hints.
+  List<bool> _ask() => [for (final key in widget.hints.keys) widget.takes(key)];
 
   void _changed() {
     final said = _ask();
-    if (said != _said) {
+    if (!_same(said, _said)) {
       _said = said;
       widget.node.markKeysChanged();
     }
@@ -122,6 +114,18 @@ final class _HintedKeysState extends State<HintedKeys> {
       child: Shortcuts(_intents, hints: hints, child: widget.child),
     );
   }
+}
+
+bool _same(List<bool> a, List<bool> b) {
+  if (a.length != b.length) {
+    return false;
+  }
+  for (var i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) {
+      return false;
+    }
+  }
+  return true;
 }
 
 /// A key of a [HintedKeys], by its name.

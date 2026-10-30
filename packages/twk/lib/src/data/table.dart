@@ -962,6 +962,10 @@ final class _TableState<T> extends State<Table<T>> {
     return _list.offset != from;
   }
 
+  /// Scrolls the rows to their end; whether they moved.
+  bool _scrollToEnd() =>
+      _list.hasClients && _scrollTo(_list.position.maxOffset);
+
   /// Calls [Table.onActivated] with the row selected; whether there is
   /// one.
   bool _activate() {
@@ -1093,7 +1097,7 @@ final class _TableState<T> extends State<Table<T>> {
       'pageup' => none ? _scroll(-_page) : _move(-_page),
       'pagedown' => none ? _scroll(_page) : _move(_page),
       'home' => none ? _scrollTo(0) : _select(0),
-      'end' => none ? _scrollTo(_list.position.maxOffset) : _select(_count - 1),
+      'end' => none ? _scrollToEnd() : _select(_count - 1),
       'left' when cells => _moveColumn(-1),
       'right' when cells => _moveColumn(1),
       'enter' when !none => _activate(),
