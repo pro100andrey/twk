@@ -906,10 +906,11 @@ final class RenderParagraph extends RenderObject {
   Int32List _spanOf = _noInt32s;
   Int32List _starts = _noInt32s;
   Int32List _ends = _noInt32s;
-  // where each cluster starts in the spans' text joined, what takes no
-  // cell before it included, and at [_count] its length; found when
-  // textRangeAt first asks after a split
-  var _offsets = Int32List(1);
+  // where each span starts in the spans' text joined, and at
+  // [_spans.length] its length, of which [_offsetAt] finds where a
+  // cluster starts; found when textRangeAt or the bidi levels first ask
+  // after a split or an edit: O(spans), not O(clusters) moved at an edit
+  var _spanBase = Int32List(1);
   var _offsetsStale = true;
   var _offsetsFound = 0;
   var _hasMulti = false;
@@ -1121,12 +1122,11 @@ final class RenderParagraph extends RenderObject {
     }
     if (from < to) {
       // the clusters whose levels the edit may have changed
-      final offsets = _offsets;
       var lo = 0;
       var hi = _count;
       while (lo < hi) {
         final mid = (lo + hi) >> 1;
-        if (offsets[mid + 1] <= from) {
+        if (_offsetAt(mid + 1) <= from) {
           lo = mid + 1;
         } else {
           hi = mid;
@@ -1136,7 +1136,7 @@ final class RenderParagraph extends RenderObject {
       hi = _count;
       while (lo < hi) {
         final mid = (lo + hi) >> 1;
-        if (offsets[mid] < to) {
+        if (_offsetAt(mid) < to) {
           lo = mid + 1;
         } else {
           hi = mid;
@@ -2129,12 +2129,7 @@ final class RenderParagraph extends RenderObject {
     }
     _keepTexts();
     _bidiStale = true;
-    if (_bidiOn && !_offsetsStale) {
-      // drawn in visual order, which finds them after each edit
-      _moveOffsets(from, os, ns, count);
-    } else {
-      _offsetsStale = true;
-    }
+    _offsetsStale = true;
     _segmentsStale = true;
     // the clusters the rows were built from that are as they were
     if (from < _changedFrom) {
@@ -2162,43 +2157,6 @@ final class RenderParagraph extends RenderObject {
     }
   }
 
-  /// The offsets of the clusters brought up to an edit that split clusters
-  /// [from, os) of [count] again into [from, ns): those of the clusters
-  /// after them moved, those of the clusters split found.
-  void _moveOffsets(int from, int os, int ns, int count) {
-    final total = _count;
-    final spans = _spans;
-    var length = 0;
-    for (var k = 0; k < spans.length; k++) {
-      length += spans[k].$1.length;
-    }
-    final change = length - _offsets[count];
-    var offsets = _offsets;
-    if (offsets.length <= total) {
-      offsets = Int32List(_room(total + 1, offsets.length))
-        ..setRange(0, from + 1, _offsets);
-    }
-    offsets.setRange(ns + 1, total + 1, _offsets, os + 1);
-    for (var i = ns + 1; i <= total; i++) {
-      offsets[i] += change;
-    }
-    // where the span of each cluster split starts; the end of the one
-    // before them too, which the end of the text was at the end
-    var k = 0;
-    var base = 0;
-    for (var i = from > 0 ? from - 1 : 0; i < ns; i++) {
-      final at = _spanOf[i];
-      while (k < at) {
-        base += spans[k++].$1.length;
-      }
-      offsets[i + 1] = base + _ends[i];
-    }
-    // the start; what takes no cell at the end goes with none
-    offsets[0] = 0;
-    offsets[total] = length;
-    _offsets = offsets;
-  }
-
   /// [to] with clusters [0, from) of [l] where they are, and clusters
   /// [os, count) at [ns] on; [to] may be [l].
   static T _move<T extends List<int>>(
@@ -2216,35 +2174,35 @@ final class RenderParagraph extends RenderObject {
     return to;
   }
 
-  /// Finds where each cluster starts in the spans' text joined: where the
-  /// one before it ends, as what takes no cell goes with the cluster after
-  /// it.
+  /// Finds where each span starts in the spans' text joined, and its
+  /// length, which [_offsetAt] finds where each cluster starts from.
   void _findOffsets() {
     _offsetsStale = false;
     _offsetsFound++;
-    final n = _count;
-    if (_offsets.length <= n) {
-      _offsets = Int32List(_room(n + 1, _offsets.length));
-    }
-    final offsets = _offsets;
     final spans = _spans;
-    final spanOf = _spanOf;
-    final ends = _ends;
-    // where span k starts
-    var k = 0;
-    var base = 0;
-    offsets[0] = 0;
-    for (var i = 0; i + 1 < n; i++) {
-      final at = spanOf[i];
-      while (k < at) {
-        base += spans[k++].$1.length;
-      }
-      offsets[i + 1] = base + ends[i];
+    final m = spans.length;
+    if (_spanBase.length <= m) {
+      _spanBase = Int32List(_room(m + 1, _spanBase.length));
     }
-    while (k < spans.length) {
-      base += spans[k++].$1.length;
+    final base = _spanBase;
+    var at = 0;
+    for (var k = 0; k < m; k++) {
+      base[k] = at;
+      at += spans[k].$1.length;
     }
-    offsets[n] = base;
+    base[m] = at;
+  }
+
+  /// Where cluster [i] starts in the spans' text joined: where the one
+  /// before it ends, as what takes no cell goes with the cluster after it;
+  /// at [_count], the text's length.
+  @pragma('vm:prefer-inline')
+  int _offsetAt(int i) {
+    assert(!_offsetsStale, 'offsets asked for before they are found');
+    if (i >= _count) {
+      return _spanBase[_spans.length];
+    }
+    return i == 0 ? 0 : _spanBase[_spanOf[i - 1]] + _ends[i - 1];
   }
 
   /// Marks the clusters a line may break after by word.
@@ -2970,7 +2928,7 @@ final class RenderParagraph extends RenderObject {
     if (!_offsetsStale) {
       fresh._findOffsets();
       for (var i = 0; i <= _count; i++) {
-        final d = differ('offset $i', _offsets[i], fresh._offsets[i]);
+        final d = differ('offset $i', _offsetAt(i), fresh._offsetAt(i));
         if (d != null) {
           return d;
         }
@@ -3074,10 +3032,9 @@ final class RenderParagraph extends RenderObject {
     if (_offsetsStale) {
       _findOffsets();
     }
-    final offsets = _offsets;
     final rows = _lineCount < height ? _lineCount : height;
     if (y >= rows) {
-      final end = offsets[_count];
+      final end = _offsetAt(_count);
       return (end, end);
     }
     final at = y * _lineStride;
@@ -3102,10 +3059,10 @@ final class RenderParagraph extends RenderObject {
         : (visual ? _visualGaps(n, rtl) : _gapsIn(headStart, headEnd));
     var col = gaps > 0 ? 0 : _lineX(free, rtl);
     if (x < 0 || x < col) {
-      return (offsets[from], offsets[from]);
+      return (_offsetAt(from), _offsetAt(from));
     }
     if (x >= width) {
-      return (offsets[next], offsets[next]);
+      return (_offsetAt(next), _offsetAt(next));
     }
     if (visual) {
       var gap = 0;
@@ -3116,7 +3073,7 @@ final class RenderParagraph extends RenderObject {
           if (x < col) {
             final hidden = headStart < headEnd ? headEnd : from;
             final shown = tailStart < tailEnd ? tailStart : next;
-            return (offsets[hidden], offsets[shown]);
+            return (_offsetAt(hidden), _offsetAt(shown));
           }
           continue;
         }
@@ -3127,10 +3084,10 @@ final class RenderParagraph extends RenderObject {
           gap++;
         }
         if (x < col) {
-          return (offsets[i], offsets[i + 1]);
+          return (_offsetAt(i), _offsetAt(i + 1));
         }
       }
-      return (offsets[next], offsets[next]);
+      return (_offsetAt(next), _offsetAt(next));
     }
     var gap = 0;
     var words = false;
@@ -3141,7 +3098,7 @@ final class RenderParagraph extends RenderObject {
         col += _part(free, gaps, gap++);
       }
       if (x < col) {
-        return (offsets[i], offsets[i + 1]);
+        return (_offsetAt(i), _offsetAt(i + 1));
       }
       words = words || !space;
     }
@@ -3150,16 +3107,16 @@ final class RenderParagraph extends RenderObject {
       if (x < col) {
         final hidden = headStart < headEnd ? headEnd : from;
         final shown = tailStart < tailEnd ? tailStart : next;
-        return (offsets[hidden], offsets[shown]);
+        return (_offsetAt(hidden), _offsetAt(shown));
       }
     }
     for (var i = tailStart; i < tailEnd; i++) {
       col += _cellsOf(i);
       if (x < col) {
-        return (offsets[i], offsets[i + 1]);
+        return (_offsetAt(i), _offsetAt(i + 1));
       }
     }
-    return (offsets[next], offsets[next]);
+    return (_offsetAt(next), _offsetAt(next));
   }
 
   @override
@@ -3530,7 +3487,7 @@ final class RenderParagraph extends RenderObject {
   /// order only.
   bool _rtlLine(int y) {
     final k = _lines[y * _lineStride + 7];
-    final unit = k < _count ? _offsets[k + 1] - 1 : _offsets[_count];
+    final unit = k < _count ? _offsetAt(k + 1) - 1 : _offsetAt(_count);
     return _paraLevels[_paragraphAt(unit)].isOdd;
   }
 
@@ -3563,7 +3520,7 @@ final class RenderParagraph extends RenderObject {
     if (ellipsis) {
       _levelsOf(ts, te, h + 1);
       final k = _lines[at + 7];
-      final unit = k < _count ? _offsets[k + 1] - 1 : _offsets[_count];
+      final unit = k < _count ? _offsetAt(k + 1) - 1 : _offsetAt(_count);
       final base = _paraLevels[_paragraphAt(unit)];
       final before = h > 0 ? levels[h - 1] : base;
       final after = te > ts ? levels[h + 1] : base;
@@ -3633,12 +3590,12 @@ final class RenderParagraph extends RenderObject {
     if (a == b) {
       return;
     }
-    final end = _offsets[b];
-    var from = _offsets[a];
+    final end = _offsetAt(b);
+    var from = _offsetAt(a);
     var to = from;
     var at = k;
     for (var i = a; i < b; i++) {
-      final unit = _offsets[i + 1] - 1;
+      final unit = _offsetAt(i + 1) - 1;
       while (unit >= to) {
         from = to;
         final p = _paragraphAt(from);
