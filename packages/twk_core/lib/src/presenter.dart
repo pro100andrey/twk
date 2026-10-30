@@ -45,6 +45,11 @@ import 'terminal/sequences.dart' show Multiplexer;
 /// reserved cell ([kSkip]) the rows copied is whatever the terminal has.
 const int _kUnder = kSkip | kBlank;
 
+/// What starts a frame in DEC 2026, and hides the cursor while it is
+/// drawn: written first, taken back by their length where not needed.
+const _beginSync = '\x1b[?2026h';
+const _hideCursor = '\x1b[?25l';
+
 /// Sets the row flags `a[start, end)` to [value]. Not `fillRange`, which
 /// on a typed list calls `[]=` out of line for every element: clearing the
 /// flags of 60 rows that way took about an eighth of a spinner frame.
@@ -702,7 +707,7 @@ final class Presenter {
 
     final sync = caps.synchronizedOutput;
     if (sync) {
-      out.ascii('\x1b[?2026h');
+      out.ascii(_beginSync);
     }
     if (!_autowrapOff) {
       // Autowrap off: a glyph a terminal renders wider than we think can
@@ -714,7 +719,7 @@ final class Presenter {
     // a visible cursor jumping around while cells are drawn flickers
     final hidden = _cursorShown;
     if (hidden) {
-      out.ascii('\x1b[?25l');
+      out.ascii(_hideCursor);
     }
     final bodyStart = out.length;
 
@@ -926,7 +931,8 @@ final class Presenter {
         // the move prevents no flicker
         final keepShown = hidden && !bodyChanged;
         if (keepShown) {
-          out.length -= 6; // the prefix's ESC [ ? 2 5 l
+          // the prefix's last, as nothing was written after it
+          out.length -= _hideCursor.length;
         }
         _moveTo(cx, cy);
         if (cursorShape != _shapeSent) {
@@ -980,7 +986,7 @@ final class Presenter {
           stats.scrolledRows == 0 &&
           out.length - bodyStart <= 64) {
         // a change within one row can't tear: skip the 2026 wrapper
-        out.removePrefix(8); // ESC [ ? 2 0 2 6 h
+        out.removePrefix(_beginSync.length);
       } else {
         out.ascii('\x1b[?2026l');
       }

@@ -151,6 +151,26 @@ void main() {
     expect(v.rows(), [for (var i = 2; i < 6; i++) ' line $i']);
   });
 
+  test('a text off the screen while the glyphs were swept shapes again', () {
+    final v = View(10, 1);
+    // a cluster of two code points, which the glyph table interns
+    final text = RenderText('e\u0301', v.pen);
+    v.owner.root = text;
+    v.frame();
+    v.owner.root = RenderText('x', v.pen);
+    v.frame();
+    void none(int _) {}
+    v.screen.glyphs.sweep((mark) {
+      v.screen.surface.markCells(mark, none);
+      v.screen.presenter.markCells(mark, none);
+    });
+    // the freed id given to another cluster
+    v.screen.glyphs.intern('o\u0301', 0, 2);
+    v.owner.root = text;
+    v.frame();
+    expect(v.rows(), ['e\u0301']);
+  });
+
   test('a root without a background of its own leaves nothing behind', () {
     final v = View(10, 2);
     final title = RenderText('hello', v.pen);

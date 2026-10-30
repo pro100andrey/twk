@@ -42,6 +42,11 @@ final class RenderLog extends RenderObject {
   // the glyph table the runs are of, and its sweeps when they were shaped
   GlyphTable? _runsIn;
   var _runsSweeps = 0;
+  // the lines from _runsFrom up to _runsTo may have a run: those of the
+  // view and of a view's height either side of it, the others dropped as
+  // it moves, so that a long log keeps the runs of what it shows
+  var _runsFrom = 0;
+  var _runsTo = 0;
 
   // the index of the first visible line; follows the end while stickToEnd
   var _first = 0;
@@ -178,7 +183,7 @@ final class RenderLog extends RenderObject {
       // since a sweep of the glyphs, the ids may be others'
       _runsIn = cv.glyphs;
       _runsSweeps = cv.glyphs.sweeps;
-      _runs.fillRange(0, _runs.length, null);
+      _runs.fillRange(_runsFrom, _runsTo, null);
     }
     for (var row = 0; row < height; row++) {
       if ((row < from || row >= to) && (row < newFrom || row >= newTo)) {
@@ -191,6 +196,17 @@ final class RenderLog extends RenderObject {
         cv.run(1, row, run, itemPen(i, _lines[i]));
       }
     }
+    final keepFrom = _first - height > 0 ? _first - height : 0;
+    final keepTo = _first + 2 * height < _lines.length
+        ? _first + 2 * height
+        : _lines.length;
+    for (var i = _runsFrom; i < _runsTo; i++) {
+      if (i < keepFrom || i >= keepTo) {
+        _runs[i] = null;
+      }
+    }
+    _runsFrom = keepFrom;
+    _runsTo = keepTo;
     _paintedFirst = _first;
     _paintedLength = _lines.length;
     _paintedWidth = width;

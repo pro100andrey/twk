@@ -38,6 +38,9 @@ final class RenderText extends RenderObject {
   /// its bounds with [pen] before the text. False by default.
   final bool boundary;
   GlyphRun? _run;
+  // the glyph table the run is of, and its sweeps when it was shaped
+  GlyphTable? _runIn;
+  var _runSweeps = 0;
 
   /// The line shown; new text is shaped again and laid out again, with a
   /// parent that asked how wide it is.
@@ -94,8 +97,16 @@ final class RenderText extends RenderObject {
       assert(_opaqueBackground(ctx, pen), _translucentBoundary);
       ctx.canvas.fill(0, 0, width, height, pen);
     }
-    final run = _run ??= ctx.canvas.shape(_text);
-    ctx.canvas.run(0, 0, run, pen);
+    final cv = ctx.canvas;
+    if (!identical(cv.glyphs, _runIn) || cv.glyphs.sweeps != _runSweeps) {
+      // since a sweep of the glyphs, the ids may be others': a text not on
+      // the screen then (scrolled out, in a tab not shown) kept none
+      _runIn = cv.glyphs;
+      _runSweeps = cv.glyphs.sweeps;
+      _run = null;
+    }
+    final run = _run ??= cv.shape(_text);
+    cv.run(0, 0, run, pen);
   }
 }
 

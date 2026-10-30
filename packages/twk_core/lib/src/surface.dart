@@ -300,20 +300,21 @@ final class Surface {
   /// A surface [width] x [height] cells, blank in style 0 and damaged
   /// whole.
   Surface(int width, int height)
-    : width = width,
-      height = height,
-      cells = Uint32List(width * height),
-      styles = Uint32List(width * height),
-      dirtyLo = Int32List(height),
-      dirtyHi = Int32List(height) {
-    cells64 = view64(cells);
-    styles64 = view64(styles);
+    : _width = width,
+      _height = height,
+      _cells = Uint32List(width * height),
+      _styles = Uint32List(width * height),
+      _dirtyLo = Int32List(height),
+      _dirtyHi = Int32List(height) {
+    _cells64 = view64(_cells);
+    _styles64 = view64(_styles);
     fillU32(cells, 0, cells.length, kBlank);
     markAllDirty();
   }
 
   /// How many cells wide the surface is; [resize] changes it.
-  int width;
+  int get width => _width;
+  int _width;
 
   // what keeps cells of it beyond it
   final _keepers = <CellKeeper>{};
@@ -340,27 +341,34 @@ final class Surface {
   }
 
   /// How many rows tall the surface is; [resize] changes it.
-  int height;
+  int get height => _height;
+  int _height;
 
   /// The glyph and flags of each cell, row after row: the glyph id
   /// (`& kGlyphMask`) with [kWide], [kCont], [kUncertain] or [kSkip].
-  Uint32List cells;
+  Uint32List get cells => _cells;
+  Uint32List _cells;
 
   /// The style id of each cell in a [StyleTable], as [cells] is ordered.
-  Uint32List styles;
+  Uint32List get styles => _styles;
+  Uint32List _styles;
 
   /// [cells] seen two cells to a word, for fast scans.
-  late Uint64List cells64;
+  Uint64List get cells64 => _cells64;
+  late Uint64List _cells64;
 
   /// [styles] seen two cells to a word, for fast scans.
-  late Uint64List styles64;
+  Uint64List get styles64 => _styles64;
+  late Uint64List _styles64;
 
   /// The first damaged column of each row: the damage is
   /// `[dirtyLo, dirtyHi)`, none when `dirtyLo >= dirtyHi`.
-  Int32List dirtyLo;
+  Int32List get dirtyLo => _dirtyLo;
+  Int32List _dirtyLo;
 
   /// The column after the last damaged one of each row (see [dirtyLo]).
-  Int32List dirtyHi;
+  Int32List get dirtyHi => _dirtyHi;
+  Int32List _dirtyHi;
 
   /// Moves recorded by [scrollRows] / [scrollRect] since the last present,
   /// as flat (top, bottom, n, x0, x1) tuples. The presenter replays them as
@@ -403,15 +411,15 @@ final class Surface {
     if (w == width && h == height) {
       return;
     }
-    width = w;
-    height = h;
-    cells = Uint32List(w * h);
-    fillU32(cells, 0, w * h, kBlank);
-    styles = Uint32List(w * h);
-    cells64 = view64(cells);
-    styles64 = view64(styles);
-    dirtyLo = Int32List(h);
-    dirtyHi = Int32List(h);
+    _width = w;
+    _height = h;
+    _cells = Uint32List(w * h);
+    fillU32(_cells, 0, w * h, kBlank);
+    _styles = Uint32List(w * h);
+    _cells64 = view64(_cells);
+    _styles64 = view64(_styles);
+    _dirtyLo = Int32List(h);
+    _dirtyHi = Int32List(h);
     pendingScrolls.clear();
     images.clear();
     markAllDirty();
