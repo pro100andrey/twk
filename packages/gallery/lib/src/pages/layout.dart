@@ -54,9 +54,6 @@ List<String> _call(int indent, String head, List<String> args, String tail) {
   ];
 }
 
-/// [parts] as one line of the Code, a line too long for this file.
-String _line(List<String> parts) => parts.join();
-
 /// A rounded border in the theme's border style.
 Border _rounded(ThemeData theme, {bool merge = false}) =>
     Border.all(type: BorderType.rounded, style: theme.border, merge: merge);
@@ -510,12 +507,12 @@ final _divider = GalleryPage(
       '        bottom: 0,',
       ..._call(8, 'child: VerticalDivider', args, ','),
       '      ),',
-      _line([
+      codeLine([
         '      Positioned(left: 2, top: 3, ',
         "child: Text('added', style: theme.muted)),",
       ]),
       r"      const Positioned(left: 2, top: 4, child: Text('Grid tracks\nDockArea')),",
-      _line([
+      codeLine([
         '      Positioned(left: 19, top: 3, ',
         "child: Text('fixed', style: theme.muted)),",
       ]),
@@ -890,7 +887,7 @@ final _constrainedBox = GalleryPage(
   code: (o) => [
     'final theme = Theme.of(context);',
     'Widget bounded(String text) => ConstrainedBox(',
-    _line([
+    codeLine([
       '  constraints: const BoxConstraints(',
       "${o.label('min')}, ${o.label('max')}, 1, 3),",
     ]),
@@ -1170,7 +1167,7 @@ final _intrinsic = GalleryPage(
     'final menu = Column(',
     '  crossAxisAlignment: .stretch,',
     '  children: [',
-    _line([
+    codeLine([
       '    for (final (i, label) in ',
       "['Open…', 'Save as…', 'Close window'].indexed)",
     ]),
@@ -1315,7 +1312,7 @@ final _flex = GalleryPage(
       'final theme = Theme.of(context);',
       '// the text reversed too, as Badge has it: a Box gives its child its',
       '// colours, not its attributes',
-      _line([
+      codeLine([
         'Widget chip(String label, Style color, ',
         '[EdgeInsets padding = const .x(1)]) {',
       ]),
@@ -1833,7 +1830,7 @@ final _grid = GalleryPage(
       if (o['cg'] != 0) '    columnGap: ${o.label('cg')},',
       if (o['rg'] != 0) '    rowGap: ${o.label('rg')},',
       '    children: [',
-      _line([
+      codeLine([
         '      GridPlacement(columnSpan: 3, ',
         "child: cell('header · columnSpan: 3')),",
       ]),
@@ -1900,7 +1897,7 @@ final _wrap = GalleryPage(
     const ChoiceOption('gap', 'gap', values: [0, 1, 2], initial: 1),
     const ChoiceOption('runGap', 'run gap', values: [0, 1]),
   ],
-  build: (context, o) => _Timed((context, ms, wake) {
+  build: (context, o) => Timed((context, ms, wake) {
     var width = o.number('width').toInt();
     if (o.flag('live')) {
       // a cell narrower every 120 ms from 48 to 20 and back, the slider
@@ -2014,45 +2011,6 @@ final _wrap = GalleryPage(
     ].join('\n');
   },
 );
-
-/// Builds [builder] with the gallery's time in milliseconds, again at each
-/// time it asks for with `wake`: what the Code's timers move, on the
-/// gallery's clock, so that a route's `t=` stills it.
-final class _Timed extends StatefulWidget {
-  const _Timed(this.builder);
-
-  final Widget Function(BuildContext context, int ms, void Function(int) wake)
-  builder;
-
-  @override
-  State<_Timed> createState() => _TimedState();
-}
-
-final class _TimedState extends State<_Timed> {
-  late final _motion = Motion(() {
-    if (mounted) {
-      setState(() {});
-    }
-  });
-
-  @override
-  void dispose() {
-    _motion.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    _motion.begin(context);
-    final built = widget.builder(
-      context,
-      _motion.now.inMilliseconds,
-      (at) => _motion.wakeAt(Duration(milliseconds: at)),
-    );
-    _motion.end();
-    return built;
-  }
-}
 
 // ------------------------------------------------------------ CustomPaint
 
@@ -2198,7 +2156,7 @@ final _customPaint = GalleryPage(
       '      for (var row = 0; row < height; row++) {',
       '        final left = eighths - 8 * row;',
       '        if (left > 0) {',
-      _line([
+      codeLine([
         '          canvas.text(x, height - 1 - row, ',
         "'$_blocks'[min(left, 8)], pen);",
       ]),
@@ -2270,7 +2228,7 @@ final _splitView = GalleryPage(
       'Widget build(BuildContext context) {',
       '  final theme = Theme.of(context);',
       '  Widget pane(String title, String text) => Box(',
-      _line([
+      codeLine([
         '    border: .all(type: .rounded, style: theme.border',
         "${share ? ', merge: true' : ''}),",
       ]),
@@ -2306,7 +2264,7 @@ final _splitView = GalleryPage(
       '      ListenableBuilder(',
       '        listenable: _split,',
       '        builder: (context, _) {',
-      _line([
+      codeLine([
         '          final fractions = ',
         '_split.fractions.map((f) => f.toStringAsFixed(2));',
       ]),
@@ -2792,7 +2750,7 @@ final _scaffold = GalleryPage(
     '          crossAxisAlignment: .start,',
     '          gap: 1,',
     '          children: [',
-    _line([
+    codeLine([
       "            Button('New note', ",
       'onPressed: () => setState(() => _notes++)),',
     ]),

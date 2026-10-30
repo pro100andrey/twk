@@ -5,6 +5,7 @@ import 'package:twk/twk.dart';
 
 import '../motion.dart';
 import '../page.dart';
+import 'common.dart';
 
 /// The pages of the Animation group that draw.
 final animationPages = <GalleryPage>[
@@ -73,18 +74,6 @@ const _cycleOption = SwitchOption('cycle', 'cycle', initial: true);
 
 Curve _curveOf(Options o) => _curves[o.choice<String>('curve')]!;
 
-/// Where a cycle stands: on or off, since when, from which value, and
-/// the value the option last had.
-final class _Drive {
-  _Drive({required this.on, required this.since, required this.from})
-    : last = from;
-
-  bool on;
-  Duration since;
-  int from;
-  int last;
-}
-
 /// [builder] with the index of the value of option [option] (one of
 /// [values]) the widget is given: the option's own, or while the page's
 /// `cycle` switch is on, the next one every [_cycle] ms, as the Code's
@@ -132,13 +121,13 @@ final class _CycledState extends State<_Cycled> {
     final born = kept['born'] as Duration? ?? (_motion.frozen ? .zero : now);
     kept['born'] = born;
     final name = 'drive:${w.option}';
-    var d = kept[name] as _Drive?;
+    var d = kept[name] as Drive?;
     if (on && d != null && d.on && c != d.last) {
       scheduleMicrotask(() => control.setOption('cycle', false));
       on = false;
     }
     if (d == null) {
-      d = _Drive(on: on, since: born, from: c);
+      d = Drive(on: on, since: born, from: c);
       kept[name] = d;
     } else if (d.on != on) {
       d
@@ -169,9 +158,6 @@ final class _CycledState extends State<_Cycled> {
 // ------------------------------------------------------------ code
 
 const _dur = 'const Duration(milliseconds: 600)';
-
-/// [parts] as one line of the Code, a line too long for this file.
-String _line(List<String> parts) => parts.join();
 
 /// A number as JavaScript's String() writes it: `0.5`, `1`.
 String _js(num v) => v == v.roundToDouble() ? '${v.round()}' : '$v';
@@ -248,7 +234,7 @@ List<String> _framed(
   String what,
   List<String> child,
 ) => [
-  _line([
+  codeLine([
     '// the room it grows in: $what',
     if (o.choice<String>('curve') == 'elasticOut') ', and elasticOut beyond it',
   ]),
@@ -318,7 +304,7 @@ final _spinner = GalleryPage(
     final color = o.color('color');
     return [
       'final theme = Theme.of(context);',
-      _line([
+      codeLine([
         "const tasks = ['Resolving packages…', 'Compiling…', ",
         "'Running 214 tests…'];",
       ]),
@@ -335,7 +321,7 @@ final _spinner = GalleryPage(
       if (frames == 'dots')
         '          Spinner(style: theme.$color),'
       else
-        _line([
+        codeLine([
           '          Spinner(frames: SpinnerFrames.$frames, ',
           'style: theme.$color),',
         ]),
@@ -402,7 +388,7 @@ final _progressBar = GalleryPage(
       '      width: 40,',
       '      child: ProgressBar(',
       if (known) '        value: $v,',
-      _line([
+      codeLine([
         '        style: theme.${o.color('color')}',
         '.merge(.new(bg: theme.surface.bg)),',
       ]),
@@ -502,7 +488,7 @@ final _controller = GalleryPage(
         '              mainAxisSize: .min,',
         '              children: [',
         r"                gauge(value, 'value  ${value.toStringAsFixed(2)}'),",
-        _line([
+        codeLine([
           '                gauge(curved, ',
           r"'curved ${curved.toStringAsFixed(2)}'),",
         ]),
@@ -1822,7 +1808,7 @@ final _effect = GalleryPage(
       "                  const Text('repainting underneath'),",
       '                ],',
       '              ),',
-      _line([
+      codeLine([
         "              Text('the cells it paints, filtered', ",
         'style: theme.muted),',
       ]),
@@ -2054,7 +2040,7 @@ final _progressList = GalleryPage(
   code: (o) {
     final columns = o.choice<String>('columns');
     return [
-      _line([
+      codeLine([
         '/// The downloads: a name, a size in bytes, and the bytes a tick ',
         'brings.',
       ]),

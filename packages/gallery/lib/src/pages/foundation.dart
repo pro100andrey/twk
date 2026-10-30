@@ -9,6 +9,7 @@ import 'package:twk/twk.dart';
 
 import '../motion.dart';
 import '../page.dart';
+import 'common.dart';
 
 /// The pages of the Foundation group that draw.
 final List<GalleryPage> foundationPages = [_listenable, _async];
@@ -16,42 +17,6 @@ final List<GalleryPage> foundationPages = [_listenable, _async];
 /// When the page was first built, in ms: at 0 while time is frozen.
 int _born(Map<String, Object?> state, Motion motion) =>
     (state['born'] ??= motion.frozen ? 0 : motion.now.inMilliseconds) as int;
-
-/// A State that builds with a [Motion] begun on the gallery's clock, and
-/// the page's kept state.
-abstract base class _TimedState<W extends StatefulWidget> extends State<W> {
-  late final motion = Motion(() {
-    if (mounted) {
-      setState(() {});
-    }
-  });
-  late final Map<String, Object?> kept = PageControl.of(context).state;
-
-  /// The time of this build, in ms.
-  int get now => motion.now.inMilliseconds;
-
-  /// A build at [at] ms on the gallery's clock.
-  void wake(int at) => motion.wakeAt(Duration(milliseconds: at));
-
-  @override
-  void dispose() {
-    motion.dispose();
-    super.dispose();
-  }
-
-  Widget buildTimed(BuildContext context);
-
-  @override
-  Widget build(BuildContext context) {
-    motion.begin(context);
-    final built = buildTimed(context);
-    motion.end();
-    return built;
-  }
-}
-
-/// [parts] as one line of the Code, a line too long for this file.
-String _line(List<String> parts) => parts.join();
 
 // ------------------------------------------------------- ListenableBuilder
 
@@ -105,14 +70,14 @@ final _listenable = GalleryPage(
       '    ),',
       '    ListenableBuilder(',
       '      listenable: _count,',
-      _line([
+      codeLine([
         '      builder: (context, _) => ',
         r"Text('ListenableBuilder: ${_count.value}'),",
       ]),
       '    ),',
       '    ValueListenableBuilder(',
       '      valueListenable: _count,',
-      _line([
+      codeLine([
         '      builder: (context, value, _) => ',
         r"Text('ValueListenableBuilder: $value'),",
       ]),
@@ -134,7 +99,7 @@ final class _Counting extends StatefulWidget {
   State<_Counting> createState() => _CountingState();
 }
 
-final class _CountingState extends _TimedState<_Counting> {
+final class _CountingState extends TimedState<_Counting> {
   final _count = ValueNotifier<int>(0);
 
   @override
@@ -273,7 +238,7 @@ final _async = GalleryPage(
       '        future: _load,',
       '        builder: (context, snapshot) => shown(',
       '          switch (snapshot.connectionState) {',
-      _line([
+      codeLine([
         '            ConnectionState.none => ',
         "const Text('future: not started'),",
       ]),
@@ -288,7 +253,7 @@ final _async = GalleryPage(
       r"              'future: ${snapshot.error}',",
       '              style: theme.error,',
       '            ),',
-      _line([
+      codeLine([
         '            _ => ',
         r"Text('future: ${snapshot.data}', style: theme.success),",
       ]),
@@ -322,7 +287,7 @@ final class _Async extends StatefulWidget {
   State<_Async> createState() => _AsyncState();
 }
 
-final class _AsyncState extends _TimedState<_Async> {
+final class _AsyncState extends TimedState<_Async> {
   Completer<String>? _loading;
   StreamController<int>? _ticks;
   var _sent = 0;
