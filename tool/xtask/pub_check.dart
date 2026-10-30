@@ -1,6 +1,6 @@
 // Whether a package is ready for pub.dev, as pub.dev would say:
 //
-//   pub [--min=N] PATH...
+//   pub [--min=N] [--scored] PATH...
 //
 // For each package (a path in it, relative to the root): `publish_to` must
 // not be `none` (which the dry-run doesn't check; the rest is still run
@@ -10,9 +10,13 @@
 // it is under N (no floor without --min). pana is `dart pub global run
 // pana` (skipped, said so, where it isn't activated); it scores a copy of
 // the package resolved from pub.dev, so a package that depends on another
-// of this repository's, by a path or not published yet, is not scored, and
-// said so. Both need the network.
+// of this repository's, by a path or not published yet, its dev
+// dependencies too (pub.dev asked first: their formatter's and analyzer's
+// options are not found without them), is not scored, and said so; with
+// --scored, as right before its upload, that fails it. Both need the
+// network.
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:xtask/xtask.dart';
 
@@ -22,9 +26,12 @@ import 'verbs.dart';
 /// The verb: checks each package [c]'s arguments name.
 Future<int> pubCheck(VerbContext c, Cpus cpus) async {
   int? min;
+  var scored = false;
   final paths = <String>[];
   for (final arg in c.args) {
-    if (arg.startsWith('--min=')) {
+    if (arg == '--scored') {
+      scored = true;
+    } else if (arg.startsWith('--min=')) {
       min = int.tryParse(arg.substring('--min='.length));
       if (min == null) {
         c.log('pub: --min takes a number of points, not $arg');
@@ -71,6 +78,32 @@ Future<int> pubCheck(VerbContext c, Cpus cpus) async {
       );
       continue;
     }
+    final unpublished = [
+      for (final name in repositoryDependencies(
+        c.file('$dir/pubspec.yaml').readAsStringSync(),
+        _repositoryPackages(c.root),
+      ))
+        if ((await c.capture([
+              'curl',
+              '-fsS',
+              '-o',
+              '/dev/null',
+              'https://pub.dev/api/packages/$name',
+            ])).exitCode !=
+            0)
+          name,
+    ];
+    if (unpublished.isNotEmpty) {
+      c.log(
+        '$dir: not scored, it depends on ${unpublished.join(', ')}, which '
+        'pana cannot resolve outside this repository (not on pub.dev yet)',
+      );
+      if (scored) {
+        c.log('$dir: --scored, and pana gave no score');
+        failed = true;
+      }
+      continue;
+    }
     c.log('$dir: pana');
     final run = await c.capture(
       offBenchCore(c, cpus, [
@@ -97,6 +130,10 @@ Future<int> pubCheck(VerbContext c, Cpus cpus) async {
         '$dir: not scored, it depends on $missing, which pana cannot '
         'resolve outside this repository (by a path, or not on pub.dev yet)',
       );
+      if (scored) {
+        c.log('$dir: --scored, and pana gave no score');
+        failed = true;
+      }
       continue;
     }
     score.lines.forEach(c.log);
@@ -106,6 +143,42 @@ Future<int> pubCheck(VerbContext c, Cpus cpus) async {
     }
   }
   return failed ? ExitCode.taskFailed : ExitCode.success;
+}
+
+/// The names of the packages under [root]'s `packages/`.
+Set<String> _repositoryPackages(String root) => {
+  for (final dir in Directory('$root/packages').listSync())
+    if (File('${dir.path}/pubspec.yaml') case final pubspec
+        when pubspec.existsSync())
+      if (RegExp(
+            r'^name:\s*(\S+)',
+            multiLine: true,
+          ).firstMatch(pubspec.readAsStringSync())
+          case final m?)
+        m[1]!,
+};
+
+/// The packages of [packages] that a pubspec's text depends on by a version
+/// (`name: ^0.1.0`, on the line of its name), its dev dependencies too:
+/// what pana resolves from pub.dev. One by a path is left to pana, which
+/// says it cannot find it.
+List<String> repositoryDependencies(String pubspec, Set<String> packages) {
+  final names = <String>[];
+  String? section;
+  for (final line in const LineSplitter().convert(pubspec)) {
+    if (RegExp(r'^(\w+):').firstMatch(line) case final top?) {
+      section = top[1];
+      continue;
+    }
+    if (section != 'dependencies' && section != 'dev_dependencies') {
+      continue;
+    }
+    if (RegExp(r'^  (\w+):\s*[^\s#]').firstMatch(line) case final dep?
+        when packages.contains(dep[1])) {
+      names.add(dep[1]!);
+    }
+  }
+  return names;
 }
 
 /// Whether a pubspec's text says `publish_to: none`.

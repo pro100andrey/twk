@@ -16,12 +16,12 @@ text
 │     SelectionArea       ·   ·   ╰──────────────────────────────────╯    ·   ·  │
 │     Draggable, Dr…                                                             │
 │                     ▐   ·   ·   taps 0, double 0, long 0                ·   ·  │
-│   FOCUS AND KEYS 4  ▐           dragged 0 across, 0 down                       │
+│   FOCUS AND KEYS 5  ▐           dragged 0 across, 0 down                       │
 │     Focus, FocusS…            └                                      ┘         │
-│     ExcludeFocus     ──────────────────────────────────────────────────────────│
-│     KeyBindings,…      double tap        ▐  ●▌                                 │
-│     Shortcuts, Ac…     long press after   500 ms  1 s                          │
-│                        buttons            left  right  left, middle, right     │
+│     ActiveItem       ──────────────────────────────────────────────────────────│
+│     ExcludeFocus       double tap        ▐  ●▌                                 │
+│     KeyBindings,…      long press after   500 ms  1 s                          │
+│     Shortcuts, Ac…     buttons            left  right  left, middle, right     │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -43,10 +43,10 @@ styles
 │aaaaaaaaaaaaaaaaaaaaadgggogggogggmmmmgwmgmmmmmmgwmgmmmmgwggggggggggggggggogggogg│
 │aaadddddadddaddddaBaadgggggggggggmmmmmmmgwgwwwwwwwgwgwwwwggggggggggggggggggggggg│
 │aaaaannnnnnannnnnnnaaagggggggggoggggggggggggggggggggggggggggggggggggggoggggggggg│
-│aaaaannnnnnnnnnnnaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnnnnnnnaaaaggmmmmmmgmmmggggggggxyyzxggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnannnaaaggmmmmgmmmmmgmmmmmggstttsttshAhAhggggggggggggggggggggggggg│
-│aaaaaaaaaaaaaaaaaaaaaaggmmmmmmmgggggggggggsttttshAAAAAhhAAAAAhAAAAAAAhAAAAAhgggg│
+│aaaaannnnnnnnnnaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnnaaaaaggmmmmmmgmmmggggggggxyyzxggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnaaaaggmmmmgmmmmmgmmmmmggstttsttshAhAhggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnannnaaaggmmmmmmmgggggggggggsttttshAAAAAhhAAAAAhAAAAAAAhAAAAAhgggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

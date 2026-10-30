@@ -15,10 +15,19 @@ import '../binding/app_binding.dart';
 ///
 /// A [Spinner] steps its frames, and a [ProgressBar] its sweep, with one.
 final class Steps {
-  /// Steps of [_interval] for the app of [binding], not started; asserts
-  /// that the interval is longer than zero.
-  Steps(this._interval, this.onStep, {this.binding})
-    : assert(_interval > Duration.zero, 'a step takes no time');
+  /// Steps of [_interval] for the app of [binding], not started; an
+  /// interval not longer than zero is an [ArgumentError].
+  Steps(this._interval, this.onStep, {this.binding}) {
+    _check(_interval);
+  }
+
+  /// Throws where [interval] is not longer than zero: [current] divides by
+  /// it.
+  static void _check(Duration interval) {
+    if (interval <= Duration.zero) {
+      throw ArgumentError.value(interval, 'interval', 'a step takes no time');
+    }
+  }
 
   /// What it calls at the first frame of each step while started.
   final void Function() onStep;
@@ -30,10 +39,10 @@ final class Steps {
   Duration _interval;
 
   /// How long a step is; set, a started one goes on at the next step of
-  /// the new interval. Asserts that it is longer than zero.
+  /// the new interval. One not longer than zero is an [ArgumentError].
   Duration get interval => _interval;
   set interval(Duration i) {
-    assert(i > Duration.zero, 'a step takes no time');
+    _check(i);
     if (i != _interval) {
       _interval = i;
       if (_callback != null) {

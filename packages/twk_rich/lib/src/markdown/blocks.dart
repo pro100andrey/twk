@@ -9,13 +9,32 @@ import 'nodes.dart';
 /// it, in order.
 typedef Converted = ({MdBlock? block, List<MdDefinition> definitions});
 
+/// How many block quotes and list items a block can be in, itself counted:
+/// a `>` or list marker that would start one deeper is text.
+const maxNesting = 32;
+
 /// Parses Markdown into blocks one line at a time, after CommonMark's
 /// algorithm, with GFM's tables and task list items. HTML blocks are
 /// paragraphs; the link reference definitions a paragraph starts with are
 /// taken out of it.
 ///
+/// A block quote or list item starts only within fewer than [maxNesting]
+/// of them; deeper, its marker is text. A document of nothing but `>`
+/// would otherwise nest as deep as it is long, past what the stack holds
+/// for the passes that walk the blocks.
+///
 /// A closed block stays as it is whatever lines are added later.
 final class BlockParser {
+  /// A parser of no lines yet.
+  BlockParser() : this._(InlineMemo());
+
+  BlockParser._(this._inlines);
+
+  /// What the inlines of the paragraph parsed last keep for the next: the
+  /// text of an open paragraph, made again as lines stream in, is parsed
+  /// from where it stopped changing. Shared with the parser's copies.
+  final InlineMemo _inlines;
+
   final _document = _Block(_Kind.document, 0, null);
   late _Block _tip = _document;
   late _Block _oldTip = _document;
@@ -137,7 +156,7 @@ final class BlockParser {
   /// other as it is. The two share the closed blocks, which no line
   /// changes, so this costs the open ones.
   BlockParser copy() {
-    final copy = BlockParser()
+    final copy = BlockParser._(_inlines)
       .._lineNumber = _lineNumber
       .._allClosed = true;
     var from = _document;
@@ -342,8 +361,9 @@ final class BlockParser {
   /// container that more blocks may start in, [_Match.done] for a leaf.
   _Match _start(_Block container) {
     final c = _peek(_nextNonspace);
+    final nests = container.nesting < maxNesting;
     if (!_indented) {
-      if (c == 0x3E) {
+      if (c == 0x3E && nests) {
         _advanceNextNonspace();
         _advanceOffset(1);
         if (_isSpaceOrTab(_peek(_offset))) {
@@ -371,7 +391,7 @@ final class BlockParser {
         return _Match.done;
       }
     }
-    if (!_indented || container.kind == _Kind.list) {
+    if (nests && (!_indented || container.kind == _Kind.list)) {
       final list = _listMarker(container);
       if (list != null) {
         _closeUnmatched();
@@ -606,14 +626,55 @@ final class BlockParser {
     return made;
   }
 
+  /// The code of the fenced block [block], its lines after the info
+  /// string: what of it the block it was copied from has too is joined
+  /// once, kept on that block, and only the lines added since joined
+  /// again, as a long block streams in a line at a time.
+  static String _fencedCode(_Block block) {
+    final memo = block.origin ?? block;
+    final lines = block.lines;
+    final known = memo.lines.length;
+    if (memo.codeLines < known - 1) {
+      memo.code += [
+        for (var i = 1 + memo.codeLines; i < known; i++) '${lines[i]}\n',
+      ].join();
+      memo.codeLines = known - 1;
+    }
+    return lines.length == known
+        ? memo.code
+        : memo.code +
+              [for (var i = known; i < lines.length; i++) '${lines[i]}\n']
+                  .join();
+  }
+
+  /// The table [block]: the rows of it that the block it was copied from
+  /// has too are parsed once, kept on that block, and only the rows added
+  /// since parsed again, as a long table streams in a row at a time.
+  static MdTable _tableOf(_Block block) {
+    final memo = block.origin ?? block;
+    final known = memo.cells.length;
+    final parsed = memo.parsedCells;
+    while (parsed.length < known) {
+      parsed.add([
+        for (final cell in memo.cells[parsed.length]) parseInlines(cell),
+      ]);
+    }
+    List<List<MdInline>> row(int k) => k < known
+        ? parsed[k]
+        : [for (final cell in block.cells[k]) parseInlines(cell)];
+    return MdTable(block.align, row(0), [
+      for (var k = 1; k < block.cells.length; k++) row(k),
+    ]);
+  }
+
   MdBlock? _make(_Block block, List<MdDefinition> definitions) {
     definitions.addAll(block.definitions);
     return switch (block.kind) {
-      _Kind.paragraph => _paragraph(block.lines, definitions),
+      _Kind.paragraph => _paragraph(block.lines, definitions, _inlines),
       _Kind.heading => MdHeading(block.level, parseInlines(_trim(block.lines))),
       _Kind.thematicBreak => const MdThematicBreak(),
       _Kind.code when block.fenced => MdCodeBlock(
-        [for (final line in block.lines.skip(1)) '$line\n'].join(),
+        _fencedCode(block),
         info: unescape(block.lines.first.trim()),
         fenced: true,
       ),
@@ -626,16 +687,7 @@ final class BlockParser {
         _convertAll(block.children, definitions),
       ),
       _Kind.list => _convertList(block, definitions),
-      _Kind.table => MdTable(
-        block.align,
-        [
-          for (final cell in block.cells.first) parseInlines(cell),
-        ],
-        [
-          for (final row in block.cells.skip(1))
-            [for (final cell in row) parseInlines(cell)],
-        ],
-      ),
+      _Kind.table => _tableOf(block),
       _Kind.document || _Kind.item => throw StateError('$block is converted'),
     };
   }
@@ -715,9 +767,13 @@ bool _isDigit(int c) => c >= 0x30 && c <= 0x39;
 
 /// The paragraph of [lines] after the link reference definitions it starts
 /// with, which are added to [definitions]; null when nothing follows them.
-MdParagraph? _paragraph(List<String> lines, List<MdDefinition> definitions) {
+MdParagraph? _paragraph(
+  List<String> lines,
+  List<MdDefinition> definitions,
+  InlineMemo memo,
+) {
   final text = _takeDefinitions(_trim(lines), definitions);
-  return text.isEmpty ? null : MdParagraph(parseInlines(text));
+  return text.isEmpty ? null : MdParagraph(parseInlines(text, memo));
 }
 
 /// [text], the content of a paragraph, after the link reference
@@ -805,9 +861,16 @@ enum _Kind {
 
 /// A block while the parser builds it.
 final class _Block {
-  _Block(this.kind, this.start, this.parent) : end = start;
+  _Block(this.kind, this.start, this.parent)
+    : end = start,
+      nesting =
+          (parent?.nesting ?? 0) +
+          (kind == _Kind.blockQuote || kind == _Kind.item ? 1 : 0);
 
   final _Kind kind;
+
+  /// How many block quotes and list items the block is in, itself counted.
+  final int nesting;
 
   /// The line the block starts on.
   final int start;
@@ -846,6 +909,19 @@ final class _Block {
   /// What the block converted to once closed, with the definitions in it.
   Converted? converted;
 
+  /// The block of the parser this one's was copied from; null for one of
+  /// that parser's own.
+  _Block? origin;
+
+  /// Of fenced code, its first [codeLines] lines after the info string,
+  /// joined, each with its line feed ([BlockParser._fencedCode]).
+  var code = '';
+  var codeLines = 0;
+
+  /// Of a table, the inlines of the cells of its first rows, the header
+  /// first ([BlockParser._tableOf]).
+  final parsedCells = <List<List<MdInline>>>[];
+
   /// What the item converted to once closed, with the definitions in it.
   (MdListItem, List<MdDefinition>)? convertedItem;
 
@@ -855,6 +931,7 @@ final class _Block {
   /// blocks in them shared.
   _Block _copy(_Block parent) {
     final copy = _Block(kind, start, parent)
+      ..origin = origin ?? this
       ..end = end
       ..level = level
       ..fenced = fenced

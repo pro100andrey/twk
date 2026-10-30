@@ -1,5 +1,7 @@
 /// A session: the channel a client runs a shell or a command on, with its
 /// terminal, environment, input and output.
+///
+/// @docImport 'auth.dart';
 library;
 
 import 'dart:async';
@@ -43,6 +45,13 @@ final class SshPty {
   /// The terminal modes (RFC 4254 §8), by opcode.
   final Map<int, int> modes;
 
+  /// The most columns a terminal is taken as: a client's wider one (of up
+  /// to 2^32 - 1) is cut to it, as a screen of that many cells is drawn.
+  static const maxColumns = 2048;
+
+  /// The most rows a terminal is taken as, as [maxColumns].
+  static const maxRows = 1024;
+
   /// The opcode of VERASE, the byte the Backspace key sends.
   static const verase = 3;
 
@@ -65,6 +74,11 @@ final class SshPty {
 @internal
 abstract interface class SessionTransport {
   void send(Uint8List payload);
+
+  /// Whether what is sent now is held, a key exchange under way: the
+  /// channel's data then waits in the channel, and its flushes with it,
+  /// until [SshSession.resumeOutput].
+  bool get holding;
 
   /// The channel is closed both ways.
   void channelClosed();
@@ -105,7 +119,10 @@ final class SshSession {
   static const _maxEnvironment = 64;
   static const _maxEnvironmentBytes = 4096;
 
-  /// Who logged in.
+  /// The user name the client logged in as, which [SshAuth] accepted it
+  /// with. Where it accepts a key whatever the name
+  /// ([SshAuth.authorizedKeys]), it is only what the client said: who
+  /// proved to be there is [publicKey].
   final String user;
 
   /// The key [user] logged in with; null for a password.
@@ -184,23 +201,30 @@ final class SshSession {
   int get heldInput => _heldInput.fold(0, (n, b) => n + b.length);
 
   /// Bytes written and not yet sent: the client hasn't granted them.
-  int get pendingOutput {
-    var n = -_outputAt;
-    for (final b in _output) {
-      n += b.length;
-    }
-    return n;
-  }
+  int get pendingOutput => _pending;
+  var _pending = 0;
+
+  /// The most bytes written and not yet sent ([pendingOutput]) a session
+  /// holds: past it, the client granting none of them, the session is
+  /// closed rather than the server holding without end what it does not
+  /// take.
+  static const int maxPendingOutput = 64 << 20;
 
   /// Writes [bytes] to the client: sent as far as its window allows, the
   /// rest when it grants more. Dropped once the session has ended or
-  /// [exit] was called.
+  /// [exit] was called. Past [maxPendingOutput] of them waiting, the
+  /// session is closed: a writer that awaits [flush] holds no more than it
+  /// writes between two.
   void add(List<int> bytes) {
     if (_closeSent || isDone || bytes.isEmpty) {
       return;
     }
     _output.add(Uint8List.fromList(bytes));
+    _pending += bytes.length;
     _sendOutput();
+    if (_pending > maxPendingOutput) {
+      _sendClose();
+    }
   }
 
   /// Completes once everything [add]ed is sent, or the session ended.
@@ -252,6 +276,7 @@ final class SshSession {
     _closeSent = true;
     _output.clear();
     _outputAt = 0;
+    _pending = 0;
     _send(
       SshWriter()
         ..byte(SshMsg.channelEof)
@@ -268,7 +293,10 @@ final class SshSession {
   }
 
   void _sendOutput() {
-    while (_output.isNotEmpty && _remoteWindow > 0 && !_closeSent) {
+    while (_output.isNotEmpty &&
+        _remoteWindow > 0 &&
+        !_closeSent &&
+        !_transport.holding) {
       final first = _output.first;
       final n = [
         first.length - _outputAt,
@@ -286,6 +314,7 @@ final class SshSession {
       );
       _remoteWindow -= n;
       _outputAt += n;
+      _pending -= n;
       if (_outputAt == first.length) {
         _output.removeFirst();
         _outputAt = 0;
@@ -377,6 +406,11 @@ final class SshSession {
   }
 
   @internal
+  /// The transport sends again, a key exchange done: the output held in
+  /// the channel meanwhile goes.
+  void resumeOutput() => _sendOutput();
+
+  @internal
   /// The client grants [bytes] more of output.
   void receiveWindowAdjust(int bytes) {
     if (_remoteWindow + bytes > 0xFFFFFFFF) {
@@ -401,6 +435,10 @@ final class SshSession {
     }
   }
 
+  static int _columns(int n) => n < SshPty.maxColumns ? n : SshPty.maxColumns;
+
+  static int _rows(int n) => n < SshPty.maxRows ? n : SshPty.maxRows;
+
   /// The connection is gone.
   @internal
   void connectionLost() {
@@ -416,8 +454,8 @@ final class SshSession {
     switch (type) {
       case 'pty-req' when _pty == null && !_started:
         final term = r.utf8String();
-        final columns = r.uint32();
-        final rows = r.uint32();
+        final columns = _columns(r.uint32());
+        final rows = _rows(r.uint32());
         final pixelWidth = r.uint32();
         final pixelHeight = r.uint32();
         _pty = SshPty(
@@ -451,8 +489,8 @@ final class SshSession {
           return false;
         }
         final resized = _pty = pty._resized(
-          r.uint32(),
-          r.uint32(),
+          _columns(r.uint32()),
+          _rows(r.uint32()),
           r.uint32(),
           r.uint32(),
         );

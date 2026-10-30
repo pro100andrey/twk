@@ -4,18 +4,18 @@ text
 │                                                                                │
 │   ⌕ Filter       /     TerminalView                            Preview   Code  │
 │                        A program's terminal in a view: keys, pastes, the       │
-│     Repaint rainb…     mouse and resizes sent to it, its scrollback scrolled…  │
-│     RepaintBounda…   ──────────────────────────────────────────────────────────│
-│                       ┌                                                      ┐ │
-│   RICH           8      ╭ user@twk: ~/twk ─────────────────────────────────╮   │
-│     MarkdownView        │user@twk:~/twk$ ls                                │   │
-│     CodeView            │analysis_options.yaml  packages                   │   │
-│     SyntaxThemeSc…      │CHANGELOG.md           pubspec.yaml               │   │
-│     DiffView            │design                 README.md                  │   │
-│     JsonView            │example                run.sh                     │   │
-│     BigText             │lib                    test                       │   │
-│     QrCode              │LICENSE                tool                       │   │
-│     ANSI                │user@twk:~/twk$                                   │   │
+│     FrameOverlay       mouse and resizes sent to it, its scrollback scrolled…  │
+│     Repaint rainb…   ──────────────────────────────────────────────────────────│
+│     RepaintBounda…    ┌                                                      ┐ │
+│                         ╭ user@twk: ~/twk ─────────────────────────────────╮   │
+│   RICH           7      │user@twk:~/twk$ ls                                │   │
+│     MarkdownView        │analysis_options.yaml  packages                   │   │
+│     CodeView            │CHANGELOG.md           pubspec.yaml               │   │
+│     SyntaxThemeSc…      │design                 README.md                  │   │
+│     DiffView            │example                run.sh                     │   │
+│     JsonView            │lib                    test                       │   │
+│     BigText             │LICENSE                tool                       │   │
+│     QrCode              │user@twk:~/twk$                                   │   │
 │                         │                                                  │   │
 │   IMAGES         1      ╰──────────────────────────────────────────────────╯   │
 │     Image             └                                                      ┘ │
@@ -29,18 +29,18 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahzhzzzzzzhhhhhhhAhaaggkkkkkkkkkkkkgggggggggggggggggggggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmgmmmmmmmmmgmmmmmmmmgmmgmgmmmmmgmmmmmgmmmmmmmgmmmggggggg│
-│aaaaannnnnnnannnnnnaaaggmmmmmgmmmgmmmmmmmgmmmmgmmgmmmgmmmgmmmmmmmmmmgmmmmmmmmmgg│
-│aaaaannnnnnnnnnnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaaaaaaaaaaaaaaaaaaagoggggggggggggggggggggggggggggggggggggggggggggggggggggggog│
-│aaaddddaaaaaaaaaaayaaagggpgmmmmmmmmmgmmmmmgppppppppppppppppppppppppppppppppppggg│
-│aaaaannnnnnnnnnnnaaaaagggpqqqqqqqqrsssssrgrrggggggggggggggggggggggggggggggggpggg│
-│aaaaannnnnnnnaaaaaaaaagggprrrrrrrrrrrrrrrrrrrrrggssssssssgggggggggggggggggggpggg│
-│aaaaannnnnnnnnnnnnnaaagggprrrrrrrrrrrrgggggggggggrrrrrrrrrrrrgggggggggggggggpggg│
-│aaaaannnnnnnnaaaaaaaaagggpssssssgggggggggggggggggrrrrrrrrrggggggggggggggggggpggg│
+│aaaaannnnnnnnnnnnaaaaaggmmmmmgmmmgmmmmmmmgmmmmgmmgmmmgmmmgmmmmmmmmmmgmmmmmmmmmgg│
+│aaaaannnnnnnannnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnnnnaaagoggggggggggggggggggggggggggggggggggggggggggggggggggggggog│
+│aaaaaaaaaaaaaaaaaaaaaagggpgmmmmmmmmmgmmmmmgppppppppppppppppppppppppppppppppppggg│
+│aaaddddaaaaaaaaaaayaaagggpqqqqqqqqrsssssrgrrggggggggggggggggggggggggggggggggpggg│
+│aaaaannnnnnnnnnnnaaaaagggprrrrrrrrrrrrrrrrrrrrrggssssssssgggggggggggggggggggpggg│
+│aaaaannnnnnnnaaaaaaaaagggprrrrrrrrrrrrgggggggggggrrrrrrrrrrrrgggggggggggggggpggg│
+│aaaaannnnnnnnnnnnnnaaagggpssssssgggggggggggggggggrrrrrrrrrggggggggggggggggggpggg│
 │aaaaannnnnnnnaaaaaaaaagggpsssssssggggggggggggggggqqqqqqgggggggggggggggggggggpggg│
-│aaaaannnnnnnaaaaaaaaaagggpsssggggggggggggggggggggssssgggggggggggggggggggggggpggg│
-│aaaaannnnnnaaaaaaaaaaagggprrrrrrrggggggggggggggggssssgggggggggggggggggggggggpggg│
-│aaaaannnnaaaaaaaaaaaaagggpqqqqqqqqrsssssrgggggggggggggggggggggggggggggggggggpggg│
+│aaaaannnnnnnnaaaaaaaaagggpsssggggggggggggggggggggssssgggggggggggggggggggggggpggg│
+│aaaaannnnnnnaaaaaaaaaagggprrrrrrrggggggggggggggggssssgggggggggggggggggggggggpggg│
+│aaaaannnnnnaaaaaaaaaaagggpqqqqqqqqrsssssrgggggggggggggggggggggggggggggggggggpggg│
 │aaaaaaaaaaaaaaaaaaaaaagggpggggggggggggggggggggggggggggggggggggggggggggggggggpggg│
 │aaaddddddaaaaaaaaayaaagggppppppppppppppppppppppppppppppppppppppppppppppppppppggg│
 │aaaaannnnnaaaaaaaaaaaagoggggggggggggggggggggggggggggggggggggggggggggggggggggggog│

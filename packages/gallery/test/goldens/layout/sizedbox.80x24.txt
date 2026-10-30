@@ -4,24 +4,24 @@ text
 │                                                                                │
 │   ⌕ Filter       /     SizedBox                                Preview   Code  │
 │                        A child of a size: SizedBox.expand fills the room,      │
-│   TEXT           4  ▐  SizedBox.shrink takes none.                             │
+│   TEXT           5  ▐  SizedBox.shrink takes none.                             │
 │     Text            ▐──────────────────────────────────────────────────────────│
 │     Rich text               ┌                                          ┐       │
 │     DefaultTextSt…      ·     ╭──────────────────────────────────────╮      ·  │
 │     Right to left             │                                      │         │
-│                         ·     │                                      │      ·  │
-│   LAYOUT        24            │           16 × 3                     │         │
-│     Box                 ·     │                                      │      ·  │
-│     ColoredBox, D…            │                                      │         │
-│     Container           ·     │                                      │      ·  │
-│     Divider                   │                                      │         │
-│     Shadow              ·     ╰──────────────────────────────────────╯      ·  │
-│     Padding                 └                                          ┘       │
-│     Align, Center    ──────────────────────────────────────────────────────────│
-│ ▎   SizedBox           constructor   width, height  .expand  .shrink           │
-│     ConstrainedBox     width        ─────────▉▉─────────────────  16 cells     │
-│     LimitedBox, O…     height       ───────── ──────────────────  3 rows       │
-│     FractionallyS…                                                             │
+│     ANSI                ·     │                                      │      ·  │
+│                               │           16 × 3                     │         │
+│   LAYOUT        24      ·     │                                      │      ·  │
+│     Box                       │                                      │         │
+│     ColoredBox, D…      ·     │                                      │      ·  │
+│     Container                 │                                      │         │
+│     Divider             ·     ╰──────────────────────────────────────╯      ·  │
+│     Shadow                  └                                          ┘       │
+│     Padding          ──────────────────────────────────────────────────────────│
+│     Align, Center      constructor   width, height  .expand  .shrink           │
+│ ▎   SizedBox           width        ─────────▉▉─────────────────  16 cells     │
+│     ConstrainedBox     height       ───────── ──────────────────  3 rows       │
+│     LimitedBox, O…                                                             │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -34,19 +34,19 @@ styles
 │aaaaaooooaooooaaaaaaaagggggggpggggggggggggggggggggggggggggggggggggggggggpggggggg│
 │aaaaaooooooooooooooaaagggpgggggqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqggggggpgg│
 │aaaaaoooooaooaooooaaaagggggggggqggggggggggggggggggggggggggggggggggggggqggggggggg│
-│aaaaaaaaaaaaaaaaaaaaaagggpgggggqggggggggggggggggggggggggggggggggggggggqggggggpgg│
-│aaaddddddaaaaaaaazzaaagggggggggqgggggggggggrrsrsrssssssssssgggggggggggqggggggggg│
-│aaaaaoooaaaaaaaaaaaaaagggpgggggqgggggggggggssssssssssssssssgggggggggggqggggggpgg│
-│aaaaaoooooooooooaooaaagggggggggqgggggggggggssssssssssssssssgggggggggggqggggggggg│
-│aaaaaoooooooooaaaaaaaagggpgggggqggggggggggggggggggggggggggggggggggggggqggggggpgg│
-│aaaaaoooooooaaaaaaaaaagggggggggqggggggggggggggggggggggggggggggggggggggqggggggggg│
-│aaaaaooooooaaaaaaaaaaagggpgggggqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqggggggpgg│
-│aaaaaoooooooaaaaaaaaaagggggggpggggggggggggggggggggggggggggggggggggggggggpggggggg│
-│aaaaaooooooaooooooaaaapppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
-│atsssuuuuuuuussssssssaggmmmmmmmmmmmggsuuuuuusuuuuuushvvvvvvvhhvvvvvvvhgggggggggg│
-│aaaaaooooooooooooooaaaggmmmmmggggggggwwwwwwwwwxwmmmmmmmmmmmmmmmmmggCCgCCCCCggggg│
-│aaaaaoooooooooooaooaaaggmmmmmmgggggggwwwwwwwwwxmmmmmmmmmmmmmmmmmmggCgCCCCggggggg│
-│aaaaaooooooooooooooaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaooooaaaaaaaaaaaaagggpgggggqggggggggggggggggggggggggggggggggggggggqggggggpgg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggqgggggggggggrrsrsrssssssssssgggggggggggqggggggggg│
+│aaaddddddaaaaaaaazzaaagggpgggggqgggggggggggssssssssssssssssgggggggggggqggggggpgg│
+│aaaaaoooaaaaaaaaaaaaaagggggggggqgggggggggggssssssssssssssssgggggggggggqggggggggg│
+│aaaaaoooooooooooaooaaagggpgggggqggggggggggggggggggggggggggggggggggggggqggggggpgg│
+│aaaaaoooooooooaaaaaaaagggggggggqggggggggggggggggggggggggggggggggggggggqggggggggg│
+│aaaaaoooooooaaaaaaaaaagggpgggggqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqggggggpgg│
+│aaaaaooooooaaaaaaaaaaagggggggpggggggggggggggggggggggggggggggggggggggggggpggggggg│
+│aaaaaoooooooaaaaaaaaaapppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaooooooaooooooaaaaggmmmmmmmmmmmggsuuuuuusuuuuuushvvvvvvvhhvvvvvvvhgggggggggg│
+│atsssuuuuuuuussssssssaggmmmmmggggggggwwwwwwwwwxwmmmmmmmmmmmmmmmmmggCCgCCCCCggggg│
+│aaaaaooooooooooooooaaaggmmmmmmgggggggwwwwwwwwwxmmmmmmmmmmmmmmmmmmggCgCCCCggggggg│
+│aaaaaoooooooooooaooaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend
@@ -68,9 +68,9 @@ p #2c3039 on #16181d
 q #3e444f on #16181d
 r #e6e8eb on #2b4566
 s on #2b4566
-t #5fa8ff on #2b4566
 u bold #e6e8eb on #2b4566
 v #8b929c on #13151a
+t #5fa8ff on #2b4566
 w #e6e8eb on #16181d
 x reverse #e6e8eb on #16181d
 C #747a83 on #16181d

@@ -299,6 +299,28 @@ void main() {
       expect(c.text, 'keep that one');
     });
 
+    test('an emoji set in place of another, alike in its first code unit, '
+        'is undone and redone', () {
+      final c = TextEditingController(text: 'a😀b')
+        ..text = 'a😁b'
+        ..undo();
+      expect(c.text, 'a😀b');
+      c.redo();
+      expect(c.text, 'a😁b');
+    });
+
+    test('a composing kept over text changed outside it ends', () {
+      final c = TextEditingController(text: 'abc')
+        ..composing = const TextRange(start: 1, end: 3);
+      c.value = c.value.copyWith(text: 'xyz and more');
+      expect(c.composing, TextRange.empty);
+      // changed within it, as composing does, it stays
+      final d = TextEditingController(text: 'abc')
+        ..composing = const TextRange(start: 1, end: 3);
+      d.value = d.value.copyWith(text: 'abd');
+      expect(d.composing, const TextRange(start: 1, end: 3));
+    });
+
     test('an undo and a redo end the step being made', () {
       final c = TextEditingController(text: 'abc')
         ..deleteTo(2)

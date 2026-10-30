@@ -43,6 +43,12 @@ const catalog = [
           'reads where the app reorders it (TextOrder.visual), left as stored '
           'where the terminal reorders it itself.',
     ),
+    CatalogPage(
+      'ANSI',
+      'Output with ANSI colour codes, from a program or a log, as styled '
+          'spans: all at once with parseAnsi, or as it streams in with '
+          'AnsiStream.',
+    ),
   ]),
   CatalogGroup('Layout', 'layout.dart', [
     CatalogPage(
@@ -591,6 +597,11 @@ const catalog = [
           'click takes it; in a scope Tab stays, Escape leaves.',
     ),
     CatalogPage(
+      'ActiveItem',
+      "The item a focused list's keys act on, which the terminal's hidden "
+          'cursor rests on: Tab to the list, then Up or Down.',
+    ),
+    CatalogPage(
       'ExcludeFocus',
       'A subtree Tab passes by: its nodes take no focus while it excludes '
           'them, and give it up when it starts to.',
@@ -706,8 +717,8 @@ const catalog = [
     ),
     CatalogPage(
       'Cli',
-      "A command-line tool's console (twk_cli) as it runs: questions that "
-          'leave their answer as a line, a spinner, tasks with bars, a '
+      "A command-line tool's console (twk's cli.dart) as it runs: questions "
+          'that leave their answer as a line, a spinner, tasks with bars, a '
           'traceback.',
     ),
   ]),
@@ -782,12 +793,6 @@ const catalog = [
       "Text as a QR code a phone's camera reads: in half blocks, two modules "
           'to a cell, black on white whatever the theme, with as much of the '
           'quiet zone around it as the rows allow.',
-    ),
-    CatalogPage(
-      'ANSI',
-      'Output with ANSI colour codes, from a program or a log, as styled '
-          'spans: all at once with parseAnsi, or as it streams in with '
-          'AnsiStream.',
     ),
   ]),
   CatalogGroup('Images', 'packages/twk_rich', [

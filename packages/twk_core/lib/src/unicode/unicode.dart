@@ -337,6 +337,37 @@ final class TextSegmenter {
       }
     }
     if (mode == TextMode.graphemes) {
+      // BMP fast path: a letter or an ideograph that is Other, with no
+      // Extended_Pictographic or Indic_Conjunct_Break, is its own cluster
+      // unless the code unit after it extends it (Extend, ZWJ,
+      // SpacingMark) or is a surrogate, which the full scan looks at
+      if (c0 >= 0x80 && (c0 < 0xD800 || c0 > 0xDFFF)) {
+        if ((_segTable[c0] & 0xFF) == 0) {
+          final n = start + 1;
+          var alone = n == s.length;
+          if (!alone) {
+            final c1 = s.codeUnitAt(n);
+            if (c1 < 0xD800 || c1 > 0xDFFF) {
+              final g = _segTable[c1] & 0x0F;
+              alone = g != gcbExtend && g != gcbZWJ && g != gcbSpacingMark;
+            }
+          }
+          if (alone) {
+            final wp = _widthTable[c0];
+            final cls = wp & _wClassMask;
+            out
+              ..end = n
+              ..first = c0
+              ..length = 1
+              ..width = cls == 3 ? ambiguousWidth : cls
+              ..uncertain =
+                  c0 > 0xFF && (wp & (_wEmoji | _wEmojiPresentation)) != 0
+              ..firstGcb = gcbOther
+              ..joinsNext = false;
+            return;
+          }
+        }
+      }
       _scanGrapheme(s, start, out);
     } else {
       _scanLegacy(s, start, out);
@@ -652,12 +683,26 @@ int stringWidth(
     'ambiguousWidth is 1 or 2 columns',
   );
   // stringWidth calls nothing that could call it again, so one segmenter
-  // serves every call
+  // serves every call: asserted, so that a change that makes it do so
+  // fails here rather than measuring with another call's settings
+  assert(!_measuring, 'stringWidth called within itself');
+  assert(() {
+    _measuring = true;
+    return true;
+  }(), 'stringWidth begins');
   final seg = _widthSegmenter
     ..mode = mode
     ..ambiguousWidth = ambiguousWidth;
-  return _columns(seg, s);
+  final columns = _columns(seg, s);
+  assert(() {
+    _measuring = false;
+    return true;
+  }(), 'stringWidth ends');
+  return columns;
 }
+
+// whether stringWidth runs, with asserts
+var _measuring = false;
 
 /// The columns [s] takes when drawn with [seg], as [stringWidth] says.
 @pragma('vm:prefer-inline')

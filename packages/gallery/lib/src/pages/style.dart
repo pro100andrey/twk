@@ -5,6 +5,7 @@ import 'package:twk/twk.dart';
 
 import '../motion.dart';
 import '../page.dart';
+import 'common.dart';
 
 /// The pages of the Style group that draw.
 final stylePages = [
@@ -408,18 +409,6 @@ final class _ThemePage extends StatefulWidget {
   State<_ThemePage> createState() => _ThemePageState();
 }
 
-/// Where a cycle stands: on or off, since when, from which preset, and
-/// the preset the option last had.
-final class _Drive {
-  _Drive({required this.on, required this.since, required this.from})
-    : last = from;
-
-  bool on;
-  Duration since;
-  int from;
-  int last;
-}
-
 final class _ThemePageState extends State<_ThemePage> {
   late final _motion = Motion(() {
     if (mounted) {
@@ -444,14 +433,14 @@ final class _ThemePageState extends State<_ThemePage> {
     var on = widget.cycle;
     final born = kept['born'] as Duration? ?? (_motion.frozen ? .zero : now);
     kept['born'] = born;
-    var d = kept['drive'] as _Drive?;
+    var d = kept['drive'] as Drive?;
     if (on && d != null && d.on && c != d.last) {
       // a preset chosen by hand while it cycles: the pick stays
       scheduleMicrotask(() => control.setOption('cycle', false));
       on = false;
     }
     if (d == null) {
-      d = _Drive(on: on, since: born, from: c);
+      d = Drive(on: on, since: born, from: c);
       kept['drive'] = d;
     } else if (d.on != on) {
       d

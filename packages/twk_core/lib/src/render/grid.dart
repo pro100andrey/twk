@@ -682,7 +682,8 @@ final class RenderGrid extends RenderObject
   /// maximum when less, all of them when they even out (as CSS resolves
   /// flexible lengths).
   void _share(List<GridTrack> tracks, int count, Int64List sizes, int free) {
-    // a track not held yet is -1 in sizes, its share in shares
+    // a track not held yet is -1 in sizes, its share in shares: the scratch
+    // of the limits, which _size reads no more once it shares
     final shares = _limit;
     var left = free;
     for (var i = 0; i < count; i++) {

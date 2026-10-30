@@ -123,11 +123,7 @@ void main() {
 
 /// The package [page] of [group] needs, besides twk.
 String packageOf(CatalogGroup group, CatalogPage page) =>
-    page.title == 'Cli' && group.title == 'App'
-    ? 'twk_cli'
-    : group.source.startsWith('packages/')
-    ? p.basename(group.source)
-    : 'twk';
+    group.source.startsWith('packages/') ? p.basename(group.source) : 'twk';
 
 /// Front matter of [fields], each value a JSON string, which YAML reads.
 String frontMatter(Map<String, Object?> fields) => [
@@ -163,10 +159,10 @@ String indexPage() {
         ..write('''
 # Widget catalog
 
-Every widget of [twk](../../packages/twk/README.md), and those of
-[twk_rich](../../packages/twk_rich/README.md),
-[twk_term](../../packages/twk_term/README.md) and
-[twk_cli](../../packages/twk_cli/README.md) the gallery shows, by group.
+Every widget of [twk](../../packages/twk/README.md), its console for
+command-line tools among them, and those of
+[twk_rich](../../packages/twk_rich/README.md) and
+[twk_term](../../packages/twk_term/README.md) the gallery shows, by group.
 Each has a page of its own: its pictures in the dark and the light theme,
 the Dart that builds it, its options in the gallery and links to its API.
 The pictures are the gallery's golden screens; to see a widget live, run

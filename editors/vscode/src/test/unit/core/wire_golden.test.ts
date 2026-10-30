@@ -213,6 +213,24 @@ describe('the golden of the wire', () => {
     }
   });
 
+  it('a FrameReader reads frames split and joined any way, a large one in many reads among them', () => {
+    const big = Buffer.alloc(1 << 20);
+    for (let i = 0; i < big.length; i++) {
+      big[i] = (i * 7) & 0xff;
+    }
+    const sent = [frame(Wire.output, Buffer.from('a')), frame(Wire.output, big), frame(Wire.flush), frame(Wire.input, Buffer.from('bc'))];
+    const all = Buffer.concat(sent);
+    for (const size of [1, 3, 5, 6, 4096, 65536, all.length]) {
+      const read: Buffer[] = [];
+      const reader = new FrameReader((type, payload) => read.push(frame(type, payload)));
+      for (let at = 0; at < all.length; at += size) {
+        reader.add(all.subarray(at, at + size));
+      }
+      assert.equal(read.length, sent.length, `reads of ${size}`);
+      read.forEach((f, i) => assert.ok(f.equals(sent[i]), `frame ${i}, reads of ${size}`));
+    }
+  });
+
   describe('conversation', () => {
     let root: string;
     let shell: TerminalShell | undefined;

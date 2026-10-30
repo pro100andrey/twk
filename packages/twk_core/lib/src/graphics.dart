@@ -202,7 +202,7 @@ void kittyPlace(
     final end = i + chunk < data.length ? i + chunk : data.length;
     final more = end < data.length ? 'm=1' : (i == 0 ? '' : 'm=0');
     final keys = i == 0 ? (more.isEmpty ? '$sb' : '$sb,$more') : more;
-    _putData(out, '\x1b_G$keys;', data, i, end, '\x1b\\', multiplexer);
+    putImageData(out, '\x1b_G$keys;', data, i, end, '\x1b\\', multiplexer);
   }
 }
 
@@ -232,7 +232,7 @@ void sixelDraw(
 }) {
   out.ascii('\x1b7\x1b[?8452h');
   final data = p.image.data;
-  _putData(out, '\x1bP', data, 0, data.length, '\x1b\\', multiplexer);
+  putImageData(out, '\x1bP', data, 0, data.length, '\x1b\\', multiplexer);
   out.ascii('\x1b[?8452l\x1b8');
 }
 
@@ -246,7 +246,7 @@ void iterm2Draw(
 }) {
   final image = p.image;
   out.ascii('\x1b7');
-  _putData(
+  putImageData(
     out,
     '\x1b]1337;File=inline=1;size=${image.data.length};width=${p.cols};'
         'height=${p.rows};preserveAspectRatio=0;doNotMoveCursor=1:',
@@ -263,9 +263,11 @@ void iterm2Draw(
 void _put(ByteSink out, String s, Multiplexer multiplexer) =>
     out.ascii(passthroughSequence(s, multiplexer));
 
-/// [head], bytes [start, end) of [data] (ASCII) and [tail], wrapped for
-/// [multiplexer].
-void _putData(
+/// [head], bytes [start, end) of [data] and [tail], wrapped for
+/// [multiplexer] as [passthroughSequence] wraps them: the data (base64,
+/// sixel: ASCII without ESC) written as it is, not copied into a string.
+/// Not exported; public for its test.
+void putImageData(
   ByteSink out,
   String head,
   Uint8List data,
@@ -274,16 +276,46 @@ void _putData(
   String tail,
   Multiplexer multiplexer,
 ) {
-  if (multiplexer != Multiplexer.none) {
-    _put(
-      out,
-      '$head${String.fromCharCodes(data, start, end)}$tail',
-      multiplexer,
-    );
-    return;
+  switch (multiplexer) {
+    case Multiplexer.none:
+      out
+        ..ascii(head)
+        ..bytes(Uint8List.sublistView(data, start, end))
+        ..ascii(tail);
+    case Multiplexer.tmux:
+      out
+        ..ascii('\x1bPtmux;${head.replaceAll('\x1b', '\x1b\x1b')}')
+        ..bytes(Uint8List.sublistView(data, start, end))
+        ..ascii('${tail.replaceAll('\x1b', '\x1b\x1b')}\x1b\\');
+    case Multiplexer.screen:
+      // pieces of 252 bytes of the whole, one byte a character
+      final h = head.replaceAll('\x1b\\', '\x07');
+      final t = tail.replaceAll('\x1b\\', '\x07');
+      final dataEnd = h.length + end - start;
+      final length = dataEnd + t.length;
+      for (var at = 0; at < length; at += 252) {
+        final to = at + 252 < length ? at + 252 : length;
+        out.ascii('\x1bP');
+        if (at < h.length) {
+          out.ascii(h.substring(at, to < h.length ? to : h.length));
+        }
+        if (to > h.length && at < dataEnd) {
+          final from = at > h.length ? at : h.length;
+          final until = to < dataEnd ? to : dataEnd;
+          out.bytes(
+            Uint8List.sublistView(
+              data,
+              start + from - h.length,
+              start + until - h.length,
+            ),
+          );
+        }
+        if (to > dataEnd) {
+          out.ascii(
+            t.substring((at > dataEnd ? at : dataEnd) - dataEnd, to - dataEnd),
+          );
+        }
+        out.ascii('\x1b\\');
+      }
   }
-  out
-    ..ascii(head)
-    ..bytes(Uint8List.sublistView(data, start, end))
-    ..ascii(tail);
 }

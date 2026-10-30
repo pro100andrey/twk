@@ -5,7 +5,6 @@ import 'package:twk/twk.dart';
 import 'package:twk_core/twk_core.dart' show Pen, RenderParagraph;
 import 'package:twk_rich/twk_rich.dart';
 
-import '../motion.dart';
 import '../page.dart';
 import 'common.dart';
 
@@ -41,47 +40,6 @@ Widget _inRoom(Widget Function(int w, int h) build) => LayoutBuilder(
 
 /// [parts] as one line of the Code, a line too long for this file.
 String _l(List<String> parts) => parts.join();
-
-int _clamp(int v, int low, int high) => math.max(low, math.min(high, v));
-
-/// Builds [builder] with the gallery's time in milliseconds, again at each
-/// time it asks for with `wake`: what the Code's timers move, on the
-/// gallery's clock, so that a route's `t=` stills it.
-final class _Timed extends StatefulWidget {
-  const _Timed(this.builder);
-
-  final Widget Function(BuildContext context, int ms, void Function(int) wake)
-  builder;
-
-  @override
-  State<_Timed> createState() => _TimedState();
-}
-
-final class _TimedState extends State<_Timed> {
-  late final _motion = Motion(() {
-    if (mounted) {
-      setState(() {});
-    }
-  });
-
-  @override
-  void dispose() {
-    _motion.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    _motion.begin(context);
-    final built = widget.builder(
-      context,
-      _motion.now.inMilliseconds,
-      (at) => _motion.wakeAt(Duration(milliseconds: at)),
-    );
-    _motion.end();
-    return built;
-  }
-}
 
 /// [child] as tall as it is, cut to the room where that is lower: the
 /// stage cuts a widget taller than its room, as the design's does, and so
@@ -228,7 +186,7 @@ final _markdownView = GalleryPage(
   build: (context, o) => _inRoom((rw, rh) {
     final theme = Theme.of(context);
     final w = math.min(o.number('width').toInt(), rw);
-    final h = _clamp(rh, 6, 24);
+    final h = clampTo(rh, 6, 24);
     final wrap = TextWrap.values.byName(o.choice('codeWrap'));
     if (o.choice<String>('content') == 'document' && o['links'] != 'terminal') {
       return SizedBox(
@@ -249,7 +207,7 @@ final _markdownView = GalleryPage(
         ),
       );
     }
-    return _Timed((context, ms, wake) {
+    return Timed((context, ms, wake) {
       final tt = ms % _cycle;
       final base = ms - tt;
       final thinking = tt < _think;
@@ -316,11 +274,11 @@ final _markdownView = GalleryPage(
       );
     });
   }),
-  heightIn: (o, room) => _clamp(room.height, 6, 24),
+  heightIn: (o, room) => clampTo(room.height, 6, 24),
   codeIn: (o, room) {
     final (rw, rh) = _roomOf(room);
     final w = math.min(o.number('width').toInt(), rw);
-    final h = _clamp(rh, 6, 24);
+    final h = clampTo(rh, 6, 24);
     final codeWrap = o.label('codeWrap');
     final wrap = codeWrap == 'grapheme' ? '' : ', codeWrap: .$codeWrap';
     if (o.choice<String>('content') == 'document' && o['links'] != 'terminal') {
@@ -1014,7 +972,7 @@ final _diffView = GalleryPage(
     final side = o.choice<String>('layout') == 'sideBySide';
     final plain = o.choice<String>('language') == 'plain';
     final w = math.min(rw, side ? 100 : 64);
-    final h = _clamp(rh, 6, 22);
+    final h = clampTo(rh, 6, 22);
     Widget view(String after) => SizedBox(
       width: w,
       height: h,
@@ -1035,18 +993,18 @@ final _diffView = GalleryPage(
     if (!o.flag('live')) {
       return view(_after);
     }
-    return _Timed((context, ms, wake) {
+    return Timed((context, ms, wake) {
       final k = ms ~/ _step;
       wake((k + 1) * _step);
       return view(_edited(k % (_edits.length + 4)));
     });
   }),
-  heightIn: (o, room) => _clamp(room.height, 6, 22),
+  heightIn: (o, room) => clampTo(room.height, 6, 22),
   codeIn: (o, room) {
     final (rw, rh) = _roomOf(room);
     final side = o.choice<String>('layout') == 'sideBySide';
     final w = math.min(rw, side ? 100 : 64);
-    final h = _clamp(rh, 6, 22);
+    final h = clampTo(rh, 6, 22);
     final context = o.choice<int>('context');
     final args = [
       if (side) ', layout: .sideBySide',
@@ -1216,7 +1174,7 @@ final _bigText = GalleryPage(
       );
     }
     if (o.choice<String>('text') == 'clock') {
-      return _Timed((context, ms, wake) {
+      return Timed((context, ms, wake) {
         wake((ms ~/ 1000 + 1) * 1000);
         return BigText(_clockText(ms), font: font, style: style);
       });
@@ -1610,7 +1568,7 @@ List<String> _dartAnsi(String name, String text) {
 }
 
 final _ansi = GalleryPage(
-  group: 'Rich',
+  group: 'Text',
   title: 'ANSI',
   options: const [
     ChoiceOption(
@@ -1683,7 +1641,7 @@ final _ansi = GalleryPage(
     final size = o.choice<int>('piece');
     final pieces = (output.length + size - 1) ~/ size;
     final cycle = (pieces + _ansiHold) * _pieceMs;
-    return _Timed((context, ms, wake) {
+    return Timed((context, ms, wake) {
       final theme = Theme.of(context);
       final tick = ms % cycle ~/ _pieceMs;
       wake(ms - ms % cycle + (tick + 1) * _pieceMs);

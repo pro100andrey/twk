@@ -1,6 +1,7 @@
 // The extension's asciicast (core/cast.ts) held to the golden of twk_dev's,
 // packages/twk_dev/test/cast.golden.json, which twk_dev's
-// cast_golden_test.dart holds cast.dart and cast_frames.dart to as well:
+// cast_golden_test.dart holds cast.dart and twk_test's screenFrames to as
+// well:
 // the lines a writer writes, what a reader reads of a file or the message
 // it throws, and the frames a recording shows, played here into a headless
 // xterm.js as the replay terminal plays them (castSteps), against the
@@ -104,7 +105,7 @@ describe('asciicast, held to the golden of twk_dev', () => {
     }
   });
 
-  describe('a recording shows the frames castFrames does', () => {
+  describe('a recording shows the frames screenFrames does', () => {
     for (const c of golden.frames) {
       it(c.name, async () => {
         const cast = parseCast(c.lines.join('\n'));

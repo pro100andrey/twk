@@ -45,7 +45,7 @@ What the gallery lets you change, and what each starts at:
 ## More
 
 - API: [`DefaultTextStyle`](https://pub.dev/documentation/twk/latest/twk/DefaultTextStyle-class.html).
-- Also in Text: [Text](text.md), [Rich text](rich-text.md), [Right to left](right-to-left.md).
+- Also in Text: [Text](text.md), [Rich text](rich-text.md), [Right to left](right-to-left.md), [ANSI](ansi.md).
 - Live in the gallery:
   `dart run packages/gallery/bin/gallery.dart --route='#/text/defaulttextstyle'`.
 - [Text](../text.md) · [All groups](../README.md)

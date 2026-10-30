@@ -71,9 +71,8 @@ void main() {
       Platform.resolvedExecutable,
       [entry, ...args],
       workingDirectory: tree.path,
-      // empty unless given: a TWK_PACKAGES of the run's own is refused;
       // its output as on a terminal of a developer's, not GitHub's groups
-      environment: {'TWK_PACKAGES': '', 'GITHUB_ACTIONS': '', ...env},
+      environment: {'GITHUB_ACTIONS': '', ...env},
     );
 
     String out(ProcessResult res) => '${res.stdout}${res.stderr}';
@@ -154,19 +153,6 @@ void main() {
       expect(res.exitCode, 2, reason: out(res));
       expect(res.stdout, contains('`packages/nope/*`'));
       expect(res.stdout, isNot(contains('packages/good: dart format')));
-    });
-
-    test('TWK_PACKAGES is refused, naming --only', () async {
-      final res = await xtask(
-        [
-          'pkg-format',
-        ],
-        env: const {'TWK_PACKAGES': 'good'},
-      );
-      expect(res.exitCode, 2, reason: out(res));
-      expect(res.stderr, contains('TWK_PACKAGES is gone'));
-      expect(res.stderr, contains('--only'));
-      expect(res.stdout, isNot(contains('dart format')));
     });
 
     test('a template whose pub get fails is not analyzed', () async {
@@ -532,6 +518,19 @@ void main() {
       expect(there(vscodeGate), isFalse);
     });
 
+    test('install without the manifests says which are missing and runs '
+        'nothing', () async {
+      File('${root.path}/$vscodeSource/package-lock.json').deleteSync();
+      final r = await step(['install']);
+      expect(r.code, isNot(0));
+      expect(r.ran, isEmpty);
+      expect(
+        r.log.single,
+        'no $vscodeSource/package-lock.json: nothing to '
+        'install from',
+      );
+    });
+
     test('install runs npm ci in the copy, once per package-lock.json, '
         'and again after one that failed', () async {
       final first = await step(['install']);
@@ -722,6 +721,69 @@ void main() {
         )!;
         expect(score.unpublished, 'twk_core', reason: at);
       }
+    });
+
+    test("a package's dependencies of this repository by a version, its "
+        'dev ones too, not those by a path or of pub.dev only', () {
+      expect(
+        repositoryDependencies(
+          'name: twk_lints\n'
+          'dependencies:\n'
+          '  analyzer: ^14.7.0\n'
+          '  twk_core: ^0.1.0\n'
+          'dev_dependencies:\n'
+          '  test: ^1.33.0\n'
+          '  twk: ^0.1.0\n'
+          '  twk_test:\n'
+          '    path: ../twk_test\n'
+          'dependency_overrides:\n'
+          '  twk_term: ^0.1.0\n',
+          {'twk', 'twk_core', 'twk_test', 'twk_term'},
+        ),
+        ['twk_core', 'twk'],
+      );
+    });
+
+    test('--scored fails a package pana cannot score, its dependencies of '
+        'this repository not on pub.dev yet', () async {
+      final root = Directory.systemTemp.createTempSync('pub_check');
+      addTearDown(() => root.deleteSync(recursive: true));
+      File('${root.path}/packages/a/pubspec.yaml')
+        ..createSync(recursive: true)
+        ..writeAsStringSync('name: a\ndependencies:\n  b: ^0.1.0\n');
+      File('${root.path}/packages/b/pubspec.yaml')
+        ..createSync(recursive: true)
+        ..writeAsStringSync('name: b\n');
+      Future<int> check(List<String> args, List<String> log) => pubCheck(
+        VerbContext(
+          args: args,
+          env: const {},
+          root: root.path,
+          workingDirectory: root.path,
+          log: log.add,
+          start: (argv, {workingDirectory}) async => 0,
+          locate: (name, {workingDirectory}) => null,
+          collect: (argv, {workingDirectory, timeout}) async => (
+            // pana activated; b not on pub.dev
+            exitCode: argv.first == 'curl' ? 22 : 0,
+            stdout: argv.contains('list') ? 'pana 0.23.19\n' : '',
+            stderr: '',
+          ),
+        ),
+        Cpus(allowed: parseCpuList('0-3'), siblings: (_) => null),
+      );
+      final log = <String>[];
+      expect(await check(const ['packages/a'], log), ExitCode.success);
+      expect(
+        log,
+        contains(startsWith('packages/a: not scored, it depends on b')),
+      );
+      final scored = <String>[];
+      expect(
+        await check(const ['--scored', 'packages/a'], scored),
+        ExitCode.taskFailed,
+      );
+      expect(scored, contains('packages/a: --scored, and pana gave no score'));
     });
 
     test('a private package is failed, the rest still run', () async {

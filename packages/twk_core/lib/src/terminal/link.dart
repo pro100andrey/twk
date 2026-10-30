@@ -137,7 +137,8 @@ abstract interface class TerminalLink {
 ///
 /// Each capability is declared or not: null leaves it to the guess by the
 /// environment (`notificationProtocolFor`, `progressReportsFor`,
-/// `pointerShapesFor`, the known terminals of REP, `graphicsProtocolFor`),
+/// `pointerNamesFor`, the known terminals of REP, `graphicsProtocolFor`,
+/// `styledUnderlinesFor`),
 /// as for a real terminal, which declares nothing. Declared, it is what
 /// `TerminalInfo` says, whatever the environment names. A `twk shell`'s
 /// terminal declares in its welcome (`declares`, see `socket.dart`).
@@ -149,6 +150,7 @@ final class TerminalDeclaration {
     this.pointerShapes,
     this.repeatChar,
     this.graphics,
+    this.styledUnderlines,
   });
 
   /// What the JSON object [json] declares, as a welcome carries it
@@ -174,6 +176,7 @@ final class TerminalDeclaration {
       pointerShapes: flag(json['pointerShapes']),
       repeatChar: flag(json['repeatChar']),
       graphics: named(GraphicsProtocol.values, json['graphics']),
+      styledUnderlines: flag(json['styledUnderlines']),
     );
   }
 
@@ -196,18 +199,23 @@ final class TerminalDeclaration {
   /// asks for itself (`TerminalOptions.graphics`).
   final GraphicsProtocol? graphics;
 
+  /// Whether the underline styles of SGR `4:2` to `4:5` are shown
+  /// (`TerminalCaps.styledUnderlines`).
+  final bool? styledUnderlines;
+
   /// Whether it declares nothing.
   bool get isEmpty => toJson().isEmpty;
 
   /// What it declares as JSON, in this order: `notifications`,
-  /// `progressReports`, `pointerShapes`, `repeatChar`, `graphics`, each
-  /// only where declared, the protocols by name.
+  /// `progressReports`, `pointerShapes`, `repeatChar`, `graphics`,
+  /// `styledUnderlines`, each only where declared, the protocols by name.
   Map<String, Object> toJson() => {
     'notifications': ?notifications?.name,
     'progressReports': ?progressReports,
     'pointerShapes': ?pointerShapes,
     'repeatChar': ?repeatChar,
     'graphics': ?graphics?.name,
+    'styledUnderlines': ?styledUnderlines,
   };
 
   @override
@@ -217,7 +225,8 @@ final class TerminalDeclaration {
       other.progressReports == progressReports &&
       other.pointerShapes == pointerShapes &&
       other.repeatChar == repeatChar &&
-      other.graphics == graphics;
+      other.graphics == graphics &&
+      other.styledUnderlines == styledUnderlines;
 
   @override
   int get hashCode => Object.hash(
@@ -226,6 +235,7 @@ final class TerminalDeclaration {
     pointerShapes,
     repeatChar,
     graphics,
+    styledUnderlines,
   );
 
   @override

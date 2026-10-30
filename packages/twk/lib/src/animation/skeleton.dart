@@ -456,6 +456,7 @@ final class _Painter {
   final _Look look;
 
   StyleTable? _table;
+  var _sweeps = 0;
   final _styles = <int, int>{};
 
   /// What a cell shows with the shimmer's middle at [middle] columns from
@@ -479,8 +480,10 @@ final class _Painter {
       level = k <= 0 ? 0 : (k * _levels).round();
     }
     final styles = cell.styles;
-    if (!identical(styles, _table)) {
+    // the ids kept are of the table as it was (StyleTable.sweep)
+    if (!identical(styles, _table) || styles.sweeps != _sweeps) {
       _table = styles;
+      _sweeps = styles.sweeps;
       _styles.clear();
     }
     cell

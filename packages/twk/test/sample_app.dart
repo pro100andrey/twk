@@ -15,6 +15,7 @@ import 'dart:async';
 import 'package:twk/twk.dart';
 
 part 'sample_app/animation.dart';
+part 'sample_app/ansi.dart';
 part 'sample_app/binding.dart';
 part 'sample_app/controls.dart';
 part 'sample_app/data.dart';
@@ -49,6 +50,7 @@ Future<List<LogRecord>> runInMemory({required Stopwatch clock}) async {
     multiplexer: Multiplexer.tmux,
     notifications: NotificationProtocol.osc777,
     pointerShapes: true,
+    pointerNames: PointerNames.x11,
     progressReports: true,
     bidi: BidiReordering.terminal,
   )..type('q');
@@ -104,6 +106,7 @@ final class _SampleAppState extends State<SampleApp> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               ..._animation(),
+              ..._ansi(),
               ..._binding(),
               ..._controls(),
               ..._data(),

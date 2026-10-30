@@ -4,12 +4,12 @@ text
 │                                                                                │
 │   ⌕ Filter       /     ExcludeFocus                            Preview   Code  │
 │                        A subtree Tab passes by: its nodes take no focus while  │
-│     IgnorePointer…     it excludes them, and give it up when it starts to.     │
-│     SelectionArea    ──────────────────────────────────────────────────────────│
-│     Draggable, Dr…                                                             │
-│                         ·   · ┌                                     ┐   ·   ·  │
-│   FOCUS AND KEYS 4                      ╭ ExcludeFocus ──╮                     │
-│     Focus, FocusS…      ·   ·   ╭─────╮ │╭─────╮╭───────╮│ ╭──────╮     ·   ·  │
+│     SelectionArea      it excludes them, and give it up when it starts to.     │
+│     Draggable, Dr…   ──────────────────────────────────────────────────────────│
+│                                                                                │
+│   FOCUS AND KEYS 5      ·   · ┌                                     ┐   ·   ·  │
+│     Focus, FocusS…                      ╭ ExcludeFocus ──╮                     │
+│     ActiveItem          ·   ·   ╭─────╮ │╭─────╮╭───────╮│ ╭──────╮     ·   ·  │
 │ ▎   ExcludeFocus                │ one │ ││ two ││ three ││ │ four │            │
 │     KeyBindings,…       ·   ·   ╰─────╯ │╰─────╯╰───────╯│ ╰──────╯     ·   ·  │
 │     Shortcuts, Ac…                      ╰────────────────╯                     │
@@ -29,12 +29,12 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahAhAAAAAAhhhhhhhBhaaggkkkkkkkkkkkkgggggggggggggggggggggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmgmmmmmmmgmmmgmmmmmmgmmmgmmmgmmmmmgmmmmgmmgmmmmmgmmmmmgg│
-│aaaaannnnnnnnnnnnnnaaaggmmgmmmmmmmmgmmmmmgmmmgmmmmgmmgmmgmmmmgmmgmmmmmmgmmmggggg│
-│aaaaannnnnnnnnnnnnaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnnnnannnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaaaaaaaaaaaaaaaaaaagggogggogogggggggggggggggggggggggggggggggggggggogggogggogg│
-│aaadddddadddaddddazaaagggggggggggggggggggpgmmmmmmmmmmmmgpppggggggggggggggggggggg│
-│aaaaannnnnnannnnnnnaaagggogggogggpppppppgppppppppppppppppppgppppppppgggggogggogg│
+│aaaaannnnnnnnnnnnnaaaaggmmgmmmmmmmmgmmmmmgmmmgmmmmgmmgmmgmmmmgmmgmmmmmmgmmmggggg│
+│aaaaannnnnnnnnnannnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaadddddadddaddddazaaagggogggogogggggggggggggggggggggggggggggggggggggogggogggogg│
+│aaaaannnnnnannnnnnnaaagggggggggggggggggggpgmmmmmmmmmmmmgpppggggggggggggggggggggg│
+│aaaaannnnnnnnnnaaaaaaagggogggogggpppppppgppppppppppppppppppgppppppppgggggogggogg│
 │aqrrrssssssssssssrrrragggggggggggpgtttgpgppgmmmgppgmmmmmgppgpgttttgpgggggggggggg│
 │aaaaannnnnnnnnnnnnaaaagggogggogggpppppppgppppppppppppppppppgppppppppgggggogggogg│
 │aaaaannnnnnnnnnannnaaagggggggggggggggggggppppppppppppppppppggggggggggggggggggggg│

@@ -26,7 +26,7 @@ text
 │     Repaint rainbow              │                                      │                │                             │
 │     RepaintBoundary              │                                      │                │                             │
 │                                  ╰────────────────────── kitty: OSC 99 ─╯                │                             │
-│   RICH                 8       └                                                    ┘    │                             │
+│   RICH                 7       └                                                    ┘    │                             │
 │     MarkdownView               ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   · 50 × 12     │                             │
 │     CodeView              ▐                                                              │                             │
 │     SyntaxThemeScope      ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │

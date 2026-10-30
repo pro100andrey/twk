@@ -112,7 +112,10 @@ void main() {
     );
     expect(term.info.kittyKeyboardFlags, 3);
     await term.close();
-    expect(link.text, isNot(contains('\x1b[?1049')));
+    // the probe's queries on the alternate screen, the flags after it
+    final probed = link.text.indexOf('\x1b[?1049l');
+    expect(link.text.substring(probed), isNot(contains('\x1b[?1049h')));
+    expect(link.text.indexOf('>3u'), greaterThan(probed));
     expect(_count(link.text, '\x1b[>3u'), 1);
     expect(_count(link.text, _pop), 1);
     expect(link.text.indexOf(_pop), greaterThan(link.text.indexOf('>3u')));
@@ -176,7 +179,9 @@ void main() {
       // on a clock of the test's: what the link is given comes in as it
       // flushes
       final clock = FakeClock();
-      final link = FakeLink()..type(_answers);
+      // inline, the cursor is asked where it is in a round of its own
+      final link = FakeLink()
+        ..type(alternateScreen ? _answers : '\x1b[1;1R\x1b[?62c$_answers');
       final term = await clock.runUntil(
         () => openOwnOrShell(
           link,

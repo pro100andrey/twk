@@ -369,9 +369,21 @@ screen, with `--step` each frame's and with `--frame=N` frame N's.
   the pixels of the last two taken away with what is written or erased
   in their cells. The queries of sizes in pixels (`CSI 14 t`, `16 t`,
   `18 t`) are taken, unanswered.
+- `screenFrames(width, height, writes)` plays a program's writes to a
+  terminal (`TerminalWrite`s: an output or a resize, at a time) through
+  the emulator, and gives a `ScreenFrame` after each output that leaves no
+  synchronized update open: its time, size, rows, the cursor, and what
+  the emulator could not take up to it. twk_dev's `Cast.writes` are a
+  recording's, which so becomes a regression test.
 - `package:twk_test/vt_terminal.dart` (`VtTerminal`) is a terminal backend
   in the inline mode that feeds its output to the emulator, below lines
   printed before the app ran.
+- `package:twk_test/cli.dart` (`FakeCliTerminal`, and `FakeClock` and
+  `Vt` again) is the terminal a test of a program on twk's console
+  (`package:twk/cli.dart`) hands a `Cli` or `Cli.run`'s `open:`: it
+  captures what is written, answers the plain prompts a line each, types
+  keys into the interactive ones, and shows the inline session's screen
+  through the emulator.
 - `Shot(widget, columns, rows)` shows a widget tree without an app: on a
   screen of its own, built, laid out and painted as a frame is, each
   frame written to an emulator (`vt`). No binding, clock or input: a

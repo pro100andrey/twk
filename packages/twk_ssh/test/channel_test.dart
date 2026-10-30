@@ -18,6 +18,9 @@ final class FakeTransport implements SessionTransport {
   @override
   void channelClosed() => closed++;
 
+  @override
+  var holding = false;
+
   /// The data of the CHANNEL_DATA messages sent, each.
   List<int> get dataLengths => [
     for (final p in sent)
@@ -70,6 +73,20 @@ void main() {
       await Future<void>.delayed(Duration.zero);
       expect(flushed, isTrue);
       expect(s.pendingOutput, 0);
+    });
+
+    test('past maxPendingOutput waiting for a client that grants none, the '
+        'session is closed and holds none of it', () {
+      final t = FakeTransport();
+      final s = session(t, window: 0)
+        ..add(Uint8List(SshSession.maxPendingOutput));
+      expect(s.pendingOutput, SshSession.maxPendingOutput);
+      expect(t.ids, isEmpty, reason: 'up to the limit it waits');
+      s.add(Uint8List(1));
+      expect(s.pendingOutput, 0);
+      expect(t.ids, [SshMsg.channelEof, SshMsg.channelClose]);
+      s.add(Uint8List(10));
+      expect(s.pendingOutput, 0, reason: 'dropped once closed');
     });
 
     test('a window grown past 2^32 - 1 is a protocol error', () {
@@ -216,6 +233,38 @@ void main() {
       expect(s.pty!.term, 'xterm-256color');
       expect(s.pty!.modes, {SshPty.verase: 0x08, 53: 1});
       expect(s.pty!.eraseChar, 0x08);
+    });
+
+    test('pty-req and window-change: a size past the most is cut to it', () {
+      final s = session(FakeTransport());
+      Uint8List size(int columns, int rows) => body(
+        (w) => w
+          ..uint32(columns)
+          ..uint32(rows)
+          ..uint32(0)
+          ..uint32(0),
+      );
+      expect(
+        s.request(
+          'pty-req',
+          SshReader(
+            Uint8List.fromList([
+              ...body((w) => w.utf8String('xterm')),
+              ...size(0xFFFFFFFF, 0xFFFFFFFF),
+              ...body((w) => w.string(Uint8List.fromList([0]))),
+            ]),
+          ),
+        ),
+        isTrue,
+      );
+      expect(
+        (s.pty!.columns, s.pty!.rows),
+        (SshPty.maxColumns, SshPty.maxRows),
+      );
+      expect(s.request('window-change', SshReader(size(100, 1 << 20))), isTrue);
+      expect((s.pty!.columns, s.pty!.rows), (100, SshPty.maxRows));
+      expect(s.request('window-change', SshReader(size(80, 24))), isTrue);
+      expect((s.pty!.columns, s.pty!.rows), (80, 24));
     });
 
     test('env is bounded in count and size', () {

@@ -2,32 +2,32 @@ screen 120×36, cursor hidden
 text
 │  ◆ twk gallery   Rich  ›  CodeView                                                         ctrl+p search      ◐ Light  │
 │                                                                                                                        │
-│   ⌕ Filter             /      CodeView                                                                         2 of 8  │
+│   ⌕ Filter             /      CodeView                                                                         2 of 7  │
 │                               Source code highlighted for its language, with line numbers, its long lines wrapped      │
-│     TerminalProgress          or cut off at the width; a CodeViewController scrolls it to a line, highlights lines     │
-│     Viewport                  and finds text.                                                                          │
-│     Window title                                                                                                       │
-│     Notifications             Preview   Code                                                                           │
-│     Cli                    ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
-│                             ┌                                                          ┐ │                             │
-│   SCREEN READERS       1       1 import 'package:twk/twk.dart';                          │  OPTIONS                    │
-│     Semantics                  2                                                         │                             │
-│                                3 /// Counts the presses of the space bar.                │  language                   │
-│   DEBUGGING            4       4 final class Counter extends StatefulWidget {            │   Dart  Python  Rust  Go    │
-│     Console                    5   const Counter({super.key, this.start = 0});           │   JavaScript  TypeScript    │
-│     FrameOverlay               6                                                         │   JSON  YAML  Bash  diff    │
-│     Repaint rainbow            7   final int start;                                      │   plain                     │
-│     RepaintBoundary            8                                                         │                             │
-│                                9   @override                                             │  line numbers        ▐  ●▌  │
-│   RICH                 8      10   State<Counter> createState() => _CounterState();      │                             │
-│     MarkdownView              11 }                                                       │  changes             ▐●  ▌  │
-│ ▎   CodeView                  12                                                         │                             │
-│     SyntaxThemeScope          13 final class _CounterState extends State<Counter> {      │  wrap                       │
-│     DiffView                  14   late var _count = widget.start;                       │   none  word  grapheme      │
-│     JsonView                  15                                                         │                             │
-│     BigText                   16   @override                                             │  width            56 cells  │
-│     QrCode                    17   Widget build(BuildContext context) => KeyBindings(    │  ─────────────▊▊──────────  │
-│     ANSI                      18     {'space': () => setState(() => _count++)},          │                             │
+│     Static                    or cut off at the width; a CodeViewController scrolls it to a line, highlights lines     │
+│     TerminalProgress          and finds text.                                                                          │
+│     Viewport                                                                                                           │
+│     Window title              Preview   Code                                                                           │
+│     Notifications          ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     Cli                     ┌                                                          ┐ │                             │
+│                                1 import 'package:twk/twk.dart';                          │  OPTIONS                    │
+│   SCREEN READERS       1       2                                                         │                             │
+│     Semantics                  3 /// Counts the presses of the space bar.                │  language                   │
+│                                4 final class Counter extends StatefulWidget {            │   Dart  Python  Rust  Go    │
+│   DEBUGGING            4       5   const Counter({super.key, this.start = 0});           │   JavaScript  TypeScript    │
+│     Console                    6                                                         │   JSON  YAML  Bash  diff    │
+│     FrameOverlay               7   final int start;                                      │   plain                     │
+│     Repaint rainbow            8                                                         │                             │
+│     RepaintBoundary            9   @override                                             │  line numbers        ▐  ●▌  │
+│                               10   State<Counter> createState() => _CounterState();      │                             │
+│   RICH                 7      11 }                                                       │  changes             ▐●  ▌  │
+│     MarkdownView              12                                                         │                             │
+│ ▎   CodeView                  13 final class _CounterState extends State<Counter> {      │  wrap                       │
+│     SyntaxThemeScope          14   late var _count = widget.start;                       │   none  word  grapheme      │
+│     DiffView                  15                                                         │                             │
+│     JsonView                  16   @override                                             │  width            56 cells  │
+│     BigText                   17   Widget build(BuildContext context) => KeyBindings(    │  ─────────────▊▊──────────  │
+│     QrCode                    18     {'space': () => setState(() => _count++)},          │                             │
 │                               19     child: Text('Pressed $_count times,                 │  rows                       │
 │   IMAGES               1  ▐      ${_count.isEven ? 'even' : 'odd'}'),                    │   all  10                   │
 │     Image                 ▐   20   );                                                    │                             │
@@ -41,30 +41,30 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaiLiLLLLLLiiiiiiiiiiiiiMiaahhhllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhNhNNhNhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnnnhnnnnhnnnnnnnnnnnhnnnhnnnhnnnnnnnnnhnnnnhnnnnhnnnnnnnnhnnnhnnnnhnnnnnhnnnnnnnhhhhhh│
-│aaaaaooooooooooooooooaaaaaaahhhnnhnnnhnnnhnnhnnnhnnnnnnhnhnnnnnnnnnnnnnnnnnnhnnnnnnnhnnhnnhnhnnnnnhnnnnnnnnnnhnnnnnhhhhh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhnnnhnnnnnhnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooaoooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooaaaaaaaaaaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaddddddadddddddaaaaaaaKaaahhhhnhrrrrrrhssssssssssssssssssssssthhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooaaaaaaaaaaaaaahhhhnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhnhuuuhuuuuuuhuuuhuuuuuuuhuuhuuuhuuuuuhuuuuhhhhhhhhhhhhhhhhphhnnnnnnnnhhhhhhhhhhhhhhhhhhh│
-│aaadddddddddaaaaaaaaaaaaKaaahhhhnhrrrrrhrrrrrhvvvvvvvhrrrrrrrhvvvvvvvvvvvvvvhthhhhhhhhhhhhphhOPPPPOyzzzzzzyyzzzzyyzzyhhh│
-│aaaaaoooooooaaaaaaaaaaaaaaaahhhhnhhhrrrrrhvvvvvvvttrrrrrttttthrrrrtttttthvhAttthhhhhhhhhhhphhyzzzzzzzzzzyyzzzzzzzzzzyhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhhnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhyzzzzyyzzzzyyzzzzyyzzzzyhhh│
-│aaaaaoooooooaoooooooaaaaaaaahhhhnhhhrrrrrhvvvhtttttthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhyzzzzzyhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooooaaaaaaaahhhhnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhnhhhAAAAAAAAAhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnhnnnnnnnhhhhhhhhqBBCqhh│
-│aaaddddaaaaaaaaaaaaaaaaaKaaahhhnnhhhvvvvvvvvvvvvvvhqqqqqqqqqqqtthvvhvvvvvvvvvvvvvttthhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhnnhthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnnnhhhhhhhhhhhhhDEFFDhh│
-│aQOOOPPPPPPPPOOOOOOOOOOOOOOahhhnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooooooaaaaaaahhhnnhrrrrrhrrrrrhvvvvvvvvvvvvvhrrrrrrrhvvvvvvvvvvvvvvhthhhhhhphhnnnnhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhnnhhhrrrrhrrrhtttttthvhttttttttttttthhhhhhhhhhhhhhhhhhhhhhhphhyzzzzyOPPPPOyzzzzzzzzyhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhnnhnnnhnnnhnnhnnnhnnnnnnhnhnnnnnnnnnnnnnnnnnnhnnnnnnnhnnhnnhnhnnnnnhnnnnnnnnnnhnnnnnhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhnnnhnnnnnhnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaoooooaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaoooaaaaaaaaaaaaaaaaaaaahphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhnhrrrrrrhssssssssssssssssssssssthhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddadddddddaaaaaaaKaaahhhhnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhnhuuuhuuuuuuhuuuhuuuuuuuhuuhuuuhuuuuuhuuuuhhhhhhhhhhhhhhhhphhnnnnnnnnhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhnhrrrrrhrrrrrhvvvvvvvhrrrrrrrhvvvvvvvvvvvvvvhthhhhhhhhhhhhphhOPPPPOyzzzzzzyyzzzzyyzzyhhh│
+│aaadddddddddaaaaaaaaaaaaKaaahhhhnhhhrrrrrhvvvvvvvttrrrrrttttthrrrrtttttthvhAttthhhhhhhhhhhphhyzzzzzzzzzzyyzzzzzzzzzzyhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhyzzzzyyzzzzyyzzzzyyzzzzyhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhnhhhrrrrrhvvvhtttttthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhyzzzzzyhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaoooooooaaaaaaaahhhhnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhnhhhAAAAAAAAAhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnhnnnnnnnhhhhhhhhqBBCqhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnhhhvvvvvvvvvvvvvvhqqqqqqqqqqqtthvvhvvvvvvvvvvvvvttthhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddaaaaaaaaaaaaaaaaaKaaahhhnnhthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnnnhhhhhhhhhhhhhDEFFDhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aQOOOPPPPPPPPOOOOOOOOOOOOOOahhhnnhrrrrrhrrrrrhvvvvvvvvvvvvvhrrrrrrrhvvvvvvvvvvvvvvhthhhhhhphhnnnnhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhnnhhhrrrrhrrrhtttttthvhttttttttttttthhhhhhhhhhhhhhhhhhhhhhhphhyzzzzyOPPPPOyzzzzzzzzyhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaaahhhnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaaaaaaaaaaaaaaaahhhnnhhhAAAAAAAAAhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnhhhhhhhhhhhhNNhNNNNNhh│
-│aaaaaooooooaaaaaaaaaaaaaaaaahhhnnhhhvvvvvvhqqqqqtvvvvvvvvvvvvhtttttttthvvhvvvvvvvvvvvthhhhphhtttttttttttttHtnnnnnnnnnnhh│
-│aaaaaooooaaaaaaaaaaaaaaaaaaahhhnnhhhhhtsssssssthtthvvhqqqqqqqqttthvvhttttttvvttthhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhnnhhhAAAAAAAAAhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnhhhhhhhhhhhhNNhNNNNNhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhnnhhhvvvvvvhqqqqqtvvvvvvvvvvvvhtttttttthvvhvvvvvvvvvvvthhhhphhtttttttttttttHtnnnnnnnnnnhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhnnhhhhhtsssssssthtthvvhqqqqqqqqttthvvhttttttvvttthhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnhhhhhtttttthvvvvtsssssssshIIIIIIIhsssssshhhhhhhhhhhhhhhhhphhnnnnhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaddddddaaaaaaaaaaaaaaaKaadhhhhhhttttttttttttttthvhsssssshthssssststthhhhhhhhhhhhhhhhhhhhphhOPPPOyzzyhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooaaaaaaaaaaaaaaaaadhhhnnhhhtthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

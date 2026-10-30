@@ -1,14 +1,19 @@
 /// What the editing widgets draw a caret with: the columns a text takes
 /// on the canvas ([TextColumns]), and the terminal's own cursor placed at
 /// the caret ([showCaret], [hideCaret]), which a render object of an app's
-/// own places at its caret too.
+/// own places at its caret too; and where the hidden cursor rests
+/// ([restCursor]).
 library;
 
+import 'dart:typed_data';
+
+import 'package:meta/meta.dart' show internal;
 import 'package:twk_core/twk_core.dart'
     show
         ClusterScan,
         CursorShape,
         PaintContext,
+        Presenter,
         RenderObject,
         TextMode,
         TextSegmenter,
@@ -238,4 +243,124 @@ void hideCaret(PaintContext ctx, RenderObject object) {
     object.paintedWhenCutOff = false;
     p.cursorVisible = false;
   }
+}
+
+/// The cells objects put each presenter's hidden cursor on
+/// ([restCursor]), each object's own, in the order they were given: the
+/// last given last.
+final _rests = Expando<Map<RenderObject, (int, int)>>('rests');
+
+/// Puts the terminal's cursor, while no caret shows it ([showCaret]), at
+/// [x], [y] of [object], which is being painted with [ctx]: the cell of
+/// what is focused in it, as a list's selected row, while it has the
+/// focus. From this frame on it rests there, whatever else repaints,
+/// until [object] puts it elsewhere or takes it back ([clearRestCursor]).
+///
+/// Hidden, the cursor is not seen, but a terminal that marks its row
+/// (iTerm2's cursor guide) or follows it (macOS zoom, a screen reader, a
+/// braille display) shows where it is. Without a cell of its own, the
+/// focused widget's first cell is where it rests; an object puts it on a
+/// cell of its own only while it is in that widget ([restingCell]). Each
+/// object keeps the cell it gave, so that one outside the focused widget
+/// that repaints after it (another list's selection, an animation) takes
+/// nothing from it. An object with no such cell any more (nothing
+/// selected, the selected row scrolled away) takes its cell back with
+/// [clearRestCursor].
+void restCursor(PaintContext ctx, RenderObject object, int x, int y) =>
+    restCursorOn(ctx.presenter, object, x, y);
+
+/// Forgets the cell [object] put the hidden cursor on ([restCursor]),
+/// painted with [ctx]: where it was the focused widget's, the cursor
+/// rests on that widget's first cell again.
+void clearRestCursor(PaintContext ctx, RenderObject object) =>
+    clearRestCursorOn(ctx.presenter, object);
+
+/// [restCursor] on [presenter], the one [object] was painted with last:
+/// for an object whose cell changes with nothing to repaint, which would
+/// otherwise repaint all up to the boundary above it.
+@internal
+void restCursorOn(Presenter presenter, RenderObject object, int x, int y) {
+  // given again, it is the last given
+  final rests = (_rests[presenter] ??= {})
+    ..remove(object)
+    ..[object] = (x, y);
+  // the cells of objects out of the tree forgotten here too, where no
+  // frame asks where the cursor rests (a caret shows it): a few kept
+  if (rests.length > _restsKept) {
+    rests.removeWhere(_detached);
+  }
+}
+
+/// How many cells [restCursorOn] keeps before it forgets those of objects
+/// out of the tree.
+const _restsKept = 16;
+
+/// [clearRestCursor] on [presenter], as [restCursorOn].
+@internal
+void clearRestCursorOn(Presenter presenter, RenderObject object) {
+  _rests[presenter]?.remove(object);
+}
+
+/// Where [presenter]'s hidden cursor rests on the screen with [focused]
+/// the render object of the focused widget: the cell [restCursor] gave
+/// last of those whose object is [focused] or in it and that are not cut
+/// off, else [focused]'s first cell; null without a focused object on the
+/// screen. The cells of objects out of the tree are forgotten.
+@internal
+(int, int)? restingCell(Presenter presenter, RenderObject? focused) {
+  if (focused == null || focused.owner == null) {
+    _rests[presenter]?.removeWhere(_detached);
+    return null;
+  }
+  // the last given that is on the screen, in order, allocating nothing
+  // a frame
+  (int, int)? found;
+  var gone = false;
+  if (_rests[presenter] case final rests?) {
+    for (final MapEntry(key: object, value: (x, y)) in rests.entries) {
+      if (object.owner == null) {
+        gone = true;
+      } else if (_within(object, focused)) {
+        found = _onScreen(object, x, y) ?? found;
+      }
+    }
+    if (gone) {
+      rests.removeWhere(_detached);
+    }
+  }
+  return found ?? _onScreen(focused, 0, 0);
+}
+
+bool _detached(RenderObject object, (int, int) _) => object.owner == null;
+
+bool _within(RenderObject object, RenderObject ancestor) {
+  for (RenderObject? o = object; o != null; o = o.parent) {
+    if (identical(o, ancestor)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/// Sorts [cuts], the offsets a row of an editing widget is painted in
+/// pieces at, and keeps each once at the start: how many there are. With
+/// a scratch of the widget's own, a paint of a selection makes no list.
+@internal
+int sortedOnce(Int32List cuts) {
+  for (var i = 1; i < cuts.length; i++) {
+    final v = cuts[i];
+    var j = i;
+    while (j > 0 && cuts[j - 1] > v) {
+      cuts[j] = cuts[j - 1];
+      j--;
+    }
+    cuts[j] = v;
+  }
+  var n = 1;
+  for (var i = 1; i < cuts.length; i++) {
+    if (cuts[i] != cuts[n - 1]) {
+      cuts[n++] = cuts[i];
+    }
+  }
+  return n;
 }

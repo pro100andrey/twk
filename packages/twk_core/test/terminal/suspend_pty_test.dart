@@ -39,12 +39,29 @@ Future<(int, String)> ptyRun(List<String> options, List<String> command) async {
 /// suspend_app.dart, compiled once.
 late String _app;
 
-/// What the shell runs: the app, then what it says while it has the
-/// terminal, a line it reads (typed once the terminal was resized while
-/// the app is stopped), and fg.
+/// What the shell runs: the app, its report to descriptor 3 ([_shell]),
+/// then what it says while it has the terminal, a line it reads (typed
+/// once the terminal was resized while the app is stopped), and fg.
 String get _shellLine =>
-    '"${Platform.resolvedExecutable}" "$_app"; '
+    '"${Platform.resolvedExecutable}" "$_app" 2>&3; '
     'echo shell has it; read x; fg';
+
+/// An interactive bash with job control running [_shellLine], its stderr
+/// the terminal: bash 3.2 (macOS's) sets the terminal up for job control
+/// and hands it to a job through its stderr, which tool/pty_run.py reads
+/// as a pipe; that pipe is descriptor 3, for the app's report.
+List<String> get _shell => [
+  '/bin/sh',
+  '-c',
+  r'exec 3>&2 2>&0 "$@"',
+  'sh',
+  'bash',
+  '--norc',
+  '--noprofile',
+  '-i',
+  '-c',
+  _shellLine,
+];
 
 /// What the app draws first, at the size [ptyRun] starts it at.
 const _drawn = 'suspend app 100x30';
@@ -83,23 +100,12 @@ void main() {
           '--resize',
           '#2:90x25',
         ],
-        [
-          'bash',
-          '--norc',
-          '--noprofile',
-          '-i',
-          '-c',
-          _shellLine,
-        ],
+        _shell,
       );
       expect(code, 0, reason: said);
       expect(said, contains('drew at 90x25, handed over 1 times'));
     },
     timeout: const Timeout(Duration(minutes: 3)),
-    // macOS's bash (3.2) in this pseudo-terminal fails to set it up for
-    // job control (tcsetattr: Inappropriate ioctl for device) and the app
-    // is stopped before it draws: to be found out there (ci-skipped)
-    testOn: 'linux',
   );
 
   test('a resize is drawn at the new size', () async {

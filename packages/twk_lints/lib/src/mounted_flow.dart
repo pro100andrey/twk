@@ -8,6 +8,8 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
+import 'twk_types.dart';
+
 /// Why a point of a function body may run once the state was disposed.
 enum Gap {
   /// It follows an `await` (or the next element of an `await for`).
@@ -33,8 +35,10 @@ enum Gap {
 /// path, loops are followed round until nothing changes (so an `await` at
 /// the end of a loop's body is a gap before its start), and `switch` and
 /// `try` are joined over their cases. An argument of an awaited call is
-/// read before the gap. A check is a read of `mounted` (`mounted`,
-/// `context.mounted`, `x.y.mounted`) that is true on the path: the
+/// read before the gap. A check is a read of the `mounted` of a twk
+/// `State` or `BuildContext` (`mounted`, `context.mounted`,
+/// `x.y.mounted`; a flag of the code's own named so is none) that is
+/// true on the path: the
 /// branch of `if (mounted)`, and what follows `if (!mounted) return;`.
 /// A local variable or parameter assigned after the last gap is fresh,
 /// and its reads are not after one; so is one that a function written in
@@ -184,7 +188,8 @@ int _entryGap(FunctionBody body) {
   return isCallback ? _callback : 0;
 }
 
-/// Whether [e] reads `mounted`, of the state or of a context.
+/// Whether [e] reads `mounted`, of a twk state or context (of a class of
+/// theirs too); where the name is not resolved, any `mounted`.
 bool isMountedRead(Expression e) {
   final name = switch (e) {
     SimpleIdentifier() => e,
@@ -192,7 +197,17 @@ bool isMountedRead(Expression e) {
     PropertyAccess(:final propertyName) => propertyName,
     _ => null,
   };
-  return name != null && name.name == 'mounted';
+  if (name == null || name.name != 'mounted') {
+    return false;
+  }
+  final element = name.element;
+  if (element == null) {
+    return true;
+  }
+  final owner = element.enclosingElement;
+  return owner is InterfaceElement &&
+      (isTwkSubtype(owner.thisType, 'State') ||
+          isTwkSubtype(owner.thisType, 'BuildContext'));
 }
 
 /// What holds on one path at one point: the gaps passed since `mounted`

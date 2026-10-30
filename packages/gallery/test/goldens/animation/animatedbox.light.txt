@@ -20,20 +20,20 @@ text
 │     AnimatedSize               ·   ·     ╔════════════════════════════════╗    ·   ·     │   decelerate  bounceOut     │
 │     TweenAnimationBuild…                 ║                                ║              │   elasticOut                │
 │     AnimatedSwitcher           ·   ·     ║    a box                       ║    ·   ·     │                             │
-│     Dissolve, Fractiona…  ▐              ║                                ║              │  cycle               ▐  ●▌  │
+│     Dissolve, Fractiona…                 ║                                ║              │  cycle               ▐  ●▌  │
 │     Effect                ▐    ·   ·     ║                                ║    ·   ·     │                             │
 │                           ▐              ║                                ║              │                             │
 │   MOUSE                5  ▐    ·   ·     ╚════════════════════════════════╝    ·   ·     │                             │
 │     GestureDetector       ▐            └                                    ┘            │                             │
-│     Listener, MouseRegi…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  34 × 7   ·   ·     │                             │
+│     Listener, MouseRegi…  ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  34 × 7   ·   ·     │                             │
 │     IgnorePointer, Abso…                                                                 │                             │
 │     SelectionArea              ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     Draggable, DragTarg…                                                                 │                             │
 │                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│   FOCUS AND KEYS       4                                                                 │                             │
+│   FOCUS AND KEYS       5                                                                 │                             │
 │     Focus, FocusScope          ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     ExcludeFocus                                                                         │                             │
-│     KeyBindings, Leader…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     ActiveItem                                                                           │                             │
+│     ExcludeFocus               ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │                                                                                          │                             │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
 styles
@@ -57,20 +57,20 @@ styles
 │aaaaaooooooooooooaaaaaaaaaaahhhhphhhphhhhhIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIhhhhphhhphhhhhphhwxxxxxxxxxxwwxxxxxxxxxwhhhh│
 │aaaaaooooooooooooooooooooaaahhhhhhhhhhhhhhIGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGIhhhhhhhhhhhhhhphhwxxxxxxxxxxwhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooooaaaaaaahhhhphhhphhhhhIGGGGJGJJJGGGGGGGGGGGGGGGGGGGGGGGIhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooaooooooooooaadhhhhhhhhhhhhhhIGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGIhhhhhhhhhhhhhhphhnnnnnhhhhhhhhhhhhhhhqrrsqhh│
+│aaaaaoooooooooaooooooooooaaahhhhhhhhhhhhhhIGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGIhhhhhhhhhhhhhhphhnnnnnhhhhhhhhhhhhhhhqrrsqhh│
 │aaaaaooooooaaaaaaaaaaaaaaaadhhhhphhhphhhhhIGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGIhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhIGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGIhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaadddddaaaaaaaaaaaaaaaaBaadhhhhphhhphhhhhIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooooaaaaaaadhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooaooooooooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhEEhEhEhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaooooooooooaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhEEhEhEhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooaoooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooaoooooooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaadddddadddaddddaaaaaaaBaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooaooooooooooaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooaoooooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
 legend

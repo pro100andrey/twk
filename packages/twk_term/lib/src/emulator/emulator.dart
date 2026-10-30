@@ -55,6 +55,27 @@ final class _Screen {
 /// the oldest go beyond.
 const _keyFlagsDepth = 16;
 
+/// The longest URI an OSC 8 hyperlink takes, VTE's; a longer one ends the
+/// link, as an empty one does.
+const _maxLink = 2083;
+
+/// The most code units of a title, an icon name, a notification's title or
+/// body or a pointer shape a program sets: the rest is cut off, so that the
+/// sequence's limit, a megabyte, is not what each of them may keep.
+const _maxText = 4096;
+
+/// [text] cut to [_maxText] code units, not inside a surrogate pair.
+String _bounded(String text) {
+  if (text.length <= _maxText) {
+    return text;
+  }
+  final end =
+      _maxText - (_isHighSurrogate(text.codeUnitAt(_maxText - 1)) ? 1 : 0);
+  return text.substring(0, end);
+}
+
+bool _isHighSurrogate(int c) => c >= 0xD800 && c <= 0xDBFF;
+
 // Character sets (G0..G3 designations).
 const _ascii = 0;
 const _decGraphics = 1;
@@ -130,17 +151,15 @@ final class TerminalEmulator {
   /// An emulator of [width] x [height] cells (at least 1 x 1) in its
   /// initial state, keeping [scrollbackLimit] lines of scrollback.
   ///
-  /// Its cells' ids are in [styles] and [glyphs], tables of its own where
-  /// they are null. Text is split into cells by [textMode] (code points by
-  /// default; DEC mode 2027 switches it), characters whose width is
-  /// ambiguous taking [ambiguousWidth] columns. [onOutput], [onEvent] and
-  /// [strict] are as the fields of those names.
+  /// Its cells' styles are in [styles] and their glyphs in [glyphs],
+  /// tables of its own. Text is split into cells by [textMode] (code
+  /// points by default; DEC mode 2027 switches it), characters whose width
+  /// is ambiguous taking [ambiguousWidth] columns. [onOutput], [onEvent]
+  /// and [strict] are as the fields of those names.
   TerminalEmulator({
     int width = 80,
     int height = 24,
     int scrollbackLimit = 1000,
-    StyleTable? styles,
-    GlyphTable? glyphs,
     TextMode textMode = TextMode.legacy,
     int ambiguousWidth = 1,
     this.onOutput,
@@ -148,8 +167,8 @@ final class TerminalEmulator {
     this.strict = false,
   }) : _width = width < 1 ? 1 : width,
        _height = height < 1 ? 1 : height,
-       styles = styles ?? StyleTable(),
-       glyphs = glyphs ?? GlyphTable(),
+       styles = StyleTable(),
+       glyphs = GlyphTable(),
        segmenter = TextSegmenter(
          mode: textMode,
          ambiguousWidth: ambiguousWidth,
@@ -182,11 +201,31 @@ final class TerminalEmulator {
   /// ignored (for tests).
   final bool strict;
 
-  /// The styles of the cells; a host that passes its canvas's table can
-  /// copy cells as they are.
+  /// The styles of the cells, a table of the emulator's own: a host's
+  /// canvas takes them as [paint] makes them again in its table.
+  ///
+  /// It is swept ([StyleTable.sweep]) once
+  /// twice as many styles are in use as after the last sweep, and at
+  /// least [sweepFloor]: a program that writes 24-bit color (a video, an
+  /// image viewer) gives each color it sends a style, which would
+  /// otherwise be kept as long as the emulator is. What no cell of its
+  /// screens and scrollback has is freed; ids kept from before are noted
+  /// by [StyleTable.sweeps]. It is no host's, as a host's screen would
+  /// sweep it without the emulator's scrollback.
   final StyleTable styles;
 
-  /// The multi-code-point glyphs of the cells.
+  /// The fewest styles, or glyphs, in use [styles], or [glyphs], is swept
+  /// past; a test's may be fewer.
+  static var sweepFloor = 4096;
+
+  // each swept once this many are in use
+  var _stylesAt = 0;
+  var _glyphsAt = 0;
+
+  /// The multi-code-point glyphs of the cells, a table of the emulator's
+  /// own, swept as [styles] is ([GlyphTable.sweep]): a program that writes
+  /// ever new clusters (letters with combining marks, emoji sequences)
+  /// keeps those on its screens and scrollback, not every one it sent.
   final GlyphTable glyphs;
 
   /// How printed text is split into cells; DEC mode 2027 switches its
@@ -432,10 +471,57 @@ final class TerminalEmulator {
   // ------------------------------------------------------------ writing --
 
   /// Takes what the program wrote; a sequence may be split across calls.
-  void feed(List<int> bytes) => _parser.feed(bytes);
+  void feed(List<int> bytes) {
+    _parser.feed(bytes);
+    _sweepIfDue();
+  }
 
   /// [text] as the program would write it (UTF-8).
-  void feedText(String text) => _parser.feed(utf8.encode(text));
+  void feedText(String text) => feed(utf8.encode(text));
+
+  /// Sweeps [styles] and [glyphs] when each is due.
+  void _sweepIfDue() {
+    final stylesDue = styles.live > sweepFloor && styles.live > _stylesAt;
+    final glyphsDue = glyphs.live > sweepFloor && glyphs.live > _glyphsAt;
+    if (!stylesDue && !glyphsDue) {
+      return;
+    }
+    // the words of every line of the screens and the scrollback
+    void each(
+      Uint32List Function(TerminalLine line) of,
+      void Function(int) mark,
+    ) {
+      void line(TerminalLine l) {
+        final words = of(l);
+        for (var x = 0; x < words.length; x++) {
+          mark(words[x]);
+        }
+      }
+
+      _primary.lines.forEach(line);
+      _alternate.lines.forEach(line);
+      for (var i = 0; i < _scrollback.length; i++) {
+        line(_scrollback[i]);
+      }
+    }
+
+    if (stylesDue) {
+      styles.sweep((mark) => each((l) => l.styles, mark));
+      // the pen's own ids may be gone: made again as text comes
+      _styleDirty = true;
+      _stylesAt = 2 * styles.live;
+    }
+    if (glyphsDue) {
+      glyphs.sweep((mark) {
+        each((l) => l.cells, mark);
+        // what REP repeats
+        if (_lastGlyph >= 0) {
+          mark(_lastGlyph);
+        }
+      });
+      _glyphsAt = 2 * glyphs.live;
+    }
+  }
 
   /// A new size; see the class comment for what happens to the screen.
   void resize(int width, int height) {

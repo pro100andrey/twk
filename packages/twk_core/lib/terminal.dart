@@ -73,6 +73,7 @@ export 'src/terminal/sequences.dart'
         MouseTracking,
         Multiplexer,
         NotificationProtocol,
+        PointerNames,
         PointerShape,
         ProgressState,
         clipboardSequence,
@@ -94,7 +95,8 @@ export 'src/terminal/terminal.dart'
         TerminalOptions,
         TerminalStateBackend,
         WindowBackend,
-        colorModeFor;
+        colorModeFor,
+        styledUnderlinesFor;
 export 'src/unicode/unicode.dart'
     show
         ClusterScan,

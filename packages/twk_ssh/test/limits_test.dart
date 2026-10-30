@@ -275,4 +275,169 @@ void main() {
       );
     });
   });
+
+  group('an address whose connection ended without a login after a '
+      'failure', () {
+    // a password, which the server takes none of: a failure
+    Future<void> fail(SshServer server) async {
+      final client = await RawClient.connect(server);
+      await client.exchangeKeys();
+      client.sendMessage(
+        (w) => w
+          ..byte(SshMsg.serviceRequest)
+          ..utf8String('ssh-userauth'),
+      );
+      await client.expectNext(SshMsg.serviceAccept);
+      client.sendMessage(
+        (w) => w
+          ..byte(SshMsg.userauthRequest)
+          ..utf8String('mallory')
+          ..utf8String('ssh-connection')
+          ..utf8String('password')
+          ..boolean(false)
+          ..utf8String('guess'),
+      );
+      await client.expectNext(SshMsg.userauthFailure);
+      client.socket.destroy();
+      await waitUntil(
+        () => server.connections.isEmpty,
+        'the server to see it go',
+      );
+    }
+
+    Future<bool> refused(SshServer server) async {
+      final client = await RawClient.connect(server);
+      return client.closes(const Duration(seconds: 5));
+    }
+
+    /// Whether a client of [server] gets through a key exchange: let in.
+    Future<void> letIn(SshServer server) async {
+      final client = await RawClient.connect(server);
+      await client.exchangeKeys();
+      client.socket.destroy();
+    }
+
+    test('is refused for the penalty, then let in again', () async {
+      final clock = FakeClock();
+      final server = await serve(
+        auth: acceptKeys([alice]),
+        onSession: (session) => session.done,
+        clock: clock.stopwatch,
+      );
+      const penalty = SshPenalty();
+      await fail(server);
+      expect(await refused(server), isTrue);
+      await clock.elapse(penalty.perFailure - const Duration(seconds: 1));
+      expect(await refused(server), isTrue);
+      await clock.elapse(const Duration(seconds: 1));
+      // let in again, and failing again: refused again
+      await fail(server);
+      expect(await refused(server), isTrue);
+      expect(server.refused, 3);
+      await clock.elapse(penalty.perFailure);
+      final client = await RawClient.connect(server);
+      await client.exchangeKeys();
+      await client.logIn('alice', alice.pair);
+    });
+
+    test('is let in at once without a penalty, or when it is exempt, as a '
+        "proxy's that all clients come from", () async {
+      for (final server in [
+        await serve(
+          auth: acceptKeys([alice]),
+          onSession: (session) => session.done,
+          penalty: null,
+        ),
+        await serve(
+          auth: acceptKeys([alice]),
+          onSession: (session) => session.done,
+          penaltyExempt: (address) => address.isLoopback,
+        ),
+      ]) {
+        await fail(server);
+        await fail(server);
+        await letIn(server);
+        expect(server.refused, 0);
+      }
+    });
+  });
+
+  group('a key exchange after the first the client leaves undone', () {
+    // the server's clock and deadlines on one fake clock; the login is
+    // done first, so that only the exchange's deadline is left on it
+    late FakeClock clock;
+    late SshSession session;
+    late SshServer server;
+    late RawClient client;
+    late Uint8List kexInit;
+
+    setUp(() async {
+      clock = FakeClock();
+      final opened = Completer<void>();
+      server = await serve(
+        auth: acceptKeys([alice]),
+        onSession: (s) {
+          session = s;
+          opened.complete();
+          return s.done;
+        },
+        rekeyLimit: const SshRekeyLimit(time: Duration(minutes: 10)),
+        clock: clock.stopwatch,
+        timers: (duration, callback) =>
+            clock.run(() => Timer(duration, callback)),
+      );
+      client = await RawClient.connect(server);
+      await client.exchangeKeys();
+      await client.logIn('alice', alice.pair);
+      await client.openShell();
+      await opened.future;
+      await clock.elapse(const Duration(minutes: 10));
+      // the packet read past the time starts the exchange; its answer is
+      // held
+      client.send(unknown);
+      kexInit = await client.expectNext(SshMsg.kexInit);
+    });
+
+    test('ends the connection once its time is up', () async {
+      await clock.elapse(
+        SshTransport.kexTimeout - const Duration(seconds: 1),
+      );
+      expect(server.connections.single.transport.isClosed, isFalse);
+      await clock.elapse(const Duration(seconds: 1));
+      expect(await client.disconnectReason(), SshDisconnect.keyExchangeFailed);
+    });
+
+    test('ends the connection when what the server holds meanwhile goes '
+        'past its bound', () async {
+      final bound = SshTransport.maxHeld;
+      addTearDown(() => SshTransport.maxHeld = bound);
+      // each answer is 5 bytes: the first held, and ten more
+      SshTransport.maxHeld = 54;
+      for (var i = 0; i < 10; i++) {
+        client.send(unknown);
+      }
+      expect(await client.disconnectReason(), SshDisconnect.byApplication);
+    });
+
+    test("keeps the channel's output, and its flush waiting, until it is "
+        'done', () async {
+      session.add(utf8.encode('late'));
+      var flushed = false;
+      unawaited(session.flush().then((_) => flushed = true));
+      await pumpEventQueue();
+      expect(server.connections.single.transport.holding, isTrue);
+      expect(flushed, isFalse);
+      final between = await client.exchangeKeys(
+        first: false,
+        serverKexInit: kexInit,
+      );
+      expect(between, isEmpty);
+      await client.expectNext(SshMsg.unimplemented);
+      final data = SshReader(await client.expectNext(SshMsg.channelData))
+        ..byte()
+        ..uint32();
+      expect(utf8.decode(data.string()), 'late');
+      await waitUntil(() => flushed, 'the flush to complete');
+    });
+  });
 }

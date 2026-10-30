@@ -92,7 +92,9 @@ final class FakeLink implements DeclaringLink {
   void add(List<int> bytes) => output.add(bytes);
 
   @override
-  Future<void> flush() async => flushes++;
+  Future<void> flush() async {
+    flushes++;
+  }
 
   @override
   Stream<void> get resizes => _resizes.stream;

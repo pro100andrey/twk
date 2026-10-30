@@ -231,6 +231,43 @@ void main() {
       expect(focused(t), 'a');
     });
 
+    testTwk('the hidden cursor rests on the selected tab as it moves and '
+        'the row scrolls', (t) async {
+      final c = TabController(length: 4);
+      final node = FocusNode(debugLabel: 'bar');
+      addTearDown(node.dispose);
+      await t.pumpWidget(
+        Theme.terminal(
+          child: Row(
+            children: [
+              Expanded(
+                child: TabBar(
+                  controller: c,
+                  focusNode: node,
+                  tabs: const ['One', 'Two', 'Three', 'Four'],
+                ),
+              ),
+            ],
+          ),
+        ),
+        size: (12, 1),
+      );
+      node.requestFocus();
+      await t.pump();
+      expect(t.cursorVisible, isFalse);
+      expect(t.cursor, (0, 0));
+      await press(t, 'right');
+      expect(t.cursor, (5, 0));
+      await press(t, 'right');
+      expect(t.lines, ['‹wo  Three ›']);
+      expect(t.cursor, (4, 0));
+      await press(t, 'right');
+      expect(t.lines, ['‹hree  Four']);
+      expect(t.cursor, (6, 0));
+      await press(t, 'home');
+      expect(t.cursor, (0, 0));
+    });
+
     testTwk('scrolls to show the selected tab whole when the labels do not '
         'fit, marking the edges where tabs are cut off', (t) async {
       final c = TabController(length: 4);

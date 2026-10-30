@@ -4,17 +4,16 @@ An analyzer plugin for apps built on [twk](../twk/README.md): warnings
 and lints that `dart analyze` and the editor report, and assists that
 the editor offers at the cursor. It is a plugin of the analysis server's
 own plugin system (Dart 3.10 and later), on `analysis_server_plugin`
-0.3.24 and `analyzer` 14.5.0, which that version of the plugin package
-pins exactly; it does not depend on twk, and knows twk's classes by name
+0.3 and `analyzer` 14, the analyzer that version of the plugin package
+pins; it does not depend on twk, and knows twk's classes by name
 and package (`package:twk`, `package:twk_core`); its tests alone depend
 on twk, to hold what it ports of twk to twk.
 
 ## Enabling it
 
 The recommended set, `lib/recommended.yaml`, is the plugin with every
-rule on. An app that takes twk_lints as a dev dependency (by path while
-it is not published) includes it from its `analysis_options.yaml`, alone
-or in a list beside other sets:
+rule on. An app that takes twk_lints as a dev dependency includes it
+from its `analysis_options.yaml`, alone or in a list beside other sets:
 
 ```yaml
 include:
@@ -34,14 +33,12 @@ its path takes its place whole, so only what it turns on is on, and one
 that names it without a path is ignored, without a word. To turn a rule
 off, an app names the plugin itself, as below, with every lint it keeps.
 The dev dependency brings the plugin's own dependencies into the app's
-resolution: `analyzer` and `analysis_server_plugin` at the versions it
-pins.
+resolution: `analysis_server_plugin`, and the `analyzer` it pins.
 
 An app names the plugin in the top-level `plugins` section of its
 `analysis_options.yaml` (not under `analyzer:`, where the old plugin
-system had them), by path while it is not published, and turns on the
-lints it wants under `diagnostics`; the warnings are on unless turned off
-there:
+system had them), and turns on the lints it wants under `diagnostics`;
+the warnings are on unless turned off there:
 
 ```yaml
 plugins:

@@ -4,24 +4,24 @@ text
 │                                                                                │
 │   ⌕ Filter       /     Shadow                                  Preview   Code  │
 │                        A drop shadow: the cells beside and below a child,      │
-│   TEXT           4  ▐  moved by its offset, what is under them darkened.       │
+│   TEXT           5  ▐  moved by its offset, what is under them darkened.       │
 │     Text            ▐──────────────────────────────────────────────────────────│
 │     Rich text                 ┌                                      ┐         │
 │     DefaultTextSt…      ·   ·   what is under a shadow keeps its        ·   ·  │
 │     Right to left               glyphs; their colours darken. what             │
-│                         ·   ·   is un╭─────────────────────╮glyphs;     ·   ·  │
-│   LAYOUT        24              their│ a box with a shadow │s under            │
-│     Box                 ·   ·   a sha╰─────────────────────╯heir        ·   ·  │
-│     ColoredBox, D…              colours darken. what is under a                │
-│     Container           ·   ·   shadow keeps its glyphs; their          ·   ·  │
-│     Divider                     colours darken. what is under a                │
-│ ▎   Shadow              ·   · └                                      ┘  ·   ·  │
-│     Padding                                                    36 × 8          │
-│     Align, Center                                                              │
-│     SizedBox         ──────────────────────────────────────────────────────────│
-│     ConstrainedBox     offset   2, 1  1, 1  -2, -1                             │
-│     LimitedBox, O…     alpha    ¼  ½  ¾                                        │
-│     FractionallyS…                                                             │
+│     ANSI                ·   ·   is un╭─────────────────────╮glyphs;     ·   ·  │
+│                                 their│ a box with a shadow │s under            │
+│   LAYOUT        24      ·   ·   a sha╰─────────────────────╯heir        ·   ·  │
+│     Box                         colours darken. what is under a                │
+│     ColoredBox, D…      ·   ·   shadow keeps its glyphs; their          ·   ·  │
+│     Container                   colours darken. what is under a                │
+│     Divider             ·   · └                                      ┘  ·   ·  │
+│ ▎   Shadow                                                     36 × 8          │
+│     Padding                                                                    │
+│     Align, Center    ──────────────────────────────────────────────────────────│
+│     SizedBox           offset   2, 1  1, 1  -2, -1                             │
+│     ConstrainedBox     alpha    ¼  ½  ¾                                        │
+│     LimitedBox, O…                                                             │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -34,19 +34,19 @@ styles
 │aaaaaooooaooooaaaaaaaagggggggggpggggggggggggggggggggggggggggggggggggggpggggggggg│
 │aaaaaooooooooooooooaaagggpgggpgggmmmmgmmgmmmmmgmgmmmmmmgmmmmmgmmmggggggggpgggpgg│
 │aaaaaoooooaooaooooaaaagggggggggggmmmmmmmgmmmmmgmmmmmmmgmmmmmmmgmmmmggggggggggggg│
-│aaaaaaaaaaaaaaaaaaaaaagggpgggpgggmmgmmqqqqqqqqqqqqqqqqqqqqqqqmmmmmmmgggggpgggpgg│
-│aaaddddddaaaaaaaaAAaaagggggggggggmmmmmqrsrsssrssssrsrssssssrqtummmmmgggggggggggg│
-│aaaaaoooaaaaaaaaaaaaaagggpgggpgggmgmmmqqqqqqqqqqqqqqqqqqqqqqqttmmggggggggpgggpgg│
-│aaaaaoooooooooooaooaaagggggggggggmmmmmmmutttttttuttttuttutttttumgggggggggggggggg│
-│aaaaaoooooooooaaaaaaaagggpgggpgggmmmmmmgmmmmmgmmmgmmmmmmmgmmmmmggggggggggpgggpgg│
-│aaaaaoooooooaaaaaaaaaagggggggggggmmmmmmmgmmmmmmmgmmmmgmmgmmmmmgmgggggggggggggggg│
-│avwwwxxxxxxwwwwwwwwwwagggpgggpgpggggggggggggggggggggggggggggggggggggggpggpgggpgg│
-│aaaaaoooooooaaaaaaaaaaggggggggggggggggggggggggggggggggggggggggggDDgDgDgggggggggg│
-│aaaaaooooooaooooooaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaaooooooooaaaaaaaaapppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
-│aaaaaooooooooooooooaaaggmmmmmmggwxxwxwhzzhzhhzzzhzzhgggggggggggggggggggggggggggg│
-│aaaaaoooooooooooaooaaaggmmmmmggghzhwxwhzhggggggggggggggggggggggggggggggggggggggg│
-│aaaaaooooooooooooooaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaooooaaaaaaaaaaaaagggpgggpgggmmgmmqqqqqqqqqqqqqqqqqqqqqqqmmmmmmmgggggpgggpgg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggmmmmmqrsrsssrssssrsrssssssrqtummmmmgggggggggggg│
+│aaaddddddaaaaaaaaAAaaagggpgggpgggmgmmmqqqqqqqqqqqqqqqqqqqqqqqttmmggggggggpgggpgg│
+│aaaaaoooaaaaaaaaaaaaaagggggggggggmmmmmmmutttttttuttttuttutttttumgggggggggggggggg│
+│aaaaaoooooooooooaooaaagggpgggpgggmmmmmmgmmmmmgmmmgmmmmmmmgmmmmmggggggggggpgggpgg│
+│aaaaaoooooooooaaaaaaaagggggggggggmmmmmmmgmmmmmmmgmmmmgmmgmmmmmgmgggggggggggggggg│
+│aaaaaoooooooaaaaaaaaaagggpgggpgpggggggggggggggggggggggggggggggggggggggpggpgggpgg│
+│avwwwxxxxxxwwwwwwwwwwaggggggggggggggggggggggggggggggggggggggggggDDgDgDgggggggggg│
+│aaaaaoooooooaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaooooooaooooooaaaapppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaooooooooaaaaaaaaaggmmmmmmggwxxwxwhzzhzhhzzzhzzhgggggggggggggggggggggggggggg│
+│aaaaaooooooooooooooaaaggmmmmmggghzhwxwhzhggggggggggggggggggggggggggggggggggggggg│
+│aaaaaoooooooooooaooaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

@@ -4,9 +4,9 @@ text
 │                                                                                                                        │
 │   ⌕ Filter             /      Breadcrumbs                                                                      3 of 5  │
 │                               Where a screen is in a hierarchy, each level a link up: the arrows and Enter or a        │
-│                               click go to one, and the middle collapses into … where the row does not fit.             │
-│   FOCUS AND KEYS       4                                                                                               │
-│     Focus, FocusScope         Preview   Code                                                                           │
+│   FOCUS AND KEYS       5      click go to one, and the middle collapses into … where the row does not fit.             │
+│     Focus, FocusScope                                                                                                  │
+│     ActiveItem                Preview   Code                                                                           │
 │     ExcludeFocus           ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
 │     KeyBindings, Leader…                                                                 │                             │
 │     Shortcuts, Actions         ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
@@ -41,9 +41,9 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaizizzzzzziiiiiiiiiiiiiAiaahhhlllllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhBhBBhBhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnnhnhnnnnnnhnnhnnhnhnnnnnnnnnnhnnnnhnnnnnhnhnnnnhnnnhnnnhnnnnnnhnnnhnnnnnhnnhnhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnnhnnhnnhnnnnhnnnhnnnhnnnnnnhnnnnnnnnnhnnnnhnhnnnnnhnnnhnnnhnnnnhnnnhnnnnhhhhhhhhhhhhh│
-│aaadddddadddaddddaaaaaaayaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooaooooooooooaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddadddaddddaaaaaaayaaahhhnnnnnhnnhnnhnnnnhnnnhnnnhnnnnnnhnnnnnnnnnhnnnnhnhnnnnnhnnnhnnnhnnnnhnnnhnnnnhhhhhhhhhhhhh│
+│aaaaaooooooaooooooooooaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
 │aaaaaooooooooooooaoooooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooaoooooooaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│

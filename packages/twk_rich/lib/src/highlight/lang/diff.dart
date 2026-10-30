@@ -28,8 +28,10 @@ const _headers = [
 ];
 
 /// The header of a hunk with counts: `@@ -1,3 +1,4 @@`, a count left out
-/// being 1.
-final _counted = RegExp(r'@@ -\d+(?:,(\d+))? \+\d+(?:,(\d+))? @@');
+/// being 1; numbers of more than 9 digits make it one without counts.
+final _counted = RegExp(
+  r'@@ -\d{1,9}(?:,(\d{1,9}))? \+\d{1,9}(?:,(\d{1,9}))? @@',
+);
 
 /// The header of a hunk without counts, or of one of a combined diff:
 /// `@@ … @@`, `@@@ -1 -1 +1 @@@`.

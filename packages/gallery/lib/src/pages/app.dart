@@ -3,13 +3,12 @@ import 'dart:math' as math;
 
 import 'package:twk/twk.dart';
 
-import '../motion.dart';
 import '../page.dart';
 import '../paint.dart';
 import '../shell/tokens.dart';
 import 'cli_code.dart';
 import 'cli_stage.dart' if (dart.library.js_interop) 'cli_stage_web.dart';
-import 'common.dart' show litStyle;
+import 'common.dart' show TimedState, codeLine;
 
 /// The pages of the App group that draw.
 final List<GalleryPage> appPages = [
@@ -22,53 +21,6 @@ final List<GalleryPage> appPages = [
   _notifications,
   _cli,
 ];
-
-/// [parts] as one line of the Code, a line too long for this file.
-String _line(List<String> parts) => parts.join();
-
-/// A State that builds with a [Motion] begun on the gallery's clock, and
-/// the page's kept state.
-abstract base class _TimedState<W extends StatefulWidget> extends State<W> {
-  late final motion = Motion(() {
-    if (mounted) {
-      setState(() {});
-    }
-  });
-  late final Map<String, Object?> kept = PageControl.of(context).state;
-
-  /// The time of this build, in ms.
-  int get now => motion.now.inMilliseconds;
-
-  /// The time on the gallery's clock, in ms, outside a build.
-  int get clockNow => Clock.of(context).now(context).inMilliseconds;
-
-  /// A build at [at] ms on the gallery's clock.
-  void wake(int at) => motion.wakeAt(Duration(milliseconds: at));
-
-  /// How lit something lit at [at] ms is, fading over [ms]: 1 at once, 0
-  /// after and while time is frozen.
-  double litAt(int? at, [int ms = 900]) =>
-      at == null ? 0 : 1 - motion.progress(Duration(milliseconds: at), ms);
-
-  /// The background of something lit [k] ([litStyle]).
-  Style lit(double k) => litStyle(Theme.of(context), k);
-
-  @override
-  void dispose() {
-    motion.dispose();
-    super.dispose();
-  }
-
-  Widget buildTimed(BuildContext context);
-
-  @override
-  Widget build(BuildContext context) {
-    motion.begin(context);
-    final built = buildTimed(context);
-    motion.end();
-    return built;
-  }
-}
 
 /// The cells of [free] that flexible children of [flexes] take, as twk's
 /// Flex shares them: each its part rounded down, the cells left over one
@@ -116,7 +68,7 @@ final _input = GalleryPage(
     "      'mouse',",
     r"      '${kind.name} $x,$y',",
     '    ),',
-    _line([
+    codeLine([
       '    PasteEvent(:final text) => ',
       r"('paste', 'of ${text.length} characters'),",
     ]),
@@ -165,12 +117,12 @@ final _input = GalleryPage(
     '                  style: theme.muted,',
     '                ),',
     '              ),',
-    _line([
+    codeLine([
       '              // takes Enter and Space while it has the focus, ',
       'and its',
     ]),
     '              // clicks: none of them reach the listener',
-    _line([
+    codeLine([
       '              ',
       "Button('Clear', onPressed: () => setState(_events.clear)),",
     ]),
@@ -228,7 +180,7 @@ final class _Heard extends StatefulWidget {
   State<_Heard> createState() => _HeardState();
 }
 
-final class _HeardState extends _TimedState<_Heard> {
+final class _HeardState extends TimedState<_Heard> {
   List<_Event> get _events => (kept['events'] ??= <_Event>[]) as List<_Event>;
 
   bool _onEvent(InputEvent event) {
@@ -372,7 +324,7 @@ final _error = GalleryPage(
         ? [
             '  // throws: the app shows an ErrorWidget in its place, as',
             '  // ErrorWidget($thrown) would,',
-            _line([
+            codeLine([
               '  // and logs the error with the path of the widget ',
               'at LogLevel.error',
             ]),
@@ -418,7 +370,7 @@ final _error = GalleryPage(
       '  super.initState();',
       '  _timer = Timer.periodic(',
       '    const Duration(milliseconds: $_loadMs),',
-      _line([
+      codeLine([
         '    (_) => ',
         'setState(() => _load = [..._load.skip(1), _loadAt(++_step)]),',
       ]),
@@ -435,7 +387,7 @@ final _error = GalleryPage(
       'Widget build(BuildContext context) {',
       '  final theme = Theme.of(context);',
       '  const bold = Style(attrs: Attr.bold);',
-      _line([
+      codeLine([
         '  Widget card(String title, Widget child, {int flex = 1}) => ',
         'Expanded(',
       ]),
@@ -461,7 +413,7 @@ final _error = GalleryPage(
       '            children: [',
       r"              Text('${_load.last.round()}%', style: bold),",
       '              Expanded(',
-      _line([
+      codeLine([
         '                child: ',
         'Sparkline(data: _load, max: 100, style: theme.primary),',
       ]),
@@ -538,7 +490,7 @@ final class _Cards extends StatefulWidget {
   State<_Cards> createState() => _CardsState();
 }
 
-final class _CardsState extends _TimedState<_Cards> {
+final class _CardsState extends TimedState<_Cards> {
   @override
   Widget buildTimed(BuildContext context) {
     final theme = Theme.of(context);
@@ -812,7 +764,7 @@ final _static = GalleryPage(
       '  @override',
       '  void initState() {',
       '    super.initState();',
-      _line([
+      codeLine([
         '    _timer = Timer.periodic(',
         'const Duration(milliseconds: $_stepMs), (_) => _step());',
       ]),
@@ -843,7 +795,7 @@ final _static = GalleryPage(
       if (inline)
         "        // each item goes to the terminal's history, above the region"
       else
-        _line([
+        codeLine([
           '        // shown in place, ',
           'gone with the alternate screen when the app ends',
         ]),
@@ -858,7 +810,7 @@ final _static = GalleryPage(
       '            children: [',
       '              const Spinner(),',
       r"              Text('${_doing[_done.length]}…'),",
-      _line([
+      codeLine([
         '              ',
         r"Text(' ${_done.length + 1}/${_did.length}', style: theme.muted),",
       ]),
@@ -888,7 +840,7 @@ final class _StaticRun extends StatefulWidget {
   State<_StaticRun> createState() => _StaticRunState();
 }
 
-final class _StaticRunState extends _TimedState<_StaticRun> {
+final class _StaticRunState extends TimedState<_StaticRun> {
   @override
   Widget buildTimed(BuildContext context) {
     final t = Tokens(Theme.of(context));
@@ -1109,7 +1061,7 @@ final _progress = GalleryPage(
           ];
     return [
       '// written where the terminal is known to show it (OSC 9;4,',
-      _line([
+      codeLine([
         '// TerminalInfo.progressReports): when what is shown changes, ',
         'and every',
       ]),
@@ -1151,7 +1103,7 @@ final class _Progress extends StatefulWidget {
   State<_Progress> createState() => _ProgressState();
 }
 
-final class _ProgressState extends _TimedState<_Progress> {
+final class _ProgressState extends TimedState<_Progress> {
   /// What TerminalStatus wrote last for the options as they are now:
   /// where the terminal shows a progress, one when it changes and again
   /// every 10 s while it does not, ESC]9;4;0ESC\ once one shown is taken
@@ -1338,7 +1290,7 @@ final _viewport = GalleryPage(
       '',
       "import 'package:twk/twk.dart';",
       '',
-      _line([
+      codeLine([
         '// the $_vw × $_vh cells from column ${o.label('left')} ',
         'of row ${o.label('top')}: nothing else is',
       ]),
@@ -1354,7 +1306,7 @@ final _viewport = GalleryPage(
         ');',
       ] else ...[
         'void main() =>',
-        _line([
+        codeLine([
           '    runApp(const Build(), ',
           'viewport: const Viewport.fixed($at));',
         ]),
@@ -1376,7 +1328,7 @@ final _viewport = GalleryPage(
       '  @override',
       '  void initState() {',
       '    super.initState();',
-      _line([
+      codeLine([
         '    _timer = Timer.periodic(',
         'const Duration(milliseconds: $_stepMs), (_) => _step());',
       ]),
@@ -1414,12 +1366,12 @@ final _viewport = GalleryPage(
       '        crossAxisAlignment: .start,',
       '        children: [',
       '          if (busy)',
-      _line([
+      codeLine([
         '            Row(gap: 1, children: ',
         r"[const Spinner(), Text('${_steps[_done]}…')])",
       ]),
       '          else',
-      _line([
+      codeLine([
         '            ',
         "Text.rich([Span('✓ ', theme.success), const Span('built')]),",
       ]),
@@ -1474,7 +1426,7 @@ final class _ViewportRun extends StatefulWidget {
   State<_ViewportRun> createState() => _ViewportRunState();
 }
 
-final class _ViewportRunState extends _TimedState<_ViewportRun> {
+final class _ViewportRunState extends TimedState<_ViewportRun> {
   @override
   Widget buildTimed(BuildContext context) {
     final t = Tokens(Theme.of(context));
@@ -1561,7 +1513,7 @@ final _windowTitle = GalleryPage(
       _Titled(title: o.choice<String>('title'), running: o.flag('running')),
   code: (o) => [
     "// the title of the terminal's window or tab while this is in the",
-    _line([
+    codeLine([
       '// tree, set again when it changes: ',
       'of nested ones the innermost, as',
     ]),
@@ -1585,7 +1537,7 @@ final class _Titled extends StatefulWidget {
   State<_Titled> createState() => _TitledState();
 }
 
-final class _TitledState extends _TimedState<_Titled> {
+final class _TitledState extends TimedState<_Titled> {
   @override
   Widget buildTimed(BuildContext context) {
     final t = Tokens(Theme.of(context));
@@ -1726,7 +1678,7 @@ final class _Notify extends StatefulWidget {
   State<_Notify> createState() => _NotifyState();
 }
 
-final class _NotifyState extends _TimedState<_Notify> {
+final class _NotifyState extends TimedState<_Notify> {
   int get _count => (kept['count'] ?? 0) as int;
 
   void _notify() {

@@ -12,7 +12,7 @@ text
 │     Repaint rainb…      ·   ·   ·   · ┌                      ┐  ·   ·   ·   ·  │
 │ ▎   RepaintBounda…                      ······●·············                   │
 │                         ·   ·   ·   ·                           ·   ·   ·   ·  │
-│   RICH           8                      painted: 1                             │
+│   RICH           7                      painted: 1                             │
 │     MarkdownView        ·   ·   ·   · └                      ┘  ·   ·   ·   ·  │
 │     CodeView                                           20 × 3                  │
 │     SyntaxThemeSc…      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
@@ -20,8 +20,8 @@ text
 │     JsonView                                                                   │
 │     BigText          ──────────────────────────────────────────────────────────│
 │     QrCode             RepaintBoundary  ▐  ●▌                                  │
-│     ANSI            ▐  a step every      300 ms  1 s                           │
-│                     ▐                                                          │
+│                     ▐  a step every      300 ms  1 s                           │
+│   IMAGES         1  ▐                                                          │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -45,8 +45,8 @@ styles
 │aaaaannnnnnnnaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnaaaaaaaaaaaggmmmmmmmmmmmmmmmggtwwxtgggggggggggggggggggggggggggggggggg│
-│aaaaannnnaaaaaaaaaaaadggmgmmmmgmmmmmgggggqrrrqrrqhzhzhgggggggggggggggggggggggggg│
-│aaaaaaaaaaaaaaaaaaaaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaadggmgmmmmgmmmmmgggggqrrrqrrqhzhzhgggggggggggggggggggggggggg│
+│aaaddddddaaaaaaaaaAaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

@@ -47,6 +47,16 @@ heading"--- a/z"''',
     );
   });
 
+  test('a hunk header with numbers past 9 digits counts no lines', () {
+    expect(
+      diff('@@ -1,${'9' * 30} +1 @@\n-a\n+b'),
+      '''
+heading"@@ -1,${'9' * 30} +1 @@"
+deleted"-a"
+inserted"+b"''',
+    );
+  });
+
   test('a missing newline is a comment, counted in no file', () {
     expect(
       diff('@@ -5 +5,2 @@\n-a\n+b\n\\ No newline at end of file\n+c\n+d'),

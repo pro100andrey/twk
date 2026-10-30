@@ -4,11 +4,11 @@ text
 │                                                                                │
 │   ⌕ Filter       /     ConstrainedBox                          Preview   Code  │
 │                        Constraints a child is laid out within, merged with     │
-│   TEXT           4  ▐  those it is given.                                      │
-│     Text            ▐──────────────────────────────────────────────────────────│
-│     Rich text                                                                  │
-│     DefaultTextSt…      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
-│     Right to left                ┌                                ┐            │
+│     Text            ▐  those it is given.                                      │
+│     Rich text       ▐──────────────────────────────────────────────────────────│
+│     DefaultTextSt…                                                             │
+│     Right to left       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│     ANSI                         ┌                                ┐            │
 │                         ·   ·       short                           ·   ·   ·  │
 │   LAYOUT        24                                                             │
 │     Box                 ·   ·       A child as wide as its text,    ·   ·   ·  │
@@ -29,11 +29,11 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahxhxxxxxxhhhhhhhyhaaggkkkkkkkkkkkkkkgggggggggggggggggggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmmmmmmmmmmmgmgmmmmmgmmgmmmmgmmmgmmmmmmmgmmmmmmgmmmmggggg│
-│aaaddddaaaaaaaaaaawaadggmmmmmgmmgmmgmmmmmmgggggggggggggggggggggggggggggggggggggg│
-│aaaaaooooaaaaaaaaaaaadpppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
-│aaaaaooooaooooaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaaooooooooooooooaaagggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgg│
-│aaaaaoooooaooaooooaaaaggggggggggggpggggggggggggggggggggggggggggggggpgggggggggggg│
+│aaaaaooooaaaaaaaaaaaadggmmmmmgmmgmmgmmmmmmgggggggggggggggggggggggggggggggggggggg│
+│aaaaaooooaooooaaaaaaadpppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaooooooooooooooaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaoooooaooaooooaaaagggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgggpgg│
+│aaaaaooooaaaaaaaaaaaaaggggggggggggpggggggggggggggggggggggggggggggggpgggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggpgggpggggggqrrrrrqqqqqqgggggggggggggggggggggpgggpgggpgg│
 │aaaddddddaaaaaaaawwaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaoooaaaaaaaaaaaaaagggpgggpggggggqrqrrrrrqrrqrrrrqrrqrrrqrrrrrqgggpgggpgggpgg│

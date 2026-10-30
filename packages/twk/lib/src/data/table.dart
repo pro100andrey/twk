@@ -35,6 +35,7 @@ import 'package:twk_core/twk_core.dart'
         TextWrap;
 
 import '../binding/terminal_status.dart';
+import '../editing/caret.dart' show clearRestCursor, restCursor;
 import '../focus/focus.dart';
 import '../foundation/change_notifier.dart';
 import '../foundation/helpers.dart';
@@ -961,6 +962,10 @@ final class _TableState<T> extends State<Table<T>> {
     return _list.offset != from;
   }
 
+  /// Scrolls the rows to their end; whether they moved.
+  bool _scrollToEnd() =>
+      _list.hasClients && _scrollTo(_list.position.maxOffset);
+
   /// Calls [Table.onActivated] with the row selected; whether there is
   /// one.
   bool _activate() {
@@ -1092,7 +1097,7 @@ final class _TableState<T> extends State<Table<T>> {
       'pageup' => none ? _scroll(-_page) : _move(-_page),
       'pagedown' => none ? _scroll(_page) : _move(_page),
       'home' => none ? _scrollTo(0) : _select(0),
-      'end' => none ? _scrollTo(_list.position.maxOffset) : _select(_count - 1),
+      'end' => none ? _scrollToEnd() : _select(_count - 1),
       'left' when cells => _moveColumn(-1),
       'right' when cells => _moveColumn(1),
       'enter' when !none => _activate(),
@@ -1402,6 +1407,7 @@ final class _TableState<T> extends State<Table<T>> {
         background: styles.base,
         style: style,
         lineStyle: styles.border,
+        active: selected,
         highlight: selected ? cursor : -1,
         highlightStyle: styles.cursor,
         children: [
@@ -1897,6 +1903,7 @@ final class _Row extends MultiChildRenderObjectWidget {
     required this.style,
     required this.lineStyle,
     this.rule = false,
+    this.active = false,
     this.highlight = -1,
     this.highlightStyle = const Style(),
     super.children,
@@ -1908,6 +1915,7 @@ final class _Row extends MultiChildRenderObjectWidget {
   final Style background;
   final Style style;
   final Style lineStyle;
+  final bool active;
   final int highlight;
   final Style highlightStyle;
 
@@ -1922,6 +1930,7 @@ final class _Row extends MultiChildRenderObjectWidget {
         ..background = background
         ..style = style
         ..lineStyle = lineStyle
+        ..active = active
         ..highlight = highlight
         ..highlightStyle = highlightStyle;
 
@@ -1933,6 +1942,7 @@ final class _Row extends MultiChildRenderObjectWidget {
       ..background = background
       ..style = style
       ..lineStyle = lineStyle
+      ..active = active
       ..highlight = highlight
       ..highlightStyle = highlightStyle;
   }
@@ -2006,6 +2016,17 @@ final class _RenderTableRow extends RenderObject
   set lineStyle(Style s) {
     if (s != _lineStyle) {
       _lineStyle = s;
+      markNeedsPaint();
+    }
+  }
+
+  /// Whether it is the selected row, which the hidden cursor rests on,
+  /// on the cell of the column [highlight] where there is one.
+  bool get active => _active;
+  var _active = false;
+  set active(bool a) {
+    if (a != _active) {
+      _active = a;
       markNeedsPaint();
     }
   }
@@ -2125,6 +2146,15 @@ final class _RenderTableRow extends RenderObject
     final starts = columns.starts;
     final gap = columns.gap;
     final cells = _rule ? height - 1 : height;
+    // the hidden cursor on the selected row, on its cursor's cell
+    if (_active) {
+      final at = _highlight >= 0 && _highlight < widths.length
+          ? starts[_highlight]
+          : 0;
+      restCursor(ctx, this, at, 0);
+    } else {
+      clearRestCursor(ctx, this);
+    }
     final fill = _style.penIn(styles);
     final through = styles.penOf(fill);
     if (through.bg == null || through.bgAlpha != 255) {

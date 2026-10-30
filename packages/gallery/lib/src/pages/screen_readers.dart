@@ -2,12 +2,10 @@
 import 'package:twk/twk.dart';
 
 import '../page.dart';
+import 'common.dart';
 
 /// The pages of the Screen readers group that draw.
 final List<GalleryPage> screenReaderPages = [_semantics];
-
-/// [parts] as one line of the Code, a line too long for this file.
-String _line(List<String> parts) => parts.join();
 
 /// The form's column.
 const _fw = 19;
@@ -191,7 +189,7 @@ String _code(Options o) {
     'final GlobalKey _form = GlobalKey();',
     '',
     '// of the controls, so that a move of the focus among them is read',
-    _line([
+    codeLine([
       'final List<FocusNode> _nodes = ',
       '[for (var i = 0; i < 4; i++) FocusNode()];',
     ]),
@@ -219,12 +217,12 @@ String _code(Options o) {
     '  super.dispose();',
     '}',
     '',
-    _line([
+    codeLine([
       '/// Reads the form at the start of the next frame, ',
       'as this one built it.',
     ]),
     'void _readNext() =>',
-    _line([
+    codeLine([
       '    AppBinding.maybeOf(context)?',
       '.scheduleFrameCallback((_) => _readForm());',
     ]),
@@ -298,7 +296,7 @@ String _code(Options o) {
     '                        child: Text.rich([',
     '                          if (node.role case final role?) ...[',
     '                            Span(role.word, theme.muted),',
-    _line([
+    codeLine([
       '                            ',
       'Span(node.line.substring(role.word.length)),',
     ]),

@@ -56,7 +56,7 @@ const _extra = {
       'tab,tab',
   'screen-readers/semantics.80x24-keys':
       '#/screen-readers/semantics?size=80x24&keys=tab,space,tab,tab,enter',
-  // twk_cli's other programs, and the end of the first
+  // the console's other programs, and the end of the first
   'app/cli.install': '#/app/cli?o=program:install',
   'app/cli.check': '#/app/cli?o=program:check',
   'app/cli.create-done': '#/app/cli?t=4500',

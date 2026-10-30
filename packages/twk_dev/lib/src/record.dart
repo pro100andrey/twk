@@ -163,15 +163,35 @@ final class Recorder {
     final (width, height) = stdout.hasTerminal
         ? (stdout.terminalColumns, stdout.terminalLines)
         : (80, 24);
+    final env = Platform.environment;
+    final line = command.map(_quoted).join(' ');
+    try {
+      _pty = Pty.start(
+        command.first,
+        command.sublist(1),
+        width: width,
+        height: height,
+        // a terminal, the recording's: not plain, CI or not
+        environment: {'TERM': ?env['TERM'], 'CI': 'false'},
+      );
+    } on Object catch (e) {
+      // before the recording is opened: one there already is left as it is
+      stderr.writeln(switch (e) {
+        ProcessException(:final message) =>
+          'twk record: cannot run ${command.first}: $message',
+        _ => 'twk record: $e',
+      });
+      return e is ProcessException ? 127 : 1;
+    }
     final RandomAccessFile file;
     try {
       file = File(out).openSync(mode: FileMode.writeOnly);
     } on FileSystemException catch (e) {
+      // hung up: the command was started for nothing
+      _pty.close();
       stderr.writeln('twk record: cannot write $out: ${_reason(e)}');
       return 1;
     }
-    final env = Platform.environment;
-    final line = command.map(_quoted).join(' ');
     try {
       _cast = CastWriter(
         file.writeStringSync,
@@ -188,26 +208,12 @@ final class Recorder {
         ),
         idleLimit: idleLimit,
       );
-      _pty = Pty.start(
-        command.first,
-        command.sublist(1),
-        width: width,
-        height: height,
-        // a terminal, the recording's: not plain, CI or not
-        environment: {'TERM': ?env['TERM'], 'CI': 'false'},
-      );
-    } on Object catch (e) {
+    } on FileSystemException catch (e) {
+      _pty.close();
       file.closeSync();
-      if (FileSystemEntity.isFileSync(out)) {
-        File(out).deleteSync();
-      }
-      stderr.writeln(switch (e) {
-        FileSystemException() => 'twk record: cannot write $out: ${_reason(e)}',
-        ProcessException(:final message) =>
-          'twk record: cannot run ${command.first}: $message',
-        _ => 'twk record: $e',
-      });
-      return e is ProcessException ? 127 : 1;
+      File(out).deleteSync();
+      stderr.writeln('twk record: cannot write $out: ${_reason(e)}');
+      return 1;
     }
     _clock.start();
     stderr.writeln('twk record: recording $line to $out');

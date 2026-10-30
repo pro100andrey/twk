@@ -2,7 +2,7 @@ screen 120×36, cursor at 8,2
 text
 │  ◆ twk gallery   Text  ›  Text                                                              ctrl+p search      ◐ Dark  │
 │                                                                                                                        │
-│ ▎ ⌕ tab               13      Text                                                                             1 of 4  │
+│ ▎ ⌕ tab               13      Text                                                                             1 of 5  │
 │                               A paragraph in one style, its lines broken to fit, cut off and aligned as asked.         │
 │   LAYOUT               2                                                                                               │
 │     ConstrainedBox            Preview   Code                                                                           │

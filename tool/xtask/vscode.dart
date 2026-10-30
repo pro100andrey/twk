@@ -60,6 +60,14 @@ Future<int> vscode(VerbContext c, Cpus cpus) async {
   final gate = Directory('${c.root}/$vscodeGate');
   switch (step) {
     case 'install':
+      final missing = [
+        for (final m in _manifests)
+          if (!File('${source.path}/$m').existsSync()) '$vscodeSource/$m',
+      ];
+      if (missing.isNotEmpty) {
+        c.log('no ${missing.join(' and ')}: nothing to install from');
+        return ExitCode.invalidFile;
+      }
       final wanted = _manifests
           .map((m) => File('${source.path}/$m').readAsStringSync())
           .join();

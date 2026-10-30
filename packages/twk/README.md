@@ -15,7 +15,8 @@ writes only the cells that changed.
   `Stack`, `Grid`, `Wrap`, `Padding`, `Align`, `SizedBox`, `Box` with
   borders and titles, and `SplitView`.
 - **Text:** `Text` and `Text.rich` with styled spans, wrapping and
-  ellipsis, links, and bidirectional text.
+  ellipsis, links, and bidirectional text; the output of a command with
+  ANSI escape sequences read into spans (`parseAnsi`, `AnsiStream`).
 - **Input:** a focus tree with Tab traversal, `KeyBindings` and
   `Shortcuts`, and the mouse through a hit test (`Listener`, hover,
   drag, the wheel).
@@ -38,6 +39,9 @@ writes only the cells that changed.
 - **State:** hooks in the flutter_hooks style (`package:twk/hooks.dart`)
   and Provider's API (`package:twk/provider.dart`), each a library of its
   own.
+- **Command-line tools:** a console for a tool that is no app
+  (`package:twk/cli.dart`): messages by level, any widget printed,
+  prompts and progress, as a terminal, a pipe or CI takes them.
 - **The web:** an app builds with dart2wasm and runs on xterm.js.
 
 ## Getting started
@@ -119,7 +123,7 @@ testTwk('Up counts', (t) async {
   and testing.
 - [Widget catalog](https://github.com/pro100andrey/twk/blob/main/doc/widgets/README.md):
   every widget with its pictures, its code and its options.
-- [Reference](https://github.com/pro100andrey/twk/blob/main/packages/twk/doc/reference.md):
+- [Reference](https://github.com/pro100andrey/twk/blob/main/packages/twk/doc/reference/README.md):
   every topic, widget and parameter, and how the package is tested.
 - [The gallery](https://github.com/pro100andrey/twk/tree/main/packages/gallery):
   every widget live, with its options and the Dart that builds it.

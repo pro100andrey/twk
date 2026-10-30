@@ -7,6 +7,7 @@ import 'dart:math';
 import 'package:test/test.dart';
 import 'package:twk_core/src/canvas.dart';
 import 'package:twk_core/src/presenter.dart';
+import 'package:twk_core/src/style.dart';
 import 'package:twk_core/src/surface.dart';
 import 'package:twk_core/src/unicode/unicode.dart';
 
@@ -22,6 +23,7 @@ void runFuzz(
   TextSegmenter? Function()? vtSegmenter,
   bool ignoreUncertain = false,
   void Function(Presenter p)? tune,
+  bool sweep = false,
 }) {
   test(name, () {
     var totalFrames = 0;
@@ -53,6 +55,27 @@ void runFuzz(
         for (var k = 0; k < ops; k++) {
           randomOp(hs, rnd);
         }
+        if (sweep) {
+          // cells in styles and of clusters never seen before, as a video
+          // in a terminal view paints them: their ids are those the sweeps
+          // freed
+          for (var k = rnd.nextInt(6); k > 0; k--) {
+            final style = hs.styles.style(
+              fg: Color.rgb(rnd.nextInt(256), rnd.nextInt(256), 0),
+              bg: Color.rgb(0, rnd.nextInt(256), rnd.nextInt(256)),
+              attrs: rnd.nextBool() ? Attr.bold : 0,
+            );
+            hs.canvas.runStyled(
+              rnd.nextInt(w),
+              rnd.nextInt(h),
+              hs.canvas.shape(
+                [for (var n = 1 + rnd.nextInt(4); n > 0; n--) freshCluster(rnd)]
+                    .join(),
+              ),
+              style,
+            );
+          }
+        }
         if (rnd.nextInt(4) == 0) {
           // text-field cursor: visibility, position and shape
           hs.presenter
@@ -63,6 +86,9 @@ void runFuzz(
                 CursorShape.values[rnd.nextInt(CursorShape.values.length)];
         }
         hs.frame();
+        if (sweep) {
+          sweepHarness(hs);
+        }
         shifted += hs.presenter.stats.shiftedRows;
         if (hs.presenter.stats.scrollOps >= 2) {
           multiScroll++;
@@ -161,6 +187,7 @@ void runInlineFuzz(
   int frames = 25,
   TerminalCaps caps = const TerminalCaps(),
   bool vtBce = true,
+  bool sweep = false,
 }) {
   test(name, () {
     var scrolls = 0;
@@ -211,7 +238,17 @@ void runInlineFuzz(
                 CursorShape.values[rnd.nextInt(CursorShape.values.length)];
         }
         if (rnd.nextInt(5) == 0) {
-          commitRandomRows(hs, rnd, rnd.nextBool() ? 3 : 2 * screenH + 2);
+          commitRandomRows(
+            hs,
+            rnd,
+            rnd.nextBool() ? 3 : 2 * screenH + 2,
+            fresh: sweep,
+          );
+        }
+        if (sweep) {
+          // between the commit and the frame that writes it: the rows
+          // committed are the presenter's to keep
+          sweepHarness(hs);
         }
         hs.presenter.screenHeight = rnd.nextInt(4) == 0 ? 0 : screenH;
         hs.frame();
@@ -265,9 +302,29 @@ void runInlineFuzz(
   });
 }
 
+/// A cluster of a letter and two combining marks, of 4096 there are.
+String freshCluster(Random rnd) =>
+    'a${String.fromCharCode(0x300 + rnd.nextInt(64))}'
+    '${String.fromCharCode(0x340 + rnd.nextInt(64))}';
+
+/// Sweeps [hs]'s styles and glyphs as a screen does, its surface and its
+/// presenter the roots, and the rows the harness keeps of the history.
+void sweepHarness(Harness hs) {
+  void none(int _) {}
+  void roots(void Function(int) glyph, void Function(int) style) {
+    hs.surface.markCells(glyph, style);
+    hs.presenter.markCells(glyph, style);
+    hs.markCommitted(glyph, style);
+  }
+
+  hs.styles.sweep((mark) => roots(none, mark));
+  hs.glyphs.sweep((mark) => roots(mark, none));
+}
+
 /// Commits 1 to [most] random rows, some of them wider or narrower than
-/// the region, sometimes only part of what was drawn.
-void commitRandomRows(Harness hs, Random rnd, int most) {
+/// the region, sometimes only part of what was drawn; with [fresh], some
+/// cells in styles never seen before.
+void commitRandomRows(Harness hs, Random rnd, int most, {bool fresh = false}) {
   final w = hs.surface.width;
   final n = 1 + rnd.nextInt(most);
   final rows = Surface(rnd.nextInt(4) == 0 ? 1 + rnd.nextInt(32) : w, n + 1);
@@ -285,6 +342,16 @@ void commitRandomRows(Harness hs, Random rnd, int most) {
       );
     }
   }
+  if (fresh) {
+    for (var y = 0; y <= n; y++) {
+      c.runStyled(
+        rnd.nextInt(rows.width),
+        y,
+        c.shape('a${freshCluster(rnd)}'),
+        hs.styles.style(fg: Color.rgb(rnd.nextInt(256), 7, 7)),
+      );
+    }
+  }
   final from = rnd.nextInt(2);
   hs.commit(rows, from, from + n);
 }
@@ -292,6 +359,12 @@ void commitRandomRows(Harness hs, Random rnd, int most) {
 void main() {
   group('presenter vs terminal emulator', () {
     runFuzz('agreeing terminal, BCE', seeds: 400);
+    runFuzz(
+      'agreeing terminal, its styles swept after every frame, new ones '
+      'painted in the ids freed',
+      seeds: 300,
+      sweep: true,
+    );
     runFuzz(
       'agreeing terminal, BCE, REP',
       seeds: 300,
@@ -350,6 +423,11 @@ void main() {
 
   group('inline region vs terminal emulator', () {
     runInlineFuzz('BCE', seeds: 300);
+    runInlineFuzz(
+      'its styles swept between a commit and the frame that writes it',
+      seeds: 300,
+      sweep: true,
+    );
     runInlineFuzz(
       'without BCE',
       seeds: 150,

@@ -45,6 +45,11 @@ import 'terminal/sequences.dart' show Multiplexer;
 /// reserved cell ([kSkip]) the rows copied is whatever the terminal has.
 const int _kUnder = kSkip | kBlank;
 
+/// What starts a frame in DEC 2026, and hides the cursor while it is
+/// drawn: written first, taken back by their length where not needed.
+const _beginSync = '\x1b[?2026h';
+const _hideCursor = '\x1b[?25l';
+
 /// Sets the row flags `a[start, end)` to [value]. Not `fillRange`, which
 /// on a typed list calls `[]=` out of line for every element: clearing the
 /// flags of 60 rows that way took about an eighth of a spinner frame.
@@ -77,8 +82,9 @@ void _fillFlags(Uint8List a, int start, int end, int value) {
 final class TerminalCaps {
   /// Capabilities as given; left out, those nearly every terminal has:
   /// synchronized output, background color erase, hardware scrolling,
-  /// full frames cleared and ICH/DCH, without REP, Konsole's lines and
-  /// images, left and right margins or a graphics protocol.
+  /// full frames cleared, ICH/DCH and styled underlines, without REP,
+  /// Konsole's lines and images, left and right margins or a graphics
+  /// protocol.
   const TerminalCaps({
     this.synchronizedOutput = true,
     this.backgroundColorErase = true,
@@ -86,6 +92,7 @@ final class TerminalCaps {
     this.clearFullFrames = true,
     this.repeatChar = false,
     this.insertDelete = true,
+    this.styledUnderlines = true,
     this.konsoleLines = false,
     this.konsoleImages = false,
     this.leftRightMargins = false,
@@ -116,8 +123,18 @@ final class TerminalCaps {
   final bool repeatChar;
 
   /// Use ICH/DCH (insert/delete characters, VT102) when a row's change is a
-  /// shift of its tail - typing or deleting in the middle of a line.
+  /// shift of its tail - typing or deleting in the middle of a line. Off
+  /// for Terminal.app, whose DCH shifts a line only as far as it was
+  /// written without a cursor move and drops the background EL gave the
+  /// rest of it: the shifted cells are written again.
   final bool insertDelete;
+
+  /// The terminal reads the underline styles of SGR `4:2` to `4:5`
+  /// (double, curly, dotted, dashed) and the underline color (SGR 58);
+  /// without them each is written as a plain underline (`4`), in the
+  /// text's color. Terminal.app reads `4:3` as `43`, a yellow background
+  /// that SGR 24 doesn't take away ([styledUnderlinesFor]).
+  final bool styledUnderlines;
 
   /// The terminal's lines are Konsole's: each as long as what was written
   /// on it. Its ICH inserts blanks in the default colours, not the current
@@ -299,8 +316,8 @@ final class Presenter {
   /// start of a line when an inline region starts: false, the region
   /// starts on the line after it.
   Presenter(
-    this.width,
-    this.height,
+    int width,
+    int height,
     this.styles,
     this.glyphs, {
     this.caps = const TerminalCaps(),
@@ -312,6 +329,8 @@ final class Presenter {
          !inline || viewport == null,
          'an inline region is no fixed viewport',
        ),
+       _width = width,
+       _height = height,
        _ox = viewport?.left ?? 0,
        _oy = viewport?.top ?? 0,
        _fc = Uint32List(width * height),
@@ -325,11 +344,14 @@ final class Presenter {
     _forgetScreen();
   }
 
-  /// How many cells wide the surface presented is.
-  int width;
+  /// How many cells wide the surface presented is; [resize] changes it.
+  int get width => _width;
+  int _width;
 
-  /// How many rows tall the surface presented is.
-  int height;
+  /// How many rows tall the surface presented is; [resize] changes it, and
+  /// in the inline mode the region's height.
+  int get height => _height;
+  int _height;
 
   /// The styles of the cells, whose SGR sequences are written.
   final StyleTable styles;
@@ -463,8 +485,18 @@ final class Presenter {
   var _link = 0;
 
   /// Whether the cursor is shown when a frame ends, at [cursorX],
-  /// [cursorY]; hidden by default.
+  /// [cursorY]; hidden by default. Hidden, it is put there too on the
+  /// whole screen where the app says where it rests ([restsCursor]).
   var cursorVisible = false;
+
+  /// Whether the hidden cursor rests at [cursorX], [cursorY] on the whole
+  /// screen, put back there where a frame left it elsewhere: what the app
+  /// has the focus on, which a terminal that marks the cursor's row
+  /// (iTerm2's cursor guide) or follows it (macOS zoom, a screen reader)
+  /// shows. It costs a move of the cursor a frame that writes, a few bytes.
+  /// Off by default: the cursor stays where the frame left it. twk's
+  /// binding turns it on (`AppBinding.restCursor`).
+  var restsCursor = false;
 
   /// The column of the surface the visible cursor is put in.
   var cursorX = 0;
@@ -549,6 +581,26 @@ final class Presenter {
   /// The front buffer may have blanks under images ([_kUnder]).
   var _marked = false;
 
+  /// Marks the glyph word ([glyph]) and the style ([style]) of every cell
+  /// it keeps: what the terminal shows, the rows committed for the next
+  /// frame and the blank they replace; and the SGR the terminal is in
+  /// ([GlyphTable.sweep], [StyleTable.sweep]).
+  void markCells(void Function(int glyph) glyph, void Function(int id) style) {
+    for (final (cells, styles) in [
+      (_fc, _fs),
+      (_pc, _ps),
+      (_blankCells, _blankStyles),
+    ]) {
+      for (var i = 0; i < cells.length; i++) {
+        glyph(cells[i]);
+        style(styles[i]);
+      }
+    }
+    if (_sgr >= 0) {
+      style(_sgr);
+    }
+  }
+
   /// Forget what the terminal shows, after something else wrote to it: the
   /// next frame rewrites every cell (with [TerminalCaps.clearFullFrames],
   /// after one `ED 2` inside the synchronized update, so nothing flashes)
@@ -593,12 +645,12 @@ final class Presenter {
       final cells = _pc;
       final styles = _ps;
       final old = width;
-      width = w;
+      _width = w;
       _setCommitted(Uint32List(n * w), Uint32List(n * w));
       _copyRows(cells, styles, old, 0, n, 0);
     }
-    width = w;
-    height = h;
+    _width = w;
+    _height = h;
     _fc = Uint32List(w * h);
     _fs = Uint32List(w * h);
     _fc64 = view64(_fc);
@@ -660,7 +712,7 @@ final class Presenter {
 
     final sync = caps.synchronizedOutput;
     if (sync) {
-      out.ascii('\x1b[?2026h');
+      out.ascii(_beginSync);
     }
     if (!_autowrapOff) {
       // Autowrap off: a glyph a terminal renders wider than we think can
@@ -672,7 +724,7 @@ final class Presenter {
     // a visible cursor jumping around while cells are drawn flickers
     final hidden = _cursorShown;
     if (hidden) {
-      out.ascii('\x1b[?25l');
+      out.ascii(_hideCursor);
     }
     final bodyStart = out.length;
 
@@ -884,7 +936,8 @@ final class Presenter {
         // the move prevents no flicker
         final keepShown = hidden && !bodyChanged;
         if (keepShown) {
-          out.length -= 6; // the prefix's ESC [ ? 2 5 l
+          // the prefix's last, as nothing was written after it
+          out.length -= _hideCursor.length;
         }
         _moveTo(cx, cy);
         if (cursorShape != _shapeSent) {
@@ -903,6 +956,24 @@ final class Presenter {
       _cursorShown = false; // hidden by the prefix
       cursorChanged = true;
     }
+    // On the whole screen a hidden cursor rests where the shown one would,
+    // not where the frame wrote last: a terminal that marks the cursor's
+    // row (iTerm2's cursor guide) or follows it (macOS zoom) keeps still,
+    // and goes along when the cell it rests on moves. An inline region and
+    // a fixed viewport leave it as they need it.
+    if (restsCursor &&
+        !cursorVisible &&
+        !inline &&
+        viewport == null &&
+        w > 0 &&
+        h > 0) {
+      final cx = cursorX.clamp(0, w - 1);
+      final cy = cursorY.clamp(0, h - 1);
+      if (_cx != cx || _cy != cy) {
+        _moveTo(cx, cy);
+        cursorChanged = true;
+      }
+    }
 
     if (!bodyChanged && !cursorChanged) {
       // idle frame: not a single byte, mode prefixes included (they count
@@ -920,7 +991,7 @@ final class Presenter {
           stats.scrolledRows == 0 &&
           out.length - bodyStart <= 64) {
         // a change within one row can't tear: skip the 2026 wrapper
-        out.removePrefix(8); // ESC [ ? 2 0 2 6 h
+        out.removePrefix(_beginSync.length);
       } else {
         out.ascii('\x1b[?2026l');
       }
@@ -1018,7 +1089,7 @@ final class Presenter {
     if (h < height) {
       _eraseFrom = h;
     }
-    height = h;
+    _height = h;
     _fc = fc;
     _fs = fs;
     _fc64 = view64(fc);
@@ -1737,6 +1808,29 @@ final class Presenter {
             // one's on either side, without looking a blank style up
             var j = i + 1;
             final end = row + hi;
+            // two cells a step while both are the blank in s over the one
+            // in f, as after an ED 2 the trailing blanks of every row are
+            if ((j & 1) == 1 &&
+                j < end &&
+                bc[j] == kBlank &&
+                fc[j] == kBlank &&
+                bs[j] == s &&
+                fs[j] == f) {
+              j++;
+            }
+            if ((j & 1) == 0) {
+              const blanks = kBlank | (kBlank << 32);
+              final ss = s | (s << 32);
+              final ff = f | (f << 32);
+              final lim = end & ~1;
+              while (j < lim &&
+                  bc64[j >> 1] == blanks &&
+                  fc64[j >> 1] == blanks &&
+                  bs64[j >> 1] == ss &&
+                  fs64[j >> 1] == ff) {
+                j += 2;
+              }
+            }
             while (j < end && bc[j] == kBlank && fc[j] == kBlank) {
               final t = bs[j];
               final u = fs[j];
@@ -1845,7 +1939,16 @@ final class Presenter {
             }
             if (fc[j] == kBlank &&
                 (fs[j] == s ||
-                    styles.blankStyleOf(fs[j]) == styles.blankStyleOf(s))) {
+                    styles.blankStyleOf(fs[j]) == styles.blankStyleOf(s)) &&
+                // unless a changed narrow glyph of the run follows: then
+                // the blank is the byte _bridge would write after the run
+                // ended, as it is between the words of a row written over
+                // a blank front
+                !(j + 1 < end &&
+                    bs[j + 1] == s &&
+                    bc[j + 1] > kBlank &&
+                    bc[j + 1] < kFirstInterned &&
+                    (bc[j + 1] != fc[j + 1] || fs[j + 1] != s))) {
               break;
             }
           } else if (cj == fc[j] && fs[j] == s) {
@@ -1908,6 +2011,8 @@ final class Presenter {
   int _dominantBlank(Surface back) {
     final c = back.cells;
     final st = back.styles;
+    final c64 = back.cells64;
+    final st64 = back.styles64;
     final n = c.length;
     var counts = _blankCounts;
     var best = -1;
@@ -1920,6 +2025,18 @@ final class Presenter {
       }
       final raw = st[i];
       var j = i + 1;
+      // the run of blanks of raw, two cells a step
+      if ((j & 1) == 1 && j < n && c[j] == kBlank && st[j] == raw) {
+        j++;
+      }
+      if ((j & 1) == 0) {
+        const blanks = kBlank | (kBlank << 32);
+        final raws = raw | (raw << 32);
+        final lim = n & ~1;
+        while (j < lim && c64[j >> 1] == blanks && st64[j >> 1] == raws) {
+          j += 2;
+        }
+      }
       while (j < n && c[j] == kBlank && st[j] == raw) {
         j++;
       }
@@ -2250,11 +2367,6 @@ final class Presenter {
     if (!content) {
       return -1;
     }
-    for (var x = a; x < w; x++) {
-      if ((fc[row + x] & (kUncertain | kSkip | kInvalid)) != 0) {
-        return -1;
-      }
-    }
     // style of the blanks ICH/DCH create (current background on BCE
     // terminals); reset first when the current SGR isn't a plain background
     var eraseStyle = 0;
@@ -2341,6 +2453,13 @@ final class Presenter {
     // require a clear win over rewriting the tail
     if (bestK == 0 || bestCost * 5 > changed * 4) {
       return -1;
+    }
+    // and a tail the terminal shows as the front has it: looked at last,
+    // as the search above rejects nearly every row first
+    for (var x = a; x < w; x++) {
+      if ((fc[row + x] & (kUncertain | kSkip | kInvalid)) != 0) {
+        return -1;
+      }
     }
 
     if (!curOk || (konsole && !plain)) {
@@ -2758,7 +2877,8 @@ final class Presenter {
       var bestBottom = 0;
       var bestBy = 0;
       for (var s = 1; s <= maxS; s++) {
-        for (final dir in const <int>[1, -1]) {
+        // a loop of ints, as a for-in over a list makes an iterator
+        for (var dir = 1; dir >= -1; dir -= 2) {
           // dir 1: back[y] == front[y + s] (content moved up)
           var runStart = -1;
           var gain = 0;

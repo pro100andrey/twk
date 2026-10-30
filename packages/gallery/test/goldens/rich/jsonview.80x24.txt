@@ -4,18 +4,18 @@ text
 │                                                                                │
 │   ⌕ Filter       /     JsonView                                Preview   Code  │
 │                        JSON or a Dart value as a tree that folds, each kind    │
-│     Repaint rainb…     of value in its color: c copies the path of the value…  │
-│     RepaintBounda…   ──────────────────────────────────────────────────────────│
-│                        ┌                                                    ┐  │
-│   RICH           8       ▾ {                                                   │
-│     MarkdownView         ├── "name": "twk",                                    │
-│     CodeView             ├── "version": "0.1.0",                               │
-│     SyntaxThemeSc…       ├── "description": "Widgets for terminal apps, lai    │
-│     DiffView             ├── "private": true,                                  │
-│ ▎   JsonView             ├── "score": 0.97,                                    │
-│     BigText              ├── "homepage": null,                                 │
-│     QrCode                                                                     │
-│     ANSI                 copied: nothing                                       │
+│     FrameOverlay       of value in its color: c copies the path of the value…  │
+│     Repaint rainb…   ──────────────────────────────────────────────────────────│
+│     RepaintBounda…     ┌                                                    ┐  │
+│                          ▾ {                                                   │
+│   RICH           7       ├── "name": "twk",                                    │
+│     MarkdownView         ├── "version": "0.1.0",                               │
+│     CodeView             ├── "description": "Widgets for terminal apps, lai    │
+│     SyntaxThemeSc…       ├── "private": true,                                  │
+│     DiffView             ├── "score": 0.97,                                    │
+│ ▎   JsonView             ├── "homepage": null,                                 │
+│     BigText                                                                    │
+│     QrCode               copied: nothing                                       │
 │                        └                                                    ┘  │
 │   IMAGES         1   ──────────────────────────────────────────────────────────│
 │     Image              expanded depth   1  2  0                                │
@@ -29,18 +29,18 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahFhFFFFFFhhhhhhhGhaaggkkkkkkkkgggggggggggggggggggggggggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmmmmgmmgmgmmmmgmmmmmgmmgmgmmmmgmmmmgmmmmmmgmmmmgmmmmgggg│
-│aaaaannnnnnnannnnnnaaaggmmgmmmmmgmmgmmmgmmmmmmgmgmmmmmmgmmmgmmmmgmmgmmmgmmmmmmgg│
-│aaaaannnnnnnnnnnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaaaaaaaaaaaaaaaaaaaggoggggggggggggggggggggggggggggggggggggggggggggggggggggogg│
-│aaaddddaaaaaaaaaaazaaaggggHIHIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIgggg│
-│aaaaannnnnnnnnnnnaaaaaggggrrrgsssssstguuuuutgggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnaaaaaaaaaggggrrrgssssssssstguuuuuuutggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnnnnaaaggggrrrgssssssssssssstguuuuuuuuguuuguuuuuuuuguuuuuguuugggg│
-│aaaaannnnnnnnaaaaaaaaaggggrrrgssssssssstgvvvvtgggggggggggggggggggggggggggggggggg│
-│awxxxyyyyyyyyxxxxxxxxaggggrrrgssssssstgvvvvtgggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnaaaaaaaaaaggggrrrgsssssssssstgvvvvtggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnaaaaaaaaaaaaaggggmmmmmmmgmmmmmmmggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaaaggmmgmmmmmgmmgmmmgmmmmmmgmgmmmmmmgmmmgmmmmgmmgmmmgmmmmmmgg│
+│aaaaannnnnnnannnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnnnnaaaggoggggggggggggggggggggggggggggggggggggggggggggggggggggogg│
+│aaaaaaaaaaaaaaaaaaaaaaggggHIHIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIgggg│
+│aaaddddaaaaaaaaaaazaaaggggrrrgsssssstguuuuutgggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaaaggggrrrgssssssssstguuuuuuutggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnaaaaaaaaaggggrrrgssssssssssssstguuuuuuuuguuuguuuuuuuuguuuuuguuugggg│
+│aaaaannnnnnnnnnnnnnaaaggggrrrgssssssssstgvvvvtgggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnaaaaaaaaaggggrrrgssssssstgvvvvtgggggggggggggggggggggggggggggggggggg│
+│awxxxyyyyyyyyxxxxxxxxaggggrrrgsssssssssstgvvvvtggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnaaaaaaaaaaaggggmmmmmmmgmmmmmmmggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaaggoggggggggggggggggggggggggggggggggggggggggggggggggggggogg│
 │aaaddddddaaaaaaaaazaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnaaaaaaaaaaaaggmmmmmmmmgmmmmmggxyxhBhhBhggggggggggggggggggggggggggggggg│

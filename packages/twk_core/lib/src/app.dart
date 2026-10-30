@@ -200,7 +200,7 @@ final class TwkApp {
   ///
   /// The screen starts as [terminal] says ([TerminalBackend.info]): its
   /// size, capabilities, colors and how it measures text.
-  TwkApp(
+  factory TwkApp(
     TerminalBackend terminal, {
     int maxFps = 60,
     LogSink? logs,
@@ -212,20 +212,23 @@ final class TwkApp {
     bool? serveLogs,
     Stopwatch? clock,
     Map<String, String>? environment,
-  }) : this._(
-         terminal,
-         environment ?? _environmentOn(terminal),
-         _debugNames(environment ?? _environmentOn(terminal)),
-         maxFps: maxFps,
-         logs: logs,
-         maxInlineRows: maxInlineRows,
-         clearInlineOnExit: clearInlineOnExit,
-         viewport: viewport,
-         framesInRow: framesInRow,
-         timeline: timeline,
-         serveLogs: serveLogs,
-         clock: clock,
-       );
+  }) {
+    final on = environment ?? _environmentOn(terminal);
+    return TwkApp._(
+      terminal,
+      on,
+      _debugNames(on),
+      maxFps: maxFps,
+      logs: logs,
+      maxInlineRows: maxInlineRows,
+      clearInlineOnExit: clearInlineOnExit,
+      viewport: viewport,
+      framesInRow: framesInRow,
+      timeline: timeline,
+      serveLogs: serveLogs,
+      clock: clock,
+    );
+  }
 
   TwkApp._(
     this.terminal,
@@ -407,6 +410,9 @@ final class TwkApp {
   /// What [run] runs at the start of each frame.
   void Function()? _beforeLayout;
 
+  /// What [run] runs once each frame is painted, before it is written.
+  void Function()? _beforePresent;
+
   /// What [run] runs at the end of each frame.
   void Function()? _afterPresent;
 
@@ -442,7 +448,12 @@ final class TwkApp {
     _noFrame,
     segmenter: screen.canvas.segmenter,
   )..onLog = logs.add;
-  late final _commitSurface = Surface(0, 0);
+  // what is committed, kept from one frame to the next: its styles too
+  late final Surface _commitSurface = () {
+    final surface = Surface(0, 0);
+    screen.keepStylesOf(surface);
+    return surface;
+  }();
   late final _commitCtx = PaintContext(
     Canvas(
       _commitSurface,
@@ -478,6 +489,11 @@ final class TwkApp {
   /// Input waits for the first frame: an event that comes before it is
   /// handled once [beforeLayout] has run.
   ///
+  /// [beforePresent] runs in every frame once the tree is laid out and
+  /// painted, just before the screen is written: what it sets of the
+  /// presenter ([Presenter.cursorX], say) goes with that frame, what it
+  /// changes in the tree with the next.
+  ///
   /// [afterPresent] runs at the end of every frame, once its bytes are
   /// handed to the terminal (also when it has none) and before they are
   /// flushed: the frame's bytes never wait on it, nor it on a slow
@@ -500,13 +516,20 @@ final class TwkApp {
   /// [RenderPhase.layout] once while it is the same, the region keeping its
   /// height, and one thrown while a commit is sized, laid out or painted
   /// (see [commit]).
+  ///
+  /// An app runs once: a [StateError] when this was called before.
   Future<void> run(
     RenderObject root,
     void Function(InputEvent e) onEvent, {
     void Function()? beforeLayout,
+    void Function()? beforePresent,
     void Function()? afterPresent,
   }) async {
+    if (_running) {
+      throw StateError('an app runs once: run was called before');
+    }
     _beforeLayout = beforeLayout;
+    _beforePresent = beforePresent;
     _afterPresent = afterPresent;
     _running = true;
     runZonedGuarded(
@@ -547,11 +570,34 @@ final class TwkApp {
       zoneSpecification: ZoneSpecification(print: _print),
     );
     final serving = serveLogs ? _serveLogs() : null;
+    // what ends the run: the error that ended the app, else the first of
+    // the steps below that failed; the others go to the log, so that one
+    // does not take the place of the other and the terminal is restored
+    // whatever failed
+    Object? failure;
+    StackTrace? failureStack;
+    Future<void> step(String what, FutureOr<void> Function() body) async {
+      try {
+        await body();
+      } on Object catch (error, stack) {
+        if (failure == null) {
+          failure = error;
+          failureStack = stack;
+        } else {
+          _log(what, error, stack);
+        }
+      }
+    }
+
     try {
       await _done.future;
-    } finally {
-      await _input?.cancel();
-      if (!_suspended) {
+    } on Object catch (error, stack) {
+      failure = error;
+      failureStack = stack;
+    }
+    await step('the input was not cancelled', () => _input?.cancel());
+    if (!_suspended) {
+      await step('the screen was not left', () async {
         await _writeCommits();
         if (_plain) {
           if (!screen.presenter.inline || !clearInlineOnExit) {
@@ -567,13 +613,35 @@ final class TwkApp {
             terminal.write(leave);
           }
         }
-      }
-      await terminal.close();
-      if (serving != null) {
+      });
+    }
+    await step('the terminal was not closed', terminal.close);
+    if (serving != null) {
+      await step('the log was not closed', () async {
         await serving;
         await logs.close();
-      }
-      _report();
+      });
+    }
+    _report();
+    if (failure case final error?) {
+      Error.throwWithStackTrace(error, failureStack!);
+    }
+  }
+
+  /// Adds a record of [error] to [logs], which may fail itself.
+  void _log(String message, Object error, StackTrace stack) {
+    try {
+      logs.add(
+        LogRecord(
+          DateTime.now(),
+          LogLevel.error,
+          message,
+          error: error,
+          stack: stack,
+        ),
+      );
+    } on Object {
+      // a failing sink is not to end the run before the rest is done
     }
   }
 
@@ -655,7 +723,14 @@ final class TwkApp {
       // after quit() the terminal is being closed: it stays handed over
       if (!_done.isCompleted) {
         if (term is SuspendableBackend) {
-          await term.resume();
+          try {
+            await term.resume();
+          } on Object catch (error, stack) {
+            // the terminal not taken back, the app can't go on, also when
+            // what called this catches the error: it ends with it
+            _fail(error, stack);
+            rethrow;
+          }
         }
         final presenter = screen.presenter;
         if (presenter.inline) {
@@ -1122,6 +1197,7 @@ final class TwkApp {
         _takeCommits();
         _end();
       }
+      _beforePresent?.call();
       final painted = _statsClock.elapsedMicroseconds;
       _begin('Present');
       final bytes = screen.render();

@@ -9,5 +9,6 @@ export 'mouse.dart' hide MouseTracker, listenOver, setOnDrag, stopListeningOver;
 export 'selection.dart'
     hide
         addToSelectionArea,
+        inSelectionArea,
         selectedInSelectionArea,
         takePressFromSelectionArea;

@@ -84,10 +84,11 @@ const twkVersion = '0.1.0';
 /// none. Throws a [StateError] when [pubspec] does not take one of them by
 /// path, or does not override by path just the packages of [overridden].
 ///
-/// twk and twk_test take the packages under them by version and the
-/// others take them by path, so a template overrides twk and twk_core with
-/// the repository's ([overridden], `dependency_overrides`): a project from
-/// a checkout with the checkout's, one from pub not at all.
+/// twk, twk_test and twk_dev take the packages under them by version and
+/// the others take them by path, so a template overrides twk, twk_core
+/// and twk_term with the repository's ([overridden],
+/// `dependency_overrides`): a project from a checkout with the checkout's,
+/// one from pub not at all.
 String withTwkFrom(String pubspec, {String? checkout}) {
   String source(String package) => checkout == null
       ? ' ^$twkVersion'
@@ -132,7 +133,7 @@ String withTwkFrom(String pubspec, {String? checkout}) {
 }
 
 /// The packages a template overrides with the repository's.
-const overridden = ['twk', 'twk_core'];
+const overridden = ['twk', 'twk_core', 'twk_term'];
 
 /// A template's overrides: the block, every line of it indented.
 final _overrides = RegExp(r'\ndependency_overrides:\n(?:  .*(?:\n|$))+');

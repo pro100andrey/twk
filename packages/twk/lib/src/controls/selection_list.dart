@@ -212,7 +212,11 @@ final class SelectionList<K> extends StatefulWidget {
   /// The key of an item, by its index: one no other item has.
   final K Function(int index) keyOf;
 
-  /// Builds an item, by its index, as it comes into view.
+  /// Builds an item, by its index, as it comes into view and as the list
+  /// is built again (a new widget, the focus), not as the selection or the
+  /// cursor moves: the list shows those itself, around the item and in the
+  /// [DefaultTextStyle] it gives it. An item that shows them another way
+  /// listens to the [controller] itself, in a `ListenableBuilder`.
   final IndexedWidgetBuilder itemBuilder;
 
   /// What is selected and where the cursor is; a single selection of its
@@ -305,7 +309,28 @@ final class _SelectionListState<K> extends State<SelectionList<K>> {
     super.dispose();
   }
 
-  void _changed() => setState(() {});
+  // the items in the list now, which a change of the selection or the
+  // cursor builds again, not the list: each item as it was where it looks
+  // as it did
+  final _items = <_ItemState<K>>{};
+
+  // whether the cursor's item is to be found again as it is next read
+  var _cursorStale = false;
+
+  void _changed() {
+    if (_items.isEmpty || _controller.multiple != _builtMultiple) {
+      setState(() {});
+      return;
+    }
+    // found as the items build, which a new list built first comes before
+    _cursorStale = true;
+    for (final item in _items) {
+      item.changed();
+    }
+  }
+
+  // whether the list was built for a multiple selection
+  var _builtMultiple = false;
 
   bool _enabled(int index) => widget.itemEnabled?.call(index) ?? true;
 
@@ -453,7 +478,7 @@ final class _SelectionListState<K> extends State<SelectionList<K>> {
 
   @override
   Widget build(BuildContext context) {
-    final multiple = _controller.multiple;
+    final multiple = _builtMultiple = _controller.multiple;
     return Pressable(
       enabled: widget.enabled,
       focusNode: widget.focusNode,
@@ -472,9 +497,16 @@ final class _SelectionListState<K> extends State<SelectionList<K>> {
       builder: (context, focused) {
         _focused = focused;
         _cursorAt = _cursor();
+        _cursorStale = false;
         return ListView.builder(
           itemCount: widget.itemCount,
-          itemBuilder: _item,
+          itemBuilder: (context, index) => _Item(
+            list: this,
+            index: index,
+            itemKey: widget.keyOf(index),
+            child: widget.itemBuilder(context, index),
+            key: ValueKey<K>(widget.keyOf(index)),
+          ),
           itemExtent: widget.itemExtent,
           controller: _list,
           canRequestFocus: false,
@@ -483,9 +515,23 @@ final class _SelectionListState<K> extends State<SelectionList<K>> {
     );
   }
 
-  Widget _item(BuildContext context, int index) {
+  /// How item [index], of [key], looks now, as bits: selected, the
+  /// cursor's, the list focused. An item that looks as it did is not
+  /// dressed again.
+  int _lookOf(int index, K key) {
+    if (_cursorStale) {
+      _cursorStale = false;
+      _cursorAt = _cursor();
+    }
+    return (_controller.isSelected(key) ? 1 : 0) |
+        (index == _cursorAt ? 2 : 0) |
+        (_focused ? 4 : 0);
+  }
+
+  /// Item [index], of [key], built by [SelectionList.itemBuilder] as [item],
+  /// as the selection and the cursor show it.
+  Widget _dressed(BuildContext context, int index, K key, Widget item) {
     final theme = Theme.of(context);
-    final key = widget.keyOf(index);
     final c = _controller;
     final multiple = c.multiple;
     final selected = c.isSelected(key);
@@ -507,7 +553,6 @@ final class _SelectionListState<K> extends State<SelectionList<K>> {
         bar = theme.muted;
       }
     }
-    final item = widget.itemBuilder(context, index);
     final column = widget.bar;
     final Widget row;
     if (!column && !multiple) {
@@ -539,12 +584,90 @@ final class _SelectionListState<K> extends State<SelectionList<K>> {
       );
     }
     return GestureDetector(
-      key: ValueKey<K>(key),
       onTap: enabled ? (_) => _tap(index) : null,
-      child: Box(
-        style: s,
-        child: DefaultTextStyle(style: s, child: row),
+      // the hidden cursor on the cursor's row
+      child: ActiveItem(
+        active: index == _cursorAt,
+        child: Box(
+          style: s,
+          child: DefaultTextStyle(style: s, child: row),
+        ),
       ),
+    );
+  }
+}
+
+/// An item of a [SelectionList]: [child], built once as it comes into
+/// view, dressed as the selection and the cursor show it, and dressed again
+/// alone when they change how it looks.
+final class _Item<K> extends StatefulWidget {
+  const _Item({
+    required this.list,
+    required this.index,
+    required this.itemKey,
+    required this.child,
+    super.key,
+  });
+
+  final _SelectionListState<K> list;
+  final int index;
+  final K itemKey;
+  final Widget child;
+
+  @override
+  State<_Item<K>> createState() => _ItemState<K>();
+}
+
+final class _ItemState<K> extends State<_Item<K>> {
+  // how it looked as it was dressed last, and the dressed item
+  var _look = -1;
+  Widget? _dressed;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.list._items.add(this);
+  }
+
+  @override
+  void didUpdateWidget(_Item<K> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(widget.list, oldWidget.list)) {
+      oldWidget.list._items.remove(this);
+      widget.list._items.add(this);
+    }
+    _dressed = null;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _dressed = null;
+  }
+
+  @override
+  void dispose() {
+    widget.list._items.remove(this);
+    super.dispose();
+  }
+
+  /// The selection or the cursor changed: built again, as it was where it
+  /// looks as it did.
+  void changed() => setState(() {});
+
+  @override
+  Widget build(BuildContext context) {
+    final list = widget.list;
+    final look = list._lookOf(widget.index, widget.itemKey);
+    if (_dressed case final dressed? when look == _look) {
+      return dressed;
+    }
+    _look = look;
+    return _dressed = list._dressed(
+      context,
+      widget.index,
+      widget.itemKey,
+      widget.child,
     );
   }
 }

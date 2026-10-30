@@ -9,7 +9,7 @@ text
 │     Repaint rainb…     ┌                                                    ┐  │
 │     RepaintBounda…       Release notes                                         │
 │                                                                           ▄    │
-│   RICH           8       twk_rich puts rich text in the terminal:              │
+│   RICH           7       twk_rich puts rich text in the terminal:              │
 │ ▎   MarkdownView         Markdown, code and diffs, each a widget.              │
 │     CodeView                                                                   │
 │     SyntaxThemeSc…       Jump to what is new or still to come.                 │
@@ -17,11 +17,11 @@ text
 │     JsonView             What is new                                           │
 │     BigText            └                                                    ┘  │
 │     QrCode           ──────────────────────────────────────────────────────────│
-│     ANSI               content       document  chat answer                     │
-│                        code wrap     grapheme  word  none                      │
-│   IMAGES         1     width        ────────────▉▉──────────────  50 cells     │
-│     Image           ▐  links go to   the terminal  the app  the app only       │
-│                     ▐                                                          │
+│                        content       document  chat answer                     │
+│   IMAGES         1     code wrap     grapheme  word  none                      │
+│     Image              width        ────────────▉▉──────────────  50 cells     │
+│                     ▐  links go to   the terminal  the app  the app only       │
+│   TERMINAL       1  ▐                                                          │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -37,16 +37,16 @@ styles
 │aaaddddaaaaaaaaaaaCaaaggggkkkkkkkkgrrrrgssssgssssgrrgrrrgrrrrrrrrrgggggggggggggg│
 │atuuuvvvvvvvvvvvvuuuuaggggrrrrrrrrrgrrrrgrrrgrrrrrrgrrrrgrgrrrrrrrgggggggggggggg│
 │aaaaannnnnnnnaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnnnnaaaggggrrrrgrrgwwwwwwwwwwwgrrgxxxxxxxxxxxxxrggggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaaaggggrrrrgrrgfffffffffffgrrgfffffffffffffrggggggggggggggggg│
 │aaaaannnnnnnnaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnaaaaaaaaaggggllllgllglllggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnaaaaaaaaaaggoggggggggggggggggggggggggggggggggggggggggggggggggggggogg│
 │aaaaannnnnnaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnaaaaaaaaaaaaaggmmmmmmmgggggguvvvvvvvvuhyyyyhyyyyyyhgggggggggggggggggggg│
-│aaaaaaaaaaaaaaaaaaaaaaggmmmmgmmmmgggguvvvvvvvvuhyyyyhhyyyyhggggggggggggggggggggg│
-│aaaddddddaaaaaaaaaCaaaggmmmmmggggggggrrrrrrrrrrrrzrmmmmmmmmmmmmmmggFFgFFFFFggggg│
-│aaaaannnnnaaaaaaaaaaadggmmmmmgmmgmmgguvvvuvvvvvvvvuhyyyhyyyhhyyyhyyyhyyyyhgggggg│
-│aaaaaaaaaaaaaaaaaaaaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmmmgggggguvvvvvvvvuhyyyyhyyyyyyhgggggggggggggggggggg│
+│aaaddddddaaaaaaaaaCaaaggmmmmgmmmmgggguvvvvvvvvuhyyyyhhyyyyhggggggggggggggggggggg│
+│aaaaannnnnaaaaaaaaaaaaggmmmmmggggggggrrrrrrrrrrrrzrmmmmmmmmmmmmmmggFFgFFFFFggggg│
+│aaaaaaaaaaaaaaaaaaaaadggmmmmmgmmgmmgguvvvuvvvvvvvvuhyyyhyyyhhyyyhyyyhyyyyhgggggg│
+│aaaddddddddaaaaaaaCaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend
@@ -72,8 +72,7 @@ s italic #e6e8eb on #16181d
 t #5fa8ff on #2b4566
 u on #2b4566
 v bold #e6e8eb on #2b4566
-w underline #5fa8ff on #16181d link=#what-is-new
-x underline #5fa8ff on #16181d link=#still-to-come
+f underline #5fa8ff on #16181d
 y #8b929c on #13151a
 z reverse #e6e8eb on #16181d
 F #747a83 on #16181d

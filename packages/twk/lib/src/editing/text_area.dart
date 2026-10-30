@@ -423,6 +423,7 @@ final class _TextAreaState extends State<TextArea> {
 
   // whether the suggestions of an Autocomplete show, and what tells it
   ValueListenable<bool>? _showing;
+  TextEditingController? _changing;
   Listenable? _changes;
 
   bool get _suggesting => _showing?.value ?? false;
@@ -431,10 +432,13 @@ final class _TextAreaState extends State<TextArea> {
   Listenable _changesOf(TextEditingController controller) {
     final showing = autocompleteShowing(context, controller);
     final changes = _changes;
-    if (identical(showing, _showing) && changes != null) {
+    if (identical(showing, _showing) &&
+        identical(controller, _changing) &&
+        changes != null) {
       return changes;
     }
     _showing = showing;
+    _changing = controller;
     return _changes = showing == null
         ? controller
         : Listenable.merge([controller, showing]);
@@ -614,6 +618,10 @@ const int _unbounded = BoxConstraints.unbounded;
 /// scrolled to keep the caret's in view, and the terminal's cursor at the
 /// caret while [focused].
 final class _RenderTextArea extends RenderObject {
+  // where a row with a selection or a composing range is painted in
+  // pieces ([sortedOnce])
+  final _cuts = Int32List(6);
+
   TextBuffer _text = TextBuffer.empty;
   TextBuffer get text => _text;
   set text(TextBuffer t) {
@@ -752,6 +760,8 @@ final class _RenderTextArea extends RenderObject {
   var _shownWidth = 0;
   var _shownLayouts = 0;
   StyleTable? _shownStyles;
+  // the table's sweeps when _shown was painted: its style ids are of then
+  var _shownSweeps = 0;
   static const _shownInts = 7;
 
   // the rows the last paint painted: how many, the first and the last
@@ -1120,7 +1130,8 @@ final class _RenderTextArea extends RenderObject {
             shown.length == h * n &&
             _shownWidth == w &&
             _shownLayouts == rows.layouts &&
-            identical(_shownStyles, canvas.styles)
+            identical(_shownStyles, canvas.styles) &&
+            canvas.styles.sweeps == _shownSweeps
         ? text.changeSince(shownText)
         : null;
     final whole = change == null;
@@ -1270,6 +1281,7 @@ final class _RenderTextArea extends RenderObject {
     _shownWidth = w;
     _shownLayouts = rows.layouts;
     _shownStyles = canvas.styles;
+    _shownSweeps = canvas.styles.sweeps;
     return caretY;
   }
 
@@ -1451,8 +1463,15 @@ final class _RenderTextArea extends RenderObject {
     final se = selected ? _inRow(_selection.end - start, from, to) : from;
     final cs = composed ? _inRow(_composing.start - start, from, to) : from;
     final ce = composed ? _inRow(_composing.end - start, from, to) : from;
-    final cuts = {from, ss, se, cs, ce, to}.toList()..sort();
-    for (var i = 0; i + 1 < cuts.length; i++) {
+    final cuts = _cuts
+      ..[0] = from
+      ..[1] = ss
+      ..[2] = se
+      ..[3] = cs
+      ..[4] = ce
+      ..[5] = to;
+    final n = sortedOnce(cuts);
+    for (var i = 0; i + 1 < n; i++) {
       final a = cuts[i];
       final b = cuts[i + 1];
       var s = base;

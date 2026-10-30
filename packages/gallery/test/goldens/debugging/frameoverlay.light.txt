@@ -4,30 +4,30 @@ text
 │                                                                                                                        │
 │   ⌕ Filter             /      FrameOverlay                                                                     2 of 4  │
 │                               Each frame's numbers over the app: the time its build, layout, paint and write took      │
-│     TerminalProgress          and the bytes it wrote; Ctrl+G then o.                                                   │
-│     Viewport                                                                                                           │
-│     Window title              Preview   Code                                                                           │
-│     Notifications          ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
-│     Cli                                                                                  │                             │
-│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
-│   SCREEN READERS       1                                                                 │                             │
-│     Semantics                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  overlay             ▐  ●▌  │
-│                             ┌                                                          ┐ │                             │
-│   DEBUGGING            4                                frames                 14 fps    │                             │
-│     Console                    ⠴ syncing                                 last  median    │                             │
-│ ▎   FrameOverlay                                        build µs           28      25    │                             │
-│     Repaint rainbow            copy █                   layout µs           1       1    │                             │
-│     RepaintBoundary                                     paint µs           10       9    │                             │
-│                                load ▄▅▇▆▄▅█▆▄▄▃▄▄▅▇▆    present µs          7       8    │                             │
-│   RICH                 8                                bytes               6       6    │                             │
-│     MarkdownView                                        cells written       1       1    │                             │
-│     CodeView                                            cells compared      1       1    │                             │
-│     SyntaxThemeScope                                    rows scrolled       0       0    │                             │
-│     DiffView                                            repaints            1       1    │                             │
-│     JsonView                                            rebuilds            0       0    │                             │
+│     Static                    and the bytes it wrote; Ctrl+G then o.                                                   │
+│     TerminalProgress                                                                                                   │
+│     Viewport                  Preview   Code                                                                           │
+│     Window title           ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     Notifications                                                                        │                             │
+│     Cli                        ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│                                                                                          │                             │
+│   SCREEN READERS       1       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  overlay             ▐  ●▌  │
+│     Semantics               ┌                                                          ┐ │                             │
+│                                                         frames                 14 fps    │                             │
+│   DEBUGGING            4       ⠴ syncing                                 last  median    │                             │
+│     Console                                             build µs           28      25    │                             │
+│ ▎   FrameOverlay               copy █                   layout µs           1       1    │                             │
+│     Repaint rainbow                                     paint µs           10       9    │                             │
+│     RepaintBoundary            load ▄▅▇▆▄▅█▆▄▄▃▄▄▅▇▆    present µs          7       8    │                             │
+│                                                         bytes               6       6    │                             │
+│   RICH                 7                                cells written       1       1    │                             │
+│     MarkdownView                                        cells compared      1       1    │                             │
+│     CodeView                                            rows scrolled       0       0    │                             │
+│     SyntaxThemeScope                                    repaints            1       1    │                             │
+│     DiffView                                            rebuilds            0       0    │                             │
+│     JsonView                                                                             │                             │
 │     BigText                                                                              │                             │
-│     QrCode                                                                               │                             │
-│     ANSI                    └                                                          ┘ │                             │
+│     QrCode                  └                                                          ┘ │                             │
 │                                                                                 56 × 14  │                             │
 │   IMAGES               1  ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     Image                 ▐                                                              │                             │
@@ -41,30 +41,30 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaiHiHHHHHHiiiiiiiiiiiiiIiaahhhllllllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhJhJJhJhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnhnnnnnnnhnnnnnnnhnnnnhnnnhnnnnhnnnhnnnnhnnnhnnnnnnhnnnnnnnhnnnnnhnnnhnnnnnhnnnnhhhhhh│
-│aaaaaooooooooooooooooaaaaaaahhhnnnhnnnhnnnnnhnnhnnnnnnhnnnnnnhnnnnhnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooaoooooaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
-│aaaaaoooaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
-│aaaddddddadddddddaaaaaaaEaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhqrrsqhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaadddddddddaaaaaaaaaaaaEaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhtuuuuuuvvvvvvvvvvvvvvvvvvvvvvvvhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaaaaaaaaaaaaaaaahhhhwhxxxxxxxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhyyyyhhyyyyyyhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aKLLLMMMMMMMMMMMMLLLLLLLLLLahhhhhhhhhhhhhhhhhhhhhhhhhhhhhyyyyyhyyhhhhhhhhhhhxxhhhhhhxxhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaoooooooaaaaaaaahhhhGGGGhD               hhhhyyyyyyhyyhhhhhhhhhhhxhhhhhhhxhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhyyyyyhyyhhhhhhhhhhhxxhhhhhhhxhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhGGGGhCCCCCCCCCCCCCCCChhhhyyyyyyyhyyhhhhhhhhhhxhhhhhhhxhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaddddaaaaaaaaaaaaaaaaaEaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhyyyyyhhhhhhhhhhhhhhhxhhhhhhhxhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhyyyyyhyyyyyyyhhhhhhhxhhhhhhhxhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhyyyyyhyyyyyyyyhhhhhhxhhhhhhhxhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooooooaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhyyyyhyyyyyyyyhhhhhhhxhhhhhhhxhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhnnnhnnnhnnnnnhnnhnnnnnnhnnnnnnhnnnnhnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaoooooaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaoooooooooooooaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddadddddddaaaaaaaEaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhqrrsqhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhtuuuuuuvvvvvvvvvvvvvvvvvvvvvvvvhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddddddaaaaaaaaaaaaEaaahhhhwhxxxxxxxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhyyyyhhyyyyyyhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhyyyyyhyyhhhhhhhhhhhxxhhhhhhxxhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aKLLLMMMMMMMMMMMMLLLLLLLLLLahhhhGGGGhD               hhhhyyyyyyhyyhhhhhhhhhhhxhhhhhhhxhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaoooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhyyyyyhyyhhhhhhhhhhhxxhhhhhhhxhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhGGGGhCCCCCCCCCCCCCCCChhhhyyyyyyyhyyhhhhhhhhhhxhhhhhhhxhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhyyyyyhhhhhhhhhhhhhhhxhhhhhhhxhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddaaaaaaaaaaaaaaaaaEaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhyyyyyhyyyyyyyhhhhhhhxhhhhhhhxhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhyyyyyhyyyyyyyyhhhhhhxhhhhhhhxhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhyyyyhyyyyyyyyhhhhhhhxhhhhhhhxhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhyyyyyyyyhhhhhhhhhhhhxhhhhhhhxhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhyyyyyyyyhhhhhhhhhhhhxhhhhhhhxhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhyyyyyyyyhhhhhhhhhhhhxhhhhhhhxhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooaaaaaaaaaaaaaaaaaaahphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhJJhJhJJhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaddddddaaaaaaaaaaaaaaaEaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooaaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

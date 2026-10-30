@@ -283,7 +283,7 @@ void main() {
       // TERM=xterm-kitty: OSC 99, pointer shapes and REP
       for (final declares in <Object?>[
         null,
-        {'notifications': 'bell', 'pointerShapes': 'no', 'repeatChar': 0},
+        {'notifications': 'beep', 'pointerShapes': 'no', 'repeatChar': 0},
         [true],
         'osc777',
       ]) {
@@ -378,6 +378,50 @@ void main() {
       await term.flush();
       expect(term.mouseTracking, MouseTracking.off);
       expect(mouseModes(shell.text), isEmpty);
+      await term.close();
+    });
+
+    test('suspended, what was read before is the input it is, an ESC '
+        'the Escape key, not joined to what comes after resume', () async {
+      final term = await Terminal.connect(
+        shell.address,
+        // no timer resolves it
+        const TerminalOptions(escapeTimeout: Duration(hours: 1)),
+      );
+      final events = <InputEvent>[];
+      final listening = term.events.listen(events.add);
+      shell.input('a\x1b');
+      await waitUntil(() => events.isNotEmpty, 'the key before the ESC');
+      await term.suspend();
+      expect(events, [
+        const KeyEvent(KeyCode.char, char: 'a'),
+        const KeyEvent(KeyCode.escape),
+      ]);
+      await term.resume();
+      shell.input('b');
+      await waitUntil(() => events.length > 2, 'the key after resume');
+      expect(events.last, const KeyEvent(KeyCode.char, char: 'b'));
+      await listening.cancel();
+      await term.close();
+    });
+
+    test('resumed, a cursor report that comes after the wait for it is no '
+        'key', () async {
+      final term = await Terminal.connect(
+        shell.address,
+        const TerminalOptions(probeTimeout: Duration(milliseconds: 20)),
+      );
+      final events = <InputEvent>[];
+      final listening = term.events.listen(events.add);
+      await term.suspend();
+      final from = shell.output.length;
+      await term.resume();
+      expect(shell.text.substring(from), contains('\x1b[6n'));
+      // the cursor on the first row: CSI 1;2R is also Shift+F3
+      shell.input('\x1b[1;2Rb');
+      await waitUntil(() => events.isNotEmpty, 'the key after the report');
+      expect(events, [const KeyEvent(KeyCode.char, char: 'b')]);
+      await listening.cancel();
       await term.close();
     });
 
@@ -716,6 +760,27 @@ void main() {
         app.socket.destroy();
       },
     );
+
+    test('a hello it fails to serve stops it, its terminal closed, done '
+        'completing with the error', () async {
+      final refusing = FakeLink(refusesRaw: true);
+      final (server, address) = await LocalAddress.bind(dir.path, 'failing');
+      final failing = TerminalShell.serve(refusing, server, address);
+      final app = await WireClient.connect(failing.address);
+      app.hello(failing.address.token);
+      await expectLater(
+        failing.done,
+        throwsA(
+          isA<TerminalException>().having(
+            (e) => e.message,
+            'message',
+            'not a terminal',
+          ),
+        ),
+      );
+      await app.closed;
+      expect((refusing.raw, refusing.closed), (false, true));
+    });
 
     test('stop disconnects the app, puts the terminal back and forgets the '
         'address file and the socket', () async {

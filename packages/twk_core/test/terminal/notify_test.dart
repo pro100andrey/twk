@@ -11,21 +11,6 @@ import 'dart:isolate';
 import 'package:test/test.dart';
 import 'package:twk_test/twk_test.dart' show compiledProgram, runProcess;
 
-/// Variables that name a terminal: the test's own are left out.
-const _terminalVariables = {
-  'TERM_PROGRAM',
-  'TMUX',
-  'STY',
-  'KITTY_WINDOW_ID',
-  'WEZTERM_PANE',
-  'GHOSTTY_RESOURCES_DIR',
-  'ITERM_SESSION_ID',
-  'LC_TERMINAL',
-  'KONSOLE_VERSION',
-  'WT_SESSION',
-  'VTE_VERSION',
-};
-
 /// notify_app.dart, compiled once.
 late String _app;
 
@@ -34,13 +19,12 @@ Future<String> written(Map<String, String> env) async {
   final dir = Directory.systemTemp.createTempSync('notify');
   addTearDown(() => dir.deleteSync(recursive: true));
   final out = '${dir.path}/out.bin';
-  final environment = {...Platform.environment}
-    ..removeWhere((name, _) => _terminalVariables.contains(name))
-    ..addAll(env);
+  // pty_run.py leaves out what names the terminal the test runs in
   final res = await runProcess(
     'python3',
     [
       '../../tool/pty_run.py',
+      for (final MapEntry(:key, :value) in env.entries) '--env=$key=$value',
       '--input',
       'none',
       '--out',
@@ -49,8 +33,6 @@ Future<String> written(Map<String, String> env) async {
       Platform.resolvedExecutable,
       _app,
     ],
-    environment: environment,
-    includeParentEnvironment: false,
     group: true,
   );
   expect(res.exitCode, 0, reason: '${res.stdout}${res.stderr}');

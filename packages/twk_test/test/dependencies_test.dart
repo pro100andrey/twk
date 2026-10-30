@@ -5,6 +5,10 @@ import 'package:test/test.dart';
 // exports is missing or does not compile.
 // ignore: unused_import
 import 'package:twk/twk.dart';
+// Imported so that this file fails to load when cli.dart does not
+// compile.
+// ignore: unused_import
+import 'package:twk_test/cli.dart';
 // Imported so that this file fails to load when twk_test.dart does not
 // compile.
 // ignore: unused_import

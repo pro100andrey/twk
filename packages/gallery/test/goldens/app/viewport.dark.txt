@@ -28,7 +28,7 @@ text
 │     Repaint rainbow            ·  └                                              ┘ ·     │                             │
 │     RepaintBoundary                                                       44 × 10        │                             │
 │                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│   RICH                 8  ▐                                                              │                             │
+│   RICH                 7  ▐                                                              │                             │
 │     MarkdownView          ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     CodeView              ▐                                                              │                             │
 │     SyntaxThemeScope      ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │

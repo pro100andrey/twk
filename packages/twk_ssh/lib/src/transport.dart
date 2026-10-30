@@ -40,6 +40,10 @@ final class SshRekeyLimit {
   final Duration time;
 }
 
+/// Starts a timer that calls [callback] once [duration] has passed:
+/// `Timer.new`, or a test's on a fake clock.
+typedef SshTimers = Timer Function(Duration duration, void Function() callback);
+
 /// What the transport hands up: a message above it, from
 /// SSH_MSG_SERVICE_REQUEST on. Returns false for one it doesn't know,
 /// which is answered with SSH_MSG_UNIMPLEMENTED.
@@ -55,9 +59,11 @@ typedef MessageHandler = FutureOr<bool> Function(Uint8List payload);
 /// too (the Terrapin countermeasure: the client's KEXINIT must be its
 /// first packet, and the sequence numbers start again from 0 after each
 /// NEWKEYS). A key exchange the client starts later is taken the same way;
-/// what the layers above send meanwhile waits until the server's NEWKEYS.
-/// Algorithms the client and the server don't share end the connection
-/// with KEY_EXCHANGE_FAILED.
+/// what the layers above send meanwhile waits until the server's NEWKEYS
+/// ([holding], [onReleased]). A client that doesn't see a key exchange
+/// through within [kexTimeout], or makes the server hold more than
+/// [maxHeld] bytes meanwhile, is disconnected. Algorithms the client and
+/// the server don't share end the connection with KEY_EXCHANGE_FAILED.
 ///
 /// The server starts a key exchange itself after [SshRekeyLimit], read on
 /// its clock.
@@ -69,18 +75,23 @@ final class SshTransport {
   /// its version line naming [version]; the messages above it go to
   /// [onMessage], and [onClose] is called once it ends. It rekeys after
   /// [rekeyLimit], its time read on [clock] (a new stopwatch by default;
-  /// a test's runs on a fake clock).
+  /// a test's runs on a fake clock), and gives up a key exchange the
+  /// client doesn't finish by a deadline set on [timers] (`Timer.new` by
+  /// default). [onReleased] is called when what was held is sent.
   SshTransport(
     this._socket, {
     required List<SshHostKey> hostKeys,
     required String version,
     required this.onMessage,
     this.onClose,
+    this.onReleased,
     this.rekeyLimit = const SshRekeyLimit(),
     Stopwatch? clock,
+    SshTimers? timers,
   }) : _hostKeys = {for (final k in hostKeys) k.algorithm: k},
        _serverVersion = 'SSH-2.0-$version',
-       _clock = clock ?? (Stopwatch()..start()) {
+       _clock = clock ?? (Stopwatch()..start()),
+       _timers = timers ?? Timer.new {
     if (_hostKeys.isEmpty) {
       throw ArgumentError.value(hostKeys, 'hostKeys', 'no host key');
     }
@@ -104,10 +115,26 @@ final class SshTransport {
   /// Called once, when the connection ends.
   final void Function()? onClose;
 
+  /// Called when the server's NEWKEYS is sent and what was held with it:
+  /// what the layers above send goes out again ([holding]).
+  final void Function()? onReleased;
+
+  /// How long the client has for a key exchange after the first, from the
+  /// server's KEXINIT to the client's NEWKEYS.
+  static const kexTimeout = Duration(minutes: 1);
+
+  /// The most bytes the server holds of what the layers above send while
+  /// a key exchange is under way; a client that makes it hold more (by
+  /// asking for answers and not finishing the exchange) is disconnected.
+  @visibleForTesting
+  static int maxHeld = 1 << 20;
+
   /// When the server starts a key exchange.
   final SshRekeyLimit rekeyLimit;
 
   final Stopwatch _clock;
+  final SshTimers _timers;
+  Timer? _kexTimer;
 
   /// When the keys in effect took effect, on [_clock].
   Duration _keyedAt = Duration.zero;
@@ -137,6 +164,12 @@ final class SshTransport {
   /// to its NEWKEYS.
   var _holding = true;
   final _held = <Uint8List>[];
+  var _heldBytes = 0;
+
+  /// Whether what the layers above send is held, a key exchange under way
+  /// on the server's side: what isn't needed now (a channel's data) is
+  /// better kept until [onReleased].
+  bool get holding => _holding;
 
   var _firstKex = true;
   var _strict = false;
@@ -183,6 +216,13 @@ final class SshTransport {
     _rekeyIfDue();
     if (_holding) {
       _held.add(payload);
+      _heldBytes += payload.length;
+      if (_heldBytes > maxHeld) {
+        disconnect(
+          SshDisconnect.byApplication,
+          'too much held during the key exchange',
+        );
+      }
     } else {
       _sendPacket(payload);
     }
@@ -212,6 +252,7 @@ final class SshTransport {
     }
     _closed = true;
     _held.clear();
+    _kexTimer?.cancel();
     unawaited(_sub.cancel());
     unawaited(_shutdown());
     _done.complete();
@@ -496,6 +537,16 @@ final class SshTransport {
     final payload = w.takeBytes();
     _serverKexInit = payload;
     _holding = true;
+    if (!_firstKex) {
+      // the first is the login's to time
+      _kexTimer = _timers(
+        kexTimeout,
+        () => disconnect(
+          SshDisconnect.keyExchangeFailed,
+          'the key exchange timed out',
+        ),
+      );
+    }
     _sendPacket(payload);
   }
 
@@ -660,7 +711,9 @@ final class SshTransport {
     _holding = false;
     final held = List.of(_held);
     _held.clear();
+    _heldBytes = 0;
     held.forEach(_sendPacket);
+    onReleased?.call();
   }
 
   void _onNewKeys(Uint8List payload) {
@@ -678,6 +731,8 @@ final class SshTransport {
     _sentNewKeys = false;
     _inKex = false;
     _firstKex = false;
+    _kexTimer?.cancel();
+    _kexTimer = null;
     _keyExchanges++;
     _keyedAt = _clock.elapsed;
   }

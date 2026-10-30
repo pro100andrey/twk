@@ -106,7 +106,9 @@ final class CursorShapeChanged extends TerminalEvent {
   String toString() => 'CursorShapeChanged(${shape.name})';
 }
 
-/// OSC 7: the program's working directory, a `file://host/path` URI.
+/// OSC 7: the program's working directory, a `file://host/path` URI; one
+/// of another scheme is no event. The host is the program's to name: a
+/// host that changes directory to it checks that it is this machine.
 final class WorkingDirectoryChanged extends TerminalEvent {
   /// The working directory told as [uri].
   const WorkingDirectoryChanged(this.uri);

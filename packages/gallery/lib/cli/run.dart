@@ -1,23 +1,24 @@
-/// A twk_cli program as it runs at a terminal, shown in a widget: [CliRun]
-/// runs it on twk_cli's fake terminal ([FakeCliTerminal.interactive]),
+/// A console program as it runs at a terminal, shown in a widget: [CliRun]
+/// runs it on twk_test's fake terminal ([FakeCliTerminal.interactive]),
 /// typing what somebody at it would ([CliScript]), on a clock of its own
 /// moved to the time it shows, and draws the fake terminal's screen, its
 /// emulator's cells, as they are then.
 ///
 /// The gallery's App › Cli page shows its programs (`create.dart`,
 /// `install.dart`, `check.dart`, next to this file) so; its Code check
-/// copies this file beside a Code that is a twk_cli program and runs the
+/// copies this file beside a Code that is a console program and runs the
 /// Code in it, to hold the one to the other.
 library;
 
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:twk/cli.dart';
 import 'package:twk/twk.dart';
-import 'package:twk_cli/testing.dart';
-import 'package:twk_cli/twk_cli.dart';
+import 'package:twk_rich/twk_rich.dart' show dartSourceLines;
+import 'package:twk_test/cli.dart';
 
-/// What a twk_cli program's `main` hands `Cli.runWithArgs`.
+/// What a console program's `main` hands `Cli.runWithArgs`.
 typedef CliProgram = FutureOr<void> Function(Cli cli, List<String> rest);
 
 /// Keys as a terminal sends them.
@@ -33,10 +34,15 @@ final class CliScript {
     required this.command,
     required this.period,
     this.typed = const [],
+    this.sourceLines,
   });
 
   /// The shell's line the program was started from.
   final String command;
+
+  /// What the program's `main` hands `Cli.runWithArgs` as its
+  /// `sourceLines`: how its traceback shows the source.
+  final SourceLines? sourceLines;
 
   /// Keys as a terminal sends them, by the time they are typed at.
   final List<(int, String)> typed;
@@ -80,6 +86,7 @@ final cliScripts = <String, CliScript>{
   'check': const CliScript(
     command: 'dart run lib/cli/check.dart',
     period: 5000,
+    sourceLines: dartSourceLines,
   ),
 };
 
@@ -162,6 +169,7 @@ final class _Run {
           (cli) => program(cli, const []),
           open: ({ansi, interactive}) => terminal,
           theme: CliTheme(data: ThemeData.terminal(brightness)),
+          sourceLines: script.sourceLines,
         ).whenComplete(() {
           // the shell's prompt again
           terminal.out.write('\x1B[32m\$\x1B[0m ');

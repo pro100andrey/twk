@@ -1,5 +1,5 @@
 {
-  "about": "asciicast v2 as twk_dev writes and reads it (packages/twk_dev/lib/src/cast.dart's CastHeader, CastEvent, CastWriter, Cast.parse; cast_frames.dart's castFrames), and its second implementation, the VS Code extension's editors/vscode/src/core/cast.ts. twk_dev's test/cast_golden_test.dart holds the Dart side to this file, the extension's src/test/unit/core/cast_golden.test.ts the TypeScript one: a recording either writes, the other reads and plays the same. writes: a CastWriter given a header (as its JSON) and an idle limit (microseconds, null for none), then events at microseconds since the start (output and input as hex bytes, a resize, close), and the lines it wrote. reads: the lines of a file, and what Cast.parse read of them (the header as toJson writes it, the events, the duration) or the message it threw. frames: the lines of a file, and castFrames' frames of it: number, time, size and the rows of the screen (the test emulator's, without the blanks that end them).",
+  "about": "asciicast v2 as twk_dev writes and reads it (packages/twk_dev/lib/src/cast.dart's CastHeader, CastEvent, CastWriter, Cast.parse; its Cast.writes as twk_test's screenFrames plays them), and its second implementation, the VS Code extension's editors/vscode/src/core/cast.ts. twk_dev's test/cast_golden_test.dart holds the Dart side to this file, the extension's src/test/unit/core/cast_golden.test.ts the TypeScript one: a recording either writes, the other reads and plays the same. writes: a CastWriter given a header (as its JSON) and an idle limit (microseconds, null for none), then events at microseconds since the start (output and input as hex bytes, a resize, close), and the lines it wrote. reads: the lines of a file, and what Cast.parse read of them (the header as toJson writes it, the events, the duration) or the message it threw. frames: the lines of a file, and screenFrames' frames of its writes: number, time, size and the rows of the screen (the test emulator's, without the blanks that end them).",
   "writes": [
     {
       "name": "a session: the header, output, a key, a resize, a pause cut to the idle limit",
@@ -183,6 +183,21 @@
       "name": "an event whose data is no string",
       "lines": ["{\"version\": 2, \"width\": 80, \"height\": 24}", "[0.5, \"o\", 1]"],
       "error": "line 2: no [time, code, data] event"
+    },
+    {
+      "name": "an event at a negative time",
+      "lines": ["{\"version\": 2, \"width\": 80, \"height\": 24}", "[0.5, \"o\", \"a\"]", "[-0.5, \"o\", \"b\"]"],
+      "error": "line 3: a time out of range"
+    },
+    {
+      "name": "an event at a time past 1e9 s",
+      "lines": ["{\"version\": 2, \"width\": 80, \"height\": 24}", "[0.5, \"o\", \"a\"]", "[1e10, \"o\", \"b\"]"],
+      "error": "line 3: a time out of range"
+    },
+    {
+      "name": "an event at a time JSON reads as infinity",
+      "lines": ["{\"version\": 2, \"width\": 80, \"height\": 24}", "[0.5, \"o\", \"a\"]", "[1e400, \"o\", \"b\"]"],
+      "error": "line 3: a time out of range"
     }
   ],
   "frames": [

@@ -3,10 +3,10 @@ import 'dart:math' as math;
 
 import 'package:twk/twk.dart';
 
-import '../motion.dart';
 import '../page.dart';
 import '../paint.dart';
 import '../shell/tokens.dart';
+import 'common.dart';
 
 /// The pages of the Debugging group that draw.
 final List<GalleryPage> debuggingPages = [
@@ -15,45 +15,6 @@ final List<GalleryPage> debuggingPages = [
   _repaintRainbow,
   _repaintBoundary,
 ];
-
-/// [parts] as one line of the Code, a line too long for this file.
-String _line(List<String> parts) => parts.join();
-
-/// A State that builds with a [Motion] begun on the gallery's clock, and
-/// the page's kept state.
-abstract base class _TimedState<W extends StatefulWidget> extends State<W> {
-  late final motion = Motion(() {
-    if (mounted) {
-      setState(() {});
-    }
-  });
-  late final Map<String, Object?> kept = PageControl.of(context).state;
-
-  /// The time of this build, in ms.
-  int get now => motion.now.inMilliseconds;
-
-  /// The time on the gallery's clock, in ms, outside a build.
-  int get clockNow => Clock.of(context).now(context).inMilliseconds;
-
-  /// A build at [at] ms on the gallery's clock.
-  void wake(int at) => motion.wakeAt(Duration(milliseconds: at));
-
-  @override
-  void dispose() {
-    motion.dispose();
-    super.dispose();
-  }
-
-  Widget buildTimed(BuildContext context);
-
-  @override
-  Widget build(BuildContext context) {
-    motion.begin(context);
-    final built = buildTimed(context);
-    motion.end();
-    return built;
-  }
-}
 
 // ------------------------------------------------------------ Console
 
@@ -161,7 +122,7 @@ final _console = GalleryPage(
       "        'down': _console.selectNext,",
       "        'end': _console.scrollToEnd,",
       '      },',
-      _line([
+      codeLine([
         '      hints: const ',
         "{'up': 'select', 'down': 'select', 'end': 'newest'},",
       ]),
@@ -175,7 +136,7 @@ final _console = GalleryPage(
       '            Row(',
       '              gap: 1,',
       '              children: [',
-      _line([
+      codeLine([
         '                ',
         "Button('Info', onPressed: () => _log(.info, 'all is well')),",
       ]),
@@ -183,7 +144,7 @@ final _console = GalleryPage(
       "                  'Warn',",
       "                  onPressed: () => _log(.warning, 'disk nearly full'),",
       '                ),',
-      _line([
+      codeLine([
         '                ',
         "Button('Fail', onPressed: () => _log(.error, 'could not save')),",
       ]),
@@ -227,7 +188,7 @@ final class _Logged extends StatefulWidget {
   State<_Logged> createState() => _LoggedState();
 }
 
-final class _LoggedState extends _TimedState<_Logged> {
+final class _LoggedState extends TimedState<_Logged> {
   LogSink get _sink => (kept['sink'] ??= LogSink()) as LogSink;
 
   ConsoleController get _console =>
@@ -826,7 +787,7 @@ String _syncCode(Options o, String title) {
           '    // overlay',
         ]
       : [
-          _line([
+          codeLine([
             '    // the debug keys, Ctrl+G then r ',
             'turning the rainbow on and off,',
           ]),
@@ -844,7 +805,7 @@ String _syncCode(Options o, String title) {
       '// TWK_DEBUG=keys gives any app the debug keys as well',
     'void main() => runApp(const Sync());',
     '',
-    _line([
+    codeLine([
       '/// A small app whose parts change at rates of their own: ',
       'the spinner each',
     ]),
@@ -858,7 +819,7 @@ String _syncCode(Options o, String title) {
     '}',
     '',
     'final class _SyncState extends State<Sync> {',
-    _line([
+    codeLine([
       '  static const _loads = <double>[',
       "${_loads.map((v) => v.round()).join(', ')}];",
     ]),
@@ -880,7 +841,7 @@ String _syncCode(Options o, String title) {
         '      ..${on[i]} = true${i == on.length - 1 ? ';' : ''}',
     ] else
       '    AppBinding.of(context).debug.keys = true;',
-    _line([
+    codeLine([
       '    _copy = Timer.periodic(',
       'const Duration(milliseconds: $_copyMs), (_) {',
     ]),
@@ -924,7 +885,7 @@ String _syncCode(Options o, String title) {
     '              gap: 1,',
     '              children: [',
     "                Text('copy', style: theme.muted),",
-    _line([
+    codeLine([
       '                SizedBox(width: $_barW, ',
       'child: ProgressBar(value: _done / 100)),',
     ]),
@@ -979,7 +940,7 @@ final class _Aids extends StatefulWidget {
   State<_Aids> createState() => _AidsState();
 }
 
-final class _AidsState extends _TimedState<_Aids> {
+final class _AidsState extends TimedState<_Aids> {
   final _node = FocusNode(debugLabel: 'the app');
 
   @override
@@ -1383,7 +1344,7 @@ String _paintsCode(Options o) {
         ]
       : [
           '    // painted with what is under it: the dots too',
-          _line([
+          codeLine([
             '    final marker = ',
             'CustomPaint(painter: _Marker(_at, theme.primary));',
           ]),
@@ -1536,7 +1497,7 @@ final class _Paints extends StatefulWidget {
   State<_Paints> createState() => _PaintsState();
 }
 
-final class _PaintsState extends _TimedState<_Paints> {
+final class _PaintsState extends TimedState<_Paints> {
   @override
   Widget buildTimed(BuildContext context) {
     final theme = Theme.of(context);

@@ -5,9 +5,9 @@ text
 │   ⌕ Filter       /     Stack, Positioned                       Preview   Code  │
 │                        Children over one another, pinned to the edges or       │
 │     ConstrainedBox     aligned.                                                │
-│     LimitedBox, O…  ▐──────────────────────────────────────────────────────────│
+│     LimitedBox, O…   ──────────────────────────────────────────────────────────│
 │     FractionallyS…  ▐        ┌                                        ┐        │
-│     IntrinsicWidt…      ·      ╭────────────────────────────────────╮   ·   ·  │
+│     IntrinsicWidt…  ▐   ·      ╭────────────────────────────────────╮   ·   ·  │
 │     Row, Column,…              │                          top right │          │
 │     Expanded, Spa…      ·      │                                    │   ·   ·  │
 │ ▎   Stack, Positi…             │                                    │          │
@@ -30,9 +30,9 @@ styles
 │aahzhzzzzzzhhhhhhhAhaaggkkkkkkgkkkkkkkkkkggggggggggggggggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmmmmmmmmgmmmmgmmmgmmmmmmmmgmmmmmmgmmgmmmgmmmmmgmmggggggg│
 │aaaaannnnnnnnnnnnnnaaaggmmmmmmmmgggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnannaadoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnannaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnnnnnnnnnaadggggggggoggggggggggggggggggggggggggggggggggggggggogggggggg│
-│aaaaannnnnnnnnnnnnnaaagggoggggggqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqgggogggogg│
+│aaaaannnnnnnnnnnnnnaadgggoggggggqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqgggogggogg│
 │aaaaannnnannnnnnnnaaaaggggggggggqgggggggggggggggggggggggggxyyyxyyyyyxqgggggggggg│
 │aaaaannnnnnnnnannnnaaagggoggggggqggggggggggggggggggggggggggggggggggggqgggogggogg│
 │astttuuuuuutuuuuuuuttaggggggggggqggggggggggggggggggggggggggggggggggggqgggggggggg│

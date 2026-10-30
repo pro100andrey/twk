@@ -2,7 +2,7 @@
 
 The twk gallery: every widget of `twk`, `twk_rich` (its
 `package:twk_rich/image.dart` too) and `twk_term` on a page of its own, live, with its options and the Dart that
-builds it, and a run of a `twk_cli` program as a terminal shows it. It is its own design: how it looks and why, and the rules a
+builds it, and a run of a program on twk's console as a terminal shows it. It is its own design: how it looks and why, and the rules a
 page keeps, are in [doc/design.md](doc/design.md); how every page looks
 is held by its golden screens (below).
 
@@ -28,8 +28,8 @@ dart compile wasm web/main.dart -o web/main.wasm
 python3 -m http.server -d web 8080   # http://localhost:8080/#/controls/button?theme=light
 ```
 
-Every page works there but App › Cli, whose stage says that a twk_cli
-program needs a terminal: twk_cli reads and writes the process's stdio
+Every page works there but App › Cli, whose stage says that a console
+program needs a terminal: the console reads and writes the process's stdio
 through dart:io, so the page's stage is imported in its place on the web
 (`lib/src/pages/cli_stage_web.dart` for `cli_stage.dart`). The Images
 page's pictures are in the program
@@ -223,10 +223,10 @@ Where the widget draws a terminal around the app the Code is (App ›
 Static, TerminalProgress, Viewport, Window title, Notifications), the
 page says so (`GalleryPage.terminalAround`) and puts the app in a
 `CodeApp`: only its cells are compared, and its size is the Code's
-terminal. App › Cli's Code is a twk_cli program of `lib/cli/` (`create.dart`,
+terminal. App › Cli's Code is a console program of `lib/cli/` (`create.dart`,
 `install.dart`, `check.dart`, as `lib/src/pages/cli_code.dart` has them
 for the Code tab, which `test/pages/cli_test.dart` holds to the files):
-its stage runs the program on twk_cli's fake terminal in
+its stage runs the program on twk_test's fake terminal in
 `lib/cli/run.dart`'s `CliRun`, typing what that file's `cliScripts` say
 somebody at the terminal types, on a clock moved to the gallery's time,
 and draws the fake terminal's screen. A Code whose `main` is

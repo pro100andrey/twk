@@ -1,6 +1,6 @@
 ---
 name: twk-apps
-description: Build, test and debug terminal UI apps in Dart with the twk widgets (Flutter-like StatelessWidget and StatefulWidget, Column, Row, Box, ListView, Table, TextField, KeyBindings, dialogs) and twk_test (testTwk, type, press, pump, matchesScreen, find). Use when writing or changing an app that imports package:twk/twk.dart, or its tests; also a command-line tool on twk_cli (prompts that collapse into their answer, spinners and task progress, widgets printed in the output) instead of runApp.
+description: Build, test and debug terminal UI apps in Dart with the twk widgets (Flutter-like StatelessWidget and StatefulWidget, Column, Row, Box, ListView, Table, TextField, KeyBindings, dialogs) and twk_test (testTwk, type, press, pump, matchesScreen, find). Use when writing or changing an app that imports package:twk/twk.dart, or its tests; also a command-line tool on twk's console, package:twk/cli.dart (prompts that collapse into their answer, spinners and task progress, widgets printed in the output) instead of runApp.
 ---
 
 # Terminal apps with twk
@@ -13,10 +13,11 @@ paddings and offsets are whole columns and rows.
 
 Paths in `packages/` and `tool/` are in the twk repository; `lib/`,
 `bin/` and `test/` are the app's. The reference is
-`packages/twk/doc/reference.md`, a row per topic naming every widget,
-parameter, key and default; `packages/twk_test/README.md` for the tester;
+`packages/twk/doc/reference/`, a page per topic (`layout.md`,
+`controls.md`, …) and a section per widget naming every parameter, key
+and default; `packages/twk_test/README.md` for the tester;
 `packages/twk_dev/README.md` for the `twk` command;
-`packages/twk_cli/README.md` for a command-line tool. Whole apps to copy
+`packages/twk/doc/reference/cli.md` for a command-line tool. Whole apps to copy
 from: `packages/twk/example/` (`counter.dart`; `interactive.dart`, a chat
 with lists, a field and focus; `settings.dart`, menus, tabs, a form, a
 dialog and toasts; `monitor.dart`, a sorted table and a tree;
@@ -81,9 +82,6 @@ environment:
 dependencies:
   twk:
     path: <twk>/packages/twk
-  # only for a command-line tool (below)
-  twk_cli:
-    path: <twk>/packages/twk_cli
 dev_dependencies:
   test: ^1.33.0
   twk_dev:
@@ -95,6 +93,8 @@ dependency_overrides:
     path: <twk>/packages/twk
   twk_core:
     path: <twk>/packages/twk_core
+  twk_term:
+    path: <twk>/packages/twk_term
 ```
 
 `dart pub get`, then an app (`dart run bin/main.dart`): type a task and
@@ -177,16 +177,17 @@ import 'package:twk/twk.dart';
 Future<void> main() => runApp(const TodoApp());
 ```
 
-## A command-line tool: twk_cli, not runApp
+## A command-line tool: twk's console, not runApp
 
 `runApp` is for a program whose screen is its interface: an editor, a
 dashboard, a monitor, a list moved through. A command run from a shell
 or a script (an installer, an `init`-style setup, a deploy, a tool with
 flags) prints lines, asks a question or two and shows progress, and has
 to work as well in a pipe, in a CI log and with nobody at the keyboard:
-for that, depend on twk_cli (`packages/twk_cli/README.md`) and call no
-`runApp`. A program does one or the other: where somebody answers at a
-terminal, twk_cli runs an inline twk app of its own.
+for that, import twk's console, `package:twk/cli.dart`
+(`packages/twk/doc/reference/cli.md`), and call no `runApp`. A program
+does one or the other: where somebody answers at a terminal, the console
+runs an inline twk app of its own.
 
 - `Cli.runWithArgs(args, (cli, rest) async { … })` runs the body with a
   console, takes `-v`, `-q`, `--no-color` and `--no-input` out of the
@@ -195,8 +196,7 @@ terminal, twk_cli runs an inline twk app of its own.
 - `cli.info`, `cli.success`, `cli.detail` (shown with `-v`), `cli.warn`
   and `cli.err` (both to stderr) write lines; `await cli.show(widget)`
   prints any twk widget once, at the terminal's width (a `Table`, a
-  `Box`, a `DescriptionList`, a `Callout`); `cli.inspect(value)` prints a
-  value as a tree of JSON.
+  `Box`, a `DescriptionList`, a `Callout`).
 - `await cli.prompt(question)`, `cli.confirm`, `cli.chooseOne(question,
   choices:)` and `cli.chooseAny`: at a terminal, a widget that collapses
   into one committed line once answered (`✔ Target environment? prod`);
@@ -211,14 +211,14 @@ terminal, twk_cli runs an inline twk app of its own.
   with its bar, rate and time left (twk's `ProgressList`). Where the
   terminal does not redraw, both write lines.
 - Its tests give the console a `FakeCliTerminal`
-  (`package:twk_cli/testing.dart`): `.plain(lines: […])` answers the
+  (`package:twk_test/cli.dart`): `.plain(lines: […])` answers the
   prompts a line each, `.interactive(input: […])` types keys into the
   widgets, and `FakeCliTerminal()` is nobody at the keyboard.
 
 ```dart
 // lib/deploy.dart
+import 'package:twk/cli.dart';
 import 'package:twk/twk.dart';
-import 'package:twk_cli/twk_cli.dart';
 
 /// Asks where to deploy, and again before production unless `--yes`
 /// says so, deploys with a spinner and shows what it deployed.
@@ -258,7 +258,7 @@ Future<void> upload(String target) =>
 ```dart
 // bin/deploy.dart
 import 'package:my_app/deploy.dart';
-import 'package:twk_cli/twk_cli.dart';
+import 'package:twk/cli.dart';
 
 Future<void> main(List<String> args) => Cli.runWithArgs(args, deploy);
 ```
@@ -267,8 +267,8 @@ Future<void> main(List<String> args) => Cli.runWithArgs(args, deploy);
 // test/deploy_test.dart
 import 'package:my_app/deploy.dart';
 import 'package:test/test.dart';
-import 'package:twk_cli/testing.dart';
-import 'package:twk_cli/twk_cli.dart';
+import 'package:twk/cli.dart';
+import 'package:twk_test/cli.dart';
 
 void main() {
   test('where nobody can answer, the default is taken', () async {
@@ -295,8 +295,8 @@ void main() {
 
 ## Widgets by need
 
-Each is described, with every parameter, in its topic's row of
-`packages/twk/doc/reference.md`.
+Each is described, with every parameter, in its topic's page of
+`packages/twk/doc/reference/` (`<topic>.md`).
 
 | need | widgets |
 |------|---------|
@@ -312,7 +312,7 @@ Each is described, with every parameter, in its topic's row of
 | screens | `Scaffold` (header, sidebar, body, status bar and key hints, a focus zone each; `ScaffoldController`), `Navigator` (`push`, `pop`, named routes; Escape pops; holds an `Overlay`; `observers:`; `PageRoute(transitionDuration:)` slides in), `PopScope` (refuse or intercept a pop), `Stepper` + `Step` (a wizard whose steps validate; `StepperController`), `Breadcrumbs`, `Pagination` |
 | built inline | `Builder` (a context of its own), `StatefulBuilder` (a state of its own: `builder: (context, setState) => …`), `LayoutBuilder` (by the constraints), `FocusBuilder` (by whether the focus is in it) |
 | async and time | `FutureBuilder`, `StreamBuilder`, `ListenableBuilder`, `ValueListenableBuilder`, `AnimatedBuilder`, `Spinner`, `ProgressBar`, `ProgressList` + `ProgressTracker` (many tasks with bars, rate and time left), `Skeleton` and `Skeletonize` (placeholders that shimmer while content loads), `AnimationController` + `TickerProviderStateMixin`, `Tween`, `Curves` |
-| state over the tree, hooks | `package:twk/provider.dart`, Provider's API: `Provider`, `ChangeNotifierProvider`, `MultiProvider`, `context.read<T>()`, `context.watch<T>()`, `context.select`, `Consumer`, `Selector` (twk_bloc builds on it); `package:twk/hooks.dart`, flutter_hooks': `HookWidget`, `HookBuilder`, `useState`, `useEffect`, `useMemoized`, `useTextEditingController`. Each is imported besides `package:twk/twk.dart`, and has its section in `packages/twk/doc/reference.md` |
+| state over the tree, hooks | `package:twk/provider.dart`, Provider's API: `Provider`, `ChangeNotifierProvider`, `MultiProvider`, `context.read<T>()`, `context.watch<T>()`, `context.select`, `Consumer`, `Selector` (twk_bloc builds on it); `package:twk/hooks.dart`, flutter_hooks': `HookWidget`, `HookBuilder`, `useState`, `useEffect`, `useMemoized`, `useTextEditingController`. Each is imported besides `package:twk/twk.dart`, and has its page in `packages/twk/doc/reference/` (`provider.md`, `hooks.md`) |
 | inline output | `Static` |
 | other | `AppBinding.of(context).notify(title, body)` (a desktop notification), `debugDumpTree(context)`, `Console`, `Semantics(hint:)` and `ExcludeSemantics` (what a screen reader reads) |
 

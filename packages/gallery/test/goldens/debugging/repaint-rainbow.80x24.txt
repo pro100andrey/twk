@@ -13,15 +13,15 @@ text
 │ ▎   Repaint rainb…       copy █                                                │
 │     RepaintBounda…                                                             │
 │                          load ▄▅▇▆▄▅█▆▄▄▃▄▄▅▇▆                                 │
-│   RICH           8                                                             │
+│   RICH           7                                                             │
 │     MarkdownView                                                               │
 │     CodeView                                                                   │
 │     SyntaxThemeSc…    └                                                      ┘ │
 │     DiffView         ──────────────────────────────────────────────────────────│
 │     JsonView           rainbow             ▐  ●▌                               │
-│     BigText         ▐                                                          │
+│     BigText                                                                    │
 │     QrCode          ▐  relayout highlight  ▐●  ▌                               │
-│     ANSI                                                                       │
+│                     ▐                                                          │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -44,9 +44,9 @@ styles
 │aaaaannnnnnnnnnnnnnaaagoggggggggggggggggggggggggggggggggggggggggggggggggggggggog│
 │aaaaannnnnnnnaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnnnaaaaaaaaaggmmmmmmmgggggggggggggzAABzggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnaaaaaaaaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnaaaaaaaaaadggmmmmmmmmgmmmmmmmmmggDEFFDggggggggggggggggggggggggggggggg│
-│aaaaannnnaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

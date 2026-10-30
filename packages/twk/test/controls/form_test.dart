@@ -561,6 +561,7 @@ void main() {
     expect(a.text, 'one');
     expect(t.lines, ['one', '']);
     expect(changes, 2);
+    expect(a.canUndo, isFalse, reason: 'a reset is no step to undo');
     controller.value = b;
     await t.pump();
     expect(field.currentState!.value, 'two');

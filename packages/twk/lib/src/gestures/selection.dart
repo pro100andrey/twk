@@ -81,7 +81,9 @@ export 'selectable.dart' hide selectInSelectable;
 /// While mounted, it has the terminal report presses and drags, which
 /// keeps the terminal's own selection from working over the app; in the
 /// inline mode the mouse stays the terminal's, and nothing is selected
-/// here.
+/// here. The pointer is an I-beam over it ([PointerShape.text]), where a
+/// region inside gives it no other shape: a `Scrollbar` inside gives it
+/// the arrow.
 ///
 /// A transcript whose lines are selected across and copied on the
 /// release, Alt+C copying again:
@@ -328,9 +330,21 @@ final class _SelectionAreaState extends State<SelectionArea> {
     super.dispose();
   }
 
+  // what _placed found last, and the frame it was found after: the layout
+  // changes in frames alone, so the events between two take it again
+  List<_Placed>? _placedFound;
+  var _placedIn = -1;
+
   /// The paragraphs of this area's Texts and the [Selectable]s below it, in
-  /// the order of the tree, each where it is in the area.
+  /// the order of the tree, each where it is in the area: as found last
+  /// where no frame began since, a drag's moves and its timers not walking
+  /// the area each.
   List<_Placed> _placed() {
+    final frame = AppBinding.maybeOf(context)?.framesBegun;
+    final found = _placedFound;
+    if (found != null && frame != null && frame == _placedIn) {
+      return found;
+    }
     final placed = <_Placed>[];
     void visit(RenderObject o, int x, int y) {
       if (o is RenderParagraph && (_mine[o] ?? false)) {
@@ -354,6 +368,8 @@ final class _SelectionAreaState extends State<SelectionArea> {
     if (root != null) {
       visit(root, 0, 0);
     }
+    _placedFound = placed;
+    _placedIn = frame ?? -1;
     return placed;
   }
 
@@ -720,18 +736,21 @@ final class _SelectionAreaState extends State<SelectionArea> {
         if (selected && copy != null) copy: 'copy',
         if (selected && clear != null) clear: 'clear',
       },
-      child: Listener(
-        onDown: _down,
-        onUp: _up,
-        behavior: HitTestBehavior.translucent,
-        child: GestureDetector(
-          onDragUpdate: _drag,
+      child: MouseRegion(
+        cursor: PointerShape.text,
+        child: Listener(
+          onDown: _down,
+          onUp: _up,
           behavior: HitTestBehavior.translucent,
-          child: _SelectionScope(
-            this,
-            version: _version,
-            style: style,
-            child: widget.child,
+          child: GestureDetector(
+            onDragUpdate: _drag,
+            behavior: HitTestBehavior.translucent,
+            child: _SelectionScope(
+              this,
+              version: _version,
+              style: style,
+              child: widget.child,
+            ),
           ),
         ),
       ),
@@ -933,6 +952,12 @@ void takePressFromSelectionArea(MouseTracker tracker) =>
 
 // How a Text takes part in the SelectionArea above it; hidden from the
 // library's exports.
+
+/// Whether [context] is below a [SelectionArea]: there, what is no text,
+/// such as a scrollbar, gives the pointer the arrow over the area's
+/// I-beam.
+bool inSelectionArea(BuildContext context) =>
+    context.getInheritedWidgetOfExactType<_SelectionScope>() != null;
 
 /// Makes [paragraph], the one of the [Text] at [context], selectable in the
 /// [SelectionArea] above [context], if there is one, which [context] then

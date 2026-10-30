@@ -7,8 +7,9 @@ library;
 import 'dart:typed_data';
 
 /// The data the zlib stream [data] holds; a [FormatException] where it is
-/// not one, or its checksum does not match.
-Uint8List zlibInflate(List<int> data) {
+/// not one, or its checksum does not match, or once it holds more than
+/// [limit] bytes, given one, which is as far as it is inflated.
+Uint8List zlibInflate(List<int> data, {int? limit}) {
   if (data.length < 6) {
     throw const FormatException('zlib stream too short');
   }
@@ -17,7 +18,7 @@ Uint8List zlibInflate(List<int> data) {
   if (cmf & 0x0F != 8 || (cmf << 8 | flg) % 31 != 0 || flg & 0x20 != 0) {
     throw const FormatException('not a zlib stream of deflated data');
   }
-  final inflater = _Inflater(data, 2);
+  final inflater = _Inflater(data, 2, limit);
   final out = inflater.run();
   final at = inflater.endOfBlocks();
   if (at + 4 > data.length) {
@@ -134,9 +135,10 @@ const _order = [
 ];
 
 final class _Inflater {
-  _Inflater(this._in, this._at);
+  _Inflater(this._in, this._at, this._limit);
 
   final List<int> _in;
+  final int? _limit;
   int _at;
   var _bits = 0;
   var _count = 0;
@@ -180,6 +182,9 @@ final class _Inflater {
   }
 
   void _emit(int byte) {
+    if (_length == _limit) {
+      throw FormatException('zlib data of more than $_limit bytes');
+    }
     if (_length == _window.length) {
       _window = Uint8List(_window.length * 2)..setRange(0, _length, _window);
     }

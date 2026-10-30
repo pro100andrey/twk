@@ -56,6 +56,23 @@ void main() {
     expect(screen.render(), isNull);
   });
 
+  test('with asserts, the bytes of a frame kept past the next read as '
+      'garbage, not as that frame', () {
+    final screen = Screen(10, 1);
+    final pen = screen.styles.pen(const Pen(bg: Color.rgb(0, 0, 0)));
+    screen.canvas.text(0, 0, 'first', pen);
+    final first = screen.render()!;
+    expect(String.fromCharCodes(first), contains('first'));
+    screen.canvas.text(0, 0, 'second', pen);
+    final second = screen.render()!;
+    expect(String.fromCharCodes(second), contains('second'));
+    var asserts = false;
+    assert(asserts = true, 'asserts on');
+    if (asserts) {
+      expect(first.every((b) => b == 0x3F), isTrue);
+    }
+  });
+
   test('an empty screen renders with a visible cursor', () {
     for (final (w, h) in [(0, 0), (0, 5), (5, 0)]) {
       final screen = Screen(w, h);
@@ -64,6 +81,38 @@ void main() {
         ..cursorX = 2
         ..cursorY = 2;
       expect(screen.render, returnsNormally, reason: '${w}x$h');
+    }
+  });
+
+  test('sweeps its styles once twice as many are in use as after the last '
+      'sweep, past the floor, its screen as it was', () {
+    final floor = Screen.sweepFloor;
+    addTearDown(() => Screen.sweepFloor = floor);
+    Screen.sweepFloor = 8;
+    final screen = Screen(4, 1);
+    final vt = Vt(4, 1);
+    var colors = 0;
+    // a frame of four cells in colors never seen before
+    void frame() {
+      for (var x = 0; x < 4; x++) {
+        final style = screen.styles.style(bg: Color.rgb(0, 0, ++colors));
+        screen.canvas.runStyled(x, 0, screen.canvas.shape(' '), style);
+      }
+      vt.feed(screen.render() ?? const []);
+    }
+
+    frame();
+    expect(screen.styles.sweeps, 0, reason: '5 in use, the floor 8: not yet');
+    frame();
+    expect(screen.styles.sweeps, 1, reason: '9 in use');
+    // what the screen and the terminal show, the same 4, and style 0
+    expect(screen.styles.live, 5);
+    for (var f = 0; f < 50; f++) {
+      frame();
+    }
+    expect(screen.styles.length, lessThan(32));
+    for (var x = 0; x < 4; x++) {
+      expect(vt.cell(x, 0).bg, 0x1000000 | colors - 3 + x);
     }
   });
 }

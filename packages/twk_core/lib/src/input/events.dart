@@ -350,25 +350,34 @@ final class MouseEvent extends InputEvent {
 
 /// Text pasted into the terminal, all in one event: what bracketed paste
 /// mode (`TerminalOptions.bracketedPaste`) brackets, so keys in it (an
-/// Enter, a Ctrl+C) are text and act on nothing.
+/// Enter, a Ctrl+C) are text and act on nothing. A paste longer than
+/// [InputParser.pasteLimit] comes in several, one after another, each
+/// but the last with [more] set: a field inserts each as it comes, and
+/// what takes a paste as one thing (a message to send) joins them.
 ///
 /// Line breaks are LF (`\n`) whatever the terminal sent (CR LF, CR);
 /// bytes that are no UTF-8 are U+FFFD. Without bracketed paste a paste
 /// comes as [KeyEvent]s, as if typed. Two events are equal when their
-/// text is.
+/// text and [more] are.
 final class PasteEvent extends InputEvent {
-  /// A paste of [text].
-  const PasteEvent(this.text);
+  /// A paste of [text]; with [more], a piece of one that goes on in the
+  /// next.
+  const PasteEvent(this.text, {this.more = false});
 
   /// What was pasted, with LF line breaks.
   final String text;
 
+  /// Whether the paste goes on in the next [PasteEvent]: one longer than
+  /// [InputParser.pasteLimit], in pieces.
+  final bool more;
+
   @override
-  bool operator ==(Object other) => other is PasteEvent && other.text == text;
+  bool operator ==(Object other) =>
+      other is PasteEvent && other.text == text && other.more == more;
   @override
-  int get hashCode => text.hashCode;
+  int get hashCode => Object.hash(text, more);
   @override
-  String toString() => 'Paste(${text.length} chars)';
+  String toString() => 'Paste(${text.length} chars${more ? ', more' : ''})';
 }
 
 /// The terminal window gained or lost the input focus: reported where the

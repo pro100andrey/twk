@@ -12,6 +12,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:test/test.dart';
+import 'package:twk_term/src/pty/pty.dart' show ptyEnvironment;
 import 'package:twk_term/twk_term.dart';
 import 'package:twk_test/twk_test.dart'
     show runProcess, startProcess, waitUntil;
@@ -138,10 +139,11 @@ void main() {
       // writes the name alone (uutils', Ubuntu 26.04's coreutils)
       expect(run.text.replaceAll('\r\n', ''), '$name$name$name');
       // /dev/tty opens only in a process with a controlling terminal; not
-      // in a shell, which would make the terminal its own.
-      final head = Run('head', ['-c', '0', '/dev/tty']);
-      expect(await head.ended(), exits(0));
-      expect(head.text, isEmpty);
+      // in a shell, which would make the terminal its own. dd reads nothing
+      // of it (BSD's head takes no -c 0) and says how much it copied.
+      final dd = Run('dd', ['if=/dev/tty', 'of=/dev/null', 'count=0']);
+      expect(await dd.ended(), exits(0));
+      expect(dd.text, isNot(contains('dd:')));
     },
   );
 
@@ -169,14 +171,19 @@ void main() {
     await run.waitFor(r'$ ');
     run.pty.write(utf8.encode('echo started; sleep 30\r'));
     await run.waitFor('started\r\n');
-    // Again until it is the job that gets it, not bash before the job runs.
+    // Again until it is the job that gets it, not bash before the job runs:
+    // the prompt is back once the job stopped (bash's own line saying so may
+    // come later or not at all), and `jobs` lists it stopped.
     var at = run.text.length;
     await run.until(() {
       run.pty.write([0x1a]);
-      return run.text.contains('Stopped', at);
+      return run.text.contains(r'$ ', at);
     }, 'the job to stop');
     expect(run.text, isNot(contains('no job control')));
-    await run.waitFor(r'$ ', from: run.text.indexOf('Stopped'));
+    at = run.text.length;
+    run.pty.write(utf8.encode('jobs\r'));
+    await run.waitFor('Stopped', from: at);
+    await run.waitFor(r'$ ', from: run.text.indexOf('Stopped', at));
     at = run.text.length;
     run.pty.write(utf8.encode('fg\r'));
     await run.waitFor('sleep 30\r\n', from: at);
@@ -187,7 +194,8 @@ void main() {
     }, 'the job to end');
     run.pty.write(
       utf8.encode(
-        r'jobs; echo "jobs: $(jobs | wc -l)"; exit 0'
+        // BSD's wc pads the count
+        r'jobs; echo "jobs: $(jobs | wc -l | tr -d " ")"; exit 0'
         '\r',
       ),
     );
@@ -251,11 +259,36 @@ void main() {
     expect(const LineSplitter().convert(own.text).toSet(), {
       'PATH=/usr/bin:/bin',
       'TERM=vt100',
+      'COLORTERM=truecolor',
+    });
+  });
+
+  test("the terminal this process runs in isn't the program's: its "
+      'variables left out, those given kept', () {
+    final env = ptyEnvironment(
+      {
+        'HOME': '/home/a',
+        'TERM': 'xterm-kitty',
+        'TERM_PROGRAM': 'Apple_Terminal',
+        'TERM_PROGRAM_VERSION': '466',
+        'LC_TERMINAL': 'iTerm2',
+        'KITTY_WINDOW_ID': '1',
+        'TMUX': '/tmp/t,1,0',
+        'COLORTERM': '24bit',
+      },
+      {'TERM_PROGRAM': 'mine'},
+    );
+    expect(env, {
+      'HOME': '/home/a',
+      'TERM': 'xterm-256color',
+      'COLORTERM': 'truecolor',
+      'TERM_PROGRAM': 'mine',
     });
   });
 
   test('IUTF8: erasing takes a UTF-8 character whole', () async {
-    final run = sh('head -n 1 | od -An -tx1');
+    // BSD's od puts two blanks between bytes
+    final run = sh('head -n 1 | od -An -tx1 | tr -s " "');
     run.pty.write(utf8.encode('aé\x7fx\r'));
     expect(await run.ended(), exits(0));
     expect(run.text, contains(' 61 78 0a'));
@@ -309,6 +342,14 @@ void main() {
     expect(run.text, 'ready\r\n');
   });
 
+  test('a program that ignores the hang-up is killed a second after '
+      'close', () async {
+    final run = sh('trap "" HUP; echo ready; while :; do sleep 0.05; done');
+    await run.waitFor('ready\r\n');
+    run.pty.close();
+    expect(await run.ended(), exits(-ProcessSignal.sigkill.signalNumber));
+  });
+
   test('a program that closed its terminal is not hung up before it ends: '
       'the output ends, the exit code is its own', () async {
     // What cat does at the end of its input, slowed down: every descriptor
@@ -324,7 +365,13 @@ void main() {
     'close hangs up a program that closed its terminal and runs on',
     () async {
       final run = sh('echo bye; exec 0<&- 1>&- 2>&-; sleep 30');
-      await run.until(() => run.outputDone, 'the output to end');
+      if (Platform.isLinux) {
+        await run.until(() => run.outputDone, 'the output to end');
+      } else {
+        // macOS keeps a session's controlling terminal open for it, its
+        // output going on while the leader runs
+        await run.waitFor('bye\r\n');
+      }
       run.pty.close();
       expect(await run.ended(), exits(-ProcessSignal.sighup.signalNumber));
     },
@@ -351,13 +398,41 @@ void main() {
       expect(await run.ended(), exits(0));
       expect(run.text, 'early\r\nlate\r\n');
     },
+    // macOS revokes the controlling terminal of a session whose leader
+    // ended: what it left running writes to it no more
+    testOn: 'linux',
   );
+
+  test('the modes the program left its terminal in, read at its end', () {
+    // c_lflag: the fourth field, 32 bits on Linux and 64 on macOS
+    int lflag(Uint8List termios) => Platform.isMacOS
+        ? ByteData.sublistView(termios).getUint64(24, Endian.host)
+        : ByteData.sublistView(termios).getUint32(12, Endian.host);
+    final icanon = Platform.isMacOS ? 0x100 : 0x2;
+    Future<Uint8List?> left(String script) async {
+      final run = sh(script);
+      expect(await run.ended(), exits(0));
+      return run.pty.modesAtEnd;
+    }
+
+    return Future.wait([
+      left('stty raw -echo').then((m) {
+        expect(m, isNotNull);
+        expect(lflag(m!) & icanon, 0);
+      }),
+      left('stty sane').then((m) {
+        expect(m, isNotNull);
+        expect(lflag(m!) & icanon, icanon);
+      }),
+    ]);
+  });
 
   test('feeds the emulator, which answers through it', () async {
     final term = TerminalEmulator(width: 40, height: 6);
     final run = sh(
       r'stty -echo -icanon; printf "\033[2J\033[Hhello\033[3;5H\033[6n"; '
-      'head -c 6 | od -An -tx1; stty size',
+      // BSD's od pads the row to 16 bytes and adds an empty one
+      'head -c 6 | od -An -tx1 | tr -s " " | grep .; stty size',
       width: 40,
       height: 6,
     );

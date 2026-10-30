@@ -2,32 +2,32 @@ screen 120×36, cursor hidden
 text
 │  ◆ twk gallery   Rich  ›  DiffView                                                         ctrl+p search      ◐ Light  │
 │                                                                                                                        │
-│   ⌕ Filter             /      DiffView                                                                         4 of 8  │
+│   ⌕ Filter             /      DiffView                                                                         4 of 7  │
 │                               The changes between two texts, unified or side by side, the words that changed           │
-│     TerminalProgress          marked and both sides highlighted.                                                       │
-│     Viewport                                                                                                           │
-│     Window title              Preview   Code                                                                           │
-│     Notifications          ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
-│     Cli                                                                                  │                             │
-│                             ┌                                                          ┐ │  OPTIONS                    │
-│   SCREEN READERS       1      bin/greet.dart                                             │                             │
-│     Semantics                  1  1   import 'dart:io';                                  │  layout                     │
-│                                2  2                                                      │   unified  sideBySide       │
-│   DEBUGGING            4       3    - /// Greets [name] on the terminal.                 │                             │
-│     Console                    4    - String greet(String name) {                        │  context                    │
-│     FrameOverlay               5    -   return 'Hello, ' + name + '!';                   │   3 lines  1  0             │
-│     Repaint rainbow               3 + /// Greets [name] on the terminal, in [language    │                             │
-│     RepaintBoundary               4 + String greet(String name, {String language = 'e    │  edit live           ▐●  ▌  │
-│                                   5 +   return '${hello[language]}, $name!';             │                             │
-│   RICH                 8       6  6   }                                                  │  language                   │
-│     MarkdownView               7  7                                                      │   the path's  plain         │
-│     CodeView                      8 + const hello = {'en': 'Hello', 'uk': 'Привіт'};     │                             │
-│     SyntaxThemeScope              9 +                                                    │                             │
-│ ▎   DiffView                   8 10   /// The names to greet, one a line.                │                             │
-│     JsonView                   9 11   List<String> readNames(String path) {              │                             │
-│     BigText                   10 12     final file = File(path);                         │                             │
-│     QrCode                          ⋯ 3 unchanged lines                                  │                             │
-│     ANSI                      14 16                                                  ▁   │                             │
+│     Static                    marked and both sides highlighted.                                                       │
+│     TerminalProgress                                                                                                   │
+│     Viewport                  Preview   Code                                                                           │
+│     Window title           ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     Notifications                                                                        │                             │
+│     Cli                     ┌                                                          ┐ │  OPTIONS                    │
+│                               bin/greet.dart                                             │                             │
+│   SCREEN READERS       1       1  1   import 'dart:io';                                  │  layout                     │
+│     Semantics                  2  2                                                      │   unified  sideBySide       │
+│                                3    - /// Greets [name] on the terminal.                 │                             │
+│   DEBUGGING            4       4    - String greet(String name) {                        │  context                    │
+│     Console                    5    -   return 'Hello, ' + name + '!';                   │   3 lines  1  0             │
+│     FrameOverlay                  3 + /// Greets [name] on the terminal, in [language    │                             │
+│     Repaint rainbow               4 + String greet(String name, {String language = 'e    │  edit live           ▐●  ▌  │
+│     RepaintBoundary               5 +   return '${hello[language]}, $name!';             │                             │
+│                                6  6   }                                                  │  language                   │
+│   RICH                 7       7  7                                                      │   the path's  plain         │
+│     MarkdownView                  8 + const hello = {'en': 'Hello', 'uk': 'Привіт'};     │                             │
+│     CodeView                      9 +                                                    │                             │
+│     SyntaxThemeScope           8 10   /// The names to greet, one a line.                │                             │
+│ ▎   DiffView                   9 11   List<String> readNames(String path) {              │                             │
+│     JsonView                  10 12     final file = File(path);                         │                             │
+│     BigText                         ⋯ 3 unchanged lines                                  │                             │
+│     QrCode                    14 16                                                  ▁   │                             │
 │                               15 17   void main(List<String> args) {                     │                             │
 │   IMAGES               1  ▐   16 18     final names = readNames(args.first);             │                             │
 │     Image                 ▐      19 +   final language = args.length > 1 ? args[1] :     │                             │
@@ -41,30 +41,30 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aai!i!!!!!!iiiiiiiiiiiii"iaahhhllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh#h##h#hh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnhnnnnnnnhnnnnnnnhnnnhnnnnnnhnnnnnnnhnnhnnnnhnnhnnnnnhnnnhnnnnnhnnnnhnnnnnnnhhhhhhhhhhh│
-│aaaaaooooooooooooooooaaaaaaahhhnnnnnnhnnnhnnnnhnnnnnhnnnnnnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooaoooooaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
-│aaaaaoooaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
-│aaaddddddadddddddaaaaaaa9aaahhhrrrrrrrrrrrrrrsssssssssssssssssssssssssssssssssssssssssthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooaaaaaaaaaaaaaahhhhnhhnhhhuuuuuuhvvvvvvvvvwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhphhnnnnnnhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhnhhnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhphh$%%%%%%%$szzzzzzzzzzshhhhhh│
-│aaadddddddddaaaaaaaaaaaa9aaahhhABAAAACADDDADDDDDDADDDDDDADDADDDADDDDDDDDDAAAAAAAAAAAAAthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaaaaaaaaaaaaaaaahhhABAAAACAEEEEEEAFFFFFGEEEEEEAGGGGGAGAAAAAAAAAAAAAAAAAAAAthhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhABAAAACAAAHHHHHHAIJJJJJIAJKLKGGGGKLKJIIGAAAAAAAAAAAAAAAthhhphh$%$%%%%%$szsszshhhhhhhhhhhh│
-│aaaaaoooooooaoooooooaaaaaaaahhhMMMMNMOMPPPMPPPPPPMPPPPPPMPPMPPPMPPPPPPPPQRQQRQQQQQQQQQthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooooaaaaaaaahhhMMMMNMOMSSSSSSMTTTTTUSSSSSSMUUUUVRVWWWWWWRVVVVVVVVRWRXXthhhphhnnnnhnnnnhhhhhhhhhhhYZ00Yhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhMMMMNMOMMM111111MOVVVVVVVVVVVVVVVVVVOM23333OOUMMMMMMMMMthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaddddaaaaaaaaaaaaaaaaa9aaahhhhnhhnhhhwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhphhnnnnnnnnhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhhnhhnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhphh$%%%$%%%%%%$szzzzzshhhhhhhh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhMMMMNMOM11111MUUUUUMSMUOOOOUMOOOOOOOUMOOOOUMOOOOOOOOUUMthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooooooaaaaaaahhhMMMMNMOMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│a&$$$%%%%%%%%$$$$$$$$$$$$$$ahhhhnhnnhhh444h444h44444h44h444444h444h4h44444hhhhhhhhhhhhthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhhnhnnhhh666666666666hqqqqqqqqqw666666hwwwwwhwhhhhhhhhhhthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaaaaaaaaaaaaaaaahhhnnhnnhhhhhuuuuuhwwwwh6h6666wwwwwwwhhhhhhhhhhhhhhhhhhhhhthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooaaaaaaaaaaaaaaaaahhhsssssszszszzzzzzzzzszzzzzssssssssssssssssssssssssssssssthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooaaaaaaaaaaaaaaaaaaahhhnnhnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhnnnnnnhnnnhnnnnhnnnnnhnnnnnnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaoooooaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaoooooooooooooaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooaaaaaaaaaaaaaaaaaaaahphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhrrrrrrrrrrrrrrsssssssssssssssssssssssssssssssssssssssssthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddadddddddaaaaaaa9aaahhhhnhhnhhhuuuuuuhvvvvvvvvvwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhphhnnnnnnhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhnhhnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhphh$%%%%%%%$szzzzzzzzzzshhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhABAAAACADDDADDDDDDADDDDDDADDADDDADDDDDDDDDAAAAAAAAAAAAAthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddddddaaaaaaaaaaaa9aaahhhABAAAACAEEEEEEAFFFFFGEEEEEEAGGGGGAGAAAAAAAAAAAAAAAAAAAAthhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhABAAAACAAAHHHHHHAIJJJJJIAJKLKGGGGKLKJIIGAAAAAAAAAAAAAAAthhhphh$%$%%%%%$szsszshhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhMMMMNMOMPPPMPPPPPPMPPPPPPMPPMPPPMPPPPPPPPQRQQRQQQQQQQQQthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaoooooooaaaaaaaahhhMMMMNMOMSSSSSSMTTTTTUSSSSSSMUUUUVRVWWWWWWRVVVVVVVVRWRXXthhhphhnnnnhnnnnhhhhhhhhhhhYZ00Yhh│
+│aaaaaoooooooooooooooaaaaaaaahhhMMMMNMOMMM111111MOVVVVVVVVVVVVVVVVVVOM23333OOUMMMMMMMMMthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhnhhnhhhwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhphhnnnnnnnnhhhhhhhhhhhhhhhhhhh│
+│aaaddddaaaaaaaaaaaaaaaaa9aaahhhhnhhnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhphh$%%%$%%%%%%$szzzzzshhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhMMMMNMOM11111MUUUUUMSMUOOOOUMOOOOOOOUMOOOOUMOOOOOOOOUUMthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhMMMMNMOMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhhnhnnhhh444h444h44444h44h444444h444h4h44444hhhhhhhhhhhhthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│a&$$$%%%%%%%%$$$$$$$$$$$$$$ahhhhnhnnhhh666666666666hqqqqqqqqqw666666hwwwwwhwhhhhhhhhhhthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhnnhnnhhhhhuuuuuhwwwwh6h6666wwwwwwwhhhhhhhhhhhhhhhhhhhhhthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhsssssszszszzzzzzzzzszzzzzssssssssssssssssssssssssssssssthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhnnhnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnhnnhhh6666hqqqqw666666666666hwwwwwhwhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaddddddaaaaaaaaaaaaaaa9aadhhhnnhnnhhhhhuuuuuhwwwwwh6hqqqqqqqqqwwwwwwwwwwwwwhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooaaaaaaaaaaaaaaaaadhhhMMMNNMOMMM11111MUUUUUUUUMSMUUUUUUUUUUUMSM8MSMUUUUU8UMUMhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
@@ -130,7 +130,7 @@ Z #ffffff on #c8cdd5
 1 #8250df on #d0e3d6
 2 #cf222e on #80b790
 3 #cf222e on #d0e3d6
-& #0969da on #b6d4fe
 4 italic #656d76 on #fafafb
+& #0969da on #b6d4fe
 6 #0a7ea4 on #fafafb
 8 #9a6700 on #d0e3d6

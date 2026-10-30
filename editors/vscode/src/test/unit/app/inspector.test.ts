@@ -300,19 +300,6 @@ describe('Inspector', () => {
     assert.equal(service.asked.at(-1), 'ext.twk.highlight');
   });
 
-  it('an app of a twk before selectMany is armed again after each pick', async () => {
-    const service = app();
-    withCode(service);
-    // it knows no selectMany: its answer has none
-    service.answers.set('ext.twk.flags', (p) => flagsAnswer(...(p.select === 'true' ? ['select'] : [])));
-    await connect(service);
-    await inspector.pick();
-    service.post('twk.select', { version: 1, x: 3, y: 2 });
-    await until('armed again', () => service.asked.includes('ext.twk.flags select=true'));
-    await until('opened', () => opener.opened.length === 1);
-    assert.equal(service.asked.filter((c) => c === 'ext.twk.flags select=true').length, 1, service.asked.join('\n'));
-  });
-
   it("where the app can't pick itself (the inline mode), each click on its terminal picks, by the cursor's row, until Escape", async () => {
     const service = app();
     withCode(service);

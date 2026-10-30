@@ -9,7 +9,7 @@ as a path one, and
 tests, as a path dev dependency.
 
 It builds on twk's provider library, `package:twk/provider.dart`
-([twk's reference](../twk/doc/reference.md#provider-packagetwkproviderdart)), as
+([twk's reference](../twk/doc/reference/provider.md)), as
 flutter_bloc does on provider: its providers are that library's
 (`BlocProvider` an `InheritedProvider` that tells its dependents of each
 state, `RepositoryProvider` one of any object), what it nests are its

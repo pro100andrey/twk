@@ -18,7 +18,7 @@ text
 │     Repaint rainb…       the page under it     dialog Popup                    │
 │     RepaintBounda…       the notice on top     the notice on top               │
 │                       └                                                      ┘ │
-│   RICH           8   ──────────────────────────────────────────────────────────│
+│   RICH           7   ──────────────────────────────────────────────────────────│
 │     MarkdownView    ▐  view               beside the form                     ▐│
 │     CodeView        ▐                     TWK_SCREEN_READER=1                 ▐│
 │     SyntaxThemeSc…     BlockSemantics    ▐  ●▌                                 │

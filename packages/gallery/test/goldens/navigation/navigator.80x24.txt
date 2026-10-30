@@ -4,7 +4,7 @@ text
 │                                                                                │
 │   ⌕ Filter       /     Navigator                               Preview   Code  │
 │                        Screens on a stack: a route pushed covers the one       │
-│     Focus, FocusS…     under it and takes the focus, Escape or Back pops it.   │
+│     ActiveItem         under it and takes the focus, Escape or Back pops it.   │
 │     ExcludeFocus     ──────────────────────────────────────────────────────────│
 │     KeyBindings,…         ┌                                              ┐     │
 │     Shortcuts, Ac…      ·   ╭──────────────────────────────────────────╮    ·  │
@@ -16,9 +16,9 @@ text
 │     Pagination          ·   │                                          │    ·  │
 │     Stepper                 │                                          │       │
 │                         ·   ╰──────────────────────────────────────────╯    ·  │
-│   FOUNDATION     2  ▐     └                                              ┘     │
+│   FOUNDATION     2        └                                              ┘     │
 │     ListenableBui…  ▐   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  44 × 9   ·  │
-│     FutureBuilder…                                                             │
+│     FutureBuilder…  ▐                                                          │
 │                      ──────────────────────────────────────────────────────────│
 │   FRAMEWORK      3     back key   escape  backspace  none                      │
 │     LayoutBuilder                                                              │
@@ -29,7 +29,7 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahAhAAAAAAhhhhhhhBhaaggkkkkkkkkkggggggggggggggggggggggggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmmmmmmmgmmgmgmmmmmmgmgmmmmmgmmmmmmgmmmmmmgmmmgmmmggggggg│
-│aaaaannnnnnannnnnnnaaaggmmmmmgmmgmmmgmmmmmgmmmgmmmmmmgmmmmmmgmmgmmmmgmmmmgmmmggg│
+│aaaaannnnnnnnnnaaaaaaaggmmmmmgmmgmmmgmmmmmgmmmgmmmmmmgmmmmmmgmmgmmmmgmmmmgmmmggg│
 │aaaaannnnnnnnnnnnaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnnnnnnnnaaaagggggoggggggggggggggggggggggggggggggggggggggggggggggoggggg│
 │aaaaannnnnnnnnnannnaaagggogggppppppppppppppppppppppppppppppppppppppppppppggggogg│
@@ -41,9 +41,9 @@ styles
 │aaaaannnnnnnnnnaaaaaaagggogggpggggggggggggggggggggggggggggggggggggggggggpggggogg│
 │aaaaannnnnnnaaaaaaaaaagggggggpggggggggggggggggggggggggggggggggggggggggggpggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggogggppppppppppppppppppppppppppppppppppppppppppppggggogg│
-│aaaddddddddddaaaaazaadgggggoggggggggggggggggggggggggggggggggggggggggggggggoggggg│
+│aaaddddddddddaaaaazaaagggggoggggggggggggggggggggggggggggggggggggggggggggggoggggg│
 │aaaaannnnnnnnnnnnnnaadgggogggogggogggogggogggogggogggogggogggogggoggCCgCgCgggogg│
-│aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaadddddddddaaaaaazaaaggmmmmgmmmggsttttttshyyyyyyyyyhhyyyyhggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│

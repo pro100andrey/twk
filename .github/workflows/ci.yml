@@ -15,61 +15,83 @@ concurrency:
 
 jobs:
   linux:
-    # Everything: analyze, format, every package's tests, the end to end
-    # runs, the gallery's Code tab, the VS Code extension's unit tests,
-    # twk_web's tests in Chrome, pub-check (pana), then the frame benchmark
-    # against the commit the change started from. The runner has no CPU to
-    # pin the benchmark to, so its times are reported, not failed; more
-    # bytes per frame still fail.
+    # Everything but the slowest suites (linux-tests'): analyze, format,
+    # the other packages' tests, the end to end runs, the gallery's Code
+    # tab, the VS Code extension's unit tests, twk_web's tests in Chrome,
+    # then the frame benchmark against the commit the change started from.
+    # The runner has no CPU to pin the benchmark to, so its times are
+    # reported, not failed; more bytes per frame still fail.
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # the benchmark builds its baseline from history
           fetch-depth: 0
       - uses: dart-lang/setup-dart@v1
         with:
           sdk: 3.13.7
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: editors/vscode/package-lock.json
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: ~/.pub-cache
           key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: pub-${{ runner.os }}-
-      - run: dart pub global activate pana # xtask: not a gate — pub-check's scorer, which no action installs
       - run: dart run tool/xtask.dart ci -j auto --keep-going --report xtask-report.json
         env:
           # a pull request against its base; a push against itself, which
           # shows the times and compares nothing (a first push has no parent)
           BENCH_BASELINE: ${{ github.event.pull_request.base.sha || 'HEAD' }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: xtask-report-linux
           path: xtask-report.json
 
+  linux-tests:
+    # The slowest packages' suites (xtask.yaml's slow-suites), beside the
+    # linux job, so that the two end about together.
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.13.7
+      - uses: actions/cache@v6
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: pub-${{ runner.os }}-
+      - run: dart run tool/xtask.dart ci-tests -j auto --keep-going --report xtask-report.json
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: xtask-report-linux-tests
+          path: xtask-report.json
+
   other-os:
-    # The published packages' tests where the terminal is another's: the
-    # core's backends for macOS and Windows, and twk over them. The end to
-    # end runs and the benchmark are Linux's (their `platforms:`).
+    # Where the terminal is another's: on macOS every package's tests (its
+    # pseudo-terminal and BSD's tools too) and the end to end runs, on
+    # Windows the portable packages' (the core's console backend and twk
+    # over it). The benchmark is Linux's (its `platforms:`).
     strategy:
       fail-fast: false
       matrix:
         os: [macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 40
+    timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dart-lang/setup-dart@v1
         with:
           sdk: 3.13.7
       - run: dart run tool/xtask.dart ci-os -j auto --keep-going --report xtask-report.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: xtask-report-${{ matrix.os }}

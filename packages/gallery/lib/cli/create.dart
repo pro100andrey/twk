@@ -1,8 +1,8 @@
 // Asks what a new app is to be: its name, a template, its features and a
 // last yes or no. At a terminal each question is a widget until it is
 // answered, then a line: `✔ Template? server`.
+import 'package:twk/cli.dart';
 import 'package:twk/twk.dart';
-import 'package:twk_cli/twk_cli.dart';
 
 Future<void> main(List<String> args) => Cli.runWithArgs(args, create);
 

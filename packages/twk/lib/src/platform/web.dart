@@ -6,6 +6,8 @@
 /// is not saved; no file has a size and no directory changes.
 library;
 
+import 'dart:async';
+
 /// None on the web.
 Map<String, String> get environment => const {};
 
@@ -78,3 +80,50 @@ Future<void> startApart(String executable, List<String> arguments) async =>
 /// Fails with [UnsupportedError]: the web runs no programs.
 Future<int> runOnTerminal(String executable, List<String> arguments) async =>
     throw UnsupportedError('no programs to run on the web');
+
+/// False: there is no stdin on the web.
+bool get stdinIsTerminal => false;
+
+/// False: there is no stdio on the web.
+bool stdioIsTerminal({bool error = false}) => false;
+
+/// False: there is no stdio on the web.
+bool stdioSupportsAnsi({bool error = false}) => false;
+
+/// 0: there is no terminal of the process on the web.
+int stdioColumns({bool error = false}) => 0;
+
+/// A sink that drops what is written: there is no stdio on the web.
+StringSink stdioSink({bool error = false}) => _Dropped();
+
+/// Nothing to flush on the web.
+Future<void> flushStdio() async {}
+
+/// No lines: there is no stdin on the web.
+Stream<String> stdinLines() => const Stream.empty();
+
+/// Nothing to switch on the web.
+set stdinEcho(bool on) {}
+
+/// Null: there is no signal on the web.
+StreamSubscription<void>? watchInterrupt(void Function() onInterrupt) => null;
+
+/// Nothing to interrupt on the web.
+void interruptProcess() {}
+
+/// The code the process would end with, kept: nothing ends on the web.
+var processExitCode = 0;
+
+final class _Dropped implements StringSink {
+  @override
+  void write(Object? object) {}
+
+  @override
+  void writeAll(Iterable<Object?> objects, [String separator = '']) {}
+
+  @override
+  void writeCharCode(int charCode) {}
+
+  @override
+  void writeln([Object? object = '']) {}
+}

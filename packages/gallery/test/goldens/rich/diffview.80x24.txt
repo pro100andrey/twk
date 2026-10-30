@@ -4,18 +4,18 @@ text
 │                                                                                │
 │   ⌕ Filter       /     DiffView                                Preview   Code  │
 │                        The changes between two texts, unified or side by       │
-│     Repaint rainb…     side, the words that changed marked and both sides hi…  │
-│     RepaintBounda…   ──────────────────────────────────────────────────────────│
-│                       ┌                                                      ┐ │
-│   RICH           8      bin/greet.dart                                         │
-│     MarkdownView         1  1   import 'dart:io';                              │
-│     CodeView             2  2                                              ▅   │
-│     SyntaxThemeSc…       3    - /// Greets [name] on the terminal.             │
-│ ▎   DiffView             4    - String greet(String name) {                    │
-│     JsonView             5    -   return 'Hello, ' + name + '!';               │
-│     BigText                 3 + /// Greets [name] on the terminal, in [lang    │
-│     QrCode                  4 + String greet(String name, {String language     │
-│     ANSI              └                                                      ┘ │
+│     FrameOverlay       side, the words that changed marked and both sides hi…  │
+│     Repaint rainb…   ──────────────────────────────────────────────────────────│
+│     RepaintBounda…    ┌                                                      ┐ │
+│                         bin/greet.dart                                         │
+│   RICH           7       1  1   import 'dart:io';                              │
+│     MarkdownView         2  2                                              ▅   │
+│     CodeView             3    - /// Greets [name] on the terminal.             │
+│     SyntaxThemeSc…       4    - String greet(String name) {                    │
+│ ▎   DiffView             5    -   return 'Hello, ' + name + '!';               │
+│     JsonView                3 + /// Greets [name] on the terminal, in [lang    │
+│     BigText                 4 + String greet(String name, {String language     │
+│     QrCode            └                                                      ┘ │
 │                      ──────────────────────────────────────────────────────────│
 │   IMAGES         1     layout      unified  sideBySide                         │
 │     Image              context     3 lines  1  0                               │
@@ -29,18 +29,18 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahWhWWWWWWhhhhhhhXhaaggkkkkkkkkgggggggggggggggggggggggggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmmmgmmmmmmmgmmmmmmmgmmmgmmmmmmgmmmmmmmgmmgmmmmgmmggggggg│
-│aaaaannnnnnnannnnnnaaaggmmmmmgmmmgmmmmmgmmmmgmmmmmmmgmmmmmmgmmmgmmmmgmmmmmgmmmgg│
-│aaaaannnnnnnnnnnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaaaaaaaaaaaaaaaaaaagoggggggggggggggggggggggggggggggggggggggggggggggggggggggog│
-│aaaddddaaaaaaaaaaaVaaagggppppppppppppppqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqrggg│
-│aaaaannnnnnnnnnnnaaaaaggggmggmgggssssssgtttttttttuggggggggggggggggggggggggggrggg│
-│aaaaannnnnnnnaaaaaaaaaggggmggmggggggggggggggggggggggggggggggggggggggggggggggrggg│
-│aaaaannnnnnnnnnnnnnaaagggvwvvvvxvyyyvyyyyyyvyyyyyyvyyvyyyvyyyyyyyyyvvvvvvvvvgggg│
-│aCDDDEEEEEEEEDDDDDDDDagggvwvvvvxvzzzzzzvAAAAABzzzzzzvBBBBBvBvvvvvvvvvvvvvvvvgggg│
-│aaaaannnnnnnnaaaaaaaaagggvwvvvvxvvvFFFFFFvGHHHHHGvHIJIBBBBIJIHGGBvvvvvvvvvvvgggg│
-│aaaaannnnnnnaaaaaaaaaagggKKKKLKMKNNNKNNNNNNKNNNNNNKNNKNNNKNNNNNNNNOPOOPOOOOOgggg│
-│aaaaannnnnnaaaaaaaaaaagggKKKKLKMKQQQQQQKRRRRRSQQQQQQKSSSSTPTUUUUUUPTTTTTTTTPgggg│
-│aaaaannnnaaaaaaaaaaaaagoggggggggggggggggggggggggggggggggggggggggggggggggggggggog│
+│aaaaannnnnnnnnnnnaaaaaggmmmmmgmmmgmmmmmgmmmmgmmmmmmmgmmmmmmgmmmgmmmmgmmmmmgmmmgg│
+│aaaaannnnnnnannnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnnnnaaagoggggggggggggggggggggggggggggggggggggggggggggggggggggggog│
+│aaaaaaaaaaaaaaaaaaaaaagggppppppppppppppqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqrggg│
+│aaaddddaaaaaaaaaaaVaaaggggmggmgggssssssgtttttttttuggggggggggggggggggggggggggrggg│
+│aaaaannnnnnnnnnnnaaaaaggggmggmggggggggggggggggggggggggggggggggggggggggggggggrggg│
+│aaaaannnnnnnnaaaaaaaaagggvwvvvvxvyyyvyyyyyyvyyyyyyvyyvyyyvyyyyyyyyyvvvvvvvvvgggg│
+│aaaaannnnnnnnnnnnnnaaagggvwvvvvxvzzzzzzvAAAAABzzzzzzvBBBBBvBvvvvvvvvvvvvvvvvgggg│
+│aCDDDEEEEEEEEDDDDDDDDagggvwvvvvxvvvFFFFFFvGHHHHHGvHIJIBBBBIJIHGGBvvvvvvvvvvvgggg│
+│aaaaannnnnnnnaaaaaaaaagggKKKKLKMKNNNKNNNNNNKNNNNNNKNNKNNNKNNNNNNNNOPOOPOOOOOgggg│
+│aaaaannnnnnnaaaaaaaaaagggKKKKLKMKQQQQQQKRRRRRSQQQQQQKSSSSTPTUUUUUUPTTTTTTTTPgggg│
+│aaaaannnnnnaaaaaaaaaaagoggggggggggggggggggggggggggggggggggggggggggggggggggggggog│
 │aaaaaaaaaaaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaddddddaaaaaaaaaVaaaggmmmmmmgggggDEEEEEEEDhYYYYYYYYYYhgggggggggggggggggggggggg│
 │aaaaannnnnaaaaaaaaaaaaggmmmmmmmggggDEDEEEEEDhYhhYhgggggggggggggggggggggggggggggg│
@@ -75,12 +75,12 @@ v on #42282c
 w #8b929c on #42282c
 x #ff6b6b on #42282c
 y italic #8b929c on #42282c
-C #5fa8ff on #2b4566
-D on #2b4566
-E bold #e6e8eb on #2b4566
 z #5cc8e6 on #42282c
 A #5fa8ff on #42282c
 B #e6e8eb on #42282c
+C #5fa8ff on #2b4566
+D on #2b4566
+E bold #e6e8eb on #2b4566
 F #c792ea on #42282c
 G #5fd38d on #42282c
 H #5fd38d on #954548

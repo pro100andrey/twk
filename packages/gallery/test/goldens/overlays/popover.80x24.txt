@@ -12,9 +12,9 @@ text
 │     Tooltip             ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
 │ ▎   Popover                                  ┌        ┐                        │
 │     MenuBar             ·   ·   ·   ·   ·       Open    ·   ·   ·   ·   ·   ·  │
-│     ContextMenu     ▐                        └        ┘                        │
+│     ContextMenu                              └        ┘                        │
 │     CommandPalette  ▐   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
-│     OptionList                                                                 │
+│     OptionList      ▐                                                          │
 │     ModalBarrier        ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
 │     WindowLayer                                                                │
 │                                                                                │
@@ -37,9 +37,9 @@ styles
 │aaaaaoooooooaaaaaaaaaagggngggngggngggngggngggngggngggngggngggngggngggngggngggngg│
 │apqqqrrrrrrrqqqqqqqqqaggggggggggggggggggggggggnggggggggngggggggggggggggggggggggg│
 │aaaaaoooooooaaaaaaaaaagggngggngggngggngggnggggggsttttsgggngggngggngggngggngggngg│
-│aaaaaoooooooooooaaaaadggggggggggggggggggggggggnggggggggngggggggggggggggggggggggg│
+│aaaaaoooooooooooaaaaaaggggggggggggggggggggggggnggggggggngggggggggggggggggggggggg│
 │aaaaaooooooooooooooaadgggngggngggngggngggngggngggngggngggngggngggngggngggngggngg│
-│aaaaaooooooooooaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaooooooooooaaaaaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaooooooooooooaaaaagggngggngggngggngggngggngggngggngggngggngggngggngggngggngg│
 │aaaaaoooooooooooaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│

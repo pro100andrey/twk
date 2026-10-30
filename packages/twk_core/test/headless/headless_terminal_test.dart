@@ -186,6 +186,23 @@ void main() {
     expect(sent(foot), '\x1b]777;notify;Build;done, 3 tests\x1b\\');
   });
 
+  test('the bell is rung only while a focus report typed last said the '
+      'window lost the focus', () {
+    String sent(HeadlessTerminal t) =>
+        utf8.decode([for (final f in t.frames) ...f]);
+    final t = HeadlessTerminal(notifications: NotificationProtocol.bell)
+      ..notify('Build', 'done');
+    expect(t.frames, isEmpty);
+    t
+      ..type('\x1b[O')
+      ..notify('Build', 'done');
+    expect(sent(t), '\x07');
+    t
+      ..type('\x1b[I')
+      ..notify('Build', 'done');
+    expect(sent(t), '\x07');
+  });
+
   test('a notification is not written where none is known to show, nor '
       'once closed', () async {
     open();
@@ -281,6 +298,15 @@ void main() {
     expect(ended, isTrue);
     t.write(Uint8List.fromList([1]));
     expect(t.frames, isEmpty);
+  });
+
+  test('input and a resize once closed are dropped', () async {
+    final t = HeadlessTerminal();
+    await t.close();
+    t
+      ..type('x')
+      ..resize(100, 30);
+    expect(t.width, 80);
   });
 
   test('close completes with nobody listening', () async {

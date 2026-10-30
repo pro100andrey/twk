@@ -75,7 +75,7 @@ What the gallery lets you change, and what each starts at:
 
 ## More
 
-- Also in Text: [Text](text.md), [Rich text](rich-text.md), [DefaultTextStyle](defaulttextstyle.md).
+- Also in Text: [Text](text.md), [Rich text](rich-text.md), [DefaultTextStyle](defaulttextstyle.md), [ANSI](ansi.md).
 - Live in the gallery:
   `dart run packages/gallery/bin/gallery.dart --route='#/text/right-to-left'`.
 - [Text](../text.md) · [All groups](../README.md)

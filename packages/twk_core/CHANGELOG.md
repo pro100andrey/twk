@@ -12,7 +12,14 @@ The first release.
   (`GlyphTable`) and styles (`StyleTable`, `Pen`, `Color`, `Attr`), drawn
   through clips and translations; images in reserved cells
   (`TerminalImage`, `ImagePlacement`) with kitty graphics, sixel or
-  iTerm2.
+  iTerm2. A pen is the table's for good, a style until the table is
+  swept: `Screen.render` frees the styles no cell has once twice as many
+  are in use as after the last sweep (`StyleTable.sweep`, `sweeps`), so a
+  screen of ever new colors keeps those it shows; `Canvas.runStyled`
+  draws in a style as it is, with no pen. The glyphs of several code
+  points are swept the same way (`GlyphTable.sweep`, `sweeps`), and what
+  keeps cells of a surface beyond it registers to be marked
+  (`Surface.keep`, `CellKeeper`).
 - `Presenter`: the damaged spans diffed against what the terminal shows
   and written with DEC 2026, scroll regions, `ICH`/`DCH`, `REP`, `ECH`
   and `EL`, as `TerminalCaps` allow.
@@ -24,7 +31,10 @@ The first release.
   terminal restored on every exit path; titles, progress, notifications,
   the clipboard, links and pointer shapes.
 - `InputParser` and `InputEvent`s: keys (with the kitty keyboard
-  protocol), the mouse, paste, focus, resize and color scheme reports.
+  protocol), the mouse, paste, focus, resize and color scheme reports;
+  what it holds of a paste or an unterminated sequence bounded
+  (`pasteLimit`, `sequenceLimit`), a longer paste in pieces
+  (`PasteEvent.more`).
 - Unicode: grapheme segmentation, widths in two modes (`TextSegmenter`,
   `stringWidth`, `fitText`) and bidirectional text (`BidiText`).
 - `package:twk_core/terminal.dart`: the terminal, styles, input and lines

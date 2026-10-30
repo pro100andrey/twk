@@ -364,9 +364,37 @@ final class AuthorizedKeys {
   }
 
   /// The keys the file at [path] lists; throws [FileSystemException] when
-  /// it can't be read.
-  static Future<AuthorizedKeys> load(String path) async =>
-      AuthorizedKeys.parse(await File(path).readAsString());
+  /// it can't be read, and, as OpenSSH's StrictModes does, when others
+  /// than its owner may write it or the directory it is in (one without
+  /// the sticky bit, in which they may put another file in its place):
+  /// anyone who may write it may let any key in. Not on Windows, whose
+  /// permissions the mode does not tell.
+  static Future<AuthorizedKeys> load(String path) async {
+    if (!Platform.isWindows) {
+      _checkPrivate(path);
+    }
+    return AuthorizedKeys.parse(await File(path).readAsString());
+  }
+
+  static void _checkPrivate(String path) {
+    // group and others' write bits, and the sticky bit
+    const othersWrite = 0x12;
+    const sticky = 0x200;
+    final file = FileStat.statSync(path);
+    if (file.type == FileSystemEntityType.notFound) {
+      throw FileSystemException('no such file', path);
+    }
+    if (file.mode & othersWrite != 0) {
+      throw FileSystemException('others than its owner may write it', path);
+    }
+    final dir = FileStat.statSync(File(path).parent.path);
+    if (dir.mode & othersWrite != 0 && dir.mode & sticky == 0) {
+      throw FileSystemException(
+        'others than its owner may write the directory it is in',
+        path,
+      );
+    }
+  }
 
   final Set<SshPublicKey> _keys;
 

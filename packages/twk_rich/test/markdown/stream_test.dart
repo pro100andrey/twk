@@ -2,8 +2,10 @@
 // complete before a piece arrives are the same objects after it.
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:test/test.dart';
+import 'package:twk_rich/src/markdown/inlines.dart' show parsedUnits;
 import 'package:twk_rich/twk_rich.dart';
 
 /// A document with every kind of block, nested, as an agent may write one.
@@ -96,6 +98,23 @@ void main() {
     }
   });
 
+  test('a fenced block streamed a character at a time, its code joined as '
+      'it grows, is at each one what its text so far parses to', () {
+    const text =
+        '```dart\nfinal a = 1;\n\nfinal b = 2;\n```\n'
+        '- item\n\n  ```\n  in a list\n  two\n  ```\n'
+        '> ~~~\n> in a quote\n> two\n> ~~~\n';
+    final stream = MarkdownStream();
+    for (var k = 0; k < text.length; k++) {
+      stream.add(text[k]);
+      expect(
+        stream.blocks,
+        parseMarkdown(text.substring(0, k + 1)),
+        reason: jsonEncode(text.substring(0, k + 1)),
+      );
+    }
+  });
+
   test('added a character at a time, settled blocks never change', () {
     final stream = MarkdownStream();
     final seen = <MdBlock>[];
@@ -144,6 +163,91 @@ void main() {
         }
         expect(stream.blocks, parseMarkdown(markdown), reason: markdown);
       }
+    }
+  });
+
+  group('read after each character, what the text so far parses to', () {
+    /// [text] streamed a character at a time, its blocks read after each
+    /// and held to what the text so far parses to whole.
+    void streamed(String text) {
+      final stream = MarkdownStream();
+      for (var k = 0; k < text.length; k++) {
+        stream.add(text[k]);
+        final so = text.substring(0, k + 1);
+        expect(stream.blocks, parseMarkdown(so), reason: jsonEncode(so));
+      }
+    }
+
+    for (final file in ['spec.json', 'gfm.json']) {
+      test('every example of $file', () {
+        final examples = jsonDecode(
+          File('test/markdown/$file').readAsStringSync(),
+        ) as List<Object?>;
+        for (final example in examples) {
+          if (example case {'markdown': final String markdown}) {
+            streamed(markdown);
+          }
+        }
+      });
+    }
+
+    // what inline parsing decides by: emphasis, brackets, code spans,
+    // autolinks, entities, escapes and breaks, among plain words
+    const pieces = [
+      'word ',
+      'a',
+      'b ',
+      ' ',
+      '  ',
+      '\n',
+      '*',
+      '**',
+      '_',
+      '__',
+      '~',
+      '~~',
+      '`',
+      '``',
+      '[',
+      ']',
+      '](',
+      '(',
+      ')',
+      '![',
+      '<',
+      '>',
+      'http://x.dev',
+      'www.y.org',
+      'a@b.cd',
+      '&amp;',
+      '&am',
+      r'\',
+      '!',
+      '"',
+      "'",
+      ':',
+      '[ref]',
+      '[ref]: /u\n',
+      'é',
+      '🙂',
+      '.',
+      ',',
+      'foo_bar',
+      ' * ',
+      '日本語',
+      '。',
+      'тест',
+      '\u00a0',
+    ];
+    for (var seed = 0; seed < 40; seed++) {
+      test('random inline text (seed $seed)', () {
+        final random = Random(seed);
+        final text = StringBuffer();
+        while (text.length < 300) {
+          text.write(pieces[random.nextInt(pieces.length)]);
+        }
+        streamed('$text');
+      });
     }
   });
 
@@ -397,6 +501,94 @@ void main() {
       expect(parseMarkdown('a\u0000b'), [
         const MdParagraph([MdText('a�b')]),
       ]);
+    });
+  });
+
+  group('what a piece costs', () {
+    test('a table streamed a character at a time is at each one what its '
+        'text so far parses to', () {
+      const text =
+          '| a | b |\n|---|:-:|\n| *1* | 2 |\n| 3 | `4` |\n\n'
+          '> | q |\n> |---|\n> | r |\n';
+      final stream = MarkdownStream();
+      for (var k = 0; k < text.length; k++) {
+        stream.add(text[k]);
+        expect(
+          stream.blocks,
+          parseMarkdown(text.substring(0, k + 1)),
+          reason: jsonEncode(text.substring(0, k + 1)),
+        );
+      }
+    });
+
+    test('pieces added between two reads are parsed once', () {
+      final words = [for (var k = 0; k < 4000; k++) 'word$k '];
+      final stream = MarkdownStream();
+      final before = parsedUnits;
+      words.forEach(stream.add);
+      final paragraph = stream.blocks.single as MdParagraph;
+      final text = (paragraph.children.single as MdText).text;
+      expect(text, words.join().trimRight());
+      expect(parsedUnits - before, text.length);
+    });
+
+    test('an open paragraph read after every piece parses about what each '
+        'piece adds, emphasis and all', () {
+      final stream = MarkdownStream();
+      final before = parsedUnits;
+      final text = StringBuffer();
+      for (var k = 0; k < 2000; k++) {
+        final piece = k % 7 == 3 ? '*em* [a](b) `c` ' : 'word ';
+        text.write(piece);
+        stream
+          ..add(piece)
+          ..blocks;
+      }
+      final parsed = parsedUnits - before;
+      printOnFailure('$parsed code units parsed for ${text.length}');
+      // the piece since the last cut is parsed again at each read
+      expect(parsed, lessThan(text.length * 3));
+      expect(stream.blocks, parseMarkdown('$text'));
+    });
+
+    for (final (name, unit) in [
+      ('runs that can neither open nor close', 'a foo_bar 2 * 3 snake_case '),
+      ('no spaces', '日本語のテキストです。'),
+    ]) {
+      test('an open paragraph of $name read after every piece parses about '
+          'what each piece adds', () {
+        final stream = MarkdownStream();
+        final before = parsedUnits;
+        final text = StringBuffer();
+        while (text.length < 8000) {
+          text.write(unit);
+          stream
+            ..add(unit)
+            ..blocks;
+        }
+        final parsed = parsedUnits - before;
+        printOnFailure('$parsed code units parsed for ${text.length}');
+        expect(parsed, lessThan(text.length * 3));
+        expect(stream.blocks, parseMarkdown('$text'));
+      });
+    }
+
+    test('a table read after every piece parses each row about once', () {
+      final rows = [for (var k = 0; k < 400; k++) '| cell $k | *b$k* |\n'];
+      final text = '| a | b |\n|---|---|\n${rows.join()}';
+      final stream = MarkdownStream();
+      final before = parsedUnits;
+      for (var at = 0; at < text.length; at += 5) {
+        stream
+          ..add(text.substring(at, (at + 5).clamp(0, text.length)))
+          ..blocks;
+      }
+      final parsed = parsedUnits - before;
+      printOnFailure('$parsed code units parsed for ${text.length}');
+      // the row not ended yet is parsed again at each read, a piece of 5
+      // code units at a time: some 4 times for a row of 20
+      expect(parsed, lessThan(text.length * 3));
+      expect((stream.blocks.single as MdTable).rows, hasLength(400));
     });
   });
 }

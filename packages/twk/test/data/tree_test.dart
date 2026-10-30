@@ -680,6 +680,35 @@ void main() {
       ]);
       expect(rowsOn(t, red).single.trim(), 'n18');
     });
+
+    testTwk("the hidden cursor rests on the selected node's label as it "
+        'moves and the view scrolls', (t) async {
+      final node = FocusNode();
+      addTearDown(node.dispose);
+      await t.pumpWidget(
+        Theme.terminal(
+          child: tree(
+            files,
+            controller: TreeController(selectedKey: 'data', expanded: ['src']),
+            focusNode: node,
+          ),
+        ),
+        size: (20, 3),
+      );
+      node.requestFocus();
+      await t.pump();
+      expect(t.cursorVisible, isFalse);
+      // after the guides and the expander
+      expect(t.cursor, (4, 1));
+      await t.press('down');
+      await t.pump();
+      expect(t.cursor, (4, 2));
+      // scrolled: the last node is on the last row
+      await t.press('end');
+      await t.pump();
+      expect(t.lines.last, '  readme.md');
+      expect(t.cursor, (2, 2));
+    });
   });
 
   group('mouse', () {

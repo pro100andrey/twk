@@ -271,30 +271,34 @@ final class RadioGroup<T> extends StatelessWidget {
     final choice = choices[i];
     return GestureDetector(
       onTap: enabled ? (_) => _choose(i) : null,
-      child: Text.rich(
-        [
-          ...bracketed(
+      // the hidden cursor on the choice that shows the focus
+      child: ActiveItem(
+        active: focused,
+        child: Text.rich(
+          [
+            ...bracketed(
+              theme,
+              '(',
+              on ? mark : ' ',
+              ')',
+              on,
+              enabled,
+              bracketStyle,
+            ),
+            Span(' ${choice.label}'),
+          ],
+          style: rowStyle(
             theme,
-            '(',
-            on ? mark : ' ',
-            ')',
-            on,
-            enabled,
-            bracketStyle,
+            style: style,
+            focused: focused,
+            focusedStyle: focusedStyle ?? focusedRow(theme),
+            enabled: enabled,
+            disabledStyle: disabledStyle,
           ),
-          Span(' ${choice.label}'),
-        ],
-        style: rowStyle(
-          theme,
-          style: style,
-          focused: focused,
-          focusedStyle: focusedStyle ?? focusedRow(theme),
-          enabled: enabled,
-          disabledStyle: disabledStyle,
+          wrap: TextWrap.none,
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
         ),
-        wrap: TextWrap.none,
-        overflow: TextOverflow.ellipsis,
-        maxLines: 1,
       ),
     );
   }

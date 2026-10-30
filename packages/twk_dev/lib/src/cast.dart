@@ -1,7 +1,8 @@
 /// asciicast v2, the recordings `twk record` writes and `twk play` plays:
 /// a header line, then an event a line.
 ///
-/// `test/cast.golden.json` holds this file, `castFrames` and the VS Code
+/// `test/cast.golden.json` holds this file, the frames twk_test's
+/// `screenFrames` shows of a recording's [Cast.writes], and the VS Code
 /// extension's port of them (`editors/vscode/src/core/cast.ts`), whose
 /// twk terminal records and plays the same files, to the same lines and
 /// frames: a change here is made there and in the golden too.
@@ -11,6 +12,7 @@ import 'dart:convert';
 import 'dart:io';
 
 // Examples can assume:
+// import 'package:twk_test/twk_test.dart';
 // import 'dart:io';
 // late IOSink file;
 
@@ -156,7 +158,7 @@ final class Cast {
   Cast(this.header, this.events);
 
   /// The recording in [text]; a [FormatException] for one that isn't
-  /// asciicast v2.
+  /// asciicast v2, or has an event at a time below 0 or past [maxTime].
   factory Cast.parse(String text) {
     final lines = const LineSplitter().convert(text);
     final first = lines.indexWhere((l) => l.trim().isNotEmpty);
@@ -171,6 +173,10 @@ final class Cast {
       }
       final event = _json(lines[i], i);
       if (event case [final num time, final String code, final String data]) {
+        // 1e400 reads as infinity; past maxTime no player could wait for it
+        if (!(time >= 0 && time <= maxTime)) {
+          throw FormatException('line ${i + 1}: a time out of range');
+        }
         events.add(CastEvent(time.toDouble(), code, data));
       } else {
         throw FormatException('line ${i + 1}: no [time, code, data] event');
@@ -181,6 +187,9 @@ final class Cast {
 
   /// The recording in the file [path].
   factory Cast.read(String path) => Cast.parse(File(path).readAsStringSync());
+
+  /// The most seconds an event may be at: some 30 years.
+  static const maxTime = 1e9;
 
   static Object? _json(String line, int index) {
     try {
@@ -198,6 +207,26 @@ final class Cast {
 
   /// Seconds from the start to the last event.
   double get duration => events.isEmpty ? 0 : events.last.time;
+
+  /// What the program did to its terminal, in time order: what it wrote
+  /// (its output events) and each resize that names a size, as twk_test's
+  /// `screenFrames` takes them; what was typed and the markers left out.
+  ///
+  /// ```dart
+  /// final cast = Cast.read('test/tally.cast');
+  /// final frames = screenFrames(
+  ///   cast.header.width,
+  ///   cast.header.height,
+  ///   cast.writes,
+  /// );
+  /// ```
+  Iterable<({double time, String? output, (int, int)? size})> get writes => [
+    for (final event in events)
+      if (event.size case final size?)
+        (time: event.time, output: null, size: size)
+      else if (event.code == CastEvent.output)
+        (time: event.time, output: event.data, size: null),
+  ];
 }
 
 /// Writes a recording as it happens, through the function it is given:

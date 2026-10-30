@@ -280,8 +280,9 @@ final class Listener extends SingleChildRenderObjectWidget {
 /// leaves the tree is not told.
 ///
 /// While the mouse is in it, the pointer has the shape of its [cursor]
-/// (OSC 22), or that of the nearest region around it with one: the
-/// terminal's own outside them all. The shape is written as it changes,
+/// (OSC 22), or that of the nearest region around it with one: outside
+/// them all the app's own ([TerminalStatus.defaultPointerShape]), the
+/// arrow in the fullscreen mode. The shape is written as it changes,
 /// with the mouse or with a frame that moved a region, and only where the
 /// terminal is known to show it (`TerminalInfo.pointerShapes`); the
 /// terminal's own is put back when the app ends ([TerminalStatus]).
@@ -903,7 +904,7 @@ final class MouseTracker {
   );
 
   /// Shows the pointer's shape of the deepest region the mouse is in that
-  /// has a cursor, the terminal's own when none has.
+  /// has a cursor, the app's own when none has.
   void _showCursor() {
     final status = _status;
     if (status == null) {

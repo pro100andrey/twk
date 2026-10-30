@@ -2,7 +2,7 @@ name: gallery
 description: >-
   The twk widget gallery: every widget of twk, twk_rich (its image library
   too) and twk_term on a page of its own, live, with its options and the Dart that
-  builds it, and a run of a twk_cli program as a terminal shows it.
+  builds it, and a run of a twk console program as a terminal shows it.
 version: 0.1.0
 publish_to: none
 
@@ -12,20 +12,19 @@ resolution: workspace
 dependencies:
   twk:
     path: ../twk
-  twk_cli:
-    path: ../twk_cli
   twk_core:
     path: ../twk_core
   twk_rich:
     path: ../twk_rich
   twk_term:
     path: ../twk_term
+  # a console program's run on a page: twk_test's FakeCliTerminal and Vt
+  twk_test:
+    path: ../twk_test
 dev_dependencies:
   path: ^1.9.1
   pro_lints: ^6.2.0
   test: ^1.33.0
-  twk_test:
-    path: ../twk_test
   # the gallery in a browser: web/main.dart, test/web/
   twk_web:
     path: ../twk_web

@@ -2,7 +2,7 @@
 // example/counter.dart run by the extension's run (HotApps over core's
 // HotRun) in a twk terminal over a headless xterm.js, recorded from the
 // middle of its session (the app asked to paint all of itself), Up typed
-// twice; then twk_dev's own castFrames (cast_frames.dart, twk_test's
+// twice; then twk_test's screenFrames over twk_dev's Cast.writes (its
 // emulator) shows the file's frames, and the extension's player, a frame
 // at a time into another headless xterm.js, the same frames with the same
 // screens. And its sequence log names what the app wrote.
@@ -33,14 +33,16 @@ const counter = path.join(root, 'packages', 'twk', 'example', 'counter.dart');
 const twkDev = path.join(root, 'packages', 'twk_dev');
 const scratch = path.join(twkDev, '.dart_tool', 'twk_vscode_unit');
 
-/** Prints castFrames of the recording it is given, as JSON. */
+/** Prints the screenFrames of the recording it is given, as JSON. */
 const framesProgram = `import 'dart:convert';
 import 'dart:io';
 
-import 'package:twk_dev/cast_frames.dart';
+import 'package:twk_dev/twk_dev.dart';
+import 'package:twk_test/twk_test.dart';
 
 void main(List<String> args) {
-  final frames = castFrames(Cast.read(args.single));
+  final cast = Cast.read(args.single);
+  final frames = screenFrames(cast.header.width, cast.header.height, cast.writes);
   stdout.write(jsonEncode([
     for (final f in frames)
       {'number': f.number, 'time': f.time, 'width': f.width, 'height': f.height, 'lines': f.lines, 'errors': f.errors},
@@ -172,9 +174,13 @@ describe('a recording of a twk app, read back by twk_dev', function () {
     const dart = JSON.parse(json) as DartFrame[];
     assert.ok(dart.length >= 3, `${dart.length} frames`);
     assert.deepEqual(dart.at(-1)?.errors, [], 'nothing twk_test does not know');
+    // a frame before the redraw it was asked for, or of the redraw's
+    // first part, may show nothing: the first that shows something is the
+    // whole screen
+    const shown = dart.find((f) => f.lines.some((l) => l.trim() !== ''));
     assert.ok(
-      dart[0].lines.some((l) => l.includes('Count: 0')),
-      `the first frame a whole screen:\n${dart[0].lines.join('\n')}`,
+      shown?.lines.some((l) => l.includes('Count: 0')),
+      `the first frame that shows something a whole screen:\n${(shown ?? dart[0]).lines.join('\n')}`,
     );
     assert.ok(dart.at(-1)!.lines.some((l) => l.includes('Count: 2')));
 

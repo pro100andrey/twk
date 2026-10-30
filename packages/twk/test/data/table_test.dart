@@ -1423,13 +1423,13 @@ other'''),
     test('is a resize across in the header, as the mouse comes over it and '
         'while it drags it', () async {
       final run = ShapeRun(table());
-      await run.settle();
+      await run.start();
       expect(run.term.mouseTracking, MouseTracking.motion);
       // the name column's edge: the gap after main.dart
       await run.move(9, 0);
       expect(run.shapes(), ['ew-resize']);
       await run.move(3, 0);
-      expect(run.shapes(), ['']);
+      expect(run.shapes(), ['default']);
       await run.move(9, 0);
       await run.press(9, 0);
       await run.drag(11, 0);
@@ -1437,24 +1437,25 @@ other'''),
       await run.release(11, 0);
       // a row's cell under an edge is no edge
       await run.move(11, 2);
-      expect(run.shapes(), ['']);
+      expect(run.shapes(), ['default']);
       await run.quit();
     });
 
     test('is left alone with pointerShapes false, and the motion of the '
         'mouse is not asked for', () async {
       final run = ShapeRun(table(pointerShapes: false));
-      await run.settle();
+      await run.start();
       expect(run.term.mouseTracking, isNot(MouseTracking.motion));
       await run.move(9, 0);
       await run.move(3, 0);
       await run.quit();
-      expect(run.written(), isNot(contains('\x1b]22;')));
+      // only the terminal's own given back as the app ends
+      expect(run.shapes(), ['']);
     });
 
     test('nor where the terminal does not show it', () async {
-      final run = ShapeRun(table(), shapes: false);
-      await run.settle();
+      final run = ShapeRun(table(), shows: false);
+      await run.start();
       expect(run.term.mouseTracking, isNot(MouseTracking.motion));
       await run.quit();
     });
@@ -1739,8 +1740,10 @@ other'''),
       final written = latin1.decode([
         for (final f in t.terminal.frames.skip(from)) ...f,
       ]);
-      expect(written, contains('\x1b[2;6r\x1b[S'));
-      expect(written, contains('n5'));
+      // the rows moved in a region of four or five, as the presenter finds
+      // it cheapest: the selected row's style kept where the row brought
+      // in is selected, only its digits written
+      expect(written, matches(RegExp(r'\x1b\[2;[56]r\x1b\[S')));
       for (final kept in ['n1', 'n2', 'n3']) {
         expect(written, isNot(contains(kept)));
       }
@@ -1752,6 +1755,38 @@ other'''),
         'n4      4',
         'n5      5',
       ]);
+    });
+
+    testTwk('the hidden cursor rests on the selected row, on the cursor '
+        'cell where cells are selected', (t) async {
+      for (final selection in [TableSelection.row, TableSelection.cell]) {
+        await t.pumpWidget(
+          Theme.terminal(
+            child: Table(
+              rows: numbered(10),
+              controller: TableController(selectedKey: 2),
+              selection: selection,
+              autofocus: true,
+              columns: [nameColumn(), sizeColumn()],
+            ),
+          ),
+          size: (20, 6),
+        );
+        await t.pump();
+        final row = t.lines.indexWhere((l) => l.startsWith('n2'));
+        expect(t.cursorVisible, isFalse);
+        expect(t.cursor, (0, row), reason: '$selection');
+        if (selection == TableSelection.cell) {
+          await t.press('right');
+          await t.pump();
+          // the size column, after the name and its gap
+          expect(t.cursor.$1, greaterThan(1));
+          expect(t.cursor.$2, row);
+        }
+        await t.press('down');
+        await t.pump();
+        expect(t.cursor.$2, row + 1, reason: '$selection');
+      }
     });
 
     testTwk('widget cells keep their State as the rows are sorted, by the '

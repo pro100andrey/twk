@@ -3,9 +3,8 @@
 // pointed at this checkout, and each ```dart block in the file its first
 // line names), resolved, analyzed under this repository's rules,
 // formatted and its tests passing; the names it uses as twk and twk_test
-// export them, and the others as twk's hooks and provider libraries or,
-// those of a command-line tool, twk_cli does; and its pitfalls as twk
-// behaves.
+// export them, and the others as twk's cli, hooks and provider libraries
+// and twk_test's cli library do; and its pitfalls as twk behaves.
 @Timeout(Duration(minutes: 5))
 library;
 
@@ -266,24 +265,23 @@ Widget table(List<Entry> entries) => Table(
     });
 
     test('the names it gives are exported by twk and twk_test, the rest by '
-        "twk's hooks or provider library or by twk_cli", () async {
+        "twk's cli, hooks or provider library or by twk_test's cli", () async {
       final names = twkNames();
       final named = namedInProse();
       expect(named, isNotEmpty);
       expect(names, containsAll(['showDialog', 'closeDialog', 'showToast']));
       expect(names, containsAll(['showFilePicker', 'debugDumpTree', 'runApp']));
       expect(names, containsAll(['debugDumpRenderTree', 'testTwk', 'Builder']));
-      // this package does not depend on twk_cli, the app does: there a
-      // name that neither twk_cli nor twk's hooks.dart and provider.dart
-      // export does not analyze
+      // in the app, a name that none of twk's cli.dart, hooks.dart and
+      // provider.dart and twk_test's cli.dart export does not analyze
       final rest = named.difference(names);
       expect(rest, containsAll(['Cli', 'FakeCliTerminal']));
       expect(rest, containsAll(['HookWidget', 'ChangeNotifierProvider']));
-      write(app, 'names/twk_cli.dart', '''
+      write(app, 'names/rest.dart', '''
+import 'package:twk/cli.dart';
 import 'package:twk/hooks.dart';
 import 'package:twk/provider.dart';
-import 'package:twk_cli/testing.dart';
-import 'package:twk_cli/twk_cli.dart';
+import 'package:twk_test/cli.dart';
 
 /// What the guide names that twk.dart and twk_test do not export.
 const List<Object> names = [

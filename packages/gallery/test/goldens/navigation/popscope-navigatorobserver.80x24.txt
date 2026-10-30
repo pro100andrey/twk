@@ -16,9 +16,9 @@ text
 │     Stepper             ·   │                                          │    ·  │
 │                             │                                          │       │
 │   FOUNDATION     2      ·   ╰──────────────────────────────────────────╯    ·  │
-│     ListenableBui…  ▐                                                          │
+│     ListenableBui…                                                             │
 │     FutureBuilder…  ▐   ·   heard: pushed /                                 ·  │
-│                           └                                              ┘     │
+│                     ▐     └                                              ┘     │
 │   FRAMEWORK      3   ──────────────────────────────────────────────────────────│
 │     LayoutBuilder      PopScope           ▐  ●▌                                │
 │     NotificationL…     esc in the dialog   closes it  is kept                  │
@@ -41,9 +41,9 @@ styles
 │aaaaannnnnnnaaaaaaaaaagggogggpggggggggggggggggggggggggggggggggggggggggggpggggogg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggpggggggggggggggggggggggggggggggggggggggggggpggggggg│
 │aaaddddddddddaaaaaBaaagggogggppppppppppppppppppppppppppppppppppppppppppppggggogg│
-│aaaaannnnnnnnnnnnnnaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnnaadgggogggmmmmmmgqqqqqqgqgggggggggggggggggggggggggggggggggogg│
-│aaaaaaaaaaaaaaaaaaaaaagggggoggggggggggggggggggggggggggggggggggggggggggggggoggggg│
+│aaaaaaaaaaaaaaaaaaaaadgggggoggggggggggggggggggggggggggggggggggggggggggggggoggggg│
 │aaadddddddddaaaaaaBaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnnnnnnnnaaaaggmmmmmmmmgggggggggggxyyzxgggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnnaaaggmmmgmmgmmmgmmmmmmggsttttttsttshAAhAAAAhggggggggggggggggg│

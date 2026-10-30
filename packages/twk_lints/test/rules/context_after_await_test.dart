@@ -131,6 +131,34 @@ $_state
 ''');
   }
 
+  Future<void> test_a_flag_of_its_own_named_mounted_checks_nothing() async {
+    const code =
+        '''
+$_state
+  final _other = _Flag();
+
+  Future<void> save() async {
+    var mounted = n > 1;
+    await Future<void>.value();
+    if (!mounted) return;
+    use(context);
+    await Future<void>.value();
+    if (!_other.mounted) return;
+    use(context);
+    mounted = false;
+  }
+}
+
+final class _Flag {
+  bool mounted = false;
+}
+''';
+    await assertDiagnostics(code, [
+      lintAt(code, 'context', occurrence: 3),
+      lintAt(code, 'context', occurrence: 4),
+    ]);
+  }
+
   Future<void> test_argument_of_the_awaited_call() async {
     await assertNoDiagnostics('''
 $_state
@@ -336,6 +364,75 @@ Future<void> drive(BuildContext context) async {
     await assertDiagnosticsInFile(path, [
       lintAt(code, 'context', occurrence: 3),
     ]);
+  }
+
+  Future<void> test_break_out_of_a_switch() async {
+    const code =
+        '''
+$_state
+  Future<void> save(int k) async {
+    switch (k) {
+      case 1:
+        await Future<void>.value();
+        break;
+      default:
+        break;
+    }
+    use(context);
+  }
+}
+''';
+    await assertDiagnostics(code, [lintAt(code, 'context', occurrence: 3)]);
+  }
+
+  Future<void> test_break_out_of_a_loop() async {
+    const code =
+        '''
+$_state
+  Future<void> save(bool c) async {
+    while (true) {
+      if (c) {
+        await Future<void>.value();
+        break;
+      }
+    }
+    use(context);
+  }
+}
+''';
+    await assertDiagnostics(code, [lintAt(code, 'context', occurrence: 3)]);
+  }
+
+  Future<void> test_continue_to_the_next_round() async {
+    const code =
+        '''
+$_state
+  Future<void> save(List<int> xs) async {
+    for (final x in xs) {
+      use(context);
+      if (x > 1) {
+        await Future<void>.value();
+        continue;
+      }
+    }
+  }
+}
+''';
+    await assertDiagnostics(code, [lintAt(code, 'context', occurrence: 3)]);
+  }
+
+  Future<void> test_break_where_not_mounted() async {
+    await assertNoDiagnostics('''
+$_state
+  Future<void> save() async {
+    for (;;) {
+      await Future<void>.value();
+      if (!mounted) break;
+      use(context);
+    }
+  }
+}
+''');
   }
 
   Future<void> test_sync_and_nested_functions() async {

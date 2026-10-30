@@ -1,6 +1,6 @@
 /// A diff as a widget: [DiffView], in a [DiffLayout].
 ///
-/// @docImport '../ansi/strip.dart';
+/// @docImport 'package:twk/twk.dart';
 library;
 
 import 'dart:math' as math;
@@ -13,6 +13,7 @@ import 'model.dart';
 import 'words.dart';
 
 // Examples can assume:
+// import 'package:twk/twk.dart';
 // late String output;
 
 /// How a [DiffView] puts the two sides of a diff.

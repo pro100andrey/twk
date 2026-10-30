@@ -13,9 +13,9 @@ text
 │ ▎   ProgressBar            █████████████▎                            33%       │
 │     ProgressList         └                                               ┘  ·  │
 │     Skeleton, Ske…                                                 45 × 1      │
-│     AnimationCont…  ▐   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│     AnimationCont…      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
 │     AnimatedBuild…  ▐                                                          │
-│     AnimatedAlign…                                                             │
+│     AnimatedAlign…  ▐                                                          │
 │     AnimatedPosit…   ──────────────────────────────────────────────────────────│
 │     AnimatedBox        value known  ▐  ●▌                                      │
 │     AnimatedOpaci…     value        ────────▉▉──────────────────  33%          │
@@ -38,9 +38,9 @@ styles
 │apqqqrrrrrrrrrrrqqqqqaggggggssssssssssssssttttttttttttttttttttttttttgguuuggggggg│
 │aaaaannnnnnnnnnnnaaaaaggggogggggggggggggggggggggggggggggggggggggggggggggggoggogg│
 │aaaaannnnnnnnnannnnaaaggggggggggggggggggggggggggggggggggggggggggggggIIgIgIgggggg│
-│aaaaannnnnnnnnnnnnnaadgggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
+│aaaaannnnnnnnnnnnnnaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
 │aaaaannnnnnnnnnnnnnaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnnnnnnaaaaaaggmmmmmgmmmmmggxyyzxgggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnnaaaggmmmmmgggggggguuuuuuuuAummmmmmmmmmmmmmmmmmggIIIgggggggggg│

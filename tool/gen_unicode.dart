@@ -182,7 +182,17 @@ Future<void> main(List<String> args) async {
         if (res.statusCode != 200) {
           throw StateError('GET $url -> ${res.statusCode}');
         }
-        await res.pipe(f.openWrite());
+        // into a file of its own, which takes the name once it is whole: a
+        // download cut short is not taken for the file next time
+        final part = File('${f.path}.part');
+        await res.pipe(part.openWrite());
+        final length = res.contentLength;
+        if (length >= 0 && part.lengthSync() != length) {
+          throw StateError(
+            'GET $url: ${part.lengthSync()} of $length bytes',
+          );
+        }
+        part.renameSync(f.path);
       }
       text[name] = f.readAsStringSync();
     }

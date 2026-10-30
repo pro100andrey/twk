@@ -107,7 +107,7 @@ dashboard  full screen: panels of live readings in a chart, a gauge and bars
 
   test('by default the app template, the package named after the '
       'directory, twk taken by path from the checkout the command runs '
-      'from', () async {
+      'from; the cd it says to run quoted', () async {
     final dir = p.join(await temporary(), 'My-App 2');
     final result = await twkHere(['create', dir]);
 
@@ -119,6 +119,8 @@ dashboard  full screen: panels of live readings in a chart, a gauge and bars
         'app, in $dir:\n',
       ),
     );
+    // the directory quoted, as it has a space
+    expect(result.stdout, contains("\n  cd '$dir'\n"));
     final pubspec = File(p.join(dir, 'pubspec.yaml')).readAsStringSync();
     expect(pubspec, startsWith('name: my_app_2\n'));
     final packages = p.join(await repository(), 'packages');
@@ -136,11 +138,24 @@ dashboard  full screen: panels of live readings in a chart, a gauge and bars
   });
 
   test('without a checkout the packages come from pub at the version of '
-      'twk; a path YAML would read otherwise is quoted', () async {
-    final twkPubspec = File(
-      p.join(await repository(), 'packages', 'twk', 'pubspec.yaml'),
-    ).readAsStringSync();
-    expect(twkPubspec, contains('\nversion: $twkVersion\n'));
+      'twk, which is that of every package of the release; a path YAML '
+      'would read otherwise is quoted', () async {
+    for (final package in [
+      'twk_core',
+      'twk',
+      'twk_test',
+      'twk_lints',
+      'twk_term',
+      'twk_dev',
+    ]) {
+      expect(
+        File(
+          p.join(await repository(), 'packages', package, 'pubspec.yaml'),
+        ).readAsStringSync(),
+        contains('\nversion: $twkVersion\n'),
+        reason: package,
+      );
+    }
     final template = File(
       p.join(await packageDirectory(), 'templates', 'app', 'pubspec.yaml'),
     ).readAsStringSync();
@@ -162,7 +177,8 @@ dashboard  full screen: panels of live readings in a chart, a gauge and bars
       endsWith(
         '\ndependency_overrides:\n'
         "  twk:\n    path: '/home/ann/it''s: here/packages/twk'\n"
-        "  twk_core:\n    path: '/home/ann/it''s: here/packages/twk_core'\n",
+        "  twk_core:\n    path: '/home/ann/it''s: here/packages/twk_core'\n"
+        "  twk_term:\n    path: '/home/ann/it''s: here/packages/twk_term'\n",
       ),
     );
   });

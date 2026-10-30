@@ -75,8 +75,12 @@ import 'stream.dart';
 /// and released on the same cell of it) tells it the destination and the
 /// title, where the terminal would otherwise be left to open the
 /// hyperlink; the innermost, of an image in a link. The hyperlink is still
-/// written, unless [hyperlinks] is false; a link in a table is clicked
-/// only while it is. Links take no focus, nor keys: they are runs of text
+/// written, unless [hyperlinks] is false, and only for the schemes of
+/// [hyperlinkSchemes] (the web's and mail's by default), as a document
+/// that came from outside (a model's answer) may link to `javascript:`
+/// or `file:` a click would open; a link in a table is clicked only while
+/// it is. [onLinkTap] is told of every link, whatever its scheme, as the
+/// document wrote it. Links take no focus, nor keys: they are runs of text
 /// that wraps, many to a document and many documents to a chat, which Tab
 /// would otherwise have to cross one by one; an app that wants them from
 /// the keyboard lists them itself. The headings, with the slugs GitHub
@@ -128,6 +132,7 @@ final class MarkdownView extends StatefulWidget {
     this.tabWidth = 4,
     this.onLinkTap,
     this.hyperlinks = true,
+    this.hyperlinkSchemes = webSchemes,
     this.controller,
   }) : blocks = null,
        definitions = const {},
@@ -147,6 +152,7 @@ final class MarkdownView extends StatefulWidget {
     this.tabWidth = 4,
     this.onLinkTap,
     this.hyperlinks = true,
+    this.hyperlinkSchemes = webSchemes,
     this.controller,
   }) : data = null,
        appended = null,
@@ -186,13 +192,23 @@ final class MarkdownView extends StatefulWidget {
   final int tabWidth;
 
   /// Told of a click on a link or an image, with its destination (an
-  /// image's source) and its title; null leaves the click to the terminal.
+  /// image's source) as the document wrote it, of any scheme, and its
+  /// title; null leaves the click to the terminal.
   final MarkdownLinkCallback? onLinkTap;
 
   /// Whether a link and an image are hyperlinks (OSC 8) to their
   /// destination, which the terminal opens; false leaves them to
   /// [onLinkTap].
   final bool hyperlinks;
+
+  /// The schemes, lowercase, of the destinations that are written as
+  /// hyperlinks; a link to another (`javascript:`, `file:`, one without a
+  /// scheme, as `#install` or `notes.md`) is shown as a link and left to
+  /// [onLinkTap].
+  final Set<String> hyperlinkSchemes;
+
+  /// http, https and mailto: what a document from anywhere may link to.
+  static const webSchemes = {'http', 'https', 'mailto'};
 
   /// What has the view's headings and scrolls to one; one view at a time
   /// has it.
@@ -501,6 +517,7 @@ final class _MarkdownViewState extends State<MarkdownView> {
       widget.codeWrap,
       widget.tabWidth,
       widget.hyperlinks,
+      widget.hyperlinkSchemes,
     );
     if (madeWith != _madeWith) {
       _madeWith = madeWith;
@@ -812,6 +829,15 @@ final class _MarkdownViewState extends State<MarkdownView> {
     _refer(inlines, uses);
     final theme = _theme;
     final hyperlinks = widget.hyperlinks;
+    final schemes = widget.hyperlinkSchemes;
+    bool hyperlinked(String destination) {
+      if (!hyperlinks) {
+        return false;
+      }
+      final scheme = Uri.tryParse(destination)?.scheme ?? '';
+      return scheme.isNotEmpty && schemes.contains(scheme.toLowerCase());
+    }
+
     final out = <Span>[];
     var length = 0;
     void put(String text, Style style) {
@@ -842,7 +868,9 @@ final class _MarkdownViewState extends State<MarkdownView> {
             final linked = style.merge(theme.link);
             add(
               children,
-              hyperlinks ? linked.merge(Style(link: destination)) : linked,
+              hyperlinked(destination)
+                  ? linked.merge(Style(link: destination))
+                  : linked,
             );
             links?.add((
               start: start,
@@ -856,7 +884,7 @@ final class _MarkdownViewState extends State<MarkdownView> {
             final shown = style.merge(theme.image);
             put(
               alt.isEmpty ? source : alt,
-              hyperlinks ? shown.merge(Style(link: source)) : shown,
+              hyperlinked(source) ? shown.merge(Style(link: source)) : shown,
             );
             links?.add((
               start: start,

@@ -378,7 +378,6 @@ void _writePackage(String dir) {
       'dependencies:',
       '  test: ^1.33.0',
       '  twk: any',
-      '  twk_cli: {path: ${pkg('packages/twk_cli')}}',
       '  twk_core: any',
       '  twk_rich: {path: ${pkg('packages/twk_rich')}}',
       '  twk_term: {path: ${pkg('packages/twk_term')}}',

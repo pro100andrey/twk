@@ -4,24 +4,24 @@ text
 │                                                                                │
 │   ⌕ Filter       /     Divider                                 Preview   Code  │
 │                        A line across, and a VerticalDivider down; merged,      │
-│   TEXT           4  ▐  they join the lines drawn before them where they meet.  │
+│   TEXT           5  ▐  they join the lines drawn before them where they meet.  │
 │     Text            ▐──────────────────────────────────────────────────────────│
 │     Rich text                                                                  │
 │     DefaultTextSt…      ·   · ┌                                      ┐  ·   ·  │
 │     Right to left               ┌──────────────────────────────────┐           │
-│                         ·   ·   │ release 0.4.0                    │    ·   ·  │
-│   LAYOUT        24              ├────────────────┬─────────────────┤           │
-│     Box                 ·   ·   │ added          │ fixed           │    ·   ·  │
-│     ColoredBox, D…              │ Grid tracks    │ wide glyphs     │           │
-│     Container           ·   ·   │ DockArea       │ wheel scroll    │    ·   ·  │
-│ ▎   Divider                     └────────────────┴─────────────────┘           │
-│     Shadow              ·   · └                                      ┘  ·   ·  │
-│     Padding                                                    36 × 7          │
-│     Align, Center                                                              │
-│     SizedBox         ──────────────────────────────────────────────────────────│
-│     ConstrainedBox     type    single  rounded  double  heavy  ascii           │
-│     LimitedBox, O…     merge  ▐  ●▌                                            │
-│     FractionallyS…                                                             │
+│     ANSI                ·   ·   │ release 0.4.0                    │    ·   ·  │
+│                                 ├────────────────┬─────────────────┤           │
+│   LAYOUT        24      ·   ·   │ added          │ fixed           │    ·   ·  │
+│     Box                         │ Grid tracks    │ wide glyphs     │           │
+│     ColoredBox, D…      ·   ·   │ DockArea       │ wheel scroll    │    ·   ·  │
+│     Container                   └────────────────┴─────────────────┘           │
+│ ▎   Divider             ·   · └                                      ┘  ·   ·  │
+│     Shadow                                                     36 × 7          │
+│     Padding                                                                    │
+│     Align, Center    ──────────────────────────────────────────────────────────│
+│     SizedBox           type    single  rounded  double  heavy  ascii           │
+│     ConstrainedBox     merge  ▐  ●▌                                            │
+│     LimitedBox, O…                                                             │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -34,19 +34,19 @@ styles
 │aaaaaooooaooooaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaooooooooooooooaaagggpgggpgpggggggggggggggggggggggggggggggggggggggpggpgggpgg│
 │aaaaaoooooaooaooooaaaagggggggggggqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqggggggggggg│
-│aaaaaaaaaaaaaaaaaaaaaagggpgggpgggqgkkkkkkkgkkkkkggggggggggggggggggggqggggpgggpgg│
-│aaaddddddaaaaaaaaAAaaagggggggggggqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqggggggggggg│
-│aaaaaoooaaaaaaaaaaaaaagggpgggpgggqgmmmmmggggggggggqgmmmmmgggggggggggqggggpgggpgg│
-│aaaaaoooooooooooaooaaagggggggggggqgrrrrgrrrrrrggggqgrrrrgrrrrrrgggggqggggggggggg│
-│aaaaaoooooooooaaaaaaaagggpgggpgggqgrrrrrrrrgggggggqgrrrrrgrrrrrrggggqggggpgggpgg│
-│astttuuuuuuutttttttttagggggggggggqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqggggggggggg│
-│aaaaaooooooaaaaaaaaaaagggpgggpgpggggggggggggggggggggggggggggggggggggggpggpgggpgg│
-│aaaaaoooooooaaaaaaaaaaggggggggggggggggggggggggggggggggggggggggggDDgDgDgggggggggg│
-│aaaaaooooooaooooooaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaaooooooooaaaaaaaaapppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
-│aaaaaooooooooooooooaaaggmmmmgggtuuuuuuthwwwwwwwhhwwwwwwhhwwwwwhhwwwwwhgggggggggg│
-│aaaaaoooooooooooaooaaaggmmmmmggxyyzxgggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaaooooooooooooooaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaooooaaaaaaaaaaaaagggpgggpgggqgkkkkkkkgkkkkkggggggggggggggggggggqggggpgggpgg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqggggggggggg│
+│aaaddddddaaaaaaaaAAaaagggpgggpgggqgmmmmmggggggggggqgmmmmmgggggggggggqggggpgggpgg│
+│aaaaaoooaaaaaaaaaaaaaagggggggggggqgrrrrgrrrrrrggggqgrrrrgrrrrrrgggggqggggggggggg│
+│aaaaaoooooooooooaooaaagggpgggpgggqgrrrrrrrrgggggggqgrrrrrgrrrrrrggggqggggpgggpgg│
+│aaaaaoooooooooaaaaaaaagggggggggggqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqggggggggggg│
+│astttuuuuuuutttttttttagggpgggpgpggggggggggggggggggggggggggggggggggggggpggpgggpgg│
+│aaaaaooooooaaaaaaaaaaaggggggggggggggggggggggggggggggggggggggggggDDgDgDgggggggggg│
+│aaaaaoooooooaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaooooooaooooooaaaapppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaooooooooaaaaaaaaaggmmmmgggtuuuuuuthwwwwwwwhhwwwwwwhhwwwwwhhwwwwwhgggggggggg│
+│aaaaaooooooooooooooaaaggmmmmmggxyyzxgggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaoooooooooooaooaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

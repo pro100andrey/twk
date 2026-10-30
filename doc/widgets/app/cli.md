@@ -1,21 +1,19 @@
 ---
 title: "Cli"
 group: "App"
-package: "twk_cli"
-about: "A command-line tool's console (twk_cli) as it runs: questions that leave their answer as a line, a spinner, tasks with bars, a traceback."
+package: "twk"
+about: "A command-line tool's console (twk's cli.dart) as it runs: questions that leave their answer as a line, a spinner, tasks with bars, a traceback."
 image: "packages/gallery/doc/shots/app/cli.dark.svg"
 image_light: "packages/gallery/doc/shots/app/cli.light.svg"
 route: "#/app/cli"
 ---
 # Cli
 
-A command-line tool's console (twk_cli) as it runs: questions that leave their answer as a line, a spinner, tasks with bars, a traceback.
+A command-line tool's console (twk's cli.dart) as it runs: questions that leave their answer as a line, a spinner, tasks with bars, a traceback.
 
 | Dark | Light |
 | --- | --- |
 | ![Cli, dark](../../../packages/gallery/doc/shots/app/cli.dark.svg) | ![Cli, light](../../../packages/gallery/doc/shots/app/cli.light.svg) |
-
-In [twk_cli](../../../packages/twk_cli/README.md), besides twk.
 
 ## Code
 
@@ -26,8 +24,8 @@ options as they start:
 // Asks what a new app is to be: its name, a template, its features and a
 // last yes or no. At a terminal each question is a widget until it is
 // answered, then a line: `✔ Template? server`.
+import 'package:twk/cli.dart';
 import 'package:twk/twk.dart';
-import 'package:twk_cli/twk_cli.dart';
 
 Future<void> main(List<String> args) => Cli.runWithArgs(args, create);
 

@@ -8,6 +8,25 @@ MdBlock single(String text) => parseMarkdown(text).single;
 List<MdInline> inlines(String text) =>
     (parseMarkdown(text).single as MdParagraph).children;
 
+/// How deep [top] nests, through quotes and lists of one item, and the
+/// block at the bottom.
+(int, MdBlock) bottom(MdBlock top) {
+  var block = top;
+  var depth = 0;
+  while (true) {
+    final children = switch (block) {
+      MdBlockQuote(:final children) => children,
+      MdList(:final items) => items.single.children,
+      _ => null,
+    };
+    if (children == null) {
+      return (depth, block);
+    }
+    depth++;
+    block = children.single;
+  }
+}
+
 void main() {
   group('blocks', () {
     test('headings, ATX and setext', () {
@@ -169,6 +188,22 @@ void main() {
           MdText(':-:'),
         ]),
       );
+    });
+
+    test('quotes and items nest 32 deep, a marker deeper being text', () {
+      expect(bottom(single('${'>' * 33} x')), (
+        32,
+        const MdParagraph([MdText('> x')]),
+      ));
+      final (depth, paragraph) = bottom(single('${'- ' * 34}x'));
+      expect(depth, 32);
+      expect(paragraph, const MdParagraph([MdText('- - x')]));
+    });
+
+    test('a document of nothing but markers parses', () {
+      expect(bottom(single('${'>' * 100000} x')).$1, 32);
+      expect(bottom(single('${'- ' * 100000}x')).$1, 32);
+      expect(bottom(single('${'> - ' * 50000}x')).$1, 32);
     });
   });
 

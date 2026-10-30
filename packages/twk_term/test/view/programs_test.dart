@@ -136,7 +136,9 @@ List<String> rawReader(String modes, int count) {
       "printf '$modes'; stty raw -echo; printf 'ready\\r\\n'; "
       r'x=$(dd bs=1 count='
       '$count'
-      r' 2>/dev/null | od -An -v -tx1); stty sane; echo "$x"; sleep 29.9';
+      // BSD's od pads the row with blanks, which wrap
+      r' 2>/dev/null | od -An -v -tx1 | tr -s " "); stty sane; echo "$x"; '
+      'sleep 29.9';
   return ['-c', script];
 }
 
@@ -225,9 +227,17 @@ void main() {
     await t.press('enter');
     await until(t, () => s.ended, reason: 'the end of sh');
     int? code;
-    unawaited(s.exitCode.then((c) => code = c));
-    await until(t, () => code != null, reason: 'the exit code');
-    expect(code, 3);
+    var told = false;
+    unawaited(
+      s.exitCode.then((c) {
+        code = c;
+        told = true;
+      }),
+    );
+    await until(t, () => told, reason: 'the exit code');
+    // without a pidfd (macOS) the VM, which waits for any child while a
+    // Process runs (holds' ps here), may take it first ([Pty.exitCode])
+    expect(code, Platform.isLinux ? 3 : anyOf(3, isNull));
   }, timeout: _timeout);
 
   testTwk("a program started with the session sees the view's size", (
@@ -306,7 +316,15 @@ void main() {
       await t.type('world');
       await showing(t, 'world');
       await t.press('ctrl+o');
-      await showing(t, 'Write to File');
+      // GNU nano's prompt, or pico's, which macOS has for nano
+      await until(
+        t,
+        () => t.lines.any(
+          (l) =>
+              l.contains('Write to File') || l.contains('File Name to write'),
+        ),
+        reason: 'the prompt for the file name',
+      );
       await t.press('enter');
       await showing(t, 'Wrote 2 lines');
       await t.press('ctrl+x');

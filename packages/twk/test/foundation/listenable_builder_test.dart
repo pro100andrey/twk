@@ -75,6 +75,25 @@ void main() {
       expect(log, ['built build']);
     });
 
+    test('tells listenables apart by identity, not by ==', () {
+      final log = <String>[];
+      final a = _Keyed(1);
+      final b = _Keyed(1);
+      Widget builder(Listenable listenable) => ListenableBuilder(
+        listenable: listenable,
+        builder: (context, child) => _Logged('built', log),
+      );
+      final tree = _Tree()
+        ..pump(builder(a))
+        ..pump(builder(b));
+      expect(a.hasListeners, isFalse);
+      expect(b.hasListeners, isTrue);
+      log.clear();
+      b.notifyListeners();
+      tree.frame();
+      expect(log, ['built build']);
+    });
+
     test('stops listening when its element is unmounted', () {
       final notifier = ChangeNotifier();
       final tree = _Tree()
@@ -190,4 +209,17 @@ final class _RenderLeaf extends RenderObject {
 
   @override
   void paint(PaintContext ctx) {}
+}
+
+/// A notifier equal to any other of the same [key].
+final class _Keyed extends ChangeNotifier {
+  _Keyed(this.key);
+
+  final int key;
+
+  @override
+  bool operator ==(Object other) => other is _Keyed && other.key == key;
+
+  @override
+  int get hashCode => key;
 }

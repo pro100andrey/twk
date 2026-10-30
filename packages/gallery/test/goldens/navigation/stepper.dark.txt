@@ -4,7 +4,7 @@ text
 │                                                                                                                        │
 │   ⌕ Filter             /      Stepper                                                                          5 of 5  │
 │                               A wizard of steps under their headers, each left forward once its validation takes       │
-│     Focus, FocusScope         it: Next or PageDown validates, Back or PageUp goes back, a header clicked goes to       │
+│     ActiveItem                it: Next or PageDown validates, Back or PageUp goes back, a header clicked goes to       │
 │     ExcludeFocus              it.                                                                                      │
 │     KeyBindings, Leader…                                                                                               │
 │     Shortcuts, Actions        Preview   Code                                                                           │
@@ -41,7 +41,7 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaiGiGGGGGGiiiiiiiiiiiiiHiaahhhlllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhIhIIhIhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnhnnnnnnhnnhnnnnnhnnnnnhnnnnnhnnnnnnnnhnnnnhnnnnhnnnnnnnhnnnnhnnnhnnnnnnnnnnhnnnnnhhhhhhh│
-│aaaaaooooooaooooooooooaaaaaahhhnnnhnnnnhnnhnnnnnnnnhnnnnnnnnnnhnnnnhnnhnnnnnnhnnnnhnnnnnhnhnnnnnnhnnnnnnnhnnnnhnnhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhnnnhnnnnhnnhnnnnnnnnhnnnnnnnnnnhnnnnhnnhnnnnnnhnnnnhnnnnnhnhnnnnnnhnnnnnnnhnnnnhnnhhhhhhh│
 │aaaaaooooooooooooaaaaaaaaaaahhhnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooaoooooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooaoooooooaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

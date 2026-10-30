@@ -4,6 +4,7 @@ import 'package:dartssh2/dartssh2.dart';
 import 'package:test/test.dart';
 import 'package:twk_ssh/src/wire.dart';
 import 'package:twk_ssh/twk_ssh.dart';
+import 'package:twk_test/twk_test.dart';
 
 import 'support.dart';
 
@@ -11,9 +12,27 @@ void main() {
   final alice = ClientKey.ed25519();
   final mallory = ClientKey.ed25519();
 
-  /// A server that runs nothing, under [auth].
-  Future<SshServer> serving(SshAuth auth, {List<SshHostKey>? hostKeys}) =>
-      serve(auth: auth, onSession: (s) => s.done, hostKeys: hostKeys);
+  /// A server that runs nothing, under [auth], its time on [clock].
+  Future<SshServer> serving(
+    SshAuth auth, {
+    List<SshHostKey>? hostKeys,
+    FakeClock? clock,
+  }) => serve(
+    auth: auth,
+    onSession: (s) => s.done,
+    hostKeys: hostKeys,
+    clock: clock?.stopwatch,
+  );
+
+  /// Waits for [server] to see the refused connections end, then past the
+  /// penalty they gave the address: the next connection is let in.
+  Future<void> forgiven(SshServer server, FakeClock clock) async {
+    await waitUntil(
+      () => server.connections.every((c) => c.user != null),
+      'the refused connections to end',
+    );
+    await clock.elapse(const SshPenalty().max);
+  }
 
   Matcher refused() => throwsA(isA<SSHAuthFailError>());
 
@@ -46,13 +65,17 @@ void main() {
   });
 
   test('a password the callback accepts logs in, others are refused', () async {
+    final clock = FakeClock();
     final server = await serving(
       SshAuth(password: (user, password) => user == 'bob' && password == 'pw'),
+      clock: clock,
     );
     final ok = await connect(server, user: 'bob', password: () => 'pw');
     await ok.authenticated;
     final wrong = await connect(server, user: 'bob', password: () => 'nope');
     await expectLater(wrong.authenticated, refused());
+    await wrong.close();
+    await forgiven(server, clock);
     final other = await connect(server, user: 'eve', password: () => 'pw');
     await expectLater(other.authenticated, refused());
   });
@@ -283,9 +306,15 @@ void main() {
     addTearDown(() => dir.deleteSync(recursive: true));
     final file = File('${dir.path}/authorized_keys')
       ..writeAsStringSync('# none yet\n');
-    final server = await serving(SshAuth.authorizedKeys(file.path));
+    final clock = FakeClock();
+    final server = await serving(
+      SshAuth.authorizedKeys(file.path),
+      clock: clock,
+    );
     final before = await connect(server, identities: [alice.pair]);
     await expectLater(before.authenticated, refused());
+    await before.close();
+    await forgiven(server, clock);
     file.writeAsStringSync('${alice.publicKey} alice@laptop\n');
     final after = await connect(server, identities: [alice.pair]);
     await after.authenticated;
@@ -293,4 +322,34 @@ void main() {
     final gone = await connect(server, identities: [alice.pair]);
     await expectLater(gone.authenticated, refused());
   });
+
+  test(
+    'an authorized_keys file others may write, or in a directory they may '
+    'write, lets no key in',
+    () async {
+      final dir = Directory.systemTemp.createTempSync('twk_ssh_keys');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      final file = File('${dir.path}/authorized_keys')
+        ..writeAsStringSync('${alice.publicKey} alice@laptop\n');
+      Future<void> chmod(String mode, String path) async =>
+          expect((await Process.run('chmod', [mode, path])).exitCode, 0);
+      await chmod('600', file.path);
+      await AuthorizedKeys.load(file.path);
+      await chmod('620', file.path);
+      await expectLater(
+        AuthorizedKeys.load(file.path),
+        throwsA(isA<FileSystemException>()),
+      );
+      await chmod('600', file.path);
+      await chmod('777', dir.path);
+      await expectLater(
+        AuthorizedKeys.load(file.path),
+        throwsA(isA<FileSystemException>()),
+      );
+      await chmod('1777', dir.path);
+      await AuthorizedKeys.load(file.path);
+      await chmod('700', dir.path);
+    },
+    testOn: '!windows',
+  );
 }

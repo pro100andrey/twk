@@ -8,8 +8,6 @@ analyzer:
     # anywhere else; its diagnostics, though, are what this file says.
     plugins_in_inner_options: ignore
   exclude:
-    # the inputs of the data-driven fixes' tests: the old API, on purpose
-    - test_fixes/**
     # packages of their own, each analyzed by itself (xtask.yaml's
     # pkg-analyze): here they would be context roots of this analysis too,
     # whose plugin snapshot two servers would build at once

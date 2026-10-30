@@ -59,7 +59,10 @@ final class Screen {
     bool inline = false,
     Viewport? viewport,
     bool atLineStart = true,
-  }) : styles = StyleTable(colorMode: colorMode),
+  }) : styles = StyleTable(
+         colorMode: colorMode,
+         styledUnderlines: caps.styledUnderlines,
+       ),
        glyphs = GlyphTable(),
        surface = Surface(width, height) {
     canvas = Canvas(
@@ -151,14 +154,84 @@ final class Screen {
   /// back where the app found it (see [Presenter.leave]).
   Uint8List? leave({bool clear = false}) {
     final n = presenter.leave(clear: clear);
-    return n == 0 ? null : presenter.out.view;
+    return _handed(n == 0 ? null : presenter.out.view);
   }
 
   /// Encodes everything painted since the last call. Returns the bytes to
   /// write to the terminal (a view valid until the next call), or null when
-  /// nothing changed.
+  /// nothing changed. Then sweeps the styles if they are due
+  /// ([sweepIfDue]).
   Uint8List? render() {
     final n = presenter.present(surface);
-    return n == 0 ? null : presenter.out.view;
+    final out = n == 0 ? null : presenter.out.view;
+    sweepIfDue();
+    return _handed(out);
+  }
+
+  // with asserts, the bytes [render] or [leave] handed out last, a copy
+  Uint8List? _lastHanded;
+
+  /// [bytes] as [render] and [leave] hand them out: with asserts, a copy,
+  /// and the copy handed out before filled with `?`, so that bytes kept
+  /// past the next call, which the presenter writes over, show as such
+  /// rather than as the next frame's.
+  Uint8List? _handed(Uint8List? bytes) {
+    var out = bytes;
+    assert(() {
+      _lastHanded?.fillRange(0, _lastHanded!.length, 0x3F);
+      out = _lastHanded = bytes == null ? null : Uint8List.fromList(bytes);
+      return true;
+    }(), 'bytes handed out as a copy');
+    return out;
+  }
+
+  /// The fewest styles, or glyphs, in use the [styles], or the [glyphs],
+  /// are swept past; a test's may be fewer.
+  static var sweepFloor = 4096;
+
+  // each swept once this many are in use
+  var _stylesAt = 0;
+  var _glyphsAt = 0;
+
+  // surfaces other than the screen's whose styles are kept
+  final _kept = <Surface>[];
+
+  /// Keeps the styles and glyphs of [other]'s cells in a sweep, as those
+  /// of the screen's surface: a surface painted with [styles] and
+  /// [glyphs] that is kept from one frame to the next (an inline app's
+  /// history, written a frame at a time).
+  void keepStylesOf(Surface other) => _kept.add(other);
+
+  /// Sweeps [styles] ([StyleTable.sweep]) when twice as many are in use as
+  /// after their last sweep, and at least [sweepFloor], and [glyphs]
+  /// ([GlyphTable.sweep]) the same: what no cell of the surface (of a
+  /// surface kept, [keepStylesOf], of what keeps cells of either,
+  /// [Surface.keep]) and nothing the presenter knows the terminal shows
+  /// has is freed. As what is in use doubles between two sweeps, a style or
+  /// a glyph costs its sweep once, and an app of a few hundred is never
+  /// swept. [render] calls it.
+  void sweepIfDue() {
+    final stylesDue = styles.live > sweepFloor && styles.live > _stylesAt;
+    final glyphsDue = glyphs.live > sweepFloor && glyphs.live > _glyphsAt;
+    if (!stylesDue && !glyphsDue) {
+      return;
+    }
+    void none(int _) {}
+    void roots(void Function(int) glyph, void Function(int) style) {
+      surface.markCells(glyph, style);
+      for (final s in _kept) {
+        s.markCells(glyph, style);
+      }
+      presenter.markCells(glyph, style);
+    }
+
+    if (stylesDue) {
+      styles.sweep((mark) => roots(none, mark));
+      _stylesAt = 2 * styles.live;
+    }
+    if (glyphsDue) {
+      glyphs.sweep((mark) => roots(mark, none));
+      _glyphsAt = 2 * glyphs.live;
+    }
   }
 }

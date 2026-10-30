@@ -1,9 +1,8 @@
-// asciicast v2 read and written, its pauses cut; what an output leaves
-// turned on in a terminal and what turns it off; a recording played
-// through the test emulator, a screen a frame.
+// asciicast v2 read and written, its pauses cut, and what the program did
+// to its terminal; what an output leaves turned on in a terminal and what
+// turns it off.
 import 'package:test/test.dart';
-import 'package:twk_dev/cast_frames.dart';
-import 'package:twk_dev/src/cast.dart' show CastWriter;
+import 'package:twk_dev/src/cast.dart';
 import 'package:twk_dev/src/modes.dart';
 
 /// A recording of a [width] by [height] terminal with [events].
@@ -172,67 +171,23 @@ void main() {
     });
   });
 
-  group('castFrames', () {
-    test('a frame after each output event that leaves no synchronized '
-        'update open, at the size the resizes give', () {
-      final frames = castFrames(
-        _cast(6, 2, [
-          (0.1, 'o', 'one'),
-          (0.2, 'o', '\x1b[?2026h\x1b[H\x1b[2Jtw'),
-          (0.3, 'o', 'o\x1b[?2026l'),
-          (0.4, 'i', 'x'),
-          (0.5, 'r', '8x3'),
-          (0.6, 'o', '\x1b[3;1Hthree\x1b[?25l'),
-        ]),
-      );
-
-      expect(
-        [
-          for (final f in frames) [f.number, f.time, f.lines],
-        ],
-        [
-          [
-            1,
-            0.1,
-            ['one', ''],
-          ],
-          [
-            2,
-            0.3,
-            ['two', ''],
-          ],
-          [
-            3,
-            0.6,
-            ['two', '', 'three'],
-          ],
-        ],
-      );
-      final last = frames.last;
-      expect((last.width, last.height), (8, 3));
-      expect((last.cursorX, last.cursorY, last.cursorVisible), (5, 2, false));
-      expect(last.errors, isEmpty);
-      expect(last.toString(), '''
-frame 3 at 0.600 s, 8×3:
-  0 │two
-  1 │
-  2 │three''');
-    });
-
-    test("each frame has what the emulator couldn't take up to it", () {
-      final frames = castFrames(
-        _cast(6, 2, [(0.1, 'o', 'a'), (0.2, 'o', '\x07b'), (0.3, 'o', 'c')]),
-      );
-
-      expect(
-        [for (final f in frames) f.errors],
-        [
-          isEmpty,
-          ['raw control byte 0x7'],
-          ['raw control byte 0x7'],
-        ],
-      );
-      expect(frames.last.lines.first, 'abc');
-    });
+  test('writes: the output events and each resize that names a size, as '
+      "twk_test's screenFrames takes them; what was typed and the markers "
+      'left out', () {
+    expect(
+      _cast(6, 2, [
+        (0.1, 'o', 'one'),
+        (0.2, 'i', 'x'),
+        (0.3, 'r', '8x3'),
+        (0.4, 'r', 'wide'),
+        (0.5, 'm', 'here'),
+        (0.6, 'o', 'two'),
+      ]).writes,
+      [
+        (time: 0.1, output: 'one', size: null),
+        (time: 0.3, output: null, size: (8, 3)),
+        (time: 0.6, output: 'two', size: null),
+      ],
+    );
   });
 }

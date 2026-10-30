@@ -281,6 +281,26 @@ void main() {
     expect(log, isEmpty);
   });
 
+  testTwk('the hidden cursor rests on the highlighted entry of the menu '
+      'the keys move in, a submenu and back', (t) async {
+    await t.pumpWidget(Theme.terminal(child: app([])), size: (30, 10));
+    await press(t, 'f10');
+    expect(t.cursorVisible, isFalse);
+    expect(t.cursor, (1, 2));
+    await press(t, 'down down');
+    expect(t.cursor, (1, 5));
+    await press(t, 'right');
+    expect(highlighted(t), ['Recent  ▸', 'a.txt']);
+    expect(t.cursor, (14, 5));
+    await press(t, 'down');
+    expect(t.cursor, (14, 6));
+    await press(t, 'left');
+    expect(t.cursor, (1, 5));
+    await press(t, 'escape');
+    expect(focused(t), 'editor');
+    expect(t.cursor, (0, 1));
+  });
+
   testTwk('Alt and a mnemonic opens its menu; a mnemonic, in either case, '
       'chooses an item or opens a submenu, or highlights the next of the '
       'items that share it; other letters go no further', (t) async {
@@ -1105,6 +1125,38 @@ void main() {
     showContextMenu(context, const []);
     await t.pump();
     expect(t, matchesScreen('\n  >a'));
+  });
+
+  testTwk('a context menu whose widget is gone closes at the next key, '
+      'which does nothing in it', (t) async {
+    final log = <String>[];
+    final key = GlobalKey();
+    Widget app({required bool anchor}) => Theme.terminal(
+      child: Overlay(
+        child: anchor
+            ? SizedBox(
+                key: key,
+                width: 20,
+                height: 6,
+                child: const Field('a', autofocus: true),
+              )
+            : const Field('b', autofocus: true),
+      ),
+    );
+    await t.pumpWidget(app(anchor: true), size: (30, 10));
+    showContextMenu(
+      key.currentContext!,
+      edits(log),
+      at: (4, 1),
+      look: PanelLook.bordered,
+    );
+    await t.pump();
+    expect(t, containsLine(contains('Cut')));
+    await t.pumpWidget(app(anchor: false));
+    await press(t, 'down');
+    await press(t, 'enter');
+    expect(log, isEmpty, reason: 'the first key closed it');
+    expect(t, isNot(containsLine(contains('Cut'))));
   });
 
   group('raised menus', () {

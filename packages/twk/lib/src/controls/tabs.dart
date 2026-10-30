@@ -17,6 +17,7 @@ import 'package:twk_core/twk_core.dart'
         TextMode,
         TextSegmenter;
 
+import '../editing/caret.dart' show clearRestCursor, restCursor;
 import '../focus/focus.dart';
 import '../foundation/change_notifier.dart';
 import '../foundation/helpers.dart';
@@ -579,6 +580,15 @@ final class _RenderTabBar extends RenderObject {
     final canvas = ctx.canvas;
     final styles = canvas.styles;
     canvas.fill(0, 0, width, height, _style.penIn(styles));
+    // the hidden cursor on the selected tab, as far as it is in view
+    final marked = _selected >= 0 && _selected < _tabs.length;
+    final from = marked ? _starts[_selected] - _offset : width;
+    final to = marked ? _starts[_selected + 1] - _offset : 0;
+    if (from < width && to > 0) {
+      restCursor(ctx, this, from < 0 ? 0 : from, 0);
+    } else {
+      clearRestCursor(ctx, this);
+    }
     final tab = _style.merge(_tabStyle);
     for (var i = 0; i < _tabs.length; i++) {
       final x = _starts[i] - _offset;

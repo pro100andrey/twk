@@ -731,6 +731,52 @@ void main() {
       expect(r.link(0, 0), isNull, reason: 'an erase takes the link');
     });
 
+    test('a hyperlink past 2083 characters is none', () {
+      final long = 'http://x/${'a' * 2083}';
+      final r = fed('\\e]8;;$long\\e\\ab\\e]8;;\\e\\');
+      expect(r.link(0, 0), isNull);
+      r.feed('\\e]8;;${long.substring(0, 2083)}\\e\\c');
+      expect(r.link(2, 0), long.substring(0, 2083));
+    });
+
+    test('a title, a notification and a pointer shape keep 4096 code units '
+        'at most, no half of a pair', () {
+      final long = 'a' * 5000;
+      // the 4096th code unit is the first of a pair
+      final paired = '${'a' * 4095}🙂b';
+      final r = fed(
+        '\\e]2;$long^G\\e]1;$paired^G\\e]9;$long^G'
+        '\\e]777;notify;$long;$long^G\\e]22;$long^G',
+      );
+      expect(r.t.title, 'a' * 4096);
+      expect(r.t.iconName, 'a' * 4095);
+      final told = [
+        for (final e in r.events)
+          if (e case NotificationRequested(:final title, :final body))
+            (title.length, body.length),
+      ];
+      expect(told, [(0, 4096), (4096, 4096)]);
+      expect(
+        r.events.whereType<PointerShapeChanged>().single.shape,
+        hasLength(4096),
+      );
+    });
+
+    test('a palette query answers 256 colors a sequence at most', () {
+      final r = fed('\\e]4;${List.filled(300, '1;?').join(';')}^G');
+      expect(r'\e]4;1;'.allMatches(r.takeSent()), hasLength(256));
+    });
+
+    test('a working directory not a file: URI is none', () {
+      final r = fed(r'\e]7;http://host/tmp^G\e]7;/tmp^G');
+      expect(r.t.workingDirectory, isNull);
+      expect(r.events, isEmpty);
+    });
+
+    test('DEL within a string is ignored', () {
+      expect(fed('\\e]2;a\x7fb^G').t.title, 'ab');
+    });
+
     test("the clipboard is the host's: written, read, answered", () {
       final r = fed(r'\e]52;c;aGVsbG8=^G\e]52;;?^G\e]52;p;!!^G');
       expect(r.events, hasLength(2));

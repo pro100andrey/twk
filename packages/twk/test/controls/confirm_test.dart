@@ -86,6 +86,27 @@ void main() {
     expect(t, styleAt(13, 0, hasBg(primary)));
   });
 
+  testTwk('the hidden cursor rests on the highlighted answer as Left and '
+      'Right move it', (t) async {
+    final node = FocusNode(debugLabel: 'confirm');
+    addTearDown(node.dispose);
+    await t.pumpWidget(
+      dark(ConfirmInput('Sure?', onConfirmed: (_) {}, focusNode: node)),
+      size: (20, 1),
+    );
+    node.requestFocus();
+    await t.pump();
+    expect(t.cursorVisible, isFalse);
+    // " Yes " at 6, " No " at 12
+    expect(t.cursor, (6, 0));
+    await t.press('right');
+    await t.pump();
+    expect(t.cursor, (12, 0));
+    await t.press('left');
+    await t.pump();
+    expect(t.cursor, (6, 0));
+  });
+
   testTwk('disabled: muted on fainter chips', (t) async {
     await t.pumpWidget(
       dark(const ConfirmInput('Sure?', onConfirmed: null)),

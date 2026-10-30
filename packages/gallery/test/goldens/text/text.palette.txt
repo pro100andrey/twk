@@ -2,38 +2,38 @@ screen 120×36, cursor at 32,2
 text
 │  ◆ twk gallery   Text  ›  Text                                                              ctrl+p search      ◐ Dark  │
 │                                                                                                                        │
-│   ⌕ Filter               › spin                                                             7                  1 of 4  │
+│   ⌕ Filter               › spin                                                             7                  1 of 5  │
 │                          ────────────────────────────────────────────────────────────────────  igned as asked.         │
 │   TEXT                  ▎ Spinner                                                  Animation                           │
 │ ▎   Text                  Stack, Positioned                                           Layout                           │
 │     Rich text             Sparkline                                                     Data   ────────────────────────│
 │     DefaultTextStyle      CustomPaint                                                 Layout                           │
 │     Right to left         IgnorePointer, AbsorbPointer                                 Mouse   IONS                    │
-│                           DescriptionList                                               Data                           │
-│   LAYOUT              2   Reset the options                                           action   p                       │
-│     Box                                                                                        rd  grapheme  none      │
-│     ColoredBox, Decorat                                                                                                │
-│     Container                                                                            │  overflow                   │
-│     Divider                    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   clip  ellipsis            │
-│     Shadow                              ┌                                  ┐             │   ellipsisStart             │
-│     Padding                    ·   ·      ╭──────────────────────────────╮     ·   ·     │   ellipsisMiddle            │
-│     Align, Center                         │Terminals draw text in a grid │               │                             │
-│     SizedBox                   ·   ·      │of cells. A paragraph breaks  │     ·   ·     │  align                      │
-│     ConstrainedBox                        │its lines between words to fit│               │   left  center  right       │
-│     LimitedBox, Overflo…       ·   ·      │its width; wide characters, 漢│     ·   ·     │   justify                   │
-│     FractionallySizedBox                  │字 and 🙂, take two cells     │               │                             │
-│     IntrinsicWidth/Heig…       ·   ·      │each.                         │     ·   ·     │  max lines                  │
-│     Row, Column, Flex                     ╰──────────────────────────────╯               │   all  3  1                 │
-│     Expanded, Spacer           ·   ·    └                                  ┘   ·   ·     │                             │
-│     Stack, Positioned                                                32 × 8              │  width            32 cells  │
-│     Transform                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  ──────────── ────────────  │
-│     Visibility, Offstage                                                                 │                             │
-│     ExpansionTile, Acco…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     Grid, GridPlacement                                                                  │                             │
-│     Wrap                       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     CustomPaint                                                                          │                             │
-│     SplitView                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     DockArea                                                                             │                             │
+│     ANSI                  DescriptionList                                               Data                           │
+│                           Reset the options                                           action   p                       │
+│   LAYOUT              2                                                                        rd  grapheme  none      │
+│     Box                                                                                                                │
+│     ColoredBox, Decorat…                                                                 │  overflow                   │
+│     Container                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   clip  ellipsis            │
+│     Divider                             ┌                                  ┐             │   ellipsisStart             │
+│     Shadow                     ·   ·      ╭──────────────────────────────╮     ·   ·     │   ellipsisMiddle            │
+│     Padding                               │Terminals draw text in a grid │               │                             │
+│     Align, Center              ·   ·      │of cells. A paragraph breaks  │     ·   ·     │  align                      │
+│     SizedBox                              │its lines between words to fit│               │   left  center  right       │
+│     ConstrainedBox             ·   ·      │its width; wide characters, 漢│     ·   ·     │   justify                   │
+│     LimitedBox, Overflo…                  │字 and 🙂, take two cells     │               │                             │
+│     FractionallySizedBox       ·   ·      │each.                         │     ·   ·     │  max lines                  │
+│     IntrinsicWidth/Heig…                  ╰──────────────────────────────╯               │   all  3  1                 │
+│     Row, Column, Flex          ·   ·    └                                  ┘   ·   ·     │                             │
+│     Expanded, Spacer                                                 32 × 8              │  width            32 cells  │
+│     Stack, Positioned          ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  ──────────── ────────────  │
+│     Transform                                                                            │                             │
+│     Visibility, Offstage       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     ExpansionTile, Acco…                                                                 │                             │
+│     Grid, GridPlacement        ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Wrap                                                                                 │                             │
+│     CustomPaint                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     SplitView                                                                            │                             │
 │                                                                                          │                             │
 │  enter run   esc close                                                                                                 │
 styles
@@ -46,31 +46,31 @@ styles
 │aaaaazzzzazzzzaaaaaaaaaahhhllmmmmllmhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhJJJJhhhAAAAAAAAAAAAAAAAAAAAAAAA│
 │aaaaazzzzzzzzzzzzzzzzaaahhhmmlmmmlmllmhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhJJJJJJhhhiiiiiiiiiiiiiiiiiiiiiiii│
 │aaaaazzzzzazzazzzzaaaaaahhhmmmmmmmmmmmmmmhmmlmmmlmllmmmhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhJJJJJhhhqqqqiiiiiiiiiiiiiiiiiiii│
-│aaaaaaaaaaaaaaaaaaaaaaaahhhmmlmmmlmlmlmmmmhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhJJJJhhhiiiiiiiiiiiiiiiiiiiiiiii│
-│aaaddddddaaaaaaaaaaaaaaHhhhmmlmmhmmmhmlmlmlmhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhJJJJJJhhhqiiiiiiiiiiiiiiiiiiiiiii│
-│aaaaazzzaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhBBCjDDDDDDDDjjDDDDjiiiii│
-│aaaaazzzzzzzzzzzazzzzzzzhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhiiiiiiiiiiiiiiiiiiiiiiii│
-│aaaaazzzzzzzzzaaaaaaaaaaaaaaiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiAiiqqqqqqqqiiiiiiiiiiiiiiiiiii│
-│aaaaazzzzzzzaaaaaaaaaaaaaaaaiiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiiiAiijDDDDjCBBBBBBBBCiiiiiiiiiii│
-│aaaaazzzzzzaaaaaaaaaaaaaaaaaiiiiiiiiiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiAiiiiiiiiiiiiiAiijDDDDDDDDDDDDDjiiiiiiiiiiii│
-│aaaaazzzzzzzaaaaaaaaaaaaaaaaiiiiAiiiAiiiiiiEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEiiiiiAiiiAiiiiiAiijDDDDDDDDDDDDDDjiiiiiiiiiii│
-│aaaaazzzzzzazzzzzzaaaaaaaaaaiiiiiiiiiiiiiiiEFFFFFFFFFiFFFFiFFFFiFFiFiFFFFiEiiiiiiiiiiiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiii│
-│aaaaazzzzzzzzaaaaaaaaaaaaaaaiiiiAiiiAiiiiiiEFFiFFFFFFiFiFFFFFFFFFiFFFFFFiiEiiiiiAiiiAiiiiiAiiqqqqqiiiiiiiiiiiiiiiiiiiiii│
-│aaaaazzzzzzzzzzzzzzaaaaaaaaaiiiiiiiiiiiiiiiEFFFiFFFFFiFFFFFFFiFFFFFiFFiFFFEiiiiiiiiiiiiiiiAiiCBBBBCjDDDDDDjjDDDDDjiiiiii│
-│aaaaazzzzzzzzzzzazzzzzzzzaaaiiiiAiiiAiiiiiiEFFFiFFFFFFiFFFFiFFFFFFFFFFFiFFEiiiiiAiiiAiiiiiAiijDDDDDDDjiiiiiiiiiiiiiiiiii│
-│aaaaazzzzzzzzzzzzzzzzzzzzaaaiiiiiiiiiiiiiiiEFFiFFFiFFFiFFFFiFFFiFFFFFiiiiiEiiiiiiiiiiiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiii│
+│aaaaazzzzaaaaaaaaaaaaaaahhhmmlmmmlmlmlmmmmhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhJJJJhhhiiiiiiiiiiiiiiiiiiiiiiii│
+│aaaaaaaaaaaaaaaaaaaaaaaahhhmmlmmhmmmhmlmlmlmhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhJJJJJJhhhqiiiiiiiiiiiiiiiiiiiiiii│
+│aaaddddddaaaaaaaaaaaaaaHhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhBBCjDDDDDDDDjjDDDDjiiiii│
+│aaaaazzzaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhiiiiiiiiiiiiiiiiiiiiiiii│
+│aaaaazzzzzzzzzzzazzzzzzzzaaaiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiAiiqqqqqqqqiiiiiiiiiiiiiiiiiii│
+│aaaaazzzzzzzzzaaaaaaaaaaaaaaiiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiiiAiijDDDDjCBBBBBBBBCiiiiiiiiiii│
+│aaaaazzzzzzzaaaaaaaaaaaaaaaaiiiiiiiiiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiAiiiiiiiiiiiiiAiijDDDDDDDDDDDDDjiiiiiiiiiiii│
+│aaaaazzzzzzaaaaaaaaaaaaaaaaaiiiiAiiiAiiiiiiEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEiiiiiAiiiAiiiiiAiijDDDDDDDDDDDDDDjiiiiiiiiiii│
+│aaaaazzzzzzzaaaaaaaaaaaaaaaaiiiiiiiiiiiiiiiEFFFFFFFFFiFFFFiFFFFiFFiFiFFFFiEiiiiiiiiiiiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiii│
+│aaaaazzzzzzazzzzzzaaaaaaaaaaiiiiAiiiAiiiiiiEFFiFFFFFFiFiFFFFFFFFFiFFFFFFiiEiiiiiAiiiAiiiiiAiiqqqqqiiiiiiiiiiiiiiiiiiiiii│
+│aaaaazzzzzzzzaaaaaaaaaaaaaaaiiiiiiiiiiiiiiiEFFFiFFFFFiFFFFFFFiFFFFFiFFiFFFEiiiiiiiiiiiiiiiAiiCBBBBCjDDDDDDjjDDDDDjiiiiii│
+│aaaaazzzzzzzzzzzzzzaaaaaaaaaiiiiAiiiAiiiiiiEFFFiFFFFFFiFFFFiFFFFFFFFFFFiFFEiiiiiAiiiAiiiiiAiijDDDDDDDjiiiiiiiiiiiiiiiiii│
+│aaaaazzzzzzzzzzzazzzzzzzzaaaiiiiiiiiiiiiiiiEFFiFFFiFFFiFFFFiFFFiFFFFFiiiiiEiiiiiiiiiiiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiii│
 │aaaaazzzzzzzzzzzzzzzzzzzzaaaiiiiAiiiAiiiiiiEFFFFFiiiiiiiiiiiiiiiiiiiiiiiiiEiiiiiAiiiAiiiiiAiiqqqiqqqqqiiiiiiiiiiiiiiiiii│
-│aaaaazzzzazzzzzzzazzzzaaaaaaiiiiiiiiiiiiiiiEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEiiiiiiiiiiiiiiiAiiCBBBCjDjjDjiiiiiiiiiiiiiiii│
-│aaaaazzzzzzzzzazzzzzzaaaaaaaiiiiAiiiAiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiAiiiAiiiAiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiii│
-│aaaaazzzzzzazzzzzzzzzzaaaaaaiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiKKiKiKiiiiiiiiiiiiiiAiiqqqqqiiiiiiiiiiiiKKiKKKKKii│
-│aaaaazzzzzzzzzaaaaaaaaaaaaaaiiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiiiAiiFFFFFFFFFFFFGqqqqqqqqqqqqii│
-│aaaaazzzzzzzzzzzazzzzzzzzaaaiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiii│
-│aaaaazzzzzzzzzzzzzzazzzzzaaaiiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiii│
-│aaaaazzzzzazzzzzzzzzzzzzaaaaiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiii│
-│aaaaazzzzaaaaaaaaaaaaaaaaaaaiiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiii│
-│aaaaazzzzzzzzzzzaaaaaaaaaaaaiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiii│
-│aaaaazzzzzzzzzaaaaaaaaaaaaaaiiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiii│
-│aaaaazzzzzzzzaaaaaaaaaaaaaaaiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiii│
+│aaaaazzzzzzzzzzzzzzzzzzzzaaaiiiiiiiiiiiiiiiEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEiiiiiiiiiiiiiiiAiiCBBBCjDjjDjiiiiiiiiiiiiiiii│
+│aaaaazzzzazzzzzzzazzzzaaaaaaiiiiAiiiAiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiAiiiAiiiAiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiii│
+│aaaaazzzzzzzzzazzzzzzaaaaaaaiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiKKiKiKiiiiiiiiiiiiiiAiiqqqqqiiiiiiiiiiiiKKiKKKKKii│
+│aaaaazzzzzzazzzzzzzzzzaaaaaaiiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiiiAiiFFFFFFFFFFFFGqqqqqqqqqqqqii│
+│aaaaazzzzzzzzzaaaaaaaaaaaaaaiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiii│
+│aaaaazzzzzzzzzzzazzzzzzzzaaaiiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiii│
+│aaaaazzzzzzzzzzzzzzazzzzzaaaiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiii│
+│aaaaazzzzzazzzzzzzzzzzzzaaaaiiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiii│
+│aaaaazzzzaaaaaaaaaaaaaaaaaaaiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiii│
+│aaaaazzzzzzzzzzzaaaaaaaaaaaaiiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiAiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiii│
+│aaaaazzzzzzzzzaaaaaaaaaaaaaaiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiii│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaaiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiAiiiiiiiiiiiiiiiiiiiiiiiiiiiii│
 │aacccccadddaaacccadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
 legend

@@ -4,24 +4,24 @@ text
 │                                                                                │
 │   ⌕ Filter       /     Rich text                               Preview   Code  │
 │                        Spans in styles of their own: attributes, colors and    │
-│   TEXT           4  ▐  links, 'text'.bold.fg(…) for short.                     │
+│   TEXT           5  ▐  links, 'text'.bold.fg(…) for short.                     │
 │     Text            ▐──────────────────────────────────────────────────────────│
 │ ▎   Rich text               ┌                                         ┐        │
 │     DefaultTextSt…      ·     attributes                                ·   ·  │
 │     Right to left             bold dim italic reverse strike overline          │
-│                         ·                                               ·   ·  │
-│   LAYOUT        24            underlines                                       │
-│     Box                 ·     underline double curly dotted dashed      ·   ·  │
-│     ColoredBox, D…                                                             │
-│     Container           ·     colors                                    ·   ·  │
-│     Divider                   red color 166 rgb  on navy  red curly            │
-│     Shadow              ·                                               ·   ·  │
-│     Padding                   links                                            │
-│     Align, Center       ·     a link to dart.dev                        ·   ·  │
-│     SizedBox                └                                         ┘        │
-│     ConstrainedBox   ──────────────────────────────────────────────────────────│
-│     LimitedBox, O…     row labels  ▐  ●▌                                       │
-│     FractionallyS…                                                             │
+│     ANSI                ·                                               ·   ·  │
+│                               underlines                                       │
+│   LAYOUT        24      ·     underline double curly dotted dashed      ·   ·  │
+│     Box                                                                        │
+│     ColoredBox, D…      ·     colors                                    ·   ·  │
+│     Container                 red color 166 rgb  on navy  red curly            │
+│     Divider             ·                                               ·   ·  │
+│     Shadow                    links                                            │
+│     Padding             ·     a link to dart.dev                        ·   ·  │
+│     Align, Center           └                                         ┘        │
+│     SizedBox         ──────────────────────────────────────────────────────────│
+│     ConstrainedBox     row labels  ▐  ●▌                                       │
+│     LimitedBox, O…                                                             │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -34,19 +34,19 @@ styles
 │aqrrrssssrssssrrrrrrragggggggpgggggggggggggggggggggggggggggggggggggggggpgggggggg│
 │aaaaaooooooooooooooaaagggpgggggmmmmmmmmmmggggggggggggggggggggggggggggggggpgggpgg│
 │aaaaaoooooaooaooooaaaagggggggggkkkkgtttguuuuuugvvvvvvvgwwwwwwgxxxxxxxxgggggggggg│
-│aaaaaaaaaaaaaaaaaaaaaagggpgggggggggggggggggggggggggggggggggggggggggggggggpgggpgg│
-│aaaddddddaaaaaaaaNNaaagggggggggmmmmmmmmmmggggggggggggggggggggggggggggggggggggggg│
-│aaaaaoooaaaaaaaaaaaaaagggpgggggyyyyyyyyygzzzzzzgAAAAAgBBBBBBgCCCCCCggggggpgggpgg│
+│aaaaaooooaaaaaaaaaaaaagggpgggggggggggggggggggggggggggggggggggggggggggggggpgggpgg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggmmmmmmmmmmggggggggggggggggggggggggggggggggggggggg│
+│aaaddddddaaaaaaaaNNaaagggpgggggyyyyyyyyygzzzzzzgAAAAAgBBBBBBgCCCCCCggggggpgggpgg│
+│aaaaaoooaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaoooooooooooaooaaagggpgggggmmmmmmggggggggggggggggggggggggggggggggggggpgggpgg│
+│aaaaaoooooooooaaaaaaaagggggggggDDDgEEEEEgEEEgFFFgGHHGHHHHGgIIIIIIIIIgggggggggggg│
+│aaaaaoooooooaaaaaaaaaagggpgggggggggggggggggggggggggggggggggggggggggggggggpgggpgg│
+│aaaaaooooooaaaaaaaaaaagggggggggmmmmmgggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaoooooooaaaaaaaaaagggpgggggJJJJJJJJJJJJJJJJJJggggggggggggggggggggggggpgggpgg│
+│aaaaaooooooaooooooaaaagggggggpgggggggggggggggggggggggggggggggggggggggggpgggggggg│
+│aaaaaooooooooaaaaaaaaapppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaooooooooooooooaaaggmmmgmmmmmmggKLLMKggggggggggggggggggggggggggggggggggggggg│
 │aaaaaoooooooooooaooaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaaoooooooooaaaaaaaagggpgggggmmmmmmggggggggggggggggggggggggggggggggggggpgggpgg│
-│aaaaaoooooooaaaaaaaaaagggggggggDDDgEEEEEgEEEgFFFgGHHGHHHHGgIIIIIIIIIgggggggggggg│
-│aaaaaooooooaaaaaaaaaaagggpgggggggggggggggggggggggggggggggggggggggggggggggpgggpgg│
-│aaaaaoooooooaaaaaaaaaagggggggggmmmmmgggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaaooooooaooooooaaaagggpgggggJJJJJJJJJJJJJJJJJJggggggggggggggggggggggggpgggpgg│
-│aaaaaooooooooaaaaaaaaagggggggpgggggggggggggggggggggggggggggggggggggggggpgggggggg│
-│aaaaaooooooooooooooaaapppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
-│aaaaaoooooooooooaooaaaggmmmgmmmmmmggKLLMKggggggggggggggggggggggggggggggggggggggg│
-│aaaaaooooooooooooooaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

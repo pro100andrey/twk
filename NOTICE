@@ -1,5 +1,5 @@
 The packages of this repository, under packages/ (twk_core, twk,
-twk_test, twk_rich, twk_cli, twk_dev, twk_riverpod, twk_bloc, twk_lints,
+twk_test, twk_rich, twk_dev, twk_riverpod, twk_bloc, twk_lints,
 twk_term, twk_web and the gallery), and its tools are under the MIT
 License, copyright 2026 Andrii Ivanov: LICENSE, and the same file in each
 library package.

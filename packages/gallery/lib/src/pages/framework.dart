@@ -7,9 +7,6 @@ import 'common.dart';
 /// The pages of the Framework group that draw.
 final List<GalleryPage> frameworkPages = [_layout, _notifications, _slots];
 
-/// [parts] as one line of the Code, a line too long for this file.
-String _line(List<String> parts) => parts.join();
-
 // ----------------------------------------------------------- LayoutBuilder
 
 /// The SizedBox's height.
@@ -126,7 +123,7 @@ final _layout = GalleryPage(
     '          Expanded(',
     '            child: wide',
     '                ? Row(crossAxisAlignment: .stretch, children: panes)',
-    _line([
+    codeLine([
       '                : ',
       'Column(crossAxisAlignment: .stretch, children: panes),',
     ]),
@@ -228,14 +225,14 @@ final _notifications = GalleryPage(
           '    };',
         ],
         'ScrollUpdateNotification' => [
-          _line([
+          codeLine([
             "    _heard = 'scrolled ",
             r"${notification.scrollDelta} to $offset of $maxOffset';",
           ]),
         ],
         _ => [
           '    _heard =',
-          _line([
+          codeLine([
             "        'overscrolled ",
             r"${notification.overscroll} at $offset of $maxOffset';",
           ]),
@@ -262,7 +259,7 @@ final _notifications = GalleryPage(
       '            SizedBox(',
       '              width: $_nw,',
       '              height: $_nh,',
-      _line([
+      codeLine([
         '              // proxy widgets: they draw nothing, ',
         'and hear what bubbles up',
       ]),
@@ -275,7 +272,7 @@ final _notifications = GalleryPage(
       '                    builder: (context, list) => Box(',
       '                      border: .all(',
       '                        type: .rounded,',
-      _line([
+      codeLine([
         '                        style: ',
         '_list.hasFocus ? theme.primary : theme.border,',
       ]),
@@ -288,7 +285,7 @@ final _notifications = GalleryPage(
       '                      child: ListView.builder(',
       '                        focusNode: _list,',
       '                        itemCount: $_items,',
-      _line([
+      codeLine([
         '                        itemBuilder: ',
         r"(context, i) => Text('item ${i + 1}'),",
       ]),
@@ -299,7 +296,7 @@ final _notifications = GalleryPage(
       '              ),',
       '            ),',
       '            Expanded(',
-      _line([
+      codeLine([
         '              child: ',
         '_Trace([..._trace.reversed.take($_shown)].reversed),',
       ]),
@@ -619,7 +616,7 @@ final _slots = GalleryPage(
       _Plugins(lint: o.choice('lint'), placeholder: o.flag('placeholder')),
   code: (o) => [
     '/// A status bar item: its name muted, then its value.',
-    _line([
+    codeLine([
       'static Widget _item(BuildContext context, String name, ',
       'String value) =>',
     ]),
@@ -693,18 +690,18 @@ final _slots = GalleryPage(
     '            border: .all(type: .rounded, style: theme.border),',
     "            titles: const [BorderTitle(' status ')],",
     '            padding: const .x(1),',
-    _line([
+    codeLine([
       "            // built again when the entries of 'status' change, ",
       'and then only',
     ]),
     '            child: Slot(',
     "              'status',",
-    _line([
+    codeLine([
       '              layout: (context, children) => ',
       'Row(gap: 2, children: children),',
     ]),
     if (o.flag('placeholder'))
-      _line([
+      codeLine([
         '              placeholder: ',
         "Text('no plugins', style: theme.muted),",
       ]),

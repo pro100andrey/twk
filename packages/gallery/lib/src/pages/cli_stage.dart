@@ -1,4 +1,4 @@
-// The stage of App › Cli: a twk_cli program run on twk_cli's fake terminal
+// The stage of App › Cli: a console program run on twk_test's fake terminal
 // (../../cli/run.dart), in a terminal's frame. It reads the process's
 // stdio through dart:io, which a browser has not: cli_stage_web.dart is
 // the stage there.

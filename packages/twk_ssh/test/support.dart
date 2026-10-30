@@ -68,13 +68,17 @@ Future<ProcessResult?> sshKeygen(List<String> arguments) async =>
     onPath('ssh-keygen') ? runProcess('ssh-keygen', arguments) : null;
 
 /// A server on the loopback interface, at a port the system picks, closed
-/// when the test ends.
+/// when the test ends. Its [loginTimeout] is the server's, two minutes of
+/// real time: a test that never logs in and makes key exchanges, which a
+/// loaded machine takes seconds each of, is not cut off by it.
 Future<SshServer> serve({
   required SshAuth auth,
   required SessionHandler onSession,
   List<SshHostKey>? hostKeys,
-  Duration loginTimeout = const Duration(seconds: 10),
+  Duration loginTimeout = const Duration(minutes: 2),
   int maxUnauthenticated = 10,
+  SshPenalty? penalty = const SshPenalty(),
+  bool Function(InternetAddress address)? penaltyExempt,
   SshRekeyLimit rekeyLimit = const SshRekeyLimit(),
   Stopwatch? clock,
   SshTimers? timers,
@@ -87,6 +91,8 @@ Future<SshServer> serve({
     onSession: onSession,
     loginTimeout: loginTimeout,
     maxUnauthenticated: maxUnauthenticated,
+    penalty: penalty,
+    penaltyExempt: penaltyExempt,
     rekeyLimit: rekeyLimit,
     clock: clock,
     timers: timers,
@@ -271,9 +277,11 @@ final class RawClient {
     send(w.takeBytes());
   }
 
-  /// The next payload from the server; null once it closed.
+  /// The next payload from the server; null once it closed. [timeout]
+  /// bounds the real time it waits, which a key exchange on a loaded
+  /// machine takes seconds of: the server's half is Dart's own arithmetic.
   Future<Uint8List?> next({
-    Duration timeout = const Duration(seconds: 5),
+    Duration timeout = const Duration(seconds: 30),
   }) async {
     while (_payloads.isEmpty && !closed) {
       await (_waiting ??= Completer<void>()).future.timeout(timeout);

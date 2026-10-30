@@ -8,7 +8,7 @@ text
 │     Repaint rainb…   ──────────────────────────────────────────────────────────│
 │     RepaintBounda…    ┌                                                      ┐ │
 │                          1 import 'package:twk/twk.dart';                      │
-│   RICH           8       2                                                 ▄   │
+│   RICH           7       2                                                 ▄   │
 │     MarkdownView         3 /// Counts the presses of the space bar.            │
 │ ▎   CodeView             4 final class Counter extends StatefulWidget {        │
 │     SyntaxThemeSc…       5   const Counter({super.key, this.start = 0});       │
@@ -16,12 +16,12 @@ text
 │     JsonView          └                                                      ┘ │
 │     BigText          ──────────────────────────────────────────────────────────│
 │     QrCode             language       Dart  Python  Rust  Go  JavaScript      ▐│
-│     ANSI                              TypeScript  JSON  YAML  Bash  diff      ▐│
-│                                       plain                                   ▐│
-│   IMAGES         1     line numbers  ▐  ●▌                                    ▐│
-│     Image                                                                     ▐│
-│                     ▐  changes       ▐●  ▌                                     │
-│   TERMINAL       1  ▐  wrap           none  word  grapheme                     │
+│                                       TypeScript  JSON  YAML  Bash  diff      ▐│
+│   IMAGES         1                    plain                                   ▐│
+│     Image              line numbers  ▐  ●▌                                    ▐│
+│                                                                               ▐│
+│   TERMINAL       1  ▐  changes       ▐●  ▌                                     │
+│     TerminalView    ▐  wrap           none  word  grapheme                     │
 │                        width         ───────────────▍▍───────────  56 cells    │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -41,12 +41,12 @@ styles
 │aaaaannnnnnnnaaaaaaaaagoggggggggggggggggggggggggggggggggggggggggggggggggggggggog│
 │aaaaannnnnnnaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnaaaaaaaaaaaggmmmmmmmmgggggguvvvvuhwwwwwwhhwwwwhhwwhhwwwwwwwwwwhgggggm│
-│aaaaannnnaaaaaaaaaaaaagggggggggggggggghwwwwwwwwwwhhwwwwhhwwwwhhwwwwhhwwwwhgggggm│
-│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggghwwwwwhggggggggggggggggggggggggggggggggggm│
-│aaaddddddaaaaaaaaaKaaaggmmmmgmmmmmmmggxyyzxggggggggggggggggggggggggggggggggggggm│
-│aaaaannnnnaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggm│
-│aaaaaaaaaaaaaaaaaaaaadggmmmmmmmgggggggABCCAggggggggggggggggggggggggggggggggggggg│
-│aaaddddddddaaaaaaaKaadggmmmmgggggggggghwwwwhuvvvvuhwwwwwwwwhgggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggghwwwwwwwwwwhhwwwwhhwwwwhhwwwwhhwwwwhgggggm│
+│aaaddddddaaaaaaaaaKaaagggggggggggggggghwwwwwhggggggggggggggggggggggggggggggggggm│
+│aaaaannnnnaaaaaaaaaaaaggmmmmgmmmmmmmggxyyzxggggggggggggggggggggggggggggggggggggm│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggm│
+│aaaddddddddaaaaaaaKaadggmmmmmmmgggggggABCCAggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaadggmmmmgggggggggghwwwwhuvvvvuhwwwwwwwwhgggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaaggmmmmmgggggggggrrrrrrrrrrrrrrrDrmmmmmmmmmmmggNNgNNNNNgggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

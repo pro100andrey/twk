@@ -4,7 +4,7 @@
 // and the tests of a fake.
 import { Answers } from '../core/capabilities';
 import { TerminalRequest } from '../core/emulation';
-import { Disposable, Emitter, Event } from '../core/events';
+import { Clock, Disposable, Emitter, Event, realClock } from '../core/events';
 import { PlayerControl, PlayerState, ToWebview, isFromWebview } from '../webview/protocol';
 import { PickedCell, Snapshot, TerminalView } from './ports';
 
@@ -25,6 +25,13 @@ export interface WebviewPanelPort<To = ToWebview> {
 }
 
 const nothingShown: Snapshot = { buffer: 'normal', rows: [] };
+
+/**
+ * How long a write or a snapshot waits for the webview's answer: one alive but
+ * answering no more (its page failing before it answers) would hold the output
+ * and what waits for it for good.
+ */
+export const answerLimitMs = 10_000;
 
 export class WebviewTerminalView implements TerminalView {
   columns = 80;
@@ -52,7 +59,10 @@ export class WebviewTerminalView implements TerminalView {
   readonly onReload = this.reloads.event;
   private readonly listening: Disposable[];
 
-  constructor(readonly panel: WebviewPanelPort) {
+  constructor(
+    readonly panel: WebviewPanelPort,
+    private readonly clock: Clock = realClock,
+  ) {
     let ready!: () => void;
     let gone!: (e: Error) => void;
     this.ready = new Promise((resolve, reject) => {
@@ -130,7 +140,11 @@ export class WebviewTerminalView implements TerminalView {
   write(bytes: Uint8Array): Promise<void> {
     const id = this.nextId++;
     return new Promise((resolve) => {
-      this.writes.set(id, resolve);
+      const limit = this.clock.setTimeout(() => this.written(id), answerLimitMs);
+      this.writes.set(id, () => {
+        limit.dispose();
+        resolve();
+      });
       void this.post({ type: 'output', id, data: new Uint8Array(bytes) }).then((sent) => sent || this.written(id));
     });
   }
@@ -138,7 +152,15 @@ export class WebviewTerminalView implements TerminalView {
   snapshot(): Promise<Snapshot> {
     const id = this.nextId++;
     return new Promise((resolve) => {
-      this.snapshots.set(id, resolve);
+      const limit = this.clock.setTimeout(() => {
+        if (this.snapshots.delete(id)) {
+          resolve(nothingShown);
+        }
+      }, answerLimitMs);
+      this.snapshots.set(id, (s) => {
+        limit.dispose();
+        resolve(s);
+      });
       void this.post({ type: 'snapshot', id }).then((sent) => {
         if (!sent) {
           this.snapshots.delete(id);

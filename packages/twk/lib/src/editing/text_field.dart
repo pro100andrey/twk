@@ -1,6 +1,8 @@
 /// A line of text the user edits: [TextField].
 library;
 
+import 'dart:typed_data';
+
 import 'package:twk_core/twk_core.dart'
     show
         Attr,
@@ -483,6 +485,7 @@ final class _TextFieldState extends State<TextField> {
 
   // whether the suggestions of an Autocomplete show, and what tells it
   ValueListenable<bool>? _showing;
+  TextEditingController? _changing;
   Listenable? _changes;
 
   bool get _suggesting => _showing?.value ?? false;
@@ -491,10 +494,13 @@ final class _TextFieldState extends State<TextField> {
   Listenable _changesOf(TextEditingController controller) {
     final showing = autocompleteShowing(context, controller);
     final changes = _changes;
-    if (identical(showing, _showing) && changes != null) {
+    if (identical(showing, _showing) &&
+        identical(controller, _changing) &&
+        changes != null) {
       return changes;
     }
     _showing = showing;
+    _changing = controller;
     return _changes = showing == null
         ? controller
         : Listenable.merge([controller, showing]);
@@ -690,6 +696,10 @@ const _opaque = Style(fg: Color.defaultColor);
 /// sideways to keep the caret in view, and the terminal's cursor at the
 /// caret while [focused].
 final class _RenderTextField extends RenderObject {
+  // where a row with a selection or a composing range is painted in
+  // pieces ([sortedOnce])
+  final _cuts = Int32List(6);
+
   var _text = '';
   String get text => _text;
   set text(String t) {
@@ -972,8 +982,15 @@ final class _RenderTextField extends RenderObject {
         final se = selected ? _shownOffset(_selection.end) : 0;
         final cs = composed ? _shownOffset(_composing.start) : 0;
         final ce = composed ? _shownOffset(_composing.end) : 0;
-        final cuts = {0, ss, se, cs, ce, shown.length}.toList()..sort();
-        for (var i = 0; i + 1 < cuts.length; i++) {
+        final cuts = _cuts
+          ..[0] = 0
+          ..[1] = ss
+          ..[2] = se
+          ..[3] = cs
+          ..[4] = ce
+          ..[5] = shown.length;
+        final n = sortedOnce(cuts);
+        for (var i = 0; i + 1 < n; i++) {
           final from = cuts[i];
           final to = cuts[i + 1];
           var s = base;

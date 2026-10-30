@@ -211,9 +211,11 @@ void main() {
     t.binding.twkApp.screen.presenter.cursorVisible = false;
     t.binding.twkApp.requestFrame();
     await t.pump();
+    // hidden, it rests where the binding puts it: with nothing focused, at
+    // home
     expect(
       failure(t, cursorAt(4, 2)).elementAt(2),
-      '   Which: has it hidden, at column 4, row 2',
+      '   Which: has it hidden, at column 0, row 0',
     );
   });
 

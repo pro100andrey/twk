@@ -4,9 +4,11 @@
 // and takes them away when they go; the test emulator records what the
 // terminal shows.
 import 'dart:convert';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:test/test.dart';
+import 'package:twk_core/src/byte_sink.dart';
 import 'package:twk_core/src/graphics.dart';
 import 'package:twk_core/src/presenter.dart';
 import 'package:twk_core/src/surface.dart';
@@ -422,5 +424,35 @@ void main() {
         ..clear();
       expect(s.images, isEmpty);
     });
+  });
+
+  test('image data goes through a multiplexer as passthroughSequence '
+      'wraps the sequence it is in, written as it is', () {
+    final random = Random(3);
+    for (final multiplexer in Multiplexer.values) {
+      for (final length in [0, 1, 200, 251, 252, 253, 4096, 10000]) {
+        final data = Uint8List.fromList([
+          for (var i = 0; i < length; i++) 0x21 + random.nextInt(0x5E),
+        ]);
+        for (final (head, tail) in [
+          ('\x1b_Ga=T,f=100;', '\x1b\\'),
+          ('\x1b]1337;File=inline=1:', '\x07'),
+          ('\x1bPq"1;1;4;2', '\x1b\\'),
+        ]) {
+          for (final (start, end) in [(0, length), (length ~/ 3, length)]) {
+            final out = ByteSink();
+            putImageData(out, head, data, start, end, tail, multiplexer);
+            expect(
+              latin1.decode(out.view),
+              passthroughSequence(
+                '$head${latin1.decode(data.sublist(start, end))}$tail',
+                multiplexer,
+              ),
+              reason: '${multiplexer.name}, $length, $start',
+            );
+          }
+        }
+      }
+    }
   });
 }

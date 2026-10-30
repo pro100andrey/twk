@@ -975,8 +975,9 @@ final class _TreeViewState<T> extends State<TreeView<T>>
       key: KeyCombo.parse(key),
   };
 
-  /// What each key does: whether it did anything.
-  Map<String, bool Function()> get _keys => {
+  /// What each key does: whether it did anything. Made once: each reads
+  /// the tree as it is when its key comes.
+  late final Map<String, bool Function()> _keys = {
     'up': () => _move(-1),
     'down': () => _move(1),
     'pageup': () => _move(-_page),
@@ -1120,7 +1121,8 @@ final class _TreeViewState<T> extends State<TreeView<T>>
           guides: widget.showGuides,
           style: style,
           guideStyle: guideStyle,
-          child: child,
+          // the hidden cursor on the selected node's label
+          child: ActiveItem(active: selected, child: child),
         ),
       ),
     );

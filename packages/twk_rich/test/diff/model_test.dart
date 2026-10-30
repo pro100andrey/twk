@@ -10,6 +10,7 @@
 import 'dart:io';
 
 import 'package:test/test.dart';
+import 'package:twk/twk.dart' show stripAnsi;
 import 'package:twk_rich/twk_rich.dart';
 
 /// [file]'s hunks as a unified diff writes them, without the headers.
@@ -297,6 +298,19 @@ deleted file mode 100644
     test('reads nothing from text with no diff in it', () {
       expect(Diff.parse('').files, isEmpty);
       expect(Diff.parse('hello\nworld\n').files, isEmpty);
+    });
+
+    test('takes a hunk header with numbers past 9 digits for none', () {
+      final huge = '9' * 30;
+      final file = Diff.parse(
+        '--- a/x\n+++ b/x\n@@ -$huge,$huge +1 @@\n x\n'
+        '@@ -999999999 +999999999 @@\n-a\n+b\n',
+      ).files.single;
+      expect(hunks(file), [
+        '@@ -999999999,1 +999999999,1 @@',
+        '-a',
+        '+b',
+      ]);
     });
 
     test("reads git's coloured output, its colours taken off by stripAnsi, "

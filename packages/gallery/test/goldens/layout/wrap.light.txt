@@ -4,36 +4,36 @@ text
 │                                                                                                                        │
 │   ⌕ Filter             /      Wrap                                                                           20 of 24  │
 │                               Children in runs that go on in the next run where they would not fit: tags, buttons      │
-│   TEXT                 4  ▐   and key hints on a terminal that narrows.                                                │
+│   TEXT                 5  ▐   and key hints on a terminal that narrows.                                                │
 │     Text                  ▐                                                                                            │
 │     Rich text             ▐   Preview   Code                                                                           │
 │     DefaultTextStyle      ▐───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
 │     Right to left         ▐                                                              │                             │
-│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
-│   LAYOUT              24                                                                 │                             │
-│     Box                        ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  width            36 cells  │
-│     ColoredBox, Decorat…                                                                 │  ─────────────▊▊──────────  │
-│     Container                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     Divider                           ┌                                      ┐           │  narrowing           ▐●  ▌  │
-│     Shadow                     ·   ·    ╭──────────────────────────────────╮   ·   ·     │                             │
-│     Padding                             │                  ╭─────╮         │             │  direction                  │
-│     Align, Center              ·   ·    │ dart   terminal  │a box│  twk    │   ·   ·     │   horizontal  vertical      │
-│     SizedBox                            │                  ╰─────╯         │             │                             │
-│     ConstrainedBox             ·   ·    │ 日本語   layout   runs           │   ·   ·     │  alignment                  │
-│     LimitedBox, Overflo…                │                                  │             │   start  end  center        │
-│     FractionallySizedBox       ·   ·    │                                  │   ·   ·     │   spaceBetween              │
-│     IntrinsicWidth/Heig…                │                                  │             │   spaceAround               │
-│     Row, Column, Flex          ·   ·    │                                  │   ·   ·     │   spaceEvenly               │
-│     Expanded, Spacer                    │                                  │             │                             │
-│     Stack, Positioned          ·   ·    ╰──────────────────────────────────╯   ·   ·     │  run alignment              │
-│     Transform                         └                                      ┘           │   start  end  center        │
-│     Visibility, Offstage       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  36 × 11  ·   ·     │   spaceBetween              │
-│     ExpansionTile, Acco…                                                                 │   spaceAround               │
-│     Grid, GridPlacement        ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   spaceEvenly               │
-│ ▎   Wrap                                                                                 │                             │
-│     CustomPaint                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  cross axis                 │
-│     SplitView                                                                            │   start  end  center        │
-│     DockArea                   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     ANSI                       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│                                                                                          │                             │
+│   LAYOUT              24       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  width            36 cells  │
+│     Box                                                                                  │  ─────────────▊▊──────────  │
+│     ColoredBox, Decorat…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Container                         ┌                                      ┐           │  narrowing           ▐●  ▌  │
+│     Divider                    ·   ·    ╭──────────────────────────────────╮   ·   ·     │                             │
+│     Shadow                              │                  ╭─────╮         │             │  direction                  │
+│     Padding                    ·   ·    │ dart   terminal  │a box│  twk    │   ·   ·     │   horizontal  vertical      │
+│     Align, Center                       │                  ╰─────╯         │             │                             │
+│     SizedBox                   ·   ·    │ 日本語   layout   runs           │   ·   ·     │  alignment                  │
+│     ConstrainedBox                      │                                  │             │   start  end  center        │
+│     LimitedBox, Overflo…       ·   ·    │                                  │   ·   ·     │   spaceBetween              │
+│     FractionallySizedBox                │                                  │             │   spaceAround               │
+│     IntrinsicWidth/Heig…       ·   ·    │                                  │   ·   ·     │   spaceEvenly               │
+│     Row, Column, Flex                   │                                  │             │                             │
+│     Expanded, Spacer           ·   ·    ╰──────────────────────────────────╯   ·   ·     │  run alignment              │
+│     Stack, Positioned                 └                                      ┘           │   start  end  center        │
+│     Transform                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  36 × 11  ·   ·     │   spaceBetween              │
+│     Visibility, Offstage                                                                 │   spaceAround               │
+│     ExpansionTile, Acco…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   spaceEvenly               │
+│     Grid, GridPlacement                                                                  │                             │
+│ ▎   Wrap                       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  cross axis                 │
+│     CustomPaint                                                                          │   start  end  center        │
+│     SplitView                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │                                                                                          │  gap                        │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
 styles
@@ -46,31 +46,31 @@ styles
 │aaaaappppappppaaaaaaaaaaaaadhhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaappppppppppppppppaaaaaadqqqrrrrrrrqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq│
 │aaaaapppppappappppaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
-│aaaddddddaaaaaaaaaaaaaaxxaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaapppaaaaaaaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhnnnnnhhhhhhhhhhhhEEhEEEEEhh│
-│aaaaapppppppppppappppppppaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhssssssssssssstsnnnnnnnnnnhh│
-│aaaaapppppppppaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaapppppppaaaaaaaaaaaaaaaahhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhqhhnnnnnnnnnhhhhhhhhhhhuvwwuhh│
-│aaaaappppppaaaaaaaaaaaaaaaaahhhhqhhhqhhhhuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaapppppppaaaaaaaaaaaaaaaahhhhhhhhhhhhhuhhhhhhhhhhhhhhhhhhuuuuuuuhhhhhhhhhuhhhhhhhhhhhhhqhhnnnnnnnnnhhhhhhhhhhhhhhhhhh│
-│aaaaappppppappppppaaaaaaaaaahhhhqhhhqhhhhuGHHHHGhIJJJJJJJJIhushsssuhKLLLKhhhuhhhqhhhqhhhhhqhhOPPPPPPPPPPOCDDDDDDDDChhhhh│
-│aaaaappppppppaaaaaaaaaaaaaaahhhhhhhhhhhhhuhhhhhhhhhhhhhhhhhhuuuuuuuhhhhhhhhhuhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaappppppppppppppaaaaaaaaahhhhqhhhqhhhhuMNNNNNNMhGHHHHHHGhIJJJJIhhhhhhhhhhuhhhqhhhqhhhhhqhhnnnnnnnnnhhhhhhhhhhhhhhhhhh│
-│aaaaapppppppppppappppppppaaahhhhhhhhhhhhhuhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhuhhhhhhhhhhhhhqhhOPPPPPOCDDDCCDDDDDDChhhhhhh│
-│aaaaappppppppppppppppppppaaahhhhqhhhqhhhhuhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhuhhhqhhhqhhhhhqhhCDDDDDDDDDDDDChhhhhhhhhhhhh│
+│aaaaappppaaaaaaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddaaaaaaaaaaaaaaxxaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhnnnnnhhhhhhhhhhhhEEhEEEEEhh│
+│aaaaapppaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhssssssssssssstsnnnnnnnnnnhh│
+│aaaaapppppppppppappppppppaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppaaaaaaaaaaaaaahhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhqhhnnnnnnnnnhhhhhhhhhhhuvwwuhh│
+│aaaaapppppppaaaaaaaaaaaaaaaahhhhqhhhqhhhhuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppaaaaaaaaaaaaaaaaahhhhhhhhhhhhhuhhhhhhhhhhhhhhhhhhuuuuuuuhhhhhhhhhuhhhhhhhhhhhhhqhhnnnnnnnnnhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppaaaaaaaaaaaaaaaahhhhqhhhqhhhhuGHHHHGhIJJJJJJJJIhushsssuhKLLLKhhhuhhhqhhhqhhhhhqhhOPPPPPPPPPPOCDDDDDDDDChhhhh│
+│aaaaappppppappppppaaaaaaaaaahhhhhhhhhhhhhuhhhhhhhhhhhhhhhhhhuuuuuuuhhhhhhhhhuhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppaaaaaaaaaaaaaaahhhhqhhhqhhhhuMNNNNNNMhGHHHHHHGhIJJJJIhhhhhhhhhhuhhhqhhhqhhhhhqhhnnnnnnnnnhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppppppppaaaaaaaaahhhhhhhhhhhhhuhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhuhhhhhhhhhhhhhqhhOPPPPPOCDDDCCDDDDDDChhhhhhh│
+│aaaaapppppppppppappppppppaaahhhhqhhhqhhhhuhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhuhhhqhhhqhhhhhqhhCDDDDDDDDDDDDChhhhhhhhhhhhh│
 │aaaaappppppppppppppppppppaaahhhhhhhhhhhhhuhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhuhhhhhhhhhhhhhqhhCDDDDDDDDDDDChhhhhhhhhhhhhh│
-│aaaaappppapppppppappppaaaaaahhhhqhhhqhhhhuhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhuhhhqhhhqhhhhhqhhCDDDDDDDDDDDChhhhhhhhhhhhhh│
-│aaaaapppppppppappppppaaaaaaahhhhhhhhhhhhhuhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhuhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaappppppappppppppppaaaaaahhhhqhhhqhhhhuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuhhhqhhhqhhhhhqhhnnnhnnnnnnnnnhhhhhhhhhhhhhh│
-│aaaaapppppppppaaaaaaaaaaaaaahhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhqhhOPPPPPOCDDDCCDDDDDDChhhhhhh│
-│aaaaapppppppppppappppppppaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhEEhEhEEhhqhhhqhhhhhqhhCDDDDDDDDDDDDChhhhhhhhhhhhh│
-│aaaaappppppppppppppapppppaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhCDDDDDDDDDDDChhhhhhhhhhhhhh│
-│aaaaapppppapppppppppppppaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhCDDDDDDDDDDDChhhhhhhhhhhhhh│
-│aQOOOPPPPOOOOOOOOOOOOOOOOOOahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaapppppppppppaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhnnnnnhnnnnhhhhhhhhhhhhhhhhh│
-│aaaaapppppppppaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhCDDDDDCCDDDCOPPPPPPOhhhhhhh│
-│aaaaappppppppaaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppppppppppppppaaahhhhqhhhqhhhhuhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhuhhhqhhhqhhhhhqhhCDDDDDDDDDDDChhhhhhhhhhhhhh│
+│aaaaappppapppppppappppaaaaaahhhhhhhhhhhhhuhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhuhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppappppppaaaaaaahhhhqhhhqhhhhuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuhhhqhhhqhhhhhqhhnnnhnnnnnnnnnhhhhhhhhhhhhhh│
+│aaaaappppppappppppppppaaaaaahhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhqhhOPPPPPOCDDDCCDDDDDDChhhhhhh│
+│aaaaapppppppppaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhEEhEhEEhhqhhhqhhhhhqhhCDDDDDDDDDDDDChhhhhhhhhhhhh│
+│aaaaapppppppppppappppppppaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhCDDDDDDDDDDDChhhhhhhhhhhhhh│
+│aaaaappppppppppppppapppppaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhCDDDDDDDDDDDChhhhhhhhhhhhhh│
+│aaaaapppppapppppppppppppaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aQOOOPPPPOOOOOOOOOOOOOOOOOOahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhnnnnnhnnnnhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppppaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhCDDDDDCCDDDCOPPPPPPOhhhhhhh│
+│aaaaapppppppppaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhnnnhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
 legend

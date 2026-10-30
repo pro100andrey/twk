@@ -24,6 +24,7 @@ import 'package:twk_core/twk_core.dart'
         RenderParagraph,
         stringWidth;
 
+import '../editing/caret.dart' show clearRestCursor, restCursor;
 import '../focus/focus_tree.dart' show FocusNode;
 import '../focus/shortcuts.dart' show KeyBindings;
 import '../foundation/change_notifier.dart';
@@ -1057,19 +1058,30 @@ final class _LogViewState extends State<LogView> {
     final fresh = c.newLines;
     // as of the last layout: none before it
     final room = _render?.width;
-    return KeyBindings(
-      {
-        if (c.query.isNotEmpty) ...{'n': c.nextMatch, 'N': c.previousMatch},
-        if (!widget.wrap) ...{
-          'left': _shift > 0 ? () => _scrollAcross(-LogView.sideStep) : null,
-          'right': room == null || _shift < _widest - room
-              ? () => _scrollAcross(LogView.sideStep)
-              : null,
+    final keysFor = (
+      c,
+      c.query.isNotEmpty,
+      widget.wrap,
+      _shift > 0,
+      room == null || _shift < _widest - room,
+    );
+    if (keysFor != _keysFor) {
+      _keysFor = keysFor;
+      final (_, matches, wrap, left, right) = keysFor;
+      _keys = {
+        if (matches) ...{'n': c.nextMatch, 'N': c.previousMatch},
+        if (!wrap) ...{
+          'left': left ? () => _scrollAcross(-LogView.sideStep) : null,
+          'right': right ? () => _scrollAcross(LogView.sideStep) : null,
         },
-      },
-      hints: {
-        if (c.query.isNotEmpty) ...{'n': 'next match', 'N': 'previous match'},
-      },
+      };
+      _keyHints = matches
+          ? const {'n': 'next match', 'N': 'previous match'}
+          : const {};
+    }
+    return KeyBindings(
+      _keys,
+      hints: _keyHints,
       child: Scrollbar(
         visibility: widget.scrollbar,
         child: Stack(
@@ -1095,6 +1107,12 @@ final class _LogViewState extends State<LogView> {
     );
   }
 
+  // the keys and their hints as last made, and what they were made of: the
+  // same maps while that is the same, which the bindings parse once
+  (LogController, bool, bool, bool, bool)? _keysFor;
+  var _keys = const <String, VoidCallback?>{};
+  var _keyHints = const <String, String>{};
+
   static bool _sameLook(_Look a, _Look? b) =>
       b != null &&
       a.time == b.time &&
@@ -1107,10 +1125,19 @@ final class _LogViewState extends State<LogView> {
       a.wrap == b.wrap &&
       a.showTime == b.showTime &&
       a.showLevel == b.showLevel &&
-      a.levels.length == b.levels.length &&
-      [
-        for (var i = 0; i < a.levels.length; i++) a.levels[i] == b.levels[i],
-      ].every((same) => same);
+      _sameStyles(a.levels, b.levels);
+
+  static bool _sameStyles(List<Style> a, List<Style> b) {
+    if (a.length != b.length) {
+      return false;
+    }
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   Widget _lineWidget(LogLine line, _Look look) {
     final time = line.time;
@@ -1123,9 +1150,8 @@ final class _LogViewState extends State<LogView> {
         (_tags[line.level.index], look.levels[line.level.index]),
     ];
     final query = look.query;
-    final found = line.number == widget.controller._match
-        ? look.current
-        : look.match;
+    final current = line.number == widget.controller._match;
+    final found = current ? look.current : look.match;
     var at = 0;
     if (query.pattern.isNotEmpty) {
       for (var i = query.indexIn(text); i >= 0;) {
@@ -1145,6 +1171,7 @@ final class _LogViewState extends State<LogView> {
       number: line.number,
       shift: look.wrap ? null : look.shift,
       spans: spans,
+      current: current,
     );
   }
 }
@@ -1255,18 +1282,21 @@ final class _RenderSelected extends RenderObject
 }
 
 /// A line of a [LogView]: its [number], and its [spans] scrolled [shift]
-/// columns across, or wrapped when [shift] is null.
+/// columns across, or wrapped when [shift] is null; [current] the line of
+/// the current match.
 final class _Line extends LeafRenderObjectWidget {
   const _Line({
     required this.number,
     required this.shift,
     required this.spans,
+    required this.current,
     super.key,
   });
 
   final int number;
   final int? shift;
   final List<(String, Style)> spans;
+  final bool current;
 
   /// [spans], their styles merged onto the [DefaultTextStyle] above.
   List<(String, Style)> _spansIn(BuildContext context) {
@@ -1276,14 +1306,15 @@ final class _Line extends LeafRenderObjectWidget {
 
   @override
   _RenderLine createRenderObject(BuildContext context) =>
-      _RenderLine(number, shift, _spansIn(context));
+      _RenderLine(number, shift, _spansIn(context))..current = current;
 
   @override
   void updateRenderObject(BuildContext context, _RenderLine renderObject) =>
       renderObject
         ..number = number
         ..shift = shift
-        ..spans = _spansIn(context);
+        ..spans = _spansIn(context)
+        ..current = current;
 }
 
 /// What a [_Line] lays out and paints: a paragraph of its spans, what is
@@ -1291,7 +1322,9 @@ final class _Line extends LeafRenderObjectWidget {
 /// with a [shift], as wide as it likes, [shift] columns of it off to the
 /// left and what does not fit cut off. The paragraph is its own, no
 /// [Text]'s: a [SelectionArea] selects in the line through the
-/// [_RenderSelected] above.
+/// [_RenderSelected] above. The line of the current match puts the hidden
+/// cursor on its first cell (`restCursor`), as an `ActiveItem` would, the
+/// list's items left lines.
 final class _RenderLine extends RenderObject with RenderObjectWithChildMixin {
   _RenderLine(this._number, this._shift, this._spans) {
     child = RenderParagraph(
@@ -1337,6 +1370,16 @@ final class _RenderLine extends RenderObject with RenderObjectWithChildMixin {
     }
     _shift = s;
     _place();
+  }
+
+  /// Whether it is the line of the current match.
+  bool get current => _current;
+  var _current = false;
+  set current(bool c) {
+    if (c != _current) {
+      _current = c;
+      markNeedsPaint();
+    }
   }
 
   // what is selected of it, offsets in its text, and in what style
@@ -1399,6 +1442,7 @@ final class _RenderLine extends RenderObject with RenderObjectWithChildMixin {
     properties
       ..add('number', _number)
       ..add('shift', _shift, defaultValue: null)
+      ..add('current', _current, defaultValue: false)
       ..add('selected', _selected, defaultValue: null);
   }
 
@@ -1429,6 +1473,12 @@ final class _RenderLine extends RenderObject with RenderObjectWithChildMixin {
 
   @override
   void paint(PaintContext ctx) {
+    // the hidden cursor on the current match's line
+    if (_current) {
+      restCursor(ctx, this, 0, 0);
+    } else {
+      clearRestCursor(ctx, this);
+    }
     ctx.canvas
       ..save()
       ..clipRect(0, 0, width, height);

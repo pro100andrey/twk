@@ -7,9 +7,6 @@ analyzer:
     # root's analysis_options.yaml, and the analyzer warns of a `plugins:`
     # anywhere else; its diagnostics, though, are what this file says.
     plugins_in_inner_options: ignore
-  # the inputs of the data-driven fixes' tests: the old API, on purpose
-  exclude:
-    - test_fixes/**
   language:
     strict-casts: true
     strict-inference: true

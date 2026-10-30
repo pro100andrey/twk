@@ -20,8 +20,10 @@ import 'package:test/test.dart';
 /// still does not hold, instead of a test that hangs or a sleep that
 /// guesses how long is long enough.
 ///
-/// [condition] may be asynchronous: it is awaited before the next look.
-/// [between] runs after each look that failed, before the next: a
+/// [condition] may be asynchronous: it is awaited before the next look,
+/// within what is left of [timeout] too, so a future of it that never
+/// completes fails as a condition that never holds does. [between] runs
+/// after each look that failed, before the next, bound the same way: a
 /// tester's `pump` there lets an app on a [FakeClock] take in what
 /// arrived in real time. What [condition] or [between] throws, this
 /// throws.
@@ -47,11 +49,23 @@ Future<void> waitUntil(
   FutureOr<void> Function()? between,
 }) async {
   final watch = Stopwatch()..start();
-  while (!await condition()) {
-    if (watch.elapsed > timeout) {
-      fail('waited ${_seconds(timeout)} for $what, in vain');
+  Never late() => fail('waited ${_seconds(timeout)} for $what, in vain');
+  Future<T> bounded<T>(FutureOr<T> value) async {
+    if (value is! Future<T>) {
+      return value;
     }
-    await between?.call();
+    final left = timeout - watch.elapsed;
+    return value.timeout(
+      left > Duration.zero ? left : Duration.zero,
+      onTimeout: late,
+    );
+  }
+
+  while (!await bounded(condition())) {
+    if (watch.elapsed > timeout) {
+      late();
+    }
+    await bounded(between?.call());
     await Future<void>.delayed(const Duration(milliseconds: 1));
   }
 }

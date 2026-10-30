@@ -18,16 +18,11 @@ void main() {
       expect(groupAbout, contains(group.title));
       for (final page in group.pages) {
         expect(
-          ['twk', 'twk_rich', 'twk_term', 'twk_cli'],
+          ['twk', 'twk_rich', 'twk_term'],
           contains(packageOf(group, page)),
         );
       }
     }
-    final app = catalog.singleWhere((g) => g.title == 'App');
-    expect(
-      packageOf(app, app.pages.singleWhere((p) => p.title == 'Cli')),
-      'twk_cli',
-    );
   });
 
   test('the API is linked for a class package:twk/twk.dart exports, and '

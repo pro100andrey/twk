@@ -82,7 +82,7 @@ What the gallery lets you change, and what each starts at:
 
 ## More
 
-- Also in Rich: [MarkdownView](markdownview.md), [CodeView](codeview.md), [SyntaxThemeScope](syntaxthemescope.md), [DiffView](diffview.md), [JsonView](jsonview.md), [QrCode](qrcode.md), [ANSI](ansi.md).
+- Also in Rich: [MarkdownView](markdownview.md), [CodeView](codeview.md), [SyntaxThemeScope](syntaxthemescope.md), [DiffView](diffview.md), [JsonView](jsonview.md), [QrCode](qrcode.md).
 - Live in the gallery:
   `dart run packages/gallery/bin/gallery.dart --route='#/rich/bigtext'`.
 - [Rich](../rich.md) · [All groups](../README.md)

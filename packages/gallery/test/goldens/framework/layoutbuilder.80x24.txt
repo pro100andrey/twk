@@ -17,9 +17,9 @@ text
 │   APP            8            ╰──────────────────╯╰──────────────────╯         │
 │     InputListener       ·   └                                          ┘    ·  │
 │     ErrorWidget                                                  40 × 8        │
-│     Static          ▐                                                          │
+│     Static                                                                     │
 │     TerminalProgr…  ▐──────────────────────────────────────────────────────────│
-│     Viewport           width      ───────────────────▉▉───────  40 cells       │
+│     Viewport        ▐  width      ───────────────────▉▉───────  40 cells       │
 │     Window title       wide from   24  30  36                                  │
 │     Notifications                                                              │
 │                                                                                │
@@ -42,9 +42,9 @@ styles
 │aaadddaaaaaaaaaaaazaaagggggggggrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrggggggggg│
 │aaaaaoooooooooooooaaaagggngggnggggggggggggggggggggggggggggggggggggggggggnggggngg│
 │aaaaaoooooooooooaaaaaaggggggggggggggggggggggggggggggggggggggggggggCCgCgCgggggggg│
-│aaaaaooooooaaaaaaaaaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaooooooaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaooooooooooooooaadnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn│
-│aaaaaooooooooaaaaaaaaaggmmmmmggggggpppppppppppppppppppxpmmmmmmmggCCgCCCCCggggggg│
+│aaaaaooooooooaaaaaaaadggmmmmmggggggpppppppppppppppppppxpmmmmmmmggCCgCCCCCggggggg│
 │aaaaaooooooaoooooaaaaaggmmmmgmmmmgghyyhtuuthyyhggggggggggggggggggggggggggggggggg│
 │aaaaaoooooooooooooaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│

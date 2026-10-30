@@ -5,7 +5,7 @@ import 'dart:convert';
 
 import 'package:test/test.dart';
 import 'package:twk_core/src/terminal/sequences.dart'
-    show pointerShapesFor, progressReportsFor;
+    show pointerNamesFor, progressReportsFor;
 import 'package:twk_core/twk_core.dart';
 
 void main() {
@@ -21,6 +21,18 @@ void main() {
         '\x1b]22;nwse-resize\x1b\\',
       );
       expect(pointerShapeSequence(null), '\x1b]22;\x1b\\');
+    });
+
+    test("OSC 22 with the X cursor font's name, empty where it has none", () {
+      String x11(PointerShape? shape) =>
+          pointerShapeSequence(shape, PointerNames.x11);
+      expect(x11(PointerShape.ewResize), '\x1b]22;sb_h_double_arrow\x1b\\');
+      expect(x11(PointerShape.nsResize), '\x1b]22;sb_v_double_arrow\x1b\\');
+      expect(x11(PointerShape.text), '\x1b]22;xterm\x1b\\');
+      expect(x11(PointerShape.pointer), '\x1b]22;hand2\x1b\\');
+      expect(x11(PointerShape.grabbing), '\x1b]22;fleur\x1b\\');
+      expect(x11(PointerShape.nwseResize), '\x1b]22;\x1b\\');
+      expect(x11(null), '\x1b]22;\x1b\\');
     });
 
     test("the names of kitty's protocol, each once", () {
@@ -89,7 +101,8 @@ void main() {
   });
 
   group('known to show the pointer shape', () {
-    test('by its own TERM, its TERM_PROGRAM or the variables it sets', () {
+    test('by CSS names: by its own TERM, its TERM_PROGRAM or the variables '
+        'it sets', () {
       for (final env in const [
         {'TERM': 'xterm-kitty'},
         {'TERM': 'xterm-ghostty'},
@@ -101,32 +114,73 @@ void main() {
         {'GHOSTTY_RESOURCES_DIR': '/usr/share/ghostty'},
         {'KONSOLE_VERSION': '260400'},
       ]) {
-        expect(pointerShapesFor(env), isTrue, reason: '$env');
+        expect(pointerNamesFor(env), PointerNames.css, reason: '$env');
       }
     });
 
-    test('not by other names, an earlier Konsole, another TERM_PROGRAM, or '
-        'inside tmux or screen', () {
-      for (final env in const [
-        <String, String>{},
-        {'TERM': 'xterm-256color'},
-        {'TERM_PROGRAM': 'iTerm.app'},
-        {'XTERM_VERSION': 'XTerm(390)'},
-        {'TERM_PROGRAM': 'mintty'},
-        {'TERM_PROGRAM': 'contour'},
-        {'TERM_PROGRAM': 'WezTerm', 'WEZTERM_PANE': '0'},
-        {'VTE_VERSION': '8200'},
-        {'WT_SESSION': 'x'},
-        {'KONSOLE_VERSION': '251200'},
-        {'TERM_PROGRAM': 'vscode', 'KITTY_WINDOW_ID': '1'},
-        {'TERM': 'tmux-256color', 'TMUX': '/tmp/t,1,0', 'KITTY_WINDOW_ID': '1'},
-        {
-          'TERM': 'screen.xterm-256color',
-          'STY': '1.pts',
-          'KITTY_WINDOW_ID': '1',
-        },
+    test("by the X cursor font's: iTerm2 3.7 on by its TERM_PROGRAM or "
+        'XTVERSION, xterm 367 on by XTVERSION over what it was started '
+        'from, or by XTERM_VERSION where it told no name', () {
+      for (final (env, version) in const [
+        ({'TERM_PROGRAM': 'iTerm.app', 'TERM_PROGRAM_VERSION': '3.7.0'}, ''),
+        ({'TERM_PROGRAM': 'iTerm.app', 'TERM_PROGRAM_VERSION': '3.7.7'}, ''),
+        (<String, String>{}, 'iTerm2 3.7.2'),
+        ({'TERM': 'xterm-256color'}, 'XTerm(367)'),
+        ({'KONSOLE_VERSION': '260400'}, 'XTerm(390)'),
+        // XTVERSION not asked
+        ({'TERM': 'xterm-256color', 'XTERM_VERSION': 'XTerm(390)'}, ''),
       ]) {
-        expect(pointerShapesFor(env), isFalse, reason: '$env');
+        expect(
+          pointerNamesFor(env, version: version),
+          PointerNames.x11,
+          reason: '$env $version',
+        );
+      }
+    });
+
+    test('not by other names, an earlier Konsole, iTerm2 or xterm, another '
+        'TERM_PROGRAM, or inside tmux or screen', () {
+      for (final (env, version) in const [
+        (<String, String>{}, ''),
+        ({'TERM': 'xterm-256color'}, ''),
+        ({'TERM_PROGRAM': 'iTerm.app'}, ''),
+        ({'TERM_PROGRAM': 'iTerm.app', 'TERM_PROGRAM_VERSION': '3.6.11'}, ''),
+        (<String, String>{}, 'iTerm2 3.6.11'),
+        ({'XTERM_VERSION': 'XTerm(366)'}, ''),
+        // another terminal, which told its name, started from xterm
+        ({'XTERM_VERSION': 'XTerm(390)'}, 'mlterm(3.9.3)'),
+        (<String, String>{}, 'XTerm(366)'),
+        ({'TERM_PROGRAM': 'Apple_Terminal'}, ''),
+        ({'TERM_PROGRAM': 'mintty'}, ''),
+        ({'TERM_PROGRAM': 'contour'}, ''),
+        ({'TERM_PROGRAM': 'WezTerm', 'WEZTERM_PANE': '0'}, ''),
+        ({'VTE_VERSION': '8200'}, ''),
+        ({'WT_SESSION': 'x'}, ''),
+        ({'KONSOLE_VERSION': '251200'}, ''),
+        ({'TERM_PROGRAM': 'vscode', 'KITTY_WINDOW_ID': '1'}, ''),
+        (
+          {
+            'TERM': 'tmux-256color',
+            'TMUX': '/tmp/t,1,0',
+            'KITTY_WINDOW_ID': '1',
+          },
+          '',
+        ),
+        ({'TERM_PROGRAM': 'tmux', 'TMUX': '/tmp/t,1,0'}, 'iTerm2 3.7.2'),
+        (
+          {
+            'TERM': 'screen.xterm-256color',
+            'STY': '1.pts',
+            'KITTY_WINDOW_ID': '1',
+          },
+          '',
+        ),
+      ]) {
+        expect(
+          pointerNamesFor(env, version: version),
+          isNull,
+          reason: '$env $version',
+        );
       }
     });
   });

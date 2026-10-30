@@ -70,7 +70,7 @@ final class TerminalInfo {
     this.notifications = NotificationProtocol.none,
     this.multiplexer = Multiplexer.none,
     this.plain = false,
-    this.pointerShapes = false,
+    this.pointerNames,
     this.progressReports = false,
     this.bidi = BidiReordering.app,
     this.declaredBrightness,
@@ -170,8 +170,10 @@ final class TerminalInfo {
   final bool colorSchemeReports;
 
   /// How the terminal shows desktop notifications ([Terminal.notify]): as
-  /// it declares ([TerminalDeclaration.notifications]), else by its
-  /// environment ([notificationProtocolFor]).
+  /// it declares ([TerminalDeclaration.notifications]), else Terminal.app's
+  /// bell where it answers the secondary device attributes as Terminal.app
+  /// (`1;95;0`, over ssh too), else by its environment
+  /// ([notificationProtocolFor]).
   final NotificationProtocol notifications;
 
   /// The multiplexer the program runs in, by its environment
@@ -189,10 +191,16 @@ final class TerminalInfo {
   final bool plain;
 
   /// Whether the terminal is known to show the mouse pointer in the shape
-  /// OSC 22 sets ([pointerShapeSequence]): as it declares
-  /// ([TerminalDeclaration.pointerShapes]), else by its environment
-  /// ([pointerShapesFor]).
-  final bool pointerShapes;
+  /// OSC 22 sets ([pointerShapeSequence]): where it names the shapes
+  /// ([pointerNames]).
+  bool get pointerShapes => pointerNames != null;
+
+  /// How the terminal names the pointer's shapes in OSC 22; null where it
+  /// isn't known to show them. As it declares
+  /// ([TerminalDeclaration.pointerShapes]): by CSS's names where it shows
+  /// them; else by its environment and its name and version
+  /// ([pointerNamesFor]).
+  final PointerNames? pointerNames;
 
   /// Whether the terminal is known to show a program's progress in its tab
   /// or taskbar (OSC 9;4, [progressSequence]): as it declares
@@ -229,7 +237,8 @@ final class TerminalInfo {
   /// Who puts right-to-left text in the order it reads: the app where the
   /// terminal does no bidi, or honours BDSM and is in explicit mode while
   /// it is open; the terminal where it reorders rows itself and can't be
-  /// told not to ([bidiReorderingFor]), and on plain output, whose reader
+  /// told not to ([bidiReorderingFor], or Terminal.app told by its
+  /// secondary device attributes over ssh), and on plain output, whose reader
   /// orders each line; or what [TerminalOptions.bidi] says. `TwkApp` draws
   /// text in visual order for the app (`PipelineOwner.textOrder`), in
   /// logical order for the terminal.
@@ -239,6 +248,7 @@ final class TerminalInfo {
   String toString() =>
       'sync=${caps.synchronizedOutput} rep=${caps.repeatChar} '
       'margins=${caps.leftRightMargins} konsoleLines=${caps.konsoleLines} '
+      'styledUnderlines=${caps.styledUnderlines} '
       'text=${textMode.name} ambiguous=$ambiguousWidth '
       'color=${colorMode.name} fg=${foregroundRgb?.toRadixString(16)} '
       'bg=${backgroundRgb?.toRadixString(16)} '
@@ -249,7 +259,8 @@ final class TerminalInfo {
       'alternateScreen=$alternateScreen cursorColumn=$cursorColumn '
       'colorSchemeReports=$colorSchemeReports '
       'notifications=${notifications.name} multiplexer=${multiplexer.name} '
-      'pointerShapes=$pointerShapes progressReports=$progressReports '
+      'pointerNames=${pointerNames?.name} '
+      'progressReports=$progressReports '
       'bidi=${bidi.name} '
       'graphics=${caps.graphics.name} konsoleImages=${caps.konsoleImages} '
       'cell=${caps.cellPixelWidth}x${caps.cellPixelHeight}px plain=$plain';
@@ -332,7 +343,8 @@ final class TerminalOptions {
   final bool normalScreenMouse;
 
   /// Bracketed paste (mode 2004), on by default: a paste comes as one
-  /// [PasteEvent] rather than as keys. Ignored by terminals without it.
+  /// [PasteEvent] rather than as keys (a very long one as several,
+  /// [InputParser.pasteLimit]). Ignored by terminals without it.
   final bool bracketedPaste;
 
   /// Focus reports (mode 1004), on by default: [FocusEvent]s when the
@@ -440,6 +452,29 @@ ColorMode colorModeFor(Map<String, String> env, {bool windows = false}) {
   return ColorMode.ansi16;
 }
 
+/// Whether the terminal shows the underline styles of SGR `4:2` to `4:5`
+/// ([TerminalCaps.styledUnderlines]), by its environment: all but
+/// Terminal.app, which reads `4:3` as `43`, a yellow background. A `TERM`
+/// of a terminal of its own (kitty, ghostty, Alacritty, foot, WezTerm)
+/// comes before a `TERM_PROGRAM` inherited from the Terminal.app it was
+/// started in. Over ssh Terminal.app's `TERM_PROGRAM` is not passed on:
+/// the probe tells it there by its secondary device attributes.
+///
+/// ```dart
+/// print(styledUnderlinesFor({'TERM_PROGRAM': 'Apple_Terminal'})); // false
+/// ```
+bool styledUnderlinesFor(Map<String, String> env) => !_isAppleTerminal(env);
+
+/// Whether the environment names Terminal.app: its `TERM_PROGRAM`, not
+/// inherited by a terminal whose `TERM` is its own
+/// ([termNamesItsOwnTerminal]) started from it.
+bool _isAppleTerminal(Map<String, String> env) {
+  if (env['TERM_PROGRAM'] != 'Apple_Terminal') {
+    return false;
+  }
+  return !termNamesItsOwnTerminal(env['TERM'] ?? '');
+}
+
 /// Whether the terminal's colors are dark or light as its environment
 /// declares them: `COLORFGBG`, which rxvt, Konsole and others set to the
 /// palette indexes of their default text and background (`15;0`, or
@@ -468,6 +503,9 @@ Brightness? brightnessFor(Map<String, String> env) {
 /// for their programs (inherited inside tmux or screen too). A
 /// `TERM_PROGRAM` of another terminal gives [NotificationProtocol.none]:
 /// such variables are then those of the terminal it was started from.
+/// Terminal.app (`Apple_Terminal`), which shows none of a program's, has
+/// its bell rung ([NotificationProtocol.bell]); not a terminal of a `TERM`
+/// of its own started from it ([termNamesItsOwnTerminal]).
 NotificationProtocol notificationProtocolFor(Map<String, String> env) {
   const osc777 = NotificationProtocol.osc777;
   final term = env['TERM'] ?? '';
@@ -485,6 +523,10 @@ NotificationProtocol notificationProtocolFor(Map<String, String> env) {
   switch (env['TERM_PROGRAM'] ?? '') {
     case 'iTerm.app':
       return NotificationProtocol.osc9;
+    case 'Apple_Terminal':
+      return _isAppleTerminal(env)
+          ? NotificationProtocol.bell
+          : NotificationProtocol.none;
     case 'WezTerm' || 'ghostty':
       return osc777;
     case '' || 'tmux':
@@ -807,6 +849,14 @@ final class Terminal
   /// and [suspend] hands the terminal to another program of the process.
   final bool _ofProcess;
 
+  /// Whether the shell the process was started from has the terminal,
+  /// with job control, while the process is stopped ([stopForShell]): the
+  /// process's own terminal (stdin and stdout, [open]) on a POSIX system,
+  /// not plain output, nor a terminal over a link or a socket ([connect]),
+  /// whose shell, where there is one, doesn't run this process.
+  bool get stopsForShell =>
+      _ofProcess && !isWindows && !info.plain && isOwnTerminal(_link);
+
   /// Where what is read and what is written are recorded
   /// (`TWK_TRACE_INPUT`, `TWK_TRACE_OUTPUT`); null when not asked for.
   final TraceWriter? _inputTrace;
@@ -1102,8 +1152,29 @@ final class Terminal
     settings: settings,
   );
 
-  static const _ambiguousProbe =
-      '\x1b[?2026h\x1b[?1049h\x1b[H\u2500\x1b[6n\x1b[?1049l\x1b[?2026l';
+  /// The probe's [queries] on the alternate screen, inside a synchronized
+  /// update, then U+2500 drawn at the home position and the cursor asked
+  /// where it went: what the terminal shows of a query it doesn't know is
+  /// left on a screen that is let go.
+  static String _onAlternateScreen(String queries) =>
+      '\x1b[?2026h\x1b[?1049h$queries'
+      '\x1b[H\u2500\x1b[6n\x1b[?1049l\x1b[?2026l';
+
+  /// The probe's [queries] inline: where the cursor is asked (the region's
+  /// column), it is kept (DECSC), and the queries go to the alternate
+  /// screen, inside a synchronized update, before it is asked again where
+  /// it is: where the terminal has no alternate screen and showed some of
+  /// them, it moved ([_putBack]).
+  static String _inPlace(String queries) =>
+      '\x1b[6n\x1b7\x1b[?2026h\x1b[?1049h$queries'
+      '\x1b[?1049l\x1b[?2026l\x1b[6n';
+
+  /// The cursor put back where [_inPlace] kept it (DECRC), and what the
+  /// terminal [shown] of its queries erased to the end of the line (EL):
+  /// nothing erased where it showed nothing, a fixed viewport writing
+  /// nothing outside it.
+  static String _putBack({required bool shown}) =>
+      '\x1b8${shown ? '\x1b[K' : ''}';
 
   /// Queries the terminal; what the user types meanwhile goes to [early].
   /// Returns what it found and its answer about BDSM ([bidiModeQuery]),
@@ -1125,13 +1196,22 @@ final class Terminal
     var kitty = false;
     var ambiguous = 1;
     int? column;
+    int? shownTo;
     var attributes = const <int>[];
     var kittyGraphics = false;
     var version = '';
     var cellWidth = 0;
     var cellHeight = 0;
     int? bidiMode;
-    final done = Completer<bool>();
+    var secondary = const <int>[];
+    // the queries, all in one write, which the device attributes end
+    final round = Completer<bool>()..future.ignore();
+    void fail(Object e, StackTrace st) {
+      if (!round.isCompleted) {
+        round.completeError(e, st);
+      }
+    }
+
     input
       ..onData((bytes) {
         inputTrace?.add(bytes);
@@ -1141,9 +1221,7 @@ final class Terminal
         } on Object catch (e, st) {
           // a stream callback: an error here would escape open()'s try and
           // kill the process with the console still raw
-          if (!done.isCompleted) {
-            done.completeError(e, st);
-          }
+          fail(e, st);
           return;
         }
         for (final e in events) {
@@ -1164,8 +1242,10 @@ final class Terminal
             case CursorReport(:final x):
               if (o.alternateScreen) {
                 ambiguous = x >= 2 ? 2 : 1;
-              } else {
+              } else if (column == null) {
                 column = x;
+              } else {
+                shownTo = x; // after the queries asked in place
               }
             case UnknownSequence(:final bytes) when _isProbeReply(bytes):
               final s = String.fromCharCodes(bytes);
@@ -1175,6 +1255,10 @@ final class Terminal
                 version = s.substring(4).replaceFirst(_stringEnd, '');
               } else if (_bidiModeReply.firstMatch(s) case final m?) {
                 bidiMode = int.parse(m[1]!);
+              } else if (_secondaryReply.firstMatch(s) case final m?) {
+                secondary = [
+                  for (final p in m[1]!.split(';')) int.tryParse(p) ?? 0,
+                ];
               } else {
                 final m = _cellSizeReply.firstMatch(s)!;
                 cellHeight = int.parse(m[1]!);
@@ -1182,29 +1266,35 @@ final class Terminal
               }
             case DeviceAttributes(:final params):
               attributes = params;
-              if (!done.isCompleted) {
-                done.complete(true);
+              if (!round.isCompleted) {
+                round.complete(true);
               }
             default:
               early.add(e); // the user typed during the probe
           }
         }
       })
-      ..onError((Object e, StackTrace s) {
-        // the shell went away
-        if (!done.isCompleted) {
-          done.completeError(e, s);
-        }
-      });
-    // The ambiguous width is measured where it can't leave a trace: on the
-    // alternate screen, inside a synchronized update (no flash where that
-    // is supported), by drawing U+2500 at the home position and asking
-    // where the cursor went (CSI 6 n). The inline mode asks where the
-    // cursor is instead: its region starts on a line of its own. Before
-    // that a cell's size in pixels is asked and, unless the protocol images
-    // are shown with is given, kitty's graphics query and the terminal's
-    // name and version (XTVERSION), not in a multiplexer, which answers
-    // them itself; sixel comes with the device attributes (DA1, last).
+      ..onError(fail); // the shell went away
+    // The queries are asked where they leave no trace (a terminal that
+    // doesn't know one may print it: Terminal.app prints the last byte of
+    // a DECRQM and the body of kitty's graphics query, GNU screen the
+    // DECRQM's): on the alternate screen, inside a synchronized update (no
+    // flash where that is supported), all in one write, answered in one
+    // round trip, as fish asks its own. Full screen, the ambiguous width
+    // is then measured by drawing U+2500 at the home position and asking
+    // where the cursor went (CSI 6 n). Inline, where the cursor is is
+    // asked first, on the normal screen (the region starts on a line of
+    // its own), and again once the alternate screen is let go: a terminal
+    // without one (GNU screen without `altscreen on`, the Linux console)
+    // moved it showing a query, whose cells on its line are then erased.
+    // GNU screen, whose alternate screen may be off, is asked no DECRQM,
+    // which it prints. Among the queries
+    // are a cell's size in pixels, the secondary device attributes (DA2,
+    // by which Terminal.app is told over ssh too: `1;95;0`) and, unless the
+    // protocol images are shown with is given, the graphics query and the
+    // terminal's name and version (XTVERSION), not in a multiplexer, which
+    // answers them itself; sixel comes with the device attributes (DA1,
+    // last).
     final env = link.environment;
     // what the terminal declares comes before the guess by its name
     final declared = link is DeclaringLink
@@ -1214,33 +1304,47 @@ final class Terminal
         o.graphics == null &&
         declared.graphics == null &&
         !GraphicsProtocol.values.any((p) => p.name == env['TWK_GRAPHICS']);
-    final graphicsQueries = detect && multiplexerFor(env) == Multiplexer.none
-        ? '$_kittyGraphicsQuery\x1b[>0q'
-        : '';
-    parser.expectCursorReport = true;
-    final queries = utf8.encode(
-      '\x1b[?2026\$p\x1b[?2027\$p\x1b[?2048\$p\x1b[?69\$p'
-      '\x1b[?2031\$p$bidiModeQuery'
-      '\x1b]10;?\x1b\\\x1b]11;?\x1b\\$_paletteQuery'
-      '${o.kittyKeyboard ? '\x1b[?u' : ''}'
-      '\x1b[16t$graphicsQueries'
-      '${o.alternateScreen ? _ambiguousProbe : '\x1b[6n'}'
+    final askName = detect && multiplexerFor(env) == Multiplexer.none;
+    final term = env['TERM'] ?? '';
+    final screenLike = term.startsWith('screen') || env.containsKey('STY');
+    // what Terminal.app prints of them stays on the alternate screen:
+    // asked of it too, as of a terminal started from it, which keeps its
+    // TERM_PROGRAM
+    final asked =
+        '${screenLike ? '' : _modeQueries}'
+        '\x1b]10;?\x1b\\\x1b]11;?\x1b\\$_paletteQuery'
+        '${o.kittyKeyboard ? '\x1b[?u' : ''}'
+        '\x1b[16t${askName ? _kittyGraphicsQuery : ''}'
+        '${askName ? '\x1b[>0q' : ''}'
+        // the Linux console may take it for DA1
+        '${term == 'linux' ? '' : '\x1b[>c'}';
+    // inline, where the cursor is before the queries and after them
+    parser.cursorReportsExpected = o.alternateScreen ? 1 : 2;
+    final bytes = utf8.encode(
+      '${o.alternateScreen ? _onAlternateScreen(asked) : _inPlace(asked)}'
       '\x1b[c',
     );
-    link.add(queries);
-    outputTrace?.add(queries);
+    link.add(bytes);
+    outputTrace?.add(bytes);
     await link.flush();
-    final answered = await done.future.timeout(
+    final answered = await round.future.timeout(
       o.probeTimeout,
       onTimeout: () => false,
     );
+    if (!o.alternateScreen) {
+      final back = utf8.encode(
+        _putBack(shown: shownTo != null && shownTo != column),
+      );
+      link.add(back);
+      outputTrace?.add(back);
+      await link.flush();
+    }
     if (answered) {
       // a terminal that ignores CSI 6 n: Shift+F3 must stay a key
       parser.expectCursorReport = false;
     }
 
     bool supported(int mode) => modes[mode]?.supported ?? false;
-    final term = env['TERM'] ?? '';
     final program = env['TERM_PROGRAM'] ?? '';
 
     final color = colorModeFor(env, windows: link.windows);
@@ -1252,8 +1356,6 @@ final class Terminal
         term == 'xterm-kitty' ||
         env.containsKey('WT_SESSION') ||
         program == 'WezTerm';
-
-    final screenLike = term.startsWith('screen') || env.containsKey('STY');
 
     // REP (CSI n b) has no capability query; enable it only for terminals
     // that declare it, or are known to implement it.
@@ -1276,6 +1378,24 @@ final class Terminal
     final multiplexer = multiplexerFor(env);
     // Konsole's lines and its images come with Konsole itself
     final konsole = konsoleLinesFor(env, version: version);
+    // The environment as the terminal tells it by its secondary device
+    // attributes (as vim tells Terminal.app, `1;95;0`): Terminal.app's
+    // TERM_PROGRAM where it answers so, also over ssh, which doesn't pass
+    // it on; none where another answers, a terminal started from
+    // Terminal.app that keeps it (xterm, `41;…`). Not through a
+    // multiplexer, which answers them itself.
+    final told = _toldEnvironment(
+      env,
+      multiplexer == Multiplexer.none ? secondary : const [],
+    );
+    final apple = _isAppleTerminal(told);
+    // a terminal that declares it shows the shapes is twk's, which names
+    // them by CSS's names
+    final pointerNames = switch (declared.pointerShapes) {
+      true => PointerNames.css,
+      false => null,
+      null => pointerNamesFor(told, version: version),
+    };
     final graphics =
         o.graphics ??
         declared.graphics ??
@@ -1291,6 +1411,14 @@ final class Terminal
         // GNU screen without `defbce on` erases with the default background
         backgroundColorErase: !screenLike,
         repeatChar: repeatChar,
+        // Terminal.app misreads 4:3: a plain underline it shows
+        styledUnderlines:
+            declared.styledUnderlines ?? styledUnderlinesFor(told),
+        // Terminal.app's DCH shifts a line only up to where the cursor
+        // last jumped and drops the background an EL gave the rest of it:
+        // its cells are written again instead, which costs bytes, never
+        // cells
+        insertDelete: !(apple && multiplexer == Multiplexer.none),
         konsoleLines: konsole,
         konsoleImages: konsole,
         leftRightMargins: supported(69) && !screenLike,
@@ -1320,12 +1448,13 @@ final class Terminal
       cursorColumn: column,
       colorSchemeReports: supported(2031),
       declaredBrightness: brightnessFor(env),
-      notifications: declared.notifications ?? notificationProtocolFor(env),
+      notifications: declared.notifications ?? notificationProtocolFor(told),
       multiplexer: multiplexer,
-      pointerShapes: declared.pointerShapes ?? pointerShapesFor(env),
+      pointerNames: pointerNames,
       progressReports:
-          declared.progressReports ?? progressReportsFor(env, version: version),
-      bidi: o.bidi ?? bidiReorderingFor(env, mode: bidiMode, version: version),
+          declared.progressReports ??
+          progressReportsFor(told, version: version),
+      bidi: o.bidi ?? bidiReorderingFor(told, mode: bidiMode, version: version),
       settings: settings,
     );
     return (info, bidiMode);
@@ -1337,6 +1466,13 @@ final class Terminal
   static const _paletteQuery =
       '\x1b]4;0;?;1;?;2;?;3;?;4;?;5;?;6;?;7;?;'
       '8;?;9;?;10;?;11;?;12;?;13;?;14;?;15;?\x1b\\';
+
+  /// DECRQM for the modes the probe asks about: synchronized output, the
+  /// grapheme mode, in-band resizes, left and right margins, color scheme
+  /// reports, and BDSM.
+  static const _modeQueries =
+      '\x1b[?2026\$p\x1b[?2027\$p\x1b[?2048\$p\x1b[?69\$p'
+      '\x1b[?2031\$p$bidiModeQuery';
 
   /// kitty's graphics query: a 1x1 image it would show, answered with
   /// `APC G i=31 ; OK ST` where the protocol is there.
@@ -1352,18 +1488,49 @@ final class Terminal
   /// `CSI 8 ; Ps $ y`: the answer about BDSM ([bidiModeQuery]).
   static final _bidiModeReply = RegExp(r'^\x1b\[8;(\d+)\$y$');
 
+  /// `CSI > Pp ; Pv ; Pc c`: the secondary device attributes (DA2), the
+  /// terminal's kind, version and keyboard.
+  static final _secondaryReply = RegExp(r'^\x1b\[>([\d;]*)c$');
+
   /// What [_states] keeps BDSM under.
   static final _bidiMode = Object();
 
   /// A reply to one of the probe's queries the input parser doesn't know:
   /// kitty's graphics query, XTVERSION (`DCS > | name ST`), the cell size,
   /// BDSM.
+  /// [env] as the terminal's secondary device attributes, [secondary]
+  /// (none for no answer), tell it: Terminal.app's `TERM_PROGRAM` where
+  /// they are Terminal.app's, without it where they are another's.
+  static Map<String, String> _toldEnvironment(
+    Map<String, String> env,
+    List<int> secondary,
+  ) {
+    if (secondary.isEmpty) {
+      return env;
+    }
+    final apple =
+        secondary.length == 3 &&
+        secondary[0] == 1 &&
+        secondary[1] == 95 &&
+        secondary[2] == 0;
+    final named = env['TERM_PROGRAM'] == 'Apple_Terminal';
+    if (apple == named) {
+      return env;
+    }
+    return apple
+        ? {...env, 'TERM_PROGRAM': 'Apple_Terminal'}
+        : ({...env}
+            ..remove('TERM_PROGRAM')
+            ..remove('TERM_PROGRAM_VERSION'));
+  }
+
   static bool _isProbeReply(List<int> bytes) {
     final s = String.fromCharCodes(bytes);
     return s.startsWith('\x1b_G') ||
         s.startsWith('\x1bP>|') ||
         _cellSizeReply.hasMatch(s) ||
-        _bidiModeReply.hasMatch(s);
+        _bidiModeReply.hasMatch(s) ||
+        _secondaryReply.hasMatch(s);
   }
 
   // --------------------------------------------------------------- modes --
@@ -1452,6 +1619,10 @@ final class Terminal
     String restore, {
     Duration? refresh,
   }) {
+    assert(
+      '$sequence$restore'.codeUnits.every((c) => c < 0x80),
+      'a terminal state is set and put back in ASCII',
+    );
     if (_closed || info.plain) {
       return;
     }
@@ -1630,11 +1801,19 @@ final class Terminal
     _parser.expectCursorReport = false;
   }
 
+  /// Running while the answer to a resume's cursor query that came too
+  /// late may still come: it is dropped.
+  Timer? _lateCursorTimer;
+
   void _deliver(InputEvent e) {
     if (e is CursorReport) {
       final asked = _cursorAsked;
       if (asked != null && !asked.isCompleted) {
         asked.complete(e.x);
+        return;
+      }
+      if (_lateCursorTimer?.isActive ?? false) {
+        _lateCursorTimer!.cancel();
         return;
       }
     }
@@ -1656,6 +1835,8 @@ final class Terminal
     if (e is ResizeEvent) {
       width = e.width;
       height = e.height;
+    } else if (e is FocusEvent) {
+      _focused = e.focused;
     }
     _events.add(e);
     if (e is ColorSchemeReport) {
@@ -1723,6 +1904,16 @@ final class Terminal
     }
     _suspended = true;
     _input.pause();
+    // what was read before is the app's: resolved now, not by a timer
+    // while the other program has the terminal, nor joined to what comes
+    // after
+    _escTimer?.cancel();
+    _pasteTimer?.cancel();
+    if (_parser.inPaste) {
+      _parse(_parser.endPaste);
+    } else if (_parser.hasPending) {
+      _parse(_parser.flush);
+    }
     try {
       _writeString(_exitSequence());
       _link.restoreWith(const []);
@@ -1771,7 +1962,16 @@ final class Terminal
         onTimeout: () => -1,
       );
       _cursorAsked = null;
-      _parser.expectCursorReport = false;
+      if (column < 0) {
+        // the answer may still come, and is no key (CSI 1;2R is Shift+F3)
+        _lateCursorTimer?.cancel();
+        _lateCursorTimer = Timer(
+          const Duration(seconds: 5),
+          () => _parser.expectCursorReport = false,
+        );
+      } else {
+        _parser.expectCursorReport = false;
+      }
     }
     if (!options.alternateScreen && column != 0 && !_closed) {
       _writeString('\r\n');
@@ -1827,13 +2027,20 @@ final class Terminal
 
   var _notifications = 0;
 
+  // whether the terminal's window has the focus, as its last focus report
+  // said; with none, it is taken to have it
+  var _focused = true;
+
   /// Shows a desktop notification of [title] and [body] where the terminal
   /// is known to show one ([TerminalInfo.notifications]), through tmux or
   /// screen ([TerminalInfo.multiplexer]); does nothing elsewhere. See
-  /// [notifySequence] for what is sent.
+  /// [notifySequence] for what is sent. Terminal.app's bell
+  /// ([NotificationProtocol.bell]) is rung only while its window doesn't
+  /// have the focus ([FocusEvent], [TerminalOptions.focusEvents]).
   @override
   void notify(String title, String body) {
-    if (_closed) {
+    if (_closed ||
+        (info.notifications == NotificationProtocol.bell && _focused)) {
       return;
     }
     final s = notifySequence(
@@ -1884,6 +2091,7 @@ final class Terminal
     _escTimer?.cancel();
     _pasteTimer?.cancel();
     _lateProbeTimer?.cancel();
+    _lateCursorTimer?.cancel();
     for (final timer in _refreshes.values) {
       timer.cancel();
     }

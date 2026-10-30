@@ -626,6 +626,35 @@ void main() {
     expect(() => t.act(() => throw StateError('no')), throwsStateError);
   });
 
+  testTwk('act awaits an async function before the frame, the clock moved '
+      'on as far as it waits, and throws what it completes with', (t) async {
+    final count = ValueNotifier(0);
+    await t.pumpWidget(
+      ValueListenableBuilder(
+        valueListenable: count,
+        builder: (context, value, _) => Text('$value'),
+      ),
+      size: (4, 1),
+    );
+    final at = t.clock.elapsed;
+    await t.act(() async {
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      count.value = 3;
+    });
+    expect(t.lines, ['3']);
+    expect(
+      t.clock.elapsed - at,
+      greaterThanOrEqualTo(const Duration(milliseconds: 200)),
+    );
+    await expectLater(
+      t.act(() async {
+        await null;
+        throw StateError('later');
+      }),
+      throwsStateError,
+    );
+  });
+
   testTwk('written is what the app wrote, as text: every frame, or the '
       'frames from one on', (t) async {
     await t.pumpWidget(const Text('one'), size: (6, 1));

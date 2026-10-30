@@ -4,7 +4,6 @@ import 'dart:math' as math;
 
 import 'package:twk/twk.dart';
 
-import '../motion.dart';
 import '../page.dart';
 import 'common.dart';
 
@@ -25,53 +24,11 @@ Widget _inRoom(Widget Function(int room) build) => LayoutBuilder(
       build(c.maxH < BoxConstraints.unbounded ? c.maxH : 1 << 20),
 );
 
-/// [parts] as one line of the Code, a line too long for this file.
-String _line(List<String> parts) => parts.join();
-
 /// The lines of a State whose timer calls [body] every [ms], and a blank.
 List<String> _timer(int ms, List<String> body) => [
   ...timerLines(ms, body),
   '',
 ];
-
-/// Builds [builder] with the gallery's time in milliseconds, again at each
-/// time it asks for with `wake`: what the Code's timers move, on the
-/// gallery's clock, so that a route's `t=` stills it.
-final class _Timed extends StatefulWidget {
-  const _Timed(this.builder);
-
-  final Widget Function(BuildContext context, int ms, void Function(int) wake)
-  builder;
-
-  @override
-  State<_Timed> createState() => _TimedState();
-}
-
-final class _TimedState extends State<_Timed> {
-  late final _motion = Motion(() {
-    if (mounted) {
-      setState(() {});
-    }
-  });
-
-  @override
-  void dispose() {
-    _motion.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    _motion.begin(context);
-    final built = widget.builder(
-      context,
-      _motion.now.inMilliseconds,
-      (at) => _motion.wakeAt(Duration(milliseconds: at)),
-    );
-    _motion.end();
-    return built;
-  }
-}
 
 /// The step of [step] ms that [ms] is in; asks for a build at the next.
 int _tick(int ms, int step, void Function(int) wake) {
@@ -128,7 +85,7 @@ final _sparkline = GalleryPage(
       initial: 'info',
     ),
   ],
-  build: (context, o) => _Timed((context, ms, wake) {
+  build: (context, o) => Timed((context, ms, wake) {
     final k = o.flag('live') ? _tick(ms, _step, wake) : 0;
     final f = _series[o.choice<String>('data')]!.$1;
     return SizedBox(
@@ -149,7 +106,7 @@ final _sparkline = GalleryPage(
       '  width: 48,',
       '  height: ${o.label('rows')},',
       if (o.choice<double?>('max') == null)
-        _line([
+        codeLine([
           '  child: Sparkline(data: _data, style: ',
           'Theme.of(context).${o.color('color')}),',
         ])
@@ -241,7 +198,7 @@ final _gauge = GalleryPage(
     const ColorOption('color', 'style', values: _colors, initial: 'primary'),
     const SwitchOption('segmented', 'segmented'),
   ],
-  build: (context, o) => _Timed((context, ms, wake) {
+  build: (context, o) => Timed((context, ms, wake) {
     final control = PageControl.of(context);
     final kept = control.state;
     final ratio = o.number('ratio');
@@ -304,13 +261,13 @@ final _gauge = GalleryPage(
         ? [
             'var _ratio = 0.0;',
             '',
-            _line([
+            codeLine([
               '// from empty to full in ${_fillMs ~/ 1000} s, full for ',
               '${_holdMs ~/ 1000} s, and again',
             ]),
             ..._timer(_gaugeTick, [
               '(timer) {',
-              _line([
+              codeLine([
                 '  final ms = timer.tick * $_gaugeTick % ',
                 '${_fillMs + _holdMs};',
               ]),
@@ -339,7 +296,7 @@ final _gauge = GalleryPage(
       '            ratio: _ratio,',
       if (label == 'own') '            label: percent,',
       if (label == 'none') "            label: '',",
-      _line([
+      codeLine([
         '            style: theme.${o.color('color')}',
         '.merge(.new(bg: theme.surface.bg)),',
       ]),
@@ -413,7 +370,7 @@ final _barChart = GalleryPage(
     SwitchOption('live', 'live', initial: true),
   ],
   build: (context, o) => _inRoom(
-    (room) => _Timed((context, ms, wake) {
+    (room) => Timed((context, ms, wake) {
       final theme = Theme.of(context);
       final t = o.flag('live')
           ? _tick(ms, _barTick, wake) * _barTick / 1000
@@ -485,7 +442,7 @@ final _barChart = GalleryPage(
       ] else
         '  const values = _base;',
       '  Bar bar(int k, String label, [Style style = const Style()]) =>',
-      _line([
+      codeLine([
         r"      Bar(values[k], label: label, text: '${values[k].round()}', ",
         'style: style);',
       ]),
@@ -577,7 +534,7 @@ final _chart = GalleryPage(
     const SwitchOption('live', 'live', initial: true),
   ],
   build: (context, o) => _inRoom(
-    (room) => _Timed((context, ms, wake) {
+    (room) => Timed((context, ms, wake) {
       // the waves run to the right, two radians a second
       final phase = o.flag('live') ? _tick(ms, _waveTick, wake) * .1 : 0;
       List<(double, double)> wave(double Function(num) f) => [
@@ -632,7 +589,7 @@ final _chart = GalleryPage(
       ],
       '/// [f] at 61 points from 0 to 2π.',
       'List<(double, double)> _wave(double Function(num) f) => [',
-      _line([
+      codeLine([
         '  for (var i = 0; i <= 60; i++) (i * pi / 30, f(i * pi / 30',
         "${live ? ' - _phase' : ''})),",
       ]),
@@ -647,11 +604,11 @@ final _chart = GalleryPage(
       "    legendPosition: ${legend == null ? 'null' : '.$legend'},",
       '    style: Theme.of(context).muted,',
       '    datasets: [',
-      _line([
+      codeLine([
         "      Dataset(data: _wave(sin), name: 'sin', type: .$graph, ",
         'color: .cyan),',
       ]),
-      _line([
+      codeLine([
         "      Dataset(data: _wave(cos), name: 'cos', type: .$graph, ",
         'color: .yellow),',
       ]),
@@ -681,7 +638,7 @@ final _dotCanvas = GalleryPage(
     const SwitchOption('live', 'live', initial: true),
   ],
   build: (context, o) => _inRoom(
-    (room) => _Timed((context, ms, wake) {
+    (room) => Timed((context, ms, wake) {
       final live = o.flag('live');
       final t = live ? _tick(ms, _waveTick, wake) * _waveTick / 1000 : 0;
       final hand = math.pi / 2 - 2 * math.pi * t * 1000 / _spinMs;
@@ -810,7 +767,7 @@ final _calendar = GalleryPage(
       'static const _meetings = {${_meetings.join(', ')}};',
       '',
       'static bool _meeting(DateTime date) =>',
-      _line([
+      codeLine([
         '    date.year == 2026 && date.month == 10 && ',
         '_meetings.contains(date.day);',
       ]),
@@ -1107,7 +1064,7 @@ final _table = GalleryPage(
     final own = [
       if (many) 'final _files = _ManyFiles();',
       if (!none)
-        _line([
+        codeLine([
           'final _controller = TableController(selectedKey: ',
           "${many ? '0' : "'box.dart'"});",
         ]),
@@ -1550,7 +1507,7 @@ final class _TaskStageState extends State<_TaskStage> {
   var _since = 0;
 
   @override
-  Widget build(BuildContext context) => _Timed((context, ms, wake) {
+  Widget build(BuildContext context) => Timed((context, ms, wake) {
     final o = widget.o;
     final step = o.choice<Object>('step');
     final failed = o.flag('failed');
@@ -1649,7 +1606,7 @@ final _taskList = GalleryPage(
       return [
         ...list,
         '',
-        _line([
+        codeLine([
           '/// The tasks of a build at [step]: those before it done, it ',
           'running, or',
         ]),
@@ -1666,7 +1623,7 @@ final _taskList = GalleryPage(
         "      'Compile',",
         '      status: at(1),',
         '      children: [',
-        _line([
+        codeLine([
           "        TaskItem('lib/core.dart', status: step > 0 ? .done : ",
           '.pending),',
         ]),
@@ -1718,7 +1675,7 @@ final _taskList = GalleryPage(
       if (failed) ...[
         '    TaskItem(',
         "      'Run the tests',",
-        _line([
+        codeLine([
           '      status: _step < 3 ? .pending : (_step < 4 ? .running : ',
           '.failed),',
         ]),
@@ -1972,7 +1929,7 @@ final _heatmap = GalleryPage(
         '};',
         '',
         'static int _count(int i) {',
-        _line([
+        codeLine([
           '  final weekend = DateTime(2026, 10, 19 - i).weekday > ',
           'DateTime.friday;',
         ]),
@@ -2016,7 +1973,7 @@ final _heatmap = GalleryPage(
       '/// the hours of work.',
       'static double _load(int day, int hour) {',
       '  final work = day < 5 && hour >= 9 && hour < 18;',
-      _line([
+      codeLine([
         '  return (work ? .5 : .05) + _noise(day * 24 + hour) * ',
         '(work ? .5 : .25);',
       ]),
@@ -2251,7 +2208,7 @@ final _directoryTree = GalleryPage(
     if (o.flag('sizes')) '          showSizes: true,',
     if (o.flag('guides')) '          showGuides: true,',
     if (o.choice<String>('icon') == 'glyphs')
-      _line([
+      codeLine([
         "          icon: (entry) => entry.isDirectory ? '$_dirIcon' ",
         ": '$_fileIcon',",
       ]),

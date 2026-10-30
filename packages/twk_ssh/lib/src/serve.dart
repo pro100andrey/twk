@@ -30,8 +30,9 @@ typedef SshApp = Widget Function(SshSession session);
 ///
 /// The server proves itself with [hostKeys] and lets in whom
 /// [authenticate] accepts within [loginTimeout], at most
-/// [maxUnauthenticated] clients at it at once, and changes each
-/// connection's keys after [rekeyLimit] (see [SshServer.bind]).
+/// [maxUnauthenticated] clients at it at once, an address refused for a
+/// while after its failures ([penalty], [penaltyExempt]), and changes
+/// each connection's keys after [rekeyLimit] (see [SshServer.bind]).
 /// Each session's terminal is opened over an [SshTerminalLink]
 /// (`Terminal.overLink`): the client's `TERM`, size and Backspace byte,
 /// its window's changes as resizes, what it types as input. When the app
@@ -69,6 +70,8 @@ Future<SshServer> serveSsh({
   Object? address,
   Duration loginTimeout = const Duration(minutes: 2),
   int maxUnauthenticated = 10,
+  SshPenalty? penalty = const SshPenalty(),
+  bool Function(InternetAddress address)? penaltyExempt,
   SshRekeyLimit rekeyLimit = const SshRekeyLimit(),
   void Function(Object error, StackTrace stack)? onError,
 }) => SshServer.bind(
@@ -79,6 +82,8 @@ Future<SshServer> serveSsh({
   onSession: (session) => _run(session, app),
   loginTimeout: loginTimeout,
   maxUnauthenticated: maxUnauthenticated,
+  penalty: penalty,
+  penaltyExempt: penaltyExempt,
   rekeyLimit: rekeyLimit,
   onError: onError,
 );

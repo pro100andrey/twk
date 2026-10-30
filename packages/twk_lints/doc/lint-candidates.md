@@ -1,10 +1,12 @@
 # Lint candidates: which twk-specific rules hold up
 
-Five rules were proposed for `packages/twk_lints`. Each one was checked
-against the twk code it concerns, and a prototype of it was run over the
-code apps are written in. This file gives a verdict for each, and for
-three more rules that came up while reading. Nothing here is built. The
-person decides which become tasks.
+The candidate rules for `packages/twk_lints` and the decision on each:
+built, or not built and why. Each was checked against the twk code it
+concerns, and a prototype of it was run over the code apps are written
+in. Eight candidates are listed: five proposed rules, and three that came
+up while reading them. A rule that is built is described by its own
+source and tests; what is kept here is the measurement behind the
+decision.
 
 ## How it was measured
 
@@ -14,7 +16,7 @@ version), in scratch and not committed. It resolved two sets of code:
 - **apps**: `packages/gallery` (76 files, its tests included), every
   `packages/*/example` (21) and `packages/twk_dev/templates/*` (12), 109
   files in all;
-- **twk**: the `lib/` of twk, twk_rich, twk_term, twk_cli, twk_dev,
+- **twk**: the `lib/` of twk, twk_rich, twk_term, twk_dev,
   twk_bloc, twk_riverpod and twk_web, 313 files. This is widget code
   written by the people who know twk best, a second check on noise.
 
@@ -28,11 +30,11 @@ right as written.
 | 1 | ambiguous-width glyphs reaching a Text | a string literal holding an East Asian Ambiguous character that reaches a twk widget or `Span` | glyphs from variables and other files; the width the terminal really has | apps: 61 literals reach a widget and all 61 are fine, because twk measures them. The narrow `'─' * n` form has 3 hits outside tests, 1 of them a minor real defect | none general: `Divider` for lines, `canvas.segmenter` in a painter | **don't**; test at `ambiguousWidth: 2` instead |
 | 2 | hard-coded colours in `build` | `Color.rgb`, `Color.indexed`, `Color.<ansi name>` written in a `build` | builds written as closures in fields (the gallery's style), helpers called from `build` | apps: 2 in `build`, both debatable; 61 more outside `build` are deliberate (demos, chart series, decoders). twk: 3 in `build`, all deliberate | ANSI name → slot is a guess (`red` → `error`?); `Dataset.color` has no slot | **don't** (an assist at most) |
 | 3 | key conflicts between KeyBindings | the same key in an inner and an outer layer of one expression, the outer never firing | layers in different classes (the usual case); `Shortcuts` whose action may be disabled; maps that are not literals | 3 nested pairs in all the code; 1 shares keys, and it is an intentional pass-on demo | none | **don't** (but see 6) |
-| 4 | interactive widget with no label | `TextField`/`TextArea` with neither `semanticsLabel` nor `placeholder`, `TextFormField` with no `placeholder`, `Slider` with no `semanticsLabel`, `Checkbox`/`Switch` with neither label, `Button` whose literal label has no letter or digit | labels from variables; custom controls built from `Focus`/`Pressable` | 5 hits (3 in apps, 2 in twk), 0 false alarms | insert `semanticsLabel: ''`; `TextFormField` needs the parameter first | **done in 57dc0c0** (`unnamed_control`) |
-| 5 | `BuildContext` used after an `await` | a use of `State.context` or of a `BuildContext` variable after an `await` (or in a `Future` callback) with no `mounted` check since | contexts kept in fields; guards of the app's own (`if (!cancelled)`) | with `set_state_after_dispose`'s logic copied: 12 hits, 12 false alarms; with two easy fixes, 5, all false alarms needing flow analysis | `if (!mounted) return;` / `if (!context.mounted) return;` before the statement | **done in d7f8208** (`context_after_await`, on the flow analysis of `mounted_flow.dart`) |
-| 6 | (new) key names that fire only with the kitty protocol | literal key names twk documents as never arriving on other terminals (`ctrl+i`, `ctrl+shift+s`, `super+…`, `shift+enter`), and names that fail the build (typos, duplicates, hints for keys not bound) | names built at run time; parameters not on the list | 87 literal names in apps, 31 in twk: 0 hits in code, 1 in a doc example | per name: the key it arrives as | **done in 938acdc** (`key_names`, a warning; the parser ported and held to twk's by a test) |
+| 4 | interactive widget with no label | `TextField`/`TextArea` with neither `semanticsLabel` nor `placeholder`, `TextFormField` with no `placeholder`, `Slider` with no `semanticsLabel`, `Checkbox`/`Switch` with neither label, `Button` whose literal label has no letter or digit | labels from variables; custom controls built from `Focus`/`Pressable` | 5 hits (3 in apps, 2 in twk), 0 false alarms | insert `semanticsLabel: ''`; `TextFormField` needs the parameter first | **built**: `unnamed_control` |
+| 5 | `BuildContext` used after an `await` | a use of `State.context` or of a `BuildContext` variable after an `await` (or in a `Future` callback) with no `mounted` check since | contexts kept in fields; guards of the app's own (`if (!cancelled)`) | with `set_state_after_dispose`'s logic copied: 12 hits, 12 false alarms; with two easy fixes, 5, all false alarms needing flow analysis | `if (!mounted) return;` / `if (!context.mounted) return;` before the statement | **built**: `context_after_await`, on the flow analysis of `mounted_flow.dart` |
+| 6 | (new) key names that fire only with the kitty protocol | literal key names twk documents as never arriving on other terminals (`ctrl+i`, `ctrl+shift+s`, `super+…`, `shift+enter`), and names that fail the build (typos, duplicates, hints for keys not bound) | names built at run time; parameters not on the list | 87 literal names in apps, 31 in twk: 0 hits in code, 1 in a doc example | per name: the key it arrives as | **built**: `key_names`, a warning; the parser ported and held to twk's by a test |
 | 7 | (new) inherited lookups in `initState` | `X.of(context)` in `initState` | n/a | 4 hits, all `getInheritedWidgetOfExactType` reads, which are correct | n/a | **don't**: twk asserts it at run time |
-| 8 | (new) `set_state_after_dispose`'s own false alarms | a fix to the existing warning, not a new rule | n/a | the branch pattern of 5(b), reproduced with the real plugin; and 2 warnings on twk's own `FutureBuilder` (`foundation/async.dart:427`, `:437`), guarded by a token of its own | the same flow analysis as 5; for the token, `mounted &&` in the guard | **done in d7f8208** (`set_state_after_dispose` on the same flow analysis; `mounted &&` in `FutureBuilder`'s and `FutureProvider`'s guards) |
+| 8 | (new) `set_state_after_dispose`'s own false alarms | a fix to the existing warning, not a new rule | n/a | the branch pattern of 5(b), reproduced with the real plugin; and 2 warnings on twk's own `FutureBuilder` (`foundation/async.dart:427`, `:437`), guarded by a token of its own | the same flow analysis as 5; for the token, `mounted &&` in the guard | **built**: `set_state_after_dispose` on the same flow analysis; `mounted &&` in `FutureBuilder`'s guards and `element.mounted` in `FutureProvider`'s |
 
 ## 1. Ambiguous-width glyphs in literals that reach a Text
 
@@ -235,7 +237,7 @@ Neither are custom controls built from `Focus(onKeyEvent:)` or
 `Pressable` with no `Semantics`. A class-level check for that found 2
 classes in apps (the gallery shell, the debugging page's aids) and 10 in
 twk: `Table`, `TreeView`, `TreeTable`, `Calendar`, `Scrollable`,
-`Pressable`, twk_cli's prompt views and twk_term's `TerminalView`. None
+`Pressable`, the console's prompt views and twk_term's `TerminalView`. None
 of their files has a `Semantics` (no role, no structure). That is an
 audit item for twk, not a lint: `Pressable` is a building block, and the
 shell's keys are not a control.
@@ -249,8 +251,7 @@ passed through to its `TextField`, which is a change to twk.
 including two in twk. Literal arguments only, as a lint (opt-in), not a
 warning.
 
-**Done in 57dc0c0** (`unnamed_control`, with the fix *Add
-'semanticsLabel'*).
+**Built** as `unnamed_control`, with the fix *Add 'semanticsLabel'*.
 
 ## 5. A BuildContext used after an `await`
 
@@ -309,10 +310,9 @@ hits, all (b) and (d). There are no true positives: this code checks
 lint is blind to twk and the failure is a crash or a stale theme. But
 only with flow analysis that follows `if`/`else` branches, as the core
 lint's must. Without it the hits here are all false alarms. The rule
-would sit beside `set_state_after_dispose` and share its new flow logic
-(rule 8). The core lint's source is in the SDK's `pkg/linter`. It is not
-in this checkout or in the pub cache, so its flow handling was not read
-for this file.
+sits beside `set_state_after_dispose` and shares its flow logic
+(candidate 8). The core lint's source is in the SDK's `pkg/linter`, not in this
+checkout or in the pub cache, so its flow handling is not compared here.
 
 **Fix.** Insert `if (!mounted) return;` (for `State.context`) or
 `if (!context.mounted) return;` (for a parameter) before the statement.
@@ -369,18 +369,18 @@ port, with `KeyCode`'s names. It is silent on this repository's code,
 except for a doc example worth fixing. Make it one lint (`key_names`) with
 two messages: "fires only with the kitty protocol" and "fails the build".
 
-**Done in 938acdc** (`key_names`). A warning rather than an opt-in lint,
-as both of what it says are facts of twk, not taste: "fires only with the
-kitty protocol" a warning, "fails the build" an error. The plugin does
-not import twk, so the parser is ported, and `test/key_names_test.dart`
-holds it to twk's own (the names, every message, and what arrives,
-through twk_test's xterm bytes and twk_core's input parser). On this
-repository it found no key that fires only with the protocol, and 9
-names that fail the build, all in twk's tests of that failure, which
-ignore it with the reason. `SelectionArea`'s doc example now binds
-`alt+c`, and its `copyKey` says why not `ctrl+shift+c`. Table, TreeView
-and TreeTable take no key names (the lists cited above are their own), so
-the rule reads twk_term's `TerminalView.ignoredKeys` alone of those.
+**Built** as `key_names`. A warning rather than an opt-in lint, as both
+of what it says are facts of twk, not taste: "fires only with the kitty
+protocol" a warning, "fails the build" an error. The plugin does not
+import twk, so the parser is ported, and `test/key_names_test.dart` holds
+it to twk's own (the names, every message, and what arrives, through
+twk_test's xterm bytes and twk_core's input parser). On this repository
+it finds no key that fires only with the protocol, and 9 names that fail
+the build, all in twk's tests of that failure, which ignore it with the
+reason. `SelectionArea`'s doc example binds `alt+c`, and its `copyKey`
+says why not `ctrl+shift+c`. Table, TreeView and TreeTable take no key
+names (the lists cited above are their own), so the rule reads twk_term's
+`TerminalView.ignoredKeys` alone of those.
 
 ## 7. (new) Inherited lookups in `initState`
 
@@ -396,10 +396,13 @@ are correct. **Verdict: don't.** The run-time assert does the job, and a
 static rule would have to tell depending lookups from reading ones by
 looking inside each `of`.
 
-## 8. (new) `set_state_after_dispose` warns on safe code
+## 8. (new) `set_state_after_dispose`'s own false alarms
 
-The branch pattern of 5(b) also trips the existing warning. A scratch
-package with the plugin enabled and this code:
+**Built**: a fix to the existing warning, not a new rule. It shares the
+flow analysis of candidate 5 (`lib/src/mounted_flow.dart`).
+
+The branch pattern of 5(b) trips a warning that looks only at the blocks
+around the call:
 
 ```
 Future<void> go(bool ask) async {
@@ -413,24 +416,19 @@ Future<void> go(bool ask) async {
 }
 ```
 
-got `warning - lib/b.dart:18:5 - 'setState' may run after 'dispose': it
-follows an 'await', with no check of 'mounted'.` Both paths are safe. The
-cause is that `_gapBefore` takes the last `await` by offset, and
-`_checkedSince` looks for the check only in the blocks that enclose the
-call, not in the branch that holds the `await`. The repository's own code
-avoids the pattern. `files.dart:685–700` would hit it if it called
-`setState` there.
+Both paths are safe. A scan that takes the last `await` by offset and
+looks for the check only in the blocks that enclose the call would report
+`'setState' may run after 'dispose': it follows an 'await', with no check
+of 'mounted'`; an `if` statement whose branches each either contain no
+`await` or end the `await`-holding path with a `mounted` exit counts as a
+check. The repository's own code avoids the pattern (`files.dart:685-700`
+would hit it if it called `setState` there).
 
-**A second false alarm, in twk itself.** The plugin's warnings are on
-wherever it is enabled. Turned on for `packages/twk` (the
-`wall_time_in_tests` work does that), it reports
-`lib/src/foundation/async.dart:427:13` and `:437:13`: "'setState' may run
-after 'dispose': it is in a callback of a Future, with no check of
-'mounted'". These are `FutureBuilder`'s `then` callbacks. They guard with
-a token of their own, `if (_waitingOn == token)`, and `dispose` clears
-`_waitingOn`. So they are safe, the same kind of guard as 5(d). Both
-warnings fail `dart analyze --fatal-infos`. The simple fix is in
-`async.dart`: `if (mounted && _waitingOn == token)`, which the rule
-already accepts. The rule cannot learn guards like this one in general. **Fix**, with the flow analysis of 5. As a smaller step,
-an `if` statement whose branches each either contain no `await` or end
-the `await`-holding path with a `mounted` exit could count as a check.
+**A guard of the code's own.** `FutureBuilder`'s `then` callbacks
+(`packages/twk/lib/src/foundation/async.dart:426`, `:436`) guard with a
+token, `if (mounted && _waitingOn == token)`, and `dispose` clears
+`_waitingOn`. The rule cannot learn guards like the token in general, so
+the guard also says `mounted &&`, which the rule accepts;
+`FutureProvider`'s guard is `!cancelled && element.mounted`
+(`provider/async_provider.dart:166, 171`). The plugin's warnings are on wherever it is enabled,
+and fail `dart analyze --fatal-infos`.

@@ -42,6 +42,47 @@ void main() {
     expect(hs.mismatches(), isEmpty);
   });
 
+  test('a hidden cursor rests where the shown one would on the whole '
+      'screen, not where the frame wrote last, where it is asked to', () {
+    // a terminal that marks the cursor's row (iTerm2's cursor guide)
+    final hs = Harness(20, 4);
+    hs.presenter
+      ..restsCursor = true
+      ..cursorX = 3
+      ..cursorY = 1;
+    for (final (x, y) in [(10, 3), (15, 0), (0, 2)]) {
+      hs.canvas.text(x, y, 'ab', hs.pens[1]);
+      hs.frame();
+      expect(hs.vt.cursorVisible, isFalse);
+      expect((hs.vt.cx, hs.vt.cy), (3, 1), reason: '($x, $y)');
+    }
+    // nothing changed: not a byte, the cursor where it is
+    expect(hs.frame(), 0);
+    expect(hs.mismatches(), isEmpty);
+  });
+
+  test('a hidden cursor not asked to rest stays where the frame wrote '
+      'last, no byte spent on it', () {
+    final hs = Harness(20, 4);
+    hs.presenter
+      ..cursorX = 3
+      ..cursorY = 1;
+    hs.canvas.text(10, 3, 'ab', hs.pens[1]);
+    hs.frame();
+    expect((hs.vt.cx, hs.vt.cy), (12, 3));
+    expect(hs.mismatches(), isEmpty);
+  });
+
+  test('inline, a hidden cursor stays where the region left it', () {
+    final hs = Harness.inline(20, 3, screenHeight: 10)
+      ..presenter.restsCursor = true
+      ..presenter.cursorX = 3;
+    hs.canvas.text(10, 2, 'ab', hs.pens[1]);
+    hs.frame();
+    expect(hs.vt.cx, isNot(3));
+    expect(hs.mismatches(), isEmpty);
+  });
+
   test('invalidate() forgets the cursor state too', () {
     final hs = Harness(10, 2);
     hs.presenter.cursorVisible = false;
@@ -229,8 +270,12 @@ void main() {
       final ix = rnd.nextInt(w - 2);
       final iy = rnd.nextInt(h);
       final iw = 1 + rnd.nextInt(min(4, w - ix));
+      // drawn outside the cell model, the cursor put back where the
+      // presenter left it
       void image() => hs.vt.feed(
-        Uint8List.fromList('\x1b[${iy + 1};${ix + 1}H${'@' * iw}'.codeUnits),
+        Uint8List.fromList(
+          '\x1b7\x1b[${iy + 1};${ix + 1}H${'@' * iw}\x1b8'.codeUnits,
+        ),
       );
       hs.canvas.reserve(ix, iy, iw, 1);
       hs.frame();

@@ -466,6 +466,34 @@ void main() {
       await t.press('down');
       expect(controller.selectedKey, 'r41');
     });
+
+    testTwk("the hidden cursor rests on the selected node's row, on the "
+        'cursor cell where cells are selected', (t) async {
+      for (final selection in [TableSelection.row, TableSelection.cell]) {
+        await t.pumpWidget(
+          table(
+            files,
+            controller: TreeController(selectedKey: 'data', expanded: ['src']),
+            selection: selection,
+          ),
+          size: (24, 6),
+        );
+        await t.pump();
+        expect(t.cursorVisible, isFalse);
+        // under the header, after src
+        expect(t.cursor, (0, 2), reason: '$selection');
+        if (selection == TableSelection.cell) {
+          await t.press('right');
+          await t.pump();
+          // the size column
+          expect(t.cursor.$1, greaterThan(4));
+          expect(t.cursor.$2, 2);
+        }
+        await t.press('down');
+        await t.pump();
+        expect(t.cursor.$2, 3, reason: '$selection');
+      }
+    });
   });
 
   group('loading', () {

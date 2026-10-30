@@ -3,8 +3,8 @@ text
 │  ◆ twk gallery   App  ›  Cli                                                                ctrl+p search      ◐ Dark  │
 │                                                                                                                        │
 │   ⌕ Filter             /      Cli                                                                              8 of 8  │
-│                               A command-line tool's console (twk_cli) as it runs: questions that leave their           │
-│     Slot, SlotScope           answer as a line, a spinner, tasks with bars, a traceback.                               │
+│                               A command-line tool's console (twk's cli.dart) as it runs: questions that leave          │
+│     Slot, SlotScope           their answer as a line, a spinner, tasks with bars, a traceback.                         │
 │                                                                                                                        │
 │   APP                  8      Preview   Code                                                                           │
 │     InputListener          ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
@@ -13,35 +13,35 @@ text
 │     TerminalProgress          ╭ terminal ────────────────────────────────────────────╮   │                             │
 │     Viewport                  │$ dart run lib/cli/check.dart                         │   │  program                    │
 │     Window title              │✓ Read twk.yaml in 0.4 s                              │   │   create  install  check    │
-│     Notifications             │config: _Map<String, dynamic> {                       │   │                             │
-│ ▎   Cli                       │  "version": 2,                                       │   │                             │
-│                               │  "target": "web"                                     │   │                             │
-│   SCREEN READERS       1      │}                                                     │   │                             │
-│     Semantics                 │✗ StateError: Bad state: no "name" set                │   │                             │
-│                               │                                                      │   │                             │
-│   DEBUGGING            4      │  lib/cli/check.dart:25:3                             │   │                             │
-│     Console                   │    23 │     return name;                             │   │                             │
-│     FrameOverlay              │    24 │   }                                          │   │                             │
-│     Repaint rainbow           │  ▶ 25 │   throw StateError('no "name" set');         │   │                             │
-│     RepaintBoundary           │    26 │ }                                            │   │                             │
-│                               │                                                      │   │                             │
-│   RICH                 8      │  lib/cli/check.dart:25:3   _name                     │   │                             │
-│     MarkdownView              │  lib/cli/check.dart:18:28  check                     │   │                             │
-│     CodeView                  │  … 1 frame of twk_cli                                │   │                             │
-│     SyntaxThemeScope      ▐   │$                                                     │   │                             │
-│     DiffView              ▐   │                                                      │   │                             │
+│     Notifications             │config:                                               │   │                             │
+│ ▎   Cli                       │{                                                     │   │                             │
+│                               │  "version": 2,                                       │   │                             │
+│   SCREEN READERS       1      │  "target": "web"                                     │   │                             │
+│     Semantics                 │}                                                     │   │                             │
+│                               │✗ StateError: Bad state: no "name" set                │   │                             │
+│   DEBUGGING            4      │                                                      │   │                             │
+│     Console                   │  lib/cli/check.dart:29:3                             │   │                             │
+│     FrameOverlay              │    27 │     return name;                             │   │                             │
+│     Repaint rainbow           │    28 │   }                                          │   │                             │
+│     RepaintBoundary           │  ▶ 29 │   throw StateError('no "name" set');         │   │                             │
+│                               │    30 │ }                                            │   │                             │
+│   RICH                 7      │                                                      │   │                             │
+│     MarkdownView              │  lib/cli/check.dart:29:3   _name                     │   │                             │
+│     CodeView                  │  lib/cli/check.dart:22:28  check                     │   │                             │
+│     SyntaxThemeScope      ▐   │  … 1 frame of twk                                    │   │                             │
+│     DiffView              ▐   │$                                                     │   │                             │
 │     JsonView              ▐   │                                                      │   │                             │
 │     BigText               ▐   ╰──────────────────────────────────────────────────────╯   │                             │
 │     QrCode                ▐ └                                                          ┘ │                             │
-│     ANSI                       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·56 × 22  │                             │
+│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·56 × 22  │                             │
 │                                                                                          │                             │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
 styles
 │aabacccadddddddaaauuuaafaadddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggauuuuuuaaaaaadaddddaa│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaiHiHHHHHHiiiiiiiiiiiiiIiaahhhlllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhJhJJhJhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnhnnnnnnnnnnnnhnnnnnnhnnnnnnnhnnnnnnnnnhnnhnnhnnnnnhnnnnnnnnnhnnnnhnnnnnhnnnnnhhhhhhhhhhh│
-│aaaaaoooooaoooooooooaaaaaaaahhhnnnnnnhnnhnhnnnnnhnhnnnnnnnnhnnnnnhnnnnhnnnnnhnhnnnnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnhnnnnnnnnnnnnhnnnnnnhnnnnnnnhnnnnnnhnnnnnnnnnhnnhnnhnnnnnhnnnnnnnnnhnnnnhnnnnnhhhhhhhhhh│
+│aaaaaoooooaoooooooooaaaaaaaahhhnnnnnhnnnnnnhnnhnhnnnnnhnhnnnnnnnnhnnnnnhnnnnhnnnnnhnhnnnnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaadddaaaaaaaaaaaaaaaaaauaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
@@ -50,27 +50,27 @@ styles
 │aaaaaooooooooooooooooaaaaaaahhhrhnnnnnnnnhrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaaahhhrshtttthttthtttttttttttttttttthhhhhhhhhhhhhhhhhhhhhhhhhrhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooaoooooaaaaaaaaaaahhhrshtttthtttttttthGGhGGGhGhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhphhivvvvvviivvvvvvviwxxxxxwhhh│
-│aaaaaoooooooooooooaaaaaaaaaahhhrllllllthGGGGGGGGGGGGhGGGGGGGGhthhhhhhhhhhhhhhhhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aywwwxxxwwwwwwwwwwwwwwwwwwwahhhrhhzzzzzzzzzthAthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhrhhzzzzzzzzthssssshhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaddddddadddddddaaaaaaauaaahhhrthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooaaaaaaaaaaaaaahhhrBhCCCCCCCCCCChCCChCCCCCChCChCCCCCChCCChhhhhhhhhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaadddddddddaaaaaaaaaaaauaaahhhrhhGGGGGGGGGGGGGGGGGGGGGGGhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaaaaaaaaaaaaaaaahhhrhhhhGGhGhhhhhDDDDDDhttttthhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhrhhhhGGhGhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaoooooooaaaaaaaahhhrhhBhCChGhhhDDDDDhEEEEEEEEEEtssshsssssshsssstthhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooooaaaaaaaahhhrhhhhGGhGhthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaddddaaaaaaaaaaaaaaaaauaaahhhrhhGGGGGGGGGGGGGGGGGGGGGGGhhhttttthhhhhhhhhhhhhhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhrhhGGGGGGGGGGGGGGGGGGGGGGGGhhttttthhhhhhhhhhhhhhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhrhhGhGhGGGGGhGGhGGGGGGGhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooooooaaaaaadhhhrshhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooaaaaaaaaaaaaaadhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaahhhrttttttthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aywwwxxxwwwwwwwwwwwwwwwwwwwahhhrthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhrhheeeeeeeeethjthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddadddddddaaaaaaauaaahhhrhheeeeeeeethssssshhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhrthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhrBhCCCCCCCCCCChCCChCCCCCChCChCCCCCChCCChhhhhhhhhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddddddaaaaaaaaaaaauaaahhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhrhhGGGGGGGGGGGGGGGGGGGGGGGhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhrhhhhGGhGhhhhhDDDDDDhttttthhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaoooooooaaaaaaaahhhrhhhhGGhGhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhrhhBhCChGhhhDDDDDhEEEEEEEEEEtssshsssssshsssstthhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhrhhhhGGhGhthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddaaaaaaaaaaaaaaaaauaaahhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhrhhGGGGGGGGGGGGGGGGGGGGGGGhhhttttthhhhhhhhhhhhhhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhrhhGGGGGGGGGGGGGGGGGGGGGGGGhhttttthhhhhhhhhhhhhhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaadhhhrhhGhGhGGGGGhGGhGGGhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaadhhhrshhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaadhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaaaaaaaaaaaaaaadhhhrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooaaaaaaaaaaaaaaaadhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhpJJhJhJJhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhpJJhJhJJhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
 legend
@@ -99,8 +99,8 @@ v #8b929c on #13151a
 w on #2b4566
 x bold #e6e8eb on #2b4566
 y #5fa8ff on #2b4566
-z blue on #16181d
-A yellow on #16181d
+e blue on #16181d
+j yellow on #16181d
 B red on #16181d
 C bold red on #16181d
 D magenta on #16181d

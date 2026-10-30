@@ -900,5 +900,35 @@ void main() {
       expect(t, styleAt(3, 7, hasBg(Color.blue)));
       expect(count.paints, paints);
     });
+
+    testTwk("the hidden cursor rests on the cursor's day, on its first "
+        'digit, as it moves, into the next month', (t) async {
+      final c = CalendarController(cursor: DateTime(2026, 10, 19));
+      final node = FocusNode();
+      addTearDown(node.dispose);
+      await t.pumpWidget(
+        Theme.terminal(
+          child: Calendar(controller: c, focusNode: node),
+        ),
+        size: (20, 8),
+      );
+      node.requestFocus();
+      await t.pump();
+      expect(t.cursorVisible, isFalse);
+      // a Monday, the fourth week: its first digit
+      expect(t.cursor, (0, 5));
+      await t.press('right down');
+      await t.pump();
+      expect(t.cursor, (3, 6));
+      // November 27th, a Friday
+      await t.press('pagedown');
+      await t.pump();
+      expect(t.lines[0].trim(), 'November 2026');
+      expect(t.cursor, (12, 6));
+      // November 6th: its one digit, in the right column
+      await t.press('up up up');
+      await t.pump();
+      expect(t.cursor, (13, 3));
+    });
   });
 }

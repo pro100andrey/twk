@@ -4,8 +4,8 @@ text
 │                                                                                                                        │
 │   ⌕ Filter             /      Pagination                                                                       4 of 5  │
 │                               The pages of a long list on one row, the current one among its siblings: the arrows,     │
-│   FOCUS AND KEYS       4      PageUp and PageDown, a page number typed or a click go to another.                       │
-│     Focus, FocusScope                                                                                                  │
+│     Focus, FocusScope         PageUp and PageDown, a page number typed or a click go to another.                       │
+│     ActiveItem                                                                                                         │
 │     ExcludeFocus              Preview   Code                                                                           │
 │     KeyBindings, Leader…   ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
 │     Shortcuts, Actions                                                                   │                             │
@@ -41,8 +41,8 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaiGiGGGGGGiiiiiiiiiiiiiHiaahhhllllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhIhIIhIhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnhnnnnnhnnhnhnnnnhnnnnhnnhnnnhnnnnhnnnhnnnnnnnhnnnhnnnnnhnnnhnnnnnnnnnhnnnhnnnnnnnhhhhh│
-│aaadddddadddaddddaaaaaaaFaaahhhnnnnnnhnnnhnnnnnnnnnhnhnnnnhnnnnnnhnnnnnhnnhnhnnnnnhnnhnnhnnnnnnnnhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooaooooooooooaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaooooooooooaaaaaahhhnnnnnnhnnnhnnnnnnnnnhnhnnnnhnnnnnnhnnnnnhnnhnhnnnnnhnnhnnhnnnnnnnnhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooaoooooooaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
 │aaaaaooooooooooaoooooooaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

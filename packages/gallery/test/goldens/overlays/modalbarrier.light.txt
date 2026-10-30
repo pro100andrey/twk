@@ -18,12 +18,12 @@ text
 │     WindowLayer                     ┌                                          ┐         │  fade                ▐●  ▌  │
 │                                ·      The text under the barrier, dimmed by        ·     │                             │
 │   ANIMATION           16              it: the mouse does not reach it.                   │                             │
-│     Spinner               ▐    ·                                                   ·     │                             │
+│     Spinner                    ·                                                   ·     │                             │
 │     ProgressBar           ▐            Press me       over it                            │                             │
 │     ProgressList          ▐    ·                                                   ·     │                             │
 │     Skeleton, Skeletoni…  ▐           pressed 0, the barrier 0                           │                             │
 │     AnimationController   ▐    ·                                                   ·     │                             │
-│     AnimatedBuilder                                                                      │                             │
+│     AnimatedBuilder       ▐                                                              │                             │
 │     AnimatedAlign, Anim…       ·    └                                          ┘   ·     │                             │
 │     AnimatedPositioned                                                   40 × 8          │                             │
 │     AnimatedBox                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
@@ -55,12 +55,12 @@ styles
 │aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhphhnnnnhhhhhhhhhhhhhhhhyzAAyhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhhhhBBBCBBBBCBBBBBCBBBCBBBBBBBBCBBBBBBCBBCCChhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaadddddddddaaaaaaaaaaaIIaaahhhhhhhhhhhBBBCBBBCBBBBBCBBBBCBBBCBBBBBCBBBCCCCCCCChhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaaaaaaaaaaaaaaadhhhhphhhhhhCCCCCCCCCCCCCCtttttttttttCCCCCCCCCCCCCCChhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhphhhhhhCCCCCCCCCCCCCCtttttttttttCCCCCCCCCCCCCCChhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooaaaaaaaaaaadhhhhhhhhhhhEFFFFFEFFECCCCttGGGGtGGttCCCCCCCCCCCCCCChhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooaaaaaaaaaadhhhhphhhhhhCCCCCCCCCCCCCCtttttttttttCCCCCCCCCCCCCCChhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooaooooooooooaadhhhhhhhhhhhHHHHHHHCBHCHHHCHHHHHHHCBCCCCCCCCCCCCCCCChhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooooooooaaadhhhhphhhhhhCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCChhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooooaaaaaaaahhhhhhhhhhhCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCChhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaadhhhhhhhhhhhCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCChhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooaoooooaaahhhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooooooaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhLLhLhLhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

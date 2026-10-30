@@ -2,8 +2,9 @@
 // the cursor, a multiple one that Space and clicks toggle; the keys that
 // move the cursor and scroll it into view, passing disabled items by;
 // the selection and the cursor staying with their keys as the list
-// changes; a hundred thousand items built a window at a time; a disabled
-// list out of the focus and the mouse.
+// changes; a hundred thousand items built a window at a time, and not
+// again as the cursor moves; a disabled list out of the focus and the
+// mouse.
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
@@ -125,6 +126,36 @@ void main() {
   });
 
   group('SelectionList', () {
+    testTwk('a move of the cursor builds no item again: the list dresses '
+        'them; an item that shows the selection its own way listens to the '
+        'controller', (t) async {
+      final c = SelectionController<int>();
+      addTearDown(c.dispose);
+      final built = <int>[];
+      await t.pumpWidget(
+        SelectionList<int>(
+          itemCount: 4,
+          keyOf: (i) => i,
+          itemBuilder: (context, i) {
+            built.add(i);
+            return ListenableBuilder(
+              listenable: c,
+              builder: (_, _) => Text('${c.isSelected(i) ? '*' : '-'}$i'),
+            );
+          },
+          controller: c,
+          autofocus: true,
+          bar: false,
+        ),
+        size: (4, 4),
+      );
+      expect(t.lines, ['-0', '-1', '-2', '-3']);
+      built.clear();
+      await press(t, 'down down');
+      expect(built, isEmpty);
+      expect(t.lines, ['-0', '-1', '*2', '-3']);
+    });
+
     testTwk('single: Down and Up move the cursor and select its item, the '
         'list scrolling to show it; PageDown and PageUp a window, End and '
         'Home to the ends; Enter submits; the cursor reversed while '
@@ -310,6 +341,34 @@ void main() {
       expect(t, styleAt(1, 2, hasBg(const Color.indexed(237))));
       await press(t, 'down');
       expect(c.selected, {'d'});
+    });
+
+    testTwk("the hidden cursor rests on the cursor's row as it moves and "
+        'the list scrolls', (t) async {
+      final list = ValueNotifier([for (var i = 0; i < 10; i++) 'item $i']);
+      addTearDown(list.dispose);
+      final c = SelectionController<String>(selected: ['item 1']);
+      addTearDown(c.dispose);
+      final node = FocusNode(debugLabel: 'list');
+      addTearDown(node.dispose);
+      await t.pumpWidget(
+        Theme.terminal(
+          child: names(list, controller: c, node: node),
+        ),
+        size: (10, 4),
+      );
+      node.requestFocus();
+      await t.pump();
+      expect(t.cursorVisible, isFalse);
+      expect(t.cursor, (0, 1));
+      await press(t, 'down down');
+      expect(t.cursor, (0, 3));
+      // scrolled: the cursor's row is the last one in view
+      await press(t, 'down down');
+      expect(t.lines.last, '▎item 5');
+      expect(t.cursor, (0, 3));
+      await press(t, 'home');
+      expect(t.cursor, (0, 0));
     });
 
     testTwk('the items keep their State by their keys as the list changes', (

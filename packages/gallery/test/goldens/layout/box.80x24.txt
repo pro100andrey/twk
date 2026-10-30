@@ -4,24 +4,24 @@ text
 │                                                                                │
 │   ⌕ Filter       /     Box                                     Preview   Code  │
 │                        A border, titles on it, padding and a background        │
-│   TEXT           4  ▐  around a child.                                         │
+│   TEXT           5  ▐  around a child.                                         │
 │     Text            ▐──────────────────────────────────────────────────────────│
 │     Rich text                 ┌                                      ┐         │
 │     DefaultTextSt…      ·   ·   ╭ build ───────────────────────────╮    ·   ·  │
 │     Right to left               │                                  │           │
-│                         ·   ·   │ Compiling 14 libraries…          │    ·   ·  │
-│   LAYOUT        24              │ lib/src/layout    0.4 s          │           │
-│ ▎   Box                 ·   ·   │ lib/src/render    0.9 s          │    ·   ·  │
-│     ColoredBox, D…              │                                  │           │
-│     Container           ·   ·   │                                  │    ·   ·  │
-│     Divider                     ╰────────────────────── 2 warnings ╯           │
-│     Shadow                    └                                      ┘         │
-│     Padding          ──────────────────────────────────────────────────────────│
-│     Align, Center      border     single  rounded  double  heavy  ascii       ▐│
-│     SizedBox                      none                                        ▐│
-│     ConstrainedBox     sides      all  top bottom  top left  left             ▐│
-│     LimitedBox, O…     titles    ▐  ●▌                                        ▐│
-│     FractionallyS…     title at   topLeft  topCenter  topRight  bottomLeft    ▐│
+│     ANSI                ·   ·   │ Compiling 14 libraries…          │    ·   ·  │
+│                                 │ lib/src/layout    0.4 s          │           │
+│   LAYOUT        24      ·   ·   │ lib/src/render    0.9 s          │    ·   ·  │
+│ ▎   Box                         │                                  │           │
+│     ColoredBox, D…      ·   ·   │                                  │    ·   ·  │
+│     Container                   ╰────────────────────── 2 warnings ╯           │
+│     Divider                   └                                      ┘         │
+│     Shadow           ──────────────────────────────────────────────────────────│
+│     Padding            border     single  rounded  double  heavy  ascii       ▐│
+│     Align, Center                 none                                        ▐│
+│     SizedBox           sides      all  top bottom  top left  left             ▐│
+│     ConstrainedBox     titles    ▐  ●▌                                        ▐│
+│     LimitedBox, O…     title at   topLeft  topCenter  topRight  bottomLeft    ▐│
 │                                   bottomCenter                                 │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -34,19 +34,19 @@ styles
 │aaaaaooooaooooaaaaaaaagggggggggpggggggggggggggggggggggggggggggggggggggpggggggggg│
 │aaaaaooooooooooooooaaagggpgggpgggqgkkkkkgqqqqqqqqqqqqqqqqqqqqqqqqqqqqggggpgggpgg│
 │aaaaaoooooaooaooooaaaagggggggggggqggggggggggggggggggggggggggggggggggqggggggggggg│
-│aaaaaaaaaaaaaaaaaaaaaagggpgggpgggqgrrrrrrrrrgrrgrrrrrrrrrrggggggggggqggggpgggpgg│
-│aaaddddddaaaaaaaaAAaaagggggggggggqgrrrrrrrrrrrrrrggggrrrgrggggggggggqggggggggggg│
-│astttuuutttttttttttttagggpgggpgggqgrrrrrrrrrrrrrrggggrrrgrggggggggggqggggpgggpgg│
-│aaaaaoooooooooooaooaaagggggggggggqggggggggggggggggggggggggggggggggggqggggggggggg│
-│aaaaaoooooooooaaaaaaaagggpgggpgggqggggggggggggggggggggggggggggggggggqggggpgggpgg│
-│aaaaaoooooooaaaaaaaaaagggggggggggqqqqqqqqqqqqqqqqqqqqqqqgvgvvvvvvvvgqggggggggggg│
-│aaaaaooooooaaaaaaaaaaagggggggggpggggggggggggggggggggggggggggggggggggggpggggggggg│
-│aaaaaoooooooaaaaaaaaaapppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
-│aaaaaooooooaooooooaaaaggmmmmmmgggghwwwwwwhtuuuuuuuthwwwwwwhhwwwwwhhwwwwwhggggggm│
-│aaaaaooooooooaaaaaaaaagggggggggggghwwwwhgggggggggggggggggggggggggggggggggggggggm│
-│aaaaaooooooooooooooaaaggmmmmmgggggtuuuthwwwhwwwwwwhhwwwhwwwwhhwwwwhggggggggggggm│
-│aaaaaoooooooooooaooaaaggmmmmmmggggxyyzxggggggggggggggggggggggggggggggggggggggggm│
-│aaaaaooooooooooooooaaaggmmmmmgmmggtuuuuuuuthwwwwwwwwwhhwwwwwwwwhhwwwwwwwwwwhgggm│
+│aaaaaooooaaaaaaaaaaaaagggpgggpgggqgrrrrrrrrrgrrgrrrrrrrrrrggggggggggqggggpgggpgg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggqgrrrrrrrrrrrrrrggggrrrgrggggggggggqggggggggggg│
+│aaaddddddaaaaaaaaAAaaagggpgggpgggqgrrrrrrrrrrrrrrggggrrrgrggggggggggqggggpgggpgg│
+│astttuuutttttttttttttagggggggggggqggggggggggggggggggggggggggggggggggqggggggggggg│
+│aaaaaoooooooooooaooaaagggpgggpgggqggggggggggggggggggggggggggggggggggqggggpgggpgg│
+│aaaaaoooooooooaaaaaaaagggggggggggqqqqqqqqqqqqqqqqqqqqqqqgvgvvvvvvvvgqggggggggggg│
+│aaaaaoooooooaaaaaaaaaagggggggggpggggggggggggggggggggggggggggggggggggggpggggggggg│
+│aaaaaooooooaaaaaaaaaaapppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaoooooooaaaaaaaaaaggmmmmmmgggghwwwwwwhtuuuuuuuthwwwwwwhhwwwwwhhwwwwwhggggggm│
+│aaaaaooooooaooooooaaaagggggggggggghwwwwhgggggggggggggggggggggggggggggggggggggggm│
+│aaaaaooooooooaaaaaaaaaggmmmmmgggggtuuuthwwwhwwwwwwhhwwwhwwwwhhwwwwhggggggggggggm│
+│aaaaaooooooooooooooaaaggmmmmmmggggxyyzxggggggggggggggggggggggggggggggggggggggggm│
+│aaaaaoooooooooooaooaaaggmmmmmgmmggtuuuuuuuthwwwwwwwwwhhwwwwwwwwhhwwwwwwwwwwhgggm│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggghwwwwwwwwwwwwhgggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

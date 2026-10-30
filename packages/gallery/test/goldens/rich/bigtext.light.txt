@@ -2,32 +2,32 @@ screen 120×36, cursor hidden
 text
 │  ◆ twk gallery   Rich  ›  BigText                                                          ctrl+p search      ◐ Light  │
 │                                                                                                                        │
-│   ⌕ Filter             /      BigText                                                                          6 of 8  │
+│   ⌕ Filter             /      BigText                                                                          6 of 7  │
 │                               Text in letters several cells tall, drawn with full or half blocks or with box           │
-│     TerminalProgress          drawing, in a font of its own.                                                           │
-│     Viewport                                                                                                           │
-│     Window title              Preview   Code                                                                           │
-│     Notifications          ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
-│     Cli                                                                                  │                             │
-│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
-│   SCREEN READERS       1                                                                 │                             │
-│     Semantics                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  font                       │
-│                                                                                          │   fit  large  block  thin   │
-│   DEBUGGING            4       ┌                                                    ┐    │   small                     │
-│     Console                      ██      ██              ████    ████                    │                             │
-│     FrameOverlay                 ██      ██                ██      ██                    │  text                       │
-│     Repaint rainbow              ██      ██    ██████      ██      ██      ██████        │   typed  clock  two lines   │
-│     RepaintBoundary              ██████████  ██      ██    ██      ██    ██      ██      │                             │
-│                                  ██      ██  ██████████    ██      ██    ██      ██      │  align                      │
-│   RICH                 8         ██      ██  ██            ██      ██    ██      ██      │   left  center  right       │
-│     MarkdownView                 ██      ██    ██████    ██████  ██████    ██████        │                             │
-│     CodeView                                                                             │  style             primary  │
-│     SyntaxThemeScope                                                                     │  ██ ██ ██ ██ ██             │
-│     DiffView                               ╭────────────────────────────╮                │  ▔▔                         │
-│     JsonView                               │Hello                       │                │                             │
-│ ▎   BigText                                ╰────────────────────────────╯                │                             │
-│     QrCode                     └                                                    ┘    │                             │
-│     ANSI                       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   · 50 × 12     │                             │
+│     Static                    drawing, in a font of its own.                                                           │
+│     TerminalProgress                                                                                                   │
+│     Viewport                  Preview   Code                                                                           │
+│     Window title           ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     Notifications                                                                        │                             │
+│     Cli                        ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│                                                                                          │                             │
+│   SCREEN READERS       1       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  font                       │
+│     Semantics                                                                            │   fit  large  block  thin   │
+│                                ┌                                                    ┐    │   small                     │
+│   DEBUGGING            4         ██      ██              ████    ████                    │                             │
+│     Console                      ██      ██                ██      ██                    │  text                       │
+│     FrameOverlay                 ██      ██    ██████      ██      ██      ██████        │   typed  clock  two lines   │
+│     Repaint rainbow              ██████████  ██      ██    ██      ██    ██      ██      │                             │
+│     RepaintBoundary              ██      ██  ██████████    ██      ██    ██      ██      │  align                      │
+│                                  ██      ██  ██            ██      ██    ██      ██      │   left  center  right       │
+│   RICH                 7         ██      ██    ██████    ██████  ██████    ██████        │                             │
+│     MarkdownView                                                                         │  style             primary  │
+│     CodeView                                                                             │  ██ ██ ██ ██ ██             │
+│     SyntaxThemeScope                       ╭────────────────────────────╮                │  ▔▔                         │
+│     DiffView                               │Hello                       │                │                             │
+│     JsonView                               ╰────────────────────────────╯                │                             │
+│ ▎   BigText                    └                                                    ┘    │                             │
+│     QrCode                     ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   · 50 × 12     │                             │
 │                                                                                          │                             │
 │   IMAGES               1  ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     Image                 ▐                                                              │                             │
@@ -41,30 +41,30 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaiHiHHHHHHiiiiiiiiiiiiiIiaahhhlllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhJhJJhJhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnhnnhnnnnnnnhnnnnnnnhnnnnnhnnnnnhnnnnnhnnnnhnnnnhnnhnnnnhnnnnnnhnnhnnnnhnnnhhhhhhhhhhh│
-│aaaaaooooooooooooooooaaaaaaahhhnnnnnnnnhnnhnhnnnnhnnhnnnhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooaoooooaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
-│aaaaaoooaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
-│aaaddddddadddddddaaaaaaaBaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhKLLLKtuuuuuttuuuuuttuuuuthh│
-│aaadddddddddaaaaaaaaaaaaBaaahhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhphhtuuuuuthhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhqqhhhhhhqqhhhhhhhhhhhhhhqqqqhhhhqqqqhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhhhhqqhhhhhhqqhhhhhhhhhhhhhhhhqqhhhhhhqqhhhhhhhhhhhhhhhhhhhhphhnnnnhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaoooooooaaaaaaaahhhhhhqqhhhhhhqqhhhhqqqqqqhhhhhhqqhhhhhhqqhhhhhhqqqqqqhhhhhhhhphhKLLLLLKtuuuuuttuuutuuuuuthh│
-│aaaaaoooooooooooooooaaaaaaaahhhhhhqqqqqqqqqqhhqqhhhhhhqqhhhhqqhhhhhhqqhhhhqqhhhhhhqqhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhqqhhhhhhqqhhqqqqqqqqqqhhhhqqhhhhhhqqhhhhqqhhhhhhqqhhhhhhphhJJJJJhhhhhhhhhhhhhhhhhhhhhh│
-│aaaddddaaaaaaaaaaaaaaaaaBaaahhhhhhqqhhhhhhqqhhqqhhhhhhhhhhhhqqhhhhhhqqhhhhqqhhhhhhqqhhhhhhphhMNNNNMtOOOOOOttOOOOOthhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhhhhqqhhhhhhqqhhhhqqqqqqhhhhqqqqqqhhqqqqqqhhhhqqqqqqhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnhhhhhhhhhhhhhJJJJJJJhh│
-│aaaaaooooooooooooooooaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhqqhvvhwwhxxhyyhhhhhhhhhhhhh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAhhhhhhhhhhhhhhhhphhzzhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhnnnnnnnnhnnhnhnnnnhnnhnnnhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaoooooaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaoooooooooooooaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddadddddddaaaaaaaBaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhKLLLKtuuuuuttuuuuuttuuuuthh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhphhtuuuuuthhhhhhhhhhhhhhhhhhhh│
+│aaadddddddddaaaaaaaaaaaaBaaahhhhhhqqhhhhhhqqhhhhhhhhhhhhhhqqqqhhhhqqqqhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhqqhhhhhhqqhhhhhhhhhhhhhhhhqqhhhhhhqqhhhhhhhhhhhhhhhhhhhhphhnnnnhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhqqhhhhhhqqhhhhqqqqqqhhhhhhqqhhhhhhqqhhhhhhqqqqqqhhhhhhhhphhKLLLLLKtuuuuuttuuutuuuuuthh│
+│aaaaaoooooooaoooooooaaaaaaaahhhhhhqqqqqqqqqqhhqqhhhhhhqqhhhhqqhhhhhhqqhhhhqqhhhhhhqqhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhhhqqhhhhhhqqhhqqqqqqqqqqhhhhqqhhhhhhqqhhhhqqhhhhhhqqhhhhhhphhJJJJJhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhqqhhhhhhqqhhqqhhhhhhhhhhhhqqhhhhhhqqhhhhqqhhhhhhqqhhhhhhphhMNNNNMtOOOOOOttOOOOOthhhhhh│
+│aaaddddaaaaaaaaaaaaaaaaaBaaahhhhhhqqhhhhhhqqhhhhqqqqqqhhhhqqqqqqhhqqqqqqhhhhqqqqqqhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnhhhhhhhhhhhhhJJJJJJJhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhqqhvvhwwhxxhyyhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhhhhhhhhhhhhhhAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAhhhhhhhhhhhhhhhhphhzzhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhAzzzzzhhhhhhhhhhhhhhhhhhhhhhhAhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aPKKKLLLLLLLKKKKKKKKKKKKKKKahhhhhhhhhhhhhhhhAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooaaaaaaaaaaaaaaaaahhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphJJhJhJJhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aPKKKLLLLLLLKKKKKKKKKKKKKKKahhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphJJhJhJJhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaddddddaaaaaaaaaaaaaaaBaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooaaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

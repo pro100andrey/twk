@@ -15,7 +15,76 @@ import 'nodes.dart';
 /// around them free to be a link, as an undefined one does in CommonMark.
 /// Brackets that leave emphasis in them unmatched, which emphasis around
 /// them may match, are one only with a label after them.
-List<MdInline> parseInlines(String text) => _InlineParser(text)._parse();
+///
+/// With [memo], the inlines of a start of [text] that no text after it
+/// changes are kept there, and a text that goes on from the one parsed
+/// last is parsed from where they end: the text of a paragraph as it
+/// streams in costs what it adds, not its length. The inlines are those
+/// [text] parses to without it.
+List<MdInline> parseInlines(String text, [InlineMemo? memo]) {
+  if (memo == null) {
+    parsedUnits += text.length;
+    return _InlineParser(text)._parse();
+  }
+  final from = memo._cut > 0 && text.startsWith(memo._source) ? memo._cut : 0;
+  parsedUnits += text.length - from;
+  // from the cut, with what lies before it there to look back at
+  final parser = _InlineParser(text, cuts: true)..pos = from;
+  final inlines = parser._parse();
+  final before = from == 0 ? const <MdInline>[] : memo._before;
+  if (parser._cutAt > 0) {
+    memo
+      .._before = _join(before, parser._before)
+      .._cut = parser._cutAt;
+  } else if (from == 0) {
+    memo
+      .._before = const []
+      .._cut = 0;
+  }
+  memo._source = text;
+  return from == 0 ? inlines : _join(before, inlines);
+}
+
+/// What [parseInlines] keeps of a text to parse one that goes on from it:
+/// the inlines of the text up to a cut that no text after it changes. A
+/// cut is in plain text, after a space or a character that is no ASCII (text
+/// with no spaces, as Chinese) and before what is no blank, where
+/// no bracket is open, no emphasis is left to match, and nothing before
+/// it was decided by where the text ends (a code span, a link or an
+/// entity that more text may still complete).
+final class InlineMemo {
+  /// The text parsed last: the next goes on from it, or is parsed whole.
+  var _source = '';
+
+  /// Where the cut is in [_source]; 0 for none.
+  var _cut = 0;
+
+  /// The inlines of [_source] up to the cut.
+  List<MdInline> _before = const [];
+}
+
+/// [a] and then [b], the text that ends [a] and the text that starts [b]
+/// one, as [_InlineParser._convert] makes them of text that runs on.
+List<MdInline> _join(List<MdInline> a, List<MdInline> b) {
+  if (a.isEmpty) {
+    return b;
+  }
+  if (b.isEmpty) {
+    return a;
+  }
+  if ((a.last, b.first) case (final MdText end, final MdText start)) {
+    return [
+      ...a.take(a.length - 1),
+      MdText(end.text + start.text),
+      ...b.skip(1),
+    ];
+  }
+  return [...a, ...b];
+}
+
+/// The code units [parseInlines] has parsed since the program started: what
+/// a test reads to see how much of a document a piece cost.
+var parsedUnits = 0;
 
 /// The link reference definition that starts at [start] of [text], the
 /// content of a paragraph, and the end of its line; null where none does.
@@ -100,6 +169,12 @@ bool _isAlnum(int c) =>
     (c >= 0x30 && c <= 0x39) ||
     (c >= 0x41 && c <= 0x5A) ||
     (c >= 0x61 && c <= 0x7A);
+
+/// A space, tab or line feed.
+bool _isBlank(int c) => c == _space || c == _tab || c == _lf;
+
+/// What a character reference has between its `&` and its `;`.
+bool _isEntityPart(int c) => _isAlnum(c) || c == 0x23;
 
 /// Whether [c] may be part of a domain name besides `-`, `_` and `.`.
 bool _isHostChar(int c) => !_isWhitespace(c) && !_isPunctuation(c);
@@ -222,13 +297,38 @@ final class _Bracket {
 }
 
 final class _InlineParser {
-  _InlineParser(this.s);
+  _InlineParser(this.s, {this.cuts = false});
 
   final String s;
   var pos = 0;
   final _root = _Node(_Kind.text);
   _Delimiter? _delimiters;
   _Bracket? _brackets;
+
+  /// Whether a cut is looked for ([InlineMemo]).
+  final bool cuts;
+
+  /// Whether a decision looked at the end of the text, which more text
+  /// would move: no cut comes after it.
+  var _end = false;
+
+  /// How many runs that may close emphasis came since emphasis was last
+  /// matched after plain text ([_afterPlain]).
+  var _closers = 0;
+
+  /// Whether so many openers are left unmatched that matching them after
+  /// each plain text would cost a walk past them each time: emphasis is
+  /// matched at the end alone from then on, and no cut comes.
+  var _gaveUp = false;
+
+  /// The last cut, in the plain text from [_cutStart] of [_cutNode]; 0 for
+  /// none.
+  var _cutAt = 0;
+  _Node? _cutNode;
+  var _cutStart = 0;
+
+  /// The inlines of the text up to the cut, once [_parse] has run.
+  List<MdInline> _before = const [];
 
   List<MdInline> _parse() {
     while (pos < s.length) {
@@ -250,6 +350,7 @@ final class _InlineParser {
             pos++;
             _openBracket('![', image: true);
           } else {
+            _end = _end || pos >= s.length;
             _text('!');
           }
         case _rbracket:
@@ -263,12 +364,30 @@ final class _InlineParser {
       }
     }
     _processEmphasis(null);
+    // nothing moved what lies before the cut: no opener or bracket was left
+    // there for what came after it
+    if (_cutNode case final node?) {
+      _before = _convertFrom(
+        _root.first,
+        inLink: false,
+        stop: node,
+        tail: s.substring(_cutStart, _cutAt),
+      );
+    }
     return _convert(_root, inLink: false);
   }
 
   void _text(String text) => _root.append(_Node(_Kind.text, text));
 
-  int _peek(int at) => at < s.length ? s.codeUnitAt(at) : -1;
+  /// The code unit at [at]; -1 past the end, which a decision that looks
+  /// there depends on ([_end]).
+  int _peek(int at) {
+    if (at < s.length) {
+      return s.codeUnitAt(at);
+    }
+    _end = true;
+    return -1;
+  }
 
   void _newline() {
     pos++;
@@ -332,6 +451,8 @@ final class _InlineParser {
         return;
       }
     }
+    // a run of as many backticks after it may close it yet
+    _end = true;
     _text(s.substring(start, pos));
   }
 
@@ -353,6 +474,7 @@ final class _InlineParser {
   /// The code point that starts at [at]; a line feed at the end.
   int _codePointAt(int at) {
     if (at >= s.length) {
+      _end = true;
       return _lf;
     }
     final high = s.codeUnitAt(at);
@@ -393,6 +515,13 @@ final class _InlineParser {
     final close = c == _underscore
         ? right && (!left || afterPunctuation)
         : right;
+    if (!open && !close) {
+      // nothing to match: no delimiter, as in commonmark.js
+      return;
+    }
+    if (close) {
+      _closers++;
+    }
     final delimiter = _Delimiter(c, count, node, _delimiters, open, close);
     _delimiters?.next = delimiter;
     _delimiters = delimiter;
@@ -523,6 +652,7 @@ final class _InlineParser {
         k++;
       }
     }
+    _end = _end || k >= s.length;
     return 0;
   }
 
@@ -595,6 +725,7 @@ final class _InlineParser {
             k += 2;
             continue;
           }
+          _end = _end || k + 1 >= s.length;
           return null;
         }
         if (c == _gt) {
@@ -607,6 +738,7 @@ final class _InlineParser {
         }
         k++;
       }
+      _end = true;
       return null;
     }
     final start = pos;
@@ -633,6 +765,8 @@ final class _InlineParser {
         k++;
       }
     }
+    // ended by the end of the text, it may go on
+    _end = _end || k >= s.length;
     if ((k == start && _peek(k) != _rparen) || depth != 0) {
       return null;
     }
@@ -665,6 +799,7 @@ final class _InlineParser {
         k++;
       }
     }
+    _end = true;
     return null;
   }
 
@@ -673,6 +808,16 @@ final class _InlineParser {
     final uri = email == null ? _uriAutolink.matchAsPrefix(s, pos) : null;
     final match = email ?? uri;
     if (match == null) {
+      // one that more text may still end with a `>`: nothing after it so
+      // far that no autolink takes
+      var k = pos + 1;
+      while (k < s.length &&
+          s.codeUnitAt(k) > _space &&
+          s.codeUnitAt(k) != _lt &&
+          s.codeUnitAt(k) != _gt) {
+        k++;
+      }
+      _end = _end || k >= s.length;
       pos++;
       _text('<');
       return;
@@ -690,6 +835,12 @@ final class _InlineParser {
     final match = _entity.matchAsPrefix(s, pos);
     final decoded = match == null ? null : decodeEntity(match[0]!);
     if (decoded == null) {
+      // one that more text may still end with a `;`
+      var k = pos + 1;
+      while (k < s.length && k - pos <= 33 && _isEntityPart(s.codeUnitAt(k))) {
+        k++;
+      }
+      _end = _end || k >= s.length;
       pos++;
       _text('&');
     } else {
@@ -722,7 +873,64 @@ final class _InlineParser {
       }
       pos++;
     }
-    _text(s.substring(start, pos));
+    final node = _Node(_Kind.text, s.substring(start, pos));
+    _root.append(node);
+    _afterPlain(node, start, pos);
+  }
+
+  /// After plain text from [start] to [end] of [s], its node [node]: with
+  /// no bracket open, the emphasis that the runs which may close it since
+  /// the last time make is matched now (as at the end; a match made now is
+  /// the one made then, the closers taken in order). Where none is left to
+  /// match and nothing so far looked at the end of the text, a cut after
+  /// the last space of the text that what is no blank follows: no text
+  /// after it changes the inlines before it ([InlineMemo]).
+  void _afterPlain(_Node node, int start, int end) {
+    if (_brackets != null || _gaveUp) {
+      return;
+    }
+    if (_delimiters == null) {
+      _closers = 0;
+    } else {
+      if (_closers == 0) {
+        return;
+      }
+      _closers = 0;
+      _processEmphasis(null, keepOpeners: true);
+      if (_delimiters != null) {
+        var left = 0;
+        for (var d = _delimiters; d != null && left <= 64; d = d.prev) {
+          left++;
+        }
+        _gaveUp = left > 64;
+        return;
+      }
+    }
+    if (!cuts || _end) {
+      return;
+    }
+    var q = end < s.length ? end : s.length - 1;
+    while (q > start && !_mayCutAt(q)) {
+      q--;
+    }
+    if (q > start) {
+      _cutAt = q;
+      _cutNode = node;
+      _cutStart = start;
+    }
+  }
+
+  /// Whether plain text may be cut at [at]: before what is no blank (a
+  /// line's trailing spaces stay with it), after a space or after a
+  /// character no email address has (all of an address is in one text,
+  /// [linkEmails]) that ends a code point: so text with no spaces, as
+  /// Chinese or Japanese, is cut too.
+  bool _mayCutAt(int at) {
+    if (_isBlank(s.codeUnitAt(at))) {
+      return false;
+    }
+    final c = s.codeUnitAt(at - 1);
+    return c == _space || (c >= 0x80 && (c < 0xD800 || c > 0xDBFF));
   }
 
   /// Whether an extended autolink may start at [at]: at the start of a
@@ -744,6 +952,16 @@ final class _InlineParser {
   bool _extendedAutolink() {
     if (!_mayLinkAt(pos)) {
       return false;
+    }
+    // the start of one, cut off by the end of the text
+    final left = s.length - pos;
+    if (left < 8) {
+      final rest = s.substring(pos);
+      for (final start in const ['www.', 'http://', 'https://', 'ftp://']) {
+        if (left < start.length && start.startsWith(rest)) {
+          _end = true;
+        }
+      }
     }
     final www = s.startsWith('www.', pos);
     var domain = pos;
@@ -767,6 +985,7 @@ final class _InlineParser {
         s.codeUnitAt(end) != _lt) {
       end++;
     }
+    _end = _end || end >= s.length;
     end = _trimAutolink(pos, end);
     if (end <= domain) {
       return false;
@@ -807,6 +1026,7 @@ final class _InlineParser {
       }
       k++;
     }
+    _end = _end || k >= s.length;
     if (k == start ||
         underscores > 0 ||
         lastUnderscores > 0 ||
@@ -894,19 +1114,29 @@ final class _InlineParser {
     }
 
     return unmatched.any(
-      (d) =>
-          (d.close && opensBefore(d.char)) ||
-          (d.open && s.indexOf(String.fromCharCode(d.char), pos) >= 0),
+      (d) => (d.close && opensBefore(d.char)) || (d.open && _later(d.char)),
     );
+  }
+
+  /// Whether [char] comes after [pos]; where it does not, more text may
+  /// bring it ([_end]).
+  bool _later(int char) {
+    if (s.indexOf(String.fromCharCode(char), pos) >= 0) {
+      return true;
+    }
+    _end = true;
+    return false;
   }
 
   /// Matches the delimiters above [bottom] into emphasis, strong emphasis
   /// and strikethrough and removes them. Where [unmatched] is given, the
   /// nodes stay as they are, and the delimiters that may open or close and
-  /// are left unmatched are added to it.
+  /// are left unmatched are added to it. With [keepOpeners], those that
+  /// may open and are left unmatched stay, for closers to come.
   void _processEmphasis(
     _Delimiter? bottom, {
     List<_Delimiter>? unmatched,
+    bool keepOpeners = false,
   }) {
     final dry = unmatched != null;
     final openersBottom = <int, _Delimiter?>{};
@@ -955,7 +1185,7 @@ final class _InlineParser {
         }
       }
     }
-    while (_delimiters != null && _delimiters != bottom) {
+    while (!keepOpeners && _delimiters != null && _delimiters != bottom) {
       if (_delimiters!.open) {
         unmatched?.add(_delimiters!);
       }
@@ -1026,7 +1256,17 @@ final class _InlineParser {
     }
   }
 
-  List<MdInline> _convert(_Node parent, {required bool inLink}) {
+  List<MdInline> _convert(_Node parent, {required bool inLink}) =>
+      _convertFrom(parent.first, inLink: inLink);
+
+  /// The inlines of [first] and the nodes after it, up to [stop] (to the
+  /// last where null), then [tail] as text.
+  List<MdInline> _convertFrom(
+    _Node? first, {
+    required bool inLink,
+    _Node? stop,
+    String tail = '',
+  }) {
     final out = <MdInline>[];
     final text = StringBuffer();
     void flush() {
@@ -1041,7 +1281,7 @@ final class _InlineParser {
       }
     }
 
-    for (var node = parent.first; node != null; node = node.next) {
+    for (var node = first; node != null && node != stop; node = node.next) {
       if (node.kind == _Kind.text) {
         text.write(node.literal);
         continue;
@@ -1071,6 +1311,7 @@ final class _InlineParser {
         _Kind.text => throw StateError('text is merged'),
       });
     }
+    text.write(tail);
     flush();
     return out;
   }

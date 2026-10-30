@@ -7,6 +7,7 @@ import 'package:twk_term/twk_term.dart';
 import '../../scripted_shell.dart';
 import '../motion.dart';
 import '../page.dart';
+import 'common.dart';
 
 /// The pages of the Terminal group that draw.
 final terminalPages = <GalleryPage>[_terminalView];
@@ -19,9 +20,7 @@ const _boxWidth = 82;
 /// design's.
 (int, int) _boxSize(StageRoom room) => room == StageRoom.unbounded
     ? (_boxWidth, 26)
-    : (_clamp(room.width, 24, _boxWidth), _clamp(room.height, 6, 26));
-
-int _clamp(int v, int low, int high) => math.max(low, math.min(high, v));
+    : (clampTo(room.width, 24, _boxWidth), clampTo(room.height, 6, 26));
 
 /// Keys the gallery keeps: Tab and Esc move the focus, Ctrl+P searches.
 const _ignored = ['tab', 'shift+tab', 'escape', 'ctrl+p'];

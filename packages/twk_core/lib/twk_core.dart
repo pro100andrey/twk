@@ -41,6 +41,7 @@ export 'src/screen.dart' show Screen;
 export 'src/style.dart' show Attr, Color, ColorMode, Pen, StyleTable;
 export 'src/surface.dart'
     show
+        CellKeeper,
         GlyphTable,
         Surface,
         kBlank,
@@ -57,6 +58,7 @@ export 'src/terminal/sequences.dart'
         MouseTracking,
         Multiplexer,
         NotificationProtocol,
+        PointerNames,
         PointerShape,
         ProgressState,
         clipboardSequence,
@@ -79,7 +81,8 @@ export 'src/terminal/terminal.dart'
         TerminalStateBackend,
         WindowBackend,
         brightnessFor,
-        colorModeFor;
+        colorModeFor,
+        styledUnderlinesFor;
 export 'src/terminal/trace.dart'
     show Trace, TraceDirection, TraceRecord, TraceWriter;
 export 'src/unicode/bidi.dart'

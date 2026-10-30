@@ -16,7 +16,13 @@ terminal, and checks after exit that the terminal was handed back intact:
 
 The command runs with CI=false, whatever the environment says: in a real
 terminal, a user's, and not a CI log, where a twk_core app writes plain
-text only (runsInCi) and these tests are run.
+text only (runsInCi) and these tests are run. It runs with TERM
+xterm-256color and without what names the terminal this script was run
+from (TERM_PROGRAM, COLORTERM, KITTY_WINDOW_ID, TMUX and the like): its
+terminal is the one this script stands for, answering as it does,
+whatever the terminal outside is. --env NAME=VALUE (as often as wanted)
+sets a variable after that, as a test that stands for a terminal of a
+name does (TERM=foot, TERM_PROGRAM=tmux).
 
 Input times count from the command's first output: for a twk_core app that
 is its capability probe, sent once the terminal is in raw mode, so a slow
@@ -113,6 +119,18 @@ PROBE_MODES = (b'\x1b[?2026;2$y\x1b[?2027;0$y\x1b[?2048;0$y\x1b[?69;2$y'
 PROBE_KITTY = b'\x1b[?0u'
 PROBE_DA1 = b'\x1b[?62;22c'
 PROBE_END = b'\x1b[c'
+# What names the terminal this script runs in, which a twk_core app would
+# take for its own (colorModeFor, notificationProtocolFor, styledUnderlinesFor
+# and the like): left out of the command's environment. As _hostTerminal in
+# packages/twk_term/lib/src/pty/pty.dart, which keep in step.
+HOST_TERMINAL = {
+    'TERM_PROGRAM', 'TERM_PROGRAM_VERSION', 'TERM_SESSION_ID', 'LC_TERMINAL',
+    'LC_TERMINAL_VERSION', 'COLORTERM', 'COLORFGBG', 'ITERM_SESSION_ID',
+    'KITTY_WINDOW_ID', 'KITTY_PID', 'GHOSTTY_RESOURCES_DIR', 'WEZTERM_PANE',
+    'WEZTERM_EXECUTABLE', 'KONSOLE_VERSION', 'KONSOLE_DBUS_SESSION',
+    'VTE_VERSION', 'WT_SESSION', 'ALACRITTY_WINDOW_ID', 'TMUX', 'TMUX_PANE',
+    'STY', 'XTERM_VERSION', 'MLTERM',
+}
 # the probe's first query: what comes before it was printed by others
 PROBE_START = b'\x1b[?2026$p'
 # DEC mode 2031, set-able: the terminal reports changes of its color scheme
@@ -142,8 +160,9 @@ DEC_MODE = re.compile(rb'\x1b\[\?([0-9;]+)([hl])')
 # BDSM, ECMA-48's bidirectional support mode: reset (CSI 8 l) is explicit
 # mode, which the terminal is told while the command orders text itself
 BDSM = re.compile(rb'\x1b\[8([hl])')
-# where the cursor is (CSI 6 n), the default colors (OSC 10, 11)
-QUERY = re.compile(rb'\x1b\[6n|\x1b\]1([01]);\?(?:\x07|\x1b\\)')
+# where the cursor is (CSI 6 n), the default colors (OSC 10, 11), and the
+# device attributes (DA1) asked outside a probe
+QUERY = re.compile(rb'\x1b\[6n|\x1b\]1([01]);\?(?:\x07|\x1b\\)|\x1b\[c')
 KITTY_FLAGS = re.compile(rb'\x1b\[([<>])([0-9]*)u')
 
 
@@ -381,8 +400,8 @@ def main():
                     help='set the tty erase character to ^H, as for a '
                          'terminal whose Backspace sends 0x08')
     ap.add_argument('--answer-delay', type=float, default=0,
-                    help='answer the probe this many seconds late (a slow '
-                         'link)')
+                    help='answer the probe this many seconds late, each '
+                         'of its rounds (a slow link)')
     ap.add_argument('--input', default='demo',
                     help="'demo', 'none' or 'T:bytes,...' (escapes "
                          "allowed), T 't', '@t' or '#N'")
@@ -410,6 +429,11 @@ def main():
                          "after the one before, the time '#N' (or '#N+t') "
                          "of --input, --resize and --scheme; may be "
                          "repeated")
+    ap.add_argument('--env', metavar='NAME=VALUE', action='append',
+                    default=[],
+                    help="a variable of the command's environment, set "
+                         "after what names this script's own terminal is "
+                         "left out; may be repeated")
     ap.add_argument('command', nargs=argparse.REMAINDER)
     args = ap.parse_args()
     cmd = args.command[1:] if args.command[:1] == ['--'] else args.command
@@ -450,16 +474,20 @@ def main():
         os.setsid()
         fcntl.ioctl(0, termios.TIOCSCTTY, 0)
 
+    env = {k: v for k, v in os.environ.items() if k not in HOST_TERMINAL}
+    env.update(CI='false', TERM='xterm-256color')
+    for given in args.env:
+        name, _, value = given.partition('=')
+        env[name] = value
     proc = subprocess.Popen(cmd, stdin=slave, stdout=slave,
-                            stderr=subprocess.PIPE,
-                            env=dict(os.environ, CI='false'),
+                            stderr=subprocess.PIPE, env=env,
                             preexec_fn=make_controlling_tty)
     out, err = bytearray(), bytearray()
     start = time.time()
     input_start = None  # the first output
     answered = False  # a probe was answered
     answered_to = 0  # the output up to here was answered
-    probe_at = None  # when the probe waiting for its answer gets it
+    probe_at = None  # when the round of queries waiting gets its answers
     cursor = Cursor(cols, rows, 2 if args.ambiguous_wide else 1)
     scheme_reports = bool(schemes)
     pending = list(script)
@@ -489,10 +517,23 @@ def main():
         # probe once it is complete (up to its DA1 query) and its time came
         while not args.silent:
             probe = out.find(PROBE_START, answered_to)
-            for ask in QUERY.finditer(out, answered_to,
-                                      len(out) if probe < 0 else probe):
+            until = len(out) if probe < 0 else probe
+            # a round of queries, which a DA1 ends, is answered late as a
+            # whole: the inline probe's CSI 6 n before its DECRQM too
+            if out.find(PROBE_END, answered_to) >= 0:
+                if probe_at is None:
+                    probe_at = time.time() + args.answer_delay
+                if time.time() < probe_at:
+                    break
+            for ask in QUERY.finditer(out, answered_to, until):
                 which = ask.group(1)
-                if which is None:
+                if ask.group(0) == PROBE_END:
+                    # DA1 that ends a probe without DECRQM (GNU screen):
+                    # answered, as one with them is
+                    os.write(master, PROBE_DA1)
+                    answered = True
+                    probe_at = None
+                elif which is None:
                     os.write(master, cursor.report(out, ask.start()))
                 else:
                     color = SCHEMES[scheme][1 if which == b'0' else 2]
@@ -500,10 +541,6 @@ def main():
                 answered_to = ask.end()
             end = -1 if probe < 0 else out.find(PROBE_END, probe)
             if end < 0:
-                break
-            if probe_at is None:
-                probe_at = time.time() + args.answer_delay
-            if time.time() < probe_at:
                 break
             cpr = out.find(b'\x1b[6n', probe, end)
             os.write(master, PROBE_MODES
@@ -552,7 +589,12 @@ def main():
         if proc.poll() is not None and proc.stderr.fileno() not in streams:
             break
         if elapsed > args.timeout and proc.poll() is None:
-            proc.send_signal(signal.SIGKILL)
+            # its group, setsid's: a child of it that left the session's
+            # SIGHUP alone would go on writing to the pty
+            try:
+                os.killpg(proc.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
     # drain what is left in the pty
     while select.select([master], [], [], 0.2)[0]:
         data = os.read(master, 65536)

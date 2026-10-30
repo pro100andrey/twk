@@ -187,6 +187,14 @@ final class Text extends LeafRenderObjectWidget {
     RenderParagraph? paragraph,
   ) {
     final style = DefaultTextStyle.of(context).merge(this.style);
+    final selected = paragraph == null
+        ? null
+        : selectedInSelectionArea(context, paragraph);
+    if (spans == null && selected == null) {
+      // the common case, rebuilt in every frame of a clock or a counter:
+      // one span, without the lists below
+      return [(data!, style.pen)];
+    }
     final styled = [
       if (spans case final spans?)
         for (final s in spans)
@@ -197,9 +205,6 @@ final class Text extends LeafRenderObjectWidget {
       else
         (data!, style),
     ];
-    final selected = paragraph == null
-        ? null
-        : selectedInSelectionArea(context, paragraph);
     if (selected == null) {
       return [for (final (text, style) in styled) (text, style.pen)];
     }

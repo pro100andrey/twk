@@ -17,7 +17,7 @@ void main() {
   final stack = StackTrace.fromString('''
 #0      Config.load ($app:42:7)
 #1      _rootRun (dart:async/zone.dart:1399:13)
-#2      Cli.run.<anonymous closure> (package:twk_cli/src/cli.dart:120:9)
+#2      MarkdownView.build (package:twk_rich/src/markdown/view.dart:120:9)
 #3      ArgParser.parse ($cached:10:3)
 <asynchronous suspension>
 #4      main ($app:12:3)
@@ -30,7 +30,7 @@ void main() {
       [for (final l in stackLines(stack)) (l.kind, l.text)],
       [
         (RecordLineKind.frame, 'bin${sep}tool.dart:42:7  Config.load'),
-        (RecordLineKind.folded, '… 3 frames of dart:async, twk_cli, packages'),
+        (RecordLineKind.folded, '… 3 frames of dart:async, twk_rich, packages'),
         (RecordLineKind.frame, 'bin${sep}tool.dart:12:3  main'),
         (RecordLineKind.folded, '… 1 frame of twk'),
       ],
@@ -45,7 +45,7 @@ void main() {
       [
         'Config.load',
         '_rootRun',
-        'Cli.run.<fn>',
+        'MarkdownView.build',
         'ArgParser.parse',
         'main',
         'Element.rebuild',

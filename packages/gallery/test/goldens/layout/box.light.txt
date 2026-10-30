@@ -4,36 +4,36 @@ text
 │                                                                                                                        │
 │   ⌕ Filter             /      Box                                                                             1 of 24  │
 │                               A border, titles on it, padding and a background around a child.                         │
-│   TEXT                 4  ▐                                                                                            │
+│   TEXT                 5  ▐                                                                                            │
 │     Text                  ▐   Preview   Code                                                                           │
 │     Rich text             ▐───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
 │     DefaultTextStyle      ▐                                                              │                             │
 │     Right to left         ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
-│                                                                                          │                             │
-│   LAYOUT              24       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  border                     │
-│ ▎   Box                                                                                  │   single  rounded  double   │
-│     ColoredBox, Decorat…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   heavy  ascii  none        │
-│     Container                                                                            │                             │
-│     Divider                    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  sides                      │
-│     Shadow                            ┌                                      ┐           │   all  top bottom           │
-│     Padding                    ·   ·    ╭ build ───────────────────────────╮   ·   ·     │   top left  left            │
-│     Align, Center                       │                                  │             │                             │
-│     SizedBox                   ·   ·    │ Compiling 14 libraries…          │   ·   ·     │  titles              ▐  ●▌  │
-│     ConstrainedBox                      │ lib/src/layout    0.4 s          │             │                             │
-│     LimitedBox, Overflo…       ·   ·    │ lib/src/render    0.9 s          │   ·   ·     │  title at                   │
-│     FractionallySizedBox                │                                  │             │   topLeft  topCenter        │
-│     IntrinsicWidth/Heig…       ·   ·    │                                  │   ·   ·     │   topRight  bottomLeft      │
-│     Row, Column, Flex                   ╰────────────────────── 2 warnings ╯             │   bottomCenter              │
-│     Expanded, Spacer           ·   ·  └                                      ┘ ·   ·     │                             │
-│     Stack, Positioned                                                  36 × 8            │  padding                    │
-│     Transform                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   0  1  2                   │
-│     Visibility, Offstage                                                                 │                             │
-│     ExpansionTile, Acco…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  surface             ▐●  ▌  │
-│     Grid, GridPlacement                                                                  │                             │
-│     Wrap                       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     CustomPaint                                                                          │                             │
-│     SplitView                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     DockArea                                                                             │                             │
+│     ANSI                                                                                 │                             │
+│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  border                     │
+│   LAYOUT              24                                                                 │   single  rounded  double   │
+│ ▎   Box                        ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   heavy  ascii  none        │
+│     ColoredBox, Decorat…                                                                 │                             │
+│     Container                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  sides                      │
+│     Divider                           ┌                                      ┐           │   all  top bottom           │
+│     Shadow                     ·   ·    ╭ build ───────────────────────────╮   ·   ·     │   top left  left            │
+│     Padding                             │                                  │             │                             │
+│     Align, Center              ·   ·    │ Compiling 14 libraries…          │   ·   ·     │  titles              ▐  ●▌  │
+│     SizedBox                            │ lib/src/layout    0.4 s          │             │                             │
+│     ConstrainedBox             ·   ·    │ lib/src/render    0.9 s          │   ·   ·     │  title at                   │
+│     LimitedBox, Overflo…                │                                  │             │   topLeft  topCenter        │
+│     FractionallySizedBox       ·   ·    │                                  │   ·   ·     │   topRight  bottomLeft      │
+│     IntrinsicWidth/Heig…                ╰────────────────────── 2 warnings ╯             │   bottomCenter              │
+│     Row, Column, Flex          ·   ·  └                                      ┘ ·   ·     │                             │
+│     Expanded, Spacer                                                   36 × 8            │  padding                    │
+│     Stack, Positioned          ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   0  1  2                   │
+│     Transform                                                                            │                             │
+│     Visibility, Offstage       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  surface             ▐●  ▌  │
+│     ExpansionTile, Acco…                                                                 │                             │
+│     Grid, GridPlacement        ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Wrap                                                                                 │                             │
+│     CustomPaint                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     SplitView                                                                            │                             │
 │                                                                                          │                             │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
 styles
@@ -46,31 +46,31 @@ styles
 │aaaaappppappppaaaaaaaaaaaaadqqqrrrrrrrqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq│
 │aaaaappppppppppppppppaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaapppppappappppaaaaaaaaadhhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaddddddaaaaaaaaaaaaaaEEaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhnnnnnnhhhhhhhhhhhhhhhhhhhhh│
-│aIJJJKKKJJJJJJJJJJJJJJJJJJJahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhvwwwwwwvJKKKKKKKJvwwwwwwvhh│
-│aaaaapppppppppppappppppppaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhvwwwwwvvwwwwwvvwwwwvhhhhhhh│
-│aaaaapppppppppaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaapppppppaaaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhnnnnnhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaappppppaaaaaaaaaaaaaaaaahhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhqhhJKKKJvwwwvwwwwwwvhhhhhhhhhh│
-│aaaaapppppppaaaaaaaaaaaaaaaahhhhqhhhqhhhhxhlllllhxxxxxxxxxxxxxxxxxxxxxxxxxxxxhhhqhhhqhhhhhqhhvwwwvwwwwvvwwwwvhhhhhhhhhhh│
-│aaaaappppppappppppaaaaaaaaaahhhhhhhhhhhhhxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhxhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaappppppppaaaaaaaaaaaaaaahhhhqhhhqhhhhxhyyyyyyyyyhyyhyyyyyyyyyyhhhhhhhhhhxhhhqhhhqhhhhhqhhnnnnnnhhhhhhhhhhhhhhrzzArhh│
-│aaaaappppppppppppppaaaaaaaaahhhhhhhhhhhhhxhyyyyyyyyyyyyyyhhhhyyyhyhhhhhhhhhhxhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaapppppppppppappppppppaaahhhhqhhhqhhhhxhyyyyyyyyyyyyyyhhhhyyyhyhhhhhhhhhhxhhhqhhhqhhhhhqhhnnnnnhnnhhhhhhhhhhhhhhhhhhh│
-│aaaaappppppppppppppppppppaaahhhhhhhhhhhhhxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhxhhhhhhhhhhhhhqhhJKKKKKKKJvwwwwwwwwwvhhhhhhh│
-│aaaaappppppppppppppppppppaaahhhhqhhhqhhhhxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhxhhhqhhhqhhhhhqhhvwwwwwwwwvvwwwwwwwwwwvhhhhh│
-│aaaaappppapppppppappppaaaaaahhhhhhhhhhhhhxxxxxxxxxxxxxxxxxxxxxxxhBhBBBBBBBBhxhhhhhhhhhhhhhqhhvwwwwwwwwwwwwvhhhhhhhhhhhhh│
-│aaaaapppppppppappppppaaaaaaahhhhqhhhqhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaappppppappppppppppaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhHHhHhHhhhhhhhhhhhhqhhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
-│aaaaapppppppppaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhvwvJKJvwvhhhhhhhhhhhhhhhhhh│
+│aaaaappppaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhnnnnnnhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddaaaaaaaaaaaaaaEEaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhvwwwwwwvJKKKKKKKJvwwwwwwvhh│
+│aIJJJKKKJJJJJJJJJJJJJJJJJJJahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhvwwwwwvvwwwwwvvwwwwvhhhhhhh│
 │aaaaapppppppppppappppppppaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaappppppppppppppapppppaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhnnnnnnnhhhhhhhhhhhhhxCDDxhh│
-│aaaaapppppapppppppppppppaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaappppaaaaaaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaapppppppppppaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaapppppppppaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaappppppppaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppaaaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhnnnnnhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppaaaaaaaaaaaaaaaahhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhqhhJKKKJvwwwvwwwwwwvhhhhhhhhhh│
+│aaaaappppppaaaaaaaaaaaaaaaaahhhhqhhhqhhhhxhlllllhxxxxxxxxxxxxxxxxxxxxxxxxxxxxhhhqhhhqhhhhhqhhvwwwvwwwwvvwwwwvhhhhhhhhhhh│
+│aaaaapppppppaaaaaaaaaaaaaaaahhhhhhhhhhhhhxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhxhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppappppppaaaaaaaaaahhhhqhhhqhhhhxhyyyyyyyyyhyyhyyyyyyyyyyhhhhhhhhhhxhhhqhhhqhhhhhqhhnnnnnnhhhhhhhhhhhhhhrzzArhh│
+│aaaaappppppppaaaaaaaaaaaaaaahhhhhhhhhhhhhxhyyyyyyyyyyyyyyhhhhyyyhyhhhhhhhhhhxhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppppppppaaaaaaaaahhhhqhhhqhhhhxhyyyyyyyyyyyyyyhhhhyyyhyhhhhhhhhhhxhhhqhhhqhhhhhqhhnnnnnhnnhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppppappppppppaaahhhhhhhhhhhhhxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhxhhhhhhhhhhhhhqhhJKKKKKKKJvwwwwwwwwwvhhhhhhh│
+│aaaaappppppppppppppppppppaaahhhhqhhhqhhhhxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhxhhhqhhhqhhhhhqhhvwwwwwwwwvvwwwwwwwwwwvhhhhh│
+│aaaaappppppppppppppppppppaaahhhhhhhhhhhhhxxxxxxxxxxxxxxxxxxxxxxxhBhBBBBBBBBhxhhhhhhhhhhhhhqhhvwwwwwwwwwwwwvhhhhhhhhhhhhh│
+│aaaaappppapppppppappppaaaaaahhhhqhhhqhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppappppppaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhHHhHhHhhhhhhhhhhhhqhhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppappppppppppaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhvwvJKJvwvhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppppappppppppaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhnnnnnnnhhhhhhhhhhhhhxCDDxhh│
+│aaaaappppppppppppppapppppaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppapppppppppppppaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppppaaaaaaaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaapppppppppaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
 legend
@@ -91,11 +91,11 @@ n #656d76 on #fafafb
 p #1f2328 on #f3f5f7
 q #dcdfe4 on #fafafb
 r #0969da on #fafafb
-I #0969da on #b6d4fe
-J on #b6d4fe
-K bold #1f2328 on #b6d4fe
 v on #eef0f3
 w #656d76 on #eef0f3
+J on #b6d4fe
+K bold #1f2328 on #b6d4fe
+I #0969da on #b6d4fe
 x #c8cdd5 on #fafafb
 y #1f2328 on #fafafb
 z on #0969da

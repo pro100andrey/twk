@@ -9,9 +9,9 @@ text
 │     TaskList           ┌                                                    ┐  │
 │                            ╭ Theme ─────────────╮  ╭ Search ──────────────╮    │
 │   EDITING        4       ◐ │ Dark             ▾ │  │ ⌕ files, commands  ↵ │    │
-│     TextField       ▐      ╰────────────────────╯  ╰──────────────────────╯    │
+│     TextField              ╰────────────────────╯  ╰──────────────────────╯    │
 │ ▎   InputDecorati…  ▐      Enter opens it          by name                     │
-│     TextArea                                                                   │
+│     TextArea        ▐                                                          │
 │     Autocomplete         ╭ Site ────────────────╮  ╭ Password ────────────╮    │
 │                          │ https://twk     .dev │  │ secret               │    │
 │   CONTROLS      20       ╰──────────────────────╯  ╰──────────────────────╯    │
@@ -34,9 +34,9 @@ styles
 │aaaaannnnnnnnaaaaaaaaaggoggggggggggggggggggggggggggggggggggggggggggggggggggggogg│
 │aaaaaaaaaaaaaaaaaaaaaaggggggCgmmmmmgCCCCCCCCCCCCCCggCgmmmmmmgCCCCCCCCCCCCCCCgggg│
 │aaadddddddaaaaaaaafaaaggggmgCgDDDDgggggggggggggmgCggCgmgmmmmmmgmmmmmmmmggmgCgggg│
-│aaaaannnnnnnnnaaaaaaadggggggCCCCCCCCCCCCCCCCCCCCCCggCCCCCCCCCCCCCCCCCCCCCCCCgggg│
+│aaaaannnnnnnnnaaaaaaaaggggggCCCCCCCCCCCCCCCCCCCCCCggCCCCCCCCCCCCCCCCCCCCCCCCgggg│
 │arsssttttttttttttttssdggggggmmmmmgmmmmmgmmggggggggggmmgmmmmggggggggggggggggggggg│
-│aaaaannnnnnnnaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnaaaaaaaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnaaaaaggggCgmmmmgCCCCCCCCCCCCCCCCCggCgmmmmmmmmgCCCCCCCCCCCCCgggg│
 │aaaaaaaaaaaaaaaaaaaaaaggggCgmmmmmmmmmmmgggggmmmmgCggCgmmmmmmgggggggggggggggCgggg│
 │aaaddddddddaaaaaaffaaaggggCCCCCCCCCCCCCCCCCCCCCCCCggCCCCCCCCCCCCCCCCCCCCCCCCgggg│

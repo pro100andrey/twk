@@ -283,7 +283,9 @@ void main() {
       );
       expect(t.mouseTracking, MouseTracking.drags);
       expect(link.text, contains('\x1b[?1002h\x1b[?1006h'));
-      expect(link.text, isNot(contains('\x1b[?1049h')));
+      // the probe's queries on the alternate screen, the app never there
+      final probed = link.text.indexOf('\x1b[?1049l');
+      expect(link.text.substring(probed), isNot(contains('\x1b[?1049h')));
       t.mouseTracking = MouseTracking.motion;
       expect(t.mouseTracking, MouseTracking.motion);
       expect(link.text, contains('\x1b[?1002l\x1b[?1003h'));

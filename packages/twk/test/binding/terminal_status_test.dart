@@ -258,7 +258,8 @@ void main() {
   });
 
   test("the pointer's shape set on an app's status is written, read back, "
-      "and the terminal's own given back once it is null", () async {
+      "and the arrow given back once it is null; the terminal's own as the "
+      'app ends', () async {
     final clock = FakeClock();
     final term = clock.run(
       () => HeadlessTerminal(width: 20, height: 2, pointerShapes: true),
@@ -272,16 +273,79 @@ void main() {
     final status = TerminalStatus.of(key.currentContext!)!;
     String written() => utf8.decode([for (final f in term.frames) ...f]);
     expect(status.showsPointerShape, isTrue);
+    expect(status.defaultPointerShape, PointerShape.arrow);
     expect(status.pointerShape, isNull);
+    expect(written(), endsWith('\x1b]22;default\x1b\\'));
     status.pointerShape = PointerShape.wait;
     expect(status.pointerShape, PointerShape.wait);
-    expect(written(), contains('\x1b]22;wait\x1b\\'));
+    expect(written(), endsWith('\x1b]22;wait\x1b\\'));
     status.pointerShape = null;
     expect(status.pointerShape, isNull);
+    expect(written(), endsWith('\x1b]22;default\x1b\\'));
+    binding.quit();
+    await clock.elapseUntil(done);
+    expect(written(), contains('\x1b]22;\x1b\\'));
+  });
+
+  test("inline, the pointer is the terminal's own until a shape is set, "
+      'and again once it is null', () async {
+    final clock = FakeClock();
+    final term = clock.run(
+      () => HeadlessTerminal(
+        width: 20,
+        height: 2,
+        pointerShapes: true,
+        options: const TerminalOptions(alternateScreen: false),
+      ),
+    );
+    final binding = clock.run(
+      () => AppBinding(term, maxFps: 1000, clock: clock.stopwatch),
+    );
+    final key = GlobalKey();
+    final done = clock.run(() => binding.run(Text('x', key: key)));
+    await clock.settle();
+    final status = TerminalStatus.of(key.currentContext!)!;
+    String written() => utf8.decode([for (final f in term.frames) ...f]);
+    expect(status.defaultPointerShape, isNull);
+    expect(written(), isNot(contains('\x1b]22;')));
+    status.pointerShape = PointerShape.wait;
+    expect(written(), endsWith('\x1b]22;wait\x1b\\'));
+    status.pointerShape = null;
     expect(written(), endsWith('\x1b]22;\x1b\\'));
     binding.quit();
     await clock.elapseUntil(done);
   });
+
+  test(
+    "the pointer's shape is written by the X cursor font's name where "
+    'the terminal names it so, its own pointer for a shape with none',
+    () async {
+      final clock = FakeClock();
+      final term = clock.run(
+        () => HeadlessTerminal(
+          width: 20,
+          height: 2,
+          pointerShapes: true,
+          pointerNames: PointerNames.x11,
+        ),
+      );
+      final binding = clock.run(
+        () => AppBinding(term, maxFps: 1000, clock: clock.stopwatch),
+      );
+      final key = GlobalKey();
+      final done = clock.run(() => binding.run(Text('x', key: key)));
+      await clock.settle();
+      final status = TerminalStatus.of(key.currentContext!)!;
+      String written() => utf8.decode([for (final f in term.frames) ...f]);
+      status.pointerShape = PointerShape.ewResize;
+      expect(written(), endsWith('\x1b]22;sb_h_double_arrow\x1b\\'));
+      status.pointerShape = PointerShape.nwseResize;
+      expect(status.pointerShape, PointerShape.nwseResize);
+      expect(written(), endsWith('\x1b]22;\x1b\\'));
+      binding.quit();
+      await clock.elapseUntil(done);
+    },
+  );
 
   test("the pointer's shape is neither set nor written where the terminal "
       'is not known to show it', () async {

@@ -292,6 +292,13 @@ void main() {
     ]);
   });
 
+  test('a NaN, set or a target, is an ArgumentError', () {
+    final controller = AnimationController(vsync: _NoTicks());
+    expect(() => controller.value = double.nan, throwsArgumentError);
+    expect(() => controller.animateTo(double.nan), throwsArgumentError);
+    expect(controller.value, 0);
+  });
+
   test('a status listener that throws is reported to the zone, and the '
       'others are called all the same', () {
     final errors = <Object>[];

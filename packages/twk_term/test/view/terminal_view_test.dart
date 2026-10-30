@@ -131,6 +131,30 @@ void main() {
       expect(t, cursorAt(4, 4));
     });
 
+    testTwk("the emulator's styles swept, every row is painted again in "
+        'them', (t) async {
+      final floor = TerminalEmulator.sweepFloor;
+      addTearDown(() => TerminalEmulator.sweepFloor = floor);
+      TerminalEmulator.sweepFloor = 8;
+      final link = Link(t, width: 10, height: 2);
+      await t.pumpWidget(TerminalView(session: link.session), size: (10, 2));
+      link.write(r'\e[38;2;1;0;0mA');
+      await t.pump();
+      final sweeps = link.session.emulator.styles.sweeps;
+      // the second row written over and over, in a color a cell
+      link.write(r'\e[2;1H');
+      for (var i = 0; i < 40; i++) {
+        link.write('${i % 10 == 0 ? '\r' : ''}\x1b[38;2;0;${10 + i};0mx');
+      }
+      await t.pump();
+      expect(link.session.emulator.styles.sweeps, greaterThan(sweeps));
+      expect(rowsPainted(t), 2);
+      expect(t, styleAt(0, 0, hasFg(const Color.rgb(1, 0, 0))));
+      for (var x = 0; x < 10; x++) {
+        expect(t, styleAt(x, 1, hasFg(Color.rgb(0, 40 + x, 0))));
+      }
+    });
+
     testTwk('rows the program scrolls move in hardware, the new one painted', (
       t,
     ) async {

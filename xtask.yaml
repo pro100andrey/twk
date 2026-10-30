@@ -4,8 +4,9 @@
 #   dart run tool/xtask.dart quick        # pub get, analyze, format
 #   dart run tool/xtask.dart handover     # what a handover or a pull request needs
 #   dart run tool/xtask.dart bench        # the frame benchmark against HEAD
-#   dart run tool/xtask.dart ci           # all of it, the benchmark last, alone
-#   dart run tool/xtask.dart ci-os        # the published packages' tests, macOS, Windows
+#   dart run tool/xtask.dart ci           # all but the slowest suites, the benchmark last, alone
+#   dart run tool/xtask.dart ci-tests     # the slowest suites, CI's second Linux job
+#   dart run tool/xtask.dart ci-os        # every package's tests on macOS, the portable ones' on Windows
 #   dart run tool/xtask.dart --list       # every task, by gate
 #
 # `entry:` below makes the installed xtask (`dart pub global activate xtask`)
@@ -29,9 +30,12 @@
 version: 1
 entry: tool/xtask.dart
 
-# ci is the Linux job of .github/workflows/ci.yml; ci-os the macOS and
-# Windows ones, over the packages that are published (the `published` set).
-gates: [quick, handover, ci, ci-os]
+# ci and ci-tests are the Linux jobs of .github/workflows/ci.yml, side by
+# side: ci-tests the slowest packages' suites (the `slow-suites` set), ci
+# all the rest; ci-os the macOS and Windows ones: on macOS every package's
+# tests and the pseudo-terminal runs, on Windows those of the packages an
+# app takes on every platform (the `portable` set).
+gates: [quick, handover, ci, ci-tests, ci-os]
 
 sets:
   # Every package of the repository, by its pubspec.yaml: those under
@@ -70,19 +74,36 @@ sets:
     include:
       - packages/twk_dev/templates/*/pubspec.yaml
 
-  # The packages published to pub.dev, and the tester their tests take:
-  # what ci-os runs on macOS and Windows, where their terminal backends are
-  # another's.
-  published:
+  # The packages whose suites take the longest on GitHub's Linux runner
+  # (minutes each: twk_ssh's flood of a server, twk_dev's apps compiled
+  # and started, twk's thousands of tests), run by a job of their own,
+  # ci-tests, beside ci, which runs the others' (`quick-suites`). Not
+  # narrowed by --only packages, as no one but CI runs these gates.
+  slow-suites:
+    include:
+      - packages/twk_ssh/pubspec.yaml
+      - packages/twk_dev/pubspec.yaml
+      - packages/twk/pubspec.yaml
+
+  # Every package but the `slow-suites`: the suites ci runs.
+  quick-suites:
+    include:
+      - packages/*/pubspec.yaml
+      - packages/twk_dev/templates/*/pubspec.yaml
+    exclude:
+      - packages/twk_ssh/pubspec.yaml
+      - packages/twk_dev/pubspec.yaml
+      - packages/twk/pubspec.yaml
+
+  # The packages an app takes on every platform, and the tester their
+  # tests take: what ci-os runs on Windows, where their terminal backend is
+  # another's. twk_term's pseudo-terminal, and twk_dev on it, are Linux's
+  # and macOS's.
+  portable:
     include:
       - packages/twk_core/pubspec.yaml
       - packages/twk/pubspec.yaml
       - packages/twk_test/pubspec.yaml
-
-  # The packages with data-driven fixes, by their test_fixes/.
-  fix-tests:
-    include:
-      - packages/*/test_fixes/analysis_options.yaml
 
 tasks:
   validate:
@@ -189,14 +210,6 @@ tasks:
     do: package
     args: [$each, dart, analyze, --fatal-infos]
 
-  pkg-fix-data:
-    desc: each package's data-driven fixes against its test_fixes/, the core's too
-    gate: [handover, ci]
-    needs: [get, plugin]
-    each: fix-tests
-    do: package
-    args: [$each, dart, fix, --compare-to-golden, test_fixes]
-
   test:
     # The root's own suite, test/tool/: the checks of this file and the
     # verbs of tool/xtask/, and tool/web_check.dart's core case. Under -j it,
@@ -214,19 +227,49 @@ tasks:
     # which compiles and starts apps, twk's and the core's), the others
     # seconds each.
     desc: the tests of every package that has a test/
-    gate: [handover, ci]
+    gate: [handover]
     needs: [get, pkg-get]
     each: packages
     do: tests
     args: [$each, --reporter=failures-only]
 
+  ci-test:
+    # pkg-test's, split in two for CI's two Linux jobs: ci's, the packages
+    # but the slowest; ci-tests' (slow-test), those.
+    desc: the tests of the packages but the slowest, in ci
+    gate: [ci]
+    needs: [get, pkg-get]
+    each: quick-suites
+    do: tests
+    args: [$each, --reporter=failures-only]
+
+  slow-test:
+    desc: the tests of the slowest packages, ci-tests' job beside ci
+    gate: [ci-tests]
+    needs: [get, pkg-get]
+    each: slow-suites
+    do: tests
+    args: [$each, --reporter=failures-only]
+
   os-test:
-    # pkg-test's, over the published packages only: ci-os, on macOS and
-    # Windows.
-    desc: the tests of the published packages and their tester
+    # pkg-test's, over the portable packages only: ci-os, on Windows.
+    desc: the tests of the portable packages and their tester
     gate: [ci-os]
+    platforms: [windows]
     needs: [get]
-    each: published
+    each: portable
+    do: tests
+    args: [$each, --reporter=failures-only]
+
+  mac-test:
+    # pkg-test's on macOS, every package: its pseudo-terminal (twk_term's
+    # Pty, twk_dev's record and play, the shells and the tools they run)
+    # is another kernel's, and BSD's tools are not GNU's.
+    desc: the tests of every package that has a test/, on macOS
+    gate: [ci-os]
+    platforms: [macos]
+    needs: [get, pkg-get]
+    each: packages
     do: tests
     args: [$each, --reporter=failures-only]
 
@@ -287,41 +330,106 @@ tasks:
     args: [packages/twk_web, test/browser/]
 
   pub-check:
-    # In ci, not handover: pana needs the network and takes minutes (it
-    # documents the package with dartdoc). The packages to be published:
+    # In no gate, as pana needs the network and takes minutes (it
+    # documents the package with dartdoc): the six at once, those whose
+    # dependencies are not on pub.dev yet not scored; each upload runs its
+    # own package's (check-<name>) once they are. The packages to be
+    # published:
     # publish_to, `dart pub publish --dry-run`'s errors (its warnings
     # shown), and pana's score out of 160 with what lost points; `--min=N`
     # fails a score under N. pana is `dart pub global activate pana`'s,
     # skipped and said so without it.
-    desc: whether twk_core, twk and twk_test are ready for pub.dev, pana scoring them
-    gate: [ci]
+    desc: whether the six packages of release 1 are ready for pub.dev, pana scoring them
     needs: [get]
     do: pub
     # pana's 160 of 160, which twk_core has: what loses a point fails.
-    args: [--min=160, packages/twk_core, packages/twk, packages/twk_test]
+    args:
+      - --min=160
+      - packages/twk_core
+      - packages/twk
+      - packages/twk_test
+      - packages/twk_lints
+      - packages/twk_term
+      - packages/twk_dev
 
   # The packages published to pub.dev, in no gate: an upload is not taken
-  # back. Each after pub-check, and after the one it takes from the
-  # registry (twk takes twk_core by version, twk_test both): pub.dev
-  # resolves it there. `dart pub login` first; publish-test publishes all
-  # three in order.
+  # back. Each after those it takes from the registry (twk takes twk_core
+  # by version, twk_test both, twk_term twk and the core, twk_lints' tests
+  # the three, twk_dev twk_term and twk_test), and after its own pub-check
+  # (check-<name>), which runs once they are on pub.dev, so that pana
+  # resolves the package there and scores it (--scored: no score fails).
+  # `dart pub login` first; publish-dev publishes all six in order.
+  check-core:
+    desc: whether twk_core is ready for pub.dev, scored by pana, right before its upload
+    needs: [get]
+    do: pub
+    args: [--min=160, --scored, packages/twk_core]
+
   publish-core:
-    desc: publish twk_core to pub.dev, once pub-check passes
-    needs: [pub-check]
+    desc: publish twk_core to pub.dev, once check-core passes
+    needs: [check-core]
     do: publish
     args: [packages/twk_core]
 
+  check-twk:
+    desc: whether twk is ready for pub.dev, scored by pana, right before its upload
+    needs: [get, publish-core]
+    do: pub
+    args: [--min=160, --scored, packages/twk]
+
   publish-twk:
-    desc: publish twk to pub.dev, after twk_core
-    needs: [publish-core]
+    desc: publish twk to pub.dev, once check-twk passes
+    needs: [check-twk]
     do: publish
     args: [packages/twk]
 
+  check-test:
+    desc: whether twk_test is ready for pub.dev, scored by pana, right before its upload
+    needs: [get, publish-twk]
+    do: pub
+    args: [--min=160, --scored, packages/twk_test]
+
   publish-test:
-    desc: publish twk_test to pub.dev, after twk
-    needs: [publish-twk]
+    desc: publish twk_test to pub.dev, once check-test passes
+    needs: [check-test]
     do: publish
     args: [packages/twk_test]
+
+  check-lints:
+    desc: whether twk_lints is ready for pub.dev, scored by pana, right before its upload
+    needs: [get, publish-test]
+    do: pub
+    args: [--min=160, --scored, packages/twk_lints]
+
+  publish-lints:
+    desc: publish twk_lints to pub.dev, once check-lints passes
+    needs: [check-lints]
+    do: publish
+    args: [packages/twk_lints]
+
+  check-term:
+    desc: whether twk_term is ready for pub.dev, scored by pana, right before its upload
+    needs: [get, publish-twk]
+    do: pub
+    args: [--min=160, --scored, packages/twk_term]
+
+  publish-term:
+    desc: publish twk_term to pub.dev, once check-term passes
+    needs: [check-term]
+    do: publish
+    args: [packages/twk_term]
+
+  check-dev:
+    desc: whether twk_dev is ready for pub.dev, scored by pana, right before its upload
+    needs: [get, publish-term, publish-lints]
+    do: pub
+    args: [--min=160, --scored, packages/twk_dev]
+
+  publish-dev:
+    desc: publish twk_dev to pub.dev, once check-dev passes
+    needs: [check-dev]
+    do: publish
+    args: [packages/twk_dev]
 
   gallery-shots:
     # The gallery's pages as SVGs (packages/gallery/doc/shots/), drawn from
@@ -395,7 +503,7 @@ tasks:
   e2e-fullscreen:
     # pty_run.py takes Python's pty, which Windows has not.
     desc: the chat demo in a pseudo-terminal, its output through the emulator
-    gate: [handover, ci]
+    gate: [handover, ci, ci-os]
     platforms: [linux, macos]
     exclusive: [tests]
     do: e2e
@@ -403,7 +511,7 @@ tasks:
 
   e2e-inline:
     desc: the same in the inline mode
-    gate: [handover, ci]
+    gate: [handover, ci, ci-os]
     platforms: [linux, macos]
     exclusive: [tests]
     do: e2e
@@ -440,13 +548,11 @@ tasks:
       - analyze
       - pkg-analyze
       - tool-analyze
-      - pkg-fix-data
       - test
-      - pkg-test
+      - ci-test
       - tool-test
       - doc-snippets
       - gallery-code
-      - pub-check
       - browser-test
       - vscode-install
       - vscode-compile

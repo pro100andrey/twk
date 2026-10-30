@@ -56,8 +56,8 @@ export interface InspectorDeps {
   readonly log: Log;
 }
 
-/** How an app picks while the pick mode is on: by itself, picking many or armed again after each; or by its terminal's clicks. */
-type PickBy = 'many' | 'once' | 'terminal';
+/** How an app picks while the pick mode is on: by itself, picking on until told off; or by its terminal's clicks. */
+type PickBy = 'many' | 'terminal';
 
 /** An app inspected: its terminal, its service, and what was read of its code. */
 interface Target {
@@ -145,10 +145,6 @@ export class Inspector {
           const cell = parsePicked(e.data);
           if (cell) {
             void this.picked(target, cell);
-            if (target.pickBy === 'once' && this.pickingIn === terminal) {
-              // a twk of before selectMany: armed again
-              void target.service.extension('ext.twk.flags', { select: 'true' }).catch(() => {});
-            }
           } else if (cell === null && this.pickingIn === terminal) {
             // Escape in the terminal
             void this.stopPicking();
@@ -357,7 +353,7 @@ export class Inspector {
     let pickBy: PickBy = 'terminal';
     try {
       const flags = parseFlags(await target.service.extension('ext.twk.flags', { selectMany: 'true', select: 'true' }));
-      pickBy = !flags.select ? 'terminal' : flags.selectMany ? 'many' : 'once';
+      pickBy = flags.select ? 'many' : 'terminal';
     } catch {
       // an app that can't: the terminal picks
     }

@@ -52,7 +52,7 @@ function newest(api: Api): TwkTerminal {
   return terminal;
 }
 
-/** The project's address file, which the extension writes no more. */
+/** The project's address file, which the extension never writes. */
 const addressFile = path.join(project, '.dart_tool', 'twk', 'shell');
 
 let scratches = 0;

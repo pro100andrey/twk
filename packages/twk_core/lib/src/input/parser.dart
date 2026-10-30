@@ -18,6 +18,13 @@ import 'events.dart';
 /// pause. A bracketed paste is held until its end marker and comes as one
 /// [PasteEvent] ([endPaste] where the marker got lost).
 ///
+/// What it holds is bounded, as the far end of a link need not be a
+/// terminal: a paste longer than [pasteLimit] comes in [PasteEvent]s of
+/// at most that many bytes each ([PasteEvent.more] on all but the last),
+/// and a sequence still unterminated after [sequenceLimit] bytes is given
+/// up, an [UnknownSequence] of what came, and the rest of it dropped up
+/// to its end.
+///
 /// It decodes the keys of the legacy encodings and of the kitty keyboard
 /// protocol ([KittyKeyboardFlags]), SGR mouse reports (mode 1006), focus
 /// and in-band resize reports, and the replies to the queries a terminal
@@ -36,7 +43,12 @@ final class InputParser {
   /// A parser with no bytes fed yet.
   InputParser();
 
-  final _buf = <int>[];
+  // the bytes the reads before left undecoded: [_len] of [_store], which
+  // a read's bytes are copied into (a Uint8List's as one block)
+  var _store = Uint8List(256);
+  var _len = 0;
+  Uint8List get _buf => Uint8List.sublistView(_store, 0, _len);
+
   var _inPaste = false;
 
   // the bracketed paste's bytes so far: [_pasteLength] of [_paste]
@@ -45,12 +57,35 @@ final class InputParser {
 
   /// Whether a cursor position query (`CSI 6 n`) is out: its reply
   /// `CSI row ; col R` reads as F3 with modifiers, and is decoded as a
-  /// [CursorReport] only while this is set, which the first such reply
-  /// clears. False by default; `Terminal` sets it while its own query is
-  /// out (when it opens and when it takes the terminal back).
-  var expectCursorReport = false;
+  /// [CursorReport] only while one is expected ([cursorReportsExpected]),
+  /// each such reply taking one. False by default; `Terminal` sets it
+  /// while its own query is out (when it opens and when it takes the
+  /// terminal back). Set, one reply is expected.
+  bool get expectCursorReport => cursorReportsExpected > 0;
+  set expectCursorReport(bool expect) => cursorReportsExpected = expect ? 1 : 0;
+
+  /// How many replies to cursor position queries (`CSI 6 n`) are still
+  /// expected ([expectCursorReport]): as many as were asked in one write.
+  var cursorReportsExpected = 0;
 
   static const _pasteEnd = <int>[0x1B, 0x5B, 0x32, 0x30, 0x31, 0x7E];
+
+  /// The most bytes of a paste held before what came is delivered, a
+  /// [PasteEvent] of its own, the paste going on: 1 MiB.
+  static const int pasteLimit = 1 << 20;
+
+  /// The most bytes of an unterminated escape sequence held: 64 KiB,
+  /// many times the longest reply a terminal sends.
+  static const int sequenceLimit = 1 << 16;
+
+  // the rest of a sequence given up at [sequenceLimit], dropped up to its
+  // end: a CSI's parameters and final byte, or a string's BEL or ST; an
+  // ESC that ended a string and may be its ST's start
+  _Drop _dropping = _Drop.none;
+
+  // how far into the string sequence pending at the buffer's start the
+  // reads before scanned for its end: the next read goes on from there
+  var _stringScanned = 0;
 
   /// Whether an escape sequence is waiting for more input (call [flush]
   /// after a pause: a lone ESC may be the Escape key). Never for a
@@ -59,22 +94,38 @@ final class InputParser {
   /// only with its end marker.
   bool get hasPending =>
       !_inPaste &&
-      _buf.isNotEmpty &&
-      _buf[0] == 0x1B &&
+      _len > 0 &&
+      _store[0] == 0x1B &&
       // what a read leaves after ESC is a sequence's introducer (ASCII)
       // or the start of a character (a UTF-8 lead byte)
-      (_buf.length == 1 || _buf[1] < 0x80);
+      (_len == 1 || _store[1] < 0x80);
 
   /// Whether the pending sequence got past ESC and its introducer (its
   /// parameters arrived): then it isn't a key typed with Alt and the rest
   /// is on its way, so it deserves a longer wait than a lone ESC.
-  bool get sequenceStarted => hasPending && _buf.length > 2;
+  bool get sequenceStarted => hasPending && _len > 2;
 
   /// Decodes [bytes], what one read of the input brought, with what the
   /// reads before left incomplete: the events complete so far, in order.
   /// What is incomplete waits for the next [feed] or a [flush].
   List<InputEvent> feed(List<int> bytes) {
-    _buf.addAll(bytes);
+    final n = bytes.length;
+    if (_len + n > _store.length) {
+      final g = Uint8List(
+        _len + n > 2 * _store.length ? _len + n : 2 * _store.length,
+      )..setRange(0, _len, _store);
+      _store = g;
+    }
+    if (bytes is Uint8List) {
+      _store.setRange(_len, _len + n, bytes);
+    } else {
+      final st = _store;
+      for (var i = 0; i < n; i++) {
+        final v = bytes[i];
+        st[_len + i] = v & ~0xFF == 0 ? v : 0xFF;
+      }
+    }
+    _len += n;
     return _drain(eof: false);
   }
 
@@ -93,14 +144,25 @@ final class InputParser {
     if (!_inPaste) {
       return const [];
     }
-    _addPaste(_buf, 0, _buf.length);
-    _buf.clear();
+    _addPaste(_buf, 0, _len);
+    _len = 0;
     return [_pasteEvent()];
   }
 
-  /// Appends `b[from..to)` to the paste. A value that is no byte goes in
+  /// Appends `b[start..to)` to the paste. A value that is no byte goes in
   /// as 0xFF, which UTF-8 decodes to U+FFFD as it would decode the value.
-  void _addPaste(List<int> b, int from, int to) {
+  /// Given [out], what goes past [pasteLimit] delivers the paste so far
+  /// there, a piece of it.
+  void _addPaste(Uint8List b, int start, int to, [List<InputEvent>? out]) {
+    var from = start;
+    if (out != null) {
+      while (_pasteLength + to - from > pasteLimit) {
+        final take = pasteLimit - _pasteLength;
+        _addPaste(b, from, from + take);
+        from += take;
+        out.add(_pastePiece());
+      }
+    }
     final n = to - from;
     if (_pasteLength + n > _paste.length) {
       final grown = Uint8List(
@@ -120,15 +182,7 @@ final class InputParser {
   }
 
   PasteEvent _pasteEvent() {
-    final e = PasteEvent(
-      utf8
-          .decode(
-            Uint8List.sublistView(_paste, 0, _pasteLength),
-            allowMalformed: true,
-          )
-          .replaceAll('\r\n', '\n')
-          .replaceAll('\r', '\n'),
-    );
+    final e = _pasteText(_pasteLength);
     _pasteLength = 0;
     if (_paste.length > 1 << 16) {
       _paste = Uint8List(256); // a large paste's buffer isn't kept
@@ -137,30 +191,132 @@ final class InputParser {
     return e;
   }
 
+  /// What of a paste over [pasteLimit] can go now: up to its last whole
+  /// character, a CR held back for the LF that may follow it; the rest
+  /// stays, the start of the next piece.
+  PasteEvent _pastePiece() {
+    final p = _paste;
+    var cut = _pasteLength;
+    var lead = cut - 1;
+    while (lead > 0 && cut - lead < 4 && p[lead] & 0xC0 == 0x80) {
+      lead--;
+    }
+    final c = p[lead];
+    final length = c < 0x80
+        ? 1
+        : c >= 0xF0
+        ? 4
+        : c >= 0xE0
+        ? 3
+        : c >= 0xC0
+        ? 2
+        : 1;
+    if (cut - lead < length) {
+      cut = lead;
+    }
+    if (cut > 0 && p[cut - 1] == 0x0D) {
+      cut--;
+    }
+    final e = _pasteText(cut, more: true);
+    p.setRange(0, _pasteLength - cut, p, cut);
+    _pasteLength -= cut;
+    return e;
+  }
+
+  PasteEvent _pasteText(int length, {bool more = false}) => PasteEvent(
+    utf8
+        .decode(Uint8List.sublistView(_paste, 0, length), allowMalformed: true)
+        .replaceAll('\r\n', '\n')
+        .replaceAll('\r', '\n'),
+    more: more,
+  );
+
+  /// Puts an ESC back at [i] of the bytes kept: the one a dropped string
+  /// ended with, which starts what follows ([_drop]).
+  void _insertEsc(int i) {
+    if (_len + 1 > _store.length) {
+      _store = Uint8List(2 * _store.length)..setRange(0, _len, _store);
+    }
+    _store.setRange(i + 1, _len + 1, _store, i);
+    _store[i] = 0x1B;
+    _len++;
+  }
+
+  /// Drops what is left of a sequence given up ([_dropping]) from [pos];
+  /// returns where what follows it starts, [b]'s length while it goes on.
+  /// [b] is to be taken again after, as an ESC put back may grow it.
+  int _drop(Uint8List b, int pos) {
+    var i = pos;
+    if (_dropping == _Drop.stringEsc) {
+      _dropping = _Drop.none;
+      if (b[i] == 0x5C) {
+        return i + 1;
+      }
+      // an ESC that starts what follows
+      _insertEsc(i);
+      return i;
+    }
+    for (; i < b.length; i++) {
+      final c = b[i];
+      if (_dropping == _Drop.csi) {
+        if (c >= 0x20 && c <= 0x3F) {
+          continue;
+        }
+        _dropping = _Drop.none;
+        return c >= 0x40 && c <= 0x7E ? i + 1 : i;
+      }
+      if (c == 0x07) {
+        _dropping = _Drop.none;
+        return i + 1;
+      }
+      if (c == 0x1B) {
+        if (i + 1 >= b.length) {
+          _dropping = _Drop.stringEsc;
+          return i + 1;
+        }
+        _dropping = _Drop.none;
+        return b[i + 1] == 0x5C ? i + 2 : i;
+      }
+    }
+    return i;
+  }
+
   // reused across reads: typing allocates only the events themselves
   final _text = StringBuffer();
   final _segmenter = TextSegmenter();
   final _scan = ClusterScan();
 
+  // the key of each printable ASCII character, made once: what typing
+  // mostly is, given out without a string, a segmentation or an event
+  static final List<KeyEvent> _asciiKeys = [
+    for (var c = 0x20; c < 0x7F; c++)
+      KeyEvent(KeyCode.char, char: String.fromCharCode(c)),
+  ];
+
+  void _flushText(List<InputEvent> out) {
+    final text = _text;
+    if (text.isEmpty) {
+      return;
+    }
+    final s = text.toString();
+    text.clear();
+    for (var i = 0; i < s.length; i = _scan.end) {
+      _segmenter.scan(s, i, _scan);
+      out.add(KeyEvent(KeyCode.char, char: s.substring(i, _scan.end)));
+    }
+  }
+
   List<InputEvent> _drain({required bool eof}) {
     final out = <InputEvent>[];
     var pos = 0;
-    final b = _buf;
+    var b = _buf;
     final text = _text;
-    void flushText() {
-      if (text.isEmpty) {
-        return;
-      }
-      final s = text.toString();
-      text.clear();
-      // one key per grapheme cluster
-      for (var i = 0; i < s.length; i = _scan.end) {
-        _segmenter.scan(s, i, _scan);
-        out.add(KeyEvent(KeyCode.char, char: s.substring(i, _scan.end)));
-      }
-    }
-
     while (pos < b.length) {
+      if (_dropping != _Drop.none) {
+        pos = _drop(b, pos);
+        b = _buf;
+        continue;
+      }
       if (_inPaste) {
         final end = _indexOf(b, _pasteEnd, pos);
         if (end < 0) {
@@ -173,11 +329,11 @@ final class InputParser {
               break;
             }
           }
-          _addPaste(b, pos, b.length - keep);
+          _addPaste(b, pos, b.length - keep, out);
           pos = b.length - keep;
           break;
         }
-        _addPaste(b, pos, end);
+        _addPaste(b, pos, end, out);
         out.add(_pasteEvent());
         pos = end + _pasteEnd.length;
         continue;
@@ -185,17 +341,31 @@ final class InputParser {
 
       final c = b[pos];
       if (c == 0x1B) {
-        flushText();
+        _flushText(out);
         final n = _escape(b, pos, out, eof);
         if (n == 0) {
+          if (b.length - pos > sequenceLimit) {
+            _giveUp(b, pos, out);
+            pos = b.length;
+            continue;
+          }
           break;
         } // incomplete: wait for more bytes
         pos += n;
         continue;
       }
       if (c < 0x20 || c == 0x7F) {
-        flushText();
+        _flushText(out);
         out.add(_control(c, 0));
+        pos++;
+        continue;
+      }
+      // printable ASCII with no text before it to join and ASCII after it,
+      // which no cluster continues: a key of its own
+      if (c < 0x7F &&
+          text.isEmpty &&
+          (pos + 1 == b.length || b[pos + 1] < 0x80)) {
+        out.add(_asciiKeys[c - 0x20]);
         pos++;
         continue;
       }
@@ -208,14 +378,36 @@ final class InputParser {
       text.writeCharCode(cp);
       pos += len;
     }
-    flushText();
-    _buf.removeRange(0, pos);
+    _flushText(out);
+    if (pos > 0) {
+      _store.setRange(0, _len - pos, _store, pos);
+      _len -= pos;
+      if (_len == 0 && _store.length > 1 << 16) {
+        _store = Uint8List(256); // a large read's buffer isn't kept
+      }
+    }
+    if (pos > 0) {
+      // the sequence a scan went into is decoded, or no more at the start
+      _stringScanned = 0;
+    }
     // at eof every decoder takes what it was given, even cut short
-    assert(!eof || _inPaste || _buf.isEmpty, 'left at eof: $_buf');
+    assert(!eof || _inPaste || _len == 0, 'left at eof: $_buf');
     return out;
   }
 
-  static bool _endsWithPrefix(List<int> b, int k) {
+  /// Gives up the unterminated sequence at [pos], longer than
+  /// [sequenceLimit]: an [UnknownSequence] of what came, its rest dropped.
+  void _giveUp(Uint8List b, int pos, List<InputEvent> out) {
+    out.add(UnknownSequence(b.sublist(pos)));
+    // after ESC ESC, the sequence the second ESC starts
+    final at = b[pos + 1] == 0x1B ? pos + 1 : pos;
+    _dropping = b[at + 1] == 0x5B ? _Drop.csi : _Drop.string;
+    if (b.last == 0x1B && _dropping == _Drop.string) {
+      _dropping = _Drop.stringEsc;
+    }
+  }
+
+  static bool _endsWithPrefix(Uint8List b, int k) {
     if (b.length < k) {
       return false;
     }
@@ -227,7 +419,7 @@ final class InputParser {
     return true;
   }
 
-  static int _indexOf(List<int> b, List<int> pat, int from) {
+  static int _indexOf(Uint8List b, List<int> pat, int from) {
     outer:
     for (var i = from; i + pat.length <= b.length; i++) {
       for (var k = 0; k < pat.length; k++) {
@@ -240,13 +432,14 @@ final class InputParser {
     return -1;
   }
 
-  // the byte length of the character [_utf8At] decoded last
-  static var _utf8Length = 0;
+  // the byte length of the character [_utf8At] decoded last: the parser's
+  // own, read right after the call
+  var _utf8Length = 0;
 
   /// Decodes one UTF-8 character: returns its code point and sets
   /// [_utf8Length] to its byte length, or returns 0 and sets it to 0 when
   /// it is incomplete.
-  static int _utf8At(List<int> b, int pos, bool eof) {
+  int _utf8At(Uint8List b, int pos, bool eof) {
     final c = b[pos];
     int need;
     int cp;
@@ -285,7 +478,7 @@ final class InputParser {
   }
 
   @pragma('vm:prefer-inline')
-  static int _decoded(int cp, int length) {
+  int _decoded(int cp, int length) {
     _utf8Length = length;
     return cp;
   }
@@ -336,7 +529,7 @@ final class InputParser {
 
   /// Parses an escape sequence at [pos]; returns bytes consumed, 0 if more
   /// input is needed.
-  int _escape(List<int> b, int pos, List<InputEvent> out, bool eof) {
+  int _escape(Uint8List b, int pos, List<InputEvent> out, bool eof) {
     if (pos + 1 >= b.length) {
       if (!eof) {
         return 0;
@@ -383,7 +576,7 @@ final class InputParser {
 
   /// ESC before a key sequence: Alt + that key (how urxvt and the Linux
   /// console send Alt+arrows); before anything else, Escape and then it.
-  int _escapePrefixed(List<int> b, int pos, List<InputEvent> out, bool eof) {
+  int _escapePrefixed(Uint8List b, int pos, List<InputEvent> out, bool eof) {
     final inner = <InputEvent>[];
     final n = _escape(b, pos + 1, inner, eof);
     if (n == 0) {
@@ -407,9 +600,9 @@ final class InputParser {
 
   /// SS3 (`ESC O x`), also in the old form with a modifier parameter
   /// (`ESC O 5 P`). Anything else after `ESC O` is Alt+O followed by it.
-  int _ss3Sequence(List<int> b, int pos, List<InputEvent> out, bool eof) {
+  int _ss3Sequence(Uint8List b, int pos, List<InputEvent> out, bool eof) {
     var i = pos + 2;
-    while (i < b.length && i < pos + 5 && b[i] >= 0x30 && b[i] <= 0x39) {
+    while (i < b.length && b[i] >= 0x30 && b[i] <= 0x39) {
       i++;
     }
     final digits = i > pos + 2;
@@ -435,7 +628,9 @@ final class InputParser {
     }
     final len = i + 1 - pos;
     final k = _ss3(f);
-    if (k == null) {
+    // a modifier has at most three digits: more make no key, not phantom
+    // ones of the digits left
+    if (k == null || i - pos - 2 > 3) {
       out.add(UnknownSequence(b.sublist(pos, pos + len)));
       return len;
     }
@@ -467,7 +662,7 @@ final class InputParser {
   /// aborts the string and starts a new sequence (as in a terminal's own
   /// parser), so a truncated reply can't swallow the input after it.
   int _stringSequence(
-    List<int> b,
+    Uint8List b,
     int pos,
     List<InputEvent> out,
     bool eof, {
@@ -487,7 +682,9 @@ final class InputParser {
       );
       return 2;
     }
-    for (var i = pos + 2; i < b.length; i++) {
+    final from = pos == 0 && _stringScanned > 2 ? _stringScanned : pos + 2;
+    var i = from;
+    for (; i < b.length; i++) {
       final c = b[i];
       int end;
       if (c == 0x07) {
@@ -513,6 +710,9 @@ final class InputParser {
     if (eof) {
       out.add(UnknownSequence(b.sublist(pos)));
       return b.length - pos;
+    }
+    if (pos == 0) {
+      _stringScanned = i;
     }
     return 0;
   }
@@ -544,7 +744,7 @@ final class InputParser {
     return i > 255 ? null : ColorReport(4, rgb, index: i);
   }
 
-  int _csi(List<int> b, int pos, List<InputEvent> out, bool eof) {
+  int _csi(Uint8List b, int pos, List<InputEvent> out, bool eof) {
     var i = pos + 2;
     var prefix = 0;
     if (i < b.length &&
@@ -596,10 +796,19 @@ final class InputParser {
       _pasteLength = 0;
       return len;
     }
-    out.add(
-      (_readParams(b, pStart, pEnd) ? _mapCsi(prefix, inter, fin) : null) ??
-          UnknownSequence(b.sublist(pos, pos + len)),
-    );
+    final event = _readParams(b, pStart, pEnd)
+        ? _mapCsi(prefix, inter, fin)
+        : null;
+    if (event != null) {
+      out.add(event);
+      return len;
+    }
+    // what no mapping knows, off the way of those it does: an X10 mouse
+    // report's three bytes after `CSI M`
+    if (fin == 0x4D && prefix == 0 && pEnd == pStart && inter == 0) {
+      return _x10Mouse(b, pos, i + 1, out, eof);
+    }
+    out.add(UnknownSequence(b.sublist(pos, pos + len)));
     return len;
   }
 
@@ -613,7 +822,7 @@ final class InputParser {
 
   /// Reads the parameter bytes `b[from..to)` (digits, ':' and ';') into
   /// [_values]; false where a number is too large for an int.
-  bool _readParams(List<int> b, int from, int to) {
+  bool _readParams(Uint8List b, int from, int to) {
     _paramCount = 0;
     if (from == to) {
       return true;
@@ -668,7 +877,7 @@ final class InputParser {
   /// The number `b[from..to)`, too long for [_readParams] to add up
   /// exactly on every platform, as `int.parse` reads it; null where it is
   /// too large for an int.
-  static int? _bigParam(List<int> b, int from, int to) =>
+  static int? _bigParam(Uint8List b, int from, int to) =>
       int.tryParse(String.fromCharCodes(b, from, to));
 
   /// The first value of parameter [i], [d] where there is none.
@@ -739,13 +948,13 @@ final class InputParser {
       case 0x53: // S
         return KeyEvent(KeyCode.f4, modifiers: mods, kind: kind);
       case 0x52: // R
-        if (expectCursorReport && count == 2) {
-          expectCursorReport = false;
+        if (cursorReportsExpected > 0 && count == 2) {
+          cursorReportsExpected--;
           return CursorReport(_p(1, 1) - 1, _p(0, 1) - 1);
         }
         return KeyEvent(KeyCode.f3, modifiers: mods, kind: kind);
-      case 0x5A: // Z
-        return const KeyEvent(KeyCode.tab, modifiers: Mod.shift);
+      case 0x5A: // Z: Shift+Tab, with what else is held where it is told
+        return KeyEvent(KeyCode.tab, modifiers: mods | Mod.shift, kind: kind);
       case 0x49: // I
         return const FocusEvent(true);
       case 0x4F: // O
@@ -756,7 +965,12 @@ final class InputParser {
         }
         return null;
       case 0x7E: // ~
-        final key = switch (_p(0)) {
+        final first = _p(0);
+        if (first == 27 && count >= 3) {
+          // xterm's modifyOtherKeys: CSI 27 ; mods ; code ~
+          return _codeKey(_p(2), mods, kind);
+        }
+        final key = switch (first) {
           1 || 7 => KeyCode.home,
           2 => KeyCode.insert,
           3 => KeyCode.delete,
@@ -814,6 +1028,67 @@ final class InputParser {
         );
     }
     return null;
+  }
+
+  /// The key xterm's modifyOtherKeys tells by [code], what the key types
+  /// (Shift taken into it), with [mods]: one that only Shift modifies is
+  /// the text it types, a shortcut a letter's unshifted key, modifiers
+  /// kept, as the kitty protocol's are. Null for a code point that is no
+  /// character.
+  static KeyEvent? _codeKey(int code, int mods, KeyKind kind) {
+    final key = switch (code) {
+      13 => KeyCode.enter,
+      9 => KeyCode.tab,
+      27 => KeyCode.escape,
+      127 || 8 => KeyCode.backspace,
+      _ => KeyCode.char,
+    };
+    if (key != KeyCode.char) {
+      return KeyEvent(key, modifiers: mods, kind: kind);
+    }
+    if (!_isTextCodePoint(code)) {
+      return null;
+    }
+    if (mods & ~Mod.shift == 0) {
+      return KeyEvent(
+        KeyCode.char,
+        char: String.fromCharCode(code),
+        kind: kind,
+      );
+    }
+    final letter = code >= 0x41 && code <= 0x5A ? code + 0x20 : code;
+    return KeyEvent(
+      KeyCode.char,
+      char: String.fromCharCode(letter),
+      modifiers: mods,
+      kind: kind,
+    );
+  }
+
+  /// A mouse report in X10's encoding, `CSI M` and three bytes from
+  /// [from], each 32 more than the button and the column and row from 1,
+  /// as a terminal that ignores SGR's (1006) sends: the event, and not
+  /// the three bytes as keys. A byte below 33, which no column or row is,
+  /// is read as the first.
+  int _x10Mouse(
+    Uint8List b,
+    int pos,
+    int from,
+    List<InputEvent> out,
+    bool eof,
+  ) {
+    if (from + 3 > b.length) {
+      if (!eof) {
+        return 0;
+      }
+      out.add(UnknownSequence(b.sublist(pos)));
+      return b.length - pos;
+    }
+    int at(int k) => b[from + k] < 0x21 ? 1 : b[from + k] - 0x20;
+    final cb = b[from] - 0x20;
+    final release = cb & 3 == 3 && cb & (32 | 64) == 0;
+    out.add(_sgrMouse(cb < 0 ? 3 : cb, at(1), at(2), release));
+    return from + 3 - pos;
   }
 
   /// What a kitty protocol key that types text types, where its sequence
@@ -896,6 +1171,9 @@ final class InputParser {
     return key == null ? null : KeyEvent(key, modifiers: mods, kind: kind);
   }
 
+  // called from two places since X10's reports came, where AOT inlined
+  // it at one: a mouse event of the keys benchmark 5 % slower without
+  @pragma('vm:prefer-inline')
   static InputEvent _sgrMouse(int cb, int x, int y, bool release) {
     var mods = 0;
     if (cb & 4 != 0) {
@@ -933,3 +1211,6 @@ final class InputParser {
     );
   }
 }
+
+/// What [InputParser] drops of a sequence it gave up.
+enum _Drop { none, csi, string, stringEsc }

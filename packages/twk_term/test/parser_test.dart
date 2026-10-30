@@ -96,8 +96,10 @@ void main() {
     });
 
     test('an OSC is cut at its limit', () {
-      final r = fed('\x1b]2;${'x' * (1 << 21)}\x07ok');
-      expect(r.t.title.length, (1 << 20) - 2);
+      final r = fed('\x1b]52;cpqs;${'eHh4' * (1 << 20)}\x07ok');
+      // of the base64 the sequence keeps, a megabyte less what is before it
+      final write = r.events.whereType<ClipboardWrite>().single;
+      expect(write.text.length, ((1 << 20) - '52;cpqs;'.length) ~/ 4 * 3);
       expect(r.rows.first, 'ok');
     });
 

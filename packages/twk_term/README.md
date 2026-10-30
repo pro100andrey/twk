@@ -56,7 +56,9 @@ final term = TerminalEmulator(
   onOutput: pty.write, // answers, keys, mouse reports, pasted text
   onEvent: (event) => switch (event) {
     TitleChanged(:final title) => window.title = title,
-    ClipboardWrite(:final text) => clipboard.set(text),
+    // any program in the terminal may send one, over ssh too: ask, or
+    // take it only from a program the user trusts
+    ClipboardWrite(:final text) when allowClipboard() => clipboard.set(text),
     BellRang() => flash(),
     _ => null,
   },
@@ -120,13 +122,17 @@ xterm's dialect, permissively: a sequence it doesn't know is ignored
   DECSTBM, DECSCUSR, DECSCL and DECSCA, XTGETTCAP (no capability is
   told), XTWINOPS 14, 16 (once the host has set `cellPixelWidth` and
   `cellPixelHeight`), 18 and 19, OSC 4, 10, 11 and 12 queries, ended as
-  the query was (BEL or ST).
+  the query was (BEL or ST); of OSC 4, the first 256 queries of a
+  sequence, so that its replies are not many times its length.
 - **OSC**: titles and icon names (0, 1, 2, with the title stack of
   XTWINOPS 22 and 23), the palette (4, 104), the default colors (10, 11,
-  12 and their resets), the working directory (7), hyperlinks (8, kept in
-  the cells' styles; an erase takes them), notifications (9, 777) and
+  12 and their resets), the working directory (7, a `file:` URI only),
+  hyperlinks (8, kept in the cells' styles, a URI of at most 2083
+  characters, VTE's limit; an erase takes them), notifications (9, 777) and
   progress (9;4), shell prompts (133), the pointer shape (22), the
-  clipboard (52) — handed to the host as events, none executed.
+  clipboard (52) — handed to the host as events, none executed. A title,
+  an icon name, a notification's title and body and a pointer shape keep
+  their first 4096 code units.
 
 Not spoken: left and right margins (DECLRMM, reported unknown, so
 programs don't use them), double-width and double-height lines (drawn single), 132 columns, sixel and other images
@@ -258,7 +264,14 @@ opening a terminal without `O_NOCTTY` makes it its controlling one, with
 its process group in the foreground, so no `TIOCSCTTY` (which would need
 code in the child) is needed — duplicate it to 1 and 2, change the
 directory and close the rest (`addclosefrom_np`, glibc 2.34;
-`POSIX_SPAWN_CLOEXEC_DEFAULT` on macOS). An isolate of its own polls the
+`POSIX_SPAWN_CLOEXEC_DEFAULT` on macOS). macOS performs the file actions
+before it makes the new session, so its slave becomes no controlling
+terminal there (Ctrl+C would signal nothing, a shell run no jobs, the
+hang-up send no SIGHUP): the program is spawned through `/bin/sh`, the
+session's leader by then, which opens the slave again, making it the
+controlling terminal, and execs the program through `env -i`, in the
+environment given and with its name as `argv[0]`, the pid the program's
+along the way. An isolate of its own polls the
 master (non-blocking) and a pipe the main isolate tells it through (output
 taken, a write waiting, closed), and waits for the program's end.
 
@@ -266,9 +279,13 @@ The VM waits for *any* child (`waitpid(-1)`) while a `dart:io` `Process`
 it started runs — the test runner's compiler does throughout — and may so
 take the program's end first. Linux 6.15 and later still tell it through
 the pidfd made with the program (`PIDFD_INFO_EXIT`); elsewhere `exitCode`
-is null then. Tested on Linux (x86-64, glibc 2.44, Linux 7.2). macOS
-takes the same code with its own constants and symbols, not run yet; its
-exit codes taken by the VM would need kqueue's `NOTE_EXITSTATUS`.
+is null then. macOS revokes a session's controlling terminal once its
+leader ends: a descriptor of the slave reads nothing more, and what the
+program left running writes to it no more; `modesAtEnd` keeps the
+terminal's attributes as the program left them, read through the master.
+Tested on Linux (x86-64, glibc 2.44, Linux 7.2) and macOS (arm64, macOS
+26.6); macOS's exit codes taken by the VM would need kqueue's
+`NOTE_EXITSTATUS`.
 
 ## The view
 

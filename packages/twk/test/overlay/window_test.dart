@@ -836,7 +836,7 @@ void main() {
         'is maximised', () async {
       final c = WindowController(left: 2, top: 1, width: 14, height: 4);
       final run = ShapeRun(layer(c), width: 30, height: 8);
-      await run.settle();
+      await run.start();
       final shapes = <String>[];
       for (final (x, y) in [
         (5, 1),
@@ -864,7 +864,7 @@ void main() {
         'nesw-resize',
         'nwse-resize',
         // the body, and the buttons
-        '',
+        'default',
         '',
         'grab',
       ]);
@@ -875,7 +875,7 @@ void main() {
       await run.release(6, 1);
       expect(run.shapes(), ['grab']);
       await run.act(() => c.maximised = true);
-      expect(run.shapes(), ['']);
+      expect(run.shapes(), ['default']);
       await run.move(5, 0);
       await run.move(0, 3);
       expect(run.shapes(), isEmpty);
@@ -890,12 +890,13 @@ void main() {
         width: 30,
         height: 8,
       );
-      await run.settle();
+      await run.start();
       for (final (x, y) in [(5, 1), (2, 2), (6, 4), (15, 4)]) {
         await run.move(x, y);
       }
       await run.quit();
-      expect(run.written(), isNot(contains('\x1b]22;')));
+      // only the terminal's own given back as the app ends
+      expect(run.shapes(), ['']);
       c.dispose();
     });
   });

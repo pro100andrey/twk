@@ -431,10 +431,16 @@ final class TwkTester {
   /// });
   /// ```
   ///
-  /// What [fn] throws, it throws, before the frame.
-  Future<void> act(void Function() fn) async {
+  /// What [fn] throws, it throws, before the frame. An async [fn] is
+  /// awaited before the frame, the clock moved on as far as it waits
+  /// ([FakeClock.elapseUntil]; not at all where it waits for no timer),
+  /// and what it completes with an error with is thrown.
+  Future<void> act(FutureOr<void> Function() fn) async {
     _running();
-    clock.run(fn);
+    final result = clock.run(fn);
+    if (result is Future<void>) {
+      await clock.elapseUntil(result);
+    }
     await pump();
   }
 

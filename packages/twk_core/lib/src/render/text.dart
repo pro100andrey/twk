@@ -38,6 +38,9 @@ final class RenderText extends RenderObject {
   /// its bounds with [pen] before the text. False by default.
   final bool boundary;
   GlyphRun? _run;
+  // the glyph table the run is of, and its sweeps when it was shaped
+  GlyphTable? _runIn;
+  var _runSweeps = 0;
 
   /// The line shown; new text is shaped again and laid out again, with a
   /// parent that asked how wide it is.
@@ -94,8 +97,16 @@ final class RenderText extends RenderObject {
       assert(_opaqueBackground(ctx, pen), _translucentBoundary);
       ctx.canvas.fill(0, 0, width, height, pen);
     }
-    final run = _run ??= ctx.canvas.shape(_text);
-    ctx.canvas.run(0, 0, run, pen);
+    final cv = ctx.canvas;
+    if (!identical(cv.glyphs, _runIn) || cv.glyphs.sweeps != _runSweeps) {
+      // since a sweep of the glyphs, the ids may be others': a text not on
+      // the screen then (scrolled out, in a tab not shown) kept none
+      _runIn = cv.glyphs;
+      _runSweeps = cv.glyphs.sweeps;
+      _run = null;
+    }
+    final run = _run ??= cv.shape(_text);
+    cv.run(0, 0, run, pen);
   }
 }
 
@@ -906,10 +917,11 @@ final class RenderParagraph extends RenderObject {
   Int32List _spanOf = _noInt32s;
   Int32List _starts = _noInt32s;
   Int32List _ends = _noInt32s;
-  // where each cluster starts in the spans' text joined, what takes no
-  // cell before it included, and at [_count] its length; found when
-  // textRangeAt first asks after a split
-  var _offsets = Int32List(1);
+  // where each span starts in the spans' text joined, and at
+  // [_spans.length] its length, of which [_offsetAt] finds where a
+  // cluster starts; found when textRangeAt or the bidi levels first ask
+  // after a split or an edit: O(spans), not O(clusters) moved at an edit
+  var _spanBase = Int32List(1);
   var _offsetsStale = true;
   var _offsetsFound = 0;
   var _hasMulti = false;
@@ -924,6 +936,8 @@ final class RenderParagraph extends RenderObject {
   // the clusters of several code points have their ids in _internedIn,
   // but for [_internFrom, _internTo), split again since
   GlyphTable? _internedIn;
+  // _internedIn's sweeps then: since a sweep, the ids may be others'
+  var _internedSweeps = 0;
   var _internFrom = 0;
   var _internTo = 0;
   var _ellipsisWidth = 1;
@@ -1003,6 +1017,8 @@ final class RenderParagraph extends RenderObject {
   // glyphs start (two each, and at the end their counts), the segments
   // and glyphs as they were; how many rows were ordered for drawing
   var _rowsKept = false;
+  // whether _buildStored built them, not _buildOrdered
+  var _rowsStored = false;
   var _rowsWidth = 0;
   var _rowsWere = 0;
   Int32List _linesWere = _noInt32s;
@@ -1117,12 +1133,11 @@ final class RenderParagraph extends RenderObject {
     }
     if (from < to) {
       // the clusters whose levels the edit may have changed
-      final offsets = _offsets;
       var lo = 0;
       var hi = _count;
       while (lo < hi) {
         final mid = (lo + hi) >> 1;
-        if (offsets[mid + 1] <= from) {
+        if (_offsetAt(mid + 1) <= from) {
           lo = mid + 1;
         } else {
           hi = mid;
@@ -1132,7 +1147,7 @@ final class RenderParagraph extends RenderObject {
       hi = _count;
       while (lo < hi) {
         final mid = (lo + hi) >> 1;
-        if (offsets[mid] < to) {
+        if (_offsetAt(mid) < to) {
           lo = mid + 1;
         } else {
           hi = mid;
@@ -1774,6 +1789,28 @@ final class RenderParagraph extends RenderObject {
             break spans;
           }
         }
+        final c0 = s.codeUnitAt(i);
+        if (graphemes &&
+            c0 >= 0x20 &&
+            c0 < 0x7F &&
+            (i + 1 == s.length || s.codeUnitAt(i + 1) < 0x300)) {
+          // printable ASCII that no mark follows: a cluster of one cell,
+          // as the scan below would make it, without the scan
+          i++;
+          final kind = _kindOf(c0, 1);
+          glyphs[n] = c0;
+          kinds[n] = kind;
+          spanOf[n] = k;
+          starts[n] = start;
+          ends[n] = i;
+          n++;
+          cells++;
+          if ((kind & _space) == 0) {
+            drawn = n - 1;
+            drawnCells = cells;
+          }
+          continue;
+        }
         seg.scan(s, i, scan);
         i = scan.end;
         final cp = scan.first;
@@ -2103,12 +2140,7 @@ final class RenderParagraph extends RenderObject {
     }
     _keepTexts();
     _bidiStale = true;
-    if (_bidiOn && !_offsetsStale) {
-      // drawn in visual order, which finds them after each edit
-      _moveOffsets(from, os, ns, count);
-    } else {
-      _offsetsStale = true;
-    }
+    _offsetsStale = true;
     _segmentsStale = true;
     // the clusters the rows were built from that are as they were
     if (from < _changedFrom) {
@@ -2136,43 +2168,6 @@ final class RenderParagraph extends RenderObject {
     }
   }
 
-  /// The offsets of the clusters brought up to an edit that split clusters
-  /// [from, os) of [count] again into [from, ns): those of the clusters
-  /// after them moved, those of the clusters split found.
-  void _moveOffsets(int from, int os, int ns, int count) {
-    final total = _count;
-    final spans = _spans;
-    var length = 0;
-    for (var k = 0; k < spans.length; k++) {
-      length += spans[k].$1.length;
-    }
-    final change = length - _offsets[count];
-    var offsets = _offsets;
-    if (offsets.length <= total) {
-      offsets = Int32List(_room(total + 1, offsets.length))
-        ..setRange(0, from + 1, _offsets);
-    }
-    offsets.setRange(ns + 1, total + 1, _offsets, os + 1);
-    for (var i = ns + 1; i <= total; i++) {
-      offsets[i] += change;
-    }
-    // where the span of each cluster split starts; the end of the one
-    // before them too, which the end of the text was at the end
-    var k = 0;
-    var base = 0;
-    for (var i = from > 0 ? from - 1 : 0; i < ns; i++) {
-      final at = _spanOf[i];
-      while (k < at) {
-        base += spans[k++].$1.length;
-      }
-      offsets[i + 1] = base + _ends[i];
-    }
-    // the start; what takes no cell at the end goes with none
-    offsets[0] = 0;
-    offsets[total] = length;
-    _offsets = offsets;
-  }
-
   /// [to] with clusters [0, from) of [l] where they are, and clusters
   /// [os, count) at [ns] on; [to] may be [l].
   static T _move<T extends List<int>>(
@@ -2190,35 +2185,35 @@ final class RenderParagraph extends RenderObject {
     return to;
   }
 
-  /// Finds where each cluster starts in the spans' text joined: where the
-  /// one before it ends, as what takes no cell goes with the cluster after
-  /// it.
+  /// Finds where each span starts in the spans' text joined, and its
+  /// length, which [_offsetAt] finds where each cluster starts from.
   void _findOffsets() {
     _offsetsStale = false;
     _offsetsFound++;
-    final n = _count;
-    if (_offsets.length <= n) {
-      _offsets = Int32List(_room(n + 1, _offsets.length));
-    }
-    final offsets = _offsets;
     final spans = _spans;
-    final spanOf = _spanOf;
-    final ends = _ends;
-    // where span k starts
-    var k = 0;
-    var base = 0;
-    offsets[0] = 0;
-    for (var i = 0; i + 1 < n; i++) {
-      final at = spanOf[i];
-      while (k < at) {
-        base += spans[k++].$1.length;
-      }
-      offsets[i + 1] = base + ends[i];
+    final m = spans.length;
+    if (_spanBase.length <= m) {
+      _spanBase = Int32List(_room(m + 1, _spanBase.length));
     }
-    while (k < spans.length) {
-      base += spans[k++].$1.length;
+    final base = _spanBase;
+    var at = 0;
+    for (var k = 0; k < m; k++) {
+      base[k] = at;
+      at += spans[k].$1.length;
     }
-    offsets[n] = base;
+    base[m] = at;
+  }
+
+  /// Where cluster [i] starts in the spans' text joined: where the one
+  /// before it ends, as what takes no cell goes with the cluster after it;
+  /// at [_count], the text's length.
+  @pragma('vm:prefer-inline')
+  int _offsetAt(int i) {
+    assert(!_offsetsStale, 'offsets asked for before they are found');
+    if (i >= _count) {
+      return _spanBase[_spans.length];
+    }
+    return i == 0 ? 0 : _spanBase[_spanOf[i - 1]] + _ends[i - 1];
   }
 
   /// Marks the clusters a line may break after by word.
@@ -2944,7 +2939,7 @@ final class RenderParagraph extends RenderObject {
     if (!_offsetsStale) {
       fresh._findOffsets();
       for (var i = 0; i <= _count; i++) {
-        final d = differ('offset $i', _offsets[i], fresh._offsets[i]);
+        final d = differ('offset $i', _offsetAt(i), fresh._offsetAt(i));
         if (d != null) {
           return d;
         }
@@ -3048,10 +3043,9 @@ final class RenderParagraph extends RenderObject {
     if (_offsetsStale) {
       _findOffsets();
     }
-    final offsets = _offsets;
     final rows = _lineCount < height ? _lineCount : height;
     if (y >= rows) {
-      final end = offsets[_count];
+      final end = _offsetAt(_count);
       return (end, end);
     }
     final at = y * _lineStride;
@@ -3076,10 +3070,10 @@ final class RenderParagraph extends RenderObject {
         : (visual ? _visualGaps(n, rtl) : _gapsIn(headStart, headEnd));
     var col = gaps > 0 ? 0 : _lineX(free, rtl);
     if (x < 0 || x < col) {
-      return (offsets[from], offsets[from]);
+      return (_offsetAt(from), _offsetAt(from));
     }
     if (x >= width) {
-      return (offsets[next], offsets[next]);
+      return (_offsetAt(next), _offsetAt(next));
     }
     if (visual) {
       var gap = 0;
@@ -3090,7 +3084,7 @@ final class RenderParagraph extends RenderObject {
           if (x < col) {
             final hidden = headStart < headEnd ? headEnd : from;
             final shown = tailStart < tailEnd ? tailStart : next;
-            return (offsets[hidden], offsets[shown]);
+            return (_offsetAt(hidden), _offsetAt(shown));
           }
           continue;
         }
@@ -3101,10 +3095,10 @@ final class RenderParagraph extends RenderObject {
           gap++;
         }
         if (x < col) {
-          return (offsets[i], offsets[i + 1]);
+          return (_offsetAt(i), _offsetAt(i + 1));
         }
       }
-      return (offsets[next], offsets[next]);
+      return (_offsetAt(next), _offsetAt(next));
     }
     var gap = 0;
     var words = false;
@@ -3115,7 +3109,7 @@ final class RenderParagraph extends RenderObject {
         col += _part(free, gaps, gap++);
       }
       if (x < col) {
-        return (offsets[i], offsets[i + 1]);
+        return (_offsetAt(i), _offsetAt(i + 1));
       }
       words = words || !space;
     }
@@ -3124,16 +3118,16 @@ final class RenderParagraph extends RenderObject {
       if (x < col) {
         final hidden = headStart < headEnd ? headEnd : from;
         final shown = tailStart < tailEnd ? tailStart : next;
-        return (offsets[hidden], offsets[shown]);
+        return (_offsetAt(hidden), _offsetAt(shown));
       }
     }
     for (var i = tailStart; i < tailEnd; i++) {
       col += _cellsOf(i);
       if (x < col) {
-        return (offsets[i], offsets[i + 1]);
+        return (_offsetAt(i), _offsetAt(i + 1));
       }
     }
-    return (offsets[next], offsets[next]);
+    return (_offsetAt(next), _offsetAt(next));
   }
 
   @override
@@ -3144,7 +3138,8 @@ final class RenderParagraph extends RenderObject {
       _layoutLines(_constraints!.maxW);
     }
     if (_hasMulti) {
-      if (!identical(_internedIn, canvas.glyphs)) {
+      if (!identical(_internedIn, canvas.glyphs) ||
+          canvas.glyphs.sweeps != _internedSweeps) {
         _intern(canvas.glyphs, 0, _count);
         _rowsKept = false;
       } else if (_internFrom < _internTo) {
@@ -3201,6 +3196,7 @@ final class RenderParagraph extends RenderObject {
       }
     }
     _internedIn = glyphs;
+    _internedSweeps = glyphs.sweeps;
     _internFrom = 0;
     _internTo = 0;
     // the lines ordered for drawing hold copies
@@ -3215,7 +3211,6 @@ final class RenderParagraph extends RenderObject {
       _buildOrdered(rows);
     } else {
       _buildStored(rows);
-      _rowsKept = false;
     }
     _segmentsStale = false;
     _changedFrom = 1 << 30;
@@ -3229,7 +3224,7 @@ final class RenderParagraph extends RenderObject {
   /// changes since left as they were, at the same width, are taken from
   /// them; the others are ordered again.
   void _buildOrdered(int rows) {
-    final keep = _rowsKept && width == _rowsWidth;
+    final keep = _rowsKept && !_rowsStored && width == _rowsWidth;
     // what the rows were built into is taken from, and built into next
     final segments = _segments;
     final glyphs = _runGlyphs;
@@ -3246,32 +3241,17 @@ final class RenderParagraph extends RenderObject {
       _rowAt = Int32List(_room(2 * rows + 2, _rowAt.length));
     }
     final lines = _lines;
-    final were = _linesWere;
-    final from = _changedFrom;
-    final to = _changedTo;
-    final shift = _changedShift;
     var j = 0;
     for (var y = 0; y < rows; y++) {
       _rowAt[2 * y] = _segmentCount;
       _rowAt[2 * y + 1] = _runGlyphCount;
       final at = y * _lineStride;
       if (keep) {
-        // the clusters the row is drawn from
-        final first = lines[at + 7];
-        final hs = lines[at];
-        final lo = first < hs ? first : hs;
-        var hi = lines[at + 1] > lines[at + 3] ? lines[at + 1] : lines[at + 3];
-        hi = first + 1 > hi ? first + 1 : hi;
-        final before = hi <= from;
-        if (before || (lo >= to && !_spansMoved)) {
-          final by = before ? 0 : shift;
-          while (j < _rowsWere && _rowStart(were, j) < lo - by) {
-            j++;
-          }
-          if (j < _rowsWere && _sameRow(were, j, at, by)) {
-            _copyRow(j, y);
-            continue;
-          }
+        final kept = _keptRow(at, j);
+        j = _rowFound;
+        if (kept) {
+          _copyRow(j, y);
+          continue;
         }
       }
       _orderRow(y);
@@ -3286,7 +3266,43 @@ final class RenderParagraph extends RenderObject {
     _rowsWere = rows;
     _rowsWidth = width;
     _rowsKept = true;
+    _rowsStored = false;
   }
+
+  /// Whether the row whose line is at [at] of [_lines] is drawn as a row
+  /// of the [_rowsWere] built before, which the changes since left as it
+  /// was: the search for it starts at row [j] (the rows are in order) and
+  /// leaves where it got to in [_rowFound], the row itself when there is
+  /// one, and the clusters it moved by in [_rowShift].
+  bool _keptRow(int at, int j) {
+    final lines = _lines;
+    final were = _linesWere;
+    final from = _changedFrom;
+    final to = _changedTo;
+    // the clusters the row is drawn from
+    final first = lines[at + 7];
+    final hs = lines[at];
+    final lo = first < hs ? first : hs;
+    var hi = lines[at + 1] > lines[at + 3] ? lines[at + 1] : lines[at + 3];
+    hi = first + 1 > hi ? first + 1 : hi;
+    final before = hi <= from;
+    _rowFound = j;
+    if (!before && (lo < to || _spansMoved)) {
+      return false;
+    }
+    final by = before ? 0 : _changedShift;
+    var k = j;
+    while (k < _rowsWere && _rowStart(were, k) < lo - by) {
+      k++;
+    }
+    _rowFound = k;
+    _rowShift = by;
+    return k < _rowsWere && _sameRow(were, k, at, by);
+  }
+
+  // what _keptRow found
+  var _rowFound = 0;
+  var _rowShift = 0;
 
   /// The first cluster row [j] of [lines] is drawn from.
   static int _rowStart(Int32List lines, int j) {
@@ -3359,37 +3375,100 @@ final class RenderParagraph extends RenderObject {
     _addVisual(n, x, y, gaps, free, rtl, ellipsis);
   }
 
-  /// [_buildSegments] for [rows] rows of text drawn as stored.
+  /// [_buildSegments] for [rows] rows of text drawn as stored: those of
+  /// the rows built before that the changes since left as they were, at
+  /// the same width, are taken from them, their clusters moved as the
+  /// changes moved them; the others are built again.
   void _buildStored(int rows) {
+    final keep = _rowsKept && _rowsStored && width == _rowsWidth;
+    final segments = _segments;
+    final rowAt = _rowAt;
+    _segments = _segmentsWere;
+    _segmentsWere = segments;
+    _rowAt = _rowAtWere;
+    _rowAtWere = rowAt;
     _segmentCount = 0;
     _runGlyphCount = 0;
-    for (var y = 0; y < rows; y++) {
-      final at = y * _lineStride;
-      final ellipsis = _lines[at + 4];
-      final free = width - _lines[at + 5];
-      final stretch =
-          _align == TextAlign.justify &&
-          _lines[at + 6] != 0 &&
-          ellipsis < 0 &&
-          free > 0;
-      final gaps = stretch ? _gapsIn(_lines[at], _lines[at + 1]) : 0;
-      var x = gaps > 0 ? 0 : _lineX(free, false);
-      x = _addClusters(
-        _lines[at],
-        _lines[at + 1],
-        x,
-        y,
-        gaps,
-        free,
-        ellipsis < 0 ? _lines[at + 5] : -1,
-      );
-      if (ellipsis >= 0) {
-        final e = _ellipsisWidth;
-        _addSegment(_fromEllipsis, 0, 0, x, y, ellipsis, e);
-        x += e;
-      }
-      _addClusters(_lines[at + 2], _lines[at + 3], x, y, 0, 0);
+    if (_rowAt.length < 2 * rows + 2) {
+      _rowAt = Int32List(_room(2 * rows + 2, _rowAt.length));
     }
+    var j = 0;
+    for (var y = 0; y < rows; y++) {
+      _rowAt[2 * y] = _segmentCount;
+      _rowAt[2 * y + 1] = 0;
+      final at = y * _lineStride;
+      if (keep) {
+        final kept = _keptRow(at, j);
+        j = _rowFound;
+        if (kept) {
+          _copyStoredRow(j, y, _rowShift);
+          continue;
+        }
+      }
+      _storeRow(y);
+    }
+    _rowAt[2 * rows] = _segmentCount;
+    _rowAt[2 * rows + 1] = 0;
+    final n = rows * _lineStride;
+    if (_linesWere.length < n) {
+      _linesWere = Int32List(_room(n, _linesWere.length));
+    }
+    _linesWere.setRange(0, n, _lines);
+    _rowsWere = rows;
+    _rowsWidth = width;
+    _rowsKept = true;
+    _rowsStored = true;
+  }
+
+  /// Row [j] as [_buildStored] built it, as row [y], its clusters [by]
+  /// on.
+  void _copyStoredRow(int j, int y, int by) {
+    final s0 = _rowAtWere[2 * j];
+    final s1 = _rowAtWere[2 * j + 2];
+    final were = _segmentsWere;
+    for (var k = s0; k < s1; k++) {
+      final at = k * _segmentStride;
+      final from = were[at + 4];
+      final o = from == _fromClusters ? by : 0;
+      _addSegment(
+        from,
+        were[at + 5] + o,
+        were[at + 6] + o,
+        were[at],
+        y,
+        were[at + 2],
+        were[at + 3],
+      );
+    }
+  }
+
+  /// Builds the segments of row [y] of text drawn as stored.
+  void _storeRow(int y) {
+    final at = y * _lineStride;
+    final ellipsis = _lines[at + 4];
+    final free = width - _lines[at + 5];
+    final stretch =
+        _align == TextAlign.justify &&
+        _lines[at + 6] != 0 &&
+        ellipsis < 0 &&
+        free > 0;
+    final gaps = stretch ? _gapsIn(_lines[at], _lines[at + 1]) : 0;
+    var x = gaps > 0 ? 0 : _lineX(free, false);
+    x = _addClusters(
+      _lines[at],
+      _lines[at + 1],
+      x,
+      y,
+      gaps,
+      free,
+      ellipsis < 0 ? _lines[at + 5] : -1,
+    );
+    if (ellipsis >= 0) {
+      final e = _ellipsisWidth;
+      _addSegment(_fromEllipsis, 0, 0, x, y, ellipsis, e);
+      x += e;
+    }
+    _addClusters(_lines[at + 2], _lines[at + 3], x, y, 0, 0);
   }
 
   GlyphRun get _ellipsisRun {
@@ -3419,7 +3498,7 @@ final class RenderParagraph extends RenderObject {
   /// order only.
   bool _rtlLine(int y) {
     final k = _lines[y * _lineStride + 7];
-    final unit = k < _count ? _offsets[k + 1] - 1 : _offsets[_count];
+    final unit = k < _count ? _offsetAt(k + 1) - 1 : _offsetAt(_count);
     return _paraLevels[_paragraphAt(unit)].isOdd;
   }
 
@@ -3452,7 +3531,7 @@ final class RenderParagraph extends RenderObject {
     if (ellipsis) {
       _levelsOf(ts, te, h + 1);
       final k = _lines[at + 7];
-      final unit = k < _count ? _offsets[k + 1] - 1 : _offsets[_count];
+      final unit = k < _count ? _offsetAt(k + 1) - 1 : _offsetAt(_count);
       final base = _paraLevels[_paragraphAt(unit)];
       final before = h > 0 ? levels[h - 1] : base;
       final after = te > ts ? levels[h + 1] : base;
@@ -3522,12 +3601,12 @@ final class RenderParagraph extends RenderObject {
     if (a == b) {
       return;
     }
-    final end = _offsets[b];
-    var from = _offsets[a];
+    final end = _offsetAt(b);
+    var from = _offsetAt(a);
     var to = from;
     var at = k;
     for (var i = a; i < b; i++) {
-      final unit = _offsets[i + 1] - 1;
+      final unit = _offsetAt(i + 1) - 1;
       while (unit >= to) {
         from = to;
         final p = _paragraphAt(from);
@@ -3723,6 +3802,30 @@ final class RenderParagraph extends RenderObject {
       final w = width < 0 ? _widthOf(a, b) : width;
       _addRun(a, b, x, y, w);
       return x + w;
+    }
+    if (gaps == 0) {
+      // a run a span, as the loop below makes them without gaps, with the
+      // arrays in locals and no test for a gap at each cluster: a line of
+      // two spans (text and a link, a highlight) is the common case
+      final spanOf = _spanOf;
+      final glyphs = _glyphs;
+      final kinds = _kinds;
+      var at = x;
+      var i = a;
+      while (i < b) {
+        final span = spanOf[i];
+        final from = i;
+        var w = 0;
+        do {
+          w += (glyphs[i] & kWide) != 0
+              ? 2
+              : ((kinds[i] & _newline) != 0 ? 0 : 1);
+          i++;
+        } while (i < b && spanOf[i] == span);
+        _addRun(from, i, at, y, w);
+        at += w;
+      }
+      return at;
     }
     var at = x;
     var start = a;
