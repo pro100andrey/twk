@@ -8,6 +8,8 @@ import 'package:test/test.dart';
 import 'package:twk/cli.dart';
 import 'package:twk_test/cli.dart';
 
+import '../platform/native_paths.dart';
+
 void main() {
   late FakeCliTerminal terminal;
 
@@ -29,7 +31,12 @@ void main() {
       expect(err.first, '✗ StateError: Bad state: the config has no "name"');
       expect(
         err,
-        contains(matches(r'^  test/cli/run_errors_test\.dart:\d+:\d+ +main\.')),
+        contains(
+          matches(
+            '^  ${RegExp.escape(native('test/cli/run_errors_test.dart'))}'
+            r':\d+:\d+ +main\.',
+          ),
+        ),
       );
       expect(terminal.exitCode, 1);
       expect(terminal.closed, isTrue);

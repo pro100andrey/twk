@@ -6,6 +6,8 @@ import 'dart:io';
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 
+import '../platform/native_paths.dart';
+
 const _config = '''
 import 'dart:convert';
 
@@ -53,10 +55,12 @@ void main() {
     tool = File('${dir.path}/tool.dart')..writeAsStringSync('void main() {}\n');
   });
 
-  /// Where [file] is shown: its path from the working directory.
-  String shown(File file) =>
-      '.dart_tool/${dir.uri.pathSegments.lastWhere((s) => s.isNotEmpty)}/'
-      '${file.uri.pathSegments.last}';
+  /// Where [file] is shown: its path from the working directory, in the
+  /// platform's form.
+  String shown(File file) => native(
+    '.dart_tool/${dir.uri.pathSegments.lastWhere((s) => s.isNotEmpty)}/'
+    '${file.uri.pathSegments.last}',
+  );
 
   StackTrace stack() => StackTrace.fromString('''
 #0      Config.load (${config.uri}:13:7)
@@ -103,7 +107,7 @@ void main() {
         startsWith('  dart:async/zone.dart:1399:13  '),
         startsWith('  dart:async/zone.dart:1301:19  '),
         // a package's frame by the file it resolves to
-        startsWith('  lib/src/binding/app_binding.dart:120:9  '),
+        startsWith('  ${native('lib/src/binding/app_binding.dart')}:120:9  '),
         startsWith('  ${shown(tool)}:12:3  '),
         startsWith('  dart:isolate-patch/isolate_patch.dart:300:19  '),
       ]);
@@ -229,17 +233,17 @@ void main() {
         thrown = s;
       }
       final lines = _text(traceback(StateError('later'), thrown));
-      expect(lines[2], matches(r'^  test/debug/traceback_test\.dart:\d+:\d+$'));
+      expect(lines[2], matches(_here + r':\d+:\d+$'));
       expect(
         lines.firstWhere((l) => l.startsWith('  ▶ ')),
         endsWith("throw StateError('later');"),
       );
       final frames = lines.skipWhile((l) => !l.endsWith('_later')).toList();
       expect(frames.take(3), [
-        matches(r'^  test/debug/traceback_test\.dart:\d+:\d+ +_later$'),
-        matches(r'^  test/debug/traceback_test\.dart:\d+:\d+ +_caller$'),
+        matches(_here + r':\d+:\d+ +_later$'),
+        matches(_here + r':\d+:\d+ +_caller$'),
         matches(
-          r'^  test/debug/traceback_test\.dart:\d+:\d+ +main\.<fn>\.<fn>$',
+          _here + r':\d+:\d+ +main\.<fn>\.<fn>$',
         ),
       ]);
     });
@@ -262,3 +266,6 @@ final class _Throwing {
   @override
   String toString() => throw StateError('no');
 }
+
+/// The start of a line that names this file, in the platform's form.
+final _here = '^  ${RegExp.escape(native('test/debug/traceback_test.dart'))}';

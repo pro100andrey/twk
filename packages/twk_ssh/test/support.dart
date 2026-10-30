@@ -271,9 +271,11 @@ final class RawClient {
     send(w.takeBytes());
   }
 
-  /// The next payload from the server; null once it closed.
+  /// The next payload from the server; null once it closed. [timeout]
+  /// bounds the real time it waits, which a key exchange on a loaded
+  /// machine takes seconds of: the server's half is Dart's own arithmetic.
   Future<Uint8List?> next({
-    Duration timeout = const Duration(seconds: 5),
+    Duration timeout = const Duration(seconds: 30),
   }) async {
     while (_payloads.isEmpty && !closed) {
       await (_waiting ??= Completer<void>()).future.timeout(timeout);

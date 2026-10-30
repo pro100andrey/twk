@@ -6,11 +6,14 @@
 @TestOn('vm')
 library;
 
+import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
 import 'package:test/test.dart';
 import 'package:twk_test/twk_test.dart' show compiledProgram, runProcess;
+
+import '../platform/native_paths.dart';
 
 const _config = '''
 import 'dart:convert';
@@ -69,8 +72,9 @@ Future<void> main(List<String> args) => Cli.runWithArgs(
 /// A package configuration that names no package.
 const _noPackages = '{"configVersion": 2, "packages": []}\n';
 
-const _excerpt = '''
-  lib/src/config.dart:13:7
+final _excerpt =
+    '''
+  ${native('lib/src/config.dart')}:13:7
     11 │     final map = jsonDecode(text) as Map<String, Object?>;
     12 │     if (map['name'] == null) {
   ▶ 13 │       throw StateError('the config has no "name"');
@@ -117,6 +121,9 @@ void main() {
     Platform.resolvedExecutable,
     ['--packages=${dir.path}/.dart_tool/package_config.json', kernel, ...args],
     workingDirectory: dir.path,
+    // the console writes UTF-8, whatever the system's code page
+    stdoutEncoding: utf8,
+    stderrEncoding: utf8,
     // nothing the environment says of colors or CI: the output is a pipe
     includeParentEnvironment: false,
     environment: {
@@ -139,10 +146,10 @@ void main() {
     );
     final frames = err.split('\n\n').last.trimRight().split('\n');
     expect(frames, [
-      matches(r'^  lib/src/config\.dart:13:7 +Config\.load$'),
-      matches(r'^  bin/tool\.dart:\d+:\d+ +main\.<fn>$'),
+      matches(_at('lib/src/config.dart') + r':13:7 +Config\.load$'),
+      matches(_at('bin/tool.dart') + r':\d+:\d+ +main\.<fn>$'),
       matches(r'^  … \d+ frames of .*\btwk\b'),
-      matches(r'^  bin/tool\.dart:\d+:\d+ +main$'),
+      matches(_at('bin/tool.dart') + r':\d+:\d+ +main$'),
       ...[for (final _ in frames.skip(4)) startsWith('  … ')],
     ]);
     expect(err, isNot(contains('\x1B')));
@@ -168,9 +175,9 @@ void main() {
     final err = '${result.stderr}';
     expect(err, contains(_excerpt));
     expect(err.split('\n\n').last.trimRight().split('\n').take(3), [
-      matches(r'^  lib/src/config\.dart:13:7 +Config\.load$'),
-      matches(r'^  lib/src/config\.dart:20:12 +Config\.fetch$'),
-      matches(r'^  bin/tool\.dart:\d+:\d+ +main\.<fn>$'),
+      matches(_at('lib/src/config.dart') + r':13:7 +Config\.load$'),
+      matches(_at('lib/src/config.dart') + r':20:12 +Config\.fetch$'),
+      matches(_at('bin/tool.dart') + r':\d+:\d+ +main\.<fn>$'),
     ]);
     expect(result.exitCode, 1);
   });
@@ -205,3 +212,7 @@ void main() {
     expect(result.exitCode, 0);
   });
 }
+
+/// The start of a frame's line at [path], written with `/`, in the
+/// platform's form.
+String _at(String path) => '^  ${RegExp.escape(native(path))}';
