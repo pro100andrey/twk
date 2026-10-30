@@ -40,10 +40,14 @@ List<MdBlock> parseMarkdown(String text) => MarkdownStream(text).blocks;
 ///
 /// A block is [settled] once a complete line closes it: no text added later
 /// changes it, and [blocks] keeps holding it as the very object it held.
-/// [add] parses only its own complete lines, where the parser left off, and
-/// the line after them that more text may continue; of the blocks not
-/// settled, any part equal to what it was is kept as well, such as the
-/// finished items of a list that is still growing.
+/// [add] takes its own complete lines into the parser where it left off;
+/// the blocks not settled are made again when they are next read, from
+/// those lines and the line after them that more text may continue, so
+/// that pieces added between two reads, as an answer streams in between
+/// two frames, cost one making. Of the blocks not settled, any part equal
+/// to what it was is kept, such as the finished items of a list that is
+/// still growing, and a table parses only the rows added since; the text
+/// of an open paragraph is parsed whole at each making.
 ///
 /// Text added in any pieces parses as it would whole, by [parseMarkdown];
 /// [close] says that no more comes, which settles the last block.
@@ -113,7 +117,14 @@ final class MarkdownStream {
   var _parser = BlockParser();
 
   /// The text after the last line ending.
-  var _tail = '';
+  final _tail = StringBuffer();
+
+  /// Whether [_tail] ends with a carriage return, which a line feed may
+  /// follow.
+  var _tailReturn = false;
+
+  /// Whether text was added since the blocks were made.
+  var _added = false;
 
   List<MdBlock> _open = const [];
   List<MdBlock> _blocks = const [];
@@ -125,20 +136,33 @@ final class MarkdownStream {
   var _closed = false;
 
   /// The blocks so far.
-  List<MdBlock> get blocks => _blocks;
+  List<MdBlock> get blocks {
+    _make();
+    return _blocks;
+  }
 
   /// The link reference definitions so far, the first of each label, by
   /// the [normalizeLabel] of their label: what the [MdReference]s of
   /// [blocks] resolve by. One in a block not settled may still change.
-  Map<String, MdDefinition> get definitions => _definitions;
+  Map<String, MdDefinition> get definitions {
+    _make();
+    return _definitions;
+  }
 
   /// How many of [blocks], from the first, no text added later changes.
-  int get settled => _settled.length;
+  int get settled {
+    _make();
+    return _settled.length;
+  }
 
   /// The blocks [takeSettled] has not taken, after those it has: what an
   /// app shows live while the ones before are in its history.
-  List<MdBlock> get live =>
-      _taken == 0 ? _blocks : _Blocks(_settled, _taken, _settled.length, _open);
+  List<MdBlock> get live {
+    _make();
+    return _taken == 0
+        ? _blocks
+        : _Blocks(_settled, _taken, _settled.length, _open);
+  }
 
   /// The blocks settled since the last call, in order, each with its
   /// references resolved ([resolveReferences]) by the definitions of the
@@ -148,6 +172,7 @@ final class MarkdownStream {
   /// puts in the terminal's history as the rest streams in (see
   /// [MarkdownStream]).
   List<MdBlock> takeSettled() {
+    _make();
     final taken = _settled.sublist(_taken);
     _taken = _settled.length;
     return resolveReferences(taken, _settledDefinitions);
@@ -160,23 +185,22 @@ final class MarkdownStream {
     if (_closed) {
       return;
     }
+    _make();
     _closed = true;
     _settled.addAll(_open);
     _open = const [];
     _settledDefinitions.addAll(_definitions);
     _settledView = _definitions;
     _parser = BlockParser();
-    _tail = '';
+    _tail.clear();
+    _tailReturn = false;
   }
 
-  /// Appends [text] and parses again what it may change; a [StateError]
-  /// once [close]d.
+  /// Appends [text]; a [StateError] once [close]d.
   ///
   /// The complete lines of [text] go on in the parser where the last ones
-  /// left it; the line after the last line ending, which more text may
-  /// continue, is parsed by a copy of it. So a piece costs its own lines
-  /// and the blocks still open, of which a closed list item or block in a
-  /// quote is the very block it was.
+  /// left it, and the blocks they may change are made again when next
+  /// read.
   void add(String text) {
     if (_closed) {
       throw StateError('text added to a closed MarkdownStream');
@@ -185,13 +209,27 @@ final class MarkdownStream {
       return;
     }
     _split(text);
+    _added = true;
+  }
+
+  /// Makes the blocks again where text was added since they were made: the
+  /// line after the last line ending, which more text may continue, is
+  /// parsed by a copy of the parser. So the making costs the lines added
+  /// and the blocks still open, of which a closed list item or block in a
+  /// quote is the very block it was.
+  void _make() {
+    if (!_added) {
+      return;
+    }
+    _added = false;
     final done = _parser.closed;
     // a carriage return at the end ends the line before it, a line feed
     // may still follow
-    final tail = _tail.endsWith('\r')
-        ? _tail.substring(0, _tail.length - 1)
-        : _tail;
-    final parser = _tail.isEmpty ? _parser : (_parser.copy()..add(tail));
+    final tail = _tail.toString();
+    final parser = tail.isEmpty
+        ? _parser
+        : (_parser.copy()
+            ..add(_tailReturn ? tail.substring(0, tail.length - 1) : tail));
     final converted = parser.finish();
     final fresh = [for (final top in converted) ?top.block];
     final kept = [
@@ -228,14 +266,23 @@ final class MarkdownStream {
 
   /// Adds the complete lines of [_tail] and [text] to [_parser]; a
   /// carriage return at the end stays in [_tail] for the line feed that
-  /// may follow.
+  /// may follow. A piece of no line ending after a tail of none is only
+  /// written to the tail, so that a long line in many pieces is not copied
+  /// for each.
   void _split(String text) {
-    final s =
-        _tail +
-        (text.contains('\u0000') ? text.replaceAll('\u0000', '�') : text);
+    final clean = text.contains('\u0000')
+        ? text.replaceAll('\u0000', '�')
+        : text;
+    if (!_tailReturn && !clean.contains('\n') && !clean.contains('\r')) {
+      _tail.write(clean);
+      return;
+    }
+    final told = _tail.length;
+    final s = '$_tail$clean';
+    _tail.clear();
     var start = 0;
     // the tail has no line ending but a carriage return at its end
-    for (var k = _tail.isEmpty ? 0 : _tail.length - 1; k < s.length; k++) {
+    for (var k = told == 0 ? 0 : told - 1; k < s.length; k++) {
       final c = s.codeUnitAt(k);
       if (c == 0x0A) {
         _parser.add(s.substring(start, k));
@@ -248,7 +295,8 @@ final class MarkdownStream {
         start = k + 1;
       }
     }
-    _tail = s.substring(start);
+    _tail.write(s.substring(start));
+    _tailReturn = s.endsWith('\r') && start < s.length;
   }
 }
 

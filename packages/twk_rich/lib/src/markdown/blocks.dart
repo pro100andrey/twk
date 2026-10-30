@@ -637,6 +637,26 @@ final class BlockParser {
                   .join();
   }
 
+  /// The table [block]: the rows of it that the block it was copied from
+  /// has too are parsed once, kept on that block, and only the rows added
+  /// since parsed again, as a long table streams in a row at a time.
+  static MdTable _tableOf(_Block block) {
+    final memo = block.origin ?? block;
+    final known = memo.cells.length;
+    final parsed = memo.parsedCells;
+    while (parsed.length < known) {
+      parsed.add([
+        for (final cell in memo.cells[parsed.length]) parseInlines(cell),
+      ]);
+    }
+    List<List<MdInline>> row(int k) => k < known
+        ? parsed[k]
+        : [for (final cell in block.cells[k]) parseInlines(cell)];
+    return MdTable(block.align, row(0), [
+      for (var k = 1; k < block.cells.length; k++) row(k),
+    ]);
+  }
+
   MdBlock? _make(_Block block, List<MdDefinition> definitions) {
     definitions.addAll(block.definitions);
     return switch (block.kind) {
@@ -657,16 +677,7 @@ final class BlockParser {
         _convertAll(block.children, definitions),
       ),
       _Kind.list => _convertList(block, definitions),
-      _Kind.table => MdTable(
-        block.align,
-        [
-          for (final cell in block.cells.first) parseInlines(cell),
-        ],
-        [
-          for (final row in block.cells.skip(1))
-            [for (final cell in row) parseInlines(cell)],
-        ],
-      ),
+      _Kind.table => _tableOf(block),
       _Kind.document || _Kind.item => throw StateError('$block is converted'),
     };
   }
@@ -892,6 +903,10 @@ final class _Block {
   /// joined, each with its line feed ([BlockParser._fencedCode]).
   var code = '';
   var codeLines = 0;
+
+  /// Of a table, the inlines of the cells of its first rows, the header
+  /// first ([BlockParser._tableOf]).
+  final parsedCells = <List<List<MdInline>>>[];
 
   /// What the item converted to once closed, with the definitions in it.
   (MdListItem, List<MdDefinition>)? convertedItem;

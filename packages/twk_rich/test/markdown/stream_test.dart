@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:test/test.dart';
+import 'package:twk_rich/src/markdown/inlines.dart' show parsedUnits;
 import 'package:twk_rich/twk_rich.dart';
 
 /// A document with every kind of block, nested, as an agent may write one.
@@ -414,6 +415,53 @@ void main() {
       expect(parseMarkdown('a\u0000b'), [
         const MdParagraph([MdText('a�b')]),
       ]);
+    });
+  });
+
+  group('what a piece costs', () {
+    test('a table streamed a character at a time is at each one what its '
+        'text so far parses to', () {
+      const text =
+          '| a | b |\n|---|:-:|\n| *1* | 2 |\n| 3 | `4` |\n\n'
+          '> | q |\n> |---|\n> | r |\n';
+      final stream = MarkdownStream();
+      for (var k = 0; k < text.length; k++) {
+        stream.add(text[k]);
+        expect(
+          stream.blocks,
+          parseMarkdown(text.substring(0, k + 1)),
+          reason: jsonEncode(text.substring(0, k + 1)),
+        );
+      }
+    });
+
+    test('pieces added between two reads are parsed once', () {
+      final words = [for (var k = 0; k < 4000; k++) 'word$k '];
+      final stream = MarkdownStream();
+      final before = parsedUnits;
+      words.forEach(stream.add);
+      final paragraph = stream.blocks.single as MdParagraph;
+      final text = (paragraph.children.single as MdText).text;
+      expect(text, words.join().trimRight());
+      expect(parsedUnits - before, text.length);
+    });
+
+    test('a table read after every piece parses each row about once', () {
+      final rows = [for (var k = 0; k < 400; k++) '| cell $k | *b$k* |\n'];
+      final text = '| a | b |\n|---|---|\n${rows.join()}';
+      final stream = MarkdownStream();
+      final before = parsedUnits;
+      for (var at = 0; at < text.length; at += 5) {
+        stream
+          ..add(text.substring(at, (at + 5).clamp(0, text.length)))
+          ..blocks;
+      }
+      final parsed = parsedUnits - before;
+      printOnFailure('$parsed code units parsed for ${text.length}');
+      // the row not ended yet is parsed again at each read, a piece of 5
+      // code units at a time: some 4 times for a row of 20
+      expect(parsed, lessThan(text.length * 3));
+      expect((stream.blocks.single as MdTable).rows, hasLength(400));
     });
   });
 }

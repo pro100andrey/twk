@@ -15,7 +15,14 @@ import 'nodes.dart';
 /// around them free to be a link, as an undefined one does in CommonMark.
 /// Brackets that leave emphasis in them unmatched, which emphasis around
 /// them may match, are one only with a label after them.
-List<MdInline> parseInlines(String text) => _InlineParser(text)._parse();
+List<MdInline> parseInlines(String text) {
+  parsedUnits += text.length;
+  return _InlineParser(text)._parse();
+}
+
+/// The code units [parseInlines] has parsed since the program started: what
+/// a test reads to see how much of a document a piece cost.
+var parsedUnits = 0;
 
 /// The link reference definition that starts at [start] of [text], the
 /// content of a paragraph, and the end of its line; null where none does.
