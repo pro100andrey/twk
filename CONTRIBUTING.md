@@ -65,8 +65,8 @@ dart run tool/xtask.dart bench              # when the frame path changed (below
   `dart run tool/xtask.dart handover -j auto --only 'packages=packages/twk/*,packages/twk_core/*'`.
   A single task runs by its name (`dart run tool/xtask.dart pkg-test`),
   and what follows `--` goes to its command.
-- When code a frame or input runs through changed (the core's
-  `canvas.dart`, `surface.dart`, `presenter.dart`, `style.dart`,
+- When the frame path changed, the code a frame or input runs through
+  (the core's `canvas.dart`, `surface.dart`, `presenter.dart`, `style.dart`,
   `fill.dart`, `byte_sink.dart`, `screen.dart`, `app.dart`, `render/`,
   `unicode/`, `input/parser.dart`, `terminal/outbox.dart`): `bench`, the
   frame benchmark, against the commit the work started from

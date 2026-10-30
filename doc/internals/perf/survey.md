@@ -5,9 +5,10 @@ what is measured and how, the figures, the costs that remain and what
 would remove them.
 
 Conditions of the figures unless said otherwise: Dart 3.13.5, linux x64,
-200 x 60 cells, `tool/bench.dart` pinned to CPU 23 with its SMT sibling
-(CPU 11) busy at most 0.2 % of the rounds, so the times count. A scenario
-measured with the sibling busy is said so.
+an AMD Ryzen 7 8745HS kept for measuring, 200 x 60 cells, `tool/bench.dart`
+pinned to CPU 15 with its SMT sibling (CPU 7) busy at most 0.2 % of the
+rounds, so the times count. A scenario measured with the sibling busy is
+said so.
 
 ## How it is measured
 
@@ -80,48 +81,50 @@ Three instruments, each for what it is right for:
 ### Core scenarios (`tool/bench.dart`, AOT)
 
 Time per frame, and bytes allocated per frame (JIT, `tool/alloc`) with
-objects. Each time is the latest measurement of that scenario; the
-scenarios not named in a later comparison measured within x0.97-x1.03 of it.
-Bytes written per frame are the mean over the scenario.
+objects, all of one run of each tool. Bytes written per frame are the mean
+over the scenario.
 
 | scenario | what a frame is | us/frame | B written | B alloc | objects |
 |---|---|---:|---:|---:|---:|
-| idle | nothing changed | 0.42 | 0 | 3 | 0.1 |
-| spinner | the spinner and the rate in the header | 1.77 | 15 | 336 | 7.0 |
-| typing | a character typed or deleted mid-line | 3.69 | 17 | 562 | 7.0 |
-| log-line | a line appended to the log, the count updated | 10.0 | 220 | 933 | 14.0 |
-| log-bar | a line appended to the log beside a scrollbar column, no DECSLRM margins | 12.7 | 293 | - | - |
-| list-scroll | a row scrolled in a list of 100k items of 1 to 3 rows | 17.6 | 137 | 4 032 | 42.5 |
-| repaint-all | every object repainted, the spinner changed | 50.4 | 15 | 928 | 12.0 |
-| tree | one text changed in rows x 6 texts, no inner boundary | 4.03 | 51 | 864 | 11.0 |
-| pens | a sentence of the paragraph highlighted: new pens, no layout | 98.0 | 337 | 2 377 | 12.0 |
-| full-frame | the screen forgotten: every cell written | 115 | 6 063 | 928 | 12.0 |
-| ellipsis | the same paragraph cut off at 2/3 of the rows with an ellipsis | 144 | 544 | 2 061 | 29.1 |
-| wrap | a word typed into a mixed-script paragraph, re-wrapped | 175 | 649 | 2 100 | 28.4 |
-| wrap-bidi | a word typed into a Latin, Hebrew and Arabic paragraph in visual order | 168 | - | 2 996 | - |
-| keys | 2000 key and mouse events decoded | 282 per 2000 | - | 151 per event | 1.4 per event |
+| idle | nothing changed | 0.27 | 0 | 3 | 0.1 |
+| spinner | the spinner and the rate in the header | 1.04 | 15 | 336 | 7.0 |
+| typing | a character typed or deleted mid-line | 2.27 | 17 | 563 | 7.0 |
+| log-line | a line appended to the log, the count updated | 4.91 | 220 | 934 | 14.0 |
+| log-bar | a line appended to the log beside a scrollbar column, no DECSLRM margins | 6.73 | 293 | 923 | 14.0 |
+| list-scroll | a row scrolled in a list of 100k items of 1 to 3 rows | 8.00 | 137 | 2 724 | 22.1 |
+| repaint-all | every object repainted, the spinner changed | 26.8 | 15 | 384 | 8.0 |
+| tree | one text changed in rows x 6 texts, no inner boundary | 2.11 | 51 | 320 | 7.0 |
+| pens | a sentence of the paragraph highlighted: new pens, no layout | 53.5 | 337 | 2 233 | 9.6 |
+| full-frame | the screen forgotten: every cell written | 48.9 | 6 063 | 384 | 8.0 |
+| ellipsis | the same paragraph cut off at 2/3 of the rows with an ellipsis | 61.9 | 544 | 1 500 | 14.6 |
+| wrap | a word typed into a mixed-script paragraph, re-wrapped | 73.7 | 649 | 1 547 | 17.4 |
+| wrap-bidi | a word typed into a Latin, Hebrew and Arabic paragraph in visual order | 88.9 | 764 | 1 817 | 25.4 |
+| keys | 2000 key and mouse events decoded | 75.7 per 2000 | - | 76 per event | 1.2 per event |
 
 GC: every scenario's collections are scavenges; none ran an old-space
 collection.
 
 ### Apps (`tool/alloc`, JIT)
 
-Per unit (a key, a frame, a switch) of the app scenarios. Figures of
-bytes allocated, measured on the tool's earlier test clock, which added a
-constant about 3.4 KB and 61 objects to each step; they are given as that
-run measured them, the app's part being that much lower:
+Per unit (a key, a frame, a switch) of the app scenarios:
 
 | scenario | unit | B alloc/unit | objects |
 |---|---|---:|---:|
-| listview-scroll (100k) | frame | 15 194 | 231 |
-| table-100k, Down/Up | key | 29 881 | 498 |
-| textarea-10k, a key | key | 34 691 | 267 |
-| markdown-stream | 6 chars | 29 678 | 502 |
-| mouse-flood | event | 1 951 | 37.8 |
-| gallery-switch (120 x 36) | switch | 1 518 426 | - |
+| app-idle, a still app | frame | 4 | 0.1 |
+| app-spinner | frame | 602 | 10.9 |
+| listview-scroll (100k) | frame | 6 879 | 86.4 |
+| table-100k, Down/Up | key | 15 472 | 251 |
+| selection-list (1000), Down/Up | key | 19 225 | 256 |
+| textarea-10k, a key | key | 14 438 | 130 |
+| field-in-dialog | frame | 7 158 | 109 |
+| gauges-live | frame | 7 017 | 102 |
+| markdown-stream | 6 chars | 21 564 | 392 |
+| log-append, at its cap of 2000 lines | line | 27 194 | 389 |
+| mouse-flood | event | 1 451 | 29.9 |
+| gallery-switch (120 x 36) | switch | 1 309 838 | 20 637 |
 
 No scenario runs an old-space collection, and the longest scavenge seen
-anywhere is 3.6 ms. GC is not where the time goes: what allocation costs is
+anywhere is 4.8 ms (gauges-live). GC is not where the time goes: what allocation costs is
 the allocating and initialising, which the profiles put inside the
 functions that allocate, and the scavenges it brings on in an app that
 already holds a large heap.
@@ -173,7 +176,9 @@ These are properties of the code that the figures above rest on.
   other._type == T`). About 12 ns AOT for equal int keys, 9.5 ns for keys
   of unrelated types, 19.5 ns for related types with equal values
   (`ValueKey<num>(1)` against `ValueKey<int>(1)`).
-- **`Table` and `ListView`** rebuild the rows a selection move touches,
+- **`Table`, `ListView` and `SelectionList`** rebuild the rows a selection
+  move touches (a `SelectionList` item that looks as it did keeps its
+  widget), a `ListView` rebuilt takes each item's element where it was,
   and the element walks and `RenderList._itemAt` make no closure and
   context per item visited. Table-100k allocates about 62 contexts a key,
   some 50 of the rest being the scenario's tester.
@@ -197,12 +202,15 @@ These are properties of the code that the figures above rest on.
 
 Ordered by what removing them would give back.
 
-- **A paragraph's edit through the bidi path** still allocates 2 996 B a
-  frame in wrap-bidi, of which 20 `_ArrayIterator`s (983 B) are for-in loops
-  in `unicode/bidi.dart` or the paint, not on the edit's path.
+- **A paragraph's edit through the bidi path** still allocates 1 817 B a
+  frame in wrap-bidi, the most of the paragraph scenarios: of its 7 lists,
+  3 are the `BidiText` an edit resolves again (`_resolveEdit`), 2 the
+  scenario's own and 2 the pipeline's dirty lists; JIT boxes 7.5 integers
+  of `Presenter._rowHash` besides.
 - **A `LogView` at its cap** shifts every item's index with each line, and
   `RenderList.moveItem` marks each unpainted, so its window repaints every
-  frame (the bytes stay those of a scroll).
+  frame: log-append writes 273 B a line and allocates 27.2 KB, the most of
+  the app scenarios a frame.
 - **log-bar is about 4 us above log-line**: the rectangle's rows are copied
   one by one, a scan decides whether to widen, and the scrollbar's column is
   repainted and compared each frame.
@@ -211,15 +219,16 @@ Ordered by what removing them would give back.
   of log-line's and list-scroll's JIT samples, but AOT (micro-benchmark, 11
   800 cells) 0.7 us a move up, 2.5 us down. Low priority; a row-offset ring
   would remove the moves at a large cost in risk.
-- **`_tryRowShift` on typing frames** (`presenter.dart`): 33 % of typing's
-  samples, of a 3.7 us frame. Its worst case (O(16 w) per row) did not show
+- **`_tryRowShift` on typing frames** (`presenter.dart`): 41 % of typing's
+  samples (59 % with what it calls), of a 2.3 us frame. Its worst case (O(16 w) per row) did not show
   in any scenario: the cost loop stops once it can't beat rewriting the
   tail. A second must-match check at the head of the change would cut the
   common case.
-- **`ListView` scrolling** allocates 15.2 KB a row scrolled (the item built
+- **`ListView` scrolling** allocates 6.9 KB a row scrolled (the item built
   and the one leaving dropped; nothing is O(items)). `RenderList._childAt`
-  is a linear search from the nearer end per item (`render/list.dart`,
-  O(built^2) over a pass), 8 % of list-scroll's samples.
+  is a linear search from the nearer end for an item it has
+  (`render/list.dart`, O(built^2) over a pass; one past its ends is found
+  missing at once), 2 % of list-scroll's samples.
 - **Rebuild bookkeeping**: `updateChildren` copies its set with `retainAll`
   even when there is nothing to retain (`framework.dart`). Visible in
   table-100k's allocations (`_Record`, closures), not in its time.
@@ -244,7 +253,7 @@ Ordered by what removing them would give back.
 ## Checked and set aside
 
 - **GC pauses.** No scenario ran an old-space collection; the longest
-  scavenge was 3.6 ms, most under 2 ms. Allocation volume costs time where
+  scavenge was 4.8 ms, most under 2 ms. Allocation volume costs time where
   it is allocated, which the costs above count.
 - **Depth sort of the dirty lists** (`pipeline.dart` sorts by `depth`,
   which walks to the root): not in any scenario's samples.

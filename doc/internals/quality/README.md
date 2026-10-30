@@ -46,8 +46,8 @@ them, and the templates under `packages/twk_dev/templates/`.
 | task | what it does | where it writes | in a gate |
 | --- | --- | --- | --- |
 | `doc-snippets` | analyzes every ` ```dart ` block of every `///` comment in `lib/`, in its package | stdout: `file:line:column: severity code: message` | `handover`, `ci` |
-| `undocumented` | the public members without a doc comment (the analyzer's `public_member_api_docs`) | [`undocumented/<package>.md`](undocumented/README.md) | no, on demand; the lint itself is on in `analyze` (below) |
-| `coverage` | `dart test --coverage` in each package; the lines of `lib/` no test runs, and the public declarations they are in | [`coverage/<package>.md`](coverage/README.md) | no, on demand (minutes) |
+| `undocumented` | the public members without a doc comment (the analyzer's `public_member_api_docs`) | `undocumented/<package>.md` and its `README.md`, here, not in git | no, on demand; the lint itself is on in `analyze` (below) |
+| `coverage` | `dart test --coverage` in each package; the lines of `lib/` no test runs, and the public declarations they are in | `coverage/<package>.md` and its `README.md`, here, not in git | no, on demand (minutes) |
 
 ```sh
 dart run tool/xtask.dart doc-snippets
@@ -428,11 +428,11 @@ excludes `test_fixes/**`, whose inputs are errors on purpose;
 own, where dart fix still sees them. An entry's `uris` are the public
 libraries that export the element.
 
-The compare runs over the packages that have a `test_fixes/`, a set of
-xtask.yaml (`packages/*/test_fixes/analysis_options.yaml`) and a task over
-it in `handover` and `ci`, which the package's first entry adds with it.
 A package that is not released has no fix data: no code is written
-against it.
+against it. None is released yet, so no package has a `fix_data.yaml` or a
+`test_fixes/`, and xtask.yaml has no task for them: the first entry brings
+one into `handover` and `ci`, a compare over the packages that have a
+`test_fixes/` (`packages/*/test_fixes/analysis_options.yaml`).
 
 An entry can say: a class, function, field, getter or method renamed
 (`rename`); a named parameter renamed (`renameParameter`); a parameter

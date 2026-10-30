@@ -723,7 +723,8 @@ final class Surface {
 
   /// Copies the rectangle of [src] at (sx, sy, w, h) to (dx, dy) of this
   /// surface (layer compositing). Wide glyphs cut by the rectangle edges are
-  /// replaced by blanks. [src] may be this surface, rectangles overlapping.
+  /// replaced by blanks. [src] may be this surface, rectangles overlapping:
+  /// the source rectangle is then copied to a surface of its own first.
   void blit(Surface src, int sx, int sy, int w, int h, int dx, int dy) {
     if (identical(src, this)) {
       // rows are copied one by one and wide glyphs at the destination are

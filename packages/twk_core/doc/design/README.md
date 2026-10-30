@@ -57,6 +57,10 @@ lib/src/
                   lines merged where they meet, images
   graphics.dart   images: the protocols, an encoded image, its placement
   presenter.dart  diff + minimal ANSI stream; images placed
+  byte_sink.dart  the growable buffer a frame's bytes are written into
+  screen.dart     one screen: its tables, surface, canvas and presenter
+  line_encoder.dart  lines of styled text or surface rows, with their SGR
+                  and hyperlinks, for output that is no screen
   fill.dart       block fills and comparisons of typed arrays
   input/          input parser (state machine)
   terminal/       the terminal over a byte link: stdio, a terminal served

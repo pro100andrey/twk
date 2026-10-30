@@ -6,10 +6,7 @@ golden screens in `test/goldens/` are how every page looks, in the dark
 and the light theme at 120×36 and at 80×24 (README.md, "Golden screens").
 This page says why it looks so, for a change or a new page to keep to.
 
-Until 2026-10-22 the design was a separate prototype in JavaScript
-(`design/gallery`, drawn in a browser canvas in cells), which the Dart
-gallery was built to match cell for cell; it did, at every page, and the
-prototype was retired. The pictures below are the gallery's golden
+The pictures below are the gallery's golden
 screens as `tool/shots.dart` draws them (README.md, "Pictures"), so they
 show how it looks now.
 
