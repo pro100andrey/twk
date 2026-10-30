@@ -51,7 +51,7 @@ styles
 │aaaddddddadddddddaaaaaaaKaaahhhhhhllllllllhtttthuuuuhuuuuhtthttthttttttttthhhhhhhhhshhhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooaaaaaaaaaaaaaahhhhhhttttttttthtttthttthtttttthtttththttttttthhhhhhhhhshhhhhhphhOPPPPPPPPOxyyyyxyyyyyyxhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhshhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaadddddddddaaaaaaaaaaaaKaaahhhhhhtttthtthzzzzzzzzzzzhtthAAAAAAAAAAAAAthhhhhhhhhhhhshhhhhhphhnnnnhnnnnhhhhhhhhhhhhhhhhhh│
+│aaadddddddddaaaaaaaaaaaaKaaahhhhhhtttthttheeeeeeeeeeehttheeeeeeeeeeeeethhhhhhhhhhhhshhhhhhphhnnnnhnnnnhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhshhhhhhphhOPPPPPPPPOxyyyyxxyyyyxhhhhh│
 │aaaaaooooooooooooaaaaaaaaaaahhhhhhBBBBhBBhBBBhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhshhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaoooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhshhhhhhphhnnnnnhhhhhhhhhhhhNNhNNNNNhh│
@@ -99,8 +99,7 @@ O on #b6d4fe
 P bold #1f2328 on #b6d4fe
 x on #eef0f3
 y #656d76 on #eef0f3
-z underline #0969da on #fafafb link=#what-is-new
-A underline #0969da on #fafafb link=#still-to-come
+e underline #0969da on #fafafb
 B bold #0969da on #fafafb
 C #8250df on #eef0f3
 D reverse #1f2328 on #fafafb

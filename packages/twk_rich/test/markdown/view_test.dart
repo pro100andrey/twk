@@ -123,17 +123,16 @@ void main() {
       expect(t.cell(13, 0).link, isNull);
     });
 
-    testTwk('an image shows its description, linked to its source', (
-      t,
-    ) async {
+    testTwk('an image shows its description, linked to its source where '
+        'that is on the web', (t) async {
       await t.pumpWidget(
-        view('![a cat](cat.png) and ![](dog.png)'),
+        view('![a cat](https://c.dev/cat.png) and ![](dog.png)'),
         size: (30, 2),
       );
       expect(rows(t, 1), ['a cat and dog.png']);
       expect(t, styleAt(0, 0, hasFg(image)));
-      expect(t.cell(0, 0).link, 'cat.png');
-      expect(t.cell(10, 0).link, 'dog.png');
+      expect(t.cell(0, 0).link, 'https://c.dev/cat.png');
+      expect(t.cell(10, 0).link, isNull);
     });
   });
 

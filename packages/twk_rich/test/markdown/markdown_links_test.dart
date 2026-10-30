@@ -1,7 +1,8 @@
 // The links of a Markdown view as the app's own: a click on a link, an
 // image or a reference, in a paragraph, a heading or a table, told to
 // onLinkTap with its destination and title, the hyperlink still written
-// unless hyperlinks is false; and the headings of the view, with their
+// unless hyperlinks is false, and only for the schemes of
+// hyperlinkSchemes; and the headings of the view, with their
 // slugs, which its controller scrolls to.
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
@@ -105,6 +106,51 @@ void main() {
       );
       await t.click(5, 0);
       expect(taps, [('https://x.dev', 'Docs')]);
+    });
+
+    testTwk('a hyperlink is written for the web and mail only, unless '
+        'hyperlinkSchemes says more; every link is told to onLinkTap', (
+      t,
+    ) async {
+      final taps = <Tap>[];
+      // 0 [a](javascript:x) [b](FILE:///etc) [c](#h)
+      // 2 [d](HTTPS://e.dev) [f](mailto:m@e.dev) [g](notes.md)
+      const links =
+          '[a](javascript:alert(1)) [b](FILE:///etc/passwd) [c](#h)\n\n'
+          '[d](HTTPS://e.dev) [f](mailto:m@e.dev) [g](notes.md)';
+      Widget view({Set<String> schemes = MarkdownView.webSchemes}) =>
+          MarkdownView(
+            links,
+            hyperlinkSchemes: schemes,
+            onLinkTap: (d, title) => taps.add((d, title)),
+          );
+      await t.pumpWidget(view(), size: (20, 4));
+      expect(t.lines.take(3), ['a b c', '', 'd f g']);
+      expect(
+        [for (var x = 0; x < 5; x += 2) t.cell(x, 0).link],
+        [
+          null,
+          null,
+          null,
+        ],
+      );
+      expect(
+        [for (var x = 0; x < 5; x += 2) t.cell(x, 2).link],
+        [
+          'HTTPS://e.dev',
+          'mailto:m@e.dev',
+          null,
+        ],
+      );
+      await t.click(0, 0);
+      await t.click(2, 0);
+      expect(taps, [
+        ('javascript:alert(1)', null),
+        ('FILE:///etc/passwd', null),
+      ]);
+      await t.pumpWidget(view(schemes: {'file'}), size: (20, 4));
+      expect(t.cell(2, 0).link, 'FILE:///etc/passwd');
+      expect(t.cell(0, 2).link, isNull);
     });
 
     testTwk('hyperlinks: false writes no hyperlink; a click on a link in a '
