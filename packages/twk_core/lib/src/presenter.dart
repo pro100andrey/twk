@@ -1797,6 +1797,29 @@ final class Presenter {
             // one's on either side, without looking a blank style up
             var j = i + 1;
             final end = row + hi;
+            // two cells a step while both are the blank in s over the one
+            // in f, as after an ED 2 the trailing blanks of every row are
+            if ((j & 1) == 1 &&
+                j < end &&
+                bc[j] == kBlank &&
+                fc[j] == kBlank &&
+                bs[j] == s &&
+                fs[j] == f) {
+              j++;
+            }
+            if ((j & 1) == 0) {
+              const blanks = kBlank | (kBlank << 32);
+              final ss = s | (s << 32);
+              final ff = f | (f << 32);
+              final lim = end & ~1;
+              while (j < lim &&
+                  bc64[j >> 1] == blanks &&
+                  fc64[j >> 1] == blanks &&
+                  bs64[j >> 1] == ss &&
+                  fs64[j >> 1] == ff) {
+                j += 2;
+              }
+            }
             while (j < end && bc[j] == kBlank && fc[j] == kBlank) {
               final t = bs[j];
               final u = fs[j];
@@ -1905,7 +1928,16 @@ final class Presenter {
             }
             if (fc[j] == kBlank &&
                 (fs[j] == s ||
-                    styles.blankStyleOf(fs[j]) == styles.blankStyleOf(s))) {
+                    styles.blankStyleOf(fs[j]) == styles.blankStyleOf(s)) &&
+                // unless a changed narrow glyph of the run follows: then
+                // the blank is the byte _bridge would write after the run
+                // ended, as it is between the words of a row written over
+                // a blank front
+                !(j + 1 < end &&
+                    bs[j + 1] == s &&
+                    bc[j + 1] > kBlank &&
+                    bc[j + 1] < kFirstInterned &&
+                    (bc[j + 1] != fc[j + 1] || fs[j + 1] != s))) {
               break;
             }
           } else if (cj == fc[j] && fs[j] == s) {
@@ -1968,6 +2000,8 @@ final class Presenter {
   int _dominantBlank(Surface back) {
     final c = back.cells;
     final st = back.styles;
+    final c64 = back.cells64;
+    final st64 = back.styles64;
     final n = c.length;
     var counts = _blankCounts;
     var best = -1;
@@ -1980,6 +2014,18 @@ final class Presenter {
       }
       final raw = st[i];
       var j = i + 1;
+      // the run of blanks of raw, two cells a step
+      if ((j & 1) == 1 && j < n && c[j] == kBlank && st[j] == raw) {
+        j++;
+      }
+      if ((j & 1) == 0) {
+        const blanks = kBlank | (kBlank << 32);
+        final raws = raw | (raw << 32);
+        final lim = n & ~1;
+        while (j < lim && c64[j >> 1] == blanks && st64[j >> 1] == raws) {
+          j += 2;
+        }
+      }
       while (j < n && c[j] == kBlank && st[j] == raw) {
         j++;
       }
@@ -2310,11 +2356,6 @@ final class Presenter {
     if (!content) {
       return -1;
     }
-    for (var x = a; x < w; x++) {
-      if ((fc[row + x] & (kUncertain | kSkip | kInvalid)) != 0) {
-        return -1;
-      }
-    }
     // style of the blanks ICH/DCH create (current background on BCE
     // terminals); reset first when the current SGR isn't a plain background
     var eraseStyle = 0;
@@ -2401,6 +2442,13 @@ final class Presenter {
     // require a clear win over rewriting the tail
     if (bestK == 0 || bestCost * 5 > changed * 4) {
       return -1;
+    }
+    // and a tail the terminal shows as the front has it: looked at last,
+    // as the search above rejects nearly every row first
+    for (var x = a; x < w; x++) {
+      if ((fc[row + x] & (kUncertain | kSkip | kInvalid)) != 0) {
+        return -1;
+      }
     }
 
     if (!curOk || (konsole && !plain)) {
@@ -2818,7 +2866,8 @@ final class Presenter {
       var bestBottom = 0;
       var bestBy = 0;
       for (var s = 1; s <= maxS; s++) {
-        for (final dir in const <int>[1, -1]) {
+        // a loop of ints, as a for-in over a list makes an iterator
+        for (var dir = 1; dir >= -1; dir -= 2) {
           // dir 1: back[y] == front[y + s] (content moved up)
           var runStart = -1;
           var gain = 0;
