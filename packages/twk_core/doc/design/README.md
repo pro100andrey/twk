@@ -6,10 +6,11 @@ and how its demo, end to end runs and benchmark are run. The package's
 
 ## What it is
 
-A terminal UI core with no runtime dependencies (only `dart:*`): a packed
-cell buffer, a diff driven by damaged spans, a minimal ANSI stream, its own
-Unicode segmentation, an input parser, backends for Linux / macOS / Windows,
-and a retained render tree, under the Flutter-like widget layer of
+A terminal UI core with no dependency but `package:meta`'s annotations:
+a packed cell buffer, a diff driven by damaged spans, a minimal ANSI
+stream, its own Unicode segmentation, an input parser, backends for
+Linux / macOS / Windows, and a retained render tree, under the
+Flutter-like widget layer of
 [`packages/twk`](../../../twk/doc/reference/README.md), the rich text of
 [`packages/twk_rich`](../../../twk_rich/README.md) and the console for
 command-line tools of `packages/twk`

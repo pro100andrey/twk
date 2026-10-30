@@ -1,7 +1,8 @@
 name: twk_core
 description: >-
-  A dependency-free terminal rendering core for Dart: a cell buffer, a
-  damage-driven diff, Unicode segmentation, input and a render tree.
+  A terminal rendering core for Dart, with no dependency but meta's
+  annotations: a cell buffer, a damage-driven diff, Unicode segmentation,
+  input and a render tree.
 repository: https://github.com/pro100andrey/twk/tree/main/packages/twk_core
 issue_tracker: https://github.com/pro100andrey/twk/issues
 topics: [terminal, tui, cli, ansi, console]
@@ -10,6 +11,8 @@ version: 0.1.0
 environment:
   sdk: ^3.13.5
 resolution: workspace
+dependencies:
+  meta: ^1.19.0
 dev_dependencies:
   pro_lints: ^6.2.0
   test: ^1.33.0

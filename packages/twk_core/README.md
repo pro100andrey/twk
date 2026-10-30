@@ -1,6 +1,7 @@
 # twk_core
 
-A terminal rendering core for Dart with no dependencies beyond `dart:*`.
+A terminal rendering core for Dart with no dependency but the
+annotations of [`meta`](https://pub.dev/packages/meta).
 It keeps the screen as a packed cell buffer, works out which cells
 changed, and writes the fewest bytes the terminal needs to show them.
 Under that sit its own Unicode segmentation, an input parser, terminal

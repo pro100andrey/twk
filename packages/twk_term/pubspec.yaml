@@ -19,6 +19,7 @@ environment:
   sdk: ^3.13.5
 resolution: workspace
 dependencies:
+  meta: ^1.19.0
   twk: ^0.1.0
   twk_core: ^0.1.0
 dev_dependencies:

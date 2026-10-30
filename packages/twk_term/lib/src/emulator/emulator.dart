@@ -8,6 +8,7 @@ library;
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:meta/meta.dart' show visibleForTesting;
 import 'package:twk_core/twk_core.dart';
 
 import 'buffer.dart';
@@ -216,6 +217,7 @@ final class TerminalEmulator {
 
   /// The fewest styles, or glyphs, in use [styles], or [glyphs], is swept
   /// past; a test's may be fewer.
+  @visibleForTesting
   static var sweepFloor = 4096;
 
   // each swept once this many are in use
