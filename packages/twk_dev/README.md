@@ -115,9 +115,8 @@ own.
    dart run twk_dev:twk play --speed=2 tally.cast
    ```
 
-   and in a test `castFrames(Cast.read('tally.cast'))`, of
-   `package:twk_dev/cast_frames.dart`, gives the screens it showed, the
-   last one the app's last.
+   and in a test twk_test's `screenFrames` over its `writes` gives the
+   screens it showed, the last one the app's last.
 
 ## `twk create`
 
@@ -424,15 +423,22 @@ what was not read (`TCSAFLUSH`), so none reaches the shell. A recording
 it can't read, or that is not asciicast v2, exits with 1; no file, or a
 `--speed` not above 0, with 64.
 
-`package:twk_dev/cast_frames.dart` makes a recording a regression test:
-`castFrames(cast)` feeds its output to twk_test's emulator (`Vt`) of the
-recording's size, resizes it as an `r` event says (keeping what it shows,
-as xterm does), and gives a `CastFrame` after each output event that
-leaves no synchronized update (DEC 2026) open: its time, size, rows, the
-cursor, and what the emulator could not take up to it.
+A recording is a regression test of the app: its `Cast.writes`, the
+output events and each resize, are what twk_test's `screenFrames` plays
+through its emulator (`Vt`) of the recording's size, a resize keeping
+what the screen shows, as xterm does. It gives a `ScreenFrame` after each
+output that leaves no synchronized update (DEC 2026) open: its time,
+size, rows, the cursor, and what the emulator could not take up to it.
+twk_dev and twk_test import nothing of each other; an app's tests take
+both, as `twk create` writes them.
 
 ```dart
-final frames = castFrames(Cast.read('test/tally.cast'));
+final cast = Cast.read('test/tally.cast');
+final frames = screenFrames(
+  cast.header.width,
+  cast.header.height,
+  cast.writes,
+);
 expect(frames.last.lines[1], startsWith('│ › coffee     1 ■'));
 expect(frames.last.errors, isEmpty);
 ```
@@ -552,8 +558,7 @@ twk_term's `Pty`, which the package takes by path; `twk play`
 `lib/src/cast.dart` (`Cast`, `CastWriter`, exported by
 `package:twk_dev/twk_dev.dart`), put the terminal in raw mode with
 `lib/src/raw_tty.dart` and turn off what the output left on with
-`lib/src/modes.dart`. `lib/cast_frames.dart` plays a recording through
-twk_test's emulator, which the package takes by path for it. `twk tape`
+`lib/src/modes.dart`. `twk tape`
 is `lib/src/tape.dart`, the command, `TapeRunner` (its pauses those of
 a `TapeClock`, the real time by default) and `redraw`, over
 twk_term's `Pty` and `TerminalEmulator`; its language is
@@ -591,7 +596,7 @@ and for the cursor's line, one that times out failing with the screen
 and writing nothing; a tape stopped ending at once; the program gone
 after each; keys encoded as the program's modes want them; and the
 walkthrough's app through a tape, its recording played through
-`castFrames` to the screen it showed, its screenshot and animation
+twk_test's `screenFrames` to the screen it showed, its screenshot and animation
 written.
 `test/record_test.dart` runs `twk record` in a pseudo-terminal (twk_term's
 `Pty`) shown by twk_term's emulator, which answers the app's queries,

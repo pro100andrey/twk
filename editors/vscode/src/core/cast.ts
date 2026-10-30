@@ -1,7 +1,8 @@
-// asciicast v2, as twk_dev's `twk record` writes it and `twk play`, `twk
-// tape` and `castFrames` read it (packages/twk_dev/lib/src/cast.dart,
-// cast_frames.dart): a header line, then an event a line, `[time, code,
-// data]`. This file must write what that one writes and read what it
+// asciicast v2, as twk_dev's `twk record` writes it and `twk play` and
+// `twk tape` read it (packages/twk_dev/lib/src/cast.dart), its writes
+// played by twk_test's `screenFrames`: a header line, then an event a
+// line, `[time, code, data]`. This file must write what that one writes
+// and read what it
 // reads: packages/twk_dev/test/cast.golden.json holds both to the same
 // lines (test/unit/core/cast_golden.test.ts here, cast_golden_test.dart
 // there). Pure: no node, no DOM.
@@ -230,7 +231,7 @@ export class CastWriter {
 
 /**
  * A step of a recording played back: what the screen is sent, up to a
- * frame as `castFrames` takes one (an output event that leaves no
+ * frame as `screenFrames` takes one (an output event that leaves no
  * synchronized update open), with the size it is resized to first.
  */
 export interface CastStep {
@@ -245,7 +246,7 @@ export interface CastStep {
 
 /**
  * The steps of [cast]: its output events up to each frame, in the order
- * `castFrames` shows them (a resize resizing, input and markers left out);
+ * `screenFrames` shows them (a resize resizing, input and markers left out);
  * output after the last frame, inside an update never ended, is a step of
  * its own with no frame.
  */

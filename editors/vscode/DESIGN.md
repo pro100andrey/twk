@@ -45,7 +45,8 @@ Everything below was run on this machine (Linux, VS Code 1.143.1, Dart
   terminal sent (keys, the mouse, the answers to the app's queries),
   filtered, paused, from the terminal's start.
 - **Record and replay**: a session recorded as asciicast v2, the format
-  of `twk record`, `twk play`, `twk tape` and twk_dev's `castFrames`, and a
+  of `twk record`, `twk play` and `twk tape`, its frames twk_test's
+  `screenFrames`, and a
   recording (any of theirs too) played back in a terminal of its own,
   paused, a frame on or back.
 - **Copy the screen** as text.
@@ -152,8 +153,7 @@ all of itself (`ext.twk.reassemble`), so its first frame is a whole
 screen; an app on the "any app" terminal is not the extension's to ask,
 so start that recording before the app. The file is what twk_dev reads:
 `twk play counter.cast` plays it in a terminal, and
-`castFrames(Cast.read('counter.cast'))` (twk_dev's `cast_frames.dart`)
-makes a test of it.
+twk_test's `screenFrames` over its `Cast.writes` makes a test of it.
 
 **Replay.** twk: Play a Recording opens a terminal of its own at the
 recording's size (`counter.cast · twk replay 80x24`) and plays what was
@@ -162,7 +162,7 @@ recording typed is not replayed, and what the replay's terminal answers
 goes nowhere. Its bar, under the terminal: from the start (Home or `r`),
 a frame back (Left or `,`), play or pause (Space), a frame on (Right or
 `.`), and where it is (`frame 3/42 · 1.25 s / 5.20 s`). A frame is what
-`castFrames` takes for one: an output event that leaves no synchronized
+`screenFrames` takes for one: an output event that leaves no synchronized
 update open. A frame back starts the terminal again (RIS) and writes the
 frames before it at once. Played to its end, Play starts it again.
 
@@ -1163,7 +1163,7 @@ was written for this, not ported: twk_test's `Vt` is an emulator, whose
 parsing is bound up with the screen it keeps, and twk_core's trace
 format (`trace.dart`) is raw bytes with times, which this reads as it
 reads the wire. Where the two meet, a frame, it is held to twk_dev's
-`castFrames` (below).
+`screenFrames` (below).
 
 **The log** (`core/seqlog.ts`) makes an entry of each piece, with its
 time and direction, and of each synchronized update a frame entry holding
@@ -1190,7 +1190,7 @@ app's `redraw` (its run's or its debug session's `ext.twk.reassemble`)
 paints the rest.
 
 **Replay** (`app/player.ts`): `castSteps` cuts the output into steps as
-`castFrames` cuts frames (the synchronized updates followed through the
+`screenFrames` cuts frames (the synchronized updates followed through the
 decoder, a sequence cut between events too), a resize carried with the
 step after it; a step at its time on the `Clock`, the next once the view
 parsed it; back is RIS and the steps before at once.
@@ -1200,9 +1200,9 @@ cast.dart on its inputs): what a `CastWriter` writes for a header and
 events given as microseconds and hex bytes (a session with a pause cut,
 UTF-8 cut and malformed, what JSON escapes, no idle limit), what
 `Cast.parse` reads of a file or the message it throws (fields of the
-wrong kind left out, each refusal), and the frames `castFrames` shows of
+wrong kind left out, each refusal), and the frames `screenFrames` shows of
 a file (number, time, size, rows). twk_dev's `cast_golden_test.dart`
-holds cast.dart and cast_frames.dart to it (18), the extension's
+holds cast.dart and screenFrames to it (18), the extension's
 `cast_golden.test.ts` core/cast.ts, its reader, writer and steps, the
 steps played into a headless xterm.js against `Vt`'s rows (18). Seen
 failing: Dart with the golden's `2.0` written `2`; the extension with
@@ -1239,7 +1239,7 @@ Tests (unit, 47 more):
 - `app/record_twk.test.ts` (1, 4 s): packages/twk's `example/counter.dart`
   run by `HotApps` over core's `HotRun` in a terminal over a headless
   xterm.js, recorded from the middle of its session with its redraw, Up
-  twice: twk_dev's `castFrames` (a Dart program run in the test) shows
+  twice: twk_test's `screenFrames` (a Dart program run in the test) shows
   the file's frames, the first a whole screen, nothing its emulator does
   not know; the player shows the same frames at the same times, each
   screen row for row the same as `Vt`'s; the log names the frames, the

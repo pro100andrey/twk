@@ -176,8 +176,7 @@ dashboard  full screen: panels of live readings in a chart, a gauge and bars
         '\ndependency_overrides:\n'
         "  twk:\n    path: '/home/ann/it''s: here/packages/twk'\n"
         "  twk_core:\n    path: '/home/ann/it''s: here/packages/twk_core'\n"
-        "  twk_term:\n    path: '/home/ann/it''s: here/packages/twk_term'\n"
-        "  twk_test:\n    path: '/home/ann/it''s: here/packages/twk_test'\n",
+        "  twk_term:\n    path: '/home/ann/it''s: here/packages/twk_term'\n",
       ),
     );
   });

@@ -14,13 +14,18 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
-import 'package:twk_dev/cast_frames.dart';
+import 'package:twk_dev/twk_dev.dart';
+import 'package:twk_test/twk_test.dart' show ScreenFrame, screenFrames;
 import 'package:twk_test/twk_test.dart' show runProcess;
 
 import 'terminal.dart';
 import 'twk.dart';
 
 final String _dart = Platform.resolvedExecutable;
+
+/// The screens [cast] showed, as twk_test's emulator shows them.
+List<ScreenFrame> _frames(Cast cast) =>
+    screenFrames(cast.header.width, cast.header.height, cast.writes);
 
 void main() {
   // the walkthrough's app twk record runs, compiled once
@@ -108,7 +113,7 @@ void main() {
         expect(gap, inInclusiveRange(0, 2), reason: '${events[i]}');
       }
 
-      final frames = castFrames(recording);
+      final frames = _frames(recording);
       expect(frames.last.lines, shown);
       expect((frames.last.width, frames.last.height), (64, 16));
       expect(frames.last.errors, isEmpty);

@@ -369,6 +369,12 @@ screen, with `--step` each frame's and with `--frame=N` frame N's.
   the pixels of the last two taken away with what is written or erased
   in their cells. The queries of sizes in pixels (`CSI 14 t`, `16 t`,
   `18 t`) are taken, unanswered.
+- `screenFrames(width, height, writes)` plays a program's writes to a
+  terminal (`TerminalWrite`s: an output or a resize, at a time) through
+  the emulator, and gives a `ScreenFrame` after each output that leaves no
+  synchronized update open: its time, size, rows, the cursor, and what
+  the emulator could not take up to it. twk_dev's `Cast.writes` are a
+  recording's, which so becomes a regression test.
 - `package:twk_test/vt_terminal.dart` (`VtTerminal`) is a terminal backend
   in the inline mode that feeds its output to the emulator, below lines
   printed before the app ran.

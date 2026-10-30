@@ -15,11 +15,16 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
-import 'package:twk_dev/cast_frames.dart';
 import 'package:twk_dev/src/tape.dart';
+import 'package:twk_dev/twk_dev.dart';
+import 'package:twk_test/twk_test.dart' show ScreenFrame, screenFrames;
 import 'package:twk_test/twk_test.dart' show waitFor, waitUntil;
 
 import 'twk.dart';
+
+/// The screens [cast] showed, as twk_test's emulator shows them.
+List<ScreenFrame> _frames(Cast cast) =>
+    screenFrames(cast.header.width, cast.header.height, cast.writes);
 
 void main() {
   // the walkthrough's app, compiled once
@@ -242,7 +247,7 @@ Wait "^C"
 
     expect(code, 0, reason: '$said');
     // cat's terminal echoes ESC as ^[, ETX as ^C
-    expect(castFrames(Cast.read(cast)).last.lines[1], '^[OA^[OD^[xy^C');
+    expect(_frames(Cast.read(cast)).last.lines[1], '^[OA^[OD^[xy^C');
   });
 
   test("the walkthrough's app through a tape: the keys reach it, the "
@@ -270,7 +275,7 @@ Screenshot $still
 ''');
 
     expect(code, 0, reason: '$said');
-    final frames = castFrames(Cast.read(cast));
+    final frames = _frames(Cast.read(cast));
     expect(frames.first.lines[1], startsWith('│ › coffee     0'));
     expect(frames.last.lines[1], startsWith('│   coffee     1 ■'));
     expect(frames.last.lines[2], startsWith('│ › tea        2 ■■'));

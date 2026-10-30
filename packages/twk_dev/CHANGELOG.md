@@ -12,4 +12,5 @@ The first release.
 - `twk shell`: the terminal a twk app's editor extension talks to.
 - `twk record`, `twk play` and `twk tape`: a session recorded as an
   asciicast, played back, or scripted and drawn as SVG; and
-  `package:twk_dev/cast_frames.dart`, a recording's screens for a test.
+  `Cast.writes`, what a recording did to its terminal, which twk_test's
+  `screenFrames` plays into the screens it showed, for a test.

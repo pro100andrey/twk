@@ -19,8 +19,10 @@ dependencies:
   twk: ^0.1.0
   twk_core: ^0.1.0
   twk_term: ^0.1.0
-  twk_test: ^0.1.0
   vm_service: ^15.4.0
 dev_dependencies:
   pro_lints: ^6.2.0
   test: ^1.33.0
+  # screenFrames, a recording's screens for the tests
+  twk_test:
+    path: ../twk_test

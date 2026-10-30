@@ -4,8 +4,8 @@
 /// v2 recordings `twk record` writes and `twk play` plays; `formatLine` and
 /// `formatRecord`, a record of an app's log as `twk logs` shows it.
 ///
-/// `package:twk_dev/cast_frames.dart` plays a recording through the test
-/// emulator, a screen a frame.
+/// A recording's `Cast.writes` are what twk_test's `screenFrames` plays
+/// through its emulator, a screen a frame, for a test.
 library;
 
 export 'src/cast.dart' show Cast, CastEvent, CastHeader, CastWriter;

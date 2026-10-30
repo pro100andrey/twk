@@ -1,7 +1,8 @@
 /// asciicast v2, the recordings `twk record` writes and `twk play` plays:
 /// a header line, then an event a line.
 ///
-/// `test/cast.golden.json` holds this file, `castFrames` and the VS Code
+/// `test/cast.golden.json` holds this file, the frames twk_test's
+/// `screenFrames` shows of a recording's [Cast.writes], and the VS Code
 /// extension's port of them (`editors/vscode/src/core/cast.ts`), whose
 /// twk terminal records and plays the same files, to the same lines and
 /// frames: a change here is made there and in the golden too.
@@ -11,6 +12,7 @@ import 'dart:convert';
 import 'dart:io';
 
 // Examples can assume:
+// import 'package:twk_test/twk_test.dart';
 // import 'dart:io';
 // late IOSink file;
 
@@ -198,6 +200,26 @@ final class Cast {
 
   /// Seconds from the start to the last event.
   double get duration => events.isEmpty ? 0 : events.last.time;
+
+  /// What the program did to its terminal, in time order: what it wrote
+  /// (its output events) and each resize that names a size, as twk_test's
+  /// `screenFrames` takes them; what was typed and the markers left out.
+  ///
+  /// ```dart
+  /// final cast = Cast.read('test/tally.cast');
+  /// final frames = screenFrames(
+  ///   cast.header.width,
+  ///   cast.header.height,
+  ///   cast.writes,
+  /// );
+  /// ```
+  Iterable<({double time, String? output, (int, int)? size})> get writes => [
+    for (final event in events)
+      if (event.size case final size?)
+        (time: event.time, output: null, size: size)
+      else if (event.code == CastEvent.output)
+        (time: event.time, output: event.data, size: null),
+  ];
 }
 
 /// Writes a recording as it happens, through the function it is given:

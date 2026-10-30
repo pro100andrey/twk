@@ -3,7 +3,7 @@
 // recording's idle_time_limit), the view at the recording's size; what the
 // view sends (the answers to the queries in the recording among it) goes
 // nowhere. It plays, pauses, goes a frame on or back and starts again, a
-// frame as twk_dev's castFrames takes one (core/cast.ts's castSteps), from
+// frame as twk_test's screenFrames takes one (core/cast.ts's castSteps), from
 // the bar of its view or keys typed in it: Space, Right or `.`, Left or
 // `,`, Home or `r`.
 import { Cast, CastStep, castSteps } from '../core/cast';
