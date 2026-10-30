@@ -3,9 +3,13 @@
 A terminal for programs run inside a twk app: what a program writes goes
 in as bytes, its screen comes out as cells the core's `Canvas` draws, and
 what the terminal sends back to it — answers to its queries, keys, the
-mouse, pasted text — goes out as bytes. It takes [twk](../twk/README.md)
-and [twk_core](../twk_core/README.md) as path dependencies, and
-[twk_test](../twk_test/README.md) for its tests.
+mouse, pasted text — goes out as bytes. It is built on
+[twk](https://pub.dev/packages/twk) and its core,
+[twk_core](https://pub.dev/packages/twk_core).
+
+```sh
+dart pub add twk_term
+```
 
 Three parts: the emulator (`lib/src/emulator/`), the pseudo-terminal the
 program runs in (`lib/src/pty/`, Linux and macOS, through `dart:ffi`
@@ -251,7 +255,7 @@ compiles for the browser too (`tool/web_check.dart`'s gallery case).
   (the VM may reap it first), and kill(2) with -1 would signal every
   process of the user. Nothing waits on a `pid` that is not positive.
 
-`twk record` of [twk_dev](../twk_dev/README.md) runs the command it
+`twk record` of [twk_dev](https://pub.dev/packages/twk_dev) runs the command it
 records in a `Pty`.
 
 The child is made with `posix_spawn` (`pidfd_spawn` where glibc has it,

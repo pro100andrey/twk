@@ -336,7 +336,8 @@ tasks:
     # own package's (check-<name>) once they are. The packages to be
     # published:
     # publish_to, `dart pub publish --dry-run`'s errors (its warnings
-    # shown), and pana's score out of 160 with what lost points; `--min=N`
+    # shown), every file git tracks in lib/ and bin/ in the archive, and
+    # pana's score out of 160 with what lost points; `--min=N`
     # fails a score under N. pana is `dart pub global activate pana`'s,
     # skipped and said so without it.
     desc: whether the seven packages of release 1 are ready for pub.dev, pana scoring them

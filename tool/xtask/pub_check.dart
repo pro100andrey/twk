@@ -6,6 +6,12 @@
 // not be `none` (which the dry-run doesn't check; the rest is still run
 // and shown); `dart pub publish --dry-run` must find no error (its
 // warnings are shown, not failed: one of them is any uncommitted file);
+// every file git tracks in its lib/ and bin/ must be in the archive the
+// dry run lists (a `.pubignore` pattern that reaches into lib/ leaves out
+// code the package imports, which the dry run, analyzing nothing, passes);
+// a package with `screenshots:` needs libwebp's cwebp, webpinfo and
+// gif2webp on the PATH, without which pana gives none of the 10 points of
+// its example and screenshots and says only that a file was not found;
 // and pana's score out of 160 is shown with what lost points, failed when
 // it is under N (no floor without --min). pana is `dart pub global run
 // pana` (skipped, said so, where it isn't activated); it scores a copy of
@@ -19,6 +25,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:xtask/xtask.dart';
+import 'package:xtask_kit/xtask_kit.dart' show publishedFiles;
 
 import 'cpus.dart';
 import 'verbs.dart';
@@ -72,10 +79,42 @@ Future<int> pubCheck(VerbContext c, Cpus cpus) async {
     if (validation.hasErrors) {
       failed = true;
     }
+    final tracked = await c.capture([
+      'git',
+      'ls-files',
+      '-z',
+      'lib',
+      'bin',
+    ], workingDirectory: dir);
+    final left = unshippedCode(
+      publishedFiles(dry.stdout) ?? const [],
+      tracked.stdout.split('\u0000').where((path) => path.isNotEmpty),
+    );
+    if (left.isNotEmpty) {
+      c.log('$dir: the archive leaves out code git tracks:');
+      for (final path in left) {
+        c.log('  $path');
+      }
+      failed = true;
+    }
     if (!pana) {
       c.log(
         '$dir: pana skipped, not activated (dart pub global activate pana)',
       );
+      continue;
+    }
+    if (screenshotTools(
+          c.file('$dir/pubspec.yaml').readAsStringSync(),
+          (tool) => c.which(tool) != null,
+        )
+        case final missing when missing.isNotEmpty) {
+      c.log(
+        '$dir: its screenshots need ${missing.join(', ')} on the PATH, '
+        "which pana converts them with (libwebp's tools: libwebp-utils on "
+        'Arch, webp on Debian and Homebrew); without them it gives none of '
+        'the 10 points of the example and screenshots',
+      );
+      failed = true;
       continue;
     }
     final unpublished = [
@@ -180,6 +219,28 @@ List<String> repositoryDependencies(String pubspec, Set<String> packages) {
   }
   return names;
 }
+
+/// The files of [tracked], paths in the package that git tracks in its
+/// lib/ and bin/, that are not among [shipped], the files the dry run
+/// lists: code an upload would leave out.
+List<String> unshippedCode(Iterable<String> shipped, Iterable<String> tracked) {
+  final archived = shipped.toSet();
+  return [
+    for (final path in tracked)
+      if (!archived.contains(path)) path,
+  ];
+}
+
+/// The tools of libwebp that pana converts a package's screenshots with,
+/// those of them [onPath] does not find, when the pubspec's text lists
+/// `screenshots:`; none when it lists none.
+List<String> screenshotTools(String pubspec, bool Function(String) onPath) =>
+    RegExp('^screenshots:', multiLine: true).hasMatch(pubspec)
+    ? [
+        for (final tool in const ['cwebp', 'webpinfo', 'gif2webp'])
+          if (!onPath(tool)) tool,
+      ]
+    : const [];
 
 /// Whether a pubspec's text says `publish_to: none`.
 bool isPrivate(String pubspec) => RegExp(

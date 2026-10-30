@@ -138,4 +138,4 @@ MIT. The colors of `ThemeData.nord` are those of
 [Nord](https://www.nordtheme.com), Copyright (c) 2016-present Sven Greb,
 and those of `ThemeData.catppuccinMocha` and `ThemeData.catppuccinLatte`
 those of [Catppuccin](https://catppuccin.com), Copyright (c) 2021
-Catppuccin, each under the MIT License.
+Catppuccin, each under the MIT License: [NOTICE](NOTICE).

@@ -94,8 +94,11 @@ dart run tool/xtask.dart bench              # when the frame path changed (below
   to `doc/internals/quality/` (not committed); `-- <package>...` makes
   those packages' only. `pub-check` says whether the seven packages of a
   release are ready for pub.dev: `publish_to`, the errors of `dart pub
-  publish --dry-run`, and pana's score with what lost points (pana
-  activated with `dart pub global activate pana`; skipped without it; a
+  publish --dry-run`, every file git tracks in `lib/` and `bin/` in the
+  archive it lists, and pana's score with what lost points (pana
+  activated with `dart pub global activate pana`; skipped without it;
+  a package with `screenshots:`, twk, failed without libwebp's `cwebp`,
+  `webpinfo` and `gif2webp` on the `PATH`, which pana converts them with; a
   package that depends on one of this repository's not on pub.dev yet is
   not scored). `publish-core`, `publish-twk`, `publish-test`,
   `publish-lints`, `publish-term`, `publish-rich` and `publish-dev`

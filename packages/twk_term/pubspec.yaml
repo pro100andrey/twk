@@ -1,8 +1,8 @@
 name: twk_term
 description: >-
-  An embedded terminal for twk: a permissive VT emulator whose screen the
-  core's Canvas draws, a pseudo-terminal through dart:ffi, and the
-  TerminalView widget that runs a program in one.
+  An embedded terminal for twk: a permissive VT emulator drawn by the
+  core's Canvas, a pseudo-terminal through dart:ffi, and TerminalView,
+  a widget that runs a program in one.
 version: 0.1.0
 repository: https://github.com/pro100andrey/twk/tree/main/packages/twk_term
 issue_tracker: https://github.com/pro100andrey/twk/issues

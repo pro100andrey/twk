@@ -1,6 +1,6 @@
 # twk_lints — lints and assists for twk apps
 
-An analyzer plugin for apps built on [twk](../twk/README.md): warnings
+An analyzer plugin for apps built on [twk](https://pub.dev/packages/twk): warnings
 and lints that `dart analyze` and the editor report, and assists that
 the editor offers at the cursor. It is a plugin of the analysis server's
 own plugin system (Dart 3.10 and later), on `analysis_server_plugin`
@@ -10,6 +10,10 @@ and package (`package:twk`, `package:twk_core`); its tests alone depend
 on twk, to hold what it ports of twk to twk.
 
 ## Enabling it
+
+```sh
+dart pub add dev:twk_lints
+```
 
 The recommended set, `lib/recommended.yaml`, is the plugin with every
 rule on. An app that takes twk_lints as a dev dependency includes it

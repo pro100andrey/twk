@@ -31,6 +31,11 @@ The first release.
 - Animation: tickers, `AnimationController`, implicit animations.
 - Semantics and a screen-reader mode; debug aids: the frame overlay, the
   repaint rainbow, the log console, tree dumps and VM service extensions.
+- Program output with ANSI sequences as styled text: `parseAnsi`,
+  `AnsiStream` as it arrives, and `stripAnsi`.
 - `package:twk/hooks.dart`, hooks in the flutter_hooks style, and
   `package:twk/provider.dart`, Provider's API.
+- `package:twk/cli.dart`, the console of a command-line tool that is no
+  app: messages by level, any widget printed, prompts, progress and a
+  traceback, as a terminal, a pipe or CI takes them.
 - A dart2wasm build for the web.
