@@ -55,6 +55,10 @@ final class _Screen {
 /// the oldest go beyond.
 const _keyFlagsDepth = 16;
 
+/// The longest URI an OSC 8 hyperlink takes, VTE's; a longer one ends the
+/// link, as an empty one does.
+const _maxLink = 2083;
+
 // Character sets (G0..G3 designations).
 const _ascii = 0;
 const _decGraphics = 1;

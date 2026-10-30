@@ -731,6 +731,29 @@ void main() {
       expect(r.link(0, 0), isNull, reason: 'an erase takes the link');
     });
 
+    test('a hyperlink past 2083 characters is none', () {
+      final long = 'http://x/${'a' * 2083}';
+      final r = fed('\\e]8;;$long\\e\\ab\\e]8;;\\e\\');
+      expect(r.link(0, 0), isNull);
+      r.feed('\\e]8;;${long.substring(0, 2083)}\\e\\c');
+      expect(r.link(2, 0), long.substring(0, 2083));
+    });
+
+    test('a palette query answers 256 colors a sequence at most', () {
+      final r = fed('\\e]4;${List.filled(300, '1;?').join(';')}^G');
+      expect(r'\e]4;1;'.allMatches(r.takeSent()), hasLength(256));
+    });
+
+    test('a working directory not a file: URI is none', () {
+      final r = fed(r'\e]7;http://host/tmp^G\e]7;/tmp^G');
+      expect(r.t.workingDirectory, isNull);
+      expect(r.events, isEmpty);
+    });
+
+    test('DEL within a string is ignored', () {
+      expect(fed('\\e]2;a\x7fb^G').t.title, 'ab');
+    });
+
     test("the clipboard is the host's: written, read, answered", () {
       final r = fed(r'\e]52;c;aGVsbG8=^G\e]52;;?^G\e]52;p;!!^G');
       expect(r.events, hasLength(2));

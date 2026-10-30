@@ -56,7 +56,9 @@ final term = TerminalEmulator(
   onOutput: pty.write, // answers, keys, mouse reports, pasted text
   onEvent: (event) => switch (event) {
     TitleChanged(:final title) => window.title = title,
-    ClipboardWrite(:final text) => clipboard.set(text),
+    // any program in the terminal may send one, over ssh too: ask, or
+    // take it only from a program the user trusts
+    ClipboardWrite(:final text) when allowClipboard() => clipboard.set(text),
     BellRang() => flash(),
     _ => null,
   },
@@ -120,11 +122,13 @@ xterm's dialect, permissively: a sequence it doesn't know is ignored
   DECSTBM, DECSCUSR, DECSCL and DECSCA, XTGETTCAP (no capability is
   told), XTWINOPS 14, 16 (once the host has set `cellPixelWidth` and
   `cellPixelHeight`), 18 and 19, OSC 4, 10, 11 and 12 queries, ended as
-  the query was (BEL or ST).
+  the query was (BEL or ST); of OSC 4, the first 256 queries of a
+  sequence, so that its replies are not many times its length.
 - **OSC**: titles and icon names (0, 1, 2, with the title stack of
   XTWINOPS 22 and 23), the palette (4, 104), the default colors (10, 11,
-  12 and their resets), the working directory (7), hyperlinks (8, kept in
-  the cells' styles; an erase takes them), notifications (9, 777) and
+  12 and their resets), the working directory (7, a `file:` URI only),
+  hyperlinks (8, kept in the cells' styles, a URI of at most 2083
+  characters, VTE's limit; an erase takes them), notifications (9, 777) and
   progress (9;4), shell prompts (133), the pointer shape (22), the
   clipboard (52) — handed to the host as events, none executed.
 

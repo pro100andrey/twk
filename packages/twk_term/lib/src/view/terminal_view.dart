@@ -142,7 +142,10 @@ final class TerminalView extends StatefulWidget {
   final void Function()? onBell;
 
   /// The program put `text` on the clipboard named by `selection` (OSC
-  /// 52; see [ClipboardWrite]).
+  /// 52; see [ClipboardWrite]). Any program in the terminal may, one on
+  /// another machine over ssh too, and as often as it likes: a host that
+  /// sets the clipboard by it asks first, or takes it from programs the
+  /// user trusts.
   final void Function(String selection, String text)? onClipboardWrite;
 
   /// The program asked for the clipboard named by `selection`; what this

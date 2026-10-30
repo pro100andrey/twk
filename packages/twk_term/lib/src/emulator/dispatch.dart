@@ -602,15 +602,18 @@ final class _Dispatch implements VtHandler {
       case 4:
         _palette(arg, end);
       case 7:
+        // a file: URI, as the event says and a host may cd to: any other
+        // is no directory
         final uri = Uri.tryParse(arg);
-        if (uri != null) {
+        if (uri != null && uri.isScheme('file')) {
           t._cwd = uri;
           t._event(WorkingDirectoryChanged(uri));
         }
       case 8:
         final semi = arg.indexOf(';');
         final uri = semi < 0 ? '' : arg.substring(semi + 1);
-        t._link = uri.isEmpty ? null : uri;
+        // a URI longer than VTE takes ends the link, as an empty one does
+        t._link = uri.isEmpty || uri.length > _maxLink ? null : uri;
         t._styleDirty = true;
       case 9:
         if (arg.startsWith('4;') || arg == '4') {
@@ -670,12 +673,18 @@ final class _Dispatch implements VtHandler {
   void _palette(String arg, String end) {
     final parts = arg.split(';');
     var changed = false;
+    // a query of each of the 256 colors at most is answered, so that one
+    // sequence cannot make replies many times its own length
+    var answered = 0;
     for (var k = 0; k + 1 < parts.length; k += 2) {
       final n = int.tryParse(parts[k]);
       if (n == null || n < 0 || n > 255) {
         continue;
       }
       if (parts[k + 1] == '?') {
+        if (answered++ >= 256) {
+          continue;
+        }
         t._reply('\x1b]4;$n;${_colorSpec(t.palette[n])}$end');
       } else {
         final rgb = _parseColor(parts[k + 1]);

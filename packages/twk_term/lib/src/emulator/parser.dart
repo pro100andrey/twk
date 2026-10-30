@@ -467,7 +467,8 @@ final class VtParser {
           handler.oscDispatch(_string, _stringLength, bel: true);
         } else if (b == 0x1B) {
           _stringEsc = true;
-        } else if (b >= 0x20) {
+        } else if (b >= 0x20 && b != 0x7F) {
+          // DEL is ignored within a string, as in DEC's parser
           _stringPut(b);
         }
       case _State.dcsEntry || _State.dcsParam:
@@ -523,7 +524,7 @@ final class VtParser {
           }
         } else if (b == 0x1B) {
           _stringEsc = true;
-        } else {
+        } else if (b != 0x7F) {
           _stringPut(b);
         }
       case _State.dcsIgnore || _State.ignoreString:
