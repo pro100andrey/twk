@@ -9,10 +9,19 @@ import 'nodes.dart';
 /// it, in order.
 typedef Converted = ({MdBlock? block, List<MdDefinition> definitions});
 
+/// How many block quotes and list items a block can be in, itself counted:
+/// a `>` or list marker that would start one deeper is text.
+const maxNesting = 32;
+
 /// Parses Markdown into blocks one line at a time, after CommonMark's
 /// algorithm, with GFM's tables and task list items. HTML blocks are
 /// paragraphs; the link reference definitions a paragraph starts with are
 /// taken out of it.
+///
+/// A block quote or list item starts only within fewer than [maxNesting]
+/// of them; deeper, its marker is text. A document of nothing but `>`
+/// would otherwise nest as deep as it is long, past what the stack holds
+/// for the passes that walk the blocks.
 ///
 /// A closed block stays as it is whatever lines are added later.
 final class BlockParser {
@@ -342,8 +351,9 @@ final class BlockParser {
   /// container that more blocks may start in, [_Match.done] for a leaf.
   _Match _start(_Block container) {
     final c = _peek(_nextNonspace);
+    final nests = container.nesting < maxNesting;
     if (!_indented) {
-      if (c == 0x3E) {
+      if (c == 0x3E && nests) {
         _advanceNextNonspace();
         _advanceOffset(1);
         if (_isSpaceOrTab(_peek(_offset))) {
@@ -371,7 +381,7 @@ final class BlockParser {
         return _Match.done;
       }
     }
-    if (!_indented || container.kind == _Kind.list) {
+    if (nests && (!_indented || container.kind == _Kind.list)) {
       final list = _listMarker(container);
       if (list != null) {
         _closeUnmatched();
@@ -826,9 +836,16 @@ enum _Kind {
 
 /// A block while the parser builds it.
 final class _Block {
-  _Block(this.kind, this.start, this.parent) : end = start;
+  _Block(this.kind, this.start, this.parent)
+    : end = start,
+      nesting =
+          (parent?.nesting ?? 0) +
+          (kind == _Kind.blockQuote || kind == _Kind.item ? 1 : 0);
 
   final _Kind kind;
+
+  /// How many block quotes and list items the block is in, itself counted.
+  final int nesting;
 
   /// The line the block starts on.
   final int start;

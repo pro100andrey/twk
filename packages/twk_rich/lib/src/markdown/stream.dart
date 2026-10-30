@@ -24,7 +24,10 @@ import 'references.dart';
 /// ```
 ///
 /// CommonMark without HTML, which is text, and with GFM's tables, task list
-/// items, strikethrough and links of URLs and addresses in the text.
+/// items, strikethrough and links of URLs and addresses in the text. Block
+/// quotes and list items nest at most 32 deep: a `>` or list marker that
+/// would go deeper is text, so that no text nests past what the stack
+/// holds.
 ///
 /// Link reference definitions are left out of the blocks, and the reference
 /// links and images that may use them are [MdReference]s: the

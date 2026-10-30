@@ -204,6 +204,15 @@ void main() {
       await t.pumpWidget(view('> a\n>\n> > bbb ccc ddd'), size: (11, 5));
       expect(rows(t, 4), ['│ a', '│', '│ │ bbb ccc', '│ │ ddd']);
     });
+
+    testTwk('a document of nothing but markers shows, 32 bars deep', (
+      t,
+    ) async {
+      await t.pumpWidget(view('${'>' * 33} x'), size: (80, 2));
+      expect(rows(t, 1), ['${'│ ' * 32}> x']);
+      await t.pumpWidget(view('${'>' * 100000} x'), size: (80, 2));
+      expect(rows(t, 1), ['${'│ ' * 32}${'>' * 16}']);
+    });
   });
 
   group('lists', () {
