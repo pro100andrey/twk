@@ -130,7 +130,9 @@ xterm's dialect, permissively: a sequence it doesn't know is ignored
   hyperlinks (8, kept in the cells' styles, a URI of at most 2083
   characters, VTE's limit; an erase takes them), notifications (9, 777) and
   progress (9;4), shell prompts (133), the pointer shape (22), the
-  clipboard (52) — handed to the host as events, none executed.
+  clipboard (52) — handed to the host as events, none executed. A title,
+  an icon name, a notification's title and body and a pointer shape keep
+  their first 4096 code units.
 
 Not spoken: left and right margins (DECLRMM, reported unknown, so
 programs don't use them), double-width and double-height lines (drawn single), 132 columns, sixel and other images

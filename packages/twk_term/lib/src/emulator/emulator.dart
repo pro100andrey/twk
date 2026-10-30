@@ -59,6 +59,23 @@ const _keyFlagsDepth = 16;
 /// link, as an empty one does.
 const _maxLink = 2083;
 
+/// The most code units of a title, an icon name, a notification's title or
+/// body or a pointer shape a program sets: the rest is cut off, so that the
+/// sequence's limit, a megabyte, is not what each of them may keep.
+const _maxText = 4096;
+
+/// [text] cut to [_maxText] code units, not inside a surrogate pair.
+String _bounded(String text) {
+  if (text.length <= _maxText) {
+    return text;
+  }
+  final end =
+      _maxText - (_isHighSurrogate(text.codeUnitAt(_maxText - 1)) ? 1 : 0);
+  return text.substring(0, end);
+}
+
+bool _isHighSurrogate(int c) => c >= 0xD800 && c <= 0xDBFF;
+
 // Character sets (G0..G3 designations).
 const _ascii = 0;
 const _decGraphics = 1;

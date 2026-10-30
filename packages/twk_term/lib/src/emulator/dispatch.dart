@@ -591,13 +591,14 @@ final class _Dispatch implements VtHandler {
     final end = bel ? '\x07' : '\x1b\\';
     switch (code) {
       case 0 || 1 || 2:
-        if (code != 1 && arg != t._title) {
-          t._title = arg;
-          t._event(TitleChanged(arg));
+        final name = _bounded(arg);
+        if (code != 1 && name != t._title) {
+          t._title = name;
+          t._event(TitleChanged(name));
         }
-        if (code != 2 && arg != t._iconName) {
-          t._iconName = arg;
-          t._event(IconNameChanged(arg));
+        if (code != 2 && name != t._iconName) {
+          t._iconName = name;
+          t._event(IconNameChanged(name));
         }
       case 4:
         _palette(arg, end);
@@ -622,12 +623,12 @@ final class _Dispatch implements VtHandler {
           final value = parts.length > 2 ? int.tryParse(parts[2]) ?? 0 : 0;
           t._event(ProgressChanged(state, value.clamp(0, 100)));
         } else {
-          t._event(NotificationRequested('', arg));
+          t._event(NotificationRequested('', _bounded(arg)));
         }
       case 10 || 11 || 12:
         _dynamicColors(code, arg, end);
       case 22:
-        t._event(PointerShapeChanged(arg));
+        t._event(PointerShapeChanged(_bounded(arg)));
       case 52:
         _clipboard(arg);
       case 104:
@@ -658,8 +659,8 @@ final class _Dispatch implements VtHandler {
         if (parts.first == 'notify') {
           t._event(
             NotificationRequested(
-              parts.length > 1 ? parts[1] : '',
-              parts.length > 2 ? parts.sublist(2).join(';') : '',
+              _bounded(parts.length > 1 ? parts[1] : ''),
+              _bounded(parts.length > 2 ? parts.sublist(2).join(';') : ''),
             ),
           );
         }
