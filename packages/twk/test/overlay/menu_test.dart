@@ -1127,6 +1127,38 @@ void main() {
     expect(t, matchesScreen('\n  >a'));
   });
 
+  testTwk('a context menu whose widget is gone closes at the next key, '
+      'which does nothing in it', (t) async {
+    final log = <String>[];
+    final key = GlobalKey();
+    Widget app({required bool anchor}) => Theme.terminal(
+      child: Overlay(
+        child: anchor
+            ? SizedBox(
+                key: key,
+                width: 20,
+                height: 6,
+                child: const Field('a', autofocus: true),
+              )
+            : const Field('b', autofocus: true),
+      ),
+    );
+    await t.pumpWidget(app(anchor: true), size: (30, 10));
+    showContextMenu(
+      key.currentContext!,
+      edits(log),
+      at: (4, 1),
+      look: PanelLook.bordered,
+    );
+    await t.pump();
+    expect(t, containsLine(contains('Cut')));
+    await t.pumpWidget(app(anchor: false));
+    await press(t, 'down');
+    await press(t, 'enter');
+    expect(log, isEmpty, reason: 'the first key closed it');
+    expect(t, isNot(containsLine(contains('Cut'))));
+  });
+
   group('raised menus', () {
     const theme = ThemeData.dark;
     final surface = theme.surface.bg!;

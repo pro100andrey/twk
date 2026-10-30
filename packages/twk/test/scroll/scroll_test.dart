@@ -425,6 +425,29 @@ void main() {
     });
   });
 
+  testTwk('reverse turned the other way keeps the window on the items it '
+      'showed; one that kept the end at the bottom keeps the end there', (
+    t,
+  ) async {
+    final controller = ScrollController(stickToEnd: true);
+    Widget app({required bool reverse}) => ListView(
+      controller: controller,
+      reverse: reverse,
+      children: [for (final item in items(0, 20)) Text(item)],
+    );
+    await t.pumpWidget(app(reverse: false), size: (20, 4));
+    controller.jumpTo(5);
+    await t.pump();
+    expect(t.lines, items(5, 9));
+    await t.pumpWidget(app(reverse: true));
+    expect(t.lines, items(5, 9).reversed);
+    controller.jumpTo(controller.position.maxOffset);
+    await t.pumpWidget(app(reverse: false));
+    expect(t.lines, items(16, 20), reason: 'the end, at the bottom');
+    await t.pumpWidget(app(reverse: true));
+    expect(t.lines, items(0, 4).reversed, reason: 'the end, at the bottom');
+  });
+
   testTwk('Scrollable.ensureVisible scrolls each scrollable above, the '
       'nearest first; Scrollable.of finds the nearest position', (t) async {
     final outer = ScrollController();

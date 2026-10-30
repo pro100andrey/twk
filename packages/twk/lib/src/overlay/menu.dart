@@ -1533,6 +1533,23 @@ final class _MenuSession {
     }
   }
 
+  /// A key while the widget a context menu was opened from is gone: the
+  /// menu closes, and the key is done with, choosing nothing in a menu of
+  /// a widget no more. Nothing tells the menu of that widget's end before
+  /// a key or the mouse comes.
+  KeyEventResult _orphaned(FocusNode node, KeyEvent event) =>
+      _closedOrphan() ? KeyEventResult.handled : KeyEventResult.ignored;
+
+  /// Closes a context menu whose widget is gone ([_orphaned]); whether it
+  /// did.
+  bool _closedOrphan() {
+    if (host != null || target.mounted) {
+      return false;
+    }
+    _close();
+    return true;
+  }
+
   /// A letter: a mnemonic of the menu the keys move in, or with Alt one of
   /// the bar's menus.
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
@@ -1588,6 +1605,9 @@ final class _MenuSession {
   int? _titleAt(int x, int y) => bar == null ? null : _placed?.titleAt(x, y);
 
   void _pressed(PointerEvent event) {
+    if (_closedOrphan()) {
+      return;
+    }
     final x = event.x;
     final y = event.y;
     if (_entryAt(x, y) != null) {
@@ -1635,6 +1655,9 @@ final class _MenuSession {
 
   /// A button released at [x], [y] of the overlay: the entry there chosen.
   void _release(int x, int y) {
+    if (_closedOrphan()) {
+      return;
+    }
     if (_entryAt(x, y) case (final level, final row) when row >= 0) {
       _choose(level, row, byKey: false);
     }
@@ -1702,6 +1725,7 @@ final class _MenuSession {
           child: Focus(
             autofocus: true,
             debugLabel: 'menu',
+            onKeyEvent: _orphaned,
             child: Listener(
               behavior: HitTestBehavior.opaque,
               onDown: _pressed,

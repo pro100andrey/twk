@@ -144,7 +144,8 @@ final class AnimationController extends ChangeNotifier
 
   /// Where it is, from [lowerBound] to [upperBound]. Set, it stops the run
   /// and is there at once, clamped to the bounds: [AnimationStatus.dismissed]
-  /// at the lower one, [AnimationStatus.completed] at the upper one.
+  /// at the lower one, [AnimationStatus.completed] at the upper one. A NaN,
+  /// set or a target, is an [ArgumentError].
   @override
   double get value => _value;
 
@@ -294,9 +295,16 @@ final class AnimationController extends ChangeNotifier
     return _forward ? AnimationStatus.forward : AnimationStatus.reverse;
   }
 
-  double _clamp(double value) => value < lowerBound
-      ? lowerBound
-      : (value > upperBound ? upperBound : value);
+  /// [value] within the bounds; a NaN, which is in no order with them and
+  /// would reach whatever rounds the value, is an [ArgumentError].
+  double _clamp(double value) {
+    if (value.isNaN) {
+      throw ArgumentError.value(value, 'value', 'not a number');
+    }
+    return value < lowerBound
+        ? lowerBound
+        : (value > upperBound ? upperBound : value);
+  }
 
   void _set(double value) {
     if (value != _value) {

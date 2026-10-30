@@ -46,6 +46,14 @@ void main() {
     steps.stop();
   });
 
+  test('an interval not longer than zero is an ArgumentError, set or '
+      'given', () {
+    expect(() => Steps(Duration.zero, () {}), throwsArgumentError);
+    final steps = Steps(ms, () {});
+    expect(() => steps.interval = -ms, throwsArgumentError);
+    expect(steps.interval, ms);
+  });
+
   test('without a binding it stays at the first step', () {
     final steps = Steps(ms * 10, () => fail('stepped'))..start();
     expect(steps.current, 0);
