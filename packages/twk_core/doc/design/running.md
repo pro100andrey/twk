@@ -156,8 +156,6 @@ frames into the test emulator and is not timed unless the screen matches
 what was painted; bytes per frame come from that run and are exact. The
 report gives the median time per frame of each build, the ratio, the bytes
 per frame of both, the load average and how busy the pinned core's sibling
-was. `--baseline` builds the scenarios against the core of 743dca4 or a
-later commit only: an older one has no `RenderParagraph` that takes
-`(String, Pen)` spans. A scenario that needs a core class the baseline
-lacks (`list-scroll`, `RenderList`) is left out of its build and
-reported without a before.
+was. `--baseline` builds the scenarios, as they are now, against the core
+of a commit of this repository's history: one whose core lacks what a
+scenario uses fails to build, and says so.

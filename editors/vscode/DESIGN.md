@@ -70,23 +70,13 @@ With Dart-Code installed for Debug and F5 (Run needs only the Dart SDK).
 `--extensionDevelopmentPath`): after a pull, in `editors/vscode`
 
 ```sh
-npm install          # a dependency added since your copy: @xterm/addon-image came with the capabilities
+npm install          # what package-lock.json names
 npm run compile
 ```
 
 then **Developer: Reload Window** in the window that runs it (the apps
-it runs end with the old one). A copy compiled before the layers (2b)
-has stale files in `out/`: `rm -rf out && npm run compile` once. This
-version adds no npm dependency to the one before it; its new files
-(`out/media/webview/log.js` among them) come with `npm run compile`. The
-inspector and the debug aids need the twk of this repository in the
-app (since vx-inspector); an older twk's tree is shown, not followed.
-Since the pick mode (vx-pick-opens-source) the same `npm run compile`
-and **Developer: Reload Window** take it (no dependency is new); its
-picks that go on by themselves and the inline mode's need the twk of
-that commit or later in the app (`selectMany`, `ext.twk.select`'s
-`cursorY`): an older twk is armed again after each pick, and an inline
-pick on it is a row off.
+it runs end with it). The inspector and the debug aids take the twk of
+this repository in the app.
 
 ### Using it
 
@@ -422,28 +412,16 @@ code --user-data-dir /tmp/twk-vscode/user --extensions-dir /tmp/twk-vscode/ext \
 then open `example/counter.dart` and run the command "Run Dart File in twk
 Terminal" (or "Debug ...", or F5 on a `twk` configuration, with Dart-Code
 in that extensions directory), and open Run and Debug for the twk
-Inspector. An extension compiled before TWK_SHELL
-(vx-session-terminal) wrote the project's address file: `npm run compile`
-and "Developer: Reload Window" take it out (the old one removes its file
-as it ends); a Dart-Code launch of its own (no `twk` type, no
-`twkTerminal`) then finds no twk terminal, as no file names one, and runs
-in the Debug Console as plain output; `twk shell` still writes the file
-and serves such an app.
+Inspector. A Dart-Code launch of its own (no `twk` type, no
+`twkTerminal`) finds no twk terminal and runs in the Debug Console as
+plain output; `twk shell` writes the project's address file and serves
+such an app.
 Edit and save: the app reloads; twk: Hot Restart starts it again. After a
 change to the extension: `npm run compile`, then "Developer: Reload
-Window" in the window that runs it (an app it runs ends with it).
-Since the inspector (vx-inspector) the extension contributes a view and
-the webview's script takes `out/media/webview/pick.js`: `npm run compile`,
-then "Developer: Reload Window" (a copy of before: no `npm install`
-needed, no dependency is new); the inspector needs the twk of this
-commit or later in the app (`treeEvents`, `build`), an older twk's tree
-being shown but not followed.
-Since the layers (2b) the extension's entry is `out/vscode/extension.js`;
-since the capability switches (vx-capabilities) the webview's script is
+Window" in the window that runs it (an app it runs ends with it). The
+extension's entry is `out/vscode/extension.js`; the webview's script is
 `out/media/webview/main.js`, beside the modules of `core/` it takes in
-`out/media/core/`, and the page loads `@xterm/addon-image` (a new
-dependency): a copy of before takes `npm install && rm -rf out && npm
-run compile` once, then "Developer: Reload Window".
+`out/media/core/`.
 
 Tests:
 
@@ -963,8 +941,8 @@ made in.
   constructor found in the build methods above it): _CountState.build
   opened`). The app picks itself (`ext.twk.flags` `select` and
   `selectMany`: the node under the mouse outlined between the presses,
-  each press posted as `twk.select`, the app getting none of the mouse);
-  a twk of before `selectMany` is armed again after each pick. Where the
+  each press posted as `twk.select`, the app getting none of the mouse).
+  Where the
   app can't (the inline mode, which gets no mouse) the terminal's clicks
   do: the webview's `pick` message, each click's cell (`webview/pick.ts`)
   told back as `picked` with the row the cursor is on in the screen shown
@@ -1047,8 +1025,8 @@ Tests (unit, under node):
   nothing opened; the pick mode: on (`selectMany`), two picks each
   revealed, outlined and opened with the focus kept, on again doing
   nothing, off (the app's pick, its outline and the selection gone, the
-  button shown on and off); Escape told by the app; a twk of before
-  `selectMany` armed again after a pick; the terminal's picks (inline),
+  button shown on and off); Escape told by the app; the terminal's picks
+  (inline),
   `cursorY` passed, picking on until Escape, off by the button; ended
   with its app, armed again for a restart's once bound, forgotten with
   its terminal closed; a widget made in no build found: the build above

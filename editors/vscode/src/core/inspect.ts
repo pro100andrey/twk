@@ -46,7 +46,7 @@ export interface Flags {
   readonly relayout: boolean;
   readonly keys: boolean;
   readonly select: boolean;
-  /** Whether a pick goes on after a cell picked (a twk of before it: never). */
+  /** Whether a pick goes on after a cell picked. */
   readonly selectMany: boolean;
   readonly treeEvents: boolean;
 }
@@ -143,10 +143,16 @@ export function parseSelect(answer: unknown): { readonly id: number | null; read
   return { id: isId(a.id) ? a.id : null, path };
 }
 
-/** `ext.twk.flags`' answer; a flag it does not give is off. */
+/** `ext.twk.flags`' answer, which gives each flag. */
 export function parseFlags(answer: unknown): Flags {
   const a = versioned(answer);
-  const on = (name: FlagName) => a[name] === true;
+  const on = (name: FlagName) => {
+    const value = a[name];
+    if (typeof value !== 'boolean') {
+      throw new Error(`the app answered flags this does not read: no ${name}`);
+    }
+    return value;
+  };
   return {
     overlay: on('overlay'),
     console: on('console'),

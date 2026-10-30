@@ -55,9 +55,8 @@ describe("twk's inspector answers", () => {
     assert.deepEqual(parseSelect({ version: 1, id: null, path: [] }), { id: null, path: [] });
     const flags = parseFlags({ version: 1, overlay: true, console: false, rainbow: true, relayout: false, keys: true, select: true, selectMany: true, treeEvents: true, framesInRow: false });
     assert.deepEqual(flags, { overlay: true, console: false, rainbow: true, relayout: false, keys: true, select: true, selectMany: true, treeEvents: true });
-    // an app of before the tree's event, or of before selectMany: off
-    assert.equal(parseFlags({ version: 1, overlay: false }).treeEvents, false);
-    assert.equal(parseFlags({ version: 1, select: true }).selectMany, false);
+    // an answer without a flag is no answer of this twk
+    assert.throws(() => parseFlags({ version: 1, overlay: false }), /no console/);
     assert.deepEqual(parsePicked({ version: 1, x: 3, y: 2 }), { x: 3, y: 2 });
     assert.equal(parsePicked({ version: 1, x: null, y: null }), null);
     assert.equal(parsePicked({ version: 2, x: 3, y: 2 }), undefined);
@@ -76,7 +75,7 @@ describe("twk's inspector answers", () => {
   });
 
   it('the toggles: picked as the app has them, and back as each on or off', () => {
-    const flags = parseFlags({ version: 1, overlay: true, rainbow: false, relayout: true, console: false });
+    const flags = parseFlags({ version: 1, overlay: true, rainbow: false, relayout: true, console: false, keys: false, select: false, selectMany: false, treeEvents: false });
     const items = toggleItems(flags);
     assert.deepEqual(
       items.map((i) => [i.label, i.picked]),

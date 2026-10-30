@@ -14,18 +14,5 @@ import 'package:xtask/xtask.dart';
 import 'xtask/verbs.dart';
 
 Future<void> main(List<String> args) async {
-  // TWK_PACKAGES narrowed the per-package steps until xtask 0.4.0 brought
-  // --only. Refused rather than ignored for a while, so a run that still
-  // sets it doesn't check every package when it meant two.
-  final old = Platform.environment['TWK_PACKAGES'] ?? '';
-  if (old.trim().isNotEmpty) {
-    stderr.writeln(
-      'TWK_PACKAGES is gone: narrow a run with '
-      "--only 'packages=packages/twk/*,packages/twk_rich/*' (the members are "
-      "the packages' pubspec.yaml files); unset it",
-    );
-    exitCode = ExitCode.invalidFile;
-    return;
-  }
   exitCode = await runXtask(args, verbs: verbs());
 }

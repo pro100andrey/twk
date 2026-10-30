@@ -444,16 +444,6 @@ void _report(_Options opts, List<_Build> builds, _Noise noise) {
     );
     for (final n in names) {
       final a = _median(after.us[n]!);
-      if (!before.us.containsKey(n)) {
-        // a scenario the baseline's core can't run
-        stdout.writeln(
-          '${n.padRight(13)}${'-'.padLeft(10)}${''.padLeft(6)}'
-          '${_num(a).padLeft(10)}${_spread(after.us[n]!).padLeft(6)}'
-          '${'-'.padLeft(8)}${'-'.padLeft(10)}'
-          '${_bytes(after.bytes[n]!).padLeft(10)}',
-        );
-        continue;
-      }
       final b = _median(before.us[n]!);
       final ratio = a / b;
       if (ratio > _slower) {
@@ -665,10 +655,9 @@ final class _Options {
           throw FormatException('unknown option $a');
       }
     }
-    // a baseline's build lacks the scenarios its core can't run
     final known = {for (final s in frameScenarios) s.name};
     final unknown = only?.difference(known) ?? const <String>{};
-    if (unknown.isNotEmpty && !measure) {
+    if (unknown.isNotEmpty) {
       throw FormatException(
         'no scenario ${unknown.join(', ')} (there are ${known.join(', ')})',
       );

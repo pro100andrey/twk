@@ -9,9 +9,8 @@ pure Dart) as a dependency and twk as a path one, and
 tests, as a path dev dependency.
 
 `lib/twk_riverpod.dart` exports package:riverpod's own library with the
-widgets, so an app imports nothing else; `misc.dart` and `legacy.dart`
-export riverpod's libraries of those names (`ProviderListenable`,
-`Override`; `StateProvider`, `StateNotifierProvider`).
+widgets, so an app imports nothing else; `misc.dart` exports riverpod's
+library of that name (`ProviderListenable`, `Override`).
 
 ## A counter
 

@@ -71,9 +71,8 @@ void main() {
       Platform.resolvedExecutable,
       [entry, ...args],
       workingDirectory: tree.path,
-      // empty unless given: a TWK_PACKAGES of the run's own is refused;
       // its output as on a terminal of a developer's, not GitHub's groups
-      environment: {'TWK_PACKAGES': '', 'GITHUB_ACTIONS': '', ...env},
+      environment: {'GITHUB_ACTIONS': '', ...env},
     );
 
     String out(ProcessResult res) => '${res.stdout}${res.stderr}';
@@ -154,19 +153,6 @@ void main() {
       expect(res.exitCode, 2, reason: out(res));
       expect(res.stdout, contains('`packages/nope/*`'));
       expect(res.stdout, isNot(contains('packages/good: dart format')));
-    });
-
-    test('TWK_PACKAGES is refused, naming --only', () async {
-      final res = await xtask(
-        [
-          'pkg-format',
-        ],
-        env: const {'TWK_PACKAGES': 'good'},
-      );
-      expect(res.exitCode, 2, reason: out(res));
-      expect(res.stderr, contains('TWK_PACKAGES is gone'));
-      expect(res.stderr, contains('--only'));
-      expect(res.stdout, isNot(contains('dart format')));
     });
 
     test('a template whose pub get fails is not analyzed', () async {

@@ -3,8 +3,8 @@
 /// `ConsumerStatefulWidget`, `Consumer`) watch them through a `WidgetRef`,
 /// rebuilt when what they watch changes.
 ///
-/// It exports package:riverpod's own library too; its `misc.dart` and
-/// `legacy.dart` are this package's.
+/// It exports package:riverpod's own library too; its `misc.dart` is this
+/// package's.
 library;
 
 export 'package:riverpod/riverpod.dart';
