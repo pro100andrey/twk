@@ -276,6 +276,7 @@ Future<int> _run(_Options opts) async {
         stderr.writeln('bench: no commit $baseline');
         return 1;
       }
+      await _forgetStaleBases(root);
       final add = await Process.run('git', [
         'worktree',
         'add',
@@ -367,6 +368,36 @@ Future<int> _run(_Options opts) async {
       ], workingDirectory: root);
     }
     await tmp.delete(recursive: true);
+  }
+}
+
+/// Unregisters the worktrees of baselines that runs killed before their
+/// clean-up left in [root]'s git: those in a `twk_bench_` directory of the
+/// system's temporary one that is gone. No other worktree is touched, as
+/// `git worktree prune` would every one whose directory is missing.
+Future<void> _forgetStaleBases(String root) async {
+  final list = await Process.run('git', [
+    'worktree',
+    'list',
+    '--porcelain',
+  ], workingDirectory: root);
+  if (list.exitCode != 0) {
+    return;
+  }
+  final ours = '${Directory.systemTemp.path}/twk_bench_';
+  for (final line in (list.stdout as String).split('\n')) {
+    if (!line.startsWith('worktree ')) {
+      continue;
+    }
+    final path = line.substring('worktree '.length);
+    if (path.startsWith(ours) && !Directory(path).existsSync()) {
+      await Process.run('git', [
+        'worktree',
+        'remove',
+        '--force',
+        path,
+      ], workingDirectory: root);
+    }
   }
 }
 

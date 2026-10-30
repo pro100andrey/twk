@@ -40,6 +40,11 @@ import 'package:test/test.dart' show TestFailure;
 /// expect(fired, isTrue);
 /// ```
 ///
+/// A periodic timer of no period fires once a microsecond, as one that
+/// fired at once would keep the clock where it is: moving the clock on by
+/// a second fires it a million times, which a test of such a timer, a
+/// loop the app should not have, notices by its time.
+///
 /// A [TwkTester] runs its app on one ([TwkTester.clock]); an app run by
 /// hand runs on one when its binding reads [stopwatch] and is started in
 /// the zone ([elapseUntil] has it).

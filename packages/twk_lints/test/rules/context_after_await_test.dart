@@ -366,6 +366,75 @@ Future<void> drive(BuildContext context) async {
     ]);
   }
 
+  Future<void> test_break_out_of_a_switch() async {
+    const code =
+        '''
+$_state
+  Future<void> save(int k) async {
+    switch (k) {
+      case 1:
+        await Future<void>.value();
+        break;
+      default:
+        break;
+    }
+    use(context);
+  }
+}
+''';
+    await assertDiagnostics(code, [lintAt(code, 'context', occurrence: 3)]);
+  }
+
+  Future<void> test_break_out_of_a_loop() async {
+    const code =
+        '''
+$_state
+  Future<void> save(bool c) async {
+    while (true) {
+      if (c) {
+        await Future<void>.value();
+        break;
+      }
+    }
+    use(context);
+  }
+}
+''';
+    await assertDiagnostics(code, [lintAt(code, 'context', occurrence: 3)]);
+  }
+
+  Future<void> test_continue_to_the_next_round() async {
+    const code =
+        '''
+$_state
+  Future<void> save(List<int> xs) async {
+    for (final x in xs) {
+      use(context);
+      if (x > 1) {
+        await Future<void>.value();
+        continue;
+      }
+    }
+  }
+}
+''';
+    await assertDiagnostics(code, [lintAt(code, 'context', occurrence: 3)]);
+  }
+
+  Future<void> test_break_where_not_mounted() async {
+    await assertNoDiagnostics('''
+$_state
+  Future<void> save() async {
+    for (;;) {
+      await Future<void>.value();
+      if (!mounted) break;
+      use(context);
+    }
+  }
+}
+''');
+  }
+
   Future<void> test_sync_and_nested_functions() async {
     await assertNoDiagnostics('''
 $_state

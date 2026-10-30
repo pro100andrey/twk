@@ -3,16 +3,18 @@
 // again, and a panel closed with requests in flight.
 import * as assert from 'node:assert/strict';
 
-import { WebviewTerminalView } from '../../../app/webview_view';
-import { FakePanel } from '../fakes';
+import { WebviewTerminalView, answerLimitMs } from '../../../app/webview_view';
+import { FakeClock, FakePanel } from '../fakes';
 
 describe('WebviewTerminalView', () => {
   let panel: FakePanel;
+  let clock: FakeClock;
   let view: WebviewTerminalView;
 
   beforeEach(() => {
     panel = new FakePanel();
-    view = new WebviewTerminalView(panel);
+    clock = new FakeClock();
+    view = new WebviewTerminalView(panel, clock);
   });
 
   it("is ready once the webview says so, at its size; keys, sizes and writes go through the protocol's messages", async () => {
@@ -71,6 +73,27 @@ describe('WebviewTerminalView', () => {
     assert.equal(panel.posted.length, count);
     assert.equal(panel.title, '');
     assert.deepEqual(await view.snapshot(), { buffer: 'normal', rows: [] });
+  });
+
+  it('a webview alive but answering no more: a write and a snapshot settle once the limit passed, and no timer is left by one answered', async () => {
+    panel.send({ type: 'ready', columns: 80, lines: 24 });
+    await view.ready;
+    let written = false;
+    const writing = view.write(Buffer.from('x')).then(() => (written = true));
+    const snapshot = view.snapshot();
+    await new Promise((r) => setImmediate(r));
+    clock.elapse(answerLimitMs - 1);
+    await new Promise((r) => setImmediate(r));
+    assert.equal(written, false);
+    clock.elapse(1);
+    await writing;
+    assert.deepEqual(await snapshot, { buffer: 'normal', rows: [] });
+    const answered = view.write(Buffer.from('y'));
+    await new Promise((r) => setImmediate(r));
+    const output = panel.posted[panel.posted.length - 1];
+    panel.send({ type: 'written', id: output.type === 'output' ? output.id : -1 });
+    await answered;
+    assert.equal(clock.pending, 0);
   });
 
   it("a player's bar: its state posted, its buttons told; active as its panel is", async () => {
