@@ -1005,6 +1005,8 @@ final class RenderParagraph extends RenderObject {
   // glyphs start (two each, and at the end their counts), the segments
   // and glyphs as they were; how many rows were ordered for drawing
   var _rowsKept = false;
+  // whether _buildStored built them, not _buildOrdered
+  var _rowsStored = false;
   var _rowsWidth = 0;
   var _rowsWere = 0;
   Int32List _linesWere = _noInt32s;
@@ -3241,7 +3243,6 @@ final class RenderParagraph extends RenderObject {
       _buildOrdered(rows);
     } else {
       _buildStored(rows);
-      _rowsKept = false;
     }
     _segmentsStale = false;
     _changedFrom = 1 << 30;
@@ -3255,7 +3256,7 @@ final class RenderParagraph extends RenderObject {
   /// changes since left as they were, at the same width, are taken from
   /// them; the others are ordered again.
   void _buildOrdered(int rows) {
-    final keep = _rowsKept && width == _rowsWidth;
+    final keep = _rowsKept && !_rowsStored && width == _rowsWidth;
     // what the rows were built into is taken from, and built into next
     final segments = _segments;
     final glyphs = _runGlyphs;
@@ -3272,32 +3273,17 @@ final class RenderParagraph extends RenderObject {
       _rowAt = Int32List(_room(2 * rows + 2, _rowAt.length));
     }
     final lines = _lines;
-    final were = _linesWere;
-    final from = _changedFrom;
-    final to = _changedTo;
-    final shift = _changedShift;
     var j = 0;
     for (var y = 0; y < rows; y++) {
       _rowAt[2 * y] = _segmentCount;
       _rowAt[2 * y + 1] = _runGlyphCount;
       final at = y * _lineStride;
       if (keep) {
-        // the clusters the row is drawn from
-        final first = lines[at + 7];
-        final hs = lines[at];
-        final lo = first < hs ? first : hs;
-        var hi = lines[at + 1] > lines[at + 3] ? lines[at + 1] : lines[at + 3];
-        hi = first + 1 > hi ? first + 1 : hi;
-        final before = hi <= from;
-        if (before || (lo >= to && !_spansMoved)) {
-          final by = before ? 0 : shift;
-          while (j < _rowsWere && _rowStart(were, j) < lo - by) {
-            j++;
-          }
-          if (j < _rowsWere && _sameRow(were, j, at, by)) {
-            _copyRow(j, y);
-            continue;
-          }
+        final kept = _keptRow(at, j);
+        j = _rowFound;
+        if (kept) {
+          _copyRow(j, y);
+          continue;
         }
       }
       _orderRow(y);
@@ -3312,7 +3298,43 @@ final class RenderParagraph extends RenderObject {
     _rowsWere = rows;
     _rowsWidth = width;
     _rowsKept = true;
+    _rowsStored = false;
   }
+
+  /// Whether the row whose line is at [at] of [_lines] is drawn as a row
+  /// of the [_rowsWere] built before, which the changes since left as it
+  /// was: the search for it starts at row [j] (the rows are in order) and
+  /// leaves where it got to in [_rowFound], the row itself when there is
+  /// one, and the clusters it moved by in [_rowShift].
+  bool _keptRow(int at, int j) {
+    final lines = _lines;
+    final were = _linesWere;
+    final from = _changedFrom;
+    final to = _changedTo;
+    // the clusters the row is drawn from
+    final first = lines[at + 7];
+    final hs = lines[at];
+    final lo = first < hs ? first : hs;
+    var hi = lines[at + 1] > lines[at + 3] ? lines[at + 1] : lines[at + 3];
+    hi = first + 1 > hi ? first + 1 : hi;
+    final before = hi <= from;
+    _rowFound = j;
+    if (!before && (lo < to || _spansMoved)) {
+      return false;
+    }
+    final by = before ? 0 : _changedShift;
+    var k = j;
+    while (k < _rowsWere && _rowStart(were, k) < lo - by) {
+      k++;
+    }
+    _rowFound = k;
+    _rowShift = by;
+    return k < _rowsWere && _sameRow(were, k, at, by);
+  }
+
+  // what _keptRow found
+  var _rowFound = 0;
+  var _rowShift = 0;
 
   /// The first cluster row [j] of [lines] is drawn from.
   static int _rowStart(Int32List lines, int j) {
@@ -3385,37 +3407,100 @@ final class RenderParagraph extends RenderObject {
     _addVisual(n, x, y, gaps, free, rtl, ellipsis);
   }
 
-  /// [_buildSegments] for [rows] rows of text drawn as stored.
+  /// [_buildSegments] for [rows] rows of text drawn as stored: those of
+  /// the rows built before that the changes since left as they were, at
+  /// the same width, are taken from them, their clusters moved as the
+  /// changes moved them; the others are built again.
   void _buildStored(int rows) {
+    final keep = _rowsKept && _rowsStored && width == _rowsWidth;
+    final segments = _segments;
+    final rowAt = _rowAt;
+    _segments = _segmentsWere;
+    _segmentsWere = segments;
+    _rowAt = _rowAtWere;
+    _rowAtWere = rowAt;
     _segmentCount = 0;
     _runGlyphCount = 0;
-    for (var y = 0; y < rows; y++) {
-      final at = y * _lineStride;
-      final ellipsis = _lines[at + 4];
-      final free = width - _lines[at + 5];
-      final stretch =
-          _align == TextAlign.justify &&
-          _lines[at + 6] != 0 &&
-          ellipsis < 0 &&
-          free > 0;
-      final gaps = stretch ? _gapsIn(_lines[at], _lines[at + 1]) : 0;
-      var x = gaps > 0 ? 0 : _lineX(free, false);
-      x = _addClusters(
-        _lines[at],
-        _lines[at + 1],
-        x,
-        y,
-        gaps,
-        free,
-        ellipsis < 0 ? _lines[at + 5] : -1,
-      );
-      if (ellipsis >= 0) {
-        final e = _ellipsisWidth;
-        _addSegment(_fromEllipsis, 0, 0, x, y, ellipsis, e);
-        x += e;
-      }
-      _addClusters(_lines[at + 2], _lines[at + 3], x, y, 0, 0);
+    if (_rowAt.length < 2 * rows + 2) {
+      _rowAt = Int32List(_room(2 * rows + 2, _rowAt.length));
     }
+    var j = 0;
+    for (var y = 0; y < rows; y++) {
+      _rowAt[2 * y] = _segmentCount;
+      _rowAt[2 * y + 1] = 0;
+      final at = y * _lineStride;
+      if (keep) {
+        final kept = _keptRow(at, j);
+        j = _rowFound;
+        if (kept) {
+          _copyStoredRow(j, y, _rowShift);
+          continue;
+        }
+      }
+      _storeRow(y);
+    }
+    _rowAt[2 * rows] = _segmentCount;
+    _rowAt[2 * rows + 1] = 0;
+    final n = rows * _lineStride;
+    if (_linesWere.length < n) {
+      _linesWere = Int32List(_room(n, _linesWere.length));
+    }
+    _linesWere.setRange(0, n, _lines);
+    _rowsWere = rows;
+    _rowsWidth = width;
+    _rowsKept = true;
+    _rowsStored = true;
+  }
+
+  /// Row [j] as [_buildStored] built it, as row [y], its clusters [by]
+  /// on.
+  void _copyStoredRow(int j, int y, int by) {
+    final s0 = _rowAtWere[2 * j];
+    final s1 = _rowAtWere[2 * j + 2];
+    final were = _segmentsWere;
+    for (var k = s0; k < s1; k++) {
+      final at = k * _segmentStride;
+      final from = were[at + 4];
+      final o = from == _fromClusters ? by : 0;
+      _addSegment(
+        from,
+        were[at + 5] + o,
+        were[at + 6] + o,
+        were[at],
+        y,
+        were[at + 2],
+        were[at + 3],
+      );
+    }
+  }
+
+  /// Builds the segments of row [y] of text drawn as stored.
+  void _storeRow(int y) {
+    final at = y * _lineStride;
+    final ellipsis = _lines[at + 4];
+    final free = width - _lines[at + 5];
+    final stretch =
+        _align == TextAlign.justify &&
+        _lines[at + 6] != 0 &&
+        ellipsis < 0 &&
+        free > 0;
+    final gaps = stretch ? _gapsIn(_lines[at], _lines[at + 1]) : 0;
+    var x = gaps > 0 ? 0 : _lineX(free, false);
+    x = _addClusters(
+      _lines[at],
+      _lines[at + 1],
+      x,
+      y,
+      gaps,
+      free,
+      ellipsis < 0 ? _lines[at + 5] : -1,
+    );
+    if (ellipsis >= 0) {
+      final e = _ellipsisWidth;
+      _addSegment(_fromEllipsis, 0, 0, x, y, ellipsis, e);
+      x += e;
+    }
+    _addClusters(_lines[at + 2], _lines[at + 3], x, y, 0, 0);
   }
 
   GlyphRun get _ellipsisRun {
