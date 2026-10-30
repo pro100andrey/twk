@@ -35,29 +35,67 @@ export function jsonFrame(type: number, json: unknown): Buffer {
   return frame(type, Buffer.from(JSON.stringify(json), 'utf8'));
 }
 
-/** Cuts a socket's bytes into frames, however the reads split them. */
+/**
+ * Cuts a socket's bytes into frames, however the reads split them. The
+ * reads are kept as they came and joined once a frame is whole: a large
+ * frame in many reads is copied once, not once a read.
+ */
 export class FrameReader {
-  private buffer: Buffer = Buffer.alloc(0);
+  private chunks: Buffer[] = [];
+  private length = 0;
 
   constructor(private readonly onFrame: (type: number, payload: Buffer) => void) {}
 
   /** Throws for a payload longer than Wire.maxPayload. */
   add(bytes: Buffer): void {
-    this.buffer = this.buffer.length === 0 ? bytes : Buffer.concat([this.buffer, bytes]);
-    let at = 0;
-    while (this.buffer.length - at >= 5) {
-      const length = this.buffer.readUInt32BE(at + 1);
+    if (bytes.length === 0) {
+      return;
+    }
+    this.chunks.push(bytes);
+    this.length += bytes.length;
+    while (this.length >= 5) {
+      const head = this.peek(5);
+      const length = head.readUInt32BE(1);
       if (length > Wire.maxPayload) {
         throw new Error(`a frame of ${length} bytes`);
       }
-      if (this.buffer.length - at - 5 < length) {
+      if (this.length - 5 < length) {
         break;
       }
-      const type = this.buffer[at];
-      const payload = Buffer.from(this.buffer.subarray(at + 5, at + 5 + length));
-      at += 5 + length;
-      this.onFrame(type, payload);
+      const whole = this.take(5 + length);
+      this.onFrame(whole[0], Buffer.from(whole.subarray(5)));
     }
-    this.buffer = this.buffer.subarray(at);
+  }
+
+  /** The first [n] bytes kept, left kept. */
+  private peek(n: number): Buffer {
+    const first = this.chunks[0];
+    if (first.length >= n) {
+      return first;
+    }
+    const joined = Buffer.concat(this.chunks);
+    this.chunks = [joined];
+    return joined;
+  }
+
+  /** The first [n] bytes kept, no more kept. */
+  private take(n: number): Buffer {
+    let first = this.chunks[0];
+    if (first.length < n) {
+      let k = 0;
+      let got = 0;
+      while (got < n) {
+        got += this.chunks[k++].length;
+      }
+      first = Buffer.concat(this.chunks.splice(0, k), got);
+      this.chunks.unshift(first);
+    }
+    this.length -= n;
+    if (first.length === n) {
+      this.chunks.shift();
+    } else {
+      this.chunks[0] = first.subarray(n);
+    }
+    return first.subarray(0, n);
   }
 }

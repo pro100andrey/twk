@@ -589,7 +589,12 @@ def main():
         if proc.poll() is not None and proc.stderr.fileno() not in streams:
             break
         if elapsed > args.timeout and proc.poll() is None:
-            proc.send_signal(signal.SIGKILL)
+            # its group, setsid's: a child of it that left the session's
+            # SIGHUP alone would go on writing to the pty
+            try:
+                os.killpg(proc.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
     # drain what is left in the pty
     while select.select([master], [], [], 0.2)[0]:
         data = os.read(master, 65536)

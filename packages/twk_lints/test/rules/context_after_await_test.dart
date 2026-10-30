@@ -131,6 +131,34 @@ $_state
 ''');
   }
 
+  Future<void> test_a_flag_of_its_own_named_mounted_checks_nothing() async {
+    const code =
+        '''
+$_state
+  final _other = _Flag();
+
+  Future<void> save() async {
+    var mounted = n > 1;
+    await Future<void>.value();
+    if (!mounted) return;
+    use(context);
+    await Future<void>.value();
+    if (!_other.mounted) return;
+    use(context);
+    mounted = false;
+  }
+}
+
+final class _Flag {
+  bool mounted = false;
+}
+''';
+    await assertDiagnostics(code, [
+      lintAt(code, 'context', occurrence: 3),
+      lintAt(code, 'context', occurrence: 4),
+    ]);
+  }
+
   Future<void> test_argument_of_the_awaited_call() async {
     await assertNoDiagnostics('''
 $_state

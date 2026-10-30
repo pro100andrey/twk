@@ -2478,7 +2478,9 @@ final class BuildOwner {
   /// Adds [element], just marked dirty, to the next build scope. One
   /// rebuilt earlier in the running scope fails an assert naming its path,
   /// as builds that mark one another dirty so can loop; without asserts it
-  /// is rebuilt once more.
+  /// is rebuilt once more, and again each time a build marks it so, which
+  /// a build that always does keeps doing (as in Flutter: a programming
+  /// error the assert is there to catch).
   void scheduleBuildFor(Element element) {
     if (element._inDirtyList) {
       // its turn comes again, also when the assert is caught as an error of

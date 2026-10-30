@@ -107,7 +107,7 @@ dashboard  full screen: panels of live readings in a chart, a gauge and bars
 
   test('by default the app template, the package named after the '
       'directory, twk taken by path from the checkout the command runs '
-      'from', () async {
+      'from; the cd it says to run quoted', () async {
     final dir = p.join(await temporary(), 'My-App 2');
     final result = await twkHere(['create', dir]);
 
@@ -119,6 +119,8 @@ dashboard  full screen: panels of live readings in a chart, a gauge and bars
         'app, in $dir:\n',
       ),
     );
+    // the directory quoted, as it has a space
+    expect(result.stdout, contains("\n  cd '$dir'\n"));
     final pubspec = File(p.join(dir, 'pubspec.yaml')).readAsStringSync();
     expect(pubspec, startsWith('name: my_app_2\n'));
     final packages = p.join(await repository(), 'packages');

@@ -518,6 +518,19 @@ void main() {
       expect(there(vscodeGate), isFalse);
     });
 
+    test('install without the manifests says which are missing and runs '
+        'nothing', () async {
+      File('${root.path}/$vscodeSource/package-lock.json').deleteSync();
+      final r = await step(['install']);
+      expect(r.code, isNot(0));
+      expect(r.ran, isEmpty);
+      expect(
+        r.log.single,
+        'no $vscodeSource/package-lock.json: nothing to '
+        'install from',
+      );
+    });
+
     test('install runs npm ci in the copy, once per package-lock.json, '
         'and again after one that failed', () async {
       final first = await step(['install']);

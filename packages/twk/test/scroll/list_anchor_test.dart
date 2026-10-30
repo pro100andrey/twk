@@ -117,6 +117,31 @@ void main() {
       expect(controller.offset, 110);
     });
 
+    testTwk('asks findChildIndexCallback before it builds an item to read '
+        'its key', (t) async {
+      final controller = ScrollController(initialOffset: 10);
+      final built = <int>[];
+      Widget counted(List<int> ids) => ListView.builder(
+        autofocus: true,
+        controller: controller,
+        itemCount: ids.length,
+        findChildIndexCallback: (key) {
+          final at = ids.indexOf((key as ValueKey<int>).value);
+          return at < 0 ? null : at;
+        },
+        itemBuilder: (_, i) {
+          built.add(i);
+          return Text('item ${ids[i]}', key: ValueKey(ids[i]));
+        },
+      );
+      await t.pumpWidget(counted(ids(0, 50)), size: (20, 5));
+      built.clear();
+      await t.pumpWidget(counted([...ids(-100, 0), ...ids(0, 50)]));
+      expect(t.lines, items(10, 15));
+      // each item shown built once: none built only to read its key
+      expect(built.where((i) => i == 110), hasLength(1));
+    });
+
     testTwk('keeps the rows the next item it shows has when the first is '
         'removed', (t) async {
       final controller = ScrollController(initialOffset: 10);

@@ -135,10 +135,11 @@ final class ListController extends ScrollController {
 /// Scrolled away from its start, and not stuck to its end, it keeps what
 /// it shows in place as items are inserted or removed before it: the first
 /// item in the window whose widget has a key stays on its row, found among
-/// the items built, or as many items on as the count changed by, or else
-/// by [findItemIndexCallback] (`findChildIndexCallback` of
-/// [ListView.builder]). A list whose items have no keys keeps its offset
-/// instead, and what it shows moves.
+/// the items built, or by [findItemIndexCallback]
+/// (`findChildIndexCallback` of [ListView.builder]), or else as many items
+/// on as the count changed by, which the builder is asked for to read its
+/// key, and it may not show. A list whose items have no keys keeps its
+/// offset instead, and what it shows moves.
 ///
 /// While [stickToBottom] is set, or its [controller] sticks to the end
 /// ([ScrollController.stickToEnd]), and the window shows the end, it keeps
@@ -861,6 +862,14 @@ final class _ListElement extends RenderObjectElement
           break;
         }
       }
+      if (at < 0 && find != null) {
+        final index = find(key);
+        if (index != null && index >= 0 && index < view.itemCount) {
+          at = _childOf(index);
+        }
+      }
+      // the last resort, an item built to read its key: the builder is
+      // asked for one it may not show
       final moved = was + shift;
       if (at < 0 &&
           shift != 0 &&
@@ -869,12 +878,6 @@ final class _ListElement extends RenderObjectElement
           moved < view._childCount &&
           _build(moved).key == key) {
         at = moved;
-      }
-      if (at < 0 && find != null) {
-        final index = find(key);
-        if (index != null && index >= 0 && index < view.itemCount) {
-          at = _childOf(index);
-        }
       }
       if (at >= 0) {
         renderObject.jumpToIndex(at);

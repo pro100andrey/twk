@@ -177,7 +177,7 @@ final class CreateCommand extends Command<int> {
     if (!dryRun) {
       stdout
         ..writeln()
-        ..writeln('  cd ${rest.single}')
+        ..writeln('  cd ${_quoted(rest.single)}')
         ..writeln('  dart pub get')
         ..writeln('  dart run bin/main.dart')
         ..writeln('  dart run twk_dev:twk run bin/main.dart  # hot reloaded')
@@ -310,3 +310,9 @@ Future<String?> checkoutOfCommand() async {
   }
   return null;
 }
+
+/// [word] as a shell reads it back: quoted where it holds more than
+/// letters, digits and `@%+=:,./-`.
+String _quoted(String word) => RegExp(r'^[\w@%+=:,./-]+$').hasMatch(word)
+    ? word
+    : "'${word.replaceAll("'", r"'\''")}'";
