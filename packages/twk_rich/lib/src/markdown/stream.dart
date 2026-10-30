@@ -48,7 +48,12 @@ List<MdBlock> parseMarkdown(String text) => MarkdownStream(text).blocks;
 /// to what it was is kept, such as the finished items of a list that is
 /// still growing; a table parses only the rows added since, and an open
 /// paragraph its text from the last point that no text after it changes
-/// (no bracket open, no emphasis left to match before it).
+/// (no bracket open, no emphasis left to match before it). A paragraph
+/// whose text has no such point is parsed whole at each read: one that
+/// leaves a bracket open, a code span or an entity unfinished, or more
+/// than 64 runs of `*` or `_` that may open emphasis unmatched. Its text
+/// is joined again at each read too, which only a paragraph of hundreds
+/// of kilobytes feels.
 ///
 /// Text added in any pieces parses as it would whole, by [parseMarkdown];
 /// [close] says that no more comes, which settles the last block.

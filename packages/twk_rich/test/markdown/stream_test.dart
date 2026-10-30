@@ -232,6 +232,12 @@ void main() {
       '🙂',
       '.',
       ',',
+      'foo_bar',
+      ' * ',
+      '日本語',
+      '。',
+      'тест',
+      '\u00a0',
     ];
     for (var seed = 0; seed < 40; seed++) {
       test('random inline text (seed $seed)', () {
@@ -544,6 +550,28 @@ void main() {
       expect(parsed, lessThan(text.length * 3));
       expect(stream.blocks, parseMarkdown('$text'));
     });
+
+    for (final (name, unit) in [
+      ('runs that can neither open nor close', 'a foo_bar 2 * 3 snake_case '),
+      ('no spaces', '日本語のテキストです。'),
+    ]) {
+      test('an open paragraph of $name read after every piece parses about '
+          'what each piece adds', () {
+        final stream = MarkdownStream();
+        final before = parsedUnits;
+        final text = StringBuffer();
+        while (text.length < 8000) {
+          text.write(unit);
+          stream
+            ..add(unit)
+            ..blocks;
+        }
+        final parsed = parsedUnits - before;
+        printOnFailure('$parsed code units parsed for ${text.length}');
+        expect(parsed, lessThan(text.length * 3));
+        expect(stream.blocks, parseMarkdown('$text'));
+      });
+    }
 
     test('a table read after every piece parses each row about once', () {
       final rows = [for (var k = 0; k < 400; k++) '| cell $k | *b$k* |\n'];

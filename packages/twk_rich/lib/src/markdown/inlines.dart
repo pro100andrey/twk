@@ -27,15 +27,15 @@ List<MdInline> parseInlines(String text, [InlineMemo? memo]) {
     return _InlineParser(text)._parse();
   }
   final from = memo._cut > 0 && text.startsWith(memo._source) ? memo._cut : 0;
-  final rest = from == 0 ? text : text.substring(from);
-  parsedUnits += rest.length;
-  final parser = _InlineParser(rest, cuts: true);
+  parsedUnits += text.length - from;
+  // from the cut, with what lies before it there to look back at
+  final parser = _InlineParser(text, cuts: true)..pos = from;
   final inlines = parser._parse();
   final before = from == 0 ? const <MdInline>[] : memo._before;
   if (parser._cutAt > 0) {
     memo
       .._before = _join(before, parser._before)
-      .._cut = from + parser._cutAt;
+      .._cut = parser._cutAt;
   } else if (from == 0) {
     memo
       .._before = const []
@@ -47,7 +47,8 @@ List<MdInline> parseInlines(String text, [InlineMemo? memo]) {
 
 /// What [parseInlines] keeps of a text to parse one that goes on from it:
 /// the inlines of the text up to a cut that no text after it changes. A
-/// cut is in plain text, after a space and before what is no blank, where
+/// cut is in plain text, after a space or a character that is no ASCII (text
+/// with no spaces, as Chinese) and before what is no blank, where
 /// no bracket is open, no emphasis is left to match, and nothing before
 /// it was decided by where the text ends (a code span, a link or an
 /// entity that more text may still complete).
@@ -514,6 +515,10 @@ final class _InlineParser {
     final close = c == _underscore
         ? right && (!left || afterPunctuation)
         : right;
+    if (!open && !close) {
+      // nothing to match: no delimiter, as in commonmark.js
+      return;
+    }
     if (close) {
       _closers++;
     }
@@ -905,8 +910,7 @@ final class _InlineParser {
       return;
     }
     var q = end < s.length ? end : s.length - 1;
-    while (q > start &&
-        (s.codeUnitAt(q - 1) != _space || _isBlank(s.codeUnitAt(q)))) {
+    while (q > start && !_mayCutAt(q)) {
       q--;
     }
     if (q > start) {
@@ -914,6 +918,19 @@ final class _InlineParser {
       _cutNode = node;
       _cutStart = start;
     }
+  }
+
+  /// Whether plain text may be cut at [at]: before what is no blank (a
+  /// line's trailing spaces stay with it), after a space or after a
+  /// character no email address has (all of an address is in one text,
+  /// [linkEmails]) that ends a code point: so text with no spaces, as
+  /// Chinese or Japanese, is cut too.
+  bool _mayCutAt(int at) {
+    if (_isBlank(s.codeUnitAt(at))) {
+      return false;
+    }
+    final c = s.codeUnitAt(at - 1);
+    return c == _space || (c >= 0x80 && (c < 0xD800 || c > 0xDBFF));
   }
 
   /// Whether an extended autolink may start at [at]: at the start of a
