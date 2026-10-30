@@ -1776,6 +1776,28 @@ final class RenderParagraph extends RenderObject {
             break spans;
           }
         }
+        final c0 = s.codeUnitAt(i);
+        if (graphemes &&
+            c0 >= 0x20 &&
+            c0 < 0x7F &&
+            (i + 1 == s.length || s.codeUnitAt(i + 1) < 0x300)) {
+          // printable ASCII that no mark follows: a cluster of one cell,
+          // as the scan below would make it, without the scan
+          i++;
+          final kind = _kindOf(c0, 1);
+          glyphs[n] = c0;
+          kinds[n] = kind;
+          spanOf[n] = k;
+          starts[n] = start;
+          ends[n] = i;
+          n++;
+          cells++;
+          if ((kind & _space) == 0) {
+            drawn = n - 1;
+            drawnCells = cells;
+          }
+          continue;
+        }
         seg.scan(s, i, scan);
         i = scan.end;
         final cp = scan.first;
