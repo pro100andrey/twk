@@ -25,6 +25,16 @@ const maxNesting = 32;
 ///
 /// A closed block stays as it is whatever lines are added later.
 final class BlockParser {
+  /// A parser of no lines yet.
+  BlockParser() : this._(InlineMemo());
+
+  BlockParser._(this._inlines);
+
+  /// What the inlines of the paragraph parsed last keep for the next: the
+  /// text of an open paragraph, made again as lines stream in, is parsed
+  /// from where it stopped changing. Shared with the parser's copies.
+  final InlineMemo _inlines;
+
   final _document = _Block(_Kind.document, 0, null);
   late _Block _tip = _document;
   late _Block _oldTip = _document;
@@ -146,7 +156,7 @@ final class BlockParser {
   /// other as it is. The two share the closed blocks, which no line
   /// changes, so this costs the open ones.
   BlockParser copy() {
-    final copy = BlockParser()
+    final copy = BlockParser._(_inlines)
       .._lineNumber = _lineNumber
       .._allClosed = true;
     var from = _document;
@@ -660,7 +670,7 @@ final class BlockParser {
   MdBlock? _make(_Block block, List<MdDefinition> definitions) {
     definitions.addAll(block.definitions);
     return switch (block.kind) {
-      _Kind.paragraph => _paragraph(block.lines, definitions),
+      _Kind.paragraph => _paragraph(block.lines, definitions, _inlines),
       _Kind.heading => MdHeading(block.level, parseInlines(_trim(block.lines))),
       _Kind.thematicBreak => const MdThematicBreak(),
       _Kind.code when block.fenced => MdCodeBlock(
@@ -757,9 +767,13 @@ bool _isDigit(int c) => c >= 0x30 && c <= 0x39;
 
 /// The paragraph of [lines] after the link reference definitions it starts
 /// with, which are added to [definitions]; null when nothing follows them.
-MdParagraph? _paragraph(List<String> lines, List<MdDefinition> definitions) {
+MdParagraph? _paragraph(
+  List<String> lines,
+  List<MdDefinition> definitions,
+  InlineMemo memo,
+) {
   final text = _takeDefinitions(_trim(lines), definitions);
-  return text.isEmpty ? null : MdParagraph(parseInlines(text));
+  return text.isEmpty ? null : MdParagraph(parseInlines(text, memo));
 }
 
 /// [text], the content of a paragraph, after the link reference

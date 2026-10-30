@@ -2,6 +2,7 @@
 // complete before a piece arrives are the same objects after it.
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:test/test.dart';
 import 'package:twk_rich/src/markdown/inlines.dart' show parsedUnits;
@@ -162,6 +163,85 @@ void main() {
         }
         expect(stream.blocks, parseMarkdown(markdown), reason: markdown);
       }
+    }
+  });
+
+  group('read after each character, what the text so far parses to', () {
+    /// [text] streamed a character at a time, its blocks read after each
+    /// and held to what the text so far parses to whole.
+    void streamed(String text) {
+      final stream = MarkdownStream();
+      for (var k = 0; k < text.length; k++) {
+        stream.add(text[k]);
+        final so = text.substring(0, k + 1);
+        expect(stream.blocks, parseMarkdown(so), reason: jsonEncode(so));
+      }
+    }
+
+    for (final file in ['spec.json', 'gfm.json']) {
+      test('every example of $file', () {
+        final examples = jsonDecode(
+          File('test/markdown/$file').readAsStringSync(),
+        ) as List<Object?>;
+        for (final example in examples) {
+          if (example case {'markdown': final String markdown}) {
+            streamed(markdown);
+          }
+        }
+      });
+    }
+
+    // what inline parsing decides by: emphasis, brackets, code spans,
+    // autolinks, entities, escapes and breaks, among plain words
+    const pieces = [
+      'word ',
+      'a',
+      'b ',
+      ' ',
+      '  ',
+      '\n',
+      '*',
+      '**',
+      '_',
+      '__',
+      '~',
+      '~~',
+      '`',
+      '``',
+      '[',
+      ']',
+      '](',
+      '(',
+      ')',
+      '![',
+      '<',
+      '>',
+      'http://x.dev',
+      'www.y.org',
+      'a@b.cd',
+      '&amp;',
+      '&am',
+      r'\',
+      '!',
+      '"',
+      "'",
+      ':',
+      '[ref]',
+      '[ref]: /u\n',
+      'é',
+      '🙂',
+      '.',
+      ',',
+    ];
+    for (var seed = 0; seed < 40; seed++) {
+      test('random inline text (seed $seed)', () {
+        final random = Random(seed);
+        final text = StringBuffer();
+        while (text.length < 300) {
+          text.write(pieces[random.nextInt(pieces.length)]);
+        }
+        streamed('$text');
+      });
     }
   });
 
@@ -444,6 +524,25 @@ void main() {
       final text = (paragraph.children.single as MdText).text;
       expect(text, words.join().trimRight());
       expect(parsedUnits - before, text.length);
+    });
+
+    test('an open paragraph read after every piece parses about what each '
+        'piece adds, emphasis and all', () {
+      final stream = MarkdownStream();
+      final before = parsedUnits;
+      final text = StringBuffer();
+      for (var k = 0; k < 2000; k++) {
+        final piece = k % 7 == 3 ? '*em* [a](b) `c` ' : 'word ';
+        text.write(piece);
+        stream
+          ..add(piece)
+          ..blocks;
+      }
+      final parsed = parsedUnits - before;
+      printOnFailure('$parsed code units parsed for ${text.length}');
+      // the piece since the last cut is parsed again at each read
+      expect(parsed, lessThan(text.length * 3));
+      expect(stream.blocks, parseMarkdown('$text'));
     });
 
     test('a table read after every piece parses each row about once', () {

@@ -46,8 +46,9 @@ List<MdBlock> parseMarkdown(String text) => MarkdownStream(text).blocks;
 /// that pieces added between two reads, as an answer streams in between
 /// two frames, cost one making. Of the blocks not settled, any part equal
 /// to what it was is kept, such as the finished items of a list that is
-/// still growing, and a table parses only the rows added since; the text
-/// of an open paragraph is parsed whole at each making.
+/// still growing; a table parses only the rows added since, and an open
+/// paragraph its text from the last point that no text after it changes
+/// (no bracket open, no emphasis left to match before it).
 ///
 /// Text added in any pieces parses as it would whole, by [parseMarkdown];
 /// [close] says that no more comes, which settles the last block.
