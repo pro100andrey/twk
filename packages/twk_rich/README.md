@@ -8,10 +8,9 @@ own that `lib/twk_rich.dart` does not export, PNG and JPEG images
 decoded, scaled to cells and encoded for kitty, iTerm2 and sixel, or
 drawn in block characters, and the `Image` widget
 ([below](#images-packagetwk_richimagedart)). It takes twk and [twk_core](../twk_core/README.md), the
-rendering core in packages/twk_core of this repository, as path
-dependencies, and [twk_test](../twk_test/README.md), whose tester (`testTwk`) runs the
-tests of the views and whose emulator the big text tests write their
-frames to, as a path dev dependency.
+rendering core, and, as a dev dependency, [twk_test](../twk_test/README.md),
+whose tester (`testTwk`) runs the tests of the views and whose emulator
+the big text tests write their frames to.
 
 `lib/twk_rich.dart` exports one library per topic,
 `lib/src/<topic>/<topic>.dart`, each with a doc comment naming what it is

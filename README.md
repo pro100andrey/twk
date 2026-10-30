@@ -8,9 +8,9 @@ Each package is under `packages/`, with a README.
 
 ![The widget gallery: the Table page in the dark theme](packages/gallery/doc/shots/screens/table-dark.svg)
 
-`twk_core`, `twk`, `twk_test`, `twk_lints`, `twk_term` and `twk_dev` are
-the packages published to pub.dev; the others are this repository's. The
-[documentation](doc/README.md) has guides from a first app to testing, and
+`twk_core`, `twk`, `twk_test`, `twk_rich`, `twk_lints`, `twk_term` and
+`twk_dev` are the packages published to pub.dev; the others are this
+repository's. The [documentation](doc/README.md) has guides from a first app to testing, and
 every widget, with its pictures and the Dart that builds it, is in the
 [widget catalog](doc/widgets/README.md).
 

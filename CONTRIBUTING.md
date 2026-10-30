@@ -92,16 +92,16 @@ dart run tool/xtask.dart bench              # when the frame path changed (below
   workflow.
 - On demand, not in a gate: `undocumented` and `coverage` write reports
   to `doc/internals/quality/` (not committed); `-- <package>...` makes
-  those packages' only. `pub-check` says whether the six packages of a
+  those packages' only. `pub-check` says whether the seven packages of a
   release are ready for pub.dev: `publish_to`, the errors of `dart pub
   publish --dry-run`, and pana's score with what lost points (pana
   activated with `dart pub global activate pana`; skipped without it; a
   package that depends on one of this repository's not on pub.dev yet is
   not scored). `publish-core`, `publish-twk`, `publish-test`,
-  `publish-lints`, `publish-term` and `publish-dev` publish them, each
-  after those it depends on and its own package's `check-<name>`, which
-  pana scores there, once they are on pub.dev (a package it cannot score
-  fails it), `publish-dev` all six in order,
+  `publish-lints`, `publish-term`, `publish-rich` and `publish-dev`
+  publish them, each after those it depends on and its own package's
+  `check-<name>`, which pana scores there, once they are on pub.dev (a
+  package it cannot score fails it), `publish-dev` all seven in order,
   once `dart pub login` has: the version named in the changelog, the
   package as HEAD has it, then the upload, waited for until pub.dev
   serves it. A version pub.dev serves already is skipped, so a run again
