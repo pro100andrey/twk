@@ -14,7 +14,7 @@ import 'images/images.dart';
 import 'layout/layout.dart';
 import 'mouse/mouse.dart';
 import 'navigation/navigation.dart';
-import 'overlays.dart';
+import 'overlays/overlays.dart';
 import 'rich.dart';
 import 'screen_readers.dart';
 import 'scrolling.dart';
