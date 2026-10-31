@@ -3,10 +3,10 @@
 import '../page.dart';
 import 'animation.dart';
 import 'app.dart';
-import 'controls.dart';
+import 'controls/controls.dart';
 import 'data.dart';
 import 'debugging.dart';
-import 'editing.dart';
+import 'editing/editing.dart';
 import 'focus.dart';
 import 'foundation.dart';
 import 'framework.dart';
