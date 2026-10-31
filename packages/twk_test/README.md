@@ -116,13 +116,14 @@ a file the app reads arrives whenever the operating system delivers it.
   itself (`a`, `?`, `я`, `+`, which comes last: `ctrl++`), or one of
   these, in lower case: `space`, `enter`, `tab`, `backspace`, `escape`,
   `up`, `down`, `left`, `right`, `home`, `end`, `pageup`, `pagedown`,
-  `insert`, `delete`, `f1` to `f12`. Only a character has a case: `A`
+  `insert`, `delete`, `f1` to `f12`; `esc` is `escape` too, as the key
+  hints show it. Only a character has a case: `A`
   is `shift+a`, which types the capital, and `ctrl+A` is
   `ctrl+shift+a`. Shift alone with a character that has no case
   (`shift+1`, `shift+space`) names no key.
   - A name that is not one throws a `FormatException` naming the part
     that is wrong, and the name meant where that is plain (`Enter`,
-    `esc`, `cmd`).
+    `ret`, `cmd`).
   - The event is what the parser makes of the bytes: `ctrl+i` arrives as
     Tab, as on a real terminal.
   - Without the kitty protocol, some keys have no bytes of their own
