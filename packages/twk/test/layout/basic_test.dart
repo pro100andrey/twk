@@ -97,6 +97,45 @@ void main() {
       // the screen gives the box all of it
       expect(v.rows(), ['ab', '', '']);
     });
+
+    test('in a scroll view is as tall as its child, as in Flutter', () {
+      final v = View(6, 4)
+        ..pump(
+          const SingleChildScrollView(
+            child: Column(
+              children: [
+                Align(alignment: Alignment.centerRight, child: Label('ab')),
+                Label('cd'),
+              ],
+            ),
+          ),
+        );
+      expect(v.rows(), ['    ab', '  cd', '', '']);
+    });
+
+    test("in a list's row is as tall as its child, so each row is a "
+        'row', () {
+      final v = View(6, 4)
+        ..pump(
+          ListView(
+            children: [
+              for (final name in ['ab', 'cd'])
+                Row(
+                  children: [
+                    Expanded(
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Label(name),
+                      ),
+                    ),
+                    const Label('|'),
+                  ],
+                ),
+            ],
+          ),
+        );
+      expect(v.rows(), ['ab   |', 'cd   |', '', '']);
+    });
   });
 
   group('Center', () {

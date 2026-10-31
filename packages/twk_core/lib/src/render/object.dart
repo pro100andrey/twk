@@ -978,7 +978,8 @@ abstract class RenderObject {
 
   /// Whether this object's size depends on its constraints alone; false by
   /// default. Whatever changes inside it, its parent sees the same size,
-  /// so the object is a relayout boundary.
+  /// so the object is a relayout boundary. Read in [layout] once
+  /// [constraints] are the new ones, so it may depend on them.
   bool get sizedByParent => false;
 
   /// Calls [visit] with each child of this object, in paint order; none by
@@ -1140,13 +1141,16 @@ abstract class RenderObject {
   /// layout: the object is a *relayout boundary*, where [markNeedsLayout]
   /// inside it stops.
   void layout(BoxConstraints c, {bool parentUsesSize = false}) {
+    final same = !_needsLayout && c == _constraints;
+    // before the boundary, which an object sized by its parent only within
+    // some constraints reads them for
+    _constraints = c;
     // decided by every call, even one that has nothing to lay out
     _relayoutBoundary =
         !parentUsesSize || c.isTight || sizedByParent || parent == null;
-    if (!_needsLayout && c == _constraints) {
+    if (same) {
       return;
     }
-    _constraints = c;
     _layOut(c);
     _needsLayout = false;
     // children may have moved, resized or been replaced: what was painted
@@ -1651,8 +1655,11 @@ int _textWidth(RenderObject o, String s) {
   return w;
 }
 
-/// [extent] less [cells], at least 0.
-int _less(int extent, int cells) => extent - cells < 0 ? 0 : extent - cells;
+/// [extent] less [cells], at least 0; [BoxConstraints.unbounded] stays
+/// unbounded, as a limit that limits nothing does less a padding.
+int _less(int extent, int cells) => extent >= BoxConstraints.unbounded
+    ? extent
+    : (extent - cells < 0 ? 0 : extent - cells);
 
 /// Whether a child after [child], in the list of a
 /// [ContainerRenderObjectMixin], reaches the cells [x], [y], [w] × [h] of

@@ -199,6 +199,38 @@ final class Hug extends RenderObject {
   }
 }
 
+/// [child] laid out with any width, its own height at most, and a bar
+/// painted after it; counts its layouts, as a row's main axis and a
+/// horizontal scroll view lay a child out.
+final class Unbounded extends RenderObject {
+  Unbounded(this.child) {
+    adopt(child);
+  }
+
+  final RenderObject child;
+  var layouts = 0;
+
+  @override
+  void visitChildren(void Function(RenderObject) visit) => visit(child);
+
+  @override
+  void performLayout(BoxConstraints c) {
+    layouts++;
+    width = c.maxW;
+    height = c.maxH;
+    child.layout(
+      BoxConstraints(0, BoxConstraints.unbounded, 0, c.maxH),
+      parentUsesSize: true,
+    );
+  }
+
+  @override
+  void paint(PaintContext ctx) {
+    paintChild(ctx, child);
+    ctx.canvas.text(child.width, 0, '|', ctx.canvas.styles.pen(const Pen()));
+  }
+}
+
 /// One column wide, asking to be [rows] tall; fills the height it gets
 /// with [char], [rows] at most unless the height is tight.
 final class Tall extends RenderObject {
@@ -534,6 +566,39 @@ void main() {
       v.frame();
       expect(v.rows(), ['ab|']);
       expect(hug.layouts, 3);
+    });
+
+    test('along an axis of any length it is as long as its child, through '
+        'a padding too, and without one as short as the constraints '
+        'allow', () {
+      const any = BoxConstraints.unbounded;
+      final box = RenderPositionedBox(child: Label('ab'))
+        ..layout(const BoxConstraints(0, 10, 0, any), parentUsesSize: true);
+      expect([box.width, box.height], [10, 1]);
+      box.layout(const BoxConstraints(0, any, 0, 3), parentUsesSize: true);
+      expect([box.width, box.height], [2, 3]);
+      final padded = RenderPadding(
+        padding: const EdgeInsets.all(1),
+        child: RenderPositionedBox(child: Label('ab')),
+      )..layout(const BoxConstraints(0, 10, 0, any), parentUsesSize: true);
+      expect([padded.width, padded.height], [10, 3]);
+      final empty = RenderPositionedBox()
+        ..layout(const BoxConstraints(0, any, 2, any), parentUsesSize: true);
+      expect([empty.width, empty.height], [0, 2]);
+    });
+
+    test('along an axis of any length it is no relayout boundary: a child '
+        'that grows grows it, and the parent lays out after it', () {
+      final v = View(10, 1);
+      final label = Label('ab');
+      final parent = Unbounded(
+        RenderPositionedBox(alignment: Alignment.centerLeft, child: label),
+      );
+      expect(v.show(parent), ['ab|']);
+      label.text = 'abcd';
+      v.frame();
+      expect(v.rows(), ['abcd|']);
+      expect(parent.layouts, 2);
     });
 
     test('asks for what its child asks for, times its factors', () {
