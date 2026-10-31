@@ -19,7 +19,7 @@ import 'rich.dart';
 import 'screen_readers/screen_readers.dart';
 import 'scrolling/scrolling.dart';
 import 'style/style.dart';
-import 'terminal.dart';
+import 'terminal/terminal.dart';
 import 'text.dart';
 
 /// Every page that draws; the catalog's others show a placeholder.
