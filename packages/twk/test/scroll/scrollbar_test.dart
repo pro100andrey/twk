@@ -68,6 +68,31 @@ void main() {
       expect(down(t, 19, 10), [...List.filled(3, '┃'), ...List.filled(7, '│')]);
     });
 
+    testTwk('no line while there is nothing to scroll: one once the content '
+        'grows past the window, none again once it fits', (t) async {
+      final rows = ValueNotifier(5);
+      addTearDown(rows.dispose);
+      await t.pumpWidget(
+        Scrollbar(
+          slim: true,
+          child: SingleChildScrollView(
+            child: ValueListenableBuilder<int>(
+              valueListenable: rows,
+              builder: (context, n, _) => column(n),
+            ),
+          ),
+        ),
+        size: (20, 10),
+      );
+      expect(down(t, 19, 10), track(10));
+      rows.value = 30;
+      await t.pump();
+      expect(down(t, 19, 10), [...List.filled(3, '┃'), ...List.filled(7, '│')]);
+      rows.value = 10;
+      await t.pump();
+      expect(down(t, 19, 10), track(10));
+    });
+
     testTwk("the track's line in trackStyle", (t) async {
       await t.pumpWidget(
         Scrollbar(

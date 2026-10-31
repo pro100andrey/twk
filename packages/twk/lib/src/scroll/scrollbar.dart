@@ -70,7 +70,9 @@ enum ScrollbarVisibility {
 /// `┃`, `─` and `━` across), in whole cells; while the mouse is over the
 /// bar or drags its thumb, the thumb as it is by default, the whole cell
 /// in eighths, over the line: out of the way of the content until it is
-/// reached for.
+/// reached for. The line is drawn only while there is something to
+/// scroll, so a list that fits has a blank column beside it, not a second
+/// line beside a panel's border.
 ///
 /// [visibility] says when the thumb shows; the track takes its room
 /// whether it does or not, unless [ScrollbarVisibility.never]. The thumb is
@@ -265,11 +267,12 @@ final class _Track with ChangeNotifier {
 
   // the cells of the bar along its axis and the steps of a cell, as it
   // painted last; the thumb it painted, its start and end in steps, -1 for
-  // none
+  // none, and whether there was something to scroll then
   var _length = 0;
   var _steps = 8;
   var _paintedStart = -1;
   var _paintedEnd = -1;
+  var _paintedScrolls = false;
 
   // shown after a move of the scrollable until _hideAt on the app's clock,
   // when the frame callback _hiding hides it
@@ -336,6 +339,13 @@ final class _Track with ChangeNotifier {
     return (start, start + size);
   }
 
+  /// Whether there is something to scroll: the content is longer than the
+  /// window.
+  bool get scrolls {
+    final p = _position;
+    return p != null && p.hasExtents && p.maxOffset > 0;
+  }
+
   /// [a] × [b] / [c], rounded.
   static int _ratio(int a, int b, int c) => (2 * a * b + c) ~/ (2 * c);
 
@@ -347,15 +357,18 @@ final class _Track with ChangeNotifier {
     final thumb = _shown ? _thumb(length, steps) : null;
     _paintedStart = thumb?.$1 ?? -1;
     _paintedEnd = thumb?.$2 ?? -1;
+    _paintedScrolls = scrolls;
     return thumb;
   }
 
   /// Tells the bar when the thumb it painted is not the one it would paint
-  /// now.
+  /// now, or there came to be something to scroll or ceased to be (a slim
+  /// bar's line).
   void _changed() {
     final thumb = _shown ? _thumb(_length, _steps) : null;
     if ((thumb?.$1 ?? -1) != _paintedStart ||
-        (thumb?.$2 ?? -1) != _paintedEnd) {
+        (thumb?.$2 ?? -1) != _paintedEnd ||
+        scrolls != _paintedScrolls) {
       notifyListeners();
     }
   }
@@ -721,11 +734,12 @@ final class _RenderBar extends RenderObject {
     final pen = _style.penIn(canvas.styles);
     canvas.fill(0, 0, width, height, pen);
     final vertical = _axis == Axis.vertical;
-    // slim: the track a line, under the mouse too; at rest the thumb a
-    // heavier one in whole cells, wide the whole cell in eighths
+    // slim: the track a line while there is something to scroll, under the
+    // mouse too; at rest the thumb a heavier one in whole cells, wide the
+    // whole cell in eighths
     final line = _line;
     final wide = line == null || _hovered || _track.dragging;
-    if (line != null) {
+    if (line != null && _track.scrolls) {
       canvas.fill(
         0,
         0,
