@@ -67,6 +67,7 @@ final class ThemeData {
     this._shade,
     this._shadeAlpha,
     this.palette = const {},
+    this.handPointer = false,
   }) : assert(
          _shadeAlpha == null || (_shadeAlpha >= 0 && _shadeAlpha <= 1),
          'shadeAlpha out of 0..1',
@@ -119,7 +120,8 @@ final class ThemeData {
       _onPrimary = null,
       _shade = null,
       _shadeAlpha = null,
-      palette = const {};
+      palette = const {},
+      handPointer = false;
 
   /// The terminal's own colors on a terminal that told its default
   /// [background] and [foreground] (`0xRRGGBB`; [foreground] white on a
@@ -244,6 +246,7 @@ final class ThemeData {
       shade: style(a.shade, b.shade),
       shadeAlpha: a.shadeAlpha + (b.shadeAlpha - a.shadeAlpha) * t,
       palette: t < 0.5 ? a.palette : b.palette,
+      handPointer: t < 0.5 ? a.handPointer : b.handPointer,
     );
   }
 
@@ -256,6 +259,14 @@ final class ThemeData {
   /// (the red of a themed terminal a pink). Empty for none told: xterm's.
   /// [ThemeData.terminalOn] gives it.
   final Map<int, int> palette;
+
+  /// Whether the pointer is the hand (`PointerShape.pointer`) over what a
+  /// click presses (a `Pressable` enabled with an `onTap`: the buttons,
+  /// boxes and switches), where the terminal shows pointer shapes. False
+  /// by default: the hand needs the terminal to report the mouse's every
+  /// move (mode 1003) while such a control is on the screen, events and
+  /// bytes an app may not want, over ssh most of all.
+  final bool handPointer;
 
   /// The app's background, under everything else.
   final Style background;
@@ -524,6 +535,7 @@ final class ThemeData {
     Style? shade,
     double? shadeAlpha,
     Map<int, int>? palette,
+    bool? handPointer,
   }) => ThemeData(
     brightness: brightness ?? this.brightness,
     background: background ?? this.background,
@@ -548,6 +560,7 @@ final class ThemeData {
     shade: shade ?? _shade,
     shadeAlpha: shadeAlpha ?? _shadeAlpha,
     palette: palette ?? this.palette,
+    handPointer: handPointer ?? this.handPointer,
   );
 
   @override
@@ -575,6 +588,7 @@ final class ThemeData {
       other.onPrimary == onPrimary &&
       other.shade == shade &&
       other.shadeAlpha == shadeAlpha &&
+      other.handPointer == handPointer &&
       TerminalBrightness._samePalette(other.palette, palette);
 
   @override
@@ -605,6 +619,7 @@ final class ThemeData {
       Object.hashAllUnordered([
         for (final e in palette.entries) Object.hash(e.key, e.value),
       ]),
+      handPointer,
     ),
   );
 }

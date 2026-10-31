@@ -1,8 +1,12 @@
-// The hand over what a click presses: a button while it is enabled, the
-// terminal's own pointer off it and over a disabled one; read off the
-// tester's terminal, which shows pointer shapes when asked to.
+// The hand over what a click presses, where the theme asks for it: a
+// button while it is enabled, the terminal's own pointer off it and over a
+// disabled one, and with the theme's default none, the mouse's motion not
+// asked for; read off the tester's terminal, which shows pointer shapes
+// when asked to.
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
+import 'package:twk_core/twk_core.dart'
+    show MouseTracking, MouseTrackingBackend;
 import 'package:twk_test/twk_test.dart';
 
 void main() {
@@ -11,12 +15,17 @@ void main() {
     final enabled = ValueNotifier(true);
     addTearDown(enabled.dispose);
     await t.pumpWidget(
-      ValueListenableBuilder<bool>(
-        valueListenable: enabled,
-        builder: (context, on, _) => Row(
-          children: [
-            Button('Save', onPressed: on ? () {} : null),
-          ],
+      Theme(
+        data: const ThemeData.terminal(
+          Brightness.dark,
+        ).copyWith(handPointer: true),
+        child: ValueListenableBuilder<bool>(
+          valueListenable: enabled,
+          builder: (context, on, _) => Row(
+            children: [
+              Button('Save', onPressed: on ? () {} : null),
+            ],
+          ),
         ),
       ),
       size: (20, 1),
@@ -35,6 +44,23 @@ void main() {
     await t.mouse(MouseKind.move, 2, 0);
     await t.pump();
     expect(t.pointerShape, PointerShape.arrow);
+  });
+
+  testTwk("by the theme's default no hand, and no motion of the mouse asked "
+      'for', (t) async {
+    // a box to check, whose look the hover does not change
+    await t.pumpWidget(
+      Checkbox(value: false, onChanged: (_) {}, label: 'ok'),
+      size: (20, 1),
+      pointerShapes: true,
+    );
+    await t.mouse(MouseKind.move, 1, 0);
+    await t.pump();
+    expect(t.pointerShape, isNot(PointerShape.pointer));
+    expect(
+      (t.binding.twkApp.terminal as MouseTrackingBackend).mouseTracking,
+      isNot(MouseTracking.motion),
+    );
   });
 
   testTwk('a terminal that shows no pointer shapes is given none', (t) async {

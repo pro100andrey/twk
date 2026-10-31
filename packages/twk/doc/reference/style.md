@@ -28,6 +28,9 @@ selection of a list without the focus), `hover` (what the mouse is over),
 `onPrimary` (text on a `primary` fill), `shade` and `shadeAlpha` (a
 barrier's dimming: black at half on a dark theme, at 28 % on a light one);
 on a theme of palette colors each of the others is the slot it starts from;
+`handPointer` (false by default), the hand over what a click presses, where
+the terminal shows pointer shapes, which has it report every move of the
+mouse while such a control is on the screen;
 `theme.fill(color)` a fill of a color with text that reads on it
 (`onPrimary` on `primary`, else black or white by contrast), which a badge,
 a focused button, a lit tab and a cursor are in rather than reverse video;

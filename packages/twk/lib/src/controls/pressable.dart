@@ -28,7 +28,8 @@ import '../text/widgets.dart';
 /// focuses it, while it is enabled, and a tap over it calls [onTap] (see
 /// `GestureDetector`); while it is enabled with an [onTap], the pointer
 /// is the hand over it ([PointerShape.pointer], where the terminal shows
-/// pointer shapes). [builder] is called again as the focus comes and
+/// pointer shapes) if the theme asks for it
+/// ([ThemeData.handPointer]). [builder] is called again as the focus comes and
 /// goes.
 ///
 /// A control of its own, which Space and a click turn on and off, shown in
@@ -143,9 +144,11 @@ final class _PressableState extends State<Pressable> {
         hints: enabled ? widget.hints : const {},
         child: Listener(
           onDown: enabled ? _down : null,
-          // the hand where a click does something, as over a link
+          // the hand where a click does something, as over a link, where
+          // the theme asks for it
           child: MouseRegion(
-            cursor: enabled && widget.onTap != null
+            cursor:
+                enabled && widget.onTap != null && Theme.of(context).handPointer
                 ? PointerShape.pointer
                 : null,
             behavior: HitTestBehavior.deferToChild,

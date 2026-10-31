@@ -123,7 +123,9 @@ while `enabled` (disabled, Tab passes it by), `bindings` the keys it takes
 while it has it (as `KeyBindings` takes them, with their `hints`), a press
 of the left button over it focusing it and a tap calling `onTap`; enabled
 with an `onTap`, the pointer is the hand over it (`PointerShape.pointer`,
-where the terminal shows shapes), as over the buttons, boxes and switches
+where the terminal shows shapes) when the theme asks for it
+(`ThemeData.handPointer`, false by default: the hand has the terminal
+report every move of the mouse), as over the buttons, boxes and switches
 made of it.
 
 ## `Checkbox`
