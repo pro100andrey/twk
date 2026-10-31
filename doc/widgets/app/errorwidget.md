@@ -103,7 +103,6 @@ Widget build(BuildContext context) {
               const Text('61%', style: bold),
               LineGauge(
                 ratio: 0.61,
-                label: '',
                 type: .heavy,
                 filledStyle: theme.primary,
                 unfilledStyle: theme.border,

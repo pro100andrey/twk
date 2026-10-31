@@ -1307,7 +1307,6 @@ other'''),
                     Builder(
                       builder: (context) => LineGauge(
                         ratio: 1,
-                        label: '',
                         filledStyle: Theme.of(context).primary,
                       ),
                     ),

@@ -20,7 +20,7 @@ text
 │     DotCanvas                         ███████████▍                                       │   ascii                     │
 │     Calendar                   ·      ███████████▍      29%                        ·     │                             │
 │     Heatmap, ActivityHe…              ███████████▍                                       │  label                      │
-│     Table                      ·                                                   ·     │   own  ratio  none          │
+│     Table                      ·                                                   ·     │   own  percent  none        │
 │     DescriptionList                   used 29% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━           │                             │
 │     TreeView                   ·    └                                          ┘   ·     │  style             primary  │
 │     TreeTable                                                            40 × 5          │  ██ ██ ██ ██ ██             │
@@ -57,7 +57,7 @@ styles
 │aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBhhhhhhhhhhhphhizzzzzihhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhhhhAAAAAAAAAAAABBBBBBCCCBBBBBBBBBBBBBBBBBBBhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaoooooooooooaaahhhhhhhhhhhAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBhhhhhhhhhhhphhnnnnnhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooaaaaaaaaaaaaaaaaaahhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhxyyyxizzzzziizzzzihhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaaahhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhxyyyxizzzzzzziizzzzihhhhhhh│
 │aaaaaoooooooooooooooaaaaaaaahhhhhhhhhhhuuuuhuuuhEEEEEEEEEHHHHHHHHHHHHHHHHHHHHHHhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhhhphhnnnnnhhhhhhhhhhhhhOOOOOOOhh│
 │aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhOOhOhOhhhhhhhhhhphhqqhDDhEEhFFhGGhhhhhhhhhhhhh│

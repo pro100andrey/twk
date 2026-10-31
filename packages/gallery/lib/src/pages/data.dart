@@ -193,7 +193,7 @@ final _gauge = GalleryPage(
     const ChoiceOption(
       'label',
       'label',
-      values: ['own', 'ratio', 'none'],
+      values: ['own', 'percent', 'none'],
     ),
     const ColorOption('color', 'style', values: _colors, initial: 'primary'),
     const SwitchOption('segmented', 'segmented'),
@@ -216,12 +216,12 @@ final _gauge = GalleryPage(
     }
     final theme = Theme.of(context);
     final percent = '${(r * 100).round()}%';
-    // a label of its own, the ratio the gauges write (null), or none
-    final (gaugeLabel, lineLabel) = switch (o.choice<String>('label')) {
-      'own' => (percent, 'used $percent'),
-      'ratio' => (null, null),
-      _ => ('', ''),
-    };
+    // a label of its own, the percentage the gauges write, or none
+    final label = o.choice<String>('label');
+    final (gaugeLabel, lineLabel) = label == 'own'
+        ? (percent, 'used $percent')
+        : (null, null);
+    final percentage = label == 'percent';
     return SizedBox(
       width: _gaugeW,
       child: Column(
@@ -234,6 +234,7 @@ final _gauge = GalleryPage(
             child: Gauge(
               ratio: r,
               label: gaugeLabel,
+              percentage: percentage,
               style: o
                   .colorStyle(context, 'color')
                   .merge(Style(bg: theme.surface.bg)),
@@ -243,6 +244,7 @@ final _gauge = GalleryPage(
           LineGauge(
             ratio: r,
             label: lineLabel,
+            percentage: percentage,
             type: BorderType.values.byName(o.choice('line')),
             segmented: o.flag('segmented'),
             filledStyle: r > .9
@@ -295,7 +297,7 @@ final _gauge = GalleryPage(
       '          child: Gauge(',
       '            ratio: _ratio,',
       if (label == 'own') '            label: percent,',
-      if (label == 'none') "            label: '',",
+      if (label == 'percent') '            percentage: true,',
       codeLine([
         '            style: theme.${o.color('color')}',
         '.merge(.new(bg: theme.surface.bg)),',
@@ -306,7 +308,7 @@ final _gauge = GalleryPage(
       '        LineGauge(',
       '          ratio: _ratio,',
       if (label == 'own') r"          label: 'used $percent',",
-      if (label == 'none') "          label: '',",
+      if (label == 'percent') '          percentage: true,',
       '          type: .${o.label('line')},',
       if (o.flag('segmented')) '          segmented: true,',
       '          filledStyle: _ratio > .9',

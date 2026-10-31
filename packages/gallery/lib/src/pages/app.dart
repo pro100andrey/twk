@@ -430,7 +430,6 @@ final _error = GalleryPage(
       "              const Text('61%', style: bold),",
       '              LineGauge(',
       '                ratio: 0.61,',
-      "                label: '',",
       '                type: .heavy,',
       '                filledStyle: theme.primary,',
       '                unfilledStyle: theme.border,',
@@ -539,7 +538,6 @@ final class _CardsState extends TimedState<_Cards> {
                 const Text('61%', style: bold),
                 LineGauge(
                   ratio: 0.61,
-                  label: '',
                   type: BorderType.heavy,
                   filledStyle: theme.primary,
                   unfilledStyle: theme.border,
