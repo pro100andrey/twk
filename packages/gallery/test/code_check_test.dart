@@ -120,13 +120,80 @@ final class A {
     expect(w.dart, contains('\n// not code: {\nfinal class A {'));
   });
 
-  test('the packages a Code names are imported', () {
-    final w = wrap("return const MarkdownView('# hi');");
-    expect(w.dart, contains("import 'package:twk_rich/twk_rich.dart';"));
-    expect(w.dart, isNot(contains('twk_term')));
-    expect(
-      wrap('return TerminalView(session: s);').dart,
-      contains("import 'package:twk_term/twk_term.dart';"),
-    );
+  test('every package of the gallery is imported, whatever the Code names', () {
+    final w = wrap("return const Text('hi');");
+    for (final p in ['twk/twk', 'twk_rich/twk_rich', 'twk_rich/image']) {
+      expect(w.dart, contains("import 'package:$p.dart';"));
+    }
+    expect(w.dart, contains("import 'package:twk_term/twk_term.dart';"));
+  });
+
+  test('a main that is async, or Future<void>, runs as a program', () {
+    for (final main in [
+      'Future<void> main() async {',
+      'void main() async {',
+      'Future<void> main(List<String> args) async {',
+    ]) {
+      final w = wrap('''
+$main
+  await runApp(const Text('hi'));
+}''');
+      expect(w.mode, WrapMode.file, reason: main);
+      expect(w.dart, contains('_codeRunApp(const Text'), reason: main);
+    }
+  });
+
+  test('a console program is written as it is, beside the library', () {
+    const code = '''
+import 'package:twk/twk.dart';
+
+Future<void> main(List<String> args) => Cli.runWithArgs(args, create);
+
+Future<void> create(Cli cli) async {}''';
+    final w = wrap(code);
+    expect(w.mode, WrapMode.cli);
+    expect(w.files['lib/cli/create.dart'], '$code\n');
+    expect(w.dart, contains('program: program.create'));
+  });
+
+  test('a build after other members, @override above it, is members', () {
+    final w = wrap(r'''
+var _n = 0;
+
+void _up() => setState(() => _n++);
+
+@override
+Widget build(BuildContext context) => Text('$_n');''');
+    expect(w.mode, WrapMode.members);
+    expect(w.dart, contains('  void _up() => setState(() => _n++);'));
+  });
+
+  test("quotes inside a string's interpolation do not end it", () {
+    final w = wrap(r'''
+final label = 'at ${'x'.length} {';
+return Text(label);''');
+    expect(w.mode, WrapMode.body);
+    expect(w.dart, contains(r"    final label = 'at ${'x'.length} {';"));
+    expect(w.dart, contains('    return Text(label);'));
+  });
+
+  test("each line of the library knows the Code's line it was made from", () {
+    const code = '''
+var _saved = 0;
+
+@override
+Widget build(BuildContext context) => Button(
+  'Save',
+  onPressed: () => setState(() => _saved++),
+);''';
+    final w = wrap(code);
+    final lines = w.dart.split('\n');
+    int? codeLineOf(String text) =>
+        w.codeLines[lines.indexWhere((l) => l.contains(text))];
+    expect(codeLineOf('var _saved = 0;'), 1);
+    expect(codeLineOf("'Save',"), 5);
+    expect(codeLineOf('onPressed:'), 6);
+    expect(codeLineOf('Widget codeWidget()'), isNull);
+    expect(w.codeLines, hasLength(lines.length));
   });
 }

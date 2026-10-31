@@ -245,7 +245,10 @@ dart run tool/code_check.dart '#/controls/button?o=style:danger&keys=tab'
 It writes `.dart_tool/code_check/`: what the stages showed
 (`stages.json`), the package the Codes were made into (`gen/`) and
 `report.md`, a row a page and the first differing cells of each that
-differs. It fails where a Code does not compile, ends in an error or an
+differs, an error at the line of the Code it is on (`Code line 15:14`,
+where `wrap.dart` knew where each line of the library came from; the
+imports of twk, twk_rich, its image library and twk_term are given to
+every Code). It fails where a Code does not compile, ends in an error or an
 `ErrorWidget` it does not build, or differs from its stage, unless
 `tool/code_check/known.dart` says why it cannot agree (a Code that lists
 the directory it runs in, a run without the gallery's focus); a page of

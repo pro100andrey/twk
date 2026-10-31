@@ -44,8 +44,12 @@ void main(List<String> args) {
   Directory('${gen.path}/bin').createSync(recursive: true);
   _writePackage(gen.path);
 
-  // a library for each Code, by id
+  // a library for each Code, by id, and where in its Code each of its
+  // lines is (the library's first line is the route), by the file's path
+  // in the package
   final ids = <String, String>{};
+  final lines = <String, List<int?>>{};
+  final owners = <String, String>{};
   for (final (i, MapEntry(key: route, value: s)) in stages.entries.indexed) {
     if (s['code'] case final String code when s['cells'] != null) {
       final id = 'p${'$i'.padLeft(3, '0')}';
@@ -54,7 +58,13 @@ void main(List<String> args) {
       File(
         '${lib.path}/$id.dart',
       ).writeAsStringSync('// $route\n${wrapped.dart}\n');
+      lines['lib/$id.dart'] = [null, ...wrapped.codeLines];
       for (final MapEntry(key: path, value: text) in wrapped.files.entries) {
+        // a Code written as it is: its lines are the Code's
+        owners[path] = id;
+        lines[path] = [
+          for (var i = 1; i <= '\n'.allMatches(text).length + 1; i++) i,
+        ];
         File('${gen.path}/$path')
           ..parent.createSync(recursive: true)
           ..writeAsStringSync(text);
@@ -75,7 +85,7 @@ void main(List<String> args) {
     _copyDir(assets, Directory('${gen.path}/assets'));
   }
   _pubGet(gen.path);
-  final errors = _analyze(gen.path);
+  final errors = _analyze(gen.path, lines, owners);
 
   final entries = [
     for (final MapEntry(key: route, value: id) in ids.entries)
@@ -101,7 +111,7 @@ void main(List<String> args) {
 
   final rows = [
     for (final MapEntry(key: route, value: s) in stages.entries)
-      _row(route, s, ids[route], errors, results),
+      _row(route, s, ids[route], errors, results, lines),
   ];
   final seconds = DateTime.now().difference(started).inSeconds;
   final report = _report(rows, seconds);
@@ -177,6 +187,7 @@ _Row _row(
   String? id,
   Map<String, List<String>> errors,
   Map<String, Map<String, Object?>> results,
+  Map<String, List<int?>> lines,
 ) {
   final key = '${s['key'] ?? route}';
   _Row row(String status, [String cause = '', List<String> cells = const []]) =>
@@ -198,7 +209,10 @@ _Row _row(
   }
   final r = results[id];
   if (r == null || r['error'] != null || r['cells'] == null) {
-    return row('twk failed', '${r?['error'] ?? 'no result'}');
+    return row(
+      'twk failed',
+      _codePlaces('${r?['error'] ?? 'no result'}', lines),
+    );
   }
   if (r['errorWidgets'] case final List<Object?> w
       when !'${s['code']}'.contains('ErrorWidget')) {
@@ -439,8 +453,15 @@ void _pubGet(String dir) {
   throw StateError('dart pub get failed in $dir');
 }
 
-/// The errors `dart analyze` finds in the libraries of [dir], by id.
-Map<String, List<String>> _analyze(String dir) {
+/// The errors `dart analyze` finds in the libraries of [dir], by id, each
+/// at the line of the Code it is on where [lines] (by a file's path in
+/// the package, the Code's line of each of its lines) knows it; a Code
+/// written beside its library is its [owners]'.
+Map<String, List<String>> _analyze(
+  String dir,
+  Map<String, List<int?>> lines,
+  Map<String, String> owners,
+) {
   final r = Process.runSync('dart', [
     'analyze',
     '--format=machine',
@@ -453,12 +474,18 @@ Map<String, List<String>> _analyze(String dir) {
     if (f.length < 8 || f[0] != 'ERROR') {
       continue;
     }
-    final m = RegExp(r'/(p\d+)\.dart$').firstMatch(f[3]);
+    final m = RegExp(r'/lib/((p\d+)|cli/\w+)\.dart$').firstMatch(f[3]);
     if (m == null) {
       continue;
     }
-    (out[m[1]!] ??= []).add(
-      '${f[4]}:${f[5]} ${f.sublist(7).join('|').replaceAll(r'\', '')}',
+    final path = 'lib/${m[1]}.dart';
+    final id = m[2] ?? owners[path];
+    if (id == null) {
+      continue;
+    }
+    (out[id] ??= []).add(
+      '${_where(path, int.parse(f[4]), lines)}:${f[5]} '
+      '${f.sublist(7).join('|').replaceAll(r'\', '')}',
     );
   }
   return out;
@@ -477,3 +504,19 @@ void _run(String exe, List<String> args, {String? dir, bool tests = false}) {
     exit(1);
   }
 }
+
+/// Line [line] of [path] as the report names it: the Code's line where
+/// [lines] knows it, else the generated file's.
+String _where(String path, int line, Map<String, List<int?>> lines) {
+  final at = lines[path];
+  final code = at != null && line - 1 < at.length ? at[line - 1] : null;
+  return code != null ? 'Code line $code' : '$path line $line';
+}
+
+/// [text], a traceback of the Codes' run, its places in them named as
+/// [_where] names them.
+String _codePlaces(String text, Map<String, List<int?>> lines) =>
+    text.replaceAllMapped(
+      RegExp(r'package:code_check_gen/((p\d+)|cli/\w+)\.dart:(\d+)'),
+      (m) => _where('lib/${m[1]}.dart', int.parse(m[3]!), lines),
+    );
