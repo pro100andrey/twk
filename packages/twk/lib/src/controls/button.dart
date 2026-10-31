@@ -99,6 +99,7 @@ final class Button extends StatefulWidget {
     super.key,
     this.focusNode,
     this.autofocus = false,
+    this.canRequestFocus = true,
     this.style,
     this.focusedStyle,
     this.hoverStyle,
@@ -114,6 +115,7 @@ final class Button extends StatefulWidget {
     super.key,
     this.focusNode,
     this.autofocus = false,
+    this.canRequestFocus = true,
     this.style,
     this.tall = false,
   }) : focusedStyle = null,
@@ -129,6 +131,7 @@ final class Button extends StatefulWidget {
     super.key,
     this.focusNode,
     this.autofocus = false,
+    this.canRequestFocus = true,
     this.style,
     this.tall = false,
   }) : focusedStyle = null,
@@ -154,6 +157,21 @@ final class Button extends StatefulWidget {
 
   /// See [Focus.autofocus].
   final bool autofocus;
+
+  /// See [Focus.canRequestFocus]: false for a button of the mouse only,
+  /// which Tab passes by and a press of the mouse does not focus (a click
+  /// still presses it). With a [style] without a chip it is a flat
+  /// clickable word that takes no part in the focus.
+  ///
+  /// ```dart
+  /// Button(
+  ///   'reset',
+  ///   canRequestFocus: false,
+  ///   style: const Style(attrs: Attr.underline),
+  ///   onPressed: () => print('reset'),
+  /// )
+  /// ```
+  final bool canRequestFocus;
 
   /// The button at rest; [ThemeData.primary] in bold on
   /// [ThemeData.surface] when null, or on a chip lifted from the surface
@@ -198,6 +216,7 @@ final class _ButtonState extends State<Button> {
       enabled: enabled,
       focusNode: widget.focusNode,
       autofocus: widget.autofocus,
+      canRequestFocus: widget.canRequestFocus,
       bindings: {'enter': _press, 'space': _press},
       hints: const {'enter': 'press'},
       onTap: enabled ? (_) => _press() : null,

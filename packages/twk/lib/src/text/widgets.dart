@@ -146,6 +146,9 @@ final class Text extends LeafRenderObjectWidget {
   /// stretched to the whole width.
   final TextAlign align;
 
+  /// For a click on a phrase that is not a URL, [Span.tap] on the span
+  /// instead.
+  ///
   /// Told the link ([Style.link]) of the text clicked on: the left button
   /// pressed and released on the same cell, of a cluster whose style
   /// links it; a click beside the text, on text that links nowhere, or
@@ -200,15 +203,23 @@ final class Text extends LeafRenderObjectWidget {
   void _tellTaps(BuildContext context, RenderParagraph paragraph) {
     final onLinkTap = this.onLinkTap;
     final taps = _linkTaps[paragraph];
-    if (onLinkTap == null) {
+    final spans = this.spans;
+    final tapped = spans != null && spans.any((s) => s.onTap != null);
+    if (onLinkTap == null && !tapped) {
       if (taps != null) {
         _linkTaps[paragraph] = null;
         stopListeningOver(paragraph);
       }
     } else if (taps != null) {
-      taps.onLinkTap = onLinkTap;
+      taps
+        ..onLinkTap = onLinkTap
+        ..spans = spans;
     } else {
-      final taps = _linkTaps[paragraph] = _LinkTaps(paragraph, onLinkTap);
+      final taps = _linkTaps[paragraph] = _LinkTaps(
+        paragraph,
+        onLinkTap,
+        spans,
+      );
       listenOver(context, paragraph, taps.listener);
     }
   }
@@ -270,10 +281,14 @@ final _linkTaps = Expando<_LinkTaps>('Text.onLinkTap');
 /// What tells [onLinkTap] the links clicked on in [paragraph]: the
 /// [listener] of its presses and releases.
 final class _LinkTaps {
-  _LinkTaps(this.paragraph, this.onLinkTap);
+  _LinkTaps(this.paragraph, this.onLinkTap, this.spans);
 
   final RenderParagraph paragraph;
-  void Function(String url) onLinkTap;
+  void Function(String url)? onLinkTap;
+
+  /// The spans of the text as given, for their [Span.onTap]; null for a
+  /// string.
+  List<Span>? spans;
 
   late final listener = RenderListener(onDown: _down, onUp: _up);
 
@@ -289,8 +304,24 @@ final class _LinkTaps {
     if (event.button != 0 || pressed != (event.x, event.y)) {
       return;
     }
-    if (_linkAt(event.x, event.y) case final url?) {
-      onLinkTap(url);
+    final (start, end) = paragraph.textRangeAt(event.x, event.y);
+    if (start == end) {
+      return;
+    }
+    // the spans as given hold the same text as the paragraph's, which
+    // gradients and a selection only cut in more pieces
+    var at = 0;
+    for (final span in spans ?? const <Span>[]) {
+      at += span.text.length;
+      if (start < at) {
+        span.onTap?.call();
+        break;
+      }
+    }
+    if (onLinkTap case final onLinkTap?) {
+      if (_linkAt(event.x, event.y) case final url?) {
+        onLinkTap(url);
+      }
     }
   }
 

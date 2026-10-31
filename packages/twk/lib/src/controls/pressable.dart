@@ -57,6 +57,7 @@ final class Pressable extends StatefulWidget {
     required this.builder,
     super.key,
     this.enabled = true,
+    this.canRequestFocus = true,
     this.bindings = const {},
     this.hints = const {},
     this.onKeyEvent,
@@ -70,6 +71,12 @@ final class Pressable extends StatefulWidget {
 
   /// Whether it can take the focus and the presses.
   final bool enabled;
+
+  /// Whether it can take the focus while [enabled]: false makes it a
+  /// control of the mouse only, Tab passes it by and a press of the mouse
+  /// leaves the focus where it was (a tap still calls [onTap]). As
+  /// `Focus.canRequestFocus`.
+  final bool canRequestFocus;
 
   /// The keys it takes while it has the focus, as `KeyBindings` takes them.
   final Map<String, VoidCallback?> bindings;
@@ -126,7 +133,7 @@ final class _PressableState extends State<Pressable> {
   void _changed() => setState(() {});
 
   void _down(PointerEvent event) {
-    if (event.button == 0) {
+    if (event.button == 0 && widget.canRequestFocus) {
       _node.requestFocus();
     }
   }
@@ -137,7 +144,7 @@ final class _PressableState extends State<Pressable> {
     return Focus(
       focusNode: _node,
       autofocus: widget.autofocus,
-      canRequestFocus: enabled,
+      canRequestFocus: enabled && widget.canRequestFocus,
       onKeyEvent: widget.onKeyEvent,
       child: KeyBindings(
         enabled ? widget.bindings : const {},
