@@ -38,6 +38,12 @@ joinKeys: false` names each key as `KeyCombo.toString` does, apart), and
 while a layer holds its first keys what can follow them (`ctrl+s save` once
 Ctrl+X is pressed).
 
+`showKeyHelp(context, title: 'Keys')` shows the same keys, those in force
+where `context` is as it is called, in a dialog (`Dialog(scrollable:
+true)`), a line each: the keys in bold (`KeyHintsBar.entries`, the nearest
+layer's first), their hint after them, a column apart; Escape or a click
+outside closes it. Bound to `?` it is a screen's help.
+
 ## `StatusMessage`
 
 `StatusMessage(message, kind:, title:, icon:, …)`, a message after the icon

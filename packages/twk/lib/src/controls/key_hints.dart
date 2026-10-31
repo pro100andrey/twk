@@ -1,12 +1,19 @@
 /// What can be pressed now: [KeyHintsBar].
 library;
 
-import 'package:twk_core/twk_core.dart' show Attr, KeyCode;
+import 'package:twk_core/twk_core.dart' show Attr, KeyCode, stringWidth;
 
+import '../binding/app_binding.dart' show AppBinding;
 import '../focus/focus.dart';
 import '../framework/framework.dart';
+import '../layout/basic.dart' show SizedBox;
+import '../layout/flex.dart';
+import '../overlay/dialog.dart';
 import '../style/style.dart';
 import '../text/widgets.dart';
+
+// Examples can assume:
+// late BuildContext context;
 
 /// A row of the keys that can be pressed now, each before its hint:
 /// `ctrl+s save   q quit`.
@@ -251,4 +258,64 @@ final class _KeyHintsBarState extends State<KeyHintsBar> {
       style: theme.text.merge(widget.style ?? const Style()),
     );
   }
+}
+
+/// Shows the keys in force where [context] is, with their hints, in a
+/// dialog titled [title]: the keys a [KeyHintsBar] would show there, one a
+/// line, as [KeyHintsBar.entries] makes them, the nearest layer's first,
+/// the key in bold and its hint after it. A list taller than the screen
+/// scrolls. The keys are those in force as it is called, before the
+/// dialog takes the focus; Escape or a click outside closes it.
+///
+/// A help key that shows what the screen's keys do:
+///
+/// ```dart
+/// KeyBindings(
+///   {'ctrl+s': () {}, '?': () => showKeyHelp(context)},
+///   hints: const {'ctrl+s': 'save', '?': 'help'},
+///   child: const Focus(autofocus: true, child: Text('editor')),
+/// )
+/// ```
+Future<void> showKeyHelp(BuildContext context, {String title = 'Keys'}) {
+  final entries = KeyHintsBar.entries(
+    AppBinding.of(context).focusManager.activeKeys,
+  );
+  var widest = 0;
+  for (final (keys, _) in entries) {
+    final w = stringWidth(keys);
+    if (w > widest) {
+      widest = w;
+    }
+  }
+  return showDialog<void>(
+    context,
+    (context) {
+      final theme = Theme.of(context);
+      return Dialog(
+        title: title,
+        scrollable: true,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final (keys, hint) in entries)
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                gap: 2,
+                children: [
+                  SizedBox(
+                    width: widest,
+                    child: Text(
+                      keys,
+                      style: theme.text.merge(const Style(attrs: Attr.bold)),
+                    ),
+                  ),
+                  Text(hint ?? '', style: theme.muted),
+                ],
+              ),
+          ],
+        ),
+      );
+    },
+  );
 }
