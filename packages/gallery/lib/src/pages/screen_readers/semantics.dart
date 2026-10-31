@@ -1,11 +1,5 @@
-// The Screen readers group of the gallery.
-import 'package:twk/twk.dart';
-
-import '../page.dart';
-import 'kit/kit.dart';
-
-/// The pages of the Screen readers group that draw.
-final List<GalleryPage> screenReaderPages = [_semantics];
+// The Semantics page.
+part of 'screen_readers.dart';
 
 /// The form's column.
 const _fw = 19;
@@ -15,6 +9,7 @@ const int _w = _fw + 2 + 35;
 
 /// The popup's lines.
 const _covered = 'the page under it';
+
 const _over = 'the notice on top';
 
 final _semantics = GalleryPage(
