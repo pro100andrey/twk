@@ -19,6 +19,7 @@ final class Probe extends RenderObject {
   final int pen;
   final bool boundary;
   var paints = 0;
+  var layouts = 0;
   Error? throwOnPaint;
 
   /// When each paint began, in microseconds on the clock given, by
@@ -32,6 +33,7 @@ final class Probe extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
+    layouts++;
     width = c.maxW;
     height = c.maxH;
   }
@@ -162,12 +164,14 @@ void main() {
     RenderObject root,
     void Function(InputEvent e) onEvent, {
     void Function()? beforeLayout,
+    bool Function()? afterLayout,
     void Function()? afterPresent,
   }) => clock.run(
     () => app.run(
       root,
       onEvent,
       beforeLayout: beforeLayout,
+      afterLayout: afterLayout,
       afterPresent: afterPresent,
     ),
   );
@@ -242,6 +246,57 @@ void main() {
     app.quit();
     await clock.elapseUntil(done);
   });
+
+  test('afterLayout lays the tree out again while it says it changed it, '
+      'up to three times, before the one paint', () async {
+    start();
+    var calls = 0;
+    var want = 2;
+    final done = runOnClock(
+      app,
+      probe,
+      (_) {},
+      afterLayout: () {
+        calls++;
+        if (want == 0) {
+          return false;
+        }
+        want--;
+        probe.markNeedsLayout();
+        return true;
+      },
+    );
+    await pass();
+    // two changes, then the call that says none; one paint
+    expect((calls, probe.paints, probe.layouts), (3, 1, 3));
+    app.quit();
+    await clock.elapseUntil(done);
+  });
+
+  test(
+    'afterLayout asking for ever more is cut at three more layouts',
+    () async {
+      start();
+      final seen = <int>[];
+      final done = runOnClock(
+        app,
+        probe,
+        (_) {},
+        afterLayout: () {
+          if (probe.paints == 0) {
+            seen.add(probe.layouts);
+          }
+          probe.markNeedsLayout();
+          return true;
+        },
+      );
+      await pass(1);
+      expect(seen.take(3), [1, 2, 3], reason: 'three asks, then the paint');
+      expect(probe.layouts, greaterThanOrEqualTo(4));
+      app.quit();
+      await clock.elapseUntil(done);
+    },
+  );
 
   test('in the inline mode beforeLayout runs before the region is sized: '
       'the first frame fits what it adds', () async {
