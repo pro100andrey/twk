@@ -9,7 +9,7 @@ import 'debugging/debugging.dart';
 import 'editing/editing.dart';
 import 'focus/focus.dart';
 import 'foundation/foundation.dart';
-import 'framework.dart';
+import 'framework/framework.dart';
 import 'images.dart';
 import 'layout.dart';
 import 'mouse.dart';
