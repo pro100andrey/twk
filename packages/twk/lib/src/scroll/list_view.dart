@@ -209,6 +209,7 @@ final class ListView extends StatelessWidget {
     this.autofocus = false,
     this.canRequestFocus,
     this.wheelAcceleration = WheelAcceleration.none,
+    this.physics,
     this.keyHints = true,
     this.reverse = false,
   }) : itemCount = children.length,
@@ -249,6 +250,7 @@ final class ListView extends StatelessWidget {
     this.autofocus = false,
     this.canRequestFocus,
     this.wheelAcceleration = WheelAcceleration.none,
+    this.physics,
     this.keyHints = true,
     this.reverse = false,
     ChildIndexGetter? findChildIndexCallback,
@@ -285,6 +287,7 @@ final class ListView extends StatelessWidget {
     this.autofocus = false,
     this.canRequestFocus,
     this.wheelAcceleration = WheelAcceleration.none,
+    this.physics,
     this.keyHints = true,
     this.reverse = false,
     this.findItemIndexCallback,
@@ -355,6 +358,9 @@ final class ListView extends StatelessWidget {
   /// See [Scrollable.wheelAcceleration].
   final WheelAcceleration wheelAcceleration;
 
+  /// See [Scrollable.physics].
+  final ScrollPhysics? physics;
+
   /// Whether the keys that would scroll it carry their hints, for a
   /// `KeyHintsBar`, true by default: none while all of it is in the window
   /// ([Scrollable.keyHints]).
@@ -384,6 +390,7 @@ final class ListView extends StatelessWidget {
       autofocus: autofocus,
       canRequestFocus: canRequestFocus,
       wheelAcceleration: wheelAcceleration,
+      physics: physics,
       keyHints: keyHints,
       reverse: reverse,
       viewportBuilder: (context, position) {

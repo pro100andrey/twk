@@ -478,6 +478,40 @@ final class OverscrollNotification extends ScrollNotification {
       '$metrics)';
 }
 
+/// Whether a scrollable takes what the user does to it: the wheel and the
+/// keys. [Scrollable.physics] and `ListView.physics` take one; none given
+/// is [ScrollPhysics] itself, which takes all of it.
+///
+/// A view that does not take the wheel leaves it to the scrollable around
+/// it, as Flutter's `NeverScrollableScrollPhysics` does:
+///
+/// ```dart
+/// ListView(
+///   physics: const NeverScrollableScrollPhysics(),
+///   children: const [Text('one'), Text('two')],
+/// )
+/// ```
+@immutable
+class ScrollPhysics {
+  /// Physics that accept the user's scrolling.
+  const ScrollPhysics();
+
+  /// Whether the wheel and the keys of the user move a view that is at
+  /// [metrics]. The position still moves by a [ScrollController], by
+  /// [ScrollPosition.jumpTo] and by a scrollbar.
+  bool shouldAcceptUserOffset(ScrollMetrics metrics) => true;
+}
+
+/// A view that the user cannot scroll with the wheel or the keys: the
+/// wheel over it goes to the scrollable around it, if there is one.
+final class NeverScrollableScrollPhysics extends ScrollPhysics {
+  /// Physics that never accept the user's scrolling.
+  const NeverScrollableScrollPhysics();
+
+  @override
+  bool shouldAcceptUserOffset(ScrollMetrics metrics) => false;
+}
+
 /// How far a notch of the wheel scrolls a [Scrollable] as the notches come
 /// faster: [Scrollable.wheelStep] cells times a factor, what it scrolls
 /// past a whole cell carried on to the next notch. A notch on its own has
@@ -605,6 +639,7 @@ final class Scrollable extends StatefulWidget {
     this.autofocus = false,
     this.canRequestFocus,
     this.wheelAcceleration = WheelAcceleration.none,
+    this.physics,
     this.keyHints = true,
     this.reverse = false,
     super.key,
@@ -631,6 +666,10 @@ final class Scrollable extends StatefulWidget {
 
   /// How much further the notches of the wheel scroll as they come faster.
   final WheelAcceleration wheelAcceleration;
+
+  /// Whether it takes the wheel and the keys; null takes both. Not taking
+  /// the wheel, it goes to the scrollable around.
+  final ScrollPhysics? physics;
 
   /// See [Focus.focusNode].
   final FocusNode? focusNode;
@@ -756,7 +795,8 @@ final class _ScrollableState extends State<Scrollable> {
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
     if (event.kind == KeyKind.release ||
         event.modifiers != 0 ||
-        !node.hasFocus) {
+        !node.hasFocus ||
+        !_userScrolls) {
       return KeyEventResult.ignored;
     }
     final delta = _deltaOf(event.code);
@@ -793,7 +833,8 @@ final class _ScrollableState extends State<Scrollable> {
   bool _takes(String key) {
     final delta = _deltaOf(_codes[key]!);
     final p = _position;
-    return delta != null &&
+    return _userScrolls &&
+        delta != null &&
         delta != 0 &&
         p._clamp(p._offset + delta) != p._offset;
   }
@@ -826,6 +867,9 @@ final class _ScrollableState extends State<Scrollable> {
     'home': 'the ends',
     'end': 'the ends',
   };
+
+  bool get _userScrolls =>
+      widget.physics?.shouldAcceptUserOffset(_position.metrics) ?? true;
 
   void _onWheel(PointerEvent event) {
     final way = _position.axis == Axis.vertical || event.scrollX == 0
@@ -894,7 +938,7 @@ final class _ScrollableState extends State<Scrollable> {
     final bar = bars?.slotOf(_position.axis);
     _claim(bar);
     final viewport = Listener(
-      onScroll: _onWheel,
+      onScroll: _userScrolls ? _onWheel : null,
       scrollAxis: _position.axis,
       child: widget.viewportBuilder(context, _position),
     );

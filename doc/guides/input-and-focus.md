@@ -205,8 +205,30 @@ Detectors one inside another compete for a press: each gesture goes to
 the deepest one with a callback for it, and a press is one gesture, so
 when the inner one takes the tap the outer one gets nothing of it. A press
 of a button the inner one has no callback for goes to the outer one.
-Below, a tap on the inner card says `inner`, one on the outer card's
-border `outer`, and F2 says whether the search field has the focus.
+A tap on the outer card's padding says nothing: a `Box` without a
+`style` background is hit on its border and its child alone, as Flutter's
+`DecoratedBox` is, so `GestureDetector(behavior: HitTestBehavior.opaque)`
+takes the cells between. Below, a tap on the inner card says `inner`, one
+on the outer card's border `outer`, and F2 says whether the search field
+has the focus.
+
+To see a press the inner detector takes, put a `Listener` (`onDown:`,
+`onUp:`) around it: a `Listener` is not in the competition and gets every
+press hit in it, as in Flutter, the deepest first. It is the answer for a
+parent that counts clicks itself, or that has to know of a tap anyway.
+
+The terminal reports the mouse by mode for the whole app, not by area:
+presses and the wheel (1000) for taps and `onScroll`, motion with a button
+held (1002) for drags, all motion (1003) for `onHover`, `onEnter`,
+`onExit`, `onMove`, a `MouseRegion`'s `cursor` where the terminal shows
+the pointer's shape, and a `Button`'s hover look. One of them anywhere in
+the app turns 1003 on everywhere. The hand over what a click presses is
+off by default (`ThemeData.handPointer`), so a checkbox or a link asks for
+presses alone.
+
+A `ListView` or `Scrollable` that should leave the wheel (and the keys) to
+the view around takes `physics: const NeverScrollableScrollPhysics()`; its
+controller still moves it.
 
 <!-- file: packages/twk/example/guides/who.dart -->
 ```dart

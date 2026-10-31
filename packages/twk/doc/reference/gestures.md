@@ -49,7 +49,10 @@ is mounted, from the frame that mounts the first to the one that unmounts
 the last, as little as their callbacks need (the core's `MouseTracking`):
 presses, releases and the wheel (mode 1000) for `onDown`, `onUp` and
 `onScroll`, motion with a button held (1002) for `onDrag`, all motion (1003)
-for `onMove` and a `MouseRegion`; meanwhile the terminal's selection and
+for `onMove` and a `MouseRegion`; the mode is the terminal's, for the whole app, not for an area: one
+`MouseRegion` with a callback or a shown `cursor`, or a `Button`, has all motion
+reported everywhere, and `ThemeData.handPointer` (off by default) is what keeps
+controls from asking for it; meanwhile the terminal's selection and
 wheel work in an app that uses no mouse. In the inline mode the mouse stays
 the terminal's.
 
@@ -84,7 +87,10 @@ the same button then is a double tap, else `onTap` is told of the first
 before any gesture that follows. Detectors one inside another compete for a
 press: each gesture goes to the deepest that recognises it (a callback for
 it and, for a tap or a long press, the mouse over it), and a press is one
-gesture. The intervals are timers of the app's zone, which a test moves with
+gesture; a `Listener` around them is not in the competition and gets
+every press hit in it. A `Box` without a background is hit on its border and
+its child only, so the cells of its padding reach a detector around it with
+`behavior: HitTestBehavior.opaque` alone. The intervals are timers of the app's zone, which a test moves with
 `t.pump(duration)`; while it has a callback the terminal reports presses and
 releases, and motion with a button held for a long press or a drag.
 
