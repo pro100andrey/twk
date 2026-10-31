@@ -17,12 +17,14 @@ extension on _SampleAppState {
             child: StatusBar(left: Text('mode'), right: Text('Ln 1')),
           ),
           Overlay(child: _Choices()),
-          Expanded(child: KeyHintsBar(showUnhinted: true)),
         ],
       ),
     ),
+    // a row of its own: the row above leaves it none
+    KeyHintsBar(showUnhinted: true),
     SizedBox(
-      height: 2,
+      // the file picker's field, a row of its list and its buttons
+      height: 3,
       child: Row(
         gap: 2,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -161,7 +163,8 @@ final class _ChoicesState extends State<_Choices> {
         onChanged: (v) => setState(() => _radio = v),
       ),
       SizedBox(
-        width: 5,
+        // a mark and the item's label
+        width: 6,
         child: SelectionList<int>(
           itemCount: 3,
           keyOf: (i) => i,

@@ -502,4 +502,35 @@ void main() {
       [0, 0, 0, 0],
     );
   });
+
+  test('a viewport given no rows for content is reported once, in debug; '
+      'one with no content is not', () {
+    final records = <LogRecord>[];
+    final viewport = RenderViewport(child: Lines(3));
+    final empty = RenderViewport(child: Lines(0));
+    final v = View(
+      10,
+      1,
+      RenderFlex(
+        direction: Axis.vertical,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [Lines(1), viewport, empty],
+      ),
+    );
+    // each would take the column's row; flexible, they get what is left
+    for (final o in [viewport, empty]) {
+      (o.parentData as FlexParentData).flex = 1;
+    }
+    v.owner.onLog = records.add;
+    v.frame();
+    viewport.markNeedsLayout();
+    v.frame();
+    var asserts = false;
+    assert(asserts = true, 'debug only');
+    const warning =
+        'A RenderViewport was given 0 rows for 3 rows of content and shows '
+        'none of it: in a Column the children beside it took every one (put '
+        'it in an Expanded).';
+    expect([for (final r in records) r.message], [if (asserts) warning]);
+  });
 }

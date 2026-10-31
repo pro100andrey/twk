@@ -732,4 +732,36 @@ void main() {
     ]);
     expect(v.show(column), ['a', 'xxxx', 'xxxx', 'yyyy', 'yyyy']);
   });
+
+  test('a flexible child that would show something, left no cells by the '
+      'others, is reported once, in debug; one that asks for none, as a '
+      'Spacer, is not', () {
+    final v = View(4, 1);
+    final records = <LogRecord>[];
+    v.owner.onLog = records.add;
+    final wants = Probe(maxW: 2);
+    final spacer = Probe();
+    final row = RenderFlex(children: [Label('abcd'), spacer, wants]);
+    flexible(wants, 1);
+    flexible(spacer, 1);
+    v.show(row);
+    row.markNeedsLayout();
+    v.frame();
+    var asserts = false;
+    assert(asserts = true, 'debug only');
+    expect(
+      [for (final r in records) (r.level, r.message)],
+      [
+        if (asserts)
+          (
+            LogLevel.warning,
+            'A RenderFlex gave a flexible child, a Probe, 0 columns of its 4, '
+                'which the inflexible children took: it shows nothing of the 2 '
+                'columns it would. Give those children less, or the flexible '
+                'one a size.',
+          ),
+      ],
+    );
+    expect(v.rows(), ['abcd']);
+  });
 }

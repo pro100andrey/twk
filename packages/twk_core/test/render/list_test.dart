@@ -804,6 +804,39 @@ void main() {
       );
     });
   });
+
+  test('a list of items given no rows is reported once, in debug; an empty '
+      'one is not', () {
+    final records = <LogRecord>[];
+    final items = Items();
+    final three = list(items, 3);
+    final empty = list(Items(), 0);
+    final v = View(
+      10,
+      1,
+      RenderFlex(
+        direction: Axis.vertical,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [Block('top', 1), three, empty],
+      ),
+    );
+    // each would take the column's row; flexible, they get what is left
+    for (final l in [three, empty]) {
+      (l.parentData as FlexParentData).flex = 1;
+    }
+    v.owner.onLog = records.add;
+    v.frame();
+    three.markNeedsLayout();
+    v.frame();
+    var asserts = false;
+    assert(asserts = true, 'debug only');
+    const warning =
+        'A RenderList of 3 items was given 0 rows and shows none of them: '
+        'in a Column the children beside it took every row (put it in an '
+        'Expanded); inline, a list asks for no rows (give it a height with '
+        'a SizedBox).';
+    expect([for (final r in records) r.message], [if (asserts) warning]);
+  });
 }
 
 /// Builds item i as a [Block] like [Items], and leaves an item it is told

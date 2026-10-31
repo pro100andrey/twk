@@ -52,7 +52,8 @@ extension on _SampleAppState {
       ),
     ),
     SizedBox(
-      height: 3,
+      // the steps, the subtitle, a row of content and the buttons
+      height: 4,
       child: Stepper(
         steps: [
           Step(
