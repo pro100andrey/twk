@@ -13,7 +13,7 @@ import 'framework/framework.dart';
 import 'images/images.dart';
 import 'layout/layout.dart';
 import 'mouse/mouse.dart';
-import 'navigation.dart';
+import 'navigation/navigation.dart';
 import 'overlays.dart';
 import 'rich.dart';
 import 'screen_readers.dart';
