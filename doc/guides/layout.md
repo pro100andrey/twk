@@ -125,6 +125,28 @@ Where the room has an end, the same widgets take all of it.
   often no `Align` to write: `crossAxisAlignment: .start` of the `Row` or
   `Column` places its children across it, `mainAxisAlignment` along it.
 
+## A row of a list
+
+A row with a label that gives way and something fixed after it needs no
+`LayoutBuilder` and no measuring of text: `Row(children: [Expanded(child:
+Text.line(label)), Text(' 12 KB')])`. The `Row` gives the fixed child its
+width, `Expanded` the label the rest, and `Text.line` cuts it with `…` in
+cells (wide letters whole; `Text.richLine` for spans). Columns of fixed
+widths are the same with `SizedBox(width: n, child: Text.line(…))`, a
+number aligned right `Text(n, align: .right, wrap: .none)`. Several rows
+that share their columns, with a header, sorting and a cursor, are a
+`Table`. The cursor's `▎` bar, the idle selection and the keys come from
+`SelectionList` (`itemBuilder` builds the row), a title over a subtitle
+with something before and after from `ListTile`.
+
+A list that loads more near its end, or shows where it is, listens to the
+scrolling as Flutter's does: a `NotificationListener<ScrollUpdateNotification>`
+above it reads `metrics.extentAfter` (cells of content after the window;
+`atEnd`) of the keys, the wheel, a `ScrollController` and a
+`ListController` moving it, a `SelectionList`'s cursor too. A list that
+all fits sends none, so ask for the first page by the size of what is
+loaded.
+
 ## Limits and the room
 
 `SizedBox` gives one size. `ConstrainedBox` keeps its child within limits

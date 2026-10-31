@@ -46,7 +46,8 @@ typedef ChildIndexGetter = int? Function(Key key);
 /// out, the later wins. Given to no list, it keeps the last move to an
 /// item asked for until it is given to one, which makes that move as it is
 /// first laid out, in place of its [initialOffset]; a [jumpTo] meanwhile
-/// drops it.
+/// drops it. A move to an item that changes the offset sends a
+/// [ScrollUpdateNotification] up, as a [jumpTo] does.
 ///
 /// A list of a thousand items that opens at item 500:
 ///
@@ -658,12 +659,17 @@ final class _ListElement extends RenderObjectElement
     _toTop = null;
     final p = _position!;
     if (!widget.view.reverse) {
-      p.applyExtents(viewport, content, offset: offset);
+      p.applyExtents(viewport, content, offset: offset, moved: toItem);
     } else if (!p.hasExtents && p.offset > 0 && !toItem) {
       p.applyExtents(viewport, content);
     } else {
       final max = content - viewport > 0 ? content - viewport : 0;
-      p.applyExtents(viewport, content, offset: max - offset);
+      p.applyExtents(
+        viewport,
+        content,
+        offset: max - offset,
+        moved: toItem,
+      );
     }
   }
 

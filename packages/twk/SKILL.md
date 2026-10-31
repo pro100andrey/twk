@@ -709,6 +709,12 @@ What to know:
 - Give generic widgets their type argument: `Table<Entry>(rows:,
   columns: [TableColumn(cell: (e) => …)])`. Columns written inside the
   call get no type from `rows`, and `e.name` does not analyze.
+- A list row, a label cut with `…` and something fixed after it, is
+  `Row(children: [Expanded(child: Text.line(label)), Text(size)])`;
+  columns are `SizedBox(width: n, child: Text.line(…))`; no `LayoutBuilder`
+  or `stringWidth`. A list loads more near its end with a
+  `NotificationListener<ScrollUpdateNotification>` above it reading
+  `metrics.extentAfter` (`doc/guides/layout.md`, "A row of a list").
 - `ListView`, `Table`, `TreeView`, `SelectionList` and `Navigator` take
   all the room they get. In a `Column` put them in `Expanded`, or they
   take the whole height and push the rest off the screen (a

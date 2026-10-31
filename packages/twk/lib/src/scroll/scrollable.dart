@@ -234,8 +234,17 @@ final class ScrollPosition with ChangeNotifier {
   /// partly estimated) gives the [offset] it settled at, which the position
   /// takes without a [ScrollUpdateNotification], and which keeps to the end
   /// itself: one that does not, while it sticks to the end and showed it,
-  /// goes to the new end instead (offset 0 in [reverse]).
-  void applyExtents(int viewport, int content, {int? offset}) {
+  /// goes to the new end instead (offset 0 in [reverse]). With [moved], the
+  /// settling is the end of a move the scrollable was asked for (to an
+  /// item): when it leaves the offset other than it was, that is a move,
+  /// and sends a [ScrollUpdateNotification] up.
+  void applyExtents(
+    int viewport,
+    int content, {
+    int? offset,
+    bool moved = false,
+  }) {
+    final before = _offset;
     final max = content - viewport > 0 ? content - viewport : 0;
     final changed =
         !_hasExtents || viewport != _viewportExtent || max != _maxOffset;
@@ -248,6 +257,14 @@ final class ScrollPosition with ChangeNotifier {
     if (changed || to != _offset) {
       _offset = to;
       notifyListeners();
+    }
+    final state = _state;
+    if (moved && _offset != before && state != null && state.mounted) {
+      ScrollUpdateNotification(
+        metrics: metrics,
+        context: state.context,
+        scrollDelta: _offset - before,
+      ).dispatch(state.context);
     }
   }
 
