@@ -17,23 +17,23 @@ text
 │ ▎   TextArea              ▐                                                              │  max lines                  │
 │     Autocomplete          ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   none  3  6                │
 │                           ▐         ┌                                          ┐         │                             │
-│   CONTROLS            20  ▐    ·      ╭──────────────────────────────────────╮     ·     │  enter                      │
+│   CONTROLS            22  ▐    ·      ╭──────────────────────────────────────╮     ·     │  enter                      │
 │     Button                            │Notes wrap at the width of the area,  │           │   breaks the line           │
 │     Pressable                  ·      │between words.                        │     ·     │   submits                   │
 │     Checkbox, Switch                  │Enter breaks a line.                  │           │                             │
 │     RadioGroup                 ·      ╰──────────────────────────────────────╯     ·     │  cursor                     │
 │     SegmentedButton                                                                      │   bar  block  underline     │
-│     SelectionList              ·      line 2 of 2, column 21                       ·     │   terminal                  │
-│     Select, MultiSelect             └                                          ┘         │                             │
-│     ConfirmInput               ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   · 40 × 7·   ·     │  blinking            ▐●  ▌  │
+│     Chip, ChipList             ·      line 2 of 2, column 21                       ·     │   terminal                  │
+│     ValueStepper                    └                                          ┘         │                             │
+│     SelectionList              ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   · 40 × 7·   ·     │  blinking            ▐●  ▌  │
+│     Select, MultiSelect                                                                  │                             │
+│     ConfirmInput               ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  read only           ▐●  ▌  │
 │     Slider                                                                               │                             │
-│     NumberInput                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  read only           ▐●  ▌  │
+│     NumberInput                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  enabled             ▐  ●▌  │
 │     DatePicker                                                                           │                             │
-│     FilePicker                 ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  enabled             ▐  ●▌  │
+│     FilePicker                 ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     Form, FormField                                                                      │                             │
 │     TabBar, TabView            ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     KeyHintsBar                                                                          │                             │
-│     StatusMessage, Badge       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │                                                                                          │                             │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
 styles
@@ -60,17 +60,17 @@ styles
 │aaaaaoooooooooaooooooaaaaaaahhhhhhhhhhhwEEEEEhEEEEEEhEhEEEEEhhhhhhhhhhhhhhhhhhwhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooaaaaaaaaaaaaahhhhphhhhhhwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwhhhhhphhhhhphhnnnnnnhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhstttsirrrrriirrrrrrrrrihhhh│
-│aaaaaoooooooooooooaaaaaaaaaahhhhphhhhhhnnnnhnhnnhnnhnnnnnnhnnhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhirrrrrrrrihhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaoooooooooooaaaahhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphGGhGhGphhhphhhhhphhnnnnnnnnhhhhhhhhhhhhzABBzhh│
+│aaaaaoooooaooooooooaaaaaaaaahhhhphhhhhhnnnnhnhnnhnnhnnnnnnhnnhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhirrrrrrrrihhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphGGhGhGphhhphhhhhphhnnnnnnnnhhhhhhhhhhhhzABBzhh│
+│aaaaaoooooooaoooooooooooaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnhnnnnhhhhhhhhhhhzABBzhh│
 │aaaaaooooooaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnhnnnnhhhhhhhhhhhzABBzhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhqCCDqhh│
 │aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhqCCDqhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooaoooooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaoooooooaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooooaoooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
 legend

@@ -12,9 +12,9 @@ text
 │     Toast               ·   ·   ·                               ·   ·   ·   ·  │
 │ ▎   Tooltip                            Show the tip                            │
 │     Popover             ·   ·   ·   └                         ┘ ·   ·   ·   ·  │
-│     MenuBar         ▐                                   23 × 3                 │
+│     MenuBar                                             23 × 3                 │
 │     ContextMenu     ▐   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
-│     CommandPalette                                                             │
+│     CommandPalette  ▐                                                          │
 │     OptionList       ──────────────────────────────────────────────────────────│
 │     ModalBarrier       wait       100 ms  500 ms  1 s                          │
 │     WindowLayer        on hover  ▐  ●▌                                         │
@@ -37,9 +37,9 @@ styles
 │aaaaannnnnaaaaaaaaaaaagggogggogggogggggggggggggggggggggggggggggggogggogggogggogg│
 │arssstttttttsssssssssagggggggggggggggggpqqqqpqqqpqqqpggggggggggggggggggggggggggg│
 │aaaaannnnnnnaaaaaaaaaagggogggogggogggogggggggggggggggggggggggggogogggogggogggogg│
-│aaaaannnnnnnaaaaaaaaadgggggggggggggggggggggggggggggggggggDDgDgDggggggggggggggggg│
+│aaaaannnnnnnaaaaaaaaaagggggggggggggggggggggggggggggggggggDDgDgDggggggggggggggggg│
 │aaaaannnnnnnnnnnaaaaadgggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
-│aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnnnnnnnaaaaaggmmmmgggggghwwwhwwhstttsttshwhwhggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnaaaaaaggmmgmmmmmggxyyzxggggggggggggggggggggggggggggggggggggggggg│

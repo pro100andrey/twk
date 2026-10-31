@@ -38,7 +38,8 @@ extension on _SampleAppState {
   ];
 }
 
-/// A notice to dismiss and two segments to choose one of.
+/// A notice to dismiss, two segments to choose one of, tags to remove and a
+/// value to step.
 final class _Notices extends StatefulWidget {
   const _Notices();
 
@@ -49,6 +50,8 @@ final class _Notices extends StatefulWidget {
 final class _NoticesState extends State<_Notices> {
   var _shown = true;
   var _view = {1};
+  var _tags = ['a', 'b'];
+  var _mode = 'x';
 
   @override
   Widget build(BuildContext context) => Row(
@@ -62,6 +65,16 @@ final class _NoticesState extends State<_Notices> {
         segments: const [Choice(1, 'a'), Choice(2, 'b')],
         selected: _view,
         onSelectionChanged: (v) => setState(() => _view = v),
+      ),
+      ChipList<String>(
+        chips: [for (final t in _tags) Choice(t, t)],
+        onRemove: (t) => setState(() => _tags = [..._tags]..remove(t)),
+      ),
+      const Chip('c', selected: true),
+      ValueStepper<String>(
+        values: const [Choice('x', 'x'), Choice('y', 'y')],
+        value: _mode,
+        onChanged: (v) => setState(() => _mode = v),
       ),
     ],
   );

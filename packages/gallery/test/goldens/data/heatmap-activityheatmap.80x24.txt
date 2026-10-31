@@ -8,9 +8,9 @@ text
 │     Gauge, LineGa…   ──────────────────────────────────────────────────────────│
 │     BarChart              ┌                                             ┐      │
 │     Chart               ·       Jun   Jul     Aug       Sep     Oct         ·  │
-│     DotCanvas               Mon ▒ ▓ ▒ ▒ ▒ ▒ · █ ▒ ░ █ ▓ █ █ █ ▓ ▒ · ▓ ▒        │
+│     DotCanvas       ▐       Mon ▒ ▓ ▒ ▒ ▒ ▒ · █ ▒ ░ █ ▓ █ █ █ ▓ ▒ · ▓ ▒        │
 │     Calendar        ▐   ·       ▓ ▒ ▓ ▓ ░ ▓ ▒ ▒ ▓ ░ ▒ ▓ ░ █ ▒ ░ ▓ ▓ ▓       ·  │
-│ ▎   Heatmap, Acti…  ▐       Wed · ░ ▒ ▓ ░ ▒ · ▓ ▒ ▒ · ▒ ▓ ░ █ █ ░ █ ░          │
+│ ▎   Heatmap, Acti…          Wed · ░ ▒ ▓ ░ ▒ · ▓ ▒ ▒ · ▒ ▓ ░ █ █ ░ █ ░          │
 │     Table               ·       ▓ ░ ▓ █ ░ ▒ ▒ · ░ · █ █ █ ▒ ▓ ▒ █ ▒ ▒       ·  │
 │     DescriptionLi…          Fri ▓ █ █ ▓ ▒ ▒ ░ ▒ ▒ ▓ ░ ▓ █ █ ▓ ░ ▓ ▓ ▒          │
 │     TreeView            ·       ░ ░ ░ ░ · ░ ░ ░ ░ ░ ░ · ░ · ░ ░ ░ · ░       ·  │
@@ -33,9 +33,9 @@ styles
 │aaaaannnnnnannnnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnnnaaaaaaaaagggggogggggggggggggggggggggggggggggggggggggggggggggogggggg│
 │aaaaannnnnaaaaaaaaaaaagggogggggggmmmgggmmmgggggmmmgggggggmmmgggggmmmgggggggggogg│
-│aaaaannnnnnnnnaaaaaaaagggggggmmmgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgggggggg│
+│aaaaannnnnnnnnaaaaaaadgggggggmmmgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgggggggg│
 │aaaaannnnnnnnaaaaaaaadgggogggggggpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgggggggogg│
-│arsssttttttttstttttssdgggggggmmmgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgggggggggg│
+│arsssttttttttstttttssagggggggmmmgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgggggggggg│
 │aaaaannnnnaaaaaaaaaaaagggogggggggpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgggggggogg│
 │aaaaannnnnnnnnnnnnnaaagggggggmmmgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgggggggggg│
 │aaaaannnnnnnnaaaaaaaaagggogggggggpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgpgggggggogg│

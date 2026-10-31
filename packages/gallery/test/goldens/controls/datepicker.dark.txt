@@ -2,13 +2,13 @@ screen 120×36, cursor hidden
 text
 │  ◆ twk gallery   Controls  ›  DatePicker                                                    ctrl+p search      ◐ Dark  │
 │                                                                                                                        │
-│   ⌕ Filter             /      DatePicker                                                                     11 of 20  │
+│   ⌕ Filter             /      DatePicker                                                                     13 of 22  │
 │                               A date typed, stepped by Up and Down, or picked from the calendar that Alt+Down, a       │
-│     Button                    click on ▾ or a PopupController opens.                                                   │
-│     Pressable                                                                                                          │
-│     Checkbox, Switch          Preview   Code                                                                           │
-│     RadioGroup             ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
-│     SegmentedButton                                                                      │                             │
+│     Checkbox, Switch          click on ▾ or a PopupController opens.                                                   │
+│     RadioGroup                                                                                                         │
+│     SegmentedButton           Preview   Code                                                                           │
+│     Chip, ChipList         ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     ValueStepper                                                                         │                             │
 │     SelectionList              ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
 │     Select, MultiSelect                                                                  │                             │
 │     ConfirmInput               ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  time of day         ▐●  ▌  │
@@ -41,11 +41,11 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaiCiCCCCCCiiiiiiiiiiiiiDiaahhhllllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhEEhEEhEEhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnhnnnnhnnnnnnhnnnnnnnhnnhnnhnnnhnnnnnhnnhnnnnnnhnnnnhnnnhnnnnnnnnhnnnnhnnnnnnnnnhnhhhhhhh│
-│aaaaaooooooaaaaaaaaaaaaaaaaahhhnnnnnhnnhnhnnhnhnnnnnnnnnnnnnnnhnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooaooooooaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooaaaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
-│aaaaaoooooooooooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaooooooaaaaaaahhhnnnnnhnnhnhnnhnhnnnnnnnnnnnnnnnhnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaooooooooaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaoooooooooooaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnhnnhnnnhhhhhhhhhrsttrhh│

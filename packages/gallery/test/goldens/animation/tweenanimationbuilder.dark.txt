@@ -20,7 +20,7 @@ text
 │     Effect                                                                               │   decelerate  bounceOut     │
 │                                ·   ·  ┌                                     ┐  ·   ·     │   elasticOut                │
 │   MOUSE                5                ██████████████████████▌        75%               │                             │
-│     GestureDetector            ·   ·  └                                     ┘  ·   ·     │  cycle               ▐  ●▌  │
+│     GestureDetector            ·   ·  └                                     ┘  ·   ·     │  cycle               ▐●  ▌  │
 │     Listener, MouseRegi…  ▐                                           35 × 1             │                             │
 │     IgnorePointer, Abso…  ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     SelectionArea         ▐                                                              │                             │
@@ -57,7 +57,7 @@ styles
 │aaaaaooooooaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhirrrrrrrrrriirrrrrrrrrihhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhphhhphhhhhphhirrrrrrrrrrihhhhhhhhhhhhhhh│
 │aaadddddaaaaaaaaaaaaaaaaBaaahhhhhhhhhhhhhxxxxxxxxxxxxxxxxxxxxxxxyyyyyyyhzzzhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooooaaaaaaaahhhhphhhphhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhqvvwqhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhphhhphhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhejkkehh│
 │aaaaaoooooooooaooooooooooaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhEEhEhEhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooaoooooaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
@@ -98,5 +98,6 @@ u #5fa8ff on #2b4566
 x #c792ea on #22252c
 y on #22252c
 z #e6e8eb on #16181d
-v on #5fa8ff
-w #ffffff on #5fa8ff
+e #383d48 on #16181d
+j #e6e8eb on #383d48
+k on #383d48

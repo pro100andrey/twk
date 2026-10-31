@@ -21,7 +21,7 @@ text
 │     TextArea           separate roots  ▐●  ▌                                   │
 │     Autocomplete       max indent       none  2                                │
 │                        test/            loads  fails                           │
-│   CONTROLS      20                                                             │
+│   CONTROLS      22                                                             │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles

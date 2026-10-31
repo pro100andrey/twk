@@ -8,20 +8,20 @@ text
 │     TextArea         ──────────────────────────────────────────────────────────│
 │     Autocomplete                                                               │
 │                         ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
-│   CONTROLS      20                        ┌              ┐                     │
+│   CONTROLS      22                        ┌              ┐                     │
 │     Button              ·   ·   ·   ·   ·   ★ twk           ·   ·   ·   ·   ·  │
 │ ▎   Pressable       ▐                       ☆ gallery                          │
 │     Checkbox, Swi…  ▐   ·   ·   ·   ·   ·   ☆ archive       ·   ·   ·   ·   ·  │
 │     RadioGroup                                                                 │
 │     SegmentedButt…      ·   ·   ·   ·   ·   starred: twk    ·   ·   ·   ·   ·  │
-│     SelectionList                         └              ┘                     │
-│     Select, Multi…      ·   ·   ·   ·   ·   ·   ·  12 × 5   ·   ·   ·   ·   ·  │
-│     ConfirmInput                                                               │
-│     Slider                                                                     │
-│     NumberInput      ──────────────────────────────────────────────────────────│
-│     DatePicker         style  ██ ██ ██ ██ ██ ██  primary                       │
-│     FilePicker                ▔▔                                               │
-│     Form, FormFie…                                                             │
+│     Chip, ChipList                        └              ┘                     │
+│     ValueStepper        ·   ·   ·   ·   ·   ·   ·  12 × 5   ·   ·   ·   ·   ·  │
+│     SelectionList                                                              │
+│     Select, Multi…                                                             │
+│     ConfirmInput     ──────────────────────────────────────────────────────────│
+│     Slider             style  ██ ██ ██ ██ ██ ██  primary                       │
+│     NumberInput               ▔▔                                               │
+│     DatePicker                                                                 │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -39,14 +39,14 @@ styles
 │aaaaannnnnnnnnannnnaadgggogggogggogggogggogggmgmmmmmmmgggggggogggogggogggogggogg│
 │aaaaannnnnnnnnnaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnnaaagggogggogggogggogggogggmmmmmmmmgpppggggogggogggogggogggogg│
-│aaaaannnnnnnnnnnnnaaaagggggggggggggggggggggoggggggggggggggoggggggggggggggggggggg│
-│aaaaannnnnnnannnnnnaaagggogggogggogggogggogggogggoggEEgEgEgggogggogggogggogggogg│
-│aaaaannnnnnnnnnnnaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnnnnaaaaaaaggmmmmmggvvgwwgxxgyygzzgAAggEEEEEEEggggggggggggggggggggggg│
-│aaaaannnnnnnnnnaaaaaaagggggggggppggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnannnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnannnnnnnnaaagggggggggggggggggggggoggggggggggggggoggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaaagggogggogggogggogggogggogggoggEEgEgEgggogggogggogggogggogg│
+│aaaaannnnnnnnnnnnnaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnannnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnaaaaaaaaaaaggmmmmmggvvgwwgxxgyygzzgAAggEEEEEEEggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnaaaaaagggggggggppggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

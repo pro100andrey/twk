@@ -2,18 +2,18 @@ screen 120×36, cursor hidden
 text
 │  ◆ twk gallery   Controls  ›  SelectionList                                                 ctrl+p search      ◐ Dark  │
 │                                                                                                                        │
-│   ⌕ Filter             /      SelectionList                                                                   6 of 20  │
+│   ⌕ Filter             /      SelectionList                                                                   8 of 22  │
 │                               Items selected by their keys: in a single selection the cursor selects, in a             │
-│     InputDecoration           multiple one Space does.                                                                 │
-│     TextArea                                                                                                           │
-│     Autocomplete              Preview   Code                                                                           │
-│                            ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
-│   CONTROLS            20                                                                 │                             │
-│     Button                     ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│     Autocomplete              multiple one Space does.                                                                 │
+│                                                                                                                        │
+│   CONTROLS            22      Preview   Code                                                                           │
+│     Button                 ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
 │     Pressable                                                                            │                             │
-│     Checkbox, Switch           ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  multiple            ▐●  ▌  │
+│     Checkbox, Switch           ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
 │     RadioGroup                                                                           │                             │
-│     SegmentedButton            ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  cursor bar          ▐  ●▌  │
+│     SegmentedButton            ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  multiple            ▐●  ▌  │
+│     Chip, ChipList                                                                       │                             │
+│     ValueStepper               ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  cursor bar          ▐  ●▌  │
 │ ▎   SelectionList         ▐                                                              │                             │
 │     Select, MultiSelect   ▐    ·   ·   · ┌                               ┐ ·   ·   ·     │                             │
 │     ConfirmInput          ▐                ╭────────────────╮  selected                  │                             │
@@ -41,16 +41,16 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaiGiGGGGGGiiiiiiiiiiiiiHiaahhhlllllllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhIhIIhIIhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnnhnnnnnnnnhnnhnnnnnhnnnnnhnnhnhnnnnnnhnnnnnnnnnhnnnhnnnnnnhnnnnnnnnhnnhnhhhhhhhhhhhhh│
-│aaaaaoooooooooooooooaaaaaaaahhhnnnnnnnnhnnnhnnnnnhnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
-│aaaddddddddaaaaaaaaaaaaFFaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhnnnnnnnnhnnnhnnnnnhnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddddaaaaaaaaaaaaFFaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
 │aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooaooooooaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnnhhhhhhhhhhhhrsttrhh│
+│aaaaaoooooooooaooooooaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooooaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnhnnnhhhhhhhhhhqDDEqhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnnhhhhhhhhhhhhrsttrhh│
+│aaaaaoooooaooooooooaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnhnnnhhhhhhhhhhqDDEqhh│
 │auvvvwwwwwwwwwwwwwvvvvvvvvvdhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaoooooooooooaaadhhhhphhhphhhphphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooaaaaaaaaaadhhhhhhhhhhhhhhhhyyyyyyyyyyyyyyyyyyhhnnnnnnnnhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

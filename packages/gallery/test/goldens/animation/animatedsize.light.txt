@@ -24,7 +24,7 @@ text
 │     GestureDetector       ▐                                                              │   decelerate  bounceOut     │
 │     Listener, MouseRegi…  ▐    ·   ·                                           ·   ·     │   elasticOut                │
 │     IgnorePointer, Abso…  ▐             └                                 ┘              │                             │
-│     SelectionArea         ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·31 × 7 ·   ·   ·     │  cycle               ▐  ●▌  │
+│     SelectionArea         ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·31 × 7 ·   ·   ·     │  cycle               ▐●  ▌  │
 │     Draggable, DragTarg…  ▐                                                              │                             │
 │                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │   FOCUS AND KEYS       5                                                                 │                             │
@@ -61,7 +61,7 @@ styles
 │aaaaaoooooooooooooooaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhrssssssssssrrsssssssssrhhhh│
 │aaaaaoooooooooaooooooooooaadhhhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhhhphhrssssssssssrhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooaoooooaadhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhpEEhEhEhphhhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhqyyzqhh│
+│aaaaaoooooooooooooaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhpEEhEhEhphhhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhwejjwhh│
 │aaaaaooooooooooaoooooooooaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaadddddadddaddddaaaaaaaBaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
@@ -98,5 +98,5 @@ G bold #1f2328 on #b6d4fe
 H #0969da on #b6d4fe
 w #c8cdd5 on #fafafb
 x #1f2328 on #fafafb
-y on #0969da
-z #ffffff on #0969da
+e #ffffff on #c8cdd5
+j on #c8cdd5

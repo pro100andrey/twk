@@ -18,7 +18,7 @@ text
 │                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   scanlines  grade          │
 │   MOUSE                5           ┌                                           ┐         │   sweep down, glitch        │
 │     GestureDetector            ·     ╭────────────────────────────────╮            ·     │                             │
-│     Listener, MouseRegi…             │Effects over a subtree          │                  │  cycle               ▐  ●▌  │
+│     Listener, MouseRegi…             │Effects over a subtree          │                  │  cycle               ▐●  ▌  │
 │     IgnorePointer, Abso…       ·     │⠴ repainting underneath         │            ·     │                             │
 │     SelectionArea                    │the cells it paints, filtered   │                  │                             │
 │     Draggable, DragTarg…       ·     ╰────────────────────────────────╯            ·     │                             │
@@ -55,7 +55,7 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhirrrrrrrrriirrrrrihhhhhhhhh│
 │aaadddddaaaaaaaaaaaaaaaaFaaahhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhphhirrrrrirrrrrirrrrrrihhhhhhh│
 │aaaaaoooooooooooooooaaaaaaaahhhhphhhhhvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooaooooooooooaaahhhhhhhhhhvwwwwwwwxwwwwxwxwwwwwwwxxxxxxxxxxvhhhhhhhhhhhhhhhhhhphhnnnnnhhhhhhhhhhhhhhhqyyzqhh│
+│aaaaaoooooooooaooooooooooaaahhhhhhhhhhvwwwwwwwxwwwwxwxwwwwwwwxxxxxxxxxxvhhhhhhhhhhhhhhhhhhphhnnnnnhhhhhhhhhhhhhhhejkkehh│
 │aaaaaooooooooooooooaoooooaaahhhhphhhhhvAxBBBBBBBBBBxBBBBBBBBBBxxxxxxxxxvhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooaaaaaaaaaahhhhhhhhhhvCCCxCCCCCxCCxCCCCCCCxCCCCCCCCxxxvhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooaoooooooooaaahhhhphhhhhvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
@@ -98,8 +98,9 @@ u #5fa8ff on #2b4566
 v #3e444f on #22252c
 w #5fa8ff on #22252c
 x on #22252c
-y on #5fa8ff
-z #ffffff on #5fa8ff
+e #383d48 on #16181d
+j #e6e8eb on #383d48
+k on #383d48
 A #c792ea on #22252c
 B #e6e8eb on #22252c
 C #8b929c on #22252c

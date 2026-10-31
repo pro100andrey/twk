@@ -2,10 +2,10 @@ screen 120×36, cursor hidden
 text
 │  ◆ twk gallery   Controls  ›  TabBar, TabView                                               ctrl+p search      ◐ Dark  │
 │                                                                                                                        │
-│   ⌕ Filter             /      TabBar, TabView                                                                14 of 20  │
+│   ⌕ Filter             /      TabBar, TabView                                                                16 of 22  │
 │                               Tabs to pick a view by: Left and Right, or a click.                                      │
-│     RadioGroup                                                                                                         │
-│     SegmentedButton           Preview   Code                                                                           │
+│     Chip, ChipList                                                                                                     │
+│     ValueStepper              Preview   Code                                                                           │
 │     SelectionList          ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
 │     Select, MultiSelect                                                                  │                             │
 │     ConfirmInput               ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
@@ -15,12 +15,12 @@ text
 │     FilePicker                 ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     Form, FormField                                                                      │  look                       │
 │ ▎   TabBar, TabView            ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   plain  strip              │
-│     KeyHintsBar           ▐         ┌                                          ┐         │                             │
+│     KeyHintsBar                     ┌                                          ┐         │                             │
 │     StatusMessage, Badge  ▐    ·       General  Editor  Keys                       ·     │                             │
 │     Callout               ▐           ╭──────────────────────────────────────╮           │                             │
 │     Link                  ▐    ·      │ [x] wrap lines                       │     ·     │                             │
 │     ListTile              ▐           │ [ ] show hidden files                │           │                             │
-│     StatusBar                  ·      │                                      │     ·     │                             │
+│     StatusBar             ▐    ·      │                                      │     ·     │                             │
 │                                       │                                      │           │                             │
 │   OVERLAYS            12       ·      ╰──────────────────────────────────────╯     ·     │                             │
 │     Overlay                         └                                          ┘         │                             │
@@ -41,8 +41,8 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaiAiAAAAAAiiiiiiiiiiiiiBiaahhhlllllllhlllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhCChCChCChh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnhnnhnnnnhnhnnnnhnnnhnnnnhnnnhnnnnnnhnnhnhnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooooaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaooooooooaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
 │aaaaaoooooooaoooooooooooaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
@@ -52,12 +52,12 @@ styles
 │aaaaaooooooooooaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooaoooooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnhhhhhhhhhhhhhhhhhhhhhhh│
 │aurrrsssssssrsssssssrrrrrrrahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhrsssssritttttihhhhhhhhhhhhh│
-│aaaaaoooooooooooaaaaaaaaaaadhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooaoooooaadhhhhphhhhhhhwwwwwwwhhnnnnnnhhnnnnhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaaaaaaaaaaaaaaadhhhhhhhhhhhxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooaaaaaaaaaaaaaaaaaadhhhhphhhhhhxhnwnhyyyyhyyyyyhhhhhhhhhhhhhhhhhhhhhhhxhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaadhhhhhhhhhhhxhnhnhyyyyhyyyyyyhyyyyyhhhhhhhhhhhhhhhhxhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhhhhxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhxhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaadhhhhphhhhhhxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhxhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhxhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaddddddddaaaaaaaaaaaazzaaahhhhphhhhhhxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

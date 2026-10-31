@@ -2,7 +2,7 @@ screen 120×36, cursor hidden
 text
 │  ◆ twk gallery   Controls  ›  Callout                                                      ctrl+p search      ◐ Light  │
 │                                                                                                                        │
-│   ⌕ Filter             /      Callout                                                                        17 of 20  │
+│   ⌕ Filter             /      Callout                                                                        19 of 22  │
 │                               A notice in a box lined in the color of its kind, its title on the top edge; [×] or      │
 │     Select, MultiSelect       Escape dismisses it, and buttons below act on it.                                        │
 │     ConfirmInput                                                                                                       │

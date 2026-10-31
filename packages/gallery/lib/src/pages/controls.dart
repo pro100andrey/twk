@@ -243,6 +243,8 @@ final List<GalleryPage> controlsPages = [
     ].join('\n'),
   ),
   _segmented,
+  _chips,
+  _stepper,
   GalleryPage(
     group: 'Controls',
     title: 'SelectionList',
@@ -2515,6 +2517,237 @@ final class _SegmentsState extends State<_Segments> with _Kept {
           ('shown: ', true),
           if (shown.isEmpty) ('nothing', true) else (shown.join(', '), false),
         ], serial: serial),
+      ],
+    );
+  }
+}
+
+// ------------------------------------------------------------ Chip, ChipList
+
+/// The tags of the Chip, ChipList page at first, and the tag that is not
+/// pressable.
+const _firstTags = [
+  'dart',
+  'tui',
+  'terminal',
+  'widgets',
+  'beta',
+  'mouse',
+  'keyboard',
+];
+
+final _chips = GalleryPage(
+  group: 'Controls',
+  title: 'Chip, ChipList',
+  options: [
+    const SwitchOption('toggle', 'toggle', initial: true),
+    const SwitchOption('remove', 'removable', initial: true),
+    SliderOption(
+      'width',
+      'width',
+      min: 20,
+      max: 50,
+      initial: 34,
+      format: (v) => '$v cells',
+    ),
+  ],
+  build: (context, o) => _Tags(
+    toggle: o.flag('toggle'),
+    remove: o.flag('remove'),
+    width: o.number('width').toInt(),
+  ),
+  code: (o) => [
+    'static const _all = [',
+    for (final t in _firstTags) "  '$t',",
+    '];',
+    '',
+    'var _tags = _all;',
+    "var _on = {'tui'};",
+    '',
+    '@override',
+    'Widget build(BuildContext context) {',
+    '  final theme = Theme.of(context);',
+    '  final shown = _on.where(_tags.contains);',
+    '  return Column(',
+    '    mainAxisSize: .min,',
+    '    crossAxisAlignment: .start,',
+    '    gap: 1,',
+    '    children: [',
+    '      SizedBox(',
+    '        width: ${o.number('width').toInt()},',
+    '        child: ChipList<String>(',
+    '          chips: [',
+    "            for (final t in _tags) Choice(t, t, enabled: t != 'beta'),",
+    '          ],',
+    '          selected: _on,',
+    if (o.flag('toggle')) ...[
+      '          onPressed: (tag) => setState(() {',
+      '            _on = _on.contains(tag)',
+      '                ? ({..._on}..remove(tag))',
+      '                : {..._on, tag};',
+      '          }),',
+    ],
+    if (o.flag('remove')) ...[
+      '          onRemove: (tag) {',
+      '            setState(() => _tags = [..._tags]..remove(tag));',
+      '          },',
+    ],
+    '        ),',
+    '      ),',
+    '      Text.rich([',
+    "        Span('on: ', theme.muted),",
+    '        if (shown.isEmpty)',
+    "          Span('nothing', theme.muted)",
+    '        else',
+    "          Span(shown.join(', ')),",
+    '      ]),',
+    '      Button(',
+    "        'Bring them back',",
+    '        onPressed: _tags.length == _all.length',
+    '            ? null',
+    '            : () => setState(() => _tags = _all),',
+    '      ),',
+    '    ],',
+    '  );',
+    '}',
+  ].join('\n'),
+);
+
+/// Tags that wrap in [width] cells: the chips of a ChipList, and a button
+/// to bring back those removed.
+final class _Tags extends StatefulWidget {
+  const _Tags({
+    required this.toggle,
+    required this.remove,
+    required this.width,
+  });
+
+  final bool toggle;
+  final bool remove;
+  final int width;
+
+  @override
+  State<_Tags> createState() => _TagsState();
+}
+
+final class _TagsState extends State<_Tags> with _Kept {
+  @override
+  Widget build(BuildContext context) {
+    final tags = keptOr<List<String>>('tags', _firstTags);
+    final on = keptOr<Set<String>>('on', {'tui'});
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      gap: 1,
+      children: [
+        SizedBox(
+          width: widget.width,
+          child: ChipList<String>(
+            chips: [
+              for (final t in tags) Choice(t, t, enabled: t != 'beta'),
+            ],
+            selected: on,
+            onPressed: widget.toggle
+                ? (tag) => keep(
+                    'on',
+                    on.contains(tag) ? ({...on}..remove(tag)) : {...on, tag},
+                  )
+                : null,
+            onRemove: widget.remove
+                ? (tag) => keep('tags', [...tags]..remove(tag))
+                : null,
+          ),
+        ),
+        LitLine([
+          ('on: ', true),
+          if (on.where(tags.contains).isEmpty)
+            ('nothing', true)
+          else
+            (on.where(tags.contains).join(', '), false),
+        ], serial: serial),
+        Button(
+          'Bring them back',
+          onPressed: tags.length == _firstTags.length
+              ? null
+              : () => keep('tags', _firstTags),
+        ),
+      ],
+    );
+  }
+}
+
+// ------------------------------------------------------------ ValueStepper
+
+/// The values of the ValueStepper page: a theme's modes.
+const List<Choice<String>> _stepModes = [
+  Choice('dark', 'dark'),
+  Choice('light', 'light'),
+  Choice('sepia', 'sepia', enabled: false),
+  Choice('auto', 'auto-switching'),
+];
+
+final _stepper = GalleryPage(
+  group: 'Controls',
+  title: 'ValueStepper',
+  options: const [SwitchOption('enabled', 'enabled', initial: true)],
+  build: (context, o) => _Steps(enabled: o.flag('enabled')),
+  code: (o) => [
+    "var _mode = 'dark';",
+    '',
+    '@override',
+    'Widget build(BuildContext context) {',
+    '  final theme = Theme.of(context);',
+    '  return Column(',
+    '    mainAxisSize: .min,',
+    '    crossAxisAlignment: .start,',
+    '    gap: 1,',
+    '    children: [',
+    '      ValueStepper<String>(',
+    '        values: const [',
+    for (final c in _stepModes)
+      if (c.enabled)
+        "          Choice('${c.value}', '${c.label}'),"
+      else
+        "          Choice('${c.value}', '${c.label}', enabled: false),",
+    '        ],',
+    '        value: _mode,',
+    if (o.flag('enabled'))
+      '        onChanged: (mode) => setState(() => _mode = mode),'
+    else
+      '        onChanged: null,',
+    '      ),',
+    "      Text.rich([Span('mode: ', theme.muted), Span(_mode)]),",
+    '    ],',
+    '  );',
+    '}',
+  ].join('\n'),
+);
+
+/// A mode to step through, and what it is.
+final class _Steps extends StatefulWidget {
+  const _Steps({required this.enabled});
+
+  final bool enabled;
+
+  @override
+  State<_Steps> createState() => _StepsState();
+}
+
+final class _StepsState extends State<_Steps> with _Kept {
+  @override
+  Widget build(BuildContext context) {
+    final mode = keptOr('mode', 'dark');
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      gap: 1,
+      children: [
+        ValueStepper<String>(
+          values: _stepModes,
+          value: mode,
+          onChanged: widget.enabled ? (mode) => keep('mode', mode) : null,
+        ),
+        LitLine([('mode: ', true), (mode, false)], serial: serial),
       ],
     );
   }

@@ -20,12 +20,12 @@ text
 │     AnimatedDefaultText…                 │                                │              │   easeOut  easeInOut        │
 │     AnimatedSize               ·   ·     │                                │    ·   ·     │   fastOutSlowIn             │
 │     TweenAnimationBuild…                 │                                │              │   decelerate  bounceOut     │
-│     AnimatedSwitcher      ▐    ·   ·     │                                │    ·   ·     │   elasticOut                │
+│     AnimatedSwitcher           ·   ·     │                                │    ·   ·     │   elasticOut                │
 │     Dissolve, Fractiona…  ▐              │  ▣ pinned                      │              │                             │
-│     Effect                ▐    ·   ·     ╰────────────────────────────────╯    ·   ·     │  cycle               ▐  ●▌  │
+│     Effect                ▐    ·   ·     ╰────────────────────────────────╯    ·   ·     │  cycle               ▐●  ▌  │
 │                           ▐            └                                    ┘            │                             │
 │   MOUSE                5  ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  34 × 7   ·   ·     │                             │
-│     GestureDetector                                                                      │                             │
+│     GestureDetector       ▐                                                              │                             │
 │     Listener, MouseRegi…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     IgnorePointer, Abso…                                                                 │                             │
 │     SelectionArea              ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
@@ -57,12 +57,12 @@ styles
 │aaaaaooooooooooooooooooooaaahhhhhhhhhhhhhhwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhwhhhhhhhhhhhhhhphhrsssssssrFGGGGGGGGGFhhhhhhh│
 │aaaaaooooooooooooaaaaaaaaaaahhhhphhhphhhhhwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhwhhhhphhhphhhhhphhrsssssssssssssrhhhhhhhhhhhh│
 │aaaaaooooooooooooooooooooaaahhhhhhhhhhhhhhwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhwhhhhhhhhhhhhhhphhrssssssssssrrsssssssssrhhhh│
-│aaaaaooooooooooooooooaaaaaadhhhhphhhphhhhhwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhwhhhhphhhphhhhhphhrssssssssssrhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhhphhhphhhhhwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhwhhhhphhhphhhhhphhrssssssssssrhhhhhhhhhhhhhhh│
 │aaaaaoooooooooaooooooooooaadhhhhhhhhhhhhhhwFFIFIIIIIIFFhhhhhhhhhhhhhhhhhhhhwhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooaaaaaaaaaaaaaaaadhhhhphhhphhhhhwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwhhhhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhqxxyqhh│
+│aaaaaooooooaaaaaaaaaaaaaaaadhhhhphhhphhhhhwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwhhhhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhwejjwhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaadddddaaaaaaaaaaaaaaaaBaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhEEhEhEhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooaooooooooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooaoooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
@@ -98,5 +98,5 @@ G bold #1f2328 on #b6d4fe
 H #0969da on #b6d4fe
 w #c8cdd5 on #fafafb
 I #1f2328 on #b6d4fe
-x on #0969da
-y #ffffff on #0969da
+e #ffffff on #c8cdd5
+j on #c8cdd5

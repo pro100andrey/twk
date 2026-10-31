@@ -18,7 +18,7 @@ text
 │     TextArea           step      live  fetch  compile  test  deploy  done      │
 │     Autocomplete       failed   ▐●  ▌                                          │
 │                                                                                │
-│   CONTROLS      20     elapsed  ▐  ●▌                                          │
+│   CONTROLS      22     elapsed  ▐  ●▌                                          │
 │     Button             spinner   dots  line  arc                               │
 │     Pressable                                                                  │
 │     Checkbox, Swi…                                                             │

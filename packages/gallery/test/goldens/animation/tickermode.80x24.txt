@@ -13,9 +13,9 @@ text
 │ ▎   TickerMode                            ┌              ┐                     │
 │     ProgressBar         ·   ·   ·   ·   ·   ⠴ Compiling…    ·   ·   ·   ·   ·  │
 │     ProgressList                          └              ┘                     │
-│     Skeleton, Ske…  ▐   ·   ·   ·   ·   ·   ·   ·  12 × 1   ·   ·   ·   ·   ·  │
+│     Skeleton, Ske…      ·   ·   ·   ·   ·   ·   ·  12 × 1   ·   ·   ·   ·   ·  │
 │     AnimationCont…  ▐                                                          │
-│     AnimatedBuild…      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│     AnimatedBuild…  ▐   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
 │     AnimatedAlign…                                                             │
 │     AnimatedPosit…      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
 │     AnimatedBox                                                                │
@@ -38,9 +38,9 @@ styles
 │apqqqrrrrrrrrrrqqqqqqagggggggggggggggggggggoggggggggggggggoggggggggggggggggggggg│
 │aaaaannnnnnnnnnnaaaaaagggogggogggogggogggogggsgttttttttttggggogggogggogggogggogg│
 │aaaaannnnnnnnnnnnaaaaagggggggggggggggggggggoggggggggggggggoggggggggggggggggggggg│
-│aaaaannnnnnnnnannnnaadgggogggogggogggogggogggogggogguugugugggogggogggogggogggogg│
+│aaaaannnnnnnnnannnnaaagggogggogggogggogggogggogggogguugugugggogggogggogggogggogg│
 │aaaaannnnnnnnnnnnnnaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnnnnaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
+│aaaaannnnnnnnnnnnnnaadgggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
 │aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnnaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
 │aaaaannnnnnnnnnnaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│

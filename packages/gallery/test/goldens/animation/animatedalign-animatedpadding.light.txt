@@ -23,7 +23,7 @@ text
 │     TweenAnimationBuild…  ▐              │                                │              │   decelerate  bounceOut     │
 │     AnimatedSwitcher      ▐    ·   ·     │                                │    ·   ·     │   elasticOut                │
 │     Dissolve, Fractiona…  ▐              │          ◇ padded              │              │                             │
-│     Effect                ▐    ·   ·     ╰────────────────────────────────╯    ·   ·     │  cycle               ▐  ●▌  │
+│     Effect                ▐    ·   ·     ╰────────────────────────────────╯    ·   ·     │  cycle               ▐●  ▌  │
 │                           ▐            └                                    ┘            │                             │
 │   MOUSE                5       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  34 × 7   ·   ·     │                             │
 │     GestureDetector                                                                      │                             │
@@ -60,7 +60,7 @@ styles
 │aaaaaooooooooooooooooooooaadhhhhhhhhhhhhhhwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhwhhhhhhhhhhhhhhphhrssssssssssrrsssssssssrhhhh│
 │aaaaaooooooooooooooooaaaaaadhhhhphhhphhhhhwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhwhhhhphhhphhhhhphhrssssssssssrhhhhhhhhhhhhhhh│
 │aaaaaoooooooooaooooooooooaadhhhhhhhhhhhhhhwhhhhhhhhhhAhAAAAAAhhhhhhhhhhhhhhwhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooaaaaaaaaaaaaaaaadhhhhphhhphhhhhwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwhhhhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhqyyzqhh│
+│aaaaaooooooaaaaaaaaaaaaaaaadhhhhphhhphhhhhwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwhhhhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhwejjwhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaadddddaaaaaaaaaaaaaaaaBaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhEEhEhEhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
@@ -98,5 +98,5 @@ G bold #1f2328 on #b6d4fe
 H #0969da on #b6d4fe
 w #c8cdd5 on #fafafb
 A #8250df on #fafafb
-y on #0969da
-z #ffffff on #0969da
+e #ffffff on #c8cdd5
+j on #c8cdd5

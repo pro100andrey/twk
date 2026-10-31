@@ -2,12 +2,12 @@ screen 120×36, cursor hidden
 text
 │  ◆ twk gallery   Controls  ›  FilePicker                                                    ctrl+p search      ◐ Dark  │
 │                                                                                                                        │
-│   ⌕ Filter             /      FilePicker                                                                     12 of 20  │
+│   ⌕ Filter             /      FilePicker                                                                     14 of 22  │
 │                               A file picked from the directory listed under a field that names its path: the           │
-│     Pressable                 arrows and Enter go through it, Tab completes a name; a FilePickerController goes to     │
-│     Checkbox, Switch          a directory.                                                                             │
-│     RadioGroup                                                                                                         │
-│     SegmentedButton           Preview   Code                                                                           │
+│     RadioGroup                arrows and Enter go through it, Tab completes a name; a FilePickerController goes to     │
+│     SegmentedButton           a directory.                                                                             │
+│     Chip, ChipList                                                                                                     │
+│     ValueStepper              Preview   Code                                                                           │
 │     SelectionList          ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
 │     Select, MultiSelect                                                                  │                             │
 │     ConfirmInput               ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
@@ -41,10 +41,10 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaiJiJJJJJJiiiiiiiiiiiiiKiaahhhllllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhLLhLLhLLhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnhnnnnhnnnnnnhnnnnhnnnhnnnnnnnnnhnnnnnnhnnnnnhnhnnnnnhnnnnhnnnnnhnnnhnnnnnhnnnhhhhhhhhhhh│
-│aaaaaoooooooooaaaaaaaaaaaaaahhhnnnnnnhnnnhnnnnnhnnhnnnnnnnhnnnhnnnhnnnnnnnnnhnhnnnnnhnhnnnnnnnnnnnnnnnnnnnnhnnnnhnnhhhhh│
-│aaaaaoooooooooaooooooaaaaaaahhhnhnnnnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooooaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhnnnnnnhnnnhnnnnnhnnhnnnnnnnhnnnhnnnhnnnnnnnnnhnhnnnnnhnhnnnnnnnnnnnnnnnnnnnnhnnnnhnnhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhnhnnnnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaooooooooaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
 │aaaaaoooooooaoooooooooooaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│

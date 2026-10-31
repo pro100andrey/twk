@@ -2,7 +2,7 @@ screen 120×36, cursor hidden
 text
 │  ◆ twk gallery   Controls  ›  Link                                                         ctrl+p search      ◐ Light  │
 │                                                                                                                        │
-│   ⌕ Filter             /      Link                                                                           18 of 20  │
+│   ⌕ Filter             /      Link                                                                           20 of 22  │
 │                               Text linked to a URL, which a terminal that knows hyperlinks opens.                      │
 │     ConfirmInput                                                                                                       │
 │     Slider                    Preview   Code                                                                           │

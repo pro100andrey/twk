@@ -19,14 +19,14 @@ text
 │     Effect                                                                               │   slide right  slide up     │
 │                                ·   ·   ┌                                    ┐  ·   ·     │   slide down  dissolve      │
 │   MOUSE                5                 ╭────────────────────────────────╮              │                             │
-│     GestureDetector            ·   ·     │                                │    ·   ·     │  cycle               ▐  ●▌  │
+│     GestureDetector            ·   ·     │                                │    ·   ·     │  cycle               ▐●  ▌  │
 │     Listener, MouseRegi…                 │     and now the second one     │              │                             │
-│     IgnorePointer, Abso…  ▐    ·   ·     │                                │    ·   ·     │                             │
+│     IgnorePointer, Abso…       ·   ·     │                                │    ·   ·     │                             │
 │     SelectionArea         ▐              ╰────────────────────────────────╯              │                             │
 │     Draggable, DragTarg…  ▐    ·   ·   └                                    ┘  ·   ·     │                             │
 │                           ▐                                           34 × 5             │                             │
 │   FOCUS AND KEYS       5  ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     Focus, FocusScope                                                                    │                             │
+│     Focus, FocusScope     ▐                                                              │                             │
 │     ActiveItem                 ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     ExcludeFocus                                                                         │                             │
 │     KeyBindings, Leader…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
@@ -56,14 +56,14 @@ styles
 │aaaaaooooooaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhirrrrrirrrrriirrrrrirrihhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhphhhphhhhhphhirrrrrirrrriirrrrrrrrihhhhh│
 │aaadddddaaaaaaaaaaaaaaaaBaaahhhhhhhhhhhhhhvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooooaaaaaaaahhhhphhhphhhhhvyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyvhhhhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhqwwxqhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhphhhphhhhhvyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyvhhhhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhejkkehh│
 │aaaaaoooooooooaooooooooooaaahhhhhhhhhhhhhhvyyyyyzzzyzzzyzzzyzzzzzzyzzzyyyyyvhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooooaoooooaadhhhhphhhphhhhhvyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyvhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooaoooooaaahhhhphhhphhhhhvyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyvhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooaaaaaaaaadhhhhhhhhhhhhhhvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooaoooooooooaadhhhhphhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhEEhEhEhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaadddddadddaddddaaaaaaaBaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooaooooooooooaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaooooooooooaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooaoooooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
@@ -97,6 +97,7 @@ t bold #e6e8eb on #2b4566
 u #5fa8ff on #2b4566
 v #3e444f on #22252c
 y on #22252c
-w on #5fa8ff
-x #ffffff on #5fa8ff
+e #383d48 on #16181d
+j #e6e8eb on #383d48
+k on #383d48
 z #e6e8eb on #22252c

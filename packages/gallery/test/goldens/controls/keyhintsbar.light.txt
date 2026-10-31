@@ -2,9 +2,9 @@ screen 120×36, cursor hidden
 text
 │  ◆ twk gallery   Controls  ›  KeyHintsBar                                                  ctrl+p search      ◐ Light  │
 │                                                                                                                        │
-│   ⌕ Filter             /      KeyHintsBar                                                                    15 of 20  │
+│   ⌕ Filter             /      KeyHintsBar                                                                    17 of 22  │
 │                               The keys that can be pressed now, with their hints, as the focus moves: Tab to the       │
-│     SegmentedButton           field to see its keys.                                                                   │
+│     ValueStepper              field to see its keys.                                                                   │
 │     SelectionList                                                                                                      │
 │     Select, MultiSelect       Preview   Code                                                                           │
 │     ConfirmInput           ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
@@ -41,7 +41,7 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaiEiEEEEEEiiiiiiiiiiiiiFiaahhhlllllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhGGhGGhGGhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnhnnnnhnnnnhnnnhnnhnnnnnnnhnnnnhnnnnhnnnnnhnnnnnnhnnhnnnhnnnnnhnnnnnnhnnnhnnhnnnhhhhhhh│
-│aaaaaoooooooooooooooaaaaaaaahhhnnnnnhnnhnnnhnnnhnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhnnnnnhnnhnnnhnnnhnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaoooooooooooaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│

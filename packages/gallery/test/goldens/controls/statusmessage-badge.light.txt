@@ -2,7 +2,7 @@ screen 120×36, cursor hidden
 text
 │  ◆ twk gallery   Controls  ›  StatusMessage, Badge                                         ctrl+p search      ◐ Light  │
 │                                                                                                                        │
-│   ⌕ Filter             /      StatusMessage, Badge                                                           16 of 20  │
+│   ⌕ Filter             /      StatusMessage, Badge                                                           18 of 22  │
 │                               A message of a kind after its icon, in its color; a short label on its color.            │
 │     SelectionList                                                                                                      │
 │     Select, MultiSelect       Preview   Code                                                                           │

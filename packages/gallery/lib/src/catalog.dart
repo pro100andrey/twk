@@ -342,6 +342,17 @@ const catalog = [
           'the arrows, a digit or a click turn one on.',
     ),
     CatalogPage(
+      'Chip, ChipList',
+      'Tags on one row that wraps, with a cursor: the arrows move it, '
+          'Space or a click toggles a chip, Delete or a click on its × '
+          'removes it.',
+    ),
+    CatalogPage(
+      'ValueStepper',
+      'One of a few values between ‹ and ›: Left and Right or a click on '
+          'an arrow step to the one before or after, round.',
+    ),
+    CatalogPage(
       'SelectionList',
       'Items selected by their keys: in a single selection the cursor '
           'selects, in a multiple one Space does.',

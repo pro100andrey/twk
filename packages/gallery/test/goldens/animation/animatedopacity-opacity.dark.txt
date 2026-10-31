@@ -14,7 +14,7 @@ text
 │     AnimatedAlign, Anim…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  opacity                    │
 │     AnimatedPositioned                                                                   │   0  ¼  ½  ¾  1             │
 │     AnimatedBox                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│ ▎   AnimatedOpacity, Op…                                                                 │  cycle               ▐  ●▌  │
+│ ▎   AnimatedOpacity, Op…                                                                 │  cycle               ▐●  ▌  │
 │     AnimatedDefaultText…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     AnimatedSize                                                                         │                             │
 │     TweenAnimationBuild…       ·   ┌                                            ┐  ·     │                             │
@@ -51,7 +51,7 @@ styles
 │aaaaaooooooooooooooaoooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooooooaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhiriiriiristsirihhhhhhhhhhhh│
 │aaaaaoooooooooooaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│ausssttttttttttttttttstttssahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnhhhhhhhhhhhhhhhqvvwqhh│
+│ausssttttttttttttttttstttssahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnhhhhhhhhhhhhhhhejkkehh│
 │aaaaaooooooooooooooooooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooooooooaaahhhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
@@ -95,8 +95,9 @@ r #8b929c on #13151a
 s on #2b4566
 t bold #e6e8eb on #2b4566
 u #5fa8ff on #2b4566
-v on #5fa8ff
-w #ffffff on #5fa8ff
+e #383d48 on #16181d
+j #e6e8eb on #383d48
+k on #383d48
 x on #22252c
 y #435874 on #293d57
 z #b7bdc6 on #293d57

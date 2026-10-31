@@ -14,13 +14,13 @@ text
 │     AnimatedSize        ·   ·   · └                             ┘   ·   ·   ·  │
 │     TweenAnimatio…                                        27 × 2               │
 │     AnimatedSwitc…      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
-│     Dissolve, Fra…  ▐                                                          │
+│     Dissolve, Fra…                                                             │
 │     Effect          ▐                                                          │
-│                      ──────────────────────────────────────────────────────────│
+│                     ▐──────────────────────────────────────────────────────────│
 │   MOUSE          5     style   primary  error  success                         │
 │     GestureDetect…     bold   ▐●  ▌                                            │
 │     Listener, Mou…                                                             │
-│     IgnorePointer…     cycle  ▐  ●▌                                            │
+│     IgnorePointer…     cycle  ▐●  ▌                                            │
 │     SelectionArea                                                              │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
@@ -39,13 +39,13 @@ styles
 │aaaaannnnnnnnnnnnaaaaagggogggogggogogggggggggggggggggggggggggggggogggogggogggogg│
 │aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggFFgFgFggggggggggggggg│
 │aaaaannnnnnnnnnnnnnaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
-│aaaaannnnnnnnnannnnaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnannnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnaaaaaaaaaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaaaaaaaaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaaaaaaaaaaaaaaaaaadoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaadddddaaaaaaaaaaCaaaggmmmmmgghvvvvvvvhrsssssrhvvvvvvvhgggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnnaaaggmmmmgggwxyywgggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnannnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnnnnaaaggmmmmmggzAABzgggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaaaggmmmmmggwxyywgggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
@@ -74,6 +74,3 @@ v #8b929c on #13151a
 w #383d48 on #16181d
 x #e6e8eb on #383d48
 y on #383d48
-z #5fa8ff on #16181d
-A on #5fa8ff
-B #ffffff on #5fa8ff

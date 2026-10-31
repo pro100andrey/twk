@@ -4,8 +4,8 @@ text
 │                                                                                │
 │   ⌕ Filter       /     NumberInput                             Preview   Code  │
 │                        A number typed, or stepped by Up and Down, the wheel    │
-│     RadioGroup         or a click on ▴▾; kept within its bounds.               │
-│     SegmentedButt…   ──────────────────────────────────────────────────────────│
+│     Chip, ChipList     or a click on ▴▾; kept within its bounds.               │
+│     ValueStepper     ──────────────────────────────────────────────────────────│
 │     SelectionList                                                              │
 │     Select, Multi…      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
 │     ConfirmInput                                                               │
@@ -29,8 +29,8 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahvhvvvvvvhhhhhhhyhaaggkkkkkkkkkkkggggggggggggggggggggggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmgmmmmmmgmmmmmmgmmgmmmmmmmgmmgmmgmmmgmmmmmgmmmgmmmmmgggg│
-│aaaaannnnnnnnnnaaaaaaaggmmgmgmmmmmgmmgmmmgmmmmgmmmmmmgmmmgmmmmmmmggggggggggggggg│
-│aaaaannnnnnnnnnnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnannnnnnnnaaaggmmgmgmmmmmgmmgmmmgmmmmgmmmmmmgmmmgmmmmmmmggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnnnnnnnnaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnannnnnnaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
 │aaaaannnnnnnnnnnnaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│

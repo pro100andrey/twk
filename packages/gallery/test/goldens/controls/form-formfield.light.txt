@@ -2,11 +2,11 @@ screen 120×36, cursor hidden
 text
 │  ◆ twk gallery   Controls  ›  Form, FormField                                              ctrl+p search      ◐ Light  │
 │                                                                                                                        │
-│   ⌕ Filter             /      Form, FormField                                                                13 of 20  │
+│   ⌕ Filter             /      Form, FormField                                                                15 of 22  │
 │                               Fields validated and submitted together: Enter goes on to the next field, and from       │
-│     Checkbox, Switch          the last submits the form.                                                               │
-│     RadioGroup                                                                                                         │
-│     SegmentedButton           Preview   Code                                                                           │
+│     SegmentedButton           the last submits the form.                                                               │
+│     Chip, ChipList                                                                                                     │
+│     ValueStepper              Preview   Code                                                                           │
 │     SelectionList          ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
 │     Select, MultiSelect                                                                  │                             │
 │     ConfirmInput               ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
@@ -41,9 +41,9 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaiBiBBBBBBiiiiiiiiiiiiiCiaahhhlllllhlllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhDDhDDhDDhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnnnhnnnnnnnnnhnnnhnnnnnnnnnhnnnnnnnnnhnnnnnhnnnnhnnhnnhnnnhnnnnhnnnnnnhnnnhnnnnhhhhhhh│
-│aaaaaoooooooooaooooooaaaaaaahhhnnnhnnnnhnnnnnnnhnnnhnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooooaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhnnnhnnnnhnnnnnnnhnnnhnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaooooooooaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
 │aaaaaoooooooaoooooooooooaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│

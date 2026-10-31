@@ -11,12 +11,12 @@ text
 │     DotCanvas                                                                            │                             │
 │     Calendar                   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
 │     Heatmap, ActivityHe…                                                                 │                             │
-│     Table                      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  selection                  │
+│     Table                 ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  selection                  │
 │     DescriptionList       ▐                                                              │   none  row  cell           │
 │     TreeView              ▐    ·    ┌                                          ┐   ·     │                             │
 │ ▎   TreeTable             ▐           name                           │   lines           │  border                     │
 │     DirectoryTree         ▐    ·      ───────────────────────────────┼────────     ·     │   none  single  rounded     │
-│     TaskList              ▐           ▾ lib                          │    2038           │   double  heavy  ascii      │
+│     TaskList                          ▾ lib                          │    2038           │   double  heavy  ascii      │
 │                                ·      ├─▾ src                        │    1990     ·     │                             │
 │   EDITING              4              │ ├── box.dart                 │     412           │  guides              ▐  ●▌  │
 │     TextField                  ·      │ ├── flex.dart                │     388     ·     │                             │
@@ -24,16 +24,16 @@ text
 │     TextArea                   ·      │ └── text.dart                │     230     ·     │                             │
 │     Autocomplete                      └── twk.dart                   │      48           │                             │
 │                                ·      ▸ test                         │     965     ·     │                             │
-│   CONTROLS            20                README.md                    │     120           │                             │
+│   CONTROLS            22                README.md                    │     120           │                             │
 │     Button                     ·        pubspec.yaml                 │      22     ·     │                             │
 │     Pressable                       └                                          ┘         │                             │
 │     Checkbox, Switch           ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·40 × 12·   ·     │                             │
 │     RadioGroup                                                                           │                             │
 │     SegmentedButton            ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Chip, ChipList                                                                       │                             │
+│     ValueStepper               ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     SelectionList                                                                        │                             │
 │     Select, MultiSelect        ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     ConfirmInput                                                                         │                             │
-│     Slider                     ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │                                                                                          │                             │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
 styles
@@ -48,12 +48,12 @@ styles
 │aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaoooooooooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnnnhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnnnhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooooaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhsttttsJKKKJsttttshhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaadhhhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aLJJJKKKKKKKKKJJJJJJJJJJJJJdhhhhhhhhhhhllllhhhhhhhhhhhhhhhhhhhhhhhhhhhxhhhlllllhhhhhhhhhhhphhnnnnnnhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooaaaaaaaaadhhhhphhhhhhxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxhhhhhphhhhhphhsttttsJKKKKKKJstttttttshhhh│
-│aaaaaooooooooaaaaaaaaaaaaaadhhhhhhhhhhhyhyyyhhhhhhhhhhhhhhhhhhhhhhhhhhzhhhhyyyyhhhhhhhhhhhphhsttttttsstttttsstttttshhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhyhyyyhhhhhhhhhhhhhhhhhhhhhhhhhhzhhhhyyyyhhhhhhhhhhhphhsttttttsstttttsstttttshhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhhhhzzyhyyyhhhhhhhhhhhhhhhhhhhhhhhhzhhhhyyyyhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaadddddddaaaaaaaaaaaaaaFaaahhhhhhhhhhhzhzzzhyyyyyyyyhhhhhhhhhhhhhhhhhzhhhhhyyyhhhhhhhhhhhphhnnnnnnhhhhhhhhhhhhhhqAABqhh│
 │aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhhhhzhzzzhyyyyyyyyyhhhhhhhhhhhhhhhhzhhhhhyyyhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
@@ -67,10 +67,10 @@ styles
 │aaaaaoooooooooaooooooaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhpIIhIhIIphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooooaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaooooooooaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaoooooooooooaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
 legend

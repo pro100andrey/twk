@@ -14,14 +14,14 @@ text
 │     TextArea                                                                   │
 │     Autocomplete         ╭ Site ────────────────╮  ╭ Password ────────────╮    │
 │                          │ https://twk     .dev │  │ secret               │    │
-│   CONTROLS      20       ╰──────────────────────╯  ╰──────────────────────╯    │
+│   CONTROLS      22       ╰──────────────────────╯  ╰──────────────────────╯    │
 │     Button               where it lives                                0/16    │
 │     Pressable          └                                                    ┘  │
 │     Checkbox, Swi…   ──────────────────────────────────────────────────────────│
 │     RadioGroup         border    outline  underline  none                      │
 │     SegmentedButt…     filled   ▐●  ▌                                          │
-│     SelectionList                                                              │
-│     Select, Multi…     enabled  ▐  ●▌                                          │
+│     Chip, ChipList                                                             │
+│     ValueStepper       enabled  ▐  ●▌                                          │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -45,8 +45,8 @@ styles
 │aaaaannnnnnnnnannnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnnnnnaaaaaaaggmmmmmmgggstttttttshvvvvvvvvvhhvvvvhggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnnaaaggmmmmmmgggwxyywgggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnnnaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnannnnnnaaaggmmmmmmmggzAABzgggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnannnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaaaggmmmmmmmggzAABzgggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

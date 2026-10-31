@@ -19,7 +19,7 @@ text
 │     TextArea                                                                   │
 │     Autocomplete       .gitignore    ▐  ●▌                                     │
 │                                                                                │
-│   CONTROLS      20     sizes         ▐●  ▌                                     │
+│   CONTROLS      22     sizes         ▐●  ▌                                     │
 │     Button                                                                     │
 │     Pressable          guides        ▐●  ▌                                     │
 │                        icons          none  glyphs                             │

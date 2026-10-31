@@ -2,7 +2,7 @@ screen 120×36, cursor hidden
 text
 │  ◆ twk gallery   Controls  ›  ListTile                                                     ctrl+p search      ◐ Light  │
 │                                                                                                                        │
-│   ⌕ Filter             /      ListTile                                                                       19 of 20  │
+│   ⌕ Filter             /      ListTile                                                                       21 of 22  │
 │                               A row of a list: a title over a subtitle, something before and after them; tapped by     │
 │     Slider                    a click or Enter, lit while focused or under the mouse.                                  │
 │     NumberInput                                                                                                        │

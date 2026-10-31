@@ -21,7 +21,7 @@ text
 │     Listener, Mou…     curve       linear  ease  easeIn  easeOut  easeInOut    │
 │     IgnorePointer…                 fastOutSlowIn  decelerate  bounceOut        │
 │     SelectionArea                  elasticOut                                  │
-│     Draggable, Dr…     cycle      ▐  ●▌                                        │
+│     Draggable, Dr…     cycle      ▐●  ▌                                        │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -46,7 +46,7 @@ styles
 │aaaaannnnnnnnnannnnaaaggmmmmmgggggghwwwwwwhhwwwwhhwwwwwwhhwwwwwwwhstttttttttsggg│
 │aaaaannnnnnnnnnnnnnaaaggggggggggggghwwwwwwwwwwwwwhhwwwwwwwwwwhhwwwwwwwwwhggggggg│
 │aaaaannnnnnnnnnnnnaaaaggggggggggggghwwwwwwwwwwhggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnannnaaaggmmmmmggggggxyyzxgggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnannnaaaggmmmmmggggggfijjfgggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend
@@ -71,6 +71,6 @@ r #5fa8ff on #2b4566
 s on #2b4566
 t bold #e6e8eb on #2b4566
 w #8b929c on #13151a
-x #5fa8ff on #16181d
-y on #5fa8ff
-z #ffffff on #5fa8ff
+f #383d48 on #16181d
+i #e6e8eb on #383d48
+j on #383d48

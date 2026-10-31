@@ -9,19 +9,19 @@ text
 │     TextArea                                                                   │
 │     Autocomplete        ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
 │                                    ┌                            ┐              │
-│   CONTROLS      20      ·   ·   ·     Save    Send    Disabled      ·   ·   ·  │
+│   CONTROLS      22      ·   ·   ·     Save    Send    Disabled      ·   ·   ·  │
 │ ▎   Button          ▐                                                          │
 │     Pressable       ▐   ·   ·   ·    saved: 0  sent: 0              ·   ·   ·  │
 │     Checkbox, Swi…                 └                            ┘              │
 │     RadioGroup          ·   ·   ·   ·   ·   ·   ·   ·   · 26 × 3·   ·   ·   ·  │
 │     SegmentedButt…                                                             │
-│     SelectionList                                                              │
-│     Select, Multi…   ──────────────────────────────────────────────────────────│
-│     ConfirmInput       style  ██ ██ ██ ██ ██ ██  primary                       │
-│     Slider                    ▔▔                                               │
-│     NumberInput        look    chip  outlined  filled                          │
-│     DatePicker         tall   ▐●  ▌                                            │
-│     FilePicker                                                                 │
+│     Chip, ChipList                                                             │
+│     ValueStepper     ──────────────────────────────────────────────────────────│
+│     SelectionList      style  ██ ██ ██ ██ ██ ██  primary                       │
+│     Select, Multi…            ▔▔                                               │
+│     ConfirmInput       look    chip  outlined  filled                          │
+│     Slider             tall   ▐●  ▌                                            │
+│     NumberInput                                                                │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -40,13 +40,13 @@ styles
 │aaaaannnnnnnnnannnnaaaggggggggggggggoggggggggggggggggggggggggggggogggggggggggggg│
 │aaaaannnnnnnnnnaaaaaaagggogggogggogggogggogggogggogggogggogKKgKgKogggogggogggogg│
 │aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnnnaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnannnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnnnnnnaaaaaggmmmmmggxxgyygzzgAAgBBgCCggKKKKKKKggggggggggggggggggggggg│
-│aaaaannnnnnaaaaaaaaaaagggggggggvvggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnaaaaaaggmmmmgggqrrrrqhDDDDDDDDhhDDDDDDhggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnaaaaaaaggmmmmgggEFGGEgggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnannnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnnnaaaaggmmmmmggxxgyygzzgAAgBBgCCggKKKKKKKggggggggggggggggggggggg│
+│aaaaannnnnnnannnnnnaaagggggggggvvggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaaaggmmmmgggqrrrrqhDDDDDDDDhhDDDDDDhggggggggggggggggggggggggg│
+│aaaaannnnnnaaaaaaaaaaaggmmmmgggEFGGEgggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

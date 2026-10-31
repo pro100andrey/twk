@@ -9,19 +9,19 @@ text
 │                             ┌                                          ┐       │
 │   EDITING        4      ·     ╭──────────────────────────────────────╮      ·  │
 │     TextField                 │Notes wrap at the width of the area,  │         │
-│     InputDecorati…      ·     │between words.                        │      ·  │
+│     InputDecorati…  ▐   ·     │between words.                        │      ·  │
 │ ▎   TextArea        ▐         │Enter breaks a line.                  │         │
-│     Autocomplete    ▐   ·     ╰──────────────────────────────────────╯      ·  │
+│     Autocomplete        ·     ╰──────────────────────────────────────╯      ·  │
 │                                                                                │
-│   CONTROLS      20      ·     line 2 of 2, column 21                        ·  │
+│   CONTROLS      22      ·     line 2 of 2, column 21                        ·  │
 │     Button                  └                                          ┘       │
 │     Pressable        ──────────────────────────────────────────────────────────│
 │     Checkbox, Swi…     min lines   1  3                                       ▐│
 │     RadioGroup         max lines   none  3  6                                 ▐│
 │     SegmentedButt…     enter       breaks the line  submits                   ▐│
-│     SelectionList      cursor      bar  block  underline  terminal            ▐│
-│     Select, Multi…     blinking   ▐●  ▌                                       ▐│
-│     ConfirmInput                                                               │
+│     Chip, ChipList     cursor      bar  block  underline  terminal            ▐│
+│     ValueStepper       blinking   ▐●  ▌                                       ▐│
+│     SelectionList                                                              │
 │                        read only  ▐●  ▌                                        │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -34,9 +34,9 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggoggggggggggggggggggggggggggggggggggggggggggoggggggg│
 │aaadddddddaaaaaaaaqaaagggogggggppppppppppppppppppppppppppppppppppppppppggggggogg│
 │aaaaannnnnnnnnaaaaaaaagggggggggpAAAAAgAAAAgAAgAAAgAAAAAgAAgAAAgAAAAAggpggggggggg│
-│aaaaannnnnnnnnnnnnnaaagggogggggpAAAAAAAgAAAAAAggggggggggggggggggggggggpggggggogg│
+│aaaaannnnnnnnnnnnnnaadgggogggggpAAAAAAAgAAAAAAggggggggggggggggggggggggpggggggogg│
 │astttuuuuuuuuttttttttdgggggggggpAAAAAgAAAAAAgAgAAAAAggggggggggggggggggpggggggggg│
-│aaaaannnnnnnnnnnnaaaadgggogggggppppppppppppppppppppppppppppppppppppppppggggggogg│
+│aaaaannnnnnnnnnnnaaaaagggogggggppppppppppppppppppppppppppppppppppppppppggggggogg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaddddddddaaaaaaqqaaagggogggggmmmmgmgmmgmmgmmmmmmgmmggggggggggggggggggggggggogg│
 │aaaaannnnnnaaaaaaaaaaagggggggoggggggggggggggggggggggggggggggggggggggggggoggggggg│
@@ -44,9 +44,9 @@ styles
 │aaaaannnnnnnnnannnnaaaggmmmgmmmmmgghwhtutggggggggggggggggggggggggggggggggggggggm│
 │aaaaannnnnnnnnnaaaaaaaggmmmgmmmmmgghwwwwhhwhtutggggggggggggggggggggggggggggggggm│
 │aaaaannnnnnnnnnnnnnaaaggmmmmmggggggtuuuuuutuuutuuuuthwwwwwwwhggggggggggggggggggm│
-│aaaaannnnnnnnnnnnnaaaaggmmmmmmgggggtuuuthwwwwwhhwwwwwwwwwhhwwwwwwwwhgggggggggggm│
-│aaaaannnnnnnannnnnnaaaggmmmmmmmmgggxyzzxgggggggggggggggggggggggggggggggggggggggm│
-│aaaaannnnnnnnnnnnaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnannnnnnnnaaaggmmmmmmgggggtuuuthwwwwwhhwwwwwwwwwhhwwwwwwwwhgggggggggggm│
+│aaaaannnnnnnnnnnnaaaaaggmmmmmmmmgggxyzzxgggggggggggggggggggggggggggggggggggggggm│
+│aaaaannnnnnnnnnnnnaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaaggmmmmgmmmmggxyzzxgggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

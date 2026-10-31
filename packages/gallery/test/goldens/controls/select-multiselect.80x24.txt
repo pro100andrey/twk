@@ -4,11 +4,11 @@ text
 │                                                                                │
 │   ⌕ Filter       /     Select, MultiSelect                     Preview   Code  │
 │                        A field that opens its choices to pick one, or          │
-│     Button             several, from, or a PopupController from the app; typ…  │
-│     Pressable        ──────────────────────────────────────────────────────────│
-│     Checkbox, Swi…                                                             │
-│     RadioGroup          ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
-│     SegmentedButt…             ┌                                   ┐           │
+│     Checkbox, Swi…     several, from, or a PopupController from the app; typ…  │
+│     RadioGroup       ──────────────────────────────────────────────────────────│
+│     SegmentedButt…                                                             │
+│     Chip, ChipList      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│     ValueStepper               ┌                                   ┐           │
 │     SelectionList       ·   ·     a fruit   ▾     some fruit     ▾      ·   ·  │
 │ ▎   Select, Multi…                                                             │
 │     ConfirmInput    ▐   ·   ·     Choose a fruit                        ·   ·  │
@@ -29,11 +29,11 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahChCCCCCChhhhhhhDhaaggkkkkkkkgkkkkkkkkkkkggggggggggggggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmgmmmmmgmmmmgmmmmmgmmmgmmmmmmmgmmgmmmmgmmmmgmmgggggggggg│
-│aaaaannnnnnaaaaaaaaaaaggmmmmmmmmgmmmmmgmmgmgmmmmmmmmmmmmmmmgmmmmgmmmgmmmmgmmmmgg│
-│aaaaannnnnnnnnaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnnnannnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
-│aaaaannnnnnnnnnnnnnaaaggggggggggogggggggggggggggggggggggggggggggggggoggggggggggg│
+│aaaaannnnnnnnnannnnaaaggmmmmmmmmgmmmmmgmmgmgmmmmmmmmmmmmmmmgmmmmgmmmgmmmmgmmmmgg│
+│aaaaannnnnnnnnnaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnannnnnnnnaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
+│aaaaannnnnnnnnnnnaaaaaggggggggggogggggggggggggggggggggggggggggggggggoggggggggggg│
 │aaaaannnnnnnnnnnnnaaaagggogggoggggststttttssstggggsttttstttttssssstggggggogggogg│
 │apqqqrrrrrrrqrrrrrrqqagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnaaaadgggogggoggggsvvvvvvsvsvvvvvsgggggggggggggggggggggggogggogg│
