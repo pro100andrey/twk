@@ -6,6 +6,7 @@ import 'package:twk_core/twk_core.dart' show Attr, KeyCode, stringWidth;
 import '../binding/app_binding.dart' show AppBinding;
 import '../focus/focus.dart';
 import '../framework/framework.dart';
+import '../gestures/mouse.dart' show Listener;
 import '../layout/basic.dart' show SizedBox;
 import '../layout/flex.dart';
 import '../overlay/dialog.dart';
@@ -80,7 +81,15 @@ final class KeyHintsBar extends StatefulWidget {
     this.style,
     this.keyStyle,
     this.hintStyle,
+    this.pressable = false,
   });
+
+  /// Whether a click on a key presses it ([AppBinding.pressKey]; a sequence
+  /// key by key), and one on a hint presses its key where it has one key
+  /// alone (not `↑↓ move`, whose keys are pressed each on its sign). False
+  /// by default: the bar then listens to no mouse, and the terminal
+  /// reports none for it.
+  final bool pressable;
 
   /// Whether keys without a hint are shown, by their names alone.
   final bool showUnhinted;
@@ -140,17 +149,34 @@ final class KeyHintsBar extends StatefulWidget {
     String Function(KeyCombo combo)? keyLabel,
     bool joinKeys = true,
     bool showUnhinted = false,
+  }) => [
+    for (final (names, gap, hint) in _entries(
+      keys,
+      keyLabel: keyLabel,
+      joinKeys: joinKeys,
+      showUnhinted: showUnhinted,
+    ))
+      ([for (final (name, _) in names) name].join(gap), hint),
+  ];
+
+  /// [entries], each with the keys it names, apart by what is between
+  /// their names.
+  static List<(List<(String, ActiveKey)>, String, String?)> _entries(
+    Iterable<ActiveKey> keys, {
+    String Function(KeyCombo combo)? keyLabel,
+    bool joinKeys = true,
+    bool showUnhinted = false,
   }) {
     final label = keyLabel ?? signs;
     // each entry: the names of the keys it shows, their family, its hint
-    final shown = <(List<String>, int?, String?)>[];
+    final shown = <(List<(String, ActiveKey)>, int?, String?)>[];
     for (final key in keys) {
       final hint = key.hint;
       if (hint == null && !showUnhinted) {
         continue;
       }
       final name = key.label(label);
-      if (shown.any((e) => e.$3 == hint && e.$1.contains(name))) {
+      if (shown.any((e) => e.$3 == hint && e.$1.any((n) => n.$1 == name))) {
         continue;
       }
       final family = joinKeys && hint != null && key.then.isEmpty
@@ -160,18 +186,17 @@ final class KeyHintsBar extends StatefulWidget {
           ? null
           : shown.where((e) => e.$2 == family && e.$3 == hint).firstOrNull;
       if (joined != null) {
-        joined.$1.add(name);
+        joined.$1.add((name, key));
       } else {
-        shown.add(([name], family, hint));
+        shown.add(([(name, key)], family, hint));
       }
     }
     return [
       for (final (names, family, hint) in shown)
         // the arrows' signs together, other keys apart by a blank
         (
-          names.join(
-            family == 0 && names.every((n) => n.length == 1) ? '' : ' ',
-          ),
+          names,
+          family == 0 && names.every((n) => n.$1.length == 1) ? '' : ' ',
           hint,
         ),
     ];
@@ -239,23 +264,62 @@ final class _KeyHintsBarState extends State<KeyHintsBar> {
         widget.keyStyle ?? theme.text.merge(const Style(attrs: Attr.bold));
     final hintStyle = widget.hintStyle ?? theme.muted;
     final spans = <Span>[];
-    for (final (keys, hint) in KeyHintsBar.entries(
+    // the columns a click presses keys at: from, to, the key
+    final targets = <(int, int, ActiveKey)>[];
+    var x = 0;
+    void add(Span span) {
+      spans.add(span);
+      x += stringWidth(span.text);
+    }
+
+    for (final (names, gap, hint) in KeyHintsBar._entries(
       _manager?.activeKeys ?? const <ActiveKey>[],
       keyLabel: widget.keyLabel,
       joinKeys: widget.joinKeys,
       showUnhinted: widget.showUnhinted,
     )) {
       if (spans.isNotEmpty) {
-        spans.add(Span(widget.separator));
+        add(Span(widget.separator));
       }
-      spans.add(Span(keys, keyStyle));
+      for (final (i, (name, key)) in names.indexed) {
+        if (i > 0) {
+          add(Span(gap, keyStyle));
+        }
+        final from = x;
+        add(Span(name, keyStyle));
+        targets.add((from, x, key));
+      }
       if (hint != null) {
-        spans.add(Span(' $hint', hintStyle));
+        final from = x;
+        add(Span(' $hint', hintStyle));
+        if (names case [(_, final key)]) {
+          targets.add((from + 1, x, key));
+        }
       }
     }
-    return Text.richLine(
+    final row = Text.richLine(
       spans,
       style: theme.text.merge(widget.style ?? const Style()),
+    );
+    if (!widget.pressable) {
+      return row;
+    }
+    return Listener(
+      onDown: (event) {
+        if (event.button != 0) {
+          return;
+        }
+        for (final (from, to, key) in targets) {
+          if (event.x >= from && event.x < to) {
+            final binding = AppBinding.of(context);
+            for (final combo in [key.combo, ...key.then]) {
+              binding.pressKey(combo);
+            }
+            return;
+          }
+        }
+      },
+      child: row,
     );
   }
 }

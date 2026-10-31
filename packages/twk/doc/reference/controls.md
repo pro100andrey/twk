@@ -36,7 +36,11 @@ family that share a hint shown as one (`↑↓←→ move`, `pgup pgdn a page`,
 `home end ends`: single keys without modifiers only; `keyLabel: (c) => '$c',
 joinKeys: false` names each key as `KeyCombo.toString` does, apart), and
 while a layer holds its first keys what can follow them (`ctrl+s save` once
-Ctrl+X is pressed).
+Ctrl+X is pressed). With `pressable: true` a click presses a key as the
+terminal's would (`AppBinding.pressKey`, a sequence key by key): on its
+name, on the sign of one of joined keys (`↓` of `↑↓ move`), on a hint where
+the entry has one key; false by default, and the bar then listens to no
+mouse, so the terminal reports none for it.
 
 `showKeyHelp(context, title: 'Keys')` shows the same keys, those in force
 where `context` is as it is called, in a dialog (`Dialog(scrollable:
