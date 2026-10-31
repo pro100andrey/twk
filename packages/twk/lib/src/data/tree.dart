@@ -30,6 +30,7 @@ import '../foundation/helpers.dart';
 import '../framework/framework.dart';
 import '../gestures/mouse.dart';
 import '../layout/basic.dart' show SizedBox;
+import '../layout/box.dart' show Box;
 import '../layout/flex.dart';
 import '../layout/one_child.dart';
 import '../scroll/list_view.dart';
@@ -255,7 +256,18 @@ final class TreeController extends ChangeNotifier {
 /// a click still selects, the app moves [TreeController.selectedKey] with
 /// its own keys and the row of the node selected takes [selectedStyle]
 /// (what the app's cursor wears), while [TreeEntry.selected] tells a label
-/// to draw its own mark.
+/// to draw its own mark; [gutter] puts that mark in column 0, before the
+/// guides:
+///
+/// ```dart
+/// TreeView<String>(
+///   roots: const ['/'],
+///   children: (path) => folders[path] ?? const [],
+///   canRequestFocus: false,
+///   gutter: (context, entry) => Text(entry.selected ? '▎' : ' '),
+///   label: (context, entry) => Text(entry.node),
+/// )
+/// ```
 ///
 /// It takes all the room it is given, which must be bounded.
 ///
@@ -290,6 +302,8 @@ final class TreeView<T> extends StatefulWidget {
     this.showGuides = true,
     this.separateRoots = false,
     this.maxIndent,
+    this.gutter,
+    this.gutterWidth = 1,
     this.focusNode,
     this.autofocus = false,
     this.canRequestFocus,
@@ -341,6 +355,20 @@ final class TreeView<T> extends StatefulWidget {
   /// than half of it show at the indent of that level, their guides and
   /// expanders at its column. Null for no limit.
   final int? maxIndent;
+
+  /// What shows in the first [gutterWidth] cells of the row of each node,
+  /// before the guides and the expander, which move right by that much:
+  /// an app's own cursor mark (`▎` for [TreeEntry.selected]) goes here, out
+  /// of the label's reach. Laid out [gutterWidth] cells wide and a row
+  /// tall, over the row's [Style]; the rows of a load, an error and
+  /// [separateRoots] have it empty. Null shows no gutter, the rows as
+  /// they are without it.
+  // ignore: unsafe_variance
+  final Widget Function(BuildContext context, TreeEntry<T> entry)? gutter;
+
+  /// The cells [gutter] takes at the left of each row; not used without
+  /// one.
+  final int gutterWidth;
 
   /// See [Focus.focusNode].
   final FocusNode? focusNode;
@@ -912,6 +940,9 @@ final class _TreeViewState<T> extends State<TreeView<T>>
   @override
   void _loadEnded() => setState(() {});
 
+  /// The cells before the guides: the gutter's, none without one.
+  int get _gutterCells => widget.gutter == null ? 0 : widget.gutterWidth;
+
   /// The level a row of depth [depth] is indented to.
   int _levelOf(int depth) => _capped(depth, widget.maxIndent);
 
@@ -1079,7 +1110,7 @@ final class _TreeViewState<T> extends State<TreeView<T>>
     if (i < 0 || !rows.isNode(i)) {
       return;
     }
-    final x = _levelOf(rows.depth(i)) * 2;
+    final x = _gutterCells + _levelOf(rows.depth(i)) * 2;
     if (event.x >= x && event.x < x + 2 && _toggle(rows, i)) {
       return;
     }
@@ -1142,6 +1173,16 @@ final class _TreeViewState<T> extends State<TreeView<T>>
     required bool selected,
   }) {
     final mark = rows.mark(i);
+    final entry = !rows.isNode(i)
+        ? null
+        : TreeEntry(
+            node: rows.nodes[i],
+            key: rows.keys[i],
+            depth: rows.depth(i),
+            hasChildren: mark != _Mark.leaf,
+            expanded: mark == _Mark.expanded,
+            selected: selected,
+          );
     final Widget child;
     switch (mark) {
       case _Mark.loading:
@@ -1156,35 +1197,40 @@ final class _TreeViewState<T> extends State<TreeView<T>>
       case _Mark.separator:
         child = const SizedBox();
       case _Mark.leaf || _Mark.collapsed || _Mark.expanded:
-        child = widget.label(
-          context,
-          TreeEntry(
-            node: rows.nodes[i],
-            key: rows.keys[i],
-            depth: rows.depth(i),
-            hasChildren: mark != _Mark.leaf,
-            expanded: mark == _Mark.expanded,
-            selected: selected,
-          ),
-        );
+        child = widget.label(context, entry!);
     }
     final key = rows.keys[i];
+    final gutter = widget.gutter;
+    final row = _TreeRow(
+      level: _levelOf(rows.depth(i)),
+      lines: rows.lines(i),
+      last: rows.last(i),
+      mark: mark,
+      guides: widget.showGuides,
+      style: style,
+      guideStyle: guideStyle,
+      // the hidden cursor on the selected node's label
+      child: ActiveItem(active: selected, child: child),
+    );
     return Listener(
       key: ValueKey<Object>(key),
       onDown: (event) => _rowDown(i, key, event),
       child: DefaultTextStyle(
         style: style,
-        child: _TreeRow(
-          level: _levelOf(rows.depth(i)),
-          lines: rows.lines(i),
-          last: rows.last(i),
-          mark: mark,
-          guides: widget.showGuides,
-          style: style,
-          guideStyle: guideStyle,
-          // the hidden cursor on the selected node's label
-          child: ActiveItem(active: selected, child: child),
-        ),
+        child: gutter == null
+            ? row
+            : Row(
+                children: [
+                  SizedBox(
+                    width: widget.gutterWidth,
+                    child: Box(
+                      style: style,
+                      child: entry == null ? null : gutter(context, entry),
+                    ),
+                  ),
+                  Expanded(child: row),
+                ],
+              ),
       ),
     );
   }

@@ -43,6 +43,8 @@ TreeView<N> tree(
   bool showGuides = true,
   bool separateRoots = false,
   int? maxIndent,
+  Widget Function(BuildContext context, TreeEntry<N> entry)? gutter,
+  int gutterWidth = 1,
   bool autofocus = false,
   bool? canRequestFocus,
   FocusNode? focusNode,
@@ -59,6 +61,8 @@ TreeView<N> tree(
   showGuides: showGuides,
   separateRoots: separateRoots,
   maxIndent: maxIndent,
+  gutter: gutter,
+  gutterWidth: gutterWidth,
   autofocus: autofocus,
   canRequestFocus: canRequestFocus,
   focusNode: focusNode,
@@ -960,6 +964,82 @@ void main() {
         size: (16, 5),
       );
       expect(t.lines.last, '      └── e');
+    });
+  });
+
+  group('gutter', () {
+    Widget mark(BuildContext context, TreeEntry<N> entry) =>
+        Text(entry.selected ? '▎' : ' ');
+
+    testTwk('a cell in column 0 of each node row is built from the entry, '
+        'the guides and the label after it; the rows of a separator are '
+        'empty there', (t) async {
+      await t.pumpWidget(
+        Theme.terminal(
+          child: tree(
+            files,
+            gutter: mark,
+            separateRoots: true,
+            canRequestFocus: false,
+            controller: TreeController(
+              expanded: ['src'],
+              selectedKey: 'data',
+            ),
+          ),
+        ),
+        size: (20, 6),
+      );
+      expect(t.lines, [
+        ' ▾ src',
+        '▎├─▸ data',
+        ' └─▸ widgets',
+        '',
+        ' ▸ test',
+        '',
+      ]);
+    });
+
+    testTwk('gutterWidth sets the cells it takes, and the expander is '
+        'clicked after them', (t) async {
+      final controller = TreeController(expanded: ['src']);
+      await t.pumpWidget(
+        Theme.terminal(
+          child: tree(
+            files,
+            gutter: (context, entry) => Text(entry.selected ? '▎▎' : '  '),
+            gutterWidth: 2,
+            controller: controller,
+          ),
+        ),
+        size: (20, 6),
+      );
+      expect(t.lines[1], '  ├─▸ data');
+      // the expander of data is at column 2 + 2
+      await t.click(4, 1);
+      await t.pump();
+      expect(controller.expanded, {'src', 'data'});
+      // column 0 of the gutter is not the expander of src
+      await t.click(0, 0);
+      await t.pump();
+      expect(controller.expanded, {'src', 'data'});
+      expect(controller.selectedKey, 'src');
+    });
+
+    testTwk('the gutter takes the row style of the node selected', (t) async {
+      await t.pumpWidget(
+        Theme.terminal(
+          child: tree(
+            files,
+            gutter: mark,
+            canRequestFocus: false,
+            controller: TreeController(selectedKey: 'src'),
+            selectedStyle: const Style(bg: red),
+          ),
+        ),
+        size: (20, 3),
+      );
+      expect(t.cell(0, 0), hasBg(red));
+      expect(t.cell(0, 1), isNot(hasBg(red)));
     });
   });
 
