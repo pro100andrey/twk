@@ -18,7 +18,7 @@ import 'overlays/overlays.dart';
 import 'rich.dart';
 import 'screen_readers/screen_readers.dart';
 import 'scrolling/scrolling.dart';
-import 'style.dart';
+import 'style/style.dart';
 import 'terminal.dart';
 import 'text.dart';
 
