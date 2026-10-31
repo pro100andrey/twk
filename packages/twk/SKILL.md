@@ -623,7 +623,8 @@ What to know:
   (Space on the row Enter added).
 - `type('text')` sends the text as one read. `press('enter')`,
   `press('tab space')`, `press('ctrl+x ctrl+s')` send each key as a read
-  of its own, the keys named as `KeyBindings` names them. `press('escape')`
+  of its own, the keys named as `KeyBindings` names them (`escape`, not
+  `esc`; in lower case). `press('escape')`
   waits out the 30 ms after which a lone ESC is the Escape key; a key with
   no bytes of its own without the kitty protocol (Ctrl+Shift and a
   letter, Ctrl+Enter) throws unless `pumpWidget(..., kittyKeyboard: true)`.
@@ -641,12 +642,24 @@ What to know:
   `[bold]…[/]` runs too).
 - Finders: `find.text`, `find.byType`, `find.byKey`, `find.descendant`,
   with `findsOneWidget`, `findsNothing`, `findsNWidgets(n)`;
-  `t.state<S>(finder)`, `t.widget<W>(finder)`, `t.rect(finder)`.
-- `t.logs.records` holds what the app printed and logged, `t.isRunning`
-  turns false once it quit.
+  `t.state<S>(finder)`, `t.widget<W>(finder)`, `t.rect(finder)` (its
+  cells, for `styleAt`). `find` is global; `find.text` matches a `Text`'s
+  whole string, and a `Button`'s label is no `Text`:
+  `find.byWidgetPredicate((w) => w is Button && w.label == 'save')`.
+- One `t.pump()` after the input also draws what a future of it changed
+  that waits for no timer (the tester runs the app's microtasks first);
+  one on a timer needs `t.pump(duration)` past it, a load the next frame
+  starts (`initState`, `didUpdateWidget`) a pump more. What arrives in
+  real time (a file, a process): `waitUntil(condition, what, between:
+  t.pump)`.
+- `t.logs.records` holds what the app printed and logged, a build that
+  failed among them: a `print` never reaches the test's output, read it
+  with `printOnFailure('${t.logs.records}')`. `t.isRunning` turns false
+  once it quit.
 - `pumpUntilIdle()` pumps until no frame and no timer waits; it fails
   after 10 s on the clock for an app with a periodic timer or a spinner:
-  pump those by a duration.
+  pump those by a duration. It runs out a toast's and a highlight's
+  timers too, so what they show is gone when it returns.
 - Only the app's timers and frames are fake: `DateTime.now()` and
   `Stopwatch()` read real time. Pass dates in (`Calendar(today: …)`).
 - A failing matcher shows the screen, the widget tree with each widget's
