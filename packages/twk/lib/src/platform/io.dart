@@ -82,7 +82,8 @@ Stream<void> watchDirectory(String path) {
   }
 }
 
-/// The bytes written to the file at [path] from now on, or with [fromEnd]
+/// The bytes written to the file at [path] from when the stream is listened
+/// to, or with [fromEnd]
 /// false from its start, as they come: told by a watch of its directory
 /// where the system has one, and found by a look at its size each [poll]
 /// all the same, where a watch misses a write or does not work (a network
@@ -143,12 +144,15 @@ Stream<List<int>> tailFile(
   }
 
   out = StreamController<List<int>>(
-    onListen: () async {
+    onListen: () {
+      // the end as the stream is listened to, before anything else can
+      // write: a write after it is read
       if (fromEnd) {
-        position = await length();
-      }
-      if (cancelled) {
-        return;
+        try {
+          position = file.lengthSync();
+        } on FileSystemException {
+          position = 0;
+        }
       }
       if (FileSystemEntity.isWatchSupported) {
         try {

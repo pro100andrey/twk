@@ -1,7 +1,8 @@
 // A LogController following a file being written: the lines written from
-// now on, each once it ends; from its start when asked; a file truncated
-// read again from its start; a file not there yet waited for. Its writes
-// come by the system's watch or the poll, which the fake clock moves.
+// the moment it is followed, each once it ends; from its start when
+// asked; a file truncated read again from its start; a file not there yet
+// waited for. Its writes come by the system's watch or the poll, which the
+// fake clock moves.
 @TestOn('vm')
 library;
 
@@ -60,6 +61,18 @@ void main() {
     File(path).writeAsStringSync('fresh\n');
     await holds(c, ['new 1', 'partial', 'fresh']);
   });
+
+  test(
+    'from the moment it is followed: a write right after it is read',
+    () async {
+      File(path).writeAsStringSync('old\n');
+      final c = follow();
+      // an end read later, on the I/O thread as a busy machine delays it,
+      // would take this write for what was there
+      File(path).writeAsStringSync('new\n', mode: FileMode.append);
+      await holds(c, ['new']);
+    },
+  );
 
   test('from its start when asked, in its colors, and a file not there yet '
       'waited for', () async {

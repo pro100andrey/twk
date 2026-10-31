@@ -257,7 +257,7 @@ final class LogController extends ChangeNotifier {
 
   /// Adds the lines written to the file at [path], as [listen] adds those
   /// of a program's output (in its colors, a carriage return writing a line
-  /// over), each line once it ends: those written from now on, or with
+  /// over), each line once it ends: those written from the call on, or with
   /// [fromEnd] false the file's from its start too. A write is told by a
   /// watch of the file's directory where the system has one, and found by
   /// a look at the file's size each [poll] all the same; a file cut short
