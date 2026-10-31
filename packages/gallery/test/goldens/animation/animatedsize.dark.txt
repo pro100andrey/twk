@@ -24,7 +24,7 @@ text
 │     GestureDetector       ▐                                                              │   decelerate  bounceOut     │
 │     Listener, MouseRegi…  ▐    ·   ·                                           ·   ·     │   elasticOut                │
 │     IgnorePointer, Abso…  ▐             └                                 ┘              │                             │
-│     SelectionArea         ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·31 × 7 ·   ·   ·     │  cycle               ▐●  ▌  │
+│     SelectionArea         ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·31 × 7 ·   ·   ·     │  cycle               ▐  ●▌  │
 │     Draggable, DragTarg…  ▐                                                              │                             │
 │                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │   FOCUS AND KEYS       5                                                                 │                             │
@@ -61,7 +61,7 @@ styles
 │aaaaaoooooooooooooooaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhirrrrrrrrrriirrrrrrrrrihhhh│
 │aaaaaoooooooooaooooooooooaadhhhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhhhphhirrrrrrrrrrihhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooaoooooaadhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhpDDhDhDhphhhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhejkkehh│
+│aaaaaoooooooooooooaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhpDDhDhDhphhhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhqmmxqhh│
 │aaaaaooooooooooaoooooooooaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaadddddadddaddddaaaaaaaAaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
@@ -97,6 +97,5 @@ t bold #e6e8eb on #2b4566
 u #5fa8ff on #2b4566
 v #3e444f on #16181d
 w #e6e8eb on #16181d
-e #383d48 on #16181d
-j #e6e8eb on #383d48
-k on #383d48
+m on #5fa8ff
+x #ffffff on #5fa8ff

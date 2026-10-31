@@ -15,7 +15,7 @@ text
 │     AnimatedBox                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     AnimatedOpacity, Op…                                                                 │  bold                ▐●  ▌  │
 │ ▎   AnimatedDefaultText…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     AnimatedSize                                                                         │  cycle               ▐●  ▌  │
+│     AnimatedSize                                                                         │  cycle               ▐  ●▌  │
 │     TweenAnimationBuild…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     AnimatedSwitcher                      ┌                             ┐                │                             │
 │     Dissolve, Fractiona…       ·   ·   ·    Text in the style above it,    ·   ·   ·     │                             │
@@ -52,7 +52,7 @@ styles
 │aaaaaoooooooooooaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooooaoooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnhhhhhhhhhhhhhhhhvwxxvhh│
 │aJHHHIIIIIIIIIIIIIIIIIIIIHHahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnhhhhhhhhhhhhhhhvwxxvhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnhhhhhhhhhhhhhhhqeejqhh│
 │aaaaaooooooooooooooooooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooooaaaaaaahhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooaooooooooooaaahhhhphhhphhhphhhhBBBBhBBhBBBhBBBBBhBBBBBhBBBhhhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
@@ -99,4 +99,6 @@ v #c8cdd5 on #fafafb
 w #ffffff on #c8cdd5
 x on #c8cdd5
 J #0969da on #b6d4fe
+e on #0969da
+j #ffffff on #0969da
 B #cf222e on #fafafb

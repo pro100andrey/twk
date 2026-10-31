@@ -19,7 +19,7 @@ text
 │     Effect                                                                               │   slide right  slide up     │
 │                                ·   ·   ┌                                    ┐  ·   ·     │   slide down  dissolve      │
 │   MOUSE                5                 ╭────────────────────────────────╮              │                             │
-│     GestureDetector            ·   ·     │                                │    ·   ·     │  cycle               ▐●  ▌  │
+│     GestureDetector            ·   ·     │                                │    ·   ·     │  cycle               ▐  ●▌  │
 │     Listener, MouseRegi…                 │     and now the second one     │              │                             │
 │     IgnorePointer, Abso…       ·   ·     │                                │    ·   ·     │                             │
 │     SelectionArea         ▐              ╰────────────────────────────────╯              │                             │
@@ -56,7 +56,7 @@ styles
 │aaaaaooooooaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhirrrrrirrrrriirrrrrirrihhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhphhhphhhhhphhirrrrrirrrriirrrrrrrrihhhhh│
 │aaadddddaaaaaaaaaaaaaaaaBaaahhhhhhhhhhhhhhvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooooaaaaaaaahhhhphhhphhhhhvyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyvhhhhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhejkkehh│
+│aaaaaoooooooooooooooaaaaaaaahhhhphhhphhhhhvyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyvhhhhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhqmmwqhh│
 │aaaaaoooooooooaooooooooooaaahhhhhhhhhhhhhhvyyyyyzzzyzzzyzzzyzzzzzzyzzzyyyyyvhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooaoooooaaahhhhphhhphhhhhvyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyvhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooaaaaaaaaadhhhhhhhhhhhhhhvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
@@ -97,7 +97,6 @@ t bold #e6e8eb on #2b4566
 u #5fa8ff on #2b4566
 v #3e444f on #22252c
 y on #22252c
-e #383d48 on #16181d
-j #e6e8eb on #383d48
-k on #383d48
+m on #5fa8ff
+w #ffffff on #5fa8ff
 z #e6e8eb on #22252c

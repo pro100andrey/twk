@@ -20,7 +20,7 @@ text
 │     Draggable, Dr…     effect   sweep  dissolve  typewriter  glitch  dim       │
 │                                 desaturate  tint  scanlines  grade             │
 │   FOCUS AND KEYS 5              sweep down, glitch                             │
-│     Focus, FocusS…     cycle   ▐●  ▌                                           │
+│     Focus, FocusS…     cycle   ▐  ●▌                                           │
 │     ActiveItem                                                                 │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
@@ -45,7 +45,7 @@ styles
 │aaaaannnnnnnnnnannnaaaggmmmmmmgghBBBBBhvwwwwwwwwvhBBBBBBBBBBhhBBBBBBhhBBBhgggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggghBBBBBBBBBBhhBBBBhhBBBBBBBBBhhBBBBBhgggggggggggg│
 │aaadddddadddaddddaFaaagggggggggghBBBBBhBBBBBhBBBBBBhgggggggggggggggggggggggggggg│
-│aaaaannnnnnannnnnnnaaaggmmmmmgggfijjfggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnannnnnnnaaaggmmmmmgggzAACzggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
@@ -77,6 +77,6 @@ x #8b929c on #22252c
 y bold #5fa8ff on #22252c
 I #747a83 on #16181d
 B #8b929c on #13151a
-f #383d48 on #16181d
-i #e6e8eb on #383d48
-j on #383d48
+z #5fa8ff on #16181d
+A on #5fa8ff
+C #ffffff on #5fa8ff

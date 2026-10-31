@@ -20,7 +20,7 @@ text
 │     AnimatedSize               ·   ·     ╔════════════════════════════════╗    ·   ·     │   decelerate  bounceOut     │
 │     TweenAnimationBuild…                 ║                                ║              │   elasticOut                │
 │     AnimatedSwitcher           ·   ·     ║    a box                       ║    ·   ·     │                             │
-│     Dissolve, Fractiona…                 ║                                ║              │  cycle               ▐●  ▌  │
+│     Dissolve, Fractiona…                 ║                                ║              │  cycle               ▐  ●▌  │
 │     Effect                ▐    ·   ·     ║                                ║    ·   ·     │                             │
 │                           ▐              ║                                ║              │                             │
 │   MOUSE                5  ▐    ·   ·     ╚════════════════════════════════╝    ·   ·     │                             │
@@ -57,7 +57,7 @@ styles
 │aaaaaooooooooooooaaaaaaaaaaahhhhphhhphhhhhxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxhhhhphhhphhhhhphhiwwwwwwwwwwiiwwwwwwwwwihhhh│
 │aaaaaooooooooooooooooooooaaahhhhhhhhhhhhhhxuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuxhhhhhhhhhhhhhhphhiwwwwwwwwwwihhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooooaaaaaaahhhhphhhphhhhhxuuuuyuyyyuuuuuuuuuuuuuuuuuuuuuuuxhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooaooooooooooaaahhhhhhhhhhhhhhxuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuxhhhhhhhhhhhhhhphhnnnnnhhhhhhhhhhhhhhhejkkehh│
+│aaaaaoooooooooaooooooooooaaahhhhhhhhhhhhhhxuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuxhhhhhhhhhhhhhhphhnnnnnhhhhhhhhhhhhhhhqrrsqhh│
 │aaaaaooooooaaaaaaaaaaaaaaaadhhhhphhhphhhhhxuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuxhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhxuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuxhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaadddddaaaaaaaaaaaaaaaaAaadhhhhphhhphhhhhxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
@@ -99,6 +99,3 @@ v bold #e6e8eb on #2b4566
 w #8b929c on #13151a
 x #c792ea on #2b4566
 y #e6e8eb on #2b4566
-e #383d48 on #16181d
-j #e6e8eb on #383d48
-k on #383d48

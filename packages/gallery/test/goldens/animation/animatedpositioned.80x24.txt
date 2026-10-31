@@ -21,7 +21,7 @@ text
 │     Effect             curve    linear  ease  easeIn  easeOut  easeInOut       │
 │                                 fastOutSlowIn  decelerate  bounceOut           │
 │   MOUSE          5              elasticOut                                     │
-│     GestureDetect…     cycle   ▐●  ▌                                           │
+│     GestureDetect…     cycle   ▐  ●▌                                           │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -46,7 +46,7 @@ styles
 │aaaaannnnnnaaaaaaaaaaaggmmmmmggghvvvvvvhhvvvvhhvvvvvvhhvvvvvvvhrsssssssssrgggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggghvvvvvvvvvvvvvhhvvvvvvvvvvhhvvvvvvvvvhgggggggggg│
 │aaadddddaaaaaaaaaazaaagggggggggghvvvvvvvvvvhgggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnnnnaaaggmmmmmgggfijjfggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaaaggmmmmmggguwwxuggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend
@@ -71,6 +71,6 @@ r on #2b4566
 s bold #e6e8eb on #2b4566
 t #e6e8eb on #2b4566
 v #8b929c on #13151a
-f #383d48 on #16181d
-i #e6e8eb on #383d48
-j on #383d48
+u #5fa8ff on #16181d
+w on #5fa8ff
+x #ffffff on #5fa8ff

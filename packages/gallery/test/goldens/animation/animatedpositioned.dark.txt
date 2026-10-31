@@ -22,7 +22,7 @@ text
 │     TweenAnimationBuild…                 │                                │              │   decelerate  bounceOut     │
 │     AnimatedSwitcher           ·   ·     │                                │    ·   ·     │   elasticOut                │
 │     Dissolve, Fractiona…  ▐              │  ▣ pinned                      │              │                             │
-│     Effect                ▐    ·   ·     ╰────────────────────────────────╯    ·   ·     │  cycle               ▐●  ▌  │
+│     Effect                ▐    ·   ·     ╰────────────────────────────────╯    ·   ·     │  cycle               ▐  ●▌  │
 │                           ▐            └                                    ┘            │                             │
 │   MOUSE                5  ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  34 × 7   ·   ·     │                             │
 │     GestureDetector       ▐                                                              │                             │
@@ -59,7 +59,7 @@ styles
 │aaaaaooooooooooooooooooooaaahhhhhhhhhhhhhhvhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhvhhhhhhhhhhhhhhphhirrrrrrrrrriirrrrrrrrrihhhh│
 │aaaaaooooooooooooooooaaaaaaahhhhphhhphhhhhvhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhvhhhhphhhphhhhhphhirrrrrrrrrrihhhhhhhhhhhhhhh│
 │aaaaaoooooooooaooooooooooaadhhhhhhhhhhhhhhvsszszzzzzzsshhhhhhhhhhhhhhhhhhhhvhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooaaaaaaaaaaaaaaaadhhhhphhhphhhhhvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvhhhhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhejkkehh│
+│aaaaaooooooaaaaaaaaaaaaaaaadhhhhphhhphhhhhvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvhhhhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhqmmwqhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaadddddaaaaaaaaaaaaaaaaAaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhDDhDhDhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooooaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
@@ -97,6 +97,5 @@ t bold #e6e8eb on #2b4566
 u #5fa8ff on #2b4566
 v #3e444f on #16181d
 z #e6e8eb on #2b4566
-e #383d48 on #16181d
-j #e6e8eb on #383d48
-k on #383d48
+m on #5fa8ff
+w #ffffff on #5fa8ff

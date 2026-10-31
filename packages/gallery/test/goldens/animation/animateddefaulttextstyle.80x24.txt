@@ -20,7 +20,7 @@ text
 │   MOUSE          5     style   primary  error  success                         │
 │     GestureDetect…     bold   ▐●  ▌                                            │
 │     Listener, Mou…                                                             │
-│     IgnorePointer…     cycle  ▐●  ▌                                            │
+│     IgnorePointer…     cycle  ▐  ●▌                                            │
 │     SelectionArea                                                              │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
@@ -45,7 +45,7 @@ styles
 │aaadddddaaaaaaaaaaCaaaggmmmmmgghvvvvvvvhrsssssrhvvvvvvvhgggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnnaaaggmmmmgggwxyywgggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnannnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnnnnaaaggmmmmmggwxyywgggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaaaggmmmmmggfiijfgggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
@@ -74,3 +74,6 @@ v #8b929c on #13151a
 w #383d48 on #16181d
 x #e6e8eb on #383d48
 y on #383d48
+f #5fa8ff on #16181d
+i on #5fa8ff
+j #ffffff on #5fa8ff

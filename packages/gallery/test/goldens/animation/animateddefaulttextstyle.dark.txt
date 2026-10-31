@@ -15,7 +15,7 @@ text
 │     AnimatedBox                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     AnimatedOpacity, Op…                                                                 │  bold                ▐●  ▌  │
 │ ▎   AnimatedDefaultText…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     AnimatedSize                                                                         │  cycle               ▐●  ▌  │
+│     AnimatedSize                                                                         │  cycle               ▐  ●▌  │
 │     TweenAnimationBuild…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     AnimatedSwitcher                      ┌                             ┐                │                             │
 │     Dissolve, Fractiona…       ·   ·   ·    Text in the style above it,    ·   ·   ·     │                             │
@@ -52,7 +52,7 @@ styles
 │aaaaaoooooooooooaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooooaoooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnhhhhhhhhhhhhhhhhuvwwuhh│
 │axsssttttttttttttttttttttssahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnhhhhhhhhhhhhhhhuvwwuhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnhhhhhhhhhhhhhhhqeejqhh│
 │aaaaaooooooooooooooooooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooooaaaaaaahhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooaooooooooooaaahhhhphhhphhhphhhhAAAAhAAhAAAhAAAAAhAAAAAhAAAhhhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
@@ -98,4 +98,6 @@ u #383d48 on #16181d
 v #e6e8eb on #383d48
 w on #383d48
 x #5fa8ff on #2b4566
+e on #5fa8ff
+j #ffffff on #5fa8ff
 A #ff6b6b on #16181d

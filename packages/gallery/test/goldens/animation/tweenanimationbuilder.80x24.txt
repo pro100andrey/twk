@@ -20,7 +20,7 @@ text
 │     Listener, Mou…     curve   linear  ease  easeIn  easeOut  easeInOut        │
 │     IgnorePointer…             fastOutSlowIn  decelerate  bounceOut            │
 │     SelectionArea              elasticOut                                      │
-│     Draggable, Dr…     cycle  ▐●  ▌                                            │
+│     Draggable, Dr…     cycle  ▐  ●▌                                            │
 │                                                                                │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
@@ -45,7 +45,7 @@ styles
 │aaaaannnnnnnnnannnnaaaggmmmmmgghxxxxxxhhxxxxhhxxxxxxhhxxxxxxxhqrrrrrrrrrqggggggg│
 │aaaaannnnnnnnnnnnnnaaaggggggggghxxxxxxxxxxxxxhhxxxxxxxxxxhhxxxxxxxxxhggggggggggg│
 │aaaaannnnnnnnnnnnnaaaaggggggggghxxxxxxxxxxhggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnannnaaaggmmmmmggfijjfgggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnannnaaaggmmmmmggvwwyvgggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
@@ -73,6 +73,6 @@ q on #2b4566
 r bold #e6e8eb on #2b4566
 E #747a83 on #16181d
 x #8b929c on #13151a
-f #383d48 on #16181d
-i #e6e8eb on #383d48
-j on #383d48
+v #5fa8ff on #16181d
+w on #5fa8ff
+y #ffffff on #5fa8ff

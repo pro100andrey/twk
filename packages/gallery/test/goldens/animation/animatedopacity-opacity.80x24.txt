@@ -20,7 +20,7 @@ text
 │                                                                                │
 │   MOUSE          5   ──────────────────────────────────────────────────────────│
 │     GestureDetect…     opacity   0  ¼  ½  ¾  1                                 │
-│     Listener, Mou…     cycle    ▐●  ▌                                          │
+│     Listener, Mou…     cycle    ▐  ●▌                                          │
 │     IgnorePointer…                                                             │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
@@ -45,7 +45,7 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaadddddaaaaaaaaaaCaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnnnnnnnnnaaaggmmmmmmmgghyhhyhhyhrsrhyhgggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnannnnaaaggmmmmmggggfijjfgggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnannnnaaaggmmmmmggggwxxzwgggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
@@ -74,6 +74,6 @@ u #b7bdc6 on #293d57
 v #8b929c on #22252c
 F #747a83 on #16181d
 y #8b929c on #13151a
-f #383d48 on #16181d
-i #e6e8eb on #383d48
-j on #383d48
+w #5fa8ff on #16181d
+x on #5fa8ff
+z #ffffff on #5fa8ff

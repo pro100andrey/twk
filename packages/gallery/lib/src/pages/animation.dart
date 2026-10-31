@@ -123,7 +123,7 @@ final class _CycledState extends State<_Cycled> {
     kept['born'] = born;
     final name = 'drive:${w.option}';
     var d = kept[name] as Drive?;
-    if (on && d != null && d.on && c != d.last) {
+    if (on && d != null && d.on && d.byHand(c)) {
       scheduleMicrotask(() => control.setOption('cycle', false));
       on = false;
     }
@@ -145,11 +145,13 @@ final class _CycledState extends State<_Cycled> {
         d.since + const Duration(milliseconds: _cycle) * (steps + 1),
       );
     }
-    d.last = c;
+    d
+      ..last = c
+      ..asked = null;
     if (on && i != c) {
       final value = w.values[i];
       scheduleMicrotask(() => control.setOption(w.option, value));
-      d.last = i;
+      d.asked = i;
     }
     _motion.end();
     return w.builder(context, i);
