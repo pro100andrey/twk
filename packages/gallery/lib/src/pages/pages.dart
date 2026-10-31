@@ -11,7 +11,7 @@ import 'focus/focus.dart';
 import 'foundation/foundation.dart';
 import 'framework/framework.dart';
 import 'images/images.dart';
-import 'layout.dart';
+import 'layout/layout.dart';
 import 'mouse.dart';
 import 'navigation.dart';
 import 'overlays.dart';
