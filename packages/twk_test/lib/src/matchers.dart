@@ -193,8 +193,14 @@ Matcher matchesScreen(String snapshot, {bool styles = false}) =>
 
 /// Matches a [TwkTester] whose screen is the one the file at [path] holds:
 /// its size, where its cursor is, the text of each row and the style of
-/// each cell. A relative [path] is from the directory the test runs in,
-/// the package's.
+/// each cell. A relative [path] is from the root of the package of the
+/// test file that calls this (the nearest directory above it with a
+/// `pubspec.yaml`), wherever the suite is run from; where that is not
+/// found, from the directory the test runs in.
+///
+/// With [styles] false only the size, the cursor and the text are
+/// compared, as [matchesScreen] does: the file keeps its styles, and
+/// writing it still writes them.
 ///
 /// With the environment variable `TWK_UPDATE_GOLDENS` set (to anything
 /// but `0`), it writes the screen to the file instead, making its
@@ -228,7 +234,34 @@ Matcher matchesScreen(String snapshot, {bool styles = false}) =>
 /// ```dart
 /// expect(t, matchesScreenFile('test/goldens/form.txt'));
 /// ```
-Matcher matchesScreenFile(String path) => _MatchesScreenFile(path);
+Matcher matchesScreenFile(String path, {bool styles = true}) =>
+    _MatchesScreenFile(_fromPackageRoot(path), styles);
+
+/// [path] from the root of the package of the file that called a matcher
+/// of this library; [path] itself when it is absolute or that file is not
+/// found.
+String _fromPackageRoot(String path) {
+  if (File(path).isAbsolute) {
+    return path;
+  }
+  final frame = RegExp(r'(file:///[^\s:()]+\.dart)');
+  for (final m in frame.allMatches(StackTrace.current.toString())) {
+    final file = Uri.parse(m.group(1)!).toFilePath();
+    if (file.endsWith('/lib/src/matchers.dart') && file.contains('twk_test')) {
+      continue;
+    }
+    for (var dir = File(file).parent; ; dir = dir.parent) {
+      if (File('${dir.path}/pubspec.yaml').existsSync()) {
+        return '${dir.path}/$path';
+      }
+      if (dir.parent.path == dir.path) {
+        break;
+      }
+    }
+    break;
+  }
+  return path;
+}
 
 /// A matcher of a [TwkTester]'s screen; its mismatch ends with the screen,
 /// the widget tree from the widget [TwkTester.pumpWidget] showed down, as
@@ -643,9 +676,12 @@ final class _MatchesScreen extends _ScreenMatcher {
 }
 
 final class _MatchesScreenFile extends _ScreenMatcher {
-  const _MatchesScreenFile(this._path);
+  const _MatchesScreenFile(this._path, this._styles);
 
   final String _path;
+
+  /// Whether the styles are compared as well as the text.
+  final bool _styles;
 
   @override
   bool get _showsScreen => false;
@@ -685,12 +721,12 @@ final class _MatchesScreenFile extends _ScreenMatcher {
     }
     matchState[#held] = held;
     matchState[#shown] = shown;
-    return _differences(held, shown).isEmpty;
+    return _differences(held, shown, _styles).isEmpty;
   }
 
   @override
   Description describe(Description description) =>
-      description.add('the screen of $_path');
+      description.add('the ${_styles ? '' : 'text of the '}screen of $_path');
 
   @override
   void _which(TwkTester t, Description d, Map<dynamic, dynamic> matchState) {
@@ -703,13 +739,17 @@ final class _MatchesScreenFile extends _ScreenMatcher {
     d.add(
       'differs from $_path (- the file, + the screen; '
       '$updateScreenFilesVariable=1 writes the screen to it):\n'
-      '${_differences(held, shown).join('\n')}',
+      '${_differences(held, shown, _styles).join('\n')}',
     );
   }
 
   /// What differs between [held] and [shown], as lines of the failure
   /// message; none when they are the same screen.
-  static List<String> _differences(ScreenFile held, ScreenFile shown) {
+  static List<String> _differences(
+    ScreenFile held,
+    ScreenFile shown,
+    bool withStyles,
+  ) {
     if (held.width != shown.width || held.height != shown.height) {
       final from = '${held.width}×${held.height}';
       return ['the size: - $from, + ${shown.width}×${shown.height}'];
@@ -737,7 +777,7 @@ final class _MatchesScreenFile extends _ScreenMatcher {
     }
     final styles = <String>[];
     final cells = <String>[];
-    for (var y = 0; y < held.height; y++) {
+    for (var y = 0; withStyles && y < held.height; y++) {
       final differ = [
         for (var x = 0; x < held.width; x++)
           if (held.styleAt(x, y) != shown.styleAt(x, y)) x,

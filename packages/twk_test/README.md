@@ -236,8 +236,11 @@ The matchers of the screen take the tester: `expect(t, containsLine('ok'))`.
     overline). Between two cells of one style with that background, the
     space is in their run. Elsewhere its style is its background, and
     spaces with no background at the end of a row are left out.
-- `matchesScreenFile(path)`: the screen is the one the file at `path`
-  holds (a golden file), relative to the package. A whole screen of a
+- `matchesScreenFile(path, {styles = true})`: the screen is the one the
+  file at `path` holds (a golden file); a relative `path` is from the root
+  of the calling test's package, wherever the suite is run from. With
+  `styles: false` the size, cursor and text are compared and the styles
+  are not. A whole screen of a
   themed app is a run of styles in nearly every cell, which inline marks
   make unreadable, so the file keeps the text and the styles apart:
 

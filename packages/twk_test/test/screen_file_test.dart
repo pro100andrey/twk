@@ -1,6 +1,7 @@
 // matchesScreenFile: the file it writes, what it matches, and the message
 // it fails with.
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
@@ -169,6 +170,46 @@ void main() {
       '            (4, 1): - red on #010203, + green on #010203',
       '            (5, 1): - red on #010203, + green on #010203',
     ]);
+  });
+
+  testTwk('styles: false compares the text alone, and fails on a text '
+      'that differs', (t) async {
+    await t.pumpWidget(form(fg: Color.green), size: (14, 3));
+    final path = '${dir.path}/form.txt';
+    File(path).writeAsStringSync(formFile);
+    expect(t, matchesScreenFile(path, styles: false));
+    expect(failure(t, matchesScreenFile(path)).length, greaterThan(3));
+    File(path).writeAsStringSync(formFile.replaceFirst('привет', 'привед'));
+    expect(failure(t, matchesScreenFile(path, styles: false)).sublist(0, 6), [
+      'Expected: the text of the screen of $path',
+      '  Actual: TwkTester:<fullscreen, 14×3>',
+      '   Which: differs from $path $_legend',
+      '          text:',
+      '          - 0│sent: привед  │',
+      '          + 0│sent: привет  │',
+    ]);
+  });
+
+  testTwk('a relative path is from the package of the test, not the '
+      'directory it runs in', (t) async {
+    await t.pumpWidget(form(), size: (14, 3));
+    final path = 'test/_tmp_screen_file_${pid}_relative.txt';
+    final lib = await Isolate.resolvePackageUri(
+      Uri.parse('package:twk_test/twk_test.dart'),
+    );
+    final file = File('${File.fromUri(lib!).parent.parent.path}/$path');
+    addTearDown(() {
+      if (file.existsSync()) {
+        file.deleteSync();
+      }
+    });
+    updateScreenFilesOverride = true;
+    final cwd = Directory.current;
+    addTearDown(() => Directory.current = cwd);
+    Directory.current = dir.path;
+    expect(t, matchesScreenFile(path));
+    expect(File('${dir.path}/$path').existsSync(), isFalse);
+    expect(file.readAsStringSync(), formFile);
   });
 
   testTwk('fails on another size or cursor', (t) async {
