@@ -94,18 +94,3 @@ const galleryThemes = <String, (String, ThemeData)>{
 ThemeData galleryTheme(String name, BuildContext context) => name == 'terminal'
     ? ThemeData.terminalOf(context)
     : galleryThemes[name]!.$2;
-
-/// The page's margin at the left, on a page 70 columns wide or more.
-const pagePad = 3;
-
-/// The sidebar's width on a screen [cols] wide.
-int sidebarWidth(int cols) => cols >= 150
-    ? 32
-    : cols >= 110
-    ? 28
-    : cols >= 96
-    ? 26
-    : 22;
-
-/// The inspector's width on a screen [cols] wide.
-int inspectorWidth(int cols) => cols >= 150 ? 34 : 30;

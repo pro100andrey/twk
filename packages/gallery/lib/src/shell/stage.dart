@@ -4,6 +4,7 @@ import 'package:twk/twk.dart';
 
 import '../page.dart';
 import '../paint.dart';
+import 'metrics.dart';
 import 'tokens.dart';
 
 /// Shows [child] on the stage: centred in the room the stage has, less
@@ -103,7 +104,8 @@ final class RenderStage extends RenderObject with RenderObjectWithChildMixin {
     if (child == null || _fill) {
       return 4;
     }
-    return child.getMaxIntrinsicHeight(width - 6 < 0 ? 0 : width - 6) + 2;
+    return child.getMaxIntrinsicHeight(stageRoomIn(width, 0).width) +
+        stageMarksHeight;
   }
 
   @override
@@ -113,9 +115,10 @@ final class RenderStage extends RenderObject with RenderObjectWithChildMixin {
   void performLayout(BoxConstraints c) {
     width = c.maxW < BoxConstraints.unbounded ? c.maxW : c.minW;
     height = c.maxH < BoxConstraints.unbounded ? c.maxH : c.minH;
-    final rw = width - 6 < 0 ? 0 : width - 6;
-    final rh = height - 2 < 0 ? 0 : height - 2;
-    onRoom?.call(StageRoom(rw, rh));
+    final room = stageRoomIn(width, height);
+    final rw = room.width;
+    final rh = room.height;
+    onRoom?.call(room);
     final child = this.child;
     if (child == null) {
       return;

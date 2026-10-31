@@ -18,6 +18,7 @@ import 'catalog_pages.dart';
 import 'code_select.dart';
 import 'controls.dart';
 import 'dissolve.dart';
+import 'metrics.dart';
 import 'split.dart';
 import 'stage.dart';
 import 'tokens.dart';
@@ -122,6 +123,10 @@ final class GalleryShell extends StatefulWidget {
 /// The state of a [GalleryShell]: where it is, what is chosen, open and
 /// moving.
 final class GalleryShellState extends State<GalleryShell> {
+  /// Past the end of any Code, for `home` and `end`: the paint keeps the
+  /// scroll to the Code's last row.
+  static const _pastTheEnd = 1000000;
+
   late final List<ShellGroup> groups = joinCatalog(widget.pages);
   late final List<ShellPage> pages = [for (final g in groups) ...g.pages];
   late final Map<String, ShellPage> _byKey = {for (final p in pages) p.key: p};
@@ -299,7 +304,6 @@ final class GalleryShellState extends State<GalleryShell> {
       _stageHadFocus = false;
       _list.requestFocus();
     }
-    _keepOptionInView();
     _rebuild();
   }
 
@@ -497,7 +501,7 @@ final class GalleryShellState extends State<GalleryShell> {
   void toast(String message, [String kind = 'info']) {
     setState(() {
       _toasts.add(_Toast(message, kind, _motion.now));
-      if (_toasts.length > 3) {
+      if (_toasts.length > toastCap) {
         _toasts.removeAt(0);
       }
     });
@@ -748,9 +752,9 @@ final class GalleryShellState extends State<GalleryShell> {
       case 'end':
         return go(visible.length - 1);
       case 'pageup':
-        return go(i - 10);
+        return go(i - pageStep);
       case 'pagedown':
-        return go(i + 10);
+        return go(i + pageStep);
       case 'enter' || 'right':
         _list.nextFocus();
         return true;
@@ -809,18 +813,18 @@ final class GalleryShellState extends State<GalleryShell> {
     final step = const {
       'up': -1,
       'down': 1,
-      'pageup': -10,
-      'pagedown': 10,
-      'home': -1000000,
-      'end': 1000000,
+      'pageup': -pageStep,
+      'pagedown': pageStep,
+      'home': -_pastTheEnd,
+      'end': _pastTheEnd,
     }[name];
     if (step != null) {
-      setState(() => _codeScroll = (_codeScroll + step).clamp(0, 1000000));
+      setState(() => _codeScroll = (_codeScroll + step).clamp(0, _pastTheEnd));
       return true;
     }
-    final side = const {'left': -4, 'right': 4}[name];
+    final side = const {'left': -codeStepX, 'right': codeStepX}[name];
     if (side != null) {
-      setState(() => _codeX = (_codeX + side).clamp(0, 80));
+      setState(() => _codeX = (_codeX + side).clamp(0, codeMaxX));
       return true;
     }
     return false;
@@ -904,12 +908,6 @@ final class GalleryShellState extends State<GalleryShell> {
     for (final p in pages) _Item(p.title, p.group.title, () => show(p)),
     for (final MapEntry(key: n, value: (label, _)) in galleryThemes.entries)
       _Item('Theme: $label', 'theme', () => _setTheme(n)),
-    for (final s in const ['80x24', '100x30', '120x36', '160x48', 'fit'])
-      _Item(
-        'Grid: ${s == 'fit' ? 'fit the window' : s.replaceAll('x', ' × ')}',
-        'size',
-        () => toast('Grid: the terminal sets the size'),
-      ),
     _Item('Show the code', 'action', () => _setTab('code')),
     _Item('Show the preview', 'action', () => _setTab('preview')),
     _Item('Copy the code', 'action', _copyCode),
@@ -1078,7 +1076,7 @@ final class GalleryShellState extends State<GalleryShell> {
         data: theme,
         duration: _clock.frozen
             ? Duration.zero
-            : const Duration(milliseconds: 280),
+            : const Duration(milliseconds: themeFadeMs),
         curve: const ThemeCurve(),
         child: Overlay(
           child: Focus(
@@ -1179,7 +1177,7 @@ final class GalleryShellState extends State<GalleryShell> {
       x += 1;
       x += p.text(x, 0, 'twk', Style(fg: t.text, attrs: Attr.bold));
       x += p.text(x, 0, ' gallery', Style(fg: t.muted));
-      if (w >= 96) {
+      if (w >= headerWhereFrom) {
         x += 3;
         x += p.text(x, 0, page.group.title, Style(fg: t.dim));
         x += p.text(x, 0, '  ›  ', Style(fg: t.faint));
@@ -1254,7 +1252,9 @@ final class GalleryShellState extends State<GalleryShell> {
     final most = rows.length - lh < 0 ? 0 : rows.length - lh;
     target = target.clamp(0, most);
     _listTarget = target;
-    final scroll = _motion.glide('listScroll', target.toDouble(), 160).round();
+    final scroll = _motion
+        .glide('listScroll', target.toDouble(), glideMs)
+        .round();
     final prevSel = _motion.targetOf('listSel')?.round() ?? sel;
     final selY = sel < 0
         ? -1
@@ -1262,7 +1262,7 @@ final class GalleryShellState extends State<GalleryShell> {
               .glide(
                 'listSel',
                 sel.toDouble(),
-                (70 + 18 * (sel - prevSel).abs()).clamp(0, 220),
+                selectionGlideMs((sel - prevSel).abs()),
               )
               .round();
     final focusedList = _zone == Zone.list && _palette == null;
@@ -1412,7 +1412,10 @@ final class GalleryShellState extends State<GalleryShell> {
                   }
                 },
                 onScroll: (e) => setState(() {
-                  _listTarget = (_listTarget + _wheel(e) * 3).clamp(0, most);
+                  _listTarget = (_listTarget + e.scrollY * wheelRows).clamp(
+                    0,
+                    most,
+                  );
                   _lastSel = sel;
                 }),
                 child: list,
@@ -1436,7 +1439,6 @@ final class GalleryShellState extends State<GalleryShell> {
   }
 
   /// The rows the wheel moved: down positive.
-  static int _wheel(PointerEvent e) => e.scrollY;
 
   // ------------------------------------------------------------ page
 
@@ -1448,9 +1450,9 @@ final class GalleryShellState extends State<GalleryShell> {
     int pw,
     int ph,
   ) {
-    final pad = pw >= 70 ? pagePad : 2;
+    final pad = pw >= padWideFrom ? pagePad : pagePadNarrow;
     final iw = pw - pad - 2;
-    final short = screenH < 30;
+    final short = screenH < lowScreenBelow;
     final def = page.def;
     final options = _optionsOf(page);
     final where = '${page.index + 1} of ${page.group.pages.length}';
@@ -1461,7 +1463,9 @@ final class GalleryShellState extends State<GalleryShell> {
     // keeps the columns its widget needs (less the marks' three each side)
     final besideW = opts.isNotEmpty ? inspectorWidth(screenW) : 0;
     final needs = def?.minWidth;
-    final wide = pw >= 76 && (needs == null || pw - besideW - 6 >= needs);
+    final wide =
+        pw >= inspectorBesideFrom &&
+        (needs == null || pw - besideW - stageMarksWidth >= needs);
     final inspW = wide ? besideW : 0;
 
     // where each tab is on its row, and the underline gliding to it
@@ -1472,8 +1476,8 @@ final class GalleryShellState extends State<GalleryShell> {
       tx += widthOf(label) + 3;
     }
     final (ax, aw) = tabX[tab]!;
-    final ux = _motion.glide('tabX', ax.toDouble(), 160).round();
-    final uw = _motion.glide('tabW', aw.toDouble(), 160).round();
+    final ux = _motion.glide('tabX', ax.toDouble(), glideMs).round();
+    final uw = _motion.glide('tabW', aw.toDouble(), glideMs).round();
 
     void drawTabs(Painter p, int y, {required int screenY}) {
       for (final (id, label) in tabs) {
@@ -1556,10 +1560,7 @@ final class GalleryShellState extends State<GalleryShell> {
       // the Code in the room the stage would give the widget here
       body = LayoutBuilder(
         builder: (context, c) {
-          final room = StageRoom(
-            c.maxW - 6 < 0 ? 0 : c.maxW - 6,
-            c.maxH - 2 < 0 ? 0 : c.maxH - 2,
-          );
+          final room = stageRoomIn(c.maxW, c.maxH);
           _rooms[key] = room;
           // built in layout, after the screen's build: its own frame time
           _motion.begin(context);
@@ -1684,7 +1685,7 @@ final class GalleryShellState extends State<GalleryShell> {
     final focused = _code.hasFocus;
     final lit = [
       for (final c in record.changed)
-        if (c == null) 0.0 else 1 - _motion.progress(c, 900),
+        if (c == null) 0.0 else 1 - _motion.progress(c, codeLitMs),
     ];
     final x0 = pad + gut + 1;
     return Focus(
@@ -1701,12 +1702,15 @@ final class GalleryShellState extends State<GalleryShell> {
         onCopy: (text) => toast('Copied ${copiedWhat(text)}', 'success'),
         child: Listener(
           onScroll: (e) {
-            final d = _wheel(e);
+            final d = e.scrollY;
             setState(() {
               if ((e.modifiers & Mod.shift) != 0) {
-                _codeX = (_codeX + d * 4).clamp(0, 80);
+                _codeX = (_codeX + d * codeStepX).clamp(0, codeMaxX);
               } else {
-                _codeScroll = (_codeScroll + d * 3).clamp(0, _codeMaxScroll);
+                _codeScroll = (_codeScroll + d * wheelRows).clamp(
+                  0,
+                  _codeMaxScroll,
+                );
               }
             });
           },
@@ -1739,7 +1743,7 @@ final class GalleryShellState extends State<GalleryShell> {
                     return true;
                   },
                   scrollAcross: (columns) {
-                    final to = (_codeX + columns).clamp(0, 80);
+                    final to = (_codeX + columns).clamp(0, codeMaxX);
                     if (to == _codeX) {
                       return false;
                     }
@@ -1904,9 +1908,6 @@ final class GalleryShellState extends State<GalleryShell> {
 
   // ------------------------------------------------------------ inspector
 
-  /// The hint pairs of [opt]'s control.
-  static List<(String, String)> _optionHints(PageOption opt) => opt.hints;
-
   Widget _inspector(Tokens t, Options options, int w) {
     final opts = page.def!.options;
     final children = <Widget>[
@@ -1993,16 +1994,17 @@ final class GalleryShellState extends State<GalleryShell> {
         }
         _optionScroll[page.key] = target;
         final sc = _motion
-            .glide('options:${page.key}', target.toDouble(), 160)
+            .glide('options:${page.key}', target.toDouble(), glideMs)
             .round();
         final children = <Widget>[
           Positioned.fill(
             child: Listener(
               onScroll: (e) => setState(
-                () => _optionScroll[page.key] = (target + _wheel(e) * 2).clamp(
-                  0,
-                  most,
-                ),
+                () => _optionScroll[page.key] =
+                    (target + e.scrollY * wheelOptionRows).clamp(
+                      0,
+                      most,
+                    ),
               ),
               child: CellPaint((p) {
                 p.hline(0, 0, p.width, t.faint, '─');
@@ -2064,7 +2066,7 @@ final class GalleryShellState extends State<GalleryShell> {
     double thumb = 0;
     switch (opt) {
       case SwitchOption():
-        knob = _motion.glide('$key:knob', (raw as bool) ? 1 : 0, 130);
+        knob = _motion.glide('$key:knob', (raw as bool) ? 1 : 0, knobMs);
       case final SliderOption o:
         final value = o.show(raw as num);
         sliderW = lw > 0
@@ -2073,7 +2075,7 @@ final class GalleryShellState extends State<GalleryShell> {
         sliderX = cx;
         sliderY = lw > 0 ? 0 : 1;
         final ratio = o.max == o.min ? 0.0 : (raw - o.min) / (o.max - o.min);
-        thumb = _motion.glide('$key:thumb', ratio, 90);
+        thumb = _motion.glide('$key:thumb', ratio, thumbMs);
       case final ChoiceOption o:
         segs = segmentsOf(cx, cy, cw, o.names);
       case ColorOption():
@@ -2090,8 +2092,12 @@ final class GalleryShellState extends State<GalleryShell> {
           ..jump('$key:segW', chosen.w.toDouble())
           ..jump('$key:segY', chosen.y.toDouble());
       }
-      hx = _motion.glide('$key:segX', chosen.x.toDouble(), 140).round();
-      hw = _motion.glide('$key:segW', chosen.w.toDouble(), 140).round();
+      hx = _motion
+          .glide('$key:segX', chosen.x.toDouble(), segmentGlideMs)
+          .round();
+      hw = _motion
+          .glide('$key:segW', chosen.w.toDouble(), segmentGlideMs)
+          .round();
     }
 
     void press(PointerEvent e) {
@@ -2253,8 +2259,6 @@ final class GalleryShellState extends State<GalleryShell> {
   }
 
   /// Keeps the focused option of a narrow page in view.
-  void _keepOptionInView() {}
-
   // ------------------------------------------------------------ hints
 
   /// The hints of what has the focus, then the gallery's own.
@@ -2286,7 +2290,7 @@ final class GalleryShellState extends State<GalleryShell> {
         .where((o) => identical(_optionNodes['${page.key}:${o.key}'], primary))
         .firstOrNull;
     if (opt != null) {
-      own = _optionHints(opt);
+      own = opt.hints;
     } else if (identical(primary, _code)) {
       own = [
         ('↑↓←→', 'scroll'),
@@ -2363,14 +2367,14 @@ final class GalleryShellState extends State<GalleryShell> {
     if (pal == null) {
       return const [];
     }
-    final k = easeOut(_motion.progress(pal.opened, 140));
+    final k = easeOut(_motion.progress(pal.opened, paletteOpenMs));
     final m = _paletteMatches();
-    final w = 72 < sw - 8 ? 72 : sw - 8;
+    final w = paletteWidth < sw - 8 ? paletteWidth : sw - 8;
     final x = (sw - w) >> 1;
     final y = 1 - (1 - k).round();
     var rowsN = m.length;
-    if (rowsN > 12) {
-      rowsN = 12;
+    if (rowsN > paletteRows) {
+      rowsN = paletteRows;
     }
     if (rowsN > sh - 7) {
       rowsN = sh - 7;
@@ -2419,7 +2423,7 @@ final class GalleryShellState extends State<GalleryShell> {
                 }
               },
               onScroll: (e) => setState(() {
-                pal.selected = (pal.selected + _wheel(e)).clamp(
+                pal.selected = (pal.selected + e.scrollY).clamp(
                   0,
                   m.isEmpty ? 0 : m.length - 1,
                 );
@@ -2515,7 +2519,6 @@ final class GalleryShellState extends State<GalleryShell> {
 
   // ------------------------------------------------------------ toasts
 
-  static const _toastMs = 2600;
   static const _icons = {
     'info': 'ℹ',
     'success': '✓',
@@ -2527,7 +2530,7 @@ final class GalleryShellState extends State<GalleryShell> {
     final now = _motion.now;
     if (!_clock.frozen) {
       _toasts.removeWhere(
-        (x) => (now - x.at).inMilliseconds >= _toastMs,
+        (x) => (now - x.at).inMilliseconds >= toastMs,
       );
     }
     if (_toasts.isEmpty) {
@@ -2540,9 +2543,11 @@ final class GalleryShellState extends State<GalleryShell> {
     var left = sw;
     for (final toast in _toasts.reversed) {
       final age = _clock.frozen ? 400 : (now - toast.at).inMilliseconds;
-      final kin = easeOut((age / 200).clamp(0, 1).toDouble());
-      final kout = ((age - (_toastMs - 260)) / 260).clamp(0, 1).toDouble();
-      if (age < 200 || kout > 0) {
+      final kin = easeOut((age / toastInMs).clamp(0, 1).toDouble());
+      final kout = ((age - (toastMs - toastOutMs)) / toastOutMs)
+          .clamp(0, 1)
+          .toDouble();
+      if (age < toastInMs || kout > 0) {
         _motion.animate();
       }
       final w = widthOf(toast.message) + 8;
@@ -2557,7 +2562,7 @@ final class GalleryShellState extends State<GalleryShell> {
     }
     if (!_clock.frozen) {
       final first = _toasts.map((x) => x.at).reduce((a, b) => a < b ? a : b);
-      _motion.wakeAt(first + const Duration(milliseconds: _toastMs));
+      _motion.wakeAt(first + const Duration(milliseconds: toastMs));
     }
     if (left < 0) {
       left = 0;
@@ -2570,9 +2575,7 @@ final class GalleryShellState extends State<GalleryShell> {
       height: height < 0 ? 0 : height,
       child: CellPaint(hit: false, (p) {
         for (final it in placed) {
-          final color = t.named(
-            it.toast.kind == 'info' ? 'info' : it.toast.kind,
-          );
+          final color = t.named(it.toast.kind);
           final x = it.x - left;
           final y = it.y - top;
           p.fill(x, y, it.w, 3, Style(bg: t.surface));

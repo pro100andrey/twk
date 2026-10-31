@@ -3,6 +3,7 @@
 import 'package:twk/twk.dart';
 
 import '../page.dart';
+import 'metrics.dart';
 
 /// [children], the stage then the options, one under the other: the
 /// stage keeps the rows its widget asks for (and a row above and below
@@ -102,16 +103,10 @@ final class RenderStageOverOptions extends RenderObject
       // where the whole options leave a widget that fits itself to its
       // room less than half the rows, it is offered half
       final left = height - _full;
-      final offered = (left > height ~/ 2 ? left : height ~/ 2) - 2;
+      final offered = left > height ~/ 2 ? left : height ~/ 2;
       final want = heightIn == null
           ? stage.getMaxIntrinsicHeight(width)
-          : heightIn(
-                  StageRoom(
-                    width - 6 < 0 ? 0 : width - 6,
-                    offered < 0 ? 0 : offered,
-                  ),
-                ) +
-                2;
+          : heightIn(stageRoomIn(width, offered)) + stageMarksHeight;
       // the stage keeps them: the options take what it leaves, from
       // [least] to [full] rows, and scroll
       final room = height - want;

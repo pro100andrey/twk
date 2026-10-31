@@ -13,6 +13,6 @@ export 'src/pages/pictures.dart' show pictureBytes;
 export 'src/pages/rich.dart' show qrEncodes;
 export 'src/paint.dart' show cut;
 export 'src/shell/code_select.dart';
+export 'src/shell/metrics.dart' show sidebarWidth;
 export 'src/shell/stage.dart' show RenderStage, Stage;
-export 'src/shell/tokens.dart' show sidebarWidth;
 export 'src/testing/show_route.dart';
