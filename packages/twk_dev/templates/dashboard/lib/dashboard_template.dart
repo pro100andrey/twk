@@ -140,6 +140,7 @@ final class _DashboardState extends State<Dashboard> {
                         'Memory',
                         LineGauge(
                           ratio: memory,
+                          percentage: true,
                           filledStyle: _levelStyle(theme, memory),
                           unfilledStyle: theme.border,
                         ),
