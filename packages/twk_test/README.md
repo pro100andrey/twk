@@ -149,6 +149,11 @@ becomes the Escape key after `pump(const Duration(milliseconds: 30))`
   them, with a wide glyph shown once.
 - `scrollback` gives the lines scrolled off the top in the inline mode,
   oldest first.
+- `linesIn(region)` gives the rows of a rectangle `(x:, y:, width:,
+  height:)`, as `rect` gives one, as `lines` gives the screen's, from the
+  rectangle's first column: `t.linesIn((x: 12, y: 0, width: 12, height:
+  3))`. As many rows and columns are read as the screen has.
+  `t.linesOf(finder)` gives those of the cells of a widget.
 - `cell(x, y)` gives one cell: `text` (`''` for the right half of a wide
   glyph), `fg`, `bg`, `ul` (the underline color) and `attrs`. The colors
   and attributes are numbered as `Color` and `Attr` number them, with `0`
@@ -186,6 +191,14 @@ The matchers of the screen take the tester: `expect(t, containsLine('ok'))`.
   the rows. Given a matcher (`startsWith('sent:')`), a row it matches.
 - `hasTextAt(x, y, text)`: the cells from column `x` of row `y` on show
   `text`. As many cells are read as `text` is wide.
+- `within:` on both, a finder or a rectangle, limits them to the cells of
+  a widget or a region, so a title printed twice on a row, in a list and
+  in a panel, is matched in the one: `expect(t, containsLine('> one',
+  within: find.byType(ListView)))`. For `hasTextAt` `x` and `y` count from
+  the region's first cell, and the cells read stop at its edge. A match
+  that fails says where the screen shows the text outside the region, if
+  it does: `has none in the cells (12, 0), 5×3, but the screen shows '> one'
+  at column 0, row 1`.
 - `styleAt(x, y, matcher)`: the cell at column `x` of row `y` matches
   `matcher`. The matchers of a cell are `hasAttr(Attr.bold)` (every
   attribute given; an underline matches only the same kind of underline),
@@ -320,7 +333,7 @@ what it found when it found none or more: `t.element(finder)`,
 (of the widget, or of the nearest widget below it that has one), and
 `t.rect(finder)`, its cells `(x:, y:, width:, height:)` as it was laid out
 last: those of the screen, or in the inline mode of the region, row 0
-its first. `t.clickOn(finder, button: 0)` clicks the cell in the middle
+its first, and `t.linesOf(finder)`, the rows of those cells as text. `t.clickOn(finder, button: 0)` clicks the cell in the middle
 of those the widget shows, cut where a render object above it cuts them,
 as a hit test does (a `StateError` when it shows none); like `click`, it
 does not work in the inline mode.

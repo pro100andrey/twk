@@ -251,6 +251,10 @@ extension FinderTester on TwkTester {
         (throw StateError('$finder finds $e, which is not laid out'));
   }
 
+  /// The rows of the cells of the widget [finder] finds ([rect]), as
+  /// [TwkTester.linesIn] gives them.
+  List<String> linesOf(Finder finder) => linesIn(rect(finder));
+
   /// Clicks [button] on the widget [finder] finds ([TwkTester.click]): on
   /// the cell in the middle of those it shows, its own cut off where they
   /// are outside one of the render objects above it, as a hit test cuts

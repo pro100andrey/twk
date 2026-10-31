@@ -15,6 +15,9 @@ import 'screen_file.dart';
 import 'screen_text.dart';
 import 'tester.dart';
 
+/// A rectangle of the screen, as [FinderTester.rect] gives one.
+typedef _Rect = ({int x, int y, int width, int height});
+
 // Examples can assume:
 // import 'package:test/test.dart';
 // import 'package:twk/twk.dart';
@@ -24,21 +27,110 @@ import 'tester.dart';
 /// that end either aside, or one [line] matches when it is a [Matcher]
 /// (`startsWith('sent:')`); a row is text as [TwkTester.lines] gives it.
 ///
+/// With [within], a [Finder] or a rectangle `(x:, y:, width:, height:)`
+/// as [FinderTester.rect] gives it, the rows are those of its cells alone
+/// ([TwkTester.linesIn]), from its first column. One that fails for a
+/// [line] that is a string says where the screen shows it, outside
+/// [within], if it does; a [Finder] that does not find one widget fails
+/// with what [FinderTester.element] says.
+///
 /// ```dart
 /// expect(t, containsLine('Saved'));
 /// expect(t, containsLine(startsWith('sent:')));
+/// expect(t, containsLine('> one', within: find.byType(ListView)));
 /// ```
-Matcher containsLine(Object? line) => _ContainsLine(
+Matcher containsLine(Object? line, {Object? within}) => _ContainsLine(
   line is String ? equals(line.trimRight()) : wrapMatcher(line),
+  line is String ? line.trim() : null,
+  _checkedRegion(within),
 );
 
 /// Matches a [TwkTester] whose screen shows [text] from column [x] of row
 /// [y] on: the cells [text] is as wide as show it, a wide glyph once.
 ///
+/// With [within], a [Finder] or a rectangle as [containsLine] takes it,
+/// [x] and [y] are from the first cell of the region, and the cells read
+/// stop at its edge. One that fails says where the screen shows [text]
+/// outside [within], if it does.
+///
 /// ```dart
 /// expect(t, hasTextAt(2, 0, 'Title'));
+/// expect(t, hasTextAt(0, 1, '> one', within: find.byType(ListView)));
 /// ```
-Matcher hasTextAt(int x, int y, String text) => _HasTextAt(x, y, text);
+Matcher hasTextAt(int x, int y, String text, {Object? within}) =>
+    _HasTextAt(x, y, text, _checkedRegion(within));
+
+/// [within] as the matchers keep it: null, a [Finder] or a rectangle; an
+/// [ArgumentError] for anything else.
+Object? _checkedRegion(Object? within) => switch (within) {
+  null || Finder() => within,
+  _Rect() => within,
+  _ => throw ArgumentError.value(
+    within,
+    'within',
+    'is not a Finder or a rectangle (x:, y:, width:, height:)',
+  ),
+};
+
+_Rect _asRect(Object region) => region as _Rect;
+
+/// The region [within] is on [t]'s screen; a [StateError] when a finder
+/// does not find one widget. Null for none.
+_Rect? _regionOn(
+  TwkTester t,
+  Object? within,
+) => switch (within) {
+  null => null,
+  final Finder finder => t.rect(finder),
+  _ => _asRect(within),
+};
+
+/// The region as a mismatch names it: `the cells (2, 3), 6×1`.
+String _regionName(_Rect r) =>
+    'the cells (${r.x}, ${r.y}), ${r.width}×${r.height}';
+
+/// The column and row of the first place [vt]'s screen shows [text] on one
+/// row; null if it shows it nowhere.
+(int, int)? _locate(Vt vt, String text) {
+  if (text.isEmpty) {
+    return null;
+  }
+  for (var y = 0; y < vt.height; y++) {
+    final at = rowText(vt, y).indexOf(text);
+    if (at != -1) {
+      return (_columnOf(vt, y, at), y);
+    }
+  }
+  return null;
+}
+
+/// Adds where [vt]'s screen shows [text], if it does.
+void _addElsewhere(Description d, Vt vt, String text) {
+  final at = _locate(vt, text);
+  if (at != null) {
+    d
+        .add(', but the screen shows ')
+        .addDescriptionOf(text)
+        .add(' at column ${at.$1}, row ${at.$2}');
+  }
+}
+
+/// The column of row [y] whose cell holds the character at [offset] of the
+/// row's text.
+int _columnOf(Vt vt, int y, int offset) {
+  var length = 0;
+  for (var x = 0; x < vt.width; x++) {
+    final cell = vt.cell(x, y);
+    if (cell.role == -1) {
+      continue;
+    }
+    if (offset < length + cell.text.length) {
+      return x;
+    }
+    length += cell.text.length;
+  }
+  return vt.width;
+}
 
 /// Matches a [TwkTester] whose cell at column [x] of row [y] [style]
 /// matches: [hasAttr], [hasFg], [hasBg], or any matcher of a [VtCell].
@@ -211,68 +303,154 @@ String _isStyled(VtCell cell) {
 }
 
 final class _ContainsLine extends _ScreenMatcher {
-  const _ContainsLine(this._line);
+  const _ContainsLine(this._line, this._text, this._within);
 
   final Matcher _line;
 
-  @override
-  bool _matches(TwkTester t, Map<dynamic, dynamic> matchState) =>
-      t.lines.any((line) => _line.matches(line, <dynamic, dynamic>{}));
+  /// The text of a line given as a string, to look for outside [_within].
+  final String? _text;
+
+  final Object? _within;
 
   @override
-  Description describe(Description description) =>
-      description.add('a line of the screen: ').addDescriptionOf(_line);
+  bool _matches(TwkTester t, Map<dynamic, dynamic> matchState) {
+    final List<String> lines;
+    try {
+      final region = _regionOn(t, _within);
+      lines = region == null ? t.lines : t.linesIn(region);
+      // ignore: avoid_catching_errors, a finder that finds no one widget fails the match with its message
+    } on StateError catch (e) {
+      matchState['error'] = e.message;
+      return false;
+    }
+    return lines.any((line) => _line.matches(line, <dynamic, dynamic>{}));
+  }
 
   @override
-  void _which(TwkTester t, Description d, Map<dynamic, dynamic> matchState) =>
-      d.add('has none');
+  Description describe(Description description) {
+    description.add('a line of the screen');
+    if (_within case final Finder finder) {
+      description.add(' in ').add(finder.description);
+    } else if (_within case final Object region) {
+      description.add(' in ${_regionName(_asRect(region))}');
+    }
+    return description.add(': ').addDescriptionOf(_line);
+  }
+
+  @override
+  void _which(TwkTester t, Description d, Map<dynamic, dynamic> matchState) {
+    if (matchState['error'] case final String error) {
+      d.add(error);
+      return;
+    }
+    d.add('has none');
+    final region = _regionOn(t, _within);
+    if (region == null) {
+      return;
+    }
+    d.add(' in ${_regionName(region)}');
+    final text = _text;
+    if (text != null) {
+      _addElsewhere(d, t.vt, text);
+    }
+  }
 }
 
 final class _HasTextAt extends _ScreenMatcher {
-  const _HasTextAt(this._x, this._y, this._text);
+  const _HasTextAt(this._x, this._y, this._text, this._within);
 
   final int _x;
   final int _y;
   final String _text;
+  final Object? _within;
+
+  /// The cells the matcher reads: the screen's, or the region's cut by it.
+  _Rect _area(TwkTester t) {
+    final vt = t.vt;
+    final r = _regionOn(t, _within);
+    if (r == null) {
+      return (x: 0, y: 0, width: vt.width, height: vt.height);
+    }
+    final left = r.x < 0 ? 0 : r.x;
+    final top = r.y < 0 ? 0 : r.y;
+    final right = r.x + r.width < vt.width ? r.x + r.width : vt.width;
+    final bottom = r.y + r.height < vt.height ? r.y + r.height : vt.height;
+    return (x: left, y: top, width: right - left, height: bottom - top);
+  }
+
+  /// What [area] has no cell at ([_x], [_y]) of for; null when it has one.
+  String? _off(_Rect area) {
+    final where = _within == null ? 'the screen' : 'the region';
+    if (_y < 0 || _y >= area.height) {
+      return 'has no row $_y: $where has ${area.height} rows';
+    }
+    if (_x < 0 || _x >= area.width) {
+      return 'has no column $_x: $where has ${area.width} columns';
+    }
+    return null;
+  }
 
   /// What the cells [_text] would take show, and whether the row ends
   /// before they do.
-  (String, bool) _shown(Vt vt) {
+  (String, bool) _shown(Vt vt, _Rect area) {
     final scan = ClusterScan();
-    var end = _x;
+    final x0 = area.x + _x;
+    final y0 = area.y + _y;
+    final limit = area.x + area.width;
+    var end = x0;
     for (var i = 0; i < _text.length; i = scan.end) {
       vt.segmenter.scan(_text, i, scan);
       end += scan.width;
     }
     final shown = [
-      for (var x = _x; x < end && x < vt.width; x++)
-        if (vt.cell(x, _y) case VtCell(role: != -1, :final text)) text,
+      for (var x = x0; x < end && x < limit; x++)
+        if (vt.cell(x, y0) case VtCell(role: != -1, :final text)) text,
     ].join();
-    return (shown, end > vt.width);
+    return (shown, end > limit);
   }
 
   @override
   bool _matches(TwkTester t, Map<dynamic, dynamic> matchState) {
-    final vt = t.vt;
-    return _offScreen(vt, _x, _y) == null && _shown(vt).$1 == _text;
+    final _Rect area;
+    try {
+      area = _area(t);
+      // ignore: avoid_catching_errors, a finder that finds no one widget fails the match with its message
+    } on StateError catch (e) {
+      matchState['error'] = e.message;
+      return false;
+    }
+    return _off(area) == null && _shown(t.vt, area).$1 == _text;
   }
 
   @override
-  Description describe(Description description) =>
-      description.addDescriptionOf(_text).add(' at column $_x, row $_y');
+  Description describe(Description description) {
+    description.addDescriptionOf(_text).add(' at column $_x, row $_y');
+    return switch (_within) {
+      null => description,
+      final Finder finder => description.add(' in ${finder.description}'),
+      final Object r => description.add(' in ${_regionName(_asRect(r))}'),
+    };
+  }
 
   @override
   void _which(TwkTester t, Description d, Map<dynamic, dynamic> matchState) {
-    final vt = t.vt;
-    final off = _offScreen(vt, _x, _y);
-    if (off != null) {
-      d.add(off);
+    if (matchState['error'] case final String error) {
+      d.add(error);
       return;
     }
-    final (shown, cut) = _shown(vt);
-    d.add('has ').addDescriptionOf(shown).add(' there');
-    if (cut) {
-      d.add(', at the end of the row');
+    final area = _area(t);
+    final off = _off(area);
+    if (off != null) {
+      d.add(off);
+    } else {
+      final (shown, cut) = _shown(t.vt, area);
+      d.add('has ').addDescriptionOf(shown).add(' there');
+      if (cut) {
+        d.add(', at the end of the ${_within == null ? 'row' : 'region'}');
+      }
+    }
+    if (_within != null) {
+      _addElsewhere(d, t.vt, _text);
     }
   }
 }

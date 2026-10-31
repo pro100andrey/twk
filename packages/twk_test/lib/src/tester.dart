@@ -22,6 +22,7 @@ import 'screen_text.dart';
 // Examples can assume:
 // import 'package:test/test.dart';
 // import 'package:twk/twk.dart';
+// late TwkTester t;
 
 /// Runs [body] as a test of package:test named [description], with a
 /// [TwkTester] for an app it starts with [TwkTester.pumpWidget].
@@ -606,6 +607,34 @@ final class TwkTester {
       for (var y = v.top; y < bottom; y++)
         [
           for (var x = v.left; x < right; x++)
+            if (vt.cell(x, y) case VtCell(:final text, role: != -1)) text,
+        ].join().trimRight(),
+    ];
+  }
+
+  /// The rows of [region], a rectangle of the screen as [FinderTester.rect]
+  /// gives one, as [lines] gives the screen's: the text of its cells, a
+  /// wide glyph once, from the region's first column and without the
+  /// blanks that end a row; as many of its rows and columns as the screen
+  /// has. A wide glyph cut by the region's left edge is left out.
+  ///
+  /// ```dart
+  /// expect(t.linesIn((x: 10, y: 0, width: 8, height: 2)), ['list', 'one']);
+  /// ```
+  List<String> linesIn(({int x, int y, int width, int height}) region) {
+    final vt = this.vt;
+    final left = region.x < 0 ? 0 : region.x;
+    final top = region.y < 0 ? 0 : region.y;
+    final right = region.x + region.width < vt.width
+        ? region.x + region.width
+        : vt.width;
+    final bottom = region.y + region.height < vt.height
+        ? region.y + region.height
+        : vt.height;
+    return [
+      for (var y = top; y < bottom; y++)
+        [
+          for (var x = left; x < right; x++)
             if (vt.cell(x, y) case VtCell(:final text, role: != -1)) text,
         ].join().trimRight(),
     ];
