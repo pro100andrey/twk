@@ -662,6 +662,11 @@ What to know:
   timers too, so what they show is gone when it returns.
 - Only the app's timers and frames are fake: `DateTime.now()` and
   `Stopwatch()` read real time. Pass dates in (`Calendar(today: …)`).
+- The app as `runApp` runs it, in a real terminal: a test that runs the
+  program in twk_term's pseudo-terminal, reads its screen through the
+  emulator and waits with `waitUntil` and `waitFor`, never a sleep;
+  the testing guide of the twk repository, `doc/guides/testing.md`, has the recipe. To look at an app by hand or
+  script it, twk_dev's `twk record`, `twk play` and `twk tape`.
 - A failing matcher shows the screen as text (`styleAt` with styles),
   the widget tree with each widget's size, and the render tree; a failing
   test prints its last 3 frames and the app's log; a failing
@@ -742,6 +747,24 @@ What to know:
   subscriptions.
 - `Column` and `Row` centre their children across unless
   `crossAxisAlignment` says otherwise (`.stretch`, `.start`).
+- `Column` and `Row` are as long as their room along the axis
+  (`mainAxisSize: .max`), also inside another `Column`: a header made of
+  a `Column` above an `Expanded` list takes the whole height and leaves
+  the list no rows. Give what is to be as big as its children
+  `mainAxisSize: .min`.
+- `Align` and `Center` with no factor are as big as the room they get, so
+  in a `Row` that has a height they take all of it; `heightFactor: 1`
+  makes `Align` as tall as its child. Often no `Align` is needed to keep
+  a child to the left: `crossAxisAlignment: .start`. Where the axis has no
+  end (a scroll view, a list's row) they take the child's size.
+- A key hint that is true in one layout only: a `KeyBindings` below the
+  `LayoutBuilder` with the binding null in the other layout, not one
+  above it; `KeyHintsBar` leaves out a key bound to null.
+  The layout guide of the twk repository, `doc/guides/layout.md`, has the recipe.
+- Do not cut by hand what twk cuts: `Breadcrumbs` collapses a path to what
+  fits (the middle as `…`), and `fuzzyMatch(query, text)` gives the
+  `positions` a match highlights, which `Option(label, marks:)` shows in
+  an `OptionList`.
 - Write nothing to stdout or stderr while the app runs; `print` and
   `log()` already go to the log.
 - In the twk repository itself, a new public widget of `packages/twk`

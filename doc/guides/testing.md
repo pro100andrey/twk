@@ -213,6 +213,84 @@ void main() {
 }
 ```
 
+## In a real terminal
+
+`testTwk` runs the app in the test's own process, on a screen the tester
+keeps. What it cannot show is the app as `runApp` runs it: the process, the
+terminal's modes and the bytes it writes (what `runApp` does with them is in
+[Running an app](running.md)). For that the test runs the app in a
+pseudo-terminal, twk_term's `Pty`, and reads what it writes through
+twk_term's emulator, `TerminalEmulator`, as a terminal would:
+`compiledProgram` of twk_test compiles the app once, `waitUntil` and
+`waitFor` wait for the screen and for the exit in real time, within a bound
+that fails saying what was waited for, never a sleep, and the tear-down
+kills the one process the test started, through its `Pty`.
+
+<!-- file: packages/twk_term/test/example/run_app_test.dart -->
+```dart
+@TestOn('linux || mac-os')
+library;
+
+import 'dart:convert';
+import 'dart:io';
+import 'dart:isolate';
+
+import 'package:test/test.dart';
+import 'package:twk_term/twk_term.dart';
+import 'package:twk_test/twk_test.dart';
+
+void main() {
+  late String counter;
+
+  setUpAll(() async {
+    // compiled once, and again only when its sources change
+    counter = await compiledProgram(
+      '../twk/example/counter.dart',
+      packages: (await Isolate.packageConfig)!.toFilePath(),
+      cache: '.dart_tool/twk_test/programs',
+    );
+  });
+
+  test('the counter counts on Up and quits on q', () async {
+    final screen = TerminalEmulator(width: 40, height: 6);
+    final pty = Pty.start(
+      Platform.resolvedExecutable,
+      [counter],
+      width: 40,
+      height: 6,
+    );
+    final output = pty.output.listen(screen.feed);
+    // ends this process and no other, whatever the test does
+    addTearDown(() async {
+      pty
+        ..kill(ProcessSignal.sigkill)
+        ..close();
+      await output.cancel();
+    });
+
+    await waitUntil(() => screen.text.contains('Count: 0'), 'the first frame');
+    pty.write(utf8.encode('\x1b[A'));
+    await waitUntil(() => screen.text.contains('Count: 1'), 'the count');
+    pty.write(utf8.encode('q'));
+    expect(await waitFor(pty.exitCode, 'the exit'), 0);
+  });
+}
+```
+
+The app is a program of its own, with a `main` that calls `runApp`; the
+test needs `twk_term` among its `dev_dependencies`, and runs on Linux and
+macOS. A program that needs no terminal, a command-line tool whose output
+is what is wanted, is started with twk_test's `startProcess` or
+`runProcess` instead, which end it with the test too.
+
+To see an app in a real terminal without writing a test, twk_dev has the
+commands for it: `twk record` runs the app in a terminal and writes the
+session (`--keys` its input too), `twk play` plays it back, and `twk tape`
+runs a script of what to type and what to wait for (`Wait /regexp/`) and
+writes the session and the screens it names. A recording is a regression
+test too, played through the emulator with twk_test's `screenFrames`. Their
+options are in [twk_dev's README](https://pub.dev/packages/twk_dev).
+
 ## Time
 
 No test waits on the wall clock. Only the app's timers and frames are on

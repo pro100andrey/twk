@@ -107,6 +107,94 @@ whose height has no end, is as tall as its child, so
 `Align(alignment: .centerLeft, child: …)` in a row of a `ListView` keeps
 the row one line tall.
 
+## Room that is given
+
+Where the room has an end, the same widgets take all of it.
+
+- A `Column` or `Row` is as long as the room along its axis
+  (`mainAxisSize: .max`, the default), however little its children need,
+  also inside another `Column`: a header made of a `Column` of two lines,
+  above a list in an `Expanded`, is as tall as the whole room and leaves
+  the list no rows. A panel in a `Column` takes the screen the same way.
+  Give what should be as big as its children `mainAxisSize: .min`.
+- An `Align` or a `Center` with no factor is as big as the room, on both
+  axes: in a `Row` that has a height (a line of a list beside other
+  widgets, in a `SizedBox` or an `Expanded`) it takes the whole height.
+  `heightFactor: 1` (`widthFactor: 1` along the other axis) makes it as
+  tall as its child. To keep a child to the left or at the top there is
+  often no `Align` to write: `crossAxisAlignment: .start` of the `Row` or
+  `Column` places its children across it, `mainAxisAlignment` along it.
+
+## Hints that depend on the layout
+
+`KeyHintsBar` shows the keys of the `KeyBindings` on the path of the
+focus. A key that exists only in one layout, `s` here when the panes are
+side by side, belongs to a `KeyBindings` below the `LayoutBuilder`, which
+knows the layout: its binding is null in the other one, and a key bound to
+null is no key, so the bar leaves it out and the key does nothing. The
+layer is always there, so the focus inside it stays where it is as the
+terminal is resized.
+
+<!-- file: packages/twk/example/guides/hints.dart -->
+```dart
+import 'package:twk/twk.dart';
+
+Future<void> main() => runApp(const Hints());
+
+final class Hints extends StatefulWidget {
+  const Hints({super.key});
+
+  @override
+  State<Hints> createState() => _HintsState();
+}
+
+final class _HintsState extends State<Hints> {
+  var _swapped = false;
+
+  @override
+  Widget build(BuildContext context) => KeyBindings(
+    {'q': () => AppBinding.of(context).quit()},
+    hints: const {'q': 'quit'},
+    child: Column(
+      crossAxisAlignment: .stretch,
+      children: [
+        Expanded(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final wide = constraints.maxW >= 40;
+              const one = Box(child: Text('one'));
+              const two = Box(child: Text('two'));
+              // below the LayoutBuilder, so the layout decides the key; the
+              // layer stays in the tree, only its key comes and goes
+              return KeyBindings(
+                // null in a narrow layout: no key, so no hint
+                {'s': wide ? () => setState(() => _swapped = !_swapped) : null},
+                hints: const {'s': 'swap'},
+                child: Focus(
+                  autofocus: true,
+                  child: wide
+                      ? Row(
+                          children: [
+                            Expanded(child: _swapped ? two : one),
+                            Expanded(child: _swapped ? one : two),
+                          ],
+                        )
+                      : one,
+                ),
+              );
+            },
+          ),
+        ),
+        const KeyHintsBar(),
+      ],
+    ),
+  );
+}
+```
+
+A `KeyBindings` above the `LayoutBuilder` has no layout to ask, and shows
+its hint in every one.
+
 ## More layouts
 
 | | |
