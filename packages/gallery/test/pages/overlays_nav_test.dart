@@ -257,7 +257,7 @@ void main() {
       ) async {
         await open(t, '#/overlays/windowlayer?t=2000');
         await keys(t, close);
-        final shell = t.state<GalleryShellState>(find.byType(GalleryShell));
+        final shell = shellOf(t);
         expect(shell.zone, Zone.list);
         expect(t.binding.focusManager.primaryFocus, isNotNull);
         expect(t.lines.last, contains('pages'));

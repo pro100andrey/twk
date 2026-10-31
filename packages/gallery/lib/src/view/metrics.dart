@@ -70,17 +70,11 @@ const paletteWidth = 72;
 /// See [paletteWidth].
 const paletteRows = 12;
 
-/// The toasts shown at once at most; the oldest goes for a new one.
-const toastCap = 3;
-
-/// How long a toast shows, in milliseconds, how long it slides in and
-/// how long it fades out at the end.
-const toastMs = 2600;
-
-/// See [toastMs].
+/// How long a toast slides in and how long it fades out at the end of
+/// its time (toastMs), in milliseconds.
 const toastInMs = 200;
 
-/// See [toastMs].
+/// See [toastInMs].
 const toastOutMs = 260;
 
 /// How long a new theme takes to fade in, in milliseconds.

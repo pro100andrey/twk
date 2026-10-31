@@ -19,8 +19,6 @@ import 'package:twk_core/twk_core.dart'
         titleSequence;
 import 'package:twk_test/twk_test.dart' show FakeClock;
 
-import '../bin/gallery.dart' show Typing;
-
 void main() {
   test('under Typing, the gallery sets its title', () async {
     final run = await _Run.start(

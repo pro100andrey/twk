@@ -99,6 +99,21 @@ testTwk('the Button page, light', (t) async {
 leaves a route's `keys=` and `type=` to whoever runs it (the tester's
 `press` and `type`); `bin/gallery.dart` types them itself.
 
+## Where things are
+
+`lib/gallery.dart` is the gallery's API, `galleryApp` and what a page is
+made of; `lib/testing.dart` adds what the tests and the tools read. Under
+`lib/src/`, each layer imports only those before it:
+
+| | |
+| --- | --- |
+| `catalog.dart`, `route.dart`, `page.dart`, `motion.dart`, `paint.dart` | the catalog, routes, a page and its options, the gallery's clock, cell painting |
+| `model/` | no widgets: the catalog joined with the pages, each page's options and state (`PageStore`), the palette's ranking, the toasts, the Code's record of what changed, the tab |
+| `input/` | the names of keys, both ways, and a one-line field's editing |
+| `view/` | the shell: `shell.dart` (its state, the route, the actions, the build) and a part a region (`shell_header.dart`, `shell_sidebar.dart`, `shell_page.dart`, `shell_code.dart`, `shell_inspector.dart`, `shell_hints.dart`, `shell_palette.dart`, `shell_toasts.dart`, `shell_keys.dart`), the stage, the inspector's controls, the tokens and the metrics |
+| `pages/` | the pages by group, and `kit/`, what they share |
+| `launcher.dart` | the program `bin/gallery.dart` runs |
+
 ## Adding a page
 
 A page is a `GalleryPage` in `lib/src/pages/<group>.dart`, its group and

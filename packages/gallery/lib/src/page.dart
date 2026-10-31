@@ -517,7 +517,10 @@ Style themeColor(ThemeData theme, String name) => switch (name) {
   _ => theme.text,
 };
 
-/// The hints of each [PageHints]'s node.
+/// The hints of each [PageHints]'s node. The hint bar starts from the
+/// focused node and goes up its parents ([pageHintsAt]), where no
+/// BuildContext is at hand to read an InheritedWidget with; the Expando
+/// puts the hints on the node without a FocusNode of the gallery's own.
 final _hintsOf = Expando<List<(String, String)>>('page hints');
 
 /// The hints of the [PageHints] nearest above [node], or of [node]'s own;

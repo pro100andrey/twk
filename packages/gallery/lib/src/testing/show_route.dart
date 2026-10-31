@@ -5,6 +5,7 @@
 import 'package:twk_test/twk_test.dart';
 
 import '../../gallery.dart';
+import '../view/shell.dart';
 
 /// When a route is read unless it says `t=`.
 const screenTime = Duration(milliseconds: 2000);
@@ -45,7 +46,7 @@ String routeAt(String route, Duration at) {
 
 /// Opens the gallery at [route] on its terminal ([routeTerminal]), the
 /// clock stopped at [at], and pumps its first frame; returns the shell.
-Future<GalleryShellState> openRoute(
+Future<ShellProbe> openRoute(
   TwkTester t,
   String route,
   Duration at,
@@ -58,7 +59,7 @@ Future<GalleryShellState> openRoute(
     backgroundRgb: term.background,
   );
   await t.pump();
-  return t.state<GalleryShellState>(find.byType(GalleryShell));
+  return shellOf(t);
 }
 
 /// Presses [route]'s `keys=` and types its `type=`, a frame after each,
@@ -79,10 +80,14 @@ Future<void> playRoute(TwkTester t, GalleryRoute route, Duration at) async {
 /// Shows the gallery at [route] as a golden screen holds it: opened at
 /// its time (`t=`, else [screenTime]) and played to it ([playRoute]);
 /// returns the shell.
-Future<GalleryShellState> showRoute(TwkTester t, String route) async {
+Future<ShellProbe> showRoute(TwkTester t, String route) async {
   final parsed = GalleryRoute.parse(route);
   final at = parsed.t ?? screenTime;
   final shell = await openRoute(t, route, at);
   await playRoute(t, parsed, at);
   return shell;
 }
+
+/// The shell of the gallery [t] shows.
+ShellProbe shellOf(TwkTester t) =>
+    t.state<GalleryShellState>(find.byType(GalleryShell));

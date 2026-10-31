@@ -5,7 +5,7 @@ import 'package:twk/twk.dart';
 
 import '../page.dart';
 import '../paint.dart';
-import '../shell/tokens.dart';
+import '../view/tokens.dart';
 import 'kit/kit.dart';
 
 /// The pages of the Debugging group that draw.

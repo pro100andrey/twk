@@ -1,4 +1,6 @@
 // The catalog's groups and pages joined with the pages that draw them.
+import 'package:twk/twk.dart';
+
 import '../catalog.dart';
 import '../page.dart';
 import '../route.dart';
@@ -67,3 +69,10 @@ List<ShellGroup> joinCatalog(List<GalleryPage> defs) {
   }
   return groups;
 }
+
+/// The pages of [pages] the list's [filter] matches (twk's fuzzyMatch on
+/// their titles): all of them for no filter.
+List<ShellPage> filtered(Iterable<ShellPage> pages, String filter) => [
+  for (final p in pages)
+    if (filter.isEmpty || fuzzyMatch(filter, p.title) != null) p,
+];

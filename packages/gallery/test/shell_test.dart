@@ -552,7 +552,7 @@ void main() {
       build: (context, o) => InputListener(
         onEvent: (e) {
           if (e is KeyEvent && e.kind != KeyKind.release) {
-            heard.add(GalleryShellState.keyName(e));
+            heard.add(keyName(e));
           }
           return false;
         },
@@ -611,7 +611,7 @@ void main() {
     await keys(t, 'enter');
     expect(screen(t), contains('saved: 0'));
     expect(screen(t), contains('Options reset'));
-    final shell = t.state<GalleryShellState>(find.byType(GalleryShell));
+    final shell = shellOf(t);
     expect(shell.route.toString(), isNot(contains('look:filled')));
   });
 
