@@ -247,6 +247,8 @@ final class _AnimatedSwitcherState extends State<AnimatedSwitcher>
   var _serial = 0;
 
   /// The ticker the controller being made asked for, taken by [_entry].
+  // its controller disposes it, with the entry that keeps both
+  // ignore: twk_lints/dispose_controllers
   late Ticker _made;
 
   /// Whether the tickers are muted: [TickerMode], as didChangeDependencies
