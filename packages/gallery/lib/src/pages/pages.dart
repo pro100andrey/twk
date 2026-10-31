@@ -5,7 +5,7 @@ import 'animation/animation.dart';
 import 'app/app.dart';
 import 'controls/controls.dart';
 import 'data/data.dart';
-import 'debugging.dart';
+import 'debugging/debugging.dart';
 import 'editing/editing.dart';
 import 'focus.dart';
 import 'foundation.dart';

@@ -1,286 +1,6 @@
-// The Debugging group of the gallery.
-import 'dart:math' as math;
-
-import 'package:twk/twk.dart';
-
-import '../page.dart';
-import '../paint.dart';
-import '../view/tokens.dart';
-import 'kit/kit.dart';
-
-/// The pages of the Debugging group that draw.
-final List<GalleryPage> debuggingPages = [
-  _console,
-  _frameOverlay,
-  _repaintRainbow,
-  _repaintBoundary,
-];
-
-// ------------------------------------------------------------ Console
-
-/// The stage.
-const _cw = 48;
-const _ch = 10;
-
-/// A record of the traffic this often while it is live.
-const _every = 700;
-
-const List<(LogLevel, String)> _traffic = [
-  (LogLevel.info, 'GET /api/items 200 in 12 ms'),
-  (LogLevel.debug, 'cache hit: items?page=2'),
-  (LogLevel.info, 'GET /api/user/42 200 in 8 ms'),
-  (LogLevel.debug, 'pool: 3 of 8 connections busy'),
-  (LogLevel.warning, 'slow query: 412 ms on orders'),
-  (LogLevel.info, 'POST /api/orders 201 in 31 ms'),
-  (LogLevel.debug, 'cache miss: user:42:prefs'),
-  (LogLevel.error, 'upstream timed out after 5 s'),
-  (LogLevel.info, 'GET /api/items 200 in 15 ms'),
-  (LogLevel.warning, 'retrying upload (2 of 3)'),
-];
-
-/// The time a record logged at [ms] on the gallery's clock has: from
-/// 09:05:07.042 at its start, as the design's.
-DateTime _timeAt(int ms) =>
-    DateTime(2026, 10, 20, 9, 5, 7, 42).add(Duration(milliseconds: ms));
-
-final _console = GalleryPage(
-  group: 'Debugging',
-  title: 'Console',
-  options: const [
-    ChoiceOption(
-      'level',
-      'level',
-      values: [LogLevel.debug, LogLevel.info, LogLevel.warning, LogLevel.error],
-      labels: ['debug', 'info', 'warning', 'error'],
-    ),
-    ChoiceOption('rows', 'rows', values: [4, 6, 8], initial: 6),
-    SwitchOption('live', 'traffic', initial: true),
-    SwitchOption('openOnError', 'open on error'),
-  ],
-  build: (context, o) => _Logged(
-    level: o.choice('level'),
-    rows: o.choice('rows'),
-    live: o.flag('live'),
-    openOnError: o.flag('openOnError'),
-  ),
-  code: (o) {
-    final args = [
-      if (o.label('level') != 'debug') 'level: .${o.label('level')}',
-      if (o.flag('openOnError')) 'openOnError: true',
-    ];
-    final live = o.flag('live');
-    return [
-      'final _sink = LogSink();',
-      if (args.isNotEmpty) ...[
-        'late final _console = ConsoleController(',
-        '  _sink,',
-        for (final a in args) '  $a,',
-        ')..open();',
-      ] else
-        'late final _console = ConsoleController(_sink)..open();',
-      if (live) ...[
-        'static const _traffic = [',
-        for (final (level, message) in _traffic)
-          "  (LogLevel.${level.name}, '$message'),",
-        '];',
-        'var _i = 0;',
-        'late final Timer _timer;',
-        '',
-        '@override',
-        'void initState() {',
-        '  super.initState();',
-        "  // a small server's traffic, a record every 700 ms",
-        '  _timer = Timer.periodic(',
-        '    const Duration(milliseconds: $_every),',
-        '    (_) {',
-        '      final (level, message) = _traffic[_i++ % _traffic.length];',
-        '      _log(level, message);',
-        '    },',
-        '  );',
-        '}',
-      ],
-      '',
-      'void _log(LogLevel level, String message) =>',
-      '    _sink.add(LogRecord(DateTime.now(), level, message));',
-      '',
-      '@override',
-      'void dispose() {',
-      if (live) '  _timer.cancel();',
-      '  _console.dispose();',
-      '  super.dispose();',
-      '}',
-      '',
-      '@override',
-      'Widget build(BuildContext context) {',
-      '  final theme = Theme.of(context);',
-      '  return SizedBox(',
-      '    width: $_cw,',
-      '    height: $_ch,',
-      '    child: KeyBindings(',
-      '      {',
-      "        'up': _console.selectPrevious,",
-      "        'down': _console.selectNext,",
-      "        'end': _console.scrollToEnd,",
-      '      },',
-      codeLine([
-        '      hints: const ',
-        "{'up': 'select', 'down': 'select', 'end': 'newest'},",
-      ]),
-      '      child: Console(',
-      '        controller: _console,',
-      '        rows: ${o.label('rows')},',
-      '        child: Column(',
-      '          crossAxisAlignment: .start,',
-      '          gap: 1,',
-      '          children: [',
-      '            Row(',
-      '              gap: 1,',
-      '              children: [',
-      codeLine([
-        '                ',
-        "Button('Info', onPressed: () => _log(.info, 'all is well')),",
-      ]),
-      '                Button(',
-      "                  'Warn',",
-      "                  onPressed: () => _log(.warning, 'disk nearly full'),",
-      '                ),',
-      codeLine([
-        '                ',
-        "Button('Fail', onPressed: () => _log(.error, 'could not save')),",
-      ]),
-      '                ListenableBuilder(',
-      '                  listenable: _console,',
-      '                  builder: (context, _) => Button(',
-      "                    _console.isOpen ? 'Close' : 'Open',",
-      '                    onPressed: _console.toggle,',
-      '                  ),',
-      '                ),',
-      '              ],',
-      '            ),',
-      "            Text('The app, under its console.', style: theme.muted),",
-      '          ],',
-      '        ),',
-      '      ),',
-      '    ),',
-      '  );',
-      '}',
-    ].join('\n');
-  },
-);
-
-/// The Code's app under its console, the traffic of a small server
-/// arriving on the gallery's clock while [live]. The sink and the console
-/// are the page's, so that they outlive a visit to another page.
-final class _Logged extends StatefulWidget {
-  const _Logged({
-    required this.level,
-    required this.rows,
-    required this.live,
-    required this.openOnError,
-  });
-
-  final LogLevel level;
-  final int rows;
-  final bool live;
-  final bool openOnError;
-
-  @override
-  State<_Logged> createState() => _LoggedState();
-}
-
-final class _LoggedState extends TimedState<_Logged> {
-  LogSink get _sink => (kept['sink'] ??= LogSink()) as LogSink;
-
-  ConsoleController get _console =>
-      (kept['console'] ??= ConsoleController(_sink)..open())
-          as ConsoleController;
-
-  void _log(LogLevel level, String message) =>
-      _sink.add(LogRecord(_timeAt(clockNow), level, message));
-
-  /// The traffic up to now: a record every [_every] ms, the last few
-  /// already there at first.
-  void _arrive() {
-    if (kept['seeded'] != true) {
-      kept
-        ..['seeded'] = true
-        ..['next'] = now - 5 * _every;
-    }
-    if (!widget.live) {
-      kept['next'] = null;
-      return;
-    }
-    var next = (kept['next'] ??= now + _every) as int;
-    var n = (kept['n'] ?? 0) as int;
-    while (next <= now) {
-      final (level, message) = _trafficOf(n++);
-      _sink.add(LogRecord(_timeAt(next), level, message));
-      next += _every;
-    }
-    kept
-      ..['next'] = next
-      ..['n'] = n;
-    wake(next);
-  }
-
-  static (LogLevel, String) _trafficOf(int n) => _traffic[n % _traffic.length];
-
-  @override
-  Widget buildTimed(BuildContext context) {
-    final theme = Theme.of(context);
-    final console = _console
-      ..level = widget.level
-      ..openOnError = widget.openOnError;
-    _arrive();
-    return SizedBox(
-      width: _cw,
-      height: _ch,
-      child: KeyBindings(
-        {
-          'up': console.selectPrevious,
-          'down': console.selectNext,
-          'end': console.scrollToEnd,
-        },
-        hints: const {'up': 'select', 'down': 'select', 'end': 'newest'},
-        child: Console(
-          controller: console,
-          rows: widget.rows,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            gap: 1,
-            children: [
-              Row(
-                gap: 1,
-                children: [
-                  Button(
-                    'Info',
-                    onPressed: () => _log(LogLevel.info, 'all is well'),
-                  ),
-                  Button(
-                    'Warn',
-                    onPressed: () => _log(LogLevel.warning, 'disk nearly full'),
-                  ),
-                  Button(
-                    'Fail',
-                    onPressed: () => _log(LogLevel.error, 'could not save'),
-                  ),
-                  ListenableBuilder(
-                    listenable: console,
-                    builder: (context, _) => Button(
-                      console.isOpen ? 'Close' : 'Open',
-                      onPressed: console.toggle,
-                    ),
-                  ),
-                ],
-              ),
-              Text('The app, under its console.', style: theme.muted),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
+// The app the debugging aids are shown over, on a terminal of its own,
+// and the page of an aid (_aidsPage): FrameOverlay and Repaint rainbow.
+part of 'debugging.dart';
 
 // ============================================================ the debug aids
 
@@ -293,12 +13,19 @@ final class _LoggedState extends TimedState<_Logged> {
 // worked out frame by frame from what runs of the Code's app showed.
 
 const _aw = 56;
+
 const _ah = 14;
+
 const _spinMs = 80;
+
 const _copyMs = 300;
+
 const _sampleMs = 1000;
+
 const _loads = <double>[3, 5, 4, 6, 8, 7, 5, 6, 9, 7, 4, 5];
+
 const _barX = 6;
+
 const _barW = 16;
 
 /// PipelineOwner's tints: twelve hues round the colour wheel; how much of
@@ -307,13 +34,17 @@ const _tints = [
   0xff0000, 0xff8000, 0xffff00, 0x80ff00, 0x00ff00, 0x00ff80, //
   0x00ffff, 0x0080ff, 0x0000ff, 0x8000ff, 0xff00ff, 0xff0080,
 ];
+
 const double _rainbow = 0x50 / 255;
+
 const double _outline = 0xa0 / 255;
 
 /// RenderFrameOverlay: 31 columns, a header, the columns' names, a row a
 /// number, the last frame's ending at column 21, the median at 29.
 const _panelW = 31;
+
 const _panelH = 12;
+
 const _metrics = [
   'build µs',
   'layout µs',
@@ -332,6 +63,7 @@ const _refreshGap = 250;
 
 /// The binding's console, rows tall, and RenderKeyHint's commands.
 const _consoleRows = 10;
+
 const _commands = [
   ('o', 'overlay'),
   ('r', 'rainbow'),
@@ -418,12 +150,14 @@ _Rect _panelRect(int w, int h) => (
   math.min(w, _panelW),
   math.min(h, _panelH),
 );
+
 _Rect _consoleRect(int w, int h) => (
   0,
   math.max(0, h - _consoleRows),
   w,
   math.min(h, _consoleRows),
 );
+
 _Rect _hintRect(int w, int h) => (0, h - 1, w, 1);
 
 /// A cell of the app's terminal: the tint it was last repainted with, the
@@ -764,15 +498,6 @@ GalleryPage _aidsPage(String title, List<(String, String, bool)> aids) =>
       code: (o) => _syncCode(o, title),
       codeInTerminalColors: true,
     );
-
-final GalleryPage _frameOverlay = _aidsPage('FrameOverlay', const [
-  ('overlay', 'overlay', true),
-]);
-
-final GalleryPage _repaintRainbow = _aidsPage('Repaint rainbow', const [
-  ('rainbow', 'rainbow', true),
-  ('relayout', 'relayout highlight', false),
-]);
 
 /// The Code of the pages: the app, the debug aids on as an app turns
 /// them on.
@@ -1300,243 +1025,4 @@ void _drawAids(Painter p, Tokens t, _AidsApp app, int w, int h) {
 Color _tint(int i) {
   final v = _tints[i];
   return Color.rgb(v >> 16 & 0xFF, v >> 8 & 0xFF, v & 0xFF);
-}
-
-// ------------------------------------------------------------ RepaintBoundary
-
-/// The dots' cells: the marker goes round them.
-const _strip = 20;
-
-/// How often the dots under the marker had been painted when the Code's
-/// count was built: in the frame of the [k]th step, before it paints. The
-/// first frame paints them; without the boundary, each step of the marker
-/// over them paints them again, with it the marker alone. The page draws
-/// what the Code counts: the gallery's own repaints would count too.
-int _paintsAt(int k, {required bool boundary}) =>
-    k == 0 ? 0 : (boundary ? 1 : k);
-
-final _repaintBoundary = GalleryPage(
-  group: 'Debugging',
-  title: 'RepaintBoundary',
-  options: const [
-    SwitchOption('boundary', 'RepaintBoundary', initial: true),
-    ChoiceOption(
-      'every',
-      'a step every',
-      values: [300, 1000],
-      labels: ['300 ms', '1 s'],
-    ),
-  ],
-  build: (context, o) =>
-      _Paints(boundary: o.flag('boundary'), every: o.choice<int>('every')),
-  code: _paintsCode,
-);
-
-String _paintsCode(Options o) {
-  final ms = o.choice<int>('every');
-  final every = ms == 1000 ? 'seconds: 1' : 'milliseconds: $ms';
-  final marker = o.flag('boundary')
-      ? [
-          '    // painted on its own, over what is under it: the dots are not',
-          '    final marker = RepaintBoundary(',
-          '      child: CustomPaint(painter: _Marker(_at, theme.primary)),',
-          '    );',
-        ]
-      : [
-          '    // painted with what is under it: the dots too',
-          codeLine([
-            '    final marker = ',
-            'CustomPaint(painter: _Marker(_at, theme.primary));',
-          ]),
-        ];
-  return [
-    "import 'dart:async';",
-    '',
-    "import 'package:twk/twk.dart';",
-    '',
-    'void main() => runApp(const Paints());',
-    '',
-    '/// Dots across its cells, counting how often it paints them.',
-    'final class _Dots extends CellPainter {',
-    '  _Dots(this.style);',
-    '',
-    '  final Style style;',
-    '  var paints = 0;',
-    '',
-    '  @override',
-    '  void paint(Canvas canvas, int width, int height) {',
-    '    paints++;',
-    "    canvas.text(0, 0, '·' * width, style.penIn(canvas.styles));",
-    '  }',
-    '',
-    '  @override',
-    '  bool shouldRepaint(_Dots oldDelegate) => false;',
-    '}',
-    '',
-    '/// A dot in the column [at] says, painted again as it moves.',
-    'final class _Marker extends CellPainter {',
-    '  _Marker(this.at, this.style) : super(repaint: at);',
-    '',
-    '  final ValueNotifier<int> at;',
-    '  final Style style;',
-    '',
-    '  @override',
-    '  void paint(Canvas canvas, int width, int height) =>',
-    "      canvas.text(at.value, 0, '●', style.penIn(canvas.styles));",
-    '',
-    '  @override',
-    '  bool shouldRepaint(_Marker oldDelegate) => false;',
-    '}',
-    '',
-    'final class Paints extends StatefulWidget {',
-    '  const Paints({super.key});',
-    '',
-    '  @override',
-    '  State<Paints> createState() => _PaintsState();',
-    '}',
-    '',
-    'final class _PaintsState extends State<Paints> {',
-    '  final _at = ValueNotifier(0);',
-    '  late final Timer _timer;',
-    '  late final _dots = _Dots(Theme.of(context).border);',
-    '',
-    '  @override',
-    '  void initState() {',
-    '    super.initState();',
-    '    // the marker a cell on: its painter repaints, no widget is built',
-    '    _timer = Timer.periodic(',
-    '      const Duration($every),',
-    '      (_) => _at.value = (_at.value + 1) % $_strip,',
-    '    );',
-    '  }',
-    '',
-    '  @override',
-    '  void dispose() {',
-    '    _timer.cancel();',
-    '    _at.dispose();',
-    '    super.dispose();',
-    '  }',
-    '',
-    '  @override',
-    '  Widget build(BuildContext context) {',
-    '    final theme = Theme.of(context);',
-    ...marker,
-    '    return Column(',
-    '      mainAxisSize: .min,',
-    '      crossAxisAlignment: .start,',
-    '      gap: 1,',
-    '      children: [',
-    '        CustomPaint(',
-    '          painter: _dots,',
-    '          child: SizedBox(width: $_strip, height: 1, child: marker),',
-    '        ),',
-    '        // the count on its own too: in a box of its size, a new one',
-    '        // lays nothing else out; in a boundary, repaints nothing else',
-    '        RepaintBoundary(',
-    '          child: SizedBox(',
-    '            width: $_strip,',
-    '            height: 1,',
-    '            child: ListenableBuilder(',
-    '              listenable: _at,',
-    '              builder: (context, _) => Text.rich([',
-    "                Span('painted: ', theme.muted),",
-    r"                Span('${_dots.paints}'),",
-    '              ]),',
-    '            ),',
-    '          ),',
-    '        ),',
-    '      ],',
-    '    );',
-    '  }',
-    '}',
-  ].join('\n');
-}
-
-/// Dots across the cells of a [CustomPaint].
-final class _DotsPainter extends CellPainter {
-  const _DotsPainter(this.style);
-
-  final Style style;
-
-  @override
-  void paint(Canvas canvas, int width, int height) =>
-      canvas.text(0, 0, '·' * width, style.penIn(canvas.styles));
-
-  @override
-  bool shouldRepaint(_DotsPainter oldDelegate) => oldDelegate.style != style;
-}
-
-/// A dot in column [at].
-final class _MarkerPainter extends CellPainter {
-  const _MarkerPainter(this.at, this.style);
-
-  final int at;
-  final Style style;
-
-  @override
-  void paint(Canvas canvas, int width, int height) =>
-      canvas.text(at, 0, '●', style.penIn(canvas.styles));
-
-  @override
-  bool shouldRepaint(_MarkerPainter oldDelegate) =>
-      oldDelegate.at != at || oldDelegate.style != style;
-}
-
-/// The Code's `Paints`: dots under a marker that a timer moves a cell on
-/// every [every] ms, the marker in a RepaintBoundary with [boundary], and
-/// how often the dots were painted. The steps on the gallery's clock, from
-/// when the page was first built (0 while it stands still) or [every] was
-/// chosen; the count as the Code's would be.
-final class _Paints extends StatefulWidget {
-  const _Paints({required this.boundary, required this.every});
-
-  final bool boundary;
-  final int every;
-
-  @override
-  State<_Paints> createState() => _PaintsState();
-}
-
-final class _PaintsState extends TimedState<_Paints> {
-  @override
-  Widget buildTimed(BuildContext context) {
-    final theme = Theme.of(context);
-    final every = widget.every;
-    if (kept['born'] == null || kept['every'] != every) {
-      // a step every [every] from now: the timer started again
-      kept['born'] = kept['born'] == null && motion.frozen ? 0 : now;
-      kept['every'] = every;
-    }
-    final born = kept['born']! as int;
-    final k = math.max(0, (now - born) ~/ every);
-    wake(born + (k + 1) * every);
-    final marker = CustomPaint(
-      painter: _MarkerPainter(k % _strip, theme.primary),
-    );
-    return Column(
-      mainAxisSize: .min,
-      crossAxisAlignment: .start,
-      gap: 1,
-      children: [
-        CustomPaint(
-          painter: _DotsPainter(theme.border),
-          child: SizedBox(
-            width: _strip,
-            height: 1,
-            child: widget.boundary ? RepaintBoundary(child: marker) : marker,
-          ),
-        ),
-        RepaintBoundary(
-          child: SizedBox(
-            width: _strip,
-            height: 1,
-            child: Text.rich([
-              Span('painted: ', theme.muted),
-              Span('${_paintsAt(k, boundary: widget.boundary)}'),
-            ]),
-          ),
-        ),
-      ],
-    );
-  }
 }
