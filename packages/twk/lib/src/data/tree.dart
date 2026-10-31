@@ -29,6 +29,7 @@ import '../foundation/change_notifier.dart';
 import '../foundation/helpers.dart';
 import '../framework/framework.dart';
 import '../gestures/mouse.dart';
+import '../layout/basic.dart' show SizedBox;
 import '../layout/flex.dart';
 import '../layout/one_child.dart';
 import '../scroll/list_view.dart';
@@ -245,6 +246,17 @@ final class TreeController extends ChangeNotifier {
 /// failed load's error is in [ThemeData.error], its spinner in
 /// [ThemeData.primary].
 ///
+/// [showGuides] false leaves the nodes only indented, [separateRoots]
+/// puts an empty row between the roots and [maxIndent] stops the indent
+/// growing past a depth. What the controller selects is
+/// [TreeController.selectedKey], which an app sets as well as the keys do.
+/// An app with a cursor of its own, in a list of its own, gives the view
+/// `canRequestFocus: false`: it then takes neither the focus nor the keys,
+/// a click still selects, the app moves [TreeController.selectedKey] with
+/// its own keys and the row of the node selected takes [selectedStyle]
+/// (what the app's cursor wears), while [TreeEntry.selected] tells a label
+/// to draw its own mark.
+///
 /// It takes all the room it is given, which must be bounded.
 ///
 /// Folders under a root, their paths the nodes, each opened by Enter:
@@ -276,6 +288,8 @@ final class TreeView<T> extends StatefulWidget {
     this.controller,
     this.onActivated,
     this.showGuides = true,
+    this.separateRoots = false,
+    this.maxIndent,
     this.focusNode,
     this.autofocus = false,
     this.canRequestFocus,
@@ -318,6 +332,15 @@ final class TreeView<T> extends StatefulWidget {
 
   /// Whether lines join the nodes to their parents.
   final bool showGuides;
+
+  /// Whether an empty row comes between two roots, with their subtrees
+  /// above and below it; the selection and the keys skip it.
+  final bool separateRoots;
+
+  /// The most cells the indent grows to: a level is two, so nodes deeper
+  /// than half of it show at the indent of that level, their guides and
+  /// expanders at its column. Null for no limit.
+  final int? maxIndent;
 
   /// See [Focus.focusNode].
   final FocusNode? focusNode;
@@ -364,6 +387,9 @@ enum _Mark {
 
   /// The row of a failed load: the error, as a leaf.
   failed,
+
+  /// The empty row between two roots, [TreeView.separateRoots].
+  separator,
 }
 
 /// The children of a node that [TreeView.children] gave in a future: none
@@ -394,6 +420,25 @@ final class _LoadKey {
   @override
   int get hashCode => Object.hash(_LoadKey, key);
 }
+
+/// The key of the empty row before the root with [key].
+@immutable
+final class _SeparatorKey {
+  const _SeparatorKey(this.key);
+
+  final Object key;
+
+  @override
+  bool operator ==(Object other) => other is _SeparatorKey && other.key == key;
+
+  @override
+  int get hashCode => Object.hash(_SeparatorKey, key);
+}
+
+/// The level a row of depth [depth] is indented to, [maxIndent] cells at
+/// most (a level is two); no limit for null.
+int _capped(int depth, int? maxIndent) =>
+    maxIndent == null || depth <= maxIndent ~/ 2 ? depth : maxIndent ~/ 2;
 
 /// The rows of a [TreeView], the nodes shown in order: for each its node
 /// (of the row of a load, the node loading) and key, and in one number its
@@ -456,7 +501,9 @@ final class _Rows<T> {
   /// Whether row [i] is a node's, not a load's.
   bool isNode(int i) {
     final mark = this.mark(i);
-    return mark != _Mark.loading && mark != _Mark.failed;
+    return mark != _Mark.loading &&
+        mark != _Mark.failed &&
+        mark != _Mark.separator;
   }
 
   /// The row after the last of those below row [i].
@@ -501,6 +548,9 @@ mixin _TreeModel<T, W extends StatefulWidget> on State<W> {
   // as is this
   // ignore: unsafe_variance
   Object Function(T node)? get _nodeKey;
+
+  /// Whether an empty row comes between two roots.
+  bool get _separateRoots => false;
 
   /// A load of children ended: [_shown] has changed.
   void _loadEnded();
@@ -626,6 +676,9 @@ mixin _TreeModel<T, W extends StatefulWidget> on State<W> {
       next[depth] = i + 1;
       final node = list[i];
       final key = _keyOf(node);
+      if (depth == 0 && i > 0 && _separateRoots) {
+        rows.add(node, _SeparatorKey(key), 0, -1, _Mark.separator, last: true);
+      }
       final parent = parents[depth];
       final last = i == list.length - 1;
       final known = has?.call(node);
@@ -726,7 +779,7 @@ mixin _TreeModel<T, W extends StatefulWidget> on State<W> {
       case _Mark.expanded:
         _collapse(rows, i);
         return true;
-      case _Mark.leaf || _Mark.loading || _Mark.failed:
+      case _Mark.leaf || _Mark.loading || _Mark.failed || _Mark.separator:
         return false;
     }
   }
@@ -754,7 +807,7 @@ mixin _TreeModel<T, W extends StatefulWidget> on State<W> {
       case _Mark.expanded:
         final child = _firstChild(rows, at);
         return child >= 0 && _select(rows, child);
-      case _Mark.leaf || _Mark.loading || _Mark.failed:
+      case _Mark.leaf || _Mark.loading || _Mark.failed || _Mark.separator:
         return false;
     }
   }
@@ -854,7 +907,13 @@ final class _TreeViewState<T> extends State<TreeView<T>>
   Object Function(T node)? get _nodeKey => widget.nodeKey;
 
   @override
+  bool get _separateRoots => widget.separateRoots;
+
+  @override
   void _loadEnded() => setState(() {});
+
+  /// The level a row of depth [depth] is indented to.
+  int _levelOf(int depth) => _capped(depth, widget.maxIndent);
 
   FocusNode get _node => widget.focusNode ?? (_ownNode ??= FocusNode());
 
@@ -1020,7 +1079,7 @@ final class _TreeViewState<T> extends State<TreeView<T>>
     if (i < 0 || !rows.isNode(i)) {
       return;
     }
-    final x = rows.depth(i) * 2;
+    final x = _levelOf(rows.depth(i)) * 2;
     if (event.x >= x && event.x < x + 2 && _toggle(rows, i)) {
       return;
     }
@@ -1094,6 +1153,8 @@ final class _TreeViewState<T> extends State<TreeView<T>>
           wrap: TextWrap.none,
           overflow: TextOverflow.ellipsis,
         );
+      case _Mark.separator:
+        child = const SizedBox();
       case _Mark.leaf || _Mark.collapsed || _Mark.expanded:
         child = widget.label(
           context,
@@ -1114,7 +1175,7 @@ final class _TreeViewState<T> extends State<TreeView<T>>
       child: DefaultTextStyle(
         style: style,
         child: _TreeRow(
-          level: rows.depth(i),
+          level: _levelOf(rows.depth(i)),
           lines: rows.lines(i),
           last: rows.last(i),
           mark: mark,
@@ -1266,7 +1327,9 @@ final class _RenderTreeRow extends RenderObject
   }
 
   /// Where the child starts.
-  int get _indent => _level * 2 + (_mark == _Mark.loading ? 0 : 2);
+  int get _indent => _mark == _Mark.separator
+      ? 0
+      : _level * 2 + (_mark == _Mark.loading ? 0 : 2);
 
   /// Hit wherever it is: it paints all of its cells.
   @override
@@ -1321,7 +1384,7 @@ final class _RenderTreeRow extends RenderObject
       final type = _glyphs.lines(BorderType.single);
       final pen = _style.merge(_guideStyle).penIn(styles);
       final down = type.glyph(up: true, down: true);
-      for (var j = 0; j < _lines.length; j++) {
+      for (var j = 0; j < _lines.length && j < level - 1; j++) {
         if (_lines[j]) {
           canvas.fill(j * 2, 0, 1, 1, pen, down);
         }

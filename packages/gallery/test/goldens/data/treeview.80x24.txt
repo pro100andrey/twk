@@ -14,13 +14,13 @@ text
 │     TreeTable           ·     │ ├── table.dart                              ·  │
 │     DirectoryTree             │ └── text.dart                                  │
 │     TaskList            ·     └── twk.dart                                  ·  │
-│                               ▸ test                                           │
-│   EDITING        4      ·       README.md                                   ·  │
-│     TextField                   pubspec.yaml                                   │
-│     InputDecorati…          └                                          ┘       │
-│     TextArea         ──────────────────────────────────────────────────────────│
-│     Autocomplete       guides  ▐  ●▌                                           │
-│                        test/    loads  fails                                   │
+│                             └                                          ┘       │
+│   EDITING        4   ──────────────────────────────────────────────────────────│
+│     TextField          guides          ▐  ●▌                                   │
+│     InputDecorati…                                                             │
+│     TextArea           separate roots  ▐●  ▌                                   │
+│     Autocomplete       max indent       none  2                                │
+│                        test/            loads  fails                           │
 │   CONTROLS      20                                                             │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
@@ -39,13 +39,13 @@ styles
 │aaaaannnnnnnnnaaaaaaaagggogggggFGFFFGHHHHHHHHHHGGGGGGGGGGGGGGGGGGGGGGGGggggggogg│
 │aaaaannnnnnnnnnnnnaaaagggggggggqgqqqgpppppppppgggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnaaaaaaaaagggogggggqqqgppppppppggggggggggggggggggggggggggggggggggogg│
-│aaaaaaaaaaaaaaaaaaaaaagggggggggpgppppggggggggggggggggggggggggggggggggggggggggggg│
-│aaadddddddaaaaaaaaCaaagggogggggggpppppppppgggggggggggggggggggggggggggggggggggogg│
-│aaaaannnnnnnnnaaaaaaaagggggggggggppppppppppppggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnnnnaaagggggggoggggggggggggggggggggggggggggggggggggggggggoggggggg│
-│aaaaannnnnnnnaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnnnnnnaaaaaggmmmmmmggyzzAyggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaaaaaaaaaaaaaaaaaaaggmmmmmgggtuuuuuthBBBBBhgggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggggggoggggggggggggggggggggggggggggggggggggggggggoggggggg│
+│aaadddddddaaaaaaaaCaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnaaaaaaaaggmmmmmmggggggggggyzzAyggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnaaaaaaaaaggmmmmmmmmgmmmmmggfijjfggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaaaggmmmgmmmmmmggggggtuuuuthBhggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmgggggggggggtuuuuuthBBBBBhgggggggggggggggggggggggggg│
 │aaaddddddddaaaaaaCCaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
@@ -76,4 +76,7 @@ H #e6e8eb on #24354c
 y #5fa8ff on #16181d
 z on #5fa8ff
 A #ffffff on #5fa8ff
+f #383d48 on #16181d
+i #e6e8eb on #383d48
+j on #383d48
 B #8b929c on #13151a

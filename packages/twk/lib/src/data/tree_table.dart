@@ -636,6 +636,9 @@ final class _TreeTableState<T> extends State<TreeTable<T>>
           ...before,
           Span('${rows.errors[i]}', _errorStyle),
         ]);
+      case _Mark.separator:
+        // TreeTable has none
+        return const TableCell('');
       case _Mark.leaf || _Mark.collapsed || _Mark.expanded:
         final cell = column.cell(rows.nodes[i]);
         final expands = mark != _Mark.leaf;

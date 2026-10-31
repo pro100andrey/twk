@@ -13,13 +13,13 @@ text
 │     Calendar                                                                             │                             │
 │     Heatmap, ActivityHe…  ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  guides              ▐  ●▌  │
 │     Table                 ▐                                                              │                             │
-│     DescriptionList       ▐    ·    ┌                                          ┐   ·     │  test/                      │
-│ ▎   TreeView              ▐           ▾ lib                                              │   loads  fails              │
-│     TreeTable             ▐    ·      ├─▾ src                                      ·     │                             │
-│     DirectoryTree                     │ ├── box.dart                                     │                             │
+│     DescriptionList       ▐    ·    ┌                                          ┐   ·     │  separate roots      ▐●  ▌  │
+│ ▎   TreeView              ▐           ▾ lib                                              │                             │
+│     TreeTable             ▐    ·      ├─▾ src                                      ·     │  max indent                 │
+│     DirectoryTree                     │ ├── box.dart                                     │   none  2                   │
 │     TaskList                   ·      │ ├── flex.dart                              ·     │                             │
-│                                       │ ├── table.dart                                   │                             │
-│   EDITING              4       ·      │ └── text.dart                              ·     │                             │
+│                                       │ ├── table.dart                                   │  test/                      │
+│   EDITING              4       ·      │ └── text.dart                              ·     │   loads  fails              │
 │     TextField                         └── twk.dart                                       │                             │
 │     InputDecoration            ·      ▸ test                                       ·     │                             │
 │     TextArea                            README.md                                        │                             │
@@ -50,13 +50,13 @@ styles
 │aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaoooooooooooaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnhhhhhhhhhhhhhhqrrsqhh│
 │aaaaaoooooaaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooooaaaaaaadhhhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhhhhhhhh│
-│auvvvwwwwwwwwvvvvvvvvvvvvvvdhhhhhhhhhhhxhxxxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhvwwwwwviyyyyyihhhhhhhhhhhhh│
-│aaaaaoooooooooaaaaaaaaaaaaadhhhhphhhhhhzzxhxxxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooaaaaaaaaaahhhhhhhhhhhzhzzzhxxxxxxxxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaadhhhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhhhphhnnnnnnnnhnnnnnhhhhhhejkkehh│
+│auvvvwwwwwwwwvvvvvvvvvvvvvvdhhhhhhhhhhhxhxxxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaadhhhhphhhhhhzzxhxxxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhnnnhnnnnnnhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaahhhhhhhhhhhzhzzzhxxxxxxxxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhvwwwwviyihhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhhhhzhzzzhxxxxxxxxxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhHIHHHIJJJJJJJJJJIIIIIIIIIIIIIIIIIIIIIIIIhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaadddddddaaaaaaaaaaaaaaDaaahhhhphhhhhhzhzzzhxxxxxxxxxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhHIHHHIJJJJJJJJJJIIIIIIIIIIIIIIIIIIIIIIIIhhhhhhhhhhhphhnnnnnhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddddaaaaaaaaaaaaaaDaaahhhhphhhhhhzhzzzhxxxxxxxxxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhvwwwwwviyyyyyihhhhhhhhhhhhh│
 │aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhzzzhxxxxxxxxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooooaaaaaaaahhhhphhhhhhxhxxxxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhxxxxxxxxxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
@@ -93,12 +93,15 @@ p #2c3039 on #16181d
 q #5fa8ff on #16181d
 r on #5fa8ff
 s #ffffff on #5fa8ff
+e #383d48 on #16181d
+j #e6e8eb on #383d48
+k on #383d48
 u #5fa8ff on #2b4566
 v on #2b4566
 w bold #e6e8eb on #2b4566
 x #e6e8eb on #16181d
-y #8b929c on #13151a
 z #3e444f on #16181d
+y #8b929c on #13151a
 H #3e444f on #24354c
 I on #24354c
 J #e6e8eb on #24354c

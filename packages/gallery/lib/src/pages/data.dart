@@ -1143,6 +1143,8 @@ final _treeView = GalleryPage(
   title: 'TreeView',
   options: const [
     SwitchOption('guides', 'guides', initial: true),
+    SwitchOption('separate', 'separate roots'),
+    ChoiceOption('indent', 'max indent', values: ['none', '2']),
     ChoiceOption('load', 'test/', values: ['loads', 'fails']),
   ],
   build: (context, o) => _inRoom((room) {
@@ -1162,6 +1164,8 @@ final _treeView = GalleryPage(
         roots: _roots,
         controller: controller,
         showGuides: o.flag('guides'),
+        separateRoots: o.flag('separate'),
+        maxIndent: o.choice<String>('indent') == '2' ? 2 : null,
         hasChildren: (path) => !path.contains('.'),
         children: (path) => switch (path) {
           'lib' => const ['lib/src', 'lib/twk.dart'],
@@ -1192,6 +1196,8 @@ final _treeView = GalleryPage(
     '    roots: const [${_roots.map((r) => "'$r'").join(', ')}],',
     '    controller: _controller,',
     if (!o.flag('guides')) '    showGuides: false,',
+    if (o.flag('separate')) '    separateRoots: true,',
+    if (o.choice<String>('indent') == '2') '    maxIndent: 2,',
     "    hasChildren: (path) => !path.contains('.'),",
     '    children: (path) => switch (path) {',
     "      'lib' => const ['lib/src', 'lib/twk.dart'],",
