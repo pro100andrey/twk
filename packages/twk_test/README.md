@@ -140,6 +140,9 @@ a file the app reads arrives whenever the operating system delivers it.
 - `mouse(MouseKind.down, x, y, button: 2, modifiers: Mod.ctrl)` sends an
   SGR mouse report, and `click(x, y)` sends a press and a release. Neither
   works in the inline mode, where the terminal keeps the mouse for itself.
+- `pointerShape` is the shape the app gave the mouse pointer last (OSC
+  22), on a terminal that shows them: `pumpWidget(pointerShapes: true)`;
+  `PointerShape.arrow` where it shows the terminal's default.
 - `resize(columns, rows)` resizes the terminal. The app gets a
   `ResizeEvent`, and the next frame repaints the screen.
 

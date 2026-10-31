@@ -31,7 +31,12 @@ shape of its `cursor` (a `PointerShape`, the core's OSC 22,
 [§1.7](../../../twk_core/doc/design/terminal.md)), or of
 the nearest region around it with one, the terminal's own outside them all:
 written as it changes, with the mouse or with a frame that moved a region,
-only where the terminal is known to show it, and the terminal's own put back
+only where the terminal is known to show it (the core's `pointerNamesFor`:
+by CSS's names kitty 0.31 on, foot 1.12 on, Ghostty, Rio and Konsole 26.04
+on; by the X cursor font's xterm patch 367 on and iTerm2 3.7 on; never VTE,
+WezTerm, Windows Terminal, Alacritty or Terminal.app, nor inside tmux or GNU
+screen; a plain `TERM=xterm-256color` with no other sign of the terminal
+gets none, and the mouse's motion is then not asked for), and the terminal's own put back
 when the app ends or hands the terminal over; it is hit anywhere in it
 (`opaque`, hiding what it covers; `translucent` lets that be hit too), and a
 region inside another is in both. The regions the mouse is in are kept

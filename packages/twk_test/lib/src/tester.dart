@@ -202,7 +202,9 @@ final class TwkTester {
   /// [AppBinding]), and [environment] in place of the process's: none by
   /// default, so that what the shell running the tests exports
   /// (`TWK_DEBUG`, `TWK_SCREEN_READER`, `TWK_LOG`, the editor's variables)
-  /// changes nothing; a test that wants one gives it here. The app's wall
+  /// changes nothing; a test that wants one gives it here. With
+  /// [pointerShapes] the terminal shows the mouse pointer's shapes (OSC 22,
+  /// by their CSS names), which [pointerShape] reads. The app's wall
   /// time (`AppBinding.now`) is [startTime] when the clock reads zero,
   /// [defaultStartTime] by default, moved on by the clock: a screen that
   /// shows the time or today's date is the same on every run.
@@ -225,6 +227,7 @@ final class TwkTester {
     bool exitOnCtrlC = true,
     Map<String, String> environment = const {},
     DateTime? startTime,
+    bool pointerShapes = false,
   }) async {
     final binding = _binding;
     if (binding == null) {
@@ -246,6 +249,7 @@ final class TwkTester {
         exitOnCtrlC: exitOnCtrlC,
         environment: environment,
         startTime: startTime ?? defaultStartTime,
+        pointerShapes: pointerShapes,
       );
     } else {
       final term = _running();
@@ -282,6 +286,7 @@ final class TwkTester {
     required bool exitOnCtrlC,
     required Map<String, String> environment,
     required DateTime startTime,
+    required bool pointerShapes,
   }) {
     final (width, height) = size;
     final fullscreen = mode == ScreenMode.fullscreen;
@@ -331,6 +336,7 @@ final class TwkTester {
         backgroundRgb: backgroundRgb,
         multiplexer: multiplexer,
         notifications: notifications,
+        pointerShapes: pointerShapes,
         caps: TerminalCaps(
           graphics: graphics,
           graphicsMultiplexer: multiplexer,
@@ -674,6 +680,19 @@ final class TwkTester {
     final recorder = _recorder ?? (throw _notStarted());
     _stamp();
     return recorder.replay(terminal.frames);
+  }
+
+  /// The shape the app gave the mouse pointer last ([PointerShape], OSC
+  /// 22): [PointerShape.arrow] where it shows the terminal's default, null
+  /// before it gave any and always without `pumpWidget(pointerShapes:
+  /// true)`, where the terminal shows none.
+  PointerShape? get pointerShape {
+    final names = RegExp('\x1b\\]22;([^\x1b\x07]*)').allMatches(written());
+    if (names.isEmpty) {
+      return null;
+    }
+    final name = names.last[1];
+    return PointerShape.values.where((s) => s.css == name).firstOrNull;
   }
 
   /// What the app wrote to the terminal, as text: the bytes of the frames

@@ -3,7 +3,8 @@
 /// a click that focuses it: [Pressable].
 library;
 
-import 'package:twk_core/twk_core.dart' show Attr, Brightness, Color, TextWrap;
+import 'package:twk_core/twk_core.dart'
+    show Attr, Brightness, Color, HitTestBehavior, PointerShape, TextWrap;
 
 import '../animation/animation_controller.dart';
 import '../animation/ticker.dart';
@@ -25,7 +26,9 @@ import '../text/widgets.dart';
 /// [hints]: they get its keys from the moment it has the focus, and
 /// [onKeyEvent] those they leave. A press of the left button over it
 /// focuses it, while it is enabled, and a tap over it calls [onTap] (see
-/// `GestureDetector`). [builder] is called again as the focus comes and
+/// `GestureDetector`); while it is enabled with an [onTap], the pointer
+/// is the hand over it ([PointerShape.pointer], where the terminal shows
+/// pointer shapes). [builder] is called again as the focus comes and
 /// goes.
 ///
 /// A control of its own, which Space and a click turn on and off, shown in
@@ -140,9 +143,16 @@ final class _PressableState extends State<Pressable> {
         hints: enabled ? widget.hints : const {},
         child: Listener(
           onDown: enabled ? _down : null,
-          child: GestureDetector(
-            onTap: widget.onTap,
-            child: widget.builder(context, _node.hasFocus),
+          // the hand where a click does something, as over a link
+          child: MouseRegion(
+            cursor: enabled && widget.onTap != null
+                ? PointerShape.pointer
+                : null,
+            behavior: HitTestBehavior.deferToChild,
+            child: GestureDetector(
+              onTap: widget.onTap,
+              child: widget.builder(context, _node.hasFocus),
+            ),
           ),
         ),
       ),

@@ -121,7 +121,10 @@ onKeyEvent:, onTap:, focusNode:, autofocus:)` is what the controls are made
 of, for one of an app's own: a node of the focus tree that takes the focus
 while `enabled` (disabled, Tab passes it by), `bindings` the keys it takes
 while it has it (as `KeyBindings` takes them, with their `hints`), a press
-of the left button over it focusing it and a tap calling `onTap`.
+of the left button over it focusing it and a tap calling `onTap`; enabled
+with an `onTap`, the pointer is the hand over it (`PointerShape.pointer`,
+where the terminal shows shapes), as over the buttons, boxes and switches
+made of it.
 
 ## `Checkbox`
 
