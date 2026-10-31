@@ -572,6 +572,7 @@ final class AppBinding {
         _view,
         _dispatch,
         beforeLayout: _beforeLayout,
+        afterLayout: _afterLayout,
         beforePresent: _beforePresent,
         afterPresent: _afterPresent,
       );
@@ -1161,6 +1162,18 @@ final class AppBinding {
     if (_screenReader) {
       _read();
     }
+  }
+
+  // the TwkApp runs it after each layout: a build the layout scheduled (a
+  // LayoutBuilder's keys, say) is made and laid out before the paint, not
+  // a frame later
+  bool _afterLayout() {
+    if (!_buildScheduled) {
+      return false;
+    }
+    _buildScheduled = false;
+    _build();
+    return true;
   }
 
   void _focusChanged() {

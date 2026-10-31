@@ -31,8 +31,8 @@ void main() {
     await t.pumpWidget(const Hints(), size: (30, 5));
     expect(t, isNot(containsLine(contains('swap'))));
     await t.resize(50, 5);
-    // the bar follows the keys one frame after the layout changes them
-    await t.pumpUntilIdle();
+    // one frame: the bar follows the keys the layout changed, before paint
+    await t.pump();
     expect(t, containsLine(contains('s swap')));
   });
 
