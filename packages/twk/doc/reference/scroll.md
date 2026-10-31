@@ -188,7 +188,11 @@ filter: '', query: '')`: lines added with `add(text, level:, time:)`
 level's; `listen(stream)` for a program's output as it comes, read as an
 `AnsiStream` reads it, a line once it ends, in its escape sequences'
 colors, a carriage return writing it over, the unended line when the
-stream is done; `clear()`) follow the end while the view shows it; scrolled up it
+stream is done; `followFile(path, fromEnd: true, poll: 1 s)` for a file
+being written, the same way, its writes told by a watch of its directory and
+found by a look at its size each `poll` as well, a file cut short read again
+from its start, one not there yet waited for, not on the web; `clear()`)
+follow the end while the view shows it; scrolled up it
 stays on its lines and counts the new ones (`newLines`, ` ↓ 3 new lines ` at
 its bottom right) until End, a click on the count or `follow()` takes it
 back (`following`). It keeps `maxLines` lines, the oldest dropped (`length`,

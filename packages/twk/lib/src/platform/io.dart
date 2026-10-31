@@ -82,6 +82,97 @@ Stream<void> watchDirectory(String path) {
   }
 }
 
+/// The bytes written to the file at [path] from now on, or with [fromEnd]
+/// false from its start, as they come: told by a watch of its directory
+/// where the system has one, and found by a look at its size each [poll]
+/// all the same, where a watch misses a write or does not work (a network
+/// drive). A file cut shorter than what was read (truncated, written anew)
+/// is read again from its start; one not there yet is waited for. Ends
+/// when the subscription is cancelled.
+Stream<List<int>> tailFile(
+  String path, {
+  required bool fromEnd,
+  required Duration poll,
+}) {
+  final file = File(path);
+  final name = file.uri.pathSegments.last;
+  StreamSubscription<FileSystemEvent>? watch;
+  Timer? timer;
+  var position = 0;
+  var reading = false;
+  var again = false;
+  var cancelled = false;
+  late final StreamController<List<int>> out;
+
+  Future<int> length() async {
+    try {
+      return await file.length();
+    } on FileSystemException {
+      return 0;
+    }
+  }
+
+  Future<void> look() async {
+    if (reading) {
+      again = true;
+      return;
+    }
+    reading = true;
+    try {
+      do {
+        again = false;
+        final end = await length();
+        if (end < position) {
+          position = 0;
+        }
+        if (end > position) {
+          await for (final bytes in file.openRead(position, end)) {
+            if (cancelled) {
+              return;
+            }
+            out.add(bytes);
+          }
+          position = end;
+        }
+      } while (again && !cancelled);
+    } on FileSystemException {
+      // gone while it was read: looked at again at the next event or poll
+    } finally {
+      reading = false;
+    }
+  }
+
+  out = StreamController<List<int>>(
+    onListen: () async {
+      if (fromEnd) {
+        position = await length();
+      }
+      if (cancelled) {
+        return;
+      }
+      if (FileSystemEntity.isWatchSupported) {
+        try {
+          watch = file.parent
+              .watch()
+              .where((e) => e.path.endsWith(name))
+              .listen((_) => look(), onError: (Object _) {});
+        } on FileSystemException {
+          // no watch of the directory: the poll alone
+        }
+      }
+      timer = Timer.periodic(poll, (_) => look());
+      unawaited(look());
+    },
+    onCancel: () async {
+      cancelled = true;
+      timer?.cancel();
+      await watch?.cancel();
+      unawaited(out.close());
+    },
+  );
+  return out.stream;
+}
+
 /// Writes [text] to the file at [path] in place of what it held.
 Future<void> writeFile(String path, String text) =>
     File(path).writeAsString(text);

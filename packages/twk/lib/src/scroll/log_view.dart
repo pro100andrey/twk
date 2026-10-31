@@ -4,6 +4,7 @@
 library;
 
 import 'dart:async' show Stream, StreamSubscription;
+import 'dart:convert' show Utf8Decoder;
 import 'dart:math' show max, min;
 
 import 'package:meta/meta.dart' show visibleForTesting;
@@ -37,6 +38,7 @@ import '../gestures/mouse.dart' show Listener, PointerEvent;
 import '../gestures/selection.dart' show Selectable, SelectionArea;
 import '../layout/one_child.dart';
 import '../layout/stack.dart';
+import '../platform/platform.dart' show tailFile;
 import '../style/style.dart';
 import '../text/smartcase.dart';
 import '../text/widgets.dart';
@@ -252,6 +254,36 @@ final class LogController extends ChangeNotifier {
       },
     );
   }
+
+  /// Adds the lines written to the file at [path], as [listen] adds those
+  /// of a program's output (in its colors, a carriage return writing a line
+  /// over), each line once it ends: those written from now on, or with
+  /// [fromEnd] false the file's from its start too. A write is told by a
+  /// watch of the file's directory where the system has one, and found by
+  /// a look at the file's size each [poll] all the same; a file cut short
+  /// (truncated after a clean, written anew) is read again from its start,
+  /// and one not there yet is waited for. Malformed UTF-8 is U+FFFD.
+  /// Cancel the subscription to stop following it. Not on the web, which
+  /// has no files: the subscription's `onError` gets an
+  /// [UnsupportedError].
+  ///
+  /// ```dart
+  /// final log = LogController();
+  /// log.followFile('build.log');
+  /// ```
+  StreamSubscription<String> followFile(
+    String path, {
+    bool fromEnd = true,
+    Duration poll = const Duration(seconds: 1),
+    LogLevel level = LogLevel.info,
+  }) => listen(
+    tailFile(
+      path,
+      fromEnd: fromEnd,
+      poll: poll,
+    ).transform(const Utf8Decoder(allowMalformed: true)),
+    level: level,
+  );
 
   static String _textOf(List<Span> spans) => switch (spans) {
     [] => '',

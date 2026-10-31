@@ -57,6 +57,13 @@ Future<int?> fileSize(String path) async => null;
 /// Ends at once: the web has no directories to watch.
 Stream<void> watchDirectory(String path) => const Stream.empty();
 
+/// Fails with [UnsupportedError]: the web has no files to follow.
+Stream<List<int>> tailFile(
+  String path, {
+  required bool fromEnd,
+  required Duration poll,
+}) => Stream.error(_noFiles());
+
 /// Fails with [UnsupportedError].
 Future<void> writeFile(String path, String text) async => throw _noFiles();
 
