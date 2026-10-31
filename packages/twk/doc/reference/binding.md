@@ -18,7 +18,10 @@ app's zone (any number of `setState` calls between two frames make one
 build, at most `maxFps` a second, spaced by its `clock`, the `Stopwatch` it
 gives `TwkApp`, which a test's fake clock moves), tells the focus nodes
 whose focus changed first and settles the focus again after the build when
-that moved it (an autofocus, a focused node removed), in the same frame,
+that moved it (an autofocus, a focused node removed), in the same frame
+(what the layout changes, a `LayoutBuilder`'s build binding keys or moving
+the focus, is built in the frame after, asked for at once: one build a
+frame, before the layout, as in Flutter),
 unmounts what the frame's builds removed, a `LayoutBuilder`'s in the layout
 too, once the frame is written (`TwkApp.run`'s `afterPresent`), in that
 frame and asking for no other, their states disposed, mounts the app in the

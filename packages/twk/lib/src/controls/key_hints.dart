@@ -24,7 +24,10 @@ import '../text/widgets.dart';
 /// no enabled action does left to the layers above
 /// ([FocusManagerKeys.activeKeys]); the bar follows them as the focus
 /// moves and the layers change ([FocusManager.keysChanged]). The keys a
-/// focused node takes in its own `onKeyEvent` are not among them.
+/// focused node takes in its own `onKeyEvent` are not among them. Keys
+/// bound during the layout, by a `KeyBindings` a `LayoutBuilder` builds,
+/// reach the bar in the frame after, which is asked for at once: a frame
+/// builds before it lays out, as Flutter's does.
 ///
 /// A sequence shows whole ([ActiveKey.label]): `ctrl+x ctrl+s save`; while
 /// a layer holds its first keys, what can follow them: `ctrl+s save` once

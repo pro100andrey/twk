@@ -410,9 +410,6 @@ final class TwkApp {
   /// What [run] runs at the start of each frame.
   void Function()? _beforeLayout;
 
-  /// What [run] runs after each layout.
-  bool Function()? _afterLayout;
-
   /// What [run] runs once each frame is painted, before it is written.
   void Function()? _beforePresent;
 
@@ -492,13 +489,6 @@ final class TwkApp {
   /// Input waits for the first frame: an event that comes before it is
   /// handled once [beforeLayout] has run.
   ///
-  /// [afterLayout] runs in every frame once the tree is laid out, and says
-  /// whether it changed the tree (a build the layout itself scheduled, a
-  /// `LayoutBuilder` building what marks the focus's keys, say): then the
-  /// tree is laid out again before it is painted, up to three times; what
-  /// is left waits for the next frame. It returns `false` and does nothing
-  /// else in a frame with nothing to change.
-  ///
   /// [beforePresent] runs in every frame once the tree is laid out and
   /// painted, just before the screen is written: what it sets of the
   /// presenter ([Presenter.cursorX], say) goes with that frame, what it
@@ -532,7 +522,6 @@ final class TwkApp {
     RenderObject root,
     void Function(InputEvent e) onEvent, {
     void Function()? beforeLayout,
-    bool Function()? afterLayout,
     void Function()? beforePresent,
     void Function()? afterPresent,
   }) async {
@@ -540,7 +529,6 @@ final class TwkApp {
       throw StateError('an app runs once: run was called before');
     }
     _beforeLayout = beforeLayout;
-    _afterLayout = afterLayout;
     _beforePresent = beforePresent;
     _afterPresent = afterPresent;
     _running = true;
@@ -1174,10 +1162,6 @@ final class TwkApp {
     );
   }
 
-  // the builds and layouts after the first in a frame that [run]'s
-  // afterLayout asks for
-  static const _relayouts = 3;
-
   Future<void> _frame() async {
     _scheduled = false;
     if (_done.isCompleted || _suspended) {
@@ -1202,15 +1186,6 @@ final class TwkApp {
         _sizeRegion();
       }
       owner.flushLayout(screen.width, screen.height);
-      final again = _afterLayout;
-      if (again != null) {
-        for (var i = 0; i < _relayouts && again(); i++) {
-          if (screen.presenter.inline) {
-            _sizeRegion();
-          }
-          owner.flushLayout(screen.width, screen.height);
-        }
-      }
       _end();
       final laidOut = _statsClock.elapsedMicroseconds;
       final repaints = owner.dirtyBoundaries;
