@@ -12,9 +12,9 @@ import 'chart_glyphs.dart';
 
 /// [data] as bars a column wide that grow upwards in eighths of a cell,
 /// oldest to the left: the last values that fit, the newest at the right
-/// edge once they fill it. While fewer than fit, they start at the left
-/// edge, or with [fromRight] end at the right one, as a chart of time
-/// whose newest value is now. A bar is empty at [min] and
+/// edge once they fill it. While fewer than fit, they end at the right
+/// edge, as a chart of time whose newest value is now, or with [fromRight]
+/// false start at the left one. A bar is empty at [min] and
 /// fills every row at [max], by default the largest value shown. As wide
 /// as it may be and a row tall, taller where the constraints ask for more
 /// rows; a repaint boundary, so new data repaints nothing else.
@@ -40,7 +40,7 @@ final class Sparkline extends LeafRenderObjectWidget {
     this.min = 0,
     this.max,
     this.style = const Style(),
-    this.fromRight = false,
+    this.fromRight = true,
   });
 
   /// The values, oldest first. Read, not copied: a new list with other
@@ -62,7 +62,8 @@ final class Sparkline extends LeafRenderObjectWidget {
   final Style style;
 
   /// Whether fewer values than fit end at the right edge, the columns
-  /// left of them empty, instead of starting at the left one.
+  /// left of them empty, as by default; false starts them at the left
+  /// one.
   final bool fromRight;
 
   @override
@@ -97,7 +98,7 @@ final class RenderSparkline extends RenderObject {
     this._min = 0,
     this._max,
     this._style = const Style(),
-    this._fromRight = false,
+    this._fromRight = true,
   });
 
   List<double> _data;

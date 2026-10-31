@@ -535,6 +535,7 @@ final class BarsState extends State<Bars> {
     child: Sparkline(
       data: _data,
       max: 8,
+      fromRight: false,
       style: const Style(fg: green, bg: blue),
     ),
   );
