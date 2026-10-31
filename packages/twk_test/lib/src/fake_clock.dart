@@ -21,7 +21,8 @@ import 'package:test/test.dart' show TestFailure;
 /// [stopwatch] reads it.
 ///
 /// Code outside the zone keeps real time. In the zone, only the timers and
-/// microtasks are fake: `Stopwatch()` and `DateTime.now()` read real time.
+/// microtasks are fake: `Stopwatch()` and `DateTime.now()` read real time
+/// (an app's `AppBinding.now()` is on [stopwatch]).
 /// A future completed outside the zone resumes the code of the zone that
 /// awaits it in a microtask of the real event loop (the SDK keeps some
 /// completed in the root zone, as `StreamSubscription.cancel` returns):

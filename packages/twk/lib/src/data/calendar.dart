@@ -14,6 +14,7 @@ import 'package:twk_core/twk_core.dart'
         PaintContext,
         RenderObject;
 
+import '../binding/app_binding.dart' show AppBinding;
 import '../editing/caret.dart' show clearRestCursor, restCursor;
 import '../focus/focus_tree.dart';
 import '../focus/hinted_keys.dart';
@@ -274,7 +275,8 @@ final class Calendar extends StatefulWidget {
   /// Called with the date Enter or Space selected.
   final void Function(DateTime date)? onSelected;
 
-  /// The date shown in [todayStyle]; null for the date of the build.
+  /// The date shown in [todayStyle]; null for the app's date as it builds
+  /// ([AppBinding.now]), where its own controller starts too.
   final DateTime? today;
 
   /// The weekday each row starts with, [DateTime.monday] to
@@ -352,7 +354,8 @@ final class _CalendarState extends State<Calendar> {
   RenderCalendar? _month;
 
   CalendarController get _controller =>
-      widget.controller ?? (_own ??= CalendarController(cursor: widget.today));
+      widget.controller ??
+      (_own ??= CalendarController(cursor: widget.today ?? _now(context)));
 
   FocusNode get _node => widget.focusNode ?? (_ownNode ??= FocusNode());
 
@@ -464,7 +467,7 @@ final class _CalendarState extends State<Calendar> {
           child: ListenableBuilder(
             listenable: controller,
             builder: (context, _) =>
-                _Month(this, controller, widget.today ?? DateTime.now()),
+                _Month(this, controller, widget.today ?? _now(context)),
           ),
         ),
       ),
@@ -944,3 +947,7 @@ int _addMonths(int day, int months) {
     DateTime.utc(month.year, month.month, d.day < length ? d.day : length),
   );
 }
+
+/// The app's wall time ([AppBinding.now]), or the system's outside an app.
+DateTime _now(BuildContext context) =>
+    AppBinding.maybeOf(context)?.now() ?? DateTime.now();

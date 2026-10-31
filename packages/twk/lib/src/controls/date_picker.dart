@@ -3,6 +3,7 @@ library;
 
 import 'package:twk_core/twk_core.dart' show Attr;
 
+import '../binding/app_binding.dart' show AppBinding;
 import '../data/calendar.dart';
 import '../editing/text_editing.dart';
 import '../focus/focus.dart';
@@ -268,7 +269,8 @@ final class _DatePickerState extends State<DatePicker>
   }
 
   DateTime get _today {
-    final today = widget.today ?? DateTime.now();
+    final today =
+        widget.today ?? AppBinding.maybeOf(context)?.now() ?? DateTime.now();
     return DateTime(today.year, today.month, today.day);
   }
 

@@ -296,7 +296,9 @@ final class AppBinding {
   /// [maxInlineRows], [clearInlineOnExit], [logs] and [clock] (the app's
   /// clock, a new stopwatch by default); [exitOnCtrlC], [stopOnCtrlZ],
   /// [restCursor] and [screenReader] are as [runApp] takes them. [run]
-  /// runs an app on it.
+  /// runs an app on it. [startTime] is what [now] is when [clock] reads
+  /// zero: by default the time it is made less what the clock reads then,
+  /// so [now] is the system's time; a test fixes it.
   ///
   /// [environment] is what the app reads its variables from, null (the
   /// default) for the process's: given to its `TwkApp` (`TWK_LOG`,
@@ -323,6 +325,7 @@ final class AppBinding {
     this.stopOnCtrlZ = true,
     this.restCursor = true,
     Stopwatch? clock,
+    DateTime? startTime,
     bool? screenReader,
     Map<String, String>? environment,
   }) : twkApp = TwkApp(
@@ -336,6 +339,7 @@ final class AppBinding {
          environment: environment,
        ),
        _screenReader = screenReader ?? false {
+    _startTime = startTime ?? DateTime.now().subtract(twkApp.clock.elapsed);
     if (screenReader == null) {
       _screenReader = _readerAsked(twkApp.environment);
     }
@@ -636,6 +640,24 @@ final class AppBinding {
 
   /// Ends [run].
   void quit() => twkApp.quit();
+
+  /// The wall time on the app's clock ([TwkApp.clock]): what it was when
+  /// the clock read zero (`startTime`), moved on by what the clock reads
+  /// now. In an app it is the time `DateTime.now()` gives, as long as the
+  /// system's time is not set while it runs; in a test the fake clock
+  /// moves it as it moves the frames, from a time the test fixes, so what
+  /// is drawn of the time (a clock, today in a `Calendar`, "3 s ago") is
+  /// the same on every run. Read it instead of `DateTime.now()` in a
+  /// widget.
+  ///
+  /// ```dart
+  /// String clock(BuildContext context) {
+  ///   final now = AppBinding.of(context).now();
+  ///   return '${now.hour}:${now.minute.toString().padLeft(2, '0')}';
+  /// }
+  /// ```
+  DateTime now() => _startTime.add(twkApp.clock.elapsed);
+  late final DateTime _startTime;
 
   /// Handles a press of [combo] as one the terminal sent: given to the
   /// nodes of the focus's [FocusManager.keyPath] and what is past them, so

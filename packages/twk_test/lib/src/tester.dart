@@ -129,6 +129,11 @@ final class TwkTester {
   /// The time of the app.
   late final FakeClock clock;
 
+  /// The app's wall time (`AppBinding.now`) when [clock] reads zero, unless
+  /// [pumpWidget] is given another: midnight at the start of 2000, a date
+  /// no test can take for today.
+  static final defaultStartTime = DateTime(2000);
+
   /// The app's log: `print`, `log()` and the errors it reports.
   final logs = LogSink();
 
@@ -197,7 +202,10 @@ final class TwkTester {
   /// [AppBinding]), and [environment] in place of the process's: none by
   /// default, so that what the shell running the tests exports
   /// (`TWK_DEBUG`, `TWK_SCREEN_READER`, `TWK_LOG`, the editor's variables)
-  /// changes nothing; a test that wants one gives it here.
+  /// changes nothing; a test that wants one gives it here. The app's wall
+  /// time (`AppBinding.now`) is [startTime] when the clock reads zero,
+  /// [defaultStartTime] by default, moved on by the clock: a screen that
+  /// shows the time or today's date is the same on every run.
   Future<void> pumpWidget(
     Widget widget, {
     (int, int)? size,
@@ -216,6 +224,7 @@ final class TwkTester {
     bool clearInlineOnExit = false,
     bool exitOnCtrlC = true,
     Map<String, String> environment = const {},
+    DateTime? startTime,
   }) async {
     final binding = _binding;
     if (binding == null) {
@@ -236,6 +245,7 @@ final class TwkTester {
         clearInlineOnExit: clearInlineOnExit,
         exitOnCtrlC: exitOnCtrlC,
         environment: environment,
+        startTime: startTime ?? defaultStartTime,
       );
     } else {
       final term = _running();
@@ -271,6 +281,7 @@ final class TwkTester {
     required bool clearInlineOnExit,
     required bool exitOnCtrlC,
     required Map<String, String> environment,
+    required DateTime startTime,
   }) {
     final (width, height) = size;
     final fullscreen = mode == ScreenMode.fullscreen;
@@ -340,6 +351,7 @@ final class TwkTester {
         logs: logs,
         exitOnCtrlC: exitOnCtrlC,
         clock: clock.stopwatch,
+        startTime: startTime,
         environment: environment,
       );
       unawaited(

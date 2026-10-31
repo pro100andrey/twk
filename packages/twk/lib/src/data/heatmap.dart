@@ -21,6 +21,7 @@ import 'package:twk_core/twk_core.dart'
         RenderObject,
         TextSegmenter;
 
+import '../binding/app_binding.dart' show AppBinding;
 import '../editing/caret.dart' show clearRestCursor, restCursor;
 import '../focus/focus_tree.dart';
 import '../focus/hinted_keys.dart';
@@ -1358,7 +1359,9 @@ final class ActivityHeatmap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final last = dayOf(end ?? DateTime.now());
+    final last = dayOf(
+      end ?? AppBinding.maybeOf(context)?.now() ?? DateTime.now(),
+    );
     final lastWeek = last - (weekdayOfDay(last) - firstWeekday) % 7;
     final first = lastWeek - (weeks - 1) * 7;
     final byDay = <int, num>{};

@@ -53,7 +53,11 @@ the callbacks of a frame are called it waits for the next.
 along the focus's key path and past it: what a tap on a hint of a bar of
 the app's own does (`FocusManagerKeys.activeKeys`, each key with the keys
 `then` of its sequence, pressed one at a time); from an event's callback,
-not a build. `reassemble()`, what a hot
+not a build. `now()` is the app's wall time: `startTime` (by default
+the time the binding is made less what its clock read then, so the
+system's) moved on by its clock, which a test's fake clock moves from the
+time `pumpWidget(startTime:)` fixes; a `Calendar`, a `DatePicker` and a
+`Heatmap` given no date take today from it. `reassemble()`, what a hot
 reload calls (`twk run` of `packages/twk_dev`), has the next frame rebuild
 every element, its state kept, lay out and paint every render object again
 and write the whole screen again. It gives a key to the debug aids first

@@ -216,8 +216,13 @@ void main() {
 ## Time
 
 No test waits on the wall clock. Only the app's timers and frames are on
-the fake clock: `DateTime.now()` and `Stopwatch()` read real time, so pass
-dates in. `pumpUntilIdle()` pumps until no frame and no timer waits, so
+the fake clock: `DateTime.now()` and `Stopwatch()` read real time. A
+widget that shows the time reads `AppBinding.of(context).now()` instead:
+the app's start time moved on by its clock, which in a test starts at
+`pumpWidget(startTime:)` (`TwkTester.defaultStartTime`, 1 January 2000,
+by default) and moves as the test pumps, so the screen is the same on
+every run. A `Calendar`, a `DatePicker` and a `Heatmap` given no date of
+their own take today from it. `pumpUntilIdle()` pumps until no frame and no timer waits, so
 it runs out the timers that end what a test may look for: a toast, which
 shows for 3 s, and a highlight on a timer are gone when it returns. To
 see them, pump by a duration shorter than theirs. An app with a periodic

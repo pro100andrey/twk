@@ -98,7 +98,10 @@ a `FakeClock` (`t.clock`):
 
 Only timers and microtasks of the app are fake: `Stopwatch()` and
 `DateTime.now()` read real time in the app too. The binding spaces frames
-by `AppBinding(clock:)`, which the tester sets to `t.clock.stopwatch`. Code
+by `AppBinding(clock:)`, which the tester sets to `t.clock.stopwatch`, and
+its wall time, `AppBinding.now()`, is `pumpWidget(startTime:)`
+(`TwkTester.defaultStartTime` by default) moved on by that clock: what an
+app draws of the time from it is the same on every run. Code
 of the test itself keeps real time. The clock does not wait for real I/O:
 a file the app reads arrives whenever the operating system delivers it.
 
