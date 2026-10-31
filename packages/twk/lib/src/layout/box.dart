@@ -165,9 +165,8 @@ final class _DecoratedBox extends SingleChildRenderObjectWidget {
       ..padding = box.padding;
   }
 
-  List<BoxTitle> get _boxTitles => box.titles.isEmpty
-      ? const []
-      : [for (final t in box.titles) t._boxTitle];
+  List<BoxTitle> get _boxTitles =>
+      box.titles.isEmpty ? const [] : [for (final t in box.titles) t._boxTitle];
 }
 
 /// The border of a [Box]: the lines it is drawn with, for each side that
