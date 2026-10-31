@@ -130,9 +130,9 @@ final class TwkTester {
   late final FakeClock clock;
 
   /// The app's wall time (`AppBinding.now`) when [clock] reads zero, unless
-  /// [pumpWidget] is given another: midnight at the start of 2000, a date
-  /// no test can take for today.
-  static final defaultStartTime = DateTime(2000);
+  /// [pumpWidget] is given another: midnight at the start of 2026, fixed,
+  /// so a screen that shows a date is the same on every run.
+  static final defaultStartTime = DateTime(2026);
 
   /// The app's log: `print`, `log()` and the errors it reports.
   final logs = LogSink();
