@@ -599,6 +599,8 @@ final class AppBinding {
     _running = false;
     _runningApps.remove(this);
     _callbacks.clear();
+    _postFrame.clear();
+    _framing = false;
     _waitForDue();
     debug._dispose();
   }
@@ -962,6 +964,54 @@ final class AppBinding {
     return id;
   }
 
+  /// Calls [callback] once, at the end of a frame, once it is laid out,
+  /// painted and written, with the frame's time ([frameTime]): where what
+  /// the frame laid out (a size, a place) is read and acted on, a change
+  /// made there built by the next frame. Added while a frame builds or lays
+  /// out, it is called at the end of that frame; between frames it asks for
+  /// one, and while the callbacks of a frame are called it waits for the
+  /// next. One added once [run] has ended is never called.
+  ///
+  /// The width of what [context] builds, once it is laid out:
+  ///
+  /// ```dart
+  /// void logWidth(BuildContext context) =>
+  ///     AppBinding.of(context).addPostFrameCallback((_) {
+  ///       print(context.findRenderObject()?.width);
+  ///     });
+  /// ```
+  void addPostFrameCallback(FrameCallback callback) {
+    _postFrame.add(callback);
+    if (_running && (!_framing || _callingPostFrame)) {
+      twkApp.requestFrame();
+    }
+  }
+
+  // the callbacks added for the end of a frame, in the order they were
+  // added; a frame runs, from its start to the end of its callbacks; those
+  // are being called
+  var _postFrame = <FrameCallback>[];
+  var _framing = false;
+  var _callingPostFrame = false;
+
+  /// Calls the callbacks added for the end of this frame.
+  void _callPostFrameCallbacks() {
+    if (_postFrame.isEmpty) {
+      return;
+    }
+    final callbacks = _postFrame;
+    _postFrame = [];
+    final time = _frameTime;
+    _callingPostFrame = true;
+    try {
+      for (final callback in callbacks) {
+        callback(time);
+      }
+    } finally {
+      _callingPostFrame = false;
+    }
+  }
+
   /// Calls the callback [id] names ([scheduleFrameCallback]) at no frame;
   /// an id called already or cancelled is ignored.
   void cancelFrameCallback(int id) {
@@ -1052,6 +1102,7 @@ final class AppBinding {
   // the TwkApp runs it at the start of each frame
   void _beforeLayout() {
     final now = twkApp.clock.elapsed;
+    _framing = true;
     _frameTime = now;
     _framesBegun++;
     if (_callbacks.isNotEmpty) {
@@ -1138,6 +1189,11 @@ final class AppBinding {
         'version': serviceExtensionsVersion,
         'rebuilds': _rebuilt,
       });
+    }
+    try {
+      _callPostFrameCallbacks();
+    } finally {
+      _framing = false;
     }
   }
 
