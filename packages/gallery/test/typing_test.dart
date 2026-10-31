@@ -6,7 +6,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:gallery/gallery.dart';
+import 'package:gallery/testing.dart';
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_core/twk_core.dart'

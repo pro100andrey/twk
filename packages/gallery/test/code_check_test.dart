@@ -1,10 +1,31 @@
 // tool/code_check/wrap.dart: how each kind of Code is made into a library
 // whose codeWidget() returns its widget.
+import 'package:gallery/testing.dart';
 import 'package:test/test.dart';
 
+import '../tool/code_check/harness.dart' show themes;
+import '../tool/code_check/known.dart';
 import '../tool/code_check/wrap.dart';
 
 void main() {
+  test('each difference the check expects is of a page of the catalog', () {
+    final paths = {for (final p in pagePlaces) p.path};
+    expect(knownCode.keys.where((k) => !paths.contains(k)), isEmpty);
+  });
+
+  test("the program that runs the Codes has each of the gallery's themes "
+      "but the terminal's own, as twk has it", () {
+    // the program is a package of its own, without the gallery: its
+    // themes are written out, and held here to the gallery's
+    expect(
+      themes.keys,
+      unorderedEquals(galleryThemes.keys.where((k) => k != 'terminal')),
+    );
+    for (final MapEntry(:key, :value) in themes.entries) {
+      expect(value, same(galleryThemes[key]!.$2), reason: key);
+    }
+  });
+
   test('a program runs its main with runApp keeping the widget', () {
     final w = wrap('''
 import 'package:twk/twk.dart';

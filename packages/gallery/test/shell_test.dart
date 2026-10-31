@@ -1,39 +1,9 @@
-import 'package:gallery/gallery.dart';
-import 'package:gallery/src/paint.dart' show cut;
-import 'package:gallery/src/shell/stage.dart' show Stage;
-import 'package:gallery/src/shell/tokens.dart' show galleryThemes, sidebarWidth;
+import 'package:gallery/testing.dart';
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
-/// Opens the gallery at [route] in a terminal of [size], a frame for the
-/// route's focus after the first.
-Future<void> open(
-  TwkTester t,
-  String route, {
-  (int, int) size = (120, 36),
-}) async {
-  await t.pumpWidget(galleryApp(route: GalleryRoute.parse(route)), size: size);
-  await t.pump();
-}
-
-/// Presses [keys] (apart by commas), a frame after each.
-Future<void> keys(TwkTester t, String keys) async {
-  for (final k in keys.split(',')) {
-    await t.press(k);
-    await t.pump();
-  }
-  await t.pump(const Duration(milliseconds: 500));
-}
-
-/// The screen as text.
-String screen(TwkTester t) => t.lines.join('\n');
-
-/// What the app logged at warning or worse: an overflow, an error.
-List<String> problems(TwkTester t) => [
-  for (final r in t.logs.records)
-    if (r.level.index >= LogLevel.warning.index) '${r.level}: ${r.message}',
-];
+import 'support/gallery.dart';
 
 /// The row of the last rule across the page at [x]: the top of the
 /// options under a narrow stage.

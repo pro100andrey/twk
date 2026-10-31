@@ -1,6 +1,6 @@
 // The Screen readers › Semantics page: the lines a screen reader reads of
 // its form, each control in one of them, as its options change them.
-import 'package:gallery/gallery.dart';
+import 'package:gallery/testing.dart';
 import 'package:test/test.dart';
 import 'package:twk_test/twk_test.dart';
 

@@ -192,6 +192,15 @@ in the catalog, open every page at 80×24 and 120×36 without an overflow
 or an error, and go through the list, the filter, the palette, the
 inspector, a dialog and the theme with the keys.
 
+The tests and the tools reach the gallery through
+`package:gallery/testing.dart`, never `package:gallery/src/…`, so that
+its files can move: it adds to `gallery.dart` the catalog's pages as
+routes (`pagePlaces`, `pageRoutes`), a route shown as the golden screens
+show it (`showRoute`, `openRoute`, `playRoute`), and the parts of the
+shell and the pages the tests look into. The tests' own helpers (`open`,
+`keys`, `screen`, `problems`…) are `test/support/gallery.dart`, whose
+`open` refuses a route that names no page of the catalog.
+
 ## The Code against the stage
 
 `tool/code_check.dart` holds each page's Code tab to what its stage

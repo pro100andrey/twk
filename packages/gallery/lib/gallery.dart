@@ -17,6 +17,7 @@ export 'src/page.dart';
 export 'src/pages/pages.dart' show galleryPages;
 export 'src/route.dart' show GalleryRoute, slug;
 export 'src/shell/shell.dart' show GalleryShell, GalleryShellState, Zone;
+export 'src/shell/tokens.dart' show galleryThemes;
 
 /// The gallery, opened at [route] (the first page, dark, when null), on
 /// [clock]: by default the app's, or stopped at the route's `t=`. The

@@ -15,7 +15,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:gallery/src/shell/tokens.dart' show galleryThemes;
+import 'package:gallery/gallery.dart' show galleryThemes;
 import 'package:twk/twk.dart';
 
 import 'code_check/known.dart';

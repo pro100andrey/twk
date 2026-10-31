@@ -5,7 +5,7 @@
 import 'dart:io';
 import 'dart:mirrors';
 
-import 'package:gallery/gallery.dart';
+import 'package:gallery/testing.dart';
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 

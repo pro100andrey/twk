@@ -5,8 +5,7 @@
 // written when the gallery matched its design, then the prototype in
 // design/gallery (since retired), cell for cell at each of these routes;
 // TWK_UPDATE_GOLDENS=1 writes them again from the gallery.
-import 'package:gallery/gallery.dart';
-import 'package:gallery/src/shell/tokens.dart' show galleryThemes;
+import 'package:gallery/testing.dart';
 import 'package:test/test.dart';
 import 'package:twk_test/twk_test.dart';
 
@@ -62,61 +61,18 @@ const _extra = {
   'app/cli.create-done': '#/app/cli?t=4500',
 };
 
-/// When the screen is read, unless the route says `t=`.
-const _t = Duration(milliseconds: 2000);
-
 void main() {
   final routes = {
-    for (final g in catalog)
-      for (final p in g.pages)
-        for (final MapEntry(key: name, value: params) in _variants.entries)
-          '${slug(g.title)}/${slug(p.title)}.$name':
-              '#/${slug(g.title)}/${slug(p.title)}'
-              '${params.isEmpty ? '' : '?$params'}',
+    for (final place in pagePlaces)
+      for (final MapEntry(key: name, value: params) in _variants.entries)
+        '${place.path}.$name':
+            '#/${place.path}${params.isEmpty ? '' : '?$params'}',
     ..._extra,
   };
   for (final MapEntry(key: name, value: route) in routes.entries) {
     testTwk('$name: $route', (t) async {
-      await show(t, route);
+      await showRoute(t, route);
       expect(t, matchesScreenFile('test/goldens/$name.txt'));
     });
   }
-}
-
-/// Shows the gallery at [route] as the comparison with the design did: on
-/// a terminal of the route's `size=` (120x36) whose background is its
-/// theme's, the clock stopped at its `t=` (2 s), and its `keys=` pressed
-/// and its `type=` typed after the first frame, a frame after each; then
-/// the clock run to that time.
-Future<void> show(TwkTester t, String route) async {
-  final parsed = GalleryRoute.parse(route);
-  final at = parsed.t ?? _t;
-  final [path, ...query] = route.split('?');
-  final params = [
-    for (final p in query.join('?').split('&'))
-      if (p.isNotEmpty && !p.startsWith('keys=') && !p.startsWith('type=')) p,
-    if (parsed.t == null) 't=${at.inMilliseconds}',
-  ];
-  final shown = GalleryRoute.parse('$path?${params.join('&')}');
-  final (width, height) = switch (parsed.size?.split('x')) {
-    [final w, final h] => (int.parse(w), int.parse(h)),
-    _ => (120, 36),
-  };
-  final theme = galleryThemes[parsed.theme ?? 'dark']!.$2;
-  await t.pumpWidget(
-    galleryApp(route: shown),
-    size: (width, height),
-    duration: Duration.zero,
-    backgroundRgb: (theme.background.bg?.value ?? 0) & 0xFFFFFF,
-  );
-  for (final key in parsed.keys) {
-    await t.press(key);
-    await t.pump();
-  }
-  if (parsed.type case final type? when type.isNotEmpty) {
-    await t.type(type);
-    await t.pump();
-  }
-  final rest = at - t.clock.elapsed;
-  await t.pump(rest.isNegative ? Duration.zero : rest);
 }
