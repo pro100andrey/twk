@@ -159,6 +159,60 @@ void main() {
     });
   });
 
+  group('with the kitty keyboard protocol', () {
+    const options = TerminalOptions(escapeTimeout: Duration(milliseconds: 20));
+
+    test('a lone ESC waits 500 ms, as the Escape key is a sequence of its '
+        'own there', () async {
+      final (term, link) = await answered('\x1b[?0u', options: options);
+      expect(term.info.kittyKeyboard, isTrue);
+      final events = eventsOf(term);
+      link.type('\x1b');
+      await clock.elapse(const Duration(milliseconds: 499));
+      expect(events, isEmpty);
+      await clock.elapse(const Duration(milliseconds: 1));
+      expect(events, const [KeyEvent(KeyCode.escape)]);
+    });
+
+    test('a terminal that answered for it but sent the Escape key as a lone '
+        'ESC (Konsole) is waited for as without it from then on', () async {
+      final (term, link) = await answered('\x1b[?0u', options: options);
+      final events = eventsOf(term);
+      link.type('\x1b');
+      await clock.elapse(const Duration(milliseconds: 500));
+      expect(events, const [KeyEvent(KeyCode.escape)]);
+      link.type('\x1b');
+      await clock.elapse(const Duration(milliseconds: 20));
+      expect(events, const [
+        KeyEvent(KeyCode.escape),
+        KeyEvent(KeyCode.escape),
+      ]);
+      // the keys it does send as sequences still come whole
+      link.type('\x1b[112;5u');
+      await clock.flushMicrotasks();
+      expect(
+        events.last,
+        const KeyEvent(KeyCode.char, char: 'p', modifiers: Mod.ctrl),
+      );
+      // and one whose parameters came still waits as long as before
+      link.type('\x1b[1;');
+      await clock.elapse(const Duration(milliseconds: 150));
+      expect(events, hasLength(3));
+    });
+
+    test('the Escape key sent as its sequence leaves the long wait as it '
+        'is', () async {
+      final (term, link) = await answered('\x1b[?0u', options: options);
+      final events = eventsOf(term);
+      link.type('\x1b[27u');
+      await clock.flushMicrotasks();
+      expect(events, const [KeyEvent(KeyCode.escape)]);
+      link.type('\x1b');
+      await clock.elapse(const Duration(milliseconds: 499));
+      expect(events, hasLength(1));
+    });
+  });
+
   group('notify', () {
     test("sends the terminal's notification, numbered for this "
         'process', () async {
