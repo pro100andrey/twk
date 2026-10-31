@@ -48,3 +48,8 @@ Widget inRoom(Widget Function(int width, int height) build) => LayoutBuilder(
     );
   },
 );
+
+/// [room] as a page's Code reads it, 56 × 20 before the stage was laid
+/// out: the columns and rows.
+(int, int) codeRoomOf(StageRoom room) =>
+    room == StageRoom.unbounded ? (56, 20) : (room.width, room.height);

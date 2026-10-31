@@ -15,12 +15,12 @@ import 'layout/layout.dart';
 import 'mouse/mouse.dart';
 import 'navigation/navigation.dart';
 import 'overlays/overlays.dart';
-import 'rich.dart';
+import 'rich/rich.dart';
 import 'screen_readers/screen_readers.dart';
 import 'scrolling/scrolling.dart';
 import 'style/style.dart';
 import 'terminal/terminal.dart';
-import 'text.dart';
+import 'text/text.dart';
 
 /// Every page that draws; the catalog's others show a placeholder.
 final List<GalleryPage> galleryPages = [

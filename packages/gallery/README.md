@@ -111,15 +111,20 @@ made of; `lib/testing.dart` adds what the tests and the tools read. Under
 | `model/` | no widgets: the catalog joined with the pages, each page's options and state (`PageStore`), the palette's ranking, the toasts, the Code's record of what changed, the tab |
 | `input/` | the names of keys, both ways, and a one-line field's editing |
 | `view/` | the shell: `shell.dart` (its state, the route, the actions, the build) and a part a region (`shell_header.dart`, `shell_sidebar.dart`, `shell_page.dart`, `shell_code.dart`, `shell_inspector.dart`, `shell_hints.dart`, `shell_palette.dart`, `shell_toasts.dart`, `shell_keys.dart`), the stage, the inspector's controls, the tokens and the metrics |
-| `pages/` | the pages by group, and `kit/`, what they share |
+| `pages/` | a directory a group, a file a page, and `kit/`, what the pages share |
 | `launcher.dart` | the program `bin/gallery.dart` runs |
 
 ## Adding a page
 
-A page is a `GalleryPage` in `lib/src/pages/<group>.dart`, its group and
-title as `lib/src/catalog.dart` names them (a new page has its entry
-there first); the group's list goes into `galleryPages` in
-`lib/src/pages/pages.dart`. A page of the catalog that no `GalleryPage`
+A page is a `GalleryPage` in a file of its own,
+`lib/src/pages/<group>/<page>.dart`, with what only it uses (its widget,
+its Code's helpers); its group and title are as `lib/src/catalog.dart`
+names them (a new page has its entry there first). A group is a library,
+`lib/src/pages/<group>/<group>.dart`: its imports, a `part` for each of
+its files, and its list of pages, which `galleryPages` in
+`lib/src/pages/pages.dart` takes; what several of its pages use is in a
+part of its own (`_shared.dart`, or one named for what it is, as
+Debugging's `aids.dart`). A page of the catalog that no `GalleryPage`
 draws shows a placeholder.
 
 ```dart

@@ -14,7 +14,7 @@ export 'src/model/catalog_pages.dart' show ShellGroup, ShellPage;
 export 'src/model/code_text.dart';
 export 'src/pages/cli_code.dart' show cliCode;
 export 'src/pages/pictures.dart' show pictureBytes;
-export 'src/pages/rich.dart' show qrEncodes;
+export 'src/pages/rich/rich.dart' show qrEncodes;
 export 'src/paint.dart' show cut;
 export 'src/testing/show_route.dart';
 export 'src/view/code_select.dart';
