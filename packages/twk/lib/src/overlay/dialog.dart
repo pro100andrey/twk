@@ -31,6 +31,7 @@ import '../layout/flex.dart';
 import '../layout/shadow.dart';
 import '../layout/stack.dart';
 import '../navigation/navigator.dart';
+import '../scroll/single_child_scroll_view.dart';
 import '../semantics/semantics.dart';
 import '../style/style.dart';
 import '../text/widgets.dart';
@@ -197,6 +198,8 @@ final class Dialog extends StatelessWidget {
     required this.child,
     super.key,
     this.title,
+    this.trailing,
+    this.scrollable = false,
     this.padding = const EdgeInsets.x(1),
     this.shadow,
     this.look = PanelLook.raised,
@@ -208,6 +211,22 @@ final class Dialog extends StatelessWidget {
 
   /// What the dialog is titled; null for nothing.
   final String? title;
+
+  /// What is at the right end of the title row, after [title]: a counter
+  /// such as `2/5 ←→`, a close hint. In the raised look the row is the
+  /// first inside, [title] to the left of it (nothing to the left when
+  /// [title] is null); in the bordered look [title] stays on the border
+  /// and [trailing] is a row of its own at the top inside, at the right.
+  /// Null for none.
+  final Widget? trailing;
+
+  /// Whether [child] is shown in a `SingleChildScrollView` that is bounded
+  /// by the room the dialog gets (the screen's height less the room, the
+  /// border and the title row), so a [child] taller than that scrolls,
+  /// by the keys once it has the focus and by the wheel, instead of being
+  /// cut off. False by default: [child] is laid out as before, as tall as
+  /// it likes.
+  final bool scrollable;
 
   /// The cells between the room (or the border) and [child].
   final EdgeInsets padding;
@@ -232,6 +251,11 @@ final class Dialog extends StatelessWidget {
     final title = this.title;
     final shadow = this.shadow;
     final p = padding;
+    final trailing = this.trailing;
+    final content = scrollable
+        ? Flexible(child: SingleChildScrollView(child: child))
+        : child;
+    final plain = title == null && trailing == null && !scrollable;
     final box = switch (look) {
       PanelLook.raised => Box(
         style: theme.surface.merge(theme.text),
@@ -241,9 +265,10 @@ final class Dialog extends StatelessWidget {
           right: p.right + 1,
           bottom: p.bottom + 1,
         ),
-        child: title == null
+        child: plain
             ? child
-            : Column(
+            : trailing == null && !scrollable
+            ? Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -251,13 +276,46 @@ final class Dialog extends StatelessWidget {
                   Semantics(
                     nodes: const [],
                     child: Text(
-                      title,
+                      title!,
                       style: theme.text.merge(const Style(attrs: Attr.bold)),
                       maxLines: 1,
                     ),
                   ),
                   child,
                 ],
+              )
+            : IntrinsicWidth(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (title != null || trailing != null)
+                      SizedBox(
+                        height: 1,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: title == null
+                                  ? const SizedBox()
+                                  // read as the dialog's label already
+                                  : Semantics(
+                                      nodes: const [],
+                                      child: Text(
+                                        title,
+                                        style: theme.text.merge(
+                                          const Style(attrs: Attr.bold),
+                                        ),
+                                        maxLines: 1,
+                                      ),
+                                    ),
+                            ),
+                            ?trailing,
+                          ],
+                        ),
+                      ),
+                    content,
+                  ],
+                ),
               ),
       ),
       PanelLook.bordered => Box(
@@ -267,7 +325,21 @@ final class Dialog extends StatelessWidget {
           if (title != null) BorderTitle(' $title ', style: theme.text),
         ],
         padding: padding,
-        child: child,
+        child: trailing == null && !scrollable
+            ? child
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (trailing != null)
+                    Align(
+                      alignment: Alignment.centerRight,
+                      heightFactor: 1,
+                      child: trailing,
+                    ),
+                  content,
+                ],
+              ),
       ),
     };
     final maxWidth = this.maxWidth;

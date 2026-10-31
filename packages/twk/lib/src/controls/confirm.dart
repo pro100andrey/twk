@@ -7,9 +7,13 @@ import '../focus/focus.dart';
 import '../framework/framework.dart';
 import '../gestures/gesture_detector.dart';
 import '../layout/flex.dart';
+import '../overlay/dialog.dart';
 import '../style/style.dart';
 import '../text/widgets.dart';
 import 'pressable.dart';
+
+// Examples can assume:
+// late BuildContext context;
 
 /// A yes-or-no question: [prompt], then the answers [yes] and [no] to
 /// press, which call [onConfirmed].
@@ -227,3 +231,34 @@ final class _ConfirmInputState extends State<ConfirmInput> {
     );
   }
 }
+
+/// Asks [question] in a dialog over the app ([showDialog]) with a
+/// [ConfirmInput] that has the focus: the future completes with true for
+/// yes, false for no, and null when Escape or a click outside closes the
+/// dialog. [defaultValue] is the answer Enter gives at first.
+///
+/// ```dart
+/// final delete = await showConfirm(
+///   context,
+///   'Delete 3 files?',
+///   defaultValue: false,
+/// );
+/// if (delete == true) {
+///   // delete them
+/// }
+/// ```
+Future<bool?> showConfirm(
+  BuildContext context,
+  String question, {
+  bool defaultValue = true,
+}) => showDialog<bool>(
+  context,
+  (context) => Dialog(
+    child: ConfirmInput(
+      question,
+      defaultValue: defaultValue,
+      autofocus: true,
+      onConfirmed: (yes) => closeDialog(context, yes),
+    ),
+  ),
+);
