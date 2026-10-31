@@ -297,6 +297,23 @@ colours, as `runApp` gives them (Debugging › FrameOverlay, Repaint
 rainbow: `codeInTerminalColors`), the Code runs under
 `ThemeData.terminal` on a terminal the widget's size.
 
+### A Code that is the source that runs
+
+Where a page's widget is written as its Code is, the Code is not written
+twice: the widget's source holds it between `// #code <name>` and
+`// #end`, and `tool/snippets.dart` writes each such region, its shared
+indent taken off, into `lib/src/pages/snippets.g.dart` as a constant the
+page's `code:` returns (Focus and keys › ActiveItem, its State's members;
+Scrolling › Scrollable, the ruler's classes). What the gallery adds to a
+widget (a `LitLine`'s fade, the page's kept state, the clock standing
+still at a route's `t=`) stays out of a region. After a region changed:
+
+```bash
+dart run tool/snippets.dart
+```
+
+`gallery-snippets`, in `handover`, fails where the file is stale.
+
 ## Golden screens
 
 `test/goldens_test.dart` holds the gallery's look screen by screen: every

@@ -480,6 +480,17 @@ tasks:
     do: package
     args: [packages/gallery, dart, run, tool/code_check.dart]
 
+  gallery-snippets:
+    # The Code tabs that are the live widget's own source: the regions of
+    # the gallery's pages marked `// #code <name>`, as
+    # packages/gallery/tool/snippets.dart writes them into
+    # lib/src/pages/snippets.g.dart. Failed where that file is stale.
+    desc: hold the gallery's generated Code snippets to their regions
+    gate: [handover, ci]
+    needs: [get]
+    do: package
+    args: [packages/gallery, dart, run, tool/snippets.dart, --check]
+
   vscode-install:
     # The VS Code extension's (editors/vscode) checks run in a copy of it,
     # .dart_tool/vscode/, never in editors/vscode: the extension is run

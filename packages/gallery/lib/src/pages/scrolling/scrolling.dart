@@ -4,6 +4,7 @@ import 'package:twk/twk.dart';
 
 import '../../page.dart';
 import '../kit/kit.dart';
+import '../snippets.g.dart';
 
 part '_shared.dart';
 part 'listview.dart';
