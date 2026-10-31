@@ -300,7 +300,7 @@ final class SplitPane {
 ///   builder: (context, constraints) => SplitView(
 ///     controller: split,
 ///     direction: constraints.maxW < 60 ? Axis.vertical : Axis.horizontal,
-///     panes: [SplitPane(child: list), SplitPane(child: detail)],
+///     panes: [SplitPane(child: tree), SplitPane(child: editor)],
 ///   ),
 /// )
 /// ```
