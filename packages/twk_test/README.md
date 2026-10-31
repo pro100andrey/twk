@@ -65,10 +65,10 @@ runs the app's microtasks before it returns.
   still running. `binding` (the `AppBinding`), `terminal` (its `frames`),
   `logs` (the app's `LogSink`) and `stderrLines` (what the app wrote to
   stderr: its warnings and errors once it ended) are there to look at.
-- `act(fn)` runs `fn` in the app's zone, as the app's own code runs, and
-  pumps a frame: how a test changes what the app listens to (a
-  controller, a notifier, a cubit) and sees the frame that follows. A
-  timer `fn` starts waits for the clock.
+- `act(fn)` runs `fn` as the app's own code runs, and pumps a frame: how
+  a test changes what the app listens to (a controller, a notifier, a
+  cubit) and sees the frame that follows. A timer `fn` starts waits for
+  the clock, and what it prints or logs goes to `logs`.
 
 ### Time
 
@@ -88,8 +88,9 @@ a `FakeClock` (`t.clock`):
   waits. A frame the app asked for is such a timer, and so is the next tick
   of an animation. If the app is still busy after `timeout` (10 s on the
   clock by default), the call fails the test. The message says how many
-  frames the app wrote and when its next timer is due, and shows the screen
-  and the render tree. An app with a timer that never stops (a spinner, a
+  frames the app wrote and lists the timers that wait, each with when it
+  is due and the first lines of the stack it was started from, then shows
+  the screen and the render tree. An app with a timer that never stops (a spinner, a
   poll) never becomes idle: pump such an app with `pump(duration)`. One
   whose animations end (an `AnimationController` at the end of its run
   or stopped, a spinner removed) has no timer left and goes idle again,
@@ -262,9 +263,10 @@ The matchers of the screen take the tester: `expect(t, containsLine('ok'))`.
 When a matcher of the screen fails, the message says what the screen has
 instead: the line it lacks, the text or style found at the cell, where the
 cursor is, or the rows that differ from the snapshot (`-` the snapshot's,
-`+` the screen's). Then it shows the screen, rows numbered and styles
-marked as above, with the empty rows at the end summed up
-(`matchesScreen(styles: true)` leaves it out: its diff shows it). Then
+`+` the screen's). Then it shows the screen, rows numbered, as text, or
+for `styleAt` with the styles marked as above, with the empty rows at
+the end summed up (`matchesScreen(styles: true)` leaves it out: its diff
+shows it). Then
 comes the widget tree, from the widget `pumpWidget` showed down, as
 twk's `debugDumpTree` prints it (`none` before the first frame and once
 the app ended), and last the render tree, from the binding's root render
@@ -332,8 +334,10 @@ where the terminal did. A frame prints as `frame 3 at 0.050 s, 120
 bytes:` and the screen as a failing matcher shows it.
 
 A test that fails prints the last frames of its app that changed the
-screen, 3 of them, or as many as `testTwk(..., framesOnFailure: n)` says
-(0 for none).
+screen, as text, 3 of them, or as many as `testTwk(..., framesOnFailure:
+n)` says (0 for none). Then it prints the app's log (`logs`), its last 20
+records: what the app printed, the warnings of a layout that overflowed,
+the error of a build that threw, which the screen shows none of.
 
 `t.writeTrace(path)` writes the frames so far as an output trace, each at
 its time on the clock, at the size the terminal had when the app started,
@@ -412,8 +416,9 @@ screen, with `--step` each frame's and with `--frame=N` frame N's.
   `flushMicrotasks()` runs the zone's microtasks. It also lets the real
   event loop run its own, since code awaiting a future completed outside
   the zone resumes there. `stopwatch` is a `Stopwatch` that reads the
-  clock. `pendingTimers` counts the timers that wait, and `nextTimerDue`
-  is the time the next of them fires at.
+  clock. `pendingTimers` counts the timers that wait, `nextTimerDue`
+  is the time the next of them fires at, and `describeTimers()` lists
+  them, each with when it is due and where it was started.
 - A program a test runs in a process of its own (a signal, a crash, a
   pseudo-terminal, a VM service) is compiled once per suite, in
   `setUpAll`, by `compiledProgram(path, packages: ..., cache: ...)`, and

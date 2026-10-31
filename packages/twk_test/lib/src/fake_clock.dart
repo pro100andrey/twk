@@ -87,6 +87,48 @@ final class FakeClock {
   /// How many timers wait to fire, periodic ones included.
   int get pendingTimers => _timers.length;
 
+  /// The timers that wait, one a line, the next due first: when each is
+  /// due, its period where it is periodic, and where it was started, the
+  /// first lines of its stack outside the SDK and this clock; `no timer
+  /// waits` while none does. A failure that waited on them says so with
+  /// it, as [elapseUntil]'s and a tester's `pumpUntilIdle`'s do.
+  ///
+  /// ```dart
+  /// final clock = FakeClock();
+  /// clock.run(() => Timer(const Duration(seconds: 2), () {}));
+  /// assert(clock.describeTimers().startsWith('a timer due in 2.000 s'));
+  /// ```
+  String describeTimers() {
+    if (_timers.isEmpty) {
+      return 'no timer waits';
+    }
+    int byDue(_FakeTimer a, _FakeTimer b) =>
+        a._due != b._due ? a._due - b._due : a._order - b._order;
+    String kind(_FakeTimer t) => t._each == null
+        ? 'a timer'
+        : 'a periodic timer, every '
+              '${_seconds(Duration(microseconds: t._period))},';
+    String head(_FakeTimer t) =>
+        '${kind(t)} due in '
+        '${_seconds(Duration(microseconds: t._due - _now))}, started at';
+    return [
+      for (final t in [..._timers]..sort(byDue)) ...[
+        head(t),
+        for (final frame in _callers(t._started)) '  $frame',
+      ],
+    ].join('\n');
+  }
+
+  /// The first [count] frames of [stack] that are neither the SDK's nor
+  /// this clock's: where the code that started a timer is.
+  static List<String> _callers(StackTrace stack, {int count = 3}) => [
+    for (final line in '$stack'.split('\n'))
+      if (line.trim().isNotEmpty &&
+          !line.contains('(dart:') &&
+          !line.contains('fake_clock.dart'))
+        line.replaceFirst(RegExp(r'^#\d+\s+'), ''),
+  ].take(count).toList();
+
   /// The time on the clock ([elapsed]) the next timer fires at; null while
   /// none waits.
   Duration? get nextTimerDue {
@@ -208,7 +250,8 @@ final class FakeClock {
         };
         throw TestFailure(
           'elapseUntil: the future has not completed '
-          '${_seconds(within)} on the clock, and $timers',
+          '${_seconds(within)} on the clock, and $timers'
+          '${pendingTimers == 0 ? '' : ':\n${describeTimers()}'}',
         );
       }
       final micros = step.inMicroseconds;
@@ -264,13 +307,17 @@ final class _FakeTimer implements Timer {
 
   _FakeTimer._(this._clock, int micros, this._once, this._each)
     : _period = micros < 0 ? 0 : micros,
-      _order = _clock._created++ {
+      _order = _clock._created++,
+      _started = StackTrace.current {
     _due = _clock._now + _period;
     _clock._timers.add(this);
   }
 
   final FakeClock _clock;
   final int _period;
+
+  /// Where it was started, which a failure that waited on it names.
+  final StackTrace _started;
 
   /// What a timer that fires once calls, and what a periodic one calls.
   final void Function()? _once;

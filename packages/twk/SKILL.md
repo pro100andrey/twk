@@ -653,8 +653,8 @@ What to know:
   real time (a file, a process): `waitUntil(condition, what, between:
   t.pump)`.
 - `t.logs.records` holds what the app printed and logged, a build that
-  failed among them: a `print` never reaches the test's output, read it
-  with `printOnFailure('${t.logs.records}')`. `t.isRunning` turns false
+  failed and a layout that overflowed among them; a test that fails
+  prints its last 20, after its last frames. `t.isRunning` turns false
   once it quit.
 - `pumpUntilIdle()` pumps until no frame and no timer waits; it fails
   after 10 s on the clock for an app with a periodic timer or a spinner:
@@ -662,8 +662,10 @@ What to know:
   timers too, so what they show is gone when it returns.
 - Only the app's timers and frames are fake: `DateTime.now()` and
   `Stopwatch()` read real time. Pass dates in (`Calendar(today: …)`).
-- A failing matcher shows the screen, the widget tree with each widget's
-  size, and the render tree; a failing test prints its last 3 frames.
+- A failing matcher shows the screen as text (`styleAt` with styles),
+  the widget tree with each widget's size, and the render tree; a failing
+  test prints its last 3 frames and the app's log; a failing
+  `pumpUntilIdle` lists the timers that wait and where each started.
 
 ## Debug
 

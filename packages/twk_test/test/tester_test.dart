@@ -571,16 +571,24 @@ void main() {
     expect(
       lines.first,
       'pumpUntilIdle: the app is still busy after 1.000 s: it wrote 10 '
-      'frames, and 1 timer waits, the next due in 0.083 s',
+      'frames, and 1 timer waits, the next due in 0.083 s:',
     );
-    expect(lines.skip(1).take(5), [
+    // the counter's own timer, and where it started it
+    expect(
+      lines[1],
+      'a periodic timer, every 0.100 s, due in 0.083 s, started at',
+    );
+    expect(lines[2], startsWith('  _TickingCounterState.initState ('));
+    final blank = lines.indexOf('');
+    expect(lines.sublist(2, blank), everyElement(startsWith('  ')));
+    expect(lines.skip(blank).take(5), [
       '',
       'screen 10×1:',
       '0│tick 10',
       '',
       'render tree:',
     ]);
-    expect(lines[6], startsWith('_RenderView'));
+    expect(lines[blank + 5], startsWith('_RenderView'));
     expect(t.clock.elapsed, const Duration(microseconds: 16666 + 1000000));
   });
 
@@ -598,7 +606,9 @@ void main() {
           'message',
           startsWith(
             'pumpUntilIdle: the app is still busy after 0.500 s: it wrote no '
-            'frame, and 1 timer waits, the next due in 0.483 s\n',
+            'frame, and 1 timer waits, the next due in 0.483 s:\n'
+            'a periodic timer, every 1.000 s, due in 0.483 s, started at\n'
+            '  _TickingCounterState.initState (',
           ),
         ),
       ),

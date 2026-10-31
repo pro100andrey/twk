@@ -206,15 +206,16 @@ List<String> screenRows(Vt vt, {bool styles = false}) {
   return rows;
 }
 
-/// [vt]'s screen as a failure message shows it: the rows numbered, styles
-/// marked ([rowText]), the empty rows that end the screen summed up.
+/// [vt]'s screen as a failure message shows it: the rows numbered, as
+/// plain text, or with their styles marked with [styles] ([rowText]), the
+/// empty rows that end the screen summed up.
 ///
 /// ```dart
 /// final vt = Vt(10, 3)..feed(utf8.encode('ok'));
 /// assert(describeScreen(vt) == '0│ok\n(rows 1–2 blank)');
 /// ```
-String describeScreen(Vt vt) {
-  final rows = screenRows(vt, styles: true);
+String describeScreen(Vt vt, {bool styles = false}) {
+  final rows = screenRows(vt, styles: styles);
   final digits = '${vt.height - 1}'.length;
   final out = [
     for (final (y, row) in rows.indexed) '${'$y'.padLeft(digits)}│$row',
@@ -230,9 +231,19 @@ String describeScreen(Vt vt) {
 
 /// [vt]'s screen ([describeScreen]) and the render tree from [root] down,
 /// as a failure message shows them, the tree as `describe().toStringDeep()`
-/// gives it; without the screen with [screen] false.
-String describeApp(Vt vt, RenderObject? root, {bool screen = true}) => [
-  if (screen) ...['screen ${vt.width}×${vt.height}:', describeScreen(vt), ''],
+/// gives it; without the screen with [screen] false, its styles marked
+/// with [styles].
+String describeApp(
+  Vt vt,
+  RenderObject? root, {
+  bool screen = true,
+  bool styles = false,
+}) => [
+  if (screen) ...[
+    'screen ${vt.width}×${vt.height}:',
+    describeScreen(vt, styles: styles),
+    '',
+  ],
   'render tree:',
   root?.describe().toStringDeep() ?? 'none',
 ].join('\n');

@@ -224,17 +224,19 @@ timer or a spinner is never idle: pump it by a duration instead.
 
 ## When a test fails
 
-A failing matcher shows the screen, the widget tree with each widget's
-size and the render tree, and a failing test prints its last 3 frames
-that changed the screen (`testTwk(..., framesOnFailure: n)`, 0 for none).
+A failing matcher shows the screen as text (`styleAt` with its styles
+marked), the widget tree with each widget's size and the render tree. A
+failing test then prints its last 3 frames that changed the screen
+(`testTwk(..., framesOnFailure: n)`, 0 for none), and the app's log.
+`pumpUntilIdle` that fails lists the timers that wait, each with where
+it was started.
 
-What the app prints does not reach the test's output, as on a real
-terminal it would write over the screen: `print`, `log()` and the errors
-the app reports, a build that failed among them, are in
-`t.logs.records` (`LogRecord`s: `message`, `error`, `stack`), and what
-it wrote to stderr once it ended in `t.stderrLines`. A `print` put in
-while debugging is read with `printOnFailure('${t.logs.records}')` at
-the end of the test.
+What the app prints does not reach the test's output while it passes,
+as on a real terminal it would write over the screen: `print`, `log()`
+and the warnings and errors the app reports (a layout that overflowed,
+a build that threw) are in `t.logs.records` (`LogRecord`s: `message`,
+`error`, `stack`), the last 20 of them printed when the test fails, and
+what it wrote to stderr once it ended in `t.stderrLines`.
 
 The rest of the tester — frames recorded and written as a trace, a widget
 drawn without an app (`Shot`), processes a test starts — is in

@@ -49,7 +49,7 @@ final class RecordedFrame {
   final String _screen;
 
   /// `frame 3 at 0.050 s, 120 bytes`, and on the lines after it the
-  /// screen as a failing matcher shows it: rows numbered, styles marked.
+  /// screen as a failing matcher of text shows it: rows numbered.
   @override
   String toString() =>
       'frame $number at ${(time.inMicroseconds / 1e6).toStringAsFixed(3)} s, '
@@ -106,11 +106,12 @@ final class FrameRecorder {
   String? last(List<Uint8List> frames, int count) {
     final changed = <RecordedFrame>[];
     final vt = _emulator();
-    var before = describeScreen(vt);
+    // a change of a style alone is a change, shown as the text
+    var before = describeScreen(vt, styles: true);
     _replay(frames, vt, (i, vt) {
-      final screen = describeScreen(vt);
+      final screen = describeScreen(vt, styles: true);
       if (screen != before) {
-        changed.add(_frame(frames, i, vt, screen));
+        changed.add(_frame(frames, i, vt));
         if (changed.length > count) {
           changed.removeAt(0);
         }
@@ -190,13 +191,12 @@ final class FrameRecorder {
   RecordedFrame _frame(
     List<Uint8List> frames,
     int i,
-    Vt vt, [
-    String? screen,
-  ]) => RecordedFrame._(
+    Vt vt,
+  ) => RecordedFrame._(
     i + 1,
     _times[i],
     frames[i],
     vt.lines.sublist(vt.history.length),
-    screen ?? describeScreen(vt),
+    describeScreen(vt),
   );
 }

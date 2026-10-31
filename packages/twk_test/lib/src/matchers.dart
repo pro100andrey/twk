@@ -155,6 +155,10 @@ abstract base class _ScreenMatcher extends Matcher {
   /// itself otherwise.
   bool get _showsScreen => true;
 
+  /// Whether the screen it shows has its styles marked: for a matcher of a
+  /// style; a matcher of text shows the text alone.
+  bool get _marksStyles => false;
+
   @override
   bool matches(Object? item, Map<dynamic, dynamic> matchState) =>
       item is TwkTester && _matches(item, matchState);
@@ -177,7 +181,7 @@ abstract base class _ScreenMatcher extends Matcher {
           [
             if (_showsScreen) ...[
               'screen ${vt.width}×${vt.height}:',
-              describeScreen(vt),
+              describeScreen(vt, styles: _marksStyles),
               '',
             ],
             'widget tree:',
@@ -279,6 +283,9 @@ final class _StyleAt extends _ScreenMatcher {
   final int _x;
   final int _y;
   final Matcher _style;
+
+  @override
+  bool get _marksStyles => true;
 
   @override
   bool _matches(TwkTester t, Map<dynamic, dynamic> matchState) {

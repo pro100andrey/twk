@@ -176,6 +176,25 @@ final class LogSink {
     ..._ring.take(_next),
   ];
 
+  /// Runs [body] with [log] and `print` writing to this sink, in [body] and
+  /// in what it schedules, as they do in the [TwkApp] whose sink it is;
+  /// returns what [body] returns. Only these: what [body] throws, it
+  /// throws, and its errors reach whoever awaits them.
+  ///
+  /// ```dart
+  /// final logs = LogSink();
+  /// logs.run(() => log('saved', level: LogLevel.warning));
+  /// print(logs.records.single.level); // LogLevel.warning
+  /// ```
+  R run<R>(R Function() body) => runZoned(
+    body,
+    zoneValues: {logSinkKey: this},
+    zoneSpecification: ZoneSpecification(
+      print: (_, _, _, line) =>
+          add(LogRecord(DateTime.now(), LogLevel.info, line)),
+    ),
+  );
+
   /// Keeps [record], dropping the oldest when the ring is full, writes it
   /// to [path], then passes it to the listeners.
   void add(LogRecord record) {

@@ -28,9 +28,22 @@ Widget form() => Column(
   ],
 );
 
-/// The screen of [form] on 20 × 4 and its widget tree, as a failure
-/// message shows them; the render tree follows.
+/// The screen of [form] on 20 × 4 and its widget tree, as the failure
+/// message of a matcher of text shows them; the render tree follows.
 const formScreen = <String>[
+  '          screen 20×4:',
+  '          0│sent: привет',
+  '          1│[x] 界',
+  '          (rows 2–3 blank)',
+  '',
+  ...formWidgets,
+  '',
+  '          render tree:',
+];
+
+/// [formScreen] as the failure message of a matcher of a style shows it:
+/// the styles marked.
+const formStyledScreen = <String>[
   '          screen 20×4:',
   '          0│[bold]sent:[/] привет',
   '          1│[red on #010203][[x] 界[/]',
@@ -60,8 +73,8 @@ void main() {
     expect(t, isNot(containsLine(contains('\n'))));
   });
 
-  testTwk('a matcher that fails shows the screen, styles marked and blank '
-      "rows at the end summed up, the app's widget tree and the render tree", (
+  testTwk('a matcher that fails shows the screen as text and blank rows '
+      "at the end summed up, the app's widget tree and the render tree", (
     t,
   ) async {
     await t.pumpWidget(form(), size: (20, 4));
@@ -156,7 +169,8 @@ void main() {
         '  Actual: TwkTester:<fullscreen, 20×4>',
         "   Which: has 'x' there, which is red on #010203",
         '',
-        ...formScreen,
+        // a matcher of a style shows the styles
+        ...formStyledScreen,
       ],
     );
     expect(

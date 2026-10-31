@@ -55,9 +55,17 @@ void main() {
     final vt = _fed('\x1b[1mok\x1b[0m');
     expect(screenRows(vt), ['ok']);
     expect(screenRows(vt, styles: true), ['[bold]ok[/]']);
-    expect(describeScreen(vt), '0│[bold]ok[/]\n(rows 1–2 blank)');
+    expect(describeScreen(vt), '0│ok\n(rows 1–2 blank)');
+    expect(
+      describeScreen(vt, styles: true),
+      '0│[bold]ok[/]\n(rows 1–2 blank)',
+    );
     expect(
       describeApp(vt, null),
+      'screen 10×3:\n0│ok\n(rows 1–2 blank)\n\nrender tree:\nnone',
+    );
+    expect(
+      describeApp(vt, null, styles: true),
       'screen 10×3:\n0│[bold]ok[/]\n(rows 1–2 blank)\n\nrender tree:\nnone',
     );
     expect(describeApp(vt, null, screen: false), 'render tree:\nnone');

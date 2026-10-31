@@ -55,6 +55,15 @@ void main() {
     await t.pumpWidget(const ThrowsOnDispose(), size: (10, 2));
   });
 
+  testTwk('a test that fails, its app having printed and warned', (t) async {
+    await t.pumpWidget(_ticker, size: (10, 2));
+    await t.act(() {
+      print('in the test');
+      log('slow', level: LogLevel.warning);
+    });
+    fail('the test failed');
+  });
+
   testTwk('a test that fails, its app having shown nothing', (t) async {
     await t.pumpWidget(const SizedBox.shrink(), size: (10, 2));
     fail('the test failed');

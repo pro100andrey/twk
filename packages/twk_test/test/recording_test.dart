@@ -91,7 +91,7 @@ void main() {
     expect(
       '$frame',
       'frame ${frame.number} at 0.000 s, ${frame.bytes.length} bytes:\n'
-          '0│[bold]hi[/]\n'
+          '0│hi\n'
           '(rows 1–2 blank)',
     );
   });
@@ -134,7 +134,8 @@ void main() {
   });
 
   test('a test that fails prints the last frames of its app that changed '
-      'the screen, as many as it asks for; none when none did', () async {
+      'the screen, as many as it asks for, none when none did, and then '
+      "the app's log", () async {
     final run = await runProcess(
       Platform.resolvedExecutable,
       ['test', '--reporter=json', 'test/fixtures/frames_on_failure.dart'],
@@ -167,6 +168,7 @@ void main() {
       'a test that fails',
       'a test that fails, printing one frame',
       'an app that fails as it ends',
+      'a test that fails, its app having printed and warned',
     ]);
     final three = prints['a test that fails']!.single;
     expect(
@@ -202,6 +204,19 @@ void main() {
           r'frame 1 at 0\.000 s, \d+ bytes:\n'
           r'0│tick 0\n'
           r'\(row 1 blank\)$',
+        ),
+      ),
+    );
+    // what the app printed and logged, after its frames
+    expect(
+      prints['a test that fails, its app having printed and warned']!.single,
+      matches(
+        RegExp(
+          r'\(row 1 blank\)\n'
+          r'\n'
+          r"the app's log, 2 records:\n"
+          r'\d\d:\d\d:\d\d\.\d\d\d info in the test\n'
+          r'\d\d:\d\d:\d\d\.\d\d\d warning slow$',
         ),
       ),
     );

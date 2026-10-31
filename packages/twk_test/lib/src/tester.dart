@@ -46,7 +46,10 @@ import 'screen_text.dart';
 /// fed to the emulator: an error the app ended with that no call of the
 /// tester has thrown fails the test, as do bytes the emulator does not
 /// take (see [Vt]). A test that fails prints the last [framesOnFailure]
-/// frames of the app that changed the screen ([TwkTester.frames]).
+/// frames of the app that changed the screen ([TwkTester.frames]), as
+/// text, and then the app's log ([TwkTester.logs]), its last 20 records:
+/// what it printed, its warnings (a layout that overflowed) and its
+/// errors (a build that threw), which its screen shows none of.
 @isTest
 void testTwk(
   String description,
@@ -62,7 +65,7 @@ void testTwk(
     try {
       await runZoned(() => body(t), zoneValues: {_testerKey: t});
     } on Object {
-      t._printFrames(framesOnFailure);
+      t._printOnFailure(framesOnFailure);
       try {
         await t._end();
       } on Object {
@@ -73,7 +76,7 @@ void testTwk(
     try {
       await t._end();
     } on Object {
-      t._printFrames(framesOnFailure);
+      t._printOnFailure(framesOnFailure);
       rethrow;
     }
   },
@@ -405,8 +408,9 @@ final class TwkTester {
         ? 'no timer waits'
         : '${count == 1 ? '1 timer waits' : '$count timers wait'}, the next '
               'due in ${_seconds(next - clock.elapsed)}';
+    final which = count == 0 ? '' : ':\n${clock.describeTimers()}';
     return 'pumpUntilIdle: the app is still busy after ${_seconds(timeout)}: '
-        'it wrote $frames, and $timers\n\n'
+        'it wrote $frames, and $timers$which\n\n'
         '${describeApp(vt, binding.twkApp.owner.root)}';
   }
 
@@ -431,13 +435,17 @@ final class TwkTester {
   /// });
   /// ```
   ///
-  /// What [fn] throws, it throws, before the frame. An async [fn] is
+  /// What [fn] prints and logs goes to [logs], as the app's own `print`
+  /// and `log` do. What [fn] throws, it throws, before the frame. An async [fn] is
   /// awaited before the frame, the clock moved on as far as it waits
   /// ([FakeClock.elapseUntil]; not at all where it waits for no timer),
   /// and what it completes with an error with is thrown.
   Future<void> act(FutureOr<void> Function() fn) async {
     _running();
-    final result = clock.run(fn);
+    // print and log go to the app's log, as the app's own do; not in the
+    // app's zone itself, whose errors stay in it instead of reaching the
+    // test
+    final result = clock.run(() => logs.run(fn));
     if (result is Future<void>) {
       await clock.elapseUntil(result);
     }
@@ -661,17 +669,35 @@ final class TwkTester {
   // the frames written since the clock moved last were written now
   void _stamp() => _recorder?.stamp(_terminal!.frames.length, clock.elapsed);
 
-  void _printFrames(int count) {
+  // the last [count] frames that changed the screen, then the app's log
+  void _printOnFailure(int count) {
     final recorder = _recorder;
-    if (recorder == null || count < 1) {
+    if (recorder == null) {
       return;
     }
-    _stamp();
-    final last = recorder.last(terminal.frames, count);
-    if (last != null) {
-      printOnFailure(last);
+    if (count > 0) {
+      _stamp();
+      final last = recorder.last(terminal.frames, count);
+      if (last != null) {
+        printOnFailure(last);
+      }
+    }
+    final records = logs.records;
+    if (records.isNotEmpty) {
+      final shown = records.length > _logOnFailure
+          ? records.sublist(records.length - _logOnFailure)
+          : records;
+      final which = shown.length == records.length
+          ? records.length == 1
+                ? '1 record'
+                : '${records.length} records'
+          : 'the last ${shown.length} of ${records.length} records';
+      printOnFailure("the app's log, $which:\n${shown.join('\n')}");
     }
   }
+
+  /// How many of the app's log records a test that fails prints.
+  static const _logOnFailure = 20;
 
   /// The app's screen mode and the terminal's size, `fullscreen, 80×24`,
   /// and whether it has ended; `no app` before [pumpWidget].

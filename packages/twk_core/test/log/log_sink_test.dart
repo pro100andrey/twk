@@ -1,5 +1,5 @@
-// The sink on its own: the ring, its listeners, the file, and log()
-// outside an app.
+// The sink on its own: the ring, its listeners, the file, log() outside
+// an app, and the zone a sink runs code in.
 import 'dart:async';
 import 'dart:io';
 
@@ -112,4 +112,33 @@ void main() {
     );
     expect(printed, [matches(r'^\d\d:\d\d:\d\d\.\d\d\d warning alone$')]);
   });
+
+  test(
+    'run sends log() and print in its body, and in what the body '
+    'schedules, to the sink, and returns and throws what the body does',
+    () async {
+      final sink = LogSink();
+      final got = sink.run(() {
+        log('saved', level: LogLevel.warning);
+        print('printed');
+        scheduleMicrotask(() => print('later'));
+        return 7;
+      });
+      await Future<void>.value();
+      expect(got, 7);
+      expect(
+        [for (final r in sink.records) (r.level, r.message)],
+        [
+          (LogLevel.warning, 'saved'),
+          (LogLevel.info, 'printed'),
+          (LogLevel.info, 'later'),
+        ],
+      );
+      expect(() => sink.run(() => throw StateError('no')), throwsStateError);
+      await expectLater(
+        sink.run(() async => throw StateError('later')),
+        throwsStateError,
+      );
+    },
+  );
 }
