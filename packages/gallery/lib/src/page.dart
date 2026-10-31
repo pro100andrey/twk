@@ -159,6 +159,19 @@ sealed class PageOption {
   /// The rows it takes in the inspector, its label above it, [width]
   /// wide.
   int rowsIn(int width);
+
+  /// The raw value of [value], one of its values (a bool for a switch, a
+  /// number for a slider, a value of a choice, a colour's name); null
+  /// where it is none.
+  Object? rawOf(Object? value);
+
+  /// The raw value [name] names, as a route and the inspector write it;
+  /// null where it names none.
+  Object? rawNamed(String name);
+
+  /// The raw value after [key] (a twk key name) at [raw], as its control
+  /// steps it; null where its control does not take [key].
+  Object? stepped(Object raw, String key);
 }
 
 /// One of [values], on a segmented track: named by [labels], or by the
@@ -213,7 +226,33 @@ final class ChoiceOption extends PageOption {
     }
     return 1 + rows;
   }
+
+  @override
+  Object? rawOf(Object? value) {
+    final i = values.indexOf(value);
+    return i < 0 ? null : i;
+  }
+
+  @override
+  Object? rawNamed(String name) {
+    final i = names.indexOf(name);
+    return i < 0 ? null : i;
+  }
+
+  @override
+  Object? stepped(Object raw, String key) =>
+      _stepAround(raw as int, values.length, key);
 }
+
+/// The index after [key] at [i] of [n] choices: left and right go round,
+/// space goes on, home and end to the ends; null for another key.
+int? _stepAround(int i, int n, String key) => switch (key) {
+  'left' => (i + n - 1) % n,
+  'right' || 'space' => (i + 1) % n,
+  'home' => 0,
+  'end' => n - 1,
+  _ => null,
+};
 
 /// On or off, a pill switch.
 final class SwitchOption extends PageOption {
@@ -234,6 +273,17 @@ final class SwitchOption extends PageOption {
 
   @override
   int rowsIn(int width) => 1;
+
+  @override
+  Object? rawOf(Object? value) => value is bool ? value : null;
+
+  @override
+  Object? rawNamed(String name) =>
+      name == 'true' || name == 'on' || name == '1';
+
+  @override
+  Object? stepped(Object raw, String key) =>
+      key == 'space' || key == 'enter' ? !(raw as bool) : null;
 }
 
 /// A number from [min] to [max] in steps of [step], on a slider, written
@@ -277,6 +327,37 @@ final class SliderOption extends PageOption {
 
   @override
   int rowsIn(int width) => 2;
+
+  @override
+  Object? rawOf(Object? value) => value is num ? value : null;
+
+  @override
+  Object? rawNamed(String name) {
+    final v = num.tryParse(name);
+    return v == null ? null : clampStep(v);
+  }
+
+  /// A tenth of the range, in steps; a step at least: what page up and
+  /// page down move.
+  num get _big {
+    final tenth = ((max - min) / 10 / step).round() * step;
+    return tenth > step ? tenth : step;
+  }
+
+  @override
+  Object? stepped(Object raw, String key) {
+    final v = raw as num;
+    final next = switch (key) {
+      'left' || 'down' => v - step,
+      'right' || 'up' => v + step,
+      'pageup' => v + _big,
+      'pagedown' => v - _big,
+      'home' => min,
+      'end' => max,
+      _ => null,
+    };
+    return next == null ? null : clampStep(next);
+  }
 }
 
 /// One of the theme's colors, by name ([values]: `primary`, `accent`,
@@ -307,22 +388,45 @@ final class ColorOption extends PageOption {
 
   @override
   int rowsIn(int width) => 3;
+
+  @override
+  Object? rawOf(Object? value) {
+    final i = value is String ? values.indexOf(value) : -1;
+    return i < 0 ? null : i;
+  }
+
+  @override
+  Object? rawNamed(String name) => rawOf(name);
+
+  @override
+  Object? stepped(Object raw, String key) =>
+      _stepAround(raw as int, values.length, key);
 }
 
 /// The values of a page's options, by key: `options['wrap']`, the value;
 /// [label], its name; typed: [choice], [flag], [number], [color].
 final class Options {
-  Options(this.page, Map<String, Object> raw)
-    : _raw = {
-        for (final o in page.options) o.key: raw[o.key] ?? o.initialRaw,
-      };
+  Options(
+    this.page,
+    Map<String, Object> raw, {
+    this.pageState = const {},
+  }) : _raw = {
+         for (final o in page.options) o.key: raw[o.key] ?? o.initialRaw,
+       };
 
   /// The options of [page] as they start.
   Options.initial(this.page)
-    : _raw = {for (final o in page.options) o.key: o.initialRaw};
+    : _raw = {for (final o in page.options) o.key: o.initialRaw},
+      pageState = const {};
 
   final GalleryPage page;
   final Map<String, Object> _raw;
+
+  /// The page's own state ([PageControl.state]) as its widget left it, for
+  /// a Code that writes what the widget did (App › TerminalProgress: what
+  /// it wrote last); empty where the page was not shown. Not one of the
+  /// options: [operator ==] leaves it out.
+  final Map<String, Object?> pageState;
 
   PageOption _option(String key) => page.options.firstWhere(
     (o) => o.key == key,
@@ -370,7 +474,8 @@ final class Options {
   bool applies(PageOption option) => !(option.disabled?.call(this) ?? false);
 
   /// These options with [key] at [raw].
-  Options withRaw(String key, Object raw) => Options(page, {..._raw, key: raw});
+  Options withRaw(String key, Object raw) =>
+      Options(page, {..._raw, key: raw}, pageState: pageState);
 
   /// The options that differ from where they start, as a route's `o=`
   /// writes them: `wrap:none;width:40`.
@@ -483,6 +588,10 @@ final class _PageHintsState extends State<PageHints> {
   }
 }
 
+/// What a toast says it is, by its colour and its icon; a route's `kind=`
+/// names it.
+enum ToastKind { info, success, warning, error }
+
 /// What a page's widget may ask of the gallery around it:
 /// `PageControl.of(context)`.
 abstract interface class PageControl {
@@ -496,9 +605,8 @@ abstract interface class PageControl {
   /// while building: from a callback or a timer.
   void setOption(String key, Object? value);
 
-  /// Shows [message] in a toast of [kind]: `info`, `success`, `warning`,
-  /// `error`.
-  void toast(String message, [String kind = 'info']);
+  /// Shows [message] in a toast of [kind].
+  void toast(String message, [ToastKind kind = ToastKind.info]);
 
   /// The page's own state, kept while the gallery runs, as the page leaves
   /// it and comes back: counters, what was chosen. The palette's "Reset

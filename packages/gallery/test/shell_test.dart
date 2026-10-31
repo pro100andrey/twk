@@ -601,6 +601,20 @@ void main() {
     expect(screen(t), contains('saved: 2'));
   });
 
+  testTwk("the palette's Reset the options empties the page's state as it "
+      'shows, its options back where they start', (t) async {
+    await open(t, '#/controls/button?t=2000&o=look:filled&focus=page');
+    await keys(t, 'enter,enter');
+    expect(screen(t), contains('saved: 2'));
+    await keys(t, 'ctrl+p');
+    await t.type('reset the options');
+    await keys(t, 'enter');
+    expect(screen(t), contains('saved: 0'));
+    expect(screen(t), contains('Options reset'));
+    final shell = t.state<GalleryShellState>(find.byType(GalleryShell));
+    expect(shell.route.toString(), isNot(contains('look:filled')));
+  });
+
   testTwk('a dialog opens over the page; its hints are its own', (t) async {
     await open(t, '#/overlays/dialog?t=2000');
     await keys(t, 'tab,enter');

@@ -10,6 +10,8 @@ import 'package:twk/twk.dart';
 import 'package:twk_core/twk_core.dart' show clipboardSequence;
 import 'package:twk_rich/twk_rich.dart';
 
+import '../model/gallery_tab.dart';
+import '../model/page_store.dart';
 import '../motion.dart';
 import '../page.dart';
 import '../paint.dart';
@@ -26,13 +28,12 @@ import 'tokens.dart';
 /// Where the focus is, as the design names it.
 enum Zone { list, filter, page }
 
-/// A toast: [message] of [kind] (`info`, `success`, `warning`, `error`),
-/// shown at [at].
+/// A toast: [message] of [kind], shown at [at].
 final class _Toast {
   _Toast(this.message, this.kind, this.at);
 
   final String message;
-  final String kind;
+  final ToastKind kind;
   final Duration at;
 }
 
@@ -71,38 +72,6 @@ final class _CodeRecord {
   final List<List<Token>> tokens;
 }
 
-/// What a page's widget asks of the shell.
-final class _Control implements PageControl {
-  _Control(this.shell, this.page);
-
-  final GalleryShellState shell;
-  final ShellPage page;
-
-  @override
-  Map<String, Object?> get state => shell._states[page.key] ??= {};
-
-  @override
-  void setOption(String key, Object? value) {
-    final opt = page.def?.options.where((o) => o.key == key).firstOrNull;
-    final raw = switch (opt) {
-      null => null,
-      SwitchOption() || SliderOption() => value,
-      final ChoiceOption o => o.values.indexOf(value),
-      final ColorOption o => value is String ? o.values.indexOf(value) : -1,
-    };
-    if (opt == null || raw == null || raw == -1) {
-      return;
-    }
-    if (shell._rawOf(page)[key] != raw) {
-      shell._setOption(page, opt, raw);
-    }
-  }
-
-  @override
-  void toast(String message, [String kind = 'info']) =>
-      shell.toast(message, kind);
-}
-
 /// The whole gallery: its pages [pages], opened at [route], on [clock].
 final class GalleryShell extends StatefulWidget {
   const GalleryShell({
@@ -134,8 +103,8 @@ final class GalleryShellState extends State<GalleryShell> {
   late ShellPage page = pages.first;
 
   /// The page the gallery opened at.
-  late final ShellPage _firstPage = page;
-  var tab = 'preview';
+  late final ShellPage _firstPage;
+  GalleryTab tab = GalleryTab.preview;
   var filter = '';
   var themeName = 'dark';
   Zone _zone = Zone.list;
@@ -146,14 +115,8 @@ final class GalleryShellState extends State<GalleryShell> {
   /// `S.pageFocus` stays on the page.
   var _stageHadFocus = false;
 
-  /// The raw values of each page's options, by page key.
-  final _options = <String, Map<String, Object>>{};
-
-  /// Each page's own state, by page key ([PageControl.state]).
-  final _states = <String, Map<String, Object?>>{};
-  final _controls = <String, _Control>{};
-
-  _Control _controlOf(ShellPage p) => _controls[p.key] ??= _Control(this, p);
+  /// Each page's options and its own state, by page key.
+  late final _store = PageStore(update: setState, toast: toast);
 
   /// The titles of what the palette ran, the last first.
   final _recent = <String>[];
@@ -245,6 +208,7 @@ final class GalleryShellState extends State<GalleryShell> {
       n.addListener(_focusChanged);
     }
     _openRoute(widget.route);
+    _firstPage = page;
   }
 
   @override
@@ -329,28 +293,19 @@ final class GalleryShellState extends State<GalleryShell> {
     }
     final def = page.def;
     if (def != null && route.options.isNotEmpty) {
-      final raw = _rawOf(page);
+      final raw = _store.rawOf(page.key);
       for (final opt in def.options) {
         final v = route.options[opt.key];
         if (v == null) {
           continue;
         }
-        final value = switch (opt) {
-          SwitchOption() => v == 'true' || v == 'on' || v == '1',
-          final SliderOption o =>
-            num.tryParse(v) == null ? null : o.clampStep(num.parse(v)),
-          final ChoiceOption o =>
-            o.names.contains(v) ? o.names.indexOf(v) : null,
-          final ColorOption o =>
-            o.values.contains(v) ? o.values.indexOf(v) : null,
-        };
-        if (value != null) {
+        if (opt.rawNamed(v) case final value?) {
           raw[opt.key] = value;
         }
       }
     }
-    if (route.tab == 'code' && (def?.hasCode ?? false)) {
-      tab = 'code';
+    if (route.tab == GalleryTab.code.name && (def?.hasCode ?? false)) {
+      tab = GalleryTab.code;
     }
     filter = route.filter ?? '';
     final palette = route.palette;
@@ -359,7 +314,8 @@ final class GalleryShellState extends State<GalleryShell> {
     }
     final toast = route.toast;
     if (toast != null) {
-      _toasts.add(_Toast(toast, route.kind ?? 'info', Duration.zero));
+      final kind = ToastKind.values.asNameMap()[route.kind] ?? ToastKind.info;
+      _toasts.add(_Toast(toast, kind, Duration.zero));
     }
   }
 
@@ -371,7 +327,7 @@ final class GalleryShellState extends State<GalleryShell> {
     return switch (focus) {
       null || 'list' => 'list',
       'filter' => 'filter',
-      'code' => tab == 'code' ? 'code' : 'list',
+      'code' => tab == GalleryTab.code ? 'code' : 'list',
       final f when f.startsWith('o:') =>
         def != null && def.options.any((o) => 'o:${o.key}' == f) ? f : 'list',
       _ => 'page',
@@ -405,12 +361,12 @@ final class GalleryShellState extends State<GalleryShell> {
   /// The route of where the gallery is now.
   GalleryRoute get route {
     final def = page.def;
-    final o = def == null ? '' : Options(def, _rawOf(page)).route;
+    final o = def == null ? '' : _store.optionsOf(page.key, def).route;
     return GalleryRoute(
       group: page.group.slug,
       page: page.slug,
       theme: themeName == 'dark' ? null : themeName,
-      tab: tab == 'code' ? 'code' : null,
+      tab: tab == GalleryTab.code ? GalleryTab.code.name : null,
       options: {
         for (final part in o.split(';'))
           if (part.contains(':'))
@@ -424,15 +380,9 @@ final class GalleryShellState extends State<GalleryShell> {
 
   // ------------------------------------------------------------ options
 
-  Map<String, Object> _rawOf(ShellPage p) => _options[p.key] ??= {};
-
   Options? _optionsOf(ShellPage p) {
     final def = p.def;
-    return def == null ? null : Options(def, _rawOf(p));
-  }
-
-  void _setOption(ShellPage p, PageOption opt, Object raw) {
-    setState(() => _rawOf(p)[opt.key] = raw);
+    return def == null ? null : _store.optionsOf(p.key, def);
   }
 
   FocusNode _optionNode(ShellPage p, String key) =>
@@ -460,8 +410,8 @@ final class GalleryShellState extends State<GalleryShell> {
       _codeScroll = 0;
       _codeX = 0;
       _grab = null;
-      if (tab == 'code' && !(p.def?.hasCode ?? false)) {
-        tab = 'preview';
+      if (tab == GalleryTab.code && !(p.def?.hasCode ?? false)) {
+        tab = GalleryTab.preview;
       }
     });
     if (!keepZone && _zone == Zone.page) {
@@ -469,11 +419,11 @@ final class GalleryShellState extends State<GalleryShell> {
     }
   }
 
-  void _setTab(String t) {
+  void _setTab(GalleryTab t) {
     if (t == tab) {
       return;
     }
-    if (t == 'code' && !(page.def?.hasCode ?? false)) {
+    if (t == GalleryTab.code && !(page.def?.hasCode ?? false)) {
       toast('This page is not drawn yet: no code to show');
       return;
     }
@@ -498,7 +448,7 @@ final class GalleryShellState extends State<GalleryShell> {
   }
 
   /// Shows [message] in a toast of [kind] for a while.
-  void toast(String message, [String kind = 'info']) {
+  void toast(String message, [ToastKind kind = ToastKind.info]) {
     setState(() {
       _toasts.add(_Toast(message, kind, _motion.now));
       if (_toasts.length > toastCap) {
@@ -527,14 +477,17 @@ final class GalleryShellState extends State<GalleryShell> {
       return;
     }
     if (_toClipboard(src)) {
-      toast('Copied ${src.split('\n').length} lines of Dart', 'success');
+      toast(
+        'Copied ${src.split('\n').length} lines of Dart',
+        ToastKind.success,
+      );
     }
   }
 
   /// What the mouse selected of the code, copied.
   void _copySelected(String text) {
     if (_toClipboard(text)) {
-      toast('Copied ${copiedWhat(text)}', 'success');
+      toast('Copied ${copiedWhat(text)}', ToastKind.success);
     }
   }
 
@@ -562,7 +515,7 @@ final class GalleryShellState extends State<GalleryShell> {
   bool _toClipboard(String text) {
     final terminal = AppBinding.maybeOf(context)?.twkApp.terminal;
     if (terminal == null) {
-      toast('The clipboard is not available here', 'warning');
+      toast('The clipboard is not available here', ToastKind.warning);
       return false;
     }
     terminal.write(
@@ -638,7 +591,7 @@ final class GalleryShellState extends State<GalleryShell> {
     switch (name) {
       case 'escape':
         // a selection of the code first
-        if (tab == 'code' && _clearSelection()) {
+        if (tab == GalleryTab.code && _clearSelection()) {
           break;
         }
         if (_zone == Zone.page && _pageNode.hasFocus) {
@@ -653,9 +606,9 @@ final class GalleryShellState extends State<GalleryShell> {
       case 'T':
         _nextTheme(-1);
       case 'c':
-        _setTab(tab == 'code' ? 'preview' : 'code');
+        _setTab(tab.other);
       case 'y':
-        if (tab != 'code') {
+        if (tab != GalleryTab.code) {
           return KeyEventResult.ignored;
         }
         _copy();
@@ -697,7 +650,7 @@ final class GalleryShellState extends State<GalleryShell> {
   void _intoPage() => _list.nextFocus();
   void _toFilter() => _filter.requestFocus();
   void _search() => _openPalette('');
-  void _toggleCode() => _setTab(tab == 'code' ? 'preview' : 'code');
+  void _toggleCode() => _setTab(tab.other);
   void _themeKey() => _nextTheme();
 
   /// The list's layer: what the hint bar shows while the list has the
@@ -718,7 +671,7 @@ final class GalleryShellState extends State<GalleryShell> {
       'tab': 'into the page',
       '/': 'filter',
       'ctrl+p': 'search',
-      'c': tab == 'code' ? 'preview' : 'code',
+      'c': tab.other.name,
       't': 'theme',
     },
     debugLabel: 'gallery list keys',
@@ -839,53 +792,9 @@ final class GalleryShellState extends State<GalleryShell> {
       return false;
     }
     final name = keyName(e);
-    final r = options.raw(opt.key);
-    var taken = true;
-    switch (opt) {
-      case SwitchOption():
-        if (name == 'space' || name == 'enter') {
-          _setOption(p, opt, !(r as bool));
-        } else {
-          taken = false;
-        }
-      case final SliderOption o:
-        final step = o.step;
-        final tenth = ((o.max - o.min) / 10 / step).round() * step;
-        final big = tenth > step ? tenth : step;
-        final v = r as num;
-        final next = switch (name) {
-          'left' || 'down' => v - step,
-          'right' || 'up' => v + step,
-          'pageup' => v + big,
-          'pagedown' => v - big,
-          'home' => o.min,
-          'end' => o.max,
-          _ => null,
-        };
-        if (next == null) {
-          taken = false;
-        } else {
-          _setOption(p, opt, o.clampStep(next));
-        }
-      case ChoiceOption() || ColorOption():
-        final n = opt is ChoiceOption
-            ? opt.values.length
-            : (opt as ColorOption).values.length;
-        final i = r as int;
-        final next = switch (name) {
-          'left' => (i + n - 1) % n,
-          'right' || 'space' => (i + 1) % n,
-          'home' => 0,
-          'end' => n - 1,
-          _ => null,
-        };
-        if (next == null) {
-          taken = false;
-        } else {
-          _setOption(p, opt, next);
-        }
-    }
-    if (taken) {
+    final next = opt.stepped(options.raw(opt.key), name);
+    if (next != null) {
+      _store.set(p.key, opt, next);
       return true;
     }
     if (name == 'up' || name == 'down') {
@@ -908,14 +817,11 @@ final class GalleryShellState extends State<GalleryShell> {
     for (final p in pages) _Item(p.title, p.group.title, () => show(p)),
     for (final MapEntry(key: n, value: (label, _)) in galleryThemes.entries)
       _Item('Theme: $label', 'theme', () => _setTheme(n)),
-    _Item('Show the code', 'action', () => _setTab('code')),
-    _Item('Show the preview', 'action', () => _setTab('preview')),
+    _Item('Show the code', 'action', () => _setTab(GalleryTab.code)),
+    _Item('Show the preview', 'action', () => _setTab(GalleryTab.preview)),
     _Item('Copy the code', 'action', _copyCode),
     _Item('Reset the options', 'action', () {
-      setState(() {
-        _options.remove(page.key);
-        _states.remove(page.key);
-      });
+      _store.reset(page.key);
       toast('Options reset');
     }),
     for (final g in groups)
@@ -1456,7 +1362,7 @@ final class GalleryShellState extends State<GalleryShell> {
     final def = page.def;
     final options = _optionsOf(page);
     final where = '${page.index + 1} of ${page.group.pages.length}';
-    const tabs = [('preview', 'Preview'), ('code', 'Code')];
+    const tabs = [(GalleryTab.preview, 'Preview'), (GalleryTab.code, 'Code')];
     final tabsW = tabs.fold(-3, (n, tb) => n + widthOf(tb.$2) + 3);
     final opts = def?.options ?? const <PageOption>[];
     // the inspector beside the stage where the page is wide, and the stage
@@ -1469,7 +1375,7 @@ final class GalleryShellState extends State<GalleryShell> {
     final inspW = wide ? besideW : 0;
 
     // where each tab is on its row, and the underline gliding to it
-    final tabX = <String, (int, int)>{};
+    final tabX = <GalleryTab, (int, int)>{};
     var tx = short ? pw - 2 - tabsW : pad;
     for (final (id, label) in tabs) {
       tabX[id] = (tx, widthOf(label));
@@ -1483,7 +1389,7 @@ final class GalleryShellState extends State<GalleryShell> {
       for (final (id, label) in tabs) {
         final (x, lw) = tabX[id]!;
         final on = tab == id;
-        final can = id != 'code' || (def?.hasCode ?? false);
+        final can = id != GalleryTab.code || (def?.hasCode ?? false);
         final hov = _hovering(screenW - pw + x - 1, screenY, lw + 2, 1);
         final fg = on
             ? (short ? t.primary : t.text)
@@ -1525,7 +1431,9 @@ final class GalleryShellState extends State<GalleryShell> {
       behavior: HitTestBehavior.opaque,
       onDown: (e) {
         pressTabs(e);
-        if (tab == 'code' && (def?.hasCode ?? false) && e.button == 0) {
+        if (tab == GalleryTab.code &&
+            (def?.hasCode ?? false) &&
+            e.button == 0) {
           final cx = pw - 2 - widthOf('⧉ copy');
           if (e.x >= cx - 1 && e.x < cx + 7) {
             _copy();
@@ -1534,7 +1442,7 @@ final class GalleryShellState extends State<GalleryShell> {
       },
       child: CellPaint(height: 1, (p) {
         drawTabs(p, 0, screenY: -1);
-        if (tab == 'code' && (def?.hasCode ?? false)) {
+        if (tab == GalleryTab.code && (def?.hasCode ?? false)) {
           final cx = pw - 2 - widthOf('⧉ copy');
           p
             ..text(cx, 0, '⧉', Style(fg: t.muted))
@@ -1556,7 +1464,10 @@ final class GalleryShellState extends State<GalleryShell> {
     Widget body;
     final stageFocused = _zone == Zone.page && _stageHadFocus;
     final key = page.key;
-    if (tab == 'code' && def != null && def.hasCode && options != null) {
+    if (tab == GalleryTab.code &&
+        def != null &&
+        def.hasCode &&
+        options != null) {
       // the Code in the room the stage would give the widget here
       body = LayoutBuilder(
         builder: (context, c) {
@@ -1581,9 +1492,10 @@ final class GalleryShellState extends State<GalleryShell> {
             : Focus(
                 focusNode: _stageNode,
                 child: PageControlScope(
-                  control: _controlOf(page),
+                  control: _store.controlOf(page.key, def),
                   child: Builder(
-                    key: ValueKey(page.key),
+                    // a reset of the page builds it afresh
+                    key: ValueKey((page.key, _store.resetsOf(page.key))),
                     builder: (context) => def.build(context, options),
                   ),
                 ),
@@ -1699,7 +1611,8 @@ final class GalleryShellState extends State<GalleryShell> {
         // copied as the design copies it, the blanks ending what is
         // selected dropped too
         copyTransform: trimLineEnds,
-        onCopy: (text) => toast('Copied ${copiedWhat(text)}', 'success'),
+        onCopy: (text) =>
+            toast('Copied ${copiedWhat(text)}', ToastKind.success),
         child: Listener(
           onScroll: (e) {
             final d = e.scrollY;
@@ -2109,7 +2022,7 @@ final class GalleryShellState extends State<GalleryShell> {
       final ey = e.y + from;
       switch (opt) {
         case SwitchOption():
-          _setOption(p0, opt, !(options.raw(opt.key) as bool));
+          _store.set(p0.key, opt, !(options.raw(opt.key) as bool));
         case final SliderOption o:
           if (ey != sliderY) {
             return;
@@ -2122,8 +2035,8 @@ final class GalleryShellState extends State<GalleryShell> {
           final on = at * 8 < start + 8 && (at + 1) * 8 > start;
           _grab = (at: at, start: on ? start : at * 8);
           if (!on && room > 0) {
-            _setOption(
-              p0,
+            _store.set(
+              p0.key,
               opt,
               o.clampStep(o.min + (o.max - o.min) * at * 8 / room),
             );
@@ -2131,7 +2044,7 @@ final class GalleryShellState extends State<GalleryShell> {
         case ChoiceOption():
           for (final s in segs!) {
             if (ey == s.y && ex >= s.x && ex < s.x + s.w) {
-              _setOption(p0, opt, s.i);
+              _store.set(p0.key, opt, s.i);
             }
           }
         case final ColorOption o:
@@ -2139,7 +2052,7 @@ final class GalleryShellState extends State<GalleryShell> {
           for (var i = 0; i < o.values.length; i++) {
             final sx = cx + i * 3;
             if (ey >= sy && ey < sy + 2 && ex >= sx && ex < sx + 2) {
-              _setOption(p0, opt, i);
+              _store.set(p0.key, opt, i);
             }
           }
       }
@@ -2153,8 +2066,8 @@ final class GalleryShellState extends State<GalleryShell> {
       final room = (sliderW - 1) * 8;
       if (room > 0) {
         final eighths = g.start + (e.x - sliderX - g.at) * 8;
-        _setOption(
-          p0,
+        _store.set(
+          p0.key,
           opt,
           opt.clampStep(opt.min + (opt.max - opt.min) * eighths / room),
         );
@@ -2281,7 +2194,7 @@ final class GalleryShellState extends State<GalleryShell> {
         ('tab', 'into the page'),
         ('/', 'filter'),
         ('ctrl+p', 'search'),
-        ('c', tab == 'code' ? 'preview' : 'code'),
+        ('c', tab.other.name),
         ('t', 'theme'),
       ];
     }
@@ -2296,7 +2209,7 @@ final class GalleryShellState extends State<GalleryShell> {
         ('↑↓←→', 'scroll'),
         ('y', 'copy'),
         if (_selection.hasSelection) ('esc', 'clear'),
-        ('c', 'preview'),
+        ('c', GalleryTab.preview.name),
       ];
     } else {
       // the hinted keys as twk's KeyHintsBar lists them, as the design
@@ -2519,11 +2432,11 @@ final class GalleryShellState extends State<GalleryShell> {
 
   // ------------------------------------------------------------ toasts
 
-  static const _icons = {
-    'info': 'ℹ',
-    'success': '✓',
-    'warning': '⚠',
-    'error': '✗',
+  static const Map<ToastKind, String> _icons = {
+    ToastKind.info: 'ℹ',
+    ToastKind.success: '✓',
+    ToastKind.warning: '⚠',
+    ToastKind.error: '✗',
   };
 
   Widget? _toastLayer(Tokens t, int sw, int sh) {
@@ -2575,7 +2488,7 @@ final class GalleryShellState extends State<GalleryShell> {
       height: height < 0 ? 0 : height,
       child: CellPaint(hit: false, (p) {
         for (final it in placed) {
-          final color = t.named(it.toast.kind);
+          final color = t.named(it.toast.kind.name);
           final x = it.x - left;
           final y = it.y - top;
           p.fill(x, y, it.w, 3, Style(bg: t.surface));
@@ -2583,7 +2496,7 @@ final class GalleryShellState extends State<GalleryShell> {
             p.text(x, y + r, '▌', Style(fg: color));
           }
           p
-            ..text(x + 3, y + 1, _icons[it.toast.kind] ?? 'ℹ', Style(fg: color))
+            ..text(x + 3, y + 1, _icons[it.toast.kind]!, Style(fg: color))
             ..text(x + 5, y + 1, it.toast.message, Style(fg: t.text));
           if (it.out > 0) {
             p.tint(x, y, it.w, 3, t.background, easeInOut(it.out));

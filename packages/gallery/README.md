@@ -151,12 +151,16 @@ key a layer binds (`type take over`, `wheel scroll back`) come from `PageHints(h
 `Options` gives each option's value (`o['key']`, `o.choice<T>`,
 `o.flag`, `o.number`, `o.color`), its name as the inspector and a route
 write it (`o.label`), and the theme's style of a colour option
-(`o.colorStyle`).
+(`o.colorStyle`); `o.pageState` is the page's own state as its widget
+left it, for a Code that writes what the widget did (App ›
+TerminalProgress).
 
 A page's widget reaches the gallery through `PageControl.of(context)`:
-`state`, a map of its own that outlives a visit to another page;
+`state`, a map of its own that outlives a visit to another page (a
+State of the widget mixes in `KeptState`, `pages/kit/kept.dart`);
 `setOption(key, value)`, an option set as its control would (for a
-`cycle` switch); `toast`.
+`cycle` switch); `toast`, of a `ToastKind`. The palette's "Reset the
+options" empties the page's state and builds its widget afresh.
 
 The rules a page keeps (and those of [doc/design.md](doc/design.md),
 "What every page keeps"):

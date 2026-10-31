@@ -995,10 +995,6 @@ const _pie = ['○', '◔', '◑', '◕', '●'];
 /// The arc spinner's frames, stepping each 100 ms.
 const _arc = ['◜', '◠', '◝', '◞', '◡', '◟'];
 
-/// What TerminalStatus wrote last, as the page's widget saw it: what the
-/// Code tab writes.
-String? _progressWrote;
-
 /// The progress of the options: the state shown (normal without a value
 /// is indeterminate), its percent, and the OSC 9;4 that shows it, null
 /// for none.
@@ -1052,7 +1048,8 @@ final _progress = GalleryPage(
     final known = o.flag('known');
     final v = known ? _number(o.number('value') / 100) : null;
     final value = known ? '${o.label('value')}%' : 'not known';
-    final w = _progressWrote;
+    // what TerminalStatus wrote last, as the page's widget saw it
+    final w = o.pageState['wrote'] as String?;
     final wrote = w == null
         ? null
         : [
@@ -1144,7 +1141,7 @@ final class _ProgressState extends TimedState<_Progress> {
       }
       wake(at + _refresh);
     }
-    return _progressWrote = kept['wrote'] as String?;
+    return kept['wrote'] as String?;
   }
 
   @override
