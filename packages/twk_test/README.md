@@ -241,7 +241,10 @@ The matchers of the screen take the tester: `expect(t, containsLine('ok'))`.
     spaces with no background at the end of a row are left out.
 - `matchesScreenFile(path, {styles = true})`: the screen is the one the
   file at `path` holds (a golden file); a relative `path` is from the root
-  of the calling test's package, wherever the suite is run from. With
+  of the calling test's package, wherever the suite is run from: the
+  package of the file the call is in, found from the stack (the nearest
+  `pubspec.yaml` above it), so a helper in another package's `test/` that
+  calls it reads from that package; an absolute `path` is as it is. With
   `styles: false` the size, cursor and text are compared and the styles
   are not. A whole screen of a
   themed app is a run of styles in nearly every cell, which inline marks

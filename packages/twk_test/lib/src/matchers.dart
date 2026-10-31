@@ -244,7 +244,8 @@ String _fromPackageRoot(String path) {
   if (File(path).isAbsolute) {
     return path;
   }
-  final frame = RegExp(r'(file:///[^\s:()]+\.dart)');
+  // a frame's file, a drive's letter and its colon too (file:///C:/...)
+  final frame = RegExp(r'(file:///(?:[A-Za-z]:)?[^\s:()]+\.dart)');
   for (final m in frame.allMatches(StackTrace.current.toString())) {
     final file = Uri.parse(m.group(1)!).toFilePath();
     if (file.endsWith('/lib/src/matchers.dart') && file.contains('twk_test')) {
