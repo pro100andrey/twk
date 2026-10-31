@@ -1,7 +1,7 @@
 // The pages that draw, by group, in the catalog's order: a group's file
 // holds its list.
 import '../page.dart';
-import 'animation.dart';
+import 'animation/animation.dart';
 import 'app.dart';
 import 'controls/controls.dart';
 import 'data.dart';
