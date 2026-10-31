@@ -403,4 +403,14 @@ void main() {
       expect(vt.cell(0, 0).text + vt.cell(1, 0).text, 'a3');
     });
   });
+
+  test('a Span with a null style has none of its own', () {
+    Style? none() => null;
+    expect(Span('x', none()).style, const Style());
+    expect(
+      Span.gradient('x', const Gradient([Color.red]), none()).style,
+      const Style(),
+    );
+    expect(const Span('x').style, const Style());
+  });
 }

@@ -370,7 +370,8 @@ final class TableController extends ChangeNotifier {
 /// or `▾`. While the table has the focus, `s` does that for the column of
 /// the cell selected (with [TableSelection.cell]) or that sorted by (the
 /// first that sorts for none), and `<` and `>` sort by the column before
-/// or after the one sorted by. Sorting reads every row.
+/// or after the one sorted by; with [sortKeys] false they are left to the
+/// bindings above it. Sorting reads every row.
 ///
 /// As [selection] says, a click selects a row or a cell, and gives the
 /// table the focus; while it has the focus, Up and Down select the row
@@ -454,6 +455,7 @@ final class Table<T> extends StatefulWidget {
     this.unfocusedSelectedStyle,
     this.cursorStyle,
     this.pointerShapes = true,
+    this.sortKeys = true,
   }) : source = null,
        assert(rowHeight == null || rowHeight > 0, 'rows a row tall or more'),
        assert(columnGap >= 0, 'a gap of 0 cells or more'),
@@ -492,6 +494,7 @@ final class Table<T> extends StatefulWidget {
     this.unfocusedSelectedStyle,
     this.cursorStyle,
     this.pointerShapes = true,
+    this.sortKeys = true,
   }) : rows = null,
        assert(rowHeight == null || rowHeight > 0, 'rows a row tall or more'),
        assert(columnGap >= 0, 'a gap of 0 cells or more'),
@@ -585,6 +588,11 @@ final class Table<T> extends StatefulWidget {
   /// Whether the pointer over the edge of a column is
   /// [PointerShape.ewResize], where the terminal shows the pointer's shape.
   final bool pointerShapes;
+
+  /// Whether `s`, `<` and `>` sort the rows while the table has the focus,
+  /// where a column sorts: false leaves them to the bindings above it (an
+  /// app's own `s`), a click on a title still sorting.
+  final bool sortKeys;
 
   @override
   State<Table<T>> createState() => _TableState<T>();
@@ -1101,9 +1109,9 @@ final class _TableState<T> extends State<Table<T>> {
       'left' when cells => _moveColumn(-1),
       'right' when cells => _moveColumn(1),
       'enter' when !none => _activate(),
-      's' => _sortHere(),
-      '<' => _sortNext(-1),
-      '>' => _sortNext(1),
+      's' when widget.sortKeys => _sortHere(),
+      '<' when widget.sortKeys => _sortNext(-1),
+      '>' when widget.sortKeys => _sortNext(1),
       'shift+left' => _resizeBy(-1),
       'shift+right' => _resizeBy(1),
       _ => null,

@@ -11,8 +11,10 @@ import '../text/widgets.dart';
 import 'chart_glyphs.dart';
 
 /// [data] as bars a column wide that grow upwards in eighths of a cell,
-/// the newest value at the right: the last values that fit, oldest to the
-/// left, from the left edge when fewer fit. A bar is empty at [min] and
+/// oldest to the left: the last values that fit, the newest at the right
+/// edge once they fill it. While fewer than fit, they start at the left
+/// edge, or with [fromRight] end at the right one, as a chart of time
+/// whose newest value is now. A bar is empty at [min] and
 /// fills every row at [max], by default the largest value shown. As wide
 /// as it may be and a row tall, taller where the constraints ask for more
 /// rows; a repaint boundary, so new data repaints nothing else.
@@ -38,6 +40,7 @@ final class Sparkline extends LeafRenderObjectWidget {
     this.min = 0,
     this.max,
     this.style = const Style(),
+    this.fromRight = false,
   });
 
   /// The values, oldest first. Read, not copied: a new list with other
@@ -58,12 +61,17 @@ final class Sparkline extends LeafRenderObjectWidget {
   /// colours.
   final Style style;
 
+  /// Whether fewer values than fit end at the right edge, the columns
+  /// left of them empty, instead of starting at the left one.
+  final bool fromRight;
+
   @override
   RenderSparkline createRenderObject(BuildContext context) => RenderSparkline(
     data: data,
     min: min,
     max: max,
     style: overText(context, DefaultTextStyle.of(context).merge(style)),
+    fromRight: fromRight,
   );
 
   @override
@@ -75,7 +83,8 @@ final class Sparkline extends LeafRenderObjectWidget {
       ..style = overText(
         context,
         DefaultTextStyle.of(context).merge(style),
-      );
+      )
+      ..fromRight = fromRight;
   }
 }
 
@@ -88,6 +97,7 @@ final class RenderSparkline extends RenderObject {
     this._min = 0,
     this._max,
     this._style = const Style(),
+    this._fromRight = false,
   });
 
   List<double> _data;
@@ -137,6 +147,18 @@ final class RenderSparkline extends RenderObject {
     }
   }
 
+  bool _fromRight;
+
+  /// Whether fewer values than fit end at the right edge, as
+  /// [Sparkline.fromRight].
+  bool get fromRight => _fromRight;
+  set fromRight(bool r) {
+    if (r != _fromRight) {
+      _fromRight = r;
+      markNeedsPaint();
+    }
+  }
+
   final _glyphs = ChartGlyphs();
 
   @override
@@ -178,15 +200,16 @@ final class RenderSparkline extends RenderObject {
     final steps = glyphs.upSteps;
     final most = height * steps;
     final whole = glyphs.up(steps);
+    final x0 = _fromRight ? width - n : 0;
     for (var col = 0; col < n; col++) {
       final f = (_data[first + col] - _min) / (top - _min);
       // steps from the bottom; none for a value below min or none at all
       final s = f >= 1 ? most : (f > 0 ? (f * most).round() : 0);
       final full = s ~/ steps;
-      canvas.fill(col, height - full, 1, full, pen, whole);
+      canvas.fill(x0 + col, height - full, 1, full, pen, whole);
       if (s > full * steps) {
         final part = glyphs.up(s - full * steps);
-        canvas.fill(col, height - 1 - full, 1, 1, pen, part);
+        canvas.fill(x0 + col, height - 1 - full, 1, 1, pen, part);
       }
     }
   }

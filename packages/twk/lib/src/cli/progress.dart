@@ -167,14 +167,26 @@ final class CliProgress {
 
   /// Runs [body] under it and closes it on the outcome: [complete] with
   /// [done]'s message for the value, [fail] with [failed]'s for the error,
-  /// which is thrown again. Completes with the body's value.
+  /// which is thrown again. Completes with the body's value. A value that
+  /// is a failure (a result of an error, an exit code) closes it with
+  /// [fail] where [ok] says it is not ok, [done]'s message the line's.
   ///
-  /// Closed by [body] itself, it stays as the body left it. Should [done]
-  /// or [failed] throw, it is cancelled and that error goes on.
+  /// Closed by [body] itself, it stays as the body left it. Should [done],
+  /// [ok] or [failed] throw, it is cancelled and that error goes on.
+  ///
+  /// ```dart
+  /// Future<int> f(CliProgress progress, Future<int> Function() build) =>
+  ///     progress.run(
+  ///       build,
+  ///       ok: (code) => code == 0,
+  ///       done: (code) => code == 0 ? 'Built' : 'Failed with $code',
+  ///     );
+  /// ```
   Future<T> run<T>(
     FutureOr<T> Function() body, {
     String Function(T result)? done,
     String Function(Object error)? failed,
+    bool Function(T result)? ok,
   }) async {
     final T result;
     try {
@@ -188,7 +200,11 @@ final class CliProgress {
       rethrow;
     }
     try {
-      complete(done?.call(result));
+      if (ok?.call(result) ?? true) {
+        complete(done?.call(result));
+      } else {
+        fail(done?.call(result));
+      }
     } finally {
       cancel();
     }

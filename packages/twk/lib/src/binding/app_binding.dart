@@ -141,6 +141,10 @@ const _product = bool.fromEnvironment('dart.vm.product');
 /// a stopwatch started here by default: a test hands it the stopwatch of
 /// a fake clock it moves, and runs the app in that clock's zone.
 ///
+/// The binding places no `Overlay` around [app]: an app that shows
+/// dialogs, menus, tooltips or toasts puts one at its root, above its own
+/// `KeyBindings` (`showDialog` says why).
+///
 /// ```dart
 /// Future<void> main() => runApp(const Counter());
 /// ```

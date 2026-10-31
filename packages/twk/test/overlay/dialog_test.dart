@@ -458,6 +458,40 @@ void main() {
       expect(t, matchesScreen('┌ Delete ──┐\n│ Sure?    │\n└──────────┘'));
     });
   });
+
+  testTwk('maxWidth keeps a dialog whose child takes the width narrower '
+      'than the screen', (t) async {
+    Widget app({int? maxWidth}) => Overlay(
+      child: Builder(
+        builder: (context) => KeyBindings({
+          'd': () => unawaited(
+            showDialog<void>(
+              context,
+              (_) => Dialog(
+                look: PanelLook.bordered,
+                maxWidth: maxWidth,
+                child: const Row(children: [Expanded(child: Text('wide'))]),
+              ),
+              fadeIn: Duration.zero,
+            ),
+          ),
+        }, child: const Focus(autofocus: true, child: Text('app'))),
+      ),
+    );
+    int borderWidth(TwkTester t) {
+      final top = t.lines.firstWhere((l) => l.contains('┌'));
+      return top.lastIndexOf('┐') - top.indexOf('┌') + 1;
+    }
+
+    await t.pumpWidget(app(), size: (60, 10));
+    await press(t, 'd');
+    expect(borderWidth(t), 60);
+
+    await t.pumpWidget(app(maxWidth: 30), size: (60, 10));
+    await press(t, 'escape');
+    await press(t, 'd');
+    expect(borderWidth(t), 30);
+  });
 }
 
 /// No color: the terminal's default.

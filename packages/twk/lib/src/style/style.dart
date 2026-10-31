@@ -194,15 +194,17 @@ final class Style {
 /// ```
 @immutable
 final class Span {
-  /// [text] in [style], unset by default.
-  const Span(this.text, [this.style = const Style()]) : gradient = null;
+  /// [text] in [style], unset by default or where null, so that a style
+  /// that depends goes in as it is: `Span(text, late ? theme.warning :
+  /// null)`.
+  const Span(this.text, [Style? style])
+    : style = style ?? const Style(),
+      gradient = null;
 
-  /// [text] in [style], its text colors along [gradient].
-  const Span.gradient(
-    this.text,
-    Gradient this.gradient, [
-    this.style = const Style(),
-  ]);
+  /// [text] in [style] (unset where null), its text colors along
+  /// [gradient].
+  const Span.gradient(this.text, Gradient this.gradient, [Style? style])
+    : style = style ?? const Style();
 
   const Span._(this.text, this.style, this.gradient);
 

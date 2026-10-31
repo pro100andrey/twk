@@ -266,7 +266,7 @@ final class _HeardState extends TimedState<_Heard> {
                         style: lit(litAt(at)),
                         padding: const EdgeInsets.x(1),
                         child: Text.rich([
-                          Span(kind.padRight(7), styles[kind]!),
+                          Span(kind.padRight(7), styles[kind]),
                           Span(what),
                         ]),
                       ),

@@ -91,6 +91,10 @@ $ dart run example/counter.dart --inline
   or a click, before reading the screen. `t.pump(duration)` moves the
   clock on by that much, running the app's timers, frames and animations
   due by then.
+- What fades in is not there after one `t.pump()`: a dialog fades in over
+  160 ms (`showDialog(fadeIn:)`), a toast and a tooltip too. Pump past it,
+  `t.pump(const Duration(milliseconds: 200))`, or show it with
+  `fadeIn: Duration.zero`.
 - `type('text')` sends text as one read; `press('enter')`,
   `press('tab space')`, `press('ctrl+x ctrl+s')` send each key as a read
   of its own. `click(x, y)`, `clickOn(finder)` and `mouse(...)` work full

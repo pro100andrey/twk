@@ -10,6 +10,7 @@ import 'package:twk_core/twk_core.dart'
     show
         Alignment,
         Attr,
+        BoxConstraints,
         Color,
         CrossAxisAlignment,
         EdgeInsets,
@@ -69,6 +70,20 @@ import 'panel.dart';
 /// popped. [closeDialog] closes it whatever its `PopScope`s say. A
 /// dialog shown over another, from either, covers it, and closed gives the
 /// focus back to it.
+///
+/// So the [Overlay] (or the [Navigator]) goes above the app's own
+/// `KeyBindings`, around them: bindings above it hear the keys the dialog
+/// leaves, its `s` and `q` among them, as the app's root bindings would
+/// act on them while the dialog is open. `runApp` places no overlay:
+///
+/// ```dart
+/// Overlay(
+///   child: KeyBindings(
+///     {'q': () {}},
+///     child: Text('the app'),
+///   ),
+/// )
+/// ```
 ///
 /// It completes with null too when it leaves the tree some other way, as
 /// with its overlay or navigator.
@@ -183,6 +198,7 @@ final class Dialog extends StatelessWidget {
     this.padding = const EdgeInsets.x(1),
     this.shadow,
     this.look = PanelLook.raised,
+    this.maxWidth,
   });
 
   /// What is in the dialog.
@@ -200,6 +216,12 @@ final class Dialog extends StatelessWidget {
 
   /// A raised panel, or a bordered box.
   final PanelLook look;
+
+  /// The most columns the box takes, its room or border among them; null
+  /// for as many as the screen gives it. A child that takes the width it
+  /// is given (a `DescriptionList`, a [Row] with an [Expanded]) makes the
+  /// dialog as wide as the screen without it.
+  final int? maxWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -245,10 +267,22 @@ final class Dialog extends StatelessWidget {
         child: child,
       ),
     };
+    final maxWidth = this.maxWidth;
+    final sized = maxWidth == null
+        ? box
+        : ConstrainedBox(
+            constraints: BoxConstraints(
+              0,
+              maxWidth,
+              0,
+              BoxConstraints.unbounded,
+            ),
+            child: box,
+          );
     return Semantics(
       role: SemanticsRole.dialog,
       label: title,
-      child: shadow == null ? box : Shadow(shadow: shadow, child: box),
+      child: shadow == null ? sized : Shadow(shadow: shadow, child: sized),
     );
   }
 }

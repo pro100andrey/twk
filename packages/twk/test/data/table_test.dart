@@ -734,6 +734,37 @@ void main() {
       ]);
     });
 
+    testTwk('with sortKeys false, s, < and > go on to the bindings above '
+        'it and sort nothing; a click on a title still sorts', (t) async {
+      final controller = TableController();
+      final heard = <String>[];
+      await t.pumpWidget(
+        Theme.terminal(
+          child: KeyBindings(
+            {
+              for (final k in ['s', '<', '>']) k: () => heard.add(k),
+            },
+            child: Table(
+              rows: files,
+              controller: controller,
+              autofocus: true,
+              sortKeys: false,
+              columns: [nameColumn(sorts: true), sizeColumn(sorts: true)],
+            ),
+          ),
+        ),
+        size: (40, 4),
+      );
+      for (final k in ['s', '<', '>']) {
+        await t.press(k);
+      }
+      expect(heard, ['s', '<', '>']);
+      expect(controller.sortColumn, isNull);
+      await t.click(1, 0);
+      await t.pump();
+      expect(controller.sortColumn, 0);
+    });
+
     testTwk('s in a table that selects rows sorts the other way by the '
         'column sorted by, or by the first that sorts', (t) async {
       final controller = TableController();

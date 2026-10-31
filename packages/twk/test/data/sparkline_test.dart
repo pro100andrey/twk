@@ -20,9 +20,10 @@ Shot spark(
   double min = 0,
   double? max,
   int ambiguousWidth = 1,
+  bool fromRight = false,
 }) {
   final shot = Shot.render(
-    RenderSparkline(data: data, min: min, max: max),
+    RenderSparkline(data: data, min: min, max: max, fromRight: fromRight),
     width,
     height,
     ambiguousWidth: ambiguousWidth,
@@ -94,6 +95,14 @@ void main() {
 
     test('starts at the left edge with fewer values', () {
       expect(spark([1, 2], 4, max: 8).rows, ['▁▂']);
+    });
+
+    test('with fromRight ends at the right edge with fewer values, and '
+        'is the same once they fill it', () {
+      expect(spark([1, 2], 4, max: 8, fromRight: true).rows, ['  ▁▂']);
+      expect(spark([8, 8, 1, 2, 3, 4], 4, max: 8, fromRight: true).rows, [
+        '▁▂▃▄',
+      ]);
     });
 
     test('slides one column left for each new value', () {

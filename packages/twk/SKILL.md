@@ -66,6 +66,13 @@ packages/gallery/bin/gallery.dart`).
   terminal), `Theme(data: ThemeData.nord, child:)` a preset.
 - The code uses Dart's dot shorthands (`.inline`, `.all(type: .rounded)`,
   `.stretch`); the packages need SDK 3.13.5 or later.
+- Where the names differ from Flutter's, as code brought over trips on:
+  `BoxConstraints` has `minW`, `maxW`, `minH`, `maxH` (cells, and
+  `BoxConstraints(minW, maxW, minH, maxH)` positional), not `maxWidth`;
+  `GestureDetector`'s `onTap`, `onDoubleTap` and `onLongPress` take the
+  `PointerEvent` (`(event) {…}`, `(_) => …`), not a callback of none;
+  `LineGauge` and `Gauge` show the percentage when `label` is null, and
+  nothing with `label: ''`.
 
 ## Set up
 
@@ -702,6 +709,13 @@ What to know:
   The context must be below it: the `context` of the build that creates
   the `Overlay` is above it, so build the `Overlay` in a parent widget,
   as `App` does, or what opens them in a `Builder` below it.
+  `runApp` places none. Put it above the app's root `KeyBindings`, around
+  them: the keys a dialog leaves go up from it to what is above the
+  overlay, so bindings above it (`s`, `q`) act while the dialog is open.
+- A dialog, a toast and a tooltip fade in (a dialog over 160 ms): in a
+  test one `t.pump()` shows it at the start of its fade, not yet drawn.
+  Pump past it (`t.pump(const Duration(milliseconds: 200))`), or show
+  the dialog with `fadeIn: Duration.zero`.
 - A focused `TextField` takes the characters typed, so `KeyBindings({'q':
   quit})` above it never sees `q`. It lets Tab, Escape, Up, Down, Enter
   without `onSubmitted` and the Ctrl and Alt keys it does not edit with

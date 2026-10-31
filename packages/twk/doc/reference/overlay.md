@@ -6,7 +6,9 @@
 
 `Overlay(child:)`, which an app places itself, as a rule around all of it
 and under its `Theme`, so that what goes in it sees the theme: `Theme(data:
-…, child: Overlay(child: Home()))`; the binding places none.
+…, child: Overlay(child: Home()))`; the binding places none. It goes
+above the app's root `KeyBindings`: the keys a dialog in it leaves go up
+to what is above the overlay, so bindings there act while it is open.
 
 ## `Overlay.of`
 

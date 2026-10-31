@@ -169,7 +169,10 @@ scrolls the screen, a write to the inline mode's history, an absolute
 row in the inline mode, or an image it can't take (a kitty command
 without `q=2`, a placement of an image not sent, not sized in cells or
 without `C=1`; an image over text, past the screen or one that scrolls
-it) throws when the screen is read. `t.vt.images` lists the images on
+it) throws when the screen is read. A `Vt` of your own that replays what a real
+program wrote, a recorded session, is made with `Vt(width, height,
+strict: false)`: what it does not take is then kept in `vt.errors`, not
+thrown. `t.vt.images` lists the images on
 the screen (`VtImage`: the protocol, a kitty image's id and placement,
 its bytes, the cells it still has and, for kitty, the part shown), top
 to bottom.
