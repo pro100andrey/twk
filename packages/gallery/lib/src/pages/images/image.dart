@@ -1,14 +1,5 @@
-// The Images group of the gallery.
-import 'dart:math' as math;
-
-import 'package:twk/twk.dart' show Alignment;
-import 'package:twk_rich/image.dart';
-
-import '../page.dart';
-import 'pictures.dart';
-
-/// The pages of the Images group that draw.
-final imagePages = <GalleryPage>[_image];
+// The Image page.
+part of 'images.dart';
 
 /// The pictures, by the option's value: the file the Code names, and its
 /// size in pixels.
