@@ -15,7 +15,11 @@ timer; without a binding it never ticks.
 
 `TickerProviderStateMixin` makes a `State` a `TickerProvider`
 (`createTicker`) whose tickers tick in the frames of its app
-(`AppBinding.maybeOf`) and are disposed with it.
+(`AppBinding.maybeOf`) and are disposed with it. They are muted
+(`Ticker.muted`: active, asking for no frame, calling nothing) while a
+`TickerMode` above is off, as `Offstage` and `Visibility` have it for what
+they hide; their time goes on meanwhile, so an animation resumes where it
+would have been. `AnimatedSwitcher`'s tickers are muted the same.
 
 ## `AnimationController`
 

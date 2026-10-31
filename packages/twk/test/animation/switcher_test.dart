@@ -557,4 +557,30 @@ void main() {
       allOf(contains('x: 0.5'), contains('y: -1.0')),
     );
   });
+
+  testTwk('its children stand still below a TickerMode that is off, and go on '
+      'where they would have been when it is on', (t) async {
+    Widget app(String text, {required bool enabled}) => TickerMode(
+      enabled: enabled,
+      child: switcher(text, duration: const Duration(milliseconds: 100)),
+    );
+    await t.pumpWidget(app('a', enabled: true), size: (10, 1), maxFps: 100);
+    await t.pumpWidget(app('b', enabled: true));
+    await t.pump(const Duration(milliseconds: 30));
+    await t.pumpWidget(app('b', enabled: false));
+    final held = t.lines.first;
+    final red = redText(t);
+    await t.pump(const Duration(milliseconds: 40));
+    expect(redText(t), red);
+    expect(t.lines.first, held);
+    expect(t.clock.pendingTimers, 0);
+    // a child that comes in while muted stands still too
+    await t.pumpWidget(app('c', enabled: false));
+    final entering = redText(t);
+    await t.pump(const Duration(milliseconds: 40));
+    expect(redText(t), entering);
+    await t.pumpWidget(app('c', enabled: true));
+    await t.pump(const Duration(milliseconds: 120));
+    expect(t.lines.first, 'c');
+  });
 }

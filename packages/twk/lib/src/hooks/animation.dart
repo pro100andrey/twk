@@ -9,7 +9,11 @@ import 'hook.dart';
 /// An [AnimationController] made by the first build, made anew when the
 /// [keys] of a build differ from the last one's, and disposed with the
 /// element or when replaced. Its ticker is the hook's own, ticking in the
-/// frames of the app the widget is in, unless [vsync] gives one.
+/// frames of the app the widget is in, unless [vsync] gives one. That ticker
+/// is muted ([Ticker.muted]) while a [TickerMode] above is off, so that the
+/// controller stands still and asks for no frame, and goes on when it is on
+/// again, its time having gone on meanwhile: it is where it would have
+/// been. A [vsync] is muted by its own owner.
 ///
 /// Each build sets the controller's [duration] and [reverseDuration];
 /// [initialValue], the bounds and [vsync] are those of the build that made
@@ -82,6 +86,7 @@ final class _AnimationControllerHookState
     extends HookState<AnimationController, _AnimationControllerHook>
     implements TickerProvider {
   late final AnimationController _controller;
+  Ticker? _ticker;
 
   @override
   void initHook() {
@@ -98,7 +103,8 @@ final class _AnimationControllerHookState
 
   @override
   Ticker createTicker(TickerCallback onTick) =>
-      Ticker(onTick, binding: AppBinding.maybeOf(context));
+      _ticker = Ticker(onTick, binding: AppBinding.maybeOf(context))
+        ..muted = !TickerMode.of(context);
 
   @override
   void didUpdateHook(_AnimationControllerHook oldHook) {
@@ -109,7 +115,15 @@ final class _AnimationControllerHookState
   }
 
   @override
-  AnimationController build(BuildContext context) => _controller;
+  AnimationController build(BuildContext context) {
+    // The dependency on TickerMode is what has the element build again, and
+    // so this, when it changes. A hook state has no didChangeDependencies.
+    final ticker = _ticker;
+    if (ticker != null) {
+      ticker.muted = !TickerMode.of(context);
+    }
+    return _controller;
+  }
 
   @override
   void dispose() {
@@ -126,7 +140,9 @@ final class _AnimationControllerHookState
 
 /// A [Ticker] made by the first build, not started, that calls the
 /// [onTick] of the latest build once a frame while it is active, in the
-/// frames of the app the widget is in; disposed with the element.
+/// frames of the app the widget is in; disposed with the element. It is
+/// muted ([Ticker.muted]) while a [TickerMode] above is off, its time going
+/// on.
 ///
 /// A clock of the time since its ticker started:
 ///
@@ -169,7 +185,10 @@ final class _TickerHookState extends HookState<Ticker, _TickerHook> {
   void _tick(Duration elapsed) => hook.onTick(elapsed);
 
   @override
-  Ticker build(BuildContext context) => _ticker;
+  // The dependency on TickerMode has the element build again when it
+  // changes, as in _AnimationControllerHookState.build.
+  Ticker build(BuildContext context) =>
+      _ticker..muted = !TickerMode.of(context);
 
   @override
   void dispose() {

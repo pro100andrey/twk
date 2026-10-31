@@ -237,16 +237,36 @@ final class _DissolveTransition extends SwitcherTransition {
 }
 
 /// Its own [TickerProvider], not [TickerProviderStateMixin]: a child's
-/// ticker goes with its controller, disposed when the child has gone.
+/// ticker goes with its controller, disposed when the child has gone, so
+/// it is kept by the child's entry, not by the state, and muted from
+/// [TickerMode] with the others.
 final class _AnimatedSwitcherState extends State<AnimatedSwitcher>
     implements TickerProvider {
   _Entry? _current;
   final _leaving = <_Entry>[];
   var _serial = 0;
 
+  /// The ticker the controller being made asked for, taken by [_entry].
+  late Ticker _made;
+
+  /// Whether the tickers are muted: [TickerMode], as didChangeDependencies
+  /// last had it (initState, which makes the first child, may not depend
+  /// on it, and didChangeDependencies follows at once).
+  var _muted = false;
+
   @override
   Ticker createTicker(TickerCallback onTick) =>
-      Ticker(onTick, binding: AppBinding.maybeOf(context));
+      _made = Ticker(onTick, binding: AppBinding.maybeOf(context))
+        ..muted = _muted;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _muted = !TickerMode.of(context);
+    for (final entry in [?_current, ..._leaving]) {
+      entry.ticker.muted = _muted;
+    }
+  }
 
   @override
   void initState() {
@@ -282,17 +302,15 @@ final class _AnimatedSwitcherState extends State<AnimatedSwitcher>
     }
   }
 
-  _Entry _entry(Widget child, double value) => _Entry(
-    this,
-    child,
-    AnimationController(
+  _Entry _entry(Widget child, double value) {
+    final controller = AnimationController(
       vsync: this,
       duration: widget.duration,
       reverseDuration: widget.reverseDuration,
       value: value,
-    ),
-    ValueKey(_serial++),
-  );
+    );
+    return _Entry(this, child, controller, _made, ValueKey(_serial++));
+  }
 
   /// Has [entry] go out, and dropped once it has.
   void _leave(_Entry entry) {
@@ -350,11 +368,14 @@ final class _AnimatedSwitcherState extends State<AnimatedSwitcher>
 /// it shows, its controller's value along the switcher's curve in, or its
 /// curve out once [leaving].
 final class _Entry extends ValueListenable<double> {
-  _Entry(this._state, this.child, this.controller, this.key);
+  _Entry(this._state, this.child, this.controller, this.ticker, this.key);
 
   final _AnimatedSwitcherState _state;
   Widget child;
   final AnimationController controller;
+
+  /// The controller's ticker.
+  final Ticker ticker;
 
   /// What keeps its element as the children around it come and go.
   final Key key;
