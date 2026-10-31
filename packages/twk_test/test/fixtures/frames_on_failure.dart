@@ -58,6 +58,7 @@ void main() {
   testTwk('a test that fails, its app having printed and warned', (t) async {
     await t.pumpWidget(_ticker, size: (10, 2));
     await t.act(() {
+      // ignore: avoid_print, what the test shows it printed
       print('in the test');
       log('slow', level: LogLevel.warning);
     });

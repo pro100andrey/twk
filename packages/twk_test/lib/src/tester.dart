@@ -436,8 +436,8 @@ final class TwkTester {
   /// ```
   ///
   /// What [fn] prints and logs goes to [logs], as the app's own `print`
-  /// and `log` do. What [fn] throws, it throws, before the frame. An async [fn] is
-  /// awaited before the frame, the clock moved on as far as it waits
+  /// and `log` do. What [fn] throws, it throws, before the frame. An async
+  /// [fn] is awaited before the frame, the clock moved on as far as it waits
   /// ([FakeClock.elapseUntil]; not at all where it waits for no timer),
   /// and what it completes with an error with is thrown.
   Future<void> act(FutureOr<void> Function() fn) async {

@@ -1,5 +1,6 @@
 // The sink on its own: the ring, its listeners, the file, log() outside
 // an app, and the zone a sink runs code in.
+// ignore_for_file: avoid_print
 import 'dart:async';
 import 'dart:io';
 
@@ -136,7 +137,7 @@ void main() {
       );
       expect(() => sink.run(() => throw StateError('no')), throwsStateError);
       await expectLater(
-        sink.run(() async => throw StateError('later')),
+        sink.run(() => Future<void>.error(StateError('later'))),
         throwsStateError,
       );
     },
