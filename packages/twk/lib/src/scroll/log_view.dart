@@ -3,6 +3,7 @@
 /// and `N`.
 library;
 
+import 'dart:async' show Stream, StreamSubscription;
 import 'dart:math' show max, min;
 
 import 'package:meta/meta.dart' show visibleForTesting;
@@ -24,6 +25,7 @@ import 'package:twk_core/twk_core.dart'
         RenderParagraph,
         stringWidth;
 
+import '../ansi/stream.dart' show AnsiStream;
 import '../editing/caret.dart' show clearRestCursor, restCursor;
 import '../focus/focus_tree.dart' show FocusNode;
 import '../focus/shortcuts.dart' show KeyBindings;
@@ -41,17 +43,28 @@ import '../text/widgets.dart';
 import 'list_view.dart';
 import 'scrollbar.dart';
 
-/// One line of a [LogController]: its [text], [level] and [time], and its
-/// [number], the lines added before it since the controller was made.
+// Examples can assume:
+// import 'dart:convert';
+// import 'dart:io';
+
+/// One line of a [LogController]: its [text], [level] and [time], its
+/// [spans] where it is in colors of its own, and its [number], the lines
+/// added before it since the controller was made.
 final class LogLine {
-  const LogLine._(this.number, this.text, this.level, this.time);
+  const LogLine._(this.number, this.text, this.level, this.time, this.spans);
 
   /// The lines added before this one since the controller was made, those
   /// dropped and cleared too: it tells the line apart for good.
   final int number;
 
-  /// What was logged, as it was given.
+  /// What was logged, as it was given; of a line of [spans], their text.
   final String text;
+
+  /// The pieces of [text] in the styles they were given, each merged over
+  /// the style of the line's [level] where a [LogView] shows it (the
+  /// colors of a program's output, [LogController.listen]); null for a
+  /// line all in that style.
+  final List<Span>? spans;
 
   /// How much it matters: what [LogController.level] filters by, and what
   /// a [LogView] colors its level by.
@@ -178,10 +191,73 @@ final class LogController extends ChangeNotifier {
   /// Adds a line of [text] at [level], logged at [time] (none shown when
   /// null).
   void add(String text, {LogLevel level = LogLevel.info, DateTime? time}) {
-    _add(text, level, time);
+    _add(text, level, time, null);
     _trim();
     notifyListeners();
   }
+
+  /// Adds a line of [spans], in their styles over that of [level], logged
+  /// at [time] (none shown when null): filtered and searched by their text.
+  void addSpans(
+    List<Span> spans, {
+    LogLevel level = LogLevel.info,
+    DateTime? time,
+  }) {
+    _add(_textOf(spans), level, time, spans);
+    _trim();
+    notifyListeners();
+  }
+
+  /// Adds the lines of [output], a program's output that comes in pieces
+  /// (its stdout, decoded), each line once it ends, at [level], in the
+  /// colors its ANSI escape sequences give it: read as an [AnsiStream]
+  /// reads it, so a carriage return writes the line over (a progress bar
+  /// leaves its last state), a tab moves to the next multiple of
+  /// [tabWidth] columns, and no sequence reaches the terminal. The line not
+  /// ended when [output] is done is added then. Returns the subscription:
+  /// cancel it once the lines are not wanted; an error of [output] goes to
+  /// its `onError`, as with any `listen`.
+  ///
+  /// ```dart
+  /// final log = LogController();
+  /// final process = await Process.start('dart', ['test']);
+  /// log.listen(process.stdout.transform(utf8.decoder));
+  /// ```
+  StreamSubscription<String> listen(
+    Stream<String> output, {
+    LogLevel level = LogLevel.info,
+    int tabWidth = 8,
+  }) {
+    final reader = AnsiStream(tabWidth: tabWidth);
+    void addEnded() {
+      final ended = reader.takeSettled();
+      if (ended.isEmpty) {
+        return;
+      }
+      for (final spans in ended) {
+        _add(_textOf(spans), level, null, spans);
+      }
+      _trim();
+      notifyListeners();
+    }
+
+    return output.listen(
+      (piece) {
+        reader.add(piece);
+        addEnded();
+      },
+      onDone: () {
+        reader.close();
+        addEnded();
+      },
+    );
+  }
+
+  static String _textOf(List<Span> spans) => switch (spans) {
+    [] => '',
+    [final one] => one.text,
+    _ => spans.map((s) => s.text).join(),
+  };
 
   /// Adds a line of each of [texts], as [add] does, telling the listeners
   /// once.
@@ -191,7 +267,7 @@ final class LogController extends ChangeNotifier {
     DateTime? time,
   }) {
     for (final text in texts) {
-      _add(text, level, time);
+      _add(text, level, time, null);
     }
     _trim();
     notifyListeners();
@@ -283,8 +359,8 @@ final class LogController extends ChangeNotifier {
     _ask(const _ToEnd());
   }
 
-  void _add(String text, LogLevel level, DateTime? time) {
-    final line = LogLine._(_next++, text, level, time);
+  void _add(String text, LogLevel level, DateTime? time, List<Span>? spans) {
+    final line = LogLine._(_next++, text, level, time, spans);
     _lines.add(line);
     final w = stringWidth(text);
     if (w > _widest) {
@@ -1152,19 +1228,21 @@ final class _LogViewState extends State<LogView> {
     final query = look.query;
     final current = line.number == widget.controller._match;
     final found = current ? look.current : look.match;
-    var at = 0;
+    final matches = <(int, int)>[];
     if (query.pattern.isNotEmpty) {
       for (var i = query.indexIn(text); i >= 0;) {
-        if (i > at) {
-          spans.add((text.substring(at, i), base));
-        }
-        at = i + query.pattern.length;
-        spans.add((text.substring(i, at), base.merge(found)));
-        i = query.indexIn(text, at);
+        final end = i + query.pattern.length;
+        matches.add((i, end));
+        i = query.indexIn(text, end);
       }
     }
-    if (at < text.length || spans.isEmpty) {
-      spans.add((text.substring(at), base));
+    final pieces = switch (line.spans) {
+      final spans? => [for (final s in spans) (s.text, base.merge(s.style))],
+      null => [(text, base)],
+    };
+    spans.addAll(_marked(pieces, matches, found));
+    if (spans.isEmpty) {
+      spans.add(('', base));
     }
     return _Line(
       key: ValueKey(line.number),
@@ -1174,6 +1252,42 @@ final class _LogViewState extends State<LogView> {
       current: current,
     );
   }
+}
+
+/// [pieces], text and its style one after another, with the text of
+/// [matches] (start and end in the text of all of them, in order, apart)
+/// in [mark] over its style; no empty piece.
+List<(String, Style)> _marked(
+  List<(String, Style)> pieces,
+  List<(int, int)> matches,
+  Style mark,
+) {
+  final out = <(String, Style)>[];
+  var offset = 0;
+  var m = 0;
+  for (final (text, style) in pieces) {
+    final end = offset + text.length;
+    var at = offset;
+    while (at < end) {
+      while (m < matches.length && matches[m].$2 <= at) {
+        m++;
+      }
+      if (m == matches.length || matches[m].$1 >= end) {
+        out.add((text.substring(at - offset), style));
+        break;
+      }
+      final (start, stop) = matches[m];
+      if (start > at) {
+        out.add((text.substring(at - offset, start - offset), style));
+        at = start;
+      }
+      final to = stop < end ? stop : end;
+      out.add((text.substring(at - offset, to - offset), style.merge(mark)));
+      at = to;
+    }
+    offset = end;
+  }
+  return out;
 }
 
 const _tags = ['DEBUG ', 'INFO  ', 'WARN  ', 'ERROR '];

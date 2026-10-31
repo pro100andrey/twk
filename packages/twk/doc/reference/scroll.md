@@ -184,11 +184,15 @@ selectable: true, scrollbar: ScrollbarVisibility.always, style:,
 matchStyle:, currentMatchStyle:, focusNode:, autofocus:)` is `tail -f` for
 an app, over a `LogController(maxLines: 10000, level: LogLevel.debug,
 filter: '', query: '')`: lines added with `add(text, level:, time:)`
-(`addAll`; `clear()`) follow the end while the view shows it; scrolled up it
+(`addAll`; `addSpans(spans)` for a line in colors of its own, over its
+level's; `listen(stream)` for a program's output as it comes, read as an
+`AnsiStream` reads it, a line once it ends, in its escape sequences'
+colors, a carriage return writing it over, the unended line when the
+stream is done; `clear()`) follow the end while the view shows it; scrolled up it
 stays on its lines and counts the new ones (`newLines`, ` ↓ 3 new lines ` at
 its bottom right) until End, a click on the count or `follow()` takes it
 back (`following`). It keeps `maxLines` lines, the oldest dropped (`length`,
-`[i]`, each a `LogLine`: `number`, `text`, `level`, `time`), and shows those
+`[i]`, each a `LogLine`: `number`, `text`, `level`, `time`, `spans`), and shows those
 at `level` and above whose text has `filter` in it, ignoring the case while
 it is all in lower case (`shownLength`, `shownAt`), a filter typed on or a
 higher level refining only the lines shown; `query` is found the same way,
