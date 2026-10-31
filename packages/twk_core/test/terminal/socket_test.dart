@@ -1044,7 +1044,8 @@ void main() {
       workingDirectory: dir.path,
       environment: {'TWK_PLAIN': '0'},
     );
-    expect(res.stdout, 'TerminalException: not a terminal\n');
+    expect(res.stdout, startsWith('TerminalException: not a terminal: '));
+    expect(res.stdout, contains('TWK_PLAIN=1'));
   });
 
   group('TWK_SHELL', () {
@@ -1188,7 +1189,7 @@ void main() {
           isA<TerminalException>().having(
             (e) => e.message,
             'message',
-            'not a terminal',
+            startsWith('not a terminal: '),
           ),
         ),
       );

@@ -630,8 +630,9 @@ GraphicsProtocol graphicsProtocolFor(
 /// raw mode can't be entered ([TerminalLink.enterRaw] throws), the terminal
 /// of the `twk shell` that `TWK_SHELL` in [env] names, or, where it is not
 /// set, the one serving the project [directory] is in (the current one
-/// when null; see `SocketLink.toShell`). Without such a shell, throws what
-/// [own] threw or a [TerminalException] 'not a terminal'; a `TWK_SHELL`
+/// when null; see `SocketLink.toShell`). Without such a shell, throws a
+/// [TerminalException] that says what [own] threw, or 'not a terminal', and
+/// what to do instead (a terminal, `TWK_PLAIN=1`, a `twk shell`); a `TWK_SHELL`
 /// naming no shell that listens throws a [TerminalException] saying so.
 Future<Terminal> openOwnOrShell(
   TerminalLink? own,
@@ -649,7 +650,14 @@ Future<Terminal> openOwnOrShell(
   }
   final shell = await SocketLink.toShell(directory, env);
   if (shell == null) {
-    throw refused ?? const TerminalException('not a terminal');
+    throw TerminalException(
+      '${refused?.message ?? 'not a terminal'}: the program needs both stdin '
+      'and stdout to be a terminal. Run it in a terminal, not with its input '
+      'from a file or a pipe or inside a tool that has none; with stdout '
+      'redirected, or with TWK_PLAIN=1, an app writes plain text instead, '
+      "and a `twk shell` running in the project gives it that shell's "
+      'terminal',
+    );
   }
   return Terminal._open(shell, options);
 }

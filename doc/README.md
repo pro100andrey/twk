@@ -25,6 +25,8 @@ writes only the cells that changed.
 6. [State](guides/state.md): `setState`, controllers, hooks and Provider.
 7. [Testing](guides/testing.md): an app tested on a terminal in memory
    with twk_test.
+8. [Running an app](guides/running.md): what ends `runApp`, Ctrl+C,
+   Ctrl+Z, SIGTERM, and a missing terminal.
 
 ## Widget catalog
 

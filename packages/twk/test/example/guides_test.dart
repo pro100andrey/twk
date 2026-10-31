@@ -47,7 +47,7 @@ void shows(String name, String screen) =>
     expect(guide(name), contains('```text\n$screen```'));
 
 void main() {
-  test('there are guides', () => expect(guides, hasLength(7)));
+  test('there are guides', () => expect(guides, hasLength(8)));
 
   for (final file in guides) {
     final name = file.path.split('/').last;

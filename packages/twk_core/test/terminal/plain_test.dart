@@ -176,7 +176,7 @@ void main() {
         isA<TerminalException>().having(
           (e) => e.message,
           'message',
-          'not a terminal',
+          startsWith('not a terminal: '),
         ),
       );
       await expectLater(
