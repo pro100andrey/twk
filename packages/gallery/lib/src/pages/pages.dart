@@ -12,7 +12,7 @@ import 'foundation/foundation.dart';
 import 'framework/framework.dart';
 import 'images/images.dart';
 import 'layout/layout.dart';
-import 'mouse.dart';
+import 'mouse/mouse.dart';
 import 'navigation.dart';
 import 'overlays.dart';
 import 'rich.dart';
