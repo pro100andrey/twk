@@ -459,38 +459,51 @@ void main() {
     });
   });
 
-  testTwk('maxWidth keeps a dialog whose child takes the width narrower '
-      'than the screen', (t) async {
-    Widget app({int? maxWidth}) => Overlay(
+  testTwk('a dialog whose child takes the width keeps to 72 columns, or '
+      'the screen where narrower; maxWidth sets another, null none', (
+    t,
+  ) async {
+    const wide = Row(children: [Expanded(child: Text('wide'))]);
+    Widget app(Dialog dialog) => Overlay(
       child: Builder(
         builder: (context) => KeyBindings({
           'd': () => unawaited(
-            showDialog<void>(
-              context,
-              (_) => Dialog(
-                look: PanelLook.bordered,
-                maxWidth: maxWidth,
-                child: const Row(children: [Expanded(child: Text('wide'))]),
-              ),
-              fadeIn: Duration.zero,
-            ),
+            showDialog<void>(context, (_) => dialog, fadeIn: Duration.zero),
           ),
         }, child: const Focus(autofocus: true, child: Text('app'))),
       ),
     );
-    int borderWidth(TwkTester t) {
+    Future<int> borderWidth(Dialog dialog, int width) async {
+      await t.pumpWidget(app(dialog), size: (width, 10));
+      await press(t, 'd');
       final top = t.lines.firstWhere((l) => l.contains('┌'));
+      await press(t, 'escape');
       return top.lastIndexOf('┐') - top.indexOf('┌') + 1;
     }
 
-    await t.pumpWidget(app(), size: (60, 10));
-    await press(t, 'd');
-    expect(borderWidth(t), 60);
-
-    await t.pumpWidget(app(maxWidth: 30), size: (60, 10));
-    await press(t, 'escape');
-    await press(t, 'd');
-    expect(borderWidth(t), 30);
+    const bordered = PanelLook.bordered;
+    expect(
+      await borderWidth(const Dialog(look: bordered, child: wide), 100),
+      72,
+    );
+    expect(
+      await borderWidth(const Dialog(look: bordered, child: wide), 40),
+      40,
+    );
+    expect(
+      await borderWidth(
+        const Dialog(look: bordered, maxWidth: 30, child: wide),
+        100,
+      ),
+      30,
+    );
+    expect(
+      await borderWidth(
+        const Dialog(look: bordered, maxWidth: null, child: wide),
+        100,
+      ),
+      100,
+    );
   });
 }
 

@@ -198,7 +198,7 @@ final class Dialog extends StatelessWidget {
     this.padding = const EdgeInsets.x(1),
     this.shadow,
     this.look = PanelLook.raised,
-    this.maxWidth,
+    this.maxWidth = 72,
   });
 
   /// What is in the dialog.
@@ -217,10 +217,11 @@ final class Dialog extends StatelessWidget {
   /// A raised panel, or a bordered box.
   final PanelLook look;
 
-  /// The most columns the box takes, its room or border among them; null
-  /// for as many as the screen gives it. A child that takes the width it
-  /// is given (a `DescriptionList`, a [Row] with an [Expanded]) makes the
-  /// dialog as wide as the screen without it.
+  /// The most columns the box takes, its room or border among them, 72 by
+  /// default, and fewer where the screen is narrower; null for as many as
+  /// the screen gives it. A child that takes the width it is given (a
+  /// `DescriptionList`, a [Row] with an [Expanded]) makes the dialog that
+  /// wide.
   final int? maxWidth;
 
   @override
