@@ -118,4 +118,46 @@ void main() {
     expect(ticker.isActive, isTrue);
     ticker.dispose();
   });
+
+  testTwk('a ticker below a TickerMode that is off ticks no more and asks '
+      'for no frame; on again, it ticks on', (t) async {
+    final key = GlobalKey<TickingState>();
+    Widget app({required bool enabled}) => TickerMode(
+      enabled: enabled,
+      child: Ticking(key: key),
+    );
+    await t.pumpWidget(app(enabled: true), size: (10, 1), maxFps: 100);
+    final state = key.currentState!..a.start();
+    await t.pump(ms * 15);
+    expect(state.ticks, hasLength(2));
+    await t.pumpWidget(app(enabled: false));
+    expect(state.a.isActive, isTrue);
+    expect(state.a.muted, isTrue);
+    final stopped = state.ticks.length;
+    await t.pump(const Duration(seconds: 1));
+    expect(state.ticks, hasLength(stopped));
+    expect(t.clock.pendingTimers, 0);
+    state.b.start();
+    await t.pump(ms * 50);
+    expect(state.ticks, hasLength(stopped), reason: 'b is muted too');
+    await t.pumpWidget(app(enabled: true));
+    await t.pump(ms * 15);
+    expect(state.ticks.length, greaterThan(stopped + 2));
+    expect(state.ticks.any((tick) => tick.$1 == 'b'), isTrue);
+  });
+
+  testTwk('TickerMode.of is true without a TickerMode, and a state is told '
+      'when it changes', (t) async {
+    final seen = <bool>[];
+    Widget probe() => Builder(
+      builder: (context) {
+        seen.add(TickerMode.of(context));
+        return const Text('x');
+      },
+    );
+    await t.pumpWidget(probe(), size: (10, 1));
+    await t.pumpWidget(TickerMode(enabled: false, child: probe()));
+    await t.pumpWidget(TickerMode(enabled: true, child: probe()));
+    expect(seen, [true, false, true]);
+  });
 }

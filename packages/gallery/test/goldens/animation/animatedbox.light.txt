@@ -2,11 +2,11 @@ screen 120×36, cursor hidden
 text
 │  ◆ twk gallery   Animation  ›  AnimatedBox                                                 ctrl+p search      ◐ Light  │
 │                                                                                                                        │
-│   ⌕ Filter             /      AnimatedBox                                                                     9 of 16  │
+│   ⌕ Filter             /      AnimatedBox                                                                    10 of 17  │
 │                               A box whose size, padding, background and border colors run to the new ones; a           │
-│                               border of another type switches halfway.                                                 │
-│   ANIMATION           16                                                                                               │
-│     Spinner                   Preview   Code                                                                           │
+│   ANIMATION           17      border of another type switches halfway.                                                 │
+│     Spinner                                                                                                            │
+│     TickerMode                Preview   Code                                                                           │
 │     ProgressBar            ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
 │     ProgressList                                                                         │                             │
 │     Skeleton, Skeletoni…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
@@ -39,11 +39,11 @@ text
 styles
 │aabacccadddddddaaaBBBBBBBBBaafaadddddddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaBBBBBBaaaaaadadddddaa│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaiCiCCCCCCiiiiiiiiiiiiiDiaahhhlllllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhEhEEhEEhh│
+│aaiCiCCCCCCiiiiiiiiiiiiiDiaahhhlllllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhEEhEEhEEhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnhnnnhnnnnnhnnnnnhnnnnnnnnhnnnnnnnnnnhnnnhnnnnnnhnnnnnnhnnnhnnhnnnhnnnhnnnnnhnhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnnnhnnhnnnnnnnhnnnnhnnnnnnnnhnnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaadddddddddaaaaaaaaaaaBBaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaaaaaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddddddaaaaaaaaaaaBBaaahhhnnnnnnhnnhnnnnnnnhnnnnhnnnnnnnnhnnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooaaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
 │aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooaooooooooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│

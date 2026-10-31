@@ -2,13 +2,13 @@ screen 120×36, cursor hidden
 text
 │  ◆ twk gallery   Animation  ›  AnimatedAlign, AnimatedPadding                              ctrl+p search      ◐ Light  │
 │                                                                                                                        │
-│   ⌕ Filter             /      AnimatedAlign, AnimatedPadding                                                  7 of 16  │
+│   ⌕ Filter             /      AnimatedAlign, AnimatedPadding                                                  8 of 17  │
 │                               A child that runs to the place its alignment or its padding gives it, a cell at a        │
-│     ModalBarrier              time.                                                                                    │
-│     WindowLayer                                                                                                        │
-│                               Preview   Code                                                                           │
-│   ANIMATION           16   ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
-│     Spinner                                                                              │                             │
+│     WindowLayer               time.                                                                                    │
+│                                                                                                                        │
+│   ANIMATION           17      Preview   Code                                                                           │
+│     Spinner                ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     TickerMode                                                                           │                             │
 │     ProgressBar                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
 │     ProgressList                                                                         │                             │
 │     Skeleton, Skeletoni…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  alignment                  │
@@ -41,11 +41,11 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaiCiCCCCCCiiiiiiiiiiiiiDiaahhhllllllllllllllhlllllllllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhEhEEhEEhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnhnnnnnhnnnnhnnnnhnnhnnnhnnnnnhnnnhnnnnnnnnnhnnhnnnhnnnnnnnhnnnnnhnnnhnhnnnnhnnhnhhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaadddddddddaaaaaaaaaaaBBaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
-│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddddddaaaaaaaaaaaBBaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooaooooooooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnnnhhhhhhhhhhhhhhhhhh│

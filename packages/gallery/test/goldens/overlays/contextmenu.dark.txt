@@ -20,20 +20,20 @@ text
 │     ModalBarrier               ·    ┌                                          ┐   ·     │                             │
 │     WindowLayer           ▐           ╭──────────────────────────────────────╮           │                             │
 │                           ▐    ·      │ Right click in here.                 │     ·     │                             │
-│   ANIMATION           16  ▐           │  Or focus me    Open the menu        │           │                             │
+│   ANIMATION           17  ▐           │  Or focus me    Open the menu        │           │                             │
 │     Spinner               ▐    ·      │ chosen: nothing                      │     ·     │                             │
-│     ProgressBar           ▐           ╰──────────────────────────────────────╯           │                             │
-│     ProgressList               ·    └                                          ┘   ·     │                             │
-│     Skeleton, Skeletoni…                                                 40 × 5          │                             │
-│     AnimationController        ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     AnimatedBuilder                                                                      │                             │
-│     AnimatedAlign, Anim…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     AnimatedPositioned                                                                   │                             │
-│     AnimatedBox                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     AnimatedOpacity, Op…                                                                 │                             │
-│     AnimatedDefaultText…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     AnimatedSize                                                                         │                             │
-│     TweenAnimationBuild…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     TickerMode            ▐           ╰──────────────────────────────────────╯           │                             │
+│     ProgressBar                ·    └                                          ┘   ·     │                             │
+│     ProgressList                                                         40 × 5          │                             │
+│     Skeleton, Skeletoni…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     AnimationController                                                                  │                             │
+│     AnimatedBuilder            ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     AnimatedAlign, Anim…                                                                 │                             │
+│     AnimatedPositioned         ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     AnimatedBox                                                                          │                             │
+│     AnimatedOpacity, Op…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     AnimatedDefaultText…                                                                 │                             │
+│     AnimatedSize               ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │                                                                                          │                             │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
 styles
@@ -59,18 +59,18 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhphhhhhhvhwwwwwhwwwwwhwwhwwwwwhhhhhhhhhhhhhhhhhvhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaadddddddddaaaaaaaaaaaAAaadhhhhhhhhhhhvhxyyxyyyyyxyyxhhxyyyyxyyyxyyyyxhhhhhhhvhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaaaaaaaaaaaaaaadhhhhphhhhhhvhnnnnnnnhnnnnnnnhhhhhhhhhhhhhhhhhhhhhhvhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooaaaaaaaaaaadhhhhhhhhhhhvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooaooooooooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhDDhDhDhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooooooooaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooooaoooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooooooooaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooooooaoooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooooooooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooooooooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaadhhhhhhhhhhhvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhDDhDhDhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaooooooooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooooooaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooaoooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaoooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
 legend

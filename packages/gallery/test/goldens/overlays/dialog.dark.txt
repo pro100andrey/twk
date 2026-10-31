@@ -25,15 +25,15 @@ text
 │     ModalBarrier                                            15 × 3                       │                             │
 │     WindowLayer                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │                                                                                          │                             │
-│   ANIMATION           16       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│   ANIMATION           17       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     Spinner                                                                              │                             │
-│     ProgressBar                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     ProgressList                                                                         │                             │
-│     Skeleton, Skeletoni…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     AnimationController                                                                  │                             │
-│     AnimatedBuilder            ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     AnimatedAlign, Anim…                                                                 │                             │
-│     AnimatedPositioned         ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     TickerMode                 ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     ProgressBar                                                                          │                             │
+│     ProgressList               ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Skeleton, Skeletoni…                                                                 │                             │
+│     AnimationController        ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     AnimatedBuilder                                                                      │                             │
+│     AnimatedAlign, Anim…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │                                                                                          │                             │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
 styles
@@ -64,13 +64,13 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaadddddddddaaaaaaaaaaaDDaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooaooooooooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooooooooaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooooaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooooaoooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooooooooaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaooooooooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooooooaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooaoooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
 legend

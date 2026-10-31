@@ -10,7 +10,7 @@ extension on _SampleAppState {
         return Row(
           gap: 1,
           children: [
-            const Spinner(),
+            const TickerMode(enabled: true, child: Spinner()),
             const Spinner(
               frames: SpinnerFrames.arc,
               style: Style(fg: Color.green),

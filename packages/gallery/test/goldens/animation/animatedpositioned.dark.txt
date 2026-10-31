@@ -2,12 +2,12 @@ screen 120×36, cursor hidden
 text
 │  ◆ twk gallery   Animation  ›  AnimatedPositioned                                           ctrl+p search      ◐ Dark  │
 │                                                                                                                        │
-│   ⌕ Filter             /      AnimatedPositioned                                                              8 of 16  │
+│   ⌕ Filter             /      AnimatedPositioned                                                              9 of 17  │
 │                               A child pinned in a stack that runs to the edges it is pinned to.                        │
-│     WindowLayer                                                                                                        │
-│                               Preview   Code                                                                           │
-│   ANIMATION           16   ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
-│     Spinner                                                                              │                             │
+│                                                                                                                        │
+│   ANIMATION           17      Preview   Code                                                                           │
+│     Spinner                ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     TickerMode                                                                           │                             │
 │     ProgressBar                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
 │     ProgressList                                                                         │                             │
 │     Skeleton, Skeletoni…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  pinned                     │
@@ -41,10 +41,10 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaiBiBBBBBBiiiiiiiiiiiiiCiaahhhllllllllllllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhDhDDhDDhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnhnnnnnhnnnnnnhnnhnhnnnnnhnnnnhnnnnhnnhnnnhnnnnnhnnhnnhnnnnnnhnnnhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaadddddddddaaaaaaaaaaaAAaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
-│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddddddaaaaaaaaaaaAAaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooaooooooooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnhhhhhhhhhhhhhhhhhhhhh│

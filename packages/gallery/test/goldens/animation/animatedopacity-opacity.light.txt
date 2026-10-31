@@ -2,10 +2,10 @@ screen 120×36, cursor hidden
 text
 │  ◆ twk gallery   Animation  ›  AnimatedOpacity, Opacity                                    ctrl+p search      ◐ Light  │
 │                                                                                                                        │
-│   ⌕ Filter             /      AnimatedOpacity, Opacity                                                       10 of 16  │
+│   ⌕ Filter             /      AnimatedOpacity, Opacity                                                       11 of 17  │
 │                               A child shown at an opacity, mixed cell by cell with what is under it; the one on        │
-│   ANIMATION           16      the left runs to the opacity chosen.                                                     │
-│     Spinner                                                                                                            │
+│     Spinner                   the left runs to the opacity chosen.                                                     │
+│     TickerMode                                                                                                         │
 │     ProgressBar               Preview   Code                                                                           │
 │     ProgressList           ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
 │     Skeleton, Skeletoni…                                                                 │                             │
@@ -41,8 +41,8 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaiCiCCCCCCiiiiiiiiiiiiiDiaahhhllllllllllllllllhlllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhEEhEEhEEhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnhnnnnnhnnnnnhnnhnnhnnnnnnnnhnnnnnhnnnnhnnhnnnnhnnnnhnnnnhnnhnnnnnhnnnhnnnhnnnhnnhhhhhhhh│
-│aaadddddddddaaaaaaaaaaaBBaaahhhnnnhnnnnhnnnnhnnhnnnhnnnnnnnhnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhnnnhnnnnhnnnnhnnhnnnhnnnnnnnhnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
 │aaaaaoooooooooaooooooooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

@@ -4,7 +4,7 @@ text
 │                                                                                │
 │   ⌕ Filter       /     AnimatedAlign, AnimatedPadding          Preview   Code  │
 │                        A child that runs to the place its alignment or its     │
-│     Spinner            padding gives it, a cell at a time.                     │
+│     TickerMode         padding gives it, a cell at a time.                     │
 │     ProgressBar      ──────────────────────────────────────────────────────────│
 │     ProgressList               ┌                                    ┐          │
 │     Skeleton, Ske…      ·   ·    ╭────────────────────────────────╮     ·   ·  │
@@ -29,7 +29,7 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahAhAAAAAAhhhhhhhBhaaggkkkkkkkkkkkkkkgkkkkkkkkkkkkkkkgggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmgmmmmmgmmmmgmmmmgmmgmmmgmmmmmgmmmgmmmmmmmmmgmmgmmmggggg│
-│aaaaaoooooooaaaaaaaaaaggmmmmmmmgmmmmmgmmmgmgmmmmgmmgmgmmmmmggggggggggggggggggggg│
+│aaaaaooooooooooaaaaaaaggmmmmmmmgmmmmmgmmmgmgmmmmgmmgmgmmmmmggggggggggggggggggggg│
 │aaaaaoooooooooooaaaaaannnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn│
 │aaaaaooooooooooooaaaaaggggggggggnggggggggggggggggggggggggggggggggggggngggggggggg│
 │aaaaaoooooooooaooooaaagggngggnggggppppppppppppppppppppppppppppppppppgggggngggngg│

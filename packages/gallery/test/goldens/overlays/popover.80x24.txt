@@ -18,10 +18,10 @@ text
 │     ModalBarrier        ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
 │     WindowLayer                                                                │
 │                                                                                │
-│   ANIMATION     16   ──────────────────────────────────────────────────────────│
+│   ANIMATION     17   ──────────────────────────────────────────────────────────│
 │     Spinner            dismissible  ▐  ●▌                                      │
-│     ProgressBar        look          raised  bordered                          │
-│     ProgressList                                                               │
+│     TickerMode         look          raised  bordered                          │
+│     ProgressBar                                                                │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -45,8 +45,8 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaadddddddddaaaaazzaaannnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn│
 │aaaaaoooooooaaaaaaaaaaggmmmmmmmmmmmggvwwxvgggggggggggggggggggggggggggggggggggggg│
-│aaaaaoooooooooooaaaaaaggmmmmgggggggggqrrrrrrqhyyyyyyyyhggggggggggggggggggggggggg│
-│aaaaaooooooooooooaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaooooooooooaaaaaaaggmmmmgggggggggqrrrrrrqhyyyyyyyyhggggggggggggggggggggggggg│
+│aaaaaoooooooooooaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

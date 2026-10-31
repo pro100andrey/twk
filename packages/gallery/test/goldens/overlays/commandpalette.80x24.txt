@@ -15,13 +15,13 @@ text
 │     ModalBarrier                    └                          ┘               │
 │     WindowLayer     ▐   ·   ·   ·   ·   ·   ·   ·   ·   ·24 × 3 ·   ·   ·   ·  │
 │                     ▐                                                          │
-│   ANIMATION     16                                                             │
+│   ANIMATION     17                                                             │
 │     Spinner          ──────────────────────────────────────────────────────────│
-│     ProgressBar        width   40  60                                          │
-│     ProgressList       rows    3  10                                           │
-│     Skeleton, Ske…     files  ▐  ●▌                                            │
-│     AnimationCont…     look    raised  bordered                                │
-│     AnimatedBuild…                                                             │
+│     TickerMode         width   40  60                                          │
+│     ProgressBar        rows    3  10                                           │
+│     ProgressList       files  ▐  ●▌                                            │
+│     Skeleton, Ske…     look    raised  bordered                                │
+│     AnimationCont…                                                             │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -42,10 +42,10 @@ styles
 │aaaaaaaaaaaaaaaaaaaaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaadddddddddaaaaaAAaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnnnnnaaaaaaggmmmmmggsttshwwhggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnnaaaaaggmmmmggghwhsttsgggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnannnnaaaggmmmmmggxyyzxgggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnnnnaaaggmmmmgggsttttttshwwwwwwwwhggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnaaaaaaaggmmmmmggsttshwwhggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnaaaaaaggmmmmggghwhsttsgggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaaaggmmmmmggxyyzxgggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnannnnaaaggmmmmgggsttttttshwwwwwwwwhggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│

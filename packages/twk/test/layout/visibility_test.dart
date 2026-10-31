@@ -16,6 +16,23 @@ List<RenderObject> hitsAt(TwkTester t, int x, int y) {
   return [for (var i = 0; i < result.length; i++) result[i]];
 }
 
+/// A ticker that counts its ticks, started with its state.
+final class Ticks extends StatefulWidget {
+  const Ticks({super.key});
+
+  @override
+  State<Ticks> createState() => TicksState();
+}
+
+final class TicksState extends State<Ticks> with TickerProviderStateMixin {
+  var n = 0;
+  late final Ticker ticker = createTicker((_) => n++)..start();
+
+  @override
+  Widget build(BuildContext context) =>
+      Text(ticker.isActive ? 'ticks' : 'stopped');
+}
+
 /// Shows `n` [label]s, `n` counted up by [CounterState.bump]: its state
 /// is the one it kept, or a new one.
 final class Counter extends StatefulWidget {
@@ -450,5 +467,79 @@ void main() {
       'Visibility ‹visible: false, maintainState: true›',
     );
     expect('${t.element(shown.at(1)).describe()}', 'Visibility');
+  });
+
+  group('tickers', () {
+    const ms = Duration(milliseconds: 1);
+
+    Future<TicksState> pumpTicks(
+      TwkTester t,
+      Widget Function(Widget) wrap,
+    ) async {
+      final key = GlobalKey<TicksState>();
+      await t.pumpWidget(wrap(Ticks(key: key)), size: (10, 1), maxFps: 100);
+      return key.currentState!;
+    }
+
+    testTwk('offstage stops the tickers in it, and on stage they go on', (
+      t,
+    ) async {
+      var off = false;
+      Widget app(Widget child) => Offstage(offstage: off, child: child);
+      final state = await pumpTicks(t, app);
+      await t.pump(ms * 15);
+      expect(state.n, 2);
+      off = true;
+      await t.pumpWidget(app(Ticks(key: state.widget.key)));
+      final stopped = state.n;
+      await t.pump(const Duration(seconds: 1));
+      expect(state.n, stopped);
+      expect(t.clock.pendingTimers, 0);
+      off = false;
+      await t.pumpWidget(app(Ticks(key: state.widget.key)));
+      await t.pump(ms * 15);
+      expect(state.n, greaterThan(stopped));
+    });
+
+    testTwk('a hidden Visibility that maintains state stops them, with or '
+        'without its size', (t) async {
+      for (final size in [false, true]) {
+        Widget app(Widget child) => Visibility(
+          visible: false,
+          maintainState: true,
+          maintainSize: size,
+          child: child,
+        );
+        final state = await pumpTicks(t, app);
+        await t.pump(const Duration(seconds: 1));
+        expect(state.n, 0, reason: 'maintainSize: $size');
+      }
+    });
+
+    testTwk('an Offstage that is on stage in an Offstage that is not stays '
+        'stopped', (t) async {
+      final state = await pumpTicks(
+        t,
+        (child) => Offstage(child: Offstage(offstage: false, child: child)),
+      );
+      await t.pump(const Duration(seconds: 1));
+      expect(state.n, 0);
+    });
+
+    testTwk('a state told by TickerMode.of when it is hidden', (t) async {
+      final seen = <bool>[];
+      Widget app({required bool off}) => Offstage(
+        offstage: off,
+        child: Builder(
+          builder: (context) {
+            seen.add(TickerMode.of(context));
+            return const Text('x');
+          },
+        ),
+      );
+      await t.pumpWidget(app(off: false), size: (10, 1));
+      await t.pumpWidget(app(off: true));
+      expect(seen, [true, false]);
+    });
   });
 }

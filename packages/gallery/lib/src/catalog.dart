@@ -489,6 +489,12 @@ const catalog = [
           'frames step together.',
     ),
     CatalogPage(
+      'TickerMode',
+      'Whether the animations below tick: off, they ask for no frames and '
+          'stand still, and go on when it is on again; Offstage and '
+          'Visibility turn it off for what they hide.',
+    ),
+    CatalogPage(
       'ProgressBar',
       'A bar filled as far as its value, in eighths of a cell; a block '
           'going to and fro while the value is not known.',

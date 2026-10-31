@@ -2,16 +2,16 @@ screen 120×36, cursor hidden
 text
 │  ◆ twk gallery   Animation  ›  Skeleton, Skeletonize                                       ctrl+p search      ◐ Light  │
 │                                                                                                                        │
-│   ⌕ Filter             /      Skeleton, Skeletonize                                                           4 of 16  │
+│   ⌕ Filter             /      Skeleton, Skeletonize                                                           5 of 17  │
 │                               Placeholders while content loads: blocks where it will be, or a subtree drawn as         │
-│     ContextMenu               blocks in the layout it has, a shimmer sweeping over them as a SkeletonTheme says.       │
-│     CommandPalette                                                                                                     │
-│     OptionList                Preview   Code                                                                           │
-│     ModalBarrier           ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
-│     WindowLayer                                                                          │                             │
-│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
-│   ANIMATION           16                                                                 │                             │
-│     Spinner                    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  loading             ▐  ●▌  │
+│     CommandPalette            blocks in the layout it has, a shimmer sweeping over them as a SkeletonTheme says.       │
+│     OptionList                                                                                                         │
+│     ModalBarrier              Preview   Code                                                                           │
+│     WindowLayer            ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│                                                                                          │                             │
+│   ANIMATION           17       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
+│     Spinner                                                                              │                             │
+│     TickerMode                 ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  loading             ▐  ●▌  │
 │     ProgressBar                                                                          │                             │
 │     ProgressList               ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  shimmer             ▐  ●▌  │
 │ ▎   Skeleton, Skeletoni…            ┌                                          ┐         │                             │
@@ -41,14 +41,14 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaiFiFFFFFFiiiiiiiiiiiiiGiaahhhlllllllllhlllllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhHhHHhHHhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnnnnnnnnnhnnnnnhnnnnnnnhnnnnnnhnnnnnnhnnnnnhnnhnnnnhnnnhnnhnhnnnnnnnhnnnnnhnnhhhhhhhhh│
-│aaaaaoooooooooooaaaaaaaaaaaahhhnnnnnnhnnhnnnhnnnnnnhnnhnnnnhnhnnnnnnnhnnnnnnnnhnnnnhnnnnhnnhnhnnnnnnnnnnnnnhnnnnnhhhhhhh│
-│aaaaaooooooooooooooaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooaaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
-│aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
-│aaadddddddddaaaaaaaaaaaEEaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhqrrsqhh│
+│aaaaaooooooooooooooaaaaaaaaahhhnnnnnnhnnhnnnhnnnnnnhnnhnnnnhnhnnnnnnnhnnnnnnnnhnnnnhnnnnhnnhnhnnnnnnnnnnnnnhnnnnnhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddddddaaaaaaaaaaaEEaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhqrrsqhh│
 │aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhqrrsqhh│
 │aIJJJKKKKKKKKKJKKKKKKKKKKJJahhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

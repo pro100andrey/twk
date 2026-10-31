@@ -2,7 +2,7 @@ screen 120×36, cursor hidden
 text
 │  ◆ twk gallery   Animation  ›  AnimatedSize                                                ctrl+p search      ◐ Light  │
 │                                                                                                                        │
-│   ⌕ Filter             /      AnimatedSize                                                                   12 of 16  │
+│   ⌕ Filter             /      AnimatedSize                                                                   13 of 17  │
 │                               As big as its child, running to the new size when the child grows or shrinks.            │
 │     ProgressBar                                                                                                        │
 │     ProgressList              Preview   Code                                                                           │

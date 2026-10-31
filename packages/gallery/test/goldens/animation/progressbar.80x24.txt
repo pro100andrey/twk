@@ -4,12 +4,12 @@ text
 │                                                                                │
 │   ⌕ Filter       /     ProgressBar                             Preview   Code  │
 │                        A bar filled as far as its value, in eighths of a       │
-│     OptionList         cell; a block going to and fro while the value is not…  │
-│     ModalBarrier     ──────────────────────────────────────────────────────────│
-│     WindowLayer                                                                │
-│                         ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
-│   ANIMATION     16                                                             │
-│     Spinner              ┌                                               ┐  ·  │
+│     ModalBarrier       cell; a block going to and fro while the value is not…  │
+│     WindowLayer      ──────────────────────────────────────────────────────────│
+│                                                                                │
+│   ANIMATION     17      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│     Spinner                                                                    │
+│     TickerMode           ┌                                               ┐  ·  │
 │ ▎   ProgressBar            █████████████▎                            33%       │
 │     ProgressList         └                                               ┘  ·  │
 │     Skeleton, Ske…                                                 45 × 1      │
@@ -29,12 +29,12 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahGhGGGGGGhhhhhhhHhaaggkkkkkkkkkkkggggggggggggggggggggggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmgmmmgmmmmmmgmmgmmmgmmgmmmgmmmmmmgmmgmmmmmmmgmmgmggggggg│
-│aaaaannnnnnnnnnaaaaaaaggmmmmmgmgmmmmmgmmmmmgmmgmmmgmmmgmmmmmgmmmgmmmmmgmmgmmmmgg│
-│aaaaannnnnnnnnnnnaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnnnnnaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaaaaaaaaaaaaaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
-│aaadddddddddaaaaaFFaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnaaaaaaaaaaggggogggggggggggggggggggggggggggggggggggggggggggggggoggogg│
+│aaaaannnnnnnnnnnnaaaaaggmmmmmgmgmmmmmgmmmmmgmmgmmmgmmmgmmmmmgmmmgmmmmmgmmgmmmmgg│
+│aaaaannnnnnnnnnnaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaadddddddddaaaaaFFaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
+│aaaaannnnnnnaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnaaaaaaaggggogggggggggggggggggggggggggggggggggggggggggggggggoggogg│
 │apqqqrrrrrrrrrrrqqqqqaggggggssssssssssssssttttttttttttttttttttttttttgguuuggggggg│
 │aaaaannnnnnnnnnnnaaaaaggggogggggggggggggggggggggggggggggggggggggggggggggggoggogg│
 │aaaaannnnnnnnnannnnaaaggggggggggggggggggggggggggggggggggggggggggggggIIgIgIgggggg│

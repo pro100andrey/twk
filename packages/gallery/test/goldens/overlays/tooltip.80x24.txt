@@ -19,9 +19,9 @@ text
 │     ModalBarrier       wait       100 ms  500 ms  1 s                          │
 │     WindowLayer        on hover  ▐  ●▌                                         │
 │                                                                                │
-│   ANIMATION     16     on focus  ▐  ●▌                                         │
+│   ANIMATION     17     on focus  ▐  ●▌                                         │
 │     Spinner            look       raised  bordered                             │
-│     ProgressBar                                                                │
+│     TickerMode                                                                 │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -46,7 +46,7 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaadddddddddaaaaaAAaaaggmmgmmmmmggxyyzxggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnaaaaaaaaaaggmmmmggggggsttttttshwwwwwwwwhgggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

@@ -2,7 +2,7 @@ screen 120×36, cursor hidden
 text
 │  ◆ twk gallery   Animation  ›  Effect                                                      ctrl+p search      ◐ Light  │
 │                                                                                                                        │
-│   ⌕ Filter             /      Effect                                                                         16 of 16  │
+│   ⌕ Filter             /      Effect                                                                         17 of 17  │
 │                               A child shown through an effect over its cells, run on the app's clock: recolored,       │
 │     AnimatedBuilder           swept, dissolved, typed or glitched in, while the child repaints underneath.             │
 │     AnimatedAlign, Anim…                                                                                               │

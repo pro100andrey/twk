@@ -2,7 +2,7 @@ screen 120×36, cursor hidden
 text
 │  ◆ twk gallery   Animation  ›  AnimatedSwitcher                                            ctrl+p search      ◐ Light  │
 │                                                                                                                        │
-│   ⌕ Filter             /      AnimatedSwitcher                                                               14 of 16  │
+│   ⌕ Filter             /      AnimatedSwitcher                                                               15 of 17  │
 │                               A child that gives way to another as the transition shows them: faded, slid or           │
 │     Skeleton, Skeletoni…      dissolved.                                                                               │
 │     AnimationController                                                                                                │

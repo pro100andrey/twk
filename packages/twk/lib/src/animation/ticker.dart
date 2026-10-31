@@ -10,6 +10,11 @@ import '../binding/app_binding.dart';
 import '../framework/framework.dart';
 
 // Examples can assume:
+// import 'dart:async';
+// abstract class Poll extends StatefulWidget {
+//   const Poll({super.key});
+// }
+// void refresh() {}
 // abstract class Blink extends StatefulWidget {
 //   const Blink({super.key});
 // }
@@ -71,11 +76,32 @@ final class Ticker {
   Duration? _startedAt;
   var _active = false;
   var _disposed = false;
+  var _muted = false;
 
   late final FrameCallback _tickCallback = _tick;
 
   /// Whether it ticks: [start]ed and not stopped since.
   bool get isActive => _active;
+
+  /// Whether it is kept from ticking while active: it asks for no frame
+  /// and calls nothing, its time going on; unmuted, it ticks from the next
+  /// frame. A [TickerProviderStateMixin] sets it from [TickerMode].
+  bool get muted => _muted;
+  set muted(bool on) {
+    if (on == _muted) {
+      return;
+    }
+    _muted = on;
+    if (on) {
+      final callback = _callback;
+      if (callback != null) {
+        _callback = null;
+        binding?.cancelFrameCallback(callback);
+      }
+    } else if (_active && !_disposed && _callback == null) {
+      _schedule();
+    }
+  }
 
   /// Ticks from the next frame on; a [StateError] if it is active.
   void start() {
@@ -105,6 +131,9 @@ final class Ticker {
   }
 
   void _schedule() {
+    if (_muted) {
+      return;
+    }
     _callback = binding?.scheduleFrameCallback(_tickCallback);
   }
 
@@ -117,6 +146,47 @@ final class Ticker {
       _schedule();
     }
   }
+}
+
+/// Whether the [Ticker]s below tick: `Offstage` and `Visibility` turn them
+/// off for what they hide, so that what is not shown asks for no frames.
+///
+/// A [TickerProviderStateMixin] mutes its tickers ([Ticker.muted]) while
+/// the mode is off, and unmutes them when it is on again; their time goes
+/// on meanwhile. A state's own timer asks the same through [of]:
+///
+/// ```dart
+/// final class _PollState extends State<Poll> {
+///   Timer? timer;
+///
+///   @override
+///   Widget build(BuildContext context) => const Text('polling');
+///
+///   @override
+///   void didChangeDependencies() {
+///     super.didChangeDependencies();
+///     timer?.cancel();
+///     timer = TickerMode.of(context)
+///         ? Timer.periodic(const Duration(seconds: 1), (_) => refresh())
+///         : null;
+///   }
+/// }
+/// ```
+final class TickerMode extends InheritedWidget {
+  /// Turns the tickers below on or off with [enabled].
+  const TickerMode({required this.enabled, required super.child, super.key});
+
+  /// Whether the tickers below tick.
+  final bool enabled;
+
+  /// Whether the tickers at [context] tick: the mode of the nearest
+  /// [TickerMode] above it, true where there is none. The caller is told
+  /// ([State.didChangeDependencies]) when it changes.
+  static bool of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<TickerMode>()?.enabled ?? true;
+
+  @override
+  bool updateShouldNotify(TickerMode oldWidget) => enabled != oldWidget.enabled;
 }
 
 /// What makes the [Ticker]s of an object's animations, such as a [State]
@@ -158,9 +228,24 @@ mixin TickerProviderStateMixin<T extends StatefulWidget> on State<T>
 
   @override
   Ticker createTicker(TickerCallback onTick) {
-    final ticker = Ticker(onTick, binding: AppBinding.maybeOf(context));
+    final ticker = Ticker(onTick, binding: AppBinding.maybeOf(context))
+      ..muted = !TickerMode.of(context);
     (_tickers ??= []).add(ticker);
     return ticker;
+  }
+
+  @override
+  @protected
+  @mustCallSuper
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final tickers = _tickers;
+    if (tickers != null) {
+      final muted = !TickerMode.of(context);
+      for (final ticker in tickers) {
+        ticker.muted = muted;
+      }
+    }
   }
 
   @override

@@ -16,24 +16,24 @@ text
 │     ModalBarrier               ┌                                                    ┐    │                             │
 │ ▎   WindowLayer                  The app, under its windows.                             │  shadow              ▐  ●▌  │
 │                                   Open the windows closed                                │                             │
-│   ANIMATION           16                                                                 │  resizable           ▐  ●▌  │
+│   ANIMATION           17                                                                 │  resizable           ▐  ●▌  │
 │     Spinner                          Notes                ─ □ ×                          │                             │
-│     ProgressBar                      Drag me by the title bar,                           │  minimisable         ▐  ●▌  │
-│     ProgressList          ▐          or resize me by an e  Counter          ─ □ ×        │                             │
-│     Skeleton, Skeletoni…  ▐                                count: 0                      │  maximisable         ▐  ●▌  │
-│     AnimationController   ▐                                 Add one                      │                             │
+│     TickerMode                       Drag me by the title bar,                           │  minimisable         ▐  ●▌  │
+│     ProgressBar           ▐          or resize me by an e  Counter          ─ □ ×        │                             │
+│     ProgressList          ▐                                count: 0                      │  maximisable         ▐  ●▌  │
+│     Skeleton, Skeletoni…  ▐                                 Add one                      │                             │
+│     AnimationController   ▐                                                              │                             │
 │     AnimatedBuilder       ▐                                                              │                             │
-│     AnimatedAlign, Anim…  ▐                                                              │                             │
+│     AnimatedAlign, Anim…                                                                 │                             │
 │     AnimatedPositioned                                                                   │                             │
-│     AnimatedBox                                                                          │                             │
-│     AnimatedOpacity, Op…       └                                                    ┘    │                             │
-│     AnimatedDefaultText…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   · 50 × 12     │                             │
-│     AnimatedSize                                                                         │                             │
-│     TweenAnimationBuild…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     AnimatedSwitcher                                                                     │                             │
-│     Dissolve, Fractiona…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     Effect                                                                               │                             │
-│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     AnimatedBox                └                                                    ┘    │                             │
+│     AnimatedOpacity, Op…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   · 50 × 12     │                             │
+│     AnimatedDefaultText…                                                                 │                             │
+│     AnimatedSize               ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     TweenAnimationBuild…                                                                 │                             │
+│     AnimatedSwitcher           ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Dissolve, Fractiona…                                                                 │                             │
+│     Effect                     ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │                                                                                          │                             │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
 styles
@@ -55,22 +55,22 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhaddddadddadddddddaddddddahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaadddddddddaaaaaaaaaaaGGaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnnnnnhhhhhhhhhhhqrrsqhh│
 │aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhxxyyyyyxxxxxxxxxxxxxxxxzxzxzxxhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhAABBBBABBABBABBBABBBBBABBBBAAACChhhhhhhhhhhhhhhhhhhhhhphhnnnnnnnnnnnhhhhhhhhhqrrsqhh│
-│aaaaaooooooooooooaaaaaaaaaadhhhhhhhhAABBABBBBBBABBABBABBABxxyyyyyyyxxxxxxxxxxzxzxzxxhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooaooooooooooaadhhhhhhhhAAAAAAAAAAAAAAAAAAAAAAAABBBBBBABAAAAAAAAAAAAAAAAhhhhhhphhnnnnnnnnnnnhhhhhhhhhqrrsqhh│
-│aaaaaoooooooooooooooooooaaadhhhhhhhhAAAAAAAAAAAAAAAAAAAAAAAAxEEExEEExAAAAAAAAAAAAAAAhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooooaaaaaaadhhhhhhhhAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooooaoooooaadhhhhhhhhhhCCCCCCCCCCCCCCCCCCCCAAAAAAAAAAAAAAAAAAAAAAAAAAhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooooooooaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhAAAAAAAAAAAAAAAAAAAAAAAAAAhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhCCCCCCCCCCCCCCCCCCCCCCCChhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooooooaoooaaahhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooooooooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphJJhJhJJhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooooooooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooooooaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooaooooooooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhAABBBBABBABBABBBABBBBBABBBBAAACChhhhhhhhhhhhhhhhhhhhhhphhnnnnnnnnnnnhhhhhhhhhqrrsqhh│
+│aaaaaoooooooooooaaaaaaaaaaadhhhhhhhhAABBABBBBBBABBABBABBABxxyyyyyyyxxxxxxxxxxzxzxzxxhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaadhhhhhhhhAAAAAAAAAAAAAAAAAAAAAAAABBBBBBABAAAAAAAAAAAAAAAAhhhhhhphhnnnnnnnnnnnhhhhhhhhhqrrsqhh│
+│aaaaaoooooooooaooooooooooaadhhhhhhhhAAAAAAAAAAAAAAAAAAAAAAAAxEEExEEExAAAAAAAAAAAAAAAhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooooooaaadhhhhhhhhAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaadhhhhhhhhhhCCCCCCCCCCCCCCCCCCCCAAAAAAAAAAAAAAAAAAAAAAAAAAhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooaoooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhAAAAAAAAAAAAAAAAAAAAAAAAAAhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhCCCCCCCCCCCCCCCCCCCCCCCChhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaoooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphJJhJhJJhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaooooooooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
 legend

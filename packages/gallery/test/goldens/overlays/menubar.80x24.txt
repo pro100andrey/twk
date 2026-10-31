@@ -17,11 +17,11 @@ text
 │     ModalBarrier    ▐                                                          │
 │     WindowLayer         └                                                  ┘   │
 │                                                                      48 × 8    │
-│   ANIMATION     16                                                             │
+│   ANIMATION     17                                                             │
 │     Spinner          ──────────────────────────────────────────────────────────│
-│     ProgressBar        keys bound  ▐  ●▌                                       │
-│     ProgressList       look         raised  bordered                           │
-│     Skeleton, Ske…                                                             │
+│     TickerMode         keys bound  ▐  ●▌                                       │
+│     ProgressBar        look         raised  bordered                           │
+│     ProgressList                                                               │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -44,9 +44,9 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaggggggggggggggggggggggggggggggggggggggggggggggggGGgGgGgggg│
 │aaadddddddddaaaaaDDaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnnnnnaaaaaaggmmmmgmmmmmggzAABzggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnnaaaaaggmmmmggggggggtuuuuuuthCCCCCCCChgggggggggggggggggggggggggg│
-│aaaaannnnnnnnnannnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnaaaaaaaggmmmmgmmmmmggzAABzggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnaaaaaaggmmmmggggggggtuuuuuuthCCCCCCCChgggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend
