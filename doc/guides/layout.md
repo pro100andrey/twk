@@ -125,6 +125,66 @@ Where the room has an end, the same widgets take all of it.
   often no `Align` to write: `crossAxisAlignment: .start` of the `Row` or
   `Column` places its children across it, `mainAxisAlignment` along it.
 
+## Limits and the room
+
+`SizedBox` gives one size. `ConstrainedBox` keeps its child within limits
+and leaves the rest to it: `BoxConstraints(minW, maxW, minH, maxH)`, in
+cells, positional (twk's names, not Flutter's `maxWidth`), with
+`BoxConstraints.unbounded` for a limit that limits nothing and
+`BoxConstraints.tight(w, h)` for one size. Whatever is inside still gets
+no more than its parent gave. `LayoutBuilder` hands its builder the
+constraints it was given, `maxW` and `maxH` the room in cells, to choose
+by: the app below shows the room and keeps a text to 30 cells.
+
+<!-- file: packages/twk/example/guides/constraints.dart -->
+```dart
+import 'package:twk/twk.dart';
+
+Future<void> main() => runApp(const Constraints());
+
+final class Constraints extends StatelessWidget {
+  const Constraints({super.key});
+
+  @override
+  Widget build(BuildContext context) => KeyBindings(
+    {'q': () => AppBinding.of(context).quit()},
+    child: LayoutBuilder(
+      builder: (context, constraints) => Column(
+        crossAxisAlignment: .start,
+        children: [
+          // the room this part of the app is given, in cells
+          Text('room: ${constraints.maxW} x ${constraints.maxH}'),
+          // minW, maxW, minH, maxH: at most 30 wide, any height
+          const ConstrainedBox(
+            constraints: BoxConstraints(10, 30, 0, BoxConstraints.unbounded),
+            child: Box(
+              border: .all(type: .rounded),
+              child: Text(
+                'A message that wraps at thirty cells, however wide the '
+                'terminal is.',
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+```
+
+```text
+room: 50 x 8
+╭──────────────────────────╮
+│A message that wraps at   │
+│thirty cells, however wide│
+│the terminal is.          │
+╰──────────────────────────╯
+```
+
+A `LayoutBuilder` builds again when its constraints change, as a resize
+does; the [hints](#hints-that-depend-on-the-layout) below choose a layout
+with one.
+
 ## Hints that depend on the layout
 
 `KeyHintsBar` shows the keys of the `KeyBindings` on the path of the

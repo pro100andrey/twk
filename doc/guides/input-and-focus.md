@@ -153,9 +153,45 @@ ctrl+z undo   ctrl+s save   ctrl+q quit
 - A `FocusNode` (`requestFocus()`, `hasFocus`) moves it from code;
   `FocusScope` keeps Tab within a part of the app, `ExcludeFocus` keeps
   the focus out of one.
+- Who has the focus: `AppBinding.of(context).focusManager.primaryFocus`
+  is the node that has it, or null when no widget does (a `FocusNode`
+  you made, compared with `==`, or its `debugLabel`). Read it in a
+  callback; a build does not run again when the focus moves. A widget
+  that shows whether it has the focus is a `FocusBuilder`.
 - Several keys read at once (fast typing, a paste of keys) are handled
   one after another with no build between them: a handler reads the
-  state it changes, not what a build made of it.
+  state it changes, not what a build made of it. `setState(() => _count++)`
+  counts every key of `+++`; `final count = _count;` in the build and
+  `setState(() => _count = count + 1)` in the handler counts one, as the
+  second key still sees the `count` of the build before.
+
+<!-- file: packages/twk/example/guides/batch.dart -->
+```dart
+import 'package:twk/twk.dart';
+
+Future<void> main() => runApp(const Counter());
+
+final class Counter extends StatefulWidget {
+  const Counter({super.key});
+
+  @override
+  State<Counter> createState() => _CounterState();
+}
+
+final class _CounterState extends State<Counter> {
+  var _count = 0;
+
+  @override
+  Widget build(BuildContext context) => KeyBindings(
+    {
+      // changes the field itself: the next key of the batch sees it
+      '+': () => setState(() => _count++),
+      'q': () => AppBinding.of(context).quit(),
+    },
+    child: Focus(autofocus: true, child: Text('count: $_count')),
+  );
+}
+```
 
 ## The mouse
 
@@ -164,6 +200,79 @@ is mounted: `GestureDetector` (`onTap:`, `onDoubleTap:`, `onDragUpdate:`),
 `Listener`, `MouseRegion` for hovers and the pointer's shape, `Draggable`
 and `DragTarget`. A click on a focusable widget focuses it. Inline, the
 mouse stays the terminal's: its own selection keeps working.
+
+Detectors one inside another compete for a press: each gesture goes to
+the deepest one with a callback for it, and a press is one gesture, so
+when the inner one takes the tap the outer one gets nothing of it. A press
+of a button the inner one has no callback for goes to the outer one.
+Below, a tap on the inner card says `inner`, one on the outer card's
+border `outer`, and F2 says whether the search field has the focus.
+
+<!-- file: packages/twk/example/guides/who.dart -->
+```dart
+import 'package:twk/twk.dart';
+
+Future<void> main() => runApp(const Who());
+
+final class Who extends StatefulWidget {
+  const Who({super.key});
+
+  @override
+  State<Who> createState() => _WhoState();
+}
+
+final class _WhoState extends State<Who> {
+  final _search = FocusNode(debugLabel: 'search');
+  var _said = 'nothing yet';
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => KeyBindings(
+    {
+      // the node that has the focus now, none if no widget does
+      'f2': () => setState(() {
+        final focus = AppBinding.of(context).focusManager.primaryFocus;
+        _said = 'focus: ${focus == _search ? 'search' : 'elsewhere'}';
+      }),
+      'ctrl+q': () => AppBinding.of(context).quit(),
+    },
+    child: Column(
+      crossAxisAlignment: .start,
+      children: [
+        Text(_said),
+        GestureDetector(
+          onTap: (_) => setState(() => _said = 'outer'),
+          child: Box(
+            border: const .all(type: .rounded),
+            padding: const .all(1),
+            child: GestureDetector(
+              // the deepest detector with an onTap takes the tap
+              onTap: (_) => setState(() => _said = 'inner'),
+              child: const Box(
+                border: .all(type: .single),
+                child: Text('inner'),
+              ),
+            ),
+          ),
+        ),
+        SizedBox(
+          width: 20,
+          child: TextField(
+            focusNode: _search,
+            autofocus: true,
+            placeholder: 'search',
+          ),
+        ),
+      ],
+    ),
+  );
+}
+```
 
 | | |
 | --- | --- |
