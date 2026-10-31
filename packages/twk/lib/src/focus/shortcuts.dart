@@ -281,7 +281,9 @@ extension FocusManagerKeys on FocusManager {
   /// of a sequence, the keys that can follow them are listed, and nothing
   /// else. The keys a node takes in its own [FocusNode.onKeyEvent] are not
   /// listed. [keysChanged] tells when this may have changed. A `MenuItem`
-  /// shows the first key bound to what it does ([ActiveKey.binding]).
+  /// shows the first key bound to what it does ([ActiveKey.binding]);
+  /// `AppBinding.pressKey` presses one, as a bar of one's own does when a
+  /// hint is tapped.
   List<ActiveKey> get activeKeys {
     final keys = <ActiveKey>[];
     final taken = <KeyCombo>{};

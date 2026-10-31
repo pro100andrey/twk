@@ -637,6 +637,30 @@ final class AppBinding {
   /// Ends [run].
   void quit() => twkApp.quit();
 
+  /// Handles a press of [combo] as one the terminal sent: given to the
+  /// nodes of the focus's [FocusManager.keyPath] and what is past them, so
+  /// a `KeyBindings` or `Shortcuts` on the path does what the key is bound
+  /// to there, a field types it, Tab moves the focus. The keys of a
+  /// sequence are pressed one at a time, `ctrl+x` then `ctrl+s`. For a
+  /// callback of an event, as a tap on a hint of a bar of one's own
+  /// ([FocusManagerKeys.activeKeys]); not for a build.
+  ///
+  /// ```dart
+  /// void save(BuildContext context) =>
+  ///     AppBinding.of(context).pressKey(KeyCombo.parse('ctrl+s'));
+  /// ```
+  void pressKey(KeyCombo combo) {
+    final shifted = combo.modifiers & Mod.shift != 0;
+    _dispatch(
+      KeyEvent(
+        combo.code,
+        // a capital letter as a terminal sends it
+        char: shifted ? combo.char.toUpperCase() : combo.char,
+        modifiers: combo.modifiers,
+      ),
+    );
+  }
+
   /// Shows a desktop notification of [title] and [body] where the terminal
   /// is known to show one (`TerminalInfo.notifications`), through tmux or
   /// screen: [WindowBackend.notify] of the terminal ([Terminal.notify], or
@@ -972,7 +996,7 @@ final class AppBinding {
   /// one, and while the callbacks of a frame are called it waits for the
   /// next. One added once [run] has ended is never called.
   ///
-  /// The width of what [context] builds, once it is laid out:
+  /// The width of what `context` builds, once it is laid out:
   ///
   /// ```dart
   /// void logWidth(BuildContext context) =>

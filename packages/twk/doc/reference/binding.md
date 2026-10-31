@@ -48,7 +48,12 @@ frame, once it is laid out, painted and written, with the frame's time: where
 what the frame laid out (a size, a place) is read and acted on, a change made
 there built by the next frame; added during a frame's build or layout it is
 called at the end of that frame, between frames it asks for one, and while
-the callbacks of a frame are called it waits for the next. `reassemble()`, what a hot
+the callbacks of a frame are called it waits for the next.
+`pressKey(combo)` handles a press of a `KeyCombo` as one the terminal sent,
+along the focus's key path and past it: what a tap on a hint of a bar of
+the app's own does (`FocusManagerKeys.activeKeys`, each key with the keys
+`then` of its sequence, pressed one at a time); from an event's callback,
+not a build. `reassemble()`, what a hot
 reload calls (`twk run` of `packages/twk_dev`), has the next frame rebuild
 every element, its state kept, lay out and paint every render object again
 and write the whole screen again. It gives a key to the debug aids first
