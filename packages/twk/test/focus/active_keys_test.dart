@@ -405,4 +405,34 @@ void main() {
       ],
     );
   });
+
+  testTwk('esc and escape are one key: bound under either name, and both '
+      'bound is refused as the same key', (t) async {
+    final seen = <String>[];
+    await t.pumpWidget(
+      Column(
+        children: [
+          KeyBindings({
+            'esc': () => seen.add('esc'),
+          }, child: const Focus(autofocus: true, child: Text('a'))),
+          const KeyBindings({
+            'esc': nothing,
+            // the failure is what is tested
+            // ignore: twk_lints/key_names
+            'escape': nothing,
+          }, child: Text('b')),
+        ],
+      ),
+    );
+    await t.press('escape');
+    await t.press('esc');
+    expect(seen, ['esc', 'esc']);
+    expect(
+      [
+        for (final r in t.logs.records)
+          if (r.level == LogLevel.error) '${r.error}',
+      ],
+      [contains('"esc" and "escape" are the same key')],
+    );
+  });
 }

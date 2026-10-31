@@ -16,7 +16,9 @@ import 'package:twk_core/twk_core.dart' show KeyCode, KeyEvent, KeyKind, Mod;
 /// * The key is one character, which stands for itself (`a`, `?`, `я`,
 ///   `+`), `space`, or a [KeyCode]'s name in lower case: `enter`, `tab`,
 ///   `backspace`, `escape`, `up`, `down`, `left`, `right`, `home`, `end`,
-///   `pageup`, `pagedown`, `insert`, `delete`, `f1` to `f12`.
+///   `pageup`, `pagedown`, `insert`, `delete`, `f1` to `f12`. Escape is
+///   `esc` too, the name a key hint shows it by: the same key, which
+///   [toString] writes `escape`.
 /// * Only the character has a case: `A` is Shift and `a`, the same combo
 ///   as `shift+a`, and `ctrl+A` is `ctrl+shift+a`. Shift alone with a
 ///   character that has no case names no key: it types another character
@@ -27,7 +29,7 @@ import 'package:twk_core/twk_core.dart' show KeyCode, KeyEvent, KeyKind, Mod;
 ///   a leader key given to it: `leader f` (`LeaderKey`).
 ///
 /// A string that is not one is a [FormatException] naming the part that is
-/// wrong, and the name meant where that is plain (`Enter`, `esc`, `cmd`).
+/// wrong, and the name meant where that is plain (`Enter`, `ret`, `cmd`).
 /// [toString] writes a combo as it is parsed: the modifiers in the order
 /// `ctrl`, `alt`, `shift`, `super`, Shift and a letter as the capital.
 ///
@@ -143,7 +145,7 @@ final class KeyCombo {
       }
       return KeyCombo._(KeyCode.char, ' ', modifiers);
     }
-    final code = _keys[name];
+    final code = _keys[name] ?? (name == 'esc' ? KeyCode.escape : null);
     if (code != null) {
       return KeyCombo._(code, '', modifiers);
     }

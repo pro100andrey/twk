@@ -78,13 +78,14 @@ focus and the nodes between. A key binding names keys as `KeyCombo.parse`
 reads them: the modifiers `ctrl`, `alt`, `shift` and `super`, in any order,
 each once, then the key, joined by `+` (`ctrl+s`, `shift+tab`); the key is
 one character, which stands for itself (`+` comes last: `ctrl++`), `space`,
-or a `KeyCode`'s name in lower case (`enter`, `pageup`, `f1`); only a
+or a `KeyCode`'s name in lower case (`enter`, `pageup`, `f1`; Escape is
+`esc` too, as a key hint shows it, the same key); only a
 character has a case (`A` is `shift+a`, `ctrl+A` is `ctrl+shift+a`), and
 Shift alone with a character that has no case names no key; keys pressed one
 after another are one space apart (`parseSequence`: `ctrl+x ctrl+s`; with
 `leader:`, `leader` stands for that key). A string that is not one is a
 `FormatException` naming the part that is wrong, and the name meant where
-that is plain (`Enter`, `esc`, `cmd`); `toString` writes a combo as it is
+that is plain (`Enter`, `ret`, `cmd`); `toString` writes a combo as it is
 parsed (`KeyCombo(code)`, `KeyCombo.char`, `KeyCombo.fromEvent`, and
 `accepts` for a press or a repeat of the key). Without the kitty keyboard
 protocol a terminal sends some combos as others: `ctrl+i` as `tab`, `ctrl+m`

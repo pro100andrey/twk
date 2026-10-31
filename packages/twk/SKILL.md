@@ -623,8 +623,8 @@ What to know:
   (Space on the row Enter added).
 - `type('text')` sends the text as one read. `press('enter')`,
   `press('tab space')`, `press('ctrl+x ctrl+s')` send each key as a read
-  of its own, the keys named as `KeyBindings` names them (`escape`, not
-  `esc`; in lower case). `press('escape')`
+  of its own, the keys named as `KeyBindings` names them, in lower case
+  (`escape`, or `esc` as the hints show it). `press('escape')`
   waits out the 30 ms after which a lone ESC is the Escape key; a key with
   no bytes of its own without the kitty protocol (Ctrl+Shift and a
   letter, Ctrl+Enter) throws unless `pumpWidget(..., kittyKeyboard: true)`.

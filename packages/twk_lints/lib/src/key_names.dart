@@ -146,6 +146,10 @@ KeySpec _parse(String spec, String key, {required bool leader}) {
   if (keyNames.contains(name)) {
     return KeySpec.key(name, modifiers);
   }
+  // Escape by the name a key hint shows it by
+  if (name == 'esc') {
+    return KeySpec.key('escape', modifiers);
+  }
   if (name.runes.length != 1) {
     if (_modifiers.containsKey(name)) {
       fail('"$name" in "$key" is a modifier: the key comes after it');

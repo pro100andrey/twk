@@ -35,6 +35,9 @@ void main() {
       'enter': const KeyCombo(KeyCode.enter),
       'shift+tab': const KeyCombo(KeyCode.tab, modifiers: shift),
       'escape': const KeyCombo(KeyCode.escape),
+      // the name the hints show it by
+      'esc': const KeyCombo(KeyCode.escape),
+      'shift+esc': const KeyCombo(KeyCode.escape, modifiers: shift),
       'backspace': const KeyCombo(KeyCode.backspace),
       'pageup': const KeyCombo(KeyCode.pageUp),
       'ctrl+pagedown': const KeyCombo(KeyCode.pageDown, modifiers: ctrl),
@@ -58,6 +61,7 @@ void main() {
       'space': 'space',
       'pagedown': 'pagedown',
       'alt+f4': 'alt+f4',
+      'esc': 'escape',
     };
     for (final MapEntry(key: spec, value: text) in written.entries) {
       final combo = KeyCombo.parse(spec);
@@ -95,10 +99,11 @@ void main() {
           '"Enter" in "ctrl+Enter" is neither one character nor '
           'a key',
       'Enter': '"enter" is meant?',
-      'esc':
-          '"esc" in "esc" is neither one character nor a key: space, '
+      'Esc': '"escape" is meant?',
+      'ret':
+          '"ret" in "ret" is neither one character nor a key: space, '
           'enter, tab, backspace, escape, up, down, left, right, home, end, '
-          'pageup, pagedown, insert, delete, f1 to f12; "escape" is meant?',
+          'pageup, pagedown, insert, delete, f1 to f12; "enter" is meant?',
       'pgup': '"pageup" is meant?',
       'F5': '"f5" is meant?',
       'ctrl': '"ctrl" in "ctrl" is a modifier: the key comes after it',

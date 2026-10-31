@@ -115,10 +115,11 @@ joined by `+` (`ctrl+shift+left`), a space between two keys (`'g g'`).
 A name is one character, which stands for itself (`a`, `?`, and `A` for
 `shift+a`), or one of `space`, `enter`, `tab`, `backspace`, `escape`,
 `up`, `down`, `left`, `right`, `home`, `end`, `pageup`, `pagedown`,
-`insert`, `delete` and `f1` to `f12`, in lower case. A name that is not
-one throws, naming the one meant: `esc` is `escape`, `Enter` is
-`enter`. `press('escape')` moves the clock on by 30 ms, the pause after
-which a terminal's lone ESC is the Escape key.
+`insert`, `delete` and `f1` to `f12`, in lower case; Escape is `esc` too,
+as the key hints show it. A name that is not one throws, naming the one
+meant: `Enter` is `enter`, `ret` is `enter`. `press('escape')` moves the
+clock on by 30 ms, the pause after which a terminal's lone ESC is the
+Escape key.
 
 Keys sent with no pump between them are handled before the next build,
 as a burst from a real terminal is: `press('enter space')` presses Space

@@ -25,6 +25,8 @@ void main() {
       'я',
       'Я',
       ...keyNames,
+      // Escape by the name the hints show it by
+      'esc',
     ])
       for (var m = 0; m < 16; m++)
         [
@@ -53,7 +55,8 @@ void main() {
     'ctrl+ctrl+a',
     'ctrl+shift+ctrl+a',
     'shift+space',
-    'esc',
+    'Esc',
+    'ret',
     'Enter',
     'pgdn',
     'spacebar',
