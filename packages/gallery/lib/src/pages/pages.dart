@@ -4,7 +4,7 @@ import '../page.dart';
 import 'animation/animation.dart';
 import 'app/app.dart';
 import 'controls/controls.dart';
-import 'data.dart';
+import 'data/data.dart';
 import 'debugging.dart';
 import 'editing/editing.dart';
 import 'focus.dart';
