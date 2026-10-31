@@ -71,35 +71,58 @@ void _tickProgress(ProgressTracker tracker, int ticks) {
   }
 }
 
+/// The ProgressList page's `columns` option.
+final _progressListColumns = ChoiceOption<String>(
+  'columns',
+  'columns',
+  values: _progressColumns.keys.toList(),
+);
+
+/// The ProgressList page's `bar` option.
+final _progressListBar = ChoiceOption<String>(
+  'bar',
+  'bar',
+  values: [for (final s in ProgressBarShape.values) s.name],
+);
+
+/// The ProgressList page's `spinner` option.
+final _progressListSpinner = ChoiceOption<String>(
+  'spinner',
+  'spinner',
+  values: _frames.keys.toList(),
+);
+
+/// The ProgressList page's `hide` option.
+const _progressListHide = SwitchOption('hide', 'hide finished');
+
+/// The ProgressList page's `max` option.
+const _progressListMax = ChoiceOption<int?>(
+  'max',
+  'at most',
+  values: [null, 2],
+  labels: ['all', '2'],
+);
+
 final _progressList = GalleryPage(
-  group: 'Animation',
+  group: _group,
   title: 'ProgressList',
   options: [
-    ChoiceOption('columns', 'columns', values: _progressColumns.keys.toList()),
-    ChoiceOption(
-      'bar',
-      'bar',
-      values: [for (final s in ProgressBarShape.values) s.name],
-    ),
+    _progressListColumns,
+    _progressListBar,
     // a running task's mark, as the Spinner page's frames
-    ChoiceOption('spinner', 'spinner', values: _frames.keys.toList()),
-    const SwitchOption('hide', 'hide finished'),
-    const ChoiceOption(
-      'max',
-      'at most',
-      values: [null, 2],
-      labels: ['all', '2'],
-    ),
+    _progressListSpinner,
+    _progressListHide,
+    _progressListMax,
   ],
   build: (context, o) => _Progress(
-    columns: _progressColumns[o.choice<String>('columns')]!,
-    barShape: ProgressBarShape.values.byName(o.choice('bar')),
-    spinner: _frames[o.choice<String>('spinner')]!,
-    hideFinished: o.flag('hide'),
-    maxVisible: o.choice('max'),
+    columns: _progressColumns[o(_progressListColumns)]!,
+    barShape: ProgressBarShape.values.byName(o(_progressListBar)),
+    spinner: _frames[o(_progressListSpinner)]!,
+    hideFinished: o(_progressListHide),
+    maxVisible: o(_progressListMax),
   ),
   code: (o) {
-    final columns = o.choice<String>('columns');
+    final columns = o(_progressListColumns);
     return [
       codeLine([
         '/// The downloads: a name, a size in bytes, and the bytes a tick ',
@@ -176,12 +199,12 @@ final _progressList = GalleryPage(
         for (final c in _progressColumns[columns]!) '      .${c.name},',
         '    ],',
       ],
-      if (o.choice<String>('bar') != 'blocks')
-        '    barShape: .${o.choice<String>('bar')},',
-      if (o.choice<String>('spinner') != 'dots')
-        '    spinner: .${o.choice<String>('spinner')},',
-      if (o.flag('hide')) '    hideFinished: true,',
-      if (o.choice<int?>('max') case final max?) '    maxVisible: $max,',
+      if (o(_progressListBar) != 'blocks')
+        '    barShape: .${o(_progressListBar)},',
+      if (o(_progressListSpinner) != 'dots')
+        '    spinner: .${o(_progressListSpinner)},',
+      if (o(_progressListHide)) '    hideFinished: true,',
+      if (o(_progressListMax) case final max?) '    maxVisible: $max,',
       '  ),',
       ');',
     ].join('\n');

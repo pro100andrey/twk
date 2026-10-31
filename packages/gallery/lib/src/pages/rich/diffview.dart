@@ -15,29 +15,45 @@ String _edited(int k) => _edits
 
 final String _after = _edited(_edits.length);
 
+/// The DiffView page's `layout` option.
+const _diffViewLayout = ChoiceOption<String>(
+  'layout',
+  'layout',
+  values: ['unified', 'sideBySide'],
+);
+
+/// The DiffView page's `context` option.
+const _diffViewContext = ChoiceOption<int>(
+  'context',
+  'context',
+  values: [3, 1, 0],
+  labels: ['3 lines', '1', '0'],
+);
+
+/// The DiffView page's `live` option.
+const _diffViewLive = SwitchOption('live', 'edit live');
+
+/// The DiffView page's `language` option.
+const _diffViewLanguage = ChoiceOption<String>(
+  'language',
+  'language',
+  values: ['path', 'plain'],
+  labels: ["the path's", 'plain'],
+);
+
 final _diffView = GalleryPage(
-  group: 'Rich',
+  group: _group,
   title: 'DiffView',
   options: const [
-    ChoiceOption('layout', 'layout', values: ['unified', 'sideBySide']),
-    ChoiceOption(
-      'context',
-      'context',
-      values: [3, 1, 0],
-      labels: ['3 lines', '1', '0'],
-    ),
-    SwitchOption('live', 'edit live'),
+    _diffViewLayout,
+    _diffViewContext,
+    _diffViewLive,
     // the code's language: that of the file's path, or none
-    ChoiceOption(
-      'language',
-      'language',
-      values: ['path', 'plain'],
-      labels: ["the path's", 'plain'],
-    ),
+    _diffViewLanguage,
   ],
   build: (context, o) => inRoom((rw, rh) {
-    final side = o.choice<String>('layout') == 'sideBySide';
-    final plain = o.choice<String>('language') == 'plain';
+    final side = o(_diffViewLayout) == 'sideBySide';
+    final plain = o(_diffViewLanguage) == 'plain';
     final w = math.min(rw, side ? 100 : 64);
     final h = clampTo(rh, 6, 22);
     Widget view(String after) => SizedBox(
@@ -49,7 +65,7 @@ final _diffView = GalleryPage(
           Diff.between(
             _before,
             after,
-            context: o.choice('context'),
+            context: o(_diffViewContext),
             path: _path,
           ),
           layout: side ? DiffLayout.sideBySide : DiffLayout.unified,
@@ -57,7 +73,7 @@ final _diffView = GalleryPage(
         ),
       ),
     );
-    if (!o.flag('live')) {
+    if (!o(_diffViewLive)) {
       return view(_after);
     }
     return Timed((context, ms, wake) {
@@ -69,13 +85,13 @@ final _diffView = GalleryPage(
   heightIn: (o, room) => clampTo(room.height, 6, 22),
   codeIn: (o, room) {
     final (rw, rh) = codeRoomOf(room);
-    final side = o.choice<String>('layout') == 'sideBySide';
+    final side = o(_diffViewLayout) == 'sideBySide';
     final w = math.min(rw, side ? 100 : 64);
     final h = clampTo(rh, 6, 22);
-    final context = o.choice<int>('context');
+    final context = o(_diffViewContext);
     final args = [
       if (side) ', layout: .sideBySide',
-      if (o.choice<String>('language') == 'plain') ', language: Language.plain',
+      if (o(_diffViewLanguage) == 'plain') ', language: Language.plain',
     ].join();
     String between(String after) =>
         'Diff.between(_before, $after'
@@ -91,7 +107,7 @@ final _diffView = GalleryPage(
       '  );',
     ];
     final head = ["const _before = r'''", ..._before.split('\n'), "''';", ''];
-    if (!o.flag('live')) {
+    if (!o(_diffViewLive)) {
       return [
         ...head,
         "const _after = r'''",

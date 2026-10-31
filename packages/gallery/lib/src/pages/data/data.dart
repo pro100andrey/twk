@@ -23,6 +23,9 @@ part 'tasklist.dart';
 part 'treetable.dart';
 part 'treeview.dart';
 
+/// The group of the catalog these pages are in.
+const _group = 'Data';
+
 /// The pages of the Data group that draw, in the catalog's order.
 final List<GalleryPage> dataPages = [
   _sparkline,

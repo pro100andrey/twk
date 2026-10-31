@@ -56,10 +56,10 @@ const _arc = ['◜', '◠', '◝', '◞', '◡', '◟'];
 /// is indeterminate), its percent, and the OSC 9;4 that shows it, null
 /// for none.
 (String, int?, String?) _progressOf(Options o) {
-  final value = o.flag('known') ? o.number('value') / 100 : null;
-  final state = o.label('state') == 'normal' && value == null
+  final value = o(_progressKnown) ? o(_progressValue) / 100 : null;
+  final state = o.nameOf(_progressState) == 'normal' && value == null
       ? 'indeterminate'
-      : o.label('state');
+      : o.nameOf(_progressState);
   final percent = value == null
       ? null
       : value >= 1
@@ -78,33 +78,53 @@ String _number(double v) {
   return s.contains('.') ? s.replaceFirst(RegExp(r'\.?0+$'), '') : s;
 }
 
+/// The TerminalProgress page's `state` option.
+const _progressState = ChoiceOption<String>(
+  'state',
+  'state',
+  values: ['none', 'normal', 'error', 'indeterminate', 'paused'],
+  initial: 'normal',
+);
+
+/// The TerminalProgress page's `known` option.
+const _progressKnown = SwitchOption(
+  'known',
+  'value known',
+  initial: true,
+);
+
+/// The TerminalProgress page's `value` option.
+final _progressValue = SliderOption(
+  'value',
+  'value',
+  min: 0,
+  max: 100,
+  initial: 33,
+  format: (v) => '$v%',
+);
+
+/// The TerminalProgress page's `shows` option.
+const _progressShows = SwitchOption(
+  'shows',
+  'terminal shows it',
+  initial: true,
+);
+
 final _progress = GalleryPage(
   terminalAround: true,
-  group: 'App',
+  group: _group,
   title: 'TerminalProgress',
   options: [
-    const ChoiceOption(
-      'state',
-      'state',
-      values: ['none', 'normal', 'error', 'indeterminate', 'paused'],
-      initial: 'normal',
-    ),
-    const SwitchOption('known', 'value known', initial: true),
-    SliderOption(
-      'value',
-      'value',
-      min: 0,
-      max: 100,
-      initial: 33,
-      format: (v) => '$v%',
-    ),
-    const SwitchOption('shows', 'terminal shows it', initial: true),
+    _progressState,
+    _progressKnown,
+    _progressValue,
+    _progressShows,
   ],
   build: (context, o) => _Progress(options: o),
   code: (o) {
-    final known = o.flag('known');
-    final v = known ? _number(o.number('value') / 100) : null;
-    final value = known ? '${o.label('value')}%' : 'not known';
+    final known = o(_progressKnown);
+    final v = known ? _number(o(_progressValue) / 100) : null;
+    final value = known ? '${o.nameOf(_progressValue)}%' : 'not known';
     // what TerminalStatus wrote last, as the page's widget saw it
     final w = o.pageState['wrote'] as String?;
     final wrote = w == null
@@ -122,12 +142,12 @@ final _progress = GalleryPage(
       '// 10 s while it does not; taken away when it leaves the tree',
       'final theme = Theme.of(context);',
       'return TerminalProgress(',
-      '  state: .${o.label('state')},',
+      '  state: .${o.nameOf(_progressState)},',
       if (v != null) '  value: $v,',
       '  child: Column(',
       '    crossAxisAlignment: .start,',
       '    children: [',
-      "      const Text('In the tab: ${o.label('state')}, $value'),",
+      "      const Text('In the tab: ${o.nameOf(_progressState)}, $value'),",
       '      Text.rich([',
       "        Span('wrote: ', theme.muted),",
       if (wrote == null)
@@ -164,16 +184,16 @@ final class _ProgressState extends TimedState<_Progress> {
   /// away; nothing where it shows none. Moving the value makes it known.
   String? _written() {
     final o = widget.options;
-    final value = o.number('value');
-    if (kept['value'] != null && kept['value'] != value && !o.flag('known')) {
+    final value = o(_progressValue);
+    if (kept['value'] != null && kept['value'] != value && !o(_progressKnown)) {
       final control = PageControl.of(context);
       AppBinding.maybeOf(
         context,
-      )?.scheduleFrameCallback((_) => control.setOption('known', true));
+      )?.scheduleFrameCallback((_) => control.setOption(_progressKnown, true));
     }
     kept['value'] = value;
     final seq = _progressOf(o).$3;
-    if (!o.flag('shows')) {
+    if (!o(_progressShows)) {
       kept
         ..['shown'] = null
         ..['wrote'] = null
@@ -208,14 +228,16 @@ final class _ProgressState extends TimedState<_Progress> {
     final o = widget.options;
     final (state, percent, _) = _progressOf(o);
     final wrote = _written();
-    final shown = o.flag('shows') && state != 'none';
+    final shown = o(_progressShows) && state != 'none';
     final color = switch (state) {
       'error' => t.error,
       'paused' => t.warning,
       _ => t.primary,
     };
     final ms = now;
-    final value = o.flag('known') ? '${o.label('value')}%' : 'not known';
+    final value = o(_progressKnown)
+        ? '${o.nameOf(_progressValue)}%'
+        : 'not known';
     final lit = litAt(kept['litAt'] as int?);
 
     void under(Painter p) {
@@ -288,12 +310,12 @@ final class _ProgressState extends TimedState<_Progress> {
       over: over,
       at: (3, 4, _pw - 6, 2),
       app: TerminalProgress(
-        state: ProgressState.values.byName(o.label('state')),
-        value: o.flag('known') ? o.number('value') / 100 : null,
+        state: ProgressState.values.byName(o.nameOf(_progressState)),
+        value: o(_progressKnown) ? o(_progressValue) / 100 : null,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('In the tab: ${o.label('state')}, $value'),
+            Text('In the tab: ${o.nameOf(_progressState)}, $value'),
             Text.rich([
               Span('wrote: ', theme.muted),
               if (wrote == null)

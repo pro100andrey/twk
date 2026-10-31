@@ -32,7 +32,7 @@ final class PageStore {
       Options(page, rawOf(key), pageState: stateOf(key));
 
   /// Sets option [option] of page [key] to [raw].
-  void set(String key, PageOption option, Object raw) =>
+  void set(String key, PageOption<Object?> option, Object raw) =>
       update(() => rawOf(key)[option.key] = raw);
 
   /// The state of page [key] ([PageControl.state]).
@@ -67,14 +67,15 @@ final class _Control implements PageControl {
   Map<String, Object?> get state => _store.stateOf(_key);
 
   @override
-  void setOption(String key, Object? value) {
-    final option = _page?.options.where((o) => o.key == key).firstOrNull;
-    final raw = option?.rawOf(value);
-    if (option == null || raw == null) {
+  void setOption<T>(PageOption<T> option, T value) {
+    // the page's own option of its key says what raw value [value] is
+    final own = _page?.options.where((o) => o.key == option.key).firstOrNull;
+    final raw = own?.rawOf(value);
+    if (own == null || raw == null) {
       return;
     }
-    if (_store.rawOf(_key)[key] != raw) {
-      _store.set(_key, option, raw);
+    if (_store.rawOf(_key)[own.key] != raw) {
+      _store.set(_key, own, raw);
     }
   }
 

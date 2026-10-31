@@ -20,21 +20,31 @@ const _sizeAligns = <(String, Alignment)>[
   ('bottomRight', .bottomRight),
 ];
 
+/// The AnimatedSize page's `lines` option.
+const _sizeLines = ChoiceOption<int>(
+  'lines',
+  'lines',
+  values: _counts,
+);
+
+/// The AnimatedSize page's `alignment` option.
+final _sizeAlignment = ChoiceOption<String>(
+  'alignment',
+  'alignment',
+  values: [for (final a in _sizeAligns) a.$1],
+);
+
 final _size = GalleryPage(
-  group: 'Animation',
+  group: _group,
   title: 'AnimatedSize',
   options: [
-    const ChoiceOption('lines', 'lines', values: _counts),
+    _sizeLines,
     // where the child is in the size shown while it runs
-    ChoiceOption(
-      'alignment',
-      'alignment',
-      values: [for (final a in _sizeAligns) a.$1],
-    ),
+    _sizeAlignment,
     _curveOption,
     _cycleOption,
   ],
-  build: (context, o) => _Cycled(o, 'lines', _counts, (context, i) {
+  build: (context, o) => _Cycled(o, _sizeLines, _counts, (context, i) {
     final theme = Theme.of(context);
     return _inFrame(
       _sizeRoom(o),
@@ -44,7 +54,7 @@ final _size = GalleryPage(
           duration: _duration,
           curve: _curveOf(o),
           alignment: _sizeAligns
-              .firstWhere((a) => a.$1 == o.choice<String>('alignment'))
+              .firstWhere((a) => a.$1 == o(_sizeAlignment))
               .$2,
           child: Column(
             mainAxisSize: .min,
@@ -64,7 +74,7 @@ final _size = GalleryPage(
         '  child: AnimatedSize(',
         '    duration: $_dur,',
         ..._curveLine(o, 4),
-        if (o.choice<String>('alignment') case final a when a != 'topLeft')
+        if (o(_sizeAlignment) case final a when a != 'topLeft')
           '    alignment: .$a,',
         '    child: Column(',
         '      mainAxisSize: .min,',
@@ -80,8 +90,8 @@ final _size = GalleryPage(
       for (final l in _lines) "  '$l',",
       '];',
     ];
-    final count = o.choice<int>('lines');
-    if (!o.flag('cycle')) {
+    final count = o(_sizeLines);
+    if (!o(_cycleOption)) {
       return [
         ...lines,
         '',

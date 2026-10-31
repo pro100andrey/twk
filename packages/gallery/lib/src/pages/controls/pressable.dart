@@ -2,12 +2,12 @@
 part of 'controls.dart';
 
 final _pressablePage = GalleryPage(
-  group: 'Controls',
+  group: _group,
   title: 'Pressable',
   options: const [
     pageColorOption,
   ],
-  build: (context, o) => _Stars(color: o.color('color')),
+  build: (context, o) => _Stars(color: o(pageColorOption)),
   code: (o) => [
     "final _starred = {'twk'};",
     '',
@@ -79,7 +79,7 @@ final _pressablePage = GalleryPage(
 
 /// The style of a star that is on, as the Pressable page's Code writes it.
 String _markOf(Options o) =>
-    'theme.${o.color('color')}.merge(const .new(attrs: Attr.bold))';
+    'theme.${o(pageColorOption)}.merge(const .new(attrs: Attr.bold))';
 
 /// The rows of the Pressable page, each a Pressable that stars a name,
 /// and the line that says which are starred.

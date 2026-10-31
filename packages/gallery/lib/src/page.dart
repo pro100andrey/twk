@@ -38,7 +38,7 @@ final class GalleryPage {
   final String? about;
 
   /// What the inspector offers, in its order.
-  final List<PageOption> options;
+  final List<PageOption<Object?>> options;
 
   /// The widget, with the options at [options].
   final Widget Function(BuildContext context, Options options) build;
@@ -139,11 +139,13 @@ enum StageSize {
 }
 
 /// A choice in the inspector of how a page shows its widget: [key] names
-/// it in a route's `o=` and in [Options]; [label] in the inspector, in
-/// lower-case words. [disabled] says when it does not apply, the other
-/// options as they are: dim then, and Tab, the keys and the mouse pass it
-/// by.
-sealed class PageOption {
+/// it in a route's `o=`; [label] in the inspector, in lower-case words.
+/// [disabled] says when it does not apply, the other options as they are:
+/// dim then, and Tab, the keys and the mouse pass it by.
+///
+/// A page keeps each of its options in a constant of its own and reads it
+/// by it: `o(_look)`, a value of type [T].
+sealed class PageOption<T> {
   const PageOption(this.key, this.label, {this.disabled});
 
   final String key;
@@ -172,11 +174,18 @@ sealed class PageOption {
   /// The raw value after [key] (a twk key name) at [raw], as its control
   /// steps it; null where its control does not take [key].
   Object? stepped(Object raw, String key);
+
+  /// The value [raw] stands for.
+  T valueOf(Object raw);
+
+  /// The name of the value [raw] stands for, as the inspector and a route
+  /// write it.
+  String nameOf(Object raw);
 }
 
 /// One of [values], on a segmented track: named by [labels], or by the
 /// values themselves (`none` for null).
-final class ChoiceOption extends PageOption {
+final class ChoiceOption<T> extends PageOption<T> {
   const ChoiceOption(
     super.key,
     super.label, {
@@ -186,11 +195,11 @@ final class ChoiceOption extends PageOption {
     super.disabled,
   });
 
-  final List<Object?> values;
+  final List<T> values;
   final List<String>? labels;
 
   /// The value it starts at; the first when null.
-  final Object? initial;
+  final T? initial;
 
   /// The name of each value.
   List<String> get names =>
@@ -202,7 +211,7 @@ final class ChoiceOption extends PageOption {
 
   @override
   Object get initialRaw {
-    final i = values.indexOf(initial);
+    final i = values.indexWhere((v) => v == initial);
     return initial == null || i < 0 ? 0 : i;
   }
 
@@ -229,7 +238,7 @@ final class ChoiceOption extends PageOption {
 
   @override
   Object? rawOf(Object? value) {
-    final i = values.indexOf(value);
+    final i = values.indexWhere((v) => v == value);
     return i < 0 ? null : i;
   }
 
@@ -242,6 +251,12 @@ final class ChoiceOption extends PageOption {
   @override
   Object? stepped(Object raw, String key) =>
       _stepAround(raw as int, values.length, key);
+
+  @override
+  T valueOf(Object raw) => values[raw as int];
+
+  @override
+  String nameOf(Object raw) => names[raw as int];
 }
 
 /// The index after [key] at [i] of [n] choices: left and right go round,
@@ -255,7 +270,7 @@ int? _stepAround(int i, int n, String key) => switch (key) {
 };
 
 /// On or off, a pill switch.
-final class SwitchOption extends PageOption {
+final class SwitchOption extends PageOption<bool> {
   const SwitchOption(
     super.key,
     super.label, {
@@ -284,11 +299,17 @@ final class SwitchOption extends PageOption {
   @override
   Object? stepped(Object raw, String key) =>
       key == 'space' || key == 'enter' ? !(raw as bool) : null;
+
+  @override
+  bool valueOf(Object raw) => raw as bool;
+
+  @override
+  String nameOf(Object raw) => '$raw';
 }
 
 /// A number from [min] to [max] in steps of [step], on a slider, written
 /// by [format] at the right of its label.
-final class SliderOption extends PageOption {
+final class SliderOption extends PageOption<num> {
   const SliderOption(
     super.key,
     super.label, {
@@ -358,11 +379,21 @@ final class SliderOption extends PageOption {
     };
     return next == null ? null : clampStep(next);
   }
+
+  @override
+  num valueOf(Object raw) => raw as num;
+
+  /// [raw] as a route writes it: no `.0` for a whole number.
+  @override
+  String nameOf(Object raw) {
+    final v = raw as num;
+    return v == v.round() ? '${v.round()}' : '$v';
+  }
 }
 
 /// One of the theme's colors, by name ([values]: `primary`, `accent`,
 /// `success`…), as swatches.
-final class ColorOption extends PageOption {
+final class ColorOption extends PageOption<String> {
   const ColorOption(
     super.key,
     super.label, {
@@ -401,10 +432,17 @@ final class ColorOption extends PageOption {
   @override
   Object? stepped(Object raw, String key) =>
       _stepAround(raw as int, values.length, key);
+
+  @override
+  String valueOf(Object raw) => values[raw as int];
+
+  @override
+  String nameOf(Object raw) => values[raw as int];
 }
 
-/// The values of a page's options, by key: `options['wrap']`, the value;
-/// [label], its name; typed: [choice], [flag], [number], [color].
+/// The values of a page's options: `o(_wrap)` the value of option
+/// `_wrap`, of its type; [nameOf] its name as the inspector and a route
+/// write it; [raw] what the inspector keeps of it.
 final class Options {
   Options(
     this.page,
@@ -428,7 +466,7 @@ final class Options {
   /// options: [operator ==] leaves it out.
   final Map<String, Object?> pageState;
 
-  PageOption _option(String key) => page.options.firstWhere(
+  PageOption<Object?> _option(String key) => page.options.firstWhere(
     (o) => o.key == key,
     orElse: () => throw ArgumentError.value(key, 'key', 'no such option'),
   );
@@ -436,42 +474,24 @@ final class Options {
   /// The raw value of [key]: an index (choice, color), a bool or a number.
   Object raw(String key) => _raw[key] ?? _option(key).initialRaw;
 
-  /// The value of [key].
-  Object? operator [](String key) => switch (_option(key)) {
-    final ChoiceOption o => o.values[raw(key) as int],
-    final ColorOption o => o.values[raw(key) as int],
-    _ => raw(key),
-  };
+  /// The value of [option], the page's option of its key (or another of
+  /// that key and type, as a group's pages share): the page's own option
+  /// says what its raw value stands for.
+  T call<T>(PageOption<T> option) =>
+      _option(option.key).valueOf(raw(option.key)) as T;
 
-  /// The name of the value of [key], as the inspector and a route write
+  /// The name of the value of [option], as the inspector and a route write
   /// it.
-  String label(String key) => switch (_option(key)) {
-    final ChoiceOption o => o.names[raw(key) as int],
-    final ColorOption o => o.values[raw(key) as int],
-    SliderOption() => _number(raw(key) as num),
-    _ => '${raw(key)}',
-  };
+  String nameOf(PageOption<Object?> option) =>
+      _option(option.key).nameOf(raw(option.key));
 
-  static String _number(num v) => v == v.round() ? '${v.round()}' : '$v';
-
-  /// The value of choice [key].
-  T choice<T>(String key) => this[key] as T;
-
-  /// The value of switch [key].
-  bool flag(String key) => raw(key) as bool;
-
-  /// The value of slider [key].
-  num number(String key) => raw(key) as num;
-
-  /// The name of the theme color of color option [key].
-  String color(String key) => this[key]! as String;
-
-  /// The theme's style of color option [key].
-  Style colorStyle(BuildContext context, String key) =>
-      themeColor(Theme.of(context), color(key));
+  /// The theme's style of colour option [option].
+  Style styleOf(BuildContext context, ColorOption option) =>
+      themeColor(Theme.of(context), this(option));
 
   /// Whether [option] applies with the others as they are.
-  bool applies(PageOption option) => !(option.disabled?.call(this) ?? false);
+  bool applies(PageOption<Object?> option) =>
+      !(option.disabled?.call(this) ?? false);
 
   /// These options with [key] at [raw].
   Options withRaw(String key, Object raw) =>
@@ -481,7 +501,7 @@ final class Options {
   /// writes them: `wrap:none;width:40`.
   String get route => [
     for (final o in page.options)
-      if (raw(o.key) != o.initialRaw) '${o.key}:${label(o.key)}',
+      if (raw(o.key) != o.initialRaw) '${o.key}:${nameOf(o)}',
   ].join(';');
 
   /// The raw values.
@@ -602,11 +622,10 @@ abstract interface class PageControl {
   static PageControl of(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<PageControlScope>()!.control;
 
-  /// Sets option [key] to [value], one of its values (a bool for a
-  /// switch, a number for a slider), as its control in the inspector
-  /// would: a page that moves its own option (a `cycle` switch). Not
-  /// while building: from a callback or a timer.
-  void setOption(String key, Object? value);
+  /// Sets [option] of the page to [value], one of its values, as its
+  /// control in the inspector would: a page that moves its own option (a
+  /// `cycle` switch). Not while building: from a callback or a timer.
+  void setOption<T>(PageOption<T> option, T value);
 
   /// Shows [message] in a toast of [kind].
   void toast(String message, [ToastKind kind = ToastKind.info]);

@@ -7,25 +7,53 @@ const _fw = 44;
 
 const _fh = 11;
 
+/// The Row, Column, Flex page's `dir` option.
+const _flexDir = ChoiceOption<String>(
+  'dir',
+  'direction',
+  values: ['row', 'column'],
+);
+
+/// The Row, Column, Flex page's `main` option.
+const _flexMain = ChoiceOption<String>(
+  'main',
+  'main axis',
+  values: _main,
+  initial: 'spaceBetween',
+);
+
+/// The Row, Column, Flex page's `cross` option.
+const _flexCross = ChoiceOption<String>(
+  'cross',
+  'cross axis',
+  values: ['start', 'end', 'center', 'stretch'],
+  initial: 'center',
+);
+
+/// The Row, Column, Flex page's `gap` option.
+const _flexGap = ChoiceOption<int>(
+  'gap',
+  'gap',
+  values: [0, 1, 2],
+  initial: 1,
+);
+
+/// The Row, Column, Flex page's `size` option.
+const _flexSize = ChoiceOption<String>(
+  'size',
+  'main axis size',
+  values: ['max', 'min'],
+);
+
 final _flex = GalleryPage(
-  group: 'Layout',
+  group: _group,
   title: 'Row, Column, Flex',
   options: const [
-    ChoiceOption('dir', 'direction', values: ['row', 'column']),
-    ChoiceOption(
-      'main',
-      'main axis',
-      values: _main,
-      initial: 'spaceBetween',
-    ),
-    ChoiceOption(
-      'cross',
-      'cross axis',
-      values: ['start', 'end', 'center', 'stretch'],
-      initial: 'center',
-    ),
-    ChoiceOption('gap', 'gap', values: [0, 1, 2], initial: 1),
-    ChoiceOption('size', 'main axis size', values: ['max', 'min']),
+    _flexDir,
+    _flexMain,
+    _flexCross,
+    _flexGap,
+    _flexSize,
   ],
   build: (context, o) {
     final theme = Theme.of(context);
@@ -49,11 +77,11 @@ final _flex = GalleryPage(
       chip('two', theme.accent, const EdgeInsets.all(1)),
       chip('three', theme.success),
     ];
-    final main = MainAxisAlignment.values.byName(o.choice('main'));
-    final cross = CrossAxisAlignment.values.byName(o.choice('cross'));
-    final gap = o.choice<int>('gap');
-    final size = MainAxisSize.values.byName(o.choice('size'));
-    final Widget flex = o['dir'] == 'row'
+    final main = MainAxisAlignment.values.byName(o(_flexMain));
+    final cross = CrossAxisAlignment.values.byName(o(_flexCross));
+    final gap = o(_flexGap);
+    final size = MainAxisSize.values.byName(o(_flexSize));
+    final Widget flex = o(_flexDir) == 'row'
         ? Row(
             mainAxisAlignment: main,
             mainAxisSize: size,
@@ -80,13 +108,15 @@ final _flex = GalleryPage(
     );
   },
   code: (o) {
-    final min = o['size'] == 'min';
+    final min = o(_flexSize) == 'min';
     final flex = [
-      '${o['dir'] == 'row' ? 'Row' : 'Column'}(',
-      if (o['main'] != 'start') '  mainAxisAlignment: .${o.label('main')},',
+      '${o(_flexDir) == 'row' ? 'Row' : 'Column'}(',
+      if (o(_flexMain) != 'start')
+        '  mainAxisAlignment: .${o.nameOf(_flexMain)},',
       if (min) '  mainAxisSize: .min,',
-      if (o['cross'] != 'center') '  crossAxisAlignment: .${o.label('cross')},',
-      if (o['gap'] != 0) '  gap: ${o.label('gap')},',
+      if (o(_flexCross) != 'center')
+        '  crossAxisAlignment: .${o.nameOf(_flexCross)},',
+      if (o(_flexGap) != 0) '  gap: ${o.nameOf(_flexGap)},',
       '  children: [',
       "    chip('one', theme.primary),",
       "    chip('two', theme.accent, const .all(1)),",

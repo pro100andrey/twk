@@ -2,7 +2,7 @@
 part of 'focus.dart';
 
 final _activeitemPage = GalleryPage(
-  group: 'Focus and keys',
+  group: _group,
   title: 'ActiveItem',
   about:
       "The item a focused list's keys act on: the terminal's hidden cursor "

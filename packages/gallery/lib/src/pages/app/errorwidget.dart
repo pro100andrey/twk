@@ -41,18 +41,31 @@ double _loadAt(int i) {
       .roundToDouble();
 }
 
+/// The ErrorWidget page's `fails` option.
+const _errorFails = SwitchOption(
+  'fails',
+  'weather fails',
+  initial: true,
+);
+
+/// The ErrorWidget page's `error` option.
+final _errorError = ChoiceOption<String>(
+  'error',
+  'what it throws',
+  values: _errors.keys.toList(),
+);
+
 final _error = GalleryPage(
-  group: 'App',
+  group: _group,
   title: 'ErrorWidget',
   options: [
-    const SwitchOption('fails', 'weather fails', initial: true),
-    ChoiceOption('error', 'what it throws', values: _errors.keys.toList()),
+    _errorFails,
+    _errorError,
   ],
-  build: (context, o) =>
-      _Cards(fails: o.flag('fails'), error: o.choice<String>('error')),
+  build: (context, o) => _Cards(fails: o(_errorFails), error: o(_errorError)),
   code: (o) {
-    final thrown = _errors[o.choice<String>('error')]!;
-    final build = o.flag('fails')
+    final thrown = _errors[o(_errorError)]!;
+    final build = o(_errorFails)
         ? [
             '  // throws: the app shows an ErrorWidget in its place, as',
             '  // ErrorWidget($thrown) would,',

@@ -9,20 +9,30 @@ const _wh = 7;
 /// What the user's shell set.
 const _userTitle = 'user@twk: ~/twk';
 
+/// The Window title page's `title` option.
+const _windowTitleTitle = ChoiceOption<String>(
+  'title',
+  'title',
+  values: ['twk gallery', 'build: 3 of 5', 'chat · ~/project'],
+);
+
+/// The Window title page's `running` option.
+const _windowTitleRunning = SwitchOption(
+  'running',
+  'app running',
+  initial: true,
+);
+
 final _windowTitle = GalleryPage(
   terminalAround: true,
-  group: 'App',
+  group: _group,
   title: 'Window title',
   options: const [
-    ChoiceOption(
-      'title',
-      'title',
-      values: ['twk gallery', 'build: 3 of 5', 'chat · ~/project'],
-    ),
-    SwitchOption('running', 'app running', initial: true),
+    _windowTitleTitle,
+    _windowTitleRunning,
   ],
   build: (context, o) =>
-      _Titled(title: o.choice<String>('title'), running: o.flag('running')),
+      _Titled(title: o(_windowTitleTitle), running: o(_windowTitleRunning)),
   code: (o) => [
     "// the title of the terminal's window or tab while this is in the",
     codeLine([
@@ -31,8 +41,8 @@ final _windowTitle = GalleryPage(
     ]),
     "// Flutter's Title. The user's own comes back when the app ends.",
     'return WindowTitle(',
-    "  title: '${o.label('title')}',",
-    "  child: const Text('In the title bar: ${o.label('title')}'),",
+    "  title: '${o.nameOf(_windowTitleTitle)}',",
+    "  child: const Text('In the title bar: ${o.nameOf(_windowTitleTitle)}'),",
     ');',
   ].join('\n'),
 );

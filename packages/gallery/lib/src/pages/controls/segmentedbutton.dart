@@ -13,24 +13,40 @@ const List<Choice<String>> _kinds = [
 Set<String> _firstShown({required bool multiple}) =>
     multiple ? {'errors', 'warnings'} : {'all'};
 
+/// The SegmentedButton page's `multiple` option.
+const _segmentedMultiple = SwitchOption('multiple', 'multiple');
+
+/// The SegmentedButton page's `empty` option.
+const _segmentedEmpty = SwitchOption('empty', 'allow none');
+
+/// The SegmentedButton page's `icon` option.
+const _segmentedIcon = SwitchOption('icon', 'selected icon');
+
+/// The SegmentedButton page's `caps` option.
+const _segmentedCaps = ChoiceOption<String>(
+  'caps',
+  'caps',
+  values: ['square', 'round'],
+);
+
 final _segmented = GalleryPage(
-  group: 'Controls',
+  group: _group,
   title: 'SegmentedButton',
   options: const [
-    SwitchOption('multiple', 'multiple'),
-    SwitchOption('empty', 'allow none'),
-    SwitchOption('icon', 'selected icon'),
-    ChoiceOption('caps', 'caps', values: ['square', 'round']),
+    _segmentedMultiple,
+    _segmentedEmpty,
+    _segmentedIcon,
+    _segmentedCaps,
   ],
   build: (context, o) => _Segments(
-    key: ValueKey(o.flag('multiple')),
-    multiple: o.flag('multiple'),
-    empty: o.flag('empty'),
-    icon: o.flag('icon'),
-    round: o.choice<String>('caps') == 'round',
+    key: ValueKey(o(_segmentedMultiple)),
+    multiple: o(_segmentedMultiple),
+    empty: o(_segmentedEmpty),
+    icon: o(_segmentedIcon),
+    round: o(_segmentedCaps) == 'round',
   ),
   code: (o) {
-    final multiple = o.flag('multiple');
+    final multiple = o(_segmentedMultiple);
     final shown = _firstShown(multiple: multiple).map((v) => "'$v'");
     return [
       'var _shown = {${shown.join(', ')}};',
@@ -53,9 +69,9 @@ final _segmented = GalleryPage(
       '        ],',
       '        selected: _shown,',
       if (multiple) '        multiSelectionEnabled: true,',
-      if (o.flag('empty')) '        emptySelectionAllowed: true,',
-      if (o.flag('icon')) '        showSelectedIcon: true,',
-      if (o.choice<String>('caps') == 'round') "        caps: ('(', ')'),",
+      if (o(_segmentedEmpty)) '        emptySelectionAllowed: true,',
+      if (o(_segmentedIcon)) '        showSelectedIcon: true,',
+      if (o(_segmentedCaps) == 'round') "        caps: ('(', ')'),",
       '        onSelectionChanged: (shown) => setState(() => _shown = shown),',
       '      ),',
       '      Text.rich([',

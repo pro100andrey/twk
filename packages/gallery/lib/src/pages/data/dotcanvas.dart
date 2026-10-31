@@ -4,16 +4,26 @@ part of 'data.dart';
 /// A turn of the hand, in ms.
 const _spinMs = 6000;
 
+/// The DotCanvas page's `marker` option.
+final _dotCanvasMarker = ChoiceOption<String>(
+  'marker',
+  'marker',
+  values: _markers.keys.toList(),
+);
+
+/// The DotCanvas page's `live` option.
+const _dotCanvasLive = SwitchOption('live', 'live', initial: true);
+
 final _dotCanvas = GalleryPage(
-  group: 'Data',
+  group: _group,
   title: 'DotCanvas',
   options: [
-    ChoiceOption('marker', 'marker', values: _markers.keys.toList()),
-    const SwitchOption('live', 'live', initial: true),
+    _dotCanvasMarker,
+    _dotCanvasLive,
   ],
   build: (context, o) => inRoom(
     (_, room) => Timed((context, ms, wake) {
-      final live = o.flag('live');
+      final live = o(_dotCanvasLive);
       final t = live ? _tick(ms, _waveTick, wake) * _waveTick / 1000 : 0;
       final hand = math.pi / 2 - 2 * math.pi * t * 1000 / _spinMs;
       final wave = [
@@ -26,7 +36,7 @@ final _dotCanvas = GalleryPage(
         child: DotCanvas(
           xBounds: (0, 40),
           yBounds: (0, 24),
-          marker: _markers[o.choice<String>('marker')]!,
+          marker: _markers[o(_dotCanvasMarker)]!,
           draw: (dots) => dots
             ..draw(const Shape.circle(12, 12, 9, color: Color.cyan))
             ..draw(
@@ -48,7 +58,7 @@ final _dotCanvas = GalleryPage(
     }),
   ),
   codeIn: (o, room) {
-    final live = o.flag('live');
+    final live = o(_dotCanvasLive);
     const turn = _spinMs ~/ 1000;
     return [
       if (live) ...[

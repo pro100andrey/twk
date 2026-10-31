@@ -2,7 +2,7 @@
 part of 'overlays.dart';
 
 final _contextmenuPage = GalleryPage(
-  group: 'Overlays',
+  group: _group,
   title: 'ContextMenu',
   // an open menu (or palette) takes Tab itself
   modalTab: false,

@@ -1,36 +1,62 @@
 // The TextField page.
 part of 'editing.dart';
 
+/// The TextField page's `obscure` option.
+const _textfieldObscure = SwitchOption('obscure', 'obscured');
+
+/// The TextField page's `maxLength` option.
+const _textfieldMaxLength = ChoiceOption<int?>(
+  'maxLength',
+  'max length',
+  values: [null, 8],
+  labels: ['none', '8'],
+);
+
+/// The TextField page's `align` option.
+const _textfieldAlign = ChoiceOption<String>(
+  'align',
+  'text align',
+  values: ['left', 'center', 'right', 'start', 'end'],
+);
+
+/// The TextField page's `readOnly` option.
+const _textfieldReadOnly = SwitchOption('readOnly', 'read only');
+
+/// The TextField page's `enabled` option.
+const _textfieldEnabled = SwitchOption(
+  'enabled',
+  'enabled',
+  initial: true,
+);
+
+/// The TextField page's `paste` option.
+const _textfieldPaste = ChoiceOption<String>(
+  'paste',
+  'a paste',
+  values: ['goes in', 'taken'],
+);
+
 final _textfieldPage = GalleryPage(
-  group: 'Editing',
+  group: _group,
   title: 'TextField',
   options: const [
-    SwitchOption('obscure', 'obscured'),
-    ChoiceOption(
-      'maxLength',
-      'max length',
-      values: [null, 8],
-      labels: ['none', '8'],
-    ),
+    _textfieldObscure,
+    _textfieldMaxLength,
     ..._cursorOptions,
-    ChoiceOption(
-      'align',
-      'text align',
-      values: ['left', 'center', 'right', 'start', 'end'],
-    ),
-    SwitchOption('readOnly', 'read only'),
-    SwitchOption('enabled', 'enabled', initial: true),
+    _textfieldAlign,
+    _textfieldReadOnly,
+    _textfieldEnabled,
     // what onPaste answers: false, the paste goes in; true, it took it
-    ChoiceOption('paste', 'a paste', values: ['goes in', 'taken']),
+    _textfieldPaste,
   ],
   build: (context, o) => _Field(
-    obscure: o.flag('obscure'),
-    maxLength: o.choice('maxLength'),
+    obscure: o(_textfieldObscure),
+    maxLength: o(_textfieldMaxLength),
     cursor: _shapeOf(o),
-    align: TextAlign.values.byName(o.choice('align')),
-    readOnly: o.flag('readOnly'),
-    enabled: o.flag('enabled'),
-    takePaste: o.choice<String>('paste') == 'taken',
+    align: TextAlign.values.byName(o(_textfieldAlign)),
+    readOnly: o(_textfieldReadOnly),
+    enabled: o(_textfieldEnabled),
+    takePaste: o(_textfieldPaste) == 'taken',
   ),
   code: (o) => [
     "var _submitted = '';",
@@ -49,14 +75,14 @@ final _textfieldPage = GalleryPage(
     ..._focusBox('        ', 'field'),
     '          child: TextField(',
     "            placeholder: 'type here',",
-    if (o.flag('obscure')) '            obscureText: true,',
-    if (o['maxLength'] != null)
-      '            maxLength: ${o.label('maxLength')},',
+    if (o(_textfieldObscure)) '            obscureText: true,',
+    if (o(_textfieldMaxLength) != null)
+      '            maxLength: ${o.nameOf(_textfieldMaxLength)},',
     ..._shapeArg(o, '            '),
-    if (o.label('align') != 'left')
-      '            textAlign: .${o.label('align')},',
-    if (o.flag('readOnly')) '            readOnly: true,',
-    if (!o.flag('enabled')) '            enabled: false,',
+    if (o.nameOf(_textfieldAlign) != 'left')
+      '            textAlign: .${o.nameOf(_textfieldAlign)},',
+    if (o(_textfieldReadOnly)) '            readOnly: true,',
+    if (!o(_textfieldEnabled)) '            enabled: false,',
     '            onSubmitted: (text) => setState(() => _submitted = text),',
     '            onEditingComplete: () =>',
     "                setState(() => _heard = 'editing complete'),",
@@ -64,7 +90,7 @@ final _textfieldPage = GalleryPage(
     '              setState(',
     _pastedLine,
     '              );',
-    '              return ${o.choice<String>('paste') == 'taken'};',
+    '              return ${o(_textfieldPaste) == 'taken'};',
     '            },',
     '          ),',
     '        ),',
@@ -78,7 +104,7 @@ final _textfieldPage = GalleryPage(
     '            if (_submitted.isEmpty)',
     "              Span('nothing', theme.muted)",
     '            else',
-    if (o.flag('obscure'))
+    if (o(_textfieldObscure))
       "              Span('•' * _submitted.characterCount),"
     else
       '              Span(_submitted),',

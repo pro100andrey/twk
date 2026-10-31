@@ -1,22 +1,36 @@
 // The Right to left page.
 part of 'text.dart';
 
+/// The Right to left page's `order` option.
+const _rightToLeftOrder = ChoiceOption<String>(
+  'order',
+  'text order',
+  values: ['visual', 'logical'],
+);
+
+/// The Right to left page's `align` option.
+const _rightToLeftAlign = ChoiceOption<String>(
+  'align',
+  'align',
+  values: ['start', 'end', 'left', 'right'],
+);
+
 final _rightToLeftPage = GalleryPage(
-  group: 'Text',
+  group: _group,
   title: 'Right to left',
   options: const [
-    ChoiceOption('order', 'text order', values: ['visual', 'logical']),
-    ChoiceOption('align', 'align', values: ['start', 'end', 'left', 'right']),
+    _rightToLeftOrder,
+    _rightToLeftAlign,
   ],
   build: (context, o) => _RightToLeft(
-    order: TextOrder.values.byName(o.choice('order')),
-    align: TextAlign.values.byName(o.choice('align')),
+    order: TextOrder.values.byName(o(_rightToLeftOrder)),
+    align: TextAlign.values.byName(o(_rightToLeftAlign)),
   ),
   code: (o) => [
     "import 'package:twk/twk.dart';",
     '',
     // lines that fit the Code panel: under 58 columns
-    if (o['order'] == 'visual') ...[
+    if (o(_rightToLeftOrder) == 'visual') ...[
       '// The app puts right-to-left text in the order it',
       '// reads (TextOrder.visual), for a terminal that',
       '// shows each character in the cell it is written to.',
@@ -50,7 +64,7 @@ final _rightToLeftPage = GalleryPage(
     '            padding: const .x(1),',
     '            child: const Text(',
     for (final (i, l) in _rtl.indexed) _rtlLine(l, last: i == _rtl.length - 1),
-    '              align: .${o.label('align')},',
+    '              align: .${o.nameOf(_rightToLeftAlign)},',
     '            ),',
     '          ),',
     '        ),',

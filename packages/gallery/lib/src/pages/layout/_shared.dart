@@ -13,26 +13,45 @@ Border _rounded(ThemeData theme, {bool merge = false}) =>
 // choices
 final List<String> _alignments = alignmentByName.keys.toList();
 
-List<PageOption> _alignOptions(int x, int y) => [
-  ChoiceOption(
-    'ax',
-    'alignment x',
-    values: const [-1, 0, 1],
-    labels: const ['left', 'center', 'right'],
+/// The alignment options, starting at [x] and [y].
+List<PageOption<Object?>> _alignOptions(int x, int y) => [
+  ChoiceOption<int>(
+    _alignX.key,
+    _alignX.label,
+    values: _alignX.values,
+    labels: _alignX.labels,
     initial: x,
   ),
-  ChoiceOption(
-    'ay',
-    'alignment y',
-    values: const [-1, 0, 1],
-    labels: const ['top', 'center', 'bottom'],
+  ChoiceOption<int>(
+    _alignY.key,
+    _alignY.label,
+    values: _alignY.values,
+    labels: _alignY.labels,
     initial: y,
   ),
 ];
 
+/// What the alignment options are read by: x from -1 to 1.
+const _alignX = ChoiceOption<int>(
+  'ax',
+  'alignment x',
+  values: [-1, 0, 1],
+  labels: ['left', 'center', 'right'],
+);
+
+/// See [_alignX]: y.
+const _alignY = ChoiceOption<int>(
+  'ay',
+  'alignment y',
+  values: [-1, 0, 1],
+  labels: ['top', 'center', 'bottom'],
+);
+
 /// The name of the alignment options' Alignment.
-String _alignmentOf(Options o) =>
-    _alignments[(o.choice<int>('ay') + 1) * 3 + o.choice<int>('ax') + 1];
+String _alignmentOf(Options o) {
+  final (x, y) = (o(_alignX), o(_alignY));
+  return _alignments[(y + 1) * 3 + x + 1];
+}
 
 const _main = [
   'start',

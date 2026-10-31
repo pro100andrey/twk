@@ -1,33 +1,39 @@
 // The FilePicker page.
 part of 'controls.dart';
 
+/// The FilePicker page's `mode` option.
+const _filepickerMode = ChoiceOption<String>(
+  'mode',
+  'mode',
+  values: ['open', 'several', 'save', 'directory'],
+  labels: ['open', 'open several', 'save', 'directory'],
+);
+
+/// The FilePicker page's `hidden` option.
+const _filepickerHidden = SwitchOption('hidden', 'show hidden');
+
 final _filepickerPage = GalleryPage(
-  group: 'Controls',
+  group: _group,
   title: 'FilePicker',
   options: const [
-    ChoiceOption(
-      'mode',
-      'mode',
-      values: ['open', 'several', 'save', 'directory'],
-      labels: ['open', 'open several', 'save', 'directory'],
-    ),
-    SwitchOption('hidden', 'show hidden'),
+    _filepickerMode,
+    _filepickerHidden,
   ],
   // a picker for each mode and showHidden, which it reads once, and its
   // controller with it
   build: (context, o) => _Files(
-    key: ValueKey((o.choice<String>('mode'), o.flag('hidden'))),
-    mode: o.choice('mode'),
-    showHidden: o.flag('hidden'),
+    key: ValueKey((o(_filepickerMode), o(_filepickerHidden))),
+    mode: o(_filepickerMode),
+    showHidden: o(_filepickerHidden),
   ),
   code: (o) {
-    final (mode, multiple) = _modes[o.choice<String>('mode')]!;
+    final (mode, multiple) = _modes[o(_filepickerMode)]!;
     final args = [
       if (mode != FilePickerMode.open) 'mode: .${mode.name}',
       if (multiple) 'multiple: true',
-      if (o.flag('hidden')) 'showHidden: true',
+      if (o(_filepickerHidden)) 'showHidden: true',
     ];
-    final key = "key: const ValueKey('${o.choice<String>('mode')}')";
+    final key = "key: const ValueKey('${o(_filepickerMode)}')";
     return [
       'final _files = FilePickerController();',
       'String? _picked;',

@@ -1,21 +1,34 @@
 // The SelectionList page.
 part of 'controls.dart';
 
+/// The SelectionList page's `multiple` option.
+const _selectionlistMultiple = SwitchOption(
+  'multiple',
+  'multiple',
+);
+
+/// The SelectionList page's `bar` option.
+const _selectionlistBar = SwitchOption(
+  'bar',
+  'cursor bar',
+  initial: true,
+);
+
 final _selectionlistPage = GalleryPage(
-  group: 'Controls',
+  group: _group,
   title: 'SelectionList',
   options: const [
-    SwitchOption('multiple', 'multiple'),
-    SwitchOption('bar', 'cursor bar', initial: true),
+    _selectionlistMultiple,
+    _selectionlistBar,
   ],
   build: (context, o) =>
-      _Planets(multiple: o.flag('multiple'), bar: o.flag('bar')),
+      _Planets(multiple: o(_selectionlistMultiple), bar: o(_selectionlistBar)),
   code: (o) => [
     'static const _planets = [',
     for (final p in _planets) "  '$p',",
     '];',
     '',
-    if (o.flag('multiple')) ...[
+    if (o(_selectionlistMultiple)) ...[
       'late final _selection = SelectionController<String>(',
       '  multiple: true,',
       "  selected: ['Earth'],",
@@ -58,7 +71,7 @@ final _selectionlistPage = GalleryPage(
     '              keyOf: (i) => _planets[i],',
     '              itemBuilder: (context, i) => Text(_planets[i]),',
     "              itemEnabled: (i) => _planets[i] != 'Venus',",
-    if (!o.flag('bar')) '              bar: false,',
+    if (!o(_selectionlistBar)) '              bar: false,',
     '              controller: _selection,',
     '            ),',
     '          ),',

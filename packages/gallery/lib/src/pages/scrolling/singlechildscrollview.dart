@@ -1,18 +1,21 @@
 // The SingleChildScrollView page.
 part of 'scrolling.dart';
 
+/// The SingleChildScrollView page's `axis` option.
+const _singlechildscrollviewAxis = ChoiceOption<String>(
+  'axis',
+  'direction',
+  values: ['vertical', 'horizontal'],
+);
+
 final _singlechildscrollviewPage = GalleryPage(
-  group: 'Scrolling',
+  group: _group,
   title: 'SingleChildScrollView',
   options: const [
-    ChoiceOption(
-      'axis',
-      'direction',
-      values: ['vertical', 'horizontal'],
-    ),
+    _singlechildscrollviewAxis,
   ],
   build: (context, o) =>
-      _Paragraphs(vertical: o.choice<String>('axis') == 'vertical'),
+      _Paragraphs(vertical: o(_singlechildscrollviewAxis) == 'vertical'),
   code: _paragraphsCode,
 );
 
@@ -127,7 +130,7 @@ List<String> _paragraphLines(String t) {
 }
 
 String _paragraphsCode(Options o) {
-  final vertical = o.choice<String>('axis') == 'vertical';
+  final vertical = o(_singlechildscrollviewAxis) == 'vertical';
   return [
     'const _paragraphs = [',
     for (final t in _paragraphs) ..._paragraphLines(t),

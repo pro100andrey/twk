@@ -1,22 +1,29 @@
 // The MenuBar page.
 part of 'overlays.dart';
 
+/// The MenuBar page's `keys` option.
+const _menubarKeys = SwitchOption(
+  'keys',
+  'keys bound',
+  initial: true,
+);
+
 final _menubarPage = GalleryPage(
-  group: 'Overlays',
+  group: _group,
   title: 'MenuBar',
   // an open menu takes Tab itself
   modalTab: false,
   options: [
-    const SwitchOption('keys', 'keys bound', initial: true),
+    _menubarKeys,
     _lookOption,
   ],
-  build: (context, o) => _Bar(keys: o.flag('keys'), look: _lookOf(o)),
+  build: (context, o) => _Bar(keys: o(_menubarKeys), look: _lookOf(o)),
   code: _menuBarCode,
 );
 
 /// The MenuBar page's Code.
 String _menuBarCode(Options o) {
-  final keys = o.flag('keys');
+  final keys = o(_menubarKeys);
   String on(String fn, String closure) => keys ? fn : closure;
   return [
     'final _menus = MenuController();',

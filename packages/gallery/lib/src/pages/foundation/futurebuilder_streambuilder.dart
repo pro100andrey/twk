@@ -10,24 +10,34 @@ const _every = 1000;
 /// The width of what each builder shows; its state after it.
 const _col = 26;
 
+/// The FutureBuilder, StreamBuilder page's `outcome` option.
+const _asyncOutcome = ChoiceOption<String>(
+  'outcome',
+  'future',
+  values: ['value', 'error'],
+);
+
+/// The FutureBuilder, StreamBuilder page's `take` option.
+const _asyncTake = ChoiceOption<bool>(
+  'take',
+  'stream',
+  values: [false, true],
+  labels: ['endless', 'take(5)'],
+);
+
 final _async = GalleryPage(
-  group: 'Foundation',
+  group: _group,
   title: 'FutureBuilder, StreamBuilder',
   options: const [
-    ChoiceOption('outcome', 'future', values: ['value', 'error']),
-    ChoiceOption(
-      'take',
-      'stream',
-      values: [false, true],
-      labels: ['endless', 'take(5)'],
-    ),
+    _asyncOutcome,
+    _asyncTake,
   ],
   build: (context, o) => _Async(
-    error: o.label('outcome') == 'error',
-    take: o.choice<bool>('take'),
+    error: o.nameOf(_asyncOutcome) == 'error',
+    take: o(_asyncTake),
   ),
   code: (o) {
-    final result = o.label('outcome') == 'error'
+    final result = o.nameOf(_asyncOutcome) == 'error'
         ? "() => throw Exception('offline')"
         : "() => 'loaded'";
     return [
@@ -35,7 +45,7 @@ final _async = GalleryPage(
       'final Stream<int> _ticks = Stream.periodic(',
       '  const Duration(seconds: 1),',
       '  (i) => i + 1,',
-      ')${o.choice<bool>('take') ? '.take(5)' : ''};',
+      ')${o(_asyncTake) ? '.take(5)' : ''};',
       '',
       'void _start() => setState(',
       '  () => _load = Future.delayed(',

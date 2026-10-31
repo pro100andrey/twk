@@ -64,17 +64,45 @@ const _Sets _sets = {
 /// A turn of the colours round their loop, while they flow.
 const _turn = 4000;
 
-List<PageOption> _gradientOptions(String initial) => [
-  ChoiceOption(
-    'colors',
-    'colors',
+/// The options of a gradient page, its colours [initial]ly those of that
+/// name.
+List<PageOption<Object?>> _gradientOptions(String initial) => [
+  ChoiceOption<String>(
+    _colorsKey,
+    _colorsKey,
     values: _sets.keys.toList(),
     initial: initial,
   ),
-  const ChoiceOption('direction', 'direction', values: ['columns', 'rows']),
-  const ChoiceOption('stops', 'stops', values: ['even', 'inset', 'early']),
-  const SwitchOption('flow', 'flow', initial: true),
+  _direction,
+  _stops,
+  _flow,
 ];
+
+const _colorsKey = 'colors';
+
+/// What the colours option is read by.
+final _colors = ChoiceOption<String>(
+  _colorsKey,
+  _colorsKey,
+  values: _sets.keys.toList(),
+);
+
+/// Which way the colours go.
+const _direction = ChoiceOption<String>(
+  'direction',
+  'direction',
+  values: ['columns', 'rows'],
+);
+
+/// Where the colours' stops are.
+const _stops = ChoiceOption<String>(
+  'stops',
+  'stops',
+  values: ['even', 'inset', 'early'],
+);
+
+/// Whether the colours flow.
+const _flow = SwitchOption('flow', 'flow', initial: true);
 
 /// The stops of [n] colours that the stops option [name] says: none for
 /// `even`, from ¼ to ¾ of the way for `inset`, in the first half for
@@ -118,17 +146,15 @@ final class _FlowingState extends State<_Flowing> with MotionState {
     motion.begin(context);
     final o = widget.options;
     final theme = Theme.of(context);
-    final (dark, light) = widget.sets[o.choice<String>('colors')]!;
+    final (dark, light) = widget.sets[o(_colors)]!;
     final set = light != null && theme.brightness == Brightness.light
         ? light
         : dark;
     final colors = set.colors(theme);
-    final axis = o.choice<String>('direction') == 'columns'
-        ? Axis.horizontal
-        : Axis.vertical;
-    final stops = _stopsOf(o.choice('stops'), colors.length);
+    final axis = o(_direction) == 'columns' ? Axis.horizontal : Axis.vertical;
+    final stops = _stopsOf(o(_stops), colors.length);
     final Gradient gradient;
-    if (o.flag('flow')) {
+    if (o(_flow)) {
       final ms = motion.now.inMilliseconds % _turn;
       gradient = Gradient(
         colors,
@@ -158,12 +184,10 @@ String _gradientCode(
   _Sets sets,
   List<String> child,
 ) {
-  final axis = o.choice<String>('direction') == 'columns'
-      ? '.horizontal'
-      : '.vertical';
-  final (dark, light) = sets[o.choice<String>('colors')]!;
+  final axis = o(_direction) == 'columns' ? '.horizontal' : '.vertical';
+  final (dark, light) = sets[o(_colors)]!;
   final stops = [
-    if (_stopsOf(o.choice('stops'), dark.expr != null ? 2 : dark.dart.length)
+    if (_stopsOf(o(_stops), dark.expr != null ? 2 : dark.dart.length)
         case final s?)
       _stopsDart(s),
   ];
@@ -192,7 +216,7 @@ String _gradientCode(
     head = ['const _colors = [', for (final c in dark.dart) '  $c,', '];', ''];
     colors = '_colors';
   }
-  if (!o.flag('flow')) {
+  if (!o(_flow)) {
     final last = child.length - 1;
     return [
       ...head,

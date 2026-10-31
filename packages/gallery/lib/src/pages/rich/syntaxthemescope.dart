@@ -21,20 +21,23 @@ const _ownSyntax = SyntaxTheme(
   comment: Style(attrs: Attr.dim),
 );
 
+/// The SyntaxThemeScope page's `syntax` option.
+const _syntaxThemeScopeSyntax = ChoiceOption<String>(
+  'syntax',
+  'syntax theme',
+  values: ['copyWith', 'own', 'none'],
+);
+
 final _syntaxThemeScope = GalleryPage(
-  group: 'Rich',
+  group: _group,
   title: 'SyntaxThemeScope',
   options: const [
-    ChoiceOption(
-      'syntax',
-      'syntax theme',
-      values: ['copyWith', 'own', 'none'],
-    ),
+    _syntaxThemeScopeSyntax,
   ],
   build: (context, o) {
     final theme = Theme.of(context);
     final view = CodeView('${_scoped.join('\n')}\n', language: dartLanguage);
-    return switch (o.choice<String>('syntax')) {
+    return switch (o(_syntaxThemeScopeSyntax)) {
       'copyWith' => SyntaxThemeScope(
         theme: SyntaxTheme.from(theme).copyWith(
           keyword: theme.error.merge(const Style(attrs: Attr.bold)),
@@ -49,7 +52,7 @@ final _syntaxThemeScope = GalleryPage(
   },
   code: (o) {
     final source = ["const _source = r'''", ..._scoped, "''';", ''];
-    return switch (o.choice<String>('syntax')) {
+    return switch (o(_syntaxThemeScopeSyntax)) {
       'none' => [
         ...source,
         '// no scope above it: SyntaxTheme.of finds none and',

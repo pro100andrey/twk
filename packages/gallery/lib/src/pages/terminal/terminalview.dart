@@ -19,8 +19,16 @@ const _ignoredComment =
     "        // the gallery's own: Tab and Esc move the focus, Ctrl+P "
     'searches';
 
+/// The TerminalView page's `wheel` option.
+const _terminalViewWheel = ChoiceOption<int>(
+  'wheel',
+  'wheel lines',
+  values: [1, 3, 10],
+  initial: 3,
+);
+
 final _terminalView = GalleryPage(
-  group: 'Terminal',
+  group: _group,
   title: 'TerminalView',
   about:
       "A program's terminal in a view: keys, pastes, the mouse and resizes "
@@ -29,7 +37,7 @@ final _terminalView = GalleryPage(
   options: const [
     // the lines a turn of the wheel scrolls the scrollback: 3, the
     // default, as most terminals do
-    ChoiceOption('wheel', 'wheel lines', values: [1, 3, 10], initial: 3),
+    _terminalViewWheel,
   ],
   // its terminal's 80 columns: the options go under the stage where the
   // inspector beside it would leave fewer (120x36), not cut htop's bar
@@ -43,13 +51,13 @@ final _terminalView = GalleryPage(
           c.maxH < BoxConstraints.unbounded ? c.maxH : most,
         ),
       );
-      return _Shell(width: w, height: h, wheelLines: o.choice<int>('wheel'));
+      return _Shell(width: w, height: h, wheelLines: o(_terminalViewWheel));
     },
   ),
   heightIn: (o, room) => _boxSize(room).$2,
   codeIn: (o, room) {
     final (w, h) = _boxSize(room);
-    final wheel = o.choice<int>('wheel');
+    final wheel = o(_terminalViewWheel);
     return [
       "// ScriptedShell is the gallery's own: a fake bash at the other end of",
       '// a byte link, which writes what bash would and answers the keys it',

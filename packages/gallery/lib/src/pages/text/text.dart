@@ -14,6 +14,9 @@ part 'rich_text.dart';
 part 'right_to_left.dart';
 part 'text_page.dart';
 
+/// The group of the catalog these pages are in.
+const _group = 'Text';
+
 /// The pages of the Text group that draw.
 final textPages = <GalleryPage>[
   _textPage,

@@ -1,11 +1,18 @@
 // The Shortcuts, Actions page.
 part of 'focus.dart';
 
+/// The Shortcuts, Actions page's `actions` option.
+const _shortcutsActionsActions = SwitchOption(
+  'actions',
+  'actions enabled',
+  initial: true,
+);
+
 final _shortcutsActionsPage = GalleryPage(
-  group: 'Focus and keys',
+  group: _group,
   title: 'Shortcuts, Actions',
-  options: const [SwitchOption('actions', 'actions enabled', initial: true)],
-  build: (context, o) => _Intents(enabled: o.flag('actions')),
+  options: const [_shortcutsActionsActions],
+  build: (context, o) => _Intents(enabled: o(_shortcutsActionsActions)),
   code: _intentsCode,
 );
 
@@ -111,7 +118,7 @@ final class _IntentsState extends State<_Intents> {
 }
 
 String _intentsCode(Options o) {
-  final disabled = !o.flag('actions');
+  final disabled = !o(_shortcutsActionsActions);
   return [
     '/// Steps up a count.',
     'final class _Up extends Intent {',

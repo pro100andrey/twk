@@ -1,31 +1,54 @@
 // The KeyHintsBar page.
 part of 'controls.dart';
 
+/// The KeyHintsBar page's `unhinted` option.
+const _keyhintsbarUnhinted = SwitchOption(
+  'unhinted',
+  'unhinted keys',
+);
+
+/// The KeyHintsBar page's `join` option.
+const _keyhintsbarJoin = SwitchOption(
+  'join',
+  'join keys',
+  initial: true,
+);
+
+/// The KeyHintsBar page's `keys` option.
+const _keyhintsbarKeys = ChoiceOption<String>(
+  'keys',
+  'keys named by',
+  values: ['signs', 'names'],
+);
+
+/// The KeyHintsBar page's `separator` option.
+const _keyhintsbarSeparator = ChoiceOption<String>(
+  'separator',
+  'separator',
+  values: _separators,
+  labels: ['blanks', 'dot', 'line'],
+);
+
 final _keyhintsbarPage = GalleryPage(
-  group: 'Controls',
+  group: _group,
   title: 'KeyHintsBar',
   options: const [
-    SwitchOption('unhinted', 'unhinted keys'),
-    SwitchOption('join', 'join keys', initial: true),
-    ChoiceOption('keys', 'keys named by', values: ['signs', 'names']),
-    ChoiceOption(
-      'separator',
-      'separator',
-      values: _separators,
-      labels: ['blanks', 'dot', 'line'],
-    ),
+    _keyhintsbarUnhinted,
+    _keyhintsbarJoin,
+    _keyhintsbarKeys,
+    _keyhintsbarSeparator,
   ],
   build: (context, o) => _Hinted(
-    unhinted: o.flag('unhinted'),
-    joinKeys: o.flag('join'),
-    names: o.choice<String>('keys') == 'names',
-    separator: o.choice('separator'),
+    unhinted: o(_keyhintsbarUnhinted),
+    joinKeys: o(_keyhintsbarJoin),
+    names: o(_keyhintsbarKeys) == 'names',
+    separator: o(_keyhintsbarSeparator),
   ),
   code: (o) => [
     'String? _did;',
     'var _autosave = false;',
     '',
-    if (o.choice<String>('keys') == 'names') ...[
+    if (o(_keyhintsbarKeys) == 'names') ...[
       '// a key by its name, as KeyCombo writes it: left, escape',
       r"static String _named(KeyCombo combo) => '$combo';",
       '',
@@ -77,11 +100,11 @@ final _keyhintsbarPage = GalleryPage(
     '            border: .all(type: .rounded, style: theme.border),',
     '            padding: const .x(1),',
     ...call(12, 'child: const KeyHintsBar', [
-      if (o.flag('unhinted')) 'showUnhinted: true',
-      if (o.choice<String>('keys') == 'names') 'keyLabel: _named',
-      if (!o.flag('join')) 'joinKeys: false',
-      if (o.choice<String>('separator') != _separators.first)
-        "separator: '${o.choice<String>('separator')}'",
+      if (o(_keyhintsbarUnhinted)) 'showUnhinted: true',
+      if (o(_keyhintsbarKeys) == 'names') 'keyLabel: _named',
+      if (!o(_keyhintsbarJoin)) 'joinKeys: false',
+      if (o(_keyhintsbarSeparator) != _separators.first)
+        "separator: '${o(_keyhintsbarSeparator)}'",
     ], ','),
     '          ),',
     '        ],',

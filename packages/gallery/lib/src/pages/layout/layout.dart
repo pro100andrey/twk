@@ -34,6 +34,9 @@ part 'transform.dart';
 part 'visibility_offstage.dart';
 part 'wrap.dart';
 
+/// The group of the catalog these pages are in.
+const _group = 'Layout';
+
 /// The pages of the Layout group that draw.
 final layoutPages = <GalleryPage>[
   _box,

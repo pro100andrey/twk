@@ -49,9 +49,9 @@ final _markers = <String, Marker>{
 };
 
 /// The Code's marker of the options [o]: `.braille`, `.custom('*')`.
-String _markerCode(Options o) => o.label('marker') == 'custom'
+String _markerCode(Options o) => o.nameOf(_chartMarker) == 'custom'
     ? ".custom('$_customMarker')"
-    : '.${o.label('marker')}';
+    : '.${o.nameOf(_chartMarker)}';
 
 const _waveTick = 50;
 

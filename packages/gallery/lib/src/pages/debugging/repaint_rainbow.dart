@@ -2,6 +2,6 @@
 part of 'debugging.dart';
 
 final GalleryPage _repaintRainbow = _aidsPage('Repaint rainbow', const [
-  ('rainbow', 'rainbow', true),
-  ('relayout', 'relayout highlight', false),
+  _rainbowAid,
+  _relayoutAid,
 ]);

@@ -5,16 +5,31 @@ part of 'animation.dart';
 
 const _tasks = ['Resolving packages…', 'Compiling…', 'Running 214 tests…'];
 
+/// The Spinner page's `frames` option.
+final _spinnerFrames = ChoiceOption<String>(
+  'frames',
+  'frames',
+  values: _frames.keys.toList(),
+);
+
+/// The Spinner page's `color` option.
+const _spinnerColor = ColorOption(
+  'color',
+  'style',
+  values: _colors,
+  initial: 'primary',
+);
+
 final _spinner = GalleryPage(
-  group: 'Animation',
+  group: _group,
   title: 'Spinner',
   options: [
-    ChoiceOption('frames', 'frames', values: _frames.keys.toList()),
-    const ColorOption('color', 'style', values: _colors, initial: 'primary'),
+    _spinnerFrames,
+    _spinnerColor,
   ],
   build: (context, o) {
-    final style = o.colorStyle(context, 'color');
-    final frames = _frames[o.choice<String>('frames')]!;
+    final style = o.styleOf(context, _spinnerColor);
+    final frames = _frames[o(_spinnerFrames)]!;
     return Column(
       mainAxisSize: .min,
       crossAxisAlignment: .start,
@@ -33,8 +48,8 @@ final _spinner = GalleryPage(
     );
   },
   code: (o) {
-    final frames = o.choice<String>('frames');
-    final color = o.color('color');
+    final frames = o(_spinnerFrames);
+    final color = o(_spinnerColor);
     return [
       'final theme = Theme.of(context);',
       codeLine([

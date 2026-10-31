@@ -1,35 +1,52 @@
 // The ModalBarrier page.
 part of 'overlays.dart';
 
+/// The ModalBarrier page's `barrier` option.
+const _modalbarrierBarrier = SwitchOption(
+  'barrier',
+  'barrier',
+  initial: true,
+);
+
+/// The ModalBarrier page's `alpha` option.
+const _modalbarrierAlpha = ChoiceOption<int>(
+  'alpha',
+  'alpha',
+  values: [0x40, 0x80, 0xc0],
+  labels: ['¼', '½', '¾'],
+  initial: 0x80,
+);
+
+/// The ModalBarrier page's `fade` option.
+final _modalbarrierFade = SwitchOption(
+  'fade',
+  'fade',
+  disabled: (o) => !o(_modalbarrierBarrier),
+);
+
 final _modalbarrierPage = GalleryPage(
-  group: 'Overlays',
+  group: _group,
   title: 'ModalBarrier',
   options: [
-    const SwitchOption('barrier', 'barrier', initial: true),
-    const ChoiceOption(
-      'alpha',
-      'alpha',
-      values: [0x40, 0x80, 0xc0],
-      labels: ['¼', '½', '¾'],
-      initial: 0x80,
-    ),
+    _modalbarrierBarrier,
+    _modalbarrierAlpha,
     // an AnimatedModalBarrier, its shade coming in and going on a
     // controller
-    SwitchOption('fade', 'fade', disabled: (o) => !o.flag('barrier')),
+    _modalbarrierFade,
   ],
   build: (context, o) => _Barrier(
-    barrier: o.flag('barrier'),
-    alpha: o.choice('alpha'),
-    fade: o.flag('barrier') && o.flag('fade'),
+    barrier: o(_modalbarrierBarrier),
+    alpha: o(_modalbarrierAlpha),
+    fade: o(_modalbarrierBarrier) && o(_modalbarrierFade),
   ),
   code: _barrierCode,
 );
 
 /// The ModalBarrier page's Code.
 String _barrierCode(Options o) {
-  final alpha = o.choice<int>('alpha');
-  final fade = o.flag('barrier') && o.flag('fade');
-  final barrier = !o.flag('barrier')
+  final alpha = o(_modalbarrierAlpha);
+  final fade = o(_modalbarrierBarrier) && o(_modalbarrierFade);
+  final barrier = !o(_modalbarrierBarrier)
       ? ''
       : [
           if (fade) ...[
@@ -38,7 +55,7 @@ String _barrierCode(Options o) {
           ] else
             '      ModalBarrier(',
           if (alpha != 0x80)
-            '        alpha: 0x${alpha.toRadixString(16)}, // ${o.label('alpha')}',
+            '        alpha: 0x${alpha.toRadixString(16)}, // ${o.nameOf(_modalbarrierAlpha)}',
           '        onDismiss: () => setState(() => _dismissed++),',
           '      ),',
           '',

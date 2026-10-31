@@ -7,29 +7,56 @@ const _pages = 42;
 
 const _pageSize = 20;
 
+/// The Pagination page's `width` option.
+final _paginationWidth = SliderOption(
+  'width',
+  'width',
+  min: 16,
+  max: 56,
+  initial: 56,
+  format: (v) => '$v cells',
+);
+
+/// The Pagination page's `siblings` option.
+const _paginationSiblings = ChoiceOption<int>(
+  'siblings',
+  'siblings',
+  values: [1, 0, 2],
+);
+
+/// The Pagination page's `firstLast` option.
+const _paginationFirstLast = SwitchOption(
+  'firstLast',
+  'first and last',
+  initial: true,
+);
+
+/// The Pagination page's `prevNext` option.
+const _paginationPrevNext = SwitchOption(
+  'prevNext',
+  'previous and next',
+  initial: true,
+);
+
+/// The Pagination page's `range` option.
+const _paginationRange = SwitchOption('range', 'range');
+
 final _pagination = GalleryPage(
-  group: 'Navigation',
+  group: _group,
   title: 'Pagination',
   options: [
-    SliderOption(
-      'width',
-      'width',
-      min: 16,
-      max: 56,
-      initial: 56,
-      format: (v) => '$v cells',
-    ),
-    const ChoiceOption('siblings', 'siblings', values: [1, 0, 2]),
-    const SwitchOption('firstLast', 'first and last', initial: true),
-    const SwitchOption('prevNext', 'previous and next', initial: true),
-    const SwitchOption('range', 'range'),
+    _paginationWidth,
+    _paginationSiblings,
+    _paginationFirstLast,
+    _paginationPrevNext,
+    _paginationRange,
   ],
   build: (context, o) => _Pages(
-    width: o.number('width').toInt(),
-    siblings: o.choice('siblings'),
-    firstLast: o.flag('firstLast'),
-    prevNext: o.flag('prevNext'),
-    range: o.flag('range'),
+    width: o(_paginationWidth).toInt(),
+    siblings: o(_paginationSiblings),
+    firstLast: o(_paginationFirstLast),
+    prevNext: o(_paginationPrevNext),
+    range: o(_paginationRange),
   ),
   code: (o) => [
     'var _page = 1;',
@@ -43,18 +70,18 @@ final _pagination = GalleryPage(
     '    gap: 1,',
     '    children: [',
     '      SizedBox(',
-    '        width: ${o.label('width')},',
+    '        width: ${o.nameOf(_paginationWidth)},',
     '        child: Pagination(',
     '          page: _page,',
     '          pageCount: $_pages,',
-    if (o.flag('range')) ...[
+    if (o(_paginationRange)) ...[
       '          itemCount: ${_pages * _pageSize},',
       '          pageSize: $_pageSize,',
     ],
-    if (o.choice<int>('siblings') != 1)
-      '          siblings: ${o.choice<int>('siblings')},',
-    if (!o.flag('firstLast')) '          showFirstLast: false,',
-    if (!o.flag('prevNext')) '          showPrevNext: false,',
+    if (o(_paginationSiblings) != 1)
+      '          siblings: ${o(_paginationSiblings)},',
+    if (!o(_paginationFirstLast)) '          showFirstLast: false,',
+    if (!o(_paginationPrevNext)) '          showPrevNext: false,',
     '          onChanged: (page) => setState(() => _page = page),',
     '        ),',
     '      ),',

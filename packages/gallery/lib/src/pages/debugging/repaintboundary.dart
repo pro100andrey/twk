@@ -12,27 +12,39 @@ const _strip = 20;
 int _paintsAt(int k, {required bool boundary}) =>
     k == 0 ? 0 : (boundary ? 1 : k);
 
+/// The RepaintBoundary page's `boundary` option.
+const _repaintBoundaryBoundary = SwitchOption(
+  'boundary',
+  'RepaintBoundary',
+  initial: true,
+);
+
+/// The RepaintBoundary page's `every` option.
+const _repaintBoundaryEvery = ChoiceOption<int>(
+  'every',
+  'a step every',
+  values: [300, 1000],
+  labels: ['300 ms', '1 s'],
+);
+
 final _repaintBoundary = GalleryPage(
-  group: 'Debugging',
+  group: _group,
   title: 'RepaintBoundary',
   options: const [
-    SwitchOption('boundary', 'RepaintBoundary', initial: true),
-    ChoiceOption(
-      'every',
-      'a step every',
-      values: [300, 1000],
-      labels: ['300 ms', '1 s'],
-    ),
+    _repaintBoundaryBoundary,
+    _repaintBoundaryEvery,
   ],
-  build: (context, o) =>
-      _Paints(boundary: o.flag('boundary'), every: o.choice<int>('every')),
+  build: (context, o) => _Paints(
+    boundary: o(_repaintBoundaryBoundary),
+    every: o(_repaintBoundaryEvery),
+  ),
   code: _paintsCode,
 );
 
 String _paintsCode(Options o) {
-  final ms = o.choice<int>('every');
+  final ms = o(_repaintBoundaryEvery);
   final every = ms == 1000 ? 'seconds: 1' : 'milliseconds: $ms';
-  final marker = o.flag('boundary')
+  final marker = o(_repaintBoundaryBoundary)
       ? [
           '    // painted on its own, over what is under it: the dots are not',
           '    final marker = RepaintBoundary(',

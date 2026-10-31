@@ -1,25 +1,42 @@
 // The KeyBindings, LeaderKey page.
 part of 'focus.dart';
 
+/// The KeyBindings, LeaderKey page's `leader` option.
+const _keybindingsLeaderkeyLeader = ChoiceOption<String>(
+  'leader',
+  'leader',
+  values: [',', 'space', r'\'],
+);
+
+/// The KeyBindings, LeaderKey page's `timeout` option.
+const _keybindingsLeaderkeyTimeout = ChoiceOption<int?>(
+  'timeout',
+  'sequence timeout',
+  values: [1000, null],
+  labels: ['1 s', 'none'],
+);
+
+/// The KeyBindings, LeaderKey page's `unmatched` option.
+const _keybindingsLeaderkeyUnmatched = ChoiceOption<String>(
+  'unmatched',
+  'unmatched keys',
+  values: ['drop', 'replay'],
+);
+
 final _keybindingsLeaderkeyPage = GalleryPage(
-  group: 'Focus and keys',
+  group: _group,
   title: 'KeyBindings, LeaderKey',
   options: const [
-    ChoiceOption('leader', 'leader', values: [',', 'space', r'\']),
-    ChoiceOption(
-      'timeout',
-      'sequence timeout',
-      values: [1000, null],
-      labels: ['1 s', 'none'],
-    ),
-    ChoiceOption('unmatched', 'unmatched keys', values: ['drop', 'replay']),
+    _keybindingsLeaderkeyLeader,
+    _keybindingsLeaderkeyTimeout,
+    _keybindingsLeaderkeyUnmatched,
   ],
   build: (context, o) {
-    final timeout = o.choice<int?>('timeout');
+    final timeout = o(_keybindingsLeaderkeyTimeout);
     return _Bindings(
-      leader: o.choice('leader'),
+      leader: o(_keybindingsLeaderkeyLeader),
       timeout: timeout == null ? null : Duration(milliseconds: timeout),
-      unmatched: UnmatchedKeys.values.byName(o.choice('unmatched')),
+      unmatched: UnmatchedKeys.values.byName(o(_keybindingsLeaderkeyUnmatched)),
     );
   },
   code: _bindingsCode,
@@ -90,12 +107,12 @@ final class _BindingsState extends State<_Bindings> {
 }
 
 String _bindingsCode(Options o) {
-  final leader = o.choice<String>('leader');
+  final leader = o(_keybindingsLeaderkeyLeader);
   final lead = leader == 'space' ? null : leader;
   final leaderName = lead == r'\' ? r"r'\'" : "'$lead'";
   final args = [
-    if (o.choice<int?>('timeout') == null) '  sequenceTimeout: null,',
-    if (o.choice<String>('unmatched') == 'replay') '  unmatched: .replay,',
+    if (o(_keybindingsLeaderkeyTimeout) == null) '  sequenceTimeout: null,',
+    if (o(_keybindingsLeaderkeyUnmatched) == 'replay') '  unmatched: .replay,',
   ];
   final bindings = [
     'KeyBindings(',

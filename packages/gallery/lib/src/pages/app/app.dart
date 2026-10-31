@@ -21,6 +21,9 @@ part 'terminalprogress.dart';
 part 'viewport.dart';
 part 'window_title.dart';
 
+/// The group of the catalog these pages are in.
+const _group = 'App';
+
 /// The pages of the App group that draw.
 final List<GalleryPage> appPages = [
   _input,

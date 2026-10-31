@@ -1,39 +1,50 @@
 // The ListView page.
 part of 'scrolling.dart';
 
+/// The ListView page's `items` option.
+const _listviewItems = ChoiceOption<Object>(
+  'items',
+  'items',
+  values: [100, 10000, 1000000, 'growing', 'chat', 'feed'],
+  labels: ['100', '10 000', '1 000 000', 'growing', 'chat', 'feed'],
+);
+
+/// The ListView page's `heights` option.
+final _listviewHeights = ChoiceOption<String>(
+  'heights',
+  'heights',
+  values: const ['one row', 'different'],
+  disabled: (o) => o(_listviewItems) == 'chat' || o(_listviewItems) == 'feed',
+);
+
+/// The ListView page's `separated` option.
+const _listviewSeparated = SwitchOption('separated', 'separated');
+
+/// The ListView page's `stick` option.
+final _listviewStick = ChoiceOption<String>(
+  'stick',
+  'stuck by',
+  values: const ['stickToBottom', 'stickToEnd'],
+  disabled: (o) => o(_listviewItems) != 'growing',
+);
+
 final _listviewPage = GalleryPage(
-  group: 'Scrolling',
+  group: _group,
   title: 'ListView',
   options: [
-    const ChoiceOption(
-      'items',
-      'items',
-      values: [100, 10000, 1000000, 'growing', 'chat', 'feed'],
-      labels: ['100', '10 000', '1 000 000', 'growing', 'chat', 'feed'],
-    ),
-    ChoiceOption(
-      'heights',
-      'heights',
-      values: const ['one row', 'different'],
-      disabled: (o) => o['items'] == 'chat' || o['items'] == 'feed',
-    ),
-    const SwitchOption('separated', 'separated'),
+    _listviewItems,
+    _listviewHeights,
+    _listviewSeparated,
     // what keeps the log at its end: the list, or its controller
-    ChoiceOption(
-      'stick',
-      'stuck by',
-      values: const ['stickToBottom', 'stickToEnd'],
-      disabled: (o) => o['items'] != 'growing',
-    ),
+    _listviewStick,
   ],
   build: (context, o) {
-    final items = o['items'];
+    final items = o(_listviewItems);
     final chat = items == 'chat';
     final feed = items == 'feed';
-    final different =
-        !chat && !feed && o.choice<String>('heights') == 'different';
-    final separated = o.flag('separated');
-    final byEnd = items == 'growing' && o['stick'] == 'stickToEnd';
+    final different = !chat && !feed && o(_listviewHeights) == 'different';
+    final separated = o(_listviewSeparated);
+    final byEnd = items == 'growing' && o(_listviewStick) == 'stickToEnd';
     return _List(
       key: ValueKey('$items/$different/$separated/$byEnd'),
       count: items is int ? items : null,
@@ -248,14 +259,13 @@ final class _ListState extends State<_List> with MotionState {
 }
 
 String _listCode(Options o) {
-  final chat = o['items'] == 'chat';
-  final feed = o['items'] == 'feed';
-  final growing = o['items'] == 'growing';
+  final chat = o(_listviewItems) == 'chat';
+  final feed = o(_listviewItems) == 'feed';
+  final growing = o(_listviewItems) == 'growing';
   final grows = growing || chat || feed;
-  final different =
-      !chat && !feed && o.choice<String>('heights') == 'different';
-  final separated = o.flag('separated');
-  final byEnd = growing && o['stick'] == 'stickToEnd';
+  final different = !chat && !feed && o(_listviewHeights) == 'different';
+  final separated = o(_listviewSeparated);
+  final byEnd = growing && o(_listviewStick) == 'stickToEnd';
   final item = feed
       ? [
           '            // keyed by the message, as its index is not: scrolled down,',
@@ -330,7 +340,7 @@ String _listCode(Options o) {
       '}',
       '',
     ] else ...[
-      'const _count = ${o['items']};',
+      'const _count = ${o(_listviewItems)};',
       '',
     ],
     if (byEnd)

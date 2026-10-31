@@ -15,35 +15,55 @@ const List<(String, String?)> _described = [
   ('Restart policy', 'unless stopped, 5 times at most in a minute'),
 ];
 
+/// The DescriptionList page's `width` option.
+final _descriptionListWidth = SliderOption(
+  'width',
+  'width',
+  min: 20,
+  max: 60,
+  initial: 44,
+  format: (v) => '$v cells',
+);
+
+/// The DescriptionList page's `align` option.
+const _descriptionListAlign = ChoiceOption<String>(
+  'align',
+  'terms',
+  values: ['left', 'center', 'right'],
+);
+
+/// The DescriptionList page's `separator` option.
+const _descriptionListSeparator = ChoiceOption<String>(
+  'separator',
+  'separator',
+  values: [':', ''],
+  labels: ['colon', 'none'],
+);
+
+/// The DescriptionList page's `groups` option.
+const _descriptionListGroups = SwitchOption(
+  'groups',
+  'groups',
+  initial: true,
+);
+
 final _descriptionList = GalleryPage(
-  group: 'Data',
+  group: _group,
   title: 'DescriptionList',
   options: [
-    SliderOption(
-      'width',
-      'width',
-      min: 20,
-      max: 60,
-      initial: 44,
-      format: (v) => '$v cells',
-    ),
-    const ChoiceOption('align', 'terms', values: ['left', 'center', 'right']),
-    const ChoiceOption(
-      'separator',
-      'separator',
-      values: [':', ''],
-      labels: ['colon', 'none'],
-    ),
-    const SwitchOption('groups', 'groups', initial: true),
+    _descriptionListWidth,
+    _descriptionListAlign,
+    _descriptionListSeparator,
+    _descriptionListGroups,
   ],
   build: (context, o) {
     final theme = Theme.of(context);
-    final groups = o.flag('groups');
+    final groups = o(_descriptionListGroups);
     return SizedBox(
-      width: o.number('width').toInt(),
+      width: o(_descriptionListWidth).toInt(),
       child: DescriptionList(
-        termAlign: TextAlign.values.byName(o.choice('align')),
-        separator: o.choice('separator'),
+        termAlign: TextAlign.values.byName(o(_descriptionListAlign)),
+        separator: o(_descriptionListSeparator),
         items: [
           for (final (term, value) in _described)
             switch ((term, value)) {
@@ -68,12 +88,12 @@ final _descriptionList = GalleryPage(
     );
   },
   code: (o) {
-    final align = o.choice<String>('align');
-    final separator = o.choice<String>('separator');
+    final align = o(_descriptionListAlign);
+    final separator = o(_descriptionListSeparator);
     return [
       'final theme = Theme.of(context);',
       'return SizedBox(',
-      '  width: ${o.label('width')},',
+      '  width: ${o.nameOf(_descriptionListWidth)},',
       '  child: DescriptionList(',
       if (align != 'left') '    termAlign: .$align,',
       if (separator != ':') "    separator: '$separator',",
@@ -92,7 +112,7 @@ final _descriptionList = GalleryPage(
           ('Memory', _) => [
             "      const DescriptionItem('Memory', ProgressBar(value: 0.25)),",
           ],
-          (_, '') when o.flag('groups') => [
+          (_, '') when o(_descriptionListGroups) => [
             "      const DescriptionItem.group('$term'),",
           ],
           (_, '') => const <String>[],

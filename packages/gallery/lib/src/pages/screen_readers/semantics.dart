@@ -12,26 +12,49 @@ const _covered = 'the page under it';
 
 const _over = 'the notice on top';
 
+/// The Semantics page's `view` option.
+const _semanticsView = ChoiceOption<String>(
+  'view',
+  'view',
+  values: ['beside', 'reader'],
+  labels: ['beside the form', 'TWK_SCREEN_READER=1'],
+);
+
+/// The Semantics page's `block` option.
+const _semanticsBlock = SwitchOption(
+  'block',
+  'BlockSemantics',
+  initial: true,
+);
+
+/// The Semantics page's `label` option.
+const _semanticsLabel = SwitchOption(
+  'label',
+  'progress label',
+  initial: true,
+);
+
+/// The Semantics page's `exclude` option.
+const _semanticsExclude = SwitchOption(
+  'exclude',
+  'ExcludeSemantics',
+);
+
 final _semantics = GalleryPage(
-  group: 'Screen readers',
+  group: _group,
   title: 'Semantics',
   options: const [
-    ChoiceOption(
-      'view',
-      'view',
-      values: ['beside', 'reader'],
-      labels: ['beside the form', 'TWK_SCREEN_READER=1'],
-    ),
-    SwitchOption('block', 'BlockSemantics', initial: true),
-    SwitchOption('label', 'progress label', initial: true),
+    _semanticsView,
+    _semanticsBlock,
+    _semanticsLabel,
     // the heading on the screen, left out of what is read
-    SwitchOption('exclude', 'ExcludeSemantics'),
+    _semanticsExclude,
   ],
   build: (context, o) => _SignIn(
-    reader: o.label('view') != 'beside the form',
-    block: o.flag('block'),
-    label: o.flag('label'),
-    exclude: o.flag('exclude'),
+    reader: o.nameOf(_semanticsView) != 'beside the form',
+    block: o(_semanticsBlock),
+    label: o(_semanticsLabel),
+    exclude: o(_semanticsExclude),
   ),
   code: _code,
 );
@@ -69,7 +92,7 @@ List<String> _form(Options o, String pad, {required bool nodes}) => [
   '  mainAxisSize: .min,',
   '  crossAxisAlignment: .start,',
   '  children: [',
-  ..._heading(exclude: o.flag('exclude')),
+  ..._heading(exclude: o(_semanticsExclude)),
   '    Checkbox(',
   '      value: _remember,',
   if (nodes) '      focusNode: _nodes[0],',
@@ -93,14 +116,14 @@ List<String> _form(Options o, String pad, {required bool nodes}) => [
   "      child: Text('Upload', style: theme.muted),",
   '    ),',
   '    Expanded(',
-  if (o.flag('label'))
+  if (o(_semanticsLabel))
     '      // read as a progress bar: its label, then how much is done'
   else
     '      // read as how much is done alone',
   '      child: ProgressBar(',
   '        value: _done / 10,',
   '        style: theme.primary.merge(.new(bg: theme.surface.bg)),',
-  if (o.flag('label')) "        semanticsLabel: 'Upload',",
+  if (o(_semanticsLabel)) "        semanticsLabel: 'Upload',",
   '      ),',
   '    ),',
   '  ],',
@@ -132,7 +155,7 @@ List<String> _form(Options o, String pad, {required bool nodes}) => [
   '      crossAxisAlignment: .start,',
   '      children: [',
   "        Text('$_covered', style: theme.muted),",
-  if (o.flag('block')) ...[
+  if (o(_semanticsBlock)) ...[
     "        // leaves out what the dialog's node read before it, as a",
     '        // barrier does what it covers',
     "        const BlockSemantics(child: Text('$_over')),",
@@ -145,7 +168,7 @@ List<String> _form(Options o, String pad, {required bool nodes}) => [
 ].map((l) => l.isEmpty ? l : '$pad$l').toList();
 
 String _code(Options o) {
-  if (o.label('view') != 'beside the form') {
+  if (o.nameOf(_semanticsView) != 'beside the form') {
     return [
       "import 'package:twk/twk.dart';",
       '',

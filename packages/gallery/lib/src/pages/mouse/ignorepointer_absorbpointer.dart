@@ -1,19 +1,22 @@
 // The IgnorePointer, AbsorbPointer page.
 part of 'mouse.dart';
 
+/// The IgnorePointer, AbsorbPointer page's `gate` option.
+const _ignorepointerAbsorbpointerGate = ChoiceOption<String>(
+  'gate',
+  'around the button',
+  values: ['none', 'ignore', 'absorb'],
+  labels: ['none', 'IgnorePointer', 'AbsorbPointer'],
+  initial: 'ignore',
+);
+
 final _ignorepointerAbsorbpointerPage = GalleryPage(
-  group: 'Mouse',
+  group: _group,
   title: 'IgnorePointer, AbsorbPointer',
   options: const [
-    ChoiceOption(
-      'gate',
-      'around the button',
-      values: ['none', 'ignore', 'absorb'],
-      labels: ['none', 'IgnorePointer', 'AbsorbPointer'],
-      initial: 'ignore',
-    ),
+    _ignorepointerAbsorbpointerGate,
   ],
-  build: (context, o) => _Gated(gate: o.choice('gate')),
+  build: (context, o) => _Gated(gate: o(_ignorepointerAbsorbpointerGate)),
   code: _gatedCode,
 );
 
@@ -115,7 +118,7 @@ Border _roundedBorder(ThemeData theme) =>
     Border.all(type: BorderType.rounded, style: theme.border);
 
 String _gatedCode(Options o) {
-  final gate = switch (o.choice<String>('gate')) {
+  final gate = switch (o(_ignorepointerAbsorbpointerGate)) {
     'ignore' => 'IgnorePointer',
     'absorb' => 'AbsorbPointer',
     _ => null,

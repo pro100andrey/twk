@@ -1,25 +1,36 @@
 // The Select, MultiSelect page.
 part of 'controls.dart';
 
+/// The Select, MultiSelect page's `inline` option.
+const _selectMultiselectInline = SwitchOption('inline', 'inline');
+
+/// The Select, MultiSelect page's `rows` option.
+const _selectMultiselectRows = ChoiceOption<int>(
+  'rows',
+  'rows',
+  values: [4, 8],
+  initial: 4,
+);
+
 final _selectMultiselectPage = GalleryPage(
-  group: 'Controls',
+  group: _group,
   title: 'Select, MultiSelect',
   options: [
-    const SwitchOption('inline', 'inline'),
-    const ChoiceOption('rows', 'rows', values: [4, 8], initial: 4),
+    _selectMultiselectInline,
+    _selectMultiselectRows,
     // an inline list shows no popup
-    popupLookOption(disabled: (o) => o.flag('inline')),
+    popupLookOption(disabled: (o) => o(_selectMultiselectInline)),
   ],
   build: (context, o) => _Selects(
-    inline: o.flag('inline'),
-    rows: o.choice('rows'),
+    inline: o(_selectMultiselectInline),
+    rows: o(_selectMultiselectRows),
     popupLook: popupLookOf(o),
   ),
   code: (o) {
     final extra = [
-      if (o.flag('inline')) 'inline: true,',
-      'rows: ${o.label('rows')},',
-      if (!o.flag('inline')) ...popupLookArg(o, ''),
+      if (o(_selectMultiselectInline)) 'inline: true,',
+      'rows: ${o.nameOf(_selectMultiselectRows)},',
+      if (!o(_selectMultiselectInline)) ...popupLookArg(o, ''),
     ];
     return [
       'const _fruit = [',

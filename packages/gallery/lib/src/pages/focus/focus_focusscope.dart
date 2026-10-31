@@ -1,23 +1,33 @@
 // The Focus, FocusScope page.
 part of 'focus.dart';
 
+/// The Focus, FocusScope page's `scope` option.
+const _focusFocusscopeScope = SwitchOption(
+  'scope',
+  'FocusScope',
+  initial: true,
+);
+
+/// The Focus, FocusScope page's `two` option.
+const _focusFocusscopeTwo = ChoiceOption<String>(
+  'two',
+  'node two',
+  values: ['focusable', 'skips Tab', 'unfocusable'],
+);
+
 final _focusFocusscopePage = GalleryPage(
-  group: 'Focus and keys',
+  group: _group,
   title: 'Focus, FocusScope',
   about:
       'Nodes the keys go to: Tab moves the focus from one to the next, a '
       'click takes it; in a scope Tab goes round its nodes, and Tab into '
       'it focuses the one it had last.',
   options: const [
-    SwitchOption('scope', 'FocusScope', initial: true),
-    ChoiceOption(
-      'two',
-      'node two',
-      values: ['focusable', 'skips Tab', 'unfocusable'],
-    ),
+    _focusFocusscopeScope,
+    _focusFocusscopeTwo,
   ],
   build: (context, o) =>
-      _Nodes(scope: o.flag('scope'), two: o.choice<String>('two')),
+      _Nodes(scope: o(_focusFocusscopeScope), two: o(_focusFocusscopeTwo)),
   code: _nodesCode,
 );
 
@@ -122,8 +132,8 @@ final class _NodesState extends State<_Nodes> {
 }
 
 String _nodesCode(Options o) {
-  final scope = o.flag('scope');
-  final two = switch (o.choice<String>('two')) {
+  final scope = o(_focusFocusscopeScope);
+  final two = switch (o(_focusFocusscopeTwo)) {
     'skips Tab' => 'skipTraversal: true',
     'unfocusable' => 'canRequestFocus: false',
     _ => null,

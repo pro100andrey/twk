@@ -1,18 +1,21 @@
 // The StatusMessage, Badge page.
 part of 'controls.dart';
 
+/// The StatusMessage, Badge page's `kind` option.
+const _statusmessageBadgeKind = ChoiceOption<String>(
+  'kind',
+  'kind',
+  values: ['info', 'success', 'warning', 'error'],
+);
+
 final _statusmessageBadgePage = GalleryPage(
-  group: 'Controls',
+  group: _group,
   title: 'StatusMessage, Badge',
   options: const [
-    ChoiceOption(
-      'kind',
-      'kind',
-      values: ['info', 'success', 'warning', 'error'],
-    ),
+    _statusmessageBadgeKind,
   ],
   build: (context, o) {
-    final kind = StatusKind.values.byName(o.choice('kind'));
+    final kind = StatusKind.values.byName(o(_statusmessageBadgeKind));
     final (said, disk) = _says[kind]!;
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -33,7 +36,7 @@ final _statusmessageBadgePage = GalleryPage(
     );
   },
   code: (o) {
-    final k = o.label('kind');
+    final k = o.nameOf(_statusmessageBadgeKind);
     final (said, disk) = _says[StatusKind.values.byName(k)]!;
     return [
       'return Column(',

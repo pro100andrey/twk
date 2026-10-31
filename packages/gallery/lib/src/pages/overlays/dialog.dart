@@ -1,24 +1,37 @@
 // The Dialog page.
 part of 'overlays.dart';
 
+/// The Dialog page's `alignment` option.
+const _dialogAlignment = ChoiceOption<String>(
+  'alignment',
+  'alignment',
+  values: ['center', 'topCenter', 'bottomRight'],
+);
+
+/// The Dialog page's `shadow` option.
+const _dialogShadow = SwitchOption('shadow', 'shadow');
+
+/// The Dialog page's `dismissible` option.
+const _dialogDismissible = SwitchOption(
+  'dismissible',
+  'dismissible',
+  initial: true,
+);
+
 final _dialogPage = GalleryPage(
-  group: 'Overlays',
+  group: _group,
   title: 'Dialog',
   options: [
-    const ChoiceOption(
-      'alignment',
-      'alignment',
-      values: ['center', 'topCenter', 'bottomRight'],
-    ),
-    const SwitchOption('shadow', 'shadow'),
+    _dialogAlignment,
+    _dialogShadow,
     _lookOption,
-    const SwitchOption('dismissible', 'dismissible', initial: true),
+    _dialogDismissible,
   ],
   build: (context, o) => _Ask(
-    alignment: o.choice('alignment'),
-    shadow: o.flag('shadow'),
+    alignment: o(_dialogAlignment),
+    shadow: o(_dialogShadow),
     look: _lookOf(o),
-    dismissible: o.flag('dismissible'),
+    dismissible: o(_dialogDismissible),
   ),
   code: (o) => [
     'String? _answer;',
@@ -28,7 +41,7 @@ final _dialogPage = GalleryPage(
     '    context,',
     '    (context) => Dialog(',
     "      title: 'Delete',",
-    if (o.flag('shadow')) '      shadow: Panel.shadowOf(Theme.of(context)),',
+    if (o(_dialogShadow)) '      shadow: Panel.shadowOf(Theme.of(context)),',
     ..._lookLine(o, '      '),
     '      child: Column(',
     '        mainAxisSize: .min,',
@@ -51,8 +64,8 @@ final _dialogPage = GalleryPage(
     '        ],',
     '      ),',
     '    ),',
-    if (!o.flag('dismissible')) '    dismissible: false,',
-    '    alignment: .${o.label('alignment')},',
+    if (!o(_dialogDismissible)) '    dismissible: false,',
+    '    alignment: .${o.nameOf(_dialogAlignment)},',
     '  ).then(',
     '    (delete) => setState(',
     '      () => _answer = switch (delete) {',

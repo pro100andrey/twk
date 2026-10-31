@@ -1,41 +1,54 @@
 // The InputDecoration page.
 part of 'editing.dart';
 
+/// The InputDecoration page's `border` option.
+const _inputdecorationBorder = ChoiceOption<String>(
+  'border',
+  'border',
+  values: ['outline', 'underline', 'none'],
+);
+
+/// The InputDecoration page's `filled` option.
+const _inputdecorationFilled = SwitchOption('filled', 'filled');
+
+/// The InputDecoration page's `enabled` option.
+const _inputdecorationEnabled = SwitchOption(
+  'enabled',
+  'enabled',
+  initial: true,
+);
+
 final _inputdecorationPage = GalleryPage(
-  group: 'Editing',
+  group: _group,
   title: 'InputDecoration',
   options: const [
-    ChoiceOption(
-      'border',
-      'border',
-      values: ['outline', 'underline', 'none'],
-    ),
-    SwitchOption('filled', 'filled'),
-    SwitchOption('enabled', 'enabled', initial: true),
+    _inputdecorationBorder,
+    _inputdecorationFilled,
+    _inputdecorationEnabled,
   ],
   build: (context, o) => _Decorated(
-    border: switch (o.choice<String>('border')) {
+    border: switch (o(_inputdecorationBorder)) {
       'outline' => const OutlineInputBorder(),
       'underline' => const UnderlineInputBorder(),
       _ => InputBorder.none,
     },
-    filled: o.flag('filled'),
-    enabled: o.flag('enabled'),
+    filled: o(_inputdecorationFilled),
+    enabled: o(_inputdecorationEnabled),
   ),
   code: (o) {
-    final border = switch (o.choice<String>('border')) {
+    final border = switch (o(_inputdecorationBorder)) {
       'outline' => 'OutlineInputBorder()',
       'underline' => null,
       _ => 'InputBorder.none',
     };
-    final on = o.flag('enabled');
+    final on = o(_inputdecorationEnabled);
     // the parts each decoration ends with, [pad] columns in (const where
     // the decoration is not)
     List<String> rest(String pad, {bool constant = true}) {
       final made = constant || border == null || border.startsWith('Input');
       return [
         if (border != null) '${pad}border: ${made ? '' : 'const '}$border,',
-        if (o.flag('filled')) '${pad}filled: true,',
+        if (o(_inputdecorationFilled)) '${pad}filled: true,',
       ];
     }
 

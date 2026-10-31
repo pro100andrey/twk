@@ -36,31 +36,44 @@ const _jsonW = 50;
 /// but the two of the line under it, 2 at least.
 int _jsonRows(int room) => math.max(2, math.min(14, room - 2));
 
+/// The JsonView page's `depth` option.
+const _jsonViewDepth = ChoiceOption<int>(
+  'depth',
+  'expanded depth',
+  values: [1, 2, 0],
+);
+
+/// The JsonView page's `sort` option.
+const _jsonViewSort = SwitchOption('sort', 'sort keys');
+
+/// The JsonView page's `cut` option.
+const _jsonViewCut = ChoiceOption<int>(
+  'cut',
+  'strings cut at',
+  values: [200, 24],
+  labels: ['200', '24'],
+);
+
 final _jsonView = GalleryPage(
-  group: 'Rich',
+  group: _group,
   title: 'JsonView',
   options: const [
-    ChoiceOption('depth', 'expanded depth', values: [1, 2, 0]),
-    SwitchOption('sort', 'sort keys'),
-    ChoiceOption(
-      'cut',
-      'strings cut at',
-      values: [200, 24],
-      labels: ['200', '24'],
-    ),
+    _jsonViewDepth,
+    _jsonViewSort,
+    _jsonViewCut,
   ],
   build: (context, o) => inRoom(
     (w, h) => _Json(
       height: _jsonRows(h),
-      depth: o.choice('depth'),
-      sortKeys: o.flag('sort'),
-      cut: o.choice('cut'),
+      depth: o(_jsonViewDepth),
+      sortKeys: o(_jsonViewSort),
+      cut: o(_jsonViewCut),
     ),
   ),
   // the view, and the line under it
   heightIn: (o, room) => _jsonRows(room.height) + 2,
   codeIn: (o, room) {
-    final depth = o.choice<int>('depth');
+    final depth = o(_jsonViewDepth);
     final (_, h) = codeRoomOf(room);
     return [
       'static const _package = {',
@@ -94,9 +107,9 @@ final _jsonView = GalleryPage(
       '        child: JsonView(',
       '          value: _package,',
       '          controller: _view,',
-      if (o.flag('sort')) '          sortKeys: true,',
-      if (o.choice<int>('cut') != 200)
-        '          maxStringLength: ${o.choice<int>('cut')},',
+      if (o(_jsonViewSort)) '          sortKeys: true,',
+      if (o(_jsonViewCut) != 200)
+        '          maxStringLength: ${o(_jsonViewCut)},',
       '          onPathCopied: (path) => setState(() => _copied = path),',
       '        ),',
       '      ),',

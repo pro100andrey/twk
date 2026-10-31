@@ -15,6 +15,9 @@ part 'frameoverlay.dart';
 part 'repaint_rainbow.dart';
 part 'repaintboundary.dart';
 
+/// The group of the catalog these pages are in.
+const _group = 'Debugging';
+
 /// The pages of the Debugging group that draw.
 final List<GalleryPage> debuggingPages = [
   _console,

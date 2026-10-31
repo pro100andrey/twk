@@ -1,32 +1,72 @@
 // The LogView page.
 part of 'scrolling.dart';
 
+/// The LogView page's `level` option.
+const _logviewLevel = ChoiceOption<String>(
+  'level',
+  'level',
+  values: _logLevels,
+);
+
+/// The LogView page's `filter` option.
+const _logviewFilter = ChoiceOption<String>(
+  'filter',
+  'filter',
+  values: ['none', 'GET', 'slow'],
+);
+
+/// The LogView page's `query` option.
+const _logviewQuery = ChoiceOption<String>(
+  'query',
+  'search',
+  values: ['none', 'items', 'timeout'],
+);
+
+/// The LogView page's `time` option.
+const _logviewTime = SwitchOption('time', 'time', initial: true);
+
+/// The LogView page's `showLevel` option.
+const _logviewShowLevel = SwitchOption(
+  'showLevel',
+  'show level',
+  initial: true,
+);
+
+/// The LogView page's `wrap` option.
+const _logviewWrap = SwitchOption('wrap', 'wrap');
+
+/// The LogView page's `live` option.
+const _logviewLive = SwitchOption('live', 'live', initial: true);
+
+/// The LogView page's `scrollbar` option.
+const _logviewScrollbar = ChoiceOption<String>(
+  'scrollbar',
+  'scrollbar',
+  values: ['always', 'onScroll', 'never'],
+);
+
 final _logviewPage = GalleryPage(
-  group: 'Scrolling',
+  group: _group,
   title: 'LogView',
   options: const [
-    ChoiceOption('level', 'level', values: _logLevels),
-    ChoiceOption('filter', 'filter', values: ['none', 'GET', 'slow']),
-    ChoiceOption('query', 'search', values: ['none', 'items', 'timeout']),
-    SwitchOption('time', 'time', initial: true),
-    SwitchOption('showLevel', 'show level', initial: true),
-    SwitchOption('wrap', 'wrap'),
-    SwitchOption('live', 'live', initial: true),
-    ChoiceOption(
-      'scrollbar',
-      'scrollbar',
-      values: ['always', 'onScroll', 'never'],
-    ),
+    _logviewLevel,
+    _logviewFilter,
+    _logviewQuery,
+    _logviewTime,
+    _logviewShowLevel,
+    _logviewWrap,
+    _logviewLive,
+    _logviewScrollbar,
   ],
   build: (context, o) => _Log(
-    level: LogLevel.values.byName(o.choice('level')),
-    filter: o.choice<String>('filter') == 'none' ? '' : o.choice('filter'),
-    query: o.choice<String>('query') == 'none' ? '' : o.choice('query'),
-    time: o.flag('time'),
-    showLevel: o.flag('showLevel'),
-    wrap: o.flag('wrap'),
-    live: o.flag('live'),
-    scrollbar: ScrollbarVisibility.values.byName(o.choice('scrollbar')),
+    level: LogLevel.values.byName(o(_logviewLevel)),
+    filter: o(_logviewFilter) == 'none' ? '' : o(_logviewFilter),
+    query: o(_logviewQuery) == 'none' ? '' : o(_logviewQuery),
+    time: o(_logviewTime),
+    showLevel: o(_logviewShowLevel),
+    wrap: o(_logviewWrap),
+    live: o(_logviewLive),
+    scrollbar: ScrollbarVisibility.values.byName(o(_logviewScrollbar)),
   ),
   codeIn: _logCode,
 );
@@ -154,21 +194,21 @@ final class _LogState extends State<_Log> with MotionState {
 }
 
 String _logCode(Options o, StageRoom room) {
-  final level = o.choice<String>('level');
-  final filter = o.choice<String>('filter');
-  final query = o.choice<String>('query');
-  final live = o.flag('live');
+  final level = o(_logviewLevel);
+  final filter = o(_logviewFilter);
+  final query = o(_logviewQuery);
+  final live = o(_logviewLive);
   final args = [
     if (level != 'debug') 'level: .$level',
     if (filter != 'none') "filter: '$filter'",
     if (query != 'none') "query: '$query'",
   ];
   final view = [
-    if (o.flag('wrap')) 'wrap: true,',
-    if (!o.flag('time')) 'showTime: false,',
-    if (!o.flag('showLevel')) 'showLevel: false,',
-    if (o.choice<String>('scrollbar') != 'always')
-      'scrollbar: .${o.label('scrollbar')},',
+    if (o(_logviewWrap)) 'wrap: true,',
+    if (!o(_logviewTime)) 'showTime: false,',
+    if (!o(_logviewShowLevel)) 'showLevel: false,',
+    if (o(_logviewScrollbar) != 'always')
+      'scrollbar: .${o.nameOf(_logviewScrollbar)},',
   ];
   return [
     if (args.isNotEmpty) ...[

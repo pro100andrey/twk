@@ -1,50 +1,59 @@
 // The SizedBox page.
 part of 'layout.dart';
 
+/// The SizedBox page's `kind` option.
+const _sizedBoxKind = ChoiceOption<String>(
+  'kind',
+  'constructor',
+  values: ['sized', 'expand', 'shrink'],
+  labels: ['width, height', '.expand', '.shrink'],
+);
+
+/// The SizedBox page's `width` option.
+final _sizedBoxWidth = SliderOption(
+  'width',
+  'width',
+  min: 0,
+  max: 44,
+  initial: 16,
+  format: (v) => '$v cells',
+  disabled: (o) => o(_sizedBoxKind) != 'sized',
+);
+
+/// The SizedBox page's `height` option.
+final _sizedBoxHeight = SliderOption(
+  'height',
+  'height',
+  min: 0,
+  max: 9,
+  initial: 3,
+  format: (v) => '$v rows',
+  disabled: (o) => o(_sizedBoxKind) != 'sized',
+);
+
 // ------------------------------------------------------------ SizedBox
 
 final _sizedBox = GalleryPage(
-  group: 'Layout',
+  group: _group,
   title: 'SizedBox',
   options: [
-    const ChoiceOption(
-      'kind',
-      'constructor',
-      values: ['sized', 'expand', 'shrink'],
-      labels: ['width, height', '.expand', '.shrink'],
-    ),
-    SliderOption(
-      'width',
-      'width',
-      min: 0,
-      max: 44,
-      initial: 16,
-      format: (v) => '$v cells',
-      disabled: (o) => o['kind'] != 'sized',
-    ),
-    SliderOption(
-      'height',
-      'height',
-      min: 0,
-      max: 9,
-      initial: 3,
-      format: (v) => '$v rows',
-      disabled: (o) => o['kind'] != 'sized',
-    ),
+    _sizedBoxKind,
+    _sizedBoxWidth,
+    _sizedBoxHeight,
   ],
   build: (context, o) {
     final theme = Theme.of(context);
     Widget child(String label) =>
         Box(style: theme.selection, child: Text(label));
-    final w = o.number('width').toInt();
-    final h = o.number('height').toInt();
+    final w = o(_sizedBoxWidth).toInt();
+    final h = o(_sizedBoxHeight).toInt();
     return SizedBox(
       width: 40,
       height: 9,
       child: Box(
         border: _rounded(theme),
         child: Center(
-          child: switch (o['kind']) {
+          child: switch (o(_sizedBoxKind)) {
             'expand' => SizedBox.expand(child: child('SizedBox.expand')),
             'shrink' => SizedBox.shrink(child: child('none of it shows')),
             _ => SizedBox(width: w, height: h, child: child('$w × $h')),
@@ -58,8 +67,8 @@ final _sizedBox = GalleryPage(
       'style: theme.selection',
       "child: const Text('$label')",
     ], ',');
-    final w = o.label('width');
-    final h = o.label('height');
+    final w = o.nameOf(_sizedBoxWidth);
+    final h = o.nameOf(_sizedBoxHeight);
     return [
       'final theme = Theme.of(context);',
       'return SizedBox(',
@@ -68,7 +77,7 @@ final _sizedBox = GalleryPage(
       '  child: Box(',
       '    border: .all(type: .rounded, style: theme.border),',
       '    child: Center(',
-      ...switch (o['kind']) {
+      ...switch (o(_sizedBoxKind)) {
         'expand' => [
           '      child: SizedBox.expand(',
           ...child('SizedBox.expand'),

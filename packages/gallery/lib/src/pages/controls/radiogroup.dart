@@ -1,18 +1,21 @@
 // The RadioGroup page.
 part of 'controls.dart';
 
+/// The RadioGroup page's `direction` option.
+const _radiogroupDirection = ChoiceOption<String>(
+  'direction',
+  'direction',
+  values: ['vertical', 'horizontal'],
+);
+
 final _radiogroupPage = GalleryPage(
-  group: 'Controls',
+  group: _group,
   title: 'RadioGroup',
   options: const [
-    ChoiceOption(
-      'direction',
-      'direction',
-      values: ['vertical', 'horizontal'],
-    ),
+    _radiogroupDirection,
   ],
   build: (context, o) =>
-      _Radios(direction: Axis.values.byName(o.choice('direction'))),
+      _Radios(direction: Axis.values.byName(o(_radiogroupDirection))),
   code: (o) => [
     'const _fruit = [',
     "  Choice('apple', 'apple'),",
@@ -34,7 +37,7 @@ final _radiogroupPage = GalleryPage(
     '      RadioGroup<String>(',
     '        choices: _fruit,',
     '        value: _chosen,',
-    '        direction: .${o.label('direction')},',
+    '        direction: .${o.nameOf(_radiogroupDirection)},',
     '        onChanged: (value) => setState(() => _chosen = value),',
     '      ),',
     '      Text.rich([',

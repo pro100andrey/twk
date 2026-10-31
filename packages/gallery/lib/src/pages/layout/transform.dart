@@ -10,29 +10,42 @@ const _round = [
 
 const _move = 200;
 
+/// The Transform page's `move` option.
+const _transformMove = ChoiceOption<String>(
+  'move',
+  'offset',
+  values: ['round', 'fixed'],
+);
+
+/// The Transform page's `dx` option.
+final _transformDx = SliderOption(
+  'dx',
+  'dx',
+  min: -12,
+  max: 12,
+  initial: 6,
+  format: (v) => '$v cells',
+  disabled: (o) => o(_transformMove) != 'fixed',
+);
+
+/// The Transform page's `dy` option.
+final _transformDy = SliderOption(
+  'dy',
+  'dy',
+  min: -2,
+  max: 2,
+  initial: 1,
+  format: (v) => '$v rows',
+  disabled: (o) => o(_transformMove) != 'fixed',
+);
+
 final _transform = GalleryPage(
-  group: 'Layout',
+  group: _group,
   title: 'Transform',
   options: [
-    const ChoiceOption('move', 'offset', values: ['round', 'fixed']),
-    SliderOption(
-      'dx',
-      'dx',
-      min: -12,
-      max: 12,
-      initial: 6,
-      format: (v) => '$v cells',
-      disabled: (o) => o['move'] != 'fixed',
-    ),
-    SliderOption(
-      'dy',
-      'dy',
-      min: -2,
-      max: 2,
-      initial: 1,
-      format: (v) => '$v rows',
-      disabled: (o) => o['move'] != 'fixed',
-    ),
+    _transformMove,
+    _transformDx,
+    _transformDy,
   ],
   build: (context, o) {
     final theme = Theme.of(context);
@@ -53,8 +66,8 @@ final _transform = GalleryPage(
         ),
       ),
     );
-    if (o['move'] == 'fixed') {
-      return moved((o.number('dx').toInt(), o.number('dy').toInt()));
+    if (o(_transformMove) == 'fixed') {
+      return moved((o(_transformDx).toInt(), o(_transformDy).toInt()));
     }
     return _Ticks(
       ms: _move,
@@ -82,8 +95,9 @@ final _transform = GalleryPage(
       '  ),',
       ');',
     ];
-    if (o['move'] == 'fixed') {
-      return build('(${o.label('dx')}, ${o.label('dy')})').join('\n');
+    if (o(_transformMove) == 'fixed') {
+      return build('(${o.nameOf(_transformDx)}, ${o.nameOf(_transformDy)})')
+          .join('\n');
     }
     final path = [for (final (x, y) in _round) '($x, $y)'];
     return [

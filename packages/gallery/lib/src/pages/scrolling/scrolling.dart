@@ -12,6 +12,9 @@ part 'scrollable.dart';
 part 'scrollbar.dart';
 part 'singlechildscrollview.dart';
 
+/// The group of the catalog these pages are in.
+const _group = 'Scrolling';
+
 /// The pages of the Scrolling group that draw.
 final scrollingPages = <GalleryPage>[
   _singlechildscrollviewPage,

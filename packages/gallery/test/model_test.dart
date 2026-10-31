@@ -135,6 +135,10 @@ void main() {
 
   group('the page store', () {
     final button = galleryPages.firstWhere((p) => p.title == 'Button');
+    PageOption<Object?> optionOf(String key) =>
+        button.options.firstWhere((o) => o.key == key);
+    final look = optionOf('look') as ChoiceOption<String>;
+    final tall = optionOf('tall') as SwitchOption;
     const key = 'controls/button';
     var updates = 0;
     final toasts = <(String, ToastKind)>[];
@@ -148,13 +152,13 @@ void main() {
 
     test("a page's control sets its options by value, its state kept", () {
       final s = store();
-      final control = s.controlOf(key, button)..setOption('look', 'filled');
-      expect(s.optionsOf(key, button).label('look'), 'filled');
+      final control = s.controlOf(key, button)..setOption(look, 'filled');
+      expect(s.optionsOf(key, button)(look), 'filled');
       final before = updates;
       control
-        ..setOption('look', 'filled')
-        ..setOption('look', 'no such look')
-        ..setOption('nothing', 1);
+        ..setOption(look, 'filled')
+        ..setOption(look, 'no such look')
+        ..setOption(const SwitchOption('nothing', 'nothing'), true);
       expect(updates, before, reason: 'nothing changed');
       control.state['saved'] = 2;
       expect(s.optionsOf(key, button).pageState['saved'], 2);
@@ -164,7 +168,7 @@ void main() {
 
     test('a reset empties both and counts', () {
       final s = store();
-      final control = s.controlOf(key, button)..setOption('tall', true);
+      final control = s.controlOf(key, button)..setOption(tall, true);
       control.state['saved'] = 1;
       s.reset(key);
       expect(s.optionsOf(key, button).route, isEmpty);

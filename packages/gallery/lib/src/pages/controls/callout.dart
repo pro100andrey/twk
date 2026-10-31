@@ -17,50 +17,76 @@ const Map<StatusKind, (String, String, String)> _notices = {
 /// The Callout page's own icon, in place of the kind's.
 const _ownIcon = '★';
 
+/// The Callout page's `kind` option.
+const _calloutKind = ChoiceOption<String>(
+  'kind',
+  'kind',
+  values: ['info', 'success', 'warning', 'error'],
+);
+
+/// The Callout page's `dismiss` option.
+const _calloutDismiss = SwitchOption(
+  'dismiss',
+  'dismissible',
+  initial: true,
+);
+
+/// The Callout page's `actions` option.
+const _calloutActions = SwitchOption(
+  'actions',
+  'actions',
+  initial: true,
+);
+
+/// The Callout page's `title` option.
+const _calloutTitle = ChoiceOption<String>(
+  'title',
+  'title',
+  values: ['kind', 'own'],
+);
+
+/// The Callout page's `icon` option.
+const _calloutIcon = ChoiceOption<String>(
+  'icon',
+  'icon',
+  values: ['kind', 'own', 'none'],
+);
+
+/// The Callout page's `width` option.
+final _calloutWidth = SliderOption(
+  'width',
+  'width',
+  min: 24,
+  max: 60,
+  initial: 44,
+  format: (v) => '$v cells',
+);
+
 final _callout = GalleryPage(
-  group: 'Controls',
+  group: _group,
   title: 'Callout',
   options: [
-    const ChoiceOption(
-      'kind',
-      'kind',
-      values: ['info', 'success', 'warning', 'error'],
-    ),
-    const SwitchOption('dismiss', 'dismissible', initial: true),
-    const SwitchOption('actions', 'actions', initial: true),
-    const ChoiceOption(
-      'title',
-      'title',
-      values: ['kind', 'own'],
-    ),
-    const ChoiceOption(
-      'icon',
-      'icon',
-      values: ['kind', 'own', 'none'],
-    ),
-    SliderOption(
-      'width',
-      'width',
-      min: 24,
-      max: 60,
-      initial: 44,
-      format: (v) => '$v cells',
-    ),
+    _calloutKind,
+    _calloutDismiss,
+    _calloutActions,
+    _calloutTitle,
+    _calloutIcon,
+    _calloutWidth,
   ],
   build: (context, o) => _Notice(
-    kind: StatusKind.values.byName(o.choice('kind')),
-    dismiss: o.flag('dismiss'),
-    actions: o.flag('actions'),
-    width: o.number('width').toInt(),
-    ownTitle: o.choice<String>('title') == 'own',
+    kind: StatusKind.values.byName(o(_calloutKind)),
+    dismiss: o(_calloutDismiss),
+    actions: o(_calloutActions),
+    width: o(_calloutWidth).toInt(),
+    ownTitle: o(_calloutTitle) == 'own',
     icon: _iconOf(o),
   ),
   code: (o) {
-    final kind = StatusKind.values.byName(o.choice('kind'));
+    final kind = StatusKind.values.byName(o(_calloutKind));
     final (says, act, title) = _notices[kind]!;
     final icon = _iconOf(o);
-    final dismiss = o.flag('dismiss');
-    final actions = o.flag('actions');
+    final dismiss = o(_calloutDismiss);
+    final actions = o(_calloutActions);
     final did = act.toLowerCase();
     return [
       'var _shown = true;',
@@ -76,11 +102,11 @@ final _callout = GalleryPage(
       '    children: [',
       '      if (_shown)',
       '        SizedBox(',
-      '          width: ${o.label('width')},',
+      '          width: ${o.nameOf(_calloutWidth)},',
       '          child: Callout.text(',
       "            '$says',",
       if (kind != StatusKind.info) '            kind: .${kind.name},',
-      if (o.choice<String>('title') == 'own') "            title: '$title',",
+      if (o(_calloutTitle) == 'own') "            title: '$title',",
       if (icon != null) "            icon: '$icon',",
       if (dismiss) ...[
         '            onDismissed: () => setState(() {',
@@ -121,7 +147,7 @@ final _callout = GalleryPage(
 );
 
 /// The Callout page's icon in [o]: null for the kind's, `''` for none.
-String? _iconOf(Options o) => switch (o.choice<String>('icon')) {
+String? _iconOf(Options o) => switch (o(_calloutIcon)) {
   'own' => _ownIcon,
   'none' => '',
   _ => null,

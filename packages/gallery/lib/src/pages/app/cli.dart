@@ -10,12 +10,19 @@ part of 'app.dart';
         math.max(8, math.min(22, room.height)),
       );
 
+/// The Cli page's `program` option.
+const _cliProgram = ChoiceOption<String>(
+  'program',
+  'program',
+  values: ['create', 'install', 'check'],
+);
+
 final _cli = GalleryPage(
   terminalAround: true,
-  group: 'App',
+  group: _group,
   title: 'Cli',
   options: const [
-    ChoiceOption('program', 'program', values: ['create', 'install', 'check']),
+    _cliProgram,
   ],
   build: (context, o) => LayoutBuilder(
     builder: (context, c) {
@@ -26,9 +33,9 @@ final _cli = GalleryPage(
           c.maxH < BoxConstraints.unbounded ? c.maxH : most,
         ),
       );
-      return cliStage(context, o.label('program'), width: w, height: h);
+      return cliStage(context, o.nameOf(_cliProgram), width: w, height: h);
     },
   ),
   heightIn: (o, room) => _cliBox(room).$2,
-  code: (o) => cliCode[o.label('program')]!,
+  code: (o) => cliCode[o.nameOf(_cliProgram)]!,
 );

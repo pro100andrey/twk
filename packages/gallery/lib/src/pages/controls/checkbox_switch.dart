@@ -1,13 +1,20 @@
 // The Checkbox, Switch page.
 part of 'controls.dart';
 
+/// The Checkbox, Switch page's `switch` option.
+const _checkboxSwitchSwitch = ChoiceOption<String>(
+  'switch',
+  'switch',
+  values: ['pill', 'brackets'],
+);
+
 final _checkboxSwitchPage = GalleryPage(
-  group: 'Controls',
+  group: _group,
   title: 'Checkbox, Switch',
   options: const [
-    ChoiceOption('switch', 'switch', values: ['pill', 'brackets']),
+    _checkboxSwitchSwitch,
   ],
-  build: (context, o) => _Toggles(pill: o.choice<String>('switch') == 'pill'),
+  build: (context, o) => _Toggles(pill: o(_checkboxSwitchSwitch) == 'pill'),
   code: (o) => [
     'var _wrap = true;',
     'var _dark = false;',
@@ -26,7 +33,7 @@ final _checkboxSwitchPage = GalleryPage(
     '    Switch(',
     '      value: _dark,',
     "      label: 'dark mode',",
-    if (o.choice<String>('switch') == 'brackets') '      pill: false,',
+    if (o(_checkboxSwitchSwitch) == 'brackets') '      pill: false,',
     '      onChanged: (value) => setState(() => _dark = value),',
     '    ),',
     "    const Checkbox(value: true, label: 'disabled', onChanged: null),",

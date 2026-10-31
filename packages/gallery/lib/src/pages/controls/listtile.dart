@@ -1,23 +1,44 @@
 // The ListTile page.
 part of 'controls.dart';
 
+/// The ListTile page's `leading` option.
+const _listtileLeading = SwitchOption(
+  'leading',
+  'leading',
+  initial: true,
+);
+
+/// The ListTile page's `subtitle` option.
+const _listtileSubtitle = SwitchOption(
+  'subtitle',
+  'subtitle',
+  initial: true,
+);
+
+/// The ListTile page's `trailing` option.
+const _listtileTrailing = SwitchOption(
+  'trailing',
+  'trailing',
+  initial: true,
+);
+
 final _listtilePage = GalleryPage(
-  group: 'Controls',
+  group: _group,
   title: 'ListTile',
   options: const [
-    SwitchOption('leading', 'leading', initial: true),
-    SwitchOption('subtitle', 'subtitle', initial: true),
-    SwitchOption('trailing', 'trailing', initial: true),
+    _listtileLeading,
+    _listtileSubtitle,
+    _listtileTrailing,
   ],
   build: (context, o) => _Tiles(
-    leading: o.flag('leading'),
-    subtitle: o.flag('subtitle'),
-    trailing: o.flag('trailing'),
+    leading: o(_listtileLeading),
+    subtitle: o(_listtileSubtitle),
+    trailing: o(_listtileTrailing),
   ),
   code: (o) {
-    final leading = o.flag('leading');
-    final subtitle = o.flag('subtitle');
-    final trailing = o.flag('trailing');
+    final leading = o(_listtileLeading);
+    final subtitle = o(_listtileSubtitle);
+    final trailing = o(_listtileTrailing);
     return [
       'var _open = 0;',
       '',

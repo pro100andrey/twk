@@ -1,13 +1,20 @@
 // The Rich text page.
 part of 'text.dart';
 
+/// The Rich text page's `labels` option.
+const _richTextLabels = SwitchOption(
+  'labels',
+  'row labels',
+  initial: true,
+);
+
 final _richTextPage = GalleryPage(
-  group: 'Text',
+  group: _group,
   title: 'Rich text',
-  options: const [SwitchOption('labels', 'row labels', initial: true)],
-  build: (context, o) => _RichText(labels: o.flag('labels')),
+  options: const [_richTextLabels],
+  build: (context, o) => _RichText(labels: o(_richTextLabels)),
   code: (o) {
-    final labels = o.flag('labels');
+    final labels = o(_richTextLabels);
     return [
       if (labels) 'final theme = Theme.of(context);',
       'return Text.rich([',

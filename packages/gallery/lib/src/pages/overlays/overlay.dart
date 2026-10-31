@@ -1,17 +1,31 @@
 // The Overlay page.
 part of 'overlays.dart';
 
+/// The Overlay page's `position` option.
+final _overlayPosition = ChoiceOption<String>(
+  'position',
+  'positioned',
+  values: _entryAt.keys.toList(),
+);
+
+/// The Overlay page's `shadow` option.
+const _overlayShadow = SwitchOption(
+  'shadow',
+  'shadow',
+  initial: true,
+);
+
 final _overlayPage = GalleryPage(
-  group: 'Overlays',
+  group: _group,
   title: 'Overlay',
   options: [
-    ChoiceOption('position', 'positioned', values: _entryAt.keys.toList()),
-    const SwitchOption('shadow', 'shadow', initial: true),
+    _overlayPosition,
+    _overlayShadow,
     _lookOption,
   ],
   build: (context, o) => _Entries(
-    position: o.choice('position'),
-    shadow: o.flag('shadow'),
+    position: o(_overlayPosition),
+    shadow: o(_overlayShadow),
     look: _lookOf(o),
   ),
   code: (o) => [
@@ -29,11 +43,11 @@ final _overlayPage = GalleryPage(
     '  final n = _entries.length + 1;',
     '  final entry = OverlayEntry(',
     '    builder: (context) => Positioned(',
-    for (final a in _entryAt[o.choice<String>('position')]!) '      $a,',
+    for (final a in _entryAt[o(_overlayPosition)]!) '      $a,',
     '      child: Panel(',
     ..._lookLine(o, '        '),
     '        padding: const .x(1),',
-    if (!o.flag('shadow')) '        shadow: false,',
+    if (!o(_overlayShadow)) '        shadow: false,',
     '        child: Text.rich([',
     r"          'Entry $n'.bold,",
     "          Span(' of the overlay', Theme.of(context).muted),",

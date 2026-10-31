@@ -1,23 +1,52 @@
 // The Skeleton, Skeletonize page.
 part of 'animation.dart';
 
+/// The Skeleton, Skeletonize page's `loading` option.
+const _skeletonLoading = SwitchOption(
+  'loading',
+  'loading',
+  initial: true,
+);
+
+/// The Skeleton, Skeletonize page's `shimmer` option.
+const _skeletonShimmer = SwitchOption(
+  'shimmer',
+  'shimmer',
+  initial: true,
+);
+
+/// The Skeleton, Skeletonize page's `glyph` option.
+const _skeletonGlyph = ChoiceOption<String>(
+  'glyph',
+  'glyph',
+  values: ['░', '▒', '▓'],
+);
+
+/// The Skeleton, Skeletonize page's `band` option.
+const _skeletonBand = ChoiceOption<int>(
+  'band',
+  'band',
+  values: [8, 4, 16],
+  labels: ['8', '4', '16'],
+);
+
 // ------------------------------------------------------------ Skeleton
 
 final _skeleton = GalleryPage(
-  group: 'Animation',
+  group: _group,
   title: 'Skeleton, Skeletonize',
   options: const [
-    SwitchOption('loading', 'loading', initial: true),
-    SwitchOption('shimmer', 'shimmer', initial: true),
-    ChoiceOption('glyph', 'glyph', values: ['░', '▒', '▓']),
-    ChoiceOption('band', 'band', values: [8, 4, 16], labels: ['8', '4', '16']),
+    _skeletonLoading,
+    _skeletonShimmer,
+    _skeletonGlyph,
+    _skeletonBand,
   ],
   build: (context, o) {
     final theme = Theme.of(context);
-    final shimmer = o.flag('shimmer');
+    final shimmer = o(_skeletonShimmer);
     return SkeletonTheme(
-      glyph: o.choice('glyph'),
-      band: o.choice('band'),
+      glyph: o(_skeletonGlyph),
+      band: o(_skeletonBand),
       child: Column(
         mainAxisSize: .min,
         crossAxisAlignment: .start,
@@ -29,7 +58,7 @@ final _skeleton = GalleryPage(
               border: .all(type: .rounded, style: theme.border),
               padding: const .x(1),
               child: Skeletonize(
-                enabled: o.flag('loading'),
+                enabled: o(_skeletonLoading),
                 shimmer: shimmer,
                 child: Column(
                   mainAxisSize: .min,
@@ -57,8 +86,8 @@ final _skeleton = GalleryPage(
     );
   },
   code: (o) {
-    final glyph = o.choice<String>('glyph');
-    final band = o.choice<int>('band');
+    final glyph = o(_skeletonGlyph);
+    final band = o(_skeletonBand);
     final args = [
       if (glyph != '░') "glyph: '$glyph'",
       if (band != 8) 'band: $band',
@@ -79,8 +108,8 @@ final _skeleton = GalleryPage(
       '          padding: const .x(1),',
       '          // laid out as it is, drawn as blocks while it loads',
       '          child: Skeletonize(',
-      '            enabled: ${o.flag('loading')},',
-      if (!o.flag('shimmer')) '            shimmer: false,',
+      '            enabled: ${o(_skeletonLoading)},',
+      if (!o(_skeletonShimmer)) '            shimmer: false,',
       '            child: Column(',
       '              mainAxisSize: .min,',
       '              crossAxisAlignment: .start,',

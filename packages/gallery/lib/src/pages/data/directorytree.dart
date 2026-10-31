@@ -33,24 +33,50 @@ const _fileIcon = '📄';
 /// but the two of the line under it, 2 at least.
 int _treeRows(int room) => math.max(2, math.min(12, room - 2));
 
+/// The DirectoryTree page's `hidden` option.
+const _directoryTreeHidden = SwitchOption(
+  'hidden',
+  'hidden files',
+);
+
+/// The DirectoryTree page's `gitignore` option.
+const _directoryTreeGitignore = SwitchOption(
+  'gitignore',
+  '.gitignore',
+  initial: true,
+);
+
+/// The DirectoryTree page's `sizes` option.
+const _directoryTreeSizes = SwitchOption('sizes', 'sizes');
+
+/// The DirectoryTree page's `guides` option.
+const _directoryTreeGuides = SwitchOption('guides', 'guides');
+
+/// The DirectoryTree page's `icon` option.
+const _directoryTreeIcon = ChoiceOption<String>(
+  'icon',
+  'icons',
+  values: ['none', 'glyphs'],
+);
+
 final _directoryTree = GalleryPage(
-  group: 'Data',
+  group: _group,
   title: 'DirectoryTree',
   options: const [
-    SwitchOption('hidden', 'hidden files'),
-    SwitchOption('gitignore', '.gitignore', initial: true),
-    SwitchOption('sizes', 'sizes'),
-    SwitchOption('guides', 'guides'),
-    ChoiceOption('icon', 'icons', values: ['none', 'glyphs']),
+    _directoryTreeHidden,
+    _directoryTreeGitignore,
+    _directoryTreeSizes,
+    _directoryTreeGuides,
+    _directoryTreeIcon,
   ],
   build: (context, o) => inRoom(
     (_, room) => _Files(
       height: _treeRows(room),
-      hidden: o.flag('hidden'),
-      gitignore: o.flag('gitignore'),
-      sizes: o.flag('sizes'),
-      guides: o.flag('guides'),
-      icons: o.choice<String>('icon') == 'glyphs',
+      hidden: o(_directoryTreeHidden),
+      gitignore: o(_directoryTreeGitignore),
+      sizes: o(_directoryTreeSizes),
+      guides: o(_directoryTreeGuides),
+      icons: o(_directoryTreeIcon) == 'glyphs',
     ),
   ),
   // the tree, and the line under it
@@ -90,11 +116,11 @@ final _directoryTree = GalleryPage(
     "          root: '$_project',",
     '          fileSystem: _files,',
     '          controller: _tree,',
-    if (o.flag('hidden')) '          showHidden: true,',
-    if (!o.flag('gitignore')) '          gitignore: false,',
-    if (o.flag('sizes')) '          showSizes: true,',
-    if (o.flag('guides')) '          showGuides: true,',
-    if (o.choice<String>('icon') == 'glyphs')
+    if (o(_directoryTreeHidden)) '          showHidden: true,',
+    if (!o(_directoryTreeGitignore)) '          gitignore: false,',
+    if (o(_directoryTreeSizes)) '          showSizes: true,',
+    if (o(_directoryTreeGuides)) '          showGuides: true,',
+    if (o(_directoryTreeIcon) == 'glyphs')
       codeLine([
         "          icon: (entry) => entry.isDirectory ? '$_dirIcon' ",
         ": '$_fileIcon',",

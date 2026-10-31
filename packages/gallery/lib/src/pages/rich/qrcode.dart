@@ -18,8 +18,8 @@ final _qrSymbols = <(String, QrErrorCorrection), QrSymbol>{};
 
 /// The symbol the QrCode page draws, with the options at [o].
 QrSymbol _qrSymbolOf(Options o) {
-  final text = _qrTexts[o.choice<String>('text')]!;
-  final level = QrErrorCorrection.values.byName(o.choice('level'));
+  final text = _qrTexts[o(_qrCodeText)]!;
+  final level = QrErrorCorrection.values.byName(o(_qrCodeLevel));
   return _qrSymbols[(text, level)] ??= () {
     qrEncodes++;
     return QrSymbol.encode(text, level: level);
@@ -35,40 +35,52 @@ int _qrQuietIn(QrSymbol symbol, int quiet, int rows) =>
 /// The rows of [symbol] without a quiet zone.
 int _qrLeast(QrSymbol symbol) => (symbol.size + 1) ~/ 2;
 
+/// The QrCode page's `text` option.
+const _qrCodeText = ChoiceOption<String>(
+  'text',
+  'text',
+  values: ['link', 'wifi', 'digits'],
+  initial: 'digits',
+);
+
+/// The QrCode page's `level` option.
+const _qrCodeLevel = ChoiceOption<String>(
+  'level',
+  'level',
+  values: ['low', 'medium', 'quartile', 'high'],
+  initial: 'medium',
+);
+
+/// The QrCode page's `quiet` option.
+final _qrCodeQuiet = SliderOption(
+  'quiet',
+  'quiet zone',
+  min: 0,
+  max: 4,
+  initial: 4,
+  format: (v) => '$v modules',
+);
+
+/// The QrCode page's `invert` option.
+const _qrCodeInvert = SwitchOption('invert', 'inverted');
+
 final _qrCode = GalleryPage(
-  group: 'Rich',
+  group: _group,
   title: 'QrCode',
   options: [
     // the smallest symbol first: version 1, which a screen of 24 rows
     // shows whole
-    const ChoiceOption(
-      'text',
-      'text',
-      values: ['link', 'wifi', 'digits'],
-      initial: 'digits',
-    ),
-    const ChoiceOption(
-      'level',
-      'level',
-      values: ['low', 'medium', 'quartile', 'high'],
-      initial: 'medium',
-    ),
-    SliderOption(
-      'quiet',
-      'quiet zone',
-      min: 0,
-      max: 4,
-      initial: 4,
-      format: (v) => '$v modules',
-    ),
+    _qrCodeText,
+    _qrCodeLevel,
+    _qrCodeQuiet,
     // light modules on dark: what fewer scanners read
-    const SwitchOption('invert', 'inverted'),
+    _qrCodeInvert,
   ],
   build: (context, o) {
     final theme = Theme.of(context);
     final symbol = _qrSymbolOf(o);
-    final quiet = o.number('quiet').toInt();
-    final invert = o.flag('invert');
+    final quiet = o(_qrCodeQuiet).toInt();
+    final invert = o(_qrCodeInvert);
     return LayoutBuilder(
       builder: (context, constraints) => Row(
         mainAxisSize: MainAxisSize.min,
@@ -104,13 +116,13 @@ final _qrCode = GalleryPage(
   // than the room even without one is cut off at its bottom
   heightIn: (o, room) {
     final symbol = _qrSymbolOf(o);
-    final quiet = _qrQuietIn(symbol, o.number('quiet').toInt(), room.height);
+    final quiet = _qrQuietIn(symbol, o(_qrCodeQuiet).toInt(), room.height);
     return math.max((symbol.size + 2 * quiet + 1) ~/ 2, 3);
   },
   code: (o) {
-    final text = _qrTexts[o.choice<String>('text')];
-    final level = o.choice<String>('level');
-    final quiet = o.number('quiet').toInt();
+    final text = _qrTexts[o(_qrCodeText)];
+    final level = o(_qrCodeLevel);
+    final quiet = o(_qrCodeQuiet).toInt();
     final one = "  final symbol = QrSymbol.encode('$text', level: .$level);";
     // the quiet zone that leaves the symbol whole in the rows there are
     final zone = quiet == 0
@@ -136,7 +148,7 @@ final _qrCode = GalleryPage(
       '      crossAxisAlignment: .start,',
       '      gap: 2,',
       '      children: [',
-      if (o.flag('invert'))
+      if (o(_qrCodeInvert))
         '        // in half blocks, white on black; in fewer rows than it'
       else
         '        // in half blocks, black on white; in fewer rows than it',
@@ -144,7 +156,7 @@ final _qrCode = GalleryPage(
       '        QrCode.symbol(',
       '          symbol,',
       '          quietZone: $zone,',
-      if (o.flag('invert')) ...[
+      if (o(_qrCodeInvert)) ...[
         '          dark: QrCode.white,',
         '          light: QrCode.black,',
       ],

@@ -1,8 +1,31 @@
 // The Tooltip page.
 part of 'overlays.dart';
 
+/// The Tooltip page's `wait` option.
+const _tooltipWait = ChoiceOption<int>(
+  'wait',
+  'wait',
+  values: [100, 500, 1000],
+  labels: ['100 ms', '500 ms', '1 s'],
+  initial: 500,
+);
+
+/// The Tooltip page's `hover` option.
+const _tooltipHover = SwitchOption(
+  'hover',
+  'on hover',
+  initial: true,
+);
+
+/// The Tooltip page's `focus` option.
+const _tooltipFocus = SwitchOption(
+  'focus',
+  'on focus',
+  initial: true,
+);
+
 final _tooltipPage = GalleryPage(
-  group: 'Overlays',
+  group: _group,
   title: 'Tooltip',
   about:
       'A message by a widget while the mouse or the keyboard focus rests '
@@ -10,21 +33,15 @@ final _tooltipPage = GalleryPage(
       'AnchorFollower in the overlay; above it where there is no room '
       'below.',
   options: [
-    const ChoiceOption(
-      'wait',
-      'wait',
-      values: [100, 500, 1000],
-      labels: ['100 ms', '500 ms', '1 s'],
-      initial: 500,
-    ),
-    const SwitchOption('hover', 'on hover', initial: true),
-    const SwitchOption('focus', 'on focus', initial: true),
+    _tooltipWait,
+    _tooltipHover,
+    _tooltipFocus,
     _lookOption,
   ],
   build: (context, o) => _Tips(
-    wait: Duration(milliseconds: o.choice('wait')),
-    hover: o.flag('hover'),
-    focus: o.flag('focus'),
+    wait: Duration(milliseconds: o(_tooltipWait)),
+    hover: o(_tooltipHover),
+    focus: o(_tooltipFocus),
     look: _lookOf(o),
   ),
   code: (o) => [
@@ -52,10 +69,10 @@ final _tooltipPage = GalleryPage(
     '        ])',
     '          Tooltip(',
     '            message: message,',
-    if (o.choice<int>('wait') case final ms when ms != 500)
+    if (o(_tooltipWait) case final ms when ms != 500)
       '            wait: const Duration(milliseconds: $ms),',
-    if (!o.flag('hover')) '            showOnHover: false,',
-    if (!o.flag('focus')) '            showOnFocus: false,',
+    if (!o(_tooltipHover)) '            showOnHover: false,',
+    if (!o(_tooltipFocus)) '            showOnFocus: false,',
     ..._lookLine(o, '            '),
     "            controller: label == 'Share' ? _share : null,",
     '            child: Button(',

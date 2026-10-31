@@ -1,18 +1,21 @@
 // The Form, FormField page.
 part of 'controls.dart';
 
+/// The Form, FormField page's `validate` option.
+const _formFormfieldValidate = ChoiceOption<String>(
+  'validate',
+  'validate',
+  values: ['disabled', 'always', 'onUserInteraction', 'onUnfocus'],
+);
+
 final _formFormfieldPage = GalleryPage(
-  group: 'Controls',
+  group: _group,
   title: 'Form, FormField',
   options: const [
-    ChoiceOption(
-      'validate',
-      'validate',
-      values: ['disabled', 'always', 'onUserInteraction', 'onUnfocus'],
-    ),
+    _formFormfieldValidate,
   ],
   build: (context, o) => _Signup(
-    validate: AutovalidateMode.values.byName(o.choice('validate')),
+    validate: AutovalidateMode.values.byName(o(_formFormfieldValidate)),
   ),
   code: (o) => [
     'final _form = GlobalKey<FormState>();',
@@ -22,8 +25,8 @@ final _formFormfieldPage = GalleryPage(
     '@override',
     'Widget build(BuildContext context) => Form(',
     '  key: _form,',
-    if (o.choice<String>('validate') != 'disabled')
-      '  autovalidateMode: .${o.label('validate')},',
+    if (o(_formFormfieldValidate) != 'disabled')
+      '  autovalidateMode: .${o.nameOf(_formFormfieldValidate)},',
     '  onSubmitted: () => setState(() => _submitted = _name),',
     '  child: SizedBox(',
     '    width: 40,',

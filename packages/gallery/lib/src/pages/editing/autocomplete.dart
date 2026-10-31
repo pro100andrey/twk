@@ -1,21 +1,35 @@
 // The Autocomplete page.
 part of 'editing.dart';
 
+/// The Autocomplete page's `trigger` option.
+const _autocompleteTrigger = ChoiceOption<String>(
+  'trigger',
+  'trigger',
+  values: ['/', 'none'],
+);
+
+/// The Autocomplete page's `rows` option.
+const _autocompleteRows = ChoiceOption<int>(
+  'rows',
+  'rows',
+  values: [8, 4],
+);
+
 final _autocompletePage = GalleryPage(
-  group: 'Editing',
+  group: _group,
   title: 'Autocomplete',
   options: [
-    const ChoiceOption('trigger', 'trigger', values: ['/', 'none']),
-    const ChoiceOption('rows', 'rows', values: [8, 4]),
+    _autocompleteTrigger,
+    _autocompleteRows,
     popupLookOption(),
   ],
   build: (context, o) => _Complete(
-    fruit: o.choice<String>('trigger') == 'none',
-    rows: o.choice('rows'),
+    fruit: o(_autocompleteTrigger) == 'none',
+    rows: o(_autocompleteRows),
     popupLook: popupLookOf(o),
   ),
   code: (o) {
-    final fruit = o.choice<String>('trigger') == 'none';
+    final fruit = o(_autocompleteTrigger) == 'none';
     final placeholder = fruit ? 'a fruit' : '/ and a command';
     return [
       'final _controller = TextEditingController();',
@@ -51,7 +65,8 @@ final _autocompletePage = GalleryPage(
       '      Autocomplete(',
       '        controller: _controller,',
       if (!fruit) "        trigger: '/',",
-      if (o['rows'] != 8) '        rows: ${o.label('rows')},',
+      if (o(_autocompleteRows) != 8)
+        '        rows: ${o.nameOf(_autocompleteRows)},',
       ...popupLookArg(o, '        '),
       '        suggestions: (query) => [',
       if (fruit) ...[

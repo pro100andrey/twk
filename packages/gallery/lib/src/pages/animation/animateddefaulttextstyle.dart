@@ -7,18 +7,30 @@ const _slots = ['primary', 'error', 'success'];
 
 const _texts = ['Text in the style above it,', 'and a second Text, in step.'];
 
+/// The AnimatedDefaultTextStyle page's `style` option.
+const _textStyleStyle = ChoiceOption<String>(
+  'style',
+  'style',
+  values: _slots,
+);
+
+/// The AnimatedDefaultTextStyle page's `bold` option.
+const _textStyleBold = SwitchOption('bold', 'bold');
+
 final _textStyle = GalleryPage(
-  group: 'Animation',
+  group: _group,
   title: 'AnimatedDefaultTextStyle',
   options: [
-    const ChoiceOption('style', 'style', values: _slots),
-    const SwitchOption('bold', 'bold'),
+    _textStyleStyle,
+    _textStyleBold,
     _cycleOption,
   ],
-  build: (context, o) => _Cycled(o, 'style', _slots, (context, i) {
+  build: (context, o) => _Cycled(o, _textStyleStyle, _slots, (context, i) {
     final slot = themeColor(Theme.of(context), _slots[i]);
     return AnimatedDefaultTextStyle(
-      style: o.flag('bold') ? slot.merge(const .new(attrs: Attr.bold)) : slot,
+      style: o(_textStyleBold)
+          ? slot.merge(const .new(attrs: Attr.bold))
+          : slot,
       duration: _duration,
       child: Column(
         mainAxisSize: .min,
@@ -29,7 +41,7 @@ final _textStyle = GalleryPage(
   }),
   code: (o) {
     String style(String slot) =>
-        o.flag('bold') ? '$slot.merge(const .new(attrs: Attr.bold))' : slot;
+        o(_textStyleBold) ? '$slot.merge(const .new(attrs: Attr.bold))' : slot;
     List<String> body(String slot) => [
       'final theme = Theme.of(context);',
       'return AnimatedDefaultTextStyle(',
@@ -44,8 +56,8 @@ final _textStyle = GalleryPage(
       '  ),',
       ');',
     ];
-    final name = o.choice<String>('style');
-    if (!o.flag('cycle')) {
+    final name = o(_textStyleStyle);
+    if (!o(_cycleOption)) {
       return body('theme.$name').join('\n');
     }
     return _ticking(

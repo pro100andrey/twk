@@ -27,17 +27,17 @@ final class _NotesPageState extends State<_Notes> {
     final o = widget.o;
     final k = keptAt(context, 'notes', _NotesState.new);
     return SizedBox(
-      width: o.number('width').toInt(),
+      width: o(_scaffoldWidth).toInt(),
       height: 12,
       child: Scaffold(
         controller: k.controller,
-        collapsedBelow: o.choice('collapsed'),
-        sidebarSide: o['side'] == 'right'
+        collapsedBelow: o(_scaffoldCollapsed),
+        sidebarSide: o(_scaffoldSide) == 'right'
             ? SidebarSide.right
             : SidebarSide.left,
-        resizableSidebar: o.flag('resizable'),
-        keyHints: o.flag('hints'),
-        header: o.flag('header') ? const Text('notes') : null,
+        resizableSidebar: o(_scaffoldResizable),
+        keyHints: o(_scaffoldHints),
+        header: o(_scaffoldHeader) ? const Text('notes') : null,
         sidebar: Padding(
           padding: const EdgeInsets.all(1),
           child: Column(
@@ -67,7 +67,7 @@ final class _NotesPageState extends State<_Notes> {
             ],
           ),
         ),
-        statusBar: o.flag('status')
+        statusBar: o(_scaffoldStatus)
             ? StatusBar(
                 left: Text('${k.notes} notes'),
                 right: const Text('saved'),
@@ -78,29 +78,70 @@ final class _NotesPageState extends State<_Notes> {
   }
 }
 
+/// The Scaffold page's `width` option.
+final _scaffoldWidth = SliderOption(
+  'width',
+  'width',
+  min: 30,
+  max: 48,
+  initial: 48,
+  format: (v) => '$v cells',
+);
+
+/// The Scaffold page's `side` option.
+const _scaffoldSide = ChoiceOption<String>(
+  'side',
+  'sidebar side',
+  values: ['left', 'right'],
+);
+
+/// The Scaffold page's `resizable` option.
+const _scaffoldResizable = SwitchOption(
+  'resizable',
+  'resizable',
+  initial: true,
+);
+
+/// The Scaffold page's `hints` option.
+const _scaffoldHints = SwitchOption(
+  'hints',
+  'key hints',
+  initial: true,
+);
+
+/// The Scaffold page's `header` option.
+const _scaffoldHeader = SwitchOption(
+  'header',
+  'header',
+  initial: true,
+);
+
+/// The Scaffold page's `status` option.
+const _scaffoldStatus = SwitchOption(
+  'status',
+  'status bar',
+  initial: true,
+);
+
+/// The Scaffold page's `collapsed` option.
+const _scaffoldCollapsed = ChoiceOption<int?>(
+  'collapsed',
+  'collapsed below',
+  values: [null, 36, 40, 44],
+  initial: 40,
+);
+
 final _scaffold = GalleryPage(
-  group: 'Layout',
+  group: _group,
   title: 'Scaffold',
   options: [
-    SliderOption(
-      'width',
-      'width',
-      min: 30,
-      max: 48,
-      initial: 48,
-      format: (v) => '$v cells',
-    ),
-    const ChoiceOption('side', 'sidebar side', values: ['left', 'right']),
-    const SwitchOption('resizable', 'resizable', initial: true),
-    const SwitchOption('hints', 'key hints', initial: true),
-    const SwitchOption('header', 'header', initial: true),
-    const SwitchOption('status', 'status bar', initial: true),
-    const ChoiceOption(
-      'collapsed',
-      'collapsed below',
-      values: [null, 36, 40, 44],
-      initial: 40,
-    ),
+    _scaffoldWidth,
+    _scaffoldSide,
+    _scaffoldResizable,
+    _scaffoldHints,
+    _scaffoldHeader,
+    _scaffoldStatus,
+    _scaffoldCollapsed,
   ],
   build: (context, o) => _Notes(o),
   code: (o) => [
@@ -119,15 +160,15 @@ final _scaffold = GalleryPage(
     'Widget build(BuildContext context) {',
     '  final theme = Theme.of(context);',
     '  return SizedBox(',
-    '    width: ${o.label('width')},',
+    '    width: ${o.nameOf(_scaffoldWidth)},',
     '    height: 12,',
     '    child: Scaffold(',
     '      controller: _controller,',
-    if (o.choice<int?>('collapsed') case final w?) '      collapsedBelow: $w,',
-    if (o['side'] == 'right') '      sidebarSide: .right,',
-    if (o.flag('resizable')) '      resizableSidebar: true,',
-    if (!o.flag('hints')) '      keyHints: false,',
-    if (o.flag('header')) "      header: const Text('notes'),",
+    if (o(_scaffoldCollapsed) case final w?) '      collapsedBelow: $w,',
+    if (o(_scaffoldSide) == 'right') '      sidebarSide: .right,',
+    if (o(_scaffoldResizable)) '      resizableSidebar: true,',
+    if (!o(_scaffoldHints)) '      keyHints: false,',
+    if (o(_scaffoldHeader)) "      header: const Text('notes'),",
     '      sidebar: Padding(',
     '        padding: const .all(1),',
     '        child: Column(',
@@ -160,7 +201,7 @@ final _scaffold = GalleryPage(
     '          ],',
     '        ),',
     '      ),',
-    if (o.flag('status')) ...[
+    if (o(_scaffoldStatus)) ...[
       '      statusBar: StatusBar(',
       r"        left: Text('$_notes notes'),",
       "        right: const Text('saved'),",

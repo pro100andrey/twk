@@ -1,24 +1,35 @@
 // The StatusBar page.
 part of 'controls.dart';
 
+/// The StatusBar page's `width` option.
+final _statusbarWidth = SliderOption(
+  'width',
+  'width',
+  min: 12,
+  max: 50,
+  initial: 50,
+  format: (v) => '$v cells',
+);
+
+/// The StatusBar page's `gap` option.
+const _statusbarGap = ChoiceOption<int>(
+  'gap',
+  'gap',
+  values: [0, 1, 3],
+  initial: 1,
+);
+
 final _statusbarPage = GalleryPage(
-  group: 'Controls',
+  group: _group,
   title: 'StatusBar',
   options: [
-    SliderOption(
-      'width',
-      'width',
-      min: 12,
-      max: 50,
-      initial: 50,
-      format: (v) => '$v cells',
-    ),
-    const ChoiceOption('gap', 'gap', values: [0, 1, 3], initial: 1),
+    _statusbarWidth,
+    _statusbarGap,
   ],
   build: (context, o) => SizedBox(
-    width: o.number('width').toInt(),
+    width: o(_statusbarWidth).toInt(),
     child: StatusBar(
-      gap: o.choice('gap'),
+      gap: o(_statusbarGap),
       left: const Badge('NORMAL'),
       center: const Text(
         'example/widgets/main.dart',
@@ -30,9 +41,9 @@ final _statusbarPage = GalleryPage(
   ),
   code: (o) => [
     'return SizedBox(',
-    '  width: ${o.label('width')},',
+    '  width: ${o.nameOf(_statusbarWidth)},',
     '  child: StatusBar(',
-    if (o.choice<int>('gap') != 1) '    gap: ${o.label('gap')},',
+    if (o(_statusbarGap) != 1) '    gap: ${o.nameOf(_statusbarGap)},',
     "    left: const Badge('NORMAL'),",
     '    center: const Text(',
     "      'example/widgets/main.dart',",

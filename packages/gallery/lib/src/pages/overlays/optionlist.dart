@@ -1,27 +1,55 @@
 // The OptionList page.
 part of 'overlays.dart';
 
+/// The OptionList page's `query` option.
+const _optionlistQuery = ChoiceOption<String>(
+  'query',
+  'marks of',
+  values: ['', 'o', 'sa'],
+  labels: ['none', 'o', 'sa'],
+);
+
+/// The OptionList page's `rows` option.
+const _optionlistRows = ChoiceOption<int>(
+  'rows',
+  'rows',
+  values: [3, 5, 8],
+  initial: 5,
+);
+
+/// The OptionList page's `details` option.
+const _optionlistDetails = SwitchOption(
+  'details',
+  'details',
+  initial: true,
+);
+
+/// The OptionList page's `bar` option.
+const _optionlistBar = SwitchOption('bar', 'bar', initial: true);
+
+/// The OptionList page's `thumb` option.
+const _optionlistThumb = SwitchOption(
+  'thumb',
+  'thumb',
+  initial: true,
+);
+
 final _optionlistPage = GalleryPage(
-  group: 'Overlays',
+  group: _group,
   title: 'OptionList',
   options: const [
-    ChoiceOption(
-      'query',
-      'marks of',
-      values: ['', 'o', 'sa'],
-      labels: ['none', 'o', 'sa'],
-    ),
-    ChoiceOption('rows', 'rows', values: [3, 5, 8], initial: 5),
-    SwitchOption('details', 'details', initial: true),
-    SwitchOption('bar', 'bar', initial: true),
-    SwitchOption('thumb', 'thumb', initial: true),
+    _optionlistQuery,
+    _optionlistRows,
+    _optionlistDetails,
+    _optionlistBar,
+    _optionlistThumb,
   ],
   build: (context, o) => _Options(
-    query: o.choice('query'),
-    rows: o.choice('rows'),
-    details: o.flag('details'),
-    bar: o.flag('bar'),
-    thumb: o.flag('thumb'),
+    query: o(_optionlistQuery),
+    rows: o(_optionlistRows),
+    details: o(_optionlistDetails),
+    bar: o(_optionlistBar),
+    thumb: o(_optionlistThumb),
   ),
   code: _optionListCode,
 );
@@ -42,8 +70,8 @@ const _commands = [
 
 /// The Dart of the OptionList page.
 String _optionListCode(Options o) {
-  final q = o.choice<String>('query');
-  final details = o.flag('details');
+  final q = o(_optionlistQuery);
+  final details = o(_optionlistDetails);
   final detail = details ? ', detail: keys' : '';
   return [
     'const _commands = [',
@@ -96,9 +124,9 @@ String _optionListCode(Options o) {
     '          child: OptionList(',
     '            options: options,',
     '            highlighted: highlighted,',
-    '            rows: ${o.label('rows')},',
-    if (!o.flag('bar')) '            bar: false,',
-    if (!o.flag('thumb')) '            thumb: false,',
+    '            rows: ${o.nameOf(_optionlistRows)},',
+    if (!o(_optionlistBar)) '            bar: false,',
+    if (!o(_optionlistThumb)) '            thumb: false,',
     '            onHighlight: highlight,',
     '            onSelected: run,',
     '          ),',

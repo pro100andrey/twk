@@ -1,22 +1,35 @@
 // The TabBar, TabView page.
 part of 'controls.dart';
 
+/// The TabBar, TabView page's `tabs` option.
+const _tabbarTabviewTabs = ChoiceOption<int>(
+  'tabs',
+  'tabs',
+  values: [3, 7],
+  initial: 3,
+);
+
+/// The TabBar, TabView page's `look` option.
+const _tabbarTabviewLook = ChoiceOption<String>(
+  'look',
+  'look',
+  values: ['plain', 'strip'],
+);
+
 final _tabbarTabviewPage = GalleryPage(
-  group: 'Controls',
+  group: _group,
   title: 'TabBar, TabView',
   options: const [
-    ChoiceOption('tabs', 'tabs', values: [3, 7], initial: 3),
-    ChoiceOption('look', 'look', values: ['plain', 'strip']),
+    _tabbarTabviewTabs,
+    _tabbarTabviewLook,
   ],
   build: (context, o) => _Tabs(
-    count: o.choice('tabs'),
-    strip: o.choice<String>('look') == 'strip',
+    count: o(_tabbarTabviewTabs),
+    strip: o(_tabbarTabviewLook) == 'strip',
   ),
   code: (o) {
-    final tabs = _tabNames.take(o.choice<int>('tabs')).toList();
-    final made = o.choice<String>('look') == 'strip'
-        ? 'TabBar.strip'
-        : 'TabBar';
+    final tabs = _tabNames.take(o(_tabbarTabviewTabs)).toList();
+    final made = o(_tabbarTabviewLook) == 'strip' ? 'TabBar.strip' : 'TabBar';
     final bar =
         '      $made(controller: _tabs, tabs: const '
         '[${tabs.map((t) => "'$t'").join(', ')}]),';

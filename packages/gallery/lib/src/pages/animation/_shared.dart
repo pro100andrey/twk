@@ -25,7 +25,7 @@ const _curves = <String, Curve>{
 };
 
 /// Each of [Curves], by name.
-const _curveOption = ChoiceOption(
+const _curveOption = ChoiceOption<String>(
   'curve',
   'curve',
   values: [
@@ -44,7 +44,7 @@ const _curveOption = ChoiceOption(
 
 const _cycleOption = SwitchOption('cycle', 'cycle', initial: true);
 
-Curve _curveOf(Options o) => _curves[o.choice<String>('curve')]!;
+Curve _curveOf(Options o) => _curves[o(_curveOption)]!;
 
 /// [builder] with the index of the value of option [option] (one of
 /// [values]) the widget is given: the option's own, or while the page's
@@ -58,7 +58,7 @@ final class _Cycled extends StatefulWidget {
   const _Cycled(this.options, this.option, this.values, this.builder);
 
   final Options options;
-  final String option;
+  final PageOption<Object?> option;
   final List<Object?> values;
   final Widget Function(BuildContext context, int i) builder;
 
@@ -75,15 +75,15 @@ final class _CycledState extends State<_Cycled> with MotionState {
     final kept = control.state;
     final now = motion.now;
     final n = w.values.length;
-    final chosen = w.values.indexOf(w.options[w.option]);
+    final chosen = w.values.indexOf(w.options(w.option));
     final c = chosen < 0 ? 0 : chosen;
-    var on = w.options.flag('cycle');
+    var on = w.options(_cycleOption);
     final born = kept['born'] as Duration? ?? (motion.frozen ? .zero : now);
     kept['born'] = born;
-    final name = 'drive:${w.option}';
+    final name = 'drive:${w.option.key}';
     var d = kept[name] as Drive?;
     if (on && d != null && d.on && c != d.last) {
-      scheduleMicrotask(() => control.setOption('cycle', false));
+      scheduleMicrotask(() => control.setOption(_cycleOption, false));
       on = false;
     }
     if (d == null) {
@@ -125,7 +125,7 @@ String _js(num v) => v == v.roundToDouble() ? '${v.round()}' : '$v';
 /// The curve argument at [n] columns, none for Curves.linear, the
 /// default.
 List<String> _curveLine(Options o, int n) {
-  final curve = o.choice<String>('curve');
+  final curve = o(_curveOption);
   return curve == 'linear' ? [] : ['${' ' * n}curve: Curves.$curve,'];
 }
 
@@ -193,7 +193,7 @@ List<String> _framed(
 ) => [
   codeLine([
     '// the room it grows in: $what',
-    if (o.choice<String>('curve') == 'elasticOut') ', and elasticOut beyond it',
+    if (o(_curveOption) == 'elasticOut') ', and elasticOut beyond it',
   ]),
   'return SizedBox(',
   '  width: ${room.$1},',
@@ -210,7 +210,7 @@ List<String> _framed(
 /// The room a widget that grows to [w] × [h] takes: elasticOut overshoots
 /// by a quarter, [dw] × [dh] beyond it.
 (int, int) _overshoot(Options o, int w, int h, int dw, int dh) =>
-    o.choice<String>('curve') == 'elasticOut' ? (w + dw, h + dh) : (w, h);
+    o(_curveOption) == 'elasticOut' ? (w + dw, h + dh) : (w, h);
 
 /// [child] at the top left of a SizedBox of [room].
 Widget _inFrame((int, int) room, Widget child) => SizedBox(

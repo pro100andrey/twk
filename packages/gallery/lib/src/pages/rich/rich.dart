@@ -17,6 +17,9 @@ part 'markdownview.dart';
 part 'qrcode.dart';
 part 'syntaxthemescope.dart';
 
+/// The group of the catalog these pages are in.
+const _group = 'Rich';
+
 /// The pages of the Rich group that draw.
 final richPages = <GalleryPage>[
   _markdownView,

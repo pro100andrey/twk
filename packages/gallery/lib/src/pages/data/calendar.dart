@@ -12,25 +12,37 @@ const _meetings = {6, 13, 22, 27};
 bool _meeting(DateTime date) =>
     date.year == 2026 && date.month == 10 && _meetings.contains(date.day);
 
+/// The Calendar page's `firstWeekday` option.
+const _calendarFirstWeekday = ChoiceOption<int>(
+  'firstWeekday',
+  'first day',
+  values: [DateTime.monday, DateTime.sunday],
+  labels: ['monday', 'sunday'],
+);
+
+/// The Calendar page's `weeks` option.
+const _calendarWeeks = SwitchOption('weeks', 'week numbers');
+
+/// The Calendar page's `outside` option.
+const _calendarOutside = SwitchOption('outside', 'outside days');
+
+/// The Calendar page's `marked` option.
+const _calendarMarked = SwitchOption('marked', 'marked days');
+
 final _calendar = GalleryPage(
-  group: 'Data',
+  group: _group,
   title: 'Calendar',
   options: const [
-    ChoiceOption(
-      'firstWeekday',
-      'first day',
-      values: [DateTime.monday, DateTime.sunday],
-      labels: ['monday', 'sunday'],
-    ),
-    SwitchOption('weeks', 'week numbers'),
-    SwitchOption('outside', 'outside days'),
-    SwitchOption('marked', 'marked days'),
+    _calendarFirstWeekday,
+    _calendarWeeks,
+    _calendarOutside,
+    _calendarMarked,
   ],
   build: (context, o) => _Month(
-    firstWeekday: o.choice('firstWeekday'),
-    weeks: o.flag('weeks'),
-    outside: o.flag('outside'),
-    marked: o.flag('marked'),
+    firstWeekday: o(_calendarFirstWeekday),
+    weeks: o(_calendarWeeks),
+    outside: o(_calendarOutside),
+    marked: o(_calendarMarked),
   ),
   // the title, the weekdays, six weeks, a gap and the line under it,
   // whatever the month
@@ -38,7 +50,7 @@ final _calendar = GalleryPage(
   code: (o) => [
     'DateTime? _selected;',
     '',
-    if (o.flag('marked')) ...[
+    if (o(_calendarMarked)) ...[
       '/// The days of October 2026 with a meeting.',
       'static const _meetings = {${_meetings.join(', ')}};',
       '',
@@ -57,11 +69,11 @@ final _calendar = GalleryPage(
     '  children: [',
     '    Calendar(',
     '      today: DateTime(2026, 10, 19),',
-    if (o.choice<int>('firstWeekday') == DateTime.sunday)
+    if (o(_calendarFirstWeekday) == DateTime.sunday)
       '      firstWeekday: DateTime.sunday,',
-    if (o.flag('weeks')) '      showWeekNumbers: true,',
-    if (o.flag('outside')) '      showOutsideDays: true,',
-    if (o.flag('marked')) ...[
+    if (o(_calendarWeeks)) '      showWeekNumbers: true,',
+    if (o(_calendarOutside)) '      showOutsideDays: true,',
+    if (o(_calendarMarked)) ...[
       '      dayStyle: (date) =>',
       '          _meeting(date) ? Theme.of(context).warning : null,',
     ],

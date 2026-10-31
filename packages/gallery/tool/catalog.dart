@@ -272,7 +272,7 @@ What the gallery lets you change, and what each starts at:
 | --- | --- | --- |
 ''');
       for (final o in def.options) {
-        final starts = _cell(options.label(o.key));
+        final starts = _cell(options.nameOf(o));
         b.writeln('| ${o.label} | ${_cell(_values(o))} | $starts |');
       }
       b.writeln();
@@ -305,8 +305,8 @@ What the gallery lets you change, and what each starts at:
 }
 
 /// The values of [option], as the inspector names them.
-String _values(PageOption option) => switch (option) {
-  final ChoiceOption o => o.names.join(', '),
+String _values(PageOption<Object?> option) => switch (option) {
+  final ChoiceOption<Object?> o => o.names.join(', '),
   final ColorOption o => o.values.join(', '),
   SwitchOption() => 'on, off',
   final SliderOption o => '${o.show(o.min)} to ${o.show(o.max)}',

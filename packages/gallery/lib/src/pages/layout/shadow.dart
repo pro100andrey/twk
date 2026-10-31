@@ -9,22 +9,32 @@ const _shadowed = 'a box with a shadow';
 
 const _wall = 'what is under a shadow keeps its glyphs; their colours darken. ';
 
+/// The Shadow page's `offset` option.
+final _shadowOffset = ChoiceOption<String>(
+  'offset',
+  'offset',
+  values: _offsets.keys.toList(),
+);
+
+/// The Shadow page's `alpha` option.
+const _shadowAlpha = ChoiceOption<int>(
+  'alpha',
+  'alpha',
+  values: [0x40, 0x80, 0xc0],
+  labels: ['¼', '½', '¾'],
+  initial: 0x80,
+);
+
 final _shadow = GalleryPage(
-  group: 'Layout',
+  group: _group,
   title: 'Shadow',
   options: [
-    ChoiceOption('offset', 'offset', values: _offsets.keys.toList()),
-    const ChoiceOption(
-      'alpha',
-      'alpha',
-      values: [0x40, 0x80, 0xc0],
-      labels: ['¼', '½', '¾'],
-      initial: 0x80,
-    ),
+    _shadowOffset,
+    _shadowAlpha,
   ],
   build: (context, o) {
     final theme = Theme.of(context);
-    final (dx, dy) = _offsets[o.choice<String>('offset')]!;
+    final (dx, dy) = _offsets[o(_shadowOffset)]!;
     return SizedBox(
       width: 36,
       height: 8,
@@ -36,7 +46,7 @@ final _shadow = GalleryPage(
             left: 5,
             top: 2,
             child: Shadow(
-              shadow: BoxShadow(dx: dx, dy: dy, alpha: o.choice('alpha')),
+              shadow: BoxShadow(dx: dx, dy: dy, alpha: o(_shadowAlpha)),
               child: Box(
                 style: theme.surface.merge(theme.text),
                 border: _rounded(theme),
@@ -50,8 +60,8 @@ final _shadow = GalleryPage(
     );
   },
   code: (o) {
-    final (dx, dy) = _offsets[o.choice<String>('offset')]!;
-    final alpha = o.choice<int>('alpha');
+    final (dx, dy) = _offsets[o(_shadowOffset)]!;
+    final alpha = o(_shadowAlpha);
     final args = [
       if (dx != 2) 'dx: $dx',
       if (dy != 1) 'dy: $dy',

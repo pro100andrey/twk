@@ -1,28 +1,34 @@
 // The Slider page.
 part of 'controls.dart';
 
+/// The Slider page's `divisions` option.
+const _sliderDivisions = ChoiceOption<int?>(
+  'divisions',
+  'divisions',
+  values: [null, 10, 4],
+  labels: ['none', '10', '4'],
+);
+
+/// The Slider page's `width` option.
+final _sliderWidth = SliderOption(
+  'width',
+  'width',
+  min: 10,
+  max: 40,
+  initial: 30,
+  format: (v) => '$v cells',
+);
+
 final _sliderPage = GalleryPage(
-  group: 'Controls',
+  group: _group,
   title: 'Slider',
   options: [
-    const ChoiceOption(
-      'divisions',
-      'divisions',
-      values: [null, 10, 4],
-      labels: ['none', '10', '4'],
-    ),
-    SliderOption(
-      'width',
-      'width',
-      min: 10,
-      max: 40,
-      initial: 30,
-      format: (v) => '$v cells',
-    ),
+    _sliderDivisions,
+    _sliderWidth,
   ],
   build: (context, o) => _Volume(
-    width: o.number('width').toInt(),
-    divisions: o.choice('divisions'),
+    width: o(_sliderWidth).toInt(),
+    divisions: o(_sliderDivisions),
   ),
   code: (o) => [
     'var _volume = 0.5;',
@@ -34,11 +40,12 @@ final _sliderPage = GalleryPage(
     '  gap: 1,',
     '  children: [',
     '    SizedBox(',
-    '      width: ${o.label('width')},',
+    '      width: ${o.nameOf(_sliderWidth)},',
     '      child: Slider(',
     '        value: _volume,',
     "        semanticsLabel: 'Volume',",
-    if (o['divisions'] != null) '        divisions: ${o.label('divisions')},',
+    if (o(_sliderDivisions) != null)
+      '        divisions: ${o.nameOf(_sliderDivisions)},',
     '        onChanged: (value) => setState(() => _volume = value),',
     '      ),',
     '    ),',

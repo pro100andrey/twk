@@ -1,27 +1,30 @@
 // The Listener, MouseRegion page.
 part of 'mouse.dart';
 
+/// The Listener, MouseRegion page's `cursor` option.
+const _listenerMouseregionCursor = ChoiceOption<String>(
+  'cursor',
+  'cursor',
+  values: [
+    'pointer',
+    'crosshair',
+    'text',
+    'grab',
+    'move',
+    'notAllowed',
+    'wait',
+    'none',
+  ],
+);
+
 final _listenerMouseregionPage = GalleryPage(
-  group: 'Mouse',
+  group: _group,
   title: 'Listener, MouseRegion',
   options: const [
-    ChoiceOption(
-      'cursor',
-      'cursor',
-      values: [
-        'pointer',
-        'crosshair',
-        'text',
-        'grab',
-        'move',
-        'notAllowed',
-        'wait',
-        'none',
-      ],
-    ),
+    _listenerMouseregionCursor,
   ],
   build: (context, o) {
-    final cursor = o.choice<String>('cursor');
+    final cursor = o(_listenerMouseregionCursor);
     return _Events(
       cursor: cursor == 'none' ? null : PointerShape.values.byName(cursor),
     );
@@ -126,7 +129,7 @@ final class _EventsState extends State<_Events> {
 }
 
 String _eventsCode(Options o) {
-  final cursor = o.choice<String>('cursor');
+  final cursor = o(_listenerMouseregionCursor);
   return [
     'var _over = false;',
     'final _events = <String>[];',

@@ -2,7 +2,7 @@
 part of 'scrolling.dart';
 
 final _scrollablePage = GalleryPage(
-  group: 'Scrolling',
+  group: _group,
   title: 'Scrollable',
   build: (context, o) => const _RulerPage(),
   code: (o) => _rulerCode,

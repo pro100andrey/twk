@@ -216,7 +216,7 @@ extension _Keys on GalleryShellState {
     return false;
   }
 
-  bool _optionKey(ShellPage p, PageOption opt, KeyEvent e) {
+  bool _optionKey(ShellPage p, PageOption<Object?> opt, KeyEvent e) {
     if (e.kind == KeyKind.release) {
       return false;
     }

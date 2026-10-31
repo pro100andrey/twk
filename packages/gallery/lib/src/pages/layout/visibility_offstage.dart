@@ -1,30 +1,50 @@
 // The Visibility, Offstage page.
 part of 'layout.dart';
 
+/// The Visibility, Offstage page's `widget` option.
+const _visibilityWidget = ChoiceOption<String>(
+  'widget',
+  'widget',
+  values: ['Visibility', 'Offstage'],
+);
+
+/// The Visibility, Offstage page's `hidden` option.
+const _visibilityHidden = SwitchOption(
+  'hidden',
+  'hidden',
+  initial: true,
+);
+
+/// The Visibility, Offstage page's `keep` option.
+final _visibilityKeep = ChoiceOption<String>(
+  'keep',
+  'keeps',
+  values: const ['nothing', 'state', 'size'],
+  disabled: (o) => o(_visibilityWidget) != 'Visibility',
+);
+
+/// The Visibility, Offstage page's `replacement` option.
+final _visibilityReplacement = SwitchOption(
+  'replacement',
+  'replacement',
+  disabled: (o) => !_replaces(o),
+);
+
 // -------------------------------------------------------- Visibility, Offstage
 
 final _visibility = GalleryPage(
-  group: 'Layout',
+  group: _group,
   title: 'Visibility, Offstage',
   options: [
-    const ChoiceOption('widget', 'widget', values: ['Visibility', 'Offstage']),
-    const SwitchOption('hidden', 'hidden', initial: true),
-    ChoiceOption(
-      'keep',
-      'keeps',
-      values: const ['nothing', 'state', 'size'],
-      disabled: (o) => o['widget'] != 'Visibility',
-    ),
-    SwitchOption(
-      'replacement',
-      'replacement',
-      disabled: (o) => !_replaces(o),
-    ),
+    _visibilityWidget,
+    _visibilityHidden,
+    _visibilityKeep,
+    _visibilityReplacement,
   ],
   build: (context, o) {
     final theme = Theme.of(context);
-    final hidden = o.flag('hidden');
-    final keep = o['keep'];
+    final hidden = o(_visibilityHidden);
+    final keep = o(_visibilityKeep);
     final child = Box(
       border: _rounded(theme),
       padding: const EdgeInsets.x(1),
@@ -35,14 +55,14 @@ final _visibility = GalleryPage(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text('above the child'),
-        if (o['widget'] == 'Offstage')
+        if (o(_visibilityWidget) == 'Offstage')
           Offstage(offstage: hidden, child: child)
         else
           Visibility(
             visible: !hidden,
             maintainState: keep != 'nothing',
             maintainSize: keep == 'size',
-            replacement: o.flag('replacement') && _replaces(o)
+            replacement: o(_visibilityReplacement) && _replaces(o)
                 ? Text('in its place', style: theme.muted)
                 : const SizedBox.shrink(),
             child: child,
@@ -52,7 +72,7 @@ final _visibility = GalleryPage(
     );
   },
   code: (o) {
-    final hidden = o.flag('hidden');
+    final hidden = o(_visibilityHidden);
     const child = [
       '      child: Box(',
       '        border: .all(type: .rounded, style: theme.border),',
@@ -67,7 +87,7 @@ final _visibility = GalleryPage(
       '  crossAxisAlignment: .start,',
       '  children: [',
       "    const Text('above the child'),",
-      if (o['widget'] == 'Offstage') ...[
+      if (o(_visibilityWidget) == 'Offstage') ...[
         '    Offstage(',
         '      offstage: $hidden,',
         ...child,
@@ -75,9 +95,9 @@ final _visibility = GalleryPage(
       ] else ...[
         '    Visibility(',
         '      visible: ${!hidden},',
-        if (o['keep'] != 'nothing') '      maintainState: true,',
-        if (o['keep'] == 'size') '      maintainSize: true,',
-        if (o.flag('replacement') && _replaces(o))
+        if (o(_visibilityKeep) != 'nothing') '      maintainState: true,',
+        if (o(_visibilityKeep) == 'size') '      maintainSize: true,',
+        if (o(_visibilityReplacement) && _replaces(o))
           "      replacement: Text('in its place', style: theme.muted),",
         ...child,
         '    ),',
@@ -92,4 +112,4 @@ final _visibility = GalleryPage(
 /// Whether the Visibility page's child has a replacement to show: in a
 /// Visibility that keeps nothing of it.
 bool _replaces(Options o) =>
-    o['widget'] == 'Visibility' && o['keep'] == 'nothing';
+    o(_visibilityWidget) == 'Visibility' && o(_visibilityKeep) == 'nothing';

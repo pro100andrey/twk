@@ -1,36 +1,57 @@
 // The Scrollbar page.
 part of 'scrolling.dart';
 
+/// The Scrollbar page's `visibility` option.
+const _scrollbarVisibility = ChoiceOption<String>(
+  'visibility',
+  'visibility',
+  values: ['always', 'onScroll', 'never'],
+);
+
+/// The Scrollbar page's `axes` option.
+const _scrollbarAxes = ChoiceOption<String>(
+  'axes',
+  'bars',
+  values: ['vertical', 'horizontal', 'both'],
+);
+
+/// The Scrollbar page's `color` option.
+const _scrollbarColor = ColorOption(
+  'color',
+  'style',
+  values: ['muted', 'border', 'primary', 'accent'],
+  initial: 'muted',
+);
+
+/// The Scrollbar page's `slim` option.
+const _scrollbarSlim = SwitchOption('slim', 'slim');
+
+/// The Scrollbar page's `track` option.
+const _scrollbarTrack = ChoiceOption<String>(
+  'track',
+  'track',
+  values: ['faint', 'border', 'muted'],
+);
+
 final _scrollbarPage = GalleryPage(
-  group: 'Scrolling',
+  group: _group,
   title: 'Scrollbar',
   options: const [
-    ChoiceOption(
-      'visibility',
-      'visibility',
-      values: ['always', 'onScroll', 'never'],
-    ),
-    ChoiceOption(
-      'axes',
-      'bars',
-      values: ['vertical', 'horizontal', 'both'],
-    ),
-    ColorOption(
-      'color',
-      'style',
-      values: ['muted', 'border', 'primary', 'accent'],
-      initial: 'muted',
-    ),
-    SwitchOption('slim', 'slim'),
-    ChoiceOption('track', 'track', values: ['faint', 'border', 'muted']),
+    _scrollbarVisibility,
+    _scrollbarAxes,
+    _scrollbarColor,
+    _scrollbarSlim,
+    _scrollbarTrack,
   ],
   build: (context, o) => _Bars(
-    visibility: ScrollbarVisibility.values.byName(o.choice('visibility')),
-    across: o.choice<String>('axes') != 'vertical',
-    down: o.choice<String>('axes') != 'horizontal',
-    slim: o.flag('slim'),
-    track: o.choice('track'),
-    style: o.color('color') == 'muted' ? null : o.colorStyle(context, 'color'),
+    visibility: ScrollbarVisibility.values.byName(o(_scrollbarVisibility)),
+    across: o(_scrollbarAxes) != 'vertical',
+    down: o(_scrollbarAxes) != 'horizontal',
+    slim: o(_scrollbarSlim),
+    track: o(_scrollbarTrack),
+    style: o(_scrollbarColor) == 'muted'
+        ? null
+        : o.styleOf(context, _scrollbarColor),
   ),
   code: _barsCode,
 );
@@ -131,15 +152,15 @@ final class _Bars extends StatelessWidget {
 }
 
 String _barsCode(Options o) {
-  final across = o.choice<String>('axes') != 'vertical';
-  final down = o.choice<String>('axes') != 'horizontal';
+  final across = o(_scrollbarAxes) != 'vertical';
+  final down = o(_scrollbarAxes) != 'horizontal';
   final args = [
-    if (o.choice<String>('visibility') != 'always')
-      'visibility: .${o.label('visibility')},',
-    if (o.color('color') != 'muted') 'style: theme.${o.color('color')},',
-    if (o.flag('slim')) 'slim: true,',
-    if (o.flag('slim') && o.choice<String>('track') != 'faint')
-      'trackStyle: theme.${o.choice<String>('track')},',
+    if (o(_scrollbarVisibility) != 'always')
+      'visibility: .${o.nameOf(_scrollbarVisibility)},',
+    if (o(_scrollbarColor) != 'muted') 'style: theme.${o(_scrollbarColor)},',
+    if (o(_scrollbarSlim)) 'slim: true,',
+    if (o(_scrollbarSlim) && o(_scrollbarTrack) != 'faint')
+      'trackStyle: theme.${o(_scrollbarTrack)},',
   ];
   List<String> list(String indent) => [
     for (final l in [

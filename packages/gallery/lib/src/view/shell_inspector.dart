@@ -109,7 +109,7 @@ extension _Inspector on GalleryShellState {
   Widget _option(
     Tokens t,
     Options options,
-    PageOption opt,
+    PageOption<Object?> opt,
     int w,
     int lw,
     int h,
@@ -145,7 +145,7 @@ extension _Inspector on GalleryShellState {
         sliderY = lw > 0 ? 0 : 1;
         final ratio = o.max == o.min ? 0.0 : (raw - o.min) / (o.max - o.min);
         thumb = _motion.glide('$key:thumb', ratio, thumbMs);
-      case final ChoiceOption o:
+      case final ChoiceOption<Object?> o:
         segs = segmentsOf(cx, cy, cw, o.names);
       case ColorOption():
         break;
@@ -309,7 +309,7 @@ extension _Inspector on GalleryShellState {
               if (lw > 0) {
                 p.text(cx + o.values.length * 3 + 1, sy, name, valueStyle);
               }
-            case final ChoiceOption o:
+            case final ChoiceOption<Object?> o:
               segmented(
                 p,
                 segs!,
@@ -329,7 +329,7 @@ extension _Inspector on GalleryShellState {
 }
 
 /// The rows [opt] takes beside its label, [w] wide.
-int _compactRows(PageOption opt, int w) => switch (opt) {
+int _compactRows(PageOption<Object?> opt, int w) => switch (opt) {
   ColorOption() => 2,
   ChoiceOption() => opt.rowsIn(w) - 1,
   _ => 1,
@@ -337,16 +337,16 @@ int _compactRows(PageOption opt, int w) => switch (opt) {
 
 /// Whether a blank row goes before option [i]: two switches one under
 /// the other would join into one tall pill.
-int _gapBefore(List<PageOption> opts, int i) =>
+int _gapBefore(List<PageOption<Object?>> opts, int i) =>
     i > 0 && opts[i] is SwitchOption && opts[i - 1] is SwitchOption ? 1 : 0;
 
-int _labelColumn(List<PageOption> opts) =>
+int _labelColumn(List<PageOption<Object?>> opts) =>
     opts.fold(0, (n, o) => widthOf(o.label) > n ? widthOf(o.label) : n) + 2;
 
 /// The rows the options take under the stage, [w] wide, as the design's
 /// compactHeight counts them: each choice's track in `w - 14`, although
 /// it is drawn beside the label column ([_labelColumn]).
-int _compactHeight(List<PageOption> opts, int w) {
+int _compactHeight(List<PageOption<Object?>> opts, int w) {
   var h = 2;
   for (var i = 0; i < opts.length; i++) {
     h += _gapBefore(opts, i) + _compactRows(opts[i], w - 14);

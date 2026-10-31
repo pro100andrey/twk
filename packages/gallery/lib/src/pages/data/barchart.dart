@@ -9,21 +9,21 @@ const _months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
 const _barTick = 100;
 
 /// Whether the bars are in one group, the months', not in three of two.
-bool _single(Options o) => o.choice<String>('groups') == 'single';
+bool _single(Options o) => o(_barChartGroups) == 'single';
 
 /// The bars' width: the option's up, across the widest whose six bars
 /// fit [room], with the three groups' labels unless [_single].
-int _barWidth(Options o, int room) => o.choice<String>('direction') == 'up'
-    ? o.choice<int>('barWidth')
+int _barWidth(Options o, int room) => o(_barChartDirection) == 'up'
+    ? o(_barChartBarWidth)
     : math.max(
         1,
-        math.min(o.choice<int>('barWidth'), (room - (_single(o) ? 0 : 3)) ~/ 6),
+        math.min(o(_barChartBarWidth), (room - (_single(o) ? 0 : 3)) ~/ 6),
       );
 
 /// The chart's size in [room].
 (int, int) _barSize(Options o, int room) {
   final bw = _barWidth(o, room);
-  if (o.choice<String>('direction') == 'up') {
+  if (o(_barChartDirection) == 'up') {
     return (
       _single(o) ? 6 * bw + 5 : 3 * (2 * bw + 1) + 2 * 2,
       math.max(5, math.min(10, room)),
@@ -32,27 +32,48 @@ int _barWidth(Options o, int room) => o.choice<String>('direction') == 'up'
   return (40, _single(o) ? 6 * bw : 3 * 2 * bw + 3);
 }
 
+/// The BarChart page's `direction` option.
+const _barChartDirection = ChoiceOption<String>(
+  'direction',
+  'direction',
+  values: ['up', 'across'],
+  labels: ['vertical', 'horizontal'],
+);
+
+/// The BarChart page's `barWidth` option.
+const _barChartBarWidth = ChoiceOption<int>(
+  'barWidth',
+  'bar width',
+  values: [1, 2, 3],
+  initial: 3,
+);
+
+/// The BarChart page's `groups` option.
+const _barChartGroups = ChoiceOption<String>(
+  'groups',
+  'bars',
+  values: ['grouped', 'single'],
+);
+
+/// The BarChart page's `live` option.
+const _barChartLive = SwitchOption('live', 'live', initial: true);
+
 final _barChart = GalleryPage(
-  group: 'Data',
+  group: _group,
   title: 'BarChart',
   options: const [
-    ChoiceOption(
-      'direction',
-      'direction',
-      values: ['up', 'across'],
-      labels: ['vertical', 'horizontal'],
-    ),
-    ChoiceOption('barWidth', 'bar width', values: [1, 2, 3], initial: 3),
-    ChoiceOption('groups', 'bars', values: ['grouped', 'single']),
-    SwitchOption('live', 'live', initial: true),
+    _barChartDirection,
+    _barChartBarWidth,
+    _barChartGroups,
+    _barChartLive,
   ],
   build: (context, o) => inRoom(
     (_, room) => Timed((context, ms, wake) {
       final theme = Theme.of(context);
-      final t = o.flag('live')
+      final t = o(_barChartLive)
           ? _tick(ms, _barTick, wake) * _barTick / 1000
           : 0;
-      final values = o.flag('live')
+      final values = o(_barChartLive)
           ? [
               for (final (k, v) in _base.indexed)
                 v + math.sin(t * 1.3 + k * 1.7),
@@ -64,7 +85,7 @@ final _barChart = GalleryPage(
         text: '${values[k].round()}',
         style: style,
       );
-      final up = o.choice<String>('direction') == 'up';
+      final up = o(_barChartDirection) == 'up';
       final (w, h) = _barSize(o, room);
       return SizedBox(
         width: w,
@@ -96,9 +117,9 @@ final _barChart = GalleryPage(
     }),
   ),
   codeIn: (o, room) {
-    final up = o.choice<String>('direction') == 'up';
+    final up = o(_barChartDirection) == 'up';
     final (w, h) = _barSize(o, room.height);
-    final live = o.flag('live');
+    final live = o(_barChartLive);
     final single = _single(o);
     return [
       'const _base = [${_base.map((v) => v.toStringAsFixed(1)).join(', ')}];',

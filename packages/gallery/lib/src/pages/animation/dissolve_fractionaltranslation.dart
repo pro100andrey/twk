@@ -10,31 +10,40 @@ const _piece = 'a child, its cells shown or moved';
 /// The controller's duration while it runs.
 const _round = 2000;
 
+/// The Dissolve, FractionalTranslation page's `share` option.
+const _dissolveShare = ChoiceOption<double>(
+  'share',
+  'share',
+  values: _opacities,
+  labels: _fractions,
+  initial: 0.5,
+);
+
+/// The Dissolve, FractionalTranslation page's `run` option.
+const _dissolveRun = SwitchOption('run', 'run', initial: true);
+
+/// The Dissolve, FractionalTranslation page's `inverse` option.
+const _dissolveInverse = SwitchOption('inverse', 'inverse');
+
 final _dissolve = GalleryPage(
-  group: 'Animation',
+  group: _group,
   title: 'Dissolve, FractionalTranslation',
   options: [
-    const ChoiceOption(
-      'share',
-      'share',
-      values: _opacities,
-      labels: _fractions,
-      initial: 0.5,
-    ),
-    const SwitchOption('run', 'run', initial: true),
+    _dissolveShare,
+    _dissolveRun,
     // the cells from the end of their order: exactly the others
-    const SwitchOption('inverse', 'inverse'),
+    _dissolveInverse,
   ],
   build: (context, o) {
-    final share = o.choice<double>('share');
-    final inverse = o.flag('inverse');
+    final share = o(_dissolveShare);
+    final inverse = o(_dissolveInverse);
     // a new share, or the switch, runs the controller again from it
-    return o.flag('run')
+    return o(_dissolveRun)
         ? _Shares(share, inverse: inverse, key: ValueKey(share))
         : _sharesTree(context, share, inverse: inverse);
   },
   code: (o) {
-    final inverse = o.flag('inverse');
+    final inverse = o(_dissolveInverse);
     final inv = inverse ? ', inverse: true' : '';
     List<String> tree(String share) => [
       'Column(',
@@ -63,8 +72,8 @@ final _dissolve = GalleryPage(
       "  child: const Text('$_piece'),",
       ');',
     ];
-    final share = o.choice<double>('share');
-    if (!o.flag('run')) {
+    final share = o(_dissolveShare);
+    if (!o(_dissolveRun)) {
       return [
         ...shown,
         'const share = ${_dbl(share)};',

@@ -44,14 +44,21 @@ List<String> _wrapWords(String s, int w) {
   return out;
 }
 
+/// The Notifications page's `terminal` option.
+final _notificationsTerminal = ChoiceOption<String>(
+  'terminal',
+  'terminal',
+  values: _notifiers.keys.toList(),
+);
+
 final _notifications = GalleryPage(
   terminalAround: true,
-  group: 'App',
+  group: _group,
   title: 'Notifications',
   options: [
-    ChoiceOption('terminal', 'terminal', values: _notifiers.keys.toList()),
+    _notificationsTerminal,
   ],
-  build: (context, o) => _Notify(terminal: o.choice<String>('terminal')),
+  build: (context, o) => _Notify(terminal: o(_notificationsTerminal)),
   code: (o) => [
     'var _notified = 0;',
     '',

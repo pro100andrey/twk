@@ -44,12 +44,12 @@ final class _Covered extends StatelessWidget {
 
 /// The SizedBox's height: the files under the header and its line, or 12
 /// rows where the room has them.
-int _tableHeight(Options o, int room) => o.choice<int>('rows') == _many
+int _tableHeight(Options o, int room) => o(_tableRows) == _many
     ? math.max(5, math.min(12, room))
     : _files.length +
-          (!o.flag('header')
+          (!o(_tableHeader)
               ? 0
-              : o.choice<String>('border') == 'none'
+              : o(_tableBorder) == 'none'
               ? 1
               : 2);
 
@@ -104,29 +104,50 @@ const _coveredCode = [
   '}',
 ];
 
+/// The Table page's `selection` option.
+const _tableSelection = ChoiceOption<String>(
+  'selection',
+  'selection',
+  values: ['none', 'row', 'cell'],
+  initial: 'row',
+);
+
+/// The Table page's `border` option.
+const _tableBorder = ChoiceOption<String>(
+  'border',
+  'border',
+  values: _borders,
+  initial: 'single',
+);
+
+/// The Table page's `header` option.
+const _tableHeader = SwitchOption(
+  'header',
+  'header',
+  initial: true,
+);
+
+/// The Table page's `rows` option.
+const _tableRows = ChoiceOption<int>(
+  'rows',
+  'rows',
+  values: [5, _many],
+  labels: ['5', '10 000'],
+);
+
 final _table = GalleryPage(
-  group: 'Data',
+  group: _group,
   title: 'Table',
   options: const [
-    ChoiceOption(
-      'selection',
-      'selection',
-      values: ['none', 'row', 'cell'],
-      initial: 'row',
-    ),
-    ChoiceOption('border', 'border', values: _borders, initial: 'single'),
-    SwitchOption('header', 'header', initial: true),
-    ChoiceOption(
-      'rows',
-      'rows',
-      values: [5, _many],
-      labels: ['5', '10 000'],
-    ),
+    _tableSelection,
+    _tableBorder,
+    _tableHeader,
+    _tableRows,
   ],
   build: (context, o) => inRoom((_, room) {
     final control = PageControl.of(context);
     final kept = control.state;
-    final many = o.choice<int>('rows') == _many;
+    final many = o(_tableRows) == _many;
     // a controller for each kind of rows, kept while the gallery runs: the
     // row selected, the order, the widths
     final controller =
@@ -152,8 +173,8 @@ final _table = GalleryPage(
         cell: (row) => TableCell.widget(_Covered(row.$3)),
       ),
     ];
-    final selection = TableSelection.values.byName(o.choice('selection'));
-    final border = BorderType.values.byName(o.choice('border'));
+    final selection = TableSelection.values.byName(o(_tableSelection));
+    final border = BorderType.values.byName(o(_tableBorder));
     void activated(_File row) => control.toast('Activated ${row.$1}');
     return SizedBox(
       width: _tableW,
@@ -165,7 +186,7 @@ final _table = GalleryPage(
               controller: controller,
               selection: selection,
               border: border,
-              showHeader: o.flag('header'),
+              showHeader: o(_tableHeader),
               columnGap: _gap,
               onActivated: activated,
               columns: columns,
@@ -177,7 +198,7 @@ final _table = GalleryPage(
               controller: controller,
               selection: selection,
               border: border,
-              showHeader: o.flag('header'),
+              showHeader: o(_tableHeader),
               columnGap: _gap,
               onActivated: activated,
               columns: columns,
@@ -185,8 +206,8 @@ final _table = GalleryPage(
     );
   }),
   codeIn: (o, room) {
-    final many = o.choice<int>('rows') == _many;
-    final none = o.choice<String>('selection') == 'none';
+    final many = o(_tableRows) == _many;
+    final none = o(_tableSelection) == 'none';
     // the row selected at first, which none has not
     final own = [
       if (many) 'final _files = _ManyFiles();',
@@ -219,9 +240,9 @@ final _table = GalleryPage(
       '    ${many ? 'source' : 'rows'}: _files,',
       if (!many) r'    rowKey: (row) => row.$1,',
       if (!none) '    controller: _controller,',
-      '    selection: .${o.label('selection')},',
-      '    border: .${o.label('border')},',
-      if (!o.flag('header')) '    showHeader: false,',
+      '    selection: .${o.nameOf(_tableSelection)},',
+      '    border: .${o.nameOf(_tableBorder)},',
+      if (!o(_tableHeader)) '    showHeader: false,',
       '    columnGap: $_gap,',
       r"    onActivated: (row) => showToast(context, 'Activated ${row.$1}'),",
       '    columns: [',

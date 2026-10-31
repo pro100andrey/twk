@@ -1,24 +1,36 @@
 // The PopScope, NavigatorObserver page.
 part of 'navigation.dart';
 
+/// The PopScope, NavigatorObserver page's `scope` option.
+const _popscopeNavigatorobserverScope = SwitchOption(
+  'scope',
+  'PopScope',
+  initial: true,
+);
+
+/// The PopScope, NavigatorObserver page's `dialog` option.
+final _popscopeNavigatorobserverDialog = ChoiceOption<String>(
+  'dialog',
+  'esc in the dialog',
+  values: const ['close', 'keep'],
+  labels: const ['closes it', 'is kept'],
+  disabled: (o) => !o(_popscopeNavigatorobserverScope),
+);
+
 final _popscopeNavigatorobserverPage = GalleryPage(
-  group: 'Navigation',
+  group: _group,
   title: 'PopScope, NavigatorObserver',
   options: [
-    const SwitchOption('scope', 'PopScope', initial: true),
+    _popscopeNavigatorobserverScope,
     // the dialog's own pop: Escape and the barrier close it, or a
     // PopScope in it keeps it
-    ChoiceOption(
-      'dialog',
-      'esc in the dialog',
-      values: const ['close', 'keep'],
-      labels: const ['closes it', 'is kept'],
-      disabled: (o) => !o.flag('scope'),
-    ),
+    _popscopeNavigatorobserverDialog,
   ],
   build: (context, o) => _Asks(
-    scope: o.flag('scope'),
-    keep: o.flag('scope') && o.choice<String>('dialog') == 'keep',
+    scope: o(_popscopeNavigatorobserverScope),
+    keep:
+        o(_popscopeNavigatorobserverScope) &&
+        o(_popscopeNavigatorobserverDialog) == 'keep',
   ),
   code: _popScopeCode,
 );
@@ -38,8 +50,8 @@ List<String> _child(List<String> lines) => [
 
 /// The PopScope page's Code.
 String _popScopeCode(Options o) {
-  final scope = o.flag('scope');
-  final keep = o.choice<String>('dialog') == 'keep';
+  final scope = o(_popscopeNavigatorobserverScope);
+  final keep = o(_popscopeNavigatorobserverDialog) == 'keep';
   const dialog = [
     'Dialog(',
     "  title: 'Discard the changes?',",

@@ -49,21 +49,28 @@ final _effects = <String, (String, CellEffect)>{
   ),
 };
 
+/// The Effect page's `effect` option.
+final _effectEffect = ChoiceOption<String>(
+  'effect',
+  'effect',
+  values: _effects.keys.toList(),
+);
+
 final _effect = GalleryPage(
-  group: 'Animation',
+  group: _group,
   title: 'Effect',
   options: [
-    ChoiceOption('effect', 'effect', values: _effects.keys.toList()),
+    _effectEffect,
     _cycleOption,
   ],
   build: (context, o) => _Cycled(
     o,
-    'effect',
+    _effectEffect,
     _effects.keys.toList(),
     (context, i) => _Effects(_effects.values.elementAt(i).$2),
   ),
   code: (o) {
-    final name = o.choice<String>('effect');
+    final name = o(_effectEffect);
     final effect = _effects[name]!.$1.split('\n');
     List<String> body(List<String> fx) => [
       'final theme = Theme.of(context);',
@@ -116,14 +123,14 @@ final _effect = GalleryPage(
       'const _duration = Duration(milliseconds: 600);',
       '',
       // grade's map: a static method, which a const effect can name
-      if (name == 'grade' || o.flag('cycle')) ...[
+      if (name == 'grade' || o(_cycleOption)) ...[
         '/// Each color as its opposite: the negative of a photograph.',
         'static Color _invert(Color c) =>',
         '    Color.rgb(255 - c.r, 255 - c.g, 255 - c.b);',
         '',
       ],
     ];
-    if (!o.flag('cycle')) {
+    if (!o(_cycleOption)) {
       final fx = [
         '        effect: const ${effect.first}',
         for (final l in effect.skip(1)) '        $l',

@@ -482,30 +482,42 @@ final class _AidsApp {
   ].reduce(math.min);
 }
 
-/// A page of the app with the debug aids its [aids] (switch options:
-/// key, label, initial) turn on.
-GalleryPage _aidsPage(String title, List<(String, String, bool)> aids) =>
-    GalleryPage(
-      group: 'Debugging',
-      title: title,
-      options: [
-        for (final (key, label, initial) in aids)
-          SwitchOption(key, label, initial: initial),
-      ],
-      build: (context, o) => _Aids(
-        aids: {for (final (key, _, _) in aids) key: o.flag(key)},
-      ),
-      code: (o) => _syncCode(o, title),
-      codeInTerminalColors: true,
-    );
+/// The aids' switches by key.
+const Map<String, SwitchOption> _aidsByKey = {
+  'overlay': _overlayAid,
+  'rainbow': _rainbowAid,
+  'relayout': _relayoutAid,
+};
+
+/// The frame overlay's switch.
+const _overlayAid = SwitchOption('overlay', 'overlay', initial: true);
+
+/// The repaint rainbow's switch.
+const _rainbowAid = SwitchOption('rainbow', 'rainbow', initial: true);
+
+/// The relayout highlight's switch.
+const _relayoutAid = SwitchOption('relayout', 'relayout highlight');
+
+/// A page of the app with the debug aids its [aids] (their switches) turn
+/// on.
+GalleryPage _aidsPage(String title, List<SwitchOption> aids) => GalleryPage(
+  group: _group,
+  title: title,
+  options: aids,
+  build: (context, o) => _Aids(
+    aids: {for (final aid in aids) aid.key: o(aid)},
+  ),
+  code: (o) => _syncCode(o, title),
+  codeInTerminalColors: true,
+);
 
 /// The Code of the pages: the app, the debug aids on as an app turns
 /// them on.
 String _syncCode(Options o, String title) {
   final overlay = title == 'FrameOverlay';
   final on = overlay
-      ? [if (o.flag('overlay')) 'overlay']
-      : [if (o.flag('rainbow')) 'rainbow', if (o.flag('relayout')) 'relayout'];
+      ? [if (o(_overlayAid)) 'overlay']
+      : [if (o(_rainbowAid)) 'rainbow', if (o(_relayoutAid)) 'relayout'];
   final how = overlay
       ? [
           '    // the debug keys, Ctrl+G then o showing and hiding the frame',
@@ -710,7 +722,9 @@ final class _AidsState extends TimedState<_Aids> {
       if (aid != null) {
         app.setAid(aid, !app.aid(aid), u, w, h, root: true);
         if (widget.aids.containsKey(aid)) {
-          PageControl.of(context).setOption(aid, app.aid(aid));
+          PageControl.of(
+            context,
+          ).setOption(_aidsByKey[aid]!, app.aid(aid));
         }
       } else if (name == 'c') {
         app

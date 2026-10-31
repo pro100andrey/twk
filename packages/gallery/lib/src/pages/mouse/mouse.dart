@@ -12,6 +12,9 @@ part 'ignorepointer_absorbpointer.dart';
 part 'listener_mouseregion.dart';
 part 'selectionarea.dart';
 
+/// The group of the catalog these pages are in.
+const _group = 'Mouse';
+
 /// The pages of the Mouse group that draw.
 final mousePages = <GalleryPage>[
   _gesturedetectorPage,

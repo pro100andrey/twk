@@ -7,7 +7,7 @@ const _iw = 46;
 const _imax = 8;
 
 final _input = GalleryPage(
-  group: 'App',
+  group: _group,
   title: 'InputListener',
   build: (context, o) => const _Heard(),
   code: (o) => [

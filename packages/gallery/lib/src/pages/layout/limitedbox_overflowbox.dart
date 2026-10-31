@@ -13,33 +13,39 @@ const Map<String, Alignment> _across = {
   'centerRight': Alignment.centerRight,
 };
 
+/// The LimitedBox, OverflowBox page's `box` option.
+const _limitedBoxBox = ChoiceOption<String>(
+  'box',
+  'widget',
+  values: ['OverflowBox', 'SizedOverflowBox', 'LimitedBox'],
+);
+
+/// The LimitedBox, OverflowBox page's `alignment` option.
+final _limitedBoxAlignment = ChoiceOption<String>(
+  'alignment',
+  'alignment',
+  values: _across.keys.toList(),
+  initial: 'center',
+  disabled: (o) => o(_limitedBoxBox) == 'LimitedBox',
+);
+
 final _limitedBox = GalleryPage(
-  group: 'Layout',
+  group: _group,
   title: 'LimitedBox, OverflowBox',
   options: [
-    const ChoiceOption(
-      'box',
-      'widget',
-      values: ['OverflowBox', 'SizedOverflowBox', 'LimitedBox'],
-    ),
-    ChoiceOption(
-      'alignment',
-      'alignment',
-      values: _across.keys.toList(),
-      initial: 'center',
-      disabled: (o) => o['box'] == 'LimitedBox',
-    ),
+    _limitedBoxBox,
+    _limitedBoxAlignment,
   ],
   build: (context, o) {
     final theme = Theme.of(context);
-    final alignment = _across[o['alignment']]!;
+    final alignment = _across[o(_limitedBoxAlignment)]!;
     return SizedBox(
       width: 30,
       height: 5,
       child: Box(
         border: _rounded(theme),
         titles: [BorderTitle(' 28 × 3 ', style: theme.muted)],
-        child: switch (o['box']) {
+        child: switch (o(_limitedBoxBox)) {
           'OverflowBox' => OverflowBox(
             maxWidth: 48,
             alignment: alignment,
@@ -69,7 +75,8 @@ final _limitedBox = GalleryPage(
   },
   code: (o) {
     final align = [
-      if (o['alignment'] != 'center') '      alignment: .${o['alignment']},',
+      if (o(_limitedBoxAlignment) != 'center')
+        '      alignment: .${o(_limitedBoxAlignment)},',
     ];
     return [
       'final theme = Theme.of(context);',
@@ -79,7 +86,7 @@ final _limitedBox = GalleryPage(
       '  child: Box(',
       '    border: .all(type: .rounded, style: theme.border),',
       "    titles: [BorderTitle(' 28 × 3 ', style: theme.muted)],",
-      ...switch (o['box']) {
+      ...switch (o(_limitedBoxBox)) {
         'OverflowBox' => [
           '    child: OverflowBox(',
           '      maxWidth: 48,',

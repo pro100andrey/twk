@@ -51,17 +51,17 @@ const _changed = {
 
 /// The CodeView page's first line number less 1: what the gutter's
 /// numbers are past the source's own.
-int _past(Options o) => o.choice<int>('first') - 1;
+int _past(Options o) => o(_codeViewFirst) - 1;
 
 /// The rows CodeView takes of the source of [o] in a Scrollbar [w] wide:
 /// each line broken as twk's Text breaks it in what the gutter leaves.
 int _codeRowsIn(Options o, int w) {
-  final lines = _sources[o.choice<String>('lang')]!.split('\n');
+  final lines = _sources[o(_codeViewLang)]!.split('\n');
   final digits = '${_past(o) + lines.length}'.length;
   final gutter =
-      (o.flag('signs') ? 2 : 0) + (o.flag('numbers') ? digits + 1 : 0);
+      (o(_codeViewSigns) ? 2 : 0) + (o(_codeViewNumbers) ? digits + 1 : 0);
   final width = math.max(1, w - 1 - gutter);
-  final wrap = TextWrap.values.byName(o.choice('wrap'));
+  final wrap = TextWrap.values.byName(o(_codeViewWrap));
   var rows = 0;
   for (final line in lines) {
     // tabs to the next multiple of 4, as CodeView expands them
@@ -76,83 +76,121 @@ int _codeRowsIn(Options o, int w) {
   return rows;
 }
 
+/// The CodeView page's `lang` option.
+const _codeViewLang = ChoiceOption<String>(
+  'lang',
+  'language',
+  values: [
+    'dart',
+    'python',
+    'rust',
+    'go',
+    'javascript',
+    'typescript',
+    'json',
+    'yaml',
+    'bash',
+    'diff',
+    'plain',
+  ],
+  labels: [
+    'Dart',
+    'Python',
+    'Rust',
+    'Go',
+    'JavaScript',
+    'TypeScript',
+    'JSON',
+    'YAML',
+    'Bash',
+    'diff',
+    'plain',
+  ],
+);
+
+/// The CodeView page's `numbers` option.
+const _codeViewNumbers = SwitchOption(
+  'numbers',
+  'line numbers',
+  initial: true,
+);
+
+/// The CodeView page's `signs` option.
+const _codeViewSigns = SwitchOption('signs', 'changes');
+
+/// The CodeView page's `wrap` option.
+const _codeViewWrap = ChoiceOption<String>(
+  'wrap',
+  'wrap',
+  values: ['none', 'word', 'grapheme'],
+  initial: 'word',
+);
+
+/// The CodeView page's `width` option.
+final _codeViewWidth = SliderOption(
+  'width',
+  'width',
+  min: 24,
+  max: 80,
+  initial: 56,
+  format: (v) => '$v cells',
+);
+
+/// The CodeView page's `rows` option.
+const _codeViewRows = ChoiceOption<int?>(
+  'rows',
+  'rows',
+  values: [null, 10],
+  labels: ['all', '10'],
+);
+
+/// The CodeView page's `first` option.
+const _codeViewFirst = ChoiceOption<int>(
+  'first',
+  'first line',
+  values: [1, 120],
+);
+
+/// The CodeView page's `goto` option.
+const _codeViewGoto = ChoiceOption<String>(
+  'goto',
+  'to line $_goto',
+  values: ['none', 'least', 'middle'],
+  labels: ['none', 'least', '½'],
+);
+
+/// The CodeView page's `lit` option.
+const _codeViewLit = ChoiceOption<String>(
+  'lit',
+  'highlight',
+  values: ['none', '14', '13–16'],
+);
+
+/// The CodeView page's `find` option.
+const _codeViewFind = SwitchOption('find', 'find');
+
 final _codeView = GalleryPage(
-  group: 'Rich',
+  group: _group,
   title: 'CodeView',
   options: [
-    const ChoiceOption(
-      'lang',
-      'language',
-      values: [
-        'dart',
-        'python',
-        'rust',
-        'go',
-        'javascript',
-        'typescript',
-        'json',
-        'yaml',
-        'bash',
-        'diff',
-        'plain',
-      ],
-      labels: [
-        'Dart',
-        'Python',
-        'Rust',
-        'Go',
-        'JavaScript',
-        'TypeScript',
-        'JSON',
-        'YAML',
-        'Bash',
-        'diff',
-        'plain',
-      ],
-    ),
-    const SwitchOption('numbers', 'line numbers', initial: true),
-    const SwitchOption('signs', 'changes'),
-    const ChoiceOption(
-      'wrap',
-      'wrap',
-      values: ['none', 'word', 'grapheme'],
-      initial: 'word',
-    ),
-    SliderOption(
-      'width',
-      'width',
-      min: 24,
-      max: 80,
-      initial: 56,
-      format: (v) => '$v cells',
-    ),
-    const ChoiceOption(
-      'rows',
-      'rows',
-      values: [null, 10],
-      labels: ['all', '10'],
-    ),
+    _codeViewLang,
+    _codeViewNumbers,
+    _codeViewSigns,
+    _codeViewWrap,
+    _codeViewWidth,
+    _codeViewRows,
     // an excerpt of a file: its lines numbered from where it starts, the
     // signs and the controller's lines by those numbers
-    const ChoiceOption('first', 'first line', values: [1, 120]),
+    _codeViewFirst,
     // the controller's: scrollToLine, highlightLines, query
-    const ChoiceOption(
-      'goto',
-      'to line $_goto',
-      values: ['none', 'least', 'middle'],
-      labels: ['none', 'least', '½'],
-    ),
-    const ChoiceOption(
-      'lit',
-      'highlight',
-      values: ['none', '14', '13–16'],
-    ),
-    const SwitchOption('find', 'find'),
+    _codeViewGoto,
+    _codeViewLit,
+    _codeViewFind,
   ],
   build: (context, o) => inRoom((rw, rh) {
     final theme = Theme.of(context);
-    final w = math.min(o.number('width').toInt(), rw);
-    final lang = o.choice<String>('lang');
+    final w = math.min(o(_codeViewWidth).toInt(), rw);
+    final lang = o(_codeViewLang);
     final view = _controlled(o)
         // a new State, and with it a controller asked anew, for each set
         // of options
@@ -166,13 +204,13 @@ final _codeView = GalleryPage(
   }),
   heightIn: (o, room) => _codeHeight(
     o,
-    math.min(o.number('width').toInt(), room.width),
+    math.min(o(_codeViewWidth).toInt(), room.width),
     room.height,
   ),
   codeIn: (o, room) {
     final (rw, rh) = codeRoomOf(room);
-    final w = math.min(o.number('width').toInt(), rw);
-    final lang = o.choice<String>('lang');
+    final w = math.min(o(_codeViewWidth).toInt(), rw);
+    final lang = o(_codeViewLang);
     final source = _sources[lang]!.split('\n');
     final h = _codeHeight(o, w, rh);
     final ctl = _controlled(o);
@@ -195,23 +233,25 @@ final _codeView = GalleryPage(
       if (ctl) 'controller: _code',
       // plain text, the default: no language
       if (lang != 'plain') 'language: ${lang}Language',
-      if (o.flag('numbers')) 'lineNumbers: true',
+      if (o(_codeViewNumbers)) 'lineNumbers: true',
       if (past > 0) 'firstLineNumber: ${past + 1}',
-      if (o.flag('signs')) 'signs: changes',
-      if (o.label('wrap') != 'none') 'wrap: .${o.label('wrap')}',
+      if (o(_codeViewSigns)) 'signs: changes',
+      if (o.nameOf(_codeViewWrap) != 'none')
+        'wrap: .${o.nameOf(_codeViewWrap)}',
     ];
     // the controller, asked before the view is laid out: what it asks is
     // made as the view is first laid out
     final asks = [
-      if (o['goto'] == 'least') '  ..scrollToLine(${past + _goto})',
-      if (o['goto'] == 'middle')
+      if (o(_codeViewGoto) == 'least') '  ..scrollToLine(${past + _goto})',
+      if (o(_codeViewGoto) == 'middle')
         '  ..scrollToLine(${past + _goto}, alignment: 0.5)',
-      if (o['lit'] == '14') '  ..highlightLines([${past + 14}])',
-      if (o['lit'] == '13–16') '  ..highlightRange(${past + 13}, ${past + 16})',
+      if (o(_codeViewLit) == '14') '  ..highlightLines([${past + 14}])',
+      if (o(_codeViewLit) == '13–16')
+        '  ..highlightRange(${past + 13}, ${past + 16})',
     ];
     final make =
         'CodeViewController('
-        "${o.flag('find') ? "query: '${_queries[lang]}'" : ''})";
+        "${o(_codeViewFind) ? "query: '${_queries[lang]}'" : ''})";
     final view = [
       '        child: CodeView(',
       '          _source,',
@@ -222,7 +262,7 @@ final _codeView = GalleryPage(
       ...src,
       '',
       if (ctl) ...[
-        if (o.flag('find'))
+        if (o(_codeViewFind))
           '// n and N go round what it finds while the view has the focus',
         if (asks.isEmpty)
           'final _code = $make;'
@@ -242,7 +282,7 @@ final _codeView = GalleryPage(
       '@override',
       'Widget build(BuildContext context) {',
       '  final theme = Theme.of(context);',
-      if (o.flag('signs')) ...[
+      if (o(_codeViewSigns)) ...[
         '  // the lines changed since the last commit, by their numbers',
         '  final changes = {',
         for (final MapEntry(:key, :value) in _changed[lang]!.entries)
@@ -293,29 +333,29 @@ const _queries = {
 
 /// Whether the CodeView page's options give the view a controller.
 bool _controlled(Options o) =>
-    o['goto'] != 'none' || o['lit'] != 'none' || o.flag('find');
+    o(_codeViewGoto) != 'none' || o(_codeViewLit) != 'none' || o(_codeViewFind);
 
 /// The options that make the CodeView page's controller, as a key.
 String _codeKey(Options o) => [
-  for (final k in const [
-    'lang',
-    'numbers',
-    'first',
-    'signs',
-    'wrap',
-    'width',
-    'rows',
-    'goto',
-    'lit',
-    'find',
+  for (final k in <PageOption<Object?>>[
+    _codeViewLang,
+    _codeViewNumbers,
+    _codeViewFirst,
+    _codeViewSigns,
+    _codeViewWrap,
+    _codeViewWidth,
+    _codeViewRows,
+    _codeViewGoto,
+    _codeViewLit,
+    _codeViewFind,
   ])
-    o.label(k),
+    o.nameOf(k),
 ].join('/');
 
 /// The CodeView page's height: its rows, as far as the room and the rows
 /// option let it be.
 int _codeHeight(Options o, int w, int rh) {
-  final rows = o.choice<int?>('rows');
+  final rows = o(_codeViewRows);
   final h = math.min(_codeRowsIn(o, w), rh);
   return rows == null ? h : math.min(h, rows);
 }
@@ -330,9 +370,9 @@ CodeView _codeViewOf(
   _sources[lang]!,
   controller: controller,
   language: _languages[lang]!,
-  lineNumbers: o.flag('numbers'),
+  lineNumbers: o(_codeViewNumbers),
   firstLineNumber: _past(o) + 1,
-  signs: o.flag('signs')
+  signs: o(_codeViewSigns)
       ? {
           for (final MapEntry(:key, :value) in _changed[lang]!.entries)
             _past(o) + key: CodeSign(
@@ -341,7 +381,7 @@ CodeView _codeViewOf(
             ),
         }
       : null,
-  wrap: TextWrap.values.byName(o.choice('wrap')),
+  wrap: TextWrap.values.byName(o(_codeViewWrap)),
 );
 
 /// The CodeView page's view with a controller, made and asked as the
@@ -360,15 +400,15 @@ final class _CodeWithControllerState extends State<_CodeWithController> {
     final o = widget.o;
     final past = _past(o);
     final code = CodeViewController(
-      query: o.flag('find') ? _queries[o.choice<String>('lang')]! : '',
+      query: o(_codeViewFind) ? _queries[o(_codeViewLang)]! : '',
     );
-    switch (o['goto']) {
+    switch (o(_codeViewGoto)) {
       case 'least':
         code.scrollToLine(past + _goto);
       case 'middle':
         code.scrollToLine(past + _goto, alignment: 0.5);
     }
-    switch (o['lit']) {
+    switch (o(_codeViewLit)) {
       case '14':
         code.highlightLines([past + 14]);
       case '13–16':
@@ -387,7 +427,7 @@ final class _CodeWithControllerState extends State<_CodeWithController> {
   Widget build(BuildContext context) => _codeViewOf(
     Theme.of(context),
     widget.o,
-    widget.o.choice<String>('lang'),
+    widget.o(_codeViewLang),
     _code,
   );
 }

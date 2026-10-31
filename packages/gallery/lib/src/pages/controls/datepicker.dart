@@ -1,28 +1,34 @@
 // The DatePicker page.
 part of 'controls.dart';
 
+/// The DatePicker page's `time` option.
+const _datepickerTime = SwitchOption('time', 'time of day');
+
+/// The DatePicker page's `week` option.
+const _datepickerWeek = ChoiceOption<int>(
+  'week',
+  'weeks start',
+  values: [1, 7],
+  labels: ['monday', 'sunday'],
+);
+
 final _datepickerPage = GalleryPage(
-  group: 'Controls',
+  group: _group,
   title: 'DatePicker',
   // Tab stays in the open calendar's FocusScope
   modalTab: false,
   options: [
-    const SwitchOption('time', 'time of day'),
-    const ChoiceOption(
-      'week',
-      'weeks start',
-      values: [1, 7],
-      labels: ['monday', 'sunday'],
-    ),
+    _datepickerTime,
+    _datepickerWeek,
     popupLookOption(),
   ],
   build: (context, o) => _Date(
-    time: o.flag('time'),
-    firstWeekday: o.choice('week'),
+    time: o(_datepickerTime),
+    firstWeekday: o(_datepickerWeek),
     popupLook: popupLookOf(o),
   ),
   code: (o) {
-    final time = o.flag('time');
+    final time = o(_datepickerTime);
     return [
       'final _calendar = PopupController();',
       'DateTime? _date;',
@@ -55,7 +61,7 @@ final _datepickerPage = GalleryPage(
       '            firstDate: DateTime(2026),',
       '            lastDate: DateTime(2026, 12, 31),',
       '            today: DateTime(2026, 10, 19),',
-      if (o['week'] == 7) '            firstWeekday: DateTime.sunday,',
+      if (o(_datepickerWeek) == 7) '            firstWeekday: DateTime.sunday,',
       ...popupLookArg(o, '            '),
       '            controller: _calendar,',
       '            onChanged: (date) => setState(() => _date = date),',

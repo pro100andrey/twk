@@ -15,25 +15,42 @@ const _spw = 48;
 
 const _sph = 11;
 
+/// The SplitView page's `dir` option.
+const _splitViewDir = ChoiceOption<String>(
+  'dir',
+  'direction',
+  values: ['horizontal', 'vertical'],
+);
+
+/// The SplitView page's `share` option.
+const _splitViewShare = SwitchOption(
+  'share',
+  'share edges',
+  initial: true,
+);
+
+/// The SplitView page's `type` option.
+const _splitViewType = ChoiceOption<String>(
+  'type',
+  'dividers',
+  values: ['single', 'rounded', 'double', 'heavy', 'ascii'],
+);
+
 final _splitView = GalleryPage(
-  group: 'Layout',
+  group: _group,
   title: 'SplitView',
   options: const [
-    ChoiceOption('dir', 'direction', values: ['horizontal', 'vertical']),
-    SwitchOption('share', 'share edges', initial: true),
-    ChoiceOption(
-      'type',
-      'dividers',
-      values: ['single', 'rounded', 'double', 'heavy', 'ascii'],
-    ),
+    _splitViewDir,
+    _splitViewShare,
+    _splitViewType,
   ],
   build: (context, o) => _Split(
-    vertical: o['dir'] == 'vertical',
-    share: o.flag('share'),
-    type: BorderType.values.byName(o.choice('type')),
+    vertical: o(_splitViewDir) == 'vertical',
+    share: o(_splitViewShare),
+    type: BorderType.values.byName(o(_splitViewType)),
   ),
   code: (o) {
-    final min = o['dir'] == 'horizontal' ? 8 : 3;
+    final min = o(_splitViewDir) == 'horizontal' ? 8 : 3;
     List<String> pane((String, String) p, {required bool last}) => [
       '              SplitPane(',
       '                minSize: $min,',
@@ -44,7 +61,7 @@ final _splitView = GalleryPage(
       ], ','),
       '              ),',
     ];
-    final share = o.flag('share');
+    final share = o(_splitViewShare);
     return [
       'final _split = SplitController(fractions: [1, 2, 1]);',
       '',
@@ -80,9 +97,10 @@ final _splitView = GalleryPage(
       '          height: $_sph,',
       '          child: SplitView(',
       '            controller: _split,',
-      if (o['dir'] != 'horizontal') '            direction: .vertical,',
+      if (o(_splitViewDir) != 'horizontal') '            direction: .vertical,',
       if (share) '            shareEdges: true,',
-      if (o['type'] != 'single') '            type: .${o['type']},',
+      if (o(_splitViewType) != 'single')
+        '            type: .${o(_splitViewType)},',
       '            style: theme.border,',
       '            panes: [',
       for (final (i, p) in _panes.indexed)

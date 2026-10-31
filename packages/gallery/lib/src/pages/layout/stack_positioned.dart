@@ -7,16 +7,19 @@ const _sw = 38;
 
 const _sh = 9;
 
+/// The Stack, Positioned page's `fit` option.
+const _stackFit = ChoiceOption<String>(
+  'fit',
+  'fit',
+  values: ['loose', 'expand', 'passthrough'],
+);
+
 final _stack = GalleryPage(
-  group: 'Layout',
+  group: _group,
   title: 'Stack, Positioned',
   options: [
     ..._alignOptions(0, 0),
-    const ChoiceOption(
-      'fit',
-      'fit',
-      values: ['loose', 'expand', 'passthrough'],
-    ),
+    _stackFit,
   ],
   build: (context, o) {
     final theme = Theme.of(context);
@@ -26,8 +29,8 @@ final _stack = GalleryPage(
       child: Box(
         border: _rounded(theme),
         child: Stack(
-          alignment: Alignment(o.choice('ax'), o.choice('ay')),
-          fit: StackFit.values.byName(o.choice('fit')),
+          alignment: Alignment(o(_alignX), o(_alignY)),
+          fit: StackFit.values.byName(o(_stackFit)),
           children: [
             // the room the others are placed in: the stack as big as it may
             // be
@@ -57,7 +60,7 @@ final _stack = GalleryPage(
     '    border: .all(type: .rounded, style: theme.border),',
     '    child: Stack(',
     if (_alignmentOf(o) != 'topLeft') '      alignment: .${_alignmentOf(o)},',
-    if (o['fit'] != 'loose') '      fit: .${o.label('fit')},',
+    if (o(_stackFit) != 'loose') '      fit: .${o.nameOf(_stackFit)},',
     '      children: [',
     '        // the room the others are placed in: the stack as big as it may be',
     '        const SizedBox.expand(),',

@@ -10,47 +10,55 @@ const _pins = <(String, int, int, int, int)>[
   ('fill', 1, 1, 32, 5),
 ];
 
+/// The AnimatedPositioned page's `pin` option.
+final _positionedPin = ChoiceOption<String>(
+  'pin',
+  'pinned',
+  values: [for (final p in _pins) p.$1],
+);
+
 final _positioned = GalleryPage(
-  group: 'Animation',
+  group: _group,
   title: 'AnimatedPositioned',
   options: [
-    ChoiceOption('pin', 'pinned', values: [for (final p in _pins) p.$1]),
+    _positionedPin,
     _curveOption,
     _cycleOption,
   ],
-  build: (context, o) => _Cycled(o, 'pin', [for (final p in _pins) p.$1], (
-    context,
-    i,
-  ) {
-    final theme = Theme.of(context);
-    final (_, left, top, width, height) = _pins[i];
-    return SizedBox(
-      width: 34,
-      height: 7,
-      child: Stack(
-        fit: .expand,
-        children: [
-          Box(
-            border: .all(type: .rounded, style: theme.border),
+  build: (context, o) =>
+      _Cycled(o, _positionedPin, [for (final p in _pins) p.$1], (
+        context,
+        i,
+      ) {
+        final theme = Theme.of(context);
+        final (_, left, top, width, height) = _pins[i];
+        return SizedBox(
+          width: 34,
+          height: 7,
+          child: Stack(
+            fit: .expand,
+            children: [
+              Box(
+                border: .all(type: .rounded, style: theme.border),
+              ),
+              AnimatedPositioned(
+                left: left,
+                top: top,
+                width: width,
+                height: height,
+                duration: _duration,
+                curve: _curveOf(o),
+                child: Box(
+                  style: theme.selection,
+                  child: const Center(child: Text('▣ pinned')),
+                ),
+              ),
+            ],
           ),
-          AnimatedPositioned(
-            left: left,
-            top: top,
-            width: width,
-            height: height,
-            duration: _duration,
-            curve: _curveOf(o),
-            child: Box(
-              style: theme.selection,
-              child: const Center(child: Text('▣ pinned')),
-            ),
-          ),
-        ],
-      ),
-    );
-  }),
+        );
+      }),
   code: (o) {
-    final i = _pins.indexWhere((p) => p.$1 == o.choice<String>('pin'));
+    final i = _pins.indexWhere((p) => p.$1 == o(_positionedPin));
     final p = _pins[i];
     List<String> body(String l, String t, String w, String h) => [
       'final theme = Theme.of(context);',
@@ -79,7 +87,7 @@ final _positioned = GalleryPage(
       '  ),',
       ');',
     ];
-    if (!o.flag('cycle')) {
+    if (!o(_cycleOption)) {
       return body('${p.$2}', '${p.$3}', '${p.$4}', '${p.$5}').join('\n');
     }
     return _ticking(

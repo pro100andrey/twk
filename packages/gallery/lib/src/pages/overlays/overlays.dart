@@ -20,6 +20,9 @@ part 'toast.dart';
 part 'tooltip.dart';
 part 'windowlayer.dart';
 
+/// The group of the catalog these pages are in.
+const _group = 'Overlays';
+
 /// The pages of the Overlays group that draw.
 final overlayPages = <GalleryPage>[
   _overlayPage,

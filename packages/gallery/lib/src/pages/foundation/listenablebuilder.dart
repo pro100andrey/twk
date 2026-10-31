@@ -4,13 +4,20 @@ part of 'foundation.dart';
 /// The timer's period.
 const _tick = 1000;
 
+/// The ListenableBuilder page's `timer` option.
+const _listenableTimer = SwitchOption(
+  'timer',
+  'timer',
+  initial: true,
+);
+
 final _listenable = GalleryPage(
-  group: 'Foundation',
+  group: _group,
   title: 'ListenableBuilder',
-  options: const [SwitchOption('timer', 'timer', initial: true)],
-  build: (context, o) => _Counting(timer: o.flag('timer')),
+  options: const [_listenableTimer],
+  build: (context, o) => _Counting(timer: o(_listenableTimer)),
   code: (o) {
-    final timer = o.flag('timer');
+    final timer = o(_listenableTimer);
     return [
       'final _count = ValueNotifier<int>(0);',
       if (timer) ...[

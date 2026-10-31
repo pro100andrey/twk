@@ -3,25 +3,27 @@ part of 'editing.dart';
 
 /// The options of a field's cursor: its shape, the terminal's own among
 /// them, and whether it blinks.
-const List<PageOption> _cursorOptions = [
-  ChoiceOption(
-    'cursor',
-    'cursor',
-    values: ['bar', 'block', 'underline', 'terminalDefault'],
-    labels: ['bar', 'block', 'underline', 'terminal'],
-  ),
-  SwitchOption('blink', 'blinking', disabled: _terminalCursor),
-];
+const List<PageOption<Object?>> _cursorOptions = [_cursor, _blink];
+
+/// The cursor's shape.
+const _cursor = ChoiceOption<String>(
+  'cursor',
+  'cursor',
+  values: ['bar', 'block', 'underline', 'terminalDefault'],
+  labels: ['bar', 'block', 'underline', 'terminal'],
+);
+
+/// Whether the cursor blinks.
+const _blink = SwitchOption('blink', 'blinking', disabled: _terminalCursor);
 
 /// Whether the cursor of [o] is the terminal's own, which blinks as the
 /// terminal says.
-bool _terminalCursor(Options o) =>
-    o.choice<String>('cursor') == 'terminalDefault';
+bool _terminalCursor(Options o) => o(_cursor) == 'terminalDefault';
 
 /// The cursor shape of [o].
 CursorShape _shapeOf(Options o) {
-  final shape = o.choice<String>('cursor');
-  if (_terminalCursor(o) || !o.flag('blink')) {
+  final shape = o(_cursor);
+  if (_terminalCursor(o) || !o(_blink)) {
     return CursorShape.values.byName(shape);
   }
   return CursorShape.values.byName(

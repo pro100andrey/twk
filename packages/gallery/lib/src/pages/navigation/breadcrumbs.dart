@@ -4,30 +4,43 @@ part of 'navigation.dart';
 /// The path the crumbs show, from the project down.
 const _path = ['twk', 'packages', 'gallery', 'lib', 'src', 'pages'];
 
+/// The Breadcrumbs page's `width` option.
+final _breadcrumbsWidth = SliderOption(
+  'width',
+  'width',
+  min: 12,
+  max: 50,
+  initial: 36,
+  format: (v) => '$v cells',
+);
+
+/// The Breadcrumbs page's `keep` option.
+const _breadcrumbsKeep = ChoiceOption<int>(
+  'keep',
+  'leading kept',
+  values: [1, 0, 2],
+);
+
+/// The Breadcrumbs page's `separator` option.
+const _breadcrumbsSeparator = ChoiceOption<String>(
+  'separator',
+  'separator',
+  values: [' › ', ' / '],
+  labels: ['›', '/'],
+);
+
 final _breadcrumbs = GalleryPage(
-  group: 'Navigation',
+  group: _group,
   title: 'Breadcrumbs',
   options: [
-    SliderOption(
-      'width',
-      'width',
-      min: 12,
-      max: 50,
-      initial: 36,
-      format: (v) => '$v cells',
-    ),
-    const ChoiceOption('keep', 'leading kept', values: [1, 0, 2]),
-    const ChoiceOption(
-      'separator',
-      'separator',
-      values: [' › ', ' / '],
-      labels: ['›', '/'],
-    ),
+    _breadcrumbsWidth,
+    _breadcrumbsKeep,
+    _breadcrumbsSeparator,
   ],
   build: (context, o) => _Crumbs(
-    width: o.number('width').toInt(),
-    keepLeading: o.choice('keep'),
-    separator: o.choice('separator'),
+    width: o(_breadcrumbsWidth).toInt(),
+    keepLeading: o(_breadcrumbsKeep),
+    separator: o(_breadcrumbsSeparator),
   ),
   code: (o) => [
     'static const _path = [${_path.map((p) => "'$p'").join(', ')}];',
@@ -40,14 +53,14 @@ final _breadcrumbs = GalleryPage(
     '  gap: 1,',
     '  children: [',
     '    SizedBox(',
-    '      width: ${o.label('width')},',
+    '      width: ${o.nameOf(_breadcrumbsWidth)},',
     '      child: Breadcrumbs(',
     '        items: _path,',
     '        current: _at,',
-    if (o.choice<int>('keep') != 1)
-      '        keepLeading: ${o.choice<int>('keep')},',
-    if (o.choice<String>('separator') != ' › ')
-      "        separator: '${o.choice<String>('separator')}',",
+    if (o(_breadcrumbsKeep) != 1)
+      '        keepLeading: ${o(_breadcrumbsKeep)},',
+    if (o(_breadcrumbsSeparator) != ' › ')
+      "        separator: '${o(_breadcrumbsSeparator)}',",
     '        onSelected: (index) => setState(() => _at = index),',
     '      ),',
     '    ),',

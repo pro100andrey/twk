@@ -39,18 +39,36 @@ int _ttLines(String path) =>
 
 String _quoted(List<String> list) => list.map((f) => "'$f'").join(', ');
 
+/// The TreeTable page's `selection` option.
+const _treeTableSelection = ChoiceOption<String>(
+  'selection',
+  'selection',
+  values: ['none', 'row', 'cell'],
+  initial: 'row',
+);
+
+/// The TreeTable page's `border` option.
+const _treeTableBorder = ChoiceOption<String>(
+  'border',
+  'border',
+  values: _borders,
+  initial: 'single',
+);
+
+/// The TreeTable page's `guides` option.
+const _treeTableGuides = SwitchOption(
+  'guides',
+  'guides',
+  initial: true,
+);
+
 final _treeTable = GalleryPage(
-  group: 'Data',
+  group: _group,
   title: 'TreeTable',
   options: const [
-    ChoiceOption(
-      'selection',
-      'selection',
-      values: ['none', 'row', 'cell'],
-      initial: 'row',
-    ),
-    ChoiceOption('border', 'border', values: _borders, initial: 'single'),
-    SwitchOption('guides', 'guides', initial: true),
+    _treeTableSelection,
+    _treeTableBorder,
+    _treeTableGuides,
   ],
   build: (context, o) => inRoom((_, room) {
     final kept = PageControl.of(context).state;
@@ -63,7 +81,7 @@ final _treeTable = GalleryPage(
             ))
             as TreeController;
     final table = (kept['table'] ??= TableController()) as TableController;
-    final selection = TableSelection.values.byName(o.choice('selection'));
+    final selection = TableSelection.values.byName(o(_treeTableSelection));
     final cell = selection == TableSelection.cell;
     return PageHints(
       hints: selection == TableSelection.none
@@ -83,9 +101,9 @@ final _treeTable = GalleryPage(
           controller: controller,
           tableController: table,
           selection: selection,
-          border: BorderType.values.byName(o.choice('border')),
+          border: BorderType.values.byName(o(_treeTableBorder)),
           columnGap: _ttGap,
-          showGuides: o.flag('guides'),
+          showGuides: o(_treeTableGuides),
           hasChildren: (path) => !path.contains('.'),
           children: (path) => _ttChildren[path] ?? const [],
           columns: [
@@ -125,11 +143,11 @@ final _treeTable = GalleryPage(
     '  child: TreeTable<String>(',
     '    roots: const [${_quoted(_ttRoots)}],',
     '    controller: _controller,',
-    '    selection: .${o.label('selection')},',
-    if (o.choice<String>('border') != 'none')
-      '    border: .${o.label('border')},',
+    '    selection: .${o.nameOf(_treeTableSelection)},',
+    if (o(_treeTableBorder) != 'none')
+      '    border: .${o.nameOf(_treeTableBorder)},',
     '    columnGap: $_ttGap,',
-    if (!o.flag('guides')) '    showGuides: false,',
+    if (!o(_treeTableGuides)) '    showGuides: false,',
     "    hasChildren: (path) => !path.contains('.'),",
     '    children: (path) => _children[path] ?? const [],',
     '    columns: [',

@@ -14,6 +14,9 @@ part 'swatches.dart';
 part 'terminalbrightness.dart';
 part 'theme.dart';
 
+/// The group of the catalog these pages are in.
+const _group = 'Style';
+
 /// The pages of the Style group that draw.
 final stylePages = <GalleryPage>[
   _themePage,

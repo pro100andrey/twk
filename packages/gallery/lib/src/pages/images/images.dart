@@ -10,5 +10,8 @@ import '../pictures.dart';
 
 part 'image.dart';
 
+/// The group of the catalog these pages are in.
+const _group = 'Images';
+
 /// The pages of the Images group that draw.
 final imagePages = <GalleryPage>[_image];

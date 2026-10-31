@@ -54,53 +54,69 @@ const int _pieces = (_answer.length + _pieceLength - 1) ~/ _pieceLength;
 
 const int _cycle = _think + _pieces * _piece + _hold;
 
+/// The MarkdownView page's `content` option.
+const _markdownViewContent = ChoiceOption<String>(
+  'content',
+  'content',
+  values: ['document', 'answer'],
+  labels: ['document', 'chat answer'],
+);
+
+/// The MarkdownView page's `codeWrap` option.
+const _markdownViewCodeWrap = ChoiceOption<String>(
+  'codeWrap',
+  'code wrap',
+  values: ['grapheme', 'word', 'none'],
+);
+
+/// The MarkdownView page's `width` option.
+final _markdownViewWidth = SliderOption(
+  'width',
+  'width',
+  min: 30,
+  max: 72,
+  initial: 50,
+  format: (v) => '$v cells',
+);
+
+/// The MarkdownView page's `links` option.
+final _markdownViewLinks = ChoiceOption<String>(
+  'links',
+  'links go to',
+  values: const ['terminal', 'app', 'app only'],
+  labels: const ['the terminal', 'the app', 'the app only'],
+  disabled: (o) => o(_markdownViewContent) != 'document',
+);
+
 final _markdownView = GalleryPage(
-  group: 'Rich',
+  group: _group,
   title: 'MarkdownView',
   options: [
-    const ChoiceOption(
-      'content',
-      'content',
-      values: ['document', 'answer'],
-      labels: ['document', 'chat answer'],
-    ),
-    const ChoiceOption(
-      'codeWrap',
-      'code wrap',
-      values: ['grapheme', 'word', 'none'],
-    ),
-    SliderOption(
-      'width',
-      'width',
-      min: 30,
-      max: 72,
-      initial: 50,
-      format: (v) => '$v cells',
-    ),
+    _markdownViewContent,
+    _markdownViewCodeWrap,
+    _markdownViewWidth,
     // onLinkTap: the app's own links, a heading's scrolled to by the
     // MarkdownController; the app's only, hyperlinks: false, no OSC 8 for
     // the terminal to open
-    ChoiceOption(
-      'links',
-      'links go to',
-      values: const ['terminal', 'app', 'app only'],
-      labels: const ['the terminal', 'the app', 'the app only'],
-      disabled: (o) => o['content'] != 'document',
-    ),
+    _markdownViewLinks,
   ],
   build: (context, o) => inRoom((rw, rh) {
     final theme = Theme.of(context);
-    final w = math.min(o.number('width').toInt(), rw);
+    final w = math.min(o(_markdownViewWidth).toInt(), rw);
     final h = clampTo(rh, 6, 24);
-    final wrap = TextWrap.values.byName(o.choice('codeWrap'));
-    if (o.choice<String>('content') == 'document' && o['links'] != 'terminal') {
+    final wrap = TextWrap.values.byName(o(_markdownViewCodeWrap));
+    if (o(_markdownViewContent) == 'document' &&
+        o(_markdownViewLinks) != 'terminal') {
       return SizedBox(
         width: w,
         height: h,
-        child: _AppLinks(codeWrap: wrap, hyperlinks: o['links'] == 'app'),
+        child: _AppLinks(
+          codeWrap: wrap,
+          hyperlinks: o(_markdownViewLinks) == 'app',
+        ),
       );
     }
-    if (o.choice<String>('content') == 'document') {
+    if (o(_markdownViewContent) == 'document') {
       return SizedBox(
         width: w,
         height: h,
@@ -182,11 +198,12 @@ final _markdownView = GalleryPage(
   heightIn: (o, room) => clampTo(room.height, 6, 24),
   codeIn: (o, room) {
     final (rw, rh) = codeRoomOf(room);
-    final w = math.min(o.number('width').toInt(), rw);
+    final w = math.min(o(_markdownViewWidth).toInt(), rw);
     final h = clampTo(rh, 6, 24);
-    final codeWrap = o.label('codeWrap');
+    final codeWrap = o.nameOf(_markdownViewCodeWrap);
     final wrap = codeWrap == 'grapheme' ? '' : ', codeWrap: .$codeWrap';
-    if (o.choice<String>('content') == 'document' && o['links'] != 'terminal') {
+    if (o(_markdownViewContent) == 'document' &&
+        o(_markdownViewLinks) != 'terminal') {
       return [
         ..._dartString('_notes', _doc),
         '',
@@ -222,7 +239,8 @@ final _markdownView = GalleryPage(
         '              controller: _md,',
         '              onLinkTap: _tap,',
         if (codeWrap != 'grapheme') '              codeWrap: .$codeWrap,',
-        if (o['links'] == 'app only') '              hyperlinks: false,',
+        if (o(_markdownViewLinks) == 'app only')
+          '              hyperlinks: false,',
         '            ),',
         '          ),',
         '        ),',
@@ -239,7 +257,7 @@ final _markdownView = GalleryPage(
         ');',
       ].join('\n');
     }
-    if (o.choice<String>('content') == 'document') {
+    if (o(_markdownViewContent) == 'document') {
       return [
         ..._dartString('_notes', _doc),
         '',

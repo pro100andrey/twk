@@ -5,18 +5,32 @@ part of 'layout.dart';
 
 const List<int?> _alignFactors = [null, 1, 2, 3];
 
+/// The Align, Center page's `wf` option.
+const _alignCenterWf = ChoiceOption<int?>(
+  'wf',
+  'width factor',
+  values: _alignFactors,
+);
+
+/// The Align, Center page's `hf` option.
+const _alignCenterHf = ChoiceOption<int?>(
+  'hf',
+  'height factor',
+  values: _alignFactors,
+);
+
 final _alignCenter = GalleryPage(
-  group: 'Layout',
+  group: _group,
   title: 'Align, Center',
   options: [
     ..._alignOptions(1, 1),
-    const ChoiceOption('wf', 'width factor', values: _alignFactors),
-    const ChoiceOption('hf', 'height factor', values: _alignFactors),
+    _alignCenterWf,
+    _alignCenterHf,
   ],
   build: (context, o) {
     final theme = Theme.of(context);
-    final wf = o.choice<int?>('wf');
-    final hf = o.choice<int?>('hf');
+    final wf = o(_alignCenterWf);
+    final hf = o(_alignCenterHf);
     // a factor sizes the box along its axis, so the room does not
     Widget room(String title, Widget child) => SizedBox(
       width: wf == null ? 30 : null,
@@ -34,7 +48,7 @@ final _alignCenter = GalleryPage(
         room(
           '.${_alignmentOf(o)}',
           Align(
-            alignment: Alignment(o.choice('ax'), o.choice('ay')),
+            alignment: Alignment(o(_alignX), o(_alignY)),
             widthFactor: wf,
             heightFactor: hf,
             child: const Text('aligned'),
@@ -52,8 +66,8 @@ final _alignCenter = GalleryPage(
     );
   },
   code: (o) {
-    final wf = o.choice<int?>('wf');
-    final hf = o.choice<int?>('hf');
+    final wf = o(_alignCenterWf);
+    final hf = o(_alignCenterHf);
     final factors = [
       if (wf != null) 'widthFactor: $wf',
       if (hf != null) 'heightFactor: $hf',

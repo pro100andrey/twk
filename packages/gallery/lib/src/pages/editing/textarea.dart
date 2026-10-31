@@ -1,38 +1,62 @@
 // The TextArea page.
 part of 'editing.dart';
 
+/// The TextArea page's `minLines` option.
+const _textareaMinLines = ChoiceOption<int>(
+  'minLines',
+  'min lines',
+  values: [1, 3],
+  initial: 3,
+);
+
+/// The TextArea page's `maxLines` option.
+const _textareaMaxLines = ChoiceOption<int?>(
+  'maxLines',
+  'max lines',
+  values: [null, 3, 6],
+  labels: ['none', '3', '6'],
+  initial: 6,
+);
+
+/// The TextArea page's `enter` option.
+const _textareaEnter = ChoiceOption<String>(
+  'enter',
+  'enter',
+  values: ['newline', 'submit'],
+  labels: ['breaks the line', 'submits'],
+);
+
+/// The TextArea page's `readOnly` option.
+const _textareaReadOnly = SwitchOption('readOnly', 'read only');
+
+/// The TextArea page's `enabled` option.
+const _textareaEnabled = SwitchOption(
+  'enabled',
+  'enabled',
+  initial: true,
+);
+
 final _textareaPage = GalleryPage(
-  group: 'Editing',
+  group: _group,
   title: 'TextArea',
   options: const [
-    ChoiceOption('minLines', 'min lines', values: [1, 3], initial: 3),
-    ChoiceOption(
-      'maxLines',
-      'max lines',
-      values: [null, 3, 6],
-      labels: ['none', '3', '6'],
-      initial: 6,
-    ),
-    ChoiceOption(
-      'enter',
-      'enter',
-      values: ['newline', 'submit'],
-      labels: ['breaks the line', 'submits'],
-    ),
+    _textareaMinLines,
+    _textareaMaxLines,
+    _textareaEnter,
     ..._cursorOptions,
-    SwitchOption('readOnly', 'read only'),
-    SwitchOption('enabled', 'enabled', initial: true),
+    _textareaReadOnly,
+    _textareaEnabled,
   ],
   build: (context, o) => _Area(
-    minLines: o.choice('minLines'),
-    maxLines: o.choice('maxLines'),
-    submit: o.choice<String>('enter') == 'submit',
+    minLines: o(_textareaMinLines),
+    maxLines: o(_textareaMaxLines),
+    submit: o(_textareaEnter) == 'submit',
     cursor: _shapeOf(o),
-    readOnly: o.flag('readOnly'),
-    enabled: o.flag('enabled'),
+    readOnly: o(_textareaReadOnly),
+    enabled: o(_textareaEnabled),
   ),
   code: (o) {
-    final submit = o.choice<String>('enter') == 'submit';
+    final submit = o(_textareaEnter) == 'submit';
     return [
       'final _controller = TextEditingController(',
       r"  text: 'Notes wrap at the width of the area, between words.\n'",
@@ -60,12 +84,13 @@ final _textareaPage = GalleryPage(
       '          child: TextArea(',
       '            controller: _controller,',
       "            placeholder: 'notes',",
-      if (o['minLines'] != 1) '            minLines: ${o.label('minLines')},',
-      if (o['maxLines'] != null)
-        '            maxLines: ${o.label('maxLines')},',
+      if (o(_textareaMinLines) != 1)
+        '            minLines: ${o.nameOf(_textareaMinLines)},',
+      if (o(_textareaMaxLines) != null)
+        '            maxLines: ${o.nameOf(_textareaMaxLines)},',
       ..._shapeArg(o, '            '),
-      if (o.flag('readOnly')) '            readOnly: true,',
-      if (!o.flag('enabled')) '            enabled: false,',
+      if (o(_textareaReadOnly)) '            readOnly: true,',
+      if (!o(_textareaEnabled)) '            enabled: false,',
       if (submit) _areaSubmitLine,
       '          ),',
       '        ),',

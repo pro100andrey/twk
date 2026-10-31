@@ -25,6 +25,9 @@ part 'skeleton_skeletonize.dart';
 part 'spinner.dart';
 part 'tweenanimationbuilder.dart';
 
+/// The group of the catalog these pages are in.
+const _group = 'Animation';
+
 /// The pages of the Animation group that draw.
 final animationPages = <GalleryPage>[
   _spinner,

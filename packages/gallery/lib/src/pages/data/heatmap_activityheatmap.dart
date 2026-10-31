@@ -26,43 +26,66 @@ const _weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 /// The dark green to light green of the colored scale.
 const _greens = Gradient([Color.rgb(14, 68, 41), Color.rgb(57, 211, 83)]);
 
+/// The Heatmap, ActivityHeatmap page's `kind` option.
+const _heatmapKind = ChoiceOption<String>(
+  'kind',
+  'widget',
+  values: ['activity', 'grid'],
+  labels: ['ActivityHeatmap', 'Heatmap'],
+);
+
+/// The Heatmap, ActivityHeatmap page's `firstWeekday` option.
+final _heatmapFirstWeekday = ChoiceOption<int>(
+  'firstWeekday',
+  'first day',
+  values: const [DateTime.monday, DateTime.sunday],
+  labels: const ['monday', 'sunday'],
+  disabled: (o) => o(_heatmapKind) != 'activity',
+);
+
+/// The Heatmap, ActivityHeatmap page's `scale` option.
+const _heatmapScale = ChoiceOption<String>(
+  'scale',
+  'scale',
+  values: ['shades', 'colors'],
+);
+
+/// The Heatmap, ActivityHeatmap page's `legend` option.
+const _heatmapLegend = SwitchOption(
+  'legend',
+  'legend',
+  initial: true,
+);
+
+/// The Heatmap, ActivityHeatmap page's `cell` option.
+const _heatmapCell = ChoiceOption<int>(
+  'cell',
+  'cell width',
+  values: [2, 1],
+  labels: ['2 columns', '1 column'],
+);
+
 final _heatmap = GalleryPage(
-  group: 'Data',
+  group: _group,
   title: 'Heatmap, ActivityHeatmap',
   options: [
-    const ChoiceOption(
-      'kind',
-      'widget',
-      values: ['activity', 'grid'],
-      labels: ['ActivityHeatmap', 'Heatmap'],
-    ),
-    ChoiceOption(
-      'firstWeekday',
-      'first day',
-      values: const [DateTime.monday, DateTime.sunday],
-      labels: const ['monday', 'sunday'],
-      disabled: (o) => o['kind'] != 'activity',
-    ),
-    const ChoiceOption('scale', 'scale', values: ['shades', 'colors']),
-    const SwitchOption('legend', 'legend', initial: true),
-    const ChoiceOption(
-      'cell',
-      'cell width',
-      values: [2, 1],
-      labels: ['2 columns', '1 column'],
-    ),
+    _heatmapKind,
+    _heatmapFirstWeekday,
+    _heatmapScale,
+    _heatmapLegend,
+    _heatmapCell,
   ],
   build: (context, o) => _Heat(
-    activity: o.choice<String>('kind') == 'activity',
-    firstWeekday: o.choice('firstWeekday'),
-    colors: o.choice<String>('scale') == 'colors',
-    legend: o.flag('legend'),
-    cellWidth: o.choice('cell'),
+    activity: o(_heatmapKind) == 'activity',
+    firstWeekday: o(_heatmapFirstWeekday),
+    colors: o(_heatmapScale) == 'colors',
+    legend: o(_heatmapLegend),
+    cellWidth: o(_heatmapCell),
   ),
   code: (o) {
-    final activity = o.choice<String>('kind') == 'activity';
-    final colors = o.choice<String>('scale') == 'colors';
-    final cell = o.choice<int>('cell');
+    final activity = o(_heatmapKind) == 'activity';
+    final colors = o(_heatmapScale) == 'colors';
+    final cell = o(_heatmapCell);
     final noise = [
       '',
       _noiseDoc,
@@ -119,10 +142,10 @@ final _heatmap = GalleryPage(
         '        counts: _commits,',
         '        end: DateTime(2026, 10, 19),',
         '        weeks: $_heatWeeks,',
-        if (o.choice<int>('firstWeekday') == DateTime.sunday)
+        if (o(_heatmapFirstWeekday) == DateTime.sunday)
           '        firstWeekday: DateTime.sunday,',
         ..._indented(scale, 2),
-        if (o.flag('legend')) '        showLegend: true,',
+        if (o(_heatmapLegend)) '        showLegend: true,',
         if (cell != 2) '        cellWidth: $cell,',
         '        onSelected: (day) => setState(',
         '          () => _selected = day.toIso8601String().substring(0, 10),',
@@ -171,7 +194,7 @@ final _heatmap = GalleryPage(
       r"            if (hour % 6 == 0) '$hour h' else '',",
       '        ],',
       if (cell != 2) '        cellWidth: $cell,',
-      if (o.flag('legend')) '        showLegend: true,',
+      if (o(_heatmapLegend)) '        showLegend: true,',
       '        tooltip: (day, hour) {',
       '          final percent = (_load(day, hour) * 100).round();',
       r"          return '${_days[day]} $hour:00, $percent %';",

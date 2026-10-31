@@ -10,7 +10,7 @@ const _bigLines = 'twk\ngallery';
 
 /// Whether the BigText page's text is of one line, which BigText is as wide
 /// as: align then moves nothing.
-bool _oneLine(Options o) => o.choice<String>('text') != 'lines';
+bool _oneLine(Options o) => o(_bigTextText) != 'lines';
 
 const _maxLength = 24;
 
@@ -31,12 +31,12 @@ String _clockText(int ms) {
 /// The rows BigText and its field take in [room], as the design's size:
 /// the text in the first font it fits in, in what the field leaves.
 int _bigHeightIn(Options o, StageRoom room) {
-  final name = o.choice<String>('font');
+  final name = o(_bigTextFont);
   // no field under it
-  final clock = o.choice<String>('text') != 'typed';
+  final clock = o(_bigTextText) != 'typed';
   final big =
       RenderBigText(
-        switch (o.choice<String>('text')) {
+        switch (o(_bigTextText)) {
           'clock' => _clockText(0),
           'lines' => _bigLines,
           _ => _typed,
@@ -55,50 +55,62 @@ int _bigHeightIn(Options o, StageRoom room) {
   return clock ? big.height : big.height + 4;
 }
 
+/// The BigText page's `font` option.
+const _bigTextFont = ChoiceOption<String>(
+  'font',
+  'font',
+  values: ['fit', 'large', 'block', 'thin', 'small'],
+);
+
+/// The BigText page's `text` option.
+const _bigTextText = ChoiceOption<String>(
+  'text',
+  'text',
+  values: ['typed', 'clock', 'lines'],
+  labels: ['typed', 'clock', 'two lines'],
+);
+
+/// The BigText page's `align` option.
+const _bigTextAlign = ChoiceOption<String>(
+  'align',
+  'align',
+  values: ['left', 'center', 'right'],
+  disabled: _oneLine,
+);
+
+/// The BigText page's `color` option.
+const _bigTextColor = ColorOption(
+  'color',
+  'style',
+  values: ['primary', 'accent', 'success', 'warning', 'info'],
+  initial: 'primary',
+);
+
 final _bigText = GalleryPage(
-  group: 'Rich',
+  group: _group,
   title: 'BigText',
   options: const [
-    ChoiceOption(
-      'font',
-      'font',
-      values: ['fit', 'large', 'block', 'thin', 'small'],
-    ),
-    ChoiceOption(
-      'text',
-      'text',
-      values: ['typed', 'clock', 'lines'],
-      labels: ['typed', 'clock', 'two lines'],
-    ),
+    _bigTextFont,
+    _bigTextText,
     // each line across the widest: of a text of more than one
-    ChoiceOption(
-      'align',
-      'align',
-      values: ['left', 'center', 'right'],
-      disabled: _oneLine,
-    ),
-    ColorOption(
-      'color',
-      'style',
-      values: ['primary', 'accent', 'success', 'warning', 'info'],
-      initial: 'primary',
-    ),
+    _bigTextAlign,
+    _bigTextColor,
   ],
   build: (context, o) {
-    final name = o.choice<String>('font');
+    final name = o(_bigTextFont);
     final font = name == 'fit'
         ? null
         : BigFont.values.firstWhere((f) => f.name == name);
-    final style = o.colorStyle(context, 'color');
-    if (o.choice<String>('text') == 'lines') {
+    final style = o.styleOf(context, _bigTextColor);
+    if (o(_bigTextText) == 'lines') {
       return BigText(
         _bigLines,
         font: font,
-        align: TextAlign.values.byName(o.choice('align')),
+        align: TextAlign.values.byName(o(_bigTextAlign)),
         style: style,
       );
     }
-    if (o.choice<String>('text') == 'clock') {
+    if (o(_bigTextText) == 'clock') {
       return Timed((context, ms, wake) {
         wake((ms ~/ 1000 + 1) * 1000);
         return BigText(_clockText(ms), font: font, style: style);
@@ -108,11 +120,11 @@ final _bigText = GalleryPage(
   },
   heightIn: _bigHeightIn,
   code: (o) {
-    final name = o.choice<String>('font');
+    final name = o(_bigTextFont);
     final font = name == 'fit' ? '' : ', font: BigFont.$name';
-    final color = o.color('color');
-    if (o.choice<String>('text') == 'lines') {
-      final align = o.choice<String>('align');
+    final color = o(_bigTextColor);
+    if (o(_bigTextText) == 'lines') {
+      final align = o(_bigTextAlign);
       return [
         '@override',
         'Widget build(BuildContext context) => BigText(',
@@ -123,7 +135,7 @@ final _bigText = GalleryPage(
         ');',
       ].join('\n');
     }
-    if (o.choice<String>('text') == 'clock') {
+    if (o(_bigTextText) == 'clock') {
       return [
         '// a clock from 9:41, a second a tick',
         'var _now = DateTime(2026, 10, 19, 9, 41);',

@@ -1,29 +1,42 @@
 // The GestureDetector page.
 part of 'mouse.dart';
 
+/// The GestureDetector page's `double` option.
+const _gesturedetectorDouble = SwitchOption(
+  'double',
+  'double tap',
+  initial: true,
+);
+
+/// The GestureDetector page's `long` option.
+const _gesturedetectorLong = ChoiceOption<int>(
+  'long',
+  'long press after',
+  values: [500, 1000],
+  labels: ['500 ms', '1 s'],
+);
+
+/// The GestureDetector page's `buttons` option.
+const _gesturedetectorButtons = ChoiceOption<String>(
+  'buttons',
+  'buttons',
+  values: ['left', 'right', 'any'],
+  labels: ['left', 'right', 'left, middle, right'],
+);
+
 final _gesturedetectorPage = GalleryPage(
-  group: 'Mouse',
+  group: _group,
   title: 'GestureDetector',
   options: const [
-    SwitchOption('double', 'double tap', initial: true),
-    ChoiceOption(
-      'long',
-      'long press after',
-      values: [500, 1000],
-      labels: ['500 ms', '1 s'],
-    ),
+    _gesturedetectorDouble,
+    _gesturedetectorLong,
     // the buttons whose presses it takes: 0 left, 1 middle, 2 right
-    ChoiceOption(
-      'buttons',
-      'buttons',
-      values: ['left', 'right', 'any'],
-      labels: ['left', 'right', 'left, middle, right'],
-    ),
+    _gesturedetectorButtons,
   ],
   build: (context, o) => _Gestures(
-    doubleTap: o.flag('double'),
-    longMs: o.choice('long'),
-    buttons: _buttons[o.choice<String>('buttons')]!,
+    doubleTap: o(_gesturedetectorDouble),
+    longMs: o(_gesturedetectorLong),
+    buttons: _buttons[o(_gesturedetectorButtons)]!,
   ),
   code: _gesturesCode,
 );
@@ -194,7 +207,7 @@ String _gesturesCode(Options o) => [
   '          _taps++;',
   "          _saw('tap', event);",
   '        }),',
-  if (o.flag('double')) ...[
+  if (o(_gesturedetectorDouble)) ...[
     '        onDoubleTap: (event) => setState(() {',
     '          _doubleTaps++;',
     "          _saw('double tap', event);",
@@ -204,9 +217,9 @@ String _gesturesCode(Options o) => [
   '          _longPresses++;',
   "          _saw('long press', event);",
   '        }),',
-  if (o.choice<int>('long') != 500)
+  if (o(_gesturedetectorLong) != 500)
     '        longPressDuration: const Duration(seconds: 1),',
-  if (o.choice<String>('buttons') case final b when b != 'left')
+  if (o(_gesturedetectorButtons) case final b when b != 'left')
     '        buttons: const {${_buttons[b]!.join(', ')}},',
   _dragStartLine,
   '        onDragUpdate: (drag) => setState(() {',

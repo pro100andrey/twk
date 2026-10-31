@@ -1,21 +1,27 @@
 // The Theme page.
 part of 'style.dart';
 
+/// The Theme page's `theme` option.
+final _themeTheme = ChoiceOption<String>(
+  'theme',
+  'theme',
+  values: [for (final p in _presets) p.key],
+  initial: 'nord',
+);
+
+/// The Theme page's `cycle` option.
+const _themeCycle = SwitchOption('cycle', 'cycle');
+
 final _themePage = GalleryPage(
-  group: 'Style',
+  group: _group,
   title: 'Theme',
   options: [
-    ChoiceOption(
-      'theme',
-      'theme',
-      values: [for (final p in _presets) p.key],
-      initial: 'nord',
-    ),
-    const SwitchOption('cycle', 'cycle'),
+    _themeTheme,
+    _themeCycle,
   ],
   build: (context, o) => _ThemePage(
-    chosen: _presets.indexWhere((p) => p.key == o.choice<String>('theme')),
-    cycle: o.flag('cycle'),
+    chosen: _presets.indexWhere((p) => p.key == o(_themeTheme)),
+    cycle: o(_themeCycle),
   ),
   code: _themeCode,
 );
@@ -89,7 +95,7 @@ final class _ThemePageState extends State<_ThemePage> with MotionState {
     var d = kept['drive'] as Drive?;
     if (on && d != null && d.on && c != d.last) {
       // a preset chosen by hand while it cycles: the pick stays
-      scheduleMicrotask(() => control.setOption('cycle', false));
+      scheduleMicrotask(() => control.setOption(_themeCycle, false));
       on = false;
     }
     if (d == null) {
@@ -113,7 +119,7 @@ final class _ThemePageState extends State<_ThemePage> with MotionState {
     d.last = c;
     if (on && i != c) {
       final key = _presets[i].key;
-      scheduleMicrotask(() => control.setOption('theme', key));
+      scheduleMicrotask(() => control.setOption(_themeTheme, key));
       d.last = i;
     }
     motion.end();
@@ -123,14 +129,14 @@ final class _ThemePageState extends State<_ThemePage> with MotionState {
 }
 
 String _themeCode(Options o) {
-  final i = _presets.indexWhere((p) => p.key == o.choice<String>('theme'));
+  final i = _presets.indexWhere((p) => p.key == o(_themeTheme));
   final list = [
     'const _themes = [',
     for (final p in _presets) "  ('${p.name}', ${p.dart}),",
     '];',
     '',
   ];
-  if (!o.flag('cycle')) {
+  if (!o(_themeCycle)) {
     return [
       ...list,
       'final (name, data) = _themes[$i];',

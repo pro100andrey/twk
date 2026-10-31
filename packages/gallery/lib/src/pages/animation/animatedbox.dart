@@ -1,17 +1,20 @@
 // The AnimatedBox page.
 part of 'animation.dart';
 
+/// The AnimatedBox page's `big` option.
+const _boxBig = SwitchOption('big', 'big');
+
 // ------------------------------------------------------------ AnimatedBox
 
 final _box = GalleryPage(
-  group: 'Animation',
+  group: _group,
   title: 'AnimatedBox',
   options: [
-    const SwitchOption('big', 'big'),
+    _boxBig,
     _curveOption,
     _cycleOption,
   ],
-  build: (context, o) => _Cycled(o, 'big', const [false, true], (context, i) {
+  build: (context, o) => _Cycled(o, _boxBig, const [false, true], (context, i) {
     final theme = Theme.of(context);
     final big = i == 1;
     return _inFrame(
@@ -61,11 +64,11 @@ final _box = GalleryPage(
       ];
     }
 
-    if (!o.flag('cycle')) {
-      return body(o.flag('big')).join('\n');
+    if (!o(_cycleOption)) {
+      return body(o(_boxBig)).join('\n');
     }
     return _ticking(
-      ['var _big = ${o.flag('big')};'],
+      ['var _big = ${o(_boxBig)};'],
       '() => _big = !_big',
       'big, then small again, every 1.2 s',
       ['final big = _big;', ...body(null)],

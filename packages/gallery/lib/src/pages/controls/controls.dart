@@ -29,6 +29,9 @@ part 'statusbar.dart';
 part 'statusmessage_badge.dart';
 part 'tabbar_tabview.dart';
 
+/// The group of the catalog these pages are in.
+const _group = 'Controls';
+
 /// The pages of the Controls group that draw.
 final List<GalleryPage> controlsPages = [
   _buttonPage,

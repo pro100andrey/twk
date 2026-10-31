@@ -1,24 +1,34 @@
 // The ConfirmInput page.
 part of 'controls.dart';
 
+/// The ConfirmInput page's `default` option.
+const _confirminputDefault = ChoiceOption<bool>(
+  'default',
+  'default',
+  values: [true, false],
+  labels: ['yes', 'no'],
+);
+
+/// The ConfirmInput page's `labels` option.
+const _confirminputLabels = ChoiceOption<String>(
+  'labels',
+  'answers',
+  values: ['Yes, No', 'Delete, Keep'],
+);
+
 final _confirminputPage = GalleryPage(
-  group: 'Controls',
+  group: _group,
   title: 'ConfirmInput',
   options: const [
-    ChoiceOption(
-      'default',
-      'default',
-      values: [true, false],
-      labels: ['yes', 'no'],
-    ),
-    ChoiceOption('labels', 'answers', values: ['Yes, No', 'Delete, Keep']),
+    _confirminputDefault,
+    _confirminputLabels,
   ],
   build: (context, o) => _Confirm(
-    defaultValue: o.choice('default'),
-    answers: _answers[o.choice<String>('labels')]!,
+    defaultValue: o(_confirminputDefault),
+    answers: _answers[o(_confirminputLabels)]!,
   ),
   code: (o) {
-    final (yes, no) = _answers[o.choice<String>('labels')]!;
+    final (yes, no) = _answers[o(_confirminputLabels)]!;
     return [
       'bool? _answer;',
       '',
@@ -31,8 +41,8 @@ final _confirminputPage = GalleryPage(
       '    ConfirmInput(',
       "      'Delete 3 files?',",
       '      // it reads defaultValue once: another is a new input',
-      '      key: const ValueKey(${o['default']}),',
-      '      defaultValue: ${o['default']},',
+      '      key: const ValueKey(${o(_confirminputDefault)}),',
+      '      defaultValue: ${o(_confirminputDefault)},',
       if (yes != 'Yes') ...["      yes: '$yes',", "      no: '$no',"],
       '      onConfirmed: (yes) => setState(() => _answer = yes),',
       '    ),',

@@ -12,40 +12,56 @@ const _legends = [
   'bottomRight',
 ];
 
+/// The Chart page's `graph` option.
+const _chartGraph = ChoiceOption<String>(
+  'graph',
+  'graph',
+  values: ['scatter', 'line'],
+  initial: 'line',
+);
+
+/// The Chart page's `marker` option.
+final _chartMarker = ChoiceOption<String>(
+  'marker',
+  'marker',
+  values: _markers.keys.toList(),
+);
+
+/// The Chart page's `legend` option.
+const _chartLegend = ChoiceOption<String?>(
+  'legend',
+  'legend',
+  values: [..._legends, null],
+  initial: 'topRight',
+);
+
+/// The Chart page's `live` option.
+const _chartLive = SwitchOption('live', 'live', initial: true);
+
 final _chart = GalleryPage(
-  group: 'Data',
+  group: _group,
   title: 'Chart',
   options: [
-    const ChoiceOption(
-      'graph',
-      'graph',
-      values: ['scatter', 'line'],
-      initial: 'line',
-    ),
-    ChoiceOption('marker', 'marker', values: _markers.keys.toList()),
-    const ChoiceOption(
-      'legend',
-      'legend',
-      values: [..._legends, null],
-      initial: 'topRight',
-    ),
-    const SwitchOption('live', 'live', initial: true),
+    _chartGraph,
+    _chartMarker,
+    _chartLegend,
+    _chartLive,
   ],
   build: (context, o) => inRoom(
     (_, room) => Timed((context, ms, wake) {
       // the waves run to the right, two radians a second
-      final phase = o.flag('live') ? _tick(ms, _waveTick, wake) * .1 : 0;
+      final phase = o(_chartLive) ? _tick(ms, _waveTick, wake) * .1 : 0;
       List<(double, double)> wave(double Function(num) f) => [
         for (var i = 0; i <= 60; i++)
           (i * math.pi / 30, f(i * math.pi / 30 - phase)),
       ];
-      final type = GraphType.values.byName(o.choice('graph'));
-      final legend = o.choice<String?>('legend');
+      final type = GraphType.values.byName(o(_chartGraph));
+      final legend = o(_chartLegend);
       return SizedBox(
         width: 50,
         height: math.max(6, math.min(12, room)),
         child: Chart(
-          marker: _markers[o.choice<String>('marker')]!,
+          marker: _markers[o(_chartMarker)]!,
           legendPosition: legend == null
               ? null
               : LegendPosition.values.byName(legend),
@@ -75,9 +91,9 @@ final _chart = GalleryPage(
     }),
   ),
   codeIn: (o, room) {
-    final live = o.flag('live');
-    final graph = o.label('graph');
-    final legend = o.choice<String?>('legend');
+    final live = o(_chartLive);
+    final graph = o.nameOf(_chartGraph);
+    final legend = o(_chartLegend);
     return [
       if (live) ...[
         'var _phase = 0.0;',

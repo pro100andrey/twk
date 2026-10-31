@@ -134,8 +134,8 @@ final class _TaskStageState extends State<_TaskStage> {
   @override
   Widget build(BuildContext context) => Timed((context, ms, wake) {
     final o = widget.o;
-    final step = o.choice<Object>('step');
-    final failed = o.flag('failed');
+    final step = o(_taskListStep);
+    final failed = o(_taskListFailed);
     List<TaskItem> tasks;
     if (step is int) {
       // the task it runs has run since the step was chosen
@@ -178,8 +178,8 @@ final class _TaskStageState extends State<_TaskStage> {
       child: TaskList(
         // a list of its own for each step: its tasks done show no time
         key: step is int ? ValueKey((step, failed)) : null,
-        spinner: _spinners[o.choice<String>('spinner')]!,
-        showElapsed: o.flag('elapsed'),
+        spinner: _spinners[o(_taskListSpinner)]!,
+        showElapsed: o(_taskListElapsed),
         tasks: tasks,
       ),
     );
@@ -192,25 +192,45 @@ const Map<String, SpinnerFrames> _spinners = {
   'arc': SpinnerFrames.arc,
 };
 
+/// The TaskList page's `step` option.
+const _taskListStep = ChoiceOption<Object>(
+  'step',
+  'step',
+  values: ['live', 0, 1, 2, 3, 4],
+  labels: ['live', 'fetch', 'compile', 'test', 'deploy', 'done'],
+);
+
+/// The TaskList page's `failed` option.
+const _taskListFailed = SwitchOption('failed', 'failed');
+
+/// The TaskList page's `elapsed` option.
+const _taskListElapsed = SwitchOption(
+  'elapsed',
+  'elapsed',
+  initial: true,
+);
+
+/// The TaskList page's `spinner` option.
+const _taskListSpinner = ChoiceOption<String>(
+  'spinner',
+  'spinner',
+  values: ['dots', 'line', 'arc'],
+);
+
 final _taskList = GalleryPage(
-  group: 'Data',
+  group: _group,
   title: 'TaskList',
   options: const [
-    ChoiceOption(
-      'step',
-      'step',
-      values: ['live', 0, 1, 2, 3, 4],
-      labels: ['live', 'fetch', 'compile', 'test', 'deploy', 'done'],
-    ),
-    SwitchOption('failed', 'failed'),
-    SwitchOption('elapsed', 'elapsed', initial: true),
-    ChoiceOption('spinner', 'spinner', values: ['dots', 'line', 'arc']),
+    _taskListStep,
+    _taskListFailed,
+    _taskListElapsed,
+    _taskListSpinner,
   ],
   build: (context, o) => _TaskStage(o),
   code: (o) {
-    final step = o.choice<Object>('step');
-    final failed = o.flag('failed');
-    final spinner = o.choice<String>('spinner');
+    final step = o(_taskListStep);
+    final failed = o(_taskListFailed);
+    final spinner = o(_taskListSpinner);
     final tasks = step is int ? '_build($step, failed: $failed)' : '_tasks';
     final list = [
       '@override',
@@ -222,7 +242,7 @@ final _taskList = GalleryPage(
         '    key: const ValueKey(($step, $failed)),',
       ],
       if (spinner != 'dots') '    spinner: SpinnerFrames.$spinner,',
-      if (!o.flag('elapsed')) '    showElapsed: false,',
+      if (!o(_taskListElapsed)) '    showElapsed: false,',
       '    tasks: $tasks,',
       '  ),',
       ');',

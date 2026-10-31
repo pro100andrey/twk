@@ -7,20 +7,23 @@ const _under = 'under it, under it';
 
 const _child = 'the child';
 
+/// The AnimatedOpacity, Opacity page's `opacity` option.
+const _opacityOpacity = ChoiceOption<double>(
+  'opacity',
+  'opacity',
+  values: _opacities,
+  labels: _fractions,
+  initial: 0.5,
+);
+
 final _opacity = GalleryPage(
-  group: 'Animation',
+  group: _group,
   title: 'AnimatedOpacity, Opacity',
   options: [
-    const ChoiceOption(
-      'opacity',
-      'opacity',
-      values: _opacities,
-      labels: _fractions,
-      initial: 0.5,
-    ),
+    _opacityOpacity,
     _cycleOption,
   ],
-  build: (context, o) => _Cycled(o, 'opacity', _opacities, (context, i) {
+  build: (context, o) => _Cycled(o, _opacityOpacity, _opacities, (context, i) {
     final theme = Theme.of(context);
     final opacity = _opacities[i];
     Widget over(Widget child, String name) => Column(
@@ -59,7 +62,7 @@ final _opacity = GalleryPage(
     );
   }),
   code: (o) {
-    final value = o.choice<double>('opacity');
+    final value = o(_opacityOpacity);
     List<String> body(String opacity) => [
       'final theme = Theme.of(context);',
       'Widget over(Widget child, String name) => Column(',
@@ -101,7 +104,7 @@ final _opacity = GalleryPage(
       '  ],',
       ');',
     ];
-    if (!o.flag('cycle')) {
+    if (!o(_cycleOption)) {
       return body(_js(value)).join('\n');
     }
     return _ticking(

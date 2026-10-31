@@ -20,16 +20,23 @@ const _did = [
 /// A run of the build: the app quits on the tick after the last item.
 const int _run = (4 + 1) * _stepMs + _pause;
 
+/// The Static page's `mode` option.
+const _staticMode = ChoiceOption<String>(
+  'mode',
+  'mode',
+  values: ['inline', 'fullscreen'],
+);
+
 final _static = GalleryPage(
   terminalAround: true,
-  group: 'App',
+  group: _group,
   title: 'Static',
   options: const [
-    ChoiceOption('mode', 'mode', values: ['inline', 'fullscreen']),
+    _staticMode,
   ],
-  build: (context, o) => _StaticRun(inline: o.label('mode') == 'inline'),
+  build: (context, o) => _StaticRun(inline: o.nameOf(_staticMode) == 'inline'),
   code: (o) {
-    final inline = o.label('mode') == 'inline';
+    final inline = o.nameOf(_staticMode) == 'inline';
     return [
       "import 'dart:async';",
       '',

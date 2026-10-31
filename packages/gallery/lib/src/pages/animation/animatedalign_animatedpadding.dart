@@ -10,20 +10,23 @@ const _aligns = <(String, Alignment)>[
   ('bottomRight', .bottomRight),
 ];
 
+/// The AnimatedAlign, AnimatedPadding page's `alignment` option.
+final _alignAlignment = ChoiceOption<String>(
+  'alignment',
+  'alignment',
+  values: [for (final a in _aligns) a.$1],
+);
+
 final _align = GalleryPage(
-  group: 'Animation',
+  group: _group,
   title: 'AnimatedAlign, AnimatedPadding',
   options: [
-    ChoiceOption(
-      'alignment',
-      'alignment',
-      values: [for (final a in _aligns) a.$1],
-    ),
+    _alignAlignment,
     _curveOption,
     _cycleOption,
   ],
   build: (context, o) =>
-      _Cycled(o, 'alignment', [for (final a in _aligns) a.$1], (
+      _Cycled(o, _alignAlignment, [for (final a in _aligns) a.$1], (
         context,
         i,
       ) {
@@ -58,7 +61,7 @@ final _align = GalleryPage(
         );
       }),
   code: (o) {
-    final i = _aligns.indexWhere((a) => a.$1 == o.choice<String>('alignment'));
+    final i = _aligns.indexWhere((a) => a.$1 == o(_alignAlignment));
     final a = _aligns[i];
     List<String> body(String alignment, String left) => [
       'final theme = Theme.of(context);',
@@ -89,7 +92,7 @@ final _align = GalleryPage(
       '  ),',
       ');',
     ];
-    if (!o.flag('cycle')) {
+    if (!o(_cycleOption)) {
       final left = a.$2.x * 10 + 10;
       return body(
         '.${a.$1}',

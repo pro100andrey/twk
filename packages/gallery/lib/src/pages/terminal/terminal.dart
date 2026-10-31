@@ -12,5 +12,8 @@ import '../kit/kit.dart';
 
 part 'terminalview.dart';
 
+/// The group of the catalog these pages are in.
+const _group = 'Terminal';
+
 /// The pages of the Terminal group that draw.
 final terminalPages = <GalleryPage>[_terminalView];

@@ -19,23 +19,32 @@ const _types = [
   'OverscrollNotification',
 ];
 
+/// The NotificationListener page's `outer` option.
+const _notificationsOuter = ChoiceOption<String>(
+  'outer',
+  'outer hears',
+  values: _types,
+  labels: ['Scroll', 'ScrollUpdate', 'Overscroll'],
+);
+
+/// The NotificationListener page's `stops` option.
+const _notificationsStops = SwitchOption(
+  'stops',
+  'inner stops them',
+);
+
 final _notifications = GalleryPage(
-  group: 'Framework',
+  group: _group,
   title: 'NotificationListener',
   options: const [
-    ChoiceOption(
-      'outer',
-      'outer hears',
-      values: _types,
-      labels: ['Scroll', 'ScrollUpdate', 'Overscroll'],
-    ),
-    SwitchOption('stops', 'inner stops them'),
+    _notificationsOuter,
+    _notificationsStops,
   ],
   build: (context, o) =>
-      _Bubbling(outer: o.choice('outer'), stops: o.flag('stops')),
+      _Bubbling(outer: o(_notificationsOuter), stops: o(_notificationsStops)),
   code: (o) {
-    final stops = o.flag('stops');
-    final outer = o.choice<String>('outer');
+    final stops = o(_notificationsStops);
+    final outer = o(_notificationsOuter);
     return [
       '/// What became of a notification on its way up the tree.',
       'final class _Sent {',

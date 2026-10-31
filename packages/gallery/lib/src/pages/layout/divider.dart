@@ -1,23 +1,33 @@
 // The Divider page.
 part of 'layout.dart';
 
+/// The Divider page's `type` option.
+const _dividerType = ChoiceOption<String>(
+  'type',
+  'type',
+  values: ['single', 'rounded', 'double', 'heavy', 'ascii'],
+);
+
+/// The Divider page's `merge` option.
+const _dividerMerge = SwitchOption(
+  'merge',
+  'merge',
+  initial: true,
+);
+
 // ------------------------------------------------------------ Divider
 
 final _divider = GalleryPage(
-  group: 'Layout',
+  group: _group,
   title: 'Divider',
   options: const [
-    ChoiceOption(
-      'type',
-      'type',
-      values: ['single', 'rounded', 'double', 'heavy', 'ascii'],
-    ),
-    SwitchOption('merge', 'merge', initial: true),
+    _dividerType,
+    _dividerMerge,
   ],
   build: (context, o) {
     final theme = Theme.of(context);
-    final type = BorderType.values.byName(o.choice('type'));
-    final merge = o.flag('merge');
+    final type = BorderType.values.byName(o(_dividerType));
+    final merge = o(_dividerMerge);
     return SizedBox(
       width: 36,
       height: 7,
@@ -73,11 +83,13 @@ final _divider = GalleryPage(
     );
   },
   code: (o) {
-    final type = o['type'] == 'single' ? '' : 'type: .${o.label('type')}, ';
+    final type = o(_dividerType) == 'single'
+        ? ''
+        : 'type: .${o.nameOf(_dividerType)}, ';
     final args = [
       if (type.isNotEmpty) type.substring(0, type.length - 2),
       'style: theme.border',
-      if (o.flag('merge')) 'merge: true',
+      if (o(_dividerMerge)) 'merge: true',
     ];
     return [
       'final theme = Theme.of(context);',

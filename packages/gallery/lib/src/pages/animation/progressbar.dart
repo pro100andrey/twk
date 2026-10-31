@@ -1,29 +1,47 @@
 // The ProgressBar page.
 part of 'animation.dart';
 
+/// The ProgressBar page's `known` option.
+const _progressBarKnown = SwitchOption(
+  'known',
+  'value known',
+  initial: true,
+);
+
+/// The ProgressBar page's `value` option.
+final _progressBarValue = SliderOption(
+  'value',
+  'value',
+  min: 0,
+  max: 100,
+  initial: 33,
+  format: (v) => '$v%',
+  disabled: (o) => !o(_progressBarKnown),
+);
+
+/// The ProgressBar page's `color` option.
+const _progressBarColor = ColorOption(
+  'color',
+  'style',
+  values: _colors,
+  initial: 'success',
+);
+
 // ------------------------------------------------------------ ProgressBar
 
 final _progressBar = GalleryPage(
-  group: 'Animation',
+  group: _group,
   title: 'ProgressBar',
   options: [
-    const SwitchOption('known', 'value known', initial: true),
+    _progressBarKnown,
     // no value while it is not known
-    SliderOption(
-      'value',
-      'value',
-      min: 0,
-      max: 100,
-      initial: 33,
-      format: (v) => '$v%',
-      disabled: (o) => !o.flag('known'),
-    ),
-    const ColorOption('color', 'style', values: _colors, initial: 'success'),
+    _progressBarValue,
+    _progressBarColor,
   ],
   build: (context, o) {
     final theme = Theme.of(context);
-    final known = o.flag('known');
-    final value = o.number('value').toInt();
+    final known = o(_progressBarKnown);
+    final value = o(_progressBarValue).toInt();
     return Row(
       mainAxisSize: .min,
       gap: 1,
@@ -33,7 +51,7 @@ final _progressBar = GalleryPage(
           child: ProgressBar(
             value: known ? value / 100 : null,
             style: o
-                .colorStyle(context, 'color')
+                .styleOf(context, _progressBarColor)
                 .merge(.new(bg: theme.surface.bg)),
           ),
         ),
@@ -42,8 +60,8 @@ final _progressBar = GalleryPage(
     );
   },
   code: (o) {
-    final known = o.flag('known');
-    final value = o.number('value').toInt();
+    final known = o(_progressBarKnown);
+    final value = o(_progressBarValue).toInt();
     final v = _js(double.parse((value / 100).toStringAsFixed(2)));
     return [
       'final theme = Theme.of(context);',
@@ -56,7 +74,7 @@ final _progressBar = GalleryPage(
       '      child: ProgressBar(',
       if (known) '        value: $v,',
       codeLine([
-        '        style: theme.${o.color('color')}',
+        '        style: theme.${o(_progressBarColor)}',
         '.merge(.new(bg: theme.surface.bg)),',
       ]),
       '      ),',

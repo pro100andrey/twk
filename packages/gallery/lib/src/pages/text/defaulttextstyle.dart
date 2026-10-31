@@ -1,14 +1,21 @@
 // The DefaultTextStyle page.
 part of 'text.dart';
 
+/// The DefaultTextStyle page's `style` option.
+final _defaulttextstyleStyle = ChoiceOption<String>(
+  'style',
+  'style',
+  values: _defaultStyles.keys.toList(),
+);
+
 final _defaulttextstylePage = GalleryPage(
-  group: 'Text',
+  group: _group,
   title: 'DefaultTextStyle',
   options: [
-    ChoiceOption('style', 'style', values: _defaultStyles.keys.toList()),
+    _defaulttextstyleStyle,
   ],
   build: (context, o) => DefaultTextStyle(
-    style: _defaultStyles[o.choice<String>('style')]!.$1,
+    style: _defaultStyles[o(_defaulttextstyleStyle)]!.$1,
     child: const Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -23,7 +30,7 @@ final _defaulttextstylePage = GalleryPage(
   ),
   code: (o) => [
     'return DefaultTextStyle(',
-    '  style: const ${_defaultStyles[o.choice<String>('style')]!.$2},',
+    '  style: const ${_defaultStyles[o(_defaulttextstyleStyle)]!.$2},',
     '  child: const Column(',
     '    mainAxisSize: .min,',
     '    crossAxisAlignment: .start,',

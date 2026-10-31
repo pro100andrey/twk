@@ -51,7 +51,7 @@ void main() {
       final o = Options.initial(page);
       for (final opt in page.options) {
         expect(o.raw(opt.key), opt.initialRaw, reason: opt.key);
-        expect(o.label(opt.key), isNotEmpty);
+        expect(o.nameOf(opt), isNotEmpty);
       }
       expect(o.route, isEmpty, reason: page.title);
       // in no room yet and in a small one, as a narrow stage gives it

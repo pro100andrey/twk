@@ -30,43 +30,70 @@ const _build =
     'lib/src/layout    0.4 s\n'
     'lib/src/render    0.9 s';
 
+/// The Box page's `border` option.
+const _boxBorder = ChoiceOption<String>(
+  'border',
+  'border',
+  values: ['single', 'rounded', 'double', 'heavy', 'ascii', 'none'],
+  initial: 'rounded',
+);
+
+/// The Box page's `sides` option.
+final _boxSides = ChoiceOption<String>(
+  'sides',
+  'sides',
+  values: _sides.keys.toList(),
+);
+
+/// The Box page's `titles` option.
+const _boxTitles = SwitchOption('titles', 'titles', initial: true);
+
+/// The Box page's `at` option.
+final _boxAt = ChoiceOption<String>(
+  'at',
+  'title at',
+  values: const [
+    'topLeft',
+    'topCenter',
+    'topRight',
+    'bottomLeft',
+    'bottomCenter',
+  ],
+  disabled: (o) => !o(_boxTitles),
+);
+
+/// The Box page's `padding` option.
+const _boxPadding = ChoiceOption<int>(
+  'padding',
+  'padding',
+  values: [0, 1, 2],
+  initial: 1,
+);
+
+/// The Box page's `surface` option.
+const _boxSurface = SwitchOption('surface', 'surface');
+
 final _box = GalleryPage(
-  group: 'Layout',
+  group: _group,
   title: 'Box',
   options: [
-    const ChoiceOption(
-      'border',
-      'border',
-      values: ['single', 'rounded', 'double', 'heavy', 'ascii', 'none'],
-      initial: 'rounded',
-    ),
-    ChoiceOption('sides', 'sides', values: _sides.keys.toList()),
-    const SwitchOption('titles', 'titles', initial: true),
-    ChoiceOption(
-      'at',
-      'title at',
-      values: const [
-        'topLeft',
-        'topCenter',
-        'topRight',
-        'bottomLeft',
-        'bottomCenter',
-      ],
-      disabled: (o) => !o.flag('titles'),
-    ),
-    const ChoiceOption('padding', 'padding', values: [0, 1, 2], initial: 1),
-    const SwitchOption('surface', 'surface'),
+    _boxBorder,
+    _boxSides,
+    _boxTitles,
+    _boxAt,
+    _boxPadding,
+    _boxSurface,
   ],
   build: (context, o) {
     final theme = Theme.of(context);
-    final type = BorderType.values.byName(o.choice('border'));
-    final sides = _sides[o.choice<String>('sides')]!;
+    final type = BorderType.values.byName(o(_boxBorder));
+    final sides = _sides[o(_boxSides)]!;
     Style? side(int bit) => sides & bit != 0 ? theme.border : null;
     return SizedBox(
       width: 36,
       height: 8,
       child: Box(
-        style: o.flag('surface') ? theme.surface : null,
+        style: o(_boxSurface) ? theme.surface : null,
         border: sides == _sides['all']
             ? Border.all(type: type, style: theme.border)
             : Border(
@@ -77,11 +104,11 @@ final _box = GalleryPage(
                 left: side(_l),
               ),
         titles: [
-          if (o.flag('titles')) ...[
+          if (o(_boxTitles)) ...[
             BorderTitle(
               ' build ',
               style: theme.text.merge(const Style(attrs: Attr.bold)),
-              alignment: alignmentByName[o.choice<String>('at')]!,
+              alignment: alignmentByName[o(_boxAt)]!,
             ),
             BorderTitle(
               ' 2 warnings ',
@@ -90,22 +117,22 @@ final _box = GalleryPage(
             ),
           ],
         ],
-        padding: EdgeInsets.all(o.choice<int>('padding')),
+        padding: EdgeInsets.all(o(_boxPadding)),
         child: const Text(_build),
       ),
     );
   },
   code: (o) {
-    final border = o.label('border');
+    final border = o.nameOf(_boxBorder);
     final type = border == 'single' ? <String>[] : ['type: .$border'];
-    final sides = _sides[o.choice<String>('sides')]!;
+    final sides = _sides[o(_boxSides)]!;
     return [
       'final theme = Theme.of(context);',
       'return SizedBox(',
       '  width: 36,',
       '  height: 8,',
       '  child: Box(',
-      if (o.flag('surface')) '    style: theme.surface,',
+      if (o(_boxSurface)) '    style: theme.surface,',
       if (sides == _sides['all'])
         '    border: .all(${[...type, 'style: theme.border'].join(', ')}),'
       else
@@ -114,12 +141,12 @@ final _box = GalleryPage(
           for (final (bit, name) in _sideNames)
             if (sides & bit != 0) '$name: theme.border',
         ], ','),
-      if (o.flag('titles')) ...[
+      if (o(_boxTitles)) ...[
         '    titles: [',
         '      BorderTitle(',
         "        ' build ',",
         '        style: theme.text.merge(const .new(attrs: Attr.bold)),',
-        if (o['at'] != 'topLeft') '        alignment: .${o.label('at')},',
+        if (o(_boxAt) != 'topLeft') '        alignment: .${o.nameOf(_boxAt)},',
         '      ),',
         '      BorderTitle(',
         "        ' 2 warnings ',",
@@ -128,7 +155,8 @@ final _box = GalleryPage(
         '      ),',
         '    ],',
       ],
-      if (o['padding'] != 0) '    padding: const .all(${o.label('padding')}),',
+      if (o(_boxPadding) != 0)
+        '    padding: const .all(${o.nameOf(_boxPadding)}),',
       '    child: const Text(',
       r"      'Compiling 14 libraries…\n'",
       r"      'lib/src/layout    0.4 s\n'",

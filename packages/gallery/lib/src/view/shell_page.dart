@@ -19,7 +19,7 @@ extension _PageArea on GalleryShellState {
     final where = '${page.index + 1} of ${page.group.pages.length}';
     const tabs = [(GalleryTab.preview, 'Preview'), (GalleryTab.code, 'Code')];
     final tabsW = tabs.fold(-3, (n, tb) => n + widthOf(tb.$2) + 3);
-    final opts = def?.options ?? const <PageOption>[];
+    final opts = def?.options ?? const <PageOption<Object?>>[];
     // the inspector beside the stage where the page is wide, and the stage
     // keeps the columns its widget needs (less the marks' three each side)
     final besideW = opts.isNotEmpty ? inspectorWidth(screenW) : 0;

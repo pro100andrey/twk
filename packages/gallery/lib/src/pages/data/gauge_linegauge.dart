@@ -20,43 +20,66 @@ String _ratioLiteral(num percent) {
   return s.endsWith('0') ? s.substring(0, s.length - 1) : s;
 }
 
+/// The Gauge, LineGauge page's `live` option.
+const _gaugeLive = SwitchOption('live', 'live', initial: true);
+
+/// The Gauge, LineGauge page's `ratio` option.
+final _gaugeRatio = SliderOption(
+  'ratio',
+  'ratio',
+  min: 0,
+  max: 100,
+  initial: 75,
+  format: (v) => '$v%',
+);
+
+/// The Gauge, LineGauge page's `line` option.
+const _gaugeLine = ChoiceOption<String>(
+  'line',
+  'line',
+  values: ['single', 'heavy', 'double', 'ascii'],
+  initial: 'heavy',
+);
+
+/// The Gauge, LineGauge page's `label` option.
+const _gaugeLabel = ChoiceOption<String>(
+  'label',
+  'label',
+  values: ['own', 'ratio', 'none'],
+);
+
+/// The Gauge, LineGauge page's `color` option.
+const _gaugeColor = ColorOption(
+  'color',
+  'style',
+  values: _colors,
+  initial: 'primary',
+);
+
+/// The Gauge, LineGauge page's `segmented` option.
+const _gaugeSegmented = SwitchOption('segmented', 'segmented');
+
 final _gauge = GalleryPage(
-  group: 'Data',
+  group: _group,
   title: 'Gauge, LineGauge',
   options: [
-    const SwitchOption('live', 'live', initial: true),
-    SliderOption(
-      'ratio',
-      'ratio',
-      min: 0,
-      max: 100,
-      initial: 75,
-      format: (v) => '$v%',
-    ),
-    const ChoiceOption(
-      'line',
-      'line',
-      values: ['single', 'heavy', 'double', 'ascii'],
-      initial: 'heavy',
-    ),
-    const ChoiceOption(
-      'label',
-      'label',
-      values: ['own', 'ratio', 'none'],
-    ),
-    const ColorOption('color', 'style', values: _colors, initial: 'primary'),
-    const SwitchOption('segmented', 'segmented'),
+    _gaugeLive,
+    _gaugeRatio,
+    _gaugeLine,
+    _gaugeLabel,
+    _gaugeColor,
+    _gaugeSegmented,
   ],
   build: (context, o) => Timed((context, ms, wake) {
     final control = PageControl.of(context);
     final kept = control.state;
-    final ratio = o.number('ratio');
+    final ratio = o(_gaugeRatio);
     // the ratio moved stops the timer: the gauges show the ratio chosen
     final moved = kept['ratio'] != null && kept['ratio'] != ratio;
     kept['ratio'] = ratio;
-    final live = o.flag('live');
+    final live = o(_gaugeLive);
     if (moved && live) {
-      scheduleMicrotask(() => control.setOption('live', false));
+      scheduleMicrotask(() => control.setOption(_gaugeLive, false));
     }
     var r = ratio / 100;
     if (live && !moved) {
@@ -66,7 +89,7 @@ final _gauge = GalleryPage(
     final theme = Theme.of(context);
     final percent = '${(r * 100).round()}%';
     // a label of its own, the ratio the gauges write (null), or none
-    final (gaugeLabel, lineLabel) = switch (o.choice<String>('label')) {
+    final (gaugeLabel, lineLabel) = switch (o(_gaugeLabel)) {
       'own' => (percent, 'used $percent'),
       'ratio' => (null, null),
       _ => ('', ''),
@@ -84,7 +107,7 @@ final _gauge = GalleryPage(
               ratio: r,
               label: gaugeLabel,
               style: o
-                  .colorStyle(context, 'color')
+                  .styleOf(context, _gaugeColor)
                   .merge(Style(bg: theme.surface.bg)),
               labelStyle: const Style(attrs: Attr.bold),
             ),
@@ -92,8 +115,8 @@ final _gauge = GalleryPage(
           LineGauge(
             ratio: r,
             label: lineLabel,
-            type: BorderType.values.byName(o.choice('line')),
-            segmented: o.flag('segmented'),
+            type: BorderType.values.byName(o(_gaugeLine)),
+            segmented: o(_gaugeSegmented),
             filledStyle: r > .9
                 ? theme.error
                 : r > .75
@@ -106,7 +129,7 @@ final _gauge = GalleryPage(
     );
   }),
   code: (o) {
-    final state = o.flag('live')
+    final state = o(_gaugeLive)
         ? [
             'var _ratio = 0.0;',
             '',
@@ -124,8 +147,8 @@ final _gauge = GalleryPage(
               '},',
             ]),
           ]
-        : ['final _ratio = ${_ratioLiteral(o.number('ratio'))};', ''];
-    final label = o.choice<String>('label');
+        : ['final _ratio = ${_ratioLiteral(o(_gaugeRatio))};', ''];
+    final label = o(_gaugeLabel);
     return [
       ...state,
       '@override',
@@ -146,7 +169,7 @@ final _gauge = GalleryPage(
       if (label == 'own') '            label: percent,',
       if (label == 'none') "            label: '',",
       codeLine([
-        '            style: theme.${o.color('color')}',
+        '            style: theme.${o(_gaugeColor)}',
         '.merge(.new(bg: theme.surface.bg)),',
       ]),
       '            labelStyle: const .new(attrs: Attr.bold),',
@@ -156,8 +179,8 @@ final _gauge = GalleryPage(
       '          ratio: _ratio,',
       if (label == 'own') r"          label: 'used $percent',",
       if (label == 'none') "          label: '',",
-      '          type: .${o.label('line')},',
-      if (o.flag('segmented')) '          segmented: true,',
+      '          type: .${o.nameOf(_gaugeLine)},',
+      if (o(_gaugeSegmented)) '          segmented: true,',
       '          filledStyle: _ratio > .9',
       '              ? theme.error',
       '              : _ratio > .75',

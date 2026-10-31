@@ -98,26 +98,39 @@ List<String> _dartAnsi(String name, String text) {
   ];
 }
 
+/// The ANSI page's `output` option.
+const _ansiOutput = ChoiceOption<String>(
+  'output',
+  'output',
+  values: ['test', 'ls', 'log'],
+  labels: ['dart test', 'ls', 'log'],
+);
+
+/// The ANSI page's `read` option.
+const _ansiRead = ChoiceOption<String>(
+  'read',
+  'read with',
+  values: ['parseAnsi', 'AnsiStream'],
+);
+
+/// The ANSI page's `piece` option.
+const _ansiPiece = ChoiceOption<int>(
+  'piece',
+  'piece',
+  values: [7, 16, 64],
+  labels: ['7 chars', '16', '64'],
+);
+
 final _ansi = GalleryPage(
-  group: 'Text',
+  group: _group,
   title: 'ANSI',
   options: const [
-    ChoiceOption(
-      'output',
-      'output',
-      values: ['test', 'ls', 'log'],
-      labels: ['dart test', 'ls', 'log'],
-    ),
-    ChoiceOption('read', 'read with', values: ['parseAnsi', 'AnsiStream']),
-    ChoiceOption(
-      'piece',
-      'piece',
-      values: [7, 16, 64],
-      labels: ['7 chars', '16', '64'],
-    ),
+    _ansiOutput,
+    _ansiRead,
+    _ansiPiece,
   ],
   build: (context, o) => inRoom((rw, rh) {
-    final (title, _, output) = _outputs[o.choice<String>('output')]!;
+    final (title, _, output) = _outputs[o(_ansiOutput)]!;
     final rows = parseAnsi(output).length;
     final w = math.min(_ansiWidth, rw);
     Widget view(List<List<Span>> lines, List<Widget> read) {
@@ -156,7 +169,7 @@ final _ansi = GalleryPage(
       );
     }
 
-    if (o.choice<String>('read') == 'parseAnsi') {
+    if (o(_ansiRead) == 'parseAnsi') {
       final lines = parseAnsi(output);
       return Builder(
         builder: (context) => view(lines, [
@@ -169,7 +182,7 @@ final _ansi = GalleryPage(
         ]),
       );
     }
-    final size = o.choice<int>('piece');
+    final size = o(_ansiPiece);
     final pieces = (output.length + size - 1) ~/ size;
     final cycle = (pieces + _ansiHold) * _pieceMs;
     return Timed((context, ms, wake) {
@@ -214,7 +227,7 @@ final _ansi = GalleryPage(
     });
   }),
   codeIn: (o, room) {
-    final (title, what, output) = _outputs[o.choice<String>('output')]!;
+    final (title, what, output) = _outputs[o(_ansiOutput)]!;
     final (rw, _) = codeRoomOf(room);
     final w = math.min(_ansiWidth, rw);
     final rows = parseAnsi(output).length;
@@ -239,7 +252,7 @@ final _ansi = GalleryPage(
       ..._dartAnsi('_output', output),
       '',
     ];
-    if (o.choice<String>('read') == 'parseAnsi') {
+    if (o(_ansiRead) == 'parseAnsi') {
       return [
         ...head,
         'final _lines = parseAnsi(_output);',
@@ -268,7 +281,7 @@ final _ansi = GalleryPage(
         '}',
       ].join('\n');
     }
-    final size = o.choice<int>('piece');
+    final size = o(_ansiPiece);
     return [
       ...head,
       codeLine([

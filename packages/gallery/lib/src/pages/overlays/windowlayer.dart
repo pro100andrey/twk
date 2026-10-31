@@ -1,26 +1,57 @@
 // The WindowLayer page.
 part of 'overlays.dart';
 
+/// The WindowLayer page's `frame` option.
+final _windowlayerFrame = ChoiceOption<String>(
+  'frame',
+  'frame',
+  values: [for (final f in WindowFrame.values) f.name],
+);
+
+/// The WindowLayer page's `shadow` option.
+const _windowlayerShadow = SwitchOption(
+  'shadow',
+  'shadow',
+  initial: true,
+);
+
+/// The WindowLayer page's `resizable` option.
+const _windowlayerResizable = SwitchOption(
+  'resizable',
+  'resizable',
+  initial: true,
+);
+
+/// The WindowLayer page's `minimisable` option.
+const _windowlayerMinimisable = SwitchOption(
+  'minimisable',
+  'minimisable',
+  initial: true,
+);
+
+/// The WindowLayer page's `maximisable` option.
+const _windowlayerMaximisable = SwitchOption(
+  'maximisable',
+  'maximisable',
+  initial: true,
+);
+
 final _windowlayerPage = GalleryPage(
-  group: 'Overlays',
+  group: _group,
   title: 'WindowLayer',
   options: [
-    ChoiceOption(
-      'frame',
-      'frame',
-      values: [for (final f in WindowFrame.values) f.name],
-    ),
-    const SwitchOption('shadow', 'shadow', initial: true),
-    const SwitchOption('resizable', 'resizable', initial: true),
-    const SwitchOption('minimisable', 'minimisable', initial: true),
-    const SwitchOption('maximisable', 'maximisable', initial: true),
+    _windowlayerFrame,
+    _windowlayerShadow,
+    _windowlayerResizable,
+    _windowlayerMinimisable,
+    _windowlayerMaximisable,
   ],
   build: (context, o) => _Windows(
-    frame: WindowFrame.values.byName(o.choice('frame')),
-    shadow: o.flag('shadow'),
-    resizable: o.flag('resizable'),
-    minimisable: o.flag('minimisable'),
-    maximisable: o.flag('maximisable'),
+    frame: WindowFrame.values.byName(o(_windowlayerFrame)),
+    shadow: o(_windowlayerShadow),
+    resizable: o(_windowlayerResizable),
+    minimisable: o(_windowlayerMinimisable),
+    maximisable: o(_windowlayerMaximisable),
   ),
   // the layer's SizedBox
   heightIn: (o, room) => 12,
@@ -32,15 +63,15 @@ const _note = 'Drag me by the title bar, or resize me by an edge.';
 /// The WindowLayer page's Code.
 String _windowsCode(Options o) {
   final extra = [
-    if (o.flag('shadow'))
+    if (o(_windowlayerShadow))
       '          shadow: Panel.shadowOf(Theme.of(context)),',
-    if (!o.flag('resizable')) '          resizable: false,',
-    if (!o.flag('minimisable')) '          minimisable: false,',
-    if (!o.flag('maximisable')) '          maximisable: false,',
+    if (!o(_windowlayerResizable)) '          resizable: false,',
+    if (!o(_windowlayerMinimisable)) '          minimisable: false,',
+    if (!o(_windowlayerMaximisable)) '          maximisable: false,',
   ].map((l) => '$l\n').join();
-  final frame = o.choice<String>('frame') == WindowFrame.raised.name
+  final frame = o(_windowlayerFrame) == WindowFrame.raised.name
       ? ''
-      : '    frame: .${o.label('frame')},\n';
+      : '    frame: .${o.nameOf(_windowlayerFrame)},\n';
   return '''
 final _notes = WindowController(left: 2, top: 3, width: 30, height: 6);
 final _counter = WindowController(left: 24, top: 5, width: 26, height: 6);

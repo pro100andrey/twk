@@ -1,27 +1,44 @@
 // The TerminalBrightness page.
 part of 'style.dart';
 
+/// The TerminalBrightness page's `brightness` option.
+const _terminalbrightnessBrightness = ChoiceOption<String?>(
+  'brightness',
+  'brightness',
+  values: [null, 'dark', 'light'],
+  labels: ["the terminal's", 'dark', 'light'],
+);
+
+/// The TerminalBrightness page's `dark` option.
+final _terminalbrightnessDark = ChoiceOption<String>(
+  'dark',
+  'dark theme',
+  values: _darks.keys.toList(),
+);
+
+/// The TerminalBrightness page's `light` option.
+final _terminalbrightnessLight = ChoiceOption<String>(
+  'light',
+  'light theme',
+  values: _lights.keys.toList(),
+);
+
 final _terminalbrightnessPage = GalleryPage(
-  group: 'Style',
+  group: _group,
   title: 'TerminalBrightness',
   options: [
-    const ChoiceOption(
-      'brightness',
-      'brightness',
-      values: [null, 'dark', 'light'],
-      labels: ["the terminal's", 'dark', 'light'],
-    ),
-    ChoiceOption('dark', 'dark theme', values: _darks.keys.toList()),
-    ChoiceOption('light', 'light theme', values: _lights.keys.toList()),
+    _terminalbrightnessBrightness,
+    _terminalbrightnessDark,
+    _terminalbrightnessLight,
   ],
   build: (context, o) {
     final adaptive = _Adaptive(
-      dark: _darks[o.choice<String>('dark')]!,
-      light: _lights[o.choice<String>('light')]!,
+      dark: _darks[o(_terminalbrightnessDark)]!,
+      light: _lights[o(_terminalbrightnessLight)]!,
     );
     // the gallery's theme stands in for the terminal's colours
     return TerminalBrightness(
-      brightness: switch (o.choice<String?>('brightness')) {
+      brightness: switch (o(_terminalbrightnessBrightness)) {
         'dark' => Brightness.dark,
         'light' => Brightness.light,
         _ => Theme.of(context).brightness,
@@ -88,9 +105,9 @@ final class _Adaptive extends StatelessWidget {
 }
 
 String _brightnessCode(Options o) {
-  final dark = _darks[o.choice<String>('dark')]!.$1;
-  final light = _lights[o.choice<String>('light')]!.$1;
-  final brightness = o.choice<String?>('brightness');
+  final dark = _darks[o(_terminalbrightnessDark)]!.$1;
+  final light = _lights[o(_terminalbrightnessLight)]!.$1;
+  final brightness = o(_terminalbrightnessBrightness);
   return [
     if (brightness == null) ...[
       '// the brightness the terminal reports, which the app puts at its top',

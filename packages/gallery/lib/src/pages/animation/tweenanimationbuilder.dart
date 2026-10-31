@@ -1,25 +1,28 @@
 // The TweenAnimationBuilder page.
 part of 'animation.dart';
 
+/// The TweenAnimationBuilder page's `value` option.
+const _tweenValue = ChoiceOption<double>(
+  'value',
+  'value',
+  values: _opacities,
+  labels: _fractions,
+  initial: 0.5,
+);
+
 // ------------------------------------------------------- TweenAnimationBuilder
 
 final _tween = GalleryPage(
-  group: 'Animation',
+  group: _group,
   title: 'TweenAnimationBuilder',
   options: [
-    const ChoiceOption(
-      'value',
-      'value',
-      values: _opacities,
-      labels: _fractions,
-      initial: 0.5,
-    ),
+    _tweenValue,
     _curveOption,
     _cycleOption,
   ],
   build: (context, o) => _Cycled(
     o,
-    'value',
+    _tweenValue,
     _opacities,
     (context, i) => TweenAnimationBuilder<double>(
       value: _opacities[i],
@@ -75,8 +78,8 @@ final _tween = GalleryPage(
       '  },',
       ');',
     ];
-    final value = o.choice<double>('value');
-    if (!o.flag('cycle')) {
+    final value = o(_tweenValue);
+    if (!o(_cycleOption)) {
       return body(_js(value)).join('\n');
     }
     return _ticking(

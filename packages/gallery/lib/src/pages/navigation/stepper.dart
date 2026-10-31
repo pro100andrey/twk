@@ -4,27 +4,50 @@ part of 'navigation.dart';
 /// The packages the wizard offers.
 const _offered = ['args', 'http', 'path'];
 
+/// The Stepper page's `direction` option.
+const _stepperDirection = ChoiceOption<String>(
+  'direction',
+  'direction',
+  values: ['horizontal', 'vertical'],
+);
+
+/// The Stepper page's `linear` option.
+const _stepperLinear = SwitchOption(
+  'linear',
+  'linear',
+  initial: true,
+);
+
+/// The Stepper page's `controls` option.
+const _stepperControls = SwitchOption(
+  'controls',
+  'back and next',
+  initial: true,
+);
+
+/// The Stepper page's `disabled` option.
+const _stepperDisabled = SwitchOption(
+  'disabled',
+  'packages disabled',
+);
+
 final _stepper = GalleryPage(
-  group: 'Navigation',
+  group: _group,
   title: 'Stepper',
   options: const [
-    ChoiceOption(
-      'direction',
-      'direction',
-      values: ['horizontal', 'vertical'],
-    ),
-    SwitchOption('linear', 'linear', initial: true),
+    _stepperDirection,
+    _stepperLinear,
     // Back and Next under the content; without them PageDown and PageUp
     // still move it, and a click on a header
-    SwitchOption('controls', 'back and next', initial: true),
+    _stepperControls,
     // the Packages step disabled: passed by, muted
-    SwitchOption('disabled', 'packages disabled'),
+    _stepperDisabled,
   ],
   build: (context, o) => _Wizard(
-    direction: Axis.values.byName(o.choice('direction')),
-    linear: o.flag('linear'),
-    showControls: o.flag('controls'),
-    packagesDisabled: o.flag('disabled'),
+    direction: Axis.values.byName(o(_stepperDirection)),
+    linear: o(_stepperLinear),
+    showControls: o(_stepperControls),
+    packagesDisabled: o(_stepperDisabled),
   ),
   code: (o) => [
     "final _name = TextEditingController(text: 'my_app');",
@@ -60,10 +83,9 @@ final _stepper = GalleryPage(
     '      SizedBox(',
     '        width: 50,',
     '        child: Stepper(',
-    if (o.choice<String>('direction') == 'vertical')
-      '          direction: .vertical,',
-    if (!o.flag('linear')) '          linear: false,',
-    if (!o.flag('controls')) '          showControls: false,',
+    if (o(_stepperDirection) == 'vertical') '          direction: .vertical,',
+    if (!o(_stepperLinear)) '          linear: false,',
+    if (!o(_stepperControls)) '          showControls: false,',
     '          steps: [',
     '            Step(',
     "              title: 'Name',",
@@ -78,7 +100,7 @@ final _stepper = GalleryPage(
     '            Step(',
     "              title: 'Packages',",
     "              subtitle: 'What it depends on',",
-    if (o.flag('disabled')) '              state: .disabled,',
+    if (o(_stepperDisabled)) '              state: .disabled,',
     '              content: Column(',
     '                mainAxisSize: .min,',
     '                crossAxisAlignment: .start,',

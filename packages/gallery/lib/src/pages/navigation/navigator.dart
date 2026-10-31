@@ -1,16 +1,19 @@
 // The Navigator page.
 part of 'navigation.dart';
 
+/// The Navigator page's `backKey` option.
+const _navigatorBackKey = ChoiceOption<String?>(
+  'backKey',
+  'back key',
+  values: ['escape', 'backspace', null],
+  labels: ['escape', 'backspace', 'none'],
+);
+
 final _navigatorPage = GalleryPage(
-  group: 'Navigation',
+  group: _group,
   title: 'Navigator',
   options: const [
-    ChoiceOption(
-      'backKey',
-      'back key',
-      values: ['escape', 'backspace', null],
-      labels: ['escape', 'backspace', 'none'],
-    ),
+    _navigatorBackKey,
   ],
   build: (context, o) => SizedBox(
     width: 44,
@@ -22,7 +25,7 @@ final _navigatorPage = GalleryPage(
       ),
       padding: const EdgeInsets.x(1),
       child: Navigator(
-        backKey: o.choice('backKey'),
+        backKey: o(_navigatorBackKey),
         home: const _Home(),
         onGenerateRoute: (settings) => settings.name == '/settings'
             ? _slide(context, (_) => const _Settings(), settings)
@@ -35,7 +38,7 @@ final _navigatorPage = GalleryPage(
 
 /// The Navigator page's Code.
 String _code(Options o) {
-  final backKey = o.choice<String?>('backKey');
+  final backKey = o(_navigatorBackKey);
   final back = switch (backKey) {
     'escape' => '',
     null => '      backKey: null,\n',

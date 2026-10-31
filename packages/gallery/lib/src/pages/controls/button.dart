@@ -1,29 +1,39 @@
 // The Button page.
 part of 'controls.dart';
 
+/// The Button page's `look` option.
+const _buttonLook = ChoiceOption<String>(
+  'look',
+  'look',
+  values: ['chip', 'outlined', 'filled'],
+);
+
+/// The Button page's `tall` option.
+const _buttonTall = SwitchOption('tall', 'tall');
+
 final _buttonPage = GalleryPage(
-  group: 'Controls',
+  group: _group,
   title: 'Button',
   options: const [
     pageColorOption,
-    ChoiceOption('look', 'look', values: ['chip', 'outlined', 'filled']),
-    SwitchOption('tall', 'tall'),
+    _buttonLook,
+    _buttonTall,
   ],
   build: (context, o) => _Buttons(
-    color: o.color('color'),
-    look: o.choice('look'),
-    tall: o.flag('tall'),
+    color: o(pageColorOption),
+    look: o(_buttonLook),
+    tall: o(_buttonTall),
   ),
   code: (o) {
-    final c = o.color('color');
+    final c = o(pageColorOption);
     final styled = c != 'primary';
-    final look = o.choice<String>('look');
+    final look = o(_buttonLook);
     final chip = look == 'chip';
     final button = chip ? 'Button' : 'Button.$look';
     final args = [
       if (styled && chip) ...['style: style', 'focusedStyle: focused'],
       if (styled && !chip) 'style: theme.$c',
-      if (!chip && o.flag('tall')) 'tall: true',
+      if (!chip && o(_buttonTall)) 'tall: true',
     ];
     return [
       'var _saved = 0;',

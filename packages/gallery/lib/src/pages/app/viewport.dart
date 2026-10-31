@@ -15,31 +15,56 @@ const _vh = 4;
 
 const int _vrun = (4 + 1) * _stepMs + _pause;
 
+/// The Viewport page's `left` option.
+const _viewportLeft = SliderOption(
+  'left',
+  'left',
+  min: 0,
+  max: _sw - _vw,
+  initial: _sw - _vw,
+);
+
+/// The Viewport page's `top` option.
+const _viewportTop = SliderOption(
+  'top',
+  'top',
+  min: 0,
+  max: _sh - _vh,
+);
+
+/// The Viewport page's `mode` option.
+const _viewportMode = ChoiceOption<String>(
+  'mode',
+  'mode',
+  values: ['inline', 'fullscreen'],
+);
+
 final _viewport = GalleryPage(
   terminalAround: true,
-  group: 'App',
+  group: _group,
   title: 'Viewport',
   options: const [
-    SliderOption('left', 'left', min: 0, max: _sw - _vw, initial: _sw - _vw),
-    SliderOption('top', 'top', min: 0, max: _sh - _vh),
-    ChoiceOption('mode', 'mode', values: ['inline', 'fullscreen']),
+    _viewportLeft,
+    _viewportTop,
+    _viewportMode,
   ],
   build: (context, o) => _ViewportRun(
-    left: o.number('left').toInt(),
-    top: o.number('top').toInt(),
-    inline: o.label('mode') == 'inline',
+    left: o(_viewportLeft).toInt(),
+    top: o(_viewportTop).toInt(),
+    inline: o.nameOf(_viewportMode) == 'inline',
   ),
   code: (o) {
-    final inline = o.label('mode') == 'inline';
-    final at = '${o.label('left')}, ${o.label('top')}, $_vw, $_vh';
+    final inline = o.nameOf(_viewportMode) == 'inline';
+    final at =
+        '${o.nameOf(_viewportLeft)}, ${o.nameOf(_viewportTop)}, $_vw, $_vh';
     return [
       "import 'dart:async';",
       '',
       "import 'package:twk/twk.dart';",
       '',
       codeLine([
-        '// the $_vw × $_vh cells from column ${o.label('left')} ',
-        'of row ${o.label('top')}: nothing else is',
+        '// the $_vw × $_vh cells from column ${o.nameOf(_viewportLeft)} ',
+        'of row ${o.nameOf(_viewportTop)}: nothing else is',
       ]),
       if (inline)
         '// written, so what the terminal showed around them stays'

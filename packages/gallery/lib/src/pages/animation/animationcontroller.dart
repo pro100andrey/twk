@@ -4,35 +4,45 @@ part of 'animation.dart';
 /// The dot's column in a box 42 wide.
 const _across = 39;
 
+/// The AnimationController page's `reverse` option.
+const _controllerReverse = SwitchOption(
+  'reverse',
+  'reverse',
+  initial: true,
+);
+
+/// The AnimationController page's `duration` option.
+const _controllerDuration = ChoiceOption<int>(
+  'duration',
+  'duration',
+  values: [1, 2, 4],
+  labels: ['1 s', '2 s', '4 s'],
+  initial: 2,
+);
+
 final _controller = GalleryPage(
-  group: 'Animation',
+  group: _group,
   title: 'AnimationController',
   options: [
     _curveOption,
-    const SwitchOption('reverse', 'reverse', initial: true),
-    const ChoiceOption(
-      'duration',
-      'duration',
-      values: [1, 2, 4],
-      labels: ['1 s', '2 s', '4 s'],
-      initial: 2,
-    ),
+    _controllerReverse,
+    _controllerDuration,
   ],
   build: (context, o) => _Pulse(
     curve: _curveOf(o),
-    reverse: o.flag('reverse'),
-    seconds: o.choice<int>('duration'),
+    reverse: o(_controllerReverse),
+    seconds: o(_controllerDuration),
   ),
   code: (o) {
-    final curve = 'Curves.${o.choice<String>('curve')}';
-    final repeat = o.flag('reverse') ? 'repeat(reverse: true)' : 'repeat()';
+    final curve = 'Curves.${o(_curveOption)}';
+    final repeat = o(_controllerReverse) ? 'repeat(reverse: true)' : 'repeat()';
     return [
       'final class _PulseState extends State<_Pulse>',
       '    with TickerProviderStateMixin {',
       ..._indent([
         'late final _controller = AnimationController(',
         '  vsync: this,',
-        '  duration: const Duration(seconds: ${o.choice<int>('duration')}),',
+        '  duration: const Duration(seconds: ${o(_controllerDuration)}),',
         ')..$repeat;',
         '',
         'static const _across = IntTween(begin: 0, end: $_across);',

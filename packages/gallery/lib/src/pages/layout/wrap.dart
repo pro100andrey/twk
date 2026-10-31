@@ -21,38 +21,79 @@ const _wh = 11;
 /// The room narrows a cell this often while live.
 const _narrow = 120;
 
+/// The Wrap page's `width` option.
+final _wrapWidth = SliderOption(
+  'width',
+  'width',
+  min: 20,
+  max: 48,
+  initial: 36,
+  format: (v) => '$v cells',
+);
+
+/// The Wrap page's `live` option.
+const _wrapLive = SwitchOption('live', 'narrowing');
+
+/// The Wrap page's `direction` option.
+const _wrapDirection = ChoiceOption<String>(
+  'direction',
+  'direction',
+  values: ['horizontal', 'vertical'],
+);
+
+/// The Wrap page's `alignment` option.
+const _wrapAlignment = ChoiceOption<String>(
+  'alignment',
+  'alignment',
+  values: _wrapAlign,
+);
+
+/// The Wrap page's `runAlignment` option.
+const _wrapRunAlignment = ChoiceOption<String>(
+  'runAlignment',
+  'run alignment',
+  values: _wrapAlign,
+);
+
+/// The Wrap page's `cross` option.
+const _wrapCross = ChoiceOption<String>(
+  'cross',
+  'cross axis',
+  values: ['start', 'end', 'center'],
+  initial: 'center',
+);
+
+/// The Wrap page's `gap` option.
+const _wrapGap = ChoiceOption<int>(
+  'gap',
+  'gap',
+  values: [0, 1, 2],
+  initial: 1,
+);
+
+/// The Wrap page's `runGap` option.
+const _wrapRunGap = ChoiceOption<int>(
+  'runGap',
+  'run gap',
+  values: [0, 1],
+);
+
 final _wrap = GalleryPage(
-  group: 'Layout',
+  group: _group,
   title: 'Wrap',
   options: [
-    SliderOption(
-      'width',
-      'width',
-      min: 20,
-      max: 48,
-      initial: 36,
-      format: (v) => '$v cells',
-    ),
-    const SwitchOption('live', 'narrowing'),
-    const ChoiceOption(
-      'direction',
-      'direction',
-      values: ['horizontal', 'vertical'],
-    ),
-    const ChoiceOption('alignment', 'alignment', values: _wrapAlign),
-    const ChoiceOption('runAlignment', 'run alignment', values: _wrapAlign),
-    const ChoiceOption(
-      'cross',
-      'cross axis',
-      values: ['start', 'end', 'center'],
-      initial: 'center',
-    ),
-    const ChoiceOption('gap', 'gap', values: [0, 1, 2], initial: 1),
-    const ChoiceOption('runGap', 'run gap', values: [0, 1]),
+    _wrapWidth,
+    _wrapLive,
+    _wrapDirection,
+    _wrapAlignment,
+    _wrapRunAlignment,
+    _wrapCross,
+    _wrapGap,
+    _wrapRunGap,
   ],
   build: (context, o) => Timed((context, ms, wake) {
-    var width = o.number('width').toInt();
-    if (o.flag('live')) {
+    var width = o(_wrapWidth).toInt();
+    if (o(_wrapLive)) {
       // a cell narrower every 120 ms from 48 to 20 and back, the slider
       // following it
       final step = ms ~/ _narrow;
@@ -60,7 +101,7 @@ final _wrap = GalleryPage(
       final w = 20 + (step % 56 - 28).abs();
       if (w != width) {
         final control = PageControl.of(context);
-        scheduleMicrotask(() => control.setOption('width', w));
+        scheduleMicrotask(() => control.setOption(_wrapWidth, w));
       }
       width = w;
     }
@@ -71,14 +112,14 @@ final _wrap = GalleryPage(
       child: Box(
         border: _rounded(theme),
         child: Wrap(
-          direction: Axis.values.byName(o.choice('direction')),
-          alignment: WrapAlignment.values.byName(o.choice('alignment')),
-          runAlignment: WrapAlignment.values.byName(o.choice('runAlignment')),
+          direction: Axis.values.byName(o(_wrapDirection)),
+          alignment: WrapAlignment.values.byName(o(_wrapAlignment)),
+          runAlignment: WrapAlignment.values.byName(o(_wrapRunAlignment)),
           crossAxisAlignment: WrapCrossAlignment.values.byName(
-            o.choice('cross'),
+            o(_wrapCross),
           ),
-          gap: o.choice('gap'),
-          runGap: o.choice('runGap'),
+          gap: o(_wrapGap),
+          runGap: o(_wrapRunGap),
           children: [
             for (final (label, kind, badge) in _tags)
               if (badge)
@@ -93,15 +134,15 @@ final _wrap = GalleryPage(
   code: (o) {
     final wrap = [
       '    child: Wrap(',
-      if (o['direction'] != 'horizontal') '      direction: .vertical,',
-      if (o['alignment'] != 'start')
-        '      alignment: .${o.label('alignment')},',
-      if (o['runAlignment'] != 'start')
-        '      runAlignment: .${o.label('runAlignment')},',
-      if (o['cross'] != 'start')
-        '      crossAxisAlignment: .${o.label('cross')},',
-      if (o['gap'] != 0) '      gap: ${o.label('gap')},',
-      if (o['runGap'] != 0) '      runGap: ${o.label('runGap')},',
+      if (o(_wrapDirection) != 'horizontal') '      direction: .vertical,',
+      if (o(_wrapAlignment) != 'start')
+        '      alignment: .${o.nameOf(_wrapAlignment)},',
+      if (o(_wrapRunAlignment) != 'start')
+        '      runAlignment: .${o.nameOf(_wrapRunAlignment)},',
+      if (o(_wrapCross) != 'start')
+        '      crossAxisAlignment: .${o.nameOf(_wrapCross)},',
+      if (o(_wrapGap) != 0) '      gap: ${o.nameOf(_wrapGap)},',
+      if (o(_wrapRunGap) != 0) '      runGap: ${o.nameOf(_wrapRunGap)},',
       '      children: [',
       for (final (label, kind, badge) in _tags)
         if (!badge) ...[
@@ -116,11 +157,11 @@ final _wrap = GalleryPage(
       '      ],',
       '    ),',
     ];
-    if (!o.flag('live')) {
+    if (!o(_wrapLive)) {
       return [
         'final theme = Theme.of(context);',
         'return SizedBox(',
-        '  width: ${o.label('width')},',
+        '  width: ${o.nameOf(_wrapWidth)},',
         '  height: $_wh,',
         '  child: Box(',
         '    border: .all(type: .rounded, style: theme.border),',

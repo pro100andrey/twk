@@ -6,38 +6,48 @@ part of 'animation.dart';
 // the chip's column at the end of the track: a box 42 wide, a chip 5
 const _slide = 35;
 
+/// The AnimatedBuilder page's `reverse` option.
+const _builderReverse = SwitchOption(
+  'reverse',
+  'reverse',
+  initial: true,
+);
+
+/// The AnimatedBuilder page's `duration` option.
+const _builderDuration = ChoiceOption<int>(
+  'duration',
+  'duration',
+  values: [1, 2, 4],
+  labels: ['1 s', '2 s', '4 s'],
+  initial: 2,
+);
+
 final _builder = GalleryPage(
-  group: 'Animation',
+  group: _group,
   title: 'AnimatedBuilder',
   options: [
     _curveOption,
-    const SwitchOption('reverse', 'reverse', initial: true),
-    const ChoiceOption(
-      'duration',
-      'duration',
-      values: [1, 2, 4],
-      labels: ['1 s', '2 s', '4 s'],
-      initial: 2,
-    ),
+    _builderReverse,
+    _builderDuration,
   ],
   build: (context, o) => _Slide(
     curve: _curveOf(o),
-    reverse: o.flag('reverse'),
-    seconds: o.choice<int>('duration'),
+    reverse: o(_builderReverse),
+    seconds: o(_builderDuration),
   ),
   code: (o) {
-    final repeat = o.flag('reverse') ? 'repeat(reverse: true)' : 'repeat()';
+    final repeat = o(_builderReverse) ? 'repeat(reverse: true)' : 'repeat()';
     return [
       'final class _SlideState extends State<_Slide>',
       '    with TickerProviderStateMixin {',
       ..._indent([
         'late final _controller = AnimationController(',
         '  vsync: this,',
-        '  duration: const Duration(seconds: ${o.choice<int>('duration')}),',
+        '  duration: const Duration(seconds: ${o(_builderDuration)}),',
         ')..$repeat;',
         '',
         'static final _across = IntTween(begin: 0, end: $_slide).chain(',
-        '  Curves.${o.choice<String>('curve')},',
+        '  Curves.${o(_curveOption)},',
         ');',
         '',
         '@override',

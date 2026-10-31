@@ -11,34 +11,54 @@ const _sections = [
 
 const _sectionsW = 40;
 
+/// The ExpansionTile, Accordion page's `accordion` option.
+const _expansionAccordion = SwitchOption(
+  'accordion',
+  'in an accordion',
+  initial: true,
+);
+
+/// The ExpansionTile, Accordion page's `multiple` option.
+final _expansionMultiple = SwitchOption(
+  'multiple',
+  'several open',
+  disabled: (o) => !o(_expansionAccordion),
+);
+
+/// The ExpansionTile, Accordion page's `subtitle` option.
+const _expansionSubtitle = SwitchOption(
+  'subtitle',
+  'subtitles',
+  initial: true,
+);
+
+/// The ExpansionTile, Accordion page's `duration` option.
+const _expansionDuration = ChoiceOption<int>(
+  'duration',
+  'duration',
+  values: [150, 400, 0],
+  labels: ['150 ms', '400 ms', 'none'],
+);
+
 final _expansion = GalleryPage(
-  group: 'Layout',
+  group: _group,
   title: 'ExpansionTile, Accordion',
   options: [
-    const SwitchOption('accordion', 'in an accordion', initial: true),
-    SwitchOption(
-      'multiple',
-      'several open',
-      disabled: (o) => !o.flag('accordion'),
-    ),
-    const SwitchOption('subtitle', 'subtitles', initial: true),
-    const ChoiceOption(
-      'duration',
-      'duration',
-      values: [150, 400, 0],
-      labels: ['150 ms', '400 ms', 'none'],
-    ),
+    _expansionAccordion,
+    _expansionMultiple,
+    _expansionSubtitle,
+    _expansionDuration,
   ],
   build: (context, o) => _Sections(
-    accordion: o.flag('accordion'),
-    multiple: o.flag('multiple'),
-    subtitle: o.flag('subtitle'),
-    duration: Duration(milliseconds: o.choice<int>('duration')),
+    accordion: o(_expansionAccordion),
+    multiple: o(_expansionMultiple),
+    subtitle: o(_expansionSubtitle),
+    duration: Duration(milliseconds: o(_expansionDuration)),
   ),
   code: (o) {
-    final accordion = o.flag('accordion');
-    final subtitle = o.flag('subtitle');
-    final ms = o.choice<int>('duration');
+    final accordion = o(_expansionAccordion);
+    final subtitle = o(_expansionSubtitle);
+    final ms = o(_expansionDuration);
     final [general, network, security] = [
       for (final (title, sub, _) in _sections)
         ["'$title'", if (subtitle) "'$sub'"].join(', '),
@@ -107,7 +127,7 @@ final _expansion = GalleryPage(
         '          crossAxisAlignment: .start,',
         '          children: sections,',
         '        ),',
-      ] else if (o.flag('multiple'))
+      ] else if (o(_expansionMultiple))
         '        child: Accordion(allowMultiple: true, children: sections),'
       else
         '        child: Accordion(children: sections),',

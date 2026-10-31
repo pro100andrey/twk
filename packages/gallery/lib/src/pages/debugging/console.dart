@@ -27,32 +27,57 @@ const List<(LogLevel, String)> _traffic = [
 DateTime _timeAt(int ms) =>
     DateTime(2026, 10, 20, 9, 5, 7, 42).add(Duration(milliseconds: ms));
 
+/// The Console page's `level` option.
+const _consoleLevel = ChoiceOption<LogLevel>(
+  'level',
+  'level',
+  values: [LogLevel.debug, LogLevel.info, LogLevel.warning, LogLevel.error],
+  labels: ['debug', 'info', 'warning', 'error'],
+);
+
+/// The Console page's `rows` option.
+const _consoleRowsOption = ChoiceOption<int>(
+  'rows',
+  'rows',
+  values: [4, 6, 8],
+  initial: 6,
+);
+
+/// The Console page's `live` option.
+const _consoleLive = SwitchOption(
+  'live',
+  'traffic',
+  initial: true,
+);
+
+/// The Console page's `openOnError` option.
+const _consoleOpenOnError = SwitchOption(
+  'openOnError',
+  'open on error',
+);
+
 final _console = GalleryPage(
-  group: 'Debugging',
+  group: _group,
   title: 'Console',
   options: const [
-    ChoiceOption(
-      'level',
-      'level',
-      values: [LogLevel.debug, LogLevel.info, LogLevel.warning, LogLevel.error],
-      labels: ['debug', 'info', 'warning', 'error'],
-    ),
-    ChoiceOption('rows', 'rows', values: [4, 6, 8], initial: 6),
-    SwitchOption('live', 'traffic', initial: true),
-    SwitchOption('openOnError', 'open on error'),
+    _consoleLevel,
+    _consoleRowsOption,
+    _consoleLive,
+    _consoleOpenOnError,
   ],
   build: (context, o) => _Logged(
-    level: o.choice('level'),
-    rows: o.choice('rows'),
-    live: o.flag('live'),
-    openOnError: o.flag('openOnError'),
+    level: o(_consoleLevel),
+    rows: o(_consoleRowsOption),
+    live: o(_consoleLive),
+    openOnError: o(_consoleOpenOnError),
   ),
   code: (o) {
     final args = [
-      if (o.label('level') != 'debug') 'level: .${o.label('level')}',
-      if (o.flag('openOnError')) 'openOnError: true',
+      if (o.nameOf(_consoleLevel) != 'debug')
+        'level: .${o.nameOf(_consoleLevel)}',
+      if (o(_consoleOpenOnError)) 'openOnError: true',
     ];
-    final live = o.flag('live');
+    final live = o(_consoleLive);
     return [
       'final _sink = LogSink();',
       if (args.isNotEmpty) ...[
@@ -112,7 +137,7 @@ final _console = GalleryPage(
       ]),
       '      child: Console(',
       '        controller: _console,',
-      '        rows: ${o.label('rows')},',
+      '        rows: ${o.nameOf(_consoleRowsOption)},',
       '        child: Column(',
       '          crossAxisAlignment: .start,',
       '          gap: 1,',

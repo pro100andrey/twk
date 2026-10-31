@@ -13,6 +13,9 @@ part 'inputdecoration.dart';
 part 'textarea.dart';
 part 'textfield.dart';
 
+/// The group of the catalog these pages are in.
+const _group = 'Editing';
+
 /// The pages of the Editing group that draw.
 final editingPages = <GalleryPage>[
   _textfieldPage,

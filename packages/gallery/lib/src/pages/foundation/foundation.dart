@@ -16,5 +16,8 @@ part '_shared.dart';
 part 'futurebuilder_streambuilder.dart';
 part 'listenablebuilder.dart';
 
+/// The group of the catalog these pages are in.
+const _group = 'Foundation';
+
 /// The pages of the Foundation group that draw.
 final List<GalleryPage> foundationPages = [_listenable, _async];

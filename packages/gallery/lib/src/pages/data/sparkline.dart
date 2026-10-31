@@ -15,61 +15,85 @@ final _series = <String, (double Function(int i), String)>{
   ),
 };
 
+/// The Sparkline page's `data` option.
+final _sparklineData = ChoiceOption<String>(
+  'data',
+  'data',
+  values: _series.keys.toList(),
+);
+
+/// The Sparkline page's `rows` option.
+const _sparklineRows = ChoiceOption<int>(
+  'rows',
+  'rows',
+  values: [1, 2, 4],
+  initial: 4,
+);
+
+/// The Sparkline page's `max` option.
+const _sparklineMax = ChoiceOption<double?>(
+  'max',
+  'max',
+  values: [null, 10.0],
+  labels: ['largest', '10'],
+);
+
+/// The Sparkline page's `live` option.
+const _sparklineLive = SwitchOption('live', 'live', initial: true);
+
+/// The Sparkline page's `color` option.
+const _sparklineColor = ColorOption(
+  'color',
+  'style',
+  values: ['info', 'primary', 'accent', 'success', 'warning'],
+  initial: 'info',
+);
+
 final _sparkline = GalleryPage(
-  group: 'Data',
+  group: _group,
   title: 'Sparkline',
   options: [
-    ChoiceOption('data', 'data', values: _series.keys.toList()),
-    const ChoiceOption('rows', 'rows', values: [1, 2, 4], initial: 4),
-    const ChoiceOption(
-      'max',
-      'max',
-      values: [null, 10.0],
-      labels: ['largest', '10'],
-    ),
-    const SwitchOption('live', 'live', initial: true),
-    const ColorOption(
-      'color',
-      'style',
-      values: ['info', 'primary', 'accent', 'success', 'warning'],
-      initial: 'info',
-    ),
+    _sparklineData,
+    _sparklineRows,
+    _sparklineMax,
+    _sparklineLive,
+    _sparklineColor,
   ],
   build: (context, o) => Timed((context, ms, wake) {
-    final k = o.flag('live') ? _tick(ms, _step, wake) : 0;
-    final f = _series[o.choice<String>('data')]!.$1;
+    final k = o(_sparklineLive) ? _tick(ms, _step, wake) : 0;
+    final f = _series[o(_sparklineData)]!.$1;
     return SizedBox(
       width: 48,
-      height: o.choice('rows'),
+      height: o(_sparklineRows),
       child: Sparkline(
         data: [for (var i = 0; i < 48; i++) f(i + k)],
-        max: o.choice('max'),
-        style: o.colorStyle(context, 'color'),
+        max: o(_sparklineMax),
+        style: o.styleOf(context, _sparklineColor),
       ),
     );
   }),
   code: (o) {
-    final gen = _series[o.choice<String>('data')]!.$2;
+    final gen = _series[o(_sparklineData)]!.$2;
     final build = [
       '@override',
       'Widget build(BuildContext context) => SizedBox(',
       '  width: 48,',
-      '  height: ${o.label('rows')},',
-      if (o.choice<double?>('max') == null)
+      '  height: ${o.nameOf(_sparklineRows)},',
+      if (o(_sparklineMax) == null)
         codeLine([
           '  child: Sparkline(data: _data, style: ',
-          'Theme.of(context).${o.color('color')}),',
+          'Theme.of(context).${o(_sparklineColor)}),',
         ])
       else ...[
         '  child: Sparkline(',
         '    data: _data,',
-        '    max: ${o.label('max')},',
-        '    style: Theme.of(context).${o.color('color')},',
+        '    max: ${o.nameOf(_sparklineMax)},',
+        '    style: Theme.of(context).${o(_sparklineColor)},',
         '  ),',
       ],
       ');',
     ];
-    final helper = o.choice<String>('data') == 'noise'
+    final helper = o(_sparklineData) == 'noise'
         ? [
             '',
             '/// The value at [i]: from 1 to 7, 3 more in some runs of 8.',
@@ -83,7 +107,7 @@ final _sparkline = GalleryPage(
             '}',
           ]
         : const <String>[];
-    if (!o.flag('live')) {
+    if (!o(_sparklineLive)) {
       return [
         'final _data = [for (var i = 0; i < 48; i++) $gen];',
         '',

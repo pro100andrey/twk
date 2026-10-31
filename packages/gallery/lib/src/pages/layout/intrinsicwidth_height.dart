@@ -7,12 +7,26 @@ const _iw = 44;
 
 const _ih = 7;
 
+/// The IntrinsicWidth/Height page's `iw` option.
+const _intrinsicIw = SwitchOption(
+  'iw',
+  'IntrinsicWidth',
+  initial: true,
+);
+
+/// The IntrinsicWidth/Height page's `ih` option.
+const _intrinsicIh = SwitchOption(
+  'ih',
+  'IntrinsicHeight',
+  initial: true,
+);
+
 final _intrinsic = GalleryPage(
-  group: 'Layout',
+  group: _group,
   title: 'IntrinsicWidth/Height',
   options: const [
-    SwitchOption('iw', 'IntrinsicWidth', initial: true),
-    SwitchOption('ih', 'IntrinsicHeight', initial: true),
+    _intrinsicIw,
+    _intrinsicIh,
   ],
   build: (context, o) {
     final theme = Theme.of(context);
@@ -46,8 +60,8 @@ final _intrinsic = GalleryPage(
         crossAxisAlignment: CrossAxisAlignment.start,
         gap: 4,
         children: [
-          if (o.flag('iw')) IntrinsicWidth(child: menu) else menu,
-          if (o.flag('ih')) IntrinsicHeight(child: cards) else cards,
+          if (o(_intrinsicIw)) IntrinsicWidth(child: menu) else menu,
+          if (o(_intrinsicIh)) IntrinsicHeight(child: cards) else cards,
         ],
       ),
     );
@@ -90,8 +104,8 @@ final _intrinsic = GalleryPage(
     '    crossAxisAlignment: .start,',
     '    gap: 4,',
     '    children: [',
-    '      ${o.flag('iw') ? 'IntrinsicWidth(child: menu)' : 'menu'},',
-    '      ${o.flag('ih') ? 'IntrinsicHeight(child: cards)' : 'cards'},',
+    '      ${o(_intrinsicIw) ? 'IntrinsicWidth(child: menu)' : 'menu'},',
+    '      ${o(_intrinsicIh) ? 'IntrinsicHeight(child: cards)' : 'cards'},',
     '    ],',
     '  ),',
     ');',

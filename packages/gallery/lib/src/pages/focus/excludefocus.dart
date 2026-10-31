@@ -1,11 +1,18 @@
 // The ExcludeFocus page.
 part of 'focus.dart';
 
+/// The ExcludeFocus page's `excluding` option.
+const _excludefocusExcluding = SwitchOption(
+  'excluding',
+  'excluding',
+  initial: true,
+);
+
 final _excludefocusPage = GalleryPage(
-  group: 'Focus and keys',
+  group: _group,
   title: 'ExcludeFocus',
-  options: const [SwitchOption('excluding', 'excluding', initial: true)],
-  build: (context, o) => _Excluded(excluding: o.flag('excluding')),
+  options: const [_excludefocusExcluding],
+  build: (context, o) => _Excluded(excluding: o(_excludefocusExcluding)),
   code: _excludedCode,
 );
 
@@ -102,7 +109,7 @@ final class _ExcludedState extends State<_Excluded> {
 }
 
 String _excludedCode(Options o) {
-  final out = o.flag('excluding');
+  final out = o(_excludefocusExcluding);
   final muted = out ? ', muted: true' : '';
   return [
     'final _nodes = [',

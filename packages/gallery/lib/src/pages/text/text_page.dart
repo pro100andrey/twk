@@ -1,53 +1,68 @@
 // The Text page.
 part of 'text.dart';
 
+/// The Text page's `wrap` option.
+const _textWrap = ChoiceOption<String>(
+  'wrap',
+  'wrap',
+  values: ['word', 'grapheme', 'none'],
+);
+
+/// The Text page's `overflow` option.
+const _textOverflow = ChoiceOption<String>(
+  'overflow',
+  'overflow',
+  values: ['clip', 'ellipsis', 'ellipsisStart', 'ellipsisMiddle'],
+  initial: 'ellipsis',
+);
+
+/// The Text page's `align` option.
+const _textAlign = ChoiceOption<String>(
+  'align',
+  'align',
+  values: ['left', 'center', 'right', 'justify'],
+);
+
+/// The Text page's `lines` option.
+const _textLines = ChoiceOption<int?>(
+  'lines',
+  'max lines',
+  values: [null, 3, 1],
+  labels: ['all', '3', '1'],
+);
+
+/// The Text page's `width` option.
+final _textWidth = SliderOption(
+  'width',
+  'width',
+  min: 14,
+  max: 50,
+  initial: 32,
+  format: (v) => '$v cells',
+);
+
 final _textPage = GalleryPage(
-  group: 'Text',
+  group: _group,
   title: 'Text',
   options: [
-    const ChoiceOption(
-      'wrap',
-      'wrap',
-      values: ['word', 'grapheme', 'none'],
-    ),
-    const ChoiceOption(
-      'overflow',
-      'overflow',
-      values: ['clip', 'ellipsis', 'ellipsisStart', 'ellipsisMiddle'],
-      initial: 'ellipsis',
-    ),
-    const ChoiceOption(
-      'align',
-      'align',
-      values: ['left', 'center', 'right', 'justify'],
-    ),
-    const ChoiceOption(
-      'lines',
-      'max lines',
-      values: [null, 3, 1],
-      labels: ['all', '3', '1'],
-    ),
-    SliderOption(
-      'width',
-      'width',
-      min: 14,
-      max: 50,
-      initial: 32,
-      format: (v) => '$v cells',
-    ),
+    _textWrap,
+    _textOverflow,
+    _textAlign,
+    _textLines,
+    _textWidth,
   ],
   build: (context, o) {
     final theme = Theme.of(context);
     return SizedBox(
-      width: o.number('width').toInt(),
+      width: o(_textWidth).toInt(),
       child: Box(
         border: Border.all(type: BorderType.rounded, style: theme.border),
         child: Text(
           _sample,
-          wrap: TextWrap.values.byName(o.choice('wrap')),
-          overflow: TextOverflow.values.byName(o.choice('overflow')),
-          align: TextAlign.values.byName(o.choice('align')),
-          maxLines: o.choice<int?>('lines'),
+          wrap: TextWrap.values.byName(o(_textWrap)),
+          overflow: TextOverflow.values.byName(o(_textOverflow)),
+          align: TextAlign.values.byName(o(_textAlign)),
+          maxLines: o(_textLines),
         ),
       ),
     );
@@ -55,17 +70,17 @@ final _textPage = GalleryPage(
   code: (o) => [
     'final theme = Theme.of(context);',
     'return SizedBox(',
-    '  width: ${o.label('width')},',
+    '  width: ${o.nameOf(_textWidth)},',
     '  child: Box(',
     '    border: .all(type: .rounded, style: theme.border),',
     '    child: Text(',
     "      'Terminals draw text in a grid of cells. A paragraph breaks its '",
     "      'lines between words to fit its width; wide characters, 漢字 and '",
     "      '🙂, take two cells each.',",
-    '      wrap: .${o.label('wrap')},',
-    '      overflow: .${o.label('overflow')},',
-    '      align: .${o.label('align')},',
-    if (o['lines'] != null) '      maxLines: ${o.label('lines')},',
+    '      wrap: .${o.nameOf(_textWrap)},',
+    '      overflow: .${o.nameOf(_textOverflow)},',
+    '      align: .${o.nameOf(_textAlign)},',
+    if (o(_textLines) != null) '      maxLines: ${o.nameOf(_textLines)},',
     '    ),',
     '  ),',
     ');',

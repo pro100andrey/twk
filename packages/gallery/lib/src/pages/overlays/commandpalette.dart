@@ -1,8 +1,31 @@
 // The CommandPalette page.
 part of 'overlays.dart';
 
+/// The CommandPalette page's `width` option.
+const _commandpaletteWidth = ChoiceOption<int>(
+  'width',
+  'width',
+  values: [40, 60],
+  initial: 40,
+);
+
+/// The CommandPalette page's `rows` option.
+const _commandpaletteRows = ChoiceOption<int>(
+  'rows',
+  'rows',
+  values: [3, 10],
+  initial: 10,
+);
+
+/// The CommandPalette page's `files` option.
+const _commandpaletteFiles = SwitchOption(
+  'files',
+  'files',
+  initial: true,
+);
+
 final _commandpalettePage = GalleryPage(
-  group: 'Overlays',
+  group: _group,
   title: 'CommandPalette',
   about:
       'What can be done, found by typing: Tab to a button, then Ctrl+K, '
@@ -12,15 +35,15 @@ final _commandpalettePage = GalleryPage(
   // an open menu (or palette) takes Tab itself
   modalTab: false,
   options: [
-    const ChoiceOption('width', 'width', values: [40, 60], initial: 40),
-    const ChoiceOption('rows', 'rows', values: [3, 10], initial: 10),
-    const SwitchOption('files', 'files', initial: true),
+    _commandpaletteWidth,
+    _commandpaletteRows,
+    _commandpaletteFiles,
     _lookOption,
   ],
   build: (context, o) => _Palette(
-    width: o.choice('width'),
-    rows: o.choice('rows'),
-    files: o.flag('files'),
+    width: o(_commandpaletteWidth),
+    rows: o(_commandpaletteRows),
+    files: o(_commandpaletteFiles),
     look: _lookOf(o),
   ),
   code: (o) => [
@@ -38,7 +61,7 @@ final _commandpalettePage = GalleryPage(
     "void _test() => _run('Run tests');",
     "void _save() => _run('Save');",
     '',
-    if (o.flag('files')) ...[
+    if (o(_commandpaletteFiles)) ...[
       '// the files whose path matches what is typed, none while nothing is',
       'Iterable<Command> _files(String query) => [',
       '  if (query.isNotEmpty)',
@@ -54,8 +77,9 @@ final _commandpalettePage = GalleryPage(
     'Widget build(BuildContext context) => CommandPalette(',
     '  controller: _palette,',
     "  openKey: 'ctrl+k',",
-    '  width: ${o.label('width')},',
-    if (o.choice<int>('rows') != 10) '  rows: ${o.label('rows')},',
+    '  width: ${o.nameOf(_commandpaletteWidth)},',
+    if (o(_commandpaletteRows) != 10)
+      '  rows: ${o.nameOf(_commandpaletteRows)},',
     ..._lookLine(o, '  '),
     '  commands: [',
     "    Command('Build', onSelected: _build),",
@@ -63,7 +87,7 @@ final _commandpalettePage = GalleryPage(
     "    Command('Format', onSelected: () => _run('Format')),",
     "    Command('Deploy', onSelected: () => _run('Deploy')),",
     '  ],',
-    if (o.flag('files')) ...[
+    if (o(_commandpaletteFiles)) ...[
       '  // listed after the commands that match',
       '  commandsFor: _files,',
     ],

@@ -1,19 +1,40 @@
 // The ConstrainedBox page.
 part of 'layout.dart';
 
+/// The ConstrainedBox page's `min` option.
+const _constrainedBoxMin = ChoiceOption<int>(
+  'min',
+  'min width',
+  values: [0, 12, 20],
+  initial: 12,
+);
+
+/// The ConstrainedBox page's `max` option.
+const _constrainedBoxMax = ChoiceOption<int>(
+  'max',
+  'max width',
+  values: [20, 32, 48],
+  initial: 32,
+);
+
 // ------------------------------------------------------------ ConstrainedBox
 
 final _constrainedBox = GalleryPage(
-  group: 'Layout',
+  group: _group,
   title: 'ConstrainedBox',
   options: const [
-    ChoiceOption('min', 'min width', values: [0, 12, 20], initial: 12),
-    ChoiceOption('max', 'max width', values: [20, 32, 48], initial: 32),
+    _constrainedBoxMin,
+    _constrainedBoxMax,
   ],
   build: (context, o) {
     final theme = Theme.of(context);
     Widget bounded(String text) => ConstrainedBox(
-      constraints: BoxConstraints(o.choice('min'), o.choice('max'), 1, 3),
+      constraints: BoxConstraints(
+        o(_constrainedBoxMin),
+        o(_constrainedBoxMax),
+        1,
+        3,
+      ),
       child: Box(
         style: theme.selection,
         padding: const EdgeInsets.x(1),
@@ -35,7 +56,8 @@ final _constrainedBox = GalleryPage(
     'Widget bounded(String text) => ConstrainedBox(',
     codeLine([
       '  constraints: const BoxConstraints(',
-      "${o.label('min')}, ${o.label('max')}, 1, 3),",
+      '${o.nameOf(_constrainedBoxMin)}, ',
+      '${o.nameOf(_constrainedBoxMax)}, 1, 3),',
     ]),
     '  child: Box(',
     '    style: theme.selection,',

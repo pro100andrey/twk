@@ -14,12 +14,26 @@ const _src = [
 
 const _treeW = 40;
 
+/// The TreeView page's `guides` option.
+const _treeViewGuides = SwitchOption(
+  'guides',
+  'guides',
+  initial: true,
+);
+
+/// The TreeView page's `load` option.
+const _treeViewLoad = ChoiceOption<String>(
+  'load',
+  'test/',
+  values: ['loads', 'fails'],
+);
+
 final _treeView = GalleryPage(
-  group: 'Data',
+  group: _group,
   title: 'TreeView',
   options: const [
-    SwitchOption('guides', 'guides', initial: true),
-    ChoiceOption('load', 'test/', values: ['loads', 'fails']),
+    _treeViewGuides,
+    _treeViewLoad,
   ],
   build: (context, o) => inRoom((_, room) {
     final kept = PageControl.of(context).state;
@@ -30,14 +44,14 @@ final _treeView = GalleryPage(
               selectedKey: 'lib/src/table.dart',
             ))
             as TreeController;
-    final fails = o.choice<String>('load') == 'fails';
+    final fails = o(_treeViewLoad) == 'fails';
     return SizedBox(
       width: _treeW,
       height: math.max(4, math.min(12, room)),
       child: TreeView<String>(
         roots: _roots,
         controller: controller,
-        showGuides: o.flag('guides'),
+        showGuides: o(_treeViewGuides),
         hasChildren: (path) => !path.contains('.'),
         children: (path) => switch (path) {
           'lib' => const ['lib/src', 'lib/twk.dart'],
@@ -67,7 +81,7 @@ final _treeView = GalleryPage(
     '  child: TreeView<String>(',
     '    roots: const [${_roots.map((r) => "'$r'").join(', ')}],',
     '    controller: _controller,',
-    if (!o.flag('guides')) '    showGuides: false,',
+    if (!o(_treeViewGuides)) '    showGuides: false,',
     "    hasChildren: (path) => !path.contains('.'),",
     '    children: (path) => switch (path) {',
     "      'lib' => const ['lib/src', 'lib/twk.dart'],",
@@ -76,7 +90,7 @@ final _treeView = GalleryPage(
     '      ],',
     "      'test' => Future.delayed(",
     '        const Duration(seconds: 1),',
-    if (o.choice<String>('load') == 'fails')
+    if (o(_treeViewLoad) == 'fails')
       "        () => throw StateError('test/ is not readable'),"
     else
       "        () => const ['test/box_test.dart', 'test/table_test.dart'],",

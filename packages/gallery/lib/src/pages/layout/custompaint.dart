@@ -35,28 +35,41 @@ final class _Wave extends CellPainter {
       oldDelegate.phase != phase || oldDelegate.style != style;
 }
 
+/// The CustomPaint page's `paints` option.
+const _customPaintPaints = ChoiceOption<String>(
+  'paints',
+  'painter',
+  values: ['under', 'over'],
+  labels: ['painter', 'foregroundPainter'],
+);
+
+/// The CustomPaint page's `moving` option.
+const _customPaintMoving = SwitchOption(
+  'moving',
+  'moving',
+  initial: true,
+);
+
+/// The CustomPaint page's `color` option.
+const _customPaintColor = ColorOption(
+  'color',
+  'style',
+  values: ['primary', 'accent', 'success'],
+  initial: 'primary',
+);
+
 final _customPaint = GalleryPage(
-  group: 'Layout',
+  group: _group,
   title: 'CustomPaint',
   options: const [
-    ChoiceOption(
-      'paints',
-      'painter',
-      values: ['under', 'over'],
-      labels: ['painter', 'foregroundPainter'],
-    ),
-    SwitchOption('moving', 'moving', initial: true),
-    ColorOption(
-      'color',
-      'style',
-      values: ['primary', 'accent', 'success'],
-      initial: 'primary',
-    ),
+    _customPaintPaints,
+    _customPaintMoving,
+    _customPaintColor,
   ],
   build: (context, o) {
     final theme = Theme.of(context);
-    final style = o.colorStyle(context, 'color');
-    final under = o['paints'] == 'under';
+    final style = o.styleOf(context, _customPaintColor);
+    final under = o(_customPaintPaints) == 'under';
     Widget painted(int phase) => CustomPaint(
       painter: under ? _Wave(phase, style) : null,
       foregroundPainter: under ? null : _Wave(phase, style),
@@ -71,7 +84,7 @@ final _customPaint = GalleryPage(
         ),
       ),
     );
-    if (!o.flag('moving')) {
+    if (!o(_customPaintMoving)) {
       return painted(0);
     }
     return _Ticks(
@@ -80,9 +93,11 @@ final _customPaint = GalleryPage(
     );
   },
   code: (o) {
-    final which = o['paints'] == 'under' ? 'painter' : 'foregroundPainter';
+    final which = o(_customPaintPaints) == 'under'
+        ? 'painter'
+        : 'foregroundPainter';
     return [
-      if (o.flag('moving')) ...[
+      if (o(_customPaintMoving)) ...[
         'final _phase = ValueNotifier(0);',
         'late final Timer _timer;',
         '',
@@ -115,7 +130,7 @@ final _customPaint = GalleryPage(
       'Widget build(BuildContext context) {',
       '  final theme = Theme.of(context);',
       '  return CustomPaint(',
-      '    $which: WavePainter(_phase, theme.${o['color']}),',
+      '    $which: WavePainter(_phase, theme.${o(_customPaintColor)}),',
       '    child: SizedBox(',
       '      width: 36,',
       '      height: 6,',

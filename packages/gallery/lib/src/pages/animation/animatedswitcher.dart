@@ -27,19 +27,29 @@ const _transitions = <String, (String, SwitcherTransition)>{
   'dissolve': ('.dissolve', SwitcherTransition.dissolve),
 };
 
+/// The AnimatedSwitcher page's `child` option.
+const _switcherChild = ChoiceOption<String>(
+  'child',
+  'child',
+  values: _itemLabels,
+);
+
+/// The AnimatedSwitcher page's `transition` option.
+final _switcherTransition = ChoiceOption<String>(
+  'transition',
+  'transition',
+  values: _transitions.keys.toList(),
+);
+
 final _switcher = GalleryPage(
-  group: 'Animation',
+  group: _group,
   title: 'AnimatedSwitcher',
   options: [
-    const ChoiceOption('child', 'child', values: _itemLabels),
-    ChoiceOption(
-      'transition',
-      'transition',
-      values: _transitions.keys.toList(),
-    ),
+    _switcherChild,
+    _switcherTransition,
     _cycleOption,
   ],
-  build: (context, o) => _Cycled(o, 'child', _itemLabels, (context, i) {
+  build: (context, o) => _Cycled(o, _switcherChild, _itemLabels, (context, i) {
     final theme = Theme.of(context);
     final child = _items[i];
     return SizedBox(
@@ -50,7 +60,7 @@ final _switcher = GalleryPage(
         border: .all(type: .rounded, style: theme.border),
         child: AnimatedSwitcher(
           duration: _duration,
-          transition: _transitions[o.choice<String>('transition')]!.$2,
+          transition: _transitions[o(_switcherTransition)]!.$2,
           child: SizedBox(
             key: ValueKey(child),
             width: 32,
@@ -62,10 +72,10 @@ final _switcher = GalleryPage(
     );
   }),
   code: (o) {
-    final name = o.choice<String>('transition');
+    final name = o(_switcherTransition);
     final tr = _transitions[name]!.$1;
     // all of it const but the key, where a timer gives the child
-    final fixed = !o.flag('cycle');
+    final fixed = !o(_cycleOption);
     List<String> body(String child, String key) => [
       'final theme = Theme.of(context);',
       'return SizedBox(',
@@ -88,7 +98,7 @@ final _switcher = GalleryPage(
       '  ),',
       ');',
     ];
-    final i = _itemLabels.indexOf(o.choice<String>('child'));
+    final i = _itemLabels.indexOf(o(_switcherChild));
     if (fixed) {
       final item = _items[i];
       return body("'$item'", "ValueKey('$item')").join('\n');

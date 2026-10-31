@@ -2,7 +2,7 @@
 part of 'style.dart';
 
 final _gradientbackgroundPage = GalleryPage(
-  group: 'Style',
+  group: _group,
   title: 'GradientBackground',
   options: _gradientOptions('sunset'),
   build: (context, o) => _Flowing(

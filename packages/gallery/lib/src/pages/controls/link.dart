@@ -1,30 +1,36 @@
 // The Link page.
 part of 'controls.dart';
 
+/// The Link page's `color` option.
+const _linkColor = ColorOption(
+  'color',
+  'style',
+  values: ['primary', 'accent', 'info'],
+  initial: 'primary',
+);
+
+/// The Link page's `text` option.
+const _linkText = ChoiceOption<String>(
+  'text',
+  'shows',
+  values: ['label', 'url'],
+  labels: ['text', 'url'],
+);
+
 final _linkPage = GalleryPage(
-  group: 'Controls',
+  group: _group,
   title: 'Link',
   options: const [
-    ColorOption(
-      'color',
-      'style',
-      values: ['primary', 'accent', 'info'],
-      initial: 'primary',
-    ),
-    ChoiceOption(
-      'text',
-      'shows',
-      values: ['label', 'url'],
-      labels: ['text', 'url'],
-    ),
+    _linkColor,
+    _linkText,
   ],
   build: (context, o) {
-    final c = o.color('color');
-    final labelled = o.choice<String>('text') == 'label';
+    final c = o(_linkColor);
+    final labelled = o(_linkText) == 'label';
     final style = c == 'primary'
         ? null
         : o
-              .colorStyle(context, 'color')
+              .styleOf(context, _linkColor)
               .merge(const Style(attrs: Attr.underline));
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -46,9 +52,9 @@ final _linkPage = GalleryPage(
     );
   },
   code: (o) {
-    final c = o.color('color');
+    final c = o(_linkColor);
     final primary = c == 'primary';
-    final labelled = o.choice<String>('text') == 'label';
+    final labelled = o(_linkText) == 'label';
     // a link, its text where the page labels it
     List<String> link(String url, String? text) => [
       "'$url'",

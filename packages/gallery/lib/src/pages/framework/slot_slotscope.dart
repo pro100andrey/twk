@@ -30,21 +30,31 @@ List<SlotEntry> _plugins(int lint) => [
   ),
 ];
 
+/// The Slot, SlotScope page's `lint` option.
+const _slotsLint = ChoiceOption<int>(
+  'lint',
+  'lint order',
+  values: [-1, 1, 3],
+  initial: 1,
+  labels: ['-1, first', '1, between', '3, last'],
+);
+
+/// The Slot, SlotScope page's `placeholder` option.
+const _slotsPlaceholder = SwitchOption(
+  'placeholder',
+  'placeholder',
+  initial: true,
+);
+
 final _slots = GalleryPage(
-  group: 'Framework',
+  group: _group,
   title: 'Slot, SlotScope',
   options: const [
-    ChoiceOption(
-      'lint',
-      'lint order',
-      values: [-1, 1, 3],
-      initial: 1,
-      labels: ['-1, first', '1, between', '3, last'],
-    ),
-    SwitchOption('placeholder', 'placeholder', initial: true),
+    _slotsLint,
+    _slotsPlaceholder,
   ],
   build: (context, o) =>
-      _Plugins(lint: o.choice('lint'), placeholder: o.flag('placeholder')),
+      _Plugins(lint: o(_slotsLint), placeholder: o(_slotsPlaceholder)),
   code: (o) => [
     '/// A status bar item: its name muted, then its value.',
     codeLine([
@@ -63,7 +73,7 @@ final _slots = GalleryPage(
     '  SlotEntry(',
     "    slot: 'status',",
     "    id: 'lint',",
-    '    order: ${o.choice<int>('lint')},',
+    '    order: ${o(_slotsLint)},',
     "    builder: (context) => _item(context, 'lint', '0 problems'),",
     '  ),',
     '  SlotEntry(',
@@ -131,7 +141,7 @@ final _slots = GalleryPage(
       '              layout: (context, children) => ',
       'Row(gap: 2, children: children),',
     ]),
-    if (o.flag('placeholder'))
+    if (o(_slotsPlaceholder))
       codeLine([
         '              placeholder: ',
         "Text('no plugins', style: theme.muted),",

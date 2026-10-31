@@ -128,24 +128,39 @@ Debugging's `aids.dart`). A page of the catalog that no `GalleryPage`
 draws shows a placeholder.
 
 ```dart
-GalleryPage(
-  group: 'Controls',
+// the inspector's options, each a constant the page reads it by:
+// keys, labels, values and first values
+const _sliderDivisions = ChoiceOption<int?>(
+  'divisions',
+  'divisions',
+  values: [null, 10, 4],
+  labels: ['none', '10', '4'],
+);
+final _sliderWidth = SliderOption(
+  'width',
+  'width',
+  min: 10,
+  max: 60,
+  initial: 30,
+  format: (v) => '$v cells',
+);
+// an option may say when it does not apply: disabled: (o) => …
+
+final _sliderPage = GalleryPage(
+  group: _group, // the group's library names it once
   title: 'Slider',
-  // the inspector's options: keys, labels, values and first values
-  options: [
-    const ChoiceOption('divisions', 'divisions', values: [null, 10, 4], labels: ['none', '10', '4']),
-    const SwitchOption('live', 'live', initial: true),
-    SliderOption('width', 'width', min: 10, max: 60, initial: 30, format: (v) => '$v cells'),
-    const ColorOption('color', 'style', values: ['primary', 'accent', 'success'], initial: 'primary'),
-    // an option may say when it does not apply: disabled: (o) => …
-  ],
-  // the widget on the stage, with the options as they are
+  options: [_sliderDivisions, _sliderWidth, pageColorOption],
+  // the widget on the stage, with the options as they are: o(option) is
+  // its value, of its type
   build: (context, o) => SizedBox(
-    width: o.number('width').toInt(),
-    child: Slider(style: o.colorStyle(context, 'color'), /* … */),
+    width: o(_sliderWidth).toInt(),
+    child: Slider(style: o.styleOf(context, pageColorOption), /* … */),
   ),
-  // the Dart of the Code tab, which builds what build: does
-  code: (o) => ['return SizedBox(', '  width: ${o.label('width')},', /* … */].join('\n'),
+  // the Dart of the Code tab, which builds what build: does; o.nameOf is
+  // an option's value as the inspector and a route write it
+  code: (o) =>
+      ['return SizedBox(', '  width: ${o.nameOf(_sliderWidth)},', /* … */]
+          .join('\n'),
   // StageSize.room for a view that takes the stage's room (MarkdownView)
 );
 ```
@@ -168,17 +183,22 @@ lists the hinted keys of the layers above the focus; hints that are no
 key a layer binds (`type take over`, `wheel scroll back`) come from `PageHints(hints: [...], child:
 …)` around the focusable widget, listed first while the focus is in it.
 
-`Options` gives each option's value (`o['key']`, `o.choice<T>`,
-`o.flag`, `o.number`, `o.color`), its name as the inspector and a route
-write it (`o.label`), and the theme's style of a colour option
-(`o.colorStyle`); `o.pageState` is the page's own state as its widget
+`Options` gives each option's value by the option's constant (`o(_wrap)`,
+of the option's type: a `ChoiceOption<T>`'s `T`, a switch's `bool`, a
+slider's `num`, a colour's name), its name as the inspector and a route
+write it (`o.nameOf`), and the theme's style of a colour option
+(`o.styleOf`); a key mistyped is a name the analyzer does not know.
+Options that several pages share are one constant (`pageColorOption`,
+Animation's `_cycleOption`); an option a function makes for each page
+(Layout's alignment, the gradients) has a constant to be read by, of the
+same key and type. `o.pageState` is the page's own state as its widget
 left it, for a Code that writes what the widget did (App ›
 TerminalProgress).
 
 A page's widget reaches the gallery through `PageControl.of(context)`:
 `state`, a map of its own that outlives a visit to another page (a
 State of the widget mixes in `KeptState`, `pages/kit/kept.dart`);
-`setOption(key, value)`, an option set as its control would (for a
+`setOption(option, value)`, an option set as its control would (for a
 `cycle` switch); `toast`, of a `ToastKind`. The palette's "Reset the
 options" empties the page's state and builds its widget afresh.
 

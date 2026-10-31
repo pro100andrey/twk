@@ -19,30 +19,39 @@ DockLayout _docked() => DockLayout(
   windows: const [DockWindow('log', left: 23, top: 4, width: 26, height: 6)],
 );
 
+/// The DockArea page's `strip` option.
+const _dockAreaStrip = SwitchOption(
+  'strip',
+  'tab strip',
+  initial: true,
+);
+
+/// The DockArea page's `frame` option.
+const _dockAreaFrame = ChoiceOption<String?>(
+  'frame',
+  'window frame',
+  values: [null, 'raised', 'bordered'],
+  labels: ['by the theme', 'raised', 'bordered'],
+);
+
 final _dockArea = GalleryPage(
-  group: 'Layout',
+  group: _group,
   title: 'DockArea',
   options: const [
-    SwitchOption('strip', 'tab strip', initial: true),
-    ChoiceOption(
-      'frame',
-      'window frame',
-      values: [null, 'raised', 'bordered'],
-      labels: ['by the theme', 'raised', 'bordered'],
-    ),
+    _dockAreaStrip,
+    _dockAreaFrame,
   ],
   build: (context, o) => _Dock(
-    tabStrip: o.flag('strip'),
-    windowFrame: switch (o.choice<String?>('frame')) {
+    tabStrip: o(_dockAreaStrip),
+    windowFrame: switch (o(_dockAreaFrame)) {
       final frame? => WindowFrame.values.byName(frame),
       null => null,
     },
   ),
   code: (o) => [
     _dockHead,
-    if (!o.flag('strip')) '        tabStrip: false,',
-    if (o.choice<String?>('frame') case final frame?)
-      '        windowFrame: .$frame,',
+    if (!o(_dockAreaStrip)) '        tabStrip: false,',
+    if (o(_dockAreaFrame) case final frame?) '        windowFrame: .$frame,',
     _dockTail,
   ].join('\n'),
 );

@@ -14,6 +14,9 @@ part 'pagination.dart';
 part 'popscope_navigatorobserver.dart';
 part 'stepper.dart';
 
+/// The group of the catalog these pages are in.
+const _group = 'Navigation';
+
 /// The pages of the Navigation group that draw.
 final List<GalleryPage> navigationPages = [
   _navigatorPage,

@@ -2,7 +2,7 @@
 part of 'controls.dart';
 
 final _numberinputPage = GalleryPage(
-  group: 'Controls',
+  group: _group,
   title: 'NumberInput',
   build: (context, o) => const _Numbers(),
   code: (o) => [

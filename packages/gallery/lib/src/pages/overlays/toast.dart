@@ -1,27 +1,33 @@
 // The Toast page.
 part of 'overlays.dart';
 
+/// The Toast page's `alignment` option.
+const _toastAlignment = ChoiceOption<String>(
+  'alignment',
+  'alignment',
+  values: ['bottomRight', 'topRight', 'bottomCenter'],
+);
+
+/// The Toast page's `duration` option.
+const _toastDuration = ChoiceOption<int>(
+  'duration',
+  'duration',
+  values: [1000, 3000, 5000],
+  labels: ['1 s', '3 s', '5 s'],
+  initial: 3000,
+);
+
 final _toastPage = GalleryPage(
-  group: 'Overlays',
+  group: _group,
   title: 'Toast',
   options: [
-    const ChoiceOption(
-      'alignment',
-      'alignment',
-      values: ['bottomRight', 'topRight', 'bottomCenter'],
-    ),
-    const ChoiceOption(
-      'duration',
-      'duration',
-      values: [1000, 3000, 5000],
-      labels: ['1 s', '3 s', '5 s'],
-      initial: 3000,
-    ),
+    _toastAlignment,
+    _toastDuration,
     _lookOption,
   ],
   build: (context, o) => _Toasts(
-    alignment: o.choice('alignment'),
-    ms: o.choice('duration'),
+    alignment: o(_toastAlignment),
+    ms: o(_toastDuration),
     look: _lookOf(o),
   ),
   code: (o) => [
@@ -38,8 +44,8 @@ final _toastPage = GalleryPage(
     '  showToast(',
     '    context,',
     '    message,',
-    '    alignment: .${o.label('alignment')},',
-    if (o.choice<int>('duration') != 3000)
+    '    alignment: .${o.nameOf(_toastAlignment)},',
+    if (o(_toastDuration) != 3000)
       '    duration: const Duration(seconds: ${_seconds(o)}),',
     '    style: style,',
     ..._lookLine(o, '    '),
@@ -52,7 +58,7 @@ final _toastPage = GalleryPage(
 );
 
 /// The Toast page's duration in seconds.
-int _seconds(Options o) => o.choice<int>('duration') ~/ 1000;
+int _seconds(Options o) => o(_toastDuration) ~/ 1000;
 
 /// The Code's line that builds the Toast page's button.
 const _toastBuildLine =

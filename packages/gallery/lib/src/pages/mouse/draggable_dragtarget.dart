@@ -1,13 +1,20 @@
 // The Draggable, DragTarget page.
 part of 'mouse.dart';
 
+/// The Draggable, DragTarget page's `ghost` option.
+const _draggableDragtargetGhost = SwitchOption(
+  'ghost',
+  'child when dragging',
+  initial: true,
+);
+
 final _draggableDragtargetPage = GalleryPage(
-  group: 'Mouse',
+  group: _group,
   title: 'Draggable, DragTarget',
   options: const [
-    SwitchOption('ghost', 'child when dragging', initial: true),
+    _draggableDragtargetGhost,
   ],
-  build: (context, o) => _Fruit(ghost: o.flag('ghost')),
+  build: (context, o) => _Fruit(ghost: o(_draggableDragtargetGhost)),
   code: _fruitCode,
 );
 
@@ -279,7 +286,7 @@ String _fruitCode(Options o) => [
   '        child: label(theme.text.merge(bold)),',
   '      ),',
   '    ),',
-  if (o.flag('ghost'))
+  if (o(_draggableDragtargetGhost))
     r"    childWhenDragging: Text('● $fruit', style: theme.muted),",
   _canceledLine,
   '    child: label(),',

@@ -1,36 +1,48 @@
 // The SelectionArea page.
 part of 'mouse.dart';
 
+/// The SelectionArea page's `view` option.
+const _selectionareaView = ChoiceOption<String>(
+  'view',
+  'selected in',
+  values: ['texts', 'log'],
+  labels: ['two Texts', 'a painted log'],
+);
+
+/// The SelectionArea page's `copy` option.
+const _selectionareaCopy = SwitchOption(
+  'copy',
+  'copy on release',
+  initial: true,
+);
+
+/// The SelectionArea page's `style` option.
+const _selectionareaStyle = ChoiceOption<String>(
+  'style',
+  'style',
+  values: ['selection', 'reverse'],
+  labels: ["the theme's", 'reverse'],
+);
+
 final _selectionareaPage = GalleryPage(
-  group: 'Mouse',
+  group: _group,
   title: 'SelectionArea',
   options: const [
-    ChoiceOption(
-      'view',
-      'selected in',
-      values: ['texts', 'log'],
-      labels: ['two Texts', 'a painted log'],
-    ),
-    SwitchOption('copy', 'copy on release', initial: true),
-    ChoiceOption(
-      'style',
-      'style',
-      values: ['selection', 'reverse'],
-      labels: ["the theme's", 'reverse'],
-    ),
+    _selectionareaView,
+    _selectionareaCopy,
+    _selectionareaStyle,
   ],
-  build: (context, o) => o.choice<String>('view') == 'log'
+  build: (context, o) => o(_selectionareaView) == 'log'
       ? _SelectionLog(
-          copyOnRelease: o.flag('copy'),
-          reverse: o.choice<String>('style') == 'reverse',
+          copyOnRelease: o(_selectionareaCopy),
+          reverse: o(_selectionareaStyle) == 'reverse',
         )
       : _Selection(
-          copyOnRelease: o.flag('copy'),
-          reverse: o.choice<String>('style') == 'reverse',
+          copyOnRelease: o(_selectionareaCopy),
+          reverse: o(_selectionareaStyle) == 'reverse',
         ),
-  code: (o) => o.choice<String>('view') == 'log'
-      ? _selectionLogCode(o)
-      : _selectionCode(o),
+  code: (o) =>
+      o(_selectionareaView) == 'log' ? _selectionLogCode(o) : _selectionCode(o),
 );
 
 /// The SelectionArea's width.
@@ -121,8 +133,8 @@ String _selectionCode(Options o) => [
   '      gap: 1,',
   '      children: [',
   '        SelectionArea(',
-  if (!o.flag('copy')) '          copyOnRelease: false,',
-  if (o.choice<String>('style') == 'reverse')
+  if (!o(_selectionareaCopy)) '          copyOnRelease: false,',
+  if (o(_selectionareaStyle) == 'reverse')
     '          style: const Style(attrs: Attr.reverse),',
   '          onCopy: (text) => setState(() => _copied = text),',
   '          child: const Column(',
@@ -355,8 +367,8 @@ String _selectionLogCode(Options o) => [
   '      gap: 1,',
   '      children: [',
   '        SelectionArea(',
-  if (!o.flag('copy')) '          copyOnRelease: false,',
-  if (o.choice<String>('style') == 'reverse')
+  if (!o(_selectionareaCopy)) '          copyOnRelease: false,',
+  if (o(_selectionareaStyle) == 'reverse')
     '          style: const Style(attrs: Attr.reverse),',
   '          onCopy: (text) => setState(() => _copied = text),',
   '          // the border primary while the focus is in it: Escape clears',
