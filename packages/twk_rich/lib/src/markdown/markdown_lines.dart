@@ -6,14 +6,15 @@ library;
 import 'dart:math' as math;
 
 import 'package:twk/twk.dart';
-import 'package:twk_core/twk_core.dart' show TextSegmenter, graphemeBoundaries;
+import 'package:twk_core/twk_core.dart'
+    show TextSegmenter, TextWrap, breakLines, graphemeBoundaries;
 
+import '../highlight/highlight.dart';
 import 'inline_spans.dart';
 import 'markdown_theme.dart';
 import 'markdown_view.dart';
 import 'nodes.dart';
 import 'stream.dart';
-import 'wrap_spans.dart';
 
 // Examples can assume:
 // import 'package:twk/twk.dart';
@@ -41,8 +42,10 @@ import 'wrap_spans.dart';
 /// an image are hyperlinks (`Style.link`) where they lead to the web or an
 /// address, as in a [MarkdownView] by default; they are not told apart
 /// otherwise, as a panel of one's own has its own pointer. A block of code
-/// is not highlighted, only in the code block's style, with its tabs 4
-/// columns apart and its lines broken between graphemes.
+/// is highlighted in the language its info string names, in the styles of
+/// [MarkdownTheme.syntax], over the code block's style, with its tabs 4
+/// columns apart and its lines broken between graphemes. Lines break as
+/// the core breaks them ([breakLines]).
 ///
 /// Where it differs from the widgets: the rule under a table's header
 /// ends with its last column, not at the view's edge, and a column too
@@ -115,7 +118,12 @@ final class _Renderer {
           width,
           base.merge(theme.heading(level)),
         ),
-        MdCodeBlock(:final code) => _code(code, width, base),
+        MdCodeBlock(:final code, :final language) => _code(
+          code,
+          languageNamed(language),
+          width,
+          base,
+        ),
         MdThematicBreak() => [
           [Span('─' * width, theme.rule)],
         ],
@@ -193,35 +201,71 @@ final class _Renderer {
   }
 
   /// The lines of [code], a cell in from either side on the fill of the
-  /// code block's style.
-  List<List<Span>> _code(String code, int width, Style base) {
+  /// code block's style, its tokens in [language] in the styles of the
+  /// theme's [MarkdownTheme.syntax].
+  List<List<Span>> _code(
+    String code,
+    Language language,
+    int width,
+    Style base,
+  ) {
     final style = base.merge(theme.codeBlock);
-    final rows = code.split('\n');
-    if (rows.length > 1 && rows.last.isEmpty) {
-      rows.removeLast();
+    final source = Highlighter(language, code);
+    var rows = source.lineCount;
+    if (rows > 1 && source.line(rows - 1).isEmpty) {
+      rows--;
     }
     final inner = math.max(1, width - 2);
     final out = <List<Span>>[];
-    for (final row in rows) {
-      final text = _expandTabs(row, 4);
-      final pieces = _wrap([Span(text)], inner, const Style(), grapheme: true);
-      for (final piece in pieces.isEmpty ? [const <Span>[]] : pieces) {
-        final shown = piece.map((span) => span.text).join();
-        final fill = width - 1 - _widthOf(shown);
-        out.add([Span(' $shown${' ' * math.max(0, fill)}', style)]);
+    for (var r = 0; r < rows; r++) {
+      var column = 0;
+      final spans = <Span>[];
+      for (final token in source.tokens(r)) {
+        final (text, next) = _expandTabs(token.text, 4, column);
+        column = next;
+        spans.add(Span(text, theme.syntax.styleOf(token.kind)));
+      }
+      for (final piece in _wrap(spans, inner, style, grapheme: true)) {
+        final shown = piece.fold<int>(0, (w, s) => w + _widthOf(s.text));
+        final fill = width - 1 - shown;
+        out.add(
+          _merged([
+            Span(' ', style),
+            ...piece,
+            Span(' ' * math.max(0, fill), style),
+          ]),
+        );
       }
     }
     return out;
   }
 
-  static String _expandTabs(String row, int tabWidth) {
-    if (!row.contains('\t')) {
-      return row;
+  /// [spans] with adjacent ones of one style made one, and none empty.
+  static List<Span> _merged(List<Span> spans) {
+    final out = <Span>[];
+    for (final span in spans) {
+      if (span.text.isEmpty) {
+        continue;
+      }
+      if (out.isNotEmpty && out.last.style == span.style) {
+        out.last = Span(out.last.text + span.text, span.style);
+      } else {
+        out.add(span);
+      }
+    }
+    return out;
+  }
+
+  /// [text] with its tabs spaces up to the next multiple of [tabWidth]
+  /// columns, [from0] being the column it starts at; and the column it ends at.
+  static (String, int) _expandTabs(String text, int tabWidth, int from0) {
+    var column = from0;
+    if (!text.contains('\t')) {
+      return (text, column + _widthOf(text));
     }
     final out = StringBuffer();
-    var column = 0;
-    for (final (from, to) in graphemeBoundaries(row)) {
-      final cluster = row.substring(from, to);
+    for (final (from, to) in graphemeBoundaries(text)) {
+      final cluster = text.substring(from, to);
       if (cluster == '\t') {
         final n = tabWidth - column % tabWidth;
         out.write(' ' * n);
@@ -231,7 +275,7 @@ final class _Renderer {
         column += _widthOf(cluster);
       }
     }
-    return out.toString();
+    return (out.toString(), column);
   }
 
   List<List<Span>> _table(MdTable table, int width, Style base) {
@@ -344,11 +388,43 @@ final class _Renderer {
   }
 
   /// [spans] wrapped to [width] columns, each in [base] merged under its
-  /// own style.
+  /// own style, as a `Text` breaks lines ([breakLines]); between any two
+  /// graphemes with [grapheme].
   List<List<Span>> _wrap(
     List<Span> spans,
     int width,
     Style base, {
     bool grapheme = false,
-  }) => wrapSpans(spans, width, base, grapheme: grapheme);
+  }) {
+    final text = spans.map((span) => span.text).join();
+    final ranges = breakLines(
+      text,
+      width,
+      wrap: grapheme ? TextWrap.grapheme : TextWrap.word,
+    );
+    final lines = <List<Span>>[];
+    var k = 0; // the span the cursor is in
+    var at = 0; // where span k starts in [text]
+    for (final (from, to) in ranges) {
+      while (k < spans.length && at + spans[k].text.length <= from) {
+        at += spans[k].text.length;
+        k++;
+      }
+      final line = <Span>[];
+      var i = k;
+      var start = at;
+      while (i < spans.length && start < to) {
+        final piece = spans[i].text;
+        final a = math.max(from, start) - start;
+        final b = math.min(to, start + piece.length) - start;
+        if (b > a) {
+          line.add(Span(piece.substring(a, b), base.merge(spans[i].style)));
+        }
+        start += piece.length;
+        i++;
+      }
+      lines.add(_merged(line));
+    }
+    return lines;
+  }
 }

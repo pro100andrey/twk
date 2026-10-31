@@ -127,6 +127,35 @@ enum TextWrap {
   none,
 }
 
+/// [text] broken into lines of at most [width] columns as a
+/// [RenderParagraph] of [wrap] breaks it, as (start, end) offsets into
+/// [text], in UTF-16 code units: the line's drawn text, without the spaces
+/// that hang at a break by word and without the line break that ends it. A
+/// text without a character has one empty line; a cluster wider than
+/// [width] stands on a line of its own.
+///
+/// ```dart
+/// final lines = breakLines('well-known words', 8);
+/// // [(0, 5), (5, 10), (11, 16)]: "well-" "known" "words"
+/// ```
+List<(int, int)> breakLines(
+  String text,
+  int width, {
+  TextWrap wrap = TextWrap.word,
+}) {
+  final p = RenderParagraph([(text, const Pen())], wrap: wrap)
+    .._shape()
+    .._findOffsets()
+    .._layoutLines(width < 1 ? 1 : width);
+  return [
+    for (var i = 0; i < p._lineCount; i++)
+      (
+        p._offsetAt(p._lines[i * _lineStride]),
+        p._offsetAt(p._lines[i * _lineStride + 1]),
+      ),
+  ];
+}
+
 /// How a [RenderParagraph] shows that it cut text off: a line too long for
 /// it, or the lines beyond its [RenderParagraph.maxLines].
 enum TextOverflow {

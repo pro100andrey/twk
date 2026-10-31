@@ -17,26 +17,28 @@ const rule = Color.rgb(0, 0, 5);
 const tableHeader = Color.rgb(0, 0, 6);
 const tableBorder = Color.rgb(0, 0, 7);
 
-const theme = MarkdownTheme(
-  heading1: Style(fg: heading, attrs: Attr.bold),
-  heading2: Style(fg: heading),
-  heading3: Style(fg: heading),
-  heading4: Style(fg: heading),
-  heading5: Style(fg: heading),
-  heading6: Style(fg: heading),
-  emphasis: Style(attrs: Attr.italic),
-  strong: Style(attrs: Attr.bold),
-  strikethrough: Style(attrs: Attr.strike),
-  code: Style(fg: code),
-  link: Style(fg: link, attrs: Attr.underline),
-  image: Style(fg: link),
-  codeBlock: Style(bg: codeBlock),
-  quote: Style(fg: quote),
-  quoteBar: Style(fg: quoteBar),
-  marker: Style(fg: marker),
-  rule: Style(fg: rule),
-  tableHeader: Style(fg: tableHeader, attrs: Attr.bold),
-  tableBorder: Style(fg: tableBorder),
+// the code blocks' syntax is that of the theme the views are shown in
+final theme = MarkdownTheme(
+  heading1: const Style(fg: heading, attrs: Attr.bold),
+  heading2: const Style(fg: heading),
+  heading3: const Style(fg: heading),
+  heading4: const Style(fg: heading),
+  heading5: const Style(fg: heading),
+  heading6: const Style(fg: heading),
+  emphasis: const Style(attrs: Attr.italic),
+  strong: const Style(attrs: Attr.bold),
+  strikethrough: const Style(attrs: Attr.strike),
+  code: const Style(fg: code),
+  link: const Style(fg: link, attrs: Attr.underline),
+  image: const Style(fg: link),
+  codeBlock: const Style(bg: codeBlock),
+  quote: const Style(fg: quote),
+  quoteBar: const Style(fg: quoteBar),
+  marker: const Style(fg: marker),
+  rule: const Style(fg: rule),
+  tableHeader: const Style(fg: tableHeader, attrs: Attr.bold),
+  tableBorder: const Style(fg: tableBorder),
+  syntax: SyntaxTheme.from(ThemeData.dark),
 );
 
 /// The text of each line.
@@ -216,6 +218,23 @@ void main() {
       expect(lines.first.single.style, const Style(bg: codeBlock));
     });
 
+    test('code is highlighted in the language of its fence, over the fill', () {
+      final lines = renderMarkdown('```dart\nvar a = 1;\n```\n', 12, theme);
+      expect(lines.map(text), [' var a = 1; ']);
+      final syntax = theme.syntax;
+      const fill = Style(bg: codeBlock);
+      expect(lines.single, [
+        const Span(' ', fill),
+        Span('var', fill.merge(syntax.keyword)),
+        const Span(' a ', fill),
+        Span('=', fill.merge(syntax.operator)),
+        const Span(' ', fill),
+        Span('1', fill.merge(syntax.number)),
+        // punctuation has no style of its own: it is the fill's
+        const Span('; ', fill),
+      ]);
+    });
+
     test('a table: columns as wide as their text, aligned, lines between '
         'them and under the header', () {
       final lines = renderMarkdown(
@@ -259,7 +278,10 @@ void main() {
         t,
       ) async {
         await t.pumpWidget(
-          const MarkdownView(document, theme: theme),
+          Theme(
+            data: ThemeData.dark,
+            child: MarkdownView(document, theme: theme),
+          ),
           size: (width, 80),
         );
         final lines = texts(document, width);
@@ -274,7 +296,10 @@ void main() {
         t,
       ) async {
         await t.pumpWidget(
-          const MarkdownView(document, theme: theme),
+          Theme(
+            data: ThemeData.dark,
+            child: MarkdownView(document, theme: theme),
+          ),
           size: (width, 80),
         );
         final lines = renderMarkdown(document, width, theme);
@@ -288,8 +313,7 @@ void main() {
               final at = '"$cluster" at $x,$y';
               expect(cell.link, style.link, reason: 'link of $at');
               expect(cell.bg, style.bg?.value ?? 0, reason: 'bg of $at');
-              // code is not highlighted: its fg is the view's syntax colors
-              if (cluster != ' ' && style.bg != const Color.rgb(0, 0, 1)) {
+              if (cluster != ' ') {
                 expect(cell.fg, style.fg?.value ?? 0, reason: 'fg of $at');
                 expect(cell.attrs, style.attrs, reason: 'attrs of $at');
               }

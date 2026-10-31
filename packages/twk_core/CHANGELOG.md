@@ -36,7 +36,7 @@ The first release.
   (`pasteLimit`, `sequenceLimit`), a longer paste in pieces
   (`PasteEvent.more`).
 - Unicode: grapheme segmentation, widths in two modes (`TextSegmenter`,
-  `stringWidth`, `fitText`) and bidirectional text (`BidiText`).
+  `stringWidth`, `fitText`, `breakLines`) and bidirectional text (`BidiText`).
 - `package:twk_core/terminal.dart`: the terminal, styles, input and lines
   of text without the render tree.
 - `HeadlessTerminal`, `renderToString` and `LineEncoder`, for tests and
