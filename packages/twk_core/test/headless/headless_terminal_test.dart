@@ -116,10 +116,10 @@ void main() {
     expect(term.inputTimeout, isNull);
   });
 
-  test('with the kitty protocol even a lone ESC waits long', () {
+  test('with the kitty protocol a lone ESC waits the escape timeout too', () {
     open(kittyKeyboard: true);
     term.type('\x1b');
-    expect(term.inputTimeout, const Duration(milliseconds: 500));
+    expect(term.inputTimeout, const Duration(milliseconds: 30));
   });
 
   test('a paste whose end marker was lost ends when timed out', () async {

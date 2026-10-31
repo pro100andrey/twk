@@ -135,12 +135,10 @@ final class TerminalInfo {
   final bool graphemeMode;
 
   /// Whether the kitty keyboard protocol is supported (`CSI ? u` was
-  /// answered) and enabled: the Escape key arrives as `CSI 27 u`, so a lone
-  /// ESC byte starts a sequence; it counts as the Escape key only after a
-  /// long pause (500 ms), in case the terminal sends a legacy ESC after
-  /// all. Once one did (Konsole answers for the protocol and sends the
-  /// Escape key as a lone ESC), a lone ESC waits
-  /// [TerminalOptions.escapeTimeout] from then on, as without it.
+  /// answered) and enabled: the Escape key should arrive as `CSI 27 u`.
+  /// A lone ESC is still read as the Escape key after
+  /// [TerminalOptions.escapeTimeout], as without the protocol: Konsole 26.08
+  /// answers for it and sends the Escape key as a lone ESC all the same.
   final bool kittyKeyboard;
 
   /// The kitty keyboard protocol's flags pushed where [kittyKeyboard]
@@ -380,8 +378,7 @@ final class TerminalOptions {
 
   /// How long a lone ESC (or ESC and an introducer such as `[`) waits for
   /// the rest of a sequence before it counts as the Escape key (or Alt+key).
-  /// Only used without the kitty keyboard protocol, or once a terminal
-  /// that has it sent the Escape key as a lone ESC all the same (see
+  /// With the kitty keyboard protocol too (see
   /// [TerminalInfo.kittyKeyboard]); a sequence whose parameters arrived
   /// waits 500 ms.
   final Duration escapeTimeout;
@@ -834,8 +831,8 @@ final class Terminal
     this._outputTrace,
   ]) : _out = _outbox(_link, _outputTrace);
 
-  /// How long a sequence that has surely started (or, with the kitty
-  /// protocol, any ESC) may wait for the rest of its bytes.
+  /// How long a sequence that has surely started may wait for the rest of
+  /// its bytes.
   static const _longEscapeTimeout = Duration(milliseconds: 500);
 
   /// What the terminal was opened with.
@@ -1765,33 +1762,13 @@ final class Terminal
     if (_parser.hasPending) {
       // A sequence split across reads (a slow link) must not be cut: only a
       // lone ESC, or ESC and an introducer, may be a key typed by the user.
-      // With the kitty protocol even a lone ESC isn't the Escape key; it is
-      // resolved only after a long pause, in case the terminal sends a
-      // legacy ESC after all, until it has
-      final wait =
-          (info.kittyKeyboard && !_legacyEscape) || _parser.sequenceStarted
+      // So it is with the kitty protocol too, which a terminal may answer
+      // for and still send the Escape key as a lone ESC (Konsole 26.08)
+      final wait = _parser.sequenceStarted
           ? _longEscapeTimeout
           : options.escapeTimeout;
-      _escTimer = Timer(wait, () => _parse(_flushEscape));
+      _escTimer = Timer(wait, () => _parse(_parser.flush));
     }
-  }
-
-  /// Whether the terminal answered for the kitty keyboard protocol but
-  /// sent the Escape key as a lone ESC all the same (Konsole does): from
-  /// then on a lone ESC waits [TerminalOptions.escapeTimeout], as without
-  /// the protocol.
-  var _legacyEscape = false;
-
-  /// What the parser held once the wait for the rest of it ran out; the
-  /// Escape key it made of a lone ESC under the kitty protocol tells that
-  /// the terminal sends it so.
-  List<InputEvent> _flushEscape() {
-    final events = _parser.flush();
-    if (events case [KeyEvent(code: KeyCode.escape, modifiers: 0)]
-        when info.kittyKeyboard) {
-      _legacyEscape = true;
-    }
-    return events;
   }
 
   /// Delivers what one parser step produced. Input is read outside the

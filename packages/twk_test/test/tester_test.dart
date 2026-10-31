@@ -202,7 +202,7 @@ void main() {
   });
 
   testTwk('with the kitty keyboard protocol, Escape is a sequence of its '
-      'own and a lone ESC waits 500 ms', (t) async {
+      'own, and a lone ESC waits 30 ms as without it', (t) async {
     final events = <InputEvent>[];
     await t.pumpWidget(
       Echo(events),
@@ -216,7 +216,7 @@ void main() {
     ]);
     expect(t.clock.elapsed, Duration.zero);
     await t.type('\x1b');
-    await t.pump(const Duration(milliseconds: 499));
+    await t.pump(const Duration(milliseconds: 29));
     expect(events, hasLength(2));
     await t.pump(const Duration(milliseconds: 1));
     expect(events.last, const KeyEvent(KeyCode.escape));

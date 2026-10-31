@@ -426,7 +426,7 @@ is 0. It starts no timers: a lone
 ESC, or a paste whose end marker was lost, waits for `timeOutInput()`,
 which a caller keeping a clock calls once `inputTimeout` has passed — the
 pause a `Terminal` would wait (the escape timeout, 500 ms for a started
-sequence or with the kitty protocol, the paste timeout).
+sequence, the paste timeout).
 `renderToString(root, width, height, styles: …)` lays a render tree out at
 that size, paints it once and returns its rows as text (without the blanks
 that end them, a wide glyph once), or with `ansi: true` the presenter's

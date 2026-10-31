@@ -141,8 +141,8 @@ a file the app reads arrives whenever the operating system delivers it.
   `ResizeEvent`, and the next frame repaints the screen.
 
 A lone ESC typed with `type('\x1b')` stays pending in the parser. It
-becomes the Escape key after `pump(const Duration(milliseconds: 30))`
-(500 ms with the kitty protocol), unless more input comes first.
+becomes the Escape key after `pump(const Duration(milliseconds: 30))`,
+with the kitty protocol too, unless more input comes first.
 
 ### The screen
 
