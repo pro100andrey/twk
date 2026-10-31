@@ -706,6 +706,12 @@ What to know:
 
 ## Pitfalls
 
+- `package:twk/twk.dart` exports all of twk, as Flutter's `material.dart`
+  does, generic names among them (`TaskStatus`, `Step`, `Gauge`, `Table`,
+  `Chip`, `Window`, `Callout`). Keep the app's own names and hide twk's
+  where both are imported: `import 'package:twk/twk.dart' hide
+  TaskStatus;` (or a prefix on the app's own import); do not rename the
+  app's types around twk.
 - Give generic widgets their type argument: `Table<Entry>(rows:,
   columns: [TableColumn(cell: (e) => …)])`. Columns written inside the
   call get no type from `rows`, and `e.name` does not analyze.
