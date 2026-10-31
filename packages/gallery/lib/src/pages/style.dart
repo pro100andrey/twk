@@ -3,9 +3,8 @@ import 'dart:async';
 
 import 'package:twk/twk.dart';
 
-import '../motion.dart';
 import '../page.dart';
-import 'common.dart';
+import 'kit/kit.dart';
 
 /// The pages of the Style group that draw.
 final stylePages = [
@@ -185,7 +184,6 @@ final class _Preset {
 }
 
 const _cardWidth = 46;
-const _bold = Style(attrs: Attr.bold);
 
 /// twk's _Swatches of the Code: each style of the theme, named in it, on
 /// its background, a panel on its surface; with a [name], the name on its
@@ -200,13 +198,11 @@ final class _Swatches extends StatefulWidget {
   State<_Swatches> createState() => _SwatchesState();
 }
 
-final class _SwatchesState extends State<_Swatches> {
-  late final Map<String, Object?> _kept = PageControl.of(context).state;
-
-  bool get _checked => _kept['check'] as bool? ?? true;
-  set _checked(bool v) => _kept['check'] = v;
-  bool get _on => _kept['on'] as bool? ?? true;
-  set _on(bool v) => _kept['on'] = v;
+final class _SwatchesState extends State<_Swatches> with KeptState {
+  bool get _checked => kept['check'] as bool? ?? true;
+  set _checked(bool v) => kept['check'] = v;
+  bool get _on => kept['on'] as bool? ?? true;
+  set _on(bool v) => kept['on'] = v;
 
   @override
   Widget build(BuildContext context) {
@@ -232,7 +228,7 @@ final class _SwatchesState extends State<_Swatches> {
         border: Border.all(type: BorderType.rounded, style: theme.border),
         titles: [
           if (name != null)
-            BorderTitle(' $name ', style: theme.text.merge(_bold)),
+            BorderTitle(' $name ', style: theme.text.merge(bold)),
         ],
         padding: const EdgeInsets.x(2),
         child: Column(
@@ -409,29 +405,17 @@ final class _ThemePage extends StatefulWidget {
   State<_ThemePage> createState() => _ThemePageState();
 }
 
-final class _ThemePageState extends State<_ThemePage> {
-  late final _motion = Motion(() {
-    if (mounted) {
-      setState(() {});
-    }
-  });
-
-  @override
-  void dispose() {
-    _motion.dispose();
-    super.dispose();
-  }
-
+final class _ThemePageState extends State<_ThemePage> with MotionState {
   @override
   Widget build(BuildContext context) {
-    _motion.begin(context);
+    motion.begin(context);
     final control = PageControl.of(context);
     final kept = control.state;
-    final now = _motion.now;
+    final now = motion.now;
     final n = _presets.length;
     final c = widget.chosen < 0 ? 0 : widget.chosen;
     var on = widget.cycle;
-    final born = kept['born'] as Duration? ?? (_motion.frozen ? .zero : now);
+    final born = kept['born'] as Duration? ?? (motion.frozen ? .zero : now);
     kept['born'] = born;
     var d = kept['drive'] as Drive?;
     if (on && d != null && d.on && c != d.last) {
@@ -453,7 +437,7 @@ final class _ThemePageState extends State<_ThemePage> {
       final k = (now - d.since).inMilliseconds ~/ _cycle;
       final steps = k < 0 ? 0 : k;
       i = (d.from + steps) % n;
-      _motion.wakeAt(
+      motion.wakeAt(
         d.since + const Duration(milliseconds: _cycle) * (steps + 1),
       );
     }
@@ -463,7 +447,7 @@ final class _ThemePageState extends State<_ThemePage> {
       scheduleMicrotask(() => control.setOption('theme', key));
       d.last = i;
     }
-    _motion.end();
+    motion.end();
     final preset = _presets[i];
     return Theme(data: preset.data, child: _Swatches(preset.name));
   }
@@ -757,22 +741,10 @@ final class _Flowing extends StatefulWidget {
   State<_Flowing> createState() => _FlowingState();
 }
 
-final class _FlowingState extends State<_Flowing> {
-  late final _motion = Motion(() {
-    if (mounted) {
-      setState(() {});
-    }
-  });
-
-  @override
-  void dispose() {
-    _motion.dispose();
-    super.dispose();
-  }
-
+final class _FlowingState extends State<_Flowing> with MotionState {
   @override
   Widget build(BuildContext context) {
-    _motion.begin(context);
+    motion.begin(context);
     final o = widget.options;
     final theme = Theme.of(context);
     final (dark, light) = widget.sets[o.choice<String>('colors')]!;
@@ -786,31 +758,25 @@ final class _FlowingState extends State<_Flowing> {
     final stops = _stopsOf(o.choice('stops'), colors.length);
     final Gradient gradient;
     if (o.flag('flow')) {
-      final ms = _motion.now.inMilliseconds % _turn;
+      final ms = motion.now.inMilliseconds % _turn;
       gradient = Gradient(
         colors,
         stops: stops,
         phase: ms / _turn,
         direction: axis,
       );
-      _motion.animate();
+      motion.animate();
     } else {
       gradient = Gradient(colors, stops: stops, direction: axis);
     }
-    _motion.end();
+    motion.end();
     return widget.build(context, gradient);
   }
 }
 
-/// The lines of the call [head]([args]) and [tail]: on one line where it
-/// fits in 80 columns, else an argument a line with a comma after each.
-List<String> _call(String head, List<String> args, String tail) {
-  final one = '$head(${args.join(', ')})$tail';
-  if (one.length <= 80) {
-    return [one];
-  }
-  return ['$head(', for (final a in args) '  $a,', ')$tail'];
-}
+/// [call] at the line's start, to the whole 80 columns.
+List<String> _call(String head, List<String> args, String tail) =>
+    call(0, head, args, tail, width: 80);
 
 /// The Dart of a gradient page: [child] lines build the widget from
 /// `gradient`, in a State named after [name] that runs a controller while

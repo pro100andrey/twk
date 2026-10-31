@@ -8,7 +8,7 @@ import '../paint.dart';
 import '../shell/tokens.dart';
 import 'cli_code.dart';
 import 'cli_stage.dart' if (dart.library.js_interop) 'cli_stage_web.dart';
-import 'common.dart' show TimedState, codeLine;
+import 'kit/kit.dart' show TimedState, codeLine;
 
 /// The pages of the App group that draw.
 final List<GalleryPage> appPages = [

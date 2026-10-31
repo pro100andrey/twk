@@ -4,9 +4,8 @@ import 'dart:math' as math;
 
 import 'package:twk/twk.dart';
 
-import '../motion.dart';
 import '../page.dart';
-import 'common.dart';
+import 'kit/kit.dart';
 
 /// The pages of the Layout group that draw.
 final layoutPages = <GalleryPage>[
@@ -38,54 +37,17 @@ final layoutPages = <GalleryPage>[
 
 // ------------------------------------------------------------ shared
 
-/// The lines of the call [head]([args]) at [indent], then [tail], as the
-/// layout pages write them: on one line where it fits in 80
-/// columns, else an argument a line with a comma after each.
-List<String> _call(int indent, String head, List<String> args, String tail) {
-  final pad = ' ' * indent;
-  final one = '$pad$head(${args.join(', ')})$tail';
-  if (one.length <= 80) {
-    return [one];
-  }
-  return [
-    '$pad$head(',
-    for (final a in args) '$pad  $a,',
-    '$pad)$tail',
-  ];
-}
+/// [call] as the layout pages' Codes write it: to the whole 80 columns.
+List<String> _call(int indent, String head, List<String> args, String tail) =>
+    call(indent, head, args, tail, width: 80);
 
 /// A rounded border in the theme's border style.
 Border _rounded(ThemeData theme, {bool merge = false}) =>
     Border.all(type: BorderType.rounded, style: theme.border, merge: merge);
 
-/// [key] of the page's state, made by [create] the first time: what
-/// outlives a visit to another page.
-T _kept<T>(BuildContext context, String key, T Function() create) =>
-    PageControl.of(context).state.putIfAbsent(key, create) as T;
-
-// twk's Alignment by name, and an Alignment's x and y as two choices
-const _alignments = [
-  'topLeft',
-  'topCenter',
-  'topRight',
-  'centerLeft',
-  'center',
-  'centerRight',
-  'bottomLeft',
-  'bottomCenter',
-  'bottomRight',
-];
-const Map<String, Alignment> _byName = {
-  'topLeft': Alignment.topLeft,
-  'topCenter': Alignment.topCenter,
-  'topRight': Alignment.topRight,
-  'centerLeft': Alignment.centerLeft,
-  'center': Alignment.center,
-  'centerRight': Alignment.centerRight,
-  'bottomLeft': Alignment.bottomLeft,
-  'bottomCenter': Alignment.bottomCenter,
-  'bottomRight': Alignment.bottomRight,
-};
+// twk's Alignments' names, row by row, and an Alignment's x and y as two
+// choices
+final List<String> _alignments = alignmentByName.keys.toList();
 
 List<PageOption> _alignOptions(int x, int y) => [
   ChoiceOption(
@@ -182,7 +144,7 @@ final _box = GalleryPage(
             BorderTitle(
               ' build ',
               style: theme.text.merge(const Style(attrs: Attr.bold)),
-              alignment: _byName[o.choice<String>('at')]!,
+              alignment: alignmentByName[o.choice<String>('at')]!,
             ),
             BorderTitle(
               ' 2 warnings ',
@@ -1075,7 +1037,7 @@ final _fractionallySizedBox = GalleryPage(
       child: Box(
         border: _rounded(theme),
         child: FractionallySizedBox(
-          alignment: _byName[o.choice<String>('alignment')]!,
+          alignment: alignmentByName[o.choice<String>('alignment')]!,
           widthFactor: wf,
           heightFactor: hf,
           child: Box(
@@ -1524,26 +1486,14 @@ final class _Ticks extends StatefulWidget {
   State<_Ticks> createState() => _TicksState();
 }
 
-final class _TicksState extends State<_Ticks> {
-  late final _motion = Motion(() {
-    if (mounted) {
-      setState(() {});
-    }
-  });
-
-  @override
-  void dispose() {
-    _motion.dispose();
-    super.dispose();
-  }
-
+final class _TicksState extends State<_Ticks> with MotionState {
   @override
   Widget build(BuildContext context) {
-    _motion.begin(context);
-    final now = _motion.now.inMilliseconds;
-    final born = _kept<int>(context, 'born', () => _motion.frozen ? 0 : now);
+    motion.begin(context);
+    final now = motion.now.inMilliseconds;
+    final born = keptAt<int>(context, 'born', () => motion.frozen ? 0 : now);
     final steps = math.max(0, (now - born) ~/ widget.ms);
-    _motion
+    motion
       ..wakeAt(Duration(milliseconds: born + (steps + 1) * widget.ms))
       ..end();
     return widget.builder(context, steps);
@@ -2301,7 +2251,7 @@ final class _Split extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final split = _kept(
+    final split = keptAt(
       context,
       'split',
       () => SplitController(fractions: [1, 2, 1]),
@@ -2420,7 +2370,7 @@ final class _Dock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dock = _kept(context, 'dock', () => DockController(_docked()));
+    final dock = keptAt(context, 'dock', () => DockController(_docked()));
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2484,10 +2434,9 @@ final class _Clicks extends StatefulWidget {
   State<_Clicks> createState() => _ClicksState();
 }
 
-final class _ClicksState extends State<_Clicks> {
-  late final Map<String, Object?> _state = PageControl.of(context).state;
-  int get _count => _state['count'] as int? ?? 0;
-  set _count(int n) => _state['count'] = n;
+final class _ClicksState extends State<_Clicks> with KeptState {
+  int get _count => kept['count'] as int? ?? 0;
+  set _count(int n) => kept['count'] = n;
 
   @override
   Widget build(BuildContext context) {
@@ -2623,7 +2572,7 @@ final class _NotesPageState extends State<_Notes> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final o = widget.o;
-    final k = _kept(context, 'notes', _NotesState.new);
+    final k = keptAt(context, 'notes', _NotesState.new);
     return SizedBox(
       width: o.number('width').toInt(),
       height: 12,
@@ -2916,12 +2865,10 @@ final class _Sections extends StatefulWidget {
   State<_Sections> createState() => _SectionsState();
 }
 
-final class _SectionsState extends State<_Sections> {
-  late final Map<String, Object?> _kept = PageControl.of(context).state;
-
-  bool get _verify => _kept['verify'] as bool? ?? true;
-  String get _did => _kept['did'] as String? ?? '';
-  int get _serial => _kept['serial'] as int? ?? 0;
+final class _SectionsState extends State<_Sections> with KeptState {
+  bool get _verify => kept['verify'] as bool? ?? true;
+  String get _did => kept['did'] as String? ?? '';
+  int get _serial => kept['serial'] as int? ?? 0;
 
   ExpansionTile _section(
     String title,
@@ -2934,8 +2881,8 @@ final class _SectionsState extends State<_Sections> {
     initiallyExpanded: open,
     duration: widget.duration,
     onExpansionChanged: (expanded) => setState(() {
-      _kept['did'] = '${expanded ? 'opened' : 'closed'} $title';
-      _kept['serial'] = _serial + 1;
+      kept['did'] = '${expanded ? 'opened' : 'closed'} $title';
+      kept['serial'] = _serial + 1;
     }),
     child: child,
   );
@@ -2957,7 +2904,7 @@ final class _SectionsState extends State<_Sections> {
             Checkbox(
               value: _verify,
               label: 'verify certificates',
-              onChanged: (value) => setState(() => _kept['verify'] = value),
+              onChanged: (value) => setState(() => kept['verify'] = value),
             ),
           ],
         ),

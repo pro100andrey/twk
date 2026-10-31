@@ -6,7 +6,7 @@ import 'package:twk_core/twk_core.dart' show Pen, RenderParagraph;
 import 'package:twk_rich/twk_rich.dart';
 
 import '../page.dart';
-import 'common.dart';
+import 'kit/kit.dart';
 
 /// The pages of the Rich group that draw.
 final richPages = <GalleryPage>[
@@ -26,20 +26,6 @@ final richPages = <GalleryPage>[
 /// out.
 (int, int) _roomOf(StageRoom room) =>
     room == StageRoom.unbounded ? (56, 20) : (room.width, room.height);
-
-/// [build] with the stage's room.
-Widget _inRoom(Widget Function(int w, int h) build) => LayoutBuilder(
-  builder: (context, c) {
-    const most = 1 << 20;
-    return build(
-      c.maxW < BoxConstraints.unbounded ? c.maxW : most,
-      c.maxH < BoxConstraints.unbounded ? c.maxH : most,
-    );
-  },
-);
-
-/// [parts] as one line of the Code, a line too long for this file.
-String _l(List<String> parts) => parts.join();
 
 /// [child] as tall as it is, cut to the room where that is lower: the
 /// stage cuts a widget taller than its room, as the design's does, and so
@@ -183,7 +169,7 @@ final _markdownView = GalleryPage(
       disabled: (o) => o['content'] != 'document',
     ),
   ],
-  build: (context, o) => _inRoom((rw, rh) {
+  build: (context, o) => inRoom((rw, rh) {
     final theme = Theme.of(context);
     final w = math.min(o.number('width').toInt(), rw);
     final h = clampTo(rh, 6, 24);
@@ -360,7 +346,7 @@ final _markdownView = GalleryPage(
       'const _think = $_think;',
       'const _piece = $_piece;',
       'const _hold = $_hold;',
-      _l([
+      codeLine([
         'final _pieces = (_answer.length + ${_pieceLength - 1}) ~/ ',
         '$_pieceLength;',
       ]),
@@ -401,7 +387,7 @@ final _markdownView = GalleryPage(
       '      gap: 1,',
       '      children: [',
       '        Text.rich([',
-      _l([
+      codeLine([
         "          Span('› ', theme.primary.merge(const Style(attrs: ",
         'Attr.bold))),',
       ]),
@@ -426,7 +412,7 @@ final _markdownView = GalleryPage(
       '        Row(',
       '          gap: 1,',
       '          children: [',
-      _l([
+      codeLine([
         "            if (done) Text('✓', style: theme.success) else ",
         'Spinner(style: theme.primary),',
       ]),
@@ -593,7 +579,7 @@ final _codeView = GalleryPage(
     ),
     const SwitchOption('find', 'find'),
   ],
-  build: (context, o) => _inRoom((rw, rh) {
+  build: (context, o) => inRoom((rw, rh) {
     final theme = Theme.of(context);
     final w = math.min(o.number('width').toInt(), rw);
     final lang = o.choice<String>('lang');
@@ -690,7 +676,7 @@ final _codeView = GalleryPage(
         '  // the lines changed since the last commit, by their numbers',
         '  final changes = {',
         for (final MapEntry(:key, :value) in _changed[lang]!.entries)
-          _l([
+          codeLine([
             "    ${past + key}: CodeSign('$value', style: ",
             "${value == '+' ? 'theme.success' : 'theme.warning'}),",
           ]),
@@ -968,7 +954,7 @@ final _diffView = GalleryPage(
       labels: ["the path's", 'plain'],
     ),
   ],
-  build: (context, o) => _inRoom((rw, rh) {
+  build: (context, o) => inRoom((rw, rh) {
     final side = o.choice<String>('layout') == 'sideBySide';
     final plain = o.choice<String>('language') == 'plain';
     final w = math.min(rw, side ? 100 : 64);
@@ -1067,7 +1053,7 @@ final _diffView = GalleryPage(
       'Widget build(BuildContext context) {',
       '  final after = _edits',
       '      .take(_step)',
-      _l([
+      codeLine([
         '      .fold(_before, (text, edit) => ',
         r'text.replaceFirst(edit.$1, edit.$2));',
       ]),
@@ -1209,7 +1195,7 @@ final _bigText = GalleryPage(
         '  super.initState();',
         '  _timer = Timer.periodic(',
         '    const Duration(seconds: 1),',
-        _l([
+        codeLine([
           '    (_) => setState(() => _now = _now.add(const Duration(seconds: ',
           '1))),',
         ]),
@@ -1261,7 +1247,7 @@ final _bigText = GalleryPage(
       '    gap: 1,',
       '    children: [',
       '      // what the field and the gap leave: the font that fits in it',
-      _l([
+      codeLine([
         '      Flexible(child: BigText(_controller.text$font, ',
         'style: theme.$color)),',
       ]),
@@ -1299,10 +1285,9 @@ final class _TypedBig extends StatefulWidget {
   State<_TypedBig> createState() => _TypedBigState();
 }
 
-final class _TypedBigState extends State<_TypedBig> {
-  late final Map<String, Object?> _state = PageControl.of(context).state;
+final class _TypedBigState extends State<_TypedBig> with KeptState {
   late final _controller = TextEditingController(
-    text: _state['text'] as String? ?? 'Hello',
+    text: kept['text'] as String? ?? 'Hello',
   );
   final _focus = FocusNode(debugLabel: 'text');
 
@@ -1321,7 +1306,7 @@ final class _TypedBigState extends State<_TypedBig> {
 
   @override
   Widget build(BuildContext context) {
-    _bigState = _state;
+    _bigState = kept;
     final theme = Theme.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -1349,7 +1334,7 @@ final class _TypedBigState extends State<_TypedBig> {
                 focusNode: _focus,
                 placeholder: 'type here',
                 maxLength: _maxLength,
-                onChanged: (text) => setState(() => _state['text'] = text),
+                onChanged: (text) => setState(() => kept['text'] = text),
               ),
             ),
           ),
@@ -1585,7 +1570,7 @@ final _ansi = GalleryPage(
       labels: ['7 chars', '16', '64'],
     ),
   ],
-  build: (context, o) => _inRoom((rw, rh) {
+  build: (context, o) => inRoom((rw, rh) {
     final (title, _, output) = _outputs[o.choice<String>('output')]!;
     final rows = parseAnsi(output).length;
     final w = math.min(_ansiWidth, rw);
@@ -1695,7 +1680,7 @@ final _ansi = GalleryPage(
       "          titles: [BorderTitle('$title', style: theme.muted)],",
       '          child: Column(',
       '            crossAxisAlignment: .start,',
-      _l([
+      codeLine([
         '            children: [for (final line in $lines) ',
         'Text.rich(line, wrap: .none)],',
       ]),
@@ -1726,7 +1711,7 @@ final _ansi = GalleryPage(
         for (final l in box('_lines')) '  $l',
         '        Text.rich([',
         "          Span('read: ', theme.muted),",
-        _l([
+        codeLine([
           r"          Span('${_output.length} characters at once, ",
           r"${_lines.length} lines'),",
         ]),
@@ -1740,7 +1725,7 @@ final _ansi = GalleryPage(
     final size = o.choice<int>('piece');
     return [
       ...head,
-      _l([
+      codeLine([
         '// a piece of $size characters every $_pieceMs ms, as a program ',
         'writes;',
       ]),
@@ -1802,7 +1787,7 @@ final _ansi = GalleryPage(
       '          children: [',
       '            Text.rich([',
       "              Span('read: ', theme.muted),",
-      _l([
+      codeLine([
         r"              Span('$_read of ${_output.length} characters, ",
         r"$_size at a time'),",
       ]),
@@ -1813,7 +1798,7 @@ final _ansi = GalleryPage(
       '              // its controls as the pictures of them: ␛ ␍ ␤',
       '              for (final c in _piece.runes)',
       '                c < 0x20',
-      _l([
+      codeLine([
         '                    ? Span(String.fromCharCode(0x2400 + c), ',
         'theme.muted)',
       ]),
@@ -2365,7 +2350,7 @@ final _jsonView = GalleryPage(
       labels: ['200', '24'],
     ),
   ],
-  build: (context, o) => _inRoom(
+  build: (context, o) => inRoom(
     (w, h) => _Json(
       height: _jsonRows(h),
       depth: o.choice('depth'),
@@ -2449,17 +2434,15 @@ final class _Json extends StatefulWidget {
   State<_Json> createState() => _JsonState();
 }
 
-final class _JsonState extends State<_Json> {
-  late final Map<String, Object?> _kept = PageControl.of(context).state;
-
-  String get _copied => _kept['copied'] as String? ?? '';
-  int get _serial => _kept['serial'] as int? ?? 0;
+final class _JsonState extends State<_Json> with KeptState {
+  String get _copied => kept['copied'] as String? ?? '';
+  int get _serial => kept['serial'] as int? ?? 0;
 
   @override
   Widget build(BuildContext context) {
     // kept while the gallery runs, one for each depth
     final view =
-        (_kept['view:${widget.depth}'] ??= JsonViewController(
+        (kept['view:${widget.depth}'] ??= JsonViewController(
               expandedDepth: widget.depth,
             ))
             as JsonViewController;
@@ -2478,8 +2461,8 @@ final class _JsonState extends State<_Json> {
             sortKeys: widget.sortKeys,
             maxStringLength: widget.cut,
             onPathCopied: (path) => setState(() {
-              _kept['copied'] = path;
-              _kept['serial'] = _serial + 1;
+              kept['copied'] = path;
+              kept['serial'] = _serial + 1;
             }),
           ),
         ),

@@ -2,9 +2,7 @@
 import 'package:twk/twk.dart';
 
 import '../page.dart';
-import 'common.dart';
-
-const _bold = Style(attrs: Attr.bold);
+import 'kit/kit.dart';
 
 /// The Code's lines too long for a line of Dart.
 const _focusableArgs =
@@ -134,7 +132,7 @@ final class _Focusable extends StatelessWidget {
               node.debugLabel!,
               style: canRequestFocus == false || muted
                   ? theme.muted
-                  : (node.hasFocus ? _bold : const Style()),
+                  : (node.hasFocus ? bold : const Style()),
             ),
           ),
         ),
@@ -290,7 +288,7 @@ final class _NodesState extends State<_Nodes> {
               if (focused.isEmpty)
                 Span('none', theme.muted)
               else
-                Span(focused.first, theme.primary.merge(_bold)),
+                Span(focused.first, theme.primary.merge(bold)),
             ]);
           },
         ),
@@ -559,7 +557,7 @@ final class _ExcludedState extends State<_Excluded> {
               if (focused.isEmpty)
                 Span('none', theme.muted)
               else
-                Span(focused.first, theme.primary.merge(_bold)),
+                Span(focused.first, theme.primary.merge(bold)),
             ]);
           },
         ),

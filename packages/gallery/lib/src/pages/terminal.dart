@@ -7,7 +7,7 @@ import 'package:twk_term/twk_term.dart';
 import '../../scripted_shell.dart';
 import '../motion.dart';
 import '../page.dart';
-import 'common.dart';
+import 'kit/kit.dart';
 
 /// The pages of the Terminal group that draw.
 final terminalPages = <GalleryPage>[_terminalView];
@@ -166,12 +166,7 @@ final class _Shell extends StatefulWidget {
   State<_Shell> createState() => _ShellState();
 }
 
-final class _ShellState extends State<_Shell> {
-  late final _motion = Motion(() {
-    if (mounted) {
-      setState(() {});
-    }
-  });
+final class _ShellState extends State<_Shell> with MotionState {
   final _focus = FocusNode(debugLabel: 'shell');
 
   ScriptedShell? _shell;
@@ -200,7 +195,6 @@ final class _ShellState extends State<_Shell> {
 
   @override
   void dispose() {
-    _motion.dispose();
     _session?.dispose();
     for (final s in _retired) {
       s.dispose();
@@ -270,26 +264,26 @@ final class _ShellState extends State<_Shell> {
         _start(ms, auto: true);
         _shell!.runTo(0);
       } else {
-        _motion.wakeAt(Duration(milliseconds: _base + ended + 700));
+        motion.wakeAt(Duration(milliseconds: _base + ended + 700));
       }
     }
     if (_shell!.next case final next?) {
-      _motion.wakeAt(Duration(milliseconds: _base + next));
+      motion.wakeAt(Duration(milliseconds: _base + next));
     }
     if (_auto) {
-      _motion.wakeAt(Duration(milliseconds: _base + cycle));
+      motion.wakeAt(Duration(milliseconds: _base + cycle));
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    _motion.begin(context);
+    motion.begin(context);
     for (final s in _retired) {
       s.dispose();
     }
     _retired.clear();
-    _advance(_motion.now.inMilliseconds);
-    _motion.end();
+    _advance(motion.now.inMilliseconds);
+    motion.end();
     final theme = Theme.of(context);
     final focused = _focus.hasFocus;
     final session = _session!;

@@ -2,7 +2,7 @@
 import 'package:twk/twk.dart';
 
 import '../page.dart';
-import 'common.dart';
+import 'kit/kit.dart';
 
 /// The pages of the Framework group that draw.
 final List<GalleryPage> frameworkPages = [_layout, _notifications, _slots];
@@ -394,11 +394,10 @@ final class _Bubbling extends StatefulWidget {
   State<_Bubbling> createState() => _BubblingState();
 }
 
-final class _BubblingState extends State<_Bubbling> {
-  late final Map<String, Object?> _kept = PageControl.of(context).state;
-  late final _trace = (_kept['trace'] ??= <_Sent>[]) as List<_Sent>;
+final class _BubblingState extends State<_Bubbling> with KeptState {
+  late final _trace = (kept['trace'] ??= <_Sent>[]) as List<_Sent>;
   late final _controller = ScrollController(
-    initialOffset: (_kept['offset'] ?? 0) as int,
+    initialOffset: (kept['offset'] ?? 0) as int,
   );
 
   // the list's, so that its box shows where the focus is
@@ -411,9 +410,9 @@ final class _BubblingState extends State<_Bubbling> {
     super.dispose();
   }
 
-  String? get _heard => _kept['heard'] as String?;
+  String? get _heard => kept['heard'] as String?;
 
-  int get _serial => (_kept['serial'] ?? 0) as int;
+  int get _serial => (kept['serial'] ?? 0) as int;
 
   // nearest the list: hears each one first, and lets it go on up
   bool _onSent(ScrollNotification notification) {
@@ -422,7 +421,7 @@ final class _BubblingState extends State<_Bubbling> {
       if (_trace.length > 20) {
         _trace.removeAt(0);
       }
-      _kept['offset'] = notification.metrics.offset;
+      kept['offset'] = notification.metrics.offset;
     });
     return false;
   }
@@ -444,7 +443,7 @@ final class _BubblingState extends State<_Bubbling> {
     final ScrollMetrics(:offset, :maxOffset) = notification.metrics;
     setState(() {
       _trace.last.outer = 'heard';
-      _kept
+      kept
         ..['heard'] = switch (notification) {
           ScrollUpdateNotification(:final scrollDelta) =>
             'scrolled $scrollDelta to $offset of $maxOffset',
@@ -727,12 +726,10 @@ final class _Plugins extends StatefulWidget {
   State<_Plugins> createState() => _PluginsState();
 }
 
-final class _PluginsState extends State<_Plugins> {
-  late final Map<String, Object?> _kept = PageControl.of(context).state;
-
+final class _PluginsState extends State<_Plugins> with KeptState {
   /// The ids registered, in the order they were.
   late final _on =
-      (_kept['registered'] ??= <String>['git', 'words']) as List<String>;
+      (kept['registered'] ??= <String>['git', 'words']) as List<String>;
   late List<SlotEntry> _entries = _plugins(widget.lint);
   final _registry = SlotRegistry();
 

@@ -1,9 +1,8 @@
 // The Mouse group of the gallery.
 import 'package:twk/twk.dart';
 
-import '../motion.dart';
 import '../page.dart';
-import 'common.dart';
+import 'kit/kit.dart';
 
 /// The pad: its width and rows.
 const _padW = 36;
@@ -177,71 +176,12 @@ final mousePages = [
   ),
 ];
 
-const _bold = Style(attrs: Attr.bold);
-
 /// The buttons GestureDetector's page offers, by the option's value.
 const _buttons = {
   'left': {0},
   'right': {2},
   'any': {0, 1, 2},
 };
-
-/// [text] in [style], its background lit for a moment when [serial]
-/// changes, as [LitLine] lights its values, on up to [maxLines] lines.
-final class _LitText extends StatefulWidget {
-  const _LitText(
-    this.text, {
-    required this.serial,
-    this.style = const Style(),
-    this.maxLines,
-  });
-
-  final String text;
-  final int serial;
-  final Style style;
-  final int? maxLines;
-
-  @override
-  State<_LitText> createState() => _LitTextState();
-}
-
-final class _LitTextState extends State<_LitText> {
-  late final _motion = Motion(() {
-    if (mounted) {
-      setState(() {});
-    }
-  });
-  int? _serial;
-  Duration? _litAt;
-
-  @override
-  void dispose() {
-    _motion.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    _motion.begin(context);
-    final theme = Theme.of(context);
-    if (_serial != null && _serial != widget.serial) {
-      _litAt = _motion.now;
-    }
-    _serial = widget.serial;
-    final at = _litAt;
-    final k = at == null ? 0.0 : 1 - _motion.progress(at, 900);
-    _motion.end();
-    final style = widget.style.merge(litStyle(theme, k));
-    return Text(
-      widget.text,
-      style: style,
-      maxLines: widget.maxLines,
-      overflow: widget.maxLines == null
-          ? TextOverflow.clip
-          : TextOverflow.ellipsis,
-    );
-  }
-}
 
 // ------------------------------------------------------------ GestureDetector
 
@@ -552,7 +492,7 @@ final class _EventsState extends State<_Events> {
             if (_events.isEmpty) Text('nothing yet', style: theme.muted),
             for (final (i, event) in _events.indexed)
               if (i == 0)
-                _LitText(event, serial: _seen)
+                LitText(event, serial: _seen)
               else
                 Text(event, style: theme.muted),
           ],
@@ -682,7 +622,7 @@ final class _SelectionState extends State<_Selection> {
             children: [
               Text('copied:', style: theme.muted),
               Expanded(
-                child: _LitText(
+                child: LitText(
                   _copied.isEmpty ? 'nothing' : _copied.replaceAll('\n', ' '),
                   serial: _copies,
                   style: _copied.isEmpty ? theme.muted : const Style(),
@@ -808,7 +748,7 @@ final class _SelectionLogState extends State<_SelectionLog> {
             children: [
               Text('copied:', style: theme.muted),
               Expanded(
-                child: _LitText(
+                child: LitText(
                   _copied.isEmpty ? 'nothing' : _copied.replaceAll('\n', ' '),
                   serial: _copies,
                   style: _copied.isEmpty ? theme.muted : const Style(),
@@ -1148,7 +1088,7 @@ final class _FruitState extends State<_Fruit> {
                       titles: [
                         BorderTitle(
                           ' $name ',
-                          style: over ? style.merge(_bold) : theme.muted,
+                          style: over ? style.merge(bold) : theme.muted,
                         ),
                       ],
                       padding: const EdgeInsets.x(1),
@@ -1189,7 +1129,7 @@ final class _FruitState extends State<_Fruit> {
         child: Box(
           style: theme.surface,
           padding: const EdgeInsets.x(1),
-          child: label(theme.text.merge(_bold)),
+          child: label(theme.text.merge(bold)),
         ),
       ),
       childWhenDragging: widget.ghost

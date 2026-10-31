@@ -165,7 +165,7 @@ The rules a page keeps (and those of [doc/design.md](doc/design.md),
   holds the one to the other (below).
 - Its widget behaves as its Dart doc says: keys, clicks, callbacks.
 - What happened shows in a line under the widget, `label: value`, the
-  value lit for a moment when it changes: `LitLine` (`pages/common.dart`).
+  value lit for a moment when it changes: `LitLine` (`pages/kit/lit.dart`; the kit, `pages/kit/kit.dart`, is what the pages share).
 - What moves with time reads the gallery's clock (`Clock.of(context)`,
   or a `Motion`, `lib/src/motion.dart`), so that a route's `t=` stills
   it.

@@ -5,7 +5,7 @@ import 'dart:math' as math;
 import 'package:twk/twk.dart';
 
 import '../page.dart';
-import 'common.dart';
+import 'kit/kit.dart';
 
 // ------------------------------------------------------------ shared
 
@@ -16,13 +16,6 @@ const _colors = ['primary', 'accent', 'success', 'warning', 'info'];
 /// rows, or the room's where it is lower, [least] at least.
 int _rowsIn(StageRoom room, int want, int least) =>
     math.max(least, math.min(want, room.height));
-
-/// [build] with the rows of the stage's room; the Code is given the same
-/// ([GalleryPage.codeIn]).
-Widget _inRoom(Widget Function(int room) build) => LayoutBuilder(
-  builder: (context, c) =>
-      build(c.maxH < BoxConstraints.unbounded ? c.maxH : 1 << 20),
-);
 
 /// The lines of a State whose timer calls [body] every [ms], and a blank.
 List<String> _timer(int ms, List<String> body) => [
@@ -369,8 +362,8 @@ final _barChart = GalleryPage(
     ChoiceOption('groups', 'bars', values: ['grouped', 'single']),
     SwitchOption('live', 'live', initial: true),
   ],
-  build: (context, o) => _inRoom(
-    (room) => Timed((context, ms, wake) {
+  build: (context, o) => inRoom(
+    (_, room) => Timed((context, ms, wake) {
       final theme = Theme.of(context);
       final t = o.flag('live')
           ? _tick(ms, _barTick, wake) * _barTick / 1000
@@ -533,8 +526,8 @@ final _chart = GalleryPage(
     ),
     const SwitchOption('live', 'live', initial: true),
   ],
-  build: (context, o) => _inRoom(
-    (room) => Timed((context, ms, wake) {
+  build: (context, o) => inRoom(
+    (_, room) => Timed((context, ms, wake) {
       // the waves run to the right, two radians a second
       final phase = o.flag('live') ? _tick(ms, _waveTick, wake) * .1 : 0;
       List<(double, double)> wave(double Function(num) f) => [
@@ -637,8 +630,8 @@ final _dotCanvas = GalleryPage(
     ChoiceOption('marker', 'marker', values: _markers.keys.toList()),
     const SwitchOption('live', 'live', initial: true),
   ],
-  build: (context, o) => _inRoom(
-    (room) => Timed((context, ms, wake) {
+  build: (context, o) => inRoom(
+    (_, room) => Timed((context, ms, wake) {
       final live = o.flag('live');
       final t = live ? _tick(ms, _waveTick, wake) * _waveTick / 1000 : 0;
       final hand = math.pi / 2 - 2 * math.pi * t * 1000 / _spinMs;
@@ -821,13 +814,12 @@ final class _Month extends StatefulWidget {
   State<_Month> createState() => _MonthState();
 }
 
-final class _MonthState extends State<_Month> {
+final class _MonthState extends State<_Month> with KeptState {
   // kept in the page's state while the gallery runs
-  late final Map<String, Object?> _kept = PageControl.of(context).state;
   late final _controller =
-      (_kept['calendar'] ??= CalendarController(cursor: _today))
+      (kept['calendar'] ??= CalendarController(cursor: _today))
           as CalendarController;
-  int get _picked => _kept['picked'] as int? ?? 0;
+  int get _picked => kept['picked'] as int? ?? 0;
 
   @override
   Widget build(BuildContext context) {
@@ -846,7 +838,7 @@ final class _MonthState extends State<_Month> {
           dayStyle: widget.marked
               ? (date) => _meeting(date) ? Theme.of(context).warning : null
               : null,
-          onSelected: (date) => setState(() => _kept['picked'] = _picked + 1),
+          onSelected: (date) => setState(() => kept['picked'] = _picked + 1),
         ),
         LitLine([
           ('selected: ', true),
@@ -996,7 +988,7 @@ final _table = GalleryPage(
       labels: ['5', '10 000'],
     ),
   ],
-  build: (context, o) => _inRoom((room) {
+  build: (context, o) => inRoom((_, room) {
     final control = PageControl.of(context);
     final kept = control.state;
     final many = o.choice<int>('rows') == _many;
@@ -1143,7 +1135,7 @@ final _treeView = GalleryPage(
     SwitchOption('guides', 'guides', initial: true),
     ChoiceOption('load', 'test/', values: ['loads', 'fails']),
   ],
-  build: (context, o) => _inRoom((room) {
+  build: (context, o) => inRoom((_, room) {
     final kept = PageControl.of(context).state;
     // kept while the gallery runs: what is expanded and selected
     final controller =
@@ -1258,7 +1250,7 @@ final _treeTable = GalleryPage(
     ChoiceOption('border', 'border', values: _borders, initial: 'single'),
     SwitchOption('guides', 'guides', initial: true),
   ],
-  build: (context, o) => _inRoom((room) {
+  build: (context, o) => inRoom((_, room) {
     final kept = PageControl.of(context).state;
     // kept while the gallery runs: what is expanded and selected, the
     // order and the widths
@@ -1820,16 +1812,10 @@ final _descriptionList = GalleryPage(
   },
 );
 
-/// The lines of the call [head]([args]) at [indent], a comma after it: on
-/// one line where it fits in 80 columns, else an argument a line.
-List<String> _call(int indent, String head, List<String> args) {
-  final pad = ' ' * indent;
-  final one = '$pad$head(${args.join(', ')}),';
-  if (one.length <= 80) {
-    return [one];
-  }
-  return ['$pad$head(', for (final a in args) '$pad  $a,', '$pad),'];
-}
+/// [call] as this group's Codes write it: to the whole 80 columns, a
+/// comma after it.
+List<String> _call(int indent, String head, List<String> args) =>
+    call(indent, head, args, ',', width: 80);
 
 // ------------------------------------------------------------ Heatmap
 
@@ -2046,20 +2032,18 @@ final class _Heat extends StatefulWidget {
   State<_Heat> createState() => _HeatState();
 }
 
-final class _HeatState extends State<_Heat> {
+final class _HeatState extends State<_Heat> with KeptState {
   static final Map<DateTime, int> _commits = {
     for (var i = 0; i < _heatWeeks * 7; i++)
       DateTime(2026, 10, 19 - i): _commitsOn(i),
   };
 
-  late final Map<String, Object?> _kept = PageControl.of(context).state;
-
-  String get _selected => _kept['selected'] as String? ?? '';
-  int get _serial => _kept['serial'] as int? ?? 0;
+  String get _selected => kept['selected'] as String? ?? '';
+  int get _serial => kept['serial'] as int? ?? 0;
 
   void _select(String what) => setState(() {
-    _kept['selected'] = what;
-    _kept['serial'] = _serial + 1;
+    kept['selected'] = what;
+    kept['serial'] = _serial + 1;
   });
 
   @override
@@ -2156,8 +2140,8 @@ final _directoryTree = GalleryPage(
     SwitchOption('guides', 'guides'),
     ChoiceOption('icon', 'icons', values: ['none', 'glyphs']),
   ],
-  build: (context, o) => _inRoom(
-    (room) => _Files(
+  build: (context, o) => inRoom(
+    (_, room) => _Files(
       height: _treeRows(room),
       hidden: o.flag('hidden'),
       gitignore: o.flag('gitignore'),
@@ -2252,7 +2236,7 @@ final class _Files extends StatefulWidget {
   State<_Files> createState() => _FilesState();
 }
 
-final class _FilesState extends State<_Files> {
+final class _FilesState extends State<_Files> with KeptState {
   static final _files = InMemoryFileSystem(
     const ['$_project/'],
     contents: {
@@ -2262,17 +2246,15 @@ final class _FilesState extends State<_Files> {
     unreadable: const ['$_project/private'],
   );
 
-  late final Map<String, Object?> _kept = PageControl.of(context).state;
-
   // kept while the gallery runs: what is expanded and selected
   late final _tree =
-      (_kept['tree'] ??= DirectoryTreeController()
+      (kept['tree'] ??= DirectoryTreeController()
             ..expand('$_project/lib')
             ..expand('$_project/lib/src'))
           as DirectoryTreeController;
 
-  String get _opened => _kept['opened'] as String? ?? '';
-  int get _serial => _kept['serial'] as int? ?? 0;
+  String get _opened => kept['opened'] as String? ?? '';
+  int get _serial => kept['serial'] as int? ?? 0;
 
   @override
   Widget build(BuildContext context) => Column(
@@ -2295,8 +2277,8 @@ final class _FilesState extends State<_Files> {
               ? (entry) => entry.isDirectory ? _dirIcon : _fileIcon
               : null,
           onOpened: (path) => setState(() {
-            _kept['opened'] = path.substring('$_project/'.length);
-            _kept['serial'] = _serial + 1;
+            kept['opened'] = path.substring('$_project/'.length);
+            kept['serial'] = _serial + 1;
           }),
         ),
       ),

@@ -9,7 +9,7 @@ import 'package:twk/twk.dart';
 
 import '../motion.dart';
 import '../page.dart';
-import 'common.dart';
+import 'kit/kit.dart';
 
 /// The pages of the Foundation group that draw.
 final List<GalleryPage> foundationPages = [_listenable, _async];

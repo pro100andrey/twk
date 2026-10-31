@@ -5,7 +5,7 @@ import 'package:twk/twk.dart';
 
 import '../motion.dart';
 import '../page.dart';
-import 'common.dart';
+import 'kit/kit.dart';
 
 /// The pages of the Navigation group that draw.
 final List<GalleryPage> navigationPages = [
@@ -766,11 +766,9 @@ final class _Crumbs extends StatefulWidget {
   State<_Crumbs> createState() => _CrumbsState();
 }
 
-final class _CrumbsState extends State<_Crumbs> {
-  late final Map<String, Object?> _kept = PageControl.of(context).state;
-
-  int get _at => _kept['at'] as int? ?? _path.length - 1;
-  int get _serial => _kept['serial'] as int? ?? 0;
+final class _CrumbsState extends State<_Crumbs> with KeptState {
+  int get _at => kept['at'] as int? ?? _path.length - 1;
+  int get _serial => kept['serial'] as int? ?? 0;
 
   @override
   Widget build(BuildContext context) => Column(
@@ -786,8 +784,8 @@ final class _CrumbsState extends State<_Crumbs> {
           keepLeading: widget.keepLeading,
           separator: widget.separator,
           onSelected: (index) => setState(() {
-            _kept['at'] = index;
-            _kept['serial'] = _serial + 1;
+            kept['at'] = index;
+            kept['serial'] = _serial + 1;
           }),
         ),
       ),
@@ -886,11 +884,9 @@ final class _Pages extends StatefulWidget {
   State<_Pages> createState() => _PagesState();
 }
 
-final class _PagesState extends State<_Pages> {
-  late final Map<String, Object?> _kept = PageControl.of(context).state;
-
-  int get _page => _kept['page'] as int? ?? 1;
-  int get _serial => _kept['serial'] as int? ?? 0;
+final class _PagesState extends State<_Pages> with KeptState {
+  int get _page => kept['page'] as int? ?? 1;
+  int get _serial => kept['serial'] as int? ?? 0;
 
   @override
   Widget build(BuildContext context) => Column(
@@ -909,8 +905,8 @@ final class _PagesState extends State<_Pages> {
           showFirstLast: widget.firstLast,
           showPrevNext: widget.prevNext,
           onChanged: (page) => setState(() {
-            _kept['page'] = page;
-            _kept['serial'] = _serial + 1;
+            kept['page'] = page;
+            kept['serial'] = _serial + 1;
           }),
         ),
       ),

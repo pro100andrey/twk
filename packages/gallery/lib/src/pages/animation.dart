@@ -3,9 +3,8 @@ import 'dart:async';
 
 import 'package:twk/twk.dart';
 
-import '../motion.dart';
 import '../page.dart';
-import 'common.dart';
+import 'kit/kit.dart';
 
 /// The pages of the Animation group that draw.
 final animationPages = <GalleryPage>[
@@ -94,31 +93,19 @@ final class _Cycled extends StatefulWidget {
   State<_Cycled> createState() => _CycledState();
 }
 
-final class _CycledState extends State<_Cycled> {
-  late final _motion = Motion(() {
-    if (mounted) {
-      setState(() {});
-    }
-  });
-
-  @override
-  void dispose() {
-    _motion.dispose();
-    super.dispose();
-  }
-
+final class _CycledState extends State<_Cycled> with MotionState {
   @override
   Widget build(BuildContext context) {
-    _motion.begin(context);
+    motion.begin(context);
     final w = widget;
     final control = PageControl.of(context);
     final kept = control.state;
-    final now = _motion.now;
+    final now = motion.now;
     final n = w.values.length;
     final chosen = w.values.indexOf(w.options[w.option]);
     final c = chosen < 0 ? 0 : chosen;
     var on = w.options.flag('cycle');
-    final born = kept['born'] as Duration? ?? (_motion.frozen ? .zero : now);
+    final born = kept['born'] as Duration? ?? (motion.frozen ? .zero : now);
     kept['born'] = born;
     final name = 'drive:${w.option}';
     var d = kept[name] as Drive?;
@@ -140,7 +127,7 @@ final class _CycledState extends State<_Cycled> {
       final k = (now - d.since).inMilliseconds ~/ _cycle;
       final steps = k < 0 ? 0 : k;
       i = (d.from + steps) % n;
-      _motion.wakeAt(
+      motion.wakeAt(
         d.since + const Duration(milliseconds: _cycle) * (steps + 1),
       );
     }
@@ -150,7 +137,7 @@ final class _CycledState extends State<_Cycled> {
       scheduleMicrotask(() => control.setOption(w.option, value));
       d.last = i;
     }
-    _motion.end();
+    motion.end();
     return w.builder(context, i);
   }
 }
@@ -2182,12 +2169,7 @@ final class _Progress extends StatefulWidget {
   State<_Progress> createState() => _ProgressState();
 }
 
-final class _ProgressState extends State<_Progress> {
-  late final _motion = Motion(() {
-    if (mounted) {
-      setState(() {});
-    }
-  });
+final class _ProgressState extends State<_Progress> with MotionState {
   final _watch = _Watch();
   late final _tracker = ProgressTracker(clock: _watch);
   Duration? _born;
@@ -2195,16 +2177,15 @@ final class _ProgressState extends State<_Progress> {
 
   @override
   void dispose() {
-    _motion.dispose();
     _tracker.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    _motion.begin(context);
-    final now = _motion.now;
-    final born = _born ??= _motion.frozen ? Duration.zero : now;
+    motion.begin(context);
+    final now = motion.now;
+    final born = _born ??= motion.frozen ? Duration.zero : now;
     if (_ticks == 0 && _tracker.tasks.isEmpty) {
       _watch.at = Duration.zero;
       _startProgress(_tracker);
@@ -2216,7 +2197,7 @@ final class _ProgressState extends State<_Progress> {
       _tickProgress(_tracker, _ticks);
     }
     _watch.at = now - born;
-    _motion
+    motion
       ..wakeAt(born + Duration(milliseconds: (_ticks + 1) * _progressTick))
       ..end();
     return SizedBox(

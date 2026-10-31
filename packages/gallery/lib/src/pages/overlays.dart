@@ -4,7 +4,7 @@ import 'dart:async';
 import 'package:twk/twk.dart';
 
 import '../page.dart';
-import 'common.dart';
+import 'kit/kit.dart';
 
 /// The Code's line of the Keep button.
 const _keepLine =
@@ -676,13 +676,12 @@ final class _Options extends StatefulWidget {
   State<_Options> createState() => _OptionsState();
 }
 
-final class _OptionsState extends State<_Options> {
+final class _OptionsState extends State<_Options> with KeptState {
   // kept in the page's state while the gallery runs
-  late final Map<String, Object?> _kept = PageControl.of(context).state;
-  int get _highlighted => _kept['highlighted'] as int? ?? 0;
-  set _highlighted(int i) => _kept['highlighted'] = i;
-  String? get _ran => _kept['ran'] as String?;
-  int get _serial => _kept['serial'] as int? ?? 0;
+  int get _highlighted => kept['highlighted'] as int? ?? 0;
+  set _highlighted(int i) => kept['highlighted'] = i;
+  String? get _ran => kept['ran'] as String?;
+  int get _serial => kept['serial'] as int? ?? 0;
 
   @override
   Widget build(BuildContext context) {
@@ -702,8 +701,8 @@ final class _OptionsState extends State<_Options> {
     void move(int by) =>
         highlight((highlighted + by).clamp(0, options.length - 1));
     void run(int i) => setState(() {
-      _kept['ran'] = options[i].label;
-      _kept['serial'] = _serial + 1;
+      kept['ran'] = options[i].label;
+      kept['serial'] = _serial + 1;
     });
     final ran = _ran;
     return Column(
@@ -843,10 +842,9 @@ final class _Windows extends StatefulWidget {
   State<_Windows> createState() => _WindowsState();
 }
 
-final class _WindowsState extends State<_Windows> {
-  late final Map<String, Object?> _kept = _keptOf(context);
+final class _WindowsState extends State<_Windows> with KeptState {
   late final _notes =
-      (_kept['notes'] ??= WindowController(
+      (kept['notes'] ??= WindowController(
             left: 2,
             top: 3,
             width: 30,
@@ -854,15 +852,15 @@ final class _WindowsState extends State<_Windows> {
           ))
           as WindowController;
   late final _counter =
-      (_kept['counter'] ??= WindowController(
+      (kept['counter'] ??= WindowController(
             left: 24,
             top: 5,
             width: 26,
             height: 6,
           ))
           as WindowController;
-  late final _closed = (_kept['closed'] ??= <String>{}) as Set<String>;
-  int get _count => _kept['count'] as int? ?? 0;
+  late final _closed = (kept['closed'] ??= <String>{}) as Set<String>;
+  int get _count => kept['count'] as int? ?? 0;
 
   void _close(String title) => setState(() => _closed.add(title));
 
@@ -909,7 +907,7 @@ final class _WindowsState extends State<_Windows> {
                     Button(
                       'Add one',
                       onPressed: () =>
-                          setState(() => _kept['count'] = _count + 1),
+                          setState(() => kept['count'] = _count + 1),
                     ),
                   ],
                 ),
@@ -1024,10 +1022,9 @@ final class _Barrier extends StatefulWidget {
 }
 
 final class _BarrierState extends State<_Barrier>
-    with TickerProviderStateMixin {
-  late final Map<String, Object?> _kept = _keptOf(context);
-  int get _pressed => _kept['pressed'] as int? ?? 0;
-  int get _dismissed => _kept['dismissed'] as int? ?? 0;
+    with TickerProviderStateMixin, KeptState {
+  int get _pressed => kept['pressed'] as int? ?? 0;
+  int get _dismissed => kept['dismissed'] as int? ?? 0;
 
   // the Code's _fade, from when fade is turned on
   AnimationController? _fade;
@@ -1051,7 +1048,7 @@ final class _BarrierState extends State<_Barrier>
     )..repeat(reverse: true);
   }
 
-  void _dismiss() => setState(() => _kept['dismissed'] = _dismissed + 1);
+  void _dismiss() => setState(() => kept['dismissed'] = _dismissed + 1);
 
   @override
   Widget build(BuildContext context) {
@@ -1087,7 +1084,7 @@ final class _BarrierState extends State<_Barrier>
             ),
             Button(
               'Press me',
-              onPressed: () => setState(() => _kept['pressed'] = _pressed + 1),
+              onPressed: () => setState(() => kept['pressed'] = _pressed + 1),
             ),
             Text.rich([
               Span('pressed ', Theme.of(context).muted),
@@ -1309,10 +1306,6 @@ ${_lookLine(o, '  ').map((l) => '$l\n').join()}  items: [
   ),
 );''';
 
-/// The page's state of [context] that outlives a visit to another page.
-Map<String, Object?> _keptOf(BuildContext context) =>
-    PageControl.of(context).state;
-
 /// A menu bar over what was chosen and a checkbox the View menu flips too.
 final class _Bar extends StatefulWidget {
   const _Bar({required this.keys, required this.look});
@@ -1324,18 +1317,17 @@ final class _Bar extends StatefulWidget {
   State<_Bar> createState() => _BarState();
 }
 
-final class _BarState extends State<_Bar> {
-  late final Map<String, Object?> _kept = _keptOf(context);
-  String? get _chosen => _kept['chosen'] as String?;
-  bool get _wrap => _kept['wrap'] as bool? ?? true;
-  bool get _numbers => _kept['numbers'] as bool? ?? false;
-  int get _serial => _kept['serial'] as int? ?? 0;
+final class _BarState extends State<_Bar> with KeptState {
+  String? get _chosen => kept['chosen'] as String?;
+  bool get _wrap => kept['wrap'] as bool? ?? true;
+  bool get _numbers => kept['numbers'] as bool? ?? false;
+  int get _serial => kept['serial'] as int? ?? 0;
 
   void _set(void Function() change) => setState(change);
 
   void _choose(String what) => _set(() {
-    _kept['chosen'] = what;
-    _kept['serial'] = _serial + 1;
+    kept['chosen'] = what;
+    kept['serial'] = _serial + 1;
   });
   void _open() => _choose('Open');
   void _save() => _choose('Save');
@@ -1368,7 +1360,7 @@ final class _BarState extends State<_Bar> {
               Checkbox(
                 value: _wrap,
                 label: 'wrap lines',
-                onChanged: (value) => _set(() => _kept['wrap'] = value),
+                onChanged: (value) => _set(() => kept['wrap'] = value),
               ),
               Button('Recent files', onPressed: () => _menus.open([0, 2])),
             ],
@@ -1424,7 +1416,7 @@ final class _BarState extends State<_Bar> {
                 '&Wrap lines',
                 checked: _wrap,
                 onSelected: () {
-                  _kept['wrap'] = !_wrap;
+                  kept['wrap'] = !_wrap;
                   _choose('Wrap lines');
                 },
               ),
@@ -1432,7 +1424,7 @@ final class _BarState extends State<_Bar> {
                 'Line &numbers',
                 checked: _numbers,
                 onSelected: () {
-                  _kept['numbers'] = !_numbers;
+                  kept['numbers'] = !_numbers;
                   _choose('Line numbers');
                 },
               ),
@@ -1461,14 +1453,13 @@ final class _Context extends StatefulWidget {
   State<_Context> createState() => _ContextState();
 }
 
-final class _ContextState extends State<_Context> {
-  late final Map<String, Object?> _kept = _keptOf(context);
-  String? get _chosen => _kept['chosen'] as String?;
-  bool get _copied => _kept['copied'] as bool? ?? false;
-  int get _serial => _kept['serial'] as int? ?? 0;
+final class _ContextState extends State<_Context> with KeptState {
+  String? get _chosen => kept['chosen'] as String?;
+  bool get _copied => kept['copied'] as bool? ?? false;
+  int get _serial => kept['serial'] as int? ?? 0;
 
   void _choose(String what) => setState(() {
-    _kept
+    kept
       ..['chosen'] = what
       ..['copied'] = _copied || what == 'Cut' || what == 'Copy'
       ..['serial'] = _serial + 1;
@@ -1547,13 +1538,12 @@ final class _Palette extends StatefulWidget {
   State<_Palette> createState() => _PaletteState();
 }
 
-final class _PaletteState extends State<_Palette> {
-  late final Map<String, Object?> _kept = _keptOf(context);
-  String? get _ran => _kept['ran'] as String?;
-  int get _serial => _kept['serial'] as int? ?? 0;
+final class _PaletteState extends State<_Palette> with KeptState {
+  String? get _ran => kept['ran'] as String?;
+  int get _serial => kept['serial'] as int? ?? 0;
 
   void _run(String what) => setState(() {
-    _kept
+    kept
       ..['ran'] = what
       ..['serial'] = _serial + 1;
   });
@@ -1739,19 +1729,11 @@ final class _Toasts extends StatefulWidget {
   State<_Toasts> createState() => _ToastsState();
 }
 
-final class _ToastsState extends State<_Toasts> {
-  late final Map<String, Object?> _kept = PageControl.of(context).state;
-
-  static const Map<String, Alignment> _alignments = {
-    'bottomRight': Alignment.bottomRight,
-    'topRight': Alignment.topRight,
-    'bottomCenter': Alignment.bottomCenter,
-  };
-
+final class _ToastsState extends State<_Toasts> with KeptState {
   void _show() {
     final theme = Theme.of(context);
-    final n = _kept['n'] as int? ?? 0;
-    _kept['n'] = n + 1;
+    final n = kept['n'] as int? ?? 0;
+    kept['n'] = n + 1;
     final (message, style) = [
       ('Saved 3 files.', theme.success),
       ('Copied the path.', theme.info),
@@ -1761,7 +1743,7 @@ final class _ToastsState extends State<_Toasts> {
     showToast(
       context,
       message,
-      alignment: _alignments[widget.alignment] ?? Alignment.bottomRight,
+      alignment: alignmentByName[widget.alignment] ?? Alignment.bottomRight,
       duration: Duration(milliseconds: widget.ms),
       style: style,
       look: widget.look,
@@ -1923,8 +1905,7 @@ final class _Entries extends StatefulWidget {
   State<_Entries> createState() => _EntriesState();
 }
 
-final class _EntriesState extends State<_Entries> {
-  late final Map<String, Object?> _kept = PageControl.of(context).state;
+final class _EntriesState extends State<_Entries> with KeptState {
   final _entries = <OverlayEntry>[];
   var _restored = false;
 
@@ -1935,7 +1916,7 @@ final class _EntriesState extends State<_Entries> {
       return;
     }
     _restored = true;
-    final n = _kept['entries'] as int? ?? 0;
+    final n = kept['entries'] as int? ?? 0;
     if (n > 0) {
       // an entry goes in outside a build
       unawaited(
@@ -1996,13 +1977,13 @@ final class _EntriesState extends State<_Entries> {
     Overlay.of(context).insert(entry);
     setState(() => _entries.add(entry));
     if (keep) {
-      _kept['entries'] = _entries.length;
+      kept['entries'] = _entries.length;
     }
   }
 
   void _remove() {
     setState(() => _entries.removeLast().remove());
-    _kept['entries'] = _entries.length;
+    kept['entries'] = _entries.length;
   }
 
   @override

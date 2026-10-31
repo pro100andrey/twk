@@ -2,8 +2,8 @@
 import 'package:twk/twk.dart';
 
 import '../page.dart';
-import 'common.dart';
 import 'controls.dart' show popupLookArg, popupLookOf, popupLookOption;
+import 'kit/kit.dart';
 
 /// The options of a field's cursor: its shape, the terminal's own among
 /// them, and whether it blinks.
@@ -68,11 +68,6 @@ Widget _focusBoxed(Widget child) => FocusBuilder(
   },
   child: child,
 );
-
-/// [key] of the page's state, made by [create] the first time: what
-/// outlives a visit to another page.
-T _kept<T>(BuildContext context, String key, T Function() create) =>
-    PageControl.of(context).state.putIfAbsent(key, create) as T;
 
 const _notes =
     'Notes wrap at the width of the area, between words.\n'
@@ -573,21 +568,20 @@ final class _Field extends StatefulWidget {
   State<_Field> createState() => _FieldState();
 }
 
-final class _FieldState extends State<_Field> {
-  late final Map<String, Object?> _state = PageControl.of(context).state;
-  late final TextEditingController _controller = _kept(
+final class _FieldState extends State<_Field> with KeptState {
+  late final TextEditingController _controller = keptAt(
     context,
     'controller',
     TextEditingController.new,
   );
-  String get _submitted => _state['submitted'] as String? ?? '';
-  int get _serial => _state['serial'] as int? ?? 0;
-  String get _heard => _state['heard'] as String? ?? '';
-  int get _heardSerial => _state['heardSerial'] as int? ?? 0;
+  String get _submitted => kept['submitted'] as String? ?? '';
+  int get _serial => kept['serial'] as int? ?? 0;
+  String get _heard => kept['heard'] as String? ?? '';
+  int get _heardSerial => kept['heardSerial'] as int? ?? 0;
 
   void _hear(String what) => setState(() {
-    _state['heard'] = what;
-    _state['heardSerial'] = _heardSerial + 1;
+    kept['heard'] = what;
+    kept['heardSerial'] = _heardSerial + 1;
   });
 
   @override
@@ -611,8 +605,8 @@ final class _FieldState extends State<_Field> {
               readOnly: widget.readOnly,
               enabled: widget.enabled,
               onSubmitted: (text) => setState(() {
-                _state['submitted'] = text;
-                _state['serial'] = _serial + 1;
+                kept['submitted'] = text;
+                kept['serial'] = _serial + 1;
               }),
               onEditingComplete: () => _hear('editing complete'),
               onPaste: (text) {
@@ -659,14 +653,13 @@ final class _Decorated extends StatefulWidget {
   State<_Decorated> createState() => _DecoratedState();
 }
 
-final class _DecoratedState extends State<_Decorated> {
-  late final Map<String, Object?> _state = PageControl.of(context).state;
-  String get _theme => _state['theme'] as String? ?? 'dark';
-  String get _password => _state['passwordText'] as String? ?? '';
+final class _DecoratedState extends State<_Decorated> with KeptState {
+  String get _theme => kept['theme'] as String? ?? 'dark';
+  String get _password => kept['passwordText'] as String? ?? '';
 
   /// The field of [key], its text kept from visit to visit.
   TextEditingController _controller(String key) =>
-      _kept(context, key, TextEditingController.new);
+      keptAt(context, key, TextEditingController.new);
 
   @override
   Widget build(BuildContext context) {
@@ -692,7 +685,7 @@ final class _DecoratedState extends State<_Decorated> {
                 ],
                 value: _theme,
                 onChanged: enabled
-                    ? (theme) => setState(() => _state['theme'] = theme)
+                    ? (theme) => setState(() => kept['theme'] = theme)
                     : null,
                 decoration: InputDecoration(
                   icon: const Text('◐'),
@@ -747,7 +740,7 @@ final class _DecoratedState extends State<_Decorated> {
                     maxLength: 16,
                     enabled: enabled,
                     onChanged: (text) =>
-                        setState(() => _state['passwordText'] = text),
+                        setState(() => kept['passwordText'] = text),
                     decoration: InputDecoration(
                       labelText: 'Password',
                       errorText:
@@ -790,15 +783,14 @@ final class _Area extends StatefulWidget {
   State<_Area> createState() => _AreaState();
 }
 
-final class _AreaState extends State<_Area> {
-  late final Map<String, Object?> _state = PageControl.of(context).state;
-  late final TextEditingController _controller = _kept(
+final class _AreaState extends State<_Area> with KeptState {
+  late final TextEditingController _controller = keptAt(
     context,
     'controller',
     () => TextEditingController(text: _notes),
   );
-  String? get _submitted => _state['submitted'] as String?;
-  int get _serial => _state['serial'] as int? ?? 0;
+  String? get _submitted => kept['submitted'] as String?;
+  int get _serial => kept['serial'] as int? ?? 0;
 
   /// Where the caret is: its line of the lines there are, and its column,
   /// in characters.
@@ -833,8 +825,8 @@ final class _AreaState extends State<_Area> {
               enabled: widget.enabled,
               onSubmitted: widget.submit
                   ? (text) => setState(() {
-                      _state['submitted'] = text;
-                      _state['serial'] = _serial + 1;
+                      kept['submitted'] = text;
+                      kept['serial'] = _serial + 1;
                     })
                   : null,
             ),
@@ -884,15 +876,14 @@ final class _Complete extends StatefulWidget {
   State<_Complete> createState() => _CompleteState();
 }
 
-final class _CompleteState extends State<_Complete> {
-  late final Map<String, Object?> _state = PageControl.of(context).state;
-  late final TextEditingController _controller = _kept(
+final class _CompleteState extends State<_Complete> with KeptState {
+  late final TextEditingController _controller = keptAt(
     context,
     'controller',
     TextEditingController.new,
   );
-  String? get _chosen => _state['chosen'] as String?;
-  int get _serial => _state['serial'] as int? ?? 0;
+  String? get _chosen => kept['chosen'] as String?;
+  int get _serial => kept['serial'] as int? ?? 0;
 
   @override
   Widget build(BuildContext context) {
@@ -919,8 +910,8 @@ final class _CompleteState extends State<_Complete> {
                       Suggestion(command, detail: detail),
                 ],
           onSelected: (suggestion) => setState(() {
-            _state['chosen'] = suggestion.text;
-            _state['serial'] = _serial + 1;
+            kept['chosen'] = suggestion.text;
+            kept['serial'] = _serial + 1;
           }),
           child: SizedBox(
             width: 30,

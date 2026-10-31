@@ -1,8 +1,8 @@
 // The Scrolling group of the gallery.
 import 'package:twk/twk.dart';
 
-import '../motion.dart';
 import '../page.dart';
+import 'kit/kit.dart';
 
 /// The box each page scrolls in: its width; its window two cells narrower.
 const _boxW = 34;
@@ -728,18 +728,12 @@ final class _List extends StatefulWidget {
   State<_List> createState() => _ListState();
 }
 
-final class _ListState extends State<_List> {
+final class _ListState extends State<_List> with MotionState {
   late final _list = ListController(stickToEnd: widget.stickToEnd);
-  late final _motion = Motion(() {
-    if (mounted) {
-      setState(() {});
-    }
-  });
   Duration? _grownFrom;
 
   @override
   void dispose() {
-    _motion.dispose();
     _list.dispose();
     super.dispose();
   }
@@ -747,9 +741,9 @@ final class _ListState extends State<_List> {
   /// The lines of the log now: one every [_growMs] on the gallery's clock
   /// from when it was chosen.
   int _grown() {
-    final from = _grownFrom ??= _motion.now;
-    final k = (_motion.now - from).inMilliseconds ~/ _growMs;
-    _motion.wakeAt(from + Duration(milliseconds: (k + 1) * _growMs));
+    final from = _grownFrom ??= motion.now;
+    final k = (motion.now - from).inMilliseconds ~/ _growMs;
+    motion.wakeAt(from + Duration(milliseconds: (k + 1) * _growMs));
     return _growFrom + k;
   }
 
@@ -782,9 +776,9 @@ final class _ListState extends State<_List> {
 
   @override
   Widget build(BuildContext context) {
-    _motion.begin(context);
+    motion.begin(context);
     final count = widget.count ?? _grown();
-    _motion.end();
+    motion.end();
     final chat = widget.chat;
     Widget item(BuildContext context, int i) => _item(context, i, count);
     final sticks =
@@ -1255,25 +1249,13 @@ final class _Log extends StatefulWidget {
   State<_Log> createState() => _LogState();
 }
 
-final class _LogState extends State<_Log> {
-  late final _motion = Motion(() {
-    if (mounted) {
-      setState(() {});
-    }
-  });
-
-  @override
-  void dispose() {
-    _motion.dispose();
-    super.dispose();
-  }
-
+final class _LogState extends State<_Log> with MotionState {
   @override
   Widget build(BuildContext context) {
     final kept = PageControl.of(context).state;
     final log = (kept['log'] ??= LogController()) as LogController;
-    _motion.begin(context);
-    final now = _motion.now.inMilliseconds;
+    motion.begin(context);
+    final now = motion.now.inMilliseconds;
     // the lines logged by now: _logFrom, then one every _logMs while live;
     // the count stands while it is not
     var base = (kept['base'] ??= _logFrom) as int;
@@ -1292,10 +1274,10 @@ final class _LogState extends State<_Log> {
     var count = base;
     if (widget.live) {
       final k = (now - since) ~/ _logMs;
-      _motion.wakeAt(Duration(milliseconds: since + (k + 1) * _logMs));
+      motion.wakeAt(Duration(milliseconds: since + (k + 1) * _logMs));
       count += k;
     }
-    _motion.end();
+    motion.end();
     final added = (kept['added'] ??= 0) as int;
     if (count > added) {
       for (var i = added; i < count; i++) {

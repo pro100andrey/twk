@@ -2,7 +2,7 @@
 import 'package:twk/twk.dart';
 
 import '../page.dart';
-import 'common.dart';
+import 'kit/kit.dart';
 
 /// The pages of the Screen readers group that draw.
 final List<GalleryPage> screenReaderPages = [_semantics];
@@ -339,16 +339,15 @@ final class _SignIn extends StatefulWidget {
   State<_SignIn> createState() => _SignInState();
 }
 
-final class _SignInState extends State<_SignIn> {
-  late final Map<String, Object?> _kept = PageControl.of(context).state;
+final class _SignInState extends State<_SignIn> with KeptState {
   final GlobalKey _form = GlobalKey();
 
   // of the controls, so that a move of the focus among them is read
   final List<FocusNode> _nodes = [for (var i = 0; i < 4; i++) FocusNode()];
 
-  bool get _remember => (_kept['remember'] ?? false) as bool;
-  bool get _dark => (_kept['dark'] ?? true) as bool;
-  int get _done => (_kept['done'] ?? 4) as int;
+  bool get _remember => (kept['remember'] ?? false) as bool;
+  bool get _dark => (kept['dark'] ?? true) as bool;
+  int get _done => (kept['done'] ?? 4) as int;
 
   // the nodes of the form with a line, as a screen reader reads them
   var _read = const <SemanticsNode>[];
@@ -407,7 +406,7 @@ final class _SignInState extends State<_SignIn> {
     }
   }
 
-  void _set(String key, Object value) => setState(() => _kept[key] = value);
+  void _set(String key, Object value) => setState(() => kept[key] = value);
 
   /// The form's widgets, its column's children.
   List<Widget> _formChildren(ThemeData theme) => [

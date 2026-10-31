@@ -4,7 +4,7 @@ import 'dart:async';
 import 'package:twk/twk.dart';
 
 import '../page.dart';
-import 'common.dart';
+import 'kit/kit.dart';
 
 /// The pages of the Controls group that draw.
 final List<GalleryPage> controlsPages = [
@@ -12,7 +12,7 @@ final List<GalleryPage> controlsPages = [
     group: 'Controls',
     title: 'Button',
     options: const [
-      ColorOption('color', 'style', values: pageColors, initial: 'primary'),
+      pageColorOption,
       ChoiceOption('look', 'look', values: ['chip', 'outlined', 'filled']),
       SwitchOption('tall', 'tall'),
     ],
@@ -90,7 +90,7 @@ final List<GalleryPage> controlsPages = [
     group: 'Controls',
     title: 'Pressable',
     options: const [
-      ColorOption('color', 'style', values: pageColors, initial: 'primary'),
+      pageColorOption,
     ],
     build: (context, o) => _Stars(color: o.color('color')),
     code: (o) => [
@@ -1247,13 +1247,12 @@ final class _Buttons extends StatefulWidget {
   State<_Buttons> createState() => _ButtonsState();
 }
 
-final class _ButtonsState extends State<_Buttons> {
+final class _ButtonsState extends State<_Buttons> with KeptState {
   // kept in the page's state while the gallery runs
-  late final Map<String, Object?> _kept = PageControl.of(context).state;
-  int get _saved => _kept['saved'] as int? ?? 0;
-  set _saved(int n) => _kept['saved'] = n;
-  int get _sent => _kept['sent'] as int? ?? 0;
-  set _sent(int n) => _kept['sent'] = n;
+  int get _saved => kept['saved'] as int? ?? 0;
+  set _saved(int n) => kept['saved'] = n;
+  int get _sent => kept['sent'] as int? ?? 0;
+  set _sent(int n) => kept['sent'] = n;
 
   @override
   Widget build(BuildContext context) {
@@ -1325,22 +1324,21 @@ final class _Stars extends StatefulWidget {
   State<_Stars> createState() => _StarsState();
 }
 
-final class _StarsState extends State<_Stars> {
+final class _StarsState extends State<_Stars> with KeptState {
   // kept in the page's state while the gallery runs, in the order starred
-  late final Map<String, Object?> _kept = PageControl.of(context).state;
   List<String> get _starred =>
-      (_kept['starred'] as List<String>?) ?? const ['twk'];
-  int get _serial => _kept['serial'] as int? ?? 0;
+      (kept['starred'] as List<String>?) ?? const ['twk'];
+  int get _serial => kept['serial'] as int? ?? 0;
 
   void _toggle(String name) => setState(() {
     final starred = _starred;
-    _kept['starred'] = starred.contains(name)
+    kept['starred'] = starred.contains(name)
         ? [
             for (final n in starred)
               if (n != name) n,
           ]
         : [...starred, name];
-    _kept['serial'] = _serial + 1;
+    kept['serial'] = _serial + 1;
   });
 
   Widget _star(String name, {bool enabled = true}) => Pressable(
@@ -1464,23 +1462,6 @@ const _answers = {
   'Delete, Keep': ('Delete', 'Keep'),
 };
 
-/// The page's own state, which outlives a visit to another page.
-mixin _Kept<T extends StatefulWidget> on State<T> {
-  late final Map<String, Object?> kept = PageControl.of(context).state;
-
-  /// [key] of the kept state, [or] while it has none.
-  V keptOr<V>(String key, V or) => kept[key] as V? ?? or;
-
-  /// Sets [key] of the kept state to [value], and counts the change.
-  void keep(String key, Object? value) => setState(() {
-    kept[key] = value;
-    kept['serial'] = serial + 1;
-  });
-
-  /// How often the kept state changed.
-  int get serial => keptOr('serial', 0);
-}
-
 /// A checkbox, a switch and a disabled checkbox.
 final class _Toggles extends StatefulWidget {
   const _Toggles({required this.pill});
@@ -1492,7 +1473,7 @@ final class _Toggles extends StatefulWidget {
   State<_Toggles> createState() => _TogglesState();
 }
 
-final class _TogglesState extends State<_Toggles> with _Kept {
+final class _TogglesState extends State<_Toggles> with KeptState {
   @override
   Widget build(BuildContext context) => Column(
     mainAxisSize: MainAxisSize.min,
@@ -1525,7 +1506,7 @@ final class _Radios extends StatefulWidget {
   State<_Radios> createState() => _RadiosState();
 }
 
-final class _RadiosState extends State<_Radios> with _Kept {
+final class _RadiosState extends State<_Radios> with KeptState {
   @override
   Widget build(BuildContext context) {
     final chosen = keptOr<String?>('chosen', null);
@@ -1562,7 +1543,7 @@ final class _Planets extends StatefulWidget {
   State<_Planets> createState() => _PlanetsState();
 }
 
-final class _PlanetsState extends State<_Planets> with _Kept {
+final class _PlanetsState extends State<_Planets> with KeptState {
   /// The selection, kept with the page: a new one with Earth selected when
   /// [_Planets.multiple] changes.
   SelectionController<String> get _selection {
@@ -1663,7 +1644,7 @@ final class _Selects extends StatefulWidget {
   State<_Selects> createState() => _SelectsState();
 }
 
-final class _SelectsState extends State<_Selects> with _Kept {
+final class _SelectsState extends State<_Selects> with KeptState {
   final _popup = PopupController();
 
   @override
@@ -1720,7 +1701,7 @@ final class _Confirm extends StatefulWidget {
   State<_Confirm> createState() => _ConfirmState();
 }
 
-final class _ConfirmState extends State<_Confirm> with _Kept {
+final class _ConfirmState extends State<_Confirm> with KeptState {
   @override
   Widget build(BuildContext context) {
     final answer = keptOr<bool?>('answer', null);
@@ -1762,7 +1743,7 @@ final class _Volume extends StatefulWidget {
   State<_Volume> createState() => _VolumeState();
 }
 
-final class _VolumeState extends State<_Volume> with _Kept {
+final class _VolumeState extends State<_Volume> with KeptState {
   @override
   Widget build(BuildContext context) {
     final volume = keptOr('volume', 0.5);
@@ -1797,7 +1778,7 @@ final class _Numbers extends StatefulWidget {
   State<_Numbers> createState() => _NumbersState();
 }
 
-final class _NumbersState extends State<_Numbers> with _Kept {
+final class _NumbersState extends State<_Numbers> with KeptState {
   @override
   Widget build(BuildContext context) {
     final copies = keptOr<double>('copies', 1);
@@ -1871,7 +1852,7 @@ final class _Date extends StatefulWidget {
   State<_Date> createState() => _DateState();
 }
 
-final class _DateState extends State<_Date> with _Kept {
+final class _DateState extends State<_Date> with KeptState {
   final _calendar = PopupController();
 
   @override
@@ -2001,7 +1982,7 @@ final class _Files extends StatefulWidget {
   State<_Files> createState() => _FilesState();
 }
 
-final class _FilesState extends State<_Files> with _Kept {
+final class _FilesState extends State<_Files> with KeptState {
   final _picker = FilePickerController();
 
   @override
@@ -2097,7 +2078,7 @@ final class _Signup extends StatefulWidget {
   State<_Signup> createState() => _SignupState();
 }
 
-final class _SignupState extends State<_Signup> with _Kept {
+final class _SignupState extends State<_Signup> with KeptState {
   final _form = GlobalKey<FormState>();
   var _name = '';
 
@@ -2207,7 +2188,7 @@ final class _Tabs extends StatefulWidget {
   State<_Tabs> createState() => _TabsState();
 }
 
-final class _TabsState extends State<_Tabs> with _Kept {
+final class _TabsState extends State<_Tabs> with KeptState {
   /// The tabs, kept with the page: new ones, at the first, when their
   /// count changes.
   TabController get _tabs {
@@ -2311,7 +2292,7 @@ final class _Hinted extends StatefulWidget {
   State<_Hinted> createState() => _HintedState();
 }
 
-final class _HintedState extends State<_Hinted> with _Kept {
+final class _HintedState extends State<_Hinted> with KeptState {
   void _do(String what) => keep('did', what);
 
   @override
@@ -2492,7 +2473,7 @@ final class _Segments extends StatefulWidget {
   State<_Segments> createState() => _SegmentsState();
 }
 
-final class _SegmentsState extends State<_Segments> with _Kept {
+final class _SegmentsState extends State<_Segments> with KeptState {
   @override
   Widget build(BuildContext context) {
     final name = 'shown:${widget.multiple}';
@@ -2674,7 +2655,7 @@ final class _Notice extends StatefulWidget {
   State<_Notice> createState() => _NoticeState();
 }
 
-final class _NoticeState extends State<_Notice> with _Kept {
+final class _NoticeState extends State<_Notice> with KeptState {
   void _did(String what, {bool? shown}) => setState(() {
     if (shown != null) {
       kept['shown'] = shown;
@@ -2749,11 +2730,10 @@ final class _Tiles extends StatefulWidget {
   State<_Tiles> createState() => _TilesState();
 }
 
-final class _TilesState extends State<_Tiles> {
+final class _TilesState extends State<_Tiles> with KeptState {
   // kept in the page's state while the gallery runs
-  late final Map<String, Object?> _kept = PageControl.of(context).state;
-  int get _open => _kept['open'] as int? ?? 0;
-  set _open(int i) => _kept['open'] = i;
+  int get _open => kept['open'] as int? ?? 0;
+  set _open(int i) => kept['open'] = i;
 
   @override
   Widget build(BuildContext context) => Column(
