@@ -7,8 +7,7 @@ import 'dart:async';
 import 'dart:convert' show utf8;
 
 import 'package:meta/meta.dart';
-import 'package:twk_core/twk_core.dart'
-    show Attr, CrossAxisAlignment, TextOverflow, TextWrap;
+import 'package:twk_core/twk_core.dart' show Attr, CrossAxisAlignment, TextWrap;
 
 import '../editing/autocomplete.dart';
 import '../editing/text_editing.dart';
@@ -1196,9 +1195,6 @@ final class _FilePickerState extends State<FilePicker> {
                   refused ??
                       (_marked.isEmpty ? '' : '${_marked.length} marked'),
                   style: refused != null ? theme.error : theme.muted,
-                  wrap: TextWrap.none,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               if (widget.onCancelled case final cancel?)

@@ -11,6 +11,11 @@ into lines, cut off and aligned by the core's `RenderParagraph` (`TextWrap`,
 left and the right edge, or in visual order those a line's paragraph starts
 and ends at);
 
+`Text.line` (a string) and `Text.richLine` (`Span`s) are the one-line case:
+`wrap: TextWrap.none`, `overflow: TextOverflow.ellipsis`, `maxLines: 1`,
+taking only `key` and `style`; a text wider than its room is cut with `…`
+and never grows the height.
+
 ## `DefaultTextStyle`
 
 `DefaultTextStyle`, merged onto the one above it. A rebuild with the same

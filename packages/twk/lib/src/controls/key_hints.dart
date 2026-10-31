@@ -1,8 +1,7 @@
 /// What can be pressed now: [KeyHintsBar].
 library;
 
-import 'package:twk_core/twk_core.dart'
-    show Attr, KeyCode, TextOverflow, TextWrap;
+import 'package:twk_core/twk_core.dart' show Attr, KeyCode;
 
 import '../focus/focus.dart';
 import '../framework/framework.dart';
@@ -247,12 +246,9 @@ final class _KeyHintsBarState extends State<KeyHintsBar> {
         spans.add(Span(' $hint', hintStyle));
       }
     }
-    return Text.rich(
+    return Text.richLine(
       spans,
       style: theme.text.merge(widget.style ?? const Style()),
-      wrap: TextWrap.none,
-      overflow: TextOverflow.ellipsis,
-      maxLines: 1,
     );
   }
 }

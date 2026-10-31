@@ -205,6 +205,34 @@ void main() {
     });
   });
 
+  group('Text.line', () {
+    test('is one line cut with an ellipsis, as the hand-written form', () {
+      final line = Shot(const Text.line('a long text here'), 8, 3);
+      final by = Shot(
+        const Text(
+          'a long text here',
+          wrap: TextWrap.none,
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
+        ),
+        8,
+        3,
+      );
+      expect(line.rows, ['a long…', '', '']);
+      expect(line.rows, by.rows);
+    });
+
+    test('a rich one is cut the same, in its spans styles', () {
+      final v = Shot(
+        const Text.richLine([Span('ab', Style(fg: red)), Span('cdefgh')]),
+        4,
+        2,
+      );
+      expect(v.rows, ['abc…', '']);
+      expect(v.cells(0, 1), [('a', red.value, 0, 0)]);
+    });
+  });
+
   group('DefaultTextStyle', () {
     test('is the style under that of each Text below it', () {
       final v = Shot(

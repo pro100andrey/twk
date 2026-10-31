@@ -3,8 +3,6 @@
 library;
 
 import 'package:meta/meta.dart';
-import 'package:twk_core/twk_core.dart'
-    show Axis, CrossAxisAlignment, MainAxisSize, TextOverflow, TextWrap;
 
 import '../focus/focus.dart';
 import '../framework/framework.dart';
@@ -274,7 +272,7 @@ final class RadioGroup<T> extends StatelessWidget {
       // the hidden cursor on the choice that shows the focus
       child: ActiveItem(
         active: focused,
-        child: Text.rich(
+        child: Text.richLine(
           [
             ...bracketed(
               theme,
@@ -295,9 +293,6 @@ final class RadioGroup<T> extends StatelessWidget {
             enabled: enabled,
             disabledStyle: disabledStyle,
           ),
-          wrap: TextWrap.none,
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
         ),
       ),
     );

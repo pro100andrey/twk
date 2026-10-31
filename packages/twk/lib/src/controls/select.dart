@@ -930,12 +930,9 @@ final class _PickerState<T> extends State<_Picker<T>>
           child: Row(
             children: [
               Expanded(
-                child: Text(
+                child: Text.line(
                   text,
                   style: shown,
-                  wrap: TextWrap.none,
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
                 ),
               ),
               Text(' ▾', style: arrow, wrap: TextWrap.none),
@@ -952,12 +949,9 @@ final class _PickerState<T> extends State<_Picker<T>>
           mainAxisSize: MainAxisSize.min,
           children: [
             Flexible(
-              child: Text(
+              child: Text.line(
                 ' $text${pad > 0 ? ' ' * pad : ''}',
                 style: shown,
-                wrap: TextWrap.none,
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
               ),
             ),
             Text(' ▾', style: arrow, wrap: TextWrap.none),

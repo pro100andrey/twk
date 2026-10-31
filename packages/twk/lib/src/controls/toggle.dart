@@ -1,8 +1,7 @@
 /// What is on or off: [Checkbox] and [Switch].
 library;
 
-import 'package:twk_core/twk_core.dart'
-    show Brightness, Color, TextOverflow, TextWrap;
+import 'package:twk_core/twk_core.dart' show Brightness, Color;
 
 import '../animation/curves.dart';
 import '../animation/implicit.dart';
@@ -344,15 +343,12 @@ final class _Toggle extends StatelessWidget {
           enabled: enabled,
           disabledStyle: disabledStyle,
         );
-        Widget text(double at) => Text.rich(
+        Widget text(double at) => Text.richLine(
           [
             ...marks(theme, row, on, enabled, at),
             if (label.isNotEmpty) Span(' $label'),
           ],
           style: row,
-          wrap: TextWrap.none,
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
         );
         final at = on ? 1.0 : 0.0;
         if (!animated) {

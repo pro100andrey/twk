@@ -85,6 +85,40 @@ final class Text extends LeafRenderObjectWidget {
     this.onLinkTap,
   }) : data = null;
 
+  /// Shows [data] in [style] on one line, cut off with `…` where it is
+  /// wider than its room: [Text] with `wrap: TextWrap.none`,
+  /// `overflow: TextOverflow.ellipsis` and `maxLines: 1`. The common case
+  /// in a row, a panel or a status line, where a long text should not
+  /// grow the height.
+  ///
+  /// ```dart
+  /// Row(children: [Expanded(child: Text.line(notes)), const Text(' ▾')])
+  /// ```
+  const Text.line(String this.data, {super.key, this.style = const Style()})
+    : spans = null,
+      wrap = TextWrap.none,
+      overflow = TextOverflow.ellipsis,
+      maxLines = 1,
+      align = TextAlign.left,
+      onLinkTap = null;
+
+  /// [spans] as [Text.line] shows a string: [Text.rich] on one line, cut
+  /// off with `…`.
+  ///
+  /// ```dart
+  /// Text.richLine(['Error: '.bold.fg(Color.red), Span(notes)])
+  /// ```
+  const Text.richLine(
+    List<Span> this.spans, {
+    super.key,
+    this.style = const Style(),
+  }) : data = null,
+       wrap = TextWrap.none,
+       overflow = TextOverflow.ellipsis,
+       maxLines = 1,
+       align = TextAlign.left,
+       onLinkTap = null;
+
   /// The text, in [style]; null for [spans].
   final String? data;
 
