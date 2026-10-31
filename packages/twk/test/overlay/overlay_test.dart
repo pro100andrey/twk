@@ -273,8 +273,8 @@ void main() {
         isA<StateError>().having(
           (e) => e.message,
           'message',
-          'no Overlay above SizedBox: place an Overlay above it, as around '
-              'the whole app: Overlay(child: …)',
+          'no Overlay above SizedBox: place an Overlay above it, as App does '
+              'around the whole app: App(child: …)',
         ),
       ),
     );

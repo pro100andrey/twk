@@ -74,10 +74,12 @@ import 'panel.dart';
 /// So the [Overlay] (or the [Navigator]) goes above the app's own
 /// `KeyBindings`, around them: bindings above it hear the keys the dialog
 /// leaves, its `s` and `q` among them, as the app's root bindings would
-/// act on them while the dialog is open. `runApp` places no overlay:
+/// act on them while the dialog is open. `runApp` places no overlay;
+/// `App` places one under the app's theme, above the app, whose root has
+/// its `KeyBindings`:
 ///
 /// ```dart
-/// Overlay(
+/// App(
 ///   child: KeyBindings(
 ///     {'q': () {}},
 ///     child: Text('the app'),
@@ -138,7 +140,7 @@ Future<T?> showDialog<T>(
   if (overlay == null) {
     throw StateError(
       'showDialog: no Overlay above ${context.widget.runtimeType}: place '
-      'an Overlay above it, as around the whole app: Overlay(child: …)',
+      'an Overlay above it, as App does around the whole app: App(child: …)',
     );
   }
   final entry = route._entry = OverlayEntry(

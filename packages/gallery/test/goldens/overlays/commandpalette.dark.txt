@@ -2,12 +2,12 @@ screen 120×36, cursor hidden
 text
 │  ◆ twk gallery   Overlays  ›  CommandPalette                                                ctrl+p search      ◐ Dark  │
 │                                                                                                                        │
-│   ⌕ Filter             /      CommandPalette                                                                  8 of 11  │
+│   ⌕ Filter             /      CommandPalette                                                                  9 of 12  │
 │                               What can be done, found by typing: Tab to a button, then Ctrl+K, or press Dart           │
-│     StatusBar                 files, whose CommandPaletteController opens it with dart typed; commandsFor adds the     │
-│                               files that match. The gallery's own, Ctrl+P, goes to a page.                             │
-│   OVERLAYS            11                                                                                               │
-│     Overlay                   Preview   Code                                                                           │
+│                               files, whose CommandPaletteController opens it with dart typed; commandsFor adds the     │
+│   OVERLAYS            12      files that match. The gallery's own, Ctrl+P, goes to a page.                             │
+│     Overlay                                                                                                            │
+│     App                       Preview   Code                                                                           │
 │     Dialog                 ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
 │     Toast                                                                                │                             │
 │     Tooltip                    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
@@ -41,10 +41,10 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaiBiBBBBBBiiiiiiiiiiiiiCiaahhhllllllllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhDhDDhDDhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnhnnnhnnhnnnnnhnnnnnhnnhnnnnnnnhnnnhnnhnhnnnnnnnhnnnnhnnnnnnnhnnhnnnnnhnnnnhhhhhhhhhhh│
-│aaaaaoooooooooaaaaaaaaaaaaaahhhnnnnnnhnnnnnhnnnnnnnnnnnnnnnnnnnnnnnnhnnnnnhnnhnnnnhnnnnhnnnnnnhnnnnnnnnnnnhnnnnhnnnhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnnhnnnnhnnnnnnhnnnhnnnnnnnnnhnnnnhnnnnnnnhnnnnhnnhnhnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaddddddddaaaaaaaaaaaaAAaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaaaaaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnnnhnnnnnhnnnnnnnnnnnnnnnnnnnnnnnnhnnnnnhnnhnnnnhnnnnhnnnnnnhnnnnnnnnnnnhnnnnhnnnhhhhh│
+│aaaddddddddaaaaaaaaaaaaAAaaahhhnnnnnhnnnnhnnnnnnhnnnhnnnnnnnnnhnnnnhnnnnnnnhnnnnhnnhnhnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooaaaaaaaaaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooaaaaaaaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
 │aaaaaoooooaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│

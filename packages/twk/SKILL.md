@@ -332,18 +332,11 @@ import 'dart:async';
 
 import 'package:twk/twk.dart';
 
-/// The root of an app with dialogs: the Overlay under the Theme, so what
-/// it shows sees the theme, and the screens below it, so their contexts
-/// find it.
-final class App extends StatelessWidget {
-  const App({super.key});
-
-  @override
-  Widget build(BuildContext context) => const Theme(
-    data: ThemeData.nord,
-    child: Overlay(child: Home()),
-  );
-}
+/// The root of an app with dialogs: `App` puts the Overlay under the
+/// theme, so what it shows is in the theme, and above the screens, so
+/// their contexts find it.
+/// `runApp(app)` runs it.
+const app = App(theme: ThemeData.nord, child: Home());
 
 final class Home extends StatelessWidget {
   const Home({super.key});
@@ -563,7 +556,7 @@ import 'package:twk_test/twk_test.dart';
 
 void main() {
   testTwk('a dialog asks first, a toast says it is done', (t) async {
-    await t.pumpWidget(const App(), size: (40, 12));
+    await t.pumpWidget(app, size: (40, 12));
     await t.press('enter');
     // a dialog fades in over 160 ms: at its first frame it is not seen yet
     await t.pump(const Duration(milliseconds: 200));
@@ -705,12 +698,15 @@ What to know:
   `DatePicker`, `Autocomplete` and `CommandPalette` need an `Overlay`
   above them (a `Navigator` holds one); without one they fail with a
   `StateError` that says where to put it (a widget, in its error box).
-  The context must be below it: the `context` of the build that creates
-  the `Overlay` is above it, so build the `Overlay` in a parent widget,
-  as `App` does, or what opens them in a `Builder` below it.
-  `runApp` places none. Put it above the app's root `KeyBindings`, around
-  them: the keys a dialog leaves go up from it to what is above the
-  overlay, so bindings above it (`s`, `q`) act while the dialog is open.
+  `runApp` places none: `App(theme:, child:)` at the root places the
+  theme, under it the `Overlay`, under that the app (above `App` go the
+  providers its dialogs read). The context must be below it: the
+  `context` of the build that creates the `Overlay` is above it, so the
+  app's root widget is its own, below `App`, or what opens them is in a
+  `Builder` below it. The app's root `KeyBindings` go below the
+  `Overlay`, in that widget: the keys a dialog leaves go up from it to
+  what is above the overlay, so bindings above it (`s`, `q`) act while
+  the dialog is open.
 - A dialog, a toast and a tooltip fade in (a dialog over 160 ms): in a
   test one `t.pump()` shows it at the start of its fade, not yet drawn.
   Pump past it (`t.pump(const Duration(milliseconds: 200))`), or show

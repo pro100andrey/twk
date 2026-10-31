@@ -2,11 +2,11 @@ screen 120×36, cursor hidden
 text
 │  ◆ twk gallery   Overlays  ›  OptionList                                                   ctrl+p search      ◐ Light  │
 │                                                                                                                        │
-│   ⌕ Filter             /      OptionList                                                                      9 of 11  │
+│   ⌕ Filter             /      OptionList                                                                     10 of 12  │
 │                               Options in rows, one highlighted, the characters a query matched standing out and a      │
-│                               detail at the right edge: what an autocomplete, a Select and a command palette list.     │
-│   OVERLAYS            11                                                                                               │
-│     Overlay                   Preview   Code                                                                           │
+│   OVERLAYS            12      detail at the right edge: what an autocomplete, a Select and a command palette list.     │
+│     Overlay                                                                                                            │
+│     App                       Preview   Code                                                                           │
 │     Dialog                 ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
 │     Toast                                                                                │                             │
 │     Tooltip                    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
@@ -39,11 +39,11 @@ text
 styles
 │aabacccadddddddaaaFFFFFFFFaafaaddddddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaFFFFFFaaaaaadadddddaa│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaiGiGGGGGGiiiiiiiiiiiiiHiaahhhllllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhIhIIhIIhh│
+│aaiGiGGGGGGiiiiiiiiiiiiiHiaahhhllllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhIIhIIhIIhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnnnnhnnhnnnnnhnnnhnnnnnnnnnnnnhnnnhnnnnnnnnnnhnhnnnnnhnnnnnnnhnnnnnnnnhnnnhnnnhnhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnnnhnnhnnnhnnnnnhnnnnnhnnnnhnnhnnnnnnnnnnnnnhnhnnnnnnhnnnhnhnnnnnnnhnnnnnnnhnnnnnhhhhh│
-│aaaddddddddaaaaaaaaaaaaFFaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaaaaaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddddaaaaaaaaaaaaFFaaahhhnnnnnnhnnhnnnhnnnnnhnnnnnhnnnnhnnhnnnnnnnnnnnnnhnhnnnnnnhnnnhnhnnnnnnnhnnnnnnnhnnnnnhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooaaaaaaaaaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooaaaaaaaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
 │aaaaaoooooaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│

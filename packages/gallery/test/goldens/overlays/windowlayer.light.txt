@@ -2,9 +2,9 @@ screen 120×36, cursor hidden
 text
 │  ◆ twk gallery   Overlays  ›  WindowLayer                                                  ctrl+p search      ◐ Light  │
 │                                                                                                                        │
-│   ⌕ Filter             /      WindowLayer                                                                    11 of 11  │
+│   ⌕ Filter             /      WindowLayer                                                                    12 of 12  │
 │                               Windows over the app: a title bar drags one, an edge resizes it, its buttons             │
-│     Overlay                   minimise, maximise and close it; Tab to a title bar, then the arrows move it.            │
+│     App                       minimise, maximise and close it; Tab to a title bar, then the arrows move it.            │
 │     Dialog                                                                                                             │
 │     Toast                     Preview   Code                                                                           │
 │     Tooltip                ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
@@ -41,7 +41,7 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaiKiKKKKKKiiiiiiiiiiiiiLiaahhhlllllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhMMhMMhMMhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnnnnhnnnnhnnnhnnnnhnhnnnnnhnnnhnnnnnhnnnnhnnhnnnnhnnnnnnnhnnnhnnnhnnnnnnnhhhhhhhhhhhhh│
-│aaaaaoooooooaaaaaaaaaaaaaaaahhhnnnnnnnnnhnnnnnnnnhnnnhnnnnnhnnnhnnnhnnhnhnnnnnhnnnnhnnnnhnnnhnnnnnnhnnnnhnnnhhhhhhhhhhhh│
+│aaaaaoooaaaaaaaaaaaaaaaaaaaahhhnnnnnnnnnhnnnnnnnnhnnnhnnnnnhnnnhnnnhnnhnhnnnnnhnnnnhnnnnhnnnhnnnnnnhnnnnhnnnhhhhhhhhhhhh│
 │aaaaaooooooaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooaaaaaaaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaaaaaaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│

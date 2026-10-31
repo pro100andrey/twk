@@ -143,7 +143,8 @@ const _product = bool.fromEnvironment('dart.vm.product');
 ///
 /// The binding places no `Overlay` around [app]: an app that shows
 /// dialogs, menus, tooltips or toasts puts one at its root, above its own
-/// `KeyBindings` (`showDialog` says why).
+/// `KeyBindings` (`showDialog` says why), as `App` does under the app's
+/// theme: `runApp(const App(child: Counter()))`.
 ///
 /// ```dart
 /// Future<void> main() => runApp(const Counter());

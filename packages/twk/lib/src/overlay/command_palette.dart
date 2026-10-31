@@ -560,7 +560,7 @@ final class _CommandPaletteState extends State<CommandPalette> {
     if (Overlay.maybeOf(context) == null) {
       throw StateError(
         'CommandPalette: no Overlay above it: place an Overlay above it, as '
-        'around the whole app: Overlay(child: …)',
+        'App does around the whole app: App(child: …)',
       );
     }
     final key = widget.openKey;

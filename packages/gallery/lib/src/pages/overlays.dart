@@ -30,6 +30,13 @@ final _lookOption = ChoiceOption(
   values: [for (final l in PanelLook.values) l.name],
 );
 
+/// The themes the App page gives its App, by name.
+const Map<String, ThemeData> _appThemes = {
+  'nord': ThemeData.nord,
+  'light': ThemeData.light,
+  'dark': ThemeData.dark,
+};
+
 /// The look [o] chooses.
 PanelLook _lookOf(Options o) => PanelLook.values.byName(o.choice('look'));
 
@@ -110,6 +117,60 @@ final overlayPages = [
       "      Span(' of the overlay', Theme.of(context).muted),",
       '    ]),',
       '  ],',
+      ');',
+    ].join('\n'),
+  ),
+  GalleryPage(
+    group: 'Overlays',
+    title: 'App',
+    options: [
+      const ChoiceOption('theme', 'theme', values: ['nord', 'light', 'dark']),
+    ],
+    build: (context, o) => App(
+      theme: _appThemes[o.choice<String>('theme')],
+      // a context below the App: its Overlay is the one the dialog shows in
+      child: Builder(
+        builder: (context) => Button(
+          'Ask',
+          onPressed: () => unawaited(
+            showDialog<void>(
+              context,
+              (context) => Dialog(
+                title: 'In the theme',
+                child: Button(
+                  'OK',
+                  autofocus: true,
+                  onPressed: () => closeDialog(context),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+    code: (o) => [
+      '@override',
+      'Widget build(BuildContext context) => App(',
+      '  theme: ThemeData.${o.label('theme')},',
+      '  // a context below the App: its Overlay is the one the dialog shows in',
+      '  child: Builder(',
+      '    builder: (context) => Button(',
+      "      'Ask',",
+      '      onPressed: () => unawaited(',
+      '        showDialog<void>(',
+      '          context,',
+      '          (context) => Dialog(',
+      "            title: 'In the theme',",
+      '            child: Button(',
+      "              'OK',",
+      '              autofocus: true,',
+      '              onPressed: () => closeDialog(context),',
+      '            ),',
+      '          ),',
+      '        ),',
+      '      ),',
+      '    ),',
+      '  ),',
       ');',
     ].join('\n'),
   ),

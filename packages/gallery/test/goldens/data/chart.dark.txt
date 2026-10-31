@@ -10,12 +10,12 @@ text
 │     LogView                                                                              │                             │
 │     Scrollbar                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
 │                                                                                          │                             │
-│   DATA                13       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  graph                      │
+│   DATA                13  ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  graph                      │
 │     Sparkline             ▐                                                              │   scatter  line             │
 │     Gauge, LineGauge      ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     BarChart              ▐    ┌                                                    ┐    │  marker                     │
 │ ▎   Chart                 ▐       1┤                         ⢀⠤⠊⠉⠉⠉⠑⠒⠤⡀  ⡠⠔⠊⠉⠉┌───┐      │   braille  halfBlock        │
-│     DotCanvas             ▐        │⠑⢄                     ⡔⠊⠁        ⠈⠱⣀     │sin│      │   quadrant  sextant         │
+│     DotCanvas                      │⠑⢄                     ⡔⠊⠁        ⠈⠱⣀     │sin│      │   quadrant  sextant         │
 │     Calendar                       │  ⠉⢆                ⢀⡰⠉         ⢀⠔⠁  ⠑⢄   │cos│      │   octant  block  dot  bar   │
 │     Heatmap, ActivityHe…           │    ⠱⣀             ⡠⠃         ⢀⠔⠁      ⠱⣀ └───┘      │   custom                    │
 │     Table                         0┤      ⠣⡀         ⢀⠜          ⡠⠃          ⠣⡀          │                             │
@@ -47,12 +47,12 @@ styles
 │aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaddddaaaaaaaaaaaaaaaaAAaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddaaaaaaaaaaaaaaaaAAaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhisssssssituuuuthhhhhhhhhhhh│
 │aaaaaooooooaoooooooooaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaadhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhphhnnnnnnhhhhhhhhhhhhhhhhhhhhh│
 │avtttuuuuutttttttttttttttttdhhhhhhhnnhhhhhhhhhhhhhhhhhhhhhhhhhwwwwwwwwwwhhxxxxxnnnnnhhhhhhphhtuuuuuuutisssssssssihhhhhhh│
-│aaaaaoooooooooaaaaaaaaaaaaadhhhhhhhhnxxhhhhhhhhhhhhhhhhhhhhhwwwhhhhhhhhwwwhhhhhnxxxnhhhhhhphhissssssssiisssssssihhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhnxxhhhhhhhhhhhhhhhhhhhhhwwwhhhhhhhhwwwhhhhhnxxxnhhhhhhphhissssssssiisssssssihhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhnhhxxhhhhhhhhhhhhhhhhwwwhhhhhhhhhxxxhhwwhhhnwwwnhhhhhhphhissssssiisssssiisssiisssihh│
 │aaaaaooooooooaoooooooooooaaahhhhhhhhnhhhhxxhhhhhhhhhhhhhwwhhhhhhhhhxxxhhhhhhwwhnnnnnhhhhhhphhissssssihhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooaaaaaaaaaaaaaaaaaahhhhhhhnnhhhhhhxxhhhhhhhhhwwhhhhhhhhhhxxhhhhhhhhhhwwhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

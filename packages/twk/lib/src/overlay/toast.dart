@@ -84,7 +84,7 @@ void showToast(
   if (overlay == null) {
     throw StateError(
       'showToast: no Overlay above ${context.widget.runtimeType}: place '
-      'an Overlay above it, as around the whole app: Overlay(child: …)',
+      'an Overlay above it, as App does around the whole app: App(child: …)',
     );
   }
   (_toasts[overlay] ??= _Toasts(overlay)).add(

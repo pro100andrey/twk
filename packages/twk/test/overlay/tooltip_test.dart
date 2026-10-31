@@ -213,8 +213,8 @@ void main() {
     await t.pumpWidget(const Tooltip(message: 'm', child: Text('Help')));
     const failed =
         'Tooltip failed to build: Bad state: Tooltip: no Overlay above it: '
-        'place an Overlay above it, as around the whole app: '
-        'Overlay(child: …)';
+        'place an Overlay above it, as App does around the whole app: '
+        'App(child: …)';
     expect(
       [
         for (final r in t.logs.records)

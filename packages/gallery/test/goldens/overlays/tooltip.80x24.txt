@@ -4,10 +4,10 @@ text
 │                                                                                │
 │   ⌕ Filter       /     Tooltip                                 Preview   Code  │
 │                        A message by a widget while the mouse or the keyboard   │
-│     StatusBar          focus rests on it, or while a TooltipController says,…  │
-│                      ──────────────────────────────────────────────────────────│
-│   OVERLAYS      11                                                             │
-│     Overlay             ·   ·   ·   ┌                         ┐ ·   ·   ·   ·  │
+│                        focus rests on it, or while a TooltipController says,…  │
+│   OVERLAYS      12   ──────────────────────────────────────────────────────────│
+│     Overlay                                                                    │
+│     App                 ·   ·   ·   ┌                         ┐ ·   ·   ·   ·  │
 │     Dialog                             Save    Open    Share                   │
 │     Toast               ·   ·   ·                               ·   ·   ·   ·  │
 │ ▎   Tooltip                            Show the tip                            │
@@ -29,10 +29,10 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahBhBBBBBBhhhhhhhChaaggkkkkkkkggggggggggggggggggggggggggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmgmmmmmmmgmmgmgmmmmmmgmmmmmgmmmgmmmmmgmmgmmmgmmmmmmmmggg│
-│aaaaannnnnnnnnaaaaaaaaggmmmmmgmmmmmgmmgmmmgmmgmmmmmgmgmmmmmmmmmmmmmmmmmgmmmmmmgg│
-│aaaaaaaaaaaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaddddddddaaaaaaAAaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnaaaaaaaaaagggogggogggogggogggggggggggggggggggggggggogogggogggogggogg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmgmmmmmgmmgmmmgmmgmmmmmgmgmmmmmmmmmmmmmmmmmgmmmmmmgg│
+│aaaddddddddaaaaaaAAaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnaaaaaaaaaaaaaagggogggogggogggogggggggggggggggggggggggggogogggogggogggogg│
 │aaaaannnnnnaaaaaaaaaaagggggggggggggggggpqqqqpggpqqqqpggpqqqqqpgggggggggggggggggg│
 │aaaaannnnnaaaaaaaaaaaagggogggogggogggggggggggggggggggggggggggggggogggogggogggogg│
 │arssstttttttsssssssssagggggggggggggggggpqqqqpqqqpqqqpggggggggggggggggggggggggggg│
@@ -63,8 +63,8 @@ C bold #747a83 on #13151a
 k bold #e6e8eb on #16181d
 l bold #5fa8ff on #16181d
 m #8b929c on #16181d
-n #e6e8eb on #1c1f25
 o #2c3039 on #16181d
+n #e6e8eb on #1c1f25
 p on #22252c
 q bold #5fa8ff on #22252c
 r #5fa8ff on #2b4566

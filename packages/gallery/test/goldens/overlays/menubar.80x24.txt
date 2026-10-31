@@ -4,8 +4,8 @@ text
 │                                                                                │
 │   ⌕ Filter       /     MenuBar                                 Preview   Code  │
 │                        Menus in a bar: F10 or a click opens one, Alt and a     │
-│   OVERLAYS      11     mnemonic too, or a MenuController from the app; the a…  │
-│     Overlay          ──────────────────────────────────────────────────────────│
+│     Overlay            mnemonic too, or a MenuController from the app; the a…  │
+│     App              ──────────────────────────────────────────────────────────│
 │     Dialog              ┌                                                  ┐   │
 │     Toast                  File  Edit  View                                    │
 │     Tooltip                                                                    │
@@ -29,8 +29,8 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahEhEEEEEEhhhhhhhFhaaggkkkkkkkggggggggggggggggggggggggggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmmmmmgmmgmgmmmmgmmmgmmgmgmmmmmgmmmmmgmmmmgmmmgmmmgmggggg│
-│aaaddddddddaaaaaaDDaaaggmmmmmmmmgmmmmgmmgmgmmmmmmmmmmmmmmgmmmmgmmmgmmmmgmmmgmmgg│
-│aaaaannnnnnnaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnaaaaaaaaaaggmmmmmmmmgmmmmgmmgmgmmmmmmmmmmmmmmgmmmmgmmmgmmmmgmmmgmmgg│
+│aaaaannnaaaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnaaaaaaaaaaagggoggggggggggggggggggggggggggggggggggggggggggggggggggoggg│
 │aaaaannnnnaaaaaaaaaaaagggggpqrrrppqrrrppqrrrpppppppppppppppppppppppppppppppggggg│
 │aaaaannnnnnnaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│

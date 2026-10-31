@@ -10,6 +10,15 @@ and under its `Theme`, so that what goes in it sees the theme: `Theme(data:
 above the app's root `KeyBindings`: the keys a dialog in it leaves go up
 to what is above the overlay, so bindings there act while it is open.
 
+## `App`
+
+`App(theme:, child:)` places the two in that order at the root:
+`runApp(const App(theme: ThemeData.nord, child: Home()))`, `Home`
+putting the app's `KeyBindings` at its root, below the overlay. Without
+`theme` it places no `Theme`; one above `App` is the theme of its
+dialogs too, as are the providers above it what they read. A theme given
+or taken away keeps the state below.
+
 ## `Overlay.of`
 
 `Overlay.of(context)` (`maybeOf`) finds the nearest;

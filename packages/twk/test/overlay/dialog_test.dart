@@ -345,7 +345,7 @@ void main() {
           (e) => e.message,
           'message',
           'showDialog: no Overlay above SizedBox: place an Overlay above it, '
-              'as around the whole app: Overlay(child: …)',
+              'as App does around the whole app: App(child: …)',
         ),
       ),
     );

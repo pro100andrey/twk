@@ -2,9 +2,9 @@ import 'package:gallery/gallery.dart';
 import 'package:test/test.dart';
 
 void main() {
-  test("the catalog has the design's 20 groups and 144 pages", () {
+  test("the catalog has the design's 20 groups and 145 pages", () {
     expect(catalog, hasLength(20));
-    expect(catalog.fold(0, (n, g) => n + g.pages.length), 144);
+    expect(catalog.fold(0, (n, g) => n + g.pages.length), 145);
     expect(catalog.first.title, 'Text');
     expect(catalog.last.title, 'Terminal');
   });
@@ -39,7 +39,7 @@ void main() {
       for (final g in catalog)
         for (final p in g.pages) '${slug(g.title)}/${slug(p.title)}',
     };
-    expect(keys, hasLength(144));
+    expect(keys, hasLength(145));
   });
 
   test("every page's options start where they say and write their Code", () {

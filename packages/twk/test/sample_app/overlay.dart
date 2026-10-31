@@ -51,24 +51,26 @@ extension on _SampleAppState {
             ),
           ),
           Expanded(
-            child: WindowLayer(
-              windows: [Window(title: 'window', child: Text('in a window'))],
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  ModalBarrier(alpha: 0x20),
-                  Positioned(
-                    right: 0,
-                    top: 0,
-                    // The bordered look: the raised one is a row taller
-                    // than the room left here.
-                    child: Dialog(
-                      look: PanelLook.bordered,
-                      title: 'dialog',
-                      child: Text('modal'),
+            child: App(
+              child: WindowLayer(
+                windows: [Window(title: 'window', child: Text('in a window'))],
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    ModalBarrier(alpha: 0x20),
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      // The bordered look: the raised one is a row taller
+                      // than the room left here.
+                      child: Dialog(
+                        look: PanelLook.bordered,
+                        title: 'dialog',
+                        child: Text('modal'),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

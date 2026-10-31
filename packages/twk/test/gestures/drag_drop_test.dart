@@ -524,8 +524,8 @@ void main() {
     );
     const failed =
         'Draggable<int> failed to build: Bad state: no Overlay above '
-        'Draggable<int>: place an Overlay above it, as around the whole app: '
-        'Overlay(child: …)';
+        'Draggable<int>: place an Overlay above it, as App does around the '
+        'whole app: App(child: …)';
     expect(
       [
         for (final r in t.logs.records)

@@ -28,8 +28,9 @@ import '../layout/stack.dart';
 ///
 /// An app places one itself, as a rule around all of it and under its
 /// `Theme`, so that what goes in it sees the theme, and with it the cells
-/// it may cover: `Theme(data: …, child: Overlay(child: Home()))`. A
-/// `Navigator` holds one of its own over its routes.
+/// it may cover: `Theme(data: …, child: Overlay(child: Home()))`, which
+/// `App(theme: …, child: Home())` places. A `Navigator` holds one of its
+/// own over its routes.
 ///
 /// An app whose dialogs, toasts and tooltips show over all of it, in its
 /// theme:
@@ -53,7 +54,7 @@ final class Overlay extends StatefulWidget {
       maybeOf(context) ??
       (throw StateError(
         'no Overlay above ${context.widget.runtimeType}: place an Overlay '
-        'above it, as around the whole app: Overlay(child: …)',
+        'above it, as App does around the whole app: App(child: …)',
       ));
 
   /// The state of the nearest [Overlay] above [context], if there is one.

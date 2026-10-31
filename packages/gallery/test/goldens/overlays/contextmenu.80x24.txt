@@ -4,7 +4,7 @@ text
 │                                                                                │
 │   ⌕ Filter       /     ContextMenu                             Preview   Code  │
 │                        A menu at the mouse on a right click, under the focus   │
-│     Overlay            on Shift+F10, or where a MenuController opens it.       │
+│     App                on Shift+F10, or where a MenuController opens it.       │
 │     Dialog           ──────────────────────────────────────────────────────────│
 │     Toast                                                                      │
 │     Tooltip             ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
@@ -29,7 +29,7 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahAhAAAAAAhhhhhhhBhaaggkkkkkkkkkkkggggggggggggggggggggggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmgmmmmgmmgmmmgmmmmmgmmgmgmmmmmgmmmmmmgmmmmmgmmmgmmmmmggg│
-│aaaaannnnnnnaaaaaaaaaaggmmgmmmmmmmmmmgmmgmmmmmgmgmmmmmmmmmmmmmmgmmmmmgmmmggggggg│
+│aaaaannnaaaaaaaaaaaaaaggmmgmmmmmmmmmmgmmgmmmmmgmgmmmmmmmmmmmmmmgmmmmmgmmmggggggg│
 │aaaaannnnnnaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnaaaaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│

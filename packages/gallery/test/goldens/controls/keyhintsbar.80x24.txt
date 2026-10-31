@@ -17,11 +17,11 @@ text
 │     ListTile              └                                              ┘     │
 │     StatusBar        ──────────────────────────────────────────────────────────│
 │                        unhinted keys  ▐●  ▌                                    │
-│   OVERLAYS      11                                                             │
+│   OVERLAYS      12                                                             │
 │     Overlay            join keys      ▐  ●▌                                    │
-│     Dialog             keys named by   signs  names                            │
-│     Toast              separator       blanks  dot  line                       │
-│     Tooltip                                                                    │
+│     App                keys named by   signs  names                            │
+│     Dialog             separator       blanks  dot  line                       │
+│     Toast                                                                      │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -44,9 +44,9 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaggmmmmmmmmgmmmmggyzAAygggggggggggggggggggggggggggggggggggg│
 │aaaddddddddaaaaaappaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnaaaaaaaaaaggmmmmgmmmmggggggBCCDBgggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnaaaaaaaaaaaggmmmmgmmmmmgmmggtuuuuuthEEEEEhggggggggggggggggggggggggggg│
-│aaaaannnnnaaaaaaaaaaaaggmmmmmmmmmggggggtuuuuuuthEEEhhEEEEhgggggggggggggggggggggg│
-│aaaaannnnnnnaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnaaaaaaaaaaaaaaggmmmmgmmmmmgmmggtuuuuuthEEEEEhggggggggggggggggggggggggggg│
+│aaaaannnnnnaaaaaaaaaaaggmmmmmmmmmggggggtuuuuuuthEEEhhEEEEhgggggggggggggggggggggg│
+│aaaaannnnnaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

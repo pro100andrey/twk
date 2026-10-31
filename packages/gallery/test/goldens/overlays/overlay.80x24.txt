@@ -9,19 +9,19 @@ text
 │     ListTile                                                                   │
 │     StatusBar           ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
 │                                 ┌                                 ┐            │
-│   OVERLAYS      11      ·   ·      Insert an entry    Remove one    ·   ·   ·  │
+│   OVERLAYS      12      ·   ·      Insert an entry    Remove one    ·   ·   ·  │
 │ ▎   Overlay                                                                    │
-│     Dialog              ·   ·     entries: 0 of the overlay         ·   ·   ·  │
-│     Toast           ▐           └                                 ┘            │
-│     Tooltip         ▐   ·   ·   ·   ·   ·   ·   ·   ·   ·   31 × 3  ·   ·   ·  │
-│     Popover                                                                    │
-│     MenuBar             ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
-│     ContextMenu                                                                │
-│     CommandPalette   ──────────────────────────────────────────────────────────│
-│     OptionList         positioned   topRight  topLeft  bottomLeft              │
-│     ModalBarrier       shadow      ▐  ●▌                                       │
-│     WindowLayer        look         raised  bordered                           │
-│                                                                                │
+│     App                 ·   ·     entries: 0 of the overlay         ·   ·   ·  │
+│     Dialog          ▐           └                                 ┘            │
+│     Toast           ▐   ·   ·   ·   ·   ·   ·   ·   ·   ·   31 × 3  ·   ·   ·  │
+│     Tooltip                                                                    │
+│     Popover             ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│     MenuBar                                                                    │
+│     ContextMenu      ──────────────────────────────────────────────────────────│
+│     CommandPalette     positioned   topRight  topLeft  bottomLeft              │
+│     OptionList         shadow      ▐  ●▌                                       │
+│     ModalBarrier       look         raised  bordered                           │
+│     WindowLayer                                                                │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -36,17 +36,17 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggogggggggggggggggggggggggggggggggggogggggggggggg│
 │aaaddddddddaaaaaaBBaaagggogggogggggsttttttsttstttttsggaddddddadddagggogggogggogg│
 │apqqqrrrrrrrqqqqqqqqqagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnaaaaaaaaaaagggogggogggggmmmmmmmmgvgmmgmmmgmmmmmmmgggggggggogggogggogg│
-│aaaaannnnnaaaaaaaaaaadgggggggggggogggggggggggggggggggggggggggggggggogggggggggggg│
-│aaaaannnnnnnaaaaaaaaadgggogggogggogggogggogggogggogggogggogggEEgEgEggogggogggogg│
+│aaaaannnaaaaaaaaaaaaaagggogggogggggmmmmmmmmgvgmmgmmmgmmmmmmmgggggggggogggogggogg│
+│aaaaannnnnnaaaaaaaaaadgggggggggggogggggggggggggggggggggggggggggggggogggggggggggg│
+│aaaaannnnnaaaaaaaaaaadgggogggogggogggogggogggogggogggogggogggEEgEgEggogggogggogg│
 │aaaaannnnnnnaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnaaaaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
+│aaaaannnnnnnaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnnnnaaaggmmmmmmmmmmggqrrrrrrrrqhxxxxxxxhhxxxxxxxxxxhggggggggggggg│
+│aaaaannnnnnnnnnaaaaaaaggmmmmmmggggggyzzAyggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaaaggmmmmggggggggqrrrrrrqhxxxxxxxxhgggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnnnnaaaaaaaggmmmmmmmmmmggqrrrrrrrrqhxxxxxxxhhxxxxxxxxxxhggggggggggggg│
-│aaaaannnnnnnnnnnnaaaaaggmmmmmmggggggyzzAyggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnaaaaaaggmmmmggggggggqrrrrrrqhxxxxxxxxhgggggggggggggggggggggggggg│
-│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

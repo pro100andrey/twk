@@ -4,12 +4,12 @@ text
 │                                                                                │
 │   ⌕ Filter       /     Dialog                                  Preview   Code  │
 │                        A box over the app, the rest dimmed behind a barrier;   │
-│     Link               Tab stays in it, Escape closes it.                      │
-│     ListTile         ──────────────────────────────────────────────────────────│
-│     StatusBar                                                                  │
-│                         ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
-│   OVERLAYS      11                      ┌                 ┐                    │
-│     Overlay             ·   ·   ·   ·      Ask              ·   ·   ·   ·   ·  │
+│     ListTile           Tab stays in it, Escape closes it.                      │
+│     StatusBar        ──────────────────────────────────────────────────────────│
+│                                                                                │
+│   OVERLAYS      12      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│     Overlay                             ┌                 ┐                    │
+│     App                 ·   ·   ·   ·      Ask              ·   ·   ·   ·   ·  │
 │ ▎   Dialog                                                                     │
 │     Toast               ·   ·   ·   ·     answer: nothing   ·   ·   ·   ·   ·  │
 │     Tooltip         ▐                   └                 ┘                    │
@@ -29,12 +29,12 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahEhEEEEEEhhhhhhhFhaaggkkkkkkgggggggggggggggggggggggggggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmgmmmgmmmmgmmmgmmmmgmmmgmmmmgmmmmmmgmmmmmmgmgmmmmmmmmggg│
-│aaaaannnnaaaaaaaaaaaaaggmmmgmmmmmgmmgmmmgmmmmmmgmmmmmmgmmmgggggggggggggggggggggg│
-│aaaaannnnnnnnaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnnnaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaaaaaaaaaaaaaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
-│aaaddddddddaaaaaaDDaaagggggggggggggggggggogggggggggggggggggogggggggggggggggggggg│
-│aaaaannnnnnnaaaaaaaaaagggogggogggogggogggggstttsgggggggggggggogggogggogggogggogg│
+│aaaaannnnnnnnaaaaaaaaaggmmmgmmmmmgmmgmmmgmmmmmmgmmmmmmgmmmgggggggggggggggggggggg│
+│aaaaannnnnnnnnaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaddddddddaaaaaaDDaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
+│aaaaannnnnnnaaaaaaaaaagggggggggggggggggggogggggggggggggggggogggggggggggggggggggg│
+│aaaaannnaaaaaaaaaaaaaagggogggogggogggogggggstttsgggggggggggggogggogggogggogggogg│
 │apqqqrrrrrrqqqqqqqqqqagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnaaaaaaaaaaaagggogggogggogggogggggmmmmmmmgmmmmmmmgggogggogggogggogggogg│
 │aaaaannnnnnnaaaaaaaaadgggggggggggggggggggogggggggggggggggggogggggggggggggggggggg│

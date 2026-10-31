@@ -364,8 +364,8 @@ enter run   esc close'''),
     );
     const failed =
         'CommandPalette failed to build: Bad state: CommandPalette: no '
-        'Overlay above it: place an Overlay above it, as around the whole '
-        'app: Overlay(child: …)';
+        'Overlay above it: place an Overlay above it, as App does around the '
+        'whole app: App(child: …)';
     expect(
       [
         for (final r in t.logs.records)

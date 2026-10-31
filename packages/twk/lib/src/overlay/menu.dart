@@ -462,7 +462,8 @@ void showContextMenu(
   if (overlay == null) {
     throw StateError(
       'showContextMenu: no Overlay above ${context.widget.runtimeType}: '
-      'place an Overlay above it, as around the whole app: Overlay(child: …)',
+      'place an Overlay above it, as App does around the whole app: '
+      'App(child: …)',
     );
   }
   if (items.isEmpty) {
@@ -673,8 +674,8 @@ final class _ContextMenuState extends State<ContextMenu> implements _MenuHost {
   Widget build(BuildContext context) {
     if (Overlay.maybeOf(context) == null) {
       throw StateError(
-        'ContextMenu: no Overlay above it: place an Overlay above it, as '
-        'around the whole app: Overlay(child: …)',
+        'ContextMenu: no Overlay above it: place an Overlay above it, as App '
+        'does around the whole app: App(child: …)',
       );
     }
     return KeyBindings.combos(
@@ -1055,8 +1056,8 @@ final class _MenuBarState extends State<MenuBar> implements _MenuHost {
   Widget build(BuildContext context) {
     if (Overlay.maybeOf(context) == null) {
       throw StateError(
-        'MenuBar: no Overlay above it: place an Overlay above it, as '
-        'around the whole app: Overlay(child: …)',
+        'MenuBar: no Overlay above it: place an Overlay above it, as App does '
+        'around the whole app: App(child: …)',
       );
     }
     final theme = Theme.of(context);

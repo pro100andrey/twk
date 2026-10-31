@@ -14,9 +14,9 @@ text
 │     TweenAnimatio…      ·   ·     ╰─────────────────────╯           ·   ·   ·  │
 │     AnimatedSwitc…                                                             │
 │     Dissolve, Fra…      ·   ·                                       ·   ·   ·  │
-│     Effect          ▐           └                                 ┘            │
+│     Effect                      └                                 ┘            │
 │                     ▐──────────────────────────────────────────────────────────│
-│   MOUSE          5     lines       1  3  5                                     │
+│   MOUSE          5  ▐  lines       1  3  5                                     │
 │     GestureDetect…     alignment   topLeft  center  bottomRight                │
 │     Listener, Mou…     curve       linear  ease  easeIn  easeOut  easeInOut    │
 │     IgnorePointer…                 fastOutSlowIn  decelerate  bounceOut        │
@@ -39,9 +39,9 @@ styles
 │aaaaannnnnnnnnnnnnnaaagggogggogggggpppppppppppppppppppppppgggggggggggogggogggogg│
 │aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnannnnaaagggogggogggggggggggggggggggggggggggggggggggggggogggogggogg│
-│aaaaannnnnnaaaaaaaaaadgggggggggggogggggggggggggggggggggggggggggggggogggggggggggg│
+│aaaaannnnnnaaaaaaaaaaagggggggggggogggggggggggggggggggggggggggggggggogggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaadoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaadddddaaaaaaaaaavaaaggmmmmmgggggghwhstshwhgggggggggggggggggggggggggggggggggggg│
+│aaadddddaaaaaaaaaavaadggmmmmmgggggghwhstshwhgggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnnaaaggmmmmmmmmmggstttttttshwwwwwwhhwwwwwwwwwwwhggggggggggggggg│
 │aaaaannnnnnnnnannnnaaaggmmmmmgggggghwwwwwwhhwwwwhhwwwwwwhhwwwwwwwhstttttttttsggg│
 │aaaaannnnnnnnnnnnnnaaaggggggggggggghwwwwwwwwwwwwwhhwwwwwwwwwwhhwwwwwwwwwhggggggg│

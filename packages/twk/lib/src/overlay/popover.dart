@@ -296,8 +296,8 @@ final class _PopoverState extends State<Popover>
   Widget build(BuildContext context) {
     if (Overlay.maybeOf(context) == null) {
       throw StateError(
-        'Popover: no Overlay above it: place an Overlay above it, as '
-        'around the whole app: Overlay(child: …)',
+        'Popover: no Overlay above it: place an Overlay above it, as App does '
+        'around the whole app: App(child: …)',
       );
     }
     if (_entryChanged) {

@@ -424,6 +424,11 @@ const catalog = [
           'in; an entry of its own goes in it too.',
     ),
     CatalogPage(
+      'App',
+      'The root of an app: its theme over the Overlay its dialogs show in, '
+          'over the app and its own keys.',
+    ),
+    CatalogPage(
       'Dialog',
       'A box over the app, the rest dimmed behind a barrier; Tab stays in '
           'it, Escape closes it.',

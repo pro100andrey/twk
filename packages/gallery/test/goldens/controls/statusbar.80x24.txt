@@ -12,16 +12,16 @@ text
 │     ListTile            ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
 │ ▎   StatusBar          ┌                                                    ┐  │
 │                           NORMAL     example/widgets/main.dart Ln 12, Col 4    │
-│   OVERLAYS      11  ▐  └                                                    ┘  │
+│   OVERLAYS      12  ▐  └                                                    ┘  │
 │     Overlay         ▐   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   · 50 × 1·  │
-│     Dialog                                                                     │
-│     Toast               ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│     App                                                                        │
+│     Dialog              ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│     Toast                                                                      │
 │     Tooltip                                                                    │
-│     Popover                                                                    │
-│     MenuBar          ──────────────────────────────────────────────────────────│
-│     ContextMenu        width  ───────────────────────────   50 cells           │
-│     CommandPalette     gap     0  1  3                                         │
-│     OptionList                                                                 │
+│     Popover          ──────────────────────────────────────────────────────────│
+│     MenuBar            width  ───────────────────────────   50 cells           │
+│     ContextMenu        gap     0  1  3                                         │
+│     CommandPalette                                                             │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -39,14 +39,14 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaggggBCCCCCCBttttuuuuuuuuuuuuuuuuuuuuuuuuutvvtvvvtvvvtvgggg│
 │aaaddddddddaaaaaassaadggoggggggggggggggggggggggggggggggggggggggggggggggggggggogg│
 │aaaaannnnnnnaaaaaaaaadgggogggogggogggogggogggogggogggogggogggogggogggogFFgFgFogg│
-│aaaaannnnnnaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnaaaaaaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
-│aaaaannnnnnnaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnaaaaaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
+│aaaaannnnnaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnnnnnaaaaaaggmmmmmggyyyyyyyyyyyyyyyyyyyyyyyyyyyzggFFgFFFFFggggggggggg│
-│aaaaannnnnnnnnnnnnnaaaggmmmgggghAhqrqhAhgggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnaaaaaaaaaaggmmmmmggyyyyyyyyyyyyyyyyyyyyyyyyyyyzggFFgFFFFFggggggggggg│
+│aaaaannnnnnnnnnnaaaaaaggmmmgggghAhqrqhAhgggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend
