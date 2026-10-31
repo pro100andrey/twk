@@ -98,9 +98,8 @@ room they get. In a `Column` put them in `Expanded`, or they take the
 whole height and push the rest off the screen (a `RenderFlex overflowed`
 warning in the log). Inline, where the app's height is what it asks for, a
 list asks for none: give it a height with a `SizedBox`. A list or a scroll
-view left no rows, and an `Expanded` with something to show left no cells,
-say so in the log too, which the debug console (`TWK_DEBUG=console`) shows
-and a failing test prints.
+view left no rows says so in the log too, which the debug console
+(`TWK_DEBUG=console`) shows and a failing test prints.
 
 What has no end to grow into takes its child's size instead, as in
 Flutter: an `Align` or a `Center` in a scroll view, or in a list's row,

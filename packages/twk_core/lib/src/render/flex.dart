@@ -371,10 +371,6 @@ final class RenderFlex extends RenderObject
           } else {
             _layoutChild(child, minCross, maxCross, lo, share);
           }
-          assert(
-            share > 0 || _debugReportStarved(child, maxMain, maxCross),
-            'reports a flexible child given no cells',
-          );
           used += horizontal ? child.width : child.height;
           final t = horizontal ? child.height : child.width;
           cross = t > cross ? t : cross;
@@ -438,33 +434,6 @@ final class RenderFlex extends RenderObject
       i++;
       child = data.nextSibling;
     }
-  }
-
-  var _starvedReported = false;
-
-  /// Logs a warning the first time a flexible child that would show
-  /// something (an `Expanded` with content; not a `Spacer`, which asks for
-  /// nothing) is given no cells of the flex's [main], the inflexible
-  /// children having taken them: an empty screen with no error otherwise.
-  bool _debugReportStarved(RenderObject child, int main, int cross) {
-    if (_starvedReported || main == 0) {
-      return true;
-    }
-    final horizontal = _direction == Axis.horizontal;
-    final wants = horizontal
-        ? child.getMaxIntrinsicWidth(cross)
-        : child.getMaxIntrinsicHeight(cross);
-    if (wants > 0) {
-      _starvedReported = true;
-      final unit = horizontal ? 'columns' : 'rows';
-      _warn(
-        'A RenderFlex gave a flexible child, a ${child.runtimeType}, 0 '
-        '$unit of its $main, which the inflexible children took: it shows '
-        'nothing of the $wants $unit it would. Give those children less, or '
-        'the flexible one a size.',
-      );
-    }
-    return true;
   }
 
   /// Logs a warning the first time children overflow the flex, with the
