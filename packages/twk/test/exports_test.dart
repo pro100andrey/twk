@@ -50,7 +50,6 @@ const notExported = {
   'GridParentData',
   'Presenter',
   'RenderConstrainedBox',
-  'RenderDecoratedBox',
   'RenderDivider',
   'RenderErrorBox',
   'RenderFlex',

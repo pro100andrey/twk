@@ -2,6 +2,7 @@
 /// thumb dragged and the track pressed with the mouse.
 library;
 
+import 'package:meta/meta.dart' show internal;
 import 'package:twk_core/twk_core.dart'
     show
         Axis,
@@ -21,6 +22,7 @@ import '../gestures/gesture_detector.dart';
 import '../gestures/mouse.dart';
 import '../gestures/selection.dart' show inSelectionArea;
 import '../layout/child_list.dart';
+import '../layout/stack.dart';
 import '../style/style.dart';
 import 'scrollable.dart';
 import 'thumb.dart';
@@ -202,6 +204,7 @@ final class _ScrollbarState extends State<Scrollbar> {
                 ),
                 line: widget.slim ? widget.trackStyle ?? theme.faint : null,
                 hovered: _hovered,
+                onBorder: false,
               ),
             ),
           ),
@@ -223,6 +226,118 @@ final class _ScrollbarState extends State<Scrollbar> {
             child: bar,
           )
         : bar;
+  }
+}
+
+/// The bar of the scrollable inside what [builder] builds, drawn on that
+/// widget's border along [axis] (its right side, or its bottom): `Box`'s
+/// `scrollbar`. [builder] is given what puts the scrollable's position
+/// within reach of the bar ([ScrollbarScope]), to wrap the box's child in.
+/// The bar covers the border's cells but [inset] at its ends (the corners)
+/// and is drawn in [line], the border's own style: the border's line where
+/// there is nothing to scroll, and over it the thumb, a heavier line (`┃`,
+/// `━`) at rest, the whole cell in eighths while the mouse is over it or
+/// drags it, in [thumb]. It is dragged and pressed as a [Scrollbar]'s is.
+@internal
+final class BorderScrollbar extends StatefulWidget {
+  /// A bar along [axis] on the border of what [builder] builds.
+  const BorderScrollbar({
+    required this.axis,
+    required this.line,
+    required this.thumb,
+    required this.inset,
+    required this.builder,
+    super.key,
+  });
+
+  /// The axis of the scrollable it shows.
+  final Axis axis;
+
+  /// The border's style, opaque.
+  final Style line;
+
+  /// The thumb's color ([Style.fg]) over [line].
+  final Style thumb;
+
+  /// The border's cells at the start and the end of the bar it leaves.
+  final (int, int) inset;
+
+  /// The widget with the border, its child wrapped by the function given.
+  final Widget Function(BuildContext context, Widget Function(Widget) scope)
+  builder;
+
+  @override
+  State<BorderScrollbar> createState() => _BorderScrollbarState();
+}
+
+final class _BorderScrollbarState extends State<BorderScrollbar> {
+  late final _track = _Track(
+    AppBinding.maybeOf(context),
+    MouseTracker.of(context),
+  );
+
+  var _hovered = false;
+
+  @override
+  void dispose() {
+    _track.dispose();
+    super.dispose();
+  }
+
+  void _hover(bool over) {
+    if (over != _hovered) {
+      setState(() => _hovered = over);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final outer = context.dependOnInheritedWidgetOfExactType<ScrollbarScope>();
+    final vertical = widget.axis == Axis.vertical;
+    final (start, end) = widget.inset;
+    _track.axis = widget.axis;
+    final line = opaque(widget.line);
+    // the box as big as it would be on its own, the bar over its side
+    return Stack(
+      fit: StackFit.passthrough,
+      children: [
+        widget.builder(
+          context,
+          (child) => ScrollbarScope(
+            vertical: vertical ? _track.slot : outer?.vertical,
+            horizontal: vertical ? outer?.horizontal : _track.slot,
+            child: child,
+          ),
+        ),
+        Positioned(
+          top: vertical ? start : null,
+          bottom: vertical ? end : 0,
+          left: vertical ? null : start,
+          right: vertical ? 0 : end,
+          width: vertical ? 1 : null,
+          height: vertical ? null : 1,
+          child: MouseRegion(
+            cursor: inSelectionArea(context) ? PointerShape.arrow : null,
+            onEnter: (_) => _hover(true),
+            onExit: (_) => _hover(false),
+            child: Listener(
+              onDown: _track.press,
+              onDrag: _track.drag,
+              onScroll: _track.wheel,
+              scrollAxis: widget.axis,
+              child: _Bar(
+                track: _track,
+                axis: widget.axis,
+                style: line.merge(widget.thumb),
+                line: line,
+                hovered: _hovered,
+                onBorder: true,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -629,6 +744,7 @@ final class _Bar extends LeafRenderObjectWidget {
     required this.style,
     required this.line,
     required this.hovered,
+    required this.onBorder,
   });
 
   final _Track track;
@@ -644,9 +760,13 @@ final class _Bar extends LeafRenderObjectWidget {
   /// Whether the mouse is over the bar.
   final bool hovered;
 
+  /// Whether the bar is drawn on a border ([BorderScrollbar]): its line
+  /// always, over the cells under it, which it does not fill.
+  final bool onBorder;
+
   @override
   _RenderBar createRenderObject(BuildContext context) =>
-      _RenderBar(track, axis, style)
+      _RenderBar(track, axis, style, onBorder: onBorder)
         ..line = line
         ..hovered = hovered;
 
@@ -664,9 +784,17 @@ final class _Bar extends LeafRenderObjectWidget {
 /// the thumb where its track says, painted again when the track says it is
 /// not where it was.
 final class _RenderBar extends RenderObject {
-  _RenderBar(this._track, this._axis, this._style);
+  _RenderBar(
+    this._track,
+    this._axis,
+    this._style, {
+    required this._onBorder,
+  });
 
   final _Track _track;
+
+  // a bar on a border, which the bar never stops being
+  final bool _onBorder;
 
   Axis _axis;
   Axis get axis => _axis;
@@ -731,15 +859,16 @@ final class _RenderBar extends RenderObject {
   @override
   void paint(PaintContext ctx) {
     final canvas = ctx.canvas;
-    final pen = _style.penIn(canvas.styles);
-    canvas.fill(0, 0, width, height, pen);
     final vertical = _axis == Axis.vertical;
+    if (!_onBorder) {
+      canvas.fill(0, 0, width, height, _style.penIn(canvas.styles));
+    }
     // slim: the track a line while there is something to scroll, under the
     // mouse too; at rest the thumb a heavier one in whole cells, wide the
     // whole cell in eighths
     final line = _line;
     final wide = line == null || _hovered || _track.dragging;
-    if (line != null && _track.scrolls) {
+    if (line != null && (_onBorder || _track.scrolls)) {
       canvas.fill(
         0,
         0,

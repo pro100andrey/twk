@@ -34,7 +34,12 @@ which with `merge` joins the lines drawn before it where it meets or crosses
 them, so that boxes stacked to share an edge join in `┬ ├ ┼`, and leaves the
 text drawn in those cells, the titles of a box whose edge it shares,
 `BorderTitle`s on its top and bottom edges, `padding`: the core's
-`RenderDecoratedBox`), `Divider` and `VerticalDivider` (with `merge`,
+`RenderDecoratedBox`; `scrollbar: Axis.vertical` draws the bar of the
+scrollable inside on its right side between the corners, `.horizontal` on
+its bottom: the border's line while nothing scrolls, the thumb a heavier
+line over it in the theme's muted color, the whole cell in eighths under
+the mouse, dragged and pressed as a `Scrollbar`'s, the child keeping all
+the room inside), `Divider` and `VerticalDivider` (with `merge`,
 joining the lines they cross and leaving the text in their cells, each end
 meeting a line it lands on in a joint: `├───┤` across a `Box` it is stacked
 on);

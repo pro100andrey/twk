@@ -19,6 +19,7 @@ import 'package:twk_core/twk_core.dart'
         RenderDivider;
 
 import '../framework/framework.dart';
+import '../scroll/scrollbar.dart' show BorderScrollbar, Scrollbar;
 import '../style/style.dart';
 import 'one_child.dart';
 
@@ -52,7 +53,7 @@ export 'package:twk_core/twk_core.dart' show BorderType;
 ///  * [Padding], for the space without the border.
 ///  * [Container], which adds a size, a margin and a shadow.
 ///  * [Divider], a line across without the box.
-final class Box extends SingleChildRenderObjectWidget {
+final class Box extends StatelessWidget {
   /// A box around [child]; with every parameter left out, an empty one
   /// that fills nothing.
   const Box({
@@ -61,8 +62,12 @@ final class Box extends SingleChildRenderObjectWidget {
     this.border,
     this.titles = const [],
     this.padding = EdgeInsets.zero,
-    super.child,
+    this.scrollbar,
+    this.child,
   });
+
+  /// What is in the box.
+  final Widget? child;
 
   /// What the box is filled with: its background, and the colors its
   /// border, titles and child take where theirs are unset; null leaves
@@ -79,16 +84,73 @@ final class Box extends SingleChildRenderObjectWidget {
   /// The empty cells between the border and the child.
   final EdgeInsets padding;
 
+  /// The axis of the scrollable in [child] whose bar is drawn on the
+  /// border, on its right side for [Axis.vertical] and its bottom for
+  /// [Axis.horizontal] (a side the [border] has), between its corners:
+  /// the border's line while there is nothing to scroll, a heavier line
+  /// over it for the thumb (`┃`, `━`) in the theme's muted color, the whole
+  /// cell in eighths while the mouse is over it, dragged and pressed as a
+  /// [Scrollbar] is. The child keeps all the room inside. Null for none.
+  ///
+  /// A list in a panel, its bar on the panel's right side:
+  ///
+  /// ```dart
+  /// Box(
+  ///   border: const Border.all(type: .rounded),
+  ///   scrollbar: Axis.vertical,
+  ///   child: ListView.builder(
+  ///     itemCount: 100,
+  ///     itemBuilder: (context, i) => Text('item $i'),
+  ///   ),
+  /// )
+  /// ```
+  final Axis? scrollbar;
+
+  @override
+  Widget build(BuildContext context) {
+    final axis = scrollbar;
+    final border = this.border;
+    final vertical = axis == Axis.vertical;
+    assert(
+      axis == null || (vertical ? border?.right : border?.bottom) != null,
+      'a scrollbar on a side the border has',
+    );
+    if (axis == null || border == null) {
+      return _DecoratedBox(this, child: child);
+    }
+    final line = (style ?? const Style()).merge(
+      (vertical ? border.right : border.bottom) ?? const Style(),
+    );
+    int inset(Style? side) => side == null ? 0 : 1;
+    return BorderScrollbar(
+      axis: axis,
+      line: line,
+      thumb: Style(fg: Theme.of(context).muted.fg),
+      inset: vertical
+          ? (inset(border.top), inset(border.bottom))
+          : (inset(border.left), inset(border.right)),
+      builder: (context, scope) =>
+          _DecoratedBox(this, child: child == null ? null : scope(child!)),
+    );
+  }
+}
+
+/// What a [Box] is drawn by: its [RenderDecoratedBox].
+final class _DecoratedBox extends SingleChildRenderObjectWidget {
+  const _DecoratedBox(this.box, {super.child});
+
+  final Box box;
+
   @override
   SingleChildRenderObjectElement createElement() => OneChildElement(this);
 
   @override
   RenderDecoratedBox createRenderObject(BuildContext context) =>
       RenderDecoratedBox(
-        background: style?.pen,
-        border: border?._boxBorder,
+        background: box.style?.pen,
+        border: box.border?._boxBorder,
         titles: _boxTitles,
-        padding: padding,
+        padding: box.padding,
       );
 
   @override
@@ -97,14 +159,15 @@ final class Box extends SingleChildRenderObjectWidget {
     RenderDecoratedBox renderObject,
   ) {
     renderObject
-      ..background = style?.pen
-      ..border = border?._boxBorder
+      ..background = box.style?.pen
+      ..border = box.border?._boxBorder
       ..titles = _boxTitles
-      ..padding = padding;
+      ..padding = box.padding;
   }
 
-  List<BoxTitle> get _boxTitles =>
-      titles.isEmpty ? const [] : [for (final t in titles) t._boxTitle];
+  List<BoxTitle> get _boxTitles => box.titles.isEmpty
+      ? const []
+      : [for (final t in box.titles) t._boxTitle];
 }
 
 /// The border of a [Box]: the lines it is drawn with, for each side that
