@@ -9,7 +9,9 @@ The first release.
   examples; `MarkdownStream`, a document that arrives in pieces, its
   settled blocks kept as they were and only what follows them parsed
   again; `MarkdownView`, a document as widgets, its links hyperlinks and
-  its code blocks highlighted.
+  its code blocks highlighted; `renderMarkdown(text, width, theme)`, the
+  same document as lines of styled spans (`List<List<Span>>`) wrapped to
+  a width, for an app that draws it in a panel of its own.
 - Syntax highlighting: lexers of the package's own, a line at a time,
   for Dart, JSON, YAML, shell, JavaScript and TypeScript, Python, Rust,
   Go and diffs (`languageNamed`, `highlight`, `SyntaxTheme`); `CodeView`
