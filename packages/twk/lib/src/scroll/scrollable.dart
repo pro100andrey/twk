@@ -508,6 +508,13 @@ final class OverscrollNotification extends ScrollNotification {
 ///   children: const [Text('one'), Text('two')],
 /// )
 /// ```
+///
+/// `Scrollable`, `SingleChildScrollView` and `ListView` take physics. The
+/// views built on a `ListView` of their own (`SelectionList`, `Table`,
+/// `TreeView`, `LogView`, `FilePicker`) take none: they are the focused
+/// widget of their screen and scroll with the wheel and the keys, and a
+/// view that is to leave the wheel to the one around is a `ListView` or a
+/// `SingleChildScrollView` with these physics.
 @immutable
 class ScrollPhysics {
   /// Physics that accept the user's scrolling.
@@ -610,7 +617,8 @@ typedef ViewportBuilder = Widget Function(
 /// where no scrollable around it is vertical ([Listener.scrollAxis]).
 /// While one is mounted the terminal reports the mouse (see [Listener]).
 ///
-/// It is a stop of Tab ([Focus]) unless [canRequestFocus] is false; its
+/// It is a stop of Tab ([Focus]) unless [canRequestFocus] is false or its
+/// [physics] do not take the user's keys; its
 /// keys reach it from a focused widget inside it too, which takes first
 /// those it uses. While the focus is in it, the keys that would move it
 /// are among those a `KeyHintsBar` shows ([FocusManagerKeys.activeKeys]),
@@ -685,7 +693,8 @@ final class Scrollable extends StatefulWidget {
   final WheelAcceleration wheelAcceleration;
 
   /// Whether it takes the wheel and the keys; null takes both. Not taking
-  /// the wheel, it goes to the scrollable around.
+  /// the wheel, it goes to the scrollable around; not taking the keys, it
+  /// is no stop of Tab ([canRequestFocus] is false) and has no key hints.
   final ScrollPhysics? physics;
 
   /// See [Focus.focusNode].
@@ -974,7 +983,7 @@ final class _ScrollableState extends State<Scrollable> {
         child: Focus(
           focusNode: node,
           autofocus: widget.autofocus,
-          canRequestFocus: widget.canRequestFocus,
+          canRequestFocus: _userScrolls ? widget.canRequestFocus : false,
           onKeyEvent: _onKey,
           child: bar == null
               ? viewport
