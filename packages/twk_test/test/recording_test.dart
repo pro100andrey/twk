@@ -3,10 +3,12 @@
 // last of them printed when a test fails.
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_core/twk_core.dart' show Trace, TraceDirection;
+import 'package:twk_test/src/recording.dart' show FrameRecorder;
 import 'package:twk_test/twk_test.dart';
 
 import 'fixtures/ticker.dart';
@@ -220,5 +222,20 @@ void main() {
         ),
       ),
     );
+  });
+
+  test('a frame that changed a style alone is printed with its styles, '
+      'unlike the one before', () {
+    Uint8List frame(String s) => Uint8List.fromList(utf8.encode(s));
+    final recorder = FrameRecorder(10, 2, inline: false, history: const [])
+      ..stamp(2, Duration.zero);
+    final printed = recorder.last([
+      frame('hello'),
+      frame('\x1b[1;1H\x1b[1mhello'),
+    ], 2)!;
+    final frames = printed.split('\n\n').skip(1).toList();
+    expect(frames, hasLength(2));
+    expect(frames[0], contains('0│hello'));
+    expect(frames[1], contains('[bold]'));
   });
 }

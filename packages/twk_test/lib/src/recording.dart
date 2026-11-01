@@ -108,15 +108,20 @@ final class FrameRecorder {
     final vt = _emulator();
     // a change of a style alone is a change, shown as the text
     var before = describeScreen(vt, styles: true);
+    var beforeText = describeScreen(vt);
     _replay(frames, vt, (i, vt) {
       final screen = describeScreen(vt, styles: true);
+      final text = describeScreen(vt);
       if (screen != before) {
-        changed.add(_frame(frames, i, vt));
+        // shown with its styles where the text is the one before: else the
+        // frame would print like the last
+        changed.add(_frame(frames, i, vt, styled: text == beforeText));
         if (changed.length > count) {
           changed.removeAt(0);
         }
       }
       before = screen;
+      beforeText = text;
     });
     if (changed.isEmpty) {
       return null;
@@ -191,12 +196,13 @@ final class FrameRecorder {
   RecordedFrame _frame(
     List<Uint8List> frames,
     int i,
-    Vt vt,
-  ) => RecordedFrame._(
+    Vt vt, {
+    bool styled = false,
+  }) => RecordedFrame._(
     i + 1,
     _times[i],
     frames[i],
     vt.lines.sublist(vt.history.length),
-    describeScreen(vt),
+    describeScreen(vt, styles: styled),
   );
 }
