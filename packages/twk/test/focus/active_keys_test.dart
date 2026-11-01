@@ -451,6 +451,8 @@ void main() {
             if (step < 3) 'ctrl+s': () => seen.add('s$step'),
             if (step == 2) 'x': null,
           },
+          // the hints built anew too, as the map is: what is tested
+          // ignore: prefer_const_literals_to_create_immutables
           hints: {'q': 'quit'},
           child: const Field('list', autofocus: true),
         ),
