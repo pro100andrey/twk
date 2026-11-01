@@ -5,6 +5,7 @@ library;
 
 import 'dart:async';
 import 'dart:convert' show utf8;
+import 'dart:math' as math;
 
 import 'package:meta/meta.dart';
 import 'package:twk_core/twk_core.dart' show Attr, CrossAxisAlignment, TextWrap;
@@ -27,6 +28,7 @@ import '../platform/platform.dart' hide currentDirectory, kindOf;
 import '../platform/platform.dart' as platform show currentDirectory, kindOf;
 import '../scroll/list_view.dart';
 import '../style/style.dart';
+import '../text/hit_row.dart' show segmenterOf;
 import '../text/widgets.dart';
 import 'button.dart';
 import 'choice.dart';
@@ -1258,6 +1260,7 @@ final class _FilePickerState extends State<FilePicker> {
   }
 
   Widget _row(ThemeData theme, _Entry entry, bool cursor, bool focused) {
+    final segmenter = segmenterOf(context);
     var style = theme.text;
     if (entry.isDirectory) {
       style = style.merge(const Style(attrs: Attr.bold));
@@ -1272,7 +1275,12 @@ final class _FilePickerState extends State<FilePicker> {
     final mark = !widget.multiple
         ? ''
         : entry.isDirectory
-        ? ' ' * (theme.glyphs.checkboxOn.length + 1)
+        ? ' ' *
+              (math.max(
+                    segmenter.width(theme.glyphs.checkboxOn),
+                    segmenter.width(theme.glyphs.checkboxOff),
+                  ) +
+                  1)
         : _marked.contains(entry.path)
         ? '${theme.glyphs.checkboxOn} '
         : '${theme.glyphs.checkboxOff} ';

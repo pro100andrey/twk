@@ -3,6 +3,7 @@
 library;
 
 import 'package:meta/meta.dart';
+import 'package:twk_core/twk_core.dart' show TextSegmenter;
 
 import '../animation/spinner.dart' show SpinnerFrames;
 import 'theme.dart' show Theme, ThemeData;
@@ -13,11 +14,15 @@ import 'theme.dart' show Theme, ThemeData;
 /// or for a part of it, in the theme ([ThemeData.glyphs]), as it picks
 /// colors.
 ///
-/// The presets: [Glyphs.unicode], the default, the marks the widgets drew
-/// before the theme held them; and [Glyphs.ascii], ASCII only, for a
-/// terminal or a font without the others. [copyWith] changes some marks of
-/// a set; each mark is a string of one column unless its doc says
-/// otherwise, and the widgets lay out by the width the terminal gives it.
+/// The presets: [Glyphs.unicode], the default, the marks the widgets
+/// draw without a theme of their own; and [Glyphs.ascii], ASCII only, for
+/// a terminal or a font without the others. [copyWith] changes some marks
+/// of a set; each mark is a string of one column unless its doc says
+/// otherwise, and the widgets lay out by the width the terminal gives it
+/// (in cells, not code units). A mark drawn in one cell that is not one
+/// column wide is a blank there. An empty mark draws nothing and breaks
+/// nothing: a blank where a cell is to be filled, no width where the mark
+/// is text in a row (a bracket of [radioBrackets] says so).
 ///
 /// A widget's own parameter for a mark it has (`Spinner.frames`,
 /// `RadioGroup.mark`, `Skeleton.glyph`, a `Callout`'s `icon`) stays above
@@ -99,8 +104,8 @@ final class Glyphs {
   /// before halfway and [b]'s after it.
   factory Glyphs.lerp(Glyphs a, Glyphs b, double t) => t < 0.5 ? a : b;
 
-  /// The marks the widgets drew before the theme held them, with Unicode:
-  /// the default of [ThemeData.glyphs].
+  /// The marks the widgets draw with Unicode: the default of
+  /// [ThemeData.glyphs].
   static const unicode = Glyphs();
 
   /// ASCII only: `>` for a cursor, `v` for a check, `x` for a cross and a
@@ -470,3 +475,12 @@ final class Glyphs {
   @override
   int get hashCode => Object.hashAll(_all);
 }
+
+/// The code point [glyph] fills one cell with, under [segmenter]'s
+/// measure: its first while it is one column wide, [fallback] (a blank)
+/// where it is empty or any other width.
+@internal
+int cellRune(String glyph, TextSegmenter segmenter, [int fallback = 0x20]) =>
+    glyph.isNotEmpty && segmenter.width(glyph) == 1
+    ? glyph.runes.first
+    : fallback;

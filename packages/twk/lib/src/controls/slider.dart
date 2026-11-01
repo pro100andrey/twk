@@ -442,10 +442,7 @@ final class _RenderTrack extends RenderObject {
     if (width <= 0) {
       return;
     }
-    final groove = _glyphs.trackHorizontal;
-    final line = canvas.segmenter.width(groove) == 1
-        ? groove.runes.first
-        : 0x2d;
+    final line = cellRune(_glyphs.trackHorizontal, canvas.segmenter, 0x2d);
     final y = height ~/ 2;
     final start = thumbAt(_ratio, width, steps);
     final end = start + steps;
@@ -463,7 +460,9 @@ final class _RenderTrack extends RenderObject {
       steps: steps,
       vertical: false,
       at: y,
-      glyph: _glyphs.partialBlocks ? null : _glyphs.thumbHorizontal.runes.first,
+      glyph: _glyphs.partialBlocks
+          ? null
+          : cellRune(_glyphs.thumbHorizontal, canvas.segmenter, 0x23),
     );
   }
 }

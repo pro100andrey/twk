@@ -3,6 +3,7 @@
 library;
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:twk_core/twk_core.dart'
     show
@@ -867,14 +868,15 @@ final class _PickerState<T> extends State<_Picker<T>>
         w = cw;
       }
     }
-    return w + (widget.multiple ? _boxWidth(glyphs) : 0);
+    return w + (widget.multiple ? _boxWidth(segmenter, glyphs) : 0);
   }
 
   /// The columns of a checkbox and the blank after it.
-  static int _boxWidth(Glyphs glyphs) =>
-      (glyphs.checkboxOn.length > glyphs.checkboxOff.length
-          ? glyphs.checkboxOn.length
-          : glyphs.checkboxOff.length) +
+  static int _boxWidth(TextSegmenter segmenter, Glyphs glyphs) =>
+      math.max(
+        segmenter.width(glyphs.checkboxOn),
+        segmenter.width(glyphs.checkboxOff),
+      ) +
       1;
 
   Widget _field(BuildContext context, bool focused) {
@@ -1020,7 +1022,12 @@ final class _PickerState<T> extends State<_Picker<T>>
         child: OptionList(
           options: [
             for (var k = top; k < end; k++)
-              _option(choices[matches[k].index], matches[k].marks, glyphs),
+              _option(
+                choices[matches[k].index],
+                matches[k].marks,
+                glyphs,
+                segmenterOf(context),
+              ),
           ],
           highlighted: highlight ? at - top : -1,
           rows: rows,
@@ -1029,14 +1036,19 @@ final class _PickerState<T> extends State<_Picker<T>>
     );
   }
 
-  Option _option(Choice<T> choice, List<int> marks, Glyphs glyphs) {
+  Option _option(
+    Choice<T> choice,
+    List<int> marks,
+    Glyphs glyphs,
+    TextSegmenter segmenter,
+  ) {
     if (!widget.multiple) {
       return Option(choice.label, marks: marks);
     }
     final on = widget.chosen.contains(choice.value);
     return Option(
       '${on ? glyphs.checkboxOn : glyphs.checkboxOff} ${choice.label}',
-      marks: [for (final m in marks) m + _boxWidth(glyphs)],
+      marks: [for (final m in marks) m + _boxWidth(segmenter, glyphs)],
     );
   }
 }

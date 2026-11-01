@@ -309,7 +309,8 @@ final class RadioGroup<T> extends StatelessWidget {
   /// The theme's radio button as spans: the opening bracket, [glyph] (the
   /// [mark] given in its place while [on]) and the closing bracket, each
   /// left out where it is empty. The mark has its style while [on] and
-  /// [enabled], the text's else; the brackets are [bracketStyle] over
+  /// [enabled], the text's while it is on and not enabled, and
+  /// [bracketStyle] (muted) while it is off, as the brackets are, over
   /// that.
   List<Span> _radioSpans(
     ThemeData theme,
@@ -324,7 +325,7 @@ final class RadioGroup<T> extends StatelessWidget {
     final (open, close) = theme.glyphs.radioBrackets;
     return [
       if (open.isNotEmpty) Span(open, brackets),
-      Span(on ? mark ?? glyph : glyph, marked),
+      Span(on ? mark ?? glyph : glyph, on ? marked : brackets),
       if (close.isNotEmpty) Span(close, brackets),
     ];
   }

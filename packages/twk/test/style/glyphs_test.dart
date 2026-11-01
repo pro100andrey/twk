@@ -257,7 +257,7 @@ void main() {
     });
 
     testTwk('the brackets are in bracketStyle, the chosen mark in the '
-        "mark's, an unchosen one in neither", (t) async {
+        "mark's, an unchosen one in the brackets'", (t) async {
       await t.pumpWidget(
         themed(
           Glyphs.unicode.copyWith(radioOff: '○'),
@@ -274,7 +274,7 @@ void main() {
       expect(t, styleAt(2, 0, hasFg(Color.red)));
       expect(t, styleAt(1, 0, isNot(hasFg(Color.red))));
       expect(t, styleAt(0, 1, hasFg(Color.red)));
-      expect(t, styleAt(1, 1, isNot(hasFg(Color.red))));
+      expect(t, styleAt(1, 1, hasFg(Color.red)));
     });
   });
 

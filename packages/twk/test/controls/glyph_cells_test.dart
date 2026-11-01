@@ -1,0 +1,183 @@
+// Marks of an app's own: an empty one draws nothing and breaks nothing, a
+// wide or astral one is measured in cells and cut at code points, not by
+// code units: tabs' edges, a slider's line and thumb, a slim scrollbar's
+// line, a checkbox, a chip's close, the boxes of a MultiSelect and of a
+// FilePicker.
+import 'dart:io';
+
+import 'package:test/test.dart';
+import 'package:twk/twk.dart';
+import 'package:twk_test/twk_test.dart';
+
+/// [child] in the dark theme with [glyphs].
+Widget themed(Glyphs glyphs, Widget child) => Theme(
+  data: ThemeData.dark.copyWith(glyphs: glyphs),
+  child: child,
+);
+
+void main() {
+  group('empty marks', () {
+    testTwk('a TabBar with no previous or next mark scrolls and draws', (
+      t,
+    ) async {
+      final c = TabController(length: 6);
+      addTearDown(c.dispose);
+      await t.pumpWidget(
+        themed(
+          Glyphs.unicode.copyWith(previous: '', next: ''),
+          TabBar(
+            controller: c,
+            tabs: const ['One', 'Two', 'Three', 'Four', 'Five', 'Six'],
+          ),
+        ),
+        size: (14, 1),
+      );
+      expect(t.lines.first, startsWith(' One'));
+      c.index = 5;
+      await t.pump();
+      expect(t.lines.first, contains('Six'));
+    });
+
+    testTwk('a Slider with an empty line and thumb draws', (t) async {
+      await t.pumpWidget(
+        themed(
+          Glyphs.unicode.copyWith(
+            trackHorizontal: '',
+            thumbHorizontal: '',
+            partialBlocks: false,
+          ),
+          SizedBox(
+            width: 8,
+            height: 1,
+            child: Slider(value: 0.5, onChanged: (_) {}),
+          ),
+        ),
+        size: (8, 1),
+      );
+      expect(t.lines, ['----#---']);
+    });
+
+    testTwk('a slim Scrollbar with an empty track and thumb draws', (t) async {
+      await t.pumpWidget(
+        themed(
+          Glyphs.unicode.copyWith(
+            trackVertical: '',
+            thumbVertical: '',
+            partialBlocks: false,
+          ),
+          Scrollbar(
+            slim: true,
+            child: ListView.builder(
+              itemCount: 30,
+              itemBuilder: (_, i) => Text('item $i'),
+            ),
+          ),
+        ),
+        size: (10, 4),
+      );
+      // the line blank, the thumb the fallback #
+      expect(t.lines, ['item 0   #', 'item 1', 'item 2', 'item 3']);
+    });
+  });
+
+  group('wide and astral marks', () {
+    testTwk('a checkbox of astral ends keeps each whole', (t) async {
+      await t.pumpWidget(
+        themed(
+          Glyphs.unicode.copyWith(checkboxOn: '😀x😀'),
+          Checkbox(value: true, onChanged: (_) {}, label: 'Wrap'),
+        ),
+        size: (14, 1),
+      );
+      expect(t.lines.first, startsWith('😀x😀 Wrap'));
+      expect(t.lines.first.runes, isNot(contains(0xFFFD)));
+    });
+
+    testTwk('a chip is removed by a click on a close mark two columns wide '
+        'as on its blank, not before', (t) async {
+      final removed = <String>[];
+      await t.pumpWidget(
+        themed(
+          Glyphs.unicode.copyWith(close: '全'),
+          ChipList<String>(
+            chips: const [Choice('a', 'ab')],
+            onPressed: (_) {},
+            onRemove: removed.add,
+          ),
+        ),
+        size: (14, 1),
+      );
+      // ' ab 全 ': 0 blank, 1-2 ab, 3 blank, 4-5 the mark, 6 blank
+      expect(t.lines.first.trimRight(), ' ab 全');
+      await t.click(4, 0);
+      await t.pump();
+      expect(removed, ['a']);
+    });
+
+    testTwk('a MultiSelect opens as wide as its labels and wide boxes', (
+      t,
+    ) async {
+      final values = ValueNotifier(<String>{'a'});
+      addTearDown(values.dispose);
+      await t.pumpWidget(
+        themed(
+          Glyphs.unicode.copyWith(checkboxOn: '全', checkboxOff: '空'),
+          Overlay(
+            child: ValueListenableBuilder<Set<String>>(
+              valueListenable: values,
+              builder: (context, v, _) => MultiSelect<String>(
+                choices: const [Choice('a', 'Apple'), Choice('b', 'Banana')],
+                values: v,
+                onChanged: (next) => values.value = next,
+                hint: 'none',
+                autofocus: true,
+              ),
+            ),
+          ),
+        ),
+        size: (24, 4),
+      );
+      await t.press('enter');
+      await t.pumpUntilIdle();
+      expect(t.lines.join('\n'), contains('全 Apple'));
+      expect(t.lines.join('\n'), contains('空 Banana'));
+    });
+
+    testTwk('a FilePicker with wide boxes aligns a directory with a file', (
+      t,
+    ) async {
+      final dir = Directory.systemTemp.createTempSync('glyph_cells_');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      Directory('${dir.path}/dd').createSync();
+      File('${dir.path}/ff').writeAsStringSync('x');
+      await t.pumpWidget(
+        themed(
+          Glyphs.unicode.copyWith(checkboxOn: '全', checkboxOff: '空'),
+          Overlay(
+            child: FilePicker(
+              onPicked: (_) {},
+              directory: dir.path,
+              multiple: true,
+              autofocus: true,
+            ),
+          ),
+        ),
+        size: (40, 12),
+      );
+      await waitUntil(
+        () => t.lines.any((l) => l.contains('空 ff')),
+        'the listing',
+        between: t.pump,
+      );
+      final file = t.lines.firstWhere((l) => l.contains('空 ff'));
+      final directory = t.lines.firstWhere((l) => l.contains('dd'));
+      // a directory has no box, a blank as wide as one in its place: the
+      // names stand in one column, in cells
+      final segmenter = TextSegmenter();
+      expect(
+        segmenter.width(directory.substring(0, directory.indexOf('dd'))),
+        segmenter.width(file.substring(0, file.indexOf('ff'))),
+      );
+    });
+  });
+}

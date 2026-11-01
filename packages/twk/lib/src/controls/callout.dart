@@ -51,11 +51,9 @@ import 'status.dart';
 /// What an app sets: the [kind] (its color and, from the theme's
 /// `Glyphs`, its icon: `ℹ ✓ ⚠ ✗`, ASCII `i v ! x` with `Glyphs.ascii`),
 /// [icon] and [title] in their place, no icon with an empty [icon], no
-/// `[×]` with no [onDismissed] (its mark is `Glyphs.close`), [actions]
-/// and [style]. The box is always a single line in the kind's color with
-/// its title on the top edge; a rounded or heavy line, or a title in
-/// another style, is not set here, an app that wants one draws a `Box`
-/// with a `BorderTitle`.
+/// `[×]` with no [onDismissed] (its mark is `Glyphs.close`), [actions],
+/// [style], the [borderType] of the box and the [titleStyle] of its
+/// title. The box is in the kind's color with its title on the top edge.
 ///
 /// The styles, each merged over those before it: the theme's text and
 /// [style] for the box, its background and the child's text; the kind's

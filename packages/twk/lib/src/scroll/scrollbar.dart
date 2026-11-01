@@ -886,9 +886,10 @@ final class _RenderBar extends RenderObject {
         width,
         height,
         _style.merge(line).penIn(canvas.styles),
-        (vertical ? _glyphs.trackVertical : _glyphs.trackHorizontal)
-            .runes
-            .first,
+        cellRune(
+          vertical ? _glyphs.trackVertical : _glyphs.trackHorizontal,
+          canvas.segmenter,
+        ),
       );
     }
     final eighths = wide && _glyphs.partialBlocks;
@@ -908,9 +909,11 @@ final class _RenderBar extends RenderObject {
       thickness: vertical ? width : height,
       glyph: eighths
           ? null
-          : (vertical ? _glyphs.thumbVertical : _glyphs.thumbHorizontal)
-                .runes
-                .first,
+          : cellRune(
+              vertical ? _glyphs.thumbVertical : _glyphs.thumbHorizontal,
+              canvas.segmenter,
+              0x23,
+            ),
     );
   }
 }

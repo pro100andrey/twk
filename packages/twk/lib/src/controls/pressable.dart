@@ -218,15 +218,16 @@ List<Span> bracketed(
 /// [glyph], a checkbox of `Glyphs.checkboxOn` or `Glyphs.checkboxOff`, as
 /// spans: its first and last character, the brackets, in [brackets] and
 /// what is between them in [mark]; a glyph of under three characters is
-/// all [mark].
+/// all [mark]. Characters are code points, so an astral one is not split.
 List<Span> checkboxSpans(String glyph, Style brackets, Style mark) {
-  final n = glyph.length;
+  final runes = glyph.runes.toList();
+  final n = runes.length;
   return n < 3
       ? [Span(glyph, mark)]
       : [
-          Span(glyph.substring(0, 1), brackets),
-          Span(glyph.substring(1, n - 1), mark),
-          Span(glyph.substring(n - 1), brackets),
+          Span(String.fromCharCode(runes.first), brackets),
+          Span(String.fromCharCodes(runes, 1, n - 1), mark),
+          Span(String.fromCharCode(runes.last), brackets),
         ];
 }
 

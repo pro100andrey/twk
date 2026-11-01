@@ -326,7 +326,11 @@ final class _ChipListState<T> extends State<ChipList<T>> {
         if (!_chips[i].enabled) {
           return;
         }
-        if (widget.onRemove != null && x >= p.x + p.width - 2) {
+        // the close mark and the blank after it
+        final closeWidth = segmenterOf(context).width(
+          Theme.of(context).glyphs.close,
+        );
+        if (widget.onRemove != null && x >= p.x + p.width - closeWidth - 1) {
           _remove(i);
         } else if (widget.onPressed != null) {
           _press(i);

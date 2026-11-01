@@ -612,10 +612,24 @@ final class _RenderTabBar extends RenderObject {
     }
     final mark = tab.penIn(styles);
     if (_offset > 0) {
-      canvas.fill(0, 0, 1, 1, mark, _glyphs.previous.runes.first);
+      canvas.fill(
+        0,
+        0,
+        1,
+        1,
+        mark,
+        cellRune(_glyphs.previous, canvas.segmenter),
+      );
     }
     if (_offset + width < _total) {
-      canvas.fill(width - 1, 0, 1, 1, mark, _glyphs.next.runes.first);
+      canvas.fill(
+        width - 1,
+        0,
+        1,
+        1,
+        mark,
+        cellRune(_glyphs.next, canvas.segmenter),
+      );
     }
   }
 }
