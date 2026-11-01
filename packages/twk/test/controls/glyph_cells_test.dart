@@ -57,6 +57,22 @@ void main() {
       expect(t.lines, ['----#---']);
     });
 
+    testTwk('a TreeView with no expanded or collapsed mark draws', (t) async {
+      await t.pumpWidget(
+        themed(
+          Glyphs.unicode.copyWith(expanded: '', collapsed: ''),
+          TreeView<String>(
+            roots: const ['a'],
+            children: (n) => n == 'a' ? const ['b'] : const [],
+            label: (context, entry) => Text(entry.node),
+            showGuides: false,
+          ),
+        ),
+        size: (10, 2),
+      );
+      expect(t.lines.first, '  a');
+    });
+
     testTwk('a slim Scrollbar with an empty track and thumb draws', (t) async {
       await t.pumpWidget(
         themed(

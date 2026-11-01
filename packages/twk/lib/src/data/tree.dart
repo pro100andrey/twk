@@ -1474,7 +1474,10 @@ final class _RenderTreeRow extends RenderObject
         1,
         1,
         _style.penIn(styles),
-        (mark == _Mark.expanded ? _set.expanded : _set.collapsed).runes.first,
+        cellRune(
+          mark == _Mark.expanded ? _set.expanded : _set.collapsed,
+          canvas.segmenter,
+        ),
       );
     }
     if (child case final child?) {
