@@ -96,9 +96,12 @@ Stream<void> watchDirectory(String path) {
 ///
 /// A file replaced at [path] (another renamed over it, as log rotation and
 /// atomic saves do) is read from its start too, but only where the watch
-/// works: it tells the create or move of the name. One that starts with the
-/// bytes already read from the start (a create event that came after the
-/// poll had read the file) is taken for the same. The poll alone cannot
+/// works: it tells the create or move of the name, by the file's own
+/// history: a create or move onto the name after the file was seen not there
+/// (before the stream was listened to, or by a look) is that file's
+/// appearance, however late after a look found it, and replaces nothing; any
+/// other is a replacement, whatever the bytes the two files start with. The
+/// order of the events among themselves is not relied on. The poll alone cannot
 /// tell it, `dart:io` giving no inode, so a replacement no longer than
 /// what was read goes unseen on a platform without a directory watch (or
 /// on a drive where it misses events), and a longer one is read from the
@@ -118,30 +121,20 @@ Stream<TailEvent> tailFile(
   var cancelled = false;
   // a file made or moved onto the name: read from its start
   var replaced = false;
-  // the first bytes read of the file from its start, to tell a create event
-  // that came after the poll read the file from one of another file
-  final head = <int>[];
+  // the file was seen not there (at the start, or by a look) and has not been
+  // put there by an event since: the next create or move onto the name is
+  // that file's own appearance, however late after a look found it, and
+  // replaces nothing
+  var owed = false;
   late final StreamController<TailEvent> out;
 
   Future<int> length() async {
     try {
       return await file.length();
     } on FileSystemException {
+      owed = true;
       return 0;
     }
-  }
-
-  /// Whether the file starts with [head] as it was read: the same file, of
-  /// which the event was late.
-  Future<bool> sameHead() async {
-    if (head.isEmpty) {
-      return false;
-    }
-    final now = <int>[];
-    await for (final bytes in file.openRead(0, head.length)) {
-      now.addAll(bytes);
-    }
-    return now.length == head.length && _same(now, head);
   }
 
   Future<void> look() async {
@@ -155,28 +148,21 @@ Stream<TailEvent> tailFile(
         again = false;
         if (replaced) {
           replaced = false;
-          if (position > 0 && !await sameHead()) {
+          if (position > 0) {
             out.add(const FileReset());
             position = 0;
-            head.clear();
           }
         }
         final end = await length();
         if (end < position) {
           out.add(const FileReset());
           position = 0;
-          head.clear();
         }
         if (end > position) {
-          var at = position;
           await for (final bytes in file.openRead(position, end)) {
             if (cancelled) {
               return;
             }
-            if (at == head.length && head.length < _headSize) {
-              head.addAll(bytes.take(_headSize - head.length));
-            }
-            at += bytes.length;
             out.add(FileBytes(bytes));
           }
           position = end;
@@ -198,13 +184,20 @@ Stream<TailEvent> tailFile(
           position = file.lengthSync();
         } on FileSystemException {
           position = 0;
+          owed = true;
         }
+      } else {
+        owed = !file.existsSync();
       }
       if (FileSystemEntity.isWatchSupported) {
         try {
           watch = file.parent.watch().where((e) => _names(e, name)).listen((e) {
             if (_replaces(e, name)) {
-              replaced = true;
+              if (owed) {
+                owed = false;
+              } else {
+                replaced = true;
+              }
             }
             unawaited(look());
           }, onError: (Object _) {});
@@ -223,18 +216,6 @@ Stream<TailEvent> tailFile(
     },
   );
   return out.stream;
-}
-
-/// How many of the first bytes of a file [tailFile] keeps to know it again.
-const _headSize = 32;
-
-bool _same(List<int> a, List<int> b) {
-  for (var i = 0; i < a.length; i++) {
-    if (a[i] != b[i]) {
-      return false;
-    }
-  }
-  return true;
 }
 
 /// Whether [e] is of the entry called [name]: made, written, removed, or

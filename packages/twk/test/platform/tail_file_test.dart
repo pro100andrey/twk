@@ -56,14 +56,52 @@ void main() {
     await holds(told, ['more\n', 'reset', 'x\n']);
   });
 
-  test('a file made over it that starts with what was read is the same file, '
-      'a create event late: only the rest is told', () async {
-    File(path).writeAsStringSync('same\n');
+  test(
+    'a file renamed over it that starts with the same bytes is a '
+    'replacement all the same: a FileReset, then it from its start',
+    () async {
+      File(path).writeAsStringSync('header\n');
+      final told = follow(fromEnd: false);
+      await holds(told, ['header\n']);
+      // the directory watch is live once an append is told with the poll's
+      // clock not moved on (one made before it is lost): renamed before it, the
+      // replacement would go unseen
+      await waitUntil(
+        () => told.length > 1,
+        'an append told by the watch, not $told',
+        between: () async {
+          File(path).writeAsStringSync('x\n', mode: FileMode.append);
+          await clock.elapse(Duration.zero);
+        },
+      );
+      final other = '${dir.path}${Platform.pathSeparator}other.log';
+      // begins with what the old one did, the lines the probe appended
+      final rotated = 'header\n${'x\n' * 20}';
+      File(other).writeAsStringSync(rotated);
+      File(other).renameSync(path);
+      await waitUntil(
+        () =>
+            told.length > 2 &&
+            told[told.length - 2] == 'reset' &&
+            told.last == rotated,
+        'the reset and the replacement from its start, not $told',
+        between: () => clock.elapse(poll),
+      );
+    },
+  );
+
+  test('a file not there yet that appears is read from its start once, '
+      'whenever its create event comes', () async {
     final told = follow(fromEnd: false);
-    await holds(told, ['same\n']);
-    final other = '${dir.path}${Platform.pathSeparator}other.log';
-    File(other).writeAsStringSync('same\nmore\n');
-    File(other).renameSync(path);
-    await holds(told, ['same\n', 'more\n']);
+    await clock.elapse(poll);
+    File(path).writeAsStringSync('first\n');
+    await clock.elapse(poll);
+    await holds(told, ['first\n']);
+    // the create event of the appearance, late or not, has come by now: an
+    // append is read on, and told nothing else
+    File(path).writeAsStringSync('second\n', mode: FileMode.append);
+    await holds(told, ['first\n', 'second\n']);
+    await clock.elapse(poll);
+    expect(told, ['first\n', 'second\n']);
   });
 }

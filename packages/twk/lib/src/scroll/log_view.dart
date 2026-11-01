@@ -123,7 +123,7 @@ final class LogController extends ChangeNotifier {
        _maxLines = maxLines;
 
   // the subscriptions of listen and followFile, cancelled with the controller
-  final _subscriptions = <StreamSubscription<String>>{};
+  final _subscriptions = <StreamSubscription<void>>{};
 
   // the lines kept, from _head on, their numbers one after another
   final _lines = <LogLine>[];
@@ -234,12 +234,14 @@ final class LogController extends ChangeNotifier {
     Stream<String> output, {
     LogLevel level = LogLevel.info,
     int tabWidth = 8,
-  }) => _listen(output, level, tabWidth);
+  }) => _listen<String>(output, _Text.new, level, tabWidth);
 
-  /// [listen] of [output] in which [_cut] is the end of the output so far, as
-  /// of a file cut short: the line not ended is dropped.
-  StreamSubscription<String> _listen(
-    Stream<String> output,
+  /// [listen] of [output], each event of it told by [piece] as text or as a
+  /// [_Cut], the end of the output so far, as of a file cut short: the line
+  /// not ended is dropped.
+  StreamSubscription<T> _listen<T>(
+    Stream<T> output,
+    _Piece Function(T) piece,
     LogLevel level,
     int tabWidth,
   ) {
@@ -256,16 +258,17 @@ final class LogController extends ChangeNotifier {
       notifyListeners();
     }
 
-    late final StreamSubscription<String> subscription;
+    late final StreamSubscription<T> subscription;
     subscription = output.listen(
-      (piece) {
-        if (identical(piece, _cut)) {
-          addEnded();
-          reader = AnsiStream(tabWidth: tabWidth);
-          return;
+      (event) {
+        switch (piece(event)) {
+          case _Cut():
+            addEnded();
+            reader = AnsiStream(tabWidth: tabWidth);
+          case _Text(:final text):
+            reader.add(text);
+            addEnded();
         }
-        reader.add(piece);
-        addEnded();
       },
       onDone: () {
         _subscriptions.remove(subscription);
@@ -307,36 +310,37 @@ final class LogController extends ChangeNotifier {
   /// final log = LogController();
   /// log.followFile('build.log');
   /// ```
-  StreamSubscription<String> followFile(
+  StreamSubscription<void> followFile(
     String path, {
     bool fromEnd = true,
     Duration poll = const Duration(seconds: 1),
     LogLevel level = LogLevel.info,
-  }) => _listen(
+  }) => _listen<_Piece>(
     _decoded(tailFile(path, fromEnd: fromEnd, poll: poll)),
+    (piece) => piece,
     level,
     8,
   );
 
-  /// The text of the bytes of [events], with [_cut] where the file was read
+  /// The text of the bytes of [events], with a [_Cut] where the file was read
   /// again from its start: what the old file left unended (a cut UTF-8
   /// character too) is not the start of the next line.
-  static Stream<String> _decoded(Stream<TailEvent> events) {
+  static Stream<_Piece> _decoded(Stream<TailEvent> events) {
     final pieces = <String>[];
     ByteConversionSink? decoder;
     late final StreamSubscription<TailEvent> subscription;
-    late final StreamController<String> out;
+    late final StreamController<_Piece> out;
     ByteConversionSink fresh() => const Utf8Decoder(
       allowMalformed: true,
     ).startChunkedConversion(_Pieces(pieces));
     void flush() {
       for (final piece in pieces) {
-        out.add(piece);
+        out.add(_Text(piece));
       }
       pieces.clear();
     }
 
-    out = StreamController<String>(
+    out = StreamController<_Piece>(
       // listened to at once: the file's end is taken as it is
       onListen: () {
         decoder = fresh();
@@ -346,7 +350,7 @@ final class LogController extends ChangeNotifier {
               case FileReset():
                 pieces.clear();
                 decoder = fresh();
-                out.add(_cut);
+                out.add(const _Cut());
               case FileBytes(:final bytes):
                 decoder!.add(bytes);
                 flush();
@@ -1715,9 +1719,22 @@ final class _RenderLine extends RenderObject with RenderObjectWithChildMixin {
   }
 }
 
-/// The piece [LogController._decoded] puts where a file was read again from
-/// its start, told by identity.
-final _cut = String.fromCharCodes(const [0, 0]);
+/// What [LogController._decoded] tells: [_Text] read, or a [_Cut].
+sealed class _Piece {
+  const _Piece();
+}
+
+/// Text of the output.
+final class _Text extends _Piece {
+  const _Text(this.text);
+
+  final String text;
+}
+
+/// Where a file was read again from its start.
+final class _Cut extends _Piece {
+  const _Cut();
+}
 
 /// The sink a chunked decoder writes the pieces of text to, kept in
 /// [pieces].
