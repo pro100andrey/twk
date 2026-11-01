@@ -268,3 +268,25 @@ final List<String> _chars = [
       if (String.fromCharCode(c) case final char when stringWidth(char) == 1)
         char,
 ];
+
+/// The file of the first frame of [stack] that is not of twk_test's
+/// `matchers.dart`: the file that called a matcher. A path may hold
+/// parentheses and `%20` for spaces, and a drive letter (`file:///C:/...`).
+/// Null when [stack] has no such frame. Not exported by the package.
+Uri? callerFile(String stack) {
+  final frame = RegExp(r'file:///\S*?\.dart(?=:\d)');
+  for (final m in frame.allMatches(stack)) {
+    final Uri uri;
+    try {
+      uri = Uri.parse(m.group(0)!);
+    } on FormatException {
+      continue;
+    }
+    if (uri.path.endsWith('/lib/src/matchers.dart') &&
+        uri.path.contains('twk_test')) {
+      continue;
+    }
+    return uri;
+  }
+  return null;
+}

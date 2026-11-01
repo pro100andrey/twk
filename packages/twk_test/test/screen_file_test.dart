@@ -55,6 +55,7 @@ const _update = 'TWK_UPDATE_GOLDENS=1 writes';
 const _legend = '(- the file, + the screen; $_update the screen to it):';
 
 void main() {
+  callerFileTests();
   late Directory dir;
   setUp(() => dir = Directory.systemTemp.createTempSync('screen_file_'));
   tearDown(() {
@@ -257,5 +258,55 @@ void main() {
       ),
     );
     expect(File(path).existsSync(), isFalse);
+  });
+}
+
+// callerFile: the frame of the file that called a matcher.
+void callerFileTests() {
+  const own =
+      '#0 _fromPackageRoot (file:///h/twk_test/lib/src/matchers.dart:250:3)';
+  String? from(String frames) => callerFile('$own\n$frames')?.toString();
+
+  test('a plain path', () {
+    expect(
+      from('#1 main (file:///h/app/test/a_test.dart:12:3)'),
+      'file:///h/app/test/a_test.dart',
+    );
+  });
+
+  test('parentheses in the path', () {
+    expect(
+      from(
+        '#1 main (file:///h/my%20app%20(2)/test/a_test.dart:12:3)\n'
+        '#2 other (file:///h/zzz/test/b_test.dart:1:1)',
+      ),
+      'file:///h/my%20app%20(2)/test/a_test.dart',
+    );
+  });
+
+  test('spaces as %20 decode in the file path', () {
+    final uri = callerFile(
+      '#1 main (file:///h/my%20app/test/a_test.dart:12:3)',
+    )!;
+    expect(uri.pathSegments, ['h', 'my app', 'test', 'a_test.dart']);
+  });
+
+  test('a drive letter', () {
+    final uri = callerFile(
+      '#1 main (file:///C:/proj/test/a_test.dart:12:3)',
+    )!;
+    expect(uri.path, '/C:/proj/test/a_test.dart');
+  });
+
+  test("twk_test's own matchers.dart frames are skipped", () {
+    expect(
+      callerFile('$own\n$own\n#2 m (file:///h/app/test/a_test.dart:1:1)')?.path,
+      '/h/app/test/a_test.dart',
+    );
+  });
+
+  test('no frame of a file gives null', () {
+    expect(callerFile(own), isNull);
+    expect(callerFile('#0 f (dart:async/zone.dart:1:1)'), isNull);
   });
 }
