@@ -5,6 +5,7 @@ library;
 import 'package:twk_core/twk_core.dart' show TextSegmenter, fitText, padCells;
 
 import '../focus/focus.dart';
+import '../foundation/change_notifier.dart' show VoidCallback;
 import '../foundation/helpers.dart';
 import '../framework/framework.dart';
 import '../semantics/semantics.dart';
@@ -153,6 +154,13 @@ final class _ValueStepperState<T> extends State<ValueStepper<T>> {
     }
   }
 
+  // Made once: a map built anew each time would be parsed anew by the layer.
+  late final Map<String, VoidCallback?> _bindings = {
+    'left': () => _step(-1),
+    'right': () => _step(1),
+  };
+  static const _hints = {'left': 'previous', 'right': 'next'};
+
   @override
   Widget build(BuildContext context) {
     final enabled = _enabled;
@@ -168,8 +176,8 @@ final class _ValueStepperState<T> extends State<ValueStepper<T>> {
         enabled: enabled,
         focusNode: widget.focusNode,
         autofocus: widget.autofocus,
-        bindings: {'left': () => _step(-1), 'right': () => _step(1)},
-        hints: const {'left': 'previous', 'right': 'next'},
+        bindings: _bindings,
+        hints: _hints,
         onTap: enabled
             ? (event) {
                 switch (_hits.at(event.x)) {

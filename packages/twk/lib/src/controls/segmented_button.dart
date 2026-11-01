@@ -6,6 +6,7 @@ import 'package:twk_core/twk_core.dart' show TextSegmenter, fitText;
 
 import '../binding/app_binding.dart';
 import '../focus/focus.dart';
+import '../foundation/change_notifier.dart' show VoidCallback;
 import '../foundation/helpers.dart';
 import '../framework/framework.dart';
 import '../semantics/semantics.dart';
@@ -217,6 +218,44 @@ final class _SegmentedButtonState<T> extends State<SegmentedButton<T>> {
     onSelectionChanged(next);
   }
 
+  // The keys and their hints, kept while what they say is the same: a map
+  // built anew each time would be parsed anew by the layer.
+  late Map<String, VoidCallback?> _bindings;
+  late Map<String, String> _hints;
+  var _keysDigits = -1;
+  var _keysMulti = false;
+  var _keysEllipsis = '';
+
+  void _keysFor({
+    required int digits,
+    required bool multi,
+    required String ellipsis,
+  }) {
+    if (_keysDigits == digits &&
+        _keysMulti == multi &&
+        _keysEllipsis == ellipsis) {
+      return;
+    }
+    _keysDigits = digits;
+    _keysMulti = multi;
+    _keysEllipsis = ellipsis;
+    _bindings = {
+      'left': () => _move(_step(_current, -1)),
+      'right': () => _move(_step(_current, 1)),
+      'home': () => _move(_step(-1, 1)),
+      'end': () => _move(_step(_segments.length, -1)),
+      'space': () => _press(_current),
+      'enter': () => _press(_current),
+      for (var i = 0; i < digits; i++) '${i + 1}': () => _press(i),
+    };
+    _hints = {
+      'left': 'previous',
+      'right': 'next',
+      'space': multi ? 'toggle' : 'select',
+      if (digits > 1) '1': '$ellipsis$digits select',
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final enabled = _enabled;
@@ -224,26 +263,17 @@ final class _SegmentedButtonState<T> extends State<SegmentedButton<T>> {
     final digits = _segments.length < 9 ? _segments.length : 9;
     final plain =
         AppBinding.maybeOf(context)?.twkApp.terminal.info.plain ?? false;
+    _keysFor(
+      digits: digits,
+      multi: widget.multiSelectionEnabled,
+      ellipsis: Theme.of(context).glyphs.ellipsis,
+    );
     final pressable = Pressable(
       enabled: enabled,
       focusNode: widget.focusNode,
       autofocus: widget.autofocus,
-      bindings: {
-        'left': () => _move(_step(current, -1)),
-        'right': () => _move(_step(current, 1)),
-        'home': () => _move(_step(-1, 1)),
-        'end': () => _move(_step(_segments.length, -1)),
-        'space': () => _press(current),
-        'enter': () => _press(current),
-        for (var i = 0; i < digits; i++) '${i + 1}': () => _press(i),
-      },
-      hints: {
-        'left': 'previous',
-        'right': 'next',
-        'space': widget.multiSelectionEnabled ? 'toggle' : 'select',
-        if (digits > 1)
-          '1': '${Theme.of(context).glyphs.ellipsis}$digits select',
-      },
+      bindings: _bindings,
+      hints: _hints,
       onTap: enabled ? (event) => _press(_hits.at(event.x)) : null,
       builder: (context, focused) => Semantics(
         nodes: [

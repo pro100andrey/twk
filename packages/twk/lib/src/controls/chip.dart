@@ -7,6 +7,7 @@ import 'package:twk_core/twk_core.dart'
 
 import '../binding/app_binding.dart';
 import '../focus/focus.dart';
+import '../foundation/change_notifier.dart' show VoidCallback;
 import '../foundation/helpers.dart';
 import '../framework/framework.dart';
 import '../layout/flex.dart';
@@ -341,6 +342,38 @@ final class _ChipListState<T> extends State<ChipList<T>> {
     }
   }
 
+  // The keys and their hints, kept while the same callbacks are there: a
+  // map built anew each time would be parsed anew by the layer.
+  late Map<String, VoidCallback?> _bindings;
+  late Map<String, String> _hints;
+  var _keysMade = -1; // 1 for pressable, 2 for removable; -1 before any
+
+  void _keysFor({required bool pressable, required bool removable}) {
+    final made = (pressable ? 1 : 0) | (removable ? 2 : 0);
+    if (_keysMade == made) {
+      return;
+    }
+    _keysMade = made;
+    _bindings = {
+      'left': () => _move(_step(_current, -1)),
+      'right': () => _move(_step(_current, 1)),
+      'up': () => _move(_vertical(-1)),
+      'down': () => _move(_vertical(1)),
+      'home': () => _move(_step(-1, 1)),
+      'end': () => _move(_step(_chips.length, -1)),
+      if (pressable) 'space': () => _press(_current),
+      if (pressable) 'enter': () => _press(_current),
+      if (removable) 'delete': () => _remove(_current),
+      if (removable) 'backspace': () => _remove(_current),
+    };
+    _hints = {
+      'left': 'previous',
+      'right': 'next',
+      if (pressable) 'space': 'toggle',
+      if (removable) 'delete': 'remove',
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final enabled = _enabled;
@@ -348,28 +381,13 @@ final class _ChipListState<T> extends State<ChipList<T>> {
     final onPressed = widget.onPressed;
     final onRemove = widget.onRemove;
     final selected = widget.selected;
+    _keysFor(pressable: onPressed != null, removable: onRemove != null);
     return Pressable(
       enabled: enabled,
       focusNode: widget.focusNode,
       autofocus: widget.autofocus,
-      bindings: {
-        'left': () => _move(_step(current, -1)),
-        'right': () => _move(_step(current, 1)),
-        'up': () => _move(_vertical(-1)),
-        'down': () => _move(_vertical(1)),
-        'home': () => _move(_step(-1, 1)),
-        'end': () => _move(_step(_chips.length, -1)),
-        if (onPressed != null) 'space': () => _press(current),
-        if (onPressed != null) 'enter': () => _press(current),
-        if (onRemove != null) 'delete': () => _remove(current),
-        if (onRemove != null) 'backspace': () => _remove(current),
-      },
-      hints: {
-        'left': 'previous',
-        'right': 'next',
-        if (onPressed != null) 'space': 'toggle',
-        if (onRemove != null) 'delete': 'remove',
-      },
+      bindings: _bindings,
+      hints: _hints,
       onTap: enabled ? (event) => _tap(event.x, event.y) : null,
       builder: (context, focused) => Semantics(
         nodes: [
@@ -412,16 +430,19 @@ final class _ChipListState<T> extends State<ChipList<T>> {
   }) {
     final glyphs = Theme.of(context).glyphs;
     final close = widget.onRemove == null ? null : glyphs.close;
+    final on = [for (final c in _chips) widget.selected.contains(c.value)];
+    final checkMark = '${glyphs.check} ';
+    // the blanks, the mark and the × take the room, the label the rest:
+    // the same for every chip with a mark, and for every one without
+    final aroundMarked = plain
+        ? segmenter.width(_chipText('', mark: checkMark, close: close))
+        : 0;
+    final aroundBare = segmenter.width(_chipText('', mark: '', close: close));
     final labels = <String>[];
     final widths = <int>[];
     for (var i = 0; i < _chips.length; i++) {
-      final mark = widget.selected.contains(_chips[i].value) && plain
-          ? '${glyphs.check} '
-          : '';
-      // the blanks, the mark and the × take the room, the label the rest
-      final around = segmenter.width(
-        _chipText('', mark: mark, close: close),
-      );
+      final mark = on[i] && plain ? checkMark : '';
+      final around = mark.isEmpty ? aroundBare : aroundMarked;
       final label = fitText(
         segmenter,
         _chips[i].label,
@@ -445,7 +466,7 @@ final class _ChipListState<T> extends State<ChipList<T>> {
           active: i == highlight,
           child: Chip(
             labels[i],
-            selected: widget.selected.contains(_chips[i].value),
+            selected: on[i],
             highlighted: i == highlight,
             removable: close != null,
             enabled: enabled && _chips[i].enabled,

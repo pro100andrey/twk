@@ -6,6 +6,7 @@ import 'package:twk_core/twk_core.dart' show Attr, TextSegmenter, fitText;
 
 import '../controls/pressable.dart';
 import '../focus/focus.dart';
+import '../foundation/change_notifier.dart' show VoidCallback;
 import '../framework/framework.dart';
 import '../overlay/menu.dart';
 import '../semantics/semantics.dart';
@@ -241,6 +242,16 @@ final class _BreadcrumbsState extends State<Breadcrumbs> {
     ], at: at);
   }
 
+  // Made once: a map built anew each time would be parsed anew by the layer.
+  late final Map<String, VoidCallback?> _bindings = {
+    'left': () => _move(-1),
+    'right': () => _move(1),
+    'home': () => _moveTo(_next(-1, 1)),
+    'end': () => _moveTo(_next(_stops.length, -1)),
+    'enter': () => _select(_stopOf(_stops, _item)),
+  };
+  static const _hints = {'left': 'previous', 'right': 'next', 'enter': 'open'};
+
   @override
   Widget build(BuildContext context) {
     final enabled = _enabled;
@@ -249,14 +260,8 @@ final class _BreadcrumbsState extends State<Breadcrumbs> {
     final pressable = Pressable(
       enabled: enabled,
       focusNode: widget.focusNode,
-      bindings: {
-        'left': () => _move(-1),
-        'right': () => _move(1),
-        'home': () => _moveTo(_next(-1, 1)),
-        'end': () => _moveTo(_next(_stops.length, -1)),
-        'enter': () => _select(_stopOf(_stops, _item)),
-      },
-      hints: const {'left': 'previous', 'right': 'next', 'enter': 'open'},
+      bindings: _bindings,
+      hints: _hints,
       onTap: enabled
           ? (event) {
               final s = _hits.at(event.x);
