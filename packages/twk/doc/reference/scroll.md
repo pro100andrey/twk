@@ -151,7 +151,7 @@ rest of the room. The thumb is as long as the window is of the content, a
 cell at least, and as far along the track as the window along the content,
 exactly at its start and end at the ends, in eighths of a cell (block
 elements; whole cells where the canvas draws those two columns wide, or
-the theme's `glyphs.eighths` is false, as in `Glyphs.ascii`, whose thumb is
+the theme's `glyphs.partialBlocks` is false, as in `Glyphs.ascii`, whose thumb is
 `#` on a `|` or `-` track: the theme's `trackVertical`, `trackHorizontal`,
 `thumbVertical` and `thumbHorizontal`),
 estimates where the content's extent is one, as a `ListView`'s is where it

@@ -43,18 +43,21 @@ named by what it means and not by the widget that draws it: `cursor` (`▎`,
 the bar at the left of a row the cursor is on), `accent` (`▌`, a toast's
 bar), `check` (`✓`), `checkBold` (`✔`, a finished prompt or step), `cross`
 (`✗`), `info` (`ℹ`), `warning` (`⚠`), `checkboxOn` (`[x]`) and
-`checkboxOff` (`[ ]`), `switchStart` (`▐`) and `switchEnd` (`▌`), `dot`
-(`●`, a radio's choice, a switch's knob, the step in hand), `ring` (`○`),
+`checkboxOff` (`[ ]`), `radioOn` (`●`), `radioOff` (` `) and
+`radioBrackets` (`('(', ')')`, an empty string for none: `◉ ○` is
+`radioOn: '◉'`, `radioOff: '○'` and `radioBrackets: ('', '')`),
+`switchStart` (`▐`) and `switchEnd` (`▌`), `switchKnob` (`●`),
+`stepCurrent` (`●`, the step in hand of a stepper), `ring` (`○`),
 `expanded` (`▾`) and `collapsed` (`▸`), `up` (`▴`) and `down` (`▾`),
 `previous` (`‹`), `next` (`›`), `first` (`«`) and `last` (`»`), `close`
 (`×`), `maximise` (`□`), `restore` (`▣`) and `minimise` (`_`), `bullet`
 (`•`, between items, and the mask of a hidden text), `taskPending` (`◦`)
-and `taskSkipped` (`↓`), `separator` (`│`), `capOpen` (`▕`) and `capClose`
-(`▏`, the edges of a one-row button), `trackVertical` (`│`),
+and `taskSkipped` (`↓`), `separator` (`│`), `buttonEdges` (`('▕', '▏')`, the edges of
+a one-row button), `trackVertical` (`│`),
 `trackHorizontal` (`─`), `thumbVertical` (`┃`), `thumbHorizontal` (`━`),
-`thumbEdge` (`▐`, an option list's thumb) and `eighths` (whether a thumb
-may be in eighths of a cell), `gaugeFilled` (`─`), `gaugeHalf` (`╴`, empty
-for none) and `gaugeEmpty` (`─`) of a `LineGauge` whose `type` is null,
+`thumbSlim` (`▐`, an option list's thumb) and `partialBlocks` (whether a
+thumb may be in eighths of a cell), `gaugeFilled` (`─`), `gaugeHalf` (`╴`,
+null for none; `copyWith(clearGaugeHalf: true)` clears it) and `gaugeEmpty` (`─`) of a `LineGauge` whose `type` is null,
 and `spinner` (`SpinnerFrames.dots`). `Glyphs.unicode` is the default;
 `Glyphs.ascii` has ASCII only (`>` `v` `x` `#` `|` `=`, the spinner
 `-\|/`, no eighths); `copyWith` changes some. A theme's `lerp` takes the

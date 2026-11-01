@@ -16,8 +16,8 @@ text
 │     Checkbox, Switch                                                                     │  mark                       │
 │ ▎   RadioGroup            ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   ●  *  ✓                   │
 │     SegmentedButton       ▐                                                              │                             │
-│     Chip, ChipList        ▐    ·   ·   ·   ·    ┌                 ┐    ·   ·   ·   ·     │                             │
-│     ValueStepper          ▐                       ( ) apple                              │                             │
+│     Chip, ChipList        ▐    ·   ·   ·   ·    ┌                 ┐    ·   ·   ·   ·     │  theme                      │
+│     ValueStepper          ▐                       ( ) apple                              │   (●) ( )  ◉ ○              │
 │     SelectionList         ▐    ·   ·   ·   ·      ( ) banana           ·   ·   ·   ·     │                             │
 │     Select, MultiSelect                           ( ) cherry                             │                             │
 │     ConfirmInput               ·   ·   ·   ·      ( ) durian           ·   ·   ·   ·     │                             │
@@ -53,8 +53,8 @@ styles
 │aaaaaoooooooooaooooooaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnhhhhhhhhhhhhhhhhhhhhhhh│
 │aurrrssssssssssrrrrrrrrrrrrdhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhrsritiitihhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooooaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooaooooooooaaaaaaaadhhhhphhhphhhphhhphhhhphhhhhhhhhhhhhhhhhphhhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhnhnhwwwwwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaooooooooaaaaaaaadhhhhphhhphhhphhhphhhhphhhhhhhhhhhhhhhhhphhhhphhhphhhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhnhnhwwwwwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhrsssrsrsrititihhhhhhhhhhhhh│
 │aaaaaoooooooooooooaaaaaaaaadhhhhphhhphhhphhhphhhhhhnhnhwwwwwwhhhhhhhhhhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaoooooooooooaaaahhhhhhhhhhhhhhhhhhhhhhhnhnhwwwwwwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooaaaaaaaaaaahhhhphhhphhhphhhphhhhhhnhnhnnnnnnhhhhhhhhhhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

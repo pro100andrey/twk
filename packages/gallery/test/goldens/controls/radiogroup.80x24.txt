@@ -17,10 +17,10 @@ text
 │     SelectionList                       └                 ┘                    │
 │     Select, Multi…      ·   ·   ·   ·   ·   ·   ·   15 × 6  ·   ·   ·   ·   ·  │
 │     ConfirmInput                                                               │
-│     Slider                                                                     │
-│     NumberInput      ──────────────────────────────────────────────────────────│
-│     DatePicker         direction   vertical  horizontal                        │
-│     FilePicker         mark        ●  *  ✓                                     │
+│     Slider           ──────────────────────────────────────────────────────────│
+│     NumberInput        direction   vertical  horizontal                        │
+│     DatePicker         mark        ●  *  ✓                                     │
+│     FilePicker         theme       (●) ( )  ◉ ○                                │
 │     Form, FormFie…                                                             │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
@@ -42,10 +42,10 @@ styles
 │aaaaannnnnnnnnnnnnaaaagggggggggggggggggggogggggggggggggggggogggggggggggggggggggg│
 │aaaaannnnnnnannnnnnaaagggogggogggogggogggogggogggogggzzgzgzggogggogggogggogggogg│
 │aaaaannnnnnnnnnnnaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnnnnaaaaaaaggmmmmmmmmmggrssssssssrhvvvvvvvvvvhggggggggggggggggggggggg│
+│aaaaannnnnnaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnaaaaaaggmmmmmmmmmggrssssssssrhvvvvvvvvvvhggggggggggggggggggggggg│
 │aaaaannnnnnnnnnaaaaaaaggmmmmgggggggrsrhvhhvhgggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnaaaaaaaggmmmmmggggggrsssrsrsrhvhvhggggggggggggggggggggggggggggggg│
 │aaaaannnnnannnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│

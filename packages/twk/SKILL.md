@@ -730,8 +730,9 @@ What to know:
     a chip; `Button.rich([key, caption])` a label of spans (a key in its
     colour, the caption in another).
   - `RadioGroup`'s marks are the theme's `glyphs.radioOn`/`radioOff`
-    (`(●)`/`( )`; `◉`/`○` without brackets), `mark` over them for one
-    group; `SegmentedButton`'s `caps`, `showSelectedIcon`; `Select`'s
+    between `radioBrackets` (`●`/` ` in `(`, `)`; `radioOn: '◉'`,
+    `radioOff: '○'`, `radioBrackets: ('', '')` for `◉ ○`), `mark` over
+    `radioOn` for one group; `SegmentedButton`'s `caps`, `showSelectedIcon`; `Select`'s
     `popupLook`, `arrowStyle`, `inline`, `rows`; `‹ x ›` is
     `ValueStepper`, chips are `Chip` and `ChipList`.
   - `Dialog`: `title`, `trailing`, `look`, `shadow`, `padding`,

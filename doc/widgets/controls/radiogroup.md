@@ -64,6 +64,7 @@ What the gallery lets you change, and what each starts at:
 | --- | --- | --- |
 | direction | vertical, horizontal | vertical |
 | mark | ●, *, ✓ | ● |
+| theme | (●) ( ), ◉ ○ | (●) ( ) |
 
 ## More
 
