@@ -479,4 +479,20 @@ sent: привет
       '   Which: is not a TwkTester',
     );
   });
+
+  testTwk('linesIn keeps to its region: a wide glyph cut by either edge is '
+      'left out', (t) async {
+    await t.pumpWidget(const Text('a你b好c'), size: (8, 1));
+    expect(t.linesIn((x: 0, y: 0, width: 8, height: 1)), ['a你b好c']);
+    // columns: a0 你1-2 b3 好4-5 c6
+    expect(t.linesIn((x: 3, y: 0, width: 2, height: 1)), ['b']);
+    expect(t.linesIn((x: 2, y: 0, width: 2, height: 1)), ['b']);
+    expect(t.linesIn((x: 3, y: 0, width: 3, height: 1)), ['b好']);
+    expect(t.linesIn((x: 0, y: 0, width: 2, height: 1)), ['a']);
+    expect(t, hasTextAt(0, 0, 'b', within: (x: 3, y: 0, width: 2, height: 1)));
+    expect(
+      t,
+      isNot(hasTextAt(1, 0, '好', within: (x: 3, y: 0, width: 2, height: 1))),
+    );
+  });
 }

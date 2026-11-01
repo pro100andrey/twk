@@ -56,6 +56,7 @@ const _legend = '(- the file, + the screen; $_update the screen to it):';
 
 void main() {
   callerFileTests();
+  fromPackageRootTests();
   late Directory dir;
   setUp(() => dir = Directory.systemTemp.createTempSync('screen_file_'));
   tearDown(() {
@@ -308,5 +309,51 @@ void callerFileTests() {
   test('no frame of a file gives null', () {
     expect(callerFile(own), isNull);
     expect(callerFile('#0 f (dart:async/zone.dart:1:1)'), isNull);
+  });
+}
+
+// fromPackageRoot: where a relative path starts from, or why it cannot.
+void fromPackageRootTests() {
+  test('an absolute path is kept', () {
+    expect(fromPackageRoot('/x/y.txt', ''), '/x/y.txt');
+  });
+
+  test('a relative path with no file frame fails and says what to pass', () {
+    for (final stack in [
+      '',
+      '#0 f (dart:async/zone.dart:1:1)',
+      '#1 main (file:///h/app/test/a_test.dart)',
+      'at Object.main (http://localhost/a_test.dart.js:1:2)',
+    ]) {
+      expect(
+        () => fromPackageRoot('test/g.txt', stack),
+        throwsA(
+          isA<StateError>().having(
+            (e) => e.message,
+            'message',
+            allOf(contains('absolute path'), contains('test/g.txt')),
+          ),
+        ),
+        reason: stack,
+      );
+    }
+  });
+
+  test('a relative path from a file with no package above it fails', () {
+    expect(
+      () => fromPackageRoot(
+        'g.txt',
+        '#0 main (file:///nonexistent-twk-dir/a_test.dart:1:1)',
+      ),
+      throwsA(isA<StateError>()),
+    );
+  });
+
+  test('a relative path from a file in a package starts at its root', () {
+    final root = Directory.current.path;
+    expect(
+      fromPackageRoot('g.txt', '#0 main (file://$root/test/a_test.dart:1:1)'),
+      '$root/g.txt',
+    );
   });
 }

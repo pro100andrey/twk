@@ -196,7 +196,8 @@ Matcher matchesScreen(String snapshot, {bool styles = false}) =>
 /// each cell. A relative [path] is from the root of the package of the
 /// test file that calls this (the nearest directory above it with a
 /// `pubspec.yaml`), wherever the suite is run from; where that is not
-/// found, from the directory the test runs in.
+/// found (a stack without a `file:` frame, as under a browser) it fails with
+/// a [StateError] asking for an absolute path.
 ///
 /// With [styles] false only the size, the cursor and the text are
 /// compared, as [matchesScreen] does: the file keeps its styles, and
@@ -235,28 +236,10 @@ Matcher matchesScreen(String snapshot, {bool styles = false}) =>
 /// expect(t, matchesScreenFile('test/goldens/form.txt'));
 /// ```
 Matcher matchesScreenFile(String path, {bool styles = true}) =>
-    _MatchesScreenFile(_fromPackageRoot(path), styles);
-
-/// [path] from the root of the package of the file that called a matcher
-/// of this library; [path] itself when it is absolute or that file is not
-/// found.
-String _fromPackageRoot(String path) {
-  if (File(path).isAbsolute) {
-    return path;
-  }
-  final caller = callerFile(StackTrace.current.toString());
-  if (caller != null) {
-    for (var dir = File(caller.toFilePath()).parent; ; dir = dir.parent) {
-      if (File('${dir.path}/pubspec.yaml').existsSync()) {
-        return '${dir.path}/$path';
-      }
-      if (dir.parent.path == dir.path) {
-        break;
-      }
-    }
-  }
-  return path;
-}
+    _MatchesScreenFile(
+      fromPackageRoot(path, StackTrace.current.toString()),
+      styles,
+    );
 
 /// A matcher of a [TwkTester]'s screen; its mismatch ends with the screen,
 /// the widget tree from the widget [TwkTester.pumpWidget] showed down, as
@@ -430,10 +413,7 @@ final class _HasTextAt extends _ScreenMatcher {
       vt.segmenter.scan(_text, i, scan);
       end += scan.width;
     }
-    final shown = [
-      for (var x = x0; x < end && x < limit; x++)
-        if (vt.cell(x, y0) case VtCell(role: != -1, :final text)) text,
-    ].join();
+    final shown = cellsText(vt, y0, x0, end < limit ? end : limit);
     return (shown, end > limit);
   }
 

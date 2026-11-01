@@ -17,6 +17,7 @@ import 'fake_clock.dart';
 import 'fake_stderr.dart';
 import 'keys.dart';
 import 'recording.dart';
+import 'screen_file.dart' show cellsText;
 import 'screen_text.dart';
 
 // Examples can assume:
@@ -634,8 +635,8 @@ final class TwkTester {
   /// [FinderTester.rect] gives one, as [lines] gives the screen's: the text
   /// of its cells, a wide glyph once, from the region's first column and
   /// without the blanks that end a row; as many of its rows and
-  /// columns as the screen has. A wide glyph cut by the region's left edge is
-  /// left out.
+  /// columns as the screen has. A wide glyph cut by the region's left or right
+  /// edge is left out, so that the rows are exactly the region's cells.
   ///
   /// ```dart
   /// expect(t.linesIn((x: 10, y: 0, width: 8, height: 2)), ['list', 'one']);
@@ -652,10 +653,7 @@ final class TwkTester {
         : vt.height;
     return [
       for (var y = top; y < bottom; y++)
-        [
-          for (var x = left; x < right; x++)
-            if (vt.cell(x, y) case VtCell(:final text, role: != -1)) text,
-        ].join().trimRight(),
+        cellsText(vt, y, left, right).trimRight(),
     ];
   }
 

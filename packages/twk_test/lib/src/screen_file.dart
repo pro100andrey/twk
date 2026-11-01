@@ -290,3 +290,50 @@ Uri? callerFile(String stack) {
   }
   return null;
 }
+
+/// The text of the cells of row [y] from column [from] up to [to], a wide
+/// glyph once and only whole: one cut by [from] (its second cell first) or
+/// by [to] (its first cell last) is left out. Not exported by the package.
+String cellsText(Vt vt, int y, int from, int to) {
+  final row = StringBuffer();
+  for (var x = from; x < to; x++) {
+    final cell = vt.cell(x, y);
+    if (cell.role == -1) {
+      continue;
+    }
+    if (x + 1 == to && x + 1 < vt.width && vt.cell(x + 1, y).role == -1) {
+      continue;
+    }
+    row.write(cell.text);
+  }
+  return '$row';
+}
+
+/// [path] from the root of the package of the file that called a matcher,
+/// found in [stack]: [path] itself when it is absolute; a [StateError]
+/// saying what to pass where it is relative and that file or its package
+/// is not found. Not exported by the package.
+String fromPackageRoot(String path, String stack) {
+  if (File(path).isAbsolute) {
+    return path;
+  }
+  final caller = callerFile(stack);
+  if (caller != null) {
+    for (var dir = File(caller.toFilePath()).parent; ; dir = dir.parent) {
+      if (File('${dir.path}/pubspec.yaml').existsSync()) {
+        return '${dir.path}/$path';
+      }
+      if (dir.parent.path == dir.path) {
+        break;
+      }
+    }
+  }
+  final why = caller == null
+      ? 'no frame of a file: URI with a line in the stack'
+      : 'no pubspec.yaml above ${caller.toFilePath()}';
+  throw StateError(
+    'matchesScreenFile("$path"): the package of the test file that calls it '
+    'was not found ($why); pass an absolute path, such as '
+    '"${Directory.current.path}/$path"',
+  );
+}
