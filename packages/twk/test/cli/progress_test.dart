@@ -399,7 +399,7 @@ void main() {
       final running = cli.tasks(
         (tracker) => tracker.run(
           'Downloading assets.zip',
-          (task) async => task.advance(3 * 1048576),
+          (task) => task.advance(3 * 1048576),
           total: 3 * 1048576,
           unit: ProgressUnit.bytes,
         ),
