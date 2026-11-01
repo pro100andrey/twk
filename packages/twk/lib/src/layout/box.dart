@@ -157,26 +157,29 @@ final class _DecoratedBox extends SingleChildRenderObjectWidget {
   SingleChildRenderObjectElement createElement() => OneChildElement(this);
 
   @override
-  RenderDecoratedBox createRenderObject(BuildContext context) =>
-      RenderDecoratedBox(
-        background: box.style?.pen,
-        border: box.border?._boxBorder(Theme.of(context).glyphs),
-        titles: _boxTitles,
-        padding: box.padding,
-        ellipsis: Theme.of(context).glyphs.ellipsis,
-      );
+  RenderDecoratedBox createRenderObject(BuildContext context) {
+    final glyphs = Theme.of(context).glyphs;
+    return RenderDecoratedBox(
+      background: box.style?.pen,
+      border: box.border?._boxBorder(glyphs),
+      titles: _boxTitles,
+      padding: box.padding,
+      ellipsis: glyphs.ellipsis,
+    );
+  }
 
   @override
   void updateRenderObject(
     BuildContext context,
     RenderDecoratedBox renderObject,
   ) {
+    final glyphs = Theme.of(context).glyphs;
     renderObject
       ..background = box.style?.pen
-      ..border = box.border?._boxBorder(Theme.of(context).glyphs)
+      ..border = box.border?._boxBorder(glyphs)
       ..titles = _boxTitles
       ..padding = box.padding
-      ..ellipsis = Theme.of(context).glyphs.ellipsis;
+      ..ellipsis = glyphs.ellipsis;
   }
 
   List<BoxTitle> get _boxTitles =>

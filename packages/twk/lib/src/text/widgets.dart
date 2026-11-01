@@ -174,29 +174,31 @@ final class Text extends LeafRenderObjectWidget {
 
   @override
   RenderParagraph createRenderObject(BuildContext context) {
+    final theme = Theme.of(context);
     final paragraph = RenderParagraph(
       _spansIn(context, null),
       wrap: wrap,
       overflow: overflow,
       maxLines: maxLines,
       align: align,
-      ellipsis: Theme.of(context).glyphs.ellipsis,
+      ellipsis: theme.glyphs.ellipsis,
     );
     addToSelectionArea(context, paragraph);
-    _tellTaps(context, paragraph);
+    _tellTaps(context, paragraph, theme);
     return paragraph;
   }
 
   @override
   void updateRenderObject(BuildContext context, RenderParagraph renderObject) {
+    final theme = Theme.of(context);
     renderObject
       ..spans = _spansIn(context, renderObject)
       ..wrap = wrap
       ..overflow = overflow
       ..maxLines = maxLines
       ..align = align
-      ..ellipsis = Theme.of(context).glyphs.ellipsis;
-    _tellTaps(context, renderObject);
+      ..ellipsis = theme.glyphs.ellipsis;
+    _tellTaps(context, renderObject, theme);
   }
 
   @override
@@ -209,7 +211,11 @@ final class Text extends LeafRenderObjectWidget {
 
   /// Gives the clicks on [paragraph] to [onLinkTap], or none when it is
   /// null.
-  void _tellTaps(BuildContext context, RenderParagraph paragraph) {
+  void _tellTaps(
+    BuildContext context,
+    RenderParagraph paragraph,
+    ThemeData theme,
+  ) {
     final onLinkTap = this.onLinkTap;
     final taps = _linkTaps[paragraph];
     final spans = this.spans;
@@ -221,7 +227,7 @@ final class Text extends LeafRenderObjectWidget {
       }
       return;
     }
-    final hand = Theme.of(context).handPointer;
+    final hand = theme.handPointer;
     if (taps != null) {
       taps
         ..onLinkTap = onLinkTap
