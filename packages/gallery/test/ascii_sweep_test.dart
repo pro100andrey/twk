@@ -30,66 +30,70 @@ const _image = 'an image or a drawing, not a mark';
 /// The cells that stay under Glyphs.ascii, by page: the characters and
 /// why. A page or a character with no entry fails the sweep, and an entry
 /// that no longer shows fails it too.
-const _allowed = <String, (String, String)>{
-  'Text/Text': ('漢字🙂', _text),
-  'Text/Right to left': ('םולשابحرمע', _text),
-  'Text/ANSI': ('⋯', _text),
-  'Layout/Box': ('…', _text),
-  'Layout/SizedBox': ('×', _text),
-  'Layout/LimitedBox, OverflowBox': ('×', _text),
-  'Layout/FractionallySizedBox': ('×', _text),
-  'Layout/IntrinsicWidth/Height': ('…', _text),
-  'Layout/Grid, GridPlacement': ('·', _text),
-  'Layout/Wrap': ('日本語', _text),
-  'Layout/CustomPaint': ('▂▅█▁▃▆▇▄', _text),
-  'Layout/Scaffold': ('…', _overflow),
-  'Style/Theme': ('╭─╮│╰╯▐●▌✓╴', _frame),
-  'Style/TerminalBrightness': ('╭─╮│╰╯', _frame),
-  'Style/GradientForeground': ('█╗╚═╔╝║', _text),
-  'Scrolling/Scrollable': ('├─', _text),
-  'Data/Sparkline': ('', _charts),
-  'Data/Gauge, LineGauge': ('', _charts),
-  'Data/BarChart': ('', _charts),
-  'Data/Chart': ('π', _charts),
-  'Data/DotCanvas': ('', _charts),
-  'Data/DescriptionList': ('●', _charts),
-  'Data/TaskList': ('⠴', _explicit),
-  'Editing/InputDecoration': ('◐⌕↵', _text),
-  'Controls/Pressable': ('★☆', _text),
-  'Controls/NumberInput': ('×', _text),
-  'Controls/KeyHintsBar': ('…', _overflow),
-  'Controls/ListTile': ('▤›', _text),
-  'Overlays/OptionList': ('…', _text),
-  'Animation/Spinner': ('⠴…', _explicit),
-  'Animation/TickerMode': ('…', _text),
-  'Animation/ProgressBar': ('', _charts),
-  'Animation/ProgressList': ('', _charts),
-  'Animation/Skeleton, Skeletonize': ('░', _explicit),
-  'Animation/AnimationController': ('●', _text),
-  'Animation/AnimatedAlign, AnimatedPadding': ('◆◇', _text),
-  'Animation/AnimatedPositioned': ('▣', _text),
-  'Animation/TweenAnimationBuilder': ('', _charts),
-  'Mouse/Draggable, DragTarget': ('●', _text),
-  'Focus and keys/ActiveItem': ('›', _text),
-  'Navigation/Breadcrumbs': ('›', _explicit),
-  'Framework/LayoutBuilder': ('×', _text),
-  'Framework/NotificationListener': ('Δ', _text),
-  'App/ErrorWidget': ('', _charts),
-  'App/Static': ('╭─╮│✓┃…╰╯', _frame),
-  'App/TerminalProgress': ('╭─╮│◔━╰╯', _frame),
-  'App/Viewport': ('╭─╮│…╰╯', _frame),
-  'App/Window title': ('╭─╮│╰╯', _frame),
-  'App/Notifications': ('╭─╮│╰╯', _frame),
-  'App/Cli': ('✔▎', _frame),
-  'Screen readers/Semantics': ('', _charts),
-  'Debugging/FrameOverlay': ('µ', _charts),
-  'Debugging/Repaint rainbow': ('', _charts),
-  'Debugging/RepaintBoundary': ('·●', _text),
-  'Rich/DiffView': ('Привіт', _text),
-  'Rich/BigText': ('█', _image),
-  'Rich/QrCode': ('█▀▄', _image),
-  'Images/Image': ('▀', _image),
-};
+const _allowed = <(String, String, String)>[
+  ('Text/Text', '漢字🙂', _text),
+  ('Text/Right to left', 'םולשابحرمע', _text),
+  ('Text/ANSI', '⋯', _text),
+  ('Layout/Box', '…', _text),
+  ('Layout/SizedBox', '×', _text),
+  ('Layout/LimitedBox, OverflowBox', '×', _text),
+  ('Layout/FractionallySizedBox', '×', _text),
+  ('Layout/IntrinsicWidth/Height', '…', _text),
+  ('Layout/Grid, GridPlacement', '·', _text),
+  ('Layout/Wrap', '日本語', _text),
+  ('Layout/CustomPaint', '▂▅█▁▃▆▇▄', _text),
+  ('Layout/Scaffold', '…', _overflow),
+  ('Style/Theme', '╭─╮│╰╯▐●▌✓╴', _frame),
+  ('Style/TerminalBrightness', '╭─╮│╰╯', _frame),
+  ('Style/GradientForeground', '█╗╚═╔╝║', _text),
+  ('Scrolling/Scrollable', '├─', _text),
+  ('Data/Sparkline', '', _charts),
+  ('Data/Gauge, LineGauge', '', _charts),
+  ('Data/BarChart', '', _charts),
+  ('Data/Chart', 'π', _charts),
+  ('Data/DotCanvas', '', _charts),
+  ('Data/DescriptionList', '●', _charts),
+  ('Data/Table', '━╸', _explicit),
+  ('Data/Gauge, LineGauge', '━', _explicit),
+  ('Data/TaskList', '⠴', _explicit),
+  ('Editing/InputDecoration', '◐⌕↵', _text),
+  ('Controls/Pressable', '★☆', _text),
+  ('Controls/NumberInput', '×', _text),
+  ('Controls/KeyHintsBar', '…', _overflow),
+  ('Controls/ListTile', '▤›', _text),
+  ('Overlays/OptionList', '…', _text),
+  ('Animation/Spinner', '⠴…', _explicit),
+  ('Animation/TickerMode', '…', _text),
+  ('Animation/ProgressBar', '', _charts),
+  ('Animation/ProgressList', '', _charts),
+  ('Animation/Skeleton, Skeletonize', '░', _explicit),
+  ('Animation/AnimationController', '●', _text),
+  ('Animation/AnimationController', '━╸', _explicit),
+  ('Animation/AnimatedAlign, AnimatedPadding', '◆◇', _text),
+  ('Animation/AnimatedPositioned', '▣', _text),
+  ('Animation/TweenAnimationBuilder', '', _charts),
+  ('Mouse/Draggable, DragTarget', '●', _text),
+  ('Focus and keys/ActiveItem', '›', _text),
+  ('Navigation/Breadcrumbs', '›', _explicit),
+  ('Framework/LayoutBuilder', '×', _text),
+  ('Framework/NotificationListener', 'Δ', _text),
+  ('App/ErrorWidget', '━', _explicit),
+  ('App/ErrorWidget', '', _charts),
+  ('App/Static', '╭─╮│✓┃…╰╯', _frame),
+  ('App/TerminalProgress', '╭─╮│◔━╰╯', _frame),
+  ('App/Viewport', '╭─╮│…╰╯', _frame),
+  ('App/Window title', '╭─╮│╰╯', _frame),
+  ('App/Notifications', '╭─╮│╰╯', _frame),
+  ('App/Cli', '✔▎', _frame),
+  ('Screen readers/Semantics', '', _charts),
+  ('Debugging/FrameOverlay', 'µ', _charts),
+  ('Debugging/Repaint rainbow', '', _charts),
+  ('Debugging/RepaintBoundary', '·●', _text),
+  ('Rich/DiffView', 'Привіт', _text),
+  ('Rich/BigText', '█', _image),
+  ('Rich/QrCode', '█▀▄', _image),
+  ('Images/Image', '▀', _image),
+];
 
 void main() {
   // what each page showed of its allowlist, for the last test
@@ -130,7 +134,7 @@ void main() {
   }
   test('the allowlist holds only what the pages still show', () {
     final stale = [
-      for (final MapEntry(:key, value: (chars, _)) in _allowed.entries)
+      for (final (key, chars, _) in _allowed)
         for (final r in chars.runes)
           if (!(seen[key]?.contains(String.fromCharCode(r)) ?? false))
             '$key: ${String.fromCharCode(r)}',
@@ -140,13 +144,14 @@ void main() {
 }
 
 /// Whether [rune] may be drawn on the page [name].
-bool _isAllowed(String name, int rune) {
-  final (chars, reason) = _allowed[name] ?? ('', '');
-  return chars.runes.contains(rune) ||
-      (reason == _charts &&
-          (rune >= 0x2580 && rune <= 0x259f ||
-              rune >= 0x2800 && rune <= 0x28ff));
-}
+bool _isAllowed(String name, int rune) => _allowed.any(
+  (e) =>
+      e.$1 == name &&
+      (e.$2.runes.contains(rune) ||
+          (e.$3 == _charts &&
+              (rune >= 0x2580 && rune <= 0x259f ||
+                  rune >= 0x2800 && rune <= 0x28ff))),
+);
 
 /// The cells of the page's stage, a string of one cell each: below the
 /// rule under the tabs, from where it starts to the options' divider or
