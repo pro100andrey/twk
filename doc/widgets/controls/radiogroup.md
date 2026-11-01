@@ -63,6 +63,7 @@ What the gallery lets you change, and what each starts at:
 | option | values | starts at |
 | --- | --- | --- |
 | direction | vertical, horizontal | vertical |
+| mark | ●, *, ✓ | ● |
 
 ## More
 

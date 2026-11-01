@@ -17,9 +17,9 @@ text
 │ ▎   Button                ▐                                                              │                             │
 │     Pressable             ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  look                       │
 │     Checkbox, Switch      ▐                                                              │   chip  outlined  filled    │
-│     RadioGroup            ▐    ·   ·   ·   ┌                            ┐  ·   ·   ·     │                             │
-│     SegmentedButton                           Save    Send    Disabled                   │  tall                ▐●  ▌  │
-│     Chip, ChipList             ·   ·   ·                                   ·   ·   ·     │                             │
+│     RadioGroup            ▐    ·   ·   ·   ┌                            ┐  ·   ·   ·     │   plain                     │
+│     SegmentedButton                           Save    Send    Disabled                   │                             │
+│     Chip, ChipList             ·   ·   ·                                   ·   ·   ·     │  tall                ▐●  ▌  │
 │     ValueStepper                             saved: 1  sent: 1                           │                             │
 │     SelectionList              ·   ·   ·   └                            ┘  ·   ·   ·     │                             │
 │     Select, MultiSelect                                           26 × 3                 │                             │
@@ -54,9 +54,9 @@ styles
 │aNOOOPPPPPPOOOOOOOOOOOOOOOOdhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooaaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooaooooooaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhDEEEEDiFFFFFFFFiiFFFFFFihhh│
-│aaaaaooooooooooaaaaaaaaaaaadhhhhphhhphhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhphhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooooaaaaaaaahhhhhhhhhhhhhhhhhhBCCCCBhhBCCCCBhhaddddddddahhhhhhhhhhhhhhhhhhphhnnnnhhhhhhhhhhhhhhhhGHIIGhh│
-│aaaaaoooooaooooooooaaaaaaaaahhhhphhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaadhhhhphhhphhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhphhphhhphhhphhhhhphhiFFFFFihhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhhhhhhhhhhhhhhhBCCCCBhhBCCCCBhhaddddddddahhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaooooooooaaaaaaaaahhhhphhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhphhhhhphhnnnnhhhhhhhhhhhhhhhhGHIIGhh│
 │aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhnnnnnnhrhhnnnnnhrhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooaaaaaaaaaahhhhphhhphhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhphhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaoooooooooooaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhMMhMhMhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

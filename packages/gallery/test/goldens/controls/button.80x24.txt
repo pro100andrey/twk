@@ -19,7 +19,7 @@ text
 │     ValueStepper     ──────────────────────────────────────────────────────────│
 │     SelectionList      style  ██ ██ ██ ██ ██ ██  primary                       │
 │     Select, Multi…            ▔▔                                               │
-│     ConfirmInput       look    chip  outlined  filled                          │
+│     ConfirmInput       look    chip  outlined  filled  plain                   │
 │     Slider             tall   ▐●  ▌                                            │
 │     NumberInput                                                                │
 │                                                                                │
@@ -44,7 +44,7 @@ styles
 │aaaaannnnnnnnnnnnaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnnnnnnnnaaaaggmmmmmggxxgyygzzgAAgBBgCCggKKKKKKKggggggggggggggggggggggg│
 │aaaaannnnnnnannnnnnaaagggggggggvvggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnnaaaaaggmmmmgggqrrrrqhDDDDDDDDhhDDDDDDhggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaaaggmmmmgggqrrrrqhDDDDDDDDhhDDDDDDhhDDDDDhgggggggggggggggggg│
 │aaaaannnnnnaaaaaaaaaaaggmmmmgggEFGGEgggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│

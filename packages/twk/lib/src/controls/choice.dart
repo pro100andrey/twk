@@ -98,6 +98,12 @@ final class Choice<T> {
 /// when null; [disabledStyle] for one that cannot be chosen,
 /// [ThemeData.muted] when null.
 ///
+/// What an app sets: [mark] (`Glyphs.dot` of the theme by default,
+/// `Glyphs.ascii` has `*`), the styles of the mark, the parentheses, the
+/// choice that shows the focus and a disabled one, and [direction]. The
+/// parentheses and the blank of a choice not chosen are always drawn: a
+/// ring and a dot without them (`◉ ○`) is not set here.
+///
 /// A plain look, `(*)` all in the mark's style and the focused choice
 /// reversed: `mark: '*'`, `bracketStyle: const Style()` and
 /// `focusedStyle: theme.primary.merge(const Style(attrs: Attr.bold |

@@ -108,6 +108,10 @@ What the gallery lets you change, and what each starts at:
 | width | 40, 60 | 40 |
 | rows | 3, 10 | 10 |
 | files | on, off | true |
+| rule | on, off | false |
+| bar | on, off | false |
+| thumb | on, off | false |
+| placeholder | on, off | false |
 | look | raised, bordered | raised |
 
 ## More

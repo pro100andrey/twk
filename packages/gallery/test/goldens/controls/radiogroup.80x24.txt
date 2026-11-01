@@ -7,20 +7,20 @@ text
 │     Autocomplete       one.                                                    │
 │                      ──────────────────────────────────────────────────────────│
 │   CONTROLS      22                                                             │
-│     Button              ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
-│     Pressable                           ┌                 ┐                    │
-│     Checkbox, Swi…      ·   ·   ·   ·     ( ) apple         ·   ·   ·   ·   ·  │
-│ ▎   RadioGroup      ▐                     ( ) banana                           │
-│     SegmentedButt…  ▐   ·   ·   ·   ·     ( ) cherry        ·   ·   ·   ·   ·  │
-│     Chip, ChipList                        ( ) durian                           │
-│     ValueStepper        ·   ·   ·   ·                       ·   ·   ·   ·   ·  │
-│     SelectionList                         chosen: nothing                      │
-│     Select, Multi…      ·   ·   ·   ·   └                 ┘ ·   ·   ·   ·   ·  │
-│     ConfirmInput                                    15 × 6                     │
-│     Slider              ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
-│     NumberInput                                                                │
-│     DatePicker       ──────────────────────────────────────────────────────────│
-│     FilePicker         direction   vertical  horizontal                        │
+│     Button              ·   ·   ·   ·   ┌                 ┐ ·   ·   ·   ·   ·  │
+│     Pressable                             ( ) apple                            │
+│     Checkbox, Swi…      ·   ·   ·   ·     ( ) banana        ·   ·   ·   ·   ·  │
+│ ▎   RadioGroup      ▐                     ( ) cherry                           │
+│     SegmentedButt…  ▐   ·   ·   ·   ·     ( ) durian        ·   ·   ·   ·   ·  │
+│     Chip, ChipList                                                             │
+│     ValueStepper        ·   ·   ·   ·     chosen: nothing   ·   ·   ·   ·   ·  │
+│     SelectionList                       └                 ┘                    │
+│     Select, Multi…      ·   ·   ·   ·   ·   ·   ·   15 × 6  ·   ·   ·   ·   ·  │
+│     ConfirmInput                                                               │
+│     Slider                                                                     │
+│     NumberInput      ──────────────────────────────────────────────────────────│
+│     DatePicker         direction   vertical  horizontal                        │
+│     FilePicker         mark        ●  *  ✓                                     │
 │     Form, FormFie…                                                             │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
@@ -32,20 +32,20 @@ styles
 │aaaaannnnnnnnnnnnaaaaaggmmmmgggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaddddddddaaaaaawwaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnaaaaaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
-│aaaaannnnnnnnnaaaaaaaagggggggggggggggggggogggggggggggggggggogggggggggggggggggggg│
-│aaaaannnnnnnnnannnnaaagggogggogggogggogggggmgmgpppppgggggggggogggogggogggogggogg│
+│aaaaannnnnnaaaaaaaaaaagggogggogggogggogggogggggggggggggggggogogggogggogggogggogg│
+│aaaaannnnnnnnnaaaaaaaagggggggggggggggggggggmgmgpppppgggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnannnnaaagggogggogggogggogggggmgmgppppppggggggggogggogggogggogggogg│
 │aqrrrssssssssssrrrrrrdgggggggggggggggggggggmgmgppppppggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnnnnaadgggogggogggogggogggggmgmgppppppggggggggogggogggogggogggogg│
-│aaaaannnnnannnnnnnnaaagggggggggggggggggggggmgmgmmmmmmggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnnaaaaagggogggogggogggogggggggggggggggggggggggogggogggogggogggogg│
-│aaaaannnnnnnnnnnnnaaaagggggggggggggggggggggmmmmmmmgmmmmmmmgggggggggggggggggggggg│
-│aaaaannnnnnnannnnnnaaagggogggogggogggogggogggggggggggggggggogogggogggogggogggogg│
-│aaaaannnnnnnnnnnnaaaaagggggggggggggggggggggggggggggggzzgzgzggggggggggggggggggggg│
-│aaaaannnnnnaaaaaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
-│aaaaannnnnnnnnnnaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnnnnaadgggogggogggogggogggggmgmgmmmmmmggggggggogggogggogggogggogg│
+│aaaaannnnnannnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaaagggogggogggogggogggggmmmmmmmgmmmmmmmgggogggogggogggogggogg│
+│aaaaannnnnnnnnnnnnaaaagggggggggggggggggggogggggggggggggggggogggggggggggggggggggg│
+│aaaaannnnnnnannnnnnaaagggogggogggogggogggogggogggogggzzgzgzggogggogggogggogggogg│
+│aaaaannnnnnnnnnnnaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnnnnnaaaaaaaggmmmmmmmmmggrssssssssrhvvvvvvvvvvhggggggggggggggggggggggg│
+│aaaaannnnnnnnnnaaaaaaaggmmmmgggggggrsrhvhhvhgggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnannnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│

@@ -40,7 +40,8 @@ import 'pressable.dart';
 /// not enabled ([Choice.enabled]) is passed by and cannot be pressed.
 ///
 /// A segment is its label with a blank on either side, after `✓ ` while
-/// it is on with [showSelectedIcon]; one `│` is between two segments and
+/// it is on with [showSelectedIcon] (`Glyphs.check` of the theme); one `│`
+/// (`Glyphs.separator`) is between two segments and
 /// the row is between [caps], `[` and `]` by default (`('(', ')')` for
 /// round ones). One row, as wide as its segments within its constraints;
 /// where they do not fit, the labels are cut off with `…` evenly, the

@@ -13,7 +13,11 @@ final List<GalleryPage> controlsPages = [
     title: 'Button',
     options: const [
       ColorOption('color', 'style', values: pageColors, initial: 'primary'),
-      ChoiceOption('look', 'look', values: ['chip', 'outlined', 'filled']),
+      ChoiceOption(
+        'look',
+        'look',
+        values: ['chip', 'outlined', 'filled', 'plain'],
+      ),
       SwitchOption('tall', 'tall'),
     ],
     build: (context, o) => _Buttons(
@@ -25,10 +29,15 @@ final List<GalleryPage> controlsPages = [
       final c = o.color('color');
       final styled = c != 'primary';
       final look = o.choice<String>('look');
-      final chip = look == 'chip';
+      final plain = look == 'plain';
+      final chip = look == 'chip' || plain;
       final button = chip ? 'Button' : 'Button.$look';
       final args = [
-        if (styled && chip) ...['style: style', 'focusedStyle: focused'],
+        if (plain) ...['canRequestFocus: false', 'style: style'],
+        if (styled && chip && !plain) ...[
+          'style: style',
+          'focusedStyle: focused',
+        ],
         if (styled && !chip) 'style: theme.$c',
         if (!chip && o.flag('tall')) 'tall: true',
       ];
@@ -44,7 +53,9 @@ final List<GalleryPage> controlsPages = [
         '@override',
         'Widget build(BuildContext context) {',
         '  final theme = Theme.of(context);',
-        if (styled && chip) ...[
+        if (plain)
+          '  final style = theme.$c.merge(const .new(attrs: Attr.underline));'
+        else if (styled && chip) ...[
           '  final style = theme.$c.merge(const .new(attrs: Attr.bold));',
           '  final focused = style.merge(const .new(attrs: Attr.reverse));',
         ],
@@ -67,7 +78,7 @@ final List<GalleryPage> controlsPages = [
           ...args,
           'onPressed: () => setState(() => _sent++)',
         ], ','),
-        ...call(10, '${styled ? '' : 'const '}$button', [
+        ...call(10, '${styled || plain ? '' : 'const '}$button', [
           "'Disabled'",
           ...args,
           'onPressed: null',
@@ -203,9 +214,12 @@ final List<GalleryPage> controlsPages = [
         'direction',
         values: ['vertical', 'horizontal'],
       ),
+      ChoiceOption('mark', 'mark', values: ['●', '*', '✓']),
     ],
-    build: (context, o) =>
-        _Radios(direction: Axis.values.byName(o.choice('direction'))),
+    build: (context, o) => _Radios(
+      direction: Axis.values.byName(o.choice('direction')),
+      mark: o.choice('mark'),
+    ),
     code: (o) => [
       'const _fruit = [',
       "  Choice('apple', 'apple'),",
@@ -228,6 +242,8 @@ final List<GalleryPage> controlsPages = [
       '        choices: _fruit,',
       '        value: _chosen,',
       '        direction: .${o.label('direction')},',
+      if (o.choice<String>('mark') != '●')
+        "        mark: '${o.choice<String>('mark')}',",
       '        onChanged: (value) => setState(() => _chosen = value),',
       '      ),',
       '      Text.rich([',
@@ -1239,7 +1255,8 @@ final class _Buttons extends StatefulWidget {
 
   final String color;
 
-  /// `chip`, `outlined` or `filled`: Button, Button.outlined, Button.filled.
+  /// `chip`, `outlined`, `filled` or `plain`: Button, Button.outlined,
+  /// Button.filled, or a flat clickable word that takes no focus.
   final String look;
 
   /// Whether an outlined or a filled one is three rows.
@@ -1265,6 +1282,9 @@ final class _ButtonsState extends State<_Buttons> {
         ? themeColor(theme, widget.color).merge(const Style(attrs: Attr.bold))
         : null;
     final focused = style?.merge(const Style(attrs: Attr.reverse));
+    final flat = themeColor(theme, widget.color).merge(
+      const Style(attrs: Attr.underline),
+    );
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1290,6 +1310,12 @@ final class _ButtonsState extends State<_Buttons> {
                   label,
                   tall: widget.tall,
                   style: styled ? themeColor(theme, widget.color) : null,
+                  onPressed: onPressed,
+                ),
+                'plain' => Button(
+                  label,
+                  canRequestFocus: false,
+                  style: flat,
                   onPressed: onPressed,
                 ),
                 _ => Button(
@@ -1519,9 +1545,12 @@ final class _TogglesState extends State<_Toggles> with _Kept {
 
 /// A fruit chosen in a radio group.
 final class _Radios extends StatefulWidget {
-  const _Radios({required this.direction});
+  const _Radios({required this.direction, required this.mark});
 
   final Axis direction;
+
+  /// What is between the parentheses of the choice chosen.
+  final String mark;
 
   @override
   State<_Radios> createState() => _RadiosState();
@@ -1540,6 +1569,7 @@ final class _RadiosState extends State<_Radios> with _Kept {
           choices: _fruit,
           value: chosen,
           direction: widget.direction,
+          mark: widget.mark == '●' ? null : widget.mark,
           onChanged: (value) => keep('chosen', value),
         ),
         LitLine([

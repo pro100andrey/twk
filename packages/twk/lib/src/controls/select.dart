@@ -189,6 +189,13 @@ mixin PopupHostState<W extends StatefulWidget> on State<W> {
 /// a plain look: the field without a chip, reversed while focused, the
 /// popup in a border.
 ///
+/// What an app sets: the look of the field ([style], [focusedStyle],
+/// [disabledStyle], [arrowStyle]; the arrow is `Glyphs.down` of the theme,
+/// and a multiple choice's boxes `Glyphs.checkboxOn` and
+/// `Glyphs.checkboxOff`), the popup ([popupLook], [popupFadeIn], [rows]),
+/// a [decoration], and [inline]; the gallery's page shows [inline],
+/// [rows] and [popupLook].
+///
 /// With a [decoration] the field is drawn in an [InputDecorator], as
 /// Flutter's DropdownButtonFormField is: its label, icon, border and
 /// helper around it, the field as wide as the decoration leaves it, with

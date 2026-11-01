@@ -198,6 +198,13 @@ final class CommandPaletteController extends ChangeNotifier {
 /// reader reads the field as a textbox named `Command`, what is typed its
 /// value (`textbox Command: sa`).
 ///
+/// The look is set by [look], [width], [rows], [prompt], [placeholder],
+/// [rule], [bar] (its mark is `Glyphs.cursor` of the theme), [thumb]
+/// (`Glyphs.thumbEdge`) and [barrierAlpha], each shown on the gallery's
+/// page. The ranking is [fuzzyMatch]'s, and the row of a command a label
+/// with its key or [Command.detail] at the right; another ranking or row
+/// is not set here.
+///
 /// A [controller] opens it from the app, with a query typed, and closes
 /// it ([CommandPaletteController]). Taken out of the tree while its
 /// palette is open, it closes the palette after the build, unless one

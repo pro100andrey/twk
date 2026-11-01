@@ -48,6 +48,15 @@ import 'status.dart';
 /// of its [actions]), hinted. The callout does not take itself away: the
 /// app builds it no more.
 ///
+/// What an app sets: the [kind] (its color and, from the theme's
+/// `Glyphs`, its icon: `ℹ ✓ ⚠ ✗`, ASCII `i v ! x` with `Glyphs.ascii`),
+/// [icon] and [title] in their place, no icon with an empty [icon], no
+/// `[×]` with no [onDismissed] (its mark is `Glyphs.close`), [actions]
+/// and [style]. The box is always a single line in the kind's color with
+/// its title on the top edge; a rounded or heavy line, or a title in
+/// another style, is not set here, an app that wants one draws a `Box`
+/// with a `BorderTitle`.
+///
 /// The styles, each merged over those before it: the theme's text and
 /// [style] for the box, its background and the child's text; the kind's
 /// color ([StatusKind.styleIn]) for the border, in bold for the title.

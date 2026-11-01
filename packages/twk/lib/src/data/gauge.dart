@@ -129,6 +129,19 @@ final class Gauge extends LeafRenderObjectWidget {
 /// )
 /// ```
 ///
+/// What an app that draws its own meter sets here (the gallery's page
+/// shows each): the line's marks, [type] (`heavy` for `━` over `─`, `ascii`
+/// for `-`) or, with [type] null, the theme's `Glyphs.gaugeFilled`,
+/// `Glyphs.gaugeHalf` and `Glyphs.gaugeEmpty` (`=` over `-` in
+/// `Glyphs.ascii`), so one
+/// `ThemeData.copyWith(glyphs: Glyphs.ascii)` turns every gauge to ASCII
+/// and `Glyphs.unicode.copyWith(gaugeFilled: '━')` sets the filled mark for
+/// the whole app; the color by level, a [filledStyle] chosen from the ratio
+/// (`ratio > .9 ? theme.error : theme.success`); the rest in
+/// [unfilledStyle]; the width, by the constraints around it (a
+/// `ConstrainedBox` for a width between a least and a most), as the line
+/// takes all it is given.
+///
 /// See also:
 ///
 ///  * [Gauge], the same as a bar that fills its cells.

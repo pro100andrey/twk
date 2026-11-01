@@ -182,6 +182,14 @@ void closeDialog(BuildContext context, [Object? result]) {
 /// room is, [title] on its top edge. A screen reader reads it as a
 /// [SemanticsRole.dialog] of its title, then what is in it.
 ///
+/// What an app sets: [title] and [trailing], [look] (raised or bordered),
+/// [shadow], [padding] (which adds the one cell of room a raised look
+/// always has), [maxWidth] and [scrollable]; and in [showDialog] the
+/// alignment, the barrier (`barrierAlpha` 0 for none) and whether it
+/// is dismissible. The room or border and the title row are always there:
+/// a box with none (a palette) is a `Panel` or a `Box` of the app's own in
+/// [showDialog], and a dialog at a cell, not an edge, is not set here.
+///
 /// A bordered dialog with a shadow, as [showDialog] shows it:
 ///
 /// ```dart

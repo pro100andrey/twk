@@ -64,7 +64,7 @@ What the gallery lets you change, and what each starts at:
 | option | values | starts at |
 | --- | --- | --- |
 | style | primary, accent, success, warning, error, info | primary |
-| look | chip, outlined, filled | chip |
+| look | chip, outlined, filled, plain | chip |
 | tall | on, off | false |
 
 ## More

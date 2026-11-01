@@ -52,6 +52,14 @@ import 'pressable.dart';
 /// fading in 260 ms. Without a chip there is no hover and no flash; a
 /// hover that changes nothing leaves the motion of the mouse unreported.
 ///
+/// What an app sets: the three looks (chip, [Button.outlined],
+/// [Button.filled], the gallery's page shows each, and `tall`), the styles
+/// of each state, and the flat word that takes no focus below
+/// ([canRequestFocus]). The edges of an outlined button are
+/// `Glyphs.capOpen` and `Glyphs.capClose` of the theme. The label is one
+/// string in one style: a key in one color and its caption in another on
+/// one chip is not set here.
+///
 /// A plain look, text without a chip, reversed while focused:
 /// `style: theme.primary.merge(const Style(attrs: Attr.bold))` and
 /// `focusedStyle: const Style(attrs: Attr.reverse)`.
