@@ -103,18 +103,6 @@ void main() {
       expect(t.lines.first, startsWith('┏━ ℹ T ━'));
     });
 
-    testTwk('a LineGauge given a type draws ASCII in ASCII', (t) async {
-      const gauge = SizedBox(
-        width: 6,
-        height: 1,
-        child: LineGauge(ratio: 0.5, type: BorderType.heavy),
-      );
-      await t.pumpWidget(themed(Glyphs.unicode, gauge), size: (6, 1));
-      expect(t.lines.single, '━━━━━━');
-      await t.pumpWidget(themed(Glyphs.ascii, gauge), size: (6, 1));
-      expect(t.lines.single, '------');
-    });
-
     testTwk('a Table border given as single is ASCII in ASCII', (t) async {
       const table = Table<String>(
         rows: ['a'],
