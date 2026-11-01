@@ -205,6 +205,37 @@ void main() {
       expect(lines.single[0], const Span('•', Style(fg: marker)));
     });
 
+    test('no cell is beyond the width, however narrow: a table of more '
+        'columns than fit, quotes, lists and code', () {
+      final cols = List.generate(10, (j) => 'c$j');
+      final table =
+          '| ${cols.join(' | ')} |\n|${'---|' * 10}\n'
+          '| ${cols.join(' | ')} |\n';
+      final docs = [
+        table,
+        '> q\n',
+        '> > q\n',
+        '- a\n- b\n',
+        '1. a\n   - b\n',
+        '```\nab\n```\n',
+        '# head words\n',
+      ];
+      for (final doc in docs) {
+        for (var width = 1; width <= 14; width++) {
+          for (final line in renderMarkdown(doc, width, theme)) {
+            expect(
+              columns(line),
+              lessThanOrEqualTo(width),
+              reason: '$doc at $width: ${line.map((s) => s.text).join()}',
+            );
+          }
+        }
+      }
+      expect(texts(table, 12).first, hasLength(lessThanOrEqualTo(12)));
+      expect(texts('> q\n', 2), ['│q']);
+      expect(texts('> q\n', 1), ['q']);
+    });
+
     test('a thematic break is a line across', () {
       final lines = renderMarkdown('---\n', 7, theme);
       expect(lines.single, [const Span('───────', Style(fg: rule))]);

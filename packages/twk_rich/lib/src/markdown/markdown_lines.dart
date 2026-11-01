@@ -49,7 +49,12 @@ import 'stream.dart';
 ///
 /// Where it differs from the widgets: the rule under a table's header
 /// ends with its last column, not at the view's edge, and a column too
-/// wide for [width] is shrunk by its widest cells rather than clipped.
+/// wide for [width] is shrunk by its widest cells rather than clipped. At a
+/// [width] too narrow for its decoration, the decoration gives way and the
+/// text keeps its column: a table's separators shrink to a line alone, and
+/// then its last columns are left out; a quote's bar loses its space, then
+/// itself; a list loses its markers and indent; a block of code its padding.
+/// Only a character wider than [width] itself is beyond it.
 ///
 /// ```dart
 /// final lines = renderMarkdown(readme, 40, theme);
@@ -138,17 +143,23 @@ final class _Renderer {
     int depth,
     Style base,
   ) {
+    // the bar and the space after it, as many columns of them as leave one
+    // for the text: at 2 the bar alone, at 1 neither
+    final gutter = math.min(2, width - 1);
     final lines = _blocks(
       children,
-      math.max(1, width - 2),
+      width - gutter,
       1,
       depth,
       base.merge(theme.quote),
     );
+    if (gutter == 0) {
+      return lines;
+    }
     final bar = Span('│', theme.quoteBar);
     return [
       for (final line in lines)
-        [bar, if (line.isNotEmpty) const Span(' '), ...line],
+        [bar, if (line.isNotEmpty && gutter == 2) const Span(' '), ...line],
     ];
   }
 
@@ -157,7 +168,9 @@ final class _Renderer {
     final columnWidth = column.fold(0, (w, m) => math.max(w, _widthOf(m)));
     final ordered = list.start != null;
     final gap = list.tight ? 0 : 1;
-    final inner = math.max(1, width - columnWidth - 1);
+    // no marker column where it leaves no column for the text
+    final prefix = columnWidth + 1 < width ? columnWidth + 1 : 0;
+    final inner = width - prefix;
     final markerStyle = base.merge(theme.marker);
     final out = <List<Span>>[];
     for (var k = 0; k < list.items.length; k++) {
@@ -173,6 +186,10 @@ final class _Renderer {
         depth + 1,
         base,
       );
+      if (prefix == 0) {
+        out.addAll(lines);
+        continue;
+      }
       final marker = markers[k];
       final pad = columnWidth - _widthOf(marker);
       final first = [
@@ -215,7 +232,10 @@ final class _Renderer {
     if (rows > 1 && source.line(rows - 1).isEmpty) {
       rows--;
     }
-    final inner = math.max(1, width - 2);
+    // a cell in from either side where there is room for it: from the left
+    // from 2 columns, from the right from 3
+    final lead = width >= 2 ? 1 : 0;
+    final inner = width - lead - (width >= 3 ? 1 : 0);
     final out = <List<Span>>[];
     for (var r = 0; r < rows; r++) {
       var column = 0;
@@ -227,10 +247,10 @@ final class _Renderer {
       }
       for (final piece in _wrap(spans, inner, style, grapheme: true)) {
         final shown = piece.fold<int>(0, (w, s) => w + _widthOf(s.text));
-        final fill = width - 1 - shown;
+        final fill = width - lead - shown;
         out.add(
           _merged([
-            Span(' ', style),
+            if (lead > 0) Span(' ', style),
             ...piece,
             Span(' ' * math.max(0, fill), style),
           ]),
@@ -279,7 +299,12 @@ final class _Renderer {
   }
 
   List<List<Span>> _table(MdTable table, int width, Style base) {
-    final columns = table.align.length;
+    // the columns shown: all, unless even one cell wide each they do not fit
+    // with their separators, which are then a line alone, and then the first
+    // that do
+    final all = table.align.length;
+    final sep = all + 3 * (all - 1) <= width ? 3 : 1;
+    final columns = sep == 3 ? all : math.min(all, (width + 1) ~/ 2);
     final headerStyle = base.merge(theme.tableHeader);
     final header = [
       for (var j = 0; j < columns; j++)
@@ -308,7 +333,7 @@ final class _Renderer {
         widths[j] = math.max(widths[j], widest(row[j]));
       }
     }
-    final gaps = 3 * (columns - 1);
+    final gaps = sep * (columns - 1);
     while (widths.fold(0, (a, b) => a + b) + gaps > width) {
       var at = 0;
       for (var j = 1; j < columns; j++) {
@@ -331,7 +356,11 @@ final class _Renderer {
         for (var l = 0; l < height; l++)
           _trimmed([
             for (var j = 0; j < columns; j++) ...[
-              if (j > 0) ...[const Span(' '), border, const Span(' ')],
+              if (j > 0) ...[
+                if (sep == 3) const Span(' '),
+                border,
+                if (sep == 3) const Span(' '),
+              ],
               ..._aligned(
                 l < wrapped[j].length ? wrapped[j][l] : const [],
                 widths[j],
@@ -348,7 +377,7 @@ final class _Renderer {
         Span(
           [
             for (var j = 0; j < columns; j++)
-              '${j > 0 ? '─┼─' : ''}${'─' * widths[j]}',
+              '${j > 0 ? (sep == 3 ? '─┼─' : '┼') : ''}${'─' * widths[j]}',
           ].join(),
           theme.tableBorder,
         ),
