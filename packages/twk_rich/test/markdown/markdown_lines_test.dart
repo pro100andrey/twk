@@ -181,15 +181,15 @@ void main() {
         [
           '• a',
           '  ◦ b',
-          '    ▪ c',
+          '    • c',
           '      • d',
           '',
           ' 9. nine',
           '10. ten that',
           '    is long',
           '',
-          '☑ done',
-          '☐ todo',
+          '[x] done',
+          '[ ] todo',
         ],
       );
     });
@@ -313,7 +313,7 @@ void main() {
             data: ThemeData.dark,
             child: MarkdownView(document, theme: theme),
           ),
-          size: (width, 80),
+          size: (width, 120),
         );
         final lines = texts(document, width);
         final shown = [
@@ -331,7 +331,7 @@ void main() {
             data: ThemeData.dark,
             child: MarkdownView(document, theme: theme),
           ),
-          size: (width, 80),
+          size: (width, 120),
         );
         final lines = renderMarkdown(document, width, theme);
         for (var y = 0; y < lines.length; y++) {

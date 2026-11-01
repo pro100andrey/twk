@@ -108,22 +108,25 @@ typedef InlineLink = ({int start, int end, String destination, String? title});
   return (spans: out, linked: linked);
 }
 
-const _bullets = ['•', '◦', '▪'];
-
 /// The marker of each item of [list], a list [depth] lists deep, and the
 /// markers its column is as wide as the widest of: all the different
-/// bullets, the widest number.
+/// bullets, the widest number. The bullets are [glyphs]' [Glyphs.bullet]
+/// and [Glyphs.taskPending] in turn, a task's box its checkbox marks.
 ({List<String> markers, List<String> column}) listMarkers(
   MdList list,
-  int depth,
-) {
+  int depth, [
+  Glyphs glyphs = Glyphs.unicode,
+]) {
+  final bullets = [glyphs.bullet, glyphs.taskPending, glyphs.bullet];
+  final (open, close) = glyphs.checkboxBrackets;
   final items = list.items;
   final start = list.start;
-  String box(bool checked) => checked ? '☑' : '☐';
+  String box(bool checked) =>
+      '$open${checked ? glyphs.checkboxOn : glyphs.checkboxOff}$close';
   final markers = [
     for (var k = 0; k < items.length; k++)
       switch ((start, items[k].checked)) {
-        (null, null) => _bullets[depth % _bullets.length],
+        (null, null) => bullets[depth % bullets.length],
         (null, final checked?) => box(checked),
         (final start?, null) => '${start + k}${list.marker}',
         (final start?, final checked?) =>

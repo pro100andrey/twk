@@ -267,6 +267,7 @@ final class _DiffViewState extends State<DiffView> {
       digits: _digits,
       tabWidth: widget.tabWidth,
       sideBySide: widget.layout == DiffLayout.sideBySide,
+      glyphs: Theme.of(context).glyphs,
     );
     final rows = _rows;
     return ListView.builder(
@@ -349,6 +350,7 @@ final class _Paint {
     required this.digits,
     required this.tabWidth,
     required this.sideBySide,
+    required this.glyphs,
   });
 
   final DiffTheme theme;
@@ -356,6 +358,12 @@ final class _Paint {
   final int digits;
   final int tabWidth;
   final bool sideBySide;
+  final Glyphs glyphs;
+
+  /// The mark of the lines left out: `⋯` for the ellipsis of
+  /// [Glyphs.unicode], the set's own for another.
+  String get fold =>
+      glyphs.ellipsis == Glyphs.unicode.ellipsis ? '⋯' : glyphs.ellipsis;
 
   /// The blanks before the `⋯` of a row of lines left out, so that it
   /// stands where the signs do.
@@ -484,7 +492,7 @@ final class _FileRow extends _Row {
     return _row(paint.theme.file, [
       Span(
         oldPath != null && newPath != null && oldPath != newPath
-            ? '$oldPath → $newPath'
+            ? '$oldPath ${paint.glyphs.arrowRight} $newPath'
             : file.path!,
       ),
     ]);
@@ -502,7 +510,7 @@ final class _GapRow extends _Row {
   @override
   Widget build(_Paint paint) => _row(paint.theme.collapsed, [
     Span(
-      '${' ' * paint._indent}⋯ $count unchanged '
+      '${' ' * paint._indent}${paint.fold} $count unchanged '
       '${count == 1 ? 'line' : 'lines'}'
       '${section.isEmpty ? '' : '  $section'}',
     ),
@@ -536,7 +544,7 @@ final class _PairRow extends _Row {
   Widget build(_Paint paint) => Row(
     children: [
       Expanded(child: _half(paint, left, (line) => line.oldNumber)),
-      Text('│', style: paint.theme.divider),
+      Text(paint.glyphs.separator, style: paint.theme.divider),
       Expanded(child: _half(paint, right, (line) => line.newNumber)),
     ],
   );

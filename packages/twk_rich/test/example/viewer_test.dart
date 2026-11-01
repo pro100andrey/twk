@@ -107,9 +107,9 @@ void main() {
 
  Plans
 
- ☑ greet in three languages
- ☐ read the names from a file
- ☐ greet in Latin
+ [x] greet in three languages
+ [ ] read the names from a file
+ [ ] greet in Latin
 
  ──────────────────────────────────────────────────────────
 

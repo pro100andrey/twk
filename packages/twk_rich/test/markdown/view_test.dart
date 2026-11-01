@@ -227,7 +227,7 @@ void main() {
         '• one',
         '• two',
         '  ◦ nested',
-        '    ▪ deeper',
+        '    • deeper',
         '      • again',
         '• three',
       ]);
@@ -247,7 +247,7 @@ void main() {
         view('- [ ] todo\n- [x] done\n\n1. [x] first'),
         size: (20, 5),
       );
-      expect(rows(t, 4), ['☐ todo', '☑ done', '', '1. ☑ first']);
+      expect(rows(t, 4), ['[ ] todo', '[x] done', '', '1. [x] first']);
     });
 
     testTwk('a loose list has a blank row between its items and blocks', (

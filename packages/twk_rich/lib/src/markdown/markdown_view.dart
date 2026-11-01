@@ -39,9 +39,11 @@ import 'stream.dart';
 /// the terminal reports the mouse's motion.
 ///
 /// A list item has its marker before its blocks, which wrap under their
-/// own first column: a bullet by the depth of the list, `•`, `◦`, `▪` and
-/// round again; a number and its delimiter, aligned at their right; a box,
-/// `☐` or `☑`, in place of a bullet or after a number for a task item. A
+/// own first column: a bullet by the depth of the list, `•`, `◦`, `•` and
+/// round again ([Glyphs.bullet] and [Glyphs.taskPending]); a number and its
+/// delimiter, aligned at their right; a box, `[ ]` or `[x]` (the
+/// theme's checkbox marks), in place of a bullet or after a number for a
+/// task item. A
 /// loose list has a blank row between its items and their blocks, a tight
 /// one none. A block quote has a bar down its left side, its blocks in the
 /// quote style. A block of code is a [CodeView] in the language the first
@@ -698,7 +700,11 @@ final class _MarkdownViewState extends State<MarkdownView> {
   Widget _list(MdList list, int depth, _Uses uses) {
     final items = list.items;
     final start = list.start;
-    final (:markers, :column) = listMarkers(list, depth);
+    final (:markers, :column) = listMarkers(
+      list,
+      depth,
+      Theme.of(context).glyphs,
+    );
     final gap = list.tight ? 0 : 1;
     final columnKey = column.join('\n');
     return Column(

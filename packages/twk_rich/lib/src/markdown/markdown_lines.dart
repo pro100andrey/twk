@@ -45,7 +45,8 @@ import 'stream.dart';
 /// is highlighted in the language its info string names, in the styles of
 /// [MarkdownTheme.syntax], over the code block's style, with its tabs 4
 /// columns apart and its lines broken between graphemes. Lines break as
-/// the core breaks them ([breakLines]).
+/// the core breaks them ([breakLines]). The marks (the bullets, a task's
+/// box, the rule, the quote's bar, the table's lines) are those of [glyphs].
 ///
 /// Where it differs from the widgets: the rule under a table's header
 /// ends with its last column, not at the view's edge, and a column too
@@ -62,11 +63,12 @@ import 'stream.dart';
 List<List<Span>> renderMarkdown(
   String text,
   int width,
-  MarkdownTheme theme,
-) {
+  MarkdownTheme theme, {
+  Glyphs glyphs = Glyphs.unicode,
+}) {
   assert(width > 0, 'width < 1');
   final stream = MarkdownStream(text);
-  return _Renderer(stream.definitions, theme)._blocks(
+  return _Renderer(stream.definitions, theme, glyphs)._blocks(
     stream.blocks,
     width,
     1,
@@ -81,10 +83,21 @@ int _widthOf(String text) => _segmenter.width(text);
 
 /// The lines of one document.
 final class _Renderer {
-  _Renderer(this.definitions, this.theme);
+  _Renderer(this.definitions, this.theme, this.glyphs);
 
   final Map<String, MdDefinition> definitions;
   final MarkdownTheme theme;
+  final Glyphs glyphs;
+
+  // a piece of the set's lines
+  String _piece({
+    bool up = false,
+    bool right = false,
+    bool down = false,
+    bool left = false,
+  }) => String.fromCharCode(
+    glyphs.lines.glyph(up: up, right: right, down: down, left: left),
+  );
 
   List<Span> _spans(List<MdInline> inlines) => inlineSpans(
     inlines,
@@ -130,7 +143,7 @@ final class _Renderer {
           base,
         ),
         MdThematicBreak() => [
-          [Span('─' * width, theme.rule)],
+          [Span(_piece(left: true, right: true) * width, theme.rule)],
         ],
         MdBlockQuote(:final children) => _quote(children, width, depth, base),
         final MdList list => _list(list, width, depth, base),
@@ -156,7 +169,7 @@ final class _Renderer {
     if (gutter == 0) {
       return lines;
     }
-    final bar = Span('│', theme.quoteBar);
+    final bar = Span(glyphs.separator, theme.quoteBar);
     return [
       for (final line in lines)
         [bar, if (line.isNotEmpty && gutter == 2) const Span(' '), ...line],
@@ -164,7 +177,7 @@ final class _Renderer {
   }
 
   List<List<Span>> _list(MdList list, int width, int depth, Style base) {
-    final (:markers, :column) = listMarkers(list, depth);
+    final (:markers, :column) = listMarkers(list, depth, glyphs);
     final columnWidth = column.fold(0, (w, m) => math.max(w, _widthOf(m)));
     final ordered = list.start != null;
     final gap = list.tight ? 0 : 1;
@@ -346,7 +359,9 @@ final class _Renderer {
       }
       widths[at]--;
     }
-    final border = Span('│', theme.tableBorder);
+    final border = Span(glyphs.separator, theme.tableBorder);
+    final across = _piece(left: true, right: true);
+    final cross = _piece(up: true, right: true, down: true, left: true);
     List<List<Span>> row(List<List<Span>> cells, Style style) {
       final wrapped = [
         for (var j = 0; j < columns; j++) _wrap(cells[j], widths[j], style),
@@ -377,7 +392,8 @@ final class _Renderer {
         Span(
           [
             for (var j = 0; j < columns; j++)
-              '${j > 0 ? (sep == 3 ? '─┼─' : '┼') : ''}${'─' * widths[j]}',
+              (j > 0 ? (sep == 3 ? '$across$cross$across' : cross) : '') +
+                  across * widths[j],
           ].join(),
           theme.tableBorder,
         ),
