@@ -6,6 +6,7 @@ import 'package:meta/meta.dart';
 import 'package:twk_core/twk_core.dart' show Attr;
 
 import '../focus/focus.dart';
+import '../foundation/helpers.dart';
 import '../framework/framework.dart';
 import '../gestures/gesture_detector.dart';
 import '../layout/flex.dart';
@@ -189,16 +190,8 @@ final class RadioGroup<T> extends StatelessWidget {
   }
 
   /// The enabled choice [step] places on from [from], round; -1 for none.
-  int _step(int from, int step) {
-    final n = choices.length;
-    for (var k = 1; k <= n; k++) {
-      final i = ((from + step * k) % n + n) % n;
-      if (choices[i].enabled) {
-        return i;
-      }
-    }
-    return -1;
-  }
+  int _step(int from, int step) =>
+      nextEnabled(choices.length, from, step, (i) => choices[i].enabled);
 
   void _choose(int i) {
     if (i >= 0) {

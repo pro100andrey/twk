@@ -5,6 +5,20 @@ import 'package:test/test.dart';
 import 'package:twk/src/foundation/helpers.dart';
 
 void main() {
+  test('nextEnabled: the next enabled index, round, from inside or off the '
+      'ends; -1 where none', () {
+    final on = [true, false, true, false];
+    bool enabled(int i) => on[i];
+    expect(nextEnabled(4, 0, 1, enabled), 2);
+    expect(nextEnabled(4, 2, 1, enabled), 0);
+    expect(nextEnabled(4, 0, -1, enabled), 2);
+    expect(nextEnabled(4, -1, 1, enabled), 0);
+    expect(nextEnabled(4, 4, -1, enabled), 2);
+    expect(nextEnabled(4, 0, 1, (i) => i == 0), 0);
+    expect(nextEnabled(4, 0, 1, (_) => false), -1);
+    expect(nextEnabled(0, 0, 1, (_) => true), -1);
+  });
+
   test('sameList: equal elements in the same order', () {
     final list = [1, 2, 3];
     expect(sameList(list, list), isTrue);

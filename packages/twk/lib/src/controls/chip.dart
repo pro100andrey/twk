@@ -7,6 +7,7 @@ import 'package:twk_core/twk_core.dart'
 
 import '../binding/app_binding.dart';
 import '../focus/focus.dart';
+import '../foundation/helpers.dart';
 import '../framework/framework.dart';
 import '../layout/flex.dart';
 import '../semantics/semantics.dart';
@@ -92,14 +93,20 @@ final class Chip extends StatelessWidget {
     var chip = theme.surface.merge(theme.text).merge(style ?? const Style());
     if (!enabled) {
       chip = chip.merge(theme.muted);
-    } else if (highlighted) {
-      chip = chip.merge(focusedRow(theme));
-    } else if (selected) {
-      chip = chip
-          .merge(theme.fill(theme.primary.fg))
-          .merge(
-            const Style(attrs: Attr.bold),
-          );
+    } else {
+      if (highlighted) {
+        // The cursor's row kept, the color of a selected chip over it.
+        chip = chip.merge(focusedRow(theme));
+        if (selected) {
+          chip = chip.merge(Style(fg: theme.primary.fg, attrs: Attr.bold));
+        }
+      } else if (selected) {
+        chip = chip
+            .merge(theme.fill(theme.primary.fg))
+            .merge(
+              const Style(attrs: Attr.bold),
+            );
+      }
     }
     return Text(
       _chipText(
@@ -246,16 +253,8 @@ final class _ChipListState<T> extends State<ChipList<T>> {
       _chips.any((c) => c.enabled);
 
   /// The enabled chip [step] places on from [from], round; -1 for none.
-  int _step(int from, int step) {
-    final n = _chips.length;
-    for (var k = 1; k <= n; k++) {
-      final i = ((from + step * k) % n + n) % n;
-      if (_chips[i].enabled) {
-        return i;
-      }
-    }
-    return -1;
-  }
+  int _step(int from, int step) =>
+      nextEnabled(_chips.length, from, step, (i) => _chips[i].enabled);
 
   /// The chip highlighted: [_cursor] while it is in the list and enabled,
   /// the last chip when the list got shorter, else the first enabled one.

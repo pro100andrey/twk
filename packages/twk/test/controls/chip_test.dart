@@ -97,6 +97,27 @@ void main() {
     expect(t, styleAt(11, 0, hasFg(const Color.indexed(245))));
   });
 
+  testTwk('a chip selected and highlighted shows both: the cursor row and '
+      'the primary color, bold', (t) async {
+    await t.pumpWidget(
+      const Theme.terminal(
+        child: Row(
+          gap: 1,
+          children: [
+            Chip('a', highlighted: true),
+            Chip('b', highlighted: true, selected: true),
+          ],
+        ),
+      ),
+      size: (20, 1),
+    );
+    expect(t.lines, [' a   b']);
+    expect(t, styleAt(1, 0, isNot(hasAttr(Attr.bold))));
+    expect(t, styleAt(5, 0, hasAttr(Attr.bold)));
+    expect(t, styleAt(5, 0, hasBg(const Color.indexed(237))));
+    expect(t, styleAt(1, 0, hasBg(const Color.indexed(237))));
+  });
+
   testTwk('the chips wrap onto rows at the width, a blank between two', (
     t,
   ) async {

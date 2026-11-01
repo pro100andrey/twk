@@ -6,6 +6,7 @@ import 'package:twk_core/twk_core.dart' show TextSegmenter, fitText;
 
 import '../binding/app_binding.dart';
 import '../focus/focus.dart';
+import '../foundation/helpers.dart';
 import '../framework/framework.dart';
 import '../semantics/semantics.dart';
 import '../style/style.dart';
@@ -160,16 +161,12 @@ final class _SegmentedButtonState<T> extends State<SegmentedButton<T>> {
   bool _on(int i) => widget.selected.contains(_segments[i].value);
 
   /// The enabled segment [step] places on from [from], round; -1 for none.
-  int _step(int from, int step) {
-    final n = _segments.length;
-    for (var k = 1; k <= n; k++) {
-      final i = ((from + step * k) % n + n) % n;
-      if (_segments[i].enabled) {
-        return i;
-      }
-    }
-    return -1;
-  }
+  int _step(int from, int step) => nextEnabled(
+    _segments.length,
+    from,
+    step,
+    (i) => _segments[i].enabled,
+  );
 
   /// The segment highlighted: [_highlight] while it can be, else the first
   /// enabled one on, else the first enabled one.

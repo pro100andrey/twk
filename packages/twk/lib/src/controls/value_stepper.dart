@@ -5,6 +5,7 @@ library;
 import 'package:twk_core/twk_core.dart' show TextSegmenter, fitText;
 
 import '../focus/focus.dart';
+import '../foundation/helpers.dart';
 import '../framework/framework.dart';
 import '../semantics/semantics.dart';
 import '../style/style.dart';
@@ -116,16 +117,15 @@ final class _ValueStepperState<T> extends State<ValueStepper<T>> {
       return;
     }
     final from = _index;
-    for (var k = 1; k <= n; k++) {
-      final i = from < 0
-          ? (step > 0 ? k - 1 : n - k)
-          : ((from + step * k) % n + n) % n;
-      if (_values[i].enabled) {
-        if (i != from) {
-          onChanged(_values[i].value);
-        }
-        return;
-      }
+    // A value not in the list starts at the first or last item.
+    final i = nextEnabled(
+      n,
+      from < 0 ? (step > 0 ? -1 : n) : from,
+      step,
+      (i) => _values[i].enabled,
+    );
+    if (i >= 0 && i != from) {
+      onChanged(_values[i].value);
     }
   }
 
