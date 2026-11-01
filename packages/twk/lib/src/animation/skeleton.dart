@@ -25,6 +25,7 @@ import 'package:twk_core/twk_core.dart'
         kGlyphMask;
 
 import '../binding/app_binding.dart';
+import '../data/chart_glyphs.dart' show rampOf;
 import '../focus/exclude_focus.dart';
 import '../framework/framework.dart';
 import '../gestures/ignore_pointer.dart';
@@ -345,7 +346,7 @@ final class _SkeletonState extends State<_Skeleton> {
       }
     }
     final glyph = _glyphOf(
-      skeletons?.glyph ?? theme.glyphs.shades[1],
+      skeletons?.glyph ?? rampOf(theme.glyphs.shades)[1],
       app?.owner.segmenter ?? _detached,
     );
     final highlight = (skeletons?.highlight ?? theme.text).fg;

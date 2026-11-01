@@ -15,6 +15,7 @@ import 'package:twk_core/twk_core.dart'
         TextSegmenter;
 
 import '../style/glyphs.dart' show Glyphs;
+import 'chart_glyphs.dart' show rampOf;
 import 'dot_canvas.dart';
 import 'marker.dart';
 
@@ -94,7 +95,7 @@ final class DotGrid {
     assert(columns >= 0 && rows >= 0, 'a grid of 0 cells or more');
     final shades = glyphs == null || glyphs.partialBlocks || marker.char != 0
         ? null
-        : glyphs.shades;
+        : rampOf(glyphs.shades);
     if (marker != _asked ||
         segmenter.mode != _askedMode ||
         segmenter.ambiguousWidth != _askedAmbiguous ||

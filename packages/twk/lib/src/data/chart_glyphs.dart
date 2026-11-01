@@ -9,6 +9,16 @@ import '../framework/framework.dart';
 import '../style/glyphs.dart' show Glyphs, cellRune, optionalCellRune;
 import '../style/style.dart';
 
+/// [shades] as a ramp of two steps or more, the blank first: as given when
+/// it has two or more, a blank before the one it has, or the ASCII ramp of
+/// [Glyphs.ascii] when it has none, so that a theme's short list draws
+/// rather than throws.
+List<String> rampOf(List<String> shades) => shades.length >= 2
+    ? shades
+    : shades.length == 1
+    ? [' ', shades[0]]
+    : Glyphs.ascii.shades;
+
 /// The glyphs the charts draw bars and lines with, as the canvas they are
 /// drawn on draws them: eighth blocks and box drawing where it draws each
 /// one column wide, braille and [BorderType.ascii] where it does not (both
@@ -33,7 +43,7 @@ final class ChartGlyphs {
   void use(TextSegmenter segmenter, [Glyphs? glyphs]) {
     final shades = glyphs == null || glyphs.partialBlocks
         ? null
-        : glyphs.shades;
+        : rampOf(glyphs.shades);
     if (segmenter.mode.index == _mode &&
         segmenter.ambiguousWidth == _ambiguous &&
         identical(shades, _shades)) {
