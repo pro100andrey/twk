@@ -348,47 +348,47 @@ final class _ChipListState<T> extends State<ChipList<T>> {
     final onPressed = widget.onPressed;
     final onRemove = widget.onRemove;
     final selected = widget.selected;
-    return Semantics(
-      nodes: [
-        for (var i = 0; i < _chips.length; i++)
-          SemanticsNode(
-            role: onPressed != null
-                ? SemanticsRole.checkbox
-                : SemanticsRole.listItem,
-            label: _chips[i].label,
-            state: SemanticsState(
-              checked: onPressed != null
-                  ? selected.contains(_chips[i].value)
-                  : null,
-              disabled: !enabled || !_chips[i].enabled,
+    return Pressable(
+      enabled: enabled,
+      focusNode: widget.focusNode,
+      autofocus: widget.autofocus,
+      bindings: {
+        'left': () => _move(_step(current, -1)),
+        'right': () => _move(_step(current, 1)),
+        'up': () => _move(_vertical(-1)),
+        'down': () => _move(_vertical(1)),
+        'home': () => _move(_step(-1, 1)),
+        'end': () => _move(_step(_chips.length, -1)),
+        if (onPressed != null) 'space': () => _press(current),
+        if (onPressed != null) 'enter': () => _press(current),
+        if (onRemove != null) 'delete': () => _remove(current),
+        if (onRemove != null) 'backspace': () => _remove(current),
+      },
+      hints: {
+        'left': 'previous',
+        'right': 'next',
+        if (onPressed != null) 'space': 'toggle',
+        if (onRemove != null) 'delete': 'remove',
+      },
+      onTap: enabled ? (event) => _tap(event.x, event.y) : null,
+      builder: (context, focused) => Semantics(
+        nodes: [
+          for (var i = 0; i < _chips.length; i++)
+            SemanticsNode(
+              role: onPressed != null
+                  ? SemanticsRole.checkbox
+                  : SemanticsRole.listItem,
+              label: _chips[i].label,
+              state: SemanticsState(
+                checked: onPressed != null
+                    ? selected.contains(_chips[i].value)
+                    : null,
+                disabled: !enabled || !_chips[i].enabled,
+              ),
+              focused: focused && i == current,
             ),
-            focused: i == current,
-          ),
-      ],
-      child: Pressable(
-        enabled: enabled,
-        focusNode: widget.focusNode,
-        autofocus: widget.autofocus,
-        bindings: {
-          'left': () => _move(_step(current, -1)),
-          'right': () => _move(_step(current, 1)),
-          'up': () => _move(_vertical(-1)),
-          'down': () => _move(_vertical(1)),
-          'home': () => _move(_step(-1, 1)),
-          'end': () => _move(_step(_chips.length, -1)),
-          if (onPressed != null) 'space': () => _press(current),
-          if (onPressed != null) 'enter': () => _press(current),
-          if (onRemove != null) 'delete': () => _remove(current),
-          if (onRemove != null) 'backspace': () => _remove(current),
-        },
-        hints: {
-          'left': 'previous',
-          'right': 'next',
-          if (onPressed != null) 'space': 'toggle',
-          if (onRemove != null) 'delete': 'remove',
-        },
-        onTap: enabled ? (event) => _tap(event.x, event.y) : null,
-        builder: (context, focused) => LayoutBuilder(
+        ],
+        child: LayoutBuilder(
           builder: (context, constraints) => _rows(
             segmenterOf(context),
             constraints.maxW,

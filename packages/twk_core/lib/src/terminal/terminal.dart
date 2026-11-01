@@ -656,9 +656,14 @@ Future<Terminal> openOwnOrShell(
   }
   final shell = await SocketLink.toShell(directory, env);
   if (shell == null) {
+    final what = refused == null
+        ? 'the program needs both stdin and stdout to be a terminal'
+        : 'the terminal of the program could not be opened (a stdin or '
+              'stdout that is no real terminal, such as /dev/null, looks '
+              'like one until it is set up)';
     throw TerminalException(
-      '${refused?.message ?? 'not a terminal'}: the program needs both stdin '
-      'and stdout to be a terminal. Run it in a terminal, not with its input '
+      '${refused?.message ?? 'not a terminal'}: $what. '
+      'Run it in a terminal, not with its input '
       'from a file or a pipe or inside a tool that has none; with stdout '
       'redirected, or with TWK_PLAIN=1, an app writes plain text instead, '
       "and a `twk shell` running in the project gives it that shell's "

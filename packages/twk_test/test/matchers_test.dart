@@ -113,6 +113,16 @@ void main() {
     expect(t, isNot(hasTextAt(0, 2, 'x', within: panel)), reason: 'row 2');
   });
 
+  testTwk('a hasTextAt within a region off the screen says so, not that it '
+      'has negative rows', (t) async {
+    await t.pumpWidget(panels(), size: (24, 3));
+    const off = (x: 0, y: 400, width: 5, height: 3);
+    expect(
+      failure(t, hasTextAt(0, 0, 'x', within: off))[2],
+      '   Which: has no cell: the region is off the screen',
+    );
+  });
+
   testTwk('a containsLine within a region that fails says where the screen '
       'shows the text', (t) async {
     await t.pumpWidget(panels(), size: (24, 3));

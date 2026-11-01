@@ -147,6 +147,7 @@ final class TwkTester {
 
   HeadlessTerminal? _terminal;
   AppBinding? _binding;
+  DateTime? _startTime;
   Vt? _vt;
   FrameRecorder? _recorder;
   var _fed = 0;
@@ -232,6 +233,7 @@ final class TwkTester {
   }) async {
     final binding = _binding;
     if (binding == null) {
+      _startTime = startTime ?? defaultStartTime;
       _start(
         widget,
         size: size ?? (80, 24),
@@ -259,6 +261,13 @@ final class TwkTester {
           mode,
           'mode',
           'the app runs in the ${binding.mode.name} mode',
+        );
+      }
+      if (startTime != null && startTime != _startTime) {
+        throw ArgumentError.value(
+          startTime,
+          'startTime',
+          'the app started at $_startTime',
         );
       }
       if (size != null && size != (term.width, term.height)) {

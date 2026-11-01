@@ -89,13 +89,24 @@ closes it regardless.
 
 ## `Dialog`
 
-`Dialog(title:, padding:, shadow:, look: PanelLook.raised, child:)` is the
+`Dialog(title:, trailing:, scrollable: false, padding:, shadow:, look: PanelLook.raised, maxWidth: 72, child:)` is the
 box it is usually drawn in: a raised panel of the theme's `surface` and
 `text`, a cell of room around `padding` and no outline, the title bold on
 the first row inside, over the child, and a `BoxShadow` cast beside it where
 `shadow` gives one (`Shadow`, `layout`); with `look: PanelLook.bordered`, a
 border in the theme's `border` where the room is and the title on its top
-edge.
+edge. `trailing` is a widget at the right end of the title row (a counter such
+as `2/5 ←→`, a close hint); with the bordered look the title stays on the
+border and `trailing` is a row of its own at the top inside, at the right.
+With `scrollable: true` the child sits in a `SingleChildScrollView` bounded
+by the room the dialog gets (the screen's height less the room, the border
+and the title row), so a child taller than that scrolls, by the keys once it
+has the focus and by the wheel, instead of being cut off; by default it is
+laid out as tall as it likes. `maxWidth` is the most columns the box takes,
+its room or border among them, 72 by default and fewer where the screen is
+narrower; null for as many as the screen gives it, which a child that takes
+the width it is given (a `DescriptionList`, a `Row` with an `Expanded`) makes
+the dialog as wide as.
 
 ## `Panel`
 

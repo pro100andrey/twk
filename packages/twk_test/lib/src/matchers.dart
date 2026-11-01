@@ -386,12 +386,20 @@ final class _HasTextAt extends _ScreenMatcher {
     final top = r.y < 0 ? 0 : r.y;
     final right = r.x + r.width < vt.width ? r.x + r.width : vt.width;
     final bottom = r.y + r.height < vt.height ? r.y + r.height : vt.height;
-    return (x: left, y: top, width: right - left, height: bottom - top);
+    return (
+      x: left,
+      y: top,
+      width: right > left ? right - left : 0,
+      height: bottom > top ? bottom - top : 0,
+    );
   }
 
   /// What [area] has no cell at ([_x], [_y]) of for; null when it has one.
   String? _off(_Rect area) {
     final where = _within == null ? 'the screen' : 'the region';
+    if (_within != null && (area.width == 0 || area.height == 0)) {
+      return 'has no cell: the region is off the screen';
+    }
     if (_y < 0 || _y >= area.height) {
       return 'has no row $_y: $where has ${area.height} rows';
     }

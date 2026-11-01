@@ -148,7 +148,10 @@ a file the app reads arrives whenever the operating system delivers it.
 
 A lone ESC typed with `type('\x1b')` stays pending in the parser. It
 becomes the Escape key after `pump(const Duration(milliseconds: 30))`,
-with the kitty protocol too, unless more input comes first.
+with the kitty protocol too, unless more input comes first. With the
+protocol, ESC and any byte after it (`type('\x1b[')`) is a sequence cut by
+a slow link, since Alt+key is `CSI u` there, and waits 500 ms; only a lone
+ESC waits the 30 ms.
 
 ### The screen
 

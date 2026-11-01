@@ -411,6 +411,18 @@ void main() {
     );
   });
 
+  testTwk('a second pumpWidget with another startTime is refused like another '
+      'mode', (t) async {
+    final start = DateTime(2030, 5, 6);
+    await t.pumpWidget(const Text('x'), startTime: start);
+    await t.pumpWidget(const Text('y'), startTime: start);
+    await t.pumpWidget(const Text('z'));
+    await expectLater(
+      t.pumpWidget(const Text('x'), startTime: DateTime(2031)),
+      throwsArgumentError,
+    );
+  });
+
   testTwk('a resize reaches the app as an event and the next frame paints '
       'the whole screen at the new size', (t) async {
     final events = <InputEvent>[];

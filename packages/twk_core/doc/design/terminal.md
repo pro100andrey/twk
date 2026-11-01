@@ -425,8 +425,8 @@ writes unless `resumeColumn` (where the other program left the cursor)
 is 0. It starts no timers: a lone
 ESC, or a paste whose end marker was lost, waits for `timeOutInput()`,
 which a caller keeping a clock calls once `inputTimeout` has passed — the
-pause a `Terminal` would wait (the escape timeout, 500 ms for a started
-sequence, the paste timeout).
+pause a `Terminal` would wait (the escape timeout for a lone ESC, 500 ms for a started
+sequence, and with the kitty protocol for ESC and any byte after it, the paste timeout).
 `renderToString(root, width, height, styles: …)` lays a render tree out at
 that size, paints it once and returns its rows as text (without the blanks
 that end them, a wide glyph once), or with `ansi: true` the presenter's

@@ -1180,6 +1180,25 @@ void main() {
       expect(own.closed, isTrue);
     });
 
+    test('without a shell, the message says the terminal could not be '
+        'opened', () async {
+      File('${dir.path}/pubspec.yaml').writeAsStringSync('name: app\n');
+      final own = FakeLink(refusesRaw: true);
+      await expectLater(
+        openOwnOrShell(own, options, dir.path),
+        throwsA(
+          isA<TerminalException>().having(
+            (e) => e.message,
+            'message',
+            allOf(
+              contains('could not be opened'),
+              isNot(contains('needs both stdin and stdout')),
+            ),
+          ),
+        ),
+      );
+    });
+
     test('without a shell: not a terminal', () async {
       File('${dir.path}/pubspec.yaml').writeAsStringSync('name: app\n');
       final own = FakeLink(refusesRaw: true);

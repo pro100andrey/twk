@@ -167,7 +167,9 @@ final class RenderSpinner extends RenderObject {
     this._style = const Style(),
     this._background,
     this.binding,
-  });
+  }) : assert(_frames.frames.isNotEmpty, _noFrames);
+
+  static const _noFrames = 'a spinner needs a frame at least';
 
   /// The app whose clock it steps by.
   final AppBinding? binding;
@@ -180,6 +182,7 @@ final class RenderSpinner extends RenderObject {
   /// their width and steps by their interval.
   SpinnerFrames get frames => _frames;
   set frames(SpinnerFrames f) {
+    assert(f.frames.isNotEmpty, _noFrames);
     if (f != _frames) {
       _frames = f;
       _steps.interval = f.interval;

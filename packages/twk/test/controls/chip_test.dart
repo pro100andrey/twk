@@ -321,6 +321,26 @@ void main() {
     expect(t.binding.semantics.focusedLine, 1);
   });
 
+  testTwk('a screen reader finds no chip focused while the list has not the '
+      'focus', (t) async {
+    final chips = ValueNotifier(tags);
+    final on = ValueNotifier(<String>{});
+    final node = FocusNode(debugLabel: 'tags');
+    addTearDown(node.dispose);
+    await t.pumpWidget(
+      Theme.terminal(child: list(chips, on, focusNode: node)),
+      size: (30, 4),
+    );
+    expect(node.hasFocus, isFalse);
+    expect(t.binding.semantics.focusedLine, isNull);
+    node.requestFocus();
+    await t.pump();
+    expect(t.binding.semantics.focusedLine, 0);
+    node.unfocus();
+    await t.pump();
+    expect(t.binding.semantics.focusedLine, isNull);
+  });
+
   testTwk('the hidden cursor rests on the highlighted chip', (t) async {
     final chips = ValueNotifier(tags);
     final on = ValueNotifier(<String>{});

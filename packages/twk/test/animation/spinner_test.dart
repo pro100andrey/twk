@@ -354,4 +354,19 @@ void main() {
     expect(spinner.getMinIntrinsicWidth(1), 4);
     expect(spinner.getMinIntrinsicHeight(4), 1);
   });
+
+  testTwk('a spinner of no frames is refused, not drawn as an error', (
+    t,
+  ) async {
+    const empty = SpinnerFrames([], interval: Duration(seconds: 1));
+    await t.pumpWidget(const Text('x'));
+    expect(
+      () => RenderSpinner(frames: empty),
+      throwsA(isA<AssertionError>()),
+    );
+    expect(
+      () => RenderSpinner().frames = empty,
+      throwsA(isA<AssertionError>()),
+    );
+  });
 }

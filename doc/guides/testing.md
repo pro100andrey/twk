@@ -132,7 +132,9 @@ meant: `Enter` is `enter`, `ret` is `enter`. Without the kitty protocol
 `press('escape')` moves the clock on by 30 ms, the pause after which a
 terminal's lone ESC is the Escape key; with
 `pumpWidget(..., kittyKeyboard: true)` Escape is a sequence of its own and
-the clock stays.
+the clock stays. A lone ESC typed there still waits those 30 ms, but ESC and
+a byte after it (a cut arrow, `\x1b[`) wait 500 ms, as a started sequence
+does.
 
 Keys sent with no pump between them are handled before the next build,
 as a burst from a real terminal is: `press('enter space')` presses Space
