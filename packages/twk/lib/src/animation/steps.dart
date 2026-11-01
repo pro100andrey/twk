@@ -147,6 +147,9 @@ final class Steps {
   void _step(Duration time) {
     _callback = null;
     onStep();
-    start();
+    // an onStep that stopped it leaves it stopped
+    if (_wanted) {
+      start();
+    }
   }
 }

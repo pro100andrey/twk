@@ -46,6 +46,19 @@ void main() {
     steps.stop();
   });
 
+  testTwk('an onStep that stops it is not restarted by the step', (t) async {
+    await t.pumpWidget(const Text('app'), size: (4, 1));
+    var calls = 0;
+    late final Steps steps;
+    steps = Steps(ms * 100, () {
+      calls++;
+      steps.stop();
+    }, binding: t.binding)..start();
+    await until(t, ms * 450);
+    expect(calls, 1);
+    expect(t.clock.pendingTimers, 0);
+  });
+
   test('an interval not longer than zero is an ArgumentError, set or '
       'given', () {
     expect(() => Steps(Duration.zero, () {}), throwsArgumentError);
