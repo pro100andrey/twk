@@ -682,20 +682,24 @@ final class RenderList extends RenderObject
   /// The rows of the content.
   int get _contentExtent => _sum + _est(_itemCount - _known);
 
-  var _noRowsReported = false;
+  var _noRows = false;
 
-  /// Logs a warning the first time the list is given no rows with items
-  /// to show, which then shows none of them.
+  /// Logs a debug record each time the list goes from having rows (or
+  /// nothing to show) to being given none with items to show, which then
+  /// shows none of them. An intended zero (a panel closing) and a list
+  /// squeezed out by its siblings arrive alike, so it is not a warning.
   bool _debugReportNoRows() {
-    if (height == 0 && width > 0 && _itemCount > 0 && !_noRowsReported) {
-      _noRowsReported = true;
-      _warn(
+    final none = height == 0 && width > 0 && _itemCount > 0;
+    if (none && !_noRows) {
+      _debugNote(
+        owner,
         'A RenderList of $_itemCount items was given 0 rows and shows none '
-        'of them: in a Column the children beside it took every row (put '
-        'it in an Expanded); inline, a list asks for no rows (give it a '
-        'height with a SizedBox).',
+        'of them: in a Column the children beside it may have taken every '
+        'row (put it in an Expanded); inline, a list asks for no rows (give '
+        'it a height with a SizedBox).',
       );
     }
+    _noRows = none;
     return true;
   }
 
@@ -906,5 +910,16 @@ final class RenderList extends RenderObject
       c = at.nextSibling;
     }
     canvas.restore();
+  }
+}
+
+/// Logs [message] at [LogLevel.debug] to where [owner] routes the log
+/// (PipelineOwner.onLog), to [log] where it routes none.
+void _debugNote(PipelineOwner? owner, String message) {
+  final route = owner?.onLog;
+  if (route == null) {
+    log(message, level: LogLevel.debug);
+  } else {
+    route(LogRecord(DateTime.now(), LogLevel.debug, message));
   }
 }
