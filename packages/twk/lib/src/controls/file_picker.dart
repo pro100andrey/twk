@@ -1194,7 +1194,7 @@ final class _FilePickerState extends State<FilePicker> {
                 onChanged: (on) => setState(() => _hidden = on),
               ),
               Expanded(
-                child: Text(
+                child: Text.line(
                   refused ??
                       (_marked.isEmpty ? '' : '${_marked.length} marked'),
                   style: refused != null ? theme.error : theme.muted,

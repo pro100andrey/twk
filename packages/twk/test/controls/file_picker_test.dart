@@ -656,6 +656,21 @@ void main() {
       expect(field(t), '$home$sep');
     });
 
+    testTwk('the status in the footer stays on one line, cut, in a picker too '
+        'narrow for it', (t) async {
+      await t.pumpWidget(
+        picker(multiple: true),
+        size: (20, 12),
+      );
+      await listed(t);
+      await press(t, 'tab');
+      await press(t, 'end space up up space');
+      final footer = t.lines.where((l) => l.contains('Open')).toList();
+      expect(footer, hasLength(1));
+      expect(t.lines.last, contains('Open'));
+      expect(t.lines.where((l) => l.contains('marked')), isEmpty);
+    });
+
     testTwk('with multiple, Space, hinted, marks the file under the cursor '
         'or unmarks it; the marks stay as the directory changes, counted; '
         'a file taken picks those marked, in the order they were', (
