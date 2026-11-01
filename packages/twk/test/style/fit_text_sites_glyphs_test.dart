@@ -100,9 +100,10 @@ void main() {
     ) async {
       final tracker = ProgressTracker();
       addTearDown(tracker.dispose);
-      tracker.add('Downloading assets').start();
-      tracker.add('b');
-      tracker.add('c');
+      tracker
+        ..add('Downloading assets').start()
+        ..add('b')
+        ..add('c');
       await t.pumpWidget(
         themed(
           glyphs,
