@@ -97,12 +97,11 @@ export 'src/terminal/terminal.dart'
         WindowBackend,
         colorModeFor,
         styledUnderlinesFor;
+export 'src/unicode/text_layout.dart' show TextAlign, TextOverflow;
 export 'src/unicode/unicode.dart'
     show
         ClusterScan,
-        TextAlign,
         TextMode,
-        TextOverflow,
         TextSegmenter,
         fitText,
         graphemeBoundaries,

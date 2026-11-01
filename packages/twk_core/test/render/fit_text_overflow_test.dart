@@ -79,6 +79,58 @@ void main() {
     });
   });
 
+  group('fitText blanks', () {
+    test('none next to the ellipsis, as the paragraph trims them', () {
+      expect(fitText(narrow, 'ab   cdefgh', 6), 'ab…');
+      expect(
+        fitText(narrow, 'abcd  efgh', 6, overflow: TextOverflow.ellipsisStart),
+        '…efgh',
+      );
+      expect(
+        fitText(
+          narrow,
+          'ab  cd  e    gh',
+          8,
+          overflow: TextOverflow.ellipsisMiddle,
+        ),
+        'ab  c…gh',
+      );
+      // a clip keeps them
+      expect(
+        fitText(narrow, 'ab   cdefgh', 5, overflow: TextOverflow.clip),
+        'ab   ',
+      );
+    });
+
+    test('is what a paragraph cuts, blanks among the text', () {
+      const texts = ['ab cd  ef gh ij', '  lead   gap  tail  ', 'a 你 b  好 c'];
+      for (final (seg, ambiguous) in [(narrow, 1), (wide, 2)]) {
+        for (final text in texts) {
+          for (final o in [
+            TextOverflow.ellipsis,
+            TextOverflow.ellipsisStart,
+            TextOverflow.ellipsisMiddle,
+          ]) {
+            for (var w = 2; w < seg.width(text); w++) {
+              expect(
+                // the screen's row has no trailing blanks
+                fitText(seg, text, w, overflow: o).trimRight(),
+                lay(
+                  text,
+                  w,
+                  wrap: TextWrap.none,
+                  overflow: o,
+                  ambiguousWidth: ambiguous,
+                ).single,
+                reason: '"$text" at $w with $o',
+              );
+            }
+          }
+        }
+      }
+    });
+  });
+
   group('padCells', () {
     test('pads to the columns, wide letters counting two', () {
       expect(padCells(narrow, 'ab', 5), 'ab   ');

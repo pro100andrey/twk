@@ -95,12 +95,11 @@ export 'src/unicode/bidi.dart'
         TextDirection,
         bidiClassOf,
         bidiMirror;
+export 'src/unicode/text_layout.dart' show TextAlign, TextOverflow;
 export 'src/unicode/unicode.dart'
     show
         ClusterScan,
-        TextAlign,
         TextMode,
-        TextOverflow,
         TextSegmenter,
         fitText,
         graphemeBoundaries,

@@ -73,6 +73,7 @@ import '../style.dart';
 import '../surface.dart';
 import '../unicode/bidi.dart';
 import '../unicode/bidi_data.g.dart' show bidiBrackets;
+import '../unicode/text_layout.dart';
 import '../unicode/unicode.dart';
 import 'diagnostics.dart';
 

@@ -14,6 +14,7 @@ library;
 import 'dart:typed_data';
 
 import 'tables.g.dart';
+import 'text_layout.dart';
 
 export 'tables.g.dart' show unicodeVersion;
 
@@ -751,52 +752,6 @@ int _columns(TextSegmenter seg, String s) {
   return w;
 }
 
-/// Where a `RenderParagraph` puts each line across its width. A line wider
-/// than the paragraph starts at the edge its paragraph starts at: the left
-/// one, or the right one for a right-to-left paragraph in visual order
-/// (`TextOrder.visual`).
-enum TextAlign {
-  /// At the left.
-  left,
-
-  /// In the middle; the odd cell after the line.
-  center,
-
-  /// At the right.
-  right,
-
-  /// Stretched to the whole width: the cells it lacks are shared out after
-  /// the spaces between its words, the odd ones to the first. The last
-  /// line, a line the text breaks, a line with an ellipsis and a line
-  /// without spaces stay at the start, as `start` places them.
-  justify,
-
-  /// At the edge its paragraph starts at: the left one, or in visual order
-  /// (`TextOrder.visual`) the right one for a paragraph that runs right to
-  /// left (its first strong character is, rules P2 and P3 of UAX #9).
-  start,
-
-  /// At the edge its paragraph ends at: the other one.
-  end,
-}
-
-/// How a `RenderParagraph` shows that it cut text off: a line too long for
-/// it (or [fitText]), or the lines beyond its `RenderParagraph.maxLines`.
-enum TextOverflow {
-  /// It doesn't: the text is cut off at the edge.
-  clip,
-
-  /// "…" in place of the end.
-  ellipsis,
-
-  /// "…" in place of the start: the end is kept.
-  ellipsisStart,
-
-  /// "…" in place of the middle: the start and the end are kept (paths,
-  /// names).
-  ellipsisMiddle,
-}
-
 /// [text] cut off to fit [width] columns as [segmenter] measures them
 /// ([TextSegmenter.width]), `…` in place of what is cut: [text] itself
 /// where it fits; else the clusters that fit and the ellipsis, which takes
@@ -804,8 +759,8 @@ enum TextOverflow {
 /// ([TextSegmenter.ambiguousWidth]), as on a line that `RenderParagraph`
 /// cuts with the same [overflow]; where the ellipsis does not fit either,
 /// the clusters that fit, with none, as there; and nothing at all for a
-/// [width] of 0 or less. No cluster is split, and blanks next to the
-/// ellipsis are kept.
+/// [width] of 0 or less. No cluster is split, and no blank is left next to
+/// the ellipsis, as the paragraph trims them ([TextOverflow.clip] keeps them).
 ///
 /// [overflow] says what is cut: the end ([TextOverflow.ellipsis], as
 /// `Text` has it by default here), the start, keeping the end
@@ -885,19 +840,53 @@ String fitText(
     return k;
   }
 
+  // cluster [k] is a blank: a space of its own, which a line is not cut at
+  // the ellipsis beside (as RenderParagraph trims it)
+  bool blank(int k) {
+    if (ends[k + 1] - ends[k] != 1) {
+      return false;
+    }
+    final u = text.codeUnitAt(ends[k]);
+    return u == 0x20 ||
+        u == 0x1680 ||
+        (u >= 0x2000 && u <= 0x200A && u != 0x2007) ||
+        u == 0x205F ||
+        u == 0x3000;
+  }
+
+  // [k] moved back over the blanks before it
+  int trimBack(int k) {
+    var at = k;
+    while (at > 0 && blank(at - 1)) {
+      at--;
+    }
+    return at;
+  }
+
+  // [k] moved on over the blanks after it
+  int trimFront(int k) {
+    var at = k;
+    while (at < cols.length && blank(at)) {
+      at++;
+    }
+    return at;
+  }
+
   final mark = clip || width < ellipsis ? '' : '…';
   switch (overflow) {
     case TextOverflow.ellipsisStart:
-      return '$mark${text.substring(ends[tail(room)])}';
+      final t = mark.isEmpty ? tail(room) : trimFront(tail(room));
+      return '$mark${text.substring(ends[t])}';
     case TextOverflow.ellipsisMiddle when !clip && width >= ellipsis:
-      final first = head((room + 1) >> 1);
-      final t = tail(room - _sum(cols, 0, first), first);
-      final h = head(room - _sum(cols, t, cols.length), 0, t);
+      final first = trimBack(head((room + 1) >> 1));
+      final t = trimFront(tail(room - _sum(cols, 0, first), first));
+      final h = trimBack(head(room - _sum(cols, t, cols.length), 0, t));
       return '${text.substring(0, ends[h])}…${text.substring(ends[t])}';
     case TextOverflow.clip:
     case TextOverflow.ellipsis:
     case TextOverflow.ellipsisMiddle:
-      return '${text.substring(0, ends[head(room)])}$mark';
+      final h = head(room);
+      return '${text.substring(0, ends[mark.isEmpty ? h : trimBack(h)])}$mark';
   }
 }
 

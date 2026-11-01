@@ -72,7 +72,7 @@ void main() {
     test('leaves two columns for the ellipsis where it takes two', () {
       expect(fitText(wide, 'Warnings (12)', 8), 'Warnin…');
       expect(wide.width(fitText(wide, 'Warnings (12)', 8)), 8);
-      expect(fitText(wide, 'a │ b │ c', 5), 'a …');
+      expect(fitText(wide, 'a │ b │ c', 5), 'a…');
     });
 
     test('cuts off without an ellipsis where it does not fit', () {
