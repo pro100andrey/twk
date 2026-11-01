@@ -731,6 +731,7 @@ final class _ProgressListState extends State<ProgressList> {
           border: base.merge(theme.border),
         ),
         binding: binding,
+        spinner: steps,
       ),
     );
   }
@@ -783,6 +784,7 @@ final class _List extends LeafRenderObjectWidget {
     required this.byteUnits,
     required this.styles,
     required this.binding,
+    required this.spinner,
   });
 
   final List<ProgressTask> rows;
@@ -794,6 +796,10 @@ final class _List extends LeafRenderObjectWidget {
   final ByteUnits byteUnits;
   final _Styles styles;
   final AppBinding? binding;
+
+  /// The list's own steps, muted by a [TickerMode] that is off, which the
+  /// mark of a running task is drawn at.
+  final Steps spinner;
 
   @override
   _RenderProgressList createRenderObject(BuildContext context) =>
@@ -807,6 +813,7 @@ final class _List extends LeafRenderObjectWidget {
         byteUnits: byteUnits,
         styles: styles,
         binding: binding,
+        spinner: spinner,
       )..muted = !TickerMode.of(context);
 
   @override
@@ -822,6 +829,7 @@ final class _List extends LeafRenderObjectWidget {
       ..maxBarWidth = maxBarWidth
       ..byteUnits = byteUnits
       ..styles = styles
+      ..spinner = spinner
       ..muted = !TickerMode.of(context);
   }
 }
@@ -849,9 +857,19 @@ final class _RenderProgressList extends RenderObject {
     required this._byteUnits,
     required this._styles,
     required this.binding,
+    required this._spinner,
   });
 
   final AppBinding? binding;
+
+  Steps _spinner;
+  Steps get spinner => _spinner;
+  set spinner(Steps s) {
+    if (!identical(s, _spinner)) {
+      _spinner = s;
+      markNeedsPaint();
+    }
+  }
 
   // the sweep of the bars of running tasks without a total
   late final _sweep = Steps(ProgressBar.step, markNeedsPaint, binding: binding);
@@ -1211,12 +1229,7 @@ final class _RenderProgressList extends RenderObject {
   }
 
   /// The step of the spinner the frame is in.
-  int get _spinnerStep {
-    final b = binding;
-    return b == null
-        ? 0
-        : b.frameTime.inMicroseconds ~/ _frames.frames.interval.inMicroseconds;
-  }
+  int get _spinnerStep => _spinner.current;
 }
 
 /// The text of [column]'s cell for [task]; empty for none.

@@ -82,6 +82,24 @@ void main() {
     });
   }
 
+  testTwk('a muted ProgressList keeps the mark of its spinner as the tracker '
+      'repaints it', (t) async {
+    final tracker = ProgressTracker(clock: t.clock.stopwatch);
+    addTearDown(tracker.dispose);
+    tracker.add('Index', total: 100).start();
+    await t.pumpWidget(
+      TickerMode(enabled: false, child: ProgressList(tracker: tracker)),
+      size: (30, 8),
+    );
+    final mark = t.lines.first[0];
+    for (var i = 1; i <= 5; i++) {
+      await t.pump(ms * 90);
+      tracker.add('Task $i');
+      await t.pump(ms * 10);
+      expect(t.lines.first[0], mark);
+    }
+  });
+
   testTwk('a muted Spinner keeps its frame and goes on from it', (t) async {
     Widget app({required bool enabled}) =>
         TickerMode(enabled: enabled, child: const Spinner());
