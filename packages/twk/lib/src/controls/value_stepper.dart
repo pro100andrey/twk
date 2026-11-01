@@ -19,8 +19,10 @@ import 'segmented_button.dart';
 /// after it.
 ///
 /// Where a `Select` is too much for a few values: a theme, a size, a
-/// level. Stepping past the last value goes to the first and the other way
-/// round; a value not enabled ([Choice.enabled]) is passed by. Stepping
+/// level. Stepping stops at the first and the last value, the arrow there
+/// muted, as a size or a level is expected to; with [wrap] it goes on from
+/// the last to the first and the other way round, for a cycle (the days of
+/// a week). A value not enabled ([Choice.enabled]) is passed by. Stepping
 /// calls [onChanged] with the value stepped to; the app builds the stepper
 /// with it. The label is as wide as the widest of the values, padded with
 /// blanks, so that the arrows keep their places as the value changes; it
@@ -72,6 +74,7 @@ final class ValueStepper<T> extends StatefulWidget {
     this.focusNode,
     this.autofocus = false,
     this.style,
+    this.wrap = false,
   });
 
   /// What can be stepped through, in the order shown: each [Choice]'s
@@ -94,6 +97,10 @@ final class ValueStepper<T> extends StatefulWidget {
   /// The row, the theme's text under it.
   final Style? style;
 
+  /// Whether stepping past the last value goes to the first and the other
+  /// way round; by default it stops, the arrow at the end muted.
+  final bool wrap;
+
   @override
   State<ValueStepper<T>> createState() => _ValueStepperState<T>();
 }
@@ -109,6 +116,29 @@ final class _ValueStepperState<T> extends State<ValueStepper<T>> {
 
   int get _index => _values.indexWhere((v) => v.value == widget.value);
 
+  /// The index [step] places from the value shown over the enabled ones, or
+  /// -1 where there is none (at an end, not wrapping).
+  int _target(int step) {
+    final n = _values.length;
+    final from = _index;
+    // A value not in the list starts at the first or last item.
+    if (widget.wrap || from < 0) {
+      return nextEnabled(
+        n,
+        from < 0 ? (step > 0 ? -1 : n) : from,
+        step,
+        (i) => _values[i].enabled,
+      );
+    }
+    final dir = step.sign;
+    for (var i = from + dir; i >= 0 && i < n; i += dir) {
+      if (_values[i].enabled) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
   /// Steps [step] places from the value shown, over the enabled ones.
   void _step(int step) {
     final onChanged = widget.onChanged;
@@ -117,13 +147,7 @@ final class _ValueStepperState<T> extends State<ValueStepper<T>> {
       return;
     }
     final from = _index;
-    // A value not in the list starts at the first or last item.
-    final i = nextEnabled(
-      n,
-      from < 0 ? (step > 0 ? -1 : n) : from,
-      step,
-      (i) => _values[i].enabled,
-    );
+    final i = _target(step);
     if (i >= 0 && i != from) {
       onChanged(_values[i].value);
     }
@@ -183,6 +207,7 @@ final class _ValueStepperState<T> extends State<ValueStepper<T>> {
       row = row.merge(focusedRow(theme));
     }
     final arrows = enabled ? row.merge(theme.primary) : row;
+    final end = row.merge(theme.muted);
     final hover = enabled
         ? buttonHoverStyle(theme, theme.surface.merge(row))
         : const Style();
@@ -198,8 +223,10 @@ final class _ValueStepperState<T> extends State<ValueStepper<T>> {
       widest < room ? widest : room,
     );
     final pad = (widest < room ? widest : room) - segmenter.width(label);
-    Style arrow(int target) =>
-        _hits.hovered == target ? arrows.merge(hover) : arrows;
+    // a muted arrow at an end, which does nothing and is not lit
+    Style arrow(int target) => !enabled || _target(target * 2 - 1) >= 0
+        ? (_hits.hovered == target ? arrows.merge(hover) : arrows)
+        : end;
     return _hits.row(
       [
         (span: Span(theme.glyphs.previous, arrow(0)), target: 0),

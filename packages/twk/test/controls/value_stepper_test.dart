@@ -27,6 +27,7 @@ Widget stepper(
   List<String>? changes,
   List<Choice<String>> values = modes,
   bool enabled = true,
+  bool wrap = true,
   FocusNode? focusNode,
 }) => Column(
   mainAxisSize: MainAxisSize.min,
@@ -38,6 +39,7 @@ Widget stepper(
         values: values,
         value: v,
         focusNode: focusNode,
+        wrap: wrap,
         onChanged: enabled
             ? (next) {
                 changes?.add(next);
@@ -103,6 +105,52 @@ void main() {
     await press(t, 'tab');
     expect(focused(t), 'next');
     expect(t, styleAt(5, 0, isNot(hasBg(const Color.indexed(237)))));
+  });
+
+  testTwk('by default it stops at the first and the last value, the arrow '
+      'there muted and a click on it nothing; wrap: true goes round', (
+    t,
+  ) async {
+    final v = ValueNotifier('light');
+    final changes = <String>[];
+    final node = FocusNode(debugLabel: 'mode');
+    addTearDown(node.dispose);
+    await t.pumpWidget(
+      Theme.terminal(
+        child: ValueListenableBuilder(
+          valueListenable: v,
+          builder: (context, value, _) => ValueStepper<String>(
+            values: modes,
+            value: value,
+            focusNode: node,
+            onChanged: (next) {
+              changes.add(next);
+              v.value = next;
+            },
+          ),
+        ),
+      ),
+      size: (30, 2),
+    );
+    node.requestFocus();
+    await t.pump();
+    await press(t, 'left');
+    expect(v.value, 'dark');
+    expect(t, styleAt(0, 0, hasFg(const Color.indexed(245))));
+    expect(t, styleAt(17, 0, hasFg(Color.blue)));
+    await press(t, 'left');
+    await t.click(0, 0);
+    await t.pump();
+    expect(changes, ['dark']);
+    // past the disabled one, then the last
+    await press(t, 'right right');
+    expect(v.value, 'auto');
+    expect(t, styleAt(17, 0, hasFg(const Color.indexed(245))));
+    expect(t, styleAt(0, 0, hasFg(Color.blue)));
+    await press(t, 'right');
+    await t.click(17, 0);
+    await t.pump();
+    expect(changes, ['dark', 'light', 'auto']);
   });
 
   testTwk('a click on ‹ steps back, on › forward, on the value nothing; it '
