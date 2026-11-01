@@ -69,11 +69,15 @@ void main() {
     await until(t, ms * 2000);
     steps.muted = false;
     await until(t, ms * 2050);
+    // the steps count from the last frame's time, not the clock's: the
+    // frame unmuting asked for, at 2000
+    expect(t.binding.frameTime, ms * 2000);
     expect(steps.current, 3);
     steps.interval = ms * 50;
     expect(steps.current, 3);
     await until(t, ms * 2100);
-    expect(steps.current, isIn([4, 5]));
+    // two steps of 50 ms after that frame
+    expect(steps.current, 5);
     steps.stop();
   });
 }
