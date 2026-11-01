@@ -20,7 +20,7 @@ final _glyphs = ChartGlyphs();
 /// [canvas], [vertical] or not: 8 where the canvas draws block elements
 /// one column wide, else 1, whole cells, where it draws them two columns
 /// wide (they are East Asian ambiguous), or 1 where [eighths] is false
-/// (`Glyphs.eighths` of the theme). [paintThumb] takes the thumb's start
+/// (`Glyphs.partialBlocks` of the theme). [paintThumb] takes the thumb's start
 /// and end in these steps.
 int thumbSteps(Canvas canvas, {required bool vertical, bool eighths = true}) {
   if (!eighths) {

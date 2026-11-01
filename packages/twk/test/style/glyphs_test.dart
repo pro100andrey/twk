@@ -35,6 +35,38 @@ void main() {
       expect(Glyphs.ascii.copyWith().hashCode, Glyphs.ascii.hashCode);
     });
 
+    test('the partial blocks are off and the gauge has no half in ASCII', () {
+      expect(Glyphs.unicode.partialBlocks, isTrue);
+      expect(Glyphs.ascii.partialBlocks, isFalse);
+      expect(Glyphs.unicode.gaugeHalf, '╴');
+      expect(Glyphs.ascii.gaugeHalf, isNull);
+    });
+
+    test('gaugeHalf is cleared by clearGaugeHalf alone, kept otherwise', () {
+      final none = Glyphs.unicode.copyWith(clearGaugeHalf: true);
+      expect(none.gaugeHalf, isNull);
+      expect(none.copyWith(check: '+').gaugeHalf, isNull);
+      expect(none.copyWith(gaugeHalf: '╸').gaugeHalf, '╸');
+      expect(Glyphs.unicode.copyWith(check: '+').gaugeHalf, '╴');
+      expect(none, isNot(Glyphs.unicode));
+      expect(none.hashCode, isNot(Glyphs.unicode.hashCode));
+    });
+
+    test('the tuple marks compare by value in ==', () {
+      expect(
+        Glyphs.unicode.copyWith(buttonEdges: ('▕', '▏')),
+        Glyphs.unicode,
+      );
+      expect(
+        Glyphs.unicode.copyWith(buttonEdges: ('<', '>')),
+        isNot(Glyphs.unicode),
+      );
+      expect(
+        Glyphs.unicode.copyWith(radioBrackets: ('', '')),
+        isNot(Glyphs.unicode),
+      );
+    });
+
     test('a theme holds it in copyWith, ==, hashCode and lerp', () {
       final ascii = ThemeData.dark.copyWith(glyphs: Glyphs.ascii);
       expect(ascii.glyphs, Glyphs.ascii);
@@ -60,9 +92,12 @@ void main() {
         all.checkboxOff,
         all.radioOn,
         all.radioOff,
+        all.radioBrackets.$1,
+        all.radioBrackets.$2,
         all.switchStart,
         all.switchEnd,
-        all.dot,
+        all.switchKnob,
+        all.stepCurrent,
         all.ring,
         all.expanded,
         all.collapsed,
@@ -80,15 +115,15 @@ void main() {
         all.taskPending,
         all.taskSkipped,
         all.separator,
-        all.capOpen,
-        all.capClose,
+        all.buttonEdges.$1,
+        all.buttonEdges.$2,
         all.trackVertical,
         all.trackHorizontal,
         all.thumbVertical,
         all.thumbHorizontal,
-        all.thumbEdge,
+        all.thumbSlim,
         all.gaugeFilled,
-        all.gaugeHalf,
+        ?all.gaugeHalf,
         all.gaugeEmpty,
         ...all.spinner.frames,
       ];
@@ -153,6 +188,28 @@ void main() {
       expect(t.lines.single, '[  *]');
     });
 
+    testTwk('the switch knob and the stepper step in hand are two marks', (
+      t,
+    ) async {
+      final set = Glyphs.unicode.copyWith(switchKnob: 'S', stepCurrent: 'C');
+      await t.pumpWidget(
+        themed(set, Switch(value: true, onChanged: (_) {})),
+        size: (8, 1),
+      );
+      expect(t.lines.single, '▐  S▌');
+      await t.pumpWidget(
+        themed(
+          set,
+          const Stepper(
+            steps: [Step(title: 'One', content: Text('a'))],
+            direction: Axis.vertical,
+          ),
+        ),
+        size: (20, 4),
+      );
+      expect(t.lines.join('\n'), allOf(contains('C 1.'), isNot(contains('S'))));
+    });
+
     testTwk('a RadioGroup marks its choice with the dot, its own mark above '
         'the set', (t) async {
       Widget group({String? mark}) => RadioGroup<String>(
@@ -169,33 +226,41 @@ void main() {
   });
 
   group('radio marks', () {
-    testTwk('a RadioGroup draws radioOn and radioOff, bracketless too', (
-      t,
-    ) async {
+    testTwk('a RadioGroup draws radioOn and radioOff between radioBrackets, '
+        'bracketless too', (t) async {
       Widget group({String? mark}) => RadioGroup<String>(
         choices: const [Choice('a', 'A'), Choice('b', 'B')],
         value: 'a',
         onChanged: (_) {},
         mark: mark,
       );
-      final rings = Glyphs.unicode.copyWith(radioOn: '◉', radioOff: '○');
+      await t.pumpWidget(themed(Glyphs.unicode, group()), size: (8, 2));
+      expect(t.lines, ['(●) A', '( ) B']);
+      final rings = Glyphs.unicode.copyWith(
+        radioOn: '◉',
+        radioOff: '○',
+        radioBrackets: ('', ''),
+      );
       await t.pumpWidget(themed(rings, group()), size: (8, 2));
       expect(t.lines, ['◉ A', '○ B']);
-      // a mark above the set replaces the whole short glyph
+      // a mark above the set replaces the on mark
       await t.pumpWidget(themed(rings, group(mark: '@')), size: (8, 2));
       expect(t.lines, ['@ A', '○ B']);
       // brackets of the set's own, the mark in the middle
-      final square = Glyphs.unicode.copyWith(radioOn: '[●]', radioOff: '[ ]');
+      final square = Glyphs.unicode.copyWith(radioBrackets: ('[', ']'));
       await t.pumpWidget(themed(square, group(mark: '@')), size: (8, 2));
       expect(t.lines, ['[@] A', '[ ] B']);
+      // one bracket alone
+      final left = Glyphs.unicode.copyWith(radioBrackets: ('<', ''));
+      await t.pumpWidget(themed(left, group()), size: (8, 2));
+      expect(t.lines, ['<● A', '<  B']);
     });
 
-    testTwk('the unchosen ring is in the brackets style, the chosen in the '
-        "mark's", (t) async {
-      final rings = Glyphs.unicode.copyWith(radioOn: '◉', radioOff: '○');
+    testTwk('the brackets are in bracketStyle, the chosen mark in the '
+        "mark's, an unchosen one in neither", (t) async {
       await t.pumpWidget(
         themed(
-          rings,
+          Glyphs.unicode.copyWith(radioOff: '○'),
           RadioGroup<String>(
             choices: const [Choice('a', 'A'), Choice('b', 'B')],
             value: 'a',
@@ -205,8 +270,11 @@ void main() {
         ),
         size: (8, 2),
       );
+      expect(t, styleAt(0, 0, hasFg(Color.red)));
+      expect(t, styleAt(2, 0, hasFg(Color.red)));
+      expect(t, styleAt(1, 0, isNot(hasFg(Color.red))));
       expect(t, styleAt(0, 1, hasFg(Color.red)));
-      expect(t, styleAt(0, 0, isNot(hasFg(Color.red))));
+      expect(t, styleAt(1, 1, isNot(hasFg(Color.red))));
     });
   });
 
@@ -296,6 +364,25 @@ void main() {
       expect(t.lines.single, '━━━━━━');
     });
 
+    testTwk('a LineGauge with the half cleared fills in whole cells', (
+      t,
+    ) async {
+      final whole = Glyphs.unicode.copyWith(clearGaugeHalf: true);
+      await t.pumpWidget(
+        themed(
+          Glyphs.unicode.copyWith(gaugeFilled: '━'),
+          const LineGauge(ratio: 0.25),
+        ),
+        size: (6, 1),
+      );
+      expect(t.lines.single, '━╴────');
+      await t.pumpWidget(
+        themed(whole.copyWith(gaugeFilled: '━'), const LineGauge(ratio: 0.25)),
+        size: (6, 1),
+      );
+      expect(t.lines.single, '━━────');
+    });
+
     testTwk('a Scrollbar draws its thumb and track from the set: # on a | '
         'track in ASCII, in whole cells even under the mouse', (t) async {
       Widget bar() => Scrollbar(
@@ -364,6 +451,28 @@ void main() {
       expect(t.lines.single, startsWith('▕  Go  ▏'));
       await t.pumpWidget(themed(Glyphs.ascii, button()), size: (8, 1));
       expect(t.lines.single, startsWith('[  Go  ]'));
+    });
+
+    testTwk('a one row Button draws buttonEdges, a pair, from the set', (
+      t,
+    ) async {
+      await t.pumpWidget(
+        themed(
+          Glyphs.unicode.copyWith(buttonEdges: ('<', '>')),
+          Button.outlined('Go', onPressed: () {}),
+        ),
+        size: (8, 1),
+      );
+      expect(t.lines.single, startsWith('<  Go  >'));
+      // an edge not one column wide: the separator at both ends
+      await t.pumpWidget(
+        themed(
+          Glyphs.unicode.copyWith(buttonEdges: ('<', '>>')),
+          Button.outlined('Go', onPressed: () {}),
+        ),
+        size: (8, 1),
+      );
+      expect(t.lines.single, startsWith('│  Go  │'));
     });
 
     testTwk('a removable Chip draws the close mark of the set', (t) async {
@@ -544,6 +653,38 @@ void main() {
       expect([t.cell(0, 0).text, t.cell(7, 0).text], ['▎', '▐']);
       await t.pumpWidget(themed(Glyphs.ascii, list()), size: (14, 2));
       expect([t.cell(0, 0).text, t.cell(7, 0).text], ['>', '#']);
+    });
+
+    testTwk('an OptionList thumb is thumbSlim, whatever thumbVertical is', (
+      t,
+    ) async {
+      await t.pumpWidget(
+        themed(
+          Glyphs.unicode.copyWith(thumbSlim: 'T', thumbVertical: 'V'),
+          const Align(
+            alignment: Alignment.topLeft,
+            child: OptionList(
+              options: [Option('apple'), Option('banana'), Option('cherry')],
+              highlighted: 0,
+              rows: 2,
+            ),
+          ),
+        ),
+        size: (14, 2),
+      );
+      expect(t.cell(7, 0).text, 'T');
+    });
+
+    testTwk('without partialBlocks a Slider draws whole cells', (t) async {
+      Widget slider() => Slider(value: 0.5, onChanged: (_) {});
+      await t.pumpWidget(themed(Glyphs.unicode, slider()), size: (10, 1));
+      final blocks = t.lines.single;
+      await t.pumpWidget(
+        themed(Glyphs.unicode.copyWith(partialBlocks: false), slider()),
+        size: (10, 1),
+      );
+      expect(t.lines.single, isNot(blocks));
+      expect(t.lines.single, contains('━'));
     });
 
     testTwk('a SegmentedButton draws its lines and checks from the set', (

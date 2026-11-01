@@ -469,7 +469,7 @@ final class _RenderOptionList extends RenderObject {
         canvas.text(
           w - 1,
           row,
-          s.glyphs.thumbEdge,
+          s.glyphs.thumbSlim,
           under.merge(s.thumb).penIn(styles),
         );
       }

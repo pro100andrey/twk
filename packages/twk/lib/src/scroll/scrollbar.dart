@@ -891,7 +891,7 @@ final class _RenderBar extends RenderObject {
             .first,
       );
     }
-    final eighths = wide && _glyphs.eighths;
+    final eighths = wide && _glyphs.partialBlocks;
     final steps = eighths ? thumbSteps(canvas, vertical: vertical) : 1;
     final thumb = _track.paint(vertical ? height : width, steps);
     if (thumb == null) {

@@ -59,11 +59,12 @@ final class Choice<T> {
 
 /// Radio buttons: [choices], one of which is chosen, each its label after
 /// a mark, `(●)` for the one whose value is [value], `( )` for the others
-/// (`Glyphs.radioOn` and `Glyphs.radioOff` of the theme).
+/// (`Glyphs.radioOn`, `Glyphs.radioOff` and `Glyphs.radioBrackets` of the
+/// theme).
 ///
 /// The choices go one below another, or side by side along a horizontal
 /// [direction]; [mark] is what is between the parentheses of the one
-/// chosen, in place of the middle of `Glyphs.radioOn`.
+/// chosen, in place of `Glyphs.radioOn`.
 /// One stop of Tab: while it has the focus, Up and Left choose the
 /// enabled choice before the one chosen, Down and Right the one after,
 /// from the last to the first and back, Home and End the first and the
@@ -101,12 +102,12 @@ final class Choice<T> {
 /// when null; [disabledStyle] for one that cannot be chosen,
 /// [ThemeData.muted] when null.
 ///
-/// What an app sets: the glyphs of the theme, `radioOn` and `radioOff`,
-/// brackets included (`Glyphs.ascii` has `(*)`; `radioOn: '◉'` and
-/// `radioOff: '○'` draw `◉ ○` with no parentheses, the ring in the
-/// brackets' style); [mark], the middle of the chosen one's glyph above
-/// the theme; the styles of the mark, the brackets, the choice that shows
-/// the focus and a disabled one, and [direction].
+/// What an app sets: the glyphs of the theme, `radioOn`, `radioOff` and
+/// `radioBrackets` (`Glyphs.ascii` has `(*)`; `radioOn: '◉'`,
+/// `radioOff: '○'` and `radioBrackets: ('', '')` draw `◉ ○` with no
+/// parentheses); [mark], the chosen one's mark above the theme; the
+/// styles of the mark, the brackets, the choice that shows the focus and
+/// a disabled one, and [direction].
 ///
 /// A plain look, `(*)` all in the mark's style and the focused choice
 /// reversed: `mark: '*'`, `bracketStyle: const Style()` and
@@ -161,8 +162,7 @@ final class RadioGroup<T> extends StatelessWidget {
   final bool autofocus;
 
   /// What is between the brackets of the choice chosen, a character one
-  /// column wide, in place of the middle of `Glyphs.radioOn` (all of a
-  /// glyph of under three characters); null for the theme's.
+  /// column wide, in place of `Glyphs.radioOn`; null for the theme's.
   final String? mark;
 
   /// A choice, the theme's text under it.
@@ -306,11 +306,11 @@ final class RadioGroup<T> extends StatelessWidget {
     );
   }
 
-  /// [glyph] as spans: of three characters or more, its first and last
-  /// the brackets and what is between the mark (the [mark] given in its
-  /// place while [on]); shorter, all mark. The mark has its style while
-  /// [on] and [enabled]; the brackets, and a short glyph not [on], are
-  /// [bracketStyle] over that.
+  /// The theme's radio button as spans: the opening bracket, [glyph] (the
+  /// [mark] given in its place while [on]) and the closing bracket, each
+  /// left out where it is empty. The mark has its style while [on] and
+  /// [enabled], the text's else; the brackets are [bracketStyle] over
+  /// that.
   List<Span> _radioSpans(
     ThemeData theme,
     String glyph,
@@ -321,17 +321,11 @@ final class RadioGroup<T> extends StatelessWidget {
     final brackets = marked.merge(
       bracketStyle ?? theme.muted.merge(const Style(attrsOff: Attr.bold)),
     );
-    final n = glyph.length;
-    if (n < 3) {
-      return [Span(on ? mark ?? glyph : glyph, on ? marked : brackets)];
-    }
+    final (open, close) = theme.glyphs.radioBrackets;
     return [
-      Span(glyph.substring(0, 1), brackets),
-      Span(
-        on ? mark ?? glyph.substring(1, n - 1) : glyph.substring(1, n - 1),
-        marked,
-      ),
-      Span(glyph.substring(n - 1), brackets),
+      if (open.isNotEmpty) Span(open, brackets),
+      Span(on ? mark ?? glyph : glyph, marked),
+      if (close.isNotEmpty) Span(close, brackets),
     ];
   }
 }

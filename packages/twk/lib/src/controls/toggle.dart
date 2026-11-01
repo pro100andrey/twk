@@ -282,7 +282,7 @@ final class Switch extends StatelessWidget {
     return [
       Span(theme.glyphs.switchStart, end),
       Span(
-        '${' ' * k}${theme.glyphs.dot}${' ' * (2 - k)}',
+        '${' ' * k}${theme.glyphs.switchKnob}${' ' * (2 - k)}',
         Style(fg: knob, bg: track),
       ),
       Span(theme.glyphs.switchEnd, end),

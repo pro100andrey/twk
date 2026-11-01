@@ -56,7 +56,7 @@ import 'pressable.dart';
 /// [Button.filled], the gallery's page shows each, and `tall`), the styles
 /// of each state, and the flat word that takes no focus below
 /// ([canRequestFocus]). The edges of an outlined button are
-/// `Glyphs.capOpen` and `Glyphs.capClose` of the theme. The label is one
+/// `Glyphs.buttonEdges` of the theme. The label is one
 /// string in one style; [Button.rich] takes spans, a key in one color and
 /// its caption in another on the one chip.
 ///
@@ -423,17 +423,11 @@ extension on _ButtonState {
         // is between them; bars where block elements are two columns wide
         final glyphs = theme.glyphs;
         final segmenter = segmenterOf(context);
+        final (edgeOpen, edgeClose) = glyphs.buttonEdges;
         final thin =
-            segmenter.width(glyphs.capOpen) == 1 &&
-            segmenter.width(glyphs.capClose) == 1;
-        final open = Text(
-          thin ? glyphs.capOpen : glyphs.separator,
-          style: line,
-        );
-        final close = Text(
-          thin ? glyphs.capClose : glyphs.separator,
-          style: line,
-        );
+            segmenter.width(edgeOpen) == 1 && segmenter.width(edgeClose) == 1;
+        final open = Text(thin ? edgeOpen : glyphs.separator, style: line);
+        final close = Text(thin ? edgeClose : glyphs.separator, style: line);
         final inner = Padding(padding: const EdgeInsets.x(1), child: label);
         return LayoutBuilder(
           builder: (context, c) => Row(

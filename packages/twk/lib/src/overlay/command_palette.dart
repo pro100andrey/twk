@@ -200,7 +200,7 @@ final class CommandPaletteController extends ChangeNotifier {
 ///
 /// The look is set by [look], [width], [rows], [prompt], [placeholder],
 /// [rule], [bar] (its mark is `Glyphs.cursor` of the theme), [thumb]
-/// (`Glyphs.thumbEdge`) and [barrierAlpha], each shown on the gallery's
+/// (`Glyphs.thumbSlim`) and [barrierAlpha], each shown on the gallery's
 /// page. The ranking is [fuzzyMatch]'s, and the row of a command a label
 /// with its key or [Command.detail] at the right; another ranking or row
 /// is not set here.

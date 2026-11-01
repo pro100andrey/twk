@@ -58,11 +58,13 @@ final class Glyphs {
     this.warning = '⚠',
     this.checkboxOn = '[x]',
     this.checkboxOff = '[ ]',
-    this.radioOn = '(●)',
-    this.radioOff = '( )',
+    this.radioOn = '●',
+    this.radioOff = ' ',
+    this.radioBrackets = ('(', ')'),
     this.switchStart = '▐',
     this.switchEnd = '▌',
-    this.dot = '●',
+    this.switchKnob = '●',
+    this.stepCurrent = '●',
     this.ring = '○',
     this.expanded = '▾',
     this.collapsed = '▸',
@@ -80,14 +82,13 @@ final class Glyphs {
     this.taskPending = '◦',
     this.taskSkipped = '↓',
     this.separator = '│',
-    this.capOpen = '▕',
-    this.capClose = '▏',
+    this.buttonEdges = ('▕', '▏'),
     this.trackVertical = '│',
     this.trackHorizontal = '─',
     this.thumbVertical = '┃',
     this.thumbHorizontal = '━',
-    this.thumbEdge = '▐',
-    this.eighths = true,
+    this.thumbSlim = '▐',
+    this.partialBlocks = true,
     this.gaugeFilled = '─',
     this.gaugeHalf = '╴',
     this.gaugeEmpty = '─',
@@ -115,10 +116,11 @@ final class Glyphs {
     cross: 'x',
     info: 'i',
     warning: '!',
-    radioOn: '(*)',
+    radioOn: '*',
     switchStart: '[',
     switchEnd: ']',
-    dot: '*',
+    switchKnob: '*',
+    stepCurrent: '*',
     ring: 'o',
     expanded: 'v',
     collapsed: '>',
@@ -135,16 +137,15 @@ final class Glyphs {
     taskPending: '.',
     taskSkipped: '-',
     separator: '|',
-    capOpen: '[',
-    capClose: ']',
+    buttonEdges: ('[', ']'),
     trackVertical: '|',
     trackHorizontal: '-',
     thumbVertical: '#',
     thumbHorizontal: '#',
-    thumbEdge: '#',
-    eighths: false,
+    thumbSlim: '#',
+    partialBlocks: false,
     gaugeFilled: '=',
-    gaugeHalf: '',
+    gaugeHalf: null,
     gaugeEmpty: '-',
     spinner: SpinnerFrames.line,
   );
@@ -180,26 +181,34 @@ final class Glyphs {
   /// A checkbox that is off.
   final String checkboxOff;
 
-  /// A radio button that is chosen, before its label, brackets included:
-  /// `(●)`; [radioOff] has its width. A glyph of three characters or more
-  /// has its first and last for brackets, in the brackets' style and
-  /// what is between in the mark's; one of fewer (`◉`) is all mark.
-  /// `RadioGroup.mark` replaces what is between the brackets.
+  /// The mark of a radio button that is chosen, between its
+  /// [radioBrackets] and before its label: `●`, so `(●)`. [radioOff] has
+  /// its width. `RadioGroup.mark` replaces it.
   final String radioOn;
 
-  /// A radio button that is not chosen: `( )`. Without brackets, a ring
-  /// as `○`, in the brackets' style.
+  /// The mark of a radio button that is not chosen, a space by default
+  /// (`( )`); a ring as `○` for a set with no brackets. Drawn in the
+  /// brackets' style.
   final String radioOff;
 
-  /// The left end of a switch's track; the knob is [dot].
+  /// The characters either side of a radio button's mark, `(` and `)`;
+  /// an empty string for none, as in `('', '')` for `◉ ○`. Drawn in the
+  /// `RadioGroup`'s `bracketStyle`.
+  final (String, String) radioBrackets;
+
+  /// The left end of a switch's track; the knob is [switchKnob].
   final String switchStart;
 
   /// The right end of a switch's track.
   final String switchEnd;
 
-  /// A filled dot: a switch's knob, the step in
-  /// hand of a stepper.
-  final String dot;
+  /// A switch's knob, a filled dot, on its track between [switchStart]
+  /// and [switchEnd].
+  final String switchKnob;
+
+  /// The step in hand of a stepper, being edited: a filled dot, as
+  /// [ring] is a step not done yet.
+  final String stepCurrent;
 
   /// An empty ring: a step not done yet.
   final String ring;
@@ -247,21 +256,19 @@ final class Glyphs {
   /// A bullet between items on a line, and the mask of a hidden text.
   final String bullet;
 
-  /// The mark of a task not started.
+  /// The mark of a task not started (`TaskStatus.pending`).
   final String taskPending;
 
-  /// The mark of a task skipped.
+  /// The mark of a task skipped (`TaskStatus.skipped`).
   final String taskSkipped;
 
   /// The line between the segments of a segmented button, and the edge of
-  /// a button where [capOpen] is not one column.
+  /// a button where [buttonEdges] are not one column each.
   final String separator;
 
-  /// The left edge of a one-row button.
-  final String capOpen;
-
-  /// The right edge of a one-row button.
-  final String capClose;
+  /// The left and the right edge of a one-row button, a column each: `▕`
+  /// and `▏`, so a chip's label stands between thin bars.
+  final (String, String) buttonEdges;
 
   /// A vertical scrollbar's track.
   final String trackVertical;
@@ -275,21 +282,23 @@ final class Glyphs {
   /// A horizontal scrollbar's thumb at rest.
   final String thumbHorizontal;
 
-  /// The thumb of an options list, in its last column.
-  final String thumbEdge;
+  /// The thumb of an options list, in its last column: a half cell at the
+  /// edge, on the list's own background, where [thumbVertical] is a whole
+  /// cell's line over a [trackVertical] the list does not draw.
+  final String thumbSlim;
 
-  /// Whether a scrollbar's thumb and a slider's may use the block elements
-  /// that cover an eighth of a cell, where the terminal draws them one
-  /// column wide; else whole cells of [thumbVertical] and
+  /// Whether a scrollbar's thumb and a slider's may draw with the block
+  /// elements that cover a part of a cell (eighths), where the terminal
+  /// draws them one column wide; else whole cells of [thumbVertical] and
   /// [thumbHorizontal].
-  final bool eighths;
+  final bool partialBlocks;
 
   /// The filled part of a `LineGauge`.
   final String gaugeFilled;
 
-  /// The filled part's last half cell of a `LineGauge`; empty for a set
+  /// The filled part's last half cell of a `LineGauge`; null for a set
   /// that has none, whole cells then.
-  final String gaugeHalf;
+  final String? gaugeHalf;
 
   /// The rest of a `LineGauge`.
   final String gaugeEmpty;
@@ -298,7 +307,8 @@ final class Glyphs {
   /// list.
   final SpinnerFrames spinner;
 
-  /// This set with the marks given in place of its own.
+  /// This set with the marks given in place of its own; [clearGaugeHalf]
+  /// leaves it with no [gaugeHalf], whatever `gaugeHalf` says.
   Glyphs copyWith({
     String? cursor,
     String? accent,
@@ -311,9 +321,11 @@ final class Glyphs {
     String? checkboxOff,
     String? radioOn,
     String? radioOff,
+    (String, String)? radioBrackets,
     String? switchStart,
     String? switchEnd,
-    String? dot,
+    String? switchKnob,
+    String? stepCurrent,
     String? ring,
     String? expanded,
     String? collapsed,
@@ -331,16 +343,16 @@ final class Glyphs {
     String? taskPending,
     String? taskSkipped,
     String? separator,
-    String? capOpen,
-    String? capClose,
+    (String, String)? buttonEdges,
     String? trackVertical,
     String? trackHorizontal,
     String? thumbVertical,
     String? thumbHorizontal,
-    String? thumbEdge,
-    bool? eighths,
+    String? thumbSlim,
+    bool? partialBlocks,
     String? gaugeFilled,
     String? gaugeHalf,
+    bool clearGaugeHalf = false,
     String? gaugeEmpty,
     SpinnerFrames? spinner,
   }) => Glyphs(
@@ -355,9 +367,11 @@ final class Glyphs {
     checkboxOff: checkboxOff ?? this.checkboxOff,
     radioOn: radioOn ?? this.radioOn,
     radioOff: radioOff ?? this.radioOff,
+    radioBrackets: radioBrackets ?? this.radioBrackets,
     switchStart: switchStart ?? this.switchStart,
     switchEnd: switchEnd ?? this.switchEnd,
-    dot: dot ?? this.dot,
+    switchKnob: switchKnob ?? this.switchKnob,
+    stepCurrent: stepCurrent ?? this.stepCurrent,
     ring: ring ?? this.ring,
     expanded: expanded ?? this.expanded,
     collapsed: collapsed ?? this.collapsed,
@@ -375,16 +389,15 @@ final class Glyphs {
     taskPending: taskPending ?? this.taskPending,
     taskSkipped: taskSkipped ?? this.taskSkipped,
     separator: separator ?? this.separator,
-    capOpen: capOpen ?? this.capOpen,
-    capClose: capClose ?? this.capClose,
+    buttonEdges: buttonEdges ?? this.buttonEdges,
     trackVertical: trackVertical ?? this.trackVertical,
     trackHorizontal: trackHorizontal ?? this.trackHorizontal,
     thumbVertical: thumbVertical ?? this.thumbVertical,
     thumbHorizontal: thumbHorizontal ?? this.thumbHorizontal,
-    thumbEdge: thumbEdge ?? this.thumbEdge,
-    eighths: eighths ?? this.eighths,
+    thumbSlim: thumbSlim ?? this.thumbSlim,
+    partialBlocks: partialBlocks ?? this.partialBlocks,
     gaugeFilled: gaugeFilled ?? this.gaugeFilled,
-    gaugeHalf: gaugeHalf ?? this.gaugeHalf,
+    gaugeHalf: clearGaugeHalf ? null : gaugeHalf ?? this.gaugeHalf,
     gaugeEmpty: gaugeEmpty ?? this.gaugeEmpty,
     spinner: spinner ?? this.spinner,
   );
@@ -401,9 +414,11 @@ final class Glyphs {
     checkboxOff,
     radioOn,
     radioOff,
+    radioBrackets,
     switchStart,
     switchEnd,
-    dot,
+    switchKnob,
+    stepCurrent,
     ring,
     expanded,
     collapsed,
@@ -421,14 +436,13 @@ final class Glyphs {
     taskPending,
     taskSkipped,
     separator,
-    capOpen,
-    capClose,
+    buttonEdges,
     trackVertical,
     trackHorizontal,
     thumbVertical,
     thumbHorizontal,
-    thumbEdge,
-    eighths,
+    thumbSlim,
+    partialBlocks,
     gaugeFilled,
     gaugeHalf,
     gaugeEmpty,

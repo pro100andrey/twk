@@ -914,7 +914,10 @@ final class _StepperState extends State<Stepper> {
     final text = theme.text;
     final (mark, markStyled) = switch (state) {
       StepState.complete => (theme.glyphs.checkBold, text.merge(theme.success)),
-      StepState.editing => (theme.glyphs.dot, text.merge(markStyle(theme))),
+      StepState.editing => (
+        theme.glyphs.stepCurrent,
+        text.merge(markStyle(theme)),
+      ),
       StepState.error => (theme.glyphs.cross, text.merge(theme.error)),
       StepState.indexed || StepState.disabled => (
         theme.glyphs.ring,

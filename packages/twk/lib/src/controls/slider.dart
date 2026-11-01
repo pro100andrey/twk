@@ -437,7 +437,7 @@ final class _RenderTrack extends RenderObject {
     final steps = _steps = thumbSteps(
       canvas,
       vertical: false,
-      eighths: _glyphs.eighths,
+      eighths: _glyphs.partialBlocks,
     );
     if (width <= 0) {
       return;
@@ -463,7 +463,7 @@ final class _RenderTrack extends RenderObject {
       steps: steps,
       vertical: false,
       at: y,
-      glyph: _glyphs.eighths ? null : _glyphs.thumbHorizontal.runes.first,
+      glyph: _glyphs.partialBlocks ? null : _glyphs.thumbHorizontal.runes.first,
     );
   }
 }

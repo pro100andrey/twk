@@ -136,7 +136,7 @@ final class ChartGlyphs {
     int y,
     int cells, {
     required String filled,
-    required String half,
+    required String? half,
     required String empty,
     required int filledPen,
     required int unfilledPen,
@@ -146,12 +146,12 @@ final class ChartGlyphs {
     if (cells <= 0) {
       return;
     }
-    final narrow = [filled, empty, if (half.isNotEmpty) half].every(
+    final narrow = [filled, empty, ?half].every(
       (g) => _segmenter.width(g) == 1,
     );
     final whole = (narrow ? filled : '-').runes.first;
     final rest = (narrow ? empty : '-').runes.first;
-    final part = (narrow ? half : '').runes.firstOrNull;
+    final part = narrow ? half?.runes.firstOrNull : null;
     if (run case (final from, final width)) {
       canvas
         ..fill(x, y, cells, 1, unfilledPen, rest)
