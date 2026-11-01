@@ -802,41 +802,62 @@ String fitText(
   final clip = overflow == TextOverflow.clip;
   final room = clip || width < ellipsisWidth ? width : width - ellipsisWidth;
   final mark = clip || width < ellipsisWidth ? '' : ellipsis;
+  final cut = _Cut();
   switch (overflow) {
     case TextOverflow.ellipsisStart:
-      var t = _tail(segmenter, text, room, 0, total);
+      var t = _tail(segmenter, text, cut, room, 0, total);
       if (mark.isNotEmpty) {
-        t = _skipBlanks(segmenter, text, t);
+        t = _skipBlanks(segmenter, text, cut, t);
       }
       return '$mark${text.substring(t)}';
     case TextOverflow.ellipsisMiddle when !clip && width >= ellipsisWidth:
-      final first = _head(segmenter, text, (room + 1) >> 1, text.length, true);
-      final used = _cells;
+      final first = _head(
+        segmenter,
+        text,
+        cut,
+        (room + 1) >> 1,
+        text.length,
+        true,
+      );
+      final used = cut.cells;
       final t = _skipBlanks(
         segmenter,
         text,
-        _tail(segmenter, text, room - used, first, total - used),
+        cut,
+        _tail(segmenter, text, cut, room - used, first, total - used),
       );
-      final h = _head(segmenter, text, room - _cells, t, true);
+      final h = _head(segmenter, text, cut, room - cut.cells, t, true);
       return '${text.substring(0, h)}$ellipsis${text.substring(t)}';
     case TextOverflow.clip:
     case TextOverflow.ellipsis:
     case TextOverflow.ellipsisMiddle:
-      final h = _head(segmenter, text, room, text.length, mark.isNotEmpty);
+      final h = _head(
+        segmenter,
+        text,
+        cut,
+        room,
+        text.length,
+        mark.isNotEmpty,
+      );
       return '${text.substring(0, h)}$mark';
   }
 }
 
+// What the helpers below report besides the index they return: the
+// columns of the cluster [_cluster] last read, and the columns [_head]
+// took, or [_tail] left after the start it returns (less the blanks
+// [_skipBlanks] then passes). [fitText] makes one of its own for a call
+// and passes it down: a record of the two would be allocated on every
+// return, a cluster a time.
+final class _Cut {
+  var cluster = 0;
+  var cells = 0;
+}
+
 // The cluster of [text] at [i] ([fitText] cuts between them, in the columns
-// [_columns] counts): its end, its columns left in [_clusterCells]. Walks
-// the text without materialising its clusters.
-var _clusterCells = 0;
-
-// the columns [_head] took, or [_tail] left after the start it returns
-// (less the blanks [_skipBlanks] then passes)
-var _cells = 0;
-
-int _cluster(TextSegmenter seg, String text, int i) {
+// [_columns] counts): its end, its columns left in [cut]. Walks the text
+// without materialising its clusters.
+int _cluster(TextSegmenter seg, String text, _Cut cut, int i) {
   final scan = _widthScan;
   seg.scan(text, i, scan);
   var end = scan.end;
@@ -847,7 +868,7 @@ int _cluster(TextSegmenter seg, String text, int i) {
     end = i + (scan.first > 0xFFFF ? 2 : 1);
     cells = 0;
   }
-  _clusterCells = cells;
+  cut.cluster = cells;
   return end;
 }
 
@@ -868,14 +889,21 @@ bool _isBlank(String text, int start, int end) {
 
 // the end of the most clusters from the start, not past [to], that fit [r]
 // columns; with [trim], moved back over the blanks before it
-int _head(TextSegmenter seg, String text, int r, int to, bool trim) {
+int _head(
+  TextSegmenter seg,
+  String text,
+  _Cut cut,
+  int r,
+  int to,
+  bool trim,
+) {
   var w = 0;
   var i = 0;
   var kept = 0; // the end of the last cluster that is not a blank
   var keptCells = 0;
   while (i < to) {
-    final end = _cluster(seg, text, i);
-    final cells = _clusterCells;
+    final end = _cluster(seg, text, cut, i);
+    final cells = cut.cluster;
     if (w + cells > r) {
       break;
     }
@@ -886,32 +914,39 @@ int _head(TextSegmenter seg, String text, int r, int to, bool trim) {
     }
     i = end;
   }
-  _cells = trim ? keptCells : w;
+  cut.cells = trim ? keptCells : w;
   return trim ? kept : i;
 }
 
 // the start of the most clusters up to the end that fit [r] columns, not
 // before [from]; [rest] is the columns from [from] to the end
-int _tail(TextSegmenter seg, String text, int r, int from, int rest) {
+int _tail(
+  TextSegmenter seg,
+  String text,
+  _Cut cut,
+  int r,
+  int from,
+  int rest,
+) {
   var left = rest;
   var i = from;
   while (left > r && i < text.length) {
-    i = _cluster(seg, text, i);
-    left -= _clusterCells;
+    i = _cluster(seg, text, cut, i);
+    left -= cut.cluster;
   }
-  _cells = left;
+  cut.cells = left;
   return i;
 }
 
-// [i] moved on over the blank clusters after it, [_cells] less theirs
-int _skipBlanks(TextSegmenter seg, String text, int i) {
+// [i] moved on over the blank clusters after it, [_Cut.cells] less theirs
+int _skipBlanks(TextSegmenter seg, String text, _Cut cut, int i) {
   var at = i;
   while (at < text.length) {
-    final end = _cluster(seg, text, at);
+    final end = _cluster(seg, text, cut, at);
     if (!_isBlank(text, at, end)) {
       break;
     }
-    _cells -= _clusterCells;
+    cut.cells -= cut.cluster;
     at = end;
   }
   return at;
