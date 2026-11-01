@@ -21,8 +21,8 @@ text
 │     Dialog             actions      ▐  ●▌                                      │
 │     Toast              title         kind  own                                 │
 │     Tooltip            icon          kind  own  none                           │
-│     Popover            width        ─────────────── ────────────  44 cells     │
-│                                                                                │
+│     Popover            border        single  rounded  heavy                    │
+│                        width        ─────────────── ────────────  44 cells     │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
 │aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeaEEEEEEaaaaaadaddddaa│
@@ -46,8 +46,8 @@ styles
 │aaaaannnnnnaaaaaaaaaaaggmmmmmmmggggggABBCAgggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnaaaaaaaaaaaaggmmmmmggggggggvwwwwvhzzzhgggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnaaaaaaaaaaggmmmmgggggggggvwwwwvhzzzhhzzzzhgggggggggggggggggggggggggg│
-│aaaaannnnnnnaaaaaaaaaaggmmmmmggggggggrrrrrrrrrrrrrrrDmmmmmmmmmmmmggHHgHHHHHggggg│
-│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnaaaaaaaaaaggmmmmmmgggggggvwwwwwwvhzzzzzzzhhzzzzzhggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmggggggggrrrrrrrrrrrrrrrDmmmmmmmmmmmmggHHgHHHHHggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend
 a on #1c1f25

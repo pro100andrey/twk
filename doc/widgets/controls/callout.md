@@ -80,6 +80,7 @@ What the gallery lets you change, and what each starts at:
 | actions | on, off | true |
 | title | kind, own | kind |
 | icon | kind, own, none | kind |
+| border | single, rounded, heavy | single |
 | width | 24 cells to 60 cells | 44 |
 
 ## More

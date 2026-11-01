@@ -85,6 +85,12 @@ final List<GalleryPage> controlsPages = [
         ], ','),
         '        ],',
         '      ),',
+        '      // a key and its caption, each in its own style',
+        '      // on the one chip',
+        '      Button.rich(',
+        "        ['Enter'.bold.fg(Color.yellow), const Span(' send')],",
+        '        onPressed: () => setState(() => _sent++),',
+        '      ),',
         '      Text.rich([',
         "        Span('saved: ', theme.muted),",
         r"        Span('$_saved'),",
@@ -1327,6 +1333,10 @@ final class _ButtonsState extends State<_Buttons> {
               },
           ],
         ),
+        Button.rich([
+          'Enter'.bold.fg(Color.yellow),
+          const Span(' send'),
+        ], onPressed: () => setState(() => _sent++)),
         LitLine([
           ('saved: ', true),
           ('$_saved', false),
@@ -2822,6 +2832,11 @@ final _callout = GalleryPage(
       'icon',
       values: ['kind', 'own', 'none'],
     ),
+    const ChoiceOption(
+      'border',
+      'border',
+      values: ['single', 'rounded', 'heavy'],
+    ),
     SliderOption(
       'width',
       'width',
@@ -2838,6 +2853,7 @@ final _callout = GalleryPage(
     width: o.number('width').toInt(),
     ownTitle: o.choice<String>('title') == 'own',
     icon: _iconOf(o),
+    border: BorderType.values.byName(o.choice('border')),
   ),
   code: (o) {
     final kind = StatusKind.values.byName(o.choice('kind'));
@@ -2866,6 +2882,8 @@ final _callout = GalleryPage(
       if (kind != StatusKind.info) '            kind: .${kind.name},',
       if (o.choice<String>('title') == 'own') "            title: '$title',",
       if (icon != null) "            icon: '$icon',",
+      if (o.choice<String>('border') != 'single')
+        '            borderType: .${o.choice<String>('border')},',
       if (dismiss) ...[
         '            onDismissed: () => setState(() {',
         '              _shown = false;',
@@ -2920,6 +2938,7 @@ final class _Notice extends StatefulWidget {
     required this.width,
     required this.ownTitle,
     required this.icon,
+    required this.border,
   });
 
   final StatusKind kind;
@@ -2932,6 +2951,9 @@ final class _Notice extends StatefulWidget {
 
   /// Its icon: null for the kind's, `''` for none.
   final String? icon;
+
+  /// The lines of its box.
+  final BorderType border;
 
   @override
   State<_Notice> createState() => _NoticeState();
@@ -2963,6 +2985,7 @@ final class _NoticeState extends State<_Notice> with _Kept {
               kind: widget.kind,
               title: widget.ownTitle ? title : null,
               icon: widget.icon,
+              borderType: widget.border,
               onDismissed: widget.dismiss
                   ? () => _did('dismissed', shown: false)
                   : null,

@@ -46,6 +46,12 @@ Widget build(BuildContext context) {
           const Button('Disabled', onPressed: null),
         ],
       ),
+      // a key and its caption, each in its own style
+      // on the one chip
+      Button.rich(
+        ['Enter'.bold.fg(Color.yellow), const Span(' send')],
+        onPressed: () => setState(() => _sent++),
+      ),
       Text.rich([
         Span('saved: ', theme.muted),
         Span('$_saved'),
