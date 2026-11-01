@@ -777,7 +777,7 @@ What to know:
   `Text('◐ ')` in a `Row` is one cell and the next child touches the mark.
   `Text('◐ ', wrap: .none)` keeps it (two cells). Cell text for a
   `String`: `fitText(segmenterOf(context), s, n)` cuts to `n` cells with `…` (`overflow:` ellipsisStart, ellipsisMiddle or none; `segmenterOf(context)` is the terminal's `TextSegmenter`, for `.width` too; never a plain `TextSegmenter()`, which counts ambiguous-wide letters one column);
-  pad with `padCells(segmenter, s, n)` (`alignment:` right or center; `fitText`'s `overflow:` cuts the start or the middle, `breakLines` gives the ranges of the lines a text breaks into); a row's background across its
+  pad with `padCells(segmenter, s, n)` (`alignment:` right or center; `fitText`'s `overflow:` cuts the start or the middle, `breakLines(segmenter, text, n)` gives the ranges of the lines a text breaks into); a row's background across its
   width is a `ColoredBox` (a `Span`'s paints only its text); a bar on
   every wrapped line is a `Box(border: Border(left: Style()))`
   (`doc/guides/layout.md`, "Text in cells").
