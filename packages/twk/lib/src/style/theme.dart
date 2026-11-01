@@ -14,6 +14,7 @@ export 'package:twk_core/twk_core.dart' show Brightness;
 
 export 'glyphs.dart'
     hide
+        CheckboxMarks,
         buttonEdgeMarks,
         cellRune,
         checkboxMarks,

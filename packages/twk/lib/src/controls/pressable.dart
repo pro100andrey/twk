@@ -13,6 +13,7 @@ import '../framework/framework.dart';
 import '../gestures/gesture_detector.dart';
 import '../gestures/mouse.dart';
 import '../style/color_mix.dart';
+import '../style/glyphs.dart' show CheckboxMarks;
 import '../style/style.dart';
 import '../text/hit_row.dart' show segmenterOf;
 import '../text/widgets.dart';

@@ -310,7 +310,10 @@ final class LogController extends ChangeNotifier {
   /// do: the controller is the log, a view one way of reading it. Measured,
   /// it is one `stat` of the file each [poll], about a system call a second
   /// per follower, and 10 followers took 12 ms of system time over 30
-  /// seconds; cancel the subscription to stop it.
+  /// seconds; cancel the subscription to stop it. Unlike the library's other
+  /// timers (`AppBinding.startTimer`), the poll is a real one, not the app's
+  /// clock: what it waits for is a real file, so a test awaits its lines with
+  /// `waitUntil` rather than a pump.
   ///
   /// ```dart
   /// final log = LogController();
