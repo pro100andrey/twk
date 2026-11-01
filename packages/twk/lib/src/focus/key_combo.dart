@@ -145,7 +145,7 @@ final class KeyCombo {
       }
       return KeyCombo._(KeyCode.char, ' ', modifiers);
     }
-    final code = _keys[name] ?? (name == 'esc' ? KeyCode.escape : null);
+    final code = _keys[_aliases[name] ?? name];
     if (code != null) {
       return KeyCombo._(code, '', modifiers);
     }
@@ -159,7 +159,7 @@ final class KeyCombo {
       fail(
         '"$name" in "$key" is neither one character nor a key: space, '
         '${_keys.keys.where((k) => !k.startsWith('f')).join(', ')}, f1 to '
-        'f12${_hint(name, ['space', ..._keys.keys])}',
+        'f12${_hint(name, ['space', ..._keys.keys, ..._aliases.keys])}',
         offset,
       );
     }
@@ -251,6 +251,11 @@ final class KeyCombo {
       if (code != KeyCode.char) code.name.toLowerCase(): code,
   };
 
+  // Names a key is read by besides its own (twk_lints' key_names.dart holds
+  // the same table; its test holds the two equal), and offered as the name
+  // meant in their own right.
+  static const _aliases = <String, String>{'esc': 'escape'};
+
   // names of other programs, for the name meant
   static const _meant = <String, String>{
     'control': 'ctrl',
@@ -259,7 +264,6 @@ final class KeyCombo {
     'win': 'super',
     'option': 'alt',
     'opt': 'alt',
-    'esc': 'escape',
     'return': 'enter',
     'ret': 'enter',
     'del': 'delete',

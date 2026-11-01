@@ -99,7 +99,7 @@ void main() {
           '"Enter" in "ctrl+Enter" is neither one character nor '
           'a key',
       'Enter': '"enter" is meant?',
-      'Esc': '"escape" is meant?',
+      'Esc': '"esc" is meant?',
       'ret':
           '"ret" in "ret" is neither one character nor a key: space, '
           'enter, tab, backspace, escape, up, down, left, right, home, end, '

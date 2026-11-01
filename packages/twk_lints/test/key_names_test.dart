@@ -56,6 +56,8 @@ void main() {
     'ctrl+shift+ctrl+a',
     'shift+space',
     'Esc',
+    'ESC',
+    'ctrl+Esc',
     'ret',
     'Enter',
     'pgdn',
@@ -84,6 +86,19 @@ void main() {
         reason: spec,
       );
     }
+  });
+
+  test("'Esc' is told to be 'esc', the alias, not its key's name", () {
+    expect(
+      () => parseKey('Esc'),
+      throwsA(
+        isA<KeyNameException>().having(
+          (e) => e.message,
+          'message',
+          endsWith('; "esc" is meant?'),
+        ),
+      ),
+    );
   });
 
   test('one key reads as KeyCombo.parse reads it', () {
