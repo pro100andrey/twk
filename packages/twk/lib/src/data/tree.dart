@@ -1475,8 +1475,14 @@ final class _RenderTreeRow extends RenderObject
         1,
         _style.penIn(styles),
         cellRune(
+          this,
+          mark == _Mark.expanded ? 'expanded' : 'collapsed',
           mark == _Mark.expanded ? _set.expanded : _set.collapsed,
+          mark == _Mark.expanded
+              ? Glyphs.ascii.expanded
+              : Glyphs.ascii.collapsed,
           canvas.segmenter,
+          blankIfEmpty: true,
         ),
       );
     }

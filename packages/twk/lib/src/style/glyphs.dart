@@ -3,7 +3,8 @@
 library;
 
 import 'package:meta/meta.dart';
-import 'package:twk_core/twk_core.dart' show TextSegmenter;
+import 'package:twk_core/twk_core.dart'
+    show LogLevel, LogRecord, RenderObject, TextSegmenter, log;
 
 import '../animation/spinner.dart' show SpinnerFrames;
 import 'theme.dart' show Theme, ThemeData;
@@ -20,7 +21,10 @@ import 'theme.dart' show Theme, ThemeData;
 /// of a set; each mark is a string of one column unless its doc says
 /// otherwise, and the widgets lay out by the width the terminal gives it
 /// (in cells, not code units). A mark drawn in one cell that is not one
-/// column wide is a blank there. An empty mark draws nothing and breaks
+/// column wide (an emoji, an ambiguous mark in some terminals) is the same
+/// field of [Glyphs.ascii] there, with one warning in the app's log for
+/// each such mark; the width is the terminal's, so it is known only when
+/// the mark is drawn. An empty mark draws nothing and breaks
 /// nothing: a blank where a cell is to be filled, no width where the mark
 /// is text in a row (a bracket of [radioBrackets] says so).
 ///
@@ -476,11 +480,47 @@ final class Glyphs {
   int get hashCode => Object.hashAll(_all);
 }
 
-/// The code point [glyph] fills one cell with, under [segmenter]'s
-/// measure: its first while it is one column wide, [fallback] (a blank)
-/// where it is empty or any other width.
+/// The code point the mark [glyph] of the Glyphs field [field] fills one
+/// cell of [object] with, under [segmenter]'s measure: its first while it
+/// is one column wide.
+///
+/// Where it is any other width (an emoji, an East Asian ambiguous mark in
+/// some terminals) it is [fallback], the same field of [Glyphs.ascii] as
+/// the caller passes it, and the app's log gets one warning for each
+/// distinct ([field], [glyph]) under the [object]'s pipeline, the way a
+/// flex's overflow is warned of. An empty [glyph] is no warning: a blank
+/// where [blankIfEmpty], else [fallback].
 @internal
-int cellRune(String glyph, TextSegmenter segmenter, [int fallback = 0x20]) =>
-    glyph.isNotEmpty && segmenter.width(glyph) == 1
-    ? glyph.runes.first
-    : fallback;
+int cellRune(
+  RenderObject object,
+  String field,
+  String glyph,
+  String fallback,
+  TextSegmenter segmenter, {
+  bool blankIfEmpty = false,
+}) {
+  if (glyph.isEmpty) {
+    return blankIfEmpty ? 0x20 : fallback.runes.first;
+  }
+  final width = segmenter.width(glyph);
+  if (width == 1) {
+    return glyph.runes.first;
+  }
+  final owner = object.owner;
+  final key = '$field\u0000$glyph';
+  if (owner == null || (_warned[owner] ??= {}).add(key)) {
+    final message =
+        "Glyphs.$field '$glyph' is $width cells wide, not 1; "
+        "Glyphs.ascii's '$fallback' is drawn in its place.";
+    final route = owner?.onLog;
+    if (route == null) {
+      log(message, level: LogLevel.warning);
+    } else {
+      route(LogRecord(DateTime.now(), LogLevel.warning, message));
+    }
+  }
+  return fallback.runes.first;
+}
+
+// the (field, glyph) pairs each pipeline has warned of
+final _warned = Expando<Set<String>>('glyph warnings');

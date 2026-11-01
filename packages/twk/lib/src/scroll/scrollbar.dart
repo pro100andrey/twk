@@ -887,8 +887,12 @@ final class _RenderBar extends RenderObject {
         height,
         _style.merge(line).penIn(canvas.styles),
         cellRune(
+          this,
+          vertical ? 'trackVertical' : 'trackHorizontal',
           vertical ? _glyphs.trackVertical : _glyphs.trackHorizontal,
+          vertical ? Glyphs.ascii.trackVertical : Glyphs.ascii.trackHorizontal,
           canvas.segmenter,
+          blankIfEmpty: true,
         ),
       );
     }
@@ -910,9 +914,13 @@ final class _RenderBar extends RenderObject {
       glyph: eighths
           ? null
           : cellRune(
+              this,
+              vertical ? 'thumbVertical' : 'thumbHorizontal',
               vertical ? _glyphs.thumbVertical : _glyphs.thumbHorizontal,
+              vertical
+                  ? Glyphs.ascii.thumbVertical
+                  : Glyphs.ascii.thumbHorizontal,
               canvas.segmenter,
-              0x23,
             ),
     );
   }

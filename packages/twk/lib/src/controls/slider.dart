@@ -442,7 +442,13 @@ final class _RenderTrack extends RenderObject {
     if (width <= 0) {
       return;
     }
-    final line = cellRune(_glyphs.trackHorizontal, canvas.segmenter, 0x2d);
+    final line = cellRune(
+      this,
+      'trackHorizontal',
+      _glyphs.trackHorizontal,
+      Glyphs.ascii.trackHorizontal,
+      canvas.segmenter,
+    );
     final y = height ~/ 2;
     final start = thumbAt(_ratio, width, steps);
     final end = start + steps;
@@ -462,7 +468,13 @@ final class _RenderTrack extends RenderObject {
       at: y,
       glyph: _glyphs.partialBlocks
           ? null
-          : cellRune(_glyphs.thumbHorizontal, canvas.segmenter, 0x23),
+          : cellRune(
+              this,
+              'thumbHorizontal',
+              _glyphs.thumbHorizontal,
+              Glyphs.ascii.thumbHorizontal,
+              canvas.segmenter,
+            ),
     );
   }
 }

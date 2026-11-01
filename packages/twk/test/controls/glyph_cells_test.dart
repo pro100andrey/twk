@@ -196,4 +196,108 @@ void main() {
       );
     });
   });
+
+  group('a mark not one cell wide', () {
+    List<String> warnings(TwkTester t) => [
+      for (final r in t.logs.records)
+        if (r.level == LogLevel.warning && r.message.startsWith('Glyphs.'))
+          r.message,
+    ];
+
+    testTwk('in a TabBar is the ascii edge, warned of once', (t) async {
+      final c = TabController(length: 6);
+      addTearDown(c.dispose);
+      await t.pumpWidget(
+        themed(
+          Glyphs.unicode.copyWith(previous: '🔽', next: '🔽'),
+          TabBar(
+            controller: c,
+            tabs: const ['One', 'Two', 'Three', 'Four', 'Five', 'Six'],
+          ),
+        ),
+        size: (14, 1),
+      );
+      expect(t.lines.first, endsWith('>'));
+      c.index = 5;
+      await t.pump();
+      await t.pump();
+      expect(t.lines.first, startsWith('<'));
+      expect(warnings(t), [
+        "Glyphs.next '🔽' is 2 cells wide, not 1; "
+            "Glyphs.ascii's '>' is drawn in its place.",
+        "Glyphs.previous '🔽' is 2 cells wide, not 1; "
+            "Glyphs.ascii's '<' is drawn in its place.",
+      ]);
+    });
+
+    testTwk('in a Slider is the ascii line and thumb, warned of once', (
+      t,
+    ) async {
+      await t.pumpWidget(
+        themed(
+          Glyphs.unicode.copyWith(
+            trackHorizontal: '🔽',
+            thumbHorizontal: '🔽',
+            partialBlocks: false,
+          ),
+          SizedBox(
+            width: 8,
+            height: 1,
+            child: Slider(value: 0.5, onChanged: (_) {}),
+          ),
+        ),
+        size: (8, 1),
+      );
+      await t.pump();
+      expect(t.lines, ['----#---']);
+      expect(warnings(t), hasLength(2));
+      expect(warnings(t).first, contains('trackHorizontal'));
+      expect(warnings(t).last, contains('thumbHorizontal'));
+    });
+
+    testTwk('in a slim Scrollbar is the ascii line and thumb, warned of '
+        'once', (t) async {
+      await t.pumpWidget(
+        themed(
+          Glyphs.unicode.copyWith(
+            trackVertical: '🔽',
+            thumbVertical: '🔽',
+            partialBlocks: false,
+          ),
+          Scrollbar(
+            slim: true,
+            child: ListView.builder(
+              itemCount: 30,
+              itemBuilder: (_, i) => Text('item $i'),
+            ),
+          ),
+        ),
+        size: (10, 4),
+      );
+      await t.pump();
+      expect(t.lines, ['item 0   #', 'item 1   |', 'item 2   |', 'item 3   |']);
+      expect(warnings(t), hasLength(2));
+    });
+
+    testTwk('in a TreeView is the ascii expander, warned of once', (t) async {
+      await t.pumpWidget(
+        themed(
+          Glyphs.unicode.copyWith(expanded: '🔽', collapsed: '🔽'),
+          TreeView<String>(
+            roots: const ['a', 'c'],
+            children: (n) => n == 'a' || n == 'c' ? const ['b'] : const [],
+            label: (context, entry) => Text(entry.node),
+            showGuides: false,
+          ),
+        ),
+        size: (10, 3),
+      );
+      await t.pump();
+      expect(t.lines.first, '> a');
+      expect(warnings(t), [
+        "Glyphs.collapsed '🔽' is 2 cells wide, not 1; "
+            "Glyphs.ascii's '>' is drawn in its place.",
+      ]);
+    });
+  });
 }

@@ -618,7 +618,14 @@ final class _RenderTabBar extends RenderObject {
         1,
         1,
         mark,
-        cellRune(_glyphs.previous, canvas.segmenter),
+        cellRune(
+          this,
+          'previous',
+          _glyphs.previous,
+          Glyphs.ascii.previous,
+          canvas.segmenter,
+          blankIfEmpty: true,
+        ),
       );
     }
     if (_offset + width < _total) {
@@ -628,7 +635,14 @@ final class _RenderTabBar extends RenderObject {
         1,
         1,
         mark,
-        cellRune(_glyphs.next, canvas.segmenter),
+        cellRune(
+          this,
+          'next',
+          _glyphs.next,
+          Glyphs.ascii.next,
+          canvas.segmenter,
+          blankIfEmpty: true,
+        ),
       );
     }
   }
