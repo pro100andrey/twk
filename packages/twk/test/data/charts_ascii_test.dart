@@ -31,7 +31,7 @@ void main() {
       expect(t.lines, [' ..::++##']);
     });
 
-    testTwk('a ramp of the theme\'s own', (t) async {
+    testTwk("a ramp of the theme's own", (t) async {
       await t.pumpWidget(
         spark(Glyphs.ascii.copyWith(shades: [' ', '-', '=', '#'])),
         size: (9, 1),
