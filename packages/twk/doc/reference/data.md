@@ -14,7 +14,9 @@ of eighth blocks, the newest at the right;
 ## `Gauge`
 
 `Gauge` and `LineGauge`, a ratio with a label (`LineGauge(segmented: true)`
-a column a cell, `▍`, instead of a line: a meter of segments);
+a column a cell, `▍`, instead of a line: a meter of segments; the line is
+the theme's `glyphs.gaugeFilled`, `gaugeHalf` and `gaugeEmpty` unless `type:`
+names a `BorderType`);
 
 ## `BarChart`
 

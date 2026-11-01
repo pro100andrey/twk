@@ -7,13 +7,13 @@ text
 │     IntrinsicWidt…     or a click opens one, Right and Left open and close i…  │
 │     Row, Column,…    ──────────────────────────────────────────────────────────│
 │     Expanded, Spa…  ▐       ┌                                          ┐       │
-│     Stack, Positi…  ▐   ·     ▼ General                                     ·  │
+│     Stack, Positi…  ▐   ·     ▾ General                                     ·  │
 │     Transform                   Name and theme                                 │
 │     Visibility, O…      ·       Name: twk                                   ·  │
 │ ▎   ExpansionTile…              Theme: dark                                    │
-│     Grid, GridPla…      ·     ▶ Network                                     ·  │
+│     Grid, GridPla…      ·     ▸ Network                                     ·  │
 │     Wrap                        Proxy and timeouts                             │
-│     CustomPaint         ·     ▶ Security                                    ·  │
+│     CustomPaint         ·     ▸ Security                                    ·  │
 │     SplitView                   TLS and certificates                           │
 │     DockArea            ·                                                   ·  │
 │     Scaffold                  did: nothing                                     │

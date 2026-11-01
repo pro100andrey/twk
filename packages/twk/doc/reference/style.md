@@ -31,9 +31,39 @@ on a theme of palette colors each of the others is the slot it starts from;
 `handPointer` (false by default), the hand over what a click presses, where
 the terminal shows pointer shapes, which has it report every move of the
 mouse while such a control is on the screen;
+`glyphs`, the marks widgets draw (see `Glyphs`);
 `theme.fill(color)` a fill of a color with text that reads on it
 (`onPrimary` on `primary`, else black or white by contrast), which a badge,
 a focused button, a lit tab and a cursor are in rather than reverse video;
+
+## `Glyphs`
+
+`ThemeData.glyphs`, a `Glyphs`: the marks the widgets draw, a string each,
+named by what it means and not by the widget that draws it: `cursor` (`▎`,
+the bar at the left of a row the cursor is on), `accent` (`▌`, a toast's
+bar), `check` (`✓`), `checkBold` (`✔`, a finished prompt or step), `cross`
+(`✗`), `info` (`ℹ`), `warning` (`⚠`), `checkboxOn` (`[x]`) and
+`checkboxOff` (`[ ]`), `switchStart` (`▐`) and `switchEnd` (`▌`), `dot`
+(`●`, a radio's choice, a switch's knob, the step in hand), `ring` (`○`),
+`expanded` (`▾`) and `collapsed` (`▸`), `up` (`▴`) and `down` (`▾`),
+`previous` (`‹`), `next` (`›`), `first` (`«`) and `last` (`»`), `close`
+(`×`), `maximise` (`□`), `restore` (`▣`) and `minimise` (`_`), `bullet`
+(`•`, between items, and the mask of a hidden text), `taskPending` (`◦`)
+and `taskSkipped` (`↓`), `separator` (`│`), `capOpen` (`▕`) and `capClose`
+(`▏`, the edges of a one-row button), `trackVertical` (`│`),
+`trackHorizontal` (`─`), `thumbVertical` (`┃`), `thumbHorizontal` (`━`),
+`thumbEdge` (`▐`, an option list's thumb) and `eighths` (whether a thumb
+may be in eighths of a cell), `gaugeFilled` (`─`), `gaugeHalf` (`╴`, empty
+for none) and `gaugeEmpty` (`─`) of a `LineGauge` whose `type` is null,
+and `spinner` (`SpinnerFrames.dots`). `Glyphs.unicode` is the default;
+`Glyphs.ascii` has ASCII only (`>` `v` `x` `#` `|` `=`, the spinner
+`-\|/`, no eighths); `copyWith` changes some. A theme's `lerp` takes the
+other's set past halfway. A widget's own parameter (`Spinner.frames`,
+`RadioGroup.mark`, `obscuringCharacter`, `StatusMessage.icon`,
+`LineGauge.type`) is above the set; a `CliTheme` gives the marks of its
+`data`. Left out: borders (`BorderType`), the marks of charts, and the
+window's raised minimise `─`, the edges a window lights, a dock's drop
+marks, key names and a log's `↓ N new lines`.
 
 ## `ThemeData.lerp`
 

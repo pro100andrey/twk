@@ -64,6 +64,15 @@ packages/gallery/bin/gallery.dart`).
   instead (`ThemeData.terminal`: `primary` is `Color.blue`, `muted` is
   dim, `selection` the grey 237 of the 256 colors, 253 on a light
   terminal), `Theme(data: ThemeData.nord, child:)` a preset.
+- The marks widgets draw (check, cross, cursor bar, expanders, a
+  scrollbar's thumb and track, a gauge's line, the spinner) are the
+  theme's `Glyphs`, named by meaning: `Glyphs.unicode` by default,
+  `Glyphs.ascii` for a terminal or a font without them,
+  `ThemeData.dark.copyWith(glyphs: Glyphs.ascii)` for the whole app, a
+  `Theme` around a part for that part, `Glyphs.unicode.copyWith(check:
+  '✔')` for a mark of one's own. A widget's own parameter (`Spinner.frames`,
+  `RadioGroup.mark`, `StatusMessage.icon`, `LineGauge.type`) is above the
+  set; borders are not in it (`BorderType`).
 - The code uses Dart's dot shorthands (`.inline`, `.all(type: .rounded)`,
   `.stretch`); the packages need SDK 3.13.5 or later.
 - Where the names differ from Flutter's, as code brought over trips on:
@@ -706,6 +715,11 @@ What to know:
 
 ## Pitfalls
 
+- A mark drawn by hand (`Text('✓ done')`, `Span('▸ ')`) stays Unicode
+  whatever the theme says: take it from `Theme.of(context).glyphs.check`,
+  `.collapsed` and the rest, or from the widget that draws it
+  (`StatusMessage`, `TreeView`), so that an app in `Glyphs.ascii` is ASCII
+  all through.
 - `package:twk/twk.dart` exports all of twk, as Flutter's `material.dart`
   does, generic names among them (`TaskStatus`, `Step`, `Gauge`, `Table`,
   `Chip`, `Window`, `Callout`). Keep the app's own names and hide twk's

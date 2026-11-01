@@ -9,6 +9,7 @@ import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
 import '../../example/guides/focus.dart' show SignIn;
+import '../../example/guides/glyphs.dart' show Report;
 import '../../example/guides/inline.dart' show Prompt;
 import '../../example/guides/layout.dart' show Layout;
 import '../../example/guides/theming.dart' show Status;
@@ -145,6 +146,25 @@ ctrl+z undo   ctrl+s save   ctrl+q quit
       backgroundRgb: 0x16181d,
     );
     expect(t, styleAt(2, 2, hasFg(ThemeData.dark.success.fg!)));
+  });
+
+  testTwk('glyphs: the report in ASCII with a check of its own', (t) async {
+    await t.pumpWidget(
+      Theme(
+        data: ThemeData.dark.copyWith(
+          glyphs: Glyphs.ascii.copyWith(check: '+'),
+        ),
+        child: const Report(),
+      ),
+      size: (30, 4),
+      backgroundRgb: 0x16181d,
+    );
+    expect(t.lines.map((l) => l.trimRight()), [
+      '+ Built in 2 s',
+      '! 3 files skipped',
+      'upload  =============---------',
+      '[x] Publish',
+    ]);
   });
 
   testTwk('inline: the lines sent go to the scrollback, the field stays', (

@@ -11,6 +11,7 @@ import 'color_mix.dart';
 import 'style.dart';
 
 export 'package:twk_core/twk_core.dart' show Brightness;
+
 export 'glyphs.dart';
 
 /// The styles of an app by what they are for, which widgets draw in: the

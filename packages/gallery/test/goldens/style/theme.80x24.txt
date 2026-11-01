@@ -16,13 +16,13 @@ text
 │     GradientForeg…         │  ╰──────────────────────────────────────╯  │   ·  │
 │                            │                                            │      │
 │   SCROLLING      5         │   Button    [x] Checkbox   ▐  ●▌ Switch    │   ·  │
-│     SingleChildSc…         ╰────────────────────────────────────────────╯      │
-│     Scrollable           └                                                ┘    │
-│     ListView         ──────────────────────────────────────────────────────────│
-│     LogView            theme   terminal  dark  light  nord  mocha  latte       │
-│     Scrollbar          cycle  ▐●  ▌                                            │
-│                                                                                │
-│                                                                                │
+│     SingleChildSc…         │                                            │      │
+│     Scrollable             │  ✓ Saved  ──────────────────╴────────────  │   ·  │
+│     ListView               ╰────────────────────────────────────────────╯      │
+│     LogView              └                                                ┘    │
+│     Scrollbar        ──────────────────────────────────────────────────────────│
+│                        theme    terminal  dark  light  nord  mocha  latte     ▐│
+│                        cycle   ▐●  ▌                                           │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
 │aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeaSSSSSSaaaaaadaddddaa│
@@ -41,13 +41,13 @@ styles
 │aaaaannnnnnnnnnnnnnaaaggggggqrrEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEErrqgggogg│
 │aaaaaaaaaaaaaaaaaaaaaaggggggqrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrqgggggg│
 │aaadddddddddaaaaaaSaaaggggggqrrFKKKKKKFrrrVLVrttttttttrrrvMMNvrttttttrrrrqgggogg│
-│aaaaannnnnnnnnnnnnnaaaggggggqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqgggggg│
-│aaaaannnnnnnnnnaaaaaaaggggoggggggggggggggggggggggggggggggggggggggggggggggggogggg│
-│aaaaannnnnnnnaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnaaaaaaaaaaggmmmmmgghOOOOOOOOhhOOOOhhOOOOOhCDDDDChOOOOOhhOOOOOhgggggg│
-│aaaaannnnnnnnnaaaaaaaaggmmmmmggPQRRPgggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaaaggggggqrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrqgggggg│
+│aaaaannnnnnnnnnaaaaaaaggggggqrrfrtttttrrtttttttttttttttttttiiiiiiiiiiiirrqgggogg│
+│aaaaannnnnnnnaaaaaaaaaggggggqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqgggggg│
+│aaaaannnnnnnaaaaaaaaaaggggoggggggggggggggggggggggggggggggggggggggggggggggggogggg│
+│aaaaannnnnnnnnaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmggghOOOOOOOOhhOOOOhhOOOOOhCDDDDChOOOOOhhOOOOOhggggm│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmgggPQRRPggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend
 a on #1c1f25
@@ -89,6 +89,8 @@ K bold #88c0d0 on #3b4252
 L bold #88c0d0 on #2e3440
 M on #88c0d0
 N #ffffff on #88c0d0
+f bold #a3be8c on #2e3440
+i dim #d8dee9 on #2e3440
 O #8b929c on #13151a
 P #383d48 on #16181d
 Q #e6e8eb on #383d48

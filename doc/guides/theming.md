@@ -79,6 +79,55 @@ final class Status extends StatelessWidget {
   which no color scheme changes. For an app that should look like
   the rest of the user's terminal.
 
+## Glyphs
+
+The marks the widgets draw (a check, a cross, a cursor bar, the arrows of
+a tree, a scrollbar's thumb and track, the line of a gauge, the frames of
+a spinner) are the theme's too, `ThemeData.glyphs`, a `Glyphs` set named
+by what a mark means and not by the widget that shows it. `Glyphs.unicode`
+is the default; `Glyphs.ascii` is for a terminal or a font without them
+(a `#` thumb on a `|` track, `=` for a gauge's filled part, `v` for a
+check, `>` for what is closed); `copyWith` changes some marks of a set.
+For the whole app a `ThemeData.copyWith(glyphs:)` does it, for one part of
+it a `Theme` around that part. A widget's own parameter for a mark it has
+(`Spinner.frames`, `RadioGroup.mark`, `StatusMessage.icon`, a `LineGauge`'s
+`type`) stays above the set. Borders are not in it: a `Box` has its
+`BorderType`.
+
+<!-- file: packages/twk/example/guides/glyphs.dart -->
+```dart
+import 'package:twk/twk.dart';
+
+Future<void> main() => runApp(
+  // ASCII all through, but a plus for a check: the marks widgets draw
+  // are the theme's Glyphs
+  Theme(
+    data: ThemeData.dark.copyWith(
+      glyphs: Glyphs.ascii.copyWith(check: '+'),
+    ),
+    child: const Report(),
+  ),
+);
+
+final class Report extends StatelessWidget {
+  const Report({super.key});
+
+  @override
+  Widget build(BuildContext context) => KeyBindings(
+    {'q': () => AppBinding.of(context).quit()},
+    child: const Column(
+      crossAxisAlignment: .start,
+      children: [
+        StatusMessage('Built in 2 s', kind: StatusKind.success),
+        StatusMessage('3 files skipped', kind: StatusKind.warning),
+        LineGauge(ratio: 0.6, label: 'upload '),
+        Checkbox(value: true, onChanged: null, label: 'Publish'),
+      ],
+    ),
+  );
+}
+```
+
 ## Styles and spans
 
 - `Style(fg:, bg:, attrs:)` is a color for the text, one for the
