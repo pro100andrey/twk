@@ -358,4 +358,246 @@ void main() {
       expect(t.lines.single.trimRight(), '###');
     });
   });
+
+  group('fields and lists', () {
+    testTwk('a Select draws its arrow from the set, a MultiSelect its '
+        'checkboxes', (t) async {
+      Widget select() => Select<String>(
+        choices: const [Choice('a', 'Apple'), Choice('b', 'Banana')],
+        value: 'a',
+        onChanged: (_) {},
+        hint: 'fruit?',
+        inline: true,
+      );
+      await t.pumpWidget(themed(Glyphs.unicode, select()), size: (12, 1));
+      expect(t.lines.single, endsWith('▾'));
+      await t.pumpWidget(themed(Glyphs.ascii, select()), size: (12, 1));
+      expect(t.lines.single, endsWith('v'));
+      await t.pumpWidget(
+        themed(Glyphs.unicode.copyWith(down: '+'), select()),
+        size: (12, 1),
+      );
+      expect(t.lines.single, endsWith('+'));
+      // in a decoration too
+      Widget decorated() => Select<String>(
+        choices: const [Choice('a', 'Apple')],
+        value: 'a',
+        onChanged: (_) {},
+        decoration: const InputDecoration(labelText: 'Fruit'),
+      );
+      await t.pumpWidget(
+        themed(Glyphs.ascii, Overlay(child: decorated())),
+        size: (20, 4),
+      );
+      expect(t.lines.join('\n'), contains('Apple'));
+      expect(t.lines.join('\n'), contains(' v'));
+      expect(t.lines.join('\n'), isNot(contains('▾')));
+    });
+
+    testTwk('a NumberInput draws its arrows from the set', (t) async {
+      Widget input() => NumberInput(value: 1, onChanged: (_) {});
+      await t.pumpWidget(themed(Glyphs.unicode, input()), size: (12, 1));
+      expect(t.lines.single, contains('▴▾'));
+      await t.pumpWidget(themed(Glyphs.ascii, input()), size: (12, 1));
+      expect(t.lines.single, contains('^v'));
+    });
+
+    testTwk('a multiple SelectionList draws its boxes and cursor bar from '
+        'the set', (t) async {
+      final controller = SelectionController<String>(multiple: true);
+      addTearDown(controller.dispose);
+      Widget list() => SelectionList<String>(
+        itemCount: 2,
+        keyOf: (i) => 'k$i',
+        itemBuilder: (context, i) => Text('item $i'),
+        controller: controller,
+        autofocus: true,
+      );
+      await t.pumpWidget(themed(Glyphs.unicode, list()), size: (12, 2));
+      expect(t.lines.first, '▎[ ] item 0');
+      await t.pumpWidget(
+        themed(
+          Glyphs.ascii.copyWith(checkboxOn: '(x)', checkboxOff: '( )'),
+          list(),
+        ),
+        size: (12, 2),
+      );
+      expect(t.lines.first, '>( ) item 0');
+    });
+
+    testTwk('a sorted Table draws the sort arrow from the set', (t) async {
+      final controller = TableController(sortColumn: 0);
+      addTearDown(controller.dispose);
+      Widget table() => Table<String>(
+        rows: const ['a', 'b'],
+        controller: controller,
+        columns: [
+          TableColumn<String>(
+            title: 'Name',
+            cell: TableCell.new,
+            compare: (a, b) => a.compareTo(b),
+          ),
+        ],
+      );
+      await t.pumpWidget(themed(Glyphs.unicode, table()), size: (12, 3));
+      expect(t.lines.first, contains('Name ▴'));
+      await t.pumpWidget(themed(Glyphs.ascii, table()), size: (12, 3));
+      expect(t.lines.first, contains('Name ^'));
+    });
+
+    testTwk('a dismissible Callout draws the close mark of the set', (
+      t,
+    ) async {
+      Widget callout() => Callout(
+        kind: StatusKind.success,
+        onDismissed: () {},
+        child: const Text('Built'),
+      );
+      await t.pumpWidget(themed(Glyphs.ascii, callout()), size: (20, 3));
+      expect(t.lines.join('\n'), contains('[x]'));
+      expect(t.lines.join('\n'), contains('v '));
+      await t.pumpWidget(themed(Glyphs.unicode, callout()), size: (20, 3));
+      expect(t.lines.join('\n'), contains('[×]'));
+    });
+
+    testTwk('a Stepper draws its step marks from the set', (t) async {
+      Widget stepper() => const Stepper(
+        steps: [
+          Step(title: 'One', content: Text('a'), state: StepState.complete),
+          Step(title: 'Two', content: Text('b'), state: StepState.error),
+          Step(title: 'Three', content: Text('c')),
+        ],
+        direction: Axis.vertical,
+      );
+      await t.pumpWidget(themed(Glyphs.unicode, stepper()), size: (20, 8));
+      final unicode = t.lines.join('\n');
+      expect(unicode, allOf(contains('✔ 1.'), contains('✗ 2.')));
+      await t.pumpWidget(themed(Glyphs.ascii, stepper()), size: (20, 8));
+      final ascii = t.lines.join('\n');
+      expect(ascii, allOf(contains('v 1.'), contains('x 2.')));
+      expect(isAscii(t.lines), isTrue);
+    });
+  });
+
+  group('lists, sliders and segments', () {
+    testTwk('an OptionList draws its cursor bar and thumb from the set', (
+      t,
+    ) async {
+      Widget list() => const Align(
+        alignment: Alignment.topLeft,
+        child: OptionList(
+          options: [
+            Option('apple'),
+            Option('banana'),
+            Option('cherry'),
+            Option('date'),
+          ],
+          highlighted: 0,
+          rows: 2,
+        ),
+      );
+      await t.pumpWidget(themed(Glyphs.unicode, list()), size: (14, 2));
+      expect([t.cell(0, 0).text, t.cell(7, 0).text], ['▎', '▐']);
+      await t.pumpWidget(themed(Glyphs.ascii, list()), size: (14, 2));
+      expect([t.cell(0, 0).text, t.cell(7, 0).text], ['>', '#']);
+    });
+
+    testTwk('a SegmentedButton draws its lines and checks from the set', (
+      t,
+    ) async {
+      Widget segments() => SegmentedButton<int>(
+        segments: const [Choice(1, 'One'), Choice(2, 'Two')],
+        selected: const {2},
+        showSelectedIcon: true,
+        onSelectionChanged: (_) {},
+      );
+      await t.pumpWidget(themed(Glyphs.unicode, segments()), size: (24, 1));
+      expect(t.lines.single, contains('│'));
+      await t.pumpWidget(themed(Glyphs.ascii, segments()), size: (24, 1));
+      expect(t.lines.single, contains('|'));
+      expect(t.lines.single, contains('v Two'));
+      expect(isAscii(t.lines), isTrue);
+    });
+
+    testTwk('a Slider draws its groove and thumb from the set', (t) async {
+      Widget slider() => Slider(value: 0.5, onChanged: (_) {});
+      await t.pumpWidget(themed(Glyphs.unicode, slider()), size: (10, 1));
+      expect(t.lines.single, contains('─'));
+      await t.pumpWidget(themed(Glyphs.ascii, slider()), size: (10, 1));
+      expect(t.lines.single, contains('-'));
+      expect(t.lines.single, contains('#'));
+      expect(isAscii(t.lines), isTrue);
+    });
+  });
+
+  group('toasts', () {
+    testTwk('a raised toast draws its bar and icon from the set', (t) async {
+      const data = ThemeData.dark;
+      Widget toasts(Glyphs glyphs) => Theme(
+        data: data.copyWith(glyphs: glyphs),
+        child: Box(
+          style: data.background,
+          child: Overlay(
+            child: Builder(
+              builder: (context) => KeyBindings({
+                's': () {
+                  showToast(
+                    context,
+                    'Saved',
+                    style: data.success,
+                  );
+                  showToast(
+                    context,
+                    'Warn',
+                    style: data.warning,
+                  );
+                },
+              }, child: const SizedBox.expand()),
+            ),
+          ),
+        ),
+      );
+      await t.pumpWidget(toasts(Glyphs.ascii), size: (20, 10));
+      await t.press('s');
+      await t.pump(const Duration(milliseconds: 300));
+      final screen = t.lines.join('\n');
+      expect(screen, contains('| v Saved'));
+      expect(screen, contains('| ! Warn'));
+      expect(screen, isNot(contains('▌')));
+    });
+  });
+
+  group('menus', () {
+    testTwk('a menu draws its check and submenu marks from the set', (
+      t,
+    ) async {
+      Widget menu(Glyphs glyphs) => Theme(
+        data: ThemeData.dark.copyWith(glyphs: glyphs),
+        child: const Overlay(
+          child: MenuBar(
+            look: PanelLook.bordered,
+            menus: [
+              Menu(
+                'View',
+                items: [
+                  MenuItem('Wrap', checked: true),
+                  MenuItem('Numbers', checked: false),
+                  Menu('More', items: [MenuItem('Deep')]),
+                ],
+              ),
+            ],
+            child: Focus(autofocus: true, child: Text('editor')),
+          ),
+        ),
+      );
+      await t.pumpWidget(menu(Glyphs.unicode), size: (24, 8));
+      await t.press('f10');
+      await t.pump();
+      expect(t.lines.join('\n'), allOf(contains('✓ Wrap'), contains('▸')));
+      // still open: the set is the theme's, and a new theme repaints
+      await t.pumpWidget(menu(Glyphs.ascii), size: (24, 8));
+      expect(t.lines.join('\n'), allOf(contains('v Wrap'), contains('>')));
+      expect(t.lines.join('\n'), isNot(contains('✓')));
+    });
+  });
 }
