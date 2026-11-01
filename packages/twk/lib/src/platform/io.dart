@@ -7,7 +7,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate' show Isolate;
 import 'dart:math' show max;
-import 'dart:typed_data' show Uint8List;
+
+import 'tail_event.dart';
 
 /// The process's environment.
 Map<String, String> get environment => Platform.environment;
@@ -84,12 +85,6 @@ Stream<void> watchDirectory(String path) {
   }
 }
 
-/// What [tailFile] puts into its stream where the file was cut short or
-/// replaced and is read from its start again: the bytes before it are of
-/// the old file, and a line they left unended is not the start of the next
-/// one. Told by identity, not by what it holds (nothing).
-final List<int> fileReset = Uint8List(0);
-
 /// Streams the bytes written to the file at [path] from when the stream is
 /// listened to, or with [fromEnd] false from its start, as they come: told
 /// by a watch of its directory where the system has one, and found by a
@@ -97,16 +92,18 @@ final List<int> fileReset = Uint8List(0);
 /// or does not work (a network drive). A file cut shorter than what was
 /// read (truncated, written anew) is read again from its start; one not
 /// there yet is waited for. Where one is read again from its start, the
-/// stream holds [fileReset] first. Ends when the subscription is cancelled.
+/// stream holds a [FileReset] first. Ends when the subscription is cancelled.
 ///
 /// A file replaced at [path] (another renamed over it, as log rotation and
 /// atomic saves do) is read from its start too, but only where the watch
-/// works: it tells the create or move of the name. The poll alone cannot
+/// works: it tells the create or move of the name. One that starts with the
+/// bytes already read from the start (a create event that came after the
+/// poll had read the file) is taken for the same. The poll alone cannot
 /// tell it, `dart:io` giving no inode, so a replacement no longer than
 /// what was read goes unseen on a platform without a directory watch (or
 /// on a drive where it misses events), and a longer one is read from the
 /// old position.
-Stream<List<int>> tailFile(
+Stream<TailEvent> tailFile(
   String path, {
   required bool fromEnd,
   required Duration poll,
@@ -121,7 +118,10 @@ Stream<List<int>> tailFile(
   var cancelled = false;
   // a file made or moved onto the name: read from its start
   var replaced = false;
-  late final StreamController<List<int>> out;
+  // the first bytes read of the file from its start, to tell a create event
+  // that came after the poll read the file from one of another file
+  final head = <int>[];
+  late final StreamController<TailEvent> out;
 
   Future<int> length() async {
     try {
@@ -129,6 +129,19 @@ Stream<List<int>> tailFile(
     } on FileSystemException {
       return 0;
     }
+  }
+
+  /// Whether the file starts with [head] as it was read: the same file, of
+  /// which the event was late.
+  Future<bool> sameHead() async {
+    if (head.isEmpty) {
+      return false;
+    }
+    final now = <int>[];
+    await for (final bytes in file.openRead(0, head.length)) {
+      now.addAll(bytes);
+    }
+    return now.length == head.length && _same(now, head);
   }
 
   Future<void> look() async {
@@ -142,22 +155,29 @@ Stream<List<int>> tailFile(
         again = false;
         if (replaced) {
           replaced = false;
-          if (position > 0) {
-            out.add(fileReset);
+          if (position > 0 && !await sameHead()) {
+            out.add(const FileReset());
+            position = 0;
+            head.clear();
           }
-          position = 0;
         }
         final end = await length();
         if (end < position) {
-          out.add(fileReset);
+          out.add(const FileReset());
           position = 0;
+          head.clear();
         }
         if (end > position) {
+          var at = position;
           await for (final bytes in file.openRead(position, end)) {
             if (cancelled) {
               return;
             }
-            out.add(bytes);
+            if (at == head.length && head.length < _headSize) {
+              head.addAll(bytes.take(_headSize - head.length));
+            }
+            at += bytes.length;
+            out.add(FileBytes(bytes));
           }
           position = end;
         }
@@ -169,7 +189,7 @@ Stream<List<int>> tailFile(
     }
   }
 
-  out = StreamController<List<int>>(
+  out = StreamController<TailEvent>(
     onListen: () {
       // the end as the stream is listened to, before anything else can
       // write: a write after it is read
@@ -203,6 +223,18 @@ Stream<List<int>> tailFile(
     },
   );
   return out.stream;
+}
+
+/// How many of the first bytes of a file [tailFile] keeps to know it again.
+const _headSize = 32;
+
+bool _same(List<int> a, List<int> b) {
+  for (var i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) {
+      return false;
+    }
+  }
+  return true;
 }
 
 /// Whether [e] is of the entry called [name]: made, written, removed, or

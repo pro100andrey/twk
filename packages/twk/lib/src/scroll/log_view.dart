@@ -39,7 +39,8 @@ import '../gestures/mouse.dart' show Listener, PointerEvent;
 import '../gestures/selection.dart' show Selectable, SelectionArea;
 import '../layout/one_child.dart';
 import '../layout/stack.dart';
-import '../platform/platform.dart' show fileReset, tailFile;
+import '../platform/platform.dart'
+    show FileBytes, FileReset, TailEvent, tailFile;
 import '../style/style.dart';
 import '../text/smartcase.dart';
 import '../text/widgets.dart';
@@ -317,13 +318,13 @@ final class LogController extends ChangeNotifier {
     8,
   );
 
-  /// The text of [bytes], with [_cut] where the file was read again from
-  /// its start: what the old file left unended (a cut UTF-8 character
-  /// too) is not the start of the next line.
-  static Stream<String> _decoded(Stream<List<int>> bytes) {
+  /// The text of the bytes of [events], with [_cut] where the file was read
+  /// again from its start: what the old file left unended (a cut UTF-8
+  /// character too) is not the start of the next line.
+  static Stream<String> _decoded(Stream<TailEvent> events) {
     final pieces = <String>[];
     ByteConversionSink? decoder;
-    late final StreamSubscription<List<int>> subscription;
+    late final StreamSubscription<TailEvent> subscription;
     late final StreamController<String> out;
     ByteConversionSink fresh() => const Utf8Decoder(
       allowMalformed: true,
@@ -339,16 +340,17 @@ final class LogController extends ChangeNotifier {
       // listened to at once: the file's end is taken as it is
       onListen: () {
         decoder = fresh();
-        subscription = bytes.listen(
-          (chunk) {
-            if (identical(chunk, fileReset)) {
-              pieces.clear();
-              decoder = fresh();
-              out.add(_cut);
-              return;
+        subscription = events.listen(
+          (event) {
+            switch (event) {
+              case FileReset():
+                pieces.clear();
+                decoder = fresh();
+                out.add(_cut);
+              case FileBytes(:final bytes):
+                decoder!.add(bytes);
+                flush();
             }
-            decoder!.add(chunk);
-            flush();
           },
           onError: out.addError,
           onDone: () {
