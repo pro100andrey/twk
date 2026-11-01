@@ -159,6 +159,9 @@ Stream<TailEvent> tailFile(
           }
         }
         final end = await length();
+        if (cancelled) {
+          return;
+        }
         if (end < position) {
           out.add(const FileReset());
           position = 0;

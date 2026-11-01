@@ -104,4 +104,56 @@ void main() {
     await clock.elapse(poll);
     expect(told, ['first\n', 'second\n']);
   });
+
+  test('a look in flight when the stream is cancelled adds nothing after '
+      'the close', () async {
+    File(path).writeAsStringSync('old old\n');
+    final inner = File(path);
+    final answer = Completer<int>();
+    final errors = <Object>[];
+    await runZonedGuarded(() async {
+      final subscription = IOOverrides.runZoned(
+        () => tailFile(path, fromEnd: true, poll: poll).listen((_) {}),
+        createFile: (p) => _SlowLength(inner, answer.future),
+      );
+      // the first look has asked the length and waits for it; the stream is
+      // cancelled and closed, then the answer comes: the file was cut short
+      await subscription.cancel();
+      await pumpEventQueue();
+      answer.complete(0);
+      await pumpEventQueue();
+    }, (e, _) => errors.add(e));
+    expect(errors, isEmpty);
+  });
+}
+
+/// A file whose length is `answer`, when it comes.
+class _SlowLength implements File {
+  _SlowLength(this._file, this._answer);
+
+  final File _file;
+  final Future<int> _answer;
+
+  @override
+  Future<int> length() => _answer;
+
+  @override
+  Uri get uri => _file.uri;
+
+  @override
+  Directory get parent => _file.parent;
+
+  @override
+  int lengthSync() => _file.lengthSync();
+
+  @override
+  bool existsSync() => _file.existsSync();
+
+  @override
+  Stream<List<int>> openRead([int? start, int? end]) =>
+      _file.openRead(start, end);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('${invocation.memberName}');
 }
