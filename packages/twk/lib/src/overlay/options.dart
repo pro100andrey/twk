@@ -19,6 +19,7 @@ import '../editing/caret.dart' show clearRestCursor, restCursor;
 import '../foundation/helpers.dart';
 import '../framework/framework.dart';
 import '../gestures/mouse.dart';
+import '../style/glyphs.dart' show cellRune;
 import '../style/style.dart';
 
 // Examples can assume:

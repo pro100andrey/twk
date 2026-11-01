@@ -44,6 +44,7 @@ import '../layout/flex.dart';
 import '../layout/shadow.dart';
 import '../semantics/semantics.dart';
 import '../style/color_mix.dart';
+import '../style/glyphs.dart' show cellRune;
 import '../style/style.dart';
 import 'anchor.dart';
 import 'key_path.dart';

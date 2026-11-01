@@ -27,6 +27,7 @@ import '../layout/box.dart';
 import '../layout/flex.dart';
 import '../layout/shadow.dart';
 import '../layout/stack.dart';
+import '../style/glyphs.dart' show cellRune;
 import '../style/style.dart';
 import '../text/widgets.dart';
 import 'layer.dart';

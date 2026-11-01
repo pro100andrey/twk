@@ -10,6 +10,7 @@ import '../focus/focus.dart';
 import '../framework/framework.dart';
 import '../semantics/semantics.dart';
 import '../style/color_mix.dart';
+import '../style/glyphs.dart' show checkboxMarks, switchMarks;
 import '../style/style.dart';
 import '../text/widgets.dart';
 import 'pressable.dart';
@@ -248,6 +249,11 @@ final class Switch extends StatelessWidget {
   /// it moves), muted unless [enabled]: for a painter of one's own that
   /// shows a switch as the widget does, the gallery's options among them.
   /// The ends set no background, over what is under them.
+  ///
+  /// Without a context to measure in, the glyphs are [theme]'s as they
+  /// are, not fitted to one cell as a [Switch] fits them: a painter that
+  /// needs the rule applies it to [Glyphs.switchStart], [Glyphs.switchEnd]
+  /// and [Glyphs.switchKnob] itself.
   static List<Span> pillSpans(
     ThemeData theme, {
     required double at,

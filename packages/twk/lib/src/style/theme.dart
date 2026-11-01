@@ -12,7 +12,15 @@ import 'style.dart';
 
 export 'package:twk_core/twk_core.dart' show Brightness;
 
-export 'glyphs.dart';
+export 'glyphs.dart'
+    hide
+        buttonEdgeMarks,
+        cellRune,
+        checkboxMarks,
+        optionalCellRune,
+        radioMarks,
+        switchMarks,
+        textMark;
 
 /// The styles of an app by what they are for, which widgets draw in: the
 /// background slots ([background], [surface], [selection]) set a

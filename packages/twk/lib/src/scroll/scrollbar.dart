@@ -25,6 +25,7 @@ import '../gestures/mouse.dart';
 import '../gestures/selection.dart' show inSelectionArea;
 import '../layout/child_list.dart';
 import '../layout/stack.dart';
+import '../style/glyphs.dart' show cellRune;
 import '../style/style.dart';
 import 'scrollable.dart';
 import 'thumb.dart';

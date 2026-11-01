@@ -11,6 +11,7 @@ import '../gestures/gesture_detector.dart' show takeDrag;
 import '../gestures/mouse.dart';
 import '../scroll/thumb.dart';
 import '../semantics/semantics.dart';
+import '../style/glyphs.dart' show cellRune;
 import '../style/style.dart';
 import 'pressable.dart';
 

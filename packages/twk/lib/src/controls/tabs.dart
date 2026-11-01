@@ -25,6 +25,7 @@ import '../framework/framework.dart';
 import '../gestures/mouse.dart';
 import '../layout/child_list.dart';
 import '../semantics/semantics.dart';
+import '../style/glyphs.dart' show cellRune;
 import '../style/style.dart';
 
 /// Holds which of [length] tabs is selected: [index], which a [TabBar]

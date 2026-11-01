@@ -6,6 +6,7 @@ import 'package:twk_core/twk_core.dart'
 
 import '../foundation/helpers.dart';
 import '../framework/framework.dart';
+import '../style/glyphs.dart' show cellRune, optionalCellRune;
 import '../style/style.dart';
 
 /// The glyphs the charts draw bars and lines with, as the canvas they are

@@ -11,6 +11,7 @@ import '../framework/framework.dart';
 import '../gestures/gesture_detector.dart';
 import '../layout/flex.dart';
 import '../semantics/semantics.dart';
+import '../style/glyphs.dart' show radioMarks;
 import '../style/style.dart';
 import '../text/widgets.dart';
 import 'pressable.dart';
@@ -163,7 +164,10 @@ final class RadioGroup<T> extends StatelessWidget {
   final bool autofocus;
 
   /// What is between the brackets of the choice chosen, a character one
-  /// column wide, in place of `Glyphs.radioOn`; null for the theme's.
+  /// column wide, in place of `Glyphs.radioOn`; null for the theme's. It is
+  /// the app's own text, not a theme mark: the width rule of `Glyphs`
+  /// fits the theme's marks, and a [mark] of another width is drawn as it
+  /// is, for the app that wrote it to have meant.
   final String? mark;
 
   /// A choice, the theme's text under it.

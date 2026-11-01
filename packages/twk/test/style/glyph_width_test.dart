@@ -132,6 +132,88 @@ void main() {
       expect(warnings(t), hasLength(1));
     });
 
+    testTwk('a MultiSelect with boxes of two widths lists the ASCII pair', (
+      t,
+    ) async {
+      final values = ValueNotifier(<String>{'a'});
+      addTearDown(values.dispose);
+      await t.pumpWidget(
+        themed(
+          Glyphs.unicode.copyWith(checkboxOn: '🙂'),
+          Overlay(
+            child: MultiSelect<String>(
+              choices: const [Choice('a', 'Apple'), Choice('b', 'Banana')],
+              values: values.value,
+              onChanged: (_) {},
+              hint: 'none',
+              autofocus: true,
+            ),
+          ),
+        ),
+        size: (24, 4),
+      );
+      await t.press('enter');
+      await t.pumpUntilIdle();
+      final text = t.lines.join('\n');
+      expect(text, contains('[x] Apple'));
+      expect(text, contains('[ ] Banana'));
+      expect(text, isNot(contains('🙂')));
+      expect(warnings(t), hasLength(1));
+    });
+
+    testTwk('a multiple SelectionList with boxes of two widths shows the '
+        'ASCII pair', (t) async {
+      final c = SelectionController<String>(multiple: true, selected: ['a']);
+      addTearDown(c.dispose);
+      await t.pumpWidget(
+        themed(
+          Glyphs.unicode.copyWith(checkboxOn: '🙂'),
+          SelectionList<String>(
+            itemCount: 2,
+            keyOf: (i) => '$i',
+            itemBuilder: (context, i) => Text(['a', 'b'][i]),
+            controller: c,
+          ),
+        ),
+        size: (8, 2),
+      );
+      expect(t.lines.first, startsWith(' [ ] a'));
+      expect(t.lines.join(), isNot(contains('🙂')));
+      expect(warnings(t), hasLength(1));
+    });
+
+    testTwk('a multiple FilePicker with boxes of two widths shows the ASCII '
+        'pair, a directory a blank as wide', (t) async {
+      final dir = Directory.systemTemp.createTempSync('glyph_width_');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      Directory('${dir.path}/dd').createSync();
+      File('${dir.path}/ff').writeAsStringSync('x');
+      await t.pumpWidget(
+        themed(
+          Glyphs.unicode.copyWith(checkboxOff: '🙂'),
+          Overlay(
+            child: FilePicker(
+              onPicked: (_) {},
+              directory: dir.path,
+              multiple: true,
+              autofocus: true,
+            ),
+          ),
+        ),
+        size: (40, 12),
+      );
+      await waitUntil(
+        () => t.lines.any((l) => l.contains('[ ] ff')),
+        'the listing',
+        between: t.pump,
+      );
+      final file = t.lines.firstWhere((l) => l.contains('[ ] ff'));
+      final directory = t.lines.firstWhere((l) => l.contains('dd'));
+      expect(directory.indexOf('dd'), file.indexOf('ff'));
+      expect(t.lines.join(), isNot(contains('🙂')));
+      expect(warnings(t), hasLength(1));
+    });
+
     testTwk('a button edge that does not fit is the ASCII edge', (t) async {
       await t.pumpWidget(
         themed(
