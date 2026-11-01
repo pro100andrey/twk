@@ -297,10 +297,14 @@ void main() {
         ),
         size: (20, 6),
       );
-      showToast(
-        key.currentContext!,
-        'Brief',
-        duration: const Duration(milliseconds: 200),
+      // in the clock's zone: the body of a test runs outside it, where the
+      // toast's time would be a real timer
+      t.clock.run(
+        () => showToast(
+          key.currentContext!,
+          'Brief',
+          duration: const Duration(milliseconds: 200),
+        ),
       );
       await t.pump();
       await t.pump(ms * 100);
@@ -323,7 +327,7 @@ void main() {
         child: Overlay(child: SizedBox.expand(key: key)),
       );
       await t.pumpWidget(app(theme), size: (20, 6));
-      showToast(key.currentContext!, 'Plain');
+      t.clock.run(() => showToast(key.currentContext!, 'Plain'));
       await t.pump(ms * 300);
       expect(t, styleAt(8, 2, hasFg(theme.primary.fg!)));
       const light = ThemeData.light;
