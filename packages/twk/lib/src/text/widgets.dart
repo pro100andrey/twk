@@ -311,7 +311,8 @@ final class _LinkTaps {
       return;
     }
     final (start, end) = paragraph.textRangeAt(event.x, event.y);
-    if (start == end) {
+    // the cell of an ellipsis is no span's: it stands for text not shown
+    if (start == end || paragraph.isEllipsisAt(event.x, event.y)) {
       return;
     }
     // the spans as given hold the same text as the paragraph's, which

@@ -36,6 +36,45 @@ void main() {
       expect(t.cell(5, 0).link, isNull);
     });
 
+    testTwk('the ellipsis of a cut line takes no tap, nor does a span it '
+        'stands for', (t) async {
+      final log = <String>[];
+      await t.pumpWidget(
+        Align(
+          alignment: Alignment.topLeft,
+          child: SizedBox(
+            width: 8,
+            child: Text.richLine([
+              const Span('abcdefg'),
+              'XYZ'.tap(() => log.add('XYZ')),
+            ]),
+          ),
+        ),
+        size: (20, 1),
+      );
+      expect(t.lines.first, 'abcdefg…');
+      await t.click(7, 0);
+      expect(log, isEmpty);
+      // a span shown in part is tapped where it is shown
+      await t.pumpWidget(
+        Align(
+          alignment: Alignment.topLeft,
+          child: SizedBox(
+            width: 8,
+            child: Text.richLine([
+              const Span('abcd'),
+              'efghij'.tap(() => log.add('efghij')),
+            ]),
+          ),
+        ),
+        size: (20, 1),
+      );
+      expect(t.lines.first, 'abcdefg…');
+      await t.click(5, 0);
+      await t.click(7, 0);
+      expect(log, ['efghij']);
+    });
+
     testTwk('a press released elsewhere, or with another button, is no '
         'tap', (t) async {
       final log = <String>[];

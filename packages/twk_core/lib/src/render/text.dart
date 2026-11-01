@@ -3049,24 +3049,12 @@ final class RenderParagraph extends RenderObject {
     return null;
   }
 
-  /// The text at column [x] of row [y] as the last layout placed it, as
-  /// offsets (start, end) into the text of the spans joined, in UTF-16
-  /// code units: the cluster drawn there, at either cell of a wide one (at
-  /// an ellipsis, the clusters it stands for; in a gap a justified row
-  /// stretches, the space before it). Left of a row's text it is the empty
-  /// range where the row starts; right of it, and past the width, the
-  /// empty range where the next row starts, after the spaces the row hangs
-  /// and its line break, which right of the last row is the end of the
-  /// text. Above the first row it is (0, 0), below the last (length,
-  /// length). What takes no cell (a zero-width control, the CR of CR LF)
-  /// goes with the cluster after it, so that the ranges tile the text. In
-  /// visual order ([TextOrder.visual]) it is the cluster drawn there too,
-  /// and the sides of a row keep their logical meaning: left of the text
-  /// the start, right of it the next row's, in either direction.
-  (int, int) textRangeAt(int x, int y) {
+  // the cell at column x of row y: [textRangeAt]'s range, and whether it
+  // is an ellipsis
+  (int, int, bool) _cellAt(int x, int y) {
     final c = _constraints;
     if (c == null || y < 0) {
-      return (0, 0);
+      return (0, 0, false);
     }
     _layoutLines(c.maxW);
     if (_offsetsStale) {
@@ -3075,7 +3063,7 @@ final class RenderParagraph extends RenderObject {
     final rows = _lineCount < height ? _lineCount : height;
     if (y >= rows) {
       final end = _offsetAt(_count);
-      return (end, end);
+      return (end, end, false);
     }
     final at = y * _lineStride;
     final from = y == 0 ? 0 : _lines[at + 7];
@@ -3099,10 +3087,10 @@ final class RenderParagraph extends RenderObject {
         : (visual ? _visualGaps(n, rtl) : _gapsIn(headStart, headEnd));
     var col = gaps > 0 ? 0 : _lineX(free, rtl);
     if (x < 0 || x < col) {
-      return (_offsetAt(from), _offsetAt(from));
+      return (_offsetAt(from), _offsetAt(from), false);
     }
     if (x >= width) {
-      return (_offsetAt(next), _offsetAt(next));
+      return (_offsetAt(next), _offsetAt(next), false);
     }
     if (visual) {
       var gap = 0;
@@ -3113,7 +3101,7 @@ final class RenderParagraph extends RenderObject {
           if (x < col) {
             final hidden = headStart < headEnd ? headEnd : from;
             final shown = tailStart < tailEnd ? tailStart : next;
-            return (_offsetAt(hidden), _offsetAt(shown));
+            return (_offsetAt(hidden), _offsetAt(shown), true);
           }
           continue;
         }
@@ -3124,10 +3112,10 @@ final class RenderParagraph extends RenderObject {
           gap++;
         }
         if (x < col) {
-          return (_offsetAt(i), _offsetAt(i + 1));
+          return (_offsetAt(i), _offsetAt(i + 1), false);
         }
       }
-      return (_offsetAt(next), _offsetAt(next));
+      return (_offsetAt(next), _offsetAt(next), false);
     }
     var gap = 0;
     var words = false;
@@ -3138,7 +3126,7 @@ final class RenderParagraph extends RenderObject {
         col += _part(free, gaps, gap++);
       }
       if (x < col) {
-        return (_offsetAt(i), _offsetAt(i + 1));
+        return (_offsetAt(i), _offsetAt(i + 1), false);
       }
       words = words || !space;
     }
@@ -3147,17 +3135,40 @@ final class RenderParagraph extends RenderObject {
       if (x < col) {
         final hidden = headStart < headEnd ? headEnd : from;
         final shown = tailStart < tailEnd ? tailStart : next;
-        return (_offsetAt(hidden), _offsetAt(shown));
+        return (_offsetAt(hidden), _offsetAt(shown), true);
       }
     }
     for (var i = tailStart; i < tailEnd; i++) {
       col += _cellsOf(i);
       if (x < col) {
-        return (_offsetAt(i), _offsetAt(i + 1));
+        return (_offsetAt(i), _offsetAt(i + 1), false);
       }
     }
-    return (_offsetAt(next), _offsetAt(next));
+    return (_offsetAt(next), _offsetAt(next), false);
   }
+
+  /// The text at column [x] of row [y] as the last layout placed it, as
+  /// offsets (start, end) into the text of the spans joined, in UTF-16
+  /// code units: the cluster drawn there, at either cell of a wide one (at
+  /// an ellipsis, the clusters it stands for; in a gap a justified row
+  /// stretches, the space before it). Left of a row's text it is the empty
+  /// range where the row starts; right of it, and past the width, the
+  /// empty range where the next row starts, after the spaces the row hangs
+  /// and its line break, which right of the last row is the end of the
+  /// text. Above the first row it is (0, 0), below the last (length,
+  /// length). What takes no cell (a zero-width control, the CR of CR LF)
+  /// goes with the cluster after it, so that the ranges tile the text. In
+  /// visual order ([TextOrder.visual]) it is the cluster drawn there too,
+  /// and the sides of a row keep their logical meaning: left of the text
+  /// the start, right of it the next row's, in either direction.
+  (int, int) textRangeAt(int x, int y) {
+    final (start, end, _) = _cellAt(x, y);
+    return (start, end);
+  }
+
+  /// Whether the cell at column [x] of row [y] as the last layout placed it
+  /// is an ellipsis, which stands for text that is not drawn.
+  bool isEllipsisAt(int x, int y) => _cellAt(x, y).$3;
 
   @override
   void paint(PaintContext ctx) {

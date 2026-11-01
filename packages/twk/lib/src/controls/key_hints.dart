@@ -1,7 +1,8 @@
 /// What can be pressed now: [KeyHintsBar].
 library;
 
-import 'package:twk_core/twk_core.dart' show Attr, KeyCode, stringWidth;
+import 'package:twk_core/twk_core.dart'
+    show Attr, KeyCode, RenderParagraph, stringWidth;
 
 import '../binding/app_binding.dart' show AppBinding;
 import '../focus/focus.dart';
@@ -307,9 +308,16 @@ final class _KeyHintsBarState extends State<KeyHintsBar> {
     if (!widget.pressable) {
       return row;
     }
+    BuildContext? rowContext;
     return Listener(
       onDown: (event) {
         if (event.button != 0) {
+          return;
+        }
+        // the ellipsis of a cut row presses nothing, nor does the key or
+        // hint it stands for
+        if (rowContext?.findRenderObject() case final RenderParagraph p
+            when p.isEllipsisAt(event.x, event.y)) {
           return;
         }
         for (final (from, to, key) in targets) {
@@ -322,7 +330,12 @@ final class _KeyHintsBarState extends State<KeyHintsBar> {
           }
         }
       },
-      child: row,
+      child: Builder(
+        builder: (context) {
+          rowContext = context;
+          return row;
+        },
+      ),
     );
   }
 }

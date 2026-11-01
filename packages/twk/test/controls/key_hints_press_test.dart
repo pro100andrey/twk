@@ -62,4 +62,21 @@ void main() {
     await t.pumpWidget(bar(seen), size: (50, 1));
     expect(tracking(t), isNot(MouseTracking.off));
   });
+
+  testTwk('the ellipsis of a cut bar presses nothing: not in a hint it cuts, '
+      'not in a key name', (t) async {
+    final seen = <String>[];
+    await t.pumpWidget(bar(seen), size: (10, 1));
+    expect(t.lines, ['ctrl+s sa…']);
+    // the shown letters of the hint still press, the ellipsis does not
+    await t.click(8, 0);
+    expect(seen, ['save']);
+    await t.click(9, 0);
+    expect(seen, ['save']);
+    await t.pumpWidget(bar(seen), size: (4, 1));
+    expect(t.lines, ['ctr…']);
+    await t.click(2, 0);
+    await t.click(3, 0);
+    expect(seen, ['save', 'save']);
+  });
 }

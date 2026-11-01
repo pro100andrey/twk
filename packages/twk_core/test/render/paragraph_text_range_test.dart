@@ -158,6 +158,27 @@ void main() {
     expect(at(TextOverflow.ellipsisStart, 1), 'e');
   });
 
+  test('isEllipsisAt: the ellipsis cell only, at the end, middle or start; '
+      'none where nothing is cut', () {
+    List<int> cells(TextOverflow overflow, String text) {
+      final p = laid(text, 5, overflow: overflow, maxLines: 1);
+      return [
+        for (var x = -1; x <= 5; x++)
+          if (p.isEllipsisAt(x, 0)) x,
+      ];
+    }
+
+    expect(cells(TextOverflow.ellipsis, 'abcdefgh'), [4]);
+    expect(cells(TextOverflow.ellipsisMiddle, 'abcdefgh'), [2]);
+    expect(cells(TextOverflow.ellipsisStart, 'abcdefgh'), [0]);
+    expect(cells(TextOverflow.ellipsis, 'abcde'), isEmpty);
+    expect(cells(TextOverflow.clip, 'abcdefgh'), isEmpty);
+    // a single cluster hidden is told from the one shown before it
+    final p = laid('abcd全', 5, overflow: TextOverflow.ellipsis, maxLines: 1);
+    expect(p.isEllipsisAt(3, 0), isFalse);
+    expect(p.isEllipsisAt(4, 0), isTrue);
+  });
+
   test('lines cut off at the start each: an ellipsis stands for the start '
       'of its own line, after the line break before it', () {
     const text = 'abcdefgh\nijklmnop';
