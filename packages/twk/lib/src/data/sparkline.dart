@@ -73,6 +73,7 @@ final class Sparkline extends LeafRenderObjectWidget {
     max: max,
     style: overText(context, DefaultTextStyle.of(context).merge(style)),
     fromRight: fromRight,
+    glyphs: Theme.of(context).glyphs,
   );
 
   @override
@@ -85,7 +86,8 @@ final class Sparkline extends LeafRenderObjectWidget {
         context,
         DefaultTextStyle.of(context).merge(style),
       )
-      ..fromRight = fromRight;
+      ..fromRight = fromRight
+      ..glyphs = Theme.of(context).glyphs;
   }
 }
 
@@ -99,7 +101,8 @@ final class RenderSparkline extends RenderObject {
     this._max,
     this._style = const Style(),
     this._fromRight = true,
-  });
+    Glyphs glyphs = Glyphs.unicode,
+  }) : _set = glyphs;
 
   List<double> _data;
 
@@ -160,6 +163,18 @@ final class RenderSparkline extends RenderObject {
     }
   }
 
+  Glyphs _set;
+
+  /// The theme's marks, whose [Glyphs.shades] draw the bars where they
+  /// have no partial blocks.
+  Glyphs get glyphs => _set;
+  set glyphs(Glyphs g) {
+    if (g != _set) {
+      _set = g;
+      markNeedsPaint();
+    }
+  }
+
   final _glyphs = ChartGlyphs();
 
   @override
@@ -197,7 +212,7 @@ final class RenderSparkline extends RenderObject {
     if (top == null || !(top > _min) || height == 0) {
       return;
     }
-    final glyphs = _glyphs..use(canvas.segmenter);
+    final glyphs = _glyphs..use(canvas.segmenter, _set);
     final steps = glyphs.upSteps;
     final most = height * steps;
     final whole = glyphs.up(steps);

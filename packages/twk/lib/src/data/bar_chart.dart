@@ -192,6 +192,7 @@ final class BarChart extends LeafRenderObjectWidget {
     barStyle: barStyle,
     valueStyle: valueStyle,
     labelStyle: labelStyle,
+    glyphs: Theme.of(context).glyphs,
   );
 
   @override
@@ -206,7 +207,8 @@ final class BarChart extends LeafRenderObjectWidget {
       ..style = overText(context, style)
       ..barStyle = barStyle
       ..valueStyle = valueStyle
-      ..labelStyle = labelStyle;
+      ..labelStyle = labelStyle
+      ..glyphs = Theme.of(context).glyphs;
   }
 }
 
@@ -227,7 +229,9 @@ final class RenderBarChart extends RenderObject {
     this._barStyle = const Style(),
     this._valueStyle = const Style(),
     this._labelStyle = const Style(),
-  }) : assert(_barWidth >= 1, 'bars a cell thick or more'),
+    Glyphs glyphs = Glyphs.unicode,
+  }) : _set = glyphs,
+       assert(_barWidth >= 1, 'bars a cell thick or more'),
        assert(_barGap >= 0 && _groupGap >= 0, 'gaps of 0 cells or more');
 
   List<BarGroup> _groups;
@@ -349,6 +353,18 @@ final class RenderBarChart extends RenderObject {
     }
   }
 
+  Glyphs _set;
+
+  /// The theme's marks, whose [Glyphs.shades] draw the bars where they
+  /// have no partial blocks.
+  Glyphs get glyphs => _set;
+  set glyphs(Glyphs g) {
+    if (g != _set) {
+      _set = g;
+      markNeedsPaint();
+    }
+  }
+
   final _glyphs = ChartGlyphs();
 
   @override
@@ -381,7 +397,7 @@ final class RenderBarChart extends RenderObject {
     canvas.fill(0, 0, width, height, _base.penIn(canvas.styles));
     _labelPen = _base.merge(_labelStyle).penIn(canvas.styles);
     _segmenter = canvas.segmenter;
-    _glyphs.use(_segmenter);
+    _glyphs.use(_segmenter, _set);
     var top = _max;
     if (top == null) {
       for (final group in _groups) {

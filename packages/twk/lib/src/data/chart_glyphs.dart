@@ -6,30 +6,47 @@ import 'package:twk_core/twk_core.dart'
 
 import '../foundation/helpers.dart';
 import '../framework/framework.dart';
-import '../style/glyphs.dart' show cellRune, optionalCellRune;
+import '../style/glyphs.dart' show Glyphs, cellRune, optionalCellRune;
 import '../style/style.dart';
 
 /// The glyphs the charts draw bars and lines with, as the canvas they are
 /// drawn on draws them: eighth blocks and box drawing where it draws each
 /// one column wide, braille and [BorderType.ascii] where it does not (both
-/// are East Asian ambiguous). Measured again only when the segmenter's
-/// settings change.
+/// are East Asian ambiguous). Where the theme's marks have no partial
+/// blocks ([Glyphs.partialBlocks] false, as in [Glyphs.ascii]) a bar is
+/// drawn instead with the ramp of the theme's [Glyphs.shades], a step a
+/// shade. Measured again only when the segmenter's settings or the ramp
+/// change.
 final class ChartGlyphs {
   // the segmenter settings measured last; -1 before the first
   var _mode = -1;
   var _ambiguous = 0;
   var _eighths = true;
+  // the ramp bars are drawn with instead of blocks (null: blocks), the
+  // theme's list it was taken from, and its code points
+  List<String>? _shades;
+  var _ramp = const <int>[];
   final _narrowLines = <BorderType, bool>{};
 
-  /// Measures the glyphs as [segmenter] does.
-  void use(TextSegmenter segmenter) {
+  /// Measures the glyphs as [segmenter] does; with [glyphs] whose
+  /// [Glyphs.partialBlocks] is false, bars are drawn in its [Glyphs.shades].
+  void use(TextSegmenter segmenter, [Glyphs? glyphs]) {
+    final shades = glyphs == null || glyphs.partialBlocks
+        ? null
+        : glyphs.shades;
     if (segmenter.mode.index == _mode &&
-        segmenter.ambiguousWidth == _ambiguous) {
+        segmenter.ambiguousWidth == _ambiguous &&
+        identical(shades, _shades)) {
       return;
     }
     _mode = segmenter.mode.index;
     _ambiguous = segmenter.ambiguousWidth;
     _segmenter = segmenter;
+    _shades = shades;
+    _ramp = [
+      if (shades != null)
+        for (final s in shades) _firstRune(s),
+    ];
     _eighths = _oneColumn(const [..._upEighths, ..._acrossEighths], segmenter);
     _narrowLines.clear();
   }
@@ -37,23 +54,28 @@ final class ChartGlyphs {
   late TextSegmenter _segmenter;
 
   /// How many steps a cell of a bar that grows upwards shows: 8 (eighth
-  /// blocks) or 4 (braille).
-  int get upSteps => _eighths ? 8 : 4;
+  /// blocks), 4 (braille), or the shades after the blank (a ramp).
+  int get upSteps => _ramp.isNotEmpty ? _ramp.length - 1 : (_eighths ? 8 : 4);
 
   /// The glyph of a cell of a bar that grows upwards, [k] of [upSteps]
   /// full from the bottom; a blank for 0.
   int up(int k) => k <= 0
       ? 0x20
+      : _ramp.isNotEmpty
+      ? _ramp[k > upSteps ? upSteps : k]
       : (_eighths ? _upEighths : _upBraille)[(k > upSteps ? upSteps : k) - 1];
 
   /// How many steps a cell of a bar that grows to the right shows: 8
-  /// (eighth blocks) or 2 (braille).
-  int get acrossSteps => _eighths ? 8 : 2;
+  /// (eighth blocks), 2 (braille), or the shades after the blank (a ramp).
+  int get acrossSteps =>
+      _ramp.isNotEmpty ? _ramp.length - 1 : (_eighths ? 8 : 2);
 
   /// The glyph of a cell of a bar that grows to the right, [k] of
   /// [acrossSteps] full from the left; a blank for 0.
   int across(int k) => k <= 0
       ? 0x20
+      : _ramp.isNotEmpty
+      ? _ramp[k > acrossSteps ? acrossSteps : k]
       : (_eighths
             ? _acrossEighths
             : _acrossBraille)[(k > acrossSteps ? acrossSteps : k) - 1];
@@ -262,6 +284,8 @@ const _upBraille = [0x28C0, 0x28E4, 0x28F6, 0x28FF];
 
 // ⡇⣿
 const _acrossBraille = [0x2847, 0x28FF];
+
+int _firstRune(String s) => s.isEmpty ? 0x20 : s.runes.first;
 
 final _scan = ClusterScan();
 

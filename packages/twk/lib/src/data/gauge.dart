@@ -85,6 +85,7 @@ final class Gauge extends LeafRenderObjectWidget {
     ratio: ratio,
     label: label,
     percentage: percentage,
+    glyphs: Theme.of(context).glyphs,
     style: _styleAt(context, style),
     labelStyle: labelStyle,
   );
@@ -95,6 +96,7 @@ final class Gauge extends LeafRenderObjectWidget {
       ..ratio = ratio
       ..label = label
       ..percentage = percentage
+      ..glyphs = Theme.of(context).glyphs
       ..style = _styleAt(context, style)
       ..labelStyle = labelStyle;
   }
@@ -246,7 +248,25 @@ Style _styleAt(BuildContext context, Style style) => Theme.of(
 /// constraints allow (as narrow where they leave the width unbounded) and
 /// a row tall, a repaint boundary.
 abstract base class _RenderGaugeBase extends RenderObject {
-  _RenderGaugeBase(this._ratio, this._label, this._percentage, this._style);
+  _RenderGaugeBase(
+    this._ratio,
+    this._label,
+    this._percentage,
+    this._style,
+    this._set,
+  );
+
+  Glyphs _set;
+
+  /// The theme's marks: the line of a [LineGauge] when its type is null,
+  /// the bar of a [Gauge] where they have no partial blocks.
+  Glyphs get glyphs => _set;
+  set glyphs(Glyphs g) {
+    if (g != _set) {
+      _set = g;
+      markNeedsPaint();
+    }
+  }
 
   double _ratio;
 
@@ -336,7 +356,8 @@ final class RenderGauge extends _RenderGaugeBase {
     bool percentage = false,
     Style style = const Style(),
     this._labelStyle = const Style(),
-  }) : super(ratio, label, percentage, style);
+    Glyphs glyphs = Glyphs.unicode,
+  }) : super(ratio, label, percentage, style, glyphs);
 
   Style _labelStyle;
 
@@ -355,7 +376,7 @@ final class RenderGauge extends _RenderGaugeBase {
     final base = const Style(fg: Color.defaultColor).merge(_style);
     final pen = base.penIn(canvas.styles);
     canvas.fill(0, 0, width, height, pen);
-    final g = _glyphs..use(canvas.segmenter);
+    final g = _glyphs..use(canvas.segmenter, _set);
     // the cells filled whole, which the label shows swapped over
     final full = g.blocks(canvas, 0, 0, width, height, _ratio, pen);
     final text = _text;
@@ -396,19 +417,7 @@ final class RenderLineGauge extends _RenderGaugeBase {
     Style style = const Style(),
     this._filledStyle = const Style(),
     this._unfilledStyle = const Style(),
-  }) : _set = glyphs,
-       super(ratio, label, percentage, style);
-
-  Glyphs _set;
-
-  /// The marks of the line when [type] is null, as the theme's.
-  Glyphs get glyphs => _set;
-  set glyphs(Glyphs g) {
-    if (g != _set) {
-      _set = g;
-      markNeedsPaint();
-    }
-  }
+  }) : super(ratio, label, percentage, style, glyphs);
 
   bool _segmented;
 
@@ -470,7 +479,7 @@ final class RenderLineGauge extends _RenderGaugeBase {
     if (cells <= 0) {
       return;
     }
-    final glyphs = _glyphs..use(canvas.segmenter);
+    final glyphs = _glyphs..use(canvas.segmenter, _set);
     if (_segmented) {
       // a column a cell, the filled ones rounded
       final column = glyphs.acrossSteps == 8 ? 0x258D : 0x7C;

@@ -86,6 +86,7 @@ final class DotCanvas extends LeafRenderObjectWidget {
       ..xBounds = xBounds
       ..yBounds = yBounds
       ..marker = marker
+      ..glyphs = Theme.of(context).glyphs
       ..background = background ?? theme.bg ?? Color.defaultColor
       ..labelColor = theme.fg ?? Color.defaultColor;
   }
@@ -160,7 +161,8 @@ final class RenderDotCanvas extends RenderObject {
     this._marker = Marker.braille,
     this._background = Color.defaultColor,
     this._labelColor = Color.defaultColor,
-  });
+    Glyphs glyphs = Glyphs.unicode,
+  }) : _set = glyphs;
 
   DotDrawer _draw;
 
@@ -229,6 +231,18 @@ final class RenderDotCanvas extends RenderObject {
     }
   }
 
+  Glyphs _set;
+
+  /// The theme's marks: where they have no partial blocks, the dots are
+  /// drawn as the shades of [Glyphs.shades], as many as the cell's dots.
+  Glyphs get glyphs => _set;
+  set glyphs(Glyphs g) {
+    if (g != _set) {
+      _set = g;
+      markNeedsPaint();
+    }
+  }
+
   final _grid = DotGrid();
 
   @override
@@ -246,7 +260,7 @@ final class RenderDotCanvas extends RenderObject {
   @override
   void paint(PaintContext ctx) {
     final canvas = ctx.canvas;
-    _grid.reset(width, height, _marker, canvas.segmenter);
+    _grid.reset(width, height, _marker, canvas.segmenter, _set);
     final context = DotContext(DotPainter(_grid, _xBounds, _yBounds));
     _draw(context);
     context.paint(canvas, 0, 0, _background, labelColor: _labelColor);

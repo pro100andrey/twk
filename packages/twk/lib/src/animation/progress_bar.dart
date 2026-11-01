@@ -91,6 +91,7 @@ final class _Bar extends LeafRenderObjectWidget {
       RenderProgressBar(
         value: value,
         style: style ?? Theme.of(context).primary,
+        glyphs: Theme.of(context).glyphs,
         binding: AppBinding.maybeOf(context),
       )..muted = !TickerMode.of(context);
 
@@ -102,6 +103,7 @@ final class _Bar extends LeafRenderObjectWidget {
     renderObject
       ..value = value
       ..style = style ?? Theme.of(context).primary
+      ..glyphs = Theme.of(context).glyphs
       ..muted = !TickerMode.of(context);
   }
 }
@@ -112,7 +114,12 @@ final class _Bar extends LeafRenderObjectWidget {
 final class RenderProgressBar extends RenderObject {
   /// A bar [value] done in [style], whose block moves on [binding]'s clock
   /// while the value is null.
-  RenderProgressBar({this._value, this._style = const Style(), this.binding});
+  RenderProgressBar({
+    this._value,
+    this._style = const Style(),
+    Glyphs glyphs = Glyphs.unicode,
+    this.binding,
+  }) : _set = glyphs;
 
   /// The app whose clock the block moves by.
   final AppBinding? binding;
@@ -161,6 +168,18 @@ final class RenderProgressBar extends RenderObject {
     }
   }
 
+  Glyphs _set;
+
+  /// The theme's marks, whose [Glyphs.shades] draw the bars where they
+  /// have no partial blocks.
+  Glyphs get glyphs => _set;
+  set glyphs(Glyphs g) {
+    if (g != _set) {
+      _set = g;
+      markNeedsPaint();
+    }
+  }
+
   final _glyphs = ChartGlyphs();
 
   @override
@@ -196,7 +215,7 @@ final class RenderProgressBar extends RenderObject {
     if (value == null) {
       _steps.start();
     }
-    (_glyphs..use(canvas.segmenter)).blocks(
+    (_glyphs..use(canvas.segmenter, _set)).blocks(
       canvas,
       0,
       0,

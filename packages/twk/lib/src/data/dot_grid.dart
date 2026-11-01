@@ -14,6 +14,7 @@ import 'package:twk_core/twk_core.dart'
         TextMode,
         TextSegmenter;
 
+import '../style/glyphs.dart' show Glyphs;
 import 'dot_canvas.dart';
 import 'marker.dart';
 
@@ -49,6 +50,7 @@ final class DotGrid {
   // the marker [reset] was given last, the segmenter settings it was
   // measured with, and the glyph of each pattern of the marker drawn
   Marker? _asked;
+  List<String>? _askedShades;
   TextMode _askedMode = TextMode.graphemes;
   var _askedAmbiguous = 0;
   var _glyphs = Int32List(0);
@@ -78,18 +80,44 @@ final class DotGrid {
   /// Empties the grid and sizes it for [columns] × [rows] cells of
   /// [marker], whose glyphs are measured by [segmenter], that of the canvas
   /// the grid is drawn on.
-  void reset(int columns, int rows, Marker marker, TextSegmenter segmenter) {
+  ///
+  /// Given [glyphs] without partial blocks ([Glyphs.partialBlocks]), a
+  /// cell is drawn as the shade of [Glyphs.shades] that is as dense as its
+  /// dots are many, whichever [marker] but a [Marker.custom] one it is.
+  void reset(
+    int columns,
+    int rows,
+    Marker marker,
+    TextSegmenter segmenter, [
+    Glyphs? glyphs,
+  ]) {
     assert(columns >= 0 && rows >= 0, 'a grid of 0 cells or more');
+    final shades = glyphs == null || glyphs.partialBlocks || marker.char != 0
+        ? null
+        : glyphs.shades;
     if (marker != _asked ||
         segmenter.mode != _askedMode ||
-        segmenter.ambiguousWidth != _askedAmbiguous) {
+        segmenter.ambiguousWidth != _askedAmbiguous ||
+        !identical(shades, _askedShades)) {
       _asked = marker;
       _askedMode = segmenter.mode;
       _askedAmbiguous = segmenter.ambiguousWidth;
-      _marker = _oneColumn(marker, segmenter) ? marker : Marker.braille;
+      _askedShades = shades;
+      _marker = shades != null || _oneColumn(marker, segmenter)
+          ? marker
+          : Marker.braille;
       _glyphs = Int32List(_marker.patterns);
+      final dots = _marker.dotsAcross * _marker.dotsDown;
       for (var p = 0; p < _glyphs.length; p++) {
-        _glyphs[p] = _marker.glyphOf(p);
+        if (shades == null || p == 0) {
+          _glyphs[p] = _marker.glyphOf(p);
+          continue;
+        }
+        // the shade after the blank as dense as the dots set, at least one
+        final steps = shades.length - 1;
+        final set = _bitCount(p);
+        final shade = shades[(set * steps + dots - 1) ~/ dots];
+        _glyphs[p] = shade.isEmpty ? 0x20 : shade.runes.first;
       }
     }
     _columns = columns;
@@ -228,6 +256,14 @@ final class DotGrid {
       _pens[fg.value * 0x4000000 + bg.value] ??= _penTable!.pen(
         Pen(fg: fg, bg: bg),
       );
+}
+
+int _bitCount(int n) {
+  var c = 0;
+  for (var v = n; v != 0; v &= v - 1) {
+    c++;
+  }
+  return c;
 }
 
 final _scan = ClusterScan();

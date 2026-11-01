@@ -1101,7 +1101,7 @@ final class _RenderProgressList extends RenderObject {
     if (cap != null && barW > cap) {
       barW = cap;
     }
-    final g = _glyphs..use(segmenter);
+    final g = _glyphs..use(segmenter, _frames.glyphs);
     final line = _barShape == ProgressBarShape.line;
     final borderPen = s.border.penIn(styles);
     var sweeping = false;
