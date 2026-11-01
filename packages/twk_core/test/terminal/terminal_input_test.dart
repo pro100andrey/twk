@@ -197,6 +197,35 @@ void main() {
     });
   });
 
+  group('with the kitty keyboard protocol, ESC and a byte pending', () {
+    const options = TerminalOptions(escapeTimeout: Duration(milliseconds: 20));
+
+    test(
+      'an arrow cut after its ESC [ waits 500 ms, not escapeTimeout',
+      () async {
+        final (term, link) = await answered('\x1b[?0u', options: options);
+        final events = eventsOf(term);
+        link.type('\x1b[');
+        await clock.elapse(const Duration(milliseconds: 499));
+        expect(events, isEmpty);
+        link.type('A');
+        await clock.flushMicrotasks();
+        expect(events, const [KeyEvent(KeyCode.up)]);
+      },
+    );
+
+    test('without the protocol ESC [ still waits escapeTimeout', () async {
+      final (term, link) = await answered('', options: options);
+      expect(term.info.kittyKeyboard, isFalse);
+      final events = eventsOf(term);
+      link.type('\x1b[');
+      await clock.elapse(const Duration(milliseconds: 20));
+      expect(events, const [
+        KeyEvent(KeyCode.char, char: '[', modifiers: Mod.alt),
+      ]);
+    });
+  });
+
   group('notify', () {
     test("sends the terminal's notification, numbered for this "
         'process', () async {

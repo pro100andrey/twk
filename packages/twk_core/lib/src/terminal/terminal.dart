@@ -363,7 +363,8 @@ final class TerminalOptions {
   /// The kitty keyboard protocol's flags pushed with [kittyKeyboard]
   /// ([KittyKeyboardFlags] bits), [KittyKeyboardFlags.disambiguate]
   /// among them whether or not they name it: the Escape key a sequence of
-  /// its own, never a lone ESC (see [escapeTimeout]). By default that
+  /// its own, which a terminal may send as a lone ESC all the same (see
+  /// [escapeTimeout]). By default that
   /// alone, and keys come as presses only. With
   /// [KittyKeyboardFlags.eventTypes] they come repeated and released too
   /// ([KeyEvent.kind]): what acts on keys then acts on presses and repeats
@@ -379,11 +380,13 @@ final class TerminalOptions {
   /// How long a lone ESC (or ESC and an introducer such as `[`) waits for
   /// the rest of a sequence before it counts as the Escape key (or Alt+key).
   /// With the kitty keyboard protocol too (see
-  /// [TerminalInfo.kittyKeyboard]), which does not make the wait longer:
-  /// a CSI-u sequence (the Escape key's `ESC [ 27 u`) cut by a slow link
-  /// (ssh, tmux) after its ESC, or after its `[`, for longer than this is
-  /// read as the Escape key and the text that follows. A sequence whose
-  /// parameters arrived waits 500 ms. Raise it for such a link.
+  /// [TerminalInfo.kittyKeyboard]), for a lone ESC only: a CSI-u sequence
+  /// (the Escape key's `ESC [ 27 u`) cut by a slow link (ssh, tmux) right
+  /// after its ESC for longer than this is read as the Escape key and the
+  /// text that follows. Once a byte follows the ESC under the protocol
+  /// (Alt+key comes as CSI u there, so it is a sequence begun), and for a
+  /// sequence whose parameters arrived without it, the wait is 500 ms.
+  /// Raise this for such a link.
   final Duration escapeTimeout;
 
   /// How long a bracketed paste may go without input before it is ended
@@ -842,8 +845,8 @@ final class Terminal
     this._outputTrace,
   ]) : _out = _outbox(_link, _outputTrace);
 
-  /// How long a sequence that has surely started may wait for the rest of
-  /// its bytes.
+  /// How long a sequence that has surely started (with the kitty protocol,
+  /// ESC and any byte after it) may wait for the rest of its bytes.
   static const _longEscapeTimeout = Duration(milliseconds: 500);
 
   /// What the terminal was opened with.
@@ -1774,8 +1777,12 @@ final class Terminal
       // A sequence split across reads (a slow link) must not be cut: only a
       // lone ESC, or ESC and an introducer, may be a key typed by the user.
       // So it is with the kitty protocol too, which a terminal may answer
-      // for and still send the Escape key as a lone ESC (Konsole 26.08)
-      final wait = _parser.sequenceStarted
+      // for and still send the Escape key as a lone ESC (Konsole 26.08);
+      // but there Alt+key is a CSI u sequence, so ESC and any byte after it
+      // is a sequence cut, and waits long
+      final wait =
+          _parser.sequenceStarted ||
+              (info.kittyKeyboard && _parser.escapeFollowed)
           ? _longEscapeTimeout
           : options.escapeTimeout;
       _escTimer = Timer(wait, () => _parse(_parser.flush));
