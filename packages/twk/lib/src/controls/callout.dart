@@ -70,6 +70,17 @@ import 'status.dart';
 /// [SemanticsRole.alert] for a warning or an error, then what is in it as
 /// it reads that anywhere.
 ///
+/// A rounded frame with a title in italics:
+///
+/// ```dart
+/// Callout.text(
+///   'The build failed.',
+///   kind: StatusKind.error,
+///   borderType: BorderType.rounded,
+///   titleStyle: const Style(attrs: Attr.italic),
+/// )
+/// ```
+///
 /// A warning to dismiss, and a tip with a button:
 ///
 /// ```dart
@@ -105,6 +116,8 @@ final class Callout extends StatelessWidget {
     this.onDismissed,
     this.actions = const [],
     this.style,
+    this.borderType = BorderType.single,
+    this.titleStyle,
   }) : _message = null;
 
   /// A notice of a message, a [Text] that wraps, in a box of [kind].
@@ -117,6 +130,8 @@ final class Callout extends StatelessWidget {
     this.onDismissed,
     this.actions = const [],
     this.style,
+    this.borderType = BorderType.single,
+    this.titleStyle,
   }) : _child = null;
 
   final Widget? _child;
@@ -149,6 +164,15 @@ final class Callout extends StatelessWidget {
   /// The box and the child's text, over the theme's text.
   final Style? style;
 
+  /// The lines of the box: [BorderType.single] by default, a
+  /// [BorderType.rounded] or [BorderType.heavy] frame for an app's look.
+  /// Not used on plain output, which has no box.
+  final BorderType borderType;
+
+  /// Over the kind's color in bold, for the title (and the icon); null
+  /// for those alone.
+  final Style? titleStyle;
+
   /// The title it shows.
   String get _title {
     final name = kind.name;
@@ -159,7 +183,9 @@ final class Callout extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colored = kind.styleIn(theme);
-    final marked = colored.merge(const Style(attrs: Attr.bold));
+    final marked = colored
+        .merge(const Style(attrs: Attr.bold))
+        .merge(titleStyle ?? const Style());
     final icon = this.icon ?? kind.iconIn(theme.glyphs);
     final head = [if (icon.isNotEmpty) icon, _title].join(' ');
     final plain =
@@ -202,7 +228,7 @@ final class Callout extends StatelessWidget {
       final onDismissed = this.onDismissed;
       callout = Box(
         style: text,
-        border: Border.all(style: colored),
+        border: Border.all(type: borderType, style: colored),
         titles: [
           BorderTitle('─ $head ─', style: marked),
           if (onDismissed != null)
