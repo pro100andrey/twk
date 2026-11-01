@@ -58,6 +58,8 @@ final class Glyphs {
     this.warning = '⚠',
     this.checkboxOn = '[x]',
     this.checkboxOff = '[ ]',
+    this.radioOn = '(●)',
+    this.radioOff = '( )',
     this.switchStart = '▐',
     this.switchEnd = '▌',
     this.dot = '●',
@@ -113,6 +115,7 @@ final class Glyphs {
     cross: 'x',
     info: 'i',
     warning: '!',
+    radioOn: '(*)',
     switchStart: '[',
     switchEnd: ']',
     dot: '*',
@@ -177,13 +180,24 @@ final class Glyphs {
   /// A checkbox that is off.
   final String checkboxOff;
 
+  /// A radio button that is chosen, before its label, brackets included:
+  /// `(●)`; [radioOff] has its width. A glyph of three characters or more
+  /// has its first and last for brackets, in the brackets' style and
+  /// what is between in the mark's; one of fewer (`◉`) is all mark.
+  /// `RadioGroup.mark` replaces what is between the brackets.
+  final String radioOn;
+
+  /// A radio button that is not chosen: `( )`. Without brackets, a ring
+  /// as `○`, in the brackets' style.
+  final String radioOff;
+
   /// The left end of a switch's track; the knob is [dot].
   final String switchStart;
 
   /// The right end of a switch's track.
   final String switchEnd;
 
-  /// A filled dot: the chosen radio button, a switch's knob, the step in
+  /// A filled dot: a switch's knob, the step in
   /// hand of a stepper.
   final String dot;
 
@@ -295,6 +309,8 @@ final class Glyphs {
     String? warning,
     String? checkboxOn,
     String? checkboxOff,
+    String? radioOn,
+    String? radioOff,
     String? switchStart,
     String? switchEnd,
     String? dot,
@@ -337,6 +353,8 @@ final class Glyphs {
     warning: warning ?? this.warning,
     checkboxOn: checkboxOn ?? this.checkboxOn,
     checkboxOff: checkboxOff ?? this.checkboxOff,
+    radioOn: radioOn ?? this.radioOn,
+    radioOff: radioOff ?? this.radioOff,
     switchStart: switchStart ?? this.switchStart,
     switchEnd: switchEnd ?? this.switchEnd,
     dot: dot ?? this.dot,
@@ -381,6 +399,8 @@ final class Glyphs {
     warning,
     checkboxOn,
     checkboxOff,
+    radioOn,
+    radioOff,
     switchStart,
     switchEnd,
     dot,

@@ -3,6 +3,7 @@
 library;
 
 import 'package:meta/meta.dart';
+import 'package:twk_core/twk_core.dart' show Attr;
 
 import '../focus/focus.dart';
 import '../framework/framework.dart';
@@ -57,11 +58,13 @@ final class Choice<T> {
 }
 
 /// Radio buttons: [choices], one of which is chosen, each its label after
-/// a mark, `(●)` for the one whose value is [value], `( )` for the others.
+/// a mark, `(●)` for the one whose value is [value], `( )` for the others
+/// (`Glyphs.radioOn` and `Glyphs.radioOff` of the theme).
 ///
 /// The choices go one below another, or side by side along a horizontal
 /// [direction]; [mark] is what is between the parentheses of the one
-/// chosen. One stop of Tab: while it has the focus, Up and Left choose the
+/// chosen, in place of the middle of `Glyphs.radioOn`.
+/// One stop of Tab: while it has the focus, Up and Left choose the
 /// enabled choice before the one chosen, Down and Right the one after,
 /// from the last to the first and back, Home and End the first and the
 /// last; Space and Enter choose the one that shows the focus, the first
@@ -98,11 +101,12 @@ final class Choice<T> {
 /// when null; [disabledStyle] for one that cannot be chosen,
 /// [ThemeData.muted] when null.
 ///
-/// What an app sets: [mark] (`Glyphs.dot` of the theme by default,
-/// `Glyphs.ascii` has `*`), the styles of the mark, the parentheses, the
-/// choice that shows the focus and a disabled one, and [direction]. The
-/// parentheses and the blank of a choice not chosen are always drawn: a
-/// ring and a dot without them (`◉ ○`) is not set here.
+/// What an app sets: the glyphs of the theme, `radioOn` and `radioOff`,
+/// brackets included (`Glyphs.ascii` has `(*)`; `radioOn: '◉'` and
+/// `radioOff: '○'` draw `◉ ○` with no parentheses, the ring in the
+/// brackets' style); [mark], the middle of the chosen one's glyph above
+/// the theme; the styles of the mark, the brackets, the choice that shows
+/// the focus and a disabled one, and [direction].
 ///
 /// A plain look, `(*)` all in the mark's style and the focused choice
 /// reversed: `mark: '*'`, `bracketStyle: const Style()` and
@@ -156,8 +160,9 @@ final class RadioGroup<T> extends StatelessWidget {
   /// See [Focus.autofocus].
   final bool autofocus;
 
-  /// What is between the parentheses of the choice chosen: a character
-  /// one column wide; null for `Glyphs.dot` of the theme.
+  /// What is between the brackets of the choice chosen, a character one
+  /// column wide, in place of the middle of `Glyphs.radioOn` (all of a
+  /// glyph of under three characters); null for the theme's.
   final String? mark;
 
   /// A choice, the theme's text under it.
@@ -280,14 +285,11 @@ final class RadioGroup<T> extends StatelessWidget {
         active: focused,
         child: Text.richLine(
           [
-            ...bracketed(
+            ..._radioSpans(
               theme,
-              '(',
-              on ? mark ?? theme.glyphs.dot : ' ',
-              ')',
+              on ? theme.glyphs.radioOn : theme.glyphs.radioOff,
               on,
               enabled,
-              bracketStyle,
             ),
             Span(' ${choice.label}'),
           ],
@@ -302,5 +304,34 @@ final class RadioGroup<T> extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// [glyph] as spans: of three characters or more, its first and last
+  /// the brackets and what is between the mark (the [mark] given in its
+  /// place while [on]); shorter, all mark. The mark has its style while
+  /// [on] and [enabled]; the brackets, and a short glyph not [on], are
+  /// [bracketStyle] over that.
+  List<Span> _radioSpans(
+    ThemeData theme,
+    String glyph,
+    bool on,
+    bool enabled,
+  ) {
+    final marked = on && enabled ? markStyle(theme) : const Style();
+    final brackets = marked.merge(
+      bracketStyle ?? theme.muted.merge(const Style(attrsOff: Attr.bold)),
+    );
+    final n = glyph.length;
+    if (n < 3) {
+      return [Span(on ? mark ?? glyph : glyph, on ? marked : brackets)];
+    }
+    return [
+      Span(glyph.substring(0, 1), brackets),
+      Span(
+        on ? mark ?? glyph.substring(1, n - 1) : glyph.substring(1, n - 1),
+        marked,
+      ),
+      Span(glyph.substring(n - 1), brackets),
+    ];
   }
 }

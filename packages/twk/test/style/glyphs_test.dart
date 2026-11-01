@@ -58,6 +58,8 @@ void main() {
         all.warning,
         all.checkboxOn,
         all.checkboxOff,
+        all.radioOn,
+        all.radioOff,
         all.switchStart,
         all.switchEnd,
         all.dot,
@@ -163,6 +165,48 @@ void main() {
       expect(t.lines, ['(*) A', '( ) B']);
       await t.pumpWidget(themed(Glyphs.ascii, group(mark: '@')), size: (8, 2));
       expect(t.lines, ['(@) A', '( ) B']);
+    });
+  });
+
+  group('radio marks', () {
+    testTwk('a RadioGroup draws radioOn and radioOff, bracketless too', (
+      t,
+    ) async {
+      Widget group({String? mark}) => RadioGroup<String>(
+        choices: const [Choice('a', 'A'), Choice('b', 'B')],
+        value: 'a',
+        onChanged: (_) {},
+        mark: mark,
+      );
+      final rings = Glyphs.unicode.copyWith(radioOn: '◉', radioOff: '○');
+      await t.pumpWidget(themed(rings, group()), size: (8, 2));
+      expect(t.lines, ['◉ A', '○ B']);
+      // a mark above the set replaces the whole short glyph
+      await t.pumpWidget(themed(rings, group(mark: '@')), size: (8, 2));
+      expect(t.lines, ['@ A', '○ B']);
+      // brackets of the set's own, the mark in the middle
+      final square = Glyphs.unicode.copyWith(radioOn: '[●]', radioOff: '[ ]');
+      await t.pumpWidget(themed(square, group(mark: '@')), size: (8, 2));
+      expect(t.lines, ['[@] A', '[ ] B']);
+    });
+
+    testTwk('the unchosen ring is in the brackets style, the chosen in the '
+        "mark's", (t) async {
+      final rings = Glyphs.unicode.copyWith(radioOn: '◉', radioOff: '○');
+      await t.pumpWidget(
+        themed(
+          rings,
+          RadioGroup<String>(
+            choices: const [Choice('a', 'A'), Choice('b', 'B')],
+            value: 'a',
+            onChanged: (_) {},
+            bracketStyle: const Style(fg: Color.red),
+          ),
+        ),
+        size: (8, 2),
+      );
+      expect(t, styleAt(0, 1, hasFg(Color.red)));
+      expect(t, styleAt(0, 0, isNot(hasFg(Color.red))));
     });
   });
 
