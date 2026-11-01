@@ -723,18 +723,22 @@ What to know:
     `segmented`; colour by level is a `filledStyle` picked from the
     ratio; its width is the room it gets.
   - `Callout`: `kind` (colour and icon), `icon: ''` for none, `title`,
-    `actions`, `style`; `onDismissed` null draws no `[×]`. Its border is
-    always a single line.
+    `actions`, `style`, `borderType` (`.rounded`), `titleStyle`;
+    `onDismissed` null draws no `[×]`.
   - `Button`: chip, `.outlined`, `.filled`, `tall`, the state styles; a
     flat clickable word is `canRequestFocus: false` with a style without
-    a chip. Its label is one string in one style.
-  - `RadioGroup.mark` (`glyphs.dot` by default), the parentheses always
-    drawn; `SegmentedButton`'s `caps`, `showSelectedIcon`; `Select`'s
+    a chip; `Button.rich([key, caption])` a label of spans (a key in its
+    colour, the caption in another).
+  - `RadioGroup`'s marks are the theme's `glyphs.radioOn`/`radioOff`
+    (`(●)`/`( )`; `◉`/`○` without brackets), `mark` over them for one
+    group; `SegmentedButton`'s `caps`, `showSelectedIcon`; `Select`'s
     `popupLook`, `arrowStyle`, `inline`, `rows`; `‹ x ›` is
     `ValueStepper`, chips are `Chip` and `ChipList`.
   - `Dialog`: `title`, `trailing`, `look`, `shadow`, `padding`,
     `maxWidth`, `scrollable`; `showDialog`'s `alignment` and
-    `barrierAlpha: 0` for no dimming. No bare look, no placing at a cell.
+    `barrierAlpha: 0` for no dimming; a bare palette is a `Box` of the
+    app's own in `showDialog`. A menu at a cell is a `ContextMenu` opened
+    with `at:`, a panel by a widget a `Popover`.
   - `CommandPalette`: `look`, `width`, `rows`, `prompt`, `placeholder`,
     `rule`, `bar`, `thumb`, `barrierAlpha`, `hintedKeys`; its ranking is
     the exported `fuzzyMatch`.
