@@ -180,6 +180,7 @@ final class Text extends LeafRenderObjectWidget {
       overflow: overflow,
       maxLines: maxLines,
       align: align,
+      ellipsis: Theme.of(context).glyphs.ellipsis,
     );
     addToSelectionArea(context, paragraph);
     _tellTaps(context, paragraph);
@@ -193,7 +194,8 @@ final class Text extends LeafRenderObjectWidget {
       ..wrap = wrap
       ..overflow = overflow
       ..maxLines = maxLines
-      ..align = align;
+      ..align = align
+      ..ellipsis = Theme.of(context).glyphs.ellipsis;
     _tellTaps(context, renderObject);
   }
 

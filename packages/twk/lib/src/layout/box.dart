@@ -163,6 +163,7 @@ final class _DecoratedBox extends SingleChildRenderObjectWidget {
         border: box.border?._boxBorder(Theme.of(context).glyphs),
         titles: _boxTitles,
         padding: box.padding,
+        ellipsis: Theme.of(context).glyphs.ellipsis,
       );
 
   @override
@@ -174,7 +175,8 @@ final class _DecoratedBox extends SingleChildRenderObjectWidget {
       ..background = box.style?.pen
       ..border = box.border?._boxBorder(Theme.of(context).glyphs)
       ..titles = _boxTitles
-      ..padding = box.padding;
+      ..padding = box.padding
+      ..ellipsis = Theme.of(context).glyphs.ellipsis;
   }
 
   List<BoxTitle> get _boxTitles =>

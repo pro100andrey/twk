@@ -768,6 +768,10 @@ int _columns(TextSegmenter seg, String s) {
 /// start half the room or more ([TextOverflow.ellipsisMiddle]; a path, a
 /// name). [TextOverflow.clip] cuts the end with no ellipsis.
 ///
+/// [ellipsis] is the mark put in place of what is cut, `…` by default; one
+/// of several columns (`...`) takes them from the room, whatever it is made
+/// of, and is left out where it does not fit.
+///
 /// ```dart
 /// final narrow = TextSegmenter();
 /// print(fitText(narrow, 'Warnings (12)', 8)); // Warning…
@@ -778,12 +782,14 @@ int _columns(TextSegmenter seg, String s) {
 /// final cjk = TextSegmenter(ambiguousWidth: 2);
 /// print(fitText(cjk, 'Warnings (12)', 8)); // Warnin…
 /// print(fitText(cjk, 'Warnings (12)', 1)); // W
+/// print(fitText(narrow, 'Warnings (12)', 8, ellipsis: '...')); // Warni...
 /// ```
 String fitText(
   TextSegmenter segmenter,
   String text,
   int width, {
   TextOverflow overflow = TextOverflow.ellipsis,
+  String ellipsis = '\u2026',
 }) {
   if (_columns(segmenter, text) <= width) {
     return text;
@@ -791,9 +797,9 @@ String fitText(
   if (width <= 0) {
     return '';
   }
-  final ellipsis = codePointWidth(0x2026, segmenter.ambiguousWidth);
+  final ellipsisWidth = _columns(segmenter, ellipsis);
   final clip = overflow == TextOverflow.clip;
-  final room = clip || width < ellipsis ? width : width - ellipsis;
+  final room = clip || width < ellipsisWidth ? width : width - ellipsisWidth;
   final graphemes = segmenter.mode == TextMode.graphemes;
   final scan = _widthScan;
   // the clusters: where each ends, in columns
@@ -872,16 +878,16 @@ String fitText(
     return at;
   }
 
-  final mark = clip || width < ellipsis ? '' : '…';
+  final mark = clip || width < ellipsisWidth ? '' : ellipsis;
   switch (overflow) {
     case TextOverflow.ellipsisStart:
       final t = mark.isEmpty ? tail(room) : trimFront(tail(room));
       return '$mark${text.substring(ends[t])}';
-    case TextOverflow.ellipsisMiddle when !clip && width >= ellipsis:
+    case TextOverflow.ellipsisMiddle when !clip && width >= ellipsisWidth:
       final first = trimBack(head((room + 1) >> 1));
       final t = trimFront(tail(room - _sum(cols, 0, first), first));
       final h = trimBack(head(room - _sum(cols, t, cols.length), 0, t));
-      return '${text.substring(0, ends[h])}…${text.substring(ends[t])}';
+      return '${text.substring(0, ends[h])}$ellipsis${text.substring(ends[t])}';
     case TextOverflow.clip:
     case TextOverflow.ellipsis:
     case TextOverflow.ellipsisMiddle:

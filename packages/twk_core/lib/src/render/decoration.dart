@@ -322,6 +322,7 @@ final class RenderDecoratedBox extends RenderObject
     this._border,
     this._titles = const [],
     this._padding = EdgeInsets.zero,
+    this._ellipsis = '\u2026',
     RenderObject? child,
   }) : assert(_onEdges(_titles), _offEdge) {
     _titlesChanged();
@@ -402,6 +403,20 @@ final class RenderDecoratedBox extends RenderObject
     }
   }
 
+  String _ellipsis;
+
+  /// The mark a title too long for its room ends with, `…` by default; one
+  /// of several columns takes them from the room. A new one only repaints
+  /// it.
+  String get ellipsis => _ellipsis;
+  set ellipsis(String e) {
+    if (e != _ellipsis) {
+      _ellipsis = e;
+      _ellipsisCache = null;
+      markNeedsPaint();
+    }
+  }
+
   /// The background; the border's type, its sides unless it has all four,
   /// its pen when the sides share one, and whether it merges; the titles'
   /// texts; the padding.
@@ -468,7 +483,7 @@ final class RenderDecoratedBox extends RenderObject
   var _pens = Int32List(5);
 
   final _lines = _Lines();
-  GlyphRun? _ellipsis;
+  GlyphRun? _ellipsisCache;
 
   /// The cells between the box's edges and its child: a cell for each side
   /// with a border, a row for an edge with titles but no border, and the
@@ -865,7 +880,7 @@ final class RenderDecoratedBox extends RenderObject
       _shapedBy = seg;
       _runs.fillRange(0, _runs.length, null);
     }
-    final e = codePointWidth(0x2026, seg.ambiguousWidth);
+    final e = seg.width(_ellipsis);
     for (var i = 0; i < _titles.length; i++) {
       final shown = _titleAt[3 * i + 2];
       if (shown <= 0) {
@@ -906,18 +921,18 @@ final class RenderDecoratedBox extends RenderObject
         ..run(x, y, run, pen)
         ..restore();
       if (room >= 0) {
-        canvas.run(x + w, y, _ellipsisOf(e), pen);
+        canvas.run(x + w, y, _ellipsisOf(canvas, e), pen);
       }
     }
   }
 
-  GlyphRun _ellipsisOf(int width) {
-    var e = _ellipsis;
+  GlyphRun _ellipsisOf(Canvas canvas, int width) {
+    if (!_keepsEllipsis(_ellipsis)) {
+      return canvas.shape(_ellipsis);
+    }
+    var e = _ellipsisCache;
     if (e == null || e.width != width) {
-      e = _ellipsis = GlyphRun(
-        Uint32List(1)..[0] = width == 2 ? 0x2026 | kWide : 0x2026,
-        width,
-      );
+      e = _ellipsisCache = _ellipsisGlyphs(canvas, _ellipsis, width);
     }
     return e;
   }

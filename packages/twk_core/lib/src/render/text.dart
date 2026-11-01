@@ -712,6 +712,37 @@ int _room(int least, int had) {
   return least > more ? least : more;
 }
 
+/// The glyphs of [ellipsis], [width] columns as the canvas's segmenter
+/// measures them: the words themselves for one code point and for ASCII
+/// text, which can be kept; anything else is shaped by [canvas] (its ids
+/// may be others' after a sweep, so it is shaped again on each paint).
+GlyphRun _ellipsisGlyphs(Canvas canvas, String ellipsis, int width) {
+  if (!_keepsEllipsis(ellipsis)) {
+    return canvas.shape(ellipsis);
+  }
+  if (ellipsis.length == 1) {
+    final c = ellipsis.codeUnitAt(0);
+    return GlyphRun(Uint32List(1)..[0] = width == 2 ? c | kWide : c, width);
+  }
+  return GlyphRun(Uint32List.fromList(ellipsis.codeUnits), width);
+}
+
+// whether the glyph words of [ellipsis] are its code units, so its run
+// can be kept
+bool _keepsEllipsis(String ellipsis) {
+  if (ellipsis.length == 1) {
+    return !_isHighSurrogate(ellipsis.codeUnitAt(0)) &&
+        !_isLowSurrogate(ellipsis.codeUnitAt(0));
+  }
+  for (var i = 0; i < ellipsis.length; i++) {
+    final c = ellipsis.codeUnitAt(i);
+    if (c < 0x20 || c >= 0x7F) {
+      return false;
+    }
+  }
+  return ellipsis.isNotEmpty;
+}
+
 /// Text in spans, each drawn with its own pen, broken into lines that fit
 /// its width as [wrap] says, at most [maxLines] of them, each placed as
 /// [align] says; where text is cut off, [overflow] says how it shows. It is
@@ -775,6 +806,7 @@ final class RenderParagraph extends RenderObject {
     this._overflow = TextOverflow.clip,
     this._maxLines,
     this._align = TextAlign.left,
+    this._ellipsis = '\u2026',
   }) : assert((_maxLines ?? 1) > 0, 'one line or more');
 
   List<(String, Pen)> _spans;
@@ -857,6 +889,22 @@ final class RenderParagraph extends RenderObject {
     }
   }
 
+  String _ellipsis;
+
+  /// The mark that stands for text cut off, `…` by default; `...` is
+  /// three columns, which the cut takes from the room as it does the
+  /// columns of `…`. A new one lays it out again.
+  String get ellipsis => _ellipsis;
+  set ellipsis(String e) {
+    if (e != _ellipsis) {
+      _ellipsis = e;
+      _ellipsisCache = null;
+      // its width is measured as the spans are split
+      _shapedMode = null;
+      _linesChanged();
+    }
+  }
+
   void _linesChanged() {
     _linesAt = -1;
     _rawAt = -1;
@@ -924,7 +972,7 @@ final class RenderParagraph extends RenderObject {
   var _internFrom = 0;
   var _internTo = 0;
   var _ellipsisWidth = 1;
-  GlyphRun? _ellipsis;
+  GlyphRun? _ellipsisCache;
 
   // the texts of the spans as split, and whether they changed since
   // (_resplit)
@@ -1663,10 +1711,9 @@ final class RenderParagraph extends RenderObject {
     _internedIn = null;
     _internFrom = 0;
     _internTo = 0;
-    // the ellipsis is one code point: its run holds only its width
-    final ellipsisWidth = codePointWidth(0x2026, seg.ambiguousWidth);
+    final ellipsisWidth = seg.width(_ellipsis);
     if (ellipsisWidth != _ellipsisWidth) {
-      _ellipsis = null;
+      _ellipsisCache = null;
       _ellipsisWidth = ellipsisWidth;
     }
     var units = 0;
@@ -2888,6 +2935,7 @@ final class RenderParagraph extends RenderObject {
       overflow: _overflow,
       maxLines: _maxLines,
       align: _align,
+      ellipsis: _ellipsis,
     ).._split(seg);
     if (_wordBreaks) {
       fresh._findWordBreaks();
@@ -3158,7 +3206,7 @@ final class RenderParagraph extends RenderObject {
         case _fromOrdered:
           canvas.runRange(x, y, _runGlyphs, seg[at + 5], seg[at + 6], pen);
         case _fromEllipsis:
-          canvas.run(x, y, _ellipsisRun, pen);
+          canvas.run(x, y, _ellipsisRunOn(canvas), pen);
         default:
           canvas.fill(x, y, seg[at + 3], 1, pen);
       }
@@ -3465,13 +3513,9 @@ final class RenderParagraph extends RenderObject {
     _addClusters(_lines[at + 2], _lines[at + 3], x, y, 0, 0);
   }
 
-  GlyphRun get _ellipsisRun {
-    final e = _ellipsisWidth;
-    return _ellipsis ??= GlyphRun(
-      Uint32List(1)..[0] = e == 2 ? 0x2026 | kWide : 0x2026,
-      e,
-    );
-  }
+  GlyphRun _ellipsisRunOn(Canvas canvas) => _keepsEllipsis(_ellipsis)
+      ? _ellipsisCache ??= _ellipsisGlyphs(canvas, _ellipsis, _ellipsisWidth)
+      : canvas.shape(_ellipsis);
 
   /// The column a line that leaves [free] columns starts at, as [align]
   /// places it in a paragraph that runs right to left when [rtl].
