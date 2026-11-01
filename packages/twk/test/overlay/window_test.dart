@@ -1466,7 +1466,8 @@ void main() {
     final top = app.lines().first;
     await app.quit();
     c.dispose();
-    // the corner is + here; the title cut at …, then _ □ × and the corner
-    expect(top, endsWith('… _ □ × +'));
+    // the corner is + here; the title cut at …, then the buttons as ASCII
+    // (□ and × are two columns here) and the corner
+    expect(top, endsWith('… _ + x +'));
   });
 }

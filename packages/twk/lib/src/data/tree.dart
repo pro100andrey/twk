@@ -35,7 +35,7 @@ import '../layout/flex.dart';
 import '../layout/one_child.dart';
 import '../scroll/list_view.dart';
 import '../scroll/scrollable.dart' show ScrollPhysics;
-import '../style/glyphs.dart' show cellRune;
+import '../style/glyphs.dart' show cellRune, textMark;
 import '../style/style.dart';
 import '../text/widgets.dart';
 import 'chart_glyphs.dart';

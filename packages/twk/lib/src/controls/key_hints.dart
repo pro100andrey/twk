@@ -10,6 +10,7 @@ import '../gestures/mouse.dart' show Listener;
 import '../layout/basic.dart' show SizedBox;
 import '../layout/flex.dart';
 import '../overlay/dialog.dart';
+import '../style/glyphs.dart' show textMark;
 import '../style/style.dart';
 import '../text/hit_row.dart' show segmenterOf;
 import '../text/widgets.dart';
@@ -333,7 +334,7 @@ final class _KeyHintsBarState extends State<KeyHintsBar> {
       pairs == null
           ? _manager?.activeKeys ?? const <ActiveKey>[]
           : _fixedKeys(pairs),
-      theme.glyphs,
+      _fitArrows(context, theme.glyphs),
       keyLabel: widget.keyLabel,
       joinKeys: widget.joinKeys,
       showUnhinted: widget.showUnhinted,
@@ -428,7 +429,7 @@ final class _KeyHintsBarState extends State<KeyHintsBar> {
 /// )
 /// ```
 Future<void> showKeyHelp(BuildContext context, {String title = 'Keys'}) {
-  final glyphs = Theme.of(context).glyphs;
+  final glyphs = _fitArrows(context, Theme.of(context).glyphs);
   final active = AppBinding.of(context).focusManager.activeKeys;
   final byLayer = <int, List<ActiveKey>>{};
   for (final key in active) {
@@ -485,5 +486,42 @@ Future<void> showKeyHelp(BuildContext context, {String title = 'Keys'}) {
         ),
       );
     },
+  );
+}
+
+/// [glyphs] with the four arrows a hint names keys by as [textMark] fits
+/// them for [context]: one cell each, else [Glyphs.ascii]'s. [glyphs]
+/// itself where they all fit.
+Glyphs _fitArrows(BuildContext context, Glyphs glyphs) {
+  final left = textMark(
+    context,
+    'arrowLeft',
+    glyphs.arrowLeft,
+    Glyphs.ascii.arrowLeft,
+  );
+  final right = textMark(
+    context,
+    'arrowRight',
+    glyphs.arrowRight,
+    Glyphs.ascii.arrowRight,
+  );
+  final up = textMark(context, 'arrowUp', glyphs.arrowUp, Glyphs.ascii.arrowUp);
+  final down = textMark(
+    context,
+    'arrowDown',
+    glyphs.arrowDown,
+    Glyphs.ascii.arrowDown,
+  );
+  if (left == glyphs.arrowLeft &&
+      right == glyphs.arrowRight &&
+      up == glyphs.arrowUp &&
+      down == glyphs.arrowDown) {
+    return glyphs;
+  }
+  return glyphs.copyWith(
+    arrowLeft: left,
+    arrowRight: right,
+    arrowUp: up,
+    arrowDown: down,
   );
 }

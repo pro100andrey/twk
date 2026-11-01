@@ -8,6 +8,7 @@ import '../controls/pressable.dart';
 import '../focus/focus.dart';
 import '../framework/framework.dart';
 import '../semantics/semantics.dart';
+import '../style/glyphs.dart' show textMark;
 import '../style/style.dart';
 import '../text/hit_row.dart';
 
@@ -362,7 +363,13 @@ final class _PaginationState extends State<Pagination> {
       add(_Kind.range, ' ($items)', -1);
     }
     if (_typed.isNotEmpty) {
-      add(_Kind.typed, ' ${g.arrowRight} $_typed', -1);
+      final arrow = textMark(
+        context,
+        'arrowRight',
+        g.arrowRight,
+        Glyphs.ascii.arrowRight,
+      );
+      add(_Kind.typed, ' $arrow $_typed', -1);
     }
     return parts;
   }

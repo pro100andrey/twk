@@ -55,15 +55,17 @@ void main() {
     expect(seen, hasLength(4));
   });
 
-  test('on a terminal that takes the arrows for two columns, a click '
-      'presses the key drawn under it', () async {
+  test('on a terminal that takes the arrows for two columns, the bar names '
+      'them in ASCII and a click presses the key drawn under it', () async {
     final seen = <String>[];
     final app = await WideApp.start(bar(seen), width: 50, height: 1);
-    // ctrl+s save, then ↑↓ in columns 14-17, move, then g g top from 26
-    await app.click(17, 0);
-    await app.click(32, 0);
+    // ctrl+s save, then ^v in columns 14-15, move, then g g top from 24
+    await app.click(15, 0);
+    await app.click(29, 0);
     await app.click(14, 0);
+    final lines = app.lines();
     await app.quit();
+    expect(lines, ['ctrl+s save   ^v move   g g top']);
     expect(seen, ['down', 'top', 'up']);
   });
 

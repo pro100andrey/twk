@@ -374,7 +374,8 @@ void main() {
       expect(warnings(t), hasLength(1));
     });
 
-    testTwk('in a window bar the buttons are measured in cells', (t) async {
+    testTwk('a window bar button two cells wide is the ASCII one, the title '
+        'cut before it', (t) async {
       await t.pumpWidget(
         themed(
           Glyphs.unicode.copyWith(close: '🔽'),
@@ -398,8 +399,9 @@ void main() {
         size: (20, 4),
       );
       await t.pump();
-      // the title ends before the two columns of the button and its blanks
-      expect(t.lines.first, '  A long t… 🔽');
+      // the title ends before the one column of the ASCII button
+      expect(t.lines.first, '  A long ti… x');
+      expect(warnings(t), hasLength(1));
     });
   });
 }

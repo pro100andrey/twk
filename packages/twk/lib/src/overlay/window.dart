@@ -37,7 +37,7 @@ import '../layout/shadow.dart';
 import '../layout/stack.dart';
 import '../semantics/semantics.dart';
 import '../style/color_mix.dart';
-import '../style/glyphs.dart' show cellRune, lineMark;
+import '../style/glyphs.dart' show cellRune, lineMark, textMark;
 import '../style/style.dart';
 import '../text/hit_row.dart' show segmenterOf;
 import '../text/widgets.dart';
@@ -980,15 +980,38 @@ final class _Frame extends StatelessWidget {
     final buttons = <(String, VoidCallback)>[
       if (window.minimisable)
         (
-          raised ? lineMark(theme.glyphs, null) : theme.glyphs.minimise,
+          raised
+              ? lineMark(theme.glyphs, null)
+              : textMark(
+                  context,
+                  'minimise',
+                  theme.glyphs.minimise,
+                  Glyphs.ascii.minimise,
+                ),
           () => layer._minimise(slot),
         ),
       if (window.maximisable)
         (
-          c.maximised ? theme.glyphs.restore : theme.glyphs.maximise,
+          c.maximised
+              ? textMark(
+                  context,
+                  'restore',
+                  theme.glyphs.restore,
+                  Glyphs.ascii.restore,
+                )
+              : textMark(
+                  context,
+                  'maximise',
+                  theme.glyphs.maximise,
+                  Glyphs.ascii.maximise,
+                ),
           () => layer._toggleMaximised(slot),
         ),
-      if (onClose != null) (theme.glyphs.close, onClose),
+      if (onClose != null)
+        (
+          textMark(context, 'close', theme.glyphs.close, Glyphs.ascii.close),
+          onClose,
+        ),
     ];
     // each button its mark's cells and a blank, after one blank
     final segmenter = segmenterOf(context);

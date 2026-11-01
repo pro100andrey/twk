@@ -41,6 +41,7 @@ import '../layout/one_child.dart';
 import '../layout/stack.dart';
 import '../platform/platform.dart'
     show FileBytes, FileReset, TailEvent, tailFile;
+import '../style/glyphs.dart' show textMark;
 import '../style/style.dart';
 import '../text/smartcase.dart';
 import '../text/widgets.dart';
@@ -1285,6 +1286,14 @@ final class _LogViewState extends State<LogView> {
     return KeyBindings(
       _keys,
       hints: _keyHints,
+    final arrow = fresh > 0
+        ? textMark(
+            context,
+            'arrowDown',
+            theme.glyphs.arrowDown,
+            Glyphs.ascii.arrowDown,
+          )
+        : '';
       child: Scrollbar(
         visibility: widget.scrollbar,
         child: Stack(
@@ -1298,7 +1307,7 @@ final class _LogViewState extends State<LogView> {
                 child: GestureDetector(
                   onTap: (_) => c.follow(),
                   child: Text(
-                    ' ${theme.glyphs.arrowDown} $fresh new '
+                    ' $arrow $fresh new '
                     "${fresh == 1 ? 'line' : 'lines'} ",
                     style: theme.surface.merge(theme.primary),
                     wrap: TextWrap.none,
