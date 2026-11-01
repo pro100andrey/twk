@@ -124,6 +124,13 @@ final class LogRecord {
 /// The zone value under which [log] finds the sink of the app it runs in.
 const logSinkKey = #twk_core.LogSink;
 
+/// The zone rule for `print`: a line printed becomes an info record of
+/// [sink]. The one rule of [LogSink.run] and of the zone a [TwkApp] runs in.
+ZoneSpecification printToLog(LogSink sink) => ZoneSpecification(
+  print: (_, _, _, line) =>
+      sink.add(LogRecord(DateTime.now(), LogLevel.info, line)),
+);
+
 /// The records of one app: the last [capacity] of them kept in a ring for
 /// listeners that come later (a console overlay), every one passed to the
 /// listeners as it comes and, with a [path], appended to that file; while
@@ -189,10 +196,7 @@ final class LogSink {
   R run<R>(R Function() body) => runZoned(
     body,
     zoneValues: {logSinkKey: this},
-    zoneSpecification: ZoneSpecification(
-      print: (_, _, _, line) =>
-          add(LogRecord(DateTime.now(), LogLevel.info, line)),
-    ),
+    zoneSpecification: printToLog(this),
   );
 
   /// Keeps [record], dropping the oldest when the ring is full, writes it
