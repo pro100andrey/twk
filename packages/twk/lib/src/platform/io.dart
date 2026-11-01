@@ -172,8 +172,9 @@ Stream<TailEvent> tailFile(
               return;
             }
             out.add(FileBytes(bytes));
+            // told: a read that fails further on goes on from here
+            position += bytes.length;
           }
-          position = end;
         }
       } while (again && !cancelled);
     } on FileSystemException {

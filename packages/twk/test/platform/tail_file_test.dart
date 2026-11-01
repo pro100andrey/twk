@@ -125,6 +125,28 @@ void main() {
     }, (e, _) => errors.add(e));
     expect(errors, isEmpty);
   });
+
+  test('a read that fails midway is not told again by the next look: the '
+      'chunks already told are not read twice', () async {
+    File(path).writeAsStringSync('first\nsecond\n');
+    final inner = File(path);
+    final told = <String>[];
+    final subscription = clock.run(
+      () => IOOverrides.runZoned(
+        () => tailFile(path, fromEnd: false, poll: poll).listen(
+          (e) => told.add(switch (e) {
+            FileBytes(:final bytes) => String.fromCharCodes(bytes),
+            FileReset() => 'reset',
+          }),
+        ),
+        createFile: (p) => _FailsMidway(inner),
+      ),
+    );
+    addTearDown(subscription.cancel);
+    await holds(told, ['first\n', 'second\n']);
+    await clock.elapse(poll);
+    expect(told, ['first\n', 'second\n']);
+  });
 }
 
 /// A file whose length is `answer`, when it comes.
@@ -156,4 +178,34 @@ class _SlowLength implements File {
   @override
   dynamic noSuchMethod(Invocation invocation) =>
       throw UnimplementedError('${invocation.memberName}');
+}
+
+/// A file whose first read tells 'first\n' and then fails, as one rotated
+/// away midway; the next ones read from where they are asked to.
+class _FailsMidway extends _SlowLength {
+  _FailsMidway(File file) : super(file, Future.value(0));
+
+  var _failed = false;
+
+  @override
+  Future<int> length() => _file.length();
+
+  @override
+  Stream<List<int>> openRead([int? start, int? end]) {
+    if (_failed) {
+      // not _file.openRead: it opens the name again, through the override
+      return Stream.value(_file.readAsBytesSync().sublist(start ?? 0, end));
+    }
+    _failed = true;
+    return Stream.fromIterable([
+      'first\n'.codeUnits,
+    ]).concatError(const FileSystemException('gone'));
+  }
+}
+
+extension on Stream<List<int>> {
+  Stream<List<int>> concatError(Object error) async* {
+    yield* this;
+    throw error;
+  }
 }
