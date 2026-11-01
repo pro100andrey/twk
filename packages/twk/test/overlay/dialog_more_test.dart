@@ -62,7 +62,31 @@ void main() {
     );
     expect(
       t,
-      matchesScreen('┌ T ─────┐\n│    2/5 │\n│ abcdef │\n└────────┘'),
+      matchesScreen('┌ T ─ 2/5 ─┐\n│ abcdef   │\n└──────────┘'),
+    );
+  });
+
+  testTwk('a bordered dialog is as tall with trailing as without, and as '
+      'wide as title and trailing need on the edge', (t) async {
+    await t.pumpWidget(
+      const Align(
+        alignment: Alignment.topLeft,
+        child: Dialog(
+          look: PanelLook.bordered,
+          title: 'Title',
+          trailing: Text('2/5'),
+          child: Text('ab'),
+        ),
+      ),
+      size: (20, 5),
+    );
+    expect(
+      t,
+      matchesScreen(
+        '┌ Title ─ 2/5 ─┐\n'
+        '│ ab           │\n'
+        '└──────────────┘',
+      ),
     );
   });
 

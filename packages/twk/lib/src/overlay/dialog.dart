@@ -7,6 +7,7 @@
 library;
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:twk_core/twk_core.dart'
     show
@@ -36,6 +37,7 @@ import '../navigation/navigator.dart';
 import '../scroll/single_child_scroll_view.dart';
 import '../semantics/semantics.dart';
 import '../style/style.dart';
+import '../text/hit_row.dart' show segmenterOf;
 import '../text/widgets.dart';
 import 'barrier.dart';
 import 'layer.dart';
@@ -263,9 +265,9 @@ final class Dialog extends StatelessWidget {
   /// What is at the right end of the title row, after [title]: a counter
   /// such as `2/5 ←→`, a close hint. In the raised look the row is the
   /// first inside, [title] to the left of it (nothing to the left when
-  /// [title] is null); in the bordered look [title] stays on the border
-  /// and [trailing] is a row of its own at the top inside, at the right.
-  /// Null for none.
+  /// [title] is null); in the bordered look it is on the top border at the
+  /// right, as [title] is at the left, the box no taller for it. Null for
+  /// none.
   final Widget? trailing;
 
   /// Whether [child] is shown in a `SingleChildScrollView` that is bounded
@@ -292,6 +294,83 @@ final class Dialog extends StatelessWidget {
   /// `DescriptionList`, a [Row] with an [Expanded]) makes the dialog that
   /// wide.
   final int? maxWidth;
+
+  /// The bordered look: [title] and [trailing] both on the top edge, as a
+  /// `Callout` has its close mark, the box as tall as it is without them.
+  /// [trailing] is in a blank cell on either side, one `─` from the
+  /// corner; a zero-height row as wide as the edge needs keeps the box
+  /// from being narrower than the two together.
+  Widget _bordered(
+    BuildContext context,
+    ThemeData theme,
+    String? title,
+    Widget? trailing,
+    Widget content,
+  ) {
+    final segmenter = segmenterOf(context);
+    final box = Box(
+      style: theme.surface.merge(theme.text),
+      border: Border.all(style: theme.border),
+      titles: [
+        if (title != null) BorderTitle(' $title ', style: theme.text),
+      ],
+      padding: padding,
+      child: trailing == null && !scrollable
+          ? child
+          : IntrinsicWidth(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (trailing != null)
+                    // the edge: corner, title, `─`, blank, trailing, blank,
+                    // `─`, corner; less the box's border and padding
+                    SizedBox(
+                      height: 0,
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: math.max(
+                              0,
+                              (title == null
+                                      ? 0
+                                      : segmenter.width(' $title ')) +
+                                  2 -
+                                  padding.horizontal,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.x(1),
+                            child: trailing,
+                          ),
+                        ],
+                      ),
+                    ),
+                  content,
+                ],
+              ),
+            ),
+    );
+    if (trailing == null) {
+      return box;
+    }
+    return Stack(
+      fit: StackFit.passthrough,
+      children: [
+        box,
+        Positioned(
+          top: 0,
+          right: 2,
+          // blank cells either side, which cover the edge's line
+          child: Box(
+            style: theme.surface.merge(theme.text),
+            padding: const EdgeInsets.x(1),
+            child: trailing,
+          ),
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -367,31 +446,7 @@ final class Dialog extends StatelessWidget {
                 ),
               ),
       ),
-      PanelLook.bordered => Box(
-        style: theme.surface.merge(theme.text),
-        border: Border.all(style: theme.border),
-        titles: [
-          if (title != null) BorderTitle(' $title ', style: theme.text),
-        ],
-        padding: padding,
-        child: trailing == null && !scrollable
-            ? child
-            : IntrinsicWidth(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (trailing != null)
-                      Align(
-                        alignment: Alignment.centerRight,
-                        heightFactor: 1,
-                        child: trailing,
-                      ),
-                    content,
-                  ],
-                ),
-              ),
-      ),
+      PanelLook.bordered => _bordered(context, theme, title, trailing, content),
     };
     final maxWidth = this.maxWidth;
     final sized = maxWidth == null
