@@ -221,6 +221,7 @@ final class _ValueStepperState<T> extends State<ValueStepper<T>> {
       segmenter,
       index < 0 ? '' : _values[index].label,
       widest < room ? widest : room,
+      ellipsis: theme.glyphs.ellipsis,
     );
     // a muted arrow at an end, which does nothing and is not lit
     Style arrow(int target) => !enabled || _target(target * 2 - 1) >= 0

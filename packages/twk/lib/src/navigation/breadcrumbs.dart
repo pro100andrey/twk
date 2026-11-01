@@ -406,6 +406,6 @@ List<(int, List<int>, String)> _fit(
   final room = n > 1 ? width - gap - sep : width;
   return [
     if (n > 1) (0, [for (var i = 0; i < n - 1; i++) i], ellipsis),
-    (n - 1, const <int>[], fitText(segmenter, last, room)),
+    (n - 1, const <int>[], fitText(segmenter, last, room, ellipsis: ellipsis)),
   ];
 }

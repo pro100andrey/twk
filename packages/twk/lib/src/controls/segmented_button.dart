@@ -303,6 +303,7 @@ final class _SegmentedButtonState<T> extends State<SegmentedButton<T>> {
           segmenter.width(close) -
           (n - 1) * segmenter.width(theme.glyphs.separator) -
           [for (final m in marks) 2 + segmenter.width(m)].sum,
+      theme.glyphs.ellipsis,
     );
     final row = theme.text.merge(widget.style ?? const Style());
     final lines = row.merge(theme.border);
@@ -342,11 +343,16 @@ final class _SegmentedButtonState<T> extends State<SegmentedButton<T>> {
   }
 }
 
-/// [labels] cut off with `…` to fit [room] columns between them as
+/// [labels] cut off with [ellipsis] to fit [room] columns between them as
 /// [segmenter] measures them, evenly: those narrower than an even share as
 /// they are, what they leave shared by the others, each one column at
 /// least.
-List<String> _fit(TextSegmenter segmenter, List<String> labels, int room) {
+List<String> _fit(
+  TextSegmenter segmenter,
+  List<String> labels,
+  int room,
+  String ellipsis,
+) {
   final widths = [for (final l in labels) segmenter.width(l)];
   if (widths.sum <= room) {
     return labels;
@@ -374,7 +380,7 @@ List<String> _fit(TextSegmenter segmenter, List<String> labels, int room) {
   }
   return [
     for (var i = 0; i < labels.length; i++)
-      fitText(segmenter, labels[i], cut[i]),
+      fitText(segmenter, labels[i], cut[i], ellipsis: ellipsis),
   ];
 }
 

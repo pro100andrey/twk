@@ -1132,7 +1132,12 @@ final class _RenderProgressList extends RenderObject {
         canvas.text(
           x,
           y,
-          fitText(segmenter, task.label, labelW),
+          fitText(
+            segmenter,
+            task.label,
+            labelW,
+            ellipsis: _frames.glyphs.ellipsis,
+          ),
           status == TaskStatus.skipped ? mutedPen : basePen,
         );
         x += labelW;
@@ -1189,7 +1194,12 @@ final class _RenderProgressList extends RenderObject {
       canvas.text(
         0,
         rows.length,
-        fitText(segmenter, '+$_more more', width),
+        fitText(
+          segmenter,
+          '+$_more more',
+          width,
+          ellipsis: _frames.glyphs.ellipsis,
+        ),
         mutedPen,
       );
     }

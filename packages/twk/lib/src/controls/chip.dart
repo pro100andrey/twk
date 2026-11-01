@@ -426,6 +426,7 @@ final class _ChipListState<T> extends State<ChipList<T>> {
         segmenter,
         _chips[i].label,
         (width - around).clamp(1, 1 << 30),
+        ellipsis: glyphs.ellipsis,
       );
       labels.add(label);
       widths.add(

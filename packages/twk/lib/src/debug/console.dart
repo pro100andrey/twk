@@ -877,6 +877,7 @@ final class RenderConsolePanel extends RenderObject {
                   frame.location,
                   most,
                   overflow: TextOverflow.ellipsisStart,
+                  ellipsis: _theme.glyphs.ellipsis,
                 )
               : frame.location;
           final x = 3 + canvas.text(3, y, place, at.penIn(styles));
