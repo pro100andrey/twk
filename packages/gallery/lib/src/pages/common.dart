@@ -221,10 +221,8 @@ abstract base class TimedState<W extends StatefulWidget> extends State<W> {
   }
 }
 
-/// Where a cycle stands: on or off, since when, from which value, the
-/// value the option last had, and the value it was asked to take, which a
-/// build before the ask lands (another of the same frame) does not see yet:
-/// a value that is neither was chosen by hand.
+/// Where a cycle stands: on or off, since when, from which value, and
+/// the value the option last had.
 final class Drive {
   Drive({required this.on, required this.since, required this.from})
     : last = from;
@@ -233,8 +231,4 @@ final class Drive {
   Duration since;
   int from;
   int last;
-  int? asked;
-
-  /// Whether the option's value [c] was chosen by hand.
-  bool byHand(int c) => c != last && c != asked;
 }

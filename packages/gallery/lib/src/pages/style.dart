@@ -471,7 +471,7 @@ final class _ThemePageState extends State<_ThemePage> {
     final born = kept['born'] as Duration? ?? (_motion.frozen ? .zero : now);
     kept['born'] = born;
     var d = kept['drive'] as Drive?;
-    if (on && d != null && d.on && d.byHand(c)) {
+    if (on && d != null && d.on && c != d.last) {
       // a preset chosen by hand while it cycles: the pick stays
       scheduleMicrotask(() => control.setOption('cycle', false));
       on = false;
@@ -494,13 +494,11 @@ final class _ThemePageState extends State<_ThemePage> {
         d.since + const Duration(milliseconds: _cycle) * (steps + 1),
       );
     }
-    d
-      ..last = c
-      ..asked = null;
+    d.last = c;
     if (on && i != c) {
       final key = _presets[i].key;
       scheduleMicrotask(() => control.setOption('theme', key));
-      d.asked = i;
+      d.last = i;
     }
     _motion.end();
     final preset = _presets[i];
