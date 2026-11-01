@@ -7,6 +7,8 @@ import 'package:twk_core/twk_core.dart'
     show MouseTracking, MouseTrackingBackend;
 import 'package:twk_test/twk_test.dart';
 
+import '../text/ambiguous.dart';
+
 MouseTracking tracking(TwkTester t) =>
     (t.binding.twkApp.terminal as MouseTrackingBackend).mouseTracking;
 
@@ -51,6 +53,18 @@ void main() {
     // the blanks between entries press nothing
     await t.click(at(t, 'save') + 6, 0);
     expect(seen, hasLength(4));
+  });
+
+  test('on a terminal that takes the arrows for two columns, a click '
+      'presses the key drawn under it', () async {
+    final seen = <String>[];
+    final app = await WideApp.start(bar(seen), width: 50, height: 1);
+    // ctrl+s save, then ↑↓ in columns 14-17, move, then g g top from 26
+    await app.click(17, 0);
+    await app.click(32, 0);
+    await app.click(14, 0);
+    await app.quit();
+    expect(seen, ['down', 'top', 'up']);
   });
 
   testTwk('a bar that is not pressable has the terminal report no mouse', (

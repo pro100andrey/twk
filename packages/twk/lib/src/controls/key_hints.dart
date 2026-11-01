@@ -1,8 +1,7 @@
 /// What can be pressed now: [KeyHintsBar].
 library;
 
-import 'package:twk_core/twk_core.dart'
-    show Attr, KeyCode, RenderParagraph, stringWidth;
+import 'package:twk_core/twk_core.dart' show Attr, KeyCode, RenderParagraph;
 
 import '../binding/app_binding.dart' show AppBinding;
 import '../focus/focus.dart';
@@ -12,6 +11,7 @@ import '../layout/basic.dart' show SizedBox;
 import '../layout/flex.dart';
 import '../overlay/dialog.dart';
 import '../style/style.dart';
+import '../text/hit_row.dart' show segmenterOf;
 import '../text/widgets.dart';
 import 'hand.dart';
 
@@ -318,13 +318,14 @@ final class _KeyHintsBarState extends State<KeyHintsBar> {
     final keyStyle =
         widget.keyStyle ?? theme.text.merge(const Style(attrs: Attr.bold));
     final hintStyle = widget.hintStyle ?? theme.muted;
+    final segmenter = segmenterOf(context);
     final spans = <Span>[];
     // the columns a click presses keys at: from, to, the key
     final targets = <(int, int, ActiveKey)>[];
     var x = 0;
     void add(Span span) {
       spans.add(span);
-      x += stringWidth(span.text);
+      x += segmenter.width(span.text);
     }
 
     final pairs = widget._pairs;
@@ -441,10 +442,11 @@ Future<void> showKeyHelp(BuildContext context, {String title = 'Keys'}) {
     // not built until the dialog is, so it is named here, as it is there
     [(KeyHintsBar.signs(KeyCombo.parse('escape'), glyphs), 'close')],
   ].where((e) => e.isNotEmpty).toList();
+  final segmenter = segmenterOf(context);
   var widest = 0;
   for (final entries in layers) {
     for (final (keys, _) in entries) {
-      final w = stringWidth(keys);
+      final w = segmenter.width(keys);
       if (w > widest) {
         widest = w;
       }
