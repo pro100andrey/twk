@@ -116,6 +116,6 @@ void main() {
 
   test('formatBytes is decimal when no units are given', () {
     expect(formatBytes(1024), '1.0 kB');
-    expect(formatBytes(1536, units: ByteUnits.decimal), '1.5 kB');
+    expect(formatBytes(1536), '1.5 kB');
   });
 }

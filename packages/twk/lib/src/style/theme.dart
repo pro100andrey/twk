@@ -18,6 +18,7 @@ export 'glyphs.dart'
         buttonEdgeMarks,
         cellRune,
         checkboxMarks,
+        lineMark,
         optionalCellRune,
         radioMarks,
         switchMarks,

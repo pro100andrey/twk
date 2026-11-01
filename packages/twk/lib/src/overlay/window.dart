@@ -37,7 +37,7 @@ import '../layout/shadow.dart';
 import '../layout/stack.dart';
 import '../semantics/semantics.dart';
 import '../style/color_mix.dart';
-import '../style/glyphs.dart' show cellRune;
+import '../style/glyphs.dart' show cellRune, lineMark;
 import '../style/style.dart';
 import '../text/hit_row.dart' show segmenterOf;
 import '../text/widgets.dart';

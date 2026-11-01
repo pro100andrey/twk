@@ -31,6 +31,7 @@ import '../layout/basic.dart';
 import '../layout/box.dart';
 import '../layout/flex.dart';
 import '../semantics/semantics.dart';
+import '../style/glyphs.dart' show lineMark;
 import '../style/style.dart';
 import '../text/hit_row.dart';
 import '../text/widgets.dart';
