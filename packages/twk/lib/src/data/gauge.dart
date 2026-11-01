@@ -253,17 +253,17 @@ abstract base class _RenderGaugeBase extends RenderObject {
     this._label,
     this._percentage,
     this._style,
-    this._set,
+    this._glyphs,
   );
 
-  Glyphs _set;
+  Glyphs _glyphs;
 
   /// The theme's marks: the line of a [LineGauge] when its type is null,
   /// the bar of a [Gauge] where they have no partial blocks.
-  Glyphs get glyphs => _set;
+  Glyphs get glyphs => _glyphs;
   set glyphs(Glyphs g) {
-    if (g != _set) {
-      _set = g;
+    if (g != _glyphs) {
+      _glyphs = g;
       markNeedsPaint();
     }
   }
@@ -319,7 +319,7 @@ abstract base class _RenderGaugeBase extends RenderObject {
     }
   }
 
-  final _glyphs = ChartGlyphs();
+  final _chartGlyphs = ChartGlyphs();
 
   @override
   bool get isRepaintBoundary => true;
@@ -376,7 +376,7 @@ final class RenderGauge extends _RenderGaugeBase {
     final base = const Style(fg: Color.defaultColor).merge(_style);
     final pen = base.penIn(canvas.styles);
     canvas.fill(0, 0, width, height, pen);
-    final g = _glyphs..use(canvas.segmenter, _set);
+    final g = _chartGlyphs..use(canvas.segmenter, _glyphs);
     // the cells filled whole, which the label shows swapped over
     final full = g.blocks(canvas, 0, 0, width, height, _ratio, pen);
     final text = _text;
@@ -479,7 +479,7 @@ final class RenderLineGauge extends _RenderGaugeBase {
     if (cells <= 0) {
       return;
     }
-    final glyphs = _glyphs..use(canvas.segmenter, _set);
+    final glyphs = _chartGlyphs..use(canvas.segmenter, _glyphs);
     if (_segmented) {
       // a column a cell, the filled ones rounded
       final column = glyphs.acrossSteps == 8 ? 0x258D : 0x7C;
@@ -525,9 +525,9 @@ final class RenderLineGauge extends _RenderGaugeBase {
       x,
       y,
       cells,
-      filled: _set.gaugeFilled,
-      half: _set.gaugeHalf,
-      empty: _set.gaugeEmpty,
+      filled: _glyphs.gaugeFilled,
+      half: _glyphs.gaugeHalf,
+      empty: _glyphs.gaugeEmpty,
       filledPen: filledPen,
       unfilledPen: unfilledPen,
       ratio: unitRatio(_ratio),

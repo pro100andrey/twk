@@ -1,7 +1,9 @@
-// How text is laid out in a width, as the core names it: where a line stands
-// across it ([TextAlign]) and how a cut is shown ([TextOverflow]). Plain
-// enums with no dependency, so that the paragraph of `render/` and the
-// string helpers of `unicode/` (`fitText`, `padCells`) take the same ones.
+/// How text is laid out in a width, as the core names it: where a line
+/// stands across it ([TextAlign]) and how a cut is shown ([TextOverflow]).
+/// Plain enums with no dependency, so that the paragraph of `render/` and
+/// the string helpers of `unicode/` (`fitText`, `padCells`) take the same
+/// ones.
+library;
 
 /// Where a `RenderParagraph` puts each line across its width. A line wider
 /// than the paragraph starts at the edge its paragraph starts at: the left

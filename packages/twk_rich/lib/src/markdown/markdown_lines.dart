@@ -57,6 +57,11 @@ import 'stream.dart';
 /// itself; a list loses its markers and indent; a block of code its padding.
 /// Only a character wider than [width] itself is beyond it.
 ///
+/// The marks (bullets, task boxes, rules, a quote's bar) are those of
+/// [glyphs], `Glyphs.unicode` unless given: it has no context to read a
+/// theme from, so a widget passes `Theme.of(context).glyphs`, as
+/// `MarkdownView` takes its own.
+///
 /// ```dart
 /// final lines = renderMarkdown(readme, 40, theme);
 /// ```

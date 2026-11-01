@@ -270,8 +270,8 @@ final class RenderChart extends RenderObject {
     this._legendPosition = LegendPosition.topRight,
     this._style = const Style(),
     this._lines = BorderType.single,
-    Glyphs glyphs = Glyphs.unicode,
-  }) : _set = glyphs;
+    this._glyphs = Glyphs.unicode,
+  });
 
   List<Dataset> _datasets;
 
@@ -351,20 +351,20 @@ final class RenderChart extends RenderObject {
     }
   }
 
-  Glyphs _set;
+  Glyphs _glyphs;
 
   /// The theme's marks: where they have no partial blocks, the dots are
   /// drawn as the shades of [Glyphs.shades], as many as the cell's dots.
-  Glyphs get glyphs => _set;
+  Glyphs get glyphs => _glyphs;
   set glyphs(Glyphs g) {
-    if (g != _set) {
-      _set = g;
+    if (g != _glyphs) {
+      _glyphs = g;
       markNeedsPaint();
     }
   }
 
   final _grid = DotGrid();
-  final _glyphs = ChartGlyphs();
+  final _chartGlyphs = ChartGlyphs();
 
   @override
   bool get isRepaintBoundary => true;
@@ -392,7 +392,7 @@ final class RenderChart extends RenderObject {
       return;
     }
     _segmenter = canvas.segmenter;
-    final lines = (_glyphs..use(_segmenter)).lines(_lines);
+    final lines = (_chartGlyphs..use(_segmenter)).lines(_lines);
     final xPen = base.merge(_xAxis.style).penIn(styles);
     final yPen = base.merge(_yAxis.style).penIn(styles);
 
@@ -421,7 +421,7 @@ final class RenderChart extends RenderObject {
     final lineRow = top + rows;
 
     // the marker the grid draws with, and the y labels at its rows
-    _grid.reset(0, rows, _marker, _segmenter, _set);
+    _grid.reset(0, rows, _marker, _segmenter, _glyphs);
     final down = _grid.marker.dotsDown;
     final across = _grid.marker.dotsAcross;
     final yLabels = _yAxis.labels?.isEmpty ?? false
@@ -470,7 +470,7 @@ final class RenderChart extends RenderObject {
           });
 
     // the plot
-    _grid.reset(cols, rows, _marker, _segmenter, _set);
+    _grid.reset(cols, rows, _marker, _segmenter, _glyphs);
     final painter = DotPainter(_grid, _xAxis.bounds, _yAxis.bounds);
     for (final dataset in _datasets) {
       (dataset.type == GraphType.line

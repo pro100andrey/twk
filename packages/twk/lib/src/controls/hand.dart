@@ -1,3 +1,7 @@
+/// The hand over what a click presses, by one rule for every tap target:
+/// [HandOver].
+library;
+
 import 'package:twk_core/twk_core.dart' show HitTestBehavior, PointerShape;
 
 import '../framework/framework.dart';
