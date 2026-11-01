@@ -85,4 +85,33 @@ void main() {
       reason: 'the gap is blank inside the box',
     );
   });
+
+  testTwk('its own Escape is the last line, a layer apart, even with no key '
+      'in force', (t) async {
+    await t.pumpWidget(
+      const App(child: Editor()),
+      size: (40, 14),
+    );
+    await t.press('?');
+    await t.pumpUntilIdle();
+    final help = t.lines.indexWhere((l) => l.contains('help'));
+    final close = t.lines.indexWhere((l) => RegExp(r'esc\s+close').hasMatch(l));
+    expect(close, help + 2, reason: "one blank line after the screen's keys");
+    await t.press('escape');
+    await t.pumpUntilIdle();
+    await t.pumpWidget(
+      App(
+        child: Builder(
+          builder: (context) => KeyBindings(
+            {'x': () => showKeyHelp(context)},
+            child: const Focus(autofocus: true, child: Text('bare')),
+          ),
+        ),
+      ),
+      size: (40, 10),
+    );
+    await t.press('x');
+    await t.pumpUntilIdle();
+    expect(t, containsLine(matches(r'esc\s+close')));
+  });
 }

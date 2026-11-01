@@ -355,9 +355,12 @@ final class _KeyHintsBarState extends State<KeyHintsBar> {
 /// dialog titled [title]: the keys a [KeyHintsBar] would show there, one a
 /// line, as [KeyHintsBar.entries] makes them, the nearest layer's first
 /// ([ActiveKey.layer]), a blank line between the layers, the key in bold
-/// and its hint after it. A key without a hint is not listed, so with
-/// no hinted key in force the dialog is empty. A list taller than the
-/// screen scrolls. The keys are those in force as it is called, before
+/// and its hint after it. A key without a hint is not listed. The last
+/// layer, apart from the others, is the dialog's own: `esc  close`, which
+/// closes it. It comes last because the dialog is about the screen's keys,
+/// and Escape is the footnote to them, as the bar's keys are; it is there
+/// with no hinted key in force too. A list taller than the screen
+/// scrolls. The keys are those in force as it is called, before
 /// the dialog takes the focus; Escape or a click outside closes it.
 ///
 /// A help key that shows what the screen's keys do:
@@ -379,6 +382,9 @@ Future<void> showKeyHelp(BuildContext context, {String title = 'Keys'}) {
   final layers = [
     for (final i in byLayer.keys.toList()..sort())
       KeyHintsBar.entries(byLayer[i]!),
+    // the dialog's own binding (Dialog: `escape` with the hint `close`) is
+    // not built until the dialog is, so it is named here, as it is there
+    [(KeyHintsBar.signs(KeyCombo.parse('escape')), 'close')],
   ].where((e) => e.isNotEmpty).toList();
   var widest = 0;
   for (final entries in layers) {
