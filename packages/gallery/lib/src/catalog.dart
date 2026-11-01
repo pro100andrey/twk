@@ -350,7 +350,7 @@ const catalog = [
     CatalogPage(
       'ValueStepper',
       'One of a few values between ‹ and ›: Left and Right or a click on '
-          'an arrow step to the one before or after, round.',
+          'an arrow step to the one before or after, stopping at the ends (`wrap: true` goes round).',
     ),
     CatalogPage(
       'SelectionList',

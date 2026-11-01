@@ -2,14 +2,14 @@
 title: "ValueStepper"
 group: "Controls"
 package: "twk"
-about: "One of a few values between ‹ and ›: Left and Right or a click on an arrow step to the one before or after, round."
+about: "One of a few values between ‹ and ›: Left and Right or a click on an arrow step to the one before or after, stopping at the ends (`wrap: true` goes round)."
 image: "packages/gallery/doc/shots/controls/valuestepper.dark.svg"
 image_light: "packages/gallery/doc/shots/controls/valuestepper.light.svg"
 route: "#/controls/valuestepper"
 ---
 # ValueStepper
 
-One of a few values between ‹ and ›: Left and Right or a click on an arrow step to the one before or after, round.
+One of a few values between ‹ and ›: Left and Right or a click on an arrow step to the one before or after, stopping at the ends (`wrap: true` goes round).
 
 | Dark | Light |
 | --- | --- |

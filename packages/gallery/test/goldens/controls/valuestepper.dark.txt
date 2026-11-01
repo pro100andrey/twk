@@ -4,7 +4,7 @@ text
 │                                                                                                                        │
 │   ⌕ Filter             /      ValueStepper                                                                    7 of 22  │
 │                               One of a few values between ‹ and ›: Left and Right or a click on an arrow step to       │
-│     TextArea                  the one before or after, round.                                                          │
+│     TextArea                  the one before or after, stopping at the ends (`wrap: true` goes round).                 │
 │     Autocomplete                                                                                                       │
 │                               Preview   Code                                                                           │
 │   CONTROLS            22   ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
@@ -41,7 +41,7 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaijijjjjjjiiiiiiiiiiiiikiaahhhllllllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhmhmmhmmhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnhnnhnhnnnhnnnnnnhnnnnnnnhnhnnnhnnhnnnnhnnnhnnnnnhnnhnhnnnnnhnnhnnhnnnnnhnnnnhnnhhhhhhh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhnnnhnnnhnnnnnnhnnhnnnnnnhnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhnnnhnnnhnnnnnnhnnhnnnnnnhnnnnnnnnhnnhnnnhnnnnhnnnnnnnhnnnnnhnnnnhnnnnnnnhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaddddddddaaaaaaaaaaaaeeaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
@@ -55,7 +55,7 @@ styles
 │aaaaaoooooooooooooaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaoooooooooooaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooaaaaaaaaaadhhhhphhhphhhphhhphhhphhhhhhhhhhhhhhhhhhhhphhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhqhwwwwhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhnhwwwwhhhhhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooaaaaaaaaaaaahhhhphhhphhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhnnnnnhwwwwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhhhhhhhhhhhhhhhhhhphhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
