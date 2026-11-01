@@ -331,9 +331,10 @@ final class _KeyHintsBarState extends State<KeyHintsBar> {
 /// dialog titled [title]: the keys a [KeyHintsBar] would show there, one a
 /// line, as [KeyHintsBar.entries] makes them, the nearest layer's first
 /// ([ActiveKey.layer]), a blank line between the layers, the key in bold
-/// and its hint after it. A list taller than the screen
-/// scrolls. The keys are those in force as it is called, before the
-/// dialog takes the focus; Escape or a click outside closes it.
+/// and its hint after it. A key without a hint is not listed, so with
+/// no hinted key in force the dialog is empty. A list taller than the
+/// screen scrolls. The keys are those in force as it is called, before
+/// the dialog takes the focus; Escape or a click outside closes it.
 ///
 /// A help key that shows what the screen's keys do:
 ///

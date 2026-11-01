@@ -20,7 +20,13 @@ scroll; a notch of the wheel over it scrolls `Scrollable.wheelStep` (3)
 cells (along a horizontal axis the horizontal wheel's, or the vertical one's
 for a mouse without one), the innermost scrollable under the mouse alone,
 and while one is mounted the terminal reports presses and the wheel
-(`gestures`). Its `ScrollPosition`, a `ChangeNotifier` whose listeners are
+(`gestures`). With `physics:` a `NeverScrollableScrollPhysics()` (any
+`ScrollPhysics` whose `shouldAcceptUserOffset` is false) it takes neither the
+wheel, which goes to the scrollable around it, nor the keys: it is then no stop
+of Tab and has no key hints; a controller, `jumpTo` and a scrollbar still move
+it. `Scrollable`, `SingleChildScrollView` and `ListView` take `physics`;
+`SelectionList`, `Table`, `TreeView`, `LogView` and `FilePicker` take none.
+Its `ScrollPosition`, a `ChangeNotifier` whose listeners are
 told when the offset or the extents change: `offset` in cells, kept from 0
 to `maxOffset` once the viewport told it the extents (`applyExtents`; an
 offset set before is kept until then; a viewport that settles its offset
@@ -60,7 +66,8 @@ or the wheel that would go past an end an `OverscrollNotification`
 ## `SingleChildScrollView`
 
 `SingleChildScrollView(child:, scrollDirection:, controller:, style:,
-focusNode:, autofocus:, canRequestFocus:, keyHints: true)`, a `Scrollable`,
+focusNode:, autofocus:, canRequestFocus:, physics:, keyHints: true)`, a
+`Scrollable`,
 shows one child laid out as long as it likes along the axis and within the
 constraints across it (a `Column` in it as tall as its children) in a window
 as big as the child within the constraints, filled with its `style` over the

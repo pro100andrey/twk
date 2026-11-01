@@ -43,10 +43,11 @@ import 'status.dart';
 /// box is as wide as what it holds, within its constraints, and its text
 /// wraps there; it has no width of its own, as a [Box] has none.
 ///
-/// With [onDismissed], `[×]` at the right of the top edge calls it when it
-/// is clicked, as Escape does while the focus is in the callout (on one
-/// of its [actions]), hinted. The callout does not take itself away: the
-/// app builds it no more.
+/// With [onDismissed], the theme's `[${glyphs.close}]` at the right of the
+/// top edge (`[×]`; `[x]` with `Glyphs.ascii`) calls it when it is
+/// clicked, as Escape does while the focus is in the callout (on one of
+/// its [actions]), hinted. The callout does not take itself away: the app
+/// builds it no more.
 ///
 /// What an app sets: the [kind] (its color and, from the theme's
 /// `Glyphs`, its icon: `ℹ ✓ ⚠ ✗`, ASCII `i v ! x` with `Glyphs.ascii`),

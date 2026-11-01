@@ -36,9 +36,11 @@ text drawn in those cells, the titles of a box whose edge it shares,
 `BorderTitle`s on its top and bottom edges, `padding`: the core's
 `RenderDecoratedBox`; `scrollbar: Axis.vertical` draws the bar of the
 scrollable inside on its right side between the corners, `.horizontal` on
-its bottom: the border's line while nothing scrolls, the thumb a heavier
-line over it in the theme's muted color, the whole cell in eighths under
-the mouse, dragged and pressed as a `Scrollbar`'s, the child keeping all
+its bottom (a bottom `BorderTitle` with it asserts): the border type's own
+straight line as the track while nothing scrolls, the thumb a heavier line
+over it in the theme's muted color (`█` on a heavy border, `#` on an ASCII
+one), no background painted by the bar, the box's showing, the whole cell in
+eighths under the mouse (not on an ASCII border), dragged and pressed as a `Scrollbar`'s, the child keeping all
 the room inside), `Divider` and `VerticalDivider` (with `merge`,
 joining the lines they cross and leaving the text in their cells, each end
 meeting a line it lands on in a joint: `├───┤` across a `Box` it is stacked

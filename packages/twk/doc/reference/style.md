@@ -64,7 +64,19 @@ and `spinner` (`SpinnerFrames.dots`). `Glyphs.unicode` is the default;
 other's set past halfway. A widget's own parameter (`Spinner.frames`,
 `RadioGroup.mark`, `obscuringCharacter`, `StatusMessage.icon`,
 `LineGauge.type`) is above the set; a `CliTheme` gives the marks of its
-`data`. Left out: borders (`BorderType`), the marks of charts, and the
+`data`.
+
+One width rule holds for every mark: a mark drawn in one cell (a thumb, a
+gauge's line) or as text in a row (a radio button's, a switch's ends and knob,
+a button's edges) is one column wide and one code point (an emoji, an
+ambiguous mark in some terminals, a letter and a combining accent are not).
+Where it is not, the same field of `Glyphs.ascii` is drawn, with one warning
+in the app's log for each such mark, known only when it is drawn; a
+`gaugeHalf` of the wrong width is no half cell, and the pair `checkboxOn` and
+`checkboxOff`, which are words, must be of one width or `[x]` and `[ ]` are
+drawn. An empty mark draws nothing: a blank for a cell, no width for the
+text of a row (a bracket of `radioBrackets`, a button's edge, a switch's
+end), but a blank for `switchKnob`, for the track to keep its width. Left out: borders (`BorderType`), the marks of charts, and the
 window's raised minimise `─`, the edges a window lights, a dock's drop
 marks, key names and a log's `↓ N new lines`.
 

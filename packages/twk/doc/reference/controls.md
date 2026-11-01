@@ -209,7 +209,8 @@ query. At most `rows` choices show, the one highlighted in the theme's
 'No', …)` shows its prompt and the answers (`Delete?  Yes   No `), one
 highlighted, `defaultValue`'s at first: while it has the focus `y` answers
 yes and `n` no, in either case (both hinted), Enter the one highlighted,
-Left and Right highlight yes and no, and an answer clicked is given too;
+Left and Right highlight yes and no, and an answer clicked is given too (`showConfirm(context, question)` asks it
+in a dialog, the question wrapped on its own lines above the answers);
 each calls `onConfirmed` with true for yes and false for no, and highlights
 it. A control without its callback (a `SelectionList` with `enabled: false`)
 is disabled: in `disabledStyle` (the theme's `muted`), passed by Tab and
@@ -441,7 +442,8 @@ icon (or `icon`) and `title` (by default the kind's name: Info, Success,
 Warning, Error) bold in its color in the top edge, the child inside a blank
 in from either side, its text wrapping, and the `actions`, buttons, below it
 at the right; as wide as what it holds, within its constraints. With
-`onDismissed`, `[×]` at the right of the top edge calls it when clicked, as
+`onDismissed`, the close mark `[${glyphs.close}]` (`[×]`, `[x]` in ASCII) at
+the right of the top edge calls it when clicked, as
 Escape does while the focus is on one of its actions (hinted); the app then
 builds it no more. On plain output there is no box: `ℹ Info: A newer version
 is out.`, the actions below it and no `[×]`. A screen reader reads a status

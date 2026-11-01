@@ -94,10 +94,11 @@ $ dart run example/counter.dart --inline
   or a click, before reading the screen. `t.pump(duration)` moves the
   clock on by that much, running the app's timers, frames and animations
   due by then.
-- What fades in is not there after one `t.pump()`: a dialog fades in over
-  160 ms (`showDialog(fadeIn:)`), a toast and a tooltip too. Pump past it,
-  `t.pump(const Duration(milliseconds: 200))`, or show it with
-  `fadeIn: Duration.zero`.
+- What animates in is not there after one `t.pump()`: a dialog fades in
+  over 160 ms (`showDialog(fadeIn:)`), a tooltip over 100 ms
+  (`Tooltip(fadeIn:)`), and a toast slides in over 200 ms, with no
+  `fadeIn` to set. Pump past it, `t.pump(const Duration(milliseconds: 200))`;
+  a dialog and a tooltip shown with `fadeIn: Duration.zero` need none.
 - `type('text')` sends text as one read; `press('enter')`,
   `press('tab space')`, `press('ctrl+x ctrl+s')` send each key as a read
   of its own. `click(x, y)`, `clickOn(finder)` and `mouse(...)` work full
@@ -109,6 +110,14 @@ $ dart run example/counter.dart --inline
   the function waits first. `t.clock.run(() => Timer(...))` starts a
   timer on the fake clock from the test's own code; `t.pump(duration)`
   fires it.
+- The body of a test runs outside the clock's zone, so whatever it calls
+  that starts a timer starts a real one: `showToast(...)`, which hides the
+  toast on a timer, is one. `t.pump` does not move that timer, it fires
+  after real milliseconds, and the test is flaky. Wrap the call, `t.clock.run(() =>
+  showToast(context, 'saved'))`, or make the change in `t.act(...)`, which
+  runs in the app's zone; what the app's own handlers call, a key or a
+  click, is in it already. Finding the call is the test's job: nothing in
+  the API says which ones start a timer.
 
 ## Keys
 
@@ -119,9 +128,11 @@ A name is one character, which stands for itself (`a`, `?`, and `A` for
 `up`, `down`, `left`, `right`, `home`, `end`, `pageup`, `pagedown`,
 `insert`, `delete` and `f1` to `f12`, in lower case; Escape is `esc` too,
 as the key hints show it. A name that is not one throws, naming the one
-meant: `Enter` is `enter`, `ret` is `enter`. `press('escape')` moves the
-clock on by 30 ms, the pause after which a terminal's lone ESC is the
-Escape key.
+meant: `Enter` is `enter`, `ret` is `enter`. Without the kitty protocol
+`press('escape')` moves the clock on by 30 ms, the pause after which a
+terminal's lone ESC is the Escape key; with
+`pumpWidget(..., kittyKeyboard: true)` Escape is a sequence of its own and
+the clock stays.
 
 Keys sent with no pump between them are handled before the next build,
 as a burst from a real terminal is: `press('enter space')` presses Space
@@ -141,6 +152,10 @@ the tester runs the app's microtasks before it returns, so a
   `initState` or `didUpdateWidget`) takes a pump more: the first draws
   the frame that starts it, the second the frame its result asks for.
   `t.pumpUntilIdle()` pumps as many as it takes.
+- What a `LayoutBuilder` builds is built in the frame after its layout, so
+  what its build changes in the bindings and the focus (a `KeyBindings`
+  below it, the key hints) is built in the frame after, which is asked for
+  at once: after a `resize`, a pump more before reading the hints.
 - What the app waits for in real time (a file, a process, a socket) is
   not on the clock at all: `waitUntil(condition, what, between: t.pump)`
   pumps until `condition` holds, and `waitFor(future, what)` awaits a
@@ -151,12 +166,24 @@ the tester runs the app's microtasks before it returns, so a
 
 - `t.lines` (rows without their trailing blanks), `t.scrollback`
   (inline), `t.cell(x, y)`, `t.cursor`.
+- One widget's part of the screen: `t.linesOf(finder)` gives the rows of
+  its cells, `t.linesIn((x:, y:, width:, height:))` those of a rectangle
+  (`t.rect(finder)` gives one), from its first column and without the
+  blanks that end a row; a wide glyph cut by the region's edge is left out,
+  so the rows are exactly its cells. `containsLine(line, within: finder)`
+  and `hasTextAt(x, y, text, within: finder)` read the region alone, `x`
+  and `y` from its first cell: a list's row in a screen of two panes that
+  both show it.
 - Matchers: `containsLine` (a line, or a matcher of one:
   `containsLine(contains('saved'))`), `hasTextAt(x, y, text)`,
   `styleAt(x, y, hasFg(Color.red))` with `hasAttr` and `hasBg`,
   `cursorAt(x, y)`, `matchesScreen('''…''')` for the whole screen, and
-  `matchesScreenFile` for golden files written with
-  `TWK_UPDATE_GOLDENS=1`.
+  `matchesScreenFile('test/goldens/form.txt')` for golden files written
+  with `TWK_UPDATE_GOLDENS=1`. The path is from the root of the package of
+  the test file that calls it (the directory with its `pubspec.yaml`), not
+  from the directory `dart test` runs in; where that package is not found it
+  throws, saying to pass an absolute path. A golden holds the styles too;
+  `styles: false` compares the text alone.
 - Finders as in Flutter: `find.text`, `find.byType`, `find.byKey`,
   `find.byWidgetPredicate`, `find.descendant` and `find.ancestor`, with
   `findsOneWidget`, `findsNothing`, `findsNWidgets(n)`. `find` is a
@@ -302,7 +329,8 @@ the app's start time moved on by its clock, which in a test starts at
 `pumpWidget(startTime:)` (`TwkTester.defaultStartTime`, 1 January 2026,
 by default) and moves as the test pumps, so the screen is the same on
 every run. A `Calendar`, a `DatePicker` and a `Heatmap` given no date of
-their own take today from it. `pumpUntilIdle()` pumps until no frame and no timer waits, so
+their own take today from it; a `CalendarController()` given no cursor
+still reads `DateTime.now()`, so give it one in a test. `pumpUntilIdle()` pumps until no frame and no timer waits, so
 it runs out the timers that end what a test may look for: a toast, which
 shows for 3 s, and a highlight on a timer are gone when it returns. To
 see them, pump by a duration shorter than theirs. An app with a periodic

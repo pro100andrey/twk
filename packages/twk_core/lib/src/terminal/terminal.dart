@@ -379,8 +379,11 @@ final class TerminalOptions {
   /// How long a lone ESC (or ESC and an introducer such as `[`) waits for
   /// the rest of a sequence before it counts as the Escape key (or Alt+key).
   /// With the kitty keyboard protocol too (see
-  /// [TerminalInfo.kittyKeyboard]); a sequence whose parameters arrived
-  /// waits 500 ms.
+  /// [TerminalInfo.kittyKeyboard]), which does not make the wait longer:
+  /// a CSI-u sequence (the Escape key's `ESC [ 27 u`) cut by a slow link
+  /// (ssh, tmux) after its ESC, or after its `[`, for longer than this is
+  /// read as the Escape key and the text that follows. A sequence whose
+  /// parameters arrived waits 500 ms. Raise it for such a link.
   final Duration escapeTimeout;
 
   /// How long a bracketed paste may go without input before it is ended

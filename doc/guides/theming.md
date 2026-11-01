@@ -92,7 +92,10 @@ For the whole app a `ThemeData.copyWith(glyphs:)` does it, for one part of
 it a `Theme` around that part. A widget's own parameter for a mark it has
 (`Spinner.frames`, `RadioGroup.mark`, `StatusMessage.icon`, a `LineGauge`'s
 `type`) stays above the set. Borders are not in it: a `Box` has its
-`BorderType`.
+`BorderType`. A mark takes one column and one code point; one that is wider,
+or a letter with a combining accent, is the `Glyphs.ascii` mark in its place,
+with one warning in the log for each, so an emoji in a `copyWith` is drawn
+where the terminal gives it one cell and is ASCII where it does not.
 
 <!-- file: packages/twk/example/guides/glyphs.dart -->
 ```dart

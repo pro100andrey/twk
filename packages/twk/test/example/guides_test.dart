@@ -49,7 +49,16 @@ void shows(String name, String screen) =>
     expect(guide(name), contains('```text\n$screen```'));
 
 void main() {
-  test('there are guides', () => expect(guides, hasLength(8)));
+  test('the guides are those the index lists', () {
+    final listed = RegExp(
+      r'\]\(guides/([a-z-]+\.md)\)',
+    ).allMatches(File('$root/doc/README.md').readAsStringSync());
+    expect(guides, isNotEmpty);
+    expect(
+      [for (final f in guides) f.path.split('/').last],
+      unorderedEquals({for (final m in listed) m[1]!}),
+    );
+  });
 
   for (final file in guides) {
     final name = file.path.split('/').last;

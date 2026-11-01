@@ -291,7 +291,9 @@ side by side, belongs to a `KeyBindings` below the `LayoutBuilder`, which
 knows the layout: its binding is null in the other one, and a key bound to
 null is no key, so the bar leaves it out and the key does nothing. The
 layer is always there, so the focus inside it stays where it is as the
-terminal is resized.
+terminal is resized. The bar follows a resize a frame later: the
+`LayoutBuilder` builds in the layout of the frame the resize draws, and the
+keys it changes are built in the frame after, which is asked for at once.
 
 <!-- file: packages/twk/example/guides/hints.dart -->
 ```dart
