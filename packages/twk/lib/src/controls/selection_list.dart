@@ -565,16 +565,18 @@ final class _SelectionListState<K> extends State<SelectionList<K>> {
         children: [
           if (column)
             Text(
-              bar == null ? ' ' : '▎',
+              bar == null ? ' ' : theme.glyphs.cursor,
               style: bar?.merge(_unbold) ?? _plain,
               wrap: TextWrap.none,
             ),
           if (multiple)
             Text.rich(
               [
-                Span('[', brackets),
-                Span(selected ? 'x' : ' ', enabled ? markStyle(theme) : _plain),
-                Span(']', brackets),
+                ...checkboxSpans(
+                  selected ? theme.glyphs.checkboxOn : theme.glyphs.checkboxOff,
+                  brackets,
+                  enabled ? markStyle(theme) : _plain,
+                ),
                 const Span(' '),
               ],
               wrap: TextWrap.none,

@@ -108,14 +108,14 @@ void main() {
       ]),
       size: (20, 4),
     );
-    expect(t.lines, ['▶ Security', 'after', '', '']);
+    expect(t.lines, ['▸ Security', 'after', '', '']);
     await t.press('tab');
     await t.press('enter');
     await t.pump();
-    expect(t.lines, ['▼ Security', '  line 1', '  line 2', 'after']);
+    expect(t.lines, ['▾ Security', '  line 1', '  line 2', 'after']);
     await t.press('space');
     await t.pump();
-    expect(t.lines.first, '▶ Security');
+    expect(t.lines.first, '▸ Security');
     expect(t.lines[1], 'after');
     await t.press('right');
     await t.pump();
@@ -142,10 +142,10 @@ void main() {
     await t.click(4, 0);
     await t.pump();
     expect(node.hasPrimaryFocus, isTrue);
-    expect(t.lines.take(3), ['▼ Network', '  line 1', '  line 2']);
+    expect(t.lines.take(3), ['▾ Network', '  line 1', '  line 2']);
     await t.click(4, 0);
     await t.pump();
-    expect(t.lines.take(2), ['▶ Network', '']);
+    expect(t.lines.take(2), ['▸ Network', '']);
     // a click in the body is not on the header
     await t.click(4, 0);
     await t.pump();
@@ -177,7 +177,7 @@ void main() {
       ]),
       size: (12, 4),
     );
-    expect(t.lines.first, '▶ Logs    12');
+    expect(t.lines.first, '▸ Logs    12');
     expect(t, styleAt(0, 0, hasFg(theme.muted.fg!)));
     expect(
       t,
@@ -215,7 +215,7 @@ void main() {
       ]),
       size: (14, 2),
     );
-    expect(t.lines, ['▶ Disk', '  3 volumes']);
+    expect(t.lines, ['▸ Disk', '  3 volumes']);
     expect(t, styleAt(2, 1, hasFg(theme.muted.fg!)));
   });
 
@@ -236,17 +236,17 @@ void main() {
       ),
       size: (12, 2),
     );
-    expect(t.lines, ['▶ Info', '']);
+    expect(t.lines, ['▸ Info', '']);
     a.expand();
     await t.pump();
-    expect(t.lines, ['▼ Info', '  line 1']);
+    expect(t.lines, ['▾ Info', '  line 1']);
     a.toggle();
     await t.pump();
-    expect(t.lines, ['▶ Info', '']);
+    expect(t.lines, ['▸ Info', '']);
     expect(a.expanded, isFalse);
     which.value = b;
     await t.pump();
-    expect(t.lines, ['▼ Info', '  line 1']);
+    expect(t.lines, ['▾ Info', '  line 1']);
     a.expand();
     await t.pump();
     expect(told, [true, false]);
@@ -268,7 +268,7 @@ void main() {
       ]),
       size: (12, 2),
     );
-    expect(t.lines, ['▼ Open', '  line 1']);
+    expect(t.lines, ['▾ Open', '  line 1']);
   });
 
   testTwk('it unfolds a row at a time on the app clock, and folds back up, '
@@ -307,7 +307,7 @@ void main() {
     // first, as the run eases out
     expect(open, [3, 4, 5, 5, 5]);
     expect(t.lines, [
-      '▼ Log',
+      '▾ Log',
       '  probe',
       '  line 1',
       '  line 2',
@@ -325,8 +325,8 @@ void main() {
     expect([for (final s in shut) s.indexOf('end')], [5, 4, 3, 1, 1]);
     // the marker at once; the child shows as it folds, its top rows
     // first
-    expect(shut[0].first, '▶ Log');
-    expect(shut[2].take(3), ['▶ Log', '  probe', '  line 1']);
+    expect(shut[0].first, '▸ Log');
+    expect(shut[2].take(3), ['▸ Log', '  probe', '  line 1']);
     expect(Probe.mounted, 0);
     await expectIdle(t);
   });
@@ -341,7 +341,7 @@ void main() {
     );
     c.expand();
     await t.pump();
-    expect(t.lines, ['▼ Now', '  line 1', '  line 2', '  line 3', 'end']);
+    expect(t.lines, ['▾ Now', '  line 1', '  line 2', '  line 3', 'end']);
     await expectIdle(t);
   });
 
@@ -362,13 +362,13 @@ void main() {
           ],
         ),
       );
-    expect(view.rows(), ['▶ Plain', 'end', '', '']);
+    expect(view.rows(), ['▸ Plain', 'end', '', '']);
     c.expand();
     view.frame();
-    expect(view.rows(), ['▼ Plain', '  line 1', '  line 2', 'end']);
+    expect(view.rows(), ['▾ Plain', '  line 1', '  line 2', 'end']);
     c.collapse();
     view.frame();
-    expect(view.rows(), ['▶ Plain', 'end', '', '']);
+    expect(view.rows(), ['▸ Plain', 'end', '', '']);
   });
 
   testTwk('a focus in the section as it collapses goes to its header; '
@@ -454,14 +454,14 @@ void main() {
         ]),
         size: (12, 5),
       );
-      expect(t.lines, ['▶ A', '▼ B', '  line 1', '▶ C', '']);
+      expect(t.lines, ['▸ A', '▾ B', '  line 1', '▸ C', '']);
       await t.click(2, 3);
       await t.pump();
-      expect(t.lines, ['▶ A', '▶ B', '▼ C', '  line 1', '']);
+      expect(t.lines, ['▸ A', '▸ B', '▾ C', '  line 1', '']);
       expect(told, unorderedEquals(['C true', 'B false']));
       await t.click(2, 2);
       await t.pump();
-      expect(t.lines, ['▶ A', '▶ B', '▶ C', '', '']);
+      expect(t.lines, ['▸ A', '▸ B', '▸ C', '', '']);
     });
 
     testTwk('without initiallyExpanded the first tile that says so opens; '
@@ -479,7 +479,7 @@ void main() {
         ]),
         size: (12, 5),
       );
-      expect(t.lines, ['▶ A', '▼ B', '  line 1', '▶ C', '']);
+      expect(t.lines, ['▸ A', '▾ B', '  line 1', '▸ C', '']);
       await t.pumpWidget(
         dark([
           Accordion(
@@ -494,10 +494,10 @@ void main() {
         ]),
         size: (12, 5),
       );
-      expect(t.lines, ['▶ A', '▼ B', '  line 1', '▼ C', '  line 1']);
+      expect(t.lines, ['▸ A', '▾ B', '  line 1', '▾ C', '  line 1']);
       await t.click(2, 0);
       await t.pump();
-      expect(t.lines, ['▼ A', '  line 1', '▼ B', '  line 1', '▼ C']);
+      expect(t.lines, ['▾ A', '  line 1', '▾ B', '  line 1', '▾ C']);
     });
 
     testTwk('a tile with a controller of its own keeps it, collapsed by '
@@ -515,14 +515,14 @@ void main() {
         ]),
         size: (12, 4),
       );
-      expect(t.lines, ['▼ A', '  line 1', '▶ B', '']);
+      expect(t.lines, ['▾ A', '  line 1', '▸ B', '']);
       await t.click(2, 2);
       await t.pump();
       expect(c.expanded, isFalse);
-      expect(t.lines, ['▶ A', '▼ B', '  line 1', '']);
+      expect(t.lines, ['▸ A', '▾ B', '  line 1', '']);
       c.expand();
       await t.pump();
-      expect(t.lines, ['▼ A', '  line 1', '▶ B', '']);
+      expect(t.lines, ['▾ A', '  line 1', '▸ B', '']);
     });
 
     testTwk('Up and Down move between the headers, and stop at the ends', (
@@ -547,12 +547,12 @@ void main() {
       await t.press('down');
       await t.press('enter');
       await t.pump();
-      expect(t.lines, ['▶ A', '▼ B', '  line 1', '  line 2', '▶ C']);
+      expect(t.lines, ['▸ A', '▾ B', '  line 1', '  line 2', '▸ C']);
       await t.press('down');
       await t.press('down');
       await t.press('enter');
       await t.pump();
-      expect(t.lines, ['▶ A', '▶ B', '▼ C', '  line 1', '']);
+      expect(t.lines, ['▸ A', '▸ B', '▾ C', '  line 1', '']);
       await t.press('up');
       await t.press('up');
       await t.press('up');
@@ -579,10 +579,10 @@ void main() {
         ]),
         size: (14, 4),
       );
-      expect(t.lines, ['▼ Outer', '  ▶ Inner', '▶ Next', '']);
+      expect(t.lines, ['▾ Outer', '  ▸ Inner', '▸ Next', '']);
       await t.click(4, 1);
       await t.pump();
-      expect(t.lines, ['▼ Outer', '  ▼ Inner', '    line 1', '▶ Next']);
+      expect(t.lines, ['▾ Outer', '  ▾ Inner', '    line 1', '▸ Next']);
     });
   });
 }

@@ -290,7 +290,10 @@ final class _SegmentedButtonState<T> extends State<SegmentedButton<T>> {
     final (open, close) = widget.caps;
     final marks = [
       for (var i = 0; i < n; i++)
-        if ((widget.showSelectedIcon || plain) && _on(i)) '✓ ' else '',
+        if ((widget.showSelectedIcon || plain) && _on(i))
+          '${theme.glyphs.check} '
+        else
+          '',
     ];
     final labels = _fit(
       segmenter,
@@ -299,7 +302,7 @@ final class _SegmentedButtonState<T> extends State<SegmentedButton<T>> {
       width -
           segmenter.width(open) -
           segmenter.width(close) -
-          (n - 1) * segmenter.width('│') -
+          (n - 1) * segmenter.width(theme.glyphs.separator) -
           [for (final m in marks) 2 + segmenter.width(m)].sum,
     );
     final row = theme.text.merge(widget.style ?? const Style());
@@ -310,7 +313,7 @@ final class _SegmentedButtonState<T> extends State<SegmentedButton<T>> {
     final spans = <HitSpan>[(span: Span(open, lines), target: -1)];
     for (var i = 0; i < n; i++) {
       if (i > 0) {
-        spans.add((span: Span('│', lines), target: -1));
+        spans.add((span: Span(theme.glyphs.separator, lines), target: -1));
       }
       final on = enabled && _segments[i].enabled;
       var style = row;

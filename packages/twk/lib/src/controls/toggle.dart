@@ -1,7 +1,7 @@
 /// What is on or off: [Checkbox] and [Switch].
 library;
 
-import 'package:twk_core/twk_core.dart' show Brightness, Color;
+import 'package:twk_core/twk_core.dart' show Attr, Brightness, Color;
 
 import '../animation/curves.dart';
 import '../animation/implicit.dart';
@@ -109,8 +109,16 @@ final class Checkbox extends StatelessWidget {
   @override
   Widget build(BuildContext context) => _Toggle(
     role: SemanticsRole.checkbox,
-    marks: (theme, row, on, enabled, _) =>
-        bracketed(theme, '[', on ? 'x' : ' ', ']', on, enabled, bracketStyle),
+    marks: (theme, row, on, enabled, _) {
+      final marked = on && enabled ? markStyle(theme) : const Style();
+      return checkboxSpans(
+        on ? theme.glyphs.checkboxOn : theme.glyphs.checkboxOff,
+        marked.merge(
+          bracketStyle ?? theme.muted.merge(const Style(attrsOff: Attr.bold)),
+        ),
+        marked,
+      );
+    },
     on: value,
     toggle: switch (onChanged) {
       final onChanged? => () => onChanged(!value),
@@ -272,12 +280,12 @@ final class Switch extends StatelessWidget {
     final k = (at * 2).round();
     final end = Style(fg: track);
     return [
-      Span('▐', end),
+      Span(theme.glyphs.switchStart, end),
       Span(
-        '${' ' * k}●${' ' * (2 - k)}',
+        '${' ' * k}${theme.glyphs.dot}${' ' * (2 - k)}',
         Style(fg: knob, bg: track),
       ),
-      Span('▌', end),
+      Span(theme.glyphs.switchEnd, end),
     ];
   }
 }

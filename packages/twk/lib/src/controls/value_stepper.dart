@@ -202,9 +202,9 @@ final class _ValueStepperState<T> extends State<ValueStepper<T>> {
         _hits.hovered == target ? arrows.merge(hover) : arrows;
     return _hits.row(
       [
-        (span: Span('‹', arrow(0)), target: 0),
+        (span: Span(theme.glyphs.previous, arrow(0)), target: 0),
         (span: Span(' $label${' ' * pad} ', row), target: -1),
-        (span: Span('›', arrow(1)), target: 1),
+        (span: Span(theme.glyphs.next, arrow(1)), target: 1),
       ],
       segmenter,
       style: row,

@@ -151,7 +151,7 @@ final class Callout extends StatelessWidget {
     final theme = Theme.of(context);
     final colored = kind.styleIn(theme);
     final marked = colored.merge(const Style(attrs: Attr.bold));
-    final icon = this.icon ?? kind.icon;
+    final icon = this.icon ?? kind.iconIn(theme.glyphs);
     final head = [if (icon.isNotEmpty) icon, _title].join(' ');
     final plain =
         AppBinding.maybeOf(context)?.twkApp.terminal.info.plain ?? false;
@@ -197,7 +197,10 @@ final class Callout extends StatelessWidget {
         titles: [
           BorderTitle('─ $head ─', style: marked),
           if (onDismissed != null)
-            const BorderTitle('[×]─', alignment: Alignment.topRight),
+            BorderTitle(
+              '[${theme.glyphs.close}]─',
+              alignment: Alignment.topRight,
+            ),
         ],
         padding: const EdgeInsets.x(1),
         child: body,
@@ -279,7 +282,7 @@ final class _DismissState extends State<_Dismiss> {
         child: GestureDetector(
           onTap: (_) => widget.onDismissed(),
           child: Text(
-            '[×]',
+            '[${theme.glyphs.close}]',
             style: _hovered
                 ? widget.style.merge(
                     theme.text.merge(const Style(attrs: Attr.bold)),

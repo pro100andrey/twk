@@ -913,10 +913,13 @@ final class _StepperState extends State<Stepper> {
     final state = _stateOf(i, current);
     final text = theme.text;
     final (mark, markStyled) = switch (state) {
-      StepState.complete => ('✔', text.merge(theme.success)),
-      StepState.editing => ('●', text.merge(markStyle(theme))),
-      StepState.error => ('✗', text.merge(theme.error)),
-      StepState.indexed || StepState.disabled => ('○', text.merge(theme.muted)),
+      StepState.complete => (theme.glyphs.checkBold, text.merge(theme.success)),
+      StepState.editing => (theme.glyphs.dot, text.merge(markStyle(theme))),
+      StepState.error => (theme.glyphs.cross, text.merge(theme.error)),
+      StepState.indexed || StepState.disabled => (
+        theme.glyphs.ring,
+        text.merge(theme.muted),
+      ),
     };
     return [
       Span(mark, markStyled),

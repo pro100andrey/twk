@@ -215,6 +215,21 @@ List<Span> bracketed(
   return [Span(open, brackets), Span(mark, marked), Span(close, brackets)];
 }
 
+/// [glyph], a checkbox of `Glyphs.checkboxOn` or `Glyphs.checkboxOff`, as
+/// spans: its first and last character, the brackets, in [brackets] and
+/// what is between them in [mark]; a glyph of under three characters is
+/// all [mark].
+List<Span> checkboxSpans(String glyph, Style brackets, Style mark) {
+  final n = glyph.length;
+  return n < 3
+      ? [Span(glyph, mark)]
+      : [
+          Span(glyph.substring(0, 1), brackets),
+          Span(glyph.substring(1, n - 1), mark),
+          Span(glyph.substring(n - 1), brackets),
+        ];
+}
+
 /// A button at rest in [theme]: [ThemeData.primary] in bold on a chip of
 /// [ThemeData.surface].
 Style buttonStyle(ThemeData theme) => theme.surface.merge(markStyle(theme));

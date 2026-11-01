@@ -123,6 +123,55 @@ final class ChartGlyphs {
     return (p <= room ? p : 2 * room - p, w);
   }
 
+  /// Draws a line [cells] long from ([x], [y]) on [canvas], as a
+  /// `LineGauge` does with the theme's marks: [ratio] of it from the left
+  /// of [filled] in [filledPen], to the nearest half cell where [half] is
+  /// not empty (its mark ends the filled part), the rest of [empty] in
+  /// [unfilledPen]; or, given [run], that run of [filled] in [filledPen] in
+  /// a line of [empty]. A `-` for each where one of them is not one
+  /// column; [use] the canvas's segmenter first.
+  void glyphLine(
+    Canvas canvas,
+    int x,
+    int y,
+    int cells, {
+    required String filled,
+    required String half,
+    required String empty,
+    required int filledPen,
+    required int unfilledPen,
+    double ratio = 0,
+    (int, int)? run,
+  }) {
+    if (cells <= 0) {
+      return;
+    }
+    final narrow = [filled, empty, if (half.isNotEmpty) half].every(
+      (g) => _segmenter.width(g) == 1,
+    );
+    final whole = (narrow ? filled : '-').runes.first;
+    final rest = (narrow ? empty : '-').runes.first;
+    final part = (narrow ? half : '').runes.firstOrNull;
+    if (run case (final from, final width)) {
+      canvas
+        ..fill(x, y, cells, 1, unfilledPen, rest)
+        ..fill(x + from, y, width, 1, filledPen, whole);
+      return;
+    }
+    // in half cells where there is a half, else in cells
+    final halves = part != null;
+    final r = unitRatio(ratio);
+    final count = (r * cells * (halves ? 2 : 1)).round();
+    final full = halves ? count ~/ 2 : count;
+    canvas.fill(x, y, full, 1, filledPen, whole);
+    var used = full;
+    if (halves && count.isOdd) {
+      canvas.fill(x + full, y, 1, 1, filledPen, part);
+      used++;
+    }
+    canvas.fill(x + used, y, cells - used, 1, unfilledPen, rest);
+  }
+
   /// Draws a line of [type] [cells] long from ([x], [y]) on [canvas], as a
   /// `LineGauge` does: [ratio] of it from the left in [filledPen], to the
   /// nearest half cell where the type has a line that ends in the middle of

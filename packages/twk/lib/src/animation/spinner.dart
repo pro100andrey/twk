@@ -114,11 +114,13 @@ final class SpinnerFrames {
 ///
 ///  * [ProgressBar], for work whose progress is known.
 final class Spinner extends LeafRenderObjectWidget {
-  /// A spinner of [frames], [SpinnerFrames.dots] by default, in [style].
-  const Spinner({super.key, this.frames = SpinnerFrames.dots, this.style});
+  /// A spinner of [frames], [Glyphs.spinner] of the theme
+  /// ([SpinnerFrames.dots] in [Glyphs.unicode]) by default, in [style].
+  const Spinner({super.key, this.frames, this.style});
 
-  /// What it shows in turn, and how long each frame shows.
-  final SpinnerFrames frames;
+  /// What it shows in turn, and how long each frame shows; null for
+  /// [Glyphs.spinner] of the theme.
+  final SpinnerFrames? frames;
 
   /// The frames' color ([Style.fg]) and background ([Style.bg]), over the
   /// theme's text; null for the theme's [ThemeData.primary]. Without a
@@ -130,7 +132,7 @@ final class Spinner extends LeafRenderObjectWidget {
   RenderSpinner createRenderObject(BuildContext context) {
     final theme = Theme.of(context);
     return RenderSpinner(
-      frames: frames,
+      frames: frames ?? theme.glyphs.spinner,
       style: _style(theme),
       background: theme.background.bg,
       binding: AppBinding.maybeOf(context),
@@ -141,7 +143,7 @@ final class Spinner extends LeafRenderObjectWidget {
   void updateRenderObject(BuildContext context, RenderSpinner renderObject) {
     final theme = Theme.of(context);
     renderObject
-      ..frames = frames
+      ..frames = frames ?? theme.glyphs.spinner
       ..style = _style(theme)
       ..background = theme.background.bg;
   }

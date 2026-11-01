@@ -349,6 +349,7 @@ final class _TabBarState extends State<TabBar> {
             tabStyle: widget.tabStyle ?? theme.muted,
             selectedStyle: widget.selectedStyle ?? selected,
             focusedStyle: widget.focusedStyle ?? lit,
+            glyphs: theme.glyphs,
           ),
         ),
       ),
@@ -381,6 +382,7 @@ final class _Strip extends LeafRenderObjectWidget {
     required this.tabStyle,
     required this.selectedStyle,
     required this.focusedStyle,
+    required this.glyphs,
     super.key,
   });
 
@@ -391,6 +393,7 @@ final class _Strip extends LeafRenderObjectWidget {
   final Style tabStyle;
   final Style selectedStyle;
   final Style focusedStyle;
+  final Glyphs glyphs;
 
   @override
   _RenderTabBar createRenderObject(BuildContext context) =>
@@ -417,6 +420,7 @@ final class _RenderTabBar extends RenderObject {
   var _tabStyle = const Style();
   var _selectedStyle = const Style();
   var _focusedStyle = const Style();
+  Glyphs _glyphs = Glyphs.unicode;
 
   // the first column of each tab and the end of the last, in the row they
   // make; measured for the text mode and ambiguous width of _measuredIn
@@ -452,12 +456,14 @@ final class _RenderTabBar extends RenderObject {
         strip.style != _style ||
         strip.tabStyle != _tabStyle ||
         strip.selectedStyle != _selectedStyle ||
-        strip.focusedStyle != _focusedStyle) {
+        strip.focusedStyle != _focusedStyle ||
+        strip.glyphs != _glyphs) {
       _focused = strip.focused;
       _style = strip.style;
       _tabStyle = strip.tabStyle;
       _selectedStyle = strip.selectedStyle;
       _focusedStyle = strip.focusedStyle;
+      _glyphs = strip.glyphs;
       markNeedsPaint();
     }
   }
@@ -606,10 +612,10 @@ final class _RenderTabBar extends RenderObject {
     }
     final mark = tab.penIn(styles);
     if (_offset > 0) {
-      canvas.fill(0, 0, 1, 1, mark, 0x2039);
+      canvas.fill(0, 0, 1, 1, mark, _glyphs.previous.runes.first);
     }
     if (_offset + width < _total) {
-      canvas.fill(width - 1, 0, 1, 1, mark, 0x203A);
+      canvas.fill(width - 1, 0, 1, 1, mark, _glyphs.next.runes.first);
     }
   }
 }

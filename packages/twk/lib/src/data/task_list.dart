@@ -133,7 +133,7 @@ final class TaskList extends StatelessWidget {
   const TaskList({
     required this.tasks,
     super.key,
-    this.spinner = SpinnerFrames.dots,
+    this.spinner,
     this.showElapsed = true,
     this.style,
   });
@@ -141,8 +141,9 @@ final class TaskList extends StatelessWidget {
   /// The tasks, in order, each followed by its [TaskItem.children].
   final List<TaskItem> tasks;
 
-  /// What a running task's mark shows in turn.
-  final SpinnerFrames spinner;
+  /// What a running task's mark shows in turn; null for
+  /// [Glyphs.spinner] of the theme.
+  final SpinnerFrames? spinner;
 
   /// Whether a row shows the time its task has run.
   final bool showElapsed;
@@ -170,7 +171,7 @@ final class TaskList extends StatelessWidget {
             child: _TaskRow(
               level: depth,
               status: status,
-              frames: spinner,
+              frames: TaskMarks(spinner ?? theme.glyphs.spinner, theme.glyphs),
               showElapsed: showElapsed,
               elapsed: item.elapsed,
               style: base,
@@ -235,7 +236,7 @@ final class _TaskRow extends SingleChildRenderObjectWidget {
 
   final int level;
   final TaskStatus status;
-  final SpinnerFrames frames;
+  final TaskMarks frames;
   final bool showElapsed;
   final Duration? elapsed;
   final Style style;
@@ -309,7 +310,11 @@ final class _RenderTaskRow extends RenderObject
   /// The app whose clock it times the task and steps the spinner by.
   final AppBinding? binding;
 
-  late final _steps = Steps(_frames.interval, markNeedsPaint, binding: binding);
+  late final _steps = Steps(
+    _frames.frames.interval,
+    markNeedsPaint,
+    binding: binding,
+  );
 
   // when the task was set running and when it stopped, on the app's clock
   Duration? _started;
@@ -357,12 +362,12 @@ final class _RenderTaskRow extends RenderObject
     markNeedsPaint();
   }
 
-  SpinnerFrames _frames;
-  SpinnerFrames get frames => _frames;
-  set frames(SpinnerFrames f) {
+  TaskMarks _frames;
+  TaskMarks get frames => _frames;
+  set frames(TaskMarks f) {
     if (f != _frames) {
       _frames = f;
-      _steps.interval = f.interval;
+      _steps.interval = f.frames.interval;
       markNeedsLayout();
     }
   }
@@ -522,7 +527,7 @@ final class _RenderTaskRow extends RenderObject
   TextSegmenter get _segmenter => owner?.segmenter ?? _detached;
 
   /// Where the child starts.
-  int get _indent => _level * 2 + taskMarkWidth(_segmenter, _frames) + 1;
+  int get _indent => _level * 2 + _frames.width(_segmenter) + 1;
 
   /// The columns after the child.
   int get _tail => _shown.isEmpty ? 0 : 1 + _segmenter.width(_shown);
@@ -573,7 +578,7 @@ final class _RenderTaskRow extends RenderObject
     canvas.text(
       x,
       0,
-      taskMark(_status, _frames, _steps.current),
+      _frames.mark(_status, _steps.current),
       _markStyle.penIn(styles),
     );
     final c = child;

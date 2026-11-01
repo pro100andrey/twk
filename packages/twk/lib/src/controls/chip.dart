@@ -19,12 +19,13 @@ import 'segmented_button.dart';
 import 'status.dart';
 
 /// What a chip shows: [label] with a blank on either side, after `✓ ` for
-/// a [mark], and followed by `× ` where it is [removable].
+/// a [mark], and followed by the [close] mark and a blank where it is
+/// removable (`× `).
 String _chipText(
   String label, {
   required String mark,
-  required bool removable,
-}) => ' $mark$label ${removable ? '× ' : ''}';
+  required String? close,
+}) => ' $mark$label ${close == null ? '' : '$close '}';
 
 /// A short [label] on a chip of its own, on one row: a tag, a filter, a
 /// recipient. It only shows; [ChipList] is the control that moves between
@@ -103,8 +104,8 @@ final class Chip extends StatelessWidget {
     return Text(
       _chipText(
         label,
-        mark: selected && plain ? '✓ ' : '',
-        removable: removable,
+        mark: selected && plain ? '${theme.glyphs.check} ' : '',
+        close: removable ? theme.glyphs.close : null,
       ),
       style: chip,
       wrap: TextWrap.none,
@@ -406,16 +407,17 @@ final class _ChipListState<T> extends State<ChipList<T>> {
     required int highlight,
     required bool plain,
   }) {
-    final removable = widget.onRemove != null;
+    final glyphs = Theme.of(context).glyphs;
+    final close = widget.onRemove == null ? null : glyphs.close;
     final labels = <String>[];
     final widths = <int>[];
     for (var i = 0; i < _chips.length; i++) {
       final mark = widget.selected.contains(_chips[i].value) && plain
-          ? '✓ '
+          ? '${glyphs.check} '
           : '';
       // the blanks, the mark and the × take the room, the label the rest
       final around = segmenter.width(
-        _chipText('', mark: mark, removable: removable),
+        _chipText('', mark: mark, close: close),
       );
       final label = fitText(
         segmenter,
@@ -424,7 +426,7 @@ final class _ChipListState<T> extends State<ChipList<T>> {
       );
       labels.add(label);
       widths.add(
-        segmenter.width(_chipText(label, mark: mark, removable: removable)),
+        segmenter.width(_chipText(label, mark: mark, close: close)),
       );
     }
     _places = _flow(widths, width);
@@ -441,7 +443,7 @@ final class _ChipListState<T> extends State<ChipList<T>> {
             labels[i],
             selected: widget.selected.contains(_chips[i].value),
             highlighted: i == highlight,
-            removable: removable,
+            removable: close != null,
             enabled: enabled && _chips[i].enabled,
             style: widget.style,
           ),

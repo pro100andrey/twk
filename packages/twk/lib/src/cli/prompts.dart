@@ -444,7 +444,7 @@ final class Prompter {
   List<Span> _answered(String question, String answer) {
     final theme = cli.theme;
     return [
-      Span('✔ ', theme.success),
+      Span('${theme.glyphs.checkBold} ', theme.success),
       Span(question, theme.question),
       if (answer.isNotEmpty) Span(' $answer', theme.answer),
     ];
@@ -453,13 +453,16 @@ final class Prompter {
   /// `✗ question`: what a cancelled prompt leaves.
   List<Span> _cancelled(String question) {
     final theme = cli.theme;
-    return [Span('✗ ', theme.error), Span(question, theme.question)];
+    return [
+      Span('${theme.glyphs.cross} ', theme.error),
+      Span(question, theme.question),
+    ];
   }
 
   /// `✗ message`: why an answer was refused.
   List<Span> _refused(String message) {
     final error = cli.theme.error;
-    return [Span('✗ ', error), Span(message, error)];
+    return [Span('${cli.theme.glyphs.cross} ', error), Span(message, error)];
   }
 
   /// The question, then the choices numbered from 1.

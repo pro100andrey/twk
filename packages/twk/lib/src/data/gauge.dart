@@ -139,7 +139,7 @@ final class LineGauge extends LeafRenderObjectWidget {
     super.key,
     this.label,
     this.percentage = false,
-    this.type = BorderType.single,
+    this.type,
     this.style = const Style(),
     this.filledStyle = const Style(),
     this.unfilledStyle = const Style(),
@@ -164,7 +164,10 @@ final class LineGauge extends LeafRenderObjectWidget {
   /// The lines drawn: their horizontal piece, and the piece that reaches
   /// left only for a half cell. Where the canvas draws them two columns
   /// wide (box drawing is East Asian ambiguous), [BorderType.ascii].
-  final BorderType type;
+  /// Null for the marks of the theme ([Glyphs.gaugeFilled],
+  /// [Glyphs.gaugeHalf] and [Glyphs.gaugeEmpty]), which in
+  /// [Glyphs.unicode] are the line of [BorderType.single].
+  final BorderType? type;
 
   /// The background, and the label's style, over the [DefaultTextStyle]
   /// and, under that, the theme's text: over what is under the gauge
@@ -188,6 +191,7 @@ final class LineGauge extends LeafRenderObjectWidget {
     label: label,
     percentage: percentage,
     type: type,
+    glyphs: Theme.of(context).glyphs,
     segmented: segmented,
     style: _styleAt(context, style),
     filledStyle: filledStyle,
@@ -201,6 +205,7 @@ final class LineGauge extends LeafRenderObjectWidget {
       ..label = label
       ..percentage = percentage
       ..type = type
+      ..glyphs = Theme.of(context).glyphs
       ..segmented = segmented
       ..style = _styleAt(context, style)
       ..filledStyle = filledStyle
@@ -364,12 +369,25 @@ final class RenderLineGauge extends _RenderGaugeBase {
     required double ratio,
     String? label,
     bool percentage = false,
-    this._type = BorderType.single,
+    this._type,
     this._segmented = false,
+    Glyphs glyphs = Glyphs.unicode,
     Style style = const Style(),
     this._filledStyle = const Style(),
     this._unfilledStyle = const Style(),
-  }) : super(ratio, label, percentage, style);
+  }) : _set = glyphs,
+       super(ratio, label, percentage, style);
+
+  Glyphs _set;
+
+  /// The marks of the line when [type] is null, as the theme's.
+  Glyphs get glyphs => _set;
+  set glyphs(Glyphs g) {
+    if (g != _set) {
+      _set = g;
+      markNeedsPaint();
+    }
+  }
 
   bool _segmented;
 
@@ -382,11 +400,11 @@ final class RenderLineGauge extends _RenderGaugeBase {
     }
   }
 
-  BorderType _type;
+  BorderType? _type;
 
   /// The lines drawn, as [LineGauge.type].
-  BorderType get type => _type;
-  set type(BorderType t) {
+  BorderType? get type => _type;
+  set type(BorderType? t) {
     if (t != _type) {
       _type = t;
       markNeedsPaint();
@@ -455,14 +473,32 @@ final class RenderLineGauge extends _RenderGaugeBase {
         );
       return;
     }
-    glyphs.line(
+    final filledPen = base.merge(_filledStyle).penIn(canvas.styles);
+    final unfilledPen = base.merge(_unfilledStyle).penIn(canvas.styles);
+    final type = _type;
+    if (type != null) {
+      glyphs.line(
+        canvas,
+        x,
+        y,
+        cells,
+        type,
+        filledPen: filledPen,
+        unfilledPen: unfilledPen,
+        ratio: unitRatio(_ratio),
+      );
+      return;
+    }
+    glyphs.glyphLine(
       canvas,
       x,
       y,
       cells,
-      _type,
-      filledPen: base.merge(_filledStyle).penIn(canvas.styles),
-      unfilledPen: base.merge(_unfilledStyle).penIn(canvas.styles),
+      filled: _set.gaugeFilled,
+      half: _set.gaugeHalf,
+      empty: _set.gaugeEmpty,
+      filledPen: filledPen,
+      unfilledPen: unfilledPen,
       ratio: unitRatio(_ratio),
     );
   }

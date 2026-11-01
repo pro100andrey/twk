@@ -546,7 +546,7 @@ final class _DatePickerState extends State<DatePicker>
         trailing: Listener(
           onDown: enabled ? _toggle : null,
           child: Text(
-            '▾',
+            theme.glyphs.down,
             style: theme.text.merge(
               !enabled
                   ? theme.muted

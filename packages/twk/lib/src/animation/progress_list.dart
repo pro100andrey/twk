@@ -460,7 +460,7 @@ final class ProgressTask {
   /// it is done or failed, and the error it failed with:
   /// `✓ Downloading assets.zip • 3.4/3.4 MB • 2.1 s`.
   String get summary {
-    final parts = ['${taskMark(_status, SpinnerFrames.dots, 0)} $_label'];
+    final parts = ['${TaskMarks.unicode.mark(_status, 0)} $_label'];
     if (_completed > 0 && (_total != null || unit == ProgressUnit.bytes)) {
       parts.add(_count(this));
     }
@@ -547,7 +547,7 @@ final class ProgressList extends StatefulWidget {
     this.columns = defaultColumns,
     this.hideFinished = false,
     this.maxVisible,
-    this.spinner = SpinnerFrames.dots,
+    this.spinner,
     this.barShape = ProgressBarShape.blocks,
     this.maxBarWidth,
   }) : assert(maxVisible == null || maxVisible >= 0, 'fewer than no rows'),
@@ -578,8 +578,9 @@ final class ProgressList extends StatefulWidget {
   final int? maxVisible;
 
   /// What a running task's mark shows in turn, and how often the rows of
-  /// running tasks are painted again.
-  final SpinnerFrames spinner;
+  /// running tasks are painted again; null for [Glyphs.spinner] of the
+  /// theme.
+  final SpinnerFrames? spinner;
 
   /// How the bar column is drawn: blocks, or a thinner line.
   final ProgressBarShape barShape;
@@ -656,7 +657,9 @@ final class _ProgressListState extends State<ProgressList> {
     final binding = AppBinding.maybeOf(context);
     final (rows, more) = _rows();
     final running = rows.any((t) => t.status == TaskStatus.running);
-    final interval = widget.spinner.interval;
+    final theme = Theme.of(context);
+    final frames = widget.spinner ?? theme.glyphs.spinner;
+    final interval = frames.interval;
     var steps = _steps;
     if (steps == null || steps.binding != binding) {
       steps?.stop();
@@ -668,7 +671,6 @@ final class _ProgressListState extends State<ProgressList> {
     } else {
       steps.stop();
     }
-    final theme = Theme.of(context);
     final base = opaque(theme.background.merge(theme.text));
     return Semantics(
       nodes: [
@@ -695,7 +697,7 @@ final class _ProgressListState extends State<ProgressList> {
         rows: rows,
         more: more,
         columns: widget.columns,
-        frames: widget.spinner,
+        frames: TaskMarks(frames, theme.glyphs),
         barShape: widget.barShape,
         maxBarWidth: widget.maxBarWidth,
         styles: _Styles(
@@ -764,7 +766,7 @@ final class _List extends LeafRenderObjectWidget {
   final List<ProgressTask> rows;
   final int more;
   final List<ProgressColumn> columns;
-  final SpinnerFrames frames;
+  final TaskMarks frames;
   final ProgressBarShape barShape;
   final int? maxBarWidth;
   final _Styles styles;
@@ -851,9 +853,9 @@ final class _RenderProgressList extends RenderObject {
     }
   }
 
-  SpinnerFrames _frames;
-  SpinnerFrames get frames => _frames;
-  set frames(SpinnerFrames f) {
+  TaskMarks _frames;
+  TaskMarks get frames => _frames;
+  set frames(TaskMarks f) {
     if (f != _frames) {
       _frames = f;
       markNeedsPaint();
@@ -922,7 +924,7 @@ final class _RenderProgressList extends RenderObject {
     final shown = _columns.toSet();
     var w = 0;
     if (shown.contains(ProgressColumn.mark)) {
-      w += taskMarkWidth(segmenter, _frames) + 1;
+      w += _frames.width(segmenter) + 1;
     }
     if (shown.contains(ProgressColumn.label)) {
       w += _longestLabel(segmenter) + 1;
@@ -998,7 +1000,7 @@ final class _RenderProgressList extends RenderObject {
       }
     }
 
-    final markW = hasMark ? taskMarkWidth(segmenter, _frames) : 0;
+    final markW = hasMark ? _frames.width(segmenter) : 0;
     final longest = hasLabel ? _longestLabel(segmenter) : 0;
     // the widths of the label and the bar, the text columns that fit
     var labelW = 0;
@@ -1074,7 +1076,7 @@ final class _RenderProgressList extends RenderObject {
         canvas.text(
           x,
           y,
-          taskMark(status, _frames, _spinnerStep),
+          _frames.mark(status, _spinnerStep),
           s.of(status).penIn(styles),
         );
         x += markW;
@@ -1120,7 +1122,7 @@ final class _RenderProgressList extends RenderObject {
           gap();
         } else {
           if (cell.isNotEmpty && cells[j - 1][y].isNotEmpty) {
-            canvas.text(x, y, ' • ', mutedPen);
+            canvas.text(x, y, ' ${_frames.glyphs.bullet} ', mutedPen);
           }
           x += 3;
         }
@@ -1157,7 +1159,7 @@ final class _RenderProgressList extends RenderObject {
     final b = binding;
     return b == null
         ? 0
-        : b.frameTime.inMicroseconds ~/ _frames.interval.inMicroseconds;
+        : b.frameTime.inMicroseconds ~/ _frames.frames.interval.inMicroseconds;
   }
 }
 

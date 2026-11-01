@@ -659,7 +659,10 @@ final class Cli {
         if (mode != CliMode.interactive) {
           await _logLines(
             [
-              [Span('✗ ', theme.error), Span(question, theme.question)],
+              [
+                Span('${theme.glyphs.cross} ', theme.error),
+                Span(question, theme.question),
+              ],
             ],
             LogLevel.error,
             toErr: true,
@@ -675,7 +678,7 @@ final class Cli {
         await _logLines(
           [
             [
-              Span('✗ ', theme.error),
+              Span('${theme.glyphs.cross} ', theme.error),
               Span(question, theme.question),
               Span(
                 invalidDefault == null

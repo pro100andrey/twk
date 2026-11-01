@@ -251,7 +251,8 @@ of it, and with `maintainSize` as well the child keeping its room.
 `ExpansionTile(title:, child:, subtitle:, trailing:, initiallyExpanded:
 false, controller:, onExpansionChanged:, duration: 150 ms, indent: 2,
 focusNode:, headerStyle:, expandedHeaderStyle:, hoverStyle:)` is a section
-that folds: a header row, `▶` while collapsed and `▼` while expanded (in the
+that folds: a header row, `▸` while collapsed and `▾` while expanded (the theme's
+`glyphs.collapsed` and `glyphs.expanded`, in the
 theme's `muted` and `primary`), then `title` with `subtitle` under it in
 `muted` and `trailing` (a count, a badge) at its right end, over `child`,
 `indent` cells in, which is built only while it is expanded or folding: it

@@ -1272,10 +1272,10 @@ final class _FilePickerState extends State<FilePicker> {
     final mark = !widget.multiple
         ? ''
         : entry.isDirectory
-        ? '    '
+        ? ' ' * (theme.glyphs.checkboxOn.length + 1)
         : _marked.contains(entry.path)
-        ? '[x] '
-        : '[ ] ';
+        ? '${theme.glyphs.checkboxOn} '
+        : '${theme.glyphs.checkboxOff} ';
     return Listener(
       key: ValueKey<String>(entry.path),
       onDown: (event) {
@@ -1294,7 +1294,7 @@ final class _FilePickerState extends State<FilePicker> {
               [
                 if (widget.bar && cursor)
                   Span(
-                    '▎',
+                    theme.glyphs.cursor,
                     (focused ? theme.primary : theme.muted).merge(
                       const Style(attrsOff: Attr.bold),
                     ),

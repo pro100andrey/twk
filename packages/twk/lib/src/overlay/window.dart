@@ -976,10 +976,14 @@ final class _Frame extends StatelessWidget {
     final c = slot.controller;
     final onClose = window.onClose;
     final buttons = <(String, VoidCallback)>[
-      if (window.minimisable) (raised ? '─' : '_', () => layer._minimise(slot)),
+      if (window.minimisable)
+        (raised ? '─' : theme.glyphs.minimise, () => layer._minimise(slot)),
       if (window.maximisable)
-        (c.maximised ? '▣' : '□', () => layer._toggleMaximised(slot)),
-      if (onClose != null) ('×', onClose),
+        (
+          c.maximised ? theme.glyphs.restore : theme.glyphs.maximise,
+          () => layer._toggleMaximised(slot),
+        ),
+      if (onClose != null) (theme.glyphs.close, onClose),
     ];
     final buttonsWidth = buttons.isEmpty ? 0 : 1 + 2 * buttons.length;
     final minimised = c.minimised;

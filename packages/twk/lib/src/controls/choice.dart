@@ -123,7 +123,7 @@ final class RadioGroup<T> extends StatelessWidget {
     this.direction = Axis.vertical,
     this.focusNode,
     this.autofocus = false,
-    this.mark = '●',
+    this.mark,
     this.style,
     this.bracketStyle,
     this.focusedStyle,
@@ -151,8 +151,8 @@ final class RadioGroup<T> extends StatelessWidget {
   final bool autofocus;
 
   /// What is between the parentheses of the choice chosen: a character
-  /// one column wide.
-  final String mark;
+  /// one column wide; null for `Glyphs.dot` of the theme.
+  final String? mark;
 
   /// A choice, the theme's text under it.
   final Style? style;
@@ -277,7 +277,7 @@ final class RadioGroup<T> extends StatelessWidget {
             ...bracketed(
               theme,
               '(',
-              on ? mark : ' ',
+              on ? mark ?? theme.glyphs.dot : ' ',
               ')',
               on,
               enabled,

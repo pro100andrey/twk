@@ -209,7 +209,7 @@ final class _NumberInputState extends State<NumberInput>
       trailing: Listener(
         onDown: enabled ? _arrow : null,
         child: Text(
-          '▴▾',
+          '${theme.glyphs.up}${theme.glyphs.down}',
           style: theme.text.merge(
             !enabled
                 ? theme.muted

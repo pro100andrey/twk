@@ -229,7 +229,10 @@ final class CliProgress {
     _clock.stop();
     final theme = _cli.theme;
     final line = [
-      if (done) Span('✓ ', theme.success) else Span('✗ ', theme.error),
+      if (done)
+        Span('${theme.glyphs.check} ', theme.success)
+      else
+        Span('${theme.glyphs.cross} ', theme.error),
       Span(_oneLine(message ?? _message)),
       if (_look == _Look.live)
         Span(' in ${formatTook(_clock.elapsed)}', theme.hint),

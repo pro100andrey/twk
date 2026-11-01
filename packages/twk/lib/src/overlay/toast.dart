@@ -293,10 +293,10 @@ final class _RaisedToastState extends State<_RaisedToast>
       return null;
     }
     return switch (fg) {
-      _ when fg == theme.success.fg => '✓',
-      _ when fg == theme.info.fg => 'ℹ',
-      _ when fg == theme.warning.fg => '⚠',
-      _ when fg == theme.error.fg => '✗',
+      _ when fg == theme.success.fg => theme.glyphs.check,
+      _ when fg == theme.info.fg => theme.glyphs.info,
+      _ when fg == theme.warning.fg => theme.glyphs.warning,
+      _ when fg == theme.error.fg => theme.glyphs.cross,
       _ => null,
     };
   }
@@ -314,7 +314,7 @@ final class _RaisedToastState extends State<_RaisedToast>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _Edge(style: kind),
+            _Edge(style: kind, glyph: theme.glyphs.accent),
             Padding(
               padding: const EdgeInsets.only(
                 left: 1,
@@ -350,22 +350,35 @@ final class _RaisedToastState extends State<_RaisedToast>
   }
 }
 
-/// A column of `▌` down the height it gets, in [style]: a toast's bar.
+/// A column of [glyph] down the height it gets, in [style]: a toast's bar.
 final class _Edge extends LeafRenderObjectWidget {
-  const _Edge({required this.style});
+  const _Edge({required this.style, required this.glyph});
 
   final Style style;
+  final String glyph;
 
   @override
-  _RenderEdge createRenderObject(BuildContext context) => _RenderEdge(style);
+  _RenderEdge createRenderObject(BuildContext context) =>
+      _RenderEdge(style, glyph);
 
   @override
   void updateRenderObject(BuildContext context, _RenderEdge renderObject) =>
-      renderObject.style = style;
+      renderObject
+        ..style = style
+        ..glyph = glyph;
 }
 
 final class _RenderEdge extends RenderObject {
-  _RenderEdge(this._style);
+  _RenderEdge(this._style, this._glyph);
+
+  String _glyph;
+  String get glyph => _glyph;
+  set glyph(String g) {
+    if (g != _glyph) {
+      _glyph = g;
+      markNeedsPaint();
+    }
+  }
 
   Style _style;
   Style get style => _style;
@@ -393,7 +406,7 @@ final class _RenderEdge extends RenderObject {
     final canvas = ctx.canvas;
     final pen = _style.penIn(canvas.styles);
     for (var y = 0; y < height; y++) {
-      canvas.text(0, y, '▌', pen);
+      canvas.text(0, y, _glyph, pen);
     }
   }
 }

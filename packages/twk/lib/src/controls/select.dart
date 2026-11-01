@@ -852,7 +852,7 @@ final class _PickerState<T> extends State<_Picker<T>>
 
   /// The columns of the widest label as [segmenter] measures them, and of
   /// its mark in a [MultiSelect].
-  int _labelWidth(TextSegmenter segmenter) {
+  int _labelWidth(TextSegmenter segmenter, Glyphs glyphs) {
     var w = segmenter.width(widget.hint);
     for (final c in widget.choices) {
       final cw = segmenter.width(c.label);
@@ -860,8 +860,15 @@ final class _PickerState<T> extends State<_Picker<T>>
         w = cw;
       }
     }
-    return w + (widget.multiple ? 4 : 0);
+    return w + (widget.multiple ? _boxWidth(glyphs) : 0);
   }
+
+  /// The columns of a checkbox and the blank after it.
+  static int _boxWidth(Glyphs glyphs) =>
+      (glyphs.checkboxOn.length > glyphs.checkboxOff.length
+          ? glyphs.checkboxOn.length
+          : glyphs.checkboxOff.length) +
+      1;
 
   Widget _field(BuildContext context, bool focused) {
     final theme = Theme.of(context);
@@ -900,7 +907,7 @@ final class _PickerState<T> extends State<_Picker<T>>
       muted = enabled;
     }
     final segmenter = segmenterOf(context);
-    final pad = _labelWidth(segmenter) - segmenter.width(text);
+    final pad = _labelWidth(segmenter, theme.glyphs) - segmenter.width(text);
     final Style shown;
     if (!muted) {
       shown = _plain;
@@ -935,7 +942,7 @@ final class _PickerState<T> extends State<_Picker<T>>
                   style: shown,
                 ),
               ),
-              Text(' ▾', style: arrow, wrap: TextWrap.none),
+              Text(' ${theme.glyphs.down}', style: arrow, wrap: TextWrap.none),
             ],
           ),
         ),
@@ -954,7 +961,7 @@ final class _PickerState<T> extends State<_Picker<T>>
                 style: shown,
               ),
             ),
-            Text(' ▾', style: arrow, wrap: TextWrap.none),
+            Text(' ${theme.glyphs.down}', style: arrow, wrap: TextWrap.none),
           ],
         ),
       ),
@@ -966,7 +973,8 @@ final class _PickerState<T> extends State<_Picker<T>>
   /// asks it to be.
   Widget _list(BuildContext context, {bool highlight = true}) {
     final matches = _matches;
-    final width = _labelWidth(segmenterOf(context)) + 2;
+    final glyphs = Theme.of(context).glyphs;
+    final width = _labelWidth(segmenterOf(context), glyphs) + 2;
     if (matches.isEmpty) {
       final theme = Theme.of(context);
       return SizedBox(
@@ -1005,7 +1013,7 @@ final class _PickerState<T> extends State<_Picker<T>>
         child: OptionList(
           options: [
             for (var k = top; k < end; k++)
-              _option(choices[matches[k].index], matches[k].marks),
+              _option(choices[matches[k].index], matches[k].marks, glyphs),
           ],
           highlighted: highlight ? at - top : -1,
           rows: rows,
@@ -1014,14 +1022,14 @@ final class _PickerState<T> extends State<_Picker<T>>
     );
   }
 
-  Option _option(Choice<T> choice, List<int> marks) {
+  Option _option(Choice<T> choice, List<int> marks, Glyphs glyphs) {
     if (!widget.multiple) {
       return Option(choice.label, marks: marks);
     }
     final on = widget.chosen.contains(choice.value);
     return Option(
-      '${on ? '[x]' : '[ ]'} ${choice.label}',
-      marks: [for (final m in marks) m + 4],
+      '${on ? glyphs.checkboxOn : glyphs.checkboxOff} ${choice.label}',
+      marks: [for (final m in marks) m + _boxWidth(glyphs)],
     );
   }
 }

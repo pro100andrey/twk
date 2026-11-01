@@ -585,6 +585,7 @@ final class _TreeTableState<T> extends State<TreeTable<T>>
   /// error.
   TableCell _treeCell(TableColumn<T> column, int i) {
     final rows = _shown;
+    final glyphs = Theme.of(context).glyphs;
     final mark = rows.mark(i);
     final level = rows.depth(i);
     final guides = StringBuffer();
@@ -615,7 +616,9 @@ final class _TreeTableState<T> extends State<TreeTable<T>>
       }
     }
     if (mark == _Mark.collapsed || mark == _Mark.expanded) {
-      expander = mark == _Mark.expanded ? '▾ ' : '▸ ';
+      expander = mark == _Mark.expanded
+          ? '${glyphs.expanded} '
+          : '${glyphs.collapsed} ';
     }
     final before = [
       Span(guides.toString(), _guideStyle),

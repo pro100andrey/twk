@@ -1700,6 +1700,7 @@ final class _MenuSession {
       bar: theme.primary,
       idle: theme.selectionIdle,
       raised: raised,
+      glyphs: theme.glyphs,
     );
     final shadow = raised ? Panel.shadowOf(theme) : null;
     final active = _active;
@@ -1862,6 +1863,7 @@ final class _BoxStyles {
     required this.bar,
     required this.idle,
     required this.raised,
+    required this.glyphs,
   });
 
   final Style box;
@@ -1871,7 +1873,7 @@ final class _BoxStyles {
   final Style highlight;
   final Style muted;
 
-  /// The `▎` of the highlighted entry, on a raised menu.
+  /// The cursor bar of the highlighted entry, on a raised menu.
   final Style bar;
 
   /// The highlighted entry of a menu the keys do not move in, on a raised
@@ -1880,6 +1882,9 @@ final class _BoxStyles {
 
   /// Whether the menu is a raised panel, or a bordered box.
   final bool raised;
+
+  /// The marks of a check, a submenu and the highlighted entry's bar.
+  final Glyphs glyphs;
 
   @override
   bool operator ==(Object other) =>
@@ -1890,11 +1895,12 @@ final class _BoxStyles {
       other.muted == muted &&
       other.bar == bar &&
       other.idle == idle &&
-      other.raised == raised;
+      other.raised == raised &&
+      other.glyphs == glyphs;
 
   @override
   int get hashCode =>
-      Object.hash(box, border, highlight, muted, bar, idle, raised);
+      Object.hash(box, border, highlight, muted, bar, idle, raised, glyphs);
 }
 
 /// A row of a menu: an entry's [label], the [key] that does the same,
@@ -2320,12 +2326,12 @@ final class _RenderMenuBox extends RenderObject {
         ..clipRect(1, y, w - 2, 1)
         ..fill(1, y, w - 2, 1, pen);
       if (row.checked ?? false) {
-        canvas.text(2, y, '✓', pen);
+        canvas.text(2, y, s.glyphs.check, pen);
       }
       label.paint(canvas, styles, 2 + _check, y, style);
       final key = row.key;
       if (row.submenu) {
-        canvas.text(w - 3, y, '▸', pen);
+        canvas.text(w - 3, y, s.glyphs.collapsed, pen);
       } else if (key != null) {
         canvas.text(
           w - 2 - segmenter.width(key),
@@ -2362,7 +2368,7 @@ extension on _RenderMenuBox {
           ..text(
             0,
             y,
-            '▎',
+            s.glyphs.cursor,
             style.merge(_active ? s.bar : s.muted).penIn(styles),
           );
       }
@@ -2371,12 +2377,12 @@ extension on _RenderMenuBox {
         ..save()
         ..clipRect(1, y, w - 2, 1);
       if (row.checked ?? false) {
-        canvas.text(2, y, '✓', pen);
+        canvas.text(2, y, s.glyphs.check, pen);
       }
       label.paint(canvas, styles, 2 + _check, y, style);
       final key = row.key;
       if (row.submenu) {
-        canvas.text(w - 3, y, '▸', pen);
+        canvas.text(w - 3, y, s.glyphs.collapsed, pen);
       } else if (key != null) {
         canvas.text(
           w - 2 - segmenter.width(key),

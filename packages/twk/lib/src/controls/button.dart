@@ -331,9 +331,19 @@ extension on _ButtonState {
         }
         // one row: the edges at either end, the label in the middle of what
         // is between them; bars where block elements are two columns wide
-        final thin = segmenterOf(context).width('▕') == 1;
-        final open = Text(thin ? '▕' : '│', style: line);
-        final close = Text(thin ? '▏' : '│', style: line);
+        final glyphs = theme.glyphs;
+        final segmenter = segmenterOf(context);
+        final thin =
+            segmenter.width(glyphs.capOpen) == 1 &&
+            segmenter.width(glyphs.capClose) == 1;
+        final open = Text(
+          thin ? glyphs.capOpen : glyphs.separator,
+          style: line,
+        );
+        final close = Text(
+          thin ? glyphs.capClose : glyphs.separator,
+          style: line,
+        );
         final inner = Padding(padding: const EdgeInsets.x(1), child: label);
         return LayoutBuilder(
           builder: (context, c) => Row(

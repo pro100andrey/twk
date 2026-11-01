@@ -81,14 +81,15 @@ final class ExpansionController extends ChangeNotifier {
 /// while it is expanded, and hides it while it is collapsed.
 ///
 /// ```text
-/// ▶ Advanced Network Options
-/// ▼ Security Settings
+/// ▸ Advanced Network Options
+/// ▾ Security Settings
 ///   ┌──────────────────────────────┐
 ///   │ TLS Version: 1.3  Verify: [x]│
 ///   └──────────────────────────────┘
 /// ```
 ///
-/// The header is a row: `▶` while collapsed, `▼` while expanded, then
+/// The header is a row: [Glyphs.collapsed] (`▸`) while collapsed,
+/// [Glyphs.expanded] (`▾`) while expanded, then
 /// [title] with [subtitle] below it in [ThemeData.muted], and [trailing]
 /// (a count, a badge) at its right end. It is one stop of the focus:
 /// Enter or Space toggles it (Enter hinted), Right expands it and Left
@@ -395,7 +396,9 @@ final class _ExpansionTileState extends State<ExpansionTile>
           children: [
             ExcludeSemantics(
               child: Text(
-                expanded ? '▼ ' : '▶ ',
+                expanded
+                    ? '${theme.glyphs.expanded} '
+                    : '${theme.glyphs.collapsed} ',
                 style: expanded ? theme.primary : theme.muted,
                 wrap: TextWrap.none,
                 maxLines: 1,

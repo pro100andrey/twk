@@ -1209,6 +1209,7 @@ final class _TreeViewState<T> extends State<TreeView<T>>
       guides: widget.showGuides,
       style: style,
       guideStyle: guideStyle,
+      glyphs: theme.glyphs,
       // the hidden cursor on the selected node's label
       child: ActiveItem(active: selected, child: child),
     );
@@ -1246,6 +1247,7 @@ final class _TreeRow extends SingleChildRenderObjectWidget {
     required this.guides,
     required this.style,
     required this.guideStyle,
+    required this.glyphs,
     super.child,
   });
 
@@ -1256,6 +1258,7 @@ final class _TreeRow extends SingleChildRenderObjectWidget {
   final bool guides;
   final Style style;
   final Style guideStyle;
+  final Glyphs glyphs;
 
   @override
   SingleChildRenderObjectElement createElement() => OneChildElement(this);
@@ -1269,6 +1272,7 @@ final class _TreeRow extends SingleChildRenderObjectWidget {
     guides: guides,
     style: style,
     guideStyle: guideStyle,
+    glyphs: glyphs,
   );
 
   @override
@@ -1280,7 +1284,8 @@ final class _TreeRow extends SingleChildRenderObjectWidget {
       ..mark = mark
       ..guides = guides
       ..style = style
-      ..guideStyle = guideStyle;
+      ..guideStyle = guideStyle
+      ..glyphs = glyphs;
   }
 }
 
@@ -1303,7 +1308,8 @@ final class _RenderTreeRow extends RenderObject
     required this._guides,
     required this._style,
     required this._guideStyle,
-  });
+    required Glyphs glyphs,
+  }) : _set = glyphs;
 
   int _level;
   int get level => _level;
@@ -1359,6 +1365,15 @@ final class _RenderTreeRow extends RenderObject
   set style(Style s) {
     if (s != _style) {
       _style = s;
+      markNeedsPaint();
+    }
+  }
+
+  Glyphs _set;
+  Glyphs get glyphs => _set;
+  set glyphs(Glyphs g) {
+    if (g != _set) {
+      _set = g;
       markNeedsPaint();
     }
   }
@@ -1458,7 +1473,7 @@ final class _RenderTreeRow extends RenderObject
         1,
         1,
         _style.penIn(styles),
-        mark == _Mark.expanded ? 0x25BE : 0x25B8,
+        (mark == _Mark.expanded ? _set.expanded : _set.collapsed).runes.first,
       );
     }
     if (child case final child?) {

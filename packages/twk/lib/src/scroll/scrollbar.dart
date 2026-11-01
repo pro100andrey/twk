@@ -767,6 +767,7 @@ final class _Bar extends LeafRenderObjectWidget {
   @override
   _RenderBar createRenderObject(BuildContext context) =>
       _RenderBar(track, axis, style, onBorder: onBorder)
+        ..glyphs = Theme.of(context).glyphs
         ..line = line
         ..hovered = hovered;
 
@@ -775,6 +776,7 @@ final class _Bar extends LeafRenderObjectWidget {
     renderObject
       ..axis = axis
       ..style = style
+      ..glyphs = Theme.of(context).glyphs
       ..line = line
       ..hovered = hovered;
   }
@@ -810,6 +812,15 @@ final class _RenderBar extends RenderObject {
   set style(Style s) {
     if (s != _style) {
       _style = s;
+      markNeedsPaint();
+    }
+  }
+
+  Glyphs _glyphs = Glyphs.unicode;
+  Glyphs get glyphs => _glyphs;
+  set glyphs(Glyphs g) {
+    if (g != _glyphs) {
+      _glyphs = g;
       markNeedsPaint();
     }
   }
@@ -875,10 +886,13 @@ final class _RenderBar extends RenderObject {
         width,
         height,
         _style.merge(line).penIn(canvas.styles),
-        vertical ? 0x2502 : 0x2500,
+        (vertical ? _glyphs.trackVertical : _glyphs.trackHorizontal)
+            .runes
+            .first,
       );
     }
-    final steps = wide ? thumbSteps(canvas, vertical: vertical) : 1;
+    final eighths = wide && _glyphs.eighths;
+    final steps = eighths ? thumbSteps(canvas, vertical: vertical) : 1;
     final thumb = _track.paint(vertical ? height : width, steps);
     if (thumb == null) {
       return;
@@ -892,7 +906,11 @@ final class _RenderBar extends RenderObject {
       steps: steps,
       vertical: vertical,
       thickness: vertical ? width : height,
-      glyph: wide ? null : (vertical ? 0x2503 : 0x2501),
+      glyph: eighths
+          ? null
+          : (vertical ? _glyphs.thumbVertical : _glyphs.thumbHorizontal)
+                .runes
+                .first,
     );
   }
 }

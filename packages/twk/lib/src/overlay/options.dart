@@ -245,6 +245,7 @@ final class _OptionListBox extends LeafRenderObjectWidget {
       muted: theme.muted,
       bar: theme.primary,
       thumb: theme.border,
+      glyphs: theme.glyphs,
     );
   }
 }
@@ -260,6 +261,7 @@ final class _Styles {
     required this.muted,
     required this.bar,
     required this.thumb,
+    required this.glyphs,
   });
 
   final Style base;
@@ -268,6 +270,7 @@ final class _Styles {
   final Style muted;
   final Style bar;
   final Style thumb;
+  final Glyphs glyphs;
 
   @override
   bool operator ==(Object other) =>
@@ -277,10 +280,12 @@ final class _Styles {
       other.mark == mark &&
       other.muted == muted &&
       other.bar == bar &&
-      other.thumb == thumb;
+      other.thumb == thumb &&
+      other.glyphs == glyphs;
 
   @override
-  int get hashCode => Object.hash(base, highlight, mark, muted, bar, thumb);
+  int get hashCode =>
+      Object.hash(base, highlight, mark, muted, bar, thumb, glyphs);
 }
 
 /// What an [OptionList] lays out and paints.
@@ -451,7 +456,7 @@ final class _RenderOptionList extends RenderObject {
       _paintLabel(canvas, styles, row, option, style);
       canvas.restore();
       if (i == h0 && _bar && w > 0) {
-        canvas.text(0, row, '▎', style.merge(s.bar).penIn(styles));
+        canvas.text(0, row, s.glyphs.cursor, style.merge(s.bar).penIn(styles));
       }
     }
     if (_thumb && n > h && h > 0 && w > 0) {
@@ -461,7 +466,12 @@ final class _RenderOptionList extends RenderObject {
       for (var row = ty; row < ty + th; row++) {
         final i = _top + row;
         final under = i == h0 ? s.highlight : s.base;
-        canvas.text(w - 1, row, '▐', under.merge(s.thumb).penIn(styles));
+        canvas.text(
+          w - 1,
+          row,
+          s.glyphs.thumbEdge,
+          under.merge(s.thumb).penIn(styles),
+        );
       }
     }
   }

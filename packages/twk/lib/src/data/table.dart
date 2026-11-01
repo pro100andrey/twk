@@ -1360,6 +1360,7 @@ final class _TableState<T> extends State<Table<T>> {
   /// The title of [column], the [index]th, marked when the rows are
   /// sorted by it.
   Widget _title(TableColumn<T> column, int index, Style style) {
+    final glyphs = Theme.of(context).glyphs;
     final title = Text(
       column.title,
       style: style,
@@ -1379,7 +1380,10 @@ final class _TableState<T> extends State<Table<T>> {
       },
       children: [
         Flexible(child: title),
-        Text(_controller.sortAscending ? ' ▴' : ' ▾', style: style),
+        Text(
+          ' ${_controller.sortAscending ? glyphs.up : glyphs.down}',
+          style: style,
+        ),
       ],
     );
   }
