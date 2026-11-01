@@ -1368,19 +1368,21 @@ final class _LogViewState extends State<LogView> {
     final query = look.query;
     final current = line.number == widget.controller._match;
     final found = current ? look.current : look.match;
-    final matches = <(int, int)>[];
-    if (query.pattern.isNotEmpty) {
+    final pieces = switch (line.spans) {
+      final spans? => [for (final s in spans) (s.text, base.merge(s.style))],
+      null => [(text, base)],
+    };
+    if (query.pattern.isEmpty) {
+      spans.addAll(pieces);
+    } else {
+      final matches = <(int, int)>[];
       for (var i = query.indexIn(text); i >= 0;) {
         final end = i + query.pattern.length;
         matches.add((i, end));
         i = query.indexIn(text, end);
       }
+      spans.addAll(_marked(pieces, matches, found));
     }
-    final pieces = switch (line.spans) {
-      final spans? => [for (final s in spans) (s.text, base.merge(s.style))],
-      null => [(text, base)],
-    };
-    spans.addAll(_marked(pieces, matches, found));
     if (spans.isEmpty) {
       spans.add(('', base));
     }
