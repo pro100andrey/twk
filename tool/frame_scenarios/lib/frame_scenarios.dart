@@ -8,6 +8,8 @@ import 'dart:typed_data';
 
 import 'package:twk_core/twk_core.dart';
 
+import 'src/branch_api.dart';
+
 /// The core wired up as an app's frame drives it, without a terminal: a
 /// style table, a glyph table, a surface of `width` × `height` cells, the
 /// canvas that paints it and the presenter that writes its changes.
@@ -232,22 +234,23 @@ final frameScenarios = <FrameScenario>[
       return s.render();
     };
   }),
-  FrameScenario(
-    'ellipsis-dots',
-    'the same cut off at 2/3 of the rows with the ASCII ellipsis "..."',
-    (hs) {
-      final s = _Prose(
-        hs,
-        maxLines: hs.surface.height * 2 ~/ 3,
-        ellipsis: '...',
-      )..render();
-      _requireCut(hs, s.paragraph.maxLines!, '...');
-      return (i) {
-        s.type(i);
-        return s.render();
-      };
-    },
-  ),
+  if (hasParagraphEllipsis)
+    FrameScenario(
+      'ellipsis-dots',
+      'the same cut off at 2/3 of the rows with the ASCII ellipsis "..."',
+      (hs) {
+        final s = _Prose(
+          hs,
+          maxLines: hs.surface.height * 2 ~/ 3,
+          ellipsis: '...',
+        )..render();
+        _requireCut(hs, s.paragraph.maxLines!, '...');
+        return (i) {
+          s.type(i);
+          return s.render();
+        };
+      },
+    ),
   FrameScenario(
     'wrap-ambig',
     'a word typed into the mixed-script paragraph on a terminal whose '
@@ -610,12 +613,7 @@ final class _Prose extends _Scene {
       cells += stringWidth(s.$1);
     }
     _tail = base.first.$1.substring(_lead.length);
-    paragraph = RenderParagraph(
-      base,
-      overflow: maxLines == null ? TextOverflow.clip : TextOverflow.ellipsis,
-      maxLines: maxLines,
-      ellipsis: ellipsis,
-    );
+    paragraph = cutParagraph(base, maxLines: maxLines, ellipsis: ellipsis);
     owner.root = RenderBox(
       pen: hs.styles.pen(const Pen(bg: Color.rgb(16, 18, 24))),
       boundary: true,

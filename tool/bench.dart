@@ -13,8 +13,11 @@
 // ASCII ellipsis "...", `Glyphs.ascii`'s) and, on a terminal whose
 // ambiguous characters take two cells (`FrameScenario.ambiguousWidth`, the
 // rig's canvas and the checking emulator both), `wrap-ambig` and
-// `ellip-ambig`. They use only the core's API of main's too, so they build
-// against an older `--baseline`.
+// `ellip-ambig`. A scenario that needs an API an older `--baseline`'s core
+// lacks (`ellipsis-dots`: `RenderParagraph.ellipsis`) is left out of the
+// baseline's build, by the stand-in of
+// `tool/frame_scenarios/lib/src/branch_api.dart` copied over it when the
+// build without it fails, and is reported as "not in the baseline".
 //
 // Before a scenario is timed it runs for 64 frames into the test emulator
 // (package:twk_test/vt.dart): a screen that differs from what was painted, or
@@ -28,9 +31,9 @@
 // checked out in a temporary git worktree, and runs the two executables
 // alternately, so load that drifts during the run affects both alike. REF
 // is a commit of this repository, whose history starts with the core at
-// packages/twk_core in a pub workspace with the scenarios' package; a
-// scenario that uses what REF's core lacks makes the build against REF
-// fail, said as such.
+// packages/twk_core in a pub workspace with the scenarios' package; what
+// else of this file or the scenarios uses what REF's core lacks makes the
+// build against REF fail, said as such.
 //
 // On a busy machine timings are noise: pin the run to one core
 // (`taskset -c 23 dart run tool/bench.dart ...`; the executables inherit
@@ -311,6 +314,10 @@ Future<int> _run(_Options opts) async {
         await File('$base/$file').parent.create(recursive: true);
         await File('$root/$file').copy('$base/$file');
       }
+      final api = '$root/tool/frame_scenarios/lib/src';
+      final apiAt = '$base/tool/frame_scenarios/lib/src';
+      await Directory(apiAt).create(recursive: true);
+      await File('$api/branch_api.dart').copy('$apiAt/branch_api.dart');
       final get = await Process.run(Platform.resolvedExecutable, [
         'pub',
         'get',
@@ -320,7 +327,15 @@ Future<int> _run(_Options opts) async {
         stderr.write(get.stdout);
         return 1;
       }
-      final exe = await _compile(base, '${tmp.path}/before');
+      var exe = await _compile(base, '${tmp.path}/before', quiet: true);
+      if (exe == null) {
+        // the core of REF may lack what some scenarios use: they drop out
+        // of its build
+        await File(
+          '$api/branch_api_baseline.dart',
+        ).copy('$apiAt/branch_api.dart');
+        exe = await _compile(base, '${tmp.path}/before');
+      }
       if (exe == null) {
         stderr.writeln(
           'bench: this tool/bench.dart does not compile against '
@@ -359,6 +374,9 @@ Future<int> _run(_Options opts) async {
           return 1;
         }
         for (final line in (res.stdout as String).trim().split('\n')) {
+          if (line.isEmpty) {
+            continue; // a build none of whose scenarios was asked for
+          }
           final [name, us, bytes] = line.split('\t');
           (b.us[name] ??= []).add(double.parse(us));
           b.bytes[name] = int.parse(bytes);
@@ -415,7 +433,7 @@ Future<void> _forgetStaleBases(String root) async {
 
 /// Compiles `tool/bench.dart` of the checkout at [dir] to [out]; returns
 /// [out], or null (after printing why) when it doesn't compile.
-Future<String?> _compile(String dir, String out) async {
+Future<String?> _compile(String dir, String out, {bool quiet = false}) async {
   final res = await Process.run(Platform.resolvedExecutable, [
     'compile',
     'exe',
@@ -424,9 +442,11 @@ Future<String?> _compile(String dir, String out) async {
     out,
   ], workingDirectory: dir);
   if (res.exitCode != 0) {
-    stderr
-      ..write(res.stdout)
-      ..write(res.stderr);
+    if (!quiet) {
+      stderr
+        ..write(res.stdout)
+        ..write(res.stderr);
+    }
     return null;
   }
   return out;
@@ -469,23 +489,35 @@ void _report(_Options opts, List<_Build> builds, _Noise noise) {
   if (builds.length == 1) {
     final b = builds.single;
     stdout.writeln(
-      '${'scenario'.padRight(13)}${'µs/frame'.padLeft(10)}'
+      '${'scenario'.padRight(14)}${'µs/frame'.padLeft(10)}'
       '${''.padLeft(6)}${'B/frame'.padLeft(10)}',
     );
     for (final n in names) {
       stdout.writeln(
-        '${n.padRight(13)}${_num(_median(b.us[n]!)).padLeft(10)}'
+        '${n.padRight(14)}${_num(_median(b.us[n]!)).padLeft(10)}'
         '${_spread(b.us[n]!).padLeft(6)}${_bytes(b.bytes[n]!).padLeft(10)}',
       );
     }
   } else {
     final [before, after] = builds;
     stdout.writeln(
-      '${'scenario'.padRight(13)}${'before µs'.padLeft(10)}${''.padLeft(6)}'
+      '${'scenario'.padRight(14)}${'before µs'.padLeft(10)}${''.padLeft(6)}'
       '${'after µs'.padLeft(10)}${''.padLeft(6)}${'ratio'.padLeft(8)}'
       '${'before B'.padLeft(10)}${'after B'.padLeft(10)}',
     );
+    final missing = <String>[];
     for (final n in names) {
+      if (!before.us.containsKey(n)) {
+        missing.add(n);
+        stdout.writeln(
+          '${n.padRight(14)}${'not in the baseline'.padLeft(16)}'
+          '${_num(_median(after.us[n]!)).padLeft(12)}'
+          '${_spread(after.us[n]!).padLeft(6)}'
+          '${''.padLeft(8)}${''.padLeft(10)}'
+          '${_bytes(after.bytes[n]!).padLeft(10)}',
+        );
+        continue;
+      }
       final a = _median(after.us[n]!);
       final b = _median(before.us[n]!);
       final ratio = a / b;
@@ -496,7 +528,7 @@ void _report(_Options opts, List<_Build> builds, _Noise noise) {
         moreBytes.add(n);
       }
       stdout.writeln(
-        '${n.padRight(13)}${_num(b).padLeft(10)}'
+        '${n.padRight(14)}${_num(b).padLeft(10)}'
         '${_spread(before.us[n]!).padLeft(6)}${_num(a).padLeft(10)}'
         '${_spread(after.us[n]!).padLeft(6)}'
         '${'×${ratio.toStringAsFixed(2)}'.padLeft(8)}'
@@ -513,6 +545,10 @@ void _report(_Options opts, List<_Build> builds, _Noise noise) {
       ..writeln(
         'more bytes per frame: '
         '${moreBytes.isEmpty ? 'none' : moreBytes.join(', ')}',
+      )
+      ..writeln(
+        'not in the baseline: '
+        '${missing.isEmpty ? 'none' : missing.join(', ')}',
       );
   }
   stdout
@@ -699,7 +735,11 @@ final class _Options {
       }
     }
     final known = {for (final s in frameScenarios) s.name};
-    final unknown = only?.difference(known) ?? const <String>{};
+    // a baseline's build lacks scenarios the working tree has: it is asked
+    // for them all the same and runs those it has
+    final unknown = measure
+        ? const <String>{}
+        : only?.difference(known) ?? const <String>{};
     if (unknown.isNotEmpty) {
       throw FormatException(
         'no scenario ${unknown.join(', ')} (there are ${known.join(', ')})',
