@@ -130,6 +130,8 @@ void main() {
     expect(t.clock.pendingTimers, 0);
   });
 
+  _intervalTests();
+
   group('TickerMode', () {
     testTwk('useAnimationController stands still below a TickerMode that is '
         'off and goes on where it would have been when it is on', (t) async {
@@ -184,6 +186,95 @@ void main() {
       await t.pumpWidget(app(enabled: true));
       await t.pump(ms * 20);
       expect(ticks.length, greaterThan(seen));
+    });
+  });
+}
+
+/// Pumps until the clock reads [at].
+Future<void> _until(TwkTester t, Duration at) => t.pump(at - t.clock.elapsed);
+
+void _intervalTests() {
+  group('useInterval', () {
+    testTwk('ticks once a period on the app clock, the callback of the '
+        'latest build, and stops with the element', (t) async {
+      final ticks = <String>[];
+      Widget app(String name) => HookBuilder(
+        builder: (context) {
+          useInterval(ms * 100, () => ticks.add(name));
+          return const Text('x');
+        },
+      );
+      await t.pumpWidget(app('a'), size: (10, 1));
+      await _until(t, ms * 250);
+      expect(ticks, ['a', 'a']);
+      await t.pumpWidget(app('b'));
+      await _until(t, ms * 450);
+      expect(ticks, ['a', 'a', 'b', 'b']);
+      await t.pumpWidget(const Text('gone'));
+      await _until(t, ms * 900);
+      expect(ticks, hasLength(4));
+      expect(t.clock.pendingTimers, 0);
+    });
+
+    testTwk('a tick can set state: the widget is redrawn', (t) async {
+      await t.pumpWidget(
+        HookBuilder(
+          builder: (context) {
+            final n = useState(0);
+            useInterval(ms * 100, () => n.value++);
+            return Text('${n.value}');
+          },
+        ),
+        size: (10, 1),
+      );
+      await _until(t, ms * 350);
+      expect(t.lines, ['3']);
+    });
+
+      'a changed period restarts it at the next multiple of the new one',
+      'a changed period restarts it at the next multiple of the new one, the same one does not',
+      (t) async {
+        var ticks = 0;
+        Widget app(Duration period) => HookBuilder(
+          builder: (context) {
+            useInterval(period, () => ticks++);
+            return const Text('x');
+          },
+        );
+        await t.pumpWidget(app(ms * 100), size: (10, 1));
+        await _until(t, ms * 250);
+        expect(ticks, 2);
+        await t.pumpWidget(app(ms * 100));
+        await _until(t, ms * 350);
+        expect(ticks, 3);
+        await t.pumpWidget(app(ms * 50));
+        await _until(t, ms * 600);
+        expect(ticks, 3 + 5);
+      },
+    );
+
+    testTwk('is muted below a TickerMode that is off, asks for no frame, '
+        'and ticks on, none made up for, when it is on again', (t) async {
+      var ticks = 0;
+      Widget app({required bool enabled}) => TickerMode(
+        enabled: enabled,
+        child: HookBuilder(
+          builder: (context) {
+            useInterval(ms * 100, () => ticks++);
+            return const Text('x');
+          },
+        ),
+      );
+      await t.pumpWidget(app(enabled: true), size: (10, 1));
+      await _until(t, ms * 250);
+      expect(ticks, 2);
+      await t.pumpWidget(app(enabled: false));
+      await _until(t, ms * 1250);
+      expect(ticks, 2);
+      expect(t.clock.pendingTimers, 0);
+      await t.pumpWidget(app(enabled: true));
+      await _until(t, ms * 1450);
+      expect(ticks, 4);
     });
   });
 }

@@ -1,8 +1,9 @@
-/// The hooks of animations: [useAnimationController] and [useTicker],
-/// ticking in the frames of the app the widget is in.
+/// The hooks of animations and time: [useAnimationController], [useTicker]
+/// and [useInterval], ticking in the frames of the app the widget is in.
 library;
 
 import '../../twk.dart';
+import '../animation/steps.dart';
 
 import 'hook.dart';
 
@@ -193,6 +194,84 @@ final class _TickerHookState extends HookState<Ticker, _TickerHook> {
   @override
   void dispose() {
     _ticker.dispose();
+    super.dispose();
+  }
+}
+
+/// Calls [onTick] of the latest build once every [period], from the first
+/// build on, on the clock of the app the widget is in, until the element is
+/// disposed. The ticks are [Steps] of the app's clock: they fall in the
+/// frames at the multiples of [period] since the app started, so the first
+/// comes within one [period] of the build, not after a whole one, and all
+/// that step by the same period tick in the same frame. A tick is called in
+/// a frame, where a `setState` is as usual.
+///
+/// Muted while a [TickerMode] above is off, as [useTicker] is: no tick and
+/// no frame asked for, and none made up for when it is on again. A changed
+/// [period] restarts it at the next multiple of the new one; a [period] not
+/// longer than zero is an [ArgumentError]. Outside an app it never ticks.
+///
+/// A clock of the seconds, redrawn once each:
+///
+/// ```dart
+/// HookBuilder(
+///   builder: (context) {
+///     final seconds = useState(0);
+///     useInterval(
+///       const Duration(seconds: 1),
+///       () => seconds.value++,
+///     );
+///     return Text('${seconds.value} s');
+///   },
+/// )
+/// ```
+void useInterval(Duration period, void Function() onTick) =>
+    use(_IntervalHook(period, onTick));
+
+final class _IntervalHook extends Hook<void> {
+  const _IntervalHook(this.period, this.onTick);
+
+  final Duration period;
+  final void Function() onTick;
+
+  @override
+  String get debugLabel => 'useInterval';
+
+  @override
+  _IntervalHookState createState() => _IntervalHookState();
+}
+
+final class _IntervalHookState extends HookState<void, _IntervalHook> {
+  late final Steps _steps;
+
+  @override
+  void initHook() {
+    super.initHook();
+    _steps = Steps(
+      hook.period,
+      _tick,
+      binding: AppBinding.maybeOf(context),
+    )..start();
+  }
+
+  void _tick() => hook.onTick();
+
+  @override
+  void didUpdateHook(_IntervalHook oldHook) {
+    super.didUpdateHook(oldHook);
+    _steps.interval = hook.period;
+  }
+
+  @override
+  // The dependency on TickerMode has the element build again when it
+  // changes, as in _AnimationControllerHookState.build.
+  void build(BuildContext context) {
+    _steps.muted = !TickerMode.of(context);
+  }
+
+  @override
+  void dispose() {
+    _steps.stop();
     super.dispose();
   }
 }
