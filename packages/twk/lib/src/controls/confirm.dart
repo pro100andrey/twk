@@ -232,10 +232,10 @@ final class _ConfirmInputState extends State<ConfirmInput> {
   }
 }
 
-/// Asks [question] in a dialog over the app ([showDialog]) with a
-/// [ConfirmInput] that has the focus: the future completes with true for
-/// yes, false for no, and null when Escape or a click outside closes the
-/// dialog. [defaultValue] is the answer Enter gives at first.
+/// Asks [question] in a dialog over the app ([showDialog]), wrapped on
+/// its own lines above a [ConfirmInput] that has the focus: the future
+/// completes with true for yes, false for no, and null when Escape or a
+/// click outside closes the dialog. [defaultValue] is the answer Enter gives at first.
 ///
 /// ```dart
 /// final delete = await showConfirm(
@@ -254,11 +254,19 @@ Future<bool?> showConfirm(
 }) => showDialog<bool>(
   context,
   (context) => Dialog(
-    child: ConfirmInput(
-      question,
-      defaultValue: defaultValue,
-      autofocus: true,
-      onConfirmed: (yes) => closeDialog(context, yes),
+    // the question wraps on its own lines, the answers on a row below
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (question.isNotEmpty) Text(question),
+        ConfirmInput(
+          '',
+          defaultValue: defaultValue,
+          autofocus: true,
+          onConfirmed: (yes) => closeDialog(context, yes),
+        ),
+      ],
     ),
   ),
 );
