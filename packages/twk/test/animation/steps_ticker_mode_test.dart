@@ -34,6 +34,12 @@ void main() {
       ),
       20,
     ),
+    'TaskList with the time': (
+      (_) => const TaskList(
+        tasks: [TaskItem('Build', status: TaskStatus.running)],
+      ),
+      20,
+    ),
     'Skeleton': (
       (_) => const Theme.terminal(
         child: Theme(

@@ -495,6 +495,7 @@ final class _RenderTaskRow extends RenderObject
         _status != TaskStatus.running ||
         owner == null ||
         started == null ||
+        _steps.muted ||
         _tick != null ||
         !_showElapsed ||
         _given != null) {

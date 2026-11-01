@@ -59,4 +59,21 @@ void main() {
     expect(steps.current, 0);
     expect(steps.interval, ms * 10);
   });
+
+  testTwk('an interval set after a mute keeps the step it is in', (t) async {
+    await t.pumpWidget(const Text('app'), size: (4, 1));
+    final steps = Steps(ms * 100, () {}, binding: t.binding)..start();
+    await until(t, ms * 350);
+    expect(steps.current, 3);
+    steps.muted = true;
+    await until(t, ms * 2000);
+    steps.muted = false;
+    await until(t, ms * 2050);
+    expect(steps.current, 3);
+    steps.interval = ms * 50;
+    expect(steps.current, 3);
+    await until(t, ms * 2100);
+    expect(steps.current, isIn([4, 5]));
+    steps.stop();
+  });
 }

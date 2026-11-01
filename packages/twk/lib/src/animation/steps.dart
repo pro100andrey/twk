@@ -47,7 +47,13 @@ final class Steps {
   set interval(Duration i) {
     _check(i);
     if (i != _interval) {
+      // the steps muted for are counted in the old interval: counted anew
+      // in the new one, the step it is in stays the one it is in
+      final keep = !_muted && _skipped != 0 ? current : null;
       _interval = i;
+      if (keep != null) {
+        _skipped = _live - keep;
+      }
       if (_callback != null) {
         _cancel();
         start();
