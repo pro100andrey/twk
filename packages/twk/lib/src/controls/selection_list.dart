@@ -183,6 +183,8 @@ final class SelectionController<K> extends ChangeNotifier {
 ///
 ///  * [SelectionController], what is selected and where the cursor is.
 ///  * [ListView], a list without a selection.
+///  * "A row of a list" in doc/guides/layout.md, for what [itemBuilder] builds
+///    as a row of a label and something fixed after it.
 final class SelectionList<K> extends StatefulWidget {
   /// A list of [itemCount] items, at least 0, which it asserts.
   const SelectionList({

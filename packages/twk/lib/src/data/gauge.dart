@@ -32,6 +32,14 @@ import 'chart_glyphs.dart';
 /// const Gauge(ratio: 2 / 3, percentage: true)
 /// ```
 ///
+/// What an app that draws its own meter sets here (the gallery's page
+/// shows each): the color of the filled part, [style]'s [Style.fg], over
+/// its [Style.bg]; the label's, [labelStyle]; the text, [label] or
+/// [percentage]; the width and the height, by the constraints around it
+/// (a `ConstrainedBox` for a size between a least and a most), as the bar
+/// takes all the width it is given. Its marks are eighth blocks, or braille
+/// where those are not one column wide, and are not the theme's.
+///
 /// See also:
 ///
 ///  * [LineGauge], the same as a thin line after its label.

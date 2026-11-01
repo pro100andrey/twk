@@ -190,6 +190,8 @@ final class ListController extends ScrollController {
 ///  * `LogView`, a list of log lines that follows its end.
 ///  * `SingleChildScrollView`, for content short enough to build whole.
 ///  * `Scrollbar`, which shows where the list is.
+///  * "A row of a list" in doc/guides/layout.md, for an item of a label that
+///    gives way and something fixed after it.
 final class ListView extends StatelessWidget {
   /// A list of [children], for a short list: the widgets are made at
   /// once, by the caller, and built as they come into view:

@@ -361,7 +361,8 @@ final class TreeView<T> extends StatefulWidget {
   /// an app's own cursor mark (`▎` for [TreeEntry.selected]) goes here, out
   /// of the label's reach. Laid out [gutterWidth] cells wide and a row
   /// tall, over the row's [Style]; the rows of a load, an error and
-  /// [separateRoots] have it empty. Null shows no gutter, the rows as
+  /// [separateRoots] get an empty cell in the row's style and the builder is
+  /// not called for them. Null shows no gutter, the rows as
   /// they are without it.
   // ignore: unsafe_variance
   final Widget Function(BuildContext context, TreeEntry<T> entry)? gutter;

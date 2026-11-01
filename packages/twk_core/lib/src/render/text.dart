@@ -127,8 +127,8 @@ enum TextWrap {
   none,
 }
 
-/// [text] broken into lines of at most [width] columns as a
-/// [RenderParagraph] of [wrap] breaks it, as (start, end) offsets into
+/// Breaks [text] into lines of at most [width] columns as a
+/// [RenderParagraph] of [wrap] does, as (start, end) offsets into
 /// [text], in UTF-16 code units: the line's drawn text, without the spaces
 /// that hang at a break by word and without the line break that ends it. A
 /// text without a character has one empty line; a cluster wider than

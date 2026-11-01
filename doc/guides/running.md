@@ -57,6 +57,8 @@ last case, and the shell is what the editor starts for it.
 ## Testing the run
 
 `runApp(app, terminal: ...)` takes a terminal of a test's, in memory, as
-[Testing](testing.md) shows. What the process does with real signals and a
+[Testing](testing.md) shows. To see an app in a real terminal without a
+test, or to record a session as a regression test, there are `twk record`
+and `twk tape`, which Testing's last section describes. What the process does with real signals and a
 real tty is covered by running a built app in a pseudo-terminal, which the
 repository's own end-to-end checks do.

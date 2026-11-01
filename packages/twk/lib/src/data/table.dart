@@ -428,6 +428,8 @@ final class TableController extends ChangeNotifier {
 ///
 ///  * `TreeTable`, a tree whose nodes are the rows of a table.
 ///  * [ListView], what the rows are the items of.
+///  * "A row of a list" in doc/guides/layout.md, for a row of a label and
+///    something fixed beside a table's columns.
 final class Table<T> extends StatefulWidget {
   /// A table of [rows], a list it is given whole. A [rowHeight] below 1, a
   /// [columnGap] or [sampleRows] below 0, and a [border] with no

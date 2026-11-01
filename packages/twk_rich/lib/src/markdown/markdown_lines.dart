@@ -21,9 +21,9 @@ import 'stream.dart';
 // late String readme;
 // late MarkdownTheme theme;
 
-/// The Markdown document [text] as lines of styled text, each wrapped to
-/// [width] columns, in the styles of [theme]: for an app that draws the
-/// lines itself, in a panel it cuts and colours by the cell, where a
+/// Renders the Markdown document [text] as lines of styled text, each
+/// wrapped to [width] columns, in the styles of [theme]: for an app that draws
+/// the lines itself, in a panel it cuts and colours by the cell, where a
 /// [MarkdownView] (which lays out its widgets itself) cannot go. A line is
 /// its spans; its cells are the columns of its text, with no cell beyond
 /// [width], and no trailing spaces except on a line of code, which a fill

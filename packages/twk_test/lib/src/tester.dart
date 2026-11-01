@@ -630,11 +630,12 @@ final class TwkTester {
     ];
   }
 
-  /// The rows of [region], a rectangle of the screen as [FinderTester.rect]
-  /// gives one, as [lines] gives the screen's: the text of its cells, a
-  /// wide glyph once, from the region's first column and without the
-  /// blanks that end a row; as many of its rows and columns as the screen
-  /// has. A wide glyph cut by the region's left edge is left out.
+  /// Reads the rows of [region], a rectangle of the screen as
+  /// [FinderTester.rect] gives one, as [lines] gives the screen's: the text
+  /// of its cells, a wide glyph once, from the region's first column and
+  /// without the blanks that end a row; as many of its rows and
+  /// columns as the screen has. A wide glyph cut by the region's left edge is
+  /// left out.
   ///
   /// ```dart
   /// expect(t.linesIn((x: 10, y: 0, width: 8, height: 2)), ['list', 'one']);

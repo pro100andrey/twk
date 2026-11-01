@@ -196,7 +196,7 @@ final class Style {
 @immutable
 final class Span {
   /// [text] in [style], unset by default or where null, so that a style
-  /// that depends goes in as it is: `Span(text, late ? theme.warning :
+  /// that depends goes in as it is: `Span(text, overdue ? theme.warning :
   /// null)`.
   const Span(this.text, [Style? style])
     : style = style ?? const Style(),

@@ -106,7 +106,9 @@ $ dart run example/counter.dart --inline
 - `t.act(() => notifier.value = 1)` changes what the app listens to (a
   controller, a notifier, a cubit) in the app's zone and pumps the frame
   that follows. Given an async function, it moves the clock on as far as
-  the function waits first.
+  the function waits first. `t.clock.run(() => Timer(...))` starts a
+  timer on the fake clock from the test's own code; `t.pump(duration)`
+  fires it.
 
 ## Keys
 
