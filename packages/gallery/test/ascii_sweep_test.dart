@@ -16,14 +16,6 @@ const _frame = "the page's own frame or theme, not the gallery's";
 /// A mark the page passes to a widget itself, above the theme's.
 const _explicit = 'a mark the page gives the widget, above the theme';
 
-/// Bars in eighths of a cell, braille and quadrants (the block elements
-/// U+2580 to U+259F and the braille patterns): ChartGlyphs, not yet under
-/// `partialBlocks`. Phase 2. A page of this kind may show any of them.
-const _charts = 'charts and bars in eighths of a cell (phase 2)';
-
-/// The core's text overflow, which cuts with `…`. Phase 2.
-const _overflow = "the core's text-overflow ellipsis (phase 2)";
-
 /// A picture, not a mark.
 const _image = 'an image or a drawing, not a mark';
 
@@ -42,53 +34,43 @@ const _allowed = <(String, String, String)>[
   ('Layout/Grid, GridPlacement', '·', _text),
   ('Layout/Wrap', '日本語', _text),
   ('Layout/CustomPaint', '▂▅█▁▃▆▇▄', _text),
-  ('Layout/Scaffold', '…', _overflow),
   ('Style/Theme', '╭─╮│╰╯▐●▌✓╴', _frame),
   ('Style/TerminalBrightness', '╭─╮│╰╯', _frame),
   ('Style/GradientForeground', '█╗╚═╔╝║', _text),
   ('Scrolling/Scrollable', '├─', _text),
-  ('Data/Sparkline', '', _charts),
-  ('Data/Gauge, LineGauge', '', _charts),
-  ('Data/BarChart', '', _charts),
-  ('Data/Chart', 'π', _charts),
-  ('Data/DotCanvas', '', _charts),
-  ('Data/DescriptionList', '●', _charts),
+  ('Data/Chart', 'π', _text),
+  ('Data/DescriptionList', '●', _text),
   ('Data/Table', '━╸', _explicit),
   ('Data/Gauge, LineGauge', '━', _explicit),
   ('Data/TaskList', '⠴', _explicit),
   ('Editing/InputDecoration', '◐⌕↵', _text),
   ('Controls/Pressable', '★☆', _text),
   ('Controls/NumberInput', '×', _text),
-  ('Controls/KeyHintsBar', '…', _overflow),
   ('Controls/ListTile', '▤›', _text),
   ('Overlays/OptionList', '…', _text),
   ('Animation/Spinner', '⠴…', _explicit),
+  ('Animation/ProgressList', '⠴', _explicit),
   ('Animation/TickerMode', '…', _text),
-  ('Animation/ProgressBar', '', _charts),
-  ('Animation/ProgressList', '', _charts),
   ('Animation/Skeleton, Skeletonize', '░', _explicit),
   ('Animation/AnimationController', '●', _text),
   ('Animation/AnimationController', '━╸', _explicit),
   ('Animation/AnimatedAlign, AnimatedPadding', '◆◇', _text),
   ('Animation/AnimatedPositioned', '▣', _text),
-  ('Animation/TweenAnimationBuilder', '', _charts),
   ('Mouse/Draggable, DragTarget', '●', _text),
   ('Focus and keys/ActiveItem', '›', _text),
   ('Navigation/Breadcrumbs', '›', _explicit),
   ('Framework/LayoutBuilder', '×', _text),
   ('Framework/NotificationListener', 'Δ', _text),
   ('App/ErrorWidget', '━', _explicit),
-  ('App/ErrorWidget', '', _charts),
   ('App/Static', '╭─╮│✓┃…╰╯', _frame),
   ('App/TerminalProgress', '╭─╮│◔━╰╯', _frame),
   ('App/Viewport', '╭─╮│…╰╯', _frame),
   ('App/Window title', '╭─╮│╰╯', _frame),
   ('App/Notifications', '╭─╮│╰╯', _frame),
   ('App/Cli', '✔▎', _frame),
-  ('Screen readers/Semantics', '', _charts),
-  ('Debugging/FrameOverlay', 'µ', _charts),
-  ('Debugging/Repaint rainbow', '', _charts),
   ('Debugging/RepaintBoundary', '·●', _text),
+  ('Debugging/FrameOverlay', 'µ⠴▃▄▅▆▇█', _frame),
+  ('Debugging/Repaint rainbow', '⠴▃▄▅▆▇█', _frame),
   ('Rich/DiffView', 'Привіт', _text),
   ('Rich/BigText', '█', _image),
   ('Rich/QrCode', '█▀▄', _image),
@@ -145,12 +127,7 @@ void main() {
 
 /// Whether [rune] may be drawn on the page [name].
 bool _isAllowed(String name, int rune) => _allowed.any(
-  (e) =>
-      e.$1 == name &&
-      (e.$2.runes.contains(rune) ||
-          (e.$3 == _charts &&
-              (rune >= 0x2580 && rune <= 0x259f ||
-                  rune >= 0x2800 && rune <= 0x28ff))),
+  (e) => e.$1 == name && e.$2.runes.contains(rune),
 );
 
 /// The cells of the page's stage, a string of one cell each: below the

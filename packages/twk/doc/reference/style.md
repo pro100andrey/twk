@@ -68,7 +68,7 @@ every border, divider, split, callout and tree guide given no type of its own),
 dock's drop sides, a log's new lines), `pointer` (`▶`, the traceback's row),
 `menu` (`≡`, a scaffold's toggle), `shades` (`[' ', '░', '▒', '▓', '█']`, at
 least two; a heatmap's, the skeleton's is the second), `swatch` (`■`) and
-`ellipsis` (`…`, for the text a widget cuts itself), `omitted` (`⋯`, `...` in ASCII:
+`ellipsis` (`…`, `...` in ASCII: the mark of text cut short, a `Text`'s too), `omitted` (`⋯`, `...` in ASCII:
 the row of lines left out of a view, a diff's unchanged lines; text, any width). `Glyphs.unicode` is the default;
 `Glyphs.ascii` has ASCII only (`>` `v` `x` `#` `|` `=`, the spinner
 `-\|/`, lines `+-|`, no eighths); `copyWith` changes some. A theme's `lerp` takes the
@@ -96,9 +96,13 @@ on a border or table given no `type` draws `lines`; `glyphs.borderOf(type)` is
 the line drawn for one. With `lines` ASCII every type but `none` is ASCII, a
 `rounded` or `heavy` too, so `Glyphs.ascii` makes the borders of the whole app
 ASCII; `Glyphs.unicode.copyWith(lines: BorderType.rounded)` makes the default
-rounded. Left out: the marks of charts (braille, eighths: `Chart`, `Sparkline`,
-`Gauge`, `ProgressBar`), images, and the ellipsis the core cuts text with
-(`TextOverflow.ellipsis`).
+rounded. Where `partialBlocks` is false the charts follow: `Sparkline`,
+`BarChart`, `Gauge`, `ProgressBar` and `ProgressList` draw a step as a shade of
+`shades` (`.:+#` in ASCII), and a `Chart` or `DotCanvas` cell (braille, quadrants,
+half blocks) as the shade as dense as its dots are many; a `Marker.custom`
+stays as given. `ellipsis` is also what a `Text`, a `Box` title and the core's
+`RenderParagraph.ellipsis` cut with: `...` is three columns, counted in the
+room as `…` is one (`fitText(ellipsis:)` alike). Left out: images.
 
 ## `ThemeData.lerp`
 

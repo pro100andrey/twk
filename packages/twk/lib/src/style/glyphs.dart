@@ -41,8 +41,11 @@ import 'theme.dart' show Theme, ThemeData;
 /// Borders are in it too: [lines] is the line of every box, divider, split
 /// and callout given no type of its own, and a set of ASCII lines draws
 /// every type but `none` as ASCII ([borderOf]), so [Glyphs.ascii] makes the
-/// whole app ASCII. Not in it: the marks of charts (braille, eighths), the
-/// pictures of images and the ellipsis the core cuts text with.
+/// whole app ASCII. The charts are in it, where [partialBlocks] is false:
+/// bars in the ramp of [shades], dots as the shade as dense as their number.
+/// So is the ellipsis a `Text` or a `Box` title is cut with: [ellipsis],
+/// whose columns are counted in the room. Not in it: the pictures of
+/// images.
 ///
 /// A widget's own parameter for a mark it has (`Spinner.frames`,
 /// `RadioGroup.mark`, `Skeleton.glyph`, a `Callout`'s `icon`) stays above
@@ -401,8 +404,10 @@ final class Glyphs {
   final String swatch;
 
   /// The mark of text cut short, in the rows of a widget that cuts its own
-  /// text (a breadcrumb, a page list, a JSON view). It may be longer than
-  /// one column (`...`). The core's text overflow is not it.
+  /// text (a breadcrumb, a page list, a JSON view), and that of a cut `Text`
+  /// and `Box` title, which the core takes as a value
+  /// (`RenderParagraph.ellipsis`). It may be longer than one column
+  /// (`...`): its columns come out of the room.
   final String ellipsis;
 
   /// The mark of lines left out of a view, a row standing for what is not

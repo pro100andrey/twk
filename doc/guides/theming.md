@@ -95,8 +95,10 @@ it a `Theme` around that part. A widget's own parameter for a mark it has
 `SplitView` or a `Callout` given no `BorderType` draws `Glyphs.lines`, and in
 `Glyphs.ascii` every type is ASCII, a `rounded` or a `heavy` too, so one
 `ThemeData.copyWith(glyphs: Glyphs.ascii)` makes the whole app ASCII but its
-charts (braille and eighths), images and the ellipsis the core cuts text
-with. A mark takes one column and one code point; one that is wider,
+images. Charts are in it too: with no `partialBlocks`, bars are drawn in the
+`shades` ramp and a canvas's dots as the shade as dense as their number; and
+so is the ellipsis a `Text` or a `Box` title is cut with (`...`, three
+columns, taken from the room). A mark takes one column and one code point; one that is wider,
 or a letter with a combining accent, is the `Glyphs.ascii` mark in its place,
 with one warning in the log for each, so an emoji in a `copyWith` is drawn
 where the terminal gives it one cell and is ASCII where it does not.
