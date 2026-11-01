@@ -15,10 +15,14 @@ import 'package:twk_core/twk_core.dart'
         Attr,
         BoxConstraints,
         Color,
+        ContainerParentDataMixin,
+        ContainerRenderObjectMixin,
         CrossAxisAlignment,
         EdgeInsets,
         MainAxisSize,
-        StackFit;
+        PaintContext,
+        ParentData,
+        RenderObject;
 
 import '../animation/animation_controller.dart';
 import '../animation/curves.dart';
@@ -30,6 +34,7 @@ import '../foundation/listenable_builder.dart';
 import '../framework/framework.dart';
 import '../layout/basic.dart';
 import '../layout/box.dart';
+import '../layout/child_list.dart';
 import '../layout/flex.dart';
 import '../layout/shadow.dart';
 import '../layout/stack.dart';
@@ -298,8 +303,8 @@ final class Dialog extends StatelessWidget {
   /// The bordered look: [title] and [trailing] both on the top edge, as a
   /// `Callout` has its close mark, the box as tall as it is without them.
   /// [trailing] is in a blank cell on either side, one `─` from the
-  /// corner; a zero-height row as wide as the edge needs keeps the box
-  /// from being narrower than the two together.
+  /// corner, built once: [_EdgeFit] keeps the box from being narrower than
+  /// the title and it together.
   Widget _bordered(
     BuildContext context,
     ThemeData theme,
@@ -315,58 +320,37 @@ final class Dialog extends StatelessWidget {
         if (title != null) BorderTitle(' $title ', style: theme.text),
       ],
       padding: padding,
-      child: trailing == null && !scrollable
-          ? child
-          : IntrinsicWidth(
+      child: scrollable
+          ? IntrinsicWidth(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (trailing != null)
-                    // the edge: corner, title, `─`, blank, trailing, blank,
-                    // `─`, corner; less the box's border and padding
-                    SizedBox(
-                      height: 0,
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            width: math.max(
-                              0,
-                              (title == null
-                                      ? 0
-                                      : segmenter.width(' $title ')) +
-                                  2 -
-                                  padding.horizontal,
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.x(1),
-                            child: trailing,
-                          ),
-                        ],
-                      ),
-                    ),
-                  content,
-                ],
+                children: [content],
               ),
-            ),
+            )
+          : child,
     );
     if (trailing == null) {
       return box;
     }
-    return Stack(
-      fit: StackFit.passthrough,
+    return _EdgeFit(
+      // the edge: corner, title, `─`, blank, trailing, blank, `─`, corner
+      before:
+          2 +
+          padding.horizontal +
+          math.max(
+            0,
+            (title == null ? 0 : segmenter.width(' $title ')) +
+                2 -
+                padding.horizontal,
+          ),
       children: [
         box,
-        Positioned(
-          top: 0,
-          right: 2,
-          // blank cells either side, which cover the edge's line
-          child: Box(
-            style: theme.surface.merge(theme.text),
-            padding: const EdgeInsets.x(1),
-            child: trailing,
-          ),
+        // blank cells either side, which cover the edge's line
+        Box(
+          style: theme.surface.merge(theme.text),
+          padding: const EdgeInsets.x(1),
+          child: trailing,
         ),
       ],
     );
@@ -681,4 +665,115 @@ final class _DialogScope extends InheritedWidget {
   @override
   bool updateShouldNotify(_DialogScope oldWidget) =>
       !identical(route, oldWidget.route);
+}
+
+/// A bordered [Dialog]'s box and, over its top edge, the widget at the
+/// edge's right end: the box at least as wide as `before` cells and that
+/// widget are, the widget two cells from the right corner.
+final class _EdgeFit extends MultiChildRenderObjectWidget {
+  const _EdgeFit({required this.before, super.children});
+
+  /// The columns the edge takes before the widget: the corner, the border
+  /// and room, the title and its `─`.
+  final int before;
+
+  @override
+  MultiChildRenderObjectElement createElement() => ChildListElement(this);
+
+  @override
+  _RenderEdgeFit createRenderObject(BuildContext context) =>
+      _RenderEdgeFit(before);
+
+  @override
+  void updateRenderObject(BuildContext context, _RenderEdgeFit renderObject) =>
+      renderObject.before = before;
+}
+
+final class _EdgeData extends ParentData with ContainerParentDataMixin {}
+
+final class _RenderEdgeFit extends RenderObject
+    with ContainerRenderObjectMixin<_EdgeData> {
+  _RenderEdgeFit(this._before);
+
+  int _before;
+  int get before => _before;
+  set before(int b) {
+    if (b != _before) {
+      _before = b;
+      markNeedsLayout();
+    }
+  }
+
+  @override
+  void setupParentData(RenderObject child) {
+    if (child.parentData is! _EdgeData) {
+      child.parentData = _EdgeData();
+    }
+  }
+
+  RenderObject? get _box => firstChild;
+  RenderObject? get _edge => _box == null ? null : childAfter(_box!);
+
+  int get _edgeWidth => _before + (_edge?.getMaxIntrinsicWidth(1) ?? 0);
+
+  @override
+  int computeMinIntrinsicWidth(int height) => math.max(
+    _box?.getMinIntrinsicWidth(height) ?? 0,
+    _edgeWidth,
+  );
+
+  @override
+  int computeMaxIntrinsicWidth(int height) => math.max(
+    _box?.getMaxIntrinsicWidth(height) ?? 0,
+    _edgeWidth,
+  );
+
+  @override
+  int computeMinIntrinsicHeight(int width) =>
+      _box?.getMinIntrinsicHeight(width) ?? 0;
+
+  @override
+  int computeMaxIntrinsicHeight(int width) =>
+      _box?.getMaxIntrinsicHeight(width) ?? 0;
+
+  @override
+  void performLayout(BoxConstraints c) {
+    final box = _box;
+    final edge = _edge;
+    if (box == null) {
+      width = c.constrainW(0);
+      height = c.constrainH(0);
+      return;
+    }
+    box.layout(
+      BoxConstraints(
+        math.min(math.max(c.minW, _edgeWidth), c.maxW),
+        c.maxW,
+        c.minH,
+        c.maxH,
+      ),
+      parentUsesSize: true,
+    );
+    box.parentData
+      ..dx = 0
+      ..dy = 0;
+    width = box.width;
+    height = box.height;
+    if (edge != null) {
+      edge.layout(
+        BoxConstraints(0, math.max(0, width - 4), 0, height),
+        parentUsesSize: true,
+      );
+      edge.parentData
+        ..dx = math.max(0, width - 2 - edge.width)
+        ..dy = 0;
+    }
+  }
+
+  @override
+  void paint(PaintContext ctx) {
+    for (var child = firstChild; child != null; child = childAfter(child)) {
+      paintChild(ctx, child);
+    }
+  }
 }

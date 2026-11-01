@@ -90,6 +90,31 @@ void main() {
     );
   });
 
+  testTwk('a bordered dialog builds its trailing once: one state', (t) async {
+    var built = 0;
+    await t.pumpWidget(
+      Align(
+        alignment: Alignment.topLeft,
+        child: Dialog(
+          look: PanelLook.bordered,
+          title: 'Title',
+          trailing: _Probe(() => built++),
+          child: const Text('ab'),
+        ),
+      ),
+      size: (24, 5),
+    );
+    expect(built, 1);
+    expect(
+      t,
+      matchesScreen(
+        '┌ Title ─ [x] ─┐\n'
+        '│ ab           │\n'
+        '└──────────────┘',
+      ),
+    );
+  });
+
   testTwk('a bordered dialog with trailing or scrollable shrinks to its '
       'content, as the raised one', (t) async {
     await t.pumpWidget(
@@ -224,4 +249,25 @@ void main() {
       expect(answers, [null, false]);
     });
   });
+}
+
+/// A widget that counts the states it makes.
+final class _Probe extends StatefulWidget {
+  const _Probe(this.onInit);
+
+  final void Function() onInit;
+
+  @override
+  State<_Probe> createState() => _ProbeState();
+}
+
+final class _ProbeState extends State<_Probe> {
+  @override
+  void initState() {
+    super.initState();
+    widget.onInit();
+  }
+
+  @override
+  Widget build(BuildContext context) => const Text('[x]');
 }
