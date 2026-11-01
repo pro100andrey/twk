@@ -54,46 +54,54 @@ sealed class HeatmapScale {
   /// [glyphs] from the smallest value to the largest, ` ░▒▓█` by default.
   /// The first is for a value at the smallest alone: one above it is at
   /// least the second.
-  const factory HeatmapScale.shades([List<String> glyphs]) = HeatmapShades;
+  const factory HeatmapScale.shades([List<String>? glyphs]) = HeatmapShades;
 
-  /// [glyph], `■`, in the color of [gradient] at the value: its first
+  /// [glyph], the theme's [Glyphs.swatch] (`■`) when null, in the color of
+  /// [gradient] at the value: its first
   /// color at the smallest value, its last at the largest. On a terminal
   /// that shows no RGB colors ([ColorMode.trueColor]), the default
   /// [HeatmapScale.shades] in its place. The gradient's direction is not
   /// read.
-  const factory HeatmapScale.colors(Gradient gradient, {String glyph}) =
+  const factory HeatmapScale.colors(Gradient gradient, {String? glyph}) =
       HeatmapColors;
 }
 
 /// A [HeatmapScale] of glyphs: see [HeatmapScale.shades].
 final class HeatmapShades extends HeatmapScale {
-  /// [glyphs], at least two, from the smallest value to the largest.
-  const HeatmapShades([this.glyphs = defaultGlyphs]) : super._();
+  /// [glyphs], at least two, from the smallest value to the largest; the
+  /// theme's [Glyphs.shades] when null.
+  const HeatmapShades([this.glyphs]) : super._();
 
-  /// ` ░▒▓█`: a blank, three shades and a full block.
+  /// ` ░▒▓█`: a blank, three shades and a full block: the shades of
+  /// [Glyphs.unicode].
   static const defaultGlyphs = [' ', '░', '▒', '▓', '█'];
 
-  /// The glyphs, from the smallest value to the largest; each a grapheme.
-  final List<String> glyphs;
+  /// The glyphs, from the smallest value to the largest, each a grapheme;
+  /// null for the theme's.
+  final List<String>? glyphs;
 
   @override
   bool operator ==(Object other) =>
-      other is HeatmapShades && sameList(other.glyphs, glyphs);
+      other is HeatmapShades &&
+      (glyphs == null || other.glyphs == null
+          ? glyphs == other.glyphs
+          : sameList(other.glyphs!, glyphs!));
 
   @override
-  int get hashCode => Object.hashAll(glyphs);
+  int get hashCode => Object.hashAll(glyphs ?? const []);
 }
 
 /// A [HeatmapScale] of colors: see [HeatmapScale.colors].
 final class HeatmapColors extends HeatmapScale {
   /// [glyph] in the colors of [gradient].
-  const HeatmapColors(this.gradient, {this.glyph = '■'}) : super._();
+  const HeatmapColors(this.gradient, {this.glyph}) : super._();
 
   /// The colors, from the smallest value to the largest.
   final Gradient gradient;
 
-  /// What a cell shows, in its color; a grapheme.
-  final String glyph;
+  /// What a cell shows, in its color, a grapheme; the theme's
+  /// [Glyphs.swatch] when null.
+  final String? glyph;
 
   @override
   bool operator ==(Object other) =>
@@ -596,13 +604,17 @@ final class _Grid extends LeafRenderObjectWidget {
   @override
   void updateRenderObject(BuildContext context, RenderHeatmap renderObject) {
     final w = state.widget;
+    final glyphs = Theme.of(context).glyphs;
+    final shades = glyphs.shades;
+    final swatch = glyphs.swatch;
     state._grid = renderObject
       ..rows = w.rows
       ..columns = w.columns
       ..value = w.value
       ..min = w.min
       ..max = w.max
-      ..scale = w.scale
+      ..shades = shades
+      ..scale = _themed(w.scale, shades, swatch)
       ..rowLabels = w.rowLabels
       ..columnLabels = w.columnLabels
       ..cellWidth = w.cellWidth
@@ -616,6 +628,17 @@ final class _Grid extends LeafRenderObjectWidget {
 }
 
 const _plain = Style();
+
+// [scale] with the theme's marks where it leaves them to it
+HeatmapScale _themed(HeatmapScale scale, List<String> shades, String swatch) =>
+    switch (scale) {
+      HeatmapShades(glyphs: null) => HeatmapShades(shades),
+      HeatmapColors(glyph: null, :final gradient) => HeatmapColors(
+        gradient,
+        glyph: swatch,
+      ),
+      _ => scale,
+    };
 
 /// What a [Heatmap] lays out and paints: its cells, labels and legend, as
 /// [Heatmap] shows them, in the styles given, none of them the theme's.
@@ -692,6 +715,18 @@ final class RenderHeatmap extends RenderObject {
     if (m != _max) {
       _max = m;
       markNeedsPaint();
+    }
+  }
+
+  List<String> _shades = HeatmapShades.defaultGlyphs;
+
+  /// The shades a scale of colors falls back to where the terminal shows
+  /// no RGB, and the legend of one: the theme's [Glyphs.shades].
+  List<String> get shades => _shades;
+  set shades(List<String> s) {
+    if (!sameList(s, _shades)) {
+      _shades = s;
+      markNeedsLayout();
     }
   }
 
@@ -859,16 +894,16 @@ final class RenderHeatmap extends RenderObject {
     }
     final seg = _segmenter;
     final glyphs = switch (_scale) {
-      HeatmapShades(:final glyphs) => glyphs,
-      HeatmapColors(:final glyph) => [glyph, ...HeatmapShades.defaultGlyphs],
+      HeatmapShades(:final glyphs) => glyphs ?? _shades,
+      HeatmapColors(:final glyph) => [glyph ?? '■', ..._shades],
     };
     return glyphs.any((g) => seg.width(g) > _cellWidth - 1);
   }
 
   /// The glyphs of the legend's scale.
   int get _legendSteps => switch (_scale) {
-    HeatmapShades(:final glyphs) => glyphs.length,
-    HeatmapColors() => HeatmapShades.defaultGlyphs.length,
+    HeatmapShades(:final glyphs) => (glyphs ?? _shades).length,
+    HeatmapColors() => _shades.length,
   };
 
   int get _legendWidth {
@@ -996,7 +1031,7 @@ final class RenderHeatmap extends RenderObject {
     lo ??= least ?? 0;
     hi ??= most ?? 0;
 
-    final look = _Look.of(_scale, styles.colorMode, seg, _cellWidth);
+    final look = _Look.of(_scale, _shades, styles.colorMode, seg, _cellWidth);
     final cursor = _cursor;
     // the hidden cursor on the marked cell
     if (cursor case (final r, final c)) {
@@ -1080,6 +1115,7 @@ final class _Look {
   /// in cells [cellWidth] columns wide.
   factory _Look.of(
     HeatmapScale scale,
+    List<String> shades,
     ColorMode mode,
     TextSegmenter segmenter,
     int cellWidth,
@@ -1087,9 +1123,9 @@ final class _Look {
     final (glyphs, gradient) = switch (scale) {
       HeatmapColors(:final gradient, :final glyph)
           when mode == ColorMode.trueColor =>
-        ([glyph], gradient),
-      HeatmapColors() => (HeatmapShades.defaultGlyphs, null),
-      HeatmapShades(:final glyphs) => (glyphs, null),
+        ([glyph ?? '■'], gradient),
+      HeatmapColors() => (shades, null),
+      HeatmapShades(:final glyphs) => (glyphs ?? shades, null),
     };
     final shown = <String>[];
     final widths = <int>[];
@@ -1249,7 +1285,7 @@ final class ActivityHeatmap extends StatelessWidget {
     this.weeks = 26,
     this.firstWeekday = DateTime.monday,
     this.tooltip,
-    this.scale = defaultScale,
+    this.scale,
     this.onSelected,
     this.showLegend = false,
     this.legendLabels = ('less', 'more'),
@@ -1317,8 +1353,10 @@ final class ActivityHeatmap extends StatelessWidget {
   /// What a day says on the mouse or marked; null for `3 on 2026-10-21`.
   final String Function(DateTime day, num count)? tooltip;
 
-  /// The shades or the colors; [defaultScale] by default.
-  final HeatmapScale scale;
+  /// The shades or the colors; null for [defaultScale], or, in a theme
+  /// whose [Glyphs.shades] are not those of [Glyphs.unicode], the theme's
+  /// with a `-` for no count.
+  final HeatmapScale? scale;
 
   /// Called with the day Enter, Space or a click selected.
   final void Function(DateTime day)? onSelected;
@@ -1352,6 +1390,17 @@ final class ActivityHeatmap extends StatelessWidget {
 
   /// See [Heatmap.cursorStyle].
   final Style? cursorStyle;
+
+  // the default scale in [glyphs]: the shades with a mark for no count,
+  // `·` in the shades of Glyphs.unicode, `-` in the others
+  static HeatmapScale _scaleIn(Glyphs glyphs) {
+    final shades = glyphs.shades;
+    if (shades.first.trim().isNotEmpty) {
+      return HeatmapShades(shades);
+    }
+    final none = sameList(shades, Glyphs.unicode.shades) ? '·' : '-';
+    return HeatmapShades([none, ...shades.skip(1)]);
+  }
 
   /// [count] on [day], as `3 on 2026-10-21`.
   static String defaultTooltip(DateTime day, num count) =>
@@ -1403,7 +1452,7 @@ final class ActivityHeatmap extends StatelessWidget {
         return day > last ? null : (byDay[day] ?? 0).toDouble();
       },
       min: 0,
-      scale: scale,
+      scale: scale ?? _scaleIn(Theme.of(context).glyphs),
       rowLabels: [
         for (var r = 0; r < 7; r++)
           if (r.isEven) weekdayNames[(firstWeekday - 1 + r) % 7] else '',

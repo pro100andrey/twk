@@ -146,9 +146,9 @@ void main() {
       '                    │',
       '     A              │',
       '                    │',
-      '          ▲         │',
-      '       ◀  ■  ▶      │',
-      '          ▼         │',
+      '          ↑         │',
+      '       ←  ■  →      │',
+      '          ↓         │',
       '                    │',
       '                    │',
       '                    │',
@@ -164,9 +164,9 @@ void main() {
       '                    │║       ║',
       '                    │║       ║',
       '                    │║       ║',
-      '                    │║        ▲',
-      '                    │║     ◀  ■  ▶',
-      '                    │║        ▼',
+      '                    │║        ↑',
+      '                    │║     ←  ■  →',
+      '                    │║        ↓',
       '                    │║       ║',
       '                    │║       ║',
       '                    │║       ║',
@@ -369,9 +369,9 @@ void main() {
       '                    ║                  ║',
       '                    ║                  ║',
       '                    ║                  ║',
-      '                    ▲                  ║',
-      '                 ◀  ■  ▶ ──────── _ □ ┐║',
-      '                    ▼ b body          │║',
+      '                    ↑                  ║',
+      '                 ←  ■  → ──────── _ □ ┐║',
+      '                    ↓ b body          │║',
       '                    ║│                │║',
       '                    ║│                │║',
       '                    ║│                │║',
@@ -862,7 +862,7 @@ void main() {
     await show(t, c);
     await hold(t, 3, 0, [(4, 1), (20, 6)]);
     expect(t, containsLine(contains(' ■ ')));
-    expect(t, isNot(containsLine(contains('◀'))));
+    expect(t, isNot(containsLine(contains('←'))));
     await t.mouse(MouseKind.up, 20, 6);
     await t.pump();
     expect(c.layout, DockLayout(root: DockTabs(['a'])));

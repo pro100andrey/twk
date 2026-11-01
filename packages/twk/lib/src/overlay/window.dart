@@ -37,6 +37,7 @@ import '../layout/shadow.dart';
 import '../layout/stack.dart';
 import '../semantics/semantics.dart';
 import '../style/color_mix.dart';
+import '../style/glyphs.dart' show cellRune;
 import '../style/style.dart';
 import '../text/hit_row.dart' show segmenterOf;
 import '../text/widgets.dart';
@@ -978,7 +979,10 @@ final class _Frame extends StatelessWidget {
     final onClose = window.onClose;
     final buttons = <(String, VoidCallback)>[
       if (window.minimisable)
-        (raised ? '─' : theme.glyphs.minimise, () => layer._minimise(slot)),
+        (
+          raised ? lineMark(theme.glyphs, null) : theme.glyphs.minimise,
+          () => layer._minimise(slot),
+        ),
       if (window.maximisable)
         (
           c.maximised ? theme.glyphs.restore : theme.glyphs.maximise,
@@ -1021,6 +1025,7 @@ final class _Frame extends StatelessWidget {
         mark: onBar ? theme.primary : null,
         lit: lit,
         litStyle: theme.surface.merge(theme.primary),
+        glyphs: theme.glyphs,
       );
       buttonRow = _raisedButtons(buttons, bar, within, onClose);
     } else {
@@ -1320,8 +1325,10 @@ final class _Chrome extends LeafRenderObjectWidget {
     required this.mark,
     required this.lit,
     required this.litStyle,
+    required this.glyphs,
   });
 
+  final Glyphs glyphs;
   final Style bar;
   final Style? mark;
   final int lit;
@@ -1341,12 +1348,15 @@ final class _RenderChrome extends RenderObject {
   Style? _mark;
   var _lit = 0;
   var _litStyle = const Style();
+  Glyphs _glyphs = Glyphs.unicode;
 
   void _configure(_Chrome w) {
-    if (w.bar != _bar ||
+    if (w.glyphs != _glyphs ||
+        w.bar != _bar ||
         w.mark != _mark ||
         w.lit != _lit ||
         w.litStyle != _litStyle) {
+      _glyphs = w.glyphs;
       _bar = w.bar;
       _mark = w.mark;
       _lit = w.lit;
@@ -1389,31 +1399,47 @@ final class _RenderChrome extends RenderObject {
     final bar = _bar.penIn(styles);
     canvas.fill(0, 0, w, 1, bar);
     if (_mark case final mark?) {
-      canvas.fill(0, 0, 1, 1, _bar.merge(mark).penIn(styles), 0x258E);
+      final focus = cellRune(
+        this,
+        'cursor',
+        _glyphs.cursor,
+        Glyphs.ascii.cursor,
+        canvas.segmenter,
+      );
+      canvas.fill(0, 0, 1, 1, _bar.merge(mark).penIn(styles), focus);
     }
     final lit = _lit;
     if (lit == 0) {
       return;
     }
     final pen = _litStyle.penIn(styles);
+    // eighths of a cell where the set has them, else the pieces of its lines
+    final blocks = _glyphs.partialBlocks;
+    final lines = _glyphs.lines;
+    final leftEdge = blocks ? 0x258F : lines.glyph(up: true, down: true);
+    final rightEdge = blocks ? 0x2595 : lines.glyph(up: true, down: true);
+    final bottomEdge = blocks ? 0x2581 : lines.glyph(left: true, right: true);
     final left = lit & _leftEdge != 0;
     final right = lit & _rightEdge != 0;
     if (left && h > 1) {
-      canvas.fill(0, 1, 1, h - 1, pen, 0x258F);
+      canvas.fill(0, 1, 1, h - 1, pen, leftEdge);
     }
     if (right && h > 1) {
-      canvas.fill(w - 1, 1, 1, h - 1, pen, 0x2595);
+      canvas.fill(w - 1, 1, 1, h - 1, pen, rightEdge);
     }
     if (lit & _bottomEdge != 0 && h > 1) {
       final from = left ? 1 : 0;
       final to = right ? w - 1 : w;
       if (to > from) {
-        canvas.fill(from, h - 1, to - from, 1, pen, 0x2581);
+        canvas.fill(from, h - 1, to - from, 1, pen, bottomEdge);
       }
     }
     if (lit & _topEdge != 0) {
       final corner = _bar.merge(Style(fg: _litStyle.fg)).penIn(styles);
-      canvas.fill(left ? 0 : w - 1, 0, 1, 1, corner, left ? 0x259B : 0x259C);
+      final glyph = blocks
+          ? (left ? 0x259B : 0x259C)
+          : lines.glyph(down: true, right: left, left: !left);
+      canvas.fill(left ? 0 : w - 1, 0, 1, 1, corner, glyph);
     }
   }
 }

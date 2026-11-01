@@ -57,7 +57,7 @@ final class SkeletonTheme extends InheritedWidget {
     required super.child,
     super.key,
     this.period = defaultPeriod,
-    this.glyph = defaultGlyph,
+    this.glyph,
     this.style,
     this.highlight,
     this.band = defaultBand,
@@ -66,7 +66,7 @@ final class SkeletonTheme extends InheritedWidget {
   /// How long the shimmer takes to cross a skeleton by default: 1.5 s.
   static const defaultPeriod = Duration(milliseconds: 1500);
 
-  /// What a skeleton's cells show by default: `░`, a light shade.
+  /// What a skeleton's cells show in [Glyphs.unicode]: `░`, a light shade.
   static const defaultGlyph = '░';
 
   /// How wide the shimmer's band is by default: 8 cells.
@@ -77,11 +77,12 @@ final class SkeletonTheme extends InheritedWidget {
   /// [Skeletonize.step]s, one at least.
   final Duration period;
 
-  /// What each cell of a skeleton shows: one code point, one column wide.
+  /// What each cell of a skeleton shows: one code point, one column wide;
+  /// null for the light shade of the theme's [Glyphs.shades].
   /// Where the canvas draws it two columns wide (`░` where the terminal
   /// draws East Asian ambiguous glyphs wide) or it is not one code point,
   /// a blank in reverse video stands for it.
-  final String glyph;
+  final String? glyph;
 
   /// The glyph's color and attributes, over the theme's
   /// [ThemeData.muted]; null for that alone. Without a background, the
@@ -344,7 +345,7 @@ final class _SkeletonState extends State<_Skeleton> {
       }
     }
     final glyph = _glyphOf(
-      skeletons?.glyph ?? SkeletonTheme.defaultGlyph,
+      skeletons?.glyph ?? theme.glyphs.shades[1],
       app?.owner.segmenter ?? _detached,
     );
     final highlight = (skeletons?.highlight ?? theme.text).fg;
