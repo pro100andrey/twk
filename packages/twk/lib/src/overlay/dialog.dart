@@ -329,6 +329,7 @@ final class Dialog extends StatelessWidget {
                       SizedBox(
                         height: 1,
                         child: Row(
+                          gap: 1,
                           children: [
                             Expanded(
                               child: title == null
@@ -363,18 +364,20 @@ final class Dialog extends StatelessWidget {
         padding: padding,
         child: trailing == null && !scrollable
             ? child
-            : Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (trailing != null)
-                    Align(
-                      alignment: Alignment.centerRight,
-                      heightFactor: 1,
-                      child: trailing,
-                    ),
-                  content,
-                ],
+            : IntrinsicWidth(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (trailing != null)
+                      Align(
+                        alignment: Alignment.centerRight,
+                        heightFactor: 1,
+                        child: trailing,
+                      ),
+                    content,
+                  ],
+                ),
               ),
       ),
     };

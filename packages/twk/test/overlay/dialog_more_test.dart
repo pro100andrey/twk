@@ -62,8 +62,58 @@ void main() {
     );
     expect(
       t,
-      matchesScreen('┌ T ───────┐\n│      2/5 │\n│ abcdef   │\n└──────────┘'),
+      matchesScreen('┌ T ─────┐\n│    2/5 │\n│ abcdef │\n└────────┘'),
     );
+  });
+
+  testTwk('a bordered dialog with trailing or scrollable shrinks to its '
+      'content, as the raised one', (t) async {
+    await t.pumpWidget(
+      app(
+        const Dialog(
+          look: PanelLook.bordered,
+          title: 'T',
+          trailing: Text('2/5'),
+          child: Text('abcdef'),
+        ),
+      ),
+      size: (40, 8),
+    );
+    await t.press('d');
+    await t.pump(ms * 200);
+    final trailing = t.lines.where((l) => l.contains('2/5')).single;
+    expect(trailing.trim().length, lessThan(14), reason: t.lines.join('\n'));
+    await t.pumpWidget(
+      app(
+        const Dialog(
+          look: PanelLook.bordered,
+          title: 'T',
+          scrollable: true,
+          child: Text('abcdef'),
+        ),
+      ),
+      size: (40, 8),
+    );
+    await t.press('d');
+    await t.pump(ms * 200);
+    final row = t.lines.where((l) => l.contains('abcdef')).single;
+    expect(row.trim().length, lessThan(14), reason: t.lines.join('\n'));
+  });
+
+  testTwk('the raised title keeps a gap before trailing', (t) async {
+    await t.pumpWidget(
+      app(
+        const Dialog(
+          title: 'Title',
+          trailing: Text('1/2'),
+          child: Text('abc'),
+        ),
+      ),
+      size: (30, 7),
+    );
+    await t.press('d');
+    await t.pump(ms * 200);
+    expect(t.lines.join('\n'), contains('Title 1/2'));
   });
 
   testTwk('a scrollable child is bounded by the screen and scrolls', (
