@@ -231,8 +231,8 @@ void _intervalTests() {
       expect(t.lines, ['3']);
     });
 
+    testTwk(
       'a changed period restarts it at the next multiple of the new one',
-      'a changed period restarts it at the next multiple of the new one, the same one does not',
       (t) async {
         var ticks = 0;
         Widget app(Duration period) => HookBuilder(
