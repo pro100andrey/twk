@@ -86,6 +86,7 @@ List<List<Span>> traceback(
   Style? hintStyle,
   SourceLines? sourceLines,
 }) {
+  final glyphs = theme?.glyphs ?? Glyphs.unicode;
   final style = errorStyle ?? theme?.error ?? const Style(fg: Color.red);
   final hint =
       hintStyle ??
@@ -93,7 +94,7 @@ List<List<Span>> traceback(
       const Style(fg: Color.defaultColor, attrs: Attr.dim);
   final text = _describe(error).split('\n');
   final lines = <List<Span>>[
-    [Span('✗ ', style), Span(text.first, style.merge(_bold))],
+    [Span('${glyphs.cross} ', style), Span(text.first, style.merge(_bold))],
     for (final line in text.skip(1))
       [if (line.isNotEmpty) Span('  $line', style)],
   ];
@@ -125,6 +126,7 @@ List<List<Span>> traceback(
           ),
           style,
           hint,
+          glyphs,
         ),
       );
   }
@@ -202,6 +204,7 @@ List<List<Span>> _excerptLines(
   List<List<Span>> code,
   Style error,
   Style hint,
+  Glyphs glyphs,
 ) {
   final width = '${excerpt.lastLine}'.length;
   final lines = [
@@ -222,11 +225,14 @@ List<List<Span>> _excerptLines(
     lines.add([
       if (n == excerpt.line) ...[
         const Span('  '),
-        Span('▶ ', error),
+        Span('${glyphs.pointer} ', error),
         Span('$n'.padLeft(width), error.merge(_bold)),
       ] else
         Span('    ${'$n'.padLeft(width)}', hint),
-      Span(spans.isEmpty ? ' │' : ' │ ', hint),
+      Span(
+        spans.isEmpty ? ' ${glyphs.separator}' : ' ${glyphs.separator} ',
+        hint,
+      ),
       ...spans,
     ]);
   }

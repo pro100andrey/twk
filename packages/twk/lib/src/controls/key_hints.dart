@@ -143,14 +143,15 @@ final class KeyHintsBar extends StatefulWidget {
 
   /// [combo] as a hint names it: the arrows and Escape by their signs,
   /// Page Up and Down short, after the modifiers too (`alt+↓`, `esc`,
-  /// `pgdn`); any other key as [KeyCombo.toString] does (`ctrl+s`).
-  static String signs(KeyCombo combo) {
+  /// `pgdn`); any other key as [KeyCombo.toString] does (`ctrl+s`). The
+  /// arrows are [glyphs]' ([Glyphs.arrowLeft] and the rest).
+  static String signs(KeyCombo combo, [Glyphs glyphs = Glyphs.unicode]) {
     final sign = switch (combo.code) {
       KeyCode.escape => 'esc',
-      KeyCode.left => '←',
-      KeyCode.right => '→',
-      KeyCode.up => '↑',
-      KeyCode.down => '↓',
+      KeyCode.left => glyphs.arrowLeft,
+      KeyCode.right => glyphs.arrowRight,
+      KeyCode.up => glyphs.arrowUp,
+      KeyCode.down => glyphs.arrowDown,
       KeyCode.pageUp => 'pgup',
       KeyCode.pageDown => 'pgdn',
       _ => null,
@@ -188,9 +189,11 @@ final class KeyHintsBar extends StatefulWidget {
     String Function(KeyCombo combo)? keyLabel,
     bool joinKeys = true,
     bool showUnhinted = false,
+    Glyphs glyphs = Glyphs.unicode,
   }) => [
     for (final (names, gap, hint) in _entries(
       keys,
+      glyphs,
       keyLabel: keyLabel,
       joinKeys: joinKeys,
       showUnhinted: showUnhinted,
@@ -201,12 +204,13 @@ final class KeyHintsBar extends StatefulWidget {
   /// [entries], each with the keys it names, apart by what is between
   /// their names.
   static List<(List<(String, ActiveKey)>, String, String?)> _entries(
-    Iterable<ActiveKey> keys, {
+    Iterable<ActiveKey> keys,
+    Glyphs glyphs, {
     String Function(KeyCombo combo)? keyLabel,
     bool joinKeys = true,
     bool showUnhinted = false,
   }) {
-    final label = keyLabel ?? signs;
+    final label = keyLabel ?? (KeyCombo combo) => signs(combo, glyphs);
     // each entry: the names of the keys it shows, their family, its hint
     final shown = <(List<(String, ActiveKey)>, int?, String?)>[];
     for (final key in keys) {
@@ -328,6 +332,7 @@ final class _KeyHintsBarState extends State<KeyHintsBar> {
       pairs == null
           ? _manager?.activeKeys ?? const <ActiveKey>[]
           : _fixedKeys(pairs),
+      theme.glyphs,
       keyLabel: widget.keyLabel,
       joinKeys: widget.joinKeys,
       showUnhinted: widget.showUnhinted,
@@ -422,6 +427,7 @@ final class _KeyHintsBarState extends State<KeyHintsBar> {
 /// )
 /// ```
 Future<void> showKeyHelp(BuildContext context, {String title = 'Keys'}) {
+  final glyphs = Theme.of(context).glyphs;
   final active = AppBinding.of(context).focusManager.activeKeys;
   final byLayer = <int, List<ActiveKey>>{};
   for (final key in active) {
@@ -430,10 +436,10 @@ Future<void> showKeyHelp(BuildContext context, {String title = 'Keys'}) {
   // the nearest layer first; a layer with nothing to show leaves no gap
   final layers = [
     for (final i in byLayer.keys.toList()..sort())
-      KeyHintsBar.entries(byLayer[i]!),
+      KeyHintsBar.entries(byLayer[i]!, glyphs: glyphs),
     // the dialog's own binding (Dialog: `escape` with the hint `close`) is
     // not built until the dialog is, so it is named here, as it is there
-    [(KeyHintsBar.signs(KeyCombo.parse('escape')), 'close')],
+    [(KeyHintsBar.signs(KeyCombo.parse('escape'), glyphs), 'close')],
   ].where((e) => e.isNotEmpty).toList();
   var widest = 0;
   for (final entries in layers) {

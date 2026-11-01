@@ -460,8 +460,14 @@ final class ProgressTask {
   /// `•`, how much it did where that says something, the time it took once
   /// it is done or failed, and the error it failed with:
   /// `✓ Downloading assets.zip • 3.4/3.4 MB • 2.1 s`.
-  String get summary {
-    final parts = ['${TaskMarks.unicode.mark(_status, 0)} $_label'];
+  String get summary => summaryIn(Glyphs.unicode);
+
+  /// [summary] with the marks of [glyphs]: its mark and the bullet
+  /// between the parts.
+  String summaryIn(Glyphs glyphs) {
+    final parts = [
+      '${TaskMarks(SpinnerFrames.dots, glyphs).mark(_status, 0)} $_label',
+    ];
     if (_completed > 0 && (_total != null || unit == ProgressUnit.bytes)) {
       parts.add(_count(this));
     }
@@ -471,7 +477,7 @@ final class ProgressTask {
     if (_error case final error?) {
       parts.add('$error');
     }
-    return parts.join(' • ');
+    return parts.join(' ${glyphs.bullet} ');
   }
 
   @override

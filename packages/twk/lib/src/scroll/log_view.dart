@@ -1298,7 +1298,8 @@ final class _LogViewState extends State<LogView> {
                 child: GestureDetector(
                   onTap: (_) => c.follow(),
                   child: Text(
-                    ' ↓ $fresh new ${fresh == 1 ? 'line' : 'lines'} ',
+                    ' ${theme.glyphs.arrowDown} $fresh new '
+                    "${fresh == 1 ? 'line' : 'lines'} ",
                     style: theme.surface.merge(theme.primary),
                     wrap: TextWrap.none,
                   ),

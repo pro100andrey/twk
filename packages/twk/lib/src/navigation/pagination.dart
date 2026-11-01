@@ -247,7 +247,7 @@ final class _PaginationState extends State<Pagination> {
       hints: {
         'left': 'previous',
         'right': 'next',
-        '0': '…9 page',
+        '0': '${Theme.of(context).glyphs.ellipsis}9 page',
         if (typing) 'enter': 'go',
       },
       onTap: enabled
@@ -340,7 +340,7 @@ final class _PaginationState extends State<Pagination> {
     }
     for (final p in _pages(page, count, siblings)) {
       if (p < 0) {
-        add(_Kind.gap, '…', -1);
+        add(_Kind.gap, g.ellipsis, -1);
       } else if (p == page) {
         add(_Kind.page, '[${p + 1}]', -1);
       } else {
@@ -362,7 +362,7 @@ final class _PaginationState extends State<Pagination> {
       add(_Kind.range, ' ($items)', -1);
     }
     if (_typed.isNotEmpty) {
-      add(_Kind.typed, ' → $_typed', -1);
+      add(_Kind.typed, ' ${g.arrowRight} $_typed', -1);
     }
     return parts;
   }

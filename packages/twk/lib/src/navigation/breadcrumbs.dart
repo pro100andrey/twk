@@ -72,7 +72,7 @@ final class Breadcrumbs extends StatefulWidget {
     super.key,
     this.onSelected,
     this.current,
-    this.separator = ' › ',
+    this.separator,
     this.keepLeading = 1,
     this.focusNode,
     this.style,
@@ -90,8 +90,9 @@ final class Breadcrumbs extends StatefulWidget {
   /// last when null.
   final int? current;
 
-  /// What is between two crumbs.
-  final String separator;
+  /// What is between two crumbs; null for the theme's [Glyphs.next]
+  /// between blanks (` › `).
+  final String? separator;
 
   /// How many of the first items are kept before the `…` where the row
   /// does not fit.
@@ -308,10 +309,12 @@ final class _BreadcrumbsState extends State<Breadcrumbs> {
       widget.currentStyle ?? const Style(attrs: Attr.bold),
     );
     final between = row.merge(theme.muted);
+    final separator = widget.separator ?? ' ${theme.glyphs.next} ';
     final crumbs = _fit(
       segmenter,
       _items,
-      widget.separator,
+      separator,
+      theme.glyphs.ellipsis,
       widget.keepLeading,
       width,
     );
@@ -324,7 +327,7 @@ final class _BreadcrumbsState extends State<Breadcrumbs> {
     final spans = <HitSpan>[];
     for (final (s, stop) in stops.indexed) {
       if (s > 0) {
-        spans.add((span: Span(widget.separator, between), target: -1));
+        spans.add((span: Span(separator, between), target: -1));
       }
       final isLink = enabled && _link(stop);
       var style = isLink
@@ -359,6 +362,7 @@ List<(int, List<int>, String)> _fit(
   TextSegmenter segmenter,
   List<String> items,
   String separator,
+  String ellipsis,
   int keepLeading,
   int width,
 ) {
@@ -368,7 +372,7 @@ List<(int, List<int>, String)> _fit(
   }
   final widths = [for (final item in items) segmenter.width(item)];
   final sep = segmenter.width(separator);
-  final gap = segmenter.width('…');
+  final gap = segmenter.width(ellipsis);
   int span(int from, int to) {
     var w = 0;
     for (var i = from; i < to; i++) {
@@ -379,7 +383,7 @@ List<(int, List<int>, String)> _fit(
 
   List<(int, List<int>, String)> crumbs(int lead, int tail) => [
     for (var i = 0; i < lead; i++) (i, const <int>[], items[i]),
-    if (tail > lead) (lead, [for (var i = lead; i < tail; i++) i], '…'),
+    if (tail > lead) (lead, [for (var i = lead; i < tail; i++) i], ellipsis),
     for (var i = tail; i < n; i++) (i, const <int>[], items[i]),
   ];
 
@@ -401,7 +405,7 @@ List<(int, List<int>, String)> _fit(
   final last = items[n - 1];
   final room = n > 1 ? width - gap - sep : width;
   return [
-    if (n > 1) (0, [for (var i = 0; i < n - 1; i++) i], '…'),
+    if (n > 1) (0, [for (var i = 0; i < n - 1; i++) i], ellipsis),
     (n - 1, const <int>[], fitText(segmenter, last, room)),
   ];
 }

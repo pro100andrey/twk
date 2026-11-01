@@ -241,7 +241,8 @@ final class _SegmentedButtonState<T> extends State<SegmentedButton<T>> {
         'left': 'previous',
         'right': 'next',
         'space': widget.multiSelectionEnabled ? 'toggle' : 'select',
-        if (digits > 1) '1': '…$digits select',
+        if (digits > 1)
+          '1': '${Theme.of(context).glyphs.ellipsis}$digits select',
       },
       onTap: enabled ? (event) => _press(_hits.at(event.x)) : null,
       builder: (context, focused) => Semantics(

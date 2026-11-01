@@ -392,7 +392,7 @@ bool _stays(ProgressTask task) =>
 /// success, error or hint.
 @internal
 List<Span> summaryLine(ProgressTask task, Cli cli) {
-  final summary = _oneLine(task.summary);
+  final summary = _oneLine(task.summaryIn(cli.theme.glyphs));
   final theme = cli.theme;
   final space = summary.indexOf(' ');
   if (space < 0) {

@@ -959,7 +959,8 @@ final class _StepperState extends State<Stepper> {
     int current,
     int width,
   ) {
-    const sep = ' ── ';
+    final dash = lineMark(theme.glyphs, null);
+    final sep = ' $dash$dash ';
     final steps = widget.steps;
     final spans = <HitSpan>[];
     var x = 0;
