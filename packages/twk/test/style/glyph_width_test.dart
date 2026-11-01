@@ -316,6 +316,7 @@ void main() {
       'shades': (g, v) => g.copyWith(shades: [' ', v]),
       'swatch': (g, v) => g.copyWith(swatch: v),
       'ellipsis': (g, v) => g.copyWith(ellipsis: v),
+      'omitted': (g, v) => g.copyWith(omitted: v),
     };
 
     test('the table names every field of the constructor', () {
@@ -328,7 +329,7 @@ void main() {
         ).allMatches(source.substring(start, end)))
           m.group(1)!,
       };
-      expect(fields.length, 55);
+      expect(fields.length, 56);
       expect(changes.keys.toSet(), fields);
     });
 

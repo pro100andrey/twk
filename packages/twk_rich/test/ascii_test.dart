@@ -75,4 +75,42 @@ void main() {
     expect(isAscii(t.lines), isTrue, reason: '${t.lines}');
     expect(t.lines.any((l) => l.contains('"abcd...')), isTrue);
   });
+
+  group('the lines a DiffView leaves out', () {
+    final before = [for (var i = 1; i <= 30; i++) 'line $i\n'].join();
+    final after = before.replaceFirst('line 15\n', 'line fifteen\n');
+    final diff = Diff.between(before, after, context: 1);
+
+    Future<List<String>> gap(TwkTester t, Glyphs glyphs) async {
+      await t.pumpWidget(
+        Theme(
+          data: ThemeData.dark.copyWith(glyphs: glyphs),
+          child: DiffView(diff),
+        ),
+        size: (40, 12),
+      );
+      return t.lines;
+    }
+
+    testTwk('are marked by Glyphs.omitted: ⋯ in unicode, ... in ASCII', (
+      t,
+    ) async {
+      expect(
+        (await gap(t, Glyphs.unicode)).first,
+        contains('⋯ 13 unchanged lines'),
+      );
+      final ascii = await gap(t, Glyphs.ascii);
+      expect(ascii.first, contains('... 13 unchanged lines'));
+      expect(isAscii(ascii), isTrue, reason: '$ascii');
+    });
+
+    testTwk('do not take the text ellipsis of a theme that copies unicode', (
+      t,
+    ) async {
+      final lines = await gap(t, Glyphs.unicode.copyWith(ellipsis: '~'));
+      expect(lines.first, contains('⋯ 13 unchanged lines'));
+      final own = await gap(t, Glyphs.unicode.copyWith(omitted: '[..]'));
+      expect(own.first, contains('[..] 13 unchanged lines'));
+    });
+  });
 }

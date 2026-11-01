@@ -68,7 +68,8 @@ every border, divider, split, callout and tree guide given no type of its own),
 dock's drop sides, a log's new lines), `pointer` (`▶`, the traceback's row),
 `menu` (`≡`, a scaffold's toggle), `shades` (`[' ', '░', '▒', '▓', '█']`, at
 least two; a heatmap's, the skeleton's is the second), `swatch` (`■`) and
-`ellipsis` (`…`, for the text a widget cuts itself). `Glyphs.unicode` is the default;
+`ellipsis` (`…`, for the text a widget cuts itself), `omitted` (`⋯`, `...` in ASCII:
+the row of lines left out of a view, a diff's unchanged lines; text, any width). `Glyphs.unicode` is the default;
 `Glyphs.ascii` has ASCII only (`>` `v` `x` `#` `|` `=`, the spinner
 `-\|/`, lines `+-|`, no eighths); `copyWith` changes some. A theme's `lerp` takes the
 other's set past halfway. A widget's own parameter (`Spinner.frames`,

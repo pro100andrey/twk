@@ -360,12 +360,7 @@ final class _Paint {
   final bool sideBySide;
   final Glyphs glyphs;
 
-  /// The mark of the lines left out: `⋯` for the ellipsis of
-  /// [Glyphs.unicode], the set's own for another.
-  String get fold =>
-      glyphs.ellipsis == Glyphs.unicode.ellipsis ? '⋯' : glyphs.ellipsis;
-
-  /// The blanks before the `⋯` of a row of lines left out, so that it
+  /// The blanks before the mark of a row of lines left out, so that it
   /// stands where the signs do.
   int get _indent => sideBySide ? digits + 1 : 2 * digits + 2;
 
@@ -510,7 +505,7 @@ final class _GapRow extends _Row {
   @override
   Widget build(_Paint paint) => _row(paint.theme.collapsed, [
     Span(
-      '${' ' * paint._indent}${paint.fold} $count unchanged '
+      '${' ' * paint._indent}${paint.glyphs.omitted} $count unchanged '
       '${count == 1 ? 'line' : 'lines'}'
       '${section.isEmpty ? '' : '  $section'}',
     ),

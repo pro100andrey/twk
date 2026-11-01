@@ -125,6 +125,8 @@ void main() {
       expect(Glyphs.unicode.shades, [' ', '░', '▒', '▓', '█']);
       expect(Glyphs.unicode.swatch, '■');
       expect(Glyphs.unicode.ellipsis, '…');
+      expect(Glyphs.unicode.omitted, '⋯');
+      expect(Glyphs.ascii.omitted, '...');
       expect(Glyphs.ascii.arrowLeft, '<');
       expect(Glyphs.ascii.arrowUp, '^');
       expect(Glyphs.ascii.shades, [' ', '.', ':', '+', '#']);

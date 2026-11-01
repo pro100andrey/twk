@@ -129,6 +129,7 @@ final class Glyphs {
     this.shades = const [' ', '░', '▒', '▓', '█'],
     this.swatch = '■',
     this.ellipsis = '…',
+    this.omitted = '⋯',
   });
 
   /// The set [t] of the way from [a] to [b]: marks do not blend, so [a]'s
@@ -195,6 +196,7 @@ final class Glyphs {
     shades: [' ', '.', ':', '+', '#'],
     swatch: '#',
     ellipsis: '...',
+    omitted: '...',
   );
 
   /// The bar at the left of the row the cursor is on in a list, a menu or
@@ -403,6 +405,14 @@ final class Glyphs {
   /// one column (`...`). The core's text overflow is not it.
   final String ellipsis;
 
+  /// The mark of lines left out of a view, a row standing for what is not
+  /// shown (the unchanged lines a diff folds): a midline `⋯` in
+  /// [Glyphs.unicode], `...` in [Glyphs.ascii], so a row that begins with it
+  /// reads the same in both. Text in a row, not a cell: it may be longer
+  /// than one column, and the row measures it; the one-cell rule of
+  /// [textMark] is not applied to it.
+  final String omitted;
+
   /// [type] as it is drawn in this set: [lines] where [type] is null, and
   /// [BorderType.ascii] where [lines] is that and [type] is any line but
   /// [BorderType.none]; else [type] as it is.
@@ -474,6 +484,7 @@ final class Glyphs {
     List<String>? shades,
     String? swatch,
     String? ellipsis,
+    String? omitted,
   }) => Glyphs(
     cursor: cursor ?? this.cursor,
     accent: accent ?? this.accent,
@@ -530,6 +541,7 @@ final class Glyphs {
     shades: shades ?? this.shades,
     swatch: swatch ?? this.swatch,
     ellipsis: ellipsis ?? this.ellipsis,
+    omitted: omitted ?? this.omitted,
   );
 
   List<Object?> get _all => [
@@ -589,6 +601,7 @@ final class Glyphs {
     shades.join('\u0000'),
     swatch,
     ellipsis,
+    omitted,
   ];
 
   @override
