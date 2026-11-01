@@ -995,8 +995,9 @@ final class AppBinding {
   /// timer asks for it then: one for all the callbacks that wait for a
   /// time, none while none does. A callback scheduled while they are
   /// called waits for the next frame, and one scheduled once [run] has
-  /// ended is dropped. One that throws is logged as an error and the
-  /// others are called as ever. Returns the id [cancelFrameCallback] takes.
+  /// ended is dropped. One that throws ends the app with the error, as an
+  /// error of the app's code does: [run] throws it, its states disposed.
+  /// Returns the id [cancelFrameCallback] takes.
   int scheduleFrameCallback(FrameCallback callback, {Duration? at}) {
     final id = ++_lastCallback;
     if (_over) {
@@ -1022,7 +1023,7 @@ final class AppBinding {
   /// out, it is called at the end of that frame; between frames it asks for
   /// one, and while the callbacks of a frame are called it waits for the
   /// next. One added once [run] has ended is dropped. A callback that throws
-  /// is logged as an error and the others are called as ever.
+  /// ends the app with the error, as one of [scheduleFrameCallback] does.
   ///
   /// The width of what `context` builds, once it is laid out:
   ///
@@ -1060,16 +1061,7 @@ final class AppBinding {
     _callingPostFrame = true;
     try {
       for (final callback in callbacks) {
-        try {
-          callback(time);
-        } on Object catch (error, stack) {
-          log(
-            'a post-frame callback failed',
-            level: LogLevel.error,
-            error: error,
-            stack: stack,
-          );
-        }
+        callback(time);
       }
     } finally {
       _callingPostFrame = false;
@@ -1115,20 +1107,7 @@ final class AppBinding {
     try {
       for (final id in due) {
         // one called before may have cancelled it
-        final callback = _callbacks.remove(id)?.$1;
-        if (callback == null) {
-          continue;
-        }
-        try {
-          callback(time);
-        } on Object catch (error, stack) {
-          log(
-            'a frame callback failed',
-            level: LogLevel.error,
-            error: error,
-            stack: stack,
-          );
-        }
+        _callbacks.remove(id)?.$1(time);
       }
     } finally {
       _callingBack = false;

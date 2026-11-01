@@ -45,16 +45,17 @@ frame, and one scheduled while they are called waits for the next;
 `cancelFrameCallback(id)` drops one. One timer waits for the earliest `at`;
 while no callback waits and nothing changes, the binding asks for no frame
 and starts no timer, and a callback scheduled once the app ended is dropped
-(the animations' ticks, `animation`). A callback that throws is logged as an
-error and the others are called as ever.
+(the animations' ticks, `animation`). A callback that throws ends the app
+with the error, as an error of the app's code does: `run` throws it, the
+states disposed (`doc/guides/running.md`).
 `addPostFrameCallback(callback)` calls `callback` once at the end of a
 frame, once it is laid out, painted and written, with the frame's time: where
 what the frame laid out (a size, a place) is read and acted on, a change made
 there built by the next frame; added during a frame's build or layout it is
 called at the end of that frame, between frames it asks for one, and while
 the callbacks of a frame are called it waits for the next; one that throws
-is logged as an error ("a post-frame callback failed") and the others are
-called, and one added once the app ended is dropped.
+ends the app as a frame callback's does, and one added once the app ended
+is dropped.
 `pressKey(combo)` handles a press of a `KeyCombo` as one the terminal sent,
 along the focus's key path and past it: what a tap on a hint of a bar of
 the app's own does (`FocusManagerKeys.activeKeys`, each key with the keys
