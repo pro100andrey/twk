@@ -329,8 +329,9 @@ final class _KeyHintsBarState extends State<KeyHintsBar> {
 
 /// Shows the keys in force where [context] is, with their hints, in a
 /// dialog titled [title]: the keys a [KeyHintsBar] would show there, one a
-/// line, as [KeyHintsBar.entries] makes them, the nearest layer's first,
-/// the key in bold and its hint after it. A list taller than the screen
+/// line, as [KeyHintsBar.entries] makes them, the nearest layer's first
+/// ([ActiveKey.layer]), a blank line between the layers, the key in bold
+/// and its hint after it. A list taller than the screen
 /// scrolls. The keys are those in force as it is called, before the
 /// dialog takes the focus; Escape or a click outside closes it.
 ///
@@ -344,14 +345,23 @@ final class _KeyHintsBarState extends State<KeyHintsBar> {
 /// )
 /// ```
 Future<void> showKeyHelp(BuildContext context, {String title = 'Keys'}) {
-  final entries = KeyHintsBar.entries(
-    AppBinding.of(context).focusManager.activeKeys,
-  );
+  final active = AppBinding.of(context).focusManager.activeKeys;
+  final byLayer = <int, List<ActiveKey>>{};
+  for (final key in active) {
+    (byLayer[key.layer] ??= []).add(key);
+  }
+  // the nearest layer first; a layer with nothing to show leaves no gap
+  final layers = [
+    for (final i in byLayer.keys.toList()..sort())
+      KeyHintsBar.entries(byLayer[i]!),
+  ].where((e) => e.isNotEmpty).toList();
   var widest = 0;
-  for (final (keys, _) in entries) {
-    final w = stringWidth(keys);
-    if (w > widest) {
-      widest = w;
+  for (final entries in layers) {
+    for (final (keys, _) in entries) {
+      final w = stringWidth(keys);
+      if (w > widest) {
+        widest = w;
+      }
     }
   }
   return showDialog<void>(
@@ -365,21 +375,24 @@ Future<void> showKeyHelp(BuildContext context, {String title = 'Keys'}) {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            for (final (keys, hint) in entries)
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                gap: 2,
-                children: [
-                  SizedBox(
-                    width: widest,
-                    child: Text(
-                      keys,
-                      style: theme.text.merge(const Style(attrs: Attr.bold)),
+            for (final (i, entries) in layers.indexed) ...[
+              if (i > 0) const SizedBox(height: 1),
+              for (final (keys, hint) in entries)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  gap: 2,
+                  children: [
+                    SizedBox(
+                      width: widest,
+                      child: Text(
+                        keys,
+                        style: theme.text.merge(const Style(attrs: Attr.bold)),
+                      ),
                     ),
-                  ),
-                  Text(hint ?? '', style: theme.muted),
-                ],
-              ),
+                    Text(hint ?? '', style: theme.muted),
+                  ],
+                ),
+            ],
           ],
         ),
       );

@@ -143,14 +143,14 @@ void main() {
     final q = KeyCombo.parse('q');
     expect(t.binding.focusManager.activeKeys, [
       ActiveKey(x, binding: cut),
-      ActiveKey(ctrlS, binding: const Save(), hint: 'save'),
-      ActiveKey(q, binding: quit),
+      ActiveKey(ctrlS, binding: const Save(), hint: 'save', layer: 1),
+      ActiveKey(q, binding: quit, layer: 2),
     ]);
     save.enabled = false;
     expect(t.binding.focusManager.activeKeys, [
       ActiveKey(x, binding: cut),
-      ActiveKey(q, binding: quit),
-      ActiveKey(ctrlS, binding: nothing),
+      ActiveKey(q, binding: quit, layer: 2),
+      ActiveKey(ctrlS, binding: nothing, layer: 2),
     ]);
     expect(ActiveKey(x, binding: cut), isNot(ActiveKey(x, binding: quit)));
     expect(

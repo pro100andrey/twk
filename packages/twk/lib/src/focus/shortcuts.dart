@@ -201,7 +201,8 @@ enum UnmatchedKeys {
 /// A key the layers on the key path handle now, as
 /// [FocusManagerKeys.activeKeys] lists them: its [combo] and, for a
 /// sequence, the keys [then] pressed after it; what its layer binds it to
-/// ([binding]), and the [hint] its layer gives it, if one does.
+/// ([binding]), and the [hint] its layer gives it, if one does; which of
+/// the layers it is ([layer]).
 @immutable
 final class ActiveKey {
   /// A key [combo], then the keys [then], bound to [binding] with [hint].
@@ -210,6 +211,7 @@ final class ActiveKey {
     required this.binding,
     this.hint,
     this.then = const [],
+    this.layer = 0,
   });
 
   /// The key to press now.
@@ -228,16 +230,35 @@ final class ActiveKey {
   /// What the key does, in a few words: `save`, `quit`.
   final String? hint;
 
+  /// Which layer on the key path takes the key, counted from the nearest
+  /// one that is a [KeyBindings] or [Shortcuts], 0 for it, 1 for the next
+  /// above, and so on; the keys of one layer have one number, and a layer
+  /// with no key to list is counted all the same. A list of keys grouped
+  /// by it shows the layers apart:
+  ///
+  /// ```dart
+  /// List<List<ActiveKey>> byLayer(Iterable<ActiveKey> keys) {
+  ///   final layers = <int, List<ActiveKey>>{};
+  ///   for (final key in keys) {
+  ///     (layers[key.layer] ??= []).add(key);
+  ///   }
+  ///   return [for (final i in layers.keys.toList()..sort()) layers[i]!];
+  /// }
+  /// ```
+  final int layer;
+
   @override
   bool operator ==(Object other) =>
       other is ActiveKey &&
+      other.layer == layer &&
       other.combo == combo &&
       _same(other.then, then) &&
       other.binding == binding &&
       other.hint == hint;
 
   @override
-  int get hashCode => Object.hash(combo, Object.hashAll(then), binding, hint);
+  int get hashCode =>
+      Object.hash(combo, Object.hashAll(then), binding, hint, layer);
 
   /// The keys to press, [combo] and [then], each named by [keyLabel]
   /// ([KeyCombo.toString] when null), apart by a space as
@@ -287,9 +308,12 @@ extension FocusManagerKeys on FocusManager {
   List<ActiveKey> get activeKeys {
     final keys = <ActiveKey>[];
     final taken = <KeyCombo>{};
+    var layer = 0;
     for (final node in keyPath) {
-      if (node is _LayerNode && node.layer._list(node, keys, taken)) {
-        break;
+      if (node is _LayerNode) {
+        if (node.layer._list(node, keys, taken, layer++)) {
+          break;
+        }
       }
     }
     return keys;
@@ -816,10 +840,15 @@ abstract class _LayerState<W extends StatefulWidget, V> extends State<W> {
 
   /// Adds to [keys] those of this layer, which [node] is, that are taken
   /// now and whose first key no nearer layer takes ([taken]), then their
-  /// first keys to [taken]. While the layer holds the first keys of a
-  /// sequence, it adds the keys that can follow them instead, and returns
-  /// true.
-  bool _list(FocusNode node, List<ActiveKey> keys, Set<KeyCombo> taken) {
+  /// first keys to [taken], as layer number [layer]. While the layer holds
+  /// the first keys of a sequence, it adds the keys that can follow them
+  /// instead, and returns true.
+  bool _list(
+    FocusNode node,
+    List<ActiveKey> keys,
+    Set<KeyCombo> taken,
+    int layer,
+  ) {
     final bound = _bound;
     if (bound == null) {
       return false;
@@ -836,6 +865,7 @@ abstract class _LayerState<W extends StatefulWidget, V> extends State<W> {
               then: b.keys.sublist(held.length + 1),
               binding: b.value!,
               hint: b.hint,
+              layer: layer,
             ),
           );
         }
@@ -853,6 +883,7 @@ abstract class _LayerState<W extends StatefulWidget, V> extends State<W> {
             then: b.keys.length == 1 ? const [] : b.keys.sublist(1),
             binding: b.value!,
             hint: b.hint,
+            layer: layer,
           ),
         );
       }

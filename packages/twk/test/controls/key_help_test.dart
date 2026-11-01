@@ -52,4 +52,37 @@ void main() {
     await t.pumpUntilIdle();
     expect(t.lines.join('\n'), isNot(contains('save')));
   });
+
+  testTwk('the keys of each layer apart, the nearest first, a blank line '
+      'between', (t) async {
+    await t.pumpWidget(
+      App(
+        child: KeyBindings(
+          {'q': () {}},
+          hints: const {'q': 'quit'},
+          child: Builder(
+            builder: (context) => KeyBindings(
+              {'ctrl+s': () {}, '?': () => showKeyHelp(context)},
+              hints: const {'ctrl+s': 'save', '?': 'help'},
+              child: const Focus(autofocus: true, child: Text('editor')),
+            ),
+          ),
+        ),
+      ),
+      size: (40, 14),
+    );
+    await t.press('?');
+    await t.pumpUntilIdle();
+    final save = t.lines.indexWhere((l) => l.contains('save'));
+    final help = t.lines.indexWhere((l) => l.contains('help'));
+    final quit = t.lines.indexWhere((l) => l.contains('quit'));
+    expect(save, isNonNegative);
+    expect(help, save + 1);
+    expect(quit, help + 2, reason: 'one blank line between the layers');
+    expect(
+      t.lines[help + 1].replaceAll(RegExp('[^ ]'), '').length,
+      t.lines[help + 1].length,
+      reason: 'the gap is blank inside the box',
+    );
+  });
 }
