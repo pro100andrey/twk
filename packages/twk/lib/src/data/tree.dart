@@ -34,6 +34,7 @@ import '../layout/box.dart' show Box;
 import '../layout/flex.dart';
 import '../layout/one_child.dart';
 import '../scroll/list_view.dart';
+import '../scroll/scrollable.dart' show ScrollPhysics;
 import '../style/glyphs.dart' show cellRune;
 import '../style/style.dart';
 import '../text/widgets.dart';
@@ -308,6 +309,7 @@ final class TreeView<T> extends StatefulWidget {
     this.focusNode,
     this.autofocus = false,
     this.canRequestFocus,
+    this.physics,
     this.style,
     this.guideStyle,
     this.selectedStyle,
@@ -380,6 +382,13 @@ final class TreeView<T> extends StatefulWidget {
 
   /// See [FocusNode.canRequestFocus].
   final bool? canRequestFocus;
+
+  /// See [ScrollPhysics], of the [ListView] the rows are. With
+  /// `NeverScrollableScrollPhysics` the wheel over the view goes to the
+  /// scrollable around it (a tree in an app's own list), while the tree's
+  /// own keys, which move its cursor and so scroll it to the row, stay: it
+  /// is still a stop of Tab and still has the focus.
+  final ScrollPhysics? physics;
 
   /// Every row, over the theme's background and text.
   final Style? style;
@@ -1150,6 +1159,7 @@ final class _TreeViewState<T> extends State<TreeView<T>>
         itemExtent: 1,
         controller: _list,
         canRequestFocus: false,
+        physics: w.physics,
         style: w.style,
         itemBuilder: (context, i) => _row(
           context,
