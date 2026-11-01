@@ -29,8 +29,9 @@ void main() {
     expect(chart.upSteps, 1);
     final reads = list.reads;
     expect(reads, greaterThan(0));
-    chart.use(segmenter, glyphs);
-    chart.use(segmenter, glyphs.copyWith(swatch: 'x'));
+    chart
+      ..use(segmenter, glyphs)
+      ..use(segmenter, glyphs.copyWith(swatch: 'x'));
     expect(list.reads, reads);
   });
 

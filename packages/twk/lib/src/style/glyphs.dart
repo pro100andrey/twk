@@ -399,7 +399,7 @@ final class Glyphs {
   /// light, a medium, a dark and a full cell. A heatmap's ramp; the
   /// skeleton's mark is the light one (index 1). A `const` constructor
   /// cannot check the length, so only [copyWith] asserts it, and only of a
-  /// list it is given; the charts, [Skeleton] and [Heatmap] draw with a
+  /// list it is given; the charts, `Skeleton` and `Heatmap` draw with a
   /// shorter one (`rampOf`) rather than throw. The list
   /// [copyWith] is given is copied unmodifiable, so the caller's list
   /// changing later does not change the set; a `const` constructor cannot
