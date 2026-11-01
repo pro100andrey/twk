@@ -2,7 +2,7 @@
 /// it: [ValueStepper].
 library;
 
-import 'package:twk_core/twk_core.dart' show TextSegmenter, fitText;
+import 'package:twk_core/twk_core.dart' show TextSegmenter, fitText, padCells;
 
 import '../focus/focus.dart';
 import '../foundation/helpers.dart';
@@ -222,7 +222,6 @@ final class _ValueStepperState<T> extends State<ValueStepper<T>> {
       index < 0 ? '' : _values[index].label,
       widest < room ? widest : room,
     );
-    final pad = (widest < room ? widest : room) - segmenter.width(label);
     // a muted arrow at an end, which does nothing and is not lit
     Style arrow(int target) => !enabled || _target(target * 2 - 1) >= 0
         ? (_hits.hovered == target ? arrows.merge(hover) : arrows)
@@ -230,7 +229,13 @@ final class _ValueStepperState<T> extends State<ValueStepper<T>> {
     return _hits.row(
       [
         (span: Span(theme.glyphs.previous, arrow(0)), target: 0),
-        (span: Span(' $label${' ' * pad} ', row), target: -1),
+        (
+          span: Span(
+            ' ${padCells(segmenter, label, widest < room ? widest : room)} ',
+            row,
+          ),
+          target: -1,
+        ),
         (span: Span(theme.glyphs.next, arrow(1)), target: 1),
       ],
       segmenter,

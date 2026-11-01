@@ -16,7 +16,8 @@ import 'package:twk_core/twk_core.dart'
         Mod,
         TextOverflow,
         TextSegmenter,
-        TextWrap;
+        TextWrap,
+        padCells;
 
 import '../editing/input_decoration.dart';
 import '../editing/text_editing.dart' show TextBoundaries;
@@ -916,7 +917,6 @@ final class _PickerState<T> extends State<_Picker<T>>
     }
     final segmenter = segmenterOf(context);
     final boxes = checkboxMarks(context, theme.glyphs);
-    final pad = _labelWidth(segmenter, boxes) - segmenter.width(text);
     final Style shown;
     if (!muted) {
       shown = _plain;
@@ -966,7 +966,7 @@ final class _PickerState<T> extends State<_Picker<T>>
           children: [
             Flexible(
               child: Text.line(
-                ' $text${pad > 0 ? ' ' * pad : ''}',
+                ' ${padCells(segmenter, text, _labelWidth(segmenter, boxes))}',
                 style: shown,
               ),
             ),

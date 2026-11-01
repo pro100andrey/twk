@@ -100,9 +100,12 @@ export 'src/terminal/terminal.dart'
 export 'src/unicode/unicode.dart'
     show
         ClusterScan,
+        TextAlign,
         TextMode,
+        TextOverflow,
         TextSegmenter,
         fitText,
         graphemeBoundaries,
+        padCells,
         stringWidth,
         unicodeVersion;

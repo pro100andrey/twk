@@ -751,24 +751,85 @@ int _columns(TextSegmenter seg, String s) {
   return w;
 }
 
-/// [text] cut off at its end to fit [width] columns as [segmenter]
-/// measures them ([TextSegmenter.width]), `…` in place of what is cut:
-/// [text] itself where it fits; else the clusters that fit before the
-/// ellipsis and the ellipsis, which takes the columns of an East Asian
-/// Ambiguous character ([TextSegmenter.ambiguousWidth]), as on a line
-/// that `RenderParagraph` cuts with `TextOverflow.ellipsis`; where the
-/// ellipsis does not fit either, the clusters that fit, with none, as
-/// there; and nothing at all for a [width] of 0 or less. No cluster is
-/// split, and blanks before the ellipsis are kept.
+/// Where a `RenderParagraph` puts each line across its width. A line wider
+/// than the paragraph starts at the edge its paragraph starts at: the left
+/// one, or the right one for a right-to-left paragraph in visual order
+/// (`TextOrder.visual`).
+enum TextAlign {
+  /// At the left.
+  left,
+
+  /// In the middle; the odd cell after the line.
+  center,
+
+  /// At the right.
+  right,
+
+  /// Stretched to the whole width: the cells it lacks are shared out after
+  /// the spaces between its words, the odd ones to the first. The last
+  /// line, a line the text breaks, a line with an ellipsis and a line
+  /// without spaces stay at the start, as `start` places them.
+  justify,
+
+  /// At the edge its paragraph starts at: the left one, or in visual order
+  /// (`TextOrder.visual`) the right one for a paragraph that runs right to
+  /// left (its first strong character is, rules P2 and P3 of UAX #9).
+  start,
+
+  /// At the edge its paragraph ends at: the other one.
+  end,
+}
+
+/// How a `RenderParagraph` shows that it cut text off: a line too long for
+/// it (or [fitText]), or the lines beyond its `RenderParagraph.maxLines`.
+enum TextOverflow {
+  /// It doesn't: the text is cut off at the edge.
+  clip,
+
+  /// "…" in place of the end.
+  ellipsis,
+
+  /// "…" in place of the start: the end is kept.
+  ellipsisStart,
+
+  /// "…" in place of the middle: the start and the end are kept (paths,
+  /// names).
+  ellipsisMiddle,
+}
+
+/// [text] cut off to fit [width] columns as [segmenter] measures them
+/// ([TextSegmenter.width]), `…` in place of what is cut: [text] itself
+/// where it fits; else the clusters that fit and the ellipsis, which takes
+/// the columns of an East Asian Ambiguous character
+/// ([TextSegmenter.ambiguousWidth]), as on a line that `RenderParagraph`
+/// cuts with the same [overflow]; where the ellipsis does not fit either,
+/// the clusters that fit, with none, as there; and nothing at all for a
+/// [width] of 0 or less. No cluster is split, and blanks next to the
+/// ellipsis are kept.
+///
+/// [overflow] says what is cut: the end ([TextOverflow.ellipsis], as
+/// `Text` has it by default here), the start, keeping the end
+/// ([TextOverflow.ellipsisStart]), or the middle, keeping both ends, the
+/// start half the room or more ([TextOverflow.ellipsisMiddle]; a path, a
+/// name). [TextOverflow.clip] cuts the end with no ellipsis.
 ///
 /// ```dart
 /// final narrow = TextSegmenter();
 /// print(fitText(narrow, 'Warnings (12)', 8)); // Warning…
+/// print(fitText(narrow, '/usr/local/bin', 8,
+///     overflow: TextOverflow.ellipsisStart)); // …cal/bin
+/// print(fitText(narrow, '/usr/local/bin', 8,
+///     overflow: TextOverflow.ellipsisMiddle)); // /usr…bin
 /// final cjk = TextSegmenter(ambiguousWidth: 2);
 /// print(fitText(cjk, 'Warnings (12)', 8)); // Warnin…
 /// print(fitText(cjk, 'Warnings (12)', 1)); // W
 /// ```
-String fitText(TextSegmenter segmenter, String text, int width) {
+String fitText(
+  TextSegmenter segmenter,
+  String text,
+  int width, {
+  TextOverflow overflow = TextOverflow.ellipsis,
+}) {
   if (_columns(segmenter, text) <= width) {
     return text;
   }
@@ -776,11 +837,13 @@ String fitText(TextSegmenter segmenter, String text, int width) {
     return '';
   }
   final ellipsis = codePointWidth(0x2026, segmenter.ambiguousWidth);
-  final room = width < ellipsis ? width : width - ellipsis;
+  final clip = overflow == TextOverflow.clip;
+  final room = clip || width < ellipsis ? width : width - ellipsis;
   final graphemes = segmenter.mode == TextMode.graphemes;
   final scan = _widthScan;
-  var w = 0;
-  var end = 0;
+  // the clusters: where each ends, in columns
+  final ends = <int>[0];
+  final cols = <int>[];
   for (var i = 0; i < text.length;) {
     final start = i;
     segmenter.scan(text, i, scan);
@@ -792,12 +855,96 @@ String fitText(TextSegmenter segmenter, String text, int width) {
       i = start + (scan.first > 0xFFFF ? 2 : 1);
       cells = 0;
     }
-    if (w + cells > room) {
-      break;
-    }
-    w += cells;
-    end = i;
+    ends.add(i);
+    cols.add(cells);
   }
-  final kept = text.substring(0, end);
-  return width < ellipsis ? kept : '$kept…';
+  // the end of the most clusters from the start that fit [r] columns
+  int head(int r, [int from = 0, int to = -1]) {
+    final n = to < 0 ? cols.length : to;
+    var w = 0;
+    var k = from;
+    for (; k < n; k++) {
+      if (w + cols[k] > r) {
+        break;
+      }
+      w += cols[k];
+    }
+    return k;
+  }
+
+  // the start of the most clusters up to the end that fit [r] columns
+  int tail(int r, [int from = 0]) {
+    var w = 0;
+    var k = cols.length;
+    for (; k > from; k--) {
+      if (w + cols[k - 1] > r) {
+        break;
+      }
+      w += cols[k - 1];
+    }
+    return k;
+  }
+
+  final mark = clip || width < ellipsis ? '' : '…';
+  switch (overflow) {
+    case TextOverflow.ellipsisStart:
+      return '$mark${text.substring(ends[tail(room)])}';
+    case TextOverflow.ellipsisMiddle when !clip && width >= ellipsis:
+      final first = head((room + 1) >> 1);
+      final t = tail(room - _sum(cols, 0, first), first);
+      final h = head(room - _sum(cols, t, cols.length), 0, t);
+      return '${text.substring(0, ends[h])}…${text.substring(ends[t])}';
+    case TextOverflow.clip:
+    case TextOverflow.ellipsis:
+    case TextOverflow.ellipsisMiddle:
+      return '${text.substring(0, ends[head(room)])}$mark';
+  }
+}
+
+int _sum(List<int> cols, int from, int to) {
+  var w = 0;
+  for (var k = from; k < to; k++) {
+    w += cols[k];
+  }
+  return w;
+}
+
+/// [text] padded with blanks to [width] columns as [segmenter] measures
+/// them ([TextSegmenter.width]), placed by [alignment]: [TextAlign.left]
+/// (and [TextAlign.justify] and [TextAlign.start], which a string has no
+/// direction for) first, with the blanks after it; [TextAlign.right] (and
+/// [TextAlign.end]) with the blanks before it; [TextAlign.center] between
+/// them, the odd one after. [text] itself where it takes [width] columns or
+/// more: a longer one is not cut (cut it with [fitText] first).
+///
+/// ```dart
+/// final cells = TextSegmenter();
+/// print('[${padCells(cells, 'ab', 5)}]'); // [ab   ]
+/// print('[${padCells(cells, 'ab', 5, alignment: TextAlign.right)}]');
+/// // [   ab]
+/// print('[${padCells(cells, '日本', 6, alignment: TextAlign.center)}]');
+/// // [ 日本  ]
+/// ```
+String padCells(
+  TextSegmenter segmenter,
+  String text,
+  int width, {
+  TextAlign alignment = TextAlign.left,
+}) {
+  final lack = width - _columns(segmenter, text);
+  if (lack <= 0) {
+    return text;
+  }
+  switch (alignment) {
+    case TextAlign.right:
+    case TextAlign.end:
+      return '${' ' * lack}$text';
+    case TextAlign.center:
+      final before = lack >> 1;
+      return '${' ' * before}$text${' ' * (lack - before)}';
+    case TextAlign.left:
+    case TextAlign.justify:
+    case TextAlign.start:
+      return '$text${' ' * lack}';
+  }
 }

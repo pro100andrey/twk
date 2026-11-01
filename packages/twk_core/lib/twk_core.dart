@@ -98,9 +98,12 @@ export 'src/unicode/bidi.dart'
 export 'src/unicode/unicode.dart'
     show
         ClusterScan,
+        TextAlign,
         TextMode,
+        TextOverflow,
         TextSegmenter,
         fitText,
         graphemeBoundaries,
+        padCells,
         stringWidth,
         unicodeVersion;

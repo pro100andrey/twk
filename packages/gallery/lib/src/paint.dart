@@ -36,31 +36,7 @@ String cut(String text, int width, {bool start = false}) {
         ? fit
         : '${fit.substring(0, fit.length - 1).trimRight()}…';
   }
-  if (_segmenter.width(text) <= width) {
-    return text;
-  }
-  if (width <= 0) {
-    return '';
-  }
-  // the clusters' starts, then those that fit after the "…" from the end
-  final starts = <int>[];
-  final scan = ClusterScan();
-  for (var i = 0; i < text.length; i = scan.end) {
-    starts.add(i);
-    _segmenter.scan(text, i, scan);
-  }
-  final room = width - _segmenter.width('…');
-  var from = text.length;
-  var used = 0;
-  for (final at in starts.reversed) {
-    final w = _segmenter.width(text.substring(at, from));
-    if (used + w > room) {
-      break;
-    }
-    used += w;
-    from = at;
-  }
-  return '…${text.substring(from)}';
+  return fitText(_segmenter, text, width, overflow: TextOverflow.ellipsisStart);
 }
 
 /// Draws into a rectangle of a [Canvas] in its own coordinates, clipped to
