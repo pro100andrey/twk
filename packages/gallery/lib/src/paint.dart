@@ -26,18 +26,14 @@ int widthOf(String text) => stringWidth(text);
 final _segmenter = TextSegmenter();
 
 /// [text] cut to [width] columns, no cluster split: whole where it fits,
-/// else its start and "…" as the core's [fitText] cuts it, the blanks
-/// before the "…" left out ([start] false), or "…" and its end ([start]
-/// true).
-String cut(String text, int width, {bool start = false}) {
-  if (!start) {
-    final fit = fitText(_segmenter, text, width);
-    return identical(fit, text) || !fit.endsWith('…')
-        ? fit
-        : '${fit.substring(0, fit.length - 1).trimRight()}…';
-  }
-  return fitText(_segmenter, text, width, overflow: TextOverflow.ellipsisStart);
-}
+/// else its start and "…" as the core's [fitText] cuts it, no blank left
+/// before the "…" ([start] false), or "…" and its end ([start] true).
+String cut(String text, int width, {bool start = false}) => fitText(
+  _segmenter,
+  text,
+  width,
+  overflow: start ? TextOverflow.ellipsisStart : TextOverflow.ellipsis,
+);
 
 /// Draws into a rectangle of a [Canvas] in its own coordinates, clipped to
 /// it.
