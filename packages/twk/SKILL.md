@@ -344,6 +344,7 @@ Each stands on its own; `test/recipes_test.dart` below tests them.
 // lib/recipes.dart
 import 'dart:async';
 
+import 'package:twk/hooks.dart';
 import 'package:twk/twk.dart';
 
 /// The root of an app with dialogs: `App` puts the Overlay under the
@@ -476,35 +477,17 @@ Widget answerView(Future<String> answer) => FutureBuilder<String>(
   },
 );
 
-/// The seconds since it was shown, on a timer its state owns and cancels.
-final class Uptime extends StatefulWidget {
+/// The seconds since it was shown, counted by `useInterval` on the app's
+/// clock: it stops with the widget and sleeps where a `TickerMode` is off.
+final class Uptime extends HookWidget {
   const Uptime({super.key});
 
   @override
-  State<Uptime> createState() => _UptimeState();
-}
-
-final class _UptimeState extends State<Uptime> {
-  var _seconds = 0;
-  late final Timer _timer;
-
-  @override
-  void initState() {
-    super.initState();
-    _timer = Timer.periodic(
-      const Duration(seconds: 1),
-      (_) => setState(() => _seconds++),
-    );
+  Widget build(BuildContext context) {
+    final seconds = useState(0);
+    useInterval(const Duration(seconds: 1), () => seconds.value++);
+    return Text('up ${seconds.value}s');
   }
-
-  @override
-  void dispose() {
-    _timer.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) => Text('up ${_seconds}s');
 }
 ```
 
@@ -790,8 +773,8 @@ What to know:
   TextWrap.word`: it hangs past the line, uncounted and undrawn, so
   `Text('◐ ')` in a `Row` is one cell and the next child touches the mark.
   `Text('◐ ', wrap: .none)` keeps it (two cells). Cell text for a
-  `String`: `fitText(segmenterOf(context), s, n)` cuts to `n` cells with `…` (`segmenterOf(context)` is the terminal's `TextSegmenter`, for `.width` too; never a plain `TextSegmenter()`, which counts ambiguous-wide letters one column);
-  pad with `' ' * (n - stringWidth(s))`; a row's background across its
+  `String`: `fitText(segmenterOf(context), s, n)` cuts to `n` cells with `…` (`overflow:` ellipsisStart, ellipsisMiddle or none; `segmenterOf(context)` is the terminal's `TextSegmenter`, for `.width` too; never a plain `TextSegmenter()`, which counts ambiguous-wide letters one column);
+  pad with `padCells(segmenter, s, n)` (`alignment:` right or center; `fitText`'s `overflow:` cuts the start or the middle, `breakLines` gives the ranges of the lines a text breaks into); a row's background across its
   width is a `ColoredBox` (a `Span`'s paints only its text); a bar on
   every wrapped line is a `Box(border: Border(left: Style()))`
   (`doc/guides/layout.md`, "Text in cells").

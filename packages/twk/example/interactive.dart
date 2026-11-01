@@ -173,7 +173,7 @@ final class _ChatState extends State<Chat> {
                   ],
                 ),
         ),
-        _KeyHints([
+        KeyHintsBar.fromPairs([
           ('tab', 'next pane'),
           ('enter', 'send'),
           ('f1', _help ? 'back' : 'help'),
@@ -244,26 +244,4 @@ final class _Help extends StatelessWidget {
       ],
     ),
   );
-}
-
-/// A row of [keys], each before what it does.
-final class _KeyHints extends StatelessWidget {
-  const _KeyHints(this.keys);
-
-  final List<(String, String)> keys;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Text.rich(
-      [
-        for (final (key, does) in keys) ...[
-          Span(' $key ', theme.primary).bold,
-          Span('$does ', theme.muted),
-        ],
-      ],
-      wrap: .none,
-      overflow: .ellipsis,
-    );
-  }
 }

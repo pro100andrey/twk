@@ -27,7 +27,7 @@ final class CellText extends StatelessWidget {
           child: Text('A quotation with 你好世界 that wraps over lines.'),
         ),
         // a String padded to 10 cells by the cells it takes, not its length
-        Text('[${'你好'}${' ' * (10 - stringWidth('你好'))}]'),
+        Text('[${padCells(segmenterOf(context), '你好', 10)}]'),
         // a space at the end of a wrapped text hangs; with none it stays
         const Row(
           children: [

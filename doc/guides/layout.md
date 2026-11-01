@@ -157,9 +157,12 @@ at most `n` cells, `…` in place of the rest, no wide letter split.
 `TextSegmenter()` counts a character of ambiguous width as one cell, where
 an ambiguous-wide terminal counts two and the cut leaves a cell off. Use
 the same for `.width(text)`, and prefer the widget wherever the text is
-shown at once. A string padded to `n` cells is the
-text and `' ' * (n - stringWidth(text))`, counted in cells, not in
-`length`. A row's background across its whole width is a `ColoredBox`
+shown at once. A string padded to `n` cells is
+`padCells(segmenterOf(context), text, n)` (`alignment:` right or center),
+counted in cells, not in `length`. `fitText` cuts the end by default;
+`overflow: .ellipsisStart` or `.ellipsisMiddle` cuts the start or the
+middle, and `.none` clips. `breakLines(text, n)` gives the (start, end)
+offsets of the lines a text breaks into at `n` cells. A row's background across its whole width is a `ColoredBox`
 around it: a `Span`'s background (`'x'.bg(color)`) paints only the cells of
 its text, as in Flutter. A mark on every line a text wraps into, a quotation's
 bar, is a `Box` with a border on its left only (`Border(left: Style())`;
@@ -200,7 +203,7 @@ final class CellText extends StatelessWidget {
           child: Text('A quotation with 你好世界 that wraps over lines.'),
         ),
         // a String padded to 10 cells by the cells it takes, not its length
-        Text('[${'你好'}${' ' * (10 - stringWidth('你好'))}]'),
+        Text('[${padCells(segmenterOf(context), '你好', 10)}]'),
         // a space at the end of a wrapped text hangs; with none it stays
         const Row(
           children: [

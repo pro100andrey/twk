@@ -82,6 +82,7 @@ itself).
 | `useFuture(future, initialData:, preserveState: true)` | the latest `AsyncSnapshot` of the future, as `FutureBuilder` builds from |
 | `useAnimationController(duration:, reverseDuration:, initialValue:, lowerBound:, upperBound:, vsync:, keys:)` | an `AnimationController` ticking in the app's frames (or with `vsync`'s ticker), its durations those of the latest build; its ticker muted while a `TickerMode` above is off, its time going on |
 | `useTicker(onTick)` | a `Ticker`, not started, calling the `onTick` of the latest build; muted while a `TickerMode` above is off, its time going on |
+| `useInterval(period, onTick)` | nothing: calls the `onTick` of the latest build every `period` on the app's clock, no catch-up for ticks missed; muted while a `TickerMode` above is off; stopped at unmount |
 | `useFocusNode(debugLabel:, onKeyEvent:, canRequestFocus:, skipTraversal:, descendantsAreFocusable:)` | a `FocusNode` that each build sets up with these |
 | `useFocusScopeNode(…)` | a `FocusScopeNode`, likewise |
 | `useTextEditingController(text:, keys:)`, `.fromValue(value, [keys])` | a `TextEditingController`; the text of later builds is ignored |

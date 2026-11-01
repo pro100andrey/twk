@@ -56,7 +56,7 @@ void main() {
 ╭ Write ───────────────────────────────────────────────────╮
 │ a message, Enter sends it                                │
 ╰──────────────────────────────────────────────────────────╯
- tab next pane  enter send  f1 help  ctrl+c quit
+tab next pane   enter send   f1 help   ctrl+c quit
 '''),
     );
     expect(t, focused(field));
@@ -236,7 +236,7 @@ void main() {
 │ Nothing here uses the mouse: select text as in any       │
 │ terminal.                                                │
 ╰──────────────────────────────────────────────────────────╯
- tab next pane  enter send  f1 back  ctrl+c quit
+tab next pane   enter send   f1 back   ctrl+c quit
 '''),
     );
     expect(tracking(t), MouseTracking.off);
@@ -294,7 +294,7 @@ $ dart run example/interactive.dart --inline
 ╭ Write ───────────────────────────────────────────────────╮
 │ a message, Enter sends it                                │
 ╰──────────────────────────────────────────────────────────╯
- tab next pane  enter send  f1 help  ctrl+c quit
+tab next pane   enter send   f1 help   ctrl+c quit
 '''),
     );
     expect(t.written(), isNot(contains('\x1b[?100')));

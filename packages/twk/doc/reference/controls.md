@@ -42,6 +42,12 @@ name, on the sign of one of joined keys (`↓` of `↑↓ move`), on a hint wher
 the entry has one key; false by default, and the bar then listens to no
 mouse, so the terminal reports none for it.
 
+`KeyHintsBar.fromPairs([('enter', 'open'), ('q', 'quit')])` is the same bar
+of fixed `(key, hint)` pairs, whatever is in force, drawn, cut and (with
+`pressable: true`, a click pressing the key a pair names) pressed as the
+bar of the keys in force; `keyLabel`, `separator`, `style`, `keyStyle` and
+`hintStyle` as above.
+
 `showKeyHelp(context, title: 'Keys')` shows the same keys, those in force
 where `context` is as it is called, in a dialog (`Dialog(scrollable:
 true)`), a line each: the keys in bold (`KeyHintsBar.entries`, the nearest
