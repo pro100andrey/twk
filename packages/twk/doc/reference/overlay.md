@@ -21,8 +21,12 @@ or taken away keeps the state below.
 
 A `Navigator` below the app's `KeyBindings` keeps that: a dialog shown on
 it skips the bindings between the navigator and the overlay
-(`FocusNode.keysSkip`), so they neither act on its keys nor list them
-while it is open, and a page pushed on it still gets them. Keys that are
+(`FocusNode.keysSkip`), as does every entry of the navigator's own
+`Overlay` (a menu, the palette, a popover, an autocomplete list), so they
+neither act on its keys nor list them while it is open, and a page pushed
+on it still gets them. Told on each walk of the key path, the skip
+follows bindings added or removed above the navigator; for a navigator
+in a page of another it ends where the outer one's does. Keys that are
 to work over a dialog too, a `ctrl+q`, are bound above `App`.
 
 ## `Overlay.of`

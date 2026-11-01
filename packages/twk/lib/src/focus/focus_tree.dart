@@ -90,19 +90,21 @@ class FocusNode with ChangeNotifier {
   FocusNode? _parent;
   final _children = <FocusNode>[];
 
-  ({FocusNode from, FocusNode to})? _keysSkip;
+  ({FocusNode from, FocusNode to})? Function()? _keysSkip;
 
-  /// The part of the [FocusManager.keyPath] the keys that pass this node
-  /// skip: `from` and the nodes above it up to `to`, an ancestor of it,
-  /// which gets them next; null for none. A dialog on a navigator under an
-  /// `App` skips so from the node above the navigator to the one above the
-  /// App's overlay, as it would be shown in that overlay without the
-  /// navigator: the app's bindings between do not hear its keys.
+  /// Tells, each time the [FocusManager.keyPath] is walked, the part of it
+  /// the keys that pass this node skip: `from` and the nodes above it up to
+  /// `to`, an ancestor of it, which gets them next; null for none. A dialog
+  /// or an entry of a navigator's overlay under an `App` skips so from the
+  /// node above the navigator to the one above the App's overlay, as it
+  /// would be shown in that overlay without the navigator: the app's
+  /// bindings between do not hear its keys. Told on each walk, it follows
+  /// a change of the tree above.
   @internal
-  ({FocusNode from, FocusNode to})? get keysSkip => _keysSkip;
+  ({FocusNode from, FocusNode to})? Function()? get keysSkip => _keysSkip;
 
   @internal
-  set keysSkip(({FocusNode from, FocusNode to})? value) {
+  set keysSkip(({FocusNode from, FocusNode to})? Function()? value) {
     if (value == _keysSkip) {
       return;
     }
@@ -620,7 +622,7 @@ final class FocusManager {
     ({FocusNode from, FocusNode to})? skip;
     for (FocusNode? n = node; n != null;) {
       yield n;
-      skip ??= n._keysSkip;
+      skip ??= n._keysSkip?.call();
       final next = n._parent;
       n = skip != null && identical(next, skip.from) ? skip.to : next;
     }

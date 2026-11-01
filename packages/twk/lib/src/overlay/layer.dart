@@ -3,10 +3,13 @@
 /// widgets below it.
 library;
 
+import 'package:meta/meta.dart' show internal;
+
 import '../animation/animation_controller.dart';
 import '../animation/curves.dart';
 import '../animation/switcher.dart' show Opacity;
 import '../animation/ticker.dart';
+import '../focus/focus_tree.dart';
 import '../foundation/listenable_builder.dart';
 import '../framework/framework.dart';
 import '../layout/basic.dart';
@@ -43,7 +46,17 @@ import '../layout/stack.dart';
 /// ```
 final class Overlay extends StatefulWidget {
   /// Shows [child] under the entries inserted in it.
-  const Overlay({required this.child, super.key});
+  const Overlay({
+    required this.child,
+    @internal this.entriesKeysSkip,
+    super.key,
+  });
+
+  /// Set by a `Navigator` for its own overlay: what the keys that pass its
+  /// entries skip ([FocusNode.keysSkip]), so that they are as in the
+  /// overlay above the navigator.
+  @internal
+  final ({FocusNode from, FocusNode to})? Function()? entriesKeysSkip;
 
   /// What the entries are shown over.
   final Widget child;
@@ -273,6 +286,10 @@ final class _EntryHostState extends State<_EntryHost>
     with TickerProviderStateMixin<_EntryHost> {
   var _shown = true;
 
+  // on the key path of what the entry shows, for the skip of a navigator's
+  // overlay: none in any other
+  FocusNode? _skipNode;
+
   late final _fade = AnimationController(
     vsync: this,
     duration: widget.entry.fadeIn,
@@ -311,6 +328,7 @@ final class _EntryHostState extends State<_EntryHost>
 
   @override
   void dispose() {
+    _skipNode?.dispose();
     if (identical(widget.entry._host, this)) {
       widget.entry._host = null;
     }
@@ -344,6 +362,12 @@ final class _EntryHostState extends State<_EntryHost>
     }
   }
 
+  FocusNode _skipEntry() => FocusNode(
+    debugLabel: 'overlay entry',
+    canRequestFocus: false,
+    skipTraversal: true,
+  );
+
   void _hide() => setState(() => _shown = false);
 
   void _changed() => setState(() {});
@@ -362,12 +386,17 @@ final class _EntryHostState extends State<_EntryHost>
     if (!_shown) {
       return const Positioned(left: 0, top: 0, child: SizedBox.shrink());
     }
+    final skip = Overlay.maybeOf(context)?.widget.entriesKeysSkip;
+    final node = skip == null ? null : (_skipNode ??= _skipEntry());
+    node?.keysSkip = skip;
     final built = widget.entry.builder(context);
     Widget fade(Widget child) => ListenableBuilder(
       listenable: _fade,
       builder: (context, child) => Opacity(opacity: _opacity, child: child),
       child: child,
     );
+    Widget scoped(Widget child) =>
+        node == null ? child : Focus(focusNode: node, child: child);
     if (built is Positioned) {
       return Positioned(
         key: built.key,
@@ -377,10 +406,10 @@ final class _EntryHostState extends State<_EntryHost>
         bottom: built.bottom,
         width: built.width,
         height: built.height,
-        child: fade(built.child),
+        child: scoped(fade(built.child)),
       );
     }
-    return Positioned.fill(child: fade(built));
+    return Positioned.fill(child: scoped(fade(built)));
   }
 }
 

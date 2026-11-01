@@ -98,7 +98,9 @@ import 'panel.dart';
 /// `KeyHintsBar` list it while the dialog is open. Keys that are to work
 /// over a dialog as well, a `ctrl+q` that quits, are bound above `App`.
 /// With no overlay above the navigator nothing is skipped: the bindings
-/// above the navigator hear them.
+/// above the navigator hear them. Menus, the palette, popovers and
+/// autocomplete lists opened from a screen of the navigator, entries of its
+/// own overlay, skip the same way.
 ///
 /// It completes with null too when it leaves the tree some other way, as
 /// with its overlay or navigator.
@@ -500,24 +502,13 @@ final class _DialogLayerState extends State<_DialogLayer>
 
   final _scope = FocusScopeNode(debugLabel: 'dialog');
 
-  /// The nodes the keys the dialog leaves skip on a navigator: from the
-  /// node above it to the one above the overlay above it, as the dialog
-  /// would be in that overlay without the navigator; none without them.
+  /// The nodes the keys the dialog leaves skip on a navigator, told
+  /// whenever the keys' path is walked; none for a dialog in an overlay.
   ({FocusNode from, FocusNode to})? _skip() {
     final navigator = widget.route._entry == null
         ? widget.route.navigator
         : null;
-    if (navigator == null || !navigator.mounted) {
-      return null;
-    }
-    final overlay = Overlay.maybeOf(navigator.context);
-    final from = Focus.maybeOf(navigator.context, createDependency: false);
-    final to = overlay == null
-        ? null
-        : Focus.maybeOf(overlay.context, createDependency: false);
-    return from == null || to == null || identical(from, to)
-        ? null
-        : (from: from, to: to);
+    return navigator?.keysSkip;
   }
 
   @override
@@ -551,7 +542,7 @@ final class _DialogLayerState extends State<_DialogLayer>
     // a share of it as the dialog fades in
     final alpha = route.barrierAlpha;
     final opacity = alpha == null ? theme.shadeAlpha : alpha / 255;
-    _scope.keysSkip = _skip();
+    _scope.keysSkip = _skip;
     return _DialogScope(
       route,
       child: ListenableBuilder(
