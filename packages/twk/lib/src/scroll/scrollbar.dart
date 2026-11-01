@@ -6,7 +6,9 @@ import 'package:meta/meta.dart' show internal;
 import 'package:twk_core/twk_core.dart'
     show
         Axis,
+        BorderType,
         BoxConstraints,
+        Canvas,
         ContainerParentDataMixin,
         ContainerRenderObjectMixin,
         PaintContext,
@@ -15,7 +17,7 @@ import 'package:twk_core/twk_core.dart'
         RenderObject;
 
 import '../binding/app_binding.dart';
-import '../data/chart_glyphs.dart' show opaque;
+import '../data/chart_glyphs.dart' show opaque, overUnder;
 import '../foundation/change_notifier.dart';
 import '../framework/framework.dart';
 import '../gestures/gesture_detector.dart';
@@ -247,8 +249,13 @@ final class BorderScrollbar extends StatefulWidget {
     required this.thumb,
     required this.inset,
     required this.builder,
+    this.type = BorderType.single,
     super.key,
   });
+
+  /// The border's lines: the track is its straight line, the thumb a
+  /// heavier one of its own, or `#` for [BorderType.ascii].
+  final BorderType type;
 
   /// The axis of the scrollable it shows.
   final Axis axis;
@@ -296,7 +303,9 @@ final class _BorderScrollbarState extends State<BorderScrollbar> {
     final vertical = widget.axis == Axis.vertical;
     final (start, end) = widget.inset;
     _track.axis = widget.axis;
-    final line = opaque(widget.line);
+    // the foreground opaque, the background the box's or none: what is
+    // under the bar shows where the box gives none
+    final line = overUnder(widget.line);
     // the box as big as it would be on its own, the bar over its side
     return Stack(
       fit: StackFit.passthrough,
@@ -332,6 +341,7 @@ final class _BorderScrollbarState extends State<BorderScrollbar> {
                 line: line,
                 hovered: _hovered,
                 onBorder: true,
+                borderType: widget.type,
               ),
             ),
           ),
@@ -745,6 +755,7 @@ final class _Bar extends LeafRenderObjectWidget {
     required this.line,
     required this.hovered,
     required this.onBorder,
+    this.borderType,
   });
 
   final _Track track;
@@ -764,9 +775,13 @@ final class _Bar extends LeafRenderObjectWidget {
   /// always, over the cells under it, which it does not fill.
   final bool onBorder;
 
+  /// The lines of the border the bar is on ([onBorder]).
+  final BorderType? borderType;
+
   @override
   _RenderBar createRenderObject(BuildContext context) =>
       _RenderBar(track, axis, style, onBorder: onBorder)
+        ..borderType = borderType
         ..glyphs = Theme.of(context).glyphs
         ..line = line
         ..hovered = hovered;
@@ -775,6 +790,7 @@ final class _Bar extends LeafRenderObjectWidget {
   void updateRenderObject(BuildContext context, _RenderBar renderObject) {
     renderObject
       ..axis = axis
+      ..borderType = borderType
       ..style = style
       ..glyphs = Theme.of(context).glyphs
       ..line = line
@@ -806,6 +822,19 @@ final class _RenderBar extends RenderObject {
       markNeedsPaint();
     }
   }
+
+  BorderType? _borderType;
+  BorderType? get borderType => _borderType;
+  set borderType(BorderType? t) {
+    if (t != _borderType) {
+      _borderType = t;
+      markNeedsPaint();
+    }
+  }
+
+  // a bar on a border keeps the cells' background under it
+  @override
+  bool get keepsUnderlay => _onBorder;
 
   Style _style;
   Style get style => _style;
@@ -879,6 +908,7 @@ final class _RenderBar extends RenderObject {
     // whole cell in eighths
     final line = _line;
     final wide = line == null || _hovered || _track.dragging;
+    final type = _onBorder ? _borderType : null;
     if (line != null && (_onBorder || _track.scrolls)) {
       canvas.fill(
         0,
@@ -886,17 +916,21 @@ final class _RenderBar extends RenderObject {
         width,
         height,
         _style.merge(line).penIn(canvas.styles),
-        cellRune(
-          this,
-          vertical ? 'trackVertical' : 'trackHorizontal',
-          vertical ? _glyphs.trackVertical : _glyphs.trackHorizontal,
-          vertical ? Glyphs.ascii.trackVertical : Glyphs.ascii.trackHorizontal,
-          canvas.segmenter,
-          blankIfEmpty: true,
-        ),
+        type != null
+            ? _borderRune(canvas, type, vertical: vertical)
+            : cellRune(
+                this,
+                vertical ? 'trackVertical' : 'trackHorizontal',
+                vertical ? _glyphs.trackVertical : _glyphs.trackHorizontal,
+                vertical
+                    ? Glyphs.ascii.trackVertical
+                    : Glyphs.ascii.trackHorizontal,
+                canvas.segmenter,
+                blankIfEmpty: true,
+              ),
       );
     }
-    final eighths = wide && _glyphs.partialBlocks;
+    final eighths = wide && _glyphs.partialBlocks && type != BorderType.ascii;
     final steps = eighths ? thumbSteps(canvas, vertical: vertical) : 1;
     final thumb = _track.paint(vertical ? height : width, steps);
     if (thumb == null) {
@@ -913,6 +947,8 @@ final class _RenderBar extends RenderObject {
       thickness: vertical ? width : height,
       glyph: eighths
           ? null
+          : type != null
+          ? _borderThumbRune(canvas, type, vertical: vertical)
           : cellRune(
               this,
               vertical ? 'thumbVertical' : 'thumbHorizontal',
@@ -923,5 +959,45 @@ final class _RenderBar extends RenderObject {
               canvas.segmenter,
             ),
     );
+  }
+
+  // the border's own straight line, or ascii's where it is not one column
+  int _borderRune(Canvas canvas, BorderType type, {required bool vertical}) {
+    final cp = type.glyph(
+      up: vertical,
+      down: vertical,
+      left: !vertical,
+      right: !vertical,
+    );
+    final text = String.fromCharCode(cp);
+    return canvas.segmenter.width(text) == 1 || cp == 0x20
+        ? cp
+        : BorderType.ascii.glyph(
+            up: vertical,
+            down: vertical,
+            left: !vertical,
+            right: !vertical,
+          );
+  }
+
+  // the thumb: a heavier line than the border's, `#` on ascii's
+  int _borderThumbRune(
+    Canvas canvas,
+    BorderType type, {
+    required bool vertical,
+  }) {
+    if (type == BorderType.ascii) {
+      return 0x23;
+    }
+    final heavy = type == BorderType.heavy;
+    final cp = heavy
+        ? 0x2588
+        : BorderType.heavy.glyph(
+            up: vertical,
+            down: vertical,
+            left: !vertical,
+            right: !vertical,
+          );
+    return canvas.segmenter.width(String.fromCharCode(cp)) == 1 ? cp : 0x23;
   }
 }

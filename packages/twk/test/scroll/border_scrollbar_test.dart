@@ -66,4 +66,57 @@ void main() {
     expect(controller.offset, greaterThan(0));
     expect(t.lines[1], isNot(contains('item 0')));
   });
+
+  for (final (type, track, thumb, corner, bottom) in [
+    (BorderType.double, '║', '┃', '╗', '╝'),
+    (BorderType.heavy, '┃', '█', '┓', '┛'),
+    (BorderType.ascii, '|', '#', '+', '+'),
+  ]) {
+    testTwk("a $type border: its own line for the track, the type's thumb", (
+      t,
+    ) async {
+      await t.pumpWidget(
+        Box(
+          border: Border.all(type: type),
+          scrollbar: Axis.vertical,
+          child: SingleChildScrollView(child: column(32)),
+        ),
+        size: (20, 10),
+      );
+      expect(down(t, 19, 10), [
+        corner,
+        thumb,
+        thumb,
+        ...List.filled(6, track),
+        bottom,
+      ]);
+    });
+  }
+
+  testTwk('no background where the box gives none: the parent shows', (
+    t,
+  ) async {
+    const bg = Color.rgb(10, 20, 30);
+    await t.pumpWidget(
+      Box(
+        style: const Style(bg: bg),
+        child: panel(32),
+      ),
+      size: (20, 10),
+    );
+    expect(t, styleAt(19, 5, hasBg(bg)));
+    expect(t, styleAt(19, 1, hasBg(bg)));
+  });
+
+  testTwk('a horizontal bar and a bottom title: asserted', (t) async {
+    await t.pumpWidget(
+      const Box(
+        border: Border.all(),
+        titles: [BorderTitle(' 12 ', alignment: Alignment.bottomRight)],
+        scrollbar: Axis.horizontal,
+      ),
+      size: (20, 10),
+    );
+    expect(t.lines.join(), contains('Failed assertion'));
+  });
 }

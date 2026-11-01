@@ -92,6 +92,12 @@ final class Box extends StatelessWidget {
   /// cell in eighths while the mouse is over it, dragged and pressed as a
   /// [Scrollbar] is. The child keeps all the room inside. Null for none.
   ///
+  /// The line and the track are the [Border.type]'s own, the thumb a
+  /// heavier line (`█` on a heavy border, `#` on an ascii one), and no
+  /// background is painted: the box's [style] or what is under it shows.
+  /// A bottom [BorderTitle] and a horizontal bar cannot share the edge: an
+  /// assertion fails.
+  ///
   /// A list in a panel, its bar on the panel's right side:
   ///
   /// ```dart
@@ -115,6 +121,11 @@ final class Box extends StatelessWidget {
       axis == null || (vertical ? border?.right : border?.bottom) != null,
       'a scrollbar on a side the border has',
     );
+    assert(
+      axis != Axis.horizontal || !titles.any((t) => t.alignment.y > 0),
+      'a horizontal scrollbar on the bottom border, which has a title: '
+      'the bar would cover it',
+    );
     if (axis == null || border == null) {
       return _DecoratedBox(this, child: child);
     }
@@ -125,6 +136,7 @@ final class Box extends StatelessWidget {
     return BorderScrollbar(
       axis: axis,
       line: line,
+      type: border.type,
       thumb: Style(fg: Theme.of(context).muted.fg),
       inset: vertical
           ? (inset(border.top), inset(border.bottom))
