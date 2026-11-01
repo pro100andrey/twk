@@ -32,6 +32,7 @@ import 'package:twk_core/twk_core.dart'
         TextMode,
         TextSegmenter;
 
+import '../controls/hand.dart';
 import '../editing/caret.dart' show clearRestCursor, restCursor;
 import '../focus/focus.dart';
 import '../foundation/change_notifier.dart' show ChangeNotifier, VoidCallback;
@@ -1101,14 +1102,22 @@ final class _MenuBarState extends State<MenuBar> implements _MenuHost {
                     ),
                   ),
               ],
-              child: _BarRow(
-                key: _row,
-                titles: titles,
-                enabled: [for (var i = 0; i < menus.length; i++) _canOpen(i)],
-                open: _open,
-                style: style,
-                openStyle: style.merge(widget.openStyle ?? theme.selection),
-                mutedStyle: style.merge(theme.muted),
+              child: HandOver(
+                where: (x, _) {
+                  final title = _bar?.titleAt(x);
+                  return title != null && _canOpen(title);
+                },
+                child: _BarRow(
+                  key: _row,
+                  titles: titles,
+                  enabled: [
+                    for (var i = 0; i < menus.length; i++) _canOpen(i),
+                  ],
+                  open: _open,
+                  style: style,
+                  openStyle: style.merge(widget.openStyle ?? theme.selection),
+                  mutedStyle: style.merge(theme.muted),
+                ),
               ),
             ),
           ),
@@ -1603,6 +1612,15 @@ final class _MenuSession {
         : (level, -1);
   }
 
+  /// Whether a press at [x], [y] of the overlay does something: on an entry
+  /// that can be chosen, or a title of the bar.
+  bool _pressableAt(int x, int y) {
+    if (_entryAt(x, y) case (final level, final row)) {
+      return row >= 0 && _enabled(_levels[level].items[row]);
+    }
+    return bar != null && _titleAt(x, y) != null;
+  }
+
   /// The bar's title at [x], [y] of the overlay; null for none.
   int? _titleAt(int x, int y) => bar == null ? null : _placed?.titleAt(x, y);
 
@@ -1736,26 +1754,33 @@ final class _MenuSession {
               onMove: (event) => _hover(event.x, event.y),
               onDrag: (event) => _hover(event.x, event.y),
               onScroll: (_) {},
-              child: _MenuPlace(
-                key: _place,
-                anchor: anchor,
-                rows: [
-                  for (var i = 1; i < _levels.length; i++)
-                    _levels[i - 1].highlighted,
-                ],
-                shadow: shadow,
-                children: [
-                  for (final (l, level) in _levels.indexed)
-                    _shadowed(
-                      shadow,
-                      _MenuBox(
-                        rows: [for (final entry in level.items) _rowOf(entry)],
-                        highlighted: level.highlighted,
-                        active: l == active,
-                        styles: styles,
+              // the hand over an entry that can be chosen, and over the
+              // bar's titles, which the mouse moved to opens
+              child: HandOver(
+                where: _pressableAt,
+                child: _MenuPlace(
+                  key: _place,
+                  anchor: anchor,
+                  rows: [
+                    for (var i = 1; i < _levels.length; i++)
+                      _levels[i - 1].highlighted,
+                  ],
+                  shadow: shadow,
+                  children: [
+                    for (final (l, level) in _levels.indexed)
+                      _shadowed(
+                        shadow,
+                        _MenuBox(
+                          rows: [
+                            for (final entry in level.items) _rowOf(entry),
+                          ],
+                          highlighted: level.highlighted,
+                          active: l == active,
+                          styles: styles,
+                        ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

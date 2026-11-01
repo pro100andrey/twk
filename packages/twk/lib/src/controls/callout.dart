@@ -24,6 +24,7 @@ import '../layout/stack.dart';
 import '../semantics/semantics.dart';
 import '../style/style.dart';
 import '../text/widgets.dart';
+import 'hand.dart';
 import 'status.dart';
 
 /// A notice in a box lined in the color of its [kind]: what a command-line
@@ -313,6 +314,8 @@ final class _DismissState extends State<_Dismiss> {
       child: MouseRegion(
         onEnter: (_) => _hover(true),
         onExit: (_) => _hover(false),
+        // it has the motion reported already
+        cursor: HandOver.shapeFor(context),
         child: GestureDetector(
           onTap: (_) => widget.onDismissed(),
           child: Text(

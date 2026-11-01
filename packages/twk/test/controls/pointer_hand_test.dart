@@ -18,7 +18,7 @@ void main() {
       Theme(
         data: const ThemeData.terminal(
           Brightness.dark,
-        ).copyWith(handPointer: true),
+        ).copyWith(handPointer: HandPointer.on),
         child: ValueListenableBuilder<bool>(
           valueListenable: enabled,
           builder: (context, on, _) => Row(
@@ -46,8 +46,8 @@ void main() {
     expect(t.pointerShape, PointerShape.arrow);
   });
 
-  testTwk("by the theme's default no hand, and no motion of the mouse asked "
-      'for', (t) async {
+  testTwk("by the theme's default no hand where the motion is not reported, "
+      'and none asked for', (t) async {
     // a box to check, whose look the hover does not change
     await t.pumpWidget(
       Checkbox(value: false, onChanged: (_) {}, label: 'ok'),

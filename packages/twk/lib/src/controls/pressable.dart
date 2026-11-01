@@ -3,8 +3,7 @@
 /// a click that focuses it: [Pressable].
 library;
 
-import 'package:twk_core/twk_core.dart'
-    show Attr, Brightness, Color, HitTestBehavior, PointerShape, TextWrap;
+import 'package:twk_core/twk_core.dart' show Attr, Brightness, Color, TextWrap;
 
 import '../animation/animation_controller.dart';
 import '../animation/ticker.dart';
@@ -17,6 +16,7 @@ import '../style/color_mix.dart';
 import '../style/style.dart';
 import '../text/hit_row.dart' show segmenterOf;
 import '../text/widgets.dart';
+import 'hand.dart';
 
 /// A control's node of the focus tree: what [builder] builds, which takes
 /// the focus, its keys and a click of the mouse while [enabled].
@@ -29,8 +29,8 @@ import '../text/widgets.dart';
 /// `GestureDetector`); while it is enabled with an [onTap], the pointer
 /// is the hand over it ([PointerShape.pointer], where the terminal shows
 /// pointer shapes) if the theme asks for it
-/// ([ThemeData.handPointer]). [builder] is called again as the focus comes and
-/// goes.
+/// ([ThemeData.handPointer]), by [HandOver]. [builder] is called again as
+/// the focus comes and goes.
 ///
 /// A control of its own, which Space and a click turn on and off, shown in
 /// the primary color while it has the focus:
@@ -151,14 +151,9 @@ final class _PressableState extends State<Pressable> {
         hints: enabled ? widget.hints : const {},
         child: Listener(
           onDown: enabled ? _down : null,
-          // the hand where a click does something, as over a link, where
-          // the theme asks for it
-          child: MouseRegion(
-            cursor:
-                enabled && widget.onTap != null && Theme.of(context).handPointer
-                ? PointerShape.pointer
-                : null,
-            behavior: HitTestBehavior.deferToChild,
+          // the hand where a click does something, as over a link
+          child: HandOver(
+            active: enabled && widget.onTap != null,
             child: GestureDetector(
               onTap: widget.onTap,
               child: widget.builder(context, _node.hasFocus),

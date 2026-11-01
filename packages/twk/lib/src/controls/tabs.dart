@@ -27,6 +27,7 @@ import '../layout/child_list.dart';
 import '../semantics/semantics.dart';
 import '../style/glyphs.dart' show cellRune;
 import '../style/style.dart';
+import 'hand.dart';
 
 /// Holds which of [length] tabs is selected: [index], which a [TabBar]
 /// sets and a [TabView] shows.
@@ -341,16 +342,24 @@ final class _TabBarState extends State<TabBar> {
         child: Listener(
           onDown: _down,
           onScroll: _scroll,
-          child: _Strip(
-            key: _strip,
-            tabs: widget.tabs,
-            selected: marked,
-            focused: focused,
-            style: theme.text.merge(widget.style ?? row),
-            tabStyle: widget.tabStyle ?? theme.muted,
-            selectedStyle: widget.selectedStyle ?? selected,
-            focusedStyle: widget.focusedStyle ?? lit,
-            glyphs: theme.glyphs,
+          // the hand over a tab and the arrows that scroll to the next
+          child: HandOver(
+            where: (x, _) {
+              final bar = _bar;
+              return bar != null &&
+                  (bar.tabAt(x) != null || bar.edgeAt(x) != 0);
+            },
+            child: _Strip(
+              key: _strip,
+              tabs: widget.tabs,
+              selected: marked,
+              focused: focused,
+              style: theme.text.merge(widget.style ?? row),
+              tabStyle: widget.tabStyle ?? theme.muted,
+              selectedStyle: widget.selectedStyle ?? selected,
+              focusedStyle: widget.focusedStyle ?? lit,
+              glyphs: theme.glyphs,
+            ),
           ),
         ),
       ),

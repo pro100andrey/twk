@@ -6,6 +6,7 @@ import 'package:twk_core/twk_core.dart'
     show
         ClusterScan,
         Pen,
+        PointerShape,
         RenderParagraph,
         TextAlign,
         TextOverflow,
@@ -216,15 +217,22 @@ final class Text extends LeafRenderObjectWidget {
         _linkTaps[paragraph] = null;
         stopListeningOver(paragraph);
       }
-    } else if (taps != null) {
+      return;
+    }
+    final hand = Theme.of(context).handPointer;
+    if (taps != null) {
       taps
         ..onLinkTap = onLinkTap
-        ..spans = spans;
+        ..spans = spans
+        ..hand = hand;
+      // counts what it needs again
+      listenOver(context, paragraph, taps.listener);
     } else {
       final taps = _linkTaps[paragraph] = _LinkTaps(
         paragraph,
         onLinkTap,
         spans,
+        hand,
       );
       listenOver(context, paragraph, taps.listener);
     }
@@ -287,7 +295,10 @@ final _linkTaps = Expando<_LinkTaps>('Text.onLinkTap');
 /// What tells [onLinkTap] the links clicked on in [paragraph]: the
 /// [listener] of its presses and releases.
 final class _LinkTaps {
-  _LinkTaps(this.paragraph, this.onLinkTap, this.spans);
+  _LinkTaps(this.paragraph, this.onLinkTap, this.spans, this._hand) {
+    listener.cursorAt = _cursorAt;
+    hand = _hand;
+  }
 
   final RenderParagraph paragraph;
   void Function(String url)? onLinkTap;
@@ -297,6 +308,40 @@ final class _LinkTaps {
   List<Span>? spans;
 
   late final listener = RenderListener(onDown: _down, onUp: _up);
+
+  /// The theme's choice of the hand over a phrase that taps.
+  HandPointer get hand => _hand;
+  HandPointer _hand;
+
+  set hand(HandPointer hand) {
+    _hand = hand;
+    listener.cursorAsksMotion = hand == HandPointer.on;
+  }
+
+  /// The hand over a phrase of a [Span.tap] and over a link, by the theme;
+  /// null elsewhere.
+  PointerShape? _cursorAt(int x, int y) {
+    if (_hand == HandPointer.off) {
+      return null;
+    }
+    final (start, end) = paragraph.textRangeAt(x, y);
+    if (start == end || paragraph.isEllipsisAt(x, y)) {
+      return null;
+    }
+    var at = 0;
+    for (final span in spans ?? const <Span>[]) {
+      at += span.text.length;
+      if (start < at) {
+        if (span.onTap != null) {
+          return PointerShape.pointer;
+        }
+        break;
+      }
+    }
+    return onLinkTap != null && _linkAt(x, y) != null
+        ? PointerShape.pointer
+        : null;
+  }
 
   /// The cell the left button was pressed on, while it is held.
   (int, int)? _pressed;

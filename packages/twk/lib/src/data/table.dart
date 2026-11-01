@@ -35,6 +35,7 @@ import 'package:twk_core/twk_core.dart'
         TextWrap;
 
 import '../binding/terminal_status.dart';
+import '../controls/hand.dart';
 import '../editing/caret.dart' show clearRestCursor, restCursor;
 import '../focus/focus.dart';
 import '../foundation/change_notifier.dart';
@@ -1338,11 +1339,20 @@ final class _TableState<T> extends State<Table<T>> {
     );
   }
 
-  /// [header] in a region whose pointer is [PointerShape.ewResize] over
-  /// the edge of a column, with [Table.pointerShapes] where the terminal
-  /// shows the pointer's shape; [header] alone otherwise, so that the
-  /// mouse's motion is not reported for nothing.
-  Widget _shaped(Widget header) {
+  /// [titles] with the hand over a column that sorts, and in a region
+  /// whose pointer is [PointerShape.ewResize] over the edge of a column,
+  /// with [Table.pointerShapes] where the terminal shows the pointer's
+  /// shape; without that region otherwise, so that the mouse's motion is
+  /// not reported for nothing.
+  Widget _shaped(Widget titles) {
+    // the hand over the title of a column that sorts, off its edge
+    final header = HandOver(
+      where: (x, _) {
+        final column = _columns.edgeAt(x) == null ? _columns.at(x) : null;
+        return column != null && widget.columns[column].compare != null;
+      },
+      child: titles,
+    );
     final shows =
         widget.pointerShapes &&
         (TerminalStatus.of(context)?.showsPointerShape ?? false);

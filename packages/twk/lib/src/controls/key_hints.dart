@@ -13,6 +13,7 @@ import '../layout/flex.dart';
 import '../overlay/dialog.dart';
 import '../style/style.dart';
 import '../text/widgets.dart';
+import 'hand.dart';
 
 // Examples can assume:
 // late BuildContext context;
@@ -309,32 +310,42 @@ final class _KeyHintsBarState extends State<KeyHintsBar> {
       return row;
     }
     BuildContext? rowContext;
-    return Listener(
-      onDown: (event) {
-        if (event.button != 0) {
-          return;
-        }
-        // the ellipsis of a cut row presses nothing, nor does the key or
-        // hint it stands for
+    // the hand over a key or a hint that presses a key
+    return HandOver(
+      where: (x, y) {
         if (rowContext?.findRenderObject() case final RenderParagraph p
-            when p.isEllipsisAt(event.x, event.y)) {
-          return;
+            when p.isEllipsisAt(x, y)) {
+          return false;
         }
-        for (final (from, to, key) in targets) {
-          if (event.x >= from && event.x < to) {
-            final binding = AppBinding.of(context);
-            for (final combo in [key.combo, ...key.then]) {
-              binding.pressKey(combo);
-            }
+        return targets.any((t) => x >= t.$1 && x < t.$2);
+      },
+      child: Listener(
+        onDown: (event) {
+          if (event.button != 0) {
             return;
           }
-        }
-      },
-      child: Builder(
-        builder: (context) {
-          rowContext = context;
-          return row;
+          // the ellipsis of a cut row presses nothing, nor does the key or
+          // hint it stands for
+          if (rowContext?.findRenderObject() case final RenderParagraph p
+              when p.isEllipsisAt(event.x, event.y)) {
+            return;
+          }
+          for (final (from, to, key) in targets) {
+            if (event.x >= from && event.x < to) {
+              final binding = AppBinding.of(context);
+              for (final combo in [key.combo, ...key.then]) {
+                binding.pressKey(combo);
+              }
+              return;
+            }
+          }
         },
+        child: Builder(
+          builder: (context) {
+            rowContext = context;
+            return row;
+          },
+        ),
       ),
     );
   }
