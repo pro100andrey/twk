@@ -18,6 +18,18 @@ bool isAscii(List<String> lines) =>
 
 void main() {
   group('the set', () {
+    test('copyWith refuses shades of fewer than two', () {
+      expect(
+        () => Glyphs.unicode.copyWith(shades: const [' ']),
+        throwsA(isA<AssertionError>()),
+      );
+      expect(
+        () => Glyphs.unicode.copyWith(shades: const []),
+        throwsA(isA<AssertionError>()),
+      );
+      expect(const Glyphs(shades: [' ', '#']).shades, [' ', '#']);
+    });
+
     test('Glyphs.unicode is the default of every theme', () {
       expect(ThemeData.dark.glyphs, same(Glyphs.unicode));
       expect(ThemeData.light.glyphs, same(Glyphs.unicode));
