@@ -600,6 +600,7 @@ final class AppBinding {
   // run has ended, whichever way: no frame callback is called any more
   void _ended() {
     _running = false;
+    _over = true;
     _runningApps.remove(this);
     _callbacks.clear();
     _postFrame.clear();
@@ -994,9 +995,13 @@ final class AppBinding {
   /// timer asks for it then: one for all the callbacks that wait for a
   /// time, none while none does. A callback scheduled while they are
   /// called waits for the next frame, and one scheduled once [run] has
-  /// ended is never called. Returns the id [cancelFrameCallback] takes.
+  /// ended is dropped. One that throws is logged as an error and the
+  /// others are called as ever. Returns the id [cancelFrameCallback] takes.
   int scheduleFrameCallback(FrameCallback callback, {Duration? at}) {
     final id = ++_lastCallback;
+    if (_over) {
+      return id;
+    }
     final due = at?.inMicroseconds;
     _callbacks[id] = (callback, due);
     // before run, the first frame calls it or starts its timer
@@ -1016,7 +1021,8 @@ final class AppBinding {
   /// made there built by the next frame. Added while a frame builds or lays
   /// out, it is called at the end of that frame; between frames it asks for
   /// one, and while the callbacks of a frame are called it waits for the
-  /// next. One added once [run] has ended is never called.
+  /// next. One added once [run] has ended is dropped. A callback that throws
+  /// is logged as an error and the others are called as ever.
   ///
   /// The width of what `context` builds, once it is laid out:
   ///
@@ -1027,6 +1033,9 @@ final class AppBinding {
   ///     });
   /// ```
   void addPostFrameCallback(FrameCallback callback) {
+    if (_over) {
+      return;
+    }
     _postFrame.add(callback);
     if (_running && (!_framing || _callingPostFrame)) {
       twkApp.requestFrame();
@@ -1051,7 +1060,16 @@ final class AppBinding {
     _callingPostFrame = true;
     try {
       for (final callback in callbacks) {
-        callback(time);
+        try {
+          callback(time);
+        } on Object catch (error, stack) {
+          log(
+            'a post-frame callback failed',
+            level: LogLevel.error,
+            error: error,
+            stack: stack,
+          );
+        }
       }
     } finally {
       _callingPostFrame = false;
@@ -1081,6 +1099,8 @@ final class AppBinding {
 
   // run runs: the zone the app runs in, where the timer starts
   var _running = false;
+  // run has ended: a callback added now is dropped, not held for ever
+  var _over = false;
   Zone _zone = Zone.current;
 
   /// Calls the callbacks due at [now], the frame's time.
@@ -1095,7 +1115,20 @@ final class AppBinding {
     try {
       for (final id in due) {
         // one called before may have cancelled it
-        _callbacks.remove(id)?.$1(time);
+        final callback = _callbacks.remove(id)?.$1;
+        if (callback == null) {
+          continue;
+        }
+        try {
+          callback(time);
+        } on Object catch (error, stack) {
+          log(
+            'a frame callback failed',
+            level: LogLevel.error,
+            error: error,
+            stack: stack,
+          );
+        }
       }
     } finally {
       _callingBack = false;
