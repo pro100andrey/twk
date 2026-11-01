@@ -473,6 +473,16 @@ class FocusScopeNode extends FocusNode {
     super.descendantsAreFocusable,
   });
 
+  /// A node outside this scope that Tab and Shift+Tab leave to, instead of
+  /// going round the scope: Tab from the scope's last stop focuses the
+  /// stop of the scope above [leaveTo] after the nodes below it, Shift+Tab
+  /// from its first the last stop below [leaveTo], else the stop before it.
+  /// Null (the default) keeps the focus in the scope, as a modal panel
+  /// does; set for a panel that is not modal, as Flutter's
+  /// `FocusTraversalGroup` lets the focus on where a `FocusScope` keeps it.
+  /// When the scope above has no such stop, the focus goes round the scope.
+  FocusNode? leaveTo;
+
   // the nodes of this scope (and scopes inside it) that had the focus, the
   // last most recently
   final _history = <FocusNode>[];
@@ -872,6 +882,21 @@ final class FocusManager {
       return false;
     }
     final i = stops.indexOf(from);
+    final out = scope.leaveTo;
+    if (out != null && out._attached && out._active && out._element != null) {
+      final atEnd = i >= 0
+          ? i == (forward ? stops.length - 1 : 0)
+          : forward
+          ? !stops.any((s) => order.compare(from, s) < 0)
+          : !stops.any((s) => order.compare(s, from) < 0);
+      if (atEnd) {
+        final target = _leaveTarget(out, forward: forward);
+        if (target != null) {
+          _enter(target, _TreeOrder(target.nearestScope!._element!));
+          return true;
+        }
+      }
+    }
     final FocusNode next;
     if (i >= 0) {
       next = stops[(i + (forward ? 1 : -1)) % stops.length];
@@ -888,6 +913,42 @@ final class FocusManager {
     }
     _enter(next, order);
     return true;
+  }
+
+  /// The stop of [out]'s scope Tab leaves to from a scope that
+  /// [FocusScopeNode.leaveTo] [out]: the first after the nodes below
+  /// [out], or, backwards, the last below it, else the last before it.
+  FocusNode? _leaveTarget(FocusNode out, {required bool forward}) {
+    final scope = out.nearestScope;
+    final root = scope?._element;
+    if (scope == null || root == null) {
+      return null;
+    }
+    final order = _TreeOrder(root);
+    final stops = order.stopsOf(scope);
+    bool below(FocusNode s) {
+      for (var n = s._parent; n != null; n = n._parent) {
+        if (identical(n, out)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    if (forward) {
+      for (final s in stops) {
+        if (order.compare(out, s) < 0 && !below(s)) {
+          return s;
+        }
+      }
+      return null;
+    }
+    final inside = stops.where(below);
+    if (inside.isNotEmpty) {
+      return inside.last;
+    }
+    final before = stops.where((s) => order.compare(s, out) < 0);
+    return before.isEmpty ? null : before.last;
   }
 
   /// Focuses [node]; a scope the node it focused last, else its first.

@@ -84,32 +84,112 @@ void main() {
     });
   }
 
-  testTwk('Tab inside a popover stays among its nodes', (t) async {
-    final field = FocusNode(debugLabel: 'field');
-    final go = FocusNode(debugLabel: 'go');
-    final other = FocusNode(debugLabel: 'other');
-    await openFocused(
-      t,
-      (open) => page(
-        Column(
+  /// Opens a popover of nodes [go] (autofocus) and [other], by [field],
+  /// with [after] following it in the page.
+  Future<void> openTwo(
+    TwkTester t, {
+    required FocusNode field,
+    required FocusNode go,
+    required FocusNode other,
+    required FocusNode after,
+    required VoidCallback onDismiss,
+  }) async {
+    Widget app(bool open) => App(
+      child: Navigator(
+        home: Column(
           children: [
-            Focus(focusNode: go, autofocus: true, child: const Text('go')),
-            Focus(focusNode: other, child: const Text('other')),
+            Popover(
+              open: open,
+              onDismiss: onDismiss,
+              popover: Column(
+                children: [
+                  Focus(
+                    focusNode: go,
+                    autofocus: true,
+                    child: const Text('go'),
+                  ),
+                  Focus(focusNode: other, child: const Text('other')),
+                ],
+              ),
+              child: Focus(focusNode: field, child: const Text('anchor')),
+            ),
+            Focus(focusNode: after, child: const Text('after')),
           ],
         ),
-        field: field,
-        open: open,
       ),
-      field: field,
-      navigated: true,
+    );
+    await t.pumpWidget(app(false), size: (30, 8));
+    await t.pump();
+    field.requestFocus();
+    await t.pump();
+    await t.pumpWidget(app(true), size: (30, 8));
+    await t.pump();
+    await t.pump();
+  }
+
+  testTwk('Tab inside a popover moves between its nodes', (t) async {
+    final go = FocusNode(debugLabel: 'go');
+    final other = FocusNode(debugLabel: 'other');
+    var dismissed = 0;
+    await openTwo(
+      t,
+      field: FocusNode(debugLabel: 'field'),
+      go: go,
+      other: other,
+      after: FocusNode(debugLabel: 'after'),
+      onDismiss: () => dismissed++,
     );
     expect(go.hasPrimaryFocus, isTrue);
     await t.press('tab');
     await t.pump();
     expect(other.hasPrimaryFocus, isTrue);
-    await t.press('tab');
+    await t.press('shift+tab');
     await t.pump();
     expect(go.hasPrimaryFocus, isTrue);
+    expect(dismissed, 0);
+  });
+
+  testTwk('Tab from the last node leaves to the node after the anchor', (
+    t,
+  ) async {
+    final other = FocusNode(debugLabel: 'other');
+    final after = FocusNode(debugLabel: 'after');
+    var dismissed = 0;
+    await openTwo(
+      t,
+      field: FocusNode(debugLabel: 'field'),
+      go: FocusNode(debugLabel: 'go'),
+      other: other,
+      after: after,
+      onDismiss: () => dismissed++,
+    );
+    await t.press('tab');
+    await t.pump();
+    expect(other.hasPrimaryFocus, isTrue);
+    await t.press('tab');
+    await t.pump();
+    expect(after.hasPrimaryFocus, isTrue);
+    expect(dismissed, 1);
+  });
+
+  testTwk('Shift+Tab from the first node leaves to the anchor', (t) async {
+    final field = FocusNode(debugLabel: 'field');
+    final go = FocusNode(debugLabel: 'go');
+    var dismissed = 0;
+    await openTwo(
+      t,
+      field: field,
+      go: go,
+      other: FocusNode(debugLabel: 'other'),
+      after: FocusNode(debugLabel: 'after'),
+      onDismiss: () => dismissed++,
+    );
+    expect(go.hasPrimaryFocus, isTrue);
+    await t.press('shift+tab');
+    await t.pump();
+    expect(field.hasPrimaryFocus, isTrue);
+    // the focus is still in the anchor, which keeps the popover open
+    expect(dismissed, 0);
   });
 
   testTwk('onDismiss still comes as the focus leaves the popover', (t) async {
