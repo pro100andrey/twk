@@ -72,6 +72,12 @@ void main() {
     currentMirrorSystem().libraries[Uri.parse('package:twk/twk.dart')]!,
   );
 
+  test('twk.dart exports formatBytes and formatTook, for an app to write '
+      'sizes and times as the widgets do', () {
+    expect(formatBytes(4096), '4.1 kB');
+    expect(formatTook(const Duration(milliseconds: 3100)), '3.1 s');
+  });
+
   test('twk.dart exports the library of every topic', () async {
     final uri = await Isolate.resolvePackageUri(
       Uri.parse('package:twk/twk.dart'),

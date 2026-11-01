@@ -2,8 +2,8 @@
 /// same one two ways: a ratio as a whole percent ([formatPercent]), a
 /// time as a clock ([formatClock]) or as the time something took
 /// ([formatTook]), and bytes in decimal units ([formatBytes]).
-/// [formatTook] is exported, for an app to write a time taken as the
-/// widgets do; the others are internal.
+/// [formatTook] and [formatBytes] are exported, for an app to write a time
+/// taken and a size as the widgets do; the others are internal.
 library;
 
 import 'helpers.dart';
@@ -78,7 +78,17 @@ String _two(int n) => '$n'.padLeft(2, '0');
 
 /// [bytes] in their decimal unit ([byteUnit]), whole from 100 of it and to
 /// the tenth below ([formatFigures]): `512 B`, `4.1 kB`, `620 kB`,
-/// `1.2 MB`.
+/// `1.2 MB`. The sizes a `DirectoryTree` and a `ProgressList` write.
+///
+/// The units are the SI ones, a kilobyte being 1000 bytes (the `kB` of
+/// `ls --si` and `du --si`, and of what disk makers and file managers
+/// quote), not the 1024 of `ls -h` and `du -h`: a figure here reads the
+/// same as the tree's beside it, and no option swaps the two.
+///
+/// ```dart
+/// final line = '${formatBytes(4096)} of ${formatBytes(1200000)}';
+/// // line: 4.1 kB of 1.2 MB
+/// ```
 String formatBytes(num bytes) {
   final (scale, suffix) = byteUnit(bytes);
   return scale == 1 && bytes == bytes.roundToDouble()
