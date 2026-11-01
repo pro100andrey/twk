@@ -791,7 +791,8 @@ String fitText(
   TextOverflow overflow = TextOverflow.ellipsis,
   String ellipsis = '\u2026',
 }) {
-  if (_columns(segmenter, text) <= width) {
+  final total = _columns(segmenter, text);
+  if (total <= width) {
     return text;
   }
   if (width <= 0) {
@@ -800,108 +801,120 @@ String fitText(
   final ellipsisWidth = _columns(segmenter, ellipsis);
   final clip = overflow == TextOverflow.clip;
   final room = clip || width < ellipsisWidth ? width : width - ellipsisWidth;
-  final graphemes = segmenter.mode == TextMode.graphemes;
-  final scan = _widthScan;
-  // the clusters: where each ends, in columns
-  final ends = <int>[0];
-  final cols = <int>[];
-  for (var i = 0; i < text.length;) {
-    final start = i;
-    segmenter.scan(text, i, scan);
-    i = scan.end;
-    var cells = scan.width;
-    if (cells == 0) {
-      cells = scan.first == 0x09 ? 1 : 0;
-    } else if (graphemes && isLeadingMark(scan.first)) {
-      i = start + (scan.first > 0xFFFF ? 2 : 1);
-      cells = 0;
-    }
-    ends.add(i);
-    cols.add(cells);
-  }
-  // the end of the most clusters from the start that fit [r] columns
-  int head(int r, [int from = 0, int to = -1]) {
-    final n = to < 0 ? cols.length : to;
-    var w = 0;
-    var k = from;
-    for (; k < n; k++) {
-      if (w + cols[k] > r) {
-        break;
-      }
-      w += cols[k];
-    }
-    return k;
-  }
-
-  // the start of the most clusters up to the end that fit [r] columns
-  int tail(int r, [int from = 0]) {
-    var w = 0;
-    var k = cols.length;
-    for (; k > from; k--) {
-      if (w + cols[k - 1] > r) {
-        break;
-      }
-      w += cols[k - 1];
-    }
-    return k;
-  }
-
-  // cluster [k] is a blank: a space of its own, which a line is not cut at
-  // the ellipsis beside (as RenderParagraph trims it)
-  bool blank(int k) {
-    if (ends[k + 1] - ends[k] != 1) {
-      return false;
-    }
-    final u = text.codeUnitAt(ends[k]);
-    return u == 0x20 ||
-        u == 0x1680 ||
-        (u >= 0x2000 && u <= 0x200A && u != 0x2007) ||
-        u == 0x205F ||
-        u == 0x3000;
-  }
-
-  // [k] moved back over the blanks before it
-  int trimBack(int k) {
-    var at = k;
-    while (at > 0 && blank(at - 1)) {
-      at--;
-    }
-    return at;
-  }
-
-  // [k] moved on over the blanks after it
-  int trimFront(int k) {
-    var at = k;
-    while (at < cols.length && blank(at)) {
-      at++;
-    }
-    return at;
-  }
-
   final mark = clip || width < ellipsisWidth ? '' : ellipsis;
   switch (overflow) {
     case TextOverflow.ellipsisStart:
-      final t = mark.isEmpty ? tail(room) : trimFront(tail(room));
-      return '$mark${text.substring(ends[t])}';
+      var t = _tail(segmenter, text, room, 0, total);
+      if (mark.isNotEmpty) {
+        t = _skipBlanks(segmenter, text, t);
+      }
+      return '$mark${text.substring(t)}';
     case TextOverflow.ellipsisMiddle when !clip && width >= ellipsisWidth:
-      final first = trimBack(head((room + 1) >> 1));
-      final t = trimFront(tail(room - _sum(cols, 0, first), first));
-      final h = trimBack(head(room - _sum(cols, t, cols.length), 0, t));
-      return '${text.substring(0, ends[h])}$ellipsis${text.substring(ends[t])}';
+      final first = _head(segmenter, text, (room + 1) >> 1, text.length, true);
+      final used = _cells;
+      final t = _skipBlanks(
+        segmenter,
+        text,
+        _tail(segmenter, text, room - used, first, total - used),
+      );
+      final h = _head(segmenter, text, room - _cells, t, true);
+      return '${text.substring(0, h)}$ellipsis${text.substring(t)}';
     case TextOverflow.clip:
     case TextOverflow.ellipsis:
     case TextOverflow.ellipsisMiddle:
-      final h = head(room);
-      return '${text.substring(0, ends[mark.isEmpty ? h : trimBack(h)])}$mark';
+      final h = _head(segmenter, text, room, text.length, mark.isNotEmpty);
+      return '${text.substring(0, h)}$mark';
   }
 }
 
-int _sum(List<int> cols, int from, int to) {
-  var w = 0;
-  for (var k = from; k < to; k++) {
-    w += cols[k];
+// The cluster of [text] at [i] ([fitText] cuts between them, in the columns
+// [_columns] counts): its end, its columns left in [_clusterCells]. Walks
+// the text without materialising its clusters.
+var _clusterCells = 0;
+
+// the columns [_head] took, or [_tail] left after the start it returns
+// (less the blanks [_skipBlanks] then passes)
+var _cells = 0;
+
+int _cluster(TextSegmenter seg, String text, int i) {
+  final scan = _widthScan;
+  seg.scan(text, i, scan);
+  var end = scan.end;
+  var cells = scan.width;
+  if (cells == 0) {
+    cells = scan.first == 0x09 ? 1 : 0;
+  } else if (seg.mode == TextMode.graphemes && isLeadingMark(scan.first)) {
+    end = i + (scan.first > 0xFFFF ? 2 : 1);
+    cells = 0;
   }
-  return w;
+  _clusterCells = cells;
+  return end;
+}
+
+// whether the cluster [start, end) of [text] is a blank: a space of its
+// own, which a line is not cut at the ellipsis beside (as RenderParagraph
+// trims it)
+bool _isBlank(String text, int start, int end) {
+  if (end - start != 1) {
+    return false;
+  }
+  final u = text.codeUnitAt(start);
+  return u == 0x20 ||
+      u == 0x1680 ||
+      (u >= 0x2000 && u <= 0x200A && u != 0x2007) ||
+      u == 0x205F ||
+      u == 0x3000;
+}
+
+// the end of the most clusters from the start, not past [to], that fit [r]
+// columns; with [trim], moved back over the blanks before it
+int _head(TextSegmenter seg, String text, int r, int to, bool trim) {
+  var w = 0;
+  var i = 0;
+  var kept = 0; // the end of the last cluster that is not a blank
+  var keptCells = 0;
+  while (i < to) {
+    final end = _cluster(seg, text, i);
+    final cells = _clusterCells;
+    if (w + cells > r) {
+      break;
+    }
+    w += cells;
+    if (!_isBlank(text, i, end)) {
+      kept = end;
+      keptCells = w;
+    }
+    i = end;
+  }
+  _cells = trim ? keptCells : w;
+  return trim ? kept : i;
+}
+
+// the start of the most clusters up to the end that fit [r] columns, not
+// before [from]; [rest] is the columns from [from] to the end
+int _tail(TextSegmenter seg, String text, int r, int from, int rest) {
+  var left = rest;
+  var i = from;
+  while (left > r && i < text.length) {
+    i = _cluster(seg, text, i);
+    left -= _clusterCells;
+  }
+  _cells = left;
+  return i;
+}
+
+// [i] moved on over the blank clusters after it, [_cells] less theirs
+int _skipBlanks(TextSegmenter seg, String text, int i) {
+  var at = i;
+  while (at < text.length) {
+    final end = _cluster(seg, text, at);
+    if (!_isBlank(text, at, end)) {
+      break;
+    }
+    _cells -= _clusterCells;
+    at = end;
+  }
+  return at;
 }
 
 /// [text] padded with blanks to [width] columns as [segmenter] measures
