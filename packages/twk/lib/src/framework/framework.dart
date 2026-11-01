@@ -524,9 +524,10 @@ abstract class Element implements BuildContext {
   // widget is one
   Map<Type, InheritedElement>? _inheritedElements;
 
-  // the inherited elements this element depends on, registered since its
-  // last build began (or its last updateRenderObject)
-  Set<InheritedElement>? _dependencies;
+  // the inherited elements this element depends on, kept from build to
+  // build: those registered since its last build began (or its last
+  // updateRenderObject) are the first [_Dependencies.live] of them
+  _Dependencies? _dependencies;
 
   // it depended on inherited elements when it was deactivated
   var _hadDependencies = false;
@@ -634,8 +635,9 @@ abstract class Element implements BuildContext {
 
   @override
   InheritedWidget dependOnInheritedElement(InheritedElement ancestor) {
-    (_dependencies ??= {}).add(ancestor);
-    ancestor._dependents.add(this);
+    if ((_dependencies ??= _Dependencies()).add(ancestor)) {
+      ancestor._dependents.add(this);
+    }
     return ancestor.widget;
   }
 
@@ -660,35 +662,37 @@ abstract class Element implements BuildContext {
   /// Whether this element depends on any inherited element.
   bool get _hasDependencies => _dependencies?.isNotEmpty ?? false;
 
-  /// Takes the dependencies this element has, for a build in which it
-  /// registers them anew; those it does not register again are dropped
-  /// after it ([_dropDependencies] of what this returns). Taken and
-  /// dropped around the build, not given the build to run, which would
-  /// make a closure at every build.
-  Set<InheritedElement>? _takeDependencies() {
-    final previous = _dependencies;
-    _dependencies = null;
-    return previous;
+  /// Starts a build in which this element registers its dependencies
+  /// anew: those it registers keep their place, and those it does not
+  /// register again are dropped by [_endDependencies]. Begun and ended
+  /// around the build, not given the build to run, which would make a
+  /// closure at every build.
+  void _beginDependencies() => _dependencies?.live = 0;
+
+  /// Ends the build [_beginDependencies] began: takes this element off the
+  /// dependents of those it did not register again.
+  void _endDependencies() => _trimDependencies(_dependencies);
+
+  /// Takes this element off the dependents of all it depends on.
+  void _dropAllDependencies() {
+    _dependencies?.live = 0;
+    _trimDependencies(_dependencies);
   }
 
-  /// Takes this element off the dependents of those of [ancestors] it no
-  /// longer depends on.
-  void _dropDependencies(Set<InheritedElement>? ancestors) {
-    if (ancestors == null) {
+  /// Forgets the entries of [dependencies] past its registered ones, and
+  /// takes this element off the dependents of those it does not depend on
+  /// otherwise.
+  void _trimDependencies(_Dependencies? dependencies) {
+    if (dependencies == null) {
       return;
     }
-    for (final ancestor in ancestors) {
+    final list = dependencies.list;
+    while (list.length > dependencies.live) {
+      final ancestor = list.removeLast();
       if (!_dependsOn(ancestor)) {
         ancestor._dependents.remove(this);
       }
     }
-  }
-
-  /// Takes this element off the dependents of all it depends on.
-  void _dropAllDependencies() {
-    final previous = _dependencies;
-    _dependencies = null;
-    _dropDependencies(previous);
   }
 
   @override
@@ -1202,11 +1206,11 @@ abstract class ComponentElement extends Element with _BuildsChild {
   void performRebuild() {
     Widget built;
     try {
-      final previous = _takeDependencies();
+      _beginDependencies();
       try {
         built = build();
       } finally {
-        _dropDependencies(previous);
+        _endDependencies();
       }
       _built();
     } on Object catch (error, stack) {
@@ -1269,7 +1273,7 @@ class StatefulElement extends ComponentElement {
 
   // the inherited elements the state depends on, registered since its last
   // didChangeDependencies began
-  Set<InheritedElement>? _stateDependencies;
+  _Dependencies? _stateDependencies;
 
   @override
   StatefulWidget get widget => super.widget as StatefulWidget;
@@ -1309,15 +1313,18 @@ class StatefulElement extends ComponentElement {
   /// dependencies anew: those it had and does not register again are
   /// dropped, unless the last build registered them.
   void _changeDependencies() {
+    // the state's dependencies are registered as the element's own for
+    // the call, the build's put aside (each is the other's other)
     final built = _dependencies;
-    final previous = _stateDependencies;
-    _dependencies = null;
+    _dependencies = _stateDependencies;
+    _stateDependencies = built;
+    _beginDependencies();
     try {
       state.didChangeDependencies();
     } finally {
+      _endDependencies();
       _stateDependencies = _dependencies;
       _dependencies = built;
-      _dropDependencies(previous);
     }
   }
 
@@ -1343,10 +1350,9 @@ class StatefulElement extends ComponentElement {
 
   @override
   void _dropAllDependencies() {
-    final previous = _stateDependencies;
-    _stateDependencies = null;
+    _stateDependencies?.live = 0;
+    _trimDependencies(_stateDependencies);
     super._dropAllDependencies();
-    _dropDependencies(previous);
   }
 
   @override
@@ -1861,11 +1867,11 @@ abstract class RenderObjectElement extends Element {
   }
 
   void _updateRenderObject() {
-    final previous = _takeDependencies();
+    _beginDependencies();
     try {
       widget.updateRenderObject(this, renderObject);
     } finally {
-      _dropDependencies(previous);
+      _endDependencies();
     }
   }
 
@@ -2269,11 +2275,11 @@ final class _LayoutBuilderElement extends RenderObjectElement
   void _build(BoxConstraints constraints) => owner!._buildInLayout(this, () {
     Widget built;
     try {
-      final previous = _takeDependencies();
+      _beginDependencies();
       try {
         built = widget.builder(this, constraints);
       } finally {
-        _dropDependencies(previous);
+        _endDependencies();
       }
       _built();
     } on Object catch (error, stack) {
@@ -2811,4 +2817,53 @@ final class _RenderNothing extends RenderObject {
 
   @override
   void paint(PaintContext ctx) {}
+}
+
+/// The inherited elements an element depends on, in the order its last
+/// build registered them, kept across builds: a build that registers the
+/// same ones in the same order allocates nothing.
+class _Dependencies {
+  /// The inherited elements: the first [live] of them registered by the
+  /// build under way (or the last), the rest were registered by an earlier
+  /// one and are dropped if the build does not register them again.
+  final list = <InheritedElement>[];
+
+  /// How many of [list] the build under way has registered.
+  var live = 0;
+
+  bool contains(InheritedElement ancestor) => list.contains(ancestor);
+
+  bool get isNotEmpty => list.isNotEmpty;
+
+  /// Registers [ancestor] for the build under way. Returns whether it is
+  /// new to [list], so its element is yet to be told of the dependent.
+  bool add(InheritedElement ancestor) {
+    final list = this.list;
+    final length = list.length;
+    // in the order of the last build, the next is the one
+    if (live < length && identical(list[live], ancestor)) {
+      live++;
+      return false;
+    }
+    for (var i = 0; i < live; i++) {
+      if (identical(list[i], ancestor)) {
+        return false;
+      }
+    }
+    for (var i = live + 1; i < length; i++) {
+      if (identical(list[i], ancestor)) {
+        list[i] = list[live];
+        list[live++] = ancestor;
+        return false;
+      }
+    }
+    if (live < length) {
+      list.add(list[live]);
+      list[live++] = ancestor;
+    } else {
+      list.add(ancestor);
+      live++;
+    }
+    return true;
+  }
 }
