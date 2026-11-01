@@ -80,4 +80,63 @@ void main() {
     expect(steps.current, 5);
     steps.stop();
   });
+
+  // Every frame here is one something asked for: the pumps, and the step
+  // callback the started Steps schedules for each step's start (none while
+  // muted). frameTime is the last such frame's.
+  testTwk('muted and unmuted again and again, it goes on from the step it '
+      'stood at, never below it', (t) async {
+    await t.pumpWidget(const Text('app'), size: (4, 1));
+    final steps = Steps(ms * 100, () {}, binding: t.binding)..start();
+    final read = <int>[];
+    var now = Duration.zero;
+    Future<void> at(int msec) async {
+      now = ms * msec;
+      await until(t, now);
+    }
+
+    for (var cycle = 0; cycle < 3; cycle++) {
+      await at(cycle * 1300 + 300); // frame at 300 (callback) + pump
+      read.add(steps.current);
+      steps.muted = true;
+      await at(cycle * 1300 + 1300);
+      read.add(steps.current);
+      steps.muted = false;
+      await t.pump(Duration.zero); // a frame, at the time of the last one
+      read.add(steps.current);
+    }
+    expect(read, [3, 3, 3, 6, 6, 6, 9, 9, 9]);
+    steps.stop();
+  });
+
+  testTwk('an interval changed between cycles keeps the step it is in', (
+    t,
+  ) async {
+    await t.pumpWidget(const Text('app'), size: (4, 1));
+    final steps = Steps(ms * 100, () {}, binding: t.binding)..start();
+    await until(t, ms * 300);
+    steps.muted = true;
+    await until(t, ms * 1300);
+    steps.muted = false;
+    await t.pump(Duration.zero);
+    expect(steps.current, 3);
+    steps.interval = ms * 50;
+    expect(steps.current, 3);
+    await until(t, ms * 1500);
+    final shown = steps.current;
+    expect(shown, greaterThan(3));
+    steps.muted = true;
+    await until(t, ms * 2500);
+    expect(steps.current, shown);
+    steps
+      ..interval =
+          ms *
+          200 // set while muted: the step stays
+      ..muted = false;
+    await t.pump(Duration.zero);
+    expect(steps.current, shown);
+    await until(t, ms * 3100);
+    expect(steps.current, greaterThan(shown));
+    steps.stop();
+  });
 }

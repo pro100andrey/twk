@@ -49,7 +49,7 @@ final class Steps {
     if (i != _interval) {
       // the steps muted for are counted in the old interval: counted anew
       // in the new one, the step it is in stays the one it is in
-      final keep = !_muted && _skipped != 0 ? current : null;
+      final keep = !_muted && _shifted ? current : null;
       _interval = i;
       if (keep != null) {
         _skipped = _live - keep;
@@ -66,6 +66,7 @@ final class Steps {
   var _wanted = false;
   var _muted = false;
   var _frozen = 0;
+  var _shifted = false;
   var _skipped = 0;
   var _resume = false;
 
@@ -79,6 +80,7 @@ final class Steps {
     }
     if (on) {
       _frozen = current;
+      _shifted = true;
       _resume = false;
       _muted = true;
       _cancel();
@@ -102,7 +104,9 @@ final class Steps {
     }
     if (_resume) {
       _resume = false;
-      _skipped += _live - _frozen;
+      // the steps skipped, as many as the clock has gone on past the step
+      // it stood at: counted anew, not added to those of the mutes before
+      _skipped = _live - _frozen;
     }
     return _live - _skipped;
   }
