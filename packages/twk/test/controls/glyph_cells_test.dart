@@ -100,7 +100,7 @@ void main() {
     testTwk('a checkbox of astral ends keeps each whole', (t) async {
       await t.pumpWidget(
         themed(
-          Glyphs.unicode.copyWith(checkboxOn: '😀x😀'),
+          Glyphs.unicode.copyWith(checkboxOn: '😀x😀', checkboxOff: '😀 😀'),
           Checkbox(value: true, onChanged: (_) {}, label: 'Wrap'),
         ),
         size: (14, 1),

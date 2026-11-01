@@ -111,8 +111,9 @@ final class Checkbox extends StatelessWidget {
     role: SemanticsRole.checkbox,
     marks: (theme, row, on, enabled, _) {
       final marked = on && enabled ? markStyle(theme) : const Style();
+      final boxes = checkboxMarks(context, theme.glyphs);
       return checkboxSpans(
-        on ? theme.glyphs.checkboxOn : theme.glyphs.checkboxOff,
+        on ? boxes.on : boxes.off,
         marked.merge(
           bracketStyle ?? theme.muted.merge(const Style(attrsOff: Attr.bold)),
         ),
@@ -213,7 +214,14 @@ final class Switch extends StatelessWidget {
   Widget build(BuildContext context) => _Toggle(
     role: SemanticsRole.toggle,
     marks: pill
-        ? _pill
+        ? (theme, row, on, enabled, at) => _pill(
+            theme,
+            switchMarks(context, theme.glyphs),
+            row,
+            on,
+            enabled,
+            at,
+          )
         : (theme, row, on, enabled, _) => [
             Span(
               on ? '[on ]' : '[off]',
@@ -244,13 +252,14 @@ final class Switch extends StatelessWidget {
     ThemeData theme, {
     required double at,
     bool enabled = true,
-  }) => _pill(theme, const Style(), at >= 0.5, enabled, at);
+  }) => _pill(theme, theme.glyphs, const Style(), at >= 0.5, enabled, at);
 
   /// The pill with its knob [at] of the way to the right end, as the
   /// design draws it: the ends half blocks in the track's color, the knob
   /// `●` on it in one of the three cells between them.
   static List<Span> _pill(
     ThemeData theme,
+    Glyphs glyphs,
     Style row,
     bool on,
     bool enabled,
@@ -280,12 +289,12 @@ final class Switch extends StatelessWidget {
     final k = (at * 2).round();
     final end = Style(fg: track);
     return [
-      Span(theme.glyphs.switchStart, end),
+      Span(glyphs.switchStart, end),
       Span(
-        '${' ' * k}${theme.glyphs.switchKnob}${' ' * (2 - k)}',
+        '${' ' * k}${glyphs.switchKnob}${' ' * (2 - k)}',
         Style(fg: knob, bg: track),
       ),
-      Span(theme.glyphs.switchEnd, end),
+      Span(glyphs.switchEnd, end),
     ];
   }
 }

@@ -228,6 +228,7 @@ final class RadioGroup<T> extends StatelessWidget {
           : const {'left': 'previous', 'right': 'next'},
       builder: (context, focused) {
         final theme = Theme.of(context);
+        final radio = radioMarks(context, theme.glyphs);
         return Flex(
           direction: direction,
           mainAxisSize: MainAxisSize.min,
@@ -237,6 +238,7 @@ final class RadioGroup<T> extends StatelessWidget {
             for (var i = 0; i < choices.length; i++)
               _choice(
                 theme,
+                radio,
                 i,
                 on: i == chosen,
                 focused: focused && i == focus,
@@ -265,6 +267,7 @@ final class RadioGroup<T> extends StatelessWidget {
 
   Widget _choice(
     ThemeData theme,
+    ({String on, String off}) radio,
     int i, {
     required bool on,
     required bool focused,
@@ -280,7 +283,7 @@ final class RadioGroup<T> extends StatelessWidget {
           [
             ..._radioSpans(
               theme,
-              on ? theme.glyphs.radioOn : theme.glyphs.radioOff,
+              on ? radio.on : radio.off,
               on,
               enabled,
             ),

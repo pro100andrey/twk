@@ -7,6 +7,9 @@ import 'package:twk_core/twk_core.dart'
     show LogLevel, LogRecord, RenderObject, TextSegmenter, log;
 
 import '../animation/spinner.dart' show SpinnerFrames;
+import '../binding/app_binding.dart' show AppBinding;
+import '../framework/framework.dart' show BuildContext;
+import '../text/hit_row.dart' show segmenterOf;
 import 'theme.dart' show Theme, ThemeData;
 
 /// The marks widgets draw, by what each means (a check, a cross, a cursor
@@ -21,12 +24,19 @@ import 'theme.dart' show Theme, ThemeData;
 /// of a set; each mark is a string of one column unless its doc says
 /// otherwise, and the widgets lay out by the width the terminal gives it
 /// (in cells, not code units). A mark drawn in one cell that is not one
-/// column wide (an emoji, an ambiguous mark in some terminals) is the same
-/// field of [Glyphs.ascii] there, with one warning in the app's log for
-/// each such mark; the width is the terminal's, so it is known only when
-/// the mark is drawn. An empty mark draws nothing and breaks
-/// nothing: a blank where a cell is to be filled, no width where the mark
-/// is text in a row (a bracket of [radioBrackets] says so).
+/// column wide (an emoji, an ambiguous mark in some terminals), or is a
+/// cluster of more than one code point (a letter and a combining accent),
+/// is the same field of [Glyphs.ascii] there, with one warning in the
+/// app's log for each such mark; the width is the terminal's, so it is
+/// known only when the mark is drawn. The rule is one for a mark filled
+/// into a cell (a scrollbar's thumb, a gauge) and for one drawn as text in
+/// a row (a radio button's, a switch's, a button's edge). An empty mark
+/// draws nothing and breaks nothing: a blank where a cell is to be filled,
+/// no width where the mark is text in a row (a bracket of [radioBrackets],
+/// a button's edge, a switch's end), but a blank for [switchKnob], for the
+/// track to keep its width. The marks of [checkboxOn] and [checkboxOff] are
+/// words of several columns, whose rule is that they be one width: where
+/// they are not, `[x]` and `[ ]` are drawn, with the warning.
 ///
 /// A widget's own parameter for a mark it has (`Spinner.frames`,
 /// `RadioGroup.mark`, `Skeleton.glyph`, a `Callout`'s `icon`) stays above
@@ -271,12 +281,13 @@ final class Glyphs {
   /// The mark of a task skipped (`TaskStatus.skipped`).
   final String taskSkipped;
 
-  /// The line between the segments of a segmented button, and the edge of
-  /// a button where [buttonEdges] are not one column each.
+  /// The line between the segments of a segmented button.
   final String separator;
 
   /// The left and the right edge of a one-row button, a column each: `▕`
-  /// and `▏`, so a chip's label stands between thin bars.
+  /// and `▏`, so a chip's label stands between thin bars. An edge that is
+  /// not one column wide and one code point is Glyphs.ascii's `[` or `]`,
+  /// with a warning; an empty one is no edge.
   final (String, String) buttonEdges;
 
   /// A vertical scrollbar's track.
@@ -481,15 +492,16 @@ final class Glyphs {
 }
 
 /// The code point the mark [glyph] of the Glyphs field [field] fills one
-/// cell of [object] with, under [segmenter]'s measure: its first while it
-/// is one column wide.
+/// cell of [object] with, under [segmenter]'s measure: its only one while
+/// it is one column wide.
 ///
 /// Where it is any other width (an emoji, an East Asian ambiguous mark in
-/// some terminals) it is [fallback], the same field of [Glyphs.ascii] as
-/// the caller passes it, and the app's log gets one warning for each
-/// distinct ([field], [glyph]) under the [object]'s pipeline, the way a
-/// flex's overflow is warned of. An empty [glyph] is no warning: a blank
-/// where [blankIfEmpty], else [fallback].
+/// some terminals), or is a cluster of more than one code point (a letter
+/// and a combining accent, which one cell cannot hold), it is [fallback],
+/// the same field of [Glyphs.ascii] as the caller passes it, and the app's
+/// log gets one warning for each distinct ([field], [glyph]) under the
+/// [object]'s pipeline, the way a flex's overflow is warned of. An empty
+/// [glyph] is no warning: a blank where [blankIfEmpty], else [fallback].
 @internal
 int cellRune(
   RenderObject object,
@@ -502,18 +514,24 @@ int cellRune(
   if (glyph.isEmpty) {
     return blankIfEmpty ? 0x20 : fallback.runes.first;
   }
-  final width = segmenter.width(glyph);
-  if (width == 1) {
+  final owner = object.owner;
+  if (_fits(
+    owner,
+    owner?.onLog,
+    field,
+    glyph,
+    segmenter,
+    "Glyphs.ascii's '$fallback'",
+  )) {
     return glyph.runes.first;
   }
-  _warnWide(object, field, glyph, width, "Glyphs.ascii's '$fallback'");
   return fallback.runes.first;
 }
 
 /// The code point of the optional mark [glyph] of the Glyphs field
 /// [field], as [cellRune] measures it; null where it is empty (no
-/// warning) or not one column wide (the same warning, saying that no mark
-/// is drawn in its place, for a field with no ASCII mark).
+/// warning) or does not fit one cell (the same warning, saying that no
+/// mark is drawn in its place, for a field with no ASCII mark).
 @internal
 int? optionalCellRune(
   RenderObject object,
@@ -524,28 +542,156 @@ int? optionalCellRune(
   if (glyph.isEmpty) {
     return null;
   }
-  final width = segmenter.width(glyph);
-  if (width == 1) {
+  final owner = object.owner;
+  if (_fits(owner, owner?.onLog, field, glyph, segmenter, 'no mark')) {
     return glyph.runes.first;
   }
-  _warnWide(object, field, glyph, width, 'no mark');
   return null;
 }
 
-void _warnWide(
-  RenderObject object,
+/// The mark [glyph] of the Glyphs field [field], a string drawn as text
+/// in a widget built in [context], where it is to be one cell: [glyph]
+/// while it is one column wide and one code point, else [fallback], the
+/// same field of [Glyphs.ascii], with the one warning [cellRune] gives.
+/// An empty [glyph] stays empty, no warning: what that draws is the
+/// caller's, as the doc of its field says.
+@internal
+String textMark(
+  BuildContext context,
   String field,
   String glyph,
-  int width,
+  String fallback,
+) {
+  if (glyph.isEmpty || _plain(glyph)) {
+    return glyph;
+  }
+  final owner = context.findRenderObject()?.owner;
+  final binding = owner == null ? AppBinding.maybeOf(context) : null;
+  final fits = _fits(
+    owner ?? binding?.twkApp.owner,
+    (owner ?? binding?.twkApp.owner)?.onLog,
+    field,
+    glyph,
+    segmenterOf(context),
+    "Glyphs.ascii's '$fallback'",
+  );
+  return fits ? glyph : fallback;
+}
+
+/// The checkbox marks of [glyphs] in [context], in one width: as they
+/// are where both have the same, else [Glyphs.ascii]'s pair (`[x]`,
+/// `[ ]`) with one warning, for a row that has a box of either to stay
+/// aligned with the other.
+@internal
+({String on, String off}) checkboxMarks(BuildContext context, Glyphs glyphs) {
+  final (on, off) = (glyphs.checkboxOn, glyphs.checkboxOff);
+  if (on == off) {
+    return (on: on, off: off);
+  }
+  final segmenter = segmenterOf(context);
+  if (segmenter.width(on) == segmenter.width(off)) {
+    return (on: on, off: off);
+  }
+  final owner =
+      context.findRenderObject()?.owner ??
+      AppBinding.maybeOf(context)?.twkApp.owner;
+  _warn(
+    owner,
+    owner?.onLog,
+    'checkboxOn',
+    '$on\u0000$off',
+    "Glyphs.checkboxOn '$on' is ${segmenter.width(on)} cells wide, "
+        "Glyphs.checkboxOff '$off' ${segmenter.width(off)}; "
+        "Glyphs.ascii's '[x]' and '[ ]' are drawn in their place.",
+  );
+  return (on: _asciiCheckboxOn, off: _asciiCheckboxOff);
+}
+
+/// [glyphs] with the marks of a switch's pill fitted for [context]: its
+/// ends as [textMark] (an empty end stays, no cell), its knob too, and
+/// an empty knob a blank, for the track to keep its width. [glyphs]
+/// itself where all three are as they are.
+@internal
+Glyphs switchMarks(BuildContext context, Glyphs glyphs) {
+  final start = textMark(context, 'switchStart', glyphs.switchStart, '[');
+  final end = textMark(context, 'switchEnd', glyphs.switchEnd, ']');
+  final knob = glyphs.switchKnob.isEmpty
+      ? ' '
+      : textMark(context, 'switchKnob', glyphs.switchKnob, '*');
+  if (start == glyphs.switchStart &&
+      end == glyphs.switchEnd &&
+      knob == glyphs.switchKnob) {
+    return glyphs;
+  }
+  return glyphs.copyWith(switchStart: start, switchEnd: end, switchKnob: knob);
+}
+
+/// The marks of a radio button as [textMark] fits them for [context]: the
+/// chosen one's, and the other's, which stays empty where it is (the
+/// brackets then hold no cell, and the one that is on no more than its
+/// own width).
+@internal
+({String on, String off}) radioMarks(BuildContext context, Glyphs glyphs) => (
+  on: textMark(context, 'radioOn', glyphs.radioOn, '*'),
+  off: textMark(context, 'radioOff', glyphs.radioOff, ' '),
+);
+
+/// The edges of a one-row button as [textMark] fits them for [context]; an
+/// edge that is empty stays empty, and the button has none there.
+@internal
+(String, String) buttonEdgeMarks(BuildContext context, Glyphs glyphs) => (
+  textMark(context, 'buttonEdges', glyphs.buttonEdges.$1, '['),
+  textMark(context, 'buttonEdges', glyphs.buttonEdges.$2, ']'),
+);
+
+final String _asciiCheckboxOn = Glyphs.ascii.checkboxOn;
+final String _asciiCheckboxOff = Glyphs.ascii.checkboxOff;
+
+// a printable ASCII character: one cell, one code point, no measuring
+bool _plain(String glyph) {
+  if (glyph.length != 1) {
+    return false;
+  }
+  final c = glyph.codeUnitAt(0);
+  return c >= 0x20 && c < 0x7f;
+}
+
+// whether [glyph] fills one cell: one column wide and one code point;
+// else the warning, once for each owner, saying [instead] is drawn
+bool _fits(
+  Object? owner,
+  void Function(LogRecord record)? route,
+  String field,
+  String glyph,
+  TextSegmenter segmenter,
   String instead,
 ) {
-  final owner = object.owner;
-  final key = '$field\u0000$glyph';
-  if (owner == null || (_warned[owner] ??= {}).add(key)) {
-    final message =
-        "Glyphs.$field '$glyph' is $width cells wide, not 1; "
-        '$instead is drawn in its place.';
-    final route = owner?.onLog;
+  final width = segmenter.width(glyph);
+  final runes = glyph.runes.length;
+  if (width == 1 && runes == 1) {
+    return true;
+  }
+  final what = width == 1
+      ? 'a cluster of $runes code points, not one'
+      : '$width cells wide, not 1';
+  _warn(
+    owner,
+    route,
+    field,
+    glyph,
+    "Glyphs.$field '$glyph' is $what; $instead is drawn in its place.",
+  );
+  return false;
+}
+
+void _warn(
+  Object? owner,
+  void Function(LogRecord record)? route,
+  String field,
+  String glyph,
+  String message,
+) {
+  if (owner == null || (_warned[owner] ??= {}).add('$field\u0000$glyph')) {
     if (route == null) {
       log(message, level: LogLevel.warning);
     } else {

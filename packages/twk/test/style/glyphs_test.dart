@@ -464,7 +464,7 @@ void main() {
         size: (8, 1),
       );
       expect(t.lines.single, startsWith('<  Go  >'));
-      // an edge not one column wide: the separator at both ends
+      // an edge not one column wide: Glyphs.ascii's, the other one kept
       await t.pumpWidget(
         themed(
           Glyphs.unicode.copyWith(buttonEdges: ('<', '>>')),
@@ -472,7 +472,7 @@ void main() {
         ),
         size: (8, 1),
       );
-      expect(t.lines.single, startsWith('│  Go  │'));
+      expect(t.lines.single, startsWith('<  Go  ]'));
     });
 
     testTwk('a removable Chip draws the close mark of the set', (t) async {

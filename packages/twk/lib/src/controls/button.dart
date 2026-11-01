@@ -12,7 +12,6 @@ import '../layout/flex.dart';
 import '../semantics/semantics.dart';
 import '../style/color_mix.dart';
 import '../style/style.dart';
-import '../text/hit_row.dart' show segmenterOf;
 import '../text/widgets.dart';
 import 'pressable.dart';
 
@@ -420,14 +419,10 @@ extension on _ButtonState {
           );
         }
         // one row: the edges at either end, the label in the middle of what
-        // is between them; bars where block elements are two columns wide
-        final glyphs = theme.glyphs;
-        final segmenter = segmenterOf(context);
-        final (edgeOpen, edgeClose) = glyphs.buttonEdges;
-        final thin =
-            segmenter.width(edgeOpen) == 1 && segmenter.width(edgeClose) == 1;
-        final open = Text(thin ? edgeOpen : glyphs.separator, style: line);
-        final close = Text(thin ? edgeClose : glyphs.separator, style: line);
+        // is between them; an edge that is empty is no cell
+        final (edgeOpen, edgeClose) = buttonEdgeMarks(context, theme.glyphs);
+        final open = Text(edgeOpen, style: line);
+        final close = Text(edgeClose, style: line);
         final inner = Padding(padding: const EdgeInsets.x(1), child: label);
         return LayoutBuilder(
           builder: (context, c) => Row(
