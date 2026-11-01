@@ -45,8 +45,9 @@ mouse, so the terminal reports none for it.
 `showKeyHelp(context, title: 'Keys')` shows the same keys, those in force
 where `context` is as it is called, in a dialog (`Dialog(scrollable:
 true)`), a line each: the keys in bold (`KeyHintsBar.entries`, the nearest
-layer's first), their hint after them, a column apart; Escape or a click
-outside closes it. Bound to `?` it is a screen's help.
+layer's first), their hint after them, a column apart, and last, a blank line apart, its
+own `esc  close` (alone when no key in force has a hint; keys without a
+hint are not listed); Escape or a click outside closes it. Bound to `?` it is a screen's help.
 
 ## `StatusMessage`
 
