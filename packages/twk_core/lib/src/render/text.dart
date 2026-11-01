@@ -1,5 +1,8 @@
 part of 'render.dart';
 
+// Examples can assume:
+// late TextSegmenter segmenter;
+
 // ------------------------------------------------------------------ text --
 
 /// One line of text in one pen (shaped once per change, not per frame),
@@ -137,7 +140,7 @@ enum TextWrap {
 /// [width] stands on a line of its own.
 ///
 /// ```dart
-/// final lines = breakLines(TextSegmenter(), 'well-known words', 8);
+/// final lines = breakLines(segmenter, 'well-known words', 8);
 /// // [(0, 5), (5, 10), (11, 16)]: "well-" "known" "words"
 /// ```
 List<(int, int)> breakLines(

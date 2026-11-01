@@ -3,6 +3,10 @@
 // of the row it stands in do not shift: a tree table's expanders, the
 // arrow of the digits typed to a Pagination, the one of a LogView's new
 // lines, the arrows a KeyHintsBar names keys by, the buttons of a Window.
+// And the edges of a few lists the set and its controllers keep to
+// themselves.
+import 'dart:async';
+
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
@@ -21,6 +25,58 @@ List<String> warnings(TwkTester t) => [
   for (final r in t.logs.records)
     if (r.level == LogLevel.warning) r.message,
 ];
+
+/// A stream whose subscriptions count the cancels they get.
+final class CountingStream extends Stream<String> {
+  var cancels = 0;
+
+  @override
+  StreamSubscription<String> listen(
+    void Function(String event)? onData, {
+    Function? onError,
+    void Function()? onDone,
+    bool? cancelOnError,
+  }) {
+    // the wrapper counts the cancels of this one, which is its own
+    // ignore: cancel_subscriptions
+    final inner = const Stream<String>.empty().listen(null);
+    return _Counted(inner, () => cancels++);
+  }
+}
+
+final class _Counted implements StreamSubscription<String> {
+  _Counted(this._inner, this._onCancel);
+
+  final StreamSubscription<String> _inner;
+  final void Function() _onCancel;
+
+  @override
+  Future<void> cancel() {
+    _onCancel();
+    return _inner.cancel();
+  }
+
+  @override
+  void onData(void Function(String data)? handleData) {}
+
+  @override
+  void onDone(void Function()? handleDone) {}
+
+  @override
+  void onError(Function? handleError) {}
+
+  @override
+  void pause([Future<void>? resumeSignal]) {}
+
+  @override
+  void resume() {}
+
+  @override
+  bool get isPaused => false;
+
+  @override
+  Future<E> asFuture<E>([E? futureValue]) => Future.value(futureValue);
+}
 
 void main() {
   group('TreeTable', () {
@@ -187,6 +243,44 @@ void main() {
     );
     expect(t.lines.first.trimRight(), endsWith('─ + x'));
     expect(warnings(t), hasLength(2));
+  });
+
+  group('edges', () {
+    test('copyWith keeps its own copy of shades', () {
+      final shades = [' ', 'a', 'b'];
+      final glyphs = Glyphs.unicode.copyWith(shades: shades);
+      shades[1] = 'z';
+      expect(glyphs.shades, [' ', 'a', 'b']);
+      expect(() => glyphs.shades.add('c'), throwsUnsupportedError);
+      expect(glyphs.copyWith().shades, [' ', 'a', 'b']);
+    });
+
+    test('a subscription the caller cancels is not cancelled again by '
+        'dispose', () async {
+      final source = CountingStream();
+      final c = LogController();
+      final subscription = c.listen(source);
+      await subscription.cancel();
+      c.dispose();
+      expect(source.cancels, 1);
+    });
+
+    test('a subscription not cancelled is cancelled by dispose', () {
+      final source = CountingStream();
+      LogController()
+        ..listen(source)
+        ..dispose();
+      expect(source.cancels, 1);
+    });
+
+    test('addSpans keeps its own copy of the spans', () {
+      final spans = [const Span('a'), const Span('b')];
+      final c = LogController()..addSpans(spans);
+      addTearDown(c.dispose);
+      spans.clear();
+      expect(c[0].text, 'ab');
+      expect(c[0].spans, hasLength(2));
+    });
   });
 }
 

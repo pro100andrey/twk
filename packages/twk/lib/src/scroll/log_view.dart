@@ -211,7 +211,7 @@ final class LogController extends ChangeNotifier {
     LogLevel level = LogLevel.info,
     DateTime? time,
   }) {
-    _add(_textOf(spans), level, time, spans);
+    _add(_textOf(spans), level, time, List.unmodifiable(spans));
     _trim();
     notifyListeners();
   }
@@ -259,8 +259,10 @@ final class LogController extends ChangeNotifier {
       notifyListeners();
     }
 
-    late final StreamSubscription<T> subscription;
-    subscription = output.listen(
+    late final _Tracked<T> tracked;
+    // the wrapper below cancels it, and is what the controller holds
+    // ignore: cancel_subscriptions
+    final subscription = output.listen(
       (event) {
         switch (piece(event)) {
           case _Cut():
@@ -272,13 +274,14 @@ final class LogController extends ChangeNotifier {
         }
       },
       onDone: () {
-        _subscriptions.remove(subscription);
+        _subscriptions.remove(tracked);
         reader.close();
         addEnded();
       },
     );
-    _subscriptions.add(subscription);
-    return subscription;
+    tracked = _Tracked<T>(subscription, _subscriptions);
+    _subscriptions.add(tracked);
+    return tracked;
   }
 
   /// Cancels the subscriptions of [listen] and [followFile] still live, so
@@ -286,7 +289,7 @@ final class LogController extends ChangeNotifier {
   /// cancel again.
   @override
   void dispose() {
-    for (final subscription in _subscriptions) {
+    for (final subscription in _subscriptions.toList()) {
       unawaited(subscription.cancel());
     }
     _subscriptions.clear();
@@ -1283,9 +1286,6 @@ final class _LogViewState extends State<LogView> {
           ? const {'n': 'next match', 'N': 'previous match'}
           : const {};
     }
-    return KeyBindings(
-      _keys,
-      hints: _keyHints,
     final arrow = fresh > 0
         ? textMark(
             context,
@@ -1294,6 +1294,9 @@ final class _LogViewState extends State<LogView> {
             Glyphs.ascii.arrowDown,
           )
         : '';
+    return KeyBindings(
+      _keys,
+      hints: _keyHints,
       child: Scrollbar(
         visibility: widget.scrollbar,
         child: Stack(
@@ -1736,6 +1739,42 @@ final class _RenderLine extends RenderObject with RenderObjectWithChildMixin {
     paintChild(ctx, _paragraph);
     ctx.canvas.restore();
   }
+}
+
+/// A subscription that leaves [_set] when it is cancelled, so a controller
+/// followed through many files does not hold the ones cancelled.
+final class _Tracked<T> implements StreamSubscription<T> {
+  _Tracked(this._inner, this._set);
+
+  final StreamSubscription<T> _inner;
+  final Set<StreamSubscription<void>> _set;
+
+  @override
+  Future<void> cancel() {
+    _set.remove(this);
+    return _inner.cancel();
+  }
+
+  @override
+  void onData(void Function(T data)? handleData) => _inner.onData(handleData);
+
+  @override
+  void onError(Function? handleError) => _inner.onError(handleError);
+
+  @override
+  void onDone(void Function()? handleDone) => _inner.onDone(handleDone);
+
+  @override
+  void pause([Future<void>? resumeSignal]) => _inner.pause(resumeSignal);
+
+  @override
+  void resume() => _inner.resume();
+
+  @override
+  bool get isPaused => _inner.isPaused;
+
+  @override
+  Future<E> asFuture<E>([E? futureValue]) => _inner.asFuture(futureValue);
 }
 
 /// What [LogController._decoded] tells: [_Text] read, or a [_Cut].

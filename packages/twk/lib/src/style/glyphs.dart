@@ -398,7 +398,10 @@ final class Glyphs {
   /// The shades of a fill, from none to full, at least two: a blank, a
   /// light, a medium, a dark and a full cell. A heatmap's ramp; the
   /// skeleton's mark is the light one (index 1). A `const` constructor
-  /// cannot check the length, so only [copyWith] asserts it.
+  /// cannot check the length, so only [copyWith] asserts it. The list
+  /// [copyWith] is given is copied unmodifiable, so the caller's list
+  /// changing later does not change the set; a `const` constructor cannot
+  /// copy, so a list given to it is the caller's own.
   final List<String> shades;
 
   /// A solid square: a swatch of a color, the centre of a dock's target.
@@ -549,7 +552,7 @@ final class Glyphs {
       arrowDown: arrowDown ?? this.arrowDown,
       pointer: pointer ?? this.pointer,
       menu: menu ?? this.menu,
-      shades: shades ?? this.shades,
+      shades: shades == null ? this.shades : List.unmodifiable(shades),
       swatch: swatch ?? this.swatch,
       ellipsis: ellipsis ?? this.ellipsis,
       omitted: omitted ?? this.omitted,

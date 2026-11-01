@@ -59,8 +59,20 @@ String reference(
     return k;
   }
 
-  bool blank(int k) =>
-      ends[k + 1] - ends[k] == 1 && ' 　 '.contains(text[ends[k]]);
+  // the spaces fitText does not cut at the ellipsis beside: unicode.dart's
+  // _isBlank, written out (the test at the end holds them equal)
+  bool blank(int k) {
+    if (ends[k + 1] - ends[k] != 1) {
+      return false;
+    }
+    final u = text.codeUnitAt(ends[k]);
+    return u == 0x20 ||
+        u == 0x1680 ||
+        (u >= 0x2000 && u <= 0x200A && u != 0x2007) ||
+        u == 0x205F ||
+        u == 0x3000;
+  }
+
   int back(int from) {
     var k = from;
     while (k > 0 && blank(k - 1)) {
@@ -126,4 +138,25 @@ void main() {
       });
     }
   }
+
+  test('a blank beside the cut is the same for every code unit as the '
+      "reference's", () {
+    final seg = TextSegmenter();
+    for (var u = 0; u <= 0xFFFF; u++) {
+      if (u >= 0xD800 && u <= 0xDFFF) {
+        continue;
+      }
+      final c = String.fromCharCode(u);
+      for (final (text, overflow) in [
+        ('abc${c}defghij', TextOverflow.ellipsis),
+        ('abcdefgh${c}ijk', TextOverflow.ellipsisStart),
+      ]) {
+        expect(
+          fitText(seg, text, 5, overflow: overflow),
+          reference(seg, text, 5, overflow),
+          reason: 'U+${u.toRadixString(16)} / $overflow',
+        );
+      }
+    }
+  });
 }
