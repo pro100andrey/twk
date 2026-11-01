@@ -24,33 +24,38 @@ final class TaskMarks {
   /// The marks of the other statuses.
   final Glyphs glyphs;
 
-  /// The marks of the statuses but [TaskStatus.running], one column wide.
-  List<String> get _marks => [
-    glyphs.taskPending,
-    '',
-    glyphs.check,
-    glyphs.cross,
-    glyphs.taskSkipped,
-  ];
-
   /// The mark of a task at [status]: for a running task, the frame at
   /// [step].
   String mark(TaskStatus status, int step) {
-    if (status != TaskStatus.running) {
-      return _marks[status.index];
+    switch (status) {
+      case TaskStatus.pending:
+        return glyphs.taskPending;
+      case TaskStatus.running:
+        final f = frames.frames;
+        return f[step % f.length];
+      case TaskStatus.done:
+        return glyphs.check;
+      case TaskStatus.failed:
+        return glyphs.cross;
+      case TaskStatus.skipped:
+        return glyphs.taskSkipped;
     }
-    final f = frames.frames;
-    return f[step % f.length];
   }
 
   /// The columns a task's mark takes: those of the widest mark and frame,
   /// one at least.
   int width(TextSegmenter segmenter) {
     var most = 1;
-    for (final mark in [..._marks, ...frames.frames]) {
+    void measure(String mark) {
       final w = segmenter.width(mark);
       most = w > most ? w : most;
     }
+
+    measure(glyphs.taskPending);
+    measure(glyphs.check);
+    measure(glyphs.cross);
+    measure(glyphs.taskSkipped);
+    frames.frames.forEach(measure);
     return most;
   }
 

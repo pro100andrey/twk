@@ -294,6 +294,17 @@ void main() {
       expect(line(1, 8, percentage: true), '100% ───');
     });
 
+    test('an empty half mark is no half cell: whole cells, not a - line', () {
+      final shot = show(
+        RenderLineGauge(
+          ratio: 0.45,
+          glyphs: Glyphs.unicode.copyWith(gaugeHalf: ''),
+        ),
+        10,
+      );
+      expect(shot.rows, ['──────────'.substring(0, 10)]);
+    });
+
     test('fills to the nearest half cell where the type has one', () {
       expect(line(0.45, 14, percentage: true), '45% ────╴─────');
       expect(

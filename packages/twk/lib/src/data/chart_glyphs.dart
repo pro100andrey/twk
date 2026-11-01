@@ -146,9 +146,10 @@ final class ChartGlyphs {
     if (cells <= 0) {
       return;
     }
-    final narrow = [filled, empty, ?half].every(
-      (g) => _segmenter.width(g) == 1,
-    );
+    final narrow = [filled, empty, if (half != null && half.isNotEmpty) half]
+        .every(
+          (g) => _segmenter.width(g) == 1,
+        );
     final whole = (narrow ? filled : '-').runes.first;
     final rest = (narrow ? empty : '-').runes.first;
     final part = narrow ? half?.runes.firstOrNull : null;

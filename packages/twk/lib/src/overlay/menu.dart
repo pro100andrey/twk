@@ -2326,12 +2326,30 @@ final class _RenderMenuBox extends RenderObject {
         ..clipRect(1, y, w - 2, 1)
         ..fill(1, y, w - 2, 1, pen);
       if (row.checked ?? false) {
-        canvas.text(2, y, s.glyphs.check, pen);
+        _mark(
+          this,
+          canvas,
+          2,
+          y,
+          pen,
+          'check',
+          s.glyphs.check,
+          Glyphs.ascii.check,
+        );
       }
       label.paint(canvas, styles, 2 + _check, y, style);
       final key = row.key;
       if (row.submenu) {
-        canvas.text(w - 3, y, s.glyphs.collapsed, pen);
+        _mark(
+          this,
+          canvas,
+          w - 3,
+          y,
+          pen,
+          'collapsed',
+          s.glyphs.collapsed,
+          Glyphs.ascii.collapsed,
+        );
       } else if (key != null) {
         canvas.text(
           w - 2 - segmenter.width(key),
@@ -2363,26 +2381,47 @@ extension on _RenderMenuBox {
       var style = row.enabled ? s.box : s.box.merge(s.muted);
       if (i == _highlighted) {
         style = style.merge(_active ? s.highlight : s.idle);
-        canvas
-          ..fill(0, y, w, 1, style.penIn(styles))
-          ..text(
-            0,
-            y,
-            s.glyphs.cursor,
-            style.merge(_active ? s.bar : s.muted).penIn(styles),
-          );
+        canvas.fill(0, y, w, 1, style.penIn(styles));
+        _mark(
+          this,
+          canvas,
+          0,
+          y,
+          style.merge(_active ? s.bar : s.muted).penIn(styles),
+          'cursor',
+          s.glyphs.cursor,
+          Glyphs.ascii.cursor,
+        );
       }
       final pen = style.penIn(styles);
       canvas
         ..save()
         ..clipRect(1, y, w - 2, 1);
       if (row.checked ?? false) {
-        canvas.text(2, y, s.glyphs.check, pen);
+        _mark(
+          this,
+          canvas,
+          2,
+          y,
+          pen,
+          'check',
+          s.glyphs.check,
+          Glyphs.ascii.check,
+        );
       }
       label.paint(canvas, styles, 2 + _check, y, style);
       final key = row.key;
       if (row.submenu) {
-        canvas.text(w - 3, y, s.glyphs.collapsed, pen);
+        _mark(
+          this,
+          canvas,
+          w - 3,
+          y,
+          pen,
+          'collapsed',
+          s.glyphs.collapsed,
+          Glyphs.ascii.collapsed,
+        );
       } else if (key != null) {
         canvas.text(
           w - 2 - segmenter.width(key),
@@ -2534,4 +2573,30 @@ final class _RenderBarRow extends RenderObject {
       _titles[i].paint(canvas, styles, x + 1, 0, style);
     }
   }
+}
+
+/// Draws the one-cell [glyph] of Glyphs' [field] at ([x], [y]) on [canvas]
+/// in [pen]: nothing where it is empty, [fallback] (warned of once) where it
+/// is not one column wide.
+void _mark(
+  RenderObject object,
+  Canvas canvas,
+  int x,
+  int y,
+  int pen,
+  String field,
+  String glyph,
+  String fallback,
+) {
+  if (glyph.isEmpty) {
+    return;
+  }
+  canvas.fill(
+    x,
+    y,
+    1,
+    1,
+    pen,
+    cellRune(object, field, glyph, fallback, canvas.segmenter),
+  );
 }

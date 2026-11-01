@@ -198,6 +198,10 @@ void main() {
   });
 
   group('a mark not one cell wide', () {
+    String tooWide(String field, String fallback) =>
+        "Glyphs.$field '🔽' is 2 cells wide, not 1; "
+        "Glyphs.ascii's '$fallback' is drawn in its place.";
+
     List<String> warnings(TwkTester t) => [
       for (final r in t.logs.records)
         if (r.level == LogLevel.warning && r.message.startsWith('Glyphs.'))
@@ -223,10 +227,8 @@ void main() {
       await t.pump();
       expect(t.lines.first, startsWith('<'));
       expect(warnings(t), [
-        "Glyphs.next '🔽' is 2 cells wide, not 1; "
-            "Glyphs.ascii's '>' is drawn in its place.",
-        "Glyphs.previous '🔽' is 2 cells wide, not 1; "
-            "Glyphs.ascii's '<' is drawn in its place.",
+        tooWide('next', '>'),
+        tooWide('previous', '<'),
       ]);
     });
 
@@ -295,9 +297,119 @@ void main() {
       await t.pump();
       expect(t.lines.first, '> a');
       expect(warnings(t), [
-        "Glyphs.collapsed '🔽' is 2 cells wide, not 1; "
-            "Glyphs.ascii's '>' is drawn in its place.",
+        tooWide('collapsed', '>'),
       ]);
     });
+
+    testTwk('in an OptionList is the ascii cursor and thumb, warned of '
+        'once', (t) async {
+      await t.pumpWidget(
+        themed(
+          Glyphs.unicode.copyWith(cursor: '🔽', thumbSlim: '🔽'),
+          Align(
+            alignment: Alignment.topLeft,
+            child: OptionList(
+              options: [for (var i = 0; i < 6; i++) Option('item $i')],
+              highlighted: 1,
+              rows: 3,
+            ),
+          ),
+        ),
+        size: (10, 3),
+      );
+      await t.pump();
+      expect(t.lines[1], startsWith('>item 1'));
+      expect(t.lines[0], endsWith('#'));
+      expect(t.lines.join(), isNot(contains('🔽')));
+      expect(warnings(t), hasLength(2));
+    });
+
+    testTwk('in a menu are the ascii check, submenu mark and cursor, '
+        'warned of once', (t) async {
+      await t.pumpWidget(
+        themed(
+          Glyphs.unicode.copyWith(check: '🔽', collapsed: '🔽', cursor: '🔽'),
+          const Overlay(
+            child: MenuBar(
+              menus: [
+                Menu(
+                  '&View',
+                  items: [
+                    MenuItem('&Wrap', checked: true),
+                    Menu('&More', items: [MenuItem('&One')]),
+                  ],
+                ),
+              ],
+              child: Focus(autofocus: true, child: SizedBox.expand()),
+            ),
+          ),
+        ),
+        size: (20, 6),
+      );
+      await t.press('f10');
+      await t.pump(const Duration(milliseconds: 100));
+      await t.pump();
+      expect(t.lines.join('\n'), isNot(contains('🔽')));
+      expect(t.lines.join('\n'), contains('v Wrap'));
+      expect(t.lines.join('\n'), contains('More'));
+      expect(warnings(t).map((m) => m.split(' ')[0]).toSet(), {
+        'Glyphs.check',
+        'Glyphs.collapsed',
+        'Glyphs.cursor',
+      });
+    });
+
+    testTwk('in a toast is the ascii accent, warned of once', (t) async {
+      await t.pumpWidget(
+        themed(
+          Glyphs.unicode.copyWith(accent: '🔽'),
+          const Overlay(child: _Toaster()),
+        ),
+        size: (20, 6),
+      );
+      await t.press('s');
+      await t.pump(const Duration(seconds: 1));
+      expect(t.lines.join('\n'), isNot(contains('🔽')));
+      expect(t.lines.join('\n'), contains('|'));
+      expect(warnings(t), hasLength(1));
+    });
+
+    testTwk('in a window bar the buttons are measured in cells', (t) async {
+      await t.pumpWidget(
+        themed(
+          Glyphs.unicode.copyWith(close: '🔽'),
+          WindowLayer(
+            windows: [
+              Window(
+                title: 'A long title cut off here',
+                controller: WindowController(
+                  width: 16,
+                  height: 3,
+                ),
+                onClose: () {},
+                minimisable: false,
+                maximisable: false,
+                child: const Text('c'),
+              ),
+            ],
+            child: const Text('app'),
+          ),
+        ),
+        size: (20, 4),
+      );
+      await t.pump();
+      // the title ends before the two columns of the button and its blanks
+      expect(t.lines.first, '  A long t… 🔽');
+    });
   });
+}
+
+/// Shows a toast on `s`.
+final class _Toaster extends StatelessWidget {
+  const _Toaster();
+
+  @override
+  Widget build(BuildContext context) => KeyBindings({
+    's': () => showToast(context, 'Saved'),
+  }, child: const SizedBox.expand());
 }

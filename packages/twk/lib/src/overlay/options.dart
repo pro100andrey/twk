@@ -456,7 +456,22 @@ final class _RenderOptionList extends RenderObject {
       _paintLabel(canvas, styles, row, option, style);
       canvas.restore();
       if (i == h0 && _bar && w > 0) {
-        canvas.text(0, row, s.glyphs.cursor, style.merge(s.bar).penIn(styles));
+        if (s.glyphs.cursor.isNotEmpty) {
+          canvas.fill(
+            0,
+            row,
+            1,
+            1,
+            style.merge(s.bar).penIn(styles),
+            cellRune(
+              this,
+              'cursor',
+              s.glyphs.cursor,
+              Glyphs.ascii.cursor,
+              canvas.segmenter,
+            ),
+          );
+        }
       }
     }
     if (_thumb && n > h && h > 0 && w > 0) {
@@ -466,12 +481,22 @@ final class _RenderOptionList extends RenderObject {
       for (var row = ty; row < ty + th; row++) {
         final i = _top + row;
         final under = i == h0 ? s.highlight : s.base;
-        canvas.text(
-          w - 1,
-          row,
-          s.glyphs.thumbSlim,
-          under.merge(s.thumb).penIn(styles),
-        );
+        if (s.glyphs.thumbSlim.isNotEmpty) {
+          canvas.fill(
+            w - 1,
+            row,
+            1,
+            1,
+            under.merge(s.thumb).penIn(styles),
+            cellRune(
+              this,
+              'thumbSlim',
+              s.glyphs.thumbSlim,
+              Glyphs.ascii.thumbSlim,
+              canvas.segmenter,
+            ),
+          );
+        }
       }
     }
   }

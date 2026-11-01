@@ -405,8 +405,16 @@ final class _RenderEdge extends RenderObject {
   void paint(PaintContext ctx) {
     final canvas = ctx.canvas;
     final pen = _style.penIn(canvas.styles);
-    for (var y = 0; y < height; y++) {
-      canvas.text(0, y, _glyph, pen);
+    if (_glyph.isEmpty || height <= 0) {
+      return;
     }
+    canvas.fill(
+      0,
+      0,
+      1,
+      height,
+      pen,
+      cellRune(this, 'accent', _glyph, Glyphs.ascii.accent, canvas.segmenter),
+    );
   }
 }
