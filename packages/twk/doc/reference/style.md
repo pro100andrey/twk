@@ -42,8 +42,8 @@ a focused button, a lit tab and a cursor are in rather than reverse video;
 named by what it means and not by the widget that draws it: `cursor` (`▎`,
 the bar at the left of a row the cursor is on), `accent` (`▌`, a toast's
 bar), `check` (`✓`), `checkBold` (`✔`, a finished prompt or step), `cross`
-(`✗`), `info` (`ℹ`), `warning` (`⚠`), `checkboxOn` (`[x]`) and
-`checkboxOff` (`[ ]`), `radioOn` (`●`), `radioOff` (` `) and
+(`✗`), `info` (`ℹ`), `warning` (`⚠`), `checkboxOn` (`x`), `checkboxOff`
+(` `) and `checkboxBrackets` (`('[', ']')`), `radioOn` (`●`), `radioOff` (` `) and
 `radioBrackets` (`('(', ')')`, an empty string for none: `◉ ○` is
 `radioOn: '◉'`, `radioOff: '○'` and `radioBrackets: ('', '')`),
 `switchStart` (`▐`) and `switchEnd` (`▌`), `switchKnob` (`●`),
@@ -72,10 +72,12 @@ a button's edges) is one column wide and one code point (an emoji, an
 ambiguous mark in some terminals, a letter and a combining accent are not).
 Where it is not, the same field of `Glyphs.ascii` is drawn, with one warning
 in the app's log for each such mark, known only when it is drawn; a
-`gaugeHalf` of the wrong width is no half cell, and the pair `checkboxOn` and
-`checkboxOff`, which are words, must be of one width or `[x]` and `[ ]` are
-drawn. An empty mark draws nothing: a blank for a cell, no width for the
-text of a row (a bracket of `radioBrackets`, a button's edge, a switch's
+`gaugeHalf` of the wrong width is no half cell. On a terminal that draws
+East Asian ambiguous characters two cells wide, the marks of `Glyphs.unicode`
+that are such are drawn as `Glyphs.ascii`'s with one line saying so, not a
+warning a field. An empty mark draws nothing: a blank for a cell, no width
+for the text of a row (a bracket of `radioBrackets` or `checkboxBrackets`, a
+button's edge, a switch's
 end), but a blank for `switchKnob`, for the track to keep its width. Left out: borders (`BorderType`), the marks of charts, and the
 window's raised minimise `─`, the edges a window lights, a dock's drop
 marks, key names and a log's `↓ N new lines`.
