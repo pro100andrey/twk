@@ -19,6 +19,12 @@ putting the app's `KeyBindings` at its root, below the overlay. Without
 dialogs too, as are the providers above it what they read. A theme given
 or taken away keeps the state below.
 
+A `Navigator` below the app's `KeyBindings` keeps that: a dialog shown on
+it skips the bindings between the navigator and the overlay
+(`FocusNode.keysSkip`), so they neither act on its keys nor list them
+while it is open, and a page pushed on it still gets them. Keys that are
+to work over a dialog too, a `ctrl+q`, are bound above `App`.
+
 ## `Overlay.of`
 
 `Overlay.of(context)` (`maybeOf`) finds the nearest;

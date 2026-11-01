@@ -90,6 +90,16 @@ import 'panel.dart';
 /// )
 /// ```
 ///
+/// A dialog on a navigator below those bindings is as one in that
+/// overlay: the keys it leaves go to the navigator and then past the
+/// nodes above it up to the [Overlay] above the navigator, to the nodes
+/// above that overlay ([FocusNode.keysSkip]), so the app's `q` above the
+/// navigator but inside `App` does not hear the dialog's, nor does a
+/// `KeyHintsBar` list it while the dialog is open. Keys that are to work
+/// over a dialog as well, a `ctrl+q` that quits, are bound above `App`.
+/// With no overlay above the navigator nothing is skipped: the bindings
+/// above the navigator hear them.
+///
 /// It completes with null too when it leaves the tree some other way, as
 /// with its overlay or navigator.
 ///
@@ -488,6 +498,28 @@ final class _DialogLayerState extends State<_DialogLayer>
     duration: widget.route.fadeIn,
   );
 
+  final _scope = FocusScopeNode(debugLabel: 'dialog');
+
+  /// The nodes the keys the dialog leaves skip on a navigator: from the
+  /// node above it to the one above the overlay above it, as the dialog
+  /// would be in that overlay without the navigator; none without them.
+  ({FocusNode from, FocusNode to})? _skip() {
+    final navigator = widget.route._entry == null
+        ? widget.route.navigator
+        : null;
+    if (navigator == null || !navigator.mounted) {
+      return null;
+    }
+    final overlay = Overlay.maybeOf(navigator.context);
+    final from = Focus.maybeOf(navigator.context, createDependency: false);
+    final to = overlay == null
+        ? null
+        : Focus.maybeOf(overlay.context, createDependency: false);
+    return from == null || to == null || identical(from, to)
+        ? null
+        : (from: from, to: to);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -501,6 +533,7 @@ final class _DialogLayerState extends State<_DialogLayer>
   @override
   void dispose() {
     _fade.dispose();
+    _scope.dispose();
     // a route's navigator completes it as it takes it off
     if (widget.route._entry != null) {
       widget.route.close(null);
@@ -518,6 +551,7 @@ final class _DialogLayerState extends State<_DialogLayer>
     // a share of it as the dialog fades in
     final alpha = route.barrierAlpha;
     final opacity = alpha == null ? theme.shadeAlpha : alpha / 255;
+    _scope.keysSkip = _skip();
     return _DialogScope(
       route,
       child: ListenableBuilder(
@@ -541,7 +575,7 @@ final class _DialogLayerState extends State<_DialogLayer>
           hints: route.dismissible ? const {'escape': 'close'} : const {},
           debugLabel: 'dialog',
           child: FocusScope(
-            debugLabel: 'dialog',
+            node: _scope,
             child: _TakeFocus(
               child: Align(
                 alignment: route.alignment,

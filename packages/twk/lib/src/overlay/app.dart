@@ -18,8 +18,11 @@ import 'layer.dart';
 ///
 /// The theme goes above the overlay, so that what shows in it is in the
 /// theme too; the overlay above the app's own `KeyBindings`, which [child]
-/// puts at its root, so that they hear only the keys a dialog leaves, not
-/// its `q` and `s` while it is open. What the dialogs read, the app's
+/// puts at its root, so that they do not hear the keys a dialog leaves,
+/// its `q` and `s`, while it is open. A dialog on a `Navigator` below them
+/// skips them all the same (`showDialog`), and a page pushed on it gets
+/// them; keys that are to work over a dialog too, a `ctrl+q` that quits,
+/// are bound above [App]. What the dialogs read, the app's
 /// providers and a [Theme] of its own, goes above [App]: an [App] under a
 /// [Theme] has its dialogs in that theme. Without [theme] it places none,
 /// and the widgets below take [Theme.of]'s.

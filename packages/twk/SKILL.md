@@ -788,8 +788,11 @@ What to know:
   app's root widget is its own, below `App`, or what opens them is in a
   `Builder` below it. The app's root `KeyBindings` go below the
   `Overlay`, in that widget: the keys a dialog leaves go up from it to
-  what is above the overlay, so bindings above it (`s`, `q`) act while
-  the dialog is open.
+  what is above the overlay, so the app's `s` and `q` do not act while
+  the dialog is open. A `Navigator` below them changes nothing: a dialog
+  shown on it skips the bindings between the navigator and `App`'s
+  overlay, and a page pushed on it still gets them. Keys that are to
+  work over a dialog too (`ctrl+q`) go above `App`.
 - A dialog, a toast and a tooltip fade in (a dialog over 160 ms): in a
   test one `t.pump()` shows it at the start of its fade, not yet drawn.
   Pump past it (`t.pump(const Duration(milliseconds: 200))`), or show

@@ -5,6 +5,7 @@ library;
 
 import 'dart:collection';
 
+import 'package:meta/meta.dart' show internal;
 import 'package:twk_core/twk_core.dart' show KeyEvent;
 
 import '../foundation/change_notifier.dart';
@@ -88,6 +89,26 @@ class FocusNode with ChangeNotifier {
   Element? _element;
   FocusNode? _parent;
   final _children = <FocusNode>[];
+
+  ({FocusNode from, FocusNode to})? _keysSkip;
+
+  /// The part of the [FocusManager.keyPath] the keys that pass this node
+  /// skip: `from` and the nodes above it up to `to`, an ancestor of it,
+  /// which gets them next; null for none. A dialog on a navigator under an
+  /// `App` skips so from the node above the navigator to the one above the
+  /// App's overlay, as it would be shown in that overlay without the
+  /// navigator: the app's bindings between do not hear its keys.
+  @internal
+  ({FocusNode from, FocusNode to})? get keysSkip => _keysSkip;
+
+  @internal
+  set keysSkip(({FocusNode from, FocusNode to})? value) {
+    if (value == _keysSkip) {
+      return;
+    }
+    _keysSkip = value;
+    markKeysChanged();
+  }
 
   // the element of its widget is in the tree: false from its deactivation
   // until it is activated again, or for good
@@ -570,7 +591,9 @@ final class FocusManager {
   /// it left the tree, and those around the whole app while no node has it
   /// (the root scope stands for it then). A node that can take the focus
   /// gets no key it was not given. While a node holds the keys
-  /// ([FocusNode.holdKeys]), it is the first.
+  /// ([FocusNode.holdKeys]), it is the first. A node on it can make the
+  /// keys skip the nodes between two above it ([FocusNode.keysSkip]), the
+  /// nearest such node's skip taken.
   Iterable<FocusNode> get keyPath sync* {
     var node = _holder ?? _primary ?? rootScope;
     if (_holder == null) {
@@ -594,8 +617,12 @@ final class FocusManager {
         node = only;
       }
     }
-    for (FocusNode? n = node; n != null; n = n._parent) {
+    ({FocusNode from, FocusNode to})? skip;
+    for (FocusNode? n = node; n != null;) {
       yield n;
+      skip ??= n._keysSkip;
+      final next = n._parent;
+      n = skip != null && identical(next, skip.from) ? skip.to : next;
     }
   }
 
