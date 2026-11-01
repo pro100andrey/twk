@@ -172,12 +172,32 @@ void main() {
       expect(t.lines, ['[x] a', '[ ] b']);
       await t.pumpWidget(
         themed(
-          Glyphs.unicode.copyWith(checkboxOn: '[✓]', checkboxOff: '[·]'),
+          Glyphs.unicode.copyWith(checkboxOn: '✓', checkboxOff: '·'),
           boxes(),
         ),
         size: (8, 2),
       );
       expect(t.lines, ['[✓] a', '[·] b']);
+      await t.pumpWidget(
+        themed(
+          Glyphs.unicode.copyWith(
+            checkboxOn: '✓',
+            checkboxOff: '·',
+            checkboxBrackets: ('', ''),
+          ),
+          boxes(),
+        ),
+        size: (8, 2),
+      );
+      expect(t.lines, ['✓ a', '· b']);
+      await t.pumpWidget(
+        themed(
+          Glyphs.unicode.copyWith(checkboxBrackets: ('(', ')')),
+          boxes(),
+        ),
+        size: (8, 2),
+      );
+      expect(t.lines, ['(x) a', '( ) b']);
     });
 
     testTwk('a Switch draws its ends and knob from the set', (t) async {
@@ -570,7 +590,7 @@ void main() {
       expect(t.lines.first, '▎[ ] item 0');
       await t.pumpWidget(
         themed(
-          Glyphs.ascii.copyWith(checkboxOn: '(x)', checkboxOff: '( )'),
+          Glyphs.ascii.copyWith(checkboxBrackets: ('(', ')')),
           list(),
         ),
         size: (12, 2),

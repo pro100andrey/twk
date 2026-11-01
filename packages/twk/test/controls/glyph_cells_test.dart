@@ -97,15 +97,15 @@ void main() {
   });
 
   group('wide and astral marks', () {
-    testTwk('a checkbox of astral ends keeps each whole', (t) async {
+    testTwk('a checkbox of an astral mark is the ASCII one, whole', (t) async {
       await t.pumpWidget(
         themed(
-          Glyphs.unicode.copyWith(checkboxOn: '😀x😀', checkboxOff: '😀 😀'),
+          Glyphs.unicode.copyWith(checkboxOn: '😀'),
           Checkbox(value: true, onChanged: (_) {}, label: 'Wrap'),
         ),
         size: (14, 1),
       );
-      expect(t.lines.first, startsWith('😀x😀 Wrap'));
+      expect(t.lines.first, startsWith('[x] Wrap'));
       expect(t.lines.first.runes, isNot(contains(0xFFFD)));
     });
 
@@ -130,7 +130,7 @@ void main() {
       expect(removed, ['a']);
     });
 
-    testTwk('a MultiSelect opens as wide as its labels and wide boxes', (
+    testTwk('a MultiSelect with wide boxes opens with the ASCII ones', (
       t,
     ) async {
       final values = ValueNotifier(<String>{'a'});
@@ -155,8 +155,8 @@ void main() {
       );
       await t.press('enter');
       await t.pumpUntilIdle();
-      expect(t.lines.join('\n'), contains('全 Apple'));
-      expect(t.lines.join('\n'), contains('空 Banana'));
+      expect(t.lines.join('\n'), contains('[x] Apple'));
+      expect(t.lines.join('\n'), contains('[ ] Banana'));
     });
 
     testTwk('a FilePicker with wide boxes aligns a directory with a file', (
@@ -181,11 +181,11 @@ void main() {
         size: (40, 12),
       );
       await waitUntil(
-        () => t.lines.any((l) => l.contains('空 ff')),
+        () => t.lines.any((l) => l.contains('[ ] ff')),
         'the listing',
         between: t.pump,
       );
-      final file = t.lines.firstWhere((l) => l.contains('空 ff'));
+      final file = t.lines.firstWhere((l) => l.contains('[ ] ff'));
       final directory = t.lines.firstWhere((l) => l.contains('dd'));
       // a directory has no box, a blank as wide as one in its place: the
       // names stand in one column, in cells

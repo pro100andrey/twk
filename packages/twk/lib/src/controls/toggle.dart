@@ -114,7 +114,8 @@ final class Checkbox extends StatelessWidget {
       final marked = on && enabled ? markStyle(theme) : const Style();
       final boxes = checkboxMarks(context, theme.glyphs);
       return checkboxSpans(
-        on ? boxes.on : boxes.off,
+        boxes,
+        on,
         marked.merge(
           bracketStyle ?? theme.muted.merge(const Style(attrsOff: Attr.bold)),
         ),

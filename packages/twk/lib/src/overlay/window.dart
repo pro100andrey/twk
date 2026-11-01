@@ -21,7 +21,6 @@ import 'package:twk_core/twk_core.dart'
         PaintContext,
         ParentData,
         RenderObject,
-        TextSegmenter,
         stringWidth;
 
 import '../animation/ticker.dart';
@@ -39,6 +38,7 @@ import '../layout/stack.dart';
 import '../semantics/semantics.dart';
 import '../style/color_mix.dart';
 import '../style/style.dart';
+import '../text/hit_row.dart' show segmenterOf;
 import '../text/widgets.dart';
 
 // Examples can assume:
@@ -987,7 +987,7 @@ final class _Frame extends StatelessWidget {
       if (onClose != null) (theme.glyphs.close, onClose),
     ];
     // each button its mark's cells and a blank, after one blank
-    final segmenter = TextSegmenter();
+    final segmenter = segmenterOf(context);
     var buttonsWidth = buttons.isEmpty ? 0 : 1;
     for (final (glyph, _) in buttons) {
       buttonsWidth += segmenter.width(glyph) + 1;

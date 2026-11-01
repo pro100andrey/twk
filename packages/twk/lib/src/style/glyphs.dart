@@ -34,9 +34,9 @@ import 'theme.dart' show Theme, ThemeData;
 /// draws nothing and breaks nothing: a blank where a cell is to be filled,
 /// no width where the mark is text in a row (a bracket of [radioBrackets],
 /// a button's edge, a switch's end), but a blank for [switchKnob], for the
-/// track to keep its width. The marks of [checkboxOn] and [checkboxOff] are
-/// words of several columns, whose rule is that they be one width: where
-/// they are not, `[x]` and `[ ]` are drawn, with the warning.
+/// track to keep its width. The checkbox is as the radio button is: its
+/// marks [checkboxOn] and [checkboxOff] are one cell each, and the
+/// [checkboxBrackets] around them are text of their own.
 ///
 /// A widget's own parameter for a mark it has (`Spinner.frames`,
 /// `RadioGroup.mark`, `Skeleton.glyph`, a `Callout`'s `icon`) stays above
@@ -75,8 +75,9 @@ final class Glyphs {
     this.cross = '✗',
     this.info = 'ℹ',
     this.warning = '⚠',
-    this.checkboxOn = '[x]',
-    this.checkboxOff = '[ ]',
+    this.checkboxOn = 'x',
+    this.checkboxOff = ' ',
+    this.checkboxBrackets = ('[', ']'),
     this.radioOn = '●',
     this.radioOff = ' ',
     this.radioBrackets = ('(', ')'),
@@ -193,12 +194,18 @@ final class Glyphs {
   /// The icon of the `warning` kind of status and toast.
   final String warning;
 
-  /// A checkbox that is on, before its label; [checkboxOff] has its
-  /// width.
+  /// The mark of a checkbox that is on, between its [checkboxBrackets] and
+  /// before its label: `x`, so `[x]`. [checkboxOff] has its width.
   final String checkboxOn;
 
-  /// A checkbox that is off.
+  /// The mark of a checkbox that is off, a space by default (`[ ]`). Drawn
+  /// in the mark's style, as [checkboxOn] is.
   final String checkboxOff;
+
+  /// The characters either side of a checkbox's mark, `[` and `]`; an
+  /// empty string for none, as in `('', '')` for `✓ ·`. Drawn in the
+  /// `Checkbox`'s `bracketStyle`.
+  final (String, String) checkboxBrackets;
 
   /// The mark of a radio button that is chosen, between its
   /// [radioBrackets] and before its label: `●`, so `(●)`. [radioOff] has
@@ -339,6 +346,7 @@ final class Glyphs {
     String? warning,
     String? checkboxOn,
     String? checkboxOff,
+    (String, String)? checkboxBrackets,
     String? radioOn,
     String? radioOff,
     (String, String)? radioBrackets,
@@ -385,6 +393,7 @@ final class Glyphs {
     warning: warning ?? this.warning,
     checkboxOn: checkboxOn ?? this.checkboxOn,
     checkboxOff: checkboxOff ?? this.checkboxOff,
+    checkboxBrackets: checkboxBrackets ?? this.checkboxBrackets,
     radioOn: radioOn ?? this.radioOn,
     radioOff: radioOff ?? this.radioOff,
     radioBrackets: radioBrackets ?? this.radioBrackets,
@@ -432,6 +441,7 @@ final class Glyphs {
     warning,
     checkboxOn,
     checkboxOff,
+    checkboxBrackets,
     radioOn,
     radioOff,
     radioBrackets,
@@ -578,33 +588,44 @@ String textMark(
   return fits ? glyph : fallback;
 }
 
-/// The checkbox marks of [glyphs] in [context], in one width: as they
-/// are where both have the same, else [Glyphs.ascii]'s pair (`[x]`,
-/// `[ ]`) with one warning, for a row that has a box of either to stay
-/// aligned with the other.
+/// The marks of a checkbox as [textMark] fits them for [context]: the
+/// brackets, the mark that is on and the mark that is off, in `x` and a
+/// blank, `[` and `]` where one does not fit its cell (with the one
+/// warning); an empty one stays empty.
 @internal
-({String on, String off}) checkboxMarks(BuildContext context, Glyphs glyphs) {
-  final (on, off) = (glyphs.checkboxOn, glyphs.checkboxOff);
-  if (on == off) {
-    return (on: on, off: off);
-  }
-  final segmenter = segmenterOf(context);
-  if (segmenter.width(on) == segmenter.width(off)) {
-    return (on: on, off: off);
-  }
-  final owner =
-      context.findRenderObject()?.owner ??
-      AppBinding.maybeOf(context)?.twkApp.owner;
-  _warn(
-    owner,
-    owner?.onLog,
-    'checkboxOn',
-    '$on\u0000$off',
-    "Glyphs.checkboxOn '$on' is ${segmenter.width(on)} cells wide, "
-        "Glyphs.checkboxOff '$off' ${segmenter.width(off)}; "
-        "Glyphs.ascii's '[x]' and '[ ]' are drawn in their place.",
+CheckboxMarks checkboxMarks(BuildContext context, Glyphs glyphs) {
+  final (open, close) = glyphs.checkboxBrackets;
+  return CheckboxMarks(
+    textMark(context, 'checkboxBrackets', open, '['),
+    textMark(context, 'checkboxOn', glyphs.checkboxOn, 'x'),
+    textMark(context, 'checkboxOff', glyphs.checkboxOff, ' '),
+    textMark(context, 'checkboxBrackets', close, ']'),
   );
-  return (on: _asciiCheckboxOn, off: _asciiCheckboxOff);
+}
+
+/// The parts of a checkbox, fitted by [checkboxMarks].
+@internal
+final class CheckboxMarks {
+  /// Marks around and in a checkbox.
+  const CheckboxMarks(this.open, this.onMark, this.offMark, this.close);
+
+  /// The bracket before the mark.
+  final String open;
+
+  /// The mark of a checkbox that is on.
+  final String onMark;
+
+  /// The mark of a checkbox that is off.
+  final String offMark;
+
+  /// The bracket after the mark.
+  final String close;
+
+  /// The whole of a checkbox that is on, as text.
+  String get on => '$open$onMark$close';
+
+  /// The whole of a checkbox that is off, as text.
+  String get off => '$open$offMark$close';
 }
 
 /// [glyphs] with the marks of a switch's pill fitted for [context]: its
@@ -644,9 +665,6 @@ Glyphs switchMarks(BuildContext context, Glyphs glyphs) {
   textMark(context, 'buttonEdges', glyphs.buttonEdges.$2, ']'),
 );
 
-final String _asciiCheckboxOn = Glyphs.ascii.checkboxOn;
-final String _asciiCheckboxOff = Glyphs.ascii.checkboxOff;
-
 // a printable ASCII character: one cell, one code point, no measuring
 bool _plain(String glyph) {
   if (glyph.length != 1) {
@@ -670,6 +688,21 @@ bool _fits(
   final runes = glyph.runes.length;
   if (width == 1 && runes == 1) {
     return true;
+  }
+  if (width == 2 && runes == 1 && _presetMarks.contains(glyph)) {
+    // the preset's own mark, not the app's: the terminal is the cause, told
+    // once and not for each field
+    _warn(
+      owner,
+      route,
+      'ambiguous',
+      '',
+      'This terminal draws East Asian ambiguous characters two cells '
+          'wide, so the marks of Glyphs.unicode that are such are drawn as '
+          "Glyphs.ascii's. Glyphs.ascii as the theme's set, or marks that "
+          'are not ambiguous, make that the app choice.',
+    );
+    return false;
   }
   final what = width == 1
       ? 'a cluster of $runes code points, not one'
@@ -699,6 +732,18 @@ void _warn(
     }
   }
 }
+
+// the marks of Glyphs.unicode that are one code point each, which a
+// terminal can count two cells wide
+final Set<String> _presetMarks = {
+  for (final mark in Glyphs.unicode._all)
+    if (mark is String && mark.runes.length == 1)
+      mark
+    else if (mark is (String, String)) ...[
+      if (mark.$1.runes.length == 1) mark.$1,
+      if (mark.$2.runes.length == 1) mark.$2,
+    ],
+};
 
 // the (field, glyph) pairs each pipeline has warned of
 final _warned = Expando<Set<String>>('glyph warnings');

@@ -13,6 +13,7 @@ import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
 import '../gestures/shape_run.dart';
+import '../text/ambiguous.dart';
 import 'windows_closed.dart';
 
 /// Counts what [CounterState.bump] adds, shown as `n=<count>`.
@@ -1440,5 +1441,32 @@ void main() {
       Theme.terminal(child: layer(const EdgeInsets.only(right: 1))),
     );
     expect(t, styleAt(14, 2, hasBg(Color.red)));
+  });
+
+  test('where ambiguous characters are two columns wide, the title is cut '
+      'before the buttons, measured by the terminal, not over them', () async {
+    final c = WindowController(width: 24, height: 3);
+    final app = await WideApp.start(
+      Theme.terminal(
+        child: WindowLayer(
+          windows: [
+            Window(
+              title: 'abcdefghijklmnopqrstuvwxyz',
+              controller: c,
+              onClose: () {},
+              child: const Text('x'),
+            ),
+          ],
+          child: const Text('app'),
+        ),
+      ),
+      width: 30,
+      height: 5,
+    );
+    final top = app.lines().first;
+    await app.quit();
+    c.dispose();
+    // the corner is + here; the title cut at …, then _ □ × and the corner
+    expect(top, endsWith('… _ □ × +'));
   });
 }

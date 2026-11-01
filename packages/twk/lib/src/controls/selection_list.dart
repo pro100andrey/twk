@@ -577,7 +577,8 @@ final class _SelectionListState<K> extends State<SelectionList<K>> {
             Text.rich(
               [
                 ...checkboxSpans(
-                  selected ? boxes.on : boxes.off,
+                  boxes,
+                  selected,
                   brackets,
                   enabled ? markStyle(theme) : _plain,
                 ),

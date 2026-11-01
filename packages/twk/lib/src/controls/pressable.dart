@@ -215,21 +215,18 @@ List<Span> bracketed(
   return [Span(open, brackets), Span(mark, marked), Span(close, brackets)];
 }
 
-/// [glyph], a checkbox of `Glyphs.checkboxOn` or `Glyphs.checkboxOff`, as
-/// spans: its first and last character, the brackets, in [brackets] and
-/// what is between them in [mark]; a glyph of under three characters is
-/// all [mark]. Characters are code points, so an astral one is not split.
-List<Span> checkboxSpans(String glyph, Style brackets, Style mark) {
-  final runes = glyph.runes.toList();
-  final n = runes.length;
-  return n < 3
-      ? [Span(glyph, mark)]
-      : [
-          Span(String.fromCharCode(runes.first), brackets),
-          Span(String.fromCharCodes(runes, 1, n - 1), mark),
-          Span(String.fromCharCode(runes.last), brackets),
-        ];
-}
+/// The spans of a checkbox, [on] or off: the brackets of [marks] in
+/// [brackets] and its mark in [mark]; a bracket that is empty is no span.
+List<Span> checkboxSpans(
+  CheckboxMarks marks,
+  bool on,
+  Style brackets,
+  Style mark,
+) => [
+  if (marks.open.isNotEmpty) Span(marks.open, brackets),
+  Span(on ? marks.onMark : marks.offMark, mark),
+  if (marks.close.isNotEmpty) Span(marks.close, brackets),
+];
 
 /// A button at rest in [theme]: [ThemeData.primary] in bold on a chip of
 /// [ThemeData.surface].

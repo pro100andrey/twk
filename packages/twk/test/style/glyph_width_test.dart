@@ -110,7 +110,9 @@ void main() {
       expect(warnings(t), isEmpty);
     });
 
-    testTwk('checkbox marks of two widths are the ASCII pair', (t) async {
+    testTwk('a checkbox mark of two columns is the ASCII one, brackets kept', (
+      t,
+    ) async {
       await t.pumpWidget(
         themed(
           Glyphs.unicode.copyWith(checkboxOn: '🙂'),
@@ -120,10 +122,10 @@ void main() {
       );
       expect(t.lines.single.trimRight(), '[x]');
       expect(warnings(t), hasLength(1));
-      // the same width, whatever it is, stays
+      // brackets of one cell stay
       await t.pumpWidget(
         themed(
-          Glyphs.unicode.copyWith(checkboxOn: '<x>', checkboxOff: '< >'),
+          Glyphs.unicode.copyWith(checkboxBrackets: ('<', '>')),
           Checkbox(value: true, onChanged: (_) {}),
         ),
         size: (5, 1),
@@ -268,6 +270,7 @@ void main() {
       'warning': (g, v) => g.copyWith(warning: v),
       'checkboxOn': (g, v) => g.copyWith(checkboxOn: v),
       'checkboxOff': (g, v) => g.copyWith(checkboxOff: v),
+      'checkboxBrackets': (g, v) => g.copyWith(checkboxBrackets: (v, v)),
       'radioOn': (g, v) => g.copyWith(radioOn: v),
       'radioOff': (g, v) => g.copyWith(radioOff: v),
       'radioBrackets': (g, v) => g.copyWith(radioBrackets: (v, v)),
@@ -315,7 +318,7 @@ void main() {
         ).allMatches(source.substring(start, end)))
           m.group(1)!,
       };
-      expect(fields.length, 44);
+      expect(fields.length, 45);
       expect(changes.keys.toSet(), fields);
     });
 
