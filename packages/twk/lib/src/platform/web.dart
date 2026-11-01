@@ -64,6 +64,7 @@ Stream<TailEvent> tailFile(
   String path, {
   required bool fromEnd,
   required Duration poll,
+  Timer Function(Duration, void Function(Timer)) startPeriodic = Timer.periodic,
 }) => Stream.error(_noFiles());
 
 /// Fails with [UnsupportedError].

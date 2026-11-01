@@ -19,6 +19,7 @@ import '../animation/animation_controller.dart';
 import '../animation/curves.dart';
 import '../animation/switcher.dart' show FractionalTranslation, Opacity;
 import '../animation/ticker.dart';
+import '../binding/app_binding.dart' show AppBinding;
 import '../foundation/change_notifier.dart';
 import '../foundation/listenable_builder.dart';
 import '../framework/framework.dart';
@@ -147,7 +148,9 @@ final class _Toasts {
   /// shows them: in the entry, put over the others when there was none.
   void _update() {
     for (final toast in shown) {
-      toast.timer ??= Timer(toast.duration, () => _expire(toast));
+      toast.timer ??= AppBinding.of(
+        overlay.context,
+      ).startTimer(toast.duration, () => _expire(toast));
     }
     final entry = _entry;
     if (entry == null) {
@@ -272,7 +275,7 @@ final class _RaisedToastState extends State<_RaisedToast>
     super.initState();
     final wait = widget.toast.duration - _fadeOut;
     if (wait > Duration.zero) {
-      _timer = Timer(wait, _out.forward);
+      _timer = AppBinding.of(context).startTimer(wait, _out.forward);
     } else {
       _out.forward();
     }

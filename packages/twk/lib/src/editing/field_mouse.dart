@@ -7,6 +7,7 @@ import 'dart:async';
 
 import 'package:twk_core/twk_core.dart' show HitTestBehavior;
 
+import '../binding/app_binding.dart' show AppBinding;
 import '../focus/focus_tree.dart';
 import '../framework/framework.dart';
 import '../gestures/gesture_detector.dart';
@@ -161,7 +162,9 @@ final class _FieldMouseState extends State<FieldMouse> {
     if (event.button != 0 || _anchor == null) {
       return;
     }
-    _interval = Timer(widget.multiClickInterval, () {});
+    _interval = AppBinding.of(
+      context,
+    ).startTimer(widget.multiClickInterval, () {});
   }
 
   @override

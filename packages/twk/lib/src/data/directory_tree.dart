@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:meta/meta.dart';
 import 'package:twk_core/twk_core.dart' show Attr, TextOverflow, TextWrap;
 
+import '../binding/app_binding.dart' show AppBinding;
 import '../controls/file_picker.dart';
 import '../focus/focus.dart';
 import '../foundation/change_notifier.dart';
@@ -710,16 +711,17 @@ final class _DirectoryTreeState extends State<DirectoryTree> {
 
   void _changedOnDisk(String dir) {
     _changed.add(dir);
-    _debounce ??= Timer(const Duration(milliseconds: 100), () {
-      _debounce = null;
-      final changed = [..._changed];
-      _changed.clear();
-      for (final dir in changed) {
-        if (_listings[dir] case final listing?) {
-          unawaited(_relist(listing));
-        }
-      }
-    });
+    _debounce ??= AppBinding.of(context)
+        .startTimer(const Duration(milliseconds: 100), () {
+          _debounce = null;
+          final changed = [..._changed];
+          _changed.clear();
+          for (final dir in changed) {
+            if (_listings[dir] case final listing?) {
+              unawaited(_relist(listing));
+            }
+          }
+        });
   }
 
   /// Drops the listings of the directories that no longer show: collapsed,

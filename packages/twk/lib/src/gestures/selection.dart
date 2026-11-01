@@ -453,7 +453,7 @@ final class _SelectionAreaState extends State<SelectionArea> {
     _track();
     // what scrolls under the mouse while it stays (the wheel) is selected
     // on to, as a terminal's selection goes on
-    _watch ??= Timer.periodic(_edgeInterval, (_) {
+    _watch ??= AppBinding.of(context).startPeriodic(_edgeInterval, (_) {
       if (_edge == null) {
         _track();
       }
@@ -465,7 +465,7 @@ final class _SelectionAreaState extends State<SelectionArea> {
   void _track() {
     final focus = _follow();
     if (focus != null && _edge == null && _scrollPast(focus)) {
-      _edge = Timer.periodic(_edgeInterval, (_) {
+      _edge = AppBinding.of(context).startPeriodic(_edgeInterval, (_) {
         // what the last step scrolled under the mouse is laid out by now
         final focus = _follow();
         if (focus == null || !_scrollPast(focus)) {
@@ -487,7 +487,9 @@ final class _SelectionAreaState extends State<SelectionArea> {
     }
     _at = null;
     _scroller = null;
-    _interval = Timer(widget.multiClickInterval, () {});
+    _interval = AppBinding.of(
+      context,
+    ).startTimer(widget.multiClickInterval, () {});
     if (widget.copyOnRelease && _selectedByPress) {
       _copy();
     }

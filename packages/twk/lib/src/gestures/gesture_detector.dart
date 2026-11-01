@@ -8,6 +8,7 @@ import 'dart:async';
 import 'package:meta/meta.dart';
 import 'package:twk_core/twk_core.dart' show HitTestBehavior;
 
+import '../binding/app_binding.dart' show AppBinding;
 import '../framework/framework.dart';
 import 'mouse.dart';
 
@@ -302,7 +303,7 @@ final class _Arena {
       _again = _press;
     }
     if (detector._longPresses) {
-      detector._longPress = Timer(
+      detector._longPress = AppBinding.of(detector.context).startTimer(
         detector.widget.longPressDuration,
         () => _heldLong(detector),
       );
@@ -373,7 +374,9 @@ final class _Arena {
           } else {
             _first = detector;
             _firstUp = event;
-            _interval = Timer(detector.widget.doubleTapInterval, _flush);
+            _interval = AppBinding.of(
+              detector.context,
+            ).startTimer(detector.widget.doubleTapInterval, _flush);
           }
         }
       case _Gesture.drag when identical(_owner, detector):

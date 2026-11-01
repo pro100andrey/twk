@@ -363,6 +363,21 @@ final class AppBinding {
   static AppBinding? maybeOf(BuildContext context) =>
       context.getInheritedWidgetOfExactType<_Scope>()?.binding;
 
+  /// Starts a timer that calls [callback] after [duration] on the app's
+  /// clock, in the zone its frames run in (an error the callback throws ends
+  /// the app, as one of a frame's), wherever it is called from: a
+  /// test's body, outside the fake clock's zone, gets a fake timer that
+  /// `pump` and `elapse` move, as a widget's own code does. Every timer
+  /// the library starts goes through it or [startPeriodic], none through
+  /// `Timer` itself.
+  Timer startTimer(Duration duration, void Function() callback) =>
+      _zone.createTimer(duration, callback);
+
+  /// Starts a timer that calls [callback] every [period], on the app's
+  /// clock and in the zone the app runs in, as [startTimer] does.
+  Timer startPeriodic(Duration period, void Function(Timer) callback) =>
+      _zone.createPeriodicTimer(period, callback);
+
   /// What runs the frames.
   final TwkApp twkApp;
 
@@ -1089,7 +1104,9 @@ final class AppBinding {
   // the frame callbacks are being called
   var _callingBack = false;
 
-  // run runs: the zone the app runs in, where the timer starts
+  // run runs: the zone the app runs in, where the timers start: the one run
+  // is called in until the first frame, then the one the frames run in, where
+  // an error ends the app
   var _running = false;
   // run has ended: a callback added now is dropped, not held for ever
   var _over = false;
@@ -1159,6 +1176,7 @@ final class AppBinding {
 
   // the TwkApp runs it at the start of each frame
   void _beforeLayout() {
+    _zone = Zone.current;
     final now = twkApp.clock.elapsed;
     _framing = true;
     _frameTime = now;
@@ -1575,7 +1593,11 @@ final class DebugAids {
       return;
     }
     if (on) {
-      final overlay = _overlay = FrameOverlay(_binding.twkApp, _binding._theme);
+      final overlay = _overlay = FrameOverlay(
+        _binding.twkApp,
+        _binding.startTimer,
+        _binding._theme,
+      );
       if (_binding._view._laidOut) {
         _showOverlay(overlay);
       }

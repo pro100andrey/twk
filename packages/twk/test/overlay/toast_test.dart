@@ -283,6 +283,31 @@ void main() {
       expect(t.lines[2], contains('▌ Plain'));
     });
 
+    testTwk('a toast shown from the body keeps its time on the fake clock, '
+        'not a real one', (t) async {
+      final key = GlobalKey();
+      await t.pumpWidget(
+        Theme(
+          data: theme,
+          child: Box(
+            style: theme.background,
+            child: Overlay(child: SizedBox.expand(key: key)),
+          ),
+        ),
+        size: (20, 6),
+      );
+      showToast(
+        key.currentContext!,
+        'Held',
+        duration: const Duration(milliseconds: 500),
+      );
+      // real time is what is passed here: a real timer would have ended it
+      // ignore: twk_lints/wall_time_in_tests
+      await Future<void>.delayed(const Duration(milliseconds: 600));
+      await t.pump(ms * 250);
+      expect(t, containsLine(contains('Held')));
+    });
+
     testTwk('a toast shorter than its fade fades out from the start', (
       t,
     ) async {
@@ -297,14 +322,10 @@ void main() {
         ),
         size: (20, 6),
       );
-      // in the clock's zone: the body of a test runs outside it, where the
-      // toast's time would be a real timer
-      t.clock.run(
-        () => showToast(
-          key.currentContext!,
-          'Brief',
-          duration: const Duration(milliseconds: 200),
-        ),
+      showToast(
+        key.currentContext!,
+        'Brief',
+        duration: const Duration(milliseconds: 200),
       );
       await t.pump();
       await t.pump(ms * 100);
@@ -327,7 +348,7 @@ void main() {
         child: Overlay(child: SizedBox.expand(key: key)),
       );
       await t.pumpWidget(app(theme), size: (20, 6));
-      t.clock.run(() => showToast(key.currentContext!, 'Plain'));
+      showToast(key.currentContext!, 'Plain');
       await t.pump(ms * 300);
       expect(t, styleAt(8, 2, hasFg(theme.primary.fg!)));
       const light = ThemeData.light;

@@ -110,7 +110,7 @@ final class _Meter {
 /// asks for no frame otherwise.
 final class FrameOverlay {
   /// The overlay of [app]'s frames, its panel in [theme].
-  FrameOverlay(this.app, ThemeData theme) {
+  FrameOverlay(this.app, this._startTimer, ThemeData theme) {
     panel = RenderFrameOverlay(this, theme);
   }
 
@@ -119,6 +119,10 @@ final class FrameOverlay {
 
   /// The app whose frames are counted, and whose clock times them.
   final TwkApp app;
+
+  // starts the timer of a refresh that waits: the binding's, on the app's
+  // clock
+  final Timer Function(Duration, void Function()) _startTimer;
 
   /// What shows the numbers, which the binding paints over the app.
   late final RenderFrameOverlay panel;
@@ -329,7 +333,7 @@ final class FrameOverlay {
     _timer = null;
     if (due != null) {
       _timerDue = due;
-      _timer = Timer(Duration(microseconds: due - _now), () {
+      _timer = _startTimer(Duration(microseconds: due - _now), () {
         _timer = null;
         refresh();
       });

@@ -106,10 +106,15 @@ Stream<void> watchDirectory(String path) {
 /// what was read goes unseen on a platform without a directory watch (or
 /// on a drive where it misses events), and a longer one is read from the
 /// old position.
+///
+/// The poll runs on the timer [startPeriodic] starts (`Timer.periodic` by
+/// default): an app's passes its binding's (`AppBinding.startPeriodic`), so
+/// that its clock moves the poll wherever the stream is listened to.
 Stream<TailEvent> tailFile(
   String path, {
   required bool fromEnd,
   required Duration poll,
+  Timer Function(Duration, void Function(Timer)) startPeriodic = Timer.periodic,
 }) {
   final file = File(path);
   final name = file.uri.pathSegments.last;
@@ -205,7 +210,7 @@ Stream<TailEvent> tailFile(
           // no watch of the directory: the poll alone
         }
       }
-      timer = Timer.periodic(poll, (_) => look());
+      timer = startPeriodic(poll, (_) => look());
       unawaited(look());
     },
     onCancel: () async {

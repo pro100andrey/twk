@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:meta/meta.dart';
 import 'package:twk_core/twk_core.dart' show KeyEvent, KeyKind;
 
+import '../binding/app_binding.dart' show AppBinding;
 import '../foundation/change_notifier.dart' show VoidCallback;
 import '../framework/framework.dart';
 import 'focus_tree.dart';
@@ -751,7 +752,9 @@ abstract class _LayerState<W extends StatefulWidget, V> extends State<W> {
     _held.add(event);
     _timer?.cancel();
     _timer = switch (_timeout) {
-      final timeout? => Timer(timeout, () => _expired(node)),
+      final timeout? => AppBinding.of(
+        context,
+      ).startTimer(timeout, () => _expired(node)),
       null => null,
     };
   }

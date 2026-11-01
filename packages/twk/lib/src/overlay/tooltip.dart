@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:twk_core/twk_core.dart'
     show Brightness, EdgeInsets, KeyCode, KeyEvent, KeyKind;
 
+import '../binding/app_binding.dart' show AppBinding;
 import '../focus/focus_tree.dart';
 import '../foundation/change_notifier.dart';
 import '../foundation/controller_host.dart';
@@ -335,7 +336,7 @@ final class _TooltipState extends State<Tooltip> {
       return;
     }
     _timer?.cancel();
-    _timer = Timer(widget.wait, _show);
+    _timer = AppBinding.of(context).startTimer(widget.wait, _show);
   }
 
   /// Shows the message until the controller or Escape hides it.
