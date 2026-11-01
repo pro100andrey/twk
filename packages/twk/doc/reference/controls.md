@@ -124,8 +124,9 @@ while it has it (as `KeyBindings` takes them, with their `hints`), a press
 of the left button over it focusing it and a tap calling `onTap`; enabled
 with an `onTap`, the pointer is the hand over it (`PointerShape.pointer`,
 where the terminal shows shapes) when the theme asks for it
-(`ThemeData.handPointer`, false by default: the hand has the terminal
-report every move of the mouse), as over the buttons, boxes and switches
+(`ThemeData.handPointer`, a `HandPointer`: `auto`, the default, shows
+the hand only where the terminal reports the mouse's motion already, `on`
+has it report every move, `off` never), as over the buttons, boxes and switches
 made of it.
 
 ## `Checkbox`
@@ -209,8 +210,8 @@ query. At most `rows` choices show, the one highlighted in the theme's
 'No', …)` shows its prompt and the answers (`Delete?  Yes   No `), one
 highlighted, `defaultValue`'s at first: while it has the focus `y` answers
 yes and `n` no, in either case (both hinted), Enter the one highlighted,
-Left and Right highlight yes and no, and an answer clicked is given too (`showConfirm(context, question)` asks it
-in a dialog, the question wrapped on its own lines above the answers);
+Left and Right highlight yes and no, and an answer clicked is given too (`showConfirm(context, question, yes:, no:)` asks it
+in a dialog, the question wrapped on its own lines above the answers, `yes:` and `no:` labelling them as here, `showConfirm(context, 'Delete 3 files?', yes: 'Delete', no: 'Keep')`; `y` and `n` still answer);
 each calls `onConfirmed` with true for yes and false for no, and highlights
 it. A control without its callback (a `SelectionList` with `enabled: false`)
 is disabled: in `disabledStyle` (the theme's `muted`), passed by Tab and

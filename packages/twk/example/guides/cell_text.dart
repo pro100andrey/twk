@@ -17,7 +17,7 @@ final class CellText extends StatelessWidget {
       crossAxisAlignment: .stretch,
       children: [
         // a String cut to 12 cells, wide letters whole
-        Text(fitText(TextSegmenter(), 'Warnings (12) and 你好世界', 12)),
+        Text(fitText(segmenterOf(context), 'Warnings (12) and 你好世界', 12)),
         // the row's background across its whole width, not under its text
         const ColoredBox(color: Color.blue, child: Text(' NORMAL ')),
         // a gutter on every line the text breaks into: a left border

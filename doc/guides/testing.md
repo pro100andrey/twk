@@ -110,14 +110,6 @@ $ dart run example/counter.dart --inline
   the function waits first. `t.clock.run(() => Timer(...))` starts a
   timer on the fake clock from the test's own code; `t.pump(duration)`
   fires it.
-- The body of a test runs outside the clock's zone, so whatever it calls
-  that starts a timer starts a real one: `showToast(...)`, which hides the
-  toast on a timer, is one. `t.pump` does not move that timer, it fires
-  after real milliseconds, and the test is flaky. Wrap the call, `t.clock.run(() =>
-  showToast(context, 'saved'))`, or make the change in `t.act(...)`, which
-  runs in the app's zone; what the app's own handlers call, a key or a
-  click, is in it already. Finding the call is the test's job: nothing in
-  the API says which ones start a timer.
 
 ## Keys
 

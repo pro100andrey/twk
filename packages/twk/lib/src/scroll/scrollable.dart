@@ -509,9 +509,11 @@ final class OverscrollNotification extends ScrollNotification {
 /// )
 /// ```
 ///
-/// `Scrollable`, `SingleChildScrollView` and `ListView` take physics. The
-/// views built on a `ListView` of their own (`SelectionList`, `Table`,
-/// `TreeView`, `LogView`, `FilePicker`) take none: they are the focused
+/// `Scrollable`, `SingleChildScrollView`, `ListView` and `TreeView` take
+/// physics (a `TreeView` passes them to its `ListView`: with
+/// `NeverScrollableScrollPhysics` the wheel goes to the list around, its
+/// own keys and Tab stop stay). The views built on a `ListView` of their
+/// own (`SelectionList`, `Table`, `LogView`, `FilePicker`) take none: they are the focused
 /// widget of their screen and scroll with the wheel and the keys, and a
 /// view that is to leave the wheel to the one around is a `ListView` or a
 /// `SingleChildScrollView` with these physics.

@@ -223,8 +223,9 @@ held (1002) for drags, all motion (1003) for `onHover`, `onEnter`,
 `onExit`, `onMove`, a `MouseRegion`'s `cursor` where the terminal shows
 the pointer's shape, and a `Button`'s hover look. One of them anywhere in
 the app turns 1003 on everywhere. The hand over what a click presses is
-off by default (`ThemeData.handPointer`), so a checkbox or a link asks for
-presses alone.
+`ThemeData.handPointer`, by default `HandPointer.auto`: shown only where motion
+is reported already, so a checkbox or a link asks for presses alone; `HandPointer.on`
+asks for motion.
 
 A `ListView` or `Scrollable` that should leave the wheel (and the keys) to
 the view around takes `physics: const NeverScrollableScrollPhysics()`; its

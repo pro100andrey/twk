@@ -97,7 +97,7 @@ the first row inside, over the child, and a `BoxShadow` cast beside it where
 border in the theme's `border` where the room is and the title on its top
 edge. `trailing` is a widget at the right end of the title row (a counter such
 as `2/5 ←→`, a close hint); with the bordered look the title stays on the
-border and `trailing` is a row of its own at the top inside, at the right.
+border too, `trailing` on the top edge at the right, in a blank cell on either side, and the box no taller than without it.
 With `scrollable: true` the child sits in a `SingleChildScrollView` bounded
 by the room the dialog gets (the screen's height less the room, the border
 and the title row), so a child taller than that scrolls, by the keys once it
@@ -257,7 +257,7 @@ the child moves inside a repaint boundary that repaints on its own.
 child or the popover to one in neither, Escape was pressed while the focus
 was in either, or a button was pressed outside both, the press still
 reaching what is under it; the app closes it by building it with `open:
-false`. It takes no focus: the keys go where the focus is, and those its
+false`. It takes no focus: its content is in a focus scope of its own that requests nothing, so a node in it with `autofocus` takes the focus (on a navigator page or not), one without leaves the focus where it was, and Tab inside stays among the popover's own nodes; the keys go where the focus is, and those its
 nodes leave go to the nodes above the overlay. Its entry is inserted once it
 is first built, so one built open shows from the frame after.
 

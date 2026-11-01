@@ -28,9 +28,13 @@ selection of a list without the focus), `hover` (what the mouse is over),
 `onPrimary` (text on a `primary` fill), `shade` and `shadeAlpha` (a
 barrier's dimming: black at half on a dark theme, at 28 % on a light one);
 on a theme of palette colors each of the others is the slot it starts from;
-`handPointer` (false by default), the hand over what a click presses, where
-the terminal shows pointer shapes, which has it report every move of the
-mouse while such a control is on the screen;
+`handPointer` (`HandPointer.off`, `auto` (the default) or `on`), the hand over
+what a click presses, where the terminal shows pointer shapes: over buttons,
+boxes, switches, tabs, menu titles and items, stepper headers, a Callout's
+[x], sortable table titles, pressable key hints, `Span.tap` and `onLinkTap`
+phrases. `auto` shows it only where the terminal reports the mouse's motion
+already and asks for nothing; `on` has it report every move while such a
+control is on the screen;
 `glyphs`, the marks widgets draw (see `Glyphs`);
 `theme.fill(color)` a fill of a color with text that reads on it
 (`onPrimary` on `primary`, else black or white by contrast), which a badge,

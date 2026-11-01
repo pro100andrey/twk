@@ -98,8 +98,9 @@ room they get. In a `Column` put them in `Expanded`, or they take the
 whole height and push the rest off the screen (a `RenderFlex overflowed`
 warning in the log). Inline, where the app's height is what it asks for, a
 list asks for none: give it a height with a `SizedBox`. A list or a scroll
-view left no rows says so in the log too, which the debug console
-(`TWK_DEBUG=console`) shows and a failing test prints.
+view left no rows records it at the debug level each time it goes to
+none (not a warning: a panel closing does the same), which the debug
+console (`TWK_DEBUG=console`) shows and a failing test prints.
 
 What has no end to grow into takes its child's size instead, as in
 Flutter: an `Align` or a `Center` in a scroll view, or in a list's row,
@@ -150,11 +151,13 @@ loaded.
 ## Text in cells
 
 The list row above cuts a label that is on the screen. A `String` an app
-holds, cut before it is a widget, is `fitText(TextSegmenter(), text, n)`:
-at most `n` cells, `…` in place of the rest, no wide letter split. (The
-`TextSegmenter()` counts a character of ambiguous width as one cell; the
-terminal's own count is what `Text.line` cuts by, so prefer the widget
-wherever the text is shown at once.) A string padded to `n` cells is the
+holds, cut before it is a widget, is `fitText(segmenterOf(context), text, n)`:
+at most `n` cells, `…` in place of the rest, no wide letter split.
+`segmenterOf(context)` is the terminal's own `TextSegmenter`; a plain
+`TextSegmenter()` counts a character of ambiguous width as one cell, where
+an ambiguous-wide terminal counts two and the cut leaves a cell off. Use
+the same for `.width(text)`, and prefer the widget wherever the text is
+shown at once. A string padded to `n` cells is the
 text and `' ' * (n - stringWidth(text))`, counted in cells, not in
 `length`. A row's background across its whole width is a `ColoredBox`
 around it: a `Span`'s background (`'x'.bg(color)`) paints only the cells of
@@ -187,7 +190,7 @@ final class CellText extends StatelessWidget {
       crossAxisAlignment: .stretch,
       children: [
         // a String cut to 12 cells, wide letters whole
-        Text(fitText(TextSegmenter(), 'Warnings (12) and 你好世界', 12)),
+        Text(fitText(segmenterOf(context), 'Warnings (12) and 你好世界', 12)),
         // the row's background across its whole width, not under its text
         const ColoredBox(color: Color.blue, child: Text(' NORMAL ')),
         // a gutter on every line the text breaks into: a left border
