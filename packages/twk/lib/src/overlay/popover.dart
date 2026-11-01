@@ -52,8 +52,8 @@ import 'layer.dart';
 /// popover as without one, and what has none leaves the focus where it
 /// was. Tab moves among the popover's own nodes and, past the last, on to
 /// the node after the child, Shift+Tab from the first to the child's last
-/// node ([FocusScopeNode.leaveTo]); the popover then closes, as the focus
-/// has left it.
+/// node ([FocusScopeNode.leaveTo]), which keeps the popover open; it closes
+/// when the focus has left both the popover and the child.
 /// Its nodes are under the node above the overlay, not under the child's,
 /// so the keys it leaves go to the nodes above the overlay. Its entry is
 /// inserted once the popover is first built, so one built open shows from

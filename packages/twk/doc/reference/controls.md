@@ -109,8 +109,8 @@ and below it;
 
 ## `Button`
 
-`Button(label, onPressed:, focusNode:, autofocus:, style:, focusedStyle:,
-hoverStyle:, disabledStyle:)`, ` label `, a blank on either side, calls
+`Button(label, onPressed:, focusNode:, autofocus:, canRequestFocus: true,
+style:, focusedStyle:, hoverStyle:, disabledStyle:)`, ` label `, a blank on either side, calls
 `onPressed` when it is pressed: clicked, the release over it (the press
 gives it the focus), or Enter or Space while it has the focus, Enter hinted
 (`enter press`). It is a chip: `primary` bold on the theme's `surface` at
@@ -119,7 +119,16 @@ it has the focus, a step towards that color while the mouse is over it, and
 a flash fading in 260 ms as it is pressed (`style: theme.primary.merge(const
 Style(attrs: Attr.bold))` with `focusedStyle: const Style(attrs:
 Attr.reverse)` gives a plain look, the label bold in `primary` and reversed
-while it has the focus).
+while it has the focus). `Button.rich(spans, …)` takes a `List<Span>` in the
+place of the label, a key in one color and its action in another
+(`Button.rich(['Enter'.bold.fg(Color.yellow), const Span(' send')], onPressed:
+send)`): the chip's style is the button's with a span's own style merged onto
+it, so at rest and under the mouse a span's colors show, while it has the
+focus or is disabled the spans keep their attributes but the state's colors
+win; only the chip look. `canRequestFocus: false` (on `Button.outlined` and
+`Button.filled` too) makes a button of the mouse only, which Tab passes by and
+a press of the mouse does not focus, a click still pressing it; with a `style`
+without a chip it is a flat clickable word that takes no part in the focus.
 
 ## `Pressable`
 
@@ -443,7 +452,7 @@ paths, or with null on Cancel, Escape or a click outside.
 ## `Callout`
 
 `Callout(child:, kind: StatusKind.info, title:, icon:, onDismissed:,
-actions: const [], style:)` (`Callout.text(message, …)` for a string) is a
+actions: const [], style:, borderType:, titleStyle:)` (`Callout.text(message, …)` for a string) is a
 notice in a box lined in the color of its kind (`StatusKind.styleIn`), what
 a command-line tool prints for `a newer version is available`: the kind's
 icon (or `icon`) and `title` (by default the kind's name: Info, Success,
@@ -453,9 +462,60 @@ at the right; as wide as what it holds, within its constraints. With
 `onDismissed`, the close mark `[${glyphs.close}]` (`[×]`, `[x]` in ASCII) at
 the right of the top edge calls it when clicked, as
 Escape does while the focus is on one of its actions (hinted); the app then
-builds it no more. On plain output there is no box: `ℹ Info: A newer version
+builds it no more. `borderType` is the lines of the box, the theme's
+(`glyphs.lines`) when null (`BorderType.rounded` or `heavy` for an app's look;
+none on plain output); `titleStyle` is merged over the kind's color in bold for
+the title and the icon. On plain output there is no box: `ℹ Info: A newer version
 is out.`, the actions below it and no `[×]`. A screen reader reads a status
 of its title, an alert for a warning or an error, then what is in it.
+
+## `Chip`
+
+`Chip(label, selected: false, highlighted: false, removable: false, enabled:
+true, style:)` is a short label on a chip of its own, on one row (a tag, a
+filter, a recipient), a blank on either side of it and `× ` (`glyphs.close`)
+after it where it is `removable`. It only shows: the theme's text and `style`
+on `surface`; `primary` filled and bold while `selected` (on plain output,
+which has no colors, `✓ ` before the label); `selection` while `highlighted`,
+the cursor of a list; `muted` while not `enabled`.
+
+## `ChipList<T>`
+
+`ChipList<T>(chips:, selected: const {}, onPressed:, onRemove:, focusNode:,
+autofocus: false, style:)` is chips that wrap into rows, a `Choice<T>(value,
+label, enabled:)` each, with a cursor: the ones whose values are in `selected`
+show as on, as wide as their labels within the constraints, a label too long
+cut off with `…`. It is one stop of Tab, the highlight on the chip last
+highlighted or the first enabled one: Left and Right move it to the enabled
+chip before and after, from the last to the first and back, Up and Down to
+the nearest chip of the nearest row above and below that has an enabled one,
+Home and End to the first and the last; Space and Enter call `onPressed` with
+the value of the chip highlighted, Delete and Backspace `onRemove` with it. A
+chip clicked is highlighted and pressed, its `×`, shown while there is an
+`onRemove`, removes it. The app builds the list again with the new `chips` and
+`selected`; after a removal the highlight stays at the same place, or on the
+last chip. A chip not enabled is passed by, muted. With neither callback, or no
+enabled chip, it takes neither the focus nor the mouse. A screen reader reads
+each chip as a checkbox, checked while it is in `selected`, where there is an
+`onPressed`, else as a list item.
+
+## `ValueStepper<T>`
+
+`ValueStepper<T>(values:, value:, onChanged:, focusNode:, autofocus: false,
+style:, wrap: false)` shows the `value` of the `Choice<T>`s in `values` between
+arrows, `‹ dark ›`, for a few values where a `Select` is too much (a theme, a
+size, a level): Left and Right and a click on an arrow call `onChanged` with
+the value before and after it, which the app builds the stepper with. Stepping
+stops at the first and the last value, the arrow there muted; with `wrap: true`
+it goes on from the last to the first and back (the days of a week). A value
+not enabled is passed by; a `value` that is none of `values` shows nothing, and
+Right steps to the first, Left to the last. The label is as wide as the widest
+of the values, so that the arrows keep their places, and cut off with `…`
+where the constraints are narrower. One stop of Tab, Left and Right hinted;
+with no `onChanged`, or fewer than two enabled values, it is muted and takes
+neither the focus nor the mouse. The arrows are in `primary`, the whole in
+`selection` while it has the focus; a screen reader reads a slider of the
+value's label.
 
 ## `SegmentedButton<T>`
 

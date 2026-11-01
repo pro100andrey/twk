@@ -37,7 +37,12 @@ the nearest scope that can take it and do not `skipTraversal`, in the order
 of the tree (depth first, the children of a widget in order), the first
 after the last; a scope inside is one stop, which Tab does not leave and
 which, entered, focuses the node it focused last (`focusedChild`) or its
-first. The first node of a scope mounted with `autofocus` while the scope
+first. A scope's `leaveTo`, a `FocusNode` outside it
+(null by default: the focus stays in the scope, as in a modal panel), lets Tab
+from its last stop go on to the stop of the scope above after the nodes below
+`leaveTo`, and Shift+Tab from its first to the last stop below `leaveTo`, else
+the stop before it; where the scope above has no such stop the focus goes round
+the scope. A `Popover` sets it to its child. The first node of a scope mounted with `autofocus` while the scope
 has no focused node gets the focus, shown in the frame that mounts it; when
 the focused node leaves the tree, the focus passes on the same way in the
 frame that removes it, to the node that took its place or the next after

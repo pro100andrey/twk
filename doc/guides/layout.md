@@ -161,7 +161,7 @@ shown at once. A string padded to `n` cells is
 `padCells(segmenterOf(context), text, n)` (`alignment:` right or center),
 counted in cells, not in `length`. `fitText` cuts the end by default;
 `overflow: .ellipsisStart` or `.ellipsisMiddle` cuts the start or the
-middle, and `.none` clips. `breakLines(segmenterOf(context), text, n)` gives the
+middle, and `.clip` clips. `breakLines(segmenterOf(context), text, n)` gives the
 (start, end) offsets of the lines a text breaks into at `n` cells. A row's background across its whole width is a `ColoredBox`
 around it: a `Span`'s background (`'x'.bg(color)`) paints only the cells of
 its text, as in Flutter. A mark on every line a text wraps into, a quotation's
