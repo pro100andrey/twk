@@ -61,14 +61,16 @@ String reference(
 
   bool blank(int k) =>
       ends[k + 1] - ends[k] == 1 && ' 　 '.contains(text[ends[k]]);
-  int back(int k) {
+  int back(int from) {
+    var k = from;
     while (k > 0 && blank(k - 1)) {
       k--;
     }
     return k;
   }
 
-  int front(int k) {
+  int front(int from) {
+    var k = from;
     while (k < cols.length && blank(k)) {
       k++;
     }
@@ -85,7 +87,9 @@ String reference(
       final t = front(tail(room - sum(0, first), first));
       final h = back(head(room - sum(t, cols.length), t));
       return '${text.substring(0, ends[h])}$ellipsis${text.substring(ends[t])}';
-    default:
+    case TextOverflow.clip:
+    case TextOverflow.ellipsis:
+    case TextOverflow.ellipsisMiddle:
       final h = head(room);
       return '${text.substring(0, ends[mark.isEmpty ? h : back(h)])}$mark';
   }
