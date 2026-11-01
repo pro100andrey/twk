@@ -2,6 +2,8 @@
 /// with the focus kept in it until [closeDialog]; as a route of the
 /// `Navigator` above, or in an entry of the [Overlay] above without one.
 /// [Dialog] is the box it is usually drawn in.
+///
+/// @docImport 'popover.dart';
 library;
 
 import 'dart:async';
@@ -108,6 +110,31 @@ import 'panel.dart';
 ///   ),
 /// );
 /// ```
+///
+/// A box of the app's own, with no room around it and no title row (a
+/// palette), at the top and with nothing dimmed: [Dialog] always has its
+/// room or border, so what is shown is a [Box] or a `Panel` of the app's
+/// own, the dialog being whatever [builder] builds:
+///
+/// ```dart
+/// showDialog<void>(
+///   context,
+///   (context) => SizedBox(
+///     width: 40,
+///     child: Box(
+///       style: Theme.of(context).surface,
+///       child: Text('> find a command'),
+///     ),
+///   ),
+///   alignment: Alignment.topCenter,
+///   barrierAlpha: 0,
+/// );
+/// ```
+///
+/// Placed by [alignment] alone: there is no position in cells. What is
+/// at a cell or by a widget is not a dialog: a menu at a row is a
+/// `ContextMenu` opened by `MenuController.open` with `at`, a panel by a
+/// widget a [Popover], neither dimming what is under it.
 Future<T?> showDialog<T>(
   BuildContext context,
   Widget Function(BuildContext context) builder, {
@@ -188,7 +215,8 @@ void closeDialog(BuildContext context, [Object? result]) {
 /// alignment, the barrier (`barrierAlpha` 0 for none) and whether it
 /// is dismissible. The room or border and the title row are always there:
 /// a box with none (a palette) is a `Panel` or a `Box` of the app's own in
-/// [showDialog], and a dialog at a cell, not an edge, is not set here.
+/// [showDialog] (an example there), and a dialog at a cell, not an edge,
+/// is a `ContextMenu` or a [Popover] (see [showDialog]).
 ///
 /// A bordered dialog with a shadow, as [showDialog] shows it:
 ///
