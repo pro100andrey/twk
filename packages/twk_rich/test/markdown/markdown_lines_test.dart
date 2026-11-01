@@ -43,7 +43,7 @@ final theme = MarkdownTheme(
 
 /// The text of each line.
 List<String> texts(String markdown, int width) => [
-  for (final line in renderMarkdown(markdown, width, theme))
+  for (final line in renderMarkdown(TextSegmenter(), markdown, width, theme))
     line.map((span) => span.text).join(),
 ];
 
@@ -90,6 +90,7 @@ void main() {
   group('inlines and wrapping', () {
     test('a paragraph wraps by words, each inline in its style', () {
       final lines = renderMarkdown(
+        TextSegmenter(),
         'Some **strong** and `code`, a [link](https://x.dev).',
         20,
         theme,
@@ -106,7 +107,7 @@ void main() {
     });
 
     test('a destination off the web is a link in style, not a hyperlink', () {
-      final lines = renderMarkdown('[a](notes.md)', 20, theme);
+      final lines = renderMarkdown(TextSegmenter(), '[a](notes.md)', 20, theme);
       expect(lines.single.single.style.link, isNull);
       expect(lines.single.single.style.attrs, Attr.underline);
     });
@@ -139,7 +140,12 @@ void main() {
 
   group('blocks', () {
     test('headings in their style, a blank line between blocks', () {
-      final lines = renderMarkdown('# One *two*\n\ntext\n', 20, theme);
+      final lines = renderMarkdown(
+        TextSegmenter(),
+        '# One *two*\n\ntext\n',
+        20,
+        theme,
+      );
       expect(lines.map(text), ['One two', '', 'text']);
       expect(lines[0][0].style, const Style(fg: heading, attrs: Attr.bold));
       expect(
@@ -152,6 +158,7 @@ void main() {
     test('a block quote has a bar down its side, its blocks in the quote '
         'style, a nested one a bar more', () {
       final lines = renderMarkdown(
+        TextSegmenter(),
         '> quoted *text* that wraps\n>\n> > deep\n',
         14,
         theme,
@@ -201,7 +208,7 @@ void main() {
     });
 
     test('a marker is in the marker style', () {
-      final lines = renderMarkdown('- a\n', 10, theme);
+      final lines = renderMarkdown(TextSegmenter(), '- a\n', 10, theme);
       expect(lines.single[0], const Span('•', Style(fg: marker)));
     });
 
@@ -222,7 +229,12 @@ void main() {
       ];
       for (final doc in docs) {
         for (var width = 1; width <= 14; width++) {
-          for (final line in renderMarkdown(doc, width, theme)) {
+          for (final line in renderMarkdown(
+            TextSegmenter(),
+            doc,
+            width,
+            theme,
+          )) {
             expect(
               columns(line),
               lessThanOrEqualTo(width),
@@ -237,20 +249,30 @@ void main() {
     });
 
     test('a thematic break is a line across', () {
-      final lines = renderMarkdown('---\n', 7, theme);
+      final lines = renderMarkdown(TextSegmenter(), '---\n', 7, theme);
       expect(lines.single, [const Span('───────', Style(fg: rule))]);
     });
 
     test('code: a cell in from either side on the fill of its style, tabs '
         'to 4 columns, long lines broken between graphemes', () {
-      final lines = renderMarkdown('```\nab\n\tcd efgh\n```\n', 8, theme);
+      final lines = renderMarkdown(
+        TextSegmenter(),
+        '```\nab\n\tcd efgh\n```\n',
+        8,
+        theme,
+      );
       expect(lines.map(text), [' ab     ', '     cd ', '  efgh  ']);
       expect(lines.map(columns), [8, 8, 8]);
       expect(lines.first.single.style, const Style(bg: codeBlock));
     });
 
     test('code is highlighted in the language of its fence, over the fill', () {
-      final lines = renderMarkdown('```dart\nvar a = 1;\n```\n', 12, theme);
+      final lines = renderMarkdown(
+        TextSegmenter(),
+        '```dart\nvar a = 1;\n```\n',
+        12,
+        theme,
+      );
       expect(lines.map(text), [' var a = 1; ']);
       final syntax = theme.syntax;
       const fill = Style(bg: codeBlock);
@@ -269,6 +291,7 @@ void main() {
     test('a table: columns as wide as their text, aligned, lines between '
         'them and under the header', () {
       final lines = renderMarkdown(
+        TextSegmenter(),
         '| a | bb |\n|:-:|--:|\n| 1 | 2222 |\n| long | x |\n',
         30,
         theme,
@@ -290,6 +313,7 @@ void main() {
     test('a table wider than the width shrinks its widest column and '
         'wraps its cells', () {
       final lines = renderMarkdown(
+        TextSegmenter(),
         '| a | b |\n|---|---|\n| one two | x |\n',
         7,
         theme,
@@ -333,7 +357,7 @@ void main() {
           ),
           size: (width, 120),
         );
-        final lines = renderMarkdown(document, width, theme);
+        final lines = renderMarkdown(TextSegmenter(), document, width, theme);
         for (var y = 0; y < lines.length; y++) {
           var x = 0;
           for (final span in lines[y]) {
@@ -357,10 +381,25 @@ void main() {
 
     test('no line is wider than the width', () {
       for (final width in [8, 9, 20]) {
-        for (final line in renderMarkdown(document, width, theme)) {
+        for (final line in renderMarkdown(
+          TextSegmenter(),
+          document,
+          width,
+          theme,
+        )) {
           expect(columns(line), lessThanOrEqualTo(width), reason: text(line));
         }
       }
     });
+  });
+
+  test('lines fit the width in the segmenter given, ambiguous-wide too', () {
+    final wide = TextSegmenter(ambiguousWidth: 2);
+    for (final line in renderMarkdown(wide, 'αβγδ εζηθ', 5, theme)) {
+      expect(
+        line.fold<int>(0, (w, s) => w + wide.width(s.text)),
+        lessThanOrEqualTo(5),
+      );
+    }
   });
 }

@@ -5,7 +5,7 @@ import 'package:twk_core/twk_core.dart';
 
 /// The text of each line [text] breaks into at [width].
 List<String> lines(String text, int width, {TextWrap wrap = TextWrap.word}) => [
-  for (final (from, to) in breakLines(text, width, wrap: wrap))
+  for (final (from, to) in breakLines(TextSegmenter(), text, width, wrap: wrap))
     text.substring(from, to),
 ];
 
@@ -26,7 +26,7 @@ void main() {
 
   test('a newline ends a line; an empty text has one empty line', () {
     expect(lines('a\n\nb', 5), ['a', '', 'b']);
-    expect(breakLines('', 5), [(0, 0)]);
+    expect(breakLines(TextSegmenter(), '', 5), [(0, 0)]);
   });
 
   test('CJK breaks between its characters, not before closing punctuation', () {
@@ -42,7 +42,7 @@ void main() {
     for (var width = 1; width < 30; width++) {
       final p = RenderParagraph([(text, const Pen())]);
       final rows = <String>[];
-      final tester = breakLines(text, width);
+      final tester = breakLines(TextSegmenter(), text, width);
       p.layout(BoxConstraints(width, width, 0, 100));
       for (var y = 0; y < p.height; y++) {
         final (from, _) = p.textRangeAt(0, y);
@@ -51,5 +51,16 @@ void main() {
       }
       expect([for (final (a, b) in tester) text.substring(a, b)], rows);
     }
+  });
+
+  test('by the segmenter given: ambiguous-wide letters take two columns', () {
+    // Greek letters are ambiguous in width; 4 of them are 8 columns wide
+    const text = 'αβγδ εζηθ';
+    String join(TextSegmenter s, int width) => [
+      for (final (a, b) in breakLines(s, text, width)) text.substring(a, b),
+    ].join('|');
+    expect(join(TextSegmenter(), 5), 'αβγδ|εζηθ');
+    expect(join(TextSegmenter(ambiguousWidth: 2), 5), 'αβ|γδ|εζ|ηθ');
+    expect(join(TextSegmenter(ambiguousWidth: 2), 8), 'αβγδ|εζηθ');
   });
 }

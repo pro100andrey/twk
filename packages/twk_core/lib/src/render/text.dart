@@ -127,7 +127,9 @@ enum TextWrap {
   none,
 }
 
-/// Breaks [text] into lines of at most [width] columns as a
+/// Breaks [text] into lines of at most [width] columns, measured as
+/// [segmenter] does (the terminal's: `segmenterOf(context)`, never a plain
+/// `TextSegmenter()` for an ambiguous-wide terminal), as a
 /// [RenderParagraph] of [wrap] does, as (start, end) offsets into
 /// [text], in UTF-16 code units: the line's drawn text, without the spaces
 /// that hang at a break by word and without the line break that ends it. A
@@ -135,15 +137,17 @@ enum TextWrap {
 /// [width] stands on a line of its own.
 ///
 /// ```dart
-/// final lines = breakLines('well-known words', 8);
+/// final lines = breakLines(TextSegmenter(), 'well-known words', 8);
 /// // [(0, 5), (5, 10), (11, 16)]: "well-" "known" "words"
 /// ```
 List<(int, int)> breakLines(
+  TextSegmenter segmenter,
   String text,
   int width, {
   TextWrap wrap = TextWrap.word,
 }) {
   final p = RenderParagraph([(text, const Pen())], wrap: wrap)
+    .._segmenter = segmenter
     .._shape()
     .._findOffsets()
     .._layoutLines(width < 1 ? 1 : width);
@@ -811,6 +815,10 @@ final class RenderParagraph extends RenderObject {
 
   List<(String, Pen)> _spans;
 
+  // the segmenter of a paragraph with no owner ([breakLines]); an owner's
+  // is the one used
+  TextSegmenter? _segmenter;
+
   /// The text as spans of (text, pen), in order; their texts joined are
   /// the paragraph's text. A new list whose texts differ is split and laid
   /// out again about where they changed; one with only new pens is only
@@ -1107,7 +1115,7 @@ final class RenderParagraph extends RenderObject {
   /// segmenter splits them (an edit: where the text changed), and finds
   /// where lines may break by word if they do.
   void _shape() {
-    final seg = owner?.segmenter ?? _detachedSegmenter;
+    final seg = owner?.segmenter ?? _segmenter ?? _detachedSegmenter;
     if (_shapedMode != seg.mode || _shapedAmbiguous != seg.ambiguousWidth) {
       _split(seg);
     } else if (_textStale) {
@@ -2924,7 +2932,7 @@ final class RenderParagraph extends RenderObject {
   /// scratch at the width it last broke them at; null when nothing does.
   /// It splits and breaks again what changed first, as a layout would.
   String? debugDiffFromFresh() {
-    final seg = owner?.segmenter ?? _detachedSegmenter;
+    final seg = owner?.segmenter ?? _segmenter ?? _detachedSegmenter;
     if (_shapedMode == null) {
       return null;
     }

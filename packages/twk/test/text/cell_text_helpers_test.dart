@@ -22,6 +22,10 @@ void main() {
   });
 
   test('breakLines breaks as a Text does', () {
-    expect(breakLines('well-known words', 8), [(0, 5), (5, 10), (11, 16)]);
+    expect(breakLines(TextSegmenter(), 'well-known words', 8), [
+      (0, 5),
+      (5, 10),
+      (11, 16),
+    ]);
   });
 }

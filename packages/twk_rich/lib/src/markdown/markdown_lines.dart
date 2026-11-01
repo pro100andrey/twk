@@ -57,15 +57,21 @@ import 'stream.dart';
 /// itself; a list loses its markers and indent; a block of code its padding.
 /// Only a character wider than [width] itself is beyond it.
 ///
+/// Widths and breaks are those of [segmenter], the terminal's
+/// (`segmenterOf(context)`): a plain `TextSegmenter()` counts ambiguous-wide
+/// letters one column, and lines come out wider than [width] on a terminal
+/// that draws them in two.
+///
 /// The marks (bullets, task boxes, rules, a quote's bar) are those of
 /// [glyphs], `Glyphs.unicode` unless given: it has no context to read a
 /// theme from, so a widget passes `Theme.of(context).glyphs`, as
 /// `MarkdownView` takes its own.
 ///
 /// ```dart
-/// final lines = renderMarkdown(readme, 40, theme);
+/// final lines = renderMarkdown(TextSegmenter(), readme, 40, theme);
 /// ```
 List<List<Span>> renderMarkdown(
+  TextSegmenter segmenter,
   String text,
   int width,
   MarkdownTheme theme, {
@@ -73,7 +79,7 @@ List<List<Span>> renderMarkdown(
 }) {
   assert(width > 0, 'width < 1');
   final stream = MarkdownStream(text);
-  return _Renderer(stream.definitions, theme, glyphs)._blocks(
+  return _Renderer(segmenter, stream.definitions, theme, glyphs)._blocks(
     stream.blocks,
     width,
     1,
@@ -82,13 +88,11 @@ List<List<Span>> renderMarkdown(
   );
 }
 
-final _segmenter = TextSegmenter();
-
-int _widthOf(String text) => _segmenter.width(text);
-
 /// The lines of one document.
 final class _Renderer {
-  _Renderer(this.definitions, this.theme, this.glyphs);
+  _Renderer(this.segmenter, this.definitions, this.theme, this.glyphs);
+
+  final TextSegmenter segmenter;
 
   final Map<String, MdDefinition> definitions;
   final MarkdownTheme theme;
@@ -183,7 +187,10 @@ final class _Renderer {
 
   List<List<Span>> _list(MdList list, int width, int depth, Style base) {
     final (:markers, :column) = listMarkers(list, depth, glyphs);
-    final columnWidth = column.fold(0, (w, m) => math.max(w, _widthOf(m)));
+    final columnWidth = column.fold(
+      0,
+      (w, m) => math.max(w, segmenter.width(m)),
+    );
     final ordered = list.start != null;
     final gap = list.tight ? 0 : 1;
     // no marker column where it leaves no column for the text
@@ -209,7 +216,7 @@ final class _Renderer {
         continue;
       }
       final marker = markers[k];
-      final pad = columnWidth - _widthOf(marker);
+      final pad = columnWidth - segmenter.width(marker);
       final first = [
         if (ordered && pad > 0) Span(' ' * pad),
         Span(marker, markerStyle),
@@ -264,7 +271,7 @@ final class _Renderer {
         spans.add(Span(text, theme.syntax.styleOf(token.kind)));
       }
       for (final piece in _wrap(spans, inner, style, grapheme: true)) {
-        final shown = piece.fold<int>(0, (w, s) => w + _widthOf(s.text));
+        final shown = piece.fold<int>(0, (w, s) => w + segmenter.width(s.text));
         final fill = width - lead - shown;
         out.add(
           _merged([
@@ -296,10 +303,10 @@ final class _Renderer {
 
   /// [text] with its tabs spaces up to the next multiple of [tabWidth]
   /// columns, [from0] being the column it starts at; and the column it ends at.
-  static (String, int) _expandTabs(String text, int tabWidth, int from0) {
+  (String, int) _expandTabs(String text, int tabWidth, int from0) {
     var column = from0;
     if (!text.contains('\t')) {
-      return (text, column + _widthOf(text));
+      return (text, column + segmenter.width(text));
     }
     final out = StringBuffer();
     for (final (from, to) in graphemeBoundaries(text)) {
@@ -310,7 +317,7 @@ final class _Renderer {
         column += n;
       } else {
         out.write(cluster);
-        column += _widthOf(cluster);
+        column += segmenter.width(cluster);
       }
     }
     return (out.toString(), column);
@@ -344,7 +351,7 @@ final class _Renderer {
         .map((span) => span.text)
         .join()
         .split('\n')
-        .fold(0, (w, line) => math.max(w, _widthOf(line)));
+        .fold(0, (w, line) => math.max(w, segmenter.width(line)));
     for (var j = 0; j < columns; j++) {
       widths[j] = math.max(widths[j], widest(header[j]));
       for (final row in body) {
@@ -424,7 +431,8 @@ final class _Renderer {
     int cell,
     MdAlign align,
   ) {
-    final pad = cell - line.fold<int>(0, (w, span) => w + _widthOf(span.text));
+    final pad =
+        cell - line.fold<int>(0, (w, span) => w + segmenter.width(span.text));
     final (before, after) = switch (align) {
       MdAlign.none || MdAlign.left => (0, pad),
       MdAlign.center => (pad ~/ 2, pad - pad ~/ 2),
@@ -448,6 +456,7 @@ final class _Renderer {
   }) {
     final text = spans.map((span) => span.text).join();
     final ranges = breakLines(
+      segmenter,
       text,
       width,
       wrap: grapheme ? TextWrap.grapheme : TextWrap.word,
