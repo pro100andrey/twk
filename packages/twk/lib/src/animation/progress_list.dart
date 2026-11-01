@@ -30,6 +30,7 @@ import '../style/style.dart';
 import 'progress_bar.dart';
 import 'spinner.dart';
 import 'steps.dart';
+import 'ticker.dart';
 
 // Examples can assume:
 // late ProgressTracker tracker;
@@ -665,7 +666,9 @@ final class _ProgressListState extends State<ProgressList> {
       steps?.stop();
       steps = _steps = Steps(interval, _changed, binding: binding);
     }
-    steps.interval = interval;
+    steps
+      ..interval = interval
+      ..muted = !TickerMode.of(context);
     if (running) {
       steps.start();
     } else {
@@ -783,7 +786,7 @@ final class _List extends LeafRenderObjectWidget {
         maxBarWidth: maxBarWidth,
         styles: styles,
         binding: binding,
-      );
+      )..muted = !TickerMode.of(context);
 
   @override
   void updateRenderObject(
@@ -796,7 +799,8 @@ final class _List extends LeafRenderObjectWidget {
       ..frames = frames
       ..barShape = barShape
       ..maxBarWidth = maxBarWidth
-      ..styles = styles;
+      ..styles = styles
+      ..muted = !TickerMode.of(context);
   }
 }
 
@@ -828,6 +832,15 @@ final class _RenderProgressList extends RenderObject {
 
   // the sweep of the bars of running tasks without a total
   late final _sweep = Steps(ProgressBar.step, markNeedsPaint, binding: binding);
+
+  /// Whether the sweep stands still, for a [TickerMode] that is off.
+  bool get muted => _sweep.muted;
+  set muted(bool on) {
+    if (on != _sweep.muted) {
+      _sweep.muted = on;
+      markNeedsPaint();
+    }
+  }
 
   List<ProgressTask> _rows;
   int _more;

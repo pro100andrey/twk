@@ -33,6 +33,7 @@ import '../semantics/semantics.dart';
 import '../style/style.dart';
 import 'effect.dart';
 import 'steps.dart';
+import 'ticker.dart';
 
 /// How the [Skeleton]s and [Skeletonize]s below it look: the [glyph] their
 /// cells show, in [style], and the shimmer that sweeps over them, a band
@@ -366,11 +367,11 @@ final class _SkeletonState extends State<_Skeleton> {
         rgb &&
         binding != null &&
         !(app?.terminal.info.plain ?? false);
-    final steps = _steps ??= Steps(
+    final steps = (_steps ??= Steps(
       Skeletonize.step,
       _stepped,
       binding: binding,
-    );
+    ))..muted = !TickerMode.of(context);
     if (shimmering && !binding!.screenReader) {
       steps.start();
     } else {

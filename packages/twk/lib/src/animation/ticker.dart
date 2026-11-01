@@ -228,8 +228,11 @@ mixin TickerProviderStateMixin<T extends StatefulWidget> on State<T>
 
   @override
   Ticker createTicker(TickerCallback onTick) {
+    // read without a dependency: a state may create a ticker in initState,
+    // and didChangeDependencies, called after it, depends and is told
+    final mode = context.getInheritedWidgetOfExactType<TickerMode>();
     final ticker = Ticker(onTick, binding: AppBinding.maybeOf(context))
-      ..muted = !TickerMode.of(context);
+      ..muted = !(mode?.enabled ?? true);
     (_tickers ??= []).add(ticker);
     return ticker;
   }
@@ -239,9 +242,8 @@ mixin TickerProviderStateMixin<T extends StatefulWidget> on State<T>
   @mustCallSuper
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final tickers = _tickers;
-    if (tickers != null) {
-      final muted = !TickerMode.of(context);
+    final muted = !TickerMode.of(context);
+    if (_tickers case final tickers?) {
       for (final ticker in tickers) {
         ticker.muted = muted;
       }

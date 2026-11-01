@@ -2,6 +2,7 @@
 ///
 /// @docImport 'progress_bar.dart';
 /// @docImport 'spinner.dart';
+/// @docImport 'ticker.dart';
 library;
 
 import '../binding/app_binding.dart';
@@ -12,6 +13,8 @@ import '../binding/app_binding.dart';
 /// starts at ([AppBinding.scheduleFrameCallback]). All that step by the
 /// same interval step in the same frames, which one timer asks for.
 /// Without a binding it stays at the first step.
+///
+/// A [TickerMode] that is off mutes it ([muted]).
 ///
 /// A [Spinner] steps its frames, and a [ProgressBar] its sweep, with one.
 final class Steps {
@@ -46,7 +49,7 @@ final class Steps {
     if (i != _interval) {
       _interval = i;
       if (_callback != null) {
-        stop();
+        _cancel();
         start();
       }
     }
@@ -54,10 +57,51 @@ final class Steps {
 
   int? _callback;
 
+  var _wanted = false;
+  var _muted = false;
+  var _frozen = 0;
+  var _skipped = 0;
+  var _resume = false;
+
+  /// Whether it is muted: no frame asked for and [current] kept at the
+  /// step it was in, for a [TickerMode] that is off. Unmuted, a started one
+  /// goes on from that step.
+  bool get muted => _muted;
+  set muted(bool on) {
+    if (on == _muted) {
+      return;
+    }
+    if (on) {
+      _frozen = current;
+      _resume = false;
+      _muted = true;
+      _cancel();
+    } else {
+      // the time it was muted for is taken off when the step is next read,
+      // in a frame, whose time is the one that counts
+      _resume = true;
+      _muted = false;
+      if (_wanted) {
+        start();
+      }
+    }
+  }
+
   late final FrameCallback _stepCallback = _step;
 
   /// The step the frame running is in, or the last one between frames.
   int get current {
+    if (_muted) {
+      return _frozen;
+    }
+    if (_resume) {
+      _resume = false;
+      _skipped += _live - _frozen;
+    }
+    return _live - _skipped;
+  }
+
+  int get _live {
     final b = binding;
     return b == null
         ? 0
@@ -66,17 +110,23 @@ final class Steps {
 
   /// Calls [onStep] from the next step on.
   void start() {
+    _wanted = true;
     final b = binding;
-    if (b != null && _callback == null) {
+    if (b != null && !_muted && _callback == null) {
       _callback = b.scheduleFrameCallback(
         _stepCallback,
-        at: _interval * (current + 1),
+        at: _interval * (_live + 1),
       );
     }
   }
 
   /// Calls [onStep] no more until started again.
   void stop() {
+    _wanted = false;
+    _cancel();
+  }
+
+  void _cancel() {
     final callback = _callback;
     if (callback != null) {
       _callback = null;

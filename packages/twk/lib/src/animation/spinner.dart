@@ -21,6 +21,7 @@ import '../framework/framework.dart';
 import '../layout/box.dart' show Box;
 import '../style/style.dart';
 import 'steps.dart';
+import 'ticker.dart';
 
 /// The frames a [Spinner] shows in turn, each for [interval]: [dots],
 /// [line] and [arc], or frames of one's own.
@@ -136,7 +137,7 @@ final class Spinner extends LeafRenderObjectWidget {
       style: _style(theme),
       background: theme.background.bg,
       binding: AppBinding.maybeOf(context),
-    );
+    )..muted = !TickerMode.of(context);
   }
 
   @override
@@ -145,7 +146,8 @@ final class Spinner extends LeafRenderObjectWidget {
     renderObject
       ..frames = frames ?? theme.glyphs.spinner
       ..style = _style(theme)
-      ..background = theme.background.bg;
+      ..background = theme.background.bg
+      ..muted = !TickerMode.of(context);
   }
 
   Style _style(ThemeData theme) => theme.text.merge(style ?? theme.primary);
@@ -182,6 +184,16 @@ final class RenderSpinner extends RenderObject {
       _frames = f;
       _steps.interval = f.interval;
       markNeedsLayout();
+    }
+  }
+
+  /// Whether it stands still, for a [TickerMode] that is off: no frame
+  /// asked for, the frame it shows kept, and from that one on when unmuted.
+  bool get muted => _steps.muted;
+  set muted(bool on) {
+    if (on != _steps.muted) {
+      _steps.muted = on;
+      markNeedsPaint();
     }
   }
 

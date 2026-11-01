@@ -15,6 +15,7 @@ import '../framework/framework.dart';
 import '../semantics/semantics.dart';
 import '../style/style.dart';
 import 'steps.dart';
+import 'ticker.dart';
 
 /// A bar filled from the left as far as [value] says, in eighths of a
 /// cell; while the value is not known (null), a block a quarter of its
@@ -91,7 +92,7 @@ final class _Bar extends LeafRenderObjectWidget {
         value: value,
         style: style ?? Theme.of(context).primary,
         binding: AppBinding.maybeOf(context),
-      );
+      )..muted = !TickerMode.of(context);
 
   @override
   void updateRenderObject(
@@ -100,7 +101,8 @@ final class _Bar extends LeafRenderObjectWidget {
   ) {
     renderObject
       ..value = value
-      ..style = style ?? Theme.of(context).primary;
+      ..style = style ?? Theme.of(context).primary
+      ..muted = !TickerMode.of(context);
   }
 }
 
@@ -120,6 +122,15 @@ final class RenderProgressBar extends RenderObject {
     markNeedsPaint,
     binding: binding,
   );
+
+  /// Whether the block stands still, for a [TickerMode] that is off.
+  bool get muted => _steps.muted;
+  set muted(bool on) {
+    if (on != _steps.muted) {
+      _steps.muted = on;
+      markNeedsPaint();
+    }
+  }
 
   double? _value;
 

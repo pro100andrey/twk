@@ -17,6 +17,7 @@ import 'package:twk_core/twk_core.dart'
 
 import '../animation/spinner.dart';
 import '../animation/steps.dart';
+import '../animation/ticker.dart';
 import '../binding/app_binding.dart';
 import '../foundation/format.dart';
 import '../framework/framework.dart';
@@ -258,7 +259,7 @@ final class _TaskRow extends SingleChildRenderObjectWidget {
     markStyle: markStyle,
     elapsedStyle: elapsedStyle,
     binding: binding,
-  );
+  )..muted = !TickerMode.of(context);
 
   @override
   void updateRenderObject(BuildContext context, _RenderTaskRow renderObject) {
@@ -270,7 +271,8 @@ final class _TaskRow extends SingleChildRenderObjectWidget {
       ..elapsed = elapsed
       ..style = style
       ..markStyle = markStyle
-      ..elapsedStyle = elapsedStyle;
+      ..elapsedStyle = elapsedStyle
+      ..muted = !TickerMode.of(context);
   }
 }
 
@@ -315,6 +317,23 @@ final class _RenderTaskRow extends RenderObject
     markNeedsPaint,
     binding: binding,
   );
+
+  /// Whether the spinner and the time stand still, for a [TickerMode] that
+  /// is off: no frame asked for; unmuted, the time is shown anew.
+  bool get muted => _steps.muted;
+  set muted(bool on) {
+    if (on == _steps.muted) {
+      return;
+    }
+    _steps.muted = on;
+    if (on) {
+      _stopTicking();
+    } else {
+      _show();
+      _startTicking();
+    }
+    markNeedsPaint();
+  }
 
   // when the task was set running and when it stopped, on the app's clock
   Duration? _started;
