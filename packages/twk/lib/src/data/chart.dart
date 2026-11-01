@@ -235,6 +235,7 @@ final class Chart extends LeafRenderObjectWidget {
     marker: marker,
     legendPosition: legendPosition,
     style: overTheme(context, style),
+    lines: Theme.of(context).glyphs.lines,
   );
 
   @override
@@ -245,7 +246,8 @@ final class Chart extends LeafRenderObjectWidget {
       ..yAxis = yAxis
       ..marker = marker
       ..legendPosition = legendPosition
-      ..style = overTheme(context, style);
+      ..style = overTheme(context, style)
+      ..lines = Theme.of(context).glyphs.lines;
   }
 }
 
@@ -265,6 +267,7 @@ final class RenderChart extends RenderObject {
     this._marker = Marker.braille,
     this._legendPosition = LegendPosition.topRight,
     this._style = const Style(),
+    this._lines = BorderType.single,
   });
 
   List<Dataset> _datasets;
@@ -334,6 +337,17 @@ final class RenderChart extends RenderObject {
     }
   }
 
+  BorderType _lines;
+
+  /// The lines of the axes and the grid, as the theme's [Glyphs.lines].
+  BorderType get lines => _lines;
+  set lines(BorderType l) {
+    if (l != _lines) {
+      _lines = l;
+      markNeedsPaint();
+    }
+  }
+
   final _grid = DotGrid();
   final _glyphs = ChartGlyphs();
 
@@ -363,7 +377,7 @@ final class RenderChart extends RenderObject {
       return;
     }
     _segmenter = canvas.segmenter;
-    final lines = (_glyphs..use(_segmenter)).lines(BorderType.single);
+    final lines = (_glyphs..use(_segmenter)).lines(_lines);
     final xPen = base.merge(_xAxis.style).penIn(styles);
     final yPen = base.merge(_yAxis.style).penIn(styles);
 

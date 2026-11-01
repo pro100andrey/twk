@@ -2300,7 +2300,7 @@ final class _RenderMenuBox extends RenderObject {
     }
     final border = s.border.penIn(styles);
     final ambiguous = owner?.segmenter.ambiguousWidth ?? 1;
-    final lines = ambiguous == 1 ? BorderType.single : BorderType.ascii;
+    final lines = ambiguous == 1 ? s.glyphs.lines : BorderType.ascii;
     final across = lines.glyph(left: true, right: true);
     final down = lines.glyph(up: true, down: true);
     if (s.raised) {

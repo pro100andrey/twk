@@ -116,7 +116,7 @@ final class Callout extends StatelessWidget {
     this.onDismissed,
     this.actions = const [],
     this.style,
-    this.borderType = BorderType.single,
+    this.borderType,
     this.titleStyle,
   }) : _message = null;
 
@@ -130,7 +130,7 @@ final class Callout extends StatelessWidget {
     this.onDismissed,
     this.actions = const [],
     this.style,
-    this.borderType = BorderType.single,
+    this.borderType,
     this.titleStyle,
   }) : _child = null;
 
@@ -164,10 +164,10 @@ final class Callout extends StatelessWidget {
   /// The box and the child's text, over the theme's text.
   final Style? style;
 
-  /// The lines of the box: [BorderType.single] by default, a
+  /// The lines of the box: the theme's ([Glyphs.lines]) when null, a
   /// [BorderType.rounded] or [BorderType.heavy] frame for an app's look.
   /// Not used on plain output, which has no box.
-  final BorderType borderType;
+  final BorderType? borderType;
 
   /// Over the kind's color in bold, for the title (and the icon); null
   /// for those alone.
@@ -226,14 +226,15 @@ final class Callout extends StatelessWidget {
       }
     } else {
       final onDismissed = this.onDismissed;
+      final dash = lineMark(theme.glyphs, borderType);
       callout = Box(
         style: text,
         border: Border.all(type: borderType, style: colored),
         titles: [
-          BorderTitle('─ $head ─', style: marked),
+          BorderTitle('$dash $head $dash', style: marked),
           if (onDismissed != null)
             BorderTitle(
-              '[${theme.glyphs.close}]─',
+              '[${theme.glyphs.close}]$dash',
               alignment: Alignment.topRight,
             ),
         ],

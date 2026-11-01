@@ -1454,7 +1454,7 @@ final class _RenderTreeRow extends RenderObject
     final mark = _mark;
     if (_guides && level > 0) {
       _glyphs.use(canvas.segmenter);
-      final type = _glyphs.lines(BorderType.single);
+      final type = _glyphs.lines(_set.lines);
       final pen = _style.merge(_guideStyle).penIn(styles);
       final down = type.glyph(up: true, down: true);
       for (var j = 0; j < _lines.length && j < level - 1; j++) {

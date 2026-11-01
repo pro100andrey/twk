@@ -306,6 +306,16 @@ void main() {
       'gaugeHalf': (g, v) => g.copyWith(gaugeHalf: v),
       'gaugeEmpty': (g, v) => g.copyWith(gaugeEmpty: v),
       'spinner': (g, v) => g.copyWith(spinner: SpinnerFrames.line),
+      'lines': (g, v) => g.copyWith(lines: BorderType.double),
+      'arrowLeft': (g, v) => g.copyWith(arrowLeft: v),
+      'arrowRight': (g, v) => g.copyWith(arrowRight: v),
+      'arrowUp': (g, v) => g.copyWith(arrowUp: v),
+      'arrowDown': (g, v) => g.copyWith(arrowDown: v),
+      'pointer': (g, v) => g.copyWith(pointer: v),
+      'menu': (g, v) => g.copyWith(menu: v),
+      'shades': (g, v) => g.copyWith(shades: [' ', v]),
+      'swatch': (g, v) => g.copyWith(swatch: v),
+      'ellipsis': (g, v) => g.copyWith(ellipsis: v),
     };
 
     test('the table names every field of the constructor', () {
@@ -318,7 +328,7 @@ void main() {
         ).allMatches(source.substring(start, end)))
           m.group(1)!,
       };
-      expect(fields.length, 45);
+      expect(fields.length, 55);
       expect(changes.keys.toSet(), fields);
     });
 

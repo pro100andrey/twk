@@ -684,9 +684,9 @@ final class _TreeTableState<T> extends State<TreeTable<T>>
 
   /// The guides drawn as [segmenter] draws them: box drawing, or ASCII
   /// where that is two columns wide.
-  void _useGuides(TextSegmenter segmenter) {
+  void _useGuides(TextSegmenter segmenter, BorderType lines) {
     _glyphs.use(segmenter);
-    final type = _glyphs.lines(BorderType.single);
+    final type = _glyphs.lines(lines);
     final across = String.fromCharCode(type.glyph(left: true, right: true));
     _down = '${String.fromCharCode(type.glyph(up: true, down: true))} ';
     _tee =
@@ -779,6 +779,7 @@ final class _TreeTableState<T> extends State<TreeTable<T>>
     _errorStyle = theme.error;
     _useGuides(
       AppBinding.maybeOf(context)?.twkApp.owner.segmenter ?? _segmenter,
+      theme.glyphs.lines,
     );
     final rows = _shown;
     if (_before case final before?) {

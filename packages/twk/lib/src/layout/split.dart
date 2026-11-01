@@ -318,7 +318,7 @@ final class SplitView extends StatefulWidget {
     this.direction = Axis.horizontal,
     this.controller,
     this.shareEdges = false,
-    this.type = BorderType.single,
+    this.type,
     this.style = const Style(),
     this.focusedStyle,
     this.pointerShapes = true,
@@ -334,8 +334,9 @@ final class SplitView extends StatefulWidget {
   /// one of its own when null.
   final SplitController? controller;
 
-  /// The lines the dividers are drawn with.
-  final BorderType type;
+  /// The lines the dividers are drawn with; null for the theme's
+  /// ([Glyphs.lines]).
+  final BorderType? type;
 
   /// The dividers' lines.
   final Style style;

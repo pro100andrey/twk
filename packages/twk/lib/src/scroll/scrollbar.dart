@@ -250,13 +250,14 @@ final class BorderScrollbar extends StatefulWidget {
     required this.thumb,
     required this.inset,
     required this.builder,
-    this.type = BorderType.single,
+    this.type,
     super.key,
   });
 
   /// The border's lines: the track is its straight line, the thumb a
-  /// heavier one of its own, or `#` for [BorderType.ascii].
-  final BorderType type;
+  /// heavier one of its own, or `#` for [BorderType.ascii]; null for the
+  /// theme's ([Glyphs.lines]).
+  final BorderType? type;
 
   /// The axis of the scrollable it shows.
   final Axis axis;
@@ -342,7 +343,7 @@ final class _BorderScrollbarState extends State<BorderScrollbar> {
                 line: line,
                 hovered: _hovered,
                 onBorder: true,
-                borderType: widget.type,
+                borderType: Theme.of(context).glyphs.borderOf(widget.type),
               ),
             ),
           ),

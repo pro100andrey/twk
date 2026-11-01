@@ -4,7 +4,7 @@ library;
 
 import 'package:meta/meta.dart';
 import 'package:twk_core/twk_core.dart'
-    show LogLevel, LogRecord, RenderObject, TextSegmenter, log;
+    show BorderType, LogLevel, LogRecord, RenderObject, TextSegmenter, log;
 
 import '../animation/spinner.dart' show SpinnerFrames;
 import '../binding/app_binding.dart' show AppBinding;
@@ -113,6 +113,16 @@ final class Glyphs {
     this.gaugeHalf = '╴',
     this.gaugeEmpty = '─',
     this.spinner = SpinnerFrames.dots,
+    this.lines = BorderType.single,
+    this.arrowLeft = '←',
+    this.arrowRight = '→',
+    this.arrowUp = '↑',
+    this.arrowDown = '↓',
+    this.pointer = '▶',
+    this.menu = '≡',
+    this.shades = const [' ', '░', '▒', '▓', '█'],
+    this.swatch = '■',
+    this.ellipsis = '…',
   });
 
   /// The set [t] of the way from [a] to [b]: marks do not blend, so [a]'s
@@ -168,6 +178,16 @@ final class Glyphs {
     gaugeHalf: null,
     gaugeEmpty: '-',
     spinner: SpinnerFrames.line,
+    lines: BorderType.ascii,
+    arrowLeft: '<',
+    arrowRight: '>',
+    arrowUp: '^',
+    arrowDown: 'v',
+    pointer: '>',
+    menu: '=',
+    shades: [' ', '.', ':', '+', '#'],
+    swatch: '#',
+    ellipsis: '...',
   );
 
   /// The bar at the left of the row the cursor is on in a list, a menu or
@@ -334,6 +354,60 @@ final class Glyphs {
   /// list.
   final SpinnerFrames spinner;
 
+  /// The lines of a box, a divider, a split's bar, a callout, a tree's
+  /// guides and a rule, for every one given no type of its own
+  /// (`Border.type`, `Divider.type` and the like are null then):
+  /// [BorderType.single], or [BorderType.ascii] (`+-|`).
+  ///
+  /// A set whose `lines` is [BorderType.ascii] draws every line ASCII,
+  /// also where a widget says `rounded`, `heavy` or `double`: see
+  /// [borderOf].
+  final BorderType lines;
+
+  /// An arrow to the left: a key hint's, a dock's side to drop on.
+  final String arrowLeft;
+
+  /// An arrow to the right.
+  final String arrowRight;
+
+  /// An arrow up: a key hint's, a dock's side to drop on.
+  final String arrowUp;
+
+  /// An arrow down: a key hint's, a dock's side, the log view's "new lines
+  /// below".
+  final String arrowDown;
+
+  /// What points at a row: the row of a traceback the error is in.
+  final String pointer;
+
+  /// The menu toggle of a scaffold: three bars.
+  final String menu;
+
+  /// The shades of a fill, from none to full, at least two: a blank, a
+  /// light, a medium, a dark and a full cell. A heatmap's ramp; the
+  /// skeleton's mark is the light one (index 1).
+  final List<String> shades;
+
+  /// A solid square: a swatch of a color, the centre of a dock's target.
+  final String swatch;
+
+  /// The mark of text cut short, in the rows of a widget that cuts its own
+  /// text (a breadcrumb, a page list, a JSON view). It may be longer than
+  /// one column (`...`). The core's text overflow is not it.
+  final String ellipsis;
+
+  /// [type] as it is drawn in this set: [lines] where [type] is null, and
+  /// [BorderType.ascii] where [lines] is that and [type] is any line but
+  /// [BorderType.none]; else [type] as it is.
+  BorderType borderOf(BorderType? type) {
+    if (type == null) {
+      return lines;
+    }
+    return lines == BorderType.ascii && type != BorderType.none
+        ? BorderType.ascii
+        : type;
+  }
+
   /// This set with the marks given in place of its own; [clearGaugeHalf]
   /// leaves it with no [gaugeHalf], whatever `gaugeHalf` says.
   Glyphs copyWith({
@@ -383,6 +457,16 @@ final class Glyphs {
     bool clearGaugeHalf = false,
     String? gaugeEmpty,
     SpinnerFrames? spinner,
+    BorderType? lines,
+    String? arrowLeft,
+    String? arrowRight,
+    String? arrowUp,
+    String? arrowDown,
+    String? pointer,
+    String? menu,
+    List<String>? shades,
+    String? swatch,
+    String? ellipsis,
   }) => Glyphs(
     cursor: cursor ?? this.cursor,
     accent: accent ?? this.accent,
@@ -429,6 +513,16 @@ final class Glyphs {
     gaugeHalf: clearGaugeHalf ? null : gaugeHalf ?? this.gaugeHalf,
     gaugeEmpty: gaugeEmpty ?? this.gaugeEmpty,
     spinner: spinner ?? this.spinner,
+    lines: lines ?? this.lines,
+    arrowLeft: arrowLeft ?? this.arrowLeft,
+    arrowRight: arrowRight ?? this.arrowRight,
+    arrowUp: arrowUp ?? this.arrowUp,
+    arrowDown: arrowDown ?? this.arrowDown,
+    pointer: pointer ?? this.pointer,
+    menu: menu ?? this.menu,
+    shades: shades ?? this.shades,
+    swatch: swatch ?? this.swatch,
+    ellipsis: ellipsis ?? this.ellipsis,
   );
 
   List<Object?> get _all => [
@@ -477,6 +571,17 @@ final class Glyphs {
     gaugeHalf,
     gaugeEmpty,
     spinner,
+    lines,
+    arrowLeft,
+    arrowRight,
+    arrowUp,
+    arrowDown,
+    pointer,
+    menu,
+    // a list by its marks, not by identity
+    shades.join('\u0000'),
+    swatch,
+    ellipsis,
   ];
 
   @override
@@ -587,6 +692,18 @@ String textMark(
   );
   return fits ? glyph : fallback;
 }
+
+/// The straight line of the border [type] (the theme's [Glyphs.lines] when
+/// null) across, for a dash drawn as text in a row (a title on a box's
+/// edge, a stepper's line): the line of [Glyphs.borderOf], a blank for
+/// [BorderType.none]. Its width is the text's to measure.
+@internal
+String lineMark(Glyphs glyphs, BorderType? type, {bool down = false}) =>
+    String.fromCharCode(
+      glyphs
+          .borderOf(type)
+          .glyph(up: down, down: down, left: !down, right: !down),
+    );
 
 /// The marks of a checkbox as [textMark] fits them for [context]: the
 /// brackets, the mark that is on and the mark that is off, in `x` and a

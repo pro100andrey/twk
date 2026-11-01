@@ -160,7 +160,7 @@ final class _DecoratedBox extends SingleChildRenderObjectWidget {
   RenderDecoratedBox createRenderObject(BuildContext context) =>
       RenderDecoratedBox(
         background: box.style?.pen,
-        border: box.border?._boxBorder,
+        border: box.border?._boxBorder(Theme.of(context).glyphs),
         titles: _boxTitles,
         padding: box.padding,
       );
@@ -172,7 +172,7 @@ final class _DecoratedBox extends SingleChildRenderObjectWidget {
   ) {
     renderObject
       ..background = box.style?.pen
-      ..border = box.border?._boxBorder
+      ..border = box.border?._boxBorder(Theme.of(context).glyphs)
       ..titles = _boxTitles
       ..padding = box.padding;
   }
@@ -195,7 +195,7 @@ final class Border {
   /// A border of [type] on each side given a style; with none given, no
   /// border at all.
   const Border({
-    this.type = BorderType.single,
+    this.type,
     this.top,
     this.right,
     this.bottom,
@@ -205,7 +205,7 @@ final class Border {
 
   /// A border on every side, in [style].
   const Border.all({
-    this.type = BorderType.single,
+    this.type,
     Style style = const Style(),
     this.merge = false,
   }) : top = style,
@@ -213,8 +213,11 @@ final class Border {
        bottom = style,
        left = style;
 
-  /// The lines the border is drawn with: [BorderType.single] by default.
-  final BorderType type;
+  /// The lines the border is drawn with; null for the theme's
+  /// ([Glyphs.lines], [BorderType.single] by default). A theme of
+  /// [BorderType.ascii] lines draws every type but [BorderType.none] as
+  /// ASCII ([Glyphs.borderOf]).
+  final BorderType? type;
 
   /// The style of the top side; null for no line there.
   final Style? top;
@@ -234,8 +237,8 @@ final class Border {
   /// box whose edge it shares). See [BoxBorder.merge].
   final bool merge;
 
-  BoxBorder get _boxBorder => BoxBorder(
-    type: type,
+  BoxBorder _boxBorder(Glyphs glyphs) => BoxBorder(
+    type: glyphs.borderOf(type),
     top: top?.pen,
     right: right?.pen,
     bottom: bottom?.pen,
@@ -327,20 +330,20 @@ final class Divider extends LeafRenderObjectWidget {
   /// lines it meets.
   const Divider({
     super.key,
-    this.type = BorderType.single,
+    this.type,
     this.style = const Style(),
     this.merge = false,
   }) : _direction = Axis.horizontal;
 
   const Divider._down({
     super.key,
-    this.type = BorderType.single,
+    this.type,
     this.style = const Style(),
     this.merge = false,
   }) : _direction = Axis.vertical;
 
-  /// The line it is drawn with: [BorderType.single] by default.
-  final BorderType type;
+  /// The line it is drawn with; null for the theme's ([Glyphs.lines]).
+  final BorderType? type;
 
   /// The style of the line.
   final Style style;
@@ -354,7 +357,7 @@ final class Divider extends LeafRenderObjectWidget {
   @override
   RenderDivider createRenderObject(BuildContext context) => RenderDivider(
     direction: _direction,
-    type: type,
+    type: Theme.of(context).glyphs.borderOf(type),
     pen: style.pen,
     merge: merge,
   );
@@ -363,7 +366,7 @@ final class Divider extends LeafRenderObjectWidget {
   void updateRenderObject(BuildContext context, RenderDivider renderObject) {
     renderObject
       ..direction = _direction
-      ..type = type
+      ..type = Theme.of(context).glyphs.borderOf(type)
       ..pen = style.pen
       ..merge = merge;
   }

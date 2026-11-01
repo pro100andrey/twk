@@ -1311,7 +1311,7 @@ final class _TableState<T> extends State<Table<T>> {
                   onUp: _headerUp,
                   child: _Row(
                     columns: _columns,
-                    lines: w.border,
+                    lines: Theme.of(context).glyphs.borderOf(w.border),
                     rule: w.border != BorderType.none,
                     background: styles.base,
                     style: styles.header,
@@ -1427,7 +1427,7 @@ final class _TableState<T> extends State<Table<T>> {
       onDown: w.selection == TableSelection.none ? null : onDown,
       child: _Row(
         columns: _columns,
-        lines: w.border,
+        lines: Theme.of(context).glyphs.borderOf(w.border),
         background: styles.base,
         style: style,
         lineStyle: styles.border,
