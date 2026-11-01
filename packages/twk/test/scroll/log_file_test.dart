@@ -107,6 +107,29 @@ void main() {
         : 'no directory watch here: the poll cannot tell a replaced file',
   );
 
+  test('a file of another name ending with it is not it: made beside the '
+      'file followed, it does not read that again', () async {
+    File(path).writeAsStringSync('one\ntwo\n');
+    final c = follow(fromEnd: false);
+    await holds(c, ['one', 'two']);
+    File(
+      '${dir.path}${Platform.pathSeparator}old_app.log',
+    ).writeAsStringSync('other\n');
+    await clock.elapse(poll);
+    await clock.elapse(poll);
+    expect(texts(c), ['one', 'two']);
+  });
+
+  test('a file cut short drops the line the old one left unended', () async {
+    File(path).writeAsStringSync('first\n');
+    final c = follow();
+    await clock.elapse(poll);
+    File(path).writeAsStringSync('second\nabc', mode: FileMode.append);
+    await holds(c, ['second']);
+    File(path).writeAsStringSync('x\n');
+    await holds(c, ['second', 'x']);
+  });
+
   test('disposed without cancelling: the stream and the file are let go of, '
       'and the subscription returned cancels again', () async {
     final out = StreamController<String>();

@@ -3,8 +3,9 @@
 /// and `N`.
 library;
 
-import 'dart:async' show Stream, StreamSubscription, unawaited;
-import 'dart:convert' show Utf8Decoder;
+import 'dart:async'
+    show Stream, StreamController, StreamSubscription, unawaited;
+import 'dart:convert' show ByteConversionSink, Utf8Decoder;
 import 'dart:math' show max, min;
 
 import 'package:meta/meta.dart' show visibleForTesting;
@@ -38,7 +39,7 @@ import '../gestures/mouse.dart' show Listener, PointerEvent;
 import '../gestures/selection.dart' show Selectable, SelectionArea;
 import '../layout/one_child.dart';
 import '../layout/stack.dart';
-import '../platform/platform.dart' show tailFile;
+import '../platform/platform.dart' show fileReset, tailFile;
 import '../style/style.dart';
 import '../text/smartcase.dart';
 import '../text/widgets.dart';
@@ -232,8 +233,16 @@ final class LogController extends ChangeNotifier {
     Stream<String> output, {
     LogLevel level = LogLevel.info,
     int tabWidth = 8,
-  }) {
-    final reader = AnsiStream(tabWidth: tabWidth);
+  }) => _listen(output, level, tabWidth);
+
+  /// [listen] of [output] in which [_cut] is the end of the output so far, as
+  /// of a file cut short: the line not ended is dropped.
+  StreamSubscription<String> _listen(
+    Stream<String> output,
+    LogLevel level,
+    int tabWidth,
+  ) {
+    var reader = AnsiStream(tabWidth: tabWidth);
     void addEnded() {
       final ended = reader.takeSettled();
       if (ended.isEmpty) {
@@ -249,6 +258,11 @@ final class LogController extends ChangeNotifier {
     late final StreamSubscription<String> subscription;
     subscription = output.listen(
       (piece) {
+        if (identical(piece, _cut)) {
+          addEnded();
+          reader = AnsiStream(tabWidth: tabWidth);
+          return;
+        }
         reader.add(piece);
         addEnded();
       },
@@ -297,14 +311,59 @@ final class LogController extends ChangeNotifier {
     bool fromEnd = true,
     Duration poll = const Duration(seconds: 1),
     LogLevel level = LogLevel.info,
-  }) => listen(
-    tailFile(
-      path,
-      fromEnd: fromEnd,
-      poll: poll,
-    ).transform(const Utf8Decoder(allowMalformed: true)),
-    level: level,
+  }) => _listen(
+    _decoded(tailFile(path, fromEnd: fromEnd, poll: poll)),
+    level,
+    8,
   );
+
+  /// The text of [bytes], with [_cut] where the file was read again from
+  /// its start: what the old file left unended (a cut UTF-8 character
+  /// too) is not the start of the next line.
+  static Stream<String> _decoded(Stream<List<int>> bytes) {
+    final pieces = <String>[];
+    ByteConversionSink? decoder;
+    late final StreamSubscription<List<int>> subscription;
+    late final StreamController<String> out;
+    ByteConversionSink fresh() => const Utf8Decoder(
+      allowMalformed: true,
+    ).startChunkedConversion(_Pieces(pieces));
+    void flush() {
+      for (final piece in pieces) {
+        out.add(piece);
+      }
+      pieces.clear();
+    }
+
+    out = StreamController<String>(
+      // listened to at once: the file's end is taken as it is
+      onListen: () {
+        decoder = fresh();
+        subscription = bytes.listen(
+          (chunk) {
+            if (identical(chunk, fileReset)) {
+              pieces.clear();
+              decoder = fresh();
+              out.add(_cut);
+              return;
+            }
+            decoder!.add(chunk);
+            flush();
+          },
+          onError: out.addError,
+          onDone: () {
+            decoder!.close();
+            flush();
+            unawaited(out.close());
+          },
+        );
+      },
+      onPause: () => subscription.pause(),
+      onResume: () => subscription.resume(),
+      onCancel: () => subscription.cancel(),
+    );
+    return out.stream;
+  }
 
   static String _textOf(List<Span> spans) => switch (spans) {
     [] => '',
@@ -1652,4 +1711,22 @@ final class _RenderLine extends RenderObject with RenderObjectWithChildMixin {
     paintChild(ctx, _paragraph);
     ctx.canvas.restore();
   }
+}
+
+/// The piece [LogController._decoded] puts where a file was read again from
+/// its start, told by identity.
+final _cut = String.fromCharCodes(const [0, 0]);
+
+/// The sink a chunked decoder writes the pieces of text to, kept in
+/// [pieces].
+final class _Pieces implements Sink<String> {
+  _Pieces(this.pieces);
+
+  final List<String> pieces;
+
+  @override
+  void add(String data) => pieces.add(data);
+
+  @override
+  void close() {}
 }

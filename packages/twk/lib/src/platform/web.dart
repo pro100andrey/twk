@@ -7,6 +7,7 @@
 library;
 
 import 'dart:async';
+import 'dart:typed_data' show Uint8List;
 
 /// None on the web.
 Map<String, String> get environment => const {};
@@ -56,6 +57,10 @@ Future<int?> fileSize(String path) async => null;
 
 /// Ends at once: the web has no directories to watch.
 Stream<void> watchDirectory(String path) => const Stream.empty();
+
+/// What `tailFile` puts into its stream where a file is read again from
+/// its start; never, on the web.
+final List<int> fileReset = Uint8List(0);
 
 /// Fails with [UnsupportedError]: the web has no files to follow.
 Stream<List<int>> tailFile(

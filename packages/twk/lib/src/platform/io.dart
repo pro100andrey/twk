@@ -6,6 +6,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate' show Isolate;
+import 'dart:math' show max;
+import 'dart:typed_data' show Uint8List;
 
 /// The process's environment.
 Map<String, String> get environment => Platform.environment;
@@ -82,13 +84,20 @@ Stream<void> watchDirectory(String path) {
   }
 }
 
+/// What [tailFile] puts into its stream where the file was cut short or
+/// replaced and is read from its start again: the bytes before it are of
+/// the old file, and a line they left unended is not the start of the next
+/// one. Told by identity, not by what it holds (nothing).
+final List<int> fileReset = Uint8List(0);
+
 /// Streams the bytes written to the file at [path] from when the stream is
 /// listened to, or with [fromEnd] false from its start, as they come: told
 /// by a watch of its directory where the system has one, and found by a
 /// look at its size each [poll] all the same, where a watch misses a write
 /// or does not work (a network drive). A file cut shorter than what was
 /// read (truncated, written anew) is read again from its start; one not
-/// there yet is waited for. Ends when the subscription is cancelled.
+/// there yet is waited for. Where one is read again from its start, the
+/// stream holds [fileReset] first. Ends when the subscription is cancelled.
 ///
 /// A file replaced at [path] (another renamed over it, as log rotation and
 /// atomic saves do) is read from its start too, but only where the watch
@@ -133,10 +142,14 @@ Stream<List<int>> tailFile(
         again = false;
         if (replaced) {
           replaced = false;
+          if (position > 0) {
+            out.add(fileReset);
+          }
           position = 0;
         }
         final end = await length();
         if (end < position) {
+          out.add(fileReset);
           position = 0;
         }
         if (end > position) {
@@ -195,7 +208,14 @@ Stream<List<int>> tailFile(
 /// Whether [e] is of the entry called [name]: made, written, removed, or
 /// moved from or onto it.
 bool _names(FileSystemEvent e, String name) =>
-    e.path.endsWith(name) || _movedOnto(e, name);
+    _baseName(e.path) == name || _movedOnto(e, name);
+
+/// The last segment of [path], the name of the entry.
+String _baseName(String path) {
+  final slash = path.lastIndexOf('/');
+  final cut = Platform.isWindows ? max(slash, path.lastIndexOf(r'\')) : slash;
+  return path.substring(cut + 1);
+}
 
 /// Whether [e] puts a file at [name]: made there, or moved onto it.
 bool _replaces(FileSystemEvent e, String name) =>
@@ -206,7 +226,7 @@ bool _movedOnto(FileSystemEvent e, String name) {
     return false;
   }
   final to = e.destination;
-  return to != null && to.endsWith(name);
+  return to != null && _baseName(to) == name;
 }
 
 /// Writes [text] to the file at [path] in place of what it held.
