@@ -47,6 +47,10 @@ import 'layer.dart';
 /// and takes it away at once.
 ///
 /// The popover takes no focus of its own: the keys go where the focus is.
+/// What it shows is in a focus scope of its own that requests nothing, so
+/// a node of it with `autofocus` gets the focus, with a navigator above the
+/// popover as without one, and what has none leaves the focus where it
+/// was; Tab inside goes round the popover's own nodes.
 /// Its nodes are under the node above the overlay, not under the child's,
 /// so the keys it leaves go to the nodes above the overlay. Its entry is
 /// inserted once the popover is first built, so one built open shows from
@@ -351,6 +355,12 @@ final class _InsideState extends State<_Inside> {
   }
 
   @override
-  Widget build(BuildContext context) =>
-      Focus(focusNode: _node, child: widget.child);
+  Widget build(BuildContext context) => Focus(
+    focusNode: _node,
+    child: FocusScope(
+      debugLabel: 'popover content',
+      canRequestFocus: false,
+      child: widget.child,
+    ),
+  );
 }
