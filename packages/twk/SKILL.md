@@ -715,6 +715,29 @@ What to know:
 
 ## Pitfalls
 
+- Before writing a widget of your own that twk has, read what it already
+  sets (its catalog page, `doc/widgets/`): the authors who copied these
+  had not.
+  - `LineGauge`: `type: .heavy` is `━` over `─`, `.ascii` too; with
+    `type` null the marks are `glyphs.gaugeFilled`/`gaugeEmpty`;
+    `segmented`; colour by level is a `filledStyle` picked from the
+    ratio; its width is the room it gets.
+  - `Callout`: `kind` (colour and icon), `icon: ''` for none, `title`,
+    `actions`, `style`; `onDismissed` null draws no `[×]`. Its border is
+    always a single line.
+  - `Button`: chip, `.outlined`, `.filled`, `tall`, the state styles; a
+    flat clickable word is `canRequestFocus: false` with a style without
+    a chip. Its label is one string in one style.
+  - `RadioGroup.mark` (`glyphs.dot` by default), the parentheses always
+    drawn; `SegmentedButton`'s `caps`, `showSelectedIcon`; `Select`'s
+    `popupLook`, `arrowStyle`, `inline`, `rows`; `‹ x ›` is
+    `ValueStepper`, chips are `Chip` and `ChipList`.
+  - `Dialog`: `title`, `trailing`, `look`, `shadow`, `padding`,
+    `maxWidth`, `scrollable`; `showDialog`'s `alignment` and
+    `barrierAlpha: 0` for no dimming. No bare look, no placing at a cell.
+  - `CommandPalette`: `look`, `width`, `rows`, `prompt`, `placeholder`,
+    `rule`, `bar`, `thumb`, `barrierAlpha`, `hintedKeys`; its ranking is
+    the exported `fuzzyMatch`.
 - A mark drawn by hand (`Text('✓ done')`, `Span('▸ ')`) stays Unicode
   whatever the theme says: take it from `Theme.of(context).glyphs.check`,
   `.collapsed` and the rest, or from the widget that draws it

@@ -2,7 +2,6 @@
 // as the design has it (the stage's dots, the segmented choice, the list's
 // gliding bar), through a small painter over twk's Canvas.
 import 'package:twk/twk.dart';
-import 'package:twk_core/twk_core.dart' show fitText;
 
 /// [a] [k] of the way to [b], each channel rounded, as the design's `mix`
 /// and twk's tokens blend: [b] at 1 and above, [a] at 0 and below; [b]
