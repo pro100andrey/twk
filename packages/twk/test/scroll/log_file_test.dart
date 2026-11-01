@@ -83,4 +83,27 @@ void main() {
     await holds(c, ['first', 'second']);
     expect(c[0].spans?.first.style.fg, Color.red);
   });
+
+  test(
+    'a longer file renamed over it is read from its start',
+    () async {
+      File(path).writeAsStringSync('old\n');
+      final c = follow();
+      await clock.elapse(poll);
+      final other = '${dir.path}${Platform.pathSeparator}rotated.log';
+      File(other).writeAsStringSync('replacement 1\nreplacement 2\n');
+      File(other).renameSync(path);
+      await waitUntil(
+        () =>
+            texts(c).length >= 2 &&
+            '${texts(c).sublist(texts(c).length - 2)}' ==
+                '[replacement 1, replacement 2]',
+        'the replacement from its start, not ${texts(c)}',
+        between: () => clock.elapse(poll),
+      );
+    },
+    skip: FileSystemEntity.isWatchSupported
+        ? false
+        : 'no directory watch here: the poll cannot tell a replaced file',
+  );
 }

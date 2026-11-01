@@ -255,17 +255,19 @@ final class LogController extends ChangeNotifier {
     );
   }
 
-  /// Adds the lines written to the file at [path], as [listen] adds those
-  /// of a program's output (in its colors, a carriage return writing a line
-  /// over), each line once it ends: those written from the call on, or with
-  /// [fromEnd] false the file's from its start too. A write is told by a
-  /// watch of the file's directory where the system has one, and found by
-  /// a look at the file's size each [poll] all the same; a file cut short
-  /// (truncated after a clean, written anew) is read again from its start,
-  /// and one not there yet is waited for. Malformed UTF-8 is U+FFFD.
-  /// Cancel the subscription to stop following it. Not on the web, which
-  /// has no files: the subscription's `onError` gets an
-  /// [UnsupportedError].
+  /// Follows the file at [path], adding the lines written to it as [listen]
+  /// adds those of a program's output (in its colors, a carriage return
+  /// writing a line over), each line once it ends: those written from the
+  /// call on, or with [fromEnd] false the file's from its start too. A write
+  /// is told by a watch of the file's directory where the system has one, and
+  /// found by a look at the file's size each [poll] all the same; a file cut
+  /// short (truncated after a clean, written anew) is read again from its
+  /// start, and so is one replaced at the path (another renamed over it, as a
+  /// log rotation does) where the system's watch tells it; with the poll
+  /// alone, a replacement is told only by being shorter than what was read.
+  /// One not there yet is waited for. Malformed UTF-8 is U+FFFD. Cancel the
+  /// subscription to stop following it. Not on the web, which has no files:
+  /// the subscription's `onError` gets an [UnsupportedError].
   ///
   /// ```dart
   /// final log = LogController();

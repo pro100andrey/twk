@@ -82,14 +82,21 @@ Stream<void> watchDirectory(String path) {
   }
 }
 
-/// The bytes written to the file at [path] from when the stream is listened
-/// to, or with [fromEnd]
-/// false from its start, as they come: told by a watch of its directory
-/// where the system has one, and found by a look at its size each [poll]
-/// all the same, where a watch misses a write or does not work (a network
-/// drive). A file cut shorter than what was read (truncated, written anew)
-/// is read again from its start; one not there yet is waited for. Ends
-/// when the subscription is cancelled.
+/// Streams the bytes written to the file at [path] from when the stream is
+/// listened to, or with [fromEnd] false from its start, as they come: told
+/// by a watch of its directory where the system has one, and found by a
+/// look at its size each [poll] all the same, where a watch misses a write
+/// or does not work (a network drive). A file cut shorter than what was
+/// read (truncated, written anew) is read again from its start; one not
+/// there yet is waited for. Ends when the subscription is cancelled.
+///
+/// A file replaced at [path] (another renamed over it, as log rotation and
+/// atomic saves do) is read from its start too, but only where the watch
+/// works: it tells the create or move of the name. The poll alone cannot
+/// tell it, `dart:io` giving no inode, so a replacement no longer than
+/// what was read goes unseen on a platform without a directory watch (or
+/// on a drive where it misses events), and a longer one is read from the
+/// old position.
 Stream<List<int>> tailFile(
   String path, {
   required bool fromEnd,
@@ -103,6 +110,8 @@ Stream<List<int>> tailFile(
   var reading = false;
   var again = false;
   var cancelled = false;
+  // a file made or moved onto the name: read from its start
+  var replaced = false;
   late final StreamController<List<int>> out;
 
   Future<int> length() async {
@@ -122,6 +131,10 @@ Stream<List<int>> tailFile(
     try {
       do {
         again = false;
+        if (replaced) {
+          replaced = false;
+          position = 0;
+        }
         final end = await length();
         if (end < position) {
           position = 0;
@@ -156,10 +169,12 @@ Stream<List<int>> tailFile(
       }
       if (FileSystemEntity.isWatchSupported) {
         try {
-          watch = file.parent
-              .watch()
-              .where((e) => e.path.endsWith(name))
-              .listen((_) => look(), onError: (Object _) {});
+          watch = file.parent.watch().where((e) => _names(e, name)).listen((e) {
+            if (_replaces(e, name)) {
+              replaced = true;
+            }
+            unawaited(look());
+          }, onError: (Object _) {});
         } on FileSystemException {
           // no watch of the directory: the poll alone
         }
@@ -175,6 +190,23 @@ Stream<List<int>> tailFile(
     },
   );
   return out.stream;
+}
+
+/// Whether [e] is of the entry called [name]: made, written, removed, or
+/// moved from or onto it.
+bool _names(FileSystemEvent e, String name) =>
+    e.path.endsWith(name) || _movedOnto(e, name);
+
+/// Whether [e] puts a file at [name]: made there, or moved onto it.
+bool _replaces(FileSystemEvent e, String name) =>
+    e is FileSystemCreateEvent || _movedOnto(e, name);
+
+bool _movedOnto(FileSystemEvent e, String name) {
+  if (e is! FileSystemMoveEvent) {
+    return false;
+  }
+  final to = e.destination;
+  return to != null && to.endsWith(name);
 }
 
 /// Writes [text] to the file at [path] in place of what it held.
