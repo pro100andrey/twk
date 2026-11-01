@@ -38,6 +38,12 @@ import 'theme.dart' show Theme, ThemeData;
 /// marks [checkboxOn] and [checkboxOff] are one cell each, and the
 /// [checkboxBrackets] around them are text of their own.
 ///
+/// Borders are in it too: [lines] is the line of every box, divider, split
+/// and callout given no type of its own, and a set of ASCII lines draws
+/// every type but `none` as ASCII ([borderOf]), so [Glyphs.ascii] makes the
+/// whole app ASCII. Not in it: the marks of charts (braille, eighths), the
+/// pictures of images and the ellipsis the core cuts text with.
+///
 /// A widget's own parameter for a mark it has (`Spinner.frames`,
 /// `RadioGroup.mark`, `Skeleton.glyph`, a `Callout`'s `icon`) stays above
 /// the theme: the glyph set is what a widget draws when it is not given
@@ -133,10 +139,11 @@ final class Glyphs {
   /// [ThemeData.glyphs].
   static const unicode = Glyphs();
 
-  /// ASCII only: `>` for a cursor, `v` for a check, `x` for a cross and a
-  /// close, `[`/`]` ends of a switch and a button's edge, `#` for a
-  /// scrollbar's thumb on a `|` or `-` track, `=` for the filled part of a
-  /// line gauge, `v` and `>` for what is open and closed, the spinner
+  /// ASCII only: `+-|` for lines, `>` for a cursor, `v` for a check, `x`
+  /// for a cross and a close, `[`/`]` ends of a switch and a button's edge,
+  /// `#` for a scrollbar's thumb on a `|` or `-` track, `=` for the filled
+  /// part of a line gauge, `v` and `>` for what is open and closed, `<>^v`
+  /// for arrows, `.:+#` for shades, `...` for an ellipsis, the spinner
   /// `-\|/`; no mark in eighths of a cell.
   static const ascii = Glyphs(
     cursor: '>',

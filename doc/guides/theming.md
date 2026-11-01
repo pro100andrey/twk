@@ -91,8 +91,12 @@ check, `>` for what is closed); `copyWith` changes some marks of a set.
 For the whole app a `ThemeData.copyWith(glyphs:)` does it, for one part of
 it a `Theme` around that part. A widget's own parameter for a mark it has
 (`Spinner.frames`, `RadioGroup.mark`, `StatusMessage.icon`, a `LineGauge`'s
-`type`) stays above the set. Borders are not in it: a `Box` has its
-`BorderType`. A mark takes one column and one code point; one that is wider,
+`type`) stays above the set. Borders are in it: a `Border`, a `Divider`, a
+`SplitView` or a `Callout` given no `BorderType` draws `Glyphs.lines`, and in
+`Glyphs.ascii` every type is ASCII, a `rounded` or a `heavy` too, so one
+`ThemeData.copyWith(glyphs: Glyphs.ascii)` makes the whole app ASCII but its
+charts (braille and eighths), images and the ellipsis the core cuts text
+with. A mark takes one column and one code point; one that is wider,
 or a letter with a combining accent, is the `Glyphs.ascii` mark in its place,
 with one warning in the log for each, so an emoji in a `copyWith` is drawn
 where the terminal gives it one cell and is ASCII where it does not.

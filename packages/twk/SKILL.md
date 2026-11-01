@@ -72,7 +72,10 @@ packages/gallery/bin/gallery.dart`).
   `Theme` around a part for that part, `Glyphs.unicode.copyWith(check:
   '✔')` for a mark of one's own. A widget's own parameter (`Spinner.frames`,
   `RadioGroup.mark`, `StatusMessage.icon`, `LineGauge.type`) is above the
-  set; borders are not in it (`BorderType`). A mark is one column and one
+  set. Borders are in it: `Border`, `Divider`, `SplitView`, `Callout` and a
+  border scrollbar with no `type` draw `Glyphs.lines`, and `Glyphs.ascii`
+  makes every type ASCII (`rounded` too), so one `glyphs:` switches the app;
+  charts, images and the core's `…` are not in it. A mark is one column and one
   code point wherever it is drawn, in a cell (a thumb, a gauge) or as text
   in a row (a radio, a switch, a button's edges); one that is not (an
   emoji, a letter and an accent) is `Glyphs.ascii`'s in its place, with one

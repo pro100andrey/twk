@@ -62,9 +62,15 @@ a one-row button), `trackVertical` (`│`),
 `thumbSlim` (`▐`, an option list's thumb) and `partialBlocks` (whether a
 thumb may be in eighths of a cell), `gaugeFilled` (`─`), `gaugeHalf` (`╴`,
 null for none; `copyWith(clearGaugeHalf: true)` clears it) and `gaugeEmpty` (`─`) of a `LineGauge` whose `type` is null,
-and `spinner` (`SpinnerFrames.dots`). `Glyphs.unicode` is the default;
+`spinner` (`SpinnerFrames.dots`), `lines` (`BorderType.single`, the line of
+every border, divider, split, callout and tree guide given no type of its own),
+`arrowLeft`, `arrowRight`, `arrowUp` and `arrowDown` (`← → ↑ ↓`: key hints, a
+dock's drop sides, a log's new lines), `pointer` (`▶`, the traceback's row),
+`menu` (`≡`, a scaffold's toggle), `shades` (`[' ', '░', '▒', '▓', '█']`, at
+least two; a heatmap's, the skeleton's is the second), `swatch` (`■`) and
+`ellipsis` (`…`, for the text a widget cuts itself). `Glyphs.unicode` is the default;
 `Glyphs.ascii` has ASCII only (`>` `v` `x` `#` `|` `=`, the spinner
-`-\|/`, no eighths); `copyWith` changes some. A theme's `lerp` takes the
+`-\|/`, lines `+-|`, no eighths); `copyWith` changes some. A theme's `lerp` takes the
 other's set past halfway. A widget's own parameter (`Spinner.frames`,
 `RadioGroup.mark`, `obscuringCharacter`, `StatusMessage.icon`,
 `LineGauge.type`) is above the set; a `CliTheme` gives the marks of its
@@ -82,9 +88,16 @@ that are such are drawn as `Glyphs.ascii`'s with one line saying so, not a
 warning a field. An empty mark draws nothing: a blank for a cell, no width
 for the text of a row (a bracket of `radioBrackets` or `checkboxBrackets`, a
 button's edge, a switch's
-end), but a blank for `switchKnob`, for the track to keep its width. Left out: borders (`BorderType`), the marks of charts, and the
-window's raised minimise `─`, the edges a window lights, a dock's drop
-marks, key names and a log's `↓ N new lines`.
+end), but a blank for `switchKnob`, for the track to keep its width.
+
+Borders are in it: a `Border`, `Divider`, `SplitView`, `Callout`, scrollbar
+on a border or table given no `type` draws `lines`; `glyphs.borderOf(type)` is
+the line drawn for one. With `lines` ASCII every type but `none` is ASCII, a
+`rounded` or `heavy` too, so `Glyphs.ascii` makes the borders of the whole app
+ASCII; `Glyphs.unicode.copyWith(lines: BorderType.rounded)` makes the default
+rounded. Left out: the marks of charts (braille, eighths: `Chart`, `Sparkline`,
+`Gauge`, `ProgressBar`), images, and the ellipsis the core cuts text with
+(`TextOverflow.ellipsis`).
 
 ## `ThemeData.lerp`
 
