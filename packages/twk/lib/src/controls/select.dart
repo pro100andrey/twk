@@ -1026,7 +1026,6 @@ final class _PickerState<T> extends State<_Picker<T>>
                 choices[matches[k].index],
                 matches[k].marks,
                 boxes,
-                segmenterOf(context),
               ),
           ],
           highlighted: highlight ? at - top : -1,
@@ -1040,15 +1039,16 @@ final class _PickerState<T> extends State<_Picker<T>>
     Choice<T> choice,
     List<int> marks,
     CheckboxMarks boxes,
-    TextSegmenter segmenter,
   ) {
     if (!widget.multiple) {
       return Option(choice.label, marks: marks);
     }
     final on = widget.chosen.contains(choice.value);
+    // the marks index the string: shifted by the code units before the label
+    final prefix = '${on ? boxes.on : boxes.off} ';
     return Option(
-      '${on ? boxes.on : boxes.off} ${choice.label}',
-      marks: [for (final m in marks) m + _boxWidth(segmenter, boxes)],
+      '$prefix${choice.label}',
+      marks: [for (final m in marks) m + prefix.length],
     );
   }
 }
