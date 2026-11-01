@@ -106,4 +106,29 @@ void main() {
         ? false
         : 'no directory watch here: the poll cannot tell a replaced file',
   );
+
+  test('disposed without cancelling: the stream and the file are let go of, '
+      'and the subscription returned cancels again', () async {
+    final out = StreamController<String>();
+    addTearDown(out.close);
+    final listened = LogController();
+    final fromStream = listened.listen(out.stream);
+    expect(out.hasListener, isTrue);
+    listened.dispose();
+    expect(out.hasListener, isFalse);
+    expect(() => out.add('late\n'), returnsNormally);
+    await fromStream.cancel();
+
+    File(path).writeAsStringSync('old\n');
+    final followed = LogController();
+    final fromFile = clock.run(
+      () => followed.followFile(path, poll: poll),
+    );
+    await clock.elapse(poll);
+    followed.dispose();
+    File(path).writeAsStringSync('new\n', mode: FileMode.append);
+    await clock.elapse(poll);
+    await clock.elapse(poll);
+    await fromFile.cancel();
+  });
 }

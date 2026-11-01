@@ -3,7 +3,7 @@
 /// and `N`.
 library;
 
-import 'dart:async' show Stream, StreamSubscription;
+import 'dart:async' show Stream, StreamSubscription, unawaited;
 import 'dart:convert' show Utf8Decoder;
 import 'dart:math' show max, min;
 
@@ -119,6 +119,9 @@ final class LogController extends ChangeNotifier {
     this._query = '',
   }) : assert(maxLines > 0, 'a cap of 1 line or more'),
        _maxLines = maxLines;
+
+  // the subscriptions of listen and followFile, cancelled with the controller
+  final _subscriptions = <StreamSubscription<String>>{};
 
   // the lines kept, from _head on, their numbers one after another
   final _lines = <LogLine>[];
@@ -243,16 +246,32 @@ final class LogController extends ChangeNotifier {
       notifyListeners();
     }
 
-    return output.listen(
+    late final StreamSubscription<String> subscription;
+    subscription = output.listen(
       (piece) {
         reader.add(piece);
         addEnded();
       },
       onDone: () {
+        _subscriptions.remove(subscription);
         reader.close();
         addEnded();
       },
     );
+    _subscriptions.add(subscription);
+    return subscription;
+  }
+
+  /// Cancels the subscriptions of [listen] and [followFile] still live, so
+  /// no line reaches a disposed controller; the ones returned stay valid to
+  /// cancel again.
+  @override
+  void dispose() {
+    for (final subscription in _subscriptions) {
+      unawaited(subscription.cancel());
+    }
+    _subscriptions.clear();
+    super.dispose();
   }
 
   /// Follows the file at [path], adding the lines written to it as [listen]
