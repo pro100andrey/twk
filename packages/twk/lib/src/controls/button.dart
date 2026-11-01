@@ -57,8 +57,8 @@ import 'pressable.dart';
 /// of each state, and the flat word that takes no focus below
 /// ([canRequestFocus]). The edges of an outlined button are
 /// `Glyphs.capOpen` and `Glyphs.capClose` of the theme. The label is one
-/// string in one style: a key in one color and its caption in another on
-/// one chip is not set here.
+/// string in one style; [Button.rich] takes spans, a key in one color and
+/// its caption in another on the one chip.
 ///
 /// A plain look, text without a chip, reversed while focused:
 /// `style: theme.primary.merge(const Style(attrs: Attr.bold))` and
@@ -102,7 +102,7 @@ final class Button extends StatefulWidget {
   /// A button showing [label] that calls [onPressed], disabled when that
   /// is null.
   const Button(
-    this.label, {
+    String this._label, {
     required this.onPressed,
     super.key,
     this.focusNode,
@@ -113,12 +113,13 @@ final class Button extends StatefulWidget {
     this.hoverStyle,
     this.disabledStyle,
   }) : _look = _Look.chip,
+       spans = null,
        tall = false;
 
   /// A button of [label] between two edges, or with [tall] in a box drawn
   /// around it: in [ThemeData.border], or [style]'s text color, at rest.
   const Button.outlined(
-    this.label, {
+    String this._label, {
     required this.onPressed,
     super.key,
     this.focusNode,
@@ -129,12 +130,13 @@ final class Button extends StatefulWidget {
   }) : focusedStyle = null,
        hoverStyle = null,
        disabledStyle = null,
+       spans = null,
        _look = _Look.outlined;
 
   /// A button of [label] on a fill of [ThemeData.primary], or of [style]'s
   /// text color, at rest; with [tall] three rows of it.
   const Button.filled(
-    this.label, {
+    String this._label, {
     required this.onPressed,
     super.key,
     this.focusNode,
@@ -145,17 +147,59 @@ final class Button extends StatefulWidget {
   }) : focusedStyle = null,
        hoverStyle = null,
        disabledStyle = null,
+       spans = null,
        _look = _Look.filled;
 
+  /// A chip of [spans] that calls [onPressed], disabled when that is null:
+  /// the key and its caption of a button, each in its own [Span] style, on
+  /// one chip with the hover, the focus and the flash of [Button]. A blank
+  /// is added on either side, as to a [label], which here is the spans'
+  /// text, what a screen reader reads; the width is that of the spans in
+  /// cells.
+  ///
+  /// The chip's style is [Button]'s, and a span's own style is merged onto
+  /// it: at rest and under the mouse a span's colors show (its text color,
+  /// its background), whatever it leaves unset follows the chip. While the
+  /// button has the focus, or is disabled, the spans keep their attributes
+  /// (bold, underline) but not their colors, which are the state's:
+  /// otherwise a key in [ThemeData.primary] would vanish on the focused
+  /// fill. Only the chip look, with [Button]'s states.
+  ///
+  /// ```dart
+  /// Button.rich([
+  ///   'Enter'.bold.fg(Color.yellow),
+  ///   const Span(' send'),
+  /// ], onPressed: () => print('sent'))
+  /// ```
+  const Button.rich(
+    List<Span> this.spans, {
+    required this.onPressed,
+    super.key,
+    this.focusNode,
+    this.autofocus = false,
+    this.canRequestFocus = true,
+    this.style,
+    this.focusedStyle,
+    this.hoverStyle,
+    this.disabledStyle,
+  }) : _label = null,
+       _look = _Look.chip,
+       tall = false;
+
   final _Look _look;
+
+  /// The spans of a [Button.rich]; null for a [label].
+  final List<Span>? spans;
 
   /// Whether a [Button.outlined] or a [Button.filled] is three rows, a box
   /// or a fill around its label; one row when false.
   final bool tall;
 
   /// The text it shows, with a blank on either side; what a screen reader
-  /// reads.
-  final String label;
+  /// reads. Of a [Button.rich] the text of its spans.
+  String get label => _label ?? spans!.map((span) => span.text).join();
+
+  final String? _label;
 
   /// What a press does; null for a disabled button.
   final VoidCallback? onPressed;
@@ -240,27 +284,49 @@ final class _ButtonState extends State<Button> {
         final hover = enabled
             ? widget.hoverStyle ?? buttonHoverStyle(theme, rest)
             : const Style();
-        return PressChip(
-          ' ${widget.label} ',
-          style: !enabled
-              ? rest.merge(
-                  widget.disabledStyle ??
-                      (style == null
-                          ? buttonDisabledStyle(theme)
-                          : theme.muted),
-                )
-              : focused
-              ? rest.merge(
-                  widget.focusedStyle ?? buttonFocusedStyle(theme, rest),
-                )
-              : rest,
-          hoverStyle: hover == const Style()
-              ? null
-              : focused
-              ? const Style()
-              : hover,
+        final chipStyle = !enabled
+            ? rest.merge(
+                widget.disabledStyle ??
+                    (style == null ? buttonDisabledStyle(theme) : theme.muted),
+              )
+            : focused
+            ? rest.merge(
+                widget.focusedStyle ?? buttonFocusedStyle(theme, rest),
+              )
+            : rest;
+        final hoverOver = hover == const Style()
+            ? null
+            : focused
+            ? const Style()
+            : hover;
+        final spans = widget.spans;
+        if (spans == null) {
+          return PressChip(
+            ' ${widget.label} ',
+            style: chipStyle,
+            hoverStyle: hoverOver,
+            presses: _presses,
+            enabled: enabled,
+          );
+        }
+        // the state's colors, not the spans', while focused or disabled
+        final shown = [
+          const Span(' '),
+          for (final span in spans)
+            if (enabled && !focused) span else _plain(span),
+          const Span(' '),
+        ];
+        return PressChip.builder(
+          style: chipStyle,
+          hoverStyle: hoverOver,
           presses: _presses,
           enabled: enabled,
+          builder: (context, style, hovered) => Text.rich(
+            shown,
+            style: style,
+            wrap: TextWrap.none,
+            maxLines: 1,
+          ),
         );
       },
     );
@@ -271,6 +337,22 @@ final class _ButtonState extends State<Button> {
       child: pressable,
     );
   }
+}
+
+/// [span] without its colors and gradient: its attributes, link and tap.
+Span _plain(Span span) {
+  final s = span.style;
+  final plain = Span(
+    span.text,
+    Style(
+      attrs: s.attrs,
+      attrsOff: s.attrsOff,
+      underlineColor: s.underlineColor,
+      link: s.link,
+    ),
+  );
+  final tap = span.onTap;
+  return tap == null ? plain : plain.tap(tap);
 }
 
 extension on _ButtonState {
