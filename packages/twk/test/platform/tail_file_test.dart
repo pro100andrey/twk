@@ -204,7 +204,7 @@ class _FailsMidway extends _SlowLength {
 }
 
 extension on Stream<List<int>> {
-  Stream<List<int>> concatError(Object error) async* {
+  Stream<List<int>> concatError(Exception error) async* {
     yield* this;
     throw error;
   }
