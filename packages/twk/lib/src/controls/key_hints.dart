@@ -87,7 +87,41 @@ final class KeyHintsBar extends StatefulWidget {
     this.keyStyle,
     this.hintStyle,
     this.pressable = false,
-  });
+  }) : _pairs = null;
+
+  /// A row of the keys [pairs] name, each before its hint, whatever keys
+  /// are in force: for hints the app words itself, as they change with its
+  /// state (`enter  open   d  delete`). Each pair is a key's name, read as
+  /// [KeyCombo.parseSequence] reads those of a `KeyBindings` (`ctrl+s`,
+  /// `g g`; one it cannot read is an error as the bar is built), and its
+  /// hint. The row is drawn, joined, cut and styled as the bar of the keys
+  /// in force is, and with [pressable] a click presses the key through
+  /// [AppBinding.pressKey] the same, whether or not anything binds it. A
+  /// pair whose hint is empty shows its key alone.
+  /// The hints of a list that picks the keys by its state:
+  ///
+  /// ```dart
+  /// KeyHintsBar.fromPairs(const [
+  ///   ('enter', 'open'),
+  ///   ('d', 'delete'),
+  ///   ('esc', 'close'),
+  /// ])
+  /// ```
+  const KeyHintsBar.fromPairs(
+    List<(String, String)> pairs, {
+    super.key,
+    this.keyLabel,
+    this.joinKeys = true,
+    this.separator = '   ',
+    this.style,
+    this.keyStyle,
+    this.hintStyle,
+    this.pressable = false,
+  }) : _pairs = pairs,
+       showUnhinted = true;
+
+  /// The fixed pairs of [KeyHintsBar.fromPairs]; null for the keys in force.
+  final List<(String, String)>? _pairs;
 
   /// Whether a click on a key presses it ([AppBinding.pressKey]; a sequence
   /// key by key), and one on a hint presses its key where it has one key
@@ -241,6 +275,18 @@ int? _familyOf(KeyCombo combo) {
   return i < 0 ? null : i;
 }
 
+/// The keys [pairs] name, as a bar of the keys in force lists them.
+List<ActiveKey> _fixedKeys(List<(String, String)> pairs) => [
+  for (final (name, hint) in pairs)
+    if (KeyCombo.parseSequence(name) case [final first, ...final rest])
+      ActiveKey(
+        first,
+        binding: name,
+        hint: hint.isEmpty ? null : hint,
+        then: rest,
+      ),
+];
+
 final class _KeyHintsBarState extends State<KeyHintsBar> {
   FocusManager? _manager;
 
@@ -277,8 +323,11 @@ final class _KeyHintsBarState extends State<KeyHintsBar> {
       x += stringWidth(span.text);
     }
 
+    final pairs = widget._pairs;
     for (final (names, gap, hint) in KeyHintsBar._entries(
-      _manager?.activeKeys ?? const <ActiveKey>[],
+      pairs == null
+          ? _manager?.activeKeys ?? const <ActiveKey>[]
+          : _fixedKeys(pairs),
       keyLabel: widget.keyLabel,
       joinKeys: widget.joinKeys,
       showUnhinted: widget.showUnhinted,
