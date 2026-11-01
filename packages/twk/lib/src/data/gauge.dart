@@ -511,6 +511,7 @@ final class RenderLineGauge extends _RenderGaugeBase {
       return;
     }
     glyphs.glyphLine(
+      this,
       canvas,
       x,
       y,

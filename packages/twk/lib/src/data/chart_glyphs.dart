@@ -2,7 +2,7 @@
 library;
 
 import 'package:twk_core/twk_core.dart'
-    show BorderType, Canvas, ClusterScan, Color, TextSegmenter;
+    show BorderType, Canvas, ClusterScan, Color, RenderObject, TextSegmenter;
 
 import '../foundation/helpers.dart';
 import '../framework/framework.dart';
@@ -128,9 +128,12 @@ final class ChartGlyphs {
   /// of [filled] in [filledPen], to the nearest half cell where [half] is
   /// not empty (its mark ends the filled part), the rest of [empty] in
   /// [unfilledPen]; or, given [run], that run of [filled] in [filledPen] in
-  /// a line of [empty]. A `-` for each where one of them is not one
-  /// column; [use] the canvas's segmenter first.
+  /// a line of [empty]. Where [filled] or [empty] is not one column wide
+  /// the ASCII mark of the same meaning is drawn in its place, with one
+  /// warning in the log of [object]'s pipeline; a [half] that is not has no
+  /// ASCII mark, so the line has no half cell, with the same warning.
   void glyphLine(
+    RenderObject object,
     Canvas canvas,
     int x,
     int y,
@@ -146,13 +149,24 @@ final class ChartGlyphs {
     if (cells <= 0) {
       return;
     }
-    final narrow = [filled, empty, if (half != null && half.isNotEmpty) half]
-        .every(
-          (g) => _segmenter.width(g) == 1,
-        );
-    final whole = (narrow ? filled : '-').runes.first;
-    final rest = (narrow ? empty : '-').runes.first;
-    final part = narrow ? half?.runes.firstOrNull : null;
+    final segmenter = canvas.segmenter;
+    final whole = cellRune(
+      object,
+      'gaugeFilled',
+      filled,
+      Glyphs.ascii.gaugeFilled,
+      segmenter,
+    );
+    final rest = cellRune(
+      object,
+      'gaugeEmpty',
+      empty,
+      Glyphs.ascii.gaugeEmpty,
+      segmenter,
+    );
+    final part = half == null
+        ? null
+        : optionalCellRune(object, 'gaugeHalf', half, segmenter);
     if (run case (final from, final width)) {
       canvas
         ..fill(x, y, cells, 1, unfilledPen, rest)

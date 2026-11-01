@@ -506,12 +506,45 @@ int cellRune(
   if (width == 1) {
     return glyph.runes.first;
   }
+  _warnWide(object, field, glyph, width, "Glyphs.ascii's '$fallback'");
+  return fallback.runes.first;
+}
+
+/// The code point of the optional mark [glyph] of the Glyphs field
+/// [field], as [cellRune] measures it; null where it is empty (no
+/// warning) or not one column wide (the same warning, saying that no mark
+/// is drawn in its place, for a field with no ASCII mark).
+@internal
+int? optionalCellRune(
+  RenderObject object,
+  String field,
+  String glyph,
+  TextSegmenter segmenter,
+) {
+  if (glyph.isEmpty) {
+    return null;
+  }
+  final width = segmenter.width(glyph);
+  if (width == 1) {
+    return glyph.runes.first;
+  }
+  _warnWide(object, field, glyph, width, 'no mark');
+  return null;
+}
+
+void _warnWide(
+  RenderObject object,
+  String field,
+  String glyph,
+  int width,
+  String instead,
+) {
   final owner = object.owner;
   final key = '$field\u0000$glyph';
   if (owner == null || (_warned[owner] ??= {}).add(key)) {
     final message =
         "Glyphs.$field '$glyph' is $width cells wide, not 1; "
-        "Glyphs.ascii's '$fallback' is drawn in its place.";
+        '$instead is drawn in its place.';
     final route = owner?.onLog;
     if (route == null) {
       log(message, level: LogLevel.warning);
@@ -519,7 +552,6 @@ int cellRune(
       route(LogRecord(DateTime.now(), LogLevel.warning, message));
     }
   }
-  return fallback.runes.first;
 }
 
 // the (field, glyph) pairs each pipeline has warned of
