@@ -735,6 +735,15 @@ What to know:
   or `stringWidth`. A list loads more near its end with a
   `NotificationListener<ScrollUpdateNotification>` above it reading
   `metrics.extentAfter` (`doc/guides/layout.md`, "A row of a list").
+- A space at the end of a `Text` is lost with the default `wrap:
+  TextWrap.word`: it hangs past the line, uncounted and undrawn, so
+  `Text('◐ ')` in a `Row` is one cell and the next child touches the mark.
+  `Text('◐ ', wrap: .none)` keeps it (two cells). Cell text for a
+  `String`: `fitText(TextSegmenter(), s, n)` cuts to `n` cells with `…`;
+  pad with `' ' * (n - stringWidth(s))`; a row's background across its
+  width is a `ColoredBox` (a `Span`'s paints only its text); a bar on
+  every wrapped line is a `Box(border: Border(left: Style()))`
+  (`doc/guides/layout.md`, "Text in cells").
 - `ListView`, `Table`, `TreeView`, `SelectionList` and `Navigator` take
   all the room they get. In a `Column` put them in `Expanded`, or they
   take the whole height and push the rest off the screen (a

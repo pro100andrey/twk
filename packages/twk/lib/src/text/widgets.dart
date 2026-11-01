@@ -37,6 +37,12 @@ export 'package:twk_core/twk_core.dart' show TextAlign, TextOverflow, TextWrap;
 /// merged onto its own. A click on text that links ([Style.link]) is told
 /// to [onLinkTap].
 ///
+/// A space at the end of the text, or of a line it breaks, is not counted
+/// with [wrap] at its default, [TextWrap.word]: it hangs past the line,
+/// neither drawn nor given width, so `Text('◐ ')` is one cell wide. Use
+/// `wrap: TextWrap.none` to keep it (two cells), or a `SizedBox(width: 1)`
+/// between the mark and what follows.
+///
 /// A title in bold, then a description of two lines at most, cut off with
 /// `…`:
 ///

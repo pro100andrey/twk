@@ -147,6 +147,82 @@ above it reads `metrics.extentAfter` (cells of content after the window;
 all fits sends none, so ask for the first page by the size of what is
 loaded.
 
+## Text in cells
+
+The list row above cuts a label that is on the screen. A `String` an app
+holds, cut before it is a widget, is `fitText(TextSegmenter(), text, n)`:
+at most `n` cells, `…` in place of the rest, no wide letter split. (The
+`TextSegmenter()` counts a character of ambiguous width as one cell; the
+terminal's own count is what `Text.line` cuts by, so prefer the widget
+wherever the text is shown at once.) A string padded to `n` cells is the
+text and `' ' * (n - stringWidth(text))`, counted in cells, not in
+`length`. A row's background across its whole width is a `ColoredBox`
+around it: a `Span`'s background (`'x'.bg(color)`) paints only the cells of
+its text, as in Flutter. A mark on every line a text wraps into, a quotation's
+bar, is a `Box` with a border on its left only (`Border(left: Style())`;
+its `type` picks the line, `BorderType.ascii` makes it `|`), and an indent
+a `Padding`; the text wraps inside what they leave, wide letters and
+all, and nothing is counted by hand.
+
+A space at the end of a text is not a cell of it. With `wrap:
+TextWrap.word`, the default, the spaces that end a line hang past it,
+neither counted nor drawn, so `Text('◐ ')` in a `Row` is one cell wide and
+the `Text` after it touches the mark. `Text('◐ ', wrap: .none)` keeps
+the space: two cells. (A mark and its gap are better apart:
+`Row(children: [Text(mark), SizedBox(width: 1), …])`.)
+
+<!-- file: packages/twk/example/guides/cell_text.dart -->
+```dart
+import 'package:twk/twk.dart';
+
+Future<void> main() => runApp(const CellText());
+
+final class CellText extends StatelessWidget {
+  const CellText({super.key});
+
+  @override
+  Widget build(BuildContext context) => KeyBindings(
+    {'q': () => AppBinding.of(context).quit()},
+    child: Column(
+      crossAxisAlignment: .stretch,
+      children: [
+        // a String cut to 12 cells, wide letters whole
+        Text(fitText(TextSegmenter(), 'Warnings (12) and 你好世界', 12)),
+        // the row's background across its whole width, not under its text
+        const ColoredBox(color: Color.blue, child: Text(' NORMAL ')),
+        // a gutter on every line the text breaks into: a left border
+        const Box(
+          border: Border(left: Style()),
+          padding: EdgeInsets.only(left: 1),
+          child: Text('A quotation with 你好世界 that wraps over lines.'),
+        ),
+        // a String padded to 10 cells by the cells it takes, not its length
+        Text('[${'你好'}${' ' * (10 - stringWidth('你好'))}]'),
+        // a space at the end of a wrapped text hangs; with none it stays
+        const Row(
+          children: [
+            Text('◐ '),
+            Text('|'),
+            Text('◐ ', wrap: .none),
+            Text('|'),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+```
+
+```text
+Warnings (1…
+ NORMAL
+│ A quotation with
+│ 你好世界 that
+│ wraps over lines.
+[你好      ]
+◐|◐ |
+```
+
 ## Limits and the room
 
 `SizedBox` gives one size. `ConstrainedBox` keeps its child within limits

@@ -8,6 +8,7 @@ import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
+import '../../example/guides/cell_text.dart' show CellText;
 import '../../example/guides/focus.dart' show SignIn;
 import '../../example/guides/glyphs.dart' show Report;
 import '../../example/guides/inline.dart' show Prompt;
@@ -87,6 +88,32 @@ void main() {
 ''';
     expect(t, matchesScreen(screen));
     shows('layout.md', screen);
+    await t.press('q');
+    expect(t.isRunning, isFalse);
+  });
+
+  testTwk('cell text: a cut, a background, a gutter, a pad, a space', (
+    t,
+  ) async {
+    await t.pumpWidget(
+      const CellText(),
+      size: (20, 7),
+      backgroundRgb: 0x16181d,
+    );
+    const screen = '''
+Warnings (1…
+ NORMAL
+│ A quotation with
+│ 你好世界 that
+│ wraps over lines.
+[你好      ]
+◐|◐ |
+''';
+    expect(t, matchesScreen(screen));
+    shows('layout.md', screen);
+    // the background is the row's, to its last cell, not its text's
+    expect(t, styleAt(19, 1, hasBg(Color.blue)));
+    expect(t, isNot(styleAt(0, 2, hasBg(Color.blue))));
     await t.press('q');
     expect(t.isRunning, isFalse);
   });
