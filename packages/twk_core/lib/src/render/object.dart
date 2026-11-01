@@ -564,14 +564,15 @@ abstract class RenderObject {
   /// detached, when nothing in it is laid out or painted.
   PipelineOwner? owner;
 
-  // a warning of the tree itself, to where its owner routes them
-  // (PipelineOwner.onLog), and to log() where it routes none
-  void _warn(String message) {
+  // a record of the tree itself, a warning unless [level] says another, to
+  // where its owner routes them (PipelineOwner.onLog), and to log() where it
+  // routes none
+  void _warn(String message, {LogLevel level = LogLevel.warning}) {
     final route = owner?.onLog;
     if (route == null) {
-      log(message, level: LogLevel.warning);
+      log(message, level: level);
     } else {
-      route(LogRecord(DateTime.now(), LogLevel.warning, message));
+      route(LogRecord(DateTime.now(), level, message));
     }
   }
 

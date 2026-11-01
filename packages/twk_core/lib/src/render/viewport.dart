@@ -144,8 +144,8 @@ final class RenderViewport extends RenderObject
     final none = extent == 0 && content > 0;
     if (none && !_noRoom) {
       final unit = vertical ? 'rows' : 'columns';
-      _debugNote(
-        owner,
+      _warn(
+        level: LogLevel.debug,
         'A RenderViewport was given 0 $unit for $content $unit of content '
         'and shows none of it: in a ${vertical ? 'Column' : 'Row'} the '
         'children beside it may have taken every one (put it in an '

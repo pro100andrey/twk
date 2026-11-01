@@ -691,8 +691,8 @@ final class RenderList extends RenderObject
   bool _debugReportNoRows() {
     final none = height == 0 && width > 0 && _itemCount > 0;
     if (none && !_noRows) {
-      _debugNote(
-        owner,
+      _warn(
+        level: LogLevel.debug,
         'A RenderList of $_itemCount items was given 0 rows and shows none '
         'of them: in a Column the children beside it may have taken every '
         'row (put it in an Expanded); inline, a list asks for no rows (give '
@@ -910,16 +910,5 @@ final class RenderList extends RenderObject
       c = at.nextSibling;
     }
     canvas.restore();
-  }
-}
-
-/// Logs [message] at [LogLevel.debug] to where [owner] routes the log
-/// (PipelineOwner.onLog), to [log] where it routes none.
-void _debugNote(PipelineOwner? owner, String message) {
-  final route = owner?.onLog;
-  if (route == null) {
-    log(message, level: LogLevel.debug);
-  } else {
-    route(LogRecord(DateTime.now(), LogLevel.debug, message));
   }
 }
