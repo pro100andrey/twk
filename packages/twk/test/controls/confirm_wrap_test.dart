@@ -31,4 +31,40 @@ void main() {
     expect(text, contains('No'));
     expect(text, contains('for good?'));
   });
+
+  testTwk('yes: and no: label the answers; y and n still answer', (t) async {
+    bool? result;
+    var done = false;
+    await t.pumpWidget(
+      Overlay(
+        child: Builder(
+          builder: (context) => KeyBindings({
+            'd': () => unawaited(
+              showConfirm(
+                context,
+                'Delete 3 files?',
+                yes: 'Delete',
+                no: 'Keep',
+              ).then((v) {
+                result = v;
+                done = true;
+              }),
+            ),
+          }, child: const Text('under')),
+        ),
+      ),
+      size: (40, 12),
+    );
+    await t.press('d');
+    await t.pump(const Duration(milliseconds: 200));
+    final text = t.lines.join('\n');
+    expect(text, contains('Delete'));
+    expect(text, contains('Keep'));
+    expect(text, isNot(contains('Yes')));
+    expect(text, isNot(contains('No ')));
+    await t.press('n');
+    await t.pump(const Duration(milliseconds: 200));
+    expect(done, isTrue);
+    expect(result, isFalse);
+  });
 }

@@ -236,13 +236,16 @@ final class _ConfirmInputState extends State<ConfirmInput> {
 /// its own lines above a [ConfirmInput] that has the focus: the future
 /// completes with true for yes, false for no, and null when Escape or a
 /// click outside closes the dialog. [defaultValue] is the answer Enter gives
-/// at first.
+/// at first. [yes] and [no] label the answers, as [ConfirmInput] takes
+/// them; the keys stay `y` and `n` whatever the labels.
 ///
 /// ```dart
 /// final delete = await showConfirm(
 ///   context,
 ///   'Delete 3 files?',
 ///   defaultValue: false,
+///   yes: 'Delete',
+///   no: 'Keep',
 /// );
 /// if (delete == true) {
 ///   // delete them
@@ -252,6 +255,8 @@ Future<bool?> showConfirm(
   BuildContext context,
   String question, {
   bool defaultValue = true,
+  String yes = 'Yes',
+  String no = 'No',
 }) => showDialog<bool>(
   context,
   (context) => Dialog(
@@ -264,6 +269,8 @@ Future<bool?> showConfirm(
         ConfirmInput(
           '',
           defaultValue: defaultValue,
+          yes: yes,
+          no: no,
           autofocus: true,
           onConfirmed: (yes) => closeDialog(context, yes),
         ),
