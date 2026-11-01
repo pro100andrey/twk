@@ -244,6 +244,7 @@ final class _BreadcrumbsState extends State<Breadcrumbs> {
   Widget build(BuildContext context) {
     final enabled = _enabled;
     final current = _current;
+    final highlighted = enabled ? _item : -1;
     final pressable = Pressable(
       enabled: enabled,
       focusNode: widget.focusNode,
@@ -263,32 +264,31 @@ final class _BreadcrumbsState extends State<Breadcrumbs> {
               }
             }
           : null,
-      builder: (context, focused) => LayoutBuilder(
-        builder: (context, constraints) => _row(
-          Theme.of(context),
-          segmenterOf(context),
-          constraints.maxW,
-          enabled: enabled,
-          focused: focused,
+      builder: (context, focused) => Semantics(
+        role: SemanticsRole.list,
+        nodes: [
+          for (var i = 0; i < _items.length; i++)
+            SemanticsNode(
+              role: enabled && i != current
+                  ? SemanticsRole.link
+                  : SemanticsRole.listItem,
+              label: _items[i],
+              state: SemanticsState(selected: i == current),
+              focused: focused && i == highlighted,
+            ),
+        ],
+        child: LayoutBuilder(
+          builder: (context, constraints) => _row(
+            Theme.of(context),
+            segmenterOf(context),
+            constraints.maxW,
+            enabled: enabled,
+            focused: focused,
+          ),
         ),
       ),
     );
-    final highlighted = enabled ? _item : -1;
-    return Semantics(
-      role: SemanticsRole.list,
-      nodes: [
-        for (var i = 0; i < _items.length; i++)
-          SemanticsNode(
-            role: enabled && i != current
-                ? SemanticsRole.link
-                : SemanticsRole.listItem,
-            label: _items[i],
-            state: SemanticsState(selected: i == current),
-            focused: i == highlighted,
-          ),
-      ],
-      child: pressable,
-    );
+    return pressable;
   }
 
   /// The row in [theme], [width] columns at most as [segmenter] measures

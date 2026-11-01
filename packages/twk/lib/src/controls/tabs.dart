@@ -363,7 +363,7 @@ final class _TabBarState extends State<TabBar> {
             role: SemanticsRole.tab,
             label: label,
             state: SemanticsState(selected: i == marked),
-            focused: i == marked,
+            focused: focused && i == marked,
           ),
       ],
       child: bar,

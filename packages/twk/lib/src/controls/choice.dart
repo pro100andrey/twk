@@ -233,7 +233,7 @@ final class RadioGroup<T> extends StatelessWidget {
       builder: (context, focused) {
         final theme = Theme.of(context);
         final radio = radioMarks(context, theme.glyphs);
-        return Flex(
+        final row = Flex(
           direction: direction,
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -250,23 +250,24 @@ final class RadioGroup<T> extends StatelessWidget {
               ),
           ],
         );
+        return Semantics(
+          nodes: [
+            for (var i = 0; i < choices.length; i++)
+              SemanticsNode(
+                role: SemanticsRole.radio,
+                label: choices[i].label,
+                state: SemanticsState(
+                  checked: i == chosen,
+                  disabled: !enabled || !choices[i].enabled,
+                ),
+                focused: focused && i == focus,
+              ),
+          ],
+          child: row,
+        );
       },
     );
-    return Semantics(
-      nodes: [
-        for (var i = 0; i < choices.length; i++)
-          SemanticsNode(
-            role: SemanticsRole.radio,
-            label: choices[i].label,
-            state: SemanticsState(
-              checked: i == chosen,
-              disabled: !enabled || !choices[i].enabled,
-            ),
-            focused: i == focus,
-          ),
-      ],
-      child: pressable,
-    );
+    return pressable;
   }
 
   Widget _choice(

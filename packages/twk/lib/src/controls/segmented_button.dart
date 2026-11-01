@@ -244,34 +244,34 @@ final class _SegmentedButtonState<T> extends State<SegmentedButton<T>> {
         if (digits > 1) '1': '…$digits select',
       },
       onTap: enabled ? (event) => _press(_hits.at(event.x)) : null,
-      builder: (context, focused) => LayoutBuilder(
-        builder: (context, constraints) => _row(
-          Theme.of(context),
-          segmenterOf(context),
-          constraints.maxW,
-          enabled: enabled,
-          highlight: focused ? current : -1,
-          plain: plain,
+      builder: (context, focused) => Semantics(
+        nodes: [
+          for (var i = 0; i < _segments.length; i++)
+            SemanticsNode(
+              role: widget.multiSelectionEnabled
+                  ? SemanticsRole.checkbox
+                  : SemanticsRole.radio,
+              label: _segments[i].label,
+              state: SemanticsState(
+                checked: _on(i),
+                disabled: !enabled || !_segments[i].enabled,
+              ),
+              focused: focused && i == current,
+            ),
+        ],
+        child: LayoutBuilder(
+          builder: (context, constraints) => _row(
+            Theme.of(context),
+            segmenterOf(context),
+            constraints.maxW,
+            enabled: enabled,
+            highlight: focused ? current : -1,
+            plain: plain,
+          ),
         ),
       ),
     );
-    return Semantics(
-      nodes: [
-        for (var i = 0; i < _segments.length; i++)
-          SemanticsNode(
-            role: widget.multiSelectionEnabled
-                ? SemanticsRole.checkbox
-                : SemanticsRole.radio,
-            label: _segments[i].label,
-            state: SemanticsState(
-              checked: _on(i),
-              disabled: !enabled || !_segments[i].enabled,
-            ),
-            focused: i == current,
-          ),
-      ],
-      child: pressable,
-    );
+    return pressable;
   }
 
   /// The row in [theme], [width] columns at most as [segmenter] measures
