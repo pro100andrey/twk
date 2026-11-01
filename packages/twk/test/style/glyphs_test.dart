@@ -30,6 +30,15 @@ void main() {
       expect(const Glyphs(shades: [' ', '#']).shades, [' ', '#']);
     });
 
+    test(
+      'copyWith of another field keeps a short list the constructor took',
+      () {
+        const short = Glyphs(shades: ['#']);
+        expect(short.copyWith(swatch: 'x').shades, ['#']);
+        expect(const Glyphs(shades: []).copyWith(menu: 'm').shades, isEmpty);
+      },
+    );
+
     test('Glyphs.unicode is the default of every theme', () {
       expect(ThemeData.dark.glyphs, same(Glyphs.unicode));
       expect(ThemeData.light.glyphs, same(Glyphs.unicode));

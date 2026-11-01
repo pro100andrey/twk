@@ -2,7 +2,10 @@
 // constructor (which cannot check a list's length): the charts and a
 // Skeleton draw with it rather than throw — one shade is full or nothing,
 // none is Glyphs.ascii's ramp.
+import 'dart:collection';
+
 import 'package:test/test.dart';
+import 'package:twk/src/data/chart_glyphs.dart' show ChartGlyphs;
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
@@ -14,6 +17,22 @@ Widget themed(Glyphs glyphs, Widget child) => Theme(
 void main() {
   const one = Glyphs(shades: ['#'], partialBlocks: false);
   const none = Glyphs(shades: [], partialBlocks: false);
+
+  test('ChartGlyphs.use does not rebuild its ramp for the same list', () {
+    // rampOf of a one-entry list is a new list each time, so the cache is
+    // kept by the theme's list: it is not read again while that is the same
+    final list = _Counting(['#']);
+    final glyphs = Glyphs(shades: list, partialBlocks: false);
+    final chart = ChartGlyphs();
+    final segmenter = TextSegmenter();
+    chart.use(segmenter, glyphs);
+    expect(chart.upSteps, 1);
+    final reads = list.reads;
+    expect(reads, greaterThan(0));
+    chart.use(segmenter, glyphs);
+    chart.use(segmenter, glyphs.copyWith(swatch: 'x'));
+    expect(list.reads, reads);
+  });
 
   testTwk('a Sparkline: one shade is full or blank', (t) async {
     await t.pumpWidget(
@@ -67,4 +86,25 @@ void main() {
       expect(t.lines.last.trim(), isNotEmpty);
     }
   });
+}
+
+class _Counting extends ListBase<String> {
+  _Counting(this._items);
+  final List<String> _items;
+  var reads = 0;
+
+  @override
+  int get length => _items.length;
+
+  @override
+  set length(int value) => _items.length = value;
+
+  @override
+  String operator [](int index) {
+    reads++;
+    return _items[index];
+  }
+
+  @override
+  void operator []=(int index, String value) => _items[index] = value;
 }

@@ -41,18 +41,20 @@ final class ChartGlyphs {
   /// Measures the glyphs as [segmenter] does; with [glyphs] whose
   /// [Glyphs.partialBlocks] is false, bars are drawn in its [Glyphs.shades].
   void use(TextSegmenter segmenter, [Glyphs? glyphs]) {
-    final shades = glyphs == null || glyphs.partialBlocks
+    // the theme's list, not its ramp: rampOf makes a new list of a short one
+    final source = glyphs == null || glyphs.partialBlocks
         ? null
-        : rampOf(glyphs.shades);
+        : glyphs.shades;
     if (segmenter.mode.index == _mode &&
         segmenter.ambiguousWidth == _ambiguous &&
-        identical(shades, _shades)) {
+        identical(source, _shades)) {
       return;
     }
+    final shades = source == null ? null : rampOf(source);
     _mode = segmenter.mode.index;
     _ambiguous = segmenter.ambiguousWidth;
     _segmenter = segmenter;
-    _shades = shades;
+    _shades = source;
     _ramp = [
       if (shades != null)
         for (final s in shades) _firstRune(s),

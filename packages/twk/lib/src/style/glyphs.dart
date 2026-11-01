@@ -398,7 +398,9 @@ final class Glyphs {
   /// The shades of a fill, from none to full, at least two: a blank, a
   /// light, a medium, a dark and a full cell. A heatmap's ramp; the
   /// skeleton's mark is the light one (index 1). A `const` constructor
-  /// cannot check the length, so only [copyWith] asserts it. The list
+  /// cannot check the length, so only [copyWith] asserts it, and only of a
+  /// list it is given; the charts, [Skeleton] and [Heatmap] draw with a
+  /// shorter one (`rampOf`) rather than throw. The list
   /// [copyWith] is given is copied unmodifiable, so the caller's list
   /// changing later does not change the set; a `const` constructor cannot
   /// copy, so a list given to it is the caller's own.
@@ -496,7 +498,7 @@ final class Glyphs {
     String? omitted,
   }) {
     assert(
-      (shades ?? this.shades).length >= 2,
+      shades == null || shades.length >= 2,
       'Glyphs.shades are at least two: a blank and a mark',
     );
     return Glyphs(
