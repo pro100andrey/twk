@@ -235,7 +235,8 @@ final class _ConfirmInputState extends State<ConfirmInput> {
 /// Asks [question] in a dialog over the app ([showDialog]), wrapped on
 /// its own lines above a [ConfirmInput] that has the focus: the future
 /// completes with true for yes, false for no, and null when Escape or a
-/// click outside closes the dialog. [defaultValue] is the answer Enter gives at first.
+/// click outside closes the dialog. [defaultValue] is the answer Enter gives
+/// at first.
 ///
 /// ```dart
 /// final delete = await showConfirm(
