@@ -294,6 +294,7 @@ Future<T> runTasks<T>(
   bool hideFinished = false,
   ProgressBarShape barShape = ProgressBarShape.line,
   int? maxBarWidth = 30,
+  ByteUnits byteUnits = ByteUnits.decimal,
 }) async {
   final tracker = ProgressTracker(clock: cli.terminal.clock.stopwatch());
   final shown = columns ?? ProgressList.defaultColumns;
@@ -309,7 +310,7 @@ Future<T> runTasks<T>(
     }
   }
   void summary(ProgressTask task) {
-    final line = summaryLine(task, cli);
+    final line = summaryLine(task, cli, byteUnits);
     if (session case final session? when session.isOpen) {
       unawaited(session.commit(lineWidget(line)));
     } else {
@@ -328,6 +329,7 @@ Future<T> runTasks<T>(
         hideFinished: hideFinished,
         barShape: barShape,
         maxBarWidth: maxBarWidth,
+        byteUnits: byteUnits,
       ),
       last: true,
     );
@@ -374,6 +376,7 @@ Future<T> runTasks<T>(
             hideFinished: hideFinished,
             barShape: barShape,
             maxBarWidth: maxBarWidth,
+            byteUnits: byteUnits,
           ),
         );
       }
@@ -391,8 +394,14 @@ bool _stays(ProgressTask task) =>
 /// [task]'s [ProgressTask.summary] as a line, its mark in the theme's
 /// success, error or hint.
 @internal
-List<Span> summaryLine(ProgressTask task, Cli cli) {
-  final summary = _oneLine(task.summaryIn(cli.theme.glyphs));
+List<Span> summaryLine(
+  ProgressTask task,
+  Cli cli, [
+  ByteUnits byteUnits = ByteUnits.decimal,
+]) {
+  final summary = _oneLine(
+    task.summaryIn(cli.theme.glyphs, byteUnits: byteUnits),
+  );
   final theme = cli.theme;
   final space = summary.indexOf(' ');
   if (space < 0) {
@@ -519,6 +528,7 @@ final class _TasksView extends StatefulWidget {
     required this.hideFinished,
     required this.barShape,
     required this.maxBarWidth,
+    required this.byteUnits,
   });
 
   final ProgressTracker tracker;
@@ -526,6 +536,7 @@ final class _TasksView extends StatefulWidget {
   final bool hideFinished;
   final ProgressBarShape barShape;
   final int? maxBarWidth;
+  final ByteUnits byteUnits;
 
   @override
   State<_TasksView> createState() => _TasksViewState();
@@ -573,6 +584,7 @@ final class _TasksViewState extends State<_TasksView> {
         hideFinished: widget.hideFinished,
         barShape: widget.barShape,
         maxBarWidth: widget.maxBarWidth,
+        byteUnits: widget.byteUnits,
       ),
     );
   }

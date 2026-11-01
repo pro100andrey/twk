@@ -183,7 +183,8 @@ what it throws, which is thrown again. A task is set going by `start`,
 `advance([by])` or `update(completed)` and finished once by `done([label])`,
 `fail([error])` or `skip()`; it gives its `fraction`, `rate` (over the last
 `rateWindow`), `eta`, `elapsed` and a line of text, `summary` (`✓
-Downloading assets.zip • 3.4/3.4 MB • 2.1 s`). The tracker's listeners are
+Downloading assets.zip • 3.4/3.4 MB • 2.1 s`; `summaryIn(glyphs, byteUnits:
+ByteUnits.binary)` counts the bytes by 1024, `3.2/3.2 MiB`). The tracker's listeners are
 told when a task comes, goes, starts or ends, or its label or total changes,
 not at each `advance`; `onTaskFinished` streams each task as it ends; its
 times are read on the `clock` it is constructed with, else on a stopwatch of

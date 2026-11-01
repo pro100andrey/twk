@@ -463,13 +463,17 @@ final class ProgressTask {
   String get summary => summaryIn(Glyphs.unicode);
 
   /// [summary] with the marks of [glyphs]: its mark and the bullet
-  /// between the parts.
-  String summaryIn(Glyphs glyphs) {
+  /// between the parts, and its bytes counted as [byteUnits] says, as a
+  /// [ProgressList] given the same writes them (`3.2/3.2 MiB`).
+  String summaryIn(
+    Glyphs glyphs, {
+    ByteUnits byteUnits = ByteUnits.decimal,
+  }) {
     final parts = [
       '${TaskMarks(SpinnerFrames.dots, glyphs).mark(_status, 0)} $_label',
     ];
     if (_completed > 0 && (_total != null || unit == ProgressUnit.bytes)) {
-      parts.add(_count(this, ByteUnits.decimal));
+      parts.add(_count(this, byteUnits));
     }
     if (_status == TaskStatus.done || _status == TaskStatus.failed) {
       parts.add(formatTook(elapsed));

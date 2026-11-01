@@ -171,6 +171,25 @@ void main() {
       expect(files.summary, '✗ files • 12/40 • 01:05');
       expect(tracker.add('wait').summary, '◦ wait');
     });
+
+    test(
+      'summaryIn(byteUnits:) counts bytes by 1024, as the list does',
+      () async {
+        final (tracker, clock) = tracked();
+        final download = tracker.add(
+          'assets.zip',
+          total: 3 * 1048576,
+          unit: ProgressUnit.bytes,
+        )..advance(1048576);
+        await clock.elapse(const Duration(milliseconds: 2100));
+        download.done();
+        expect(download.summary, '✓ assets.zip • 3.1/3.1 MB • 2.1 s');
+        expect(
+          download.summaryIn(Glyphs.unicode, byteUnits: ByteUnits.binary),
+          '✓ assets.zip • 3.0/3.0 MiB • 2.1 s',
+        );
+      },
+    );
   });
 
   group('ProgressList', () {

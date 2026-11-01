@@ -392,6 +392,27 @@ void main() {
       },
     );
 
+    test('byteUnits: binary writes the summaries in KiB and MiB', () async {
+      final clock = FakeClock();
+      final terminal = FakeCliTerminal(fakeClock: clock);
+      final cli = Cli(terminal: terminal);
+      final running = cli.tasks(
+        (tracker) => tracker.run(
+          'Downloading assets.zip',
+          (task) async => task.advance(3 * 1048576),
+          total: 3 * 1048576,
+          unit: ProgressUnit.bytes,
+        ),
+        byteUnits: ByteUnits.binary,
+      );
+      await clock.elapse(_ms * 1000);
+      await running;
+      expect(
+        terminal.out.toString(),
+        '✓ Downloading assets.zip • 3.0/3.0 MiB • 0.0 s\n',
+      );
+    });
+
     test(
       'on a terminal that does not redraw, writes each as it starts too',
       () async {
