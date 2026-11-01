@@ -13,14 +13,23 @@ import 'package:twk_core/twk_core.dart';
 /// canvas that paints it and the presenter that writes its changes.
 final class FrameRig {
   /// A rig of `width` × `height` cells, the presenter's terminal of the
-  /// default capabilities.
-  FrameRig(int width, int height)
+  /// default capabilities; its text measured with ambiguous characters
+  /// `ambiguousWidth` columns wide (1 or 2).
+  FrameRig(int width, int height, {this.ambiguousWidth = 1})
     : styles = StyleTable(),
       glyphs = GlyphTable(),
       surface = Surface(width, height) {
-    canvas = Canvas(surface, styles, glyphs);
+    canvas = Canvas(
+      surface,
+      styles,
+      glyphs,
+      segmenter: TextSegmenter(ambiguousWidth: ambiguousWidth),
+    );
     presenter = Presenter(width, height, styles, glyphs);
   }
+
+  /// The columns the characters of ambiguous East Asian width take.
+  final int ambiguousWidth;
 
   /// The styles and pens of the frames.
   final StyleTable styles;
@@ -61,7 +70,13 @@ var _sink = 0;
 /// scenario that doesn't [write] to the terminal return 0.
 final class FrameScenario {
   /// The scenario [name], doing what [about] says, started by [start].
-  const FrameScenario(this.name, this.about, this.start, {this.write = true});
+  const FrameScenario(
+    this.name,
+    this.about,
+    this.start, {
+    this.write = true,
+    this.ambiguousWidth = 1,
+  });
 
   /// Its name in a report: `wrap`, `list-scroll`.
   final String name;
@@ -75,6 +90,15 @@ final class FrameScenario {
 
   /// Whether its frames write to the terminal.
   final bool write;
+
+  /// The columns a character of ambiguous East Asian width takes on the
+  /// terminal it is for: its [FrameRig] and the emulator that checks its
+  /// frames are made with it.
+  final int ambiguousWidth;
+
+  /// The rig of `width` × `height` cells this scenario runs on.
+  FrameRig rig(int width, int height) =>
+      FrameRig(width, height, ambiguousWidth: ambiguousWidth);
 }
 
 const _spinner = <String>['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧'];
@@ -209,6 +233,49 @@ final frameScenarios = <FrameScenario>[
     };
   }),
   FrameScenario(
+    'ellipsis-dots',
+    'the same cut off at 2/3 of the rows with the ASCII ellipsis "..."',
+    (hs) {
+      final s = _Prose(
+        hs,
+        maxLines: hs.surface.height * 2 ~/ 3,
+        ellipsis: '...',
+      )..render();
+      _requireCut(hs, s.paragraph.maxLines!, '...');
+      return (i) {
+        s.type(i);
+        return s.render();
+      };
+    },
+  ),
+  FrameScenario(
+    'wrap-ambig',
+    'a word typed into the mixed-script paragraph on a terminal whose '
+        'ambiguous characters (Cyrillic, quotes, dashes) take two cells',
+    (hs) {
+      final s = _Prose(hs)..render();
+      return (i) {
+        s.type(i);
+        return s.render();
+      };
+    },
+    ambiguousWidth: 2,
+  ),
+  FrameScenario(
+    'ellip-ambig',
+    'the same cut off at 2/3 of the rows with "…", on that terminal, '
+        'where the ellipsis takes two cells',
+    (hs) {
+      final s = _Prose(hs, maxLines: hs.surface.height * 2 ~/ 3)..render();
+      _requireCut(hs, s.paragraph.maxLines!, '\u2026');
+      return (i) {
+        s.type(i);
+        return s.render();
+      };
+    },
+    ambiguousWidth: 2,
+  ),
+  FrameScenario(
     'wrap-bidi',
     'a word typed into a Latin, Hebrew and Arabic paragraph in visual order',
     (hs) {
@@ -257,6 +324,23 @@ final frameScenarios = <FrameScenario>[
   }, write: false),
 ];
 
+/// Throws [ScenarioBroken] unless line [line] (from 1) of the rig's
+/// surface holds [ellipsis], the cells of its glyphs in a row.
+void _requireCut(FrameRig hs, int line, String ellipsis) {
+  final w = hs.surface.width;
+  final at = (line - 1) * w;
+  final row = StringBuffer();
+  for (var x = 0; x < w; x++) {
+    final c = hs.surface.cells[at + x];
+    if ((c & kCont) == 0) {
+      row.write(hs.glyphs.stringOf(c));
+    }
+  }
+  if (!row.toString().contains(ellipsis)) {
+    throw ScenarioBroken('no "$ellipsis" on line $line');
+  }
+}
+
 /// [n] repetitions of ten events: letters, a Cyrillic letter, arrows with
 /// and without modifiers, a kitty-protocol key, SGR mouse press, release
 /// and wheel.
@@ -287,10 +371,12 @@ List<int> _utf8(int cp) => cp < 0x80
 
 /// A render tree on a rig, driven the way `TwkApp` drives it.
 abstract base class _Scene {
-  _Scene(this.hs) : ctx = PaintContext(hs.canvas, hs.surface, hs.presenter);
+  _Scene(this.hs)
+    : ctx = PaintContext(hs.canvas, hs.surface, hs.presenter),
+      owner = PipelineOwner(() {}, segmenter: hs.canvas.segmenter);
   final FrameRig hs;
   final PaintContext ctx;
-  final owner = PipelineOwner(() {});
+  final PipelineOwner owner;
 
   int render() {
     owner
@@ -512,6 +598,7 @@ final class _Prose extends _Scene {
     int? maxLines,
     List<(String, Pen)> sentences = _sentences,
     bool visual = false,
+    String ellipsis = '\u2026',
   }) {
     if (visual) {
       owner.textOrder = TextOrder.visual;
@@ -527,6 +614,7 @@ final class _Prose extends _Scene {
       base,
       overflow: maxLines == null ? TextOverflow.clip : TextOverflow.ellipsis,
       maxLines: maxLines,
+      ellipsis: ellipsis,
     );
     owner.root = RenderBox(
       pen: hs.styles.pen(const Pen(bg: Color.rgb(16, 18, 24))),

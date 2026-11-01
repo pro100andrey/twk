@@ -9,6 +9,13 @@
 // (scenario names as in the report). --measure times in this process only
 // and prints tab-separated lines (what the compiled executables do).
 //
+// Scenarios of the branch's text work: `ellipsis-dots` (the cut with the
+// ASCII ellipsis "...", `Glyphs.ascii`'s) and, on a terminal whose
+// ambiguous characters take two cells (`FrameScenario.ambiguousWidth`, the
+// rig's canvas and the checking emulator both), `wrap-ambig` and
+// `ellip-ambig`. They use only the core's API of main's too, so they build
+// against an older `--baseline`.
+//
 // Before a scenario is timed it runs for 64 frames into the test emulator
 // (package:twk_test/vt.dart): a screen that differs from what was painted, or
 // output the emulator rejects, stops the benchmark, so a broken scenario
@@ -96,7 +103,7 @@ int _measure(_Options opts) {
       stderr.writeln('${s.name}: ${e.message}');
       return 1;
     }
-    final us = _time(s.start(FrameRig(opts.width, opts.height)));
+    final us = _time(s.start(s.rig(opts.width, opts.height)));
     stdout.writeln('${s.name}\t$us\t$bytes');
   }
   if (_sink + scenarioSink == 42) {
@@ -109,7 +116,7 @@ int _measure(_Options opts) {
 /// bytes they wrote; throws [ScenarioBroken] when the screen isn't what was
 /// painted or the emulator rejected the output.
 int _verify(FrameScenario s, int w, int h) {
-  final rig = FrameRig(w, h);
+  final rig = s.rig(w, h);
   final frame = s.start(rig);
   if (!s.write) {
     for (var i = 1; i <= _verifyFrames; i++) {
@@ -119,7 +126,12 @@ int _verify(FrameScenario s, int w, int h) {
   }
   // not strict: every complaint is collected and reported, not just the
   // first
-  final vt = Vt(w, h, strict: false)..feed(rig.presenter.out.view);
+  final vt = Vt(
+    w,
+    h,
+    strict: false,
+    segmenter: TextSegmenter(ambiguousWidth: s.ambiguousWidth),
+  )..feed(rig.presenter.out.view);
   var bytes = 0;
   for (var i = 1; i <= _verifyFrames; i++) {
     bytes += frame(i);
