@@ -184,7 +184,8 @@ final class LineGauge extends LeafRenderObjectWidget {
 
   /// The lines drawn: their horizontal piece, and the piece that reaches
   /// left only for a half cell. Where the canvas draws them two columns
-  /// wide (box drawing is East Asian ambiguous), [BorderType.ascii].
+  /// wide (box drawing is East Asian ambiguous), [BorderType.ascii], which
+  /// is also what a set of ASCII lines draws ([Glyphs.borderOf]).
   /// Null for the marks of the theme ([Glyphs.gaugeFilled],
   /// [Glyphs.gaugeHalf] and [Glyphs.gaugeEmpty]), which in
   /// [Glyphs.unicode] are the line of [BorderType.single].
@@ -503,7 +504,7 @@ final class RenderLineGauge extends _RenderGaugeBase {
         x,
         y,
         cells,
-        type,
+        _set.borderOf(type),
         filledPen: filledPen,
         unfilledPen: unfilledPen,
         ratio: unitRatio(_ratio),
