@@ -81,4 +81,41 @@ void main() {
     expect(byteUnit(999999), (1000000, 'MB'));
     expect(byteUnit(999), (1, 'B'));
   });
+
+  test('formatBytes in binary units: 1024 to a unit, IEC suffixes, the '
+      'digits as the decimal ones', () {
+    String b(num n) => formatBytes(n, units: ByteUnits.binary);
+    expect(b(0), '0 B');
+    expect(b(1000), '1000 B');
+    expect(b(1023), '1023 B');
+    expect(b(1024), '1.0 KiB');
+    expect(b(1536), '1.5 KiB');
+    expect(b(4096), '4.0 KiB');
+    expect(b(102300), '99.9 KiB');
+    expect(b(102400), '100 KiB');
+    expect(b(1000 * 1024), '1000 KiB');
+    expect(b(1048576), '1.0 MiB');
+    expect(b(1.5 * 1048576), '1.5 MiB');
+    expect(b(3 * 1073741824), '3.0 GiB');
+    expect(b(1024 * 1024 * 1024 * 1024), '1.0 TiB');
+    expect(b(1024 * 1024 * 1024 * 1024 * 1024), '1.0 PiB');
+    // a rate in bytes need not be whole
+    expect(b(12.5), '12.5 B');
+  });
+
+  test('formatBytes in binary moves to the next unit where the figures '
+      'would round to 1024, as the decimal does at 1000', () {
+    String b(num n) => formatBytes(n, units: ByteUnits.binary);
+    expect(b(1023.4), '1023 B');
+    expect(b(1023.6), '1.0 KiB');
+    expect(b(1048063), '1023 KiB');
+    expect(b(1048064), '1.0 MiB');
+    expect(byteUnit(1048064, ByteUnits.binary), (1048576, 'MiB'));
+    expect(byteUnit(1023, ByteUnits.binary), (1, 'B'));
+  });
+
+  test('formatBytes is decimal when no units are given', () {
+    expect(formatBytes(1024), '1.0 kB');
+    expect(formatBytes(1536, units: ByteUnits.decimal), '1.5 kB');
+  });
 }

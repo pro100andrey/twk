@@ -469,7 +469,7 @@ final class ProgressTask {
       '${TaskMarks(SpinnerFrames.dots, glyphs).mark(_status, 0)} $_label',
     ];
     if (_completed > 0 && (_total != null || unit == ProgressUnit.bytes)) {
-      parts.add(_count(this));
+      parts.add(_count(this, ByteUnits.decimal));
     }
     if (_status == TaskStatus.done || _status == TaskStatus.failed) {
       parts.add(formatTook(elapsed));
@@ -557,6 +557,7 @@ final class ProgressList extends StatefulWidget {
     this.spinner,
     this.barShape = ProgressBarShape.blocks,
     this.maxBarWidth,
+    this.byteUnits = ByteUnits.decimal,
   }) : assert(maxVisible == null || maxVisible >= 0, 'fewer than no rows'),
        assert(maxBarWidth == null || maxBarWidth > 0, 'a bar of no cells');
 
@@ -595,6 +596,12 @@ final class ProgressList extends StatefulWidget {
   /// How wide the bar column is at most, the room past it left blank at
   /// the right of the rows; null for all the room the other columns leave.
   final int? maxBarWidth;
+
+  /// How the amounts and rates of tasks in [ProgressUnit.bytes] are
+  /// counted and named: by 1000 (`1.2 MB/s`), or by 1024 as `ls -h` does
+  /// (`1.1 MiB/s`). Give a `DirectoryTree` the same for sizes that read
+  /// alike.
+  final ByteUnits byteUnits;
 
   @override
   State<ProgressList> createState() => _ProgressListState();
@@ -709,6 +716,7 @@ final class _ProgressListState extends State<ProgressList> {
         frames: TaskMarks(frames, theme.glyphs),
         barShape: widget.barShape,
         maxBarWidth: widget.maxBarWidth,
+        byteUnits: widget.byteUnits,
         styles: _Styles(
           base: base,
           muted: base.merge(theme.muted),
@@ -768,6 +776,7 @@ final class _List extends LeafRenderObjectWidget {
     required this.frames,
     required this.barShape,
     required this.maxBarWidth,
+    required this.byteUnits,
     required this.styles,
     required this.binding,
   });
@@ -778,6 +787,7 @@ final class _List extends LeafRenderObjectWidget {
   final TaskMarks frames;
   final ProgressBarShape barShape;
   final int? maxBarWidth;
+  final ByteUnits byteUnits;
   final _Styles styles;
   final AppBinding? binding;
 
@@ -790,6 +800,7 @@ final class _List extends LeafRenderObjectWidget {
         frames: frames,
         barShape: barShape,
         maxBarWidth: maxBarWidth,
+        byteUnits: byteUnits,
         styles: styles,
         binding: binding,
       )..muted = !TickerMode.of(context);
@@ -805,6 +816,7 @@ final class _List extends LeafRenderObjectWidget {
       ..frames = frames
       ..barShape = barShape
       ..maxBarWidth = maxBarWidth
+      ..byteUnits = byteUnits
       ..styles = styles
       ..muted = !TickerMode.of(context);
   }
@@ -830,6 +842,7 @@ final class _RenderProgressList extends RenderObject {
     required this._frames,
     required this._barShape,
     required this._maxBarWidth,
+    required this._byteUnits,
     required this._styles,
     required this.binding,
   });
@@ -895,6 +908,15 @@ final class _RenderProgressList extends RenderObject {
   set maxBarWidth(int? w) {
     if (w != _maxBarWidth) {
       _maxBarWidth = w;
+      markNeedsPaint();
+    }
+  }
+
+  ByteUnits _byteUnits;
+  ByteUnits get byteUnits => _byteUnits;
+  set byteUnits(ByteUnits u) {
+    if (u != _byteUnits) {
+      _byteUnits = u;
       markNeedsPaint();
     }
   }
@@ -1005,7 +1027,8 @@ final class _RenderProgressList extends RenderObject {
         continue;
       }
       final column = [
-        for (final task in rows) _cell(c, task, showsElapsed: showsElapsed),
+        for (final task in rows)
+          _cell(c, task, showsElapsed: showsElapsed, units: _byteUnits),
       ];
       var w = 0;
       for (final cell in column) {
@@ -1187,6 +1210,7 @@ String _cell(
   ProgressColumn column,
   ProgressTask task, {
   required bool showsElapsed,
+  required ByteUnits units,
 }) {
   final status = task.status;
   final running = status == TaskStatus.running;
@@ -1197,11 +1221,11 @@ String _cell(
       null => status == TaskStatus.done ? '100%' : '',
     },
     ProgressColumn.count =>
-      task.completed == 0 && task.total == null ? '' : _count(task),
+      task.completed == 0 && task.total == null ? '' : _count(task, units),
     ProgressColumn.rate => switch (running && task.completed != 0
         ? task.rate
         : null) {
-      final r? => _rate(r, task.unit),
+      final r? => _rate(r, task.unit, units),
       null => '',
     },
     ProgressColumn.eta =>
@@ -1223,16 +1247,16 @@ String _cell(
 
 /// How much of how much [task] has done, in its unit: `12/40`,
 /// `1.2/3.4 MB`, `1.2 MB`.
-String _count(ProgressTask task) {
+String _count(ProgressTask task, ByteUnits units) {
   final total = task.total;
   if (task.unit == ProgressUnit.count) {
     final done = _number(task.completed);
     return total == null ? done : '$done/${_number(total)}';
   }
   if (total == null) {
-    return formatBytes(task.completed);
+    return formatBytes(task.completed, units: units);
   }
-  final (scale, suffix) = byteUnit(total);
+  final (scale, suffix) = byteUnit(total, units);
   if (scale == 1) {
     return '${_number(task.completed)}/${_number(total)} B';
   }
@@ -1247,16 +1271,16 @@ String _number(num n) => n == n.roundToDouble() && n.abs() < 1e15
 
 /// [rate] a second in [unit], as [formatBytes] writes an amount: `1.2 MB/s`,
 /// `3.5/s`, `120/s`, `1.2k/s`.
-String _rate(double rate, ProgressUnit unit) {
+String _rate(double rate, ProgressUnit unit, ByteUnits units) {
   if (unit == ProgressUnit.bytes) {
-    return '${formatBytes(rate)}/s';
+    return '${formatBytes(rate, units: units)}/s';
   }
-  const units = ['', 'k', 'M', 'G'];
+  const prefixes = ['', 'k', 'M', 'G'];
   var scaled = rate;
   var i = 0;
-  while (i < units.length - 1 && scaled.abs() >= 1000) {
+  while (i < prefixes.length - 1 && scaled.abs() >= 1000) {
     scaled /= 1000;
     i++;
   }
-  return '${formatFigures(scaled)}${units[i]}/s';
+  return '${formatFigures(scaled)}${prefixes[i]}/s';
 }

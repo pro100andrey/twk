@@ -342,6 +342,34 @@ void main() {
       expect(t.terminal.frames.length, before);
     });
 
+    testTwk('byteUnits: binary writes amount and rate in KiB and MiB', (
+      t,
+    ) async {
+      final tracker = onApp(t);
+      final task = tracker.add(
+        'Upload',
+        total: 10 * 1048576,
+        unit: ProgressUnit.bytes,
+      );
+      await t.pumpWidget(
+        ProgressList(
+          tracker: tracker,
+          byteUnits: ByteUnits.binary,
+          columns: const [
+            ProgressColumn.label,
+            ProgressColumn.count,
+            ProgressColumn.rate,
+          ],
+        ),
+        size: (60, 1),
+      );
+      task.start();
+      await t.pump(s);
+      task.update(1.5 * 1048576 ~/ 1);
+      await t.pump(SpinnerFrames.dots.interval);
+      expect(t.lines, ['Upload 1.5/10.0 MiB • 1.5 MiB/s']);
+    });
+
     testTwk('rate and the time left move with the clock of the app', (
       t,
     ) async {

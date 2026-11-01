@@ -228,7 +228,7 @@ those rows does;
 ## `DirectoryTree`
 
 `DirectoryTree(root:, fileSystem:, controller:, onSelected:, onOpened:,
-showHidden: false, gitignore: true, watch: true, showSizes: false, filter:,
+showHidden: false, gitignore: true, watch: true, showSizes: false, byteUnits: ByteUnits.decimal, filter:,
 icon:, showGuides: false, focusNode:, autofocus:)` is a `TreeView` of the
 files under `root` for a side panel: the root expanded, each directory
 listed as it is first expanded (a spinner meanwhile), the directories first
@@ -236,7 +236,8 @@ in bold with a separator, then the files, each by name in any case; the
 hidden entries left out but with `showHidden`, with `gitignore` what the
 `.gitignore` files under the root ignore and `.git` too, the files a
 `FileFilter` refuses; `showSizes` puts each file's size at the end of its
-row (`4.2 KB`), `icon(entry)` what goes before a name, and a directory that
+row (`4.2 kB`, or `4.1 KiB` with `byteUnits: ByteUnits.binary`, counted
+by 1024 as `ls -h` does), `icon(entry)` what goes before a name, and a directory that
 fails to list says why below it in the theme's `muted` (`(permission
 denied)`). With `watch`, each directory expanded is listed again a tenth of
 a second after its `PickerFileSystem.watch` tells of a change, the selection

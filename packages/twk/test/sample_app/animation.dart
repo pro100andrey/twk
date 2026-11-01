@@ -104,7 +104,11 @@ extension on _SampleAppState {
         );
       },
     ),
-    ProgressList(tracker: _progress, maxVisible: 2),
+    ProgressList(
+      tracker: _progress,
+      maxVisible: 2,
+      byteUnits: ByteUnits.binary,
+    ),
     ValueListenableBuilder(
       valueListenable: _count,
       builder: (context, count, child) => SkeletonTheme(

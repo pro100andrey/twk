@@ -197,7 +197,8 @@ final class DirectoryTreeController extends ChangeNotifier {
 /// a file deeper down deciding before those above it, nor does `.git`; a
 /// directory's `.gitignore` is read as it is listed. With a [filter], the
 /// files it accepts show, and every directory. With [showSizes], each
-/// file's size shows at the end of its row, as `4.3 kB`. [icon] gives
+/// file's size shows at the end of its row, as `4.3 kB`, or as `4.2 KiB`
+/// with [byteUnits] binary. [icon] gives
 /// what shows before an entry's name, such as a glyph of a Nerd Font;
 /// null for nothing.
 ///
@@ -229,6 +230,7 @@ final class DirectoryTree extends StatefulWidget {
     this.gitignore = true,
     this.watch = true,
     this.showSizes = false,
+    this.byteUnits = ByteUnits.decimal,
     this.filter,
     this.icon,
     this.showGuides = false,
@@ -265,6 +267,11 @@ final class DirectoryTree extends StatefulWidget {
 
   /// Whether each file's size shows at the end of its row.
   final bool showSizes;
+
+  /// How [showSizes] counts and names a size: by 1000 (`4.3 kB`), or by
+  /// 1024 as `ls -h` does (`4.2 KiB`). Give a `ProgressList` the same for
+  /// sizes that read alike.
+  final ByteUnits byteUnits;
 
   /// Which files show; null for all of them. Every directory shows.
   final FileFilter? filter;
@@ -864,7 +871,10 @@ final class _DirectoryTreeState extends State<DirectoryTree> {
           : Row(
               children: [
                 Expanded(child: label),
-                Text(' ${formatBytes(size)}', style: theme.muted),
+                Text(
+                  ' ${formatBytes(size, units: widget.byteUnits)}',
+                  style: theme.muted,
+                ),
               ],
             ),
     );
