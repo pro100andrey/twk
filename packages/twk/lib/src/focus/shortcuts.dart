@@ -539,7 +539,7 @@ final class _Binding<V> {
   _Binding(this.keys, this.value);
 
   final List<KeyCombo> keys;
-  final V value;
+  V value;
   String? hint;
 }
 
@@ -579,6 +579,98 @@ abstract class _LayerState<W extends StatefulWidget, V> extends State<W> {
   Map<KeyCombo, String>? _parsedComboHints;
   String? _parsedLeader;
 
+  // What the last parse read, to tell a map built anew with the same keys
+  // from one with other keys: its keys, its hints' keys and values, and the
+  // bindings made of its entries, each in the order of its map.
+  var _namedKeys = <String>[];
+  var _comboKeys = <KeyCombo>[];
+  var _namedHintKeys = <String>[];
+  var _namedHintTexts = <String>[];
+  var _comboHintKeys = <KeyCombo>[];
+  var _comboHintTexts = <String>[];
+  var _namedBindings = <_Binding<V>>[];
+  var _comboBindings = <_Binding<V>>[];
+
+  /// Whether [named], [combos] and the hints, not the ones parsed, have the
+  /// same keys and hints as they: then only the values are taken, each
+  /// into its binding, and nothing is parsed or allocated.
+  bool _sameKeys(
+    Map<String, V> named,
+    Map<KeyCombo, V> combos,
+    Map<String, String> namedHints,
+    Map<KeyCombo, String> comboHints,
+  ) {
+    if (_bound == null ||
+        named.length != _namedKeys.length ||
+        combos.length != _comboKeys.length ||
+        namedHints.length != _namedHintKeys.length ||
+        comboHints.length != _comboHintKeys.length) {
+      return false;
+    }
+    var i = 0;
+    for (final key in named.keys) {
+      if (key != _namedKeys[i++]) {
+        return false;
+      }
+    }
+    i = 0;
+    for (final key in combos.keys) {
+      if (key != _comboKeys[i++]) {
+        return false;
+      }
+    }
+    i = 0;
+    for (final key in namedHints.keys) {
+      if (key != _namedHintKeys[i++]) {
+        return false;
+      }
+    }
+    i = 0;
+    for (final hint in namedHints.values) {
+      if (hint != _namedHintTexts[i++]) {
+        return false;
+      }
+    }
+    i = 0;
+    for (final key in comboHints.keys) {
+      if (key != _comboHintKeys[i++]) {
+        return false;
+      }
+    }
+    i = 0;
+    for (final hint in comboHints.values) {
+      if (hint != _comboHintTexts[i++]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /// Takes the values of [named] and [combos] into the bindings made of
+  /// their keys, and marks the keys changed where one is listed otherwise.
+  void _takeValues(Map<String, V> named, Map<KeyCombo, V> combos) {
+    var changed = false;
+    var i = 0;
+    for (final value in named.values) {
+      final binding = _namedBindings[i++];
+      if (!identical(binding.value, value)) {
+        changed = changed || !_listedAlike(binding.value, value);
+        binding.value = value;
+      }
+    }
+    i = 0;
+    for (final value in combos.values) {
+      final binding = _comboBindings[i++];
+      if (!identical(binding.value, value)) {
+        changed = changed || !_listedAlike(binding.value, value);
+        binding.value = value;
+      }
+    }
+    if (changed) {
+      _node.markKeysChanged();
+    }
+  }
+
   // the first keys of a sequence held, the node they started at, and the
   // time they are held until
   var _held = <KeyEvent>[];
@@ -597,15 +689,28 @@ abstract class _LayerState<W extends StatefulWidget, V> extends State<W> {
         leaderName == _parsedLeader) {
       return;
     }
+    if (leaderName == _parsedLeader &&
+        _sameKeys(named, combos, namedHints, comboHints)) {
+      _takeValues(named, combos);
+      _parsedNamed = named;
+      _parsedCombos = combos;
+      _parsedNamedHints = namedHints;
+      _parsedComboHints = comboHints;
+      return;
+    }
     final leader = KeyCombo.parse(leaderName);
     Never twice(String before, String name, List<KeyCombo> keys) =>
         throw ArgumentError(
           '"$before" and "$name" are the same key${keys.length > 1 ? 's' : ''}',
         );
     // by the keys as text
-    final bound = <String, _Binding<V>>{
+    final comboBindings = <_Binding<V>>[
       for (final MapEntry(key: combo, :value) in combos.entries)
-        '$combo': _Binding([combo], value),
+        _Binding([combo], value),
+    ];
+    final namedBindings = <_Binding<V>>[];
+    final bound = <String, _Binding<V>>{
+      for (final b in comboBindings) '${b.keys.single}': b,
     };
     final names = <String, String>{};
     for (final MapEntry(key: name, :value) in named.entries) {
@@ -615,7 +720,9 @@ abstract class _LayerState<W extends StatefulWidget, V> extends State<W> {
         twice(before, name, keys);
       }
       names[id] = name;
-      bound[id] = _Binding(keys, value);
+      final binding = _Binding(keys, value);
+      namedBindings.add(binding);
+      bound[id] = binding;
     }
     for (final MapEntry(key: combo, value: hint) in comboHints.entries) {
       final binding = bound['$combo'];
@@ -658,6 +765,14 @@ abstract class _LayerState<W extends StatefulWidget, V> extends State<W> {
     _parsedNamedHints = namedHints;
     _parsedComboHints = comboHints;
     _parsedLeader = leaderName;
+    _namedKeys = named.keys.toList();
+    _comboKeys = combos.keys.toList();
+    _namedHintKeys = namedHints.keys.toList();
+    _namedHintTexts = namedHints.values.toList();
+    _comboHintKeys = comboHints.keys.toList();
+    _comboHintTexts = comboHints.values.toList();
+    _namedBindings = namedBindings;
+    _comboBindings = comboBindings;
   }
 
   /// Whether [now] lists the keys that [before] does, in the same order.

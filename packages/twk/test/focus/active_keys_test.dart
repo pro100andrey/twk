@@ -435,4 +435,49 @@ void main() {
       [contains('"esc" and "escape" are the same key')],
     );
   });
+
+  testTwk('a map built anew with the same keys is not parsed again: the '
+      'keys listed are the same objects, the callbacks and intents the new '
+      'ones, and the signal told only where a key is listed otherwise', (
+    t,
+  ) async {
+    final seen = <String>[];
+    await t.pumpWidget(
+      Host(
+        key: host,
+        (step) => KeyBindings(
+          {
+            'q': () => seen.add('q$step'),
+            if (step < 3) 'ctrl+s': () => seen.add('s$step'),
+            if (step == 2) 'x': null,
+          },
+          hints: {'q': 'quit'},
+          child: const Field('list', autofocus: true),
+        ),
+      ),
+    );
+    final changes = countChanges(t);
+    final first = t.binding.focusManager.activeKeys.toList();
+    expect(keys(t), ['q quit', 'ctrl+s']);
+    host.currentState!.change(1);
+    await t.pump();
+    final again = t.binding.focusManager.activeKeys.toList();
+    expect(again.length, 2);
+    for (var i = 0; i < 2; i++) {
+      expect(identical(again[i].combo, first[i].combo), isTrue);
+    }
+    expect(changes(), 0);
+    await t.press('q');
+    await t.press('ctrl+s');
+    expect(seen, ['q1', 's1']);
+    // other keys are parsed anew
+    host.currentState!.change(2);
+    await t.pump();
+    expect(keys(t), ['q quit', 'ctrl+s']);
+    changes();
+    host.currentState!.change(3);
+    await t.pump();
+    expect(keys(t), ['q quit']);
+    expect(changes(), 1);
+  });
 }
