@@ -101,6 +101,24 @@ void main() {
       expect(x.rows, ['ab…', '']);
     });
 
+    test('an update with equal inputs hands the paragraph the same spans', () {
+      Text rich() => Text.rich(
+        ['a'.fg(red), 'b'.bold],
+        style: const Style(bg: blue),
+      );
+      final v = Shot(rich(), 4, 1);
+      final paragraph = v.top as RenderParagraph;
+      v.pump(rich());
+      final first = paragraph.spans;
+      v.pump(rich());
+      expect(identical(paragraph.spans, first), isTrue);
+      v.pump(
+        Text.rich(['a'.fg(red), 'b'.italic], style: const Style(bg: blue)),
+      );
+      expect(identical(paragraph.spans, first), isFalse);
+      expect(paragraph.spans[1].$2.attrs, Attr.italic);
+    });
+
     test('new settings change the same render object', () {
       final v = Shot(const Text('ab cd'), 6, 2);
       final paragraph = v.top as RenderParagraph;

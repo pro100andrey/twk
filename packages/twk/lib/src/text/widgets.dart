@@ -219,7 +219,15 @@ final class Text extends LeafRenderObjectWidget {
     final onLinkTap = this.onLinkTap;
     final taps = _linkTaps[paragraph];
     final spans = this.spans;
-    final tapped = spans != null && spans.any((s) => s.onTap != null);
+    var tapped = false;
+    if (spans != null) {
+      for (var i = 0; i < spans.length; i++) {
+        if (spans[i].onTap != null) {
+          tapped = true;
+          break;
+        }
+      }
+    }
     if (onLinkTap == null && !tapped) {
       if (taps != null) {
         _linkTaps[paragraph] = null;
@@ -253,10 +261,48 @@ final class Text extends LeafRenderObjectWidget {
     BuildContext context,
     RenderParagraph? paragraph,
   ) {
-    final style = DefaultTextStyle.of(context).merge(this.style);
+    final inherited = DefaultTextStyle.of(context);
     final selected = paragraph == null
         ? null
         : selectedInSelectionArea(context, paragraph);
+    final kept = selected == null && paragraph != null
+        ? _merged[paragraph]
+        : null;
+    if (kept != null && kept.matches(inherited, style, data, spans)) {
+      // rebuilt as it was: the spans it made last time, which the
+      // paragraph then finds the same
+      return kept.result;
+    }
+    final result = _build(context, inherited, selected);
+    if (selected == null && paragraph != null && !_hasGradient(spans)) {
+      final old = _merged[paragraph];
+      if (old == null) {
+        _merged[paragraph] = _Merged(inherited, style, data, spans, result);
+      } else {
+        old.remember(inherited, style, data, spans, result);
+      }
+    }
+    return result;
+  }
+
+  static bool _hasGradient(List<Span>? spans) {
+    if (spans == null) {
+      return false;
+    }
+    for (var i = 0; i < spans.length; i++) {
+      if (spans[i].gradient != null) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  List<(String, Pen)> _build(
+    BuildContext context,
+    Style inherited,
+    (int, int, Style)? selected,
+  ) {
+    final style = inherited.merge(this.style);
     if (spans == null && selected == null) {
       // the common case, rebuilt in every frame of a clock or a counter:
       // one span, without the lists below
@@ -294,6 +340,75 @@ final class Text extends LeafRenderObjectWidget {
       at += text.length;
     }
     return out;
+  }
+}
+
+// the spans each paragraph was last given, and what they were made of
+final _merged = Expando<_Merged>('Text.spans');
+
+/// The [result] of merging [style] onto [inherited] for [data] or [spans],
+/// to hand out again while all of them are equal.
+final class _Merged {
+  _Merged(this.inherited, this.style, this.data, List<Span>? spans, this.result)
+    // copied: the app may change its list in place
+    : spans = spans == null ? null : List.of(spans);
+
+  Style inherited;
+  Style style;
+  String? data;
+  List<Span>? spans;
+  List<(String, Pen)> result;
+
+  /// Takes the inputs of a new [result] in place of the last ones, without
+  /// a new object for it.
+  void remember(
+    Style inherited,
+    Style style,
+    String? data,
+    List<Span>? spans,
+    List<(String, Pen)> result,
+  ) {
+    this.inherited = inherited;
+    this.style = style;
+    this.data = data;
+    this.result = result;
+    final mine = this.spans;
+    if (spans == null) {
+      this.spans = null;
+    } else if (mine == null) {
+      this.spans = List.of(spans);
+    } else {
+      mine
+        ..clear()
+        ..addAll(spans);
+    }
+  }
+
+  bool matches(
+    Style inherited,
+    Style style,
+    String? data,
+    List<Span>? spans,
+  ) {
+    if (this.inherited != inherited || this.style != style) {
+      return false;
+    }
+    final mine = this.spans;
+    if (mine == null || spans == null) {
+      return mine == null && spans == null && this.data == data;
+    }
+    if (mine.length != spans.length) {
+      return false;
+    }
+    for (var i = 0; i < spans.length; i++) {
+      final a = mine[i];
+      final b = spans[i];
+      if (b.gradient != null ||
+          !identical(a, b) && (a.text != b.text || a.style != b.style)) {
+        return false;
+      }
+    }
+    return true;
   }
 }
 
