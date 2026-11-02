@@ -26,17 +26,20 @@ RenderParagraph cutParagraph(
 ///
 /// The calls are dynamic: the baseline's core takes the id as an int, the
 /// repository's, which this file is analyzed against, as a `StyleId`, and
-/// a `StyleId` is that int at run time, so one call does for both.
+/// a `StyleId` is that int at run time, so one call does for both. A
+/// [Color] is its packed int at run time too, so a color comes back as the
+/// int itself: its `value` is an extension member, which a dynamic call
+/// does not find.
 ({int fg, int bg, int attrs, int underline, String? link}) cellStyleOf(
   StyleTable styles,
   int raw,
 ) {
   final dynamic table = styles;
   return (
-    fg: table.fgOf(raw).value as int,
-    bg: table.bgOf(raw).value as int,
+    fg: table.fgOf(raw) as int,
+    bg: table.bgOf(raw) as int,
     attrs: table.attrsOf(raw) as int,
-    underline: table.underlineColorOf(raw).value as int,
+    underline: table.underlineColorOf(raw) as int,
     link: table.linkOf(raw) as String?,
   );
 }
