@@ -10,7 +10,6 @@ import '../focus/focus.dart';
 import '../framework/framework.dart';
 import '../semantics/semantics.dart';
 import '../style/color_mix.dart';
-import '../style/glyphs.dart' show checkboxMarks, switchMarks;
 import '../style/style.dart';
 import '../text/widgets.dart';
 import 'pressable.dart';
@@ -112,7 +111,7 @@ final class Checkbox extends StatelessWidget {
     role: SemanticsRole.checkbox,
     marks: (theme, row, on, enabled, _) {
       final marked = on && enabled ? markStyle(theme) : const Style();
-      final boxes = checkboxMarks(context, theme.glyphs);
+      final boxes = CheckboxMarks.of(context);
       return checkboxSpans(
         boxes,
         on,
@@ -218,7 +217,7 @@ final class Switch extends StatelessWidget {
     marks: pill
         ? (theme, row, on, enabled, at) => _pill(
             theme,
-            switchMarks(context, theme.glyphs),
+            _fitted(context),
             row,
             on,
             enabled,
@@ -259,14 +258,35 @@ final class Switch extends StatelessWidget {
     ThemeData theme, {
     required double at,
     bool enabled = true,
-  }) => _pill(theme, theme.glyphs, const Style(), at >= 0.5, enabled, at);
+  }) => _pill(
+    theme,
+    (
+      start: theme.glyphs.switchStart,
+      knob: theme.glyphs.switchKnob,
+      end: theme.glyphs.switchEnd,
+    ),
+    const Style(),
+    at >= 0.5,
+    enabled,
+    at,
+  );
+
+  // the ends and the knob of the theme's pill as one cell each
+  static _Pill _fitted(BuildContext context) {
+    final marks = ThemeMarks.of(context);
+    return (
+      start: marks.text(Marks.switchStart),
+      knob: marks.text(Marks.switchKnob),
+      end: marks.text(Marks.switchEnd),
+    );
+  }
 
   /// The pill with its knob [at] of the way to the right end, as the
   /// design draws it: the ends half blocks in the track's color, the knob
   /// `●` on it in one of the three cells between them.
   static List<Span> _pill(
     ThemeData theme,
-    Glyphs glyphs,
+    _Pill glyphs,
     Style row,
     bool on,
     bool enabled,
@@ -296,12 +316,12 @@ final class Switch extends StatelessWidget {
     final k = (at * 2).round();
     final end = Style(fg: track);
     return [
-      Span(glyphs.switchStart, end),
+      Span(glyphs.start, end),
       Span(
-        '${' ' * k}${glyphs.switchKnob}${' ' * (2 - k)}',
+        '${' ' * k}${glyphs.knob}${' ' * (2 - k)}',
         Style(fg: knob, bg: track),
       ),
-      Span(glyphs.switchEnd, end),
+      Span(glyphs.end, end),
     ];
   }
 }
@@ -397,3 +417,6 @@ final class _Toggle extends StatelessWidget {
     );
   }
 }
+
+// the ends and the knob of a switch's pill, as text
+typedef _Pill = ({String start, String knob, String end});

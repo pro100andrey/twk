@@ -8,7 +8,6 @@ import '../controls/pressable.dart';
 import '../focus/focus.dart';
 import '../framework/framework.dart';
 import '../semantics/semantics.dart';
-import '../style/glyphs.dart' show textMark;
 import '../style/style.dart';
 import '../text/hit_row.dart';
 
@@ -322,6 +321,9 @@ final class _PaginationState extends State<Pagination> {
     required bool range,
   }) {
     final g = Theme.of(context).glyphs;
+    final marks = ThemeMarks.of(context);
+    final previous = marks.text(Marks.previous, g);
+    final next = marks.text(Marks.next, g);
     final page = _page;
     final count = _count;
     final atStart = page <= 0;
@@ -335,7 +337,7 @@ final class _PaginationState extends State<Pagination> {
     if (widget.showPrevNext) {
       add(
         _Kind.prev,
-        words ? '${g.previous} Prev' : g.previous,
+        words ? '$previous Prev' : previous,
         atStart ? -1 : page - 1,
       );
     }
@@ -349,7 +351,7 @@ final class _PaginationState extends State<Pagination> {
       }
     }
     if (widget.showPrevNext) {
-      add(_Kind.next, words ? 'Next ${g.next}' : g.next, atEnd ? -1 : page + 1);
+      add(_Kind.next, words ? 'Next $next' : next, atEnd ? -1 : page + 1);
     }
     if (widget.showFirstLast) {
       add(
@@ -363,12 +365,7 @@ final class _PaginationState extends State<Pagination> {
       add(_Kind.range, ' ($items)', -1);
     }
     if (_typed.isNotEmpty) {
-      final arrow = textMark(
-        context,
-        'arrowRight',
-        g.arrowRight,
-        Glyphs.ascii.arrowRight,
-      );
+      final arrow = marks.text(Marks.arrowRight, g);
       add(_Kind.typed, ' $arrow $_typed', -1);
     }
     return parts;

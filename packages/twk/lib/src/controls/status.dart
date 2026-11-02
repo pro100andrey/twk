@@ -2,6 +2,7 @@
 /// [StatusMessage] and [Badge].
 library;
 
+import 'package:meta/meta.dart';
 import 'package:twk_core/twk_core.dart'
     show Attr, CrossAxisAlignment, MainAxisSize, TextWrap;
 
@@ -34,6 +35,15 @@ enum StatusKind {
     success => glyphs.check,
     warning => glyphs.warning,
     error => glyphs.cross,
+  };
+
+  /// The mark of this kind in [Marks]; [ThemeMarks.text] fits it to a cell.
+  @internal
+  TextMark get mark => switch (this) {
+    info => Marks.info,
+    success => Marks.check,
+    warning => Marks.warning,
+    error => Marks.cross,
   };
 
   /// The color of this kind in [theme].
@@ -118,7 +128,7 @@ final class StatusMessage extends StatelessWidget {
       gap: 1,
       children: [
         Text(
-          icon ?? kind.icon(glyphs: theme.glyphs),
+          icon ?? ThemeMarks.of(context).text(kind.mark),
           style: marked,
           wrap: TextWrap.none,
         ),

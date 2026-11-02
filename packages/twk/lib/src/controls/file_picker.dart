@@ -27,7 +27,6 @@ import '../platform/paths.dart';
 import '../platform/platform.dart' hide currentDirectory, kindOf;
 import '../platform/platform.dart' as platform show currentDirectory, kindOf;
 import '../scroll/list_view.dart';
-import '../style/glyphs.dart' show checkboxMarks;
 import '../style/style.dart';
 import '../text/hit_row.dart' show segmenterOf;
 import '../text/widgets.dart';
@@ -1273,7 +1272,7 @@ final class _FilePickerState extends State<FilePicker> {
             : widget.idleStyle ?? theme.selectionIdle,
       );
     }
-    final boxes = checkboxMarks(context, theme.glyphs);
+    final boxes = CheckboxMarks.of(context);
     final mark = !widget.multiple
         ? ''
         : entry.isDirectory
@@ -1301,7 +1300,7 @@ final class _FilePickerState extends State<FilePicker> {
               [
                 if (widget.bar && cursor)
                   Span(
-                    theme.glyphs.cursor,
+                    ThemeMarks.of(context).text(Marks.cursor),
                     (focused ? theme.primary : theme.muted).merge(
                       const Style(attrsOff: Attr.bold),
                     ),

@@ -15,7 +15,6 @@ import '../framework/framework.dart';
 import '../gestures/gesture_detector.dart' show takeDrag;
 import '../gestures/mouse.dart';
 import '../overlay/window.dart';
-import '../style/glyphs.dart' show textMark;
 import '../style/style.dart';
 import '../text/widgets.dart';
 import 'basic.dart';
@@ -1209,13 +1208,16 @@ final class _DockAreaState extends State<DockArea> {
 
   // the mark of a drop target: the arrow of its side, the swatch at the
   // centre, each fitted to its cell
-  String _mark(DockSide side, Glyphs glyphs) => switch (side) {
-    DockSide.left => textMark(context, 'arrowLeft', glyphs.arrowLeft, '<'),
-    DockSide.right => textMark(context, 'arrowRight', glyphs.arrowRight, '>'),
-    DockSide.top => textMark(context, 'arrowUp', glyphs.arrowUp, '^'),
-    DockSide.bottom => textMark(context, 'arrowDown', glyphs.arrowDown, 'v'),
-    DockSide.center => textMark(context, 'swatch', glyphs.swatch, '#'),
-  };
+  String _mark(DockSide side, Glyphs glyphs) {
+    final marks = ThemeMarks.of(context);
+    return marks.text(switch (side) {
+      DockSide.left => Marks.arrowLeft,
+      DockSide.right => Marks.arrowRight,
+      DockSide.top => Marks.arrowUp,
+      DockSide.bottom => Marks.arrowDown,
+      DockSide.center => Marks.swatch,
+    }, glyphs);
+  }
 
   // the build
 

@@ -1,7 +1,7 @@
-// A ValueStepper leaves room for its arrows as the theme's glyphs are
-// wide, not as `‹` and `›` are: with two-column marks in a narrow room
-// the right arrow stays on screen and a click on it steps. Review finding 5
-// of the architecture review.
+// A ValueStepper's arrows are one column each: marks of two columns in the
+// theme are Glyphs.ascii's `<` and `>`, so in a narrow room the right arrow
+// stays on screen and a click on it steps. Review finding 5 of the
+// architecture review, under the one rule of the theme's marks.
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
@@ -42,12 +42,12 @@ void main() {
     expect(changes, ['auto']);
   });
 
-  testTwk('with two-column arrows, a value cut to fit still shows the right '
-      'arrow inside the room', (t) async {
+  testTwk('with two-column arrows, the ASCII ones are drawn and a value cut '
+      'to fit still shows the right arrow inside the room', (t) async {
     await t.pumpWidget(stepper(wideArrows, 14, []), size: (30, 2));
-    // << + blank + 8 columns of label + blank + >> is the 14 columns
     expect(t.lines.first.length, lessThanOrEqualTo(14));
-    expect(t.lines.first, endsWith('>>'), reason: 'the row: ${t.lines.first}');
+    expect(t.lines.first, startsWith('<'));
+    expect(t.lines.first, endsWith('>'), reason: 'the row: ${t.lines.first}');
   });
 
   testTwk('with two-column arrows, a click on the right arrow steps to the '

@@ -10,7 +10,6 @@ import '../gestures/mouse.dart' show Listener;
 import '../layout/basic.dart' show SizedBox;
 import '../layout/flex.dart';
 import '../overlay/dialog.dart';
-import '../style/glyphs.dart' show textMark;
 import '../style/style.dart';
 import '../text/hit_row.dart' show segmenterOf;
 import '../text/widgets.dart';
@@ -489,29 +488,15 @@ Future<void> showKeyHelp(BuildContext context, {String title = 'Keys'}) {
   );
 }
 
-/// [glyphs] with the four arrows a hint names keys by as [textMark] fits
+/// [glyphs] with the four arrows a hint names keys by as [ThemeMarks] fits
 /// them for [context]: one cell each, else [Glyphs.ascii]'s. [glyphs]
 /// itself where they all fit.
 Glyphs _fitArrows(BuildContext context, Glyphs glyphs) {
-  final left = textMark(
-    context,
-    'arrowLeft',
-    glyphs.arrowLeft,
-    Glyphs.ascii.arrowLeft,
-  );
-  final right = textMark(
-    context,
-    'arrowRight',
-    glyphs.arrowRight,
-    Glyphs.ascii.arrowRight,
-  );
-  final up = textMark(context, 'arrowUp', glyphs.arrowUp, Glyphs.ascii.arrowUp);
-  final down = textMark(
-    context,
-    'arrowDown',
-    glyphs.arrowDown,
-    Glyphs.ascii.arrowDown,
-  );
+  final marks = ThemeMarks.of(context);
+  final left = marks.text(Marks.arrowLeft, glyphs);
+  final right = marks.text(Marks.arrowRight, glyphs);
+  final up = marks.text(Marks.arrowUp, glyphs);
+  final down = marks.text(Marks.arrowDown, glyphs);
   if (left == glyphs.arrowLeft &&
       right == glyphs.arrowRight &&
       up == glyphs.arrowUp &&

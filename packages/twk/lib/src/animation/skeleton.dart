@@ -20,13 +20,11 @@ import 'package:twk_core/twk_core.dart'
         RenderObjectWithChildMixin,
         StyleId,
         StyleTable,
-        TextSegmenter,
         kBlank,
         kCont,
         kGlyphMask;
 
 import '../binding/app_binding.dart';
-import '../data/chart_glyphs.dart' show rampOf;
 import '../focus/exclude_focus.dart';
 import '../framework/framework.dart';
 import '../gestures/ignore_pointer.dart';
@@ -313,8 +311,6 @@ final class _SkeletonState extends State<_Skeleton> {
   // the shimmer moves: set by each build, read by the paint hook
   var _shimmering = false;
 
-  static final _detached = TextSegmenter();
-
   @override
   void dispose() {
     _steps?.stop();
@@ -346,9 +342,10 @@ final class _SkeletonState extends State<_Skeleton> {
         style = style.merge(over);
       }
     }
+    final marks = ThemeMarks.of(context);
     final glyph = _glyphOf(
-      skeletons?.glyph ?? rampOf(theme.glyphs.shades)[1],
-      app?.owner.segmenter ?? _detached,
+      skeletons?.glyph ?? ThemeMarks.ramp(theme.glyphs)[1],
+      marks,
     );
     final highlight = (skeletons?.highlight ?? theme.text).fg;
     final fg = style.fg;
@@ -402,13 +399,12 @@ final class _SkeletonState extends State<_Skeleton> {
   }
 
   /// [glyph] as the code point a cell shows, where it is one that the
-  /// canvas [segmenter] measures draws one column wide; null otherwise.
-  static int? _glyphOf(String glyph, TextSegmenter segmenter) {
-    final runes = glyph.runes;
-    if (runes.length != 1 || segmenter.width(glyph) != 1) {
+  /// canvas [marks] measure draws one column wide; null otherwise.
+  static int? _glyphOf(String glyph, ThemeMarks marks) {
+    if (!marks.fits(glyph)) {
       return null;
     }
-    final cp = runes.single;
+    final cp = glyph.runes.single;
     return cp == kBlank ? null : cp;
   }
 }

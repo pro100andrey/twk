@@ -396,9 +396,9 @@ final class _ExpansionTileState extends State<ExpansionTile>
           children: [
             ExcludeSemantics(
               child: Text(
-                expanded
-                    ? '${theme.glyphs.expanded} '
-                    : '${theme.glyphs.collapsed} ',
+                '${ThemeMarks.of(context).text(
+                  expanded ? Marks.expanded : Marks.collapsed,
+                )} ',
                 style: expanded ? theme.primary : theme.muted,
                 wrap: TextWrap.none,
                 maxLines: 1,

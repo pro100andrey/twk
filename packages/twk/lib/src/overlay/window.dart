@@ -21,7 +21,6 @@ import 'package:twk_core/twk_core.dart'
         PaintContext,
         ParentData,
         RenderObject,
-        TextSegmenter,
         stringWidth;
 
 import '../animation/ticker.dart';
@@ -38,7 +37,6 @@ import '../layout/shadow.dart';
 import '../layout/stack.dart';
 import '../semantics/semantics.dart';
 import '../style/color_mix.dart';
-import '../style/glyphs.dart' show cellRune, lineMark, textMark;
 import '../style/style.dart';
 import '../text/hit_row.dart' show segmenterOf;
 import '../text/widgets.dart';
@@ -978,41 +976,19 @@ final class _Frame extends StatelessWidget {
     final window = slot.window;
     final c = slot.controller;
     final onClose = window.onClose;
+    final marks = ThemeMarks.of(context);
     final buttons = <(String, VoidCallback)>[
       if (window.minimisable)
         (
-          raised
-              ? lineMark(theme.glyphs, null)
-              : textMark(
-                  context,
-                  'minimise',
-                  theme.glyphs.minimise,
-                  Glyphs.ascii.minimise,
-                ),
+          raised ? marks.dash(null) : marks.text(Marks.minimise),
           () => layer._minimise(slot),
         ),
       if (window.maximisable)
         (
-          c.maximised
-              ? textMark(
-                  context,
-                  'restore',
-                  theme.glyphs.restore,
-                  Glyphs.ascii.restore,
-                )
-              : textMark(
-                  context,
-                  'maximise',
-                  theme.glyphs.maximise,
-                  Glyphs.ascii.maximise,
-                ),
+          marks.text(c.maximised ? Marks.restore : Marks.maximise),
           () => layer._toggleMaximised(slot),
         ),
-      if (onClose != null)
-        (
-          textMark(context, 'close', theme.glyphs.close, Glyphs.ascii.close),
-          onClose,
-        ),
+      if (onClose != null) (marks.text(Marks.close), onClose),
     ];
     // each button its mark's cells and a blank, after one blank
     final segmenter = segmenterOf(context);
@@ -1422,15 +1398,12 @@ final class _RenderChrome extends RenderObject {
     final styles = canvas.styles;
     final bar = _bar.penIn(styles);
     canvas.fill(0, 0, w, 1, bar);
+    final marks = ThemeMarks.ofObject(this, canvas.segmenter);
     if (_mark case final mark?) {
-      final focus = cellRune(
-        this,
-        'cursor',
-        _glyphs.cursor,
-        Glyphs.ascii.cursor,
-        canvas.segmenter,
-      );
-      canvas.fill(0, 0, 1, 1, _bar.merge(mark).penIn(styles), focus);
+      final focus = marks.cell(Marks.cursor, _glyphs);
+      if (focus != null) {
+        canvas.fill(0, 0, 1, 1, _bar.merge(mark).penIn(styles), focus);
+      }
     }
     final lit = _lit;
     if (lit == 0) {
@@ -1439,26 +1412,9 @@ final class _RenderChrome extends RenderObject {
     final pen = _litStyle.penIn(styles);
     // eighths of a cell where the set has them and the terminal draws them
     // one column wide, else the pieces of its lines, else ASCII's
-    final segmenter = canvas.segmenter;
-    final lines = _glyphs.lines;
     int edge(int block, {required bool vertical}) {
-      final line = lines.glyph(
-        up: vertical,
-        down: vertical,
-        left: !vertical,
-        right: !vertical,
-      );
-      if (_glyphs.partialBlocks && _oneColumn(segmenter, block)) {
-        return block;
-      }
-      return _oneColumn(segmenter, line)
-          ? line
-          : BorderType.ascii.glyph(
-              up: vertical,
-              down: vertical,
-              left: !vertical,
-              right: !vertical,
-            );
+      final line = marks.line(null, vertical: vertical, glyphs: _glyphs);
+      return _glyphs.partialBlocks ? marks.fixed(block, line) : line;
     }
 
     final leftEdge = edge(0x258F, vertical: true);
@@ -1482,20 +1438,16 @@ final class _RenderChrome extends RenderObject {
     if (lit & _topEdge != 0) {
       final corner = _bar.merge(Style(fg: _litStyle.fg)).penIn(styles);
       final block = left ? 0x259B : 0x259C;
-      final line = lines.glyph(down: true, right: left, left: !left);
-      final glyph = _glyphs.partialBlocks && _oneColumn(segmenter, block)
-          ? block
-          : _oneColumn(segmenter, line)
-          ? line
-          : BorderType.ascii.glyph(down: true, right: left, left: !left);
+      final lines = _glyphs.borderOf(null);
+      final line = marks.fixed(
+        lines.glyph(down: true, right: left, left: !left),
+        BorderType.ascii.glyph(down: true, right: left, left: !left),
+      );
+      final glyph = _glyphs.partialBlocks ? marks.fixed(block, line) : line;
       canvas.fill(left ? 0 : w - 1, 0, 1, 1, corner, glyph);
     }
   }
 }
-
-// whether the terminal draws the code point [cp] one column wide
-bool _oneColumn(TextSegmenter segmenter, int cp) =>
-    segmenter.width(String.fromCharCode(cp)) == 1;
 
 /// The chips of the minimised windows, side by side; nothing without any.
 final class _Strip extends StatelessWidget {

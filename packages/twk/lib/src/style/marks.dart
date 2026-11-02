@@ -1,0 +1,765 @@
+/// The drawn mark of a theme field: [Marks], one descriptor for each mark of
+/// [Glyphs], and [ThemeMarks], what resolves them under the one width rule.
+library;
+
+import 'package:meta/meta.dart';
+import 'package:twk_core/twk_core.dart'
+    show
+        BorderType,
+        ClusterScan,
+        LogLevel,
+        LogRecord,
+        PipelineOwner,
+        RenderObject,
+        TextSegmenter,
+        log;
+
+import '../binding/app_binding.dart' show AppBinding;
+import '../framework/framework.dart' show BuildContext;
+import '../text/hit_row.dart' show segmenterOf;
+import 'glyphs.dart';
+import 'theme.dart' show Theme;
+
+// Examples can assume:
+// late BuildContext context;
+
+/// What an empty mark of [Glyphs] is, as a [Mark] says it.
+enum OnEmpty {
+  /// A blank: a space, where the mark is a cell to be filled or a place in
+  /// a row to be held.
+  blank,
+
+  /// Nothing: no cell is drawn and no text stands in the row.
+  none,
+
+  /// The same field of [Glyphs.ascii].
+  fallback,
+}
+
+// the Glyphs fields that are marks: one cell, one column
+enum _Field {
+  cursor,
+  accent,
+  check,
+  checkBold,
+  cross,
+  info,
+  warning,
+  checkboxOn,
+  checkboxOff,
+  checkboxOpen('checkboxBrackets'),
+  checkboxClose('checkboxBrackets'),
+  radioOn,
+  radioOff,
+  radioOpen('radioBrackets'),
+  radioClose('radioBrackets'),
+  switchStart,
+  switchEnd,
+  switchKnob,
+  stepCurrent,
+  ring,
+  expanded,
+  collapsed,
+  up,
+  down,
+  previous,
+  next,
+  close,
+  maximise,
+  restore,
+  minimise,
+  bullet,
+  taskPending,
+  taskSkipped,
+  separator,
+  buttonEdgeStart('buttonEdges'),
+  buttonEdgeEnd('buttonEdges'),
+  trackVertical,
+  trackHorizontal,
+  thumbVertical,
+  thumbHorizontal,
+  thumbSlim,
+  gaugeFilled,
+  gaugeHalf,
+  gaugeEmpty,
+  arrowLeft,
+  arrowRight,
+  arrowUp,
+  arrowDown,
+  pointer,
+  menu,
+  swatch;
+
+  const _Field([this._name]);
+
+  final String? _name;
+
+  /// The field of Glyphs it is, by the name an app writes it with.
+  String get field => _name ?? name;
+
+  String of(Glyphs g) => switch (this) {
+    cursor => g.cursor,
+    accent => g.accent,
+    check => g.check,
+    checkBold => g.checkBold,
+    cross => g.cross,
+    info => g.info,
+    warning => g.warning,
+    checkboxOn => g.checkboxOn,
+    checkboxOff => g.checkboxOff,
+    checkboxOpen => g.checkboxBrackets.$1,
+    checkboxClose => g.checkboxBrackets.$2,
+    radioOn => g.radioOn,
+    radioOff => g.radioOff,
+    radioOpen => g.radioBrackets.$1,
+    radioClose => g.radioBrackets.$2,
+    switchStart => g.switchStart,
+    switchEnd => g.switchEnd,
+    switchKnob => g.switchKnob,
+    stepCurrent => g.stepCurrent,
+    ring => g.ring,
+    expanded => g.expanded,
+    collapsed => g.collapsed,
+    up => g.up,
+    down => g.down,
+    previous => g.previous,
+    next => g.next,
+    close => g.close,
+    maximise => g.maximise,
+    restore => g.restore,
+    minimise => g.minimise,
+    bullet => g.bullet,
+    taskPending => g.taskPending,
+    taskSkipped => g.taskSkipped,
+    separator => g.separator,
+    buttonEdgeStart => g.buttonEdges.$1,
+    buttonEdgeEnd => g.buttonEdges.$2,
+    trackVertical => g.trackVertical,
+    trackHorizontal => g.trackHorizontal,
+    thumbVertical => g.thumbVertical,
+    thumbHorizontal => g.thumbHorizontal,
+    thumbSlim => g.thumbSlim,
+    gaugeFilled => g.gaugeFilled,
+    gaugeHalf => g.gaugeHalf,
+    gaugeEmpty => g.gaugeEmpty,
+    arrowLeft => g.arrowLeft,
+    arrowRight => g.arrowRight,
+    arrowUp => g.arrowUp,
+    arrowDown => g.arrowDown,
+    pointer => g.pointer,
+    menu => g.menu,
+    swatch => g.swatch,
+  };
+}
+
+/// A mark of [Glyphs] as the module sees it: which field it reads, what
+/// that field is in [Glyphs.ascii], and what an empty one means.
+///
+/// A [CellMark] or a [TextMark] says how the field is mostly drawn; either
+/// resolves under [ThemeMarks.cell] and [ThemeMarks.text].
+@immutable
+sealed class Mark {
+  const Mark._(this._field, this.onEmpty);
+
+  final _Field _field;
+
+  /// What an empty value of the field draws.
+  final OnEmpty onEmpty;
+
+  /// The name of the field in [Glyphs], as the warning says it.
+  String get name => _field.field;
+
+  /// The field of [glyphs].
+  String of(Glyphs glyphs) => _field.of(glyphs);
+
+  /// The same field of [Glyphs.ascii], the mark where [of] does not fit.
+  String get fallback => _field.of(Glyphs.ascii);
+
+  @override
+  String toString() => 'Marks.${_field.name}';
+}
+
+/// A mark filled into one cell by a render object (a scrollbar's thumb, a
+/// gauge's line, the cursor bar of a list).
+final class CellMark extends Mark {
+  const CellMark._(super._field, [super.onEmpty = OnEmpty.none]) : super._();
+}
+
+/// A mark drawn as text in a widget (a radio button's, a chip's close, an
+/// arrow of a key hint).
+final class TextMark extends Mark {
+  const TextMark._(super._field, [super.onEmpty = OnEmpty.none]) : super._();
+}
+
+/// The marks of [Glyphs], one descriptor for each field that is one cell
+/// wide. The fields that are not (the ellipsis, the shades, the spinner,
+/// the `first` and `last` of a pagination, the lines) are not here.
+abstract final class Marks {
+  /// Every mark, in the order of [Glyphs].
+  static const all = <Mark>[
+    cursor,
+    accent,
+    check,
+    checkBold,
+    cross,
+    info,
+    warning,
+    checkboxOn,
+    checkboxOff,
+    checkboxOpen,
+    checkboxClose,
+    radioOn,
+    radioOff,
+    radioOpen,
+    radioClose,
+    switchStart,
+    switchEnd,
+    switchKnob,
+    stepCurrent,
+    ring,
+    expanded,
+    collapsed,
+    up,
+    down,
+    previous,
+    next,
+    close,
+    maximise,
+    restore,
+    minimise,
+    bullet,
+    taskPending,
+    taskSkipped,
+    separator,
+    buttonEdgeStart,
+    buttonEdgeEnd,
+    trackVertical,
+    trackHorizontal,
+    thumbVertical,
+    thumbHorizontal,
+    thumbSlim,
+    gaugeFilled,
+    gaugeHalf,
+    gaugeEmpty,
+    arrowLeft,
+    arrowRight,
+    arrowUp,
+    arrowDown,
+    pointer,
+    menu,
+    swatch,
+  ];
+
+  /// [Glyphs.cursor].
+  static const cursor = CellMark._(_Field.cursor);
+
+  /// [Glyphs.accent].
+  static const accent = CellMark._(_Field.accent);
+
+  /// [Glyphs.check].
+  static const check = TextMark._(_Field.check);
+
+  /// [Glyphs.checkBold].
+  static const checkBold = TextMark._(_Field.checkBold);
+
+  /// [Glyphs.cross].
+  static const cross = TextMark._(_Field.cross);
+
+  /// [Glyphs.info].
+  static const info = TextMark._(_Field.info);
+
+  /// [Glyphs.warning].
+  static const warning = TextMark._(_Field.warning);
+
+  /// [Glyphs.checkboxOn].
+  static const checkboxOn = TextMark._(_Field.checkboxOn);
+
+  /// [Glyphs.checkboxOff].
+  static const checkboxOff = TextMark._(_Field.checkboxOff);
+
+  /// The first of [Glyphs.checkboxBrackets].
+  static const checkboxOpen = TextMark._(_Field.checkboxOpen);
+
+  /// The second of [Glyphs.checkboxBrackets].
+  static const checkboxClose = TextMark._(_Field.checkboxClose);
+
+  /// [Glyphs.radioOn].
+  static const radioOn = TextMark._(_Field.radioOn);
+
+  /// [Glyphs.radioOff].
+  static const radioOff = TextMark._(_Field.radioOff);
+
+  /// The first of [Glyphs.radioBrackets].
+  static const radioOpen = TextMark._(_Field.radioOpen);
+
+  /// The second of [Glyphs.radioBrackets].
+  static const radioClose = TextMark._(_Field.radioClose);
+
+  /// [Glyphs.switchStart].
+  static const switchStart = TextMark._(_Field.switchStart);
+
+  /// [Glyphs.switchEnd].
+  static const switchEnd = TextMark._(_Field.switchEnd);
+
+  /// [Glyphs.switchKnob]; an empty one is a blank, for the track to keep
+  /// its width.
+  static const switchKnob = TextMark._(_Field.switchKnob, OnEmpty.blank);
+
+  /// [Glyphs.stepCurrent].
+  static const stepCurrent = TextMark._(_Field.stepCurrent);
+
+  /// [Glyphs.ring].
+  static const ring = TextMark._(_Field.ring);
+
+  /// [Glyphs.expanded].
+  static const expanded = TextMark._(_Field.expanded);
+
+  /// [Glyphs.collapsed].
+  static const collapsed = TextMark._(_Field.collapsed);
+
+  /// [Glyphs.up].
+  static const up = TextMark._(_Field.up);
+
+  /// [Glyphs.down].
+  static const down = TextMark._(_Field.down);
+
+  /// [Glyphs.previous]; an empty one is a blank.
+  static const previous = TextMark._(_Field.previous, OnEmpty.blank);
+
+  /// [Glyphs.next]; an empty one is a blank.
+  static const next = TextMark._(_Field.next, OnEmpty.blank);
+
+  /// [Glyphs.close].
+  static const close = TextMark._(_Field.close);
+
+  /// [Glyphs.maximise].
+  static const maximise = TextMark._(_Field.maximise);
+
+  /// [Glyphs.restore].
+  static const restore = TextMark._(_Field.restore);
+
+  /// [Glyphs.minimise].
+  static const minimise = TextMark._(_Field.minimise);
+
+  /// [Glyphs.bullet].
+  static const bullet = TextMark._(_Field.bullet);
+
+  /// [Glyphs.taskPending].
+  static const taskPending = TextMark._(_Field.taskPending);
+
+  /// [Glyphs.taskSkipped].
+  static const taskSkipped = TextMark._(_Field.taskSkipped);
+
+  /// [Glyphs.separator].
+  static const separator = TextMark._(_Field.separator);
+
+  /// The first of [Glyphs.buttonEdges].
+  static const buttonEdgeStart = TextMark._(_Field.buttonEdgeStart);
+
+  /// The second of [Glyphs.buttonEdges].
+  static const buttonEdgeEnd = TextMark._(_Field.buttonEdgeEnd);
+
+  /// [Glyphs.trackVertical]; an empty one is a blank.
+  static const trackVertical = CellMark._(
+    _Field.trackVertical,
+    OnEmpty.blank,
+  );
+
+  /// [Glyphs.trackHorizontal]; an empty one is a blank.
+  static const trackHorizontal = CellMark._(
+    _Field.trackHorizontal,
+    OnEmpty.blank,
+  );
+
+  /// [Glyphs.thumbVertical]; an empty one is [Glyphs.ascii]'s.
+  static const thumbVertical = CellMark._(
+    _Field.thumbVertical,
+    OnEmpty.fallback,
+  );
+
+  /// [Glyphs.thumbHorizontal]; an empty one is [Glyphs.ascii]'s.
+  static const thumbHorizontal = CellMark._(
+    _Field.thumbHorizontal,
+    OnEmpty.fallback,
+  );
+
+  /// [Glyphs.thumbSlim].
+  static const thumbSlim = CellMark._(_Field.thumbSlim);
+
+  /// [Glyphs.gaugeFilled]; an empty one is [Glyphs.ascii]'s.
+  static const gaugeFilled = CellMark._(_Field.gaugeFilled, OnEmpty.fallback);
+
+  /// [Glyphs.gaugeHalf]; an empty one is no half cell.
+  static const gaugeHalf = CellMark._(_Field.gaugeHalf);
+
+  /// [Glyphs.gaugeEmpty]; an empty one is [Glyphs.ascii]'s.
+  static const gaugeEmpty = CellMark._(_Field.gaugeEmpty, OnEmpty.fallback);
+
+  /// [Glyphs.arrowLeft].
+  static const arrowLeft = TextMark._(_Field.arrowLeft);
+
+  /// [Glyphs.arrowRight].
+  static const arrowRight = TextMark._(_Field.arrowRight);
+
+  /// [Glyphs.arrowUp].
+  static const arrowUp = TextMark._(_Field.arrowUp);
+
+  /// [Glyphs.arrowDown].
+  static const arrowDown = TextMark._(_Field.arrowDown);
+
+  /// [Glyphs.pointer].
+  static const pointer = TextMark._(_Field.pointer);
+
+  /// [Glyphs.menu].
+  static const menu = TextMark._(_Field.menu);
+
+  /// [Glyphs.swatch].
+  static const swatch = TextMark._(_Field.swatch);
+}
+
+/// The marks of the theme as a terminal draws them: each [Mark] resolved to
+/// the theme's own where it is one column wide and one code point, else to
+/// [Glyphs.ascii]'s, with one warning in the app's log for each such
+/// (field, glyph).
+///
+/// This is the one place the rule is kept. A widget asks for
+/// [ThemeMarks.of] in its `build` and [text]; a render object asks for
+/// [ThemeMarks.ofObject] and [cell]. A mark is measured once for each
+/// segmenter, so asking again in each frame costs a lookup.
+///
+/// ```dart
+/// final marks = ThemeMarks.of(context);
+/// final close = marks.text(Marks.close); // 'x' where '×' is two columns
+/// ```
+final class ThemeMarks {
+  ThemeMarks._(this._cache, this._owner, this._glyphs);
+
+  /// The marks of the theme around [context], measured by the segmenter
+  /// the app draws with.
+  factory ThemeMarks.of(BuildContext context) {
+    final object = context.findRenderObject();
+    final binding = object?.owner == null ? AppBinding.maybeOf(context) : null;
+    return ThemeMarks._(
+      _cacheOf(segmenterOf(context)),
+      object?.owner ?? binding?.twkApp.owner,
+      Theme.of(context).glyphs,
+    );
+  }
+
+  /// The marks as [segmenter], the measure of the canvas [object] draws
+  /// on, draws them. The same object is returned for the same segmenter,
+  /// so a paint takes no allocation; the glyphs are [cell]'s second
+  /// argument.
+  factory ThemeMarks.ofObject(RenderObject object, TextSegmenter segmenter) {
+    final cache = _cacheOf(segmenter);
+    final marks = cache.shared ??= ThemeMarks._(cache, null, null);
+    return marks.._owner = object.owner;
+  }
+
+  /// The marks as [segmenter] measures them, for a check of fixed glyphs
+  /// ([allOneColumn], [border]) in code that has no object to warn for.
+  /// The same object is returned for the same segmenter.
+  factory ThemeMarks.forSegmenter(TextSegmenter segmenter) {
+    final cache = _cacheOf(segmenter);
+    return cache.shared ??= ThemeMarks._(cache, null, null);
+  }
+
+  /// The marks of [glyphs] as [segmenter] measures them, for code that has
+  /// no widget or render object (a markdown render to lines). A warning
+  /// goes to the app's log of [log].
+  factory ThemeMarks.measured(TextSegmenter segmenter, Glyphs glyphs) =>
+      ThemeMarks._(_cacheOf(segmenter), null, glyphs);
+
+  final _Cache _cache;
+  PipelineOwner? _owner;
+  final Glyphs? _glyphs;
+
+  /// [mark] as the code point to fill one cell with, of [glyphs] (the
+  /// theme's of [ThemeMarks.of], when null); null where nothing is to be
+  /// drawn.
+  ///
+  /// Of the theme's own while it is one column wide and one code point,
+  /// else [Mark.fallback], with the one warning. An empty mark is what
+  /// [Mark.onEmpty] says, with no warning.
+  int? cell(Mark mark, [Glyphs? glyphs]) =>
+      cellOf(mark, mark.of((glyphs ?? _glyphs)!));
+
+  /// [cell] of [value], a string a widget was given for the field [mark]
+  /// (the glyph of a toast's edge), not read from a set.
+  int? cellOf(Mark mark, String value) {
+    if (value.isEmpty) {
+      return switch (mark.onEmpty) {
+        OnEmpty.blank => 0x20,
+        OnEmpty.none => null,
+        OnEmpty.fallback =>
+          mark.fallback.isEmpty ? null : mark.fallback.runes.first,
+      };
+    }
+    if (_fits(mark, value)) {
+      return value.runes.first;
+    }
+    final fallback = mark.fallback;
+    return fallback.isEmpty ? null : fallback.runes.first;
+  }
+
+  /// [mark] as text in a row, of [glyphs] (the theme's of [ThemeMarks.of],
+  /// when null): the theme's own while it is one column wide and one code
+  /// point, else [Mark.fallback], with the one warning. An empty mark is
+  /// what [Mark.onEmpty] says (an empty string, a space, or the
+  /// fallback), with no warning.
+  String text(Mark mark, [Glyphs? glyphs]) =>
+      textOf(mark, mark.of((glyphs ?? _glyphs)!));
+
+  /// [text] of [value], a string a widget was given for the field [mark],
+  /// not read from a set.
+  String textOf(Mark mark, String value) {
+    if (value.isEmpty) {
+      return switch (mark.onEmpty) {
+        OnEmpty.blank => ' ',
+        OnEmpty.none => '',
+        OnEmpty.fallback => mark.fallback,
+      };
+    }
+    if (_plain(value) || _fits(mark, value)) {
+      return value;
+    }
+    return mark.fallback;
+  }
+
+  /// The straight line of the border [type] (the theme's [Glyphs.lines]
+  /// when null) as text across, or down for [down], for a dash in a row (a
+  /// title on a box's edge, a stepper's line): the line of
+  /// [Glyphs.borderOf], so the ASCII theme's lines win over any type, and
+  /// ASCII's `-` or `|` where the terminal does not draw it one column
+  /// wide.
+  String dash(BorderType? type, {bool down = false, Glyphs? glyphs}) =>
+      String.fromCharCode(line(type, vertical: down, glyphs: glyphs));
+
+  /// The code point of the straight line of the border [type] (the theme's
+  /// [Glyphs.lines] when null) for one cell, [dash] without the string.
+  int line(BorderType? type, {bool vertical = false, Glyphs? glyphs}) {
+    final border = (glyphs ?? _glyphs)!.borderOf(type);
+    final cp = border.glyph(
+      up: vertical,
+      down: vertical,
+      left: !vertical,
+      right: !vertical,
+    );
+    if (cp == 0x20 || border == BorderType.ascii || _fitsCp(cp)) {
+      return cp;
+    }
+    return BorderType.ascii.glyph(
+      up: vertical,
+      down: vertical,
+      left: !vertical,
+      right: !vertical,
+    );
+  }
+
+  /// [type], or [BorderType.ascii] where a piece of it is not one column
+  /// on this terminal: the type a box, a rule or a gauge is to be drawn
+  /// in. Measured once for each type and segmenter.
+  BorderType border(BorderType type) {
+    final cache = _cache..refresh();
+    final fits = cache.borders[type] ??= allOneColumn([
+      for (var arms = 1; arms < 16; arms++)
+        type.glyph(
+          up: arms & 1 != 0,
+          right: arms & 2 != 0,
+          down: arms & 4 != 0,
+          left: arms & 8 != 0,
+        ),
+    ]);
+    return fits ? type : BorderType.ascii;
+  }
+
+  /// [cp], a code point drawn in a cell, where it is one column wide on
+  /// this terminal; else [instead]. For a fixed block of a widget's own
+  /// (an eighth, a corner), which no theme field holds.
+  int fixed(int cp, int instead) => _fitsCp(cp) ? cp : instead;
+
+  /// Whether each of [codePoints] takes one column of the canvas, whatever
+  /// its neighbours, and does so on every terminal: the strict rule for a
+  /// run of fixed glyphs (the eighths of a bar, braille, a font's blocks)
+  /// that must not shift a row.
+  bool allOneColumn(Iterable<int> codePoints) {
+    for (final cp in codePoints) {
+      if (!_cache.strict(cp)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /// Whether the string [glyph], a mark of a widget's own, is one column
+  /// wide and one code point on this terminal; no warning.
+  bool fits(String glyph) =>
+      glyph.isNotEmpty &&
+      (_plain(glyph) ||
+          (glyph.runes.length == 1 && _cache.segmenter.width(glyph) == 1));
+
+  /// [Glyphs.shades] as a ramp of two steps or more, the blank first: as
+  /// given when it has two or more, a blank before the one it has, or the
+  /// ASCII ramp of [Glyphs.ascii] when it has none, so that a theme's
+  /// short list draws rather than throws.
+  static List<String> ramp(Glyphs glyphs) {
+    final shades = glyphs.shades;
+    return shades.length >= 2
+        ? shades
+        : shades.length == 1
+        ? [' ', shades[0]]
+        : Glyphs.ascii.shades;
+  }
+
+  bool _fitsCp(int cp) => _cache.single(cp);
+
+  bool _fits(Mark mark, String glyph) {
+    final cache = _cache..refresh();
+    final seen = cache.verdicts[mark];
+    if (seen != null && identical(seen.glyph, glyph)) {
+      return seen.fits;
+    }
+    if (seen != null && seen.glyph == glyph) {
+      return seen.fits;
+    }
+    final fits = _measure(mark, glyph);
+    if (seen == null) {
+      cache.verdicts[mark] = _Verdict(glyph, fits);
+    } else {
+      seen
+        ..glyph = glyph
+        ..fits = fits;
+    }
+    return fits;
+  }
+
+  // the verdict, with the warning, once for each (field, glyph) the owner
+  // has seen
+  bool _measure(Mark mark, String glyph) {
+    final width = _cache.segmenter.width(glyph);
+    final runes = glyph.runes.length;
+    if (width == 1 && runes == 1) {
+      return true;
+    }
+    final fallback = mark.fallback;
+    final instead = fallback.isEmpty ? 'no mark' : "Glyphs.ascii's '$fallback'";
+    if (width == 2 && runes == 1 && _isPreset(glyph)) {
+      // the preset's own mark, not the app's: the terminal is the cause,
+      // told once and not for each field
+      _warn(
+        'ambiguous',
+        '',
+        'This terminal draws East Asian ambiguous characters two cells '
+            'wide, so the marks of Glyphs.unicode that are such are drawn as '
+            "Glyphs.ascii's. Glyphs.ascii as the theme's set, or marks that "
+            'are not ambiguous, make that the app choice.',
+      );
+      return false;
+    }
+    final what = width == 1
+        ? 'a cluster of $runes code points, not one'
+        : '$width cells wide, not 1';
+    _warn(
+      mark.name,
+      glyph,
+      "Glyphs.${mark.name} '$glyph' is $what; $instead is drawn in its place.",
+    );
+    return false;
+  }
+
+  void _warn(String field, String glyph, String message) {
+    final owner = _owner;
+    if (owner != null && !(_warned[owner] ??= {}).add('$field\u0000$glyph')) {
+      return;
+    }
+    final route = owner?.onLog;
+    if (route == null) {
+      log(message, level: LogLevel.warning);
+    } else {
+      route(LogRecord(DateTime.now(), LogLevel.warning, message));
+    }
+  }
+}
+
+// a printable ASCII character: one cell, one code point, no measuring
+bool _plain(String glyph) {
+  if (glyph.length != 1) {
+    return false;
+  }
+  final c = glyph.codeUnitAt(0);
+  return c >= 0x20 && c < 0x7f;
+}
+
+// the marks of Glyphs.unicode that are one code point each, which a
+// terminal can count two cells wide
+final Set<String> _presetMarks = {
+  for (final field in _Field.values)
+    if (field.of(Glyphs.unicode).runes.length == 1) field.of(Glyphs.unicode),
+};
+
+bool _isPreset(String glyph) => _presetMarks.contains(glyph);
+
+// the (field, glyph) pairs each pipeline has warned of
+final _warned = Expando<Set<String>>('glyph warnings');
+
+// the verdicts of one segmenter, dropped when its settings change
+final _caches = Expando<_Cache>('mark verdicts');
+
+_Cache _cacheOf(TextSegmenter segmenter) =>
+    _caches[segmenter] ??= _Cache(segmenter);
+
+final class _Verdict {
+  _Verdict(this.glyph, this.fits);
+
+  String glyph;
+  bool fits;
+}
+
+final _scan = ClusterScan();
+
+final class _Cache {
+  _Cache(this.segmenter);
+
+  final TextSegmenter segmenter;
+  final verdicts = <Mark, _Verdict>{};
+  final _singles = <int, bool>{};
+  final _stricts = <int, bool>{};
+  final borders = <BorderType, bool>{};
+  ThemeMarks? shared;
+  var _mode = -1;
+  var _ambiguous = -1;
+
+  // forgets what was measured when the segmenter's settings changed
+  void refresh() {
+    if (segmenter.mode.index == _mode &&
+        segmenter.ambiguousWidth == _ambiguous) {
+      return;
+    }
+    _mode = segmenter.mode.index;
+    _ambiguous = segmenter.ambiguousWidth;
+    verdicts.clear();
+    _singles.clear();
+    _stricts.clear();
+    borders.clear();
+  }
+
+  bool single(int cp) {
+    refresh();
+    return _singles[cp] ??= segmenter.width(String.fromCharCode(cp)) == 1;
+  }
+
+  bool strict(int cp) {
+    refresh();
+    return _stricts[cp] ??= _strictOne(cp);
+  }
+
+  bool _strictOne(int cp) {
+    // the glyph twice: two clusters of a column each
+    final two = String.fromCharCodes([cp, cp]);
+    segmenter.scan(two, 0, _scan);
+    return _scan.end * 2 == two.length &&
+        _scan.width == 1 &&
+        !_scan.joinsNext &&
+        !_scan.uncertain;
+  }
+}

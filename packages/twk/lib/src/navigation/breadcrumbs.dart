@@ -314,7 +314,8 @@ final class _BreadcrumbsState extends State<Breadcrumbs> {
       widget.currentStyle ?? const Style(attrs: Attr.bold),
     );
     final between = row.merge(theme.muted);
-    final separator = widget.separator ?? ' ${theme.glyphs.next} ';
+    final separator =
+        widget.separator ?? ' ${ThemeMarks.of(context).text(Marks.next)} ';
     final crumbs = _fit(
       segmenter,
       _items,

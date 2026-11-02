@@ -317,10 +317,12 @@ final class _SegmentedButtonState<T> extends State<SegmentedButton<T>> {
   }) {
     final n = _segments.length;
     final (open, close) = widget.caps;
+    final themeMarks = ThemeMarks.of(context);
+    final separator = themeMarks.text(Marks.separator);
     final marks = [
       for (var i = 0; i < n; i++)
         if ((widget.showSelectedIcon || plain) && _on(i))
-          '${theme.glyphs.check} '
+          '${themeMarks.text(Marks.check)} '
         else
           '',
     ];
@@ -331,7 +333,7 @@ final class _SegmentedButtonState<T> extends State<SegmentedButton<T>> {
       width -
           segmenter.width(open) -
           segmenter.width(close) -
-          (n - 1) * segmenter.width(theme.glyphs.separator) -
+          (n - 1) * segmenter.width(separator) -
           [for (final m in marks) 2 + segmenter.width(m)].sum,
       theme.glyphs.ellipsis,
     );
@@ -343,7 +345,7 @@ final class _SegmentedButtonState<T> extends State<SegmentedButton<T>> {
     final spans = <HitSpan>[(span: Span(open, lines), target: -1)];
     for (var i = 0; i < n; i++) {
       if (i > 0) {
-        spans.add((span: Span(theme.glyphs.separator, lines), target: -1));
+        spans.add((span: Span(separator, lines), target: -1));
       }
       final on = enabled && _segments[i].enabled;
       var style = row;

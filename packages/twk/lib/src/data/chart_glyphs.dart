@@ -2,22 +2,11 @@
 library;
 
 import 'package:twk_core/twk_core.dart'
-    show BorderType, Canvas, ClusterScan, Color, RenderObject, TextSegmenter;
+    show BorderType, Canvas, Color, RenderObject, TextSegmenter;
 
 import '../foundation/helpers.dart';
 import '../framework/framework.dart';
-import '../style/glyphs.dart' show Glyphs, cellRune, optionalCellRune;
 import '../style/style.dart';
-
-/// [shades] as a ramp of two steps or more, the blank first: as given when
-/// it has two or more, a blank before the one it has, or the ASCII ramp of
-/// [Glyphs.ascii] when it has none, so that a theme's short list draws
-/// rather than throws.
-List<String> rampOf(List<String> shades) => shades.length >= 2
-    ? shades
-    : shades.length == 1
-    ? [' ', shades[0]]
-    : Glyphs.ascii.shades;
 
 /// The glyphs the charts draw bars and lines with, as the canvas they are
 /// drawn on draws them: eighth blocks and box drawing where it draws each
@@ -36,12 +25,12 @@ final class ChartGlyphs {
   // theme's list it was taken from, and its code points
   List<String>? _shades;
   var _ramp = const <int>[];
-  final _narrowLines = <BorderType, bool>{};
 
   /// Measures the glyphs as [segmenter] does; with [glyphs] whose
   /// [Glyphs.partialBlocks] is false, bars are drawn in its [Glyphs.shades].
   void use(TextSegmenter segmenter, [Glyphs? glyphs]) {
-    // the theme's list, not its ramp: rampOf makes a new list of a short one
+    // the theme's list, not its ramp: ThemeMarks.ramp makes a new list of
+    // a short one
     final source = glyphs == null || glyphs.partialBlocks
         ? null
         : glyphs.shades;
@@ -50,20 +39,19 @@ final class ChartGlyphs {
         identical(source, _shades)) {
       return;
     }
-    final shades = source == null ? null : rampOf(source);
+    final shades = source == null ? null : ThemeMarks.ramp(glyphs!);
     _mode = segmenter.mode.index;
     _ambiguous = segmenter.ambiguousWidth;
-    _segmenter = segmenter;
     _shades = source;
     _ramp = [
       if (shades != null)
         for (final s in shades) _firstRune(s),
     ];
-    _eighths = _oneColumn(const [..._upEighths, ..._acrossEighths], segmenter);
-    _narrowLines.clear();
+    _marks = ThemeMarks.forSegmenter(segmenter);
+    _eighths = _marks.allOneColumn(const [..._upEighths, ..._acrossEighths]);
   }
 
-  late TextSegmenter _segmenter;
+  late ThemeMarks _marks;
 
   /// How many steps a cell of a bar that grows upwards shows: 8 (eighth
   /// blocks), 4 (braille), or the shades after the blank (a ramp).
@@ -93,21 +81,7 @@ final class ChartGlyphs {
             : _acrossBraille)[(k > acrossSteps ? acrossSteps : k) - 1];
 
   /// [type], or [BorderType.ascii] where a piece of it is not one column.
-  BorderType lines(BorderType type) =>
-      _narrowLines.putIfAbsent(
-        type,
-        () => _oneColumn([
-          for (var arms = 1; arms < 16; arms++)
-            type.glyph(
-              up: arms & 1 != 0,
-              right: arms & 2 != 0,
-              down: arms & 4 != 0,
-              left: arms & 8 != 0,
-            ),
-        ], _segmenter),
-      )
-      ? type
-      : BorderType.ascii;
+  BorderType lines(BorderType type) => _marks.border(type);
 
   /// Draws a bar that grows to the right on the [w] x [h] cells from
   /// ([x], [y]) of [canvas], as a `Gauge` and a `ProgressBar` do: [ratio]
@@ -184,22 +158,10 @@ final class ChartGlyphs {
     if (cells <= 0) {
       return;
     }
-    final segmenter = canvas.segmenter;
-    final whole = cellRune(
-      object,
-      'gaugeFilled',
-      filled,
-      Glyphs.ascii.gaugeFilled,
-      segmenter,
-    );
-    final rest = cellRune(
-      object,
-      'gaugeEmpty',
-      empty,
-      Glyphs.ascii.gaugeEmpty,
-      segmenter,
-    );
-    final part = optionalCellRune(object, 'gaugeHalf', half, segmenter);
+    final marks = ThemeMarks.ofObject(object, canvas.segmenter);
+    final whole = marks.cellOf(Marks.gaugeFilled, filled) ?? 0x20;
+    final rest = marks.cellOf(Marks.gaugeEmpty, empty) ?? 0x20;
+    final part = marks.cellOf(Marks.gaugeHalf, half);
     if (run case (final from, final width)) {
       canvas
         ..fill(x, y, cells, 1, unfilledPen, rest)
@@ -296,25 +258,6 @@ const _upBraille = [0x28C0, 0x28E4, 0x28F6, 0x28FF];
 const _acrossBraille = [0x2847, 0x28FF];
 
 int _firstRune(String s) => s.isEmpty ? 0x20 : s.runes.first;
-
-final _scan = ClusterScan();
-
-/// Whether each of [codePoints] takes one column of a canvas whose text
-/// [segmenter] measures, whatever its neighbours, on every terminal.
-bool _oneColumn(List<int> codePoints, TextSegmenter segmenter) {
-  for (final cp in codePoints) {
-    // the glyph twice: two clusters of a column each
-    final two = String.fromCharCodes([cp, cp]);
-    segmenter.scan(two, 0, _scan);
-    if (_scan.end * 2 != two.length ||
-        _scan.width != 1 ||
-        _scan.joinsNext ||
-        _scan.uncertain) {
-      return false;
-    }
-  }
-  return true;
-}
 
 /// [value] as a label: whole numbers without decimals, others with at most
 /// two.

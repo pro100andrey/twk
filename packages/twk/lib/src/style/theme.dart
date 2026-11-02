@@ -12,17 +12,8 @@ import 'style.dart';
 
 export 'package:twk_core/twk_core.dart' show Brightness;
 
-export 'glyphs.dart'
-    hide
-        CheckboxMarks,
-        buttonEdgeMarks,
-        cellRune,
-        checkboxMarks,
-        lineMark,
-        optionalCellRune,
-        radioMarks,
-        switchMarks,
-        textMark;
+export 'glyphs.dart';
+export 'marks.dart';
 
 /// When the pointer is the hand over what a click presses
 /// ([ThemeData.handPointer]).

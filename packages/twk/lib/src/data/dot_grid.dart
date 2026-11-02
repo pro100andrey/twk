@@ -4,18 +4,10 @@ library;
 import 'dart:typed_data';
 
 import 'package:twk_core/twk_core.dart'
-    show
-        Canvas,
-        ClusterScan,
-        Color,
-        GlyphRun,
-        Pen,
-        StyleTable,
-        TextMode,
-        TextSegmenter;
+    show Canvas, Color, GlyphRun, Pen, StyleTable, TextMode, TextSegmenter;
 
 import '../style/glyphs.dart' show Glyphs;
-import 'chart_glyphs.dart' show rampOf;
+import '../style/marks.dart' show ThemeMarks;
 import 'dot_canvas.dart';
 import 'marker.dart';
 
@@ -95,7 +87,7 @@ final class DotGrid {
     assert(columns >= 0 && rows >= 0, 'a grid of 0 cells or more');
     final shades = glyphs == null || glyphs.partialBlocks || marker.char != 0
         ? null
-        : rampOf(glyphs.shades);
+        : ThemeMarks.ramp(glyphs);
     if (marker != _asked ||
         segmenter.mode != _askedMode ||
         segmenter.ambiguousWidth != _askedAmbiguous ||
@@ -104,7 +96,7 @@ final class DotGrid {
       _askedMode = segmenter.mode;
       _askedAmbiguous = segmenter.ambiguousWidth;
       _askedShades = shades;
-      _marker = shades != null || _oneColumn(marker, segmenter)
+      _marker = shades != null || _fits(marker, segmenter)
           ? marker
           : Marker.braille;
       _glyphs = Int32List(_marker.patterns);
@@ -267,12 +259,11 @@ int _bitCount(int n) {
   return c;
 }
 
-final _scan = ClusterScan();
-
 /// Whether each glyph of [marker] takes one column of a canvas whose text
 /// [segmenter] measures, whatever its neighbours, and does so on every
 /// terminal.
-bool _oneColumn(Marker marker, TextSegmenter segmenter) {
+bool _fits(Marker marker, TextSegmenter segmenter) {
+  final marks = ThemeMarks.forSegmenter(segmenter);
   var last = -1;
   for (var p = 1; p < marker.patterns; p++) {
     final cp = marker.glyphOf(p);
@@ -280,13 +271,7 @@ bool _oneColumn(Marker marker, TextSegmenter segmenter) {
       continue;
     }
     last = cp;
-    // the glyph twice: two clusters of a column each
-    final two = String.fromCharCodes([cp, cp]);
-    segmenter.scan(two, 0, _scan);
-    if (_scan.end * 2 != two.length ||
-        _scan.width != 1 ||
-        _scan.joinsNext ||
-        _scan.uncertain) {
+    if (!marks.allOneColumn([cp])) {
       return false;
     }
   }

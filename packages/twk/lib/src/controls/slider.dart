@@ -11,7 +11,6 @@ import '../gestures/gesture_detector.dart' show takeDrag;
 import '../gestures/mouse.dart';
 import '../scroll/thumb.dart';
 import '../semantics/semantics.dart';
-import '../style/glyphs.dart' show cellRune;
 import '../style/style.dart';
 import 'pressable.dart';
 
@@ -443,13 +442,8 @@ final class _RenderTrack extends RenderObject {
     if (width <= 0) {
       return;
     }
-    final line = cellRune(
-      this,
-      'trackHorizontal',
-      _glyphs.trackHorizontal,
-      Glyphs.ascii.trackHorizontal,
-      canvas.segmenter,
-    );
+    final marks = ThemeMarks.ofObject(this, canvas.segmenter);
+    final line = marks.cell(Marks.trackHorizontal, _glyphs)!;
     final y = height ~/ 2;
     final start = thumbAt(_ratio, width, steps);
     final end = start + steps;
@@ -469,13 +463,7 @@ final class _RenderTrack extends RenderObject {
       at: y,
       glyph: _glyphs.partialBlocks
           ? null
-          : cellRune(
-              this,
-              'thumbHorizontal',
-              _glyphs.thumbHorizontal,
-              Glyphs.ascii.thumbHorizontal,
-              canvas.segmenter,
-            ),
+          : marks.cell(Marks.thumbHorizontal, _glyphs),
     );
   }
 }

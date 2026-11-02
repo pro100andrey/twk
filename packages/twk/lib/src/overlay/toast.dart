@@ -28,7 +28,6 @@ import '../layout/box.dart';
 import '../layout/flex.dart';
 import '../layout/shadow.dart';
 import '../layout/stack.dart';
-import '../style/glyphs.dart' show cellRune;
 import '../style/style.dart';
 import '../text/widgets.dart';
 import 'layer.dart';
@@ -294,16 +293,17 @@ final class _RaisedToastState extends State<_RaisedToast>
 
   /// The icon of a toast in [style]: the kind of the theme's status style
   /// it is, by its text color.
-  static String? _iconOf(ThemeData theme, Style? style) {
+  static String? _iconOf(BuildContext context, ThemeData theme, Style? style) {
+    final marks = ThemeMarks.of(context);
     final fg = style?.fg;
     if (fg == null) {
       return null;
     }
     return switch (fg) {
-      _ when fg == theme.success.fg => theme.glyphs.check,
-      _ when fg == theme.info.fg => theme.glyphs.info,
-      _ when fg == theme.warning.fg => theme.glyphs.warning,
-      _ when fg == theme.error.fg => theme.glyphs.cross,
+      _ when fg == theme.success.fg => marks.text(Marks.check),
+      _ when fg == theme.info.fg => marks.text(Marks.info),
+      _ when fg == theme.warning.fg => marks.text(Marks.warning),
+      _ when fg == theme.error.fg => marks.text(Marks.cross),
       _ => null,
     };
   }
@@ -313,7 +313,7 @@ final class _RaisedToastState extends State<_RaisedToast>
     final theme = Theme.of(context);
     final toast = widget.toast;
     final kind = Style(fg: toast.style?.fg ?? theme.primary.fg);
-    final icon = toast.icon ?? _iconOf(theme, toast.style);
+    final icon = toast.icon ?? _iconOf(context, theme, toast.style);
     final box = Box(
       style: theme.surface.merge(theme.text),
       child: IntrinsicHeight(
@@ -415,13 +415,12 @@ final class _RenderEdge extends RenderObject {
     if (_glyph.isEmpty || height <= 0) {
       return;
     }
-    canvas.fill(
-      0,
-      0,
-      1,
-      height,
-      pen,
-      cellRune(this, 'accent', _glyph, Glyphs.ascii.accent, canvas.segmenter),
-    );
+    final cell = ThemeMarks.ofObject(
+      this,
+      canvas.segmenter,
+    ).cellOf(Marks.accent, _glyph);
+    if (cell != null) {
+      canvas.fill(0, 0, 1, height, pen, cell);
+    }
   }
 }

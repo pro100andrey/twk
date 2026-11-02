@@ -586,7 +586,6 @@ final class _TreeTableState<T> extends State<TreeTable<T>>
   TableCell _treeCell(TableColumn<T> column, int i) {
     final rows = _shown;
     final glyphs = Theme.of(context).glyphs;
-    const ascii = Glyphs.ascii;
     final mark = rows.mark(i);
     final level = rows.depth(i);
     final guides = StringBuffer();
@@ -618,12 +617,9 @@ final class _TreeTableState<T> extends State<TreeTable<T>>
     }
     if (mark == _Mark.collapsed || mark == _Mark.expanded) {
       final open = mark == _Mark.expanded;
-      final sign = textMark(
+      final sign = ThemeMarks.of(
         context,
-        open ? 'expanded' : 'collapsed',
-        open ? glyphs.expanded : glyphs.collapsed,
-        open ? ascii.expanded : ascii.collapsed,
-      );
+      ).text(open ? Marks.expanded : Marks.collapsed, glyphs);
       expander = '$sign ';
     }
     final before = [

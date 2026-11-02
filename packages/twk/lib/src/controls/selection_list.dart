@@ -14,7 +14,6 @@ import '../gestures/gesture_detector.dart';
 import '../layout/box.dart';
 import '../layout/flex.dart';
 import '../scroll/list_view.dart';
-import '../style/glyphs.dart' show checkboxMarks;
 import '../style/style.dart';
 import '../text/widgets.dart';
 import 'pressable.dart';
@@ -556,7 +555,7 @@ final class _SelectionListState<K> extends State<SelectionList<K>> {
         bar = theme.muted;
       }
     }
-    final boxes = checkboxMarks(context, theme.glyphs);
+    final boxes = CheckboxMarks.of(context);
     final column = widget.bar;
     final Widget row;
     if (!column && !multiple) {
@@ -569,7 +568,7 @@ final class _SelectionListState<K> extends State<SelectionList<K>> {
         children: [
           if (column)
             Text(
-              bar == null ? ' ' : theme.glyphs.cursor,
+              bar == null ? ' ' : ThemeMarks.of(context).text(Marks.cursor),
               style: bar?.merge(_unbold) ?? _plain,
               wrap: TextWrap.none,
             ),

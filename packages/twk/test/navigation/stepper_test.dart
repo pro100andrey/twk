@@ -562,6 +562,8 @@ void main() {
     expect(lines(t)[2], endsWith(' Finish'));
   });
 
+  // the marks and ─ are Glyphs.ascii's there, one column each: the same
+  // rule as anywhere, so a header is where it is drawn
   group('where ─ and the marks are two columns wide (ambiguous width 2)', () {
     List<Step> steps() => const [
       Step(title: 'Project Info', content: Text('name')),
@@ -569,8 +571,8 @@ void main() {
       Step(title: 'Confirmation', content: Text('done')),
     ];
 
-    test('a click hits the header drawn where it is, not columns off '
-        'for each mark and ─ before it', () async {
+    test('a click hits the header drawn where it is, with the ASCII marks '
+        'and dash', () async {
       final controller = StepperController();
       addTearDown(controller.dispose);
       final app = await WideApp.start(
@@ -580,24 +582,25 @@ void main() {
       );
       expect(
         app.lines().first,
-        '● 1. Project Info ── ○ 2. Dependencies ── ○ 3. Confirmation',
+        '* 1. Project Info -- o 2. Dependencies -- o 3. Confirmation',
       );
-      // the blank before the second ○, then the n of Confirmation
-      await app.click(47, 0);
+      // the blank before the second o, then the n of Confirmation
+      await app.click(41, 0);
       expect(controller.current, 0);
-      await app.click(60, 0);
+      await app.click(55, 0);
       expect(controller.current, 2);
       await app.quit();
     });
 
     test(
-      'too narrow for the headers as drawn: the current step alone',
+      'too narrow for the headers as drawn (59 columns): the current step '
+      'alone',
       () async {
         final app = await WideApp.start(
           Align(
             alignment: Alignment.topLeft,
             child: SizedBox(
-              width: 62,
+              width: 50,
               height: 4,
               child: Stepper(steps: steps()),
             ),

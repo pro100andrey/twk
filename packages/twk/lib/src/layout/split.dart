@@ -1186,9 +1186,7 @@ final class _RenderSplit extends RenderObject
     }
     final canvas = ctx.canvas;
     // box drawing is East Asian ambiguous: two columns where those are
-    final type = canvas.segmenter.ambiguousWidth == 1
-        ? line.type
-        : BorderType.ascii;
+    final type = ThemeMarks.ofObject(this, canvas.segmenter).border(line.type);
     final across = _across;
     final arm = type.glyph(
       up: !across && before,

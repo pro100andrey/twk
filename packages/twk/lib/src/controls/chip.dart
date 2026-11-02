@@ -103,6 +103,7 @@ final class _ChipFace extends StatelessWidget {
     final theme = Theme.of(context);
     final plain =
         AppBinding.maybeOf(context)?.twkApp.terminal.info.plain ?? false;
+    final marks = ThemeMarks.of(context);
     var chip = theme.surface.merge(theme.text).merge(style ?? const Style());
     if (!enabled) {
       chip = chip.merge(theme.muted);
@@ -124,8 +125,8 @@ final class _ChipFace extends StatelessWidget {
     return Text(
       _chipText(
         label,
-        mark: selected && plain ? '${theme.glyphs.check} ' : '',
-        close: removable ? theme.glyphs.close : null,
+        mark: selected && plain ? '${marks.text(Marks.check)} ' : '',
+        close: removable ? marks.text(Marks.close) : null,
       ),
       style: chip,
       wrap: TextWrap.none,
@@ -347,9 +348,9 @@ final class _ChipListState<T> extends State<ChipList<T>> {
           return;
         }
         // the close mark and the blank after it
-        final closeWidth = segmenterOf(context).width(
-          Theme.of(context).glyphs.close,
-        );
+        final closeWidth = segmenterOf(
+          context,
+        ).width(ThemeMarks.of(context).text(Marks.close));
         if (widget.onDeleted != null && x >= p.x + p.width - closeWidth - 1) {
           _remove(i);
         } else if (widget.onSelectionChanged != null) {
@@ -452,9 +453,10 @@ final class _ChipListState<T> extends State<ChipList<T>> {
     required bool plain,
   }) {
     final glyphs = Theme.of(context).glyphs;
-    final close = widget.onDeleted == null ? null : glyphs.close;
+    final marks = ThemeMarks.of(context);
+    final close = widget.onDeleted == null ? null : marks.text(Marks.close);
     final on = [for (final c in _chips) widget.selected.contains(c.value)];
-    final checkMark = '${glyphs.check} ';
+    final checkMark = '${marks.text(Marks.check)} ';
     // the blanks, the mark and the × take the room, the label the rest:
     // the same for every chip with a mark, and for every one without
     final aroundMarked = plain
