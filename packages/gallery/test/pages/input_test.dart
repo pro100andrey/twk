@@ -2,60 +2,15 @@
 // sizes, its options apply, and its keys and the mouse do what the
 // design's do; the hint bar over the Scrolling and Editing widgets, the
 // hints they give themselves.
-import 'package:gallery/gallery.dart';
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
-/// Opens the gallery at [route] in a terminal of [size], a frame for the
-/// route's focus after the first.
-Future<void> open(
-  TwkTester t,
-  String route, {
-  (int, int) size = (120, 36),
-}) async {
-  await t.pumpWidget(galleryApp(route: GalleryRoute.parse(route)), size: size);
-  await t.pump();
-}
-
-/// Presses [keys] (apart by commas), a frame after each.
-Future<void> keys(TwkTester t, String keys) async {
-  for (final k in keys.split(',')) {
-    await t.press(k == 'comma' ? ',' : k);
-    await t.pump();
-  }
-  await t.pump(const Duration(milliseconds: 500));
-}
-
-/// Delivers the mouse report [kind] at ([x], [y]), then a frame.
-Future<void> mouse(TwkTester t, MouseKind kind, int x, int y) async {
-  await t.mouse(kind, x, y);
-  await t.pump();
-}
-
-/// The screen as text.
-String screen(TwkTester t) => t.lines.join('\n');
-
-/// Where [text] starts on the screen, the first time it does.
-(int, int) at(TwkTester t, String text) {
-  for (final (y, line) in t.lines.indexed) {
-    final x = line.indexOf(text);
-    if (x >= 0) {
-      return (x, y);
-    }
-  }
-  throw StateError('"$text" is not on the screen:\n${screen(t)}');
-}
+import '../support/gallery.dart';
 
 /// The offset the line under a scrolling box says.
 int offset(TwkTester t) =>
     int.parse(RegExp(r'offset (\d+) of').firstMatch(screen(t))!.group(1)!);
-
-/// What the app logged at warning or worse: an overflow, an error.
-List<String> problems(TwkTester t) => [
-  for (final r in t.logs.records)
-    if (r.level.index >= LogLevel.warning.index) '${r.level}: ${r.message}',
-];
 
 /// Each page's route and a text its stage shows.
 const _pages = {

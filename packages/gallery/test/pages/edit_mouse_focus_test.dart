@@ -1,65 +1,13 @@
 // Pages and options of the Editing, Mouse and Focus and keys groups: each
 // page builds at both sizes, its options apply, and its keys and the mouse
 // do what the design's do.
-import 'dart:convert';
 
-import 'package:gallery/gallery.dart';
+import 'package:gallery/testing.dart';
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
-/// Opens the gallery at [route] in a terminal of [size], a frame for the
-/// route's focus after the first.
-Future<void> open(
-  TwkTester t,
-  String route, {
-  (int, int) size = (120, 36),
-}) async {
-  await t.pumpWidget(galleryApp(route: GalleryRoute.parse(route)), size: size);
-  await t.pump();
-}
-
-/// Presses [keys] (apart by commas), a frame after each.
-Future<void> keys(TwkTester t, String keys) async {
-  for (final k in keys.split(',')) {
-    await t.press(k == 'comma' ? ',' : k);
-    await t.pump();
-  }
-  await t.pump(const Duration(milliseconds: 500));
-}
-
-/// Delivers the mouse report [kind] at ([x], [y]), then a frame.
-Future<void> mouse(TwkTester t, MouseKind kind, int x, int y) async {
-  await t.mouse(kind, x, y);
-  await t.pump();
-}
-
-/// A click at ([x], [y]): a press and a release.
-Future<void> click(TwkTester t, int x, int y) async {
-  await mouse(t, MouseKind.down, x, y);
-  await mouse(t, MouseKind.up, x, y);
-}
-
-/// Where [text] starts on the screen, the first time it does.
-(int, int) at(TwkTester t, String text) {
-  for (final (y, line) in t.lines.indexed) {
-    final x = line.indexOf(text);
-    if (x >= 0) {
-      return (x, y);
-    }
-  }
-  throw StateError('"$text" is not on the screen:\n${screen(t)}');
-}
-
-/// The texts the app put on the clipboard (OSC 52), in order.
-List<String> clips(TwkTester t) => [
-  for (final m in RegExp(r'\x1b\]52;c;([A-Za-z0-9+/=]*)').allMatches(
-    utf8.decode([
-      for (final f in t.terminal.frames) ...f,
-    ], allowMalformed: true),
-  ))
-    utf8.decode(base64.decode(m.group(1)!)),
-];
+import '../support/gallery.dart';
 
 /// The row of the screen [text] is on, between the box's sides.
 String fieldRow(TwkTester t, String text) {
@@ -68,15 +16,6 @@ String fieldRow(TwkTester t, String text) {
   final left = line.lastIndexOf('│', x);
   return line.substring(left + 1, line.indexOf('│', x));
 }
-
-/// The screen as text.
-String screen(TwkTester t) => t.lines.join('\n');
-
-/// What the app logged at warning or worse: an overflow, an error.
-List<String> problems(TwkTester t) => [
-  for (final r in t.logs.records)
-    if (r.level.index >= LogLevel.warning.index) '${r.level}: ${r.message}',
-];
 
 /// Each page's route and a text its stage shows.
 const _pages = {

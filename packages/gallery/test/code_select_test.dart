@@ -4,11 +4,12 @@
 // Escape, the wheel during a selection and a drag past the view's edge.
 import 'dart:convert';
 
-import 'package:gallery/gallery.dart';
-import 'package:gallery/src/shell/code_select.dart';
+import 'package:gallery/testing.dart';
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
+
+import 'support/gallery.dart' show open;
 
 /// The Text page's Code at 120x36: line 1 on row [top], its first
 /// character at column [x0].
@@ -16,14 +17,6 @@ const top = 8;
 const x0 = 36;
 
 final Color selection = ThemeData.dark.selection.bg!;
-
-Future<void> open(TwkTester t, String route) async {
-  await t.pumpWidget(
-    galleryApp(route: GalleryRoute.parse(route)),
-    size: (120, 36),
-  );
-  await t.pump();
-}
 
 /// The texts the app put on the clipboard (OSC 52), in order.
 List<String> clips(TwkTester t) => [

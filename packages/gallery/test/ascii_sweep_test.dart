@@ -2,7 +2,6 @@
 // Glyphs.ascii (the route parameter `glyphs=ascii`) draws no cell outside
 // ASCII but what the allowlist names, each with its reason.
 import 'package:gallery/gallery.dart';
-import 'package:gallery/src/shell/tokens.dart' show galleryThemes;
 import 'package:test/test.dart';
 import 'package:twk_test/twk_test.dart';
 

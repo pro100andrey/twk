@@ -2,7 +2,7 @@
 // are the files of lib/src/pages/assets/, which the Code tab names.
 import 'dart:io';
 
-import 'package:gallery/src/pages/pictures.dart';
+import 'package:gallery/testing.dart';
 import 'package:test/test.dart';
 
 void main() {

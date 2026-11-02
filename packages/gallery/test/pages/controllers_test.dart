@@ -2,44 +2,10 @@
 // CommandPalette's, the menus', CodeView's, MarkdownView's and the
 // pickers'. Each opens what its controller opens, by a button or a route,
 // as the design's page does.
-import 'package:gallery/gallery.dart';
 import 'package:test/test.dart';
-import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
-/// Opens the gallery at [route] in a terminal of [size], a frame for the
-/// route's focus after the first.
-Future<void> open(
-  TwkTester t,
-  String route, {
-  (int, int) size = (120, 36),
-}) async {
-  await t.pumpWidget(galleryApp(route: GalleryRoute.parse(route)), size: size);
-  await t.pump();
-}
-
-/// Presses [keys] (apart by commas), a frame after each, then lets
-/// [after] go by.
-Future<void> keys(
-  TwkTester t,
-  String keys, {
-  Duration after = const Duration(milliseconds: 500),
-}) async {
-  for (final k in keys.split(',')) {
-    await t.press(k);
-    await t.pump();
-  }
-  await t.pump(after);
-}
-
-/// The screen as text.
-String screen(TwkTester t) => t.lines.join('\n');
-
-/// What the app logged at warning or worse: an overflow, an error.
-List<String> problems(TwkTester t) => [
-  for (final r in t.logs.records)
-    if (r.level.index >= LogLevel.warning.index) '${r.level}: ${r.message}',
-];
+import '../support/gallery.dart';
 
 void main() {
   group('the Tooltip page', () {

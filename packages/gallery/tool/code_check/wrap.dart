@@ -13,7 +13,7 @@
 //                traceback names the same file and lines.
 //
 // Imports of twk, twk_rich, twk_rich's image library and twk_term are added
-// where the Code names them.
+// to each, whether it names them or not.
 
 /// How a Code was made into a library.
 enum WrapMode {
@@ -33,13 +33,48 @@ enum WrapMode {
   cli,
 }
 
-/// A Code made into a library: its source, how it was made, and the
-/// files beside it it needs, by their path in the package.
+/// A Code made into a library: its source, how it was made, the files
+/// beside it it needs, by their path in the package, and for each line of
+/// `dart` the line of the Code it was made from (`codeLines`).
 typedef Wrapped = ({
   String dart,
   WrapMode mode,
   Map<String, String> files,
+  List<int?> codeLines,
 });
+
+/// For each line of [dart], the line of [code] (from 1) it was made from:
+/// the first not taken yet whose text is the same but for its indent;
+/// null for a line the wrapping wrote, and for a blank or a bracket alone,
+/// which say nothing of where they came from.
+List<int?> codeLinesOf(String dart, String code) {
+  final free = <String, List<int>>{};
+  for (final (i, l) in code.split('\n').indexed) {
+    final t = l.trim();
+    if (t.length > 2) {
+      (free[t] ??= []).add(i + 1);
+    }
+  }
+  return [
+    for (final l in dart.split('\n'))
+      if (free[l.trim()] case final at? when at.isNotEmpty)
+        at.removeAt(0)
+      else
+        null,
+  ];
+}
+
+Wrapped _made(
+  String dart,
+  WrapMode mode,
+  String code, [
+  Map<String, String> files = const {},
+]) => (
+  dart: dart,
+  mode: mode,
+  files: files,
+  codeLines: codeLinesOf(dart, code),
+);
 
 /// One item at the top level of a Code: its lines (its leading comments
 /// and annotations among them), the first of its own, and whether it is a
@@ -158,19 +193,6 @@ const _runApp =
     'Object? clearInlineOnExit, Object? logs, Object? exitOnCtrlC, '
     'Object? screenReader, Object? bidi}) async => _codeApp = app;';
 
-final _rich = RegExp(
-  r'\b(MarkdownView|CodeView|DiffView|BigText|BigFont|QrCode|QrSymbol|'
-  'Highlighter|DiffLine|parseDiff|Markdown|Syntax|Language|CodeTheme|'
-  r'JsonView|jsonPath|jsonLines)\b',
-);
-final _image = RegExp(
-  r'\b(Image|ImageMode|ImageFit|Picture|decodeImage|ImageProvider|'
-  r'RasterImage)\b',
-);
-final _term = RegExp(
-  r'\b(TerminalView|TerminalSession|TerminalController|Pty)\b',
-);
-
 String _indent(String s, int n) =>
     s.split('\n').map((l) => l.isEmpty ? l : '${' ' * n}$l').join('\n');
 
@@ -185,8 +207,8 @@ final _cliMain = RegExp(
 Wrapped wrap(String src) {
   if (_cliMain.firstMatch(src) case final m?) {
     final name = m[1]!;
-    return (
-      dart: [
+    return _made(
+      [
         "import 'package:twk/twk.dart';",
         '',
         "import 'cli/$name.dart' as program;",
@@ -196,8 +218,9 @@ Wrapped wrap(String src) {
         "    CliRun(script: cliScripts['$name']!, program: program.$name);",
         '',
       ].join('\n'),
-      mode: WrapMode.cli,
-      files: {'lib/cli/$name.dart': src.endsWith('\n') ? src : '$src\n'},
+      WrapMode.cli,
+      src,
+      {'lib/cli/$name.dart': src.endsWith('\n') ? src : '$src\n'},
     );
   }
   final items = _items(src);
@@ -205,9 +228,11 @@ Wrapped wrap(String src) {
     "import 'dart:async';",
     "import 'dart:math' hide log;",
     "import 'package:twk/twk.dart';",
-    if (_rich.hasMatch(src)) "import 'package:twk_rich/twk_rich.dart';",
-    if (_image.hasMatch(src)) "import 'package:twk_rich/image.dart';",
-    if (_term.hasMatch(src)) "import 'package:twk_term/twk_term.dart';",
+    // all the gallery's packages, whatever a Code names of them: a list of
+    // their names would fail a Code that uses a widget added since
+    "import 'package:twk_rich/image.dart';",
+    "import 'package:twk_rich/twk_rich.dart';",
+    "import 'package:twk_term/twk_term.dart';",
   ];
   final own = [
     for (final it in items)
@@ -228,8 +253,8 @@ Wrapped wrap(String src) {
       for (final it in _items(body))
         if (!it.head.startsWith('import ')) _text(it),
     ];
-    return (
-      dart: [
+    return _made(
+      [
         ...head,
         'Widget? _codeApp;',
         _runApp,
@@ -242,8 +267,8 @@ Wrapped wrap(String src) {
         lines.join('\n\n'),
         '',
       ].join('\n'),
-      mode: WrapMode.file,
-      files: const {},
+      WrapMode.file,
+      src,
     );
   }
   final tops = [
@@ -262,8 +287,8 @@ Wrapped wrap(String src) {
       .firstOrNull;
   if (state != null) {
     final (name, w) = (state[1]!, state[2]!);
-    return (
-      dart: [
+    return _made(
+      [
         ...head,
         'Widget codeWidget() => const $w();',
         '',
@@ -276,8 +301,8 @@ Wrapped wrap(String src) {
         [...rest, ...tops].join('\n\n'),
         '',
       ].join('\n'),
-      mode: WrapMode.stateGiven,
-      files: const {},
+      WrapMode.stateGiven,
+      src,
     );
   }
   final hasBuild = RegExp(
@@ -296,8 +321,8 @@ Wrapped wrap(String src) {
     'final class _S extends State<_W> with TickerProviderStateMixin {',
   ];
   if (hasBuild) {
-    return (
-      dart: [
+    return _made(
+      [
         ...head,
         ...cls,
         _indent(rest.join('\n\n'), 2),
@@ -306,12 +331,12 @@ Wrapped wrap(String src) {
         tops.join('\n\n'),
         '',
       ].join('\n'),
-      mode: WrapMode.members,
-      files: const {},
+      WrapMode.members,
+      src,
     );
   }
-  return (
-    dart: [
+  return _made(
+    [
       ...head,
       ...cls,
       '  @override',
@@ -323,7 +348,7 @@ Wrapped wrap(String src) {
       tops.join('\n\n'),
       '',
     ].join('\n'),
-    mode: WrapMode.body,
-    files: const {},
+    WrapMode.body,
+    src,
   );
 }

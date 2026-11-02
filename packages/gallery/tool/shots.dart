@@ -16,7 +16,7 @@
 //   dart run tool/shots.dart --png ../twk/doc/screenshots
 import 'dart:io';
 
-import 'package:gallery/src/shell/tokens.dart' show galleryThemes;
+import 'package:gallery/gallery.dart' show galleryThemes;
 import 'package:path/path.dart' as p;
 
 import 'shots/svg.dart';

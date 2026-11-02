@@ -1,6 +1,6 @@
 // tool/catalog.dart: the widget catalog's front matter, packages, links
 // and cards.
-import 'package:gallery/gallery.dart';
+import 'package:gallery/testing.dart';
 import 'package:test/test.dart';
 
 import '../tool/catalog.dart';

@@ -100,6 +100,7 @@ final class _RenderRuler extends RenderObject {
   int _offset;
   int _length;
 
+  ScrollPosition get position => _position;
   set position(ScrollPosition value) {
     if (value != _position) {
       _position = value;
@@ -107,6 +108,7 @@ final class _RenderRuler extends RenderObject {
     }
   }
 
+  int get offset => _offset;
   set offset(int value) {
     if (value != _offset) {
       _offset = value;
@@ -114,6 +116,7 @@ final class _RenderRuler extends RenderObject {
     }
   }
 
+  int get length => _length;
   set length(int value) {
     if (value != _length) {
       _length = value;

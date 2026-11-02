@@ -7,8 +7,7 @@ import 'package:gallery/cli/check.dart' as check;
 import 'package:gallery/cli/create.dart' as create;
 import 'package:gallery/cli/install.dart' as install;
 import 'package:gallery/cli/run.dart';
-import 'package:gallery/gallery.dart';
-import 'package:gallery/src/pages/cli_code.dart';
+import 'package:gallery/testing.dart';
 import 'package:test/test.dart';
 import 'package:twk_test/twk_test.dart';
 

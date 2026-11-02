@@ -20,7 +20,8 @@ final class CatalogPage {
   final String about;
 }
 
-/// The 20 groups of the catalog, the 141 pages in them.
+/// The groups of the catalog and the pages in them, in the order of the
+/// list.
 const catalog = [
   CatalogGroup('Text', 'text.dart', [
     CatalogPage(
