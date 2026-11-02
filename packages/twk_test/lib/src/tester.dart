@@ -15,6 +15,7 @@ import 'package:twk/twk.dart';
 import '../vt.dart';
 import 'fake_clock.dart';
 import 'fake_stderr.dart';
+import 'finders.dart' show CellRect;
 import 'keys.dart';
 import 'recording.dart';
 import 'screen_file.dart' show cellsText;
@@ -234,6 +235,7 @@ final class TwkTester {
     final binding = _binding;
     if (binding == null) {
       _startTime = startTime ?? defaultStartTime;
+      _pointerShapes = pointerShapes;
       _start(
         widget,
         size: size ?? (80, 24),
@@ -650,7 +652,7 @@ final class TwkTester {
   /// ```dart
   /// expect(t.linesIn((x: 10, y: 0, width: 8, height: 2)), ['list', 'one']);
   /// ```
-  List<String> linesIn(({int x, int y, int width, int height}) region) {
+  List<String> linesIn(CellRect region) {
     final vt = this.vt;
     final left = region.x < 0 ? 0 : region.x;
     final top = region.y < 0 ? 0 : region.y;
@@ -690,11 +692,18 @@ final class TwkTester {
     return recorder.replay(terminal.frames);
   }
 
+  /// Whether the terminal was started to show pointer shapes.
+  var _pointerShapes = false;
+
   /// The shape the app gave the mouse pointer last ([PointerShape], OSC
   /// 22): [PointerShape.arrow] where it shows the terminal's default, null
-  /// before it gave any and always without `pumpWidget(pointerShapes:
-  /// true)`, where the terminal shows none.
+  /// before it gave any. A [StateError] without `pumpWidget(pointerShapes:
+  /// true)`, where the terminal shows none: a null read there would be no
+  /// finding.
   PointerShape? get pointerShape {
+    if (!_pointerShapes) {
+      throw StateError('pumpWidget(pointerShapes: true) to read pointerShape');
+    }
     final names = RegExp('\x1b\\]22;([^\x1b\x07]*)').allMatches(written());
     if (names.isEmpty) {
       return null;

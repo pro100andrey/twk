@@ -89,11 +89,11 @@ void main() {
     const right = (x: 12, y: 0, width: 12, height: 3);
     final panel = find.byKey(const ValueKey('right'));
     expect(t, isNot(containsLine('Title')));
-    expect(t, containsLine('Title', within: right));
+    expect(t, containsLine('Title', withinRect: right));
     expect(t, containsLine('two', within: panel));
     expect(
       t,
-      containsLine('> one', within: (x: 0, y: 0, width: 12, height: 3)),
+      containsLine('> one', withinRect: (x: 0, y: 0, width: 12, height: 3)),
     );
     expect(t, isNot(containsLine('> one', within: panel)));
     expect(t, containsLine(startsWith('tw'), within: panel));
@@ -118,7 +118,7 @@ void main() {
     await t.pumpWidget(panels(), size: (24, 3));
     const off = (x: 0, y: 400, width: 5, height: 3);
     expect(
-      failure(t, hasTextAt(0, 0, 'x', within: off))[2],
+      failure(t, hasTextAt(0, 0, 'x', withinRect: off))[2],
       '   Which: has no cell: the region is off the screen',
     );
   });
@@ -149,20 +149,24 @@ void main() {
     await t.pumpWidget(panels(), size: (24, 3));
     const left = (x: 0, y: 0, width: 12, height: 3);
     expect(
-      failure(t, hasTextAt(0, 1, 'two', within: left))[2],
+      failure(t, hasTextAt(0, 1, 'two', withinRect: left))[2],
       "   Which: has '> o' there, but the screen shows 'two' at column 12, "
       'row 1',
     );
     expect(
-      failure(t, hasTextAt(1, 0, 'Title', within: left)).first,
+      failure(t, hasTextAt(1, 0, 'Title', withinRect: left)).first,
       "Expected: 'Title' at column 1, row 0 in the cells (0, 0), 12×3",
     );
     expect(
-      failure(t, hasTextAt(12, 0, 'x', within: left))[2],
+      failure(t, hasTextAt(12, 0, 'x', withinRect: left))[2],
       startsWith('   Which: has no column 12: the region has 12 columns'),
     );
     expect(
-      () => containsLine('x', within: 3),
+      () => containsLine(
+        'x',
+        within: find.text('a'),
+        withinRect: (x: 0, y: 0, width: 1, height: 1),
+      ),
       throwsArgumentError,
     );
   });
@@ -499,10 +503,15 @@ sent: привет
     expect(t.linesIn((x: 2, y: 0, width: 2, height: 1)), ['b']);
     expect(t.linesIn((x: 3, y: 0, width: 3, height: 1)), ['b好']);
     expect(t.linesIn((x: 0, y: 0, width: 2, height: 1)), ['a']);
-    expect(t, hasTextAt(0, 0, 'b', within: (x: 3, y: 0, width: 2, height: 1)));
     expect(
       t,
-      isNot(hasTextAt(1, 0, '好', within: (x: 3, y: 0, width: 2, height: 1))),
+      hasTextAt(0, 0, 'b', withinRect: (x: 3, y: 0, width: 2, height: 1)),
+    );
+    expect(
+      t,
+      isNot(
+        hasTextAt(1, 0, '好', withinRect: (x: 3, y: 0, width: 2, height: 1)),
+      ),
     );
   });
 }

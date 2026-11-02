@@ -64,10 +64,6 @@ void main() {
       describeApp(vt, null),
       'screen 10×3:\n0│ok\n(rows 1–2 blank)\n\nrender tree:\nnone',
     );
-    expect(
-      describeApp(vt, null, styles: true),
-      'screen 10×3:\n0│[bold]ok[/]\n(rows 1–2 blank)\n\nrender tree:\nnone',
-    );
     expect(describeApp(vt, null, screen: false), 'render tree:\nnone');
   });
 }

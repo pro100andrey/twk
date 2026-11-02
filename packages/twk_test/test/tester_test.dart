@@ -140,6 +140,27 @@ KeyEvent char(String c, [int mods = 0]) =>
     KeyEvent(KeyCode.char, char: c, modifiers: mods);
 
 void main() {
+  testTwk('pointerShape is read only where the terminal shows shapes', (
+    t,
+  ) async {
+    await t.pumpWidget(const Text('x'), size: (10, 1));
+    expect(
+      () => t.pointerShape,
+      throwsA(
+        isA<StateError>().having(
+          (e) => e.message,
+          'message',
+          'pumpWidget(pointerShapes: true) to read pointerShape',
+        ),
+      ),
+    );
+  });
+
+  testTwk('pointerShape is the default arrow at the start', (t) async {
+    await t.pumpWidget(const Text('x'), size: (10, 1), pointerShapes: true);
+    expect(t.pointerShape, PointerShape.arrow);
+  });
+
   testTwk('typed text goes through the parser, a key per character, and '
       'the next frame shows what it changed', (t) async {
     final events = <InputEvent>[];

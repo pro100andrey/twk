@@ -67,7 +67,7 @@ void main() {
     await t.pumpWidget(Button('Save', onPressed: () {}), size: (20, 1));
     await t.mouse(MouseKind.move, 2, 0);
     await t.pump();
-    expect(t.pointerShape, isNull);
+    expect(() => t.pointerShape, throwsStateError);
     expect(t.written(), isNot(contains('\x1b]22;')));
   });
 }

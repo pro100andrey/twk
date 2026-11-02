@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+Breaking:
+
+- `describeScreen` prints the screen as plain text unless `styles: true`;
+  it marked styles always before. `describeApp` lost its `styles`.
+- `containsLine` and `hasTextAt` take `within` as a `Finder` only; a
+  rectangle goes in `withinRect`, a `CellRect` (the one `rect` gives and
+  `linesIn` takes, now a public typedef). Both together is an
+  `ArgumentError`.
+- `TwkTester.pointerShape` throws a `StateError` unless
+  `pumpWidget(pointerShapes: true)`; it read null there, so an `isNull`
+  could pass for the wrong reason.
+
 ## 0.1.0
 
 The first release.

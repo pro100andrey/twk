@@ -13,6 +13,11 @@ import 'package:twk/twk.dart';
 
 import 'tester.dart';
 
+/// A rectangle of the screen's cells: column and row of its first cell, and
+/// its size. [FinderTester.rect] gives one, [TwkTester.linesIn] and the
+/// `within` of `containsLine` and `hasTextAt` take one.
+typedef CellRect = ({int x, int y, int width, int height});
+
 // Examples can assume:
 // import 'package:test/test.dart';
 // import 'package:twk/twk.dart';
@@ -245,7 +250,7 @@ extension FinderTester on TwkTester {
   /// out last: full screen, those of the screen; in the inline mode, those
   /// of the region, row 0 its first. Partly or wholly off the screen when
   /// the widget is. A [StateError] before it was laid out.
-  ({int x, int y, int width, int height}) rect(Finder finder) {
+  CellRect rect(Finder finder) {
     final e = element(finder);
     return _rectOf(e) ??
         (throw StateError('$finder finds $e, which is not laid out'));
@@ -425,7 +430,7 @@ String _describe(Element e) => switch (_rectOf(e)) {
 };
 
 /// The cells of [e]'s render object; null before it was laid out.
-({int x, int y, int width, int height})? _rectOf(Element e) {
+CellRect? _rectOf(Element e) {
   final o = e.renderObject;
   if (o == null || o.constraints == null) {
     return null;

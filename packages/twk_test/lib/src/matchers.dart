@@ -15,9 +15,6 @@ import 'screen_file.dart';
 import 'screen_text.dart';
 import 'tester.dart';
 
-/// A rectangle of the screen, as [FinderTester.rect] gives one.
-typedef _Rect = ({int x, int y, int width, int height});
-
 // Examples can assume:
 // import 'package:test/test.dart';
 // import 'package:twk/twk.dart';
@@ -27,56 +24,65 @@ typedef _Rect = ({int x, int y, int width, int height});
 /// that end either aside, or one [line] matches when it is a [Matcher]
 /// (`startsWith('sent:')`); a row is text as [TwkTester.lines] gives it.
 ///
-/// With [within], a [Finder] or a rectangle `(x:, y:, width:, height:)`
-/// as [FinderTester.rect] gives it, the rows are those of its cells alone
-/// ([TwkTester.linesIn]), from its first column. One that fails for a
-/// [line] that is a string says where the screen shows it, outside
-/// [within], if it does; a [Finder] that does not find one widget fails
-/// with what [FinderTester.element] says.
+/// With [within], a [Finder], or with [withinRect] a [CellRect]
+/// `(x:, y:, width:, height:)` as [FinderTester.rect] gives it, the rows
+/// are those of its cells alone ([TwkTester.linesIn]), from its first
+/// column. One that fails for a [line] that is a string says where the
+/// screen shows it, outside the region, if it does; a [Finder] that does
+/// not find one widget fails with what [FinderTester.element] says. Both
+/// at once is an [ArgumentError].
 ///
 /// ```dart
 /// expect(t, containsLine('Saved'));
 /// expect(t, containsLine(startsWith('sent:')));
 /// expect(t, containsLine('> one', within: find.byType(ListView)));
+/// expect(
+///   t,
+///   containsLine('> one', withinRect: (x: 0, y: 0, width: 12, height: 3)),
+/// );
 /// ```
-Matcher containsLine(Object? line, {Object? within}) => _ContainsLine(
-  line is String ? equals(line.trimRight()) : wrapMatcher(line),
-  line is String ? line.trim() : null,
-  _checkedRegion(within),
-);
+Matcher containsLine(Object? line, {Finder? within, CellRect? withinRect}) =>
+    _ContainsLine(
+      line is String ? equals(line.trimRight()) : wrapMatcher(line),
+      line is String ? line.trim() : null,
+      _region(within, withinRect),
+    );
 
 /// Matches a [TwkTester] whose screen shows [text] from column [x] of row
 /// [y] on: the cells [text] is as wide as show it, a wide glyph once.
 ///
-/// With [within], a [Finder] or a rectangle as [containsLine] takes it,
+/// With [within] or [withinRect] as [containsLine] takes them,
 /// [x] and [y] are from the first cell of the region, and the cells read
 /// stop at its edge. One that fails says where the screen shows [text]
-/// outside [within], if it does.
+/// outside the region, if it does.
 ///
 /// ```dart
 /// expect(t, hasTextAt(2, 0, 'Title'));
 /// expect(t, hasTextAt(0, 1, '> one', within: find.byType(ListView)));
 /// ```
-Matcher hasTextAt(int x, int y, String text, {Object? within}) =>
-    _HasTextAt(x, y, text, _checkedRegion(within));
+Matcher hasTextAt(
+  int x,
+  int y,
+  String text, {
+  Finder? within,
+  CellRect? withinRect,
+}) => _HasTextAt(x, y, text, _region(within, withinRect));
 
-/// [within] as the matchers keep it: null, a [Finder] or a rectangle; an
-/// [ArgumentError] for anything else.
-Object? _checkedRegion(Object? within) => switch (within) {
-  null || Finder() => within,
-  _Rect() => within,
-  _ => throw ArgumentError.value(
-    within,
-    'within',
-    'is not a Finder or a rectangle (x:, y:, width:, height:)',
-  ),
-};
+/// The region the matchers keep: [within], [withinRect] or null; an
+/// [ArgumentError] for both.
+Object? _region(Finder? within, CellRect? withinRect) {
+  if (within != null && withinRect != null) {
+    throw ArgumentError('within and withinRect are not both given');
+  }
+  return within ?? withinRect;
+}
 
-_Rect _asRect(Object region) => region as _Rect;
+CellRect _asRect(Object region) => region as CellRect;
 
-/// The region [within] is on [t]'s screen; a [StateError] when a finder
+/// The region [within] (a [Finder] or a [CellRect]) is on [t]'s screen;
+/// a [StateError] when a finder
 /// does not find one widget. Null for none.
-_Rect? _regionOn(
+CellRect? _regionOn(
   TwkTester t,
   Object? within,
 ) => switch (within) {
@@ -86,7 +92,7 @@ _Rect? _regionOn(
 };
 
 /// The region as a mismatch names it: `the cells (2, 3), 6×1`.
-String _regionName(_Rect r) =>
+String _regionName(CellRect r) =>
     'the cells (${r.x}, ${r.y}), ${r.width}×${r.height}';
 
 /// The column and row of the first place [vt]'s screen shows [text] on one
@@ -170,7 +176,9 @@ Matcher cursorAt(int x, int y) => _CursorAt(x, y);
 /// blanks that end a line and the empty lines that end the screen left
 /// out of both. One that fails shows the rows that differ.
 ///
-/// With [styles] each run of cells of one style is marked:
+/// [styles] is false by default, unlike [matchesScreenFile]'s, which
+/// compares the styles it holds unless told not to: here the text alone is
+/// compared. With [styles] each run of cells of one style is marked:
 /// `[bold]sent:[/] [red on #102030]ok[/]`. A style is the cells'
 /// attributes, named as [Attr] names them (`bold`, `curlyUnderline`), their
 /// color, `on` and their background, and `ul=` and the color of their
@@ -199,9 +207,14 @@ Matcher matchesScreen(String snapshot, {bool styles = false}) =>
 /// found (a stack without a `file:` frame, as under a browser) it fails with
 /// a [StateError] asking for an absolute path.
 ///
-/// With [styles] false only the size, the cursor and the text are
-/// compared, as [matchesScreen] does: the file keeps its styles, and
-/// writing it still writes them.
+/// [styles] is true by default, unlike [matchesScreen]'s: the styles of the
+/// file are compared as well as the text. With [styles] false only the
+/// size, the cursor and the text are, as [matchesScreen] does: the file
+/// keeps its styles, and writing it still writes them.
+///
+/// A path that cannot be resolved (a relative one where the calling test
+/// file's package is not found) throws a [StateError] when the matcher is
+/// built, not when it matches.
 ///
 /// With the environment variable `TWK_UPDATE_GOLDENS` set (to anything
 /// but `0`), it writes the screen to the file instead, making its
@@ -376,7 +389,7 @@ final class _HasTextAt extends _ScreenMatcher {
   final Object? _within;
 
   /// The cells the matcher reads: the screen's, or the region's cut by it.
-  _Rect _area(TwkTester t) {
+  CellRect _area(TwkTester t) {
     final vt = t.vt;
     final r = _regionOn(t, _within);
     if (r == null) {
@@ -395,7 +408,7 @@ final class _HasTextAt extends _ScreenMatcher {
   }
 
   /// What [area] has no cell at ([_x], [_y]) of for; null when it has one.
-  String? _off(_Rect area) {
+  String? _off(CellRect area) {
     final where = _within == null ? 'the screen' : 'the region';
     if (_within != null && (area.width == 0 || area.height == 0)) {
       return 'has no cell: the region is off the screen';
@@ -411,7 +424,7 @@ final class _HasTextAt extends _ScreenMatcher {
 
   /// What the cells [_text] would take show, and whether the row ends
   /// before they do.
-  (String, bool) _shown(Vt vt, _Rect area) {
+  (String, bool) _shown(Vt vt, CellRect area) {
     final scan = ClusterScan();
     final x0 = area.x + _x;
     final y0 = area.y + _y;
@@ -427,7 +440,7 @@ final class _HasTextAt extends _ScreenMatcher {
 
   @override
   bool _matches(TwkTester t, Map<dynamic, dynamic> matchState) {
-    final _Rect area;
+    final CellRect area;
     try {
       area = _area(t);
       // ignore: avoid_catching_errors, a finder that finds no one widget fails the match with its message

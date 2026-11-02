@@ -231,17 +231,15 @@ String describeScreen(Vt vt, {bool styles = false}) {
 
 /// [vt]'s screen ([describeScreen]) and the render tree from [root] down,
 /// as a failure message shows them, the tree as `describe().toStringDeep()`
-/// gives it; without the screen with [screen] false, its styles marked
-/// with [styles].
+/// gives it; without the screen with [screen] false.
 String describeApp(
   Vt vt,
   RenderObject? root, {
   bool screen = true,
-  bool styles = false,
 }) => [
   if (screen) ...[
     'screen ${vt.width}×${vt.height}:',
-    describeScreen(vt, styles: styles),
+    describeScreen(vt),
     '',
   ],
   'render tree:',
