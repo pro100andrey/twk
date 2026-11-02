@@ -213,7 +213,7 @@ Stream<TailEvent> tailFile(
       }
       if (FileSystemEntity.isWatchSupported) {
         try {
-          watch = file.parent.watch().where((e) => _names(e, name)).listen((e) {
+          void onEvent(FileSystemEvent e) {
             // where files are told apart the look decides; macOS tells a
             // write to a file made just before the watch as its making
             if (!knowsFileIdentity && _replaces(e, name)) {
@@ -224,7 +224,18 @@ Stream<TailEvent> tailFile(
               }
             }
             unawaited(look());
-          }, onError: (Object _) {});
+          }
+
+          // a watch that fails (its queue overflowed, the directory gone)
+          // has lost events: a look now, and the poll goes on, read what was
+          // written; a file put at the name among the lost is told where
+          // files are told apart, elsewhere only once it is shorter
+          void onError(Object _) => unawaited(look());
+
+          watch = file.parent
+              .watch()
+              .where((e) => _names(e, name))
+              .listen(onEvent, onError: onError);
         } on FileSystemException {
           // no watch of the directory: the poll alone
         }
