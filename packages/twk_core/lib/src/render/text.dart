@@ -40,7 +40,10 @@ final class RenderText extends RenderObject {
   /// Whether it is a repaint boundary ([isRepaintBoundary]), which fills
   /// its bounds with [pen] before the text. False by default.
   final bool boundary;
-  GlyphRun? _run;
+  // the shaped glyphs: a buffer of its own, kept while the text fits it
+  Uint32List? _glyphs;
+  var _glyphCount = 0;
+  var _shaped = false;
   // the glyph table the run is of, and its sweeps when it was shaped
   GlyphTable? _runIn;
   var _runSweeps = 0;
@@ -53,7 +56,7 @@ final class RenderText extends RenderObject {
       return;
     }
     _text = t;
-    _run = null;
+    _shaped = false;
     // laying it out repaints it; a parent that asked how wide it is is
     // laid out too
     markNeedsLayout();
@@ -106,10 +109,17 @@ final class RenderText extends RenderObject {
       // the screen then (scrolled out, in a tab not shown) kept none
       _runIn = cv.glyphs;
       _runSweeps = cv.glyphs.sweeps;
-      _run = null;
+      _shaped = false;
     }
-    final run = _run ??= cv.shape(_text);
-    cv.run(0, 0, run, pen);
+    if (!_shaped) {
+      var g = _glyphs;
+      if (g == null || g.length < _text.length) {
+        g = _glyphs = Uint32List(_text.length);
+      }
+      _glyphCount = cv.shapeInto(_text, g);
+      _shaped = true;
+    }
+    cv.runRange(0, 0, _glyphs!, 0, _glyphCount, pen);
   }
 }
 
@@ -963,7 +973,7 @@ final class RenderParagraph extends RenderObject {
   // [_spans.length] its length, of which [_offsetAt] finds where a
   // cluster starts; found when textRangeAt or the bidi levels first ask
   // after a split or an edit: O(spans), not O(clusters) moved at an edit
-  var _spanBase = Int32List(1);
+  Int32List _spanBase = _noInt32s;
   var _offsetsStale = true;
   var _offsetsFound = 0;
   var _hasMulti = false;
@@ -1044,8 +1054,8 @@ final class RenderParagraph extends RenderObject {
   Uint8List _classes = _noUint8s;
   Uint8List _levelsNext = _noUint8s;
   Uint8List _classesNext = _noUint8s;
-  var _paraStarts = Int32List(1);
-  var _paraLevels = Uint8List(1);
+  Int32List _paraStarts = _noInt32s;
+  Uint8List _paraLevels = _noUint8s;
   var _paraCount = 0;
   var _nonZero = 0;
   var _levelsResolved = 0;
@@ -1064,8 +1074,8 @@ final class RenderParagraph extends RenderObject {
   var _rowsWidth = 0;
   var _rowsWere = 0;
   Int32List _linesWere = _noInt32s;
-  var _rowAt = Int32List(2);
-  var _rowAtWere = Int32List(2);
+  Int32List _rowAt = _noInt32s;
+  Int32List _rowAtWere = _noInt32s;
   Int32List _segmentsWere = _noInt32s;
   Uint32List _runGlyphsWere = _noUint32s;
   var _linesOrdered = 0;
@@ -2517,6 +2527,12 @@ final class RenderParagraph extends RenderObject {
     final limit = _maxLines;
     final all = _allLines;
     var raw = _raw;
+    if (raw.isEmpty) {
+      // room for the lines the text is likely to break into, once
+      raw = Int32List(
+        ((_count ~/ (maxW < 1 ? 1 : maxW)) + _newlines + 2) * _rawStride,
+      );
+    }
     var line = t;
     for (var at = from; ;) {
       final next = _breakLine(at, maxW);
@@ -3442,6 +3458,12 @@ final class RenderParagraph extends RenderObject {
     _rowAtWere = rowAt;
     _segmentCount = 0;
     _runGlyphCount = 0;
+    final room = (rows + _spans.length) * _segmentStride;
+    if (_segments.length < room) {
+      // a segment or so for each row, the buffer not grown by doubling
+      _segments = Int32List(_room(room, _segments.length))
+        ..setRange(0, _segments.length, _segments);
+    }
     if (_rowAt.length < 2 * rows + 2) {
       _rowAt = Int32List(_room(2 * rows + 2, _rowAt.length));
     }

@@ -23,6 +23,9 @@ import 'style.dart';
 import 'surface.dart';
 import 'unicode/unicode.dart';
 
+// Examples can assume:
+// import 'dart:typed_data';
+
 /// Text segmented once and drawn many times (what a retained text layout
 /// keeps between frames). Each entry is a glyph word: glyph id plus
 /// [kWide]/[kUncertain] flags.
@@ -515,7 +518,28 @@ final class Canvas {
     if (_shapeBuf.length < s.length) {
       _shapeBuf = Uint32List(s.length * 2);
     }
-    final out = _shapeBuf;
+    final n = shapeInto(s, _shapeBuf);
+    return GlyphRun(_shapeBuf.sublist(0, n), shapedWidth);
+  }
+
+  /// The columns of what [shapeInto] shaped last.
+  int get shapedWidth => _shapedWidth;
+  var _shapedWidth = 0;
+
+  /// Segments [s] as [shape] does into the first words of [out], which
+  /// must hold at least `s.length` (one glyph per UTF-16 unit at most),
+  /// and returns how many it wrote; their columns are [shapedWidth]. For
+  /// a text that keeps its own buffer: no run and no copy per change.
+  /// Draw them with [runRange].
+  ///
+  /// ```dart
+  /// final canvas = Canvas(Surface(20, 1), StyleTable(), GlyphTable());
+  /// final out = Uint32List('Ready'.length);
+  /// final n = canvas.shapeInto('Ready', out);
+  /// canvas.runRange(0, 0, out, 0, n, 0);
+  /// ```
+  int shapeInto(String s, Uint32List out) {
+    assert(out.length >= s.length, 'out holds a glyph per unit of s');
     var n = 0;
     var width = 0;
     for (var i = 0; i < s.length;) {
@@ -546,7 +570,8 @@ final class Canvas {
       out[n++] = glyph;
       width += w;
     }
-    return GlyphRun(out.sublist(0, n), width);
+    _shapedWidth = width;
+    return n;
   }
 
   /// Draws a pre-shaped run; same semantics as [text] without segmentation.
