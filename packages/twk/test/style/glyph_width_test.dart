@@ -188,8 +188,10 @@ void main() {
         'pair, a directory a blank as wide', (t) async {
       final dir = Directory.systemTemp.createTempSync('glyph_width_');
       addTearDown(() => dir.deleteSync(recursive: true));
-      Directory('${dir.path}/dd').createSync();
-      File('${dir.path}/ff').writeAsStringSync('x');
+      // names with a hyphen, which the random part of the directory's own
+      // name in the picker's header never has
+      Directory('${dir.path}/sub-dir').createSync();
+      File('${dir.path}/a-file').writeAsStringSync('x');
       await t.pumpWidget(
         themed(
           Glyphs.unicode.copyWith(checkboxOff: '🙂'),
@@ -205,13 +207,13 @@ void main() {
         size: (40, 12),
       );
       await waitUntil(
-        () => t.lines.any((l) => l.contains('[ ] ff')),
+        () => t.lines.any((l) => l.contains('[ ] a-file')),
         'the listing',
         between: t.pump,
       );
-      final file = t.lines.firstWhere((l) => l.contains('[ ] ff'));
-      final directory = t.lines.firstWhere((l) => l.contains('dd'));
-      expect(directory.indexOf('dd'), file.indexOf('ff'));
+      final file = t.lines.firstWhere((l) => l.contains('[ ] a-file'));
+      final directory = t.lines.firstWhere((l) => l.contains('sub-dir'));
+      expect(directory.indexOf('sub-dir'), file.indexOf('a-file'));
       expect(t.lines.join(), isNot(contains('🙂')));
       expect(warnings(t), hasLength(1));
     });
