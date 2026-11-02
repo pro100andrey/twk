@@ -32,6 +32,12 @@ void main() {
       final client = await RawClient.connect(server);
       await client.exchangeKeys();
       final transport = server.connections.single.transport;
+      // the client is done once it sent its NEWKEYS, the server once it
+      // read it, which dates the keys: a round trip before the clock moves,
+      // or a slow machine dates them after the move
+      client.send(unknown);
+      await client.expectNext(SshMsg.unimplemented);
+      expect(transport.keyExchanges, 1);
       await clock.elapse(const Duration(minutes: 9, seconds: 59));
       client.send(unknown);
       await client.expectNext(SshMsg.unimplemented);
