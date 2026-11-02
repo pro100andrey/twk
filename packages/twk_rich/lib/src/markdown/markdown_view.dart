@@ -704,6 +704,7 @@ final class _MarkdownViewState extends State<MarkdownView> {
       list,
       depth,
       Theme.of(context).glyphs,
+      ThemeMarks.of(context),
     );
     final gap = list.tight ? 0 : 1;
     final columnKey = column.join('\n');

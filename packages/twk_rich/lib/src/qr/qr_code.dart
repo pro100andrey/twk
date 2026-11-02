@@ -225,7 +225,9 @@ final class RenderQrCode extends RenderObject {
   var _rowsWide = false;
 
   /// Whether the canvas draws half blocks two columns wide.
-  bool get _wide => !_oneColumn(owner?.segmenter ?? _detached);
+  bool get _wide => !ThemeMarks.forSegmenter(
+    owner?.segmenter ?? _detached,
+  ).allOneColumn(_shownBlocks);
 
   /// The modules of a side with the quiet zone.
   int get _side => shown.size + 2 * _quietZone;
@@ -331,25 +333,11 @@ final class RenderQrCode extends RenderObject {
 /// The cell of two modules, by which are dark: 1 the upper, 2 the lower.
 const _halfBlocks = [0x20, 0x2580, 0x2584, 0x2588];
 
+// the half blocks and the full one, which the terminal is to draw one
+// column wide, for sure
+const _shownBlocks = [0x2580, 0x2584, 0x2588];
+
 /// The character [RenderQrCode._wideRows] writes for a light module.
 const _light0 = 0x30;
 
-final _scan = ClusterScan();
 final _detached = TextSegmenter();
-
-/// Whether [seg] measures each half block, and the full block, a column
-/// wide, for sure.
-bool _oneColumn(TextSegmenter seg) {
-  for (final cp in _halfBlocks.skip(1)) {
-    // the glyph twice: two clusters of a column each
-    final two = String.fromCharCodes([cp, cp]);
-    seg.scan(two, 0, _scan);
-    if (_scan.end * 2 != two.length ||
-        _scan.width != 1 ||
-        _scan.joinsNext ||
-        _scan.uncertain) {
-      return false;
-    }
-  }
-  return true;
-}

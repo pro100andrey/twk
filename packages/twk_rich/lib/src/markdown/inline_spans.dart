@@ -116,13 +116,18 @@ typedef InlineLink = ({int start, int end, String destination, String? title});
   MdList list,
   int depth, [
   Glyphs glyphs = Glyphs.unicode,
+  ThemeMarks? marks,
 ]) {
-  final bullets = [glyphs.bullet, glyphs.taskPending, glyphs.bullet];
-  final (open, close) = glyphs.checkboxBrackets;
+  final m = marks ?? ThemeMarks.measured(TextSegmenter(), glyphs);
+  final bullet = m.text(Marks.bullet, glyphs);
+  final bullets = [bullet, m.text(Marks.taskPending, glyphs), bullet];
+  final open = m.text(Marks.checkboxOpen, glyphs);
+  final close = m.text(Marks.checkboxClose, glyphs);
+  final on = m.text(Marks.checkboxOn, glyphs);
+  final off = m.text(Marks.checkboxOff, glyphs);
   final items = list.items;
   final start = list.start;
-  String box(bool checked) =>
-      '$open${checked ? glyphs.checkboxOn : glyphs.checkboxOff}$close';
+  String box(bool checked) => '$open${checked ? on : off}$close';
   final markers = [
     for (var k = 0; k < items.length; k++)
       switch ((start, items[k].checked)) {

@@ -268,6 +268,7 @@ final class _DiffViewState extends State<DiffView> {
       tabWidth: widget.tabWidth,
       sideBySide: widget.layout == DiffLayout.sideBySide,
       glyphs: Theme.of(context).glyphs,
+      marks: ThemeMarks.of(context),
     );
     final rows = _rows;
     return ListView.builder(
@@ -351,6 +352,7 @@ final class _Paint {
     required this.tabWidth,
     required this.sideBySide,
     required this.glyphs,
+    required this.marks,
   });
 
   final DiffTheme theme;
@@ -359,6 +361,9 @@ final class _Paint {
   final int tabWidth;
   final bool sideBySide;
   final Glyphs glyphs;
+
+  /// The theme's marks as the terminal draws them.
+  final ThemeMarks marks;
 
   /// The blanks before the mark of a row of lines left out, so that it
   /// stands where the signs do.
@@ -487,7 +492,7 @@ final class _FileRow extends _Row {
     return _row(paint.theme.file, [
       Span(
         oldPath != null && newPath != null && oldPath != newPath
-            ? '$oldPath ${paint.glyphs.arrowRight} $newPath'
+            ? '$oldPath ${paint.marks.text(Marks.arrowRight)} $newPath'
             : file.path!,
       ),
     ]);
@@ -539,7 +544,7 @@ final class _PairRow extends _Row {
   Widget build(_Paint paint) => Row(
     children: [
       Expanded(child: _half(paint, left, (line) => line.oldNumber)),
-      Text(paint.glyphs.separator, style: paint.theme.divider),
+      Text(paint.marks.text(Marks.separator), style: paint.theme.divider),
       Expanded(child: _half(paint, right, (line) => line.newNumber)),
     ],
   );

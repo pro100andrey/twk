@@ -103,6 +103,8 @@ final class _Renderer {
   final MarkdownTheme theme;
   final Glyphs glyphs;
 
+  late final marks = ThemeMarks.measured(segmenter, glyphs);
+
   // a piece of the set's lines
   String _piece({
     bool up = false,
@@ -110,7 +112,9 @@ final class _Renderer {
     bool down = false,
     bool left = false,
   }) => String.fromCharCode(
-    glyphs.lines.glyph(up: up, right: right, down: down, left: left),
+    marks
+        .border(glyphs.lines)
+        .glyph(up: up, right: right, down: down, left: left),
   );
 
   List<Span> _spans(List<MdInline> inlines) => inlineSpans(
@@ -183,7 +187,7 @@ final class _Renderer {
     if (gutter == 0) {
       return lines;
     }
-    final bar = Span(glyphs.separator, theme.quoteBar);
+    final bar = Span(marks.text(Marks.separator), theme.quoteBar);
     return [
       for (final line in lines)
         [bar, if (line.isNotEmpty && gutter == 2) const Span(' '), ...line],
@@ -191,7 +195,7 @@ final class _Renderer {
   }
 
   List<List<Span>> _list(MdList list, int width, int depth, Style base) {
-    final (:markers, :column) = listMarkers(list, depth, glyphs);
+    final (:markers, :column) = listMarkers(list, depth, glyphs, marks);
     final columnWidth = column.fold(
       0,
       (w, m) => math.max(w, segmenter.width(m)),
@@ -376,7 +380,7 @@ final class _Renderer {
       }
       widths[at]--;
     }
-    final border = Span(glyphs.separator, theme.tableBorder);
+    final border = Span(marks.text(Marks.separator), theme.tableBorder);
     final across = _piece(left: true, right: true);
     final cross = _piece(up: true, right: true, down: true, left: true);
     List<List<Span>> row(List<List<Span>> cells, Style style) {
