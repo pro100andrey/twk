@@ -15,13 +15,13 @@ text
 │     TextArea                       heard: nothing                              │
 │     Autocomplete                 └                                ┘            │
 │                      ──────────────────────────────────────────────────────────│
-│   CONTROLS      20     obscured    ▐●  ▌                                      ▐│
+│   CONTROLS      22     obscured    ▐●  ▌                                      ▐│
 │     Button             max length   none  8                                   ▐│
 │     Pressable          cursor       bar  block  underline  terminal           ▐│
 │     Checkbox, Swi…     blinking    ▐●  ▌                                      ▐│
 │     RadioGroup         text align   left  center  right  start  end           ▐│
 │     SegmentedButt…     read only   ▐●  ▌                                      ▐│
-│     SelectionList                                                             ▐│
+│     Chip, ChipList                                                            ▐│
 │                        enabled     ▐  ●▌                                       │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -46,7 +46,7 @@ styles
 │aaaaannnnnnnnnannnnaaaggmmmmmmmmggggwxyywggggggggggggggggggggggggggggggggggggggm│
 │aaaaannnnnnnnnnaaaaaaaggmmmmgmmmmmgguvvvvuhzzzzzzhhzzzzzhhzzzzzhhzzzhggggggggggm│
 │aaaaannnnnnnnnnnnnnaaaggmmmmgmmmmgggwxyywggggggggggggggggggggggggggggggggggggggm│
-│aaaaannnnnnnnnnnnnaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggm│
+│aaaaannnnnannnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggm│
 │aaaaaaaaaaaaaaaaaaaaaaggmmmmmmmgggggABBCAggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

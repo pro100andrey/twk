@@ -7,7 +7,7 @@ The focus tree.
 ## `Focus`
 
 `Focus(focusNode:, autofocus:, onKeyEvent:, canRequestFocus:,
-skipTraversal:, descendantsAreFocusable:, debugLabel:, child:)` puts a
+skipTraversal:, descendantsAreFocusable:, takesText:, debugLabel:, child:)` puts a
 `FocusNode`, its own or the one given (whose settings it sets where they are
 not null), in the tree under the node of the nearest `Focus` or `FocusScope`
 above it, and `FocusScope(node:, …)` a `FocusScopeNode`; a `GlobalKey` that
@@ -37,7 +37,12 @@ the nearest scope that can take it and do not `skipTraversal`, in the order
 of the tree (depth first, the children of a widget in order), the first
 after the last; a scope inside is one stop, which Tab does not leave and
 which, entered, focuses the node it focused last (`focusedChild`) or its
-first. The first node of a scope mounted with `autofocus` while the scope
+first. A scope's `leaveTo`, a `FocusNode` outside it
+(null by default: the focus stays in the scope, as in a modal panel), lets Tab
+from its last stop go on to the stop of the scope above after the nodes below
+`leaveTo`, and Shift+Tab from its first to the last stop below `leaveTo`, else
+the stop before it; where the scope above has no such stop the focus goes round
+the scope. A `Popover` sets it to its child. The first node of a scope mounted with `autofocus` while the scope
 has no focused node gets the focus, shown in the frame that mounts it; when
 the focused node leaves the tree, the focus passes on the same way in the
 frame that removes it, to the node that took its place or the next after
@@ -78,13 +83,14 @@ focus and the nodes between. A key binding names keys as `KeyCombo.parse`
 reads them: the modifiers `ctrl`, `alt`, `shift` and `super`, in any order,
 each once, then the key, joined by `+` (`ctrl+s`, `shift+tab`); the key is
 one character, which stands for itself (`+` comes last: `ctrl++`), `space`,
-or a `KeyCode`'s name in lower case (`enter`, `pageup`, `f1`); only a
+or a `KeyCode`'s name in lower case (`enter`, `pageup`, `f1`; Escape is
+`esc` too, as a key hint shows it, the same key); only a
 character has a case (`A` is `shift+a`, `ctrl+A` is `ctrl+shift+a`), and
 Shift alone with a character that has no case names no key; keys pressed one
 after another are one space apart (`parseSequence`: `ctrl+x ctrl+s`; with
 `leader:`, `leader` stands for that key). A string that is not one is a
 `FormatException` naming the part that is wrong, and the name meant where
-that is plain (`Enter`, `esc`, `cmd`); `toString` writes a combo as it is
+that is plain (`Enter`, `ret`, `cmd`); `toString` writes a combo as it is
 parsed (`KeyCombo(code)`, `KeyCombo.char`, `KeyCombo.fromEvent`, and
 `accepts` for a press or a repeat of the key). Without the kitty keyboard
 protocol a terminal sends some combos as others: `ctrl+i` as `tab`, `ctrl+m`
@@ -139,7 +145,10 @@ the order of its map, a key once, by the rule a key pressed follows, a
 sequence by its first key with the keys after it in `then`; while a layer
 holds the first keys of a sequence, only the keys that can follow them
 (`combo` the next, `then` the rest); those a node takes in its own
-`onKeyEvent` are not listed.
+`onKeyEvent` are not listed, and a node with `takesText` (`TextField` and
+`TextArea` unless read-only) hides from the layers above it the keys that
+are characters (`q`, `shift+q`; not `ctrl+q`), as it takes them before
+those: so a `KeyHintsBar` and `showKeyHelp` do not offer them.
 
 ## `ActiveKey.label`
 

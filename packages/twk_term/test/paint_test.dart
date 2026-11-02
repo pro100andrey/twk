@@ -29,7 +29,7 @@ void main() {
     t.paint(canvas);
     expect(rowText(canvas, 0), 'ab e\u0301 Lu');
     final st = canvas.styles;
-    int style(int x) => canvas.surface.styles[x];
+    StyleId style(int x) => StyleId(canvas.surface.styles[x]);
     expect(st.fgOf(style(0)), Color.red);
     expect(st.bgOf(style(1)), const Color.indexed(20));
     expect(st.attrsOf(style(1)), Attr.bold);
@@ -84,12 +84,18 @@ void main() {
       ..feedText('\x1b[7ma\x1b[0mb');
     final canvas = canvasOf(2, 1);
     t.paint(canvas);
-    expect(canvas.styles.attrsOf(canvas.surface.styles[0]), Attr.reverse);
+    expect(
+      canvas.styles.attrsOf(StyleId(canvas.surface.styles[0])),
+      Attr.reverse,
+    );
     t
       ..feedText('\x1b[?5h')
       ..paint(canvas);
-    expect(canvas.styles.attrsOf(canvas.surface.styles[0]), 0);
-    expect(canvas.styles.attrsOf(canvas.surface.styles[1]), Attr.reverse);
+    expect(canvas.styles.attrsOf(StyleId(canvas.surface.styles[0])), 0);
+    expect(
+      canvas.styles.attrsOf(StyleId(canvas.surface.styles[1])),
+      Attr.reverse,
+    );
   });
 
   test('the default colors in those given, the others as they are', () {
@@ -100,7 +106,7 @@ void main() {
     const bg = Color.rgb(4, 5, 6);
     t.paint(canvas, fg: fg, bg: bg);
     final st = canvas.styles;
-    int style(int x) => canvas.surface.styles[x];
+    StyleId style(int x) => StyleId(canvas.surface.styles[x]);
     expect([st.fgOf(style(0)), st.bgOf(style(0))], [fg, bg]);
     expect([st.fgOf(style(1)), st.bgOf(style(1))], [Color.red, bg]);
     expect(
@@ -138,7 +144,10 @@ void main() {
       ..paintLine(canvas, t.line(0), x: 2)
       ..paintLine(canvas, copy, y: 1);
     expect([rowText(canvas, 0), rowText(canvas, 1)], ['  ab', '中']);
-    expect(canvas.styles.attrsOf(canvas.surface.styles[2]), Attr.reverse);
+    expect(
+      canvas.styles.attrsOf(StyleId(canvas.surface.styles[2])),
+      Attr.reverse,
+    );
   });
 
   group('a program writing ever more 24-bit colors', () {
@@ -184,7 +193,7 @@ void main() {
         screen.render();
         for (var x = 0; x < 10; x++) {
           expect(
-            screen.styles.fgOf(screen.surface.styles[x]),
+            screen.styles.fgOf(StyleId(screen.surface.styles[x])),
             Color.rgb(i % 250 + x, 0, 0),
             reason: 'frame $i, cell $x',
           );

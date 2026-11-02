@@ -8,6 +8,7 @@ import 'package:twk_core/twk_core.dart' show RenderParagraph;
 
 import '../highlight/highlight.dart';
 import 'appended.dart';
+import 'inline_spans.dart';
 import 'markdown_theme.dart';
 import 'nodes.dart';
 import 'references.dart';
@@ -38,9 +39,11 @@ import 'stream.dart';
 /// the terminal reports the mouse's motion.
 ///
 /// A list item has its marker before its blocks, which wrap under their
-/// own first column: a bullet by the depth of the list, `•`, `◦`, `▪` and
-/// round again; a number and its delimiter, aligned at their right; a box,
-/// `☐` or `☑`, in place of a bullet or after a number for a task item. A
+/// own first column: a bullet by the depth of the list, `•`, `◦`, `•` and
+/// round again ([Glyphs.bullet] and [Glyphs.taskPending]); a number and its
+/// delimiter, aligned at their right; a box, `[ ]` or `[x]` (the
+/// theme's checkbox marks), in place of a bullet or after a number for a
+/// task item. A
 /// loose list has a blank row between its items and their blocks, a tight
 /// one none. A block quote has a bar down its left side, its blocks in the
 /// quote style. A block of code is a [CodeView] in the language the first
@@ -421,11 +424,6 @@ final class _Made {
   final bool linked;
 }
 
-/// A link or an image of a paragraph, a heading or a table cell: the text
-/// it covers, from `start` to `end` of the paragraph's, where it leads and
-/// its title.
-typedef _Link = ({int start, int end, String destination, String? title});
-
 final class _MarkdownViewState extends State<MarkdownView> {
   /// What [MarkdownView.data] is parsed by; null where blocks are given.
   MarkdownStream? _stream;
@@ -694,30 +692,19 @@ final class _MarkdownViewState extends State<MarkdownView> {
     _Uses uses, {
     Style style = const Style(),
   }) {
-    final links = <_Link>[];
+    final links = <InlineLink>[];
     final text = Text.rich(_spans(inlines, uses, links), style: style);
     return links.isEmpty ? text : _Links(links, child: text);
   }
 
-  static const _bullets = ['•', '◦', '▪'];
-
   Widget _list(MdList list, int depth, _Uses uses) {
     final items = list.items;
     final start = list.start;
-    final markers = [
-      for (var k = 0; k < items.length; k++)
-        switch ((start, items[k].checked)) {
-          (null, null) => _bullets[depth % _bullets.length],
-          (null, final checked?) => _box(checked),
-          (final start?, null) => '${start + k}${list.marker}',
-          (final start?, final checked?) =>
-            '${start + k}${list.marker} ${_box(checked)}',
-        },
-    ];
-    // the markers the column is as wide as the widest of
-    final column = start == null
-        ? markers.toSet().toList()
-        : [markers.reduce((a, b) => b.length > a.length ? b : a)];
+    final (:markers, :column) = listMarkers(
+      list,
+      depth,
+      Theme.of(context).glyphs,
+    );
     final gap = list.tight ? 0 : 1;
     final columnKey = column.join('\n');
     return Column(
@@ -777,14 +764,12 @@ final class _MarkdownViewState extends State<MarkdownView> {
     ),
   );
 
-  static String _box(bool checked) => checked ? '☑' : '☐';
-
   Widget _table(MdTable table, _Uses uses) {
     final header = [
       for (final cell in table.header)
         _spans(cell, uses).map((span) => span.text).join(),
     ];
-    final links = <_Link>[];
+    final links = <InlineLink>[];
     final rows = [
       for (final row in table.rows)
         [for (final cell in row) _spans(cell, uses, links)],
@@ -824,87 +809,19 @@ final class _MarkdownViewState extends State<MarkdownView> {
   List<Span> _spans(
     List<MdInline> inlines,
     _Uses uses, [
-    List<_Link>? links,
+    List<InlineLink>? links,
   ]) {
     _refer(inlines, uses);
-    final theme = _theme;
-    final hyperlinks = widget.hyperlinks;
-    final schemes = widget.hyperlinkSchemes;
-    bool hyperlinked(String destination) {
-      if (!hyperlinks) {
-        return false;
-      }
-      final scheme = Uri.tryParse(destination)?.scheme ?? '';
-      return scheme.isNotEmpty && schemes.contains(scheme.toLowerCase());
-    }
-
-    final out = <Span>[];
-    var length = 0;
-    void put(String text, Style style) {
-      length += text.length;
-      if (out.isNotEmpty && out.last.style == style) {
-        out.last = Span(out.last.text + text, style);
-      } else {
-        out.add(Span(text, style));
-      }
-    }
-
-    void add(List<MdInline> inlines, Style style) {
-      for (final inline in inlines) {
-        switch (inline) {
-          case MdText(:final text):
-            put(text, style);
-          case MdCode(:final code):
-            put(code, style.merge(theme.code));
-          case MdEmphasis(:final children):
-            add(children, style.merge(theme.emphasis));
-          case MdStrong(:final children):
-            add(children, style.merge(theme.strong));
-          case MdStrikethrough(:final children):
-            add(children, style.merge(theme.strikethrough));
-          case MdLink(:final destination, :final title, :final children):
-            _linked = true;
-            final start = length;
-            final linked = style.merge(theme.link);
-            add(
-              children,
-              hyperlinked(destination)
-                  ? linked.merge(Style(link: destination))
-                  : linked,
-            );
-            links?.add((
-              start: start,
-              end: length,
-              destination: destination,
-              title: title,
-            ));
-          case MdImage(:final source, :final title, :final alt):
-            _linked = true;
-            final start = length;
-            final shown = style.merge(theme.image);
-            put(
-              alt.isEmpty ? source : alt,
-              hyperlinked(source) ? shown.merge(Style(link: source)) : shown,
-            );
-            links?.add((
-              start: start,
-              end: length,
-              destination: source,
-              title: title,
-            ));
-          case MdReference(:final children):
-            // none is left once resolved
-            add(children, style);
-          case MdSoftBreak():
-            put(' ', style);
-          case MdHardBreak():
-            put('\n', style);
-        }
-      }
-    }
-
-    add(resolveInlines(inlines, _definitions), const Style());
-    return out;
+    final (:spans, :linked) = inlineSpans(
+      inlines,
+      _definitions,
+      _theme,
+      hyperlinks: widget.hyperlinks,
+      schemes: widget.hyperlinkSchemes,
+      links: links,
+    );
+    _linked = _linked || linked;
+    return spans;
   }
 
   /// Adds the labels of the references in [inlines] to [uses], each with
@@ -1025,7 +942,7 @@ final class _LinkPointerState extends State<_LinkPointer> {
   }
 
   /// The link under the mouse, if there is one.
-  _Link? _linkUnder(PointerEvent event) {
+  InlineLink? _linkUnder(PointerEvent event) {
     final region = context.findRenderObject();
     return region == null ? null : _linkAt(region, event.x, event.y, null);
   }
@@ -1035,7 +952,7 @@ final class _LinkPointerState extends State<_LinkPointer> {
   /// [around] it; a cell whose style links it, in a table or outside one,
   /// for a link without a title, or with that of the first of the table's
   /// to the same destination.
-  static _Link? _linkAt(
+  static InlineLink? _linkAt(
     RenderObject object,
     int x,
     int y,
@@ -1066,7 +983,7 @@ final class _LinkPointerState extends State<_LinkPointer> {
             return null;
           }
           String? title;
-          for (final link in around?.links ?? const <_Link>[]) {
+          for (final link in around?.links ?? const <InlineLink>[]) {
             if (link.destination == destination) {
               title = link.title;
               break;
@@ -1078,7 +995,7 @@ final class _LinkPointerState extends State<_LinkPointer> {
       return null;
     }
     final inner = object is _RenderLinks ? object : around;
-    _Link? found;
+    InlineLink? found;
     object.visitChildren((child) {
       found ??= _linkAt(
         child,
@@ -1096,7 +1013,7 @@ final class _LinkPointerState extends State<_LinkPointer> {
 final class _Links extends SingleChildRenderObjectWidget {
   const _Links(this.links, {required Widget super.child, this.cells = false});
 
-  final List<_Link> links;
+  final List<InlineLink> links;
   final bool cells;
 
   @override
@@ -1120,7 +1037,7 @@ final class _Links extends SingleChildRenderObjectWidget {
 final class _RenderLinks extends _RenderProxy {
   _RenderLinks(this.links, {required this.cells});
 
-  List<_Link> links;
+  List<InlineLink> links;
   bool cells;
 }
 

@@ -30,12 +30,15 @@ base class View {
   }
 
   /// The style of each cell, row by row.
-  List<int> get cellStyles => List.of(screen.surface.styles);
+  List<StyleId> get cellStyles => [
+    for (final s in screen.surface.styles) StyleId(s),
+  ];
 
-  int styleAt(int x, int y) => screen.surface.styles[y * width + x];
+  StyleId styleAt(int x, int y) =>
+      StyleId(screen.surface.styles[y * width + x]);
 
   /// What a cell [pen] painted holds when nothing tints it.
-  int get plain => styles.style(bg: _black);
+  StyleId get plain => styles.style(bg: _black);
 }
 
 /// A row of two blocks over a block that is a repaint boundary.
@@ -119,7 +122,7 @@ final class Window extends RenderObject with RenderObjectWithChildMixin {
 
 /// The cells, as (x, y), whose styles differ between [a] and [b], rows
 /// [width] wide.
-Set<(int, int)> differing(List<int> a, List<int> b, int width) => {
+Set<(int, int)> differing(List<StyleId> a, List<StyleId> b, int width) => {
   for (var i = 0; i < a.length; i++)
     if (a[i] != b[i]) (i % width, i ~/ width),
 };

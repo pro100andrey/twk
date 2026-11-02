@@ -567,7 +567,7 @@ final class TwkApp {
       },
       _fail,
       zoneValues: {logSinkKey: logs},
-      zoneSpecification: ZoneSpecification(print: _print),
+      zoneSpecification: printToLog(logs),
     );
     final serving = serveLogs ? _serveLogs() : null;
     // what ends the run: the error that ended the app, else the first of
@@ -1098,9 +1098,6 @@ final class TwkApp {
       report(owner.root, RenderPhase.layout, error, stack);
     }
   }
-
-  void _print(Zone self, ZoneDelegate parent, Zone zone, String line) =>
-      logs.add(LogRecord(DateTime.now(), LogLevel.info, line));
 
   void _fail(Object error, StackTrace stack) {
     final record = LogRecord(

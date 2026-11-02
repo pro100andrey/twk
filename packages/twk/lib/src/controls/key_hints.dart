@@ -1,13 +1,23 @@
 /// What can be pressed now: [KeyHintsBar].
 library;
 
-import 'package:twk_core/twk_core.dart'
-    show Attr, KeyCode, TextOverflow, TextWrap;
+import 'package:twk_core/twk_core.dart' show Attr, KeyCode, RenderParagraph;
 
+import '../binding/app_binding.dart' show AppBinding;
 import '../focus/focus.dart';
 import '../framework/framework.dart';
+import '../gestures/mouse.dart' show Listener;
+import '../layout/basic.dart' show SizedBox;
+import '../layout/flex.dart';
+import '../overlay/dialog.dart';
+import '../style/glyphs.dart' show textMark;
 import '../style/style.dart';
+import '../text/hit_row.dart' show segmenterOf;
 import '../text/widgets.dart';
+import 'hand.dart';
+
+// Examples can assume:
+// late BuildContext context;
 
 /// A row of the keys that can be pressed now, each before its hint:
 /// `ctrl+s save   q quit`.
@@ -17,7 +27,10 @@ import '../text/widgets.dart';
 /// no enabled action does left to the layers above
 /// ([FocusManagerKeys.activeKeys]); the bar follows them as the focus
 /// moves and the layers change ([FocusManager.keysChanged]). The keys a
-/// focused node takes in its own `onKeyEvent` are not among them.
+/// focused node takes in its own `onKeyEvent` are not among them. Keys
+/// bound during the layout, by a `KeyBindings` a `LayoutBuilder` builds,
+/// reach the bar in the frame after, which is asked for at once: a frame
+/// builds before it lays out, as Flutter's does.
 ///
 /// A sequence shows whole ([ActiveKey.label]): `ctrl+x ctrl+s save`; while
 /// a layer holds its first keys, what can follow them: `ctrl+s save` once
@@ -74,7 +87,49 @@ final class KeyHintsBar extends StatefulWidget {
     this.style,
     this.keyStyle,
     this.hintStyle,
-  });
+    this.pressable = false,
+  }) : _pairs = null;
+
+  /// A row of the keys [pairs] name, each before its hint, whatever keys
+  /// are in force: for hints the app words itself, as they change with its
+  /// state (`enter  open   d  delete`). Each pair is a key's name, read as
+  /// [KeyCombo.parseSequence] reads those of a `KeyBindings` (`ctrl+s`,
+  /// `g g`; one it cannot read is an error as the bar is built), and its
+  /// hint. The row is drawn, joined, cut and styled as the bar of the keys
+  /// in force is, and with [pressable] a click presses the key through
+  /// [AppBinding.pressKey] the same, whether or not anything binds it. A
+  /// pair whose hint is empty shows its key alone.
+  /// The hints of a list that picks the keys by its state:
+  ///
+  /// ```dart
+  /// KeyHintsBar.fromPairs(const [
+  ///   ('enter', 'open'),
+  ///   ('d', 'delete'),
+  ///   ('esc', 'close'),
+  /// ])
+  /// ```
+  const KeyHintsBar.fromPairs(
+    List<(String, String)> pairs, {
+    super.key,
+    this.keyLabel,
+    this.joinKeys = true,
+    this.separator = '   ',
+    this.style,
+    this.keyStyle,
+    this.hintStyle,
+    this.pressable = false,
+  }) : _pairs = pairs,
+       showUnhinted = true;
+
+  /// The fixed pairs of [KeyHintsBar.fromPairs]; null for the keys in force.
+  final List<(String, String)>? _pairs;
+
+  /// Whether a click on a key presses it ([AppBinding.pressKey]; a sequence
+  /// key by key), and one on a hint presses its key where it has one key
+  /// alone (not `↑↓ move`, whose keys are pressed each on its sign). False
+  /// by default: the bar then listens to no mouse, and the terminal
+  /// reports none for it.
+  final bool pressable;
 
   /// Whether keys without a hint are shown, by their names alone.
   final bool showUnhinted;
@@ -89,14 +144,15 @@ final class KeyHintsBar extends StatefulWidget {
 
   /// [combo] as a hint names it: the arrows and Escape by their signs,
   /// Page Up and Down short, after the modifiers too (`alt+↓`, `esc`,
-  /// `pgdn`); any other key as [KeyCombo.toString] does (`ctrl+s`).
-  static String signs(KeyCombo combo) {
+  /// `pgdn`); any other key as [KeyCombo.toString] does (`ctrl+s`). The
+  /// arrows are [glyphs]' ([Glyphs.arrowLeft] and the rest).
+  static String signs(KeyCombo combo, {Glyphs glyphs = Glyphs.unicode}) {
     final sign = switch (combo.code) {
       KeyCode.escape => 'esc',
-      KeyCode.left => '←',
-      KeyCode.right => '→',
-      KeyCode.up => '↑',
-      KeyCode.down => '↓',
+      KeyCode.left => glyphs.arrowLeft,
+      KeyCode.right => glyphs.arrowRight,
+      KeyCode.up => glyphs.arrowUp,
+      KeyCode.down => glyphs.arrowDown,
       KeyCode.pageUp => 'pgup',
       KeyCode.pageDown => 'pgdn',
       _ => null,
@@ -134,17 +190,37 @@ final class KeyHintsBar extends StatefulWidget {
     String Function(KeyCombo combo)? keyLabel,
     bool joinKeys = true,
     bool showUnhinted = false,
+    Glyphs glyphs = Glyphs.unicode,
+  }) => [
+    for (final (names, gap, hint) in _entries(
+      keys,
+      glyphs,
+      keyLabel: keyLabel,
+      joinKeys: joinKeys,
+      showUnhinted: showUnhinted,
+    ))
+      ([for (final (name, _) in names) name].join(gap), hint),
+  ];
+
+  /// [entries], each with the keys it names, apart by what is between
+  /// their names.
+  static List<(List<(String, ActiveKey)>, String, String?)> _entries(
+    Iterable<ActiveKey> keys,
+    Glyphs glyphs, {
+    String Function(KeyCombo combo)? keyLabel,
+    bool joinKeys = true,
+    bool showUnhinted = false,
   }) {
-    final label = keyLabel ?? signs;
+    final label = keyLabel ?? (KeyCombo combo) => signs(combo, glyphs: glyphs);
     // each entry: the names of the keys it shows, their family, its hint
-    final shown = <(List<String>, int?, String?)>[];
+    final shown = <(List<(String, ActiveKey)>, int?, String?)>[];
     for (final key in keys) {
       final hint = key.hint;
       if (hint == null && !showUnhinted) {
         continue;
       }
       final name = key.label(label);
-      if (shown.any((e) => e.$3 == hint && e.$1.contains(name))) {
+      if (shown.any((e) => e.$3 == hint && e.$1.any((n) => n.$1 == name))) {
         continue;
       }
       final family = joinKeys && hint != null && key.then.isEmpty
@@ -154,18 +230,17 @@ final class KeyHintsBar extends StatefulWidget {
           ? null
           : shown.where((e) => e.$2 == family && e.$3 == hint).firstOrNull;
       if (joined != null) {
-        joined.$1.add(name);
+        joined.$1.add((name, key));
       } else {
-        shown.add(([name], family, hint));
+        shown.add(([(name, key)], family, hint));
       }
     }
     return [
       for (final (names, family, hint) in shown)
         // the arrows' signs together, other keys apart by a blank
         (
-          names.join(
-            family == 0 && names.every((n) => n.length == 1) ? '' : ' ',
-          ),
+          names,
+          family == 0 && names.every((n) => n.$1.length == 1) ? '' : ' ',
           hint,
         ),
     ];
@@ -205,6 +280,18 @@ int? _familyOf(KeyCombo combo) {
   return i < 0 ? null : i;
 }
 
+/// The keys [pairs] name, as a bar of the keys in force lists them.
+List<ActiveKey> _fixedKeys(List<(String, String)> pairs) => [
+  for (final (name, hint) in pairs)
+    if (KeyCombo.parseSequence(name) case [final first, ...final rest])
+      ActiveKey(
+        first,
+        binding: name,
+        hint: hint.isEmpty ? null : hint,
+        then: rest,
+      ),
+];
+
 final class _KeyHintsBarState extends State<KeyHintsBar> {
   FocusManager? _manager;
 
@@ -232,27 +319,209 @@ final class _KeyHintsBarState extends State<KeyHintsBar> {
     final keyStyle =
         widget.keyStyle ?? theme.text.merge(const Style(attrs: Attr.bold));
     final hintStyle = widget.hintStyle ?? theme.muted;
+    final segmenter = segmenterOf(context);
     final spans = <Span>[];
-    for (final (keys, hint) in KeyHintsBar.entries(
-      _manager?.activeKeys ?? const <ActiveKey>[],
+    // the columns a click presses keys at: from, to, the key
+    final targets = <(int, int, ActiveKey)>[];
+    var x = 0;
+    void add(Span span) {
+      spans.add(span);
+      x += segmenter.width(span.text);
+    }
+
+    final pairs = widget._pairs;
+    for (final (names, gap, hint) in KeyHintsBar._entries(
+      pairs == null
+          ? _manager?.activeKeys ?? const <ActiveKey>[]
+          : _fixedKeys(pairs),
+      _fitArrows(context, theme.glyphs),
       keyLabel: widget.keyLabel,
       joinKeys: widget.joinKeys,
       showUnhinted: widget.showUnhinted,
     )) {
       if (spans.isNotEmpty) {
-        spans.add(Span(widget.separator));
+        add(Span(widget.separator));
       }
-      spans.add(Span(keys, keyStyle));
+      for (final (i, (name, key)) in names.indexed) {
+        if (i > 0) {
+          add(Span(gap, keyStyle));
+        }
+        final from = x;
+        add(Span(name, keyStyle));
+        targets.add((from, x, key));
+      }
       if (hint != null) {
-        spans.add(Span(' $hint', hintStyle));
+        final from = x;
+        add(Span(' $hint', hintStyle));
+        if (names case [(_, final key)]) {
+          targets.add((from + 1, x, key));
+        }
       }
     }
-    return Text.rich(
+    final row = Text.richLine(
       spans,
       style: theme.text.merge(widget.style ?? const Style()),
-      wrap: TextWrap.none,
-      overflow: TextOverflow.ellipsis,
-      maxLines: 1,
+    );
+    if (!widget.pressable) {
+      return row;
+    }
+    BuildContext? rowContext;
+    // the hand over a key or a hint that presses a key
+    return HandOver(
+      where: (x, y) {
+        if (rowContext?.findRenderObject() case final RenderParagraph p
+            when p.cellAt(x, y)?.isEllipsis ?? false) {
+          return false;
+        }
+        return targets.any((t) => x >= t.$1 && x < t.$2);
+      },
+      child: Listener(
+        onDown: (event) {
+          if (event.button != 0) {
+            return;
+          }
+          // the ellipsis of a cut row presses nothing, nor does the key or
+          // hint it stands for
+          if (rowContext?.findRenderObject() case final RenderParagraph p
+              when p.cellAt(event.x, event.y)?.isEllipsis ?? false) {
+            return;
+          }
+          for (final (from, to, key) in targets) {
+            if (event.x >= from && event.x < to) {
+              final binding = AppBinding.of(context);
+              for (final combo in [key.combo, ...key.then]) {
+                binding.pressKey(combo);
+              }
+              return;
+            }
+          }
+        },
+        child: Builder(
+          builder: (context) {
+            rowContext = context;
+            return row;
+          },
+        ),
+      ),
     );
   }
+}
+
+/// Shows the keys in force where [context] is, with their hints, in a
+/// dialog titled [title]: the keys a [KeyHintsBar] would show there, one a
+/// line, as [KeyHintsBar.entries] makes them, the nearest layer's first
+/// ([ActiveKey.layer]), a blank line between the layers, the key in bold
+/// and its hint after it. A key without a hint is not listed. The last
+/// layer, apart from the others, is the dialog's own: `esc  close`, which
+/// closes it. It comes last because the dialog is about the screen's keys,
+/// and Escape is the footnote to them, as the bar's keys are; it is there
+/// with no hinted key in force too. A list taller than the screen
+/// scrolls. The keys are those in force as it is called, before
+/// the dialog takes the focus; Escape or a click outside closes it.
+///
+/// A help key that shows what the screen's keys do:
+///
+/// ```dart
+/// KeyBindings(
+///   {'ctrl+s': () {}, '?': () => showKeyHelp(context)},
+///   hints: const {'ctrl+s': 'save', '?': 'help'},
+///   child: const Focus(autofocus: true, child: Text('editor')),
+/// )
+/// ```
+Future<void> showKeyHelp(BuildContext context, {String title = 'Keys'}) {
+  final glyphs = _fitArrows(context, Theme.of(context).glyphs);
+  final active = AppBinding.of(context).focusManager.activeKeys;
+  final byLayer = <int, List<ActiveKey>>{};
+  for (final key in active) {
+    (byLayer[key.layer] ??= []).add(key);
+  }
+  // the nearest layer first; a layer with nothing to show leaves no gap
+  final layers = [
+    for (final i in byLayer.keys.toList()..sort())
+      KeyHintsBar.entries(byLayer[i]!, glyphs: glyphs),
+    // the dialog's own binding (Dialog: `escape` with the hint `close`) is
+    // not built until the dialog is, so it is named here, as it is there
+    [(KeyHintsBar.signs(KeyCombo.parse('escape'), glyphs: glyphs), 'close')],
+  ].where((e) => e.isNotEmpty).toList();
+  final segmenter = segmenterOf(context);
+  var widest = 0;
+  for (final entries in layers) {
+    for (final (keys, _) in entries) {
+      final w = segmenter.width(keys);
+      if (w > widest) {
+        widest = w;
+      }
+    }
+  }
+  return showDialog<void>(
+    context,
+    (context) {
+      final theme = Theme.of(context);
+      return Dialog(
+        title: title,
+        scrollable: true,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final (i, entries) in layers.indexed) ...[
+              if (i > 0) const SizedBox(height: 1),
+              for (final (keys, hint) in entries)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  gap: 2,
+                  children: [
+                    SizedBox(
+                      width: widest,
+                      child: Text(
+                        keys,
+                        style: theme.text.merge(const Style(attrs: Attr.bold)),
+                      ),
+                    ),
+                    Text(hint ?? '', style: theme.muted),
+                  ],
+                ),
+            ],
+          ],
+        ),
+      );
+    },
+  );
+}
+
+/// [glyphs] with the four arrows a hint names keys by as [textMark] fits
+/// them for [context]: one cell each, else [Glyphs.ascii]'s. [glyphs]
+/// itself where they all fit.
+Glyphs _fitArrows(BuildContext context, Glyphs glyphs) {
+  final left = textMark(
+    context,
+    'arrowLeft',
+    glyphs.arrowLeft,
+    Glyphs.ascii.arrowLeft,
+  );
+  final right = textMark(
+    context,
+    'arrowRight',
+    glyphs.arrowRight,
+    Glyphs.ascii.arrowRight,
+  );
+  final up = textMark(context, 'arrowUp', glyphs.arrowUp, Glyphs.ascii.arrowUp);
+  final down = textMark(
+    context,
+    'arrowDown',
+    glyphs.arrowDown,
+    Glyphs.ascii.arrowDown,
+  );
+  if (left == glyphs.arrowLeft &&
+      right == glyphs.arrowRight &&
+      up == glyphs.arrowUp &&
+      down == glyphs.arrowDown) {
+    return glyphs;
+  }
+  return glyphs.copyWith(
+    arrowLeft: left,
+    arrowRight: right,
+    arrowUp: up,
+    arrowDown: down,
+  );
 }

@@ -21,6 +21,7 @@ import '../framework/framework.dart';
 import '../layout/box.dart' show Box;
 import '../style/style.dart';
 import 'steps.dart';
+import 'ticker.dart';
 
 /// The frames a [Spinner] shows in turn, each for [interval]: [dots],
 /// [line] and [arc], or frames of one's own.
@@ -114,11 +115,13 @@ final class SpinnerFrames {
 ///
 ///  * [ProgressBar], for work whose progress is known.
 final class Spinner extends LeafRenderObjectWidget {
-  /// A spinner of [frames], [SpinnerFrames.dots] by default, in [style].
-  const Spinner({super.key, this.frames = SpinnerFrames.dots, this.style});
+  /// A spinner of [frames], [Glyphs.spinner] of the theme
+  /// ([SpinnerFrames.dots] in [Glyphs.unicode]) by default, in [style].
+  const Spinner({super.key, this.frames, this.style});
 
-  /// What it shows in turn, and how long each frame shows.
-  final SpinnerFrames frames;
+  /// What it shows in turn, and how long each frame shows; null for
+  /// [Glyphs.spinner] of the theme.
+  final SpinnerFrames? frames;
 
   /// The frames' color ([Style.fg]) and background ([Style.bg]), over the
   /// theme's text; null for the theme's [ThemeData.primary]. Without a
@@ -130,20 +133,21 @@ final class Spinner extends LeafRenderObjectWidget {
   RenderSpinner createRenderObject(BuildContext context) {
     final theme = Theme.of(context);
     return RenderSpinner(
-      frames: frames,
+      frames: frames ?? theme.glyphs.spinner,
       style: _style(theme),
       background: theme.background.bg,
       binding: AppBinding.maybeOf(context),
-    );
+    )..muted = !TickerMode.of(context);
   }
 
   @override
   void updateRenderObject(BuildContext context, RenderSpinner renderObject) {
     final theme = Theme.of(context);
     renderObject
-      ..frames = frames
+      ..frames = frames ?? theme.glyphs.spinner
       ..style = _style(theme)
-      ..background = theme.background.bg;
+      ..background = theme.background.bg
+      ..muted = !TickerMode.of(context);
   }
 
   Style _style(ThemeData theme) => theme.text.merge(style ?? theme.primary);
@@ -163,7 +167,9 @@ final class RenderSpinner extends RenderObject {
     this._style = const Style(),
     this._background,
     this.binding,
-  });
+  }) : assert(_frames.frames.isNotEmpty, _noFrames);
+
+  static const _noFrames = 'a spinner needs a frame at least';
 
   /// The app whose clock it steps by.
   final AppBinding? binding;
@@ -176,10 +182,21 @@ final class RenderSpinner extends RenderObject {
   /// their width and steps by their interval.
   SpinnerFrames get frames => _frames;
   set frames(SpinnerFrames f) {
+    assert(f.frames.isNotEmpty, _noFrames);
     if (f != _frames) {
       _frames = f;
       _steps.interval = f.interval;
       markNeedsLayout();
+    }
+  }
+
+  /// Whether it stands still, for a [TickerMode] that is off: no frame
+  /// asked for, the frame it shows kept, and from that one on when unmuted.
+  bool get muted => _steps.muted;
+  set muted(bool on) {
+    if (on != _steps.muted) {
+      _steps.muted = on;
+      markNeedsPaint();
     }
   }
 

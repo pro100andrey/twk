@@ -14,6 +14,7 @@ import '../gestures/gesture_detector.dart';
 import '../layout/box.dart';
 import '../layout/flex.dart';
 import '../scroll/list_view.dart';
+import '../style/glyphs.dart' show checkboxMarks;
 import '../style/style.dart';
 import '../text/widgets.dart';
 import 'pressable.dart';
@@ -183,6 +184,8 @@ final class SelectionController<K> extends ChangeNotifier {
 ///
 ///  * [SelectionController], what is selected and where the cursor is.
 ///  * [ListView], a list without a selection.
+///  * "A row of a list" in doc/guides/layout.md, for what [itemBuilder] builds
+///    as a row of a label and something fixed after it.
 final class SelectionList<K> extends StatefulWidget {
   /// A list of [itemCount] items, at least 0, which it asserts.
   const SelectionList({
@@ -553,6 +556,7 @@ final class _SelectionListState<K> extends State<SelectionList<K>> {
         bar = theme.muted;
       }
     }
+    final boxes = checkboxMarks(context, theme.glyphs);
     final column = widget.bar;
     final Widget row;
     if (!column && !multiple) {
@@ -565,16 +569,19 @@ final class _SelectionListState<K> extends State<SelectionList<K>> {
         children: [
           if (column)
             Text(
-              bar == null ? ' ' : '▎',
+              bar == null ? ' ' : theme.glyphs.cursor,
               style: bar?.merge(_unbold) ?? _plain,
               wrap: TextWrap.none,
             ),
           if (multiple)
             Text.rich(
               [
-                Span('[', brackets),
-                Span(selected ? 'x' : ' ', enabled ? markStyle(theme) : _plain),
-                Span(']', brackets),
+                ...checkboxSpans(
+                  boxes,
+                  selected,
+                  brackets,
+                  enabled ? markStyle(theme) : _plain,
+                ),
                 const Span(' '),
               ],
               wrap: TextWrap.none,

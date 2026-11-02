@@ -146,6 +146,10 @@ KeySpec _parse(String spec, String key, {required bool leader}) {
   if (keyNames.contains(name)) {
     return KeySpec.key(name, modifiers);
   }
+  final alias = _aliases[name];
+  if (alias != null) {
+    return KeySpec.key(alias, modifiers);
+  }
   if (name.runes.length != 1) {
     if (_modifiers.containsKey(name)) {
       fail('"$name" in "$key" is a modifier: the key comes after it');
@@ -156,7 +160,7 @@ KeySpec _parse(String spec, String key, {required bool leader}) {
     fail(
       '"$name" in "$key" is neither one character nor a key: space, '
       '${keyNames.where((k) => !k.startsWith('f')).join(', ')}, f1 to '
-      'f12${_hint(name, ['space', ...keyNames])}',
+      'f12${_hint(name, ['space', ...keyNames, ..._aliases.keys])}',
     );
   }
   final rune = name.runes.single;
@@ -213,6 +217,10 @@ const Map<String, int> _modifiers = {
   'super': KeySpec.superKey,
 };
 
+// Names a key is read by besides its own, as twk's `KeyCombo._aliases`;
+// offered as the name meant in their own right.
+const _aliases = {'esc': 'escape'};
+
 // names of other programs, for the name meant
 const _meant = {
   'control': 'ctrl',
@@ -221,7 +229,6 @@ const _meant = {
   'win': 'super',
   'option': 'alt',
   'opt': 'alt',
-  'esc': 'escape',
   'return': 'enter',
   'ret': 'enter',
   'del': 'delete',

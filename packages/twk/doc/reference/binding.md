@@ -18,7 +18,10 @@ app's zone (any number of `setState` calls between two frames make one
 build, at most `maxFps` a second, spaced by its `clock`, the `Stopwatch` it
 gives `TwkApp`, which a test's fake clock moves), tells the focus nodes
 whose focus changed first and settles the focus again after the build when
-that moved it (an autofocus, a focused node removed), in the same frame,
+that moved it (an autofocus, a focused node removed), in the same frame
+(what the layout changes, a `LayoutBuilder`'s build binding keys or moving
+the focus, is built in the frame after, asked for at once: one build a
+frame, before the layout, as in Flutter),
 unmounts what the frame's builds removed, a `LayoutBuilder`'s in the layout
 too, once the frame is written (`TwkApp.run`'s `afterPresent`), in that
 frame and asking for no other, their states disposed, mounts the app in the
@@ -41,8 +44,27 @@ due in the order they were scheduled: what they change is built in that
 frame, and one scheduled while they are called waits for the next;
 `cancelFrameCallback(id)` drops one. One timer waits for the earliest `at`;
 while no callback waits and nothing changes, the binding asks for no frame
-and starts no timer, and a callback scheduled once the app ended is never
-called (the animations' ticks, `animation`). `reassemble()`, what a hot
+and starts no timer, and a callback scheduled once the app ended is dropped
+(the animations' ticks, `animation`). A callback that throws ends the app
+with the error, as an error of the app's code does: `run` throws it, the
+states disposed (`doc/guides/running.md`).
+`addPostFrameCallback(callback)` calls `callback` once at the end of a
+frame, once it is laid out, painted and written, with the frame's time: where
+what the frame laid out (a size, a place) is read and acted on, a change made
+there built by the next frame; added during a frame's build or layout it is
+called at the end of that frame, between frames it asks for one, and while
+the callbacks of a frame are called it waits for the next; one that throws
+ends the app as a frame callback's does, and one added once the app ended
+is dropped.
+`pressKey(combo)` handles a press of a `KeyCombo` as one the terminal sent,
+along the focus's key path and past it: what a tap on a hint of a bar of
+the app's own does (`FocusManagerKeys.activeKeys`, each key with the keys
+`then` of its sequence, pressed one at a time); from an event's callback,
+not a build. `now()` is the app's wall time: the system's
+(`DateTime.now()`, a sleep and a time set followed) unless a `startTime` is
+given, and then that time moved on by the app's clock, which a test's fake
+clock moves from the time `pumpWidget(startTime:)` fixes; a `Calendar`, a `DatePicker` and a
+`Heatmap` given no date take today from it. `reassemble()`, what a hot
 reload calls (`twk run` of `packages/twk_dev`), has the next frame rebuild
 every element, its state kept, lay out and paint every render object again
 and write the whole screen again. It gives a key to the debug aids first

@@ -60,6 +60,8 @@ What the gallery lets you change, and what each starts at:
 | option | values | starts at |
 | --- | --- | --- |
 | guides | on, off | true |
+| separate roots | on, off | false |
+| max indent | none, 2 | none |
 | test/ | loads, fails | loads |
 
 ## More

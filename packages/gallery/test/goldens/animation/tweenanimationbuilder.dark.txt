@@ -2,7 +2,7 @@ screen 120×36, cursor hidden
 text
 │  ◆ twk gallery   Animation  ›  TweenAnimationBuilder                                        ctrl+p search      ◐ Dark  │
 │                                                                                                                        │
-│   ⌕ Filter             /      TweenAnimationBuilder                                                          13 of 16  │
+│   ⌕ Filter             /      TweenAnimationBuilder                                                          14 of 17  │
 │                               Builds with a value that runs to the one it is given, through the tweens it makes.       │
 │     ProgressList                                                                                                       │
 │     Skeleton, Skeletoni…      Preview   Code                                                                           │
@@ -57,7 +57,7 @@ styles
 │aaaaaooooooaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhirrrrrrrrrriirrrrrrrrrihhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhphhhphhhhhphhirrrrrrrrrrihhhhhhhhhhhhhhh│
 │aaadddddaaaaaaaaaaaaaaaaBaaahhhhhhhhhhhhhxxxxxxxxxxxxxxxxxxxxxxxyyyyyyyhzzzhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooooaaaaaaaahhhhphhhphhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhqvvwqhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhphhhphhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhqmmvqhh│
 │aaaaaoooooooooaooooooooooaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhEEhEhEhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooaoooooaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
@@ -98,5 +98,5 @@ u #5fa8ff on #2b4566
 x #c792ea on #22252c
 y on #22252c
 z #e6e8eb on #16181d
-v on #5fa8ff
-w #ffffff on #5fa8ff
+m on #5fa8ff
+v #ffffff on #5fa8ff

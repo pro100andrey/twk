@@ -206,7 +206,7 @@ final class TextField extends StatefulWidget {
     this.placeholder,
     this.semanticsLabel,
     this.obscureText = false,
-    this.obscuringCharacter = '•',
+    this.obscuringCharacter,
     this.maxLength,
     this.onChanged,
     this.onSubmitted,
@@ -244,8 +244,9 @@ final class TextField extends StatefulWidget {
   /// Whether each character shows as [obscuringCharacter]: a password.
   final bool obscureText;
 
-  /// What each character shows as with [obscureText]: one character.
-  final String obscuringCharacter;
+  /// What each character shows as with [obscureText]: one character; null
+  /// for [Glyphs.bullet] of the theme.
+  final String? obscuringCharacter;
 
   /// The most characters the user makes the text; null for no limit. A
   /// text set by the controller is kept as it is.
@@ -568,6 +569,7 @@ final class _TextFieldState extends State<TextField> {
               focusNode: node,
               autofocus: widget.autofocus,
               canRequestFocus: _canRequestFocus,
+              takesText: !widget.readOnly,
               onKeyEvent: _onKey,
               child: FieldMouse(
                 controller: controller,
@@ -670,7 +672,9 @@ final class _Field extends LeafRenderObjectWidget {
       ..text = value.text
       ..selection = value.selection
       ..composing = value.composing
-      ..obscuringCharacter = f.obscureText ? f.obscuringCharacter : null
+      ..obscuringCharacter = f.obscureText
+          ? f.obscuringCharacter ?? theme.glyphs.bullet
+          : null
       ..placeholder = f.placeholder ?? ''
       ..focused = focused
       ..style = style

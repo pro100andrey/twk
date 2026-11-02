@@ -26,7 +26,7 @@ library;
 
 export 'src/app.dart' show FrameStats, TwkApp;
 export 'src/byte_sink.dart' show ByteSink;
-export 'src/canvas.dart' show Canvas, GlyphRun;
+export 'src/canvas.dart' show Canvas, GlyphBuffer, GlyphRun;
 export 'src/graphics.dart' show GraphicsProtocol, ImagePlacement, TerminalImage;
 export 'src/headless.dart' show HeadlessTerminal, renderToString;
 export 'src/input/events.dart';
@@ -39,7 +39,7 @@ export 'src/presenter.dart'
     show CursorShape, PresentStats, Presenter, TerminalCaps, Viewport;
 export 'src/render/render.dart';
 export 'src/screen.dart' show Screen;
-export 'src/style.dart' show Attr, Color, ColorMode, Pen, StyleTable;
+export 'src/style.dart' show Attr, Color, ColorMode, Pen, StyleId, StyleTable;
 export 'src/surface.dart'
     show
         CellKeeper,
@@ -95,6 +95,7 @@ export 'src/unicode/bidi.dart'
         TextDirection,
         bidiClassOf,
         bidiMirror;
+export 'src/unicode/text_layout.dart' show TextAlign, TextOverflow;
 export 'src/unicode/unicode.dart'
     show
         ClusterScan,
@@ -102,5 +103,6 @@ export 'src/unicode/unicode.dart'
         TextSegmenter,
         fitText,
         graphemeBoundaries,
+        padCells,
         stringWidth,
         unicodeVersion;

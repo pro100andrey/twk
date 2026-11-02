@@ -302,6 +302,30 @@ void main() {
       ]);
     });
 
+    testTwk('byteUnits: binary writes the sizes as ls -h does', (t) async {
+      final files = InMemoryFileSystem(
+        [rooted('/p/')],
+        contents: {rooted('/p/a.txt'): 'x' * 1536, rooted('/p/b.txt'): 'hi'},
+      );
+      await t.pumpWidget(
+        Theme.terminal(
+          child: DirectoryTree(
+            root: rooted('/p'),
+            fileSystem: files,
+            showSizes: true,
+            byteUnits: ByteUnits.binary,
+          ),
+        ),
+        size: (22, 3),
+      );
+      await t.pump();
+      expect(rows(t), [
+        native('▾ p/'),
+        '    a.txt      1.5 KiB',
+        '    b.txt          2 B',
+      ]);
+    });
+
     testTwk('a directory that does not list shows why below it, muted', (
       t,
     ) async {

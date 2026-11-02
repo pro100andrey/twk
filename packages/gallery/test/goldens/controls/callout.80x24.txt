@@ -15,14 +15,14 @@ text
 │     ListTile        ▐       did: nothing                                       │
 │     StatusBar       ▐     └                                              ┘     │
 │                      ──────────────────────────────────────────────────────────│
-│   OVERLAYS      11     kind          info  success  warning  error             │
+│   OVERLAYS      12     kind          info  success  warning  error             │
 │     Overlay            dismissible  ▐  ●▌                                      │
-│     Dialog                                                                     │
-│     Toast              actions      ▐  ●▌                                      │
-│     Tooltip            title         kind  own                                 │
-│     Popover            icon          kind  own  none                           │
-│     MenuBar            width        ─────────────── ────────────  44 cells     │
-│                                                                                │
+│     App                                                                        │
+│     Dialog             actions      ▐  ●▌                                      │
+│     Toast              title         kind  own                                 │
+│     Tooltip            icon          kind  own  none                           │
+│     Popover            border        single  rounded  heavy                    │
+│                        width        ─────────────── ────────────  44 cells     │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
 │aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeaEEEEEEaaaaaadaddddaa│
@@ -42,12 +42,12 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaddddddddaaaaaaEEaaaggmmmmgggggggggvwwwwvhzzzzzzzhhzzzzzzzhhzzzzzhgggggggggggg│
 │aaaaannnnnnnaaaaaaaaaaggmmmmmmmmmmmggABBCAgggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnaaaaaaaaaaaaggmmmmmmmggggggABBCAgggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnaaaaaaaaaaggmmmmmggggggggvwwwwvhzzzhgggggggggggggggggggggggggggggggg│
+│aaaaannnaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnaaaaaaaaaaaggmmmmmmmggggggABBCAgggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnaaaaaaaaaaaaggmmmmmggggggggvwwwwvhzzzhgggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnaaaaaaaaaaggmmmmgggggggggvwwwwvhzzzhhzzzzhgggggggggggggggggggggggggg│
-│aaaaannnnnnnaaaaaaaaaaggmmmmmggggggggrrrrrrrrrrrrrrrDmmmmmmmmmmmmggHHgHHHHHggggg│
-│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnaaaaaaaaaaggmmmmmmgggggggvwwwwwwvhzzzzzzzhhzzzzzhggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmggggggggrrrrrrrrrrrrrrrDmmmmmmmmmmmmggHHgHHHHHggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend
 a on #1c1f25

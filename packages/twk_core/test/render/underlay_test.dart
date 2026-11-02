@@ -70,7 +70,7 @@ final class _View {
 
   /// The background of the cell [x], [y].
   Color bgAt(int x, int y) =>
-      screen.styles.bgOf(screen.surface.styles[y * 10 + x]);
+      screen.styles.bgOf(StyleId(screen.surface.styles[y * 10 + x]));
 }
 
 const _box = Color.rgb(0x22, 0x25, 0x2c);

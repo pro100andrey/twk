@@ -12,16 +12,16 @@ text
 │     ModalBarrier                                                               │
 │ ▎   WindowLayer              Notes                ─ □ ×                        │
 │                              Drag me by the title bar,                         │
-│   ANIMATION     16           or resize me by an e  Counter          ─ □ ×      │
+│   ANIMATION     17           or resize me by an e  Counter          ─ □ ×      │
 │     Spinner         ▐                              count: 0                    │
-│     ProgressBar     ▐                               Add one                    │
+│     TickerMode      ▐                               Add one                    │
+│     ProgressBar                                                                │
 │     ProgressList                                                               │
 │     Skeleton, Ske…                                                             │
 │     AnimationCont…                                                             │
-│     AnimatedBuild…                                                             │
-│     AnimatedAlign…     └                                                    ┘  │
-│     AnimatedPosit…   ──────────────────────────────────────────────────────────│
-│     AnimatedBox        frame         raised  bordered                         ▐│
+│     AnimatedBuild…     └                                                    ┘  │
+│     AnimatedAlign…   ──────────────────────────────────────────────────────────│
+│     AnimatedPosit…     frame         raised  bordered                         ▐│
 │                        shadow       ▐  ●▌                                      │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -39,14 +39,14 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaggggggwwxxxxwxxwxxwxxxwxxxxxwxxxxwwwyygggggggggggggggggggg│
 │aaadddddddddaaaaaGGaaaggggggwwxxwxxxxxxwxxwxxwxxwxttuuuuuuuttttttttttvtvtvttgggg│
 │aaaaannnnnnnaaaaaaaaadggggggwwwwwwwwwwwwwwwwwwwwwwwwxxxxxxwxwwwwwwwwwwwwwwwwgggg│
-│aaaaannnnnnnnnnnaaaaadggggggwwwwwwwwwwwwwwwwwwwwwwwwtAAAtAAAtwwwwwwwwwwwwwwwgggg│
-│aaaaannnnnnnnnnnnaaaaaggggggwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwgggg│
-│aaaaannnnnnnnnannnnaaaggggggggyyyyyyyyyyyyyyyyyyyywwwwwwwwwwwwwwwwwwwwwwwwwwgggg│
-│aaaaannnnnnnnnnnnnnaaaggggggggggggggggggggggggggggwwwwwwwwwwwwwwwwwwwwwwwwwwgggg│
+│aaaaannnnnnnnnnaaaaaadggggggwwwwwwwwwwwwwwwwwwwwwwwwtAAAtAAAtwwwwwwwwwwwwwwwgggg│
+│aaaaannnnnnnnnnnaaaaaaggggggwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwgggg│
+│aaaaannnnnnnnnnnnaaaaaggggggggyyyyyyyyyyyyyyyyyyyywwwwwwwwwwwwwwwwwwwwwwwwwwgggg│
+│aaaaannnnnnnnnannnnaaaggggggggggggggggggggggggggggwwwwwwwwwwwwwwwwwwwwwwwwwwgggg│
 │aaaaannnnnnnnnnnnnnaaaggggggggggggggggggggggggggggggyyyyyyyyyyyyyyyyyyyyyyyygggg│
 │aaaaannnnnnnnnnnnnnaaaggoggggggggggggggggggggggggggggggggggggggggggggggggggggogg│
 │aaaaannnnnnnnnnnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnnnnnaaaaaaggmmmmmggggggggrssssssrhFFFFFFFFhggggggggggggggggggggggggm│
+│aaaaannnnnnnnnnnnnnaaaggmmmmmggggggggrssssssrhFFFFFFFFhggggggggggggggggggggggggm│
 │aaaaaaaaaaaaaaaaaaaaaaggmmmmmmgggggggBCCDBgggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

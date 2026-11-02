@@ -364,6 +364,7 @@ final class RenderList extends RenderObject
     }
     width = c.maxW;
     height = c.maxH;
+    assert(_debugReportNoRows(), 'reports a list given no rows');
     // once more when onMetrics moved it; a third time on the next frame
     for (var pass = 0; pass < 2; pass++) {
       _inLayout = true;
@@ -680,6 +681,27 @@ final class RenderList extends RenderObject
 
   /// The rows of the content.
   int get _contentExtent => _sum + _est(_itemCount - _known);
+
+  var _noRows = false;
+
+  /// Logs a debug record each time the list goes from having rows (or
+  /// nothing to show) to being given none with items to show, which then
+  /// shows none of them. An intended zero (a panel closing) and a list
+  /// squeezed out by its siblings arrive alike, so it is not a warning.
+  bool _debugReportNoRows() {
+    final none = height == 0 && width > 0 && _itemCount > 0;
+    if (none && !_noRows) {
+      _warn(
+        level: LogLevel.debug,
+        'A RenderList of $_itemCount items was given 0 rows and shows none '
+        'of them: in a Column the children beside it may have taken every '
+        'row (put it in an Expanded); inline, a list asks for no rows (give '
+        'it a height with a SizedBox).',
+      );
+    }
+    _noRows = none;
+    return true;
+  }
 
   /// Makes item [index] the one at the top, keeping the measures of the
   /// items above it.

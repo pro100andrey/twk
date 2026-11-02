@@ -45,6 +45,10 @@ final class Pty {
   /// The program's exit code; there is none on the web.
   Future<int?> get exitCode => Future.value();
 
+  /// Whether [exitCode] knows the code of a program another waiter took
+  /// first: no program runs on the web.
+  static bool get tellsExitCode => false;
+
   /// How many columns the terminal has.
   int get width => 0;
 

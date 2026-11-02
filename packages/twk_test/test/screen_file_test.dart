@@ -1,6 +1,7 @@
 // matchesScreenFile: the file it writes, what it matches, and the message
 // it fails with.
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
@@ -54,6 +55,8 @@ const _update = 'TWK_UPDATE_GOLDENS=1 writes';
 const _legend = '(- the file, + the screen; $_update the screen to it):';
 
 void main() {
+  callerFileTests();
+  fromPackageRootTests();
   late Directory dir;
   setUp(() => dir = Directory.systemTemp.createTempSync('screen_file_'));
   tearDown(() {
@@ -171,6 +174,44 @@ void main() {
     ]);
   });
 
+  testTwk('styles: false compares the text alone, and fails on a text '
+      'that differs', (t) async {
+    await t.pumpWidget(form(fg: Color.green), size: (14, 3));
+    final path = '${dir.path}/form.txt';
+    File(path).writeAsStringSync(formFile);
+    expect(t, matchesScreenFile(path, styles: false));
+    expect(failure(t, matchesScreenFile(path)).length, greaterThan(3));
+    File(path).writeAsStringSync(formFile.replaceFirst('привет', 'привед'));
+    expect(failure(t, matchesScreenFile(path, styles: false)).sublist(0, 6), [
+      'Expected: the text of the screen of $path',
+      '  Actual: TwkTester:<fullscreen, 14×3>',
+      '   Which: differs from $path $_legend',
+      '          text:',
+      '          - 0│sent: привед  │',
+      '          + 0│sent: привет  │',
+    ]);
+  });
+
+  // that it is not the working directory is fromPackageRoot's test of a
+  // package elsewhere: Directory.current is the whole process's, which the
+  // runner's other suites run in and start programs from
+  testTwk('a relative path is from the package of the test', (t) async {
+    await t.pumpWidget(form(), size: (14, 3));
+    final path = 'test/_tmp_screen_file_${pid}_relative.txt';
+    final lib = await Isolate.resolvePackageUri(
+      Uri.parse('package:twk_test/twk_test.dart'),
+    );
+    final file = File('${File.fromUri(lib!).parent.parent.path}/$path');
+    addTearDown(() {
+      if (file.existsSync()) {
+        file.deleteSync();
+      }
+    });
+    updateScreenFilesOverride = true;
+    expect(t, matchesScreenFile(path));
+    expect(file.readAsStringSync(), formFile);
+  });
+
   testTwk('fails on another size or cursor', (t) async {
     await t.pumpWidget(form(), size: (14, 3));
     final path = '${dir.path}/form.txt';
@@ -216,5 +257,114 @@ void main() {
       ),
     );
     expect(File(path).existsSync(), isFalse);
+  });
+}
+
+// callerFile: the frame of the file that called a matcher.
+void callerFileTests() {
+  const own =
+      '#0 _fromPackageRoot (file:///h/twk_test/lib/src/matchers.dart:250:3)';
+  String? from(String frames) => callerFile('$own\n$frames')?.toString();
+
+  test('a plain path', () {
+    expect(
+      from('#1 main (file:///h/app/test/a_test.dart:12:3)'),
+      'file:///h/app/test/a_test.dart',
+    );
+  });
+
+  test('parentheses in the path', () {
+    expect(
+      from(
+        '#1 main (file:///h/my%20app%20(2)/test/a_test.dart:12:3)\n'
+        '#2 other (file:///h/zzz/test/b_test.dart:1:1)',
+      ),
+      'file:///h/my%20app%20(2)/test/a_test.dart',
+    );
+  });
+
+  test('spaces as %20 decode in the file path', () {
+    final uri = callerFile(
+      '#1 main (file:///h/my%20app/test/a_test.dart:12:3)',
+    )!;
+    expect(uri.pathSegments, ['h', 'my app', 'test', 'a_test.dart']);
+  });
+
+  test('a drive letter', () {
+    final uri = callerFile(
+      '#1 main (file:///C:/proj/test/a_test.dart:12:3)',
+    )!;
+    expect(uri.path, '/C:/proj/test/a_test.dart');
+  });
+
+  test("twk_test's own matchers.dart frames are skipped", () {
+    expect(
+      callerFile('$own\n$own\n#2 m (file:///h/app/test/a_test.dart:1:1)')?.path,
+      '/h/app/test/a_test.dart',
+    );
+  });
+
+  test('no frame of a file gives null', () {
+    expect(callerFile(own), isNull);
+    expect(callerFile('#0 f (dart:async/zone.dart:1:1)'), isNull);
+  });
+}
+
+// fromPackageRoot: where a relative path starts from, or why it cannot.
+void fromPackageRootTests() {
+  test('an absolute path is kept', () {
+    // absolute as the platform writes it: on Windows with a drive
+    final path = Platform.isWindows ? r'C:\x\y.txt' : '/x/y.txt';
+    expect(fromPackageRoot(path, ''), path);
+  });
+
+  test('a relative path with no file frame fails and says what to pass', () {
+    for (final stack in [
+      '',
+      '#0 f (dart:async/zone.dart:1:1)',
+      '#1 main (file:///h/app/test/a_test.dart)',
+      'at Object.main (http://localhost/a_test.dart.js:1:2)',
+    ]) {
+      expect(
+        () => fromPackageRoot('test/g.txt', stack),
+        throwsA(
+          isA<StateError>().having(
+            (e) => e.message,
+            'message',
+            allOf(contains('absolute path'), contains('test/g.txt')),
+          ),
+        ),
+        reason: stack,
+      );
+    }
+  });
+
+  test('a relative path from a file with no package above it fails', () {
+    expect(
+      () => fromPackageRoot(
+        'g.txt',
+        '#0 main (file:///nonexistent-twk-dir/a_test.dart:1:1)',
+      ),
+      throwsA(isA<StateError>()),
+    );
+  });
+
+  test('a relative path from a file in a package starts at its root', () {
+    final root = Directory.current.path;
+    // the frame's URI as the VM writes it, `file:///D:/…` on Windows
+    final file = Uri.file('$root/test/a_test.dart');
+    expect(fromPackageRoot('g.txt', '#0 main ($file:1:1)'), '$root/g.txt');
+  });
+
+  test("a relative path from a file in another package starts at that one's "
+      'root, not the working directory', () {
+    final other = Directory.systemTemp.createTempSync('twk_other_package');
+    addTearDown(() => other.deleteSync(recursive: true));
+    File('${other.path}/pubspec.yaml').writeAsStringSync('name: other\n');
+    Directory('${other.path}/test').createSync();
+    final file = Uri.file('${other.path}/test/a_test.dart');
+    final found = fromPackageRoot('g.txt', '#0 main ($file:1:1)');
+    expect(found, '${other.path}/g.txt');
+    expect(found, isNot(startsWith(Directory.current.path)));
   });
 }

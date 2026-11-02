@@ -13,6 +13,7 @@ import 'package:twk_core/twk_core.dart'
         RenderObject,
         RenderObjectWithChildMixin;
 
+import '../animation/ticker.dart';
 import '../focus/focus.dart';
 import '../framework/framework.dart';
 import '../semantics/semantics.dart';
@@ -30,12 +31,14 @@ import 'one_child.dart';
 /// and states stay as they are either way: going on stage again shows it
 /// as it was left.
 ///
-/// What is offstage still builds, lays out and runs (an animation in it
-/// still asks for frames); a repaint boundary in it that repaints on its
-/// own shows nothing, the child lying outside the cells of this widget
-/// (below them) while it is offstage. A focus node in it that has the
-/// focus as it goes offstage loses it, as from a node that can no longer
-/// take it ([FocusNode.descendantsAreFocusable]); Tab passes the nodes in
+/// What is offstage still builds and lays out, but its tickers are off
+/// ([TickerMode]): an animation in it asks for no frames, and goes on
+/// when it is on stage again, its time having gone on meanwhile; a
+/// repaint boundary in it that repaints on its own shows nothing, the child
+/// lying outside the cells of this widget (below them) while it is
+/// offstage. A focus node in it that has the focus as it goes offstage
+/// loses it, as from a node that can no longer take it
+/// ([FocusNode.descendantsAreFocusable]); Tab passes the nodes in
 /// it by. The child is under the focus node of an [ExcludeFocus], which
 /// takes no focus itself: `Focus.of` in the child finds that one.
 ///
@@ -60,7 +63,7 @@ final class Offstage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) =>
-      _hide(hidden: offstage, keepsSize: false, child: child);
+      _hide(context, hidden: offstage, keepsSize: false, child: child);
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -134,7 +137,7 @@ final class Visibility extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (maintainSize) {
-      return _hide(hidden: !visible, keepsSize: true, child: child);
+      return _hide(context, hidden: !visible, keepsSize: true, child: child);
     }
     if (maintainState) {
       return Offstage(offstage: !visible, child: child);
@@ -152,17 +155,23 @@ final class Visibility extends StatelessWidget {
   }
 }
 
-/// [child], out of the focus and the semantics while [hidden], and not
-/// painted or hit then, as big as it is with [keepsSize].
-Widget _hide({
+/// [child], out of the focus and the semantics while [hidden], with its
+/// tickers off ([TickerMode]), and not painted or hit then, as big as it is
+/// with [keepsSize].
+Widget _hide(
+  BuildContext context, {
   required bool hidden,
   required bool keepsSize,
   required Widget? child,
-}) => ExcludeFocus(
-  excluding: hidden,
-  child: ExcludeSemantics(
+}) => TickerMode(
+  // off while hidden, and while hidden further up
+  enabled: !hidden && TickerMode.of(context),
+  child: ExcludeFocus(
     excluding: hidden,
-    child: _Hidden(hidden: hidden, keepsSize: keepsSize, child: child),
+    child: ExcludeSemantics(
+      excluding: hidden,
+      child: _Hidden(hidden: hidden, keepsSize: keepsSize, child: child),
+    ),
   ),
 );
 

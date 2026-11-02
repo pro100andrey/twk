@@ -162,7 +162,7 @@ void main() {
           (e) => e.message,
           'message',
           'showToast: no Overlay above SizedBox: place an Overlay above it, '
-              'as around the whole app: Overlay(child: …)',
+              'as App does around the whole app: App(child: …)',
         ),
       ),
     );
@@ -281,6 +281,31 @@ void main() {
       expect(t.lines[2], isNot(contains('Plain')));
       await t.pump(ms * 200);
       expect(t.lines[2], contains('▌ Plain'));
+    });
+
+    testTwk('a toast shown from the body keeps its time on the fake clock, '
+        'not a real one', (t) async {
+      final key = GlobalKey();
+      await t.pumpWidget(
+        Theme(
+          data: theme,
+          child: Box(
+            style: theme.background,
+            child: Overlay(child: SizedBox.expand(key: key)),
+          ),
+        ),
+        size: (20, 6),
+      );
+      showToast(
+        key.currentContext!,
+        'Held',
+        duration: const Duration(milliseconds: 500),
+      );
+      // real time is what is passed here: a real timer would have ended it
+      // ignore: twk_lints/wall_time_in_tests
+      await Future<void>.delayed(const Duration(milliseconds: 600));
+      await t.pump(ms * 250);
+      expect(t, containsLine(contains('Held')));
     });
 
     testTwk('a toast shorter than its fade fades out from the start', (

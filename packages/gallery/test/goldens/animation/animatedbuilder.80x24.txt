@@ -4,8 +4,8 @@ text
 │                                                                                │
 │   ⌕ Filter       /     AnimatedBuilder                         Preview   Code  │
 │                        A builder run again at each tick of an animation, the   │
-│   ANIMATION     16     part that does not change built once and passed in as…  │
-│     Spinner          ──────────────────────────────────────────────────────────│
+│     Spinner            part that does not change built once and passed in as…  │
+│     TickerMode       ──────────────────────────────────────────────────────────│
 │     ProgressBar                                                                │
 │     ProgressList        ·  ┌                                            ┐   ·  │
 │     Skeleton, Ske…           ╭────────────────────────────────────────╮        │
@@ -29,8 +29,8 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahBhBBBBBBhhhhhhhChaaggkkkkkkkkkkkkkkkggggggggggggggggggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmgmmmmmmmgmmmgmmmmmgmmgmmmmgmmmmgmmgmmgmmmmmmmmmmgmmmggg│
-│aaadddddddddaaaaaAAaaaggmmmmgmmmmgmmmmgmmmgmmmmmmgmmmmmgmmmmgmmmgmmmmmmgmmgmmmgg│
-│aaaaannnnnnnaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnaaaaaaaaaaggmmmmgmmmmgmmmmgmmmgmmmmmmgmmmmmgmmmmgmmmgmmmmmmgmmgmmmgg│
+│aaaaannnnnnnnnnaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnnnnnnaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnaaaaagggoggoggggggggggggggggggggggggggggggggggggggggggggogggogg│
 │aaaaannnnnnnnnannnnaaaggggggggppppppppppppppppppppppppppppppppppppppppppgggggggg│

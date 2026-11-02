@@ -342,6 +342,18 @@ const catalog = [
           'the arrows, a digit or a click turn one on.',
     ),
     CatalogPage(
+      'Chip, ChipList',
+      'Tags on one row that wraps, with a cursor: the arrows move it, '
+          'Space or a click toggles a chip, Delete or a click on its × '
+          'removes it.',
+    ),
+    CatalogPage(
+      'ValueStepper',
+      'One of a few values between ‹ and ›: Left and Right or a click on '
+          'an arrow step to the one before or after, stopping at the ends '
+          '(`wrap: true` goes round).',
+    ),
+    CatalogPage(
       'SelectionList',
       'Items selected by their keys: in a single selection the cursor '
           'selects, in a multiple one Space does.',
@@ -424,6 +436,11 @@ const catalog = [
           'in; an entry of its own goes in it too.',
     ),
     CatalogPage(
+      'App',
+      'The root of an app: its theme over the Overlay its dialogs show in, '
+          'over the app and its own keys.',
+    ),
+    CatalogPage(
       'Dialog',
       'A box over the app, the rest dimmed behind a barrier; Tab stays in '
           'it, Escape closes it.',
@@ -482,6 +499,12 @@ const catalog = [
       'Spinner',
       'Frames shown in turn while something goes on; spinners of the same '
           'frames step together.',
+    ),
+    CatalogPage(
+      'TickerMode',
+      'Whether the animations below tick: off, they ask for no frames and '
+          'stand still, and go on when it is on again; Offstage and '
+          'Visibility turn it off for what they hide.',
     ),
     CatalogPage(
       'ProgressBar',

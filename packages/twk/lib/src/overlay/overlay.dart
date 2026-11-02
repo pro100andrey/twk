@@ -1,8 +1,10 @@
 /// Overlays: layers above the tree such as dialogs, toasts, tooltips,
-/// menus, popovers and a command palette, in an `Overlay` the app places,
-/// and floating windows in a `WindowLayer`.
+/// menus, popovers and a command palette, in an `Overlay` the app places
+/// (`App` places one under its theme), and floating windows in a
+/// `WindowLayer`.
 library;
 
+export 'app.dart';
 export 'barrier.dart';
 export 'command_palette.dart';
 export 'dialog.dart';

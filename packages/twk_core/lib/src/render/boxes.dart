@@ -391,8 +391,10 @@ final class RenderPadding extends RenderObject with RenderObjectWithChildMixin {
 /// within the box's own constraints with no minimum. Along an axis with a
 /// factor ([widthFactor], [heightFactor]) the box is that many times as
 /// long as its child, within its constraints; along one without, as long as
-/// they allow. Without a child, an axis with a factor is as short as the
-/// constraints allow.
+/// they allow, or, where they allow any length ([BoxConstraints.unbounded]:
+/// a scroll view's axis, a list row's height), as long as its child, as in
+/// Flutter. Without a child, such an axis is as short as the constraints
+/// allow.
 final class RenderPositionedBox extends RenderObject
     with RenderObjectWithChildMixin {
   /// Places [child], if any, as [alignment] says, in the middle unless
@@ -446,9 +448,17 @@ final class RenderPositionedBox extends RenderObject
     }
   }
 
-  /// Without factors it is as big as the constraints allow.
+  /// Without factors, within constraints that bound both axes, it is as
+  /// big as they allow.
   @override
-  bool get sizedByParent => _widthFactor == null && _heightFactor == null;
+  bool get sizedByParent {
+    final c = constraints;
+    return _widthFactor == null &&
+        _heightFactor == null &&
+        (c == null ||
+            c.maxW < BoxConstraints.unbounded &&
+                c.maxH < BoxConstraints.unbounded);
+  }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -471,8 +481,11 @@ final class RenderPositionedBox extends RenderObject
 
   @override
   void performLayout(BoxConstraints c) {
-    final wf = _widthFactor;
-    final hf = _heightFactor;
+    const unbounded = BoxConstraints.unbounded;
+    // an axis without a factor that the constraints leave unbounded takes
+    // the child's length, a factor of 1
+    final wf = _widthFactor ?? (c.maxW < unbounded ? null : 1);
+    final hf = _heightFactor ?? (c.maxH < unbounded ? null : 1);
     final child = _child;
     if (child == null) {
       width = wf == null ? c.maxW : c.minW;

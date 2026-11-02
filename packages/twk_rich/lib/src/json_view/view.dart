@@ -649,6 +649,7 @@ final class _JsonViewState extends State<JsonView> {
           expanded: entry.expanded,
           whole: whole.contains(entry.node.path),
           maxStringLength: max,
+          ellipsis: theme.glyphs.ellipsis,
           marks: _matches[entry.key] ?? const [],
         ),
         wrap: TextWrap.none,

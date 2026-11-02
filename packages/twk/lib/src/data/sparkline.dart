@@ -11,8 +11,10 @@ import '../text/widgets.dart';
 import 'chart_glyphs.dart';
 
 /// [data] as bars a column wide that grow upwards in eighths of a cell,
-/// the newest value at the right: the last values that fit, oldest to the
-/// left, from the left edge when fewer fit. A bar is empty at [min] and
+/// oldest to the left: the last values that fit, the newest at the right
+/// edge once they fill it. While fewer than fit, they end at the right
+/// edge, as a chart of time whose newest value is now, or with [fromRight]
+/// false start at the left one. A bar is empty at [min] and
 /// fills every row at [max], by default the largest value shown. As wide
 /// as it may be and a row tall, taller where the constraints ask for more
 /// rows; a repaint boundary, so new data repaints nothing else.
@@ -38,6 +40,7 @@ final class Sparkline extends LeafRenderObjectWidget {
     this.min = 0,
     this.max,
     this.style = const Style(),
+    this.fromRight = true,
   });
 
   /// The values, oldest first. Read, not copied: a new list with other
@@ -58,12 +61,19 @@ final class Sparkline extends LeafRenderObjectWidget {
   /// colours.
   final Style style;
 
+  /// Whether fewer values than fit end at the right edge, the columns
+  /// left of them empty, as by default; false starts them at the left
+  /// one.
+  final bool fromRight;
+
   @override
   RenderSparkline createRenderObject(BuildContext context) => RenderSparkline(
     data: data,
     min: min,
     max: max,
     style: overText(context, DefaultTextStyle.of(context).merge(style)),
+    fromRight: fromRight,
+    glyphs: Theme.of(context).glyphs,
   );
 
   @override
@@ -75,7 +85,9 @@ final class Sparkline extends LeafRenderObjectWidget {
       ..style = overText(
         context,
         DefaultTextStyle.of(context).merge(style),
-      );
+      )
+      ..fromRight = fromRight
+      ..glyphs = Theme.of(context).glyphs;
   }
 }
 
@@ -88,7 +100,9 @@ final class RenderSparkline extends RenderObject {
     this._min = 0,
     this._max,
     this._style = const Style(),
-  });
+    this._fromRight = true,
+    Glyphs glyphs = Glyphs.unicode,
+  }) : _set = glyphs;
 
   List<double> _data;
 
@@ -137,6 +151,30 @@ final class RenderSparkline extends RenderObject {
     }
   }
 
+  bool _fromRight;
+
+  /// Whether fewer values than fit end at the right edge, as
+  /// [Sparkline.fromRight].
+  bool get fromRight => _fromRight;
+  set fromRight(bool r) {
+    if (r != _fromRight) {
+      _fromRight = r;
+      markNeedsPaint();
+    }
+  }
+
+  Glyphs _set;
+
+  /// The theme's marks, whose [Glyphs.shades] draw the bars where they
+  /// have no partial blocks.
+  Glyphs get glyphs => _set;
+  set glyphs(Glyphs g) {
+    if (g != _set) {
+      _set = g;
+      markNeedsPaint();
+    }
+  }
+
   final _glyphs = ChartGlyphs();
 
   @override
@@ -174,19 +212,20 @@ final class RenderSparkline extends RenderObject {
     if (top == null || !(top > _min) || height == 0) {
       return;
     }
-    final glyphs = _glyphs..use(canvas.segmenter);
+    final glyphs = _glyphs..use(canvas.segmenter, _set);
     final steps = glyphs.upSteps;
     final most = height * steps;
     final whole = glyphs.up(steps);
+    final x0 = _fromRight ? width - n : 0;
     for (var col = 0; col < n; col++) {
       final f = (_data[first + col] - _min) / (top - _min);
       // steps from the bottom; none for a value below min or none at all
       final s = f >= 1 ? most : (f > 0 ? (f * most).round() : 0);
       final full = s ~/ steps;
-      canvas.fill(col, height - full, 1, full, pen, whole);
+      canvas.fill(x0 + col, height - full, 1, full, pen, whole);
       if (s > full * steps) {
         final part = glyphs.up(s - full * steps);
-        canvas.fill(col, height - 1 - full, 1, 1, pen, part);
+        canvas.fill(x0 + col, height - 1 - full, 1, 1, pen, part);
       }
     }
   }

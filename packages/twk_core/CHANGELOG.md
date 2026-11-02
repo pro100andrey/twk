@@ -1,5 +1,26 @@
 # Changelog
 
+## Unreleased
+
+Breaking:
+
+- A cell's style id is a `StyleId`, an extension type over int, apart from
+  a pen id, which stays an int: `styles.compose(pen, style)` with the
+  arguments swapped, a cell's style given to `Canvas.text` as the pen, or a
+  pen to `Canvas.runStyled` no longer compile (they painted the wrong style,
+  and only a debug assert caught some). Typed with it:
+  `StyleTable.style`, `compose`, `blankStyleOf`, `opaqueStyleOf` (which
+  answers `StyleId.none`, not -1, for a pen whose style depends on the
+  cell underneath), `fgOf`, `bgOf`, `underlineColorOf`, `attrsOf`,
+  `linkIdOf`, `linkOf`, `erasable`, `sgrFromReset`, `transition` and the
+  `mark` of `sweep`; `Canvas.runStyled`, `runRangeStyled`;
+  `Surface.clear`, `scrollRows`, `scrollRect` and the style callback of
+  `markCells` (`CellKeeper`); `LineEncoder.text`;
+  `RenderEffect.effectCell` and `effectStyle`. `Surface.styles` stays a
+  `Uint32List`: `StyleId(surface.styles[i])` reads one, `.value` stores
+  one. `StyleId.base` is the style of all defaults, where 0 was. The type
+  is erased: no cost at run time.
+
 ## 0.1.0
 
 The first release.
@@ -36,7 +57,7 @@ The first release.
   (`pasteLimit`, `sequenceLimit`), a longer paste in pieces
   (`PasteEvent.more`).
 - Unicode: grapheme segmentation, widths in two modes (`TextSegmenter`,
-  `stringWidth`, `fitText`) and bidirectional text (`BidiText`).
+  `stringWidth`, `fitText`, `breakLines`) and bidirectional text (`BidiText`).
 - `package:twk_core/terminal.dart`: the terminal, styles, input and lines
   of text without the render tree.
 - `HeadlessTerminal`, `renderToString` and `LineEncoder`, for tests and

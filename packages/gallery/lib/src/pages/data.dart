@@ -193,7 +193,7 @@ final _gauge = GalleryPage(
     const ChoiceOption(
       'label',
       'label',
-      values: ['own', 'ratio', 'none'],
+      values: ['own', 'percent', 'none'],
     ),
     const ColorOption('color', 'style', values: _colors, initial: 'primary'),
     const SwitchOption('segmented', 'segmented'),
@@ -216,12 +216,12 @@ final _gauge = GalleryPage(
     }
     final theme = Theme.of(context);
     final percent = '${(r * 100).round()}%';
-    // a label of its own, the ratio the gauges write (null), or none
-    final (gaugeLabel, lineLabel) = switch (o.choice<String>('label')) {
-      'own' => (percent, 'used $percent'),
-      'ratio' => (null, null),
-      _ => ('', ''),
-    };
+    // a label of its own, the percentage the gauges write, or none
+    final label = o.choice<String>('label');
+    final (gaugeLabel, lineLabel) = label == 'own'
+        ? (percent, 'used $percent')
+        : (null, null);
+    final percentage = label == 'percent';
     return SizedBox(
       width: _gaugeW,
       child: Column(
@@ -234,6 +234,7 @@ final _gauge = GalleryPage(
             child: Gauge(
               ratio: r,
               label: gaugeLabel,
+              showPercentage: percentage,
               style: o
                   .colorStyle(context, 'color')
                   .merge(Style(bg: theme.surface.bg)),
@@ -243,6 +244,7 @@ final _gauge = GalleryPage(
           LineGauge(
             ratio: r,
             label: lineLabel,
+            showPercentage: percentage,
             type: BorderType.values.byName(o.choice('line')),
             segmented: o.flag('segmented'),
             filledStyle: r > .9
@@ -295,7 +297,7 @@ final _gauge = GalleryPage(
       '          child: Gauge(',
       '            ratio: _ratio,',
       if (label == 'own') '            label: percent,',
-      if (label == 'none') "            label: '',",
+      if (label == 'percent') '            showPercentage: true,',
       codeLine([
         '            style: theme.${o.color('color')}',
         '.merge(.new(bg: theme.surface.bg)),',
@@ -306,7 +308,7 @@ final _gauge = GalleryPage(
       '        LineGauge(',
       '          ratio: _ratio,',
       if (label == 'own') r"          label: 'used $percent',",
-      if (label == 'none') "          label: '',",
+      if (label == 'percent') '          showPercentage: true,',
       '          type: .${o.label('line')},',
       if (o.flag('segmented')) '          segmented: true,',
       '          filledStyle: _ratio > .9',
@@ -1141,6 +1143,8 @@ final _treeView = GalleryPage(
   title: 'TreeView',
   options: const [
     SwitchOption('guides', 'guides', initial: true),
+    SwitchOption('separate', 'separate roots'),
+    ChoiceOption('indent', 'max indent', values: ['none', '2']),
     ChoiceOption('load', 'test/', values: ['loads', 'fails']),
   ],
   build: (context, o) => _inRoom((room) {
@@ -1160,6 +1164,8 @@ final _treeView = GalleryPage(
         roots: _roots,
         controller: controller,
         showGuides: o.flag('guides'),
+        separateRoots: o.flag('separate'),
+        maxIndent: o.choice<String>('indent') == '2' ? 2 : null,
         hasChildren: (path) => !path.contains('.'),
         children: (path) => switch (path) {
           'lib' => const ['lib/src', 'lib/twk.dart'],
@@ -1190,6 +1196,8 @@ final _treeView = GalleryPage(
     '    roots: const [${_roots.map((r) => "'$r'").join(', ')}],',
     '    controller: _controller,',
     if (!o.flag('guides')) '    showGuides: false,',
+    if (o.flag('separate')) '    separateRoots: true,',
+    if (o.choice<String>('indent') == '2') '    maxIndent: 2,',
     "    hasChildren: (path) => !path.contains('.'),",
     '    children: (path) => switch (path) {',
     "      'lib' => const ['lib/src', 'lib/twk.dart'],",
@@ -1553,7 +1561,7 @@ final class _TaskStageState extends State<_TaskStage> {
       child: TaskList(
         // a list of its own for each step: its tasks done show no time
         key: step is int ? ValueKey((step, failed)) : null,
-        spinner: _spinners[o.choice<String>('spinner')]!,
+        spinner: _spinners[o.choice<String>('spinner')],
         showElapsed: o.flag('elapsed'),
         tasks: tasks,
       ),
@@ -2076,7 +2084,7 @@ final class _HeatState extends State<_Heat> {
             end: _heatEnd,
             weeks: _heatWeeks,
             firstWeekday: widget.firstWeekday,
-            scale: scale ?? ActivityHeatmap.defaultScale,
+            scale: scale,
             showLegend: widget.legend,
             cellWidth: widget.cellWidth,
             onSelected: (day) =>

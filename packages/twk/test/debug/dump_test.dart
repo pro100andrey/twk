@@ -40,18 +40,19 @@ void main() {
     final context = _find<_Counter>(view.root);
     expect(_printed(() => debugDumpTree(context)), [
       '''
-RootWidget                                            30×12
-└─ Column ‹vertical›                                  30×12
-   ├─ _Header ‹title: "agent"›                         5×1
-   │  └─ Text ‹"agent"›                                5×1
-   ├─ Expanded                                        13×9
-   │  └─ Box ‹border: rounded, padding: 0 1, flex: 1› 13×9
-   │     └─ Column ‹vertical›                          9×7
-   │        └─ … 6 Text
-   ├─ _Counter-[<'counter'>] ‹count: 2›                7×1
-   │  └─ Text ‹"count 2"›                              7×1
-   └─ SizedBox ‹additionalConstraints: 0..∞×1›        30×1
-      └─ _Panel ‹pen: $pen›                              30×1  ◆
+RootWidget                                                         30×12
+└─ Column ‹vertical›                                               30×12
+   ├─ _Header ‹title: "agent"›                                      5×1
+   │  └─ Text ‹"agent"›                                             5×1
+   ├─ Expanded                                                     13×9
+   │  └─ Box                                                       13×9
+   │     └─ _DecoratedBox ‹border: rounded, padding: 0 1, flex: 1› 13×9
+   │        └─ Column ‹vertical›                                    9×7
+   │           └─ … 6 Text
+   ├─ _Counter-[<'counter'>] ‹count: 2›                             7×1
+   │  └─ Text ‹"count 2"›                                           7×1
+   └─ SizedBox ‹additionalConstraints: 0..∞×1›                     30×1
+      └─ _Panel ‹pen: $pen›                                           30×1  ◆
 
 ◆ repaint boundary''',
     ]);

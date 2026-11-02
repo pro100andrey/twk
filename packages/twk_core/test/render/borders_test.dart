@@ -78,14 +78,18 @@ final class View {
 
   /// The text color of the cell at [x], [y].
   Color fgAt(int x, int y) {
-    final fg = screen.styles.fgOf(screen.surface.styles[y * width + x]);
+    final fg = screen.styles.fgOf(
+      StyleId(screen.surface.styles[y * width + x]),
+    );
     expect(vt.cell(x, y).fg, fg.value, reason: 'the color the terminal shows');
     return fg;
   }
 
   /// The background of the cell at [x], [y].
   Color bgAt(int x, int y) {
-    final bg = screen.styles.bgOf(screen.surface.styles[y * width + x]);
+    final bg = screen.styles.bgOf(
+      StyleId(screen.surface.styles[y * width + x]),
+    );
     expect(vt.cell(x, y).bg, bg.value, reason: 'the color the terminal shows');
     return bg;
   }

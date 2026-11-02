@@ -175,6 +175,8 @@ final scrollingPages = [
       live: o.flag('live'),
       scrollbar: ScrollbarVisibility.values.byName(o.choice('scrollbar')),
     ),
+    // the box, from the first frame: a LayoutBuilder asks for no rows
+    heightIn: (o, room) => _logRows(room.height),
     codeIn: _logCode,
   ),
   GalleryPage(
@@ -1172,6 +1174,7 @@ String _barsCode(Options o) {
     ..._focusBox('    '),
     if (down) ...[
       '      child: Scrollbar(',
+      if (across) '        axis: .vertical,',
       for (final a in args) '        $a',
       ...inner('        '),
       '      ),',

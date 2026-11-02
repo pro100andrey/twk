@@ -12,28 +12,28 @@ text
 │     DirectoryTree              ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  OPTIONS                    │
 │     TaskList                                                                             │                             │
 │                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  border                     │
-│   EDITING              4                                                                 │   outline  underline        │
+│   EDITING              4  ▐                                                              │   outline  underline        │
 │     TextField             ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   none                      │
 │ ▎   InputDecoration       ▐                                                              │                             │
 │     TextArea              ▐    ┌                                                    ┐    │  filled              ▐●  ▌  │
 │     Autocomplete          ▐        ╭ Theme ─────────────╮  ╭ Search ──────────────╮      │                             │
-│                           ▐      ◐ │ Dark             ▾ │  │ ⌕ files, commands  ↵ │      │  enabled             ▐  ●▌  │
-│   CONTROLS            20           ╰────────────────────╯  ╰──────────────────────╯      │                             │
+│                                  ◐ │ Dark             ▾ │  │ ⌕ files, commands  ↵ │      │  enabled             ▐  ●▌  │
+│   CONTROLS            22           ╰────────────────────╯  ╰──────────────────────╯      │                             │
 │     Button                         Enter opens it          by name                       │                             │
 │     Pressable                                                                            │                             │
 │     Checkbox, Switch             ╭ Site ────────────────╮  ╭ Password ────────────╮      │                             │
 │     RadioGroup                   │ https://twk     .dev │  │ ••••••               │      │                             │
 │     SegmentedButton              ╰──────────────────────╯  ╰──────────────────────╯      │                             │
-│     SelectionList                where it lives            at least 8 chars    6/16      │                             │
-│     Select, MultiSelect        └                                                    ┘    │                             │
-│     ConfirmInput                                                              50 × 9     │                             │
+│     Chip, ChipList               where it lives            at least 8 chars    6/16      │                             │
+│     ValueStepper               └                                                    ┘    │                             │
+│     SelectionList                                                             50 × 9     │                             │
+│     Select, MultiSelect        ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     ConfirmInput                                                                         │                             │
 │     Slider                     ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     NumberInput                                                                          │                             │
 │     DatePicker                 ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     FilePicker                                                                           │                             │
 │     Form, FormField            ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     TabBar, TabView                                                                      │                             │
-│     KeyHintsBar                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │                                                                                          │                             │
 │  ctrl+z undo   tab next   shift+tab back   esc pages                                                                   │
 styles
@@ -49,28 +49,28 @@ styles
 │aaaaaoooooooooooooaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnhhhhhhhhhhhhhhhhhhhhh│
-│aaadddddddaaaaaaaaaaaaaaeaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhrsssssssritttttttttihhhhhhh│
+│aaadddddddaaaaaaaaaaaaaaeaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhrsssssssritttttttttihhhhhhh│
 │aaaaaoooooooooaaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhittttihhhhhhhhhhhhhhhhhhhhh│
 │auvvvwwwwwwwwwwwwwwwvvvvvvvdhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaadhhhhnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhnhhhhphhnnnnnnhhhhhhhhhhhhhhyzAAyhh│
 │aaaaaooooooooooooaaaaaaaaaadhhhhhhhhxhnnnnnhxxxxxxxxxxxxxxhhxhnnnnnnhxxxxxxxxxxxxxxxhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhhhnhxhEEEEhhhhhhhhhhhhhnhxhhxhnhnnnnnnhnnnnnnnnhhnhxhhhhhhphhnnnnnnnhhhhhhhhhhhhhqBBCqhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhnhxhEEEEhhhhhhhhhhhhhnhxhhxhnhnnnnnnhnnnnnnnnhhnhxhhhhhhphhnnnnnnnhhhhhhhhhhhhhqBBCqhh│
 │aaaddddddddaaaaaaaaaaaaeeaaahhhhhhhhxxxxxxxxxxxxxxxxxxxxxxhhxxxxxxxxxxxxxxxxxxxxxxxxhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooaaaaaaaaaaaaaaaaahhhhhhhhnnnnnhnnnnnhnnhhhhhhhhhhnnhnnnnhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooaooooooaaaaaaahhhhhhxhnnnnhxxxxxxxxxxxxxxxxxhhDhDDDDDDDDhDDDDDDDDDDDDDhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooaaaaaaaaaaaaahhhhhhxhnnnnnnnnnnnhhhhhnnnnhxhhDhEEEEEEhhhhhhhhhhhhhhhDhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooooaaaaaaaahhhhhhxxxxxxxxxxxxxxxxxxxxxxxxhhDDDDDDDDDDDDDDDDDDDDDDDDhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooaaaaaaaaaahhhhhhnnnnnhnnhnnnnnhhhhhhhhhhhhDDhDDDDDhDhDDDDDhhhhnnnnhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaoooooooooooaaaahhhhnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhnhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhmmhmhmhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaooooooooaaaaaaaaahhhhhhnnnnnhnnhnnnnnhhhhhhhhhhhhDDhDDDDDhDhDDDDDhhhhnnnnhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhnhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhmmhmhmhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaoooooooooooaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooaoooooooooaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaoooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaccccccaddddaaacccaddddaaacccccccccaddddaaacccadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
 legend

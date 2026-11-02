@@ -191,8 +191,14 @@ final class Terminal {
     final path = utf8.encode(name);
     final memory = _calloc(1, path.length + 1);
     memory.cast<Uint8>().asTypedList(path.length).setAll(0, path);
-    // O_RDWR | O_NOCTTY
-    final fd = _open(memory.cast(), 2 | (_macos ? 0x20000 : 0x100));
+    // O_RDWR | O_NOCTTY | O_CLOEXEC: a process started meanwhile, by this
+    // suite or another one the runner has in an isolate of the same VM,
+    // would otherwise hold the tty open, and with it the output, until it
+    // ended
+    final fd = _open(
+      memory.cast(),
+      2 | (_macos ? 0x20000 | 0x1000000 : 0x100 | 0x80000),
+    );
     _free(memory);
     expect(fd, greaterThanOrEqualTo(0), reason: 'open $name');
     return fd;
@@ -251,21 +257,6 @@ final class Terminal {
   }
 }
 
-/// Linux 6.15 and later tell how a program ended also when the VM waited
-/// for it first, which it does for any child while a `Process` runs (the
-/// test runner's compiler does throughout).
-final bool _endsKnown = () {
-  final version = RegExp(
-    r'(\d+)\.(\d+)',
-  ).firstMatch(Platform.operatingSystemVersion);
-  if (!Platform.isLinux || version == null) {
-    return false;
-  }
-  final [major, minor] = [
-    for (final i in [1, 2]) int.parse(version[i]!),
-  ];
-  return major > 6 || major == 6 && minor >= 15;
-}();
-
 /// The exit code [code], or null where the VM may have taken it.
-Matcher exits(int code) => _endsKnown ? equals(code) : anyOf(code, isNull);
+Matcher exits(int code) =>
+    Pty.tellsExitCode ? equals(code) : anyOf(code, isNull);

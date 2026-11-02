@@ -9,6 +9,16 @@
 // (scenario names as in the report). --measure times in this process only
 // and prints tab-separated lines (what the compiled executables do).
 //
+// Scenarios of the branch's text work: `ellipsis-dots` (the cut with the
+// ASCII ellipsis "...", `Glyphs.ascii`'s) and, on a terminal whose
+// ambiguous characters take two cells (`FrameScenario.ambiguousWidth`, the
+// rig's canvas and the checking emulator both), `wrap-ambig` and
+// `ellip-ambig`. A scenario that needs an API an older `--baseline`'s core
+// lacks (`ellipsis-dots`: `RenderParagraph.ellipsis`) is left out of the
+// baseline's build, by the stand-in of
+// `tool/frame_scenarios/lib/src/branch_api.dart` copied over it when the
+// build without it fails, and is reported as "not in the baseline".
+//
 // Before a scenario is timed it runs for 64 frames into the test emulator
 // (package:twk_test/vt.dart): a screen that differs from what was painted, or
 // output the emulator rejects, stops the benchmark, so a broken scenario
@@ -21,9 +31,9 @@
 // checked out in a temporary git worktree, and runs the two executables
 // alternately, so load that drifts during the run affects both alike. REF
 // is a commit of this repository, whose history starts with the core at
-// packages/twk_core in a pub workspace with the scenarios' package; a
-// scenario that uses what REF's core lacks makes the build against REF
-// fail, said as such.
+// packages/twk_core in a pub workspace with the scenarios' package; what
+// else of this file or the scenarios uses what REF's core lacks makes the
+// build against REF fail, said as such.
 //
 // On a busy machine timings are noise: pin the run to one core
 // (`taskset -c 23 dart run tool/bench.dart ...`; the executables inherit
@@ -96,7 +106,7 @@ int _measure(_Options opts) {
       stderr.writeln('${s.name}: ${e.message}');
       return 1;
     }
-    final us = _time(s.start(FrameRig(opts.width, opts.height)));
+    final us = _time(s.start(s.rig(opts.width, opts.height)));
     stdout.writeln('${s.name}\t$us\t$bytes');
   }
   if (_sink + scenarioSink == 42) {
@@ -109,7 +119,7 @@ int _measure(_Options opts) {
 /// bytes they wrote; throws [ScenarioBroken] when the screen isn't what was
 /// painted or the emulator rejected the output.
 int _verify(FrameScenario s, int w, int h) {
-  final rig = FrameRig(w, h);
+  final rig = s.rig(w, h);
   final frame = s.start(rig);
   if (!s.write) {
     for (var i = 1; i <= _verifyFrames; i++) {
@@ -119,7 +129,12 @@ int _verify(FrameScenario s, int w, int h) {
   }
   // not strict: every complaint is collected and reported, not just the
   // first
-  final vt = Vt(w, h, strict: false)..feed(rig.presenter.out.view);
+  final vt = Vt(
+    w,
+    h,
+    strict: false,
+    segmenter: TextSegmenter(ambiguousWidth: s.ambiguousWidth),
+  )..feed(rig.presenter.out.view);
   var bytes = 0;
   for (var i = 1; i <= _verifyFrames; i++) {
     bytes += frame(i);
@@ -178,10 +193,7 @@ String? _differs(FrameRig rig, int c, int s, VtCell v) {
     return 'want "$text"/$wantRole got "${v.text}"/${v.role}';
   }
   final styles = rig.styles;
-  final fg = styles.fgOf(s).value;
-  final bg = styles.bgOf(s).value;
-  final attrs = styles.attrsOf(s);
-  final ul = styles.underlineColorOf(s).value;
+  final (:fg, :bg, :attrs, underline: ul, :link) = cellStyleOf(styles, s);
   if (bg != v.bg) {
     return 'bg want ${bg.toRadixString(16)} got ${v.bg.toRadixString(16)}';
   }
@@ -211,7 +223,6 @@ String? _differs(FrameRig rig, int c, int s, VtCell v) {
   if ((attrs & Attr.underlineMask) != 0 && ul != v.ul) {
     return 'ul color';
   }
-  final link = styles.linkOf(s);
   return link != v.link ? 'link want $link got ${v.link}' : null;
 }
 
@@ -299,6 +310,10 @@ Future<int> _run(_Options opts) async {
         await File('$base/$file').parent.create(recursive: true);
         await File('$root/$file').copy('$base/$file');
       }
+      final api = '$root/tool/frame_scenarios/lib/src';
+      final apiAt = '$base/tool/frame_scenarios/lib/src';
+      await Directory(apiAt).create(recursive: true);
+      await File('$api/branch_api.dart').copy('$apiAt/branch_api.dart');
       final get = await Process.run(Platform.resolvedExecutable, [
         'pub',
         'get',
@@ -308,7 +323,15 @@ Future<int> _run(_Options opts) async {
         stderr.write(get.stdout);
         return 1;
       }
-      final exe = await _compile(base, '${tmp.path}/before');
+      var exe = await _compile(base, '${tmp.path}/before', quiet: true);
+      if (exe == null) {
+        // the core of REF may lack what some scenarios use: they drop out
+        // of its build
+        await File(
+          '$api/branch_api_baseline.dart',
+        ).copy('$apiAt/branch_api.dart');
+        exe = await _compile(base, '${tmp.path}/before');
+      }
       if (exe == null) {
         stderr.writeln(
           'bench: this tool/bench.dart does not compile against '
@@ -347,6 +370,9 @@ Future<int> _run(_Options opts) async {
           return 1;
         }
         for (final line in (res.stdout as String).trim().split('\n')) {
+          if (line.isEmpty) {
+            continue; // a build none of whose scenarios was asked for
+          }
           final [name, us, bytes] = line.split('\t');
           (b.us[name] ??= []).add(double.parse(us));
           b.bytes[name] = int.parse(bytes);
@@ -403,7 +429,7 @@ Future<void> _forgetStaleBases(String root) async {
 
 /// Compiles `tool/bench.dart` of the checkout at [dir] to [out]; returns
 /// [out], or null (after printing why) when it doesn't compile.
-Future<String?> _compile(String dir, String out) async {
+Future<String?> _compile(String dir, String out, {bool quiet = false}) async {
   final res = await Process.run(Platform.resolvedExecutable, [
     'compile',
     'exe',
@@ -412,9 +438,11 @@ Future<String?> _compile(String dir, String out) async {
     out,
   ], workingDirectory: dir);
   if (res.exitCode != 0) {
-    stderr
-      ..write(res.stdout)
-      ..write(res.stderr);
+    if (!quiet) {
+      stderr
+        ..write(res.stdout)
+        ..write(res.stderr);
+    }
     return null;
   }
   return out;
@@ -457,23 +485,35 @@ void _report(_Options opts, List<_Build> builds, _Noise noise) {
   if (builds.length == 1) {
     final b = builds.single;
     stdout.writeln(
-      '${'scenario'.padRight(13)}${'µs/frame'.padLeft(10)}'
+      '${'scenario'.padRight(14)}${'µs/frame'.padLeft(10)}'
       '${''.padLeft(6)}${'B/frame'.padLeft(10)}',
     );
     for (final n in names) {
       stdout.writeln(
-        '${n.padRight(13)}${_num(_median(b.us[n]!)).padLeft(10)}'
+        '${n.padRight(14)}${_num(_median(b.us[n]!)).padLeft(10)}'
         '${_spread(b.us[n]!).padLeft(6)}${_bytes(b.bytes[n]!).padLeft(10)}',
       );
     }
   } else {
     final [before, after] = builds;
     stdout.writeln(
-      '${'scenario'.padRight(13)}${'before µs'.padLeft(10)}${''.padLeft(6)}'
+      '${'scenario'.padRight(14)}${'before µs'.padLeft(10)}${''.padLeft(6)}'
       '${'after µs'.padLeft(10)}${''.padLeft(6)}${'ratio'.padLeft(8)}'
       '${'before B'.padLeft(10)}${'after B'.padLeft(10)}',
     );
+    final missing = <String>[];
     for (final n in names) {
+      if (!before.us.containsKey(n)) {
+        missing.add(n);
+        stdout.writeln(
+          '${n.padRight(14)}${'not in the baseline'.padLeft(16)}'
+          '${_num(_median(after.us[n]!)).padLeft(12)}'
+          '${_spread(after.us[n]!).padLeft(6)}'
+          '${''.padLeft(8)}${''.padLeft(10)}'
+          '${_bytes(after.bytes[n]!).padLeft(10)}',
+        );
+        continue;
+      }
       final a = _median(after.us[n]!);
       final b = _median(before.us[n]!);
       final ratio = a / b;
@@ -484,7 +524,7 @@ void _report(_Options opts, List<_Build> builds, _Noise noise) {
         moreBytes.add(n);
       }
       stdout.writeln(
-        '${n.padRight(13)}${_num(b).padLeft(10)}'
+        '${n.padRight(14)}${_num(b).padLeft(10)}'
         '${_spread(before.us[n]!).padLeft(6)}${_num(a).padLeft(10)}'
         '${_spread(after.us[n]!).padLeft(6)}'
         '${'×${ratio.toStringAsFixed(2)}'.padLeft(8)}'
@@ -501,6 +541,10 @@ void _report(_Options opts, List<_Build> builds, _Noise noise) {
       ..writeln(
         'more bytes per frame: '
         '${moreBytes.isEmpty ? 'none' : moreBytes.join(', ')}',
+      )
+      ..writeln(
+        'not in the baseline: '
+        '${missing.isEmpty ? 'none' : missing.join(', ')}',
       );
   }
   stdout
@@ -687,7 +731,11 @@ final class _Options {
       }
     }
     final known = {for (final s in frameScenarios) s.name};
-    final unknown = only?.difference(known) ?? const <String>{};
+    // a baseline's build lacks scenarios the working tree has: it is asked
+    // for them all the same and runs those it has
+    final unknown = measure
+        ? const <String>{}
+        : only?.difference(known) ?? const <String>{};
     if (unknown.isNotEmpty) {
       throw FormatException(
         'no scenario ${unknown.join(', ')} (there are ${known.join(', ')})',

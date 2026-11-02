@@ -13,21 +13,21 @@ text
 │     DockArea              ▐                                                              │                             │
 │     Scaffold              ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  theme                      │
 │                           ▐                                                              │   terminal  dark  light     │
-│   STYLE                4       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   nord  mocha  latte        │
-│ ▎   Theme                        ┌                                                ┐      │                             │
-│     TerminalBrightness         ·   ╭ nord ──────────────────────────────────────╮        │  cycle               ▐●  ▌  │
-│     GradientBackground             │  text  muted  primary  accent  border      │        │                             │
-│     GradientForeground         ·   │  error  warning  success  info             │        │                             │
-│                                    │                                            │        │                             │
-│   SCROLLING            5       ·   │  ╭ surface ─────────────────────────────╮  │        │                             │
-│     SingleChildScrollVi…           │  │ a panel, with  selection  in it      │  │        │                             │
-│     Scrollable                 ·   │  ╰──────────────────────────────────────╯  │        │                             │
-│     ListView                       │                                            │        │                             │
-│     LogView                    ·   │   Button    [x] Checkbox   ▐  ●▌ Switch    │        │                             │
-│     Scrollbar                      ╰────────────────────────────────────────────╯        │                             │
-│                                · └                                                ┘      │                             │
-│   DATA                13                                                   46 × 10       │                             │
-│     Sparkline                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│   STYLE                4       · ┌                                                ┐      │   nord  mocha  latte        │
+│ ▎   Theme                          ╭ nord ──────────────────────────────────────╮        │                             │
+│     TerminalBrightness         ·   │  text  muted  primary  accent  border      │        │  cycle               ▐●  ▌  │
+│     GradientBackground             │  error  warning  success  info             │        │                             │
+│     GradientForeground         ·   │                                            │        │  glyphs                     │
+│                                    │  ╭ surface ─────────────────────────────╮  │        │   unicode  ascii            │
+│   SCROLLING            5       ·   │  │ a panel, with  selection  in it      │  │        │                             │
+│     SingleChildScrollVi…           │  ╰──────────────────────────────────────╯  │        │                             │
+│     Scrollable                 ·   │                                            │        │                             │
+│     ListView                       │   Button    [x] Checkbox   ▐  ●▌ Switch    │        │                             │
+│     LogView                    ·   │                                            │        │                             │
+│     Scrollbar                      │  ✓ Saved  ──────────────────╴────────────  │        │                             │
+│                                ·   ╰────────────────────────────────────────────╯        │                             │
+│   DATA                13         └                                                ┘      │                             │
+│     Sparkline                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   46 × 12 ·     │                             │
 │     Gauge, LineGauge                                                                     │                             │
 │     BarChart                   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     Chart                                                                                │                             │
@@ -50,21 +50,21 @@ styles
 │aaaaaooooooooaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhsttttttttssttttsstttttshhhh│
-│aaadddddaaaaaaaaaaaaaaaaVaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhZ0000Zstttttsstttttshhhhhhh│
-│a1ZZZ00000ZZZZZZZZZZZZZZZZZahhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooooooooaaaaahhhhphhhxyzzzzyxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxhhhhhhhhphhnnnnnhhhhhhhhhhhhhhhABCCAhh│
-│aaaaaooooooooooooooooooaaaaahhhhhhhhxyyDDDDyy22222yyFFFFFFFyyGGGGGGyyxxxxxxyyyyyyxhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooooooooaaaaahhhhphhhxyyHHHHHyyIIIIIIIyyJJJJJJJyyKKKKyyyyyyyyyyyyyxhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhxyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyxhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaadddddddddaaaaaaaaaaaaVaaahhhhphhhxyyLM3333333MLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLyyxhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooooooooooaaahhhhhhhhxyyLMOMOOOOOOMOOOOM45555555554MOOMOOMMMMMMLyyxhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooaaaaaaaaaaaaahhhhphhhxyyLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLyyxhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhxyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyxhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaaaaaaaaaaaaaaaahhhhphhhxyyMRRRRRRMyyy2S2yDDDDDDDDyyyFTTUFyDDDDDDyyyyxhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaddddaaaaaaaaaaaaaaaaVVaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhYYhYhYYhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddaaaaaaaaaaaaaaaaVaaahhhhphphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhphhZ0000Zstttttsstttttshhhhhhh│
+│a1ZZZ00000ZZZZZZZZZZZZZZZZZahhhhhhhhxyzzzzyxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooaaaaahhhhphhhxyyDDDDyy22222yyFFFFFFFyyGGGGGGyyxxxxxxyyyyyyxhhhhhhhhphhnnnnnhhhhhhhhhhhhhhhABCCAhh│
+│aaaaaooooooooooooooooooaaaaahhhhhhhhxyyHHHHHyyIIIIIIIyyJJJJJJJyyKKKKyyyyyyyyyyyyyxhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooaaaaahhhhphhhxyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyxhhhhhhhhphhnnnnnnhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhxyyLM3333333MLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLyyxhhhhhhhhphhZ0000000Zstttttshhhhhhhhhhh│
+│aaadddddddddaaaaaaaaaaaaVaaahhhhphhhxyyLMOMOOOOOOMOOOOM45555555554MOOMOOMMMMMMLyyxhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooooooooaaahhhhhhhhxyyLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLyyxhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhphhhxyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyxhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhxyyMRRRRRRMyyy2S2yDDDDDDDDyyyFTTUFyDDDDDDyyyyxhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhphhhxyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyxhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhxyyeyDDDDDyyDDDDDDDDDDDDDDDDDDDjjjjjjjjjjjjyyxhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddaaaaaaaaaaaaaaaaVVaaahhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhYYhYhYYhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooaoooooooooaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
@@ -99,13 +99,13 @@ Z on #b6d4fe
 x #4c566a on #2e3440
 y on #2e3440
 z bold #d8dee9 on #2e3440
-A #c8cdd5 on #fafafb
-B #ffffff on #c8cdd5
-C on #c8cdd5
 D #d8dee9 on #2e3440
 2 #949aa5 on #2e3440
 F #88c0d0 on #2e3440
 G #b48ead on #2e3440
+A #c8cdd5 on #fafafb
+B #ffffff on #c8cdd5
+C on #c8cdd5
 H #bf616a on #2e3440
 I #ebcb8b on #2e3440
 J #a3be8c on #2e3440
@@ -120,3 +120,5 @@ R bold #88c0d0 on #3b4252
 S bold #88c0d0 on #2e3440
 T on #88c0d0
 U #ffffff on #88c0d0
+e bold #a3be8c on #2e3440
+j dim #d8dee9 on #2e3440

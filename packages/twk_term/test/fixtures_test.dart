@@ -213,11 +213,11 @@ void main() {
     expect(t.scrollbackLength, greaterThan(0));
     final first = t.scrollbackLine(0);
     expect(first.text(t.glyphs), startsWith('* a69eb9e Pick files'));
-    expect(t.styles.fgOf(first.styles[2]), Color.yellow);
-    expect(t.styles.fgOf(first.styles[10]), Color.defaultColor);
+    expect(t.styles.fgOf(StyleId(first.styles[2])), Color.yellow);
+    expect(t.styles.fgOf(StyleId(first.styles[10])), Color.defaultColor);
     final last = t.line(t.cursorY - 1);
     final name = last.text(t.glyphs).indexOf('(Andrii');
-    expect(t.styles.fgOf(last.styles[name]), Color.blue);
+    expect(t.styles.fgOf(StyleId(last.styles[name])), Color.blue);
   });
 
   group('chat_demo, a twk_core app', () {

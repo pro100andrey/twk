@@ -33,9 +33,23 @@ Shot show(
 }
 
 void main() {
+  test('either gauge shows nothing beside its fill without a label or the '
+      'percentage, and takes a label or the percentage, not both', () {
+    expect(show(RenderGauge(ratio: 0.5), 6).rows, ['███']);
+    expect(show(RenderLineGauge(ratio: 0.5), 4).rows, ['────']);
+    expect(
+      () => Gauge(ratio: 0.5, label: 'a', showPercentage: true),
+      throwsA(isA<AssertionError>()),
+    );
+    expect(
+      () => LineGauge(ratio: 0.5, label: 'a', showPercentage: true),
+      throwsA(isA<AssertionError>()),
+    );
+  });
+
   group('Gauge', () {
     test('fills the ratio of its width, the percentage in the middle', () {
-      final shot = show(RenderGauge(ratio: 0.5), 10);
+      final shot = show(RenderGauge(ratio: 0.5, showPercentage: true), 10);
       expect(shot.rows, ['███50%']);
       // swapped over the filled part
       expect(shot.attrs(0), [
@@ -54,7 +68,7 @@ void main() {
 
     test('fills to the nearest eighth of a cell', () {
       String bar(double ratio) =>
-          show(RenderGauge(ratio: ratio, label: ''), 10).rows.single;
+          show(RenderGauge(ratio: ratio), 10).rows.single;
       expect(bar(0.55), '█████▌');
       expect(bar(0.0125), '▏');
       expect(bar(0.99), '█████████▉');
@@ -63,7 +77,7 @@ void main() {
 
     test('fills in braille halves where eighth blocks are two columns', () {
       final shot = show(
-        RenderGauge(ratio: 0.55, label: ''),
+        RenderGauge(ratio: 0.55),
         10,
         ambiguousWidth: 2,
       );
@@ -77,15 +91,28 @@ void main() {
     });
 
     test('takes a ratio beyond 0 and 1 as the nearest', () {
-      expect(show(RenderGauge(ratio: 1.5), 6).rows, ['█100%█']);
-      expect(show(RenderGauge(ratio: -1), 6).rows, ['  0%']);
-      expect(show(RenderGauge(ratio: double.nan), 6).rows, ['  0%']);
+      expect(show(RenderGauge(ratio: 1.5, showPercentage: true), 6).rows, [
+        '█100%█',
+      ]);
+      expect(show(RenderGauge(ratio: -1, showPercentage: true), 6).rows, [
+        '  0%',
+      ]);
+      expect(
+        show(RenderGauge(ratio: double.nan, showPercentage: true), 6).rows,
+        [
+          '  0%',
+        ],
+      );
     });
 
     test('writes the percentage cut, as a ProgressList does: 100% only '
         'once it is full', () {
-      expect(show(RenderGauge(ratio: 0.996), 6).rows, ['█99%██']);
-      expect(show(RenderGauge(ratio: 0.29), 6).rows, ['█29%']);
+      expect(show(RenderGauge(ratio: 0.996, showPercentage: true), 6).rows, [
+        '█99%██',
+      ]);
+      expect(show(RenderGauge(ratio: 0.29, showPercentage: true), 6).rows, [
+        '█29%',
+      ]);
     });
 
     test('cuts the label off at its edges', () {
@@ -112,7 +139,7 @@ void main() {
     });
 
     test('repaints when a property changes', () {
-      final gauge = RenderGauge(ratio: 0.5, label: '');
+      final gauge = RenderGauge(ratio: 0.5);
       final shot = show(gauge, 4);
       expect(shot.rows, ['██']);
       gauge.ratio = 0.75;
@@ -142,7 +169,7 @@ void main() {
       Widget tree(double ratio) => Column(
         children: [
           Counted(count),
-          Gauge(ratio: ratio, label: ''),
+          Gauge(ratio: ratio),
         ],
       );
       final v = View(4, 2)..pump(tree(0.25));
@@ -153,7 +180,7 @@ void main() {
     });
 
     test('rebuilt, configures the same render object', () {
-      final v = View(4, 1)..pump(const Gauge(ratio: 0.5, label: ''));
+      final v = View(4, 1)..pump(const Gauge(ratio: 0.5));
       final gauge = v.top;
       v.pump(
         const Gauge(
@@ -232,10 +259,16 @@ void main() {
       double ratio,
       int width, {
       String? label,
+      bool showPercentage = false,
       BorderType type = BorderType.single,
       int ambiguousWidth = 1,
     }) => show(
-      RenderLineGauge(ratio: ratio, label: label, type: type),
+      RenderLineGauge(
+        ratio: ratio,
+        label: label,
+        showPercentage: showPercentage,
+        type: type,
+      ),
       width,
       ambiguousWidth: ambiguousWidth,
     ).rows.single;
@@ -244,6 +277,7 @@ void main() {
       final shot = show(
         RenderLineGauge(
           ratio: 0.5,
+          showPercentage: true,
           filledStyle: const Style(fg: red),
           unfilledStyle: const Style(fg: grey),
         ),
@@ -261,20 +295,53 @@ void main() {
     });
 
     test('writes the percentage cut: 100% only once it is full', () {
-      expect(line(0.996, 8), '99% ━━━━'.replaceAll('━', '─'));
-      expect(line(1, 8), '100% ───');
+      expect(
+        line(0.996, 8, showPercentage: true),
+        '99% ━━━━'.replaceAll('━', '─'),
+      );
+      expect(line(1, 8, showPercentage: true), '100% ───');
     });
 
+    test('an empty half mark is no half cell: whole cells, not a - line', () {
+      final shot = show(
+        RenderLineGauge(
+          ratio: 0.45,
+          glyphs: Glyphs.unicode.copyWith(gaugeHalf: ''),
+        ),
+        10,
+      );
+      expect(shot.rows, ['──────────'.substring(0, 10)]);
+    });
+
+    test(
+      'Glyphs.ascii has no half mark, spelled empty like any optional one',
+      () {
+        expect(Glyphs.ascii.gaugeHalf, '');
+        final shot = show(
+          RenderLineGauge(ratio: 0.44, glyphs: Glyphs.ascii),
+          10,
+        );
+        expect(shot.rows, ['====------']);
+      },
+    );
+
     test('fills to the nearest half cell where the type has one', () {
-      expect(line(0.45, 14), '45% ────╴─────');
-      expect(line(0.45, 14, type: BorderType.heavy), '45% ━━━━╸━━━━━');
-      expect(line(0.05, 14, type: BorderType.rounded), '5% ╴──────────');
+      expect(line(0.45, 14, showPercentage: true), '45% ────╴─────');
+      expect(
+        line(0.45, 14, showPercentage: true, type: BorderType.heavy),
+        '45% ━━━━╸━━━━━',
+      );
+      expect(
+        line(0.05, 14, showPercentage: true, type: BorderType.rounded),
+        '5% ╴──────────',
+      );
     });
 
     test('fills whole cells where it has none', () {
       final shot = show(
         RenderLineGauge(
           ratio: 0.45,
+          showPercentage: true,
           type: BorderType.double,
           filledStyle: const Style(fg: red),
         ),
@@ -286,27 +353,31 @@ void main() {
     });
 
     test('draws ASCII where box drawing is two columns wide', () {
-      expect(line(0.45, 14, ambiguousWidth: 2), '45% ----------');
+      expect(
+        line(0.45, 14, showPercentage: true, ambiguousWidth: 2),
+        '45% ----------',
+      );
     });
 
     test('without a label, from the left edge', () {
+      expect(line(0.5, 4), '────');
       expect(line(0.5, 4, label: ''), '────');
       expect(line(0.5, 6, label: 'ab'), 'ab ─╴─');
     });
 
     test('cuts the label off at the right edge', () {
-      expect(line(0.5, 3), '50%');
-      expect(line(0.5, 4), '50%');
+      expect(line(0.5, 3, showPercentage: true), '50%');
+      expect(line(0.5, 4, showPercentage: true), '50%');
       expect(line(0.5, 2, label: 'abc'), 'ab');
     });
 
     test('on the middle row', () {
-      final shot = show(RenderLineGauge(ratio: 1, label: ''), 2, height: 3);
+      final shot = show(RenderLineGauge(ratio: 1), 2, height: 3);
       expect(shot.rows, ['', '──', '']);
     });
 
     test('repaints when a property changes', () {
-      final gauge = RenderLineGauge(ratio: 0.5, label: '');
+      final gauge = RenderLineGauge(ratio: 0.5);
       final shot = show(gauge, 4);
       gauge.type = BorderType.heavy;
       shot.frame();
@@ -348,7 +419,11 @@ void main() {
       await t.pumpWidget(
         const Theme(
           data: theme,
-          child: LineGauge(ratio: 0.5, filledStyle: Style(fg: red)),
+          child: LineGauge(
+            ratio: 0.5,
+            showPercentage: true,
+            filledStyle: Style(fg: red),
+          ),
         ),
         size: (8, 1),
       );
@@ -369,7 +444,11 @@ void main() {
         data: theme,
         child: DefaultTextStyle(
           style: style,
-          child: const LineGauge(ratio: 0.5, filledStyle: Style(fg: red)),
+          child: const LineGauge(
+            ratio: 0.5,
+            showPercentage: true,
+            filledStyle: Style(fg: red),
+          ),
         ),
       );
       await t.pumpWidget(tree(const Style(bg: grey)), size: (8, 1));

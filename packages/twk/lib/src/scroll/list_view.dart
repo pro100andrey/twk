@@ -46,7 +46,8 @@ typedef ChildIndexGetter = int? Function(Key key);
 /// out, the later wins. Given to no list, it keeps the last move to an
 /// item asked for until it is given to one, which makes that move as it is
 /// first laid out, in place of its [initialOffset]; a [jumpTo] meanwhile
-/// drops it.
+/// drops it. A move to an item that changes the offset sends a
+/// [ScrollUpdateNotification] up, as a [jumpTo] does.
 ///
 /// A list of a thousand items that opens at item 500:
 ///
@@ -189,6 +190,8 @@ final class ListController extends ScrollController {
 ///  * `LogView`, a list of log lines that follows its end.
 ///  * `SingleChildScrollView`, for content short enough to build whole.
 ///  * `Scrollbar`, which shows where the list is.
+///  * "A row of a list" in doc/guides/layout.md, for an item of a label that
+///    gives way and something fixed after it.
 final class ListView extends StatelessWidget {
   /// A list of [children], for a short list: the widgets are made at
   /// once, by the caller, and built as they come into view:
@@ -209,6 +212,7 @@ final class ListView extends StatelessWidget {
     this.autofocus = false,
     this.canRequestFocus,
     this.wheelAcceleration = WheelAcceleration.none,
+    this.physics,
     this.keyHints = true,
     this.reverse = false,
   }) : itemCount = children.length,
@@ -249,6 +253,7 @@ final class ListView extends StatelessWidget {
     this.autofocus = false,
     this.canRequestFocus,
     this.wheelAcceleration = WheelAcceleration.none,
+    this.physics,
     this.keyHints = true,
     this.reverse = false,
     ChildIndexGetter? findChildIndexCallback,
@@ -285,6 +290,7 @@ final class ListView extends StatelessWidget {
     this.autofocus = false,
     this.canRequestFocus,
     this.wheelAcceleration = WheelAcceleration.none,
+    this.physics,
     this.keyHints = true,
     this.reverse = false,
     this.findItemIndexCallback,
@@ -355,6 +361,9 @@ final class ListView extends StatelessWidget {
   /// See [Scrollable.wheelAcceleration].
   final WheelAcceleration wheelAcceleration;
 
+  /// See [Scrollable.physics].
+  final ScrollPhysics? physics;
+
   /// Whether the keys that would scroll it carry their hints, for a
   /// `KeyHintsBar`, true by default: none while all of it is in the window
   /// ([Scrollable.keyHints]).
@@ -384,6 +393,7 @@ final class ListView extends StatelessWidget {
       autofocus: autofocus,
       canRequestFocus: canRequestFocus,
       wheelAcceleration: wheelAcceleration,
+      physics: physics,
       keyHints: keyHints,
       reverse: reverse,
       viewportBuilder: (context, position) {
@@ -651,12 +661,17 @@ final class _ListElement extends RenderObjectElement
     _toTop = null;
     final p = _position!;
     if (!widget.view.reverse) {
-      p.applyExtents(viewport, content, offset: offset);
+      p.applyExtents(viewport, content, offset: offset, moved: toItem);
     } else if (!p.hasExtents && p.offset > 0 && !toItem) {
       p.applyExtents(viewport, content);
     } else {
       final max = content - viewport > 0 ? content - viewport : 0;
-      p.applyExtents(viewport, content, offset: max - offset);
+      p.applyExtents(
+        viewport,
+        content,
+        offset: max - offset,
+        moved: toItem,
+      );
     }
   }
 
@@ -952,11 +967,11 @@ final class _ListElement extends RenderObjectElement
     int k,
   ) {
     final byKey = <Key, Element>{};
-    live.forEach((_, e) {
+    for (final e in live.values) {
       if (_keyOf(e) case final key?) {
         byKey[key] = e;
       }
-    });
+    }
     for (var j = 0; j < k; j++) {
       if (items[j] case final taken?) {
         if (_keyOf(taken) case final key? when identical(byKey[key], taken)) {

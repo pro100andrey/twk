@@ -30,6 +30,13 @@ final _lookOption = ChoiceOption(
   values: [for (final l in PanelLook.values) l.name],
 );
 
+/// The themes the App page gives its App, by name.
+const Map<String, ThemeData> _appThemes = {
+  'nord': ThemeData.nord,
+  'light': ThemeData.light,
+  'dark': ThemeData.dark,
+};
+
 /// The look [o] chooses.
 PanelLook _lookOf(Options o) => PanelLook.values.byName(o.choice('look'));
 
@@ -110,6 +117,60 @@ final overlayPages = [
       "      Span(' of the overlay', Theme.of(context).muted),",
       '    ]),',
       '  ],',
+      ');',
+    ].join('\n'),
+  ),
+  GalleryPage(
+    group: 'Overlays',
+    title: 'App',
+    options: [
+      const ChoiceOption('theme', 'theme', values: ['nord', 'light', 'dark']),
+    ],
+    build: (context, o) => App(
+      theme: _appThemes[o.choice<String>('theme')],
+      // a context below the App: its Overlay is the one the dialog shows in
+      child: Builder(
+        builder: (context) => Button(
+          'Ask',
+          onPressed: () => unawaited(
+            showDialog<void>(
+              context,
+              (context) => Dialog(
+                title: 'In the theme',
+                child: Button(
+                  'OK',
+                  autofocus: true,
+                  onPressed: () => closeDialog(context),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+    code: (o) => [
+      '@override',
+      'Widget build(BuildContext context) => App(',
+      '  theme: ThemeData.${o.label('theme')},',
+      '  // a context below the App: its Overlay is the one the dialog shows in',
+      '  child: Builder(',
+      '    builder: (context) => Button(',
+      "      'Ask',",
+      '      onPressed: () => unawaited(',
+      '        showDialog<void>(',
+      '          context,',
+      '          (context) => Dialog(',
+      "            title: 'In the theme',",
+      '            child: Button(',
+      "              'OK',",
+      '              autofocus: true,',
+      '              onPressed: () => closeDialog(context),',
+      '            ),',
+      '          ),',
+      '        ),',
+      '      ),',
+      '    ),',
+      '  ),',
       ');',
     ].join('\n'),
   ),
@@ -401,12 +462,20 @@ final overlayPages = [
       const ChoiceOption('width', 'width', values: [40, 60], initial: 40),
       const ChoiceOption('rows', 'rows', values: [3, 10], initial: 10),
       const SwitchOption('files', 'files', initial: true),
+      const SwitchOption('rule', 'rule'),
+      const SwitchOption('bar', 'bar'),
+      const SwitchOption('thumb', 'thumb'),
+      const SwitchOption('placeholder', 'placeholder'),
       _lookOption,
     ],
     build: (context, o) => _Palette(
       width: o.choice('width'),
       rows: o.choice('rows'),
       files: o.flag('files'),
+      rule: o.flag('rule'),
+      bar: o.flag('bar'),
+      thumb: o.flag('thumb'),
+      placeholder: o.flag('placeholder'),
       look: _lookOf(o),
     ),
     code: (o) => [
@@ -443,6 +512,10 @@ final overlayPages = [
       '  width: ${o.label('width')},',
       if (o.choice<int>('rows') != 10) '  rows: ${o.label('rows')},',
       ..._lookLine(o, '  '),
+      if (o.flag('placeholder')) "  placeholder: 'type a command',",
+      if (o.flag('rule')) '  rule: true,',
+      if (o.flag('bar')) '  bar: true,',
+      if (o.flag('thumb')) '  thumb: true,',
       '  commands: [',
       "    Command('Build', onSelected: _build),",
       "    Command('Run tests', onSelected: _test),",
@@ -1533,12 +1606,22 @@ final class _Palette extends StatefulWidget {
     required this.width,
     required this.rows,
     required this.files,
+    required this.rule,
+    required this.bar,
+    required this.thumb,
+    required this.placeholder,
     required this.look,
   });
 
   final int width;
   final int rows;
   final PanelLook look;
+
+  /// The palette's rule, bar, thumb and placeholder.
+  final bool rule;
+  final bool bar;
+  final bool thumb;
+  final bool placeholder;
 
   /// Whether commandsFor finds the files that match.
   final bool files;
@@ -1584,6 +1667,10 @@ final class _PaletteState extends State<_Palette> {
     width: widget.width,
     rows: widget.rows,
     look: widget.look,
+    placeholder: widget.placeholder ? 'type a command' : null,
+    rule: widget.rule,
+    bar: widget.bar,
+    thumb: widget.thumb,
     commands: [
       Command('Build', onSelected: _build),
       Command('Run tests', onSelected: _test),

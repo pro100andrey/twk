@@ -8,7 +8,9 @@ import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
+import '../../example/guides/cell_text.dart' show CellText;
 import '../../example/guides/focus.dart' show SignIn;
+import '../../example/guides/glyphs.dart' show Report;
 import '../../example/guides/inline.dart' show Prompt;
 import '../../example/guides/layout.dart' show Layout;
 import '../../example/guides/theming.dart' show Status;
@@ -47,10 +49,19 @@ void shows(String name, String screen) =>
     expect(guide(name), contains('```text\n$screen```'));
 
 void main() {
-  test('there are guides', () => expect(guides, hasLength(7)));
+  test('the guides are those the index lists', () {
+    final listed = RegExp(
+      r'\]\(guides/([a-z-]+\.md)\)',
+    ).allMatches(File('$root/doc/README.md').readAsStringSync());
+    expect(guides, isNotEmpty);
+    expect(
+      [for (final f in guides) f.uri.pathSegments.last],
+      unorderedEquals({for (final m in listed) m[1]!}),
+    );
+  });
 
   for (final file in guides) {
-    final name = file.path.split('/').last;
+    final name = file.uri.pathSegments.last;
     test('$name: each Dart block is the file it names', () {
       final blocks = _dart.allMatches(file.readAsStringSync()).toList();
       for (final block in blocks) {
@@ -86,6 +97,32 @@ void main() {
 ''';
     expect(t, matchesScreen(screen));
     shows('layout.md', screen);
+    await t.press('q');
+    expect(t.isRunning, isFalse);
+  });
+
+  testTwk('cell text: a cut, a background, a gutter, a pad, a space', (
+    t,
+  ) async {
+    await t.pumpWidget(
+      const CellText(),
+      size: (20, 7),
+      backgroundRgb: 0x16181d,
+    );
+    const screen = '''
+Warnings (1…
+ NORMAL
+│ A quotation with
+│ 你好世界 that
+│ wraps over lines.
+[你好      ]
+◐|◐ |
+''';
+    expect(t, matchesScreen(screen));
+    shows('layout.md', screen);
+    // the background is the row's, to its last cell, not its text's
+    expect(t, styleAt(19, 1, hasBg(Color.blue)));
+    expect(t, isNot(styleAt(0, 2, hasBg(Color.blue))));
     await t.press('q');
     expect(t.isRunning, isFalse);
   });
@@ -145,6 +182,25 @@ ctrl+z undo   ctrl+s save   ctrl+q quit
       backgroundRgb: 0x16181d,
     );
     expect(t, styleAt(2, 2, hasFg(ThemeData.dark.success.fg!)));
+  });
+
+  testTwk('glyphs: the report in ASCII with a check of its own', (t) async {
+    await t.pumpWidget(
+      Theme(
+        data: ThemeData.dark.copyWith(
+          glyphs: Glyphs.ascii.copyWith(check: '+'),
+        ),
+        child: const Report(),
+      ),
+      size: (30, 4),
+      backgroundRgb: 0x16181d,
+    );
+    expect(t.lines.map((l) => l.trimRight()), [
+      '+ Built in 2 s',
+      '! 3 files skipped',
+      'upload  =============---------',
+      '[x] Publish',
+    ]);
   });
 
   testTwk('inline: the lines sent go to the scrollback, the field stays', (

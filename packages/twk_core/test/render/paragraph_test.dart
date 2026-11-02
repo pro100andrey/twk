@@ -81,7 +81,9 @@ final class View {
 
   /// The foreground of the cell at [x], [y].
   Color fgAt(int x, int y) {
-    final fg = screen.styles.fgOf(screen.surface.styles[y * width + x]);
+    final fg = screen.styles.fgOf(
+      StyleId(screen.surface.styles[y * width + x]),
+    );
     expect(vt.cell(x, y).fg, fg.value, reason: 'the color the terminal shows');
     return fg;
   }
@@ -149,7 +151,7 @@ void main() {
       final v = View(6, 2);
       const hl = Pen(bg: red);
       Color? bg(int x, int y) =>
-          v.screen.styles.bgOf(v.screen.surface.styles[y * 6 + x]);
+          v.screen.styles.bgOf(StyleId(v.screen.surface.styles[y * 6 + x]));
       // one line
       v.show(RenderParagraph([('ab  ', hl)]));
       expect([bg(1, 0), bg(2, 0)], [red, isNot(red)]);
@@ -509,7 +511,7 @@ void main() {
         ['aa  bb cc', 'dd'],
       );
       Color bg(int x) {
-        final s = v.screen.surface.styles[x];
+        final s = StyleId(v.screen.surface.styles[x]);
         expect(v.vt.cell(x, 0).bg, v.screen.styles.bgOf(s).value);
         return v.screen.styles.bgOf(s);
       }
@@ -652,9 +654,9 @@ void main() {
       List<(Color, Color?, int)> cells(Screen s) => [
         for (var x = 0; x < 2; x++)
           (
-            s.styles.fgOf(s.surface.styles[x]),
-            s.styles.bgOf(s.surface.styles[x]),
-            s.styles.attrsOf(s.surface.styles[x]),
+            s.styles.fgOf(StyleId(s.surface.styles[x])),
+            s.styles.bgOf(StyleId(s.surface.styles[x])),
+            s.styles.attrsOf(StyleId(s.surface.styles[x])),
           ),
       ];
       final shown = [

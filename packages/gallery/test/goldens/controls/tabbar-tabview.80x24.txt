@@ -18,10 +18,10 @@ text
 │     ListTile                                                     40 × 7        │
 │     StatusBar           ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
 │                                                                                │
-│   OVERLAYS      11   ──────────────────────────────────────────────────────────│
+│   OVERLAYS      12   ──────────────────────────────────────────────────────────│
 │     Overlay            tabs   3  7                                             │
-│     Dialog             look   plain  strip                                     │
-│     Toast                                                                      │
+│     App                look   plain  strip                                     │
+│     Dialog                                                                     │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -45,8 +45,8 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaddddddddaaaaaaxxaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnnaaaaaaaaaaggmmmmggrsrhwhgggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnaaaaaaaaaaaggmmmmggrsssssrhwwwwwhgggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnaaaaaaaaaaaaaaggmmmmggrsssssrhwwwwwhgggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

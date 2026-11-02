@@ -121,7 +121,7 @@ void main() {
         'its throw, which it throws again', () async {
       final (tracker, _) = tracked();
       final finished = <String>[];
-      tracker.onTaskFinished.listen((t) => finished.add(t.summary));
+      tracker.onTaskFinished.listen((t) => finished.add(t.summary()));
       final got = await tracker.run('Build', (task) async {
         expect(task.status, TaskStatus.running);
         await Future<void>.delayed(Duration.zero);
@@ -164,13 +164,32 @@ void main() {
       )..advance(1200000);
       await clock.elapse(const Duration(milliseconds: 2100));
       download.done();
-      expect(download.summary, '✓ assets.zip • 3.4/3.4 MB • 2.1 s');
+      expect(download.summary(), '✓ assets.zip • 3.4/3.4 MB • 2.1 s');
       final files = tracker.add('files', total: 40)..update(12);
       await clock.elapse(const Duration(minutes: 1, seconds: 5));
       files.fail();
-      expect(files.summary, '✗ files • 12/40 • 01:05');
-      expect(tracker.add('wait').summary, '◦ wait');
+      expect(files.summary(), '✗ files • 12/40 • 01:05');
+      expect(tracker.add('wait').summary(), '◦ wait');
     });
+
+    test(
+      'summary(byteUnits:) counts bytes by 1024, as the list does',
+      () async {
+        final (tracker, clock) = tracked();
+        final download = tracker.add(
+          'assets.zip',
+          total: 3 * 1048576,
+          unit: ProgressUnit.bytes,
+        )..advance(1048576);
+        await clock.elapse(const Duration(milliseconds: 2100));
+        download.done();
+        expect(download.summary(), '✓ assets.zip • 3.1/3.1 MB • 2.1 s');
+        expect(
+          download.summary(byteUnits: ByteUnits.binary),
+          '✓ assets.zip • 3.0/3.0 MiB • 2.1 s',
+        );
+      },
+    );
   });
 
   group('ProgressList', () {
@@ -340,6 +359,34 @@ void main() {
       task.advance(0);
       await t.pump(ms);
       expect(t.terminal.frames.length, before);
+    });
+
+    testTwk('byteUnits: binary writes amount and rate in KiB and MiB', (
+      t,
+    ) async {
+      final tracker = onApp(t);
+      final task = tracker.add(
+        'Upload',
+        total: 10 * 1048576,
+        unit: ProgressUnit.bytes,
+      );
+      await t.pumpWidget(
+        ProgressList(
+          tracker: tracker,
+          byteUnits: ByteUnits.binary,
+          columns: const [
+            ProgressColumn.label,
+            ProgressColumn.count,
+            ProgressColumn.rate,
+          ],
+        ),
+        size: (60, 1),
+      );
+      task.start();
+      await t.pump(s);
+      task.update(1.5 * 1048576 ~/ 1);
+      await t.pump(SpinnerFrames.dots.interval);
+      expect(t.lines, ['Upload 1.5/10.0 MiB • 1.5 MiB/s']);
     });
 
     testTwk('rate and the time left move with the clock of the app', (

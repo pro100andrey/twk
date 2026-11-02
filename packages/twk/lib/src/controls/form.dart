@@ -519,7 +519,7 @@ final class TextFormField extends FormField<String> {
     String? placeholder,
     String? semanticsLabel,
     bool obscureText = false,
-    String obscuringCharacter = '•',
+    String? obscuringCharacter,
     int? maxLength,
     void Function(String text)? onChanged,
     FocusNode? focusNode,

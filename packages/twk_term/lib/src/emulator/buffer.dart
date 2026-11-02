@@ -4,15 +4,16 @@ library;
 
 import 'dart:typed_data';
 
-import 'package:twk_core/twk_core.dart' show GlyphTable, kBlank, kCont, kWide;
+import 'package:twk_core/twk_core.dart'
+    show GlyphTable, StyleId, kBlank, kCont, kWide;
 
 /// One row of the screen or of the scrollback, its cells as a `Surface`
 /// keeps them: per column a glyph word (a glyph id with `kWide` on the
 /// leading half of a two-column glyph, `kCont` on its trailing half and
 /// `kUncertain` where terminals disagree about its width) and a style id.
 final class TerminalLine {
-  /// A line of [width] blank cells in [style], 0 the default style.
-  TerminalLine(int width, [int style = 0])
+  /// A line of [width] blank cells in [style], [StyleId.base] by default.
+  TerminalLine(int width, [StyleId style = StyleId.base])
     : cells = Uint32List(width),
       styles = Uint32List(width) {
     clear(style);
@@ -32,7 +33,7 @@ final class TerminalLine {
   int get width => cells.length;
 
   /// Every cell blank in [style], not wrapped.
-  void clear(int style) {
+  void clear(StyleId style) {
     final n = cells.length;
     if (_blanks.length < n) {
       _blanks = Uint32List(n)..fillRange(0, n, kBlank);
@@ -40,10 +41,10 @@ final class TerminalLine {
     }
     // block copies: fillRange is a loop of stores
     cells.setRange(0, n, _blanks);
-    if (style == 0) {
+    if (style == StyleId.base) {
       styles.setRange(0, n, _zeros);
     } else {
-      styles.fillRange(0, n, style);
+      styles.fillRange(0, n, style.value);
     }
     wrapped = false;
   }
@@ -53,7 +54,7 @@ final class TerminalLine {
 
   /// Cells [from, to) blank in [style]; a two-column glyph cut by either
   /// end is blanked whole.
-  void erase(int from, int to, int style) {
+  void erase(int from, int to, StyleId style) {
     final w = cells.length;
     var a = from < 0 ? 0 : from;
     var b = to > w ? w : to;
@@ -67,7 +68,7 @@ final class TerminalLine {
       b++;
     }
     cells.fillRange(a, b, kBlank);
-    styles.fillRange(a, b, style);
+    styles.fillRange(a, b, style.value);
   }
 
   /// Blanks whatever two-column glyph column [x] is a half of.
@@ -88,7 +89,7 @@ final class TerminalLine {
 
   /// Cut or padded with blanks in [style] to [width] columns; a two-column
   /// glyph cut by the new edge is blanked.
-  void resize(int width, int style) {
+  void resize(int width, StyleId style) {
     final old = cells.length;
     if (width == old) {
       return;
@@ -100,7 +101,7 @@ final class TerminalLine {
     s.setRange(0, keep, styles);
     if (width > old) {
       c.fillRange(old, width, kBlank);
-      s.fillRange(old, width, style);
+      s.fillRange(old, width, style.value);
     } else if (width > 0 && (c[width - 1] & kWide) != 0) {
       c[width - 1] = kBlank;
     }

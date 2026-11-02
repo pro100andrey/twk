@@ -1,8 +1,7 @@
 /// What is on or off: [Checkbox] and [Switch].
 library;
 
-import 'package:twk_core/twk_core.dart'
-    show Brightness, Color, TextOverflow, TextWrap;
+import 'package:twk_core/twk_core.dart' show Attr, Brightness, Color;
 
 import '../animation/curves.dart';
 import '../animation/implicit.dart';
@@ -11,6 +10,7 @@ import '../focus/focus.dart';
 import '../framework/framework.dart';
 import '../semantics/semantics.dart';
 import '../style/color_mix.dart';
+import '../style/glyphs.dart' show checkboxMarks, switchMarks;
 import '../style/style.dart';
 import '../text/widgets.dart';
 import 'pressable.dart';
@@ -110,8 +110,18 @@ final class Checkbox extends StatelessWidget {
   @override
   Widget build(BuildContext context) => _Toggle(
     role: SemanticsRole.checkbox,
-    marks: (theme, row, on, enabled, _) =>
-        bracketed(theme, '[', on ? 'x' : ' ', ']', on, enabled, bracketStyle),
+    marks: (theme, row, on, enabled, _) {
+      final marked = on && enabled ? markStyle(theme) : const Style();
+      final boxes = checkboxMarks(context, theme.glyphs);
+      return checkboxSpans(
+        boxes,
+        on,
+        marked.merge(
+          bracketStyle ?? theme.muted.merge(const Style(attrsOff: Attr.bold)),
+        ),
+        marked,
+      );
+    },
     on: value,
     toggle: switch (onChanged) {
       final onChanged? => () => onChanged(!value),
@@ -206,7 +216,14 @@ final class Switch extends StatelessWidget {
   Widget build(BuildContext context) => _Toggle(
     role: SemanticsRole.toggle,
     marks: pill
-        ? _pill
+        ? (theme, row, on, enabled, at) => _pill(
+            theme,
+            switchMarks(context, theme.glyphs),
+            row,
+            on,
+            enabled,
+            at,
+          )
         : (theme, row, on, enabled, _) => [
             Span(
               on ? '[on ]' : '[off]',
@@ -233,17 +250,23 @@ final class Switch extends StatelessWidget {
   /// it moves), muted unless [enabled]: for a painter of one's own that
   /// shows a switch as the widget does, the gallery's options among them.
   /// The ends set no background, over what is under them.
+  ///
+  /// Without a context to measure in, the glyphs are [theme]'s as they
+  /// are, not fitted to one cell as a [Switch] fits them: a painter that
+  /// needs the rule applies it to [Glyphs.switchStart], [Glyphs.switchEnd]
+  /// and [Glyphs.switchKnob] itself.
   static List<Span> pillSpans(
     ThemeData theme, {
     required double at,
     bool enabled = true,
-  }) => _pill(theme, const Style(), at >= 0.5, enabled, at);
+  }) => _pill(theme, theme.glyphs, const Style(), at >= 0.5, enabled, at);
 
   /// The pill with its knob [at] of the way to the right end, as the
   /// design draws it: the ends half blocks in the track's color, the knob
   /// `●` on it in one of the three cells between them.
   static List<Span> _pill(
     ThemeData theme,
+    Glyphs glyphs,
     Style row,
     bool on,
     bool enabled,
@@ -273,12 +296,12 @@ final class Switch extends StatelessWidget {
     final k = (at * 2).round();
     final end = Style(fg: track);
     return [
-      Span('▐', end),
+      Span(glyphs.switchStart, end),
       Span(
-        '${' ' * k}●${' ' * (2 - k)}',
+        '${' ' * k}${glyphs.switchKnob}${' ' * (2 - k)}',
         Style(fg: knob, bg: track),
       ),
-      Span('▌', end),
+      Span(glyphs.switchEnd, end),
     ];
   }
 }
@@ -344,15 +367,12 @@ final class _Toggle extends StatelessWidget {
           enabled: enabled,
           disabledStyle: disabledStyle,
         );
-        Widget text(double at) => Text.rich(
+        Widget text(double at) => Text.richLine(
           [
             ...marks(theme, row, on, enabled, at),
             if (label.isNotEmpty) Span(' $label'),
           ],
           style: row,
-          wrap: TextWrap.none,
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
         );
         final at = on ? 1.0 : 0.0;
         if (!animated) {

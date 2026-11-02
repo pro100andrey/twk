@@ -6,6 +6,7 @@ import 'package:twk_core/twk_core.dart' show Attr, TextSegmenter, fitText;
 
 import '../controls/pressable.dart';
 import '../focus/focus.dart';
+import '../foundation/change_notifier.dart' show VoidCallback;
 import '../framework/framework.dart';
 import '../overlay/menu.dart';
 import '../semantics/semantics.dart';
@@ -72,7 +73,7 @@ final class Breadcrumbs extends StatefulWidget {
     super.key,
     this.onSelected,
     this.current,
-    this.separator = ' › ',
+    this.separator,
     this.keepLeading = 1,
     this.focusNode,
     this.style,
@@ -90,8 +91,9 @@ final class Breadcrumbs extends StatefulWidget {
   /// last when null.
   final int? current;
 
-  /// What is between two crumbs.
-  final String separator;
+  /// What is between two crumbs; null for the theme's [Glyphs.next]
+  /// between blanks (` › `).
+  final String? separator;
 
   /// How many of the first items are kept before the `…` where the row
   /// does not fit.
@@ -240,21 +242,26 @@ final class _BreadcrumbsState extends State<Breadcrumbs> {
     ], at: at);
   }
 
+  // Made once: a map built anew each time would be parsed anew by the layer.
+  late final Map<String, VoidCallback?> _bindings = {
+    'left': () => _move(-1),
+    'right': () => _move(1),
+    'home': () => _moveTo(_next(-1, 1)),
+    'end': () => _moveTo(_next(_stops.length, -1)),
+    'enter': () => _select(_stopOf(_stops, _item)),
+  };
+  static const _hints = {'left': 'previous', 'right': 'next', 'enter': 'open'};
+
   @override
   Widget build(BuildContext context) {
     final enabled = _enabled;
     final current = _current;
+    final highlighted = enabled ? _item : -1;
     final pressable = Pressable(
       enabled: enabled,
       focusNode: widget.focusNode,
-      bindings: {
-        'left': () => _move(-1),
-        'right': () => _move(1),
-        'home': () => _moveTo(_next(-1, 1)),
-        'end': () => _moveTo(_next(_stops.length, -1)),
-        'enter': () => _select(_stopOf(_stops, _item)),
-      },
-      hints: const {'left': 'previous', 'right': 'next', 'enter': 'open'},
+      bindings: _bindings,
+      hints: _hints,
       onTap: enabled
           ? (event) {
               final s = _hits.at(event.x);
@@ -263,32 +270,31 @@ final class _BreadcrumbsState extends State<Breadcrumbs> {
               }
             }
           : null,
-      builder: (context, focused) => LayoutBuilder(
-        builder: (context, constraints) => _row(
-          Theme.of(context),
-          segmenterOf(context),
-          constraints.maxW,
-          enabled: enabled,
-          focused: focused,
+      builder: (context, focused) => Semantics(
+        role: SemanticsRole.list,
+        nodes: [
+          for (var i = 0; i < _items.length; i++)
+            SemanticsNode(
+              role: enabled && i != current
+                  ? SemanticsRole.link
+                  : SemanticsRole.listItem,
+              label: _items[i],
+              state: SemanticsState(selected: i == current),
+              focused: focused && i == highlighted,
+            ),
+        ],
+        child: LayoutBuilder(
+          builder: (context, constraints) => _row(
+            Theme.of(context),
+            segmenterOf(context),
+            constraints.maxW,
+            enabled: enabled,
+            focused: focused,
+          ),
         ),
       ),
     );
-    final highlighted = enabled ? _item : -1;
-    return Semantics(
-      role: SemanticsRole.list,
-      nodes: [
-        for (var i = 0; i < _items.length; i++)
-          SemanticsNode(
-            role: enabled && i != current
-                ? SemanticsRole.link
-                : SemanticsRole.listItem,
-            label: _items[i],
-            state: SemanticsState(selected: i == current),
-            focused: i == highlighted,
-          ),
-      ],
-      child: pressable,
-    );
+    return pressable;
   }
 
   /// The row in [theme], [width] columns at most as [segmenter] measures
@@ -308,10 +314,12 @@ final class _BreadcrumbsState extends State<Breadcrumbs> {
       widget.currentStyle ?? const Style(attrs: Attr.bold),
     );
     final between = row.merge(theme.muted);
+    final separator = widget.separator ?? ' ${theme.glyphs.next} ';
     final crumbs = _fit(
       segmenter,
       _items,
-      widget.separator,
+      separator,
+      theme.glyphs.ellipsis,
       widget.keepLeading,
       width,
     );
@@ -324,7 +332,7 @@ final class _BreadcrumbsState extends State<Breadcrumbs> {
     final spans = <HitSpan>[];
     for (final (s, stop) in stops.indexed) {
       if (s > 0) {
-        spans.add((span: Span(widget.separator, between), target: -1));
+        spans.add((span: Span(separator, between), target: -1));
       }
       final isLink = enabled && _link(stop);
       var style = isLink
@@ -359,6 +367,7 @@ List<(int, List<int>, String)> _fit(
   TextSegmenter segmenter,
   List<String> items,
   String separator,
+  String ellipsis,
   int keepLeading,
   int width,
 ) {
@@ -368,7 +377,7 @@ List<(int, List<int>, String)> _fit(
   }
   final widths = [for (final item in items) segmenter.width(item)];
   final sep = segmenter.width(separator);
-  final gap = segmenter.width('…');
+  final gap = segmenter.width(ellipsis);
   int span(int from, int to) {
     var w = 0;
     for (var i = from; i < to; i++) {
@@ -379,7 +388,7 @@ List<(int, List<int>, String)> _fit(
 
   List<(int, List<int>, String)> crumbs(int lead, int tail) => [
     for (var i = 0; i < lead; i++) (i, const <int>[], items[i]),
-    if (tail > lead) (lead, [for (var i = lead; i < tail; i++) i], '…'),
+    if (tail > lead) (lead, [for (var i = lead; i < tail; i++) i], ellipsis),
     for (var i = tail; i < n; i++) (i, const <int>[], items[i]),
   ];
 
@@ -401,7 +410,7 @@ List<(int, List<int>, String)> _fit(
   final last = items[n - 1];
   final room = n > 1 ? width - gap - sep : width;
   return [
-    if (n > 1) (0, [for (var i = 0; i < n - 1; i++) i], '…'),
-    (n - 1, const <int>[], fitText(segmenter, last, room)),
+    if (n > 1) (0, [for (var i = 0; i < n - 1; i++) i], ellipsis),
+    (n - 1, const <int>[], fitText(segmenter, last, room, ellipsis: ellipsis)),
   ];
 }

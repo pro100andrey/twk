@@ -32,6 +32,7 @@ import 'package:twk_core/twk_core.dart'
         TextMode,
         TextSegmenter;
 
+import '../controls/hand.dart';
 import '../editing/caret.dart' show clearRestCursor, restCursor;
 import '../focus/focus.dart';
 import '../foundation/change_notifier.dart' show ChangeNotifier, VoidCallback;
@@ -44,6 +45,7 @@ import '../layout/flex.dart';
 import '../layout/shadow.dart';
 import '../semantics/semantics.dart';
 import '../style/color_mix.dart';
+import '../style/glyphs.dart' show cellRune;
 import '../style/style.dart';
 import 'anchor.dart';
 import 'key_path.dart';
@@ -462,7 +464,8 @@ void showContextMenu(
   if (overlay == null) {
     throw StateError(
       'showContextMenu: no Overlay above ${context.widget.runtimeType}: '
-      'place an Overlay above it, as around the whole app: Overlay(child: …)',
+      'place an Overlay above it, as App does around the whole app: '
+      'App(child: …)',
     );
   }
   if (items.isEmpty) {
@@ -673,8 +676,8 @@ final class _ContextMenuState extends State<ContextMenu> implements _MenuHost {
   Widget build(BuildContext context) {
     if (Overlay.maybeOf(context) == null) {
       throw StateError(
-        'ContextMenu: no Overlay above it: place an Overlay above it, as '
-        'around the whole app: Overlay(child: …)',
+        'ContextMenu: no Overlay above it: place an Overlay above it, as App '
+        'does around the whole app: App(child: …)',
       );
     }
     return KeyBindings.combos(
@@ -1055,8 +1058,8 @@ final class _MenuBarState extends State<MenuBar> implements _MenuHost {
   Widget build(BuildContext context) {
     if (Overlay.maybeOf(context) == null) {
       throw StateError(
-        'MenuBar: no Overlay above it: place an Overlay above it, as '
-        'around the whole app: Overlay(child: …)',
+        'MenuBar: no Overlay above it: place an Overlay above it, as App does '
+        'around the whole app: App(child: …)',
       );
     }
     final theme = Theme.of(context);
@@ -1099,14 +1102,22 @@ final class _MenuBarState extends State<MenuBar> implements _MenuHost {
                     ),
                   ),
               ],
-              child: _BarRow(
-                key: _row,
-                titles: titles,
-                enabled: [for (var i = 0; i < menus.length; i++) _canOpen(i)],
-                open: _open,
-                style: style,
-                openStyle: style.merge(widget.openStyle ?? theme.selection),
-                mutedStyle: style.merge(theme.muted),
+              child: HandOver(
+                where: (x, _) {
+                  final title = _bar?.titleAt(x);
+                  return title != null && _canOpen(title);
+                },
+                child: _BarRow(
+                  key: _row,
+                  titles: titles,
+                  enabled: [
+                    for (var i = 0; i < menus.length; i++) _canOpen(i),
+                  ],
+                  open: _open,
+                  style: style,
+                  openStyle: style.merge(widget.openStyle ?? theme.selection),
+                  mutedStyle: style.merge(theme.muted),
+                ),
               ),
             ),
           ),
@@ -1601,6 +1612,15 @@ final class _MenuSession {
         : (level, -1);
   }
 
+  /// Whether a press at [x], [y] of the overlay does something: on an entry
+  /// that can be chosen, or a title of the bar.
+  bool _pressableAt(int x, int y) {
+    if (_entryAt(x, y) case (final level, final row)) {
+      return row >= 0 && _enabled(_levels[level].items[row]);
+    }
+    return bar != null && _titleAt(x, y) != null;
+  }
+
   /// The bar's title at [x], [y] of the overlay; null for none.
   int? _titleAt(int x, int y) => bar == null ? null : _placed?.titleAt(x, y);
 
@@ -1699,6 +1719,7 @@ final class _MenuSession {
       bar: theme.primary,
       idle: theme.selectionIdle,
       raised: raised,
+      glyphs: theme.glyphs,
     );
     final shadow = raised ? Panel.shadowOf(theme) : null;
     final active = _active;
@@ -1733,26 +1754,33 @@ final class _MenuSession {
               onMove: (event) => _hover(event.x, event.y),
               onDrag: (event) => _hover(event.x, event.y),
               onScroll: (_) {},
-              child: _MenuPlace(
-                key: _place,
-                anchor: anchor,
-                rows: [
-                  for (var i = 1; i < _levels.length; i++)
-                    _levels[i - 1].highlighted,
-                ],
-                shadow: shadow,
-                children: [
-                  for (final (l, level) in _levels.indexed)
-                    _shadowed(
-                      shadow,
-                      _MenuBox(
-                        rows: [for (final entry in level.items) _rowOf(entry)],
-                        highlighted: level.highlighted,
-                        active: l == active,
-                        styles: styles,
+              // the hand over an entry that can be chosen, and over the
+              // bar's titles, which the mouse moved to opens
+              child: HandOver(
+                where: _pressableAt,
+                child: _MenuPlace(
+                  key: _place,
+                  anchor: anchor,
+                  rows: [
+                    for (var i = 1; i < _levels.length; i++)
+                      _levels[i - 1].highlighted,
+                  ],
+                  shadow: shadow,
+                  children: [
+                    for (final (l, level) in _levels.indexed)
+                      _shadowed(
+                        shadow,
+                        _MenuBox(
+                          rows: [
+                            for (final entry in level.items) _rowOf(entry),
+                          ],
+                          highlighted: level.highlighted,
+                          active: l == active,
+                          styles: styles,
+                        ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -1861,6 +1889,7 @@ final class _BoxStyles {
     required this.bar,
     required this.idle,
     required this.raised,
+    required this.glyphs,
   });
 
   final Style box;
@@ -1870,7 +1899,7 @@ final class _BoxStyles {
   final Style highlight;
   final Style muted;
 
-  /// The `▎` of the highlighted entry, on a raised menu.
+  /// The cursor bar of the highlighted entry, on a raised menu.
   final Style bar;
 
   /// The highlighted entry of a menu the keys do not move in, on a raised
@@ -1879,6 +1908,9 @@ final class _BoxStyles {
 
   /// Whether the menu is a raised panel, or a bordered box.
   final bool raised;
+
+  /// The marks of a check, a submenu and the highlighted entry's bar.
+  final Glyphs glyphs;
 
   @override
   bool operator ==(Object other) =>
@@ -1889,11 +1921,12 @@ final class _BoxStyles {
       other.muted == muted &&
       other.bar == bar &&
       other.idle == idle &&
-      other.raised == raised;
+      other.raised == raised &&
+      other.glyphs == glyphs;
 
   @override
   int get hashCode =>
-      Object.hash(box, border, highlight, muted, bar, idle, raised);
+      Object.hash(box, border, highlight, muted, bar, idle, raised, glyphs);
 }
 
 /// A row of a menu: an entry's [label], the [key] that does the same,
@@ -2267,7 +2300,7 @@ final class _RenderMenuBox extends RenderObject {
     }
     final border = s.border.penIn(styles);
     final ambiguous = owner?.segmenter.ambiguousWidth ?? 1;
-    final lines = ambiguous == 1 ? BorderType.single : BorderType.ascii;
+    final lines = ambiguous == 1 ? s.glyphs.lines : BorderType.ascii;
     final across = lines.glyph(left: true, right: true);
     final down = lines.glyph(up: true, down: true);
     if (s.raised) {
@@ -2319,12 +2352,30 @@ final class _RenderMenuBox extends RenderObject {
         ..clipRect(1, y, w - 2, 1)
         ..fill(1, y, w - 2, 1, pen);
       if (row.checked ?? false) {
-        canvas.text(2, y, '✓', pen);
+        _mark(
+          this,
+          canvas,
+          2,
+          y,
+          pen,
+          'check',
+          s.glyphs.check,
+          Glyphs.ascii.check,
+        );
       }
       label.paint(canvas, styles, 2 + _check, y, style);
       final key = row.key;
       if (row.submenu) {
-        canvas.text(w - 3, y, '▸', pen);
+        _mark(
+          this,
+          canvas,
+          w - 3,
+          y,
+          pen,
+          'collapsed',
+          s.glyphs.collapsed,
+          Glyphs.ascii.collapsed,
+        );
       } else if (key != null) {
         canvas.text(
           w - 2 - segmenter.width(key),
@@ -2356,26 +2407,47 @@ extension on _RenderMenuBox {
       var style = row.enabled ? s.box : s.box.merge(s.muted);
       if (i == _highlighted) {
         style = style.merge(_active ? s.highlight : s.idle);
-        canvas
-          ..fill(0, y, w, 1, style.penIn(styles))
-          ..text(
-            0,
-            y,
-            '▎',
-            style.merge(_active ? s.bar : s.muted).penIn(styles),
-          );
+        canvas.fill(0, y, w, 1, style.penIn(styles));
+        _mark(
+          this,
+          canvas,
+          0,
+          y,
+          style.merge(_active ? s.bar : s.muted).penIn(styles),
+          'cursor',
+          s.glyphs.cursor,
+          Glyphs.ascii.cursor,
+        );
       }
       final pen = style.penIn(styles);
       canvas
         ..save()
         ..clipRect(1, y, w - 2, 1);
       if (row.checked ?? false) {
-        canvas.text(2, y, '✓', pen);
+        _mark(
+          this,
+          canvas,
+          2,
+          y,
+          pen,
+          'check',
+          s.glyphs.check,
+          Glyphs.ascii.check,
+        );
       }
       label.paint(canvas, styles, 2 + _check, y, style);
       final key = row.key;
       if (row.submenu) {
-        canvas.text(w - 3, y, '▸', pen);
+        _mark(
+          this,
+          canvas,
+          w - 3,
+          y,
+          pen,
+          'collapsed',
+          s.glyphs.collapsed,
+          Glyphs.ascii.collapsed,
+        );
       } else if (key != null) {
         canvas.text(
           w - 2 - segmenter.width(key),
@@ -2527,4 +2599,30 @@ final class _RenderBarRow extends RenderObject {
       _titles[i].paint(canvas, styles, x + 1, 0, style);
     }
   }
+}
+
+/// Draws the one-cell [glyph] of Glyphs' [field] at ([x], [y]) on [canvas]
+/// in [pen]: nothing where it is empty, [fallback] (warned of once) where it
+/// is not one column wide.
+void _mark(
+  RenderObject object,
+  Canvas canvas,
+  int x,
+  int y,
+  int pen,
+  String field,
+  String glyph,
+  String fallback,
+) {
+  if (glyph.isEmpty) {
+    return;
+  }
+  canvas.fill(
+    x,
+    y,
+    1,
+    1,
+    pen,
+    cellRune(object, field, glyph, fallback, canvas.segmenter),
+  );
 }

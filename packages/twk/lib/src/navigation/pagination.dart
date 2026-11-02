@@ -8,6 +8,7 @@ import '../controls/pressable.dart';
 import '../focus/focus.dart';
 import '../framework/framework.dart';
 import '../semantics/semantics.dart';
+import '../style/glyphs.dart' show textMark;
 import '../style/style.dart';
 import '../text/hit_row.dart';
 
@@ -247,7 +248,7 @@ final class _PaginationState extends State<Pagination> {
       hints: {
         'left': 'previous',
         'right': 'next',
-        '0': '…9 page',
+        '0': '${Theme.of(context).glyphs.ellipsis}9 page',
         if (typing) 'enter': 'go',
       },
       onTap: enabled
@@ -320,6 +321,7 @@ final class _PaginationState extends State<Pagination> {
     required int siblings,
     required bool range,
   }) {
+    final g = Theme.of(context).glyphs;
     final page = _page;
     final count = _count;
     final atStart = page <= 0;
@@ -328,14 +330,18 @@ final class _PaginationState extends State<Pagination> {
     void add(_Kind kind, String text, int to) =>
         parts.add((kind: kind, text: text, to: to));
     if (widget.showFirstLast) {
-      add(_Kind.first, words ? '« First' : '«', atStart ? -1 : 0);
+      add(_Kind.first, words ? '${g.first} First' : g.first, atStart ? -1 : 0);
     }
     if (widget.showPrevNext) {
-      add(_Kind.prev, words ? '‹ Prev' : '‹', atStart ? -1 : page - 1);
+      add(
+        _Kind.prev,
+        words ? '${g.previous} Prev' : g.previous,
+        atStart ? -1 : page - 1,
+      );
     }
     for (final p in _pages(page, count, siblings)) {
       if (p < 0) {
-        add(_Kind.gap, '…', -1);
+        add(_Kind.gap, g.ellipsis, -1);
       } else if (p == page) {
         add(_Kind.page, '[${p + 1}]', -1);
       } else {
@@ -343,17 +349,27 @@ final class _PaginationState extends State<Pagination> {
       }
     }
     if (widget.showPrevNext) {
-      add(_Kind.next, words ? 'Next ›' : '›', atEnd ? -1 : page + 1);
+      add(_Kind.next, words ? 'Next ${g.next}' : g.next, atEnd ? -1 : page + 1);
     }
     if (widget.showFirstLast) {
-      add(_Kind.last, words ? 'Last »' : '»', atEnd ? -1 : count - 1);
+      add(
+        _Kind.last,
+        words ? 'Last ${g.last}' : g.last,
+        atEnd ? -1 : count - 1,
+      );
     }
     final items = range ? _range() : null;
     if (items != null) {
       add(_Kind.range, ' ($items)', -1);
     }
     if (_typed.isNotEmpty) {
-      add(_Kind.typed, ' → $_typed', -1);
+      final arrow = textMark(
+        context,
+        'arrowRight',
+        g.arrowRight,
+        Glyphs.ascii.arrowRight,
+      );
+      add(_Kind.typed, ' $arrow $_typed', -1);
     }
     return parts;
   }

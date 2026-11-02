@@ -21,6 +21,7 @@ import 'package:twk_core/twk_core.dart'
         Pen,
         RenderObject,
         RenderObjectWithChildMixin,
+        StyleId,
         StyleTable,
         Surface,
         kBlank,
@@ -237,16 +238,38 @@ final class _DissolveTransition extends SwitcherTransition {
 }
 
 /// Its own [TickerProvider], not [TickerProviderStateMixin]: a child's
-/// ticker goes with its controller, disposed when the child has gone.
+/// ticker goes with its controller, disposed when the child has gone, so
+/// it is kept by the child's entry, not by the state, and muted from
+/// [TickerMode] with the others.
 final class _AnimatedSwitcherState extends State<AnimatedSwitcher>
     implements TickerProvider {
   _Entry? _current;
   final _leaving = <_Entry>[];
   var _serial = 0;
 
+  /// The ticker the controller being made asked for, taken by [_entry].
+  // its controller disposes it, with the entry that keeps both
+  // ignore: twk_lints/dispose_controllers
+  late Ticker _made;
+
+  /// Whether the tickers are muted: [TickerMode], as didChangeDependencies
+  /// last had it (initState, which makes the first child, may not depend
+  /// on it, and didChangeDependencies follows at once).
+  var _muted = false;
+
   @override
   Ticker createTicker(TickerCallback onTick) =>
-      Ticker(onTick, binding: AppBinding.maybeOf(context));
+      _made = Ticker(onTick, binding: AppBinding.maybeOf(context))
+        ..muted = _muted;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _muted = !TickerMode.of(context);
+    for (final entry in [?_current, ..._leaving]) {
+      entry.ticker.muted = _muted;
+    }
+  }
 
   @override
   void initState() {
@@ -282,17 +305,15 @@ final class _AnimatedSwitcherState extends State<AnimatedSwitcher>
     }
   }
 
-  _Entry _entry(Widget child, double value) => _Entry(
-    this,
-    child,
-    AnimationController(
+  _Entry _entry(Widget child, double value) {
+    final controller = AnimationController(
       vsync: this,
       duration: widget.duration,
       reverseDuration: widget.reverseDuration,
       value: value,
-    ),
-    ValueKey(_serial++),
-  );
+    );
+    return _Entry(this, child, controller, _made, ValueKey(_serial++));
+  }
 
   /// Has [entry] go out, and dropped once it has.
   void _leave(_Entry entry) {
@@ -350,11 +371,14 @@ final class _AnimatedSwitcherState extends State<AnimatedSwitcher>
 /// it shows, its controller's value along the switcher's curve in, or its
 /// curve out once [leaving].
 final class _Entry extends ValueListenable<double> {
-  _Entry(this._state, this.child, this.controller, this.key);
+  _Entry(this._state, this.child, this.controller, this.ticker, this.key);
 
   final _AnimatedSwitcherState _state;
   Widget child;
   final AnimationController controller;
+
+  /// The controller's ticker.
+  final Ticker ticker;
 
   /// What keeps its element as the children around it come and go.
   final Key key;
@@ -547,12 +571,15 @@ final class _Kept implements CellKeeper {
   final _RenderMixed mixed;
 
   @override
-  void markCells(void Function(int glyph) glyph, void Function(int id) style) {
+  void markCells(
+    void Function(int glyph) glyph,
+    void Function(StyleId style) style,
+  ) {
     final m = mixed;
     final n = (m._x1 - m._x0) * (m._y1 - m._y0);
     for (var i = 0; i < n && i < m._cells.length; i++) {
       glyph(m._cells[i]);
-      style(m._styles[i]);
+      style(StyleId(m._styles[i]));
     }
   }
 }
@@ -814,7 +841,8 @@ final class _RenderOpacity extends _RenderMixed {
       return;
     }
     final child =
-        !_blank(styles, c, s) && (_alpha >= 0x80 || _blank(styles, u, us));
+        !_blank(styles, c, StyleId(s)) &&
+        (_alpha >= 0x80 || _blank(styles, u, StyleId(us)));
     if (styles.sweeps != _mixedSweeps) {
       // swept since: the ids kept may be other styles'
       _mixedSweeps = styles.sweeps;
@@ -823,20 +851,20 @@ final class _RenderOpacity extends _RenderMixed {
     _glyph = child ? c : u;
     _style = _mixed[s << 32 | us << 1 | (child ? 1 : 0)] ??= _mixStyle(
       styles,
-      s,
-      us,
+      StyleId(s),
+      StyleId(us),
       childText: child,
-    );
+    ).value;
   }
 
   /// The style of a cell where the child painted [s] over [us]: the
   /// background the child's over the one under it, and the text of the
   /// child as translucent as it ([childText]), or else the text under it
   /// seen through the child's background.
-  int _mixStyle(
+  StyleId _mixStyle(
     StyleTable styles,
-    int s,
-    int us, {
+    StyleId s,
+    StyleId us, {
     required bool childText,
   }) {
     final a = _alpha;
@@ -862,7 +890,7 @@ final class _RenderOpacity extends _RenderMixed {
   }
 
   /// Whether the cell [c] in style [s] shows nothing but its background.
-  static bool _blank(StyleTable styles, int c, int s) =>
+  static bool _blank(StyleTable styles, int c, StyleId s) =>
       (c & (kGlyphMask | kWide | kCont)) == kBlank &&
       (styles.attrsOf(s) & Attr.visibleOnBlank) == 0;
 

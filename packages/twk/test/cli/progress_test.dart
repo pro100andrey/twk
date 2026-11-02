@@ -99,6 +99,30 @@ void main() {
       expect(terminal.out.toString(), '✓ Wrote 3\n');
     });
 
+    test("fails with done's message for a value ok says is not ok", () async {
+      final terminal = FakeCliTerminal();
+      final progress = Cli(terminal: terminal).progress('Building');
+      final code = await progress.run(
+        () => 2,
+        ok: (code) => code == 0,
+        done: (code) => 'Exit code $code',
+      );
+      expect(code, 2);
+      expect(progress.isActive, isFalse);
+      expect(terminal.out.toString(), '✗ Exit code 2\n');
+    });
+
+    test('completes where ok says the value is ok', () async {
+      final terminal = FakeCliTerminal();
+      final progress = Cli(terminal: terminal).progress('Building');
+      await progress.run(
+        () => 0,
+        ok: (code) => code == 0,
+        done: (_) => 'Built',
+      );
+      expect(terminal.out.toString(), '✓ Built\n');
+    });
+
     test("fails with failed's message for the error, and rethrows", () async {
       final terminal = FakeCliTerminal();
       final progress = Cli(terminal: terminal).progress('Writing');
@@ -367,6 +391,27 @@ void main() {
         );
       },
     );
+
+    test('byteUnits: binary writes the summaries in KiB and MiB', () async {
+      final clock = FakeClock();
+      final terminal = FakeCliTerminal(fakeClock: clock);
+      final cli = Cli(terminal: terminal);
+      final running = cli.tasks(
+        (tracker) => tracker.run(
+          'Downloading assets.zip',
+          (task) => task.advance(3 * 1048576),
+          total: 3 * 1048576,
+          unit: ProgressUnit.bytes,
+        ),
+        byteUnits: ByteUnits.binary,
+      );
+      await clock.elapse(_ms * 1000);
+      await running;
+      expect(
+        terminal.out.toString(),
+        '✓ Downloading assets.zip • 3.0/3.0 MiB • 0.0 s\n',
+      );
+    });
 
     test(
       'on a terminal that does not redraw, writes each as it starts too',

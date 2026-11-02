@@ -201,8 +201,7 @@ void main() {
             columns: [
               TableColumn(
                 title: 'load',
-                cell: (i) =>
-                    const TableCell.widget(LineGauge(ratio: 0.5, label: '')),
+                cell: (i) => const TableCell.widget(LineGauge(ratio: 0.5)),
               ),
             ],
           ),

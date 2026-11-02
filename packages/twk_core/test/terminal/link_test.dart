@@ -331,6 +331,32 @@ void main() {
     expect(await session((link) => Terminal.overLink(link, _options)), own);
   });
 
+  test(
+    'with no terminal and no shell the refusal says what is wrong and '
+    'what to do instead; a link that refused raw mode is named too',
+    () async {
+      final dir = Directory.systemTemp.createTempSync('twk_no_shell');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      Future<String> refusal(TerminalLink? own) async {
+        try {
+          await openOwnOrShell(own, _options, dir.path);
+        } on TerminalException catch (e) {
+          return e.message;
+        }
+        fail('opened a terminal');
+      }
+
+      final none = await refusal(null);
+      expect(none, startsWith('not a terminal: '));
+      expect(none, contains('both stdin and stdout'));
+      expect(none, contains('TWK_PLAIN=1'));
+      expect(none, contains('twk shell'));
+      final raw = await refusal(FakeLink(refusesRaw: true));
+      expect(raw, startsWith('not a terminal: '));
+      expect(raw, contains('TWK_PLAIN=1'));
+    },
+  );
+
   test("a terminal of the process's gives the app TWK_SCREEN_READER and "
       "TWK_DEBUG of its link's environment, an empty one too, and nothing "
       'else of it; one over a link (overLink) none of it', () async {

@@ -284,7 +284,7 @@ void main() {
       'ws://127.0.0.1:${server.port}/ws',
     ]);
     expect(result.exitCode, 1);
-    expect(result.stderr, 'twk inspect: not a terminal\n');
+    expect(result.stderr, startsWith('twk inspect: not a terminal: '));
     final socket = await connected.future.timeout(const Duration(seconds: 10));
     addTearDown(socket.close);
     // the other end closes it; until then it would be open for good

@@ -34,9 +34,29 @@ const _hangUpGrace = Duration(seconds: 1);
 const _writable = 'writable';
 const _hangup = 'hangup';
 
+/// [Pty.tellsExitCode]: macOS by a kqueue, Linux from 6.15 by the pidfd
+/// (PIDFD_INFO_EXIT).
+final bool _tellsExitCode = () {
+  if (Platform.isMacOS) {
+    return true;
+  }
+  final version = RegExp(
+    r'(\d+)\.(\d+)',
+  ).firstMatch(Platform.operatingSystemVersion);
+  if (!Platform.isLinux || version == null) {
+    return false;
+  }
+  final [major, minor] = [
+    for (final i in [1, 2]) int.parse(version[i]!),
+  ];
+  return major > 6 || major == 6 && minor >= 15;
+}();
+
 /// The variables that name the terminal a program runs in, or the
-/// multiplexer: this process's, which a program in the emulator is not
-/// in, so they are left out of its environment ([Pty.start]). As
+/// multiplexer, and those that say this process runs in CI: this
+/// process's, which a program in the emulator is not in, so they are left
+/// out of its environment ([Pty.start]); [Pty.start]'s `environment` can
+/// set any of them. As
 /// tool/pty_run.py's HOST_TERMINAL, which keep in step.
 const _hostTerminal = {
   'TERM_PROGRAM',
@@ -61,6 +81,12 @@ const _hostTerminal = {
   'STY',
   'XTERM_VERSION',
   'MLTERM',
+  // what twk_core's runsInCi takes for a build: its apps then write plain
+  // text, not frames
+  'CI',
+  'CONTINUOUS_INTEGRATION',
+  'BUILD_NUMBER',
+  'RUN_ID',
 };
 
 /// The environment of a program [Pty.start] runs: [parent] without the
@@ -341,6 +367,11 @@ final class Pty {
           scope.strings(envp),
         ),
       );
+      // macOS: the program's end told through a kqueue, whoever waits for
+      // it (the VM does, while a Process of its own runs). -1 where the
+      // program ended and was reaped before this (ESRCH): then waitpid is
+      // all there is, as in Linux before 6.15.
+      final kq = Platform.isMacOS ? c.watchExit(pid.value) : -1;
       c.setNonblocking(master);
       final pty = Pty._(
         pid.value,
@@ -355,11 +386,19 @@ final class Pty {
       unawaited(
         Isolate.spawn(
           _ioLoop,
-          (master, wake[0], pid.value, pidfd.value, pty._port.sendPort),
+          (master, wake[0], pid.value, pidfd.value, kq, pty._port.sendPort),
           onExit: pty._port.sendPort,
           onError: pty._port.sendPort,
           debugName: 'pty ${pid.value}',
-        ).then<void>((_) {}, onError: pty._ioFailed),
+        ).then<void>(
+          (_) {},
+          onError: (Object error, StackTrace stack) {
+            if (kq >= 0) {
+              c.close(kq); // the I/O isolate never ran to close it
+            }
+            pty._ioFailed(error, stack);
+          },
+        ),
       );
       return pty;
     } catch (_) {
@@ -434,9 +473,21 @@ final class Pty {
   /// when one killed it (as `dart:io`'s `Process.exitCode`).
   ///
   /// The VM waits for any child while a `Process` it started runs, so it
-  /// may take the program's end first; Linux 6.15 and later still tell it
-  /// through the pidfd made with the program, elsewhere it is null then.
+  /// may take the program's end first; the code is then still known: on
+  /// Linux 6.15 and later through the pidfd made with the program, on
+  /// macOS through a kqueue (EVFILT_PROC, NOTE_EXITSTATUS) the program is
+  /// watched by from its spawn. It is null only on Linux before 6.15 in
+  /// that case, and on macOS where the program ended before the kqueue
+  /// was set (ESRCH, a few microseconds after the spawn) and the VM took
+  /// its end. [tellsExitCode] says which of those this platform is.
   Future<int?> get exitCode => _exit.future;
+
+  /// Whether [exitCode] knows the code of a program the VM waited for
+  /// first: on macOS, and on Linux 6.15 and later; elsewhere it is null
+  /// then, as a test that also runs a `Process` (the test runner's
+  /// compiler does throughout) finds. The testing guide's recipe expects
+  /// the code by it.
+  static bool get tellsExitCode => _tellsExitCode;
 
   /// The terminal's attributes (`struct termios`, in 256 bytes) as the
   /// program left them, read through the master when it
@@ -726,8 +777,8 @@ int _exitCodeOf(int status) =>
 /// when it takes writes again, waits for the program's end (on a pidfd
 /// where there is one, else every 20 ms). It polls with a timeout either
 /// way, so the VM can stop it when it exits.
-void _ioLoop((int, int, int, int, SendPort) args) {
-  final (master, wake, pid, pidfd, port) = args;
+void _ioLoop((int, int, int, int, int, SendPort) args) {
+  final (master, wake, pid, pidfd, kq, port) = args;
   final scope = c.NativeScope();
   final fds = scope.alloc<c.PollFd>(3 * sizeOf<c.PollFd>());
   final buf = scope.alloc<Uint8>(_chunk);
@@ -855,13 +906,20 @@ void _ioLoop((int, int, int, int, SendPort) args) {
         }
       }
       if (!reaped && taken != null) {
-        final how = pidfd >= 0 ? c.pidfdExitStatus(pidfd) : null;
+        final how = pidfd >= 0
+            ? c.pidfdExitStatus(pidfd)
+            : kq >= 0
+            ? c.exitStatusFrom(kq)
+            : null;
         if (how != null || pidfd < 0 || taken.elapsedMilliseconds > 500) {
           ended(how);
         }
       }
     }
   } finally {
+    if (kq >= 0) {
+      c.close(kq);
+    }
     scope.release();
   }
 }

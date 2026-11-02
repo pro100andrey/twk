@@ -90,7 +90,7 @@ What the gallery lets you change, and what each starts at:
 | live | on, off | true |
 | ratio | 0% to 100% | 75 |
 | line | single, heavy, double, ascii | heavy |
-| label | own, ratio, none | own |
+| label | own, percent, none | own |
 | style | primary, accent, success, warning, info | primary |
 | segmented | on, off | false |
 

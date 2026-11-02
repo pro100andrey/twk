@@ -1,5 +1,36 @@
 # Changelog
 
+## Unreleased
+
+- `FocusNode.takesText` (and `Focus(takesText:)`) says that a node takes the
+  keys that are characters as text: `TextField` and `TextArea` say it unless
+  read-only. `FocusManagerKeys.activeKeys`, so a `KeyHintsBar` and
+  `showKeyHelp`, no longer list a binding of a layer above such a node on a
+  character key (`q`), which the field takes, and a click on a hint cannot
+  type it into the field; keys with Ctrl or Alt stay.
+- `KeyBindings(unmatched: UnmatchedKeys.replay)` replays the held first keys
+  to the nodes a key walks, past what a dialog's `keysSkip` skips, where it
+  gave them to the app's bindings between the navigator and the dialog.
+- A cell's style id is a `StyleId` (package:twk_core, exported by
+  package:twk), apart from a pen id, which stays an int: the effect cell's
+  `EffectCell.style`, `childStyle` and `underStyle` are one, and so are
+  the style arguments of a `RenderEffect`'s `effectCell`.
+- `Scrollbar` and the bar of `Box` read the axis from the scrollable
+  inside, as Flutter's `Scrollbar` does. `Scrollbar(axis:)` is nullable and
+  null by default: the outermost scrollable of either axis, where it was
+  vertical by default. So `Scrollbar()` around content whose outermost
+  scrollable is horizontal now shows that one, in a row at the bottom; to
+  keep the column around content that scrolls both ways, give
+  `axis: Axis.vertical`. A given axis picks that axis's scrollable, the
+  bar to each axis of content that scrolls both. An inner scrollable of the
+  other axis never takes the bar of an outer one.
+- `Box(scrollbar:)` takes a `ScrollbarVisibility?`, as `LogView` does,
+  where it took an `Axis?`: `.always`, `.onScroll` (the border's own line
+  shows while the thumb is hidden) or `.never`; null for none. The bar is on
+  the right side for a vertical scrollable and on the bottom for a
+  horizontal one; the border must have that side and a bottom title cannot
+  share it with a horizontal bar, as asserted.
+
 ## 0.1.0
 
 The first release.

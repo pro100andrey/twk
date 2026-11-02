@@ -25,7 +25,9 @@ import '../framework/framework.dart';
 import '../gestures/mouse.dart';
 import '../layout/child_list.dart';
 import '../semantics/semantics.dart';
+import '../style/glyphs.dart' show cellRune;
 import '../style/style.dart';
+import 'hand.dart';
 
 /// Holds which of [length] tabs is selected: [index], which a [TabBar]
 /// sets and a [TabView] shows.
@@ -340,15 +342,24 @@ final class _TabBarState extends State<TabBar> {
         child: Listener(
           onDown: _down,
           onScroll: _scroll,
-          child: _Strip(
-            key: _strip,
-            tabs: widget.tabs,
-            selected: marked,
-            focused: focused,
-            style: theme.text.merge(widget.style ?? row),
-            tabStyle: widget.tabStyle ?? theme.muted,
-            selectedStyle: widget.selectedStyle ?? selected,
-            focusedStyle: widget.focusedStyle ?? lit,
+          // the hand over a tab and the arrows that scroll to the next
+          child: HandOver(
+            where: (x, _) {
+              final bar = _bar;
+              return bar != null &&
+                  (bar.tabAt(x) != null || bar.edgeAt(x) != 0);
+            },
+            child: _Strip(
+              key: _strip,
+              tabs: widget.tabs,
+              selected: marked,
+              focused: focused,
+              style: theme.text.merge(widget.style ?? row),
+              tabStyle: widget.tabStyle ?? theme.muted,
+              selectedStyle: widget.selectedStyle ?? selected,
+              focusedStyle: widget.focusedStyle ?? lit,
+              glyphs: theme.glyphs,
+            ),
           ),
         ),
       ),
@@ -361,7 +372,7 @@ final class _TabBarState extends State<TabBar> {
             role: SemanticsRole.tab,
             label: label,
             state: SemanticsState(selected: i == marked),
-            focused: i == marked,
+            focused: focused && i == marked,
           ),
       ],
       child: bar,
@@ -381,6 +392,7 @@ final class _Strip extends LeafRenderObjectWidget {
     required this.tabStyle,
     required this.selectedStyle,
     required this.focusedStyle,
+    required this.glyphs,
     super.key,
   });
 
@@ -391,6 +403,7 @@ final class _Strip extends LeafRenderObjectWidget {
   final Style tabStyle;
   final Style selectedStyle;
   final Style focusedStyle;
+  final Glyphs glyphs;
 
   @override
   _RenderTabBar createRenderObject(BuildContext context) =>
@@ -417,6 +430,7 @@ final class _RenderTabBar extends RenderObject {
   var _tabStyle = const Style();
   var _selectedStyle = const Style();
   var _focusedStyle = const Style();
+  Glyphs _glyphs = Glyphs.unicode;
 
   // the first column of each tab and the end of the last, in the row they
   // make; measured for the text mode and ambiguous width of _measuredIn
@@ -452,12 +466,14 @@ final class _RenderTabBar extends RenderObject {
         strip.style != _style ||
         strip.tabStyle != _tabStyle ||
         strip.selectedStyle != _selectedStyle ||
-        strip.focusedStyle != _focusedStyle) {
+        strip.focusedStyle != _focusedStyle ||
+        strip.glyphs != _glyphs) {
       _focused = strip.focused;
       _style = strip.style;
       _tabStyle = strip.tabStyle;
       _selectedStyle = strip.selectedStyle;
       _focusedStyle = strip.focusedStyle;
+      _glyphs = strip.glyphs;
       markNeedsPaint();
     }
   }
@@ -606,10 +622,38 @@ final class _RenderTabBar extends RenderObject {
     }
     final mark = tab.penIn(styles);
     if (_offset > 0) {
-      canvas.fill(0, 0, 1, 1, mark, 0x2039);
+      canvas.fill(
+        0,
+        0,
+        1,
+        1,
+        mark,
+        cellRune(
+          this,
+          'previous',
+          _glyphs.previous,
+          Glyphs.ascii.previous,
+          canvas.segmenter,
+          blankIfEmpty: true,
+        ),
+      );
     }
     if (_offset + width < _total) {
-      canvas.fill(width - 1, 0, 1, 1, mark, 0x203A);
+      canvas.fill(
+        width - 1,
+        0,
+        1,
+        1,
+        mark,
+        cellRune(
+          this,
+          'next',
+          _glyphs.next,
+          Glyphs.ascii.next,
+          canvas.segmenter,
+          blankIfEmpty: true,
+        ),
+      );
     }
   }
 }

@@ -95,11 +95,21 @@ final class _HintedKeysState extends State<HintedKeys> {
   List<bool> _ask() => [for (final key in widget.hints.keys) widget.takes(key)];
 
   void _changed() {
-    final said = _ask();
-    if (!_same(said, _said)) {
-      _said = said;
-      widget.node.markKeysChanged();
+    // compared in place: a list is made only when something changed
+    var i = 0;
+    var same = true;
+    for (final key in widget.hints.keys) {
+      if (i >= _said.length || _said[i] != widget.takes(key)) {
+        same = false;
+        break;
+      }
+      i++;
     }
+    if (same && i == _said.length) {
+      return;
+    }
+    _said = _ask();
+    widget.node.markKeysChanged();
   }
 
   @override
@@ -114,18 +124,6 @@ final class _HintedKeysState extends State<HintedKeys> {
       child: Shortcuts(_intents, hints: hints, child: widget.child),
     );
   }
-}
-
-bool _same(List<bool> a, List<bool> b) {
-  if (a.length != b.length) {
-    return false;
-  }
-  for (var i = 0; i < a.length; i++) {
-    if (a[i] != b[i]) {
-      return false;
-    }
-  }
-  return true;
 }
 
 /// A key of a [HintedKeys], by its name.

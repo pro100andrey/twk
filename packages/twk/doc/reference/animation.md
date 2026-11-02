@@ -15,7 +15,11 @@ timer; without a binding it never ticks.
 
 `TickerProviderStateMixin` makes a `State` a `TickerProvider`
 (`createTicker`) whose tickers tick in the frames of its app
-(`AppBinding.maybeOf`) and are disposed with it.
+(`AppBinding.maybeOf`) and are disposed with it. They are muted
+(`Ticker.muted`: active, asking for no frame, calling nothing) while a
+`TickerMode` above is off, as `Offstage` and `Visibility` have it for what
+they hide; their time goes on meanwhile, so an animation resumes where it
+would have been. `AnimatedSwitcher`'s tickers are muted the same.
 
 ## `AnimationController`
 
@@ -49,7 +53,8 @@ and `elasticOut`, `Cubic(a, b, c, d)` as CSS's `cubic-bezier` and
 ## `Spinner`
 
 `Spinner(frames:, style:)` shows the frames of its `SpinnerFrames` in turn
-(`dots`, braille, 80 ms each, the default; `line`, ASCII, 130 ms; `arc`, 100
+(null for the theme's `glyphs.spinner`, `dots`, braille, 80 ms each, in
+`Glyphs.unicode`, `line` in `Glyphs.ascii`; `dots` `line`, ASCII, 130 ms; `arc`, 100
 ms; or frames and an `interval` of one's own): the frame of the step of the
 app's clock the frame is in, so spinners of the same frames show the same
 one and step in the same frames, on one timer, building nothing; as wide as
@@ -177,8 +182,9 @@ going and runs `body(task)`, the task done when it returns and failed with
 what it throws, which is thrown again. A task is set going by `start`,
 `advance([by])` or `update(completed)` and finished once by `done([label])`,
 `fail([error])` or `skip()`; it gives its `fraction`, `rate` (over the last
-`rateWindow`), `eta`, `elapsed` and a line of text, `summary` (`✓
-Downloading assets.zip • 3.4/3.4 MB • 2.1 s`). The tracker's listeners are
+`rateWindow`), `eta`, `elapsed` and a line of text, `summary()` (`✓
+Downloading assets.zip • 3.4/3.4 MB • 2.1 s`; `summary(glyphs: glyphs, byteUnits:
+ByteUnits.binary)` counts the bytes by 1024, `3.2/3.2 MiB`). The tracker's listeners are
 told when a task comes, goes, starts or ends, or its label or total changes,
 not at each `advance`; `onTaskFinished` streams each task as it ends; its
 times are read on the `clock` it is constructed with, else on a stopwatch of
@@ -189,12 +195,13 @@ test's fake clock moves them.
 ## `ProgressList`
 
 `ProgressList(tracker:, columns: ProgressList.defaultColumns, hideFinished:
-false, maxVisible:, spinner: SpinnerFrames.dots)` shows the tasks a row each
+false, maxVisible:, spinner: SpinnerFrames.dots, byteUnits: ByteUnits.decimal)` shows the tasks a row each
 in the `ProgressColumn`s given (`mark`, `label`, `bar`, `percent`, `count`,
 `rate`, `eta`, `elapsed`; all but `count` and `elapsed` by default): the
 mark of the task's `TaskStatus` as a `TaskList` shows it, its label, a bar
 as a `ProgressBar` draws it, sweeping while the task runs without a total,
-then `62%`, `1.2 MB/s` (`ProgressUnit.bytes` in their units) and `ETA
+then `62%`, `1.2 MB/s` (`ProgressUnit.bytes` in their units: by 1000, or with
+`byteUnits: ByteUnits.binary` by 1024, `1.1 MiB/s`) and `ETA
 00:04`. The columns line up across the rows, each as wide as its widest
 cell, the amounts right-aligned, and one empty in every row takes no room;
 where a row is short the labels are cut off first, then, at 8 cells of

@@ -10,25 +10,31 @@ import '../layout/flex.dart';
 import '../style/style.dart';
 import '../text/widgets.dart';
 
-/// What a [StatusMessage] or a [Badge] tells: each kind has its [icon] and
-/// its color in the theme ([styleIn]).
+/// What a [StatusMessage] or a [Badge] tells: each kind has its [icon]
+/// ([StatusKind.icon], from the theme's [Glyphs]) and its color in the theme
+/// ([styleIn]).
 enum StatusKind {
   /// Information, neither good nor bad: `ℹ`, [ThemeData.info].
-  info('ℹ'),
+  info,
 
   /// What succeeded: `✓`, [ThemeData.success].
-  success('✓'),
+  success,
 
   /// A warning: `⚠`, [ThemeData.warning].
-  warning('⚠'),
+  warning,
 
   /// An error, what failed: `✗`, [ThemeData.error].
-  error('✗');
+  error;
 
-  const StatusKind(this.icon);
-
-  /// The sign of this kind, one column wide.
-  final String icon;
+  /// The sign of this kind in [glyphs]: [Glyphs.info], [Glyphs.check],
+  /// [Glyphs.warning] or [Glyphs.cross]; pass the theme's
+  /// (`Theme.of(context).glyphs`) to draw it as the app does.
+  String icon({Glyphs glyphs = Glyphs.unicode}) => switch (this) {
+    info => glyphs.info,
+    success => glyphs.check,
+    warning => glyphs.warning,
+    error => glyphs.cross,
+  };
 
   /// The color of this kind in [theme].
   Style styleIn(ThemeData theme) => switch (this) {
@@ -111,7 +117,11 @@ final class StatusMessage extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       gap: 1,
       children: [
-        Text(icon ?? kind.icon, style: marked, wrap: TextWrap.none),
+        Text(
+          icon ?? kind.icon(glyphs: theme.glyphs),
+          style: marked,
+          wrap: TextWrap.none,
+        ),
         Flexible(
           child: title == null
               ? text

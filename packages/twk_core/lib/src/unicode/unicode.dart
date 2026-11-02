@@ -14,6 +14,7 @@ library;
 import 'dart:typed_data';
 
 import 'tables.g.dart';
+import 'text_layout.dart';
 
 export 'tables.g.dart' show unicodeVersion;
 
@@ -751,53 +752,302 @@ int _columns(TextSegmenter seg, String s) {
   return w;
 }
 
-/// [text] cut off at its end to fit [width] columns as [segmenter]
-/// measures them ([TextSegmenter.width]), `…` in place of what is cut:
-/// [text] itself where it fits; else the clusters that fit before the
-/// ellipsis and the ellipsis, which takes the columns of an East Asian
-/// Ambiguous character ([TextSegmenter.ambiguousWidth]), as on a line
-/// that `RenderParagraph` cuts with `TextOverflow.ellipsis`; where the
-/// ellipsis does not fit either, the clusters that fit, with none, as
-/// there; and nothing at all for a [width] of 0 or less. No cluster is
-/// split, and blanks before the ellipsis are kept.
+/// [text] cut off to fit [width] columns as [segmenter] measures them
+/// ([TextSegmenter.width]), `…` in place of what is cut: [text] itself
+/// where it fits; else the clusters that fit and the ellipsis, which takes
+/// the columns of an East Asian Ambiguous character
+/// ([TextSegmenter.ambiguousWidth]), as on a line that `RenderParagraph`
+/// cuts with the same [overflow]; where the ellipsis does not fit either,
+/// the clusters that fit, with none, as there; and nothing at all for a
+/// [width] of 0 or less. No cluster is split, and no blank is left next to
+/// the ellipsis, as the paragraph trims them ([TextOverflow.clip] keeps them).
+///
+/// [overflow] says what is cut: the end ([TextOverflow.ellipsis], as
+/// `Text` has it by default here), the start, keeping the end
+/// ([TextOverflow.ellipsisStart]), or the middle, keeping both ends, the
+/// start half the room or more ([TextOverflow.ellipsisMiddle]; a path, a
+/// name). [TextOverflow.clip] cuts the end with no ellipsis.
+///
+/// [ellipsis] is the mark put in place of what is cut, `…` by default; one
+/// of several columns (`...`) takes them from the room, whatever it is made
+/// of, and is left out where it does not fit.
 ///
 /// ```dart
 /// final narrow = TextSegmenter();
 /// print(fitText(narrow, 'Warnings (12)', 8)); // Warning…
+/// print(fitText(narrow, '/usr/local/bin', 8,
+///     overflow: TextOverflow.ellipsisStart)); // …cal/bin
+/// print(fitText(narrow, '/usr/local/bin', 8,
+///     overflow: TextOverflow.ellipsisMiddle)); // /usr…bin
 /// final cjk = TextSegmenter(ambiguousWidth: 2);
 /// print(fitText(cjk, 'Warnings (12)', 8)); // Warnin…
 /// print(fitText(cjk, 'Warnings (12)', 1)); // W
+/// print(fitText(narrow, 'Warnings (12)', 8, ellipsis: '...')); // Warni...
 /// ```
-String fitText(TextSegmenter segmenter, String text, int width) {
-  if (_columns(segmenter, text) <= width) {
+String fitText(
+  TextSegmenter segmenter,
+  String text,
+  int width, {
+  TextOverflow overflow = TextOverflow.ellipsis,
+  String ellipsis = '\u2026',
+}) {
+  final total = _columns(segmenter, text);
+  if (total <= width) {
     return text;
   }
   if (width <= 0) {
     return '';
   }
-  final ellipsis = codePointWidth(0x2026, segmenter.ambiguousWidth);
-  final room = width < ellipsis ? width : width - ellipsis;
-  final graphemes = segmenter.mode == TextMode.graphemes;
+  final ellipsisWidth = _columns(segmenter, ellipsis);
+  final clip = overflow == TextOverflow.clip;
+  final room = clip || width < ellipsisWidth ? width : width - ellipsisWidth;
+  final mark = clip || width < ellipsisWidth ? '' : ellipsis;
+  final cut = _Cut();
+  switch (overflow) {
+    case TextOverflow.ellipsisStart:
+      var t = _tail(segmenter, text, cut, room, 0, total);
+      if (mark.isNotEmpty) {
+        t = _skipBlanks(segmenter, text, cut, t);
+      }
+      return '$mark${text.substring(t)}';
+    case TextOverflow.ellipsisMiddle when !clip && width >= ellipsisWidth:
+      final first = _head(
+        segmenter,
+        text,
+        cut,
+        (room + 1) >> 1,
+        text.length,
+        true,
+      );
+      final used = cut.cells;
+      final t = _skipBlanks(
+        segmenter,
+        text,
+        cut,
+        _tail(segmenter, text, cut, room - used, first, total - used),
+      );
+      final h = _head(segmenter, text, cut, room - cut.cells, t, true);
+      return '${text.substring(0, h)}$ellipsis${text.substring(t)}';
+    case TextOverflow.clip:
+    case TextOverflow.ellipsis:
+    case TextOverflow.ellipsisMiddle:
+      final h = _head(
+        segmenter,
+        text,
+        cut,
+        room,
+        text.length,
+        mark.isNotEmpty,
+      );
+      return '${text.substring(0, h)}$mark';
+  }
+}
+
+// What the helpers below report besides the index they return: the
+// columns of the cluster [_cluster] last read and whether it ended on a
+// grapheme boundary, and the columns [_head] took, or [_tail] left after
+// the start it returns (less the blanks [_skipBlanks] then passes).
+// [fitText] makes one of its own for a call and passes it down: a record
+// of the two would be allocated on every return, a cluster a time.
+final class _Cut {
+  var cluster = 0;
+  var cells = 0;
+
+  /// Whether the end of the cluster [_cluster] last read is a grapheme
+  /// boundary: always, in the grapheme mode; in the legacy one, where a
+  /// cluster may be part of a grapheme, as the grapheme segmenter says.
+  var boundary = true;
+
+  // the end of the grapheme the walk is in, and where the walk last ended
+  var _grapheme = 0;
+  var _at = 0;
+}
+
+final _cutGraphemes = TextSegmenter();
+final _cutGraphemeScan = ClusterScan();
+final _cutScratch = _Cut();
+
+/// Whether [cp], alone in its cluster, is a blank: a cut with an ellipsis
+/// does not leave one beside the mark. The one rule of [fitText], of a
+/// box's title and of a paragraph's `TextOverflow.ellipsis`: the tab (drawn
+/// as a space), the space, and the Unicode spaces but the no-break ones.
+@pragma('vm:prefer-inline')
+bool isCutBlank(int cp) =>
+    cp == 0x20 ||
+    cp == 0x09 ||
+    cp == 0x1680 ||
+    (cp >= 0x2000 && cp <= 0x200A && cp != 0x2007) ||
+    cp == 0x205F ||
+    cp == 0x3000;
+
+/// The columns of the clusters of [text] that fit [room] columns from its
+/// start, cut as [fitText] cuts before an ellipsis: whole graphemes only,
+/// and with [trim] without the blanks before the cut.
+int cutHeadCells(TextSegmenter seg, String text, int room, {bool trim = true}) {
+  final cut = _cutScratch;
+  _head(seg, text, cut, room, text.length, trim);
+  return cut.cells;
+}
+
+// The cluster of [text] at [i] ([fitText] cuts between them, in the columns
+// [_columns] counts): its end, its columns left in [cut]. Walks the text
+// without materialising its clusters. The one step every cut takes; where
+// the clusters are smaller than graphemes (the legacy mode) [_Cut.boundary]
+// says whether its end splits none.
+int _cluster(TextSegmenter seg, String text, _Cut cut, int i) {
   final scan = _widthScan;
-  var w = 0;
-  var end = 0;
-  for (var i = 0; i < text.length;) {
-    final start = i;
-    segmenter.scan(text, i, scan);
-    i = scan.end;
-    var cells = scan.width;
-    if (cells == 0) {
-      cells = scan.first == 0x09 ? 1 : 0;
-    } else if (graphemes && isLeadingMark(scan.first)) {
-      i = start + (scan.first > 0xFFFF ? 2 : 1);
-      cells = 0;
+  seg.scan(text, i, scan);
+  var end = scan.end;
+  var cells = scan.width;
+  if (cells == 0) {
+    cells = scan.first == 0x09 ? 1 : 0;
+  } else if (seg.mode == TextMode.graphemes && isLeadingMark(scan.first)) {
+    end = i + (scan.first > 0xFFFF ? 2 : 1);
+    cells = 0;
+  }
+  cut.cluster = cells;
+  if (seg.mode == TextMode.graphemes) {
+    cut.boundary = true;
+  } else {
+    // a walk that does not go on from where it ended starts on a boundary
+    if (cut._at != i || cut._grapheme < i) {
+      cut._grapheme = i;
     }
-    if (w + cells > room) {
+    cut._at = end;
+    while (cut._grapheme < end) {
+      _cutGraphemes.scan(text, cut._grapheme, _cutGraphemeScan);
+      cut._grapheme = _cutGraphemeScan.end;
+    }
+    cut.boundary = cut._grapheme == end;
+  }
+  return end;
+}
+
+// whether the cluster [start, end) of [text] is a blank: a space of its
+// own, which a line is not cut at the ellipsis beside (as RenderParagraph
+// trims it)
+bool _isBlank(String text, int start, int end) =>
+    end - start == 1 && isCutBlank(text.codeUnitAt(start));
+
+// the end of the most clusters from the start, not past [to], that fit [r]
+// columns and end on a grapheme boundary; with [trim], moved back over the
+// blanks before it
+int _head(
+  TextSegmenter seg,
+  String text,
+  _Cut cut,
+  int r,
+  int to,
+  bool trim,
+) {
+  var w = 0;
+  var i = 0;
+  cut
+    .._at = 0
+    .._grapheme = 0;
+  var whole = 0; // the end of the last cluster that ends a grapheme
+  var wholeCells = 0;
+  var kept = 0; // the end of the last such that is not a blank
+  var keptCells = 0;
+  while (i < to) {
+    final end = _cluster(seg, text, cut, i);
+    final cells = cut.cluster;
+    if (w + cells > r) {
       break;
     }
     w += cells;
-    end = i;
+    if (cut.boundary) {
+      whole = end;
+      wholeCells = w;
+      if (!_isBlank(text, i, end)) {
+        kept = end;
+        keptCells = w;
+      }
+    }
+    i = end;
   }
-  final kept = text.substring(0, end);
-  return width < ellipsis ? kept : '$kept…';
+  cut.cells = trim ? keptCells : wholeCells;
+  return trim ? kept : whole;
+}
+
+// the start of the most clusters up to the end that fit [r] columns, not
+// before [from] (a grapheme boundary), and itself on one; [rest] is the
+// columns from [from] to the end
+int _tail(
+  TextSegmenter seg,
+  String text,
+  _Cut cut,
+  int r,
+  int from,
+  int rest,
+) {
+  var left = rest;
+  var i = from;
+  cut
+    .._at = from
+    .._grapheme = from
+    ..boundary = true;
+  while ((left > r || !cut.boundary) && i < text.length) {
+    i = _cluster(seg, text, cut, i);
+    left -= cut.cluster;
+  }
+  cut.cells = left;
+  return i;
+}
+
+// [i] moved on over the blank clusters after it, [_Cut.cells] less theirs
+int _skipBlanks(TextSegmenter seg, String text, _Cut cut, int i) {
+  var at = i;
+  cut
+    .._at = i
+    .._grapheme = i;
+  while (at < text.length) {
+    final end = _cluster(seg, text, cut, at);
+    if (!_isBlank(text, at, end)) {
+      break;
+    }
+    cut.cells -= cut.cluster;
+    at = end;
+  }
+  return at;
+}
+
+/// [text] padded with blanks to [width] columns as [segmenter] measures
+/// them ([TextSegmenter.width]), placed by [alignment]: [TextAlign.left]
+/// (and [TextAlign.justify] and [TextAlign.start], which a string has no
+/// direction for) first, with the blanks after it; [TextAlign.right] (and
+/// [TextAlign.end]) with the blanks before it; [TextAlign.center] between
+/// them, the odd one after. [text] itself where it takes [width] columns or
+/// more: a longer one is not cut (cut it with [fitText] first).
+///
+/// ```dart
+/// final cells = TextSegmenter();
+/// print('[${padCells(cells, 'ab', 5)}]'); // [ab   ]
+/// print('[${padCells(cells, 'ab', 5, alignment: TextAlign.right)}]');
+/// // [   ab]
+/// print('[${padCells(cells, '日本', 6, alignment: TextAlign.center)}]');
+/// // [ 日本  ]
+/// ```
+String padCells(
+  TextSegmenter segmenter,
+  String text,
+  int width, {
+  TextAlign alignment = TextAlign.left,
+}) {
+  final lack = width - _columns(segmenter, text);
+  if (lack <= 0) {
+    return text;
+  }
+  switch (alignment) {
+    case TextAlign.right:
+    case TextAlign.end:
+      return '${' ' * lack}$text';
+    case TextAlign.center:
+      final before = lack >> 1;
+      return '${' ' * before}$text${' ' * (lack - before)}';
+    case TextAlign.left:
+    case TextAlign.justify:
+    case TextAlign.start:
+      return '$text${' ' * lack}';
+  }
 }

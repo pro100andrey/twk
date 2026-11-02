@@ -4,15 +4,15 @@ text
 │                                                                                │
 │   ⌕ Filter       /     SelectionList                           Preview   Code  │
 │                        Items selected by their keys: in a single selection     │
-│   CONTROLS      20     the cursor selects, in a multiple one Space does.       │
-│     Button           ──────────────────────────────────────────────────────────│
-│     Pressable                    ┌                               ┐             │
-│     Checkbox, Swi…      ·   ·      ╭────────────────╮  selected     ·   ·   ·  │
-│     RadioGroup                     │ Mercury        │  Earth                   │
-│     SegmentedButt…      ·   ·      │ Venus          │               ·   ·   ·  │
-│ ▎   SelectionList   ▐              │▎Earth          │                          │
+│     Pressable          the cursor selects, in a multiple one Space does.       │
+│     Checkbox, Swi…   ──────────────────────────────────────────────────────────│
+│     RadioGroup                   ┌                               ┐             │
+│     SegmentedButt…      ·   ·      ╭────────────────╮  selected     ·   ·   ·  │
+│     Chip, ChipList                 │ Mercury        │  Earth                   │
+│     ValueStepper        ·   ·      │ Venus          │               ·   ·   ·  │
+│ ▎   SelectionList                  │▎Earth          │                          │
 │     Select, Multi…  ▐   ·   ·      │ Mars           │               ·   ·   ·  │
-│     ConfirmInput                   │ Jupiter        │                          │
+│     ConfirmInput    ▐              │ Jupiter        │                          │
 │     Slider              ·   ·      │ Saturn         │               ·   ·   ·  │
 │     NumberInput                    ╰────────────────╯                          │
 │     DatePicker          ·   ·    └                               ┘  ·   ·   ·  │
@@ -29,15 +29,15 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahGhGGGGGGhhhhhhhHhaaggkkkkkkkkkkkkkggggggggggggggggggggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmmmmmgmmmmmmmmgmmgmmmmmgmmmmmgmmgmgmmmmmmgmmmmmmmmmggggg│
-│aaaddddddddaaaaaaFFaaaggmmmgmmmmmmgmmmmmmmmgmmgmgmmmmmmmmgmmmgmmmmmgmmmmmggggggg│
-│aaaaaooooooaaaaaaaaaaannnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn│
-│aaaaaoooooooooaaaaaaaaggggggggggggngggggggggggggggggggggggggggggggnggggggggggggg│
-│aaaaaoooooooooaooooaaagggngggnggggggppppppppppppppppppggmmmmmmmmgggggngggngggngg│
-│aaaaaooooooooooaaaaaaaggggggggggggggpgqqqqqqqggggggggpggqqqqqggggggggggggggggggg│
-│aaaaaooooooooooooooaaagggngggnggggggpgmmmmmggggggggggpgggggggggggggggngggngggngg│
-│arssstttttttttttttsssdggggggggggggggpIJJJJJKKKKKKKKKKpgggggggggggggggggggggggggg│
+│aaaaaoooooooooaaaaaaaaggmmmgmmmmmmgmmmmmmmmgmmgmgmmmmmmmmgmmmgmmmmmgmmmmmggggggg│
+│aaaaaoooooooooaooooaaannnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn│
+│aaaaaooooooooooaaaaaaaggggggggggggngggggggggggggggggggggggggggggggnggggggggggggg│
+│aaaaaooooooooooooooaaagggngggnggggggppppppppppppppppppggmmmmmmmmgggggngggngggngg│
+│aaaaaoooooaooooooooaaaggggggggggggggpgqqqqqqqggggggggpggqqqqqggggggggggggggggggg│
+│aaaaaooooooooooooaaaaagggngggnggggggpgmmmmmggggggggggpgggggggggggggggngggngggngg│
+│arssstttttttttttttsssaggggggggggggggpIJJJJJKKKKKKKKKKpgggggggggggggggggggggggggg│
 │aaaaaoooooooaooooooaadgggngggnggggggpgqqqqgggggggggggpgggggggggggggggngggngggngg│
-│aaaaaooooooooooooaaaaaggggggggggggggpgqqqqqqqggggggggpgggggggggggggggggggggggggg│
+│aaaaaooooooooooooaaaadggggggggggggggpgqqqqqqqggggggggpgggggggggggggggggggggggggg│
 │aaaaaooooooaaaaaaaaaaagggngggnggggggpgqqqqqqgggggggggpgggggggggggggggngggngggngg│
 │aaaaaoooooooooooaaaaaaggggggggggggggppppppppppppppppppgggggggggggggggggggggggggg│
 │aaaaaooooooooooaaaaaaagggngggnggggngggggggggggggggggggggggggggggggnggngggngggngg│

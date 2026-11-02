@@ -20,7 +20,7 @@ text
 │     TextArea           selection   none  row  cell                             │
 │     Autocomplete       border      none  single  rounded  double  heavy        │
 │                                    ascii                                       │
-│   CONTROLS      20     guides     ▐  ●▌                                        │
+│   CONTROLS      22     guides     ▐  ●▌                                        │
 │     Button                                                                     │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │

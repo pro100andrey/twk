@@ -126,7 +126,7 @@ final class HeadlessTerminal
        );
 
   /// What a [Terminal] waits for the rest of a sequence that has surely
-  /// started (or, with the kitty protocol, after any ESC).
+  /// started (with the kitty protocol, ESC and any byte after it).
   static const _longEscapeTimeout = Duration(milliseconds: 500);
 
   /// Only the screen mode, the mouse on the normal screen and the pauses
@@ -188,7 +188,8 @@ final class HeadlessTerminal
     if (!_parser.hasPending) {
       return null;
     }
-    return info.kittyKeyboard || _parser.sequenceStarted
+    return _parser.sequenceStarted ||
+            (info.kittyKeyboard && _parser.escapeFollowed)
         ? _longEscapeTimeout
         : options.escapeTimeout;
   }

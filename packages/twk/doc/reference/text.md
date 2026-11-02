@@ -9,7 +9,17 @@ that of the `DefaultTextStyle` above (each span's merged onto that), broken
 into lines, cut off and aligned by the core's `RenderParagraph` (`TextWrap`,
 `TextOverflow`, `maxLines`, `TextAlign`, whose `start` and `end` are the
 left and the right edge, or in visual order those a line's paragraph starts
-and ends at);
+and ends at; `TextAlign.justify` stretches a line to the whole width, the cells
+it lacks shared out after the spaces between its words, the last line, a line
+the text breaks and one without spaces staying at the start); `TextOverflow`
+says how the cut is shown: `clip` cuts at the edge, `ellipsis` puts `…` in
+place of the end, `ellipsisStart` of the start (the end kept) and
+`ellipsisMiddle` of the middle (the start and the end kept: paths, names);
+
+`Text.line` (a string) and `Text.richLine` (`Span`s) are the one-line case:
+`wrap: TextWrap.none`, `overflow: TextOverflow.ellipsis`, `maxLines: 1`,
+taking only `key` and `style`; a text wider than its room is cut with `…`
+and never grows the height.
 
 ## `DefaultTextStyle`
 

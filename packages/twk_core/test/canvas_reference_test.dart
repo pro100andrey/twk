@@ -452,7 +452,7 @@ void _run(TextMode mode) {
           for (var x = 0; x < w; x++) {
             final i = y * w + x;
             final c = surface.cells[i];
-            final st = surface.styles[i];
+            final st = StyleId(surface.styles[i]);
             final r = ref.grid[y][x];
             final role = (c & kCont) != 0 ? -1 : ((c & kWide) != 0 ? 2 : 0);
             final text = role == -1 ? '' : glyphs.stringOf(c);

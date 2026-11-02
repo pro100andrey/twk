@@ -6,22 +6,22 @@ text
 │                        One of several choices: the arrows or a click choose    │
 │     Autocomplete       one.                                                    │
 │                      ──────────────────────────────────────────────────────────│
-│   CONTROLS      20                                                             │
-│     Button              ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
-│     Pressable                           ┌                 ┐                    │
-│     Checkbox, Swi…      ·   ·   ·   ·     ( ) apple         ·   ·   ·   ·   ·  │
-│ ▎   RadioGroup      ▐                     ( ) banana                           │
-│     SegmentedButt…  ▐   ·   ·   ·   ·     ( ) cherry        ·   ·   ·   ·   ·  │
-│     SelectionList                         ( ) durian                           │
-│     Select, Multi…      ·   ·   ·   ·                       ·   ·   ·   ·   ·  │
-│     ConfirmInput                          chosen: nothing                      │
-│     Slider              ·   ·   ·   ·   └                 ┘ ·   ·   ·   ·   ·  │
-│     NumberInput                                     15 × 6                     │
-│     DatePicker          ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
-│     FilePicker                                                                 │
-│     Form, FormFie…   ──────────────────────────────────────────────────────────│
-│     TabBar, TabVi…     direction   vertical  horizontal                        │
-│     KeyHintsBar                                                                │
+│   CONTROLS      22                                                             │
+│     Button              ·   ·   ·   ·   ┌                 ┐ ·   ·   ·   ·   ·  │
+│     Pressable                             ( ) apple                            │
+│     Checkbox, Swi…      ·   ·   ·   ·     ( ) banana        ·   ·   ·   ·   ·  │
+│ ▎   RadioGroup      ▐                     ( ) cherry                           │
+│     SegmentedButt…  ▐   ·   ·   ·   ·     ( ) durian        ·   ·   ·   ·   ·  │
+│     Chip, ChipList                                                             │
+│     ValueStepper        ·   ·   ·   ·     chosen: nothing   ·   ·   ·   ·   ·  │
+│     SelectionList                       └                 ┘                    │
+│     Select, Multi…      ·   ·   ·   ·   ·   ·   ·   15 × 6  ·   ·   ·   ·   ·  │
+│     ConfirmInput                                                               │
+│     Slider           ──────────────────────────────────────────────────────────│
+│     NumberInput        direction   vertical  horizontal                        │
+│     DatePicker         mark        ●  *  ✓                                     │
+│     FilePicker         theme       (●) ( )  ◉ ○                                │
+│     Form, FormFie…                                                             │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -32,21 +32,21 @@ styles
 │aaaaannnnnnnnnnnnaaaaaggmmmmgggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaddddddddaaaaaawwaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnaaaaaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
-│aaaaannnnnnnnnaaaaaaaagggggggggggggggggggogggggggggggggggggogggggggggggggggggggg│
-│aaaaannnnnnnnnannnnaaagggogggogggogggogggggmgmgpppppgggggggggogggogggogggogggogg│
-│aqrrrssssssssssrrrrrrdgggggggggggggggggggggmgmgppppppggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnnnnaadgggogggogggogggogggggmgmgppppppggggggggogggogggogggogggogg│
-│aaaaannnnnnnnnnnnnaaaagggggggggggggggggggggmgmgmmmmmmggggggggggggggggggggggggggg│
-│aaaaannnnnnnannnnnnaaagggogggogggogggogggggggggggggggggggggggogggogggogggogggogg│
-│aaaaannnnnnnnnnnnaaaaagggggggggggggggggggggmmmmmmmgmmmmmmmgggggggggggggggggggggg│
 │aaaaannnnnnaaaaaaaaaaagggogggogggogggogggogggggggggggggggggogogggogggogggogggogg│
-│aaaaannnnnnnnnnnaaaaaagggggggggggggggggggggggggggggggzzgzgzggggggggggggggggggggg│
-│aaaaannnnnnnnnnaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
-│aaaaannnnnnnnnnaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnannnnnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnannnnnnaaaggmmmmmmmmmggrssssssssrhvvvvvvvvvvhggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnaaaaaaaagggggggggggggggggggggmgmgpppppgggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnannnnaaagggogggogggogggogggggmgmgppppppggggggggogggogggogggogggogg│
+│aqrrrssssssssssrrrrrrdgggggggggggggggggggggmgmgppppppggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaadgggogggogggogggogggggmgmgmmmmmmggggggggogggogggogggogggogg│
+│aaaaannnnnannnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaaagggogggogggogggogggggmmmmmmmgmmmmmmmgggogggogggogggogggogg│
+│aaaaannnnnnnnnnnnnaaaagggggggggggggggggggogggggggggggggggggogggggggggggggggggggg│
+│aaaaannnnnnnannnnnnaaagggogggogggogggogggogggogggogggzzgzgzggogggogggogggogggogg│
+│aaaaannnnnnnnnnnnaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnaaaaaaggmmmmmmmmmggrssssssssrhvvvvvvvvvvhggggggggggggggggggggggg│
+│aaaaannnnnnnnnnaaaaaaaggmmmmgggggggrsrhvhhvhgggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnaaaaaaaggmmmmmggggggrsssrsrsrhvhvhggggggggggggggggggggggggggggggg│
+│aaaaannnnnannnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

@@ -5,7 +5,9 @@
 `debugDumpTree(context)` and `debugDumpRenderTree(context)`, which print the
 element tree or the render tree `context` is in, from its root, as
 `DiagnosticsNode.toStringDeep` renders it (guides, sizes, flags and their
-legend, long runs of siblings folded); `print` in an app goes to its log.
+legend, long runs of siblings folded); `print` in an app goes to its log, and `LogSink.run(body)` runs `body` with
+`log` and `print` writing to that sink, as they do in the app whose sink it is
+(a test or a tool that has no app), returning what `body` returns.
 
 ## `Console`
 

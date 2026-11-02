@@ -5,6 +5,7 @@ library;
 
 import 'dart:collection';
 
+import 'package:meta/meta.dart' show internal;
 import 'package:twk_core/twk_core.dart' show KeyEvent;
 
 import '../foundation/change_notifier.dart';
@@ -67,6 +68,7 @@ class FocusNode with ChangeNotifier {
     this._canRequestFocus = true,
     this.skipTraversal = false,
     this._descendantsAreFocusable = true,
+    this._takesText = false,
   });
 
   /// Names the node in [toString].
@@ -83,11 +85,34 @@ class FocusNode with ChangeNotifier {
 
   bool _canRequestFocus;
   bool _descendantsAreFocusable;
+  bool _takesText;
 
   FocusManager? _manager;
   Element? _element;
   FocusNode? _parent;
   final _children = <FocusNode>[];
+
+  ({FocusNode from, FocusNode to})? Function()? _keysSkip;
+
+  /// Tells, each time the [FocusManager.keyPath] is walked, the part of it
+  /// the keys that pass this node skip: `from` and the nodes above it up to
+  /// `to`, an ancestor of it, which gets them next; null for none. A dialog
+  /// or an entry of a navigator's overlay under an `App` skips so from the
+  /// node above the navigator to the one above the App's overlay, as it
+  /// would be shown in that overlay without the navigator: the app's
+  /// bindings between do not hear its keys. Told on each walk, it follows
+  /// a change of the tree above.
+  @internal
+  ({FocusNode from, FocusNode to})? Function()? get keysSkip => _keysSkip;
+
+  @internal
+  set keysSkip(({FocusNode from, FocusNode to})? Function()? value) {
+    if (value == _keysSkip) {
+      return;
+    }
+    _keysSkip = value;
+    markKeysChanged();
+  }
 
   // the element of its widget is in the tree: false from its deactivation
   // until it is activated again, or for good
@@ -114,6 +139,24 @@ class FocusNode with ChangeNotifier {
       }
     }
     return true;
+  }
+
+  /// Whether this node takes the keys that are characters as text, in its
+  /// [onKeyEvent], as a text field does, so that the layers of
+  /// `KeyBindings` above it never hear them while the focus is in it or
+  /// below it. The keys listed as in force (`FocusManager.activeKeys`),
+  /// and so those a `KeyHintsBar` and `showKeyHelp` offer, leave out the
+  /// bindings of those layers on a character, `q`, `shift+q` or `?`; those
+  /// with Ctrl or Alt stay. False by default; a field that does not
+  /// take text, as a read-only one, says false.
+  bool get takesText => _takesText;
+
+  set takesText(bool value) {
+    if (value == _takesText) {
+      return;
+    }
+    _takesText = value;
+    _manager?._mayChangeKeysBelow(_parent);
   }
 
   set canRequestFocus(bool value) {
@@ -450,6 +493,16 @@ class FocusScopeNode extends FocusNode {
     super.descendantsAreFocusable,
   });
 
+  /// A node outside this scope that Tab and Shift+Tab leave to, instead of
+  /// going round the scope: Tab from the scope's last stop focuses the
+  /// stop of the scope above [leaveTo] after the nodes below it, Shift+Tab
+  /// from its first the last stop below [leaveTo], else the stop before it.
+  /// Null (the default) keeps the focus in the scope, as a modal panel
+  /// does; set for a panel that is not modal, as Flutter's
+  /// `FocusTraversalGroup` lets the focus on where a `FocusScope` keeps it.
+  /// When the scope above has no such stop, the focus goes round the scope.
+  FocusNode? leaveTo;
+
   // the nodes of this scope (and scopes inside it) that had the focus, the
   // last most recently
   final _history = <FocusNode>[];
@@ -570,7 +623,9 @@ final class FocusManager {
   /// it left the tree, and those around the whole app while no node has it
   /// (the root scope stands for it then). A node that can take the focus
   /// gets no key it was not given. While a node holds the keys
-  /// ([FocusNode.holdKeys]), it is the first.
+  /// ([FocusNode.holdKeys]), it is the first. A node on it can make the
+  /// keys skip the nodes between two above it ([FocusNode.keysSkip]), the
+  /// nearest such node's skip taken.
   Iterable<FocusNode> get keyPath sync* {
     var node = _holder ?? _primary ?? rootScope;
     if (_holder == null) {
@@ -594,8 +649,12 @@ final class FocusManager {
         node = only;
       }
     }
-    for (FocusNode? n = node; n != null; n = n._parent) {
+    ({FocusNode from, FocusNode to})? skip;
+    for (FocusNode? n = node; n != null;) {
       yield n;
+      skip ??= n._keysSkip?.call();
+      final next = n._parent;
+      n = skip != null && identical(next, skip.from) ? skip.to : next;
     }
   }
 
@@ -843,6 +902,21 @@ final class FocusManager {
       return false;
     }
     final i = stops.indexOf(from);
+    final out = scope.leaveTo;
+    if (out != null && out._attached && out._active && out._element != null) {
+      final atEnd = i >= 0
+          ? i == (forward ? stops.length - 1 : 0)
+          : forward
+          ? !stops.any((s) => order.compare(from, s) < 0)
+          : !stops.any((s) => order.compare(s, from) < 0);
+      if (atEnd) {
+        final target = _leaveTarget(out, forward: forward);
+        if (target != null) {
+          _enter(target, _TreeOrder(target.nearestScope!._element!));
+          return true;
+        }
+      }
+    }
     final FocusNode next;
     if (i >= 0) {
       next = stops[(i + (forward ? 1 : -1)) % stops.length];
@@ -859,6 +933,42 @@ final class FocusManager {
     }
     _enter(next, order);
     return true;
+  }
+
+  /// The stop of [out]'s scope Tab leaves to from a scope that
+  /// [FocusScopeNode.leaveTo] [out]: the first after the nodes below
+  /// [out], or, backwards, the last below it, else the last before it.
+  FocusNode? _leaveTarget(FocusNode out, {required bool forward}) {
+    final scope = out.nearestScope;
+    final root = scope?._element;
+    if (scope == null || root == null) {
+      return null;
+    }
+    final order = _TreeOrder(root);
+    final stops = order.stopsOf(scope);
+    bool below(FocusNode s) {
+      for (var n = s._parent; n != null; n = n._parent) {
+        if (identical(n, out)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    if (forward) {
+      for (final s in stops) {
+        if (order.compare(out, s) < 0 && !below(s)) {
+          return s;
+        }
+      }
+      return null;
+    }
+    final inside = stops.where(below);
+    if (inside.isNotEmpty) {
+      return inside.last;
+    }
+    final before = stops.where((s) => order.compare(s, out) < 0);
+    return before.isEmpty ? null : before.last;
   }
 
   /// Focuses [node]; a scope the node it focused last, else its first.
@@ -1096,6 +1206,7 @@ final class Focus extends StatefulWidget {
     this.canRequestFocus,
     this.skipTraversal,
     this.descendantsAreFocusable,
+    this.takesText,
     this.debugLabel,
     super.key,
   });
@@ -1122,6 +1233,9 @@ final class Focus extends StatefulWidget {
 
   /// See [FocusNode.descendantsAreFocusable].
   final bool? descendantsAreFocusable;
+
+  /// See [FocusNode.takesText].
+  final bool? takesText;
 
   /// See [FocusNode.debugLabel].
   final String? debugLabel;
@@ -1233,6 +1347,7 @@ abstract class _NodeState<W extends StatefulWidget, N extends FocusNode>
   bool? get _canRequestFocus;
   bool? get _skipTraversal;
   bool? get _descendantsAreFocusable;
+  bool? get _takesText => null;
   String? get _debugLabel;
 
   @override
@@ -1251,6 +1366,7 @@ abstract class _NodeState<W extends StatefulWidget, N extends FocusNode>
         ..canRequestFocus = _canRequestFocus ?? true
         ..skipTraversal = _skipTraversal ?? false
         ..descendantsAreFocusable = _descendantsAreFocusable ?? true
+        ..takesText = _takesText ?? false
         ..debugLabel = _debugLabel;
       return;
     }
@@ -1265,6 +1381,9 @@ abstract class _NodeState<W extends StatefulWidget, N extends FocusNode>
     }
     if (_descendantsAreFocusable case final descendantsAreFocusable?) {
       node.descendantsAreFocusable = descendantsAreFocusable;
+    }
+    if (_takesText case final takesText?) {
+      node.takesText = takesText;
     }
     if (_debugLabel case final debugLabel?) {
       node.debugLabel = debugLabel;
@@ -1337,6 +1456,9 @@ abstract class _NodeState<W extends StatefulWidget, N extends FocusNode>
 }
 
 final class _FocusState extends _NodeState<Focus, FocusNode> {
+  @override
+  bool? get _takesText => widget.takesText;
+
   @override
   FocusNode? get _given => widget.focusNode;
 

@@ -13,15 +13,15 @@ text
 │ ▎   ListTile              640 B, today                                         │
 │     StatusBar           ▤ photo.png                                        ›   │
 │                     ▐     1.2 MB, last week                                    │
-│   OVERLAYS      11  ▐   ▤ locked.txt                                       ›   │
+│   OVERLAYS      12  ▐   ▤ locked.txt                                       ›   │
 │     Overlay               no access                                            │
-│     Dialog            └                                                      ┘ │
-│     Toast            ──────────────────────────────────────────────────────────│
-│     Tooltip            leading   ▐  ●▌                                         │
-│     Popover                                                                    │
-│     MenuBar            subtitle  ▐  ●▌                                         │
-│     ContextMenu                                                                │
-│     CommandPalette     trailing  ▐  ●▌                                         │
+│     App               └                                                      ┘ │
+│     Dialog           ──────────────────────────────────────────────────────────│
+│     Toast              leading   ▐  ●▌                                         │
+│     Tooltip                                                                    │
+│     Popover            subtitle  ▐  ●▌                                         │
+│     MenuBar                                                                    │
+│     ContextMenu        trailing  ▐  ●▌                                         │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -40,13 +40,13 @@ styles
 │aaaaaaaaaaaaaaaaaaaaadgggggmmmgmmmgmmmmgmmmmgggggggggggggggggggggggggggggggggggg│
 │aaaddddddddaaaaaaxxaadgggmgmmmmmmmmmmgggggggggggggggggggggggggggggggggggggggmggg│
 │aaaaannnnnnnaaaaaaaaaagggggmmgmmmmmmgggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnaaaaaaaaaaagoggggggggggggggggggggggggggggggggggggggggggggggggggggggog│
-│aaaaannnnnaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnaaaaaaaaaaggmmmmmmmggguvvwuggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnaaaaaaaaaaaaaagoggggggggggggggggggggggggggggggggggggggggggggggggggggggog│
+│aaaaannnnnnaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnaaaaaaaaaaaaggmmmmmmmggguvvwuggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnaaaaaaaaaaggmmmmmmmmgguvvwuggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnnnnaaaggmmmmmmmmgguvvwuggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnaaaaaaggmmmmmmmmgguvvwuggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

@@ -3,11 +3,14 @@
 [The design](README.md)
 
 A real state machine: a sequence may be split at any byte and several may
-arrive in one read. With the kitty keyboard protocol (detected by the probe)
-the Escape key arrives as `CSI 27 u`, so a sequence split across reads —
-common over slow ssh — is never mistaken for Escape; without it a lone ESC
-counts as Escape after 30 ms, while a sequence whose parameters already
-arrived gets 500 ms, so a slow link can't turn its tail into typed text. An
+arrive in one read. A lone ESC counts as Escape after 30 ms, while a
+sequence whose parameters already arrived gets 500 ms, so a slow link can't
+turn its tail into typed text. With the kitty keyboard protocol Alt+key is
+`CSI u`, so there ESC and any byte after it is a sequence cut and gets the
+500 ms too, and only a lone ESC the 30 ms. That protocol sends the Escape
+key as `CSI 27 u`: a terminal may answer for it and still send a lone ESC
+(Konsole 26.08, KDE bug 524772), and neither Neovim nor tmux waits longer
+for a lone ESC under it. An
 ESC inside an unterminated OSC/DCS string aborts it, as in a terminal's own
 parser, so a truncated reply can't swallow the input that follows. The ESC
 timeout never cuts a bracketed paste: it ends with its end marker, or, when

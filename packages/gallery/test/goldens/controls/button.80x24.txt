@@ -7,21 +7,21 @@ text
 │     TextField          it has the focus; disabled with no onPressed.           │
 │     InputDecorati…   ──────────────────────────────────────────────────────────│
 │     TextArea                                                                   │
-│     Autocomplete        ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
-│                                    ┌                            ┐              │
-│   CONTROLS      20      ·   ·   ·     Save    Send    Disabled      ·   ·   ·  │
-│ ▎   Button          ▐                                                          │
-│     Pressable       ▐   ·   ·   ·    saved: 0  sent: 0              ·   ·   ·  │
-│     Checkbox, Swi…                 └                            ┘              │
-│     RadioGroup          ·   ·   ·   ·   ·   ·   ·   ·   · 26 × 3·   ·   ·   ·  │
-│     SegmentedButt…                                                             │
-│     SelectionList                                                              │
-│     Select, Multi…   ──────────────────────────────────────────────────────────│
-│     ConfirmInput       style  ██ ██ ██ ██ ██ ██  primary                       │
-│     Slider                    ▔▔                                               │
-│     NumberInput        look    chip  outlined  filled                          │
-│     DatePicker         tall   ▐●  ▌                                            │
-│     FilePicker                                                                 │
+│     Autocomplete        ·   ·   ·  ┌                            ┐   ·   ·   ·  │
+│                                       Save    Send    Disabled                 │
+│   CONTROLS      22      ·   ·   ·                                   ·   ·   ·  │
+│ ▎   Button          ▐                 Enter send                               │
+│     Pressable       ▐   ·   ·   ·                                   ·   ·   ·  │
+│     Checkbox, Swi…                   saved: 0  sent: 0                         │
+│     RadioGroup          ·   ·   ·  └                            ┘   ·   ·   ·  │
+│     SegmentedButt…                                        26 × 5               │
+│     Chip, ChipList                                                             │
+│     ValueStepper     ──────────────────────────────────────────────────────────│
+│     SelectionList      style  ██ ██ ██ ██ ██ ██  primary                       │
+│     Select, Multi…            ▔▔                                               │
+│     ConfirmInput       look    chip  outlined  filled  plain                   │
+│     Slider             tall   ▐●  ▌                                            │
+│     NumberInput                                                                │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -32,21 +32,21 @@ styles
 │aaaaannnnnnnnnaaaaaaaaggmmgmmmgmmmgmmmmmmgmmmmmmmmgmmmmgmmgmmmmmmmmmmggggggggggg│
 │aaaaannnnnnnnnnnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnnnaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnnaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
-│aaaaaaaaaaaaaaaaaaaaaaggggggggggggggoggggggggggggggggggggggggggggogggggggggggggg│
-│aaaddddddddaaaaaaHHaaagggogggogggoggggtuuuutggtuuuutggaddddddddagggggogggogggogg│
-│apqqqrrrrrrqqqqqqqqqqdgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnaaaaaaadgggogggogggoggggmmmmmmgvggmmmmmgvggggggggggggggogggogggogg│
-│aaaaannnnnnnnnannnnaaaggggggggggggggoggggggggggggggggggggggggggggogggggggggggggg│
-│aaaaannnnnnnnnnaaaaaaagggogggogggogggogggogggogggogggogggogKKgKgKogggogggogggogg│
-│aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnnnaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnannnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnnnnnnaaaaaggmmmmmggxxgyygzzgAAgBBgCCggKKKKKKKggggggggggggggggggggggg│
-│aaaaannnnnnaaaaaaaaaaagggggggggvvggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnaaaaaaggmmmmgggqrrrrqhDDDDDDDDhhDDDDDDhggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnaaaaaaaggmmmmgggEFGGEgggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaaagggogggogggoggoggggggggggggggggggggggggggggogggogggogggogg│
+│aaaaaaaaaaaaaaaaaaaaaaggggggggggggggggtuuuutggtuuuutggaddddddddagggggggggggggggg│
+│aaaddddddddaaaaaaHHaaagggogggogggogggggggggggggggggggggggggggggggggggogggogggogg│
+│apqqqrrrrrrqqqqqqqqqqdggggggggggggggggtffffftuuuutgggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnaaaaaaadgggogggogggogggggggggggggggggggggggggggggggggggogggogggogg│
+│aaaaannnnnnnnnannnnaaaggggggggggggggggmmmmmmgvggmmmmmgvggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnaaaaaaagggogggogggoggoggggggggggggggggggggggggggggogggogggogggogg│
+│aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggKKgKgKggggggggggggggg│
+│aaaaannnnnannnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnnnaaaaggmmmmmggxxgyygzzgAAgBBgCCggKKKKKKKggggggggggggggggggggggg│
+│aaaaannnnnnnannnnnnaaagggggggggvvggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaaaggmmmmgggqrrrrqhDDDDDDDDhhDDDDDDhhDDDDDhgggggggggggggggggg│
+│aaaaannnnnnaaaaaaaaaaaggmmmmgggEFGGEgggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend
@@ -70,6 +70,7 @@ u bold #5fa8ff on #22252c
 p #5fa8ff on #2b4566
 q on #2b4566
 r bold #e6e8eb on #2b4566
+f bold yellow on #22252c
 v #e6e8eb on #16181d
 K #747a83 on #16181d
 x #5fa8ff on #16181d

@@ -4,6 +4,7 @@ library;
 
 export 'button.dart';
 export 'callout.dart';
+export 'chip.dart';
 export 'choice.dart';
 export 'confirm.dart';
 export 'date_picker.dart';
@@ -22,3 +23,4 @@ export 'status.dart';
 export 'status_bar.dart';
 export 'tabs.dart';
 export 'toggle.dart';
+export 'value_stepper.dart';

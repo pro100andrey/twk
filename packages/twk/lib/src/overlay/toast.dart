@@ -19,6 +19,7 @@ import '../animation/animation_controller.dart';
 import '../animation/curves.dart';
 import '../animation/switcher.dart' show FractionalTranslation, Opacity;
 import '../animation/ticker.dart';
+import '../binding/app_binding.dart' show AppBinding;
 import '../foundation/change_notifier.dart';
 import '../foundation/listenable_builder.dart';
 import '../framework/framework.dart';
@@ -27,6 +28,7 @@ import '../layout/box.dart';
 import '../layout/flex.dart';
 import '../layout/shadow.dart';
 import '../layout/stack.dart';
+import '../style/glyphs.dart' show cellRune;
 import '../style/style.dart';
 import '../text/widgets.dart';
 import 'layer.dart';
@@ -38,6 +40,9 @@ import 'panel.dart';
 /// Shows [message] in a toast of the [Overlay] above [context] (a
 /// [StateError] that says where to place one if there is none) for
 /// [duration], three seconds by default, then takes it away.
+///
+/// The time runs on a timer of the app, so [context] needs one above it
+/// (`runApp`, or a `Cli`), see [AppBinding.startTimer].
 ///
 /// The toasts of an overlay are shown in the order they came, at most three
 /// at a time: the others wait in a queue, and each is shown, its
@@ -84,7 +89,7 @@ void showToast(
   if (overlay == null) {
     throw StateError(
       'showToast: no Overlay above ${context.widget.runtimeType}: place '
-      'an Overlay above it, as around the whole app: Overlay(child: …)',
+      'an Overlay above it, as App does around the whole app: App(child: …)',
     );
   }
   (_toasts[overlay] ??= _Toasts(overlay)).add(
@@ -146,7 +151,9 @@ final class _Toasts {
   /// shows them: in the entry, put over the others when there was none.
   void _update() {
     for (final toast in shown) {
-      toast.timer ??= Timer(toast.duration, () => _expire(toast));
+      toast.timer ??= AppBinding.of(
+        overlay.context,
+      ).startTimer(toast.duration, () => _expire(toast));
     }
     final entry = _entry;
     if (entry == null) {
@@ -271,7 +278,7 @@ final class _RaisedToastState extends State<_RaisedToast>
     super.initState();
     final wait = widget.toast.duration - _fadeOut;
     if (wait > Duration.zero) {
-      _timer = Timer(wait, _out.forward);
+      _timer = AppBinding.of(context).startTimer(wait, _out.forward);
     } else {
       _out.forward();
     }
@@ -293,10 +300,10 @@ final class _RaisedToastState extends State<_RaisedToast>
       return null;
     }
     return switch (fg) {
-      _ when fg == theme.success.fg => '✓',
-      _ when fg == theme.info.fg => 'ℹ',
-      _ when fg == theme.warning.fg => '⚠',
-      _ when fg == theme.error.fg => '✗',
+      _ when fg == theme.success.fg => theme.glyphs.check,
+      _ when fg == theme.info.fg => theme.glyphs.info,
+      _ when fg == theme.warning.fg => theme.glyphs.warning,
+      _ when fg == theme.error.fg => theme.glyphs.cross,
       _ => null,
     };
   }
@@ -314,7 +321,7 @@ final class _RaisedToastState extends State<_RaisedToast>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _Edge(style: kind),
+            _Edge(style: kind, glyph: theme.glyphs.accent),
             Padding(
               padding: const EdgeInsets.only(
                 left: 1,
@@ -350,22 +357,35 @@ final class _RaisedToastState extends State<_RaisedToast>
   }
 }
 
-/// A column of `▌` down the height it gets, in [style]: a toast's bar.
+/// A column of [glyph] down the height it gets, in [style]: a toast's bar.
 final class _Edge extends LeafRenderObjectWidget {
-  const _Edge({required this.style});
+  const _Edge({required this.style, required this.glyph});
 
   final Style style;
+  final String glyph;
 
   @override
-  _RenderEdge createRenderObject(BuildContext context) => _RenderEdge(style);
+  _RenderEdge createRenderObject(BuildContext context) =>
+      _RenderEdge(style, glyph);
 
   @override
   void updateRenderObject(BuildContext context, _RenderEdge renderObject) =>
-      renderObject.style = style;
+      renderObject
+        ..style = style
+        ..glyph = glyph;
 }
 
 final class _RenderEdge extends RenderObject {
-  _RenderEdge(this._style);
+  _RenderEdge(this._style, this._glyph);
+
+  String _glyph;
+  String get glyph => _glyph;
+  set glyph(String g) {
+    if (g != _glyph) {
+      _glyph = g;
+      markNeedsPaint();
+    }
+  }
 
   Style _style;
   Style get style => _style;
@@ -392,8 +412,16 @@ final class _RenderEdge extends RenderObject {
   void paint(PaintContext ctx) {
     final canvas = ctx.canvas;
     final pen = _style.penIn(canvas.styles);
-    for (var y = 0; y < height; y++) {
-      canvas.text(0, y, '▌', pen);
+    if (_glyph.isEmpty || height <= 0) {
+      return;
     }
+    canvas.fill(
+      0,
+      0,
+      1,
+      height,
+      pen,
+      cellRune(this, 'accent', _glyph, Glyphs.ascii.accent, canvas.segmenter),
+    );
   }
 }

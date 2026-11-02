@@ -15,6 +15,7 @@ import '../framework/framework.dart';
 import '../semantics/semantics.dart';
 import '../style/style.dart';
 import 'steps.dart';
+import 'ticker.dart';
 
 /// A bar filled from the left as far as [value] says, in eighths of a
 /// cell; while the value is not known (null), a block a quarter of its
@@ -90,8 +91,9 @@ final class _Bar extends LeafRenderObjectWidget {
       RenderProgressBar(
         value: value,
         style: style ?? Theme.of(context).primary,
+        glyphs: Theme.of(context).glyphs,
         binding: AppBinding.maybeOf(context),
-      );
+      )..muted = !TickerMode.of(context);
 
   @override
   void updateRenderObject(
@@ -100,7 +102,9 @@ final class _Bar extends LeafRenderObjectWidget {
   ) {
     renderObject
       ..value = value
-      ..style = style ?? Theme.of(context).primary;
+      ..style = style ?? Theme.of(context).primary
+      ..glyphs = Theme.of(context).glyphs
+      ..muted = !TickerMode.of(context);
   }
 }
 
@@ -110,7 +114,12 @@ final class _Bar extends LeafRenderObjectWidget {
 final class RenderProgressBar extends RenderObject {
   /// A bar [value] done in [style], whose block moves on [binding]'s clock
   /// while the value is null.
-  RenderProgressBar({this._value, this._style = const Style(), this.binding});
+  RenderProgressBar({
+    this._value,
+    this._style = const Style(),
+    Glyphs glyphs = Glyphs.unicode,
+    this.binding,
+  }) : _set = glyphs;
 
   /// The app whose clock the block moves by.
   final AppBinding? binding;
@@ -120,6 +129,15 @@ final class RenderProgressBar extends RenderObject {
     markNeedsPaint,
     binding: binding,
   );
+
+  /// Whether the block stands still, for a [TickerMode] that is off.
+  bool get muted => _steps.muted;
+  set muted(bool on) {
+    if (on != _steps.muted) {
+      _steps.muted = on;
+      markNeedsPaint();
+    }
+  }
 
   double? _value;
 
@@ -146,6 +164,18 @@ final class RenderProgressBar extends RenderObject {
   set style(Style s) {
     if (s != _style) {
       _style = s;
+      markNeedsPaint();
+    }
+  }
+
+  Glyphs _set;
+
+  /// The theme's marks, whose [Glyphs.shades] draw the bars where they
+  /// have no partial blocks.
+  Glyphs get glyphs => _set;
+  set glyphs(Glyphs g) {
+    if (g != _set) {
+      _set = g;
       markNeedsPaint();
     }
   }
@@ -185,7 +215,7 @@ final class RenderProgressBar extends RenderObject {
     if (value == null) {
       _steps.start();
     }
-    (_glyphs..use(canvas.segmenter)).blocks(
+    (_glyphs..use(canvas.segmenter, _set)).blocks(
       canvas,
       0,
       0,

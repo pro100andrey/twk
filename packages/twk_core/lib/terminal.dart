@@ -30,7 +30,7 @@
 ///   final ask = styles.style(fg: Color.yellow, attrs: Attr.bold);
 ///   final line = LineEncoder(styles, ansi: !terminal.info.plain)
 ///     ..text(ask, 'Continue?')
-///     ..text(0, ' [y/n] ')
+///     ..text(StyleId.base, ' [y/n] ')
 ///     ..end();
 ///   terminal.write(line.out.view);
 ///   final key = await terminal.events.firstWhere((e) => e is KeyEvent);
@@ -64,7 +64,7 @@ export 'src/line_encoder.dart' show LineEncoder;
 export 'src/log.dart' show LogLevel, LogRecord, LogSink, log;
 export 'src/platform/platform.dart' show LocalAddress;
 export 'src/presenter.dart' show TerminalCaps;
-export 'src/style.dart' show Attr, Color, ColorMode, Pen, StyleTable;
+export 'src/style.dart' show Attr, Color, ColorMode, Pen, StyleId, StyleTable;
 export 'src/terminal/link.dart' show TerminalException, TerminalLink;
 export 'src/terminal/plain.dart' show plainAsked, runsInCi;
 export 'src/terminal/sequences.dart'
@@ -97,6 +97,7 @@ export 'src/terminal/terminal.dart'
         WindowBackend,
         colorModeFor,
         styledUnderlinesFor;
+export 'src/unicode/text_layout.dart' show TextAlign, TextOverflow;
 export 'src/unicode/unicode.dart'
     show
         ClusterScan,
@@ -104,5 +105,6 @@ export 'src/unicode/unicode.dart'
         TextSegmenter,
         fitText,
         graphemeBoundaries,
+        padCells,
         stringWidth,
         unicodeVersion;

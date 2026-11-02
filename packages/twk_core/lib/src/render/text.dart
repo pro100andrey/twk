@@ -1,5 +1,8 @@
 part of 'render.dart';
 
+// Examples can assume:
+// late TextSegmenter segmenter;
+
 // ------------------------------------------------------------------ text --
 
 /// One line of text in one pen (shaped once per change, not per frame),
@@ -37,7 +40,9 @@ final class RenderText extends RenderObject {
   /// Whether it is a repaint boundary ([isRepaintBoundary]), which fills
   /// its bounds with [pen] before the text. False by default.
   final bool boundary;
-  GlyphRun? _run;
+  // the shaped glyphs: a buffer of its own, kept across texts
+  final _shapedText = GlyphBuffer();
+  var _shaped = false;
   // the glyph table the run is of, and its sweeps when it was shaped
   GlyphTable? _runIn;
   var _runSweeps = 0;
@@ -50,7 +55,7 @@ final class RenderText extends RenderObject {
       return;
     }
     _text = t;
-    _run = null;
+    _shaped = false;
     // laying it out repaints it; a parent that asked how wide it is is
     // laid out too
     markNeedsLayout();
@@ -103,10 +108,13 @@ final class RenderText extends RenderObject {
       // the screen then (scrolled out, in a tab not shown) kept none
       _runIn = cv.glyphs;
       _runSweeps = cv.glyphs.sweeps;
-      _run = null;
+      _shaped = false;
     }
-    final run = _run ??= cv.shape(_text);
-    cv.run(0, 0, run, pen);
+    if (!_shaped) {
+      cv.shapeInto(_text, _shapedText);
+      _shaped = true;
+    }
+    cv.runBuffer(0, 0, _shapedText, pen);
   }
 }
 
@@ -127,50 +135,37 @@ enum TextWrap {
   none,
 }
 
-/// How a [RenderParagraph] shows that it cut text off: a line too long for
-/// it, or the lines beyond its [RenderParagraph.maxLines].
-enum TextOverflow {
-  /// It doesn't: the text is cut off at the edge.
-  clip,
-
-  /// "…" in place of the end.
-  ellipsis,
-
-  /// "…" in place of the start: the end is kept.
-  ellipsisStart,
-
-  /// "…" in place of the middle: the start and the end are kept (paths,
-  /// names).
-  ellipsisMiddle,
-}
-
-/// Where a [RenderParagraph] puts each line across its width. A line wider
-/// than the paragraph starts at the edge its paragraph starts at: the left
-/// one, or the right one for a right-to-left paragraph in visual order
-/// ([TextOrder.visual]).
-enum TextAlign {
-  /// At the left.
-  left,
-
-  /// In the middle; the odd cell after the line.
-  center,
-
-  /// At the right.
-  right,
-
-  /// Stretched to the whole width: the cells it lacks are shared out after
-  /// the spaces between its words, the odd ones to the first. The last
-  /// line, a line the text breaks, a line with an ellipsis and a line
-  /// without spaces stay at the start, as [start] places them.
-  justify,
-
-  /// At the edge its paragraph starts at: the left one, or in visual order
-  /// ([TextOrder.visual]) the right one for a paragraph that runs right to
-  /// left (its first strong character is, rules P2 and P3 of UAX #9).
-  start,
-
-  /// At the edge its paragraph ends at: the other one.
-  end,
+/// Breaks [text] into lines of at most [width] columns, measured as
+/// [segmenter] does (the terminal's: `segmenterOf(context)`, never a plain
+/// `TextSegmenter()` for an ambiguous-wide terminal), as a
+/// [RenderParagraph] of [wrap] does, as (start, end) offsets into
+/// [text], in UTF-16 code units: the line's drawn text, without the spaces
+/// that hang at a break by word and without the line break that ends it. A
+/// text without a character has one empty line; a cluster wider than
+/// [width] stands on a line of its own.
+///
+/// ```dart
+/// final lines = breakLines(segmenter, 'well-known words', 8);
+/// // [(0, 5), (5, 10), (11, 16)]: "well-" "known" "words"
+/// ```
+List<(int, int)> breakLines(
+  TextSegmenter segmenter,
+  String text,
+  int width, {
+  TextWrap wrap = TextWrap.word,
+}) {
+  final p = RenderParagraph([(text, const Pen())], wrap: wrap)
+    .._segmenter = segmenter
+    .._shape()
+    .._findOffsets()
+    .._layoutLines(width < 1 ? 1 : width);
+  return [
+    for (var i = 0; i < p._lineCount; i++)
+      (
+        p._offsetAt(p._lines[i * _lineStride]),
+        p._offsetAt(p._lines[i * _lineStride + 1]),
+      ),
+  ];
 }
 
 /// The order a tree draws text in, from left to right
@@ -319,11 +314,7 @@ int _kindOfWide(int cp, int length) {
     return 0;
   }
   // a space with a mark on it is a letter
-  if (length == 1 &&
-      (cp == 0x1680 ||
-          (cp >= 0x2000 && cp <= 0x200A && cp != 0x2007) ||
-          cp == 0x205F ||
-          cp == 0x3000)) {
+  if (length == 1 && isCutBlank(cp)) {
     return _space;
   }
   if (cp >= 0x2010 && cp <= 0x2014 && cp != 0x2011) {
@@ -729,6 +720,37 @@ int _room(int least, int had) {
   return least > more ? least : more;
 }
 
+/// The glyphs of [ellipsis], [width] columns as the canvas's segmenter
+/// measures them: the words themselves for one code point and for ASCII
+/// text, which can be kept; anything else is shaped by [canvas] (its ids
+/// may be others' after a sweep, so it is shaped again on each paint).
+GlyphRun _ellipsisGlyphs(Canvas canvas, String ellipsis, int width) {
+  if (!_keepsEllipsis(ellipsis)) {
+    return canvas.shape(ellipsis);
+  }
+  if (ellipsis.length == 1) {
+    final c = ellipsis.codeUnitAt(0);
+    return GlyphRun(Uint32List(1)..[0] = width == 2 ? c | kWide : c, width);
+  }
+  return GlyphRun(Uint32List.fromList(ellipsis.codeUnits), width);
+}
+
+// whether the glyph words of [ellipsis] are its code units, so its run
+// can be kept
+bool _keepsEllipsis(String ellipsis) {
+  if (ellipsis.length == 1) {
+    return !_isHighSurrogate(ellipsis.codeUnitAt(0)) &&
+        !_isLowSurrogate(ellipsis.codeUnitAt(0));
+  }
+  for (var i = 0; i < ellipsis.length; i++) {
+    final c = ellipsis.codeUnitAt(i);
+    if (c < 0x20 || c >= 0x7F) {
+      return false;
+    }
+  }
+  return ellipsis.isNotEmpty;
+}
+
 /// Text in spans, each drawn with its own pen, broken into lines that fit
 /// its width as [wrap] says, at most [maxLines] of them, each placed as
 /// [align] says; where text is cut off, [overflow] says how it shows. It is
@@ -792,9 +814,14 @@ final class RenderParagraph extends RenderObject {
     this._overflow = TextOverflow.clip,
     this._maxLines,
     this._align = TextAlign.left,
+    this._ellipsis = '\u2026',
   }) : assert((_maxLines ?? 1) > 0, 'one line or more');
 
   List<(String, Pen)> _spans;
+
+  // the segmenter of a paragraph with no owner ([breakLines]); an owner's
+  // is the one used
+  TextSegmenter? _segmenter;
 
   /// The text as spans of (text, pen), in order; their texts joined are
   /// the paragraph's text. A new list whose texts differ is split and laid
@@ -874,6 +901,22 @@ final class RenderParagraph extends RenderObject {
     }
   }
 
+  String _ellipsis;
+
+  /// The mark that stands for text cut off, `…` by default; `...` is
+  /// three columns, which the cut takes from the room as it does the
+  /// columns of `…`. A new one lays it out again.
+  String get ellipsis => _ellipsis;
+  set ellipsis(String e) {
+    if (e != _ellipsis) {
+      _ellipsis = e;
+      _ellipsisCache = null;
+      // its width is measured as the spans are split
+      _shapedMode = null;
+      _linesChanged();
+    }
+  }
+
   void _linesChanged() {
     _linesAt = -1;
     _rawAt = -1;
@@ -921,7 +964,7 @@ final class RenderParagraph extends RenderObject {
   // [_spans.length] its length, of which [_offsetAt] finds where a
   // cluster starts; found when textRangeAt or the bidi levels first ask
   // after a split or an edit: O(spans), not O(clusters) moved at an edit
-  var _spanBase = Int32List(1);
+  Int32List _spanBase = _noInt32s;
   var _offsetsStale = true;
   var _offsetsFound = 0;
   var _hasMulti = false;
@@ -941,7 +984,7 @@ final class RenderParagraph extends RenderObject {
   var _internFrom = 0;
   var _internTo = 0;
   var _ellipsisWidth = 1;
-  GlyphRun? _ellipsis;
+  GlyphRun? _ellipsisCache;
 
   // the texts of the spans as split, and whether they changed since
   // (_resplit)
@@ -1002,8 +1045,8 @@ final class RenderParagraph extends RenderObject {
   Uint8List _classes = _noUint8s;
   Uint8List _levelsNext = _noUint8s;
   Uint8List _classesNext = _noUint8s;
-  var _paraStarts = Int32List(1);
-  var _paraLevels = Uint8List(1);
+  Int32List _paraStarts = _noInt32s;
+  Uint8List _paraLevels = _noUint8s;
   var _paraCount = 0;
   var _nonZero = 0;
   var _levelsResolved = 0;
@@ -1022,8 +1065,8 @@ final class RenderParagraph extends RenderObject {
   var _rowsWidth = 0;
   var _rowsWere = 0;
   Int32List _linesWere = _noInt32s;
-  var _rowAt = Int32List(2);
-  var _rowAtWere = Int32List(2);
+  Int32List _rowAt = _noInt32s;
+  Int32List _rowAtWere = _noInt32s;
   Int32List _segmentsWere = _noInt32s;
   Uint32List _runGlyphsWere = _noUint32s;
   var _linesOrdered = 0;
@@ -1076,7 +1119,7 @@ final class RenderParagraph extends RenderObject {
   /// segmenter splits them (an edit: where the text changed), and finds
   /// where lines may break by word if they do.
   void _shape() {
-    final seg = owner?.segmenter ?? _detachedSegmenter;
+    final seg = owner?.segmenter ?? _segmenter ?? _detachedSegmenter;
     if (_shapedMode != seg.mode || _shapedAmbiguous != seg.ambiguousWidth) {
       _split(seg);
     } else if (_textStale) {
@@ -1680,10 +1723,9 @@ final class RenderParagraph extends RenderObject {
     _internedIn = null;
     _internFrom = 0;
     _internTo = 0;
-    // the ellipsis is one code point: its run holds only its width
-    final ellipsisWidth = codePointWidth(0x2026, seg.ambiguousWidth);
+    final ellipsisWidth = seg.width(_ellipsis);
     if (ellipsisWidth != _ellipsisWidth) {
-      _ellipsis = null;
+      _ellipsisCache = null;
       _ellipsisWidth = ellipsisWidth;
     }
     var units = 0;
@@ -2476,6 +2518,12 @@ final class RenderParagraph extends RenderObject {
     final limit = _maxLines;
     final all = _allLines;
     var raw = _raw;
+    if (raw.isEmpty) {
+      // room for the lines the text is likely to break into, once
+      raw = Int32List(
+        ((_count ~/ (maxW < 1 ? 1 : maxW)) + _newlines + 2) * _rawStride,
+      );
+    }
     var line = t;
     for (var at = from; ;) {
       final next = _breakLine(at, maxW);
@@ -2894,7 +2942,7 @@ final class RenderParagraph extends RenderObject {
   /// scratch at the width it last broke them at; null when nothing does.
   /// It splits and breaks again what changed first, as a layout would.
   String? debugDiffFromFresh() {
-    final seg = owner?.segmenter ?? _detachedSegmenter;
+    final seg = owner?.segmenter ?? _segmenter ?? _detachedSegmenter;
     if (_shapedMode == null) {
       return null;
     }
@@ -2905,6 +2953,7 @@ final class RenderParagraph extends RenderObject {
       overflow: _overflow,
       maxLines: _maxLines,
       align: _align,
+      ellipsis: _ellipsis,
     ).._split(seg);
     if (_wordBreaks) {
       fresh._findWordBreaks();
@@ -3020,24 +3069,12 @@ final class RenderParagraph extends RenderObject {
     return null;
   }
 
-  /// The text at column [x] of row [y] as the last layout placed it, as
-  /// offsets (start, end) into the text of the spans joined, in UTF-16
-  /// code units: the cluster drawn there, at either cell of a wide one (at
-  /// an ellipsis, the clusters it stands for; in a gap a justified row
-  /// stretches, the space before it). Left of a row's text it is the empty
-  /// range where the row starts; right of it, and past the width, the
-  /// empty range where the next row starts, after the spaces the row hangs
-  /// and its line break, which right of the last row is the end of the
-  /// text. Above the first row it is (0, 0), below the last (length,
-  /// length). What takes no cell (a zero-width control, the CR of CR LF)
-  /// goes with the cluster after it, so that the ranges tile the text. In
-  /// visual order ([TextOrder.visual]) it is the cluster drawn there too,
-  /// and the sides of a row keep their logical meaning: left of the text
-  /// the start, right of it the next row's, in either direction.
-  (int, int) textRangeAt(int x, int y) {
+  // the cell at column x of row y: [textRangeAt]'s range, and whether it
+  // is an ellipsis
+  (int, int, bool) _cellAt(int x, int y) {
     final c = _constraints;
     if (c == null || y < 0) {
-      return (0, 0);
+      return (0, 0, false);
     }
     _layoutLines(c.maxW);
     if (_offsetsStale) {
@@ -3046,7 +3083,7 @@ final class RenderParagraph extends RenderObject {
     final rows = _lineCount < height ? _lineCount : height;
     if (y >= rows) {
       final end = _offsetAt(_count);
-      return (end, end);
+      return (end, end, false);
     }
     final at = y * _lineStride;
     final from = y == 0 ? 0 : _lines[at + 7];
@@ -3070,10 +3107,10 @@ final class RenderParagraph extends RenderObject {
         : (visual ? _visualGaps(n, rtl) : _gapsIn(headStart, headEnd));
     var col = gaps > 0 ? 0 : _lineX(free, rtl);
     if (x < 0 || x < col) {
-      return (_offsetAt(from), _offsetAt(from));
+      return (_offsetAt(from), _offsetAt(from), false);
     }
     if (x >= width) {
-      return (_offsetAt(next), _offsetAt(next));
+      return (_offsetAt(next), _offsetAt(next), false);
     }
     if (visual) {
       var gap = 0;
@@ -3084,7 +3121,7 @@ final class RenderParagraph extends RenderObject {
           if (x < col) {
             final hidden = headStart < headEnd ? headEnd : from;
             final shown = tailStart < tailEnd ? tailStart : next;
-            return (_offsetAt(hidden), _offsetAt(shown));
+            return (_offsetAt(hidden), _offsetAt(shown), true);
           }
           continue;
         }
@@ -3095,10 +3132,10 @@ final class RenderParagraph extends RenderObject {
           gap++;
         }
         if (x < col) {
-          return (_offsetAt(i), _offsetAt(i + 1));
+          return (_offsetAt(i), _offsetAt(i + 1), false);
         }
       }
-      return (_offsetAt(next), _offsetAt(next));
+      return (_offsetAt(next), _offsetAt(next), false);
     }
     var gap = 0;
     var words = false;
@@ -3109,7 +3146,7 @@ final class RenderParagraph extends RenderObject {
         col += _part(free, gaps, gap++);
       }
       if (x < col) {
-        return (_offsetAt(i), _offsetAt(i + 1));
+        return (_offsetAt(i), _offsetAt(i + 1), false);
       }
       words = words || !space;
     }
@@ -3118,16 +3155,65 @@ final class RenderParagraph extends RenderObject {
       if (x < col) {
         final hidden = headStart < headEnd ? headEnd : from;
         final shown = tailStart < tailEnd ? tailStart : next;
-        return (_offsetAt(hidden), _offsetAt(shown));
+        return (_offsetAt(hidden), _offsetAt(shown), true);
       }
     }
     for (var i = tailStart; i < tailEnd; i++) {
       col += _cellsOf(i);
       if (x < col) {
-        return (_offsetAt(i), _offsetAt(i + 1));
+        return (_offsetAt(i), _offsetAt(i + 1), false);
       }
     }
-    return (_offsetAt(next), _offsetAt(next));
+    return (_offsetAt(next), _offsetAt(next), false);
+  }
+
+  /// The text at column [x] of row [y] as the last layout placed it, as
+  /// offsets (start, end) into the text of the spans joined, in UTF-16
+  /// code units: the cluster drawn there, at either cell of a wide one (at
+  /// an ellipsis, the clusters it stands for; in a gap a justified row
+  /// stretches, the space before it). Left of a row's text it is the empty
+  /// range where the row starts; right of it, and past the width, the
+  /// empty range where the next row starts, after the spaces the row hangs
+  /// and its line break, which right of the last row is the end of the
+  /// text. Above the first row it is (0, 0), below the last (length,
+  /// length). What takes no cell (a zero-width control, the CR of CR LF)
+  /// goes with the cluster after it, so that the ranges tile the text. In
+  /// visual order ([TextOrder.visual]) it is the cluster drawn there too,
+  /// and the sides of a row keep their logical meaning: left of the text
+  /// the start, right of it the next row's, in either direction.
+  (int, int) textRangeAt(int x, int y) {
+    final (start, end, _) = _cellAt(x, y);
+    return (start, end);
+  }
+
+  /// The text at column [x] of row [y] as the last layout placed it, and
+  /// whether the cell is an ellipsis, in one query; null where
+  /// [textRangeAt] is the empty range: beside a row's text, above or below
+  /// the rows, before a layout.
+  ///
+  /// `start` and `end` are [textRangeAt]'s. At a cell of an ellipsis
+  /// `isEllipsis` is true and they are the clusters it stands for, which
+  /// are not drawn.
+  ///
+  /// ```dart
+  /// final p = RenderParagraph(
+  ///   [('abcdefgh', const Pen())],
+  ///   wrap: TextWrap.none,
+  ///   overflow: TextOverflow.ellipsis,
+  ///   maxLines: 1,
+  /// )..layout(const BoxConstraints(5, 5, 0, 100));
+  /// final b = p.cellAt(1, 0); // (start: 1, end: 2, isEllipsis: false)
+  /// final cut = p.cellAt(4, 0); // (start: 4, end: 8, isEllipsis: true)
+  /// final none = p.cellAt(9, 0); // null
+  /// ```
+  ///
+  /// It makes a record per call, which the caller's pattern may not keep:
+  /// a call per pointer event, none per frame.
+  ({int start, int end, bool isEllipsis})? cellAt(int x, int y) {
+    final (start, end, isEllipsis) = _cellAt(x, y);
+    return start == end
+        ? null
+        : (start: start, end: end, isEllipsis: isEllipsis);
   }
 
   @override
@@ -3164,7 +3250,7 @@ final class RenderParagraph extends RenderObject {
         case _fromOrdered:
           canvas.runRange(x, y, _runGlyphs, seg[at + 5], seg[at + 6], pen);
         case _fromEllipsis:
-          canvas.run(x, y, _ellipsisRun, pen);
+          canvas.run(x, y, _ellipsisRunOn(canvas), pen);
         default:
           canvas.fill(x, y, seg[at + 3], 1, pen);
       }
@@ -3389,6 +3475,12 @@ final class RenderParagraph extends RenderObject {
     _rowAtWere = rowAt;
     _segmentCount = 0;
     _runGlyphCount = 0;
+    final room = (rows + _spans.length) * _segmentStride;
+    if (_segments.length < room) {
+      // a segment or so for each row, the buffer not grown by doubling
+      _segments = Int32List(_room(room, _segments.length))
+        ..setRange(0, _segments.length, _segments);
+    }
     if (_rowAt.length < 2 * rows + 2) {
       _rowAt = Int32List(_room(2 * rows + 2, _rowAt.length));
     }
@@ -3471,13 +3563,9 @@ final class RenderParagraph extends RenderObject {
     _addClusters(_lines[at + 2], _lines[at + 3], x, y, 0, 0);
   }
 
-  GlyphRun get _ellipsisRun {
-    final e = _ellipsisWidth;
-    return _ellipsis ??= GlyphRun(
-      Uint32List(1)..[0] = e == 2 ? 0x2026 | kWide : 0x2026,
-      e,
-    );
-  }
+  GlyphRun _ellipsisRunOn(Canvas canvas) => _keepsEllipsis(_ellipsis)
+      ? _ellipsisCache ??= _ellipsisGlyphs(canvas, _ellipsis, _ellipsisWidth)
+      : canvas.shape(_ellipsis);
 
   /// The column a line that leaves [free] columns starts at, as [align]
   /// places it in a paragraph that runs right to left when [rtl].

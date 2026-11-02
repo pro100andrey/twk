@@ -1,7 +1,8 @@
-# twk — terminal UIs in Dart
+# twk — terminal widget kit
 
-twk is a **terminal widget kit**: a terminal rendering core with no
-runtime dependencies, a Flutter-like widget layer on it, and the
+Widgets, layout and hot reload for terminal apps in Dart.
+
+twk is a terminal rendering core with no runtime dependencies, a Flutter-like widget layer on it, and the
 packages around them: rich text, a console for command-line tools, a
 tester, a CLI with hot reload, a terminal emulator and a web build.
 Each package is under `packages/`, with a README.

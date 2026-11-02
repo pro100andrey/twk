@@ -12,6 +12,7 @@ import 'package:twk_core/twk_core.dart'
         DiagnosticPropertiesBuilder,
         PaintContext,
         RenderObject,
+        StyleId,
         describeColor,
         kCont,
         kWide;
@@ -353,7 +354,7 @@ final class _RenderShade extends RenderObject {
         final s = sty[i];
         if (s != from) {
           from = s;
-          shaded = shadeStyle(styles, s, to, k);
+          shaded = shadeStyle(styles, StyleId(s), to, k).value;
         }
         var j = i + 1;
         while (j < end && sty[j] == s) {

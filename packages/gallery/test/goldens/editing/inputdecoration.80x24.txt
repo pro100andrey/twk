@@ -9,19 +9,19 @@ text
 │     TaskList           ┌                                                    ┐  │
 │                            ╭ Theme ─────────────╮  ╭ Search ──────────────╮    │
 │   EDITING        4       ◐ │ Dark             ▾ │  │ ⌕ files, commands  ↵ │    │
-│     TextField              ╰────────────────────╯  ╰──────────────────────╯    │
+│     TextField       ▐      ╰────────────────────╯  ╰──────────────────────╯    │
 │ ▎   InputDecorati…  ▐      Enter opens it          by name                     │
-│     TextArea        ▐                                                          │
+│     TextArea                                                                   │
 │     Autocomplete         ╭ Site ────────────────╮  ╭ Password ────────────╮    │
 │                          │ https://twk     .dev │  │ secret               │    │
-│   CONTROLS      20       ╰──────────────────────╯  ╰──────────────────────╯    │
+│   CONTROLS      22       ╰──────────────────────╯  ╰──────────────────────╯    │
 │     Button               where it lives                                0/16    │
 │     Pressable          └                                                    ┘  │
 │     Checkbox, Swi…   ──────────────────────────────────────────────────────────│
 │     RadioGroup         border    outline  underline  none                      │
 │     SegmentedButt…     filled   ▐●  ▌                                          │
-│     SelectionList                                                              │
-│     Select, Multi…     enabled  ▐  ●▌                                          │
+│     Chip, ChipList                                                             │
+│     ValueStepper       enabled  ▐  ●▌                                          │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -34,9 +34,9 @@ styles
 │aaaaannnnnnnnaaaaaaaaaggoggggggggggggggggggggggggggggggggggggggggggggggggggggogg│
 │aaaaaaaaaaaaaaaaaaaaaaggggggCgmmmmmgCCCCCCCCCCCCCCggCgmmmmmmgCCCCCCCCCCCCCCCgggg│
 │aaadddddddaaaaaaaafaaaggggmgCgDDDDgggggggggggggmgCggCgmgmmmmmmgmmmmmmmmggmgCgggg│
-│aaaaannnnnnnnnaaaaaaaaggggggCCCCCCCCCCCCCCCCCCCCCCggCCCCCCCCCCCCCCCCCCCCCCCCgggg│
+│aaaaannnnnnnnnaaaaaaadggggggCCCCCCCCCCCCCCCCCCCCCCggCCCCCCCCCCCCCCCCCCCCCCCCgggg│
 │arsssttttttttttttttssdggggggmmmmmgmmmmmgmmggggggggggmmgmmmmggggggggggggggggggggg│
-│aaaaannnnnnnnaaaaaaaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnaaaaaggggCgmmmmgCCCCCCCCCCCCCCCCCggCgmmmmmmmmgCCCCCCCCCCCCCgggg│
 │aaaaaaaaaaaaaaaaaaaaaaggggCgmmmmmmmmmmmgggggmmmmgCggCgmmmmmmgggggggggggggggCgggg│
 │aaaddddddddaaaaaaffaaaggggCCCCCCCCCCCCCCCCCCCCCCCCggCCCCCCCCCCCCCCCCCCCCCCCCgggg│
@@ -45,8 +45,8 @@ styles
 │aaaaannnnnnnnnannnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnnnnnaaaaaaaggmmmmmmgggstttttttshvvvvvvvvvhhvvvvhggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnnaaaggmmmmmmgggwxyywgggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnnnaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnannnnnnaaaggmmmmmmmggzAABzgggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnannnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaaaggmmmmmmmggzAABzgggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

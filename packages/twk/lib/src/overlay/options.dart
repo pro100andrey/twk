@@ -19,6 +19,7 @@ import '../editing/caret.dart' show clearRestCursor, restCursor;
 import '../foundation/helpers.dart';
 import '../framework/framework.dart';
 import '../gestures/mouse.dart';
+import '../style/glyphs.dart' show cellRune;
 import '../style/style.dart';
 
 // Examples can assume:
@@ -245,6 +246,7 @@ final class _OptionListBox extends LeafRenderObjectWidget {
       muted: theme.muted,
       bar: theme.primary,
       thumb: theme.border,
+      glyphs: theme.glyphs,
     );
   }
 }
@@ -260,6 +262,7 @@ final class _Styles {
     required this.muted,
     required this.bar,
     required this.thumb,
+    required this.glyphs,
   });
 
   final Style base;
@@ -268,6 +271,7 @@ final class _Styles {
   final Style muted;
   final Style bar;
   final Style thumb;
+  final Glyphs glyphs;
 
   @override
   bool operator ==(Object other) =>
@@ -277,10 +281,12 @@ final class _Styles {
       other.mark == mark &&
       other.muted == muted &&
       other.bar == bar &&
-      other.thumb == thumb;
+      other.thumb == thumb &&
+      other.glyphs == glyphs;
 
   @override
-  int get hashCode => Object.hash(base, highlight, mark, muted, bar, thumb);
+  int get hashCode =>
+      Object.hash(base, highlight, mark, muted, bar, thumb, glyphs);
 }
 
 /// What an [OptionList] lays out and paints.
@@ -451,7 +457,22 @@ final class _RenderOptionList extends RenderObject {
       _paintLabel(canvas, styles, row, option, style);
       canvas.restore();
       if (i == h0 && _bar && w > 0) {
-        canvas.text(0, row, '▎', style.merge(s.bar).penIn(styles));
+        if (s.glyphs.cursor.isNotEmpty) {
+          canvas.fill(
+            0,
+            row,
+            1,
+            1,
+            style.merge(s.bar).penIn(styles),
+            cellRune(
+              this,
+              'cursor',
+              s.glyphs.cursor,
+              Glyphs.ascii.cursor,
+              canvas.segmenter,
+            ),
+          );
+        }
       }
     }
     if (_thumb && n > h && h > 0 && w > 0) {
@@ -461,7 +482,22 @@ final class _RenderOptionList extends RenderObject {
       for (var row = ty; row < ty + th; row++) {
         final i = _top + row;
         final under = i == h0 ? s.highlight : s.base;
-        canvas.text(w - 1, row, '▐', under.merge(s.thumb).penIn(styles));
+        if (s.glyphs.thumbSlim.isNotEmpty) {
+          canvas.fill(
+            w - 1,
+            row,
+            1,
+            1,
+            under.merge(s.thumb).penIn(styles),
+            cellRune(
+              this,
+              'thumbSlim',
+              s.glyphs.thumbSlim,
+              Glyphs.ascii.thumbSlim,
+              canvas.segmenter,
+            ),
+          );
+        }
       }
     }
   }

@@ -2,7 +2,9 @@
 /// [StyleTable], the interned cell styles with their SGR sequences and the
 /// shortest SGR transitions between them, in a [ColorMode].
 ///
+/// @docImport 'canvas.dart';
 /// @docImport 'screen.dart';
+/// @docImport 'surface.dart';
 library;
 
 import 'dart:typed_data';
@@ -299,7 +301,43 @@ final Int32List _palette = () {
   return p;
 }();
 
-/// Interned cell styles (style id 0 = all defaults) and registered pens.
+/// The id of a cell's style in a [StyleTable]: its colors, attributes and
+/// link, each set of them interned once ([StyleTable.style]).
+///
+/// It is not a pen id ([StyleTable.pen]), which a [Canvas] paints with
+/// and is a plain int: the two are apart types, so that
+/// `styles.compose(pen, style)` or a cell's style given to `canvas.text`
+/// as the pen does not compile. A [Surface] keeps its cells' ids raw, in
+/// [Surface.styles], for speed; one read from it is `StyleId(raw)` where
+/// a [StyleTable] is asked about it, and one stored is its [value].
+///
+/// A style id is the table's own until [StyleTable.sweep] frees it; one
+/// kept from before the sweep is made again when [StyleTable.sweeps]
+/// has changed.
+///
+/// The type is erased: a style id is an int at run time, with no box.
+///
+/// ```dart
+/// final styles = StyleTable();
+/// final red = styles.style(bg: Color.red);
+/// print(red == StyleId.base); // false
+/// print(styles.bgOf(red) == Color.red); // true
+/// ```
+extension type const StyleId(
+  /// The id as the int a [Surface] keeps for a cell: 0 for the default
+  /// style ([base]).
+  int value,
+) implements Object {
+  /// The style of all defaults, which every [StyleTable] has as its first.
+  static const base = StyleId(0);
+
+  /// What [StyleTable.opaqueStyleOf] answers for a pen whose style depends
+  /// on the cell underneath: no style.
+  static const none = StyleId(-1);
+}
+
+/// Interned cell styles (style id [StyleId.base] = all defaults) and
+/// registered pens.
 ///
 /// A cell holds a style id: its colors, attributes and link, each set of
 /// them interned once ([style]). A canvas paints with pen ids ([pen]),
@@ -322,7 +360,7 @@ final Int32List _palette = () {
 /// ```dart
 /// final styles = StyleTable(colorMode: ColorMode.ansi256);
 /// final warning = styles.pen(const Pen(fg: Color.yellow, attrs: Attr.bold));
-/// final cell = styles.compose(0, warning); // over a default cell
+/// final cell = styles.compose(StyleId.base, warning); // over a default cell
 /// print(styles.attrsOf(cell) & Attr.bold != 0); // true
 /// ```
 ///
@@ -375,9 +413,10 @@ final class StyleTable {
   // that freed it fails where it is read, not as another style's colors
   Uint8List? _freeMarks;
 
-  /// [id], asserted not to be one a sweep freed and no style has again.
+  /// [style]'s id, asserted not to be one a sweep freed and no style has again.
   @pragma('vm:prefer-inline')
-  int _kept(int id) {
+  int _kept(StyleId style) {
+    final id = style.value;
     assert(
       _freeMarks == null || id >= _freeMarks!.length || _freeMarks![id] == 0,
       'style $id was freed by a sweep: a style id kept from one frame to '
@@ -393,9 +432,9 @@ final class StyleTable {
   ///
   /// The roots are everything that keeps style ids: a screen's surface and
   /// what its presenter knows the terminal shows ([Screen.sweepIfDue]).
-  void sweep(void Function(void Function(int id) mark) roots) {
+  void sweep(void Function(void Function(StyleId id) mark) roots) {
     final marks = Uint8List(_count)..[0] = 1;
-    roots((id) => marks[id] = 1);
+    roots((id) => marks[id.value] = 1);
     for (var p = 0; p < _pens.length; p++) {
       final o = _penOpaque[p];
       if (o >= 0) {
@@ -425,16 +464,16 @@ final class StyleTable {
   }
 
   /// The text color of style [id].
-  Color fgOf(int id) => Color._(_fg[_kept(id)]);
+  Color fgOf(StyleId id) => Color._(_fg[_kept(id)]);
 
   /// The background color of style [id].
-  Color bgOf(int id) => Color._(_bg[_kept(id)]);
+  Color bgOf(StyleId id) => Color._(_bg[_kept(id)]);
 
   /// The underline color of style [id]; the default color for the text's.
-  Color underlineColorOf(int id) => Color._(_ul[_kept(id)]);
+  Color underlineColorOf(StyleId id) => Color._(_ul[_kept(id)]);
 
   /// The attributes of style [id], bits of [Attr].
-  int attrsOf(int id) => _attrs[_kept(id)];
+  int attrsOf(StyleId id) => _attrs[_kept(id)];
 
   /// RGB the terminal's default background is assumed to have (for alpha
   /// blending over "default"). Can be filled from an OSC 11 query.
@@ -540,18 +579,20 @@ final class StyleTable {
   /// The id of the style of [fg] text over [bg] with [attrs], an underline
   /// of [underlineColor] and [link], interned: the same id for the same
   /// values. All left out, it is 0.
-  int style({
+  StyleId style({
     Color fg = Color.defaultColor,
     Color bg = Color.defaultColor,
     int attrs = 0,
     Color underlineColor = Color.defaultColor,
     String? link,
-  }) => _intern(
-    fg.value,
-    bg.value,
-    attrs,
-    underlineColor.value,
-    link == null ? 0 : linkId(link),
+  }) => StyleId(
+    _intern(
+      fg.value,
+      bg.value,
+      attrs,
+      underlineColor.value,
+      link == null ? 0 : linkId(link),
+    ),
   );
 
   /// Id of a hyperlink target (0 = no link).
@@ -568,10 +609,13 @@ final class StyleTable {
   }
 
   /// The link id of style [id] ([linkId]); 0 for none.
-  int linkIdOf(int id) => _link[_kept(id)];
+  int linkIdOf(StyleId id) => _link[_kept(id)];
 
   /// The hyperlink target of style [id], or null for none.
-  String? linkOf(int id) => _link[_kept(id)] == 0 ? null : _uris[_link[id]];
+  String? linkOf(StyleId id) {
+    final link = _link[_kept(id)];
+    return link == 0 ? null : _uris[link];
+  }
 
   /// The hyperlink target of [linkId] ([linkId]); empty for 0.
   String linkUri(int linkId) => _uris[linkId];
@@ -579,8 +623,8 @@ final class StyleTable {
   /// A blank of this style can be produced by an erase (EL/ECH/ED/ICH/
   /// DCH/SU): nothing visible on a space and no hyperlink.
   @pragma('vm:prefer-inline')
-  bool erasable(int id) =>
-      (_attrs[id] & Attr.visibleOnBlank) == 0 && _link[id] == 0;
+  bool erasable(StyleId id) =>
+      (_attrs[id.value] & Attr.visibleOnBlank) == 0 && _link[id.value] == 0;
 
   static int _hash5(int a, int b, int c, int d, int e) {
     var h =
@@ -680,21 +724,22 @@ final class StyleTable {
   // ---- blank appearance -----------------------------------------------------
   var _blank = Int32List(64)..fillRange(0, 64, -1);
 
-  /// The style a *blank* cell of style [id] looks like: only the background
+  /// The style a *blank* cell of style [style] looks like: only the background
   /// and the attributes visible on a space matter, plus fg under reverse
   /// video and when it colours a line drawn on the space (strike-through,
   /// overline, an underline without its own colour). Two blanks with the
   /// same blank style are indistinguishable, so the presenter neither
   /// rewrites nor switches SGR for them.
   @pragma('vm:prefer-inline')
-  int blankStyleOf(int id) {
+  StyleId blankStyleOf(StyleId style) {
+    final id = style.value;
     if (id < _blank.length) {
       final b = _blank[id];
       if (b >= 0) {
-        return b;
+        return StyleId(b);
       }
     }
-    return _blankSlow(id);
+    return StyleId(_blankSlow(id));
   }
 
   int _blankSlow(int id) {
@@ -756,20 +801,20 @@ final class StyleTable {
             attrs: pen.attrs,
             underlineColor: pen.underlineColor,
             link: pen.link,
-          )
-        : -1;
+          ).value
+        : StyleId.none.value;
     return id;
   }
 
   /// The pen registered as [id] ([pen]).
   Pen penOf(int id) => _pens[id];
 
-  /// The resolved style id a pen always produces, or -1 when the result
-  /// depends on the cell underneath (inherited or translucent colors).
+  /// The resolved style id a pen always produces, or [StyleId.none] when the
+  /// result depends on the cell underneath (inherited or translucent colors).
   @pragma('vm:prefer-inline')
-  int opaqueStyleOf(int penId) {
+  StyleId opaqueStyleOf(int penId) {
     assert(penId < _pens.length, _unknownPen);
-    return _penOpaque[penId];
+    return StyleId(_penOpaque[penId]);
   }
 
   static const _unknownPen = 'pen id not registered in this StyleTable';
@@ -780,14 +825,15 @@ final class StyleTable {
   var _composeValues = Int32List(256);
   var _composeCount = 0;
 
-  /// Style that results from painting with [penId] over a cell of [styleId].
+  /// Style that results from painting with [penId] over a cell of [style].
   @pragma('vm:prefer-inline')
-  int compose(int styleId, int penId) {
+  StyleId compose(StyleId style, int penId) {
     assert(penId < _pens.length, _unknownPen);
     final opaque = _penOpaque[penId];
     if (opaque >= 0) {
-      return opaque;
+      return StyleId(opaque);
     }
+    final styleId = style.value;
     final mask = _composeKeysA.length - 1;
     var slot =
         ((styleId * 0x9E3779B1) ^ (penId * 0x85EBCA77)) & 0x3FFFFFFF & mask;
@@ -797,7 +843,7 @@ final class StyleTable {
         break;
       }
       if (a == styleId && _composeKeysB[slot] == penId) {
-        return _composeValues[slot];
+        return StyleId(_composeValues[slot]);
       }
       slot = (slot + 1) & mask;
     }
@@ -808,7 +854,7 @@ final class StyleTable {
     if (++_composeCount * 2 > _composeKeysA.length) {
       _rehashCompose();
     }
-    return result;
+    return StyleId(result);
   }
 
   void _rehashCompose() {
@@ -901,23 +947,23 @@ final class StyleTable {
   static final _empty = Uint8List(0);
 
   /// Full SGR sequence for [id] starting from a reset state (`ESC[0;...m`).
-  Uint8List sgrFromReset(int id) =>
-      _sgr[id] ??= _encode(<int>[0, ..._params(id)]);
+  Uint8List sgrFromReset(StyleId id) =>
+      _sgr[id.value] ??= _encode(<int>[0, ..._params(id.value)]);
 
   /// Shortest SGR sequence that turns terminal state [from] into [to].
   /// Cached per pair, so steady-state rendering never builds strings.
-  Uint8List transition(int from, int to) {
+  Uint8List transition(StyleId from, StyleId to) {
     if (from == to) {
       return _empty;
     }
-    final cached = _transitions.get(from, to);
+    final cached = _transitions.get(from.value, to.value);
     if (cached != null) {
       return cached;
     }
     final viaReset = sgrFromReset(to);
-    final delta = _encode(_deltaParams(from, to));
+    final delta = _encode(_deltaParams(from.value, to.value));
     final best = delta.length < viaReset.length ? delta : viaReset;
-    _transitions.put(from, to, best);
+    _transitions.put(from.value, to.value, best);
     return best;
   }
 

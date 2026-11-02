@@ -219,8 +219,9 @@ final class Screen {
     if (!stylesDue && !glyphsDue) {
       return;
     }
-    void none(int _) {}
-    void roots(void Function(int) glyph, void Function(int) style) {
+    void noGlyph(int _) {}
+    void noStyle(StyleId _) {}
+    void roots(void Function(int) glyph, void Function(StyleId) style) {
       surface.markCells(glyph, style);
       for (final s in _kept) {
         s.markCells(glyph, style);
@@ -229,11 +230,11 @@ final class Screen {
     }
 
     if (stylesDue) {
-      styles.sweep((mark) => roots(none, mark));
+      styles.sweep((mark) => roots(noGlyph, mark));
       _stylesAt = 2 * styles.live;
     }
     if (glyphsDue) {
-      glyphs.sweep((mark) => roots(mark, none));
+      glyphs.sweep((mark) => roots(mark, noStyle));
       _glyphsAt = 2 * glyphs.live;
     }
   }

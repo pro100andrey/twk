@@ -253,8 +253,11 @@ final class _Host extends StatelessWidget {
         ],
       ),
     );
+    // the Overlay a Tooltip, a Popover or a menu in what is shown needs, as
+    // App places one around an app
+    final overlay = Overlay(child: host);
     final theme = session._theme;
-    return theme == null ? host : Theme(data: theme, child: host);
+    return theme == null ? overlay : Theme(data: theme, child: overlay);
   }
 }
 

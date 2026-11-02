@@ -13,7 +13,11 @@ final List<GalleryPage> controlsPages = [
     title: 'Button',
     options: const [
       ColorOption('color', 'style', values: pageColors, initial: 'primary'),
-      ChoiceOption('look', 'look', values: ['chip', 'outlined', 'filled']),
+      ChoiceOption(
+        'look',
+        'look',
+        values: ['chip', 'outlined', 'filled', 'plain'],
+      ),
       SwitchOption('tall', 'tall'),
     ],
     build: (context, o) => _Buttons(
@@ -25,10 +29,15 @@ final List<GalleryPage> controlsPages = [
       final c = o.color('color');
       final styled = c != 'primary';
       final look = o.choice<String>('look');
-      final chip = look == 'chip';
+      final plain = look == 'plain';
+      final chip = look == 'chip' || plain;
       final button = chip ? 'Button' : 'Button.$look';
       final args = [
-        if (styled && chip) ...['style: style', 'focusedStyle: focused'],
+        if (plain) ...['canRequestFocus: false', 'style: style'],
+        if (styled && chip && !plain) ...[
+          'style: style',
+          'focusedStyle: focused',
+        ],
         if (styled && !chip) 'style: theme.$c',
         if (!chip && o.flag('tall')) 'tall: true',
       ];
@@ -44,7 +53,9 @@ final List<GalleryPage> controlsPages = [
         '@override',
         'Widget build(BuildContext context) {',
         '  final theme = Theme.of(context);',
-        if (styled && chip) ...[
+        if (plain)
+          '  final style = theme.$c.merge(const .new(attrs: Attr.underline));'
+        else if (styled && chip) ...[
           '  final style = theme.$c.merge(const .new(attrs: Attr.bold));',
           '  final focused = style.merge(const .new(attrs: Attr.reverse));',
         ],
@@ -67,12 +78,18 @@ final List<GalleryPage> controlsPages = [
           ...args,
           'onPressed: () => setState(() => _sent++)',
         ], ','),
-        ...call(10, '${styled ? '' : 'const '}$button', [
+        ...call(10, '${styled || plain ? '' : 'const '}$button', [
           "'Disabled'",
           ...args,
           'onPressed: null',
         ], ','),
         '        ],',
+        '      ),',
+        '      // a key and its caption, each in its own style',
+        '      // on the one chip',
+        '      Button.rich(',
+        "        ['Enter'.bold.fg(Color.yellow), const Span(' send')],",
+        '        onPressed: () => setState(() => _sent++),',
         '      ),',
         '      Text.rich([',
         "        Span('saved: ', theme.muted),",
@@ -203,9 +220,14 @@ final List<GalleryPage> controlsPages = [
         'direction',
         values: ['vertical', 'horizontal'],
       ),
+      ChoiceOption('mark', 'mark', values: ['●', '*', '✓']),
+      ChoiceOption('look', 'theme', values: ['(●) ( )', '◉ ○']),
     ],
-    build: (context, o) =>
-        _Radios(direction: Axis.values.byName(o.choice('direction'))),
+    build: (context, o) => _Radios(
+      direction: Axis.values.byName(o.choice('direction')),
+      mark: o.choice('mark'),
+      rings: o.choice<String>('look') == '◉ ○',
+    ),
     code: (o) => [
       'const _fruit = [',
       "  Choice('apple', 'apple'),",
@@ -224,12 +246,35 @@ final List<GalleryPage> controlsPages = [
       '    crossAxisAlignment: .start,',
       '    gap: 1,',
       '    children: [',
-      '      RadioGroup<String>(',
-      '        choices: _fruit,',
-      '        value: _chosen,',
-      '        direction: .${o.label('direction')},',
-      '        onChanged: (value) => setState(() => _chosen = value),',
-      '      ),',
+      if (o.choice<String>('look') == '◉ ○') ...[
+        "      // marks and brackets are the theme's glyphs",
+        '      Theme(',
+        '        data: theme.copyWith(',
+        '          glyphs: theme.glyphs.copyWith(',
+        "            radioOn: '◉',",
+        "            radioOff: '○',",
+        "            radioBrackets: ('', ''),",
+        '          ),',
+        '        ),',
+        '        child: RadioGroup<String>(',
+        '          choices: _fruit,',
+        '          value: _chosen,',
+        '          direction: .${o.label('direction')},',
+        if (o.choice<String>('mark') != '●')
+          "          mark: '${o.choice<String>('mark')}',",
+        '          onChanged: (value) => setState(() => _chosen = value),',
+        '        ),',
+        '      ),',
+      ] else ...[
+        '      RadioGroup<String>(',
+        '        choices: _fruit,',
+        '        value: _chosen,',
+        '        direction: .${o.label('direction')},',
+        if (o.choice<String>('mark') != '●')
+          "        mark: '${o.choice<String>('mark')}',",
+        '        onChanged: (value) => setState(() => _chosen = value),',
+        '      ),',
+      ],
       '      Text.rich([',
       "        Span('chosen: ', theme.muted),",
       '        if (_chosen case final chosen?)',
@@ -243,6 +288,8 @@ final List<GalleryPage> controlsPages = [
     ].join('\n'),
   ),
   _segmented,
+  _chips,
+  _stepper,
   GalleryPage(
     group: 'Controls',
     title: 'SelectionList',
@@ -1237,7 +1284,8 @@ final class _Buttons extends StatefulWidget {
 
   final String color;
 
-  /// `chip`, `outlined` or `filled`: Button, Button.outlined, Button.filled.
+  /// `chip`, `outlined`, `filled` or `plain`: Button, Button.outlined,
+  /// Button.filled, or a flat clickable word that takes no focus.
   final String look;
 
   /// Whether an outlined or a filled one is three rows.
@@ -1263,6 +1311,9 @@ final class _ButtonsState extends State<_Buttons> {
         ? themeColor(theme, widget.color).merge(const Style(attrs: Attr.bold))
         : null;
     final focused = style?.merge(const Style(attrs: Attr.reverse));
+    final flat = themeColor(theme, widget.color).merge(
+      const Style(attrs: Attr.underline),
+    );
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1290,6 +1341,12 @@ final class _ButtonsState extends State<_Buttons> {
                   style: styled ? themeColor(theme, widget.color) : null,
                   onPressed: onPressed,
                 ),
+                'plain' => Button(
+                  label,
+                  canRequestFocus: false,
+                  style: flat,
+                  onPressed: onPressed,
+                ),
                 _ => Button(
                   label,
                   style: style,
@@ -1299,6 +1356,10 @@ final class _ButtonsState extends State<_Buttons> {
               },
           ],
         ),
+        Button.rich([
+          'Enter'.bold.fg(Color.yellow),
+          const Span(' send'),
+        ], onPressed: () => setState(() => _sent++)),
         LitLine([
           ('saved: ', true),
           ('$_saved', false),
@@ -1517,28 +1578,57 @@ final class _TogglesState extends State<_Toggles> with _Kept {
 
 /// A fruit chosen in a radio group.
 final class _Radios extends StatefulWidget {
-  const _Radios({required this.direction});
+  const _Radios({
+    required this.direction,
+    required this.mark,
+    required this.rings,
+  });
 
   final Axis direction;
+
+  /// Whether the theme's glyphs draw `◉ ○`, no parentheses.
+  final bool rings;
+
+  /// What is between the parentheses of the choice chosen.
+  final String mark;
 
   @override
   State<_Radios> createState() => _RadiosState();
 }
 
 final class _RadiosState extends State<_Radios> with _Kept {
+  /// [group] with the marks `◉ ○` and no brackets in the theme, where asked.
+  Widget _themed(ThemeData theme, Widget group) => !widget.rings
+      ? group
+      : Theme(
+          data: theme.copyWith(
+            glyphs: theme.glyphs.copyWith(
+              radioOn: '◉',
+              radioOff: '○',
+              radioBrackets: ('', ''),
+            ),
+          ),
+          child: group,
+        );
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final chosen = keptOr<String?>('chosen', null);
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       gap: 1,
       children: [
-        RadioGroup<String>(
-          choices: _fruit,
-          value: chosen,
-          direction: widget.direction,
-          onChanged: (value) => keep('chosen', value),
+        _themed(
+          theme,
+          RadioGroup<String>(
+            choices: _fruit,
+            value: chosen,
+            direction: widget.direction,
+            mark: widget.mark == '●' ? null : widget.mark,
+            onChanged: (value) => keep('chosen', value),
+          ),
         ),
         LitLine([
           ('chosen: ', true),
@@ -2520,6 +2610,227 @@ final class _SegmentsState extends State<_Segments> with _Kept {
   }
 }
 
+// ------------------------------------------------------------ Chip, ChipList
+
+/// The tags of the Chip, ChipList page at first, and the tag that is not
+/// pressable.
+const _firstTags = [
+  'dart',
+  'tui',
+  'terminal',
+  'widgets',
+  'beta',
+  'mouse',
+  'keyboard',
+];
+
+final _chips = GalleryPage(
+  group: 'Controls',
+  title: 'Chip, ChipList',
+  options: [
+    const SwitchOption('toggle', 'toggle', initial: true),
+    const SwitchOption('remove', 'removable', initial: true),
+    SliderOption(
+      'width',
+      'width',
+      min: 20,
+      max: 50,
+      initial: 34,
+      format: (v) => '$v cells',
+    ),
+  ],
+  build: (context, o) => _Tags(
+    toggle: o.flag('toggle'),
+    remove: o.flag('remove'),
+    width: o.number('width').toInt(),
+  ),
+  code: (o) => [
+    'static const _all = [',
+    for (final t in _firstTags) "  '$t',",
+    '];',
+    '',
+    'var _tags = _all;',
+    "var _on = {'tui'};",
+    '',
+    '@override',
+    'Widget build(BuildContext context) {',
+    '  final theme = Theme.of(context);',
+    '  final shown = _on.where(_tags.contains);',
+    '  return Column(',
+    '    mainAxisSize: .min,',
+    '    crossAxisAlignment: .start,',
+    '    gap: 1,',
+    '    children: [',
+    '      SizedBox(',
+    '        width: ${o.number('width').toInt()},',
+    '        child: ChipList<String>(',
+    '          chips: [',
+    "            for (final t in _tags) Choice(t, t, enabled: t != 'beta'),",
+    '          ],',
+    '          selected: _on,',
+    if (o.flag('toggle'))
+      '          onSelectionChanged: (now) => setState(() => _on = now),',
+    if (o.flag('remove')) ...[
+      '          onDeleted: (tag) {',
+      '            setState(() => _tags = [..._tags]..remove(tag));',
+      '          },',
+    ],
+    '        ),',
+    '      ),',
+    '      Text.rich([',
+    "        Span('on: ', theme.muted),",
+    '        if (shown.isEmpty)',
+    "          Span('nothing', theme.muted)",
+    '        else',
+    "          Span(shown.join(', ')),",
+    '      ]),',
+    '      Button(',
+    "        'Bring them back',",
+    '        onPressed: _tags.length == _all.length',
+    '            ? null',
+    '            : () => setState(() => _tags = _all),',
+    '      ),',
+    '    ],',
+    '  );',
+    '}',
+  ].join('\n'),
+);
+
+/// Tags that wrap in [width] cells: the chips of a ChipList, and a button
+/// to bring back those removed.
+final class _Tags extends StatefulWidget {
+  const _Tags({
+    required this.toggle,
+    required this.remove,
+    required this.width,
+  });
+
+  final bool toggle;
+  final bool remove;
+  final int width;
+
+  @override
+  State<_Tags> createState() => _TagsState();
+}
+
+final class _TagsState extends State<_Tags> with _Kept {
+  @override
+  Widget build(BuildContext context) {
+    final tags = keptOr<List<String>>('tags', _firstTags);
+    final on = keptOr<Set<String>>('on', {'tui'});
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      gap: 1,
+      children: [
+        SizedBox(
+          width: widget.width,
+          child: ChipList<String>(
+            chips: [
+              for (final t in tags) Choice(t, t, enabled: t != 'beta'),
+            ],
+            selected: on,
+            onSelectionChanged: widget.toggle ? (now) => keep('on', now) : null,
+            onDeleted: widget.remove
+                ? (tag) => keep('tags', [...tags]..remove(tag))
+                : null,
+          ),
+        ),
+        LitLine([
+          ('on: ', true),
+          if (on.where(tags.contains).isEmpty)
+            ('nothing', true)
+          else
+            (on.where(tags.contains).join(', '), false),
+        ], serial: serial),
+        Button(
+          'Bring them back',
+          onPressed: tags.length == _firstTags.length
+              ? null
+              : () => keep('tags', _firstTags),
+        ),
+      ],
+    );
+  }
+}
+
+// ------------------------------------------------------------ ValueStepper
+
+/// The values of the ValueStepper page: a theme's modes.
+const List<Choice<String>> _stepModes = [
+  Choice('dark', 'dark'),
+  Choice('light', 'light'),
+  Choice('sepia', 'sepia', enabled: false),
+  Choice('auto', 'auto-switching'),
+];
+
+final _stepper = GalleryPage(
+  group: 'Controls',
+  title: 'ValueStepper',
+  options: const [SwitchOption('enabled', 'enabled', initial: true)],
+  build: (context, o) => _Steps(enabled: o.flag('enabled')),
+  code: (o) => [
+    "var _mode = 'dark';",
+    '',
+    '@override',
+    'Widget build(BuildContext context) {',
+    '  final theme = Theme.of(context);',
+    '  return Column(',
+    '    mainAxisSize: .min,',
+    '    crossAxisAlignment: .start,',
+    '    gap: 1,',
+    '    children: [',
+    '      ValueStepper<String>(',
+    '        values: const [',
+    for (final c in _stepModes)
+      if (c.enabled)
+        "          Choice('${c.value}', '${c.label}'),"
+      else
+        "          Choice('${c.value}', '${c.label}', enabled: false),",
+    '        ],',
+    '        value: _mode,',
+    if (o.flag('enabled'))
+      '        onChanged: (mode) => setState(() => _mode = mode),'
+    else
+      '        onChanged: null,',
+    '      ),',
+    "      Text.rich([Span('mode: ', theme.muted), Span(_mode)]),",
+    '    ],',
+    '  );',
+    '}',
+  ].join('\n'),
+);
+
+/// A mode to step through, and what it is.
+final class _Steps extends StatefulWidget {
+  const _Steps({required this.enabled});
+
+  final bool enabled;
+
+  @override
+  State<_Steps> createState() => _StepsState();
+}
+
+final class _StepsState extends State<_Steps> with _Kept {
+  @override
+  Widget build(BuildContext context) {
+    final mode = keptOr('mode', 'dark');
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      gap: 1,
+      children: [
+        ValueStepper<String>(
+          values: _stepModes,
+          value: mode,
+          onChanged: widget.enabled ? (mode) => keep('mode', mode) : null,
+        ),
+        LitLine([('mode: ', true), (mode, false)], serial: serial),
+      ],
+    );
+  }
+}
+
 // ------------------------------------------------------------ Callout
 
 /// What a callout of each kind says, the button that acts on it, and its
@@ -2559,6 +2870,11 @@ final _callout = GalleryPage(
       'icon',
       values: ['kind', 'own', 'none'],
     ),
+    const ChoiceOption(
+      'border',
+      'border',
+      values: ['single', 'rounded', 'heavy'],
+    ),
     SliderOption(
       'width',
       'width',
@@ -2575,6 +2891,7 @@ final _callout = GalleryPage(
     width: o.number('width').toInt(),
     ownTitle: o.choice<String>('title') == 'own',
     icon: _iconOf(o),
+    border: BorderType.values.byName(o.choice('border')),
   ),
   code: (o) {
     final kind = StatusKind.values.byName(o.choice('kind'));
@@ -2603,6 +2920,8 @@ final _callout = GalleryPage(
       if (kind != StatusKind.info) '            kind: .${kind.name},',
       if (o.choice<String>('title') == 'own') "            title: '$title',",
       if (icon != null) "            icon: '$icon',",
+      if (o.choice<String>('border') != 'single')
+        '            borderType: .${o.choice<String>('border')},',
       if (dismiss) ...[
         '            onDismissed: () => setState(() {',
         '              _shown = false;',
@@ -2657,6 +2976,7 @@ final class _Notice extends StatefulWidget {
     required this.width,
     required this.ownTitle,
     required this.icon,
+    required this.border,
   });
 
   final StatusKind kind;
@@ -2669,6 +2989,9 @@ final class _Notice extends StatefulWidget {
 
   /// Its icon: null for the kind's, `''` for none.
   final String? icon;
+
+  /// The lines of its box.
+  final BorderType border;
 
   @override
   State<_Notice> createState() => _NoticeState();
@@ -2700,6 +3023,7 @@ final class _NoticeState extends State<_Notice> with _Kept {
               kind: widget.kind,
               title: widget.ownTitle ? title : null,
               icon: widget.icon,
+              borderType: widget.border,
               onDismissed: widget.dismiss
                   ? () => _did('dismissed', shown: false)
                   : null,

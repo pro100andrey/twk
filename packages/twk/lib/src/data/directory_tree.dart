@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:meta/meta.dart';
 import 'package:twk_core/twk_core.dart' show Attr, TextOverflow, TextWrap;
 
+import '../binding/app_binding.dart' show AppBinding;
 import '../controls/file_picker.dart';
 import '../focus/focus.dart';
 import '../foundation/change_notifier.dart';
@@ -196,7 +197,8 @@ final class DirectoryTreeController extends ChangeNotifier {
 /// a file deeper down deciding before those above it, nor does `.git`; a
 /// directory's `.gitignore` is read as it is listed. With a [filter], the
 /// files it accepts show, and every directory. With [showSizes], each
-/// file's size shows at the end of its row, as `4.3 kB`. [icon] gives
+/// file's size shows at the end of its row, as `4.3 kB`, or as `4.2 KiB`
+/// with [byteUnits] binary. [icon] gives
 /// what shows before an entry's name, such as a glyph of a Nerd Font;
 /// null for nothing.
 ///
@@ -204,7 +206,9 @@ final class DirectoryTreeController extends ChangeNotifier {
 /// ([PickerFileSystem.watch]) and listed again a tenth of a second after
 /// it changes, the changes in between taken with it: the selection and
 /// what is expanded stay, by path. A change of [root], [fileSystem],
-/// [gitignore] or [showSizes] lists every directory again.
+/// [gitignore] or [showSizes] lists every directory again. The wait after a
+/// change is a timer of the app: with [watch] the tree needs one above it
+/// (`runApp`, or a `Cli`), see `AppBinding.startTimer`.
 ///
 /// It takes all the room it is given, which must be bounded. With a
 /// [controller], the app reads what is selected, expands and collapses
@@ -228,6 +232,7 @@ final class DirectoryTree extends StatefulWidget {
     this.gitignore = true,
     this.watch = true,
     this.showSizes = false,
+    this.byteUnits = ByteUnits.decimal,
     this.filter,
     this.icon,
     this.showGuides = false,
@@ -264,6 +269,10 @@ final class DirectoryTree extends StatefulWidget {
 
   /// Whether each file's size shows at the end of its row.
   final bool showSizes;
+
+  /// How [showSizes] counts and names a size: by 1000 (`4.3 kB`), or by
+  /// 1024 as `ls -h` does (`4.2 KiB`).
+  final ByteUnits byteUnits;
 
   /// Which files show; null for all of them. Every directory shows.
   final FileFilter? filter;
@@ -710,16 +719,17 @@ final class _DirectoryTreeState extends State<DirectoryTree> {
 
   void _changedOnDisk(String dir) {
     _changed.add(dir);
-    _debounce ??= Timer(const Duration(milliseconds: 100), () {
-      _debounce = null;
-      final changed = [..._changed];
-      _changed.clear();
-      for (final dir in changed) {
-        if (_listings[dir] case final listing?) {
-          unawaited(_relist(listing));
-        }
-      }
-    });
+    _debounce ??= AppBinding.of(context)
+        .startTimer(const Duration(milliseconds: 100), () {
+          _debounce = null;
+          final changed = [..._changed];
+          _changed.clear();
+          for (final dir in changed) {
+            if (_listings[dir] case final listing?) {
+              unawaited(_relist(listing));
+            }
+          }
+        });
   }
 
   /// Drops the listings of the directories that no longer show: collapsed,
@@ -862,7 +872,10 @@ final class _DirectoryTreeState extends State<DirectoryTree> {
           : Row(
               children: [
                 Expanded(child: label),
-                Text(' ${formatBytes(size)}', style: theme.muted),
+                Text(
+                  ' ${formatBytes(size, byteUnits: widget.byteUnits)}',
+                  style: theme.muted,
+                ),
               ],
             ),
     );

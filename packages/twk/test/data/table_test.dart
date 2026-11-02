@@ -734,6 +734,37 @@ void main() {
       ]);
     });
 
+    testTwk('with sortKeys false, s, < and > go on to the bindings above '
+        'it and sort nothing; a click on a title still sorts', (t) async {
+      final controller = TableController();
+      final heard = <String>[];
+      await t.pumpWidget(
+        Theme.terminal(
+          child: KeyBindings(
+            {
+              for (final k in ['s', '<', '>']) k: () => heard.add(k),
+            },
+            child: Table(
+              rows: files,
+              controller: controller,
+              autofocus: true,
+              sortKeys: false,
+              columns: [nameColumn(sorts: true), sizeColumn(sorts: true)],
+            ),
+          ),
+        ),
+        size: (40, 4),
+      );
+      for (final k in ['s', '<', '>']) {
+        await t.press(k);
+      }
+      expect(heard, ['s', '<', '>']);
+      expect(controller.sortColumn, isNull);
+      await t.click(1, 0);
+      await t.pump();
+      expect(controller.sortColumn, 0);
+    });
+
     testTwk('s in a table that selects rows sorts the other way by the '
         'column sorted by, or by the first that sorts', (t) async {
       final controller = TableController();
@@ -1276,7 +1307,6 @@ other'''),
                     Builder(
                       builder: (context) => LineGauge(
                         ratio: 1,
-                        label: '',
                         filledStyle: Theme.of(context).primary,
                       ),
                     ),
@@ -1611,14 +1641,17 @@ other'''),
       expect(source.reads, lessThan(50));
     });
 
-    testTwk('a frame scrolled a row takes as long with a million rows as '
-        'with ten thousand', (t) async {
+    testTwk('a frame scrolled a row reads as many rows with a million rows '
+        'as with ten thousand', (t) async {
+      // rows read, not time: what grows with the rows is what is counted,
+      // and it does not depend on the machine's load
       Future<int> scroll(int rows) async {
+        final source = Numbered(rows);
         await t.pumpWidget(
           Theme.terminal(
             child: Table.source(
               key: ValueKey(rows),
-              source: Numbered(rows),
+              source: source,
               autofocus: true,
               columns: [
                 nameColumn(),
@@ -1633,20 +1666,20 @@ other'''),
           await t.press('down');
           await t.pump();
         }
-        // real time on purpose: what the work costs is what is measured
-        final watch = Stopwatch()..start();
+        source.reads = 0;
         for (var i = 0; i < 200; i++) {
           await t.press('down');
           await t.pump();
         }
         expect(t.lines.last, startsWith('n239 '));
-        return watch.elapsedMicroseconds ~/ 200;
+        return source.reads;
       }
 
       final few = await scroll(10000);
       final many = await scroll(1000000);
-      // generous: twice as long, and a millisecond
-      expect(many, lessThan(2 * few + 1000), reason: '$many µs, $few µs');
+      // the same reads whatever the count, and far fewer than the rows
+      expect(many, few, reason: '$many reads, $few reads');
+      expect(many, lessThan(200 * 100), reason: '$many reads');
     });
 
     testTwk('a source that notifies is read again: measured, sorted and the '

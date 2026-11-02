@@ -542,6 +542,30 @@ void main() {
       expect(t.lines.take(2), [' Apple, Banana, Elderberry ▾', 'next']);
     });
 
+    testTwk('the characters of the query stand out past a checkbox whose '
+        'mark is one cell but two code units', (t) async {
+      final values = ValueNotifier<Set<String>>({'a'});
+      addTearDown(values.dispose);
+      await t.pumpWidget(
+        Theme(
+          data: ThemeData.dark.copyWith(
+            glyphs: Glyphs.unicode.copyWith(checkboxOn: '\u{1D431}'),
+          ),
+          child: app(multi(values)),
+        ),
+        size: (30, 8),
+      );
+      await press(t, 'enter');
+      await t.type('app');
+      await t.pumpUntilIdle();
+      expect(t.lines[1], '▎[\u{1D431}] Apple');
+      // A, p and p are columns 5 to 7, the blank before them is not one
+      expect(t, styleAt(4, 1, isNot(hasAttr(Attr.bold))));
+      expect(t, styleAt(5, 1, hasAttr(Attr.bold)));
+      expect(t, styleAt(7, 1, hasAttr(Attr.bold)));
+      expect(t, styleAt(8, 1, isNot(hasAttr(Attr.bold))));
+    });
+
     testTwk('inline: the marks below the field, Space toggling', (t) async {
       final values = ValueNotifier<Set<String>>({});
       addTearDown(values.dispose);

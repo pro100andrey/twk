@@ -114,7 +114,7 @@ final class _Painter {
         }
         buf[k++] = (c & kGlyphMask) < 0x110000 ? c : _glyph(t, c);
       }
-      canvas.runRangeStyled(x + col, y, buf, 0, k, _style(t, s));
+      canvas.runRangeStyled(x + col, y, buf, 0, k, _style(t, StyleId(s)));
       col = end;
     }
   }
@@ -141,8 +141,9 @@ final class _Painter {
     return (word & ~kGlyphMask) | mapped;
   }
 
-  /// The canvas's style of style [id] of the emulator's table.
-  int _style(TerminalEmulator t, int id) {
+  /// The canvas's style of style [style] of the emulator's table.
+  StyleId _style(TerminalEmulator t, StyleId style) {
+    final id = style.value;
     if (id >= _ids.length) {
       var size = _ids.isEmpty ? 64 : _ids.length * 2;
       while (size <= id) {
@@ -154,17 +155,19 @@ final class _Painter {
     }
     final cached = _ids[id];
     if (cached >= 0) {
-      return cached;
+      return StyleId(cached);
     }
     final st = t.styles;
-    final fg = st.fgOf(id);
-    final bg = st.bgOf(id);
-    return _ids[id] = _styles!.style(
+    final fg = st.fgOf(style);
+    final bg = st.bgOf(style);
+    final made = _styles!.style(
       fg: fg.isDefault ? _fg : fg,
       bg: bg.isDefault ? _bg : bg,
-      attrs: st.attrsOf(id) ^ (_reverse ? Attr.reverse : 0),
-      underlineColor: st.underlineColorOf(id),
-      link: st.linkOf(id),
+      attrs: st.attrsOf(style) ^ (_reverse ? Attr.reverse : 0),
+      underlineColor: st.underlineColorOf(style),
+      link: st.linkOf(style),
     );
+    _ids[id] = made.value;
+    return made;
   }
 }

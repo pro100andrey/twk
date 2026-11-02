@@ -290,8 +290,8 @@ final class TerminalEmulator {
   Color _ul = Color.defaultColor;
   var _attrs = 0;
   String? _link;
-  var _style = 0;
-  var _eraseStyle = 0;
+  StyleId _style = StyleId.base;
+  StyleId _eraseStyle = StyleId.base;
   var _styleDirty = true;
 
   // character sets
@@ -433,7 +433,7 @@ final class TerminalEmulator {
   }
 
   /// The style id (in [styles]) of the cell at ([x], [y]).
-  int styleAt(int x, int y) => line(y).styles[x];
+  StyleId styleAt(int x, int y) => StyleId(line(y).styles[x]);
 
   final _painter = _Painter();
 
@@ -508,7 +508,7 @@ final class TerminalEmulator {
     }
 
     if (stylesDue) {
-      styles.sweep((mark) => each((l) => l.styles, mark));
+      styles.sweep((mark) => each((l) => l.styles, (id) => mark(StyleId(id))));
       // the pen's own ids may be gone: made again as text comes
       _styleDirty = true;
       _stylesAt = 2 * styles.live;
@@ -581,7 +581,7 @@ final class TerminalEmulator {
     // the alternate screen: cut or padded, the cursor's row kept
     final alt = _alternate.lines;
     for (final line in alt) {
-      line.resize(w, 0);
+      line.resize(w, StyleId.base);
     }
     if (!onPrimary && y >= h) {
       alt.removeRange(0, y - h + 1);
@@ -622,7 +622,7 @@ final class TerminalEmulator {
     _switchScreen(alternate: false);
     for (final s in [_primary, _alternate]) {
       for (final line in s.lines) {
-        line.clear(0);
+        line.clear(StyleId.base);
       }
       s.saved = _Saved();
       s.keyFlags
@@ -887,7 +887,7 @@ final class TerminalEmulator {
   }
 
   @pragma('vm:prefer-inline')
-  int get _styleNow {
+  StyleId get _styleNow {
     if (_styleDirty) {
       _updateStyle();
     }
@@ -895,7 +895,7 @@ final class TerminalEmulator {
   }
 
   @pragma('vm:prefer-inline')
-  int get _eraseStyleNow {
+  StyleId get _eraseStyleNow {
     if (_styleDirty) {
       _updateStyle();
     }
@@ -911,7 +911,7 @@ final class TerminalEmulator {
       link: _link,
     );
     // erased cells take the background alone (BCE)
-    _eraseStyle = _bg.isDefault ? 0 : styles.style(bg: _bg);
+    _eraseStyle = _bg.isDefault ? StyleId.base : styles.style(bg: _bg);
     _styleDirty = false;
   }
 
@@ -959,7 +959,7 @@ final class TerminalEmulator {
       final styles = line.styles;
       for (var k = 0; k < n; k++) {
         cells[x0 + k] = data[i + k];
-        styles[x0 + k] = style;
+        styles[x0 + k] = style.value;
       }
       i += n;
       if (x1 >= w) {
@@ -1117,11 +1117,11 @@ final class TerminalEmulator {
     if (w == 2) {
       cells[x] = glyph | kWide;
       cells[x + 1] = kCont;
-      styles[x] = style;
-      styles[x + 1] = style;
+      styles[x] = style.value;
+      styles[x + 1] = style.value;
     } else {
       cells[x] = glyph;
-      styles[x] = style;
+      styles[x] = style.value;
     }
     if (end >= _width) {
       _x = _width - 1;
@@ -1306,7 +1306,7 @@ final class TerminalEmulator {
 
   /// Shifts cells [x, width) of [line] right by [n], blanks in [style]
   /// coming in.
-  void _insertCells(TerminalLine line, int x, int n, int style) {
+  void _insertCells(TerminalLine line, int x, int n, StyleId style) {
     final w = _width;
     final k = n > w - x ? w - x : n;
     final cells = line.cells;
@@ -1322,7 +1322,7 @@ final class TerminalEmulator {
       line.styles.setRange(x + k, w, line.styles, x);
     }
     cells.fillRange(x, x + k, kBlank);
-    line.styles.fillRange(x, x + k, style);
+    line.styles.fillRange(x, x + k, style.value);
   }
 
   /// ICH.
@@ -1347,7 +1347,7 @@ final class TerminalEmulator {
     cells.setRange(x, w - k, cells, x + k);
     line.styles.setRange(x, w - k, line.styles, x + k);
     cells.fillRange(w - k, w, kBlank);
-    line.styles.fillRange(w - k, w, _eraseStyleNow);
+    line.styles.fillRange(w - k, w, _eraseStyleNow.value);
     _pendingWrap = false;
   }
 
@@ -1424,7 +1424,7 @@ final class TerminalEmulator {
   void _alignmentTest() {
     for (final line in _screen.lines) {
       line
-        ..clear(0)
+        ..clear(StyleId.base)
         ..cells.fillRange(0, _width, 0x45);
     }
     _top = 0;

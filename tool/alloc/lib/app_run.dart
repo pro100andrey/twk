@@ -18,17 +18,22 @@ final class AppRun {
   AppRun._(this.clock, this.terminal, this.binding);
 
   /// Starts [app] on a terminal of [width] × [height] cells and runs its
-  /// first frames.
+  /// first frames; the terminal shows pointer shapes where [pointerShapes].
   static Future<AppRun> start(
     Widget app, {
     int width = 200,
     int height = 60,
+    bool pointerShapes = false,
   }) async {
     final clock = SyncClock();
     late final HeadlessTerminal term;
     late final AppBinding binding;
     clock.run(() {
-      term = HeadlessTerminal(width: width, height: height);
+      term = HeadlessTerminal(
+        width: width,
+        height: height,
+        pointerShapes: pointerShapes,
+      );
       // the log kept in memory, as an app's is: not printed; none of the
       // shell's TWK_* variables, so that each run measures the same app
       binding = AppBinding(
@@ -49,6 +54,10 @@ final class AppRun {
   final SyncClock clock;
   final HeadlessTerminal terminal;
   final AppBinding binding;
+
+  /// What a scenario must undo when the run stops (a file, a subscription),
+  /// run in order by [stop].
+  final onStop = <FutureOr<void> Function()>[];
 
   /// The frames written and their bytes since the start.
   var frames = 0;
@@ -79,6 +88,9 @@ final class AppRun {
     clock.run(binding.quit);
     pump(const Duration(milliseconds: 100));
     await Future<void>.delayed(Duration.zero);
+    for (final undo in onStop) {
+      await undo();
+    }
   }
 }
 

@@ -1,9 +1,9 @@
 /// How the widgets write amounts, so that two of them never write the
 /// same one two ways: a ratio as a whole percent ([formatPercent]), a
 /// time as a clock ([formatClock]) or as the time something took
-/// ([formatTook]), and bytes in decimal units ([formatBytes]).
-/// [formatTook] is exported, for an app to write a time taken as the
-/// widgets do; the others are internal.
+/// ([formatTook]), and bytes in decimal or binary units ([formatBytes]).
+/// [formatTook], [formatBytes] and [ByteUnits] are exported, for an app to
+/// write a time taken and a size as the widgets do; the others are internal.
 library;
 
 import 'helpers.dart';
@@ -57,30 +57,68 @@ String formatTook(Duration time) {
 
 String _two(int n) => '$n'.padLeft(2, '0');
 
-/// The decimal unit [bytes] are written in, and how many bytes it is:
-/// `(1, 'B')` under 1000, then `kB`, `MB`, `GB`, `TB` and `PB`, each a
-/// thousand of the one before; the next unit from where the figures would
-/// round to 1000 of this one (999 999 bytes are `1.0 MB`, not `1000 kB`).
-(num, String) byteUnit(num bytes) {
-  const units = ['kB', 'MB', 'GB', 'TB', 'PB'];
-  final b = bytes.abs();
-  if (b < 999.5) {
-    return (1, 'B');
-  }
-  num scale = 1000;
-  var i = 0;
-  while (i < units.length - 1 && b >= scale * 999.5) {
-    scale *= 1000;
-    i++;
-  }
-  return (scale, units[i]);
+/// How sizes in bytes are counted and named.
+enum ByteUnits {
+  /// Thousands, the SI units: `kB`, `MB`, `GB`, `TB`, `PB`; a kilobyte is
+  /// 1000 bytes, as in `ls --si`, `du --si` and what disk makers quote.
+  decimal(1000, ['kB', 'MB', 'GB', 'TB', 'PB']),
+
+  /// 1024s, the IEC units: `KiB`, `MiB`, `GiB`, `TiB`, `PiB`; a kibibyte is
+  /// 1024 bytes, as `ls -h`, `du -h`, `df -h` and `htop` count.
+  binary(1024, ['KiB', 'MiB', 'GiB', 'TiB', 'PiB']);
+
+  const ByteUnits(this.base, this.suffixes);
+
+  /// How many of one unit make the next.
+  final int base;
+
+  /// The names of the units above the byte, the smallest first.
+  final List<String> suffixes;
 }
 
-/// [bytes] in their decimal unit ([byteUnit]), whole from 100 of it and to
-/// the tenth below ([formatFigures]): `512 B`, `4.1 kB`, `620 kB`,
-/// `1.2 MB`.
-String formatBytes(num bytes) {
-  final (scale, suffix) = byteUnit(bytes);
+/// The unit [bytes] are written in under [byteUnits], and how many bytes it
+/// is: `(1, 'B')` under a thousand (`ByteUnits.decimal`) or 1024
+/// (`ByteUnits.binary`), then the units above, each a thousand or 1024 of
+/// the one before; the next unit from where the figures would round to
+/// that many of this one (999 999 bytes are `1.0 MB`, not `1000 kB`).
+(num, String) byteUnit(
+  num bytes, {
+  ByteUnits byteUnits = ByteUnits.decimal,
+}) {
+  final base = byteUnits.base;
+  final b = bytes.abs();
+  if (b < base - 0.5) {
+    return (1, 'B');
+  }
+  num scale = base;
+  var i = 0;
+  while (i < byteUnits.suffixes.length - 1 && b >= scale * (base - 0.5)) {
+    scale *= base;
+    i++;
+  }
+  return (scale, byteUnits.suffixes[i]);
+}
+
+/// [bytes] in their unit under [byteUnits] ([byteUnit]), whole from 100 of it
+/// and to the tenth below ([formatFigures]). The sizes a `DirectoryTree`
+/// and a `ProgressList` write.
+///
+/// By default the units are the SI ones ([ByteUnits.decimal]), a kilobyte
+/// being 1000 bytes: `512 B`, `4.1 kB`, `620 kB`, `1.2 MB`, the `kB` of
+/// `ls --si` and `du --si` and of what disk makers and file managers
+/// quote. [ByteUnits.binary] counts by 1024 as `ls -h` and `du -h` do and
+/// names the units as the IEC does: `1023 B`, `1.0 KiB`, `1.5 MiB`. A
+/// figure reads the same as the widgets' beside it where the same [byteUnits]
+/// are given to both.
+///
+/// ```dart
+/// final line = '${formatBytes(4096)} of ${formatBytes(1200000)}';
+/// // line: 4.1 kB of 1.2 MB
+/// final binary = formatBytes(1536, byteUnits: ByteUnits.binary);
+/// // binary: 1.5 KiB
+/// ```
+String formatBytes(num bytes, {ByteUnits byteUnits = ByteUnits.decimal}) {
+  final (scale, suffix) = byteUnit(bytes, byteUnits: byteUnits);
   return scale == 1 && bytes == bytes.roundToDouble()
       ? '${bytes.round()} B'
       : '${formatFigures(bytes / scale)} $suffix';

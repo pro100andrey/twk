@@ -192,6 +192,7 @@ final class BarChart extends LeafRenderObjectWidget {
     barStyle: barStyle,
     valueStyle: valueStyle,
     labelStyle: labelStyle,
+    glyphs: Theme.of(context).glyphs,
   );
 
   @override
@@ -206,7 +207,8 @@ final class BarChart extends LeafRenderObjectWidget {
       ..style = overText(context, style)
       ..barStyle = barStyle
       ..valueStyle = valueStyle
-      ..labelStyle = labelStyle;
+      ..labelStyle = labelStyle
+      ..glyphs = Theme.of(context).glyphs;
   }
 }
 
@@ -227,6 +229,7 @@ final class RenderBarChart extends RenderObject {
     this._barStyle = const Style(),
     this._valueStyle = const Style(),
     this._labelStyle = const Style(),
+    this._glyphs = Glyphs.unicode,
   }) : assert(_barWidth >= 1, 'bars a cell thick or more'),
        assert(_barGap >= 0 && _groupGap >= 0, 'gaps of 0 cells or more');
 
@@ -349,7 +352,19 @@ final class RenderBarChart extends RenderObject {
     }
   }
 
-  final _glyphs = ChartGlyphs();
+  Glyphs _glyphs;
+
+  /// The theme's marks, whose [Glyphs.shades] draw the bars where they
+  /// have no partial blocks.
+  Glyphs get glyphs => _glyphs;
+  set glyphs(Glyphs g) {
+    if (g != _glyphs) {
+      _glyphs = g;
+      markNeedsPaint();
+    }
+  }
+
+  final _chartGlyphs = ChartGlyphs();
 
   @override
   bool get isRepaintBoundary => true;
@@ -381,7 +396,7 @@ final class RenderBarChart extends RenderObject {
     canvas.fill(0, 0, width, height, _base.penIn(canvas.styles));
     _labelPen = _base.merge(_labelStyle).penIn(canvas.styles);
     _segmenter = canvas.segmenter;
-    _glyphs.use(_segmenter);
+    _chartGlyphs.use(_segmenter, _glyphs);
     var top = _max;
     if (top == null) {
       for (final group in _groups) {
@@ -456,7 +471,7 @@ final class RenderBarChart extends RenderObject {
     } else {
       groupLabels = false;
     }
-    final steps = _glyphs.upSteps;
+    final steps = _chartGlyphs.upSteps;
     final most = rows * steps;
     var x = 0;
     for (var g = 0; g < _groups.length && x < width; g++) {
@@ -474,9 +489,16 @@ final class RenderBarChart extends RenderObject {
         final pen = barStyle.penIn(canvas.styles);
         final s = _steps(bar, most);
         final full = s ~/ steps;
-        canvas.fill(x, rows - full, _barWidth, full, pen, _glyphs.up(steps));
+        canvas.fill(
+          x,
+          rows - full,
+          _barWidth,
+          full,
+          pen,
+          _chartGlyphs.up(steps),
+        );
         if (s > full * steps) {
-          final part = _glyphs.up(s - full * steps);
+          final part = _chartGlyphs.up(s - full * steps);
           canvas.fill(x, rows - 1 - full, _barWidth, 1, pen, part);
         }
         final text = bar.text ?? formatValue(bar.value);
@@ -548,7 +570,7 @@ final class RenderBarChart extends RenderObject {
     // the labels and a blank before the bars, where a bar cell is left
     final left = labels > 0 && labels + 1 < width ? labels + 1 : 0;
     final cells = width - left;
-    final steps = _glyphs.acrossSteps;
+    final steps = _chartGlyphs.acrossSteps;
     final most = cells * steps;
     var y = 0;
     for (var g = 0; g < _groups.length && y < height; g++) {
@@ -565,9 +587,9 @@ final class RenderBarChart extends RenderObject {
         final pen = barStyle.penIn(canvas.styles);
         final s = _steps(bar, most);
         final full = s ~/ steps;
-        canvas.fill(left, y, full, _barWidth, pen, _glyphs.across(steps));
+        canvas.fill(left, y, full, _barWidth, pen, _chartGlyphs.across(steps));
         if (s > full * steps) {
-          final part = _glyphs.across(s - full * steps);
+          final part = _chartGlyphs.across(s - full * steps);
           canvas.fill(left + full, y, 1, _barWidth, pen, part);
         }
         final mid = y + _barWidth ~/ 2;

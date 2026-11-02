@@ -20,10 +20,16 @@ final stylePages = [
         initial: 'nord',
       ),
       const SwitchOption('cycle', 'cycle'),
+      const ChoiceOption(
+        'glyphs',
+        'glyphs',
+        values: ['unicode', 'ascii'],
+      ),
     ],
     build: (context, o) => _ThemePage(
       chosen: _presets.indexWhere((p) => p.key == o.choice<String>('theme')),
       cycle: o.flag('cycle'),
+      glyphs: _glyphsOf(o.choice<String>('glyphs')),
     ),
     code: _themeCode,
   ),
@@ -271,6 +277,19 @@ final class _SwatchesState extends State<_Swatches> {
                   ),
                 ],
               ),
+              const SizedBox(height: 1),
+              const Row(
+                gap: 2,
+                children: [
+                  StatusMessage('Saved', kind: StatusKind.success),
+                  Expanded(
+                    child: LineGauge(
+                      ratio: 0.6,
+                      unfilledStyle: Style(attrs: Attr.dim),
+                    ),
+                  ),
+                ],
+              ),
             ],
           ],
         ),
@@ -378,6 +397,19 @@ List<String> _swatchesCode({required bool named}) => [
     '                ),',
     '              ],',
     '            ),',
+    '            const SizedBox(height: 1),',
+    '            const Row(',
+    '              gap: 2,',
+    '              children: [',
+    "                StatusMessage('Saved', kind: StatusKind.success),",
+    '                Expanded(',
+    '                  child: LineGauge(',
+    '                    ratio: 0.6,',
+    '                    unfilledStyle: Style(attrs: Attr.dim),',
+    '                  ),',
+    '                ),',
+    '              ],',
+    '            ),',
   ],
   '          ],',
   '        ),',
@@ -400,10 +432,15 @@ const _cycle = 2000;
 /// far as the page would have), from when the switch was turned on, and
 /// on from a preset chosen by hand, which turns the cycle off.
 final class _ThemePage extends StatefulWidget {
-  const _ThemePage({required this.chosen, required this.cycle});
+  const _ThemePage({
+    required this.chosen,
+    required this.cycle,
+    required this.glyphs,
+  });
 
   final int chosen;
   final bool cycle;
+  final Glyphs glyphs;
 
   @override
   State<_ThemePage> createState() => _ThemePageState();
@@ -465,11 +502,20 @@ final class _ThemePageState extends State<_ThemePage> {
     }
     _motion.end();
     final preset = _presets[i];
-    return Theme(data: preset.data, child: _Swatches(preset.name));
+    return Theme(
+      data: preset.data.copyWith(glyphs: widget.glyphs),
+      child: _Swatches(preset.name),
+    );
   }
 }
 
+/// The glyph set the Theme page's option [name] picks.
+Glyphs _glyphsOf(String name) =>
+    name == 'ascii' ? Glyphs.ascii : Glyphs.unicode;
+
 String _themeCode(Options o) {
+  final ascii = o.choice<String>('glyphs') == 'ascii';
+  final data = ascii ? 'data.copyWith(glyphs: Glyphs.ascii)' : 'data';
   final i = _presets.indexWhere((p) => p.key == o.choice<String>('theme'));
   final list = [
     'const _themes = [',
@@ -481,7 +527,7 @@ String _themeCode(Options o) {
     return [
       ...list,
       'final (name, data) = _themes[$i];',
-      'return Theme(data: data, child: _Swatches(name));',
+      'return Theme(data: $data, child: _Swatches(name));',
       '',
       ..._swatchesCode(named: true),
     ].join('\n');
@@ -510,7 +556,7 @@ String _themeCode(Options o) {
     '@override',
     'Widget build(BuildContext context) {',
     '  final (name, data) = _themes[_i];',
-    '  return Theme(data: data, child: _Swatches(name));',
+    '  return Theme(data: $data, child: _Swatches(name));',
     '}',
     '',
     ..._swatchesCode(named: true),

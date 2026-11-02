@@ -345,7 +345,7 @@ void main() {
           (e) => e.message,
           'message',
           'showDialog: no Overlay above SizedBox: place an Overlay above it, '
-              'as around the whole app: Overlay(child: …)',
+              'as App does around the whole app: App(child: …)',
         ),
       ),
     );
@@ -458,6 +458,53 @@ void main() {
       expect(t, matchesScreen('┌ Delete ──┐\n│ Sure?    │\n└──────────┘'));
     });
   });
+
+  testTwk('a dialog whose child takes the width keeps to 72 columns, or '
+      'the screen where narrower; maxWidth sets another, null none', (
+    t,
+  ) async {
+    const wide = Row(children: [Expanded(child: Text('wide'))]);
+    Widget app(Dialog dialog) => Overlay(
+      child: Builder(
+        builder: (context) => KeyBindings({
+          'd': () => unawaited(
+            showDialog<void>(context, (_) => dialog, fadeIn: Duration.zero),
+          ),
+        }, child: const Focus(autofocus: true, child: Text('app'))),
+      ),
+    );
+    Future<int> borderWidth(Dialog dialog, int width) async {
+      await t.pumpWidget(app(dialog), size: (width, 10));
+      await press(t, 'd');
+      final top = t.lines.firstWhere((l) => l.contains('┌'));
+      await press(t, 'escape');
+      return top.lastIndexOf('┐') - top.indexOf('┌') + 1;
+    }
+
+    const bordered = PanelLook.bordered;
+    expect(
+      await borderWidth(const Dialog(look: bordered, child: wide), 100),
+      72,
+    );
+    expect(
+      await borderWidth(const Dialog(look: bordered, child: wide), 40),
+      40,
+    );
+    expect(
+      await borderWidth(
+        const Dialog(look: bordered, maxWidth: 30, child: wide),
+        100,
+      ),
+      30,
+    );
+    expect(
+      await borderWidth(
+        const Dialog(look: bordered, maxWidth: null, child: wide),
+        100,
+      ),
+      100,
+    );
+  });
 }
 
 /// No color: the terminal's default.
@@ -488,6 +535,7 @@ final class BarsState extends State<Bars> {
     child: Sparkline(
       data: _data,
       max: 8,
+      fromRight: false,
       style: const Style(fg: green, bg: blue),
     ),
   );

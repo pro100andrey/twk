@@ -72,7 +72,7 @@ final class View {
   /// The text of cell [i] and `r` or `b` where its foreground is red or
   /// blue.
   String _cell(int i) {
-    final fg = screen.styles.fgOf(screen.surface.styles[i]);
+    final fg = screen.styles.fgOf(StyleId(screen.surface.styles[i]));
     return '${screen.glyphs.stringOf(screen.surface.cells[i])}${_pen(fg)}';
   }
 }

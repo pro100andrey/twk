@@ -65,10 +65,10 @@ runs the app's microtasks before it returns.
   still running. `binding` (the `AppBinding`), `terminal` (its `frames`),
   `logs` (the app's `LogSink`) and `stderrLines` (what the app wrote to
   stderr: its warnings and errors once it ended) are there to look at.
-- `act(fn)` runs `fn` in the app's zone, as the app's own code runs, and
-  pumps a frame: how a test changes what the app listens to (a
-  controller, a notifier, a cubit) and sees the frame that follows. A
-  timer `fn` starts waits for the clock.
+- `act(fn)` runs `fn` as the app's own code runs, and pumps a frame: how
+  a test changes what the app listens to (a controller, a notifier, a
+  cubit) and sees the frame that follows. A timer `fn` starts waits for
+  the clock, and what it prints or logs goes to `logs`.
 
 ### Time
 
@@ -88,8 +88,9 @@ a `FakeClock` (`t.clock`):
   waits. A frame the app asked for is such a timer, and so is the next tick
   of an animation. If the app is still busy after `timeout` (10 s on the
   clock by default), the call fails the test. The message says how many
-  frames the app wrote and when its next timer is due, and shows the screen
-  and the render tree. An app with a timer that never stops (a spinner, a
+  frames the app wrote and lists the timers that wait, each with when it
+  is due and the first lines of the stack it was started from, then shows
+  the screen and the render tree. An app with a timer that never stops (a spinner, a
   poll) never becomes idle: pump such an app with `pump(duration)`. One
   whose animations end (an `AnimationController` at the end of its run
   or stopped, a spinner removed) has no timer left and goes idle again,
@@ -97,7 +98,10 @@ a `FakeClock` (`t.clock`):
 
 Only timers and microtasks of the app are fake: `Stopwatch()` and
 `DateTime.now()` read real time in the app too. The binding spaces frames
-by `AppBinding(clock:)`, which the tester sets to `t.clock.stopwatch`. Code
+by `AppBinding(clock:)`, which the tester sets to `t.clock.stopwatch`, and
+its wall time, `AppBinding.now()`, is `pumpWidget(startTime:)`
+(`TwkTester.defaultStartTime` by default) moved on by that clock: what an
+app draws of the time from it is the same on every run. Code
 of the test itself keeps real time. The clock does not wait for real I/O:
 a file the app reads arrives whenever the operating system delivers it.
 
@@ -115,13 +119,14 @@ a file the app reads arrives whenever the operating system delivers it.
   itself (`a`, `?`, `я`, `+`, which comes last: `ctrl++`), or one of
   these, in lower case: `space`, `enter`, `tab`, `backspace`, `escape`,
   `up`, `down`, `left`, `right`, `home`, `end`, `pageup`, `pagedown`,
-  `insert`, `delete`, `f1` to `f12`. Only a character has a case: `A`
+  `insert`, `delete`, `f1` to `f12`; `esc` is `escape` too, as the key
+  hints show it. Only a character has a case: `A`
   is `shift+a`, which types the capital, and `ctrl+A` is
   `ctrl+shift+a`. Shift alone with a character that has no case
   (`shift+1`, `shift+space`) names no key.
   - A name that is not one throws a `FormatException` naming the part
     that is wrong, and the name meant where that is plain (`Enter`,
-    `esc`, `cmd`).
+    `ret`, `cmd`).
   - The event is what the parser makes of the bytes: `ctrl+i` arrives as
     Tab, as on a real terminal.
   - Without the kitty protocol, some keys have no bytes of their own
@@ -135,12 +140,18 @@ a file the app reads arrives whenever the operating system delivers it.
 - `mouse(MouseKind.down, x, y, button: 2, modifiers: Mod.ctrl)` sends an
   SGR mouse report, and `click(x, y)` sends a press and a release. Neither
   works in the inline mode, where the terminal keeps the mouse for itself.
+- `pointerShape` is the shape the app gave the mouse pointer last (OSC
+  22), on a terminal that shows them: `pumpWidget(pointerShapes: true)`;
+  `PointerShape.arrow` where it shows the terminal's default.
 - `resize(columns, rows)` resizes the terminal. The app gets a
   `ResizeEvent`, and the next frame repaints the screen.
 
 A lone ESC typed with `type('\x1b')` stays pending in the parser. It
-becomes the Escape key after `pump(const Duration(milliseconds: 30))`
-(500 ms with the kitty protocol), unless more input comes first.
+becomes the Escape key after `pump(const Duration(milliseconds: 30))`,
+with the kitty protocol too, unless more input comes first. With the
+protocol, ESC and any byte after it (`type('\x1b[')`) is a sequence cut by
+a slow link, since Alt+key is `CSI u` there, and waits 500 ms; only a lone
+ESC waits the 30 ms.
 
 ### The screen
 
@@ -148,6 +159,11 @@ becomes the Escape key after `pump(const Duration(milliseconds: 30))`
   them, with a wide glyph shown once.
 - `scrollback` gives the lines scrolled off the top in the inline mode,
   oldest first.
+- `linesIn(region)` gives the rows of a rectangle `(x:, y:, width:,
+  height:)`, as `rect` gives one, as `lines` gives the screen's, from the
+  rectangle's first column: `t.linesIn((x: 12, y: 0, width: 12, height:
+  3))`. As many rows and columns are read as the screen has.
+  `t.linesOf(finder)` gives those of the cells of a widget.
 - `cell(x, y)` gives one cell: `text` (`''` for the right half of a wide
   glyph), `fg`, `bg`, `ul` (the underline color) and `attrs`. The colors
   and attributes are numbered as `Color` and `Attr` number them, with `0`
@@ -169,7 +185,10 @@ scrolls the screen, a write to the inline mode's history, an absolute
 row in the inline mode, or an image it can't take (a kitty command
 without `q=2`, a placement of an image not sent, not sized in cells or
 without `C=1`; an image over text, past the screen or one that scrolls
-it) throws when the screen is read. `t.vt.images` lists the images on
+it) throws when the screen is read. A `Vt` of your own that replays what a real
+program wrote, a recorded session, is made with `Vt(width, height,
+strict: false)`: what it does not take is then kept in `vt.errors`, not
+thrown. `t.vt.images` lists the images on
 the screen (`VtImage`: the protocol, a kitty image's id and placement,
 its bytes, the cells it still has and, for kitty, the part shown), top
 to bottom.
@@ -182,6 +201,14 @@ The matchers of the screen take the tester: `expect(t, containsLine('ok'))`.
   the rows. Given a matcher (`startsWith('sent:')`), a row it matches.
 - `hasTextAt(x, y, text)`: the cells from column `x` of row `y` on show
   `text`. As many cells are read as `text` is wide.
+- `within:` on both, a finder or a rectangle, limits them to the cells of
+  a widget or a region, so a title printed twice on a row, in a list and
+  in a panel, is matched in the one: `expect(t, containsLine('> one',
+  within: find.byType(ListView)))`. For `hasTextAt` `x` and `y` count from
+  the region's first cell, and the cells read stop at its edge. A match
+  that fails says where the screen shows the text outside the region, if
+  it does: `has none in the cells (12, 0), 5×3, but the screen shows '> one'
+  at column 0, row 1`.
 - `styleAt(x, y, matcher)`: the cell at column `x` of row `y` matches
   `matcher`. The matchers of a cell are `hasAttr(Attr.bold)` (every
   attribute given; an underline matches only the same kind of underline),
@@ -218,8 +245,14 @@ The matchers of the screen take the tester: `expect(t, containsLine('ok'))`.
     overline). Between two cells of one style with that background, the
     space is in their run. Elsewhere its style is its background, and
     spaces with no background at the end of a row are left out.
-- `matchesScreenFile(path)`: the screen is the one the file at `path`
-  holds (a golden file), relative to the package. A whole screen of a
+- `matchesScreenFile(path, {styles = true})`: the screen is the one the
+  file at `path` holds (a golden file); a relative `path` is from the root
+  of the calling test's package, wherever the suite is run from: the
+  package of the file the call is in, found from the stack (the nearest
+  `pubspec.yaml` above it), so a helper in another package's `test/` that
+  calls it reads from that package; an absolute `path` is as it is. With
+  `styles: false` the size, cursor and text are compared and the styles
+  are not. A whole screen of a
   themed app is a run of styles in nearly every cell, which inline marks
   make unreadable, so the file keeps the text and the styles apart:
 
@@ -259,9 +292,10 @@ The matchers of the screen take the tester: `expect(t, containsLine('ok'))`.
 When a matcher of the screen fails, the message says what the screen has
 instead: the line it lacks, the text or style found at the cell, where the
 cursor is, or the rows that differ from the snapshot (`-` the snapshot's,
-`+` the screen's). Then it shows the screen, rows numbered and styles
-marked as above, with the empty rows at the end summed up
-(`matchesScreen(styles: true)` leaves it out: its diff shows it). Then
+`+` the screen's). Then it shows the screen, rows numbered, as text, or
+for `styleAt` with the styles marked as above, with the empty rows at
+the end summed up (`matchesScreen(styles: true)` leaves it out: its diff
+shows it). Then
 comes the widget tree, from the widget `pumpWidget` showed down, as
 twk's `debugDumpTree` prints it (`none` before the first frame and once
 the app ended), and last the render tree, from the binding's root render
@@ -315,7 +349,7 @@ what it found when it found none or more: `t.element(finder)`,
 (of the widget, or of the nearest widget below it that has one), and
 `t.rect(finder)`, its cells `(x:, y:, width:, height:)` as it was laid out
 last: those of the screen, or in the inline mode of the region, row 0
-its first. `t.clickOn(finder, button: 0)` clicks the cell in the middle
+its first, and `t.linesOf(finder)`, the rows of those cells as text. `t.clickOn(finder, button: 0)` clicks the cell in the middle
 of those the widget shows, cut where a render object above it cuts them,
 as a hit test does (a `StateError` when it shows none); like `click`, it
 does not work in the inline mode.
@@ -329,8 +363,10 @@ where the terminal did. A frame prints as `frame 3 at 0.050 s, 120
 bytes:` and the screen as a failing matcher shows it.
 
 A test that fails prints the last frames of its app that changed the
-screen, 3 of them, or as many as `testTwk(..., framesOnFailure: n)` says
-(0 for none).
+screen, as text, 3 of them, or as many as `testTwk(..., framesOnFailure:
+n)` says (0 for none). Then it prints the app's log (`logs`), its last 20
+records: what the app printed, the warnings of a layout that overflowed,
+the error of a build that threw, which the screen shows none of.
 
 `t.writeTrace(path)` writes the frames so far as an output trace, each at
 its time on the clock, at the size the terminal had when the app started,
@@ -409,8 +445,9 @@ screen, with `--step` each frame's and with `--frame=N` frame N's.
   `flushMicrotasks()` runs the zone's microtasks. It also lets the real
   event loop run its own, since code awaiting a future completed outside
   the zone resumes there. `stopwatch` is a `Stopwatch` that reads the
-  clock. `pendingTimers` counts the timers that wait, and `nextTimerDue`
-  is the time the next of them fires at.
+  clock. `pendingTimers` counts the timers that wait, `nextTimerDue`
+  is the time the next of them fires at, and `describeTimers()` lists
+  them, each with when it is due and where it was started.
 - A program a test runs in a process of its own (a signal, a crash, a
   pseudo-terminal, a VM service) is compiled once per suite, in
   `setUpAll`, by `compiledProgram(path, packages: ..., cache: ...)`, and

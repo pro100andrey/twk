@@ -4,10 +4,10 @@ text
 │                                                                                │
 │   ⌕ Filter       /     Skeleton, Skeletonize                   Preview   Code  │
 │                        Placeholders while content loads: blocks where it will  │
-│     WindowLayer        be, or a subtree drawn as blocks in the layout it has…  │
-│                      ──────────────────────────────────────────────────────────│
-│   ANIMATION     16          ┌                                          ┐       │
-│     Spinner             ·     ╭──────────────────────────────────────╮      ·  │
+│                        be, or a subtree drawn as blocks in the layout it has…  │
+│   ANIMATION     17   ──────────────────────────────────────────────────────────│
+│     Spinner                 ┌                                          ┐       │
+│     TickerMode          ·     ╭──────────────────────────────────────╮      ·  │
 │     ProgressBar               │ ░░░░░░░░                             │         │
 │     ProgressList        ·     │ ░░░░░░░░░ ░░░ ░░░ ░░░ ░░░░░░░░       │      ·  │
 │ ▎   Skeleton, Ske…            │ ░░░░░░ ░░ ░░░░░░░ ░░░░               │         │
@@ -29,10 +29,10 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahChCCCCCChhhhhhhDhaaggkkkkkkkkkgkkkkkkkkkkkggggggggggggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmmmmmmmmmmmmgmmmmmgmmmmmmmgmmmmmmgmmmmmmgmmmmmgmmgmmmmgg│
-│aaaaannnnnnnnnnnaaaaaaggmmmgmmgmgmmmmmmmgmmmmmgmmgmmmmmmgmmgmmmgmmmmmmgmmgmmmmgg│
-│aaaaaaaaaaaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaadddddddddaaaaaBBaaagggggggoggggggggggggggggggggggggggggggggggggggggggoggggggg│
-│aaaaannnnnnnaaaaaaaaaagggogggggppppppppppppppppppppppppppppppppppppppppggggggogg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmgmmgmgmmmmmmmgmmmmmgmmgmmmmmmgmmgmmmgmmmmmmgmmgmmmmgg│
+│aaadddddddddaaaaaBBaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnaaaaaaaaaagggggggoggggggggggggggggggggggggggggggggggggggggggoggggggg│
+│aaaaannnnnnnnnnaaaaaaagggogggggppppppppppppppppppppppppppppppppppppppppggggggogg│
 │aaaaannnnnnnnnnnaaaaaagggggggggpgmmmmmmmqgggggggggggggggggggggggggggggpggggggggg│
 │aaaaannnnnnnnnnnnaaaaagggogggggpgmmmmmmmqrgstrgmmmgmmmgmmmmmmmmgggggggpggggggogg│
 │auvvvwwwwwwwwwvwwwwvvagggggggggpgmmmmmmgqrgstrqmmmgmmmmgggggggggggggggpggggggggg│
@@ -63,8 +63,8 @@ D bold #747a83 on #13151a
 k bold #e6e8eb on #16181d
 l bold #5fa8ff on #16181d
 m #8b929c on #16181d
-n #e6e8eb on #1c1f25
 o #2c3039 on #16181d
+n #e6e8eb on #1c1f25
 p #3e444f on #16181d
 q #a2a8b0 on #16181d
 r #b9bdc4 on #16181d

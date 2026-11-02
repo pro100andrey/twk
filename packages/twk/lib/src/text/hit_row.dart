@@ -19,6 +19,10 @@ import 'widgets.dart';
 /// first build, the render object of [context] gives it; else the app's
 /// owner does, and with neither one in graphemes, ambiguous characters
 /// one column.
+///
+/// An app's own measuring and cutting (`fitText`, `stringWidth`'s kin) uses
+/// it rather than a `TextSegmenter()`, which counts ambiguous letters one
+/// column where the terminal may count two.
 TextSegmenter segmenterOf(BuildContext context) =>
     context.findRenderObject()?.owner?.segmenter ??
     AppBinding.maybeOf(context)?.twkApp.owner.segmenter ??

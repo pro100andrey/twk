@@ -51,6 +51,7 @@ final class SingleChildScrollView extends StatelessWidget {
     this.autofocus = false,
     this.canRequestFocus,
     this.wheelAcceleration = WheelAcceleration.none,
+    this.physics,
     this.keyHints = true,
     this.child,
   });
@@ -77,6 +78,11 @@ final class SingleChildScrollView extends StatelessWidget {
   /// See [Scrollable.wheelAcceleration].
   final WheelAcceleration wheelAcceleration;
 
+  /// See [Scrollable.physics]: with `NeverScrollableScrollPhysics` the
+  /// wheel over it goes to the scrollable around, and it has no key hints
+  /// and no stop of Tab.
+  final ScrollPhysics? physics;
+
   /// Whether the keys that would scroll it carry their hints, for a
   /// `KeyHintsBar`, true by default: none while all of it is in the window
   /// ([Scrollable.keyHints]).
@@ -99,6 +105,7 @@ final class SingleChildScrollView extends StatelessWidget {
       autofocus: autofocus,
       canRequestFocus: canRequestFocus,
       wheelAcceleration: wheelAcceleration,
+      physics: physics,
       keyHints: keyHints,
       viewportBuilder: (context, position) => _Viewport(
         position: position,

@@ -154,7 +154,7 @@ What the gallery lets you change, and what each starts at:
 ## More
 
 - API: [`MenuBar`](https://pub.dev/documentation/twk/latest/twk/MenuBar-class.html).
-- Also in Overlays: [Overlay](overlay.md), [Dialog](dialog.md), [Toast](toast.md), [Tooltip](tooltip.md), [Popover](popover.md), [ContextMenu](contextmenu.md), [CommandPalette](commandpalette.md), [OptionList](optionlist.md), [ModalBarrier](modalbarrier.md), [WindowLayer](windowlayer.md).
+- Also in Overlays: [Overlay](overlay.md), [App](app.md), [Dialog](dialog.md), [Toast](toast.md), [Tooltip](tooltip.md), [Popover](popover.md), [ContextMenu](contextmenu.md), [CommandPalette](commandpalette.md), [OptionList](optionlist.md), [ModalBarrier](modalbarrier.md), [WindowLayer](windowlayer.md).
 - Live in the gallery:
   `dart run packages/gallery/bin/gallery.dart --route='#/overlays/menubar'`.
 - [Overlays](../overlays.md) · [All groups](../README.md)

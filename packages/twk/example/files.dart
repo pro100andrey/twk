@@ -958,7 +958,7 @@ final class _BrowserState extends State<_Browser> {
     return [
       _count(count, 'entry', 'entries'),
       if (marked.isNotEmpty) '${marked.length} marked',
-      if (bytes > 0) _size(bytes),
+      if (bytes > 0) formatBytes(bytes),
     ].join(', ');
   }
 }
@@ -1148,7 +1148,7 @@ final class _TablePane extends StatelessWidget {
                       // a link to nothing
                       : e.size < 0
                       ? '?'
-                      : _size(e.size),
+                      : formatBytes(e.size),
                 ),
               ),
               TableColumn(
@@ -1415,8 +1415,8 @@ final class _ProgressState extends State<_Progress>
               ),
               Text(
                 '${t.items} of ${t.sources.length} done'
-                '${t.totalBytes == 0 ? '' : ', ${_size(t.bytes)} of '
-                          '${_size(t.totalBytes)}'}',
+                '${t.totalBytes == 0 ? '' : ', ${formatBytes(t.bytes)} of '
+                          '${formatBytes(t.totalBytes)}'}',
               ),
               const SizedBox(height: 1),
               Button('Cancel', autofocus: true, onPressed: _cancel),
@@ -1677,21 +1677,6 @@ String _join(String directory, String name) => directory.endsWith(_separator)
 bool _isWithin(String path, String directory) => path.startsWith(
   directory.endsWith(_separator) ? directory : '$directory$_separator',
 );
-
-/// [bytes] as `512`, `2.9K`, `14M`.
-String _size(int bytes) {
-  if (bytes < 1024) {
-    return '$bytes';
-  }
-  var n = bytes / 1024;
-  for (final unit in ['K', 'M', 'G']) {
-    if (n < 1024) {
-      return '${n < 10 ? n.toStringAsFixed(1) : n.round()}$unit';
-    }
-    n /= 1024;
-  }
-  return '${n < 10 ? n.toStringAsFixed(1) : n.round()}T';
-}
 
 String _time(DateTime? t) {
   if (t == null) {

@@ -40,13 +40,13 @@ void main() {
     expect(styles.colorMode, ColorMode.trueColor);
     final id = styles.style(fg: const Color.rgb(255, 0, 0));
     expect(sgr(styles.sgrFromReset(id)), '\x1b[0;38;2;255;0;0m');
-    expect(sgr(styles.transition(0, id)), '\x1b[38;2;255;0;0m');
+    expect(sgr(styles.transition(StyleId.base, id)), '\x1b[38;2;255;0;0m');
     styles.colorMode = ColorMode.ansi256;
     expect(styles.colorMode, ColorMode.ansi256);
     expect(sgr(styles.sgrFromReset(id)), '\x1b[0;38;5;196m');
-    expect(sgr(styles.transition(0, id)), '\x1b[38;5;196m');
+    expect(sgr(styles.transition(StyleId.base, id)), '\x1b[38;5;196m');
     styles.colorMode = ColorMode.ansi16;
-    expect(sgr(styles.transition(0, id)), '\x1b[91m');
+    expect(sgr(styles.transition(StyleId.base, id)), '\x1b[91m');
     styles.colorMode = ColorMode.none;
     expect(sgr(styles.sgrFromReset(id)), '\x1b[0m');
     expect(styles.fgOf(id), const Color.rgb(255, 0, 0));

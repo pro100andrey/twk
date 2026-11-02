@@ -121,8 +121,8 @@ final class PipelineOwner {
 
   // boundaries to repaint; swapped with _painting for the duration of a
   // flushPaint, so marks made while painting go to the next frame
-  var _dirty = <RenderObject>[];
-  var _painting = <RenderObject>[];
+  var _dirty = _ObjList();
+  var _painting = _ObjList();
   var _paintGen = 0;
   // a flushPaint is under way
   var _paintFlushing = false;
@@ -161,14 +161,14 @@ final class PipelineOwner {
   // relayout boundaries to lay out again; swapped with _layingOut for the
   // duration of a pass of flushLayout, so marks made while laying out go to
   // the next pass
-  var _layoutRoots = <RenderObject>[];
-  var _layingOut = <RenderObject>[];
+  var _layoutRoots = _ObjList();
+  var _layingOut = _ObjList();
   // the most passes a flushLayout makes, each over the boundaries the last
   // one marked: more than layout callbacks are nested in any tree
   static const _layoutPasses = 100;
   // laid out by intrinsic sizes a layout callback has changed since: marked
   // for the next frame when the flushLayout ends
-  final _relayoutNext = <RenderObject>[];
+  final _relayoutNext = _ObjList();
   // the boundaries that keep what is under them (keepsUnderlay) and have
   // kept some: a scroll that moves their cells moves what they keep
   final _underlays = <RenderObject>[];
@@ -442,7 +442,7 @@ final class PipelineOwner {
   /// objects marked in it cover, cut off where the objects above them cut
   /// them off. A boundary that holds a marked object but is not in [list]
   /// (it became one since) is added, to repaint all of it.
-  void _settleRows(List<RenderObject> list, int gen, {required bool whole}) {
+  void _settleRows(_ObjList list, int gen, {required bool whole}) {
     final n = list.length;
     _slotsFor(n);
     var rows = _rows;
@@ -527,7 +527,7 @@ final class PipelineOwner {
   /// objects between them cut them off: a boundary that covers another
   /// repaints what that one would have. The innermost go first, so that
   /// what a boundary passes on holds what was passed to it.
-  void _gatherRows(List<RenderObject> list, int gen) {
+  void _gatherRows(_ObjList list, int gen) {
     final rows = _rows;
     for (var i = list.length - 1; i > 0; i--) {
       final b = list[i];
@@ -557,7 +557,7 @@ final class PipelineOwner {
   /// that flushPaint [gen] repaints any rows of: a walk down from each
   /// boundary in [list] that has such objects inside it, into those parts
   /// of it alone.
-  void _addWholes(List<RenderObject> list, int gen) {
+  void _addWholes(_ObjList list, int gen) {
     final rows = _rows;
     for (var i = 0; i < list.length; i++) {
       final b = list[i];
@@ -972,5 +972,61 @@ final class PipelineOwner {
       final at = c.parentData;
       _outline(surface, styles, c, x + at.dx, y + at.dy, x0, y0, x1, y1);
     });
+  }
+}
+
+/// A list of render objects that keeps its storage when cleared: a growable
+/// list's `clear` gives its backing array up, and the next frame grows a new
+/// one. Entries past [length] are null.
+final class _ObjList {
+  var _items = List<RenderObject?>.filled(8, null);
+  var _length = 0;
+
+  int get length => _length;
+  bool get isEmpty => _length == 0;
+  bool get isNotEmpty => _length != 0;
+
+  RenderObject operator [](int i) => _items[i]!;
+
+  void add(RenderObject o) {
+    if (_length == _items.length) {
+      _items = List<RenderObject?>.filled(_length * 2, null)
+        ..setRange(0, _length, _items);
+    }
+    _items[_length++] = o;
+  }
+
+  void remove(RenderObject o) {
+    for (var i = 0; i < _length; i++) {
+      if (identical(_items[i], o)) {
+        _items.setRange(i, _length - 1, _items, i + 1);
+        _items[--_length] = null;
+        return;
+      }
+    }
+  }
+
+  void clear() {
+    _items.fillRange(0, _length, null);
+    _length = 0;
+  }
+
+  /// Sorts by [compare]: an insertion sort, stable, the lists being short
+  /// and mostly in order; a long one goes through a copy.
+  void sort(int Function(RenderObject, RenderObject) compare) {
+    if (_length > 48) {
+      final copy = _items.sublist(0, _length)..sort((a, b) => compare(a!, b!));
+      _items.setRange(0, _length, copy);
+      return;
+    }
+    for (var i = 1; i < _length; i++) {
+      final x = _items[i]!;
+      var j = i - 1;
+      while (j >= 0 && compare(_items[j]!, x) > 0) {
+        _items[j + 1] = _items[j];
+        j--;
+      }
+      _items[j + 1] = x;
+    }
   }
 }

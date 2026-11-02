@@ -134,6 +134,28 @@ final class RenderViewport extends RenderObject
   @override
   void invalidatePaintCache() => _fullRepaint = true;
 
+  var _noRoom = false;
+
+  /// Logs a debug record each time the viewport goes from having cells
+  /// along its axis (or no content) to being given none for content that
+  /// has some, which then shows none of it. Not a warning: an intended
+  /// zero and a squeezed-out viewport arrive alike.
+  bool _debugReportNoRoom(int content, int extent, bool vertical) {
+    final none = extent == 0 && content > 0;
+    if (none && !_noRoom) {
+      final unit = vertical ? 'rows' : 'columns';
+      _warn(
+        level: LogLevel.debug,
+        'A RenderViewport was given 0 $unit for $content $unit of content '
+        'and shows none of it: in a ${vertical ? 'Column' : 'Row'} the '
+        'children beside it may have taken every one (put it in an '
+        'Expanded).',
+      );
+    }
+    _noRoom = none;
+    return true;
+  }
+
   @override
   void performLayout(BoxConstraints c) {
     final vertical = _axis == Axis.vertical;
@@ -154,6 +176,10 @@ final class RenderViewport extends RenderObject
       content = vertical ? ch.height : ch.width;
     }
     final extent = vertical ? height : width;
+    assert(
+      _debugReportNoRoom(content, extent, vertical),
+      'reports a viewport given no room',
+    );
     _maxOffset = _less(content, extent);
     if (_scrollOffset > _maxOffset) {
       _scrollOffset = _maxOffset;

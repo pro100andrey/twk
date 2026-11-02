@@ -10,6 +10,7 @@ import 'common.dart';
 /// The pages of the Animation group that draw.
 final animationPages = <GalleryPage>[
   _spinner,
+  _tickerMode,
   _progressBar,
   _progressList,
   _skeleton,
@@ -332,6 +333,39 @@ final _spinner = GalleryPage(
       ');',
     ].join('\n');
   },
+);
+
+// ------------------------------------------------------------ TickerMode
+
+final _tickerMode = GalleryPage(
+  group: 'Animation',
+  title: 'TickerMode',
+  options: [const SwitchOption('enabled', 'enabled', initial: true)],
+  build: (context, o) => TickerMode(
+    enabled: o.flag('enabled'),
+    child: Row(
+      mainAxisSize: .min,
+      gap: 1,
+      children: [
+        Spinner(style: Theme.of(context).primary),
+        const Text('Compiling…'),
+      ],
+    ),
+  ),
+  code: (o) => [
+    'final theme = Theme.of(context);',
+    'return TickerMode(',
+    '  enabled: ${o.flag('enabled')},',
+    '  child: Row(',
+    '    mainAxisSize: .min,',
+    '    gap: 1,',
+    '    children: [',
+    '      Spinner(style: theme.primary),',
+    "      const Text('Compiling…'),",
+    '    ],',
+    '  ),',
+    ');',
+  ].join('\n'),
 );
 
 // ------------------------------------------------------------ ProgressBar

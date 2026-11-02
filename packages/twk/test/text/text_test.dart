@@ -101,6 +101,40 @@ void main() {
       expect(x.rows, ['ab…', '']);
     });
 
+    test('an update with equal inputs hands the paragraph the same spans', () {
+      Text rich() => Text.rich(
+        ['a'.fg(red), 'b'.bold],
+        style: const Style(bg: blue),
+      );
+      final v = Shot(rich(), 4, 1);
+      final paragraph = v.top as RenderParagraph;
+      v.pump(rich());
+      final first = paragraph.spans;
+      v.pump(rich());
+      expect(identical(paragraph.spans, first), isTrue);
+      v.pump(
+        Text.rich(['a'.fg(red), 'b'.italic], style: const Style(bg: blue)),
+      );
+      expect(identical(paragraph.spans, first), isFalse);
+      expect(paragraph.spans[1].$2.attrs, Attr.italic);
+    });
+
+    test('a new text in an equal style gets the pen it had', () {
+      Text text(String data, Color fg) => Text(
+        data,
+        style: Style(fg: fg, bg: blue),
+      );
+      final v = Shot(text('ab', red), 4, 1);
+      final paragraph = v.top as RenderParagraph;
+      final pen = paragraph.spans.single.$2;
+      v.pump(text('cd', red));
+      expect(paragraph.spans.single.$1, 'cd');
+      expect(identical(paragraph.spans.single.$2, pen), isTrue);
+      v.pump(text('cd', green));
+      expect(paragraph.spans.single.$2, isNot(pen));
+      expect(paragraph.spans.single.$2.fg, green);
+    });
+
     test('new settings change the same render object', () {
       final v = Shot(const Text('ab cd'), 6, 2);
       final paragraph = v.top as RenderParagraph;
@@ -202,6 +236,34 @@ void main() {
         ],
         [('a', red.value, 0, 0), ('b', 0, blue.value, Attr.underline)],
       );
+    });
+  });
+
+  group('Text.line', () {
+    test('is one line cut with an ellipsis, as the hand-written form', () {
+      final line = Shot(const Text.line('a long text here'), 8, 3);
+      final by = Shot(
+        const Text(
+          'a long text here',
+          wrap: TextWrap.none,
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
+        ),
+        8,
+        3,
+      );
+      expect(line.rows, ['a long…', '', '']);
+      expect(line.rows, by.rows);
+    });
+
+    test('a rich one is cut the same, in its spans styles', () {
+      final v = Shot(
+        const Text.richLine([Span('ab', Style(fg: red)), Span('cdefgh')]),
+        4,
+        2,
+      );
+      expect(v.rows, ['abc…', '']);
+      expect(v.cells(0, 1), [('a', red.value, 0, 0)]);
     });
   });
 

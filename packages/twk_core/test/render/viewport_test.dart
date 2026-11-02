@@ -23,7 +23,7 @@ final class View {
   }
 
   final int width;
-  final int height;
+  int height;
   final Screen screen;
   final Vt vt;
   late final PipelineOwner owner;
@@ -502,4 +502,55 @@ void main() {
       [0, 0, 0, 0],
     );
   });
+
+  test('a viewport given no rows for content is recorded at debug each time '
+      'it goes to none; one with no content is not', () {
+    final records = <LogRecord>[];
+    final viewport = RenderViewport(child: Lines(3));
+    final empty = RenderViewport(child: Lines(0));
+    final v = View(
+      10,
+      3,
+      RenderFlex(
+        direction: Axis.vertical,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [Lines(1), viewport, empty],
+      ),
+    );
+    for (final o in [viewport, empty]) {
+      (o.parentData as FlexParentData).flex = 1;
+    }
+    v.owner.onLog = records.add;
+    List<String> noRoom() => [
+      for (final r in records)
+        if (r.level == LogLevel.debug) r.message,
+    ];
+    var asserts = false;
+    assert(asserts = true, 'debug only');
+    v.frame();
+    expect(noRoom(), isEmpty, reason: 'it has rows');
+    v
+      ..height = 1
+      ..owner.markAllDirty()
+      ..frame();
+    viewport.markNeedsLayout();
+    v.frame();
+    expect(noRoom(), [if (asserts) _noRoom], reason: 'once while it stays');
+    v
+      ..height = 3
+      ..owner.markAllDirty()
+      ..frame()
+      ..height = 1
+      ..owner.markAllDirty()
+      ..frame();
+    expect(noRoom(), [
+      if (asserts) ...[_noRoom, _noRoom],
+    ]);
+    expect(records.where((r) => r.level != LogLevel.debug), isEmpty);
+  });
 }
+
+const _noRoom =
+    'A RenderViewport was given 0 rows for 3 rows of content and shows none '
+    'of it: in a Column the children beside it may have taken every one (put '
+    'it in an Expanded).';

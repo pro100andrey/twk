@@ -490,6 +490,41 @@ void main() {
     expect(ActiveKey(keys.last, binding: const Save()).label(), 'ctrl+s');
   });
 
+  test('an active key is another key by its layer', () {
+    final a = ActiveKey(KeyCombo.parse('a'), binding: const Save());
+    final b = ActiveKey(KeyCombo.parse('a'), binding: const Save(), layer: 1);
+    expect(a, isNot(b));
+    expect(a, ActiveKey(KeyCombo.parse('a'), binding: const Save()));
+    expect(a.hashCode, isNot(b.hashCode));
+  });
+
+  testTwk('activeKeys numbers the layers from the nearest, 0', (t) async {
+    final manager = <FocusManager>[];
+    await t.pumpWidget(
+      KeyBindings(
+        {'q': () {}, 'w': () {}},
+        child: KeyBindings(
+          {'a': () {}},
+          child: Builder(
+            builder: (context) {
+              manager.add(AppBinding.of(context).focusManager);
+              return const Focus(autofocus: true, child: Text('x'));
+            },
+          ),
+        ),
+      ),
+    );
+    final keys = manager.last.activeKeys;
+    expect(
+      [for (final k in keys) '${k.combo}:${k.layer}'],
+      [
+        'a:0',
+        'q:1',
+        'w:1',
+      ],
+    );
+  });
+
   testTwk('a sequence or a hint that is not one fails the build of its '
       'layer, named in the log', (t) async {
     await t.pumpWidget(

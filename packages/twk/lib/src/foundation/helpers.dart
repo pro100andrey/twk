@@ -20,6 +20,20 @@ bool sameList<T>(List<T> a, List<T> b) {
   return true;
 }
 
+/// The index of the first item for which [enabled] holds, stepping [step]
+/// places at a time from [from] round a list of [count] items, wrapping at
+/// both ends; [from] itself comes last, and may lie outside the list (-1 or
+/// [count]) for starting at an end. -1 where none is enabled.
+int nextEnabled(int count, int from, int step, bool Function(int i) enabled) {
+  for (var k = 1; k <= count; k++) {
+    final i = ((from + step * k) % count + count) % count;
+    if (enabled(i)) {
+      return i;
+    }
+  }
+  return -1;
+}
+
 /// [ratio] kept from 0 to 1; 0 for NaN.
 double unitRatio(double ratio) => ratio >= 1 ? 1.0 : (ratio > 0 ? ratio : 0.0);
 

@@ -13,9 +13,11 @@ import '../framework/framework.dart';
 import '../gestures/gesture_detector.dart';
 import '../gestures/mouse.dart';
 import '../style/color_mix.dart';
+import '../style/glyphs.dart' show CheckboxMarks;
 import '../style/style.dart';
 import '../text/hit_row.dart' show segmenterOf;
 import '../text/widgets.dart';
+import 'hand.dart';
 
 /// A control's node of the focus tree: what [builder] builds, which takes
 /// the focus, its keys and a click of the mouse while [enabled].
@@ -25,8 +27,11 @@ import '../text/widgets.dart';
 /// [hints]: they get its keys from the moment it has the focus, and
 /// [onKeyEvent] those they leave. A press of the left button over it
 /// focuses it, while it is enabled, and a tap over it calls [onTap] (see
-/// `GestureDetector`). [builder] is called again as the focus comes and
-/// goes.
+/// `GestureDetector`); while it is enabled with an [onTap], the pointer
+/// is the hand over it ([PointerShape.pointer], where the terminal shows
+/// pointer shapes) if the theme asks for it
+/// ([ThemeData.handPointer]), by [HandOver]. [builder] is called again as
+/// the focus comes and goes.
 ///
 /// A control of its own, which Space and a click turn on and off, shown in
 /// the primary color while it has the focus:
@@ -53,6 +58,7 @@ final class Pressable extends StatefulWidget {
     required this.builder,
     super.key,
     this.enabled = true,
+    this.canRequestFocus = true,
     this.bindings = const {},
     this.hints = const {},
     this.onKeyEvent,
@@ -66,6 +72,12 @@ final class Pressable extends StatefulWidget {
 
   /// Whether it can take the focus and the presses.
   final bool enabled;
+
+  /// Whether it can take the focus while [enabled]: false makes it a
+  /// control of the mouse only, Tab passes it by and a press of the mouse
+  /// leaves the focus where it was (a tap still calls [onTap]). As
+  /// `Focus.canRequestFocus`.
+  final bool canRequestFocus;
 
   /// The keys it takes while it has the focus, as `KeyBindings` takes them.
   final Map<String, VoidCallback?> bindings;
@@ -122,7 +134,7 @@ final class _PressableState extends State<Pressable> {
   void _changed() => setState(() {});
 
   void _down(PointerEvent event) {
-    if (event.button == 0) {
+    if (event.button == 0 && widget.canRequestFocus) {
       _node.requestFocus();
     }
   }
@@ -133,16 +145,20 @@ final class _PressableState extends State<Pressable> {
     return Focus(
       focusNode: _node,
       autofocus: widget.autofocus,
-      canRequestFocus: enabled,
+      canRequestFocus: enabled && widget.canRequestFocus,
       onKeyEvent: widget.onKeyEvent,
       child: KeyBindings(
         enabled ? widget.bindings : const {},
         hints: enabled ? widget.hints : const {},
         child: Listener(
           onDown: enabled ? _down : null,
-          child: GestureDetector(
-            onTap: widget.onTap,
-            child: widget.builder(context, _node.hasFocus),
+          // the hand where a click does something, as over a link
+          child: HandOver(
+            active: enabled && widget.onTap != null,
+            child: GestureDetector(
+              onTap: widget.onTap,
+              child: widget.builder(context, _node.hasFocus),
+            ),
           ),
         ),
       ),
@@ -194,6 +210,19 @@ List<Span> bracketed(
   );
   return [Span(open, brackets), Span(mark, marked), Span(close, brackets)];
 }
+
+/// The spans of a checkbox, [on] or off: the brackets of [marks] in
+/// [brackets] and its mark in [mark]; a bracket that is empty is no span.
+List<Span> checkboxSpans(
+  CheckboxMarks marks,
+  bool on,
+  Style brackets,
+  Style mark,
+) => [
+  if (marks.open.isNotEmpty) Span(marks.open, brackets),
+  Span(on ? marks.onMark : marks.offMark, mark),
+  if (marks.close.isNotEmpty) Span(marks.close, brackets),
+];
 
 /// A button at rest in [theme]: [ThemeData.primary] in bold on a chip of
 /// [ThemeData.surface].

@@ -16,12 +16,12 @@ text
 │     ListTile            ·                                               ·   ·  │
 │     StatusBar                   info   success   warning   error   3           │
 │                         ·    └                                        ┘ ·   ·  │
-│   OVERLAYS      11                                              38 × 6         │
+│   OVERLAYS      12                                              38 × 6         │
 │     Overlay             ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
-│     Dialog                                                                     │
-│     Toast            ──────────────────────────────────────────────────────────│
-│     Tooltip            kind   info  success  warning  error                    │
-│     Popover                                                                    │
+│     App                                                                        │
+│     Dialog           ──────────────────────────────────────────────────────────│
+│     Toast              kind   info  success  warning  error                    │
+│     Tooltip                                                                    │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -43,9 +43,9 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggoggggoggggggggggggggggggggggggggggggggggggggggogogggogg│
 │aaaddddddddaaaaaavvaaagggggggggggggggggggggggggggggggggggggggggggyygygyggggggggg│
 │aaaaannnnnnnaaaaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
-│aaaaannnnnnaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnaaaaaaaaaaggmmmmggsttttshBBBBBBBhhBBBBBBBhhBBBBBhggggggggggggggggggg│
+│aaaaannnaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnaaaaaaaaaaaaggmmmmggsttttshBBBBBBBhhBBBBBBBhhBBBBBhggggggggggggggggggg│
 │aaaaannnnnnnaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│

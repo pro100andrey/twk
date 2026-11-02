@@ -19,9 +19,13 @@ final _glyphs = ChartGlyphs();
 /// The steps of a cell that a thumb is placed in along a track of
 /// [canvas], [vertical] or not: 8 where the canvas draws block elements
 /// one column wide, else 1, whole cells, where it draws them two columns
-/// wide (they are East Asian ambiguous). [paintThumb] takes the thumb's
-/// start and end in these steps.
-int thumbSteps(Canvas canvas, {required bool vertical}) {
+/// wide (they are East Asian ambiguous), or 1 where [eighths] is false
+/// (`Glyphs.partialBlocks` of the theme). [paintThumb] takes the thumb's start
+/// and end in these steps.
+int thumbSteps(Canvas canvas, {required bool vertical, bool eighths = true}) {
+  if (!eighths) {
+    return 1;
+  }
   final g = _glyphs..use(canvas.segmenter);
   return (vertical ? g.upSteps : g.acrossSteps) == 8 ? 8 : 1;
 }

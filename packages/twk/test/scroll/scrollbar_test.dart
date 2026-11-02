@@ -68,6 +68,31 @@ void main() {
       expect(down(t, 19, 10), [...List.filled(3, '┃'), ...List.filled(7, '│')]);
     });
 
+    testTwk('no line while there is nothing to scroll: one once the content '
+        'grows past the window, none again once it fits', (t) async {
+      final rows = ValueNotifier(5);
+      addTearDown(rows.dispose);
+      await t.pumpWidget(
+        Scrollbar(
+          slim: true,
+          child: SingleChildScrollView(
+            child: ValueListenableBuilder<int>(
+              valueListenable: rows,
+              builder: (context, n, _) => column(n),
+            ),
+          ),
+        ),
+        size: (20, 10),
+      );
+      expect(down(t, 19, 10), track(10));
+      rows.value = 30;
+      await t.pump();
+      expect(down(t, 19, 10), [...List.filled(3, '┃'), ...List.filled(7, '│')]);
+      rows.value = 10;
+      await t.pump();
+      expect(down(t, 19, 10), track(10));
+    });
+
     testTwk("the track's line in trackStyle", (t) async {
       await t.pumpWidget(
         Scrollbar(
@@ -297,6 +322,7 @@ void main() {
         Scrollbar(
           axis: Axis.horizontal,
           child: Scrollbar(
+            axis: Axis.vertical,
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               controller: h,
@@ -510,6 +536,191 @@ void main() {
       await t.pump();
       await t.mouse(MouseKind.wheelDown, 19, 5);
       expect((view.offset, list.offset), (20, 3));
+      await t.mouse(MouseKind.wheelLeft, 19, 5);
+      expect((view.offset, list.offset), (17, 3));
+    });
+  });
+
+  group('axis', () {
+    testTwk('left out: the outermost scrollable inside, down', (t) async {
+      await t.pumpWidget(
+        Scrollbar(child: SingleChildScrollView(child: column(30))),
+        size: (20, 10),
+      );
+      expect(down(t, 19, 10), [...thumb(3), '~▅', ...track(6)]);
+      expect(across(t, 9, 19), isNot(contains('~ ')));
+    });
+
+    testTwk('left out: the outermost scrollable inside, across', (t) async {
+      final controller = ScrollController();
+      await t.pumpWidget(
+        Scrollbar(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            controller: controller,
+            child: Text('0123456789' * 4),
+          ),
+        ),
+        size: (10, 2),
+      );
+      expect(t.lines.first, '0123456789');
+      expect(across(t, 1, 10), [...thumb(2), '▌', ...track(7)]);
+      controller.jumpTo(30);
+      await t.pump();
+      expect(across(t, 1, 10), [...track(7), '~▌', ...thumb(2)]);
+    });
+
+    testTwk('left out: the outermost of two, whichever axis it is, the one '
+        'inside it of the other axis not taking the bar', (t) async {
+      await t.pumpWidget(
+        Scrollbar(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: SizedBox(
+              width: 40,
+              child: SingleChildScrollView(child: column(36)),
+            ),
+          ),
+        ),
+        size: (20, 10),
+      );
+      // the row below, 20 columns of 40; no column at the right
+      expect(across(t, 9, 20), [...thumb(10), ...track(10)]);
+      expect(down(t, 19, 9), isNot(contains('~ ')));
+      await t.pumpWidget(
+        Scrollbar(
+          child: SingleChildScrollView(
+            child: SizedBox(
+              height: 40,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Text('0123456789' * 4),
+              ),
+            ),
+          ),
+        ),
+        size: (20, 10),
+      );
+      // the column at the right: 9 rows of 40 ... and no row
+      expect(down(t, 19, 10).first, '~ ');
+      expect(across(t, 9, 19), isNot(contains('~ ')));
+    });
+
+    testTwk('given: that axis of content that scrolls both ways, a bar to '
+        'each', (t) async {
+      final h = ScrollController();
+      final v = ScrollController();
+      await t.pumpWidget(
+        Scrollbar(
+          axis: Axis.horizontal,
+          child: Scrollbar(
+            axis: Axis.vertical,
+            child: SingleChildScrollView(
+              controller: v,
+              child: SizedBox(
+                height: 36,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  controller: h,
+                  child: SizedBox(width: 40, child: column(36)),
+                ),
+              ),
+            ),
+          ),
+        ),
+        size: (20, 10),
+      );
+      expect(down(t, 19, 9), [...thumb(2), '~▆', ...track(6)]);
+      expect(across(t, 9, 20), [...thumb(9), '▌', ...track(10)]);
+      v.jumpTo(27);
+      h.jumpTo(21);
+      await t.pump();
+      expect(down(t, 19, 9), [...track(6), '▂', ...thumb(2)]);
+      expect(across(t, 9, 20), [...track(10), '~▌', ...thumb(9)]);
+    });
+
+    testTwk('left out, the child turning from a list down to one across: '
+        'the bar goes from the right to the bottom, and back', (t) async {
+      final axis = ValueNotifier(Axis.vertical);
+      addTearDown(axis.dispose);
+      await t.pumpWidget(
+        ValueListenableBuilder<Axis>(
+          valueListenable: axis,
+          builder: (context, a, _) => Scrollbar(
+            child: SingleChildScrollView(
+              scrollDirection: a,
+              child: a == Axis.vertical ? column(30) : Text('0123456789' * 4),
+            ),
+          ),
+        ),
+        size: (10, 10),
+      );
+      expect(t.lines.first, 'item 0');
+      expect(down(t, 9, 10).first, '~ ');
+      axis.value = Axis.horizontal;
+      await t.pump();
+      expect(t.lines.first, '0123456789');
+      expect(down(t, 9, 9).skip(1), List.filled(8, ' '));
+      expect(across(t, 9, 10).first, '~ ');
+      axis.value = Axis.vertical;
+      await t.pump();
+      expect(t.lines.first, 'item 0');
+      expect(down(t, 9, 10).first, '~ ');
+    });
+
+    testTwk('left out, the scrollable first built while the child is laid '
+        'out (in a LayoutBuilder): the bar across in the first frame, the '
+        'child with the room it leaves', (t) async {
+      await t.pumpWidget(
+        Scrollbar(
+          child: LayoutBuilder(
+            builder: (context, c) => SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Text('x' * 80),
+            ),
+          ),
+        ),
+        size: (20, 4),
+      );
+      expect(t.lines.first, 'x' * 20);
+      expect(across(t, 3, 20), [...thumb(5), ...track(15)]);
+      expect(down(t, 19, 3), ['x', ' ', ' ']);
+    });
+
+    testTwk('left out, with no scrollable inside: a column, empty', (
+      t,
+    ) async {
+      await t.pumpWidget(
+        const Scrollbar(child: Text('plain')),
+        size: (10, 3),
+      );
+      expect(t.lines.first, 'plain');
+      expect(down(t, 9, 3), List.filled(3, ' '));
+    });
+
+    testTwk('left out: the wheel across over the bar goes on to the view '
+        'across around it, as the axis of the list inside says', (t) async {
+      final list = ScrollController();
+      final view = ScrollController();
+      await t.pumpWidget(
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          controller: view,
+          child: SizedBox(
+            width: 40,
+            child: Scrollbar(
+              child: SingleChildScrollView(
+                controller: list,
+                child: column(30),
+              ),
+            ),
+          ),
+        ),
+        size: (20, 10),
+      );
+      view.jumpTo(20);
+      await t.pump();
+      await t.mouse(MouseKind.wheelDown, 19, 5);
       await t.mouse(MouseKind.wheelLeft, 19, 5);
       expect((view.offset, list.offset), (17, 3));
     });
