@@ -192,8 +192,10 @@ void main() {
     ]);
   });
 
-  testTwk('a relative path is from the package of the test, not the '
-      'directory it runs in', (t) async {
+  // that it is not the working directory is fromPackageRoot's test of a
+  // package elsewhere: Directory.current is the whole process's, which the
+  // runner's other suites run in and start programs from
+  testTwk('a relative path is from the package of the test', (t) async {
     await t.pumpWidget(form(), size: (14, 3));
     final path = 'test/_tmp_screen_file_${pid}_relative.txt';
     final lib = await Isolate.resolvePackageUri(
@@ -206,11 +208,7 @@ void main() {
       }
     });
     updateScreenFilesOverride = true;
-    final cwd = Directory.current;
-    addTearDown(() => Directory.current = cwd);
-    Directory.current = dir.path;
     expect(t, matchesScreenFile(path));
-    expect(File('${dir.path}/$path').existsSync(), isFalse);
     expect(file.readAsStringSync(), formFile);
   });
 
@@ -356,5 +354,17 @@ void fromPackageRootTests() {
     // the frame's URI as the VM writes it, `file:///D:/…` on Windows
     final file = Uri.file('$root/test/a_test.dart');
     expect(fromPackageRoot('g.txt', '#0 main ($file:1:1)'), '$root/g.txt');
+  });
+
+  test("a relative path from a file in another package starts at that one's "
+      'root, not the working directory', () {
+    final other = Directory.systemTemp.createTempSync('twk_other_package');
+    addTearDown(() => other.deleteSync(recursive: true));
+    File('${other.path}/pubspec.yaml').writeAsStringSync('name: other\n');
+    Directory('${other.path}/test').createSync();
+    final file = Uri.file('${other.path}/test/a_test.dart');
+    final found = fromPackageRoot('g.txt', '#0 main ($file:1:1)');
+    expect(found, '${other.path}/g.txt');
+    expect(found, isNot(startsWith(Directory.current.path)));
   });
 }
