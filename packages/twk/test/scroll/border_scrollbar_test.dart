@@ -195,6 +195,26 @@ void axisTests() {
     expect(across(t, 5, 20)[1], '─');
   });
 
+  testTwk('a horizontal scrollable first built while the child is laid '
+      'out (in a LayoutBuilder): its bar on the bottom border in the first '
+      'frame', (t) async {
+    await t.pumpWidget(
+      Box(
+        border: const Border.all(),
+        scrollbar: ScrollbarVisibility.always,
+        child: LayoutBuilder(
+          builder: (context, c) => SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Text('0123456789' * 6),
+          ),
+        ),
+      ),
+      size: (20, 6),
+    );
+    expect(across(t, 5, 20)[1], '━');
+    expect(down(t, 19, 6), ['┐', '│', '│', '│', '│', '┘']);
+  });
+
   testTwk("onScroll: the border's own line while the thumb is hidden, the "
       'thumb from a move until hideAfter after it', (t) async {
     final controller = ScrollController();

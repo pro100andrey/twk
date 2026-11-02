@@ -752,11 +752,26 @@ final class _RenderFrame extends RenderObject
       height = c.minH;
       return;
     }
+    // a scrollable first built while the child is laid out (in a
+    // LayoutBuilder) tells its axis then: the child with the room that axis
+    // leaves it, again
+    final vertical = _vertical;
+    _layout(c, child, vertical: vertical);
+    if (_vertical != vertical) {
+      _layout(c, child, vertical: !vertical);
+    }
+  }
+
+  void _layout(
+    BoxConstraints c,
+    RenderObject child, {
+    required bool vertical,
+  }) {
     final bar = childAfter(child);
     child.parentData
       ..dx = 0
       ..dy = 0;
-    if (_vertical) {
+    if (vertical) {
       child.layout(
         BoxConstraints(_less(c.minW), _less(c.maxW), c.minH, c.maxH),
         parentUsesSize: true,

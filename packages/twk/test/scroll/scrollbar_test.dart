@@ -668,6 +668,25 @@ void main() {
       expect(down(t, 9, 10).first, '~ ');
     });
 
+    testTwk('left out, the scrollable first built while the child is laid '
+        'out (in a LayoutBuilder): the bar across in the first frame, the '
+        'child with the room it leaves', (t) async {
+      await t.pumpWidget(
+        Scrollbar(
+          child: LayoutBuilder(
+            builder: (context, c) => SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Text('x' * 80),
+            ),
+          ),
+        ),
+        size: (20, 4),
+      );
+      expect(t.lines.first, 'x' * 20);
+      expect(across(t, 3, 20), [...thumb(5), ...track(15)]);
+      expect(down(t, 19, 3), ['x', ' ', ' ']);
+    });
+
     testTwk('left out, with no scrollable inside: a column, empty', (
       t,
     ) async {
