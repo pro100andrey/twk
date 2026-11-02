@@ -123,8 +123,11 @@ const _maxStyles = 1024;
 /// without [styledUnderlines], and with OSC 8 links where [hyperlinks] are
 /// taken.
 ///
-/// The widget is built outside an app: what needs one (focus, a frame
-/// callback, an animation) shows its first frame. What the render tree
+/// The widget is built outside an app, under an [Overlay] of its own (as
+/// [App] places one), so that a `Tooltip`, a `Popover` or a menu shows the
+/// child it is anchored to; what needs a running app (focus, a frame
+/// callback, an animation, a tooltip's hover) shows its first frame, and
+/// an entry nothing inserts is not drawn. What the render tree
 /// warns of (a flex its children overflow, in debug) goes to [onLog],
 /// and to `log` without one ([PipelineOwner.onLog]).
 List<String> widgetLines(
@@ -142,7 +145,12 @@ List<String> widgetLines(
   }
   final owner = BuildOwner();
   final root = RootWidget(
-    child: theme == null ? widget : Theme(data: theme, child: widget),
+    child: theme == null
+        ? Overlay(child: widget)
+        : Theme(
+            data: theme,
+            child: Overlay(child: widget),
+          ),
   ).attach(owner);
   try {
     owner.buildScope();
