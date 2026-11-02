@@ -1,7 +1,6 @@
 // Escape in a popover or a menu shown on a page of a Navigator closes it
 // and leaves the page: the navigator's back key does not hear the key the
-// popover or the menu took. Review finding 4 of the architecture review,
-// whose scenario could not be reproduced; the tests stay as guards.
+// popover or the menu took. The tests guard it.
 import 'dart:async';
 
 import 'package:test/test.dart';

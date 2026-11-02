@@ -7,7 +7,7 @@ library;
 import 'dart:async';
 
 import 'package:meta/meta.dart';
-import 'package:twk_core/twk_core.dart' show KeyEvent, KeyKind;
+import 'package:twk_core/twk_core.dart' show KeyEvent, KeyKind, Mod;
 
 import '../binding/app_binding.dart' show AppBinding;
 import '../foundation/change_notifier.dart' show VoidCallback;
@@ -302,7 +302,9 @@ extension FocusManagerKeys on FocusManager {
   /// to be listed from a layer above. While a layer holds the first keys
   /// of a sequence, the keys that can follow them are listed, and nothing
   /// else. The keys a node takes in its own [FocusNode.onKeyEvent] are not
-  /// listed. [keysChanged] tells when this may have changed. A `MenuItem`
+  /// listed, and a node that [FocusNode.takesText] hides from the layers
+  /// above it the keys that are characters, `q` and `shift+q`, not `ctrl+q`.
+  /// [keysChanged] tells when this may have changed. A `MenuItem`
   /// shows the first key bound to what it does ([ActiveKey.binding]);
   /// `AppBinding.pressKey` presses one, as a bar of one's own does when a
   /// hint is tapped.
@@ -310,12 +312,14 @@ extension FocusManagerKeys on FocusManager {
     final keys = <ActiveKey>[];
     final taken = <KeyCombo>{};
     var layer = 0;
+    var text = false;
     for (final node in keyPath) {
       if (node is _LayerNode) {
-        if (node.layer._list(node, keys, taken, layer++)) {
+        if (node.layer._list(node, keys, taken, layer++, text: text)) {
           break;
         }
       }
+      text |= node.takesText;
     }
     return keys;
   }
@@ -915,7 +919,7 @@ abstract class _LayerState<W extends StatefulWidget, V> extends State<W> {
     if (_unmatched == UnmatchedKeys.drop) {
       return KeyEventResult.handled;
     }
-    _send([for (var n = node.parent; n != null; n = n.parent) n], held.first);
+    _send(_above(node), held.first);
     return _pressAnew(node, held.sublist(1), event);
   }
 
@@ -949,6 +953,14 @@ abstract class _LayerState<W extends StatefulWidget, V> extends State<W> {
     return KeyEventResult.handled;
   }
 
+  /// The nodes of the key path above [node], the way a key walks them:
+  /// the nodes a dialog's [FocusNode.keysSkip] skips are not among them.
+  static Iterable<FocusNode> _above(FocusNode node) {
+    final path = node.manager?.keyPath.toList() ?? const <FocusNode>[];
+    final at = path.indexWhere((n) => identical(n, node));
+    return at < 0 ? const [] : path.sublist(at + 1);
+  }
+
   /// Gives [key] to [nodes] in turn, until one handles it.
   static void _send(Iterable<FocusNode> nodes, KeyEvent key) {
     for (final n in nodes) {
@@ -958,8 +970,15 @@ abstract class _LayerState<W extends StatefulWidget, V> extends State<W> {
     }
   }
 
+  /// Whether [key] is a character typed, alone or with Shift: what a node
+  /// that [FocusNode.takesText] takes before the layers above it.
+  static bool _isText(KeyCombo key) =>
+      key.char.isNotEmpty && key.modifiers & ~Mod.shift == 0;
+
   /// Adds to [keys] those of this layer, which [node] is, that are taken
-  /// now and whose first key no nearer layer takes ([taken]), then their
+  /// now and whose first key no nearer layer takes ([taken]), unless
+  /// [text] (a node that takes text is nearer) and the first key is a
+  /// character, then their
   /// first keys to [taken], as layer number [layer]. While the layer holds
   /// the first keys of a sequence, it adds the keys that can follow them
   /// instead, and returns true.
@@ -967,8 +986,9 @@ abstract class _LayerState<W extends StatefulWidget, V> extends State<W> {
     FocusNode node,
     List<ActiveKey> keys,
     Set<KeyCombo> taken,
-    int layer,
-  ) {
+    int layer, {
+    required bool text,
+  }) {
     final bound = _bound;
     if (bound == null) {
       return false;
@@ -995,6 +1015,9 @@ abstract class _LayerState<W extends StatefulWidget, V> extends State<W> {
     final mine = <KeyCombo>[];
     for (final b in bound) {
       final first = b.keys.first;
+      if (text && _isText(first)) {
+        continue;
+      }
       if (!taken.contains(first) && _take(node, b.value, invoke: false)) {
         mine.add(first);
         keys.add(

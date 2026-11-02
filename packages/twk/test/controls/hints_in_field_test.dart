@@ -1,7 +1,7 @@
 // An App binding on a printable key (`q` quit) is not in force while the
 // focus is in a TextField, which takes the key as text: the KeyHintsBar must
 // not offer it, and a click on a hint must not type into the field. Review
-// finding 2 of the architecture review; waits for arch-key-routing.
+// finding 2 of the architecture review: FocusNode.takesText.
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
@@ -58,7 +58,7 @@ void main() {
     await t.pumpWidget(app([], TextEditingController()), size: (40, 4));
     expect(bar(t), isNot(contains('quit')), reason: 'the bar: ${bar(t)}');
     expect(bar(t), contains('ctrl+s save'));
-  }, skip: 'probable bug confirmed: arch-key-routing');
+  });
 
   testTwk('a click on the hint q quit does not type q into the field', (
     t,
@@ -74,5 +74,29 @@ void main() {
     }
     expect(text.text, '', reason: 'the field after the click');
     expect(seen, isEmpty);
-  }, skip: 'probable bug confirmed: arch-key-routing');
+  });
+
+  testTwk('a read-only field takes no text: the bar offers q quit', (t) async {
+    await t.pumpWidget(
+      KeyBindings(
+        {'q': () {}},
+        hints: const {'q': 'quit'},
+        child: Column(
+          children: [
+            SizedBox(
+              width: 20,
+              child: TextField(
+                controller: TextEditingController(),
+                readOnly: true,
+                autofocus: true,
+              ),
+            ),
+            const KeyHintsBar(),
+          ],
+        ),
+      ),
+      size: (40, 4),
+    );
+    expect(t, containsLine(contains('q quit')));
+  });
 }

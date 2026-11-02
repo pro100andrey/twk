@@ -68,6 +68,7 @@ class FocusNode with ChangeNotifier {
     this._canRequestFocus = true,
     this.skipTraversal = false,
     this._descendantsAreFocusable = true,
+    this._takesText = false,
   });
 
   /// Names the node in [toString].
@@ -84,6 +85,7 @@ class FocusNode with ChangeNotifier {
 
   bool _canRequestFocus;
   bool _descendantsAreFocusable;
+  bool _takesText;
 
   FocusManager? _manager;
   Element? _element;
@@ -137,6 +139,24 @@ class FocusNode with ChangeNotifier {
       }
     }
     return true;
+  }
+
+  /// Whether this node takes the keys that are characters as text, in its
+  /// [onKeyEvent], as a text field does, so that the layers of
+  /// `KeyBindings` above it never hear them while the focus is in it or
+  /// below it. The keys listed as in force (`FocusManager.activeKeys`),
+  /// and so those a `KeyHintsBar` and `showKeyHelp` offer, leave out the
+  /// bindings of those layers on a character, `q`, `shift+q` or `?`; those
+  /// with Ctrl or Alt stay. False by default; a field that does not
+  /// take text, as a read-only one, says false.
+  bool get takesText => _takesText;
+
+  set takesText(bool value) {
+    if (value == _takesText) {
+      return;
+    }
+    _takesText = value;
+    _manager?._mayChangeKeysBelow(_parent);
   }
 
   set canRequestFocus(bool value) {
@@ -1186,6 +1206,7 @@ final class Focus extends StatefulWidget {
     this.canRequestFocus,
     this.skipTraversal,
     this.descendantsAreFocusable,
+    this.takesText,
     this.debugLabel,
     super.key,
   });
@@ -1212,6 +1233,9 @@ final class Focus extends StatefulWidget {
 
   /// See [FocusNode.descendantsAreFocusable].
   final bool? descendantsAreFocusable;
+
+  /// See [FocusNode.takesText].
+  final bool? takesText;
 
   /// See [FocusNode.debugLabel].
   final String? debugLabel;
@@ -1323,6 +1347,7 @@ abstract class _NodeState<W extends StatefulWidget, N extends FocusNode>
   bool? get _canRequestFocus;
   bool? get _skipTraversal;
   bool? get _descendantsAreFocusable;
+  bool? get _takesText => null;
   String? get _debugLabel;
 
   @override
@@ -1341,6 +1366,7 @@ abstract class _NodeState<W extends StatefulWidget, N extends FocusNode>
         ..canRequestFocus = _canRequestFocus ?? true
         ..skipTraversal = _skipTraversal ?? false
         ..descendantsAreFocusable = _descendantsAreFocusable ?? true
+        ..takesText = _takesText ?? false
         ..debugLabel = _debugLabel;
       return;
     }
@@ -1355,6 +1381,9 @@ abstract class _NodeState<W extends StatefulWidget, N extends FocusNode>
     }
     if (_descendantsAreFocusable case final descendantsAreFocusable?) {
       node.descendantsAreFocusable = descendantsAreFocusable;
+    }
+    if (_takesText case final takesText?) {
+      node.takesText = takesText;
     }
     if (_debugLabel case final debugLabel?) {
       node.debugLabel = debugLabel;
@@ -1427,6 +1456,9 @@ abstract class _NodeState<W extends StatefulWidget, N extends FocusNode>
 }
 
 final class _FocusState extends _NodeState<Focus, FocusNode> {
+  @override
+  bool? get _takesText => widget.takesText;
+
   @override
   FocusNode? get _given => widget.focusNode;
 

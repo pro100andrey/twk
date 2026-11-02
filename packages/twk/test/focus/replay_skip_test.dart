@@ -1,8 +1,7 @@
 // The first keys of a sequence that a layer replays (UnmatchedKeys.replay)
 // go to the nodes above the layer; those that a dialog's keysSkip skips
 // (the app's bindings between the navigator and the overlay above it) must
-// not hear them. Review finding 3 of the architecture review; waits for
-// arch-key-routing.
+// not hear them: the replay goes by the key path, as a key does.
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
@@ -88,5 +87,5 @@ void main() {
     expect(t, containsLine(contains('in dialog')));
     await press(t, 'z x');
     expect(heard, isEmpty, reason: 'what the app heard');
-  }, skip: 'probable bug confirmed: arch-key-routing');
+  });
 }

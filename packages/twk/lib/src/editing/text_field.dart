@@ -569,6 +569,7 @@ final class _TextFieldState extends State<TextField> {
               focusNode: node,
               autofocus: widget.autofocus,
               canRequestFocus: _canRequestFocus,
+              takesText: !widget.readOnly,
               onKeyEvent: _onKey,
               child: FieldMouse(
                 controller: controller,

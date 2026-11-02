@@ -7,7 +7,7 @@ The focus tree.
 ## `Focus`
 
 `Focus(focusNode:, autofocus:, onKeyEvent:, canRequestFocus:,
-skipTraversal:, descendantsAreFocusable:, debugLabel:, child:)` puts a
+skipTraversal:, descendantsAreFocusable:, takesText:, debugLabel:, child:)` puts a
 `FocusNode`, its own or the one given (whose settings it sets where they are
 not null), in the tree under the node of the nearest `Focus` or `FocusScope`
 above it, and `FocusScope(node:, …)` a `FocusScopeNode`; a `GlobalKey` that
@@ -145,7 +145,10 @@ the order of its map, a key once, by the rule a key pressed follows, a
 sequence by its first key with the keys after it in `then`; while a layer
 holds the first keys of a sequence, only the keys that can follow them
 (`combo` the next, `then` the rest); those a node takes in its own
-`onKeyEvent` are not listed.
+`onKeyEvent` are not listed, and a node with `takesText` (`TextField` and
+`TextArea` unless read-only) hides from the layers above it the keys that
+are characters (`q`, `shift+q`; not `ctrl+q`), as it takes them before
+those: so a `KeyHintsBar` and `showKeyHelp` do not offer them.
 
 ## `ActiveKey.label`
 
