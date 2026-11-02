@@ -31,7 +31,8 @@ void main() {
       'line over; the last line once the stream is done', (t) async {
     final c = LogController();
     final output = StreamController<String>();
-    final subscription = c.listen(output.stream);
+    addTearDown(output.close);
+    final subscription = c.addOutput(output.stream);
     addTearDown(subscription.cancel);
     await t.pumpWidget(plain(c), size: (20, 5));
     output
@@ -71,5 +72,64 @@ void main() {
       expect(t.cell(x, 0), hasFg(fg));
       expect(t.cell(x, 0).attrs & Attr.reverse != 0, marked, reason: '$x');
     }
+  });
+
+  test('done completes when the stream ends, with its last unended line '
+      'added', () async {
+    final c = LogController();
+    addTearDown(c.dispose);
+    final output = StreamController<String>();
+    addTearDown(output.close);
+    final source = c.addOutput(output.stream);
+    var done = false;
+    unawaited(source.done.then((_) => done = true));
+    output.add('one\ntail');
+    await pumpEventQueue();
+    expect(done, isFalse);
+    expect(c.length, 1);
+    await output.close();
+    await source.done;
+    expect(c.length, 2);
+    expect(c[1].text, 'tail');
+  });
+
+  test('cancel stops the lines, frees the stream and completes done; the '
+      'unended line is not added', () async {
+    final c = LogController();
+    addTearDown(c.dispose);
+    final output = StreamController<String>();
+    addTearDown(output.close);
+    final source = c.addOutput(output.stream);
+    output.add('a\nb');
+    await pumpEventQueue();
+    await source.cancel();
+    expect(output.hasListener, isFalse);
+    await source.done;
+    output.add('c\n');
+    await pumpEventQueue();
+    expect(c.length, 1);
+    await source.cancel();
+  });
+
+  test(
+    'an error of the stream ends the source: done completes with it',
+    () async {
+      final c = LogController();
+      addTearDown(c.dispose);
+      final output = StreamController<String>();
+      addTearDown(output.close);
+      addTearDown(output.close);
+      final source = c.addOutput(output.stream);
+      output.addError(StateError('boom'));
+      await expectLater(source.done, throwsStateError);
+      expect(output.hasListener, isFalse);
+    },
+  );
+
+  test('a tab goes to the multiple of the tabWidth', () async {
+    final c = LogController();
+    addTearDown(c.dispose);
+    await c.addOutput(Stream.value('a\tb\n'), tabWidth: 4).done;
+    expect(c[0].text, 'a   b');
   });
 }

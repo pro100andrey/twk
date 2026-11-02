@@ -259,7 +259,7 @@ void main() {
         'dispose', () async {
       final source = CountingStream();
       final c = LogController();
-      final subscription = c.listen(source);
+      final subscription = c.addOutput(source);
       await subscription.cancel();
       c.dispose();
       expect(source.cancels, 1);
@@ -268,7 +268,7 @@ void main() {
     test('a subscription not cancelled is cancelled by dispose', () {
       final source = CountingStream();
       LogController()
-        ..listen(source)
+        ..addOutput(source)
         ..dispose();
       expect(source.cancels, 1);
     });

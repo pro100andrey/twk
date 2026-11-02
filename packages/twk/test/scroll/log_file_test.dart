@@ -135,7 +135,7 @@ void main() {
     final out = StreamController<String>();
     addTearDown(out.close);
     final listened = LogController();
-    final fromStream = listened.listen(out.stream);
+    final fromStream = listened.addOutput(out.stream);
     expect(out.hasListener, isTrue);
     listened.dispose();
     expect(out.hasListener, isFalse);
@@ -153,5 +153,16 @@ void main() {
     await clock.elapse(poll);
     await clock.elapse(poll);
     await fromFile.cancel();
+  });
+
+  test('followFile takes the tabWidth', () async {
+    File(path).writeAsStringSync('a\tb\n');
+    final c = LogController();
+    addTearDown(c.dispose);
+    final source = clock.run(
+      () => c.followFile(path, fromEnd: false, poll: poll, tabWidth: 4),
+    );
+    addTearDown(source.cancel);
+    await holds(c, ['a   b']);
   });
 }

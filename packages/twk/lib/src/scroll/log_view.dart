@@ -4,7 +4,7 @@
 library;
 
 import 'dart:async'
-    show Stream, StreamController, StreamSubscription, unawaited;
+    show Completer, Stream, StreamController, StreamSubscription, unawaited;
 import 'dart:convert' show ByteConversionSink, Utf8Decoder;
 import 'dart:math' show max, min;
 
@@ -67,7 +67,7 @@ final class LogLine {
 
   /// The pieces of [text] in the styles they were given, each merged over
   /// the style of the line's [level] where a [LogView] shows it (the
-  /// colors of a program's output, [LogController.listen]); null for a
+  /// colors of a program's output, [LogController.addOutput]); null for a
   /// line all in that style.
   final List<Span>? spans;
 
@@ -123,8 +123,8 @@ final class LogController extends ChangeNotifier {
   }) : assert(maxLines > 0, 'a cap of 1 line or more'),
        _maxLines = maxLines;
 
-  // the subscriptions of listen and followFile, cancelled with the controller
-  final _subscriptions = <StreamSubscription<void>>{};
+  // the sources of addOutput and followFile, cancelled with the controller
+  final _sources = <LogSource>{};
 
   // the lines kept, from _head on, their numbers one after another
   final _lines = <LogLine>[];
@@ -222,25 +222,26 @@ final class LogController extends ChangeNotifier {
   /// reads it, so a carriage return writes the line over (a progress bar
   /// leaves its last state), a tab moves to the next multiple of
   /// [tabWidth] columns, and no sequence reaches the terminal. The line not
-  /// ended when [output] is done is added then. Returns the subscription:
-  /// cancel it once the lines are not wanted; an error of [output] goes to
-  /// its `onError`, as with any `listen`.
+  /// ended when [output] is done is added then. Returns the [LogSource]:
+  /// cancel it once the lines are not wanted; an error of [output] ends it,
+  /// and its [LogSource.done] completes with that error.
   ///
   /// ```dart
   /// final log = LogController();
   /// final process = await Process.start('dart', ['test']);
-  /// log.listen(process.stdout.transform(utf8.decoder));
+  /// final source = log.addOutput(process.stdout.transform(utf8.decoder));
+  /// await source.done;
   /// ```
-  StreamSubscription<String> listen(
+  LogSource addOutput(
     Stream<String> output, {
     LogLevel level = LogLevel.info,
     int tabWidth = 8,
-  }) => _listen<String>(output, _Text.new, level, tabWidth);
+  }) => _follow<String>(output, _Text.new, level, tabWidth);
 
-  /// [listen] of [output], each event of it told by [piece] as text or as a
-  /// [_Cut], the end of the output so far, as of a file cut short: the line
+  /// [addOutput] of [output], each event of it told by [piece] as text or as
+  /// a [_Cut], the end of the output so far, as of a file cut short: the line
   /// not ended is dropped.
-  StreamSubscription<T> _listen<T>(
+  LogSource _follow<T>(
     Stream<T> output,
     _Piece Function(T) piece,
     LogLevel level,
@@ -259,10 +260,14 @@ final class LogController extends ChangeNotifier {
       notifyListeners();
     }
 
-    late final _Tracked<T> tracked;
-    // the wrapper below cancels it, and is what the controller holds
-    // ignore: cancel_subscriptions
-    final subscription = output.listen(
+    final source = LogSource._();
+    _sources.add(source);
+    void finish([Object? error, StackTrace? stack]) {
+      _sources.remove(source);
+      source._finish(error, stack);
+    }
+
+    source._subscription = output.listen(
       (event) {
         switch (piece(event)) {
           case _Cut():
@@ -273,30 +278,33 @@ final class LogController extends ChangeNotifier {
             addEnded();
         }
       },
+      onError: (Object error, StackTrace stack) {
+        finish(error, stack);
+        unawaited(source.cancel());
+      },
       onDone: () {
-        _subscriptions.remove(tracked);
         reader.close();
         addEnded();
+        finish();
       },
     );
-    tracked = _Tracked<T>(subscription, _subscriptions);
-    _subscriptions.add(tracked);
-    return tracked;
+    source._onCancel = () => _sources.remove(source);
+    return source;
   }
 
-  /// Cancels the subscriptions of [listen] and [followFile] still live, so
-  /// no line reaches a disposed controller; the ones returned stay valid to
+  /// Cancels the sources of [addOutput] and [followFile] still live, so no
+  /// line reaches a disposed controller; the ones returned stay valid to
   /// cancel again.
   @override
   void dispose() {
-    for (final subscription in _subscriptions.toList()) {
-      unawaited(subscription.cancel());
+    for (final source in _sources.toList()) {
+      unawaited(source.cancel());
     }
-    _subscriptions.clear();
+    _sources.clear();
     super.dispose();
   }
 
-  /// Follows the file at [path], adding the lines written to it as [listen]
+  /// Follows the file at [path], adding the lines written to it as [addOutput]
   /// adds those of a program's output (in its colors, a carriage return
   /// writing a line over), each line once it ends: those written from the
   /// call on, or with [fromEnd] false the file's from its start too. A write
@@ -306,33 +314,36 @@ final class LogController extends ChangeNotifier {
   /// start, and so is one replaced at the path (another renamed over it, as a
   /// log rotation does) where the system's watch tells it; with the poll
   /// alone, a replacement is told only by being shorter than what was read.
-  /// One not there yet is waited for. Malformed UTF-8 is U+FFFD. Cancel the
-  /// subscription to stop following it. Not on the web, which has no files:
-  /// the subscription's `onError` gets an [UnsupportedError].
+  /// One not there yet is waited for. Malformed UTF-8 is U+FFFD. Tabs go to
+  /// the next multiple of [tabWidth] columns. Cancel the returned source to
+  /// stop following it. Not on the web, which has no files: the source's
+  /// [LogSource.done] completes with an [UnsupportedError].
   ///
   /// The poll goes on while no [LogView] shows the controller, as the lines
   /// do: the controller is the log, a view one way of reading it. Measured,
   /// it is one `stat` of the file each [poll], about a system call a second
   /// per follower, and 10 followers took 12 ms of system time over 30
-  /// seconds; cancel the subscription to stop it. Unlike the library's other
+  /// seconds; cancel the source to stop it. Unlike the library's other
   /// timers (`AppBinding.startTimer`), the poll is a real one, not the app's
   /// clock: what it waits for is a real file, so a test awaits its lines with
   /// `waitUntil` rather than a pump.
   ///
   /// ```dart
   /// final log = LogController();
-  /// log.followFile('build.log');
+  /// final source = log.followFile('build.log', tabWidth: 4);
+  /// await source.cancel();
   /// ```
-  StreamSubscription<void> followFile(
+  LogSource followFile(
     String path, {
     bool fromEnd = true,
     Duration poll = const Duration(seconds: 1),
     LogLevel level = LogLevel.info,
-  }) => _listen<_Piece>(
+    int tabWidth = 8,
+  }) => _follow<_Piece>(
     _decoded(tailFile(path, fromEnd: fromEnd, poll: poll)),
     (piece) => piece,
     level,
-    8,
+    tabWidth,
   );
 
   /// The text of the bytes of [events], with a [_Cut] where the file was read
@@ -1743,40 +1754,43 @@ final class _RenderLine extends RenderObject with RenderObjectWithChildMixin {
   }
 }
 
-/// A subscription that leaves [_set] when it is cancelled, so a controller
-/// followed through many files does not hold the ones cancelled.
-final class _Tracked<T> implements StreamSubscription<T> {
-  _Tracked(this._inner, this._set);
+/// Lines a [LogController] takes from a stream or a file
+/// ([LogController.addOutput], [LogController.followFile]): [cancel] it when
+/// they are not wanted, await [done] for the end of them.
+final class LogSource {
+  LogSource._();
 
-  final StreamSubscription<T> _inner;
-  final Set<StreamSubscription<void>> _set;
+  StreamSubscription<void>? _subscription;
+  void Function()? _onCancel;
+  final _done = Completer<void>();
 
-  @override
+  /// Stops the lines and frees the source; the line not ended is not added.
+  /// Cancelling again, or one already done, does nothing more.
   Future<void> cancel() {
-    _set.remove(this);
-    return _inner.cancel();
+    _onCancel?.call();
+    final cancelled = _subscription?.cancel() ?? Future<void>.value();
+    if (!_done.isCompleted) {
+      _done.complete();
+    }
+    return cancelled;
   }
 
-  @override
-  void onData(void Function(T data)? handleData) => _inner.onData(handleData);
+  /// Completes when the output ends (its last unended line added) or the
+  /// source is cancelled; with the error of the output where it failed.
+  Future<void> get done => _done.future;
 
-  @override
-  void onError(Function? handleError) => _inner.onError(handleError);
-
-  @override
-  void onDone(void Function()? handleDone) => _inner.onDone(handleDone);
-
-  @override
-  void pause([Future<void>? resumeSignal]) => _inner.pause(resumeSignal);
-
-  @override
-  void resume() => _inner.resume();
-
-  @override
-  bool get isPaused => _inner.isPaused;
-
-  @override
-  Future<E> asFuture<E>([E? futureValue]) => _inner.asFuture(futureValue);
+  void _finish(Object? error, StackTrace? stack) {
+    if (_done.isCompleted) {
+      return;
+    }
+    if (error == null) {
+      _done.complete();
+    } else {
+      // an error nobody awaits is not an uncaught one
+      _done.future.ignore();
+      _done.completeError(error, stack);
+    }
+  }
 }
 
 /// What [LogController._decoded] tells: [_Text] read, or a [_Cut].

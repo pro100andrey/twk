@@ -195,10 +195,10 @@ matchStyle:, currentMatchStyle:, focusNode:, autofocus:)` is `tail -f` for
 an app, over a `LogController(maxLines: 10000, level: LogLevel.debug,
 filter: '', query: '')`: lines added with `add(text, level:, time:)`
 (`addAll`; `addSpans(spans)` for a line in colors of its own, over its
-level's; `listen(stream)` for a program's output as it comes, read as an
+level's; `addOutput(stream)` for a program's output as it comes, read as an
 `AnsiStream` reads it, a line once it ends, in its escape sequences'
 colors, a carriage return writing it over, the unended line when the
-stream is done; `followFile(path, fromEnd: true, poll: 1 s)` for a file
+stream is done; `followFile(path, fromEnd: true, poll: 1 s, tabWidth: 8)` for a file
 being written, the same way, its writes told by a watch of its directory and
 found by a look at its size each `poll` as well, a file cut short read again
 from its start, one not there yet waited for, not on the web; `clear()`)
