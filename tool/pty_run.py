@@ -130,6 +130,8 @@ HOST_TERMINAL = {
     'WEZTERM_EXECUTABLE', 'KONSOLE_VERSION', 'KONSOLE_DBUS_SESSION',
     'VTE_VERSION', 'WT_SESSION', 'ALACRITTY_WINDOW_ID', 'TMUX', 'TMUX_PANE',
     'STY', 'XTERM_VERSION', 'MLTERM',
+    # twk_core's runsInCi: its apps would write plain text, not frames
+    'CI', 'CONTINUOUS_INTEGRATION', 'BUILD_NUMBER', 'RUN_ID',
 }
 # the probe's first query: what comes before it was printed by others
 PROBE_START = b'\x1b[?2026$p'

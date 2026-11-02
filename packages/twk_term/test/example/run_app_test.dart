@@ -11,6 +11,22 @@ import 'package:test/test.dart';
 import 'package:twk_term/twk_term.dart';
 import 'package:twk_test/twk_test.dart';
 
+/// Whether the exit code is known when the VM waits for the program first:
+/// macOS (kqueue) and Linux 6.15 and later (pidfd).
+final bool endsKnown = () {
+  if (Platform.isMacOS) {
+    return true;
+  }
+  final version = RegExp(
+    r'(\d+)\.(\d+)',
+  ).firstMatch(Platform.operatingSystemVersion);
+  if (!Platform.isLinux || version == null) {
+    return false;
+  }
+  final major = int.parse(version[1]!);
+  return major > 6 || major == 6 && int.parse(version[2]!) >= 15;
+}();
+
 void main() {
   late String counter;
 
@@ -30,9 +46,6 @@ void main() {
       [counter],
       width: 40,
       height: 6,
-      // a terminal is there, even where CI (CI=true) has runApp write
-      // plain text for a log
-      environment: {'TWK_PLAIN': '0'},
     );
     final output = pty.output.listen(screen.feed);
     // ends this process and no other, whatever the test does
@@ -47,8 +60,12 @@ void main() {
     pty.write(utf8.encode('\x1b[A'));
     await waitUntil(() => screen.text.contains('Count: 1'), 'the count');
     pty.write(utf8.encode('q'));
-    // null where the VM took the end first, as it does off Linux 6.15
-    // while a Process of the test runs (Pty.exitCode)
-    expect(await waitFor(pty.exitCode, 'the exit'), anyOf(0, isNull));
+    // The VM takes the end first while a Process of the test runs; macOS
+    // and Linux 6.15 on still tell the code then, an older Linux not
+    // (Pty.exitCode).
+    expect(
+      await waitFor(pty.exitCode, 'the exit'),
+      endsKnown ? 0 : anyOf(0, isNull),
+    );
   });
 }

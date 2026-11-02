@@ -257,13 +257,16 @@ final class Terminal {
   }
 }
 
-/// Linux 6.15 and later tell how a program ended also when the VM waited
-/// for it first, which it does for any child while a `Process` runs (the
-/// test runner's compiler does throughout).
+/// macOS (a kqueue) and Linux 6.15 and later tell how a program ended
+/// also when the VM waited for it first, which it does for any child while
+/// a `Process` runs (the test runner's compiler does throughout).
 final bool _endsKnown = () {
   final version = RegExp(
     r'(\d+)\.(\d+)',
   ).firstMatch(Platform.operatingSystemVersion);
+  if (Platform.isMacOS) {
+    return true; // Pty.exitCode: a kqueue tells it
+  }
   if (!Platform.isLinux || version == null) {
     return false;
   }

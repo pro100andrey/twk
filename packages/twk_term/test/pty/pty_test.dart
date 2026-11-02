@@ -26,13 +26,16 @@ external int dup(int fd);
 @Native<Int Function(Int)>(isLeaf: true)
 external int close(int fd);
 
-/// Linux 6.15 and later tell how a program ended also when the VM waited
-/// for it first, which it does for any child while a `Process` runs (the
+/// macOS and Linux 6.15 and later tell how a program ended also when the VM
+/// waited for it first, which it does for any child while a `Process` runs (the
 /// test runner's compiler does throughout).
 final bool _endsKnown = () {
   final version = RegExp(
     r'(\d+)\.(\d+)',
   ).firstMatch(Platform.operatingSystemVersion);
+  if (Platform.isMacOS) {
+    return true; // a kqueue (EVFILT_PROC, NOTE_EXITSTATUS)
+  }
   if (!Platform.isLinux || version == null) {
     return false;
   }
@@ -286,6 +289,23 @@ void main() {
     });
   });
 
+  test("CI isn't the program's: a twk app in the emulator would write plain "
+      'text for a log; given, it is kept', () {
+    final parent = {
+      'HOME': '/home/a',
+      'CI': 'true',
+      'CONTINUOUS_INTEGRATION': 'true',
+      'BUILD_NUMBER': '12',
+      'RUN_ID': '3',
+    };
+    expect(ptyEnvironment(parent, null), {
+      'HOME': '/home/a',
+      'TERM': 'xterm-256color',
+      'COLORTERM': 'truecolor',
+    });
+    expect(ptyEnvironment(parent, {'CI': '1'}), containsPair('CI', '1'));
+  });
+
   test('IUTF8: erasing takes a UTF-8 character whole', () async {
     // BSD's od puts two blanks between bytes
     final run = sh('head -n 1 | od -An -tx1 | tr -s " "');
@@ -462,7 +482,7 @@ void main() {
         );
       }
     },
-    skip: _endsKnown ? null : 'needs Linux 6.15 (PIDFD_INFO_EXIT)',
+    skip: _endsKnown ? null : 'needs macOS or Linux 6.15 (PIDFD_INFO_EXIT)',
   );
 
   test('no descriptor but 0, 1 and 2 is inherited', () async {
