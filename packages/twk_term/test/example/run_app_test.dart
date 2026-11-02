@@ -47,6 +47,8 @@ void main() {
     pty.write(utf8.encode('\x1b[A'));
     await waitUntil(() => screen.text.contains('Count: 1'), 'the count');
     pty.write(utf8.encode('q'));
-    expect(await waitFor(pty.exitCode, 'the exit'), 0);
+    // null where the VM took the end first, as it does off Linux 6.15
+    // while a Process of the test runs (Pty.exitCode)
+    expect(await waitFor(pty.exitCode, 'the exit'), anyOf(0, isNull));
   });
 }
