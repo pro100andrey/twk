@@ -206,7 +206,9 @@ final class DirectoryTreeController extends ChangeNotifier {
 /// ([PickerFileSystem.watch]) and listed again a tenth of a second after
 /// it changes, the changes in between taken with it: the selection and
 /// what is expanded stay, by path. A change of [root], [fileSystem],
-/// [gitignore] or [showSizes] lists every directory again.
+/// [gitignore] or [showSizes] lists every directory again. The wait after a
+/// change is a timer of the app: with [watch] the tree needs one above it
+/// (`runApp`, or a `Cli`), see `AppBinding.startTimer`.
 ///
 /// It takes all the room it is given, which must be bounded. With a
 /// [controller], the app reads what is selected, expands and collapses
@@ -269,8 +271,7 @@ final class DirectoryTree extends StatefulWidget {
   final bool showSizes;
 
   /// How [showSizes] counts and names a size: by 1000 (`4.3 kB`), or by
-  /// 1024 as `ls -h` does (`4.2 KiB`). Give a `ProgressList` the same for
-  /// sizes that read alike.
+  /// 1024 as `ls -h` does (`4.2 KiB`).
   final ByteUnits byteUnits;
 
   /// Which files show; null for all of them. Every directory shows.
@@ -872,7 +873,7 @@ final class _DirectoryTreeState extends State<DirectoryTree> {
               children: [
                 Expanded(child: label),
                 Text(
-                  ' ${formatBytes(size, units: widget.byteUnits)}',
+                  ' ${formatBytes(size, byteUnits: widget.byteUnits)}',
                   style: theme.muted,
                 ),
               ],

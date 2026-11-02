@@ -67,7 +67,8 @@ final class FieldMouse extends StatefulWidget {
   final TextRange Function(TextBuffer text, int offset) lineAt;
 
   /// How long after a release a press in the same cell is the next of a
-  /// double or triple one.
+  /// double or triple one. It is a timer of the app: the field needs one
+  /// above it (`runApp`, or a `Cli`), see [AppBinding.startTimer].
   final Duration multiClickInterval;
 
   /// The text of the field, drawn from its top left.

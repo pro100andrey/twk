@@ -164,7 +164,9 @@ final class SelectionArea extends StatefulWidget {
   final SelectionAreaController? controller;
 
   /// How long after a release a press in the same cell is the next click
-  /// of a double or triple click.
+  /// of a double or triple click. It, and the scroll of a drag past the
+  /// edge, are timers of the app: the area needs one above it (`runApp`, or
+  /// a `Cli`), see [AppBinding.startTimer].
   final Duration multiClickInterval;
 
   /// What holds the Texts selected in.

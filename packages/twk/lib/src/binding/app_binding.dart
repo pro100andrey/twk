@@ -369,7 +369,19 @@ final class AppBinding {
   /// test's body, outside the fake clock's zone, gets a fake timer that
   /// `pump` and `elapse` move, as a widget's own code does. Every timer
   /// the library starts goes through it or [startPeriodic], none through
-  /// `Timer` itself.
+  /// `Timer` itself, but the polls of `tailFile` and
+  /// `LogController.followFile`, which run on real time (their docs say so).
+  ///
+  /// A timer started when a widget is built or mounted (an animation,
+  /// `useInterval`, a `MouseRegion`'s) is quiet where no app is above: a
+  /// `Cli`'s `widgetLines` prints the first frame. A timer started by a
+  /// user action (a long press or double tap, a tooltip's wait, a toast's
+  /// time, a key sequence's timeout, the edge scroll and multi-click of a
+  /// selection or a field, a `DirectoryTree`'s refresh after a change on
+  /// disk) needs an app above the widget, `runApp` or a `Cli`, and
+  /// [AppBinding.of] throws a [StateError] saying so where there is none:
+  /// without an app there is no input, so only a hand-made tree reaches
+  /// one.
   Timer startTimer(Duration duration, void Function() callback) =>
       _zone.createTimer(duration, callback);
 

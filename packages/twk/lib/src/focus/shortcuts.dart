@@ -418,7 +418,9 @@ final class KeyBindings extends StatefulWidget {
   final Map<KeyCombo, String> comboHints;
 
   /// How long the layer holds the first keys of a sequence without the
-  /// next; null holds them until it comes.
+  /// next; null holds them until it comes. The timeout is a timer of the
+  /// app: the layer needs one above it (`runApp`, or a `Cli`), see
+  /// `AppBinding.startTimer`.
   final Duration? sequenceTimeout;
 
   /// What becomes of the first keys of a sequence that no binding takes:

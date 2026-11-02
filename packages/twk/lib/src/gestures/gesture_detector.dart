@@ -157,10 +157,14 @@ final class GestureDetector extends StatefulWidget {
   /// 11 the side buttons.
   final Set<int> buttons;
 
-  /// How long after a tap's release the next press makes a double tap.
+  /// How long after a tap's release the next press makes a double tap. It
+  /// is a timer of the app: the detector needs one above it (`runApp`, or a
+  /// `Cli`), see [AppBinding.startTimer].
   final Duration doubleTapInterval;
 
-  /// How long a press is held to be a long press.
+  /// How long a press is held to be a long press. It is a timer of the
+  /// app: the detector needs one above it (`runApp`, or a `Cli`), see
+  /// [AppBinding.startTimer].
   final Duration longPressDuration;
 
   /// Where it is hit.

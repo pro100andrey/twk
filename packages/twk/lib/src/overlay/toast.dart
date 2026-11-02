@@ -41,6 +41,9 @@ import 'panel.dart';
 /// [StateError] that says where to place one if there is none) for
 /// [duration], three seconds by default, then takes it away.
 ///
+/// The time runs on a timer of the app, so [context] needs one above it
+/// (`runApp`, or a `Cli`), see [AppBinding.startTimer].
+///
 /// The toasts of an overlay are shown in the order they came, at most three
 /// at a time: the others wait in a queue, and each is shown, its
 /// [duration] running from then, once one of those shown is gone. They

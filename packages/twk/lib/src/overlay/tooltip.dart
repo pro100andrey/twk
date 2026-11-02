@@ -163,7 +163,8 @@ final class Tooltip extends StatefulWidget {
   final TooltipController? controller;
 
   /// How long the mouse, or the focus, rests on [child] before the message
-  /// shows.
+  /// shows. The wait is a timer of the app: it needs one above (`runApp`,
+  /// or a `Cli`), see [AppBinding.startTimer].
   final Duration wait;
 
   /// The chip ([PanelLook.raised]) or a bordered box.
