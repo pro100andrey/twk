@@ -117,8 +117,8 @@ void main() {
           Glyphs.unicode.copyWith(close: '全'),
           ChipList<String>(
             chips: const [Choice('a', 'ab')],
-            onPressed: (_) {},
-            onRemove: removed.add,
+            onSelectionChanged: (_) {},
+            onDeleted: removed.add,
           ),
         ),
         size: (14, 1),

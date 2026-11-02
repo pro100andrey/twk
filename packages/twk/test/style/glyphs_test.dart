@@ -60,13 +60,13 @@ void main() {
       expect(Glyphs.unicode.partialBlocks, isTrue);
       expect(Glyphs.ascii.partialBlocks, isFalse);
       expect(Glyphs.unicode.gaugeHalf, '╴');
-      expect(Glyphs.ascii.gaugeHalf, isNull);
+      expect(Glyphs.ascii.gaugeHalf, '');
     });
 
-    test('gaugeHalf is cleared by clearGaugeHalf alone, kept otherwise', () {
-      final none = Glyphs.unicode.copyWith(clearGaugeHalf: true);
-      expect(none.gaugeHalf, isNull);
-      expect(none.copyWith(check: '+').gaugeHalf, isNull);
+    test('gaugeHalf is cleared by an empty one, kept otherwise', () {
+      final none = Glyphs.unicode.copyWith(gaugeHalf: '');
+      expect(none.gaugeHalf, '');
+      expect(none.copyWith(check: '+').gaugeHalf, '');
       expect(none.copyWith(gaugeHalf: '╸').gaugeHalf, '╸');
       expect(Glyphs.unicode.copyWith(check: '+').gaugeHalf, '╴');
       expect(none, isNot(Glyphs.unicode));
@@ -144,7 +144,7 @@ void main() {
         all.thumbHorizontal,
         all.thumbSlim,
         all.gaugeFilled,
-        ?all.gaugeHalf,
+        all.gaugeHalf,
         all.gaugeEmpty,
         ...all.spinner.frames,
       ];
@@ -408,7 +408,7 @@ void main() {
     testTwk('a LineGauge with the half cleared fills in whole cells', (
       t,
     ) async {
-      final whole = Glyphs.unicode.copyWith(clearGaugeHalf: true);
+      final whole = Glyphs.unicode.copyWith(gaugeHalf: '');
       await t.pumpWidget(
         themed(
           Glyphs.unicode.copyWith(gaugeFilled: '━'),
@@ -516,8 +516,11 @@ void main() {
       expect(t.lines.single, startsWith('<  Go  ]'));
     });
 
-    testTwk('a removable Chip draws the close mark of the set', (t) async {
-      Widget chip() => const Chip('tag', removable: true);
+    testTwk('a ChipList draws the close mark of the set', (t) async {
+      Widget chip() => ChipList<String>(
+        chips: const [Choice('tag', 'tag')],
+        onDeleted: (_) {},
+      );
       await t.pumpWidget(chip(), size: (10, 1));
       expect(t.lines.single.trimRight(), ' tag ×');
       await t.pumpWidget(themed(Glyphs.ascii, chip()), size: (10, 1));

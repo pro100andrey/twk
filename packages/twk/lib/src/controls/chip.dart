@@ -31,15 +31,13 @@ String _chipText(
 
 /// A short [label] on a chip of its own, on one row: a tag, a filter, a
 /// recipient. It only shows; [ChipList] is the control that moves between
-/// chips and presses them.
+/// chips, toggles them and takes them away.
 ///
-/// The label has a blank on either side, and `× ` after it where it is
-/// [removable]. The styles, each merged over those before it: the theme's
-/// text and [style] on [ThemeData.surface]; [ThemeData.primary] filled
-/// ([ThemeData.fill]) and bold while [selected]; [ThemeData.selection]
-/// while [highlighted]; [ThemeData.muted] while not [enabled]. On plain
-/// output (`TerminalInfo.plain`), which has no colors, a chip that is
-/// selected shows `✓ ` before its label.
+/// The label has a blank on either side. The styles, each merged over those
+/// before it: the theme's text and [style] on [ThemeData.surface];
+/// [ThemeData.primary] filled ([ThemeData.fill]) and bold while [selected].
+/// On plain output (`TerminalInfo.plain`), which has no colors, a chip that
+/// is selected shows `✓ ` before its label.
 ///
 /// ```dart
 /// const Row(
@@ -47,26 +45,17 @@ String _chipText(
 ///   children: [
 ///     Chip('dart'),
 ///     Chip('tui', selected: true),
-///     Chip('beta', removable: true),
 ///   ],
 /// )
 /// ```
 ///
 /// See also:
 ///
-///  * [ChipList], chips that wrap, with a cursor.
+///  * [ChipList], chips that wrap, with a cursor, toggled and taken away.
 ///  * [Badge], a label set off by its color, with nothing to press.
 final class Chip extends StatelessWidget {
   /// A chip of [label].
-  const Chip(
-    this.label, {
-    super.key,
-    this.selected = false,
-    this.highlighted = false,
-    this.removable = false,
-    this.enabled = true,
-    this.style,
-  });
+  const Chip(this.label, {super.key, this.selected = false, this.style});
 
   /// What it shows.
   final String label;
@@ -74,17 +63,40 @@ final class Chip extends StatelessWidget {
   /// Whether it is on.
   final bool selected;
 
+  /// Over the theme's text, under the colors of the state.
+  final Style? style;
+
+  @override
+  Widget build(BuildContext context) =>
+      _ChipFace(label, selected: selected, style: style);
+}
+
+/// A chip as [ChipList] draws it: a [Chip] that can also show the
+/// [highlighted] cursor, the [removable] `×` and be not [enabled]. The
+/// states, each merged over those before it: [ThemeData.selection] while
+/// [highlighted], [ThemeData.muted] while not [enabled].
+final class _ChipFace extends StatelessWidget {
+  const _ChipFace(
+    this.label, {
+    required this.selected,
+    required this.style,
+    this.highlighted = false,
+    this.removable = false,
+    this.enabled = true,
+  });
+
+  final String label;
+  final bool selected;
+  final Style? style;
+
   /// Whether the cursor of a list is on it.
   final bool highlighted;
 
   /// Whether it shows `×`, for taking it away.
   final bool removable;
 
-  /// Whether it can be pressed; false for it muted.
+  /// False for it muted.
   final bool enabled;
-
-  /// Over the theme's text, under the colors of the state.
-  final Style? style;
 
   @override
   Widget build(BuildContext context) {
@@ -144,34 +156,35 @@ List<({int line, int x, int width})> _flow(List<int> widths, int width) {
 
 /// A row of [Chip]s of [chips] that wraps onto more rows, with a cursor
 /// that keys and clicks move and press: `Enter` and `Space` or a click
-/// call [onPressed], and `Delete`, `Backspace` or a click on the `×` of a
-/// chip call [onRemove].
+/// toggle the chip and call [onSelectionChanged] with the values that are
+/// on then, as [SegmentedButton] does, and `Delete`, `Backspace` or a click
+/// on the `×` of a chip call [onDeleted] with its value.
 ///
 /// One stop of Tab. While it has the focus one chip is highlighted, at
 /// first the first enabled one: Left and Right move the highlight to the
 /// enabled chip before and after it, from the last to the first and back,
 /// Up and Down to the nearest chip of the nearest row above and below
 /// that has an enabled one, Home and End to the first and the last. Space
-/// and Enter press the highlighted
-/// chip; Delete and Backspace remove it. A chip clicked is highlighted and
-/// pressed; the `×` of a chip, shown while there is an [onRemove],
-/// removes it. The app builds the list again with the new chips and
+/// and Enter toggle the highlighted chip, which can be the last one on
+/// too; Delete and Backspace take it away. A chip clicked is highlighted and
+/// toggled; the `×` of a chip, shown while there is an [onDeleted],
+/// takes it away. The app builds the list again with the new chips and
 /// [selected]: after a removal the highlight stays at the same place in
 /// the list, or on the last chip. Left and Right, Space and Delete are
 /// hinted, those whose callbacks there are.
 ///
 /// Disabled with neither callback, or no enabled chip: then it takes
 /// neither the focus, which Tab passes by, nor the mouse. A chip not
-/// enabled ([Choice.enabled]) is passed by, muted, and cannot be pressed
-/// or removed. A chip whose value is in [selected] shows as on. The chips
+/// enabled ([Choice.enabled]) is passed by, muted, and cannot be toggled
+/// or taken away. A chip whose value is in [selected] shows as on. The chips
 /// are as wide as their labels within the constraints, a label too long
 /// for a row cut off with `…`; the rows are never taller than the chips
 /// need.
 ///
 /// A screen reader reads each chip as a [SemanticsRole.checkbox] of its
 /// label, `checked` while it is in [selected], where there is an
-/// [onPressed], else as a [SemanticsRole.listItem]; `disabled` when it
-/// cannot be pressed; while the list has the focus, the highlighted chip
+/// [onSelectionChanged], else as a [SemanticsRole.listItem]; `disabled` when
+/// it cannot be toggled; while the list has the focus, the highlighted chip
 /// is the focused node.
 ///
 /// Tags of a post, which can be turned off or taken away:
@@ -184,10 +197,8 @@ List<({int line, int x, int width})> _flow(List<int> widths, int width) {
 ///   builder: (context, _) => ChipList<String>(
 ///     chips: [for (final t in tags.value) Choice(t, t)],
 ///     selected: on.value,
-///     onPressed: (tag) => on.value = on.value.contains(tag)
-///         ? ({...on.value}..remove(tag))
-///         : {...on.value, tag},
-///     onRemove: (tag) => tags.value = [...tags.value]..remove(tag),
+///     onSelectionChanged: (now) => on.value = now,
+///     onDeleted: (tag) => tags.value = [...tags.value]..remove(tag),
 ///   ),
 /// );
 /// ```
@@ -198,13 +209,13 @@ List<({int line, int x, int width})> _flow(List<int> widths, int width) {
 ///  * [SegmentedButton], a choice of a few values on one row, joined.
 final class ChipList<T> extends StatefulWidget {
   /// A list of [chips], those whose values are in [selected] on; disabled
-  /// without an [onPressed] or an [onRemove].
+  /// without an [onSelectionChanged] or an [onDeleted].
   const ChipList({
     required this.chips,
     super.key,
     this.selected = const {},
-    this.onPressed,
-    this.onRemove,
+    this.onSelectionChanged,
+    this.onDeleted,
     this.focusNode,
     this.autofocus = false,
     this.style,
@@ -217,15 +228,16 @@ final class ChipList<T> extends StatefulWidget {
   /// The values of the chips that are on.
   final Set<T> selected;
 
-  /// Called with the value of the chip pressed; null for a list whose
-  /// chips cannot be pressed.
+  /// Called with the values that are on after a chip was toggled: those of
+  /// [selected] with the chip's value added or taken out, any number of
+  /// them, none too. Null for a list whose chips cannot be toggled.
   // ignore: unsafe_variance
-  final void Function(T value)? onPressed;
+  final void Function(Set<T> selected)? onSelectionChanged;
 
-  /// Called with the value of the chip to remove; null for chips without
+  /// Called with the value of the chip to take away; null for chips without
   /// `×`.
   // ignore: unsafe_variance
-  final void Function(T value)? onRemove;
+  final void Function(T value)? onDeleted;
 
   /// See [Focus.focusNode].
   final FocusNode? focusNode;
@@ -250,7 +262,7 @@ final class _ChipListState<T> extends State<ChipList<T>> {
   List<Choice<T>> get _chips => widget.chips;
 
   bool get _enabled =>
-      (widget.onPressed != null || widget.onRemove != null) &&
+      (widget.onSelectionChanged != null || widget.onDeleted != null) &&
       _chips.any((c) => c.enabled);
 
   /// The enabled chip [step] places on from [from], round; -1 for none.
@@ -304,18 +316,26 @@ final class _ChipListState<T> extends State<ChipList<T>> {
   }
 
   void _press(int i) {
-    final onPressed = widget.onPressed;
-    if (onPressed != null && i >= 0 && i < _chips.length && _chips[i].enabled) {
+    final onSelectionChanged = widget.onSelectionChanged;
+    if (onSelectionChanged != null &&
+        i >= 0 &&
+        i < _chips.length &&
+        _chips[i].enabled) {
       _move(i);
-      onPressed(_chips[i].value);
+      final value = _chips[i].value;
+      final next = {...widget.selected};
+      if (!next.remove(value)) {
+        next.add(value);
+      }
+      onSelectionChanged(next);
     }
   }
 
   void _remove(int i) {
-    final onRemove = widget.onRemove;
-    if (onRemove != null && i >= 0 && i < _chips.length && _chips[i].enabled) {
+    final onDeleted = widget.onDeleted;
+    if (onDeleted != null && i >= 0 && i < _chips.length && _chips[i].enabled) {
       _move(i);
-      onRemove(_chips[i].value);
+      onDeleted(_chips[i].value);
     }
   }
 
@@ -330,9 +350,9 @@ final class _ChipListState<T> extends State<ChipList<T>> {
         final closeWidth = segmenterOf(context).width(
           Theme.of(context).glyphs.close,
         );
-        if (widget.onRemove != null && x >= p.x + p.width - closeWidth - 1) {
+        if (widget.onDeleted != null && x >= p.x + p.width - closeWidth - 1) {
           _remove(i);
-        } else if (widget.onPressed != null) {
+        } else if (widget.onSelectionChanged != null) {
           _press(i);
         } else {
           _move(i);
@@ -378,10 +398,13 @@ final class _ChipListState<T> extends State<ChipList<T>> {
   Widget build(BuildContext context) {
     final enabled = _enabled;
     final current = _current;
-    final onPressed = widget.onPressed;
-    final onRemove = widget.onRemove;
+    final onSelectionChanged = widget.onSelectionChanged;
+    final onDeleted = widget.onDeleted;
     final selected = widget.selected;
-    _keysFor(pressable: onPressed != null, removable: onRemove != null);
+    _keysFor(
+      pressable: onSelectionChanged != null,
+      removable: onDeleted != null,
+    );
     return Pressable(
       enabled: enabled,
       focusNode: widget.focusNode,
@@ -393,12 +416,12 @@ final class _ChipListState<T> extends State<ChipList<T>> {
         nodes: [
           for (var i = 0; i < _chips.length; i++)
             SemanticsNode(
-              role: onPressed != null
+              role: onSelectionChanged != null
                   ? SemanticsRole.checkbox
                   : SemanticsRole.listItem,
               label: _chips[i].label,
               state: SemanticsState(
-                checked: onPressed != null
+                checked: onSelectionChanged != null
                     ? selected.contains(_chips[i].value)
                     : null,
                 disabled: !enabled || !_chips[i].enabled,
@@ -429,7 +452,7 @@ final class _ChipListState<T> extends State<ChipList<T>> {
     required bool plain,
   }) {
     final glyphs = Theme.of(context).glyphs;
-    final close = widget.onRemove == null ? null : glyphs.close;
+    final close = widget.onDeleted == null ? null : glyphs.close;
     final on = [for (final c in _chips) widget.selected.contains(c.value)];
     final checkMark = '${glyphs.check} ';
     // the blanks, the mark and the × take the room, the label the rest:
@@ -464,7 +487,7 @@ final class _ChipListState<T> extends State<ChipList<T>> {
         // the hidden cursor on the highlighted chip
         ActiveItem(
           active: i == highlight,
-          child: Chip(
+          child: _ChipFace(
             labels[i],
             selected: on[i],
             highlighted: i == highlight,

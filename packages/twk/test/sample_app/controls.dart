@@ -68,7 +68,7 @@ final class _NoticesState extends State<_Notices> {
       ),
       ChipList<String>(
         chips: [for (final t in _tags) Choice(t, t)],
-        onRemove: (t) => setState(() => _tags = [..._tags]..remove(t)),
+        onDeleted: (t) => setState(() => _tags = [..._tags]..remove(t)),
       ),
       const Chip('c', selected: true),
       ValueStepper<String>(

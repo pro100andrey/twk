@@ -591,16 +591,12 @@ Future<(AppRun, FutureOr<void> Function(int))> _chipsNarrow(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             for (var k = 0; k < 4; k++)
-              Chip(
-                '${labels[(i + k) % 4]} #$i',
-                selected: k == i % 4,
-                removable: true,
-              ),
+              Chip('${labels[(i + k) % 4]} #$i', selected: k == i % 4),
             ChipList<int>(
               chips: choices,
               selected: {i % 12, (i + 5) % 12},
-              onPressed: (_) {},
-              onRemove: (_) {},
+              onSelectionChanged: (_) {},
+              onDeleted: (_) {},
             ),
             ValueStepper<int>(
               values: choices,
@@ -702,10 +698,10 @@ Future<(AppRun, FutureOr<void> Function(int))> _logFollow(int w, int h) async {
     for (final p in _phrases) utf8.encode('$p\n'),
   ];
   final out = file.openSync(mode: FileMode.append);
-  late final StreamSubscription<void> follow;
-  r.clock.run(() => follow = log.followFile(file.path));
+  late final Future<void> Function() stopFollow;
+  r.clock.run(() => stopFollow = log.followFile(file.path).cancel);
   r.onStop.add(() async {
-    await follow.cancel();
+    await stopFollow();
     log.dispose();
     out.closeSync();
     dir.deleteSync(recursive: true);

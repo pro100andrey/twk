@@ -471,17 +471,16 @@ of its title, an alert for a warning or an error, then what is in it.
 
 ## `Chip`
 
-`Chip(label, selected: false, highlighted: false, removable: false, enabled:
-true, style:)` is a short label on a chip of its own, on one row (a tag, a
-filter, a recipient), a blank on either side of it and `× ` (`glyphs.close`)
-after it where it is `removable`. It only shows: the theme's text and `style`
-on `surface`; `primary` filled and bold while `selected` (on plain output,
-which has no colors, `✓ ` before the label); `selection` while `highlighted`,
-the cursor of a list; `muted` while not `enabled`.
+`Chip(label, selected: false, style:)` is a short label on a chip of its own, on
+one row (a tag, a filter, a recipient), a blank on either side of it. It only
+shows, with nothing to press and no `×`: the theme's text and `style` on
+`surface`; `primary` filled and bold while `selected` (on plain output, which
+has no colors, `✓ ` before the label). `ChipList` draws its own cells, with the
+cursor, the `×` and the muted look.
 
 ## `ChipList<T>`
 
-`ChipList<T>(chips:, selected: const {}, onPressed:, onRemove:, focusNode:,
+`ChipList<T>(chips:, selected: const {}, onSelectionChanged:, onDeleted:, focusNode:,
 autofocus: false, style:)` is chips that wrap into rows, a `Choice<T>(value,
 label, enabled:)` each, with a cursor: the ones whose values are in `selected`
 show as on, as wide as their labels within the constraints, a label too long
@@ -489,15 +488,16 @@ cut off with `…`. It is one stop of Tab, the highlight on the chip last
 highlighted or the first enabled one: Left and Right move it to the enabled
 chip before and after, from the last to the first and back, Up and Down to
 the nearest chip of the nearest row above and below that has an enabled one,
-Home and End to the first and the last; Space and Enter call `onPressed` with
-the value of the chip highlighted, Delete and Backspace `onRemove` with it. A
-chip clicked is highlighted and pressed, its `×`, shown while there is an
-`onRemove`, removes it. The app builds the list again with the new `chips` and
+Home and End to the first and the last; Space and Enter toggle the chip
+highlighted and call `onSelectionChanged` with the new set of values that are
+on (as `SegmentedButton`'s, any number, none too), Delete and Backspace call
+`onDeleted` with its value. A chip clicked is highlighted and toggled, its `×`,
+shown while there is an `onDeleted`, deletes it. The app builds the list again with the new `chips` and
 `selected`; after a removal the highlight stays at the same place, or on the
 last chip. A chip not enabled is passed by, muted. With neither callback, or no
 enabled chip, it takes neither the focus nor the mouse. A screen reader reads
 each chip as a checkbox, checked while it is in `selected`, where there is an
-`onPressed`, else as a list item.
+`onSelectionChanged`, else as a list item.
 
 ## `ValueStepper<T>`
 

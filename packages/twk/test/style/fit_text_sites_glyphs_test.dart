@@ -34,7 +34,7 @@ void main() {
           ChipList<String>(
             chips: const [Choice('x', 'a very long label')],
             selected: const {},
-            onPressed: (_) {},
+            onSelectionChanged: (_) {},
           ),
         ),
         size: (10, 2),

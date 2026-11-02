@@ -50,12 +50,8 @@ Widget build(BuildContext context) {
             for (final t in _tags) Choice(t, t, enabled: t != 'beta'),
           ],
           selected: _on,
-          onPressed: (tag) => setState(() {
-            _on = _on.contains(tag)
-                ? ({..._on}..remove(tag))
-                : {..._on, tag};
-          }),
-          onRemove: (tag) {
+          onSelectionChanged: (now) => setState(() => _on = now),
+          onDeleted: (tag) {
             setState(() => _tags = [..._tags]..remove(tag));
           },
         ),

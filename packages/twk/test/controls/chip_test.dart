@@ -29,7 +29,7 @@ Future<void> press(TwkTester t, String keys) async {
 }
 
 /// A list of [chips] that keeps its chips and what is on, reporting each
-/// press to [pressed] and each removal to [removed], then a button.
+/// new selection to [pressed] and each removal to [removed], then a button.
 Widget list(
   ValueNotifier<List<Choice<String>>> chips,
   ValueNotifier<Set<String>> on, {
@@ -48,15 +48,13 @@ Widget list(
         chips: chips.value,
         selected: on.value,
         focusNode: focusNode,
-        onPressed: press
-            ? (v) {
-                pressed?.add(v);
-                on.value = on.value.contains(v)
-                    ? ({...on.value}..remove(v))
-                    : {...on.value, v};
+        onSelectionChanged: press
+            ? (now) {
+                pressed?.add(now.toString());
+                on.value = now;
               }
             : null,
-        onRemove: remove
+        onDeleted: remove
             ? (v) {
                 removed?.add(v);
                 chips.value = [...chips.value.where((c) => c.value != v)];
@@ -75,47 +73,66 @@ Widget list(
 String? focused(TwkTester t) => t.binding.focusManager.primaryFocus?.debugLabel;
 
 void main() {
-  testTwk('a chip is its label between blanks, × after it where removable; '
-      'selected in the primary color filled and bold, a disabled one '
-      'muted', (t) async {
+  testTwk('a Chip is its label between blanks; selected in the primary '
+      'color filled and bold', (t) async {
     await t.pumpWidget(
       const Theme.terminal(
         child: Row(
           gap: 1,
-          children: [
-            Chip('a'),
-            Chip('b', selected: true, removable: true),
-            Chip('c', enabled: false),
-          ],
+          children: [Chip('a'), Chip('b', selected: true)],
         ),
       ),
       size: (30, 1),
     );
-    expect(t.lines, [' a   b ×   c']);
+    expect(t.lines, [' a   b']);
     expect(t, styleAt(5, 0, hasAttr(Attr.bold)));
     expect(t, styleAt(1, 0, isNot(hasAttr(Attr.bold))));
-    expect(t, styleAt(11, 0, hasFg(const Color.indexed(245))));
+  });
+
+  testTwk('in a list a chip has × where deletable, a disabled one is muted', (
+    t,
+  ) async {
+    await t.pumpWidget(
+      Theme.terminal(
+        child: ChipList<String>(
+          chips: const [
+            Choice('a', 'a'),
+            Choice('b', 'b'),
+            Choice('c', 'c', enabled: false),
+          ],
+          selected: const {'b'},
+          onDeleted: (_) {},
+        ),
+      ),
+      size: (30, 1),
+    );
+    expect(t.lines, [' a ×   b ×   c ×']);
+    expect(t, styleAt(7, 0, hasAttr(Attr.bold)));
+    expect(t, styleAt(1, 0, isNot(hasAttr(Attr.bold))));
+    expect(t, styleAt(13, 0, hasFg(const Color.indexed(245))));
   });
 
   testTwk('a chip selected and highlighted shows both: the cursor row and '
       'the primary color, bold', (t) async {
+    final node = FocusNode(debugLabel: 'tags');
+    addTearDown(node.dispose);
     await t.pumpWidget(
-      const Theme.terminal(
-        child: Row(
-          gap: 1,
-          children: [
-            Chip('a', highlighted: true),
-            Chip('b', highlighted: true, selected: true),
-          ],
+      Theme.terminal(
+        child: ChipList<String>(
+          chips: const [Choice('a', 'a'), Choice('b', 'b')],
+          selected: const {'a'},
+          focusNode: node,
+          onSelectionChanged: (_) {},
         ),
       ),
       size: (20, 1),
     );
+    node.requestFocus();
+    await t.pump();
     expect(t.lines, [' a   b']);
-    expect(t, styleAt(1, 0, isNot(hasAttr(Attr.bold))));
-    expect(t, styleAt(5, 0, hasAttr(Attr.bold)));
-    expect(t, styleAt(5, 0, hasBg(const Color.indexed(237))));
+    expect(t, styleAt(1, 0, hasAttr(Attr.bold)));
     expect(t, styleAt(1, 0, hasBg(const Color.indexed(237))));
+    expect(t, styleAt(5, 0, isNot(hasBg(const Color.indexed(237)))));
   });
 
   testTwk('the chips wrap onto rows at the width, a blank between two', (
@@ -199,10 +216,11 @@ void main() {
     node.requestFocus();
     await t.pump();
     await press(t, 'space right enter');
-    expect(pressed, ['dart', 'tui']);
+    expect(pressed, ['{dart}', '{dart, tui}']);
     expect(on.value, {'dart', 'tui'});
     await press(t, 'space');
     expect(on.value, {'dart'});
+    expect(pressed.last, '{dart}');
     await press(t, 'delete');
     expect(removed, ['tui']);
     // the list is dart, beta, terminal; the highlight was on the second
@@ -212,7 +230,8 @@ void main() {
     expect(removed, ['tui', 'terminal']);
     // the last chip now is beta, disabled: the highlight went to dart
     await press(t, 'space');
-    expect(pressed.last, 'dart');
+    expect(pressed.last, '{}');
+    expect(on.value, isEmpty);
   });
 
   testTwk('a click on a chip presses it, on its × removes it, between '
@@ -230,14 +249,14 @@ void main() {
     // ' dart ×   tui ×   beta ×': dart 0-7, tui 9-15, beta 17-24
     await t.click(2, 0);
     await t.pump();
-    expect(pressed, ['dart']);
+    expect(pressed, ['{dart}']);
     expect(t, styleAt(1, 0, hasBg(const Color.indexed(237))));
     await t.click(8, 0);
     await t.pump();
-    expect(pressed, ['dart']);
+    expect(pressed, ['{dart}']);
     await t.click(11, 0);
     await t.pump();
-    expect(pressed, ['dart', 'tui']);
+    expect(pressed, ['{dart}', '{dart, tui}']);
     // the × of dart, and the blank after it
     await t.click(6, 0);
     await t.pump();
@@ -251,52 +270,61 @@ void main() {
     await t.click(7, 0);
     await t.pump();
     expect(removed, ['dart', 'tui']);
-    expect(pressed, ['dart', 'tui']);
+    expect(pressed, ['{dart}', '{dart, tui}']);
   });
 
-  testTwk('without onRemove no ×, no Delete; without onPressed a click '
-      'only highlights; with neither the list takes no focus', (t) async {
-    final chips = ValueNotifier(tags);
-    final on = ValueNotifier(<String>{});
-    final node = FocusNode(debugLabel: 'tags');
-    addTearDown(node.dispose);
-    await t.pumpWidget(
-      Theme.terminal(child: list(chips, on, remove: false, focusNode: node)),
-      size: (30, 4),
-    );
-    expect(t.lines.first, ' dart   tui   beta   terminal');
-    node.requestFocus();
-    await t.pump();
-    expect(hints(t), ['left previous', 'right next', 'space toggle']);
-    await t.pumpWidget(
-      Theme.terminal(
-        child: list(chips, on, press: false, remove: false, focusNode: node),
-      ),
-    );
-    // a list that only removes: Space does nothing, a click on a chip
-    // highlights it
-    final removed = <String>[];
-    await t.pumpWidget(
-      Theme.terminal(
-        child: list(chips, on, press: false, removed: removed, focusNode: node),
-      ),
-    );
-    await t.click(11, 0);
-    await t.pump();
-    expect(t, styleAt(11, 0, hasBg(const Color.indexed(237))));
-    await press(t, 'space');
-    expect(on.value, isEmpty);
-    expect(removed, isEmpty);
-    await press(t, 'delete');
-    expect(removed, ['tui']);
-    await t.pumpWidget(
-      Theme.terminal(
-        child: list(chips, on, press: false, remove: false, focusNode: node),
-      ),
-    );
-    await press(t, 'tab');
-    expect(focused(t), 'next');
-  });
+  testTwk(
+    'without onDeleted no ×, no Delete; without onSelectionChanged a click '
+    'only highlights; with neither the list takes no focus',
+    (t) async {
+      final chips = ValueNotifier(tags);
+      final on = ValueNotifier(<String>{});
+      final node = FocusNode(debugLabel: 'tags');
+      addTearDown(node.dispose);
+      await t.pumpWidget(
+        Theme.terminal(child: list(chips, on, remove: false, focusNode: node)),
+        size: (30, 4),
+      );
+      expect(t.lines.first, ' dart   tui   beta   terminal');
+      node.requestFocus();
+      await t.pump();
+      expect(hints(t), ['left previous', 'right next', 'space toggle']);
+      await t.pumpWidget(
+        Theme.terminal(
+          child: list(chips, on, press: false, remove: false, focusNode: node),
+        ),
+      );
+      // a list that only removes: Space does nothing, a click on a chip
+      // highlights it
+      final removed = <String>[];
+      await t.pumpWidget(
+        Theme.terminal(
+          child: list(
+            chips,
+            on,
+            press: false,
+            removed: removed,
+            focusNode: node,
+          ),
+        ),
+      );
+      await t.click(11, 0);
+      await t.pump();
+      expect(t, styleAt(11, 0, hasBg(const Color.indexed(237))));
+      await press(t, 'space');
+      expect(on.value, isEmpty);
+      expect(removed, isEmpty);
+      await press(t, 'delete');
+      expect(removed, ['tui']);
+      await t.pumpWidget(
+        Theme.terminal(
+          child: list(chips, on, press: false, remove: false, focusNode: node),
+        ),
+      );
+      await press(t, 'tab');
+      expect(focused(t), 'next');
+    },
+  );
 
   testTwk('a screen reader reads checkboxes, checked while selected; the '
       'highlighted chip focused', (t) async {
@@ -365,12 +393,73 @@ void main() {
     expect(t.lines.first, contains('…'));
   });
 
+  testTwk('a chip toggled reports the new set, the selected one with the '
+      'value added or taken out, the last one too; the set the app gave is not '
+      'changed', (t) async {
+    final seen = <Set<String>>[];
+    const given = {'tui'};
+    final node = FocusNode(debugLabel: 'tags');
+    addTearDown(node.dispose);
+    await t.pumpWidget(
+      Theme.terminal(
+        child: ChipList<String>(
+          chips: tags,
+          selected: given,
+          focusNode: node,
+          onSelectionChanged: seen.add,
+        ),
+      ),
+      size: (30, 4),
+    );
+    node.requestFocus();
+    await t.pump();
+    await press(t, 'space right space');
+    expect(seen, [
+      {'tui', 'dart'},
+      {'dart'}.difference({'dart'}),
+    ]);
+    expect(given, {'tui'});
+  });
+
+  testTwk('a chip deleted reports its value only, with no selection call', (
+    t,
+  ) async {
+    final deleted = <String>[];
+    final seen = <Set<String>>[];
+    await t.pumpWidget(
+      Theme.terminal(
+        child: ChipList<String>(
+          chips: tags,
+          onSelectionChanged: seen.add,
+          onDeleted: deleted.add,
+        ),
+      ),
+      size: (30, 4),
+    );
+    await t.click(6, 0);
+    await t.pump();
+    expect(deleted, ['dart']);
+    expect(seen, isEmpty);
+  });
+
+  testTwk('a Chip alone has no × and nothing to press', (t) async {
+    await t.pumpWidget(
+      const Theme.terminal(child: Chip('beta', selected: true)),
+      size: (20, 1),
+    );
+    expect(t.lines.first.trimRight(), ' beta');
+    await t.click(2, 0);
+    await t.pump();
+    expect(t.lines.first.trimRight(), ' beta');
+    expect(t.binding.focusManager.primaryFocus, isNull);
+  });
+
   test('on plain output a selected chip shows ✓ before its label', () async {
     final lines = await plainLines(
       ChipList<String>(
         chips: const [Choice('a', 'a'), Choice('b', 'b')],
         selected: const {'b'},
-        onPressed: (_) {},
+        onSelectionChanged: (_) {},
       ),
       width: 30,
     );

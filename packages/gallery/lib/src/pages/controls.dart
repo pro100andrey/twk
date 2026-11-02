@@ -2668,15 +2668,10 @@ final _chips = GalleryPage(
     "            for (final t in _tags) Choice(t, t, enabled: t != 'beta'),",
     '          ],',
     '          selected: _on,',
-    if (o.flag('toggle')) ...[
-      '          onPressed: (tag) => setState(() {',
-      '            _on = _on.contains(tag)',
-      '                ? ({..._on}..remove(tag))',
-      '                : {..._on, tag};',
-      '          }),',
-    ],
+    if (o.flag('toggle'))
+      '          onSelectionChanged: (now) => setState(() => _on = now),',
     if (o.flag('remove')) ...[
-      '          onRemove: (tag) {',
+      '          onDeleted: (tag) {',
       '            setState(() => _tags = [..._tags]..remove(tag));',
       '          },',
     ],
@@ -2735,13 +2730,8 @@ final class _TagsState extends State<_Tags> with _Kept {
               for (final t in tags) Choice(t, t, enabled: t != 'beta'),
             ],
             selected: on,
-            onPressed: widget.toggle
-                ? (tag) => keep(
-                    'on',
-                    on.contains(tag) ? ({...on}..remove(tag)) : {...on, tag},
-                  )
-                : null,
-            onRemove: widget.remove
+            onSelectionChanged: widget.toggle ? (now) => keep('on', now) : null,
+            onDeleted: widget.remove
                 ? (tag) => keep('tags', [...tags]..remove(tag))
                 : null,
           ),
