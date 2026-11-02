@@ -55,13 +55,13 @@ void main() {
     ).allMatches(File('$root/doc/README.md').readAsStringSync());
     expect(guides, isNotEmpty);
     expect(
-      [for (final f in guides) f.path.split('/').last],
+      [for (final f in guides) f.uri.pathSegments.last],
       unorderedEquals({for (final m in listed) m[1]!}),
     );
   });
 
   for (final file in guides) {
-    final name = file.path.split('/').last;
+    final name = file.uri.pathSegments.last;
     test('$name: each Dart block is the file it names', () {
       final blocks = _dart.allMatches(file.readAsStringSync()).toList();
       for (final block in blocks) {

@@ -21,7 +21,8 @@ void main() {
     addTearDown(other.kill);
     var otherEnded = false;
     other.exitCode.then((_) => otherEnded = true).ignore();
-    expect(await t.ended(), 0);
+    // null where the VM took the code, as it does while a Process runs
+    expect(await t.ended(), exits(0));
     expect(t.outputDone, isTrue);
     expect(otherEnded, isFalse);
   });

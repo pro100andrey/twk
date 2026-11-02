@@ -315,7 +315,9 @@ void callerFileTests() {
 // fromPackageRoot: where a relative path starts from, or why it cannot.
 void fromPackageRootTests() {
   test('an absolute path is kept', () {
-    expect(fromPackageRoot('/x/y.txt', ''), '/x/y.txt');
+    // absolute as the platform writes it: on Windows with a drive
+    final path = Platform.isWindows ? r'C:\x\y.txt' : '/x/y.txt';
+    expect(fromPackageRoot(path, ''), path);
   });
 
   test('a relative path with no file frame fails and says what to pass', () {
@@ -351,9 +353,8 @@ void fromPackageRootTests() {
 
   test('a relative path from a file in a package starts at its root', () {
     final root = Directory.current.path;
-    expect(
-      fromPackageRoot('g.txt', '#0 main (file://$root/test/a_test.dart:1:1)'),
-      '$root/g.txt',
-    );
+    // the frame's URI as the VM writes it, `file:///D:/…` on Windows
+    final file = Uri.file('$root/test/a_test.dart');
+    expect(fromPackageRoot('g.txt', '#0 main ($file:1:1)'), '$root/g.txt');
   });
 }

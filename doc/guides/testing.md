@@ -247,7 +247,10 @@ twk_term's emulator, `TerminalEmulator`, as a terminal would:
 `compiledProgram` of twk_test compiles the app once, `waitUntil` and
 `waitFor` wait for the screen and for the exit in real time, within a bound
 that fails saying what was waited for, never a sleep, and the tear-down
-kills the one process the test started, through its `Pty`.
+kills the one process the test started, through its `Pty`. `TWK_PLAIN=0`
+in its environment keeps the app in the terminal under CI too, where
+`CI` or `BUILD_NUMBER` would have it write plain text for a log
+([Running an app](running.md)).
 
 <!-- file: packages/twk_term/test/example/run_app_test.dart -->
 ```dart
@@ -281,6 +284,9 @@ void main() {
       [counter],
       width: 40,
       height: 6,
+      // a terminal is there, even where CI (CI=true) has runApp write
+      // plain text for a log
+      environment: {'TWK_PLAIN': '0'},
     );
     final output = pty.output.listen(screen.feed);
     // ends this process and no other, whatever the test does

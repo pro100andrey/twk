@@ -30,6 +30,9 @@ void main() {
       [counter],
       width: 40,
       height: 6,
+      // a terminal is there, even where CI (CI=true) has runApp write
+      // plain text for a log
+      environment: {'TWK_PLAIN': '0'},
     );
     final output = pty.output.listen(screen.feed);
     // ends this process and no other, whatever the test does
