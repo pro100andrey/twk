@@ -61,7 +61,7 @@ a one-row button), `trackVertical` (`│`),
 `trackHorizontal` (`─`), `thumbVertical` (`┃`), `thumbHorizontal` (`━`),
 `thumbSlim` (`▐`, an option list's thumb) and `partialBlocks` (whether a
 thumb may be in eighths of a cell), `gaugeFilled` (`─`), `gaugeHalf` (`╴`,
-null for none; `copyWith(clearGaugeHalf: true)` clears it) and `gaugeEmpty` (`─`) of a `LineGauge` whose `type` is null,
+`''` for none) and `gaugeEmpty` (`─`) of a `LineGauge` whose `type` is null,
 `spinner` (`SpinnerFrames.dots`), `lines` (`BorderType.single`, the line of
 every border, divider, split, callout and tree guide given no type of its own),
 `arrowLeft`, `arrowRight`, `arrowUp` and `arrowDown` (`← → ↑ ↓`: key hints, a

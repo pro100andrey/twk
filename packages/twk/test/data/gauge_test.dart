@@ -38,18 +38,18 @@ void main() {
     expect(show(RenderGauge(ratio: 0.5), 6).rows, ['███']);
     expect(show(RenderLineGauge(ratio: 0.5), 4).rows, ['────']);
     expect(
-      () => Gauge(ratio: 0.5, label: 'a', percentage: true),
+      () => Gauge(ratio: 0.5, label: 'a', showPercentage: true),
       throwsA(isA<AssertionError>()),
     );
     expect(
-      () => LineGauge(ratio: 0.5, label: 'a', percentage: true),
+      () => LineGauge(ratio: 0.5, label: 'a', showPercentage: true),
       throwsA(isA<AssertionError>()),
     );
   });
 
   group('Gauge', () {
     test('fills the ratio of its width, the percentage in the middle', () {
-      final shot = show(RenderGauge(ratio: 0.5, percentage: true), 10);
+      final shot = show(RenderGauge(ratio: 0.5, showPercentage: true), 10);
       expect(shot.rows, ['███50%']);
       // swapped over the filled part
       expect(shot.attrs(0), [
@@ -91,21 +91,26 @@ void main() {
     });
 
     test('takes a ratio beyond 0 and 1 as the nearest', () {
-      expect(show(RenderGauge(ratio: 1.5, percentage: true), 6).rows, [
+      expect(show(RenderGauge(ratio: 1.5, showPercentage: true), 6).rows, [
         '█100%█',
       ]);
-      expect(show(RenderGauge(ratio: -1, percentage: true), 6).rows, ['  0%']);
-      expect(show(RenderGauge(ratio: double.nan, percentage: true), 6).rows, [
+      expect(show(RenderGauge(ratio: -1, showPercentage: true), 6).rows, [
         '  0%',
       ]);
+      expect(
+        show(RenderGauge(ratio: double.nan, showPercentage: true), 6).rows,
+        [
+          '  0%',
+        ],
+      );
     });
 
     test('writes the percentage cut, as a ProgressList does: 100% only '
         'once it is full', () {
-      expect(show(RenderGauge(ratio: 0.996, percentage: true), 6).rows, [
+      expect(show(RenderGauge(ratio: 0.996, showPercentage: true), 6).rows, [
         '█99%██',
       ]);
-      expect(show(RenderGauge(ratio: 0.29, percentage: true), 6).rows, [
+      expect(show(RenderGauge(ratio: 0.29, showPercentage: true), 6).rows, [
         '█29%',
       ]);
     });
@@ -254,14 +259,14 @@ void main() {
       double ratio,
       int width, {
       String? label,
-      bool percentage = false,
+      bool showPercentage = false,
       BorderType type = BorderType.single,
       int ambiguousWidth = 1,
     }) => show(
       RenderLineGauge(
         ratio: ratio,
         label: label,
-        percentage: percentage,
+        showPercentage: showPercentage,
         type: type,
       ),
       width,
@@ -272,7 +277,7 @@ void main() {
       final shot = show(
         RenderLineGauge(
           ratio: 0.5,
-          percentage: true,
+          showPercentage: true,
           filledStyle: const Style(fg: red),
           unfilledStyle: const Style(fg: grey),
         ),
@@ -290,8 +295,11 @@ void main() {
     });
 
     test('writes the percentage cut: 100% only once it is full', () {
-      expect(line(0.996, 8, percentage: true), '99% ━━━━'.replaceAll('━', '─'));
-      expect(line(1, 8, percentage: true), '100% ───');
+      expect(
+        line(0.996, 8, showPercentage: true),
+        '99% ━━━━'.replaceAll('━', '─'),
+      );
+      expect(line(1, 8, showPercentage: true), '100% ───');
     });
 
     test('an empty half mark is no half cell: whole cells, not a - line', () {
@@ -305,14 +313,26 @@ void main() {
       expect(shot.rows, ['──────────'.substring(0, 10)]);
     });
 
+    test(
+      'Glyphs.ascii has no half mark, spelled empty like any optional one',
+      () {
+        expect(Glyphs.ascii.gaugeHalf, '');
+        final shot = show(
+          RenderLineGauge(ratio: 0.44, glyphs: Glyphs.ascii),
+          10,
+        );
+        expect(shot.rows, ['====------']);
+      },
+    );
+
     test('fills to the nearest half cell where the type has one', () {
-      expect(line(0.45, 14, percentage: true), '45% ────╴─────');
+      expect(line(0.45, 14, showPercentage: true), '45% ────╴─────');
       expect(
-        line(0.45, 14, percentage: true, type: BorderType.heavy),
+        line(0.45, 14, showPercentage: true, type: BorderType.heavy),
         '45% ━━━━╸━━━━━',
       );
       expect(
-        line(0.05, 14, percentage: true, type: BorderType.rounded),
+        line(0.05, 14, showPercentage: true, type: BorderType.rounded),
         '5% ╴──────────',
       );
     });
@@ -321,7 +341,7 @@ void main() {
       final shot = show(
         RenderLineGauge(
           ratio: 0.45,
-          percentage: true,
+          showPercentage: true,
           type: BorderType.double,
           filledStyle: const Style(fg: red),
         ),
@@ -334,7 +354,7 @@ void main() {
 
     test('draws ASCII where box drawing is two columns wide', () {
       expect(
-        line(0.45, 14, percentage: true, ambiguousWidth: 2),
+        line(0.45, 14, showPercentage: true, ambiguousWidth: 2),
         '45% ----------',
       );
     });
@@ -346,8 +366,8 @@ void main() {
     });
 
     test('cuts the label off at the right edge', () {
-      expect(line(0.5, 3, percentage: true), '50%');
-      expect(line(0.5, 4, percentage: true), '50%');
+      expect(line(0.5, 3, showPercentage: true), '50%');
+      expect(line(0.5, 4, showPercentage: true), '50%');
       expect(line(0.5, 2, label: 'abc'), 'ab');
     });
 
@@ -401,7 +421,7 @@ void main() {
           data: theme,
           child: LineGauge(
             ratio: 0.5,
-            percentage: true,
+            showPercentage: true,
             filledStyle: Style(fg: red),
           ),
         ),
@@ -426,7 +446,7 @@ void main() {
           style: style,
           child: const LineGauge(
             ratio: 0.5,
-            percentage: true,
+            showPercentage: true,
             filledStyle: Style(fg: red),
           ),
         ),

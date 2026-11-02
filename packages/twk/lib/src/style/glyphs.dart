@@ -186,7 +186,7 @@ final class Glyphs {
     thumbSlim: '#',
     partialBlocks: false,
     gaugeFilled: '=',
-    gaugeHalf: null,
+    gaugeHalf: '',
     gaugeEmpty: '-',
     spinner: SpinnerFrames.line,
     lines: BorderType.ascii,
@@ -355,9 +355,9 @@ final class Glyphs {
   /// The filled part of a `LineGauge`.
   final String gaugeFilled;
 
-  /// The filled part's last half cell of a `LineGauge`; null for a set
+  /// The filled part's last half cell of a `LineGauge`; empty for a set
   /// that has none, whole cells then.
-  final String? gaugeHalf;
+  final String gaugeHalf;
 
   /// The rest of a `LineGauge`.
   final String gaugeEmpty;
@@ -436,8 +436,8 @@ final class Glyphs {
         : type;
   }
 
-  /// This set with the marks given in place of its own; [clearGaugeHalf]
-  /// leaves it with no [gaugeHalf], whatever `gaugeHalf` says.
+  /// This set with the marks given in place of its own; a `gaugeHalf` of
+  /// `''` leaves it with no half cell.
   Glyphs copyWith({
     String? cursor,
     String? accent,
@@ -482,7 +482,6 @@ final class Glyphs {
     bool? partialBlocks,
     String? gaugeFilled,
     String? gaugeHalf,
-    bool clearGaugeHalf = false,
     String? gaugeEmpty,
     SpinnerFrames? spinner,
     BorderType? lines,
@@ -544,7 +543,7 @@ final class Glyphs {
       thumbSlim: thumbSlim ?? this.thumbSlim,
       partialBlocks: partialBlocks ?? this.partialBlocks,
       gaugeFilled: gaugeFilled ?? this.gaugeFilled,
-      gaugeHalf: clearGaugeHalf ? null : gaugeHalf ?? this.gaugeHalf,
+      gaugeHalf: gaugeHalf ?? this.gaugeHalf,
       gaugeEmpty: gaugeEmpty ?? this.gaugeEmpty,
       spinner: spinner ?? this.spinner,
       lines: lines ?? this.lines,

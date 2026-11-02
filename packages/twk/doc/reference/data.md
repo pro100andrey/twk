@@ -16,10 +16,10 @@ of eighth blocks, the newest at the right;
 `Gauge` and `LineGauge`, a ratio with a label (`LineGauge(segmented: true)`
 a column a cell, `▍`, instead of a line: a meter of segments; the line is
 the theme's `glyphs.gaugeFilled`, `gaugeHalf` and `gaugeEmpty` unless `type:`
-names a `BorderType`); `percentage: true` (off by default) shows the ratio as a
+names a `BorderType`); `showPercentage: true` (off by default) shows the ratio as a
 whole percentage, cut rather than rounded (`42%`, `100%` only once full) in
 the place of a null `label`, over the gauge or before the line (a `label` and
-`percentage` together are an error in `Gauge`);
+`showPercentage` together are an error in `Gauge`);
 
 ## `BarChart`
 

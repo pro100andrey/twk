@@ -174,7 +174,7 @@ final class ChartGlyphs {
     int y,
     int cells, {
     required String filled,
-    required String? half,
+    required String half,
     required String empty,
     required int filledPen,
     required int unfilledPen,
@@ -199,9 +199,7 @@ final class ChartGlyphs {
       Glyphs.ascii.gaugeEmpty,
       segmenter,
     );
-    final part = half == null
-        ? null
-        : optionalCellRune(object, 'gaugeHalf', half, segmenter);
+    final part = optionalCellRune(object, 'gaugeHalf', half, segmenter);
     if (run case (final from, final width)) {
       canvas
         ..fill(x, y, cells, 1, unfilledPen, rest)

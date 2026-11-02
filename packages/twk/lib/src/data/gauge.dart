@@ -15,7 +15,7 @@ import 'chart_glyphs.dart';
 
 /// [ratio] of its width filled from the left, in eighths of a cell, on
 /// every row, with [label] in the middle of the middle row, or with
-/// [percentage] the ratio as a percentage. As wide as it may be and a row
+/// [showPercentage] the ratio as a percentage. As wide as it may be and a row
 /// tall, taller
 /// where the constraints ask for more rows; a repaint boundary, so a new
 /// ratio repaints nothing else.
@@ -29,16 +29,18 @@ import 'chart_glyphs.dart';
 /// The same with the percentage over it, `66%`:
 ///
 /// ```dart
-/// const Gauge(ratio: 2 / 3, percentage: true)
+/// const Gauge(ratio: 2 / 3, showPercentage: true)
 /// ```
 ///
 /// What an app that draws its own meter sets here (the gallery's page
 /// shows each): the color of the filled part, [style]'s [Style.fg], over
 /// its [Style.bg]; the label's, [labelStyle]; the text, [label] or
-/// [percentage]; the width and the height, by the constraints around it
+/// [showPercentage]; the width and the height, by the constraints around it
 /// (a `ConstrainedBox` for a size between a least and a most), as the bar
 /// takes all the width it is given. Its marks are eighth blocks, or braille
-/// where those are not one column wide, and are not the theme's.
+/// where those are not one column wide; where the theme's
+/// [Glyphs.partialBlocks] is false (as in [Glyphs.ascii]) the bar is drawn
+/// with the ramp of its [Glyphs.shades] instead.
 ///
 /// See also:
 ///
@@ -50,12 +52,12 @@ final class Gauge extends LeafRenderObjectWidget {
     required this.ratio,
     super.key,
     this.label,
-    this.percentage = false,
+    this.showPercentage = false,
     this.style = const Style(),
     this.labelStyle = const Style(),
   }) : assert(
-         label == null || !percentage,
-         'a label or the percentage, not both',
+         label == null || !showPercentage,
+         'a label or showPercentage, not both',
        );
 
   /// How much of the gauge is filled, from 0 to 1; a ratio beyond them
@@ -63,13 +65,13 @@ final class Gauge extends LeafRenderObjectWidget {
   final double ratio;
 
   /// The text over the gauge, cut off at its edges; null for none, or for
-  /// the percentage with [percentage].
+  /// the percentage with [showPercentage].
   final String? label;
 
   /// Whether the ratio shows over the gauge, where [label] is null, as a
   /// whole percentage, cut rather than rounded (`42%`, `100%` only once it
   /// is full).
-  final bool percentage;
+  final bool showPercentage;
 
   /// The filled part's color ([Style.fg]) and the background ([Style.bg]),
   /// over the [DefaultTextStyle] and, under that, the theme's text and
@@ -84,7 +86,7 @@ final class Gauge extends LeafRenderObjectWidget {
   RenderGauge createRenderObject(BuildContext context) => RenderGauge(
     ratio: ratio,
     label: label,
-    percentage: percentage,
+    showPercentage: showPercentage,
     glyphs: Theme.of(context).glyphs,
     style: _styleAt(context, style),
     labelStyle: labelStyle,
@@ -95,14 +97,14 @@ final class Gauge extends LeafRenderObjectWidget {
     renderObject
       ..ratio = ratio
       ..label = label
-      ..percentage = percentage
+      ..showPercentage = showPercentage
       ..glyphs = Theme.of(context).glyphs
       ..style = _styleAt(context, style)
       ..labelStyle = labelStyle;
   }
 }
 
-/// [ratio] as a line after [label] (or with [percentage] the ratio as a
+/// [ratio] as a line after [label] (or with [showPercentage] the ratio as a
 /// percentage) and a blank: the part from the left filled in
 /// [filledStyle], the rest in [unfilledStyle], to the nearest half cell
 /// where [type] has a line that ends in the middle of a cell. On the
@@ -133,7 +135,7 @@ final class Gauge extends LeafRenderObjectWidget {
 /// ```dart
 /// const LineGauge(
 ///   ratio: 0.42,
-///   percentage: true,
+///   showPercentage: true,
 ///   type: BorderType.heavy,
 ///   filledStyle: Style(fg: Color.rgb(0, 200, 0)),
 /// )
@@ -161,15 +163,15 @@ final class LineGauge extends LeafRenderObjectWidget {
     required this.ratio,
     super.key,
     this.label,
-    this.percentage = false,
+    this.showPercentage = false,
     this.type,
     this.style = const Style(),
     this.filledStyle = const Style(),
     this.unfilledStyle = const Style(),
     this.segmented = false,
   }) : assert(
-         label == null || !percentage,
-         'a label or the percentage, not both',
+         label == null || !showPercentage,
+         'a label or showPercentage, not both',
        );
 
   /// How much of the line is filled, from 0 to 1; a ratio beyond them
@@ -177,12 +179,12 @@ final class LineGauge extends LeafRenderObjectWidget {
   final double ratio;
 
   /// The text before the line, cut off at the right edge; null (or empty)
-  /// for none, or for the percentage with [percentage].
+  /// for none, or for the percentage with [showPercentage].
   final String? label;
 
   /// Whether the ratio shows before the line, where [label] is null, as a
   /// whole percentage, cut rather than rounded (`42%`).
-  final bool percentage;
+  final bool showPercentage;
 
   /// The lines drawn: their horizontal piece, and the piece that reaches
   /// left only for a half cell. Where the canvas draws them two columns
@@ -212,7 +214,7 @@ final class LineGauge extends LeafRenderObjectWidget {
   RenderLineGauge createRenderObject(BuildContext context) => RenderLineGauge(
     ratio: ratio,
     label: label,
-    percentage: percentage,
+    showPercentage: showPercentage,
     type: type,
     glyphs: Theme.of(context).glyphs,
     segmented: segmented,
@@ -226,7 +228,7 @@ final class LineGauge extends LeafRenderObjectWidget {
     renderObject
       ..ratio = ratio
       ..label = label
-      ..percentage = percentage
+      ..showPercentage = showPercentage
       ..type = type
       ..glyphs = Theme.of(context).glyphs
       ..segmented = segmented
@@ -251,7 +253,7 @@ abstract base class _RenderGaugeBase extends RenderObject {
   _RenderGaugeBase(
     this._ratio,
     this._label,
-    this._percentage,
+    this._showPercentage,
     this._style,
     this._glyphs,
   );
@@ -283,7 +285,7 @@ abstract base class _RenderGaugeBase extends RenderObject {
   String? _label;
 
   /// The text shown, as [Gauge.label] and [LineGauge.label]; null for
-  /// none, or for the ratio as a percentage with [percentage].
+  /// none, or for the ratio as a percentage with [showPercentage].
   String? get label => _label;
   set label(String? l) {
     if (l != _label) {
@@ -292,20 +294,20 @@ abstract base class _RenderGaugeBase extends RenderObject {
     }
   }
 
-  bool _percentage;
+  bool _showPercentage;
 
   /// Whether the ratio shows as a percentage where [label] is null, as
-  /// [Gauge.percentage] and [LineGauge.percentage].
-  bool get percentage => _percentage;
-  set percentage(bool p) {
-    if (p != _percentage) {
-      _percentage = p;
+  /// [Gauge.showPercentage] and [LineGauge.showPercentage].
+  bool get showPercentage => _showPercentage;
+  set showPercentage(bool p) {
+    if (p != _showPercentage) {
+      _showPercentage = p;
       markNeedsPaint();
     }
   }
 
   // what is shown: the label, the percentage, or nothing
-  String get _text => _label ?? (_percentage ? formatPercent(_ratio) : '');
+  String get _text => _label ?? (_showPercentage ? formatPercent(_ratio) : '');
 
   Style _style;
 
@@ -353,11 +355,11 @@ final class RenderGauge extends _RenderGaugeBase {
   RenderGauge({
     required double ratio,
     String? label,
-    bool percentage = false,
+    bool showPercentage = false,
     Style style = const Style(),
     this._labelStyle = const Style(),
     Glyphs glyphs = Glyphs.unicode,
-  }) : super(ratio, label, percentage, style, glyphs);
+  }) : super(ratio, label, showPercentage, style, glyphs);
 
   Style _labelStyle;
 
@@ -410,14 +412,14 @@ final class RenderLineGauge extends _RenderGaugeBase {
   RenderLineGauge({
     required double ratio,
     String? label,
-    bool percentage = false,
+    bool showPercentage = false,
     this._type,
     this._segmented = false,
     Glyphs glyphs = Glyphs.unicode,
     Style style = const Style(),
     this._filledStyle = const Style(),
     this._unfilledStyle = const Style(),
-  }) : super(ratio, label, percentage, style, glyphs);
+  }) : super(ratio, label, showPercentage, style, glyphs);
 
   bool _segmented;
 

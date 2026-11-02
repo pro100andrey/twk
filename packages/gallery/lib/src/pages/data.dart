@@ -234,7 +234,7 @@ final _gauge = GalleryPage(
             child: Gauge(
               ratio: r,
               label: gaugeLabel,
-              percentage: percentage,
+              showPercentage: percentage,
               style: o
                   .colorStyle(context, 'color')
                   .merge(Style(bg: theme.surface.bg)),
@@ -244,7 +244,7 @@ final _gauge = GalleryPage(
           LineGauge(
             ratio: r,
             label: lineLabel,
-            percentage: percentage,
+            showPercentage: percentage,
             type: BorderType.values.byName(o.choice('line')),
             segmented: o.flag('segmented'),
             filledStyle: r > .9
@@ -297,7 +297,7 @@ final _gauge = GalleryPage(
       '          child: Gauge(',
       '            ratio: _ratio,',
       if (label == 'own') '            label: percent,',
-      if (label == 'percent') '            percentage: true,',
+      if (label == 'percent') '            showPercentage: true,',
       codeLine([
         '            style: theme.${o.color('color')}',
         '.merge(.new(bg: theme.surface.bg)),',
@@ -308,7 +308,7 @@ final _gauge = GalleryPage(
       '        LineGauge(',
       '          ratio: _ratio,',
       if (label == 'own') r"          label: 'used $percent',",
-      if (label == 'percent') '          percentage: true,',
+      if (label == 'percent') '          showPercentage: true,',
       '          type: .${o.label('line')},',
       if (o.flag('segmented')) '          segmented: true,',
       '          filledStyle: _ratio > .9',

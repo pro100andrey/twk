@@ -88,7 +88,7 @@ packages/gallery/bin/gallery.dart`).
   `BoxConstraints(minW, maxW, minH, maxH)` positional), not `maxWidth`;
   `GestureDetector`'s `onTap`, `onDoubleTap` and `onLongPress` take the
   `PointerEvent` (`(event) {…}`, `(_) => …`), not a callback of none;
-  `LineGauge` and `Gauge` show no percentage unless `percentage: true`.
+  `LineGauge` and `Gauge` show no percentage unless `showPercentage: true`.
 
 ## Set up
 
