@@ -814,15 +814,28 @@ abstract class Element implements BuildContext {
     var newTop = 0;
     var oldBottom = oldChildren.length - 1;
     var newBottom = newWidgets.length - 1;
-    final newChildren = <Element>[];
+    // Flutter always makes a new list. Here, with as many new widgets as
+    // old children, the old list is written over: every index is read
+    // (the head and tail as they are reached, the middle before any is
+    // written) before it is written.
+    final inPlace = oldChildren.length == newWidgets.length;
+    final newChildren = inPlace ? oldChildren : <Element>[];
     Element? previous;
     while (oldTop <= oldBottom &&
         newTop <= newBottom &&
         !_forgotten(forgottenChildren, oldChildren[oldTop]) &&
         Widget.canUpdate(oldChildren[oldTop].widget, newWidgets[newTop])) {
-      final slot = IndexedSlot(newTop, previous);
-      previous = updateChild(oldChildren[oldTop], newWidgets[newTop], slot)!;
-      newChildren.add(previous);
+      final child = oldChildren[oldTop];
+      previous = updateChild(
+        child,
+        newWidgets[newTop],
+        _slotAt(child, newTop, previous),
+      )!;
+      if (inPlace) {
+        newChildren[newTop] = previous;
+      } else {
+        newChildren.add(previous);
+      }
       oldTop++;
       newTop++;
     }
@@ -859,18 +872,34 @@ abstract class Element implements BuildContext {
         // and one forgotten is taken back from where it went
         child = null;
       }
-      previous = updateChild(child, widget, IndexedSlot(newTop, previous))!;
-      newChildren.add(previous);
+      previous = updateChild(child, widget, _slotAt(child, newTop, previous))!;
+      if (inPlace) {
+        newChildren[newTop] = previous;
+      } else {
+        newChildren.add(previous);
+      }
     }
     for (var i = oldBottom + 1; i < oldChildren.length; i++, newTop++) {
       final child = oldChildren[i];
-      final slot = IndexedSlot(newTop, previous);
-      previous = updateChild(
-        _forgotten(forgottenChildren, child) ? null : child,
-        newWidgets[newTop],
-        slot,
-      )!;
-      newChildren.add(previous);
+      if (_forgotten(forgottenChildren, child)) {
+        // taken back from where it went
+        previous = updateChild(
+          null,
+          newWidgets[newTop],
+          IndexedSlot(newTop, previous),
+        )!;
+      } else {
+        previous = updateChild(
+          child,
+          newWidgets[newTop],
+          _slotAt(child, newTop, previous),
+        )!;
+      }
+      if (inPlace) {
+        newChildren[newTop] = previous;
+      } else {
+        newChildren.add(previous);
+      }
     }
     if (keyed != null) {
       for (final child in keyed.values) {
@@ -880,6 +909,22 @@ abstract class Element implements BuildContext {
       }
     }
     return newChildren;
+  }
+
+  // The slot of [child] when it is already at [index] after [previous], else
+  // a new one: updateChild moves a child whose slot is not equal.
+  static IndexedSlot<Element?> _slotAt(
+    Element? child,
+    int index,
+    Element? previous,
+  ) {
+    final slot = child?._slot;
+    if (slot is IndexedSlot<Element?> &&
+        slot.index == index &&
+        identical(slot.value, previous)) {
+      return slot;
+    }
+    return IndexedSlot<Element?>(index, previous);
   }
 
   // asked anew at each step of updateChildren: a GlobalKey takes a child
