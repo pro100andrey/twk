@@ -8,6 +8,7 @@ import 'dart:io';
 import 'dart:isolate' show Isolate;
 import 'dart:math' show max;
 
+import 'file_identity.dart';
 import 'tail_event.dart';
 
 /// The process's environment.
@@ -131,6 +132,10 @@ Stream<TailEvent> tailFile(
   // that file's own appearance, however late after a look found it, and
   // replaces nothing
   var owed = false;
+  // where the platform tells files apart (macOS): the file the name held at
+  // the last look, a look that finds another replacing it whatever the
+  // watch's events said
+  FileIdentity? held;
   late final StreamController<TailEvent> out;
 
   Future<int> length() async {
@@ -151,6 +156,13 @@ Stream<TailEvent> tailFile(
     try {
       do {
         again = false;
+        if (knowsFileIdentity) {
+          final now = fileIdentity(path);
+          if (now != null) {
+            replaced = replaced || (held != null && now != held);
+            held = now;
+          }
+        }
         if (replaced) {
           replaced = false;
           if (position > 0) {
@@ -188,6 +200,7 @@ Stream<TailEvent> tailFile(
     onListen: () {
       // the end as the stream is listened to, before anything else can
       // write: a write after it is read
+      held = fileIdentity(path);
       if (fromEnd) {
         try {
           position = file.lengthSync();
@@ -201,7 +214,9 @@ Stream<TailEvent> tailFile(
       if (FileSystemEntity.isWatchSupported) {
         try {
           watch = file.parent.watch().where((e) => _names(e, name)).listen((e) {
-            if (_replaces(e, name)) {
+            // where files are told apart the look decides; macOS tells a
+            // write to a file made just before the watch as its making
+            if (!knowsFileIdentity && _replaces(e, name)) {
               if (owed) {
                 owed = false;
               } else {
