@@ -967,11 +967,11 @@ final class _ListElement extends RenderObjectElement
     int k,
   ) {
     final byKey = <Key, Element>{};
-    live.forEach((_, e) {
+    for (final e in live.values) {
       if (_keyOf(e) case final key?) {
         byKey[key] = e;
       }
-    });
+    }
     for (var j = 0; j < k; j++) {
       if (items[j] case final taken?) {
         if (_keyOf(taken) case final key? when identical(byKey[key], taken)) {
