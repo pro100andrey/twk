@@ -1,8 +1,6 @@
 // A RenderText shapes its text into a buffer of its own, which a text
 // that changes keeps while the new text fits it; Canvas.shapeInto is what
 // it shapes with, the same glyphs and width as Canvas.shape.
-import 'dart:typed_data';
-
 import 'package:test/test.dart';
 import 'package:twk_core/twk_core.dart';
 
@@ -10,24 +8,52 @@ void main() {
   group('Canvas.shapeInto', () {
     test('writes the glyphs and width that shape makes', () {
       final canvas = Canvas(Surface(10, 1), StyleTable(), GlyphTable());
-      for (final s in ['', 'plain', 'wide 日本 text', 'é tab\tx']) {
+      final out = GlyphBuffer();
+      for (final s in ['', 'plain', 'wide 日本 text', 'é tab\tx', 'e\u0301ü']) {
         final run = canvas.shape(s);
-        final out = Uint32List(s.length);
-        final n = canvas.shapeInto(s, out);
-        expect(out.sublist(0, n), run.glyphs, reason: s);
-        expect(canvas.shapedWidth, run.width, reason: s);
+        canvas.shapeInto(s, out);
+        expect(out.words.sublist(0, out.length), run.glyphs, reason: s);
+        expect(out.width, run.width, reason: s);
       }
     });
 
-    test('draws as the run does through runRange', () {
+    test('grows past its capacity and keeps it', () {
+      final canvas = Canvas(Surface(10, 1), StyleTable(), GlyphTable());
+      final out = GlyphBuffer();
+      const start = 16;
+      canvas.shapeInto('x' * (start * 3), out);
+      expect(out.length, start * 3);
+      expect(out.width, start * 3);
+      final grown = out.capacity;
+      expect(grown, greaterThanOrEqualTo(start * 3));
+      canvas.shapeInto('ab', out);
+      expect(out.length, 2);
+      expect(out.width, 2);
+      expect(out.capacity, grown);
+      out.clear();
+      expect((out.length, out.width, out.capacity), (0, 0, grown));
+    });
+
+    test('two buffers shaped in turn do not disturb each other', () {
+      final canvas = Canvas(Surface(10, 1), StyleTable(), GlyphTable());
+      final a = GlyphBuffer();
+      final b = GlyphBuffer();
+      canvas
+        ..shapeInto('日本', a)
+        ..shapeInto('abc', b);
+      expect((a.length, a.width), (2, 4));
+      expect((b.length, b.width), (3, 3));
+    });
+
+    test('draws as the run does through runBuffer', () {
       final a = Screen(12, 1);
       final b = Screen(12, 1);
       final pa = a.styles.pen(const Pen());
       final pb = b.styles.pen(const Pen());
       a.canvas.run(0, 0, a.canvas.shape('日本 ab'), pa);
-      final out = Uint32List(8);
-      final n = b.canvas.shapeInto('日本 ab', out);
-      b.canvas.runRange(0, 0, out, 0, n, pb);
+      final out = GlyphBuffer();
+      b.canvas.shapeInto('日本 ab', out);
+      b.canvas.runBuffer(0, 0, out, pb);
       expect(b.surface.cells, a.surface.cells);
     });
   });

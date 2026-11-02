@@ -44,6 +44,57 @@ final class GlyphRun {
   final int width;
 }
 
+final _noWords = Uint32List(0);
+
+/// Glyph words a caller keeps and [Canvas.shapeInto] fills, again and
+/// again: the words, how many there are and the columns they take, which
+/// go together. It grows to what it is given and keeps what it grew to
+/// (a growable list's `clear` would give the storage up).
+///
+/// ```dart
+/// final canvas = Canvas(Surface(20, 1), StyleTable(), GlyphTable());
+/// final shaped = GlyphBuffer();
+/// canvas.shapeInto('Ready', shaped);
+/// canvas.runBuffer(0, 0, shaped, 0);
+/// assert(shaped.length == 5 && shaped.width == 5);
+/// ```
+final class GlyphBuffer {
+  Uint32List _words = _noWords;
+  var _length = 0;
+  var _width = 0;
+
+  /// How many glyph words are held.
+  int get length => _length;
+
+  /// The columns of the words held.
+  int get width => _width;
+
+  /// The room kept: the words held up to it, without growing.
+  int get capacity => _words.length;
+
+  /// The storage: the first [length] words are the glyphs, in the order
+  /// they are drawn, each a glyph id with [kWide] for one two columns wide
+  /// and [kUncertain] where terminals may disagree about it; the rest is
+  /// stale. Read it, do not write it: it is replaced when the buffer grows.
+  Uint32List get words => _words;
+
+  /// Empties the buffer, keeping its room.
+  void clear() {
+    _length = 0;
+    _width = 0;
+  }
+
+  void _reserve(int n) {
+    if (_words.length < n) {
+      var c = _words.length * 2;
+      if (c < n) {
+        c = n;
+      }
+      _words = Uint32List(c);
+    }
+  }
+}
+
 /// Draws on a [Surface]: text, fills, pre-shaped runs, lines merged where
 /// they meet, and images, under a translation and a clip.
 ///
@@ -510,36 +561,29 @@ final class Canvas {
     return ax - startX;
   }
 
-  /// Scratch for [shape]: at most one glyph per UTF-16 unit.
-  var _shapeBuf = Uint32List(64);
-
   /// Segments [s] once (for retained text layout); see [run].
   GlyphRun shape(String s) {
-    if (_shapeBuf.length < s.length) {
-      _shapeBuf = Uint32List(s.length * 2);
-    }
-    final n = shapeInto(s, _shapeBuf);
-    return GlyphRun(_shapeBuf.sublist(0, n), shapedWidth);
+    final b = _shapeBuf;
+    shapeInto(s, b);
+    return GlyphRun(b._words.sublist(0, b._length), b._width);
   }
 
-  /// The columns of what [shapeInto] shaped last.
-  int get shapedWidth => _shapedWidth;
-  var _shapedWidth = 0;
+  final _shapeBuf = GlyphBuffer();
 
-  /// Segments [s] as [shape] does into the first words of [out], which
-  /// must hold at least `s.length` (one glyph per UTF-16 unit at most),
-  /// and returns how many it wrote; their columns are [shapedWidth]. For
-  /// a text that keeps its own buffer: no run and no copy per change.
-  /// Draw them with [runRange].
+  /// Segments [s] as [shape] does into [out], replacing what it held: its
+  /// words, [GlyphBuffer.length] and [GlyphBuffer.width] together, grown
+  /// when [s] needs more room than it has. For a text that keeps its own
+  /// buffer: no run and no copy per change. Draw it with [runBuffer].
   ///
   /// ```dart
   /// final canvas = Canvas(Surface(20, 1), StyleTable(), GlyphTable());
-  /// final out = Uint32List('Ready'.length);
-  /// final n = canvas.shapeInto('Ready', out);
-  /// canvas.runRange(0, 0, out, 0, n, 0);
+  /// final out = GlyphBuffer();
+  /// canvas.shapeInto('Ready', out);
+  /// canvas.runBuffer(0, 0, out, 0);
   /// ```
-  int shapeInto(String s, Uint32List out) {
-    assert(out.length >= s.length, 'out holds a glyph per unit of s');
+  void shapeInto(String s, GlyphBuffer out) {
+    out._reserve(s.length);
+    final words = out._words;
     var n = 0;
     var width = 0;
     for (var i = 0; i < s.length;) {
@@ -567,12 +611,18 @@ final class Canvas {
       if (w == 2) {
         glyph |= kWide;
       }
-      out[n++] = glyph;
+      words[n++] = glyph;
       width += w;
     }
-    _shapedWidth = width;
-    return n;
+    out
+      .._length = n
+      .._width = width;
   }
+
+  /// Draws what [shapeInto] shaped into [b], as [run] draws a run.
+  @pragma('vm:prefer-inline')
+  int runBuffer(int x, int y, GlyphBuffer b, int pen) =>
+      runRange(x, y, b._words, 0, b._length, pen);
 
   /// Draws a pre-shaped run; same semantics as [text] without segmentation.
   @pragma('vm:prefer-inline')

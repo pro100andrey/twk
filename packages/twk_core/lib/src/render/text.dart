@@ -40,9 +40,8 @@ final class RenderText extends RenderObject {
   /// Whether it is a repaint boundary ([isRepaintBoundary]), which fills
   /// its bounds with [pen] before the text. False by default.
   final bool boundary;
-  // the shaped glyphs: a buffer of its own, kept while the text fits it
-  Uint32List? _glyphs;
-  var _glyphCount = 0;
+  // the shaped glyphs: a buffer of its own, kept across texts
+  final _shapedText = GlyphBuffer();
   var _shaped = false;
   // the glyph table the run is of, and its sweeps when it was shaped
   GlyphTable? _runIn;
@@ -112,14 +111,10 @@ final class RenderText extends RenderObject {
       _shaped = false;
     }
     if (!_shaped) {
-      var g = _glyphs;
-      if (g == null || g.length < _text.length) {
-        g = _glyphs = Uint32List(_text.length);
-      }
-      _glyphCount = cv.shapeInto(_text, g);
+      cv.shapeInto(_text, _shapedText);
       _shaped = true;
     }
-    cv.runRange(0, 0, _glyphs!, 0, _glyphCount, pen);
+    cv.runBuffer(0, 0, _shapedText, pen);
   }
 }
 
