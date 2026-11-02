@@ -33,11 +33,11 @@ void main() {
 
   test('renderMarkdown with Glyphs.ascii draws ASCII only', () {
     final lines = [
-      for (final l in renderMarkdown(
+      for (final l in markdownLines(
         TextSegmenter(),
         document,
         20,
-        theme,
+        theme: theme,
         glyphs: Glyphs.ascii,
       ))
         joined(l),
@@ -52,7 +52,12 @@ void main() {
   test('renderMarkdown draws Glyphs.unicode as it did, the third bullet '
       'a bullet and the task box the checkbox marks', () {
     final lines = [
-      for (final l in renderMarkdown(TextSegmenter(), document, 20, theme))
+      for (final l in markdownLines(
+        TextSegmenter(),
+        document,
+        20,
+        theme: theme,
+      ))
         joined(l),
     ];
     expect(lines, containsAll(['•   one', '    ◦ two', '      • three']));

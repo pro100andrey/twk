@@ -1,4 +1,4 @@
-/// A Markdown document as lines of styled text: [renderMarkdown].
+/// A Markdown document as lines of styled text: [markdownLines].
 ///
 /// @docImport 'markdown_view.dart';
 library;
@@ -22,8 +22,9 @@ import 'stream.dart';
 // late MarkdownTheme theme;
 
 /// Renders the Markdown document [text] as lines of styled text, each
-/// wrapped to [width] columns, in the styles of [theme]: for an app that draws
-/// the lines itself, in a panel it cuts and colours by the cell, where a
+/// wrapped to [width] columns, in the styles of [theme] (the dark terminal
+/// theme's unless given, as `jsonLines` takes it): for an app that draws the
+/// lines itself, in a panel it cuts and colours by the cell, where a
 /// [MarkdownView] (which lays out its widgets itself) cannot go. A line is
 /// its spans; its cells are the columns of its text, with no cell beyond
 /// [width], and no trailing spaces except on a line of code, which a fill
@@ -45,8 +46,7 @@ import 'stream.dart';
 /// is highlighted in the language its info string names, in the styles of
 /// [MarkdownTheme.syntax], over the code block's style, with its tabs 4
 /// columns apart and its lines broken between graphemes. Lines break as
-/// the core breaks them ([breakLines]). The marks (the bullets, a task's
-/// box, the rule, the quote's bar, the table's lines) are those of [glyphs].
+/// the core breaks them ([breakLines]).
 ///
 /// Where it differs from the widgets: the rule under a table's header
 /// ends with its last column, not at the view's edge, and a column too
@@ -62,24 +62,29 @@ import 'stream.dart';
 /// letters one column, and lines come out wider than [width] on a terminal
 /// that draws them in two.
 ///
-/// The marks (bullets, task boxes, rules, a quote's bar) are those of
-/// [glyphs], `Glyphs.unicode` unless given: it has no context to read a
-/// theme from, so a widget passes `Theme.of(context).glyphs`, as
-/// `MarkdownView` takes its own.
+/// The marks (bullets, a task's box, the rule, a quote's bar, a table's
+/// lines) are those of [glyphs], `Glyphs.unicode` unless given: it has no
+/// context to read a theme from, so a widget passes
+/// `Theme.of(context).glyphs`, as `MarkdownView` takes its own.
 ///
 /// ```dart
-/// final lines = renderMarkdown(TextSegmenter(), readme, 40, theme);
+/// final lines = markdownLines(TextSegmenter(), readme, 40, theme: theme);
 /// ```
-List<List<Span>> renderMarkdown(
+List<List<Span>> markdownLines(
   TextSegmenter segmenter,
   String text,
-  int width,
-  MarkdownTheme theme, {
+  int width, {
+  MarkdownTheme? theme,
   Glyphs glyphs = Glyphs.unicode,
 }) {
   assert(width > 0, 'width < 1');
   final stream = MarkdownStream(text);
-  return _Renderer(segmenter, stream.definitions, theme, glyphs)._blocks(
+  return _Renderer(
+    segmenter,
+    stream.definitions,
+    theme ?? MarkdownTheme.from(const ThemeData.terminal(Brightness.dark)),
+    glyphs,
+  )._blocks(
     stream.blocks,
     width,
     1,

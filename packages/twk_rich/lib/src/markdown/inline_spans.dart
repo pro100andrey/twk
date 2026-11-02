@@ -1,4 +1,4 @@
-/// What [MarkdownView] and [renderMarkdown] both make of a block: its
+/// What [MarkdownView] and [markdownLines] both make of a block: its
 /// inlines as styled spans, and the markers of its lists.
 ///
 /// @docImport 'markdown_lines.dart';

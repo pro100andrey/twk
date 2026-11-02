@@ -6,7 +6,7 @@
 /// reference definitions, by which [resolveReferences] makes the
 /// [MdReference]s of the tree links or text. [MarkdownView] shows a
 /// document, or blocks parsed already, in the styles of a [MarkdownTheme];
-/// [renderMarkdown] makes the same document lines of styled text, for an app
+/// [markdownLines] makes the same document lines of styled text, for an app
 /// that draws it itself; an app in the inline mode puts the blocks of an
 /// answer in the terminal's history as they settle while the rest streams
 /// in ([MarkdownStream.takeSettled]).
@@ -19,7 +19,7 @@ import 'nodes.dart';
 import 'references.dart';
 import 'stream.dart';
 
-export 'markdown_lines.dart' show renderMarkdown;
+export 'markdown_lines.dart' show markdownLines;
 export 'markdown_theme.dart';
 export 'markdown_view.dart';
 export 'nodes.dart';

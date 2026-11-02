@@ -148,7 +148,7 @@ final class MarkdownTheme {
 
   /// The styles of the tokens of a block of code, over its [codeBlock].
   ///
-  /// Read by `renderMarkdown`, which has no widget tree to take them from.
+  /// Read by `markdownLines`, which has no widget tree to take them from.
   /// A [MarkdownView] takes the [SyntaxTheme] at its place (a
   /// [SyntaxThemeScope], or else the [Theme]'s), and not this.
   final SyntaxTheme syntax;
