@@ -1174,6 +1174,7 @@ String _barsCode(Options o) {
     ..._focusBox('    '),
     if (down) ...[
       '      child: Scrollbar(',
+      if (across) '        axis: .vertical,',
       for (final a in args) '        $a',
       ...inner('        '),
       '      ),',

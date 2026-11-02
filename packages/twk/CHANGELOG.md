@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased
+
+- `Scrollbar` and the bar of `Box` read the axis from the scrollable
+  inside, as Flutter's `Scrollbar` does. `Scrollbar(axis:)` is nullable and
+  null by default: the outermost scrollable of either axis, where it was
+  vertical by default. So `Scrollbar()` around content whose outermost
+  scrollable is horizontal now shows that one, in a row at the bottom; to
+  keep the column around content that scrolls both ways, give
+  `axis: Axis.vertical`. A given axis picks that axis's scrollable, the
+  bar to each axis of content that scrolls both. An inner scrollable of the
+  other axis never takes the bar of an outer one.
+- `Box(scrollbar:)` takes a `ScrollbarVisibility?`, as `LogView` does,
+  where it took an `Axis?`: `.always`, `.onScroll` (the border's own line
+  shows while the thumb is hidden) or `.never`; null for none. The bar is on
+  the right side for a vertical scrollable and on the bottom for a
+  horizontal one; the border must have that side and a bottom title cannot
+  share it with a horizontal bar, as asserted.
+
 ## 0.1.0
 
 The first release.

@@ -34,9 +34,10 @@ which with `merge` joins the lines drawn before it where it meets or crosses
 them, so that boxes stacked to share an edge join in `┬ ├ ┼`, and leaves the
 text drawn in those cells, the titles of a box whose edge it shares,
 `BorderTitle`s on its top and bottom edges, `padding`: the core's
-`RenderDecoratedBox`; `scrollbar: Axis.vertical` draws the bar of the
-scrollable inside on its right side between the corners, `.horizontal` on
-its bottom (a bottom `BorderTitle` with it asserts): the border type's own
+`RenderDecoratedBox`; `scrollbar: ScrollbarVisibility.always` (or `onScroll`; `never` and null
+for none) draws the bar of the outermost scrollable inside on its right side
+between the corners for a vertical one, on its bottom for a horizontal one (a
+side the border has; a bottom `BorderTitle` with a horizontal one asserts): the border type's own
 straight line as the track while nothing scrolls, the thumb a heavier line
 over it in the theme's muted color (`█` on a heavy border, `#` on an ASCII
 one), no background painted by the bar, the box's showing, the whole cell in

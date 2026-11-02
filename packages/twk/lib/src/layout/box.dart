@@ -19,7 +19,8 @@ import 'package:twk_core/twk_core.dart'
         RenderDivider;
 
 import '../framework/framework.dart';
-import '../scroll/scrollbar.dart' show BorderScrollbar, Scrollbar;
+import '../scroll/scrollbar.dart'
+    show BorderScrollbar, Scrollbar, ScrollbarVisibility;
 import '../style/style.dart';
 import 'one_child.dart';
 
@@ -84,63 +85,62 @@ final class Box extends StatelessWidget {
   /// The empty cells between the border and the child.
   final EdgeInsets padding;
 
-  /// The axis of the scrollable in [child] whose bar is drawn on the
-  /// border, on its right side for [Axis.vertical] and its bottom for
-  /// [Axis.horizontal] (a side the [border] has), between its corners:
-  /// the border's line while there is nothing to scroll, a heavier line
-  /// over it for the thumb (`┃`, `━`) in the theme's muted color, the whole
-  /// cell in eighths while the mouse is over it, dragged and pressed as a
-  /// [Scrollbar] is. The child keeps all the room inside. Null for none.
+  /// Whether the bar of the outermost scrollable in [child] is drawn on
+  /// the border, and when its thumb shows, as for a [Scrollbar] (and
+  /// `LogView.scrollbar`): on the border's right side for a vertical
+  /// scrollable and its bottom for a horizontal one (a side the [border]
+  /// has), between its corners. The border's line shows while there is
+  /// nothing to scroll and, at [ScrollbarVisibility.onScroll], while the
+  /// thumb is hidden; a heavier line over it is the thumb (`┃`, `━`) in
+  /// the theme's muted color, the whole cell in eighths while the mouse is
+  /// over it, dragged and pressed as a [Scrollbar] is. The child keeps all
+  /// the room inside. Null or [ScrollbarVisibility.never] for none.
   ///
   /// The line and the track are the [Border.type]'s own, the thumb a
   /// heavier line (`█` on a heavy border, `#` on an ascii one), and no
   /// background is painted: the box's [style] or what is under it shows.
   /// A bottom [BorderTitle] and a horizontal bar cannot share the edge: an
-  /// assertion fails.
+  /// assertion fails, as it does for a bar on a side the border has not.
   ///
   /// A list in a panel, its bar on the panel's right side:
   ///
   /// ```dart
   /// Box(
   ///   border: const Border.all(type: .rounded),
-  ///   scrollbar: Axis.vertical,
+  ///   scrollbar: .always,
   ///   child: ListView.builder(
   ///     itemCount: 100,
   ///     itemBuilder: (context, i) => Text('item $i'),
   ///   ),
   /// )
   /// ```
-  final Axis? scrollbar;
+  final ScrollbarVisibility? scrollbar;
 
   @override
   Widget build(BuildContext context) {
-    final axis = scrollbar;
+    final visibility = scrollbar;
     final border = this.border;
-    final vertical = axis == Axis.vertical;
-    assert(
-      axis == null || (vertical ? border?.right : border?.bottom) != null,
-      'a scrollbar on a side the border has',
-    );
-    assert(
-      axis != Axis.horizontal || !titles.any((t) => t.alignment.y > 0),
-      'a horizontal scrollbar on the bottom border, which has a title: '
-      'the bar would cover it',
-    );
-    if (axis == null || border == null) {
+    if (visibility == null || visibility == ScrollbarVisibility.never) {
       return _DecoratedBox(this, child: child);
     }
-    final line = (style ?? const Style()).merge(
-      (vertical ? border.right : border.bottom) ?? const Style(),
-    );
+    assert(border != null, 'a scrollbar on a border');
+    if (border == null) {
+      return _DecoratedBox(this, child: child);
+    }
+    Style? side(Style? s) =>
+        s == null ? null : (style ?? const Style()).merge(s);
     int inset(Style? side) => side == null ? 0 : 1;
     return BorderScrollbar(
-      axis: axis,
-      line: line,
+      visibility: visibility,
+      right: side(border.right),
+      bottom: side(border.bottom),
+      bottomTitled: titles.any((t) => t.alignment.y > 0),
       type: border.type,
       thumb: Style(fg: Theme.of(context).muted.fg),
-      inset: vertical
-          ? (inset(border.top), inset(border.bottom))
-          : (inset(border.left), inset(border.right)),
+      inset: (
+        (inset(border.top), inset(border.bottom)),
+        (inset(border.left), inset(border.right)),
+      ),
       builder: (context, scope) =>
           _DecoratedBox(this, child: child == null ? null : scope(child!)),
     );

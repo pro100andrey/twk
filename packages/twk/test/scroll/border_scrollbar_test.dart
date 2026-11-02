@@ -21,11 +21,12 @@ List<String> down(TwkTester t, int x, int rows) => [
 /// A panel of [count] rows in a scroll view, its bar on its border.
 Widget panel(int count, {ScrollController? controller}) => Box(
   border: const Border.all(),
-  scrollbar: Axis.vertical,
+  scrollbar: .always,
   child: SingleChildScrollView(controller: controller, child: column(count)),
 );
 
 void main() {
+  axisTests();
   testTwk('the thumb on the right border, between its corners; the child '
       'keeps the room inside', (t) async {
     await t.pumpWidget(panel(32), size: (20, 10));
@@ -78,7 +79,7 @@ void main() {
       await t.pumpWidget(
         Box(
           border: Border.all(type: type),
-          scrollbar: Axis.vertical,
+          scrollbar: .always,
           child: SingleChildScrollView(child: column(32)),
         ),
         size: (20, 10),
@@ -107,13 +108,178 @@ void main() {
     expect(t, styleAt(19, 5, hasBg(bg)));
     expect(t, styleAt(19, 1, hasBg(bg)));
   });
+}
 
-  testTwk('a horizontal bar and a bottom title: asserted', (t) async {
+/// A panel whose scrollable is [axis], its bar on the border.
+Widget panelAlong(
+  Axis axis, {
+  ScrollbarVisibility scrollbar = ScrollbarVisibility.always,
+  List<BorderTitle> titles = const [],
+  Border border = const Border.all(),
+  ScrollController? controller,
+}) => Box(
+  border: border,
+  titles: titles,
+  scrollbar: scrollbar,
+  child: SingleChildScrollView(
+    scrollDirection: axis,
+    controller: controller,
+    child: axis == Axis.vertical ? column(32) : Text('0123456789' * 6),
+  ),
+);
+
+/// The glyphs of row [y], columns 0 to [columns] - 1.
+List<String> across(TwkTester t, int y, int columns) => [
+  for (var x = 0; x < columns; x++) t.cell(x, y).text,
+];
+
+void axisTests() {
+  testTwk("the axis is the scrollable's: a horizontal one has its bar on "
+      'the bottom border, the right side keeps its line', (t) async {
+    await t.pumpWidget(panelAlong(Axis.horizontal), size: (20, 6));
+    // 18 cells of track inside the corners, 5 of thumb
+    expect(across(t, 5, 20), [
+      '└',
+      ...List.filled(5, '━'),
+      ...List.filled(13, '─'),
+      '┘',
+    ]);
+    expect(down(t, 19, 6), ['┐', '│', '│', '│', '│', '┘']);
+    expect(t.lines[1], '│012345678901234567│');
+  });
+
+  testTwk('a child that turns from vertical to horizontal moves the bar '
+      'from the right border to the bottom', (t) async {
+    final axis = ValueNotifier(Axis.vertical);
+    addTearDown(axis.dispose);
+    await t.pumpWidget(
+      ValueListenableBuilder<Axis>(
+        valueListenable: axis,
+        builder: (context, a, _) => panelAlong(a),
+      ),
+      size: (20, 6),
+    );
+    expect(down(t, 19, 6)[1], '┃');
+    expect(across(t, 5, 20)[1], '─');
+    axis.value = Axis.horizontal;
+    await t.pump();
+    expect(down(t, 19, 6), ['┐', '│', '│', '│', '│', '┘']);
+    expect(across(t, 5, 20)[1], '━');
+    axis.value = Axis.vertical;
+    await t.pump();
+    expect(down(t, 19, 6)[1], '┃');
+    expect(across(t, 5, 20)[1], '─');
+  });
+
+  testTwk('content that scrolls both ways has the bar of the outermost '
+      'scrollable, the one inside it of the other axis not taking it', (
+    t,
+  ) async {
+    await t.pumpWidget(
+      Box(
+        border: const Border.all(),
+        scrollbar: ScrollbarVisibility.always,
+        child: SingleChildScrollView(
+          child: SizedBox(
+            height: 40,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Text('0123456789' * 6),
+            ),
+          ),
+        ),
+      ),
+      size: (20, 6),
+    );
+    expect(down(t, 19, 6)[1], '┃');
+    expect(across(t, 5, 20)[1], '─');
+  });
+
+  testTwk("onScroll: the border's own line while the thumb is hidden, the "
+      'thumb from a move until hideAfter after it', (t) async {
+    final controller = ScrollController();
+    addTearDown(controller.dispose);
+    await t.pumpWidget(
+      panelAlong(
+        Axis.vertical,
+        scrollbar: ScrollbarVisibility.onScroll,
+        controller: controller,
+      ),
+      size: (20, 10),
+    );
+    expect(down(t, 19, 10), ['┐', ...List.filled(8, '│'), '┘']);
+    controller.jumpTo(4);
+    await t.pump();
+    expect(down(t, 19, 10).where((g) => g == '┃'), isNotEmpty);
+    await t.pump(const Duration(milliseconds: 900));
+    expect(down(t, 19, 10).where((g) => g == '┃'), isNotEmpty);
+    await t.pump(const Duration(milliseconds: 200));
+    expect(down(t, 19, 10), ['┐', ...List.filled(8, '│'), '┘']);
+  });
+
+  testTwk('never: no bar, the border as it is', (t) async {
+    await t.pumpWidget(
+      panelAlong(Axis.vertical, scrollbar: ScrollbarVisibility.never),
+      size: (20, 10),
+    );
+    expect(down(t, 19, 10), ['┐', ...List.filled(8, '│'), '┘']);
+  });
+
+  testTwk("no scrollable inside: the border's line, nothing to scroll", (
+    t,
+  ) async {
     await t.pumpWidget(
       const Box(
         border: Border.all(),
-        titles: [BorderTitle(' 12 ', alignment: Alignment.bottomRight)],
-        scrollbar: Axis.horizontal,
+        scrollbar: ScrollbarVisibility.always,
+        child: Text('plain'),
+      ),
+      size: (20, 6),
+    );
+    expect(down(t, 19, 6), ['┐', '│', '│', '│', '│', '┘']);
+    expect(across(t, 5, 20), ['└', ...List.filled(18, '─'), '┘']);
+  });
+
+  testTwk('a horizontal scrollable and a bottom title: asserted', (t) async {
+    await t.pumpWidget(
+      panelAlong(
+        Axis.horizontal,
+        titles: const [BorderTitle(' 12 ', alignment: Alignment.bottomRight)],
+      ),
+      size: (20, 6),
+    );
+    expect(t.lines.join(), contains('Failed assertion'));
+  });
+
+  testTwk('a vertical scrollable and a bottom title: the bar on the right '
+      'and the title where it is', (t) async {
+    await t.pumpWidget(
+      panelAlong(
+        Axis.vertical,
+        titles: const [BorderTitle(' 12 ', alignment: Alignment.bottomRight)],
+      ),
+      size: (20, 10),
+    );
+    expect(t.lines.join(), isNot(contains('Failed assertion')));
+    expect(t.lines[9], contains(' 12 '));
+  });
+
+  testTwk('a scrollable whose side the border has not: asserted', (t) async {
+    await t.pumpWidget(
+      panelAlong(
+        Axis.vertical,
+        border: const Border(left: Style(), top: Style(), bottom: Style()),
+      ),
+      size: (20, 10),
+    );
+    expect(t.lines.join(), contains('Failed assertion'));
+  });
+
+  testTwk('a bar without a border: asserted', (t) async {
+    await t.pumpWidget(
+      Box(
+        scrollbar: ScrollbarVisibility.always,
+        child: SingleChildScrollView(child: column(32)),
       ),
       size: (20, 10),
     );

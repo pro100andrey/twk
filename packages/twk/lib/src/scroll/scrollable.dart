@@ -763,6 +763,10 @@ final class _ScrollableState extends State<Scrollable> {
   @override
   void didUpdateWidget(Scrollable oldWidget) {
     super.didUpdateWidget(oldWidget);
+    // a scrollbar that takes any axis follows the axis, so it is told
+    if (_position._axis != widget.scrollDirection) {
+      _unclaim();
+    }
     _position
       .._axis = widget.scrollDirection
       .._reverse = widget.reverse;
@@ -963,7 +967,7 @@ final class _ScrollableState extends State<Scrollable> {
   @override
   Widget build(BuildContext context) {
     final bars = context.dependOnInheritedWidgetOfExactType<ScrollbarScope>();
-    final bar = bars?.slotOf(_position.axis);
+    final bar = bars?.claimFor(_position.axis);
     _claim(bar);
     final viewport = Listener(
       onScroll: _userScrolls ? _onWheel : null,
@@ -1010,16 +1014,41 @@ final class _ScrollableScope extends InheritedWidget {
 // What a Scrollbar needs of the Scrollables below it; hidden from the
 // library's exports.
 
-/// Where the outermost [Scrollable] below it along each axis puts its
-/// position, for a scrollbar above: [vertical]'s value or [horizontal]'s
-/// is the position of the one along that axis while it is in the tree.
-/// What a scrollbar puts above its child; a scrollable it takes puts one
-/// without the slot of its axis above its viewport, so that those inside
-/// it are not taken. Of two side by side, the last one built is taken.
+/// Where the outermost [Scrollable] below it puts its position, for a
+/// scrollbar above: [vertical]'s value or [horizontal]'s is the position of
+/// the one along that axis while it is in the tree, [either]'s the one of
+/// any axis. What a scrollbar puts above its child; a scrollable it takes
+/// puts one without [either] and the slot of its axis above its viewport,
+/// so that those inside it are not taken. Of two side by side, the last one
+/// built is taken.
 final class ScrollbarScope extends InheritedWidget {
-  /// The slots [vertical] and [horizontal] above [child]; a null one takes
-  /// no scrollable along its axis.
-  const ScrollbarScope({required super.child, this.vertical, this.horizontal});
+  /// The slots [vertical], [horizontal] and [either] above [child]; a null
+  /// one takes no scrollable. A scrollable takes the slot of its axis, or
+  /// [either] where there is none; [eitherFirst] makes it [either] first,
+  /// as the nearest scrollbar takes any axis.
+  const ScrollbarScope({
+    required super.child,
+    this.vertical,
+    this.horizontal,
+    this.either,
+    this.eitherFirst = false,
+  });
+
+  /// [child] with the scrollbar of [slot] above it, along [axis], or along
+  /// the axis of the outermost scrollable in it where [axis] is null, and
+  /// the slots [outer] has but for the one it replaces.
+  factory ScrollbarScope.over(
+    ScrollbarScope? outer,
+    Axis? axis,
+    ValueNotifier<ScrollPosition?> slot,
+    Widget child,
+  ) => ScrollbarScope(
+    vertical: axis == Axis.vertical ? slot : outer?.vertical,
+    horizontal: axis == Axis.horizontal ? slot : outer?.horizontal,
+    either: axis == null ? slot : outer?.either,
+    eitherFirst: axis == null,
+    child: child,
+  );
 
   /// The slot of the vertical scrollable.
   final ValueNotifier<ScrollPosition?>? vertical;
@@ -1027,11 +1056,21 @@ final class ScrollbarScope extends InheritedWidget {
   /// The slot of the horizontal scrollable.
   final ValueNotifier<ScrollPosition?>? horizontal;
 
+  /// The slot of the scrollable of either axis.
+  final ValueNotifier<ScrollPosition?>? either;
+
+  /// Whether [either] is taken before the slot of the scrollable's axis.
+  final bool eitherFirst;
+
   /// The slot along [axis].
   ValueNotifier<ScrollPosition?>? slotOf(Axis axis) =>
       axis == Axis.vertical ? vertical : horizontal;
 
-  /// This scope around [child] without the slot along [axis].
+  /// The slot a scrollable along [axis] puts its position in.
+  ValueNotifier<ScrollPosition?>? claimFor(Axis axis) =>
+      eitherFirst ? either ?? slotOf(axis) : slotOf(axis) ?? either;
+
+  /// This scope around [child] without the slot along [axis] and [either].
   ScrollbarScope _without(Axis axis, Widget child) => ScrollbarScope(
     vertical: axis == Axis.vertical ? null : vertical,
     horizontal: axis == Axis.vertical ? horizontal : null,
@@ -1041,7 +1080,9 @@ final class ScrollbarScope extends InheritedWidget {
   @override
   bool updateShouldNotify(ScrollbarScope oldWidget) =>
       !identical(vertical, oldWidget.vertical) ||
-      !identical(horizontal, oldWidget.horizontal);
+      !identical(horizontal, oldWidget.horizontal) ||
+      !identical(either, oldWidget.either) ||
+      eitherFirst != oldWidget.eitherFirst;
 }
 
 /// Scrolls the scrollable [position] is of as the wheel's [event] over it

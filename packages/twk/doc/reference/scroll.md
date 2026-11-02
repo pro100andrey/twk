@@ -146,14 +146,17 @@ first laid out, in place of `initialOffset`; a `jumpTo` meanwhile drops it.
 
 ## `Scrollbar`
 
-`Scrollbar(child:, axis: Axis.vertical, visibility:
+`Scrollbar(child:, axis:, visibility:
 ScrollbarVisibility.always, hideAfter: 1 s, style:, slim: false,
 trackStyle:)` (`slim`: the track a thin line in `trackStyle`, the theme's
 `faint` by default, the thumb a heavy one at rest and the whole cell over
 the line while the mouse is over the bar or drags its thumb) shows the
-outermost `Scrollable` inside `child` that scrolls along `axis`, with no
-controller (a vertical one and a horizontal one nested show both): a column
-at the right edge of the child, or a row at its bottom, the child having the
+outermost `Scrollable` inside `child`, of either axis where `axis` is left
+out, as Flutter's `Scrollbar` reads it from the scrollable, or the outermost
+along `axis` (content that scrolls both ways has a bar to each, with each
+axis given; an inner scrollable of the other axis never takes the bar of an
+outer one): a column at the right edge of the child for a vertical
+scrollable, or a row at its bottom for a horizontal one, the child having the
 rest of the room. The thumb is as long as the window is of the content, a
 cell at least, and as far along the track as the window along the content,
 exactly at its start and end at the ends, in eighths of a cell (block

@@ -19,16 +19,19 @@ import 'package:twk_core/twk_core.dart'
 import '../binding/app_binding.dart';
 import '../data/chart_glyphs.dart' show opaque, overUnder;
 import '../foundation/change_notifier.dart';
+import '../foundation/listenable_builder.dart' show ValueListenableBuilder;
 import '../framework/framework.dart';
 import '../gestures/gesture_detector.dart';
 import '../gestures/mouse.dart';
 import '../gestures/selection.dart' show inSelectionArea;
 import '../layout/child_list.dart';
-import '../layout/stack.dart';
 import '../style/glyphs.dart' show cellRune;
 import '../style/style.dart';
 import 'scrollable.dart';
 import 'thumb.dart';
+
+// how long a thumb stays after a move, by default
+const _hideAfter = Duration(seconds: 1);
 
 /// When a [Scrollbar] shows its thumb.
 enum ScrollbarVisibility {
@@ -44,13 +47,15 @@ enum ScrollbarVisibility {
   never,
 }
 
-/// Shows how far the outermost [Scrollable] inside [child] along [axis] is
-/// scrolled, as a thumb on a track beside it, and scrolls it with the
-/// mouse.
+/// Shows how far the outermost [Scrollable] inside [child] is scrolled, as
+/// a thumb on a track beside it, and scrolls it with the mouse. It is the
+/// outermost of either axis, or the outermost along [axis] where that is
+/// given, as for content that scrolls both ways, one bar to each.
 ///
-/// The track is a column at the right edge of [child], as tall as it, or
-/// along a horizontal axis a row at its bottom, as wide as it; [child] has
-/// the rest of the room.
+/// The track is a column at the right edge of [child], as tall as it, for
+/// a vertical scrollable, or for a horizontal one a row at its bottom, as
+/// wide as it; [child] has the rest of the room. Where there is no
+/// scrollable inside, [axis] says, else the track is a column.
 ///
 /// Its thumb is as long as the window is of the content, a cell at least,
 /// and as far along the track as the window is along the content: at its
@@ -98,16 +103,15 @@ enum ScrollbarVisibility {
 /// )
 /// ```
 final class Scrollbar extends StatefulWidget {
-  /// A scrollbar along [axis], vertical by default, for the scrollable in
-  /// [child]; its thumb shows [ScrollbarVisibility.always] by default, or
-  /// as [visibility] says, for [hideAfter] (a second by default) after a
-  /// move.
+  /// A scrollbar for the scrollable in [child], along its axis or [axis];
+  /// its thumb shows [ScrollbarVisibility.always] by default, or as
+  /// [visibility] says, for [hideAfter] (a second by default) after a move.
   const Scrollbar({
     required this.child,
     super.key,
-    this.axis = Axis.vertical,
+    this.axis,
     this.visibility = ScrollbarVisibility.always,
-    this.hideAfter = const Duration(seconds: 1),
+    this.hideAfter = _hideAfter,
     this.style,
     this.slim = false,
     this.trackStyle,
@@ -116,8 +120,10 @@ final class Scrollbar extends StatefulWidget {
   /// What it is beside, with the scrollable it shows inside.
   final Widget child;
 
-  /// The axis of the scrollable it shows.
-  final Axis axis;
+  /// The axis of the scrollable it shows; null for the outermost of either
+  /// axis. Of content that scrolls along both, a bar to each is a bar with
+  /// each axis given.
+  final Axis? axis;
 
   /// When it shows its thumb.
   final ScrollbarVisibility visibility;
@@ -176,38 +182,38 @@ final class _ScrollbarState extends State<Scrollbar> {
   @override
   Widget build(BuildContext context) {
     final outer = context.dependOnInheritedWidgetOfExactType<ScrollbarScope>();
-    final vertical = widget.axis == Axis.vertical;
     final theme = Theme.of(context);
     _track
-      ..axis = widget.axis
+      ..declared = widget.axis
       ..hideAfter = widget.hideAfter
       ..visibility = widget.visibility;
+    final look = (
+      opaque(
+        theme.background
+            .merge(theme.muted)
+            .merge(widget.style ?? const Style()),
+      ),
+      widget.slim ? widget.trackStyle ?? theme.faint : null,
+    );
     return _Frame(
-      axis: widget.axis,
+      track: _track,
       children: [
-        ScrollbarScope(
-          vertical: vertical ? _track.slot : outer?.vertical,
-          horizontal: vertical ? outer?.horizontal : _track.slot,
-          child: widget.child,
-        ),
+        ScrollbarScope.over(outer, widget.axis, _track.slot, widget.child),
         if (widget.visibility != ScrollbarVisibility.never)
           _hoverable(
-            Listener(
-              onDown: _track.press,
-              onDrag: _track.drag,
-              onScroll: _track.wheel,
-              scrollAxis: widget.axis,
-              child: _Bar(
-                track: _track,
-                axis: widget.axis,
-                style: opaque(
-                  theme.background
-                      .merge(theme.muted)
-                      .merge(widget.style ?? const Style()),
+            ValueListenableBuilder<Axis>(
+              valueListenable: _track.axisOf,
+              builder: (context, axis, _) => Listener(
+                onDown: _track.press,
+                onDrag: _track.drag,
+                onScroll: _track.wheel,
+                scrollAxis: axis,
+                child: _Bar(
+                  track: _track,
+                  vertical: look,
+                  horizontal: look,
+                  hovered: _hovered,
                 ),
-                line: widget.slim ? widget.trackStyle ?? theme.faint : null,
-                hovered: _hovered,
-                onBorder: false,
               ),
             ),
           ),
@@ -233,23 +239,28 @@ final class _ScrollbarState extends State<Scrollbar> {
 }
 
 /// The bar of the scrollable inside what [builder] builds, drawn on that
-/// widget's border along [axis] (its right side, or its bottom): `Box`'s
-/// `scrollbar`. [builder] is given what puts the scrollable's position
-/// within reach of the bar ([ScrollbarScope]), to wrap the box's child in.
-/// The bar covers the border's cells but [inset] at its ends (the corners)
-/// and is drawn in [line], the border's own style: the border's line where
+/// widget's border along the axis of the outermost scrollable in it (its
+/// right side, or its bottom): `Box`'s `scrollbar`. [builder] is given what
+/// puts the scrollable's position within reach of the bar
+/// ([ScrollbarScope]), to wrap the box's child in. The bar covers the
+/// border's cells but [inset] at its ends (the corners) and is drawn in
+/// the border's own style, [right] or [bottom]: the border's line where
 /// there is nothing to scroll, and over it the thumb, a heavier line (`┃`,
 /// `━`) at rest, the whole cell in eighths while the mouse is over it or
 /// drags it, in [thumb]. It is dragged and pressed as a [Scrollbar]'s is.
 @internal
 final class BorderScrollbar extends StatefulWidget {
-  /// A bar along [axis] on the border of what [builder] builds.
+  /// A bar on the border of what [builder] builds.
   const BorderScrollbar({
-    required this.axis,
-    required this.line,
+    required this.right,
+    required this.bottom,
     required this.thumb,
     required this.inset,
     required this.builder,
+    this.bottomTitled = false,
+    this.axis,
+    this.visibility = ScrollbarVisibility.always,
+    this.hideAfter = _hideAfter,
     this.type,
     super.key,
   });
@@ -259,17 +270,31 @@ final class BorderScrollbar extends StatefulWidget {
   /// theme's ([Glyphs.lines]).
   final BorderType? type;
 
-  /// The axis of the scrollable it shows.
-  final Axis axis;
+  /// The axis of the scrollable it shows; null for the outermost of either
+  /// axis.
+  final Axis? axis;
 
-  /// The border's style, opaque.
-  final Style line;
+  /// When it shows its thumb.
+  final ScrollbarVisibility visibility;
 
-  /// The thumb's color ([Style.fg]) over [line].
+  /// See [Scrollbar.hideAfter].
+  final Duration hideAfter;
+
+  /// The style of the border's right side, opaque; null where it has none.
+  final Style? right;
+
+  /// The style of the border's bottom, opaque; null where it has none.
+  final Style? bottom;
+
+  /// Whether the bottom edge has a title, which a bar along it would cover.
+  final bool bottomTitled;
+
+  /// The thumb's color ([Style.fg]) over the border's.
   final Style thumb;
 
-  /// The border's cells at the start and the end of the bar it leaves.
-  final (int, int) inset;
+  /// The border's cells at the start and the end of the bar it leaves,
+  /// along the right side and along the bottom.
+  final ((int, int), (int, int)) inset;
 
   /// The widget with the border, its child wrapped by the function given.
   final Widget Function(BuildContext context, Widget Function(Widget) scope)
@@ -302,45 +327,44 @@ final class _BorderScrollbarState extends State<BorderScrollbar> {
   @override
   Widget build(BuildContext context) {
     final outer = context.dependOnInheritedWidgetOfExactType<ScrollbarScope>();
-    final vertical = widget.axis == Axis.vertical;
-    final (start, end) = widget.inset;
-    _track.axis = widget.axis;
+    _track
+      ..declared = widget.axis
+      ..hideAfter = widget.hideAfter
+      ..visibility = widget.visibility;
     // the foreground opaque, the background the box's or none: what is
     // under the bar shows where the box gives none
-    final line = overUnder(widget.line);
+    _Look look(Style? side) {
+      final line = overUnder(side ?? const Style());
+      return (line.merge(widget.thumb), line);
+    }
+
     // the box as big as it would be on its own, the bar over its side
-    return Stack(
-      fit: StackFit.passthrough,
+    return _BorderFrame(
+      track: _track,
+      inset: widget.inset,
+      sides: (widget.right != null, widget.bottom != null),
+      bottomTitled: widget.bottomTitled,
       children: [
         widget.builder(
           context,
-          (child) => ScrollbarScope(
-            vertical: vertical ? _track.slot : outer?.vertical,
-            horizontal: vertical ? outer?.horizontal : _track.slot,
-            child: child,
-          ),
+          (child) =>
+              ScrollbarScope.over(outer, widget.axis, _track.slot, child),
         ),
-        Positioned(
-          top: vertical ? start : null,
-          bottom: vertical ? end : 0,
-          left: vertical ? null : start,
-          right: vertical ? 0 : end,
-          width: vertical ? 1 : null,
-          height: vertical ? null : 1,
-          child: MouseRegion(
-            cursor: inSelectionArea(context) ? PointerShape.arrow : null,
-            onEnter: (_) => _hover(true),
-            onExit: (_) => _hover(false),
-            child: Listener(
+        MouseRegion(
+          cursor: inSelectionArea(context) ? PointerShape.arrow : null,
+          onEnter: (_) => _hover(true),
+          onExit: (_) => _hover(false),
+          child: ValueListenableBuilder<Axis>(
+            valueListenable: _track.axisOf,
+            builder: (context, axis, _) => Listener(
               onDown: _track.press,
               onDrag: _track.drag,
               onScroll: _track.wheel,
-              scrollAxis: widget.axis,
+              scrollAxis: axis,
               child: _Bar(
                 track: _track,
-                axis: widget.axis,
-                style: line.merge(widget.thumb),
-                line: line,
+                vertical: look(widget.right),
+                horizontal: look(widget.bottom),
                 hovered: _hovered,
                 onBorder: true,
                 borderType: Theme.of(context).glyphs.borderOf(widget.type),
@@ -371,8 +395,27 @@ final class _Track with ChangeNotifier {
   /// Where the scrollable puts its position ([ScrollbarScope]).
   final slot = ValueNotifier<ScrollPosition?>(null);
 
-  /// The axis of the bar.
-  Axis axis = Axis.vertical;
+  /// The axis of the bar, which its frame lays it out by: [declared], else
+  /// the axis of the scrollable in [slot], vertical while there is none.
+  Axis get axis => axisOf.value;
+
+  /// [axis], to listen to.
+  final ValueNotifier<Axis> axisOf = ValueNotifier(Axis.vertical);
+
+  /// The axis the bar is given; null for the scrollable's.
+  Axis? get declared => _declared;
+  Axis? _declared;
+  set declared(Axis? a) {
+    _declared = a;
+    _axisNow();
+  }
+
+  /// Whether a scrollable is in [slot].
+  bool get known => _position != null;
+
+  void _axisNow() {
+    axisOf.value = _declared ?? _position?.axis ?? Axis.vertical;
+  }
 
   /// See [Scrollbar.hideAfter].
   Duration hideAfter = Duration.zero;
@@ -424,6 +467,7 @@ final class _Track with ChangeNotifier {
     _position = p?..addListener(_moved);
     _offset = p != null && p.hasExtents ? p.offset : null;
     _grabAt = null;
+    _axisNow();
     _changed();
   }
 
@@ -591,6 +635,7 @@ final class _Track with ChangeNotifier {
       binding?.cancelFrameCallback(hiding);
     }
     slot.removeListener(_follow);
+    axisOf.dispose();
     _position?.removeListener(_moved);
     _position = null;
     super.dispose();
@@ -599,37 +644,43 @@ final class _Track with ChangeNotifier {
 
 /// The child of a [Scrollbar] and its bar, side by side.
 final class _Frame extends MultiChildRenderObjectWidget {
-  const _Frame({required this.axis, super.children});
+  const _Frame({required this.track, super.children});
 
-  final Axis axis;
+  final _Track track;
 
   @override
   MultiChildRenderObjectElement createElement() => ChildListElement(this);
 
   @override
-  _RenderFrame createRenderObject(BuildContext context) => _RenderFrame(axis);
+  _RenderFrame createRenderObject(BuildContext context) => _RenderFrame(track);
 
   @override
-  void updateRenderObject(BuildContext context, _RenderFrame renderObject) =>
-      renderObject.axis = axis;
+  void updateRenderObject(BuildContext context, _RenderFrame renderObject) {}
 }
 
 final class _FrameData extends ParentData with ContainerParentDataMixin {}
 
 /// What a [_Frame] lays out and paints: its first child within the
-/// constraints but for a cell across [axis], and its second, the bar, in
-/// that cell at the far edge, along all of the first.
+/// constraints but for a cell across the [_track]'s axis, and its second,
+/// the bar, in that cell at the far edge, along all of the first. The axis
+/// is known when the scrollable inside is built, before the layout, and a
+/// change of it lays out again.
 final class _RenderFrame extends RenderObject
     with ContainerRenderObjectMixin<_FrameData> {
-  _RenderFrame(this._axis);
+  _RenderFrame(this._track);
 
-  Axis _axis;
-  Axis get axis => _axis;
-  set axis(Axis a) {
-    if (a != _axis) {
-      _axis = a;
-      markNeedsLayout();
-    }
+  final _Track _track;
+
+  @override
+  void attach(PipelineOwner o) {
+    super.attach(o);
+    _track.axisOf.addListener(markNeedsLayout);
+  }
+
+  @override
+  void detach() {
+    _track.axisOf.removeListener(markNeedsLayout);
+    super.detach();
   }
 
   @override
@@ -642,7 +693,7 @@ final class _RenderFrame extends RenderObject
   // the cells across the axis the bar takes
   int get _bar => childCount > 1 ? 1 : 0;
 
-  bool get _vertical => _axis == Axis.vertical;
+  bool get _vertical => _track.axis == Axis.vertical;
 
   /// [extent] less the bar's cells, unbounded as it is.
   int _less(int extent) => extent >= BoxConstraints.unbounded
@@ -748,27 +799,202 @@ final class _RenderFrame extends RenderObject
   }
 }
 
-/// The track and the thumb of a [Scrollbar], where [track] says.
+/// The box of a [BorderScrollbar] and its bar: the box as big as it would
+/// be on its own, the bar over its right side or its bottom, by the axis
+/// of the track.
+final class _BorderFrame extends MultiChildRenderObjectWidget {
+  const _BorderFrame({
+    required this.track,
+    required this.inset,
+    required this.sides,
+    required this.bottomTitled,
+    super.children,
+  });
+
+  final _Track track;
+  final ((int, int), (int, int)) inset;
+
+  /// Whether the border has a right side and a bottom.
+  final (bool, bool) sides;
+  final bool bottomTitled;
+
+  @override
+  MultiChildRenderObjectElement createElement() => ChildListElement(this);
+
+  @override
+  _RenderBorderFrame createRenderObject(BuildContext context) =>
+      _RenderBorderFrame(track, inset, sides, bottomTitled);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderBorderFrame renderObject,
+  ) {
+    renderObject
+      ..inset = inset
+      ..sides = sides
+      ..bottomTitled = bottomTitled;
+  }
+}
+
+/// What a [_BorderFrame] lays out and paints. The axis is known when the
+/// scrollable inside is built, before the layout, and a change of it lays
+/// out again. Where there is a scrollable, the border has to have the side
+/// its bar is on, and a bottom bar cannot share its edge with a title.
+final class _RenderBorderFrame extends RenderObject
+    with ContainerRenderObjectMixin<_FrameData> {
+  _RenderBorderFrame(this._track, this._inset, this._sides, this._titled);
+
+  final _Track _track;
+
+  ((int, int), (int, int)) _inset;
+  ((int, int), (int, int)) get inset => _inset;
+  set inset(((int, int), (int, int)) i) {
+    if (i != _inset) {
+      _inset = i;
+      markNeedsLayout();
+    }
+  }
+
+  (bool, bool) _sides;
+  (bool, bool) get sides => _sides;
+  set sides((bool, bool) s) {
+    if (s != _sides) {
+      _sides = s;
+      markNeedsLayout();
+    }
+  }
+
+  bool _titled;
+  bool get bottomTitled => _titled;
+  set bottomTitled(bool t) {
+    if (t != _titled) {
+      _titled = t;
+      markNeedsLayout();
+    }
+  }
+
+  @override
+  void setupParentData(RenderObject child) {
+    if (child.parentData is! _FrameData) {
+      child.parentData = _FrameData();
+    }
+  }
+
+  @override
+  void attach(PipelineOwner o) {
+    super.attach(o);
+    _track.axisOf.addListener(markNeedsLayout);
+  }
+
+  @override
+  void detach() {
+    _track.axisOf.removeListener(markNeedsLayout);
+    super.detach();
+  }
+
+  @override
+  int computeMinIntrinsicWidth(int height) =>
+      firstChild?.getMinIntrinsicWidth(height) ?? 0;
+
+  @override
+  int computeMaxIntrinsicWidth(int height) =>
+      firstChild?.getMaxIntrinsicWidth(height) ?? 0;
+
+  @override
+  int computeMinIntrinsicHeight(int width) =>
+      firstChild?.getMinIntrinsicHeight(width) ?? 0;
+
+  @override
+  int computeMaxIntrinsicHeight(int width) =>
+      firstChild?.getMaxIntrinsicHeight(width) ?? 0;
+
+  @override
+  void performLayout(BoxConstraints c) {
+    final child = firstChild;
+    if (child == null) {
+      width = c.minW;
+      height = c.minH;
+      return;
+    }
+    child.parentData
+      ..dx = 0
+      ..dy = 0;
+    child.layout(c, parentUsesSize: true);
+    width = child.width;
+    height = child.height;
+    final bar = childAfter(child);
+    if (bar == null) {
+      return;
+    }
+    final vertical = _track.axis == Axis.vertical;
+    assert(
+      !_track.known || (vertical ? _sides.$1 : _sides.$2),
+      vertical
+          ? 'a scrollbar on a side the border has: the right, for a '
+                'vertical scrollable'
+          : 'a scrollbar on a side the border has: the bottom, for a '
+                'horizontal scrollable',
+    );
+    assert(
+      !_track.known || vertical || !_titled,
+      'a horizontal scrollbar on the bottom border, which has a title: '
+      'the bar would cover it',
+    );
+    if (!(vertical ? _sides.$1 : _sides.$2)) {
+      bar.layout(const BoxConstraints.tight(0, 0));
+      return;
+    }
+    final (start, end) = vertical ? _inset.$1 : _inset.$2;
+    final along = (vertical ? height : width) - start - end;
+    final length = along > 0 ? along : 0;
+    final thick = (vertical ? width : height) > 0 ? 1 : 0;
+    if (vertical) {
+      bar.layout(BoxConstraints.tight(thick, length));
+      bar.parentData
+        ..dx = width - thick
+        ..dy = start;
+    } else {
+      bar.layout(BoxConstraints.tight(length, thick));
+      bar.parentData
+        ..dx = start
+        ..dy = height - thick;
+    }
+  }
+
+  @override
+  void paint(PaintContext ctx) {
+    for (var child = firstChild; child != null; child = childAfter(child)) {
+      if (child.width > 0 && child.height > 0) {
+        paintChild(ctx, child);
+      }
+    }
+  }
+}
+
+/// The thumb's color and the track's, opaque, and the color of the track's
+/// line of a slim bar, null for a bar that is not slim.
+typedef _Look = (Style style, Style? line);
+
+/// The track and the thumb of a [Scrollbar], where [track] says, as
+/// [vertical] or [horizontal] says by the track's axis.
 final class _Bar extends LeafRenderObjectWidget {
   const _Bar({
     required this.track,
-    required this.axis,
-    required this.style,
-    required this.line,
+    required this.vertical,
+    required this.horizontal,
     required this.hovered,
-    required this.onBorder,
+    this.onBorder = false,
     this.borderType,
   });
 
   final _Track track;
-  final Axis axis;
 
-  /// The thumb's color and the track's, opaque.
-  final Style style;
+  /// How the bar looks along a vertical axis.
+  final _Look vertical;
 
-  /// The color of the track's line of a slim bar; null for a bar that is
-  /// not slim.
-  final Style? line;
+  /// How the bar looks along a horizontal axis.
+  final _Look horizontal;
 
   /// Whether the mouse is over the bar.
   final bool hovered;
@@ -782,20 +1008,18 @@ final class _Bar extends LeafRenderObjectWidget {
 
   @override
   _RenderBar createRenderObject(BuildContext context) =>
-      _RenderBar(track, axis, style, onBorder: onBorder)
+      _RenderBar(track, vertical, horizontal, onBorder: onBorder)
         ..borderType = borderType
         ..glyphs = Theme.of(context).glyphs
-        ..line = line
         ..hovered = hovered;
 
   @override
   void updateRenderObject(BuildContext context, _RenderBar renderObject) {
     renderObject
-      ..axis = axis
+      ..vertical = vertical
+      ..horizontal = horizontal
       ..borderType = borderType
-      ..style = style
       ..glyphs = Theme.of(context).glyphs
-      ..line = line
       ..hovered = hovered;
   }
 }
@@ -806,8 +1030,8 @@ final class _Bar extends LeafRenderObjectWidget {
 final class _RenderBar extends RenderObject {
   _RenderBar(
     this._track,
-    this._axis,
-    this._style, {
+    this._vertical,
+    this._horizontal, {
     required this._onBorder,
   });
 
@@ -816,11 +1040,20 @@ final class _RenderBar extends RenderObject {
   // a bar on a border, which the bar never stops being
   final bool _onBorder;
 
-  Axis _axis;
-  Axis get axis => _axis;
-  set axis(Axis a) {
-    if (a != _axis) {
-      _axis = a;
+  _Look _vertical;
+  _Look get vertical => _vertical;
+  set vertical(_Look l) {
+    if (l != _vertical) {
+      _vertical = l;
+      markNeedsPaint();
+    }
+  }
+
+  _Look _horizontal;
+  _Look get horizontal => _horizontal;
+  set horizontal(_Look l) {
+    if (l != _horizontal) {
+      _horizontal = l;
       markNeedsPaint();
     }
   }
@@ -838,29 +1071,11 @@ final class _RenderBar extends RenderObject {
   @override
   bool get keepsUnderlay => _onBorder;
 
-  Style _style;
-  Style get style => _style;
-  set style(Style s) {
-    if (s != _style) {
-      _style = s;
-      markNeedsPaint();
-    }
-  }
-
   Glyphs _glyphs = Glyphs.unicode;
   Glyphs get glyphs => _glyphs;
   set glyphs(Glyphs g) {
     if (g != _glyphs) {
       _glyphs = g;
-      markNeedsPaint();
-    }
-  }
-
-  Style? _line;
-  Style? get line => _line;
-  set line(Style? s) {
-    if (s != _line) {
-      _line = s;
       markNeedsPaint();
     }
   }
@@ -901,14 +1116,14 @@ final class _RenderBar extends RenderObject {
   @override
   void paint(PaintContext ctx) {
     final canvas = ctx.canvas;
-    final vertical = _axis == Axis.vertical;
+    final vertical = _track.axis == Axis.vertical;
+    final (style, line) = vertical ? _vertical : _horizontal;
     if (!_onBorder) {
-      canvas.fill(0, 0, width, height, _style.penIn(canvas.styles));
+      canvas.fill(0, 0, width, height, style.penIn(canvas.styles));
     }
     // slim: the track a line while there is something to scroll, under the
     // mouse too; at rest the thumb a heavier one in whole cells, wide the
     // whole cell in eighths
-    final line = _line;
     final wide = line == null || _hovered || _track.dragging;
     final type = _onBorder ? _borderType : null;
     if (line != null && (_onBorder || _track.scrolls)) {
@@ -917,7 +1132,7 @@ final class _RenderBar extends RenderObject {
         0,
         width,
         height,
-        _style.merge(line).penIn(canvas.styles),
+        style.merge(line).penIn(canvas.styles),
         type != null
             ? _borderRune(canvas, type, vertical: vertical)
             : cellRune(
@@ -941,7 +1156,7 @@ final class _RenderBar extends RenderObject {
     final (start, end) = thumb;
     paintThumb(
       canvas,
-      _style,
+      style,
       start: start,
       end: end,
       steps: steps,
