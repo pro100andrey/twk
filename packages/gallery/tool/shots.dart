@@ -42,15 +42,20 @@ Future<void> main(List<String> args) async {
   final package = p.dirname(p.dirname(p.fromUri(Platform.script)));
   final goldens = p.join(package, 'test', 'goldens');
   final out = Directory(p.join(package, 'doc', 'shots'));
-  if (out.existsSync()) {
-    out.deleteSync(recursive: true);
-  }
-  var written = 0;
+  // Each file is written only where it changed, and only the files no
+  // shot is drawn into are removed after: the gallery's own suite reads
+  // these while the checks run this beside it, so none may be missing
+  // meanwhile, as they were when the directory was emptied first.
+  final drawn = <String>{};
   void write(String path, String svg) {
-    File(p.join(out.path, path))
+    final file = File(p.join(out.path, path));
+    drawn.add(p.normalize(file.absolute.path));
+    if (file.existsSync() && file.readAsStringSync() == svg) {
+      return;
+    }
+    file
       ..createSync(recursive: true)
       ..writeAsStringSync(svg);
-    written++;
   }
 
   for (final group in Directory(goldens).listSync().whereType<Directory>()) {
@@ -76,7 +81,21 @@ Future<void> main(List<String> args) async {
     final theme = name.endsWith('-light') ? 'light' : 'dark';
     write(p.join('screens', '$name.svg'), svgOf(shot, paletteOf(theme)));
   }
-  stdout.writeln('${p.relative(out.path)}: $written SVGs');
+  final all = out.existsSync()
+      ? out.listSync(recursive: true)
+      : const <FileSystemEntity>[];
+  for (final file in all.whereType<File>()) {
+    if (!drawn.contains(p.normalize(file.absolute.path))) {
+      file.deleteSync();
+    }
+  }
+  // the deepest first, so that a directory emptied by its own is too
+  for (final dir in all.whereType<Directory>().toList().reversed) {
+    if (dir.existsSync() && dir.listSync().isEmpty) {
+      dir.deleteSync();
+    }
+  }
+  stdout.writeln('${p.relative(out.path)}: ${drawn.length} SVGs');
   if (png != null) {
     Directory(png).createSync(recursive: true);
     for (final name in screens.keys) {
