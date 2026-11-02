@@ -31,7 +31,7 @@ import 'surface.dart';
 /// final bold = styles.style(attrs: Attr.bold, link: 'https://dart.dev');
 /// final lines = LineEncoder(styles, hyperlinks: true)
 ///   ..text(bold, 'Dart')
-///   ..text(0, ' is here')
+///   ..text(StyleId.base, ' is here')
 ///   ..end();
 /// print(lines.take()); // Dart, bold and a link, then " is here"
 /// ```

@@ -1,5 +1,7 @@
 /// The stand-in for `branch_api.dart` in a baseline build: the core it is
 /// built against lacks what that file uses (see there).
+// cellStyleOf calls the baseline's core dynamically: its doc says why
+// ignore_for_file: avoid_dynamic_calls
 library;
 
 import 'package:twk_core/twk_core.dart';
@@ -19,15 +21,22 @@ RenderParagraph cutParagraph(
   maxLines: maxLines,
 );
 
-/// As the baseline's core has it, the style id an int: what [styles] holds of the style a cell of [Surface.styles] has, [raw]:
+/// What [styles] holds of the style a cell of [Surface.styles] has, [raw]:
 /// its colors and underline color as packed ints, its attributes and link.
+///
+/// The calls are dynamic: the baseline's core takes the id as an int, the
+/// repository's, which this file is analyzed against, as a `StyleId`, and
+/// a `StyleId` is that int at run time, so one call does for both.
 ({int fg, int bg, int attrs, int underline, String? link}) cellStyleOf(
   StyleTable styles,
   int raw,
-) => (
-  fg: styles.fgOf(raw).value,
-  bg: styles.bgOf(raw).value,
-  attrs: styles.attrsOf(raw),
-  underline: styles.underlineColorOf(raw).value,
-  link: styles.linkOf(raw),
-);
+) {
+  final dynamic table = styles;
+  return (
+    fg: table.fgOf(raw).value as int,
+    bg: table.bgOf(raw).value as int,
+    attrs: table.attrsOf(raw) as int,
+    underline: table.underlineColorOf(raw).value as int,
+    link: table.linkOf(raw) as String?,
+  );
+}
