@@ -195,10 +195,10 @@ void main() {
       native('../ up'),
       native('docs/ dir'),
       native('src/ dir'),
-      'notes.txt 2.9K',
-      'README.md 100',
+      'notes.txt 3.0 kB',
+      'README.md 100 B',
     ]);
-    expect(t.lines[6], endsWith(' 2.9K 2026-01-02 03:04│'));
+    expect(t.lines[6], endsWith(' 3.0 kB 2026-01-02 03:04│'));
     expect(focused(t), 'files');
     expect(selected(t), native('docs/ dir'), reason: 'the first below ../');
     for (final x in [27, 50, 60, 70]) {
@@ -219,8 +219,8 @@ void main() {
     await start(t);
     await press(t, 'enter');
     expect(title(t), native('$root/docs'));
-    expect(files(t), [native('../ up'), 'guide.md 4.9K']);
-    expect(selected(t), 'guide.md 4.9K');
+    expect(files(t), [native('../ up'), 'guide.md 5.0 kB']);
+    expect(selected(t), 'guide.md 5.0 kB');
     await press(t, 'backspace');
     expect(title(t), root);
     expect(selected(t), native('docs/ dir'));
@@ -242,7 +242,7 @@ void main() {
     await press(t, 'down enter');
     expect(selectedInTree(t), native('lib/'));
     expect(title(t), native('$root/src/lib'));
-    expect(files(t), [native('../ up'), 'util.dart 1.5K']);
+    expect(files(t), [native('../ up'), 'util.dart 1.5 kB']);
     expect(focused(t), 'tree', reason: 'the focus left in the tree');
   });
 
@@ -262,7 +262,7 @@ void main() {
       reason: 'notes.txt marked',
     );
     expect(status(t), startsWith(native(' to $root/docs ')));
-    expect(status(t), endsWith(' 4 entries, 2 marked, 3.0K'));
+    expect(status(t), endsWith(' 4 entries, 2 marked, 3.1 kB'));
 
     await press(t, 'f5');
     await see(t, '  Copy 2 entries to ');
@@ -293,9 +293,9 @@ void main() {
     });
     expect(seen, [
       // built as the copy starts, before the first slice
-      ' | 0% | 0 of 2 done, 0 of 3.0K',
-      'notes.txt | 17% | 0 of 2 done, 2.0K of 3.0K',
-      'README.md | 62% | 1 of 2 done, 2.9K of 3.0K',
+      ' | 0% | 0 of 2 done, 0 B of 3.1 kB',
+      'notes.txt | 17% | 0 of 2 done, 2.0 kB of 3.1 kB',
+      'README.md | 62% | 1 of 2 done, 3.0 kB of 3.1 kB',
     ]);
     await until(t, () => shows(t, '▌ Copied 2 entries to docs.'));
     expect(ls('docs'), ['README.md', 'guide.md', 'notes.txt']);
@@ -327,7 +327,7 @@ void main() {
     await click(t, 6, 3);
     await click(t, 40, 6);
     await press(t, 'space down down space');
-    expect(status(t), endsWith(' 2 marked, 22K'));
+    expect(status(t), endsWith(' 2 marked, 23.0 kB'));
     await press(t, 'f5 enter');
     await until(t, () => shows(t, '  video.mp4 '));
     await t.pump();
@@ -345,7 +345,7 @@ void main() {
       'already is refused; F6 moves', (t) async {
     await start(t);
     await press(t, 'down down down');
-    expect(selected(t), 'README.md 100');
+    expect(selected(t), 'README.md 100 B');
     await press(t, 'f6');
     await see(t, '  Move README.md to ');
     await see(t, '   Move    Cancel ');
@@ -368,9 +368,9 @@ void main() {
       native('../ up'),
       native('docs/ dir'),
       native('src/ dir'),
-      'notes.txt 2.9K',
+      'notes.txt 3.0 kB',
     ]);
-    expect(selected(t), 'notes.txt 2.9K');
+    expect(selected(t), 'notes.txt 3.0 kB');
   });
 
   testTwk('from the tree, F6 moves the directory selected into the '
@@ -414,7 +414,7 @@ void main() {
       native('../ up'),
       native('docs/ dir'),
       native('lib/ dir'),
-      'main.dart 2.0K',
+      'main.dart 2.0 kB',
     ]);
   });
 
@@ -450,7 +450,7 @@ void main() {
     await press(t, 'enter');
     expect(t, isNot(hasLine('Rename')));
     expect(ls(''), ['.env', '.git', 'README.md', 'docs', 'src', 'todo.txt']);
-    expect(selected(t), 'todo.txt 2.9K');
+    expect(selected(t), 'todo.txt 3.0 kB');
 
     await press(t, 'f7');
     await see(t, '  New directory');
@@ -505,7 +505,7 @@ space toggle   ctrl+s save   esc back
     await press(t, 'space tab space tab tab right');
     await press(t, 'escape');
     expect(title(t), native('$root/docs'), reason: 'back, the table as it was');
-    expect(selected(t), 'guide.md 4.9K');
+    expect(selected(t), 'guide.md 5.0 kB');
     expect(focused(t), 'files');
     expect(tree(t), [
       native('▾ work/'),
@@ -529,9 +529,9 @@ space toggle   ctrl+s save   esc back
       native('.git/ dir'),
       native('docs/ dir'),
       native('src/ dir'),
-      'notes.txt 2.9K',
-      'README.md 100',
-      '.env 10',
+      'notes.txt 3.0 kB',
+      'README.md 100 B',
+      '.env 10 B',
     ]);
     expect(selected(t), native('docs/ dir'));
     await press(t, 'f9');
@@ -605,7 +605,7 @@ space toggle   ctrl+s save   esc back
     await press(t, 'ctrl+p');
     await type(t, 'show hidden');
     await press(t, 'enter');
-    expect(files(t), contains('.env 10'));
+    expect(files(t), contains('.env 10 B'));
   });
 
   testTwk('the menus: View sorts by size or by the time of the last change, '
@@ -616,11 +616,11 @@ space toggle   ctrl+s save   esc back
     await t.pump(const Duration(milliseconds: 300));
     expect(t, hasLine('▎ ✓ Sort by name '));
     await press(t, 'm');
-    expect(files(t).sublist(3), ['README.md 100', 'notes.txt 2.9K']);
+    expect(files(t).sublist(3), ['README.md 100 B', 'notes.txt 3.0 kB']);
     await press(t, 'alt+v s');
-    expect(files(t).sublist(3), ['notes.txt 2.9K', 'README.md 100']);
+    expect(files(t).sublist(3), ['notes.txt 3.0 kB', 'README.md 100 B']);
     await press(t, 'alt+v h');
-    expect(files(t), contains('.env 10'));
+    expect(files(t), contains('.env 10 B'));
     await press(t, 'alt+f');
     await t.pump(const Duration(milliseconds: 300));
     expect(t, containsLine(matches(RegExp('▎ Copy… +f5  '))));

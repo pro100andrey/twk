@@ -30,6 +30,7 @@ import '../style/style.dart';
 import 'progress_bar.dart';
 import 'spinner.dart';
 import 'steps.dart';
+import 'ticker.dart';
 
 // Examples can assume:
 // late ProgressTracker tracker;
@@ -459,10 +460,18 @@ final class ProgressTask {
   /// `•`, how much it did where that says something, the time it took once
   /// it is done or failed, and the error it failed with:
   /// `✓ Downloading assets.zip • 3.4/3.4 MB • 2.1 s`.
-  String get summary {
-    final parts = ['${taskMark(_status, SpinnerFrames.dots, 0)} $_label'];
+  ///
+  /// The marks are [glyphs]': its mark and the bullet between the parts;
+  /// its bytes are counted as [byteUnits] says (`3.2/3.2 MiB`).
+  String summary({
+    Glyphs glyphs = Glyphs.unicode,
+    ByteUnits byteUnits = ByteUnits.decimal,
+  }) {
+    final parts = [
+      '${TaskMarks(SpinnerFrames.dots, glyphs).mark(_status, 0)} $_label',
+    ];
     if (_completed > 0 && (_total != null || unit == ProgressUnit.bytes)) {
-      parts.add(_count(this));
+      parts.add(_count(this, byteUnits));
     }
     if (_status == TaskStatus.done || _status == TaskStatus.failed) {
       parts.add(formatTook(elapsed));
@@ -470,7 +479,7 @@ final class ProgressTask {
     if (_error case final error?) {
       parts.add('$error');
     }
-    return parts.join(' • ');
+    return parts.join(' ${glyphs.bullet} ');
   }
 
   @override
@@ -547,9 +556,10 @@ final class ProgressList extends StatefulWidget {
     this.columns = defaultColumns,
     this.hideFinished = false,
     this.maxVisible,
-    this.spinner = SpinnerFrames.dots,
+    this.spinner,
     this.barShape = ProgressBarShape.blocks,
     this.maxBarWidth,
+    this.byteUnits = ByteUnits.decimal,
   }) : assert(maxVisible == null || maxVisible >= 0, 'fewer than no rows'),
        assert(maxBarWidth == null || maxBarWidth > 0, 'a bar of no cells');
 
@@ -578,8 +588,9 @@ final class ProgressList extends StatefulWidget {
   final int? maxVisible;
 
   /// What a running task's mark shows in turn, and how often the rows of
-  /// running tasks are painted again.
-  final SpinnerFrames spinner;
+  /// running tasks are painted again; null for [Glyphs.spinner] of the
+  /// theme.
+  final SpinnerFrames? spinner;
 
   /// How the bar column is drawn: blocks, or a thinner line.
   final ProgressBarShape barShape;
@@ -587,6 +598,11 @@ final class ProgressList extends StatefulWidget {
   /// How wide the bar column is at most, the room past it left blank at
   /// the right of the rows; null for all the room the other columns leave.
   final int? maxBarWidth;
+
+  /// How the amounts and rates of tasks in [ProgressUnit.bytes] are
+  /// counted and named: by 1000 (`1.2 MB/s`), or by 1024 as `ls -h` does
+  /// (`1.1 MiB/s`).
+  final ByteUnits byteUnits;
 
   @override
   State<ProgressList> createState() => _ProgressListState();
@@ -656,19 +672,22 @@ final class _ProgressListState extends State<ProgressList> {
     final binding = AppBinding.maybeOf(context);
     final (rows, more) = _rows();
     final running = rows.any((t) => t.status == TaskStatus.running);
-    final interval = widget.spinner.interval;
+    final theme = Theme.of(context);
+    final frames = widget.spinner ?? theme.glyphs.spinner;
+    final interval = frames.interval;
     var steps = _steps;
     if (steps == null || steps.binding != binding) {
       steps?.stop();
       steps = _steps = Steps(interval, _changed, binding: binding);
     }
-    steps.interval = interval;
+    steps
+      ..interval = interval
+      ..muted = !TickerMode.of(context);
     if (running) {
       steps.start();
     } else {
       steps.stop();
     }
-    final theme = Theme.of(context);
     final base = opaque(theme.background.merge(theme.text));
     return Semantics(
       nodes: [
@@ -695,9 +714,10 @@ final class _ProgressListState extends State<ProgressList> {
         rows: rows,
         more: more,
         columns: widget.columns,
-        frames: widget.spinner,
+        frames: TaskMarks(frames, theme.glyphs),
         barShape: widget.barShape,
         maxBarWidth: widget.maxBarWidth,
+        byteUnits: widget.byteUnits,
         styles: _Styles(
           base: base,
           muted: base.merge(theme.muted),
@@ -708,6 +728,7 @@ final class _ProgressListState extends State<ProgressList> {
           border: base.merge(theme.border),
         ),
         binding: binding,
+        spinner: steps,
       ),
     );
   }
@@ -757,18 +778,25 @@ final class _List extends LeafRenderObjectWidget {
     required this.frames,
     required this.barShape,
     required this.maxBarWidth,
+    required this.byteUnits,
     required this.styles,
     required this.binding,
+    required this.spinner,
   });
 
   final List<ProgressTask> rows;
   final int more;
   final List<ProgressColumn> columns;
-  final SpinnerFrames frames;
+  final TaskMarks frames;
   final ProgressBarShape barShape;
   final int? maxBarWidth;
+  final ByteUnits byteUnits;
   final _Styles styles;
   final AppBinding? binding;
+
+  /// The list's own steps, muted by a [TickerMode] that is off, which the
+  /// mark of a running task is drawn at.
+  final Steps spinner;
 
   @override
   _RenderProgressList createRenderObject(BuildContext context) =>
@@ -779,9 +807,11 @@ final class _List extends LeafRenderObjectWidget {
         frames: frames,
         barShape: barShape,
         maxBarWidth: maxBarWidth,
+        byteUnits: byteUnits,
         styles: styles,
         binding: binding,
-      );
+        spinner: spinner,
+      )..muted = !TickerMode.of(context);
 
   @override
   void updateRenderObject(
@@ -794,7 +824,10 @@ final class _List extends LeafRenderObjectWidget {
       ..frames = frames
       ..barShape = barShape
       ..maxBarWidth = maxBarWidth
-      ..styles = styles;
+      ..byteUnits = byteUnits
+      ..styles = styles
+      ..spinner = spinner
+      ..muted = !TickerMode.of(context);
   }
 }
 
@@ -818,14 +851,34 @@ final class _RenderProgressList extends RenderObject {
     required this._frames,
     required this._barShape,
     required this._maxBarWidth,
+    required this._byteUnits,
     required this._styles,
     required this.binding,
+    required this._spinner,
   });
 
   final AppBinding? binding;
 
+  Steps _spinner;
+  Steps get spinner => _spinner;
+  set spinner(Steps s) {
+    if (!identical(s, _spinner)) {
+      _spinner = s;
+      markNeedsPaint();
+    }
+  }
+
   // the sweep of the bars of running tasks without a total
   late final _sweep = Steps(ProgressBar.step, markNeedsPaint, binding: binding);
+
+  /// Whether the sweep stands still, for a [TickerMode] that is off.
+  bool get muted => _sweep.muted;
+  set muted(bool on) {
+    if (on != _sweep.muted) {
+      _sweep.muted = on;
+      markNeedsPaint();
+    }
+  }
 
   List<ProgressTask> _rows;
   int _more;
@@ -851,9 +904,9 @@ final class _RenderProgressList extends RenderObject {
     }
   }
 
-  SpinnerFrames _frames;
-  SpinnerFrames get frames => _frames;
-  set frames(SpinnerFrames f) {
+  TaskMarks _frames;
+  TaskMarks get frames => _frames;
+  set frames(TaskMarks f) {
     if (f != _frames) {
       _frames = f;
       markNeedsPaint();
@@ -874,6 +927,15 @@ final class _RenderProgressList extends RenderObject {
   set maxBarWidth(int? w) {
     if (w != _maxBarWidth) {
       _maxBarWidth = w;
+      markNeedsPaint();
+    }
+  }
+
+  ByteUnits _byteUnits;
+  ByteUnits get byteUnits => _byteUnits;
+  set byteUnits(ByteUnits u) {
+    if (u != _byteUnits) {
+      _byteUnits = u;
       markNeedsPaint();
     }
   }
@@ -922,7 +984,7 @@ final class _RenderProgressList extends RenderObject {
     final shown = _columns.toSet();
     var w = 0;
     if (shown.contains(ProgressColumn.mark)) {
-      w += taskMarkWidth(segmenter, _frames) + 1;
+      w += _frames.width(segmenter) + 1;
     }
     if (shown.contains(ProgressColumn.label)) {
       w += _longestLabel(segmenter) + 1;
@@ -984,7 +1046,8 @@ final class _RenderProgressList extends RenderObject {
         continue;
       }
       final column = [
-        for (final task in rows) _cell(c, task, showsElapsed: showsElapsed),
+        for (final task in rows)
+          _cell(c, task, showsElapsed: showsElapsed, units: _byteUnits),
       ];
       var w = 0;
       for (final cell in column) {
@@ -998,7 +1061,7 @@ final class _RenderProgressList extends RenderObject {
       }
     }
 
-    final markW = hasMark ? taskMarkWidth(segmenter, _frames) : 0;
+    final markW = hasMark ? _frames.width(segmenter) : 0;
     final longest = hasLabel ? _longestLabel(segmenter) : 0;
     // the widths of the label and the bar, the text columns that fit
     var labelW = 0;
@@ -1053,7 +1116,7 @@ final class _RenderProgressList extends RenderObject {
     if (cap != null && barW > cap) {
       barW = cap;
     }
-    final g = _glyphs..use(segmenter);
+    final g = _glyphs..use(segmenter, _frames.glyphs);
     final line = _barShape == ProgressBarShape.line;
     final borderPen = s.border.penIn(styles);
     var sweeping = false;
@@ -1074,7 +1137,7 @@ final class _RenderProgressList extends RenderObject {
         canvas.text(
           x,
           y,
-          taskMark(status, _frames, _spinnerStep),
+          _frames.mark(status, _spinnerStep),
           s.of(status).penIn(styles),
         );
         x += markW;
@@ -1084,7 +1147,12 @@ final class _RenderProgressList extends RenderObject {
         canvas.text(
           x,
           y,
-          fitText(segmenter, task.label, labelW),
+          fitText(
+            segmenter,
+            task.label,
+            labelW,
+            ellipsis: _frames.glyphs.ellipsis,
+          ),
           status == TaskStatus.skipped ? mutedPen : basePen,
         );
         x += labelW;
@@ -1120,7 +1188,7 @@ final class _RenderProgressList extends RenderObject {
           gap();
         } else {
           if (cell.isNotEmpty && cells[j - 1][y].isNotEmpty) {
-            canvas.text(x, y, ' • ', mutedPen);
+            canvas.text(x, y, ' ${_frames.glyphs.bullet} ', mutedPen);
           }
           x += 3;
         }
@@ -1141,7 +1209,12 @@ final class _RenderProgressList extends RenderObject {
       canvas.text(
         0,
         rows.length,
-        fitText(segmenter, '+$_more more', width),
+        fitText(
+          segmenter,
+          '+$_more more',
+          width,
+          ellipsis: _frames.glyphs.ellipsis,
+        ),
         mutedPen,
       );
     }
@@ -1153,12 +1226,7 @@ final class _RenderProgressList extends RenderObject {
   }
 
   /// The step of the spinner the frame is in.
-  int get _spinnerStep {
-    final b = binding;
-    return b == null
-        ? 0
-        : b.frameTime.inMicroseconds ~/ _frames.interval.inMicroseconds;
-  }
+  int get _spinnerStep => _spinner.current;
 }
 
 /// The text of [column]'s cell for [task]; empty for none.
@@ -1166,6 +1234,7 @@ String _cell(
   ProgressColumn column,
   ProgressTask task, {
   required bool showsElapsed,
+  required ByteUnits units,
 }) {
   final status = task.status;
   final running = status == TaskStatus.running;
@@ -1176,11 +1245,11 @@ String _cell(
       null => status == TaskStatus.done ? '100%' : '',
     },
     ProgressColumn.count =>
-      task.completed == 0 && task.total == null ? '' : _count(task),
+      task.completed == 0 && task.total == null ? '' : _count(task, units),
     ProgressColumn.rate => switch (running && task.completed != 0
         ? task.rate
         : null) {
-      final r? => _rate(r, task.unit),
+      final r? => _rate(r, task.unit, units),
       null => '',
     },
     ProgressColumn.eta =>
@@ -1202,16 +1271,16 @@ String _cell(
 
 /// How much of how much [task] has done, in its unit: `12/40`,
 /// `1.2/3.4 MB`, `1.2 MB`.
-String _count(ProgressTask task) {
+String _count(ProgressTask task, ByteUnits units) {
   final total = task.total;
   if (task.unit == ProgressUnit.count) {
     final done = _number(task.completed);
     return total == null ? done : '$done/${_number(total)}';
   }
   if (total == null) {
-    return formatBytes(task.completed);
+    return formatBytes(task.completed, byteUnits: units);
   }
-  final (scale, suffix) = byteUnit(total);
+  final (scale, suffix) = byteUnit(total, byteUnits: units);
   if (scale == 1) {
     return '${_number(task.completed)}/${_number(total)} B';
   }
@@ -1226,16 +1295,16 @@ String _number(num n) => n == n.roundToDouble() && n.abs() < 1e15
 
 /// [rate] a second in [unit], as [formatBytes] writes an amount: `1.2 MB/s`,
 /// `3.5/s`, `120/s`, `1.2k/s`.
-String _rate(double rate, ProgressUnit unit) {
+String _rate(double rate, ProgressUnit unit, ByteUnits units) {
   if (unit == ProgressUnit.bytes) {
-    return '${formatBytes(rate)}/s';
+    return '${formatBytes(rate, byteUnits: units)}/s';
   }
-  const units = ['', 'k', 'M', 'G'];
+  const prefixes = ['', 'k', 'M', 'G'];
   var scaled = rate;
   var i = 0;
-  while (i < units.length - 1 && scaled.abs() >= 1000) {
+  while (i < prefixes.length - 1 && scaled.abs() >= 1000) {
     scaled /= 1000;
     i++;
   }
-  return '${formatFigures(scaled)}${units[i]}/s';
+  return '${formatFigures(scaled)}${prefixes[i]}/s';
 }

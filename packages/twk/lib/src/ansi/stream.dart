@@ -106,6 +106,16 @@ final class AnsiStream {
   /// held.
   int get settled => _settled.length;
 
+  /// Takes the ended lines out of [lines] and returns them, for a reader
+  /// that keeps them elsewhere, as a `LogController` does: what is held is
+  /// then only the line being written, and [settled] is 0.
+  List<List<Span>> takeSettled() {
+    final ended = List<List<Span>>.of(_settled);
+    _settled.clear();
+    _lines = null;
+    return ended;
+  }
+
   /// Reads [text].
   void add(String text) {
     _checkOpen();

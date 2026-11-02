@@ -267,7 +267,9 @@ What a progress shows follows what the output can do:
 - **`tasks`** takes the `columns` of the list (twk's `ProgressColumn`s;
   the mark, label, bar, percent, rate and ETA by default) and
   `hideFinished`, which takes a task done or skipped out of the list and
-  commits its summary above it. Its tracker (`ProgressTracker`) times the
+  commits its summary above it, and `byteUnits` (`ByteUnits.decimal` by
+  default, or `ByteUnits.binary` for 1024 as `ls -h` counts), which the
+  list and the summaries both write bytes in. Its tracker (`ProgressTracker`) times the
   tasks on the terminal's clock, and is disposed once the body ends.
 - **Levels.** Progress is written whatever the level, as prompts are.
 - **Where nobody answers** (`CI`, `--no-input`) at a terminal that redraws,

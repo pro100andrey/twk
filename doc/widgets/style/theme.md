@@ -111,6 +111,19 @@ final class _SwatchesState extends State<_Swatches> {
                 ),
               ],
             ),
+            const SizedBox(height: 1),
+            const Row(
+              gap: 2,
+              children: [
+                StatusMessage('Saved', kind: StatusKind.success),
+                Expanded(
+                  child: LineGauge(
+                    ratio: 0.6,
+                    unfilledStyle: Style(attrs: Attr.dim),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -129,6 +142,7 @@ What the gallery lets you change, and what each starts at:
 | --- | --- | --- |
 | theme | terminal, dark, light, nord, mocha, latte | nord |
 | cycle | on, off | false |
+| glyphs | unicode, ascii | unicode |
 
 ## More
 

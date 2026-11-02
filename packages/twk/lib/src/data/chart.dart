@@ -235,6 +235,8 @@ final class Chart extends LeafRenderObjectWidget {
     marker: marker,
     legendPosition: legendPosition,
     style: overTheme(context, style),
+    lines: Theme.of(context).glyphs.lines,
+    glyphs: Theme.of(context).glyphs,
   );
 
   @override
@@ -245,7 +247,9 @@ final class Chart extends LeafRenderObjectWidget {
       ..yAxis = yAxis
       ..marker = marker
       ..legendPosition = legendPosition
-      ..style = overTheme(context, style);
+      ..style = overTheme(context, style)
+      ..lines = Theme.of(context).glyphs.lines
+      ..glyphs = Theme.of(context).glyphs;
   }
 }
 
@@ -265,6 +269,8 @@ final class RenderChart extends RenderObject {
     this._marker = Marker.braille,
     this._legendPosition = LegendPosition.topRight,
     this._style = const Style(),
+    this._lines = BorderType.single,
+    this._glyphs = Glyphs.unicode,
   });
 
   List<Dataset> _datasets;
@@ -334,8 +340,31 @@ final class RenderChart extends RenderObject {
     }
   }
 
+  BorderType _lines;
+
+  /// The lines of the axes and the grid, as the theme's [Glyphs.lines].
+  BorderType get lines => _lines;
+  set lines(BorderType l) {
+    if (l != _lines) {
+      _lines = l;
+      markNeedsPaint();
+    }
+  }
+
+  Glyphs _glyphs;
+
+  /// The theme's marks: where they have no partial blocks, the dots are
+  /// drawn as the shades of [Glyphs.shades], as many as the cell's dots.
+  Glyphs get glyphs => _glyphs;
+  set glyphs(Glyphs g) {
+    if (g != _glyphs) {
+      _glyphs = g;
+      markNeedsPaint();
+    }
+  }
+
   final _grid = DotGrid();
-  final _glyphs = ChartGlyphs();
+  final _chartGlyphs = ChartGlyphs();
 
   @override
   bool get isRepaintBoundary => true;
@@ -363,7 +392,7 @@ final class RenderChart extends RenderObject {
       return;
     }
     _segmenter = canvas.segmenter;
-    final lines = (_glyphs..use(_segmenter)).lines(BorderType.single);
+    final lines = (_chartGlyphs..use(_segmenter)).lines(_lines);
     final xPen = base.merge(_xAxis.style).penIn(styles);
     final yPen = base.merge(_yAxis.style).penIn(styles);
 
@@ -392,7 +421,7 @@ final class RenderChart extends RenderObject {
     final lineRow = top + rows;
 
     // the marker the grid draws with, and the y labels at its rows
-    _grid.reset(0, rows, _marker, _segmenter);
+    _grid.reset(0, rows, _marker, _segmenter, glyphs: _glyphs);
     final down = _grid.marker.dotsDown;
     final across = _grid.marker.dotsAcross;
     final yLabels = _yAxis.labels?.isEmpty ?? false
@@ -441,7 +470,7 @@ final class RenderChart extends RenderObject {
           });
 
     // the plot
-    _grid.reset(cols, rows, _marker, _segmenter);
+    _grid.reset(cols, rows, _marker, _segmenter, glyphs: _glyphs);
     final painter = DotPainter(_grid, _xAxis.bounds, _yAxis.bounds);
     for (final dataset in _datasets) {
       (dataset.type == GraphType.line

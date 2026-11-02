@@ -14,14 +14,14 @@ text
 │     ListTile            ·   ·   ·   ·                           ·   ·   ·   ·  │
 │     StatusBar       ▐                    the README                            │
 │                     ▐   ·   ·   ·   ·  └                   ┘    ·   ·   ·   ·  │
-│   OVERLAYS      11                                   17 × 5                    │
+│   OVERLAYS      12                                   17 × 5                    │
 │     Overlay             ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
-│     Dialog                                                                     │
-│     Toast            ──────────────────────────────────────────────────────────│
-│     Tooltip            style  ██ ██ ██  primary                                │
-│     Popover                   ▔▔                                               │
-│     MenuBar            shows   text  url                                       │
-│     ContextMenu                                                                │
+│     App                                                                        │
+│     Dialog           ──────────────────────────────────────────────────────────│
+│     Toast              style  ██ ██ ██  primary                                │
+│     Tooltip                   ▔▔                                               │
+│     Popover            shows   text  url                                       │
+│     MenuBar                                                                    │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -41,12 +41,12 @@ styles
 │aaaaaaaaaaaaaaaaaaaaadgggogggogggogggoggogggggggggggggggggggoggggogggogggogggogg│
 │aaaddddddddaaaaaaCCaaaggggggggggggggggggggggggggggggggFFgFgFgggggggggggggggggggg│
 │aaaaannnnnnnaaaaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
-│aaaaannnnnnaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnaaaaaaaaaaggmmmmmggxxgyygzzggFFFFFFFgggggggggggggggggggggggggggggggg│
+│aaaaannnaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnaaaaaaaaaaaaggmmmmmggxxgyygzzggFFFFFFFgggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnaaaaaaaaaagggggggggAAggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnaaaaaaaaaaggmmmmmggrssssrhBBBhgggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

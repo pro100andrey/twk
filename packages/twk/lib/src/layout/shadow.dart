@@ -13,6 +13,7 @@ import 'package:twk_core/twk_core.dart'
         PaintContext,
         RenderObject,
         RenderObjectWithChildMixin,
+        StyleId,
         StyleTable,
         describeColor,
         kCont,
@@ -301,7 +302,12 @@ final class _RenderShadow extends RenderObject with RenderObjectWithChildMixin {
     final to = end - row;
     while (i < end) {
       final style = sty[i];
-      final shaded = _shaded[style] ??= shadeStyle(styles, style, towards, k);
+      final shaded = _shaded[style] ??= shadeStyle(
+        styles,
+        StyleId(style),
+        towards,
+        k,
+      ).value;
       var j = i + 1;
       while (j < end && sty[j] == style) {
         j++;

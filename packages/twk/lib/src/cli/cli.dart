@@ -659,7 +659,10 @@ final class Cli {
         if (mode != CliMode.interactive) {
           await _logLines(
             [
-              [Span('✗ ', theme.error), Span(question, theme.question)],
+              [
+                Span('${theme.glyphs.cross} ', theme.error),
+                Span(question, theme.question),
+              ],
             ],
             LogLevel.error,
             toErr: true,
@@ -675,7 +678,7 @@ final class Cli {
         await _logLines(
           [
             [
-              Span('✗ ', theme.error),
+              Span('${theme.glyphs.cross} ', theme.error),
               Span(question, theme.question),
               Span(
                 invalidDefault == null
@@ -741,6 +744,9 @@ final class Cli {
   /// * Output that is no terminal: each task's summary as it ends.
   ///
   /// The times, rates and times left are read on the [terminal]'s clock.
+  /// The bytes of tasks in [ProgressUnit.bytes] are counted as [byteUnits]
+  /// says, in the list and in the summaries alike: by 1000 (`3.4 MB`), or
+  /// by 1024 as `ls -h` does (`3.2 MiB`).
   ///
   /// ```dart
   /// await Cli.current.tasks(
@@ -761,6 +767,7 @@ final class Cli {
     bool hideFinished = false,
     ProgressBarShape barShape = ProgressBarShape.line,
     int? maxBarWidth = 30,
+    ByteUnits byteUnits = ByteUnits.decimal,
   }) => runTasks(
     this,
     body,
@@ -768,6 +775,7 @@ final class Cli {
     hideFinished: hideFinished,
     barShape: barShape,
     maxBarWidth: maxBarWidth,
+    byteUnits: byteUnits,
   );
 
   /// Writes [line] to the output, with escapes where the terminal takes

@@ -4,10 +4,10 @@ text
 │                                                                                │
 │   ⌕ Filter       /     ConfirmInput                            Preview   Code  │
 │                        A question answered by y, n or Enter.                   │
-│     Pressable        ──────────────────────────────────────────────────────────│
-│     Checkbox, Swi…                                                             │
-│     RadioGroup          ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│     RadioGroup       ──────────────────────────────────────────────────────────│
 │     SegmentedButt…                                                             │
+│     Chip, ChipList      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│     ValueStepper                                                               │
 │     SelectionList       ·   ·   ·  ┌                            ┐   ·   ·   ·  │
 │     Select, Multi…                   Delete 3 files?  Yes   No                 │
 │ ▎   ConfirmInput        ·   ·   ·                                   ·   ·   ·  │
@@ -29,10 +29,10 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahAhAAAAAAhhhhhhhBhaaggkkkkkkkkkkkkgggggggggggggggggggggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmgmmmmmmmmgmmmmmmmmgmmgmmgmgmmgmmmmmmggggggggggggggggggg│
-│aaaaannnnnnnnnaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnnnannnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
+│aaaaannnnnnnnnnaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnannnnnnnnaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
+│aaaaannnnnnnnnnnnaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnaaaagggogggogggoggoggggggggggggggggggggggggggggogggogggogggogg│
 │aaaaannnnnnnannnnnnaaaggggggggggggggggppppppgpgppppppgqrrrqgqssqgggggggggggggggg│
 │atuuuvvvvvvvvvvvvuuuuagggogggogggogggggggggggggggggggggggggggggggggggogggogggogg│

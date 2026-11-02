@@ -22,7 +22,7 @@ import '../../twk.dart';
 ///
 /// The prompts' lines take [question], [answer] and [hint]: `? Name?
 /// (my_app)` as asked, `✔ Name? my_app` once answered, the `✔` in
-/// [success] and a refusal's `✗` in [error].
+/// [success] and a refusal's `✗` in [error]; the marks are [glyphs].
 ///
 /// ```dart
 /// final cli = Cli(
@@ -78,6 +78,10 @@ final class CliTheme {
       );
 
   ThemeData get _data => lineData;
+
+  /// The marks of the prompts' and progress lines (`✔`, `✓`, `✗`):
+  /// [ThemeData.glyphs] of [data], [Glyphs.unicode] without it.
+  Glyphs get glyphs => _data.glyphs;
 
   /// The style of [Cli.detail]: muted by default.
   Style get detail => _detail ?? _data.muted;

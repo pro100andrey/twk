@@ -2,7 +2,7 @@ screen 120×36, cursor hidden
 text
 │  ◆ twk gallery   Animation  ›  TweenAnimationBuilder                                       ctrl+p search      ◐ Light  │
 │                                                                                                                        │
-│   ⌕ Filter             /      TweenAnimationBuilder                                                          13 of 16  │
+│   ⌕ Filter             /      TweenAnimationBuilder                                                          14 of 17  │
 │                               Builds with a value that runs to the one it is given, through the tweens it makes.       │
 │     ProgressList                                                                                                       │
 │     Skeleton, Skeletoni…      Preview   Code                                                                           │
@@ -57,7 +57,7 @@ styles
 │aaaaaooooooaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhrssssssssssrrsssssssssrhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhphhhphhhhhphhrssssssssssrhhhhhhhhhhhhhhh│
 │aaadddddaaaaaaaaaaaaaaaaBaaahhhhhhhhhhhhhyyyyyyyyyyyyyyyyyyyyyyyrrrrrrrhzzzhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooooaaaaaaaahhhhphhhphhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhqwwxqhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhphhhphhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhqmmtqhh│
 │aaaaaoooooooooaooooooooooaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhEEhEhEhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooaoooooaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
@@ -98,5 +98,5 @@ G bold #1f2328 on #b6d4fe
 H #0969da on #b6d4fe
 y #8250df on #eef0f3
 z #1f2328 on #fafafb
-w on #0969da
-x #ffffff on #0969da
+m on #0969da
+t #ffffff on #0969da

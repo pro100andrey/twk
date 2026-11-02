@@ -15,6 +15,7 @@ import '../framework/framework.dart';
 import '../gestures/gesture_detector.dart' show takeDrag;
 import '../gestures/mouse.dart';
 import '../overlay/window.dart';
+import '../style/glyphs.dart' show textMark;
 import '../style/style.dart';
 import '../text/widgets.dart';
 import 'basic.dart';
@@ -1206,12 +1207,14 @@ final class _DockAreaState extends State<DockArea> {
     };
   }
 
-  static const Map<DockSide, String> _glyphs = {
-    DockSide.left: '◀',
-    DockSide.right: '▶',
-    DockSide.top: '▲',
-    DockSide.bottom: '▼',
-    DockSide.center: '■',
+  // the mark of a drop target: the arrow of its side, the swatch at the
+  // centre, each fitted to its cell
+  String _mark(DockSide side, Glyphs glyphs) => switch (side) {
+    DockSide.left => textMark(context, 'arrowLeft', glyphs.arrowLeft, '<'),
+    DockSide.right => textMark(context, 'arrowRight', glyphs.arrowRight, '>'),
+    DockSide.top => textMark(context, 'arrowUp', glyphs.arrowUp, '^'),
+    DockSide.bottom => textMark(context, 'arrowDown', glyphs.arrowDown, 'v'),
+    DockSide.center => textMark(context, 'swatch', glyphs.swatch, '#'),
   };
 
   // the build
@@ -1331,7 +1334,7 @@ final class _DockAreaState extends State<DockArea> {
           place(
             r,
             Text(
-              ' ${_glyphs[s]} ',
+              ' ${_mark(s, theme.glyphs)} ',
               style: s == side ? hovered : target,
               wrap: TextWrap.none,
             ),

@@ -2,19 +2,27 @@
 /// with the focus kept in it until [closeDialog]; as a route of the
 /// `Navigator` above, or in an entry of the [Overlay] above without one.
 /// [Dialog] is the box it is usually drawn in.
+///
+/// @docImport 'popover.dart';
 library;
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:twk_core/twk_core.dart'
     show
         Alignment,
         Attr,
+        BoxConstraints,
         Color,
+        ContainerParentDataMixin,
+        ContainerRenderObjectMixin,
         CrossAxisAlignment,
         EdgeInsets,
         MainAxisSize,
-        StackFit;
+        PaintContext,
+        ParentData,
+        RenderObject;
 
 import '../animation/animation_controller.dart';
 import '../animation/curves.dart';
@@ -26,12 +34,15 @@ import '../foundation/listenable_builder.dart';
 import '../framework/framework.dart';
 import '../layout/basic.dart';
 import '../layout/box.dart';
+import '../layout/child_list.dart';
 import '../layout/flex.dart';
 import '../layout/shadow.dart';
 import '../layout/stack.dart';
 import '../navigation/navigator.dart';
+import '../scroll/single_child_scroll_view.dart';
 import '../semantics/semantics.dart';
 import '../style/style.dart';
+import '../text/hit_row.dart' show segmenterOf;
 import '../text/widgets.dart';
 import 'barrier.dart';
 import 'layer.dart';
@@ -70,6 +81,34 @@ import 'panel.dart';
 /// dialog shown over another, from either, covers it, and closed gives the
 /// focus back to it.
 ///
+/// So the [Overlay] (or the [Navigator]) goes above the app's own
+/// `KeyBindings`, around them: bindings above it hear the keys the dialog
+/// leaves, its `s` and `q` among them, as the app's root bindings would
+/// act on them while the dialog is open. `runApp` places no overlay;
+/// `App` places one under the app's theme, above the app, whose root has
+/// its `KeyBindings`:
+///
+/// ```dart
+/// App(
+///   child: KeyBindings(
+///     {'q': () {}},
+///     child: Text('the app'),
+///   ),
+/// )
+/// ```
+///
+/// A dialog on a navigator below those bindings is as one in that
+/// overlay: the keys it leaves go to the navigator and then past the
+/// nodes above it up to the [Overlay] above the navigator, to the nodes
+/// above that overlay ([FocusNode.keysSkip]), so the app's `q` above the
+/// navigator but inside `App` does not hear the dialog's, nor does a
+/// `KeyHintsBar` list it while the dialog is open. Keys that are to work
+/// over a dialog as well, a `ctrl+q` that quits, are bound above `App`.
+/// With no overlay above the navigator nothing is skipped: the bindings
+/// above the navigator hear them. Menus, the palette, popovers and
+/// autocomplete lists opened from a screen of the navigator, entries of its
+/// own overlay, skip the same way.
+///
 /// It completes with null too when it leaves the tree some other way, as
 /// with its overlay or navigator.
 ///
@@ -90,6 +129,31 @@ import 'panel.dart';
 ///   ),
 /// );
 /// ```
+///
+/// A box of the app's own, with no room around it and no title row (a
+/// palette), at the top and with nothing dimmed: [Dialog] always has its
+/// room or border, so what is shown is a [Box] or a `Panel` of the app's
+/// own, the dialog being whatever [builder] builds:
+///
+/// ```dart
+/// showDialog<void>(
+///   context,
+///   (context) => SizedBox(
+///     width: 40,
+///     child: Box(
+///       style: Theme.of(context).surface,
+///       child: Text('> find a command'),
+///     ),
+///   ),
+///   alignment: Alignment.topCenter,
+///   barrierAlpha: 0,
+/// );
+/// ```
+///
+/// Placed by [alignment] alone: there is no position in cells. What is
+/// at a cell or by a widget is not a dialog: a menu at a row is a
+/// `ContextMenu` opened by `MenuController.open` with `at`, a panel by a
+/// widget a [Popover], neither dimming what is under it.
 Future<T?> showDialog<T>(
   BuildContext context,
   Widget Function(BuildContext context) builder, {
@@ -123,7 +187,7 @@ Future<T?> showDialog<T>(
   if (overlay == null) {
     throw StateError(
       'showDialog: no Overlay above ${context.widget.runtimeType}: place '
-      'an Overlay above it, as around the whole app: Overlay(child: …)',
+      'an Overlay above it, as App does around the whole app: App(child: …)',
     );
   }
   final entry = route._entry = OverlayEntry(
@@ -164,6 +228,15 @@ void closeDialog(BuildContext context, [Object? result]) {
 /// room is, [title] on its top edge. A screen reader reads it as a
 /// [SemanticsRole.dialog] of its title, then what is in it.
 ///
+/// What an app sets: [title] and [trailing], [look] (raised or bordered),
+/// [shadow], [padding] (which adds the one cell of room a raised look
+/// always has), [maxWidth] and [scrollable]; and in [showDialog] the
+/// alignment, the barrier (`barrierAlpha` 0 for none) and whether it
+/// is dismissible. The room or border and the title row are always there:
+/// a box with none (a palette) is a `Panel` or a `Box` of the app's own in
+/// [showDialog] (an example there), and a dialog at a cell, not an edge,
+/// is a `ContextMenu` or a [Popover] (see [showDialog]).
+///
 /// A bordered dialog with a shadow, as [showDialog] shows it:
 ///
 /// ```dart
@@ -180,9 +253,12 @@ final class Dialog extends StatelessWidget {
     required this.child,
     super.key,
     this.title,
+    this.trailing,
+    this.scrollable = false,
     this.padding = const EdgeInsets.x(1),
     this.shadow,
     this.look = PanelLook.raised,
+    this.maxWidth = 72,
   });
 
   /// What is in the dialog.
@@ -190,6 +266,22 @@ final class Dialog extends StatelessWidget {
 
   /// What the dialog is titled; null for nothing.
   final String? title;
+
+  /// What is at the right end of the title row, after [title]: a counter
+  /// such as `2/5 ←→`, a close hint. In the raised look the row is the
+  /// first inside, [title] to the left of it (nothing to the left when
+  /// [title] is null); in the bordered look it is on the top border at the
+  /// right, as [title] is at the left, the box no taller for it. Null for
+  /// none.
+  final Widget? trailing;
+
+  /// Whether [child] is shown in a `SingleChildScrollView` that is bounded
+  /// by the room the dialog gets (the screen's height less the room, the
+  /// border and the title row), so a [child] taller than that scrolls,
+  /// by the keys once it has the focus and by the wheel, instead of being
+  /// cut off. False by default: [child] is laid out as before, as tall as
+  /// it likes.
+  final bool scrollable;
 
   /// The cells between the room (or the border) and [child].
   final EdgeInsets padding;
@@ -201,12 +293,80 @@ final class Dialog extends StatelessWidget {
   /// A raised panel, or a bordered box.
   final PanelLook look;
 
+  /// The most columns the box takes, its room or border among them, 72 by
+  /// default, and fewer where the screen is narrower; null for as many as
+  /// the screen gives it. A child that takes the width it is given (a
+  /// `DescriptionList`, a [Row] with an [Expanded]) makes the dialog that
+  /// wide.
+  final int? maxWidth;
+
+  /// The bordered look: [title] and [trailing] both on the top edge, as a
+  /// `Callout` has its close mark, the box as tall as it is without them.
+  /// [trailing] is in a blank cell on either side, one `─` from the
+  /// corner, built once: [_EdgeFit] keeps the box from being narrower than
+  /// the title and it together.
+  Widget _bordered(
+    BuildContext context,
+    ThemeData theme,
+    String? title,
+    Widget? trailing,
+    Widget content,
+  ) {
+    final segmenter = segmenterOf(context);
+    final box = Box(
+      style: theme.surface.merge(theme.text),
+      border: Border.all(style: theme.border),
+      titles: [
+        if (title != null) BorderTitle(' $title ', style: theme.text),
+      ],
+      padding: padding,
+      child: scrollable
+          ? IntrinsicWidth(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [content],
+              ),
+            )
+          : child,
+    );
+    if (trailing == null) {
+      return box;
+    }
+    return _EdgeFit(
+      // the edge: corner, title, `─`, blank, trailing, blank, `─`, corner
+      before:
+          2 +
+          padding.horizontal +
+          math.max(
+            0,
+            (title == null ? 0 : segmenter.width(' $title ')) +
+                2 -
+                padding.horizontal,
+          ),
+      children: [
+        box,
+        // blank cells either side, which cover the edge's line
+        Box(
+          style: theme.surface.merge(theme.text),
+          padding: const EdgeInsets.x(1),
+          child: trailing,
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final title = this.title;
     final shadow = this.shadow;
     final p = padding;
+    final trailing = this.trailing;
+    final content = scrollable
+        ? Flexible(child: SingleChildScrollView(child: child))
+        : child;
+    final plain = title == null && trailing == null && !scrollable;
     final box = switch (look) {
       PanelLook.raised => Box(
         style: theme.surface.merge(theme.text),
@@ -216,9 +376,10 @@ final class Dialog extends StatelessWidget {
           right: p.right + 1,
           bottom: p.bottom + 1,
         ),
-        child: title == null
+        child: plain
             ? child
-            : Column(
+            : trailing == null && !scrollable
+            ? Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -226,29 +387,67 @@ final class Dialog extends StatelessWidget {
                   Semantics(
                     nodes: const [],
                     child: Text(
-                      title,
+                      title!,
                       style: theme.text.merge(const Style(attrs: Attr.bold)),
                       maxLines: 1,
                     ),
                   ),
                   child,
                 ],
+              )
+            : IntrinsicWidth(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (title != null || trailing != null)
+                      SizedBox(
+                        height: 1,
+                        child: Row(
+                          gap: 1,
+                          children: [
+                            Expanded(
+                              child: title == null
+                                  ? const SizedBox()
+                                  // read as the dialog's label already
+                                  : Semantics(
+                                      nodes: const [],
+                                      child: Text(
+                                        title,
+                                        style: theme.text.merge(
+                                          const Style(attrs: Attr.bold),
+                                        ),
+                                        maxLines: 1,
+                                      ),
+                                    ),
+                            ),
+                            ?trailing,
+                          ],
+                        ),
+                      ),
+                    content,
+                  ],
+                ),
               ),
       ),
-      PanelLook.bordered => Box(
-        style: theme.surface.merge(theme.text),
-        border: Border.all(style: theme.border),
-        titles: [
-          if (title != null) BorderTitle(' $title ', style: theme.text),
-        ],
-        padding: padding,
-        child: child,
-      ),
+      PanelLook.bordered => _bordered(context, theme, title, trailing, content),
     };
+    final maxWidth = this.maxWidth;
+    final sized = maxWidth == null
+        ? box
+        : ConstrainedBox(
+            constraints: BoxConstraints(
+              0,
+              maxWidth,
+              0,
+              BoxConstraints.unbounded,
+            ),
+            child: box,
+          );
     return Semantics(
       role: SemanticsRole.dialog,
       label: title,
-      child: shadow == null ? box : Shadow(shadow: shadow, child: box),
+      child: shadow == null ? sized : Shadow(shadow: shadow, child: sized),
     );
   }
 }
@@ -340,6 +539,17 @@ final class _DialogLayerState extends State<_DialogLayer>
     duration: widget.route.fadeIn,
   );
 
+  final _scope = FocusScopeNode(debugLabel: 'dialog');
+
+  /// The nodes the keys the dialog leaves skip on a navigator, told
+  /// whenever the keys' path is walked; none for a dialog in an overlay.
+  ({FocusNode from, FocusNode to})? _skip() {
+    final navigator = widget.route._entry == null
+        ? widget.route.navigator
+        : null;
+    return navigator?.keysSkip;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -353,6 +563,7 @@ final class _DialogLayerState extends State<_DialogLayer>
   @override
   void dispose() {
     _fade.dispose();
+    _scope.dispose();
     // a route's navigator completes it as it takes it off
     if (widget.route._entry != null) {
       widget.route.close(null);
@@ -370,6 +581,7 @@ final class _DialogLayerState extends State<_DialogLayer>
     // a share of it as the dialog fades in
     final alpha = route.barrierAlpha;
     final opacity = alpha == null ? theme.shadeAlpha : alpha / 255;
+    _scope.keysSkip = _skip;
     return _DialogScope(
       route,
       child: ListenableBuilder(
@@ -393,7 +605,7 @@ final class _DialogLayerState extends State<_DialogLayer>
           hints: route.dismissible ? const {'escape': 'close'} : const {},
           debugLabel: 'dialog',
           child: FocusScope(
-            debugLabel: 'dialog',
+            node: _scope,
             child: _TakeFocus(
               child: Align(
                 alignment: route.alignment,
@@ -453,4 +665,115 @@ final class _DialogScope extends InheritedWidget {
   @override
   bool updateShouldNotify(_DialogScope oldWidget) =>
       !identical(route, oldWidget.route);
+}
+
+/// A bordered [Dialog]'s box and, over its top edge, the widget at the
+/// edge's right end: the box at least as wide as `before` cells and that
+/// widget are, the widget two cells from the right corner.
+final class _EdgeFit extends MultiChildRenderObjectWidget {
+  const _EdgeFit({required this.before, super.children});
+
+  /// The columns the edge takes before the widget: the corner, the border
+  /// and room, the title and its `─`.
+  final int before;
+
+  @override
+  MultiChildRenderObjectElement createElement() => ChildListElement(this);
+
+  @override
+  _RenderEdgeFit createRenderObject(BuildContext context) =>
+      _RenderEdgeFit(before);
+
+  @override
+  void updateRenderObject(BuildContext context, _RenderEdgeFit renderObject) =>
+      renderObject.before = before;
+}
+
+final class _EdgeData extends ParentData with ContainerParentDataMixin {}
+
+final class _RenderEdgeFit extends RenderObject
+    with ContainerRenderObjectMixin<_EdgeData> {
+  _RenderEdgeFit(this._before);
+
+  int _before;
+  int get before => _before;
+  set before(int b) {
+    if (b != _before) {
+      _before = b;
+      markNeedsLayout();
+    }
+  }
+
+  @override
+  void setupParentData(RenderObject child) {
+    if (child.parentData is! _EdgeData) {
+      child.parentData = _EdgeData();
+    }
+  }
+
+  RenderObject? get _box => firstChild;
+  RenderObject? get _edge => _box == null ? null : childAfter(_box!);
+
+  int get _edgeWidth => _before + (_edge?.getMaxIntrinsicWidth(1) ?? 0);
+
+  @override
+  int computeMinIntrinsicWidth(int height) => math.max(
+    _box?.getMinIntrinsicWidth(height) ?? 0,
+    _edgeWidth,
+  );
+
+  @override
+  int computeMaxIntrinsicWidth(int height) => math.max(
+    _box?.getMaxIntrinsicWidth(height) ?? 0,
+    _edgeWidth,
+  );
+
+  @override
+  int computeMinIntrinsicHeight(int width) =>
+      _box?.getMinIntrinsicHeight(width) ?? 0;
+
+  @override
+  int computeMaxIntrinsicHeight(int width) =>
+      _box?.getMaxIntrinsicHeight(width) ?? 0;
+
+  @override
+  void performLayout(BoxConstraints c) {
+    final box = _box;
+    final edge = _edge;
+    if (box == null) {
+      width = c.constrainW(0);
+      height = c.constrainH(0);
+      return;
+    }
+    box.layout(
+      BoxConstraints(
+        math.min(math.max(c.minW, _edgeWidth), c.maxW),
+        c.maxW,
+        c.minH,
+        c.maxH,
+      ),
+      parentUsesSize: true,
+    );
+    box.parentData
+      ..dx = 0
+      ..dy = 0;
+    width = box.width;
+    height = box.height;
+    if (edge != null) {
+      edge.layout(
+        BoxConstraints(0, math.max(0, width - 4), 0, height),
+        parentUsesSize: true,
+      );
+      edge.parentData
+        ..dx = math.max(0, width - 2 - edge.width)
+        ..dy = 0;
+    }
+  }
+
+  @override
+  void paint(PaintContext ctx) {
+    for (var child = firstChild; child != null; child = childAfter(child)) {
+      paintChild(ctx, child);
+    }
+  }
 }

@@ -154,4 +154,24 @@ void main() {
       expect(() => stream.addBytes([0x61]), throwsStateError);
     });
   });
+
+  test('takeSettled hands over the ended lines and keeps only the one being '
+      'written', () {
+    final stream = AnsiStream()..add('one\ntwo\nthr');
+    expect(stream.takeSettled(), [
+      [const Span('one')],
+      [const Span('two')],
+    ]);
+    expect(stream.settled, 0);
+    expect(stream.lines, [
+      [const Span('thr')],
+    ]);
+    stream
+      ..add('ee\n')
+      ..close();
+    expect(stream.takeSettled(), [
+      [const Span('three')],
+    ]);
+    expect(stream.lines, isEmpty);
+  });
 }

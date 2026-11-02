@@ -19,6 +19,8 @@ import 'package:twk_core/twk_core.dart'
         RenderDivider;
 
 import '../framework/framework.dart';
+import '../scroll/scrollbar.dart'
+    show BorderScrollbar, Scrollbar, ScrollbarVisibility;
 import '../style/style.dart';
 import 'one_child.dart';
 
@@ -52,7 +54,7 @@ export 'package:twk_core/twk_core.dart' show BorderType;
 ///  * [Padding], for the space without the border.
 ///  * [Container], which adds a size, a margin and a shadow.
 ///  * [Divider], a line across without the box.
-final class Box extends SingleChildRenderObjectWidget {
+final class Box extends StatelessWidget {
   /// A box around [child]; with every parameter left out, an empty one
   /// that fills nothing.
   const Box({
@@ -61,8 +63,12 @@ final class Box extends SingleChildRenderObjectWidget {
     this.border,
     this.titles = const [],
     this.padding = EdgeInsets.zero,
-    super.child,
+    this.scrollbar,
+    this.child,
   });
+
+  /// What is in the box.
+  final Widget? child;
 
   /// What the box is filled with: its background, and the colors its
   /// border, titles and child take where theirs are unset; null leaves
@@ -79,32 +85,105 @@ final class Box extends SingleChildRenderObjectWidget {
   /// The empty cells between the border and the child.
   final EdgeInsets padding;
 
+  /// Whether the bar of the outermost scrollable in [child] is drawn on
+  /// the border, and when its thumb shows, as for a [Scrollbar] (and
+  /// `LogView.scrollbar`): on the border's right side for a vertical
+  /// scrollable and its bottom for a horizontal one (a side the [border]
+  /// has), between its corners. The border's line shows while there is
+  /// nothing to scroll and, at [ScrollbarVisibility.onScroll], while the
+  /// thumb is hidden; a heavier line over it is the thumb (`┃`, `━`) in
+  /// the theme's muted color, the whole cell in eighths while the mouse is
+  /// over it, dragged and pressed as a [Scrollbar] is. The child keeps all
+  /// the room inside. Null or [ScrollbarVisibility.never] for none.
+  ///
+  /// The line and the track are the [Border.type]'s own, the thumb a
+  /// heavier line (`█` on a heavy border, `#` on an ascii one), and no
+  /// background is painted: the box's [style] or what is under it shows.
+  /// A bottom [BorderTitle] and a horizontal bar cannot share the edge: an
+  /// assertion fails, as it does for a bar on a side the border has not.
+  ///
+  /// A list in a panel, its bar on the panel's right side:
+  ///
+  /// ```dart
+  /// Box(
+  ///   border: const Border.all(type: .rounded),
+  ///   scrollbar: .always,
+  ///   child: ListView.builder(
+  ///     itemCount: 100,
+  ///     itemBuilder: (context, i) => Text('item $i'),
+  ///   ),
+  /// )
+  /// ```
+  final ScrollbarVisibility? scrollbar;
+
+  @override
+  Widget build(BuildContext context) {
+    final visibility = scrollbar;
+    final border = this.border;
+    if (visibility == null || visibility == ScrollbarVisibility.never) {
+      return _DecoratedBox(this, child: child);
+    }
+    assert(border != null, 'a scrollbar on a border');
+    if (border == null) {
+      return _DecoratedBox(this, child: child);
+    }
+    Style? side(Style? s) =>
+        s == null ? null : (style ?? const Style()).merge(s);
+    int inset(Style? side) => side == null ? 0 : 1;
+    return BorderScrollbar(
+      visibility: visibility,
+      right: side(border.right),
+      bottom: side(border.bottom),
+      bottomTitled: titles.any((t) => t.alignment.y > 0),
+      type: border.type,
+      thumb: Style(fg: Theme.of(context).muted.fg),
+      inset: (
+        (inset(border.top), inset(border.bottom)),
+        (inset(border.left), inset(border.right)),
+      ),
+      builder: (context, scope) =>
+          _DecoratedBox(this, child: child == null ? null : scope(child!)),
+    );
+  }
+}
+
+/// What a [Box] is drawn by: its [RenderDecoratedBox].
+final class _DecoratedBox extends SingleChildRenderObjectWidget {
+  const _DecoratedBox(this.box, {super.child});
+
+  final Box box;
+
   @override
   SingleChildRenderObjectElement createElement() => OneChildElement(this);
 
   @override
-  RenderDecoratedBox createRenderObject(BuildContext context) =>
-      RenderDecoratedBox(
-        background: style?.pen,
-        border: border?._boxBorder,
-        titles: _boxTitles,
-        padding: padding,
-      );
+  RenderDecoratedBox createRenderObject(BuildContext context) {
+    final glyphs = Theme.of(context).glyphs;
+    return RenderDecoratedBox(
+      background: box.style?.pen,
+      border: box.border?._boxBorder(glyphs),
+      titles: _boxTitles,
+      padding: box.padding,
+      ellipsis: glyphs.ellipsis,
+    );
+  }
 
   @override
   void updateRenderObject(
     BuildContext context,
     RenderDecoratedBox renderObject,
   ) {
+    final glyphs = Theme.of(context).glyphs;
     renderObject
-      ..background = style?.pen
-      ..border = border?._boxBorder
+      ..background = box.style?.pen
+      ..border = box.border?._boxBorder(glyphs)
       ..titles = _boxTitles
-      ..padding = padding;
+      ..padding = box.padding
+      ..ellipsis = glyphs.ellipsis;
   }
 
   List<BoxTitle> get _boxTitles =>
-      titles.isEmpty ? const [] : [for (final t in titles) t._boxTitle];
+      box.titles.isEmpty ? const [] : [for (final t in box.titles) t._boxTitle];
 }
 
 /// The border of a [Box]: the lines it is drawn with, for each side that
@@ -121,7 +200,7 @@ final class Border {
   /// A border of [type] on each side given a style; with none given, no
   /// border at all.
   const Border({
-    this.type = BorderType.single,
+    this.type,
     this.top,
     this.right,
     this.bottom,
@@ -131,7 +210,7 @@ final class Border {
 
   /// A border on every side, in [style].
   const Border.all({
-    this.type = BorderType.single,
+    this.type,
     Style style = const Style(),
     this.merge = false,
   }) : top = style,
@@ -139,8 +218,11 @@ final class Border {
        bottom = style,
        left = style;
 
-  /// The lines the border is drawn with: [BorderType.single] by default.
-  final BorderType type;
+  /// The lines the border is drawn with; null for the theme's
+  /// ([Glyphs.lines], [BorderType.single] by default). A theme of
+  /// [BorderType.ascii] lines draws every type but [BorderType.none] as
+  /// ASCII ([Glyphs.borderOf]).
+  final BorderType? type;
 
   /// The style of the top side; null for no line there.
   final Style? top;
@@ -160,8 +242,8 @@ final class Border {
   /// box whose edge it shares). See [BoxBorder.merge].
   final bool merge;
 
-  BoxBorder get _boxBorder => BoxBorder(
-    type: type,
+  BoxBorder _boxBorder(Glyphs glyphs) => BoxBorder(
+    type: glyphs.borderOf(type),
     top: top?.pen,
     right: right?.pen,
     bottom: bottom?.pen,
@@ -253,20 +335,20 @@ final class Divider extends LeafRenderObjectWidget {
   /// lines it meets.
   const Divider({
     super.key,
-    this.type = BorderType.single,
+    this.type,
     this.style = const Style(),
     this.merge = false,
   }) : _direction = Axis.horizontal;
 
   const Divider._down({
     super.key,
-    this.type = BorderType.single,
+    this.type,
     this.style = const Style(),
     this.merge = false,
   }) : _direction = Axis.vertical;
 
-  /// The line it is drawn with: [BorderType.single] by default.
-  final BorderType type;
+  /// The line it is drawn with; null for the theme's ([Glyphs.lines]).
+  final BorderType? type;
 
   /// The style of the line.
   final Style style;
@@ -280,7 +362,7 @@ final class Divider extends LeafRenderObjectWidget {
   @override
   RenderDivider createRenderObject(BuildContext context) => RenderDivider(
     direction: _direction,
-    type: type,
+    type: Theme.of(context).glyphs.borderOf(type),
     pen: style.pen,
     merge: merge,
   );
@@ -289,7 +371,7 @@ final class Divider extends LeafRenderObjectWidget {
   void updateRenderObject(BuildContext context, RenderDivider renderObject) {
     renderObject
       ..direction = _direction
-      ..type = type
+      ..type = Theme.of(context).glyphs.borderOf(type)
       ..pen = style.pen
       ..merge = merge;
   }

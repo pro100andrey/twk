@@ -35,6 +35,7 @@ import 'package:twk_core/twk_core.dart'
         TextWrap;
 
 import '../binding/terminal_status.dart';
+import '../controls/hand.dart';
 import '../editing/caret.dart' show clearRestCursor, restCursor;
 import '../focus/focus.dart';
 import '../foundation/change_notifier.dart';
@@ -370,7 +371,8 @@ final class TableController extends ChangeNotifier {
 /// or `▾`. While the table has the focus, `s` does that for the column of
 /// the cell selected (with [TableSelection.cell]) or that sorted by (the
 /// first that sorts for none), and `<` and `>` sort by the column before
-/// or after the one sorted by. Sorting reads every row.
+/// or after the one sorted by; with [sortKeys] false they are left to the
+/// bindings above it. Sorting reads every row.
 ///
 /// As [selection] says, a click selects a row or a cell, and gives the
 /// table the focus; while it has the focus, Up and Down select the row
@@ -427,6 +429,8 @@ final class TableController extends ChangeNotifier {
 ///
 ///  * `TreeTable`, a tree whose nodes are the rows of a table.
 ///  * [ListView], what the rows are the items of.
+///  * "A row of a list" in doc/guides/layout.md, for a row of a label and
+///    something fixed beside a table's columns.
 final class Table<T> extends StatefulWidget {
   /// A table of [rows], a list it is given whole. A [rowHeight] below 1, a
   /// [columnGap] or [sampleRows] below 0, and a [border] with no
@@ -454,6 +458,7 @@ final class Table<T> extends StatefulWidget {
     this.unfocusedSelectedStyle,
     this.cursorStyle,
     this.pointerShapes = true,
+    this.sortKeys = true,
   }) : source = null,
        assert(rowHeight == null || rowHeight > 0, 'rows a row tall or more'),
        assert(columnGap >= 0, 'a gap of 0 cells or more'),
@@ -492,6 +497,7 @@ final class Table<T> extends StatefulWidget {
     this.unfocusedSelectedStyle,
     this.cursorStyle,
     this.pointerShapes = true,
+    this.sortKeys = true,
   }) : rows = null,
        assert(rowHeight == null || rowHeight > 0, 'rows a row tall or more'),
        assert(columnGap >= 0, 'a gap of 0 cells or more'),
@@ -585,6 +591,11 @@ final class Table<T> extends StatefulWidget {
   /// Whether the pointer over the edge of a column is
   /// [PointerShape.ewResize], where the terminal shows the pointer's shape.
   final bool pointerShapes;
+
+  /// Whether `s`, `<` and `>` sort the rows while the table has the focus,
+  /// where a column sorts: false leaves them to the bindings above it (an
+  /// app's own `s`), a click on a title still sorting.
+  final bool sortKeys;
 
   @override
   State<Table<T>> createState() => _TableState<T>();
@@ -1101,9 +1112,9 @@ final class _TableState<T> extends State<Table<T>> {
       'left' when cells => _moveColumn(-1),
       'right' when cells => _moveColumn(1),
       'enter' when !none => _activate(),
-      's' => _sortHere(),
-      '<' => _sortNext(-1),
-      '>' => _sortNext(1),
+      's' when widget.sortKeys => _sortHere(),
+      '<' when widget.sortKeys => _sortNext(-1),
+      '>' when widget.sortKeys => _sortNext(1),
       'shift+left' => _resizeBy(-1),
       'shift+right' => _resizeBy(1),
       _ => null,
@@ -1300,7 +1311,7 @@ final class _TableState<T> extends State<Table<T>> {
                   onUp: _headerUp,
                   child: _Row(
                     columns: _columns,
-                    lines: w.border,
+                    lines: Theme.of(context).glyphs.borderOf(w.border),
                     rule: w.border != BorderType.none,
                     background: styles.base,
                     style: styles.header,
@@ -1328,11 +1339,20 @@ final class _TableState<T> extends State<Table<T>> {
     );
   }
 
-  /// [header] in a region whose pointer is [PointerShape.ewResize] over
-  /// the edge of a column, with [Table.pointerShapes] where the terminal
-  /// shows the pointer's shape; [header] alone otherwise, so that the
-  /// mouse's motion is not reported for nothing.
-  Widget _shaped(Widget header) {
+  /// [titles] with the hand over a column that sorts, and in a region
+  /// whose pointer is [PointerShape.ewResize] over the edge of a column,
+  /// with [Table.pointerShapes] where the terminal shows the pointer's
+  /// shape; without that region otherwise, so that the mouse's motion is
+  /// not reported for nothing.
+  Widget _shaped(Widget titles) {
+    // the hand over the title of a column that sorts, off its edge
+    final header = HandOver(
+      where: (x, _) {
+        final column = _columns.edgeAt(x) == null ? _columns.at(x) : null;
+        return column != null && widget.columns[column].compare != null;
+      },
+      child: titles,
+    );
     final shows =
         widget.pointerShapes &&
         (TerminalStatus.of(context)?.showsPointerShape ?? false);
@@ -1352,6 +1372,7 @@ final class _TableState<T> extends State<Table<T>> {
   /// The title of [column], the [index]th, marked when the rows are
   /// sorted by it.
   Widget _title(TableColumn<T> column, int index, Style style) {
+    final glyphs = Theme.of(context).glyphs;
     final title = Text(
       column.title,
       style: style,
@@ -1371,7 +1392,10 @@ final class _TableState<T> extends State<Table<T>> {
       },
       children: [
         Flexible(child: title),
-        Text(_controller.sortAscending ? ' ▴' : ' ▾', style: style),
+        Text(
+          ' ${_controller.sortAscending ? glyphs.up : glyphs.down}',
+          style: style,
+        ),
       ],
     );
   }
@@ -1403,7 +1427,7 @@ final class _TableState<T> extends State<Table<T>> {
       onDown: w.selection == TableSelection.none ? null : onDown,
       child: _Row(
         columns: _columns,
-        lines: w.border,
+        lines: Theme.of(context).glyphs.borderOf(w.border),
         background: styles.base,
         style: style,
         lineStyle: styles.border,

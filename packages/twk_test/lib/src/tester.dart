@@ -15,13 +15,16 @@ import 'package:twk/twk.dart';
 import '../vt.dart';
 import 'fake_clock.dart';
 import 'fake_stderr.dart';
+import 'finders.dart' show CellRect;
 import 'keys.dart';
 import 'recording.dart';
+import 'screen_file.dart' show cellsText;
 import 'screen_text.dart';
 
 // Examples can assume:
 // import 'package:test/test.dart';
 // import 'package:twk/twk.dart';
+// late TwkTester t;
 
 /// Runs [body] as a test of package:test named [description], with a
 /// [TwkTester] for an app it starts with [TwkTester.pumpWidget].
@@ -46,7 +49,10 @@ import 'screen_text.dart';
 /// fed to the emulator: an error the app ended with that no call of the
 /// tester has thrown fails the test, as do bytes the emulator does not
 /// take (see [Vt]). A test that fails prints the last [framesOnFailure]
-/// frames of the app that changed the screen ([TwkTester.frames]).
+/// frames of the app that changed the screen ([TwkTester.frames]), as
+/// text, and then the app's log ([TwkTester.logs]), its last 20 records:
+/// what it printed, its warnings (a layout that overflowed) and its
+/// errors (a build that threw), which its screen shows none of.
 @isTest
 void testTwk(
   String description,
@@ -62,7 +68,7 @@ void testTwk(
     try {
       await runZoned(() => body(t), zoneValues: {_testerKey: t});
     } on Object {
-      t._printFrames(framesOnFailure);
+      t._printOnFailure(framesOnFailure);
       try {
         await t._end();
       } on Object {
@@ -73,7 +79,7 @@ void testTwk(
     try {
       await t._end();
     } on Object {
-      t._printFrames(framesOnFailure);
+      t._printOnFailure(framesOnFailure);
       rethrow;
     }
   },
@@ -125,6 +131,11 @@ final class TwkTester {
   /// The time of the app.
   late final FakeClock clock;
 
+  /// The app's wall time (`AppBinding.now`) when [clock] reads zero, unless
+  /// [pumpWidget] is given another: midnight at the start of 2026, fixed,
+  /// so a screen that shows a date is the same on every run.
+  static final defaultStartTime = DateTime(2026);
+
   /// The app's log: `print`, `log()` and the errors it reports.
   final logs = LogSink();
 
@@ -137,6 +148,7 @@ final class TwkTester {
 
   HeadlessTerminal? _terminal;
   AppBinding? _binding;
+  DateTime? _startTime;
   Vt? _vt;
   FrameRecorder? _recorder;
   var _fed = 0;
@@ -193,7 +205,12 @@ final class TwkTester {
   /// [AppBinding]), and [environment] in place of the process's: none by
   /// default, so that what the shell running the tests exports
   /// (`TWK_DEBUG`, `TWK_SCREEN_READER`, `TWK_LOG`, the editor's variables)
-  /// changes nothing; a test that wants one gives it here.
+  /// changes nothing; a test that wants one gives it here. With
+  /// [pointerShapes] the terminal shows the mouse pointer's shapes (OSC 22,
+  /// by their CSS names), which [pointerShape] reads. The app's wall
+  /// time (`AppBinding.now`) is [startTime] when the clock reads zero,
+  /// [defaultStartTime] by default, moved on by the clock: a screen that
+  /// shows the time or today's date is the same on every run.
   Future<void> pumpWidget(
     Widget widget, {
     (int, int)? size,
@@ -212,9 +229,13 @@ final class TwkTester {
     bool clearInlineOnExit = false,
     bool exitOnCtrlC = true,
     Map<String, String> environment = const {},
+    DateTime? startTime,
+    bool pointerShapes = false,
   }) async {
     final binding = _binding;
     if (binding == null) {
+      _startTime = startTime ?? defaultStartTime;
+      _pointerShapes = pointerShapes;
       _start(
         widget,
         size: size ?? (80, 24),
@@ -232,6 +253,8 @@ final class TwkTester {
         clearInlineOnExit: clearInlineOnExit,
         exitOnCtrlC: exitOnCtrlC,
         environment: environment,
+        startTime: startTime ?? defaultStartTime,
+        pointerShapes: pointerShapes,
       );
     } else {
       final term = _running();
@@ -240,6 +263,13 @@ final class TwkTester {
           mode,
           'mode',
           'the app runs in the ${binding.mode.name} mode',
+        );
+      }
+      if (startTime != null && startTime != _startTime) {
+        throw ArgumentError.value(
+          startTime,
+          'startTime',
+          'the app started at $_startTime',
         );
       }
       if (size != null && size != (term.width, term.height)) {
@@ -267,6 +297,8 @@ final class TwkTester {
     required bool clearInlineOnExit,
     required bool exitOnCtrlC,
     required Map<String, String> environment,
+    required DateTime startTime,
+    required bool pointerShapes,
   }) {
     final (width, height) = size;
     final fullscreen = mode == ScreenMode.fullscreen;
@@ -316,6 +348,7 @@ final class TwkTester {
         backgroundRgb: backgroundRgb,
         multiplexer: multiplexer,
         notifications: notifications,
+        pointerShapes: pointerShapes,
         caps: TerminalCaps(
           graphics: graphics,
           graphicsMultiplexer: multiplexer,
@@ -336,6 +369,7 @@ final class TwkTester {
         logs: logs,
         exitOnCtrlC: exitOnCtrlC,
         clock: clock.stopwatch,
+        startTime: startTime,
         environment: environment,
       );
       unawaited(
@@ -405,8 +439,9 @@ final class TwkTester {
         ? 'no timer waits'
         : '${count == 1 ? '1 timer waits' : '$count timers wait'}, the next '
               'due in ${_seconds(next - clock.elapsed)}';
+    final which = count == 0 ? '' : ':\n${clock.describeTimers()}';
     return 'pumpUntilIdle: the app is still busy after ${_seconds(timeout)}: '
-        'it wrote $frames, and $timers\n\n'
+        'it wrote $frames, and $timers$which\n\n'
         '${describeApp(vt, binding.twkApp.owner.root)}';
   }
 
@@ -431,13 +466,17 @@ final class TwkTester {
   /// });
   /// ```
   ///
-  /// What [fn] throws, it throws, before the frame. An async [fn] is
-  /// awaited before the frame, the clock moved on as far as it waits
+  /// What [fn] prints and logs goes to [logs], as the app's own `print`
+  /// and `log` do. What [fn] throws, it throws, before the frame. An async
+  /// [fn] is awaited before the frame, the clock moved on as far as it waits
   /// ([FakeClock.elapseUntil]; not at all where it waits for no timer),
   /// and what it completes with an error with is thrown.
   Future<void> act(FutureOr<void> Function() fn) async {
     _running();
-    final result = clock.run(fn);
+    // print and log go to the app's log, as the app's own do; not in the
+    // app's zone itself, whose errors stay in it instead of reaching the
+    // test
+    final result = clock.run(() => logs.run(fn));
     if (result is Future<void>) {
       await clock.elapseUntil(result);
     }
@@ -603,6 +642,32 @@ final class TwkTester {
     ];
   }
 
+  /// Reads the rows of [region], a rectangle of the screen as
+  /// [FinderTester.rect] gives one, as [lines] gives the screen's: the text
+  /// of its cells, a wide glyph once, from the region's first column and
+  /// without the blanks that end a row; as many of its rows and
+  /// columns as the screen has. A wide glyph cut by the region's left or right
+  /// edge is left out, so that the rows are exactly the region's cells.
+  ///
+  /// ```dart
+  /// expect(t.linesIn((x: 10, y: 0, width: 8, height: 2)), ['list', 'one']);
+  /// ```
+  List<String> linesIn(CellRect region) {
+    final vt = this.vt;
+    final left = region.x < 0 ? 0 : region.x;
+    final top = region.y < 0 ? 0 : region.y;
+    final right = region.x + region.width < vt.width
+        ? region.x + region.width
+        : vt.width;
+    final bottom = region.y + region.height < vt.height
+        ? region.y + region.height
+        : vt.height;
+    return [
+      for (var y = top; y < bottom; y++)
+        cellsText(vt, y, left, right).trimRight(),
+    ];
+  }
+
   /// The cell of the screen at column [x] and row [y]: its text, colors
   /// and attributes, which are numbers as [Color] and [Attr] are (`0` for
   /// the terminal's default color).
@@ -625,6 +690,26 @@ final class TwkTester {
     final recorder = _recorder ?? (throw _notStarted());
     _stamp();
     return recorder.replay(terminal.frames);
+  }
+
+  /// Whether the terminal was started to show pointer shapes.
+  var _pointerShapes = false;
+
+  /// The shape the app gave the mouse pointer last ([PointerShape], OSC
+  /// 22): [PointerShape.arrow] where it shows the terminal's default, null
+  /// before it gave any. A [StateError] without `pumpWidget(pointerShapes:
+  /// true)`, where the terminal shows none: a null read there would be no
+  /// finding.
+  PointerShape? get pointerShape {
+    if (!_pointerShapes) {
+      throw StateError('pumpWidget(pointerShapes: true) to read pointerShape');
+    }
+    final names = RegExp('\x1b\\]22;([^\x1b\x07]*)').allMatches(written());
+    if (names.isEmpty) {
+      return null;
+    }
+    final name = names.last[1];
+    return PointerShape.values.where((s) => s.css == name).firstOrNull;
   }
 
   /// What the app wrote to the terminal, as text: the bytes of the frames
@@ -661,17 +746,35 @@ final class TwkTester {
   // the frames written since the clock moved last were written now
   void _stamp() => _recorder?.stamp(_terminal!.frames.length, clock.elapsed);
 
-  void _printFrames(int count) {
+  // the last [count] frames that changed the screen, then the app's log
+  void _printOnFailure(int count) {
     final recorder = _recorder;
-    if (recorder == null || count < 1) {
+    if (recorder == null) {
       return;
     }
-    _stamp();
-    final last = recorder.last(terminal.frames, count);
-    if (last != null) {
-      printOnFailure(last);
+    if (count > 0) {
+      _stamp();
+      final last = recorder.last(terminal.frames, count);
+      if (last != null) {
+        printOnFailure(last);
+      }
+    }
+    final records = logs.records;
+    if (records.isNotEmpty) {
+      final shown = records.length > _logOnFailure
+          ? records.sublist(records.length - _logOnFailure)
+          : records;
+      final which = shown.length == records.length
+          ? records.length == 1
+                ? '1 record'
+                : '${records.length} records'
+          : 'the last ${shown.length} of ${records.length} records';
+      printOnFailure("the app's log, $which:\n${shown.join('\n')}");
     }
   }
+
+  /// How many of the app's log records a test that fails prints.
+  static const _logOnFailure = 20;
 
   /// The app's screen mode and the terminal's size, `fullscreen, 80×24`,
   /// and whether it has ended; `no app` before [pumpWidget].

@@ -1054,8 +1054,8 @@ void main() {
       'place one', (t) async {
     String failed(String widget) =>
         'Column → $widget failed to build: Bad state: $widget: no Overlay '
-        'above it: place an Overlay above it, as around the whole app: '
-        'Overlay(child: …)';
+        'above it: place an Overlay above it, as App does around the whole '
+        'app: App(child: …)';
     await t.pumpWidget(
       const Column(
         children: [
@@ -1082,7 +1082,7 @@ void main() {
           (e) => e.message,
           'message',
           'showContextMenu: no Overlay above SizedBox: place an Overlay '
-              'above it, as around the whole app: Overlay(child: …)',
+              'above it, as App does around the whole app: App(child: …)',
         ),
       ),
     );

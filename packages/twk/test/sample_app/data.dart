@@ -200,6 +200,7 @@ extension on _SampleAppState {
               root: '/app',
               fileSystem: _tree,
               showSizes: true,
+              byteUnits: ByteUnits.binary,
               filter: const FileFilter('Dart', ['dart']),
               icon: (entry) => entry.isDirectory ? '+' : null,
               onOpened: (_) => _bump(),

@@ -159,6 +159,73 @@ void main() {
     });
   });
 
+  group('with the kitty keyboard protocol', () {
+    const options = TerminalOptions(escapeTimeout: Duration(milliseconds: 20));
+
+    test('a lone ESC is the Escape key after escapeTimeout, as without it: '
+        'Konsole answers for it and sends the Escape key so', () async {
+      final (term, link) = await answered('\x1b[?0u', options: options);
+      expect(term.info.kittyKeyboard, isTrue);
+      final events = eventsOf(term);
+      link.type('\x1b');
+      await clock.elapse(const Duration(milliseconds: 19));
+      expect(events, isEmpty);
+      await clock.elapse(const Duration(milliseconds: 1));
+      expect(events, const [KeyEvent(KeyCode.escape)]);
+      // the keys it sends as sequences come whole
+      link.type('\x1b[112;5u');
+      await clock.flushMicrotasks();
+      expect(
+        events.last,
+        const KeyEvent(KeyCode.char, char: 'p', modifiers: Mod.ctrl),
+      );
+    });
+
+    test('the Escape key sent as its sequence needs no wait, and a '
+        'sequence whose parameters came still waits 500 ms', () async {
+      final (term, link) = await answered('\x1b[?0u', options: options);
+      final events = eventsOf(term);
+      link.type('\x1b[27u');
+      await clock.flushMicrotasks();
+      expect(events, const [KeyEvent(KeyCode.escape)]);
+      link.type('\x1b[1;');
+      await clock.elapse(const Duration(milliseconds: 499));
+      expect(events, hasLength(1));
+      link.type('5A');
+      await clock.flushMicrotasks();
+      expect(events.last, const KeyEvent(KeyCode.up, modifiers: Mod.ctrl));
+    });
+  });
+
+  group('with the kitty keyboard protocol, ESC and a byte pending', () {
+    const options = TerminalOptions(escapeTimeout: Duration(milliseconds: 20));
+
+    test(
+      'an arrow cut after its ESC [ waits 500 ms, not escapeTimeout',
+      () async {
+        final (term, link) = await answered('\x1b[?0u', options: options);
+        final events = eventsOf(term);
+        link.type('\x1b[');
+        await clock.elapse(const Duration(milliseconds: 499));
+        expect(events, isEmpty);
+        link.type('A');
+        await clock.flushMicrotasks();
+        expect(events, const [KeyEvent(KeyCode.up)]);
+      },
+    );
+
+    test('without the protocol ESC [ still waits escapeTimeout', () async {
+      final (term, link) = await answered('', options: options);
+      expect(term.info.kittyKeyboard, isFalse);
+      final events = eventsOf(term);
+      link.type('\x1b[');
+      await clock.elapse(const Duration(milliseconds: 20));
+      expect(events, const [
+        KeyEvent(KeyCode.char, char: '[', modifiers: Mod.alt),
+      ]);
+    });
+  });
+
   group('notify', () {
     test("sends the terminal's notification, numbered for this "
         'process', () async {

@@ -5,10 +5,10 @@ library;
 
 import 'dart:async';
 import 'dart:convert' show utf8;
+import 'dart:math' as math;
 
 import 'package:meta/meta.dart';
-import 'package:twk_core/twk_core.dart'
-    show Attr, CrossAxisAlignment, TextOverflow, TextWrap;
+import 'package:twk_core/twk_core.dart' show Attr, CrossAxisAlignment, TextWrap;
 
 import '../editing/autocomplete.dart';
 import '../editing/text_editing.dart';
@@ -27,7 +27,9 @@ import '../platform/paths.dart';
 import '../platform/platform.dart' hide currentDirectory, kindOf;
 import '../platform/platform.dart' as platform show currentDirectory, kindOf;
 import '../scroll/list_view.dart';
+import '../style/glyphs.dart' show checkboxMarks;
 import '../style/style.dart';
+import '../text/hit_row.dart' show segmenterOf;
 import '../text/widgets.dart';
 import 'button.dart';
 import 'choice.dart';
@@ -1192,13 +1194,10 @@ final class _FilePickerState extends State<FilePicker> {
                 onChanged: (on) => setState(() => _hidden = on),
               ),
               Expanded(
-                child: Text(
+                child: Text.line(
                   refused ??
                       (_marked.isEmpty ? '' : '${_marked.length} marked'),
                   style: refused != null ? theme.error : theme.muted,
-                  wrap: TextWrap.none,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               if (widget.onCancelled case final cancel?)
@@ -1262,6 +1261,7 @@ final class _FilePickerState extends State<FilePicker> {
   }
 
   Widget _row(ThemeData theme, _Entry entry, bool cursor, bool focused) {
+    final segmenter = segmenterOf(context);
     var style = theme.text;
     if (entry.isDirectory) {
       style = style.merge(const Style(attrs: Attr.bold));
@@ -1273,13 +1273,16 @@ final class _FilePickerState extends State<FilePicker> {
             : widget.idleStyle ?? theme.selectionIdle,
       );
     }
+    final boxes = checkboxMarks(context, theme.glyphs);
     final mark = !widget.multiple
         ? ''
         : entry.isDirectory
-        ? '    '
+        ? ' ' *
+              (math.max(segmenter.width(boxes.on), segmenter.width(boxes.off)) +
+                  1)
         : _marked.contains(entry.path)
-        ? '[x] '
-        : '[ ] ';
+        ? '${boxes.on} '
+        : '${boxes.off} ';
     return Listener(
       key: ValueKey<String>(entry.path),
       onDown: (event) {
@@ -1298,7 +1301,7 @@ final class _FilePickerState extends State<FilePicker> {
               [
                 if (widget.bar && cursor)
                   Span(
-                    '▎',
+                    theme.glyphs.cursor,
                     (focused ? theme.primary : theme.muted).merge(
                       const Style(attrsOff: Attr.bold),
                     ),

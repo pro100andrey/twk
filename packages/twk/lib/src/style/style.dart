@@ -5,6 +5,7 @@ library;
 import 'package:meta/meta.dart';
 import 'package:twk_core/twk_core.dart' show Attr, Color, Pen, StyleTable;
 
+import '../foundation/change_notifier.dart' show VoidCallback;
 import '../text/widgets.dart' show DefaultTextStyle, Text;
 import 'gradient.dart';
 import 'theme.dart';
@@ -130,15 +131,33 @@ final class Style {
   /// The core's pen for this style. Unset colors stay null, so they are
   /// those of the cell painted over; the attributes, underline color and
   /// link replace those of the cell, so unset ones are off.
-  Pen get pen => Pen(
-    fg: fg,
-    bg: bg,
-    fgAlpha: fgAlpha,
-    bgAlpha: bgAlpha,
-    attrs: attrs,
-    underlineColor: underlineColor ?? Color.defaultColor,
-    link: link == null || link!.isEmpty ? null : link,
-  );
+  ///
+  /// A style equal to one that asked lately gets that one's [Pen] again: a
+  /// pen is immutable, and a paragraph given an equal pen does not repaint.
+  /// The pens are kept in a small table of fixed size, a style taking the
+  /// place of another of its hash, so a color that changes in every frame
+  /// costs a pen but no growth.
+  Pen get pen {
+    final at = hashCode & (_pens.length - 1);
+    if (_penStyles[at] == this) {
+      return _pens[at]!;
+    }
+    final made = Pen(
+      fg: fg,
+      bg: bg,
+      fgAlpha: fgAlpha,
+      bgAlpha: bgAlpha,
+      attrs: attrs,
+      underlineColor: underlineColor ?? Color.defaultColor,
+      link: link == null || link!.isEmpty ? null : link,
+    );
+    _penStyles[at] = this;
+    _pens[at] = made;
+    return made;
+  }
+
+  static final _penStyles = List<Style?>.filled(64, null);
+  static final _pens = List<Pen?>.filled(64, null);
 
   /// The id of [pen] in [table]: registered on first use, the same id for
   /// every equal style after that. A style looked up before in [table],
@@ -194,17 +213,21 @@ final class Style {
 /// ```
 @immutable
 final class Span {
-  /// [text] in [style], unset by default.
-  const Span(this.text, [this.style = const Style()]) : gradient = null;
+  /// [text] in [style], unset by default or where null, so that a style
+  /// that depends goes in as it is: `Span(text, overdue ? theme.warning :
+  /// null)`.
+  const Span(this.text, [Style? style])
+    : style = style ?? const Style(),
+      gradient = null,
+      onTap = null;
 
-  /// [text] in [style], its text colors along [gradient].
-  const Span.gradient(
-    this.text,
-    Gradient this.gradient, [
-    this.style = const Style(),
-  ]);
+  /// [text] in [style] (unset where null), its text colors along
+  /// [gradient].
+  const Span.gradient(this.text, Gradient this.gradient, [Style? style])
+    : style = style ?? const Style(),
+      onTap = null;
 
-  const Span._(this.text, this.style, this.gradient);
+  const Span._(this.text, this.style, this.gradient, this.onTap);
 
   /// What is shown.
   final String text;
@@ -219,6 +242,14 @@ final class Span {
   /// takes no cell, such as a line break, is not one. The gradient's
   /// direction does not matter. Null for the text color of [style].
   final Gradient? gradient;
+
+  /// Called when [text] is clicked in a [Text] with this span: the left
+  /// button pressed and released on the same cell of it. Null, the
+  /// default, for none; set by [tap]. The span's text is not written as a
+  /// hyperlink, as it is with [link] and `Text.onLinkTap`: for a click on
+  /// a phrase that is not a URL. A [Text] that has such a span asks the
+  /// terminal to report the mouse's buttons.
+  final VoidCallback? onTap;
 
   /// This span in bold.
   Span get bold => _with(const Style(attrs: Attr.bold));
@@ -262,18 +293,31 @@ final class Span {
   /// This span as a hyperlink to [url] (OSC 8).
   Span link(String url) => _with(Style(link: url));
 
-  Span _with(Style other) => Span._(text, style.merge(other), gradient);
+  /// This span calling [onTap] when it is clicked ([Span.onTap]), in place
+  /// of the call it had.
+  ///
+  /// ```dart
+  /// Text.rich([
+  ///   const Span('see '),
+  ///   'task bl-42'.underline.tap(() => print('open bl-42')),
+  /// ])
+  /// ```
+  Span tap(VoidCallback onTap) => Span._(text, style, gradient, onTap);
 
-  /// Whether [other] is a span of an equal text, style and gradient.
+  Span _with(Style other) => Span._(text, style.merge(other), gradient, onTap);
+
+  /// Whether [other] is a span of an equal text, style and gradient, and
+  /// the same [onTap].
   @override
   bool operator ==(Object other) =>
       other is Span &&
       other.text == text &&
       other.style == style &&
-      other.gradient == gradient;
+      other.gradient == gradient &&
+      other.onTap == onTap;
 
   @override
-  int get hashCode => Object.hash(text, style, gradient);
+  int get hashCode => Object.hash(text, style, gradient, onTap);
 }
 
 /// A string as a [Span] of one style: `'x'.bold.fg(.green)`.
@@ -323,6 +367,9 @@ extension StringStyles on String {
 
   /// This string as a hyperlink to [url] ([Span.link]).
   Span link(String url) => Span(this).link(url);
+
+  /// This string calling [onTap] when it is clicked ([Span.tap]).
+  Span tap(VoidCallback onTap) => Span(this).tap(onTap);
 
   /// This string, its text colors along [gradient] ([Span.gradient]).
   Span gradient(Gradient gradient) => Span.gradient(this, gradient);

@@ -12,6 +12,41 @@ import 'style.dart';
 
 export 'package:twk_core/twk_core.dart' show Brightness;
 
+export 'glyphs.dart'
+    hide
+        CheckboxMarks,
+        buttonEdgeMarks,
+        cellRune,
+        checkboxMarks,
+        lineMark,
+        optionalCellRune,
+        radioMarks,
+        switchMarks,
+        textMark;
+
+/// When the pointer is the hand over what a click presses
+/// ([ThemeData.handPointer]).
+///
+/// The terminal tells the app where the mouse is only as it asks for its
+/// motion (mode 1003), which costs events and bytes, over ssh most of all;
+/// the hand needs the mouse's position, so the choice is whether it may
+/// ask.
+enum HandPointer {
+  /// Never: the pointer is the terminal's, or the arrow.
+  off,
+
+  /// Where the app has the terminal report the mouse's motion already (a
+  /// field, a hover, a `SelectionArea`, an open menu): the hand shows
+  /// there and asks for nothing, so it costs the bytes of the shape
+  /// written when it changes and no more. Where motion is not reported, no
+  /// hand.
+  auto,
+
+  /// Everywhere, which has the terminal report all motion of the mouse
+  /// while a control that shows it is on the screen.
+  on,
+}
+
 /// The styles of an app by what they are for, which widgets draw in: the
 /// background slots ([background], [surface], [selection]) set a
 /// background, the others a text color. Presets: [dark], [light], [nord],
@@ -67,6 +102,8 @@ final class ThemeData {
     this._shade,
     this._shadeAlpha,
     this.palette = const {},
+    this.handPointer = HandPointer.auto,
+    this.glyphs = Glyphs.unicode,
   }) : assert(
          _shadeAlpha == null || (_shadeAlpha >= 0 && _shadeAlpha <= 1),
          'shadeAlpha out of 0..1',
@@ -119,7 +156,9 @@ final class ThemeData {
       _onPrimary = null,
       _shade = null,
       _shadeAlpha = null,
-      palette = const {};
+      palette = const {},
+      handPointer = HandPointer.auto,
+      glyphs = Glyphs.unicode;
 
   /// The terminal's own colors on a terminal that told its default
   /// [background] and [foreground] (`0xRRGGBB`; [foreground] white on a
@@ -244,6 +283,8 @@ final class ThemeData {
       shade: style(a.shade, b.shade),
       shadeAlpha: a.shadeAlpha + (b.shadeAlpha - a.shadeAlpha) * t,
       palette: t < 0.5 ? a.palette : b.palette,
+      handPointer: t < 0.5 ? a.handPointer : b.handPointer,
+      glyphs: Glyphs.lerp(a.glyphs, b.glyphs, t),
     );
   }
 
@@ -256,6 +297,19 @@ final class ThemeData {
   /// (the red of a themed terminal a pink). Empty for none told: xterm's.
   /// [ThemeData.terminalOn] gives it.
   final Map<int, int> palette;
+
+  /// Whether the pointer is the hand (`PointerShape.pointer`) over what a
+  /// click presses (the buttons, boxes and switches, tabs, menu titles and
+  /// items, a stepper's steps, a dismiss `[x]`, a sortable table header,
+  /// the keys of a pressable `KeyHintsBar`, a `Span.tap`), where the
+  /// terminal shows pointer shapes: [HandPointer.auto] by default.
+  final HandPointer handPointer;
+
+  /// The marks widgets draw (checks, cursor bars, a scrollbar's thumb and
+  /// track, a gauge's line, the spinner) by what they mean:
+  /// [Glyphs.unicode] by default, [Glyphs.ascii] for a terminal without
+  /// the others, or a set of an app's own.
+  final Glyphs glyphs;
 
   /// The app's background, under everything else.
   final Style background;
@@ -524,6 +578,8 @@ final class ThemeData {
     Style? shade,
     double? shadeAlpha,
     Map<int, int>? palette,
+    HandPointer? handPointer,
+    Glyphs? glyphs,
   }) => ThemeData(
     brightness: brightness ?? this.brightness,
     background: background ?? this.background,
@@ -548,6 +604,8 @@ final class ThemeData {
     shade: shade ?? _shade,
     shadeAlpha: shadeAlpha ?? _shadeAlpha,
     palette: palette ?? this.palette,
+    handPointer: handPointer ?? this.handPointer,
+    glyphs: glyphs ?? this.glyphs,
   );
 
   @override
@@ -575,6 +633,8 @@ final class ThemeData {
       other.onPrimary == onPrimary &&
       other.shade == shade &&
       other.shadeAlpha == shadeAlpha &&
+      other.handPointer == handPointer &&
+      other.glyphs == glyphs &&
       TerminalBrightness._samePalette(other.palette, palette);
 
   @override
@@ -605,6 +665,8 @@ final class ThemeData {
       Object.hashAllUnordered([
         for (final e in palette.entries) Object.hash(e.key, e.value),
       ]),
+      handPointer,
+      glyphs,
     ),
   );
 }

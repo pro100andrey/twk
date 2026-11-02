@@ -69,8 +69,10 @@ final class Padding extends SingleChildRenderObjectWidget {
 ///
 /// It is as big as it may be, or along an axis with a factor
 /// ([widthFactor], [heightFactor]) that many times as long as the child.
-/// The child is laid out loosely: as small as it likes, up to the box's
-/// size. See [RenderPositionedBox].
+/// Along an axis that may be any length, a scroll view's or a list row's
+/// height, it is as long as the child, as in Flutter. The child is laid
+/// out loosely: as small as it likes, up to the box's size. See
+/// [RenderPositionedBox].
 ///
 /// A status in the bottom right corner of the room there is:
 ///

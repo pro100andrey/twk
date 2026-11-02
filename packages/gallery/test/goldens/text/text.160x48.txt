@@ -13,7 +13,7 @@ text
 │                               ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  wrap                           │
 │   LAYOUT                  24  ▐                                                                                              │   word  grapheme  none          │
 │     Box                       ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                                 │
-│     ColoredBox, DecoratedBox  ▐                                                                                              │  overflow                       │
+│     ColoredBox, DecoratedBox                                                                                                 │  overflow                       │
 │     Container                      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   clip  ellipsis                │
 │     Divider                                                                                                                  │   ellipsisStart                 │
 │     Shadow                         ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   ellipsisMiddle                │
@@ -62,7 +62,7 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhhhthhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaddddddaaaaaaaaaaaaaaaaaazzaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhqrrrrqivvvvvvvviivvvvihhhhhhhhh│
 │aaaaasssaaaaaaaaaaaaaaaaaaaaaaadhhhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhhhthhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaasssssssssssassssssssssssaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhnnnnnnnnhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaasssssssssssassssssssssssaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhnnnnnnnnhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaasssssssssaaaaaaaaaaaaaaaaaahhhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhhhthhivvvviqrrrrrrrrqhhhhhhhhhhhhhhh│
 │aaaaasssssssaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhivvvvvvvvvvvvvihhhhhhhhhhhhhhhh│
 │aaaaassssssaaaaaaaaaaaaaaaaaaaaahhhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhthhhhhthhivvvvvvvvvvvvvvihhhhhhhhhhhhhhh│

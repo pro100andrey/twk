@@ -141,6 +141,11 @@ const _product = bool.fromEnvironment('dart.vm.product');
 /// a stopwatch started here by default: a test hands it the stopwatch of
 /// a fake clock it moves, and runs the app in that clock's zone.
 ///
+/// The binding places no `Overlay` around [app]: an app that shows
+/// dialogs, menus, tooltips or toasts puts one at its root, above its own
+/// `KeyBindings` (`showDialog` says why), as `App` does under the app's
+/// theme: `runApp(const App(child: Counter()))`.
+///
 /// ```dart
 /// Future<void> main() => runApp(const Counter());
 /// ```
@@ -291,7 +296,9 @@ final class AppBinding {
   /// [maxInlineRows], [clearInlineOnExit], [logs] and [clock] (the app's
   /// clock, a new stopwatch by default); [exitOnCtrlC], [stopOnCtrlZ],
   /// [restCursor] and [screenReader] are as [runApp] takes them. [run]
-  /// runs an app on it.
+  /// runs an app on it. `startTime` is what [now] is when [clock] reads
+  /// zero, which a test fixes; null (the default) leaves [now] the
+  /// system's time.
   ///
   /// [environment] is what the app reads its variables from, null (the
   /// default) for the process's: given to its `TwkApp` (`TWK_LOG`,
@@ -318,6 +325,7 @@ final class AppBinding {
     this.stopOnCtrlZ = true,
     this.restCursor = true,
     Stopwatch? clock,
+    this._startTime,
     bool? screenReader,
     Map<String, String>? environment,
   }) : twkApp = TwkApp(
@@ -354,6 +362,33 @@ final class AppBinding {
   /// The binding of the app [context] is in, if it is in one.
   static AppBinding? maybeOf(BuildContext context) =>
       context.getInheritedWidgetOfExactType<_Scope>()?.binding;
+
+  /// Starts a timer that calls [callback] after [duration] on the app's
+  /// clock, in the zone its frames run in (an error the callback throws ends
+  /// the app, as one of a frame's), wherever it is called from: a
+  /// test's body, outside the fake clock's zone, gets a fake timer that
+  /// `pump` and `elapse` move, as a widget's own code does. Every timer
+  /// the library starts goes through it or [startPeriodic], none through
+  /// `Timer` itself, but the polls of `tailFile` and
+  /// `LogController.followFile`, which run on real time (their docs say so).
+  ///
+  /// A timer started when a widget is built or mounted (an animation,
+  /// `useInterval`, a `MouseRegion`'s) is quiet where no app is above: a
+  /// `Cli`'s `widgetLines` prints the first frame. A timer started by a
+  /// user action (a long press or double tap, a tooltip's wait, a toast's
+  /// time, a key sequence's timeout, the edge scroll and multi-click of a
+  /// selection or a field, a `DirectoryTree`'s refresh after a change on
+  /// disk) needs an app above the widget, `runApp` or a `Cli`, and
+  /// [AppBinding.of] throws a [StateError] saying so where there is none:
+  /// without an app there is no input, so only a hand-made tree reaches
+  /// one.
+  Timer startTimer(Duration duration, void Function() callback) =>
+      _zone.createTimer(duration, callback);
+
+  /// Starts a timer that calls [callback] every [period], on the app's
+  /// clock and in the zone the app runs in, as [startTimer] does.
+  Timer startPeriodic(Duration period, void Function(Timer) callback) =>
+      _zone.createPeriodicTimer(period, callback);
 
   /// What runs the frames.
   final TwkApp twkApp;
@@ -592,8 +627,11 @@ final class AppBinding {
   // run has ended, whichever way: no frame callback is called any more
   void _ended() {
     _running = false;
+    _over = true;
     _runningApps.remove(this);
     _callbacks.clear();
+    _postFrame.clear();
+    _framing = false;
     _waitForDue();
     debug._dispose();
   }
@@ -629,6 +667,49 @@ final class AppBinding {
 
   /// Ends [run].
   void quit() => twkApp.quit();
+
+  /// The wall time of the app. In an app, the system's (`DateTime.now()`),
+  /// whatever the system does to it: a sleep, a time set. Given a
+  /// `startTime`, as a test is, that time when the app's clock
+  /// ([TwkApp.clock]) read zero, moved on by what the clock reads now: the
+  /// fake clock moves it as it moves the frames, so what is drawn of the
+  /// time (a clock, today in a `Calendar`, "3 s ago") is the same on every
+  /// run. Not the system's clock moved on by the app's, which on Linux and
+  /// macOS stands still while the computer sleeps. Read it instead of
+  /// `DateTime.now()` in a widget.
+  ///
+  /// ```dart
+  /// String clock(BuildContext context) {
+  ///   final now = AppBinding.of(context).now();
+  ///   return '${now.hour}:${now.minute.toString().padLeft(2, '0')}';
+  /// }
+  /// ```
+  DateTime now() => _startTime?.add(twkApp.clock.elapsed) ?? DateTime.now();
+  final DateTime? _startTime;
+
+  /// Handles a press of [combo] as one the terminal sent: given to the
+  /// nodes of the focus's [FocusManager.keyPath] and what is past them, so
+  /// a `KeyBindings` or `Shortcuts` on the path does what the key is bound
+  /// to there, a field types it, Tab moves the focus. The keys of a
+  /// sequence are pressed one at a time, `ctrl+x` then `ctrl+s`. For a
+  /// callback of an event, as a tap on a hint of a bar of one's own
+  /// ([FocusManagerKeys.activeKeys]); not for a build.
+  ///
+  /// ```dart
+  /// void save(BuildContext context) =>
+  ///     AppBinding.of(context).pressKey(KeyCombo.parse('ctrl+s'));
+  /// ```
+  void pressKey(KeyCombo combo) {
+    final shifted = combo.modifiers & Mod.shift != 0;
+    _dispatch(
+      KeyEvent(
+        combo.code,
+        // a capital letter as a terminal sends it
+        char: shifted ? combo.char.toUpperCase() : combo.char,
+        modifiers: combo.modifiers,
+      ),
+    );
+  }
 
   /// Shows a desktop notification of [title] and [body] where the terminal
   /// is known to show one (`TerminalInfo.notifications`), through tmux or
@@ -941,9 +1022,14 @@ final class AppBinding {
   /// timer asks for it then: one for all the callbacks that wait for a
   /// time, none while none does. A callback scheduled while they are
   /// called waits for the next frame, and one scheduled once [run] has
-  /// ended is never called. Returns the id [cancelFrameCallback] takes.
+  /// ended is dropped. One that throws ends the app with the error, as an
+  /// error of the app's code does: [run] throws it, its states disposed.
+  /// Returns the id [cancelFrameCallback] takes.
   int scheduleFrameCallback(FrameCallback callback, {Duration? at}) {
     final id = ++_lastCallback;
+    if (_over) {
+      return id;
+    }
     final due = at?.inMicroseconds;
     _callbacks[id] = (callback, due);
     // before run, the first frame calls it or starts its timer
@@ -955,6 +1041,58 @@ final class AppBinding {
       }
     }
     return id;
+  }
+
+  /// Calls [callback] once, at the end of a frame, once it is laid out,
+  /// painted and written, with the frame's time ([frameTime]): where what
+  /// the frame laid out (a size, a place) is read and acted on, a change
+  /// made there built by the next frame. Added while a frame builds or lays
+  /// out, it is called at the end of that frame; between frames it asks for
+  /// one, and while the callbacks of a frame are called it waits for the
+  /// next. One added once [run] has ended is dropped. A callback that throws
+  /// ends the app with the error, as one of [scheduleFrameCallback] does.
+  ///
+  /// The width of what `context` builds, once it is laid out:
+  ///
+  /// ```dart
+  /// void logWidth(BuildContext context) =>
+  ///     AppBinding.of(context).addPostFrameCallback((_) {
+  ///       print(context.findRenderObject()?.width);
+  ///     });
+  /// ```
+  void addPostFrameCallback(FrameCallback callback) {
+    if (_over) {
+      return;
+    }
+    _postFrame.add(callback);
+    if (_running && (!_framing || _callingPostFrame)) {
+      twkApp.requestFrame();
+    }
+  }
+
+  // the callbacks added for the end of a frame, in the order they were
+  // added; a frame runs, from its start to the end of its callbacks; those
+  // are being called
+  var _postFrame = <FrameCallback>[];
+  var _framing = false;
+  var _callingPostFrame = false;
+
+  /// Calls the callbacks added for the end of this frame.
+  void _callPostFrameCallbacks() {
+    if (_postFrame.isEmpty) {
+      return;
+    }
+    final callbacks = _postFrame;
+    _postFrame = [];
+    final time = _frameTime;
+    _callingPostFrame = true;
+    try {
+      for (final callback in callbacks) {
+        callback(time);
+      }
+    } finally {
+      _callingPostFrame = false;
+    }
   }
 
   /// Calls the callback [id] names ([scheduleFrameCallback]) at no frame;
@@ -978,8 +1116,12 @@ final class AppBinding {
   // the frame callbacks are being called
   var _callingBack = false;
 
-  // run runs: the zone the app runs in, where the timer starts
+  // run runs: the zone the app runs in, where the timers start: the one run
+  // is called in until the first frame, then the one the frames run in, where
+  // an error ends the app
   var _running = false;
+  // run has ended: a callback added now is dropped, not held for ever
+  var _over = false;
   Zone _zone = Zone.current;
 
   /// Calls the callbacks due at [now], the frame's time.
@@ -1046,7 +1188,9 @@ final class AppBinding {
 
   // the TwkApp runs it at the start of each frame
   void _beforeLayout() {
+    _zone = Zone.current;
     final now = twkApp.clock.elapsed;
+    _framing = true;
     _frameTime = now;
     _framesBegun++;
     if (_callbacks.isNotEmpty) {
@@ -1133,6 +1277,11 @@ final class AppBinding {
         'version': serviceExtensionsVersion,
         'rebuilds': _rebuilt,
       });
+    }
+    try {
+      _callPostFrameCallbacks();
+    } finally {
+      _framing = false;
     }
   }
 
@@ -1456,7 +1605,11 @@ final class DebugAids {
       return;
     }
     if (on) {
-      final overlay = _overlay = FrameOverlay(_binding.twkApp, _binding._theme);
+      final overlay = _overlay = FrameOverlay(
+        _binding.twkApp,
+        _binding.startTimer,
+        _binding._theme,
+      );
       if (_binding._view._laidOut) {
         _showOverlay(overlay);
       }

@@ -193,6 +193,26 @@ final class AllocReport {
     });
   }
 
+  /// Prints whether a scenario meant to be still ([name]) was: at most
+  /// [maxBytes] a unit allocated and no frame written ([frames] written
+  /// over its steps). False where it was not.
+  bool expectQuiet(
+    String name,
+    Sample s, {
+    required int perStep,
+    required int frames,
+    int maxBytes = 64,
+  }) {
+    final perUnit = s.bytes / (s.frames * perStep);
+    final ok = perUnit <= maxBytes && frames == 0;
+    stdout.writeln(
+      '    quiet: ${ok ? 'ok' : 'FAILED'} '
+      '(${perUnit.toStringAsFixed(1)} B a unit, at most $maxBytes; '
+      '$frames frames written, none expected)',
+    );
+    return ok;
+  }
+
   static String _class(ClassAllocs c, int units) {
     final b = (c.bytes / units).toStringAsFixed(0);
     final o = (c.objects / units).toStringAsFixed(1);

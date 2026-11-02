@@ -46,6 +46,12 @@ Widget build(BuildContext context) {
           const Button('Disabled', onPressed: null),
         ],
       ),
+      // a key and its caption, each in its own style
+      // on the one chip
+      Button.rich(
+        ['Enter'.bold.fg(Color.yellow), const Span(' send')],
+        onPressed: () => setState(() => _sent++),
+      ),
       Text.rich([
         Span('saved: ', theme.muted),
         Span('$_saved'),
@@ -64,13 +70,13 @@ What the gallery lets you change, and what each starts at:
 | option | values | starts at |
 | --- | --- | --- |
 | style | primary, accent, success, warning, error, info | primary |
-| look | chip, outlined, filled | chip |
+| look | chip, outlined, filled, plain | chip |
 | tall | on, off | false |
 
 ## More
 
 - API: [`Button`](https://pub.dev/documentation/twk/latest/twk/Button-class.html).
-- Also in Controls: [Pressable](pressable.md), [Checkbox, Switch](checkbox-switch.md), [RadioGroup](radiogroup.md), [SegmentedButton](segmentedbutton.md), [SelectionList](selectionlist.md), [Select, MultiSelect](select-multiselect.md), [ConfirmInput](confirminput.md), [Slider](slider.md), [NumberInput](numberinput.md), [DatePicker](datepicker.md), [FilePicker](filepicker.md), [Form, FormField](form-formfield.md), [TabBar, TabView](tabbar-tabview.md), [KeyHintsBar](keyhintsbar.md), [StatusMessage, Badge](statusmessage-badge.md), [Callout](callout.md), [Link](link.md), [ListTile](listtile.md), [StatusBar](statusbar.md).
+- Also in Controls: [Pressable](pressable.md), [Checkbox, Switch](checkbox-switch.md), [RadioGroup](radiogroup.md), [SegmentedButton](segmentedbutton.md), [Chip, ChipList](chip-chiplist.md), [ValueStepper](valuestepper.md), [SelectionList](selectionlist.md), [Select, MultiSelect](select-multiselect.md), [ConfirmInput](confirminput.md), [Slider](slider.md), [NumberInput](numberinput.md), [DatePicker](datepicker.md), [FilePicker](filepicker.md), [Form, FormField](form-formfield.md), [TabBar, TabView](tabbar-tabview.md), [KeyHintsBar](keyhintsbar.md), [StatusMessage, Badge](statusmessage-badge.md), [Callout](callout.md), [Link](link.md), [ListTile](listtile.md), [StatusBar](statusbar.md).
 - Live in the gallery:
   `dart run packages/gallery/bin/gallery.dart --route='#/controls/button'`.
 - [Controls](../controls.md) · [All groups](../README.md)

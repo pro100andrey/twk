@@ -2,7 +2,6 @@
 // as the design has it (the stage's dots, the segmented choice, the list's
 // gliding bar), through a small painter over twk's Canvas.
 import 'package:twk/twk.dart';
-import 'package:twk_core/twk_core.dart' show fitText;
 
 /// [a] [k] of the way to [b], each channel rounded, as the design's `mix`
 /// and twk's tokens blend: [b] at 1 and above, [a] at 0 and below; [b]
@@ -27,42 +26,14 @@ int widthOf(String text) => stringWidth(text);
 final _segmenter = TextSegmenter();
 
 /// [text] cut to [width] columns, no cluster split: whole where it fits,
-/// else its start and "…" as the core's [fitText] cuts it, the blanks
-/// before the "…" left out ([start] false), or "…" and its end ([start]
-/// true).
-String cut(String text, int width, {bool start = false}) {
-  if (!start) {
-    final fit = fitText(_segmenter, text, width);
-    return identical(fit, text) || !fit.endsWith('…')
-        ? fit
-        : '${fit.substring(0, fit.length - 1).trimRight()}…';
-  }
-  if (_segmenter.width(text) <= width) {
-    return text;
-  }
-  if (width <= 0) {
-    return '';
-  }
-  // the clusters' starts, then those that fit after the "…" from the end
-  final starts = <int>[];
-  final scan = ClusterScan();
-  for (var i = 0; i < text.length; i = scan.end) {
-    starts.add(i);
-    _segmenter.scan(text, i, scan);
-  }
-  final room = width - _segmenter.width('…');
-  var from = text.length;
-  var used = 0;
-  for (final at in starts.reversed) {
-    final w = _segmenter.width(text.substring(at, from));
-    if (used + w > room) {
-      break;
-    }
-    used += w;
-    from = at;
-  }
-  return '…${text.substring(from)}';
-}
+/// else its start and "…" as the core's [fitText] cuts it, no blank left
+/// before the "…" ([start] false), or "…" and its end ([start] true).
+String cut(String text, int width, {bool start = false}) => fitText(
+  _segmenter,
+  text,
+  width,
+  overflow: start ? TextOverflow.ellipsisStart : TextOverflow.ellipsis,
+);
 
 /// Draws into a rectangle of a [Canvas] in its own coordinates, clipped to
 /// it.
@@ -191,7 +162,7 @@ final class Painter {
     int y,
     int w,
     int h,
-    int Function(StyleTable styles, int style) restyle,
+    StyleId Function(StyleTable styles, StyleId style) restyle,
   ) {
     if (w <= 0 || h <= 0) {
       return;
@@ -204,11 +175,11 @@ final class Painter {
     final styles = canvas.styles;
     final sty = surface.styles;
     final stride = surface.width;
-    final made = <int, int>{};
+    final made = <int, StyleId>{};
     for (var row = y0; row < y1; row++) {
       for (var i = row * stride + x0; i < row * stride + x1; i++) {
         final s = sty[i];
-        sty[i] = made[s] ??= restyle(styles, s);
+        sty[i] = (made[s] ??= restyle(styles, StyleId(s))).value;
       }
       if (x1 > x0) {
         surface.markDirty(row, x0, x1);

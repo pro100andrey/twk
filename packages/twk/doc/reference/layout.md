@@ -34,7 +34,15 @@ which with `merge` joins the lines drawn before it where it meets or crosses
 them, so that boxes stacked to share an edge join in `┬ ├ ┼`, and leaves the
 text drawn in those cells, the titles of a box whose edge it shares,
 `BorderTitle`s on its top and bottom edges, `padding`: the core's
-`RenderDecoratedBox`), `Divider` and `VerticalDivider` (with `merge`,
+`RenderDecoratedBox`; `scrollbar: ScrollbarVisibility.always` (or `onScroll`; `never` and null
+for none) draws the bar of the outermost scrollable inside on its right side
+between the corners for a vertical one, on its bottom for a horizontal one (a
+side the border has; a bottom `BorderTitle` with a horizontal one asserts): the border type's own
+straight line as the track while nothing scrolls, the thumb a heavier line
+over it in the theme's muted color (`█` on a heavy border, `#` on an ASCII
+one), no background painted by the bar, the box's showing, the whole cell in
+eighths under the mouse (not on an ASCII border), dragged and pressed as a `Scrollbar`'s, the child keeping all
+the room inside), `Divider` and `VerticalDivider` (with `merge`,
 joining the lines they cross and leaving the text in their cells, each end
 meeting a line it lands on in a joint: `├───┤` across a `Box` it is stacked
 on);
@@ -246,7 +254,8 @@ of it, and with `maintainSize` as well the child keeping its room.
 `ExpansionTile(title:, child:, subtitle:, trailing:, initiallyExpanded:
 false, controller:, onExpansionChanged:, duration: 150 ms, indent: 2,
 focusNode:, headerStyle:, expandedHeaderStyle:, hoverStyle:)` is a section
-that folds: a header row, `▶` while collapsed and `▼` while expanded (in the
+that folds: a header row, `▸` while collapsed and `▾` while expanded (the theme's
+`glyphs.collapsed` and `glyphs.expanded`, in the
 theme's `muted` and `primary`), then `title` with `subtitle` under it in
 `muted` and `trailing` (a count, a badge) at its right end, over `child`,
 `indent` cells in, which is built only while it is expanded or folding: it

@@ -4,7 +4,7 @@ text
 │                                                                                │
 │   ⌕ Filter       /     ContextMenu                             Preview   Code  │
 │                        A menu at the mouse on a right click, under the focus   │
-│     Overlay            on Shift+F10, or where a MenuController opens it.       │
+│     App                on Shift+F10, or where a MenuController opens it.       │
 │     Dialog           ──────────────────────────────────────────────────────────│
 │     Toast                                                                      │
 │     Tooltip             ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
@@ -16,12 +16,12 @@ text
 │     ModalBarrier    ▐   ·     ╰──────────────────────────────────────╯      ·  │
 │     WindowLayer     ▐       └                                          ┘       │
 │                         ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·40 × 5 ·   ·  │
-│   ANIMATION     16                                                             │
+│   ANIMATION     17                                                             │
 │     Spinner             ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
-│     ProgressBar                                                                │
-│     ProgressList     ──────────────────────────────────────────────────────────│
-│     Skeleton, Ske…     look   raised  bordered                                 │
-│     AnimationCont…                                                             │
+│     TickerMode                                                                 │
+│     ProgressBar      ──────────────────────────────────────────────────────────│
+│     ProgressList       look   raised  bordered                                 │
+│     Skeleton, Ske…                                                             │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -29,7 +29,7 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahAhAAAAAAhhhhhhhBhaaggkkkkkkkkkkkggggggggggggggggggggggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmgmmmmgmmgmmmgmmmmmgmmgmgmmmmmgmmmmmmgmmmmmgmmmgmmmmmggg│
-│aaaaannnnnnnaaaaaaaaaaggmmgmmmmmmmmmmgmmgmmmmmgmgmmmmmmmmmmmmmmgmmmmmgmmmggggggg│
+│aaaaannnaaaaaaaaaaaaaaggmmgmmmmmmmmmmgmmgmmmmmgmgmmmmmmmmmmmmmmgmmmmmgmmmggggggg│
 │aaaaannnnnnaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnaaaaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
@@ -43,10 +43,10 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggogggogggogggogggogggogggogggogggogggogggoCCgCgCgogggogg│
 │aaadddddddddaaaaazzaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnaaaaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
-│aaaaannnnnnnnnnnaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnnaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnnnannnnaaaggmmmmggqrrrrrrqhyyyyyyyyhgggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnnaaaaaggmmmmggqrrrrrrqhyyyyyyyyhgggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnannnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

@@ -24,21 +24,119 @@ import 'tester.dart';
 /// that end either aside, or one [line] matches when it is a [Matcher]
 /// (`startsWith('sent:')`); a row is text as [TwkTester.lines] gives it.
 ///
+/// With [within], a [Finder], or with [withinRect] a [CellRect]
+/// `(x:, y:, width:, height:)` as [FinderTester.rect] gives it, the rows
+/// are those of its cells alone ([TwkTester.linesIn]), from its first
+/// column. One that fails for a [line] that is a string says where the
+/// screen shows it, outside the region, if it does; a [Finder] that does
+/// not find one widget fails with what [FinderTester.element] says. Both
+/// at once is an [ArgumentError].
+///
 /// ```dart
 /// expect(t, containsLine('Saved'));
 /// expect(t, containsLine(startsWith('sent:')));
+/// expect(t, containsLine('> one', within: find.byType(ListView)));
+/// expect(
+///   t,
+///   containsLine('> one', withinRect: (x: 0, y: 0, width: 12, height: 3)),
+/// );
 /// ```
-Matcher containsLine(Object? line) => _ContainsLine(
-  line is String ? equals(line.trimRight()) : wrapMatcher(line),
-);
+Matcher containsLine(Object? line, {Finder? within, CellRect? withinRect}) =>
+    _ContainsLine(
+      line is String ? equals(line.trimRight()) : wrapMatcher(line),
+      line is String ? line.trim() : null,
+      _region(within, withinRect),
+    );
 
 /// Matches a [TwkTester] whose screen shows [text] from column [x] of row
 /// [y] on: the cells [text] is as wide as show it, a wide glyph once.
 ///
+/// With [within] or [withinRect] as [containsLine] takes them,
+/// [x] and [y] are from the first cell of the region, and the cells read
+/// stop at its edge. One that fails says where the screen shows [text]
+/// outside the region, if it does.
+///
 /// ```dart
 /// expect(t, hasTextAt(2, 0, 'Title'));
+/// expect(t, hasTextAt(0, 1, '> one', within: find.byType(ListView)));
 /// ```
-Matcher hasTextAt(int x, int y, String text) => _HasTextAt(x, y, text);
+Matcher hasTextAt(
+  int x,
+  int y,
+  String text, {
+  Finder? within,
+  CellRect? withinRect,
+}) => _HasTextAt(x, y, text, _region(within, withinRect));
+
+/// The region the matchers keep: [within], [withinRect] or null; an
+/// [ArgumentError] for both.
+Object? _region(Finder? within, CellRect? withinRect) {
+  if (within != null && withinRect != null) {
+    throw ArgumentError('within and withinRect are not both given');
+  }
+  return within ?? withinRect;
+}
+
+CellRect _asRect(Object region) => region as CellRect;
+
+/// The region [within] (a [Finder] or a [CellRect]) is on [t]'s screen;
+/// a [StateError] when a finder
+/// does not find one widget. Null for none.
+CellRect? _regionOn(
+  TwkTester t,
+  Object? within,
+) => switch (within) {
+  null => null,
+  final Finder finder => t.rect(finder),
+  _ => _asRect(within),
+};
+
+/// The region as a mismatch names it: `the cells (2, 3), 6×1`.
+String _regionName(CellRect r) =>
+    'the cells (${r.x}, ${r.y}), ${r.width}×${r.height}';
+
+/// The column and row of the first place [vt]'s screen shows [text] on one
+/// row; null if it shows it nowhere.
+(int, int)? _locate(Vt vt, String text) {
+  if (text.isEmpty) {
+    return null;
+  }
+  for (var y = 0; y < vt.height; y++) {
+    final at = rowText(vt, y).indexOf(text);
+    if (at != -1) {
+      return (_columnOf(vt, y, at), y);
+    }
+  }
+  return null;
+}
+
+/// Adds where [vt]'s screen shows [text], if it does.
+void _addElsewhere(Description d, Vt vt, String text) {
+  final at = _locate(vt, text);
+  if (at != null) {
+    d
+        .add(', but the screen shows ')
+        .addDescriptionOf(text)
+        .add(' at column ${at.$1}, row ${at.$2}');
+  }
+}
+
+/// The column of row [y] whose cell holds the character at [offset] of the
+/// row's text.
+int _columnOf(Vt vt, int y, int offset) {
+  var length = 0;
+  for (var x = 0; x < vt.width; x++) {
+    final cell = vt.cell(x, y);
+    if (cell.role == -1) {
+      continue;
+    }
+    if (offset < length + cell.text.length) {
+      return x;
+    }
+    length += cell.text.length;
+  }
+  return vt.width;
+}
 
 /// Matches a [TwkTester] whose cell at column [x] of row [y] [style]
 /// matches: [hasAttr], [hasFg], [hasBg], or any matcher of a [VtCell].
@@ -78,7 +176,9 @@ Matcher cursorAt(int x, int y) => _CursorAt(x, y);
 /// blanks that end a line and the empty lines that end the screen left
 /// out of both. One that fails shows the rows that differ.
 ///
-/// With [styles] each run of cells of one style is marked:
+/// [styles] is false by default, unlike [matchesScreenFile]'s, which
+/// compares the styles it holds unless told not to: here the text alone is
+/// compared. With [styles] each run of cells of one style is marked:
 /// `[bold]sent:[/] [red on #102030]ok[/]`. A style is the cells'
 /// attributes, named as [Attr] names them (`bold`, `curlyUnderline`), their
 /// color, `on` and their background, and `ul=` and the color of their
@@ -101,8 +201,20 @@ Matcher matchesScreen(String snapshot, {bool styles = false}) =>
 
 /// Matches a [TwkTester] whose screen is the one the file at [path] holds:
 /// its size, where its cursor is, the text of each row and the style of
-/// each cell. A relative [path] is from the directory the test runs in,
-/// the package's.
+/// each cell. A relative [path] is from the root of the package of the
+/// test file that calls this (the nearest directory above it with a
+/// `pubspec.yaml`), wherever the suite is run from; where that is not
+/// found (a stack without a `file:` frame, as under a browser) it fails with
+/// a [StateError] asking for an absolute path.
+///
+/// [styles] is true by default, unlike [matchesScreen]'s: the styles of the
+/// file are compared as well as the text. With [styles] false only the
+/// size, the cursor and the text are, as [matchesScreen] does: the file
+/// keeps its styles, and writing it still writes them.
+///
+/// A path that cannot be resolved (a relative one where the calling test
+/// file's package is not found) throws a [StateError] when the matcher is
+/// built, not when it matches.
 ///
 /// With the environment variable `TWK_UPDATE_GOLDENS` set (to anything
 /// but `0`), it writes the screen to the file instead, making its
@@ -136,7 +248,11 @@ Matcher matchesScreen(String snapshot, {bool styles = false}) =>
 /// ```dart
 /// expect(t, matchesScreenFile('test/goldens/form.txt'));
 /// ```
-Matcher matchesScreenFile(String path) => _MatchesScreenFile(path);
+Matcher matchesScreenFile(String path, {bool styles = true}) =>
+    _MatchesScreenFile(
+      fromPackageRoot(path, StackTrace.current.toString()),
+      styles,
+    );
 
 /// A matcher of a [TwkTester]'s screen; its mismatch ends with the screen,
 /// the widget tree from the widget [TwkTester.pumpWidget] showed down, as
@@ -154,6 +270,10 @@ abstract base class _ScreenMatcher extends Matcher {
   /// Whether the mismatch shows the screen after [_which], which shows it
   /// itself otherwise.
   bool get _showsScreen => true;
+
+  /// Whether the screen it shows has its styles marked: for a matcher of a
+  /// style; a matcher of text shows the text alone.
+  bool get _marksStyles => false;
 
   @override
   bool matches(Object? item, Map<dynamic, dynamic> matchState) =>
@@ -177,7 +297,7 @@ abstract base class _ScreenMatcher extends Matcher {
           [
             if (_showsScreen) ...[
               'screen ${vt.width}×${vt.height}:',
-              describeScreen(vt),
+              describeScreen(vt, styles: _marksStyles),
               '',
             ],
             'widget tree:',
@@ -207,68 +327,159 @@ String _isStyled(VtCell cell) {
 }
 
 final class _ContainsLine extends _ScreenMatcher {
-  const _ContainsLine(this._line);
+  const _ContainsLine(this._line, this._text, this._within);
 
   final Matcher _line;
 
-  @override
-  bool _matches(TwkTester t, Map<dynamic, dynamic> matchState) =>
-      t.lines.any((line) => _line.matches(line, <dynamic, dynamic>{}));
+  /// The text of a line given as a string, to look for outside [_within].
+  final String? _text;
+
+  final Object? _within;
 
   @override
-  Description describe(Description description) =>
-      description.add('a line of the screen: ').addDescriptionOf(_line);
+  bool _matches(TwkTester t, Map<dynamic, dynamic> matchState) {
+    final List<String> lines;
+    try {
+      final region = _regionOn(t, _within);
+      lines = region == null ? t.lines : t.linesIn(region);
+      // ignore: avoid_catching_errors, a finder that finds no one widget fails the match with its message
+    } on StateError catch (e) {
+      matchState['error'] = e.message;
+      return false;
+    }
+    return lines.any((line) => _line.matches(line, <dynamic, dynamic>{}));
+  }
 
   @override
-  void _which(TwkTester t, Description d, Map<dynamic, dynamic> matchState) =>
-      d.add('has none');
+  Description describe(Description description) {
+    description.add('a line of the screen');
+    if (_within case final Finder finder) {
+      description.add(' in ').add(finder.description);
+    } else if (_within case final Object region) {
+      description.add(' in ${_regionName(_asRect(region))}');
+    }
+    return description.add(': ').addDescriptionOf(_line);
+  }
+
+  @override
+  void _which(TwkTester t, Description d, Map<dynamic, dynamic> matchState) {
+    if (matchState['error'] case final String error) {
+      d.add(error);
+      return;
+    }
+    d.add('has none');
+    final region = _regionOn(t, _within);
+    if (region == null) {
+      return;
+    }
+    d.add(' in ${_regionName(region)}');
+    final text = _text;
+    if (text != null) {
+      _addElsewhere(d, t.vt, text);
+    }
+  }
 }
 
 final class _HasTextAt extends _ScreenMatcher {
-  const _HasTextAt(this._x, this._y, this._text);
+  const _HasTextAt(this._x, this._y, this._text, this._within);
 
   final int _x;
   final int _y;
   final String _text;
+  final Object? _within;
+
+  /// The cells the matcher reads: the screen's, or the region's cut by it.
+  CellRect _area(TwkTester t) {
+    final vt = t.vt;
+    final r = _regionOn(t, _within);
+    if (r == null) {
+      return (x: 0, y: 0, width: vt.width, height: vt.height);
+    }
+    final left = r.x < 0 ? 0 : r.x;
+    final top = r.y < 0 ? 0 : r.y;
+    final right = r.x + r.width < vt.width ? r.x + r.width : vt.width;
+    final bottom = r.y + r.height < vt.height ? r.y + r.height : vt.height;
+    return (
+      x: left,
+      y: top,
+      width: right > left ? right - left : 0,
+      height: bottom > top ? bottom - top : 0,
+    );
+  }
+
+  /// What [area] has no cell at ([_x], [_y]) of for; null when it has one.
+  String? _off(CellRect area) {
+    final where = _within == null ? 'the screen' : 'the region';
+    if (_within != null && (area.width == 0 || area.height == 0)) {
+      return 'has no cell: the region is off the screen';
+    }
+    if (_y < 0 || _y >= area.height) {
+      return 'has no row $_y: $where has ${area.height} rows';
+    }
+    if (_x < 0 || _x >= area.width) {
+      return 'has no column $_x: $where has ${area.width} columns';
+    }
+    return null;
+  }
 
   /// What the cells [_text] would take show, and whether the row ends
   /// before they do.
-  (String, bool) _shown(Vt vt) {
+  (String, bool) _shown(Vt vt, CellRect area) {
     final scan = ClusterScan();
-    var end = _x;
+    final x0 = area.x + _x;
+    final y0 = area.y + _y;
+    final limit = area.x + area.width;
+    var end = x0;
     for (var i = 0; i < _text.length; i = scan.end) {
       vt.segmenter.scan(_text, i, scan);
       end += scan.width;
     }
-    final shown = [
-      for (var x = _x; x < end && x < vt.width; x++)
-        if (vt.cell(x, _y) case VtCell(role: != -1, :final text)) text,
-    ].join();
-    return (shown, end > vt.width);
+    final shown = cellsText(vt, y0, x0, end < limit ? end : limit);
+    return (shown, end > limit);
   }
 
   @override
   bool _matches(TwkTester t, Map<dynamic, dynamic> matchState) {
-    final vt = t.vt;
-    return _offScreen(vt, _x, _y) == null && _shown(vt).$1 == _text;
+    final CellRect area;
+    try {
+      area = _area(t);
+      // ignore: avoid_catching_errors, a finder that finds no one widget fails the match with its message
+    } on StateError catch (e) {
+      matchState['error'] = e.message;
+      return false;
+    }
+    return _off(area) == null && _shown(t.vt, area).$1 == _text;
   }
 
   @override
-  Description describe(Description description) =>
-      description.addDescriptionOf(_text).add(' at column $_x, row $_y');
+  Description describe(Description description) {
+    description.addDescriptionOf(_text).add(' at column $_x, row $_y');
+    return switch (_within) {
+      null => description,
+      final Finder finder => description.add(' in ${finder.description}'),
+      final Object r => description.add(' in ${_regionName(_asRect(r))}'),
+    };
+  }
 
   @override
   void _which(TwkTester t, Description d, Map<dynamic, dynamic> matchState) {
-    final vt = t.vt;
-    final off = _offScreen(vt, _x, _y);
-    if (off != null) {
-      d.add(off);
+    if (matchState['error'] case final String error) {
+      d.add(error);
       return;
     }
-    final (shown, cut) = _shown(vt);
-    d.add('has ').addDescriptionOf(shown).add(' there');
-    if (cut) {
-      d.add(', at the end of the row');
+    final area = _area(t);
+    final off = _off(area);
+    if (off != null) {
+      d.add(off);
+    } else {
+      final (shown, cut) = _shown(t.vt, area);
+      d.add('has ').addDescriptionOf(shown).add(' there');
+      if (cut) {
+        d.add(', at the end of the ${_within == null ? 'row' : 'region'}');
+      }
+    }
+    if (_within != null) {
+      _addElsewhere(d, t.vt, _text);
     }
   }
 }
@@ -279,6 +490,9 @@ final class _StyleAt extends _ScreenMatcher {
   final int _x;
   final int _y;
   final Matcher _style;
+
+  @override
+  bool get _marksStyles => true;
 
   @override
   bool _matches(TwkTester t, Map<dynamic, dynamic> matchState) {
@@ -458,9 +672,12 @@ final class _MatchesScreen extends _ScreenMatcher {
 }
 
 final class _MatchesScreenFile extends _ScreenMatcher {
-  const _MatchesScreenFile(this._path);
+  const _MatchesScreenFile(this._path, this._styles);
 
   final String _path;
+
+  /// Whether the styles are compared as well as the text.
+  final bool _styles;
 
   @override
   bool get _showsScreen => false;
@@ -500,12 +717,12 @@ final class _MatchesScreenFile extends _ScreenMatcher {
     }
     matchState[#held] = held;
     matchState[#shown] = shown;
-    return _differences(held, shown).isEmpty;
+    return _differences(held, shown, _styles).isEmpty;
   }
 
   @override
   Description describe(Description description) =>
-      description.add('the screen of $_path');
+      description.add('the ${_styles ? '' : 'text of the '}screen of $_path');
 
   @override
   void _which(TwkTester t, Description d, Map<dynamic, dynamic> matchState) {
@@ -518,13 +735,17 @@ final class _MatchesScreenFile extends _ScreenMatcher {
     d.add(
       'differs from $_path (- the file, + the screen; '
       '$updateScreenFilesVariable=1 writes the screen to it):\n'
-      '${_differences(held, shown).join('\n')}',
+      '${_differences(held, shown, _styles).join('\n')}',
     );
   }
 
   /// What differs between [held] and [shown], as lines of the failure
   /// message; none when they are the same screen.
-  static List<String> _differences(ScreenFile held, ScreenFile shown) {
+  static List<String> _differences(
+    ScreenFile held,
+    ScreenFile shown,
+    bool withStyles,
+  ) {
     if (held.width != shown.width || held.height != shown.height) {
       final from = '${held.width}×${held.height}';
       return ['the size: - $from, + ${shown.width}×${shown.height}'];
@@ -552,7 +773,7 @@ final class _MatchesScreenFile extends _ScreenMatcher {
     }
     final styles = <String>[];
     final cells = <String>[];
-    for (var y = 0; y < held.height; y++) {
+    for (var y = 0; withStyles && y < held.height; y++) {
       final differ = [
         for (var x = 0; x < held.width; x++)
           if (held.styleAt(x, y) != shown.styleAt(x, y)) x,

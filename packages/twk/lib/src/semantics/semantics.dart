@@ -348,10 +348,13 @@ final class SemanticsNode {
   /// the node read first below it.
   factory SemanticsNode.of(BuildContext context, {FocusNode? focus}) {
     final element = context as Element;
-    final node =
-        focus ??
-        Focus.maybeOf(context, createDependency: false)?.manager?.primaryFocus;
-    final focused = switch (node?.context) {
+    final manager = Focus.maybeOf(context, createDependency: false)?.manager;
+    final node = focus ?? manager?.primaryFocus;
+    // the root scope stands for no node: with the focus on it, none is
+    final focused = switch ((node != null &&
+            identical(node, node.manager?.rootScope))
+        ? null
+        : node?.context) {
       final Element e => e,
       _ => null,
     };

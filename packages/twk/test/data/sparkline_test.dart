@@ -20,9 +20,10 @@ Shot spark(
   double min = 0,
   double? max,
   int ambiguousWidth = 1,
+  bool fromRight = true,
 }) {
   final shot = Shot.render(
-    RenderSparkline(data: data, min: min, max: max),
+    RenderSparkline(data: data, min: min, max: max, fromRight: fromRight),
     width,
     height,
     ambiguousWidth: ambiguousWidth,
@@ -80,9 +81,9 @@ void main() {
         1,
       );
       expect(shot.colors(0), [
+        (' ', Color.defaultColor, grey),
         ('█', red, grey),
         ('▄', red, grey),
-        (' ', Color.defaultColor, grey),
       ]);
     });
   });
@@ -92,8 +93,14 @@ void main() {
       expect(spark([8, 8, 1, 2, 3, 4], 4, max: 8).rows, ['▁▂▃▄']);
     });
 
-    test('starts at the left edge with fewer values', () {
-      expect(spark([1, 2], 4, max: 8).rows, ['▁▂']);
+    test('ends at the right edge with fewer values, or with fromRight '
+        'false starts at the left one; the same either way once they fill '
+        'it', () {
+      expect(spark([1, 2], 4, max: 8).rows, ['  ▁▂']);
+      expect(spark([1, 2], 4, max: 8, fromRight: false).rows, ['▁▂']);
+      expect(spark([8, 8, 1, 2, 3, 4], 4, max: 8, fromRight: false).rows, [
+        '▁▂▃▄',
+      ]);
     });
 
     test('slides one column left for each new value', () {
@@ -208,9 +215,9 @@ void main() {
         final text = theme.text.fg!;
         // over what is under it: nothing painted here, the terminal's own
         const background = Color.defaultColor;
-        expect(t, styleAt(0, 0, allOf(hasFg(text), hasBg(background))));
-        expect(t, styleAt(2, 0, hasBg(background)));
-        expect(t, styleAt(3, 0, allOf(hasFg(red), hasBg(background))));
+        expect(t, styleAt(0, 0, hasBg(background)));
+        expect(t, styleAt(1, 0, allOf(hasFg(text), hasBg(background))));
+        expect(t, styleAt(4, 0, allOf(hasFg(red), hasBg(background))));
       }
     });
 

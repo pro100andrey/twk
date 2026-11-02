@@ -14,6 +14,7 @@ String slug(String title) => title
 /// and a test or a still shows it the same each time.
 ///
 /// The parameters: `theme=` (`dark`, `light`, `nord`, `mocha`, `latte`),
+/// `glyphs=ascii` (the marks of `Glyphs.ascii`),
 /// `tab=code`, `o=key:value;…` (the options), `t=` (time stopped at this
 /// many milliseconds), `focus=` (`list`, `filter`, `page`, `stage`, `code`
 /// or `o:<key>`), `filter=`, `palette=` (the palette open with this
@@ -26,6 +27,7 @@ final class GalleryRoute {
     this.group,
     this.page,
     this.theme,
+    this.glyphs,
     this.tab,
     this.options = const {},
     this.t,
@@ -71,6 +73,7 @@ final class GalleryRoute {
       group: parts.isNotEmpty ? parts[0] : null,
       page: parts.length > 1 ? parts[1] : null,
       theme: params['theme'],
+      glyphs: params['glyphs'],
       tab: params['tab'],
       options: options,
       t: params.containsKey('t')
@@ -98,6 +101,10 @@ final class GalleryRoute {
   final String? page;
 
   final String? theme;
+
+  /// `ascii` for the whole gallery under `Glyphs.ascii`; else the
+  /// default, `Glyphs.unicode`.
+  final String? glyphs;
 
   /// `code` for the Code tab.
   final String? tab;
@@ -128,6 +135,7 @@ final class GalleryRoute {
   String toString() {
     final q = <String>[
       if (theme != null) 'theme=$theme',
+      if (glyphs != null) 'glyphs=$glyphs',
       if (size != null) 'size=$size',
       if (tab != null) 'tab=$tab',
       if (t != null) 't=${_ms(t!)}',

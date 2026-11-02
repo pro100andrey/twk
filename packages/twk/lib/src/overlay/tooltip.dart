@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:twk_core/twk_core.dart'
     show Brightness, EdgeInsets, KeyCode, KeyEvent, KeyKind;
 
+import '../binding/app_binding.dart' show AppBinding;
 import '../focus/focus_tree.dart';
 import '../foundation/change_notifier.dart';
 import '../foundation/controller_host.dart';
@@ -162,7 +163,8 @@ final class Tooltip extends StatefulWidget {
   final TooltipController? controller;
 
   /// How long the mouse, or the focus, rests on [child] before the message
-  /// shows.
+  /// shows. The wait is a timer of the app: it needs one above (`runApp`,
+  /// or a `Cli`), see [AppBinding.startTimer].
   final Duration wait;
 
   /// The chip ([PanelLook.raised]) or a bordered box.
@@ -335,7 +337,7 @@ final class _TooltipState extends State<Tooltip> {
       return;
     }
     _timer?.cancel();
-    _timer = Timer(widget.wait, _show);
+    _timer = AppBinding.of(context).startTimer(widget.wait, _show);
   }
 
   /// Shows the message until the controller or Escape hides it.
@@ -397,8 +399,8 @@ final class _TooltipState extends State<Tooltip> {
   Widget build(BuildContext context) {
     if (Overlay.maybeOf(context) == null) {
       throw StateError(
-        'Tooltip: no Overlay above it: place an Overlay above it, as '
-        'around the whole app: Overlay(child: …)',
+        'Tooltip: no Overlay above it: place an Overlay above it, as App does '
+        'around the whole app: App(child: …)',
       );
     }
     return AnchorTarget(

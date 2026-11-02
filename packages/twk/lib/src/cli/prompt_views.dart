@@ -102,8 +102,10 @@ List<Span> _asking(CliTheme theme, String question, String? hint) => [
 ];
 
 /// `✗ message`, under a prompt whose answer was refused.
-Widget _refusal(CliTheme theme, String message) =>
-    Text.rich([Span('✗ ', theme.error), Span(message, theme.error)]);
+Widget _refusal(CliTheme theme, String message) => Text.rich([
+  Span('${theme.glyphs.cross} ', theme.error),
+  Span(message, theme.error),
+]);
 
 /// A line of text to answer: the question, the default in [hint], then a
 /// `TextField`, its text masked with `*` where [hidden]. Enter gives the

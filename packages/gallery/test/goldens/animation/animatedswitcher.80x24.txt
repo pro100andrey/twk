@@ -45,7 +45,7 @@ styles
 │aaaaannnnnnnnnnnnnnaaaggmmmmmggggggghxxxxxhsttttttshxxxxxhgggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnaaaaggmmmmmmmmmmggsttttshxxxxxhhxxxxxhxxxxxhhxxxxxhxxhgggggggg│
 │aaaaannnnnnnnnnannnaaagggggggggggggghxxxxxhxxxxhhxxxxxxxxhgggggggggggggggggggggg│
-│aaaaaaaaaaaaaaaaaaaaaaggmmmmmgggggggyzzAyggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmgggggggvwwyvggggggggggggggggggggggggggggggggggggggg│
 │aaadddddadddaddddaBaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
@@ -73,6 +73,6 @@ t bold #e6e8eb on #2b4566
 u #e6e8eb on #22252c
 E #747a83 on #16181d
 x #8b929c on #13151a
-y #5fa8ff on #16181d
-z on #5fa8ff
-A #ffffff on #5fa8ff
+v #5fa8ff on #16181d
+w on #5fa8ff
+y #ffffff on #5fa8ff

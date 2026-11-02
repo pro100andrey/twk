@@ -167,14 +167,26 @@ final class CliProgress {
 
   /// Runs [body] under it and closes it on the outcome: [complete] with
   /// [done]'s message for the value, [fail] with [failed]'s for the error,
-  /// which is thrown again. Completes with the body's value.
+  /// which is thrown again. Completes with the body's value. A value that
+  /// is a failure (a result of an error, an exit code) closes it with
+  /// [fail] where [ok] says it is not ok, [done]'s message the line's.
   ///
-  /// Closed by [body] itself, it stays as the body left it. Should [done]
-  /// or [failed] throw, it is cancelled and that error goes on.
+  /// Closed by [body] itself, it stays as the body left it. Should [done],
+  /// [ok] or [failed] throw, it is cancelled and that error goes on.
+  ///
+  /// ```dart
+  /// Future<int> f(CliProgress progress, Future<int> Function() build) =>
+  ///     progress.run(
+  ///       build,
+  ///       ok: (code) => code == 0,
+  ///       done: (code) => code == 0 ? 'Built' : 'Failed with $code',
+  ///     );
+  /// ```
   Future<T> run<T>(
     FutureOr<T> Function() body, {
     String Function(T result)? done,
     String Function(Object error)? failed,
+    bool Function(T result)? ok,
   }) async {
     final T result;
     try {
@@ -188,7 +200,11 @@ final class CliProgress {
       rethrow;
     }
     try {
-      complete(done?.call(result));
+      if (ok?.call(result) ?? true) {
+        complete(done?.call(result));
+      } else {
+        fail(done?.call(result));
+      }
     } finally {
       cancel();
     }
@@ -213,7 +229,10 @@ final class CliProgress {
     _clock.stop();
     final theme = _cli.theme;
     final line = [
-      if (done) Span('✓ ', theme.success) else Span('✗ ', theme.error),
+      if (done)
+        Span('${theme.glyphs.check} ', theme.success)
+      else
+        Span('${theme.glyphs.cross} ', theme.error),
       Span(_oneLine(message ?? _message)),
       if (_look == _Look.live)
         Span(' in ${formatTook(_clock.elapsed)}', theme.hint),
@@ -275,6 +294,7 @@ Future<T> runTasks<T>(
   bool hideFinished = false,
   ProgressBarShape barShape = ProgressBarShape.line,
   int? maxBarWidth = 30,
+  ByteUnits byteUnits = ByteUnits.decimal,
 }) async {
   final tracker = ProgressTracker(clock: cli.terminal.clock.stopwatch());
   final shown = columns ?? ProgressList.defaultColumns;
@@ -290,7 +310,7 @@ Future<T> runTasks<T>(
     }
   }
   void summary(ProgressTask task) {
-    final line = summaryLine(task, cli);
+    final line = summaryLine(task, cli, byteUnits);
     if (session case final session? when session.isOpen) {
       unawaited(session.commit(lineWidget(line)));
     } else {
@@ -309,6 +329,7 @@ Future<T> runTasks<T>(
         hideFinished: hideFinished,
         barShape: barShape,
         maxBarWidth: maxBarWidth,
+        byteUnits: byteUnits,
       ),
       last: true,
     );
@@ -355,6 +376,7 @@ Future<T> runTasks<T>(
             hideFinished: hideFinished,
             barShape: barShape,
             maxBarWidth: maxBarWidth,
+            byteUnits: byteUnits,
           ),
         );
       }
@@ -372,8 +394,14 @@ bool _stays(ProgressTask task) =>
 /// [task]'s [ProgressTask.summary] as a line, its mark in the theme's
 /// success, error or hint.
 @internal
-List<Span> summaryLine(ProgressTask task, Cli cli) {
-  final summary = _oneLine(task.summary);
+List<Span> summaryLine(
+  ProgressTask task,
+  Cli cli, [
+  ByteUnits byteUnits = ByteUnits.decimal,
+]) {
+  final summary = _oneLine(
+    task.summary(glyphs: cli.theme.glyphs, byteUnits: byteUnits),
+  );
   final theme = cli.theme;
   final space = summary.indexOf(' ');
   if (space < 0) {
@@ -500,6 +528,7 @@ final class _TasksView extends StatefulWidget {
     required this.hideFinished,
     required this.barShape,
     required this.maxBarWidth,
+    required this.byteUnits,
   });
 
   final ProgressTracker tracker;
@@ -507,6 +536,7 @@ final class _TasksView extends StatefulWidget {
   final bool hideFinished;
   final ProgressBarShape barShape;
   final int? maxBarWidth;
+  final ByteUnits byteUnits;
 
   @override
   State<_TasksView> createState() => _TasksViewState();
@@ -554,6 +584,7 @@ final class _TasksViewState extends State<_TasksView> {
         hideFinished: widget.hideFinished,
         barShape: widget.barShape,
         maxBarWidth: widget.maxBarWidth,
+        byteUnits: widget.byteUnits,
       ),
     );
   }

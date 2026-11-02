@@ -64,8 +64,31 @@ packages/gallery/bin/gallery.dart`).
   instead (`ThemeData.terminal`: `primary` is `Color.blue`, `muted` is
   dim, `selection` the grey 237 of the 256 colors, 253 on a light
   terminal), `Theme(data: ThemeData.nord, child:)` a preset.
+- The marks widgets draw (check, cross, cursor bar, expanders, a
+  scrollbar's thumb and track, a gauge's line, the spinner) are the
+  theme's `Glyphs`, named by meaning: `Glyphs.unicode` by default,
+  `Glyphs.ascii` for a terminal or a font without them,
+  `ThemeData.dark.copyWith(glyphs: Glyphs.ascii)` for the whole app, a
+  `Theme` around a part for that part, `Glyphs.unicode.copyWith(check:
+  '✔')` for a mark of one's own. A widget's own parameter (`Spinner.frames`,
+  `RadioGroup.mark`, `StatusMessage.icon`, `LineGauge.type`) is above the
+  set. Borders are in it: `Border`, `Divider`, `SplitView`, `Callout` and a
+  border scrollbar with no `type` draw `Glyphs.lines`, and `Glyphs.ascii`
+  makes every type ASCII (`rounded` too), so one `glyphs:` switches the app;
+  charts, images and the core's `…` are not in it. A mark is one column and one
+  code point wherever it is drawn, in a cell (a thumb, a gauge) or as text
+  in a row (a radio, a switch, a button's edges); one that is not (an
+  emoji, a letter and an accent) is `Glyphs.ascii`'s in its place, with one
+  warning in the log. The checkbox pair must be of one width or `[x]` and
+  `[ ]` are drawn; an empty mark is none (an empty edge is no edge).
 - The code uses Dart's dot shorthands (`.inline`, `.all(type: .rounded)`,
   `.stretch`); the packages need SDK 3.13.5 or later.
+- Where the names differ from Flutter's, as code brought over trips on:
+  `BoxConstraints` has `minW`, `maxW`, `minH`, `maxH` (cells, and
+  `BoxConstraints(minW, maxW, minH, maxH)` positional), not `maxWidth`;
+  `GestureDetector`'s `onTap`, `onDoubleTap` and `onLongPress` take the
+  `PointerEvent` (`(event) {…}`, `(_) => …`), not a callback of none;
+  `LineGauge` and `Gauge` show no percentage unless `showPercentage: true`.
 
 ## Set up
 
@@ -300,21 +323,21 @@ Each is described, with every parameter, in its topic's page of
 
 | need | widgets |
 |------|---------|
-| layout | `Column`, `Row` (`gap:`; `crossAxisAlignment` is `.center` unless set), `Expanded`, `Flexible`, `Spacer`, `Padding`, `SizedBox`, `Center`, `Align`, `Box` (`border:`, `titles:`, `padding:`, `style:` fills it), `Divider`, `Grid` + `GridPlacement`, `Stack` + `Positioned`, `Wrap`, `SplitView` (panes with draggable dividers), `ExpansionTile` + `Accordion` (sections that fold; `ExpansionController`), `Container` (Flutter's: `padding:`, `margin:`, `color:`, `decoration: BoxDecoration(…)`, `width:`, `height:`), `ColoredBox`, `DecoratedBox`, `LimitedBox`, `OverflowBox`, `SizedOverflowBox`, `Transform.translate` (whole cells; no rotation or scale), `Offstage` and `Visibility` (hide, keeping state), `RepaintBoundary` (isolate a part that changes often), `CustomPaint` + `CellPainter` (cells painted by hand) |
-| text and style | `Text(text, style:, wrap:, overflow:, maxLines:)`, `Text.rich([spans])`, `'x'.bold.fg(.green)` (a `Span`), `Style(fg:, bg:, attrs:)`, `Theme(data: ThemeData.nord, child:)`, `Theme.adaptive` (dark or light by the terminal), `Theme.of(context).primary`, `Link` |
+| layout | `Column`, `Row` (`gap:`; `crossAxisAlignment` is `.center` unless set), `Expanded`, `Flexible`, `Spacer`, `Padding`, `SizedBox`, `Center`, `Align`, `Box` (`border:`, `titles:`, `padding:`, `style:` fills it; `scrollbar: .always` (or `.onScroll`) draws the bar of the outermost scrollable inside on the border, in the border type's own line, at the right for a vertical scrollable and at the bottom for a horizontal one, which asserts under a bottom title), `Divider`, `Grid` + `GridPlacement`, `Stack` + `Positioned`, `Wrap`, `SplitView` (panes with draggable dividers), `ExpansionTile` + `Accordion` (sections that fold; `ExpansionController`), `Container` (Flutter's: `padding:`, `margin:`, `color:`, `decoration: BoxDecoration(…)`, `width:`, `height:`), `ColoredBox`, `DecoratedBox`, `ConstrainedBox(constraints: BoxConstraints(minW, maxW, minH, maxH))`, `LimitedBox`, `OverflowBox`, `SizedOverflowBox`, `Transform.translate` (whole cells; no rotation or scale), `Offstage` and `Visibility` (hide, keeping state; the tickers below are muted, an animation's time going on, as under `TickerMode(enabled: false)`), `RepaintBoundary` (isolate a part that changes often), `CustomPaint` + `CellPainter` (cells painted by hand) |
+| text and style | `Text(text, style:, wrap:, overflow:, maxLines:)`, `Text.rich([spans])`, `Text.line(text)` and `Text.richLine([spans])` (one line cut with `…`: a row's or a panel's label), `'x'.bold.fg(.green)` (a `Span`), `'task bl-42'.underline.tap(onTap)` (a click on a phrase of a `Text.rich` that is no URL), `Style(fg:, bg:, attrs:)`, `Theme(data: ThemeData.nord, child:)`, `Theme.adaptive` (dark or light by the terminal), `Theme.of(context).primary`, `Link` |
 | keys | `KeyBindings({'ctrl+s': save, 'g g': top}, hints: {'ctrl+s': 'save'}, child:)`, `Shortcuts` + `Actions` + `Intent`, `KeyHintsBar`, `InputListener` (keys nobody took, pastes, resizes) |
-| focus | `autofocus: true`, `FocusNode` (`requestFocus()`, `hasFocus`), `Focus`, `FocusScope`, `ExcludeFocus` (keep the focus out of a part) |
-| mouse (full screen) | `GestureDetector(onTap:, onDoubleTap:, onLongPress:, onDragUpdate:)`, `Listener`, `MouseRegion`, `Draggable` + `DragTarget`, `SelectionArea` (select and copy text; `SelectionAreaController`; a render object of your own mixes in `Selectable`), `Tooltip` (also on focus; `TooltipController`), `IgnorePointer`, `AbsorbPointer` |
-| lists and data | `ListView`, `ListView.builder` (lazy; `stickToBottom`; `ListController`; `reverse: true` for a chat, item 0 at the bottom; keyed items stay in place as items are inserted above), `ListView.separated`, `ScrollController(stickToEnd: true)` (follow the end of any scrollable), `LogView` + `LogController` (a log that follows its tail, with levels, a filter and search), `SingleChildScrollView`, `Scrollbar`, `SelectionList<K>`, `Table<T>`, `Table<T>.source` (a million rows), `TreeView<T>`, `TreeTable<T>` (a tree with columns), `DirectoryTree` (a file tree for a side panel; `DirectoryTreeController`), `TaskList`, `DescriptionList` + `DescriptionItem` (terms and their values, aligned), `Heatmap`, `ActivityHeatmap` (counts by day over weeks), `Sparkline`, `Gauge`, `LineGauge`, `BarChart`, `Chart`, `Calendar`, `DotCanvas` |
+| focus | `autofocus: true`, `FocusNode` (`requestFocus()`, `hasFocus`), `AppBinding.of(context).focusManager.primaryFocus` (the node that has the focus now, or null), `Focus`, `FocusScope`, `ExcludeFocus` (keep the focus out of a part) |
+| mouse (full screen) | `GestureDetector(onTap:, onDoubleTap:, onLongPress:, onDragUpdate:)`, `Listener`, `MouseRegion`, `Draggable` + `DragTarget` (`GestureDetector`s nested: the deepest one with a callback for the gesture takes the press, the outer one gets nothing of it), `SelectionArea` (select and copy text; `SelectionAreaController`; a render object of your own mixes in `Selectable`), `Tooltip` (also on focus; `TooltipController`), `IgnorePointer`, `AbsorbPointer` |
+| lists and data | `ListView`, `ListView.builder` (lazy; `stickToBottom`; `ListController`; `reverse: true` for a chat, item 0 at the bottom; keyed items stay in place as items are inserted above), `ListView.separated`, `ScrollController(stickToEnd: true)` (follow the end of any scrollable), `LogView` + `LogController` (a log that follows its tail, with levels, a filter and search), `SingleChildScrollView` (`physics: NeverScrollableScrollPhysics()` leaves the wheel to the scrollable around it, and the view is then no Tab stop and has no key hints; `ListView`, `Scrollable` and `TreeView` take `physics` too, `SelectionList`, `Table` and `LogView` do not; `TreeView` with `NeverScrollableScrollPhysics` leaves the wheel to the list around, its own keys and Tab stop stay), `Scrollbar`, `SelectionList<K>`, `Table<T>`, `Table<T>.source` (a million rows), `TreeView<T>` (`separateRoots`, `maxIndent`, `gutter` + `gutterWidth` for a mark of your own at the row's start), `TreeTable<T>` (a tree with columns), `DirectoryTree` (a file tree for a side panel; `DirectoryTreeController`), `TaskList`, `DescriptionList` + `DescriptionItem` (terms and their values, aligned), `Heatmap`, `ActivityHeatmap` (counts by day over weeks), `Sparkline`, `Gauge`, `LineGauge`, `BarChart`, `Chart`, `Calendar`, `DotCanvas` |
 | text input | `TextField` + `TextEditingController` (`onSubmitted`, `onChanged`, `obscureText`, `readOnly`, `enabled`, `onPaste`; Ctrl+C and Ctrl+X copy and cut a selection; `decoration: InputDecoration(icon:, labelText:, helperText:, errorText:, prefixIcon:, prefixText:, suffixIcon:, suffixText:, border: OutlineInputBorder() / UnderlineInputBorder() / InputBorder.none, filled:)`), `InputDecorator` (a decoration around any control), `TextArea` (lines), `Autocomplete` |
 | controls and forms | `Button`, `Checkbox`, `Switch`, `RadioGroup<T>`, `Select<T>`, `MultiSelect<T>` (`decoration:` a label and a border, as a field's), `Slider`, `NumberInput`, `DatePicker`, `ConfirmInput`, `FilePicker` (`showFilePicker`; `FilePickerController`), `PopupController` (open a `Select`'s or a `DatePicker`'s popup from code), `Form` + `FormField<T>` + `TextFormField`, `TabBar` + `TabView` + `TabController`, `SegmentedButton<T>` (a compact choice on one row), `StatusBar`, `StatusMessage`, `Callout` (a boxed notice of a `StatusKind`, dismissible), `Badge` |
-| over the app (need an `Overlay`) | `showDialog` + `Dialog` + `closeDialog`, `showToast`, `MenuBar` + `Menu` + `MenuItem`, `ContextMenu` (both with a `MenuController`), `Popover`, `CommandPalette` (`CommandPaletteController`, `commandsFor:`), `ModalBarrier`, `AnimatedModalBarrier` |
+| over the app (need an `Overlay`) | `showDialog` + `Dialog` + `closeDialog`, `showConfirm` (the question wraps on its own lines above the answers; `yes:`/`no:` label them, Delete and Keep say, default Yes and No; the keys stay `y`/`n`), `showToast`, `MenuBar` + `Menu` + `MenuItem`, `ContextMenu` (both with a `MenuController`), `Popover` (its content in a focus scope of its own: `autofocus` inside takes the focus; Tab leaves it past its last node to the node after the child, closing it, Shift+Tab from its first to the child's last node, keeping it open: `FocusScopeNode.leaveTo`, null by default, is what a scope's Tab leaves to), `CommandPalette` (`CommandPaletteController`, `commandsFor:`), `ModalBarrier`, `AnimatedModalBarrier` |
 | screens | `Scaffold` (header, sidebar, body, status bar and key hints, a focus zone each; `ScaffoldController`), `Navigator` (`push`, `pop`, named routes; Escape pops; holds an `Overlay`; `observers:`; `PageRoute(transitionDuration:)` slides in), `PopScope` (refuse or intercept a pop), `Stepper` + `Step` (a wizard whose steps validate; `StepperController`), `Breadcrumbs`, `Pagination` |
-| built inline | `Builder` (a context of its own), `StatefulBuilder` (a state of its own: `builder: (context, setState) => …`), `LayoutBuilder` (by the constraints), `FocusBuilder` (by whether the focus is in it) |
+| built inline | `Builder` (a context of its own), `StatefulBuilder` (a state of its own: `builder: (context, setState) => …`), `LayoutBuilder` (`builder: (context, constraints) => …`, `constraints.maxW` and `maxH` the room in cells; `doc/guides/layout.md`), `FocusBuilder` (by whether the focus is in it) |
 | async and time | `FutureBuilder`, `StreamBuilder`, `ListenableBuilder`, `ValueListenableBuilder`, `AnimatedBuilder`, `Spinner`, `ProgressBar`, `ProgressList` + `ProgressTracker` (many tasks with bars, rate and time left), `Skeleton` and `Skeletonize` (placeholders that shimmer while content loads), `AnimationController` + `TickerProviderStateMixin`, `Tween`, `Curves` |
 | state over the tree, hooks | `package:twk/provider.dart`, Provider's API: `Provider`, `ChangeNotifierProvider`, `MultiProvider`, `context.read<T>()`, `context.watch<T>()`, `context.select`, `Consumer`, `Selector` (twk_bloc builds on it); `package:twk/hooks.dart`, flutter_hooks': `HookWidget`, `HookBuilder`, `useState`, `useEffect`, `useMemoized`, `useTextEditingController`. Each is imported besides `package:twk/twk.dart`, and has its page in `packages/twk/doc/reference/` (`provider.md`, `hooks.md`) |
 | inline output | `Static` |
-| other | `AppBinding.of(context).notify(title, body)` (a desktop notification), `debugDumpTree(context)`, `Console`, `Semantics(hint:)` and `ExcludeSemantics` (what a screen reader reads) |
+| other | `AppBinding.of(context).notify(title, body)` (a desktop notification), `AppBinding.of(context).now()` (the time to show: the app's start moved on by its clock, which a test fixes; not `DateTime.now()`), `AppBinding.of(context).addPostFrameCallback((time) { … })` (once, at the end of the frame, when sizes are laid out; one that throws ends the app, `runApp` throwing it), `AppBinding.of(context).attachRootWidget(widget)` (replace the whole app from the next frame on, the old root's states disposed; from a callback, not a build; `doc/guides/state.md`), `debugDumpTree(context)`, `Console`, `Semantics(hint:)` and `ExcludeSemantics` (what a screen reader reads) |
 
 ## Recipes
 
@@ -324,20 +347,14 @@ Each stands on its own; `test/recipes_test.dart` below tests them.
 // lib/recipes.dart
 import 'dart:async';
 
+import 'package:twk/hooks.dart';
 import 'package:twk/twk.dart';
 
-/// The root of an app with dialogs: the Overlay under the Theme, so what
-/// it shows sees the theme, and the screens below it, so their contexts
-/// find it.
-final class App extends StatelessWidget {
-  const App({super.key});
-
-  @override
-  Widget build(BuildContext context) => const Theme(
-    data: ThemeData.nord,
-    child: Overlay(child: Home()),
-  );
-}
+/// The root of an app with dialogs: `App` puts the Overlay under the
+/// theme, so what it shows is in the theme, and above the screens, so
+/// their contexts find it.
+/// `runApp(app)` runs it.
+const app = App(theme: ThemeData.nord, child: Home());
 
 final class Home extends StatelessWidget {
   const Home({super.key});
@@ -463,35 +480,17 @@ Widget answerView(Future<String> answer) => FutureBuilder<String>(
   },
 );
 
-/// The seconds since it was shown, on a timer its state owns and cancels.
-final class Uptime extends StatefulWidget {
+/// The seconds since it was shown, counted by `useInterval` on the app's
+/// clock: it stops with the widget and sleeps where a `TickerMode` is off.
+final class Uptime extends HookWidget {
   const Uptime({super.key});
 
   @override
-  State<Uptime> createState() => _UptimeState();
-}
-
-final class _UptimeState extends State<Uptime> {
-  var _seconds = 0;
-  late final Timer _timer;
-
-  @override
-  void initState() {
-    super.initState();
-    _timer = Timer.periodic(
-      const Duration(seconds: 1),
-      (_) => setState(() => _seconds++),
-    );
+  Widget build(BuildContext context) {
+    final seconds = useState(0);
+    useInterval(const Duration(seconds: 1), () => seconds.value++);
+    return Text('up ${seconds.value}s');
   }
-
-  @override
-  void dispose() {
-    _timer.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) => Text('up ${_seconds}s');
 }
 ```
 
@@ -557,7 +556,7 @@ import 'package:twk_test/twk_test.dart';
 
 void main() {
   testTwk('a dialog asks first, a toast says it is done', (t) async {
-    await t.pumpWidget(const App(), size: (40, 12));
+    await t.pumpWidget(app, size: (40, 12));
     await t.press('enter');
     // a dialog fades in over 160 ms: at its first frame it is not seen yet
     await t.pump(const Duration(milliseconds: 200));
@@ -624,7 +623,8 @@ What to know:
   (Space on the row Enter added).
 - `type('text')` sends the text as one read. `press('enter')`,
   `press('tab space')`, `press('ctrl+x ctrl+s')` send each key as a read
-  of its own, the keys named as `KeyBindings` names them. `press('escape')`
+  of its own, the keys named as `KeyBindings` names them, in lower case
+  (`escape`, or `esc` as the hints show it). Without the kitty protocol `press('escape')`
   waits out the 30 ms after which a lone ESC is the Escape key; a key with
   no bytes of its own without the kitty protocol (Ctrl+Shift and a
   letter, Ctrl+Enter) throws unless `pumpWidget(..., kittyKeyboard: true)`.
@@ -639,19 +639,55 @@ What to know:
   `containsLine`, `hasTextAt(x, y, text)`, `styleAt(x, y, hasFg(Color.red))`
   (`hasAttr`, `hasBg`), `cursorAt(x, y)`, `matchesScreen('''…''')` (the
   snapshot's lines start in column 0; `styles: true` compares
-  `[bold]…[/]` runs too).
+  `[bold]…[/]` runs too), `matchesScreenFile('test/goldens/x.txt')` (a
+  golden written with `TWK_UPDATE_GOLDENS=1`, styles too unless `styles:
+  false`; the path is from the root of the test's package, and it throws
+  where that is not found).
+- One widget's part of the screen, not the whole: `t.linesOf(finder)`,
+  `t.linesIn(t.rect(finder))` (its rows, from its first column), and
+  `containsLine(line, within: finder)`, `hasTextAt(x, y, text, within:
+  finder)` with `x`, `y` from its first cell, for a row that two panes both
+  show.
 - Finders: `find.text`, `find.byType`, `find.byKey`, `find.descendant`,
   with `findsOneWidget`, `findsNothing`, `findsNWidgets(n)`;
-  `t.state<S>(finder)`, `t.widget<W>(finder)`, `t.rect(finder)`.
-- `t.logs.records` holds what the app printed and logged, `t.isRunning`
-  turns false once it quit.
+  `t.state<S>(finder)`, `t.widget<W>(finder)`, `t.rect(finder)` (its
+  cells, for `styleAt`). `find` is global; `find.text` matches a `Text`'s
+  whole string, and a `Button`'s label is no `Text`:
+  `find.byWidgetPredicate((w) => w is Button && w.label == 'save')`.
+- One `t.pump()` after the input also draws what a future of it changed
+  that waits for no timer (the tester runs the app's microtasks first);
+  one on a timer needs `t.pump(duration)` past it, a load the next frame
+  starts (`initState`, `didUpdateWidget`) a pump more, and so is what a
+  `LayoutBuilder` changes in the keys and the hints (built in the frame
+  after its layout: a pump more after a `resize`). What arrives in
+  real time (a file, a process): `waitUntil(condition, what, between:
+  t.pump)`.
+- `t.logs.records` holds what the app printed and logged, a build that
+  failed and a layout that overflowed among them; a test that fails
+  prints its last 20, after its last frames. `t.isRunning` turns false
+  once it quit.
 - `pumpUntilIdle()` pumps until no frame and no timer waits; it fails
   after 10 s on the clock for an app with a periodic timer or a spinner:
-  pump those by a duration.
+  pump those by a duration. It runs out a toast's and a highlight's
+  timers too, so what they show is gone when it returns.
 - Only the app's timers and frames are fake: `DateTime.now()` and
-  `Stopwatch()` read real time. Pass dates in (`Calendar(today: …)`).
-- A failing matcher shows the screen, the widget tree with each widget's
-  size, and the render tree; a failing test prints its last 3 frames.
+  `Stopwatch()` read real time. A widget reads the time from
+  `AppBinding.of(context).now()`: the app's start moved on by its clock,
+  which a test fixes with `pumpWidget(startTime:)` (1 January 2026 by
+  default) and moves by pumping; a `Calendar`, a `DatePicker` and a
+  `Heatmap` take today from it. A `CalendarController()` given no cursor
+  still reads `DateTime.now()`: give it one (or `Calendar(today: …)`).
+- The app as `runApp` runs it, in a real terminal: a test that runs the
+  program in twk_term's pseudo-terminal, reads its screen through the
+  emulator and waits with `waitUntil` and `waitFor`, never a sleep;
+  the testing guide of the twk repository, `doc/guides/testing.md`, has the recipe;
+  how `runApp` ends and behaves with no tty (`TWK_PLAIN=1` for plain output)
+  is `doc/guides/running.md`. To look at an app by hand or
+  script it, twk_dev's `twk record`, `twk play` and `twk tape`.
+- A failing matcher shows the screen as text (`styleAt` with styles),
+  the widget tree with each widget's size, and the render tree; a failing
+  test prints its last 3 frames and the app's log; a failing
+  `pumpUntilIdle` lists the timers that wait and where each started.
 
 ## Debug
 
@@ -687,21 +723,91 @@ What to know:
 
 ## Pitfalls
 
+- Before writing a widget of your own that twk has, read what it already
+  sets (its catalog page, `doc/widgets/`): the authors who copied these
+  had not.
+  - `LineGauge`: `type: .heavy` is `━` over `─`, `.ascii` too; with
+    `type` null the marks are `glyphs.gaugeFilled`/`gaugeEmpty`;
+    `segmented`; colour by level is a `filledStyle` picked from the
+    ratio; its width is the room it gets.
+  - `Callout`: `kind` (colour and icon), `icon: ''` for none, `title`,
+    `actions`, `style`, `borderType` (`.rounded`), `titleStyle`;
+    `onDismissed` null draws no close mark (`[${glyphs.close}]`: `[×]`,
+    `[x]` in ASCII).
+  - `Button`: chip, `.outlined`, `.filled`, `tall`, the state styles; a
+    flat clickable word is `canRequestFocus: false` with a style without
+    a chip; `Button.rich([key, caption])` a label of spans (a key in its
+    colour, the caption in another).
+  - `RadioGroup`'s marks are the theme's `glyphs.radioOn`/`radioOff`
+    between `radioBrackets` (`●`/` ` in `(`, `)`; `radioOn: '◉'`,
+    `radioOff: '○'`, `radioBrackets: ('', '')` for `◉ ○`), `mark` over
+    `radioOn` for one group; `SegmentedButton`'s `caps`, `showSelectedIcon`; `Select`'s
+    `popupLook`, `arrowStyle`, `inline`, `rows`; `‹ x ›` is
+    `ValueStepper`, chips are `Chip` and `ChipList`.
+  - `Dialog`: `title`, `trailing`, `look`, `shadow`, `padding`,
+    `maxWidth`, `scrollable`; `showDialog`'s `alignment` and
+    `barrierAlpha: 0` for no dimming; a bare palette is a `Box` of the
+    app's own in `showDialog`. A menu at a cell is a `ContextMenu` opened
+    with `at:`, a panel by a widget a `Popover`.
+  - `CommandPalette`: `look`, `width`, `rows`, `prompt`, `placeholder`,
+    `rule`, `bar`, `thumb`, `barrierAlpha`, `hintedKeys`; its ranking is
+    the exported `fuzzyMatch`.
+- A mark drawn by hand (`Text('✓ done')`, `Span('▸ ')`) stays Unicode
+  whatever the theme says: take it from `Theme.of(context).glyphs.check`,
+  `.collapsed` and the rest, or from the widget that draws it
+  (`StatusMessage`, `TreeView`), so that an app in `Glyphs.ascii` is ASCII
+  all through.
+- `package:twk/twk.dart` exports all of twk, as Flutter's `material.dart`
+  does, generic names among them (`TaskStatus`, `Step`, `Gauge`, `Table`,
+  `Chip`, `Window`, `Callout`). Keep the app's own names and hide twk's
+  where both are imported: `import 'package:twk/twk.dart' hide
+  TaskStatus;` (or a prefix on the app's own import); do not rename the
+  app's types around twk.
 - Give generic widgets their type argument: `Table<Entry>(rows:,
   columns: [TableColumn(cell: (e) => …)])`. Columns written inside the
   call get no type from `rows`, and `e.name` does not analyze.
+- A list row, a label cut with `…` and something fixed after it, is
+  `Row(children: [Expanded(child: Text.line(label)), Text(size)])`;
+  columns are `SizedBox(width: n, child: Text.line(…))`; no `LayoutBuilder`
+  or `stringWidth`. A list loads more near its end with a
+  `NotificationListener<ScrollUpdateNotification>` above it reading
+  `metrics.extentAfter` (`doc/guides/layout.md`, "A row of a list").
+- A space at the end of a `Text` is lost with the default `wrap:
+  TextWrap.word`: it hangs past the line, uncounted and undrawn, so
+  `Text('◐ ')` in a `Row` is one cell and the next child touches the mark.
+  `Text('◐ ', wrap: .none)` keeps it (two cells). Cell text for a
+  `String`: `fitText(segmenterOf(context), s, n)` cuts to `n` cells with `…` (`overflow:` ellipsisStart, ellipsisMiddle or clip; `segmenterOf(context)` is the terminal's `TextSegmenter`, for `.width` too; never a plain `TextSegmenter()`, which counts ambiguous-wide letters one column);
+  pad with `padCells(segmenter, s, n)` (`alignment:` right or center; `fitText`'s `overflow:` cuts the start or the middle, `breakLines(segmenter, text, n)` gives the ranges of the lines a text breaks into); a row's background across its
+  width is a `ColoredBox` (a `Span`'s paints only its text); a bar on
+  every wrapped line is a `Box(border: Border(left: Style()))`
+  (`doc/guides/layout.md`, "Text in cells").
 - `ListView`, `Table`, `TreeView`, `SelectionList` and `Navigator` take
   all the room they get. In a `Column` put them in `Expanded`, or they
   take the whole height and push the rest off the screen (a
   `RenderFlex overflowed` warning in the log). Inline, a list asks for no
-  rows and shows nothing: give it a height (`SizedBox(height: 16, …)`).
+  rows and shows nothing: give it a height (`SizedBox(height: 16, …)`). In debug, a debug-level log record says where the room went.
 - Dialogs, toasts, menus, popovers, tooltips, `Select` (not `inline`),
   `DatePicker`, `Autocomplete` and `CommandPalette` need an `Overlay`
   above them (a `Navigator` holds one); without one they fail with a
   `StateError` that says where to put it (a widget, in its error box).
-  The context must be below it: the `context` of the build that creates
-  the `Overlay` is above it, so build the `Overlay` in a parent widget,
-  as `App` does, or what opens them in a `Builder` below it.
+  `runApp` places none: `App(theme:, child:)` at the root places the
+  theme, under it the `Overlay`, under that the app (above `App` go the
+  providers its dialogs read). The context must be below it: the
+  `context` of the build that creates the `Overlay` is above it, so the
+  app's root widget is its own, below `App`, or what opens them is in a
+  `Builder` below it. The app's root `KeyBindings` go below the
+  `Overlay`, in that widget: the keys a dialog leaves go up from it to
+  what is above the overlay, so the app's `s` and `q` do not act while
+  the dialog is open. A `Navigator` below them changes nothing: a dialog,
+  menu, palette, popover or any entry in the navigator's own `Overlay`
+  skips the bindings between the navigator and `App`'s overlay, and a
+  page pushed on it still gets them. Keys that are to
+  work over a dialog too (`ctrl+q`) go above `App`.
+- A dialog fades in over 160 ms (`showDialog(fadeIn:)`), a tooltip over
+  100 ms (`Tooltip(fadeIn:)`) and a toast slides in over 200 ms, with no
+  `fadeIn`: in a test one `t.pump()` shows them at the start, not yet
+  drawn. Pump past it (`t.pump(const Duration(milliseconds: 200))`), or
+  show the dialog and the tooltip with `fadeIn: Duration.zero`.
 - A focused `TextField` takes the characters typed, so `KeyBindings({'q':
   quit})` above it never sees `q`. It lets Tab, Escape, Up, Down, Enter
   without `onSubmitted` and the Ctrl and Alt keys it does not edit with
@@ -718,6 +824,24 @@ What to know:
   subscriptions.
 - `Column` and `Row` centre their children across unless
   `crossAxisAlignment` says otherwise (`.stretch`, `.start`).
+- `Column` and `Row` are as long as their room along the axis
+  (`mainAxisSize: .max`), also inside another `Column`: a header made of
+  a `Column` above an `Expanded` list takes the whole height and leaves
+  the list no rows. Give what is to be as big as its children
+  `mainAxisSize: .min`.
+- `Align` and `Center` with no factor are as big as the room they get, so
+  in a `Row` that has a height they take all of it; `heightFactor: 1`
+  makes `Align` as tall as its child. Often no `Align` is needed to keep
+  a child to the left: `crossAxisAlignment: .start`. Where the axis has no
+  end (a scroll view, a list's row) they take the child's size.
+- A key hint that is true in one layout only: a `KeyBindings` below the
+  `LayoutBuilder` with the binding null in the other layout, not one
+  above it; `KeyHintsBar` leaves out a key bound to null.
+  The layout guide of the twk repository, `doc/guides/layout.md`, has the recipe.
+- Do not cut by hand what twk cuts: `Breadcrumbs` collapses a path to what
+  fits (the middle as `…`), and `fuzzyMatch(query, text)` gives the
+  `positions` a match highlights, which `Option(label, marks:)` shows in
+  an `OptionList`.
 - Write nothing to stdout or stderr while the app runs; `print` and
   `log()` already go to the log.
 - In the twk repository itself, a new public widget of `packages/twk`

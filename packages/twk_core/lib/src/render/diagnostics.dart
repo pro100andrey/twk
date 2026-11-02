@@ -220,7 +220,8 @@ final class DiagnosticsNode {
         if (node.flags.isNotEmpty) node.flags.map((f) => f.symbol).join(' '),
       ];
       lines.add(
-        '${row.text}${' ' * (labels - row.width + 1)}${columns.join(' ')}'
+        '${padCells(_excerptSegmenter, row.text, labels + 1)}'
+                '${columns.join(' ')}'
             .trimRight(),
       );
     }

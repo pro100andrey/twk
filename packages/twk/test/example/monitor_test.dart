@@ -47,35 +47,35 @@ void main() {
     expect(
       t,
       matchesScreen('''
-╭ cpu ──────────── load 0.97 1.10 0.90 ╮╭ mem ────────────────── 3.7G of 16.0G ╮
+╭ cpu ──────────── load 0.97 1.10 0.90 ╮╭ mem ────────────── 4.0 GB of 17.2 GB ╮
 │                                      ││                                      │
 │                                      ││                                      │
-│ ▆                                    ││ ▆                                    │
+│                                    ▆ ││                                    ▆ │
 │  24.3%  ──────────────────────────── ││  23.4%  ──────╴───────────────────── │
 ╰──────────────────────────────────────╯╰──────────────────────────────────────╯
 ╭ 21 processes ────────────────────────────────────────────────────────────────╮
-│     pid name            cpu% ▾    mem   thr command                          │
-│    3000 cc                50.0  40.0M     1 cc -O2 -c src/part0.c            │
-│    1203 postgres          18.4   220M     1 postgres -D /var/lib/postgresql/…│
-│     950 containerd         5.8  52.0M    14 /usr/bin/containerd              │
-│     801 dockerd            4.4  96.0M    22 /usr/bin/dockerd -H fd://        │
-│      51 kworker/1:2        4.2     0B     1 [kworker/1:2]                    │
-│    1240 postgres           3.6  30.0M     1 postgres: checkpointer           │
-│      14 ksoftirqd/0        3.0     0B     1 [ksoftirqd/0]                    │
-│    1241 postgres           2.8  18.0M     1 postgres: walwriter              │
-│     498 NetworkManager     2.0  21.0M     4 /usr/bin/NetworkManager -n       │
-│       1 systemd            1.8  14.0M     1 /usr/lib/systemd/systemd --system│
-│    4388 vim                0.9  32.0M     1 vim lib/main.dart                │
-│     312 systemd-journal    0.3  48.0M     1 /lib/systemd/systemd-journald    │
-│    2600 make               0.1   4.0M     1 make -j4                         │
-│    2210 dart               0.0   140M     9 dart run example/monitor.dart    │
+│     pid name            cpu% ▾     mem   thr command                         │
+│    3000 cc                50.0 41.9 MB     1 cc -O2 -c src/part0.c           │
+│    1203 postgres          18.4  231 MB     1 postgres -D /var/lib/postgresql…│
+│     950 containerd         5.8 54.5 MB    14 /usr/bin/containerd             │
+│     801 dockerd            4.4  101 MB    22 /usr/bin/dockerd -H fd://       │
+│      51 kworker/1:2        4.2     0 B     1 [kworker/1:2]                   │
+│    1240 postgres           3.6 31.5 MB     1 postgres: checkpointer          │
+│      14 ksoftirqd/0        3.0     0 B     1 [ksoftirqd/0]                   │
+│    1241 postgres           2.8 18.9 MB     1 postgres: walwriter             │
+│     498 NetworkManager     2.0 22.0 MB     4 /usr/bin/NetworkManager -n      │
+│       1 systemd            1.8 14.7 MB     1 /usr/lib/systemd/systemd --syst…│
+│    4388 vim                0.9 33.6 MB     1 vim lib/main.dart               │
+│     312 systemd-journal    0.3 50.3 MB     1 /lib/systemd/systemd-journald   │
+│    2600 make               0.1  4.2 MB     1 make -j4                        │
+│    2210 dart               0.0  147 MB     9 dart run example/monitor.dart   │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- ↑↓ select  s < > sort  t tree  q quit
+↑↓ select   s flip sort   < prev column   > next column   t tree   q quit
 '''),
     );
     // the terminal's own colors: the sparklines, the gauges' filled parts
-    expect(t, styleAt(2, 3, hasFg(theme.info.fg!)));
-    expect(t, styleAt(42, 3, hasFg(theme.accent.fg!)));
+    expect(t, styleAt(37, 3, hasFg(theme.info.fg!)));
+    expect(t, styleAt(77, 3, hasFg(theme.accent.fg!)));
     expect(t, styleAt(10, 4, hasFg(theme.success.fg!)));
     expect(t, styleAt(30, 4, hasFg(theme.border.fg!)));
     expect(t, styleAt(2, 0, hasFg(theme.primary.fg!)));
@@ -97,30 +97,30 @@ void main() {
     expect(
       t,
       matchesScreen('''
-╭ cpu ──────────── load 1.24 1.11 0.90 ╮╭ mem ────────────────── 3.8G of 16.0G ╮
+╭ cpu ──────────── load 1.24 1.11 0.90 ╮╭ mem ────────────── 4.1 GB of 17.2 GB ╮
 │                                      ││                                      │
 │                                      ││                                      │
-│ ▆▇▇                                  ││ ▆▆▆                                  │
+│                                  ▆▇▇ ││                                  ▆▆▆ │
 │  30.9%  ────────╴─────────────────── ││  24.0%  ──────╴───────────────────── │
 ╰──────────────────────────────────────╯╰──────────────────────────────────────╯
 ╭ 21 processes ────────────────────────────────────────────────────────────────╮
-│     pid name            cpu% ▾    mem   thr command                          │
-│    3000 cc                90.0   100M     1 cc -O2 -c src/part0.c            │
-│    1203 postgres           8.7   220M     1 postgres -D /var/lib/postgresql/…│
-│     950 containerd         5.8  52.0M    14 /usr/bin/containerd              │
-│      51 kworker/1:2        5.0     0B     1 [kworker/1:2]                    │
-│      14 ksoftirqd/0        2.8     0B     1 [ksoftirqd/0]                    │
-│    1240 postgres           2.5  30.0M     1 postgres: checkpointer           │
-│       1 systemd            2.0  14.0M     1 /usr/lib/systemd/systemd --system│
-│     801 dockerd            1.9  96.0M    22 /usr/bin/dockerd -H fd://        │
-│     498 NetworkManager     1.7  21.0M     4 /usr/bin/NetworkManager -n       │
-│    1241 postgres           1.0  18.0M     1 postgres: walwriter              │
-│    2210 dart               0.9   140M     9 dart run example/monitor.dart    │
-│    4388 vim                0.6  32.0M     1 vim lib/main.dart                │
-│    2600 make               0.5   4.0M     1 make -j4                         │
-│    1500 tmux: server       0.2   8.0M     1 tmux new -s work                 │
+│     pid name            cpu% ▾     mem   thr command                         │
+│    3000 cc                90.0  105 MB     1 cc -O2 -c src/part0.c           │
+│    1203 postgres           8.7  231 MB     1 postgres -D /var/lib/postgresql…│
+│     950 containerd         5.8 54.5 MB    14 /usr/bin/containerd             │
+│      51 kworker/1:2        5.0     0 B     1 [kworker/1:2]                   │
+│      14 ksoftirqd/0        2.8     0 B     1 [ksoftirqd/0]                   │
+│    1240 postgres           2.5 31.5 MB     1 postgres: checkpointer          │
+│       1 systemd            2.0 14.7 MB     1 /usr/lib/systemd/systemd --syst…│
+│     801 dockerd            1.9  101 MB    22 /usr/bin/dockerd -H fd://       │
+│     498 NetworkManager     1.7 22.0 MB     4 /usr/bin/NetworkManager -n      │
+│    1241 postgres           1.0 18.9 MB     1 postgres: walwriter             │
+│    2210 dart               0.9  147 MB     9 dart run example/monitor.dart   │
+│    4388 vim                0.6 33.6 MB     1 vim lib/main.dart               │
+│    2600 make               0.5  4.2 MB     1 make -j4                        │
+│    1500 tmux: server       0.2  8.4 MB     1 tmux new -s work                │
 ╰──────────────────────────────────────────────────────────────────────────────╯
- ↑↓ select  s < > sort  t tree  q quit
+↑↓ select   s flip sort   < prev column   > next column   t tree   q quit
 '''),
     );
   });
@@ -196,30 +196,30 @@ void main() {
     expect(
       t,
       matchesScreen('''
-╭ cpu ──────────── load 0.97 1.10 0.90 ╮╭ mem ────────────────── 3.7G of 16.0G ╮
+╭ cpu ──────────── load 0.97 1.10 0.90 ╮╭ mem ────────────── 4.0 GB of 17.2 GB ╮
 │                                      ││                                      │
 │                                      ││                                      │
-│ ▆                                    ││ ▆                                    │
+│                                    ▆ ││                                    ▆ │
 │  24.3%  ──────────────────────────── ││  23.4%  ──────╴───────────────────── │
 ╰──────────────────────────────────────╯╰──────────────────────────────────────╯
 ╭ 21 processes ────────────────────────────────────────────────────────────────╮
-│ ▾ systemd                                                     1    1.8  14.0M│
-│ ├── systemd-journal                                         312    0.3  48.0M│
-│ ├── NetworkManager                                          498    2.0  21.0M│
-│ ├─▾ sshd                                                    733    0.0   9.0M│
-│ │ └─▾ sshd                                                 4102    0.0  11.0M│
-│ │   └─▾ bash                                               4120    0.0   5.0M│
-│ │     └── vim                                              4388    0.9  32.0M│
-│ ├─▾ dockerd                                                 801    4.4  96.0M│
-│ │ └─▾ containerd                                            950    5.8  52.0M│
-│ │   └─▾ postgres                                           1203   18.4   220M│
-│ │     ├── postgres                                         1240    3.6  30.0M│
-│ │     └── postgres                                         1241    2.8  18.0M│
-│ └─▾ tmux: server                                           1500    0.0   8.0M│
-│   ├─▾ zsh                                                  1501    0.0   6.0M│
-│   │ └── dart                                               2210    0.0   140M│
+│ ▾ systemd                                                    1    1.8 14.7 MB│
+│ ├── systemd-journal                                        312    0.3 50.3 MB│
+│ ├── NetworkManager                                         498    2.0 22.0 MB│
+│ ├─▾ sshd                                                   733    0.0  9.4 MB│
+│ │ └─▾ sshd                                                4102    0.0 11.5 MB│
+│ │   └─▾ bash                                              4120    0.0  5.2 MB│
+│ │     └── vim                                             4388    0.9 33.6 MB│
+│ ├─▾ dockerd                                                801    4.4  101 MB│
+│ │ └─▾ containerd                                           950    5.8 54.5 MB│
+│ │   └─▾ postgres                                          1203   18.4  231 MB│
+│ │     ├── postgres                                        1240    3.6 31.5 MB│
+│ │     └── postgres                                        1241    2.8 18.9 MB│
+│ └─▾ tmux: server                                          1500    0.0  8.4 MB│
+│   ├─▾ zsh                                                 1501    0.0  6.3 MB│
+│   │ └── dart                                              2210    0.0  147 MB│
 ╰──────────────────────────────────────────────────────────────────────────────╯
- ↑↓ select  ←→ fold  * unfold all  t table  q quit
+↑↓ select   ←→ fold   * unfold all   t table   q quit
 '''),
     );
     // and kthreadd's below, past the end

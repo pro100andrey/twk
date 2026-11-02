@@ -288,8 +288,9 @@ final class Listener extends SingleChildRenderObjectWidget {
 /// terminal's own is put back when the app ends ([TerminalStatus]).
 ///
 /// While one with a callback is mounted, or with a [cursor] the terminal
-/// shows, the terminal reports all motion of the mouse (mode 1003; see
-/// [Listener]). Outside an app a MouseRegion is told nothing.
+/// shows (unless [cursorAsksMotion] is false), the terminal reports all
+/// motion of the mouse (mode 1003; see [Listener]). Outside an app a
+/// MouseRegion is told nothing.
 ///
 /// A row lit while the mouse is over it, the pointer a hand there:
 ///
@@ -316,6 +317,8 @@ final class MouseRegion extends SingleChildRenderObjectWidget {
     this.onExit,
     this.onHover,
     this.cursor,
+    this.cursorAt,
+    this.cursorAsksMotion = true,
     this.behavior = HitTestBehavior.opaque,
     super.child,
   });
@@ -333,6 +336,19 @@ final class MouseRegion extends SingleChildRenderObjectWidget {
   /// region around it.
   final PointerShape? cursor;
 
+  /// The pointer's shape at a cell of it, the mouse's `x` and `y` in its
+  /// own coordinates, asked as the mouse moves and after each frame; null
+  /// for [cursor], or the region around. The shape of a part of it only:
+  /// a tab, not the bar around.
+  final PointerShape? Function(int x, int y)? cursorAt;
+
+  /// Whether a [cursor] has the terminal report all motion of the mouse
+  /// (the default). False: the cursor shows only while the terminal
+  /// reports it for another reason (another region with a callback, a
+  /// field), so that it costs the app nothing; with no motion reported the
+  /// pointer would stay as it was after the mouse left, so it is not shown.
+  final bool cursorAsksMotion;
+
   /// Where the mouse is in it.
   final HitTestBehavior behavior;
 
@@ -347,6 +363,8 @@ final class MouseRegion extends SingleChildRenderObjectWidget {
       onExit: onExit,
       onHover: onHover,
       cursor: cursor,
+      cursorAt: cursorAt,
+      cursorAsksMotion: cursorAsksMotion,
       behavior: behavior,
     ).._shapesShown = status?.showsPointerShape ?? false;
     final tracker = MouseTracker.of(context);
@@ -368,6 +386,8 @@ final class MouseRegion extends SingleChildRenderObjectWidget {
       ..onExit = onExit
       ..onHover = onHover
       ..cursor = cursor
+      ..cursorAt = cursorAt
+      ..cursorAsksMotion = cursorAsksMotion
       ..behavior = behavior
       .._recount();
   }
@@ -479,9 +499,21 @@ final class RenderListener extends _RenderMouseTarget {
   // tree itself ([listenOver])
   RenderObject? _over;
 
+  /// The pointer's shape at a cell of what it listens over, as
+  /// [MouseRegion.cursorAt] says it; only for a listener given by
+  /// [listenOver], which has no region around its target.
+  PointerShape? Function(int x, int y)? cursorAt;
+
+  /// As [MouseRegion.cursorAsksMotion] says, for [cursorAt].
+  var cursorAsksMotion = false;
+
+  // the terminal of its app shows the pointer's shape ([listenOver])
+  var _shapesShown = false;
+
   @override
   MouseTracking get _needs {
-    if (onMove != null) {
+    if (onMove != null ||
+        cursorAt != null && cursorAsksMotion && _shapesShown) {
       return MouseTracking.motion;
     }
     if (onDrag != null) {
@@ -530,6 +562,8 @@ final class RenderMouseRegion extends _RenderMouseTarget {
     this.onExit,
     this.onHover,
     this.cursor,
+    this.cursorAt,
+    this.cursorAsksMotion = true,
     HitTestBehavior behavior = HitTestBehavior.opaque,
   }) : super(behavior);
 
@@ -545,6 +579,12 @@ final class RenderMouseRegion extends _RenderMouseTarget {
   /// See [MouseRegion.cursor].
   PointerShape? cursor;
 
+  /// See [MouseRegion.cursorAt].
+  PointerShape? Function(int x, int y)? cursorAt;
+
+  /// See [MouseRegion.cursorAsksMotion].
+  bool cursorAsksMotion;
+
   // the terminal of its app shows the pointer's shape
   var _shapesShown = false;
 
@@ -553,7 +593,9 @@ final class RenderMouseRegion extends _RenderMouseTarget {
       onEnter != null ||
           onExit != null ||
           onHover != null ||
-          (cursor != null && _shapesShown)
+          ((cursor != null || cursorAt != null) &&
+              _shapesShown &&
+              cursorAsksMotion)
       ? MouseTracking.motion
       : MouseTracking.off;
 
@@ -655,6 +697,10 @@ final class MouseTracker {
   // test found, with where each was hit in its own coordinates
   var _hovered = _Hits<RenderMouseRegion>();
   var _hovering = _Hits<RenderMouseRegion>();
+
+  // the listeners over a leaf with a cursor the mouse is on: a leaf is the
+  // deepest of what it is in
+  final _handed = _Hits<RenderListener>();
 
   // where the mouse was reported last; null when not known
   int? _x;
@@ -780,6 +826,7 @@ final class MouseTracker {
     if (tracking != MouseTracking.motion) {
       _x = _y = null;
       _hovered.reset();
+      _handed.reset();
       _showCursor();
       return;
     }
@@ -838,9 +885,17 @@ final class MouseTracker {
   }) {
     final now = _hovering..reset();
     final result = _result;
+    _handed.reset();
     for (var i = 0; i < result.length; i++) {
-      if (result[i] case final RenderMouseRegion region) {
+      final o = result[i];
+      if (o case final RenderMouseRegion region) {
         now.add(region, result.xAt(i), result.yAt(i));
+      } else if (_overs > 0) {
+        if (_listenersOver[o] case final listener?
+            when listener.cursorAt != null &&
+                identical(listener._tracker, this)) {
+          _handed.add(listener, result.xAt(i), result.yAt(i));
+        }
       }
     }
     final before = _hovered;
@@ -912,8 +967,22 @@ final class MouseTracker {
     }
     PointerShape? shape;
     final hovered = _hovered;
-    for (var i = 0; i < hovered.length; i++) {
-      shape = hovered[i].cursor;
+    final motion = tracking == MouseTracking.motion;
+    for (var i = 0; i < _handed.length && shape == null; i++) {
+      final listener = _handed[i];
+      if (motion || listener.cursorAsksMotion) {
+        shape = listener.cursorAt?.call(_handed.xAt(i), _handed.yAt(i));
+      }
+    }
+    for (var i = 0; shape == null && i < hovered.length; i++) {
+      final region = hovered[i];
+      // a cursor that asks for no motion is shown only where it is
+      // reported already: else the mouse leaving would not be known
+      if (motion || region.cursorAsksMotion) {
+        shape =
+            region.cursorAt?.call(hovered.xAt(i), hovered.yAt(i)) ??
+            region.cursor;
+      }
       if (shape != null) {
         break;
       }
@@ -1081,8 +1150,12 @@ void listenOver(
     return;
   }
   _listenersOver[target] = listener;
-  listener._over = target;
+  final status = TerminalStatus.of(context);
+  listener
+    .._over = target
+    .._shapesShown = status?.showsPointerShape ?? false;
   tracker
+    .._status ??= status
     .._add(listener)
     .._overs += 1;
 }

@@ -7,21 +7,21 @@ text
 │     TextArea           it.                                                     │
 │     Autocomplete     ──────────────────────────────────────────────────────────│
 │                                                                                │
-│   CONTROLS      20      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│   CONTROLS      22      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
 │     Button                              ┌                 ┐                    │
 │     Pressable           ·   ·   ·   ·     [x] wrap lines    ·   ·   ·   ·   ·  │
 │ ▎   Checkbox, Swi…  ▐                                                          │
 │     RadioGroup      ▐   ·   ·   ·   ·     ▐●  ▌ dark mode   ·   ·   ·   ·   ·  │
 │     SegmentedButt…                                                             │
-│     SelectionList       ·   ·   ·   ·     [x] disabled      ·   ·   ·   ·   ·  │
-│     Select, Multi…                      └                 ┘                    │
-│     ConfirmInput        ·   ·   ·   ·   ·   ·   ·   15 × 5  ·   ·   ·   ·   ·  │
+│     Chip, ChipList      ·   ·   ·   ·     [x] disabled      ·   ·   ·   ·   ·  │
+│     ValueStepper                        └                 ┘                    │
+│     SelectionList       ·   ·   ·   ·   ·   ·   ·   15 × 5  ·   ·   ·   ·   ·  │
+│     Select, Multi…                                                             │
+│     ConfirmInput        ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
 │     Slider                                                                     │
-│     NumberInput         ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
-│     DatePicker                                                                 │
-│     FilePicker       ──────────────────────────────────────────────────────────│
-│     Form, FormFie…     switch   pill  brackets                                 │
-│     TabBar, TabVi…                                                             │
+│     NumberInput      ──────────────────────────────────────────────────────────│
+│     DatePicker         switch   pill  brackets                                 │
+│     FilePicker                                                                 │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -38,15 +38,15 @@ styles
 │apqqqrrrrrrrrrqrrrrqqdgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnaaaaaadgggogggogggogggoggggguvwwugttttgttttgggogggogggogggogggogg│
 │aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnnnaaaagggogggogggogggogggggmmmgmmmmmmmmggggggogggogggogggogggogg│
-│aaaaannnnnnnannnnnnaaagggggggggggggggggggogggggggggggggggggogggggggggggggggggggg│
-│aaaaannnnnnnnnnnnaaaaagggogggogggogggogggogggogggogggCCgCgCggogggogggogggogggogg│
-│aaaaannnnnnaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
-│aaaaannnnnnnnnnaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnannnnnnnnaaaggmmmmmmggqrrrrqhyyyyyyyyhgggggggggggggggggggggggggggggggg│
+│aaaaannnnnannnnnnnnaaagggogggogggogggogggggmmmgmmmmmmmmggggggogggogggogggogggogg│
+│aaaaannnnnnnnnnnnaaaaagggggggggggggggggggogggggggggggggggggogggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnaaaagggogggogggogggogggogggogggogggCCgCgCggogggogggogggogggogg│
 │aaaaannnnnnnannnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
+│aaaaannnnnnaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnaaaaaaaggmmmmmmggqrrrrqhyyyyyyyyhgggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

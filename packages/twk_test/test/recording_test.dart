@@ -3,10 +3,12 @@
 // last of them printed when a test fails.
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_core/twk_core.dart' show Trace, TraceDirection;
+import 'package:twk_test/src/recording.dart' show FrameRecorder;
 import 'package:twk_test/twk_test.dart';
 
 import 'fixtures/ticker.dart';
@@ -91,7 +93,7 @@ void main() {
     expect(
       '$frame',
       'frame ${frame.number} at 0.000 s, ${frame.bytes.length} bytes:\n'
-          '0│[bold]hi[/]\n'
+          '0│hi\n'
           '(rows 1–2 blank)',
     );
   });
@@ -134,7 +136,8 @@ void main() {
   });
 
   test('a test that fails prints the last frames of its app that changed '
-      'the screen, as many as it asks for; none when none did', () async {
+      'the screen, as many as it asks for, none when none did, and then '
+      "the app's log", () async {
     final run = await runProcess(
       Platform.resolvedExecutable,
       ['test', '--reporter=json', 'test/fixtures/frames_on_failure.dart'],
@@ -167,6 +170,7 @@ void main() {
       'a test that fails',
       'a test that fails, printing one frame',
       'an app that fails as it ends',
+      'a test that fails, its app having printed and warned',
     ]);
     final three = prints['a test that fails']!.single;
     expect(
@@ -205,5 +209,33 @@ void main() {
         ),
       ),
     );
+    // what the app printed and logged, after its frames
+    expect(
+      prints['a test that fails, its app having printed and warned']!.single,
+      matches(
+        RegExp(
+          r'\(row 1 blank\)\n'
+          r'\n'
+          r"the app's log, 2 records:\n"
+          r'\d\d:\d\d:\d\d\.\d\d\d info in the test\n'
+          r'\d\d:\d\d:\d\d\.\d\d\d warning slow$',
+        ),
+      ),
+    );
+  });
+
+  test('a frame that changed a style alone is printed with its styles, '
+      'unlike the one before', () {
+    Uint8List frame(String s) => Uint8List.fromList(utf8.encode(s));
+    final recorder = FrameRecorder(10, 2, inline: false, history: const [])
+      ..stamp(2, Duration.zero);
+    final printed = recorder.last([
+      frame('hello'),
+      frame('\x1b[1;1H\x1b[1mhello'),
+    ], 2)!;
+    final frames = printed.split('\n\n').skip(1).toList();
+    expect(frames, hasLength(2));
+    expect(frames[0], contains('0│hello'));
+    expect(frames[1], contains('[bold]'));
   });
 }

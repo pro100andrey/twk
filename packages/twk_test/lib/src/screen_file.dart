@@ -268,3 +268,72 @@ final List<String> _chars = [
       if (String.fromCharCode(c) case final char when stringWidth(char) == 1)
         char,
 ];
+
+/// The file of the first frame of [stack] that is not of twk_test's
+/// `matchers.dart`: the file that called a matcher. A path may hold
+/// parentheses and `%20` for spaces, and a drive letter (`file:///C:/...`).
+/// Null when [stack] has no such frame. Not exported by the package.
+Uri? callerFile(String stack) {
+  final frame = RegExp(r'file:///\S*?\.dart(?=:\d)');
+  for (final m in frame.allMatches(stack)) {
+    final Uri uri;
+    try {
+      uri = Uri.parse(m.group(0)!);
+    } on FormatException {
+      continue;
+    }
+    if (uri.path.endsWith('/lib/src/matchers.dart') &&
+        uri.path.contains('twk_test')) {
+      continue;
+    }
+    return uri;
+  }
+  return null;
+}
+
+/// The text of the cells of row [y] from column [from] up to [to], a wide
+/// glyph once and only whole: one cut by [from] (its second cell first) or
+/// by [to] (its first cell last) is left out. Not exported by the package.
+String cellsText(Vt vt, int y, int from, int to) {
+  final row = StringBuffer();
+  for (var x = from; x < to; x++) {
+    final cell = vt.cell(x, y);
+    if (cell.role == -1) {
+      continue;
+    }
+    if (x + 1 == to && x + 1 < vt.width && vt.cell(x + 1, y).role == -1) {
+      continue;
+    }
+    row.write(cell.text);
+  }
+  return '$row';
+}
+
+/// [path] from the root of the package of the file that called a matcher,
+/// found in [stack]: [path] itself when it is absolute; a [StateError]
+/// saying what to pass where it is relative and that file or its package
+/// is not found. Not exported by the package.
+String fromPackageRoot(String path, String stack) {
+  if (File(path).isAbsolute) {
+    return path;
+  }
+  final caller = callerFile(stack);
+  if (caller != null) {
+    for (var dir = File(caller.toFilePath()).parent; ; dir = dir.parent) {
+      if (File('${dir.path}/pubspec.yaml').existsSync()) {
+        return '${dir.path}/$path';
+      }
+      if (dir.parent.path == dir.path) {
+        break;
+      }
+    }
+  }
+  final why = caller == null
+      ? 'no frame of a file: URI with a line in the stack'
+      : 'no pubspec.yaml above ${caller.toFilePath()}';
+  throw StateError(
+    'matchesScreenFile("$path"): the package of the test file that calls it '
+    'was not found ($why); pass an absolute path, such as '
+    '"${Directory.current.path}/$path"',
+  );
+}

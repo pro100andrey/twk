@@ -353,9 +353,9 @@ final _columns = [
   ),
   TableColumn<Proc>(
     title: 'mem',
-    width: const .fixed(6),
+    width: const .fixed(7),
     align: .right,
-    cell: (p) => TableCell(_bytes(p.memory)),
+    cell: (p) => TableCell(formatBytes(p.memory)),
     compare: (a, b) => a.memory.compareTo(b.memory),
   ),
   TableColumn<Proc>(
@@ -522,8 +522,8 @@ final class _MonitorState extends State<Monitor> {
                       title: 'mem',
                       about: sample == null
                           ? null
-                          : '${_bytes(sample.memoryUsed)} of '
-                                '${_bytes(sample.memoryTotal)}',
+                          : '${formatBytes(sample.memoryUsed)} of '
+                                '${formatBytes(sample.memoryTotal)}',
                       history: _memory,
                       style: base.merge(theme.accent),
                     ),
@@ -556,14 +556,18 @@ final class _MonitorState extends State<Monitor> {
                       ),
               ),
             ),
-            _KeyHints([
-              ('↑↓', 'select'),
+            KeyHintsBar.fromPairs([
+              ('up', 'select'),
+              ('down', 'select'),
               if (_showTree) ...[
-                ('←→', 'fold'),
+                ('left', 'fold'),
+                ('right', 'fold'),
                 ('*', 'unfold all'),
                 ('t', 'table'),
               ] else ...[
-                ('s < >', 'sort'),
+                ('s', 'flip sort'),
+                ('<', 'prev column'),
+                ('>', 'next column'),
                 ('t', 'tree'),
               ],
               ('q', 'quit'),
@@ -607,7 +611,7 @@ final class _ProcessTree extends StatelessWidget {
             ),
             Text(
               '${'${p.pid}'.padLeft(8)}${_percent(p.cpu).padLeft(7)}'
-              '${_bytes(p.memory).padLeft(7)}',
+              '${formatBytes(p.memory).padLeft(8)}',
               style: theme.muted,
             ),
           ],
@@ -666,38 +670,3 @@ final class _Meter extends StatelessWidget {
 
 /// A share of a CPU as a percentage: `12.5`.
 String _percent(double share) => (share * 100).toStringAsFixed(1);
-
-/// [bytes] as `ps` shows them: `512K`, `12.3M`, `1.5G`.
-String _bytes(int bytes) {
-  const units = ['B', 'K', 'M', 'G', 'T'];
-  var value = bytes.toDouble();
-  var unit = 0;
-  while (value >= 1024 && unit < units.length - 1) {
-    value /= 1024;
-    unit++;
-  }
-  final digits = unit > 0 && value < 100 ? 1 : 0;
-  return '${value.toStringAsFixed(digits)}${units[unit]}';
-}
-
-/// A row of [keys], each before what it does.
-final class _KeyHints extends StatelessWidget {
-  const _KeyHints(this.keys);
-
-  final List<(String, String)> keys;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Text.rich(
-      [
-        for (final (key, does) in keys) ...[
-          Span(' $key ', theme.primary).bold,
-          Span('$does ', theme.muted),
-        ],
-      ],
-      wrap: .none,
-      overflow: .ellipsis,
-    );
-  }
-}

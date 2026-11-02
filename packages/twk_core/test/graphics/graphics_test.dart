@@ -11,6 +11,7 @@ import 'package:test/test.dart';
 import 'package:twk_core/src/byte_sink.dart';
 import 'package:twk_core/src/graphics.dart';
 import 'package:twk_core/src/presenter.dart';
+import 'package:twk_core/src/style.dart' show StyleId;
 import 'package:twk_core/src/surface.dart';
 import 'package:twk_core/src/terminal/sequences.dart';
 import 'package:twk_test/vt.dart';
@@ -65,7 +66,9 @@ List<String> notBlank(Harness hs, int x, int y, int w, int h) => [
           when text != ' ' ||
               bg !=
                   hs.styles
-                      .bgOf(hs.surface.styles[yy * hs.surface.width + xx])
+                      .bgOf(
+                        StyleId(hs.surface.styles[yy * hs.surface.width + xx]),
+                      )
                       .value)
         '($xx, $yy) "$text" ${bg.toRadixString(16)}',
 ];

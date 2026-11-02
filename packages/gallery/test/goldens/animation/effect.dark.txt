@@ -2,7 +2,7 @@ screen 120×36, cursor hidden
 text
 │  ◆ twk gallery   Animation  ›  Effect                                                       ctrl+p search      ◐ Dark  │
 │                                                                                                                        │
-│   ⌕ Filter             /      Effect                                                                         16 of 16  │
+│   ⌕ Filter             /      Effect                                                                         17 of 17  │
 │                               A child shown through an effect over its cells, run on the app's clock: recolored,       │
 │     AnimatedBuilder           swept, dissolved, typed or glitched in, while the child repaints underneath.             │
 │     AnimatedAlign, Anim…                                                                                               │
@@ -55,7 +55,7 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhirrrrrrrrriirrrrrihhhhhhhhh│
 │aaadddddaaaaaaaaaaaaaaaaFaaahhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhphhirrrrrirrrrrirrrrrrihhhhhhh│
 │aaaaaoooooooooooooooaaaaaaaahhhhphhhhhvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooaooooooooooaaahhhhhhhhhhvwwwwwwwxwwwwxwxwwwwwwwxxxxxxxxxxvhhhhhhhhhhhhhhhhhhphhnnnnnhhhhhhhhhhhhhhhqyyzqhh│
+│aaaaaoooooooooaooooooooooaaahhhhhhhhhhvwwwwwwwxwwwwxwxwwwwwwwxxxxxxxxxxvhhhhhhhhhhhhhhhhhhphhnnnnnhhhhhhhhhhhhhhhqmmyqhh│
 │aaaaaooooooooooooooaoooooaaahhhhphhhhhvAxBBBBBBBBBBxBBBBBBBBBBxxxxxxxxxvhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooaaaaaaaaaahhhhhhhhhhvCCCxCCCCCxCCxCCCCCCCxCCCCCCCCxxxvhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooaoooooooooaaahhhhphhhhhvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
@@ -98,8 +98,8 @@ u #5fa8ff on #2b4566
 v #3e444f on #22252c
 w #5fa8ff on #22252c
 x on #22252c
-y on #5fa8ff
-z #ffffff on #5fa8ff
+m on #5fa8ff
+y #ffffff on #5fa8ff
 A #c792ea on #22252c
 B #e6e8eb on #22252c
 C #8b929c on #22252c

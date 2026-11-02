@@ -18,6 +18,7 @@ import 'package:twk_core/twk_core.dart'
         PaintContext,
         RenderObject,
         RenderObjectWithChildMixin,
+        StyleId,
         StyleTable,
         TextSegmenter,
         kBlank,
@@ -25,6 +26,7 @@ import 'package:twk_core/twk_core.dart'
         kGlyphMask;
 
 import '../binding/app_binding.dart';
+import '../data/chart_glyphs.dart' show rampOf;
 import '../focus/exclude_focus.dart';
 import '../framework/framework.dart';
 import '../gestures/ignore_pointer.dart';
@@ -33,6 +35,7 @@ import '../semantics/semantics.dart';
 import '../style/style.dart';
 import 'effect.dart';
 import 'steps.dart';
+import 'ticker.dart';
 
 /// How the [Skeleton]s and [Skeletonize]s below it look: the [glyph] their
 /// cells show, in [style], and the shimmer that sweeps over them, a band
@@ -56,7 +59,7 @@ final class SkeletonTheme extends InheritedWidget {
     required super.child,
     super.key,
     this.period = defaultPeriod,
-    this.glyph = defaultGlyph,
+    this.glyph,
     this.style,
     this.highlight,
     this.band = defaultBand,
@@ -65,7 +68,7 @@ final class SkeletonTheme extends InheritedWidget {
   /// How long the shimmer takes to cross a skeleton by default: 1.5 s.
   static const defaultPeriod = Duration(milliseconds: 1500);
 
-  /// What a skeleton's cells show by default: `░`, a light shade.
+  /// What a skeleton's cells show in [Glyphs.unicode]: `░`, a light shade.
   static const defaultGlyph = '░';
 
   /// How wide the shimmer's band is by default: 8 cells.
@@ -76,11 +79,12 @@ final class SkeletonTheme extends InheritedWidget {
   /// [Skeletonize.step]s, one at least.
   final Duration period;
 
-  /// What each cell of a skeleton shows: one code point, one column wide.
+  /// What each cell of a skeleton shows: one code point, one column wide;
+  /// null for the light shade of the theme's [Glyphs.shades].
   /// Where the canvas draws it two columns wide (`░` where the terminal
   /// draws East Asian ambiguous glyphs wide) or it is not one code point,
   /// a blank in reverse video stands for it.
-  final String glyph;
+  final String? glyph;
 
   /// The glyph's color and attributes, over the theme's
   /// [ThemeData.muted]; null for that alone. Without a background, the
@@ -343,7 +347,7 @@ final class _SkeletonState extends State<_Skeleton> {
       }
     }
     final glyph = _glyphOf(
-      skeletons?.glyph ?? SkeletonTheme.defaultGlyph,
+      skeletons?.glyph ?? rampOf(theme.glyphs.shades)[1],
       app?.owner.segmenter ?? _detached,
     );
     final highlight = (skeletons?.highlight ?? theme.text).fg;
@@ -366,11 +370,11 @@ final class _SkeletonState extends State<_Skeleton> {
         rgb &&
         binding != null &&
         !(app?.terminal.info.plain ?? false);
-    final steps = _steps ??= Steps(
+    final steps = (_steps ??= Steps(
       Skeletonize.step,
       _stepped,
       binding: binding,
-    );
+    ))..muted = !TickerMode.of(context);
     if (shimmering && !binding!.screenReader) {
       steps.start();
     } else {
@@ -457,7 +461,7 @@ final class _Painter {
 
   StyleTable? _table;
   var _sweeps = 0;
-  final _styles = <int, int>{};
+  final _styles = <int, StyleId>{};
 
   /// What a cell shows with the shimmer's middle at [middle] columns from
   /// the left edge, none when null.
@@ -488,8 +492,8 @@ final class _Painter {
     }
     cell
       ..glyph = look.glyph
-      ..style = _styles[cell.childStyle * (_levels + 1) + level] ??= styles
-          .style(
+      ..style = _styles[cell.childStyle.value * (_levels + 1) + level] ??=
+          styles.style(
             fg: level == 0
                 ? look.fg
                 : Color.lerp(look.fg, look.highlight!, level / _levels),

@@ -16,6 +16,48 @@ A `State` disposes what it made — controllers (`TextEditingController`,
 `ScrollController`, `TabController`), focus nodes, timers, subscriptions
 — in its `dispose`.
 
+## Replacing the whole app
+
+To show another widget in place of the app's root (a sign-in screen
+giving way to the app), call `AppBinding.of(context).attachRootWidget`
+with it, from a callback rather than a build. The new root shows from the
+next frame; the old one is unmounted and its states disposed, unless its
+widgets match the new ones, which then keep their state as in any rebuild.
+A `ValueNotifier` of the screen with a switch in the root works too, but
+this needs none. To go back and forth with the old screen kept, or a
+back key, use a `Navigator` instead.
+
+<!-- file: packages/twk/example/guides/root.dart -->
+```dart
+import 'package:twk/twk.dart';
+
+Future<void> main() => runApp(const Welcome());
+
+final class Welcome extends StatelessWidget {
+  const Welcome({super.key});
+
+  @override
+  Widget build(BuildContext context) => KeyBindings(
+    {
+      // the app from the next frame on is Home; Welcome is unmounted
+      'enter': () => AppBinding.of(context).attachRootWidget(const Home()),
+      'q': () => AppBinding.of(context).quit(),
+    },
+    child: const Focus(autofocus: true, child: Text('Welcome. Enter goes on.')),
+  );
+}
+
+final class Home extends StatelessWidget {
+  const Home({super.key});
+
+  @override
+  Widget build(BuildContext context) => KeyBindings(
+    {'q': () => AppBinding.of(context).quit()},
+    child: const Focus(autofocus: true, child: Text('Home. q quits.')),
+  );
+}
+```
+
 ## Hooks
 
 `package:twk/hooks.dart` is hooks in the flutter_hooks style: a

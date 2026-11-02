@@ -28,9 +28,81 @@ selection of a list without the focus), `hover` (what the mouse is over),
 `onPrimary` (text on a `primary` fill), `shade` and `shadeAlpha` (a
 barrier's dimming: black at half on a dark theme, at 28 % on a light one);
 on a theme of palette colors each of the others is the slot it starts from;
+`handPointer` (`HandPointer.off`, `auto` (the default) or `on`), the hand over
+what a click presses, where the terminal shows pointer shapes: over buttons,
+boxes, switches, tabs, menu titles and items, stepper headers, a Callout's
+[x], sortable table titles, pressable key hints, `Span.tap` and `onLinkTap`
+phrases. `auto` shows it only where the terminal reports the mouse's motion
+already and asks for nothing; `on` has it report every move while such a
+control is on the screen;
+`glyphs`, the marks widgets draw (see `Glyphs`);
 `theme.fill(color)` a fill of a color with text that reads on it
 (`onPrimary` on `primary`, else black or white by contrast), which a badge,
 a focused button, a lit tab and a cursor are in rather than reverse video;
+
+## `Glyphs`
+
+`ThemeData.glyphs`, a `Glyphs`: the marks the widgets draw, a string each,
+named by what it means and not by the widget that draws it: `cursor` (`▎`,
+the bar at the left of a row the cursor is on), `accent` (`▌`, a toast's
+bar), `check` (`✓`), `checkBold` (`✔`, a finished prompt or step), `cross`
+(`✗`), `info` (`ℹ`), `warning` (`⚠`), `checkboxOn` (`x`), `checkboxOff`
+(` `) and `checkboxBrackets` (`('[', ']')`), `radioOn` (`●`), `radioOff` (` `) and
+`radioBrackets` (`('(', ')')`, an empty string for none: `◉ ○` is
+`radioOn: '◉'`, `radioOff: '○'` and `radioBrackets: ('', '')`),
+`switchStart` (`▐`) and `switchEnd` (`▌`), `switchKnob` (`●`),
+`stepCurrent` (`●`, the step in hand of a stepper), `ring` (`○`),
+`expanded` (`▾`) and `collapsed` (`▸`), `up` (`▴`) and `down` (`▾`),
+`previous` (`‹`), `next` (`›`), `first` (`«`) and `last` (`»`), `close`
+(`×`), `maximise` (`□`), `restore` (`▣`) and `minimise` (`_`), `bullet`
+(`•`, between items, and the mask of a hidden text), `taskPending` (`◦`)
+and `taskSkipped` (`↓`), `separator` (`│`), `buttonEdges` (`('▕', '▏')`, the edges of
+a one-row button), `trackVertical` (`│`),
+`trackHorizontal` (`─`), `thumbVertical` (`┃`), `thumbHorizontal` (`━`),
+`thumbSlim` (`▐`, an option list's thumb) and `partialBlocks` (whether a
+thumb may be in eighths of a cell), `gaugeFilled` (`─`), `gaugeHalf` (`╴`,
+`''` for none) and `gaugeEmpty` (`─`) of a `LineGauge` whose `type` is null,
+`spinner` (`SpinnerFrames.dots`), `lines` (`BorderType.single`, the line of
+every border, divider, split, callout and tree guide given no type of its own),
+`arrowLeft`, `arrowRight`, `arrowUp` and `arrowDown` (`← → ↑ ↓`: key hints, a
+dock's drop sides, a log's new lines), `pointer` (`▶`, the traceback's row),
+`menu` (`≡`, a scaffold's toggle), `shades` (`[' ', '░', '▒', '▓', '█']`, at
+least two; a heatmap's, the skeleton's is the second), `swatch` (`■`) and
+`ellipsis` (`…`, `...` in ASCII: the mark of text cut short, a `Text`'s too), `omitted` (`⋯`, `...` in ASCII:
+the row of lines left out of a view, a diff's unchanged lines; text, any width). `Glyphs.unicode` is the default;
+`Glyphs.ascii` has ASCII only (`>` `v` `x` `#` `|` `=`, the spinner
+`-\|/`, lines `+-|`, no eighths); `copyWith` changes some. A theme's `lerp` takes the
+other's set past halfway. A widget's own parameter (`Spinner.frames`,
+`RadioGroup.mark`, `obscuringCharacter`, `StatusMessage.icon`,
+`LineGauge.type`) is above the set; a `CliTheme` gives the marks of its
+`data`.
+
+One width rule holds for every mark: a mark drawn in one cell (a thumb, a
+gauge's line) or as text in a row (a radio button's, a switch's ends and knob,
+a button's edges) is one column wide and one code point (an emoji, an
+ambiguous mark in some terminals, a letter and a combining accent are not).
+Where it is not, the same field of `Glyphs.ascii` is drawn, with one warning
+in the app's log for each such mark, known only when it is drawn; a
+`gaugeHalf` of the wrong width is no half cell. On a terminal that draws
+East Asian ambiguous characters two cells wide, the marks of `Glyphs.unicode`
+that are such are drawn as `Glyphs.ascii`'s with one line saying so, not a
+warning a field. An empty mark draws nothing: a blank for a cell, no width
+for the text of a row (a bracket of `radioBrackets` or `checkboxBrackets`, a
+button's edge, a switch's
+end), but a blank for `switchKnob`, for the track to keep its width.
+
+Borders are in it: a `Border`, `Divider`, `SplitView`, `Callout`, scrollbar
+on a border or table given no `type` draws `lines`; `glyphs.borderOf(type)` is
+the line drawn for one. With `lines` ASCII every type but `none` is ASCII, a
+`rounded` or `heavy` too, so `Glyphs.ascii` makes the borders of the whole app
+ASCII; `Glyphs.unicode.copyWith(lines: BorderType.rounded)` makes the default
+rounded. Where `partialBlocks` is false the charts follow: `Sparkline`,
+`BarChart`, `Gauge`, `ProgressBar` and `ProgressList` draw a step as a shade of
+`shades` (`.:+#` in ASCII), and a `Chart` or `DotCanvas` cell (braille, quadrants,
+half blocks) as the shade as dense as its dots are many; a `Marker.custom`
+stays as given. `ellipsis` is also what a `Text`, a `Box` title and the core's
+`RenderParagraph.ellipsis` cut with: `...` is three columns, counted in the
+room as `…` is one (`fitText(ellipsis:)` alike). Left out: images.
 
 ## `ThemeData.lerp`
 

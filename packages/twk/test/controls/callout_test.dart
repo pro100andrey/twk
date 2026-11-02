@@ -21,6 +21,34 @@ List<String> hints(TwkTester t) => [
 ];
 
 void main() {
+  testTwk('borderType draws the frame in its lines, the border in the '
+      "kind's color; titleStyle over the title's bold color only", (t) async {
+    await t.pumpWidget(
+      const Theme.terminal(
+        child: Callout.text(
+          'Hi',
+          borderType: BorderType.rounded,
+          titleStyle: Style(attrs: Attr.italic, fg: Color.red),
+        ),
+      ),
+      size: (20, 3),
+    );
+    expect(t.lines, [
+      '╭─ ℹ Info ─────────╮',
+      '│ Hi               │',
+      '╰──────────────────╯',
+    ]);
+    expect(t, styleAt(0, 0, hasFg(Color.cyan)));
+    expect(
+      t,
+      styleAt(
+        5,
+        0,
+        allOf(hasFg(Color.red), hasAttr(Attr.bold), hasAttr(Attr.italic)),
+      ),
+    );
+  });
+
   testTwk("a box in the kind's color, its icon and name bold on the top "
       "edge, the text inside in the theme's", (t) async {
     await t.pumpWidget(

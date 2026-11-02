@@ -480,6 +480,11 @@ final class Presenter {
   var _cx = -1; // -1 = unknown
   var _cy = -1;
   var _sgr = -1; // -1 = unknown
+
+  /// The blank style of [id] ([StyleTable.blankStyleOf]), the cell's raw
+  /// style id as the presenter holds it.
+  @pragma('vm:prefer-inline')
+  int _blankOf(int id) => styles.blankStyleOf(StyleId(id)).value;
   // open hyperlink (OSC 8) on the terminal: link id, 0 none, -1 unknown.
   // Kept apart from _sgr because SGR 0 does not close a hyperlink.
   var _link = 0;
@@ -585,7 +590,10 @@ final class Presenter {
   /// it keeps: what the terminal shows, the rows committed for the next
   /// frame and the blank they replace; and the SGR the terminal is in
   /// ([GlyphTable.sweep], [StyleTable.sweep]).
-  void markCells(void Function(int glyph) glyph, void Function(int id) style) {
+  void markCells(
+    void Function(int glyph) glyph,
+    void Function(StyleId style) style,
+  ) {
     for (final (cells, styles) in [
       (_fc, _fs),
       (_pc, _ps),
@@ -593,11 +601,11 @@ final class Presenter {
     ]) {
       for (var i = 0; i < cells.length; i++) {
         glyph(cells[i]);
-        style(styles[i]);
+        style(StyleId(styles[i]));
       }
     }
     if (_sgr >= 0) {
-      style(_sgr);
+      style(StyleId(_sgr));
     }
   }
 
@@ -1566,8 +1574,7 @@ final class Presenter {
       final lo = back.dirtyLo[y] > p.left ? back.dirtyLo[y] : p.left;
       final hi = back.dirtyHi[y] < p.right ? back.dirtyHi[y] : p.right;
       for (var i = y * w + lo; i < y * w + hi; i++) {
-        if (bs[i] != fs[i] &&
-            styles.blankStyleOf(bs[i]) != styles.blankStyleOf(fs[i])) {
+        if (bs[i] != fs[i] && _blankOf(bs[i]) != _blankOf(fs[i])) {
           return true;
         }
       }
@@ -1589,7 +1596,7 @@ final class Presenter {
     bool under(int i) =>
         !all &&
         (fc[i] == _kUnder || fc[i] == kBlank) &&
-        styles.blankStyleOf(fs[i]) == styles.blankStyleOf(bs[i]);
+        _blankOf(fs[i]) == _blankOf(bs[i]);
     for (var y = p.top; y < p.bottom; y++) {
       final row = y * w;
       var x = p.left;
@@ -1601,17 +1608,18 @@ final class Presenter {
           continue;
         }
         final s = bs[row + x];
-        final blank = styles.blankStyleOf(s);
+        final blank = _blankOf(s);
         var end = x + 1;
         while (end < p.right &&
             !under(row + end) &&
-            styles.blankStyleOf(bs[row + end]) == blank) {
+            _blankOf(bs[row + end]) == blank) {
           end++;
         }
         _moveTo(x, y);
         _setStyleFor(kBlank, s);
-        if (styles.erasable(blank) &&
-            (caps.backgroundColorErase || styles.bgOf(blank).isDefault)) {
+        if (styles.erasable(StyleId(blank)) &&
+            (caps.backgroundColorErase ||
+                styles.bgOf(StyleId(blank)).isDefault)) {
           if (end == w && !_shortOfEdge) {
             out.ascii('\x1b[K');
           } else {
@@ -1801,8 +1809,8 @@ final class Presenter {
           continue;
         }
         if (c == kBlank) {
-          final b = styles.blankStyleOf(s);
-          if (b == styles.blankStyleOf(f)) {
+          final b = _blankOf(s);
+          if (b == _blankOf(f)) {
             // a blank that looks the same on the terminal, and the blanks
             // after it that do: while their styles are the same as this
             // one's on either side, without looking a blank style up
@@ -1834,8 +1842,8 @@ final class Presenter {
             while (j < end && bc[j] == kBlank && fc[j] == kBlank) {
               final t = bs[j];
               final u = fs[j];
-              if ((t != s && styles.blankStyleOf(t) != b) ||
-                  (u != f && styles.blankStyleOf(u) != b)) {
+              if ((t != s && _blankOf(t) != b) ||
+                  (u != f && _blankOf(u) != b)) {
                 break;
               }
               j++;
@@ -1847,14 +1855,14 @@ final class Presenter {
       }
 
       // ---- erase a run of blanks with EL / ECH ---------------------------
-      final blank = c == kBlank ? styles.blankStyleOf(s) : -1;
+      final blank = c == kBlank ? _blankOf(s) : -1;
       if (blank >= 0 &&
-          styles.erasable(blank) &&
-          (bce || styles.bgOf(blank).isDefault)) {
+          styles.erasable(StyleId(blank)) &&
+          (bce || styles.bgOf(StyleId(blank)).isDefault)) {
         var end = x + 1;
         while (end < w &&
             bc[row + end] == kBlank &&
-            styles.blankStyleOf(bs[row + end]) == blank) {
+            _blankOf(bs[row + end]) == blank) {
           end++;
         }
         final n = end - x;
@@ -1938,8 +1946,7 @@ final class Presenter {
               break;
             }
             if (fc[j] == kBlank &&
-                (fs[j] == s ||
-                    styles.blankStyleOf(fs[j]) == styles.blankStyleOf(s)) &&
+                (fs[j] == s || _blankOf(fs[j]) == _blankOf(s)) &&
                 // unless a changed narrow glyph of the run follows: then
                 // the blank is the byte _bridge would write after the run
                 // ended, as it is between the words of a row written over
@@ -1987,9 +1994,7 @@ final class Presenter {
       } // also excludes every flagged cell
       final s = bs[row + j];
       if (s != _sgr &&
-          !(c == kBlank &&
-              _sgr >= 0 &&
-              styles.blankStyleOf(s) == styles.blankStyleOf(_sgr))) {
+          !(c == kBlank && _sgr >= 0 && _blankOf(s) == _blankOf(_sgr))) {
         return;
       }
     }
@@ -2040,7 +2045,7 @@ final class Presenter {
       while (j < n && c[j] == kBlank && st[j] == raw) {
         j++;
       }
-      final b = styles.blankStyleOf(raw); // may intern a new style
+      final b = _blankOf(raw); // may intern a new style
       if (b >= counts.length) {
         counts = _blankCounts = Int32List(b * 2)..setAll(0, counts);
       }
@@ -2055,10 +2060,10 @@ final class Presenter {
     if (best < 0 || bestCount * 4 < n) {
       return -1;
     }
-    if (!styles.erasable(best)) {
+    if (!styles.erasable(StyleId(best))) {
       return -1;
     }
-    if (!caps.backgroundColorErase && !styles.bgOf(best).isDefault) {
+    if (!caps.backgroundColorErase && !styles.bgOf(StyleId(best)).isDefault) {
       return -1;
     }
     return best;
@@ -2110,7 +2115,7 @@ final class Presenter {
     if ((c & kGlyphMask) == kBlank &&
         (c & kWide) == 0 &&
         _sgr >= 0 &&
-        styles.blankStyleOf(_sgr) == styles.blankStyleOf(s)) {
+        _blankOf(_sgr) == _blankOf(s)) {
       return;
     }
     _setStyle(s);
@@ -2126,15 +2131,15 @@ final class Presenter {
     if (s == cur) {
       return s;
     }
-    final blank = styles.blankStyleOf(s);
-    if (cur >= 0 && styles.blankStyleOf(cur) == blank) {
+    final blank = _blankOf(s);
+    if (cur >= 0 && _blankOf(cur) == blank) {
       return s;
     }
     // skip the blanks that look the same; the next cell must be a glyph
     // that looks the same as a blank and is written (differs from the front)
     final end = row + hi;
     var i = row + x + 1;
-    while (i < end && bc[i] == kBlank && styles.blankStyleOf(bs[i]) == blank) {
+    while (i < end && bc[i] == kBlank && _blankOf(bs[i]) == blank) {
       i++;
     }
     if (i >= end) {
@@ -2142,7 +2147,7 @@ final class Presenter {
     }
     final t = bs[i];
     if ((bc[i] & (kCont | kSkip)) != 0 ||
-        styles.blankStyleOf(t) != blank ||
+        _blankOf(t) != blank ||
         !_differs(bc, bs, i, _fc[i], _fs[i])) {
       return s;
     }
@@ -2154,9 +2159,13 @@ final class Presenter {
     if (s == _sgr) {
       return;
     }
-    out.bytes(_sgr < 0 ? styles.sgrFromReset(s) : styles.transition(_sgr, s));
+    out.bytes(
+      _sgr < 0
+          ? styles.sgrFromReset(StyleId(s))
+          : styles.transition(StyleId(_sgr), StyleId(s)),
+    );
     _sgr = s;
-    final l = styles.linkIdOf(s);
+    final l = styles.linkIdOf(StyleId(s));
     if (l != _link) {
       _setLink(l);
     }
@@ -2312,7 +2321,7 @@ final class Presenter {
     if (s == fstyle) {
       return false;
     }
-    return c != kBlank || styles.blankStyleOf(s) != styles.blankStyleOf(fstyle);
+    return c != kBlank || _blankOf(s) != _blankOf(fstyle);
   }
 
   /// If the change of row [y] (damaged in [lo, hi)) is cheaper to apply as
@@ -2374,11 +2383,11 @@ final class Presenter {
     final bce = caps.backgroundColorErase;
     final curOk =
         cur >= 0 &&
-        styles.erasable(cur) &&
+        styles.erasable(StyleId(cur)) &&
         _link == 0 &&
-        (bce || styles.bgOf(cur).isDefault);
+        (bce || styles.bgOf(StyleId(cur)).isDefault);
     if (curOk && bce) {
-      eraseStyle = styles.blankStyleOf(cur);
+      eraseStyle = _blankOf(cur);
     }
     // Konsole's ICH inserts blanks in the default colours and its DCH
     // appends them, in the current SGR, at the end of the line it holds,
@@ -2766,11 +2775,15 @@ final class Presenter {
     stats.rectScrollOps++;
   }
 
-  /// Hash of cells [start, end): content and style of every cell. Rows of
-  /// an even-width screen are hashed two cells per multiply, other rows
-  /// one cell per multiply; all rows of one screen take the same path, so
-  /// equal rows hash equally.
-  static int _rowHash(
+  /// Writes into [out] at [at] the hash of cells [start, end): content and
+  /// style of every cell. Rows of an even-width screen are hashed two cells
+  /// per multiply, other rows one cell per multiply; all rows of one screen
+  /// take the same path, so equal rows hash equally. Into an array, not
+  /// returned: a hash returned from a call that is not inlined is a boxed
+  /// int.
+  static void _hashRow(
+    Int64List out,
+    int at,
     Uint32List c,
     Uint32List st,
     Uint64List c64,
@@ -2785,18 +2798,29 @@ final class Presenter {
         final sv = st64[k];
         h = (h ^ c64[k] ^ ((sv << 23) | (sv >>> 41))) * 0x100000001B3;
       }
-      return h;
+    } else {
+      for (var i = start; i < end; i++) {
+        h = (h ^ (c[i] | (st[i] << 32))) * 0x100000001B3;
+      }
     }
-    for (var i = start; i < end; i++) {
-      h = (h ^ (c[i] | (st[i] << 32))) * 0x100000001B3;
-    }
-    return h;
+    out[at] = h;
   }
+
+  final _hashOne = Int64List(1);
 
   bool _frontHashesCorrect() {
     for (var y = 0; y < height; y++) {
-      if (_hf[y] !=
-          _rowHash(_fc, _fs, _fc64, _fs64, y * width, y * width + width)) {
+      _hashRow(
+        _hashOne,
+        0,
+        _fc,
+        _fs,
+        _fc64,
+        _fs64,
+        y * width,
+        y * width + width,
+      );
+      if (_hf[y] != _hashOne[0]) {
         return false;
       }
     }
@@ -2850,15 +2874,17 @@ final class Presenter {
     }
     if (!_hfValid) {
       for (var y = 0; y < h; y++) {
-        _hf[y] = _rowHash(_fc, _fs, _fc64, _fs64, y * w, y * w + w);
+        _hashRow(_hf, y, _fc, _fs, _fc64, _fs64, y * w, y * w + w);
       }
     }
     for (var y = 0; y < h; y++) {
       // a row without damage still equals the front: its hash is known
       // (valid front hashes: see the end of present)
-      _hb[y] = _hfValid && back.dirtyLo[y] >= back.dirtyHi[y]
-          ? _hf[y]
-          : _rowHash(bc, bs, bc64, bs64, y * w, y * w + w);
+      if (_hfValid && back.dirtyLo[y] >= back.dirtyHi[y]) {
+        _hb[y] = _hf[y];
+      } else {
+        _hashRow(_hb, y, bc, bs, bc64, bs64, y * w, y * w + w);
+      }
     }
     _hashedThisFrame = true;
     // Several blocks may have moved by different amounts (stacked panes

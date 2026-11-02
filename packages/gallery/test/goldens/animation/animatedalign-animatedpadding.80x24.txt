@@ -4,7 +4,7 @@ text
 │                                                                                │
 │   ⌕ Filter       /     AnimatedAlign, AnimatedPadding          Preview   Code  │
 │                        A child that runs to the place its alignment or its     │
-│     Spinner            padding gives it, a cell at a time.                     │
+│     TickerMode         padding gives it, a cell at a time.                     │
 │     ProgressBar      ──────────────────────────────────────────────────────────│
 │     ProgressList               ┌                                    ┐          │
 │     Skeleton, Ske…      ·   ·    ╭────────────────────────────────╮     ·   ·  │
@@ -29,7 +29,7 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahAhAAAAAAhhhhhhhBhaaggkkkkkkkkkkkkkkgkkkkkkkkkkkkkkkgggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmgmmmmmgmmmmgmmmmgmmgmmmgmmmmmgmmmgmmmmmmmmmgmmgmmmggggg│
-│aaaaaoooooooaaaaaaaaaaggmmmmmmmgmmmmmgmmmgmgmmmmgmmgmgmmmmmggggggggggggggggggggg│
+│aaaaaooooooooooaaaaaaaggmmmmmmmgmmmmmgmmmgmgmmmmgmmgmgmmmmmggggggggggggggggggggg│
 │aaaaaoooooooooooaaaaaannnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn│
 │aaaaaooooooooooooaaaaaggggggggggnggggggggggggggggggggggggggggggggggggngggggggggg│
 │aaaaaoooooooooaooooaaagggngggnggggppppppppppppppppppppppppppppppppppgggggngggngg│
@@ -46,7 +46,7 @@ styles
 │aaaaaoooooooooaooooaaaggmmmmmgggggghwwwwwwhhwwwwhhwwwwwwhhwwwwwwwhstttttttttsggg│
 │aaaaaooooooaaaaaaaaaaaggggggggggggghwwwwwwwwwwwwwhhwwwwwwwwwwhhwwwwwwwwwhggggggg│
 │aaaaaaaaaaaaaaaaaaaaaaggggggggggggghwwwwwwwwwwhggggggggggggggggggggggggggggggggg│
-│aaadddddaaaaaaaaaazaaaggmmmmmggggggqxxyqgggggggggggggggggggggggggggggggggggggggg│
+│aaadddddaaaaaaaaaazaaaggmmmmmggggggqvvxqgggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend
@@ -72,5 +72,5 @@ s on #2b4566
 t bold #e6e8eb on #2b4566
 u #c792ea on #16181d
 w #8b929c on #13151a
-x on #5fa8ff
-y #ffffff on #5fa8ff
+v on #5fa8ff
+x #ffffff on #5fa8ff

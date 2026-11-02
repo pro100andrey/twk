@@ -393,8 +393,8 @@ enough, and on a loaded machine the guess is wrong.
 - **An app or a timer runs on a fake clock that the test moves**:
   twk_test's tester (`testTwk`, `t.pump(duration)`), or, where the
   tester does not fit, a `FakeClock` handed to the app explicitly
-  (`AppBinding(term, clock: clock.stopwatch).run(app)` in
-  `clock.run`), moved with `clock.elapse` and `clock.elapseUntil(future)`.
+  (`AppBinding(term, clock: clock.stopwatch, startTime: start).run(app)`
+  in `clock.run`; without `startTime` the app's `now()` is the system's), moved with `clock.elapse` and `clock.elapseUntil(future)`.
 - **What real time brings is awaited**: the output line, the exit, the
   file of a real process, pty, socket or file system, through twk_test's
   `waitFor(event, what)` or `waitUntil(condition, what)`, whose bound

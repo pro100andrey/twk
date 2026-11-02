@@ -5,6 +5,9 @@
 ## §1.1 A cell is two 32-bit words
 
 `cells[i] = glyph | flags`, `styles[i] = style id` (two `Uint32List`s).
+A style id is a `StyleId` (an extension type over int, erased) wherever the API
+takes or answers one, apart from a pen id, which is an int; the raw
+`Uint32List` is read as `StyleId(styles[i])` and written as `.value`.
 The glyph id **is the code point** for single-code-point characters (ASCII,
 Cyrillic, CJK, box drawing — no tables, no allocation); larger ids are
 interned multi-code-point graphemes (emoji ZWJ sequences, flags, combining

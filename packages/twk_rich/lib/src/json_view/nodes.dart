@@ -348,6 +348,7 @@ List<Span> _rowSpans(
   required bool expanded,
   bool whole = false,
   int? maxStringLength,
+  String ellipsis = '…',
   List<int> marks = const [],
   Style markStyle = const Style(attrs: Attr.bold | Attr.underline),
 }) {
@@ -401,7 +402,7 @@ List<Span> _rowSpans(
       if (cut) {
         _string(spans, theme, quoted.substring(0, quoted.length - 1));
         spans
-          ..add(Span('…', theme.comment))
+          ..add(Span(ellipsis, theme.comment))
           ..add(Span('"', theme.string));
       } else {
         _string(spans, theme, quoted);
@@ -475,7 +476,8 @@ void _string(List<Span> spans, SyntaxTheme theme, String quoted) {
 /// `toJson()`, cycles as `<cycle>`. [theme] is null for one
 /// [SyntaxTheme.from] the terminal's own colors ([ThemeData.terminal]);
 /// [sortKeys] orders the keys of objects; strings longer than
-/// [maxStringLength] characters are cut with `…`, none when it is null.
+/// [maxStringLength] characters are cut with [ellipsis] (`…`), none when
+/// it is null.
 ///
 /// ```dart
 /// final lines = jsonLines({'name': 'twk', 'tags': ['tui']});
@@ -495,6 +497,7 @@ List<List<Span>> jsonLines(
   int? expandedDepth,
   bool sortKeys = false,
   int? maxStringLength,
+  String ellipsis = '…',
 }) {
   final syntax =
       theme ?? SyntaxTheme.from(const ThemeData.terminal(Brightness.dark));
@@ -513,6 +516,7 @@ List<List<Span>> jsonLines(
         syntax,
         expanded: expanded,
         maxStringLength: maxStringLength,
+        ellipsis: ellipsis,
       ),
     ]);
     if (expanded) {

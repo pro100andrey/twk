@@ -3,6 +3,7 @@
 library;
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:twk_core/twk_core.dart'
     show
@@ -15,7 +16,8 @@ import 'package:twk_core/twk_core.dart'
         Mod,
         TextOverflow,
         TextSegmenter,
-        TextWrap;
+        TextWrap,
+        padCells;
 
 import '../editing/input_decoration.dart';
 import '../editing/text_editing.dart' show TextBoundaries;
@@ -32,6 +34,7 @@ import '../overlay/options.dart';
 import '../overlay/panel.dart';
 import '../overlay/popover.dart';
 import '../style/color_mix.dart';
+import '../style/glyphs.dart' show CheckboxMarks, checkboxMarks;
 import '../style/style.dart';
 import '../text/hit_row.dart' show segmenterOf;
 import '../text/widgets.dart';
@@ -188,6 +191,13 @@ mixin PopupHostState<W extends StatefulWidget> on State<W> {
 /// `arrowStyle: const Style()` and `popupLook: PanelLook.bordered` give
 /// a plain look: the field without a chip, reversed while focused, the
 /// popup in a border.
+///
+/// What an app sets: the look of the field ([style], [focusedStyle],
+/// [disabledStyle], [arrowStyle]; the arrow is `Glyphs.down` of the theme,
+/// and a multiple choice's boxes `Glyphs.checkboxOn` and
+/// `Glyphs.checkboxOff`), the popup ([popupLook], [popupFadeIn], [rows]),
+/// a [decoration], and [inline]; the gallery's page shows [inline],
+/// [rows] and [popupLook].
 ///
 /// With a [decoration] the field is drawn in an [InputDecorator], as
 /// Flutter's DropdownButtonFormField is: its label, icon, border and
@@ -852,7 +862,7 @@ final class _PickerState<T> extends State<_Picker<T>>
 
   /// The columns of the widest label as [segmenter] measures them, and of
   /// its mark in a [MultiSelect].
-  int _labelWidth(TextSegmenter segmenter) {
+  int _labelWidth(TextSegmenter segmenter, CheckboxMarks boxes) {
     var w = segmenter.width(widget.hint);
     for (final c in widget.choices) {
       final cw = segmenter.width(c.label);
@@ -860,8 +870,14 @@ final class _PickerState<T> extends State<_Picker<T>>
         w = cw;
       }
     }
-    return w + (widget.multiple ? 4 : 0);
+    return w + (widget.multiple ? _boxWidth(segmenter, boxes) : 0);
   }
+
+  /// The columns of a checkbox and the blank after it.
+  static int _boxWidth(
+    TextSegmenter segmenter,
+    CheckboxMarks boxes,
+  ) => math.max(segmenter.width(boxes.on), segmenter.width(boxes.off)) + 1;
 
   Widget _field(BuildContext context, bool focused) {
     final theme = Theme.of(context);
@@ -900,7 +916,7 @@ final class _PickerState<T> extends State<_Picker<T>>
       muted = enabled;
     }
     final segmenter = segmenterOf(context);
-    final pad = _labelWidth(segmenter) - segmenter.width(text);
+    final boxes = checkboxMarks(context, theme.glyphs);
     final Style shown;
     if (!muted) {
       shown = _plain;
@@ -930,15 +946,12 @@ final class _PickerState<T> extends State<_Picker<T>>
           child: Row(
             children: [
               Expanded(
-                child: Text(
+                child: Text.line(
                   text,
                   style: shown,
-                  wrap: TextWrap.none,
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
                 ),
               ),
-              Text(' ▾', style: arrow, wrap: TextWrap.none),
+              Text(' ${theme.glyphs.down}', style: arrow, wrap: TextWrap.none),
             ],
           ),
         ),
@@ -952,15 +965,12 @@ final class _PickerState<T> extends State<_Picker<T>>
           mainAxisSize: MainAxisSize.min,
           children: [
             Flexible(
-              child: Text(
-                ' $text${pad > 0 ? ' ' * pad : ''}',
+              child: Text.line(
+                ' ${padCells(segmenter, text, _labelWidth(segmenter, boxes))}',
                 style: shown,
-                wrap: TextWrap.none,
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
               ),
             ),
-            Text(' ▾', style: arrow, wrap: TextWrap.none),
+            Text(' ${theme.glyphs.down}', style: arrow, wrap: TextWrap.none),
           ],
         ),
       ),
@@ -972,7 +982,8 @@ final class _PickerState<T> extends State<_Picker<T>>
   /// asks it to be.
   Widget _list(BuildContext context, {bool highlight = true}) {
     final matches = _matches;
-    final width = _labelWidth(segmenterOf(context)) + 2;
+    final boxes = checkboxMarks(context, Theme.of(context).glyphs);
+    final width = _labelWidth(segmenterOf(context), boxes) + 2;
     if (matches.isEmpty) {
       final theme = Theme.of(context);
       return SizedBox(
@@ -1011,7 +1022,11 @@ final class _PickerState<T> extends State<_Picker<T>>
         child: OptionList(
           options: [
             for (var k = top; k < end; k++)
-              _option(choices[matches[k].index], matches[k].marks),
+              _option(
+                choices[matches[k].index],
+                matches[k].marks,
+                boxes,
+              ),
           ],
           highlighted: highlight ? at - top : -1,
           rows: rows,
@@ -1020,14 +1035,20 @@ final class _PickerState<T> extends State<_Picker<T>>
     );
   }
 
-  Option _option(Choice<T> choice, List<int> marks) {
+  Option _option(
+    Choice<T> choice,
+    List<int> marks,
+    CheckboxMarks boxes,
+  ) {
     if (!widget.multiple) {
       return Option(choice.label, marks: marks);
     }
     final on = widget.chosen.contains(choice.value);
+    // the marks index the string: shifted by the code units before the label
+    final prefix = '${on ? boxes.on : boxes.off} ';
     return Option(
-      '${on ? '[x]' : '[ ]'} ${choice.label}',
-      marks: [for (final m in marks) m + 4],
+      '$prefix${choice.label}',
+      marks: [for (final m in marks) m + prefix.length],
     );
   }
 }

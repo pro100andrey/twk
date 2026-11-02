@@ -68,6 +68,8 @@ final _logviewPage = GalleryPage(
     live: o(_logviewLive),
     scrollbar: ScrollbarVisibility.values.byName(o(_logviewScrollbar)),
   ),
+  // the box, from the first frame: a LayoutBuilder asks for no rows
+  heightIn: (o, room) => _logRows(room.height),
   codeIn: _logCode,
 );
 

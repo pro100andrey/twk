@@ -504,6 +504,7 @@ final class _TextAreaState extends State<TextArea> {
               focusNode: node,
               autofocus: widget.autofocus,
               canRequestFocus: _canRequestFocus,
+              takesText: !widget.readOnly,
               onKeyEvent: _onKey,
               child: FieldMouse(
                 controller: controller,

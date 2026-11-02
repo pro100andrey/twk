@@ -40,7 +40,7 @@ part 'sample_app/text.dart';
 Future<List<LogRecord>> runInMemory({required Stopwatch clock}) async {
   final terminal = HeadlessTerminal(
     width: 122,
-    height: 72,
+    height: 82,
     caps: const TerminalCaps(
       repeatChar: true,
       graphics: GraphicsProtocol.kitty,
@@ -62,7 +62,7 @@ Future<List<LogRecord>> runInMemory({required Stopwatch clock}) async {
 Future<void> _run(TerminalBackend terminal, LogSink logs, Stopwatch clock) =>
     runApp(
       const SampleApp(),
-      viewport: const Viewport.fixed(1, 1, 120, 70),
+      viewport: const Viewport.fixed(1, 1, 120, 80),
       terminal: terminal,
       logs: logs,
       bidi: BidiReordering.terminal,

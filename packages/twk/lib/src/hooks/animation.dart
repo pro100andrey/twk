@@ -1,15 +1,20 @@
-/// The hooks of animations: [useAnimationController] and [useTicker],
-/// ticking in the frames of the app the widget is in.
+/// The hooks of animations and time: [useAnimationController], [useTicker]
+/// and [useInterval], ticking in the frames of the app the widget is in.
 library;
 
 import '../../twk.dart';
+import '../animation/steps.dart';
 
 import 'hook.dart';
 
 /// An [AnimationController] made by the first build, made anew when the
 /// [keys] of a build differ from the last one's, and disposed with the
 /// element or when replaced. Its ticker is the hook's own, ticking in the
-/// frames of the app the widget is in, unless [vsync] gives one.
+/// frames of the app the widget is in, unless [vsync] gives one. That ticker
+/// is muted ([Ticker.muted]) while a [TickerMode] above is off, so that the
+/// controller stands still and asks for no frame, and goes on when it is on
+/// again, its time having gone on meanwhile: it is where it would have
+/// been. A [vsync] is muted by its own owner.
 ///
 /// Each build sets the controller's [duration] and [reverseDuration];
 /// [initialValue], the bounds and [vsync] are those of the build that made
@@ -82,6 +87,7 @@ final class _AnimationControllerHookState
     extends HookState<AnimationController, _AnimationControllerHook>
     implements TickerProvider {
   late final AnimationController _controller;
+  Ticker? _ticker;
 
   @override
   void initHook() {
@@ -98,7 +104,8 @@ final class _AnimationControllerHookState
 
   @override
   Ticker createTicker(TickerCallback onTick) =>
-      Ticker(onTick, binding: AppBinding.maybeOf(context));
+      _ticker = Ticker(onTick, binding: AppBinding.maybeOf(context))
+        ..muted = !TickerMode.of(context);
 
   @override
   void didUpdateHook(_AnimationControllerHook oldHook) {
@@ -109,7 +116,15 @@ final class _AnimationControllerHookState
   }
 
   @override
-  AnimationController build(BuildContext context) => _controller;
+  AnimationController build(BuildContext context) {
+    // The dependency on TickerMode is what has the element build again, and
+    // so this, when it changes. A hook state has no didChangeDependencies.
+    final ticker = _ticker;
+    if (ticker != null) {
+      ticker.muted = !TickerMode.of(context);
+    }
+    return _controller;
+  }
 
   @override
   void dispose() {
@@ -126,7 +141,9 @@ final class _AnimationControllerHookState
 
 /// A [Ticker] made by the first build, not started, that calls the
 /// [onTick] of the latest build once a frame while it is active, in the
-/// frames of the app the widget is in; disposed with the element.
+/// frames of the app the widget is in; disposed with the element. It is
+/// muted ([Ticker.muted]) while a [TickerMode] above is off, its time going
+/// on.
 ///
 /// A clock of the time since its ticker started:
 ///
@@ -169,11 +186,92 @@ final class _TickerHookState extends HookState<Ticker, _TickerHook> {
   void _tick(Duration elapsed) => hook.onTick(elapsed);
 
   @override
-  Ticker build(BuildContext context) => _ticker;
+  // The dependency on TickerMode has the element build again when it
+  // changes, as in _AnimationControllerHookState.build.
+  Ticker build(BuildContext context) =>
+      _ticker..muted = !TickerMode.of(context);
 
   @override
   void dispose() {
     _ticker.dispose();
+    super.dispose();
+  }
+}
+
+/// Calls [onTick] of the latest build once every [period], from the first
+/// build on, on the clock of the app the widget is in, until the element is
+/// disposed. The ticks are [Steps] of the app's clock: they fall in the
+/// frames at the multiples of [period] since the app started, so the first
+/// comes within one [period] of the build, not after a whole one, and all
+/// that step by the same period tick in the same frame. A tick is called in
+/// a frame, where a `setState` is as usual.
+///
+/// Muted while a [TickerMode] above is off, as [useTicker] is: no tick and
+/// no frame asked for, and none made up for when it is on again. A changed
+/// [period] restarts it at the next multiple of the new one; a [period] not
+/// longer than zero is an [ArgumentError]. Outside an app it never ticks.
+///
+/// A clock of the seconds, redrawn once each:
+///
+/// ```dart
+/// HookBuilder(
+///   builder: (context) {
+///     final seconds = useState(0);
+///     useInterval(
+///       const Duration(seconds: 1),
+///       () => seconds.value++,
+///     );
+///     return Text('${seconds.value} s');
+///   },
+/// )
+/// ```
+void useInterval(Duration period, void Function() onTick) =>
+    use(_IntervalHook(period, onTick));
+
+final class _IntervalHook extends Hook<void> {
+  const _IntervalHook(this.period, this.onTick);
+
+  final Duration period;
+  final void Function() onTick;
+
+  @override
+  String get debugLabel => 'useInterval';
+
+  @override
+  _IntervalHookState createState() => _IntervalHookState();
+}
+
+final class _IntervalHookState extends HookState<void, _IntervalHook> {
+  late final Steps _steps;
+
+  @override
+  void initHook() {
+    super.initHook();
+    _steps = Steps(
+      hook.period,
+      _tick,
+      binding: AppBinding.maybeOf(context),
+    )..start();
+  }
+
+  void _tick() => hook.onTick();
+
+  @override
+  void didUpdateHook(_IntervalHook oldHook) {
+    super.didUpdateHook(oldHook);
+    _steps.interval = hook.period;
+  }
+
+  @override
+  // The dependency on TickerMode has the element build again when it
+  // changes, as in _AnimationControllerHookState.build.
+  void build(BuildContext context) {
+    _steps.muted = !TickerMode.of(context);
+  }
+
+  @override
+  void dispose() {
+    _steps.stop();
     super.dispose();
   }
 }

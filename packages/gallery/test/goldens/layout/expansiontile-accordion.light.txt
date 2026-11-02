@@ -16,13 +16,13 @@ text
 │     ColoredBox, Decorat…                                                                 │                             │
 │     Container                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  several open        ▐●  ▌  │
 │     Divider                         ┌                                          ┐         │                             │
-│     Shadow                     ·      ▼ General                                    ·     │  subtitles           ▐  ●▌  │
+│     Shadow                     ·      ▾ General                                    ·     │  subtitles           ▐  ●▌  │
 │     Padding                             Name and theme                                   │                             │
 │     Align, Center              ·        Name: twk                                  ·     │  duration                   │
 │     SizedBox                            Theme: dark                                      │   150 ms  400 ms  none      │
-│     ConstrainedBox             ·      ▶ Network                                    ·     │                             │
+│     ConstrainedBox             ·      ▸ Network                                    ·     │                             │
 │     LimitedBox, Overflo…                Proxy and timeouts                               │                             │
-│     FractionallySizedBox       ·      ▶ Security                                   ·     │                             │
+│     FractionallySizedBox       ·      ▸ Security                                   ·     │                             │
 │     IntrinsicWidth/Heig…                TLS and certificates                             │                             │
 │     Row, Column, Flex          ·                                                   ·     │                             │
 │     Expanded, Spacer                  did: nothing                                       │                             │

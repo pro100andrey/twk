@@ -19,6 +19,7 @@ import 'package:twk_core/twk_core.dart'
 import '../animation/spinner.dart';
 import '../binding/app_binding.dart';
 import '../controls/button.dart';
+import '../controls/hand.dart';
 import '../controls/pressable.dart';
 import '../focus/focus.dart';
 import '../foundation/change_notifier.dart';
@@ -30,6 +31,7 @@ import '../layout/basic.dart';
 import '../layout/box.dart';
 import '../layout/flex.dart';
 import '../semantics/semantics.dart';
+import '../style/glyphs.dart' show lineMark;
 import '../style/style.dart';
 import '../text/hit_row.dart';
 import '../text/widgets.dart';
@@ -724,20 +726,26 @@ final class _StepperState extends State<Stepper> {
             for (var i = 0; i < widget.steps.length; i++)
               _semantics(i, current),
           ],
-          child: GestureDetector(
-            onTap: (event) {
-              final step = _headers.at(event.x);
-              // the step shown now: a click may come before the build
-              if (step >= 0 && _clickable(step, _step)) {
-                _click(step);
-              }
+          child: HandOver(
+            where: (x, _) {
+              final step = _headers.at(x);
+              return step >= 0 && _clickable(step, _step);
             },
-            child: LayoutBuilder(
-              builder: (context, constraints) => _row(
-                theme,
-                segmenterOf(context),
-                current,
-                constraints.maxW,
+            child: GestureDetector(
+              onTap: (event) {
+                final step = _headers.at(event.x);
+                // the step shown now: a click may come before the build
+                if (step >= 0 && _clickable(step, _step)) {
+                  _click(step);
+                }
+              },
+              child: LayoutBuilder(
+                builder: (context, constraints) => _row(
+                  theme,
+                  segmenterOf(context),
+                  current,
+                  constraints.maxW,
+                ),
               ),
             ),
           ),
@@ -777,17 +785,20 @@ final class _StepperState extends State<Stepper> {
             Semantics(
               key: ValueKey(('header', i)),
               nodes: [_semantics(i, current)],
-              child: GestureDetector(
-                onTap: (_) {
-                  if (_clickable(i, _step)) {
-                    _click(i);
-                  }
-                },
-                child: Text.rich(
-                  _header(theme, i, current),
-                  style: theme.text,
-                  wrap: TextWrap.none,
-                  maxLines: 1,
+              child: HandOver(
+                active: _clickable(i, _step),
+                child: GestureDetector(
+                  onTap: (_) {
+                    if (_clickable(i, _step)) {
+                      _click(i);
+                    }
+                  },
+                  child: Text.rich(
+                    _header(theme, i, current),
+                    style: theme.text,
+                    wrap: TextWrap.none,
+                    maxLines: 1,
+                  ),
                 ),
               ),
             ),
@@ -913,10 +924,16 @@ final class _StepperState extends State<Stepper> {
     final state = _stateOf(i, current);
     final text = theme.text;
     final (mark, markStyled) = switch (state) {
-      StepState.complete => ('✔', text.merge(theme.success)),
-      StepState.editing => ('●', text.merge(markStyle(theme))),
-      StepState.error => ('✗', text.merge(theme.error)),
-      StepState.indexed || StepState.disabled => ('○', text.merge(theme.muted)),
+      StepState.complete => (theme.glyphs.checkBold, text.merge(theme.success)),
+      StepState.editing => (
+        theme.glyphs.stepCurrent,
+        text.merge(markStyle(theme)),
+      ),
+      StepState.error => (theme.glyphs.cross, text.merge(theme.error)),
+      StepState.indexed || StepState.disabled => (
+        theme.glyphs.ring,
+        text.merge(theme.muted),
+      ),
     };
     return [
       Span(mark, markStyled),
@@ -943,7 +960,8 @@ final class _StepperState extends State<Stepper> {
     int current,
     int width,
   ) {
-    const sep = ' ── ';
+    final dash = lineMark(theme.glyphs, null);
+    final sep = ' $dash$dash ';
     final steps = widget.steps;
     final spans = <HitSpan>[];
     var x = 0;

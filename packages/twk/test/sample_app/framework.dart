@@ -204,6 +204,9 @@ final class RenderGlyphs extends RenderObject {
       columns += scan.width;
     }
     assert(columns == stringWidth(_text, mode: segmenter.mode), _text);
+    assert(fitText(segmenter, _text, columns) == _text, _text);
+    assert(padCells(segmenter, _text, columns) == _text, _text);
+    assert(breakLines(TextSegmenter(), _text, columns + 1).isNotEmpty, _text);
     width = c.constrainW(columns);
     height = c.constrainH(1);
   }

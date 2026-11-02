@@ -11,6 +11,7 @@ part '_shared.dart';
 part 'button.dart';
 part 'callout.dart';
 part 'checkbox_switch.dart';
+part 'chip_chiplist.dart';
 part 'confirminput.dart';
 part 'datepicker.dart';
 part 'filepicker.dart';
@@ -28,6 +29,7 @@ part 'slider.dart';
 part 'statusbar.dart';
 part 'statusmessage_badge.dart';
 part 'tabbar_tabview.dart';
+part 'valuestepper.dart';
 
 /// The group of the catalog these pages are in.
 const _group = 'Controls';
@@ -39,6 +41,8 @@ final List<GalleryPage> controlsPages = [
   _checkboxSwitchPage,
   _radiogroupPage,
   _segmented,
+  _chipsPage,
+  _stepperPage,
   _selectionlistPage,
   _selectMultiselectPage,
   _confirminputPage,

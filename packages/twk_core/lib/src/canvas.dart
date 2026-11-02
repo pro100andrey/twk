@@ -23,6 +23,9 @@ import 'style.dart';
 import 'surface.dart';
 import 'unicode/unicode.dart';
 
+// Examples can assume:
+// import 'dart:typed_data';
+
 /// Text segmented once and drawn many times (what a retained text layout
 /// keeps between frames). Each entry is a glyph word: glyph id plus
 /// [kWide]/[kUncertain] flags.
@@ -39,6 +42,57 @@ final class GlyphRun {
 
   /// Total columns.
   final int width;
+}
+
+final _noWords = Uint32List(0);
+
+/// Glyph words a caller keeps and [Canvas.shapeInto] fills, again and
+/// again: the words, how many there are and the columns they take, which
+/// go together. It grows to what it is given and keeps what it grew to
+/// (a growable list's `clear` would give the storage up).
+///
+/// ```dart
+/// final canvas = Canvas(Surface(20, 1), StyleTable(), GlyphTable());
+/// final shaped = GlyphBuffer();
+/// canvas.shapeInto('Ready', shaped);
+/// canvas.runBuffer(0, 0, shaped, 0);
+/// assert(shaped.length == 5 && shaped.width == 5);
+/// ```
+final class GlyphBuffer {
+  Uint32List _words = _noWords;
+  var _length = 0;
+  var _width = 0;
+
+  /// How many glyph words are held.
+  int get length => _length;
+
+  /// The columns of the words held.
+  int get width => _width;
+
+  /// The room kept: the words held up to it, without growing.
+  int get capacity => _words.length;
+
+  /// The storage: the first [length] words are the glyphs, in the order
+  /// they are drawn, each a glyph id with [kWide] for one two columns wide
+  /// and [kUncertain] where terminals may disagree about it; the rest is
+  /// stale. Read it, do not write it: it is replaced when the buffer grows.
+  Uint32List get words => _words;
+
+  /// Empties the buffer, keeping its room.
+  void clear() {
+    _length = 0;
+    _width = 0;
+  }
+
+  void _reserve(int n) {
+    if (_words.length < n) {
+      var c = _words.length * 2;
+      if (c < n) {
+        c = n;
+      }
+      _words = Uint32List(c);
+    }
+  }
 }
 
 /// Draws on a [Surface]: text, fills, pre-shaped runs, lines merged where
@@ -248,7 +302,7 @@ final class Canvas {
     final cells = surface.cells;
     final sty = surface.styles;
     final width = surface.width;
-    final opaque = styles.opaqueStyleOf(pen);
+    final opaque = styles.opaqueStyleOf(pen).value;
     if (x0 == 0 && x1 == width) {
       // whole rows: one contiguous block, and no wide glyph can be cut
       final a = y0 * width;
@@ -394,7 +448,7 @@ final class Canvas {
     while (i < b) {
       final s = sty[i];
       final j = runEndU32(sty, sty64, i + 1, b, s);
-      fillU32(sty, i, j, styles.compose(s, pen));
+      fillU32(sty, i, j, styles.compose(StyleId(s), pen).value);
       i = j;
     }
   }
@@ -507,15 +561,29 @@ final class Canvas {
     return ax - startX;
   }
 
-  /// Scratch for [shape]: at most one glyph per UTF-16 unit.
-  var _shapeBuf = Uint32List(64);
-
   /// Segments [s] once (for retained text layout); see [run].
   GlyphRun shape(String s) {
-    if (_shapeBuf.length < s.length) {
-      _shapeBuf = Uint32List(s.length * 2);
-    }
-    final out = _shapeBuf;
+    final b = _shapeBuf;
+    shapeInto(s, b);
+    return GlyphRun(b._words.sublist(0, b._length), b._width);
+  }
+
+  final _shapeBuf = GlyphBuffer();
+
+  /// Segments [s] as [shape] does into [out], replacing what it held: its
+  /// words, [GlyphBuffer.length] and [GlyphBuffer.width] together, grown
+  /// when [s] needs more room than it has. For a text that keeps its own
+  /// buffer: no run and no copy per change. Draw it with [runBuffer].
+  ///
+  /// ```dart
+  /// final canvas = Canvas(Surface(20, 1), StyleTable(), GlyphTable());
+  /// final out = GlyphBuffer();
+  /// canvas.shapeInto('Ready', out);
+  /// canvas.runBuffer(0, 0, out, 0);
+  /// ```
+  void shapeInto(String s, GlyphBuffer out) {
+    out._reserve(s.length);
+    final words = out._words;
     var n = 0;
     var width = 0;
     for (var i = 0; i < s.length;) {
@@ -543,11 +611,18 @@ final class Canvas {
       if (w == 2) {
         glyph |= kWide;
       }
-      out[n++] = glyph;
+      words[n++] = glyph;
       width += w;
     }
-    return GlyphRun(out.sublist(0, n), width);
+    out
+      .._length = n
+      .._width = width;
   }
+
+  /// Draws what [shapeInto] shaped into [b], as [run] draws a run.
+  @pragma('vm:prefer-inline')
+  int runBuffer(int x, int y, GlyphBuffer b, int pen) =>
+      runRange(x, y, b._words, 0, b._length, pen);
 
   /// Draws a pre-shaped run; same semantics as [text] without segmentation.
   @pragma('vm:prefer-inline')
@@ -559,7 +634,7 @@ final class Canvas {
   /// whose styles come whole from elsewhere (a terminal emulator's), which
   /// a pen each would keep for good.
   @pragma('vm:prefer-inline')
-  int runStyled(int x, int y, GlyphRun r, int style) =>
+  int runStyled(int x, int y, GlyphRun r, StyleId style) =>
       runRangeStyled(x, y, r.glyphs, 0, r.glyphs.length, style);
 
   /// Draws glyph words [start, end) of [g] as [runStyled] draws a run of
@@ -570,7 +645,7 @@ final class Canvas {
     Uint32List g,
     int start,
     int end,
-    int style,
+    StyleId style,
   ) {
     assert(0 <= start && start <= end && end <= g.length, 'range in g');
     final ay = y + _oy;
@@ -581,7 +656,7 @@ final class Canvas {
     _y = ay;
     _row = ay * surface.width;
     _pen = -1;
-    _opaque = style;
+    _opaque = style.value;
     _lastIn = -1;
     _dmgLo = 1 << 30;
     _dmgHi = -1;
@@ -642,7 +717,7 @@ final class Canvas {
             final under = sty[c];
             if (under != lastIn) {
               lastIn = under;
-              lastOut = styles.compose(under, _pen);
+              lastOut = styles.compose(StyleId(under), _pen).value;
             }
             sty[c] = lastOut;
           }
@@ -720,7 +795,7 @@ final class Canvas {
         final trim = (i == 0 ? trimFirst : 0) | (i == last ? trimLast : 0);
         final glyph = _mergedLine(g[i], cells[at], trim);
         if (under >= 0) {
-          sty[at] = styles.compose(sty[at], under);
+          sty[at] = styles.compose(StyleId(sty[at]), under).value;
         }
         if (glyph >= 0) {
           _putNarrow(ax, glyph);
@@ -819,7 +894,7 @@ final class Canvas {
     _y = y;
     _row = y * surface.width;
     _pen = pen;
-    _opaque = styles.opaqueStyleOf(pen);
+    _opaque = styles.opaqueStyleOf(pen).value;
     _lastIn = -1;
     _dmgLo = 1 << 30;
     _dmgHi = -1;
@@ -858,7 +933,7 @@ final class Canvas {
     final s = surface.styles[i];
     if (s != _lastIn) {
       _lastIn = s;
-      _lastOut = styles.compose(s, _pen);
+      _lastOut = styles.compose(StyleId(s), _pen).value;
     }
     return _lastOut;
   }

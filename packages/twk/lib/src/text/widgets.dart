@@ -6,6 +6,7 @@ import 'package:twk_core/twk_core.dart'
     show
         ClusterScan,
         Pen,
+        PointerShape,
         RenderParagraph,
         TextAlign,
         TextOverflow,
@@ -36,6 +37,12 @@ export 'package:twk_core/twk_core.dart' show TextAlign, TextOverflow, TextWrap;
 /// selected with the mouse, what is selected drawn in the area's style
 /// merged onto its own. A click on text that links ([Style.link]) is told
 /// to [onLinkTap].
+///
+/// A space at the end of the text, or of a line it breaks, is not counted
+/// with [wrap] at its default, [TextWrap.word]: it hangs past the line,
+/// neither drawn nor given width, so `Text('◐ ')` is one cell wide. Use
+/// `wrap: TextWrap.none` to keep it (two cells), or a `SizedBox(width: 1)`
+/// between the mark and what follows.
 ///
 /// A title in bold, then a description of two lines at most, cut off with
 /// `…`:
@@ -85,6 +92,40 @@ final class Text extends LeafRenderObjectWidget {
     this.onLinkTap,
   }) : data = null;
 
+  /// Shows [data] in [style] on one line, cut off with `…` where it is
+  /// wider than its room: [Text] with `wrap: TextWrap.none`,
+  /// `overflow: TextOverflow.ellipsis` and `maxLines: 1`. The common case
+  /// in a row, a panel or a status line, where a long text should not
+  /// grow the height.
+  ///
+  /// ```dart
+  /// Row(children: [Expanded(child: Text.line(notes)), const Text(' ▾')])
+  /// ```
+  const Text.line(String this.data, {super.key, this.style = const Style()})
+    : spans = null,
+      wrap = TextWrap.none,
+      overflow = TextOverflow.ellipsis,
+      maxLines = 1,
+      align = TextAlign.left,
+      onLinkTap = null;
+
+  /// [spans] as [Text.line] shows a string: [Text.rich] on one line, cut
+  /// off with `…`.
+  ///
+  /// ```dart
+  /// Text.richLine(['Error: '.bold.fg(Color.red), Span(notes)])
+  /// ```
+  const Text.richLine(
+    List<Span> this.spans, {
+    super.key,
+    this.style = const Style(),
+  }) : data = null,
+       wrap = TextWrap.none,
+       overflow = TextOverflow.ellipsis,
+       maxLines = 1,
+       align = TextAlign.left,
+       onLinkTap = null;
+
   /// The text, in [style]; null for [spans].
   final String? data;
 
@@ -112,6 +153,9 @@ final class Text extends LeafRenderObjectWidget {
   /// stretched to the whole width.
   final TextAlign align;
 
+  /// For a click on a phrase that is not a URL, [Span.tap] on the span
+  /// instead.
+  ///
   /// Told the link ([Style.link]) of the text clicked on: the left button
   /// pressed and released on the same cell, of a cluster whose style
   /// links it; a click beside the text, on text that links nowhere, or
@@ -130,27 +174,31 @@ final class Text extends LeafRenderObjectWidget {
 
   @override
   RenderParagraph createRenderObject(BuildContext context) {
+    final theme = Theme.of(context);
     final paragraph = RenderParagraph(
       _spansIn(context, null),
       wrap: wrap,
       overflow: overflow,
       maxLines: maxLines,
       align: align,
+      ellipsis: theme.glyphs.ellipsis,
     );
     addToSelectionArea(context, paragraph);
-    _tellTaps(context, paragraph);
+    _tellTaps(context, paragraph, theme);
     return paragraph;
   }
 
   @override
   void updateRenderObject(BuildContext context, RenderParagraph renderObject) {
+    final theme = Theme.of(context);
     renderObject
       ..spans = _spansIn(context, renderObject)
       ..wrap = wrap
       ..overflow = overflow
       ..maxLines = maxLines
-      ..align = align;
-    _tellTaps(context, renderObject);
+      ..align = align
+      ..ellipsis = theme.glyphs.ellipsis;
+    _tellTaps(context, renderObject, theme);
   }
 
   @override
@@ -163,18 +211,45 @@ final class Text extends LeafRenderObjectWidget {
 
   /// Gives the clicks on [paragraph] to [onLinkTap], or none when it is
   /// null.
-  void _tellTaps(BuildContext context, RenderParagraph paragraph) {
+  void _tellTaps(
+    BuildContext context,
+    RenderParagraph paragraph,
+    ThemeData theme,
+  ) {
     final onLinkTap = this.onLinkTap;
     final taps = _linkTaps[paragraph];
-    if (onLinkTap == null) {
+    final spans = this.spans;
+    var tapped = false;
+    if (spans != null) {
+      for (var i = 0; i < spans.length; i++) {
+        if (spans[i].onTap != null) {
+          tapped = true;
+          break;
+        }
+      }
+    }
+    if (onLinkTap == null && !tapped) {
       if (taps != null) {
         _linkTaps[paragraph] = null;
         stopListeningOver(paragraph);
       }
-    } else if (taps != null) {
-      taps.onLinkTap = onLinkTap;
+      return;
+    }
+    final hand = theme.handPointer;
+    if (taps != null) {
+      taps
+        ..onLinkTap = onLinkTap
+        ..spans = spans
+        ..hand = hand;
+      // counts what it needs again
+      listenOver(context, paragraph, taps.listener);
     } else {
-      final taps = _linkTaps[paragraph] = _LinkTaps(paragraph, onLinkTap);
+      final taps = _linkTaps[paragraph] = _LinkTaps(
+        paragraph,
+        onLinkTap,
+        spans,
+        hand,
+      );
       listenOver(context, paragraph, taps.listener);
     }
   }
@@ -186,10 +261,48 @@ final class Text extends LeafRenderObjectWidget {
     BuildContext context,
     RenderParagraph? paragraph,
   ) {
-    final style = DefaultTextStyle.of(context).merge(this.style);
+    final inherited = DefaultTextStyle.of(context);
     final selected = paragraph == null
         ? null
         : selectedInSelectionArea(context, paragraph);
+    final kept = selected == null && paragraph != null
+        ? _merged[paragraph]
+        : null;
+    if (kept != null && kept.matches(inherited, style, data, spans)) {
+      // rebuilt as it was: the spans it made last time, which the
+      // paragraph then finds the same
+      return kept.result;
+    }
+    final result = _build(context, inherited, selected);
+    if (selected == null && paragraph != null && !_hasGradient(spans)) {
+      final old = _merged[paragraph];
+      if (old == null) {
+        _merged[paragraph] = _Merged(inherited, style, data, spans, result);
+      } else {
+        old.remember(inherited, style, data, spans, result);
+      }
+    }
+    return result;
+  }
+
+  static bool _hasGradient(List<Span>? spans) {
+    if (spans == null) {
+      return false;
+    }
+    for (var i = 0; i < spans.length; i++) {
+      if (spans[i].gradient != null) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  List<(String, Pen)> _build(
+    BuildContext context,
+    Style inherited,
+    (int, int, Style)? selected,
+  ) {
+    final style = inherited.merge(this.style);
     if (spans == null && selected == null) {
       // the common case, rebuilt in every frame of a clock or a counter:
       // one span, without the lists below
@@ -230,18 +343,129 @@ final class Text extends LeafRenderObjectWidget {
   }
 }
 
+// the spans each paragraph was last given, and what they were made of
+final _merged = Expando<_Merged>('Text.spans');
+
+/// The [result] of merging [style] onto [inherited] for [data] or [spans],
+/// to hand out again while all of them are equal.
+final class _Merged {
+  _Merged(this.inherited, this.style, this.data, List<Span>? spans, this.result)
+    // copied: the app may change its list in place
+    : spans = spans == null ? null : List.of(spans);
+
+  Style inherited;
+  Style style;
+  String? data;
+  List<Span>? spans;
+  List<(String, Pen)> result;
+
+  /// Takes the inputs of a new [result] in place of the last ones, without
+  /// a new object for it.
+  void remember(
+    Style inherited,
+    Style style,
+    String? data,
+    List<Span>? spans,
+    List<(String, Pen)> result,
+  ) {
+    this.inherited = inherited;
+    this.style = style;
+    this.data = data;
+    this.result = result;
+    final mine = this.spans;
+    if (spans == null) {
+      this.spans = null;
+    } else if (mine == null) {
+      this.spans = List.of(spans);
+    } else {
+      mine
+        ..clear()
+        ..addAll(spans);
+    }
+  }
+
+  bool matches(
+    Style inherited,
+    Style style,
+    String? data,
+    List<Span>? spans,
+  ) {
+    if (this.inherited != inherited || this.style != style) {
+      return false;
+    }
+    final mine = this.spans;
+    if (mine == null || spans == null) {
+      return mine == null && spans == null && this.data == data;
+    }
+    if (mine.length != spans.length) {
+      return false;
+    }
+    for (var i = 0; i < spans.length; i++) {
+      final a = mine[i];
+      final b = spans[i];
+      if (b.gradient != null ||
+          !identical(a, b) && (a.text != b.text || a.style != b.style)) {
+        return false;
+      }
+    }
+    return true;
+  }
+}
+
 // the clicks each paragraph of a Text with an onLinkTap tells it
 final _linkTaps = Expando<_LinkTaps>('Text.onLinkTap');
 
 /// What tells [onLinkTap] the links clicked on in [paragraph]: the
 /// [listener] of its presses and releases.
 final class _LinkTaps {
-  _LinkTaps(this.paragraph, this.onLinkTap);
+  _LinkTaps(this.paragraph, this.onLinkTap, this.spans, this._hand) {
+    listener.cursorAt = _cursorAt;
+    hand = _hand;
+  }
 
   final RenderParagraph paragraph;
-  void Function(String url) onLinkTap;
+  void Function(String url)? onLinkTap;
+
+  /// The spans of the text as given, for their [Span.onTap]; null for a
+  /// string.
+  List<Span>? spans;
 
   late final listener = RenderListener(onDown: _down, onUp: _up);
+
+  /// The theme's choice of the hand over a phrase that taps.
+  HandPointer get hand => _hand;
+  HandPointer _hand;
+
+  set hand(HandPointer hand) {
+    _hand = hand;
+    listener.cursorAsksMotion = hand == HandPointer.on;
+  }
+
+  /// The hand over a phrase of a [Span.tap] and over a link, by the theme;
+  /// null elsewhere.
+  PointerShape? _cursorAt(int x, int y) {
+    if (_hand == HandPointer.off) {
+      return null;
+    }
+    final cell = paragraph.cellAt(x, y);
+    if (cell == null || cell.isEllipsis) {
+      return null;
+    }
+    final start = cell.start;
+    var at = 0;
+    for (final span in spans ?? const <Span>[]) {
+      at += span.text.length;
+      if (start < at) {
+        if (span.onTap != null) {
+          return PointerShape.pointer;
+        }
+        break;
+      }
+    }
+    return onLinkTap != null && _linkAt(x, y) != null
+        ? PointerShape.pointer
+        : null;
+  }
 
   /// The cell the left button was pressed on, while it is held.
   (int, int)? _pressed;
@@ -255,8 +479,26 @@ final class _LinkTaps {
     if (event.button != 0 || pressed != (event.x, event.y)) {
       return;
     }
-    if (_linkAt(event.x, event.y) case final url?) {
-      onLinkTap(url);
+    final cell = paragraph.cellAt(event.x, event.y);
+    // the cell of an ellipsis is no span's: it stands for text not shown
+    if (cell == null || cell.isEllipsis) {
+      return;
+    }
+    final start = cell.start;
+    // the spans as given hold the same text as the paragraph's, which
+    // gradients and a selection only cut in more pieces
+    var at = 0;
+    for (final span in spans ?? const <Span>[]) {
+      at += span.text.length;
+      if (start < at) {
+        span.onTap?.call();
+        break;
+      }
+    }
+    if (onLinkTap case final onLinkTap?) {
+      if (_linkAt(event.x, event.y) case final url?) {
+        onLinkTap(url);
+      }
     }
   }
 

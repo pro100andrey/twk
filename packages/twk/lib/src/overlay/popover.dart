@@ -47,6 +47,13 @@ import 'layer.dart';
 /// and takes it away at once.
 ///
 /// The popover takes no focus of its own: the keys go where the focus is.
+/// What it shows is in a focus scope of its own that requests nothing, so
+/// a node of it with `autofocus` gets the focus, with a navigator above the
+/// popover as without one, and what has none leaves the focus where it
+/// was. Tab moves among the popover's own nodes and, past the last, on to
+/// the node after the child, Shift+Tab from the first to the child's last
+/// node ([FocusScopeNode.leaveTo]), which keeps the popover open; it closes
+/// when the focus has left both the popover and the child.
 /// Its nodes are under the node above the overlay, not under the child's,
 /// so the keys it leaves go to the nodes above the overlay. Its entry is
 /// inserted once the popover is first built, so one built open shows from
@@ -296,8 +303,8 @@ final class _PopoverState extends State<Popover>
   Widget build(BuildContext context) {
     if (Overlay.maybeOf(context) == null) {
       throw StateError(
-        'Popover: no Overlay above it: place an Overlay above it, as '
-        'around the whole app: Overlay(child: …)',
+        'Popover: no Overlay above it: place an Overlay above it, as App does '
+        'around the whole app: App(child: …)',
       );
     }
     if (_entryChanged) {
@@ -335,10 +342,16 @@ final class _InsideState extends State<_Inside> {
     skipTraversal: true,
   )..addListener(widget.popover._focusChanged);
 
+  late final _scope = FocusScopeNode(
+    debugLabel: 'popover content',
+    canRequestFocus: false,
+  );
+
   @override
   void initState() {
     super.initState();
     widget.popover._inside = _node;
+    _scope.leaveTo = widget.popover._anchor;
   }
 
   @override
@@ -347,10 +360,13 @@ final class _InsideState extends State<_Inside> {
       widget.popover._inside = null;
     }
     _node.dispose();
+    _scope.dispose();
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) =>
-      Focus(focusNode: _node, child: widget.child);
+  Widget build(BuildContext context) => Focus(
+    focusNode: _node,
+    child: FocusScope(node: _scope, child: widget.child),
+  );
 }

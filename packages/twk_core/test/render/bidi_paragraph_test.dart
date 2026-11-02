@@ -69,7 +69,7 @@ final class View {
 
   /// The foreground of the cell at [x], [y].
   Color fgAt(int x, int y) =>
-      screen.styles.fgOf(screen.surface.styles[y * width + x]);
+      screen.styles.fgOf(StyleId(screen.surface.styles[y * width + x]));
 }
 
 /// The rows [text] takes in a paragraph [width] wide, in [order].

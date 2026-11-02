@@ -28,7 +28,7 @@ text
 │     TextArea                        selected: nothing                                    │   2 columns  1 column       │
 │     Autocomplete               ·  └                                             ┘  ·     │                             │
 │                                                                          43 × 11         │                             │
-│   CONTROLS            20       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│   CONTROLS            22       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     Button                                                                               │                             │
 │     Pressable                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     Checkbox, Switch                                                                     │                             │

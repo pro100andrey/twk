@@ -22,8 +22,10 @@ import '../layout/box.dart';
 import '../layout/flex.dart';
 import '../layout/stack.dart';
 import '../semantics/semantics.dart';
+import '../style/glyphs.dart' show lineMark;
 import '../style/style.dart';
 import '../text/widgets.dart';
+import 'hand.dart';
 import 'status.dart';
 
 /// A notice in a box lined in the color of its [kind]: what a command-line
@@ -43,10 +45,18 @@ import 'status.dart';
 /// box is as wide as what it holds, within its constraints, and its text
 /// wraps there; it has no width of its own, as a [Box] has none.
 ///
-/// With [onDismissed], `[×]` at the right of the top edge calls it when it
-/// is clicked, as Escape does while the focus is in the callout (on one
-/// of its [actions]), hinted. The callout does not take itself away: the
-/// app builds it no more.
+/// With [onDismissed], the theme's `[${glyphs.close}]` at the right of the
+/// top edge (`[×]`; `[x]` with `Glyphs.ascii`) calls it when it is
+/// clicked, as Escape does while the focus is in the callout (on one of
+/// its [actions]), hinted. The callout does not take itself away: the app
+/// builds it no more.
+///
+/// What an app sets: the [kind] (its color and, from the theme's
+/// `Glyphs`, its icon: `ℹ ✓ ⚠ ✗`, ASCII `i v ! x` with `Glyphs.ascii`),
+/// [icon] and [title] in their place, no icon with an empty [icon], no
+/// `[×]` with no [onDismissed] (its mark is `Glyphs.close`), [actions],
+/// [style], the [borderType] of the box and the [titleStyle] of its
+/// title. The box is in the kind's color with its title on the top edge.
 ///
 /// The styles, each merged over those before it: the theme's text and
 /// [style] for the box, its background and the child's text; the kind's
@@ -60,6 +70,17 @@ import 'status.dart';
 /// A screen reader reads a [SemanticsRole.status] of its title, an
 /// [SemanticsRole.alert] for a warning or an error, then what is in it as
 /// it reads that anywhere.
+///
+/// A rounded frame with a title in italics:
+///
+/// ```dart
+/// Callout.text(
+///   'The build failed.',
+///   kind: StatusKind.error,
+///   borderType: BorderType.rounded,
+///   titleStyle: const Style(attrs: Attr.italic),
+/// )
+/// ```
 ///
 /// A warning to dismiss, and a tip with a button:
 ///
@@ -96,6 +117,8 @@ final class Callout extends StatelessWidget {
     this.onDismissed,
     this.actions = const [],
     this.style,
+    this.borderType,
+    this.titleStyle,
   }) : _message = null;
 
   /// A notice of a message, a [Text] that wraps, in a box of [kind].
@@ -108,6 +131,8 @@ final class Callout extends StatelessWidget {
     this.onDismissed,
     this.actions = const [],
     this.style,
+    this.borderType,
+    this.titleStyle,
   }) : _child = null;
 
   final Widget? _child;
@@ -140,6 +165,15 @@ final class Callout extends StatelessWidget {
   /// The box and the child's text, over the theme's text.
   final Style? style;
 
+  /// The lines of the box: the theme's ([Glyphs.lines]) when null, a
+  /// [BorderType.rounded] or [BorderType.heavy] frame for an app's look.
+  /// Not used on plain output, which has no box.
+  final BorderType? borderType;
+
+  /// Over the kind's color in bold, for the title (and the icon); null
+  /// for those alone.
+  final Style? titleStyle;
+
   /// The title it shows.
   String get _title {
     final name = kind.name;
@@ -150,8 +184,10 @@ final class Callout extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colored = kind.styleIn(theme);
-    final marked = colored.merge(const Style(attrs: Attr.bold));
-    final icon = this.icon ?? kind.icon;
+    final marked = colored
+        .merge(const Style(attrs: Attr.bold))
+        .merge(titleStyle ?? const Style());
+    final icon = this.icon ?? kind.icon(glyphs: theme.glyphs);
     final head = [if (icon.isNotEmpty) icon, _title].join(' ');
     final plain =
         AppBinding.maybeOf(context)?.twkApp.terminal.info.plain ?? false;
@@ -191,13 +227,17 @@ final class Callout extends StatelessWidget {
       }
     } else {
       final onDismissed = this.onDismissed;
+      final dash = lineMark(theme.glyphs, borderType);
       callout = Box(
         style: text,
-        border: Border.all(style: colored),
+        border: Border.all(type: borderType, style: colored),
         titles: [
-          BorderTitle('─ $head ─', style: marked),
+          BorderTitle('$dash $head $dash', style: marked),
           if (onDismissed != null)
-            const BorderTitle('[×]─', alignment: Alignment.topRight),
+            BorderTitle(
+              '[${theme.glyphs.close}]$dash',
+              alignment: Alignment.topRight,
+            ),
         ],
         padding: const EdgeInsets.x(1),
         child: body,
@@ -276,10 +316,12 @@ final class _DismissState extends State<_Dismiss> {
       child: MouseRegion(
         onEnter: (_) => _hover(true),
         onExit: (_) => _hover(false),
+        // it has the motion reported already
+        cursor: HandOver.shapeFor(context),
         child: GestureDetector(
           onTap: (_) => widget.onDismissed(),
           child: Text(
-            '[×]',
+            '[${theme.glyphs.close}]',
             style: _hovered
                 ? widget.style.merge(
                     theme.text.merge(const Style(attrs: Attr.bold)),

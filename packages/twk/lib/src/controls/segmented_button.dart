@@ -6,6 +6,8 @@ import 'package:twk_core/twk_core.dart' show TextSegmenter, fitText;
 
 import '../binding/app_binding.dart';
 import '../focus/focus.dart';
+import '../foundation/change_notifier.dart' show VoidCallback;
+import '../foundation/helpers.dart';
 import '../framework/framework.dart';
 import '../semantics/semantics.dart';
 import '../style/style.dart';
@@ -40,7 +42,8 @@ import 'pressable.dart';
 /// not enabled ([Choice.enabled]) is passed by and cannot be pressed.
 ///
 /// A segment is its label with a blank on either side, after `✓ ` while
-/// it is on with [showSelectedIcon]; one `│` is between two segments and
+/// it is on with [showSelectedIcon] (`Glyphs.check` of the theme); one `│`
+/// (`Glyphs.separator`) is between two segments and
 /// the row is between [caps], `[` and `]` by default (`('(', ')')` for
 /// round ones). One row, as wide as its segments within its constraints;
 /// where they do not fit, the labels are cut off with `…` evenly, the
@@ -159,16 +162,12 @@ final class _SegmentedButtonState<T> extends State<SegmentedButton<T>> {
   bool _on(int i) => widget.selected.contains(_segments[i].value);
 
   /// The enabled segment [step] places on from [from], round; -1 for none.
-  int _step(int from, int step) {
-    final n = _segments.length;
-    for (var k = 1; k <= n; k++) {
-      final i = ((from + step * k) % n + n) % n;
-      if (_segments[i].enabled) {
-        return i;
-      }
-    }
-    return -1;
-  }
+  int _step(int from, int step) => nextEnabled(
+    _segments.length,
+    from,
+    step,
+    (i) => _segments[i].enabled,
+  );
 
   /// The segment highlighted: [_highlight] while it can be, else the first
   /// enabled one on, else the first enabled one.
@@ -219,6 +218,44 @@ final class _SegmentedButtonState<T> extends State<SegmentedButton<T>> {
     onSelectionChanged(next);
   }
 
+  // The keys and their hints, kept while what they say is the same: a map
+  // built anew each time would be parsed anew by the layer.
+  late Map<String, VoidCallback?> _bindings;
+  late Map<String, String> _hints;
+  var _keysDigits = -1;
+  var _keysMulti = false;
+  var _keysEllipsis = '';
+
+  void _keysFor({
+    required int digits,
+    required bool multi,
+    required String ellipsis,
+  }) {
+    if (_keysDigits == digits &&
+        _keysMulti == multi &&
+        _keysEllipsis == ellipsis) {
+      return;
+    }
+    _keysDigits = digits;
+    _keysMulti = multi;
+    _keysEllipsis = ellipsis;
+    _bindings = {
+      'left': () => _move(_step(_current, -1)),
+      'right': () => _move(_step(_current, 1)),
+      'home': () => _move(_step(-1, 1)),
+      'end': () => _move(_step(_segments.length, -1)),
+      'space': () => _press(_current),
+      'enter': () => _press(_current),
+      for (var i = 0; i < digits; i++) '${i + 1}': () => _press(i),
+    };
+    _hints = {
+      'left': 'previous',
+      'right': 'next',
+      'space': multi ? 'toggle' : 'select',
+      if (digits > 1) '1': '$ellipsis$digits select',
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final enabled = _enabled;
@@ -226,54 +263,46 @@ final class _SegmentedButtonState<T> extends State<SegmentedButton<T>> {
     final digits = _segments.length < 9 ? _segments.length : 9;
     final plain =
         AppBinding.maybeOf(context)?.twkApp.terminal.info.plain ?? false;
+    _keysFor(
+      digits: digits,
+      multi: widget.multiSelectionEnabled,
+      ellipsis: Theme.of(context).glyphs.ellipsis,
+    );
     final pressable = Pressable(
       enabled: enabled,
       focusNode: widget.focusNode,
       autofocus: widget.autofocus,
-      bindings: {
-        'left': () => _move(_step(current, -1)),
-        'right': () => _move(_step(current, 1)),
-        'home': () => _move(_step(-1, 1)),
-        'end': () => _move(_step(_segments.length, -1)),
-        'space': () => _press(current),
-        'enter': () => _press(current),
-        for (var i = 0; i < digits; i++) '${i + 1}': () => _press(i),
-      },
-      hints: {
-        'left': 'previous',
-        'right': 'next',
-        'space': widget.multiSelectionEnabled ? 'toggle' : 'select',
-        if (digits > 1) '1': '…$digits select',
-      },
+      bindings: _bindings,
+      hints: _hints,
       onTap: enabled ? (event) => _press(_hits.at(event.x)) : null,
-      builder: (context, focused) => LayoutBuilder(
-        builder: (context, constraints) => _row(
-          Theme.of(context),
-          segmenterOf(context),
-          constraints.maxW,
-          enabled: enabled,
-          highlight: focused ? current : -1,
-          plain: plain,
+      builder: (context, focused) => Semantics(
+        nodes: [
+          for (var i = 0; i < _segments.length; i++)
+            SemanticsNode(
+              role: widget.multiSelectionEnabled
+                  ? SemanticsRole.checkbox
+                  : SemanticsRole.radio,
+              label: _segments[i].label,
+              state: SemanticsState(
+                checked: _on(i),
+                disabled: !enabled || !_segments[i].enabled,
+              ),
+              focused: focused && i == current,
+            ),
+        ],
+        child: LayoutBuilder(
+          builder: (context, constraints) => _row(
+            Theme.of(context),
+            segmenterOf(context),
+            constraints.maxW,
+            enabled: enabled,
+            highlight: focused ? current : -1,
+            plain: plain,
+          ),
         ),
       ),
     );
-    return Semantics(
-      nodes: [
-        for (var i = 0; i < _segments.length; i++)
-          SemanticsNode(
-            role: widget.multiSelectionEnabled
-                ? SemanticsRole.checkbox
-                : SemanticsRole.radio,
-            label: _segments[i].label,
-            state: SemanticsState(
-              checked: _on(i),
-              disabled: !enabled || !_segments[i].enabled,
-            ),
-            focused: i == current,
-          ),
-      ],
-      child: pressable,
-    );
+    return pressable;
   }
 
   /// The row in [theme], [width] columns at most as [segmenter] measures
@@ -290,7 +319,10 @@ final class _SegmentedButtonState<T> extends State<SegmentedButton<T>> {
     final (open, close) = widget.caps;
     final marks = [
       for (var i = 0; i < n; i++)
-        if ((widget.showSelectedIcon || plain) && _on(i)) '✓ ' else '',
+        if ((widget.showSelectedIcon || plain) && _on(i))
+          '${theme.glyphs.check} '
+        else
+          '',
     ];
     final labels = _fit(
       segmenter,
@@ -299,8 +331,9 @@ final class _SegmentedButtonState<T> extends State<SegmentedButton<T>> {
       width -
           segmenter.width(open) -
           segmenter.width(close) -
-          (n - 1) * segmenter.width('│') -
+          (n - 1) * segmenter.width(theme.glyphs.separator) -
           [for (final m in marks) 2 + segmenter.width(m)].sum,
+      theme.glyphs.ellipsis,
     );
     final row = theme.text.merge(widget.style ?? const Style());
     final lines = row.merge(theme.border);
@@ -310,7 +343,7 @@ final class _SegmentedButtonState<T> extends State<SegmentedButton<T>> {
     final spans = <HitSpan>[(span: Span(open, lines), target: -1)];
     for (var i = 0; i < n; i++) {
       if (i > 0) {
-        spans.add((span: Span('│', lines), target: -1));
+        spans.add((span: Span(theme.glyphs.separator, lines), target: -1));
       }
       final on = enabled && _segments[i].enabled;
       var style = row;
@@ -340,11 +373,16 @@ final class _SegmentedButtonState<T> extends State<SegmentedButton<T>> {
   }
 }
 
-/// [labels] cut off with `…` to fit [room] columns between them as
+/// [labels] cut off with [ellipsis] to fit [room] columns between them as
 /// [segmenter] measures them, evenly: those narrower than an even share as
 /// they are, what they leave shared by the others, each one column at
 /// least.
-List<String> _fit(TextSegmenter segmenter, List<String> labels, int room) {
+List<String> _fit(
+  TextSegmenter segmenter,
+  List<String> labels,
+  int room,
+  String ellipsis,
+) {
   final widths = [for (final l in labels) segmenter.width(l)];
   if (widths.sum <= room) {
     return labels;
@@ -372,7 +410,7 @@ List<String> _fit(TextSegmenter segmenter, List<String> labels, int room) {
   }
   return [
     for (var i = 0; i < labels.length; i++)
-      fitText(segmenter, labels[i], cut[i]),
+      fitText(segmenter, labels[i], cut[i], ellipsis: ellipsis),
   ];
 }
 

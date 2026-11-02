@@ -265,7 +265,7 @@ final class _HeatState extends State<_Heat> with KeptState {
             end: _heatEnd,
             weeks: _heatWeeks,
             firstWeekday: widget.firstWeekday,
-            scale: scale ?? ActivityHeatmap.defaultScale,
+            scale: scale,
             showLegend: widget.legend,
             cellWidth: widget.cellWidth,
             onSelected: (day) =>

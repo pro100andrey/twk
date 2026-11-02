@@ -25,6 +25,8 @@ void main() {
       'я',
       'Я',
       ...keyNames,
+      // Escape by the name the hints show it by
+      'esc',
     ])
       for (var m = 0; m < 16; m++)
         [
@@ -53,7 +55,10 @@ void main() {
     'ctrl+ctrl+a',
     'ctrl+shift+ctrl+a',
     'shift+space',
-    'esc',
+    'Esc',
+    'ESC',
+    'ctrl+Esc',
+    'ret',
     'Enter',
     'pgdn',
     'spacebar',
@@ -81,6 +86,19 @@ void main() {
         reason: spec,
       );
     }
+  });
+
+  test("'Esc' is told to be 'esc', the alias, not its key's name", () {
+    expect(
+      () => parseKey('Esc'),
+      throwsA(
+        isA<KeyNameException>().having(
+          (e) => e.message,
+          'message',
+          endsWith('; "esc" is meant?'),
+        ),
+      ),
+    );
   });
 
   test('one key reads as KeyCombo.parse reads it', () {

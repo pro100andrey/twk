@@ -52,6 +52,13 @@ const _calloutIcon = ChoiceOption<String>(
   values: ['kind', 'own', 'none'],
 );
 
+/// The Callout page's `border` option.
+const _calloutBorder = ChoiceOption<String>(
+  'border',
+  'border',
+  values: ['single', 'rounded', 'heavy'],
+);
+
 /// The Callout page's `width` option.
 final _calloutWidth = SliderOption(
   'width',
@@ -71,6 +78,7 @@ final _callout = GalleryPage(
     _calloutActions,
     _calloutTitle,
     _calloutIcon,
+    _calloutBorder,
     _calloutWidth,
   ],
   build: (context, o) => _Notice(
@@ -80,6 +88,7 @@ final _callout = GalleryPage(
     width: o(_calloutWidth).toInt(),
     ownTitle: o(_calloutTitle) == 'own',
     icon: _iconOf(o),
+    border: BorderType.values.byName(o(_calloutBorder)),
   ),
   code: (o) {
     final kind = StatusKind.values.byName(o(_calloutKind));
@@ -108,6 +117,8 @@ final _callout = GalleryPage(
       if (kind != StatusKind.info) '            kind: .${kind.name},',
       if (o(_calloutTitle) == 'own') "            title: '$title',",
       if (icon != null) "            icon: '$icon',",
+      if (o(_calloutBorder) != 'single')
+        '            borderType: .${o(_calloutBorder)},',
       if (dismiss) ...[
         '            onDismissed: () => setState(() {',
         '              _shown = false;',
@@ -162,6 +173,7 @@ final class _Notice extends StatefulWidget {
     required this.width,
     required this.ownTitle,
     required this.icon,
+    required this.border,
   });
 
   final StatusKind kind;
@@ -174,6 +186,9 @@ final class _Notice extends StatefulWidget {
 
   /// Its icon: null for the kind's, `''` for none.
   final String? icon;
+
+  /// The lines of its box.
+  final BorderType border;
 
   @override
   State<_Notice> createState() => _NoticeState();
@@ -205,6 +220,7 @@ final class _NoticeState extends State<_Notice> with KeptState {
               kind: widget.kind,
               title: widget.ownTitle ? title : null,
               icon: widget.icon,
+              borderType: widget.border,
               onDismissed: widget.dismiss
                   ? () => _did('dismissed', shown: false)
                   : null,

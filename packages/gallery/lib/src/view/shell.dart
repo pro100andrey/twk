@@ -99,6 +99,7 @@ final class GalleryShellState extends State<GalleryShell>
   GalleryTab tab = GalleryTab.preview;
   var filter = '';
   var themeName = 'dark';
+  var _asciiGlyphs = false;
   Zone _zone = Zone.list;
 
   /// Whether the stage had the focus when the focus was last in the
@@ -286,6 +287,7 @@ final class GalleryShellState extends State<GalleryShell>
     if (galleryThemes.containsKey(route.theme)) {
       themeName = route.theme!;
     }
+    _asciiGlyphs = route.glyphs == 'ascii';
     final def = page.def;
     if (def != null && route.options.isNotEmpty) {
       final raw = _store.rawOf(page.key);
@@ -361,6 +363,7 @@ final class GalleryShellState extends State<GalleryShell>
       group: page.group.slug,
       page: page.slug,
       theme: themeName == 'dark' ? null : themeName,
+      glyphs: _asciiGlyphs ? 'ascii' : null,
       tab: tab == GalleryTab.code ? GalleryTab.code.name : null,
       options: {
         for (final part in o.split(';'))
@@ -531,7 +534,8 @@ final class GalleryShellState extends State<GalleryShell>
         AppBinding.maybeOf(context)?.scheduleFrameCallback((_) => _focusPage());
       }
     }
-    final theme = galleryTheme(themeName, context);
+    final base = galleryTheme(themeName, context);
+    final theme = _asciiGlyphs ? base.copyWith(glyphs: Glyphs.ascii) : base;
     return ClockScope(
       clock: _clock,
       child: AnimatedTheme(

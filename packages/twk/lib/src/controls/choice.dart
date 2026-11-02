@@ -3,14 +3,15 @@
 library;
 
 import 'package:meta/meta.dart';
-import 'package:twk_core/twk_core.dart'
-    show Axis, CrossAxisAlignment, MainAxisSize, TextOverflow, TextWrap;
+import 'package:twk_core/twk_core.dart' show Attr;
 
 import '../focus/focus.dart';
+import '../foundation/helpers.dart';
 import '../framework/framework.dart';
 import '../gestures/gesture_detector.dart';
 import '../layout/flex.dart';
 import '../semantics/semantics.dart';
+import '../style/glyphs.dart' show radioMarks;
 import '../style/style.dart';
 import '../text/widgets.dart';
 import 'pressable.dart';
@@ -59,11 +60,14 @@ final class Choice<T> {
 }
 
 /// Radio buttons: [choices], one of which is chosen, each its label after
-/// a mark, `(●)` for the one whose value is [value], `( )` for the others.
+/// a mark, `(●)` for the one whose value is [value], `( )` for the others
+/// (`Glyphs.radioOn`, `Glyphs.radioOff` and `Glyphs.radioBrackets` of the
+/// theme).
 ///
 /// The choices go one below another, or side by side along a horizontal
 /// [direction]; [mark] is what is between the parentheses of the one
-/// chosen. One stop of Tab: while it has the focus, Up and Left choose the
+/// chosen, in place of `Glyphs.radioOn`.
+/// One stop of Tab: while it has the focus, Up and Left choose the
 /// enabled choice before the one chosen, Down and Right the one after,
 /// from the last to the first and back, Home and End the first and the
 /// last; Space and Enter choose the one that shows the focus, the first
@@ -100,6 +104,13 @@ final class Choice<T> {
 /// when null; [disabledStyle] for one that cannot be chosen,
 /// [ThemeData.muted] when null.
 ///
+/// What an app sets: the glyphs of the theme, `radioOn`, `radioOff` and
+/// `radioBrackets` (`Glyphs.ascii` has `(*)`; `radioOn: '◉'`,
+/// `radioOff: '○'` and `radioBrackets: ('', '')` draw `◉ ○` with no
+/// parentheses); [mark], the chosen one's mark above the theme; the
+/// styles of the mark, the brackets, the choice that shows the focus and
+/// a disabled one, and [direction].
+///
 /// A plain look, `(*)` all in the mark's style and the focused choice
 /// reversed: `mark: '*'`, `bracketStyle: const Style()` and
 /// `focusedStyle: theme.primary.merge(const Style(attrs: Attr.bold |
@@ -125,7 +136,7 @@ final class RadioGroup<T> extends StatelessWidget {
     this.direction = Axis.vertical,
     this.focusNode,
     this.autofocus = false,
-    this.mark = '●',
+    this.mark,
     this.style,
     this.bracketStyle,
     this.focusedStyle,
@@ -152,9 +163,12 @@ final class RadioGroup<T> extends StatelessWidget {
   /// See [Focus.autofocus].
   final bool autofocus;
 
-  /// What is between the parentheses of the choice chosen: a character
-  /// one column wide.
-  final String mark;
+  /// What is between the brackets of the choice chosen, a character one
+  /// column wide, in place of `Glyphs.radioOn`; null for the theme's. It is
+  /// the app's own text, not a theme mark: the width rule of `Glyphs`
+  /// fits the theme's marks, and a [mark] of another width is drawn as it
+  /// is, for the app that wrote it to have meant.
+  final String? mark;
 
   /// A choice, the theme's text under it.
   final Style? style;
@@ -180,16 +194,8 @@ final class RadioGroup<T> extends StatelessWidget {
   }
 
   /// The enabled choice [step] places on from [from], round; -1 for none.
-  int _step(int from, int step) {
-    final n = choices.length;
-    for (var k = 1; k <= n; k++) {
-      final i = ((from + step * k) % n + n) % n;
-      if (choices[i].enabled) {
-        return i;
-      }
-    }
-    return -1;
-  }
+  int _step(int from, int step) =>
+      nextEnabled(choices.length, from, step, (i) => choices[i].enabled);
 
   void _choose(int i) {
     if (i >= 0) {
@@ -226,7 +232,8 @@ final class RadioGroup<T> extends StatelessWidget {
           : const {'left': 'previous', 'right': 'next'},
       builder: (context, focused) {
         final theme = Theme.of(context);
-        return Flex(
+        final radio = radioMarks(context, theme.glyphs);
+        final row = Flex(
           direction: direction,
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -235,6 +242,7 @@ final class RadioGroup<T> extends StatelessWidget {
             for (var i = 0; i < choices.length; i++)
               _choice(
                 theme,
+                radio,
                 i,
                 on: i == chosen,
                 focused: focused && i == focus,
@@ -242,27 +250,29 @@ final class RadioGroup<T> extends StatelessWidget {
               ),
           ],
         );
+        return Semantics(
+          nodes: [
+            for (var i = 0; i < choices.length; i++)
+              SemanticsNode(
+                role: SemanticsRole.radio,
+                label: choices[i].label,
+                state: SemanticsState(
+                  checked: i == chosen,
+                  disabled: !enabled || !choices[i].enabled,
+                ),
+                focused: focused && i == focus,
+              ),
+          ],
+          child: row,
+        );
       },
     );
-    return Semantics(
-      nodes: [
-        for (var i = 0; i < choices.length; i++)
-          SemanticsNode(
-            role: SemanticsRole.radio,
-            label: choices[i].label,
-            state: SemanticsState(
-              checked: i == chosen,
-              disabled: !enabled || !choices[i].enabled,
-            ),
-            focused: i == focus,
-          ),
-      ],
-      child: pressable,
-    );
+    return pressable;
   }
 
   Widget _choice(
     ThemeData theme,
+    ({String on, String off}) radio,
     int i, {
     required bool on,
     required bool focused,
@@ -274,16 +284,13 @@ final class RadioGroup<T> extends StatelessWidget {
       // the hidden cursor on the choice that shows the focus
       child: ActiveItem(
         active: focused,
-        child: Text.rich(
+        child: Text.richLine(
           [
-            ...bracketed(
+            ..._radioSpans(
               theme,
-              '(',
-              on ? mark : ' ',
-              ')',
+              on ? radio.on : radio.off,
               on,
               enabled,
-              bracketStyle,
             ),
             Span(' ${choice.label}'),
           ],
@@ -295,11 +302,32 @@ final class RadioGroup<T> extends StatelessWidget {
             enabled: enabled,
             disabledStyle: disabledStyle,
           ),
-          wrap: TextWrap.none,
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
         ),
       ),
     );
+  }
+
+  /// The theme's radio button as spans: the opening bracket, [glyph] (the
+  /// [mark] given in its place while [on]) and the closing bracket, each
+  /// left out where it is empty. The mark has its style while [on] and
+  /// [enabled], the text's while it is on and not enabled, and
+  /// [bracketStyle] (muted) while it is off, as the brackets are, over
+  /// that.
+  List<Span> _radioSpans(
+    ThemeData theme,
+    String glyph,
+    bool on,
+    bool enabled,
+  ) {
+    final marked = on && enabled ? markStyle(theme) : const Style();
+    final brackets = marked.merge(
+      bracketStyle ?? theme.muted.merge(const Style(attrsOff: Attr.bold)),
+    );
+    final (open, close) = theme.glyphs.radioBrackets;
+    return [
+      if (open.isNotEmpty) Span(open, brackets),
+      Span(on ? mark ?? glyph : glyph, on ? marked : brackets),
+      if (close.isNotEmpty) Span(close, brackets),
+    ];
   }
 }

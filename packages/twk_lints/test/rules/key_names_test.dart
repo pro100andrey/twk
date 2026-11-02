@@ -91,17 +91,17 @@ final class Save extends Intent {
 }
 
 Widget f(void Function() go, Widget child) => Shortcuts(
-  {'esc': const Save(), 'cmd+s': const Save(), 'g  g': const Save()},
+  {'ret': const Save(), 'cmd+s': const Save(), 'g  g': const Save()},
   child: child,
 );
 ''';
     await assertDiagnostics(code, [
       lintAt(
         code,
-        "'esc'",
+        "'ret'",
         messageContainsAll: [
-          "The key name 'esc' fails the build",
-          '"escape" is meant?',
+          "The key name 'ret' fails the build",
+          '"enter" is meant?',
         ],
       ),
       lintAt(code, "'cmd+s'", messageContainsAll: ['"super" is meant?']),

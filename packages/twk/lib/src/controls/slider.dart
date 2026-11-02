@@ -2,15 +2,16 @@
 library;
 
 import 'package:twk_core/twk_core.dart'
-    show BorderType, BoxConstraints, PaintContext, RenderObject;
+    show BoxConstraints, PaintContext, RenderObject;
 
-import '../data/chart_glyphs.dart';
+import '../data/chart_glyphs.dart' show opaque;
 import '../focus/focus.dart';
 import '../framework/framework.dart';
 import '../gestures/gesture_detector.dart' show takeDrag;
 import '../gestures/mouse.dart';
 import '../scroll/thumb.dart';
 import '../semantics/semantics.dart';
+import '../style/glyphs.dart' show cellRune;
 import '../style/style.dart';
 import 'pressable.dart';
 
@@ -332,6 +333,7 @@ final class _Track extends LeafRenderObjectWidget {
 
   @override
   _RenderTrack createRenderObject(BuildContext context) => _RenderTrack(
+    glyphs: Theme.of(context).glyphs,
     ratio: ratio,
     thumbStyle: thumbStyle,
     trackStyle: trackStyle,
@@ -343,6 +345,7 @@ final class _Track extends LeafRenderObjectWidget {
     _RenderTrack renderObject,
   ) {
     renderObject
+      ..glyphs = Theme.of(context).glyphs
       ..ratio = ratio
       ..thumbStyle = thumbStyle
       ..trackStyle = trackStyle;
@@ -353,6 +356,7 @@ final class _Track extends LeafRenderObjectWidget {
 /// the way along it, in the styles given, none of them the theme's.
 final class _RenderTrack extends RenderObject {
   _RenderTrack({
+    required this._glyphs,
     required this._ratio,
     required this._thumbStyle,
     required this._trackStyle,
@@ -388,7 +392,14 @@ final class _RenderTrack extends RenderObject {
     }
   }
 
-  final _glyphs = ChartGlyphs();
+  Glyphs _glyphs;
+  Glyphs get glyphs => _glyphs;
+  set glyphs(Glyphs g) {
+    if (g != _glyphs) {
+      _glyphs = g;
+      markNeedsPaint();
+    }
+  }
 
   /// The steps of a cell the thumb is placed in, as it painted last: 8, or
   /// 1 where the canvas draws block elements two columns wide.
@@ -424,12 +435,21 @@ final class _RenderTrack extends RenderObject {
     final styles = canvas.styles;
     final track = _trackStyle.penIn(styles);
     canvas.fill(0, 0, width, height, track);
-    final g = _glyphs..use(canvas.segmenter);
-    final steps = _steps = thumbSteps(canvas, vertical: false);
+    final steps = _steps = thumbSteps(
+      canvas,
+      vertical: false,
+      eighths: _glyphs.partialBlocks,
+    );
     if (width <= 0) {
       return;
     }
-    final line = g.lines(BorderType.single).glyph(left: true, right: true);
+    final line = cellRune(
+      this,
+      'trackHorizontal',
+      _glyphs.trackHorizontal,
+      Glyphs.ascii.trackHorizontal,
+      canvas.segmenter,
+    );
     final y = height ~/ 2;
     final start = thumbAt(_ratio, width, steps);
     final end = start + steps;
@@ -447,6 +467,15 @@ final class _RenderTrack extends RenderObject {
       steps: steps,
       vertical: false,
       at: y,
+      glyph: _glyphs.partialBlocks
+          ? null
+          : cellRune(
+              this,
+              'thumbHorizontal',
+              _glyphs.thumbHorizontal,
+              Glyphs.ascii.thumbHorizontal,
+              canvas.segmenter,
+            ),
     );
   }
 }

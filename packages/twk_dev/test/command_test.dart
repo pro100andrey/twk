@@ -64,7 +64,7 @@ void main() {
 
       final waiting = await twkHere(['inspect']);
       expect(waiting.exitCode, 1);
-      expect(waiting.stderr, 'twk inspect: not a terminal\n');
+      expect(waiting.stderr, startsWith('twk inspect: not a terminal: '));
     },
   );
 
@@ -82,7 +82,7 @@ void main() {
 
     final result = await twkHere(['inspect', '${info.serverWebSocketUri}']);
     expect(result.exitCode, 1);
-    expect(result.stderr, 'twk inspect: not a terminal\n');
+    expect(result.stderr, startsWith('twk inspect: not a terminal: '));
   });
 
   test('twk run without a file exits with $usageExitCode, with a file that '

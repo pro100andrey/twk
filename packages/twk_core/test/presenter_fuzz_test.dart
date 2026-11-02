@@ -310,15 +310,16 @@ String freshCluster(Random rnd) =>
 /// Sweeps [hs]'s styles and glyphs as a screen does, its surface and its
 /// presenter the roots, and the rows the harness keeps of the history.
 void sweepHarness(Harness hs) {
-  void none(int _) {}
-  void roots(void Function(int) glyph, void Function(int) style) {
+  void noGlyph(int _) {}
+  void noStyle(StyleId _) {}
+  void roots(void Function(int) glyph, void Function(StyleId) style) {
     hs.surface.markCells(glyph, style);
     hs.presenter.markCells(glyph, style);
     hs.markCommitted(glyph, style);
   }
 
-  hs.styles.sweep((mark) => roots(none, mark));
-  hs.glyphs.sweep((mark) => roots(mark, none));
+  hs.styles.sweep((mark) => roots(noGlyph, mark));
+  hs.glyphs.sweep((mark) => roots(mark, noStyle));
 }
 
 /// Commits 1 to [most] random rows, some of them wider or narrower than

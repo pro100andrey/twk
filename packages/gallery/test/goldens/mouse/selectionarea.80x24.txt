@@ -15,9 +15,9 @@ text
 │                             next.                                              │
 │   FOCUS AND KEYS 5      ·                                                   ·  │
 │     Focus, FocusS…          copied: nothing                                    │
-│     ActiveItem      ▐   · └                                              ┘  ·  │
+│     ActiveItem          · └                                              ┘  ·  │
 │     ExcludeFocus    ▐                                              44 × 8      │
-│     KeyBindings,…    ──────────────────────────────────────────────────────────│
+│     KeyBindings,…   ▐──────────────────────────────────────────────────────────│
 │     Shortcuts, Ac…     selected in       two Texts  a painted log              │
 │                        copy on release  ▐  ●▌                                  │
 │   NAVIGATION     5     style             the theme's  reverse                  │
@@ -40,9 +40,9 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggpppppgggggggggggggggggggggggggggggggggggggggggggggg│
 │aaadddddadddaddddazaaagggogggggggggggggggggggggggggggggggggggggggggggggggggggogg│
 │aaaaannnnnnannnnnnnaaagggggggmmmmmmmgmmmmmmmgggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnaaaaaadgggogoggggggggggggggggggggggggggggggggggggggggggggggoggogg│
+│aaaaannnnnnnnnnaaaaaaagggogoggggggggggggggggggggggggggggggggggggggggggggggoggogg│
 │aaaaannnnnnnnnnnnaaaadggggggggggggggggggggggggggggggggggggggggggggggCCgCgCgggggg│
-│aaaaannnnnnnnnnnnnaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnnnaaadoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnnnnnannnaaaggmmmmmmmmgmmggggggrsssrsssssrhvhvvvvvvvhvvvhggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaaggmmmmgmmgmmmmmmmggwxxywgggggggggggggggggggggggggggggggggg│
 │aaaddddddddddaaaaazaaaggmmmmmggggggggggggrsssrsssssssrhvvvvvvvhggggggggggggggggg│

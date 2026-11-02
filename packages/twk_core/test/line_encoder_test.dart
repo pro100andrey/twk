@@ -22,7 +22,7 @@ void main() {
       final out = LineEncoder(styles)
         ..text(bold, 'a')
         ..text(boldRed, 'b')
-        ..text(0, 'c')
+        ..text(StyleId.base, 'c')
         ..end();
       expect(out.take(), '\x1B[1ma\x1B[31mb\x1B[0mc');
     });
@@ -32,7 +32,7 @@ void main() {
       final out = LineEncoder(styles)
         ..text(styles.style(attrs: Attr.bold), 'a')
         ..end()
-        ..text(0, 'b')
+        ..text(StyleId.base, 'b')
         ..end();
       expect(out.take(), '\x1B[1ma\x1B[0mb');
     });
@@ -63,7 +63,7 @@ void main() {
       expect(without.take(), 'dart');
       final with_ = LineEncoder(styles, hyperlinks: true)
         ..text(link, 'dart')
-        ..text(0, '!')
+        ..text(StyleId.base, '!')
         ..end();
       expect(
         with_.take(),
@@ -85,13 +85,13 @@ void main() {
 
     test('a lone surrogate as U+FFFD', () {
       final out = LineEncoder(StyleTable())
-        ..text(0, 'a\uD800b')
+        ..text(StyleId.base, 'a\uD800b')
         ..end();
       expect(out.take(), 'a�b');
     });
 
     test('take empties the sink', () {
-      final out = LineEncoder(StyleTable())..text(0, 'a');
+      final out = LineEncoder(StyleTable())..text(StyleId.base, 'a');
       expect(out.take(), 'a');
       expect(out.take(), '');
     });

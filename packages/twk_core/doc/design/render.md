@@ -527,8 +527,8 @@ it paint all of itself.
 `RenderEffect` shows its child, as big as it, through an effect over
 the cells of its bounds (the widget layer's `Effect`): a subclass says
 whether it changes anything (`hasEffect`) and what each cell shows
-(`effectCell(x, y, glyph, style, underGlyph, underStyle)`, setting
-`effectGlyph` and `effectStyle`) of what the child painted there and
+(`effectCell(x, y, glyph, style, underGlyph, underStyle)`, the styles
+`StyleId`s, setting `effectGlyph` and `effectStyle`) of what the child painted there and
 what was under it. It is a repaint boundary that keeps both for each
 cell: a new frame of the effect (`markNeedsPaint` on it) is shown from
 what it kept, painting neither the child nor what is under it; a mark

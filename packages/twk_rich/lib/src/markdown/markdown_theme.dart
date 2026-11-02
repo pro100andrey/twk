@@ -48,6 +48,7 @@ final class MarkdownTheme {
     this.rule = const Style(),
     this.tableHeader = const Style(),
     this.tableBorder = const Style(),
+    this.syntax = const SyntaxTheme(),
   });
 
   /// The styles in the colors of [theme], so that a document follows the
@@ -58,7 +59,8 @@ final class MarkdownTheme {
   /// blocks on its surface; links in its primary color underlined, images
   /// in its info color italic; quotes muted with a bar in its border
   /// style, as are rules and the lines of tables; bullets and numbers
-  /// muted; table headers bold.
+  /// muted; table headers bold; the [syntax] in the colors of [theme]
+  /// ([SyntaxTheme.from]).
   MarkdownTheme.from(ThemeData theme)
     : this(
         heading1: theme.primary.merge(_boldUnderline),
@@ -80,6 +82,7 @@ final class MarkdownTheme {
         rule: theme.border,
         tableHeader: _bold,
         tableBorder: theme.border,
+        syntax: SyntaxTheme.from(theme),
       );
 
   static const _bold = Style(attrs: Attr.bold);
@@ -143,6 +146,13 @@ final class MarkdownTheme {
   /// The lines between the columns of a table and under its header.
   final Style tableBorder;
 
+  /// The styles of the tokens of a block of code, over its [codeBlock].
+  ///
+  /// Read by `markdownLines`, which has no widget tree to take them from.
+  /// A [MarkdownView] takes the [SyntaxTheme] at its place (a
+  /// [SyntaxThemeScope], or else the [Theme]'s), and not this.
+  final SyntaxTheme syntax;
+
   /// The style of a heading of [level], 1 to 6.
   Style heading(int level) => switch (level) {
     1 => heading1,
@@ -174,6 +184,7 @@ final class MarkdownTheme {
     Style? rule,
     Style? tableHeader,
     Style? tableBorder,
+    SyntaxTheme? syntax,
   }) => MarkdownTheme(
     heading1: heading1 ?? this.heading1,
     heading2: heading2 ?? this.heading2,
@@ -194,6 +205,7 @@ final class MarkdownTheme {
     rule: rule ?? this.rule,
     tableHeader: tableHeader ?? this.tableHeader,
     tableBorder: tableBorder ?? this.tableBorder,
+    syntax: syntax ?? this.syntax,
   );
 
   // Compared and hashed field by field: a list of the styles would be
@@ -221,7 +233,8 @@ final class MarkdownTheme {
           other.marker == marker &&
           other.rule == rule &&
           other.tableHeader == tableHeader &&
-          other.tableBorder == tableBorder;
+          other.tableBorder == tableBorder &&
+          other.syntax == syntax;
 
   @override
   int get hashCode => Object.hash(
@@ -244,5 +257,6 @@ final class MarkdownTheme {
     rule,
     tableHeader,
     tableBorder,
+    syntax,
   );
 }

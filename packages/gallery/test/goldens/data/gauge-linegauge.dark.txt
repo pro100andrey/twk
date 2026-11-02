@@ -20,7 +20,7 @@ text
 │     DotCanvas                         ███████████▍                                       │   ascii                     │
 │     Calendar                   ·      ███████████▍      29%                        ·     │                             │
 │     Heatmap, ActivityHe…              ███████████▍                                       │  label                      │
-│     Table                      ·                                                   ·     │   own  ratio  none          │
+│     Table                      ·                                                   ·     │   own  percent  none        │
 │     DescriptionList                   used 29% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━           │                             │
 │     TreeView                   ·    └                                          ┘   ·     │  style             primary  │
 │     TreeTable                                                            40 × 5          │  ██ ██ ██ ██ ██             │
@@ -33,7 +33,7 @@ text
 │     TextArea                   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     Autocomplete                                                                         │                             │
 │                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│   CONTROLS            20                                                                 │                             │
+│   CONTROLS            22                                                                 │                             │
 │                                                                                          │                             │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
 styles
@@ -57,7 +57,7 @@ styles
 │aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBhhhhhhhhhhhphhizzzzzihhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhhhhAAAAAAAAAAAABBBBBBCCCBBBBBBBBBBBBBBBBBBBhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaoooooooooooaaahhhhhhhhhhhAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBhhhhhhhhhhhphhnnnnnhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooaaaaaaaaaaaaaaaaaahhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhxyyyxizzzzziizzzzihhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaaahhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhxyyyxizzzzzzziizzzzihhhhhhh│
 │aaaaaoooooooooooooooaaaaaaaahhhhhhhhhhhuuuuhuuuhEEEEEEEEEHHHHHHHHHHHHHHHHHHHHHHhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhhhphhnnnnnhhhhhhhhhhhhhOOOOOOOhh│
 │aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhOOhOhOhhhhhhhhhhphhqqhDDhEEhFFhGGhhhhhhhhhhhhh│

@@ -2,7 +2,7 @@ screen 120×36, cursor hidden
 text
 │  ◆ twk gallery   Animation  ›  AnimatedSwitcher                                            ctrl+p search      ◐ Light  │
 │                                                                                                                        │
-│   ⌕ Filter             /      AnimatedSwitcher                                                               14 of 16  │
+│   ⌕ Filter             /      AnimatedSwitcher                                                               15 of 17  │
 │                               A child that gives way to another as the transition shows them: faded, slid or           │
 │     Skeleton, Skeletoni…      dissolved.                                                                               │
 │     AnimationController                                                                                                │
@@ -21,12 +21,12 @@ text
 │   MOUSE                5                 ╭────────────────────────────────╮              │                             │
 │     GestureDetector            ·   ·     │                                │    ·   ·     │  cycle               ▐  ●▌  │
 │     Listener, MouseRegi…                 │     and now the second one     │              │                             │
-│     IgnorePointer, Abso…  ▐    ·   ·     │                                │    ·   ·     │                             │
+│     IgnorePointer, Abso…       ·   ·     │                                │    ·   ·     │                             │
 │     SelectionArea         ▐              ╰────────────────────────────────╯              │                             │
 │     Draggable, DragTarg…  ▐    ·   ·   └                                    ┘  ·   ·     │                             │
 │                           ▐                                           34 × 5             │                             │
 │   FOCUS AND KEYS       5  ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     Focus, FocusScope                                                                    │                             │
+│     Focus, FocusScope     ▐                                                              │                             │
 │     ActiveItem                 ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     ExcludeFocus                                                                         │                             │
 │     KeyBindings, Leader…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
@@ -56,14 +56,14 @@ styles
 │aaaaaooooooaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhrsssssrsssssrrsssssrssrhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhphhhphhhhhphhrsssssrssssrrssssssssrhhhhh│
 │aaadddddaaaaaaaaaaaaaaaaBaaahhhhhhhhhhhhhhwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooooaaaaaaaahhhhphhhphhhhhwrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrwhhhhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhqxxyqhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhphhhphhhhhwrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrwhhhhphhhphhhhhphhnnnnnhhhhhhhhhhhhhhhqmmtqhh│
 │aaaaaoooooooooaooooooooooaaahhhhhhhhhhhhhhwrrrrrzzzrzzzrzzzrzzzzzzrzzzrrrrrwhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooooaoooooaadhhhhphhhphhhhhwrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrwhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooaoooooaaahhhhphhhphhhhhwrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrwhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooaaaaaaaaadhhhhhhhhhhhhhhwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooaoooooooooaadhhhhphhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhEEhEhEhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaadddddadddaddddaaaaaaaBaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooaooooooooooaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaooooooooooaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooaoooooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
@@ -97,6 +97,6 @@ F on #b6d4fe
 G bold #1f2328 on #b6d4fe
 H #0969da on #b6d4fe
 w #c8cdd5 on #eef0f3
-x on #0969da
-y #ffffff on #0969da
+m on #0969da
+t #ffffff on #0969da
 z #1f2328 on #eef0f3

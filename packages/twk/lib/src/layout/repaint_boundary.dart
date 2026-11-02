@@ -1,7 +1,8 @@
 /// A part of the screen that repaints on its own: [RepaintBoundary].
 library;
 
-import 'package:twk_core/twk_core.dart' show RenderEffect, RenderObject;
+import 'package:twk_core/twk_core.dart'
+    show RenderEffect, RenderObject, StyleId;
 
 import '../framework/framework.dart';
 import 'one_child.dart';
@@ -47,9 +48,9 @@ final class _RenderRepaintBoundary extends RenderEffect {
     int x,
     int y,
     int glyph,
-    int style,
+    StyleId style,
     int underGlyph,
-    int underStyle,
+    StyleId underStyle,
   ) {
     effectGlyph = glyph;
     effectStyle = style;

@@ -7,8 +7,9 @@ library;
 import 'dart:async';
 
 import 'package:meta/meta.dart';
-import 'package:twk_core/twk_core.dart' show KeyEvent, KeyKind;
+import 'package:twk_core/twk_core.dart' show KeyEvent, KeyKind, Mod;
 
+import '../binding/app_binding.dart' show AppBinding;
 import '../foundation/change_notifier.dart' show VoidCallback;
 import '../framework/framework.dart';
 import 'focus_tree.dart';
@@ -201,7 +202,8 @@ enum UnmatchedKeys {
 /// A key the layers on the key path handle now, as
 /// [FocusManagerKeys.activeKeys] lists them: its [combo] and, for a
 /// sequence, the keys [then] pressed after it; what its layer binds it to
-/// ([binding]), and the [hint] its layer gives it, if one does.
+/// ([binding]), and the [hint] its layer gives it, if one does; which of
+/// the layers it is ([layer]).
 @immutable
 final class ActiveKey {
   /// A key [combo], then the keys [then], bound to [binding] with [hint].
@@ -210,6 +212,7 @@ final class ActiveKey {
     required this.binding,
     this.hint,
     this.then = const [],
+    this.layer = 0,
   });
 
   /// The key to press now.
@@ -228,16 +231,35 @@ final class ActiveKey {
   /// What the key does, in a few words: `save`, `quit`.
   final String? hint;
 
+  /// Which layer on the key path takes the key, counted from the nearest
+  /// one that is a [KeyBindings] or [Shortcuts], 0 for it, 1 for the next
+  /// above, and so on; the keys of one layer have one number, and a layer
+  /// with no key to list is counted all the same. A list of keys grouped
+  /// by it shows the layers apart:
+  ///
+  /// ```dart
+  /// List<List<ActiveKey>> byLayer(Iterable<ActiveKey> keys) {
+  ///   final layers = <int, List<ActiveKey>>{};
+  ///   for (final key in keys) {
+  ///     (layers[key.layer] ??= []).add(key);
+  ///   }
+  ///   return [for (final i in layers.keys.toList()..sort()) layers[i]!];
+  /// }
+  /// ```
+  final int layer;
+
   @override
   bool operator ==(Object other) =>
       other is ActiveKey &&
+      other.layer == layer &&
       other.combo == combo &&
       _same(other.then, then) &&
       other.binding == binding &&
       other.hint == hint;
 
   @override
-  int get hashCode => Object.hash(combo, Object.hashAll(then), binding, hint);
+  int get hashCode =>
+      Object.hash(combo, Object.hashAll(then), binding, hint, layer);
 
   /// The keys to press, [combo] and [then], each named by [keyLabel]
   /// ([KeyCombo.toString] when null), apart by a space as
@@ -280,15 +302,24 @@ extension FocusManagerKeys on FocusManager {
   /// to be listed from a layer above. While a layer holds the first keys
   /// of a sequence, the keys that can follow them are listed, and nothing
   /// else. The keys a node takes in its own [FocusNode.onKeyEvent] are not
-  /// listed. [keysChanged] tells when this may have changed. A `MenuItem`
-  /// shows the first key bound to what it does ([ActiveKey.binding]).
+  /// listed, and a node that [FocusNode.takesText] hides from the layers
+  /// above it the keys that are characters, `q` and `shift+q`, not `ctrl+q`.
+  /// [keysChanged] tells when this may have changed. A `MenuItem`
+  /// shows the first key bound to what it does ([ActiveKey.binding]);
+  /// `AppBinding.pressKey` presses one, as a bar of one's own does when a
+  /// hint is tapped.
   List<ActiveKey> get activeKeys {
     final keys = <ActiveKey>[];
     final taken = <KeyCombo>{};
+    var layer = 0;
+    var text = false;
     for (final node in keyPath) {
-      if (node is _LayerNode && node.layer._list(node, keys, taken)) {
-        break;
+      if (node is _LayerNode) {
+        if (node.layer._list(node, keys, taken, layer++, text: text)) {
+          break;
+        }
       }
+      text |= node.takesText;
     }
     return keys;
   }
@@ -391,7 +422,9 @@ final class KeyBindings extends StatefulWidget {
   final Map<KeyCombo, String> comboHints;
 
   /// How long the layer holds the first keys of a sequence without the
-  /// next; null holds them until it comes.
+  /// next; null holds them until it comes. The timeout is a timer of the
+  /// app: the layer needs one above it (`runApp`, or a `Cli`), see
+  /// `AppBinding.startTimer`.
   final Duration? sequenceTimeout;
 
   /// What becomes of the first keys of a sequence that no binding takes:
@@ -512,7 +545,7 @@ final class _Binding<V> {
   _Binding(this.keys, this.value);
 
   final List<KeyCombo> keys;
-  final V value;
+  V value;
   String? hint;
 }
 
@@ -552,6 +585,98 @@ abstract class _LayerState<W extends StatefulWidget, V> extends State<W> {
   Map<KeyCombo, String>? _parsedComboHints;
   String? _parsedLeader;
 
+  // What the last parse read, to tell a map built anew with the same keys
+  // from one with other keys: its keys, its hints' keys and values, and the
+  // bindings made of its entries, each in the order of its map.
+  var _namedKeys = <String>[];
+  var _comboKeys = <KeyCombo>[];
+  var _namedHintKeys = <String>[];
+  var _namedHintTexts = <String>[];
+  var _comboHintKeys = <KeyCombo>[];
+  var _comboHintTexts = <String>[];
+  var _namedBindings = <_Binding<V>>[];
+  var _comboBindings = <_Binding<V>>[];
+
+  /// Whether [named], [combos] and the hints, not the ones parsed, have the
+  /// same keys and hints as they: then only the values are taken, each
+  /// into its binding, and nothing is parsed or allocated.
+  bool _sameKeys(
+    Map<String, V> named,
+    Map<KeyCombo, V> combos,
+    Map<String, String> namedHints,
+    Map<KeyCombo, String> comboHints,
+  ) {
+    if (_bound == null ||
+        named.length != _namedKeys.length ||
+        combos.length != _comboKeys.length ||
+        namedHints.length != _namedHintKeys.length ||
+        comboHints.length != _comboHintKeys.length) {
+      return false;
+    }
+    var i = 0;
+    for (final key in named.keys) {
+      if (key != _namedKeys[i++]) {
+        return false;
+      }
+    }
+    i = 0;
+    for (final key in combos.keys) {
+      if (key != _comboKeys[i++]) {
+        return false;
+      }
+    }
+    i = 0;
+    for (final key in namedHints.keys) {
+      if (key != _namedHintKeys[i++]) {
+        return false;
+      }
+    }
+    i = 0;
+    for (final hint in namedHints.values) {
+      if (hint != _namedHintTexts[i++]) {
+        return false;
+      }
+    }
+    i = 0;
+    for (final key in comboHints.keys) {
+      if (key != _comboHintKeys[i++]) {
+        return false;
+      }
+    }
+    i = 0;
+    for (final hint in comboHints.values) {
+      if (hint != _comboHintTexts[i++]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /// Takes the values of [named] and [combos] into the bindings made of
+  /// their keys, and marks the keys changed where one is listed otherwise.
+  void _takeValues(Map<String, V> named, Map<KeyCombo, V> combos) {
+    var changed = false;
+    var i = 0;
+    for (final value in named.values) {
+      final binding = _namedBindings[i++];
+      if (!identical(binding.value, value)) {
+        changed = changed || !_listedAlike(binding.value, value);
+        binding.value = value;
+      }
+    }
+    i = 0;
+    for (final value in combos.values) {
+      final binding = _comboBindings[i++];
+      if (!identical(binding.value, value)) {
+        changed = changed || !_listedAlike(binding.value, value);
+        binding.value = value;
+      }
+    }
+    if (changed) {
+      _node.markKeysChanged();
+    }
+  }
+
   // the first keys of a sequence held, the node they started at, and the
   // time they are held until
   var _held = <KeyEvent>[];
@@ -570,15 +695,28 @@ abstract class _LayerState<W extends StatefulWidget, V> extends State<W> {
         leaderName == _parsedLeader) {
       return;
     }
+    if (leaderName == _parsedLeader &&
+        _sameKeys(named, combos, namedHints, comboHints)) {
+      _takeValues(named, combos);
+      _parsedNamed = named;
+      _parsedCombos = combos;
+      _parsedNamedHints = namedHints;
+      _parsedComboHints = comboHints;
+      return;
+    }
     final leader = KeyCombo.parse(leaderName);
     Never twice(String before, String name, List<KeyCombo> keys) =>
         throw ArgumentError(
           '"$before" and "$name" are the same key${keys.length > 1 ? 's' : ''}',
         );
     // by the keys as text
-    final bound = <String, _Binding<V>>{
+    final comboBindings = <_Binding<V>>[
       for (final MapEntry(key: combo, :value) in combos.entries)
-        '$combo': _Binding([combo], value),
+        _Binding([combo], value),
+    ];
+    final namedBindings = <_Binding<V>>[];
+    final bound = <String, _Binding<V>>{
+      for (final b in comboBindings) '${b.keys.single}': b,
     };
     final names = <String, String>{};
     for (final MapEntry(key: name, :value) in named.entries) {
@@ -588,7 +726,9 @@ abstract class _LayerState<W extends StatefulWidget, V> extends State<W> {
         twice(before, name, keys);
       }
       names[id] = name;
-      bound[id] = _Binding(keys, value);
+      final binding = _Binding(keys, value);
+      namedBindings.add(binding);
+      bound[id] = binding;
     }
     for (final MapEntry(key: combo, value: hint) in comboHints.entries) {
       final binding = bound['$combo'];
@@ -631,6 +771,14 @@ abstract class _LayerState<W extends StatefulWidget, V> extends State<W> {
     _parsedNamedHints = namedHints;
     _parsedComboHints = comboHints;
     _parsedLeader = leaderName;
+    _namedKeys = named.keys.toList();
+    _comboKeys = combos.keys.toList();
+    _namedHintKeys = namedHints.keys.toList();
+    _namedHintTexts = namedHints.values.toList();
+    _comboHintKeys = comboHints.keys.toList();
+    _comboHintTexts = comboHints.values.toList();
+    _namedBindings = namedBindings;
+    _comboBindings = comboBindings;
   }
 
   /// Whether [now] lists the keys that [before] does, in the same order.
@@ -725,7 +873,9 @@ abstract class _LayerState<W extends StatefulWidget, V> extends State<W> {
     _held.add(event);
     _timer?.cancel();
     _timer = switch (_timeout) {
-      final timeout? => Timer(timeout, () => _expired(node)),
+      final timeout? => AppBinding.of(
+        context,
+      ).startTimer(timeout, () => _expired(node)),
       null => null,
     };
   }
@@ -769,7 +919,7 @@ abstract class _LayerState<W extends StatefulWidget, V> extends State<W> {
     if (_unmatched == UnmatchedKeys.drop) {
       return KeyEventResult.handled;
     }
-    _send([for (var n = node.parent; n != null; n = n.parent) n], held.first);
+    _send(_above(node), held.first);
     return _pressAnew(node, held.sublist(1), event);
   }
 
@@ -803,6 +953,14 @@ abstract class _LayerState<W extends StatefulWidget, V> extends State<W> {
     return KeyEventResult.handled;
   }
 
+  /// The nodes of the key path above [node], the way a key walks them:
+  /// the nodes a dialog's [FocusNode.keysSkip] skips are not among them.
+  static Iterable<FocusNode> _above(FocusNode node) {
+    final path = node.manager?.keyPath.toList() ?? const <FocusNode>[];
+    final at = path.indexWhere((n) => identical(n, node));
+    return at < 0 ? const [] : path.sublist(at + 1);
+  }
+
   /// Gives [key] to [nodes] in turn, until one handles it.
   static void _send(Iterable<FocusNode> nodes, KeyEvent key) {
     for (final n in nodes) {
@@ -812,12 +970,25 @@ abstract class _LayerState<W extends StatefulWidget, V> extends State<W> {
     }
   }
 
+  /// Whether [key] is a character typed, alone or with Shift: what a node
+  /// that [FocusNode.takesText] takes before the layers above it.
+  static bool _isText(KeyCombo key) =>
+      key.char.isNotEmpty && key.modifiers & ~Mod.shift == 0;
+
   /// Adds to [keys] those of this layer, which [node] is, that are taken
-  /// now and whose first key no nearer layer takes ([taken]), then their
-  /// first keys to [taken]. While the layer holds the first keys of a
-  /// sequence, it adds the keys that can follow them instead, and returns
-  /// true.
-  bool _list(FocusNode node, List<ActiveKey> keys, Set<KeyCombo> taken) {
+  /// now and whose first key no nearer layer takes ([taken]), unless
+  /// [text] (a node that takes text is nearer) and the first key is a
+  /// character, then their
+  /// first keys to [taken], as layer number [layer]. While the layer holds
+  /// the first keys of a sequence, it adds the keys that can follow them
+  /// instead, and returns true.
+  bool _list(
+    FocusNode node,
+    List<ActiveKey> keys,
+    Set<KeyCombo> taken,
+    int layer, {
+    required bool text,
+  }) {
     final bound = _bound;
     if (bound == null) {
       return false;
@@ -834,6 +1005,7 @@ abstract class _LayerState<W extends StatefulWidget, V> extends State<W> {
               then: b.keys.sublist(held.length + 1),
               binding: b.value!,
               hint: b.hint,
+              layer: layer,
             ),
           );
         }
@@ -843,6 +1015,9 @@ abstract class _LayerState<W extends StatefulWidget, V> extends State<W> {
     final mine = <KeyCombo>[];
     for (final b in bound) {
       final first = b.keys.first;
+      if (text && _isText(first)) {
+        continue;
+      }
       if (!taken.contains(first) && _take(node, b.value, invoke: false)) {
         mine.add(first);
         keys.add(
@@ -851,6 +1026,7 @@ abstract class _LayerState<W extends StatefulWidget, V> extends State<W> {
             then: b.keys.length == 1 ? const [] : b.keys.sublist(1),
             binding: b.value!,
             hint: b.hint,
+            layer: layer,
           ),
         );
       }

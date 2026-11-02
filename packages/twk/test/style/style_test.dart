@@ -251,6 +251,20 @@ void main() {
       expect(other.penOf(otherId), style(255).pen);
     });
 
+    test('is the same Pen for an equal style, a new one for a changed', () {
+      Style style(int r) => Style(fg: Color.rgb(r, 0, 0), attrs: Attr.bold);
+      final pen = style(7).pen;
+      expect(identical(style(7).pen, pen), isTrue);
+      final other = style(8).pen;
+      expect(other, isNot(pen));
+      expect(other.fg, const Color.rgb(8, 0, 0));
+      // a style that took the place of another of its slot gives its own
+      for (var r = 0; r < 300; r++) {
+        expect(style(r).pen.fg, Color.rgb(r, 0, 0));
+      }
+      expect(style(7).pen, pen);
+    });
+
     test('of a style looked up before is the id the table gave it', () {
       final table = StyleTable();
       final ids = [
@@ -402,5 +416,15 @@ void main() {
       }
       expect(vt.cell(0, 0).text + vt.cell(1, 0).text, 'a3');
     });
+  });
+
+  test('a Span with a null style has none of its own', () {
+    Style? none() => null;
+    expect(Span('x', none()).style, const Style());
+    expect(
+      Span.gradient('x', const Gradient([Color.red]), none()).style,
+      const Style(),
+    );
+    expect(const Span('x').style, const Style());
   });
 }

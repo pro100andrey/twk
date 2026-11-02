@@ -41,6 +41,10 @@ TreeView<N> tree(
   Widget Function(BuildContext context, TreeEntry<N> entry)? label,
   void Function(N node)? onActivated,
   bool showGuides = true,
+  bool separateRoots = false,
+  int? maxIndent,
+  Widget Function(BuildContext context, TreeEntry<N> entry)? gutter,
+  int gutterWidth = 1,
   bool autofocus = false,
   bool? canRequestFocus,
   FocusNode? focusNode,
@@ -55,6 +59,10 @@ TreeView<N> tree(
   controller: controller,
   onActivated: onActivated,
   showGuides: showGuides,
+  separateRoots: separateRoots,
+  maxIndent: maxIndent,
+  gutter: gutter,
+  gutterWidth: gutterWidth,
   autofocus: autofocus,
   canRequestFocus: canRequestFocus,
   focusNode: focusNode,
@@ -827,6 +835,249 @@ void main() {
       await t.pump();
       expect(t.lines.last, '└── n99999');
       expect(built, lessThan(20));
+    });
+  });
+  group('separateRoots', () {
+    testTwk('an empty row comes between roots, after the subtree of each; '
+        'the keys and the mouse skip it', (t) async {
+      final controller = TreeController(
+        expanded: ['src', 'widgets'],
+        selectedKey: 'button.dart',
+      );
+      await t.pumpWidget(
+        Theme.terminal(
+          child: tree(
+            files,
+            separateRoots: true,
+            controller: controller,
+            autofocus: true,
+          ),
+        ),
+        size: (24, 10),
+      );
+      expect(t.lines, [
+        '▾ src',
+        '├─▸ data',
+        '└─▾ widgets',
+        '  └── button.dart',
+        '',
+        '▸ test',
+        '',
+        '  readme.md',
+        '',
+        '',
+      ]);
+      await t.press('down');
+      expect(controller.selectedKey, 'test');
+      await t.press('down');
+      expect(controller.selectedKey, 'readme.md');
+      await t.press('up');
+      await t.press('up');
+      expect(controller.selectedKey, 'button.dart');
+      // a click on an empty row selects nothing
+      await t.click(3, 4);
+      await t.pump();
+      expect(controller.selectedKey, 'button.dart');
+      await t.press('end');
+      expect(controller.selectedKey, 'readme.md');
+    });
+
+    testTwk('a root collapsed or expanded moves the empty rows with it', (
+      t,
+    ) async {
+      final controller = TreeController();
+      await t.pumpWidget(
+        Theme.terminal(
+          child: tree(files, separateRoots: true, controller: controller),
+        ),
+        size: (20, 6),
+      );
+      expect(t.lines, ['▸ src', '', '▸ test', '', '  readme.md', '']);
+      controller.expand('test');
+      await t.pump();
+      expect(t.lines, [
+        '▸ src',
+        '',
+        '▾ test',
+        '└── tree_test.dart',
+        '',
+        '  readme.md',
+      ]);
+    });
+  });
+
+  group('maxIndent', () {
+    const deep = [
+      N('a', [
+        N('b', [
+          N('c', [
+            N('d', [N('e')]),
+          ]),
+        ]),
+      ]),
+    ];
+
+    testTwk('nodes deeper than the limit are indented as far as it, their '
+        'guides and expanders in its last column', (t) async {
+      await t.pumpWidget(
+        Theme.terminal(
+          child: tree(
+            deep,
+            maxIndent: 4,
+            controller: TreeController(expanded: ['a', 'b', 'c', 'd']),
+          ),
+        ),
+        size: (12, 5),
+      );
+      expect(t.lines, [
+        '▾ a',
+        '└─▾ b',
+        '  └─▾ c',
+        '  └─▾ d',
+        '  └── e',
+      ]);
+    });
+
+    testTwk('a click on the expander of a node past the limit is on its '
+        'column there', (t) async {
+      final controller = TreeController(expanded: ['a', 'b', 'c']);
+      await t.pumpWidget(
+        Theme.terminal(
+          child: tree(deep, maxIndent: 4, controller: controller),
+        ),
+        size: (12, 5),
+      );
+      // d is a row 3, its expander at column 4
+      await t.click(4, 3);
+      await t.pump();
+      expect(controller.expanded, {'a', 'b', 'c', 'd'});
+    });
+
+    testTwk('without a limit the indent grows by a level each', (t) async {
+      await t.pumpWidget(
+        Theme.terminal(
+          child: tree(
+            deep,
+            controller: TreeController(expanded: ['a', 'b', 'c', 'd']),
+          ),
+        ),
+        size: (16, 5),
+      );
+      expect(t.lines.last, '      └── e');
+    });
+  });
+
+  group('gutter', () {
+    Widget mark(BuildContext context, TreeEntry<N> entry) =>
+        Text(entry.selected ? '▎' : ' ');
+
+    testTwk('a cell in column 0 of each node row is built from the entry, '
+        'the guides and the label after it; the rows of a separator are '
+        'empty there', (t) async {
+      await t.pumpWidget(
+        Theme.terminal(
+          child: tree(
+            files,
+            gutter: mark,
+            separateRoots: true,
+            canRequestFocus: false,
+            controller: TreeController(
+              expanded: ['src'],
+              selectedKey: 'data',
+            ),
+          ),
+        ),
+        size: (20, 6),
+      );
+      expect(t.lines, [
+        ' ▾ src',
+        '▎├─▸ data',
+        ' └─▸ widgets',
+        '',
+        ' ▸ test',
+        '',
+      ]);
+    });
+
+    testTwk('gutterWidth sets the cells it takes, and the expander is '
+        'clicked after them', (t) async {
+      final controller = TreeController(expanded: ['src']);
+      await t.pumpWidget(
+        Theme.terminal(
+          child: tree(
+            files,
+            gutter: (context, entry) => Text(entry.selected ? '▎▎' : '  '),
+            gutterWidth: 2,
+            controller: controller,
+          ),
+        ),
+        size: (20, 6),
+      );
+      expect(t.lines[1], '  ├─▸ data');
+      // the expander of data is at column 2 + 2
+      await t.click(4, 1);
+      await t.pump();
+      expect(controller.expanded, {'src', 'data'});
+      // column 0 of the gutter is not the expander of src
+      await t.click(0, 0);
+      await t.pump();
+      expect(controller.expanded, {'src', 'data'});
+      expect(controller.selectedKey, 'src');
+    });
+
+    testTwk('the gutter takes the row style of the node selected', (t) async {
+      await t.pumpWidget(
+        Theme.terminal(
+          child: tree(
+            files,
+            gutter: mark,
+            canRequestFocus: false,
+            controller: TreeController(selectedKey: 'src'),
+            selectedStyle: const Style(bg: red),
+          ),
+        ),
+        size: (20, 3),
+      );
+      expect(t.cell(0, 0), hasBg(red));
+      expect(t.cell(0, 1), isNot(hasBg(red)));
+    });
+  });
+
+  group("in an app's own list", () {
+    testTwk('with canRequestFocus false the view takes no keys and the '
+        'focus; the app moves the selection through the controller and '
+        'styles it with selectedStyle', (t) async {
+      final controller = TreeController(expanded: ['src']);
+      final keys = <String>[];
+      await t.pumpWidget(
+        Theme.terminal(
+          child: Focus(
+            autofocus: true,
+            onKeyEvent: (_, event) {
+              keys.add(KeyCombo.fromEvent(event).toString());
+              if (KeyCombo.parse('down').accepts(event)) {
+                controller.selectedKey = 'widgets';
+                return KeyEventResult.handled;
+              }
+              return KeyEventResult.ignored;
+            },
+            child: tree(
+              files,
+              canRequestFocus: false,
+              controller: controller,
+              selectedStyle: const Style(bg: red),
+            ),
+          ),
+        ),
+        size: (16, 6),
+      );
+      await t.press('down');
+      await t.pump();
+      expect(keys, ['down']);
+      expect(rowsOn(t, red), ['└─▸ widgets']);
+      // its own keys do nothing
+      await t.press('up');
+      expect(controller.selectedKey, 'widgets');
     });
   });
 }

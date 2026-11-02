@@ -105,6 +105,11 @@ final class InputParser {
   /// is on its way, so it deserves a longer wait than a lone ESC.
   bool get sequenceStarted => hasPending && _len > 2;
 
+  /// Whether the pending sequence has a byte after its ESC. With the kitty
+  /// keyboard protocol Alt+key comes as `CSI u`, so ESC and a byte can only
+  /// be a sequence cut by a slow link, never keys typed.
+  bool get escapeFollowed => hasPending && _len > 1;
+
   /// Decodes [bytes], what one read of the input brought, with what the
   /// reads before left incomplete: the events complete so far, in order.
   /// What is incomplete waits for the next [feed] or a [flush].

@@ -326,8 +326,9 @@ void main() {
         ),
       ),
     );
-    // what the others leave: the narrow ones whole, the widest cut
-    expect(t.lines, ['[ All │ Errors (3) │ Warnings … │ Info ]', '']);
+    // what the others leave: the narrow ones whole, the widest cut (no blank
+    // before the …, as a paragraph cuts)
+    expect(t.lines, ['[ All │ Errors (3) │ Warnings… │ Info ]', '']);
     await t.pumpWidget(
       Theme.terminal(
         child: Align(

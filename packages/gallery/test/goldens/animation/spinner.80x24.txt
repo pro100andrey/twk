@@ -9,19 +9,19 @@ text
 │     ModalBarrier                                                               │
 │     WindowLayer         ·   ·   ·    ┌                       ┐  ·   ·   ·   ·  │
 │                                        ⠴ Resolving packages…                   │
-│   ANIMATION     16      ·   ·   ·                               ·   ·   ·   ·  │
+│   ANIMATION     17      ·   ·   ·                               ·   ·   ·   ·  │
 │ ▎   Spinner                            ⠴ Compiling…                            │
-│     ProgressBar         ·   ·   ·                               ·   ·   ·   ·  │
-│     ProgressList                       ⠴ Running 214 tests…                    │
-│     Skeleton, Ske…  ▐   ·   ·   ·    └                       ┘  ·   ·   ·   ·  │
-│     AnimationCont…  ▐                                  21 × 5                  │
-│     AnimatedBuild…      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
-│     AnimatedAlign…                                                             │
-│     AnimatedPosit…   ──────────────────────────────────────────────────────────│
-│     AnimatedBox        frames   dots  line  arc                                │
-│     AnimatedOpaci…     style   ██ ██ ██ ██ ██  primary                         │
-│     AnimatedDefau…             ▔▔                                              │
-│     AnimatedSize                                                               │
+│     TickerMode          ·   ·   ·                               ·   ·   ·   ·  │
+│     ProgressBar                        ⠴ Running 214 tests…                    │
+│     ProgressList    ▐   ·   ·   ·    └                       ┘  ·   ·   ·   ·  │
+│     Skeleton, Ske…  ▐                                  21 × 5                  │
+│     AnimationCont…      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│     AnimatedBuild…                                                             │
+│     AnimatedAlign…   ──────────────────────────────────────────────────────────│
+│     AnimatedPosit…     frames   dots  line  arc                                │
+│     AnimatedBox        style   ██ ██ ██ ██ ██  primary                         │
+│     AnimatedOpaci…             ▔▔                                              │
+│     AnimatedDefau…                                                             │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -36,17 +36,17 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaggggggggggggggggggpgqqqqqqqqqgqqqqqqqqqggggggggggggggggggg│
 │aaadddddddddaaaaaBBaaagggogggogggogggggggggggggggggggggggggggggggogggogggogggogg│
 │arssstttttttsssssssssaggggggggggggggggggpgqqqqqqqqqqgggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnaaaaaagggogggogggogggggggggggggggggggggggggggggggogggogggogggogg│
-│aaaaannnnnnnnnnnnaaaaaggggggggggggggggggpgqqqqqqqgqqqgqqqqqqgggggggggggggggggggg│
-│aaaaannnnnnnnnannnnaadgggogggogggoggggogggggggggggggggggggggggoggogggogggogggogg│
-│aaaaannnnnnnnnnnnnnaadggggggggggggggggggggggggggggggggggEEgEgEgggggggggggggggggg│
+│aaaaannnnnnnnnnaaaaaaagggogggogggogggggggggggggggggggggggggggggggogggogggogggogg│
+│aaaaannnnnnnnnnnaaaaaaggggggggggggggggggpgqqqqqqqgqqqgqqqqqqgggggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaadgggogggogggoggggogggggggggggggggggggggggoggogggogggogggogg│
+│aaaaannnnnnnnnannnnaadggggggggggggggggggggggggggggggggggEEgEgEgggggggggggggggggg│
 │aaaaannnnnnnnnnnnnnaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
 │aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnnnnnaaaaaaggmmmmmmggsttttshwwwwhhwwwhggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnnnnaaaggmmmmmgggppgxxgyygzzgAAggEEEEEEEggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaaaggmmmmmmggsttttshwwwwhhwwwhggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnaaaaaaggmmmmmgggppgxxgyygzzgAAggEEEEEEEggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnnaaaggggggggggqqgggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnnaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

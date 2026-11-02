@@ -90,9 +90,11 @@ export 'package:twk_core/twk_core.dart'
         ParentData,
         RenderObject,
         RenderObjectWithChildMixin,
+        StyleId,
         StyleTable,
         TextMode,
         TextSegmenter,
+        breakLines,
         describeAlignment,
         describeColor,
         describeConstraints,
@@ -100,6 +102,8 @@ export 'package:twk_core/twk_core.dart'
         describePen,
         describeText,
         describeValue,
+        fitText,
+        padCells,
         stringWidth;
 // tests: a terminal in memory, and what it is made with
 export 'package:twk_core/twk_core.dart'

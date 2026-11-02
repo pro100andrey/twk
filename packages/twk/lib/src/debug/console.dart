@@ -19,7 +19,9 @@ import 'package:twk_core/twk_core.dart'
         RenderObject,
         StyleTable,
         TerminalBackend,
-        clipboardSequence;
+        TextOverflow,
+        clipboardSequence,
+        fitText;
 
 import '../binding/app_binding.dart';
 import '../data/chart_glyphs.dart' show opaque;
@@ -869,10 +871,15 @@ final class RenderConsolePanel extends RenderObject {
           // a place too long for the row is cut from the left, so that its
           // file, line and column, and the member after it, show
           final most = (width - 4) * 2 ~/ 3;
-          var place = frame.location;
-          if (place.length > most && most > 8) {
-            place = '…${place.substring(place.length - most + 1)}';
-          }
+          final place = most > 8
+              ? fitText(
+                  canvas.segmenter,
+                  frame.location,
+                  most,
+                  overflow: TextOverflow.ellipsisStart,
+                  ellipsis: _theme.glyphs.ellipsis,
+                )
+              : frame.location;
           final x = 3 + canvas.text(3, y, place, at.penIn(styles));
           canvas.text(
             x + 2,

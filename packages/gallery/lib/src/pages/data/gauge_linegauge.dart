@@ -45,7 +45,7 @@ const _gaugeLine = ChoiceOption<String>(
 const _gaugeLabel = ChoiceOption<String>(
   'label',
   'label',
-  values: ['own', 'ratio', 'none'],
+  values: ['own', 'percent', 'none'],
 );
 
 /// The Gauge, LineGauge page's `color` option.
@@ -88,12 +88,12 @@ final _gauge = GalleryPage(
     }
     final theme = Theme.of(context);
     final percent = '${(r * 100).round()}%';
-    // a label of its own, the ratio the gauges write (null), or none
-    final (gaugeLabel, lineLabel) = switch (o(_gaugeLabel)) {
-      'own' => (percent, 'used $percent'),
-      'ratio' => (null, null),
-      _ => ('', ''),
-    };
+    // a label of its own, the percentage the gauges write, or none
+    final label = o(_gaugeLabel);
+    final (gaugeLabel, lineLabel) = label == 'own'
+        ? (percent, 'used $percent')
+        : (null, null);
+    final percentage = label == 'percent';
     return SizedBox(
       width: _gaugeW,
       child: Column(
@@ -106,6 +106,7 @@ final _gauge = GalleryPage(
             child: Gauge(
               ratio: r,
               label: gaugeLabel,
+              showPercentage: percentage,
               style: o
                   .styleOf(context, _gaugeColor)
                   .merge(Style(bg: theme.surface.bg)),
@@ -115,6 +116,7 @@ final _gauge = GalleryPage(
           LineGauge(
             ratio: r,
             label: lineLabel,
+            showPercentage: percentage,
             type: BorderType.values.byName(o(_gaugeLine)),
             segmented: o(_gaugeSegmented),
             filledStyle: r > .9
@@ -167,7 +169,7 @@ final _gauge = GalleryPage(
       '          child: Gauge(',
       '            ratio: _ratio,',
       if (label == 'own') '            label: percent,',
-      if (label == 'none') "            label: '',",
+      if (label == 'percent') '            showPercentage: true,',
       codeLine([
         '            style: theme.${o(_gaugeColor)}',
         '.merge(.new(bg: theme.surface.bg)),',
@@ -178,7 +180,7 @@ final _gauge = GalleryPage(
       '        LineGauge(',
       '          ratio: _ratio,',
       if (label == 'own') r"          label: 'used $percent',",
-      if (label == 'none') "          label: '',",
+      if (label == 'percent') '          showPercentage: true,',
       '          type: .${o.nameOf(_gaugeLine)},',
       if (o(_gaugeSegmented)) '          segmented: true,',
       '          filledStyle: _ratio > .9',

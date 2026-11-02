@@ -12,16 +12,16 @@ text
 │     TextArea            ·   ·      │/ and a command             │   ·   ·   ·  │
 │ ▎   Autocomplete    ▐              ╰────────────────────────────╯              │
 │                     ▐   ·   ·                                       ·   ·   ·  │
-│   CONTROLS      20                 chosen: nothing                             │
+│   CONTROLS      22                 chosen: nothing                             │
 │     Button              ·   ·    └                                ┘ ·   ·   ·  │
 │     Pressable                                               30 × 5             │
 │     Checkbox, Swi…      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
 │     RadioGroup                                                                 │
 │     SegmentedButt…   ──────────────────────────────────────────────────────────│
-│     SelectionList      trigger      /  none                                    │
-│     Select, Multi…     rows         8  4                                       │
-│     ConfirmInput       popup look   raised  bordered                           │
-│     Slider                                                                     │
+│     Chip, ChipList     trigger      /  none                                    │
+│     ValueStepper       rows         8  4                                       │
+│     SelectionList      popup look   raised  bordered                           │
+│     Select, Multi…                                                             │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -43,10 +43,10 @@ styles
 │aaaaannnnnnnnnannnnaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
 │aaaaannnnnnnnnnaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnnnnnnnaaaaggmmmmmmmgggggrsrhxxxxhggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnannnnnnaaaggmmmmggggggggrsrhxhgggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnnaaaaaggmmmmmgmmmmggrssssssrhxxxxxxxxhgggggggggggggggggggggggggg│
-│aaaaannnnnnaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnannnnnnnnaaaggmmmmmmmgggggrsrhxxxxhggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaaaggmmmmggggggggrsrhxhgggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnaaaaggmmmmmgmmmmggrssssssrhxxxxxxxxhgggggggggggggggggggggggggg│
+│aaaaannnnnnnannnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

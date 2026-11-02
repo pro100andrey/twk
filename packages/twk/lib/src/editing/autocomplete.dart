@@ -433,8 +433,8 @@ final class _AutocompleteState extends State<Autocomplete> {
   Widget build(BuildContext context) {
     if (Overlay.maybeOf(context) == null) {
       throw StateError(
-        'Autocomplete: no Overlay above it: place an Overlay above it, as '
-        'around the whole app: Overlay(child: …)',
+        'Autocomplete: no Overlay above it: place an Overlay above it, as App '
+        'does around the whole app: App(child: …)',
       );
     }
     final theme = Theme.of(context);

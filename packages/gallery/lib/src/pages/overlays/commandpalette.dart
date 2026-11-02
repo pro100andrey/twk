@@ -24,6 +24,18 @@ const _commandpaletteFiles = SwitchOption(
   initial: true,
 );
 
+/// The CommandPalette page's `rule` option.
+const _commandpaletteRule = SwitchOption('rule', 'rule');
+
+/// The CommandPalette page's `bar` option.
+const _commandpaletteBar = SwitchOption('bar', 'bar');
+
+/// The CommandPalette page's `thumb` option.
+const _commandpaletteThumb = SwitchOption('thumb', 'thumb');
+
+/// The CommandPalette page's `placeholder` option.
+const _commandpalettePlaceholder = SwitchOption('placeholder', 'placeholder');
+
 final _commandpalettePage = GalleryPage(
   group: _group,
   title: 'CommandPalette',
@@ -38,12 +50,20 @@ final _commandpalettePage = GalleryPage(
     _commandpaletteWidth,
     _commandpaletteRows,
     _commandpaletteFiles,
+    _commandpaletteRule,
+    _commandpaletteBar,
+    _commandpaletteThumb,
+    _commandpalettePlaceholder,
     _lookOption,
   ],
   build: (context, o) => _Palette(
     width: o(_commandpaletteWidth),
     rows: o(_commandpaletteRows),
     files: o(_commandpaletteFiles),
+    rule: o(_commandpaletteRule),
+    bar: o(_commandpaletteBar),
+    thumb: o(_commandpaletteThumb),
+    placeholder: o(_commandpalettePlaceholder),
     look: _lookOf(o),
   ),
   code: (o) => [
@@ -81,6 +101,10 @@ final _commandpalettePage = GalleryPage(
     if (o(_commandpaletteRows) != 10)
       '  rows: ${o.nameOf(_commandpaletteRows)},',
     ..._lookLine(o, '  '),
+    if (o(_commandpalettePlaceholder)) "  placeholder: 'type a command',",
+    if (o(_commandpaletteRule)) '  rule: true,',
+    if (o(_commandpaletteBar)) '  bar: true,',
+    if (o(_commandpaletteThumb)) '  thumb: true,',
     '  commands: [',
     "    Command('Build', onSelected: _build),",
     "    Command('Run tests', onSelected: _test),",
@@ -134,12 +158,22 @@ final class _Palette extends StatefulWidget {
     required this.width,
     required this.rows,
     required this.files,
+    required this.rule,
+    required this.bar,
+    required this.thumb,
+    required this.placeholder,
     required this.look,
   });
 
   final int width;
   final int rows;
   final PanelLook look;
+
+  /// The palette's rule, bar, thumb and placeholder.
+  final bool rule;
+  final bool bar;
+  final bool thumb;
+  final bool placeholder;
 
   /// Whether commandsFor finds the files that match.
   final bool files;
@@ -184,6 +218,10 @@ final class _PaletteState extends State<_Palette> with KeptState {
     width: widget.width,
     rows: widget.rows,
     look: widget.look,
+    placeholder: widget.placeholder ? 'type a command' : null,
+    rule: widget.rule,
+    bar: widget.bar,
+    thumb: widget.thumb,
     commands: [
       Command('Build', onSelected: _build),
       Command('Run tests', onSelected: _test),

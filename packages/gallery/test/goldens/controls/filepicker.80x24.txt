@@ -20,7 +20,7 @@ text
 │     ListTile           └                                                    ┘  │
 │     StatusBar        ──────────────────────────────────────────────────────────│
 │                        mode          open  open several  save  directory       │
-│   OVERLAYS      11     show hidden  ▐●  ▌                                      │
+│   OVERLAYS      12     show hidden  ▐●  ▌                                      │
 │     Overlay                                                                    │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │

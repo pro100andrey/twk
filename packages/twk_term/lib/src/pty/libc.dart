@@ -6,6 +6,7 @@ library;
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
+import 'dart:typed_data';
 
 /// `struct pollfd`, the same on Linux and macOS.
 final class PollFd extends Struct {
@@ -344,6 +345,105 @@ int? pidfdExitStatus(int pidfd) {
     return info.cast<Int32>()[15]; // exit_code, after mask, cgroupid, ids
   } finally {
     free(info.cast());
+  }
+}
+
+/// kqueue(2) (macOS): a new event queue's descriptor, or -1.
+@Native<Int Function()>(isLeaf: true)
+external int kqueue();
+
+/// kevent(2) (macOS): applies [changes] ([nchanges] of them) to the queue
+/// [kq] and takes up to [nevents] events into [events], waiting [timeout]
+/// (a `struct timespec`, null for ever). The number of events, or -1.
+@Native<
+  Int Function(Int, Pointer<Void>, Int, Pointer<Void>, Int, Pointer<Void>)
+>(isLeaf: true)
+external int kevent(
+  int kq,
+  Pointer<Void> changes,
+  int nchanges,
+  Pointer<Void> events,
+  int nevents,
+  Pointer<Void> timeout,
+);
+
+/// `sizeof(struct kevent)` on macOS, arm64 and x86-64 alike: the 64-bit
+/// layout of `<sys/event.h>`, not kevent64's 48 bytes.
+const _keventBytes = 32;
+
+// struct kevent, byte offsets (sys/event.h, LP64):
+//   0  uintptr_t ident   the pid
+//   8  int16_t   filter  EVFILT_PROC
+//  10  uint16_t  flags   EV_ADD, ...
+//  12  uint32_t  fflags  NOTE_EXIT | NOTE_EXITSTATUS
+//  16  intptr_t  data    in an event, the wait status
+//  24  void*     udata   unused
+const _keventIdent = 0;
+const _keventFilter = 8;
+const _keventFlags = 10;
+const _keventFflags = 12;
+const _keventData = 16;
+
+const _evfiltProc = -5; // EVFILT_PROC: events of a process
+const _evAdd = 0x1; // EV_ADD: add the event to the queue
+const _evOneshot = 0x10; // EV_ONESHOT: report once
+const _noteExit = 0x80000000; // NOTE_EXIT: the process ended
+// NOTE_EXITSTATUS (with NOTE_EXIT): data is the wait status, also where
+// somebody else waited for the process
+const _noteExitstatus = 0x04000000;
+
+/// Watches the end of the process [pid] in a new kqueue (macOS), whoever
+/// waits for it: the queue's descriptor, or -1 where it could not be made
+/// (ESRCH where the process was gone and reaped already).
+int watchExit(int pid) {
+  final kq = kqueue();
+  if (kq < 0) {
+    return -1;
+  }
+  final change = calloc(1, _keventBytes);
+  if (change == nullptr) {
+    close(kq);
+    return -1;
+  }
+  try {
+    final bytes = change.cast<Uint8>().asTypedList(_keventBytes);
+    ByteData.view(bytes.buffer, bytes.offsetInBytes, _keventBytes)
+      ..setUint64(_keventIdent, pid, Endian.host)
+      ..setInt16(_keventFilter, _evfiltProc, Endian.host)
+      ..setUint16(_keventFlags, _evAdd | _evOneshot, Endian.host)
+      ..setUint32(_keventFflags, _noteExit | _noteExitstatus, Endian.host);
+    // no event list: a change that fails makes the call return -1
+    if (kevent(kq, change.cast(), 1, nullptr, 0, nullptr) < 0) {
+      close(kq);
+      return -1;
+    }
+    return kq;
+  } finally {
+    free(change);
+  }
+}
+
+/// The wait status of the process the queue [kq] of [watchExit] watches,
+/// null while it runs. Does not wait.
+int? exitStatusFrom(int kq) {
+  final event = calloc(1, _keventBytes + 16); // the event, a zero timespec
+  if (event == nullptr) {
+    return null;
+  }
+  try {
+    final timeout = (event.cast<Uint8>() + _keventBytes).cast<Void>();
+    if (kevent(kq, nullptr, 0, event.cast(), 1, timeout) != 1) {
+      return null;
+    }
+    final bytes = event.cast<Uint8>().asTypedList(_keventBytes);
+    final view = ByteData.view(bytes.buffer, bytes.offsetInBytes, _keventBytes);
+    if (view.getInt16(_keventFilter, Endian.host) != _evfiltProc ||
+        view.getUint32(_keventFflags, Endian.host) & _noteExit == 0) {
+      return null;
+    }
+    return view.getInt64(_keventData, Endian.host);
+  } finally {
+    free(event.cast());
   }
 }
 

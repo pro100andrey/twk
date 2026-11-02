@@ -20,7 +20,13 @@ scroll; a notch of the wheel over it scrolls `Scrollable.wheelStep` (3)
 cells (along a horizontal axis the horizontal wheel's, or the vertical one's
 for a mouse without one), the innermost scrollable under the mouse alone,
 and while one is mounted the terminal reports presses and the wheel
-(`gestures`). Its `ScrollPosition`, a `ChangeNotifier` whose listeners are
+(`gestures`). With `physics:` a `NeverScrollableScrollPhysics()` (any
+`ScrollPhysics` whose `shouldAcceptUserOffset` is false) it takes neither the
+wheel, which goes to the scrollable around it, nor the keys: it is then no stop
+of Tab and has no key hints; a controller, `jumpTo` and a scrollbar still move
+it. `Scrollable`, `SingleChildScrollView` and `ListView` take `physics`;
+`SelectionList`, `Table`, `TreeView`, `LogView` and `FilePicker` take none.
+Its `ScrollPosition`, a `ChangeNotifier` whose listeners are
 told when the offset or the extents change: `offset` in cells, kept from 0
 to `maxOffset` once the viewport told it the extents (`applyExtents`; an
 offset set before is kept until then; a viewport that settles its offset
@@ -60,7 +66,8 @@ or the wheel that would go past an end an `OverscrollNotification`
 ## `SingleChildScrollView`
 
 `SingleChildScrollView(child:, scrollDirection:, controller:, style:,
-focusNode:, autofocus:, canRequestFocus:, keyHints: true)`, a `Scrollable`,
+focusNode:, autofocus:, canRequestFocus:, physics:, keyHints: true)`, a
+`Scrollable`,
 shows one child laid out as long as it likes along the axis and within the
 constraints across it (a `Column` in it as tall as its children) in a window
 as big as the child within the constraints, filled with its `style` over the
@@ -139,18 +146,24 @@ first laid out, in place of `initialOffset`; a `jumpTo` meanwhile drops it.
 
 ## `Scrollbar`
 
-`Scrollbar(child:, axis: Axis.vertical, visibility:
+`Scrollbar(child:, axis:, visibility:
 ScrollbarVisibility.always, hideAfter: 1 s, style:, slim: false,
 trackStyle:)` (`slim`: the track a thin line in `trackStyle`, the theme's
 `faint` by default, the thumb a heavy one at rest and the whole cell over
 the line while the mouse is over the bar or drags its thumb) shows the
-outermost `Scrollable` inside `child` that scrolls along `axis`, with no
-controller (a vertical one and a horizontal one nested show both): a column
-at the right edge of the child, or a row at its bottom, the child having the
+outermost `Scrollable` inside `child`, of either axis where `axis` is left
+out, as Flutter's `Scrollbar` reads it from the scrollable, or the outermost
+along `axis` (content that scrolls both ways has a bar to each, with each
+axis given; an inner scrollable of the other axis never takes the bar of an
+outer one): a column at the right edge of the child for a vertical
+scrollable, or a row at its bottom for a horizontal one, the child having the
 rest of the room. The thumb is as long as the window is of the content, a
 cell at least, and as far along the track as the window along the content,
 exactly at its start and end at the ends, in eighths of a cell (block
-elements; whole cells where the canvas draws those two columns wide),
+elements; whole cells where the canvas draws those two columns wide, or
+the theme's `glyphs.partialBlocks` is false, as in `Glyphs.ascii`, whose thumb is
+`#` on a `|` or `-` track: the theme's `trackVertical`, `trackHorizontal`,
+`thumbVertical` and `thumbHorizontal`),
 estimates where the content's extent is one, as a `ListView`'s is where it
 has not been. Dragging the thumb with the left button scrolls the content as
 far as the thumb moves, wherever the mouse goes until the release; pressing
@@ -184,11 +197,19 @@ selectable: true, scrollbar: ScrollbarVisibility.always, style:,
 matchStyle:, currentMatchStyle:, focusNode:, autofocus:)` is `tail -f` for
 an app, over a `LogController(maxLines: 10000, level: LogLevel.debug,
 filter: '', query: '')`: lines added with `add(text, level:, time:)`
-(`addAll`; `clear()`) follow the end while the view shows it; scrolled up it
+(`addAll`; `addSpans(spans)` for a line in colors of its own, over its
+level's; `addOutput(stream)` for a program's output as it comes, read as an
+`AnsiStream` reads it, a line once it ends, in its escape sequences'
+colors, a carriage return writing it over, the unended line when the
+stream is done; `followFile(path, fromEnd: true, poll: 1 s, tabWidth: 8)` for a file
+being written, the same way, its writes told by a watch of its directory and
+found by a look at its size each `poll` as well, a file cut short read again
+from its start, one not there yet waited for, not on the web; `clear()`)
+follow the end while the view shows it; scrolled up it
 stays on its lines and counts the new ones (`newLines`, ` ↓ 3 new lines ` at
 its bottom right) until End, a click on the count or `follow()` takes it
 back (`following`). It keeps `maxLines` lines, the oldest dropped (`length`,
-`[i]`, each a `LogLine`: `number`, `text`, `level`, `time`), and shows those
+`[i]`, each a `LogLine`: `number`, `text`, `level`, `time`, `spans`), and shows those
 at `level` and above whose text has `filter` in it, ignoring the case while
 it is all in lower case (`shownLength`, `shownAt`), a filter typed on or a
 higher level refining only the lines shown; `query` is found the same way,

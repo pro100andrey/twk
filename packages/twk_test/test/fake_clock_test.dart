@@ -237,7 +237,7 @@ void main() {
     });
 
     test('fails once the clock moved on by within, saying how many timers '
-        'wait', () async {
+        'wait, when each is due and where it was started', () async {
       final clock = FakeClock()
         ..run(() => Timer(const Duration(hours: 1), () {}));
       final never = Completer<void>().future;
@@ -247,8 +247,15 @@ void main() {
           isA<TestFailure>().having(
             (e) => e.message,
             'message',
-            'elapseUntil: the future has not completed 0.095 s on the '
-                'clock, and 1 timer waits',
+            allOf(
+              startsWith(
+                'elapseUntil: the future has not completed 0.095 s on the '
+                'clock, and 1 timer waits:\n'
+                'a timer due in 3599.905 s, started at\n'
+                '  main.',
+              ),
+              contains('fake_clock_test.dart:'),
+            ),
           ),
         ),
       );

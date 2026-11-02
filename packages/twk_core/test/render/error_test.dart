@@ -46,7 +46,7 @@ final class View {
   bool redFrom(int x0, int x1, int y) {
     final styles = screen.styles;
     for (var x = x0; x < x1; x++) {
-      final style = screen.surface.styles[y * width + x];
+      final style = StyleId(screen.surface.styles[y * width + x]);
       if (styles.bgOf(style) != Color.red ||
           styles.fgOf(style) != Color.brightWhite) {
         return false;
@@ -336,7 +336,7 @@ void main() {
     v.frame();
     final styles = v.screen.styles;
     for (var x = 0; x < 6; x++) {
-      final style = v.screen.surface.styles[x];
+      final style = StyleId(v.screen.surface.styles[x]);
       expect((styles.fgOf(style), styles.bgOf(style)), (white, Color.red));
     }
     expect(RenderErrorBox('x', color: white).color, white);

@@ -1044,7 +1044,8 @@ void main() {
       workingDirectory: dir.path,
       environment: {'TWK_PLAIN': '0'},
     );
-    expect(res.stdout, 'TerminalException: not a terminal\n');
+    expect(res.stdout, startsWith('TerminalException: not a terminal: '));
+    expect(res.stdout, contains('TWK_PLAIN=1'));
   });
 
   group('TWK_SHELL', () {
@@ -1179,6 +1180,25 @@ void main() {
       expect(own.closed, isTrue);
     });
 
+    test('without a shell, the message says the terminal could not be '
+        'opened', () async {
+      File('${dir.path}/pubspec.yaml').writeAsStringSync('name: app\n');
+      final own = FakeLink(refusesRaw: true);
+      await expectLater(
+        openOwnOrShell(own, options, dir.path),
+        throwsA(
+          isA<TerminalException>().having(
+            (e) => e.message,
+            'message',
+            allOf(
+              contains('could not be opened'),
+              isNot(contains('needs both stdin and stdout')),
+            ),
+          ),
+        ),
+      );
+    });
+
     test('without a shell: not a terminal', () async {
       File('${dir.path}/pubspec.yaml').writeAsStringSync('name: app\n');
       final own = FakeLink(refusesRaw: true);
@@ -1188,7 +1208,7 @@ void main() {
           isA<TerminalException>().having(
             (e) => e.message,
             'message',
-            'not a terminal',
+            startsWith('not a terminal: '),
           ),
         ),
       );

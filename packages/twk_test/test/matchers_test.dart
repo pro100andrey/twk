@@ -28,9 +28,22 @@ Widget form() => Column(
   ],
 );
 
-/// The screen of [form] on 20 × 4 and its widget tree, as a failure
-/// message shows them; the render tree follows.
+/// The screen of [form] on 20 × 4 and its widget tree, as the failure
+/// message of a matcher of text shows them; the render tree follows.
 const formScreen = <String>[
+  '          screen 20×4:',
+  '          0│sent: привет',
+  '          1│[x] 界',
+  '          (rows 2–3 blank)',
+  '',
+  ...formWidgets,
+  '',
+  '          render tree:',
+];
+
+/// [formScreen] as the failure message of a matcher of a style shows it:
+/// the styles marked.
+const formStyledScreen = <String>[
   '          screen 20×4:',
   '          0│[bold]sent:[/] привет',
   '          1│[red on #010203][[x] 界[/]',
@@ -49,7 +62,115 @@ const formWidgets = [
   '          └─ Text ‹"[x] 界", pen: red on #010203›       6×1',
 ];
 
+/// Two panels side by side, each with a title and an item on the next row;
+/// both titles are `Title`, on the same row.
+Widget panels() => const Row(
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    SizedBox(
+      width: 12,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [Text('Title'), Text('> one')],
+      ),
+    ),
+    Column(
+      key: ValueKey('right'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [Text('Title'), Text('two')],
+    ),
+  ],
+);
+
 void main() {
+  testTwk('containsLine within a rectangle or a finder reads the rows of '
+      'its cells alone', (t) async {
+    await t.pumpWidget(panels(), size: (24, 3));
+    const right = (x: 12, y: 0, width: 12, height: 3);
+    final panel = find.byKey(const ValueKey('right'));
+    expect(t, isNot(containsLine('Title')));
+    expect(t, containsLine('Title', withinRect: right));
+    expect(t, containsLine('two', within: panel));
+    expect(
+      t,
+      containsLine('> one', withinRect: (x: 0, y: 0, width: 12, height: 3)),
+    );
+    expect(t, isNot(containsLine('> one', within: panel)));
+    expect(t, containsLine(startsWith('tw'), within: panel));
+    expect(t.linesIn(right), ['Title', 'two', '']);
+    expect(t.linesOf(panel), ['Title', 'two', '']);
+    expect(t.linesIn((x: 13, y: 1, width: 20, height: 9)), ['wo', '']);
+    expect(t.linesIn((x: 30, y: 0, width: 5, height: 5)), ['', '', '']);
+  });
+
+  testTwk('hasTextAt within a region counts from its first cell and stops '
+      'at its edge', (t) async {
+    await t.pumpWidget(panels(), size: (24, 3));
+    final panel = find.byKey(const ValueKey('right'));
+    expect(t, hasTextAt(0, 1, 'two', within: panel));
+    expect(t, isNot(hasTextAt(0, 1, '> one', within: panel)));
+    expect(t, isNot(hasTextAt(0, 0, 'Title ', within: panel)));
+    expect(t, isNot(hasTextAt(0, 2, 'x', within: panel)), reason: 'row 2');
+  });
+
+  testTwk('a hasTextAt within a region off the screen says so, not that it '
+      'has negative rows', (t) async {
+    await t.pumpWidget(panels(), size: (24, 3));
+    const off = (x: 0, y: 400, width: 5, height: 3);
+    expect(
+      failure(t, hasTextAt(0, 0, 'x', withinRect: off))[2],
+      '   Which: has no cell: the region is off the screen',
+    );
+  });
+
+  testTwk('a containsLine within a region that fails says where the screen '
+      'shows the text', (t) async {
+    await t.pumpWidget(panels(), size: (24, 3));
+    final panel = find.byKey(const ValueKey('right'));
+    final lines = failure(t, containsLine('> one', within: panel));
+    expect(lines[0], startsWith('Expected: a line of the screen in '));
+    expect(
+      lines[2],
+      '   Which: has none in the cells (12, 0), 5×3, but the screen shows '
+      "'> one' at column 0, row 1",
+    );
+    expect(
+      failure(t, containsLine('absent', within: panel))[2],
+      '   Which: has none in the cells (12, 0), 5×3',
+    );
+    expect(
+      failure(t, containsLine('x', within: find.text('none')))[2],
+      contains('finds no widget'),
+    );
+  });
+
+  testTwk('a hasTextAt within a region that fails says where the screen '
+      'shows the text', (t) async {
+    await t.pumpWidget(panels(), size: (24, 3));
+    const left = (x: 0, y: 0, width: 12, height: 3);
+    expect(
+      failure(t, hasTextAt(0, 1, 'two', withinRect: left))[2],
+      "   Which: has '> o' there, but the screen shows 'two' at column 12, "
+      'row 1',
+    );
+    expect(
+      failure(t, hasTextAt(1, 0, 'Title', withinRect: left)).first,
+      "Expected: 'Title' at column 1, row 0 in the cells (0, 0), 12×3",
+    );
+    expect(
+      failure(t, hasTextAt(12, 0, 'x', withinRect: left))[2],
+      startsWith('   Which: has no column 12: the region has 12 columns'),
+    );
+    expect(
+      () => containsLine(
+        'x',
+        within: find.text('a'),
+        withinRect: (x: 0, y: 0, width: 1, height: 1),
+      ),
+      throwsArgumentError,
+    );
+  });
+
   testTwk('containsLine matches a screen with a row that is the line, '
       'trailing blanks aside, or one a matcher matches', (t) async {
     await t.pumpWidget(form(), size: (20, 4));
@@ -60,8 +181,8 @@ void main() {
     expect(t, isNot(containsLine(contains('\n'))));
   });
 
-  testTwk('a matcher that fails shows the screen, styles marked and blank '
-      "rows at the end summed up, the app's widget tree and the render tree", (
+  testTwk('a matcher that fails shows the screen as text and blank rows '
+      "at the end summed up, the app's widget tree and the render tree", (
     t,
   ) async {
     await t.pumpWidget(form(), size: (20, 4));
@@ -156,7 +277,8 @@ void main() {
         '  Actual: TwkTester:<fullscreen, 20×4>',
         "   Which: has 'x' there, which is red on #010203",
         '',
-        ...formScreen,
+        // a matcher of a style shows the styles
+        ...formStyledScreen,
       ],
     );
     expect(
@@ -369,6 +491,27 @@ sent: привет
     expect(
       failure('text', containsLine('text')).elementAt(2),
       '   Which: is not a TwkTester',
+    );
+  });
+
+  testTwk('linesIn keeps to its region: a wide glyph cut by either edge is '
+      'left out', (t) async {
+    await t.pumpWidget(const Text('a你b好c'), size: (8, 1));
+    expect(t.linesIn((x: 0, y: 0, width: 8, height: 1)), ['a你b好c']);
+    // columns: a0 你1-2 b3 好4-5 c6
+    expect(t.linesIn((x: 3, y: 0, width: 2, height: 1)), ['b']);
+    expect(t.linesIn((x: 2, y: 0, width: 2, height: 1)), ['b']);
+    expect(t.linesIn((x: 3, y: 0, width: 3, height: 1)), ['b好']);
+    expect(t.linesIn((x: 0, y: 0, width: 2, height: 1)), ['a']);
+    expect(
+      t,
+      hasTextAt(0, 0, 'b', withinRect: (x: 3, y: 0, width: 2, height: 1)),
+    );
+    expect(
+      t,
+      isNot(
+        hasTextAt(1, 0, '好', withinRect: (x: 3, y: 0, width: 2, height: 1)),
+      ),
     );
   });
 }

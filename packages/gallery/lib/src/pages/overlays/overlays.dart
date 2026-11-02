@@ -8,6 +8,7 @@ import '../../page.dart';
 import '../kit/kit.dart';
 
 part '_shared.dart';
+part 'app.dart';
 part 'commandpalette.dart';
 part 'contextmenu.dart';
 part 'dialog.dart';
@@ -26,6 +27,7 @@ const _group = 'Overlays';
 /// The pages of the Overlays group that draw.
 final overlayPages = <GalleryPage>[
   _overlayPage,
+  _appPage,
   _dialogPage,
   _toastPage,
   _tooltipPage,

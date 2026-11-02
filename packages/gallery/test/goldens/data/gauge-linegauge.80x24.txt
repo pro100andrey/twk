@@ -17,7 +17,7 @@ text
 │     Calendar           live       ▐  ●▌                                        │
 │     Heatmap, Acti…     ratio      ────────────────────▎▎──────  75%            │
 │     Table              line        single  heavy  double  ascii                │
-│     DescriptionLi…     label       own  ratio  none                            │
+│     DescriptionLi…     label       own  percent  none                          │
 │     TreeView           style      ██ ██ ██ ██ ██  primary                      │
 │     TreeTable                     ▔▔                                           │
 │     DirectoryTree      segmented  ▐●  ▌                                        │
@@ -42,7 +42,7 @@ styles
 │aaaaannnnnnnnaaaaaaaaaggmmmmgggggggABBCAgggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnannnnnaaaggmmmmmggggggwwwwwwwwwwwwwwwwwwwwDwmmmmmmggOOOgggggggggggg│
 │aaaaannnnnaaaaaaaaaaaaggmmmmggggggghEEEEEEhuvvvvvuhEEEEEEhhEEEEEhggggggggggggggg│
-│aaaaannnnnnnnnnnnnnaaaggmmmmmgggggguvvvuhEEEEEhhEEEEhggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaaaggmmmmmgggggguvvvuhEEEEEEEhhEEEEhggggggggggggggggggggggggg│
 │aaaaannnnnnnnaaaaaaaaaggmmmmmggggggAAgFFgxxgGGgHHggOOOOOOOgggggggggggggggggggggg│
 │aaaaannnnnnnnnaaaaaaaagggggggggggggwwggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnaaaaggmmmmmmmmmggIJKKIgggggggggggggggggggggggggggggggggggggggg│

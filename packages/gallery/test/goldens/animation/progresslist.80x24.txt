@@ -4,11 +4,11 @@ text
 │                                                                                │
 │   ⌕ Filter       /     ProgressList                            Preview   Code  │
 │                        Many tasks at once, a row each: its mark, a bar, how    │
-│     ModalBarrier       much is done, its rate and the time it has left, from…  │
-│     WindowLayer      ──────────────────────────────────────────────────────────│
-│                                                                                │
-│   ANIMATION     16    ┌                                                      ┐ │
-│     Spinner             ⠴ assets.zip   ███        30% • 510 kB/s • ETA 00:04   │
+│     WindowLayer        much is done, its rate and the time it has left, from…  │
+│                      ──────────────────────────────────────────────────────────│
+│   ANIMATION     17                                                             │
+│     Spinner           ┌                                                      ┐ │
+│     TickerMode          ⠴ assets.zip   ███        30% • 510 kB/s • ETA 00:04   │
 │     ProgressBar         ⠴ fonts.tar.gz ███████    70% • 420 kB/s • ETA 00:00   │
 │ ▎   ProgressList        ⠴ docs.tar.gz  █           9% • 270 kB/s • ETA 00:18   │
 │     Skeleton, Ske…      ⠴ Building bi…         ██                              │
@@ -29,11 +29,11 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahBhBBBBBBhhhhhhhChaaggkkkkkkkkkkkkgggggggggggggggggggggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmmmmgmmmmmgmmgmmmmmgmgmmmgmmmmmgmmmgmmmmmgmgmmmmgmmmgggg│
-│aaaaannnnnnnnnnnnaaaaaggmmmmgmmgmmmmmgmmmgmmmmgmmmgmmmgmmmmgmmgmmmgmmmmmgmmmmmgg│
-│aaaaannnnnnnnnnnaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaadddddddddaaaaaAAaaagoggggggggggggggggggggggggggggggggggggggggggggggggggggggog│
-│aaaaannnnnnnaaaaaaaaaagggpgqqqqqqqqqqgggpppggggggggqqqgmgmmmgmmmmgmgmmmgmmmmmggg│
+│aaaaannnnnnnnnnnaaaaaaggmmmmgmmgmmmmmgmmmgmmmmgmmmgmmmgmmmmgmmgmmmgmmmmmgmmmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaadddddddddaaaaaAAaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnaaaaaaaaaagoggggggggggggggggggggggggggggggggggggggggggggggggggggggog│
+│aaaaannnnnnnnnnaaaaaaagggpgqqqqqqqqqqgggpppggggggggqqqgmgmmmgmmmmgmgmmmgmmmmmggg│
 │aaaaannnnnnnnnnnaaaaaagggpgqqqqqqqqqqqqgpppppppggggqqqgmgmmmgmmmmgmgmmmgmmmmmggg│
 │arsssttttttttttttssssagggpgqqqqqqqqqqqggpgggggggggggqqgmgmmmgmmmmgmgmmmgmmmmmggg│
 │aaaaannnnnnnnnannnnaaagggpgqqqqqqqqgqqqgggggggggppgggggggggggggggggggggggggggggg│

@@ -453,6 +453,30 @@ void main() {
       await t.pump();
       expect(t.binding.semantics.focusedLine, 2);
     });
+    testTwk('focuses no node while the primary focus is the root scope, '
+        'before a focus and after unfocus', (t) async {
+      final node = FocusNode();
+      addTearDown(node.dispose);
+      await t.pumpWidget(
+        column([
+          Semantics(
+            role: SemanticsRole.list,
+            label: 'items',
+            child: column([const Text('first'), const Text('second')]),
+          ),
+          Focus(focusNode: node, child: const Text('third')),
+        ]),
+      );
+      expect(t.binding.semantics.focusedLine, isNull);
+      node.requestFocus();
+      await t.pump();
+      expect(t.binding.semantics.focusedLine, 3);
+      node.unfocus();
+      await t.pump();
+      expect(t.binding.focusManager.primaryFocus, isNot(same(node)));
+      expect(t.binding.semantics.focusedLine, isNull);
+    });
+
     testTwk('gives the hint of a Semantics with nothing else to the first '
         'node with a line below it, focused or not, or reads it after the '
         'texts it is the label of', (t) async {

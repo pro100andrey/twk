@@ -234,8 +234,17 @@ final class ScrollPosition with ChangeNotifier {
   /// partly estimated) gives the [offset] it settled at, which the position
   /// takes without a [ScrollUpdateNotification], and which keeps to the end
   /// itself: one that does not, while it sticks to the end and showed it,
-  /// goes to the new end instead (offset 0 in [reverse]).
-  void applyExtents(int viewport, int content, {int? offset}) {
+  /// goes to the new end instead (offset 0 in [reverse]). With [moved], the
+  /// settling is the end of a move the scrollable was asked for (to an
+  /// item): when it leaves the offset other than it was, that is a move,
+  /// and sends a [ScrollUpdateNotification] up.
+  void applyExtents(
+    int viewport,
+    int content, {
+    int? offset,
+    bool moved = false,
+  }) {
+    final before = _offset;
     final max = content - viewport > 0 ? content - viewport : 0;
     final changed =
         !_hasExtents || viewport != _viewportExtent || max != _maxOffset;
@@ -248,6 +257,14 @@ final class ScrollPosition with ChangeNotifier {
     if (changed || to != _offset) {
       _offset = to;
       notifyListeners();
+    }
+    final state = _state;
+    if (moved && _offset != before && state != null && state.mounted) {
+      ScrollUpdateNotification(
+        metrics: metrics,
+        context: state.context,
+        scrollDelta: _offset - before,
+      ).dispatch(state.context);
     }
   }
 
@@ -478,6 +495,49 @@ final class OverscrollNotification extends ScrollNotification {
       '$metrics)';
 }
 
+/// Whether a scrollable takes what the user does to it: the wheel and the
+/// keys. [Scrollable.physics] and `ListView.physics` take one; none given
+/// is [ScrollPhysics] itself, which takes all of it.
+///
+/// A view that does not take the wheel leaves it to the scrollable around
+/// it, as Flutter's `NeverScrollableScrollPhysics` does:
+///
+/// ```dart
+/// ListView(
+///   physics: const NeverScrollableScrollPhysics(),
+///   children: const [Text('one'), Text('two')],
+/// )
+/// ```
+///
+/// `Scrollable`, `SingleChildScrollView`, `ListView` and `TreeView` take
+/// physics (a `TreeView` passes them to its `ListView`: with
+/// `NeverScrollableScrollPhysics` the wheel goes to the list around, its
+/// own keys and Tab stop stay). The views built on a `ListView` of their
+/// own (`SelectionList`, `Table`, `LogView`, `FilePicker`) take none: they
+/// are the focused widget of their screen and scroll with the wheel and the
+/// keys, and a view that is to leave the wheel to the one around is a
+/// `ListView` or a `SingleChildScrollView` with these physics.
+@immutable
+class ScrollPhysics {
+  /// Physics that accept the user's scrolling.
+  const ScrollPhysics();
+
+  /// Whether the wheel and the keys of the user move a view that is at
+  /// [metrics]. The position still moves by a [ScrollController], by
+  /// [ScrollPosition.jumpTo] and by a scrollbar.
+  bool shouldAcceptUserOffset(ScrollMetrics metrics) => true;
+}
+
+/// A view that the user cannot scroll with the wheel or the keys: the
+/// wheel over it goes to the scrollable around it, if there is one.
+final class NeverScrollableScrollPhysics extends ScrollPhysics {
+  /// Physics that never accept the user's scrolling.
+  const NeverScrollableScrollPhysics();
+
+  @override
+  bool shouldAcceptUserOffset(ScrollMetrics metrics) => false;
+}
+
 /// How far a notch of the wheel scrolls a [Scrollable] as the notches come
 /// faster: [Scrollable.wheelStep] cells times a factor, what it scrolls
 /// past a whole cell carried on to the next notch. A notch on its own has
@@ -559,7 +619,8 @@ typedef ViewportBuilder = Widget Function(
 /// where no scrollable around it is vertical ([Listener.scrollAxis]).
 /// While one is mounted the terminal reports the mouse (see [Listener]).
 ///
-/// It is a stop of Tab ([Focus]) unless [canRequestFocus] is false; its
+/// It is a stop of Tab ([Focus]) unless [canRequestFocus] is false or its
+/// [physics] do not take the user's keys; its
 /// keys reach it from a focused widget inside it too, which takes first
 /// those it uses. While the focus is in it, the keys that would move it
 /// are among those a `KeyHintsBar` shows ([FocusManagerKeys.activeKeys]),
@@ -605,6 +666,7 @@ final class Scrollable extends StatefulWidget {
     this.autofocus = false,
     this.canRequestFocus,
     this.wheelAcceleration = WheelAcceleration.none,
+    this.physics,
     this.keyHints = true,
     this.reverse = false,
     super.key,
@@ -631,6 +693,11 @@ final class Scrollable extends StatefulWidget {
 
   /// How much further the notches of the wheel scroll as they come faster.
   final WheelAcceleration wheelAcceleration;
+
+  /// Whether it takes the wheel and the keys; null takes both. Not taking
+  /// the wheel, it goes to the scrollable around; not taking the keys, it
+  /// is no stop of Tab ([canRequestFocus] is false) and has no key hints.
+  final ScrollPhysics? physics;
 
   /// See [Focus.focusNode].
   final FocusNode? focusNode;
@@ -696,6 +763,10 @@ final class _ScrollableState extends State<Scrollable> {
   @override
   void didUpdateWidget(Scrollable oldWidget) {
     super.didUpdateWidget(oldWidget);
+    // a scrollbar that takes any axis follows the axis, so it is told
+    if (_position._axis != widget.scrollDirection) {
+      _unclaim();
+    }
     _position
       .._axis = widget.scrollDirection
       .._reverse = widget.reverse;
@@ -756,7 +827,8 @@ final class _ScrollableState extends State<Scrollable> {
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
     if (event.kind == KeyKind.release ||
         event.modifiers != 0 ||
-        !node.hasFocus) {
+        !node.hasFocus ||
+        !_userScrolls) {
       return KeyEventResult.ignored;
     }
     final delta = _deltaOf(event.code);
@@ -793,7 +865,8 @@ final class _ScrollableState extends State<Scrollable> {
   bool _takes(String key) {
     final delta = _deltaOf(_codes[key]!);
     final p = _position;
-    return delta != null &&
+    return _userScrolls &&
+        delta != null &&
         delta != 0 &&
         p._clamp(p._offset + delta) != p._offset;
   }
@@ -826,6 +899,9 @@ final class _ScrollableState extends State<Scrollable> {
     'home': 'the ends',
     'end': 'the ends',
   };
+
+  bool get _userScrolls =>
+      widget.physics?.shouldAcceptUserOffset(_position.metrics) ?? true;
 
   void _onWheel(PointerEvent event) {
     final way = _position.axis == Axis.vertical || event.scrollX == 0
@@ -891,10 +967,10 @@ final class _ScrollableState extends State<Scrollable> {
   @override
   Widget build(BuildContext context) {
     final bars = context.dependOnInheritedWidgetOfExactType<ScrollbarScope>();
-    final bar = bars?.slotOf(_position.axis);
+    final bar = bars?.claimFor(_position.axis);
     _claim(bar);
     final viewport = Listener(
-      onScroll: _onWheel,
+      onScroll: _userScrolls ? _onWheel : null,
       scrollAxis: _position.axis,
       child: widget.viewportBuilder(context, _position),
     );
@@ -913,7 +989,7 @@ final class _ScrollableState extends State<Scrollable> {
         child: Focus(
           focusNode: node,
           autofocus: widget.autofocus,
-          canRequestFocus: widget.canRequestFocus,
+          canRequestFocus: _userScrolls ? widget.canRequestFocus : false,
           onKeyEvent: _onKey,
           child: bar == null
               ? viewport
@@ -938,16 +1014,41 @@ final class _ScrollableScope extends InheritedWidget {
 // What a Scrollbar needs of the Scrollables below it; hidden from the
 // library's exports.
 
-/// Where the outermost [Scrollable] below it along each axis puts its
-/// position, for a scrollbar above: [vertical]'s value or [horizontal]'s
-/// is the position of the one along that axis while it is in the tree.
-/// What a scrollbar puts above its child; a scrollable it takes puts one
-/// without the slot of its axis above its viewport, so that those inside
-/// it are not taken. Of two side by side, the last one built is taken.
+/// Where the outermost [Scrollable] below it puts its position, for a
+/// scrollbar above: [vertical]'s value or [horizontal]'s is the position of
+/// the one along that axis while it is in the tree, [either]'s the one of
+/// any axis. What a scrollbar puts above its child; a scrollable it takes
+/// puts one without [either] and the slot of its axis above its viewport,
+/// so that those inside it are not taken. Of two side by side, the last one
+/// built is taken.
 final class ScrollbarScope extends InheritedWidget {
-  /// The slots [vertical] and [horizontal] above [child]; a null one takes
-  /// no scrollable along its axis.
-  const ScrollbarScope({required super.child, this.vertical, this.horizontal});
+  /// The slots [vertical], [horizontal] and [either] above [child]; a null
+  /// one takes no scrollable. A scrollable takes the slot of its axis, or
+  /// [either] where there is none; [eitherFirst] makes it [either] first,
+  /// as the nearest scrollbar takes any axis.
+  const ScrollbarScope({
+    required super.child,
+    this.vertical,
+    this.horizontal,
+    this.either,
+    this.eitherFirst = false,
+  });
+
+  /// [child] with the scrollbar of [slot] above it, along [axis], or along
+  /// the axis of the outermost scrollable in it where [axis] is null, and
+  /// the slots [outer] has but for the one it replaces.
+  factory ScrollbarScope.over(
+    ScrollbarScope? outer,
+    Axis? axis,
+    ValueNotifier<ScrollPosition?> slot,
+    Widget child,
+  ) => ScrollbarScope(
+    vertical: axis == Axis.vertical ? slot : outer?.vertical,
+    horizontal: axis == Axis.horizontal ? slot : outer?.horizontal,
+    either: axis == null ? slot : outer?.either,
+    eitherFirst: axis == null,
+    child: child,
+  );
 
   /// The slot of the vertical scrollable.
   final ValueNotifier<ScrollPosition?>? vertical;
@@ -955,11 +1056,21 @@ final class ScrollbarScope extends InheritedWidget {
   /// The slot of the horizontal scrollable.
   final ValueNotifier<ScrollPosition?>? horizontal;
 
+  /// The slot of the scrollable of either axis.
+  final ValueNotifier<ScrollPosition?>? either;
+
+  /// Whether [either] is taken before the slot of the scrollable's axis.
+  final bool eitherFirst;
+
   /// The slot along [axis].
   ValueNotifier<ScrollPosition?>? slotOf(Axis axis) =>
       axis == Axis.vertical ? vertical : horizontal;
 
-  /// This scope around [child] without the slot along [axis].
+  /// The slot a scrollable along [axis] puts its position in.
+  ValueNotifier<ScrollPosition?>? claimFor(Axis axis) =>
+      eitherFirst ? either ?? slotOf(axis) : slotOf(axis) ?? either;
+
+  /// This scope around [child] without the slot along [axis] and [either].
   ScrollbarScope _without(Axis axis, Widget child) => ScrollbarScope(
     vertical: axis == Axis.vertical ? null : vertical,
     horizontal: axis == Axis.vertical ? horizontal : null,
@@ -969,7 +1080,9 @@ final class ScrollbarScope extends InheritedWidget {
   @override
   bool updateShouldNotify(ScrollbarScope oldWidget) =>
       !identical(vertical, oldWidget.vertical) ||
-      !identical(horizontal, oldWidget.horizontal);
+      !identical(horizontal, oldWidget.horizontal) ||
+      !identical(either, oldWidget.either) ||
+      eitherFirst != oldWidget.eitherFirst;
 }
 
 /// Scrolls the scrollable [position] is of as the wheel's [event] over it

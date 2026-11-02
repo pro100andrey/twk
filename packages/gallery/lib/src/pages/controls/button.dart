@@ -5,7 +5,7 @@ part of 'controls.dart';
 const _buttonLook = ChoiceOption<String>(
   'look',
   'look',
-  values: ['chip', 'outlined', 'filled'],
+  values: ['chip', 'outlined', 'filled', 'plain'],
 );
 
 /// The Button page's `tall` option.
@@ -28,10 +28,15 @@ final _buttonPage = GalleryPage(
     final c = o(pageColorOption);
     final styled = c != 'primary';
     final look = o(_buttonLook);
-    final chip = look == 'chip';
+    final plain = look == 'plain';
+    final chip = look == 'chip' || plain;
     final button = chip ? 'Button' : 'Button.$look';
     final args = [
-      if (styled && chip) ...['style: style', 'focusedStyle: focused'],
+      if (plain) ...['canRequestFocus: false', 'style: style'],
+      if (styled && chip && !plain) ...[
+        'style: style',
+        'focusedStyle: focused',
+      ],
       if (styled && !chip) 'style: theme.$c',
       if (!chip && o(_buttonTall)) 'tall: true',
     ];
@@ -47,7 +52,9 @@ final _buttonPage = GalleryPage(
       '@override',
       'Widget build(BuildContext context) {',
       '  final theme = Theme.of(context);',
-      if (styled && chip) ...[
+      if (plain)
+        '  final style = theme.$c.merge(const .new(attrs: Attr.underline));'
+      else if (styled && chip) ...[
         '  final style = theme.$c.merge(const .new(attrs: Attr.bold));',
         '  final focused = style.merge(const .new(attrs: Attr.reverse));',
       ],
@@ -70,12 +77,18 @@ final _buttonPage = GalleryPage(
         ...args,
         'onPressed: () => setState(() => _sent++)',
       ], ','),
-      ...call(10, '${styled ? '' : 'const '}$button', [
+      ...call(10, '${styled || plain ? '' : 'const '}$button', [
         "'Disabled'",
         ...args,
         'onPressed: null',
       ], ','),
       '        ],',
+      '      ),',
+      '      // a key and its caption, each in its own style',
+      '      // on the one chip',
+      '      Button.rich(',
+      "        ['Enter'.bold.fg(Color.yellow), const Span(' send')],",
+      '        onPressed: () => setState(() => _sent++),',
       '      ),',
       '      Text.rich([',
       "        Span('saved: ', theme.muted),",
@@ -96,7 +109,8 @@ final class _Buttons extends StatefulWidget {
 
   final String color;
 
-  /// `chip`, `outlined` or `filled`: Button, Button.outlined, Button.filled.
+  /// `chip`, `outlined`, `filled` or `plain`: Button, Button.outlined,
+  /// Button.filled, or a flat clickable word that takes no focus.
   final String look;
 
   /// Whether an outlined or a filled one is three rows.
@@ -121,6 +135,9 @@ final class _ButtonsState extends State<_Buttons> with KeptState {
         ? themeColor(theme, widget.color).merge(const Style(attrs: Attr.bold))
         : null;
     final focused = style?.merge(const Style(attrs: Attr.reverse));
+    final flat = themeColor(theme, widget.color).merge(
+      const Style(attrs: Attr.underline),
+    );
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -148,6 +165,12 @@ final class _ButtonsState extends State<_Buttons> with KeptState {
                   style: styled ? themeColor(theme, widget.color) : null,
                   onPressed: onPressed,
                 ),
+                'plain' => Button(
+                  label,
+                  canRequestFocus: false,
+                  style: flat,
+                  onPressed: onPressed,
+                ),
                 _ => Button(
                   label,
                   style: style,
@@ -157,6 +180,10 @@ final class _ButtonsState extends State<_Buttons> with KeptState {
               },
           ],
         ),
+        Button.rich([
+          'Enter'.bold.fg(Color.yellow),
+          const Span(' send'),
+        ], onPressed: () => setState(() => _sent++)),
         LitLine([
           ('saved: ', true),
           ('$_saved', false),

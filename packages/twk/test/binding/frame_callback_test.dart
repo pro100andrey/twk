@@ -1,7 +1,9 @@
 // Frame callbacks: called once at the start of a frame, before its build,
 // with the frame's time on the app's clock, in the order they were
 // scheduled; with a time, at the first frame at or after it, asked for by
-// one timer; and no frame or timer while none waits.
+// one timer; and no frame or timer while none waits. Post-frame callbacks:
+// called once at the end of a frame, once it is laid out, painted and
+// written.
 import 'dart:async';
 
 import 'package:test/test.dart';
@@ -175,5 +177,59 @@ void main() {
       await clock.elapse(ms * 20);
     }
     expect(ended, isTrue);
+  });
+
+  group('a post-frame callback', () {
+    testTwk('added in a build is called at the end of that frame, with '
+        'its time, once the layout is done: a change it makes is built by '
+        'the next frame', (t) async {
+      final text = ValueNotifier('before');
+      addTearDown(text.dispose);
+      final widths = <int>[];
+      final times = <Duration>[];
+      await t.pumpWidget(
+        Builder(
+          builder: (context) {
+            if (widths.isEmpty) {
+              AppBinding.of(context).addPostFrameCallback((time) {
+                times.add(time);
+                widths.add(context.findRenderObject()!.width);
+                text.value = 'after';
+              });
+            }
+            return show(text);
+          },
+        ),
+        size: (10, 1),
+        maxFps: 100,
+      );
+      final first = t.frames.first;
+      expect(widths, [10], reason: "laid out, the screen's width");
+      expect(times, [first.time]);
+      await t.pump(ms * 10);
+      expect(t.lines, ['after']);
+      await t.pump(const Duration(seconds: 1));
+      expect(widths, hasLength(1));
+    });
+
+    testTwk('added between frames asks for one; added while those of a '
+        'frame are called waits for the next', (t) async {
+      await t.pumpWidget(const Text('x'), size: (10, 1), maxFps: 100);
+      final binding = t.binding;
+      final calls = <String>[];
+      binding.addPostFrameCallback((_) {
+        calls.add('first');
+        binding.addPostFrameCallback((_) => calls.add('next frame'));
+      });
+      expect(t.clock.pendingTimers, 1, reason: 'a frame asked for');
+      // the next frame a gap later
+      await t.pump(ms * 5);
+      expect(calls, ['first']);
+      await t.pump(ms * 5);
+      expect(calls, ['first', 'next frame']);
+      await t.pump(const Duration(seconds: 1));
+      expect(calls, hasLength(2));
+      expect(t.clock.pendingTimers, 0);
+    });
   });
 }

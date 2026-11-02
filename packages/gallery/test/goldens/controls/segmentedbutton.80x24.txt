@@ -5,23 +5,23 @@ text
 │   ⌕ Filter       /     SegmentedButton                         Preview   Code  │
 │                        A few values joined in one row, one on at a time or     │
 │                        any of them: the arrows, a digit or a click turn one…   │
-│   CONTROLS      20   ──────────────────────────────────────────────────────────│
+│   CONTROLS      22   ──────────────────────────────────────────────────────────│
 │     Button                                                                     │
 │     Pressable           · ┌                                             ┐   ·  │
 │     Checkbox, Swi…          [ All │ Errors (3) │ Warnings (12) │ Info ]        │
 │     RadioGroup          ·                                                   ·  │
 │ ▎   SegmentedButt…  ▐       shown: all                                         │
-│     SelectionList   ▐   · └                                             ┘   ·  │
-│     Select, Multi…                                                43 × 3       │
-│     ConfirmInput                                                               │
-│     Slider           ──────────────────────────────────────────────────────────│
-│     NumberInput        multiple       ▐●  ▌                                    │
+│     Chip, ChipList  ▐   · └                                             ┘   ·  │
+│     ValueStepper                                                  43 × 3       │
+│     SelectionList                                                              │
+│     Select, Multi…   ──────────────────────────────────────────────────────────│
+│     ConfirmInput       multiple       ▐●  ▌                                    │
+│     Slider                                                                     │
+│     NumberInput        allow none     ▐●  ▌                                    │
 │     DatePicker                                                                 │
-│     FilePicker         allow none     ▐●  ▌                                    │
-│     Form, FormFie…                                                             │
-│     TabBar, TabVi…     selected icon  ▐●  ▌                                    │
-│     KeyHintsBar        caps            square  round                           │
-│     StatusMessage…                                                             │
+│     FilePicker         selected icon  ▐●  ▌                                    │
+│     Form, FormFie…     caps            square  round                           │
+│     TabBar, TabVi…                                                             │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -36,17 +36,17 @@ styles
 │aaaaaoooooooooaooooaaagggggggpglllgpgqqqqqqgqqqgpgqqqqqqqqgqqqqgpgmmmmgpgggggggg│
 │aaaaaooooooooooaaaaaaagggngggggggggggggggggggggggggggggggggggggggggggggggggggngg│
 │arsssttttttttttttttssdgggggggmmmmmmgqqqggggggggggggggggggggggggggggggggggggggggg│
-│aaaaaoooooooooooooaaadgggngngggggggggggggggggggggggggggggggggggggggggggggngggngg│
-│aaaaaoooooooaooooooaaagggggggggggggggggggggggggggggggggggggggggggggDDgDgDggggggg│
-│aaaaaooooooooooooaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaaooooooaaaaaaaaaaannnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn│
-│aaaaaoooooooooooaaaaaaggmmmmmmmmgggggggwxyywgggggggggggggggggggggggggggggggggggg│
+│aaaaaoooooaooooooooaadgggngngggggggggggggggggggggggggggggggggggggggggggggngggngg│
+│aaaaaooooooooooooaaaaagggggggggggggggggggggggggggggggggggggggggggggDDgDgDggggggg│
+│aaaaaoooooooooooooaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaoooooooaooooooaaannnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn│
+│aaaaaooooooooooooaaaaaggmmmmmmmmgggggggwxyywgggggggggggggggggggggggggggggggggggg│
+│aaaaaooooooaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaoooooooooooaaaaaaggmmmmmgmmmmgggggwxyywgggggggggggggggggggggggggggggggggggg│
 │aaaaaooooooooooaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaaooooooooooaaaaaaaggmmmmmgmmmmgggggwxyywgggggggggggggggggggggggggggggggggggg│
-│aaaaaoooooaooooooooaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaaoooooooaooooooaaaggmmmmmmmmgmmmmggwxyywgggggggggggggggggggggggggggggggggggg│
-│aaaaaoooooooooooaaaaaaggmmmmgggggggggggsttttttshzzzzzhgggggggggggggggggggggggggg│
-│aaaaaooooooooooooooaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaooooooooooaaaaaaaggmmmmmmmmgmmmmggwxyywgggggggggggggggggggggggggggggggggggg│
+│aaaaaoooooaooooooooaaaggmmmmgggggggggggsttttttshzzzzzhgggggggggggggggggggggggggg│
+│aaaaaoooooooaooooooaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

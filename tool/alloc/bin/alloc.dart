@@ -39,6 +39,26 @@
 // `app-idle`, where nothing changes, shows what is left of the tool's,
 // some 20 B a frame. Below each line, the classes allocated the most
 // bytes per unit, with bytes/objects.
+//
+// A scenario that is meant to be still (`hidden-tab`: spinners, a progress
+// bar and a task list that tick in a hidden tab, TickerMode off) is
+// asserted to be: a line `quiet: ok` under it, or `quiet: FAILED` and exit
+// code 1 when it allocates more than 64 B a step or writes a frame.
+//
+// The scenarios that follow the branch's additions (the rest of
+// lib/app_scenarios.dart is as old as the tool):
+//   hand-off, hand-auto, hand-on   20 mouse motions a frame over Buttons, a
+//                                  TabBar and a sortable Table, under
+//                                  ThemeData.handPointer off / auto / on
+//   table-100k-ascii, gauges-live-ascii, markdown-stream-ascii
+//                                  the scenarios of those names under
+//                                  Glyphs.ascii
+//   chips-narrow                   Chip, ChipList, ValueStepper,
+//                                  SegmentedButton, Breadcrumbs with long
+//                                  labels in 28 columns, changing each frame
+//   hidden-tab                     what ticks, in a hidden tab: still
+//   log-follow                     a LogView following an appended file; the
+//                                  file I/O is counted, the µs mean nothing
 import 'dart:io';
 
 import 'package:twk_alloc/app_scenarios.dart';
@@ -63,7 +83,7 @@ Future<void> main(List<String> args) async {
     if (!opts.wants(s.name)) {
       continue;
     }
-    final frame = s.start(FrameRig(opts.width, opts.height));
+    final frame = s.start(s.rig(opts.width, opts.height));
     var bytes = 0;
     final sample = await p.measure(
       (i) => bytes += frame(i),
@@ -121,6 +141,17 @@ Future<void> main(List<String> args) async {
       frames: run.frames - frames,
       bytesOut: run.bytes - bytes,
     );
+    if (s.quiet) {
+      final ok = report.expectQuiet(
+        s.name,
+        sample,
+        perStep: s.perStep,
+        frames: run.frames - frames,
+      );
+      if (!ok) {
+        exitCode = 1;
+      }
+    }
     if (opts.trace.isNotEmpty) {
       final steps = s.steps < 200 ? s.steps : 200;
       report.traces(

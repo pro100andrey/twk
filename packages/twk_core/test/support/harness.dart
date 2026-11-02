@@ -132,11 +132,13 @@ final class Harness {
   /// yet are the presenter's to keep.
   void markCommitted(
     void Function(int glyph) glyph,
-    void Function(int id) style,
+    void Function(StyleId style) style,
   ) {
     for (final row in committed) {
       row.cells.forEach(glyph);
-      row.styles.forEach(style);
+      for (final id in row.styles) {
+        style(StyleId(id));
+      }
     }
   }
 
@@ -200,7 +202,7 @@ final class Harness {
         if ((c & kSkip) != 0 || ((c & kWide) != 0 && x + 1 >= r.limit)) {
           continue;
         }
-        final why = _compare(c, r.styles[x], line[x]);
+        final why = _compare(c, StyleId(r.styles[x]), line[x]);
         if (why != null) {
           out.add('committed line ${r.line} ($x) $why');
           if (out.length >= limit) {
@@ -311,7 +313,7 @@ final class Harness {
             continue;
           }
         }
-        final s = surface.styles[i];
+        final s = StyleId(surface.styles[i]);
         final v = vt.cell(x, top + y);
         final why = _compare(c, s, v);
         if (why != null) {
@@ -325,7 +327,7 @@ final class Harness {
     return out;
   }
 
-  String? _compare(int c, int s, VtCell v) {
+  String? _compare(int c, StyleId s, VtCell v) {
     if ((c & kCont) != 0) {
       return v.role == -1
           ? null

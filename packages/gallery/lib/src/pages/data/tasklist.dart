@@ -178,7 +178,7 @@ final class _TaskStageState extends State<_TaskStage> {
       child: TaskList(
         // a list of its own for each step: its tasks done show no time
         key: step is int ? ValueKey((step, failed)) : null,
-        spinner: _spinners[o(_taskListSpinner)]!,
+        spinner: _spinners[o(_taskListSpinner)],
         showElapsed: o(_taskListElapsed),
         tasks: tasks,
       ),

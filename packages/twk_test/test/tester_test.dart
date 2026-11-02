@@ -140,6 +140,27 @@ KeyEvent char(String c, [int mods = 0]) =>
     KeyEvent(KeyCode.char, char: c, modifiers: mods);
 
 void main() {
+  testTwk('pointerShape is read only where the terminal shows shapes', (
+    t,
+  ) async {
+    await t.pumpWidget(const Text('x'), size: (10, 1));
+    expect(
+      () => t.pointerShape,
+      throwsA(
+        isA<StateError>().having(
+          (e) => e.message,
+          'message',
+          'pumpWidget(pointerShapes: true) to read pointerShape',
+        ),
+      ),
+    );
+  });
+
+  testTwk('pointerShape is the default arrow at the start', (t) async {
+    await t.pumpWidget(const Text('x'), size: (10, 1), pointerShapes: true);
+    expect(t.pointerShape, PointerShape.arrow);
+  });
+
   testTwk('typed text goes through the parser, a key per character, and '
       'the next frame shows what it changed', (t) async {
     final events = <InputEvent>[];
@@ -202,7 +223,7 @@ void main() {
   });
 
   testTwk('with the kitty keyboard protocol, Escape is a sequence of its '
-      'own and a lone ESC waits 500 ms', (t) async {
+      'own, and a lone ESC waits 30 ms as without it', (t) async {
     final events = <InputEvent>[];
     await t.pumpWidget(
       Echo(events),
@@ -216,7 +237,7 @@ void main() {
     ]);
     expect(t.clock.elapsed, Duration.zero);
     await t.type('\x1b');
-    await t.pump(const Duration(milliseconds: 499));
+    await t.pump(const Duration(milliseconds: 29));
     expect(events, hasLength(2));
     await t.pump(const Duration(milliseconds: 1));
     expect(events.last, const KeyEvent(KeyCode.escape));
@@ -411,6 +432,18 @@ void main() {
     );
   });
 
+  testTwk('a second pumpWidget with another startTime is refused like another '
+      'mode', (t) async {
+    final start = DateTime(2030, 5, 6);
+    await t.pumpWidget(const Text('x'), startTime: start);
+    await t.pumpWidget(const Text('y'), startTime: start);
+    await t.pumpWidget(const Text('z'));
+    await expectLater(
+      t.pumpWidget(const Text('x'), startTime: DateTime(2031)),
+      throwsArgumentError,
+    );
+  });
+
   testTwk('a resize reaches the app as an event and the next frame paints '
       'the whole screen at the new size', (t) async {
     final events = <InputEvent>[];
@@ -571,16 +604,24 @@ void main() {
     expect(
       lines.first,
       'pumpUntilIdle: the app is still busy after 1.000 s: it wrote 10 '
-      'frames, and 1 timer waits, the next due in 0.083 s',
+      'frames, and 1 timer waits, the next due in 0.083 s:',
     );
-    expect(lines.skip(1).take(5), [
+    // the counter's own timer, and where it started it
+    expect(
+      lines[1],
+      'a periodic timer, every 0.100 s, due in 0.083 s, started at',
+    );
+    expect(lines[2], startsWith('  _TickingCounterState.initState ('));
+    final blank = lines.indexOf('');
+    expect(lines.sublist(2, blank), everyElement(startsWith('  ')));
+    expect(lines.skip(blank).take(5), [
       '',
       'screen 10×1:',
       '0│tick 10',
       '',
       'render tree:',
     ]);
-    expect(lines[6], startsWith('_RenderView'));
+    expect(lines[blank + 5], startsWith('_RenderView'));
     expect(t.clock.elapsed, const Duration(microseconds: 16666 + 1000000));
   });
 
@@ -598,7 +639,9 @@ void main() {
           'message',
           startsWith(
             'pumpUntilIdle: the app is still busy after 0.500 s: it wrote no '
-            'frame, and 1 timer waits, the next due in 0.483 s\n',
+            'frame, and 1 timer waits, the next due in 0.483 s:\n'
+            'a periodic timer, every 1.000 s, due in 0.483 s, started at\n'
+            '  _TickingCounterState.initState (',
           ),
         ),
       ),

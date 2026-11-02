@@ -31,7 +31,7 @@ import 'surface.dart';
 /// final bold = styles.style(attrs: Attr.bold, link: 'https://dart.dev');
 /// final lines = LineEncoder(styles, hyperlinks: true)
 ///   ..text(bold, 'Dart')
-///   ..text(0, ' is here')
+///   ..text(StyleId.base, ' is here')
 ///   ..end();
 /// print(lines.take()); // Dart, bold and a link, then " is here"
 /// ```
@@ -69,7 +69,7 @@ final class LineEncoder {
   final ByteSink out;
 
   /// The style the terminal is in after what was written.
-  var _style = 0;
+  StyleId _style = StyleId.base;
 
   /// The link id open after what was written; 0 for none.
   var _link = 0;
@@ -78,7 +78,7 @@ final class LineEncoder {
 
   /// Writes [text] in style [style] of [styles]; a lone surrogate in it
   /// as U+FFFD, as UTF-8 has none.
-  void text(int style, String text) {
+  void text(StyleId style, String text) {
     _to(style);
     for (final c in text.runes) {
       out.codePoint(c >= 0xD800 && c <= 0xDFFF ? 0xFFFD : c);
@@ -95,7 +95,8 @@ final class LineEncoder {
     final cells = surface.cells;
     final cellStyles = surface.styles;
     var last = at + width;
-    while (last > at && _trailingBlank(cells[last - 1], cellStyles[last - 1])) {
+    while (last > at &&
+        _trailingBlank(cells[last - 1], StyleId(cellStyles[last - 1]))) {
       last--;
     }
     for (var i = at; i < last; i++) {
@@ -103,7 +104,7 @@ final class LineEncoder {
       if (cell & kCont != 0) {
         continue;
       }
-      _to(cellStyles[i]);
+      _to(StyleId(cellStyles[i]));
       final glyph = cell & kGlyphMask;
       if (glyph < kFirstInterned) {
         out.codePoint(glyph);
@@ -120,10 +121,10 @@ final class LineEncoder {
     if (_link != 0) {
       _osc8(0);
     }
-    if (styles.transition(_style, 0).isNotEmpty) {
+    if (styles.transition(_style, StyleId.base).isNotEmpty) {
       out.ascii('\x1B[0m');
     }
-    _style = 0;
+    _style = StyleId.base;
   }
 
   /// What was written since the last take, as a string; [out] is emptied.
@@ -136,13 +137,15 @@ final class LineEncoder {
   /// Whether a cell of [cell] in [style] at the end of a row is left out:
   /// a blank, and without [ansi] any blank, with it one that looks as the
   /// terminal's default does and has no link to write.
-  bool _trailingBlank(int cell, int style) =>
+  bool _trailingBlank(int cell, StyleId style) =>
       cell == kBlank &&
       (!ansi ||
-          (styles.transition(0, styles.blankStyleOf(style)).isEmpty &&
+          (styles
+                  .transition(StyleId.base, styles.blankStyleOf(style))
+                  .isEmpty &&
               (!hyperlinks || styles.linkIdOf(style) == 0)));
 
-  void _to(int style) {
+  void _to(StyleId style) {
     if (!ansi) {
       return;
     }

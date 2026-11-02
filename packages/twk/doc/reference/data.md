@@ -14,7 +14,12 @@ of eighth blocks, the newest at the right;
 ## `Gauge`
 
 `Gauge` and `LineGauge`, a ratio with a label (`LineGauge(segmented: true)`
-a column a cell, `▍`, instead of a line: a meter of segments);
+a column a cell, `▍`, instead of a line: a meter of segments; the line is
+the theme's `glyphs.gaugeFilled`, `gaugeHalf` and `gaugeEmpty` unless `type:`
+names a `BorderType`); `showPercentage: true` (off by default) shows the ratio as a
+whole percentage, cut rather than rounded (`42%`, `100%` only once full) in
+the place of a null `label`, over the gauge or before the line (a `label` and
+`showPercentage` together are an error in `Gauge`);
 
 ## `BarChart`
 
@@ -58,6 +63,8 @@ midnights. A repaint boundary: moving the cursor repaints nothing else.
 
 ## `Sparkline`
 
+`Sparkline` ends at the right edge when there are fewer values than columns
+(`fromRight: true`, the default), `fromRight: false` starts them at the left.
 `Sparkline`, `Gauge`, `LineGauge`, `BarChart` and `Chart` paint both colors
 of their cells, their style merged over the theme's background and text as a
 `Table`'s is, so the colors it leaves unset are the theme's. A `DotCanvas`
@@ -153,7 +160,8 @@ table whose row type was inferred as `Object?` or `dynamic`.
 
 `TreeView<T>(roots:, children:, label:, hasChildren:, nodeKey:, controller:,
 onActivated:, showGuides: true, focusNode:, autofocus:, canRequestFocus:,
-style:, guideStyle:, selectedStyle:, unfocusedSelectedStyle:)` shows `roots`
+style:, guideStyle:, selectedStyle:, unfocusedSelectedStyle:, separateRoots:
+false, maxIndent:, gutter:, gutterWidth: 1, physics:)` shows `roots`
 and the descendants of the nodes expanded, each node a row below its parent
 indented a level more (with lazy children and guides): `▸` before a node
 with children, `▾` while it is expanded, and with `showGuides` lines joining
@@ -189,7 +197,18 @@ merge over the theme's background and text: `style`; the guides `guideStyle`
 (the theme's `border`); the row of the node selected, its label's text too,
 `selectedStyle` (the theme's `selection`) while the view has the focus and
 `unfocusedSelectedStyle` (`selectedStyle`, else the theme's `selectionIdle`)
-while it has not. It takes all the room it is given, which must be bounded.
+while it has not. `separateRoots` puts an empty row between two roots (the
+selection and the keys skip it); `maxIndent` is the most cells the indent
+grows to (a level is two): nodes deeper than half of it show at the indent of
+that level, null for no limit; `gutter(context, entry)` builds what shows in
+the first `gutterWidth` cells of each node's row, before the guides and the
+expander, which move right by that much, out of the label's reach, such as an
+app's own cursor mark for `entry.selected` in a view with `canRequestFocus:
+false` (the rows of a load, an error and a separator get an empty cell and
+the builder is not called for them; null shows no gutter); `physics` is the
+`ScrollPhysics` of the `ListView` the rows are, `NeverScrollableScrollPhysics`
+passing the wheel to the scrollable around the view while its own keys still
+scroll it to the row. It takes all the room it is given, which must be bounded.
 
 ## `TreeTable<T>`
 
@@ -226,7 +245,7 @@ those rows does;
 ## `DirectoryTree`
 
 `DirectoryTree(root:, fileSystem:, controller:, onSelected:, onOpened:,
-showHidden: false, gitignore: true, watch: true, showSizes: false, filter:,
+showHidden: false, gitignore: true, watch: true, showSizes: false, byteUnits: ByteUnits.decimal, filter:,
 icon:, showGuides: false, focusNode:, autofocus:)` is a `TreeView` of the
 files under `root` for a side panel: the root expanded, each directory
 listed as it is first expanded (a spinner meanwhile), the directories first
@@ -234,7 +253,8 @@ in bold with a separator, then the files, each by name in any case; the
 hidden entries left out but with `showHidden`, with `gitignore` what the
 `.gitignore` files under the root ignore and `.git` too, the files a
 `FileFilter` refuses; `showSizes` puts each file's size at the end of its
-row (`4.2 KB`), `icon(entry)` what goes before a name, and a directory that
+row (`4.2 kB`, or `4.1 KiB` with `byteUnits: ByteUnits.binary`, counted
+by 1024 as `ls -h` does), `icon(entry)` what goes before a name, and a directory that
 fails to list says why below it in the theme's `muted` (`(permission
 denied)`). With `watch`, each directory expanded is listed again a tenth of
 a second after its `PickerFileSystem.watch` tells of a change, the selection

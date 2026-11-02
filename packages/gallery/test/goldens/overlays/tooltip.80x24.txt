@@ -4,24 +4,24 @@ text
 │                                                                                │
 │   ⌕ Filter       /     Tooltip                                 Preview   Code  │
 │                        A message by a widget while the mouse or the keyboard   │
-│     StatusBar          focus rests on it, or while a TooltipController says,…  │
-│                      ──────────────────────────────────────────────────────────│
-│   OVERLAYS      11                                                             │
-│     Overlay             ·   ·   ·   ┌                         ┐ ·   ·   ·   ·  │
+│                        focus rests on it, or while a TooltipController says,…  │
+│   OVERLAYS      12   ──────────────────────────────────────────────────────────│
+│     Overlay                                                                    │
+│     App                 ·   ·   ·   ┌                         ┐ ·   ·   ·   ·  │
 │     Dialog                             Save    Open    Share                   │
 │     Toast               ·   ·   ·                               ·   ·   ·   ·  │
 │ ▎   Tooltip                            Show the tip                            │
 │     Popover             ·   ·   ·   └                         ┘ ·   ·   ·   ·  │
-│     MenuBar         ▐                                   23 × 3                 │
+│     MenuBar                                             23 × 3                 │
 │     ContextMenu     ▐   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
-│     CommandPalette                                                             │
+│     CommandPalette  ▐                                                          │
 │     OptionList       ──────────────────────────────────────────────────────────│
 │     ModalBarrier       wait       100 ms  500 ms  1 s                          │
 │     WindowLayer        on hover  ▐  ●▌                                         │
 │                                                                                │
-│   ANIMATION     16     on focus  ▐  ●▌                                         │
+│   ANIMATION     17     on focus  ▐  ●▌                                         │
 │     Spinner            look       raised  bordered                             │
-│     ProgressBar                                                                │
+│     TickerMode                                                                 │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -29,24 +29,24 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahBhBBBBBBhhhhhhhChaaggkkkkkkkggggggggggggggggggggggggggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmgmmmmmmmgmmgmgmmmmmmgmmmmmgmmmgmmmmmgmmgmmmgmmmmmmmmggg│
-│aaaaannnnnnnnnaaaaaaaaggmmmmmgmmmmmgmmgmmmgmmgmmmmmgmgmmmmmmmmmmmmmmmmmgmmmmmmgg│
-│aaaaaaaaaaaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaddddddddaaaaaaAAaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnaaaaaaaaaagggogggogggogggogggggggggggggggggggggggggogogggogggogggogg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmgmmmmmgmmgmmmgmmgmmmmmgmgmmmmmmmmmmmmmmmmmgmmmmmmgg│
+│aaaddddddddaaaaaaAAaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnaaaaaaaaaaaaaagggogggogggogggogggggggggggggggggggggggggogogggogggogggogg│
 │aaaaannnnnnaaaaaaaaaaagggggggggggggggggpqqqqpggpqqqqpggpqqqqqpgggggggggggggggggg│
 │aaaaannnnnaaaaaaaaaaaagggogggogggogggggggggggggggggggggggggggggggogggogggogggogg│
 │arssstttttttsssssssssagggggggggggggggggpqqqqpqqqpqqqpggggggggggggggggggggggggggg│
 │aaaaannnnnnnaaaaaaaaaagggogggogggogggogggggggggggggggggggggggggogogggogggogggogg│
-│aaaaannnnnnnaaaaaaaaadgggggggggggggggggggggggggggggggggggDDgDgDggggggggggggggggg│
+│aaaaannnnnnnaaaaaaaaaagggggggggggggggggggggggggggggggggggDDgDgDggggggggggggggggg│
 │aaaaannnnnnnnnnnaaaaadgggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
-│aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnnnnnnnaaaaaggmmmmgggggghwwwhwwhstttsttshwhwhggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnaaaaaaggmmgmmmmmggxyyzxggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaadddddddddaaaaaAAaaaggmmgmmmmmggxyyzxggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnaaaaaaaaaaggmmmmggggggsttttttshwwwwwwwwhgggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend
@@ -63,8 +63,8 @@ C bold #747a83 on #13151a
 k bold #e6e8eb on #16181d
 l bold #5fa8ff on #16181d
 m #8b929c on #16181d
-n #e6e8eb on #1c1f25
 o #2c3039 on #16181d
+n #e6e8eb on #1c1f25
 p on #22252c
 q bold #5fa8ff on #22252c
 r #5fa8ff on #2b4566

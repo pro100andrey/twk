@@ -14,9 +14,9 @@ text
 │     TweenAnimatio…      ·   ·     ╰─────────────────────╯           ·   ·   ·  │
 │     AnimatedSwitc…                                                             │
 │     Dissolve, Fra…      ·   ·                                       ·   ·   ·  │
-│     Effect          ▐           └                                 ┘            │
+│     Effect                      └                                 ┘            │
 │                     ▐──────────────────────────────────────────────────────────│
-│   MOUSE          5     lines       1  3  5                                     │
+│   MOUSE          5  ▐  lines       1  3  5                                     │
 │     GestureDetect…     alignment   topLeft  center  bottomRight                │
 │     Listener, Mou…     curve       linear  ease  easeIn  easeOut  easeInOut    │
 │     IgnorePointer…                 fastOutSlowIn  decelerate  bounceOut        │
@@ -39,14 +39,14 @@ styles
 │aaaaannnnnnnnnnnnnnaaagggogggogggggpppppppppppppppppppppppgggggggggggogggogggogg│
 │aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnannnnaaagggogggogggggggggggggggggggggggggggggggggggggggogggogggogg│
-│aaaaannnnnnaaaaaaaaaadgggggggggggogggggggggggggggggggggggggggggggggogggggggggggg│
+│aaaaannnnnnaaaaaaaaaaagggggggggggogggggggggggggggggggggggggggggggggogggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaadoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaadddddaaaaaaaaaavaaaggmmmmmgggggghwhstshwhgggggggggggggggggggggggggggggggggggg│
+│aaadddddaaaaaaaaaavaadggmmmmmgggggghwhstshwhgggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnnaaaggmmmmmmmmmggstttttttshwwwwwwhhwwwwwwwwwwwhggggggggggggggg│
 │aaaaannnnnnnnnannnnaaaggmmmmmgggggghwwwwwwhhwwwwhhwwwwwwhhwwwwwwwhstttttttttsggg│
 │aaaaannnnnnnnnnnnnnaaaggggggggggggghwwwwwwwwwwwwwhhwwwwwwwwwwhhwwwwwwwwwhggggggg│
 │aaaaannnnnnnnnnnnnaaaaggggggggggggghwwwwwwwwwwhggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnannnaaaggmmmmmggggggxyyzxgggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnannnaaaggmmmmmgggggguxxyugggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend
@@ -71,6 +71,6 @@ r #5fa8ff on #2b4566
 s on #2b4566
 t bold #e6e8eb on #2b4566
 w #8b929c on #13151a
-x #5fa8ff on #16181d
-y on #5fa8ff
-z #ffffff on #5fa8ff
+u #5fa8ff on #16181d
+x on #5fa8ff
+y #ffffff on #5fa8ff

@@ -3,6 +3,9 @@
 /// and `N`.
 library;
 
+import 'dart:async'
+    show Completer, Stream, StreamController, StreamSubscription, unawaited;
+import 'dart:convert' show ByteConversionSink, Utf8Decoder;
 import 'dart:math' show max, min;
 
 import 'package:meta/meta.dart' show visibleForTesting;
@@ -24,6 +27,7 @@ import 'package:twk_core/twk_core.dart'
         RenderParagraph,
         stringWidth;
 
+import '../ansi/stream.dart' show AnsiStream;
 import '../editing/caret.dart' show clearRestCursor, restCursor;
 import '../focus/focus_tree.dart' show FocusNode;
 import '../focus/shortcuts.dart' show KeyBindings;
@@ -35,23 +39,37 @@ import '../gestures/mouse.dart' show Listener, PointerEvent;
 import '../gestures/selection.dart' show Selectable, SelectionArea;
 import '../layout/one_child.dart';
 import '../layout/stack.dart';
+import '../platform/platform.dart'
+    show FileBytes, FileReset, TailEvent, tailFile;
+import '../style/glyphs.dart' show textMark;
 import '../style/style.dart';
 import '../text/smartcase.dart';
 import '../text/widgets.dart';
 import 'list_view.dart';
 import 'scrollbar.dart';
 
-/// One line of a [LogController]: its [text], [level] and [time], and its
-/// [number], the lines added before it since the controller was made.
+// Examples can assume:
+// import 'dart:convert';
+// import 'dart:io';
+
+/// One line of a [LogController]: its [text], [level] and [time], its
+/// [spans] where it is in colors of its own, and its [number], the lines
+/// added before it since the controller was made.
 final class LogLine {
-  const LogLine._(this.number, this.text, this.level, this.time);
+  const LogLine._(this.number, this.text, this.level, this.time, this.spans);
 
   /// The lines added before this one since the controller was made, those
   /// dropped and cleared too: it tells the line apart for good.
   final int number;
 
-  /// What was logged, as it was given.
+  /// What was logged, as it was given; of a line of [spans], their text.
   final String text;
+
+  /// The pieces of [text] in the styles they were given, each merged over
+  /// the style of the line's [level] where a [LogView] shows it (the
+  /// colors of a program's output, [LogController.addOutput]); null for a
+  /// line all in that style.
+  final List<Span>? spans;
 
   /// How much it matters: what [LogController.level] filters by, and what
   /// a [LogView] colors its level by.
@@ -104,6 +122,9 @@ final class LogController extends ChangeNotifier {
     this._query = '',
   }) : assert(maxLines > 0, 'a cap of 1 line or more'),
        _maxLines = maxLines;
+
+  // the sources of addOutput and followFile, cancelled with the controller
+  final _sources = <LogSource>{};
 
   // the lines kept, from _head on, their numbers one after another
   final _lines = <LogLine>[];
@@ -178,10 +199,207 @@ final class LogController extends ChangeNotifier {
   /// Adds a line of [text] at [level], logged at [time] (none shown when
   /// null).
   void add(String text, {LogLevel level = LogLevel.info, DateTime? time}) {
-    _add(text, level, time);
+    _add(text, level, time, null);
     _trim();
     notifyListeners();
   }
+
+  /// Adds a line of [spans], in their styles over that of [level], logged
+  /// at [time] (none shown when null): filtered and searched by their text.
+  void addSpans(
+    List<Span> spans, {
+    LogLevel level = LogLevel.info,
+    DateTime? time,
+  }) {
+    _add(_textOf(spans), level, time, List.unmodifiable(spans));
+    _trim();
+    notifyListeners();
+  }
+
+  /// Adds the lines of [output], a program's output that comes in pieces
+  /// (its stdout, decoded), each line once it ends, at [level], in the
+  /// colors its ANSI escape sequences give it: read as an [AnsiStream]
+  /// reads it, so a carriage return writes the line over (a progress bar
+  /// leaves its last state), a tab moves to the next multiple of
+  /// [tabWidth] columns, and no sequence reaches the terminal. The line not
+  /// ended when [output] is done is added then. Returns the [LogSource]:
+  /// cancel it once the lines are not wanted; an error of [output] ends it,
+  /// and its [LogSource.done] completes with that error.
+  ///
+  /// ```dart
+  /// final log = LogController();
+  /// final process = await Process.start('dart', ['test']);
+  /// final source = log.addOutput(process.stdout.transform(utf8.decoder));
+  /// await source.done;
+  /// ```
+  LogSource addOutput(
+    Stream<String> output, {
+    LogLevel level = LogLevel.info,
+    int tabWidth = 8,
+  }) => _follow<String>(output, _Text.new, level, tabWidth);
+
+  /// [addOutput] of [output], each event of it told by [piece] as text or as
+  /// a [_Cut], the end of the output so far, as of a file cut short: the line
+  /// not ended is dropped.
+  LogSource _follow<T>(
+    Stream<T> output,
+    _Piece Function(T) piece,
+    LogLevel level,
+    int tabWidth,
+  ) {
+    var reader = AnsiStream(tabWidth: tabWidth);
+    void addEnded() {
+      final ended = reader.takeSettled();
+      if (ended.isEmpty) {
+        return;
+      }
+      for (final spans in ended) {
+        _add(_textOf(spans), level, null, spans);
+      }
+      _trim();
+      notifyListeners();
+    }
+
+    final source = LogSource._();
+    _sources.add(source);
+    void finish([Object? error, StackTrace? stack]) {
+      _sources.remove(source);
+      source._finish(error, stack);
+    }
+
+    source._subscription = output.listen(
+      (event) {
+        switch (piece(event)) {
+          case _Cut():
+            addEnded();
+            reader = AnsiStream(tabWidth: tabWidth);
+          case _Text(:final text):
+            reader.add(text);
+            addEnded();
+        }
+      },
+      onError: (Object error, StackTrace stack) {
+        finish(error, stack);
+        unawaited(source.cancel());
+      },
+      onDone: () {
+        reader.close();
+        addEnded();
+        finish();
+      },
+    );
+    source._onCancel = () => _sources.remove(source);
+    return source;
+  }
+
+  /// Cancels the sources of [addOutput] and [followFile] still live, so no
+  /// line reaches a disposed controller; the ones returned stay valid to
+  /// cancel again.
+  @override
+  void dispose() {
+    for (final source in _sources.toList()) {
+      unawaited(source.cancel());
+    }
+    _sources.clear();
+    super.dispose();
+  }
+
+  /// Follows the file at [path], adding the lines written to it as [addOutput]
+  /// adds those of a program's output (in its colors, a carriage return
+  /// writing a line over), each line once it ends: those written from the
+  /// call on, or with [fromEnd] false the file's from its start too. A write
+  /// is told by a watch of the file's directory where the system has one, and
+  /// found by a look at the file's size each [poll] all the same; a file cut
+  /// short (truncated after a clean, written anew) is read again from its
+  /// start, and so is one replaced at the path (another renamed over it, as a
+  /// log rotation does) where the system's watch tells it; with the poll
+  /// alone, a replacement is told only by being shorter than what was read.
+  /// One not there yet is waited for. Malformed UTF-8 is U+FFFD. Tabs go to
+  /// the next multiple of [tabWidth] columns. Cancel the returned source to
+  /// stop following it. Not on the web, which has no files: the source's
+  /// [LogSource.done] completes with an [UnsupportedError].
+  ///
+  /// The poll goes on while no [LogView] shows the controller, as the lines
+  /// do: the controller is the log, a view one way of reading it. Measured,
+  /// it is one `stat` of the file each [poll], about a system call a second
+  /// per follower, and 10 followers took 12 ms of system time over 30
+  /// seconds; cancel the source to stop it. Unlike the library's other
+  /// timers (`AppBinding.startTimer`), the poll is a real one, not the app's
+  /// clock: what it waits for is a real file, so a test awaits its lines with
+  /// `waitUntil` rather than a pump.
+  ///
+  /// ```dart
+  /// final log = LogController();
+  /// final source = log.followFile('build.log', tabWidth: 4);
+  /// await source.cancel();
+  /// ```
+  LogSource followFile(
+    String path, {
+    bool fromEnd = true,
+    Duration poll = const Duration(seconds: 1),
+    LogLevel level = LogLevel.info,
+    int tabWidth = 8,
+  }) => _follow<_Piece>(
+    _decoded(tailFile(path, fromEnd: fromEnd, poll: poll)),
+    (piece) => piece,
+    level,
+    tabWidth,
+  );
+
+  /// The text of the bytes of [events], with a [_Cut] where the file was read
+  /// again from its start: what the old file left unended (a cut UTF-8
+  /// character too) is not the start of the next line.
+  static Stream<_Piece> _decoded(Stream<TailEvent> events) {
+    final pieces = <String>[];
+    ByteConversionSink? decoder;
+    late final StreamSubscription<TailEvent> subscription;
+    late final StreamController<_Piece> out;
+    ByteConversionSink fresh() => const Utf8Decoder(
+      allowMalformed: true,
+    ).startChunkedConversion(_Pieces(pieces));
+    void flush() {
+      for (final piece in pieces) {
+        out.add(_Text(piece));
+      }
+      pieces.clear();
+    }
+
+    out = StreamController<_Piece>(
+      // listened to at once: the file's end is taken as it is
+      onListen: () {
+        decoder = fresh();
+        subscription = events.listen(
+          (event) {
+            switch (event) {
+              case FileReset():
+                pieces.clear();
+                decoder = fresh();
+                out.add(const _Cut());
+              case FileBytes(:final bytes):
+                decoder!.add(bytes);
+                flush();
+            }
+          },
+          onError: out.addError,
+          onDone: () {
+            decoder!.close();
+            flush();
+            unawaited(out.close());
+          },
+        );
+      },
+      onPause: () => subscription.pause(),
+      onResume: () => subscription.resume(),
+      onCancel: () => subscription.cancel(),
+    );
+    return out.stream;
+  }
+
+  static String _textOf(List<Span> spans) => switch (spans) {
+    [] => '',
+    [final one] => one.text,
+    _ => spans.map((s) => s.text).join(),
+  };
 
   /// Adds a line of each of [texts], as [add] does, telling the listeners
   /// once.
@@ -191,7 +409,7 @@ final class LogController extends ChangeNotifier {
     DateTime? time,
   }) {
     for (final text in texts) {
-      _add(text, level, time);
+      _add(text, level, time, null);
     }
     _trim();
     notifyListeners();
@@ -283,8 +501,8 @@ final class LogController extends ChangeNotifier {
     _ask(const _ToEnd());
   }
 
-  void _add(String text, LogLevel level, DateTime? time) {
-    final line = LogLine._(_next++, text, level, time);
+  void _add(String text, LogLevel level, DateTime? time, List<Span>? spans) {
+    final line = LogLine._(_next++, text, level, time, spans);
     _lines.add(line);
     final w = stringWidth(text);
     if (w > _widest) {
@@ -1079,6 +1297,14 @@ final class _LogViewState extends State<LogView> {
           ? const {'n': 'next match', 'N': 'previous match'}
           : const {};
     }
+    final arrow = fresh > 0
+        ? textMark(
+            context,
+            'arrowDown',
+            theme.glyphs.arrowDown,
+            Glyphs.ascii.arrowDown,
+          )
+        : '';
     return KeyBindings(
       _keys,
       hints: _keyHints,
@@ -1095,7 +1321,8 @@ final class _LogViewState extends State<LogView> {
                 child: GestureDetector(
                   onTap: (_) => c.follow(),
                   child: Text(
-                    ' ↓ $fresh new ${fresh == 1 ? 'line' : 'lines'} ',
+                    ' $arrow $fresh new '
+                    "${fresh == 1 ? 'line' : 'lines'} ",
                     style: theme.surface.merge(theme.primary),
                     wrap: TextWrap.none,
                   ),
@@ -1152,19 +1379,23 @@ final class _LogViewState extends State<LogView> {
     final query = look.query;
     final current = line.number == widget.controller._match;
     final found = current ? look.current : look.match;
-    var at = 0;
-    if (query.pattern.isNotEmpty) {
+    final pieces = switch (line.spans) {
+      final spans? => [for (final s in spans) (s.text, base.merge(s.style))],
+      null => [(text, base)],
+    };
+    if (query.pattern.isEmpty) {
+      spans.addAll(pieces);
+    } else {
+      final matches = <(int, int)>[];
       for (var i = query.indexIn(text); i >= 0;) {
-        if (i > at) {
-          spans.add((text.substring(at, i), base));
-        }
-        at = i + query.pattern.length;
-        spans.add((text.substring(i, at), base.merge(found)));
-        i = query.indexIn(text, at);
+        final end = i + query.pattern.length;
+        matches.add((i, end));
+        i = query.indexIn(text, end);
       }
+      spans.addAll(_marked(pieces, matches, found));
     }
-    if (at < text.length || spans.isEmpty) {
-      spans.add((text.substring(at), base));
+    if (spans.isEmpty) {
+      spans.add(('', base));
     }
     return _Line(
       key: ValueKey(line.number),
@@ -1174,6 +1405,42 @@ final class _LogViewState extends State<LogView> {
       current: current,
     );
   }
+}
+
+/// [pieces], text and its style one after another, with the text of
+/// [matches] (start and end in the text of all of them, in order, apart)
+/// in [mark] over its style; no empty piece.
+List<(String, Style)> _marked(
+  List<(String, Style)> pieces,
+  List<(int, int)> matches,
+  Style mark,
+) {
+  final out = <(String, Style)>[];
+  var offset = 0;
+  var m = 0;
+  for (final (text, style) in pieces) {
+    final end = offset + text.length;
+    var at = offset;
+    while (at < end) {
+      while (m < matches.length && matches[m].$2 <= at) {
+        m++;
+      }
+      if (m == matches.length || matches[m].$1 >= end) {
+        out.add((text.substring(at - offset), style));
+        break;
+      }
+      final (start, stop) = matches[m];
+      if (start > at) {
+        out.add((text.substring(at - offset, start - offset), style));
+        at = start;
+      }
+      final to = stop < end ? stop : end;
+      out.add((text.substring(at - offset, to - offset), style.merge(mark)));
+      at = to;
+    }
+    offset = end;
+  }
+  return out;
 }
 
 const _tags = ['DEBUG ', 'INFO  ', 'WARN  ', 'ERROR '];
@@ -1485,4 +1752,74 @@ final class _RenderLine extends RenderObject with RenderObjectWithChildMixin {
     paintChild(ctx, _paragraph);
     ctx.canvas.restore();
   }
+}
+
+/// Lines a [LogController] takes from a stream or a file
+/// ([LogController.addOutput], [LogController.followFile]): [cancel] it when
+/// they are not wanted, await [done] for the end of them.
+final class LogSource {
+  LogSource._();
+
+  StreamSubscription<void>? _subscription;
+  void Function()? _onCancel;
+  final _done = Completer<void>();
+
+  /// Stops the lines and frees the source; the line not ended is not added.
+  /// Cancelling again, or one already done, does nothing more.
+  Future<void> cancel() {
+    _onCancel?.call();
+    final cancelled = _subscription?.cancel() ?? Future<void>.value();
+    if (!_done.isCompleted) {
+      _done.complete();
+    }
+    return cancelled;
+  }
+
+  /// Completes when the output ends (its last unended line added) or the
+  /// source is cancelled; with the error of the output where it failed.
+  Future<void> get done => _done.future;
+
+  void _finish(Object? error, StackTrace? stack) {
+    if (_done.isCompleted) {
+      return;
+    }
+    if (error == null) {
+      _done.complete();
+    } else {
+      // an error nobody awaits is not an uncaught one
+      _done.future.ignore();
+      _done.completeError(error, stack);
+    }
+  }
+}
+
+/// What [LogController._decoded] tells: [_Text] read, or a [_Cut].
+sealed class _Piece {
+  const _Piece();
+}
+
+/// Text of the output.
+final class _Text extends _Piece {
+  const _Text(this.text);
+
+  final String text;
+}
+
+/// Where a file was read again from its start.
+final class _Cut extends _Piece {
+  const _Cut();
+}
+
+/// The sink a chunked decoder writes the pieces of text to, kept in
+/// [pieces].
+final class _Pieces implements Sink<String> {
+  _Pieces(this.pieces);
+
+  final List<String> pieces;
+
+  @override
+  void add(String data) => pieces.add(data);
+
+  @override
+  void close() {}
 }

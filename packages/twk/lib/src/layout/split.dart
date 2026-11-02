@@ -291,6 +291,20 @@ final class SplitPane {
 /// )
 /// ```
 ///
+/// There is no breakpoint in it: a view that lies down under a width is
+/// one in a [LayoutBuilder] that picks [direction], with the same
+/// controller (the shares stay) and panes (their state stays):
+///
+/// ```dart
+/// LayoutBuilder(
+///   builder: (context, constraints) => SplitView(
+///     controller: split,
+///     direction: constraints.maxW < 60 ? Axis.vertical : Axis.horizontal,
+///     panes: [SplitPane(child: tree), SplitPane(child: editor)],
+///   ),
+/// )
+/// ```
+///
 /// See also:
 ///
 ///  * [DockArea], panels the user can also move, tab and float.
@@ -304,7 +318,7 @@ final class SplitView extends StatefulWidget {
     this.direction = Axis.horizontal,
     this.controller,
     this.shareEdges = false,
-    this.type = BorderType.single,
+    this.type,
     this.style = const Style(),
     this.focusedStyle,
     this.pointerShapes = true,
@@ -320,8 +334,9 @@ final class SplitView extends StatefulWidget {
   /// one of its own when null.
   final SplitController? controller;
 
-  /// The lines the dividers are drawn with.
-  final BorderType type;
+  /// The lines the dividers are drawn with; null for the theme's
+  /// ([Glyphs.lines]).
+  final BorderType? type;
 
   /// The dividers' lines.
   final Style style;

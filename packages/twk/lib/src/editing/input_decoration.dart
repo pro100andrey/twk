@@ -330,19 +330,31 @@ Widget _decorated(
     ],
   );
   final outlined = border is OutlineInputBorder;
-  if (border is OutlineInputBorder) {
-    row = Box(
+  if (!outlined && fill != null) {
+    row = Box(style: fill, padding: const EdgeInsets.x(1), child: row);
+  }
+  // every kind by name: a new one is a compile error here, not a field
+  // drawn as if it had none
+  final framed = switch (border) {
+    OutlineInputBorder(:final type) => Box(
       style: fill,
-      border: Border.all(type: border.type, style: line),
+      border: Border.all(type: type, style: line),
       titles: [
         if (label != null) BorderTitle(' $label ', style: labelStyle),
       ],
       padding: const EdgeInsets.x(1),
       child: row,
-    );
-  } else if (fill != null) {
-    row = Box(style: fill, padding: const EdgeInsets.x(1), child: row);
-  }
+    ),
+    UnderlineInputBorder(:final type) => Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        row,
+        Divider(type: type, style: line),
+      ],
+    ),
+    _NoInputBorder() => row,
+  };
 
   final under = error ? d.errorText : d.helperText;
   final counter =
@@ -362,17 +374,7 @@ Widget _decorated(
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-      aroundBox(switch (border) {
-        UnderlineInputBorder(:final type) => Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            row,
-            Divider(type: type, style: line),
-          ],
-        ),
-        _ => row,
-      }),
+      aroundBox(framed),
       if (under != null || counter != null)
         Row(
           gap: 1,

@@ -4,9 +4,9 @@ text
 │                                                                                │
 │   ⌕ Filter       /     Slider                                  Preview   Code  │
 │                        A value along a track: the arrows, a press or a drag    │
-│     Checkbox, Swi…     move the thumb, which stands in eighths of a cell.      │
-│     RadioGroup       ──────────────────────────────────────────────────────────│
-│     SegmentedButt…                                                             │
+│     SegmentedButt…     move the thumb, which stands in eighths of a cell.      │
+│     Chip, ChipList   ──────────────────────────────────────────────────────────│
+│     ValueStepper                                                               │
 │     SelectionList       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
 │     Select, Multi…                                                             │
 │     ConfirmInput        ·   ·    ┌                                ┐ ·   ·   ·  │
@@ -29,9 +29,9 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahyhyyyyyyhhhhhhhzhaaggkkkkkkgggggggggggggggggggggggggggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmgmmmmmgmmmmmgmgmmmmmmgmmmgmmmmmmmgmgmmmmmgmmgmgmmmmgggg│
-│aaaaannnnnnnnnannnnaaaggmmmmgmmmgmmmmmmgmmmmmgmmmmmmgmmgmmmmmmmgmmgmgmmmmmgggggg│
-│aaaaannnnnnnnnnaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnnnaaaggmmmmgmmmgmmmmmmgmmmmmgmmmmmmgmmgmmmmmmmgmmgmgmmmmmgggggg│
+│aaaaannnnnannnnnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnnaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
 │aaaaannnnnnnannnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnaaaaagggogggoggggoggggggggggggggggggggggggggggggggogogggogggogg│

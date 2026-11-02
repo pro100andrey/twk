@@ -6,7 +6,28 @@
 
 `Overlay(child:)`, which an app places itself, as a rule around all of it
 and under its `Theme`, so that what goes in it sees the theme: `Theme(data:
-…, child: Overlay(child: Home()))`; the binding places none.
+…, child: Overlay(child: Home()))`; the binding places none. It goes
+above the app's root `KeyBindings`: the keys a dialog in it leaves go up
+to what is above the overlay, so bindings there act while it is open.
+
+## `App`
+
+`App(theme:, child:)` places the two in that order at the root:
+`runApp(const App(theme: ThemeData.nord, child: Home()))`, `Home`
+putting the app's `KeyBindings` at its root, below the overlay. Without
+`theme` it places no `Theme`; one above `App` is the theme of its
+dialogs too, as are the providers above it what they read. A theme given
+or taken away keeps the state below.
+
+A `Navigator` below the app's `KeyBindings` keeps that: a dialog shown on
+it skips the bindings between the navigator and the overlay
+(`FocusNode.keysSkip`), as does every entry of the navigator's own
+`Overlay` (a menu, the palette, a popover, an autocomplete list), so they
+neither act on its keys nor list them while it is open, and a page pushed
+on it still gets them. Told on each walk of the key path, the skip
+follows bindings added or removed above the navigator; for a navigator
+in a page of another it ends where the outer one's does. Keys that are
+to work over a dialog too, a `ctrl+q`, are bound above `App`.
 
 ## `Overlay.of`
 
@@ -68,13 +89,24 @@ closes it regardless.
 
 ## `Dialog`
 
-`Dialog(title:, padding:, shadow:, look: PanelLook.raised, child:)` is the
+`Dialog(title:, trailing:, scrollable: false, padding:, shadow:, look: PanelLook.raised, maxWidth: 72, child:)` is the
 box it is usually drawn in: a raised panel of the theme's `surface` and
 `text`, a cell of room around `padding` and no outline, the title bold on
 the first row inside, over the child, and a `BoxShadow` cast beside it where
 `shadow` gives one (`Shadow`, `layout`); with `look: PanelLook.bordered`, a
 border in the theme's `border` where the room is and the title on its top
-edge.
+edge. `trailing` is a widget at the right end of the title row (a counter such
+as `2/5 ←→`, a close hint); with the bordered look the title stays on the
+border too, `trailing` on the top edge at the right, in a blank cell on either side, and the box no taller than without it.
+With `scrollable: true` the child sits in a `SingleChildScrollView` bounded
+by the room the dialog gets (the screen's height less the room, the border
+and the title row), so a child taller than that scrolls, by the keys once it
+has the focus and by the wheel, instead of being cut off; by default it is
+laid out as tall as it likes. `maxWidth` is the most columns the box takes,
+its room or border among them, 72 by default and fewer where the screen is
+narrower; null for as many as the screen gives it, which a child that takes
+the width it is given (a `DescriptionList`, a `Row` with an `Expanded`) makes
+the dialog as wide as.
 
 ## `Panel`
 
@@ -225,7 +257,7 @@ the child moves inside a repaint boundary that repaints on its own.
 child or the popover to one in neither, Escape was pressed while the focus
 was in either, or a button was pressed outside both, the press still
 reaching what is under it; the app closes it by building it with `open:
-false`. It takes no focus: the keys go where the focus is, and those its
+false`. It takes no focus: its content is in a focus scope of its own that requests nothing, so a node in it with `autofocus` takes the focus (on a navigator page or not), one without leaves the focus where it was, and Tab moves among the popover's own nodes, then on from the last to the node after the child (Shift+Tab from the first to the child's last node, which keeps it open); it closes as the focus leaves both (`FocusScopeNode.leaveTo`); the keys go where the focus is, and those its
 nodes leave go to the nodes above the overlay. Its entry is inserted once it
 is first built, so one built open shows from the frame after.
 

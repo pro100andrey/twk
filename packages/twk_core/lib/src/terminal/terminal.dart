@@ -135,10 +135,10 @@ final class TerminalInfo {
   final bool graphemeMode;
 
   /// Whether the kitty keyboard protocol is supported (`CSI ? u` was
-  /// answered) and enabled: the Escape key arrives as `CSI 27 u`, so a lone
-  /// ESC byte starts a sequence; it counts as the Escape key only after a
-  /// long pause (500 ms), in case the terminal sends a legacy ESC after
-  /// all.
+  /// answered) and enabled: the Escape key should arrive as `CSI 27 u`.
+  /// A lone ESC is still read as the Escape key after
+  /// [TerminalOptions.escapeTimeout], as without the protocol: Konsole 26.08
+  /// answers for it and sends the Escape key as a lone ESC all the same.
   final bool kittyKeyboard;
 
   /// The kitty keyboard protocol's flags pushed where [kittyKeyboard]
@@ -363,7 +363,8 @@ final class TerminalOptions {
   /// The kitty keyboard protocol's flags pushed with [kittyKeyboard]
   /// ([KittyKeyboardFlags] bits), [KittyKeyboardFlags.disambiguate]
   /// among them whether or not they name it: the Escape key a sequence of
-  /// its own, never a lone ESC (see [escapeTimeout]). By default that
+  /// its own, which a terminal may send as a lone ESC all the same (see
+  /// [escapeTimeout]). By default that
   /// alone, and keys come as presses only. With
   /// [KittyKeyboardFlags.eventTypes] they come repeated and released too
   /// ([KeyEvent.kind]): what acts on keys then acts on presses and repeats
@@ -378,9 +379,14 @@ final class TerminalOptions {
 
   /// How long a lone ESC (or ESC and an introducer such as `[`) waits for
   /// the rest of a sequence before it counts as the Escape key (or Alt+key).
-  /// Only used without the kitty keyboard protocol (see
-  /// [TerminalInfo.kittyKeyboard]); a sequence whose parameters arrived
-  /// waits 500 ms.
+  /// With the kitty keyboard protocol too (see
+  /// [TerminalInfo.kittyKeyboard]), for a lone ESC only: a CSI-u sequence
+  /// (the Escape key's `ESC [ 27 u`) cut by a slow link (ssh, tmux) right
+  /// after its ESC for longer than this is read as the Escape key and the
+  /// text that follows. Once a byte follows the ESC under the protocol
+  /// (Alt+key comes as CSI u there, so it is a sequence begun), and for a
+  /// sequence whose parameters arrived without it, the wait is 500 ms.
+  /// Raise this for such a link.
   final Duration escapeTimeout;
 
   /// How long a bracketed paste may go without input before it is ended
@@ -630,8 +636,9 @@ GraphicsProtocol graphicsProtocolFor(
 /// raw mode can't be entered ([TerminalLink.enterRaw] throws), the terminal
 /// of the `twk shell` that `TWK_SHELL` in [env] names, or, where it is not
 /// set, the one serving the project [directory] is in (the current one
-/// when null; see `SocketLink.toShell`). Without such a shell, throws what
-/// [own] threw or a [TerminalException] 'not a terminal'; a `TWK_SHELL`
+/// when null; see `SocketLink.toShell`). Without such a shell, throws a
+/// [TerminalException] that says what [own] threw, or 'not a terminal', and
+/// what to do instead (a terminal, `TWK_PLAIN=1`, a `twk shell`); a `TWK_SHELL`
 /// naming no shell that listens throws a [TerminalException] saying so.
 Future<Terminal> openOwnOrShell(
   TerminalLink? own,
@@ -649,7 +656,19 @@ Future<Terminal> openOwnOrShell(
   }
   final shell = await SocketLink.toShell(directory, env);
   if (shell == null) {
-    throw refused ?? const TerminalException('not a terminal');
+    final what = refused == null
+        ? 'the program needs both stdin and stdout to be a terminal'
+        : 'the terminal of the program could not be opened (a stdin or '
+              'stdout that is no real terminal, such as /dev/null, looks '
+              'like one until it is set up)';
+    throw TerminalException(
+      '${refused?.message ?? 'not a terminal'}: $what. '
+      'Run it in a terminal, not with its input '
+      'from a file or a pipe or inside a tool that has none; with stdout '
+      'redirected, or with TWK_PLAIN=1, an app writes plain text instead, '
+      "and a `twk shell` running in the project gives it that shell's "
+      'terminal',
+    );
   }
   return Terminal._open(shell, options);
 }
@@ -831,8 +850,8 @@ final class Terminal
     this._outputTrace,
   ]) : _out = _outbox(_link, _outputTrace);
 
-  /// How long a sequence that has surely started (or, with the kitty
-  /// protocol, any ESC) may wait for the rest of its bytes.
+  /// How long a sequence that has surely started (with the kitty protocol,
+  /// ESC and any byte after it) may wait for the rest of its bytes.
   static const _longEscapeTimeout = Duration(milliseconds: 500);
 
   /// What the terminal was opened with.
@@ -1762,10 +1781,13 @@ final class Terminal
     if (_parser.hasPending) {
       // A sequence split across reads (a slow link) must not be cut: only a
       // lone ESC, or ESC and an introducer, may be a key typed by the user.
-      // With the kitty protocol even a lone ESC isn't the Escape key; it is
-      // resolved only after a long pause, in case the terminal sends a
-      // legacy ESC after all.
-      final wait = info.kittyKeyboard || _parser.sequenceStarted
+      // So it is with the kitty protocol too, which a terminal may answer
+      // for and still send the Escape key as a lone ESC (Konsole 26.08);
+      // but there Alt+key is a CSI u sequence, so ESC and any byte after it
+      // is a sequence cut, and waits long
+      final wait =
+          _parser.sequenceStarted ||
+              (info.kittyKeyboard && _parser.escapeFollowed)
           ? _longEscapeTimeout
           : options.escapeTimeout;
       _escTimer = Timer(wait, () => _parse(_parser.flush));

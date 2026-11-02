@@ -8,6 +8,8 @@ library;
 
 import 'dart:async';
 
+import 'tail_event.dart';
+
 /// None on the web.
 Map<String, String> get environment => const {};
 
@@ -56,6 +58,14 @@ Future<int?> fileSize(String path) async => null;
 
 /// Ends at once: the web has no directories to watch.
 Stream<void> watchDirectory(String path) => const Stream.empty();
+
+/// Fails with [UnsupportedError]: the web has no files to follow.
+Stream<TailEvent> tailFile(
+  String path, {
+  required bool fromEnd,
+  required Duration poll,
+  Timer Function(Duration, void Function(Timer)) startPeriodic = Timer.periodic,
+}) => Stream.error(_noFiles());
 
 /// Fails with [UnsupportedError].
 Future<void> writeFile(String path, String text) async => throw _noFiles();

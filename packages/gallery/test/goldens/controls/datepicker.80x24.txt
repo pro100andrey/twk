@@ -4,7 +4,7 @@ text
 │                                                                                │
 │   ⌕ Filter       /     DatePicker                              Preview   Code  │
 │                        A date typed, stepped by Up and Down, or picked from    │
-│     SegmentedButt…     the calendar that Alt+Down, a click on ▾ or a PopupCo…  │
+│     ValueStepper       the calendar that Alt+Down, a click on ▾ or a PopupCo…  │
 │     SelectionList    ──────────────────────────────────────────────────────────│
 │     Select, Multi…                                                             │
 │     ConfirmInput        ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
@@ -21,7 +21,7 @@ text
 │     ListTile           time of day  ▐●  ▌                                      │
 │     StatusBar          weeks start   monday  sunday                            │
 │                        popup look    raised  bordered                          │
-│   OVERLAYS      11                                                             │
+│   OVERLAYS      12                                                             │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -29,7 +29,7 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahBhBBBBBBhhhhhhhChaaggkkkkkkkkkkgggggggggggggggggggggggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmgmmmmgmmmmmmgmmmmmmmgmmgmmgmmmgmmmmmgmmgmmmmmmgmmmmgggg│
-│aaaaannnnnnnnnnnnnnaaaggmmmgmmmmmmmmgmmmmgmmmmmmmmmgmgmmmmmgmmgmgmmgmgmmmmmmmmgg│
+│aaaaannnnnnnnnnnnaaaaaggmmmgmmmmmmmmgmmmmgmmmmmmmmmgmgmmmmmgmmgmgmmgmgmmmmmmmmgg│
 │aaaaannnnnnnnnnnnnaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnnannnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│

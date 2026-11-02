@@ -143,14 +143,14 @@ void main() {
     final q = KeyCombo.parse('q');
     expect(t.binding.focusManager.activeKeys, [
       ActiveKey(x, binding: cut),
-      ActiveKey(ctrlS, binding: const Save(), hint: 'save'),
-      ActiveKey(q, binding: quit),
+      ActiveKey(ctrlS, binding: const Save(), hint: 'save', layer: 1),
+      ActiveKey(q, binding: quit, layer: 2),
     ]);
     save.enabled = false;
     expect(t.binding.focusManager.activeKeys, [
       ActiveKey(x, binding: cut),
-      ActiveKey(q, binding: quit),
-      ActiveKey(ctrlS, binding: nothing),
+      ActiveKey(q, binding: quit, layer: 2),
+      ActiveKey(ctrlS, binding: nothing, layer: 2),
     ]);
     expect(ActiveKey(x, binding: cut), isNot(ActiveKey(x, binding: quit)));
     expect(
@@ -404,5 +404,82 @@ void main() {
         ),
       ],
     );
+  });
+
+  testTwk('esc and escape are one key: bound under either name, and both '
+      'bound is refused as the same key', (t) async {
+    final seen = <String>[];
+    await t.pumpWidget(
+      Column(
+        children: [
+          KeyBindings({
+            'esc': () => seen.add('esc'),
+          }, child: const Focus(autofocus: true, child: Text('a'))),
+          const KeyBindings({
+            'esc': nothing,
+            // the failure is what is tested
+            // ignore: twk_lints/key_names
+            'escape': nothing,
+          }, child: Text('b')),
+        ],
+      ),
+    );
+    await t.press('escape');
+    await t.press('esc');
+    expect(seen, ['esc', 'esc']);
+    expect(
+      [
+        for (final r in t.logs.records)
+          if (r.level == LogLevel.error) '${r.error}',
+      ],
+      [contains('"esc" and "escape" are the same key')],
+    );
+  });
+
+  testTwk('a map built anew with the same keys is not parsed again: the '
+      'keys listed are the same objects, the callbacks and intents the new '
+      'ones, and the signal told only where a key is listed otherwise', (
+    t,
+  ) async {
+    final seen = <String>[];
+    await t.pumpWidget(
+      Host(
+        key: host,
+        (step) => KeyBindings(
+          {
+            'q': () => seen.add('q$step'),
+            if (step < 3) 'ctrl+s': () => seen.add('s$step'),
+            if (step == 2) 'x': null,
+          },
+          // the hints built anew too, as the map is: what is tested
+          // ignore: prefer_const_literals_to_create_immutables
+          hints: {'q': 'quit'},
+          child: const Field('list', autofocus: true),
+        ),
+      ),
+    );
+    final changes = countChanges(t);
+    final first = t.binding.focusManager.activeKeys.toList();
+    expect(keys(t), ['q quit', 'ctrl+s']);
+    host.currentState!.change(1);
+    await t.pump();
+    final again = t.binding.focusManager.activeKeys.toList();
+    expect(again.length, 2);
+    for (var i = 0; i < 2; i++) {
+      expect(identical(again[i].combo, first[i].combo), isTrue);
+    }
+    expect(changes(), 0);
+    await t.press('q');
+    await t.press('ctrl+s');
+    expect(seen, ['q1', 's1']);
+    // other keys are parsed anew
+    host.currentState!.change(2);
+    await t.pump();
+    expect(keys(t), ['q quit', 'ctrl+s']);
+    changes();
+    host.currentState!.change(3);
+    await t.pump();
+    expect(keys(t), ['q quit']);
+    expect(changes(), 1);
   });
 }
