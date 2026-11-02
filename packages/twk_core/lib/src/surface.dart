@@ -20,6 +20,7 @@
 /// @docImport 'style.dart';
 library;
 
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -373,7 +374,7 @@ final class Surface {
   /// Moves recorded by [scrollRows] / [scrollRect] since the last present,
   /// as flat (top, bottom, n, x0, x1) tuples. The presenter replays them as
   /// hardware scrolls; if it can't, it re-diffs the moved rows instead.
-  final pendingScrolls = <int>[];
+  final List<int> pendingScrolls = _IntBuffer();
 
   /// The images shown in reserved cells ([Canvas.image]), oldest first.
   /// They move with [scrollRows] and [scrollRect] (one the move cuts
@@ -790,5 +791,51 @@ final class Surface {
       }
       markDirty(ty, lo, hi);
     }
+  }
+}
+
+/// A growable list of ints that keeps its storage when cleared (a growable
+/// list's `clear` gives its backing array up, so a list cleared every frame
+/// grows anew each).
+final class _IntBuffer extends ListBase<int> {
+  var _items = Int32List(32);
+  var _length = 0;
+
+  @override
+  int get length => _length;
+
+  @override
+  set length(int n) {
+    if (n > _items.length) {
+      _items = Int32List(n)..setRange(0, _length, _items);
+    } else if (n > _length) {
+      _items.fillRange(_length, n, 0);
+    }
+    _length = n;
+  }
+
+  @override
+  int operator [](int i) {
+    RangeError.checkValidIndex(i, this);
+    return _items[i];
+  }
+
+  @override
+  void operator []=(int i, int v) {
+    RangeError.checkValidIndex(i, this);
+    _items[i] = v;
+  }
+
+  @override
+  void add(int v) {
+    if (_length == _items.length) {
+      _items = Int32List(_length * 2)..setRange(0, _length, _items);
+    }
+    _items[_length++] = v;
+  }
+
+  @override
+  void clear() {
+    _length = 0;
   }
 }

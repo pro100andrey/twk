@@ -2766,11 +2766,15 @@ final class Presenter {
     stats.rectScrollOps++;
   }
 
-  /// Hash of cells [start, end): content and style of every cell. Rows of
-  /// an even-width screen are hashed two cells per multiply, other rows
-  /// one cell per multiply; all rows of one screen take the same path, so
-  /// equal rows hash equally.
-  static int _rowHash(
+  /// Writes into [out] at [at] the hash of cells [start, end): content and
+  /// style of every cell. Rows of an even-width screen are hashed two cells
+  /// per multiply, other rows one cell per multiply; all rows of one screen
+  /// take the same path, so equal rows hash equally. Into an array, not
+  /// returned: a hash returned from a call that is not inlined is a boxed
+  /// int.
+  static void _hashRow(
+    Int64List out,
+    int at,
     Uint32List c,
     Uint32List st,
     Uint64List c64,
@@ -2785,18 +2789,29 @@ final class Presenter {
         final sv = st64[k];
         h = (h ^ c64[k] ^ ((sv << 23) | (sv >>> 41))) * 0x100000001B3;
       }
-      return h;
+    } else {
+      for (var i = start; i < end; i++) {
+        h = (h ^ (c[i] | (st[i] << 32))) * 0x100000001B3;
+      }
     }
-    for (var i = start; i < end; i++) {
-      h = (h ^ (c[i] | (st[i] << 32))) * 0x100000001B3;
-    }
-    return h;
+    out[at] = h;
   }
+
+  final _hashOne = Int64List(1);
 
   bool _frontHashesCorrect() {
     for (var y = 0; y < height; y++) {
-      if (_hf[y] !=
-          _rowHash(_fc, _fs, _fc64, _fs64, y * width, y * width + width)) {
+      _hashRow(
+        _hashOne,
+        0,
+        _fc,
+        _fs,
+        _fc64,
+        _fs64,
+        y * width,
+        y * width + width,
+      );
+      if (_hf[y] != _hashOne[0]) {
         return false;
       }
     }
@@ -2850,15 +2865,17 @@ final class Presenter {
     }
     if (!_hfValid) {
       for (var y = 0; y < h; y++) {
-        _hf[y] = _rowHash(_fc, _fs, _fc64, _fs64, y * w, y * w + w);
+        _hashRow(_hf, y, _fc, _fs, _fc64, _fs64, y * w, y * w + w);
       }
     }
     for (var y = 0; y < h; y++) {
       // a row without damage still equals the front: its hash is known
       // (valid front hashes: see the end of present)
-      _hb[y] = _hfValid && back.dirtyLo[y] >= back.dirtyHi[y]
-          ? _hf[y]
-          : _rowHash(bc, bs, bc64, bs64, y * w, y * w + w);
+      if (_hfValid && back.dirtyLo[y] >= back.dirtyHi[y]) {
+        _hb[y] = _hf[y];
+      } else {
+        _hashRow(_hb, y, bc, bs, bc64, bs64, y * w, y * w + w);
+      }
     }
     _hashedThisFrame = true;
     // Several blocks may have moved by different amounts (stacked panes
