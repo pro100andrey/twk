@@ -97,17 +97,8 @@ import 'panel.dart';
 /// )
 /// ```
 ///
-/// A dialog on a navigator below those bindings is as one in that
-/// overlay: the keys it leaves go to the navigator and then past the
-/// nodes above it up to the [Overlay] above the navigator, to the nodes
-/// above that overlay ([FocusNode.keysSkip]), so the app's `q` above the
-/// navigator but inside `App` does not hear the dialog's, nor does a
-/// `KeyHintsBar` list it while the dialog is open. Keys that are to work
-/// over a dialog as well, a `ctrl+q` that quits, are bound above `App`.
-/// With no overlay above the navigator nothing is skipped: the bindings
-/// above the navigator hear them. Menus, the palette, popovers and
-/// autocomplete lists opened from a screen of the navigator, entries of its
-/// own overlay, skip the same way.
+/// A dialog on a navigator hears the keys as one in the overlay above the
+/// navigator: see [Overlay], "Keys of what it shows".
 ///
 /// It completes with null too when it leaves the tree some other way, as
 /// with its overlay or navigator.
@@ -541,15 +532,6 @@ final class _DialogLayerState extends State<_DialogLayer>
 
   final _scope = FocusScopeNode(debugLabel: 'dialog');
 
-  /// The nodes the keys the dialog leaves skip on a navigator, told
-  /// whenever the keys' path is walked; none for a dialog in an overlay.
-  ({FocusNode from, FocusNode to})? _skip() {
-    final navigator = widget.route._entry == null
-        ? widget.route.navigator
-        : null;
-    return navigator?.keysSkip;
-  }
-
   @override
   void initState() {
     super.initState();
@@ -581,7 +563,7 @@ final class _DialogLayerState extends State<_DialogLayer>
     // a share of it as the dialog fades in
     final alpha = route.barrierAlpha;
     final opacity = alpha == null ? theme.shadeAlpha : alpha / 255;
-    _scope.keysSkip = _skip;
+    _scope.keysSkip = Overlay.maybeOf(context)?.keysSkip;
     return _DialogScope(
       route,
       child: ListenableBuilder(

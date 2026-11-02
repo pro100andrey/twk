@@ -96,11 +96,9 @@ class FocusNode with ChangeNotifier {
 
   /// Tells, each time the [FocusManager.keyPath] is walked, the part of it
   /// the keys that pass this node skip: `from` and the nodes above it up to
-  /// `to`, an ancestor of it, which gets them next; null for none. A dialog
-  /// or an entry of a navigator's overlay under an `App` skips so from the
-  /// node above the navigator to the one above the App's overlay, as it
-  /// would be shown in that overlay without the navigator: the app's
-  /// bindings between do not hear its keys. Told on each walk, it follows
+  /// `to`, an ancestor of it, which gets them next; null for none. The
+  /// dialogs and entries of a navigator's `Overlay` set it, by the rule
+  /// told there ("Keys of what it shows"). Told on each walk, it follows
   /// a change of the tree above.
   @internal
   ({FocusNode from, FocusNode to})? Function()? get keysSkip => _keysSkip;

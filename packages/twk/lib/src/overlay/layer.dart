@@ -14,6 +14,7 @@ import '../foundation/listenable_builder.dart';
 import '../framework/framework.dart';
 import '../layout/basic.dart';
 import '../layout/stack.dart';
+import 'overlay_host.dart';
 
 // Examples can assume:
 // late BuildContext context;
@@ -35,6 +36,24 @@ import '../layout/stack.dart';
 /// `App(theme: …, child: Home())` places. A `Navigator` holds one of its
 /// own over its routes.
 ///
+/// **Keys of what it shows.** What is shown in the overlay of a
+/// `Navigator` (an entry, a menu, the palette, a popover, an autocomplete
+/// list) and a dialog that is a route of the navigator hear the keys as
+/// if they were shown in the overlay above the navigator: the bindings
+/// between the navigator and that overlay do not hear them, nor does a
+/// `KeyHintsBar` list those while it is open ([FocusNode.keysSkip]). The
+/// keys go to the navigator, whose back key stays on their path, and then
+/// past the nodes above it up to the nodes above the overlay above it; where
+/// that overlay is a navigator's too, to the end of its skip. The page
+/// content still hears the app's bindings, as it is under the navigator,
+/// not over it. So a dialog on a navigator under `App` is as one in
+/// `App`'s overlay, as Flutter's `showDialog` puts it in the root
+/// navigator, above the app's widgets. With no overlay above the
+/// navigator nothing is skipped. Told on each walk of the
+/// [FocusManager.keyPath], it follows bindings added or removed above the
+/// navigator. Keys that are to work over a dialog as well, a `ctrl+q` that
+/// quits, are bound above `App`.
+///
 /// An app whose dialogs, toasts and tooltips show over all of it, in its
 /// theme:
 ///
@@ -48,15 +67,8 @@ final class Overlay extends StatefulWidget {
   /// Shows [child] under the entries inserted in it.
   const Overlay({
     required this.child,
-    @internal this.entriesKeysSkip,
     super.key,
   });
-
-  /// Set by a `Navigator` for its own overlay: what the keys that pass its
-  /// entries skip ([FocusNode.keysSkip]), so that they are as in the
-  /// overlay above the navigator.
-  @internal
-  final ({FocusNode from, FocusNode to})? Function()? entriesKeysSkip;
 
   /// What the entries are shown over.
   final Widget child;
@@ -133,6 +145,35 @@ final class OverlayState extends State<Overlay> {
 
   void _remove(_Slot slot) => _slots.remove(slot);
 
+  // the element of the OverlayHost a navigator put above this overlay;
+  // null for any other overlay
+  Element? get _navigatorHost {
+    final host = context.getElementForInheritedWidgetOfExactType<OverlayHost>();
+    return host != null && (host.widget as OverlayHost).navigator ? host : null;
+  }
+
+  /// What the keys that pass what this overlay shows skip, for
+  /// [FocusNode.keysSkip]; told on each walk of the
+  /// [FocusManager.keyPath], so it follows a change of the tree above.
+  /// None for any overlay but a navigator's.
+  @internal
+  ({FocusNode from, FocusNode to})? keysSkip() {
+    final host = mounted ? _navigatorHost : null;
+    if (host == null) {
+      return null;
+    }
+    final outer = Overlay.maybeOf(host);
+    final from = Focus.maybeOf(host, createDependency: false);
+    var to = outer == null
+        ? null
+        : Focus.maybeOf(outer.context, createDependency: false);
+    if (from == null || to == null || identical(from, to)) {
+      return null;
+    }
+    to = outer!.keysSkip()?.to ?? to;
+    return (from: from, to: to);
+  }
+
   /// [slot] has faded out: the overlay builds without it.
   void _gone(_Slot slot) {
     if (mounted && _slots.contains(slot)) {
@@ -156,9 +197,12 @@ final class OverlayState extends State<Overlay> {
   @override
   Widget build(BuildContext context) => _OverlayScope(
     this,
-    child: Stack(
-      fit: StackFit.passthrough,
-      children: [widget.child, for (final slot in _slots) slot.widget],
+    child: OverlayHost(
+      navigator: false,
+      child: Stack(
+        fit: StackFit.passthrough,
+        children: [widget.child, for (final slot in _slots) slot.widget],
+      ),
     ),
   );
 }
@@ -386,9 +430,11 @@ final class _EntryHostState extends State<_EntryHost>
     if (!_shown) {
       return const Positioned(left: 0, top: 0, child: SizedBox.shrink());
     }
-    final skip = Overlay.maybeOf(context)?.widget.entriesKeysSkip;
-    final node = skip == null ? null : (_skipNode ??= _skipEntry());
-    node?.keysSkip = skip;
+    final overlay = Overlay.maybeOf(context);
+    final node = overlay?._navigatorHost == null
+        ? null
+        : (_skipNode ??= _skipEntry());
+    node?.keysSkip = overlay!.keysSkip;
     final built = widget.entry.builder(context);
     Widget fade(Widget child) => ListenableBuilder(
       listenable: _fade,
