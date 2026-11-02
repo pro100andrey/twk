@@ -10,9 +10,9 @@
 // as its one argument, in milliseconds, to stop at and say where it
 // stopped, and the run is killed [_exit] after it, so what the app says
 // is in the output. The bound starts when the app's main does: node's
-// start and the build's load and compile before it, which a busy machine
-// can make long, have a bound of their own, [_load], and a run stopped
-// there says the last stage it reached.
+// start and the build's load and compile before it have a bound of their
+// own, [_load], and a run stopped anywhere says the last stage it
+// reached.
 //
 //   dart run tool/web_check.dart            # every case
 //   dart run tool/web_check.dart core       # these only
@@ -49,10 +49,11 @@ const _nodeMajor = 22;
 const _exit = Duration(seconds: 10);
 
 /// How long node may take to start and to load, compile and instantiate a
-/// build, before its app's main and the app's bound start: on a CI runner
-/// busy with the suites, a compile alone has taken three times as long as
-/// on a quiet machine.
-const _load = Duration(minutes: 2);
+/// build, before its app's main and the app's bound start: the 10 s it had
+/// when one bound counted both. A run on windows-latest once ended at that
+/// bound saying nothing, its cause not found; the stages are there to say
+/// where the next one stops, not to wait it out.
+const _load = Duration(seconds: 10);
 
 /// What the runner writes to stderr before each of its stages, the stage
 /// after it; [_mainStage] last, as the app's main is called.
