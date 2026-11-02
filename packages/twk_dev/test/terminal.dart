@@ -191,8 +191,14 @@ final class Terminal {
     final path = utf8.encode(name);
     final memory = _calloc(1, path.length + 1);
     memory.cast<Uint8>().asTypedList(path.length).setAll(0, path);
-    // O_RDWR | O_NOCTTY
-    final fd = _open(memory.cast(), 2 | (_macos ? 0x20000 : 0x100));
+    // O_RDWR | O_NOCTTY | O_CLOEXEC: a process started meanwhile, by this
+    // suite or another one the runner has in an isolate of the same VM,
+    // would otherwise hold the tty open, and with it the output, until it
+    // ended
+    final fd = _open(
+      memory.cast(),
+      2 | (_macos ? 0x20000 | 0x1000000 : 0x100 | 0x80000),
+    );
     _free(memory);
     expect(fd, greaterThanOrEqualTo(0), reason: 'open $name');
     return fd;
