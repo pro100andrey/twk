@@ -447,10 +447,11 @@ final class _LinkTaps {
     if (_hand == HandPointer.off) {
       return null;
     }
-    final (start, end) = paragraph.textRangeAt(x, y);
-    if (start == end || paragraph.isEllipsisAt(x, y)) {
+    final cell = paragraph.cellAt(x, y);
+    if (cell == null || cell.isEllipsis) {
       return null;
     }
+    final start = cell.start;
     var at = 0;
     for (final span in spans ?? const <Span>[]) {
       at += span.text.length;
@@ -478,11 +479,12 @@ final class _LinkTaps {
     if (event.button != 0 || pressed != (event.x, event.y)) {
       return;
     }
-    final (start, end) = paragraph.textRangeAt(event.x, event.y);
+    final cell = paragraph.cellAt(event.x, event.y);
     // the cell of an ellipsis is no span's: it stands for text not shown
-    if (start == end || paragraph.isEllipsisAt(event.x, event.y)) {
+    if (cell == null || cell.isEllipsis) {
       return;
     }
+    final start = cell.start;
     // the spans as given hold the same text as the paragraph's, which
     // gradients and a selection only cut in more pieces
     var at = 0;

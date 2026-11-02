@@ -141,7 +141,7 @@ void main() {
       );
     });
 
-    test('isEllipsisAt and textRangeAt: all three cells stand for the cut', () {
+    test('cellAt and textRangeAt: all three cells stand for the cut', () {
       final p = RenderParagraph(
         [('abcdefgh', plain)],
         wrap: TextWrap.none,
@@ -152,7 +152,7 @@ void main() {
       expect(
         [
           for (var x = 0; x < 6; x++)
-            if (p.isEllipsisAt(x, 0)) x,
+            if (p.cellAt(x, 0)?.isEllipsis ?? false) x,
         ],
         [3, 4, 5],
       );

@@ -370,7 +370,7 @@ final class _KeyHintsBarState extends State<KeyHintsBar> {
     return HandOver(
       where: (x, y) {
         if (rowContext?.findRenderObject() case final RenderParagraph p
-            when p.isEllipsisAt(x, y)) {
+            when p.cellAt(x, y)?.isEllipsis ?? false) {
           return false;
         }
         return targets.any((t) => x >= t.$1 && x < t.$2);
@@ -383,7 +383,7 @@ final class _KeyHintsBarState extends State<KeyHintsBar> {
           // the ellipsis of a cut row presses nothing, nor does the key or
           // hint it stands for
           if (rowContext?.findRenderObject() case final RenderParagraph p
-              when p.isEllipsisAt(event.x, event.y)) {
+              when p.cellAt(event.x, event.y)?.isEllipsis ?? false) {
             return;
           }
           for (final (from, to, key) in targets) {

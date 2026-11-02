@@ -3190,9 +3190,35 @@ final class RenderParagraph extends RenderObject {
     return (start, end);
   }
 
-  /// Whether the cell at column [x] of row [y] as the last layout placed it
-  /// is an ellipsis, which stands for text that is not drawn.
-  bool isEllipsisAt(int x, int y) => _cellAt(x, y).$3;
+  /// The text at column [x] of row [y] as the last layout placed it, and
+  /// whether the cell is an ellipsis, in one query; null where
+  /// [textRangeAt] is the empty range: beside a row's text, above or below
+  /// the rows, before a layout.
+  ///
+  /// `start` and `end` are [textRangeAt]'s. At a cell of an ellipsis
+  /// `isEllipsis` is true and they are the clusters it stands for, which
+  /// are not drawn.
+  ///
+  /// ```dart
+  /// final p = RenderParagraph(
+  ///   [('abcdefgh', const Pen())],
+  ///   wrap: TextWrap.none,
+  ///   overflow: TextOverflow.ellipsis,
+  ///   maxLines: 1,
+  /// )..layout(const BoxConstraints(5, 5, 0, 100));
+  /// final b = p.cellAt(1, 0); // (start: 1, end: 2, isEllipsis: false)
+  /// final cut = p.cellAt(4, 0); // (start: 4, end: 8, isEllipsis: true)
+  /// final none = p.cellAt(9, 0); // null
+  /// ```
+  ///
+  /// It makes a record per call, which the caller's pattern may not keep:
+  /// a call per pointer event, none per frame.
+  ({int start, int end, bool isEllipsis})? cellAt(int x, int y) {
+    final (start, end, isEllipsis) = _cellAt(x, y);
+    return start == end
+        ? null
+        : (start: start, end: end, isEllipsis: isEllipsis);
+  }
 
   @override
   void paint(PaintContext ctx) {
