@@ -40,12 +40,26 @@ String reference(
     ends.add(i);
     cols.add(cells);
   }
+  // the ends of the graphemes, which a cut does not split whatever the
+  // mode's clusters
+  final graphemeEnds = <int>{0};
+  final graphemes = TextSegmenter();
+  for (var i = 0; i < text.length;) {
+    graphemes.scan(text, i, scan);
+    i = scan.end;
+    graphemeEnds.add(i);
+  }
+  bool whole(int k) =>
+      seg.mode == TextMode.graphemes || graphemeEnds.contains(ends[k]);
   int head(int r, [int to = -1]) {
     final n = to < 0 ? cols.length : to;
     var w = 0;
     var k = 0;
     for (; k < n && w + cols[k] <= r; k++) {
       w += cols[k];
+    }
+    while (!whole(k)) {
+      k--;
     }
     return k;
   }
@@ -55,6 +69,9 @@ String reference(
     var k = cols.length;
     for (; k > from && w + cols[k - 1] <= r; k--) {
       w += cols[k - 1];
+    }
+    while (!whole(k)) {
+      k++;
     }
     return k;
   }
@@ -67,6 +84,7 @@ String reference(
     }
     final u = text.codeUnitAt(ends[k]);
     return u == 0x20 ||
+        u == 0x09 ||
         u == 0x1680 ||
         (u >= 0x2000 && u <= 0x200A && u != 0x2007) ||
         u == 0x205F ||

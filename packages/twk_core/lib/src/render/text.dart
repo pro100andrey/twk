@@ -314,11 +314,7 @@ int _kindOfWide(int cp, int length) {
     return 0;
   }
   // a space with a mark on it is a letter
-  if (length == 1 &&
-      (cp == 0x1680 ||
-          (cp >= 0x2000 && cp <= 0x200A && cp != 0x2007) ||
-          cp == 0x205F ||
-          cp == 0x3000)) {
+  if (length == 1 && isCutBlank(cp)) {
     return _space;
   }
   if (cp >= 0x2010 && cp <= 0x2014 && cp != 0x2011) {

@@ -844,19 +844,56 @@ String fitText(
 }
 
 // What the helpers below report besides the index they return: the
-// columns of the cluster [_cluster] last read, and the columns [_head]
-// took, or [_tail] left after the start it returns (less the blanks
-// [_skipBlanks] then passes). [fitText] makes one of its own for a call
-// and passes it down: a record of the two would be allocated on every
-// return, a cluster a time.
+// columns of the cluster [_cluster] last read and whether it ended on a
+// grapheme boundary, and the columns [_head] took, or [_tail] left after
+// the start it returns (less the blanks [_skipBlanks] then passes).
+// [fitText] makes one of its own for a call and passes it down: a record
+// of the two would be allocated on every return, a cluster a time.
 final class _Cut {
   var cluster = 0;
   var cells = 0;
+
+  /// Whether the end of the cluster [_cluster] last read is a grapheme
+  /// boundary: always, in the grapheme mode; in the legacy one, where a
+  /// cluster may be part of a grapheme, as the grapheme segmenter says.
+  var boundary = true;
+
+  // the end of the grapheme the walk is in, and where the walk last ended
+  var _grapheme = 0;
+  var _at = 0;
+}
+
+final _cutGraphemes = TextSegmenter();
+final _cutGraphemeScan = ClusterScan();
+final _cutScratch = _Cut();
+
+/// Whether [cp], alone in its cluster, is a blank: a cut with an ellipsis
+/// does not leave one beside the mark. The one rule of [fitText], of a
+/// box's title and of a paragraph's `TextOverflow.ellipsis`: the tab (drawn
+/// as a space), the space, and the Unicode spaces but the no-break ones.
+@pragma('vm:prefer-inline')
+bool isCutBlank(int cp) =>
+    cp == 0x20 ||
+    cp == 0x09 ||
+    cp == 0x1680 ||
+    (cp >= 0x2000 && cp <= 0x200A && cp != 0x2007) ||
+    cp == 0x205F ||
+    cp == 0x3000;
+
+/// The columns of the clusters of [text] that fit [room] columns from its
+/// start, cut as [fitText] cuts before an ellipsis: whole graphemes only,
+/// and with [trim] without the blanks before the cut.
+int cutHeadCells(TextSegmenter seg, String text, int room, {bool trim = true}) {
+  final cut = _cutScratch;
+  _head(seg, text, cut, room, text.length, trim);
+  return cut.cells;
 }
 
 // The cluster of [text] at [i] ([fitText] cuts between them, in the columns
 // [_columns] counts): its end, its columns left in [cut]. Walks the text
-// without materialising its clusters.
+// without materialising its clusters. The one step every cut takes; where
+// the clusters are smaller than graphemes (the legacy mode) [_Cut.boundary]
+// says whether its end splits none.
 int _cluster(TextSegmenter seg, String text, _Cut cut, int i) {
   final scan = _widthScan;
   seg.scan(text, i, scan);
@@ -869,26 +906,32 @@ int _cluster(TextSegmenter seg, String text, _Cut cut, int i) {
     cells = 0;
   }
   cut.cluster = cells;
+  if (seg.mode == TextMode.graphemes) {
+    cut.boundary = true;
+  } else {
+    // a walk that does not go on from where it ended starts on a boundary
+    if (cut._at != i || cut._grapheme < i) {
+      cut._grapheme = i;
+    }
+    cut._at = end;
+    while (cut._grapheme < end) {
+      _cutGraphemes.scan(text, cut._grapheme, _cutGraphemeScan);
+      cut._grapheme = _cutGraphemeScan.end;
+    }
+    cut.boundary = cut._grapheme == end;
+  }
   return end;
 }
 
 // whether the cluster [start, end) of [text] is a blank: a space of its
 // own, which a line is not cut at the ellipsis beside (as RenderParagraph
 // trims it)
-bool _isBlank(String text, int start, int end) {
-  if (end - start != 1) {
-    return false;
-  }
-  final u = text.codeUnitAt(start);
-  return u == 0x20 ||
-      u == 0x1680 ||
-      (u >= 0x2000 && u <= 0x200A && u != 0x2007) ||
-      u == 0x205F ||
-      u == 0x3000;
-}
+bool _isBlank(String text, int start, int end) =>
+    end - start == 1 && isCutBlank(text.codeUnitAt(start));
 
 // the end of the most clusters from the start, not past [to], that fit [r]
-// columns; with [trim], moved back over the blanks before it
+// columns and end on a grapheme boundary; with [trim], moved back over the
+// blanks before it
 int _head(
   TextSegmenter seg,
   String text,
@@ -899,7 +942,12 @@ int _head(
 ) {
   var w = 0;
   var i = 0;
-  var kept = 0; // the end of the last cluster that is not a blank
+  cut
+    .._at = 0
+    .._grapheme = 0;
+  var whole = 0; // the end of the last cluster that ends a grapheme
+  var wholeCells = 0;
+  var kept = 0; // the end of the last such that is not a blank
   var keptCells = 0;
   while (i < to) {
     final end = _cluster(seg, text, cut, i);
@@ -908,18 +956,23 @@ int _head(
       break;
     }
     w += cells;
-    if (!_isBlank(text, i, end)) {
-      kept = end;
-      keptCells = w;
+    if (cut.boundary) {
+      whole = end;
+      wholeCells = w;
+      if (!_isBlank(text, i, end)) {
+        kept = end;
+        keptCells = w;
+      }
     }
     i = end;
   }
-  cut.cells = trim ? keptCells : w;
-  return trim ? kept : i;
+  cut.cells = trim ? keptCells : wholeCells;
+  return trim ? kept : whole;
 }
 
 // the start of the most clusters up to the end that fit [r] columns, not
-// before [from]; [rest] is the columns from [from] to the end
+// before [from] (a grapheme boundary), and itself on one; [rest] is the
+// columns from [from] to the end
 int _tail(
   TextSegmenter seg,
   String text,
@@ -930,7 +983,11 @@ int _tail(
 ) {
   var left = rest;
   var i = from;
-  while (left > r && i < text.length) {
+  cut
+    .._at = from
+    .._grapheme = from
+    ..boundary = true;
+  while ((left > r || !cut.boundary) && i < text.length) {
     i = _cluster(seg, text, cut, i);
     left -= cut.cluster;
   }
@@ -941,6 +998,9 @@ int _tail(
 // [i] moved on over the blank clusters after it, [_Cut.cells] less theirs
 int _skipBlanks(TextSegmenter seg, String text, _Cut cut, int i) {
   var at = i;
+  cut
+    .._at = i
+    .._grapheme = i;
   while (at < text.length) {
     final end = _cluster(seg, text, cut, at);
     if (!_isBlank(text, at, end)) {

@@ -898,23 +898,7 @@ final class RenderDecoratedBox extends RenderObject
       // the ellipsis doesn't fit
       final room = shown - e;
       final fit = room < 0 ? shown : room;
-      final g = run.glyphs;
-      var k = 0;
-      var w = 0;
-      while (k < g.length) {
-        final cells = (g[k] & kWide) != 0 ? 2 : 1;
-        if (w + cells > fit) {
-          break;
-        }
-        w += cells;
-        k++;
-      }
-      if (room >= 0) {
-        while (k > 0 && (g[k - 1] & kGlyphMask) == kBlank) {
-          k--;
-          w--;
-        }
-      }
+      final w = cutHeadCells(seg, _titles[i].text, fit, trim: room >= 0);
       canvas
         ..save()
         ..clipRect(x, y, w, 1)

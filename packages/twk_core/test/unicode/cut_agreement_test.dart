@@ -2,8 +2,7 @@
 // paragraph's TextOverflow.ellipsis and a box's title) must cut the same
 // text to the same room at the same place: no blank, tab or ideographic
 // space left next to the mark, no cluster split. Review finding 1 of the
-// architecture review; each case that still differs waits for
-// arch-cell-text.
+// architecture review.
 import 'package:test/test.dart';
 import 'package:twk_core/twk_core.dart';
 
@@ -78,18 +77,18 @@ void agree(String text, TextMode mode, Iterable<int> rooms) {
 void main() {
   test('a tab before the cut is not left next to the ellipsis', () {
     agree('ab\tcdefgh', TextMode.graphemes, [3, 4, 5, 6, 7]);
-  }, skip: 'probable bug confirmed: arch-cell-text');
+  });
 
   test('an ideographic space (U+3000) before the cut is not left next to '
       'the ellipsis', () {
     agree('ab　cdefgh', TextMode.graphemes, [3, 4, 5, 6, 7]);
-  }, skip: 'probable bug confirmed: arch-cell-text');
+  });
 
   test('a ZWJ family is cut whole or not at all under the legacy '
       'segmenter', () {
     agree('ab$_family', TextMode.legacy, [3, 4, 5, 6, 7]);
     agree('a$_family', TextMode.legacy, [3, 4, 5, 6, 7]);
-  }, skip: 'probable bug confirmed: arch-cell-text');
+  });
 
   test('plain text is cut the same by the three', () {
     agree('abcdefgh ijk', TextMode.graphemes, [3, 4, 5, 6, 9]);
