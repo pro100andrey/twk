@@ -119,6 +119,22 @@ void main() {
       expect(paragraph.spans[1].$2.attrs, Attr.italic);
     });
 
+    test('a new text in an equal style gets the pen it had', () {
+      Text text(String data, Color fg) => Text(
+        data,
+        style: Style(fg: fg, bg: blue),
+      );
+      final v = Shot(text('ab', red), 4, 1);
+      final paragraph = v.top as RenderParagraph;
+      final pen = paragraph.spans.single.$2;
+      v.pump(text('cd', red));
+      expect(paragraph.spans.single.$1, 'cd');
+      expect(identical(paragraph.spans.single.$2, pen), isTrue);
+      v.pump(text('cd', green));
+      expect(paragraph.spans.single.$2, isNot(pen));
+      expect(paragraph.spans.single.$2.fg, green);
+    });
+
     test('new settings change the same render object', () {
       final v = Shot(const Text('ab cd'), 6, 2);
       final paragraph = v.top as RenderParagraph;

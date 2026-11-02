@@ -131,15 +131,33 @@ final class Style {
   /// The core's pen for this style. Unset colors stay null, so they are
   /// those of the cell painted over; the attributes, underline color and
   /// link replace those of the cell, so unset ones are off.
-  Pen get pen => Pen(
-    fg: fg,
-    bg: bg,
-    fgAlpha: fgAlpha,
-    bgAlpha: bgAlpha,
-    attrs: attrs,
-    underlineColor: underlineColor ?? Color.defaultColor,
-    link: link == null || link!.isEmpty ? null : link,
-  );
+  ///
+  /// A style equal to one that asked lately gets that one's [Pen] again: a
+  /// pen is immutable, and a paragraph given an equal pen does not repaint.
+  /// The pens are kept in a small table of fixed size, a style taking the
+  /// place of another of its hash, so a color that changes in every frame
+  /// costs a pen but no growth.
+  Pen get pen {
+    final at = hashCode & (_pens.length - 1);
+    if (_penStyles[at] == this) {
+      return _pens[at]!;
+    }
+    final made = Pen(
+      fg: fg,
+      bg: bg,
+      fgAlpha: fgAlpha,
+      bgAlpha: bgAlpha,
+      attrs: attrs,
+      underlineColor: underlineColor ?? Color.defaultColor,
+      link: link == null || link!.isEmpty ? null : link,
+    );
+    _penStyles[at] = this;
+    _pens[at] = made;
+    return made;
+  }
+
+  static final _penStyles = List<Style?>.filled(64, null);
+  static final _pens = List<Pen?>.filled(64, null);
 
   /// The id of [pen] in [table]: registered on first use, the same id for
   /// every equal style after that. A style looked up before in [table],
