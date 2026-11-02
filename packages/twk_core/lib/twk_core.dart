@@ -39,7 +39,7 @@ export 'src/presenter.dart'
     show CursorShape, PresentStats, Presenter, TerminalCaps, Viewport;
 export 'src/render/render.dart';
 export 'src/screen.dart' show Screen;
-export 'src/style.dart' show Attr, Color, ColorMode, Pen, StyleTable;
+export 'src/style.dart' show Attr, Color, ColorMode, Pen, StyleId, StyleTable;
 export 'src/surface.dart'
     show
         CellKeeper,

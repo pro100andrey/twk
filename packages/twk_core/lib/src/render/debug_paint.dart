@@ -62,7 +62,7 @@ void _tint(
     for (var i = row + a; i < end;) {
       final s = sty[i];
       final j = runEndU32(sty, surface.styles64, i + 1, end, s);
-      fillU32(sty, i, j, _tinted(styles, s, tint));
+      fillU32(sty, i, j, _tinted(styles, StyleId(s), tint).value);
       i = j;
     }
     surface.markDirty(y, a, b);
@@ -70,7 +70,7 @@ void _tint(
 }
 
 /// [style] with its background blended with [tint]'s, all else kept.
-int _tinted(StyleTable styles, int style, int tint) => styles.style(
+StyleId _tinted(StyleTable styles, StyleId style, int tint) => styles.style(
   fg: styles.fgOf(style),
   bg: styles.bgOf(styles.compose(style, tint)),
   attrs: styles.attrsOf(style),

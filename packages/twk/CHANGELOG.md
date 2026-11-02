@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- A cell's style id is a `StyleId` (package:twk_core, exported by
+  package:twk), apart from a pen id, which stays an int: the effect cell's
+  `EffectCell.style`, `childStyle` and `underStyle` are one, and so are
+  the style arguments of a `RenderEffect`'s `effectCell`.
 - `Scrollbar` and the bar of `Box` read the axis from the scrollable
   inside, as Flutter's `Scrollbar` does. `Scrollbar(axis:)` is nullable and
   null by default: the outermost scrollable of either axis, where it was

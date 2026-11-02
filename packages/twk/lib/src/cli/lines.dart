@@ -7,7 +7,7 @@
 library;
 
 import 'package:twk_core/twk_core.dart'
-    show LineEncoder, PaintContext, PipelineOwner, Screen;
+    show LineEncoder, PaintContext, PipelineOwner, Screen, StyleId;
 
 import '../../twk.dart';
 
@@ -88,7 +88,7 @@ String encodeLine(
   final styles = out.styles;
   for (final span in line) {
     out.text(
-      styles.compose(0, styles.pen(span.style.pen)),
+      styles.compose(StyleId.base, styles.pen(span.style.pen)),
       _printable(span.text),
     );
   }

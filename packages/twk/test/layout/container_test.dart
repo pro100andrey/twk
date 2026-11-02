@@ -14,11 +14,11 @@ const blue = Color.rgb(0, 0, 200);
 
 /// The background of the cell at [x], [y] of [v].
 Color bgAt(View v, int x, int y) =>
-    v.screen.styles.bgOf(v.screen.surface.styles[y * v.width + x]);
+    v.screen.styles.bgOf(StyleId(v.screen.surface.styles[y * v.width + x]));
 
 /// The text color of the cell at [x], [y] of [v].
 Color fgAt(View v, int x, int y) =>
-    v.screen.styles.fgOf(v.screen.surface.styles[y * v.width + x]);
+    v.screen.styles.fgOf(StyleId(v.screen.surface.styles[y * v.width + x]));
 
 /// The render object hit deepest at [x], [y] of [v].
 RenderObject? hitAt(View v, int x, int y) {

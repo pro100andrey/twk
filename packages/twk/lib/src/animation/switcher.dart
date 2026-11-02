@@ -21,6 +21,7 @@ import 'package:twk_core/twk_core.dart'
         Pen,
         RenderObject,
         RenderObjectWithChildMixin,
+        StyleId,
         StyleTable,
         Surface,
         kBlank,
@@ -570,12 +571,15 @@ final class _Kept implements CellKeeper {
   final _RenderMixed mixed;
 
   @override
-  void markCells(void Function(int glyph) glyph, void Function(int id) style) {
+  void markCells(
+    void Function(int glyph) glyph,
+    void Function(StyleId style) style,
+  ) {
     final m = mixed;
     final n = (m._x1 - m._x0) * (m._y1 - m._y0);
     for (var i = 0; i < n && i < m._cells.length; i++) {
       glyph(m._cells[i]);
-      style(m._styles[i]);
+      style(StyleId(m._styles[i]));
     }
   }
 }
@@ -837,7 +841,8 @@ final class _RenderOpacity extends _RenderMixed {
       return;
     }
     final child =
-        !_blank(styles, c, s) && (_alpha >= 0x80 || _blank(styles, u, us));
+        !_blank(styles, c, StyleId(s)) &&
+        (_alpha >= 0x80 || _blank(styles, u, StyleId(us)));
     if (styles.sweeps != _mixedSweeps) {
       // swept since: the ids kept may be other styles'
       _mixedSweeps = styles.sweeps;
@@ -846,20 +851,20 @@ final class _RenderOpacity extends _RenderMixed {
     _glyph = child ? c : u;
     _style = _mixed[s << 32 | us << 1 | (child ? 1 : 0)] ??= _mixStyle(
       styles,
-      s,
-      us,
+      StyleId(s),
+      StyleId(us),
       childText: child,
-    );
+    ).value;
   }
 
   /// The style of a cell where the child painted [s] over [us]: the
   /// background the child's over the one under it, and the text of the
   /// child as translucent as it ([childText]), or else the text under it
   /// seen through the child's background.
-  int _mixStyle(
+  StyleId _mixStyle(
     StyleTable styles,
-    int s,
-    int us, {
+    StyleId s,
+    StyleId us, {
     required bool childText,
   }) {
     final a = _alpha;
@@ -885,7 +890,7 @@ final class _RenderOpacity extends _RenderMixed {
   }
 
   /// Whether the cell [c] in style [s] shows nothing but its background.
-  static bool _blank(StyleTable styles, int c, int s) =>
+  static bool _blank(StyleTable styles, int c, StyleId s) =>
       (c & (kGlyphMask | kWide | kCont)) == kBlank &&
       (styles.attrsOf(s) & Attr.visibleOnBlank) == 0;
 

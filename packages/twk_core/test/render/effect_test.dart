@@ -184,9 +184,9 @@ final class Probe extends RenderEffect {
     int x,
     int y,
     int glyph,
-    int style,
+    StyleId style,
     int underGlyph,
-    int underStyle,
+    StyleId underStyle,
   ) {
     cells++;
     if (hidden.contains(x)) {
@@ -459,9 +459,9 @@ final class Widen extends RenderEffect {
     int x,
     int y,
     int glyph,
-    int style,
+    StyleId style,
     int underGlyph,
-    int underStyle,
+    StyleId underStyle,
   ) {
     effectGlyph = glyph == 0x77 ? 0x6F22 | kWide : glyph;
     effectStyle = style;

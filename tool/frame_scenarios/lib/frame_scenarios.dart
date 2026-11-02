@@ -10,6 +10,8 @@ import 'package:twk_core/twk_core.dart';
 
 import 'src/branch_api.dart';
 
+export 'src/branch_api.dart' show cellStyleOf;
+
 /// The core wired up as an app's frame drives it, without a terminal: a
 /// style table, a glyph table, a surface of `width` × `height` cells, the
 /// canvas that paints it and the presenter that writes its changes.

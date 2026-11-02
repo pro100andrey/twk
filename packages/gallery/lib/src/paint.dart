@@ -162,7 +162,7 @@ final class Painter {
     int y,
     int w,
     int h,
-    int Function(StyleTable styles, int style) restyle,
+    StyleId Function(StyleTable styles, StyleId style) restyle,
   ) {
     if (w <= 0 || h <= 0) {
       return;
@@ -175,11 +175,11 @@ final class Painter {
     final styles = canvas.styles;
     final sty = surface.styles;
     final stride = surface.width;
-    final made = <int, int>{};
+    final made = <int, StyleId>{};
     for (var row = y0; row < y1; row++) {
       for (var i = row * stride + x0; i < row * stride + x1; i++) {
         final s = sty[i];
-        sty[i] = made[s] ??= restyle(styles, s);
+        sty[i] = (made[s] ??= restyle(styles, StyleId(s))).value;
       }
       if (x1 > x0) {
         surface.markDirty(row, x0, x1);

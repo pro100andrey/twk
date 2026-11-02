@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+Breaking:
+
+- A cell's style id is a `StyleId` (package:twk_core): `TerminalEmulator.styleAt`
+  answers one, and `TerminalLine`'s constructor, `clear`, `erase` and
+  `resize` take one, `StyleId.base` for the default style where 0 was.
+  `TerminalLine.styles` stays a `Uint32List`.
+
 ## 0.1.0
 
 The first release.

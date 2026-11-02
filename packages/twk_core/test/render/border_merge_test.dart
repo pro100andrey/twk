@@ -60,10 +60,10 @@ final class View {
       screen.glyphs.stringOf(screen.surface.cells[y * width + x]);
 
   Color fgAt(int x, int y) =>
-      screen.styles.fgOf(screen.surface.styles[y * width + x]);
+      screen.styles.fgOf(StyleId(screen.surface.styles[y * width + x]));
 
   Color bgAt(int x, int y) =>
-      screen.styles.bgOf(screen.surface.styles[y * width + x]);
+      screen.styles.bgOf(StyleId(screen.surface.styles[y * width + x]));
 
   /// Every cell: its glyph, text color and background.
   List<String> cells() => [

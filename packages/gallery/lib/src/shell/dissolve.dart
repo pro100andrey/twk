@@ -32,7 +32,7 @@ final class PageDissolve extends CellEffect {
     if (k >= 1) {
       return null;
     }
-    final made = <int, int>{};
+    final made = <int, StyleId>{};
     return (cell) {
       final local = (k - _hash(cell.x, cell.y) * 0.6) / 0.4;
       if (local >= 1) {
@@ -43,7 +43,7 @@ final class PageDissolve extends CellEffect {
       if (local <= 0) {
         cell
           ..glyph = 0x20
-          ..style = made[-s - 1] ??= styles.style(
+          ..style = made[-s.value - 1] ??= styles.style(
             fg: styles.fgOf(s),
             bg: styles.bgOf(s),
             attrs: styles.attrsOf(s) & ~_attrsGone,
@@ -59,7 +59,7 @@ final class PageDissolve extends CellEffect {
         return;
       }
       final step = (easeOut(local) * 16).round();
-      cell.style = made[s * 17 + step] ??= styles.style(
+      cell.style = made[s.value * 17 + step] ??= styles.style(
         fg: Color.lerp(bg, fg, step / 16),
         bg: bg,
         attrs: styles.attrsOf(s),

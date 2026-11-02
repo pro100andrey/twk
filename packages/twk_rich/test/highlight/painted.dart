@@ -60,5 +60,5 @@ final class Painted {
   int attrs(int x, int y) => screen.styles.attrsOf(_style(x, y));
 
   int _cell(int x, int y) => screen.surface.cells[y * width + x];
-  int _style(int x, int y) => screen.surface.styles[y * width + x];
+  StyleId _style(int x, int y) => StyleId(screen.surface.styles[y * width + x]);
 }

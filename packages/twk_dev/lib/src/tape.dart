@@ -10,7 +10,7 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:path/path.dart' as p;
 import 'package:twk_core/twk_core.dart'
-    show Attr, Color, KeyCode, KeyEvent, StyleTable, kCont;
+    show Attr, Color, KeyCode, KeyEvent, StyleId, StyleTable, kCont;
 import 'package:twk_term/twk_term.dart';
 
 import 'cast.dart';
@@ -438,7 +438,7 @@ String redraw(TerminalEmulator screen) {
       continue;
     }
     out.write('\x1b[${y + 1}H');
-    var style = 0;
+    var style = StyleId.base;
     for (var x = 0; x < end; x++) {
       if (screen.cellAt(x, y) & kCont != 0) {
         continue;
@@ -450,7 +450,7 @@ String redraw(TerminalEmulator screen) {
       }
       out.write(screen.cellText(x, y));
     }
-    if (style != 0) {
+    if (style != StyleId.base) {
       out.write('\x1b[0m');
     }
   }
@@ -461,11 +461,11 @@ String redraw(TerminalEmulator screen) {
 }
 
 /// Style [id] looks as an erased cell does.
-bool _plain(StyleTable styles, int id) =>
+bool _plain(StyleTable styles, StyleId id) =>
     styles.bgOf(id).isDefault && styles.attrsOf(id) & Attr.visibleOnBlank == 0;
 
 /// The SGR sequence of style [id], from the default.
-String _sgr(StyleTable styles, int id) {
+String _sgr(StyleTable styles, StyleId id) {
   final attrs = styles.attrsOf(id);
   final underline = (attrs & Attr.underlineMask) >> 3;
   String color(Color c, int base) => c.isRgb

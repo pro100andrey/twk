@@ -18,3 +18,16 @@ RenderParagraph cutParagraph(
   overflow: maxLines == null ? TextOverflow.clip : TextOverflow.ellipsis,
   maxLines: maxLines,
 );
+
+/// As the baseline's core has it, the style id an int: what [styles] holds of the style a cell of [Surface.styles] has, [raw]:
+/// its colors and underline color as packed ints, its attributes and link.
+({int fg, int bg, int attrs, int underline, String? link}) cellStyleOf(
+  StyleTable styles,
+  int raw,
+) => (
+  fg: styles.fgOf(raw).value,
+  bg: styles.bgOf(raw).value,
+  attrs: styles.attrsOf(raw),
+  underline: styles.underlineColorOf(raw).value,
+  link: styles.linkOf(raw),
+);

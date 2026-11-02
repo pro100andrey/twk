@@ -90,6 +90,7 @@ export 'package:twk_core/twk_core.dart'
         ParentData,
         RenderObject,
         RenderObjectWithChildMixin,
+        StyleId,
         StyleTable,
         TextMode,
         TextSegmenter,

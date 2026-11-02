@@ -17,6 +17,7 @@ import 'package:twk_core/twk_core.dart'
         Pen,
         RenderObject,
         RenderObjectWithChildMixin,
+        StyleId,
         StyleTable,
         describeColor,
         kCont,
@@ -586,14 +587,16 @@ final class _RenderGradientForeground extends _RenderGradient {
           continue;
         }
         final k = across ? x - gx : y - gy;
-        final s = sty[i];
-        sty[i] = _colored[s << 16 | k] ??= styles.style(
-          fg: colors[k],
-          bg: styles.bgOf(s),
-          attrs: styles.attrsOf(s),
-          underlineColor: styles.underlineColorOf(s),
-          link: styles.linkOf(s),
-        );
+        final s = StyleId(sty[i]);
+        sty[i] = _colored[s.value << 16 | k] ??= styles
+            .style(
+              fg: colors[k],
+              bg: styles.bgOf(s),
+              attrs: styles.attrsOf(s),
+              underlineColor: styles.underlineColorOf(s),
+              link: styles.linkOf(s),
+            )
+            .value;
       }
       if (a < b) {
         surface.markDirty(y, a, b);

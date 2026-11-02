@@ -7,7 +7,7 @@ library;
 
 import 'dart:math' as math;
 
-import 'package:twk_core/twk_core.dart' show Attr, Color, StyleTable;
+import 'package:twk_core/twk_core.dart' show Attr, Color, StyleId, StyleTable;
 
 /// [a] [k] of the way to [b] (`Color.lerp`), as the design mixes colors;
 /// null where either is null or not RGB: a palette entry or the default
@@ -37,7 +37,7 @@ int rgbOf(StyleTable styles, Color color, int defaultRgb) {
 /// underline each taken [k] of the way to [to], an RGB; a default text
 /// color the terminal has not told turns the text faint, a default
 /// underline color stays the text's.
-int shadeStyle(StyleTable styles, int style, int to, double k) {
+StyleId shadeStyle(StyleTable styles, StyleId style, int to, double k) {
   Color mix(int rgb) => lerpRgb(rgb, to, k);
   final bg = mix(
     rgbOf(styles, styles.bgOf(style), styles.defaultBackgroundRgb),

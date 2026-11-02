@@ -302,7 +302,7 @@ final class Canvas {
     final cells = surface.cells;
     final sty = surface.styles;
     final width = surface.width;
-    final opaque = styles.opaqueStyleOf(pen);
+    final opaque = styles.opaqueStyleOf(pen).value;
     if (x0 == 0 && x1 == width) {
       // whole rows: one contiguous block, and no wide glyph can be cut
       final a = y0 * width;
@@ -448,7 +448,7 @@ final class Canvas {
     while (i < b) {
       final s = sty[i];
       final j = runEndU32(sty, sty64, i + 1, b, s);
-      fillU32(sty, i, j, styles.compose(s, pen));
+      fillU32(sty, i, j, styles.compose(StyleId(s), pen).value);
       i = j;
     }
   }
@@ -634,7 +634,7 @@ final class Canvas {
   /// whose styles come whole from elsewhere (a terminal emulator's), which
   /// a pen each would keep for good.
   @pragma('vm:prefer-inline')
-  int runStyled(int x, int y, GlyphRun r, int style) =>
+  int runStyled(int x, int y, GlyphRun r, StyleId style) =>
       runRangeStyled(x, y, r.glyphs, 0, r.glyphs.length, style);
 
   /// Draws glyph words [start, end) of [g] as [runStyled] draws a run of
@@ -645,7 +645,7 @@ final class Canvas {
     Uint32List g,
     int start,
     int end,
-    int style,
+    StyleId style,
   ) {
     assert(0 <= start && start <= end && end <= g.length, 'range in g');
     final ay = y + _oy;
@@ -656,7 +656,7 @@ final class Canvas {
     _y = ay;
     _row = ay * surface.width;
     _pen = -1;
-    _opaque = style;
+    _opaque = style.value;
     _lastIn = -1;
     _dmgLo = 1 << 30;
     _dmgHi = -1;
@@ -717,7 +717,7 @@ final class Canvas {
             final under = sty[c];
             if (under != lastIn) {
               lastIn = under;
-              lastOut = styles.compose(under, _pen);
+              lastOut = styles.compose(StyleId(under), _pen).value;
             }
             sty[c] = lastOut;
           }
@@ -795,7 +795,7 @@ final class Canvas {
         final trim = (i == 0 ? trimFirst : 0) | (i == last ? trimLast : 0);
         final glyph = _mergedLine(g[i], cells[at], trim);
         if (under >= 0) {
-          sty[at] = styles.compose(sty[at], under);
+          sty[at] = styles.compose(StyleId(sty[at]), under).value;
         }
         if (glyph >= 0) {
           _putNarrow(ax, glyph);
@@ -894,7 +894,7 @@ final class Canvas {
     _y = y;
     _row = y * surface.width;
     _pen = pen;
-    _opaque = styles.opaqueStyleOf(pen);
+    _opaque = styles.opaqueStyleOf(pen).value;
     _lastIn = -1;
     _dmgLo = 1 << 30;
     _dmgHi = -1;
@@ -933,7 +933,7 @@ final class Canvas {
     final s = surface.styles[i];
     if (s != _lastIn) {
       _lastIn = s;
-      _lastOut = styles.compose(s, _pen);
+      _lastOut = styles.compose(StyleId(s), _pen).value;
     }
     return _lastOut;
   }

@@ -26,6 +26,7 @@ import 'dart:typed_data';
 
 import 'fill.dart';
 import 'graphics.dart';
+import 'style.dart' show StyleId;
 import 'unicode/unicode.dart';
 
 /// The bits of a cell that hold its glyph id: `cell & kGlyphMask`; the
@@ -282,7 +283,10 @@ final class GlyphTable {
 abstract interface class CellKeeper {
   /// Marks the glyph word ([glyph]) and the style ([style]) of every cell
   /// it keeps.
-  void markCells(void Function(int glyph) glyph, void Function(int id) style);
+  void markCells(
+    void Function(int glyph) glyph,
+    void Function(StyleId style) style,
+  );
 }
 
 /// A [Canvas] draws on it; the [Presenter] compares its damaged spans with
@@ -329,12 +333,15 @@ final class Surface {
 
   /// Marks the glyph word and the style of every cell, its own and those
   /// its keepers keep ([keep]).
-  void markCells(void Function(int glyph) glyph, void Function(int id) style) {
+  void markCells(
+    void Function(int glyph) glyph,
+    void Function(StyleId style) style,
+  ) {
     final c = cells;
     final s = styles;
     for (var i = 0; i < c.length; i++) {
       glyph(c[i]);
-      style(s[i]);
+      style(StyleId(s[i]));
     }
     for (final keeper in _keepers) {
       keeper.markCells(glyph, style);
@@ -426,10 +433,10 @@ final class Surface {
     markAllDirty();
   }
 
-  /// Blank every cell with [styleId] and damage everything.
-  void clear([int styleId = 0]) {
+  /// Blank every cell with [style] and damage everything.
+  void clear([StyleId style = StyleId.base]) {
     fillU32(cells, 0, cells.length, kBlank);
-    fillU32(styles, 0, styles.length, styleId);
+    fillU32(styles, 0, styles.length, style.value);
     pendingScrolls.clear();
     images.clear();
     markAllDirty();
@@ -501,11 +508,16 @@ final class Surface {
   }
 
   /// Moves the content of rows [rowTop, rowBottom) up by [n] rows (down
-  /// when negative); exposed rows become blank with [styleId]. This is how a
+  /// when negative); exposed rows become blank with [style]. This is how a
   /// scrolling view avoids repainting content that only moved: the damage
   /// moves with the rows, only the exposed rows are damaged, and the move is
   /// recorded so the presenter scrolls the terminal in hardware too.
-  void scrollRows(int rowTop, int rowBottom, int n, [int styleId = 0]) {
+  void scrollRows(
+    int rowTop,
+    int rowBottom,
+    int n, [
+    StyleId style = StyleId.base,
+  ]) {
     final top = rowTop < 0 ? 0 : rowTop;
     final bottom = rowBottom > height ? height : rowBottom;
     if (n == 0 || top >= bottom) {
@@ -518,7 +530,7 @@ final class Surface {
     }
     if (k >= bottom - top) {
       fillU32(cells, top * w, bottom * w, kBlank);
-      fillU32(styles, top * w, bottom * w, styleId);
+      fillU32(styles, top * w, bottom * w, style.value);
       for (var y = top; y < bottom; y++) {
         markDirty(y, 0, w);
       }
@@ -530,7 +542,7 @@ final class Surface {
       dirtyLo.setRange(top, bottom - k, dirtyLo, top + k);
       dirtyHi.setRange(top, bottom - k, dirtyHi, top + k);
       fillU32(cells, (bottom - k) * w, bottom * w, kBlank);
-      fillU32(styles, (bottom - k) * w, bottom * w, styleId);
+      fillU32(styles, (bottom - k) * w, bottom * w, style.value);
       for (var y = bottom - k; y < bottom; y++) {
         dirtyLo[y] = 0;
         dirtyHi[y] = w;
@@ -543,7 +555,7 @@ final class Surface {
         dirtyHi[y] = dirtyHi[y - k];
       }
       fillU32(cells, top * w, (top + k) * w, kBlank);
-      fillU32(styles, top * w, (top + k) * w, styleId);
+      fillU32(styles, top * w, (top + k) * w, style.value);
       for (var y = top; y < top + k; y++) {
         dirtyLo[y] = 0;
         dirtyHi[y] = w;
@@ -570,14 +582,14 @@ final class Surface {
     int rowTop,
     int rowBottom,
     int n, [
-    int styleId = 0,
+    StyleId style = StyleId.base,
   ]) {
     final x0 = left < 0 ? 0 : left;
     final x1 = right > width ? width : right;
     final top = rowTop < 0 ? 0 : rowTop;
     final bottom = rowBottom > height ? height : rowBottom;
     if (x0 == 0 && x1 == width) {
-      scrollRows(top, bottom, n, styleId);
+      scrollRows(top, bottom, n, style);
       return;
     }
     if (n == 0 || top >= bottom || x0 >= x1) {
@@ -595,7 +607,7 @@ final class Surface {
     if (k >= bottom - top) {
       for (var y = top; y < bottom; y++) {
         fillU32(cells, y * w + x0, y * w + x1, kBlank);
-        fillU32(styles, y * w + x0, y * w + x1, styleId);
+        fillU32(styles, y * w + x0, y * w + x1, style.value);
         markDirty(y, x0, x1);
       }
       return;
@@ -611,7 +623,7 @@ final class Surface {
       }
       for (var y = bottom - k; y < bottom; y++) {
         fillU32(cells, y * w + x0, y * w + x1, kBlank);
-        fillU32(styles, y * w + x0, y * w + x1, styleId);
+        fillU32(styles, y * w + x0, y * w + x1, style.value);
         _moveDamage(y, -1, x0, x1);
       }
     } else {
@@ -622,7 +634,7 @@ final class Surface {
       }
       for (var y = top; y < top + k; y++) {
         fillU32(cells, y * w + x0, y * w + x1, kBlank);
-        fillU32(styles, y * w + x0, y * w + x1, styleId);
+        fillU32(styles, y * w + x0, y * w + x1, style.value);
         _moveDamage(y, -1, x0, x1);
       }
     }

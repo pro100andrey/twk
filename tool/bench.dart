@@ -193,10 +193,7 @@ String? _differs(FrameRig rig, int c, int s, VtCell v) {
     return 'want "$text"/$wantRole got "${v.text}"/${v.role}';
   }
   final styles = rig.styles;
-  final fg = styles.fgOf(s).value;
-  final bg = styles.bgOf(s).value;
-  final attrs = styles.attrsOf(s);
-  final ul = styles.underlineColorOf(s).value;
+  final (:fg, :bg, :attrs, underline: ul, :link) = cellStyleOf(styles, s);
   if (bg != v.bg) {
     return 'bg want ${bg.toRadixString(16)} got ${v.bg.toRadixString(16)}';
   }
@@ -226,7 +223,6 @@ String? _differs(FrameRig rig, int c, int s, VtCell v) {
   if ((attrs & Attr.underlineMask) != 0 && ul != v.ul) {
     return 'ul color';
   }
-  final link = styles.linkOf(s);
   return link != v.link ? 'link want $link got ${v.link}' : null;
 }
 

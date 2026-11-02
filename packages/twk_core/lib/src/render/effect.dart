@@ -39,9 +39,9 @@ part of 'render.dart';
 ///     int x,
 ///     int y,
 ///     int glyph,
-///     int style,
+///     StyleId style,
 ///     int underGlyph,
-///     int underStyle,
+///     StyleId underStyle,
 ///   ) {
 ///     effectGlyph = x < shown ? glyph : underGlyph;
 ///     effectStyle = x < shown ? style : underStyle;
@@ -70,16 +70,16 @@ abstract base class RenderEffect extends RenderObject
     int x,
     int y,
     int glyph,
-    int style,
+    StyleId style,
     int underGlyph,
-    int underStyle,
+    StyleId underStyle,
   );
 
   /// The glyph word [effectCell] shows in its cell.
   var effectGlyph = 0;
 
   /// The style [effectCell] shows in its cell.
-  var effectStyle = 0;
+  StyleId effectStyle = StyleId.base;
 
   // what it keeps, in its own coordinates, a cell at y * width + x: what
   // was under it and what the child painted, each valid in a span of
@@ -412,9 +412,9 @@ abstract base class RenderEffect extends RenderObject
           x - gx,
           y - gy,
           c,
-          _childStyles[kept + x],
+          StyleId(_childStyles[kept + x]),
           u,
-          _underStyles[kept + x],
+          StyleId(_underStyles[kept + x]),
         );
         var glyph = effectGlyph;
         if ((glyph & kCont) != 0) {
@@ -422,7 +422,7 @@ abstract base class RenderEffect extends RenderObject
           glyph = kBlank;
         }
         cells[i] = glyph;
-        sty[i] = effectStyle;
+        sty[i] = effectStyle.value;
         wide = (glyph & kWide) != 0;
       }
       if (wide && (x1 >= width || (cells[row + x1] & kCont) == 0)) {
@@ -440,14 +440,17 @@ final class _Kept implements CellKeeper {
   final RenderEffect effect;
 
   @override
-  void markCells(void Function(int glyph) glyph, void Function(int id) style) {
+  void markCells(
+    void Function(int glyph) glyph,
+    void Function(StyleId style) style,
+  ) {
     final e = effect;
     final n = e._w * e._h;
     for (var i = 0; i < n; i++) {
       glyph(e._underCells[i]);
-      style(e._underStyles[i]);
+      style(StyleId(e._underStyles[i]));
       glyph(e._childCells[i]);
-      style(e._childStyles[i]);
+      style(StyleId(e._childStyles[i]));
     }
   }
 }

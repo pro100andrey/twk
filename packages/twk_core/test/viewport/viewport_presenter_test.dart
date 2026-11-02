@@ -7,6 +7,7 @@ import 'dart:typed_data';
 
 import 'package:test/test.dart';
 import 'package:twk_core/src/presenter.dart';
+import 'package:twk_core/src/style.dart' show StyleId;
 import 'package:twk_core/src/surface.dart';
 import 'package:twk_test/vt.dart';
 
@@ -89,7 +90,7 @@ final class Fixture {
     for (var y = 0; y < surface.height; y++) {
       for (var x = 0; x < w; x++) {
         final c = surface.cells[y * w + x];
-        final s = surface.styles[y * w + x];
+        final s = StyleId(surface.styles[y * w + x]);
         final v = vt.cell(view.left + x, view.top + y);
         if ((c & kSkip) != 0) {
           continue;

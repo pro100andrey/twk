@@ -35,7 +35,7 @@ void main() {
   test('a fully transparent background changes nothing', () {
     final t = StyleTable();
     final pen = t.pen(const Pen(bg: Color.rgb(255, 255, 255), bgAlpha: 0));
-    expect(t.bgOf(t.compose(0, pen)), Color.defaultColor);
+    expect(t.bgOf(t.compose(StyleId.base, pen)), Color.defaultColor);
     final blue = t.style(bg: Color.blue);
     expect(t.bgOf(t.compose(blue, pen)), Color.blue);
   });
@@ -44,19 +44,28 @@ void main() {
     final t = StyleTable();
     final dim = t.pen(const Pen(fg: Color.defaultColor, fgAlpha: 128));
     // unknown default text color: the text stays default, not invisible
-    expect(t.fgOf(t.compose(0, dim)), Color.defaultColor);
+    expect(t.fgOf(t.compose(StyleId.base, dim)), Color.defaultColor);
     t
       ..defaultForegroundRgb = 0xFFFFFF
       ..defaultBackgroundRgb = 0x000000;
-    expect(t.fgOf(t.compose(0, dim)), const Color.rgb(128, 128, 128));
+    expect(
+      t.fgOf(t.compose(StyleId.base, dim)),
+      const Color.rgb(128, 128, 128),
+    );
   });
 
   test('changing the default colors recomputes blends', () {
     final t = StyleTable();
     final glass = t.pen(const Pen(bg: Color.rgb(255, 255, 255), bgAlpha: 128));
-    expect(t.bgOf(t.compose(0, glass)), const Color.rgb(128, 128, 128));
+    expect(
+      t.bgOf(t.compose(StyleId.base, glass)),
+      const Color.rgb(128, 128, 128),
+    );
     t.defaultBackgroundRgb = 0xFFFFFF;
-    expect(t.bgOf(t.compose(0, glass)), const Color.rgb(255, 255, 255));
+    expect(
+      t.bgOf(t.compose(StyleId.base, glass)),
+      const Color.rgb(255, 255, 255),
+    );
   });
 
   test('a palette color blends as the terminal shows it where it told '
@@ -66,11 +75,11 @@ void main() {
     final red = t.pen(const Pen(bg: Color.red, bgAlpha: 128));
     // xterm's blue is 0x0000ee, its red 0xcd0000
     expect(t.paletteRgb(4), 0x0000ee);
-    expect(t.bgOf(t.compose(0, blue)), const Color.rgb(0, 0, 119));
+    expect(t.bgOf(t.compose(StyleId.base, blue)), const Color.rgb(0, 0, 119));
     t.setPaletteRgb(4, 0x89b4fa); // a themed terminal's blue
     expect(t.paletteRgb(4), 0x89b4fa);
-    expect(t.bgOf(t.compose(0, blue)), const Color.rgb(69, 90, 125));
-    expect(t.bgOf(t.compose(0, red)), const Color.rgb(103, 0, 0));
+    expect(t.bgOf(t.compose(StyleId.base, blue)), const Color.rgb(69, 90, 125));
+    expect(t.bgOf(t.compose(StyleId.base, red)), const Color.rgb(103, 0, 0));
     // as the color blended over
     final white = t.pen(const Pen(bg: Color.rgb(255, 255, 255), bgAlpha: 128));
     expect(
@@ -79,10 +88,10 @@ void main() {
     );
     // text, too
     final text = t.pen(const Pen(fg: Color.blue, fgAlpha: 128));
-    expect(t.fgOf(t.compose(0, text)), const Color.rgb(69, 90, 125));
+    expect(t.fgOf(t.compose(StyleId.base, text)), const Color.rgb(69, 90, 125));
     t.setPaletteRgb(4, null);
     expect(t.paletteRgb(4), 0x0000ee);
-    expect(t.bgOf(t.compose(0, blue)), const Color.rgb(0, 0, 119));
+    expect(t.bgOf(t.compose(StyleId.base, blue)), const Color.rgb(0, 0, 119));
     expect(() => t.setPaletteRgb(256, 0), throwsRangeError);
   });
 
@@ -99,16 +108,16 @@ void main() {
 
   test('a pen id from another table is rejected', () {
     final t = StyleTable()..pen(const Pen(bg: Color.blue));
-    expect(() => t.compose(0, 5), throwsA(isA<AssertionError>()));
+    expect(() => t.compose(StyleId.base, 5), throwsA(isA<AssertionError>()));
     expect(() => t.opaqueStyleOf(5), throwsA(isA<AssertionError>()));
   });
 
   group('SGR per color mode', () {
-    String sgr(StyleTable t, int id) => latin1
+    String sgr(StyleTable t, StyleId id) => latin1
         .decode(t.sgrFromReset(id))
         .replaceAll('\x1b[', '')
         .replaceAll('m', '');
-    String tr(StyleTable t, int a, int b) => latin1
+    String tr(StyleTable t, StyleId a, StyleId b) => latin1
         .decode(t.transition(a, b))
         .replaceAll('\x1b[', '')
         .replaceAll('m', '');
@@ -195,8 +204,8 @@ void main() {
         final b = t.style(fg: const Color.rgb(128, 128, 128));
         final ul = t.style(attrs: Attr.underline, underlineColor: red);
         // without colors, red text and plain text look the same
-        expect(tr(t, a, 0), mode == ColorMode.none ? '' : '0');
-        expect(tr(t, ul, 0), '0');
+        expect(tr(t, a, StyleId.base), mode == ColorMode.none ? '' : '0');
+        expect(tr(t, ul, StyleId.base), '0');
         expect(
           tr(t, a, b),
           {
@@ -221,7 +230,7 @@ void main() {
     expect(sgr(t.sgrFromReset(curly)), '0;4');
     expect(sgr(t.transition(curly, dotted)), '31');
     expect(t.transition(curly, plain), isEmpty);
-    expect(sgr(t.transition(plain, 0)), '0');
+    expect(sgr(t.transition(plain, StyleId.base)), '0');
     // nor an underline color, whose colon form it misreads too
     final red = t.style(attrs: Attr.curlyUnderline, underlineColor: Color.red);
     expect(sgr(t.sgrFromReset(red)), '0;4');

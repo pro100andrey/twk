@@ -18,6 +18,7 @@ import 'package:twk_core/twk_core.dart'
         PaintContext,
         RenderObject,
         RenderObjectWithChildMixin,
+        StyleId,
         StyleTable,
         TextSegmenter,
         kBlank,
@@ -460,7 +461,7 @@ final class _Painter {
 
   StyleTable? _table;
   var _sweeps = 0;
-  final _styles = <int, int>{};
+  final _styles = <int, StyleId>{};
 
   /// What a cell shows with the shimmer's middle at [middle] columns from
   /// the left edge, none when null.
@@ -491,8 +492,8 @@ final class _Painter {
     }
     cell
       ..glyph = look.glyph
-      ..style = _styles[cell.childStyle * (_levels + 1) + level] ??= styles
-          .style(
+      ..style = _styles[cell.childStyle.value * (_levels + 1) + level] ??=
+          styles.style(
             fg: level == 0
                 ? look.fg
                 : Color.lerp(look.fg, look.highlight!, level / _levels),

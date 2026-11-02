@@ -13,6 +13,7 @@ import 'package:twk_core/twk_core.dart'
         PaintContext,
         Pen,
         RenderObject,
+        StyleId,
         StyleTable,
         kCont,
         kWide;
@@ -385,9 +386,13 @@ void paintHighlight(PaintContext ctx, RenderObject target) {
       final last = x + n - 1;
       final onEdge =
           edgeRow || (x <= gx && gx <= last) || (x <= right && right <= last);
-      final tinted = _tinted(styles, sty[row + x], onEdge ? edge : inside);
+      final tinted = _tinted(
+        styles,
+        StyleId(sty[row + x]),
+        onEdge ? edge : inside,
+      );
       for (var k = 0; k < n; k++) {
-        sty[row + x + k] = tinted;
+        sty[row + x + k] = tinted.value;
       }
       x += n;
     }
@@ -397,7 +402,7 @@ void paintHighlight(PaintContext ctx, RenderObject target) {
 
 /// [style] with its background blended with that of [tint], a pen with a
 /// translucent background alone, all else kept.
-int _tinted(StyleTable styles, int style, int tint) => styles.style(
+StyleId _tinted(StyleTable styles, StyleId style, int tint) => styles.style(
   fg: styles.fgOf(style),
   bg: styles.bgOf(styles.compose(style, tint)),
   attrs: styles.attrsOf(style),

@@ -120,7 +120,7 @@ void main() {
     v.frame();
     final cells = v.screen.surface.styles;
     expect(cells[1 * 20 + 2], isNot(cells[0 * 20 + 2]));
-    expect(styles.bgOf(cells[1 * 20 + 2]), const Color.rgb(90, 0, 0));
+    expect(styles.bgOf(StyleId(cells[1 * 20 + 2])), const Color.rgb(90, 0, 0));
   });
 
   test('a full log scrolls and paints the exposed lines', () {
@@ -159,7 +159,7 @@ void main() {
     v.frame();
     v.owner.root = RenderText('x', v.pen);
     v.frame();
-    void none(int _) {}
+    void none(StyleId _) {}
     v.screen.glyphs.sweep((mark) {
       v.screen.surface.markCells(mark, none);
       v.screen.presenter.markCells(mark, none);
@@ -265,7 +265,7 @@ void main() {
     v.frame();
     text.pen = red;
     v.frame();
-    final bg = v.screen.styles.bgOf(v.screen.surface.styles[0]);
+    final bg = v.screen.styles.bgOf(StyleId(v.screen.surface.styles[0]));
     expect(bg, const Color.rgb(90, 0, 0));
 
     final box = RenderBox(pen: v.pen, boundary: true);
@@ -274,7 +274,7 @@ void main() {
     box.pen = red;
     v.frame();
     expect(
-      v.screen.styles.bgOf(v.screen.surface.styles[0]),
+      v.screen.styles.bgOf(StyleId(v.screen.surface.styles[0])),
       const Color.rgb(90, 0, 0),
     );
   });

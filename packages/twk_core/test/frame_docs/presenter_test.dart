@@ -31,8 +31,8 @@ void main() {
     final style = hs.styles.style(fg: Color.red);
     hs.surface
       ..cells[0] = 0x4E16 | kWide
-      ..styles[0] = style
-      ..styles[1] = style
+      ..styles[0] = style.value
+      ..styles[1] = style.value
       ..markDirty(0, 0, 1);
     hs.frame();
     expect(hs.vt.errors, isEmpty);

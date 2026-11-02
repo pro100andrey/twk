@@ -21,3 +21,16 @@ RenderParagraph cutParagraph(
   maxLines: maxLines,
   ellipsis: ellipsis,
 );
+
+/// What [styles] holds of the style a cell of [Surface.styles] has, [raw]:
+/// its colors and underline color as packed ints, its attributes and link.
+({int fg, int bg, int attrs, int underline, String? link}) cellStyleOf(
+  StyleTable styles,
+  int raw,
+) => (
+  fg: styles.fgOf(StyleId(raw)).value,
+  bg: styles.bgOf(StyleId(raw)).value,
+  attrs: styles.attrsOf(StyleId(raw)),
+  underline: styles.underlineColorOf(StyleId(raw)).value,
+  link: styles.linkOf(StyleId(raw)),
+);

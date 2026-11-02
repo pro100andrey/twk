@@ -15,7 +15,14 @@ import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
 import 'package:twk_core/twk_core.dart'
-    show Alignment, Attr, Color, RenderEffect, RenderObject, StyleTable;
+    show
+        Alignment,
+        Attr,
+        Color,
+        RenderEffect,
+        RenderObject,
+        StyleId,
+        StyleTable;
 
 import '../foundation/helpers.dart';
 import '../framework/framework.dart';
@@ -204,9 +211,9 @@ final class _RenderEffect extends RenderEffect {
     int x,
     int y,
     int glyph,
-    int style,
+    StyleId style,
     int underGlyph,
-    int underStyle,
+    StyleId underStyle,
   ) {
     final cell = _cell
       .._x = x
@@ -257,9 +264,9 @@ final class EffectCell {
   // how many times the colors [styles] blends with have changed
   var _blending = 0;
   var _childGlyph = 0;
-  var _childStyle = 0;
+  StyleId _childStyle = StyleId.base;
   var _underGlyph = 0;
-  var _underStyle = 0;
+  StyleId _underStyle = StyleId.base;
 
   /// Its column in the child's rectangle, from 0 at the left.
   int get x => _x;
@@ -281,19 +288,19 @@ final class EffectCell {
   int get childGlyph => _childGlyph;
 
   /// The style the child painted it in, of [styles].
-  int get childStyle => _childStyle;
+  StyleId get childStyle => _childStyle;
 
   /// The glyph that was under it before the child painted.
   int get underGlyph => _underGlyph;
 
   /// The style of what was under it, of [styles].
-  int get underStyle => _underStyle;
+  StyleId get underStyle => _underStyle;
 
   /// The glyph it shows.
   var glyph = 0;
 
   /// The style it shows, of [styles].
-  var style = 0;
+  StyleId style = StyleId.base;
 
   /// Shows what was under it.
   void showUnder() {
@@ -543,10 +550,10 @@ final class _StyleCache {
   StyleTable? _table;
   var _blending = 0;
   var _sweeps = 0;
-  final _styles = <int, int>{};
+  final _styles = <int, StyleId>{};
 
   /// The styles made for cells such as [cell].
-  Map<int, int> of(EffectCell cell) {
+  Map<int, StyleId> of(EffectCell cell) {
     // the ids kept are of the table as it was (StyleTable.sweep)
     if (!identical(cell._styles, _table) ||
         cell._blending != _blending ||
@@ -609,7 +616,7 @@ final class _Blending {
 
 /// The style [s] of [styles] with text [fg], background [bg] and
 /// attributes [attrs], all else kept.
-int _restyle(StyleTable styles, int s, Color fg, Color bg, int attrs) =>
+StyleId _restyle(StyleTable styles, StyleId s, Color fg, Color bg, int attrs) =>
     styles.style(
       fg: fg,
       bg: bg,
@@ -659,10 +666,13 @@ final class _RecolorFilter {
       return;
     }
     final styles = cell.styles;
-    cell.style = _styles.of(cell)[cell.style] ??= _recolor(styles, cell.style);
+    cell.style = _styles.of(cell)[cell.style.value] ??= _recolor(
+      styles,
+      cell.style,
+    );
   }
 
-  int _recolor(StyleTable styles, int s) {
+  StyleId _recolor(StyleTable styles, StyleId s) {
     var fg = styles.fgOf(s);
     var attrs = styles.attrsOf(s);
     final text = _rgbOf(styles, fg, text: true);
@@ -811,12 +821,18 @@ final class _SweepFilter {
     final styles = cell.styles;
     final faded = (k * 255).round();
     cell.style =
-        _styles.of(cell)[cell.style << 40 | cell.underStyle << 8 | faded] ??=
-            _fade(styles, cell.style, cell.underStyle, faded / 255);
+        _styles.of(cell)[cell.style.value << 40 |
+            cell.underStyle.value << 8 |
+            faded] ??= _fade(
+          styles,
+          cell.style,
+          cell.underStyle,
+          faded / 255,
+        );
   }
 
   /// [s] coming in from the background of [under], [k] of the way.
-  static int _fade(StyleTable styles, int s, int under, double k) {
+  static StyleId _fade(StyleTable styles, StyleId s, StyleId under, double k) {
     final bg = _rgbOf(styles, styles.bgOf(under), text: false)!;
     var fg = styles.fgOf(s);
     var attrs = styles.attrsOf(s);
