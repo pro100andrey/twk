@@ -98,10 +98,18 @@ it a `Theme` around that part. A widget's own parameter for a mark it has
 images. Charts are in it too: with no `partialBlocks`, bars are drawn in the
 `shades` ramp and a canvas's dots as the shade as dense as their number; and
 so is the ellipsis a `Text` or a `Box` title is cut with (`...`, three
-columns, taken from the room). A mark takes one column and one code point; one that is wider,
-or a letter with a combining accent, is the `Glyphs.ascii` mark in its place,
+columns, taken from the room). One rule holds for every mark, in a cell or
+inside text alike (a pagination's arrows, a chip's close, a collapsed-line
+marker): it takes one column and one code point; one that is wider, or a
+letter with a combining accent, is the `Glyphs.ascii` mark in its place,
 with one warning in the log for each, so an emoji in a `copyWith` is drawn
-where the terminal gives it one cell and is ASCII where it does not.
+where the terminal gives it one cell and is ASCII where it does not. The
+rule is kept in one place, `ThemeMarks`, which a widget of your own asks
+(`ThemeMarks.of(context).text(Marks.close)`, a render object
+`ThemeMarks.ofObject(this, canvas.segmenter).cell(Marks.cursor, glyphs)`);
+`Marks` has a descriptor for each mark. The ASCII lines beat a widget's own
+`BorderType`: under `Glyphs.ascii` a `LineGauge(type: .double)` or a
+`Callout(borderType: .rounded)` is ASCII too.
 
 <!-- file: packages/twk/example/guides/glyphs.dart -->
 ```dart

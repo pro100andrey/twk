@@ -77,19 +77,25 @@ other's set past halfway. A widget's own parameter (`Spinner.frames`,
 `LineGauge.type`) is above the set; a `CliTheme` gives the marks of its
 `data`.
 
-One width rule holds for every mark: a mark drawn in one cell (a thumb, a
+One width rule holds for every mark, kept in one place, `ThemeMarks` (a
+`Marks` descriptor for each field; `ThemeMarks.of(context).text(Marks.close)`
+in a widget, `ThemeMarks.ofObject(object, segmenter).cell(Marks.cursor,
+glyphs)` in a render object): a mark drawn in one cell (a thumb, a
 gauge's line) or as text in a row (a radio button's, a switch's ends and knob,
-a button's edges) is one column wide and one code point (an emoji, an
+a button's edges, a chip's close, a pagination's arrows) is one column wide and one code point (an emoji, an
 ambiguous mark in some terminals, a letter and a combining accent are not).
 Where it is not, the same field of `Glyphs.ascii` is drawn, with one warning
 in the app's log for each such mark, known only when it is drawn; a
 `gaugeHalf` of the wrong width is no half cell. On a terminal that draws
 East Asian ambiguous characters two cells wide, the marks of `Glyphs.unicode`
 that are such are drawn as `Glyphs.ascii`'s with one line saying so, not a
-warning a field. An empty mark draws nothing: a blank for a cell, no width
-for the text of a row (a bracket of `radioBrackets` or `checkboxBrackets`, a
-button's edge, a switch's
-end), but a blank for `switchKnob`, for the track to keep its width.
+warning a field. What an empty mark draws is its descriptor's: nothing for
+most (no width for the text of a row: a bracket of `radioBrackets` or
+`checkboxBrackets`, a button's edge, a switch's end), a blank for `switchKnob`,
+`previous`, `next` and the tracks (`trackVertical`, `trackHorizontal`), and
+`Glyphs.ascii`'s for `thumbVertical`, `thumbHorizontal`, `gaugeFilled` and
+`gaugeEmpty`. The ASCII lines beat a widget's own `BorderType`: with `lines`
+ASCII a `LineGauge(type: .double)` is ASCII too, as a `Box` is.
 
 Borders are in it: a `Border`, `Divider`, `SplitView`, `Callout`, scrollbar
 on a border or table given no `type` draws `lines`; `glyphs.borderOf(type)` is

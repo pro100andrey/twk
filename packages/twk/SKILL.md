@@ -77,10 +77,14 @@ packages/gallery/bin/gallery.dart`).
   makes every type ASCII (`rounded` too), so one `glyphs:` switches the app;
   charts, images and the core's `…` are not in it. A mark is one column and one
   code point wherever it is drawn, in a cell (a thumb, a gauge) or as text
-  in a row (a radio, a switch, a button's edges); one that is not (an
-  emoji, a letter and an accent) is `Glyphs.ascii`'s in its place, with one
-  warning in the log. The checkbox pair must be of one width or `[x]` and
-  `[ ]` are drawn; an empty mark is none (an empty edge is no edge).
+  in a row (a radio, a switch, a button's edges, a chip's close, a pager's
+  arrows); one that is not (an emoji, a letter and an accent) is
+  `Glyphs.ascii`'s in its place, with one warning in the log. The rule is
+  `ThemeMarks` (`ThemeMarks.of(context).text(Marks.close)` in a widget of
+  your own; `Marks` has a descriptor per field). The checkbox pair must be
+  of one width or `[x]` and `[ ]` are drawn; an empty mark is none (an
+  empty edge is no edge), but a blank for a track, `switchKnob`, `previous`
+  and `next`. ASCII lines beat a widget's own `BorderType`.
 - The code uses Dart's dot shorthands (`.inline`, `.all(type: .rounded)`,
   `.stretch`); the packages need SDK 3.13.5 or later.
 - Where the names differ from Flutter's, as code brought over trips on:
