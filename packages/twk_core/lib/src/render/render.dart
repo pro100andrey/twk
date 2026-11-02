@@ -92,5 +92,6 @@ part 'object.dart';
 part 'pipeline.dart';
 part 'stack.dart';
 part 'text.dart';
+part 'text_painter.dart';
 part 'viewport.dart';
 part 'wrap.dart';

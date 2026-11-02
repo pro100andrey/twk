@@ -23,6 +23,14 @@ Breaking:
 
 Added:
 
+- `TextPainter`, the layout engine of `RenderParagraph` on its own, with no
+  render tree: `layout(constraints, segmenter:, order:)` sets `width` and
+  `height`, `paint(canvas, x, y)` draws at any place, and it answers
+  `textRangeAt`, `cellAt`, `columnsOf` and the intrinsic sizes. It reads no
+  owner: the segmenter and the text order are given to it, and its setters
+  record what they invalidated (`takeInvalidation`: `TextInvalidation.none`,
+  `paint` or `layout`). `RenderParagraph` owns one and draws and answers
+  as before.
 - `RenderParagraph.columnsOf(start, end, y)`, the reverse of `textRangeAt`:
   the columns of a row that draw a range of the text, as the last layout
   placed it (reordered in visual order, cut, justified), or null where none
