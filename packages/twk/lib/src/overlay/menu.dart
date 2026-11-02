@@ -2297,10 +2297,7 @@ final class _RenderMenuBox extends RenderObject {
       return;
     }
     final border = s.border.penIn(styles);
-    final lines = ThemeMarks.ofObject(
-      this,
-      canvas.segmenter,
-    ).border(s.glyphs.lines);
+    final lines = ThemeMarks.border(canvas.segmenter, s.glyphs.lines);
     final across = lines.glyph(left: true, right: true);
     final down = lines.glyph(up: true, down: true);
     if (s.raised) {

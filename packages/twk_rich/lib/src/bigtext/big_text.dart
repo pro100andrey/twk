@@ -466,7 +466,7 @@ final _glyphs = Expando<_Glyphs>();
 /// one column wide.
 Map<int, List<String>> _glyphsOf(BigFont font, TextSegmenter seg) {
   final glyphs = _glyphs[font] ??= _parse(font);
-  return ThemeMarks.forSegmenter(seg).allOneColumn(font._narrow.keys)
+  return ThemeMarks.allOneColumn(seg, font._narrow.keys)
       ? glyphs.wide
       : glyphs.narrow;
 }

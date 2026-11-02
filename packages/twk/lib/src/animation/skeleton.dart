@@ -342,11 +342,14 @@ final class _SkeletonState extends State<_Skeleton> {
         style = style.merge(over);
       }
     }
-    final marks = ThemeMarks.of(context);
-    final glyph = _glyphOf(
-      skeletons?.glyph ?? ThemeMarks.ramp(theme.glyphs)[1],
-      marks,
+    // the light shade of the set, or the SkeletonTheme's own mark as the
+    // shade of a set of its own (only where one is given)
+    final own = skeletons?.glyph;
+    final cp = ThemeMarks.of(context).cell(
+      Marks.shade,
+      own == null ? null : theme.glyphs.copyWith(shades: [' ', own]),
     );
+    final glyph = cp == kBlank ? null : cp;
     final highlight = (skeletons?.highlight ?? theme.text).fg;
     final fg = style.fg;
     final rgb = fg != null && fg.isRgb && highlight != null && highlight.isRgb;
@@ -396,16 +399,6 @@ final class _SkeletonState extends State<_Skeleton> {
         child: Effect(effect: effect, child: widget.child),
       ),
     );
-  }
-
-  /// [glyph] as the code point a cell shows, where it is one that the
-  /// canvas [marks] measure draws one column wide; null otherwise.
-  static int? _glyphOf(String glyph, ThemeMarks marks) {
-    if (!marks.fits(glyph)) {
-      return null;
-    }
-    final cp = glyph.runes.single;
-    return cp == kBlank ? null : cp;
   }
 }
 

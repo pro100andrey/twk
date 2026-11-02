@@ -118,7 +118,7 @@ typedef InlineLink = ({int start, int end, String destination, String? title});
   Glyphs glyphs = Glyphs.unicode,
   ThemeMarks? marks,
 ]) {
-  final m = marks ?? ThemeMarks.measured(TextSegmenter(), glyphs);
+  final m = marks ?? ThemeMarks.ofObject(null, _plainSegmenter);
   final bullet = m.text(Marks.bullet, glyphs);
   final bullets = [bullet, m.text(Marks.taskPending, glyphs), bullet];
   final open = m.text(Marks.checkboxOpen, glyphs);
@@ -143,3 +143,6 @@ typedef InlineLink = ({int start, int end, String destination, String? title});
       : [markers.reduce((a, b) => b.length > a.length ? b : a)];
   return (markers: markers, column: column);
 }
+
+// what measures the marks of a list drawn with no terminal to ask
+final _plainSegmenter = TextSegmenter();

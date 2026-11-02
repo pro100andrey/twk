@@ -103,7 +103,7 @@ final class _Renderer {
   final MarkdownTheme theme;
   final Glyphs glyphs;
 
-  late final marks = ThemeMarks.measured(segmenter, glyphs);
+  late final marks = ThemeMarks.ofObject(null, segmenter);
 
   // a piece of the set's lines
   String _piece({
@@ -112,9 +112,10 @@ final class _Renderer {
     bool down = false,
     bool left = false,
   }) => String.fromCharCode(
-    marks
-        .border(glyphs.lines)
-        .glyph(up: up, right: right, down: down, left: left),
+    ThemeMarks.border(
+      segmenter,
+      glyphs.lines,
+    ).glyph(up: up, right: right, down: down, left: left),
   );
 
   List<Span> _spans(List<MdInline> inlines) => inlineSpans(
@@ -187,7 +188,7 @@ final class _Renderer {
     if (gutter == 0) {
       return lines;
     }
-    final bar = Span(marks.text(Marks.separator), theme.quoteBar);
+    final bar = Span(marks.text(Marks.separator, glyphs), theme.quoteBar);
     return [
       for (final line in lines)
         [bar, if (line.isNotEmpty && gutter == 2) const Span(' '), ...line],
@@ -380,7 +381,7 @@ final class _Renderer {
       }
       widths[at]--;
     }
-    final border = Span(marks.text(Marks.separator), theme.tableBorder);
+    final border = Span(marks.text(Marks.separator, glyphs), theme.tableBorder);
     final across = _piece(left: true, right: true);
     final cross = _piece(up: true, right: true, down: true, left: true);
     List<List<Span>> row(List<List<Span>> cells, Style style) {

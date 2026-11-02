@@ -31,6 +31,9 @@
   - a `Window`'s focus mark with an empty `cursor` draws nothing, where it
     drew `>`; a `Slider` with an empty `trackHorizontal` draws a blank, where
     it drew `-`, as a `Scrollbar` does;
+  - a `SkeletonTheme(glyph:)` or a light shade that is not one column wide is
+    the ASCII shade `.` (with one warning), where the skeleton drew a blank
+    in reverse video;
   - `LineGauge(type:)` under `Glyphs.ascii` (lines ASCII) is ASCII, as the
     docs of `Glyphs` said: the ASCII theme beats a widget's `BorderType`;
   - a `Split` and a menu keep a border type whose pieces are all one column

@@ -88,7 +88,8 @@ enum _Field {
   arrowDown,
   pointer,
   menu,
-  swatch;
+  swatch,
+  shade('shades');
 
   const _Field([this._name]);
 
@@ -149,6 +150,7 @@ enum _Field {
     pointer => g.pointer,
     menu => g.menu,
     swatch => g.swatch,
+    shade => ThemeMarks.ramp(g)[1],
   };
 }
 
@@ -248,6 +250,7 @@ abstract final class Marks {
     pointer,
     menu,
     swatch,
+    shade,
   ];
 
   /// [Glyphs.cursor].
@@ -415,6 +418,10 @@ abstract final class Marks {
 
   /// [Glyphs.swatch].
   static const swatch = TextMark._(_Field.swatch);
+
+  /// The light shade of [Glyphs.shades] (the one at 1, a skeleton's); an
+  /// empty one is a blank.
+  static const shade = CellMark._(_Field.shade, OnEmpty.blank);
 }
 
 /// The marks of the theme as a terminal draws them: each [Mark] resolved to
@@ -425,7 +432,8 @@ abstract final class Marks {
 /// This is the one place the rule is kept. A widget asks for
 /// [ThemeMarks.of] in its `build` and [text]; a render object asks for
 /// [ThemeMarks.ofObject] and [cell]. A mark is measured once for each
-/// segmenter, so asking again in each frame costs a lookup.
+/// segmenter, and the resolvers are kept (a few for each segmenter), so
+/// asking again in each build or frame allocates nothing.
 ///
 /// ```dart
 /// final marks = ThemeMarks.of(context);
@@ -435,40 +443,26 @@ final class ThemeMarks {
   ThemeMarks._(this._cache, this._owner, this._glyphs);
 
   /// The marks of the theme around [context], measured by the segmenter
-  /// the app draws with.
+  /// the app draws with. The same object is returned while the theme's
+  /// [Glyphs], the segmenter and the pipeline are the same.
   factory ThemeMarks.of(BuildContext context) {
     final object = context.findRenderObject();
-    final binding = object?.owner == null ? AppBinding.maybeOf(context) : null;
-    return ThemeMarks._(
-      _cacheOf(segmenterOf(context)),
-      object?.owner ?? binding?.twkApp.owner,
-      Theme.of(context).glyphs,
-    );
+    final owner = object?.owner ?? AppBinding.maybeOf(context)?.twkApp.owner;
+    return _cacheOf(
+      segmenterOf(context),
+    ).resolver(owner, Theme.of(context).glyphs);
   }
 
   /// The marks as [segmenter], the measure of the canvas [object] draws
-  /// on, draws them. The same object is returned for the same segmenter,
-  /// so a paint takes no allocation; the glyphs are [cell]'s second
-  /// argument.
-  factory ThemeMarks.ofObject(RenderObject object, TextSegmenter segmenter) {
+  /// on, draws them; their glyphs are the second argument of [cell]. The
+  /// same object is returned for the same segmenter, so a paint takes no
+  /// allocation. [object] is null in code that has none (a markdown render
+  /// to lines): a warning then goes to the log of [log].
+  factory ThemeMarks.ofObject(RenderObject? object, TextSegmenter segmenter) {
     final cache = _cacheOf(segmenter);
     final marks = cache.shared ??= ThemeMarks._(cache, null, null);
-    return marks.._owner = object.owner;
+    return marks.._owner = object?.owner;
   }
-
-  /// The marks as [segmenter] measures them, for a check of fixed glyphs
-  /// ([allOneColumn], [border]) in code that has no object to warn for.
-  /// The same object is returned for the same segmenter.
-  factory ThemeMarks.forSegmenter(TextSegmenter segmenter) {
-    final cache = _cacheOf(segmenter);
-    return cache.shared ??= ThemeMarks._(cache, null, null);
-  }
-
-  /// The marks of [glyphs] as [segmenter] measures them, for code that has
-  /// no widget or render object (a markdown render to lines). A warning
-  /// goes to the app's log of [log].
-  factory ThemeMarks.measured(TextSegmenter segmenter, Glyphs glyphs) =>
-      ThemeMarks._(_cacheOf(segmenter), null, glyphs);
 
   final _Cache _cache;
   PipelineOwner? _owner;
@@ -481,12 +475,8 @@ final class ThemeMarks {
   /// Of the theme's own while it is one column wide and one code point,
   /// else [Mark.fallback], with the one warning. An empty mark is what
   /// [Mark.onEmpty] says, with no warning.
-  int? cell(Mark mark, [Glyphs? glyphs]) =>
-      cellOf(mark, mark.of((glyphs ?? _glyphs)!));
-
-  /// [cell] of [value], a string a widget was given for the field [mark]
-  /// (the glyph of a toast's edge), not read from a set.
-  int? cellOf(Mark mark, String value) {
+  int? cell(Mark mark, [Glyphs? glyphs]) {
+    final value = mark.of((glyphs ?? _glyphs)!);
     if (value.isEmpty) {
       return switch (mark.onEmpty) {
         OnEmpty.blank => 0x20,
@@ -507,12 +497,8 @@ final class ThemeMarks {
   /// point, else [Mark.fallback], with the one warning. An empty mark is
   /// what [Mark.onEmpty] says (an empty string, a space, or the
   /// fallback), with no warning.
-  String text(Mark mark, [Glyphs? glyphs]) =>
-      textOf(mark, mark.of((glyphs ?? _glyphs)!));
-
-  /// [text] of [value], a string a widget was given for the field [mark],
-  /// not read from a set.
-  String textOf(Mark mark, String value) {
+  String text(Mark mark, [Glyphs? glyphs]) {
+    final value = mark.of((glyphs ?? _glyphs)!);
     if (value.isEmpty) {
       return switch (mark.onEmpty) {
         OnEmpty.blank => ' ',
@@ -528,15 +514,14 @@ final class ThemeMarks {
 
   /// The straight line of the border [type] (the theme's [Glyphs.lines]
   /// when null) as text across, or down for [down], for a dash in a row (a
-  /// title on a box's edge, a stepper's line): the line of
-  /// [Glyphs.borderOf], so the ASCII theme's lines win over any type, and
-  /// ASCII's `-` or `|` where the terminal does not draw it one column
-  /// wide.
+  /// title on a box's edge, a stepper's line): [line] as a string.
   String dash(BorderType? type, {bool down = false, Glyphs? glyphs}) =>
       String.fromCharCode(line(type, vertical: down, glyphs: glyphs));
 
   /// The code point of the straight line of the border [type] (the theme's
-  /// [Glyphs.lines] when null) for one cell, [dash] without the string.
+  /// [Glyphs.lines] when null) for one cell: the line of [Glyphs.borderOf],
+  /// so the ASCII theme's lines win over any type, and ASCII's `-` or `|`
+  /// where the terminal does not draw it one column wide.
   int line(BorderType? type, {bool vertical = false, Glyphs? glyphs}) {
     final border = (glyphs ?? _glyphs)!.borderOf(type);
     final cp = border.glyph(
@@ -545,7 +530,7 @@ final class ThemeMarks {
       left: !vertical,
       right: !vertical,
     );
-    if (cp == 0x20 || border == BorderType.ascii || _fitsCp(cp)) {
+    if (cp == 0x20 || border == BorderType.ascii || _cache.strict(cp)) {
       return cp;
     }
     return BorderType.ascii.glyph(
@@ -556,12 +541,17 @@ final class ThemeMarks {
     );
   }
 
+  /// [cp], a glyph of a widget's own that no theme field holds (an eighth
+  /// block, a corner), where the terminal draws it one column wide; else
+  /// [instead].
+  int fixed(int cp, int instead) => _cache.strict(cp) ? cp : instead;
+
   /// [type], or [BorderType.ascii] where a piece of it is not one column
-  /// on this terminal: the type a box, a rule or a gauge is to be drawn
-  /// in. Measured once for each type and segmenter.
-  BorderType border(BorderType type) {
-    final cache = _cache..refresh();
-    final fits = cache.borders[type] ??= allOneColumn([
+  /// as [segmenter] measures: the type a box, a rule or a gauge is to be
+  /// drawn in. Measured once for each type and segmenter.
+  static BorderType border(TextSegmenter segmenter, BorderType type) {
+    final cache = _cacheOf(segmenter)..refresh();
+    final fits = cache.borders[type] ??= allOneColumn(segmenter, [
       for (var arms = 1; arms < 16; arms++)
         type.glyph(
           up: arms & 1 != 0,
@@ -573,30 +563,19 @@ final class ThemeMarks {
     return fits ? type : BorderType.ascii;
   }
 
-  /// [cp], a code point drawn in a cell, where it is one column wide on
-  /// this terminal; else [instead]. For a fixed block of a widget's own
-  /// (an eighth, a corner), which no theme field holds.
-  int fixed(int cp, int instead) => _fitsCp(cp) ? cp : instead;
-
-  /// Whether each of [codePoints] takes one column of the canvas, whatever
-  /// its neighbours, and does so on every terminal: the strict rule for a
-  /// run of fixed glyphs (the eighths of a bar, braille, a font's blocks)
-  /// that must not shift a row.
-  bool allOneColumn(Iterable<int> codePoints) {
+  /// Whether each of [codePoints], a fixed set of glyphs (the eighths of a
+  /// bar, braille, a font's blocks), takes one column of a canvas
+  /// [segmenter] measures, whatever its neighbours, and does so on every
+  /// terminal.
+  static bool allOneColumn(TextSegmenter segmenter, Iterable<int> codePoints) {
+    final cache = _cacheOf(segmenter);
     for (final cp in codePoints) {
-      if (!_cache.strict(cp)) {
+      if (!cache.strict(cp)) {
         return false;
       }
     }
     return true;
   }
-
-  /// Whether the string [glyph], a mark of a widget's own, is one column
-  /// wide and one code point on this terminal; no warning.
-  bool fits(String glyph) =>
-      glyph.isNotEmpty &&
-      (_plain(glyph) ||
-          (glyph.runes.length == 1 && _cache.segmenter.width(glyph) == 1));
 
   /// [Glyphs.shades] as a ramp of two steps or more, the blank first: as
   /// given when it has two or more, a blank before the one it has, or the
@@ -611,15 +590,10 @@ final class ThemeMarks {
         : Glyphs.ascii.shades;
   }
 
-  bool _fitsCp(int cp) => _cache.single(cp);
-
   bool _fits(Mark mark, String glyph) {
     final cache = _cache..refresh();
     final seen = cache.verdicts[mark];
-    if (seen != null && identical(seen.glyph, glyph)) {
-      return seen.fits;
-    }
-    if (seen != null && seen.glyph == glyph) {
+    if (seen != null && (identical(seen.glyph, glyph) || seen.glyph == glyph)) {
       return seen.fits;
     }
     final fits = _measure(mark, glyph);
@@ -717,17 +691,36 @@ final class _Verdict {
 
 final _scan = ClusterScan();
 
+// how many resolvers of different glyph sets or pipelines a segmenter keeps
+const _kept = 4;
+
 final class _Cache {
   _Cache(this.segmenter);
 
   final TextSegmenter segmenter;
   final verdicts = <Mark, _Verdict>{};
-  final _singles = <int, bool>{};
   final _stricts = <int, bool>{};
   final borders = <BorderType, bool>{};
   ThemeMarks? shared;
   var _mode = -1;
   var _ambiguous = -1;
+
+  // the resolvers of the last glyph sets, a ring so that a theme that
+  // makes a set each frame cannot grow it
+  final _resolvers = List<ThemeMarks?>.filled(_kept, null);
+  var _next = 0;
+
+  ThemeMarks resolver(PipelineOwner? owner, Glyphs glyphs) {
+    for (final r in _resolvers) {
+      if (r != null && identical(r._glyphs, glyphs) && r._owner == owner) {
+        return r;
+      }
+    }
+    final made = ThemeMarks._(this, owner, glyphs);
+    _resolvers[_next] = made;
+    _next = (_next + 1) % _kept;
+    return made;
+  }
 
   // forgets what was measured when the segmenter's settings changed
   void refresh() {
@@ -738,14 +731,8 @@ final class _Cache {
     _mode = segmenter.mode.index;
     _ambiguous = segmenter.ambiguousWidth;
     verdicts.clear();
-    _singles.clear();
     _stricts.clear();
     borders.clear();
-  }
-
-  bool single(int cp) {
-    refresh();
-    return _singles[cp] ??= segmenter.width(String.fromCharCode(cp)) == 1;
   }
 
   bool strict(int cp) {

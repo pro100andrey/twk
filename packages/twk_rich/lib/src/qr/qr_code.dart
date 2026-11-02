@@ -225,9 +225,10 @@ final class RenderQrCode extends RenderObject {
   var _rowsWide = false;
 
   /// Whether the canvas draws half blocks two columns wide.
-  bool get _wide => !ThemeMarks.forSegmenter(
+  bool get _wide => !ThemeMarks.allOneColumn(
     owner?.segmenter ?? _detached,
-  ).allOneColumn(_shownBlocks);
+    _shownBlocks,
+  );
 
   /// The modules of a side with the quiet zone.
   int get _side => shown.size + 2 * _quietZone;

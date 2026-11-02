@@ -263,7 +263,6 @@ int _bitCount(int n) {
 /// [segmenter] measures, whatever its neighbours, and does so on every
 /// terminal.
 bool _fits(Marker marker, TextSegmenter segmenter) {
-  final marks = ThemeMarks.forSegmenter(segmenter);
   var last = -1;
   for (var p = 1; p < marker.patterns; p++) {
     final cp = marker.glyphOf(p);
@@ -271,7 +270,7 @@ bool _fits(Marker marker, TextSegmenter segmenter) {
       continue;
     }
     last = cp;
-    if (!marks.allOneColumn([cp])) {
+    if (!ThemeMarks.allOneColumn(segmenter, [cp])) {
       return false;
     }
   }

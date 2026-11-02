@@ -47,11 +47,14 @@ final class ChartGlyphs {
       if (shades != null)
         for (final s in shades) _firstRune(s),
     ];
-    _marks = ThemeMarks.forSegmenter(segmenter);
-    _eighths = _marks.allOneColumn(const [..._upEighths, ..._acrossEighths]);
+    _eighths = ThemeMarks.allOneColumn(segmenter, const [
+      ..._upEighths,
+      ..._acrossEighths,
+    ]);
+    _segmenter = segmenter;
   }
 
-  late ThemeMarks _marks;
+  late TextSegmenter _segmenter;
 
   /// How many steps a cell of a bar that grows upwards shows: 8 (eighth
   /// blocks), 4 (braille), or the shades after the blank (a ramp).
@@ -81,7 +84,7 @@ final class ChartGlyphs {
             : _acrossBraille)[(k > acrossSteps ? acrossSteps : k) - 1];
 
   /// [type], or [BorderType.ascii] where a piece of it is not one column.
-  BorderType lines(BorderType type) => _marks.border(type);
+  BorderType lines(BorderType type) => ThemeMarks.border(_segmenter, type);
 
   /// Draws a bar that grows to the right on the [w] x [h] cells from
   /// ([x], [y]) of [canvas], as a `Gauge` and a `ProgressBar` do: [ratio]
@@ -133,23 +136,22 @@ final class ChartGlyphs {
   }
 
   /// Draws a line [cells] long from ([x], [y]) on [canvas], as a
-  /// `LineGauge` does with the theme's marks: [ratio] of it from the left
-  /// of [filled] in [filledPen], to the nearest half cell where [half] is
-  /// not empty (its mark ends the filled part), the rest of [empty] in
-  /// [unfilledPen]; or, given [run], that run of [filled] in [filledPen] in
-  /// a line of [empty]. Where [filled] or [empty] is not one column wide
-  /// the ASCII mark of the same meaning is drawn in its place, with one
-  /// warning in the log of [object]'s pipeline; a [half] that is not has no
-  /// ASCII mark, so the line has no half cell, with the same warning.
+  /// `LineGauge` does with the marks of [glyphs]: [ratio] of it from the
+  /// left of [Glyphs.gaugeFilled] in [filledPen], to the nearest half cell
+  /// where [Glyphs.gaugeHalf] is not empty (its mark ends the filled part),
+  /// the rest of [Glyphs.gaugeEmpty] in [unfilledPen]; or, given [run], that
+  /// run of the filled mark in [filledPen] in a line of the empty one. Each
+  /// mark is as [ThemeMarks] draws it: the ASCII one where it is not one
+  /// column wide, with one warning in the log of [object]'s pipeline; a
+  /// half that is not has no ASCII mark, so the line has no half cell, with
+  /// the same warning.
   void glyphLine(
     RenderObject object,
     Canvas canvas,
     int x,
     int y,
     int cells, {
-    required String filled,
-    required String half,
-    required String empty,
+    required Glyphs glyphs,
     required int filledPen,
     required int unfilledPen,
     double ratio = 0,
@@ -159,9 +161,9 @@ final class ChartGlyphs {
       return;
     }
     final marks = ThemeMarks.ofObject(object, canvas.segmenter);
-    final whole = marks.cellOf(Marks.gaugeFilled, filled) ?? 0x20;
-    final rest = marks.cellOf(Marks.gaugeEmpty, empty) ?? 0x20;
-    final part = marks.cellOf(Marks.gaugeHalf, half);
+    final whole = marks.cell(Marks.gaugeFilled, glyphs) ?? 0x20;
+    final rest = marks.cell(Marks.gaugeEmpty, glyphs) ?? 0x20;
+    final part = marks.cell(Marks.gaugeHalf, glyphs);
     if (run case (final from, final width)) {
       canvas
         ..fill(x, y, cells, 1, unfilledPen, rest)

@@ -321,7 +321,7 @@ final class _RaisedToastState extends State<_RaisedToast>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _Edge(style: kind, glyph: theme.glyphs.accent),
+            _Edge(style: kind, glyphs: theme.glyphs),
             Padding(
               padding: const EdgeInsets.only(
                 left: 1,
@@ -357,32 +357,33 @@ final class _RaisedToastState extends State<_RaisedToast>
   }
 }
 
-/// A column of [glyph] down the height it gets, in [style]: a toast's bar.
+/// A column of [Glyphs.accent] down the height it gets, in [style]: a toast's
+/// bar.
 final class _Edge extends LeafRenderObjectWidget {
-  const _Edge({required this.style, required this.glyph});
+  const _Edge({required this.style, required this.glyphs});
 
   final Style style;
-  final String glyph;
+  final Glyphs glyphs;
 
   @override
   _RenderEdge createRenderObject(BuildContext context) =>
-      _RenderEdge(style, glyph);
+      _RenderEdge(style, glyphs);
 
   @override
   void updateRenderObject(BuildContext context, _RenderEdge renderObject) =>
       renderObject
         ..style = style
-        ..glyph = glyph;
+        ..glyphs = glyphs;
 }
 
 final class _RenderEdge extends RenderObject {
-  _RenderEdge(this._style, this._glyph);
+  _RenderEdge(this._style, this._glyphs);
 
-  String _glyph;
-  String get glyph => _glyph;
-  set glyph(String g) {
-    if (g != _glyph) {
-      _glyph = g;
+  Glyphs _glyphs;
+  Glyphs get glyphs => _glyphs;
+  set glyphs(Glyphs g) {
+    if (g != _glyphs) {
+      _glyphs = g;
       markNeedsPaint();
     }
   }
@@ -412,13 +413,13 @@ final class _RenderEdge extends RenderObject {
   void paint(PaintContext ctx) {
     final canvas = ctx.canvas;
     final pen = _style.penIn(canvas.styles);
-    if (_glyph.isEmpty || height <= 0) {
+    if (height <= 0) {
       return;
     }
     final cell = ThemeMarks.ofObject(
       this,
       canvas.segmenter,
-    ).cellOf(Marks.accent, _glyph);
+    ).cell(Marks.accent, _glyphs);
     if (cell != null) {
       canvas.fill(0, 0, 1, height, pen, cell);
     }

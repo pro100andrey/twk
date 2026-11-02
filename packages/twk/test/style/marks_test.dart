@@ -22,6 +22,7 @@ Glyphs allAs(String mark) => Glyphs.unicode.copyWith(
   checkboxOn: mark,
   checkboxOff: mark,
   checkboxBrackets: (mark, mark),
+  shades: [mark, mark],
   radioOn: mark,
   radioOff: mark,
   radioBrackets: (mark, mark),
@@ -88,10 +89,9 @@ void main() {
   test('every field of the set has one descriptor', () {
     final names = {for (final m in Marks.all) m.name};
     // the three pairs (brackets, button edges) are one field each
-    expect(Marks.all, hasLength(51));
-    expect(names, hasLength(48));
+    expect(Marks.all, hasLength(52));
+    expect(names, hasLength(49));
     expect(names, isNot(contains('ellipsis')));
-    expect(names, isNot(contains('shades')));
   });
 
   test('a descriptor knows its field, its ASCII mark and its glyph', () {
@@ -260,21 +260,17 @@ void main() {
   });
 
   test('the ASCII theme beats the border type of a line', () {
-    final marks = ThemeMarks.measured(TextSegmenter(), Glyphs.ascii);
-    expect(marks.dash(BorderType.double), '-');
-    expect(marks.dash(BorderType.heavy, down: true), '|');
-    expect(marks.line(BorderType.rounded), 0x2D);
-    final unicode = ThemeMarks.measured(TextSegmenter(), Glyphs.unicode);
-    expect(unicode.dash(null), '─');
-    expect(unicode.dash(BorderType.double), '═');
+    final marks = ThemeMarks.ofObject(null, TextSegmenter());
+    expect(marks.dash(BorderType.double, glyphs: Glyphs.ascii), '-');
+    expect(marks.dash(BorderType.heavy, down: true, glyphs: Glyphs.ascii), '|');
+    expect(marks.line(BorderType.rounded, glyphs: Glyphs.ascii), 0x2D);
+    expect(marks.dash(null, glyphs: Glyphs.unicode), '─');
+    expect(marks.dash(BorderType.double, glyphs: Glyphs.unicode), '═');
   });
 
   test('a line two columns wide is ASCII, and a shade list is a ramp', () {
-    final marks = ThemeMarks.measured(
-      TextSegmenter(ambiguousWidth: 2),
-      Glyphs.unicode,
-    );
-    expect(marks.dash(null), '-');
+    final marks = ThemeMarks.ofObject(null, TextSegmenter(ambiguousWidth: 2));
+    expect(marks.dash(null, glyphs: Glyphs.unicode), '-');
     expect(ThemeMarks.ramp(Glyphs.unicode.copyWith()), Glyphs.unicode.shades);
     expect(ThemeMarks.ramp(const Glyphs(shades: [])), Glyphs.ascii.shades);
     expect(ThemeMarks.ramp(const Glyphs(shades: ['#'])), [' ', '#']);
