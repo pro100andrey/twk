@@ -26,27 +26,9 @@ external int dup(int fd);
 @Native<Int Function(Int)>(isLeaf: true)
 external int close(int fd);
 
-/// macOS and Linux 6.15 and later tell how a program ended also when the VM
-/// waited for it first, which it does for any child while a `Process` runs (the
-/// test runner's compiler does throughout).
-final bool _endsKnown = () {
-  final version = RegExp(
-    r'(\d+)\.(\d+)',
-  ).firstMatch(Platform.operatingSystemVersion);
-  if (Platform.isMacOS) {
-    return true; // a kqueue (EVFILT_PROC, NOTE_EXITSTATUS)
-  }
-  if (!Platform.isLinux || version == null) {
-    return false;
-  }
-  final [major, minor] = [
-    for (final i in [1, 2]) int.parse(version[i]!),
-  ];
-  return major > 6 || major == 6 && minor >= 15;
-}();
-
 /// The exit code [code], or null where the VM may have taken it.
-Matcher exits(int code) => _endsKnown ? equals(code) : anyOf(code, isNull);
+Matcher exits(int code) =>
+    Pty.tellsExitCode ? equals(code) : anyOf(code, isNull);
 
 /// A [Pty] whose output is gathered.
 final class Run {
@@ -482,7 +464,9 @@ void main() {
         );
       }
     },
-    skip: _endsKnown ? null : 'needs macOS or Linux 6.15 (PIDFD_INFO_EXIT)',
+    skip: Pty.tellsExitCode
+        ? null
+        : 'needs macOS or Linux 6.15 (PIDFD_INFO_EXIT)',
   );
 
   test('no descriptor but 0, 1 and 2 is inherited', () async {

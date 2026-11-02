@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- `Pty` leaves the CI variables (`CI`, `CONTINUOUS_INTEGRATION`,
+  `BUILD_NUMBER`, `RUN_ID`) out of its program's environment, as it does
+  the host terminal's: a twk app in it draws in the emulator, not as for a
+  CI log. `Pty.exitCode` knows the code on macOS too when the VM waited
+  for the program first, and `Pty.tellsExitCode` says where it does.
+
 Breaking:
 
 - A cell's style id is a `StyleId` (package:twk_core): `TerminalEmulator.styleAt`

@@ -257,24 +257,6 @@ final class Terminal {
   }
 }
 
-/// macOS (a kqueue) and Linux 6.15 and later tell how a program ended
-/// also when the VM waited for it first, which it does for any child while
-/// a `Process` runs (the test runner's compiler does throughout).
-final bool _endsKnown = () {
-  final version = RegExp(
-    r'(\d+)\.(\d+)',
-  ).firstMatch(Platform.operatingSystemVersion);
-  if (Platform.isMacOS) {
-    return true; // Pty.exitCode: a kqueue tells it
-  }
-  if (!Platform.isLinux || version == null) {
-    return false;
-  }
-  final [major, minor] = [
-    for (final i in [1, 2]) int.parse(version[i]!),
-  ];
-  return major > 6 || major == 6 && minor >= 15;
-}();
-
 /// The exit code [code], or null where the VM may have taken it.
-Matcher exits(int code) => _endsKnown ? equals(code) : anyOf(code, isNull);
+Matcher exits(int code) =>
+    Pty.tellsExitCode ? equals(code) : anyOf(code, isNull);

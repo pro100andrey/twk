@@ -34,6 +34,24 @@ const _hangUpGrace = Duration(seconds: 1);
 const _writable = 'writable';
 const _hangup = 'hangup';
 
+/// [Pty.tellsExitCode]: macOS by a kqueue, Linux from 6.15 by the pidfd
+/// (PIDFD_INFO_EXIT).
+final bool _tellsExitCode = () {
+  if (Platform.isMacOS) {
+    return true;
+  }
+  final version = RegExp(
+    r'(\d+)\.(\d+)',
+  ).firstMatch(Platform.operatingSystemVersion);
+  if (!Platform.isLinux || version == null) {
+    return false;
+  }
+  final [major, minor] = [
+    for (final i in [1, 2]) int.parse(version[i]!),
+  ];
+  return major > 6 || major == 6 && minor >= 15;
+}();
+
 /// The variables that name the terminal a program runs in, or the
 /// multiplexer, and those that say this process runs in CI: this
 /// process's, which a program in the emulator is not in, so they are left
@@ -461,8 +479,15 @@ final class Pty {
   /// watched by from its spawn. It is null only on Linux before 6.15 in
   /// that case, and on macOS where the program ended before the kqueue
   /// was set (ESRCH, a few microseconds after the spawn) and the VM took
-  /// its end.
+  /// its end. [tellsExitCode] says which of those this platform is.
   Future<int?> get exitCode => _exit.future;
+
+  /// Whether [exitCode] knows the code of a program the VM waited for
+  /// first: on macOS, and on Linux 6.15 and later; elsewhere it is null
+  /// then, as a test that also runs a `Process` (the test runner's
+  /// compiler does throughout) finds. The testing guide's recipe expects
+  /// the code by it.
+  static bool get tellsExitCode => _tellsExitCode;
 
   /// The terminal's attributes (`struct termios`, in 256 bytes) as the
   /// program left them, read through the master when it
