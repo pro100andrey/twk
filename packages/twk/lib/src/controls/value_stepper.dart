@@ -223,8 +223,13 @@ final class _ValueStepperState<T> extends State<ValueStepper<T>> {
     final widest = [
       for (final v in _values) segmenter.width(v.label),
     ].fold(0, (a, b) => a > b ? a : b);
-    // the arrows and their blanks take 4 columns; the label the rest
-    final room = (width - 4).clamp(1, 1 << 30);
+    // the arrows' own columns, as the terminal counts them, and the two
+    // blanks around the label; the label gets the rest
+    final marks =
+        segmenter.width(theme.glyphs.previous) +
+        segmenter.width(theme.glyphs.next) +
+        2;
+    final room = (width - marks).clamp(1, 1 << 30);
     final label = fitText(
       segmenter,
       index < 0 ? '' : _values[index].label,

@@ -3,7 +3,7 @@
 // Asian ambiguous characters for two columns those are two columns wide:
 // the edge must still be lit in every cell of it, by other marks, as the
 // glyph paths that check a mark's width do. Review finding 6 of the
-// architecture review; waits for arch-theme-marks.
+// architecture review.
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
@@ -55,7 +55,7 @@ void main() {
       20,
       reason: 'row 5: [${lines[5]}]',
     );
-  }, skip: 'probable bug confirmed: arch-theme-marks');
+  });
 
   test('on a terminal with wide ambiguous characters, the left edge is lit '
       'in every row', () async {
@@ -74,5 +74,23 @@ void main() {
         reason: 'column 2 of row $y: [${lines[y]}]',
       );
     }
-  }, skip: 'probable bug confirmed: arch-theme-marks');
+  });
+
+  test('on a terminal with wide ambiguous characters, the top left corner '
+      'is lit in one column', () async {
+    final c = window();
+    final app = await WideApp.start(windows(c), width: 40, height: 10);
+    app.terminal.type('\x1b[<35;3;2M');
+    await app.settle();
+    await app.settle();
+    final lines = app.lines();
+    await app.quit();
+    c.dispose();
+    expect(
+      lines[1].length > 3 && lines[1][2] != ' ',
+      isTrue,
+      reason: 'row 1: [${lines[1]}]',
+    );
+    expect(lines[1][2].runes.length, 1);
+  });
 }

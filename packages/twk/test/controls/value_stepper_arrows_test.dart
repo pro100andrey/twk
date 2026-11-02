@@ -1,7 +1,7 @@
 // A ValueStepper leaves room for its arrows as the theme's glyphs are
 // wide, not as `‹` and `›` are: with two-column marks in a narrow room
 // the right arrow stays on screen and a click on it steps. Review finding 5
-// of the architecture review; the cases that fail wait for arch-cell-text.
+// of the architecture review.
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
@@ -48,7 +48,7 @@ void main() {
     // << + blank + 8 columns of label + blank + >> is the 14 columns
     expect(t.lines.first.length, lessThanOrEqualTo(14));
     expect(t.lines.first, endsWith('>>'), reason: 'the row: ${t.lines.first}');
-  }, skip: 'probable bug confirmed: arch-cell-text');
+  });
 
   testTwk('with two-column arrows, a click on the right arrow steps to the '
       'next value', (t) async {
@@ -57,5 +57,5 @@ void main() {
     await t.click(13, 0);
     await t.pump();
     expect(changes, ['auto'], reason: 'the row: ${t.lines.first}');
-  }, skip: 'probable bug confirmed: arch-cell-text');
+  });
 }

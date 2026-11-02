@@ -21,6 +21,7 @@ import 'package:twk_core/twk_core.dart'
         PaintContext,
         ParentData,
         RenderObject,
+        TextSegmenter,
         stringWidth;
 
 import '../animation/ticker.dart';
@@ -1436,12 +1437,33 @@ final class _RenderChrome extends RenderObject {
       return;
     }
     final pen = _litStyle.penIn(styles);
-    // eighths of a cell where the set has them, else the pieces of its lines
-    final blocks = _glyphs.partialBlocks;
+    // eighths of a cell where the set has them and the terminal draws them
+    // one column wide, else the pieces of its lines, else ASCII's
+    final segmenter = canvas.segmenter;
     final lines = _glyphs.lines;
-    final leftEdge = blocks ? 0x258F : lines.glyph(up: true, down: true);
-    final rightEdge = blocks ? 0x2595 : lines.glyph(up: true, down: true);
-    final bottomEdge = blocks ? 0x2581 : lines.glyph(left: true, right: true);
+    int edge(int block, {required bool vertical}) {
+      final line = lines.glyph(
+        up: vertical,
+        down: vertical,
+        left: !vertical,
+        right: !vertical,
+      );
+      if (_glyphs.partialBlocks && _oneColumn(segmenter, block)) {
+        return block;
+      }
+      return _oneColumn(segmenter, line)
+          ? line
+          : BorderType.ascii.glyph(
+              up: vertical,
+              down: vertical,
+              left: !vertical,
+              right: !vertical,
+            );
+    }
+
+    final leftEdge = edge(0x258F, vertical: true);
+    final rightEdge = edge(0x2595, vertical: true);
+    final bottomEdge = edge(0x2581, vertical: false);
     final left = lit & _leftEdge != 0;
     final right = lit & _rightEdge != 0;
     if (left && h > 1) {
@@ -1459,13 +1481,21 @@ final class _RenderChrome extends RenderObject {
     }
     if (lit & _topEdge != 0) {
       final corner = _bar.merge(Style(fg: _litStyle.fg)).penIn(styles);
-      final glyph = blocks
-          ? (left ? 0x259B : 0x259C)
-          : lines.glyph(down: true, right: left, left: !left);
+      final block = left ? 0x259B : 0x259C;
+      final line = lines.glyph(down: true, right: left, left: !left);
+      final glyph = _glyphs.partialBlocks && _oneColumn(segmenter, block)
+          ? block
+          : _oneColumn(segmenter, line)
+          ? line
+          : BorderType.ascii.glyph(down: true, right: left, left: !left);
       canvas.fill(left ? 0 : w - 1, 0, 1, 1, corner, glyph);
     }
   }
 }
+
+// whether the terminal draws the code point [cp] one column wide
+bool _oneColumn(TextSegmenter segmenter, int cp) =>
+    segmenter.width(String.fromCharCode(cp)) == 1;
 
 /// The chips of the minimised windows, side by side; nothing without any.
 final class _Strip extends StatelessWidget {
