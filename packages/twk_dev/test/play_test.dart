@@ -41,20 +41,26 @@ void main() {
       '[3.4, "r", "50x8"]',
       r'[3.6, "o", "third\r\n"]',
     ]);
+    // Real time on purpose: the pauses of playback are what is measured.
+    // At 0.1 s, 0.2 s, then 0.5 s (2.8 s cut), 0.4 s and 0.2 s: 1.2 s, by 2,
+    // 0.55 s after the first. Each bound has the origin a late start or a
+    // late look cannot move it past: from the start, at least those pauses
+    // (a timer never fires early, a slow start only adds); from the first
+    // seen, at most 1 s: a late look at the first only shortens it, one at
+    // the last has 0.45 s, and without the speed it is 1.1 s, without the
+    // cut 2.5 s
+    final started = Stopwatch()..start();
     final t = await Terminal.twk(['play', '--speed=2', path]);
     final before = t.modes;
     await t.until(() => t.text.contains('first'), 'the first event');
-    // Real time on purpose: the pauses of playback are what is measured
     final first = Stopwatch()..start();
     await t.until(() => t.text.contains('third'), 'the last event');
-    // at 0.1 s, 0.2 s, then 0.5 s (2.8 s cut), 0.4 s and 0.2 s: 1.2 s, by 2,
-    // 0.55 s after the first; less when the test sees the first late, as on
-    // a busy machine, but never near none (no pauses) nor past 1.1 s (no
-    // speed, or no cut)
-    final took = first.elapsedMilliseconds;
+    final sinceStart = started.elapsedMilliseconds;
+    final sinceFirst = first.elapsedMilliseconds;
 
     expect(await t.ended(), exits(0));
-    expect(took, inInclusiveRange(300, 1100));
+    expect(sinceStart, greaterThanOrEqualTo(550));
+    expect(sinceFirst, lessThanOrEqualTo(1000));
     expect(t.text, 'first\r\nsecond\r\nthird\r\n');
     expect(t.modes.same(before), isTrue, reason: '${t.modes}');
   });
