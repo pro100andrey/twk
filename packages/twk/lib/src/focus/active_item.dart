@@ -9,7 +9,8 @@ import 'package:twk_core/twk_core.dart'
         PaintContext,
         Presenter,
         RenderObject,
-        RenderObjectWithChildMixin;
+        RenderObjectWithChildMixin,
+        RenderParagraph;
 
 import '../editing/caret.dart' show clearRestCursorOn, restCursorOn;
 import '../framework/framework.dart';
@@ -42,10 +43,12 @@ import '../layout/one_child.dart';
 /// ```
 final class ActiveItem extends SingleChildRenderObjectWidget {
   /// [child], the item its widget's keys act on while [active], the
-  /// cursor on [column] of its first row.
+  /// cursor on [column] of its first row, or where its text [text] is
+  /// drawn.
   const ActiveItem({
     required this.active,
     this.column = 0,
+    this.text,
     super.key,
     super.child,
   });
@@ -54,22 +57,33 @@ final class ActiveItem extends SingleChildRenderObjectWidget {
   final bool active;
 
   /// The column of its first row the cursor rests on: 0, its first cell,
-  /// or where the item starts in a row its child draws of several, as
-  /// `HitRow`'s targets are.
+  /// or where the item starts in a row its child draws of several. See
+  /// [text] for an item of a row of text.
   final int column;
+
+  /// Where the item is in a row of text its child, a `Text`, draws of
+  /// several (as `HitRow`'s targets are): the start and the end of the
+  /// item's text in the text's spans joined, in UTF-16 code units. The
+  /// cursor rests on the first cell of its first row the paragraph draws
+  /// of that text, found at each layout, so wherever it is drawn
+  /// (reordered right to left, the row cut); on [column] where it draws
+  /// none, or where the child is no paragraph. Null, the default: on
+  /// [column].
+  final (int, int)? text;
 
   @override
   SingleChildRenderObjectElement createElement() => OneChildElement(this);
 
   @override
   RenderObject createRenderObject(BuildContext context) =>
-      _RenderActiveItem(active, column);
+      _RenderActiveItem(active, column, text);
 
   @override
   void updateRenderObject(BuildContext context, RenderObject renderObject) =>
       (renderObject as _RenderActiveItem)
         ..active = active
-        ..column = column;
+        ..column = column
+        ..text = text;
 }
 
 /// What [ActiveItem] puts in the render tree: its child, as big as the
@@ -77,7 +91,7 @@ final class ActiveItem extends SingleChildRenderObjectWidget {
 /// painted while [active].
 final class _RenderActiveItem extends RenderObject
     with RenderObjectWithChildMixin {
-  _RenderActiveItem(this._active, this._column);
+  _RenderActiveItem(this._active, this._column, this._text);
 
   /// See [ActiveItem.active].
   bool get active => _active;
@@ -101,6 +115,30 @@ final class _RenderActiveItem extends RenderObject
     }
   }
 
+  /// See [ActiveItem.text].
+  (int, int)? get text => _text;
+  (int, int)? _text;
+
+  set text((int, int)? value) {
+    if (value != _text) {
+      _text = value;
+      _rest();
+    }
+  }
+
+  /// The column the cursor rests on: [column], or that of the first cell
+  /// the child paragraph draws of [text] as last laid out.
+  int get _restColumn {
+    final text = _text;
+    final child = this.child;
+    if (text != null && child is RenderParagraph) {
+      if (child.columnsOf(text.$1, text.$2, 0) case (final from, _)) {
+        return from;
+      }
+    }
+    return _column;
+  }
+
   // what it was painted with last; null before it is painted
   Presenter? _presenter;
 
@@ -114,7 +152,7 @@ final class _RenderActiveItem extends RenderObject
       return;
     }
     if (_active) {
-      restCursorOn(presenter, this, _column, 0);
+      restCursorOn(presenter, this, _restColumn, 0);
     } else {
       clearRestCursorOn(presenter, this);
     }
@@ -131,6 +169,10 @@ final class _RenderActiveItem extends RenderObject
     child.layout(c, parentUsesSize: true);
     width = child.width;
     height = child.height;
+    if (_text != null) {
+      // where the text is drawn may have moved
+      _rest();
+    }
   }
 
   @override
@@ -166,6 +208,7 @@ final class _RenderActiveItem extends RenderObject
     super.debugFillProperties(properties);
     properties
       ..add('active', _active)
-      ..add('column', _column, defaultValue: 0);
+      ..add('column', _column, defaultValue: 0)
+      ..add('text', _text, defaultValue: null);
   }
 }

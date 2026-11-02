@@ -352,7 +352,6 @@ final class _BreadcrumbsState extends State<Breadcrumbs> {
     }
     return _hits.row(
       spans,
-      segmenter,
       style: row,
       onHover: enabled ? (_) => setState(() {}) : null,
       // the hidden cursor on the highlighted crumb

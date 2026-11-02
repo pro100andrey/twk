@@ -432,7 +432,6 @@ final class _PaginationState extends State<Pagination> {
     }
     return _hits.row(
       spans,
-      segmenter,
       style: row,
       onHover: enabled ? (_) => setState(() {}) : null,
       // the hidden cursor on the current page

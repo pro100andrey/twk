@@ -3,7 +3,7 @@
 library;
 
 import 'package:twk_core/twk_core.dart'
-    show Attr, TextSegmenter, TextWrap, fitText;
+    show Attr, RenderParagraph, TextSegmenter, TextWrap, fitText;
 
 import '../binding/app_binding.dart';
 import '../focus/focus.dart';
@@ -80,6 +80,7 @@ final class _ChipFace extends StatelessWidget {
     this.label, {
     required this.selected,
     required this.style,
+    super.key,
     this.highlighted = false,
     this.removable = false,
     this.enabled = true,
@@ -260,6 +261,11 @@ final class _ChipListState<T> extends State<ChipList<T>> {
   /// Where each chip is, as last built.
   var _places = const <({int line, int x, int width})>[];
 
+  /// The text of each chip as last built, by its key, and where its `×`
+  /// starts in it (the label's end); -1 for a chip without one.
+  final _faces = <GlobalKey>[];
+  final _closeAt = <int>[];
+
   List<Choice<T>> get _chips => widget.chips;
 
   bool get _enabled =>
@@ -340,6 +346,20 @@ final class _ChipListState<T> extends State<ChipList<T>> {
     }
   }
 
+  /// Whether column [x] of chip [i] draws its `×` or the blank after it,
+  /// as the chip's text laid them out, which in visual order draws them
+  /// on the left of a right-to-left label.
+  bool _onClose(int i, int x) {
+    if (i >= _closeAt.length || _closeAt[i] < 0) {
+      return false;
+    }
+    final cell = switch (_faces[i].currentContext?.findRenderObject()) {
+      final RenderParagraph p => p.cellAt(x, 0),
+      _ => null,
+    };
+    return cell != null && !cell.isEllipsis && cell.start >= _closeAt[i];
+  }
+
   void _tap(int x, int y) {
     for (var i = 0; i < _places.length && i < _chips.length; i++) {
       final p = _places[i];
@@ -347,11 +367,7 @@ final class _ChipListState<T> extends State<ChipList<T>> {
         if (!_chips[i].enabled) {
           return;
         }
-        // the close mark and the blank after it
-        final closeWidth = segmenterOf(
-          context,
-        ).width(ThemeMarks.of(context).text(Marks.close));
-        if (widget.onDeleted != null && x >= p.x + p.width - closeWidth - 1) {
+        if (widget.onDeleted != null && _onClose(i, x - p.x)) {
           _remove(i);
         } else if (widget.onSelectionChanged != null) {
           _press(i);
@@ -465,6 +481,7 @@ final class _ChipListState<T> extends State<ChipList<T>> {
     final aroundBare = segmenter.width(_chipText('', mark: '', close: close));
     final labels = <String>[];
     final widths = <int>[];
+    _closeAt.clear();
     for (var i = 0; i < _chips.length; i++) {
       final mark = on[i] && plain ? checkMark : '';
       final around = mark.isEmpty ? aroundBare : aroundMarked;
@@ -475,11 +492,16 @@ final class _ChipListState<T> extends State<ChipList<T>> {
         ellipsis: glyphs.ellipsis,
       );
       labels.add(label);
+      // after the blank, the mark, the label and the blank of _chipText
+      _closeAt.add(close == null ? -1 : 2 + mark.length + label.length);
       widths.add(
         segmenter.width(_chipText(label, mark: mark, close: close)),
       );
     }
     _places = _flow(widths, width);
+    while (_faces.length < _chips.length) {
+      _faces.add(GlobalKey());
+    }
     final lines = <List<Widget>>[];
     for (var i = 0; i < _chips.length; i++) {
       if (_places[i].line == lines.length) {
@@ -491,6 +513,7 @@ final class _ChipListState<T> extends State<ChipList<T>> {
           active: i == highlight,
           child: _ChipFace(
             labels[i],
+            key: _faces[i],
             selected: on[i],
             highlighted: i == highlight,
             removable: close != null,

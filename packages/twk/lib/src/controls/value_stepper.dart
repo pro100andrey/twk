@@ -252,7 +252,6 @@ final class _ValueStepperState<T> extends State<ValueStepper<T>> {
         ),
         (span: Span(next, arrow(1)), target: 1),
       ],
-      segmenter,
       style: row,
       onHover: enabled && hover != const Style()
           ? (_) => setState(() {})

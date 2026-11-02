@@ -997,11 +997,10 @@ final class _StepperState extends State<Stepper> {
             target: -1,
           ),
         ],
-        segmenter,
         style: theme.text,
       );
     }
-    return _headers.row(spans, segmenter, style: theme.text);
+    return _headers.row(spans, style: theme.text);
   }
 }
 

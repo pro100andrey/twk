@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- In visual order, where a row of right-to-left text is drawn as it reads,
+  a click finds the target drawn under it: the crumb of `Breadcrumbs`, the
+  segment of `SegmentedButton`, the page of `Pagination`, the step of
+  `Stepper`, the arrow of `ValueStepper`, the key of a pressable
+  `KeyHintsBar`, and a `ChipList` chip's `×`, which a click on the label
+  took for it while the `×` was drawn on the left. They found it in a table
+  of columns summed in stored order; they now ask the row's paragraph which
+  text it drew there (`RenderParagraph.cellAt`). The hidden cursor rests
+  on the active one where it is drawn too: `ActiveItem(text: (start, end))`
+  rests it on the first cell its child `Text` draws of that text, found at
+  each layout, as `column` gives a fixed one.
+
 - The drawn mark of a theme field is one module: `Marks` (a `CellMark` or
   `TextMark` descriptor for each mark of `Glyphs`) and `ThemeMarks`
   (`ThemeMarks.of(context).text(Marks.close)`; in a render object

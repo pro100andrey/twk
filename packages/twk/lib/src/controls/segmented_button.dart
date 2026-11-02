@@ -364,7 +364,6 @@ final class _SegmentedButtonState<T> extends State<SegmentedButton<T>> {
     spans.add((span: Span(close, lines), target: -1));
     return _hits.row(
       spans,
-      segmenter,
       style: row,
       onHover: enabled && hover != const Style()
           ? (_) => setState(() {})
