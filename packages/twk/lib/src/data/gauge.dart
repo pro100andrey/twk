@@ -448,6 +448,7 @@ final class RenderLineGauge extends _RenderGaugeBase {
   set filledStyle(Style s) {
     if (s != _filledStyle) {
       _filledStyle = s;
+      _base = null;
       markNeedsPaint();
     }
   }
@@ -459,14 +460,38 @@ final class RenderLineGauge extends _RenderGaugeBase {
   set unfilledStyle(Style s) {
     if (s != _unfilledStyle) {
       _unfilledStyle = s;
+      _base = null;
       markNeedsPaint();
     }
+  }
+
+  // the styles merged, kept until a setter changes one of their inputs
+  Style? _base;
+  late Style _filledMerged;
+  late Style _unfilledMerged;
+
+  @override
+  set style(Style s) {
+    if (s != _style) {
+      _base = null;
+    }
+    super.style = s;
+  }
+
+  void _merge() {
+    final base = const Style(fg: Color.defaultColor).merge(_style);
+    _base = base;
+    _filledMerged = base.merge(_filledStyle);
+    _unfilledMerged = base.merge(_unfilledStyle);
   }
 
   @override
   void paint(PaintContext ctx) {
     final canvas = ctx.canvas;
-    final base = const Style(fg: Color.defaultColor).merge(_style);
+    if (_base == null) {
+      _merge();
+    }
+    final base = _base!;
     final pen = base.penIn(canvas.styles);
     canvas.fill(0, 0, width, height, pen);
     if (height == 0) {
@@ -490,7 +515,7 @@ final class RenderLineGauge extends _RenderGaugeBase {
           y,
           filled,
           1,
-          base.merge(_filledStyle).penIn(canvas.styles),
+          _filledMerged.penIn(canvas.styles),
           column,
         )
         ..fill(
@@ -498,13 +523,13 @@ final class RenderLineGauge extends _RenderGaugeBase {
           y,
           cells - filled,
           1,
-          base.merge(_unfilledStyle).penIn(canvas.styles),
+          _unfilledMerged.penIn(canvas.styles),
           column,
         );
       return;
     }
-    final filledPen = base.merge(_filledStyle).penIn(canvas.styles);
-    final unfilledPen = base.merge(_unfilledStyle).penIn(canvas.styles);
+    final filledPen = _filledMerged.penIn(canvas.styles);
+    final unfilledPen = _unfilledMerged.penIn(canvas.styles);
     final type = _type;
     if (type != null) {
       glyphs.line(
