@@ -400,7 +400,7 @@ List<Span> summaryLine(
   ByteUnits byteUnits = ByteUnits.decimal,
 ]) {
   final summary = _oneLine(
-    task.summaryIn(cli.theme.glyphs, byteUnits: byteUnits),
+    task.summary(glyphs: cli.theme.glyphs, byteUnits: byteUnits),
   );
   final theme = cli.theme;
   final space = summary.indexOf(' ');

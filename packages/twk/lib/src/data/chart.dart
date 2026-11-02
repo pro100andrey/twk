@@ -421,7 +421,7 @@ final class RenderChart extends RenderObject {
     final lineRow = top + rows;
 
     // the marker the grid draws with, and the y labels at its rows
-    _grid.reset(0, rows, _marker, _segmenter, _glyphs);
+    _grid.reset(0, rows, _marker, _segmenter, glyphs: _glyphs);
     final down = _grid.marker.dotsDown;
     final across = _grid.marker.dotsAcross;
     final yLabels = _yAxis.labels?.isEmpty ?? false
@@ -470,7 +470,7 @@ final class RenderChart extends RenderObject {
           });
 
     // the plot
-    _grid.reset(cols, rows, _marker, _segmenter, _glyphs);
+    _grid.reset(cols, rows, _marker, _segmenter, glyphs: _glyphs);
     final painter = DotPainter(_grid, _xAxis.bounds, _yAxis.bounds);
     for (final dataset in _datasets) {
       (dataset.type == GraphType.line

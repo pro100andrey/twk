@@ -76,30 +76,30 @@ enum ByteUnits {
   final List<String> suffixes;
 }
 
-/// The unit [bytes] are written in under [units], and how many bytes it
+/// The unit [bytes] are written in under [byteUnits], and how many bytes it
 /// is: `(1, 'B')` under a thousand (`ByteUnits.decimal`) or 1024
 /// (`ByteUnits.binary`), then the units above, each a thousand or 1024 of
 /// the one before; the next unit from where the figures would round to
 /// that many of this one (999 999 bytes are `1.0 MB`, not `1000 kB`).
 (num, String) byteUnit(
-  num bytes, [
-  ByteUnits units = ByteUnits.decimal,
-]) {
-  final base = units.base;
+  num bytes, {
+  ByteUnits byteUnits = ByteUnits.decimal,
+}) {
+  final base = byteUnits.base;
   final b = bytes.abs();
   if (b < base - 0.5) {
     return (1, 'B');
   }
   num scale = base;
   var i = 0;
-  while (i < units.suffixes.length - 1 && b >= scale * (base - 0.5)) {
+  while (i < byteUnits.suffixes.length - 1 && b >= scale * (base - 0.5)) {
     scale *= base;
     i++;
   }
-  return (scale, units.suffixes[i]);
+  return (scale, byteUnits.suffixes[i]);
 }
 
-/// [bytes] in their unit under [units] ([byteUnit]), whole from 100 of it
+/// [bytes] in their unit under [byteUnits] ([byteUnit]), whole from 100 of it
 /// and to the tenth below ([formatFigures]). The sizes a `DirectoryTree`
 /// and a `ProgressList` write.
 ///
@@ -108,17 +108,17 @@ enum ByteUnits {
 /// `ls --si` and `du --si` and of what disk makers and file managers
 /// quote. [ByteUnits.binary] counts by 1024 as `ls -h` and `du -h` do and
 /// names the units as the IEC does: `1023 B`, `1.0 KiB`, `1.5 MiB`. A
-/// figure reads the same as the widgets' beside it where the same [units]
+/// figure reads the same as the widgets' beside it where the same [byteUnits]
 /// are given to both.
 ///
 /// ```dart
 /// final line = '${formatBytes(4096)} of ${formatBytes(1200000)}';
 /// // line: 4.1 kB of 1.2 MB
-/// final binary = formatBytes(1536, units: ByteUnits.binary);
+/// final binary = formatBytes(1536, byteUnits: ByteUnits.binary);
 /// // binary: 1.5 KiB
 /// ```
-String formatBytes(num bytes, {ByteUnits units = ByteUnits.decimal}) {
-  final (scale, suffix) = byteUnit(bytes, units);
+String formatBytes(num bytes, {ByteUnits byteUnits = ByteUnits.decimal}) {
+  final (scale, suffix) = byteUnit(bytes, byteUnits: byteUnits);
   return scale == 1 && bytes == bytes.roundToDouble()
       ? '${bytes.round()} B'
       : '${formatFigures(bytes / scale)} $suffix';

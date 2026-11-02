@@ -11,7 +11,7 @@ import '../style/style.dart';
 import '../text/widgets.dart';
 
 /// What a [StatusMessage] or a [Badge] tells: each kind has its [icon]
-/// ([iconIn], from the theme's [Glyphs]) and its color in the theme
+/// ([StatusKind.icon], from the theme's [Glyphs]) and its color in the theme
 /// ([styleIn]).
 enum StatusKind {
   /// Information, neither good nor bad: `ℹ`, [ThemeData.info].
@@ -26,12 +26,10 @@ enum StatusKind {
   /// An error, what failed: `✗`, [ThemeData.error].
   error;
 
-  /// The sign of this kind in [Glyphs.unicode], one column wide.
-  String get icon => iconIn(Glyphs.unicode);
-
   /// The sign of this kind in [glyphs]: [Glyphs.info], [Glyphs.check],
-  /// [Glyphs.warning] or [Glyphs.cross].
-  String iconIn(Glyphs glyphs) => switch (this) {
+  /// [Glyphs.warning] or [Glyphs.cross]; pass the theme's
+  /// (`Theme.of(context).glyphs`) to draw it as the app does.
+  String icon({Glyphs glyphs = Glyphs.unicode}) => switch (this) {
     info => glyphs.info,
     success => glyphs.check,
     warning => glyphs.warning,
@@ -120,7 +118,7 @@ final class StatusMessage extends StatelessWidget {
       gap: 1,
       children: [
         Text(
-          icon ?? kind.iconIn(theme.glyphs),
+          icon ?? kind.icon(glyphs: theme.glyphs),
           style: marked,
           wrap: TextWrap.none,
         ),

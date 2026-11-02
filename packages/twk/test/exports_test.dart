@@ -75,7 +75,7 @@ void main() {
   test('twk.dart exports formatBytes and formatTook, for an app to write '
       'sizes and times as the widgets do', () {
     expect(formatBytes(4096), '4.1 kB');
-    expect(formatBytes(4096, units: ByteUnits.binary), '4.0 KiB');
+    expect(formatBytes(4096, byteUnits: ByteUnits.binary), '4.0 KiB');
     expect(formatTook(const Duration(milliseconds: 3100)), '3.1 s');
   });
 

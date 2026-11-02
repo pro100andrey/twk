@@ -141,12 +141,18 @@ void main() {
       expect(a, isNot(Glyphs.unicode));
     });
 
+    test("a status kind's icon is the set's it is given", () {
+      expect(StatusKind.info.icon(), Glyphs.unicode.info);
+      expect(StatusKind.info.icon(glyphs: Glyphs.ascii), Glyphs.ascii.info);
+      expect(StatusKind.error.icon(glyphs: Glyphs.ascii), Glyphs.ascii.cross);
+    });
+
     test("the arrows of a key hint are the set's", () {
       final up = KeyCombo.parse('up');
       expect(KeyHintsBar.signs(up), '↑');
-      expect(KeyHintsBar.signs(up, Glyphs.ascii), '^');
+      expect(KeyHintsBar.signs(up, glyphs: Glyphs.ascii), '^');
       expect(
-        KeyHintsBar.signs(KeyCombo.parse('alt+down'), Glyphs.ascii),
+        KeyHintsBar.signs(KeyCombo.parse('alt+down'), glyphs: Glyphs.ascii),
         'alt+v',
       );
     });

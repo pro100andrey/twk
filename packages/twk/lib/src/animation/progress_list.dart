@@ -460,13 +460,11 @@ final class ProgressTask {
   /// `•`, how much it did where that says something, the time it took once
   /// it is done or failed, and the error it failed with:
   /// `✓ Downloading assets.zip • 3.4/3.4 MB • 2.1 s`.
-  String get summary => summaryIn(Glyphs.unicode);
-
-  /// [summary] with the marks of [glyphs]: its mark and the bullet
-  /// between the parts, and its bytes counted as [byteUnits] says, as a
-  /// [ProgressList] given the same writes them (`3.2/3.2 MiB`).
-  String summaryIn(
-    Glyphs glyphs, {
+  ///
+  /// The marks are [glyphs]': its mark and the bullet between the parts;
+  /// its bytes are counted as [byteUnits] says (`3.2/3.2 MiB`).
+  String summary({
+    Glyphs glyphs = Glyphs.unicode,
     ByteUnits byteUnits = ByteUnits.decimal,
   }) {
     final parts = [
@@ -603,8 +601,7 @@ final class ProgressList extends StatefulWidget {
 
   /// How the amounts and rates of tasks in [ProgressUnit.bytes] are
   /// counted and named: by 1000 (`1.2 MB/s`), or by 1024 as `ls -h` does
-  /// (`1.1 MiB/s`). Give a `DirectoryTree` the same for sizes that read
-  /// alike.
+  /// (`1.1 MiB/s`).
   final ByteUnits byteUnits;
 
   @override
@@ -1281,9 +1278,9 @@ String _count(ProgressTask task, ByteUnits units) {
     return total == null ? done : '$done/${_number(total)}';
   }
   if (total == null) {
-    return formatBytes(task.completed, units: units);
+    return formatBytes(task.completed, byteUnits: units);
   }
-  final (scale, suffix) = byteUnit(total, units);
+  final (scale, suffix) = byteUnit(total, byteUnits: units);
   if (scale == 1) {
     return '${_number(task.completed)}/${_number(total)} B';
   }
@@ -1300,7 +1297,7 @@ String _number(num n) => n == n.roundToDouble() && n.abs() < 1e15
 /// `3.5/s`, `120/s`, `1.2k/s`.
 String _rate(double rate, ProgressUnit unit, ByteUnits units) {
   if (unit == ProgressUnit.bytes) {
-    return '${formatBytes(rate, units: units)}/s';
+    return '${formatBytes(rate, byteUnits: units)}/s';
   }
   const prefixes = ['', 'k', 'M', 'G'];
   var scaled = rate;

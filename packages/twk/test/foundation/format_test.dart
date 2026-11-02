@@ -84,7 +84,7 @@ void main() {
 
   test('formatBytes in binary units: 1024 to a unit, IEC suffixes, the '
       'digits as the decimal ones', () {
-    String b(num n) => formatBytes(n, units: ByteUnits.binary);
+    String b(num n) => formatBytes(n, byteUnits: ByteUnits.binary);
     expect(b(0), '0 B');
     expect(b(1000), '1000 B');
     expect(b(1023), '1023 B');
@@ -105,13 +105,13 @@ void main() {
 
   test('formatBytes in binary moves to the next unit where the figures '
       'would round to 1024, as the decimal does at 1000', () {
-    String b(num n) => formatBytes(n, units: ByteUnits.binary);
+    String b(num n) => formatBytes(n, byteUnits: ByteUnits.binary);
     expect(b(1023.4), '1023 B');
     expect(b(1023.6), '1.0 KiB');
     expect(b(1048063), '1023 KiB');
     expect(b(1048064), '1.0 MiB');
-    expect(byteUnit(1048064, ByteUnits.binary), (1048576, 'MiB'));
-    expect(byteUnit(1023, ByteUnits.binary), (1, 'B'));
+    expect(byteUnit(1048064, byteUnits: ByteUnits.binary), (1048576, 'MiB'));
+    expect(byteUnit(1023, byteUnits: ByteUnits.binary), (1, 'B'));
   });
 
   test('formatBytes is decimal when no units are given', () {

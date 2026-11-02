@@ -187,7 +187,7 @@ final class Callout extends StatelessWidget {
     final marked = colored
         .merge(const Style(attrs: Attr.bold))
         .merge(titleStyle ?? const Style());
-    final icon = this.icon ?? kind.iconIn(theme.glyphs);
+    final icon = this.icon ?? kind.icon(glyphs: theme.glyphs);
     final head = [if (icon.isNotEmpty) icon, _title].join(' ');
     final plain =
         AppBinding.maybeOf(context)?.twkApp.terminal.info.plain ?? false;

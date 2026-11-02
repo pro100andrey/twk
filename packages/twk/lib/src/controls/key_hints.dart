@@ -146,7 +146,7 @@ final class KeyHintsBar extends StatefulWidget {
   /// Page Up and Down short, after the modifiers too (`alt+↓`, `esc`,
   /// `pgdn`); any other key as [KeyCombo.toString] does (`ctrl+s`). The
   /// arrows are [glyphs]' ([Glyphs.arrowLeft] and the rest).
-  static String signs(KeyCombo combo, [Glyphs glyphs = Glyphs.unicode]) {
+  static String signs(KeyCombo combo, {Glyphs glyphs = Glyphs.unicode}) {
     final sign = switch (combo.code) {
       KeyCode.escape => 'esc',
       KeyCode.left => glyphs.arrowLeft,
@@ -211,7 +211,7 @@ final class KeyHintsBar extends StatefulWidget {
     bool joinKeys = true,
     bool showUnhinted = false,
   }) {
-    final label = keyLabel ?? (KeyCombo combo) => signs(combo, glyphs);
+    final label = keyLabel ?? (KeyCombo combo) => signs(combo, glyphs: glyphs);
     // each entry: the names of the keys it shows, their family, its hint
     final shown = <(List<(String, ActiveKey)>, int?, String?)>[];
     for (final key in keys) {
@@ -441,7 +441,7 @@ Future<void> showKeyHelp(BuildContext context, {String title = 'Keys'}) {
       KeyHintsBar.entries(byLayer[i]!, glyphs: glyphs),
     // the dialog's own binding (Dialog: `escape` with the hint `close`) is
     // not built until the dialog is, so it is named here, as it is there
-    [(KeyHintsBar.signs(KeyCombo.parse('escape'), glyphs), 'close')],
+    [(KeyHintsBar.signs(KeyCombo.parse('escape'), glyphs: glyphs), 'close')],
   ].where((e) => e.isNotEmpty).toList();
   final segmenter = segmenterOf(context);
   var widest = 0;

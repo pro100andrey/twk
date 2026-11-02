@@ -89,9 +89,9 @@ final class DotGrid {
     int columns,
     int rows,
     Marker marker,
-    TextSegmenter segmenter, [
+    TextSegmenter segmenter, {
     Glyphs? glyphs,
-  ]) {
+  }) {
     assert(columns >= 0 && rows >= 0, 'a grid of 0 cells or more');
     final shades = glyphs == null || glyphs.partialBlocks || marker.char != 0
         ? null

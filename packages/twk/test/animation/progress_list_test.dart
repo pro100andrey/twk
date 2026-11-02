@@ -121,7 +121,7 @@ void main() {
         'its throw, which it throws again', () async {
       final (tracker, _) = tracked();
       final finished = <String>[];
-      tracker.onTaskFinished.listen((t) => finished.add(t.summary));
+      tracker.onTaskFinished.listen((t) => finished.add(t.summary()));
       final got = await tracker.run('Build', (task) async {
         expect(task.status, TaskStatus.running);
         await Future<void>.delayed(Duration.zero);
@@ -164,16 +164,16 @@ void main() {
       )..advance(1200000);
       await clock.elapse(const Duration(milliseconds: 2100));
       download.done();
-      expect(download.summary, '✓ assets.zip • 3.4/3.4 MB • 2.1 s');
+      expect(download.summary(), '✓ assets.zip • 3.4/3.4 MB • 2.1 s');
       final files = tracker.add('files', total: 40)..update(12);
       await clock.elapse(const Duration(minutes: 1, seconds: 5));
       files.fail();
-      expect(files.summary, '✗ files • 12/40 • 01:05');
-      expect(tracker.add('wait').summary, '◦ wait');
+      expect(files.summary(), '✗ files • 12/40 • 01:05');
+      expect(tracker.add('wait').summary(), '◦ wait');
     });
 
     test(
-      'summaryIn(byteUnits:) counts bytes by 1024, as the list does',
+      'summary(byteUnits:) counts bytes by 1024, as the list does',
       () async {
         final (tracker, clock) = tracked();
         final download = tracker.add(
@@ -183,9 +183,9 @@ void main() {
         )..advance(1048576);
         await clock.elapse(const Duration(milliseconds: 2100));
         download.done();
-        expect(download.summary, '✓ assets.zip • 3.1/3.1 MB • 2.1 s');
+        expect(download.summary(), '✓ assets.zip • 3.1/3.1 MB • 2.1 s');
         expect(
-          download.summaryIn(Glyphs.unicode, byteUnits: ByteUnits.binary),
+          download.summary(byteUnits: ByteUnits.binary),
           '✓ assets.zip • 3.0/3.0 MiB • 2.1 s',
         );
       },

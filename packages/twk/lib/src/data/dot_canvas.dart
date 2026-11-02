@@ -260,7 +260,7 @@ final class RenderDotCanvas extends RenderObject {
   @override
   void paint(PaintContext ctx) {
     final canvas = ctx.canvas;
-    _grid.reset(width, height, _marker, canvas.segmenter, _set);
+    _grid.reset(width, height, _marker, canvas.segmenter, glyphs: _set);
     final context = DotContext(DotPainter(_grid, _xBounds, _yBounds));
     _draw(context);
     context.paint(canvas, 0, 0, _background, labelColor: _labelColor);
