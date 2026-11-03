@@ -44,124 +44,138 @@ final class PosixInput {
 
   /// The bytes read; listened to once. It ends when fd 0 does (the
   /// terminal hung up), with a [TerminalException] where reading failed.
+  /// Paused, it reads nothing more from then on: the reader is told at
+  /// once, before `pause` returns, so a program given the terminal right
+  /// after gets what is typed for it.
   Stream<List<int>> get stream => _controller.stream;
 
-  // what runs or is to run, one thing at a time: a start waits for the
-  // reader it replaces to have stopped
-  var _work = Future<void>.value();
+  // the reader that runs or is to run, while listened to and not paused
   _Reader? _reader;
+  // the last reader's having stopped, which the next one waits for: one
+  // isolate reads fd 0 at a time
+  var _stopped = Future<void>.value();
   var _cancelled = false;
 
   void _start() {
-    _work = _work.then((_) async {
-      if (_cancelled ||
-          _controller.isPaused ||
-          _controller.isClosed ||
-          _reader != null) {
-        return;
-      }
-      _reader = await _Reader.start(_controller);
-    });
+    if (_cancelled || _reader != null) {
+      return;
+    }
+    try {
+      _reader = _Reader(_controller)..spawnAfter(_stopped);
+    } on TerminalException catch (e) {
+      _controller.addError(e);
+      unawaited(_controller.close());
+    }
   }
 
   void _stop() {
-    _work = _work.then((_) => _stopReader());
-  }
-
-  Future<void> _cancel() {
-    _cancelled = true;
-    return _work = _work.then((_) async {
-      await _stopReader();
-      await _controller.close();
-    });
-  }
-
-  Future<void> _stopReader() async {
     final reader = _reader;
-    _reader = null;
-    await reader?.stop();
+    if (reader != null) {
+      _reader = null;
+      _stopped = reader.stop();
+    }
+  }
+
+  Future<void> _cancel() async {
+    _cancelled = true;
+    _stop();
+    await _stopped;
+    await _controller.close();
   }
 }
 
-/// One run of the reading isolate, from its start to its [stop].
+/// One run of the reading isolate: its wake pipe made at once, the
+/// isolate spawned once the one before it stopped, and [stop] it.
 final class _Reader {
-  _Reader._(this._c, this._wakeWrite, this._wakeRead, this._port);
-
-  static Future<_Reader> start(StreamController<List<int>> out) async {
-    final c = _Libc.of()!;
-    final pair = c.alloc(2 * sizeOf<Int32>()).cast<Int32>();
-    final int wakeRead;
-    final int wakeWrite;
+  _Reader(this._out) : _c = _Libc.of()! {
+    final pair = _c.alloc(2 * sizeOf<Int32>()).cast<Int32>();
     try {
-      if (c.pipe(pair) != 0) {
+      if (_c.pipe(pair) != 0) {
         throw const TerminalException('no pipe to read the terminal with');
       }
-      wakeRead = pair[0];
-      wakeWrite = pair[1];
+      _wakeRead = pair[0];
+      _wakeWrite = pair[1];
     } finally {
-      c.free(pair.cast());
+      _c.free(pair.cast());
     }
     // what it read, then that it ended, on one port: the bytes it sent
     // before it stopped come before the news that it did
-    final port = ReceivePort('terminal input');
-    final reader = _Reader._(c, wakeWrite, wakeRead, port);
-    port.listen((message) {
+    _port.listen((message) {
       switch (message) {
         case final Uint8List bytes:
-          if (!out.isClosed) {
-            out.add(bytes);
+          if (!_out.isClosed) {
+            _out.add(bytes);
           }
         case _ended:
-          unawaited(out.close());
+          unawaited(_out.close());
         case final String failure:
-          if (!out.isClosed) {
-            out.addError(TerminalException(failure));
-            unawaited(out.close());
-          }
+          _fail(failure);
+        case [final Object? error, _]:
+          // it threw (onError sends the error and its stack as strings)
+          _fail('reading the terminal failed: $error');
         case null:
           // its exit (onExit sends null)
-          reader._exited.complete();
+          _exited.complete();
       }
     });
-    try {
-      await Isolate.spawn(
-        _read,
-        (wakeRead, port.sendPort),
-        onExit: port.sendPort,
-        onError: port.sendPort,
-        debugName: 'terminal input',
-      );
-    } on Object {
-      reader._close();
-      rethrow;
-    }
-    return reader;
   }
 
+  final StreamController<List<int>> _out;
   final _Libc _c;
-  final int _wakeWrite;
-  final int _wakeRead;
-  final ReceivePort _port;
+  late final int _wakeWrite;
+  late final int _wakeRead;
+  final _port = ReceivePort('terminal input');
   final _exited = Completer<void>();
+  var _woken = false;
 
-  /// Tells the isolate to stop and waits until it has: it reads nothing
-  /// after the byte on the wake pipe, which it looks at first.
-  Future<void> stop() async {
+  /// Spawns the isolate once [before] completed, unless [stop] came first.
+  void spawnAfter(Future<void> before) {
+    unawaited(
+      before.then((_) async {
+        if (_woken) {
+          _exited.complete();
+          return;
+        }
+        try {
+          await Isolate.spawn(
+            _read,
+            (_wakeRead, _port.sendPort),
+            onExit: _port.sendPort,
+            onError: _port.sendPort,
+            debugName: 'terminal input',
+          );
+        } on Object catch (e) {
+          _fail('no isolate to read the terminal with: $e');
+          _exited.complete();
+        }
+      }),
+    );
+  }
+
+  /// Tells the isolate to stop, at once: it reads nothing after the byte
+  /// on the wake pipe, which it looks at first, and one not spawned yet
+  /// never is. Completes once it has stopped, its pipe and port closed.
+  Future<void> stop() {
+    _woken = true;
     final byte = _c.alloc(1).cast<Uint8>()..value = 1;
     try {
       _c.write(_wakeWrite, byte.cast(), 1);
     } finally {
       _c.free(byte.cast());
     }
-    await _exited.future;
-    _close();
+    return _exited.future.then((_) {
+      _c
+        ..close(_wakeRead)
+        ..close(_wakeWrite);
+      _port.close();
+    });
   }
 
-  void _close() {
-    _c
-      ..close(_wakeRead)
-      ..close(_wakeWrite);
-    _port.close();
+  void _fail(String failure) {
+    if (!_out.isClosed) {
+      _out.addError(TerminalException(failure));
+      unawaited(_out.close());
+    }
   }
 }
 

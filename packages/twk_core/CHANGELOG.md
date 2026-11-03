@@ -74,7 +74,9 @@ Fixed:
   after an app or a session ended (`ProcessStartMode.inheritStdio`) reads
   what is typed again, where it got "Bad file descriptor", and a terminal
   opened again in the same process reads keys. Paused or closed, it reads
-  nothing more, and nothing of it keeps the process alive.
+  nothing more from that moment, even while its isolate is still
+  starting, and nothing of it keeps the process alive. A reading isolate
+  that fails ends the input with a `TerminalException`.
 
 ## 0.1.0
 
