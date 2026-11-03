@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- A program `Pty.start` spawned and killed when setting it up failed after
+  the spawn is waited for, so no zombie of it is left until the process
+  ends.
 - `Pty` leaves the CI variables (`CI`, `CONTINUOUS_INTEGRATION`,
   `BUILD_NUMBER`, `RUN_ID`) out of its program's environment, as it does
   the host terminal's: a twk app in it draws in the emulator, not as for a

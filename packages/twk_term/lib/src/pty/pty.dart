@@ -429,6 +429,7 @@ final class Pty {
       if (spawnedPidfd >= 0) {
         c.close(spawnedPidfd);
       }
+      _reapKilled(spawnedPid);
       for (final fd in [master, wake[0], wake[1]]) {
         if (fd >= 0) {
           c.close(fd);
@@ -822,6 +823,31 @@ int _exitCodeOf(int status) =>
 /// when it takes writes again, waits for the program's end (on a pidfd
 /// where there is one, else every 20 ms). It polls with a timeout either
 /// way, so the VM can stop it when it exits.
+/// Waits for the program [pid], killed after a setup that failed, so that
+/// no zombie of it is left: at once where it is gone, else every 10 ms for
+/// up to a second, without blocking (waitpid is a leaf call). Nothing for
+/// a pid that is not positive, which names no child of this process but
+/// any of them.
+void _reapKilled(int pid) {
+  if (pid <= 0) {
+    return;
+  }
+  final status = c.calloc(1, sizeOf<Int>()).cast<Int>();
+  // its id once reaped, -1 once the VM reaped it (a Process ran): done
+  bool reaped() => c.waitpid(pid, status, c.wnohang) != 0;
+  if (reaped()) {
+    c.free(status.cast());
+    return;
+  }
+  var tries = 0;
+  Timer.periodic(const Duration(milliseconds: 10), (timer) {
+    if (reaped() || ++tries >= 100) {
+      timer.cancel();
+      c.free(status.cast());
+    }
+  });
+}
+
 void _ioLoop((int, int, int, int, int, SendPort) args) {
   final (master, wake, pid, pidfd, kq, port) = args;
   final scope = c.NativeScope();
