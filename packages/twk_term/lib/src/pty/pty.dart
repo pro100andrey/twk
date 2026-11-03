@@ -30,6 +30,9 @@ const _quit = 0x71; // stop reading: the terminal is closed
 /// before it is killed.
 const _hangUpGrace = Duration(seconds: 1);
 
+// PROBE: the suspended spawn only with PROBE_FIX=1
+final _probeFix = Platform.environment['PROBE_FIX'] == '1';
+
 // What the I/O isolate tells the main one, besides output and the end.
 const _writable = 'writable';
 const _hangup = 'hangup';
@@ -285,7 +288,8 @@ final class Pty {
           c.spawnSetsid |
               c.spawnSetSigMask |
               c.spawnSetSigDef |
-              c.spawnCloexecDefault,
+              c.spawnCloexecDefault |
+              (_probeFix ? c.spawnStartSuspended : 0),
         ),
       );
       check('posix_spawn_file_actions_init', c.actionsInit(actions));
@@ -378,8 +382,12 @@ final class Pty {
       // suspended, so the watch is set before it runs and cannot miss its
       // end; then it is let run. A watch that could not be made (-1)
       // leaves waitpid, as in Linux before 6.15.
+      // PROBE: the window between the spawn and the watch made wide
+      sleep(const Duration(milliseconds: 50));
       final kq = Platform.isMacOS ? c.watchExit(pid.value) : -1;
-      // PROBE: the suspended spawn reverted, to show the test bites
+      if (Platform.isMacOS && _probeFix) {
+        signalProcess(pid.value, -1, ProcessSignal.sigcont);
+      }
       c.setNonblocking(master);
       final pty = Pty._(
         pid.value,

@@ -224,6 +224,12 @@ void main() {
       environment: {'PS1': r'$ '},
     );
     await run.waitFor(r'$ ');
+    if (Platform.environment['PROBE_NOFLSH'] == '1') {
+      // PROBE: no flush at a signal character
+      final at0 = run.text.length;
+      run.pty.write(utf8.encode('stty noflsh\r'));
+      await run.waitFor(r'$ ', from: at0 + 1);
+    }
     run.pty.write(utf8.encode('echo started; sleep 30\r'));
     await run.waitFor('started\r\n');
     // Again until it is the job that gets it, not bash before the job runs:
