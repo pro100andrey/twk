@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- `FakeCliTerminal.openInline` opens the inline terminal again once the
+  last one is closed (a session ended by a Ctrl+C, then another), as the
+  process's own terminal now does, and throws only while one is open; it
+  threw on any second open ("stdin is closed"). `opened` counts each. A
+  test that relied on the second open throwing gets a new terminal.
+
 Breaking:
 
 - `describeScreen` prints the screen as plain text unless `styles: true`;

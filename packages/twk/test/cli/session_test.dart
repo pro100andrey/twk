@@ -111,7 +111,8 @@ void main() {
       expect(terminal.screenLines, ['step 1', 'step 2', 'done']);
     });
 
-    test('ends on Ctrl+C that nothing took, and passes it on', () async {
+    test('ends on Ctrl+C that nothing took, passes it on, and a new one '
+        'opens after', () async {
       final clock = FakeClock();
       final terminal = FakeCliTerminal.interactive(
         width: 30,
@@ -131,9 +132,33 @@ void main() {
       // the terminal is back: lines are written as they are
       cli.info('after');
       expect(terminal.out.toString(), 'after\n');
-      expect(cli.session, throwsStateError);
+      // the process went on (it handles SIGINT): asked again, a new one
+      final again = await _settle(clock, cli.session());
+      expect(again, isNot(same(session)));
+      expect(again.isOpen, isTrue);
+      expect(terminal.opened, 2);
       await _settle(clock, cli.show(const Text('shown')));
       expect(terminal.screenLines.last, 'shown');
+      await _settle(clock, cli.close());
+    });
+
+    test('writes what write left without a line break when a Ctrl+C ends '
+        'it, before what comes after', () async {
+      final clock = FakeClock();
+      final terminal = FakeCliTerminal.interactive(
+        width: 30,
+        height: 6,
+        fakeClock: clock,
+      );
+      final cli = Cli(terminal: terminal);
+      final session = await _settle(clock, cli.session());
+      session.mount(const Text('waiting'));
+      await clock.elapse(_frame);
+      cli.write('Down');
+      terminal.type('\x03');
+      await _settle(clock, session.done);
+      cli.write('load\n');
+      expect(terminal.out.toString(), 'Download\n');
       await _settle(clock, cli.close());
     });
 

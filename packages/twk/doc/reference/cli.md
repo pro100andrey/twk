@@ -144,8 +144,12 @@ output. `Cli.run` calls it on its way out, on an error too.
 
 Ctrl+C that nothing live takes ends the session, the terminal restored, and
 then sends the process SIGINT: it ends as it would at a cooked terminal,
-unless the program watches the signal. After that the console writes lines
-again, and no session opens: stdin is closed.
+unless the program watches the signal. A program that does goes on: the
+console writes lines again, and the next prompt or progress opens a new
+session, the terminal's input left as it was. Only `close()` ends the
+console for good. A SIGINT handler that ends the process awaits
+`cli.close()` first: a prompt the program asked meanwhile opened a new
+session, and `exit()` would leave the terminal raw.
 
 A program that uses `Cli.current` outside `Cli.run` and shows a widget in
 the interactive mode has to `close()` it itself, or the session keeps stdin
@@ -221,7 +225,7 @@ the sealed `PromptException`:
   before it is passed on.
 - **Ctrl+D** at an empty field (with nothing typed to filter a list), or the
   end of input on a plain terminal, is `endOfInput`. So is a prompt asked
-  after the session ended.
+  once the console is closed.
 
 `close()` lets go of stdin once a plain prompt read it: a program that
 prompts through `Cli.current` outside `Cli.run` closes it, or the process

@@ -87,8 +87,10 @@ abstract class CliTerminal {
   Future<String?> readLine({bool hidden = false});
 
   /// Opens the terminal an inline twk app runs on, in the interactive
-  /// mode: raw input, the normal screen. Called once, when the [Cli]'s
-  /// inline session starts; the app closes it when the session ends.
+  /// mode: raw input, the normal screen. Called when the [Cli]'s inline
+  /// session starts, and again for a new one once a Ctrl+C ended the last
+  /// (its terminal closed by then); the app closes it when the session
+  /// ends.
   Future<TerminalBackend> openInline();
 
   /// What a Ctrl+C nothing live took does once the inline session has
