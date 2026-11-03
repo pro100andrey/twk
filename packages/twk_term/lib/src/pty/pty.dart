@@ -232,6 +232,8 @@ final class Pty {
     // the program once spawned, until a Pty answers for it
     var spawnedPid = -1;
     var spawnedPidfd = -1;
+    // the kqueue watching it (macOS), until the I/O isolate has it
+    var spawnedKq = -1;
     try {
       if (c.pipe(wake) != 0) {
         fail('pipe', c.errno);
@@ -384,9 +386,12 @@ final class Pty {
       // suspended, so the watch is set before it runs and cannot miss its
       // end; then it is let run. A watch that could not be made (-1)
       // leaves waitpid, as in Linux before 6.15.
-      final kq = Platform.isMacOS ? c.watchExit(pid.value) : -1;
-      if (Platform.isMacOS) {
-        signalProcess(pid.value, -1, ProcessSignal.sigcont);
+      final kq = spawnedKq = Platform.isMacOS ? c.watchExit(pid.value) : -1;
+      // refused, it would stay stopped, and the Pty never end: killed
+      // instead, by the catch below
+      if (Platform.isMacOS &&
+          !signalProcess(pid.value, -1, ProcessSignal.sigcont)) {
+        throw StateError('the program could not be let run (SIGCONT)');
       }
       c.setNonblocking(master);
       final pty = Pty._(
@@ -402,6 +407,7 @@ final class Pty {
       // the Pty answers for the program from here on
       spawnedPid = -1;
       spawnedPidfd = -1;
+      spawnedKq = -1;
       unawaited(
         Isolate.spawn(
           _ioLoop,
@@ -428,6 +434,9 @@ final class Pty {
       }
       if (spawnedPidfd >= 0) {
         c.close(spawnedPidfd);
+      }
+      if (spawnedKq >= 0) {
+        c.close(spawnedKq);
       }
       _reapKilled(spawnedPid);
       for (final fd in [master, wake[0], wake[1]]) {
