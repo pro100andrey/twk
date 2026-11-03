@@ -15,7 +15,10 @@
 // a reading of the VM's allocation profile, the steps, a reading — the
 // difference is what they allocated, since the profile counts garbage not
 // yet collected; a window a collection ran in is dropped and the next is
-// half as long (lib/profiler.dart). Then as many steps run unprofiled, for
+// half as long (lib/profiler.dart). How many steps is --frames, else the
+// scenario's own (FrameScenario.steps, AppScenario.steps): 2000 for most,
+// fewer for the text-layout ones, whose frames allocate megabytes, so that
+// every window holds a collection. Then as many steps run unprofiled, for
 // the collections and the time. JIT, not AOT (an executable has no VM
 // service): what escapes is allocated in both. Counts don't depend on the
 // machine's load; the µs column does, and is JIT time — tool/bench.dart is
@@ -94,7 +97,7 @@ Future<void> main(List<String> args) async {
     var bytes = 0;
     final sample = await p.measure(
       (i) => bytes += frame(i),
-      frames: opts.frames ?? 2000,
+      frames: opts.frames ?? s.steps,
       cpu: opts.cpu,
       warmup: 500,
       counting: () => bytes = 0,

@@ -80,6 +80,7 @@ final class FrameScenario {
     this.start, {
     this.write = true,
     this.ambiguousWidth = 1,
+    this.steps = 2000,
   });
 
   /// Its name in a report: `wrap`, `list-scroll`.
@@ -99,6 +100,13 @@ final class FrameScenario {
   /// terminal it is for: its [FrameRig] and the emulator that checks its
   /// frames are made with it.
   final int ambiguousWidth;
+
+  /// How many frames a profiler counts of it unless told how many
+  /// (tool/alloc's `--frames`): fewer for one whose frames allocate
+  /// megabytes, where every window of frames the profiler counts in holds a
+  /// collection, the windows halve down to a frame, and each of them costs
+  /// a full collection.
+  final int steps;
 
   /// The rig of `width` × `height` cells this scenario runs on.
   FrameRig rig(int width, int height) =>
@@ -313,6 +321,7 @@ final frameScenarios = <FrameScenario>[
         return s.render();
       };
     },
+    steps: 60,
   ),
   FrameScenario(
     'layout-160k',
@@ -324,6 +333,7 @@ final frameScenarios = <FrameScenario>[
         return s.render();
       };
     },
+    steps: 20,
   ),
   FrameScenario(
     'rewrap',
@@ -354,6 +364,7 @@ final frameScenarios = <FrameScenario>[
         return s.render();
       };
     },
+    steps: 100,
   ),
   FrameScenario(
     'mixed-visual',
@@ -366,6 +377,7 @@ final frameScenarios = <FrameScenario>[
         return s.render();
       };
     },
+    steps: 60,
   ),
   FrameScenario(
     'list-scroll',
