@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- `Cli.suspend(run)` hands the terminal to another program while `run`
+  runs, one that reads the terminal itself (`sudo` asking for a password, a
+  package manager, a pager, an editor), and takes it back after. The inline
+  session's region stays with the cursor on the line below it, raw mode is
+  off and the session's input paused, and the session is drawn again below
+  what was printed. Such a program used to print in the middle of the
+  region and never get what was typed.
 - A line `Cli` logs or writes while its inline session is still opening
   (`cli.info` right after `cli.progress`) goes above the session once it is
   open. It was written to stdout while the opening session flushed it, and
