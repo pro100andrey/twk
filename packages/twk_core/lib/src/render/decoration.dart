@@ -386,6 +386,9 @@ final class RenderDecoratedBox extends RenderObject
       markNeedsLayout();
     } else if (!samePens) {
       _pensIn = null;
+      for (var i = 0; i < t.length; i++) {
+        _painters[i]?.spans = [(t[i].text, t[i].pen)];
+      }
       markNeedsPaint();
     }
   }
@@ -412,7 +415,9 @@ final class RenderDecoratedBox extends RenderObject
   set ellipsis(String e) {
     if (e != _ellipsis) {
       _ellipsis = e;
-      _ellipsisCache = null;
+      for (final painter in _painters) {
+        painter?.ellipsis = e;
+      }
       markNeedsPaint();
     }
   }
@@ -471,19 +476,19 @@ final class RenderDecoratedBox extends RenderObject
   TextMode? _measuredMode;
   var _measuredAmbiguous = 0;
 
-  // each title shaped by _shapedBy for _shapedIn (null: to be shaped)
-  final _runs = <GlyphRun?>[];
-  GlyphTable? _shapedIn;
-  var _shapedSweeps = 0;
-  TextSegmenter? _shapedBy;
+  // each title's painter (null: not made yet), kept while the title is the
+  // same, and the columns it was laid out in (-1: to be laid out again) in
+  // the text order of _laidOrder
+  final _painters = <TextPainter?>[];
+  var _laidAt = Int32List(0);
+  TextOrder _laidOrder = TextOrder.logical;
 
   // the ids in _pensIn of the background, the top, right, bottom and left
   // sides (-1: none), then of each title
   StyleTable? _pensIn;
-  var _pens = Int32List(5);
+  final _pens = Int32List(5);
 
   final _lines = _Lines();
-  GlyphRun? _ellipsisCache;
 
   /// The cells between the box's edges and its child: a cell for each side
   /// with a border, a row for an edge with titles but no border, and the
@@ -520,9 +525,10 @@ final class RenderDecoratedBox extends RenderObject
 
   void _titlesChanged() {
     final n = _titles.length;
-    _runs
+    _painters
       ..length = n
       ..fillRange(0, n, null);
+    _laidAt = Int32List(n)..fillRange(0, n, -1);
     if (_titleAt.length < 3 * n) {
       _titleAt = Int32List(3 * n);
     }
@@ -702,10 +708,6 @@ final class RenderDecoratedBox extends RenderObject
       return;
     }
     _pensIn = styles;
-    final n = _titles.length;
-    if (_pens.length < 5 + n) {
-      _pens = Int32List(5 + n);
-    }
     final b = _border;
     _pens
       ..[0] = _idIn(styles, _background)
@@ -713,9 +715,6 @@ final class RenderDecoratedBox extends RenderObject
       ..[2] = _idIn(styles, b?.right)
       ..[3] = _idIn(styles, b?.bottom)
       ..[4] = _idIn(styles, b?.left);
-    for (var i = 0; i < n; i++) {
-      _pens[5 + i] = styles.pen(_titles[i].pen);
-    }
   }
 
   static int _idIn(StyleTable styles, Pen? p) => p == null ? -1 : styles.pen(p);
@@ -871,14 +870,11 @@ final class RenderDecoratedBox extends RenderObject
 
   void _paintTitles(Canvas canvas) {
     final seg = canvas.segmenter;
-    // since a sweep of the glyphs, the ids may be others'
-    if (!identical(canvas.glyphs, _shapedIn) ||
-        canvas.glyphs.sweeps != _shapedSweeps ||
-        !identical(seg, _shapedBy)) {
-      _shapedIn = canvas.glyphs;
-      _shapedSweeps = canvas.glyphs.sweeps;
-      _shapedBy = seg;
-      _runs.fillRange(0, _runs.length, null);
+    final o = owner;
+    final order = _anyVisual && o != null ? o.textOrder : TextOrder.logical;
+    if (order != _laidOrder) {
+      _laidOrder = order;
+      _laidAt.fillRange(0, _laidAt.length, -1);
     }
     final e = seg.width(_ellipsis);
     for (var i = 0; i < _titles.length; i++) {
@@ -886,39 +882,45 @@ final class RenderDecoratedBox extends RenderObject
       if (shown <= 0) {
         continue;
       }
+      final title = _titles[i];
+      final painter = _painters[i] ??= TextPainter(
+        [(title.text, title.pen)],
+        wrap: TextWrap.none,
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
+        ellipsis: _ellipsis,
+      );
+      // laid out again when it changed, or its room did, or the segmenter
+      final changed = painter.takeInvalidation() == TextInvalidation.layout;
+      if (changed || _laidAt[i] != shown || painter.segmenterChanged(seg)) {
+        // an ellipsis wider than the room is not shown: the title is cut
+        painter
+          ..overflow = e <= shown ? TextOverflow.ellipsis : TextOverflow.clip
+          ..layout(
+            BoxConstraints(0, shown, 0, 1),
+            segmenter: seg,
+            order: order,
+          );
+        _laidAt[i] = shown;
+      }
       final x = _titleAt[3 * i + 1];
       final y = _titles[i].alignment.y > 0 ? height - 1 : 0;
-      final pen = _pens[5 + i];
-      final run = _runs[i] ??= canvas.shape(_titles[i].text);
-      if (run.width <= shown) {
-        canvas.run(x, y, run, pen);
-        continue;
-      }
-      // the glyphs that fit before the ellipsis, or in all the room when
-      // the ellipsis doesn't fit
-      final room = shown - e;
-      final fit = room < 0 ? shown : room;
-      final w = cutHeadCells(seg, _titles[i].text, fit, trim: room >= 0);
-      canvas
-        ..save()
-        ..clipRect(x, y, w, 1)
-        ..run(x, y, run, pen)
-        ..restore();
-      if (room >= 0) {
-        canvas.run(x + w, y, _ellipsisOf(canvas, e), pen);
+      if (e <= shown) {
+        painter.paint(canvas, x, y);
+      } else {
+        // no room for the ellipsis: the title is cut off at its edge
+        canvas
+          ..save()
+          ..clipRect(
+            x,
+            y,
+            cutHeadCells(seg, title.text, shown, trim: false),
+            1,
+          );
+        painter.paint(canvas, x, y);
+        canvas.restore();
       }
     }
-  }
-
-  GlyphRun _ellipsisOf(Canvas canvas, int width) {
-    if (!_keepsEllipsis(_ellipsis)) {
-      return canvas.shape(_ellipsis);
-    }
-    var e = _ellipsisCache;
-    if (e == null || e.width != width) {
-      e = _ellipsisCache = _ellipsisGlyphs(canvas, _ellipsis, width);
-    }
-    return e;
   }
 }
 

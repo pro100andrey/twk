@@ -26,6 +26,7 @@ import 'package:twk_core/twk_core.dart'
         Mod,
         PaintContext,
         ParentData,
+        PipelineOwner,
         RenderObject,
         StyleTable,
         TextMode,
@@ -47,6 +48,7 @@ import '../style/color_mix.dart';
 import '../style/style.dart';
 import 'anchor.dart';
 import 'key_path.dart';
+import 'label_painter.dart';
 import 'layer.dart';
 import 'panel.dart';
 
@@ -1133,7 +1135,7 @@ final class _MenuBarState extends State<MenuBar> implements _MenuHost {
 /// units at [at] in it, marked with `&`; [at] is -1 for none.
 @immutable
 final class _Label {
-  const _Label(this.text, this.at, this.length);
+  _Label(this.text, this.at, this.length) : marks = at < 0 ? const [] : [at];
 
   factory _Label.parse(String label) {
     if (!label.contains('&')) {
@@ -1161,6 +1163,9 @@ final class _Label {
   final int at;
   final int length;
 
+  /// [at] as a list of the marks, for the painter of the label.
+  final List<int> marks;
+
   /// The mnemonic in lower case; null for none.
   String? get key =>
       at < 0 ? null : text.substring(at, at + length).toLowerCase();
@@ -1175,22 +1180,28 @@ final class _Label {
   @override
   int get hashCode => Object.hash(text, at, length);
 
-  /// Draws the label at [x], [y] in [style], the mnemonic underlined.
-  void paint(Canvas canvas, StyleTable styles, int x, int y, Style style) {
-    final pen = style.penIn(styles);
-    if (at < 0) {
-      canvas.text(x, y, text, pen);
-      return;
-    }
-    final marked = style.merge(const Style(attrs: Attr.underline));
-    var to = x + canvas.text(x, y, text.substring(0, at), pen);
-    to += canvas.text(
-      to,
-      y,
-      text.substring(at, at + length),
-      marked.penIn(styles),
-    );
-    canvas.text(to, y, text.substring(at + length), pen);
+  /// Draws the label with [painter] at [x], [y] in [style], the mnemonic
+  /// underlined; [owner] gives the text order it reads in.
+  void paint(
+    LabelPainter painter,
+    Canvas canvas,
+    PipelineOwner? owner,
+    int x,
+    int y,
+    Style style,
+  ) {
+    painter
+      ..set(
+        text,
+        style.pen,
+        canvas.segmenter,
+        marks: marks,
+        markLength: length,
+        markPen: at < 0
+            ? null
+            : style.merge(const Style(attrs: Attr.underline)).pen,
+      )
+      ..paint(canvas, owner, x, y);
   }
 }
 
@@ -2204,10 +2215,15 @@ final class _RenderMenuBox extends RenderObject {
   }
 
   List<_Row> _rows;
+
+  // the painter of each row's label (null: none made yet), kept while the
+  // rows are the same
+  late var _painters = List<LabelPainter?>.filled(_rows.length, null);
   List<_Row> get rows => _rows;
   set rows(List<_Row> rows) {
     if (!sameList(rows, _rows)) {
       _rows = rows;
+      _painters = List.filled(rows.length, null);
       markNeedsLayout();
     }
   }
@@ -2351,7 +2367,14 @@ final class _RenderMenuBox extends RenderObject {
       if (row.checked ?? false) {
         _mark(this, canvas, 2, y, pen, Marks.check, s.glyphs);
       }
-      label.paint(canvas, styles, 2 + _check, y, style);
+      label.paint(
+        _painters[i] ??= LabelPainter(),
+        canvas,
+        owner,
+        2 + _check,
+        y,
+        style,
+      );
       final key = row.key;
       if (row.submenu) {
         _mark(this, canvas, w - 3, y, pen, Marks.collapsed, s.glyphs);
@@ -2404,7 +2427,14 @@ extension on _RenderMenuBox {
       if (row.checked ?? false) {
         _mark(this, canvas, 2, y, pen, Marks.check, s.glyphs);
       }
-      label.paint(canvas, styles, 2 + _check, y, style);
+      label.paint(
+        _painters[i] ??= LabelPainter(),
+        canvas,
+        owner,
+        2 + _check,
+        y,
+        style,
+      );
       final key = row.key;
       if (row.submenu) {
         _mark(this, canvas, w - 3, y, pen, Marks.collapsed, s.glyphs);
@@ -2457,10 +2487,15 @@ final class _RenderBarRow extends RenderObject {
   _RenderBarRow(this._titles);
 
   List<_Label> _titles;
+
+  // the painter of each title (null: none made yet), kept while the
+  // titles are the same
+  late var _painters = List<LabelPainter?>.filled(_titles.length, null);
   List<_Label> get titles => _titles;
   set titles(List<_Label> titles) {
     if (!sameList(titles, _titles)) {
       _titles = titles;
+      _painters = List.filled(titles.length, null);
       _measuredIn = null;
       markNeedsLayout();
     }
@@ -2556,7 +2591,14 @@ final class _RenderBarRow extends RenderObject {
           : (i < _enabled.length && !_enabled[i] ? _mutedStyle : _style);
       final x = starts[i];
       canvas.fill(x, 0, starts[i + 1] - x, 1, style.penIn(styles));
-      _titles[i].paint(canvas, styles, x + 1, 0, style);
+      _titles[i].paint(
+        _painters[i] ??= LabelPainter(),
+        canvas,
+        owner,
+        x + 1,
+        0,
+        style,
+      );
     }
   }
 }

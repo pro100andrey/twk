@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- In visual order, where a right-to-left label is drawn as it reads, the
+  rows of an `OptionList` (its label with its marks, which are now spans
+  of one run in the mark style and no longer split it, and its detail),
+  the tabs of a `TabBar` and the titles and entries of a `MenuBar`'s and
+  a context menu's menus read as a `Text` draws them: they drew
+  `שלום עולם` where `Text` draws `םלוע םולש`. Each paints its labels
+  through a `TextPainter` it keeps while the label is the same, laid out
+  again only when it, the segmenter or the text order changes. Their
+  cuts, widths and the columns a click finds are those of stored order, as
+  before.
+
 - In visual order, where a row of right-to-left text is drawn as it reads,
   a click finds the target drawn under it: the crumb of `Breadcrumbs`, the
   segment of `SegmentedButton`, the page of `Pagination`, the step of

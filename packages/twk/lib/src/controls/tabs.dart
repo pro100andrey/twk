@@ -24,6 +24,7 @@ import '../foundation/helpers.dart';
 import '../framework/framework.dart';
 import '../gestures/mouse.dart';
 import '../layout/child_list.dart';
+import '../overlay/label_painter.dart';
 import '../semantics/semantics.dart';
 import '../style/style.dart';
 import 'hand.dart';
@@ -424,6 +425,10 @@ final class _RenderTabBar extends RenderObject {
 
   List<String> _tabs;
   int _selected;
+
+  // the painter of each tab's label (null: not made yet), kept while the
+  // labels are the same
+  late var _painters = List<LabelPainter?>.filled(_tabs.length, null);
   var _focused = false;
   var _style = const Style();
   var _tabStyle = const Style();
@@ -445,6 +450,7 @@ final class _RenderTabBar extends RenderObject {
   set tabs(List<String> tabs) {
     if (!sameList(tabs, _tabs)) {
       _tabs = tabs;
+      _painters = List.filled(tabs.length, null);
       _measuredIn = null;
       _reveal = true;
       markNeedsLayout();
@@ -615,9 +621,10 @@ final class _RenderTabBar extends RenderObject {
           ? tab
           : tab.merge(_focused ? _focusedStyle : _selectedStyle);
       final pen = s.penIn(styles);
-      canvas
-        ..fill(x, 0, w, 1, pen)
-        ..text(x + 1, 0, _tabs[i], pen);
+      canvas.fill(x, 0, w, 1, pen);
+      (_painters[i] ??= LabelPainter())
+        ..set(_tabs[i], s.pen, canvas.segmenter)
+        ..paint(canvas, owner, x + 1, 0);
     }
     final mark = tab.penIn(styles);
     final marks = ThemeMarks.ofObject(this, canvas.segmenter);

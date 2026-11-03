@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- In visual order the `BoxTitle`s of a `RenderDecoratedBox` read as a `Text`
+  does: a right-to-left title was drawn in stored order, and is now drawn by
+  a `TextPainter` the box keeps for it, laid out when the room it is shown
+  in or the text order changes, its ellipsis where the paragraph puts it. A
+  title is cut and ellipsized in the same columns as before; the place it is
+  shown in is unchanged.
+
 Breaking:
 
 - A cell's style id is a `StyleId`, an extension type over int, apart from
