@@ -285,8 +285,7 @@ final class Pty {
           c.spawnSetsid |
               c.spawnSetSigMask |
               c.spawnSetSigDef |
-              c.spawnCloexecDefault |
-              c.spawnStartSuspended,
+              c.spawnCloexecDefault,
         ),
       );
       check('posix_spawn_file_actions_init', c.actionsInit(actions));
@@ -380,9 +379,7 @@ final class Pty {
       // end; then it is let run. A watch that could not be made (-1)
       // leaves waitpid, as in Linux before 6.15.
       final kq = Platform.isMacOS ? c.watchExit(pid.value) : -1;
-      if (Platform.isMacOS) {
-        signalProcess(pid.value, -1, ProcessSignal.sigcont);
-      }
+      // PROBE: the suspended spawn reverted, to show the test bites
       c.setNonblocking(master);
       final pty = Pty._(
         pid.value,
