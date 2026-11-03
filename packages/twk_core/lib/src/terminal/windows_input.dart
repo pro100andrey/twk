@@ -18,7 +18,8 @@ import 'link.dart' show TerminalException;
 ///
 /// The isolate waits on the event and the console at once, the event
 /// first, and reads only the records the console has
-/// (`ReadConsoleInputW`, which returns at once when there are some): the
+/// (`ReadConsoleInputW` of no more than `GetNumberOfConsoleInputEvents`
+/// says, so it returns at once): the
 /// characters of the keys pressed, which in the console's VT input mode
 /// are the sequences of the keys, as UTF-8. It never blocks in a read, so
 /// once the event is set it reads nothing more, and the console's handle
@@ -113,7 +114,23 @@ void _read((int, SendPort) args) {
         port.send('waiting on the console failed');
         return;
       }
-      if (k.readConsoleInput(console, records.cast(), _records, count) == 0) {
+      // the wait said there were records, but another program on the
+      // console may have taken them since, and a read of none waits for
+      // the next key whatever the event: only what is there is read, the
+      // event looked at again first
+      if (k.getNumberOfConsoleInputEvents(console, count) == 0) {
+        port.send('reading the console failed');
+        return;
+      }
+      final there = count.value;
+      if (there == 0) {
+        continue;
+      }
+      if (k.waitForSingleObject(Pointer.fromAddress(wake), 0) == _waitObject0) {
+        return;
+      }
+      final take = there < _records ? there : _records;
+      if (k.readConsoleInput(console, records.cast(), take, count) == 0) {
         port.send('reading the console failed');
         return;
       }
@@ -186,6 +203,16 @@ final class _Kernel32 {
             Uint32 Function(Uint32, Pointer<Pointer<Void>>, Int32, Uint32),
             int Function(int, Pointer<Pointer<Void>>, int, int)
           >('WaitForMultipleObjects'),
+      waitForSingleObject = k
+          .lookupFunction<
+            Uint32 Function(Pointer<Void>, Uint32),
+            int Function(Pointer<Void>, int)
+          >('WaitForSingleObject'),
+      getNumberOfConsoleInputEvents = k
+          .lookupFunction<
+            Int32 Function(Pointer<Void>, Pointer<Uint32>),
+            int Function(Pointer<Void>, Pointer<Uint32>)
+          >('GetNumberOfConsoleInputEvents'),
       readConsoleInput = k
           .lookupFunction<
             Int32 Function(
@@ -230,6 +257,9 @@ final class _Kernel32 {
   final int Function(Pointer<Void>) closeHandle;
   final int Function(int, Pointer<Pointer<Void>>, int, int)
   waitForMultipleObjects;
+  final int Function(Pointer<Void>, int) waitForSingleObject;
+  final int Function(Pointer<Void>, Pointer<Uint32>)
+  getNumberOfConsoleInputEvents;
   final int Function(Pointer<Void>, Pointer<Void>, int, Pointer<Uint32>)
   readConsoleInput;
   final Pointer<Void> Function(int, int) _localAlloc;

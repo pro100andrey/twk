@@ -90,17 +90,14 @@ final class StdioLink implements TerminalLink {
   /// `stdin` closes it), for a program started after and for a later
   /// terminal; elsewhere (a pipe, a file) `stdin`.
   @override
-  Stream<List<int>> get input {
-    if (!stdin.hasTerminal) {
-      return stdin;
-    }
-    if (Platform.isWindows) {
-      final device = WindowsInput.open();
-      return device == null ? stdin : IsolateInput(device).stream;
-    }
-    final device = PosixInput.open();
-    return device == null ? stdin : IsolateInput(device).stream;
-  }
+  Stream<List<int>> get input => stdin.hasTerminal
+      ? _read(WindowsInput.open()) ?? _read(PosixInput.open()) ?? stdin
+      : stdin;
+
+  // what [device] reads, where the platform has it (each is null off its
+  // own platform)
+  static Stream<List<int>>? _read<W extends Object>(InputDevice<W>? device) =>
+      device == null ? null : IsolateInput(device).stream;
 
   @override
   void add(List<int> bytes) => stdout.add(bytes);
