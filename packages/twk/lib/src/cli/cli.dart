@@ -878,10 +878,15 @@ final class Cli {
   };
 
   // a Ctrl+C ended the session, the terminal restored: the next one asked
-  // for is a new one
+  // for is a new one, and what write left without a line break goes now,
+  // before what comes after
   void _interrupted() {
     _session = null;
     _opening = null;
+    if (_partial.isNotEmpty) {
+      terminal.out.write(_partial.toString());
+      _partial.clear();
+    }
     terminal.interrupt();
   }
 

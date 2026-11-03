@@ -142,6 +142,26 @@ void main() {
       await _settle(clock, cli.close());
     });
 
+    test('writes what write left without a line break when a Ctrl+C ends '
+        'it, before what comes after', () async {
+      final clock = FakeClock();
+      final terminal = FakeCliTerminal.interactive(
+        width: 30,
+        height: 6,
+        fakeClock: clock,
+      );
+      final cli = Cli(terminal: terminal);
+      final session = await _settle(clock, cli.session());
+      session.mount(const Text('waiting'));
+      await clock.elapse(_frame);
+      cli.write('Down');
+      terminal.type('\x03');
+      await _settle(clock, session.done);
+      cli.write('load\n');
+      expect(terminal.out.toString(), 'Download\n');
+      await _settle(clock, cli.close());
+    });
+
     test('is closed by Cli.run, by an error too', () async {
       final clock = FakeClock();
       late FakeCliTerminal terminal;

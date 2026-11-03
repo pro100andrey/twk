@@ -147,7 +147,9 @@ then sends the process SIGINT: it ends as it would at a cooked terminal,
 unless the program watches the signal. A program that does goes on: the
 console writes lines again, and the next prompt or progress opens a new
 session, the terminal's input left as it was. Only `close()` ends the
-console for good.
+console for good. A SIGINT handler that ends the process awaits
+`cli.close()` first: a prompt the program asked meanwhile opened a new
+session, and `exit()` would leave the terminal raw.
 
 A program that uses `Cli.current` outside `Cli.run` and shows a widget in
 the interactive mode has to `close()` it itself, or the session keeps stdin
