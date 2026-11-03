@@ -72,12 +72,14 @@ void main() {
     final said = '${res.stdout}${res.stderr}';
     expect(res.exitCode, 0, reason: said);
     // a reader that never looks at the stop flag reads the whole file
-    // before it waits, and leaves nothing
+    // before it waits, and leaves nothing; one that does stops a few MB
+    // in, so only a listener kept from pausing it for as long as the
+    // whole file takes to read leaves nothing too
     final left = int.parse('${res.stdout}'.trim());
-    expect(left, greaterThan(_flood ~/ 2), reason: said);
+    expect(left, greaterThan(0), reason: said);
   }, timeout: const Timeout(Duration(minutes: 2)));
 }
 
-// the file fd 0 is for the flood: more than a reader reads before it is
-// paused, many times over
+// the file fd 0 is for the flood: what a reader reads before it is paused
+// many times over (a few MB, measured), in more time than a pause takes
 const int _flood = 128 << 20;

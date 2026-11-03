@@ -38,12 +38,13 @@ final class PosixInput implements InputDevice<(int, int, int)> {
 
   @override
   (int, int, int) openWake() {
+    final stop = _c.alloc(sizeOf<Int32>()).cast<Int32>()..value = 0;
     final pair = _c.alloc(2 * sizeOf<Int32>()).cast<Int32>();
     try {
       if (_c.pipe(pair) != 0) {
+        _c.free(stop.cast());
         throw const TerminalException('no pipe to read the terminal with');
       }
-      final stop = _c.alloc(sizeOf<Int32>()).cast<Int32>()..value = 0;
       return (pair[0], pair[1], stop.address);
     } finally {
       _c.free(pair.cast());
@@ -91,9 +92,10 @@ const _eintr = 4;
 final _eagain = Platform.isMacOS ? 35 : 11;
 final _fionread = Platform.isMacOS ? 0x4004667F : 0x541B;
 
-/// Reads fd 0 until the stop flag at [args].$1.$3 is set (and the wake
-/// pipe [args].$1.$1 has a byte), sending what it reads to [args].$2, then
-/// [inputEnded] once fd 0 ends, or what failed.
+/// Reads fd 0, sending what it reads to [args].$2, then [inputEnded] once
+/// fd 0 ends, or what failed, until it is told to stop: the flag at
+/// [args].$1.$3, looked at before each read, and the wake pipe
+/// [args].$1.$1, waited on beside fd 0 when it has nothing.
 void _read(((int, int, int), SendPort) args) {
   final ((wake, _, flag), port) = args;
   final stop = Pointer<Int32>.fromAddress(flag);
