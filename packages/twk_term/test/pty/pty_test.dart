@@ -68,6 +68,17 @@ final class Run {
   var outputDone = false;
   var exited = false;
 
+  // what [type] handed the terminal: the writes and their bytes
+  var _typed = 0;
+  var _typedBytes = 0;
+
+  /// Hands [input] to the program, counted for a failure's report.
+  void type(List<int> input) {
+    _typed++;
+    _typedBytes += input.length;
+    pty.write(input);
+  }
+
   String get text => utf8.decode(bytes, allowMalformed: true);
 
   /// Waits until the output has [s] after [from].
@@ -81,13 +92,57 @@ final class Run {
     return code;
   }
 
-  /// Waits until [done], failing with what was waited for and the output
-  /// so far after 10 s.
+  /// Waits until [done], failing after 10 s with what was waited for, the
+  /// output so far, what [type] handed the terminal, and the program's
+  /// processes as they were then ([_processes]): where a wait that has no
+  /// cause found yet stopped.
   Future<void> until(bool Function() done, String what) async {
     try {
       await waitUntil(done, what);
     } on TestFailure catch (e) {
-      fail('${e.message}; output: ${jsonEncode(text)}');
+      fail(
+        '${e.message}; output: ${jsonEncode(text)}; '
+        'typed: $_typed writes, $_typedBytes bytes; '
+        'processes:\n${_processes()}',
+      );
+    }
+  }
+
+  /// The program and the processes under it, a line each (`ps`: pid,
+  /// parent, group, the terminal's foreground group, state, what it
+  /// waits in, name), or why they could not be listed.
+  String _processes() {
+    try {
+      final ps = Process.runSync('ps', [
+        '-A',
+        '-o',
+        'pid=,ppid=,pgid=,tpgid=,stat=,wchan=,comm=',
+      ]);
+      final rows = [
+        for (final line in (ps.stdout as String).split('\n'))
+          if (line.trim().split(RegExp(r'\s+')) case [
+            final pid,
+            final ppid,
+            ...,
+          ])
+            (int.tryParse(pid), int.tryParse(ppid), line.trim()),
+      ];
+      final ours = {pty.pid};
+      for (var grew = true; grew;) {
+        grew = false;
+        for (final (pid, ppid, _) in rows) {
+          if (pid != null && ours.contains(ppid) && ours.add(pid)) {
+            grew = true;
+          }
+        }
+      }
+      return [
+        '  pid ppid pgid tpgid stat wchan comm',
+        for (final (pid, _, line) in rows)
+          if (ours.contains(pid)) '  $line',
+      ].join('\n');
+    } on Object catch (e) {
+      return '  not listed: $e';
     }
   }
 }
@@ -161,7 +216,7 @@ void main() {
     // come later or not at all), and `jobs` lists it stopped.
     var at = run.text.length;
     await run.until(() {
-      run.pty.write([0x1a]);
+      run.type([0x1a]);
       return run.text.contains(r'$ ', at);
     }, 'the job to stop');
     expect(run.text, isNot(contains('no job control')));
@@ -174,7 +229,7 @@ void main() {
     await run.waitFor('sleep 30\r\n', from: at);
     at = run.text.length;
     await run.until(() {
-      run.pty.write([0x03]);
+      run.type([0x03]);
       return run.text.contains(r'$ ', at);
     }, 'the job to end');
     run.pty.write(
