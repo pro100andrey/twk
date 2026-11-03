@@ -125,6 +125,21 @@ const int _removed =
 
 const int _isolateInitiators = 1 << _lri | 1 << _rli | 1 << _fsi;
 
+// the explicit formatting characters: a paragraph with none of them has
+// every character at its own level, no isolate and one run sequence
+const int _formatting =
+    1 << _lre |
+    1 << _rle |
+    1 << _lro |
+    1 << _rlo |
+    1 << _pdf |
+    1 << _lri |
+    1 << _rli |
+    1 << _fsi |
+    1 << _pdi;
+
+final _noInt32s = Int32List(0);
+
 /// Neutral and isolate formatting classes (NI, rules N1 and N2).
 const int _neutrals =
     1 << _b | 1 << _s | 1 << _ws | 1 << _on | _isolateInitiators | 1 << _pdi;
@@ -349,10 +364,13 @@ final class BidiText {
       final units = Int32List(end - start + 1);
       final cps = Int32List(end - start);
       final types = Uint8List(end - start);
+      var present = 0;
       for (var i = start; i < end;) {
         var cp = text.codeUnitAt(i);
         units[m] = i;
-        types[m] = classes[i];
+        final c = classes[i];
+        types[m] = c;
+        present |= 1 << c;
         i++;
         if (cp >= 0xD800 && cp <= 0xDBFF && i < end) {
           final lo = text.codeUnitAt(i);
@@ -368,6 +386,7 @@ final class BidiText {
         Uint8List.sublistView(types, 0, m),
         cps,
         forced,
+        plain: (present & _formatting) == 0,
       );
       paragraphs.add(BidiParagraph(start, end, resolved.level));
       // the level of each code point to its one or two code units: the
@@ -531,17 +550,28 @@ final class BidiText {
 /// One paragraph's levels, resolved from its Bidi_Class [initial] and its
 /// code points [cps], one of each per character (rules P2 to I2).
 final class _Paragraph {
-  _Paragraph(this.initial, this.cps, int? level)
+  /// [plain]: the paragraph has no explicit formatting character, so rules
+  /// X1 to X10 leave every character at the paragraph's level, its classes
+  /// as they are, and one isolating run sequence of all X9 keeps; those
+  /// rules are not run then, nor what they need made.
+  _Paragraph(this.initial, this.cps, int? level, {bool plain = false})
     : n = initial.length,
-      types = Uint8List.fromList(initial),
+      types = plain ? initial : Uint8List.fromList(initial),
       explicit = Uint8List(initial.length),
       result = Uint8List(initial.length),
-      matchingPdi = Int32List(initial.length),
-      matchingInitiator = Int32List(initial.length) {
-    _matchIsolates();
+      matchingPdi = plain ? _noInt32s : Int32List(initial.length),
+      matchingInitiator = plain ? _noInt32s : Int32List(initial.length) {
+    if (!plain) {
+      _matchIsolates();
+    }
     this.level = level ?? _firstStrong(0, n);
-    _explicitLevels();
-    _resolveSequences();
+    if (plain) {
+      explicit.fillRange(0, n, this.level);
+      _resolvePlain();
+    } else {
+      _explicitLevels();
+      _resolveSequences();
+    }
     // the characters X9 removed take the level before them
     for (var i = 0; i < n; i++) {
       if ((1 << initial[i] & _removed) != 0) {
@@ -695,6 +725,21 @@ final class _Paragraph {
             types[i] = stackOverride[top];
           }
       }
+    }
+  }
+
+  /// Rule X10 for a paragraph without explicit formatting characters: its
+  /// one isolating run sequence, every character X9 keeps, resolved.
+  void _resolvePlain() {
+    final kept = Int32List(n);
+    var m = 0;
+    for (var i = 0; i < n; i++) {
+      if ((1 << initial[i] & _removed) == 0) {
+        kept[m++] = i;
+      }
+    }
+    if (m > 0) {
+      _resolveSequence(Int32List.sublistView(kept, 0, m));
     }
   }
 
