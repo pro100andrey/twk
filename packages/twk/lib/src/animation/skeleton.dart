@@ -311,6 +311,21 @@ final class _SkeletonState extends State<_Skeleton> {
   // the shimmer moves: set by each build, read by the paint hook
   var _shimmering = false;
 
+  // the theme's set with the SkeletonTheme's mark as its shade, made again
+  // only when either changes, not by each build
+  late Glyphs _shadeSet;
+  Glyphs? _shadeOf;
+  String? _shade;
+
+  Glyphs _withShade(Glyphs glyphs, String own) {
+    if (!identical(glyphs, _shadeOf) || own != _shade) {
+      _shadeOf = glyphs;
+      _shade = own;
+      _shadeSet = glyphs.copyWith(shades: [' ', own]);
+    }
+    return _shadeSet;
+  }
+
   @override
   void dispose() {
     _steps?.stop();
@@ -347,7 +362,7 @@ final class _SkeletonState extends State<_Skeleton> {
     final own = skeletons?.glyph;
     final cp = ThemeMarks.of(context).cell(
       Marks.shade,
-      own == null ? null : theme.glyphs.copyWith(shades: [' ', own]),
+      own == null ? null : _withShade(theme.glyphs, own),
     );
     final glyph = cp == kBlank ? null : cp;
     final highlight = (skeletons?.highlight ?? theme.text).fg;

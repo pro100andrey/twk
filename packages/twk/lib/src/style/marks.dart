@@ -454,19 +454,27 @@ final class ThemeMarks {
   }
 
   /// The marks as [segmenter], the measure of the canvas [object] draws
-  /// on, draws them; their glyphs are the second argument of [cell]. The
-  /// same object is returned for the same segmenter, so a paint takes no
-  /// allocation. [object] is null in code that has none (a markdown render
-  /// to lines): a warning then goes to the log of [log].
-  factory ThemeMarks.ofObject(RenderObject? object, TextSegmenter segmenter) {
-    final cache = _cacheOf(segmenter);
-    final marks = cache.shared ??= ThemeMarks._(cache, null, null);
-    return marks.._owner = object?.owner;
-  }
+  /// on, draws them; their glyphs are the second argument of [cell], which
+  /// it takes. The same object is returned for the same segmenter and
+  /// pipeline, so a paint takes no allocation, and one kept while another
+  /// object asks for its own warns to its own pipeline. [object] is null
+  /// in code that has none (a markdown render to lines): a warning then
+  /// goes to the log of [log].
+  factory ThemeMarks.ofObject(RenderObject? object, TextSegmenter segmenter) =>
+      _cacheOf(segmenter).resolver(object?.owner, null);
 
   final _Cache _cache;
-  PipelineOwner? _owner;
+  final PipelineOwner? _owner;
   final Glyphs? _glyphs;
+
+  // the glyphs a mark is of: [glyphs] where given, else the theme's of
+  // [ThemeMarks.of]; one of [ThemeMarks.ofObject] has none of its own
+  Glyphs _of(Glyphs? glyphs) =>
+      glyphs ??
+      _glyphs ??
+      (throw ArgumentError.notNull(
+        'glyphs (ThemeMarks.ofObject takes them with each mark)',
+      ));
 
   /// [mark] as the code point to fill one cell with, of [glyphs] (the
   /// theme's of [ThemeMarks.of], when null); null where nothing is to be
@@ -476,7 +484,7 @@ final class ThemeMarks {
   /// else [Mark.fallback], with the one warning. An empty mark is what
   /// [Mark.onEmpty] says, with no warning.
   int? cell(Mark mark, [Glyphs? glyphs]) {
-    final value = mark.of((glyphs ?? _glyphs)!);
+    final value = mark.of(_of(glyphs));
     if (value.isEmpty) {
       return switch (mark.onEmpty) {
         OnEmpty.blank => 0x20,
@@ -498,7 +506,7 @@ final class ThemeMarks {
   /// what [Mark.onEmpty] says (an empty string, a space, or the
   /// fallback), with no warning.
   String text(Mark mark, [Glyphs? glyphs]) {
-    final value = mark.of((glyphs ?? _glyphs)!);
+    final value = mark.of(_of(glyphs));
     if (value.isEmpty) {
       return switch (mark.onEmpty) {
         OnEmpty.blank => ' ',
@@ -523,7 +531,7 @@ final class ThemeMarks {
   /// so the ASCII theme's lines win over any type, and ASCII's `-` or `|`
   /// where the terminal does not draw it one column wide.
   int line(BorderType? type, {bool vertical = false, Glyphs? glyphs}) {
-    final border = (glyphs ?? _glyphs)!.borderOf(type);
+    final border = _of(glyphs).borderOf(type);
     final cp = border.glyph(
       up: vertical,
       down: vertical,
@@ -593,14 +601,23 @@ final class ThemeMarks {
   bool _fits(Mark mark, String glyph) {
     final cache = _cache..refresh();
     final seen = cache.verdicts[mark];
-    if (seen != null && (identical(seen.glyph, glyph) || seen.glyph == glyph)) {
-      return seen.fits;
+    if (seen != null) {
+      if (identical(seen.glyph, glyph) || seen.glyph == glyph) {
+        return seen.fits;
+      }
+      if (identical(seen.other, glyph) || seen.other == glyph) {
+        return seen.otherFits;
+      }
     }
     final fits = _measure(mark, glyph);
     if (seen == null) {
       cache.verdicts[mark] = _Verdict(glyph, fits);
     } else {
+      // two kept: the sets of two subtrees (Glyphs.ascii under a
+      // Glyphs.unicode app), asked in turn, measure once each
       seen
+        ..other = seen.glyph
+        ..otherFits = seen.fits
         ..glyph = glyph
         ..fits = fits;
     }
@@ -685,8 +702,11 @@ _Cache _cacheOf(TextSegmenter segmenter) =>
 final class _Verdict {
   _Verdict(this.glyph, this.fits);
 
+  // the glyph asked last and the one before, with whether each fits
   String glyph;
   bool fits;
+  String? other;
+  var otherFits = false;
 }
 
 final _scan = ClusterScan();
@@ -701,24 +721,33 @@ final class _Cache {
   final verdicts = <Mark, _Verdict>{};
   final _stricts = <int, bool>{};
   final borders = <BorderType, bool>{};
-  ThemeMarks? shared;
   var _mode = -1;
   var _ambiguous = -1;
 
   // the resolvers of the last glyph sets, a ring so that a theme that
-  // makes a set each frame cannot grow it
+  // makes a set each frame cannot grow it; those of render objects (no
+  // set of their own, one a pipeline) in a ring apart, so that neither
+  // pushes the other's out
   final _resolvers = List<ThemeMarks?>.filled(_kept, null);
   var _next = 0;
+  final _objects = List<ThemeMarks?>.filled(2, null);
+  var _nextObject = 0;
 
-  ThemeMarks resolver(PipelineOwner? owner, Glyphs glyphs) {
-    for (final r in _resolvers) {
+  ThemeMarks resolver(PipelineOwner? owner, Glyphs? glyphs) {
+    final ring = glyphs == null ? _objects : _resolvers;
+    for (final r in ring) {
       if (r != null && identical(r._glyphs, glyphs) && r._owner == owner) {
         return r;
       }
     }
     final made = ThemeMarks._(this, owner, glyphs);
-    _resolvers[_next] = made;
-    _next = (_next + 1) % _kept;
+    if (glyphs == null) {
+      ring[_nextObject] = made;
+      _nextObject = (_nextObject + 1) % ring.length;
+    } else {
+      ring[_next] = made;
+      _next = (_next + 1) % ring.length;
+    }
     return made;
   }
 
