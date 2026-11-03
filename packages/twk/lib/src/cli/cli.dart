@@ -18,6 +18,7 @@ import 'terminal.dart';
 import 'theme.dart';
 
 // Examples can assume:
+// import 'dart:io';
 // Future<void> build() async {}
 // Future<void> download(void Function(int bytes) received) async {}
 // const size = 3400000;
@@ -294,6 +295,47 @@ final class Cli {
   var _sessionEnded = false;
   var _closed = false;
 
+  /// Hands the terminal to another program while [run] runs, one that
+  /// reads it itself (`sudo` asking for a password, a package manager, a
+  /// pager, an editor, started with `ProcessStartMode.inheritStdio`), and
+  /// takes it back after.
+  ///
+  /// With the inline session open (or opening), its region stays on the
+  /// screen with the cursor on the line below it, where the other program
+  /// writes; raw mode is off and the session's input paused, so the other
+  /// program reads what is typed; a progress stops being drawn until [run]
+  /// completes, and the session is drawn again below what was printed.
+  /// Without one, [run] just runs. Returns what [run] returns, or throws
+  /// what it throws, once the terminal is back.
+  ///
+  /// ```dart
+  /// final cli = Cli.current;
+  /// final progress = cli.progress('Installing');
+  /// final code = await cli.suspend(() async {
+  ///   final sudo = await Process.start(
+  ///     'sudo',
+  ///     ['true'],
+  ///     mode: ProcessStartMode.inheritStdio,
+  ///   );
+  ///   return sudo.exitCode;
+  /// });
+  /// progress.complete(code == 0 ? 'Installed' : null);
+  /// ```
+  Future<T> suspend<T>(Future<T> Function() run) async {
+    var session = _liveSession;
+    if (session == null) {
+      final opening = _openingSession;
+      if (opening != null) {
+        try {
+          session = await opening;
+        } on Object {
+          session = null;
+        }
+      }
+    }
+    return session != null && session.isOpen ? session.suspend(run) : run();
+  }
+
   /// Logs [message] at [LogLevel.debug], to the output, in the theme's
   /// [CliTheme.detail] (muted).
   void detail(Object? message) =>
@@ -330,7 +372,8 @@ final class Cli {
   /// goes when the console is [close]d.
   void write(String text) {
     final session = _liveSession;
-    if (session == null) {
+    final opening = _openingSession;
+    if (session == null && opening == null) {
       terminal.out.write(text);
       return;
     }
@@ -343,10 +386,11 @@ final class Cli {
     _partial
       ..clear()
       ..write(all.substring(end + 1));
+    final lines = messageLines(all.substring(0, end), const Style());
     unawaited(
-      session.commit(
-        _linesWidget(messageLines(all.substring(0, end), const Style())),
-      ),
+      session != null
+          ? session.commit(_linesWidget(lines))
+          : _commitWhenOpen(opening!, lines, terminal.out),
     );
   }
 
@@ -809,10 +853,18 @@ final class Cli {
           terminal,
           theme: theme.data,
           onInterrupt: _interrupted,
-        ).then((session) {
-          _probedUnderlines = session.styledUnderlines;
-          return _session = session;
-        });
+        ).then(
+          (session) {
+            _probedUnderlines = session.styledUnderlines;
+            return _session = session;
+          },
+          onError: (Object e, StackTrace s) {
+            // no session is opening any more: what is written goes as
+            // without one, at once
+            _openFailed = true;
+            Error.throwWithStackTrace(e, s);
+          },
+        );
   }
 
   /// Whether the inline session has ended, or the console is closed: no
@@ -844,8 +896,16 @@ final class Cli {
     }
     _closed = true;
     final opening = _opening;
+    CliSession? session;
     if (opening != null) {
-      final session = await opening;
+      try {
+        session = await opening;
+      } on Object {
+        // it failed to open: its asker was told, and there is none to end
+        session = null;
+      }
+    }
+    if (session != null) {
       if (_partial.isNotEmpty && session.isOpen) {
         unawaited(
           session.commit(
@@ -889,11 +949,54 @@ final class Cli {
       return;
     }
     final session = _liveSession;
-    if (session != null && (!toErr || _caps.errorIsTerminal)) {
+    final above = !toErr || _caps.errorIsTerminal;
+    if (session != null && above) {
       await session.commit(_linesWidget(lines));
       return;
     }
+    final opening = _openingSession;
     final sink = toErr ? terminal.err : terminal.out;
+    if (opening != null && above) {
+      await _commitWhenOpen(opening, lines, sink);
+      return;
+    }
+    _writeLines(lines, sink);
+  }
+
+  /// The session being opened: asked for and not yet holding the screen,
+  /// nor ended.
+  Future<CliSession>? get _openingSession =>
+      _session == null && !_openFailed && !_sessionEnded && !_closed
+      ? _opening
+      : null;
+
+  /// Whether the session asked for failed to open.
+  var _openFailed = false;
+
+  /// Commits [lines] above the session [opening] once it is open, as they
+  /// would have gone had it been: a session that is opening flushes the
+  /// terminal, and a write to it meanwhile is refused ("StreamSink is bound
+  /// to a stream"). One that failed to open, or ended meanwhile, has them
+  /// written to [sink] as they would have been without it.
+  Future<void> _commitWhenOpen(
+    Future<CliSession> opening,
+    List<List<Span>> lines,
+    StringSink sink,
+  ) async {
+    CliSession? session;
+    try {
+      session = await opening;
+    } on Object {
+      session = null;
+    }
+    if (session != null && session.isOpen) {
+      await session.commit(_linesWidget(lines));
+    } else {
+      _writeLines(lines, sink);
+    }
+  }
+
+  void _writeLines(List<List<Span>> lines, StringSink sink) {
     for (final line in lines) {
       sink.writeln(
         encodeLine(

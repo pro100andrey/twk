@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+- `Cli.suspend(run)` hands the terminal to another program while `run`
+  runs, one that reads the terminal itself (`sudo` asking for a password, a
+  package manager, a pager, an editor), and takes it back after. The inline
+  session's region stays with the cursor on the line below it, raw mode is
+  off and the session's input paused, and the session is drawn again below
+  what was printed. Such a program used to print in the middle of the
+  region and never get what was typed.
+- Each pipeline that draws a theme mark the terminal can't draw one column
+  wide (`Glyphs.cursor: '日'`) is warned once in its own log, where only
+  the first of the pipelines sharing a segmenter was: the verdict is kept
+  for the segmenter, and the warning came only with measuring it.
+- `Cli.close()` closes the terminal when the inline session failed to
+  open, where it threw the open's error again and left the terminal open.
+- A line `Cli` logs or writes while its inline session is still opening
+  (`cli.info` right after `cli.progress`) goes above the session once it is
+  open. It was written to stdout while the opening session flushed it, and
+  threw "StreamSink is bound to a stream".
 - In visual order the rest of the user's text a widget paints itself reads
   as a `Text` draws it, each label through a `TextPainter` the render
   object keeps: the labels of a `ProgressList`, the messages and lines of

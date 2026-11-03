@@ -603,35 +603,59 @@ final class ThemeMarks {
     final seen = cache.verdicts[mark];
     if (seen != null) {
       if (identical(seen.glyph, glyph) || seen.glyph == glyph) {
+        if (!seen.fits) {
+          _warnOnce(mark, glyph, seen.told);
+        }
         return seen.fits;
       }
       if (identical(seen.other, glyph) || seen.other == glyph) {
+        if (!seen.otherFits) {
+          _warnOnce(mark, glyph, seen.otherTold);
+        }
         return seen.otherFits;
       }
     }
-    final fits = _measure(mark, glyph);
+    final width = _cache.segmenter.width(glyph);
+    final fits = width == 1 && glyph.runes.length == 1;
+    final told = _Told();
+    if (!fits) {
+      _warnOnce(mark, glyph, told);
+    }
     if (seen == null) {
-      cache.verdicts[mark] = _Verdict(glyph, fits);
+      cache.verdicts[mark] = _Verdict(glyph, fits, told);
     } else {
       // two kept: the sets of two subtrees (Glyphs.ascii under a
       // Glyphs.unicode app), asked in turn, measure once each
       seen
         ..other = seen.glyph
         ..otherFits = seen.fits
+        ..otherTold = seen.told
         ..glyph = glyph
-        ..fits = fits;
+        ..fits = fits
+        ..told = told;
     }
     return fits;
   }
 
-  // the verdict, with the warning, once for each (field, glyph) the owner
-  // has seen
-  bool _measure(Mark mark, String glyph) {
+  // the warning that [glyph], of [mark], does not fit, once for each
+  // pipeline that meets it: the verdict is a segmenter's, which pipelines
+  // share, and [told] the ones it has warned, so a frame asking again
+  // warns no more and allocates nothing
+  void _warnOnce(Mark mark, String glyph, _Told told) {
+    final owner = _owner;
+    if (owner == null) {
+      if (told.none) {
+        return;
+      }
+      told.none = true;
+    } else {
+      if (told.owners[owner] != null) {
+        return;
+      }
+      told.owners[owner] = true;
+    }
     final width = _cache.segmenter.width(glyph);
     final runes = glyph.runes.length;
-    if (width == 1 && runes == 1) {
-      return true;
-    }
     final fallback = mark.fallback;
     final instead = fallback.isEmpty ? 'no mark' : "Glyphs.ascii's '$fallback'";
     if (width == 2 && runes == 1 && _isPreset(glyph)) {
@@ -645,7 +669,7 @@ final class ThemeMarks {
             "Glyphs.ascii's. Glyphs.ascii as the theme's set, or marks that "
             'are not ambiguous, make that the app choice.',
       );
-      return false;
+      return;
     }
     final what = width == 1
         ? 'a cluster of $runes code points, not one'
@@ -655,7 +679,6 @@ final class ThemeMarks {
       glyph,
       "Glyphs.${mark.name} '$glyph' is $what; $instead is drawn in its place.",
     );
-    return false;
   }
 
   void _warn(String field, String glyph, String message) {
@@ -700,13 +723,24 @@ _Cache _cacheOf(TextSegmenter segmenter) =>
     _caches[segmenter] ??= _Cache(segmenter);
 
 final class _Verdict {
-  _Verdict(this.glyph, this.fits);
+  _Verdict(this.glyph, this.fits, this.told);
 
-  // the glyph asked last and the one before, with whether each fits
+  // the glyph asked last and the one before, with whether each fits and
+  // the pipelines warned that it does not
   String glyph;
   bool fits;
+  _Told told;
   String? other;
   var otherFits = false;
+  late var otherTold = _Told();
+}
+
+// the pipelines a verdict has warned: weakly, as pipelines come and go
+// while the segmenter they share stays; [none] for the asking of no
+// pipeline
+final class _Told {
+  final owners = Expando<bool>('told of a glyph');
+  var none = false;
 }
 
 final _scan = ClusterScan();

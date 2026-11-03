@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:test/test.dart';
 import 'package:twk/cli.dart';
 import 'package:twk/twk.dart';
@@ -237,6 +239,119 @@ void main() {
 
       expect(terminal.err.toString(), '\x1B[33mto the log\x1B[0m\n');
       expect(terminal.screenLines, ['w', 'to the screen']);
+    });
+
+    test('puts lines logged and written while it opens above it once it '
+        'is open, not past it to the sink', () async {
+      // on a real terminal the sink is stdout, which the opening session
+      // is flushing: a write to it then threw "StreamSink is bound to a
+      // stream"
+      final clock = FakeClock();
+      final terminal = FakeCliTerminal.interactive(
+        width: 30,
+        height: 6,
+        fakeClock: clock,
+      );
+      final cli = Cli(terminal: terminal);
+      final opening = cli.session();
+      cli
+        ..info('logged')
+        ..write('writ')
+        ..write('ten\n')
+        ..warn('warned');
+      final session = await _settle(clock, opening);
+      final live = session.mount(const Text('working…'));
+      await clock.elapse(_frame);
+      expect(terminal.screenLines, ['logged', 'written', 'warned', 'working…']);
+      expect(terminal.out.toString(), '');
+      live.remove();
+      await _settle(clock, cli.close());
+    });
+
+    test('once its session failed to open, writes lines at once as without '
+        'one, and closes', () async {
+      final clock = FakeClock();
+      final terminal = FakeCliTerminal.interactive(
+        width: 30,
+        height: 6,
+        fakeClock: clock,
+      );
+      // opened once already: a second open throws
+      await _settle(clock, terminal.openInline());
+      final cli = Cli(terminal: terminal);
+      await expectLater(
+        _settle(clock, cli.session()),
+        throwsA(isA<StateError>()),
+      );
+      cli
+        ..info('logged')
+        ..write('written\n');
+      // at once, not after the failed open is waited for again
+      expect(terminal.out.toString(), 'logged\nwritten\n');
+      await _settle(clock, cli.close());
+    });
+
+    test('suspend hands the terminal over while run runs, the session '
+        'drawn again after', () async {
+      final clock = FakeClock();
+      final terminal = FakeCliTerminal.interactive(
+        width: 30,
+        height: 6,
+        fakeClock: clock,
+      );
+      final cli = Cli(terminal: terminal);
+      final session = await _settle(clock, cli.session());
+      final live = session.mount(const Text('working…'));
+      await clock.elapse(_frame);
+      expect(terminal.screenLines, ['working…']);
+
+      var during = false;
+      final released = Completer<void>();
+      final suspending = cli.suspend(() async {
+        during = terminal.backend!.suspended;
+        live.update(const Text('changed'));
+        await released.future;
+        return 42;
+      });
+      // what changes meanwhile waits for the terminal
+      await clock.elapse(_frame * 3);
+      expect(during, isTrue);
+      expect(terminal.screenLines, ['working…']);
+      released.complete();
+      final result = await _settle(clock, suspending);
+      expect(result, 42);
+      expect(during, isTrue);
+      expect(terminal.backend!.suspended, isFalse);
+      await clock.elapse(_frame);
+      expect(terminal.screenLines.last, 'changed');
+      live.remove();
+      await _settle(clock, cli.close());
+    });
+
+    test('suspend waits for a session that is opening', () async {
+      final clock = FakeClock();
+      final terminal = FakeCliTerminal.interactive(
+        width: 30,
+        height: 6,
+        fakeClock: clock,
+      );
+      final cli = Cli(terminal: terminal);
+      unawaited(cli.session());
+      var during = false;
+      await _settle(
+        clock,
+        cli.suspend(() async => during = terminal.backend!.suspended),
+      );
+      expect(during, isTrue);
+      await _settle(clock, cli.close());
+    });
+
+    test('suspend without a session runs run and opens none', () async {
+      final terminal = FakeCliTerminal.interactive();
+      final cli = Cli(terminal: terminal);
+      expect(await cli.suspend(() async => 'ran'), 'ran');
+      expect(terminal.opened, 0);
+      await cli.close();
     });
 
     test('runs on the fake clock when given one', () async {

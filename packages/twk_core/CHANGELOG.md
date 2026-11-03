@@ -66,6 +66,18 @@ Added:
   does. `cellAt` and it walk a row in one walk, so they read one model of
   it.
 
+Fixed:
+
+- On Linux and macOS the process's own terminal reads fd 0 itself, in an
+  isolate that polls it beside a wake pipe, rather than through dart:io's
+  `stdin`, which closed fd 0 when the terminal let it go. A program started
+  after an app or a session ended (`ProcessStartMode.inheritStdio`) reads
+  what is typed again, where it got "Bad file descriptor", and a terminal
+  opened again in the same process reads keys. Paused or closed, it reads
+  nothing more from that moment, even while its isolate is still
+  starting, and nothing of it keeps the process alive. A reading isolate
+  that fails ends the input with a `TerminalException`.
+
 ## 0.1.0
 
 The first release.

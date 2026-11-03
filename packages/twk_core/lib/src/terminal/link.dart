@@ -99,8 +99,8 @@ abstract interface class TerminalLink {
   void enterRaw();
 
   /// Puts back what [enterRaw] changed. Must run before the subscription
-  /// to [input] is cancelled: that closes stdin, whose modes can then no
-  /// longer be set.
+  /// to [input] is cancelled: where that is dart:io's `stdin` (Windows), it
+  /// closes stdin, whose modes can then no longer be set.
   void restore();
 
   /// The terminal's input; listened to once. Ends with a

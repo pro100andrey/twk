@@ -232,6 +232,8 @@ final class Pty {
     // the program once spawned, until a Pty answers for it
     var spawnedPid = -1;
     var spawnedPidfd = -1;
+    // the kqueue watching it (macOS), until the I/O isolate has it
+    var spawnedKq = -1;
     try {
       if (c.pipe(wake) != 0) {
         fail('pipe', c.errno);
@@ -384,9 +386,12 @@ final class Pty {
       // suspended, so the watch is set before it runs and cannot miss its
       // end; then it is let run. A watch that could not be made (-1)
       // leaves waitpid, as in Linux before 6.15.
-      final kq = Platform.isMacOS ? c.watchExit(pid.value) : -1;
-      if (Platform.isMacOS) {
-        signalProcess(pid.value, -1, ProcessSignal.sigcont);
+      final kq = spawnedKq = Platform.isMacOS ? c.watchExit(pid.value) : -1;
+      // refused, it would stay stopped, and the Pty never end: killed
+      // instead, by the catch below
+      if (Platform.isMacOS &&
+          !signalProcess(pid.value, -1, ProcessSignal.sigcont)) {
+        throw StateError('the program could not be let run (SIGCONT)');
       }
       c.setNonblocking(master);
       final pty = Pty._(
@@ -402,6 +407,7 @@ final class Pty {
       // the Pty answers for the program from here on
       spawnedPid = -1;
       spawnedPidfd = -1;
+      spawnedKq = -1;
       unawaited(
         Isolate.spawn(
           _ioLoop,
@@ -429,6 +435,10 @@ final class Pty {
       if (spawnedPidfd >= 0) {
         c.close(spawnedPidfd);
       }
+      if (spawnedKq >= 0) {
+        c.close(spawnedKq);
+      }
+      _reapKilled(spawnedPid);
       for (final fd in [master, wake[0], wake[1]]) {
         if (fd >= 0) {
           c.close(fd);
@@ -817,6 +827,31 @@ bool signalProcess(
 
 int _exitCodeOf(int status) =>
     status & 0x7f == 0 ? status >> 8 & 0xff : -(status & 0x7f);
+
+/// Waits for the program [pid], killed after a setup that failed, so that
+/// no zombie of it is left: at once where it is gone, else every 10 ms for
+/// up to a second, without blocking (waitpid is a leaf call). Nothing for
+/// a pid that is not positive, which names no child of this process but
+/// any of them.
+void _reapKilled(int pid) {
+  if (pid <= 0) {
+    return;
+  }
+  final status = c.calloc(1, sizeOf<Int>()).cast<Int>();
+  // its id once reaped, -1 once the VM reaped it (a Process ran): done
+  bool reaped() => c.waitpid(pid, status, c.wnohang) != 0;
+  if (reaped()) {
+    c.free(status.cast());
+    return;
+  }
+  var tries = 0;
+  Timer.periodic(const Duration(milliseconds: 10), (timer) {
+    if (reaped() || ++tries >= 100) {
+      timer.cancel();
+      c.free(status.cast());
+    }
+  });
+}
 
 /// The I/O isolate: reads the master while the listener keeps up, says
 /// when it takes writes again, waits for the program's end (on a pidfd

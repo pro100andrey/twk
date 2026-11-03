@@ -108,6 +108,32 @@ void main() {
     timeout: const Timeout(Duration(minutes: 3)),
   );
 
+  test('a program the app hands the terminal to reads what is typed, the '
+      "app's input paused, and the app reads again after", () async {
+    final (code, said) = await ptyRun(
+      [
+        // s once the app has drawn: a shell command that reads a line;
+        // the line once it asks; q once the app drew again after the
+        // command said what it got
+        '--when',
+        _drawn,
+        '--when',
+        'suspended> ',
+        '--when',
+        'got hello',
+        '--when',
+        _drawn,
+        '--input',
+        r'#1:s,#2:hello\r,#4:q',
+        '--suspended',
+        'suspended> ',
+      ],
+      [Platform.resolvedExecutable, _app],
+    );
+    expect(code, 0, reason: said);
+    expect(said, contains('handed over 1 times'));
+  }, timeout: const Timeout(Duration(minutes: 3)));
+
   test('a resize is drawn at the new size', () async {
     final (code, said) = await ptyRun(
       [

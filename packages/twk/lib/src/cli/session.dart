@@ -133,6 +133,16 @@ final class CliSession {
     }
   }
 
+  /// Hands the terminal to another program while [run] runs and takes it
+  /// back after (`TwkApp.suspend`): the region stays on the screen with the
+  /// cursor on the line below it, raw mode off and input paused, the frames
+  /// waiting, until [run] completes; then the region is drawn again below
+  /// what the other program printed. Returns what [run] returns, or throws
+  /// what it throws, once the terminal is back. Once the session has ended,
+  /// [run] just runs.
+  Future<T> suspend<T>(Future<T> Function() run) =>
+      _ended ? run() : _binding.twkApp.suspend(run);
+
   /// Ends the app once what is committed is written: the region is
   /// cleared and the terminal restored. Completes once it is, with the
   /// error that ended the app where one did; calling it again waits for
