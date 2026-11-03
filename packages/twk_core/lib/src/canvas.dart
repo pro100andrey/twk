@@ -12,6 +12,7 @@
 ///    damage span.
 ///
 /// @docImport 'presenter.dart';
+/// @docImport 'render/render.dart';
 /// @docImport 'screen.dart';
 library;
 
@@ -478,6 +479,11 @@ final class Canvas {
   /// Draws [s] at (x, y) with [pen]; returns the columns it advanced (0 when
   /// the row is clipped out). Tabs draw as one blank, controls and lone
   /// combining marks are dropped.
+  ///
+  /// The string is drawn in stored order, whatever its script: for marks,
+  /// digits and box glyphs. Text a user supplies goes through a
+  /// [TextPainter], which draws a right-to-left string as it reads in visual
+  /// order ([TextOrder.visual]), as a `Text` does.
   int text(int x, int y, String s, int pen) {
     final ay = y + _oy;
     if (ay < _cy0 || ay >= _cy1 || s.isEmpty) {
@@ -624,7 +630,8 @@ final class Canvas {
   int runBuffer(int x, int y, GlyphBuffer b, int pen) =>
       runRange(x, y, b._words, 0, b._length, pen);
 
-  /// Draws a pre-shaped run; same semantics as [text] without segmentation.
+  /// Draws a pre-shaped run; same semantics as [text] without segmentation,
+  /// so in stored order too: user text goes through a [TextPainter].
   @pragma('vm:prefer-inline')
   int run(int x, int y, GlyphRun r, int pen) =>
       runRange(x, y, r.glyphs, 0, r.glyphs.length, pen);

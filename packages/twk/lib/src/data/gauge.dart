@@ -4,12 +4,21 @@
 library;
 
 import 'package:twk_core/twk_core.dart'
-    show Attr, BorderType, BoxConstraints, Color, PaintContext, RenderObject;
+    show
+        Attr,
+        BorderType,
+        BoxConstraints,
+        Color,
+        PaintContext,
+        PipelineTextOrder,
+        RenderObject,
+        TextOrder;
 
 import '../foundation/format.dart';
 import '../foundation/helpers.dart';
 import '../framework/framework.dart';
 import '../style/style.dart';
+import '../text/label_painter.dart';
 import '../text/widgets.dart';
 import 'chart_glyphs.dart';
 
@@ -363,6 +372,10 @@ final class RenderGauge extends _RenderGaugeBase {
 
   Style _labelStyle;
 
+  // the label's painters, in the pens over the full cells and over the rest
+  final _over = LabelPainter();
+  final _rest = LabelPainter();
+
   /// The label's style, as [Gauge.labelStyle].
   Style get labelStyle => _labelStyle;
   set labelStyle(Style s) {
@@ -382,25 +395,34 @@ final class RenderGauge extends _RenderGaugeBase {
     // the cells filled whole, which the label shows swapped over
     final full = g.blocks(canvas, 0, 0, width, height, _ratio, pen);
     final text = _text;
-    final w = canvas.segmenter.width(text);
+    if (text.isEmpty) {
+      return;
+    }
+    final seg = canvas.segmenter;
+    final labelStyle = base.merge(_labelStyle);
+    // the label as a Text draws it, laid out once for both of its pens
+    final over = _over
+      ..set(
+        text,
+        labelStyle.merge(const Style(attrs: Attr.reverse)).pen,
+        seg,
+      );
+    final rest = _rest..set(text, labelStyle.pen, seg);
+    final order = owner?.textOrder ?? TextOrder.logical;
+    final w = rest.layout(seg, order, room: width, ellipsis: '');
     final x = w < width ? (width - w) ~/ 2 : 0;
     final y = height ~/ 2;
-    final labelStyle = base.merge(_labelStyle);
     // over the full cells, swapped; over the rest, as it is
     canvas
       ..save()
-      ..clipRect(0, y, full, 1)
-      ..text(
-        x,
-        y,
-        text,
-        labelStyle.merge(const Style(attrs: Attr.reverse)).penIn(canvas.styles),
-      )
+      ..clipRect(0, y, full, 1);
+    over.paint(canvas, owner, x, y, room: width, ellipsis: '');
+    canvas
       ..restore()
       ..save()
-      ..clipRect(full, y, width - full, 1)
-      ..text(x, y, text, labelStyle.penIn(canvas.styles))
-      ..restore();
+      ..clipRect(full, y, width - full, 1);
+    rest.paint(canvas, owner, x, y, room: width, ellipsis: '');
+    canvas.restore();
   }
 }
 
@@ -420,6 +442,9 @@ final class RenderLineGauge extends _RenderGaugeBase {
     this._filledStyle = const Style(),
     this._unfilledStyle = const Style(),
   }) : super(ratio, label, showPercentage, style, glyphs);
+
+  // the label as a Text draws it
+  final _labelPainter = LabelPainter();
 
   bool _segmented;
 
@@ -501,7 +526,21 @@ final class RenderLineGauge extends _RenderGaugeBase {
     }
     final y = height ~/ 2;
     final text = _text;
-    final x = text.isEmpty ? 0 : canvas.text(0, y, text, pen) + 1;
+    var x = 0;
+    if (text.isNotEmpty) {
+      x =
+          _labelPainter.draw(
+            canvas,
+            owner,
+            0,
+            y,
+            text,
+            base.pen,
+            room: width,
+            ellipsis: '',
+          ) +
+          1;
+    }
     final cells = width - x;
     if (cells <= 0) {
       return;

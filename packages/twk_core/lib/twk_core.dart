@@ -94,7 +94,8 @@ export 'src/unicode/bidi.dart'
         BidiText,
         TextDirection,
         bidiClassOf,
-        bidiMirror;
+        bidiMirror,
+        mayReorder;
 export 'src/unicode/text_layout.dart' show TextAlign, TextOverflow;
 export 'src/unicode/unicode.dart'
     show

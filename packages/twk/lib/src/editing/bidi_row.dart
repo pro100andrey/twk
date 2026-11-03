@@ -7,47 +7,9 @@ library;
 import 'dart:typed_data';
 
 import 'package:twk_core/twk_core.dart'
-    show
-        BidiClass,
-        BidiText,
-        Canvas,
-        TextDirection,
-        bidiClassOf,
-        bidiMirror,
-        graphemeBoundaries;
+    show BidiText, Canvas, TextDirection, bidiMirror, graphemeBoundaries;
 
 import 'caret.dart';
-
-/// Whether [text] has a character UAX #9 may draw out of logical order: a
-/// letter of a right-to-left script, an Arabic number, or a right-to-left
-/// embedding, override or isolate. A row without one in a left-to-right
-/// paragraph is drawn as stored.
-bool mayReorder(String text) {
-  for (var i = 0; i < text.length; i++) {
-    var cp = text.codeUnitAt(i);
-    if (cp < 0x0590) {
-      continue;
-    }
-    if (cp >= 0xD800 && cp <= 0xDBFF && i + 1 < text.length) {
-      final lo = text.codeUnitAt(i + 1);
-      if (lo >= 0xDC00 && lo <= 0xDFFF) {
-        cp = 0x10000 + ((cp - 0xD800) << 10) + (lo - 0xDC00);
-        i++;
-      }
-    }
-    switch (bidiClassOf(cp)) {
-      case BidiClass.r ||
-          BidiClass.al ||
-          BidiClass.an ||
-          BidiClass.rle ||
-          BidiClass.rlo ||
-          BidiClass.rli:
-        return true;
-      case _:
-    }
-  }
-  return false;
-}
 
 /// A row of text in the order it is drawn from left to right: its
 /// characters (grapheme clusters) at the levels UAX #9 resolves for each

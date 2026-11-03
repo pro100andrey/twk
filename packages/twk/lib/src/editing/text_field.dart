@@ -22,7 +22,8 @@ import 'package:twk_core/twk_core.dart'
         TextAlign,
         TextDirection,
         TextOrder,
-        TextSegmenter;
+        TextSegmenter,
+        mayReorder;
 
 import '../binding/app_binding.dart';
 import '../focus/focus_tree.dart';

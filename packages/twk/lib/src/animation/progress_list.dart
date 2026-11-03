@@ -27,6 +27,7 @@ import '../foundation/helpers.dart';
 import '../framework/framework.dart';
 import '../semantics/semantics.dart';
 import '../style/style.dart';
+import '../text/label_painter.dart';
 import 'progress_bar.dart';
 import 'spinner.dart';
 import 'steps.dart';
@@ -1144,16 +1145,16 @@ final class _RenderProgressList extends RenderObject {
       }
       if (hasLabel && labelW > 0) {
         gap();
-        canvas.text(
+        // as a Text draws it, cut at labelW with the ellipsis
+        _painters[y].draw(
+          canvas,
+          owner,
           x,
           y,
-          fitText(
-            segmenter,
-            task.label,
-            labelW,
-            ellipsis: _frames.glyphs.ellipsis,
-          ),
-          status == TaskStatus.skipped ? mutedPen : basePen,
+          task.label,
+          status == TaskStatus.skipped ? s.muted.pen : s.base.pen,
+          room: labelW,
+          ellipsis: _frames.glyphs.ellipsis,
         );
         x += labelW;
       }
@@ -1224,6 +1225,9 @@ final class _RenderProgressList extends RenderObject {
       _sweep.stop();
     }
   }
+
+  // the painter of each row's label, by row (null: not made yet)
+  final _painters = LabelPainters();
 
   /// The step of the spinner the frame is in.
   int get _spinnerStep => _spinner.current;

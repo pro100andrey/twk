@@ -15,7 +15,10 @@
 // a reading of the VM's allocation profile, the steps, a reading — the
 // difference is what they allocated, since the profile counts garbage not
 // yet collected; a window a collection ran in is dropped and the next is
-// half as long (lib/profiler.dart). Then as many steps run unprofiled, for
+// half as long (lib/profiler.dart). How many steps is --frames, else the
+// scenario's own (FrameScenario.steps, AppScenario.steps): 2000 for most,
+// fewer for the text-layout ones, whose frames allocate megabytes, so that
+// every window holds a collection. Then as many steps run unprofiled, for
 // the collections and the time. JIT, not AOT (an executable has no VM
 // service): what escapes is allocated in both. Counts don't depend on the
 // machine's load; the µs column does, and is JIT time — tool/bench.dart is
@@ -47,6 +50,16 @@
 //
 // The scenarios that follow the branch's additions (the rest of
 // lib/app_scenarios.dart is as old as the tool):
+//   layout-40k, layout-160k, rewrap, long-line-cut, mixed-visual
+//                                  the frame benchmark's scenarios of long
+//                                  texts (see the header of tool/bench.dart):
+//                                  a first layout of 40k / 160k characters, a
+//                                  re-wrap at 200 and 120 columns, a 20k line
+//                                  cut with "…", 10k of mixed scripts in
+//                                  visual order
+//   type-40k, log-visual           a character typed into the 40k paragraph
+//                                  and taken back; a log of 200 lines with
+//                                  Hebrew in every 20th, in visual order
 //   hand-off, hand-auto, hand-on   20 mouse motions a frame over Buttons, a
 //                                  TabBar and a sortable Table, under
 //                                  ThemeData.handPointer off / auto / on
@@ -87,7 +100,7 @@ Future<void> main(List<String> args) async {
     var bytes = 0;
     final sample = await p.measure(
       (i) => bytes += frame(i),
-      frames: opts.frames ?? 2000,
+      frames: opts.frames ?? s.steps,
       cpu: opts.cpu,
       warmup: 500,
       counting: () => bytes = 0,

@@ -80,6 +80,7 @@ final class FrameScenario {
     this.start, {
     this.write = true,
     this.ambiguousWidth = 1,
+    this.steps = 2000,
   });
 
   /// Its name in a report: `wrap`, `list-scroll`.
@@ -99,6 +100,13 @@ final class FrameScenario {
   /// terminal it is for: its [FrameRig] and the emulator that checks its
   /// frames are made with it.
   final int ambiguousWidth;
+
+  /// How many frames a profiler counts of it unless told how many
+  /// (tool/alloc's `--frames`): fewer for one whose frames allocate
+  /// megabytes, where every window of frames the profiler counts in holds a
+  /// collection, the windows halve down to a frame, and each of them costs
+  /// a full collection.
+  final int steps;
 
   /// The rig of `width` × `height` cells this scenario runs on.
   FrameRig rig(int width, int height) =>
@@ -301,6 +309,101 @@ final frameScenarios = <FrameScenario>[
         return s.render();
       };
     },
+  ),
+  FrameScenario(
+    'layout-40k',
+    'a new paragraph of 40k characters of word-wrapped Latin text, laid out '
+        'for the first time',
+    (hs) {
+      final s = _Doc(hs, _latinText(40000))..render();
+      return (i) {
+        s.open(i);
+        return s.render();
+      };
+    },
+    steps: 60,
+  ),
+  FrameScenario(
+    'layout-160k',
+    'the same with a paragraph of 160k characters',
+    (hs) {
+      final s = _Doc(hs, _latinText(160000))..render();
+      return (i) {
+        s.open(i);
+        return s.render();
+      };
+    },
+    steps: 20,
+  ),
+  FrameScenario(
+    'rewrap',
+    'a paragraph of 40k characters re-wrapped, 200 and 120 columns wide in '
+        'turn',
+    (hs) {
+      final s = _Doc(hs, _latinText(40000), narrowTo: 120)..render();
+      return (i) {
+        s.resize(i);
+        return s.render();
+      };
+    },
+  ),
+  FrameScenario(
+    'long-line-cut',
+    'a new line of 20k characters, wrap none, one line, cut off with "…" '
+        "at the screen's width",
+    (hs) {
+      final s = _Doc(
+        hs,
+        _latinText(20000, newlines: false),
+        wrap: TextWrap.none,
+        maxLines: 1,
+      )..render();
+      _requireCut(hs, 1, '…');
+      return (i) {
+        s.open(i);
+        return s.render();
+      };
+    },
+    steps: 100,
+  ),
+  FrameScenario(
+    'mixed-visual',
+    'a new paragraph of 10k characters of CJK, Hebrew, Arabic, emoji (ZWJ, '
+        'flags), combining marks and Latin, laid out in visual order',
+    (hs) {
+      final s = _Doc(hs, _mixedText(10000), visual: true)..render();
+      return (i) {
+        s.open(i);
+        return s.render();
+      };
+    },
+    steps: 60,
+  ),
+  FrameScenario(
+    'type-40k',
+    'a character typed into a paragraph of 40k characters near its start '
+        'and taken back, in turn',
+    (hs) {
+      final s = _Doc(hs, _latinText(40000))..render();
+      final text = s.text;
+      final typed = '${text.substring(0, 200)}x${text.substring(200)}';
+      return (i) {
+        s.edit(i.isEven ? typed : text);
+        return s.render();
+      };
+    },
+  ),
+  FrameScenario(
+    'log-visual',
+    'a new log of 200 lines, Hebrew in every 20th, laid out in visual order',
+    (hs) {
+      final s = _Doc(hs, _logText(200), visual: true)..render();
+      return (i) {
+        s.open(i);
+        return s.render();
+      };
+    },
+    steps: 60,
   ),
   FrameScenario(
     'list-scroll',
@@ -678,4 +781,190 @@ final class _List extends _Scene implements ListItemManager {
 
   @override
   void dropItem(RenderObject item) => list.remove(item);
+}
+
+const _words = <String>[
+  'the',
+  'presenter',
+  'writes',
+  'only',
+  'cells',
+  'that',
+  'changed',
+  'since',
+  'last',
+  'frame',
+  'terminal',
+  'paragraph',
+  'breaks',
+  'lines',
+  'at',
+  'words',
+  'and',
+  'a',
+  'log',
+  'of',
+  'tool',
+  'calls',
+  'was',
+  'loaded',
+  'from',
+  'disk',
+  'with',
+  'well-known',
+  'self-contained',
+  'tokens',
+  'per',
+  'second',
+  'in',
+  'plain',
+  'Dart',
+  'no',
+  'dependencies',
+  'layout',
+  'width',
+  'height',
+];
+
+/// About [n] characters of Latin words in sentences, from a fixed
+/// pseudo-random sequence; with `newlines`, a line break after about every
+/// tenth sentence.
+String _latinText(int n, {bool newlines = true}) {
+  final b = StringBuffer();
+  var len = 0;
+  var seed = 12345;
+  int next(int m) {
+    seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+    return (seed >> 8) % m;
+  }
+
+  for (var sentence = 1; len < n; sentence++) {
+    final count = 6 + next(10);
+    for (var k = 0; k < count; k++) {
+      var w = _words[next(_words.length)];
+      if (k == 0) {
+        w = '${w[0].toUpperCase()}${w.substring(1)}';
+      }
+      b.write(w);
+      len += w.length;
+      if (k < count - 1) {
+        b.write(' ');
+        len++;
+      }
+    }
+    final end = newlines && sentence % 10 == 0 ? '.\n' : '. ';
+    b.write(end);
+    len += 2;
+  }
+  return b.toString();
+}
+
+/// The pieces [_mixedText] cycles through: Latin words, CJK, Hebrew,
+/// Arabic, emoji with ZWJ, flags, emoji with a skin tone, and letters
+/// with combining marks.
+const _mixedPieces = <String>[
+  'The quick brown fox jumps over the lazy dog, ',
+  '中文段落可以在任意两个汉字之间换行，日本語の文章も同じです。',
+  ' שלום עולם, פסקה נשברת לפי מילים ולא לפי אותיות 1234 ',
+  ' مرحبا بالعالم، تنكسر الفقرة بين الكلمات ١٢٣ و456 ',
+  'family 👨‍👩‍👧‍👦 and 🧑‍💻 at work ',
+  'flags 🇺🇦 🇯🇵 🇩🇪 🇧🇷 and 👍🏽 ',
+  'combining: é ñ ä ô ž ǖ ',
+  '한국어 문장은 음절 사이에서 줄이 바뀔 수 있습니다. ',
+  'A line mixes שלום with مرحبا and [brackets] (in a run). ',
+];
+
+/// A log of [lines] lines, each a request served but every 20th, a
+/// message in Hebrew: a text of many paragraphs, a few of them with
+/// right-to-left text.
+String _logText(int lines) {
+  final b = StringBuffer();
+  for (var i = 0; i < lines; i++) {
+    if (i % 20 == 7) {
+      b.write('[$i] user wrote: שלום עולם, מה שלומך היום 42\n');
+    } else {
+      b.write(
+        '[$i] GET /api/items?page=$i 200 OK in ${i % 97} ms, cache hit\n',
+      );
+    }
+  }
+  return b.toString();
+}
+
+/// About [n] characters (UTF-16 code units) of [_mixedPieces], in order.
+String _mixedText(int n) {
+  final b = StringBuffer();
+  var len = 0;
+  for (var k = 0; len < n; k++) {
+    final p = _mixedPieces[k % _mixedPieces.length];
+    b.write(p);
+    len += p.length;
+  }
+  return b.toString();
+}
+
+/// One long paragraph on a box, in a box that limits its width: a document
+/// opened or a log loaded. [open] puts a new paragraph of the text in
+/// place, to be laid out for the first time; [resize] changes the width the
+/// same paragraph is laid out at.
+final class _Doc extends _Scene {
+  _Doc(
+    super.hs,
+    this.text, {
+    this.wrap = TextWrap.word,
+    this.maxLines,
+    bool visual = false,
+    this.narrowTo = 0,
+  }) {
+    if (visual) {
+      owner.textOrder = TextOrder.visual;
+    }
+    wide = hs.surface.width;
+    limit = RenderConstrainedBox(
+      additionalConstraints: BoxConstraints(0, wide, 0, hs.surface.height),
+    );
+    owner.root = RenderBox(
+      pen: hs.styles.pen(const Pen(bg: Color.rgb(16, 18, 24))),
+      boundary: true,
+      child: limit,
+    );
+    open(0);
+  }
+
+  final String text;
+  final TextWrap wrap;
+  final int? maxLines;
+
+  /// The width [resize] alternates with the screen's.
+  final int narrowTo;
+  late final int wide;
+  late final RenderConstrainedBox limit;
+
+  /// A new paragraph of the text, the frame's number in front of it so
+  /// that the screen differs from the last frame's.
+  void open(int i) {
+    limit.child = RenderParagraph(
+      [('#$i $text', _latin)],
+      wrap: wrap,
+      overflow: maxLines == null ? TextOverflow.clip : TextOverflow.ellipsis,
+      maxLines: maxLines,
+    );
+  }
+
+  /// The paragraph [open] made given [text] as its one span: an edit of
+  /// it, split and laid out again about where it changed.
+  void edit(String text) {
+    (limit.child! as RenderParagraph).spans = [(text, _latin)];
+  }
+
+  /// The paragraph laid out at the narrow width on odd frames, at the
+  /// screen's on even ones.
+  void resize(int i) {
+    limit.additionalConstraints = BoxConstraints(
+      0,
+      i.isOdd ? narrowTo : wide,
+      0,
+      hs.surface.height,
+    );
+  }
 }
