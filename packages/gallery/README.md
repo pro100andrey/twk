@@ -99,33 +99,68 @@ testTwk('the Button page, light', (t) async {
 leaves a route's `keys=` and `type=` to whoever runs it (the tester's
 `press` and `type`); `bin/gallery.dart` types them itself.
 
+## Where things are
+
+`lib/gallery.dart` is the gallery's API, `galleryApp` and what a page is
+made of; `lib/testing.dart` adds what the tests and the tools read. Under
+`lib/src/`, each layer imports only those before it:
+
+| | |
+| --- | --- |
+| `catalog.dart`, `route.dart`, `page.dart`, `motion.dart`, `paint.dart` | the catalog, routes, a page and its options, the gallery's clock, cell painting |
+| `model/` | no widgets: the catalog joined with the pages, each page's options and state (`PageStore`), the palette's ranking, the toasts, the Code's record of what changed, the tab |
+| `input/` | the names of keys, both ways, and a one-line field's editing |
+| `view/` | the shell: `shell.dart` (its state, the route, the actions, the build) and a part a region (`shell_header.dart`, `shell_sidebar.dart`, `shell_page.dart`, `shell_code.dart`, `shell_inspector.dart`, `shell_hints.dart`, `shell_palette.dart`, `shell_toasts.dart`, `shell_keys.dart`), the stage, the inspector's controls, the tokens and the metrics |
+| `pages/` | a directory a group, a file a page, and `kit/`, what the pages share |
+| `launcher.dart` | the program `bin/gallery.dart` runs |
+
 ## Adding a page
 
-A page is a `GalleryPage` in `lib/src/pages/<group>.dart`, its group and
-title as `lib/src/catalog.dart` names them (a new page has its entry
-there first); the group's list goes into `galleryPages` in
-`lib/src/pages/pages.dart`. A page of the catalog that no `GalleryPage`
+A page is a `GalleryPage` in a file of its own,
+`lib/src/pages/<group>/<page>.dart`, with what only it uses (its widget,
+its Code's helpers); its group and title are as `lib/src/catalog.dart`
+names them (a new page has its entry there first). A group is a library,
+`lib/src/pages/<group>/<group>.dart`: its imports, a `part` for each of
+its files, and its list of pages, which `galleryPages` in
+`lib/src/pages/pages.dart` takes; what several of its pages use is in a
+part of its own (`_shared.dart`, or one named for what it is, as
+Debugging's `aids.dart`). A page of the catalog that no `GalleryPage`
 draws shows a placeholder.
 
 ```dart
-GalleryPage(
-  group: 'Controls',
+// the inspector's options, each a constant the page reads it by:
+// keys, labels, values and first values
+const _sliderDivisions = ChoiceOption<int?>(
+  'divisions',
+  'divisions',
+  values: [null, 10, 4],
+  labels: ['none', '10', '4'],
+);
+final _sliderWidth = SliderOption(
+  'width',
+  'width',
+  min: 10,
+  max: 60,
+  initial: 30,
+  format: (v) => '$v cells',
+);
+// an option may say when it does not apply: disabled: (o) => …
+
+final _sliderPage = GalleryPage(
+  group: _group, // the group's library names it once
   title: 'Slider',
-  // the inspector's options: keys, labels, values and first values
-  options: [
-    const ChoiceOption('divisions', 'divisions', values: [null, 10, 4], labels: ['none', '10', '4']),
-    const SwitchOption('live', 'live', initial: true),
-    SliderOption('width', 'width', min: 10, max: 60, initial: 30, format: (v) => '$v cells'),
-    const ColorOption('color', 'style', values: ['primary', 'accent', 'success'], initial: 'primary'),
-    // an option may say when it does not apply: disabled: (o) => …
-  ],
-  // the widget on the stage, with the options as they are
+  options: [_sliderDivisions, _sliderWidth, pageColorOption],
+  // the widget on the stage, with the options as they are: o(option) is
+  // its value, of its type
   build: (context, o) => SizedBox(
-    width: o.number('width').toInt(),
-    child: Slider(style: o.colorStyle(context, 'color'), /* … */),
+    width: o(_sliderWidth).toInt(),
+    child: Slider(style: o.styleOf(context, pageColorOption), /* … */),
   ),
-  // the Dart of the Code tab, which builds what build: does
-  code: (o) => ['return SizedBox(', '  width: ${o.label('width')},', /* … */].join('\n'),
+  // the Dart of the Code tab, which builds what build: does; o.nameOf is
+  // an option's value as the inspector and a route write it
+  code: (o) =>
+      ['return SizedBox(', '  width: ${o.nameOf(_sliderWidth)},', /* … */]
+          .join('\n'),
   // StageSize.room for a view that takes the stage's room (MarkdownView)
 );
 ```
@@ -148,15 +183,24 @@ lists the hinted keys of the layers above the focus; hints that are no
 key a layer binds (`type take over`, `wheel scroll back`) come from `PageHints(hints: [...], child:
 …)` around the focusable widget, listed first while the focus is in it.
 
-`Options` gives each option's value (`o['key']`, `o.choice<T>`,
-`o.flag`, `o.number`, `o.color`), its name as the inspector and a route
-write it (`o.label`), and the theme's style of a colour option
-(`o.colorStyle`).
+`Options` gives each option's value by the option's constant (`o(_wrap)`,
+of the option's type: a `ChoiceOption<T>`'s `T`, a switch's `bool`, a
+slider's `num`, a colour's name), its name as the inspector and a route
+write it (`o.nameOf`), and the theme's style of a colour option
+(`o.styleOf`); a key mistyped is a name the analyzer does not know.
+Options that several pages share are one constant (`pageColorOption`,
+Animation's `_cycleOption`); an option a function makes for each page
+(Layout's alignment, the gradients) has a constant to be read by, of the
+same key and type. `o.pageState` is the page's own state as its widget
+left it, for a Code that writes what the widget did (App ›
+TerminalProgress).
 
 A page's widget reaches the gallery through `PageControl.of(context)`:
-`state`, a map of its own that outlives a visit to another page;
-`setOption(key, value)`, an option set as its control would (for a
-`cycle` switch); `toast`.
+`state`, a map of its own that outlives a visit to another page (a
+State of the widget mixes in `KeptState`, `pages/kit/kept.dart`);
+`setOption(option, value)`, an option set as its control would (for a
+`cycle` switch); `toast`, of a `ToastKind`. The palette's "Reset the
+options" empties the page's state and builds its widget afresh.
 
 The rules a page keeps (and those of [doc/design.md](doc/design.md),
 "What every page keeps"):
@@ -165,7 +209,7 @@ The rules a page keeps (and those of [doc/design.md](doc/design.md),
   holds the one to the other (below).
 - Its widget behaves as its Dart doc says: keys, clicks, callbacks.
 - What happened shows in a line under the widget, `label: value`, the
-  value lit for a moment when it changes: `LitLine` (`pages/common.dart`).
+  value lit for a moment when it changes: `LitLine` (`pages/kit/lit.dart`; the kit, `pages/kit/kit.dart`, is what the pages share).
 - What moves with time reads the gallery's clock (`Clock.of(context)`,
   or a `Motion`, `lib/src/motion.dart`), so that a route's `t=` stills
   it.
@@ -192,6 +236,15 @@ in the catalog, open every page at 80×24 and 120×36 without an overflow
 or an error, and go through the list, the filter, the palette, the
 inspector, a dialog and the theme with the keys.
 
+The tests and the tools reach the gallery through
+`package:gallery/testing.dart`, never `package:gallery/src/…`, so that
+its files can move: it adds to `gallery.dart` the catalog's pages as
+routes (`pagePlaces`, `pageRoutes`), a route shown as the golden screens
+show it (`showRoute`, `openRoute`, `playRoute`), and the parts of the
+shell and the pages the tests look into. The tests' own helpers (`open`,
+`keys`, `screen`, `problems`…) are `test/support/gallery.dart`, whose
+`open` refuses a route that names no page of the catalog.
+
 ## The Code against the stage
 
 `tool/code_check.dart` holds each page's Code tab to what its stage
@@ -212,7 +265,10 @@ dart run tool/code_check.dart '#/controls/button?o=style:danger&keys=tab'
 It writes `.dart_tool/code_check/`: what the stages showed
 (`stages.json`), the package the Codes were made into (`gen/`) and
 `report.md`, a row a page and the first differing cells of each that
-differs. It fails where a Code does not compile, ends in an error or an
+differs, an error at the line of the Code it is on (`Code line 15:14`,
+where `wrap.dart` knew where each line of the library came from; the
+imports of twk, twk_rich, its image library and twk_term are given to
+every Code). It fails where a Code does not compile, ends in an error or an
 `ErrorWidget` it does not build, or differs from its stage, unless
 `tool/code_check/known.dart` says why it cannot agree (a Code that lists
 the directory it runs in, a run without the gallery's focus); a page of
@@ -240,6 +296,23 @@ Where the stage is the app's terminal in the terminal's own
 colours, as `runApp` gives them (Debugging › FrameOverlay, Repaint
 rainbow: `codeInTerminalColors`), the Code runs under
 `ThemeData.terminal` on a terminal the widget's size.
+
+### A Code that is the source that runs
+
+Where a page's widget is written as its Code is, the Code is not written
+twice: the widget's source holds it between `// #code <name>` and
+`// #end`, and `tool/snippets.dart` writes each such region, its shared
+indent taken off, into `lib/src/pages/snippets.g.dart` as a constant the
+page's `code:` returns (Focus and keys › ActiveItem, its State's members;
+Scrolling › Scrollable, the ruler's classes). What the gallery adds to a
+widget (a `LitLine`'s fade, the page's kept state, the clock standing
+still at a route's `t=`) stays out of a region. After a region changed:
+
+```bash
+dart run tool/snippets.dart
+```
+
+`gallery-snippets`, in `handover`, fails where the file is stale.
 
 ## Golden screens
 

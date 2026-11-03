@@ -10,14 +10,9 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:gallery/gallery.dart';
-import 'package:gallery/src/shell/stage.dart';
-import 'package:gallery/src/shell/tokens.dart' show galleryThemes;
+import 'package:gallery/testing.dart';
 import 'package:test/test.dart';
 import 'package:twk_test/twk_test.dart';
-
-/// When the stage is read, unless the route says `t=`.
-const _t = Duration(milliseconds: 2000);
 
 /// The routes checked besides each page's own, for a page whose options
 /// make another Code: App › Cli's other programs.
@@ -28,8 +23,7 @@ void main(List<String> args) {
   final routes = given.isNotEmpty
       ? given
       : [
-          for (final g in catalog)
-            for (final p in g.pages) '#/${slug(g.title)}/${slug(p.title)}',
+          ...pageRoutes,
           ..._more,
         ];
   final results = <String, Object?>{};
@@ -54,65 +48,17 @@ void main(List<String> args) {
   tearDownAll(() => File(out).writeAsStringSync(jsonEncode(results)));
 }
 
-/// The parameters of [route] but `keys=`, `type=` and `t=`, with `t=`
-/// at [at].
-String _at(String route, Duration at) {
-  final [path, ...query] = route.split('?');
-  final params = [
-    for (final p in query.join('?').split('&'))
-      if (p.isNotEmpty && !RegExp('^(keys|type|t)=').hasMatch(p)) p,
-    't=${at.inMilliseconds}',
-  ];
-  return '$path?${params.join('&')}';
-}
-
-/// The terminal [route] asks for: its size (120x36) and its theme's
-/// background, and the gallery's name of the theme.
-({(int, int) size, int background, String theme}) _terminal(
-  GalleryRoute route,
-) {
-  final size = switch (route.size?.split('x')) {
-    [final w, final h] => (int.parse(w), int.parse(h)),
-    _ => (120, 36),
-  };
-  final theme = route.theme ?? 'dark';
-  final data = galleryThemes[theme]!.$2;
-  return (
-    size: size,
-    background: (data.background.bg?.value ?? 0) & 0xFFFFFF,
-    theme: theme,
-  );
-}
-
-/// Shows the gallery at [route], its clock stopped at [at], and returns
-/// its shell.
-Future<GalleryShellState> _open(
-  TwkTester t,
-  String route,
-  Duration at,
-) async {
-  final term = _terminal(GalleryRoute.parse(route));
-  await t.pumpWidget(
-    galleryApp(route: GalleryRoute.parse(_at(route, at))),
-    size: term.size,
-    duration: Duration.zero,
-    backgroundRgb: term.background,
-  );
-  await t.pump();
-  return t.state<GalleryShellState>(find.byType(GalleryShell));
-}
-
 /// The Code a program started at 0 runs, and what the page says of it: a
 /// page that sets its own options as time goes on has another Code by the
 /// route's time.
 Future<void> _code(TwkTester t, String route, Map<String, Object?> r) async {
   final parsed = GalleryRoute.parse(route);
-  final shell = await _open(t, route, Duration.zero);
+  final shell = await openRoute(t, route, Duration.zero);
   final def = shell.page.def;
   r['key'] = shell.page.key;
   r['code'] = shell.code;
-  r['theme'] = _terminal(parsed).theme;
-  r['ms'] = (parsed.t ?? _t).inMilliseconds;
+  r['theme'] = routeTerminal(parsed).theme;
+  r['ms'] = (parsed.t ?? screenTime).inMilliseconds;
   r['keys'] = parsed.keys;
   r['type'] = parsed.type ?? '';
   r['terminal'] = def?.codeInTerminalColors ?? false;
@@ -122,19 +68,10 @@ Future<void> _code(TwkTester t, String route, Map<String, Object?> r) async {
 /// widget and the widget's cells, or those of the Code's app in it.
 Future<void> _stage(TwkTester t, String route, Map<String, Object?> r) async {
   final parsed = GalleryRoute.parse(route);
-  final at = parsed.t ?? _t;
-  final shell = await _open(t, route, at);
+  final at = parsed.t ?? screenTime;
+  final shell = await openRoute(t, route, at);
   final def = shell.page.def!;
-  for (final key in parsed.keys) {
-    await t.press(key);
-    await t.pump();
-  }
-  if (parsed.type case final type? when type.isNotEmpty) {
-    await t.type(type);
-    await t.pump();
-  }
-  final rest = at - t.clock.elapsed;
-  await t.pump(rest.isNegative ? Duration.zero : rest);
+  await playRoute(t, parsed, at);
 
   final stages = find.byType(Stage).evaluate().toList();
   if (stages.isEmpty) {

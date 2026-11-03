@@ -7,7 +7,6 @@
 // The page's URL hash is the route it opens at (README.md, "Routes"):
 // http://localhost:8080/#/controls/button?theme=light.
 import 'package:gallery/gallery.dart';
-import 'package:gallery/src/shell/tokens.dart' show galleryThemes;
 import 'package:twk/twk.dart';
 import 'package:twk_web/twk_web.dart';
 import 'package:web/web.dart' as web;

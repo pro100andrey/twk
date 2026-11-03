@@ -1,24 +1,25 @@
 // Pages of the Navigation, Animation, Overlays, Screen readers and
 // Debugging groups: each builds at both sizes, its options apply and its
 // keys do what the design's do.
-import 'package:gallery/gallery.dart';
+import 'package:gallery/testing.dart';
 import 'package:test/test.dart';
-import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
-/// Opens the gallery at [route] in a terminal of [size], the gallery's
-/// clock stopped at 2 s and the app's run on to it, as the comparison with
-/// the design runs it.
+import '../support/gallery.dart' hide keys, open;
+import '../support/gallery.dart' as support show keys, open;
+
+/// Opens [route], the gallery's clock stopped at [ms] and the app's run
+/// on to it.
 Future<void> open(
   TwkTester t,
   String route, {
-  (int, int) size = (120, 36),
+  (int, int) size = screenSize,
   int ms = 2000,
-}) async {
-  final at = route.contains('?') ? '$route&t=$ms' : '$route?t=$ms';
-  await t.pumpWidget(galleryApp(route: GalleryRoute.parse(at)), size: size);
-  await t.pump(Duration(milliseconds: ms));
-}
+}) => support.open(t, route, size: size, at: ms, run: true);
+
+/// Presses [keys] and lets what they started run.
+Future<void> keys(TwkTester t, String keys) =>
+    support.keys(t, keys, after: const Duration(milliseconds: 700));
 
 /// The Code of page [title] with the options [raw] (raw values by key:
 /// a bool, an index), the others as they start.
@@ -32,29 +33,6 @@ String codeOf(String title, [Map<String, Object> raw = const {}]) {
   final y = t.lines.indexWhere((l) => l.contains(text));
   return (t.lines[y].indexOf(text), y);
 }
-
-/// Presses [keys] (apart by commas), a frame after each, and lets what
-/// they started run.
-Future<void> keys(TwkTester t, String keys) async {
-  for (final k in keys.split(',')) {
-    await t.press(k);
-    await t.pump();
-  }
-  await t.pump(const Duration(milliseconds: 700));
-}
-
-/// The screen as text.
-String screen(TwkTester t) => t.lines.join('\n');
-
-/// The line of the screen [text] is on.
-String lineOf(TwkTester t, String text) =>
-    t.lines.firstWhere((l) => l.contains(text), orElse: () => '');
-
-/// What the app logged at warning or worse: an overflow, an error.
-List<String> problems(TwkTester t) => [
-  for (final r in t.logs.records)
-    if (r.level.index >= LogLevel.warning.index) '${r.level}: ${r.message}',
-];
 
 /// Each page, and what its stage shows at 2 s.
 const _pages = {

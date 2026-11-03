@@ -70,7 +70,7 @@ twk's `ThemeData` presets as they are (dark, light, nord,
 catppuccinMocha, catppuccinLatte), then the terminal's own colors
 (`ThemeData.terminal` of the terminal's brightness, where each token
 falls back to the slot it starts from), and tokens derived from their
-slots by mixing (`mix(a, b, k)` is `Color.lerp`; `lib/src/shell/tokens.dart`):
+slots by mixing (`mix(a, b, k)` is `Color.lerp`; `lib/src/view/tokens.dart`):
 
 | Token | Dark themes | Light themes | Used for |
 | --- | --- | --- | --- |

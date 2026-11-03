@@ -1,45 +1,24 @@
 // Pages of the Data and Scrolling groups, and the ListView's options:
 // they build at both sizes, their options apply and their keys do what
 // the design's do.
-import 'package:gallery/gallery.dart';
+import 'package:gallery/testing.dart';
 import 'package:test/test.dart';
-import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
-/// Opens the gallery at [route] (the clock stopped at [at] ms) in a
-/// terminal of [size], a frame for the route's focus after the first.
+import '../support/gallery.dart' hide keys, open;
+import '../support/gallery.dart' as support show keys, open;
+
+/// Opens [route], the gallery's clock stopped at [at] ms.
 Future<void> open(
   TwkTester t,
   String route, {
-  (int, int) size = (120, 36),
+  (int, int) size = screenSize,
   int at = 2000,
-}) async {
-  final r = route.contains('?') ? '$route&t=$at' : '$route?t=$at';
-  await t.pumpWidget(galleryApp(route: GalleryRoute.parse(r)), size: size);
-  await t.pump();
-}
+}) => support.open(t, route, size: size, at: at);
 
-/// Presses [keys] (apart by commas), a frame after each.
-Future<void> keys(TwkTester t, String keys) async {
-  for (final k in keys.split(',')) {
-    await t.press(k);
-    await t.pump();
-  }
-  await t.pump(const Duration(milliseconds: 100));
-}
-
-/// The screen as text.
-String screen(TwkTester t) => t.lines.join('\n');
-
-/// The row of the screen [text] is first on; -1 for none.
-int rowOf(TwkTester t, String text) =>
-    t.lines.indexWhere((l) => l.contains(text));
-
-/// What the app logged at warning or worse: an overflow, an error.
-List<String> problems(TwkTester t) => [
-  for (final r in t.logs.records)
-    if (r.level.index >= LogLevel.warning.index) '${r.level}: ${r.message}',
-];
+/// Presses [keys], a frame after each, then 100 ms.
+Future<void> keys(TwkTester t, String keys) =>
+    support.keys(t, keys, after: const Duration(milliseconds: 100));
 
 void main() {
   group('the pages build', () {

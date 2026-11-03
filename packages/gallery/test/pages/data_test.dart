@@ -1,37 +1,20 @@
-import 'package:gallery/gallery.dart';
+import 'package:gallery/testing.dart';
 import 'package:test/test.dart';
-import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
-/// Opens the gallery at [route] (the clock stopped at 2 s) in a terminal
-/// of [size], a frame for the route's focus after the first.
+import '../support/gallery.dart' hide keys, open;
+import '../support/gallery.dart' as support show keys, open;
+
+/// Opens [route], the gallery's clock stopped at 2 s.
 Future<void> open(
   TwkTester t,
   String route, {
-  (int, int) size = (120, 36),
-}) async {
-  final at = route.contains('?') ? '$route&t=2000' : '$route?t=2000';
-  await t.pumpWidget(galleryApp(route: GalleryRoute.parse(at)), size: size);
-  await t.pump();
-}
+  (int, int) size = screenSize,
+}) => support.open(t, route, size: size, at: 2000);
 
-/// Presses [keys] (apart by commas), a frame after each.
-Future<void> keys(TwkTester t, String keys) async {
-  for (final k in keys.split(',')) {
-    await t.press(k);
-    await t.pump();
-  }
-  await t.pump(const Duration(milliseconds: 100));
-}
-
-/// The screen as text.
-String screen(TwkTester t) => t.lines.join('\n');
-
-/// What the app logged at warning or worse: an overflow, an error.
-List<String> problems(TwkTester t) => [
-  for (final r in t.logs.records)
-    if (r.level.index >= LogLevel.warning.index) '${r.level}: ${r.message}',
-];
+/// Presses [keys], a frame after each, then 100 ms.
+Future<void> keys(TwkTester t, String keys) =>
+    support.keys(t, keys, after: const Duration(milliseconds: 100));
 
 /// Each page of the group, and what its stage shows as it opens.
 const _pages = {

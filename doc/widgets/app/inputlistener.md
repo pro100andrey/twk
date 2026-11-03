@@ -106,7 +106,7 @@ Widget build(BuildContext context) {
                     Text('nothing yet', style: theme.muted),
                   for (final (kind, what) in _events)
                     Text.rich([
-                      Span(kind.padRight(7), styles[kind]!),
+                      Span(kind.padRight(7), styles[kind]),
                       Span(what),
                     ]),
                 ],

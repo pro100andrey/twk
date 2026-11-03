@@ -13,7 +13,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:gallery/gallery.dart';
+import 'package:gallery/testing.dart';
 import 'package:path/path.dart' as p;
 
 /// What each group is, a line under its title in the index.
@@ -137,8 +137,7 @@ String frontMatter(Map<String, Object?> fields) => [
 /// The picture of [page] of [group] in [theme], as a path from the
 /// repository's root.
 String shot(CatalogGroup group, CatalogPage page, String theme) =>
-    'packages/gallery/doc/shots/${slug(group.title)}/${slug(page.title)}'
-    '.$theme.svg';
+    'packages/gallery/doc/shots/${pagePath(group, page)}.$theme.svg';
 
 /// [path], a path from the repository's root, as a link from a file
 /// [depth] directories below doc/widgets/.
@@ -146,7 +145,7 @@ String fromDoc(String path, int depth) => '${'../' * (depth + 2)}$path';
 
 /// The route of [page] of [group] in the gallery.
 String route(CatalogGroup group, CatalogPage page) =>
-    '#/${slug(group.title)}/${slug(page.title)}';
+    '#/${pagePath(group, page)}';
 
 String indexPage() {
   final b =
@@ -273,7 +272,7 @@ What the gallery lets you change, and what each starts at:
 | --- | --- | --- |
 ''');
       for (final o in def.options) {
-        final starts = _cell(options.label(o.key));
+        final starts = _cell(options.nameOf(o));
         b.writeln('| ${o.label} | ${_cell(_values(o))} | $starts |');
       }
       b.writeln();
@@ -306,8 +305,8 @@ What the gallery lets you change, and what each starts at:
 }
 
 /// The values of [option], as the inspector names them.
-String _values(PageOption option) => switch (option) {
-  final ChoiceOption o => o.names.join(', '),
+String _values(PageOption<Object?> option) => switch (option) {
+  final ChoiceOption<Object?> o => o.names.join(', '),
   final ColorOption o => o.values.join(', '),
   SwitchOption() => 'on, off',
   final SliderOption o => '${o.show(o.min)} to ${o.show(o.max)}',

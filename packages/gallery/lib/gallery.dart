@@ -9,14 +9,28 @@ import 'package:twk/twk.dart';
 import 'src/motion.dart';
 import 'src/pages/pages.dart';
 import 'src/route.dart';
-import 'src/shell/shell.dart';
+import 'src/view/shell.dart';
 
 export 'src/catalog.dart' show CatalogGroup, CatalogPage, catalog;
 export 'src/motion.dart' show Clock;
-export 'src/page.dart';
+export 'src/page.dart'
+    show
+        ChoiceOption,
+        CodeApp,
+        ColorOption,
+        GalleryPage,
+        Options,
+        PageControl,
+        PageHints,
+        PageOption,
+        SliderOption,
+        StageRoom,
+        StageSize,
+        SwitchOption,
+        ToastKind;
 export 'src/pages/pages.dart' show galleryPages;
 export 'src/route.dart' show GalleryRoute, slug;
-export 'src/shell/shell.dart' show GalleryShell, GalleryShellState, Zone;
+export 'src/view/tokens.dart' show galleryThemes;
 
 /// The gallery, opened at [route] (the first page, dark, when null), on
 /// [clock]: by default the app's, or stopped at the route's `t=`. The
