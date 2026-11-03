@@ -431,7 +431,8 @@ final class RenderParagraph extends RenderObject {
 
   /// How many clusters this paragraph has split its text into, counting
   /// each split: all of them when it first splits it, about those an edit
-  /// touched after.
+  /// touched after; only the head of a one-line text cut at its end (see
+  /// `TextPainter`) until something needs the rest.
   int get debugClustersSplit => _painter.debugClustersSplit;
 
   /// How many lines this paragraph has broken its clusters into, counting

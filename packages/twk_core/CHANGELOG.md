@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- A `TextPainter` (and a `RenderParagraph`) with `maxLines` 1 and
+  `TextOverflow.ellipsis` splits and measures only the head of its text, the
+  first columns its first line shows, and the rest only when asked (a
+  wider layout, `minIntrinsicWidth`, `maxIntrinsicWidth`): a line of 20 000
+  characters cut at the screen's width costs what the screen shows, not the
+  line. What is painted, the size and the answers of `cellAt`,
+  `textRangeAt` and `columnsOf` are as they were. A start or middle
+  ellipsis, a clip and text in visual order with right-to-left characters
+  are laid out from all of it. `TextPainter.debugHeadOnly` and
+  `debugForceFull` are for tests.
+
 - `mayReorder(String)` is public: whether a string has a character UAX #9
   may draw out of logical order (a right-to-left letter, an Arabic number,
   a right-to-left embedding, override or isolate), skipping at once the

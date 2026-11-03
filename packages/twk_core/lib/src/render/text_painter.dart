@@ -232,7 +232,18 @@ final class _Edit {
   var drawn = -1;
   var drawnCells = 0;
   var multi = false;
+
+  // a head scan stopped before the end of the text: some of it is left
+  var more = false;
+
+  // ... and gave up, for the arrays of the head would not hold what is
+  // left to split to the stop
+  var gaveUp = false;
 }
+
+// How many columns more than its width a head scan reads for the first
+// cluster it can stop at, which also bounds the room it needs.
+const _headSlack = 24;
 
 final _edit = _Edit();
 
@@ -565,6 +576,31 @@ enum TextInvalidation {
 /// max intrinsic width its widest line unbroken, and its intrinsic height
 /// the lines it has at a width.
 ///
+/// Head only. A text laid out as one line cut off at its end with an
+/// ellipsis ([maxLines] 1 and [TextOverflow.ellipsis]) shows nothing but
+/// its first columns, so the first layout splits and measures only those:
+/// the clusters up to the first line break of the text, or up to the first
+/// one that is not a space (and not the first) with more columns before
+/// and in it than the width, which is where the line breaks or is cut. The
+/// rest of the text is not split ([debugHeadOnly]); the ellipsis stands for
+/// it, as the offset of the text's end is found from the lengths of the
+/// spans. Everything a caller sees is as if all of it were split: a layout
+/// is the same, so are the cells painted and the answers of [cellAt],
+/// [textRangeAt] and [columnsOf]. One place decides when it applies,
+/// `_headFits` and `_headW`: the width is at least the ellipsis's, and in
+/// [TextOrder.visual] the text has nothing to reorder, as UAX #9 resolves
+/// the levels of the head from the whole paragraph, which here is the
+/// whole text, so text with a right-to-left character is split and resolved
+/// whole. A head serves any narrower width and any [wrap] and [align]. The
+/// rest is split (the head again, with it) by the first call that needs it:
+/// a wider layout, [minIntrinsicWidth], [maxIntrinsicWidth],
+/// [debugDiffFromFresh], another overflow or [maxLines], reordering text in
+/// visual order; an edit of the text splits a head again at once (the head
+/// is all it costs), and an edit of a text split whole is split again
+/// about where it changed. A start or middle ellipsis, [TextOverflow.clip]
+/// (its line is drawn whole, to the canvas's clip, and aligned by its
+/// whole width) and several lines are laid out from all the clusters.
+///
 /// In [TextOrder.visual] text with right-to-left characters is broken into
 /// lines as stored, then each line drawn in the order UAX #9 gives
 /// ([BidiText]): its runs at odd levels reversed by grapheme, their
@@ -650,6 +686,7 @@ final class TextPainter {
     if (!sameText) {
       // split again where it changed
       _textStale = true;
+      _reorders = null;
       _pensIn = null;
       _invalidate(TextInvalidation.layout);
     } else if (!samePens) {
@@ -798,6 +835,24 @@ final class TextPainter {
   var _ellipsisWidth = 1;
   GlyphRun? _ellipsisCache;
 
+  // whether the clusters are a head of the text only (see the class doc):
+  // [_count] is how many are split, the totals are theirs, and the width
+  // they were split for
+  var _partial = false;
+  var _headLimit = 0;
+  // whether the spans have a character that may reorder them (null: not
+  // looked for since the text changed)
+  bool? _reorders;
+
+  /// For tests: lay out in full even where only the head of the text is
+  /// needed, so that a test compares the two on the same input. Set it
+  /// before the first layout, or the next call that needs the rest splits it.
+  var debugForceFull = false;
+
+  /// For tests: whether the clusters split are only the head of the text a
+  /// one-line layout cut at its end needs, the rest not split yet.
+  bool get debugHeadOnly => _partial;
+
   // the texts of the spans as split, and whether they changed since
   // (_resplit)
   var _shapedTexts = const <String>[];
@@ -908,10 +963,20 @@ final class TextPainter {
   /// Splits the spans into clusters unless they are split as the owner's
   /// segmenter splits them (an edit: where the text changed), and finds
   /// where lines may break by word if they do.
-  void _shape() {
+  ///
+  /// With a [headW] (the columns of a layout, [_headW]) a text that is a
+  /// one-line layout cut at its end is split as a head only; a head that
+  /// does not serve [headW], or any call with none, splits the rest.
+  void _shape([int headW = -1]) {
     final seg = _segmenter;
     if (_shapedMode != seg.mode || _shapedAmbiguous != seg.ambiguousWidth) {
-      _split(seg);
+      _split(seg, headW);
+    } else if (_partial) {
+      if (_textStale) {
+        _split(seg, headW);
+      } else if (!_headFits(headW) || headW > _headLimit) {
+        _split(seg);
+      }
     } else if (_textStale) {
       _resplit(seg);
     }
@@ -932,12 +997,7 @@ final class TextPainter {
     _segmentsStale = true;
     final was = _bidiOn;
     _bidiOn = false;
-    var reorders = false;
-    if (_order == TextOrder.visual) {
-      for (var k = 0; k < _spans.length && !reorders; k++) {
-        reorders = mayReorder(_spans[k].$1);
-      }
-    }
+    final reorders = _order == TextOrder.visual && _anyReorders();
     if (!reorders) {
       _bidiValid = false;
       _rowsKept = _rowsKept && !was;
@@ -1497,9 +1557,13 @@ final class TextPainter {
     _ => '\u0627',
   };
 
-  /// Splits the spans into clusters as [seg] splits them.
-  void _split(TextSegmenter seg) {
+  /// Splits the spans into clusters as [seg] splits them: all of them, or
+  /// for a [headW] of 0 or more only as many as a one-line layout cut at its
+  /// end at that width needs (see [TextPainter]'s doc, "Head only"), when
+  /// [_headFits] says that serves.
+  void _split(TextSegmenter seg, [int headW = -1]) {
     _bidiStale = true;
+    _partial = false;
     _wordBreaks = false;
     _textStale = false;
     _shapedMode = seg.mode;
@@ -1522,22 +1586,72 @@ final class TextPainter {
     for (var k = 0; k < _spans.length; k++) {
       units += _spans[k].$1.length;
     }
-    if (_glyphs.length < units) {
-      final n = _room(units, _glyphs.length);
+    final head = _headFits(headW);
+    // a head has room for the columns it reads and grows when it needs
+    final want = head && headW + _headSlack + 8 < units
+        ? headW + _headSlack + 8
+        : units;
+    if (_glyphs.length < want) {
+      final n = _room(want, _glyphs.length);
       _glyphs = Uint32List(n);
       _kinds = Uint16List(n);
       _spanOf = Int32List(n);
       _starts = Int32List(n);
       _ends = Int32List(n);
     }
-    _count = _scan(seg, 0, 0, 0, edit: false);
+    _count = _scan(seg, 0, 0, 0, edit: false, headCells: head ? headW : null);
     final e = _edit;
+    if (e.gaveUp) {
+      // many spaces past the width: the head is no gain
+      _split(seg);
+      return;
+    }
+    _partial = head && e.more;
+    _headLimit = headW;
     _hasMulti = e.multi;
     _newlines = e.newlines;
     _cells = e.cells;
     _drawn = e.drawn + 1;
     _drawnCells = e.drawnCells;
     _keepTexts();
+  }
+
+  /// Whether the text may be split as a head for a layout at [headW]
+  /// columns (0 or more; -1 for none): the ellipsis fits in the room, and
+  /// text in visual order has nothing to reorder (the levels UAX #9 gives
+  /// the head depend on the paragraph).
+  bool _headFits(int headW) =>
+      headW >= 0 &&
+      headW >= _ellipsisWidth &&
+      !(_order == TextOrder.visual && _anyReorders());
+
+  /// Whether the spans have a character that may take the text out of
+  /// logical order, found once for a text.
+  bool _anyReorders() {
+    final known = _reorders;
+    if (known != null) {
+      return known;
+    }
+    var found = false;
+    for (var k = 0; k < _spans.length && !found; k++) {
+      found = mayReorder(_spans[k].$1);
+    }
+    _reorders = found;
+    return found;
+  }
+
+  /// Whether the spans have text after offset [at] of span [k].
+  bool _textAfter(int k, int at) {
+    final spans = _spans;
+    if (at < spans[k].$1.length) {
+      return true;
+    }
+    for (var j = k + 1; j < spans.length; j++) {
+      if (spans[j].$1.isNotEmpty) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /// Keeps the texts of the spans as split, to tell what an edit changes.
@@ -1564,6 +1678,7 @@ final class TextPainter {
     int at,
     int base, {
     required bool edit,
+    int? headCells,
   }) {
     final e = _edit;
     final glyphs = edit ? e.glyphs : _glyphs;
@@ -1571,6 +1686,12 @@ final class TextPainter {
     final spanOf = edit ? e.spanOf : _spanOf;
     final starts = edit ? e.starts : _starts;
     final ends = edit ? e.ends : _ends;
+    // a head scan: stops after the first cluster drawn past [headCells]
+    // columns that is not a space (and not the first), or at a line break;
+    // it has room for [_headSlack] columns more than that, and gives up
+    // (returning with [_Edit.gaveUp]) where spaces take more
+    final head = headCells != null;
+    final stop = headCells ?? (1 << 40);
     final spans = _spans;
     final scan = _clusterScan;
     final graphemes = seg.mode == TextMode.graphemes;
@@ -1586,6 +1707,8 @@ final class TextPainter {
     var drawn = -1;
     var drawnCells = 0;
     e
+      ..more = false
+      ..gaveUp = false
       ..syncOld = _count
       ..syncSpan = spans.length
       ..syncInside = false;
@@ -1640,6 +1763,14 @@ final class TextPainter {
           if ((kind & _space) == 0) {
             drawn = n - 1;
             drawnCells = cells;
+          }
+          if (cells > stop) {
+            if (((kind & _space) == 0 && n > 1) || cells > stop + _headSlack) {
+              e
+                ..gaveUp = (kind & _space) != 0 || n <= 1
+                ..more = _textAfter(k, i);
+              break spans;
+            }
           }
           continue;
         }
@@ -1713,6 +1844,18 @@ final class TextPainter {
           if ((kind & _space) == 0) {
             drawn = n - 1;
             drawnCells = cells;
+          }
+        }
+        if (head && (kind & _newline) != 0) {
+          e.more = _textAfter(k, i);
+          break spans;
+        }
+        if (cells > stop) {
+          if (((kind & _space) == 0 && n > 1) || cells > stop + _headSlack) {
+            e
+              ..gaveUp = (kind & _space) != 0 || n <= 1
+              ..more = _textAfter(k, i);
+            break spans;
           }
         }
       }
@@ -2196,7 +2339,7 @@ final class TextPainter {
 
   /// The lines at [maxW] columns, up to [maxLines].
   int _countLines(int maxW) {
-    _shape();
+    _shape(_headW(maxW));
     if (maxW == _rawAt) {
       // the lines laid out, kept up with the text
       _updateRaw(maxW);
@@ -2215,7 +2358,7 @@ final class TextPainter {
 
   /// Lays the lines out at [maxW] columns, unless they are.
   void _layoutLines(int maxW) {
-    _shape();
+    _shape(_headW(maxW));
     if (_linesAt == maxW) {
       return;
     }
@@ -2280,6 +2423,13 @@ final class TextPainter {
         break;
     }
   }
+
+  /// The columns a layout at [maxW] reads the text for, as a head: [maxW]
+  /// for a one-line layout cut at its end, else -1.
+  int _headW(int maxW) =>
+      !debugForceFull && _overflow == TextOverflow.ellipsis && _maxLines == 1
+      ? maxW
+      : -1;
 
   /// Brings the lines as broken up to [maxW] columns: breaks them all
   /// again at another width, and after an edit those it may have changed.
@@ -2740,12 +2890,13 @@ final class TextPainter {
 
   /// How many clusters this paragraph has split its text into, counting
   /// each split: all of them when it first splits it, about those an edit
-  /// touched after.
+  /// touched after; only the head of a text laid out as a head, and then
+  /// the whole text again when something needs the rest.
   int get debugClustersSplit => _clustersSplit;
 
   /// How many lines this paragraph has broken its clusters into, counting
   /// each layout: all of them at a new width, about those an edit touched
-  /// after.
+  /// after; of a head, its one line (the line after it is not broken).
   int get debugLinesBroken => _linesBroken;
 
   /// How many code units of its text this paragraph has resolved the
