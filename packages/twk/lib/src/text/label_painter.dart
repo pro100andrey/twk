@@ -36,6 +36,8 @@ final class LabelPainter {
   );
 
   var _text = '';
+  // what is laid out of it: the text one line ([_oneLine])
+  var _shown = '';
   var _marks = const <int>[];
   var _markLength = 0;
   var _pen = const Pen();
@@ -81,6 +83,7 @@ final class LabelPainter {
     }
     _hasSpans = true;
     _text = text;
+    _shown = _oneLine(text);
     _marks = marks;
     _markLength = markLength;
     _pen = pen;
@@ -90,31 +93,32 @@ final class LabelPainter {
   }
 
   List<(String, Pen)> _spans(TextSegmenter segmenter) {
+    final text = _shown;
     if (_marks.isEmpty) {
-      return [(_text, _pen)];
+      return [(text, _pen)];
     }
     final spans = <(String, Pen)>[];
     final scan = ClusterScan();
     var from = 0;
     for (final at in _marks) {
-      if (at < from || at >= _text.length) {
+      if (at < from || at >= text.length) {
         continue;
       }
       var end = at + _markLength;
       if (_markLength == 0) {
-        segmenter.scan(_text, at, scan);
+        segmenter.scan(text, at, scan);
         end = scan.end;
-      } else if (end > _text.length) {
-        end = _text.length;
+      } else if (end > text.length) {
+        end = text.length;
       }
       if (at > from) {
-        spans.add((_text.substring(from, at), _pen));
+        spans.add((text.substring(from, at), _pen));
       }
-      spans.add((_text.substring(at, end), _markPen));
+      spans.add((text.substring(at, end), _markPen));
       from = end;
     }
-    if (from < _text.length) {
-      spans.add((_text.substring(from), _pen));
+    if (from < text.length) {
+      spans.add((text.substring(from), _pen));
     }
     return spans;
   }
@@ -201,8 +205,44 @@ final class LabelPainter {
       room: room,
       ellipsis: ellipsis,
     );
+    if (room != null && _painter.overflow == TextOverflow.clip) {
+      // no room for the ellipsis: cut plainly at the room, which the
+      // painter leaves to the canvas's clip
+      canvas
+        ..save()
+        ..clipRect(x, y, room < 0 ? 0 : room, 1);
+      _painter.paint(canvas, x, y);
+      canvas.restore();
+      return;
+    }
     _painter.paint(canvas, x, y);
   }
+}
+
+/// [text] with each line break in it (LF, VT, FF, CR, NEL, LS, PS) a zero
+/// width space: a label is one line, which its painter would end at the
+/// first break and cut there, where the canvas drew it whole and dropped
+/// them. The painter drops a zero width space as the canvas dropped those,
+/// and the offsets of the text, which the marks are, stay as they were.
+String _oneLine(String text) {
+  for (var i = 0; i < text.length; i++) {
+    final c = text.codeUnitAt(i);
+    if ((c >= 0x0A && c <= 0x0D) || c == 0x85 || c == 0x2028 || c == 0x2029) {
+      final b = StringBuffer();
+      for (final unit in text.codeUnits) {
+        b.writeCharCode(
+          (unit >= 0x0A && unit <= 0x0D) ||
+                  unit == 0x85 ||
+                  unit == 0x2028 ||
+                  unit == 0x2029
+              ? 0x200B
+              : unit,
+        );
+      }
+      return b.toString();
+    }
+  }
+  return text;
 }
 
 /// [LabelPainter]s by index, made when first asked for and kept: the

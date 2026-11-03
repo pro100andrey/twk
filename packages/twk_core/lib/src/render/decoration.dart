@@ -884,7 +884,7 @@ final class RenderDecoratedBox extends RenderObject
       }
       final title = _titles[i];
       final painter = _painters[i] ??= TextPainter(
-        [(title.text, title.pen)],
+        [(_oneLine(title.text), title.pen)],
         wrap: TextWrap.none,
         overflow: TextOverflow.ellipsis,
         maxLines: 1,
@@ -923,6 +923,30 @@ final class RenderDecoratedBox extends RenderObject
     }
   }
 }
+
+/// [text] with each line break in it (LF, VT, FF, CR, NEL, LS, PS) a zero
+/// width space: a title is one line, which its painter would end at the
+/// first break and cut there, while its room is measured over the whole
+/// text, as the canvas drew it, dropping them. The painter drops a zero
+/// width space as the canvas dropped those.
+String _oneLine(String text) {
+  for (var i = 0; i < text.length; i++) {
+    final c = text.codeUnitAt(i);
+    if ((c >= 0x0A && c <= 0x0D) || c == 0x85 || c == 0x2028 || c == 0x2029) {
+      return String.fromCharCodes(text.codeUnits.map(_noBreak));
+    }
+  }
+  return text;
+}
+
+/// A zero width space for a line break [unit], else the unit.
+int _noBreak(int unit) =>
+    (unit >= 0x0A && unit <= 0x0D) ||
+        unit == 0x85 ||
+        unit == 0x2028 ||
+        unit == 0x2029
+    ? 0x200B
+    : unit;
 
 /// A line across the room it gets, drawn with [type] in [pen]: a row as
 /// wide as the constraints allow ([Axis.horizontal]) or a column as tall
