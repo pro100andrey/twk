@@ -6,34 +6,6 @@ on:
   pull_request:
 
 jobs:
-  macos-exit-code:
-    # the window between spawn and watch made 50 ms wide: without the
-    # suspended spawn the test should fail, with it pass
-    strategy:
-      fail-fast: false
-      matrix:
-        fix: ['0', '1']
-    runs-on: macos-latest
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v7
-      - uses: dart-lang/setup-dart@v1
-        with:
-          sdk: 3.13.7
-      - run: dart pub get
-      - shell: bash
-        working-directory: packages/twk_term
-        env:
-          PROBE_FIX: ${{ matrix.fix }}
-        run: |
-          fails=0
-          for i in $(seq 1 10); do
-            if ! dart test test/pty/pty_test.dart -N 'end at once' --reporter=failures-only > out.txt 2>&1; then
-              fails=$((fails+1)); echo "== run $i failed"; head -c 2000 out.txt; echo
-            fi
-          done
-          echo "macos exit-code test, fix=$PROBE_FIX: $fails of 10 failed"
-
   linux-pty-ctrlz:
     strategy:
       fail-fast: false

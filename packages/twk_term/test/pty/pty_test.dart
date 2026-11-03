@@ -226,9 +226,9 @@ void main() {
     await run.waitFor(r'$ ');
     if (Platform.environment['PROBE_NOFLSH'] == '1') {
       // PROBE: no flush at a signal character
-      final at0 = run.text.length;
       run.pty.write(utf8.encode('stty noflsh\r'));
-      await run.waitFor(r'$ ', from: at0 + 1);
+      await run.waitFor('stty noflsh\r\n');
+      await run.waitFor(r'$ ', from: run.text.indexOf('stty noflsh\r\n'));
     }
     run.pty.write(utf8.encode('echo started; sleep 30\r'));
     await run.waitFor('started\r\n');
