@@ -492,8 +492,15 @@ final class _ChipListState<T> extends State<ChipList<T>> {
         ellipsis: glyphs.ellipsis,
       );
       labels.add(label);
-      // after the blank, the mark, the label and the blank of _chipText
-      _closeAt.add(close == null ? -1 : 2 + mark.length + label.length);
+      // after the blank, the mark, the label and the blank of _chipText,
+      // held to it where asserts run
+      final closeAt = close == null ? -1 : 2 + mark.length + label.length;
+      assert(
+        close == null ||
+            closeAt == _chipText(label, mark: mark, close: null).length,
+        "the × at the end of _chipText's head",
+      );
+      _closeAt.add(closeAt);
       widths.add(
         segmenter.width(_chipText(label, mark: mark, close: close)),
       );

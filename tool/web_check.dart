@@ -427,12 +427,17 @@ Future<({bool ok, String output, Duration took})> _runApp(
   }
 
   killAfter(_load, "node did not reach the app's main");
+  var ended = false;
   unawaited(
-    started.future.then(
-      (_) => killAfter(bound, 'the app did not end within its bound'),
-    ),
+    started.future.then((_) {
+      // the stage line may come after the end: no timer then
+      if (!ended) {
+        killAfter(bound, 'the app did not end within its bound');
+      }
+    }),
   );
   final code = await exited;
+  ended = true;
   kill?.cancel();
   await Future.wait(done);
   return (ok: code == 0, output: output.toString(), took: watch.elapsed);

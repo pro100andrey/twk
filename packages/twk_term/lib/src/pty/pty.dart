@@ -229,6 +229,9 @@ final class Pty {
       }
     }
 
+    // the program once spawned, until a Pty answers for it
+    var spawnedPid = -1;
+    var spawnedPidfd = -1;
     try {
       if (c.pipe(wake) != 0) {
         fail('pipe', c.errno);
@@ -374,6 +377,8 @@ final class Pty {
           scope.strings(envp),
         ),
       );
+      spawnedPid = pid.value;
+      spawnedPidfd = pidfd.value;
       // macOS: the program's end told through a kqueue, whoever waits for
       // it (the VM does, while a Process of its own runs). It was made
       // suspended, so the watch is set before it runs and cannot miss its
@@ -394,6 +399,9 @@ final class Pty {
         width,
         height,
       );
+      // the Pty answers for the program from here on
+      spawnedPid = -1;
+      spawnedPidfd = -1;
       unawaited(
         Isolate.spawn(
           _ioLoop,
@@ -413,6 +421,14 @@ final class Pty {
       );
       return pty;
     } catch (_) {
+      // a program spawned that no Pty will answer for (suspended on
+      // macOS, which nothing would let run) is killed, not left behind
+      if (spawnedPid > 0 || spawnedPidfd >= 0) {
+        signalProcess(spawnedPid, spawnedPidfd, ProcessSignal.sigkill);
+      }
+      if (spawnedPidfd >= 0) {
+        c.close(spawnedPidfd);
+      }
       for (final fd in [master, wake[0], wake[1]]) {
         if (fd >= 0) {
           c.close(fd);

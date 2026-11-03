@@ -3,6 +3,8 @@
 // its descriptor says.
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
+import 'package:twk_core/twk_core.dart'
+    show PipelineOwner, RenderConstrainedBox, RenderObject;
 import 'package:twk_test/twk_test.dart';
 
 import '../text/ambiguous.dart';
@@ -274,5 +276,44 @@ void main() {
     expect(ThemeMarks.ramp(Glyphs.unicode.copyWith()), Glyphs.unicode.shades);
     expect(ThemeMarks.ramp(const Glyphs(shades: [])), Glyphs.ascii.shades);
     expect(ThemeMarks.ramp(const Glyphs(shades: ['#'])), [' ', '#']);
+  });
+
+  test("a render object's marks warn to its own pipeline, though another "
+      "object's asked for theirs after it", () {
+    final seg = TextSegmenter();
+    final logs = <String, List<String>>{'a': [], 'b': []};
+    RenderObject objectOf(String name) {
+      final object = RenderConstrainedBox(
+        additionalConstraints: const BoxConstraints(0, 1, 0, 1),
+      );
+      PipelineOwner(() {}, segmenter: seg)
+        ..onLog = (r) {
+          logs[name]!.add(r.message);
+        }
+        ..root = object;
+      return object;
+    }
+
+    final a = ThemeMarks.ofObject(objectOf('a'), seg);
+    ThemeMarks.ofObject(objectOf('b'), seg);
+    a.cell(Marks.cursor, Glyphs.unicode.copyWith(cursor: '日'));
+    expect(logs['a'], hasLength(1));
+    expect(logs['b'], isEmpty);
+  });
+
+  test("a render object's marks take their glyphs with each mark, and say "
+      'so where none are given', () {
+    final marks = ThemeMarks.ofObject(null, TextSegmenter());
+    expect(
+      () => marks.cell(Marks.cursor),
+      throwsA(
+        isA<ArgumentError>().having(
+          (e) => '$e',
+          'message',
+          contains('ThemeMarks.ofObject'),
+        ),
+      ),
+    );
+    expect(marks.cell(Marks.cursor, Glyphs.ascii), isNotNull);
   });
 }

@@ -310,7 +310,6 @@ final bool spawnMakesPidfd = !_macos && _process.providesSymbol('pidfd_spawn');
 /// before its id was read (the VM reaps every child while a Process
 /// runs): a pid that is not positive names no child, and kill(2) or
 /// waitpid(2) with it reaches every process the user owns or any child.
-
 int spawn(
   Pointer<Int> pid,
   Pointer<Int> pidfd,
