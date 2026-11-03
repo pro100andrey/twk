@@ -239,6 +239,33 @@ void main() {
       expect(terminal.screenLines, ['w', 'to the screen']);
     });
 
+    test('puts lines logged and written while it opens above it once it '
+        'is open, not past it to the sink', () async {
+      // on a real terminal the sink is stdout, which the opening session
+      // is flushing: a write to it then threw "StreamSink is bound to a
+      // stream"
+      final clock = FakeClock();
+      final terminal = FakeCliTerminal.interactive(
+        width: 30,
+        height: 6,
+        fakeClock: clock,
+      );
+      final cli = Cli(terminal: terminal);
+      final opening = cli.session();
+      cli
+        ..info('logged')
+        ..write('writ')
+        ..write('ten\n')
+        ..warn('warned');
+      final session = await _settle(clock, opening);
+      final live = session.mount(const Text('working…'));
+      await clock.elapse(_frame);
+      expect(terminal.screenLines, ['logged', 'written', 'warned', 'working…']);
+      expect(terminal.out.toString(), '');
+      live.remove();
+      await _settle(clock, cli.close());
+    });
+
     test('runs on the fake clock when given one', () async {
       final clock = FakeClock();
       final terminal = FakeCliTerminal.interactive(

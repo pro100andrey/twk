@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- A line `Cli` logs or writes while its inline session is still opening
+  (`cli.info` right after `cli.progress`) goes above the session once it is
+  open. It was written to stdout while the opening session flushed it, and
+  threw "StreamSink is bound to a stream".
 - In visual order, where a row of right-to-left text is drawn as it reads,
   a click finds the target drawn under it: the crumb of `Breadcrumbs`, the
   segment of `SegmentedButton`, the page of `Pagination`, the step of
