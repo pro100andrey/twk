@@ -4416,6 +4416,9 @@ final class TextPainter {
     }
     final end = _offsetAt(b);
     var from = _offsetAt(a);
+    final start = from;
+    // the last code unit of the line, which no cluster of it ends past
+    final last = end > start ? end - 1 : start;
     var to = from;
     var at = k;
     // where each cluster ends, walked in order: its span, where that
@@ -4444,7 +4447,14 @@ final class TextPainter {
         next = _firstOf(span + 1);
         x = _spanLead[span];
       }
-      while (unit >= to) {
+      assert(
+        unit >= start && unit <= last,
+        'cluster $i ends at $unit, outside the line [$start, $end)',
+      );
+      // within the line whatever the offsets say, so that the walk of
+      // paragraphs below ends: at worst a level read from the wrong unit
+      final u = unit < start ? start : (unit > last ? last : unit);
+      while (u >= to) {
         from = to;
         final p = _paragraphAt(from);
         final e = _paragraphEnd(p);
@@ -4452,7 +4462,7 @@ final class TextPainter {
         _lineLevelsOf(from, to, _paraLevels[p]);
       }
       _items[at] = i;
-      _itemLevels[at++] = _lineLevels[unit - from];
+      _itemLevels[at++] = _lineLevels[u - from];
     }
   }
 
