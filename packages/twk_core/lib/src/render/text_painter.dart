@@ -2270,6 +2270,21 @@ final class TextPainter {
       return _curS;
     }
     final f = _firstOf(k);
+    // the next or the one before, as a walk of a row asks for them
+    if (c == cur + 1 && cur >= f) {
+      final d = _advanceOf(cur);
+      if (d > 0) {
+        _curC = c;
+        return _curS += d;
+      }
+    } else if (c == cur - 1 && c >= f) {
+      // the one before of the same span: not its last
+      final d = _advanceOf(c);
+      if (d > 0) {
+        _curC = c;
+        return _curS -= d;
+      }
+    }
     final end = _firstOf(k + 1);
     if (cur >= f && cur < end && cur - c <= 8 && c - cur <= 8) {
       // near the one found last, as a walk of a row asks: from it
