@@ -488,6 +488,11 @@ int _room(int least, int had) {
   return least > more ? least : more;
 }
 
+/// Whether two pens are one: the same object, as a span kept from the
+/// spans before has, or equal.
+@pragma('vm:prefer-inline')
+bool _samePen(Pen a, Pen b) => identical(a, b) || a == b;
+
 /// The glyphs of [ellipsis], [width] columns as the canvas's segmenter
 /// measures them: the words themselves for one code point and for ASCII
 /// text, which can be kept; anything else is shaped by [canvas] (its ids
@@ -692,12 +697,47 @@ final class TextPainter {
       // split again where it changed
       _textStale = true;
       _reorders = null;
-      _pensIn = null;
+      _carryPens(old, s);
       _invalidate(TextInvalidation.layout);
     } else if (!samePens) {
-      _pensIn = null;
+      _carryPens(old, s);
       _invalidate(TextInvalidation.paint);
     }
+  }
+
+  /// Carries the ids of the pens of the spans [old] over to the new spans
+  /// [s] where their pens are as they were: those from the start and those
+  /// from the end that are the same pen as in [old], counted from that end.
+  /// Only the pens between, `[_pensFrom, _pensTo)`, are looked up when the
+  /// painter is painted next.
+  void _carryPens(List<(String, Pen)> old, List<(String, Pen)> s) {
+    if (_pensIn == null) {
+      return;
+    }
+    final n = s.length;
+    final m = old.length;
+    // the pens still to be looked up count as changed
+    final most = n < m ? n : m;
+    final prefixLimit = _pensFrom < most ? _pensFrom : most;
+    var p = 0;
+    while (p < prefixLimit && _samePen(s[p].$2, old[p].$2)) {
+      p++;
+    }
+    final keptAtEnd = m - _pensTo;
+    final suffixLimit = most - p < keptAtEnd ? most - p : keptAtEnd;
+    var q = 0;
+    while (q < suffixLimit && _samePen(s[n - 1 - q].$2, old[m - 1 - q].$2)) {
+      q++;
+    }
+    var ids = _penIds;
+    if (ids.length < n) {
+      ids = Int32List(_room(n, ids.length))..setRange(0, p, _penIds);
+    }
+    // the copy is from the old ids as they were where the two overlap
+    ids.setRange(n - q, n, _penIds, m - q);
+    _penIds = ids;
+    _pensFrom = p;
+    _pensTo = n - q;
   }
 
   TextWrap _wrap;
@@ -865,9 +905,13 @@ final class TextPainter {
   var _clustersSplit = 0;
   var _linesBroken = 0;
 
-  // the ids in _pensIn of the pens of the spans (null: to be looked up)
+  // the ids in _pensIn of the pens of the spans (null: to be looked up),
+  // but for those of [_pensFrom, _pensTo), new since (both the count of
+  // spans when none is)
   StyleTable? _pensIn;
   Int32List _penIds = _noInt32s;
+  var _pensFrom = 0;
+  var _pensTo = 0;
 
   // the lines laid out at _linesAt columns (-1: to be laid out again)
   var _linesAt = -1;
@@ -3414,17 +3458,22 @@ final class TextPainter {
 
   /// Looks the pens of the spans up in [styles] unless they were.
   void _resolvePens(StyleTable styles) {
+    var from = 0;
+    var to = _spans.length;
     if (identical(styles, _pensIn)) {
-      return;
+      from = _pensFrom;
+      to = _pensTo;
+    } else {
+      _pensIn = styles;
+      if (_penIds.length < to) {
+        _penIds = Int32List(_room(to, _penIds.length));
+      }
     }
-    _pensIn = styles;
-    final n = _spans.length;
-    if (_penIds.length < n) {
-      _penIds = Int32List(_room(n, _penIds.length));
+    final ids = _penIds;
+    for (var k = from; k < to; k++) {
+      ids[k] = styles.pen(_spans[k].$2);
     }
-    for (var k = 0; k < n; k++) {
-      _penIds[k] = styles.pen(_spans[k].$2);
-    }
+    _pensFrom = _pensTo = _spans.length;
   }
 
   /// Gives the clusters of several code points among [from, to) their
