@@ -79,7 +79,10 @@ Fixed:
   reads keys. Paused or closed, it reads nothing more from that moment,
   even while its isolate is still starting, and nothing of it keeps the
   process alive. A reading isolate that fails ends the input with a
-  `TerminalException`.
+  `TerminalException`. On Linux and macOS it reads what fd 0 has before it
+  waits, as dart:io does: a paste goes through faster than through
+  dart:io's `stdin` (8 MB through a pseudo-terminal in 67 ms, against 77),
+  a key as fast.
 
 ## 0.1.0
 

@@ -12,14 +12,17 @@ import 'link.dart' show TerminalException;
 
 /// How a platform reads its terminal's input in an isolate: a wake object
 /// made and signalled in the isolate that listens, and the loop the
-/// reading isolate runs, which waits on the input and the wake object at
-/// once and stops as soon as the wake object is signalled.
+/// reading isolate runs, which stops as soon as the wake object is
+/// signalled: a wait for input waits on the wake object too, and a read
+/// that doesn't wait looks at it (or at a flag of it that [signal] sets
+/// first) before it reads.
 ///
 /// The loop ([spawn]) is given the wake object and a port. It sends
 /// each chunk read as a [Uint8List], [inputEnded] once the input ends,
 /// or a [String] saying what failed, and returns after [inputEnded], a
-/// failure, or the wake object signalled; it reads nothing once the wake
-/// object is signalled, which it looks at first.
+/// failure, or the wake object signalled; once it has seen the wake
+/// object signalled it reads nothing more (a read it had begun before
+/// ends, and its bytes are sent).
 ///
 /// [W] is the wake object, which is sent to the reading isolate: of ints
 /// (file descriptors, a handle's address).
