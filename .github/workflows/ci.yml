@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        noflsh: ['0', '1']
+        noflsh: ['0', '0b']
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:

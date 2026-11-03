@@ -224,22 +224,21 @@ void main() {
       environment: {'PS1': r'$ '},
     );
     await run.waitFor(r'$ ');
-    if (Platform.environment['PROBE_NOFLSH'] == '1') {
-      // PROBE: no flush at a signal character
-      run.pty.write(utf8.encode('stty noflsh\r'));
-      await run.waitFor('stty noflsh\r\n');
-      await run.waitFor(r'$ ', from: run.text.indexOf('stty noflsh\r\n'));
-    }
-    run.pty.write(utf8.encode('echo started; sleep 30\r'));
+    // The job says that it runs: bash makes a foreground job the terminal's
+    // foreground group in its child, before the exec, so once it has printed
+    // the one Ctrl+Z reaches it. None is typed again: each signal character
+    // drops the output the terminal has not passed on yet (no NOFLSH), which
+    // took bash's job line and prompt on a busy CI runner, 3 runs in 100,
+    // when one was typed a millisecond until the prompt showed.
+    run.pty.write(
+      utf8.encode("sh -c 'echo started; read x; echo \"got \$x\"'\r"),
+    );
     await run.waitFor('started\r\n');
-    // Again until it is the job that gets it, not bash before the job runs:
     // the prompt is back once the job stopped (bash's own line saying so may
-    // come later or not at all), and `jobs` lists it stopped.
+    // come later or not at all), and `jobs` lists it stopped
     var at = run.text.length;
-    await run.until(() {
-      run.type([0x1a]);
-      return run.text.contains(r'$ ', at);
-    }, 'the job to stop');
+    run.type([0x1a]);
+    await run.until(() => run.text.contains(r'$ ', at), 'the job to stop');
     expect(run.text, isNot(contains('no job control')));
     at = run.text.length;
     run.pty.write(utf8.encode('jobs\r'));
@@ -247,12 +246,16 @@ void main() {
     await run.waitFor(r'$ ', from: run.text.indexOf('Stopped', at));
     at = run.text.length;
     run.pty.write(utf8.encode('fg\r'));
-    await run.waitFor('sleep 30\r\n', from: at);
+    // fg names the job, then gives it the terminal and continues it; the
+    // line typed waits for its read, which ends it
+    await run.waitFor('got \$x"\'\r\n', from: at);
     at = run.text.length;
-    await run.until(() {
-      run.type([0x03]);
-      return run.text.contains(r'$ ', at);
-    }, 'the job to end');
+    run.type(utf8.encode('line\r'));
+    await run.waitFor('got line\r\n', from: at);
+    await run.until(
+      () => run.text.contains(r'$ ', run.text.indexOf('got line', at)),
+      'the job to end',
+    );
     run.pty.write(
       utf8.encode(
         // BSD's wc pads the count
