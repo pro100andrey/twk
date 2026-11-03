@@ -7,8 +7,7 @@ library;
 
 import 'dart:ffi';
 
-const _stdInputHandle = -10;
-const _stdOutputHandle = -11;
+import '../platform/kernel32.dart';
 
 // input modes
 const _enableProcessedInput = 0x0001;
@@ -26,17 +25,6 @@ const _enableVirtualTerminalProcessing = 0x0004;
 const _disableNewlineAutoReturn = 0x0008;
 
 const _cpUtf8 = 65001;
-const _lptr = 0x0040; // LMEM_ZEROINIT | LMEM_FIXED
-
-typedef _GetStdHandleD = Pointer<Void> Function(int);
-typedef _GetModeD = int Function(Pointer<Void>, Pointer<Uint32>);
-typedef _SetModeD = int Function(Pointer<Void>, int);
-typedef _GetCpC = Uint32 Function();
-typedef _GetCpD = int Function();
-typedef _SetCpC = Int32 Function(Uint32);
-typedef _SetCpD = int Function(int);
-typedef _LocalAllocD = Pointer<Void> Function(int, int);
-typedef _LocalFreeD = Pointer<Void> Function(Pointer<Void>);
 
 /// The modes of the process's Windows console that a terminal app needs,
 /// and the console's own to put back.
@@ -47,45 +35,13 @@ typedef _LocalFreeD = Pointer<Void> Function(Pointer<Void>);
 final class WindowsConsole {
   /// The console of this process, through kernel32; throws
   /// [ArgumentError] where kernel32 can't be opened (not on Windows).
-  factory WindowsConsole() =>
-      WindowsConsole._(DynamicLibrary.open('kernel32.dll'));
+  factory WindowsConsole() => WindowsConsole._(
+    kernel32 ?? (throw ArgumentError('kernel32 can not be opened')),
+  );
 
-  WindowsConsole._(DynamicLibrary k32)
-    : _getStdHandle = k32
-          .lookupFunction<Pointer<Void> Function(Int32), _GetStdHandleD>(
-            'GetStdHandle',
-          ),
-      _getMode = k32
-          .lookupFunction<
-            Int32 Function(Pointer<Void>, Pointer<Uint32>),
-            _GetModeD
-          >('GetConsoleMode'),
-      _setMode = k32
-          .lookupFunction<Int32 Function(Pointer<Void>, Uint32), _SetModeD>(
-            'SetConsoleMode',
-          ),
-      _getOutCp = k32.lookupFunction<_GetCpC, _GetCpD>('GetConsoleOutputCP'),
-      _setOutCp = k32.lookupFunction<_SetCpC, _SetCpD>('SetConsoleOutputCP'),
-      _getInCp = k32.lookupFunction<_GetCpC, _GetCpD>('GetConsoleCP'),
-      _setInCp = k32.lookupFunction<_SetCpC, _SetCpD>('SetConsoleCP'),
-      _localAlloc = k32
-          .lookupFunction<Pointer<Void> Function(Uint32, IntPtr), _LocalAllocD>(
-            'LocalAlloc',
-          ),
-      _localFree = k32
-          .lookupFunction<Pointer<Void> Function(Pointer<Void>), _LocalFreeD>(
-            'LocalFree',
-          );
+  WindowsConsole._(this._k);
 
-  final _GetStdHandleD _getStdHandle;
-  final _GetModeD _getMode;
-  final _SetModeD _setMode;
-  final _GetCpD _getOutCp;
-  final _SetCpD _setOutCp;
-  final _GetCpD _getInCp;
-  final _SetCpD _setInCp;
-  final _LocalAllocD _localAlloc;
-  final _LocalFreeD _localFree;
+  final Kernel32 _k;
 
   int? _origIn;
   int? _origOut;
@@ -93,11 +49,11 @@ final class WindowsConsole {
   int? _origInCp;
 
   int? _mode(Pointer<Void> h) {
-    final p = _localAlloc(_lptr, 4).cast<Uint32>();
+    final p = _k.alloc(4).cast<Uint32>();
     try {
-      return _getMode(h, p) != 0 ? p.value : null;
+      return _k.getConsoleMode(h, p) != 0 ? p.value : null;
     } finally {
-      _localFree(p.cast());
+      _k.free(p.cast());
     }
   }
 
@@ -105,22 +61,22 @@ final class WindowsConsole {
   /// the handles aren't consoles (redirected) or VT isn't available
   /// (Windows < 10 1809).
   bool enable() {
-    final hin = _getStdHandle(_stdInputHandle);
-    final hout = _getStdHandle(_stdOutputHandle);
+    final hin = _k.getStdHandle(stdInputHandle);
+    final hout = _k.getStdHandle(stdOutputHandle);
     _origIn = _mode(hin);
     _origOut = _mode(hout);
     if (_origIn == null || _origOut == null) {
       return false;
     }
-    _origOutCp = _getOutCp();
-    _origInCp = _getInCp();
+    _origOutCp = _k.getConsoleOutputCP();
+    _origInCp = _k.getConsoleCP();
 
     final outMode =
         _origOut! |
         _enableProcessedOutput |
         _enableVirtualTerminalProcessing |
         _disableNewlineAutoReturn;
-    if (_setMode(hout, outMode) == 0) {
+    if (_k.setConsoleMode(hout, outMode) == 0) {
       return false;
     }
 
@@ -132,31 +88,31 @@ final class WindowsConsole {
             _enableQuickEditMode | // would swallow mouse clicks
             _enableWindowInput |
             _enableMouseInput); // mouse arrives as VT sequences instead
-    if (_setMode(hin, inMode) == 0) {
-      _setMode(hout, _origOut!);
+    if (_k.setConsoleMode(hin, inMode) == 0) {
+      _k.setConsoleMode(hout, _origOut!);
       return false;
     }
-    _setOutCp(_cpUtf8);
-    _setInCp(_cpUtf8);
+    _k.setConsoleOutputCP(_cpUtf8);
+    _k.setConsoleCP(_cpUtf8);
     return true;
   }
 
   /// Puts back the modes and code pages [enable] found; nothing for those
   /// it didn't read.
   void restore() {
-    final hin = _getStdHandle(_stdInputHandle);
-    final hout = _getStdHandle(_stdOutputHandle);
+    final hin = _k.getStdHandle(stdInputHandle);
+    final hout = _k.getStdHandle(stdOutputHandle);
     if (_origIn != null) {
-      _setMode(hin, _origIn!);
+      _k.setConsoleMode(hin, _origIn!);
     }
     if (_origOut != null) {
-      _setMode(hout, _origOut!);
+      _k.setConsoleMode(hout, _origOut!);
     }
     if (_origOutCp != null) {
-      _setOutCp(_origOutCp!);
+      _k.setConsoleOutputCP(_origOutCp!);
     }
     if (_origInCp != null) {
-      _setInCp(_origInCp!);
+      _k.setConsoleCP(_origInCp!);
     }
   }
 }

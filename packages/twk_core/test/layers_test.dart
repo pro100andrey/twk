@@ -200,4 +200,34 @@ void main() {
       expect(extra, isEmpty);
     });
   });
+  group('package:twk_core/libc.dart', () {
+    final exports = _exports('libc.dart');
+
+    test('reaches the platform layer only', () {
+      final platform = _layers.indexWhere((l) => l.$1 == 'platform');
+      final reached = <String>{};
+      final pending = [...exports.keys];
+      while (pending.isNotEmpty) {
+        final path = pending.removeLast();
+        if (reached.add(path)) {
+          pending.addAll(imports[path] ?? const {});
+        }
+      }
+      expect(reached, contains('platform/libc.dart'));
+      final other = [
+        for (final path in reached)
+          if (_layerOf(path) != platform) '$path (${_nameOf(path)})',
+      ]..sort();
+      expect(other, isEmpty);
+    });
+
+    test('is no part of package:twk_core/twk_core.dart, which compiles for '
+        'the web', () {
+      expect(_exports('twk_core.dart'), isNot(contains('platform/libc.dart')));
+      expect(
+        _exports('terminal.dart'),
+        isNot(contains('platform/libc.dart')),
+      );
+    });
+  });
 }

@@ -114,6 +114,15 @@ Future<void> main() async {
 }
 ```
 
+### libc
+
+`package:twk_core/libc.dart` is the libc calls twk's packages share on
+Linux and macOS, bound through `dart:ffi`: `poll`, `read`, `write`,
+`pipe`, `close`, `ioctl` with `FIONREAD`, `tcgetattr` and `tcsetattr`,
+`calloc` and `free`, and `errno`. The core reads the process's terminal
+with them, and twk_term's `Pty` drives a pseudo-terminal with them. It is
+no part of `twk_core.dart`, which compiles for the web too.
+
 ## Testing
 
 `HeadlessTerminal` is a terminal in memory to run an app on in a test, and

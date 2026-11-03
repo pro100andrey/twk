@@ -9,13 +9,9 @@ library;
 import 'dart:ffi';
 import 'dart:io';
 
-typedef _TcGetAttrD = int Function(int, Pointer<Uint8>);
-typedef _TcSetAttrD = int Function(int, int, Pointer<Uint8>);
-typedef _MallocD = Pointer<Void> Function(int);
-typedef _FreeD = void Function(Pointer<Void>);
+import '../platform/libc.dart' as c;
 
 const _stdinFd = 0;
-const _tcsanow = 0;
 
 /// Bigger than `struct termios` on every supported platform.
 const _termiosBytes = 256;
@@ -33,41 +29,22 @@ final class PosixTty {
     this._isig,
     this._ixon,
     this._eraseOffset,
-    DynamicLibrary c,
-  ) : _tcgetattr = c
-          .lookupFunction<Int32 Function(Int32, Pointer<Uint8>), _TcGetAttrD>(
-            'tcgetattr',
-          ),
-      _tcsetattr = c
-          .lookupFunction<
-            Int32 Function(Int32, Int32, Pointer<Uint8>),
-            _TcSetAttrD
-          >('tcsetattr'),
-      _malloc = c.lookupFunction<Pointer<Void> Function(IntPtr), _MallocD>(
-        'malloc',
-      ),
-      _free = c.lookupFunction<Void Function(Pointer<Void>), _FreeD>('free');
+  );
 
   /// Returns the termios of stdin, with the flag layout of this platform's
   /// `struct termios`, or null where it isn't known (not Linux, Android or
-  /// macOS) or libc can't be reached.
+  /// macOS).
   static PosixTty? forStdin() {
     final linux = Platform.isLinux || Platform.isAndroid;
     if (!linux && !Platform.isMacOS) {
       return null;
     }
-    final c = DynamicLibrary.process();
-    for (final symbol in ['tcgetattr', 'tcsetattr', 'malloc', 'free']) {
-      if (!c.providesSymbol(symbol)) {
-        return null;
-      }
-    }
     return linux
         // four 32-bit tcflag_t (c_iflag first, c_lflag fourth), c_line, then
         // c_cc with VERASE at index 2
-        ? PosixTty._(4, 12, 0x1, 0x400, 17 + 2, c)
+        ? PosixTty._(4, 12, 0x1, 0x400, 17 + 2)
         // four 64-bit tcflag_t (unsigned long), then c_cc with VERASE at 3
-        : PosixTty._(8, 24, 0x80, 0x200, 32 + 3, c);
+        : PosixTty._(8, 24, 0x80, 0x200, 32 + 3);
   }
 
   /// c_iflag is the first field everywhere; ICRNL has the same value.
@@ -79,10 +56,6 @@ final class PosixTty {
   final int _isig;
   final int _ixon;
   final int _eraseOffset;
-  final _TcGetAttrD _tcgetattr;
-  final _TcSetAttrD _tcsetattr;
-  final _MallocD _malloc;
-  final _FreeD _free;
 
   /// The bits [enterRaw] cleared, as they were; null when nothing to
   /// restore.
@@ -122,12 +95,12 @@ final class PosixTty {
   /// the erase character, or null when the terminal attributes couldn't be
   /// read or written.
   (int, int, int)? _update((int, int) Function(int iflag, int lflag) change) {
-    final p = _malloc(_termiosBytes).cast<Uint8>();
-    if (p.address == 0) {
+    final p = c.calloc(1, _termiosBytes).cast<Uint8>();
+    if (p == nullptr) {
       return null;
     }
     try {
-      if (_tcgetattr(_stdinFd, p) != 0) {
+      if (c.tcgetattr(_stdinFd, p.cast()) != 0) {
         return null;
       }
       final iflag = _read(p, _iflagOffset);
@@ -139,9 +112,9 @@ final class PosixTty {
       }
       _write(p, _iflagOffset, now.$1);
       _write(p, _lflagOffset, now.$2);
-      return _tcsetattr(_stdinFd, _tcsanow, p) == 0 ? old : null;
+      return c.tcsetattr(_stdinFd, c.tcsanow, p.cast()) == 0 ? old : null;
     } finally {
-      _free(p.cast());
+      c.free(p.cast());
     }
   }
 

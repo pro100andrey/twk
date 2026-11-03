@@ -13,6 +13,8 @@ import 'dart:ffi';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:twk_core/libc.dart' as c;
+
 /// The file a path names: `stat`'s `st_dev` and `st_ino`.
 typedef FileIdentity = ({int device, int inode});
 
@@ -27,40 +29,31 @@ FileIdentity? fileIdentity(String path) => _stat?.of(path);
 final _Stat? _stat = Platform.isMacOS ? _Stat.open() : null;
 
 typedef _StatD = int Function(Pointer<Uint8>, Pointer<Uint8>);
-typedef _MallocD = Pointer<Uint8> Function(int);
-typedef _FreeD = void Function(Pointer<Uint8>);
 
-/// macOS's `stat` with 64-bit inodes, and the memory it writes into.
+/// macOS's `stat` with 64-bit inodes, the memory it writes into taken from
+/// the core's libc.
 final class _Stat {
-  _Stat._(DynamicLibrary c, String symbol)
-    : _call = c
+  _Stat._(DynamicLibrary libc, String symbol)
+    : _call = libc
           .lookupFunction<
             Int32 Function(Pointer<Uint8>, Pointer<Uint8>),
             _StatD
-          >(
-            symbol,
-          ),
-      _malloc = c.lookupFunction<Pointer<Uint8> Function(IntPtr), _MallocD>(
-        'malloc',
-      ),
-      _free = c.lookupFunction<Void Function(Pointer<Uint8>), _FreeD>('free');
+          >(symbol);
 
-  /// libc's, or null where a symbol is missing. x86_64 names the `stat` of
-  /// 64-bit inodes `stat$INODE64`; arm64 has that one alone, as `stat`.
+  /// libc's, or null where it has none. x86_64 names the `stat` of 64-bit
+  /// inodes `stat$INODE64`; arm64 has that one alone, as `stat`: a symbol
+  /// of its own, so looked up here rather than bound by the core.
   static _Stat? open() {
-    final c = DynamicLibrary.process();
-    final symbol = c.providesSymbol(r'stat$INODE64') ? r'stat$INODE64' : 'stat';
-    for (final name in [symbol, 'malloc', 'free']) {
-      if (!c.providesSymbol(name)) {
-        return null;
+    final libc = DynamicLibrary.process();
+    for (final symbol in [r'stat$INODE64', 'stat']) {
+      if (libc.providesSymbol(symbol)) {
+        return _Stat._(libc, symbol);
       }
     }
-    return _Stat._(c, symbol);
+    return null;
   }
 
   final _StatD _call;
-  final _MallocD _malloc;
-  final _FreeD _free;
 
   /// The room for `struct stat`, 144 bytes on macOS, with some to spare;
   /// the path follows it, so the struct is at the aligned start.
@@ -68,7 +61,7 @@ final class _Stat {
 
   FileIdentity? of(String path) {
     final name = utf8.encode(path);
-    final memory = _malloc(_room + name.length + 1);
+    final memory = c.calloc(1, _room + name.length + 1).cast<Uint8>();
     if (memory == nullptr) {
       return null;
     }
@@ -87,7 +80,7 @@ final class _Stat {
         inode: bytes.getUint64(8, Endian.host),
       );
     } finally {
-      _free(memory);
+      c.free(memory.cast());
     }
   }
 }
