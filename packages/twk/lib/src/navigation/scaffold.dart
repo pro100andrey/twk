@@ -16,7 +16,6 @@ import '../gestures/mouse.dart';
 import '../layout/basic.dart';
 import '../layout/box.dart';
 import '../layout/flex.dart';
-import '../style/glyphs.dart' show textMark;
 import '../style/style.dart';
 import '../text/widgets.dart';
 
@@ -744,7 +743,7 @@ final class _ScaffoldState extends State<Scaffold> {
               }
             },
             child: Text(
-              textMark(context, 'menu', Theme.of(context).glyphs.menu, '='),
+              ThemeMarks.of(context).text(Marks.menu),
             ),
           );
     return Box(

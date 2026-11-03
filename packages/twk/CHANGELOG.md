@@ -2,6 +2,55 @@
 
 ## Unreleased
 
+- In visual order, where a row of right-to-left text is drawn as it reads,
+  a click finds the target drawn under it: the crumb of `Breadcrumbs`, the
+  segment of `SegmentedButton`, the page of `Pagination`, the step of
+  `Stepper`, the arrow of `ValueStepper`, the key of a pressable
+  `KeyHintsBar`, and a `ChipList` chip's `×`, which a click on the label
+  took for it while the `×` was drawn on the left. They found it in a table
+  of columns summed in stored order; they now ask the row's paragraph which
+  text it drew there (`RenderParagraph.cellAt`). The hidden cursor rests
+  on the active one where it is drawn too: `ActiveItem(text: (start, end))`
+  rests it on the first cell its child `Text` draws of that text, found at
+  each layout, as `column` gives a fixed one.
+
+- The drawn mark of a theme field is one module: `Marks` (a `CellMark` or
+  `TextMark` descriptor for each mark of `Glyphs`) and `ThemeMarks`
+  (`ThemeMarks.of(context).text(Marks.close)`; in a render object
+  `ThemeMarks.ofObject(this, canvas.segmenter).cell(Marks.cursor, glyphs)`),
+  which keeps the one width rule (a mark is used only where it is one column
+  and one code point, else it is `Glyphs.ascii`'s), a cache for each
+  segmenter and the one warning for each (field, glyph). `Glyphs` stays
+  plain strings. The helpers `cellRune`, `optionalCellRune`, `textMark`,
+  `checkboxMarks`, `switchMarks`, `radioMarks`, `buttonEdgeMarks` and
+  `lineMark` (internal, hidden from the exports) and `rampOf` are gone, as
+  are the private copies of the rule in the charts, the dot grid, the
+  skeleton, the scrollbar, the menu, the split, the window and twk_rich.
+  Behaviour that the one rule changes:
+  - a mark in text is checked wherever it is drawn: the close of a `Chip`,
+    `Callout` and `Window`, the arrows of a `ValueStepper`, a `Pagination`
+    (`previous`, `next`), the `separator` and `check` of a
+    `SegmentedButton`, the `up` and `down` of a `NumberInput`, a `Select`
+    and a `DatePicker`, the kind icons of a `StatusMessage`, a `Callout` and
+    a toast, the `cursor` of a list and a file picker, the `expanded` and
+    `collapsed` of an `ExpansionTile`, the `next` of `Breadcrumbs`, the
+    `bullet` mask of a `TextField`, the radio brackets, and the marks of
+    twk_rich's markdown (bullets, checkboxes, quote bar, table borders and
+    lines) and diff; one that is two columns wide is the ASCII one, with one
+    warning, where it was drawn as it was and shifted the row;
+  - the dash drawn as text in a row (a `Stepper`, a `Callout`'s title, a
+    raised `Window`'s minimise) is ASCII where the line is not one column;
+  - a `Window`'s focus mark with an empty `cursor` draws nothing, where it
+    drew `>`; a `Slider` with an empty `trackHorizontal` draws a blank, where
+    it drew `-`, as a `Scrollbar` does;
+  - a `SkeletonTheme(glyph:)` or a light shade that is not one column wide is
+    the ASCII shade `.` (with one warning), where the skeleton drew a blank
+    in reverse video;
+  - `LineGauge(type:)` under `Glyphs.ascii` (lines ASCII) is ASCII, as the
+    docs of `Glyphs` said: the ASCII theme beats a widget's `BorderType`;
+  - a `Split` and a menu keep a border type whose pieces are all one column
+    (as the charts do), where they kept it by the terminal's ambiguous
+    width.
 - `FocusNode.takesText` (and `Focus(takesText:)`) says that a node takes the
   keys that are characters as text: `TextField` and `TextArea` say it unless
   read-only. `FocusManagerKeys.activeKeys`, so a `KeyHintsBar` and

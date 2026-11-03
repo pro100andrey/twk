@@ -35,7 +35,6 @@ import '../layout/flex.dart';
 import '../layout/one_child.dart';
 import '../scroll/list_view.dart';
 import '../scroll/scrollable.dart' show ScrollPhysics;
-import '../style/glyphs.dart' show cellRune, textMark;
 import '../style/style.dart';
 import '../text/widgets.dart';
 import 'chart_glyphs.dart';
@@ -1479,23 +1478,12 @@ final class _RenderTreeRow extends RenderObject
       }
     }
     if (mark == _Mark.collapsed || mark == _Mark.expanded) {
-      canvas.fill(
-        level * 2,
-        0,
-        1,
-        1,
-        _style.penIn(styles),
-        cellRune(
-          this,
-          mark == _Mark.expanded ? 'expanded' : 'collapsed',
-          mark == _Mark.expanded ? _set.expanded : _set.collapsed,
-          mark == _Mark.expanded
-              ? Glyphs.ascii.expanded
-              : Glyphs.ascii.collapsed,
-          canvas.segmenter,
-          blankIfEmpty: true,
-        ),
+      // an empty mark is a blank, as the row keeps its width
+      final sign = ThemeMarks.ofObject(this, canvas.segmenter).cell(
+        mark == _Mark.expanded ? Marks.expanded : Marks.collapsed,
+        _set,
       );
+      canvas.fill(level * 2, 0, 1, 1, _style.penIn(styles), sign ?? 0x20);
     }
     if (child case final child?) {
       paintChild(ctx, child);

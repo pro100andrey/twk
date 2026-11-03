@@ -25,7 +25,6 @@ import '../framework/framework.dart';
 import '../gestures/mouse.dart';
 import '../layout/child_list.dart';
 import '../semantics/semantics.dart';
-import '../style/glyphs.dart' show cellRune;
 import '../style/style.dart';
 import 'hand.dart';
 
@@ -621,6 +620,7 @@ final class _RenderTabBar extends RenderObject {
         ..text(x + 1, 0, _tabs[i], pen);
     }
     final mark = tab.penIn(styles);
+    final marks = ThemeMarks.ofObject(this, canvas.segmenter);
     if (_offset > 0) {
       canvas.fill(
         0,
@@ -628,14 +628,7 @@ final class _RenderTabBar extends RenderObject {
         1,
         1,
         mark,
-        cellRune(
-          this,
-          'previous',
-          _glyphs.previous,
-          Glyphs.ascii.previous,
-          canvas.segmenter,
-          blankIfEmpty: true,
-        ),
+        marks.cell(Marks.previous, _glyphs)!,
       );
     }
     if (_offset + width < _total) {
@@ -645,14 +638,7 @@ final class _RenderTabBar extends RenderObject {
         1,
         1,
         mark,
-        cellRune(
-          this,
-          'next',
-          _glyphs.next,
-          Glyphs.ascii.next,
-          canvas.segmenter,
-          blankIfEmpty: true,
-        ),
+        marks.cell(Marks.next, _glyphs)!,
       );
     }
   }

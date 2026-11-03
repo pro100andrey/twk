@@ -605,7 +605,7 @@ final class _Grid extends LeafRenderObjectWidget {
   void updateRenderObject(BuildContext context, RenderHeatmap renderObject) {
     final w = state.widget;
     final glyphs = Theme.of(context).glyphs;
-    final shades = rampOf(glyphs.shades);
+    final shades = ThemeMarks.ramp(glyphs);
     final swatch = glyphs.swatch;
     state._grid = renderObject
       ..rows = w.rows
@@ -1394,7 +1394,7 @@ final class ActivityHeatmap extends StatelessWidget {
   // the default scale in [glyphs]: the shades with a mark for no count,
   // `·` in the shades of Glyphs.unicode, `-` in the others
   static HeatmapScale _scaleIn(Glyphs glyphs) {
-    final shades = rampOf(glyphs.shades);
+    final shades = ThemeMarks.ramp(glyphs);
     if (shades.first.trim().isNotEmpty) {
       return HeatmapShades(shades);
     }

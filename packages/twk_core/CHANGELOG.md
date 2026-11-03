@@ -21,6 +21,14 @@ Breaking:
   one. `StyleId.base` is the style of all defaults, where 0 was. The type
   is erased: no cost at run time.
 
+Added:
+
+- `RenderParagraph.columnsOf(start, end, y)`, the reverse of `textRangeAt`:
+  the columns of a row that draw a range of the text, as the last layout
+  placed it (reordered in visual order, cut, justified), or null where none
+  does. `cellAt` and it walk a row in one walk, so they read one model of
+  it.
+
 ## 0.1.0
 
 The first release.

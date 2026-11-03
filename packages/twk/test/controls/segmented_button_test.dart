@@ -416,18 +416,18 @@ void main() {
   });
 
   group('where │ and … are two columns wide (ambiguous width 2)', () {
-    test('a click hits the segment drawn where it is, not one a column '
-        'off for each │ before it', () async {
+    test('a click hits the segment drawn where it is, with the ASCII line '
+        'between the segments', () async {
       final on = ValueNotifier({'all'});
       final changes = <Set<String>>[];
       final app = await WideApp.start(segmented(on, changes: changes));
-      expect(app.lines().first, '[ All │ Errors (3) │ Warnings (12) │ Info ]');
-      // the second column of the │ after Errors (3)
-      await app.click(21, 0);
+      expect(app.lines().first, '[ All | Errors (3) | Warnings (12) | Info ]');
+      // the | after Errors (3)
+      await app.click(19, 0);
       expect(changes, isEmpty);
       // the blank after Warnings (12), the blank after Errors (3)
-      await app.click(36, 0);
-      await app.click(19, 0);
+      await app.click(34, 0);
+      await app.click(18, 0);
       expect(changes, [
         {'warnings'},
         {'errors'},
@@ -435,8 +435,8 @@ void main() {
       await app.quit();
     });
 
-    test('labels cut off fit the row, the lines and the ellipsis two '
-        'columns each', () async {
+    test('labels cut off fit the row, the ellipsis two columns, the lines '
+        'ASCII', () async {
       final on = ValueNotifier({'all'});
       final app = await WideApp.start(
         Row(
@@ -446,7 +446,7 @@ void main() {
         ),
       );
       final row = app.lines().first;
-      expect(row, startsWith('[ All │ '));
+      expect(row, startsWith('[ All | '));
       expect(row, contains('…'));
       expect(row, endsWith(' ]'));
       await app.quit();

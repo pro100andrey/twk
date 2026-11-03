@@ -54,7 +54,8 @@ void main() {
         ),
         size: (8, 1),
       );
-      expect(t.lines, ['----#---']);
+      // an empty track is a blank, an empty thumb Glyphs.ascii's
+      expect(t.lines, ['    #']);
     });
 
     testTwk('a TreeView with no expanded or collapsed mark draws', (t) async {
@@ -109,8 +110,8 @@ void main() {
       expect(t.lines.first.runes, isNot(contains(0xFFFD)));
     });
 
-    testTwk('a chip is removed by a click on a close mark two columns wide '
-        'as on its blank, not before', (t) async {
+    testTwk('a chip with a close mark two columns wide shows the ASCII one, '
+        'and is removed by a click on it', (t) async {
       final removed = <String>[];
       await t.pumpWidget(
         themed(
@@ -123,8 +124,8 @@ void main() {
         ),
         size: (14, 1),
       );
-      // ' ab 全 ': 0 blank, 1-2 ab, 3 blank, 4-5 the mark, 6 blank
-      expect(t.lines.first.trimRight(), ' ab 全');
+      // ' ab x ': 0 blank, 1-2 ab, 3 blank, 4 the mark, 5 blank
+      expect(t.lines.first.trimRight(), ' ab x');
       await t.click(4, 0);
       await t.pump();
       expect(removed, ['a']);

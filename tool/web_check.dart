@@ -9,7 +9,10 @@
 // Each case has a bound, set here and nowhere else: its app is handed it
 // as its one argument, in milliseconds, to stop at and say where it
 // stopped, and the run is killed [_exit] after it, so what the app says
-// is in the output.
+// is in the output. The bound starts when the app's main does: node's
+// start and the build's load and compile before it have a bound of their
+// own, [_load], and a run stopped anywhere says the last stage it
+// reached.
 //
 //   dart run tool/web_check.dart            # every case
 //   dart run tool/web_check.dart core       # these only
@@ -29,6 +32,7 @@
 // that failed or what it found following, indented. Exit status 1 when a
 // case failed; 2 when none failed but one was not run (no node, or one too
 // old), which is no pass; 64 for an unknown case.
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -40,10 +44,21 @@ const _forbidden = ['io', 'ffi', 'isolate', 'mirrors'];
 /// The oldest node with WasmGC on by default.
 const _nodeMajor = 22;
 
-/// How long a run may go on after its app's bound: node to start and load
-/// the build before the app's clock starts, the app to say where it
+/// How long a run may go on after its app's bound: the app to say where it
 /// stopped and node to exit.
 const _exit = Duration(seconds: 10);
+
+/// How long node may take to start and to load, compile and instantiate a
+/// build, before its app's main and the app's bound start: the 10 s it had
+/// when one bound counted both. A run on windows-latest once ended at that
+/// bound saying nothing, its cause not found; the stages are there to say
+/// where the next one stops, not to wait it out.
+const _load = Duration(seconds: 10);
+
+/// What the runner writes to stderr before each of its stages, the stage
+/// after it; [_mainStage] last, as the app's main is called.
+const _stage = 'web_check stage: ';
+const _mainStage = 'main';
 
 /// An app to compile: [entry], relative to the root; its packages are
 /// those [package] resolves with (`_packageConfig`). [prelude], a
@@ -100,15 +115,29 @@ const _cases = [
 /// case's bound, in milliseconds:
 /// `node run.mjs app.mjs app.wasm bound [prelude.mjs]`. The modules by
 /// their file: URLs, which an import takes on Windows too, where a path
-/// (`C:\...`) reads as a URL of the scheme `c:`.
-const _runner = '''
+/// (`C:\...`) reads as a URL of the scheme `c:`. Before each stage it
+/// writes [_stage] and the stage to stderr, at once (`writeSync`, which a
+/// kill does not lose, as it may a `console` write to a pipe on Windows).
+const _runner =
+    '''
+import { writeSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
+const stage = (s) => writeSync(2, '$_stage' + s + '\\n');
 const [mjs, wasm, bound, prelude] = process.argv.slice(2);
-if (prelude) await import(pathToFileURL(prelude).href);
+if (prelude) {
+  stage('prelude');
+  await import(pathToFileURL(prelude).href);
+}
+stage('import');
 const app = await import(pathToFileURL(mjs).href);
-const compiled = await app.compile(await readFile(wasm));
+stage('read');
+const bytes = await readFile(wasm);
+stage('compile');
+const compiled = await app.compile(bytes);
+stage('instantiate');
 const instance = await compiled.instantiate({});
+stage('$_mainStage');
 instance.invokeMain(bound);
 ''';
 
@@ -237,16 +266,16 @@ Future<_Outcome> _check(
     return found.isEmpty ? _Outcome.skipped : _Outcome.failed;
   }
   final runner = File('${out.path}/run.mjs')..writeAsStringSync(_runner);
-  final run = await _run(node, [
+  final run = await _runApp(node, [
     runner.path,
     '${out.path}/app.mjs',
     '${out.path}/app.wasm',
     '${c.bound.inMilliseconds}',
     if (c.prelude case final prelude?) '$root/$prelude',
-  ], timeout: c.bound + _exit);
+  ], c.bound + _exit);
   final lines = const LineSplitter()
       .convert(run.output)
-      .where((l) => l.trim().isNotEmpty);
+      .where((l) => l.trim().isNotEmpty && !l.startsWith(_stage));
   final ran = run.ok && lines.isNotEmpty && lines.last == 'done';
   say('run', ran ? 'ok' : 'FAILED', run.took, ran ? '' : run.output);
   return found.isEmpty && ran ? _Outcome.passed : _Outcome.failed;
@@ -350,6 +379,66 @@ Future<({bool ok, String output, Duration took})> _run(
       return -1;
     },
   );
+  await Future.wait(done);
+  return (ok: code == 0, output: output.toString(), took: watch.elapsed);
+}
+
+/// What running a build with [node] and the runner's [args] gave, as
+/// [_run] tells it: killed [_load] after its start while the runner has
+/// not reached the app's main, or [bound] after it did, saying in the
+/// output which bound it was and the last stage the runner reached.
+Future<({bool ok, String output, Duration took})> _runApp(
+  String node,
+  List<String> args,
+  Duration bound,
+) async {
+  final watch = Stopwatch()..start();
+  final process = await Process.start(node, args);
+  final output = StringBuffer();
+  var stage = 'start';
+  final started = Completer<void>();
+  void line(String l) {
+    output.writeln(l);
+    if (l.startsWith(_stage)) {
+      stage = l.substring(_stage.length).trim();
+      if (stage == _mainStage && !started.isCompleted) {
+        started.complete();
+      }
+    }
+  }
+
+  final done = [
+    process.stdout.transform(utf8.decoder).forEach(output.write),
+    process.stderr
+        .transform(utf8.decoder)
+        .transform(const LineSplitter())
+        .forEach(line),
+  ];
+  final exited = process.exitCode;
+  Timer? kill;
+  void killAfter(Duration after, String what) {
+    kill?.cancel();
+    kill = Timer(after, () {
+      process.kill();
+      output.write(
+        '\ntimed out: $what after ${after.inSeconds} s, at the stage $stage',
+      );
+    });
+  }
+
+  killAfter(_load, "node did not reach the app's main");
+  var ended = false;
+  unawaited(
+    started.future.then((_) {
+      // the stage line may come after the end: no timer then
+      if (!ended) {
+        killAfter(bound, 'the app did not end within its bound');
+      }
+    }),
+  );
+  final code = await exited;
+  ended = true;
+  kill?.cancel();
   await Future.wait(done);
   return (ok: code == 0, output: output.toString(), took: watch.elapsed);
 }

@@ -3,13 +3,10 @@
 library;
 
 import 'package:meta/meta.dart';
-import 'package:twk_core/twk_core.dart'
-    show BorderType, LogLevel, LogRecord, RenderObject, TextSegmenter, log;
+import 'package:twk_core/twk_core.dart' show BorderType;
 
 import '../animation/spinner.dart' show SpinnerFrames;
-import '../binding/app_binding.dart' show AppBinding;
-import '../framework/framework.dart' show BuildContext;
-import '../text/hit_row.dart' show segmenterOf;
+import 'marks.dart' show Mark, Marks, ThemeMarks;
 import 'theme.dart' show Theme, ThemeData;
 
 /// The marks widgets draw, by what each means (a check, a cross, a cursor
@@ -23,25 +20,31 @@ import 'theme.dart' show Theme, ThemeData;
 /// a terminal or a font without the others. [copyWith] changes some marks
 /// of a set; each mark is a string of one column unless its doc says
 /// otherwise, and the widgets lay out by the width the terminal gives it
-/// (in cells, not code units). A mark drawn in one cell that is not one
-/// column wide (an emoji, an ambiguous mark in some terminals), or is a
-/// cluster of more than one code point (a letter and a combining accent),
-/// is the same field of [Glyphs.ascii] there, with one warning in the
-/// app's log for each such mark; the width is the terminal's, so it is
-/// known only when the mark is drawn. The rule is one for a mark filled
-/// into a cell (a scrollbar's thumb, a gauge) and for one drawn as text in
-/// a row (a radio button's, a switch's, a button's edge). An empty mark
-/// draws nothing and breaks nothing: a blank where a cell is to be filled,
-/// no width where the mark is text in a row (a bracket of [radioBrackets],
-/// a button's edge, a switch's end), but a blank for [switchKnob], for the
-/// track to keep its width. The checkbox is as the radio button is: its
-/// marks [checkboxOn] and [checkboxOff] are one cell each, and the
-/// [checkboxBrackets] around them are text of their own.
+/// (in cells, not code units).
+///
+/// One rule, kept in one place ([ThemeMarks], with a descriptor for each
+/// mark in [Marks]): a mark drawn in one cell or as text in a row that is
+/// not one column wide (an emoji, an ambiguous mark in some terminals), or
+/// is a cluster of more than one code point (a letter and a combining
+/// accent), is the same field of [Glyphs.ascii] there, with one warning in
+/// the app's log for each such mark; the width is the terminal's, so it is
+/// known only when the mark is drawn. It holds for a mark filled into a
+/// cell (a scrollbar's thumb, a gauge) and for one drawn as text (a radio
+/// button's, a switch's, a button's edge, a chip's close, a pagination's
+/// arrows) alike. An empty mark draws nothing and breaks nothing: what it
+/// draws is the [Mark.onEmpty] of its descriptor, nothing for most, a
+/// blank for the track of a scrollbar, a slider's, [switchKnob] and
+/// [previous] and [next], and [Glyphs.ascii]'s for a thumb or the line of a
+/// gauge. The checkbox is as the radio button is: its marks [checkboxOn]
+/// and [checkboxOff] are one cell each, and the [checkboxBrackets] around
+/// them are text of their own. A widget gets the marks with
+/// `ThemeMarks.of(context)`, a render object with `ThemeMarks.ofObject`.
 ///
 /// Borders are in it too: [lines] is the line of every box, divider, split
 /// and callout given no type of its own, and a set of ASCII lines draws
-/// every type but `none` as ASCII ([borderOf]), so [Glyphs.ascii] makes the
-/// whole app ASCII. The charts are in it, where [partialBlocks] is false:
+/// every type but `none` as ASCII ([borderOf]), also where a widget names
+/// a type of its own (`rounded`, `heavy`, `double`), so [Glyphs.ascii] makes
+/// the whole app ASCII. The charts are in it, where [partialBlocks] is false:
 /// bars in the ramp of [shades], dots as the shade as dense as their number.
 /// So is the ellipsis a `Text` or a `Box` title is cut with: [ellipsis],
 /// whose columns are counted in the room. Not in it: the pictures of
@@ -400,7 +403,7 @@ final class Glyphs {
   /// skeleton's mark is the light one (index 1). A `const` constructor
   /// cannot check the length, so only [copyWith] asserts it, and only of a
   /// list it is given; the charts, `Skeleton` and `Heatmap` draw with a
-  /// shorter one (`rampOf`) rather than throw. The list
+  /// shorter one ([ThemeMarks.ramp]) rather than throw. The list
   /// [copyWith] is given is copied unmodifiable, so the caller's list
   /// changing later does not change the set; a `const` constructor cannot
   /// copy, so a list given to it is the caller's own.
@@ -420,8 +423,8 @@ final class Glyphs {
   /// shown (the unchanged lines a diff folds): a midline `⋯` in
   /// [Glyphs.unicode], `...` in [Glyphs.ascii], so a row that begins with it
   /// reads the same in both. Text in a row, not a cell: it may be longer
-  /// than one column, and the row measures it; the one-cell rule of
-  /// [textMark] is not applied to it.
+  /// than one column, and the row measures it; the one-column
+  /// rule of [Marks] is not applied to it.
   final String omitted;
 
   /// [type] as it is drawn in this set: [lines] where [type] is null, and
@@ -641,262 +644,3 @@ final class Glyphs {
   @override
   int get hashCode => Object.hashAll(_all);
 }
-
-/// The code point the mark [glyph] of the Glyphs field [field] fills one
-/// cell of [object] with, under [segmenter]'s measure: its only one while
-/// it is one column wide.
-///
-/// Where it is any other width (an emoji, an East Asian ambiguous mark in
-/// some terminals), or is a cluster of more than one code point (a letter
-/// and a combining accent, which one cell cannot hold), it is [fallback],
-/// the same field of [Glyphs.ascii] as the caller passes it, and the app's
-/// log gets one warning for each distinct ([field], [glyph]) under the
-/// [object]'s pipeline, the way a flex's overflow is warned of. An empty
-/// [glyph] is no warning: a blank where [blankIfEmpty], else [fallback].
-@internal
-int cellRune(
-  RenderObject object,
-  String field,
-  String glyph,
-  String fallback,
-  TextSegmenter segmenter, {
-  bool blankIfEmpty = false,
-}) {
-  if (glyph.isEmpty) {
-    return blankIfEmpty ? 0x20 : fallback.runes.first;
-  }
-  final owner = object.owner;
-  if (_fits(
-    owner,
-    owner?.onLog,
-    field,
-    glyph,
-    segmenter,
-    "Glyphs.ascii's '$fallback'",
-  )) {
-    return glyph.runes.first;
-  }
-  return fallback.runes.first;
-}
-
-/// The code point of the optional mark [glyph] of the Glyphs field
-/// [field], as [cellRune] measures it; null where it is empty (no
-/// warning) or does not fit one cell (the same warning, saying that no
-/// mark is drawn in its place, for a field with no ASCII mark).
-@internal
-int? optionalCellRune(
-  RenderObject object,
-  String field,
-  String glyph,
-  TextSegmenter segmenter,
-) {
-  if (glyph.isEmpty) {
-    return null;
-  }
-  final owner = object.owner;
-  if (_fits(owner, owner?.onLog, field, glyph, segmenter, 'no mark')) {
-    return glyph.runes.first;
-  }
-  return null;
-}
-
-/// The mark [glyph] of the Glyphs field [field], a string drawn as text
-/// in a widget built in [context], where it is to be one cell: [glyph]
-/// while it is one column wide and one code point, else [fallback], the
-/// same field of [Glyphs.ascii], with the one warning [cellRune] gives.
-/// An empty [glyph] stays empty, no warning: what that draws is the
-/// caller's, as the doc of its field says.
-@internal
-String textMark(
-  BuildContext context,
-  String field,
-  String glyph,
-  String fallback,
-) {
-  if (glyph.isEmpty || _plain(glyph)) {
-    return glyph;
-  }
-  final owner = context.findRenderObject()?.owner;
-  final binding = owner == null ? AppBinding.maybeOf(context) : null;
-  final fits = _fits(
-    owner ?? binding?.twkApp.owner,
-    (owner ?? binding?.twkApp.owner)?.onLog,
-    field,
-    glyph,
-    segmenterOf(context),
-    "Glyphs.ascii's '$fallback'",
-  );
-  return fits ? glyph : fallback;
-}
-
-/// The straight line of the border [type] (the theme's [Glyphs.lines] when
-/// null) across, for a dash drawn as text in a row (a title on a box's
-/// edge, a stepper's line): the line of [Glyphs.borderOf], a blank for
-/// [BorderType.none]. Its width is the text's to measure.
-@internal
-String lineMark(Glyphs glyphs, BorderType? type, {bool down = false}) =>
-    String.fromCharCode(
-      glyphs
-          .borderOf(type)
-          .glyph(up: down, down: down, left: !down, right: !down),
-    );
-
-/// The marks of a checkbox as [textMark] fits them for [context]: the
-/// brackets, the mark that is on and the mark that is off, in `x` and a
-/// blank, `[` and `]` where one does not fit its cell (with the one
-/// warning); an empty one stays empty.
-@internal
-CheckboxMarks checkboxMarks(BuildContext context, Glyphs glyphs) {
-  final (open, close) = glyphs.checkboxBrackets;
-  return CheckboxMarks(
-    textMark(context, 'checkboxBrackets', open, '['),
-    textMark(context, 'checkboxOn', glyphs.checkboxOn, 'x'),
-    textMark(context, 'checkboxOff', glyphs.checkboxOff, ' '),
-    textMark(context, 'checkboxBrackets', close, ']'),
-  );
-}
-
-/// The parts of a checkbox, fitted by [checkboxMarks].
-@internal
-final class CheckboxMarks {
-  /// Marks around and in a checkbox.
-  const CheckboxMarks(this.open, this.onMark, this.offMark, this.close);
-
-  /// The bracket before the mark.
-  final String open;
-
-  /// The mark of a checkbox that is on.
-  final String onMark;
-
-  /// The mark of a checkbox that is off.
-  final String offMark;
-
-  /// The bracket after the mark.
-  final String close;
-
-  /// The whole of a checkbox that is on, as text.
-  String get on => '$open$onMark$close';
-
-  /// The whole of a checkbox that is off, as text.
-  String get off => '$open$offMark$close';
-}
-
-/// [glyphs] with the marks of a switch's pill fitted for [context]: its
-/// ends as [textMark] (an empty end stays, no cell), its knob too, and
-/// an empty knob a blank, for the track to keep its width. [glyphs]
-/// itself where all three are as they are.
-@internal
-Glyphs switchMarks(BuildContext context, Glyphs glyphs) {
-  final start = textMark(context, 'switchStart', glyphs.switchStart, '[');
-  final end = textMark(context, 'switchEnd', glyphs.switchEnd, ']');
-  final knob = glyphs.switchKnob.isEmpty
-      ? ' '
-      : textMark(context, 'switchKnob', glyphs.switchKnob, '*');
-  if (start == glyphs.switchStart &&
-      end == glyphs.switchEnd &&
-      knob == glyphs.switchKnob) {
-    return glyphs;
-  }
-  return glyphs.copyWith(switchStart: start, switchEnd: end, switchKnob: knob);
-}
-
-/// The marks of a radio button as [textMark] fits them for [context]: the
-/// chosen one's, and the other's, which stays empty where it is (the
-/// brackets then hold no cell, and the one that is on no more than its
-/// own width).
-@internal
-({String on, String off}) radioMarks(BuildContext context, Glyphs glyphs) => (
-  on: textMark(context, 'radioOn', glyphs.radioOn, '*'),
-  off: textMark(context, 'radioOff', glyphs.radioOff, ' '),
-);
-
-/// The edges of a one-row button as [textMark] fits them for [context]; an
-/// edge that is empty stays empty, and the button has none there.
-@internal
-(String, String) buttonEdgeMarks(BuildContext context, Glyphs glyphs) => (
-  textMark(context, 'buttonEdges', glyphs.buttonEdges.$1, '['),
-  textMark(context, 'buttonEdges', glyphs.buttonEdges.$2, ']'),
-);
-
-// a printable ASCII character: one cell, one code point, no measuring
-bool _plain(String glyph) {
-  if (glyph.length != 1) {
-    return false;
-  }
-  final c = glyph.codeUnitAt(0);
-  return c >= 0x20 && c < 0x7f;
-}
-
-// whether [glyph] fills one cell: one column wide and one code point;
-// else the warning, once for each owner, saying [instead] is drawn
-bool _fits(
-  Object? owner,
-  void Function(LogRecord record)? route,
-  String field,
-  String glyph,
-  TextSegmenter segmenter,
-  String instead,
-) {
-  final width = segmenter.width(glyph);
-  final runes = glyph.runes.length;
-  if (width == 1 && runes == 1) {
-    return true;
-  }
-  if (width == 2 && runes == 1 && _presetMarks.contains(glyph)) {
-    // the preset's own mark, not the app's: the terminal is the cause, told
-    // once and not for each field
-    _warn(
-      owner,
-      route,
-      'ambiguous',
-      '',
-      'This terminal draws East Asian ambiguous characters two cells '
-          'wide, so the marks of Glyphs.unicode that are such are drawn as '
-          "Glyphs.ascii's. Glyphs.ascii as the theme's set, or marks that "
-          'are not ambiguous, make that the app choice.',
-    );
-    return false;
-  }
-  final what = width == 1
-      ? 'a cluster of $runes code points, not one'
-      : '$width cells wide, not 1';
-  _warn(
-    owner,
-    route,
-    field,
-    glyph,
-    "Glyphs.$field '$glyph' is $what; $instead is drawn in its place.",
-  );
-  return false;
-}
-
-void _warn(
-  Object? owner,
-  void Function(LogRecord record)? route,
-  String field,
-  String glyph,
-  String message,
-) {
-  if (owner == null || (_warned[owner] ??= {}).add('$field\u0000$glyph')) {
-    if (route == null) {
-      log(message, level: LogLevel.warning);
-    } else {
-      route(LogRecord(DateTime.now(), LogLevel.warning, message));
-    }
-  }
-}
-
-// the marks of Glyphs.unicode that are one code point each, which a
-// terminal can count two cells wide
-final Set<String> _presetMarks = {
-  for (final mark in Glyphs.unicode._all)
-    if (mark is String && mark.runes.length == 1)
-      mark
-    else if (mark is (String, String)) ...[
-      if (mark.$1.runes.length == 1) mark.$1,
-      if (mark.$2.runes.length == 1) mark.$2,
-    ],
-};
-
-// the (field, glyph) pairs each pipeline has warned of
-final _warned = Expando<Set<String>>('glyph warnings');

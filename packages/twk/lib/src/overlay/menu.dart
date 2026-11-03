@@ -13,7 +13,6 @@ import 'package:meta/meta.dart';
 import 'package:twk_core/twk_core.dart'
     show
         Attr,
-        BorderType,
         BoxConstraints,
         Canvas,
         ContainerParentDataMixin,
@@ -45,7 +44,6 @@ import '../layout/flex.dart';
 import '../layout/shadow.dart';
 import '../semantics/semantics.dart';
 import '../style/color_mix.dart';
-import '../style/glyphs.dart' show cellRune;
 import '../style/style.dart';
 import 'anchor.dart';
 import 'key_path.dart';
@@ -2299,8 +2297,7 @@ final class _RenderMenuBox extends RenderObject {
       return;
     }
     final border = s.border.penIn(styles);
-    final ambiguous = owner?.segmenter.ambiguousWidth ?? 1;
-    final lines = ambiguous == 1 ? s.glyphs.lines : BorderType.ascii;
+    final lines = ThemeMarks.border(canvas.segmenter, s.glyphs.lines);
     final across = lines.glyph(left: true, right: true);
     final down = lines.glyph(up: true, down: true);
     if (s.raised) {
@@ -2352,30 +2349,12 @@ final class _RenderMenuBox extends RenderObject {
         ..clipRect(1, y, w - 2, 1)
         ..fill(1, y, w - 2, 1, pen);
       if (row.checked ?? false) {
-        _mark(
-          this,
-          canvas,
-          2,
-          y,
-          pen,
-          'check',
-          s.glyphs.check,
-          Glyphs.ascii.check,
-        );
+        _mark(this, canvas, 2, y, pen, Marks.check, s.glyphs);
       }
       label.paint(canvas, styles, 2 + _check, y, style);
       final key = row.key;
       if (row.submenu) {
-        _mark(
-          this,
-          canvas,
-          w - 3,
-          y,
-          pen,
-          'collapsed',
-          s.glyphs.collapsed,
-          Glyphs.ascii.collapsed,
-        );
+        _mark(this, canvas, w - 3, y, pen, Marks.collapsed, s.glyphs);
       } else if (key != null) {
         canvas.text(
           w - 2 - segmenter.width(key),
@@ -2414,9 +2393,8 @@ extension on _RenderMenuBox {
           0,
           y,
           style.merge(_active ? s.bar : s.muted).penIn(styles),
-          'cursor',
-          s.glyphs.cursor,
-          Glyphs.ascii.cursor,
+          Marks.cursor,
+          s.glyphs,
         );
       }
       final pen = style.penIn(styles);
@@ -2424,30 +2402,12 @@ extension on _RenderMenuBox {
         ..save()
         ..clipRect(1, y, w - 2, 1);
       if (row.checked ?? false) {
-        _mark(
-          this,
-          canvas,
-          2,
-          y,
-          pen,
-          'check',
-          s.glyphs.check,
-          Glyphs.ascii.check,
-        );
+        _mark(this, canvas, 2, y, pen, Marks.check, s.glyphs);
       }
       label.paint(canvas, styles, 2 + _check, y, style);
       final key = row.key;
       if (row.submenu) {
-        _mark(
-          this,
-          canvas,
-          w - 3,
-          y,
-          pen,
-          'collapsed',
-          s.glyphs.collapsed,
-          Glyphs.ascii.collapsed,
-        );
+        _mark(this, canvas, w - 3, y, pen, Marks.collapsed, s.glyphs);
       } else if (key != null) {
         canvas.text(
           w - 2 - segmenter.width(key),
@@ -2601,28 +2561,23 @@ final class _RenderBarRow extends RenderObject {
   }
 }
 
-/// Draws the one-cell [glyph] of Glyphs' [field] at ([x], [y]) on [canvas]
-/// in [pen]: nothing where it is empty, [fallback] (warned of once) where it
-/// is not one column wide.
+/// Draws the mark of Glyphs' [mark] at ([x], [y]) on [canvas] in [pen]:
+/// nothing where it is empty, ASCII's (warned of once) where it is not one
+/// column wide.
 void _mark(
   RenderObject object,
   Canvas canvas,
   int x,
   int y,
   int pen,
-  String field,
-  String glyph,
-  String fallback,
+  Mark mark,
+  Glyphs glyphs,
 ) {
-  if (glyph.isEmpty) {
-    return;
+  final cell = ThemeMarks.ofObject(
+    object,
+    canvas.segmenter,
+  ).cell(mark, glyphs);
+  if (cell != null) {
+    canvas.fill(x, y, 1, 1, pen, cell);
   }
-  canvas.fill(
-    x,
-    y,
-    1,
-    1,
-    pen,
-    cellRune(object, field, glyph, fallback, canvas.segmenter),
-  );
 }

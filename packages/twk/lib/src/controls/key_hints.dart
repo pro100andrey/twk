@@ -1,7 +1,7 @@
 /// What can be pressed now: [KeyHintsBar].
 library;
 
-import 'package:twk_core/twk_core.dart' show Attr, KeyCode, RenderParagraph;
+import 'package:twk_core/twk_core.dart' show Attr, KeyCode;
 
 import '../binding/app_binding.dart' show AppBinding;
 import '../focus/focus.dart';
@@ -10,9 +10,8 @@ import '../gestures/mouse.dart' show Listener;
 import '../layout/basic.dart' show SizedBox;
 import '../layout/flex.dart';
 import '../overlay/dialog.dart';
-import '../style/glyphs.dart' show textMark;
 import '../style/style.dart';
-import '../text/hit_row.dart' show segmenterOf;
+import '../text/hit_row.dart' show HitRow, HitSpan, segmenterOf;
 import '../text/widgets.dart';
 import 'hand.dart';
 
@@ -294,6 +293,7 @@ List<ActiveKey> _fixedKeys(List<(String, String)> pairs) => [
 
 final class _KeyHintsBarState extends State<KeyHintsBar> {
   FocusManager? _manager;
+  final _hits = HitRow();
 
   @override
   void didChangeDependencies() {
@@ -319,16 +319,9 @@ final class _KeyHintsBarState extends State<KeyHintsBar> {
     final keyStyle =
         widget.keyStyle ?? theme.text.merge(const Style(attrs: Attr.bold));
     final hintStyle = widget.hintStyle ?? theme.muted;
-    final segmenter = segmenterOf(context);
-    final spans = <Span>[];
-    // the columns a click presses keys at: from, to, the key
-    final targets = <(int, int, ActiveKey)>[];
-    var x = 0;
-    void add(Span span) {
-      spans.add(span);
-      x += segmenter.width(span.text);
-    }
-
+    final spans = <HitSpan>[];
+    // the keys a click presses, by target
+    final keys = <ActiveKey>[];
     final pairs = widget._pairs;
     for (final (names, gap, hint) in KeyHintsBar._entries(
       pairs == null
@@ -340,68 +333,53 @@ final class _KeyHintsBarState extends State<KeyHintsBar> {
       showUnhinted: widget.showUnhinted,
     )) {
       if (spans.isNotEmpty) {
-        add(Span(widget.separator));
+        spans.add((span: Span(widget.separator), target: -1));
       }
       for (final (i, (name, key)) in names.indexed) {
         if (i > 0) {
-          add(Span(gap, keyStyle));
+          spans.add((span: Span(gap, keyStyle), target: -1));
         }
-        final from = x;
-        add(Span(name, keyStyle));
-        targets.add((from, x, key));
+        spans.add((span: Span(name, keyStyle), target: keys.length));
+        keys.add(key);
       }
       if (hint != null) {
-        final from = x;
-        add(Span(' $hint', hintStyle));
-        if (names case [(_, final key)]) {
-          targets.add((from + 1, x, key));
-        }
+        spans
+          ..add((span: Span(' ', hintStyle), target: -1))
+          // the hint of one key presses it
+          ..add((
+            span: Span(hint, hintStyle),
+            target: names.length == 1 ? keys.length - 1 : -1,
+          ));
       }
     }
-    final row = Text.richLine(
+    final row = _hits.row(
       spans,
       style: theme.text.merge(widget.style ?? const Style()),
+      overflow: TextOverflow.ellipsis,
     );
     if (!widget.pressable) {
       return row;
     }
-    BuildContext? rowContext;
-    // the hand over a key or a hint that presses a key
+    // the hand over a key or a hint that presses a key; the ellipsis of a
+    // cut row presses nothing, nor does the key or hint it stands for
     return HandOver(
-      where: (x, y) {
-        if (rowContext?.findRenderObject() case final RenderParagraph p
-            when p.cellAt(x, y)?.isEllipsis ?? false) {
-          return false;
-        }
-        return targets.any((t) => x >= t.$1 && x < t.$2);
-      },
+      where: (x, y) => _hits.at(x) >= 0,
       child: Listener(
         onDown: (event) {
           if (event.button != 0) {
             return;
           }
-          // the ellipsis of a cut row presses nothing, nor does the key or
-          // hint it stands for
-          if (rowContext?.findRenderObject() case final RenderParagraph p
-              when p.cellAt(event.x, event.y)?.isEllipsis ?? false) {
+          final t = _hits.at(event.x);
+          if (t < 0) {
             return;
           }
-          for (final (from, to, key) in targets) {
-            if (event.x >= from && event.x < to) {
-              final binding = AppBinding.of(context);
-              for (final combo in [key.combo, ...key.then]) {
-                binding.pressKey(combo);
-              }
-              return;
-            }
+          final key = keys[t];
+          final binding = AppBinding.of(context);
+          for (final combo in [key.combo, ...key.then]) {
+            binding.pressKey(combo);
           }
         },
-        child: Builder(
-          builder: (context) {
-            rowContext = context;
-            return row;
-          },
-        ),
+        child: row,
       ),
     );
   }
@@ -489,29 +467,15 @@ Future<void> showKeyHelp(BuildContext context, {String title = 'Keys'}) {
   );
 }
 
-/// [glyphs] with the four arrows a hint names keys by as [textMark] fits
+/// [glyphs] with the four arrows a hint names keys by as [ThemeMarks] fits
 /// them for [context]: one cell each, else [Glyphs.ascii]'s. [glyphs]
 /// itself where they all fit.
 Glyphs _fitArrows(BuildContext context, Glyphs glyphs) {
-  final left = textMark(
-    context,
-    'arrowLeft',
-    glyphs.arrowLeft,
-    Glyphs.ascii.arrowLeft,
-  );
-  final right = textMark(
-    context,
-    'arrowRight',
-    glyphs.arrowRight,
-    Glyphs.ascii.arrowRight,
-  );
-  final up = textMark(context, 'arrowUp', glyphs.arrowUp, Glyphs.ascii.arrowUp);
-  final down = textMark(
-    context,
-    'arrowDown',
-    glyphs.arrowDown,
-    Glyphs.ascii.arrowDown,
-  );
+  final marks = ThemeMarks.of(context);
+  final left = marks.text(Marks.arrowLeft, glyphs);
+  final right = marks.text(Marks.arrowRight, glyphs);
+  final up = marks.text(Marks.arrowUp, glyphs);
+  final down = marks.text(Marks.arrowDown, glyphs);
   if (left == glyphs.arrowLeft &&
       right == glyphs.arrowRight &&
       up == glyphs.arrowUp &&

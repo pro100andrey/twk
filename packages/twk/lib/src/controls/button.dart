@@ -11,7 +11,6 @@ import '../layout/box.dart';
 import '../layout/flex.dart';
 import '../semantics/semantics.dart';
 import '../style/color_mix.dart';
-import '../style/glyphs.dart' show buttonEdgeMarks;
 import '../style/style.dart';
 import '../text/widgets.dart';
 import 'pressable.dart';
@@ -421,7 +420,9 @@ extension on _ButtonState {
         }
         // one row: the edges at either end, the label in the middle of what
         // is between them; an edge that is empty is no cell
-        final (edgeOpen, edgeClose) = buttonEdgeMarks(context, theme.glyphs);
+        final marks = ThemeMarks.of(context);
+        final edgeOpen = marks.text(Marks.buttonEdgeStart);
+        final edgeClose = marks.text(Marks.buttonEdgeEnd);
         final open = Text(edgeOpen, style: line);
         final close = Text(edgeClose, style: line);
         final inner = Padding(padding: const EdgeInsets.x(1), child: label);

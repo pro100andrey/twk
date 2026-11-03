@@ -27,7 +27,6 @@ void main() {
                   (span: Span(label), target: i),
                 ],
               ],
-              segmenterOf(context),
               active: a,
             ),
           ),

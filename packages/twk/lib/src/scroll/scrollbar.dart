@@ -25,7 +25,6 @@ import '../gestures/gesture_detector.dart';
 import '../gestures/mouse.dart';
 import '../gestures/selection.dart' show inSelectionArea;
 import '../layout/child_list.dart';
-import '../style/glyphs.dart' show cellRune;
 import '../style/style.dart';
 import 'scrollable.dart';
 import 'thumb.dart';
@@ -1133,6 +1132,7 @@ final class _RenderBar extends RenderObject {
     final canvas = ctx.canvas;
     final vertical = _track.axis == Axis.vertical;
     final (style, line) = vertical ? _vertical : _horizontal;
+    final marks = ThemeMarks.ofObject(this, canvas.segmenter);
     if (!_onBorder) {
       canvas.fill(0, 0, width, height, style.penIn(canvas.styles));
     }
@@ -1149,17 +1149,11 @@ final class _RenderBar extends RenderObject {
         height,
         style.merge(line).penIn(canvas.styles),
         type != null
-            ? _borderRune(canvas, type, vertical: vertical)
-            : cellRune(
-                this,
-                vertical ? 'trackVertical' : 'trackHorizontal',
-                vertical ? _glyphs.trackVertical : _glyphs.trackHorizontal,
-                vertical
-                    ? Glyphs.ascii.trackVertical
-                    : Glyphs.ascii.trackHorizontal,
-                canvas.segmenter,
-                blankIfEmpty: true,
-              ),
+            ? marks.line(type, vertical: vertical, glyphs: _glyphs)
+            : marks.cell(
+                vertical ? Marks.trackVertical : Marks.trackHorizontal,
+                _glyphs,
+              )!,
       );
     }
     final eighths = wide && _glyphs.partialBlocks && type != BorderType.ascii;
@@ -1181,35 +1175,11 @@ final class _RenderBar extends RenderObject {
           ? null
           : type != null
           ? _borderThumbRune(canvas, type, vertical: vertical)
-          : cellRune(
-              this,
-              vertical ? 'thumbVertical' : 'thumbHorizontal',
-              vertical ? _glyphs.thumbVertical : _glyphs.thumbHorizontal,
-              vertical
-                  ? Glyphs.ascii.thumbVertical
-                  : Glyphs.ascii.thumbHorizontal,
-              canvas.segmenter,
+          : marks.cell(
+              vertical ? Marks.thumbVertical : Marks.thumbHorizontal,
+              _glyphs,
             ),
     );
-  }
-
-  // the border's own straight line, or ascii's where it is not one column
-  int _borderRune(Canvas canvas, BorderType type, {required bool vertical}) {
-    final cp = type.glyph(
-      up: vertical,
-      down: vertical,
-      left: !vertical,
-      right: !vertical,
-    );
-    final text = String.fromCharCode(cp);
-    return canvas.segmenter.width(text) == 1 || cp == 0x20
-        ? cp
-        : BorderType.ascii.glyph(
-            up: vertical,
-            down: vertical,
-            left: !vertical,
-            right: !vertical,
-          );
   }
 
   // the thumb: a heavier line than the border's, `#` on ascii's
@@ -1230,6 +1200,6 @@ final class _RenderBar extends RenderObject {
             left: !vertical,
             right: !vertical,
           );
-    return canvas.segmenter.width(String.fromCharCode(cp)) == 1 ? cp : 0x23;
+    return ThemeMarks.ofObject(this, canvas.segmenter).fixed(cp, 0x23);
   }
 }

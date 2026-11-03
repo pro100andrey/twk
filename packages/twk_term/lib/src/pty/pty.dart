@@ -34,11 +34,17 @@ const _hangUpGrace = Duration(seconds: 1);
 const _writable = 'writable';
 const _hangup = 'hangup';
 
-/// [Pty.tellsExitCode]: macOS by a kqueue, Linux from 6.15 by the pidfd
-/// (PIDFD_INFO_EXIT).
+/// [Pty.tellsExitCode]: macOS by a kqueue watching the program from
+/// before it runs (it starts suspended), Linux from 6.15 by the pidfd
+/// (PIDFD_INFO_EXIT) where it is made with the program (pidfd_spawn): one
+/// opened after it may come after the VM reaped a program that ended at
+/// once.
 final bool _tellsExitCode = () {
   if (Platform.isMacOS) {
     return true;
+  }
+  if (!c.spawnMakesPidfd) {
+    return false;
   }
   final version = RegExp(
     r'(\d+)\.(\d+)',
@@ -223,6 +229,9 @@ final class Pty {
       }
     }
 
+    // the program once spawned, until a Pty answers for it
+    var spawnedPid = -1;
+    var spawnedPidfd = -1;
     try {
       if (c.pipe(wake) != 0) {
         fail('pipe', c.errno);
@@ -279,7 +288,8 @@ final class Pty {
           c.spawnSetsid |
               c.spawnSetSigMask |
               c.spawnSetSigDef |
-              c.spawnCloexecDefault,
+              c.spawnCloexecDefault |
+              c.spawnStartSuspended,
         ),
       );
       check('posix_spawn_file_actions_init', c.actionsInit(actions));
@@ -367,11 +377,17 @@ final class Pty {
           scope.strings(envp),
         ),
       );
+      spawnedPid = pid.value;
+      spawnedPidfd = pidfd.value;
       // macOS: the program's end told through a kqueue, whoever waits for
-      // it (the VM does, while a Process of its own runs). -1 where the
-      // program ended and was reaped before this (ESRCH): then waitpid is
-      // all there is, as in Linux before 6.15.
+      // it (the VM does, while a Process of its own runs). It was made
+      // suspended, so the watch is set before it runs and cannot miss its
+      // end; then it is let run. A watch that could not be made (-1)
+      // leaves waitpid, as in Linux before 6.15.
       final kq = Platform.isMacOS ? c.watchExit(pid.value) : -1;
+      if (Platform.isMacOS) {
+        signalProcess(pid.value, -1, ProcessSignal.sigcont);
+      }
       c.setNonblocking(master);
       final pty = Pty._(
         pid.value,
@@ -383,6 +399,9 @@ final class Pty {
         width,
         height,
       );
+      // the Pty answers for the program from here on
+      spawnedPid = -1;
+      spawnedPidfd = -1;
       unawaited(
         Isolate.spawn(
           _ioLoop,
@@ -402,6 +421,14 @@ final class Pty {
       );
       return pty;
     } catch (_) {
+      // a program spawned that no Pty will answer for (suspended on
+      // macOS, which nothing would let run) is killed, not left behind
+      if (spawnedPid > 0 || spawnedPidfd >= 0) {
+        signalProcess(spawnedPid, spawnedPidfd, ProcessSignal.sigkill);
+      }
+      if (spawnedPidfd >= 0) {
+        c.close(spawnedPidfd);
+      }
       for (final fd in [master, wake[0], wake[1]]) {
         if (fd >= 0) {
           c.close(fd);
@@ -474,19 +501,20 @@ final class Pty {
   ///
   /// The VM waits for any child while a `Process` it started runs, so it
   /// may take the program's end first; the code is then still known: on
-  /// Linux 6.15 and later through the pidfd made with the program, on
-  /// macOS through a kqueue (EVFILT_PROC, NOTE_EXITSTATUS) the program is
-  /// watched by from its spawn. It is null only on Linux before 6.15 in
-  /// that case, and on macOS where the program ended before the kqueue
-  /// was set (ESRCH, a few microseconds after the spawn) and the VM took
-  /// its end. [tellsExitCode] says which of those this platform is.
+  /// Linux 6.15 and later through the pidfd made with the program
+  /// (pidfd_spawn, glibc 2.39), on macOS through a kqueue (EVFILT_PROC,
+  /// NOTE_EXITSTATUS) set while the program, spawned suspended, has not
+  /// run yet. Elsewhere it is null in that case: on an older Linux, or
+  /// one whose pidfd is opened after the spawn, which a program that ended
+  /// at once and was reaped is gone before. [tellsExitCode] says which of
+  /// those this platform is.
   Future<int?> get exitCode => _exit.future;
 
   /// Whether [exitCode] knows the code of a program the VM waited for
-  /// first: on macOS, and on Linux 6.15 and later; elsewhere it is null
-  /// then, as a test that also runs a `Process` (the test runner's
-  /// compiler does throughout) finds. The testing guide's recipe expects
-  /// the code by it.
+  /// first: on macOS, and on Linux 6.15 and later with pidfd_spawn;
+  /// elsewhere it is null then, as a test that also runs a `Process` (the
+  /// test runner's compiler does throughout) finds. The testing guide's
+  /// recipe expects the code by it.
   static bool get tellsExitCode => _tellsExitCode;
 
   /// The terminal's attributes (`struct termios`, in 256 bytes) as the
@@ -505,6 +533,23 @@ final class Pty {
 
   /// How many rows the terminal has, as [resize] set it last.
   int get height => _height;
+
+  /// How many bytes of the program's output the master holds that this
+  /// side has not read yet (FIONREAD); null once the master is closed or
+  /// where the kernel would not say. For a test's report of a wait that
+  /// failed: output the program wrote that is still there, unread, is a
+  /// reader that stopped, not output the terminal lost.
+  int? get debugUnreadOutput {
+    if (_master < 0) {
+      return null;
+    }
+    final n = c.calloc(1, 8).cast<Int>();
+    try {
+      return c.ioctl(_master, c.fionread, n.cast()) == 0 ? n.value : null;
+    } finally {
+      c.free(n.cast());
+    }
+  }
 
   /// Hands [bytes] to the program as typed input. What the terminal doesn't
   /// take at once waits, in order, for the program to read; dropped once

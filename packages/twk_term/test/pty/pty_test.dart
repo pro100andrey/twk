@@ -68,6 +68,17 @@ final class Run {
   var outputDone = false;
   var exited = false;
 
+  // what [type] handed the terminal: the writes and their bytes
+  var _typed = 0;
+  var _typedBytes = 0;
+
+  /// Hands [input] to the program, counted for a failure's report.
+  void type(List<int> input) {
+    _typed++;
+    _typedBytes += input.length;
+    pty.write(input);
+  }
+
   String get text => utf8.decode(bytes, allowMalformed: true);
 
   /// Waits until the output has [s] after [from].
@@ -81,13 +92,59 @@ final class Run {
     return code;
   }
 
-  /// Waits until [done], failing with what was waited for and the output
-  /// so far after 10 s.
+  /// Waits until [done], failing after 10 s with what was waited for, the
+  /// output so far, what [type] handed the terminal, the output the master
+  /// holds unread (`Pty.debugUnreadOutput`), and the program's
+  /// processes as they were then ([_processes]): where a wait that has no
+  /// cause found yet stopped.
   Future<void> until(bool Function() done, String what) async {
     try {
       await waitUntil(done, what);
     } on TestFailure catch (e) {
-      fail('${e.message}; output: ${jsonEncode(text)}');
+      fail(
+        '${e.message}; output: ${jsonEncode(text)}; '
+        'typed: $_typed writes, $_typedBytes bytes; '
+        'unread on the master: ${pty.debugUnreadOutput} bytes; '
+        'processes:\n${_processes()}',
+      );
+    }
+  }
+
+  /// The program and the processes under it, a line each (`ps`: pid,
+  /// parent, group, the terminal's foreground group, state, what it
+  /// waits in, name), or why they could not be listed.
+  String _processes() {
+    try {
+      final ps = Process.runSync('ps', [
+        '-A',
+        '-o',
+        'pid=,ppid=,pgid=,tpgid=,stat=,wchan=,comm=',
+      ]);
+      final rows = [
+        for (final line in (ps.stdout as String).split('\n'))
+          if (line.trim().split(RegExp(r'\s+')) case [
+            final pid,
+            final ppid,
+            ...,
+          ])
+            (int.tryParse(pid), int.tryParse(ppid), line.trim()),
+      ];
+      final ours = {pty.pid};
+      for (var grew = true; grew;) {
+        grew = false;
+        for (final (pid, ppid, _) in rows) {
+          if (pid != null && ours.contains(ppid) && ours.add(pid)) {
+            grew = true;
+          }
+        }
+      }
+      return [
+        '  pid ppid pgid tpgid stat wchan comm',
+        for (final (pid, _, line) in rows)
+          if (ours.contains(pid)) '  $line',
+      ].join('\n');
+    } on Object catch (e) {
+      return '  not listed: $e';
     }
   }
 }
@@ -107,6 +164,19 @@ Run sh(
 );
 
 void main() {
+  test('tells the code of programs that end at once while a Process runs, '
+      'which reaps them', () async {
+    // a Process of the test's own, so that the VM waits for any child
+    final reaper = await Process.start('sleep', ['30']);
+    addTearDown(reaper.kill);
+    final codes = await Future.wait([
+      for (var i = 0; i < 64; i++) sh('exit ${i % 7 + 1}').ended(),
+    ]);
+    expect(codes, [
+      for (var i = 0; i < 64; i++) exits(i % 7 + 1),
+    ]);
+  });
+
   test('prints through the terminal, which adds CR, and exits', () async {
     final run = sh('echo hello; exit 3');
     expect(await run.ended(), exits(3));
@@ -154,16 +224,21 @@ void main() {
       environment: {'PS1': r'$ '},
     );
     await run.waitFor(r'$ ');
-    run.pty.write(utf8.encode('echo started; sleep 30\r'));
+    // The job says that it runs: bash makes a foreground job the terminal's
+    // foreground group in its child, before the exec, so once it has printed
+    // the one Ctrl+Z reaches it. None is typed again: each signal character
+    // drops the output the terminal has not passed on yet (no NOFLSH), which
+    // took bash's job line and prompt on a busy CI runner, 3 runs in 100,
+    // when one was typed a millisecond until the prompt showed.
+    run.pty.write(
+      utf8.encode("sh -c 'echo started; read x; echo \"got \$x\"'\r"),
+    );
     await run.waitFor('started\r\n');
-    // Again until it is the job that gets it, not bash before the job runs:
     // the prompt is back once the job stopped (bash's own line saying so may
-    // come later or not at all), and `jobs` lists it stopped.
+    // come later or not at all), and `jobs` lists it stopped
     var at = run.text.length;
-    await run.until(() {
-      run.pty.write([0x1a]);
-      return run.text.contains(r'$ ', at);
-    }, 'the job to stop');
+    run.type([0x1a]);
+    await run.until(() => run.text.contains(r'$ ', at), 'the job to stop');
     expect(run.text, isNot(contains('no job control')));
     at = run.text.length;
     run.pty.write(utf8.encode('jobs\r'));
@@ -171,12 +246,16 @@ void main() {
     await run.waitFor(r'$ ', from: run.text.indexOf('Stopped', at));
     at = run.text.length;
     run.pty.write(utf8.encode('fg\r'));
-    await run.waitFor('sleep 30\r\n', from: at);
+    // fg names the job, then gives it the terminal and continues it; the
+    // line typed waits for its read, which ends it
+    await run.waitFor('got \$x"\'\r\n', from: at);
     at = run.text.length;
-    await run.until(() {
-      run.pty.write([0x03]);
-      return run.text.contains(r'$ ', at);
-    }, 'the job to end');
+    run.type(utf8.encode('line\r'));
+    await run.waitFor('got line\r\n', from: at);
+    await run.until(
+      () => run.text.contains(r'$ ', run.text.indexOf('got line', at)),
+      'the job to end',
+    );
     run.pty.write(
       utf8.encode(
         // BSD's wc pads the count

@@ -192,6 +192,7 @@ final class _NumberInputState extends State<NumberInput>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final marks = ThemeMarks.of(context);
     return buildField(
       context,
       keys: {
@@ -209,7 +210,7 @@ final class _NumberInputState extends State<NumberInput>
       trailing: Listener(
         onDown: enabled ? _arrow : null,
         child: Text(
-          '${theme.glyphs.up}${theme.glyphs.down}',
+          '${marks.text(Marks.up)}${marks.text(Marks.down)}',
           style: theme.text.merge(
             !enabled
                 ? theme.muted

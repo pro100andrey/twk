@@ -338,6 +338,10 @@ final class _TextFieldState extends State<TextField> {
   // what draws the text, which moves the caret as it draws it
   _RenderTextField? _field;
 
+  // the theme's mask of a hidden text, as the terminal draws it: set by
+  // each build, as a render object's own context cannot measure it
+  var _bullet = '•';
+
   // when onEditingComplete is called as the focus leaves
   final _completion = EditingCompletion();
 
@@ -527,6 +531,7 @@ final class _TextFieldState extends State<TextField> {
 
   @override
   Widget build(BuildContext context) {
+    _bullet = ThemeMarks.of(context).text(Marks.bullet);
     final field = _build();
     final decoration = widget.decoration;
     if (decoration == null) {
@@ -673,7 +678,7 @@ final class _Field extends LeafRenderObjectWidget {
       ..selection = value.selection
       ..composing = value.composing
       ..obscuringCharacter = f.obscureText
-          ? f.obscuringCharacter ?? theme.glyphs.bullet
+          ? f.obscuringCharacter ?? state._bullet
           : null
       ..placeholder = f.placeholder ?? ''
       ..focused = focused

@@ -208,6 +208,9 @@ final class _ValueStepperState<T> extends State<ValueStepper<T>> {
     required bool enabled,
     required bool focused,
   }) {
+    final themeMarks = ThemeMarks.of(context);
+    final previous = themeMarks.text(Marks.previous);
+    final next = themeMarks.text(Marks.next);
     var row = theme.text.merge(widget.style ?? const Style());
     if (!enabled) {
       row = row.merge(theme.muted);
@@ -225,10 +228,7 @@ final class _ValueStepperState<T> extends State<ValueStepper<T>> {
     ].fold(0, (a, b) => a > b ? a : b);
     // the arrows' own columns, as the terminal counts them, and the two
     // blanks around the label; the label gets the rest
-    final marks =
-        segmenter.width(theme.glyphs.previous) +
-        segmenter.width(theme.glyphs.next) +
-        2;
+    final marks = segmenter.width(previous) + segmenter.width(next) + 2;
     final room = (width - marks).clamp(1, 1 << 30);
     final label = fitText(
       segmenter,
@@ -242,7 +242,7 @@ final class _ValueStepperState<T> extends State<ValueStepper<T>> {
         : end;
     return _hits.row(
       [
-        (span: Span(theme.glyphs.previous, arrow(0)), target: 0),
+        (span: Span(previous, arrow(0)), target: 0),
         (
           span: Span(
             ' ${padCells(segmenter, label, widest < room ? widest : room)} ',
@@ -250,9 +250,8 @@ final class _ValueStepperState<T> extends State<ValueStepper<T>> {
           ),
           target: -1,
         ),
-        (span: Span(theme.glyphs.next, arrow(1)), target: 1),
+        (span: Span(next, arrow(1)), target: 1),
       ],
-      segmenter,
       style: row,
       onHover: enabled && hover != const Style()
           ? (_) => setState(() {})

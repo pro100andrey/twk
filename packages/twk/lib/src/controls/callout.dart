@@ -22,7 +22,6 @@ import '../layout/box.dart';
 import '../layout/flex.dart';
 import '../layout/stack.dart';
 import '../semantics/semantics.dart';
-import '../style/glyphs.dart' show lineMark;
 import '../style/style.dart';
 import '../text/widgets.dart';
 import 'hand.dart';
@@ -187,7 +186,7 @@ final class Callout extends StatelessWidget {
     final marked = colored
         .merge(const Style(attrs: Attr.bold))
         .merge(titleStyle ?? const Style());
-    final icon = this.icon ?? kind.icon(glyphs: theme.glyphs);
+    final icon = this.icon ?? ThemeMarks.of(context).text(kind.mark);
     final head = [if (icon.isNotEmpty) icon, _title].join(' ');
     final plain =
         AppBinding.maybeOf(context)?.twkApp.terminal.info.plain ?? false;
@@ -227,7 +226,8 @@ final class Callout extends StatelessWidget {
       }
     } else {
       final onDismissed = this.onDismissed;
-      final dash = lineMark(theme.glyphs, borderType);
+      final marks = ThemeMarks.of(context);
+      final dash = marks.dash(borderType);
       callout = Box(
         style: text,
         border: Border.all(type: borderType, style: colored),
@@ -235,7 +235,7 @@ final class Callout extends StatelessWidget {
           BorderTitle('$dash $head $dash', style: marked),
           if (onDismissed != null)
             BorderTitle(
-              '[${theme.glyphs.close}]$dash',
+              '[${marks.text(Marks.close)}]$dash',
               alignment: Alignment.topRight,
             ),
         ],
@@ -321,7 +321,7 @@ final class _DismissState extends State<_Dismiss> {
         child: GestureDetector(
           onTap: (_) => widget.onDismissed(),
           child: Text(
-            '[${theme.glyphs.close}]',
+            '[${ThemeMarks.of(context).text(Marks.close)}]',
             style: _hovered
                 ? widget.style.merge(
                     theme.text.merge(const Style(attrs: Attr.bold)),

@@ -34,7 +34,6 @@ import '../overlay/options.dart';
 import '../overlay/panel.dart';
 import '../overlay/popover.dart';
 import '../style/color_mix.dart';
-import '../style/glyphs.dart' show CheckboxMarks, checkboxMarks;
 import '../style/style.dart';
 import '../text/hit_row.dart' show segmenterOf;
 import '../text/widgets.dart';
@@ -916,7 +915,7 @@ final class _PickerState<T> extends State<_Picker<T>>
       muted = enabled;
     }
     final segmenter = segmenterOf(context);
-    final boxes = checkboxMarks(context, theme.glyphs);
+    final boxes = CheckboxMarks.of(context);
     final Style shown;
     if (!muted) {
       shown = _plain;
@@ -951,7 +950,11 @@ final class _PickerState<T> extends State<_Picker<T>>
                   style: shown,
                 ),
               ),
-              Text(' ${theme.glyphs.down}', style: arrow, wrap: TextWrap.none),
+              Text(
+                ' ${ThemeMarks.of(context).text(Marks.down)}',
+                style: arrow,
+                wrap: TextWrap.none,
+              ),
             ],
           ),
         ),
@@ -970,7 +973,11 @@ final class _PickerState<T> extends State<_Picker<T>>
                 style: shown,
               ),
             ),
-            Text(' ${theme.glyphs.down}', style: arrow, wrap: TextWrap.none),
+            Text(
+              ' ${ThemeMarks.of(context).text(Marks.down)}',
+              style: arrow,
+              wrap: TextWrap.none,
+            ),
           ],
         ),
       ),
@@ -982,7 +989,7 @@ final class _PickerState<T> extends State<_Picker<T>>
   /// asks it to be.
   Widget _list(BuildContext context, {bool highlight = true}) {
     final matches = _matches;
-    final boxes = checkboxMarks(context, Theme.of(context).glyphs);
+    final boxes = CheckboxMarks.of(context);
     final width = _labelWidth(segmenterOf(context), boxes) + 2;
     if (matches.isEmpty) {
       final theme = Theme.of(context);

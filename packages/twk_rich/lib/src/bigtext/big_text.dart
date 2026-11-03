@@ -466,7 +466,9 @@ final _glyphs = Expando<_Glyphs>();
 /// one column wide.
 Map<int, List<String>> _glyphsOf(BigFont font, TextSegmenter seg) {
   final glyphs = _glyphs[font] ??= _parse(font);
-  return _oneColumn(font._narrow.keys, seg) ? glyphs.wide : glyphs.narrow;
+  return ThemeMarks.allOneColumn(seg, font._narrow.keys)
+      ? glyphs.wide
+      : glyphs.narrow;
 }
 
 _Glyphs _parse(BigFont font) {
@@ -587,25 +589,6 @@ final Map<int, int> _asciiLines = {
   ..._pairs('┌┐└┘├┤┬┴┼╔╗╚╝', '+++++++++++++'),
   ..._pairs('╭╮╰╯╱╲', r"..''/\"),
 };
-
-final _scan = ClusterScan();
-
-/// Whether each of [codePoints] takes one column of a canvas whose text
-/// [seg] measures, whatever its neighbours, on every terminal.
-bool _oneColumn(Iterable<int> codePoints, TextSegmenter seg) {
-  for (final cp in codePoints) {
-    // the glyph twice: two clusters of a column each
-    final two = String.fromCharCodes([cp, cp]);
-    seg.scan(two, 0, _scan);
-    if (_scan.end * 2 != two.length ||
-        _scan.width != 1 ||
-        _scan.joinsNext ||
-        _scan.uncertain) {
-      return false;
-    }
-  }
-  return true;
-}
 
 final _detached = TextSegmenter();
 

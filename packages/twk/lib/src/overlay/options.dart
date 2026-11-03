@@ -19,7 +19,6 @@ import '../editing/caret.dart' show clearRestCursor, restCursor;
 import '../foundation/helpers.dart';
 import '../framework/framework.dart';
 import '../gestures/mouse.dart';
-import '../style/glyphs.dart' show cellRune;
 import '../style/style.dart';
 
 // Examples can assume:
@@ -412,6 +411,7 @@ final class _RenderOptionList extends RenderObject {
   void paint(PaintContext ctx) {
     final canvas = ctx.canvas;
     final styles = canvas.styles;
+    final marks = ThemeMarks.ofObject(this, canvas.segmenter);
     final n = _options.length;
     final h = height;
     final w = width;
@@ -457,21 +457,8 @@ final class _RenderOptionList extends RenderObject {
       _paintLabel(canvas, styles, row, option, style);
       canvas.restore();
       if (i == h0 && _bar && w > 0) {
-        if (s.glyphs.cursor.isNotEmpty) {
-          canvas.fill(
-            0,
-            row,
-            1,
-            1,
-            style.merge(s.bar).penIn(styles),
-            cellRune(
-              this,
-              'cursor',
-              s.glyphs.cursor,
-              Glyphs.ascii.cursor,
-              canvas.segmenter,
-            ),
-          );
+        if (marks.cell(Marks.cursor, s.glyphs) case final bar?) {
+          canvas.fill(0, row, 1, 1, style.merge(s.bar).penIn(styles), bar);
         }
       }
     }
@@ -482,21 +469,9 @@ final class _RenderOptionList extends RenderObject {
       for (var row = ty; row < ty + th; row++) {
         final i = _top + row;
         final under = i == h0 ? s.highlight : s.base;
-        if (s.glyphs.thumbSlim.isNotEmpty) {
-          canvas.fill(
-            w - 1,
-            row,
-            1,
-            1,
-            under.merge(s.thumb).penIn(styles),
-            cellRune(
-              this,
-              'thumbSlim',
-              s.glyphs.thumbSlim,
-              Glyphs.ascii.thumbSlim,
-              canvas.segmenter,
-            ),
-          );
+        if (marks.cell(Marks.thumbSlim, s.glyphs) case final slim?) {
+          final pen = under.merge(s.thumb).penIn(styles);
+          canvas.fill(w - 1, row, 1, 1, pen, slim);
         }
       }
     }

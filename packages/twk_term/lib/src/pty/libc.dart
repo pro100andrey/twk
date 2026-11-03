@@ -91,6 +91,10 @@ const tcsaflush = 2;
 /// TIOCSWINSZ, for [ioctl]: sets a terminal's size (`struct winsize`).
 final tiocswinsz = _macos ? 0x80087467 : 0x5414;
 
+/// FIONREAD, for [ioctl]: how many bytes a descriptor holds to be read (an
+/// `int`).
+final fionread = _macos ? 0x4004667F : 0x541B;
+
 /// IUTF8 in `c_iflag`: the line discipline erases a UTF-8 character whole.
 const iutf8 = 0x4000;
 
@@ -108,6 +112,11 @@ final spawnSetsid = _macos ? 0x400 : 0x80;
 /// POSIX_SPAWN_CLOEXEC_DEFAULT (macOS): only what the file actions make
 /// is inherited. Linux closes the rest with addclosefrom_np instead.
 final spawnCloexecDefault = _macos ? 0x4000 : 0;
+
+/// POSIX_SPAWN_START_SUSPENDED (macOS): the child is made as if it had
+/// been sent SIGSTOP before its first instruction, and runs once sent
+/// SIGCONT: a watch of its end set in between cannot miss it. 0 elsewhere.
+final spawnStartSuspended = _macos ? 0x0080 : 0;
 
 final _process = DynamicLibrary.process();
 
@@ -286,6 +295,11 @@ int pidfdSendSignal(int pidfd, int signal) =>
     _pidfdSendSignal(pidfd, signal, nullptr, 0);
 
 const _enosys = 38;
+
+/// Whether [spawn] makes the child's pidfd with it (pidfd_spawn, glibc
+/// 2.39), so that no end of it can come before the pidfd: false on macOS
+/// and where only pidfd_open after posix_spawn is there.
+final bool spawnMakesPidfd = !_macos && _process.providesSymbol('pidfd_spawn');
 
 /// posix_spawn, or pidfd_spawn where there is one (glibc 2.39): [pid] gets
 /// the child's id, [pidfd] a pidfd for it (made with the child, so it

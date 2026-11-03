@@ -20,6 +20,7 @@ import '../gestures/selection.dart'
     show SelectionArea, addToSelectionArea, selectedInSelectionArea;
 import '../style/gradient.dart' show textColorsAlong;
 import '../style/style.dart';
+import 'hit_row.dart' show spanIndexAt;
 
 // Examples can assume:
 // late String notes;
@@ -451,16 +452,10 @@ final class _LinkTaps {
     if (cell == null || cell.isEllipsis) {
       return null;
     }
-    final start = cell.start;
-    var at = 0;
-    for (final span in spans ?? const <Span>[]) {
-      at += span.text.length;
-      if (start < at) {
-        if (span.onTap != null) {
-          return PointerShape.pointer;
-        }
-        break;
-      }
+    final spans = this.spans ?? const <Span>[];
+    final i = spanIndexAt(spans, cell.start);
+    if (i >= 0 && spans[i].onTap != null) {
+      return PointerShape.pointer;
     }
     return onLinkTap != null && _linkAt(x, y) != null
         ? PointerShape.pointer
@@ -484,16 +479,10 @@ final class _LinkTaps {
     if (cell == null || cell.isEllipsis) {
       return;
     }
-    final start = cell.start;
-    // the spans as given hold the same text as the paragraph's, which
-    // gradients and a selection only cut in more pieces
-    var at = 0;
-    for (final span in spans ?? const <Span>[]) {
-      at += span.text.length;
-      if (start < at) {
-        span.onTap?.call();
-        break;
-      }
+    final spans = this.spans ?? const <Span>[];
+    final i = spanIndexAt(spans, cell.start);
+    if (i >= 0) {
+      spans[i].onTap?.call();
     }
     if (onLinkTap case final onLinkTap?) {
       if (_linkAt(event.x, event.y) case final url?) {

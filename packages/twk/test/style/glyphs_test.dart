@@ -402,7 +402,8 @@ void main() {
         themed(Glyphs.ascii, gauge(type: BorderType.heavy)),
         size: (6, 1),
       );
-      expect(t.lines.single, '━━━━━━');
+      // the ASCII theme's lines beat a type, as they do a box's
+      expect(t.lines.single, '------');
     });
 
     testTwk('a LineGauge with the half cleared fills in whole cells', (

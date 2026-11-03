@@ -116,13 +116,18 @@ typedef InlineLink = ({int start, int end, String destination, String? title});
   MdList list,
   int depth, [
   Glyphs glyphs = Glyphs.unicode,
+  ThemeMarks? marks,
 ]) {
-  final bullets = [glyphs.bullet, glyphs.taskPending, glyphs.bullet];
-  final (open, close) = glyphs.checkboxBrackets;
+  final m = marks ?? ThemeMarks.ofObject(null, _plainSegmenter);
+  final bullet = m.text(Marks.bullet, glyphs);
+  final bullets = [bullet, m.text(Marks.taskPending, glyphs), bullet];
+  final open = m.text(Marks.checkboxOpen, glyphs);
+  final close = m.text(Marks.checkboxClose, glyphs);
+  final on = m.text(Marks.checkboxOn, glyphs);
+  final off = m.text(Marks.checkboxOff, glyphs);
   final items = list.items;
   final start = list.start;
-  String box(bool checked) =>
-      '$open${checked ? glyphs.checkboxOn : glyphs.checkboxOff}$close';
+  String box(bool checked) => '$open${checked ? on : off}$close';
   final markers = [
     for (var k = 0; k < items.length; k++)
       switch ((start, items[k].checked)) {
@@ -138,3 +143,6 @@ typedef InlineLink = ({int start, int end, String destination, String? title});
       : [markers.reduce((a, b) => b.length > a.length ? b : a)];
   return (markers: markers, column: column);
 }
+
+// what measures the marks of a list drawn with no terminal to ask
+final _plainSegmenter = TextSegmenter();

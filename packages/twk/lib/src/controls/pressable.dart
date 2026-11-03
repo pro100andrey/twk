@@ -13,7 +13,6 @@ import '../framework/framework.dart';
 import '../gestures/gesture_detector.dart';
 import '../gestures/mouse.dart';
 import '../style/color_mix.dart';
-import '../style/glyphs.dart' show CheckboxMarks;
 import '../style/style.dart';
 import '../text/hit_row.dart' show segmenterOf;
 import '../text/widgets.dart';
@@ -209,6 +208,42 @@ List<Span> bracketed(
     bracketStyle ?? theme.muted.merge(const Style(attrsOff: Attr.bold)),
   );
   return [Span(open, brackets), Span(mark, marked), Span(close, brackets)];
+}
+
+/// The parts of a checkbox as the theme's marks give them for a context:
+/// the brackets and the two marks, each of one column or empty.
+final class CheckboxMarks {
+  /// Marks around and in a checkbox.
+  const CheckboxMarks(this.open, this.onMark, this.offMark, this.close);
+
+  /// The marks of the theme around [context].
+  factory CheckboxMarks.of(BuildContext context) {
+    final marks = ThemeMarks.of(context);
+    return CheckboxMarks(
+      marks.text(Marks.checkboxOpen),
+      marks.text(Marks.checkboxOn),
+      marks.text(Marks.checkboxOff),
+      marks.text(Marks.checkboxClose),
+    );
+  }
+
+  /// The bracket before the mark.
+  final String open;
+
+  /// The mark of a checkbox that is on.
+  final String onMark;
+
+  /// The mark of a checkbox that is off.
+  final String offMark;
+
+  /// The bracket after the mark.
+  final String close;
+
+  /// The whole of a checkbox that is on, as text.
+  String get on => '$open$onMark$close';
+
+  /// The whole of a checkbox that is off, as text.
+  String get off => '$open$offMark$close';
 }
 
 /// The spans of a checkbox, [on] or off: the brackets of [marks] in

@@ -21,9 +21,8 @@ import 'layer.dart';
 /// puts at its root, so that they do not hear the keys a dialog leaves,
 /// its `q` and `s`, while it is open. A dialog on a `Navigator` below them
 /// skips them all the same (`showDialog`), as does any entry of the
-/// navigator's own overlay (a menu, a popover), and a page pushed on it
-/// gets them; keys that are to work over a dialog too, a `ctrl+q` that quits,
-/// are bound above [App]. What the dialogs read, the app's
+/// navigator's own overlay, and a page pushed on it gets them ([Overlay],
+/// "Keys of what it shows"). What the dialogs read, the app's
 /// providers and a [Theme] of its own, goes above [App]: an [App] under a
 /// [Theme] has its dialogs in that theme. Without [theme] it places none,
 /// and the widgets below take [Theme.of]'s.

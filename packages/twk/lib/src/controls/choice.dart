@@ -11,7 +11,6 @@ import '../framework/framework.dart';
 import '../gestures/gesture_detector.dart';
 import '../layout/flex.dart';
 import '../semantics/semantics.dart';
-import '../style/glyphs.dart' show radioMarks;
 import '../style/style.dart';
 import '../text/widgets.dart';
 import 'pressable.dart';
@@ -232,7 +231,13 @@ final class RadioGroup<T> extends StatelessWidget {
           : const {'left': 'previous', 'right': 'next'},
       builder: (context, focused) {
         final theme = Theme.of(context);
-        final radio = radioMarks(context, theme.glyphs);
+        final marks = ThemeMarks.of(context);
+        final radio = (
+          open: marks.text(Marks.radioOpen),
+          on: marks.text(Marks.radioOn),
+          off: marks.text(Marks.radioOff),
+          close: marks.text(Marks.radioClose),
+        );
         final row = Flex(
           direction: direction,
           mainAxisSize: MainAxisSize.min,
@@ -272,7 +277,7 @@ final class RadioGroup<T> extends StatelessWidget {
 
   Widget _choice(
     ThemeData theme,
-    ({String on, String off}) radio,
+    ({String open, String on, String off, String close}) radio,
     int i, {
     required bool on,
     required bool focused,
@@ -291,6 +296,8 @@ final class RadioGroup<T> extends StatelessWidget {
               on ? radio.on : radio.off,
               on,
               enabled,
+              open: radio.open,
+              close: radio.close,
             ),
             Span(' ${choice.label}'),
           ],
@@ -317,13 +324,14 @@ final class RadioGroup<T> extends StatelessWidget {
     ThemeData theme,
     String glyph,
     bool on,
-    bool enabled,
-  ) {
+    bool enabled, {
+    required String open,
+    required String close,
+  }) {
     final marked = on && enabled ? markStyle(theme) : const Style();
     final brackets = marked.merge(
       bracketStyle ?? theme.muted.merge(const Style(attrsOff: Attr.bold)),
     );
-    final (open, close) = theme.glyphs.radioBrackets;
     return [
       if (open.isNotEmpty) Span(open, brackets),
       Span(on ? mark ?? glyph : glyph, on ? marked : brackets),

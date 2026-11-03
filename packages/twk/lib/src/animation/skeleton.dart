@@ -20,13 +20,11 @@ import 'package:twk_core/twk_core.dart'
         RenderObjectWithChildMixin,
         StyleId,
         StyleTable,
-        TextSegmenter,
         kBlank,
         kCont,
         kGlyphMask;
 
 import '../binding/app_binding.dart';
-import '../data/chart_glyphs.dart' show rampOf;
 import '../focus/exclude_focus.dart';
 import '../framework/framework.dart';
 import '../gestures/ignore_pointer.dart';
@@ -313,7 +311,20 @@ final class _SkeletonState extends State<_Skeleton> {
   // the shimmer moves: set by each build, read by the paint hook
   var _shimmering = false;
 
-  static final _detached = TextSegmenter();
+  // the theme's set with the SkeletonTheme's mark as its shade, made again
+  // only when either changes, not by each build
+  late Glyphs _shadeSet;
+  Glyphs? _shadeOf;
+  String? _shade;
+
+  Glyphs _withShade(Glyphs glyphs, String own) {
+    if (!identical(glyphs, _shadeOf) || own != _shade) {
+      _shadeOf = glyphs;
+      _shade = own;
+      _shadeSet = glyphs.copyWith(shades: [' ', own]);
+    }
+    return _shadeSet;
+  }
 
   @override
   void dispose() {
@@ -346,10 +357,14 @@ final class _SkeletonState extends State<_Skeleton> {
         style = style.merge(over);
       }
     }
-    final glyph = _glyphOf(
-      skeletons?.glyph ?? rampOf(theme.glyphs.shades)[1],
-      app?.owner.segmenter ?? _detached,
+    // the light shade of the set, or the SkeletonTheme's own mark as the
+    // shade of a set of its own (only where one is given)
+    final own = skeletons?.glyph;
+    final cp = ThemeMarks.of(context).cell(
+      Marks.shade,
+      own == null ? null : _withShade(theme.glyphs, own),
     );
+    final glyph = cp == kBlank ? null : cp;
     final highlight = (skeletons?.highlight ?? theme.text).fg;
     final fg = style.fg;
     final rgb = fg != null && fg.isRgb && highlight != null && highlight.isRgb;
@@ -399,17 +414,6 @@ final class _SkeletonState extends State<_Skeleton> {
         child: Effect(effect: effect, child: widget.child),
       ),
     );
-  }
-
-  /// [glyph] as the code point a cell shows, where it is one that the
-  /// canvas [segmenter] measures draws one column wide; null otherwise.
-  static int? _glyphOf(String glyph, TextSegmenter segmenter) {
-    final runes = glyph.runes;
-    if (runes.length != 1 || segmenter.width(glyph) != 1) {
-      return null;
-    }
-    final cp = runes.single;
-    return cp == kBlank ? null : cp;
   }
 }
 

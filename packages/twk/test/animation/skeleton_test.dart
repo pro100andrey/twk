@@ -436,8 +436,7 @@ void main() {
       expect(columnsIn(t, blue), hasLength(20), reason: 'the period again');
     });
 
-    testTwk('a glyph that is not a column wide is a blank in reverse '
-        'video', (t) async {
+    testTwk('a glyph that is not a column wide is the ASCII shade', (t) async {
       await t.pumpWidget(
         Theme.terminal(
           child: palette(
@@ -446,10 +445,8 @@ void main() {
         ),
         size: (6, 1),
       );
-      expect(t.lines, ['']);
-      expect(t, styleAt(0, 0, hasAttr(Attr.reverse)));
-      expect(t, styleAt(3, 0, hasAttr(Attr.reverse)));
-      expect(t, styleAt(4, 0, isNot(hasAttr(Attr.reverse))));
+      expect(t.lines, ['....']);
+      expect(t, styleAt(0, 0, isNot(hasAttr(Attr.reverse))));
     });
   });
 

@@ -1,9 +1,10 @@
-/// A row of spans that the mouse hits by parts, measured as the terminal
-/// draws them: [HitRow], and [segmenterOf], what measures text where a
-/// widget is built.
+/// A row of spans that the mouse hits by parts, found where the row's
+/// paragraph draws them: [HitRow], and [segmenterOf], what measures text
+/// where a widget is built.
 library;
 
-import 'package:twk_core/twk_core.dart' show TextSegmenter, TextWrap;
+import 'package:twk_core/twk_core.dart'
+    show RenderParagraph, TextOverflow, TextSegmenter, TextWrap;
 
 import '../binding/app_binding.dart';
 import '../focus/active_item.dart';
@@ -34,12 +35,29 @@ final _detached = TextSegmenter();
 /// `target`, or of none with -1.
 typedef HitSpan = ({Span span, int target});
 
+/// The span of [spans], a text's as given, that the text at [offset] (in
+/// UTF-16 code units into their texts joined, as a paragraph's
+/// `cellAt` gives it) is of; -1 past their end. A paragraph splits the
+/// spans it is given further (a gradient, a selection), never into other
+/// text, so the offsets of its cells are those of the spans as given.
+int spanIndexAt(List<Span> spans, int offset) {
+  var at = 0;
+  for (var i = 0; i < spans.length; i++) {
+    at += spans[i].text.length;
+    if (offset < at) {
+      return i;
+    }
+  }
+  return -1;
+}
+
 /// A row of spans, the parts of numbered targets (the segments of a
-/// control, the crumbs of a path, the pages of a pager), and where each
-/// target is along it as it is drawn: the spans measured with the
-/// segmenter the row is painted with ([segmenterOf]), so that a click or
-/// the mouse over a column finds the target drawn there in any text mode
-/// and ambiguous width.
+/// control, the crumbs of a path, the pages of a pager, the keys of a
+/// bar), and which target the mouse is over where: the row's paragraph
+/// says which text it drew at a column, as its last layout placed it, so
+/// that a click finds the target drawn there whatever reorders or cuts
+/// the row (right-to-left text in visual order, an ellipsis), in any text
+/// mode and ambiguous width.
 ///
 /// A widget's state keeps one: its build makes the row ([row]), styling
 /// the target the mouse is over ([hovered]) as it likes, and the tap it is
@@ -49,98 +67,115 @@ final class HitRow {
   /// for none.
   var hovered = -1;
 
-  /// The first column of each target and the one after its last, in
-  /// pairs; -1 for a target not in the row.
-  var _extents = const <int>[];
+  /// The pieces of the row as last built, and their spans, as its text
+  /// was given them.
+  var _pieces = const <HitSpan>[];
+  var _spans = const <Span>[];
 
-  /// The target at column [x] of the row as last built; -1 for none.
+  /// The key of the row's text, which finds the paragraph it is drawn in.
+  final GlobalKey _text = GlobalKey(debugLabel: 'HitRow');
+
+  RenderParagraph? get _paragraph => switch (_text.currentContext) {
+    final c? => c.findRenderObject() as RenderParagraph?,
+    _ => null,
+  };
+
+  /// The target drawn at column [x] of the row as last laid out; -1 for
+  /// none: between targets, beside the text, at an ellipsis (which stands
+  /// for text it does not show), before the row is laid out.
   int at(int x) {
-    final e = _extents;
-    for (var t = 0; t + 1 < e.length; t += 2) {
-      if (x >= e[t] && x < e[t + 1]) {
-        return t ~/ 2;
-      }
+    final cell = _paragraph?.cellAt(x, 0);
+    if (cell == null || cell.isEllipsis) {
+      return -1;
     }
-    return -1;
+    final i = spanIndexAt(_spans, cell.start);
+    return i < 0 ? -1 : _pieces[i].target;
   }
 
-  /// The first column of [target] in the row as last built; -1 where it is
-  /// not in it.
+  /// The first column of [target] in the row as last laid out, the
+  /// leftmost of its cells; -1 where it is not drawn (not in the row, cut
+  /// off, under an ellipsis) or the row is not laid out.
   int startOf(int target) {
-    final k = 2 * target;
-    return target >= 0 && k < _extents.length ? _extents[k] : -1;
+    final range = _rangeOf(target);
+    if (range == null) {
+      return -1;
+    }
+    return _paragraph?.columnsOf(range.$1, range.$2, 0)?.$1 ?? -1;
   }
 
-  /// The columns the row as last built takes.
-  int get width => _width;
-  var _width = 0;
+  /// The text of [target] in the row as last built, from its first span's
+  /// start to its last one's end, in UTF-16 code units; null where it has
+  /// no span.
+  (int, int)? _rangeOf(int target) {
+    if (target < 0) {
+      return null;
+    }
+    var at = 0;
+    var start = -1;
+    var end = -1;
+    for (final (:span, target: t) in _pieces) {
+      final next = at + span.text.length;
+      if (t == target) {
+        if (start < 0) {
+          start = at;
+        }
+        end = next;
+      }
+      at = next;
+    }
+    return start < 0 ? null : (start, end);
+  }
 
-  /// [spans] on one row, in [style] under theirs, measured with
-  /// [segmenter]: from here on [at] finds the targets where they are
-  /// drawn. With [onHover] the mouse over the row sets [hovered] and calls
-  /// [onHover] with it each time it changes: on the target it comes over,
-  /// -1 between targets and when it leaves. With [active], the target the
-  /// keys of a focused row act on (-1 for none), the terminal's hidden
-  /// cursor rests on its first cell ([ActiveItem.column]); a row
-  /// whose keys move between its targets gives it at every build, -1 too,
-  /// so that what it builds keeps its shape as the highlight comes and
-  /// goes.
+  /// [spans] on one row, in [style] under theirs, cut as [overflow] says
+  /// where they do not fit (cut off by default): from its layout on, [at]
+  /// finds the targets
+  /// where they are drawn. With [onHover] the mouse over the row sets
+  /// [hovered] and calls [onHover] with it each time it changes: on the
+  /// target it comes over, -1 between targets and when it leaves. With
+  /// [active], the target the keys of a focused row act on (-1 for none),
+  /// the terminal's hidden cursor rests on its first cell as drawn
+  /// ([ActiveItem.text]); a row whose keys move between its targets gives
+  /// it at every build, -1 too, so that what it builds keeps its shape as
+  /// the highlight comes and goes.
   Widget row(
-    List<HitSpan> spans,
-    TextSegmenter segmenter, {
+    List<HitSpan> spans, {
     Style style = const Style(),
+    TextOverflow overflow = TextOverflow.clip,
     void Function(int target)? onHover,
     int? active,
   }) {
-    var targets = 0;
-    for (final s in spans) {
-      if (s.target >= targets) {
-        targets = s.target + 1;
-      }
-    }
-    final extents = List.filled(2 * targets, -1);
-    var x = 0;
-    for (final s in spans) {
-      final w = segmenter.width(s.span.text);
-      final t = s.target;
-      if (t >= 0) {
-        if (extents[2 * t] < 0) {
-          extents[2 * t] = x;
-        }
-        extents[2 * t + 1] = x + w;
-      }
-      x += w;
-    }
-    _extents = extents;
-    _width = x;
+    _pieces = spans;
+    _spans = [for (final s in spans) s.span];
     Widget text = Text.rich(
-      [for (final s in spans) s.span],
+      _spans,
+      key: _text,
       style: style,
       wrap: TextWrap.none,
+      overflow: overflow,
       maxLines: 1,
     );
-    if (onHover != null) {
-      void hover(int target) {
-        if (target != hovered) {
-          hovered = target;
-          onHover(target);
-        }
-      }
-
-      text = MouseRegion(
-        onEnter: (event) => hover(at(event.x)),
-        onHover: (event) => hover(at(event.x)),
-        onExit: (_) => hover(-1),
+    if (active != null) {
+      // the hidden cursor on the active target
+      text = ActiveItem(
+        active: active >= 0,
+        text: _rangeOf(active),
         child: text,
       );
     }
-    if (active == null) {
+    if (onHover == null) {
       return text;
     }
-    // the hidden cursor on the active target
-    return ActiveItem(
-      active: active >= 0,
-      column: active < 0 ? 0 : startOf(active),
+    void hover(int target) {
+      if (target != hovered) {
+        hovered = target;
+        onHover(target);
+      }
+    }
+
+    return MouseRegion(
+      onEnter: (event) => hover(at(event.x)),
+      onHover: (event) => hover(at(event.x)),
+      onExit: (_) => hover(-1),
       child: text,
     );
   }

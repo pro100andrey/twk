@@ -532,7 +532,8 @@ final class RenderLineGauge extends _RenderGaugeBase {
     }
     final filledPen = _filledMerged.penIn(canvas.styles);
     final unfilledPen = _unfilledMerged.penIn(canvas.styles);
-    final type = _type;
+    // the ASCII theme's lines beat the type given, as they do a box's
+    final type = _type == null ? null : _glyphs.borderOf(_type);
     if (type != null) {
       glyphs.line(
         canvas,
@@ -552,9 +553,7 @@ final class RenderLineGauge extends _RenderGaugeBase {
       x,
       y,
       cells,
-      filled: _glyphs.gaugeFilled,
-      half: _glyphs.gaugeHalf,
-      empty: _glyphs.gaugeEmpty,
+      glyphs: _glyphs,
       filledPen: filledPen,
       unfilledPen: unfilledPen,
       ratio: unitRatio(_ratio),

@@ -28,7 +28,6 @@ import '../layout/box.dart';
 import '../layout/flex.dart';
 import '../layout/shadow.dart';
 import '../layout/stack.dart';
-import '../style/glyphs.dart' show cellRune;
 import '../style/style.dart';
 import '../text/widgets.dart';
 import 'layer.dart';
@@ -294,16 +293,17 @@ final class _RaisedToastState extends State<_RaisedToast>
 
   /// The icon of a toast in [style]: the kind of the theme's status style
   /// it is, by its text color.
-  static String? _iconOf(ThemeData theme, Style? style) {
+  static String? _iconOf(BuildContext context, ThemeData theme, Style? style) {
+    final marks = ThemeMarks.of(context);
     final fg = style?.fg;
     if (fg == null) {
       return null;
     }
     return switch (fg) {
-      _ when fg == theme.success.fg => theme.glyphs.check,
-      _ when fg == theme.info.fg => theme.glyphs.info,
-      _ when fg == theme.warning.fg => theme.glyphs.warning,
-      _ when fg == theme.error.fg => theme.glyphs.cross,
+      _ when fg == theme.success.fg => marks.text(Marks.check),
+      _ when fg == theme.info.fg => marks.text(Marks.info),
+      _ when fg == theme.warning.fg => marks.text(Marks.warning),
+      _ when fg == theme.error.fg => marks.text(Marks.cross),
       _ => null,
     };
   }
@@ -313,7 +313,7 @@ final class _RaisedToastState extends State<_RaisedToast>
     final theme = Theme.of(context);
     final toast = widget.toast;
     final kind = Style(fg: toast.style?.fg ?? theme.primary.fg);
-    final icon = toast.icon ?? _iconOf(theme, toast.style);
+    final icon = toast.icon ?? _iconOf(context, theme, toast.style);
     final box = Box(
       style: theme.surface.merge(theme.text),
       child: IntrinsicHeight(
@@ -321,7 +321,7 @@ final class _RaisedToastState extends State<_RaisedToast>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _Edge(style: kind, glyph: theme.glyphs.accent),
+            _Edge(style: kind, glyphs: theme.glyphs),
             Padding(
               padding: const EdgeInsets.only(
                 left: 1,
@@ -357,32 +357,33 @@ final class _RaisedToastState extends State<_RaisedToast>
   }
 }
 
-/// A column of [glyph] down the height it gets, in [style]: a toast's bar.
+/// A column of [Glyphs.accent] down the height it gets, in [style]: a toast's
+/// bar.
 final class _Edge extends LeafRenderObjectWidget {
-  const _Edge({required this.style, required this.glyph});
+  const _Edge({required this.style, required this.glyphs});
 
   final Style style;
-  final String glyph;
+  final Glyphs glyphs;
 
   @override
   _RenderEdge createRenderObject(BuildContext context) =>
-      _RenderEdge(style, glyph);
+      _RenderEdge(style, glyphs);
 
   @override
   void updateRenderObject(BuildContext context, _RenderEdge renderObject) =>
       renderObject
         ..style = style
-        ..glyph = glyph;
+        ..glyphs = glyphs;
 }
 
 final class _RenderEdge extends RenderObject {
-  _RenderEdge(this._style, this._glyph);
+  _RenderEdge(this._style, this._glyphs);
 
-  String _glyph;
-  String get glyph => _glyph;
-  set glyph(String g) {
-    if (g != _glyph) {
-      _glyph = g;
+  Glyphs _glyphs;
+  Glyphs get glyphs => _glyphs;
+  set glyphs(Glyphs g) {
+    if (g != _glyphs) {
+      _glyphs = g;
       markNeedsPaint();
     }
   }
@@ -412,16 +413,15 @@ final class _RenderEdge extends RenderObject {
   void paint(PaintContext ctx) {
     final canvas = ctx.canvas;
     final pen = _style.penIn(canvas.styles);
-    if (_glyph.isEmpty || height <= 0) {
+    if (height <= 0) {
       return;
     }
-    canvas.fill(
-      0,
-      0,
-      1,
-      height,
-      pen,
-      cellRune(this, 'accent', _glyph, Glyphs.ascii.accent, canvas.segmenter),
-    );
+    final cell = ThemeMarks.ofObject(
+      this,
+      canvas.segmenter,
+    ).cell(Marks.accent, _glyphs);
+    if (cell != null) {
+      canvas.fill(0, 0, 1, height, pen, cell);
+    }
   }
 }

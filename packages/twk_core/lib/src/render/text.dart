@@ -751,6 +751,28 @@ bool _keepsEllipsis(String ellipsis) {
   return ellipsis.isNotEmpty;
 }
 
+// What a walk of a row of a paragraph looks for and what it found
+// ([RenderParagraph._walkRow]): one for every paragraph, as a walk runs to
+// its end before another starts, so that a paragraph carries none of it.
+final class _RowWalk {
+  // the column it looks for, and the range whose cells it gathers instead
+  // where that is not empty
+  var x = 0;
+  var start = 0;
+  var end = 0;
+
+  // the cell at the column, as [RenderParagraph._cellAt] answers it
+  var hitStart = 0;
+  var hitEnd = 0;
+  var hitEllipsis = false;
+
+  // the columns of the cells drawing the range, -1 for none
+  var hullFrom = -1;
+  var hullTo = -1;
+}
+
+final _walk = _RowWalk();
+
 /// Text in spans, each drawn with its own pen, broken into lines that fit
 /// its width as [wrap] says, at most [maxLines] of them, each placed as
 /// [align] says; where text is cut off, [overflow] says how it shows. It is
@@ -3072,18 +3094,34 @@ final class RenderParagraph extends RenderObject {
   // the cell at column x of row y: [textRangeAt]'s range, and whether it
   // is an ellipsis
   (int, int, bool) _cellAt(int x, int y) {
-    final c = _constraints;
-    if (c == null || y < 0) {
+    if (y < 0 || _constraints == null) {
       return (0, 0, false);
     }
-    _layoutLines(c.maxW);
+    _walkRow(y, x, 0, 0);
+    return (_walk.hitStart, _walk.hitEnd, _walk.hitEllipsis);
+  }
+
+  // The one walk of row [y] as the last layout placed it, left to right,
+  // which both questions of a row ask, so that they read one model of it:
+  // with [start, end) empty, the cell at column [x] ([_cellAt]); else the
+  // whole row, gathering the first column and the one past the last of
+  // the cells drawing text of [start, end) ([columnsOf]). What it found is
+  // left in [_walk].
+  void _walkRow(int y, int x, int start, int end) {
+    _layoutLines(_constraints!.maxW);
     if (_offsetsStale) {
       _findOffsets();
     }
+    _walk.x = x;
+    _walk.start = start;
+    _walk.end = end;
+    _walk.hullFrom = -1;
+    _walk.hullTo = -1;
     final rows = _lineCount < height ? _lineCount : height;
     if (y >= rows) {
       final end = _offsetAt(_count);
-      return (end, end, false);
+      _hit(end, end, false);
+      return;
     }
     final at = y * _lineStride;
     final from = y == 0 ? 0 : _lines[at + 7];
@@ -3106,22 +3144,27 @@ final class RenderParagraph extends RenderObject {
         ? 0
         : (visual ? _visualGaps(n, rtl) : _gapsIn(headStart, headEnd));
     var col = gaps > 0 ? 0 : _lineX(free, rtl);
-    if (x < 0 || x < col) {
-      return (_offsetAt(from), _offsetAt(from), false);
+    final gather = start < end;
+    if (!gather && x < col) {
+      _hit(_offsetAt(from), _offsetAt(from), false);
+      return;
     }
-    if (x >= width) {
-      return (_offsetAt(next), _offsetAt(next), false);
+    if (!gather && x >= width) {
+      _hit(_offsetAt(next), _offsetAt(next), false);
+      return;
     }
+    // the clusters an ellipsis stands for
+    final hidden = headStart < headEnd ? headEnd : from;
+    final shown = tailStart < tailEnd ? tailStart : next;
     if (visual) {
       var gap = 0;
       for (var j = 0; j < n; j++) {
         final i = _visual[j];
+        final was = col;
         if (i < 0) {
           col += _ellipsisWidth;
-          if (x < col) {
-            final hidden = headStart < headEnd ? headEnd : from;
-            final shown = tailStart < tailEnd ? tailStart : next;
-            return (_offsetAt(hidden), _offsetAt(shown), true);
+          if (_cell(was, col, hidden, shown, true)) {
+            return;
           }
           continue;
         }
@@ -3131,40 +3174,105 @@ final class RenderParagraph extends RenderObject {
           col += _part(free, gaps, rtl ? gaps - 1 - gap : gap);
           gap++;
         }
-        if (x < col) {
-          return (_offsetAt(i), _offsetAt(i + 1), false);
+        if (_cell(was, col, i, i + 1, false)) {
+          return;
         }
       }
-      return (_offsetAt(next), _offsetAt(next), false);
+      _hit(_offsetAt(next), _offsetAt(next), false);
+      return;
     }
     var gap = 0;
     var words = false;
     for (var i = headStart; i < headEnd; i++) {
+      final was = col;
       col += _cellsOf(i);
       final space = (_kinds[i] & _space) != 0;
       if (gaps > 0 && space && words) {
         col += _part(free, gaps, gap++);
       }
-      if (x < col) {
-        return (_offsetAt(i), _offsetAt(i + 1), false);
+      if (_cell(was, col, i, i + 1, false)) {
+        return;
       }
       words = words || !space;
     }
     if (ellipsis >= 0) {
+      final was = col;
       col += _ellipsisWidth;
-      if (x < col) {
-        final hidden = headStart < headEnd ? headEnd : from;
-        final shown = tailStart < tailEnd ? tailStart : next;
-        return (_offsetAt(hidden), _offsetAt(shown), true);
+      if (_cell(was, col, hidden, shown, true)) {
+        return;
       }
     }
     for (var i = tailStart; i < tailEnd; i++) {
+      final was = col;
       col += _cellsOf(i);
-      if (x < col) {
-        return (_offsetAt(i), _offsetAt(i + 1), false);
+      if (_cell(was, col, i, i + 1, false)) {
+        return;
       }
     }
-    return (_offsetAt(next), _offsetAt(next), false);
+    _hit(_offsetAt(next), _offsetAt(next), false);
+  }
+
+  // A cell of the walk: columns [from, to) drawing clusters [first, last)
+  // (an ellipsis: those it stands for). Whether the walk stops here, at
+  // the column it looks for; else, a cell that draws text of the range
+  // within the width, not an ellipsis, widens the columns gathered.
+  bool _cell(int from, int to, int first, int last, bool isEllipsis) {
+    if (_walk.start >= _walk.end) {
+      if (_walk.x < to) {
+        _hit(_offsetAt(first), _offsetAt(last), isEllipsis);
+        return true;
+      }
+      return false;
+    }
+    // past the width a cluster is clipped, not drawn
+    final drawn = to < width ? to : width;
+    if (!isEllipsis &&
+        from < drawn &&
+        _offsetAt(first) < _walk.end &&
+        _offsetAt(last) > _walk.start) {
+      if (_walk.hullFrom < 0 || from < _walk.hullFrom) {
+        _walk.hullFrom = from;
+      }
+      if (drawn > _walk.hullTo) {
+        _walk.hullTo = drawn;
+      }
+    }
+    return false;
+  }
+
+  void _hit(int start, int end, bool isEllipsis) {
+    _walk.hitStart = start;
+    _walk.hitEnd = end;
+    _walk.hitEllipsis = isEllipsis;
+  }
+
+  /// The columns of row [y] drawing the text from [start] to [end], as
+  /// offsets into the text of the spans joined, in UTF-16 code units, as
+  /// the last layout placed it: the first and the one past the last of
+  /// the cells whose cluster has text in the range, a cell of a gap a
+  /// justified row stretches with its space; null where none on the row
+  /// does: the range empty, cut off, under an ellipsis (which draws none
+  /// of the text it stands for), on another row, before a layout. The
+  /// reverse of [textRangeAt]. In visual order ([TextOrder.visual]) the
+  /// columns of a range are where it is drawn, which for text a row
+  /// reorders may hold cells of other text between them.
+  ///
+  /// ```dart
+  /// final p = RenderParagraph([
+  ///   ('one ', const Pen()),
+  ///   ('two', const Pen()),
+  /// ], wrap: TextWrap.none)..layout(const BoxConstraints(0, 20, 0, 1));
+  /// final two = p.columnsOf(4, 7, 0); // (4, 7)
+  /// ```
+  ///
+  /// It makes a record per call, as [cellAt] does: a call per pointer
+  /// event or change, none per frame.
+  (int, int)? columnsOf(int start, int end, int y) {
+    if (y < 0 || start >= end || _constraints == null) {
+      return null;
+    }
+    _walkRow(y, 0, start, end);
+    return _walk.hullFrom < 0 ? null : (_walk.hullFrom, _walk.hullTo);
   }
 
   /// The text at column [x] of row [y] as the last layout placed it, as

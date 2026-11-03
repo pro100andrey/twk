@@ -31,7 +31,6 @@ import '../layout/basic.dart';
 import '../layout/box.dart';
 import '../layout/flex.dart';
 import '../semantics/semantics.dart';
-import '../style/glyphs.dart' show lineMark;
 import '../style/style.dart';
 import '../text/hit_row.dart';
 import '../text/widgets.dart';
@@ -923,15 +922,19 @@ final class _StepperState extends State<Stepper> {
   List<Span> _header(ThemeData theme, int i, int current) {
     final state = _stateOf(i, current);
     final text = theme.text;
+    final marks = ThemeMarks.of(context);
     final (mark, markStyled) = switch (state) {
-      StepState.complete => (theme.glyphs.checkBold, text.merge(theme.success)),
+      StepState.complete => (
+        marks.text(Marks.checkBold),
+        text.merge(theme.success),
+      ),
       StepState.editing => (
-        theme.glyphs.stepCurrent,
+        marks.text(Marks.stepCurrent),
         text.merge(markStyle(theme)),
       ),
-      StepState.error => (theme.glyphs.cross, text.merge(theme.error)),
+      StepState.error => (marks.text(Marks.cross), text.merge(theme.error)),
       StepState.indexed || StepState.disabled => (
-        theme.glyphs.ring,
+        marks.text(Marks.ring),
         text.merge(theme.muted),
       ),
     };
@@ -960,7 +963,7 @@ final class _StepperState extends State<Stepper> {
     int current,
     int width,
   ) {
-    final dash = lineMark(theme.glyphs, null);
+    final dash = ThemeMarks.of(context).dash(null);
     final sep = ' $dash$dash ';
     final steps = widget.steps;
     final spans = <HitSpan>[];
@@ -994,11 +997,10 @@ final class _StepperState extends State<Stepper> {
             target: -1,
           ),
         ],
-        segmenter,
         style: theme.text,
       );
     }
-    return _headers.row(spans, segmenter, style: theme.text);
+    return _headers.row(spans, style: theme.text);
   }
 }
 

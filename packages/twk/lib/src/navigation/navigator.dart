@@ -39,6 +39,7 @@ import '../layout/child_list.dart';
 import '../layout/stack.dart';
 import '../overlay/barrier.dart';
 import '../overlay/layer.dart';
+import '../overlay/overlay_host.dart';
 import '../style/style.dart';
 
 // Examples can assume:
@@ -898,30 +899,6 @@ final class NavigatorState extends State<Navigator> {
     return false;
   }
 
-  /// The nodes the keys that pass what the navigator's overlay shows (and
-  /// its dialogs) skip: from the node above the navigator to the one above
-  /// the overlay above it, as they would be in that overlay without the
-  /// navigator; where that overlay is a navigator's too, to the end of its
-  /// skip; none without an overlay above or any focus node around.
-  @internal
-  ({FocusNode from, FocusNode to})? get keysSkip {
-    if (!mounted) {
-      return null;
-    }
-    final overlay = Overlay.maybeOf(context);
-    final from = Focus.maybeOf(context, createDependency: false);
-    var to = overlay == null
-        ? null
-        : Focus.maybeOf(overlay.context, createDependency: false);
-    if (from == null || to == null || identical(from, to)) {
-      return null;
-    }
-    to = overlay!.widget.entriesKeysSkip?.call()?.to ?? to;
-    return (from: from, to: to);
-  }
-
-  ({FocusNode from, FocusNode to})? _keysSkip() => keysSkip;
-
   @override
   Widget build(BuildContext context) {
     final top = _history.last;
@@ -935,25 +912,27 @@ final class NavigatorState extends State<Navigator> {
     // that changes it needs no build of the navigator
     return _NavigatorScope(
       this,
-      child: Actions(
-        _actions,
-        child: Shortcuts(
-          {?back: _back},
-          hints: {?back: 'back'},
-          debugLabel: 'navigator',
-          child: Overlay(
-            entriesKeysSkip: _keysSkip,
-            child: _Theater(
-              onstage: onstage,
-              children: [
-                for (final route in _stage)
-                  _RouteHost(
-                    this,
-                    route,
-                    current: identical(route, top),
-                    key: ObjectKey(route),
-                  ),
-              ],
+      child: OverlayHost(
+        navigator: true,
+        child: Actions(
+          _actions,
+          child: Shortcuts(
+            {?back: _back},
+            hints: {?back: 'back'},
+            debugLabel: 'navigator',
+            child: Overlay(
+              child: _Theater(
+                onstage: onstage,
+                children: [
+                  for (final route in _stage)
+                    _RouteHost(
+                      this,
+                      route,
+                      current: identical(route, top),
+                      key: ObjectKey(route),
+                    ),
+                ],
+              ),
             ),
           ),
         ),
