@@ -164,6 +164,19 @@ Run sh(
 );
 
 void main() {
+  test('tells the code of programs that end at once while a Process runs, '
+      'which reaps them', () async {
+    // a Process of the test's own, so that the VM waits for any child
+    final reaper = await Process.start('sleep', ['30']);
+    addTearDown(reaper.kill);
+    final codes = await Future.wait([
+      for (var i = 0; i < 64; i++) sh('exit ${i % 7 + 1}').ended(),
+    ]);
+    expect(codes, [
+      for (var i = 0; i < 64; i++) exits(i % 7 + 1),
+    ]);
+  });
+
   test('prints through the terminal, which adds CR, and exits', () async {
     final run = sh('echo hello; exit 3');
     expect(await run.ended(), exits(3));

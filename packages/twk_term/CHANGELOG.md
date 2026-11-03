@@ -9,6 +9,11 @@
   for the program first, and `Pty.tellsExitCode` says where it does.
 - `Pty.debugUnreadOutput`: the bytes of the program's output the master
   holds unread (FIONREAD), for a test's report of a wait that failed.
+- `Pty.exitCode` knows the code of a program that ends at once on macOS
+  too: the program is spawned suspended (POSIX_SPAWN_START_SUSPENDED) and
+  let run once its kqueue watch is set, which a VM reaping it could beat
+  before. On Linux `Pty.tellsExitCode` is true only where the pidfd is made
+  with the program (pidfd_spawn, glibc 2.39), not opened after it.
 
 Breaking:
 

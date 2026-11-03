@@ -113,6 +113,11 @@ final spawnSetsid = _macos ? 0x400 : 0x80;
 /// is inherited. Linux closes the rest with addclosefrom_np instead.
 final spawnCloexecDefault = _macos ? 0x4000 : 0;
 
+/// POSIX_SPAWN_START_SUSPENDED (macOS): the child is made as if it had
+/// been sent SIGSTOP before its first instruction, and runs once sent
+/// SIGCONT: a watch of its end set in between cannot miss it. 0 elsewhere.
+final spawnStartSuspended = _macos ? 0x0080 : 0;
+
 final _process = DynamicLibrary.process();
 
 /// calloc(3): [count] zeroed elements of [size] bytes, or `nullptr`.
@@ -291,6 +296,11 @@ int pidfdSendSignal(int pidfd, int signal) =>
 
 const _enosys = 38;
 
+/// Whether [spawn] makes the child's pidfd with it (pidfd_spawn, glibc
+/// 2.39), so that no end of it can come before the pidfd: false on macOS
+/// and where only pidfd_open after posix_spawn is there.
+final bool spawnMakesPidfd = !_macos && _process.providesSymbol('pidfd_spawn');
+
 /// posix_spawn, or pidfd_spawn where there is one (glibc 2.39): [pid] gets
 /// the child's id, [pidfd] a pidfd for it (made with the child, so it
 /// can't miss its end) or -1 (macOS; pidfd_open after posix_spawn on
@@ -300,6 +310,7 @@ const _enosys = 38;
 /// before its id was read (the VM reaps every child while a Process
 /// runs): a pid that is not positive names no child, and kill(2) or
 /// waitpid(2) with it reaches every process the user owns or any child.
+
 int spawn(
   Pointer<Int> pid,
   Pointer<Int> pidfd,
