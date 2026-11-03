@@ -3,10 +3,17 @@
 library;
 
 import 'package:twk_core/twk_core.dart'
-    show BoxConstraints, Canvas, Color, PaintContext, RenderObject;
+    show
+        BoxConstraints,
+        Canvas,
+        Color,
+        PaintContext,
+        PipelineOwner,
+        RenderObject;
 
 import '../framework/framework.dart';
 import '../style/style.dart';
+import '../text/label_painter.dart';
 import 'chart_glyphs.dart';
 import 'dot_grid.dart';
 import 'dot_painter.dart';
@@ -103,6 +110,11 @@ final class DotContext {
 
   final _labels = <(int, int, String, Style)>[];
 
+  // the painters of the labels, which the render object that makes a context
+  // for each paint keeps, so that a label is laid out when it changes
+  var _painters = LabelPainters();
+  PipelineOwner? _owner;
+
   /// Sets the dots of [shape] in the current layer.
   void draw(Shape shape) => shape.draw(painter);
 
@@ -127,6 +139,7 @@ final class DotContext {
 
   /// Draws the grid at ([x], [y]) of [canvas] over [background], and the
   /// labels over it, in [labelColor] where their style sets no text color.
+  /// The labels are drawn as a `Text` draws them.
   void paint(
     Canvas canvas,
     int x,
@@ -136,12 +149,15 @@ final class DotContext {
   }) {
     painter.grid.paint(canvas, x, y, background);
     final under = Style(fg: labelColor);
+    var i = 0;
     for (final (col, row, text, style) in _labels) {
-      canvas.text(
+      _painters[i++].draw(
+        canvas,
+        _owner,
         x + col,
         y + row,
         text,
-        under.merge(style).penIn(canvas.styles),
+        under.merge(style).pen,
       );
     }
   }
@@ -245,6 +261,9 @@ final class RenderDotCanvas extends RenderObject {
 
   final _grid = DotGrid();
 
+  // the painters of the labels the draw function sets, kept across paints
+  final _labelPainters = LabelPainters();
+
   @override
   bool get isRepaintBoundary => true;
 
@@ -261,8 +280,16 @@ final class RenderDotCanvas extends RenderObject {
   void paint(PaintContext ctx) {
     final canvas = ctx.canvas;
     _grid.reset(width, height, _marker, canvas.segmenter, glyphs: _set);
-    final context = DotContext(DotPainter(_grid, _xBounds, _yBounds));
+    final context = DotContext(DotPainter(_grid, _xBounds, _yBounds))
+      .._painters = _labelPainters
+      .._owner = owner;
     _draw(context);
-    context.paint(canvas, 0, 0, _background, labelColor: _labelColor);
+    context.paint(
+      canvas,
+      0,
+      0,
+      _background,
+      labelColor: _labelColor,
+    );
   }
 }

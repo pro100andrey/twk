@@ -16,6 +16,7 @@ import 'package:twk_core/twk_core.dart'
 import '../foundation/helpers.dart';
 import '../framework/framework.dart';
 import '../style/style.dart';
+import '../text/label_painter.dart';
 import 'chart_glyphs.dart';
 
 /// One bar of a [BarChart]: its [value], the [label] beside it and the
@@ -385,16 +386,22 @@ final class RenderBarChart extends RenderObject {
   // what a paint draws with: the chart's style, the label pen, the
   // segmenter and the value of the longest bar
   late Style _base;
-  var _labelPen = 0;
+  late Style _labelPen;
   late TextSegmenter _segmenter;
   var _top = 0.0;
+
+  // the painters of the texts a paint draws as a Text does, in the order it
+  // draws them, and how many it has used
+  final _painters = LabelPainters();
+  var _used = 0;
 
   @override
   void paint(PaintContext ctx) {
     final canvas = ctx.canvas;
     _base = overUnder(_style);
     canvas.fill(0, 0, width, height, _base.penIn(canvas.styles));
-    _labelPen = _base.merge(_labelStyle).penIn(canvas.styles);
+    _labelPen = _base.merge(_labelStyle);
+    _used = 0;
     _segmenter = canvas.segmenter;
     _chartGlyphs.use(_segmenter, _glyphs);
     var top = _max;
@@ -425,7 +432,7 @@ final class RenderBarChart extends RenderObject {
     return f >= 1 ? most : (f > 0 ? (f * most).round() : 0);
   }
 
-  /// Draws [text] in [pen] from column [x] of row [y], cut off at [cells]
+  /// Draws [text] in [style] from column [x] of row [y], cut off at [cells]
   /// columns, centered in them when [center] is set.
   void _text(
     Canvas canvas,
@@ -433,18 +440,23 @@ final class RenderBarChart extends RenderObject {
     int y,
     int cells,
     String text,
-    int pen, {
+    Style style, {
     bool center = false,
   }) {
     if (cells <= 0 || text.isEmpty) {
       return;
     }
     final w = _segmenter.width(text);
-    canvas
-      ..save()
-      ..clipRect(x, y, cells, 1)
-      ..text(center && w < cells ? x + (cells - w) ~/ 2 : x, y, text, pen)
-      ..restore();
+    _painters[_used++].draw(
+      canvas,
+      owner,
+      center && w < cells ? x + (cells - w) ~/ 2 : x,
+      y,
+      text,
+      style.pen,
+      room: cells,
+      ellipsis: '',
+    );
   }
 
   /// Bars that grow up from the bottom, their labels and their groups'
@@ -518,10 +530,7 @@ final class RenderBarChart extends RenderObject {
               y,
               _barWidth,
               text,
-              style
-                  .merge(_valueStyle)
-                  .merge(bar.valueStyle)
-                  .penIn(canvas.styles),
+              style.merge(_valueStyle).merge(bar.valueStyle),
               center: true,
             );
           }
@@ -609,10 +618,7 @@ final class RenderBarChart extends RenderObject {
               mid,
               w,
               text,
-              style
-                  .merge(_valueStyle)
-                  .merge(bar.valueStyle)
-                  .penIn(canvas.styles),
+              style.merge(_valueStyle).merge(bar.valueStyle),
             );
           }
         }

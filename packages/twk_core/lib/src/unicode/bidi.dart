@@ -156,6 +156,38 @@ final _classTable = CodePointTable(bidiClassRanges);
 /// The Bidi_Class of [cp].
 BidiClass bidiClassOf(int cp) => BidiClass.values[_classTable[cp]];
 
+/// Whether [text] has a character UAX #9 may draw out of logical order: a
+/// letter of a right-to-left script, an Arabic number, or a right-to-left
+/// embedding, override or isolate. A string without one, in a left-to-right
+/// paragraph, is drawn as stored. Code units below U+0590 are skipped
+/// unexamined.
+bool mayReorder(String text) {
+  for (var i = 0; i < text.length; i++) {
+    var cp = text.codeUnitAt(i);
+    if (cp < 0x0590) {
+      continue;
+    }
+    if (cp >= 0xD800 && cp <= 0xDBFF && i + 1 < text.length) {
+      final lo = text.codeUnitAt(i + 1);
+      if (lo >= 0xDC00 && lo <= 0xDFFF) {
+        cp = 0x10000 + ((cp - 0xD800) << 10) + (lo - 0xDC00);
+        i++;
+      }
+    }
+    switch (bidiClassOf(cp)) {
+      case BidiClass.r ||
+          BidiClass.al ||
+          BidiClass.an ||
+          BidiClass.rle ||
+          BidiClass.rlo ||
+          BidiClass.rli:
+        return true;
+      case _:
+    }
+  }
+  return false;
+}
+
 /// The Bidi_Mirroring_Glyph of [cp], the character that shows it mirrored
 /// where a right-to-left run draws it (rule L4); [cp] itself when there is
 /// none.

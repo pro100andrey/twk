@@ -31,6 +31,7 @@ import '../layout/flex.dart';
 import '../layout/stack.dart';
 import '../platform/platform.dart' show writeFile;
 import '../style/style.dart';
+import '../text/label_painter.dart';
 import 'console_record.dart';
 
 export 'console_record.dart'
@@ -774,12 +775,14 @@ final class RenderConsolePanel extends RenderObject {
       _RowPens(base, _theme, canvas.styles),
       _RowPens(base.merge(_theme.selection), _theme, canvas.styles),
     ];
+    final selectedBase = base.merge(_theme.selection);
     // the code units of a message it looks at: more than the columns left
     final limit = 4 * (width - _messageX) + 4;
     for (var i = start; i < end; i++) {
       final number = c._numberAt(i);
       final record = c._record(number);
       final p = pens[number == c._selected ? 1 : 0];
+      final plain = number == c._selected ? selectedBase : base;
       final y = 1 + i - start;
       final level = record.level.index;
       if (number == c._selected) {
@@ -793,20 +796,35 @@ final class RenderConsolePanel extends RenderObject {
       canvas
         ..text(1, y, LogRecord.formatTime(record.time), p.time)
         ..text(_levelX, y, _tags[level], p.levels[level]);
-      if (more.isEmpty) {
-        canvas.text(_messageX, y, text, p.plain);
-        continue;
-      }
       final markX = width - 1 - more.length;
-      if (markX > _messageX + 1) {
-        canvas
-          ..save()
-          ..clipRect(0, y, markX - 1, 1)
-          ..text(_messageX, y, text, p.plain)
-          ..restore();
+      final end = more.isEmpty ? width : markX - 1;
+      if (end > _messageX) {
+        // the message as a Text draws it, cut at the room it has
+        _messagePainters[y].draw(
+          canvas,
+          owner,
+          _messageX,
+          y,
+          text,
+          plain.pen,
+          room: end - _messageX,
+          ellipsis: '',
+        );
       }
-      canvas.text(markX, y, more, p.time);
+      if (more.isNotEmpty) {
+        canvas.text(markX, y, more, p.time);
+      }
     }
+  }
+
+  // the painters of the messages of the rows of the list, and of the
+  // lines of a record shown whole, by row (null: not made yet)
+  final _messagePainters = LabelPainters();
+  final _linePainters = LabelPainters();
+
+  /// Paints [text] in [style] at ([x], [y]) as a `Text` draws it.
+  void _paintLine(Canvas canvas, int y, int x, String text, Style style) {
+    _linePainters[y].draw(canvas, owner, x, y, text, style.pen);
   }
 
   void _paintRecordHeader(Canvas canvas, Style base, LogRecord record) {
@@ -845,9 +863,9 @@ final class RenderConsolePanel extends RenderObject {
       }
       switch (line.kind) {
         case RecordLineKind.message:
-          canvas.text(1, y, line.text, row.penIn(styles));
+          _paintLine(canvas, y, 1, line.text, row);
         case RecordLineKind.error:
-          canvas.text(1, y, line.text, row.merge(_theme.error).penIn(styles));
+          _paintLine(canvas, y, 1, line.text, row.merge(_theme.error));
         case RecordLineKind.folded:
           canvas.text(
             3,

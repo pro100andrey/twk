@@ -26,10 +26,13 @@ import 'package:twk_core/twk_core.dart'
         Mod,
         PaintContext,
         ParentData,
+        Pen,
         PipelineOwner,
+        PipelineTextOrder,
         RenderObject,
         StyleTable,
         TextMode,
+        TextOrder,
         TextSegmenter;
 
 import '../controls/hand.dart';
@@ -46,9 +49,9 @@ import '../layout/shadow.dart';
 import '../semantics/semantics.dart';
 import '../style/color_mix.dart';
 import '../style/style.dart';
+import '../text/label_painter.dart';
 import 'anchor.dart';
 import 'key_path.dart';
-import 'label_painter.dart';
 import 'layer.dart';
 import 'panel.dart';
 
@@ -2219,11 +2222,14 @@ final class _RenderMenuBox extends RenderObject {
   // the painter of each row's label (null: none made yet), kept while the
   // rows are the same
   late var _painters = List<LabelPainter?>.filled(_rows.length, null);
+  // and of each row's key label
+  late var _keyPainters = List<LabelPainter?>.filled(_rows.length, null);
   List<_Row> get rows => _rows;
   set rows(List<_Row> rows) {
     if (!sameList(rows, _rows)) {
       _rows = rows;
       _painters = List.filled(rows.length, null);
+      _keyPainters = List.filled(rows.length, null);
       markNeedsLayout();
     }
   }
@@ -2329,7 +2335,6 @@ final class _RenderMenuBox extends RenderObject {
       ..fill(0, h - 1, 1, 1, border, lines.glyph(up: true, right: true))
       ..fill(1, h - 1, w - 2, 1, border, across)
       ..fill(w - 1, h - 1, 1, 1, border, lines.glyph(up: true, left: true));
-    final segmenter = owner?.segmenter ?? TextSegmenter();
     for (var i = 0; i < _rows.length && i < h - 2; i++) {
       final y = i + 1;
       final row = _rows[i];
@@ -2379,12 +2384,7 @@ final class _RenderMenuBox extends RenderObject {
       if (row.submenu) {
         _mark(this, canvas, w - 3, y, pen, Marks.collapsed, s.glyphs);
       } else if (key != null) {
-        canvas.text(
-          w - 2 - segmenter.width(key),
-          y,
-          key,
-          style.merge(s.muted).penIn(styles),
-        );
+        _paintKey(canvas, i, y, key, style.merge(s.muted).pen, w - 2);
       }
       canvas.restore();
     }
@@ -2392,12 +2392,23 @@ final class _RenderMenuBox extends RenderObject {
 }
 
 extension on _RenderMenuBox {
+  /// Paints the key label [key] of row [i], ending before column [end], as a
+  /// `Text` draws it.
+  void _paintKey(Canvas canvas, int i, int y, String key, Pen pen, int end) {
+    final painter = (_keyPainters[i] ??= LabelPainter())
+      ..set(key, pen, canvas.segmenter);
+    final width = painter.layout(
+      canvas.segmenter,
+      owner?.textOrder ?? TextOrder.logical,
+    );
+    painter.paint(canvas, owner, end - width, y);
+  }
+
   /// Paints the rows of a raised menu, its room around them.
   void _paintRaised(Canvas canvas, StyleTable styles, int rule, int across) {
     final w = width;
     final h = height;
     final s = _styles;
-    final segmenter = owner?.segmenter ?? TextSegmenter();
     for (var i = 0; i < _rows.length && i < h - 2; i++) {
       final y = i + 1;
       final row = _rows[i];
@@ -2439,12 +2450,7 @@ extension on _RenderMenuBox {
       if (row.submenu) {
         _mark(this, canvas, w - 3, y, pen, Marks.collapsed, s.glyphs);
       } else if (key != null) {
-        canvas.text(
-          w - 2 - segmenter.width(key),
-          y,
-          key,
-          style.merge(s.muted).penIn(styles),
-        );
+        _paintKey(canvas, i, y, key, style.merge(s.muted).pen, w - 2);
       }
       canvas.restore();
     }

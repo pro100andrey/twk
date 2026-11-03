@@ -37,6 +37,7 @@ import '../overlay/tooltip.dart';
 import '../semantics/semantics.dart';
 import '../style/style.dart';
 import '../text/hit_row.dart' show segmenterOf;
+import '../text/label_painter.dart';
 import 'chart_glyphs.dart';
 
 // Examples can assume:
@@ -980,11 +981,12 @@ final class RenderHeatmap extends RenderObject {
     canvas.fill(0, 0, width, height, basePen);
     final left = _left;
     final top = _top;
-    final labelPen = base.merge(_labelStyle).penIn(styles);
+    final labelStyle = base.merge(_labelStyle);
+    _used = 0;
 
     if (_rowLabels case final labels?) {
       for (var r = 0; r < _rows; r++) {
-        _clipped(canvas, 0, top + r, left, labels[r], labelPen);
+        _clipped(canvas, 0, top + r, left, labels[r], labelStyle);
       }
     }
     if (_columnLabels case final labels?) {
@@ -998,7 +1000,7 @@ final class RenderHeatmap extends RenderObject {
         }
         final x = left + c * _cellWidth;
         final room = next < _columns ? (next - c) * _cellWidth - 1 : width - x;
-        _clipped(canvas, x, 0, room, labels[c], labelPen);
+        _clipped(canvas, x, 0, room, labels[c], labelStyle);
       }
     }
 
@@ -1063,14 +1065,14 @@ final class RenderHeatmap extends RenderObject {
       if (x < 0) {
         x = 0;
       }
-      canvas.text(x, y, less, labelPen);
+      _clipped(canvas, x, y, seg.width(less), less, labelStyle);
       x += seg.width(less) + 1;
       final steps = _legendSteps;
       for (var i = 0; i < steps; i++) {
         look.paintOne(canvas, x + i, y, steps == 1 ? 1 : i / (steps - 1), base);
       }
       x += steps + 1;
-      canvas.text(x, y, more, labelPen);
+      _clipped(canvas, x, y, seg.width(more), more, labelStyle);
     }
   }
 
@@ -1086,23 +1088,34 @@ final class RenderHeatmap extends RenderObject {
     return (v - lo) / (hi - lo);
   }
 
-  /// [text] at ([x], [y]), cut off at [room] columns.
-  static void _clipped(
+  // the painters of the labels a paint draws as a Text does, in the order it
+  // draws them, and how many it has used
+  final _painters = LabelPainters();
+  var _used = 0;
+
+  /// [text] at ([x], [y]) in [style], as a `Text` draws it, cut off at the
+  /// end at [room] columns.
+  void _clipped(
     Canvas canvas,
     int x,
     int y,
     int room,
     String text,
-    int pen,
+    Style style,
   ) {
     if (room <= 0 || text.isEmpty) {
       return;
     }
-    canvas
-      ..save()
-      ..clipRect(x, y, room, 1)
-      ..text(x, y, text, pen)
-      ..restore();
+    _painters[_used++].draw(
+      canvas,
+      owner,
+      x,
+      y,
+      text,
+      style.pen,
+      room: room,
+      ellipsis: '',
+    );
   }
 }
 

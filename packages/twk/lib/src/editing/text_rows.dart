@@ -15,6 +15,7 @@ import 'package:twk_core/twk_core.dart'
         TextMode,
         TextSegmenter,
         bidiClassOf,
+        mayReorder,
         stringWidth;
 
 import 'bidi_row.dart';

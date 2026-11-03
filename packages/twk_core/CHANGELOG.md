@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- `mayReorder(String)` is public: whether a string has a character UAX #9
+  may draw out of logical order (a right-to-left letter, an Arabic number,
+  a right-to-left embedding, override or isolate), skipping at once the
+  code units below U+0590. The paragraph's layout and the editing fields
+  shared two copies of it, now one.
+
+- `Canvas.text` and `Canvas.run` say in their documentation that they draw
+  the string in stored order, for marks, digits and box glyphs, and that
+  the text of a user goes through a `TextPainter`, which draws it as it
+  reads in visual order.
+
 - In visual order the `BoxTitle`s of a `RenderDecoratedBox` read as a `Text`
   does: a right-to-left title was drawn in stored order, and is now drawn by
   a `TextPainter` the box keeps for it, laid out when the room it is shown

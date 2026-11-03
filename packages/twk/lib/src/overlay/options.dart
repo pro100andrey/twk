@@ -19,7 +19,7 @@ import '../foundation/helpers.dart';
 import '../framework/framework.dart';
 import '../gestures/mouse.dart';
 import '../style/style.dart';
-import 'label_painter.dart';
+import '../text/label_painter.dart';
 
 // Examples can assume:
 // var typed = '';
@@ -470,7 +470,15 @@ final class _RenderOptionList extends RenderObject {
       canvas
         ..save()
         ..clipRect(1, row, labelEnd - 1, 1);
-      painters.label.paint(canvas, owner, 1, row);
+      // cut at the room it has, at its end, as a Text's overflow is
+      painters.label.paint(
+        canvas,
+        owner,
+        1,
+        row,
+        room: labelEnd - 1,
+        ellipsis: s.glyphs.ellipsis,
+      );
       canvas.restore();
       if (i == h0 && _bar && w > 0) {
         if (marks.cell(Marks.cursor, s.glyphs) case final bar?) {

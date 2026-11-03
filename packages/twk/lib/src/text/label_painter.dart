@@ -12,6 +12,7 @@ import 'package:twk_core/twk_core.dart'
         PipelineTextOrder,
         TextInvalidation,
         TextOrder,
+        TextOverflow,
         TextPainter,
         TextSegmenter,
         TextWrap;
@@ -46,6 +47,8 @@ final class LabelPainter {
   // what the last layout was for
   var _laid = false;
   TextOrder _laidOrder = TextOrder.logical;
+  int? _laidRoom;
+  var _laidEllipsis = '\u2026';
 
   /// The columns of the label, as the last [layout] measured them.
   int get width => _painter.width;
@@ -116,18 +119,46 @@ final class LabelPainter {
     return spans;
   }
 
-  /// Lays the label out, if its text, its marks, the segmenter or [order]
-  /// changed since the last time; returns its [width].
-  int layout(TextSegmenter segmenter, TextOrder order) {
+  /// Lays the label out, if its text, its marks, the segmenter, [order],
+  /// [room] or [ellipsis] changed since the last time; returns its [width].
+  ///
+  /// With a [room] (in columns) the label is cut to it at its end, as a
+  /// `Text` with `TextOverflow.ellipsis` cuts it: with [ellipsis] where that
+  /// fits in the room, plainly where it does not. Without, it is laid out
+  /// uncut, and the canvas's clip cuts it.
+  int layout(
+    TextSegmenter segmenter,
+    TextOrder order, {
+    int? room,
+    String ellipsis = '\u2026',
+  }) {
     final changed = _painter.takeInvalidation() == TextInvalidation.layout;
     if (changed ||
         !_laid ||
         order != _laidOrder ||
+        room != _laidRoom ||
+        ellipsis != _laidEllipsis ||
         _painter.segmenterChanged(segmenter)) {
       _laid = true;
       _laidOrder = order;
+      _laidRoom = room;
+      _laidEllipsis = ellipsis;
+      if (room != null) {
+        _painter
+          ..ellipsis = ellipsis
+          ..overflow = segmenter.width(ellipsis) <= room
+              ? TextOverflow.ellipsis
+              : TextOverflow.clip;
+      } else if (_painter.overflow != TextOverflow.clip) {
+        _painter.overflow = TextOverflow.clip;
+      }
       _painter.layout(
-        const BoxConstraints(0, BoxConstraints.unbounded, 0, 1),
+        BoxConstraints(
+          0,
+          room == null ? BoxConstraints.unbounded : (room < 0 ? 0 : room),
+          0,
+          1,
+        ),
         segmenter: segmenter,
         order: order,
       );
@@ -135,11 +166,55 @@ final class LabelPainter {
     return _painter.width;
   }
 
+  /// Paints [text] in [pen] at ([x], [y]) as [set] and [paint] do, and
+  /// returns the columns it takes: a `Canvas.text` that draws a user's text
+  /// as a `Text` does.
+  int draw(
+    Canvas canvas,
+    PipelineOwner? owner,
+    int x,
+    int y,
+    String text,
+    Pen pen, {
+    int? room,
+    String ellipsis = '\u2026',
+  }) {
+    set(text, pen, canvas.segmenter);
+    paint(canvas, owner, x, y, room: room, ellipsis: ellipsis);
+    return _painter.width;
+  }
+
   /// Paints the label with its top left cell at ([x], [y]) of [canvas] for
   /// the tree of [owner], which gives the text order; laid out first if it
-  /// must be.
-  void paint(Canvas canvas, PipelineOwner? owner, int x, int y) {
-    layout(canvas.segmenter, owner?.textOrder ?? TextOrder.logical);
+  /// must be, at [room] with [ellipsis] as [layout] says.
+  void paint(
+    Canvas canvas,
+    PipelineOwner? owner,
+    int x,
+    int y, {
+    int? room,
+    String ellipsis = '\u2026',
+  }) {
+    layout(
+      canvas.segmenter,
+      owner?.textOrder ?? TextOrder.logical,
+      room: room,
+      ellipsis: ellipsis,
+    );
     _painter.paint(canvas, x, y);
+  }
+}
+
+/// [LabelPainter]s by index, made when first asked for and kept: the
+/// painters of the labels of a render object that has any number of them.
+final class LabelPainters {
+  final _painters = <LabelPainter>[];
+
+  /// The painter of the label at [index].
+  LabelPainter operator [](int index) {
+    while (_painters.length <= index) {
+      _painters.add(LabelPainter());
+    }
+    return _painters[index];
   }
 }

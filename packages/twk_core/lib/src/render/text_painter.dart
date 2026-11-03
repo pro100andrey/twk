@@ -154,36 +154,6 @@ int _kindOfWide(int cp, int length) {
 bool _isNewline(int cp) =>
     (cp >= 0x0A && cp <= 0x0D) || cp == 0x85 || cp == 0x2028 || cp == 0x2029;
 
-/// Whether [s] has a character UAX #9 may draw out of logical order: a
-/// letter of a right-to-left script, an Arabic number, or a right-to-left
-/// embedding, override or isolate.
-bool _mayReorder(String s) {
-  for (var i = 0; i < s.length; i++) {
-    var cp = s.codeUnitAt(i);
-    if (cp < 0x0590) {
-      continue;
-    }
-    if (cp >= 0xD800 && cp <= 0xDBFF && i + 1 < s.length) {
-      final lo = s.codeUnitAt(i + 1);
-      if (lo >= 0xDC00 && lo <= 0xDFFF) {
-        cp = 0x10000 + ((cp - 0xD800) << 10) + (lo - 0xDC00);
-        i++;
-      }
-    }
-    switch (bidiClassOf(cp)) {
-      case BidiClass.r ||
-          BidiClass.al ||
-          BidiClass.an ||
-          BidiClass.rle ||
-          BidiClass.rlo ||
-          BidiClass.rli:
-        return true;
-      case _:
-    }
-  }
-  return false;
-}
-
 final _clusterScan = ClusterScan();
 
 // legacy mode: where the graphemes end, so that a line keeps the clusters
@@ -965,7 +935,7 @@ final class TextPainter {
     var reorders = false;
     if (_order == TextOrder.visual) {
       for (var k = 0; k < _spans.length && !reorders; k++) {
-        reorders = _mayReorder(_spans[k].$1);
+        reorders = mayReorder(_spans[k].$1);
       }
     }
     if (!reorders) {

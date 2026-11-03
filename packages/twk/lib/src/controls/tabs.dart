@@ -24,9 +24,9 @@ import '../foundation/helpers.dart';
 import '../framework/framework.dart';
 import '../gestures/mouse.dart';
 import '../layout/child_list.dart';
-import '../overlay/label_painter.dart';
 import '../semantics/semantics.dart';
 import '../style/style.dart';
+import '../text/label_painter.dart';
 import 'hand.dart';
 
 /// Holds which of [length] tabs is selected: [index], which a [TabBar]

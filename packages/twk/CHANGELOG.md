@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+- In visual order the rest of the user's text a widget paints itself reads
+  as a `Text` draws it, each label through a `TextPainter` the render
+  object keeps: the labels of a `ProgressList`, the messages and lines of
+  the `Console`, the labels of `Gauge` and `LineGauge`, of `BarChart` and
+  `Heatmap` (their legend too), the axis titles, labels and dataset names
+  of a `Chart`, the labels a `DotCanvas`'s draw function sets, the month
+  and weekday names of a `Calendar` and the key labels of the entries of
+  menus. They drew `שלום עולם` where `Text` draws `םלוע םולש`. A label too
+  long is cut at its end, where it was, in the same columns. Marks, digits
+  and box glyphs stay on `Canvas.text`, in stored order.
+
+- An `OptionList` row's label too long for the row is laid out at the room
+  it has and cut at its end with the theme's ellipsis, as a `Text` with
+  `TextOverflow.ellipsis` is; it was laid out at its natural width and the
+  canvas clipped its right edge, so in visual order a right-to-left label
+  lost its start, which is on the right.
+
 - In visual order, where a right-to-left label is drawn as it reads, the
   rows of an `OptionList` (its label with its marks, which are now spans
   of one run in the mark style and no longer split it, and its detail),
