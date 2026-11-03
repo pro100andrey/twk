@@ -291,8 +291,6 @@ final class Cli {
   @internal
   bool get styledUnderlines => _probedUnderlines ?? _caps.styledUnderlines;
 
-  // the session ended: stdin is closed, so none opens again
-  var _sessionEnded = false;
   var _closed = false;
 
   /// Hands the terminal to another program while [run] runs, one that
@@ -436,7 +434,7 @@ final class Cli {
   /// );
   /// ```
   Future<void> show(Widget widget, {int? width}) async {
-    if (mode == CliMode.interactive && !_sessionEnded && !_closed) {
+    if (mode == CliMode.interactive && !_closed) {
       final session = await this.session();
       final shown = width == null
           ? widget
@@ -838,15 +836,17 @@ final class Cli {
 
   /// The inline session of the interactive mode, opened the first time it
   /// is asked for and kept until [close]: what the prompts and progress
-  /// of this package mount their widgets in. A [StateError] in another
-  /// mode, or once the session has ended.
+  /// of this package mount their widgets in. A Ctrl+C that ends it (the
+  /// process going on where it handles SIGINT) leaves the next asking to
+  /// open a new one, as the terminal's input is left as it was. A
+  /// [StateError] in another mode, or once the console is closed.
   @internal
   Future<CliSession> session() {
     if (mode != CliMode.interactive) {
       throw StateError('no inline session in the ${mode.name} mode');
     }
-    if (_sessionEnded || _closed) {
-      throw StateError('the inline session has ended');
+    if (_closed) {
+      throw StateError('the console is closed');
     }
     return _opening ??=
         CliSession.open(
@@ -867,10 +867,9 @@ final class Cli {
         );
   }
 
-  /// Whether the inline session has ended, or the console is closed: no
-  /// session opens again.
+  /// Whether the console is closed ([close]): no session opens again.
   @internal
-  bool get sessionEnded => _sessionEnded || _closed;
+  bool get closed => _closed;
 
   /// The session while it holds the screen.
   CliSession? get _liveSession => switch (_session) {
@@ -878,9 +877,11 @@ final class Cli {
     _ => null,
   };
 
+  // a Ctrl+C ended the session, the terminal restored: the next one asked
+  // for is a new one
   void _interrupted() {
-    _sessionEnded = true;
     _session = null;
+    _opening = null;
     terminal.interrupt();
   }
 
@@ -914,7 +915,6 @@ final class Cli {
         );
         _partial.clear();
       }
-      _sessionEnded = true;
       _session = null;
       await session.close();
     }
@@ -966,9 +966,7 @@ final class Cli {
   /// The session being opened: asked for and not yet holding the screen,
   /// nor ended.
   Future<CliSession>? get _openingSession =>
-      _session == null && !_openFailed && !_sessionEnded && !_closed
-      ? _opening
-      : null;
+      _session == null && !_openFailed && !_closed ? _opening : null;
 
   /// Whether the session asked for failed to open.
   var _openFailed = false;

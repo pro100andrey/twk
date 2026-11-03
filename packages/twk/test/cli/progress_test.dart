@@ -343,6 +343,25 @@ void main() {
       await close();
     });
 
+    test('after a Ctrl+C ended the session, a progress shows in a new '
+        'one', () async {
+      final first = cli.progress('Building');
+      await clock.elapse(_ms * 50);
+      terminal.type('\x03');
+      await clock.elapse(_ms * 50);
+      expect(terminal.interrupts, 1);
+      first.complete('Built');
+      // the process went on (it handles SIGINT): the terminal is there
+      final second = cli.progress('Deploying');
+      await clock.elapse(_ms * 50);
+      expect(terminal.opened, 2);
+      expect(terminal.screenLines.last, contains('Deploying'));
+      second.complete('Deployed');
+      await clock.elapse(_ms * 50);
+      expect(terminal.screenLines.last, contains('Deployed in'));
+      await close();
+    });
+
     test('writes its closing line once the session ended under it', () async {
       final progress = cli.progress('Building');
       await clock.elapse(_ms * 50);

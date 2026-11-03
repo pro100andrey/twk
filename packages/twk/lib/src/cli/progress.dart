@@ -34,7 +34,7 @@ enum _Look {
   outcome;
 
   static _Look of(Cli cli) {
-    if (cli.mode == CliMode.interactive && !cli.sessionEnded) {
+    if (cli.mode == CliMode.interactive && !cli.closed) {
       return live;
     }
     return cli.terminal.capabilities.outputIsTerminal ? lines : outcome;

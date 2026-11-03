@@ -196,7 +196,9 @@ final class FakeCliTerminal extends CliTerminal {
   int get reads => _reads;
   var _reads = 0;
 
-  /// How many times the inline terminal was opened: once at most.
+  /// How many times the inline terminal was opened: one at a time, again
+  /// once the last one is closed (a session ended by a Ctrl+C, then
+  /// another), as the process's own terminal is.
   int get opened => _opened;
   var _opened = 0;
 
@@ -245,12 +247,14 @@ final class FakeCliTerminal extends CliTerminal {
 
   @override
   Future<TerminalBackend> openInline() async {
-    if (_opened++ > 0) {
-      throw StateError(
-        'the inline terminal was opened before: stdin is closed',
-      );
+    final last = _backend;
+    if (last != null && !last.closed) {
+      throw StateError('the inline terminal is open: one at a time');
     }
+    _opened++;
+    // the last one's frames on the screen, then the new one's from its first
     _feedFrames();
+    _frames = 0;
     screen.guardRows(screen.cy);
     final backend = _backend = HeadlessTerminal(
       width: width,

@@ -246,17 +246,21 @@ void main() {
       expect(terminal.screenLines, ['✔ First? 1', '✔ Second? 2']);
     });
 
-    test('after the session ended, throws as at the end of input', () async {
+    test('after a Ctrl+C ended the session, asks in a new one', () async {
       final session = await settle(cli.session());
       session.mount(const Text('waiting'));
       await frame();
       terminal.type(_ctrlC);
       await settle(session.done);
       expect(terminal.interrupts, 1);
-      await expectLater(
-        settle(cli.prompt('Name?')),
-        throwsA(_cancelled('Name?', PromptCancelReason.endOfInput)),
-      );
+      // the process went on (it handles SIGINT): the terminal is there
+      final name = cli.prompt('Name?');
+      await type([]);
+      expect(terminal.opened, 2);
+      expect(terminal.screenLines.last, '? Name?');
+      await type(['a', _enter]);
+      expect(await settle(name), 'a');
+      expect(terminal.screenLines.last, '✔ Name? a');
     });
   });
 

@@ -14,6 +14,11 @@ Breaking:
   `pumpWidget(pointerShapes: true)`; it read null there, so an `isNull`
   could pass for the wrong reason.
 
+- `FakeCliTerminal.openInline` opens the inline terminal again once the
+  last one is closed (a session ended by a Ctrl+C, then another), as the
+  process's own terminal now does, and throws only while one is open; it
+  threw on any second open ("stdin is closed"). `opened` counts each.
+
 ## 0.1.0
 
 The first release.

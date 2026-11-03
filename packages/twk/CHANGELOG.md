@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- After a Ctrl+C ended the inline session, a program that handles SIGINT
+  and goes on gets a new session for its next prompt or progress. The
+  prompt was cancelled at once with `PromptCancelReason.endOfInput`, and a
+  progress was written as lines, because stdin was taken for closed.
+  `Cli.close()` still ends the console for good. `FakeCliTerminal` opens
+  its inline terminal again once the last one is closed.
 - `Cli.suspend(run)` hands the terminal to another program while `run`
   runs, one that reads the terminal itself (`sudo` asking for a password, a
   package manager, a pager, an editor), and takes it back after. The inline

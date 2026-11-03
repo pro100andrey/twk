@@ -375,8 +375,8 @@ final class Prompter {
     String question,
     Widget Function(PromptAnswer<T> answer) build,
   ) async {
-    if (cli.sessionEnded) {
-      // stdin went with it
+    if (cli.closed) {
+      // its terminal went with it
       throw PromptCancelledException(question, PromptCancelReason.endOfInput);
     }
     final session = await cli.session();
