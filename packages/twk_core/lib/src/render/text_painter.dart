@@ -29,6 +29,12 @@ const _multi = 1024;
 // TextPainter._endOf): a zero width one, a mark without a base, the CR
 // of a CR LF that legacy mode splits apart
 const _trailed = 2048;
+// bits 12 to 15: how many code units the next cluster of its span starts
+// after it (0: it is the span's last), 15 for 15 or more, the number then
+// kept aside (see TextPainter._startOf)
+const _advShift = 12;
+const _advBig = 15;
+const int _advMask = _advBig << _advShift;
 
 // the Bidi_Class of a code unit as [BidiClass.index] gives it: L, R, AL,
 // a paragraph separator, a segment separator, whitespace, other neutral;
@@ -208,8 +214,18 @@ final _noUint8s = Uint8List(0);
 final class _Edit {
   var glyphs = Uint32List(0);
   var kinds = Uint16List(0);
-  var starts = Int32List(0);
   var lines = Int32List(0);
+  // what the scan writes as it writes the paragraph's checkpoints, unread
+  var blocks = Int32List(0);
+  // the start of the first cluster of each span the edit split again, and
+  // the clusters of 15 code units or more to the next and those counts
+  var spanLead = Int32List(0);
+  final bigAt = <int>[];
+  final bigBy = <int>[];
+  // where the last cluster it split starts, and where in its span the
+  // clusters lined up again
+  var lastStart = 0;
+  var syncAt = 0;
   // the first cluster of each span the edit split again (see
   // TextPainter._spanFirst), numbered as in the paragraph
   var spanFirst = Int32List(0);
@@ -859,7 +875,19 @@ final class TextPainter {
   var _count = 0;
   Uint32List _glyphs = _noUint32s;
   Uint16List _kinds = _noUint16s;
-  Int32List _starts = _noInt32s;
+  // where the clusters start in their spans' text ([_startOf]): what
+  // _advMask of their kind says, the start of the first cluster of each
+  // span, and the start of every 64th cluster, a checkpoint, of which
+  // those of the first [_blocksValid] blocks are as the clusters are (an
+  // edit leaves those after it to be found again as they are asked for);
+  // the counts of 15 or more by cluster; the cluster _startOf found last
+  // and its start
+  Int32List _spanLead = _noInt32s;
+  Int32List _blocks = _noInt32s;
+  var _blocksValid = 0;
+  Map<int, int>? _bigAdv;
+  var _curC = -1;
+  var _curS = 0;
   // the span of the clusters, as they come in order: the first cluster of
   // each span of the text as split, the count past the last one with any,
   // and at the spans' count, the count; one int a span, not a cluster
@@ -868,6 +896,9 @@ final class TextPainter {
   // next one asked is mostly in.
   Int32List _spanFirst = _noInt32s;
   var _spanHint = 0;
+  // how many spans the table is of: those of the text as split, which an
+  // edit reads before it puts the new ones in place
+  var _tableSpans = 0;
   // where each span starts in the spans' text joined, and at
   // [_spans.length] its length, of which [_offsetAt] finds where a
   // cluster starts; found when textRangeAt or the bidi levels first ask
@@ -1662,12 +1693,16 @@ final class TextPainter {
       final n = _room(want, _glyphs.length);
       _glyphs = Uint32List(n);
       _kinds = Uint16List(n);
-      _starts = Int32List(n);
+      _blocks = Int32List((n >> 6) + 1);
     }
     if (_spanFirst.length <= _spans.length) {
       _spanFirst = Int32List(_room(_spans.length + 1, _spanFirst.length));
+      _spanLead = Int32List(_spanFirst.length);
     }
     _spanHint = 0;
+    _tableSpans = _spans.length;
+    _curC = -1;
+    _bigAdv = null;
     var more = false;
     var stopSpan = -1;
     var stopAt = 0;
@@ -1854,7 +1889,10 @@ final class TextPainter {
     final glyphs = edit ? e.glyphs : _glyphs;
     final kinds = edit ? e.kinds : _kinds;
     final firsts = edit ? e.spanFirst : _spanFirst;
-    final starts = edit ? e.starts : _starts;
+    final leads = edit ? e.spanLead : _spanLead;
+    final blocks = edit ? e.blocks : _blocks;
+    // where the cluster before in the span starts
+    var prev = 0;
     // a head scan ends at offset [stopAt] of span [stopSpan], which
     // [_headEnd] found, a place the clusters here start and end at too
     final spans = _spans;
@@ -1892,7 +1930,8 @@ final class TextPainter {
       }
       // the span's first cluster, unless it started before
       final kFirst = n;
-      if (i == 0) {
+      final kStarts = i == 0;
+      if (kStarts) {
         firsts[k] = base + n;
       }
       var grapheme = i;
@@ -1912,7 +1951,8 @@ final class TextPainter {
             e
               ..syncOld = c
               ..syncSpan = k
-              ..syncInside = true;
+              ..syncInside = true
+              ..syncAt = i;
             break spans;
           }
         }
@@ -1927,7 +1967,20 @@ final class TextPainter {
           final kind = _kindOf(c0, 1);
           glyphs[n] = c0;
           kinds[n] = kind;
-          starts[n] = start;
+          if (n > kFirst) {
+            final d = start - prev;
+            if (d < _advBig) {
+              kinds[n - 1] |= d << _advShift;
+            } else {
+              _keepBig(edit, kinds, n - 1, d);
+            }
+          } else if (kStarts) {
+            leads[k] = start;
+          }
+          if ((n & 63) == 0) {
+            blocks[n >> 6] = start;
+          }
+          prev = start;
           n++;
           cells++;
           if ((kind & _space) == 0) {
@@ -2006,7 +2059,20 @@ final class TextPainter {
         }
         glyphs[n] = glyph;
         kinds[n] = kind;
-        starts[n] = start;
+        if (n > kFirst) {
+          final d = start - prev;
+          if (d < _advBig) {
+            kinds[n - 1] |= d << _advShift;
+          } else {
+            _keepBig(edit, kinds, n - 1, d);
+          }
+        } else if (kStarts) {
+          leads[k] = start;
+        }
+        if ((n & 63) == 0) {
+          blocks[n >> 6] = start;
+        }
+        prev = start;
         n++;
         if ((kind & _newline) == 0) {
           cells += (glyph & kWide) != 0 ? 2 : 1;
@@ -2022,7 +2088,9 @@ final class TextPainter {
       for (var k = limit; k <= spans.length; k++) {
         firsts[k] = n;
       }
+      _blocksValid = (n + 63) >> 6;
     }
+    e.lastStart = prev;
     _clustersSplit += n;
     e
       ..multi = multi
@@ -2036,18 +2104,141 @@ final class TextPainter {
   /// The cluster of span [k] of the text as split that starts at offset
   /// [at] of it, or -1.
   int _oldClusterAt(int k, int at) {
-    var lo = _firstOf(k);
-    final end = _firstOf(k + 1);
-    var hi = end;
-    while (lo < hi) {
-      final mid = (lo + hi) >> 1;
-      if (_starts[mid] < at) {
-        lo = mid + 1;
-      } else {
-        hi = mid;
+    final c = _firstFrom(k, at);
+    return c < _firstOf(k + 1) && _curS == at ? c : -1;
+  }
+
+  /// The first cluster of span [k] of the text as split that starts at
+  /// offset [at] of it or after, or the first of the next span with one;
+  /// one of span [k] is [_curC], its start [_curS]. The checkpoints within
+  /// the span, then at most 63 steps.
+  int _firstFrom(int k, int at) {
+    final lo = _firstOf(k);
+    final hi = _firstOf(k + 1);
+    if (lo >= hi) {
+      return hi;
+    }
+    var c = lo;
+    var x = _spanLead[k];
+    // the checkpoints of clusters of the span: the last that starts
+    // before at
+    final bLo = (lo + 63) >> 6;
+    final bHi = (hi - 1) >> 6;
+    if (bLo <= bHi && x < at) {
+      _ensureBlocks(bHi);
+      final blocks = _blocks;
+      var l = bLo;
+      var h = bHi;
+      while (l <= h) {
+        final mid = (l + h) >> 1;
+        if (blocks[mid] < at) {
+          c = mid << 6;
+          x = blocks[mid];
+          l = mid + 1;
+        } else {
+          h = mid - 1;
+        }
       }
     }
-    return lo < end && _starts[lo] == at ? lo : -1;
+    while (x < at) {
+      final d = _advanceOf(c);
+      if (d == 0) {
+        // the span's last cluster
+        return hi;
+      }
+      x += d;
+      c++;
+    }
+    _curC = c;
+    _curS = x;
+    return c;
+  }
+
+  /// How many code units after cluster [c] the next cluster of its span
+  /// starts, 0 for the span's last.
+  @pragma('vm:prefer-inline')
+  int _advanceOf(int c) {
+    final d = (_kinds[c] & _advMask) >> _advShift;
+    return d < _advBig ? d : _bigAdv![c]!;
+  }
+
+  /// Keeps aside that the cluster after cluster [j] of [kinds] starts
+  /// [d] code units after it, 15 or more: in the paragraph's, or for an
+  /// [edit] in its scratch.
+  void _keepBig(bool edit, Uint16List kinds, int j, int d) {
+    kinds[j] |= _advMask;
+    if (edit) {
+      _edit
+        ..bigAt.add(j)
+        ..bigBy.add(d);
+    } else {
+      (_bigAdv ??= {})[j] = d;
+    }
+  }
+
+  /// Finds the checkpoints of the blocks up to block [b] that an edit left
+  /// to be found again, each from the one before or the start of its span.
+  void _ensureBlocks(int b) {
+    var v = _blocksValid;
+    if (v > b) {
+      return;
+    }
+    final blocks = _blocks;
+    for (; v <= b; v++) {
+      final c = v << 6;
+      final k = _spanOf(c);
+      final f = _firstOf(k);
+      var x = 0;
+      var j = 0;
+      if (v == 0 || f > c - 64) {
+        x = _spanLead[k];
+        j = f;
+      } else {
+        x = blocks[v - 1];
+        j = c - 64;
+      }
+      for (; j < c; j++) {
+        x += _advanceOf(j);
+      }
+      blocks[v] = x;
+    }
+    _blocksValid = v;
+  }
+
+  /// Where cluster [c] of the text as split starts in its span's text: on
+  /// from the one found last when it is of the same span and at most 64
+  /// before, else from the checkpoint of its block or the start of its
+  /// span.
+  int _startOf(int c) {
+    final cur = _curC;
+    if (c == cur) {
+      return _curS;
+    }
+    final k = _spanOf(c);
+    final f = _firstOf(k);
+    var x = 0;
+    var j = 0;
+    if (cur >= f && cur < c && c - cur <= 64) {
+      x = _curS;
+      j = cur;
+    } else {
+      final b = c >> 6;
+      final from = b << 6;
+      if (f >= from) {
+        x = _spanLead[k];
+        j = f;
+      } else {
+        _ensureBlocks(b);
+        x = _blocks[b];
+        j = from;
+      }
+    }
+    for (; j < c; j++) {
+      x += _advanceOf(j);
+    }
+    _curC = c;
+    _curS = x;
+    return x;
   }
 
   /// Whether the text as split from span [k] on added nothing to the
@@ -2064,7 +2255,7 @@ final class TextPainter {
       return true;
     }
     final c = _firstOf(j);
-    return c < _firstOf(j + 1) && _starts[c] == 0;
+    return c < _firstOf(j + 1) && _spanLead[j] == 0;
   }
 
   /// The first cluster of span [k] of the text as split, or of the first
@@ -2084,7 +2275,7 @@ final class TextPainter {
       if (c < firsts[k + 1]) {
         return k;
       }
-      if (k + 1 < _spans.length && c < firsts[k + 2]) {
+      if (k + 1 < _tableSpans && c < firsts[k + 2]) {
         return _spanHint = k + 1;
       }
     }
@@ -2096,7 +2287,7 @@ final class TextPainter {
   int _findSpan(int c) {
     final firsts = _spanFirst;
     var lo = 0;
-    var hi = _spans.length - 1;
+    var hi = _tableSpans - 1;
     while (lo < hi) {
       final mid = (lo + hi + 1) >> 1;
       if (firsts[mid] <= c) {
@@ -2151,22 +2342,16 @@ final class TextPainter {
       }
       // the last cluster that starts before p, and back from it
       final firstOfA = from;
-      var lo = firstOfA;
-      var hi = _firstOf(a + 1);
-      while (lo < hi) {
-        final mid = (lo + hi) >> 1;
-        if (_starts[mid] < p) {
-          lo = mid + 1;
-        } else {
-          hi = mid;
-        }
-      }
+      final lo = _firstFrom(a, p);
+      var x = lo > firstOfA ? _startOf(lo - 1) : 0;
       for (var c = lo - 1; c >= firstOfA; c--) {
-        final x = _starts[c];
         if (x > 0 && _plain(s.codeUnitAt(x - 1)) && _plain(s.codeUnitAt(x))) {
           from = c;
           at = x;
           break;
+        }
+        if (c > firstOfA) {
+          x -= _advanceOf(c - 1);
         }
       }
     }
@@ -2210,11 +2395,15 @@ final class TextPainter {
       e
         ..glyphs = Uint32List(n)
         ..kinds = Uint16List(n)
-        ..starts = Int32List(n);
+        ..blocks = Int32List((n >> 6) + 1);
     }
     if (e.spanFirst.length <= m2) {
-      e.spanFirst = Int32List(_room(m2 + 1, e.spanFirst.length));
+      e
+        ..spanFirst = Int32List(_room(m2 + 1, e.spanFirst.length))
+        ..spanLead = Int32List(e.spanFirst.length);
     }
+    e.bigAt.clear();
+    e.bigBy.clear();
     final found = _scan(seg, a, at, from, edit: true);
     // clusters [from, os) were, [from, ns) are
     final os = e.syncOld;
@@ -2236,25 +2425,36 @@ final class TextPainter {
       final n = _room(total, _glyphs.length);
       _glyphs = _move(_glyphs, Uint32List(n), from, os, ns, count);
       _kinds = _move(_kinds, Uint16List(n), from, os, ns, count);
-      _starts = _move(_starts, Int32List(n), from, os, ns, count);
     } else if (delta != 0) {
       _move(_glyphs, _glyphs, from, os, ns, count);
       _move(_kinds, _kinds, from, os, ns, count);
-      _move(_starts, _starts, from, os, ns, count);
     }
-    // the clusters kept in the span they lined up in moved in its text
-    final shift = e.spanShift;
-    if (e.syncInside && e.syncSpan == e.lastChanged) {
-      final change = e.lengthChange;
-      final end = _firstOf(e.pairedOld + 1) + delta;
-      for (var i = ns; i < end; i++) {
-        _starts[i] += change;
+    // the last cluster split again is not its span's last where the
+    // clusters lined up inside the span: the next is the one they lined
+    // up at
+    if (found > 0 && e.syncInside) {
+      final d = e.syncAt - e.lastStart;
+      if (d < _advBig) {
+        e.kinds[found - 1] |= d << _advShift;
+      } else {
+        _keepBig(true, e.kinds, found - 1, d);
       }
     }
-    _placeSpanFirsts(at > 0 ? a + 1 : a, m2, shift, delta);
+    _placeBigAdvances(from, os, delta);
+    _placeSpanFirsts(at > 0 ? a + 1 : a, m2, e.spanShift, delta);
     _glyphs.setRange(from, ns, e.glyphs);
     _kinds.setRange(from, ns, e.kinds);
-    _starts.setRange(from, ns, e.starts);
+    // the checkpoints of the clusters before from are as they were, the
+    // others found again as they are asked for
+    final blocks = (_glyphs.length >> 6) + 1;
+    if (_blocks.length < blocks) {
+      _blocks = Int32List(blocks)..setRange(0, _blocksValid, _blocks);
+    }
+    final valid = (from + 63) >> 6;
+    if (_blocksValid > valid) {
+      _blocksValid = valid;
+    }
+    _curC = -1;
     _count = total;
     _hasMulti = _hasMulti || e.multi;
     _newlines += e.newlines - newlines;
@@ -2297,7 +2497,7 @@ final class TextPainter {
     }
     _changedTo = _changedTo + delta > ns ? _changedTo + delta : ns;
     _changedShift += delta;
-    _spansMoved = _spansMoved || shift != 0;
+    _spansMoved = _spansMoved || e.spanShift != 0;
     _linesAt = -1;
     if (_rawAt >= 0) {
       if (!_edited) {
@@ -2344,19 +2544,51 @@ final class TextPainter {
     final e = _edit;
     final lined = e.syncInside ? e.syncSpan + 1 : e.syncSpan;
     var firsts = _spanFirst;
+    var leads = _spanLead;
     if (firsts.length <= spans) {
       firsts = Int32List(_room(spans + 1, firsts.length))
         ..setRange(0, from, _spanFirst);
+      leads = Int32List(firsts.length)..setRange(0, from, _spanLead);
     }
     firsts.setRange(lined, spans + 1, _spanFirst, lined - shift);
+    leads.setRange(lined, spans + 1, _spanLead, lined - shift);
     for (var k = lined; k <= spans; k++) {
       firsts[k] += delta;
     }
     if (from < lined) {
       firsts.setRange(from, lined, e.spanFirst, from);
+      leads.setRange(from, lined, e.spanLead, from);
     }
     _spanFirst = firsts;
+    _spanLead = leads;
     _spanHint = 0;
+    _tableSpans = spans;
+  }
+
+  /// Puts the counts of 15 code units or more to the next cluster in
+  /// place after an edit split clusters [from, os) again as those the
+  /// edit's scratch has, [delta] more: those before kept, those after
+  /// moved, those split again from the scratch.
+  void _placeBigAdvances(int from, int os, int delta) {
+    final e = _edit;
+    final old = _bigAdv;
+    if (old == null && e.bigAt.isEmpty) {
+      return;
+    }
+    Map<int, int>? kept;
+    if (old != null) {
+      for (final MapEntry(key: c, value: d) in old.entries) {
+        if (c < from) {
+          (kept ??= {})[c] = d;
+        } else if (c >= os) {
+          (kept ??= {})[c + delta] = d;
+        }
+      }
+    }
+    for (var j = 0; j < e.bigAt.length; j++) {
+      (kept ??= {})[from + e.bigAt[j]] = e.bigBy[j];
+    }
+    _bigAdv = kept;
   }
 
   /// Finds where each span starts in the spans' text joined, and its
@@ -2408,13 +2640,13 @@ final class TextPainter {
     final next = c + 1;
     if ((_kinds[c] & _trailed) == 0) {
       if (next < _spanFirst[k + 1]) {
-        return _starts[next];
+        return _startOf(next);
       }
       if (!_partial || next < _count) {
         return _spans[k].$1.length;
       }
     }
-    _shapedBy.scan(_spans[k].$1, _starts[c], _clusterScan);
+    _shapedBy.scan(_spans[k].$1, _startOf(c), _clusterScan);
     return _clusterScan.end;
   }
 
@@ -3186,7 +3418,7 @@ final class TextPainter {
           differ('glyph $i', _glyphs[i] & mask, fresh._glyphs[i] & mask) ??
           differ('kind $i', _kinds[i], fresh._kinds[i]) ??
           differ('span of $i', _spanOf(i), fresh._spanOf(i)) ??
-          differ('start of $i', _starts[i], fresh._starts[i]) ??
+          differ('start of $i', _startOf(i), fresh._startOf(i)) ??
           differ('end of $i', _endOf(i), fresh._endOf(i));
       if (d != null) {
         return d;
@@ -3577,7 +3809,7 @@ final class TextPainter {
   void _intern(GlyphTable glyphs, int from, int to) {
     for (var i = from; i < to; i++) {
       if ((_kinds[i] & _multi) != 0) {
-        final id = glyphs.intern(_spans[_spanOf(i)].$1, _starts[i], _endOf(i));
+        final id = glyphs.intern(_spans[_spanOf(i)].$1, _startOf(i), _endOf(i));
         _glyphs[i] = (_glyphs[i] & ~kGlyphMask) | id;
       }
     }
