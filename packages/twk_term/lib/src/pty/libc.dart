@@ -91,6 +91,10 @@ const tcsaflush = 2;
 /// TIOCSWINSZ, for [ioctl]: sets a terminal's size (`struct winsize`).
 final tiocswinsz = _macos ? 0x80087467 : 0x5414;
 
+/// FIONREAD, for [ioctl]: how many bytes a descriptor holds to be read (an
+/// `int`).
+final fionread = _macos ? 0x4004667F : 0x541B;
+
 /// IUTF8 in `c_iflag`: the line discipline erases a UTF-8 character whole.
 const iutf8 = 0x4000;
 

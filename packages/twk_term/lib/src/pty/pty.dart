@@ -506,6 +506,23 @@ final class Pty {
   /// How many rows the terminal has, as [resize] set it last.
   int get height => _height;
 
+  /// How many bytes of the program's output the master holds that this
+  /// side has not read yet (FIONREAD); null once the master is closed or
+  /// where the kernel would not say. For a test's report of a wait that
+  /// failed: output the program wrote that is still there, unread, is a
+  /// reader that stopped, not output the terminal lost.
+  int? get debugUnreadOutput {
+    if (_master < 0) {
+      return null;
+    }
+    final n = c.calloc(1, 8).cast<Int>();
+    try {
+      return c.ioctl(_master, c.fionread, n.cast()) == 0 ? n.value : null;
+    } finally {
+      c.free(n.cast());
+    }
+  }
+
   /// Hands [bytes] to the program as typed input. What the terminal doesn't
   /// take at once waits, in order, for the program to read; dropped once
   /// the terminal hung up or was closed.

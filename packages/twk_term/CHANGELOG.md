@@ -7,6 +7,8 @@
   the host terminal's: a twk app in it draws in the emulator, not as for a
   CI log. `Pty.exitCode` knows the code on macOS too when the VM waited
   for the program first, and `Pty.tellsExitCode` says where it does.
+- `Pty.debugUnreadOutput`: the bytes of the program's output the master
+  holds unread (FIONREAD), for a test's report of a wait that failed.
 
 Breaking:
 

@@ -93,7 +93,8 @@ final class Run {
   }
 
   /// Waits until [done], failing after 10 s with what was waited for, the
-  /// output so far, what [type] handed the terminal, and the program's
+  /// output so far, what [type] handed the terminal, the output the master
+  /// holds unread (`Pty.debugUnreadOutput`), and the program's
   /// processes as they were then ([_processes]): where a wait that has no
   /// cause found yet stopped.
   Future<void> until(bool Function() done, String what) async {
@@ -103,6 +104,7 @@ final class Run {
       fail(
         '${e.message}; output: ${jsonEncode(text)}; '
         'typed: $_typed writes, $_typedBytes bytes; '
+        'unread on the master: ${pty.debugUnreadOutput} bytes; '
         'processes:\n${_processes()}',
       );
     }
