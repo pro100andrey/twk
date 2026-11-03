@@ -57,6 +57,9 @@
 //                                  re-wrap at 200 and 120 columns, a 20k line
 //                                  cut with "…", 10k of mixed scripts in
 //                                  visual order
+//   type-40k, log-visual           a character typed into the 40k paragraph
+//                                  and taken back; a log of 200 lines with
+//                                  Hebrew in every 20th, in visual order
 //   hand-off, hand-auto, hand-on   20 mouse motions a frame over Buttons, a
 //                                  TabBar and a sortable Table, under
 //                                  ThemeData.handPointer off / auto / on

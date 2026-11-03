@@ -34,6 +34,12 @@
 //   mixed-visual             a new paragraph of 10k characters of CJK,
 //                            Hebrew, Arabic, emoji with ZWJ, flags,
 //                            combining marks and Latin, in visual order
+//   type-40k                 a character typed into the 40k paragraph 200
+//                            characters in and taken back, in turn: an edit
+//                            that moves what follows it
+//   log-visual               a new log of 200 lines, a message in Hebrew in
+//                            every 20th, in visual order: many paragraphs,
+//                            a few of them with right-to-left text
 // They use only what the baseline's core has (RenderParagraph and its wrap,
 // overflow and maxLines), so every baseline has their numbers.
 //

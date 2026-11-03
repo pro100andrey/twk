@@ -380,6 +380,32 @@ final frameScenarios = <FrameScenario>[
     steps: 60,
   ),
   FrameScenario(
+    'type-40k',
+    'a character typed into a paragraph of 40k characters near its start '
+        'and taken back, in turn',
+    (hs) {
+      final s = _Doc(hs, _latinText(40000))..render();
+      final text = s.text;
+      final typed = '${text.substring(0, 200)}x${text.substring(200)}';
+      return (i) {
+        s.edit(i.isEven ? typed : text);
+        return s.render();
+      };
+    },
+  ),
+  FrameScenario(
+    'log-visual',
+    'a new log of 200 lines, Hebrew in every 20th, laid out in visual order',
+    (hs) {
+      final s = _Doc(hs, _logText(200), visual: true)..render();
+      return (i) {
+        s.open(i);
+        return s.render();
+      };
+    },
+    steps: 60,
+  ),
+  FrameScenario(
     'list-scroll',
     'a row scrolled in a list of 100k items of 1 to 3 rows, built as they come',
     (hs) {
@@ -848,6 +874,23 @@ const _mixedPieces = <String>[
   'A line mixes שלום with مرحبا and [brackets] (in a run). ',
 ];
 
+/// A log of [lines] lines, each a request served but every 20th, a
+/// message in Hebrew: a text of many paragraphs, a few of them with
+/// right-to-left text.
+String _logText(int lines) {
+  final b = StringBuffer();
+  for (var i = 0; i < lines; i++) {
+    if (i % 20 == 7) {
+      b.write('[$i] user wrote: שלום עולם, מה שלומך היום 42\n');
+    } else {
+      b.write(
+        '[$i] GET /api/items?page=$i 200 OK in ${i % 97} ms, cache hit\n',
+      );
+    }
+  }
+  return b.toString();
+}
+
 /// About [n] characters (UTF-16 code units) of [_mixedPieces], in order.
 String _mixedText(int n) {
   final b = StringBuffer();
@@ -906,6 +949,12 @@ final class _Doc extends _Scene {
       overflow: maxLines == null ? TextOverflow.clip : TextOverflow.ellipsis,
       maxLines: maxLines,
     );
+  }
+
+  /// The paragraph [open] made given [text] as its one span: an edit of
+  /// it, split and laid out again about where it changed.
+  void edit(String text) {
+    (limit.child! as RenderParagraph).spans = [(text, _latin)];
   }
 
   /// The paragraph laid out at the narrow width on odd frames, at the
