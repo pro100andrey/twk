@@ -732,7 +732,7 @@ final class _Verdict {
   _Told told;
   String? other;
   var otherFits = false;
-  var otherTold = _Told();
+  late var otherTold = _Told();
 }
 
 // the pipelines a verdict has warned: weakly, as pipelines come and go

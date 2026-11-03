@@ -828,10 +828,6 @@ bool signalProcess(
 int _exitCodeOf(int status) =>
     status & 0x7f == 0 ? status >> 8 & 0xff : -(status & 0x7f);
 
-/// The I/O isolate: reads the master while the listener keeps up, says
-/// when it takes writes again, waits for the program's end (on a pidfd
-/// where there is one, else every 20 ms). It polls with a timeout either
-/// way, so the VM can stop it when it exits.
 /// Waits for the program [pid], killed after a setup that failed, so that
 /// no zombie of it is left: at once where it is gone, else every 10 ms for
 /// up to a second, without blocking (waitpid is a leaf call). Nothing for
@@ -857,6 +853,10 @@ void _reapKilled(int pid) {
   });
 }
 
+/// The I/O isolate: reads the master while the listener keeps up, says
+/// when it takes writes again, waits for the program's end (on a pidfd
+/// where there is one, else every 20 ms). It polls with a timeout either
+/// way, so the VM can stop it when it exits.
 void _ioLoop((int, int, int, int, int, SendPort) args) {
   final (master, wake, pid, pidfd, kq, port) = args;
   final scope = c.NativeScope();
