@@ -218,11 +218,6 @@ final class _Edit {
   var glyphs = Uint32List(0);
   var kinds = Uint16List(0);
   var lines = Int32List(0);
-  // the checkpoints of the clusters it split again, numbered as in the
-  // paragraph (see TextPainter._cpAt), and how many
-  var cpAt = Int32List(0);
-  var cpStart = Int32List(0);
-  var cpCount = 0;
   // the start of the first cluster of each span the edit split again, and
   // the clusters of 15 code units or more to the next and those counts
   var spanLead = Int32List(0);
@@ -882,8 +877,10 @@ final class TextPainter {
   // where the clusters start in their spans' text ([_startOf]): what
   // _advMask of their kind says, the start of the first cluster of each
   // span, and checkpoints, [_cpCount] clusters in order (_cpAt) and where
-  // each starts (_cpStart), at most 64 apart: one every 32nd cluster
-  // split, those after an edit moved with their clusters; the counts of
+  // each starts (_cpStart), at most 64 apart, found when a start is first
+  // asked for after a split (-1: not yet, which a layout and a paint never
+  // need): one every 32nd cluster, and after an edit those of the clusters
+  // it split again, the others moved with their clusters; the counts of
   // 15 or more by cluster; the cluster _startOf found last and its start
   Int32List _spanLead = _noInt32s;
   Int32List _cpAt = _noInt32s;
@@ -1697,8 +1694,6 @@ final class TextPainter {
       final n = _room(want, _glyphs.length);
       _glyphs = Uint32List(n);
       _kinds = Uint16List(n);
-      _cpAt = Int32List((n >> _cpShift) + 2);
-      _cpStart = Int32List(_cpAt.length);
     }
     if (_spanFirst.length <= _spans.length) {
       _spanFirst = Int32List(_room(_spans.length + 1, _spanFirst.length));
@@ -1895,9 +1890,6 @@ final class TextPainter {
     final kinds = edit ? e.kinds : _kinds;
     final firsts = edit ? e.spanFirst : _spanFirst;
     final leads = edit ? e.spanLead : _spanLead;
-    final cpAt = edit ? e.cpAt : _cpAt;
-    final cpStart = edit ? e.cpStart : _cpStart;
-    var cps = 0;
     // a head scan ends at offset [stopAt] of span [stopSpan], which
     // [_headEnd] found, a place the clusters here start and end at too
     final spans = _spans;
@@ -1975,10 +1967,6 @@ final class TextPainter {
           // the next cluster of the span starts after it, unless the
           // split drops what follows or the span ends
           kinds[n] = kind | (1 << _advShift);
-          if ((n & _cpMask) == 0) {
-            cpAt[cps] = base + n;
-            cpStart[cps++] = start;
-          }
           n++;
           cells++;
           if ((kind & _space) == 0) {
@@ -2057,10 +2045,6 @@ final class TextPainter {
           kinds[n] = kind;
           _keepBig(edit, kinds, n, d);
         }
-        if ((n & _cpMask) == 0) {
-          cpAt[cps] = base + n;
-          cpStart[cps++] = start;
-        }
         n++;
         if ((kind & _newline) == 0) {
           cells += (glyph & kWide) != 0 ? 2 : 1;
@@ -2080,9 +2064,8 @@ final class TextPainter {
       for (var k = limit; k <= spans.length; k++) {
         firsts[k] = n;
       }
-      _cpCount = cps;
+      _cpCount = -1;
     }
-    e.cpCount = cps;
     _clustersSplit += n;
     e
       ..multi = multi
@@ -2115,6 +2098,7 @@ final class TextPainter {
     if (x < at) {
       // the checkpoints of clusters of the span: the last that starts
       // before at
+      _ensureCheckpoints();
       final cpAt = _cpAt;
       final cpStart = _cpStart;
       var l = _cpAfter(lo - 1);
@@ -2296,6 +2280,7 @@ final class TextPainter {
     // the cluster to go from, and where it starts
     var j = f;
     var x = _spanLead[k];
+    _ensureCheckpoints();
     final p = _cpAfter(c) - 1;
     if (p >= 0 && _cpAt[p] > j) {
       j = _cpAt[p];
@@ -2496,9 +2481,7 @@ final class TextPainter {
       final n = _room(units, e.glyphs.length);
       e
         ..glyphs = Uint32List(n)
-        ..kinds = Uint16List(n)
-        ..cpAt = Int32List((n >> _cpShift) + 2)
-        ..cpStart = Int32List((n >> _cpShift) + 2);
+        ..kinds = Uint16List(n);
     }
     if (e.spanFirst.length <= m2) {
       e
@@ -2533,11 +2516,21 @@ final class TextPainter {
       _move(_kinds, _kinds, from, os, ns, count);
     }
     _placeBigAdvances(from, os, delta);
-    _placeCheckpoints(from, os, delta);
+    // the checkpoints kept before the edit and moved after it, and where
+    // the span the clusters lined up in ends, as they were
+    final built = _cpCount >= 0;
+    final cpKept = built ? _cpAfter(from - 1) : 0;
+    final cpMoved = built ? _cpAfter(os - 1) : 0;
+    final movedEnd = e.syncInside && e.syncSpan == e.lastChanged
+        ? _firstOf(e.pairedOld + 1)
+        : -1;
     _placeSpanFirsts(at > 0 ? a + 1 : a, m2, e.spanShift, delta);
     _glyphs.setRange(from, ns, e.glyphs);
     _kinds.setRange(from, ns, e.kinds);
     _curC = -1;
+    if (built) {
+      _placeCheckpoints(cpKept, cpMoved, from, ns, delta, movedEnd, at);
+    }
     _count = total;
     _hasMulti = _hasMulti || e.multi;
     _newlines += e.newlines - newlines;
@@ -2648,42 +2641,92 @@ final class TextPainter {
     _tableSpans = spans;
   }
 
-  /// Puts the checkpoints in place after an edit split clusters [from, os)
-  /// again as those of the edit's scratch, [delta] more: those before kept,
-  /// those of the scratch, and those after moved by [delta] clusters, and
-  /// in the span the clusters lined up in by what its text moved. Reads
-  /// the table of spans as it was.
-  void _placeCheckpoints(int from, int os, int delta) {
-    final e = _edit;
-    final kept = _cpAfter(from - 1);
-    final after = _cpAfter(os - 1);
-    final moved = _cpCount - after;
-    final n = kept + e.cpCount + moved;
+  /// Puts the checkpoints in place after an edit split clusters again as
+  /// [from, ns), [delta] more than were: the first [kept] as they were,
+  /// those of the clusters split again found by walking them from where
+  /// the first starts ([at] in its span, or its span's first), and those
+  /// from [moved] on moved by [delta] clusters, those before [movedEnd]
+  /// (the end of the span the clusters lined up in, as it was) by what its
+  /// text moved.
+  void _placeCheckpoints(
+    int kept,
+    int moved,
+    int from,
+    int ns,
+    int delta,
+    int movedEnd,
+    int at,
+  ) {
+    final fresh = ns > from ? ((ns - from - 1) >> _cpShift) + 1 : 0;
+    final tail = _cpCount - moved;
+    final n = kept + fresh + tail;
     var cpAt = _cpAt;
     var cpStart = _cpStart;
     if (cpAt.length < n) {
       cpAt = Int32List(_room(n, cpAt.length))..setRange(0, kept, _cpAt);
       cpStart = Int32List(cpAt.length)..setRange(0, kept, _cpStart);
     }
-    final to = kept + e.cpCount;
-    cpAt.setRange(to, n, _cpAt, after);
-    cpStart.setRange(to, n, _cpStart, after);
-    // those of the span the clusters lined up in moved in its text
-    final end = e.syncInside && e.syncSpan == e.lastChanged
-        ? _firstOf(e.pairedOld + 1)
-        : -1;
-    final change = e.lengthChange;
+    final to = kept + fresh;
+    cpAt.setRange(to, n, _cpAt, moved);
+    cpStart.setRange(to, n, _cpStart, moved);
+    final change = _edit.lengthChange;
     for (var p = to; p < n; p++) {
-      if (cpAt[p] < end) {
+      if (cpAt[p] < movedEnd) {
         cpStart[p] += change;
       }
       cpAt[p] += delta;
     }
-    cpAt.setRange(kept, to, e.cpAt);
-    cpStart.setRange(kept, to, e.cpStart);
     _cpAt = cpAt;
     _cpStart = cpStart;
+    if (fresh > 0) {
+      _cpCount = kept;
+      _walkCheckpoints(from, ns, at > 0 ? at : _spanLead[_spanOf(from)]);
+    }
     _cpCount = n;
+  }
+
+  /// Finds the checkpoints if they are not yet: all of them, one every
+  /// 32nd cluster, walking the clusters once.
+  void _ensureCheckpoints() {
+    if (_cpCount >= 0) {
+      return;
+    }
+    final m = (_count >> _cpShift) + 2;
+    if (_cpAt.length < m) {
+      _cpAt = Int32List(m);
+      _cpStart = Int32List(m);
+    }
+    _cpCount = 0;
+    if (_count > 0) {
+      _walkCheckpoints(0, _count, _spanLead[_spanOf(0)]);
+    }
+  }
+
+  /// Adds the checkpoints of clusters [from, to), one every 32nd from
+  /// [from], after the first [_cpCount], walking them from where cluster
+  /// [from] starts, [start]: on by the count to the next in a span, from
+  /// its first's start in the next span.
+  void _walkCheckpoints(int from, int to, int start) {
+    final cpAt = _cpAt;
+    final cpStart = _cpStart;
+    var p = _cpCount;
+    var x = start;
+    var k = _spanOf(from);
+    var next = _firstOf(k + 1);
+    for (var c = from; c < to; c++) {
+      if (((c - from) & _cpMask) == 0) {
+        cpAt[p] = c;
+        cpStart[p++] = x;
+      }
+      if (c + 1 < next) {
+        x += _advanceOf(c);
+      } else if (c + 1 < to) {
+        k = _spanOf(c + 1);
+        next = _firstOf(k + 1);
+        x = _spanLead[k];
+      }
+    }
+    _cpCount = p;
   }
 
   /// Puts the counts of 15 code units or more to the next cluster in

@@ -44,6 +44,7 @@ List<String> cells(TextPainter p) {
 }
 
 void main() {
+  mainVisual();
   test('a zero width space goes with the cluster after it, inside a span '
       'and at its end', () {
     expect(clusters(laid(['ab​cd'], 10), 0), [
@@ -123,6 +124,42 @@ void main() {
           );
         }
       }
+    }
+  });
+}
+
+/// The rows [spans] draw [w] wide in visual order.
+List<String> visualRows(List<String> spans, int w) {
+  final p = TextPainter([for (final s in spans) (s, const Pen())])
+    ..layout(
+      BoxConstraints(0, w, 0, 8),
+      segmenter: graphemes,
+      order: TextOrder.visual,
+    );
+  final surface = Surface(w, p.height);
+  final glyphs = GlyphTable();
+  p.paint(Canvas(surface, StyleTable(), glyphs), 0, 0);
+  return [
+    for (var y = 0; y < p.height; y++)
+      [
+        for (var x = 0; x < w; x++) glyphs.stringOf(surface.cells[y * w + x]),
+      ].join(),
+  ];
+}
+
+void mainVisual() {
+  test('in visual order, text split into spans where code units are '
+      'dropped draws as the text in one span does', () {
+    for (final spans in [
+      ['abc ', '​​​אבג def'],
+      ['שלום ', '​עולם', '​​ abc'],
+      ['x​', '​​דהו ', 'ok'],
+    ]) {
+      expect(
+        visualRows(spans, 12),
+        visualRows([spans.join()], 12),
+        reason: '$spans',
+      );
     }
   });
 }
