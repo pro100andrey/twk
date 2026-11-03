@@ -204,10 +204,12 @@ final _noUint8s = Uint8List(0);
 final class _Edit {
   var glyphs = Uint32List(0);
   var kinds = Uint16List(0);
-  var spanOf = Int32List(0);
   var starts = Int32List(0);
   var ends = Int32List(0);
   var lines = Int32List(0);
+  // the first cluster of each span the edit split again (see
+  // TextPainter._spanFirst), numbered as in the paragraph
+  var spanFirst = Int32List(0);
 
   // the last span the edit changed; the span of the text as split it was
   // (-1: none), the offset in it past which its text is as it was, and
@@ -844,16 +846,23 @@ final class TextPainter {
   // _shapedMode and _shapedAmbiguous (null: to be split again); each
   // with its glyph word as a GlyphRun holds it (0 for a line break, and
   // until it is interned for one of several code points), what it is for
-  // breaking lines, its span, and for one of several code points where it
-  // is in the span's text
+  // breaking lines, and for one of several code points where it is in the
+  // span's text
   TextMode? _shapedMode;
   var _shapedAmbiguous = 0;
   var _count = 0;
   Uint32List _glyphs = _noUint32s;
   Uint16List _kinds = _noUint16s;
-  Int32List _spanOf = _noInt32s;
   Int32List _starts = _noInt32s;
   Int32List _ends = _noInt32s;
+  // the span of the clusters, as they come in order: the first cluster of
+  // each span of the text as split, the count past the last one with any,
+  // and at the spans' count, the count; one int a span, not a cluster
+  // ([_spanAt] finds a cluster's), and an edit that adds or takes spans
+  // moves O(spans) of them. The span [_spanAt] found last, where the
+  // next one asked is mostly in.
+  Int32List _spanFirst = _noInt32s;
+  var _spanHint = 0;
   // where each span starts in the spans' text joined, and at
   // [_spans.length] its length, of which [_offsetAt] finds where a
   // cluster starts; found when textRangeAt or the bidi levels first ask
@@ -1647,10 +1656,13 @@ final class TextPainter {
       final n = _room(want, _glyphs.length);
       _glyphs = Uint32List(n);
       _kinds = Uint16List(n);
-      _spanOf = Int32List(n);
       _starts = Int32List(n);
       _ends = Int32List(n);
     }
+    if (_spanFirst.length <= _spans.length) {
+      _spanFirst = Int32List(_room(_spans.length + 1, _spanFirst.length));
+    }
+    _spanHint = 0;
     var more = false;
     var stopSpan = -1;
     var stopAt = 0;
@@ -1836,7 +1848,7 @@ final class TextPainter {
     final e = _edit;
     final glyphs = edit ? e.glyphs : _glyphs;
     final kinds = edit ? e.kinds : _kinds;
-    final spanOf = edit ? e.spanOf : _spanOf;
+    final firsts = edit ? e.spanFirst : _spanFirst;
     final starts = edit ? e.starts : _starts;
     final ends = edit ? e.ends : _ends;
     // a head scan ends at offset [stopAt] of span [stopSpan], which
@@ -1874,6 +1886,11 @@ final class TextPainter {
           ..syncSpan = k;
         break;
       }
+      // the span's first cluster, unless it started before
+      final kFirst = n;
+      if (i == 0) {
+        firsts[k] = base + n;
+      }
       var grapheme = i;
       while (i < end) {
         final start = i;
@@ -1906,7 +1923,6 @@ final class TextPainter {
           final kind = _kindOf(c0, 1);
           glyphs[n] = c0;
           kinds[n] = kind;
-          spanOf[n] = k;
           starts[n] = start;
           ends[n] = i;
           n++;
@@ -1972,13 +1988,12 @@ final class TextPainter {
           }
           // where it starts a grapheme starts, or a span: the first
           // cluster it finds glues none before it to itself
-          if (grapheme > start && n > 0 && spanOf[n - 1] == k) {
+          if (grapheme > start && n > kFirst) {
             kinds[n - 1] |= _glue;
           }
         }
         glyphs[n] = glyph;
         kinds[n] = kind;
-        spanOf[n] = k;
         starts[n] = start;
         ends[n] = i;
         n++;
@@ -1989,6 +2004,12 @@ final class TextPainter {
             drawnCells = cells;
           }
         }
+      }
+    }
+    if (!edit) {
+      // the spans past a head's end have none yet
+      for (var k = limit; k <= spans.length; k++) {
+        firsts[k] = n;
       }
     }
     _clustersSplit += n;
@@ -2032,21 +2053,45 @@ final class TextPainter {
       return true;
     }
     final c = _firstOf(j);
-    return c < _count && _spanOf[c] == j && _starts[c] == 0;
+    return c < _firstOf(j + 1) && _starts[c] == 0;
   }
 
   /// The first cluster of span [k] of the text as split, or of the first
   /// span after it with one, or the count: the clusters are in the order
   /// of their spans.
-  int _firstOf(int k) {
+  @pragma('vm:prefer-inline')
+  int _firstOf(int k) => _spanFirst[k];
+
+  /// The span of cluster [c] of the text as split: the span [_spanAt]
+  /// found last or the one after it, as the clusters are mostly asked for
+  /// in order, else the last span that starts at or before it.
+  @pragma('vm:prefer-inline')
+  int _spanOf(int c) {
+    final firsts = _spanFirst;
+    final k = _spanHint;
+    if (firsts[k] <= c) {
+      if (c < firsts[k + 1]) {
+        return k;
+      }
+      if (k + 1 < _spans.length && c < firsts[k + 2]) {
+        return _spanHint = k + 1;
+      }
+    }
+    return _spanHint = _findSpan(c);
+  }
+
+  /// The last span that starts at or before cluster [c], which is its span:
+  /// one with no clusters starts where the next one does.
+  int _findSpan(int c) {
+    final firsts = _spanFirst;
     var lo = 0;
-    var hi = _count;
+    var hi = _spans.length - 1;
     while (lo < hi) {
-      final mid = (lo + hi) >> 1;
-      if (_spanOf[mid] < k) {
-        lo = mid + 1;
+      final mid = (lo + hi + 1) >> 1;
+      if (firsts[mid] <= c) {
+        lo = mid;
       } else {
-        hi = mid;
+        hi = mid - 1;
       }
     }
     return lo;
@@ -2153,9 +2198,11 @@ final class TextPainter {
       e
         ..glyphs = Uint32List(n)
         ..kinds = Uint16List(n)
-        ..spanOf = Int32List(n)
         ..starts = Int32List(n)
         ..ends = Int32List(n);
+    }
+    if (e.spanFirst.length <= m2) {
+      e.spanFirst = Int32List(_room(m2 + 1, e.spanFirst.length));
     }
     final found = _scan(seg, a, at, from, edit: true);
     // clusters [from, os) were, [from, ns) are
@@ -2178,38 +2225,27 @@ final class TextPainter {
       final n = _room(total, _glyphs.length);
       _glyphs = _move(_glyphs, Uint32List(n), from, os, ns, count);
       _kinds = _move(_kinds, Uint16List(n), from, os, ns, count);
-      _spanOf = _move(_spanOf, Int32List(n), from, os, ns, count);
       _starts = _move(_starts, Int32List(n), from, os, ns, count);
       _ends = _move(_ends, Int32List(n), from, os, ns, count);
     } else if (delta != 0) {
       _move(_glyphs, _glyphs, from, os, ns, count);
       _move(_kinds, _kinds, from, os, ns, count);
-      _move(_spanOf, _spanOf, from, os, ns, count);
       _move(_starts, _starts, from, os, ns, count);
       _move(_ends, _ends, from, os, ns, count);
     }
-    // the clusters kept in the span they lined up in moved in its text,
-    // and those of later spans to another span when spans came or went
+    // the clusters kept in the span they lined up in moved in its text
     final shift = e.spanShift;
-    final moved = e.syncInside && e.syncSpan == e.lastChanged
-        ? e.pairedOld
-        : -1;
-    if (shift != 0 || moved >= 0) {
+    if (e.syncInside && e.syncSpan == e.lastChanged) {
       final change = e.lengthChange;
-      for (var i = ns; i < total; i++) {
-        final k = _spanOf[i];
-        if (k == moved) {
-          _starts[i] += change;
-          _ends[i] += change;
-        } else if (shift == 0) {
-          break;
-        }
-        _spanOf[i] = k + shift;
+      final end = _firstOf(e.pairedOld + 1) + delta;
+      for (var i = ns; i < end; i++) {
+        _starts[i] += change;
+        _ends[i] += change;
       }
     }
+    _placeSpanFirsts(at > 0 ? a + 1 : a, m2, shift, delta);
     _glyphs.setRange(from, ns, e.glyphs);
     _kinds.setRange(from, ns, e.kinds);
-    _spanOf.setRange(from, ns, e.spanOf);
     _starts.setRange(from, ns, e.starts);
     _ends.setRange(from, ns, e.ends);
     _count = total;
@@ -2291,6 +2327,31 @@ final class TextPainter {
     return to;
   }
 
+  /// Puts the first clusters of the [spans] spans in place after an edit
+  /// moved the clusters after the ones it split again by [delta] and
+  /// those of the spans after the ones it changed by [shift] spans: of
+  /// the spans before [from] they are as they were, of those the edit's
+  /// scan began then on, where it found them, and of those from where the
+  /// clusters lined up again, those of the span they were, moved.
+  void _placeSpanFirsts(int from, int spans, int shift, int delta) {
+    final e = _edit;
+    final lined = e.syncInside ? e.syncSpan + 1 : e.syncSpan;
+    var firsts = _spanFirst;
+    if (firsts.length <= spans) {
+      firsts = Int32List(_room(spans + 1, firsts.length))
+        ..setRange(0, from, _spanFirst);
+    }
+    firsts.setRange(lined, spans + 1, _spanFirst, lined - shift);
+    for (var k = lined; k <= spans; k++) {
+      firsts[k] += delta;
+    }
+    if (from < lined) {
+      firsts.setRange(from, lined, e.spanFirst, from);
+    }
+    _spanFirst = firsts;
+    _spanHint = 0;
+  }
+
   /// Finds where each span starts in the spans' text joined, and its
   /// length, which [_offsetAt] finds where each cluster starts from.
   void _findOffsets() {
@@ -2319,7 +2380,7 @@ final class TextPainter {
     if (i >= _count) {
       return _spanBase[_spans.length];
     }
-    return i == 0 ? 0 : _spanBase[_spanOf[i - 1]] + _ends[i - 1];
+    return i == 0 ? 0 : _spanBase[_spanOf(i - 1)] + _ends[i - 1];
   }
 
   /// Marks the clusters a line may break after by word.
@@ -2797,7 +2858,7 @@ final class TextPainter {
 
   /// The span whose pen draws an ellipsis in place of cluster [i] (one of
   /// those it stands for, next to what is kept).
-  int _spanAt(int i) => _spanOf[i < _count ? i : _count - 1];
+  int _spanAt(int i) => _spanOf(i < _count ? i : _count - 1);
 
   /// Line [i] as clusters [s, e) (no line break among them) to fit [maxW]
   /// columns, "…" in place of the end. With no room for it, cut off.
@@ -3089,7 +3150,7 @@ final class TextPainter {
       final d =
           differ('glyph $i', _glyphs[i] & mask, fresh._glyphs[i] & mask) ??
           differ('kind $i', _kinds[i], fresh._kinds[i]) ??
-          differ('span of $i', _spanOf[i], fresh._spanOf[i]) ??
+          differ('span of $i', _spanOf(i), fresh._spanOf(i)) ??
           differ('start of $i', _starts[i], fresh._starts[i]) ??
           differ('end of $i', _ends[i], fresh._ends[i]);
       if (d != null) {
@@ -3481,7 +3542,7 @@ final class TextPainter {
   void _intern(GlyphTable glyphs, int from, int to) {
     for (var i = from; i < to; i++) {
       if ((_kinds[i] & _multi) != 0) {
-        final id = glyphs.intern(_spans[_spanOf[i]].$1, _starts[i], _ends[i]);
+        final id = glyphs.intern(_spans[_spanOf(i)].$1, _starts[i], _ends[i]);
         _glyphs[i] = (_glyphs[i] & ~kGlyphMask) | id;
       }
     }
@@ -4001,7 +4062,7 @@ final class TextPainter {
     var gap = 0;
     for (var j = 0; j < n; j++) {
       final i = _visual[j];
-      if (count > 0 && (i < 0 || _spanOf[i] != span)) {
+      if (count > 0 && (i < 0 || _spanOf(i) != span)) {
         _addGlyphs(count, at, y, span, w);
         at += w;
         count = 0;
@@ -4023,10 +4084,10 @@ final class TextPainter {
           count = 0;
           w = 0;
         }
-        _addSegment(_fromGap, 0, 0, at, y, _spanOf[i], extra);
+        _addSegment(_fromGap, 0, 0, at, y, _spanOf(i), extra);
         at += extra;
       }
-      span = _spanOf[i];
+      span = _spanOf(i);
       var g = _glyphs[i];
       if (_visualOdd[j] != 0 && (_kinds[i] & (_multi | _newline)) == 0) {
         g = (g & ~kGlyphMask) | bidiMirror(g & kGlyphMask);
@@ -4090,7 +4151,8 @@ final class TextPainter {
     if (a == b) {
       return x;
     }
-    if (gaps == 0 && _spanOf[a] == _spanOf[b - 1]) {
+    final span = _spanOf(a);
+    if (gaps == 0 && b <= _firstOf(span + 1)) {
       final w = width < 0 ? _widthOf(a, b) : width;
       _addRun(a, b, x, y, w);
       return x + w;
@@ -4099,22 +4161,26 @@ final class TextPainter {
       // a run a span, as the loop below makes them without gaps, with the
       // arrays in locals and no test for a gap at each cluster: a line of
       // two spans (text and a link, a highlight) is the common case
-      final spanOf = _spanOf;
       final glyphs = _glyphs;
       final kinds = _kinds;
       var at = x;
       var i = a;
+      var k = span;
       while (i < b) {
-        final span = spanOf[i];
+        while (_firstOf(k + 1) <= i) {
+          k++;
+        }
         final from = i;
+        final next = _firstOf(k + 1);
+        final end = next < b ? next : b;
         var w = 0;
         do {
           w += (glyphs[i] & kWide) != 0
               ? 2
               : ((kinds[i] & _newline) != 0 ? 0 : 1);
           i++;
-        } while (i < b && spanOf[i] == span);
-        _addRun(from, i, at, y, w);
+        } while (i < end);
+        _addSegment(_fromClusters, from, i, at, y, k, w);
         at += w;
       }
       return at;
@@ -4124,12 +4190,17 @@ final class TextPainter {
     var w = 0;
     var gap = 0;
     var words = false;
+    // where the span of the cluster at start ends
+    var spanEnd = _firstOf(span + 1);
     for (var i = a; i < b; i++) {
-      if (i > start && _spanOf[i] != _spanOf[start]) {
-        _addRun(start, i, at, y, w);
-        at += w;
-        start = i;
-        w = 0;
+      if (i >= spanEnd) {
+        if (i > start) {
+          _addRun(start, i, at, y, w);
+          at += w;
+          start = i;
+          w = 0;
+        }
+        spanEnd = _firstOf(_spanOf(i) + 1);
       }
       w += _cellsOf(i);
       final space = (_kinds[i] & _space) != 0;
@@ -4140,7 +4211,7 @@ final class TextPainter {
         w = 0;
         final extra = _part(free, gaps, gap++);
         if (extra > 0) {
-          _addSegment(_fromGap, 0, 0, at, y, _spanOf[i], extra);
+          _addSegment(_fromGap, 0, 0, at, y, _spanOf(i), extra);
           at += extra;
         }
       }
@@ -4156,7 +4227,7 @@ final class TextPainter {
   /// Adds clusters [a, b), [w] columns, at column [x] of row [y]: drawn
   /// from [_glyphs] where they are.
   void _addRun(int a, int b, int x, int y, int w) =>
-      _addSegment(_fromClusters, a, b, x, y, _spanOf[a], w);
+      _addSegment(_fromClusters, a, b, x, y, _spanOf(a), w);
 
   /// Adds a segment of [w] columns at column [x] of row [y] in the pen of
   /// [span], its glyphs [start, end) of what [from] names.
