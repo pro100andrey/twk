@@ -181,9 +181,11 @@ Future<void> main() async {
 
   // a program after them reads the line: the c left, then hi
   type('hi\r');
+  // !x! expanded when echo runs (/v:on), not with the line, before set
   final child = await Process.start('cmd', [
+    '/v:on',
     '/c',
-    'set /p x=& echo child %x%',
+    'set /p x=& echo child !x!',
   ], mode: ProcessStartMode.inheritStdio);
   final code = await child.exitCode;
 
