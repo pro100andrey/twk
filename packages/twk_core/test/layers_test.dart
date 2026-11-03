@@ -42,6 +42,7 @@ const _layers = <(String, List<String>)>[
       'terminal/link.dart',
       'terminal/outbox.dart',
       'terminal/plain.dart',
+      'terminal/posix_input.dart',
       'terminal/posix_tty.dart',
       'terminal/socket.dart',
       'terminal/stdio_link.dart',
