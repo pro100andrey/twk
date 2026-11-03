@@ -853,10 +853,18 @@ final class Cli {
           terminal,
           theme: theme.data,
           onInterrupt: _interrupted,
-        ).then((session) {
-          _probedUnderlines = session.styledUnderlines;
-          return _session = session;
-        });
+        ).then(
+          (session) {
+            _probedUnderlines = session.styledUnderlines;
+            return _session = session;
+          },
+          onError: (Object e, StackTrace s) {
+            // no session is opening any more: what is written goes as
+            // without one, at once
+            _openFailed = true;
+            Error.throwWithStackTrace(e, s);
+          },
+        );
   }
 
   /// Whether the inline session has ended, or the console is closed: no
@@ -888,8 +896,16 @@ final class Cli {
     }
     _closed = true;
     final opening = _opening;
+    CliSession? session;
     if (opening != null) {
-      final session = await opening;
+      try {
+        session = await opening;
+      } on Object {
+        // it failed to open: its asker was told, and there is none to end
+        session = null;
+      }
+    }
+    if (session != null) {
       if (_partial.isNotEmpty && session.isOpen) {
         unawaited(
           session.commit(
@@ -950,7 +966,12 @@ final class Cli {
   /// The session being opened: asked for and not yet holding the screen,
   /// nor ended.
   Future<CliSession>? get _openingSession =>
-      _session == null && !_sessionEnded && !_closed ? _opening : null;
+      _session == null && !_openFailed && !_sessionEnded && !_closed
+      ? _opening
+      : null;
+
+  /// Whether the session asked for failed to open.
+  var _openFailed = false;
 
   /// Commits [lines] above the session [opening] once it is open, as they
   /// would have gone had it been: a session that is opening flushes the

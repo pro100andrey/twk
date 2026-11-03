@@ -268,6 +268,29 @@ void main() {
       await _settle(clock, cli.close());
     });
 
+    test('once its session failed to open, writes lines at once as without '
+        'one, and closes', () async {
+      final clock = FakeClock();
+      final terminal = FakeCliTerminal.interactive(
+        width: 30,
+        height: 6,
+        fakeClock: clock,
+      );
+      // opened once already: a second open throws
+      await _settle(clock, terminal.openInline());
+      final cli = Cli(terminal: terminal);
+      await expectLater(
+        _settle(clock, cli.session()),
+        throwsA(isA<StateError>()),
+      );
+      cli
+        ..info('logged')
+        ..write('written\n');
+      // at once, not after the failed open is waited for again
+      expect(terminal.out.toString(), 'logged\nwritten\n');
+      await _settle(clock, cli.close());
+    });
+
     test('suspend hands the terminal over while run runs, the session '
         'drawn again after', () async {
       final clock = FakeClock();

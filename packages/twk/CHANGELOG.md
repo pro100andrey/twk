@@ -13,6 +13,8 @@
   wide (`Glyphs.cursor: '日'`) is warned once in its own log, where only
   the first of the pipelines sharing a segmenter was: the verdict is kept
   for the segmenter, and the warning came only with measuring it.
+- `Cli.close()` closes the terminal when the inline session failed to
+  open, where it threw the open's error again and left the terminal open.
 - A line `Cli` logs or writes while its inline session is still opening
   (`cli.info` right after `cli.progress`) goes above the session once it is
   open. It was written to stdout while the opening session flushed it, and
