@@ -35,10 +35,6 @@ const _trailed = 2048;
 const _advShift = 12;
 const _advBig = 15;
 const int _advMask = _advBig << _advShift;
-// how far apart the checkpoints of where clusters start are at most: one
-// every 32nd cluster split, and after an edit those of the clusters it
-// split again beside those moved
-const _cpGap = 64;
 // a checkpoint every 2 to the power of _cpShift clusters split
 const _cpShift = 5;
 const int _cpMask = (1 << _cpShift) - 1;
@@ -886,7 +882,7 @@ final class TextPainter {
   // where the clusters start in their spans' text ([_startOf]): what
   // _advMask of their kind says, the start of the first cluster of each
   // span, and checkpoints, [_cpCount] clusters in order (_cpAt) and where
-  // each starts (_cpStart), at most _cpGap apart: one every 32nd cluster
+  // each starts (_cpStart), at most 64 apart: one every 32nd cluster
   // split, those after an edit moved with their clusters; the counts of
   // 15 or more by cluster; the cluster _startOf found last and its start
   Int32List _spanLead = _noInt32s;
@@ -2107,7 +2103,7 @@ final class TextPainter {
   /// The first cluster of span [k] of the text as split that starts at
   /// offset [at] of it or after, or the first of the next span with one;
   /// one of span [k] is [_curC], its start [_curS]. The checkpoints within
-  /// the span, then fewer than _cpGap steps.
+  /// the span, then fewer than 64 steps.
   int _firstFrom(int k, int at) {
     final lo = _firstOf(k);
     final hi = _firstOf(k + 1);
@@ -2261,37 +2257,74 @@ final class TextPainter {
     return lo;
   }
 
-  /// Where cluster [c] of the text as split starts in its span's text: on
-  /// from the one found last when it is of the same span and fewer than
-  /// _cpGap before, else from the last checkpoint at or before it or the
-  /// start of its span, whichever is later.
-  int _startOf(int c) {
+  /// Where cluster [c] of the text as split starts in its span's text.
+  @pragma('vm:prefer-inline')
+  int _startOf(int c) => c == _curC ? _curS : _startIn(c, _spanOf(c));
+
+  /// [_startOf] for cluster [c] of span [k]: from the nearest of what is
+  /// known in the span, the one found last, the checkpoints either side
+  /// of it and the span's first cluster, on or back by the counts between.
+  int _startIn(int c, int k) {
     final cur = _curC;
     if (c == cur) {
       return _curS;
     }
-    final k = _spanOf(c);
     final f = _firstOf(k);
-    var x = 0;
-    var j = 0;
-    if (cur >= f && cur < c && c - cur < _cpGap) {
-      x = _curS;
-      j = cur;
-    } else {
-      final p = _cpAfter(c) - 1;
-      if (p < 0 || _cpAt[p] < f) {
-        x = _spanLead[k];
-        j = f;
-      } else {
-        x = _cpStart[p];
-        j = _cpAt[p];
-      }
+    final end = _firstOf(k + 1);
+    if (cur >= f && cur < end && cur - c <= 8 && c - cur <= 8) {
+      // near the one found last, as a walk of a row asks: from it
+      final x = cur < c ? _curS + _advances(cur, c) : _curS - _advances(c, cur);
+      _curC = c;
+      _curS = x;
+      return x;
     }
-    for (; j < c; j++) {
-      x += _advanceOf(j);
+    // the cluster to go from, and where it starts
+    var j = f;
+    var x = _spanLead[k];
+    final p = _cpAfter(c) - 1;
+    if (p >= 0 && _cpAt[p] > j) {
+      j = _cpAt[p];
+      x = _cpStart[p];
+    }
+    if (cur >= f && cur < end && (cur - c).abs() < (c - j)) {
+      j = cur;
+      x = _curS;
+    }
+    final q = p + 1;
+    if (q < _cpCount && _cpAt[q] < end && _cpAt[q] - c < (c - j).abs()) {
+      j = _cpAt[q];
+      x = _cpStart[q];
+    }
+    if (j <= c) {
+      x += _advances(j, c);
+    } else {
+      x -= _advances(c, j);
     }
     _curC = c;
     _curS = x;
+    return x;
+  }
+
+  /// The counts of code units to the next cluster of clusters [from, to)
+  /// added up.
+  int _advances(int from, int to) {
+    final kinds = _kinds;
+    var x = 0;
+    var big = false;
+    for (var j = from; j < to; j++) {
+      // the count is the kind's top bits
+      final d = kinds[j] >> _advShift;
+      x += d;
+      big = big || d == _advBig;
+    }
+    if (big) {
+      final counts = _bigAdv!;
+      for (var j = from; j < to; j++) {
+        if (kinds[j] >> _advShift == _advBig) {
+          x += counts[j]! - _advBig;
+        }
+      }
+    }
     return x;
   }
 
@@ -2713,13 +2746,13 @@ final class TextPainter {
     final next = c + 1;
     if ((_kinds[c] & _trailed) == 0) {
       if (next < _spanFirst[k + 1]) {
-        return _startOf(next);
+        return _startIn(next, k);
       }
       if (!_partial || next < _count) {
         return _spans[k].$1.length;
       }
     }
-    _shapedBy.scan(_spans[k].$1, _startOf(c), _clusterScan);
+    _shapedBy.scan(_spans[k].$1, _startIn(c, k), _clusterScan);
     return _clusterScan.end;
   }
 
@@ -3709,17 +3742,23 @@ final class TextPainter {
   bool _cell(int from, int to, int first, int last, bool isEllipsis) {
     if (_walk.start >= _walk.end) {
       if (_walk.x < to) {
-        _hit(_offsetAt(first), _offsetAt(last), isEllipsis);
+        if (isEllipsis) {
+          _hit(_offsetAt(first), _offsetAt(last), true);
+        } else {
+          _offsetsOf(first);
+          _hit(_offFrom, _offTo, false);
+        }
         return true;
       }
       return false;
     }
     // past the width a cluster is clipped, not drawn
     final drawn = to < width ? to : width;
-    if (!isEllipsis &&
-        from < drawn &&
-        _offsetAt(first) < _walk.end &&
-        _offsetAt(last) > _walk.start) {
+    if (isEllipsis || from >= drawn) {
+      return false;
+    }
+    _offsetsOf(first);
+    if (_offFrom < _walk.end && _offTo > _walk.start) {
       if (_walk.hullFrom < 0 || from < _walk.hullFrom) {
         _walk.hullFrom = from;
       }
@@ -3729,6 +3768,29 @@ final class TextPainter {
     }
     return false;
   }
+
+  /// Where cluster [i] starts and ends in the text joined, as
+  /// `_offsetAt(i)` and `_offsetAt(i + 1)` give them, found together from
+  /// one start: into [_offFrom] and [_offTo].
+  void _offsetsOf(int i) {
+    final k = _spanOf(i);
+    final base = _spanBase[k];
+    final x = _startIn(i, k);
+    _offFrom = i > _firstOf(k) && (_kinds[i - 1] & _trailed) == 0
+        ? base + x
+        : _offsetAt(i);
+    final next = i + 1;
+    if (next >= _count) {
+      _offTo = _offsetAt(_count);
+    } else if ((_kinds[i] & _trailed) == 0 && next < _firstOf(k + 1)) {
+      _offTo = base + x + _advanceOf(i);
+    } else {
+      _offTo = base + _endIn(i, k);
+    }
+  }
+
+  var _offFrom = 0;
+  var _offTo = 0;
 
   void _hit(int start, int end, bool isEllipsis) {
     _walk.hitStart = start;
