@@ -359,18 +359,27 @@ final class BidiText {
     for (var p = 0; p + 1 < bounds.length; p++) {
       final start = bounds[p];
       final end = bounds[p + 1];
+      // the classes the paragraph has: one with none that takes a level
+      // above 0, not forced right to left, is at 0 throughout, as a text
+      // without one is above (a left-to-right line of a log or a chat
+      // among a few with Hebrew or Arabic)
+      var present = 0;
+      for (var i = start; i < end; i++) {
+        present |= 1 << classes[i];
+      }
+      if (forced != 1 && (present & _raising) == 0) {
+        paragraphs.add(BidiParagraph(start, end, 0));
+        continue;
+      }
       // the paragraph by code point
       var m = 0;
       final units = Int32List(end - start + 1);
       final cps = Int32List(end - start);
       final types = Uint8List(end - start);
-      var present = 0;
       for (var i = start; i < end;) {
         var cp = text.codeUnitAt(i);
         units[m] = i;
-        final c = classes[i];
-        types[m] = c;
-        present |= 1 << c;
+        types[m] = classes[i];
         i++;
         if (cp >= 0xD800 && cp <= 0xDBFF && i < end) {
           final lo = text.codeUnitAt(i);
