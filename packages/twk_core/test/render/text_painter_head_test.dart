@@ -194,6 +194,47 @@ void main() {
       expect(full.debugClustersSplit, 400);
     });
 
+    test('a wider layout splits a head at its width, not the whole text', () {
+      Side side({required bool full}) => Side(
+        [(long, plain)],
+        full: full,
+        wrap: TextWrap.none,
+        ellipsis: '…',
+        align: TextAlign.left,
+      );
+      final fast = side(full: false);
+      final whole = side(full: true);
+      agree(fast, whole, 20, latin, TextOrder.logical, what: 'at 20');
+      final first = fast.painter.debugClustersSplit;
+      agree(fast, whole, 60, latin, TextOrder.logical, what: 'then at 60');
+      expect(fast.painter.debugHeadOnly, isTrue);
+      expect(fast.painter.debugClustersSplit - first, lessThan(100));
+      // an intrinsic height asks a layout of its width
+      fast.painter.intrinsicHeight(120, segmenter: latin);
+      expect(fast.painter.debugHeadOnly, isTrue);
+      agree(fast, whole, 120, latin, TextOrder.logical, what: 'then at 120');
+    });
+
+    test('a head that stopped at the first line break serves every width', () {
+      Side side({required bool full}) => Side(
+        [('Title\n$long', plain)],
+        full: full,
+        wrap: TextWrap.none,
+        ellipsis: '…',
+        align: TextAlign.left,
+      );
+      final fast = side(full: false);
+      final whole = side(full: true);
+      agree(fast, whole, 20, latin, TextOrder.logical, what: 'at 20');
+      final first = fast.painter.debugClustersSplit;
+      expect(first, lessThan(10));
+      for (final w in [40, 80, 200]) {
+        agree(fast, whole, w, latin, TextOrder.logical, what: 'then at $w');
+      }
+      expect(fast.painter.debugHeadOnly, isTrue);
+      expect(fast.painter.debugClustersSplit, first, reason: 'split once');
+    });
+
     test('grapheme clusters at the cut', () {
       const family = '\u{1F468}‍\u{1F469}‍\u{1F467}';
       const flag = '\u{1F1FA}\u{1F1F8}';
@@ -549,7 +590,7 @@ void main() {
       expect(p.debugClustersSplit - was, lessThan(40));
     });
 
-    test('a wider layout splits the rest, a narrower one does not', () {
+    test('a wider layout splits a head of its width, a narrower one none', () {
       final p = make([(text(500), plain)])
         ..layout(const BoxConstraints(0, 20, 0, 1), segmenter: latin);
       final n = p.debugClustersSplit;
@@ -557,7 +598,8 @@ void main() {
       expect(p.debugClustersSplit, n, reason: 'the head serves a narrower one');
       expect(p.debugHeadOnly, isTrue);
       p.layout(const BoxConstraints(0, 60, 0, 1), segmenter: latin);
-      expect(p.debugHeadOnly, isFalse);
+      expect(p.debugHeadOnly, isTrue, reason: 'a head of 60 columns');
+      expect(p.debugClustersSplit - n, lessThan(100));
       expect(p.debugDiffFromFresh(latin), isNull);
     });
 

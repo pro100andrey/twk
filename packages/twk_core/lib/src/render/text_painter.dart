@@ -974,8 +974,11 @@ final class TextPainter {
     } else if (_partial) {
       if (_textStale) {
         _split(seg, headW);
-      } else if (!_headFits(headW) || headW > _headLimit) {
+      } else if (!_headFits(headW)) {
         _split(seg);
+      } else if (headW > _headLimit) {
+        // a wider one line: a head at its width, not the whole text
+        _split(seg, headW);
       }
     } else if (_textStale) {
       _resplit(seg);
@@ -1607,7 +1610,9 @@ final class TextPainter {
       return;
     }
     _partial = head && e.more;
-    _headLimit = headW;
+    // a head that stopped at the first line break holds the one line
+    // whatever the width
+    _headLimit = e.newlines > 0 ? 1 << 40 : headW;
     _hasMulti = e.multi;
     _newlines = e.newlines;
     _cells = e.cells;
@@ -2896,7 +2901,8 @@ final class TextPainter {
 
   /// How many lines this paragraph has broken its clusters into, counting
   /// each layout: all of them at a new width, about those an edit touched
-  /// after; of a head, its one line (the line after it is not broken).
+  /// after; of a head, its one line, and the start of the next where a
+  /// soft wrap cut it (how the cut is found), none past that.
   int get debugLinesBroken => _linesBroken;
 
   /// How many code units of its text this paragraph has resolved the
