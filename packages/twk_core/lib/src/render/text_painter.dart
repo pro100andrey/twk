@@ -2387,7 +2387,12 @@ final class TextPainter {
     if (i >= _count) {
       return _spanBase[_spans.length];
     }
-    return i == 0 ? 0 : _spanBase[_spanOf(i - 1)] + _endOf(i - 1);
+    if (i == 0) {
+      return 0;
+    }
+    final c = i - 1;
+    final k = _spanOf(c);
+    return _spanBase[k] + _endIn(c, k);
   }
 
   /// Where cluster [c] ends in its span's text: where the next one of the
@@ -2395,10 +2400,13 @@ final class TextPainter {
   /// dropped follow ([_trailed]), and for the last of a head, whose span
   /// goes on unsplit, found again by one scan from its start, as the
   /// split found it.
-  int _endOf(int c) {
+  int _endOf(int c) => _endIn(c, _spanOf(c));
+
+  /// [_endOf] for cluster [c] of span [k].
+  @pragma('vm:prefer-inline')
+  int _endIn(int c, int k) {
     final next = c + 1;
     if ((_kinds[c] & _trailed) == 0) {
-      final k = _spanOf(c);
       if (next < _spanFirst[k + 1]) {
         return _starts[next];
       }
@@ -2406,7 +2414,7 @@ final class TextPainter {
         return _spans[k].$1.length;
       }
     }
-    _shapedBy.scan(_spans[_spanOf(c)].$1, _starts[c], _clusterScan);
+    _shapedBy.scan(_spans[k].$1, _starts[c], _clusterScan);
     return _clusterScan.end;
   }
 
