@@ -39,6 +39,9 @@ const int _advMask = _advBig << _advShift;
 // every 32nd cluster split, and after an edit those of the clusters it
 // split again beside those moved
 const _cpGap = 64;
+// a checkpoint every 2 to the power of _cpShift clusters split
+const _cpShift = 5;
+const int _cpMask = (1 << _cpShift) - 1;
 
 // the Bidi_Class of a code unit as [BidiClass.index] gives it: L, R, AL,
 // a paragraph separator, a segment separator, whitespace, other neutral;
@@ -1698,7 +1701,7 @@ final class TextPainter {
       final n = _room(want, _glyphs.length);
       _glyphs = Uint32List(n);
       _kinds = Uint16List(n);
-      _cpAt = Int32List((n >> 5) + 2);
+      _cpAt = Int32List((n >> _cpShift) + 2);
       _cpStart = Int32List(_cpAt.length);
     }
     if (_spanFirst.length <= _spans.length) {
@@ -1976,7 +1979,7 @@ final class TextPainter {
           // the next cluster of the span starts after it, unless the
           // split drops what follows or the span ends
           kinds[n] = kind | (1 << _advShift);
-          if ((n & 31) == 0) {
+          if ((n & _cpMask) == 0) {
             cpAt[cps] = base + n;
             cpStart[cps++] = start;
           }
@@ -2058,7 +2061,7 @@ final class TextPainter {
           kinds[n] = kind;
           _keepBig(edit, kinds, n, d);
         }
-        if ((n & 31) == 0) {
+        if ((n & _cpMask) == 0) {
           cpAt[cps] = base + n;
           cpStart[cps++] = start;
         }
@@ -2229,8 +2232,24 @@ final class TextPainter {
   /// clusters at or before it.
   int _cpAfter(int c) {
     final cpAt = _cpAt;
+    final n = _cpCount;
+    // one every _cpEvery clusters as split, moved a little by edits: a few
+    // steps from where that puts it, else a search
+    var p = (c >> _cpShift) + 1;
+    if (p > n) {
+      p = n;
+    }
+    for (var step = 0; step < 4; step++) {
+      if (p > 0 && cpAt[p - 1] > c) {
+        p--;
+      } else if (p < n && cpAt[p] <= c) {
+        p++;
+      } else {
+        return p;
+      }
+    }
     var lo = 0;
-    var hi = _cpCount;
+    var hi = n;
     while (lo < hi) {
       final mid = (lo + hi) >> 1;
       if (cpAt[mid] <= c) {
@@ -2430,8 +2449,8 @@ final class TextPainter {
       e
         ..glyphs = Uint32List(n)
         ..kinds = Uint16List(n)
-        ..cpAt = Int32List((n >> 5) + 2)
-        ..cpStart = Int32List((n >> 5) + 2);
+        ..cpAt = Int32List((n >> _cpShift) + 2)
+        ..cpStart = Int32List((n >> _cpShift) + 2);
     }
     if (e.spanFirst.length <= m2) {
       e
