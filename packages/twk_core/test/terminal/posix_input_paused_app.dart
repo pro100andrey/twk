@@ -7,11 +7,13 @@
 //   printf 'abc\n' | dart run test/terminal/posix_input_paused_app.dart
 import 'dart:io';
 
+import 'package:twk_core/src/terminal/isolate_input.dart';
 import 'package:twk_core/src/terminal/posix_input.dart';
 
 Future<void> main() async {
   final read = <int>[];
-  final input = PosixInput.open()!.stream.listen(read.addAll)..pause();
+  final input = IsolateInput(PosixInput.open()!).stream.listen(read.addAll)
+    ..pause();
   await input.cancel();
   final child = await Process.start('sh', [
     '-c',

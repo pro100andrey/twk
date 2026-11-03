@@ -39,6 +39,7 @@ const _layers = <(String, List<String>)>[
     [
       'platform/',
       'terminal/address.dart',
+      'terminal/isolate_input.dart',
       'terminal/link.dart',
       'terminal/outbox.dart',
       'terminal/plain.dart',
@@ -47,6 +48,7 @@ const _layers = <(String, List<String>)>[
       'terminal/socket.dart',
       'terminal/stdio_link.dart',
       'terminal/windows_console.dart',
+      'terminal/windows_input.dart',
     ],
   ),
   // The records of an app, served over the platform's sockets.

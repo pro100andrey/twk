@@ -68,15 +68,18 @@ Added:
 
 Fixed:
 
-- On Linux and macOS the process's own terminal reads fd 0 itself, in an
-  isolate that polls it beside a wake pipe, rather than through dart:io's
-  `stdin`, which closed fd 0 when the terminal let it go. A program started
-  after an app or a session ended (`ProcessStartMode.inheritStdio`) reads
-  what is typed again, where it got "Bad file descriptor", and a terminal
-  opened again in the same process reads keys. Paused or closed, it reads
-  nothing more from that moment, even while its isolate is still
-  starting, and nothing of it keeps the process alive. A reading isolate
-  that fails ends the input with a `TerminalException`.
+- The process's own terminal reads its input itself, in an isolate that
+  waits on it beside a wake object, rather than through dart:io's `stdin`,
+  which closed the input when the terminal let it go: fd 0 polled beside a
+  pipe on Linux and macOS, the console's input buffer waited on beside an
+  event on Windows (its key records, the console's VT sequences in its VT
+  input mode, as UTF-8). A program started after an app or a session ended
+  (`ProcessStartMode.inheritStdio`) reads what is typed again, where it got
+  "Bad file descriptor", and a terminal opened again in the same process
+  reads keys. Paused or closed, it reads nothing more from that moment,
+  even while its isolate is still starting, and nothing of it keeps the
+  process alive. A reading isolate that fails ends the input with a
+  `TerminalException`.
 
 ## 0.1.0
 

@@ -3,10 +3,12 @@ library;
 
 import 'dart:io';
 
+import 'isolate_input.dart';
 import 'link.dart';
 import 'posix_input.dart';
 import 'posix_tty.dart';
 import 'windows_console.dart';
+import 'windows_input.dart';
 
 /// The process's own terminal: stdin and stdout.
 final class StdioLink implements TerminalLink {
@@ -82,13 +84,23 @@ final class StdioLink implements TerminalLink {
     }
   }
 
-  /// On Linux and macOS, where stdin is a terminal, fd 0 read by a
-  /// [PosixInput] of its own, which leaves fd 0 open once it is cancelled
-  /// (dart:io's `stdin` closes it), for a program started after and for a
-  /// later terminal; elsewhere `stdin`.
+  /// Where stdin is a terminal, read by an [IsolateInput] of its own (fd 0
+  /// on Linux and macOS, [PosixInput]; the console on Windows,
+  /// [WindowsInput]), which leaves it open once it is cancelled (dart:io's
+  /// `stdin` closes it), for a program started after and for a later
+  /// terminal; elsewhere (a pipe, a file) `stdin`.
   @override
-  Stream<List<int>> get input =>
-      (stdin.hasTerminal ? PosixInput.open()?.stream : null) ?? stdin;
+  Stream<List<int>> get input {
+    if (!stdin.hasTerminal) {
+      return stdin;
+    }
+    if (Platform.isWindows) {
+      final device = WindowsInput.open();
+      return device == null ? stdin : IsolateInput(device).stream;
+    }
+    final device = PosixInput.open();
+    return device == null ? stdin : IsolateInput(device).stream;
+  }
 
   @override
   void add(List<int> bytes) => stdout.add(bytes);
