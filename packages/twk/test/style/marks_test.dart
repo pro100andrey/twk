@@ -301,6 +301,47 @@ void main() {
     expect(logs['b'], isEmpty);
   });
 
+  test('each pipeline that meets a mark that does not fit is warned once, '
+      'though another sharing its segmenter met it first', () {
+    final seg = TextSegmenter();
+    final logs = <String, List<String>>{'a': [], 'b': []};
+    RenderObject objectOf(String name) {
+      final object = RenderConstrainedBox(
+        additionalConstraints: const BoxConstraints(0, 1, 0, 1),
+      );
+      PipelineOwner(() {}, segmenter: seg)
+        ..onLog = (r) {
+          logs[name]!.add(r.message);
+        }
+        ..root = object;
+      return object;
+    }
+
+    final a = ThemeMarks.ofObject(objectOf('a'), seg);
+    final b = ThemeMarks.ofObject(objectOf('b'), seg);
+    // two sets asked in turn, as two subtrees do: b meets '日' once a
+    // asked '【' after it, so its verdict is the one kept before the last
+    final first = Glyphs.unicode.copyWith(cursor: '日', check: wide);
+    final second = Glyphs.unicode.copyWith(cursor: wide);
+    final cursor = Marks.cursor.fallback.runes.first;
+    for (var frame = 0; frame < 3; frame++) {
+      expect(a.cell(Marks.cursor, first), cursor);
+      expect(a.cell(Marks.cursor, second), cursor);
+      expect(b.cell(Marks.cursor, first), cursor);
+      expect(b.cell(Marks.cursor, second), cursor);
+      expect(b.text(Marks.check, first), Marks.check.fallback);
+      expect(a.text(Marks.check, first), Marks.check.fallback);
+    }
+    // each its own three, the frames after the first warning of nothing
+    for (final name in ['a', 'b']) {
+      expect(logs[name], [
+        startsWith("Glyphs.cursor '日'"),
+        startsWith("Glyphs.cursor '$wide'"),
+        startsWith("Glyphs.check '$wide'"),
+      ], reason: name);
+    }
+  });
+
   test("a render object's marks take their glyphs with each mark, and say "
       'so where none are given', () {
     final marks = ThemeMarks.ofObject(null, TextSegmenter());
