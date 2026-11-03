@@ -4,6 +4,7 @@ library;
 import 'dart:io';
 
 import 'link.dart';
+import 'posix_input.dart';
 import 'posix_tty.dart';
 import 'windows_console.dart';
 
@@ -81,8 +82,12 @@ final class StdioLink implements TerminalLink {
     }
   }
 
+  /// On Linux and macOS fd 0 read by a [PosixInput] of its own, which
+  /// leaves fd 0 open once it is cancelled (dart:io's `stdin` closes it),
+  /// for a program started after and for a later terminal; elsewhere
+  /// `stdin`.
   @override
-  Stream<List<int>> get input => stdin;
+  Stream<List<int>> get input => PosixInput.open()?.stream ?? stdin;
 
   @override
   void add(List<int> bytes) => stdout.add(bytes);
