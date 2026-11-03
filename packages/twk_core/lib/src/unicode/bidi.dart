@@ -156,6 +156,12 @@ final _classTable = CodePointTable(bidiClassRanges);
 /// The Bidi_Class of [cp].
 BidiClass bidiClassOf(int cp) => BidiClass.values[_classTable[cp]];
 
+/// The Bidi_Class of each code unit of [bidi]'s text as [BidiClass.index]
+/// gives it, those of a surrogate pair its code point's: what its
+/// resolution read, for a caller that keeps them beside the levels (the
+/// core's paragraphs) without finding them again. Not to be changed.
+Uint8List bidiClassesOf(BidiText bidi) => bidi._classes;
+
 /// Whether [text] has a character UAX #9 may draw out of logical order: a
 /// letter of a right-to-left script, an Arabic number, or a right-to-left
 /// embedding, override or isolate. A string without one, in a left-to-right
@@ -364,12 +370,19 @@ final class BidiText {
         forced,
       );
       paragraphs.add(BidiParagraph(start, end, resolved.level));
+      // the level of each code point to its one or two code units: the
+      // levels start at 0
+      final result = resolved.result;
       for (var k = 0; k < m; k++) {
-        final level = resolved.result[k];
+        final level = result[k];
         if (level != 0) {
           leftToRight = false;
+          final u = units[k];
+          levels[u] = level;
+          if (units[k + 1] - u == 2) {
+            levels[u + 1] = level;
+          }
         }
-        levels.fillRange(units[k], units[k + 1], level);
       }
     }
     return BidiText._(text, paragraphs, levels, classes, leftToRight);

@@ -1167,7 +1167,8 @@ final class TextPainter {
       _classes = Uint8List(_levels.length);
     }
     _levels.setRange(0, n, bidi.levels);
-    _classesOf(text, _classes, 0, n);
+    // the classes it resolved them from, as [_classesOf] finds them
+    _classes.setRange(0, n, bidiClassesOf(bidi));
     final paragraphs = bidi.paragraphs;
     final m = paragraphs.length;
     if (_paraStarts.length < m) {
