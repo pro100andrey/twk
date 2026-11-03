@@ -25,6 +25,7 @@ import '../framework/framework.dart';
 import '../gestures/gesture_detector.dart';
 import '../gestures/mouse.dart';
 import '../style/style.dart';
+import '../text/label_painter.dart';
 import 'chart_glyphs.dart';
 
 // Examples can assume:
@@ -850,20 +851,39 @@ final class RenderCalendar extends RenderObject {
       final month = utcOfDay(first);
       final title = '${_monthNames[month.month - 1]} ${month.year}';
       final w = canvas.segmenter.width(title);
-      canvas.text(
+      // as a Text draws it, in the 20 columns of the days
+      _painters[0].draw(
+        canvas,
+        owner,
         left + (w < 20 ? (20 - w) ~/ 2 : 0),
         0,
         title,
-        base.merge(_headerStyle).penIn(styles),
+        base.merge(_headerStyle).pen,
+        room: 20,
+        ellipsis: '',
       );
     }
-    final names = base.merge(_weekdayStyle).penIn(styles);
+    final namesStyle = base.merge(_weekdayStyle);
+    final names = namesStyle.penIn(styles);
     final top = _top;
     // the hidden cursor on the cursor's day, while it is marked
     clearRestCursor(ctx, this);
     for (var col = 0; col < 7; col++) {
       final name = _weekdayNames[(_firstWeekday - 1 + col) % 7];
-      _cell(canvas, left + 3 * col, top - 1, name, names);
+      final x = left + 3 * col;
+      // the name as a Text draws it, cut off at the two columns
+      canvas.fill(x, top - 1, 2, 1, names);
+      final w = canvas.segmenter.width(name);
+      _painters[1 + col].draw(
+        canvas,
+        owner,
+        w < 2 ? x + 2 - w : x,
+        top - 1,
+        name,
+        namesStyle.pen,
+        room: 2,
+        ellipsis: '',
+      );
     }
     for (var row = 0; row < 6; row++) {
       final y = top + row;
@@ -907,8 +927,11 @@ final class RenderCalendar extends RenderObject {
     }
   }
 
-  /// Fills the two columns from ([x], [y]) in [pen] and draws [text] at
-  /// their right, cut off at them.
+  // the painters of the month's title (0) and of the weekdays' names
+  final _painters = LabelPainters();
+
+  /// Fills the two columns from ([x], [y]) in [pen] and draws [text], a
+  /// number, at their right, cut off at them.
   static void _cell(Canvas canvas, int x, int y, String text, int pen) {
     final w = canvas.segmenter.width(text);
     canvas

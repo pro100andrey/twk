@@ -18,6 +18,7 @@ import 'package:twk_core/twk_core.dart'
 import '../foundation/helpers.dart';
 import '../framework/framework.dart';
 import '../style/style.dart';
+import '../text/label_painter.dart';
 import 'chart_glyphs.dart';
 import 'dot_canvas.dart';
 import 'dot_grid.dart';
@@ -381,6 +382,13 @@ final class RenderChart extends RenderObject {
   // the segmenter of the canvas painted on
   late TextSegmenter _segmenter;
 
+  // the painters of the labels: of the y axis', of the x axis', of the
+  // axes' titles (x, then y) and of the legend's names, as a Text draws them
+  final _yPainters = LabelPainters();
+  final _xPainters = LabelPainters();
+  final _titlePainters = LabelPainters();
+  final _legendPainters = LabelPainters();
+
   @override
   void paint(PaintContext ctx) {
     final canvas = ctx.canvas;
@@ -393,8 +401,10 @@ final class RenderChart extends RenderObject {
     }
     _segmenter = canvas.segmenter;
     final lines = (_chartGlyphs..use(_segmenter)).lines(_lines);
-    final xPen = base.merge(_xAxis.style).penIn(styles);
-    final yPen = base.merge(_yAxis.style).penIn(styles);
+    final xStyle = base.merge(_xAxis.style);
+    final yStyle = base.merge(_yAxis.style);
+    final xPen = xStyle.penIn(styles);
+    final yPen = yStyle.penIn(styles);
 
     // the rows: the plot keeps one, the x axis' line, its labels and the
     // titles take one each where it does
@@ -493,15 +503,18 @@ final class RenderChart extends RenderObject {
       );
       if (yLabelled) {
         final tick = lines.glyph(up: true, down: true, left: true);
+        var i = 0;
         for (final (row, text) in yLabels) {
-          canvas
-            ..fill(left - 1, top + row, 1, 1, yPen, tick)
-            ..text(
-              labelsWidth - _segmenter.width(text),
-              top + row,
-              text,
-              yPen,
-            );
+          canvas.fill(left - 1, top + row, 1, 1, yPen, tick);
+          // the labels as a Text draws them, ending at the same column
+          _yPainters[i++].draw(
+            canvas,
+            owner,
+            labelsWidth - _segmenter.width(text),
+            top + row,
+            text,
+            yStyle.pen,
+          );
         }
       }
     }
@@ -525,23 +538,32 @@ final class RenderChart extends RenderObject {
         );
       }
       final tick = lines.glyph(left: true, right: true, down: true);
+      var i = 0;
       for (final (col, text) in xLabels) {
-        canvas
-          ..fill(left + col, lineRow, 1, 1, xPen, tick)
-          ..text(_xStart(left + col, text), lineRow + 1, text, xPen);
+        canvas.fill(left + col, lineRow, 1, 1, xPen, tick);
+        _xPainters[i++].draw(
+          canvas,
+          owner,
+          _xStart(left + col, text),
+          lineRow + 1,
+          text,
+          xStyle.pen,
+        );
       }
     }
     if (xTitled) {
       final w = _segmenter.width(xTitle);
-      canvas.text(
+      _titlePainters[0].draw(
+        canvas,
+        owner,
         w < width ? width - w : 0,
         lineRow + (xLabelled ? 2 : 1),
         xTitle,
-        xPen,
+        xStyle.pen,
       );
     }
     if (yTitled) {
-      canvas.text(0, 0, yTitle, yPen);
+      _titlePainters[1].draw(canvas, owner, 0, 0, yTitle, yStyle.pen);
     }
     _paintLegend(canvas, base, lines, left, top, cols, rows);
   }
@@ -673,15 +695,18 @@ final class RenderChart extends RenderObject {
       ..fill(x, y + 1, 1, h - 2, pen, down)
       ..fill(x + w - 1, y + 1, 1, h - 2, pen, down);
     var row = y + 1;
+    var i = 0;
     for (final dataset in _datasets) {
       if (dataset.name.isEmpty) {
         continue;
       }
-      canvas.text(
+      _legendPainters[i++].draw(
+        canvas,
+        owner,
         x + 1,
         row,
         dataset.name,
-        base.merge(Style(fg: dataset.color)).penIn(styles),
+        base.merge(Style(fg: dataset.color)).pen,
       );
       row++;
     }

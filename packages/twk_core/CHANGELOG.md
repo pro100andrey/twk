@@ -2,6 +2,35 @@
 
 ## Unreleased
 
+- A `TextPainter` (and a `RenderParagraph`) with `maxLines` 1 and
+  `TextOverflow.ellipsis` splits and measures only the head of its text, the
+  first columns its first line shows, and the rest only when asked (a
+  wider layout, `minIntrinsicWidth`, `maxIntrinsicWidth`): a line of 20 000
+  characters cut at the screen's width costs what the screen shows, not the
+  line. What is painted, the size and the answers of `cellAt`,
+  `textRangeAt` and `columnsOf` are as they were. A start or middle
+  ellipsis, a clip and text in visual order with right-to-left characters
+  are laid out from all of it. `TextPainter.debugHeadOnly` and
+  `debugForceFull` are for tests.
+
+- `mayReorder(String)` is public: whether a string has a character UAX #9
+  may draw out of logical order (a right-to-left letter, an Arabic number,
+  a right-to-left embedding, override or isolate), skipping at once the
+  code units below U+0590. The paragraph's layout and the editing fields
+  shared two copies of it, now one.
+
+- `Canvas.text` and `Canvas.run` say in their documentation that they draw
+  the string in stored order, for marks, digits and box glyphs, and that
+  the text of a user goes through a `TextPainter`, which draws it as it
+  reads in visual order.
+
+- In visual order the `BoxTitle`s of a `RenderDecoratedBox` read as a `Text`
+  does: a right-to-left title was drawn in stored order, and is now drawn by
+  a `TextPainter` the box keeps for it, laid out when the room it is shown
+  in or the text order changes, its ellipsis where the paragraph puts it. A
+  title is cut and ellipsized in the same columns as before; the place it is
+  shown in is unchanged.
+
 Breaking:
 
 - A cell's style id is a `StyleId`, an extension type over int, apart from
@@ -23,6 +52,14 @@ Breaking:
 
 Added:
 
+- `TextPainter`, the layout engine of `RenderParagraph` on its own, with no
+  render tree: `layout(constraints, segmenter:, order:)` sets `width` and
+  `height`, `paint(canvas, x, y)` draws at any place, and it answers
+  `textRangeAt`, `cellAt`, `columnsOf` and the intrinsic sizes. It reads no
+  owner: the segmenter and the text order are given to it, and its setters
+  record what they invalidated (`takeInvalidation`: `TextInvalidation.none`,
+  `paint` or `layout`). `RenderParagraph` owns one and draws and answers
+  as before.
 - `RenderParagraph.columnsOf(start, end, y)`, the reverse of `textRangeAt`:
   the columns of a row that draw a range of the text, as the last layout
   placed it (reordered in visual order, cut, justified), or null where none

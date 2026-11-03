@@ -7,12 +7,11 @@ import 'package:twk_core/twk_core.dart'
     show
         Attr,
         BoxConstraints,
-        Canvas,
-        ClusterScan,
         HitTestBehavior,
         PaintContext,
+        PipelineTextOrder,
         RenderObject,
-        StyleTable,
+        TextOrder,
         TextSegmenter;
 
 import '../editing/caret.dart' show clearRestCursor, restCursor;
@@ -20,6 +19,7 @@ import '../foundation/helpers.dart';
 import '../framework/framework.dart';
 import '../gestures/mouse.dart';
 import '../style/style.dart';
+import '../text/label_painter.dart';
 
 // Examples can assume:
 // var typed = '';
@@ -304,6 +304,7 @@ final class _RenderOptionList extends RenderObject {
   set options(List<Option> o) {
     if (!sameList(o, _options)) {
       _options = o;
+      _painters = List.filled(o.length, null);
       markNeedsLayout();
     }
   }
@@ -355,6 +356,10 @@ final class _RenderOptionList extends RenderObject {
 
   // the first option shown
   var _top = 0;
+
+  // the painters of the rows shown (null: not made yet), kept while the
+  // option is the same: its label with its marks, and its detail
+  late var _painters = List<_RowPainters?>.filled(_options.length, null);
 
   /// The option shown at the cell [x], [y] of the list, as it last
   /// painted; null where there is none.
@@ -412,6 +417,7 @@ final class _RenderOptionList extends RenderObject {
     final canvas = ctx.canvas;
     final styles = canvas.styles;
     final marks = ThemeMarks.ofObject(this, canvas.segmenter);
+    final order = owner?.textOrder ?? TextOrder.logical;
     final n = _options.length;
     final h = height;
     final w = width;
@@ -440,21 +446,39 @@ final class _RenderOptionList extends RenderObject {
         continue;
       }
       final option = _options[i];
+      final painters = _painters[i] ??= _RowPainters();
       var labelEnd = w - 1;
       final detail = option.detail;
       if (detail != null && detail.isNotEmpty) {
-        final dw = canvas.segmenter.width(detail);
+        final seg = canvas.segmenter;
+        painters.detail.set(detail, style.merge(s.muted).pen, seg);
+        final dw = painters.detail.layout(seg, order);
         labelEnd = w - 3 - dw;
         canvas
           ..save()
-          ..clipRect(1, row, w - 2, 1)
-          ..text(w - 1 - dw, row, detail, style.merge(s.muted).penIn(styles))
-          ..restore();
+          ..clipRect(1, row, w - 2, 1);
+        painters.detail.paint(canvas, owner, w - 1 - dw, row);
+        canvas.restore();
       }
+      painters.label.set(
+        option.label,
+        style.pen,
+        canvas.segmenter,
+        marks: option.marks,
+        markPen: style.merge(s.mark).pen,
+      );
       canvas
         ..save()
         ..clipRect(1, row, labelEnd - 1, 1);
-      _paintLabel(canvas, styles, row, option, style);
+      // cut at the room it has, at its end, as a Text's overflow is
+      painters.label.paint(
+        canvas,
+        owner,
+        1,
+        row,
+        room: labelEnd - 1,
+        ellipsis: s.glyphs.ellipsis,
+      );
       canvas.restore();
       if (i == h0 && _bar && w > 0) {
         if (marks.cell(Marks.cursor, s.glyphs) case final bar?) {
@@ -476,31 +500,10 @@ final class _RenderOptionList extends RenderObject {
       }
     }
   }
+}
 
-  /// Paints the label of [option] on [row] in [style], its marks in the
-  /// mark style merged over it.
-  void _paintLabel(
-    Canvas canvas,
-    StyleTable styles,
-    int row,
-    Option option,
-    Style style,
-  ) {
-    final label = option.label;
-    final pen = style.penIn(styles);
-    final marked = style.merge(_styles.mark).penIn(styles);
-    final scan = ClusterScan();
-    var x = 1;
-    var from = 0;
-    for (final at in option.marks) {
-      if (at < from || at >= label.length) {
-        continue;
-      }
-      canvas.segmenter.scan(label, at, scan);
-      x += canvas.text(x, row, label.substring(from, at), pen);
-      x += canvas.text(x, row, label.substring(at, scan.end), marked);
-      from = scan.end;
-    }
-    canvas.text(x, row, label.substring(from), pen);
-  }
+/// The painters of a row of an [OptionList].
+final class _RowPainters {
+  final label = LabelPainter();
+  final detail = LabelPainter();
 }
