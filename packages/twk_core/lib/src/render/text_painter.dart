@@ -239,6 +239,11 @@ final class _Edit {
   // ... and gave up, for the arrays of the head would not hold what is
   // left to split to the stop
   var gaveUp = false;
+
+  // ... and where it ended (see TextPainter._headEnd): the span, -1 for
+  // none, and the offset in it
+  var stopSpan = -1;
+  var stopAt = 0;
 }
 
 // How many columns more than its width a head scan reads for the first
@@ -1602,14 +1607,32 @@ final class TextPainter {
       _starts = Int32List(n);
       _ends = Int32List(n);
     }
-    _count = _scan(seg, 0, 0, 0, edit: false, headCells: head ? headW : null);
-    final e = _edit;
-    if (e.gaveUp) {
-      // many spaces past the width: the head is no gain
-      _split(seg);
-      return;
+    var more = false;
+    var stopSpan = -1;
+    var stopAt = 0;
+    if (head) {
+      _headEnd(seg, headW);
+      final h = _edit;
+      if (h.gaveUp) {
+        // many spaces past the width: the head is no gain
+        _split(seg);
+        return;
+      }
+      more = h.more;
+      stopSpan = h.stopSpan;
+      stopAt = h.stopAt;
     }
-    _partial = head && e.more;
+    _count = _scan(
+      seg,
+      0,
+      0,
+      0,
+      edit: false,
+      stopSpan: stopSpan,
+      stopAt: stopAt,
+    );
+    final e = _edit;
+    _partial = more;
     // a head that stopped at the first line break holds the one line
     // whatever the width
     _headLimit = e.newlines > 0 ? 1 << 40 : headW;
@@ -1619,6 +1642,86 @@ final class TextPainter {
     _drawn = e.drawn + 1;
     _drawnCells = e.drawnCells;
     _keepTexts();
+  }
+
+  /// Where a head scan for a layout at `headW` columns ends, found before
+  /// the scan so that its loop carries no check for it: `_Edit.stopSpan`
+  /// and `_Edit.stopAt`, the span and offset after the first cluster drawn
+  /// past `headW` columns that is not a space (and not the first) or after
+  /// the first line break, or -1 where the text ends first; `_Edit.more`
+  /// whether text is left after it, and `_Edit.gaveUp` where it read
+  /// `_headSlack` columns more than `headW`, all of them spaces or the
+  /// first cluster. It steps as [_scan] does (one cluster for one the scan
+  /// stores, none for one it drops), so the offset is a cluster boundary the
+  /// scan reaches; a test holds the two together.
+  void _headEnd(TextSegmenter seg, int headW) {
+    final e = _edit
+      ..stopSpan = -1
+      ..stopAt = 0
+      ..more = false
+      ..gaveUp = false;
+    final spans = _spans;
+    final scan = _clusterScan;
+    final graphemes = seg.mode == TextMode.graphemes;
+    var n = 0;
+    var cells = 0;
+    for (var k = 0; k < spans.length; k++) {
+      final s = spans[k].$1;
+      var i = 0;
+      while (i < s.length) {
+        final start = i;
+        final c0 = s.codeUnitAt(i);
+        bool space;
+        if (graphemes &&
+            c0 >= 0x20 &&
+            c0 < 0x7F &&
+            (i + 1 == s.length || s.codeUnitAt(i + 1) < 0x300)) {
+          i++;
+          space = c0 == 0x20;
+          cells++;
+        } else {
+          seg.scan(s, i, scan);
+          i = scan.end;
+          final cp = scan.first;
+          if (scan.width == 0) {
+            if (_isNewline(cp)) {
+              if (cp == 0x0D &&
+                  i == start + 1 &&
+                  i < s.length &&
+                  s.codeUnitAt(i) == 0x0A) {
+                continue;
+              }
+              e
+                ..stopSpan = k
+                ..stopAt = i
+                ..more = _textAfter(k, i);
+              return;
+            } else if (cp == 0x09) {
+              space = true;
+              cells++;
+            } else {
+              continue;
+            }
+          } else if (graphemes && isLeadingMark(cp)) {
+            i = start + (cp > 0xFFFF ? 2 : 1);
+            continue;
+          } else {
+            space = (_kindOf(cp, scan.length) & _space) != 0;
+            cells += scan.width == 2 ? 2 : 1;
+          }
+        }
+        n++;
+        if (cells > headW &&
+            ((!space && n > 1) || cells > headW + _headSlack)) {
+          e
+            ..stopSpan = k
+            ..stopAt = i
+            ..gaveUp = space || n <= 1
+            ..more = _textAfter(k, i);
+          return;
+        }
+      }
+    }
   }
 
   /// Whether the text may be split as a head for a layout at [headW]
@@ -1683,7 +1786,8 @@ final class TextPainter {
     int at,
     int base, {
     required bool edit,
-    int? headCells,
+    int stopSpan = -1,
+    int stopAt = 0,
   }) {
     final e = _edit;
     final glyphs = edit ? e.glyphs : _glyphs;
@@ -1691,13 +1795,10 @@ final class TextPainter {
     final spanOf = edit ? e.spanOf : _spanOf;
     final starts = edit ? e.starts : _starts;
     final ends = edit ? e.ends : _ends;
-    // a head scan: stops after the first cluster drawn past [headCells]
-    // columns that is not a space (and not the first), or at a line break;
-    // it has room for [_headSlack] columns more than that, and gives up
-    // (returning with [_Edit.gaveUp]) where spaces take more
-    final head = headCells != null;
-    final stop = headCells ?? (1 << 40);
+    // a head scan ends at offset [stopAt] of span [stopSpan], which
+    // [_headEnd] found, a place the clusters here start and end at too
     final spans = _spans;
+    final limit = stopSpan < 0 ? spans.length : stopSpan + 1;
     final scan = _clusterScan;
     final graphemes = seg.mode == TextMode.graphemes;
     // an edit: the last span it changed, where that span's text is the
@@ -1718,8 +1819,9 @@ final class TextPainter {
       ..syncSpan = spans.length
       ..syncInside = false;
     spans:
-    for (var k = first; k < spans.length; k++) {
+    for (var k = first; k < limit; k++) {
       final s = spans[k].$1;
+      final end = k == stopSpan ? stopAt : s.length;
       var i = k == first ? at : 0;
       if (edit && i == 0 && k > last && _cleanStart(k - shift)) {
         // a span as it was, which adds nothing to the cluster before
@@ -1729,7 +1831,7 @@ final class TextPainter {
         break;
       }
       var grapheme = i;
-      while (i < s.length) {
+      while (i < end) {
         final start = i;
         if (edit &&
             i > 0 &&
@@ -1768,14 +1870,6 @@ final class TextPainter {
           if ((kind & _space) == 0) {
             drawn = n - 1;
             drawnCells = cells;
-          }
-          if (cells > stop) {
-            if (((kind & _space) == 0 && n > 1) || cells > stop + _headSlack) {
-              e
-                ..gaveUp = (kind & _space) != 0 || n <= 1
-                ..more = _textAfter(k, i);
-              break spans;
-            }
           }
           continue;
         }
@@ -1849,18 +1943,6 @@ final class TextPainter {
           if ((kind & _space) == 0) {
             drawn = n - 1;
             drawnCells = cells;
-          }
-        }
-        if (head && (kind & _newline) != 0) {
-          e.more = _textAfter(k, i);
-          break spans;
-        }
-        if (cells > stop) {
-          if (((kind & _space) == 0 && n > 1) || cells > stop + _headSlack) {
-            e
-              ..gaveUp = (kind & _space) != 0 || n <= 1
-              ..more = _textAfter(k, i);
-            break spans;
           }
         }
       }

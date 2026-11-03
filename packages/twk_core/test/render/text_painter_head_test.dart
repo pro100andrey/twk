@@ -526,6 +526,88 @@ void main() {
     });
   });
 
+  group('where the head ends is a cluster boundary the scan reaches', () {
+    // The end is found before the scan (`_headEnd`) and bounds its loop, so
+    // the clusters split are exactly those up to it: counted here, and
+    // compared with the full layout over every width.
+    int split(
+      List<(String, Pen)> spans,
+      int w, {
+      TextSegmenter? segmenter,
+      bool headOnly = true,
+    }) {
+      final p = TextPainter(
+        spans,
+        wrap: TextWrap.none,
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
+      )..layout(BoxConstraints(0, w, 0, 1), segmenter: segmenter ?? latin);
+      expect(p.debugHeadOnly, headOnly, reason: '$spans w=$w');
+      return p.debugClustersSplit;
+    }
+
+    void same(List<(String, Pen)> spans, {TextSegmenter? segmenter}) {
+      for (var w = 0; w < 14; w++) {
+        agreeAll(spans, w: w, segmenter: segmenter);
+      }
+    }
+
+    final tail = 'jklmnopqrstuvwxyz' * 8;
+
+    test('a head ending at the end of a span', () {
+      final spans = [('abcdefghi', plain), (tail, red)];
+      expect(split(spans, 8), 9);
+      same(spans);
+      same([('abcdefghi', plain), ('', red), (tail, red)]);
+    });
+
+    test('marks that continue in the next span', () {
+      final spans = [('abcdefgh', plain), ('\u0301ijk$tail', red)];
+      expect(split(spans, 8), 9);
+      same(spans);
+      same([('abcdefg', plain), ('h\u0301', red), ('\u0301i$tail', blue)]);
+      same(spans, segmenter: legacy);
+    });
+
+    test('a mark without a base is dropped, and the scan steps on', () {
+      for (final seg in [latin, legacy]) {
+        same([('\u0903\u0903\u0301abcdefgh$tail', plain)], segmenter: seg);
+        same([('\u0903a\u0903\u0903bcdefgh$tail', plain)], segmenter: seg);
+        same([('abcdefg', plain), ('\u0903\u0903\u0301hi$tail', red)]);
+      }
+    });
+
+    test('a zero width space after the stop is not read', () {
+      same([('abcdefghi', plain), ('\u200B$tail', red)]);
+      same([('abcdefghi\u200B$tail', plain)]);
+    });
+
+    test('CR LF at the stop', () {
+      for (final seg in [latin, legacy]) {
+        final spans = [('abc\r\n$tail', plain)];
+        expect(split(spans, 8, segmenter: seg), 4);
+        same(spans, segmenter: seg);
+        // the CR ends one span and the LF starts the next
+        same([('abc\r', plain), ('\n$tail', red)], segmenter: seg);
+        same([('abcdefgh\r\n$tail', plain)], segmenter: seg);
+        same([('abcdefghi\r\n$tail', plain)], segmenter: seg);
+        same([('a\rb\n$tail', plain)], segmenter: seg);
+      }
+    });
+
+    test('tabs, wide, ambiguous and spaces at the stop', () {
+      for (final seg in [latin, legacy, ambiguous2]) {
+        same([('a\tb\t\tc\td$tail', plain)], segmenter: seg);
+        same([('世界世界世界世界世界$tail', plain)], segmenter: seg);
+        same([('a世b世c世d世$tail', plain)], segmenter: seg);
+        same([('±°±°±°±°±°±°$tail', plain)], segmenter: seg);
+        same([('ab${' ' * 40}$tail', plain)], segmenter: seg);
+        same([('ab${' ' * 5}$tail', plain)], segmenter: seg);
+        same([('é́e\u0301 x\u{1F44D}\u{1F3FD}y$tail', plain)], segmenter: seg);
+      }
+    });
+  });
+
   group('a head that is edited, or asked for more', () {
     String text(int n, [String piece = 'abcdefghij ']) => piece * n;
 
