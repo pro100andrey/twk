@@ -19,6 +19,24 @@
 // `tool/frame_scenarios/lib/src/branch_api.dart` copied over it when the
 // build without it fails, and is reported as "not in the baseline".
 //
+// Scenarios of the long texts, where the paragraph's layout does the most
+// work and the frame little (a new paragraph each frame has only the frame
+// number in front of it changed, so the presenter writes a few bytes):
+//   layout-40k, layout-160k  a new RenderParagraph of 40k / 160k characters
+//                            of word-wrapped Latin text (a line break after
+//                            every tenth sentence), laid out for the first
+//                            time: a document opened, a log loaded
+//   rewrap                   the 40k paragraph laid out again at 120 and at
+//                            200 columns in turn (a resize); the whole
+//                            screen changes
+//   long-line-cut            a new line of 20k characters, TextWrap.none,
+//                            one line, cut off with "…" at 200 columns
+//   mixed-visual             a new paragraph of 10k characters of CJK,
+//                            Hebrew, Arabic, emoji with ZWJ, flags,
+//                            combining marks and Latin, in visual order
+// They use only what the baseline's core has (RenderParagraph and its wrap,
+// overflow and maxLines), so every baseline has their numbers.
+//
 // Before a scenario is timed it runs for 64 frames into the test emulator
 // (package:twk_test/vt.dart): a screen that differs from what was painted, or
 // output the emulator rejects, stops the benchmark, so a broken scenario
