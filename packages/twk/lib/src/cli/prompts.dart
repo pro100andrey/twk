@@ -382,6 +382,9 @@ final class Prompter {
     final session = await cli.session();
     final answer = PromptAnswer<T>(question);
     final live = session.mount(build(answer));
+    session.binding.addPostFrameCallback(
+      (_) => cli.terminal.promptShown(question),
+    );
     unawaited(
       session.done.then(
         (_) => answer.cancel(PromptCancelReason.interrupt),
@@ -406,7 +409,7 @@ final class Prompter {
   }
 
   Future<String> _readLine(String question, {bool hidden = false}) async {
-    final terminal = cli.terminal;
+    final terminal = cli.terminal..promptShown(question);
     final line = await terminal.readLine(hidden: hidden);
     if (line != null) {
       return line;

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- `CliTerminal.promptShown(question)`, told as a prompt takes its answer: nothing
+  on the process's terminal, what a test's terminal answers by.
 - `Text.line` and `Text.richLine` take `align` and `overflow`: a line set right or
   cut at its start needs the long form of `Text` no more.
 - `Cli.confirm` says what to press: `(y/n)` after the question, Tab moves the

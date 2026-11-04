@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- `FakeCliTerminal.interactive(answers:)` types an entry as each question shows,
+  where `input` all went to the first one, and `FakeCliTerminal.onPrompt` is told
+  of each question, for what a test does between two answers.
 - `find.textContaining(pattern)`, the `Text`s with a match of a `String` or a
   `RegExp` in their string or their spans joined, where `find.text` takes the
   whole of it.
