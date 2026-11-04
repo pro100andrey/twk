@@ -280,6 +280,18 @@ final appScenarios = <AppScenario>[
     steps: 400,
   ),
   for (final mode in PointerMode.values) _handScenario(mode),
+  _rowsScenario(
+    'rows-listener',
+    'a ListView of 100k rows, each a Listener, scrolled a row a frame: the '
+        'baseline of rows-detector',
+    (i, row) => Listener(onDown: (_) {}, child: row),
+  ),
+  _rowsScenario(
+    'rows-detector',
+    'the same, each row a GestureDetector with onTap: what its MouseRegion '
+        'and HandOver cost a row',
+    (i, row) => GestureDetector(onTap: (_) {}, child: row),
+  ),
   const AppScenario(
     'chips-narrow',
     'Chip, ChipList, ValueStepper, SegmentedButton and Breadcrumbs with long '
@@ -483,6 +495,31 @@ AppScenario _markdownStream(String name, String about, Glyphs? glyphs) =>
       },
       steps: _pieces,
     );
+
+/// A list of 100k rows scrolled a row a frame, each row in [wrap].
+AppScenario _rowsScenario(
+  String name,
+  String about,
+  Widget Function(int i, Widget row) wrap,
+) => AppScenario(name, about, (w, h) async {
+  final c = ScrollController();
+  final r = await AppRun.start(
+    ListView.builder(
+      itemCount: 100000,
+      controller: c,
+      itemBuilder: (_, i) => wrap(i, Text('${_phrases[i % 6]} #$i')),
+    ),
+    width: w,
+    height: h,
+  );
+  return (
+    r,
+    (int i) {
+      c.jumpTo(_bounce(i));
+      return r.pump();
+    },
+  );
+}, steps: 400);
 
 /// 20 mouse motions a frame over a screen of Buttons, a TabBar and a sortable
 /// Table, under the theme with [ThemeData.pointerMode] as [mode].
