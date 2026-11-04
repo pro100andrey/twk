@@ -1383,6 +1383,9 @@ final class AppBinding {
     if (event is KeyEvent && debug.keys && debug._takeKey(event)) {
       return;
     }
+    if (event is KeyEvent && focusManager.autofocusPending) {
+      focusManager.flush();
+    }
     if (event is KeyEvent && _sendToFocus(event)) {
       return;
     }

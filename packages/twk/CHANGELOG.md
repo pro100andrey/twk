@@ -6,6 +6,9 @@
   as in Flutter. It was rebuilt first, with the old widget above it, so a row
   of a list could read a list that had shrunk with the old `itemCount` and
   throw a `RangeError`.
+- A key flushes an `autofocus` still waiting, one a layout built, so it comes to
+  that node and not to the one that had the focus. `FocusManager.autofocusPending`
+  says one waits.
 - `copyToClipboard(context, text)` is exported: an app copies as a
   `SelectionArea` and a `TextField` do, by OSC 52, wrapped inside tmux or GNU
   screen.

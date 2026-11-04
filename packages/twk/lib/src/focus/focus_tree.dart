@@ -610,6 +610,12 @@ final class FocusManager {
   /// Whether the focus changed since the last [flush].
   bool get needsFlush => _flushScheduled;
 
+  /// Whether an `autofocus` built since the last [flush] waits for one: one
+  /// a layout built, which the next frame's build would settle. A key
+  /// flushes first, so that it comes to that node and not to the one that
+  /// had the focus.
+  bool get autofocusPending => _autofocus.isNotEmpty;
+
   /// The nodes a key goes to, in turn, until one handles it: the deepest
   /// node a walk down from the primary focus reaches, going on as long as a
   /// node has one node attached below it that cannot take the focus, is
