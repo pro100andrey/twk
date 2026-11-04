@@ -47,20 +47,23 @@ final _listtilePage = GalleryPage(
       '  const files = [',
       for (final (name, about) in _tileFiles) "    ('$name', '$about'),",
       '  ];',
-      '  return Column(',
-      '    mainAxisSize: .min,',
-      '    children: [',
-      '      for (final (i, (name, about)) in files.indexed)',
-      '        ListTile(',
-      if (leading) "          leading: const Text('▤'),",
-      '          title: Text(name),',
-      if (subtitle) '          subtitle: Text(about),',
-      if (trailing) "          trailing: const Text('›'),",
-      '          selected: i == _open,',
-      '          enabled: i != 3,',
-      '          onTap: () => setState(() => _open = i),',
-      '        ),',
-      '    ],',
+      '  return SizedBox(',
+      '    width: 32,',
+      '    child: Column(',
+      '      mainAxisSize: .min,',
+      '      children: [',
+      '        for (final (i, (name, about)) in files.indexed)',
+      '          ListTile(',
+      if (leading) "            leading: const Text('▤'),",
+      '            title: Text(name),',
+      if (subtitle) '            subtitle: Text(about),',
+      if (trailing) "            trailing: const Text('›'),",
+      '            selected: i == _open,',
+      '            enabled: i != 3,',
+      '            onTap: () => setState(() => _open = i),',
+      '          ),',
+      '      ],',
+      '    ),',
       '  );',
       '}',
     ].join('\n');
@@ -99,19 +102,24 @@ final class _TilesState extends State<_Tiles> with KeptState {
   set _open(int i) => kept['open'] = i;
 
   @override
-  Widget build(BuildContext context) => Column(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      for (final (i, (name, about)) in _tileFiles.indexed)
-        ListTile(
-          leading: widget.leading ? const Text('▤') : null,
-          title: Text(name),
-          subtitle: widget.subtitle ? Text(about) : null,
-          trailing: widget.trailing ? const Text('›') : null,
-          selected: i == _open,
-          enabled: i != 3,
-          onTap: () => setState(() => _open = i),
-        ),
-    ],
+  // a ListTile is as wide as it is let be: the list is given a width of
+  // its own, as a list in an app is, not the stage's
+  Widget build(BuildContext context) => SizedBox(
+    width: 32,
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final (i, (name, about)) in _tileFiles.indexed)
+          ListTile(
+            leading: widget.leading ? const Text('▤') : null,
+            title: Text(name),
+            subtitle: widget.subtitle ? Text(about) : null,
+            trailing: widget.trailing ? const Text('›') : null,
+            selected: i == _open,
+            enabled: i != 3,
+            onTap: () => setState(() => _open = i),
+          ),
+      ],
+    ),
   );
 }

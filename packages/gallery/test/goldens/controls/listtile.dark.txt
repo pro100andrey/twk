@@ -15,17 +15,17 @@ text
 │     Callout                                                                              │                             │
 │     Link                       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  subtitle            ▐  ●▌  │
 │ ▎   ListTile                                                                             │                             │
-│     StatusBar               ┌                                                          ┐ │  trailing            ▐  ●▌  │
-│                           ▐   ▤ notes.md                                             ›   │                             │
-│   OVERLAYS            12  ▐     2 KB, an hour ago                                        │                             │
-│     Overlay               ▐   ▤ todo.md                                              ›   │                             │
-│     App                   ▐     640 B, today                                             │                             │
-│     Dialog                ▐   ▤ photo.png                                            ›   │                             │
-│     Toast                       1.2 MB, last week                                        │                             │
-│     Tooltip                   ▤ locked.txt                                           ›   │                             │
-│     Popover                     no access                                                │                             │
-│     MenuBar                 └                                                          ┘ │                             │
-│     ContextMenu                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   · 56 × 8  │                             │
+│     StatusBar                  ·   ·    ┌                                  ┐   ·   ·     │  trailing            ▐  ●▌  │
+│                           ▐               ▤ notes.md                     ›               │                             │
+│   OVERLAYS            12  ▐    ·   ·        2 KB, an hour ago                  ·   ·     │                             │
+│     Overlay               ▐               ▤ todo.md                      ›               │                             │
+│     App                   ▐    ·   ·        640 B, today                       ·   ·     │                             │
+│     Dialog                ▐               ▤ photo.png                    ›               │                             │
+│     Toast                      ·   ·        1.2 MB, last week                  ·   ·     │                             │
+│     Tooltip                               ▤ locked.txt                   ›               │                             │
+│     Popover                    ·   ·        no access                          ·   ·     │                             │
+│     MenuBar                             └                                  ┘             │                             │
+│     ContextMenu                ·   ·   ·   ·   ·   ·   ·   ·   ·   · 32 × 8·   ·   ·     │                             │
 │     CommandPalette                                                                       │                             │
 │     OptionList                 ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     ModalBarrier                                                                         │                             │
@@ -52,17 +52,17 @@ styles
 │aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnnhhhhhhhhhhhhqrrsqhh│
 │atuuuvvvvvvvvuuuuuuuuuuuuuuahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooaaaaaaaaaaaaaahphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhnnnnnnnnhhhhhhhhhhhhqrrsqhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhxhyyyyyyyyhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhnhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaddddddddaaaaaaaaaaaazzaadhhhhhnhnnnhnnhnnnnhnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaaaaaaaaaaaaaaadhhhxhxxxxxxxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhnhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooaaaaaaaaaaaaaaaaaaadhhhhhnnnhnnhnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooaaaaaaaaaaaaaaaadhhhxhxxxxxxxxxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhnhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooaaaaaaaaaaaaaaaaaahhhhhnnnhnnnhnnnnhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaaaaaaaaaaaaaaaahhhnhnnnnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhnhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhnnhnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaaaaaaaaaaaaaaaahphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphCChChChhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhphhhhhphhnnnnnnnnhhhhhhhhhhhhqrrsqhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhxhyyyyyyyyhhhhhhhhhhhhhhhhhhhhhnhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddddaaaaaaaaaaaazzaadhhhhphhhphhhhhhhhnhnnnhnnhnnnnhnnnhhhhhhhhhhhhhhhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhxhxxxxxxxhhhhhhhhhhhhhhhhhhhhhhnhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooaaaaaaaaaaaaaaaaaaadhhhhphhhphhhhhhhhnnnhnnhnnnnnhhhhhhhhhhhhhhhhhhhhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhxhxxxxxxxxxhhhhhhhhhhhhhhhhhhhhnhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaaahhhhphhhphhhhhhhhnnnhnnnhnnnnhnnnnhhhhhhhhhhhhhhhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhnhnnnnnnnnnnhhhhhhhhhhhhhhhhhhhnhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhphhhphhhhhhhhnnhnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphCChChCphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

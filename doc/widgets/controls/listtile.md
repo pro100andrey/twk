@@ -31,20 +31,23 @@ Widget build(BuildContext context) {
     ('photo.png', '1.2 MB, last week'),
     ('locked.txt', 'no access'),
   ];
-  return Column(
-    mainAxisSize: .min,
-    children: [
-      for (final (i, (name, about)) in files.indexed)
-        ListTile(
-          leading: const Text('▤'),
-          title: Text(name),
-          subtitle: Text(about),
-          trailing: const Text('›'),
-          selected: i == _open,
-          enabled: i != 3,
-          onTap: () => setState(() => _open = i),
-        ),
-    ],
+  return SizedBox(
+    width: 32,
+    child: Column(
+      mainAxisSize: .min,
+      children: [
+        for (final (i, (name, about)) in files.indexed)
+          ListTile(
+            leading: const Text('▤'),
+            title: Text(name),
+            subtitle: Text(about),
+            trailing: const Text('›'),
+            selected: i == _open,
+            enabled: i != 3,
+            onTap: () => setState(() => _open = i),
+          ),
+      ],
+    ),
   );
 }
 ```
