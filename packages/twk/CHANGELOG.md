@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- What is dirty below a `LayoutBuilder` given a new widget waits for its build,
+  as in Flutter. It was rebuilt first, with the old widget above it, so a row
+  of a list could read a list that had shrunk with the old `itemCount` and
+  throw a `RangeError`.
 - `copyToClipboard(context, text)` is exported: an app copies as a
   `SelectionArea` and a `TextField` do, by OSC 52, wrapped inside tmux or GNU
   screen.
