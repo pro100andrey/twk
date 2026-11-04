@@ -9,6 +9,9 @@
 - `Cli.confirm` says what to press: `(y/n)` after the question, Tab moves the
   highlight as Left and Right do, and Enter with no answer highlighted says
   `answer y or n`, where a question with no default looked stuck.
+- A row a `ListView` keeps out of its window no longer rebuilds there: it builds
+  as it comes back. A `SelectionList`'s cursor moving rebuilt the kept rows too,
+  which asked `itemEnabled` and the like about an index the list no longer had.
 - What is dirty below a `LayoutBuilder` given a new widget waits for its build,
   as in Flutter. It was rebuilt first, with the old widget above it, so a row
   of a list could read a list that had shrunk with the old `itemCount` and

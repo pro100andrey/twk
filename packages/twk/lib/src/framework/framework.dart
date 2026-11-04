@@ -2636,14 +2636,39 @@ final class BuildOwner {
   /// has not run yet.
   final _layoutBuilds = <_LayoutBuilderElement>{};
 
+  // the elements out of the tree's use that a list keeps: see [holdBuilds]
+  final _held = Set<Element>.identity();
+
+  /// Holds the builds of [element] and what is below it until
+  /// [releaseBuilds]: for an element kept out of use, as a list keeps a row
+  /// gone from its window. Its widget is of a time that has passed, the
+  /// index of a row the data may no longer have: it builds as it is taken
+  /// back, with the widget it comes back with.
+  @internal
+  void holdBuilds(Element element) => _held.add(element);
+
+  /// Lets the builds [holdBuilds] held go on.
+  @internal
+  void releaseBuilds(Element element) {
+    if (_held.remove(element) && _dirty.isNotEmpty && !_scheduled) {
+      _scheduled = true;
+      onBuildScheduled?.call();
+    }
+  }
+
   /// Whether [element] is below a [LayoutBuilder] that has a build to do,
-  /// which rebuilds it with what is above it up to date.
+  /// which rebuilds it with what is above it up to date, or at or below
+  /// what [holdBuilds] holds.
   bool _waitsForLayout(Element element) {
-    if (_layoutBuilds.isEmpty) {
+    if (_layoutBuilds.isEmpty && _held.isEmpty) {
       return false;
     }
+    if (_held.contains(element)) {
+      return true;
+    }
     for (var e = element._parent; e != null; e = e._parent) {
-      if (e is _LayoutBuilderElement && _layoutBuilds.contains(e)) {
+      if (_held.contains(e) ||
+          e is _LayoutBuilderElement && _layoutBuilds.contains(e)) {
         return true;
       }
     }

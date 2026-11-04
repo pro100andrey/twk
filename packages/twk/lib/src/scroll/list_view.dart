@@ -523,6 +523,7 @@ final class _ListElement extends RenderObjectElement
 
   @override
   void unmount() {
+    _kept.values.forEach(owner!.releaseBuilds);
     _position?.removeListener(_moved);
     _position = null;
     _controller?._lists.remove(this);
@@ -688,6 +689,7 @@ final class _ListElement extends RenderObjectElement
   @override
   void forgetChild(Element child) {
     _live.removeWhere((_, e) => identical(e, child));
+    owner!.releaseBuilds(child);
     _kept.removeWhere((_, e) => identical(e, child));
     super.forgetChild(child);
   }
@@ -695,6 +697,7 @@ final class _ListElement extends RenderObjectElement
   /// Removes [item], whose widget a [GlobalKey] took elsewhere.
   void _lost(Element item) {
     _live.removeWhere((_, e) => identical(e, item));
+    owner!.releaseBuilds(item);
     _kept.removeWhere((_, e) => identical(e, item));
     deactivateChild(item);
   }
@@ -705,7 +708,7 @@ final class _ListElement extends RenderObjectElement
     final key = widget.key;
     var item = _live[index];
     if (item == null && key != null) {
-      item = _kept.remove(key)?..attachRenderObject(index);
+      item = _unkeep(key)?..attachRenderObject(index);
     }
     _live[index] = updateChild(item, _itemOf(widget, index, item), index)!;
   }
@@ -735,7 +738,7 @@ final class _ListElement extends RenderObjectElement
   void _rebuildItems(int was) {
     final max = widget.view.maxKept;
     while (_kept.length > max) {
-      deactivateChild(_kept.remove(_kept.keys.first)!);
+      deactivateChild(_unkeep(_kept.keys.first)!);
     }
     final live = _live;
     if (live.isEmpty) {
@@ -771,7 +774,7 @@ final class _ListElement extends RenderObjectElement
         if (item != null) {
           (movedHere ??= Set.identity()).add(item);
         } else {
-          item = _kept.remove(key);
+          item = _unkeep(key);
           if (item != null) {
             (unkept ??= Set.identity()).add(item);
           }
@@ -923,14 +926,25 @@ final class _ListElement extends RenderObjectElement
       return;
     }
     item.detachRenderObject();
-    final old = _kept.remove(key);
+    final old = _unkeep(key);
     if (old != null) {
       deactivateChild(old);
     }
     _kept[key] = item;
+    // it builds as it comes back: its widget has the index it left with
+    owner!.holdBuilds(item);
     if (_kept.length > max) {
-      deactivateChild(_kept.remove(_kept.keys.first)!);
+      deactivateChild(_unkeep(_kept.keys.first)!);
     }
+  }
+
+  /// The item kept under [key], kept no more.
+  Element? _unkeep(Key key) {
+    final item = _kept.remove(key);
+    if (item != null) {
+      owner!.releaseBuilds(item);
+    }
+    return item;
   }
 
   /// What the builders build for child [index] of the render list, an item
