@@ -97,18 +97,22 @@ final class Text extends LeafRenderObjectWidget {
   /// wider than its room: [Text] with `wrap: TextWrap.none`,
   /// `overflow: TextOverflow.ellipsis` and `maxLines: 1`. The common case
   /// in a row, a panel or a status line, where a long text should not
-  /// grow the height.
+  /// grow the height. [align] and [overflow] set it right or cut it
+  /// elsewhere.
   ///
   /// ```dart
   /// Row(children: [Expanded(child: Text.line(notes)), const Text(' ▾')])
   /// ```
-  const Text.line(String this.data, {super.key, this.style = const Style()})
-    : spans = null,
-      wrap = TextWrap.none,
-      overflow = TextOverflow.ellipsis,
-      maxLines = 1,
-      align = TextAlign.left,
-      onLinkTap = null;
+  const Text.line(
+    String this.data, {
+    super.key,
+    this.style = const Style(),
+    this.align = TextAlign.left,
+    this.overflow = TextOverflow.ellipsis,
+  }) : spans = null,
+       wrap = TextWrap.none,
+       maxLines = 1,
+       onLinkTap = null;
 
   /// [spans] as [Text.line] shows a string: [Text.rich] on one line, cut
   /// off with `…`.
@@ -120,11 +124,11 @@ final class Text extends LeafRenderObjectWidget {
     List<Span> this.spans, {
     super.key,
     this.style = const Style(),
+    this.align = TextAlign.left,
+    this.overflow = TextOverflow.ellipsis,
   }) : data = null,
        wrap = TextWrap.none,
-       overflow = TextOverflow.ellipsis,
        maxLines = 1,
-       align = TextAlign.left,
        onLinkTap = null;
 
   /// The text, in [style]; null for [spans].

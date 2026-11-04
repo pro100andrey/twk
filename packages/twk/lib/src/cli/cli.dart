@@ -564,7 +564,7 @@ final class Cli {
   /// changes something wants a `--yes` flag for unattended runs.
   ///
   /// * [CliMode.interactive]: the question and the answers of a
-  ///   `ConfirmInput`; `y` and `n` answer, Left and Right move the
+  ///   `ConfirmInput`; `y` and `n` answer, Left, Right and Tab move the
   ///   highlight, Enter answers it. `✔ question yes` is committed.
   /// * [CliMode.plain]: `? question [Y/n] `, asked again until the answer
   ///   is `y`, `yes`, `n` or `no` in any case, or empty with a default.

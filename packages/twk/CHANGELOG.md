@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- `Text.line` and `Text.richLine` take `align` and `overflow`: a line set right or
+  cut at its start needs the long form of `Text` no more.
 - `Cli.confirm` says what to press: `(y/n)` after the question, Tab moves the
   highlight as Left and Right do, and Enter with no answer highlighted says
   `answer y or n`, where a question with no default looked stuck.
