@@ -402,7 +402,7 @@ ${[for (final name in rest) '  $name,\n'].join()}];
       );
       expect(t, containsLine(contains('Bad state: broken')));
       expect(
-        t.logs.records.map((r) => r.message),
+        t.takeErrors().map((r) => r.message),
         contains(endsWith('Column → _Broken failed to build')),
       );
       await expectLater(

@@ -398,6 +398,7 @@ void main() {
         ..keys = true
         ..console.openOnError = false;
       t.logs.add(LogRecord(DateTime(2026), LogLevel.error, 'boom'));
+      t.takeErrors();
       await t.press('ctrl+g c');
       await t.pump();
       expect(t.lines.take(4), [
@@ -417,6 +418,7 @@ void main() {
       final console = t.binding.debug.console;
       expect(console.isOpen, isFalse);
       t.logs.add(LogRecord(DateTime(2026), LogLevel.error, 'boom'));
+      t.takeErrors();
       await t.pump();
       expect(console.isOpen, isTrue);
       expect(t.lines.sublist(4, 6), [

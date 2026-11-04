@@ -83,6 +83,7 @@ void main() {
           await t.pump();
           expect(screen(t), contains(title), reason: '120x36');
           expect(found(), isEmpty, reason: '120x36');
+          takeOwnError(t, route);
         });
       }
     }

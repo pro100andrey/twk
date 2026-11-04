@@ -176,7 +176,7 @@ void main() {
     );
     expect(t.lines, ['true']);
     await t.pumpWidget(Provider<int?>.value(value: null, child: child));
-    final error = t.logs.records.single.error;
+    final error = t.takeErrors().single.error;
     expect(error, isA<ProviderNullException>());
     expect(
       '$error',

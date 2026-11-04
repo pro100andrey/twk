@@ -354,6 +354,12 @@ a build that threw) are in `t.logs.records` (`LogRecord`s: `message`,
 `error`, `stack`), the last 20 of them printed when the test fails, and
 what it wrote to stderr once it ended in `t.stderrLines`.
 
+An error the app logged fails the test when it ends, unless the test
+takes it: `t.takeErrors()` hands over the `LogRecord`s at `LogLevel.error`
+logged since its last call. A build that threw is shown in place and the
+next frame may build over it, so a test that passes has seen none, or said
+it expected them.
+
 The rest of the tester — frames recorded and written as a trace, a widget
 drawn without an app (`Shot`), processes a test starts — is in
 [twk_test's README](https://pub.dev/packages/twk_test).

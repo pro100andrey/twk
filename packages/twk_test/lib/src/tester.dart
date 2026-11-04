@@ -48,7 +48,9 @@ import 'screen_text.dart';
 /// When [body] returns, an app still running is quit, and what it wrote is
 /// fed to the emulator: an error the app ended with that no call of the
 /// tester has thrown fails the test, as do bytes the emulator does not
-/// take (see [Vt]). A test that fails prints the last [framesOnFailure]
+/// take (see [Vt]) and an error the app logged that the test did not take
+/// ([TwkTester.takeErrors]): a build that threw, which the next frame may
+/// well build over. A test that fails prints the last [framesOnFailure]
 /// frames of the app that changed the screen ([TwkTester.frames]), as
 /// text, and then the app's log ([TwkTester.logs]), its last 20 records:
 /// what it printed, its warnings (a layout that overflowed) and its
@@ -78,6 +80,7 @@ void testTwk(
     }
     try {
       await t._end();
+      t._failOnErrors();
     } on Object {
       t._printOnFailure(framesOnFailure);
       rethrow;
@@ -126,6 +129,7 @@ final class TwkTester {
   TwkTester._() {
     clock = IOOverrides.runZoned(FakeClock.new, stderr: () => _stderr)
       ..beforeMove = _stamp;
+    logs.addListener(_keepError);
   }
 
   /// The time of the app.
@@ -138,6 +142,53 @@ final class TwkTester {
 
   /// The app's log: `print`, `log()` and the errors it reports.
   final logs = LogSink();
+
+  /// The errors the app logged since the last call, oldest first, taken
+  /// from the test: each one the test does not take fails it when it ends,
+  /// as `testTwk` says. An error at [LogLevel.error] counts: a build, a
+  /// layout or a paint that threw, an async provider's with no `catchError`,
+  /// the app's own. The one the app ended with is not among them: a call of
+  /// the tester throws that. [logs] still has what is taken; reading [logs]
+  /// takes nothing.
+  ///
+  /// A test of what a failure shows says so:
+  ///
+  /// ```dart
+  /// testTwk('a broken page shows what broke', (t) async {
+  ///   await t.pumpWidget(Builder(builder: (_) => throw StateError('broken')));
+  ///   expect(t, containsLine(contains('Bad state: broken')));
+  ///   final [error] = t.takeErrors();
+  ///   expect(error.error, isStateError);
+  /// });
+  /// ```
+  List<LogRecord> takeErrors() {
+    final taken = [
+      for (final record in _errors)
+        if (!identical(record.error, _error) || record.error == null) record,
+    ];
+    _errors.clear();
+    return taken;
+  }
+
+  // not read from [logs], whose oldest records go
+  final _errors = <LogRecord>[];
+
+  void _keepError(LogRecord record) {
+    if (record.level == LogLevel.error) {
+      _errors.add(record);
+    }
+  }
+
+  void _failOnErrors() {
+    final errors = takeErrors();
+    if (errors.isNotEmpty) {
+      final count = errors.length == 1 ? 'an error' : '${errors.length} errors';
+      fail(
+        'the app logged $count the test did not take (takeErrors):\n'
+        '${errors.join('\n')}',
+      );
+    }
+  }
 
   /// What the app wrote to stderr, line by line: the warnings and errors
   /// of its log, once it ended.

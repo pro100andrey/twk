@@ -42,6 +42,10 @@ void main(List<String> args) {
           r['error'] = '$e';
           r['stack'] = '$stack'.split('\n').take(12).join('\n');
         }
+        // the build that page fails on purpose; any other fails the check
+        if (route.contains('app/errorwidget')) {
+          t.takeErrors();
+        }
       });
     }
   }

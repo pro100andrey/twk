@@ -26,6 +26,17 @@ final class _ThrowsOnDisposeState extends State<ThrowsOnDispose> {
   Widget build(BuildContext context) => const Text('x');
 }
 
+/// Throws from its build until [broken] is false.
+final class BrokenOnce extends StatelessWidget {
+  const BrokenOnce({required this.broken, super.key});
+
+  final bool broken;
+
+  @override
+  Widget build(BuildContext context) =>
+      broken ? throw StateError('broken') : const Text('x');
+}
+
 /// Bytes the emulator does not take.
 final _junk = Uint8List.fromList(ascii.encode('\x1b[?999h'));
 
@@ -53,6 +64,27 @@ void main() {
   testTwk('bytes the emulator does not take', (t) async {
     await t.pumpWidget(const Text('x'));
     t.terminal.write(_junk);
+  });
+
+  testTwk('a build that failed, a later frame building over it', (t) async {
+    await t.pumpWidget(const BrokenOnce(broken: true));
+    await t.pumpWidget(const BrokenOnce(broken: false));
+    expect(t, containsLine('x'));
+  });
+
+  testTwk('a build that failed, the error taken', (t) async {
+    await t.pumpWidget(const BrokenOnce(broken: true));
+    expect(t.takeErrors(), hasLength(1));
+  });
+
+  testTwk('a build that failed, the log only read', (t) async {
+    await t.pumpWidget(const BrokenOnce(broken: true));
+    expect(t.logs.records, hasLength(1));
+  });
+
+  testTwk('a test that fails, and a build that failed', (t) async {
+    await t.pumpWidget(const BrokenOnce(broken: true));
+    fail('the test failed');
   });
 
   testTwk('a test that fails, and bytes the emulator does not take', (

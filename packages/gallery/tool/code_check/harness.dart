@@ -96,6 +96,8 @@ void renderAll(List<Entry> entries, String outPath) {
       if (logs.isNotEmpty) {
         r['logs'] = logs.take(20).toList();
       }
+      // reported above, with the page, as what this run is for
+      t.takeErrors();
     }, timeout: const Timeout(Duration(seconds: 60)));
   }
   tearDownAll(() {

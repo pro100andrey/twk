@@ -390,8 +390,7 @@ void main() {
     );
     expect(
       [
-        for (final r in t.logs.records)
-          if (r.level == LogLevel.error) '${r.message}: ${r.error}',
+        for (final r in t.takeErrors()) '${r.message}: ${r.error}',
       ],
       [
         allOf(
@@ -429,8 +428,7 @@ void main() {
     expect(seen, ['esc', 'esc']);
     expect(
       [
-        for (final r in t.logs.records)
-          if (r.level == LogLevel.error) '${r.error}',
+        for (final r in t.takeErrors()) '${r.error}',
       ],
       [contains('"esc" and "escape" are the same key')],
     );

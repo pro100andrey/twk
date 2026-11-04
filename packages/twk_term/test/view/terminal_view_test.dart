@@ -671,7 +671,7 @@ void main() {
       expect(session.error, isA<ProcessException>());
       expect(session.ended, isTrue);
       expect(
-        t.logs.records.last.message,
+        t.takeErrors().single.message,
         'the terminal could not start its program',
       );
     });
