@@ -9,6 +9,7 @@ import 'dart:io' show Platform;
 import 'dart:isolate';
 import 'dart:typed_data';
 
+import '../platform/kernel32.dart';
 import 'isolate_input.dart';
 import 'link.dart' show TerminalException;
 
@@ -33,11 +34,11 @@ final class WindowsInput implements InputDevice<int> {
     if (!Platform.isWindows) {
       return null;
     }
-    final k = _Kernel32.of();
+    final k = kernel32;
     return k == null ? null : WindowsInput._(k);
   }
 
-  final _Kernel32 _k;
+  final Kernel32 _k;
 
   @override
   int openWake() {
@@ -65,9 +66,6 @@ final class WindowsInput implements InputDevice<int> {
   );
 }
 
-const _stdInputHandle = -10;
-const _infinite = 0xFFFFFFFF;
-const _waitObject0 = 0;
 const _keyEvent = 0x0001;
 const _vkMenu = 0x12;
 
@@ -88,8 +86,8 @@ const _char = 14;
 /// reads to [args].$2, or what failed.
 void _read((int, SendPort) args) {
   final (wake, port) = args;
-  final k = _Kernel32.of()!;
-  final console = k.getStdHandle(_stdInputHandle);
+  final k = kernel32!;
+  final console = k.getStdHandle(stdInputHandle);
   final handles = k.alloc(2 * sizeOf<IntPtr>()).cast<IntPtr>()
     ..[0] = wake
     ..[1] = console.address;
@@ -103,14 +101,14 @@ void _read((int, SendPort) args) {
         2,
         handles.cast(),
         0,
-        _infinite,
+        infinite,
       );
       // told to stop (the event first, so it wins when both are set): the
       // console is not read again, whatever it has
-      if (woke == _waitObject0) {
+      if (woke == waitObject0) {
         return;
       }
-      if (woke != _waitObject0 + 1) {
+      if (woke != waitObject0 + 1) {
         port.send('waiting on the console failed');
         return;
       }
@@ -126,7 +124,7 @@ void _read((int, SendPort) args) {
       if (there == 0) {
         continue;
       }
-      if (k.waitForSingleObject(Pointer.fromAddress(wake), 0) == _waitObject0) {
+      if (k.waitForSingleObject(Pointer.fromAddress(wake), 0) == waitObject0) {
         return;
       }
       final take = there < _records ? there : _records;
@@ -170,104 +168,4 @@ void _read((int, SendPort) args) {
       ..free(records.cast())
       ..free(count.cast());
   }
-}
-
-const _lptr = 0x0040; // LMEM_ZEROINIT | LMEM_FIXED
-
-/// What of kernel32 the reader calls (each isolate looks it up for
-/// itself).
-final class _Kernel32 {
-  _Kernel32._(DynamicLibrary k)
-    : getStdHandle = k
-          .lookupFunction<
-            Pointer<Void> Function(Int32),
-            Pointer<Void> Function(int)
-          >('GetStdHandle'),
-      createEvent = k
-          .lookupFunction<
-            Pointer<Void> Function(Pointer<Void>, Int32, Int32, Pointer<Void>),
-            Pointer<Void> Function(Pointer<Void>, int, int, Pointer<Void>)
-          >('CreateEventW'),
-      setEvent = k
-          .lookupFunction<
-            Int32 Function(Pointer<Void>),
-            int Function(Pointer<Void>)
-          >('SetEvent'),
-      closeHandle = k
-          .lookupFunction<
-            Int32 Function(Pointer<Void>),
-            int Function(Pointer<Void>)
-          >('CloseHandle'),
-      waitForMultipleObjects = k
-          .lookupFunction<
-            Uint32 Function(Uint32, Pointer<Pointer<Void>>, Int32, Uint32),
-            int Function(int, Pointer<Pointer<Void>>, int, int)
-          >('WaitForMultipleObjects'),
-      waitForSingleObject = k
-          .lookupFunction<
-            Uint32 Function(Pointer<Void>, Uint32),
-            int Function(Pointer<Void>, int)
-          >('WaitForSingleObject'),
-      getNumberOfConsoleInputEvents = k
-          .lookupFunction<
-            Int32 Function(Pointer<Void>, Pointer<Uint32>),
-            int Function(Pointer<Void>, Pointer<Uint32>)
-          >('GetNumberOfConsoleInputEvents'),
-      readConsoleInput = k
-          .lookupFunction<
-            Int32 Function(
-              Pointer<Void>,
-              Pointer<Void>,
-              Uint32,
-              Pointer<Uint32>,
-            ),
-            int Function(Pointer<Void>, Pointer<Void>, int, Pointer<Uint32>)
-          >('ReadConsoleInputW'),
-      _localAlloc = k
-          .lookupFunction<
-            Pointer<Void> Function(Uint32, IntPtr),
-            Pointer<Void> Function(int, int)
-          >('LocalAlloc'),
-      _localFree = k
-          .lookupFunction<
-            Pointer<Void> Function(Pointer<Void>),
-            Pointer<Void> Function(Pointer<Void>)
-          >('LocalFree');
-
-  static _Kernel32? _cached;
-
-  /// kernel32, or null where it can't be opened.
-  static _Kernel32? of() {
-    final cached = _cached;
-    if (cached != null) {
-      return cached;
-    }
-    try {
-      return _cached = _Kernel32._(DynamicLibrary.open('kernel32.dll'));
-    } on Object {
-      // not Windows, or a function missing (ArgumentError)
-      return null;
-    }
-  }
-
-  final Pointer<Void> Function(int) getStdHandle;
-  final Pointer<Void> Function(Pointer<Void>, int, int, Pointer<Void>)
-  createEvent;
-  final int Function(Pointer<Void>) setEvent;
-  final int Function(Pointer<Void>) closeHandle;
-  final int Function(int, Pointer<Pointer<Void>>, int, int)
-  waitForMultipleObjects;
-  final int Function(Pointer<Void>, int) waitForSingleObject;
-  final int Function(Pointer<Void>, Pointer<Uint32>)
-  getNumberOfConsoleInputEvents;
-  final int Function(Pointer<Void>, Pointer<Void>, int, Pointer<Uint32>)
-  readConsoleInput;
-  final Pointer<Void> Function(int, int) _localAlloc;
-  final Pointer<Void> Function(Pointer<Void>) _localFree;
-
-  /// [bytes] of zeroed memory, for [free].
-  Pointer<Void> alloc(int bytes) => _localAlloc(_lptr, bytes);
-
-  /// Frees what [alloc] gave.
-  void free(Pointer<Void> p) => _localFree(p);
 }

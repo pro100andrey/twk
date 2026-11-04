@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- `package:twk_core/libc.dart`, new: the libc calls twk's packages share
+  on Linux and macOS (`poll` and `PollFd`, `read`, `write`, `pipe`,
+  `close`, `ioctl` with `fionread`, `tcgetattr` and `tcsetattr`, `calloc`
+  and `free`, `errno`), bound once with `@Native` and looked up on their
+  first call. The core's reader of the terminal and its raw mode use it,
+  as do twk_term's `Pty` and twk's file watch, where each bound its own.
+  The kernel32 calls of `WindowsConsole` and `WindowsInput` are now bound
+  in one place too, inside the core.
+
 - A `TextPainter` (and a `RenderParagraph`) with `maxLines` 1 and
   `TextOverflow.ellipsis` splits and measures only the head of its text, the
   first columns its first line shows, and the rest only when asked (a

@@ -1,6 +1,8 @@
 /// The libc calls a pseudo-terminal takes, bound through dart:ffi, with the
-/// constants Linux (x86-64, arm64) and macOS give them. A symbol is looked
-/// up on its first call, so one a platform lacks is never touched there.
+/// constants Linux (x86-64, arm64) and macOS give them: the core's
+/// (`package:twk_core/libc.dart`, exported here) and those of a `Pty`
+/// alone. A symbol is looked up on its first call, so one a platform lacks
+/// is never touched there.
 library;
 
 import 'dart:convert';
@@ -8,38 +10,11 @@ import 'dart:ffi';
 import 'dart:io';
 import 'dart:typed_data';
 
-/// `struct pollfd`, the same on Linux and macOS.
-final class PollFd extends Struct {
-  /// The file descriptor polled.
-  @Int()
-  external int fd;
+import 'package:twk_core/libc.dart';
 
-  /// The events waited for: [pollIn], [pollOut].
-  @Short()
-  external int events;
-
-  /// The events that happened, set by [poll]: those of [events], and
-  /// [pollErr], [pollHup] or [pollNval].
-  @Short()
-  external int revents;
-}
+export 'package:twk_core/libc.dart';
 
 final bool _macos = Platform.isMacOS;
-
-/// POLLIN: there is data to read.
-const pollIn = 0x1;
-
-/// POLLOUT: a write would not block.
-const pollOut = 0x4;
-
-/// POLLERR: the descriptor has an error.
-const pollErr = 0x8;
-
-/// POLLHUP: the other end hung up.
-const pollHup = 0x10;
-
-/// POLLNVAL: the descriptor is not open.
-const pollNval = 0x20;
 
 /// O_RDWR: opened for reading and writing.
 const oRdwr = 2;
@@ -69,20 +44,11 @@ const fSetfl = 4;
 /// FD_CLOEXEC, a descriptor flag: closed in a program exec'd.
 const fdCloexec = 1;
 
-/// EINTR: a call interrupted by a signal.
-const eintr = 4;
-
 /// ECHILD: no such child to wait for.
 const echild = 10;
 
-/// EAGAIN: a non-blocking call would block.
-final eagain = _macos ? 35 : 11;
-
 /// WNOHANG, for [waitpid]: return at once where no child ended.
 const wnohang = 1;
-
-/// TCSANOW, for [tcsetattr]: the attributes change at once.
-const tcsanow = 0;
 
 /// TCSAFLUSH, for [tcsetattr]: the attributes change once the output
 /// written has been sent, and the input not read yet is dropped.
@@ -90,10 +56,6 @@ const tcsaflush = 2;
 
 /// TIOCSWINSZ, for [ioctl]: sets a terminal's size (`struct winsize`).
 final tiocswinsz = _macos ? 0x80087467 : 0x5414;
-
-/// FIONREAD, for [ioctl]: how many bytes a descriptor holds to be read (an
-/// `int`).
-final fionread = _macos ? 0x4004667F : 0x541B;
 
 /// IUTF8 in `c_iflag`: the line discipline erases a UTF-8 character whole.
 const iutf8 = 0x4000;
@@ -120,14 +82,6 @@ final spawnStartSuspended = _macos ? 0x0080 : 0;
 
 final _process = DynamicLibrary.process();
 
-/// calloc(3): [count] zeroed elements of [size] bytes, or `nullptr`.
-@Native<Pointer<Void> Function(Size, Size)>(isLeaf: true)
-external Pointer<Void> calloc(int count, int size);
-
-/// free(3): frees [p], taken from [calloc].
-@Native<Void Function(Pointer<Void>)>(isLeaf: true)
-external void free(Pointer<Void> p);
-
 /// strlen(3): the bytes of the C string [s] before its NUL.
 @Native<Size Function(Pointer<Char>)>(isLeaf: true)
 external int strlen(Pointer<Char> s);
@@ -135,15 +89,6 @@ external int strlen(Pointer<Char> s);
 /// strerror(3): what the error number [code] means.
 @Native<Pointer<Char> Function(Int)>(isLeaf: true)
 external Pointer<Char> strerror(int code);
-
-@Native<Pointer<Int> Function()>(symbol: '__errno_location', isLeaf: true)
-external Pointer<Int> _errnoLinux();
-
-@Native<Pointer<Int> Function()>(symbol: '__error', isLeaf: true)
-external Pointer<Int> _errnoMacos();
-
-/// errno, read right after the (leaf) call that set it.
-int get errno => (_macos ? _errnoMacos() : _errnoLinux()).value;
 
 /// posix_openpt(3): opens a pseudo-terminal's master with [flags];
 /// its descriptor, or -1.
@@ -172,57 +117,15 @@ external Pointer<Char> _ptsname(int fd);
 @Native<Int Function(Pointer<Char>, Int, VarArgs<(Int,)>)>(isLeaf: true)
 external int open(Pointer<Char> path, int flags, int mode);
 
-/// close(2): closes [fd]; 0, or -1.
-@Native<Int Function(Int)>(isLeaf: true)
-external int close(int fd);
-
-/// read(2): reads at most [count] bytes of [fd] into [buf]; how many,
-/// 0 at the end, or -1.
-@Native<Long Function(Int, Pointer<Void>, Size)>(isLeaf: true)
-external int read(int fd, Pointer<Void> buf, int count);
-
-/// write(2): writes at most [count] bytes of [buf] to [fd]; how many, or
-/// -1.
-@Native<Long Function(Int, Pointer<Void>, Size)>(isLeaf: true)
-external int write(int fd, Pointer<Void> buf, int count);
-
 /// fcntl(2): the command [cmd] ([fGetfd], [fSetfl], …) on [fd] with
 /// [arg]; -1 on an error.
 @Native<Int Function(Int, Int, VarArgs<(Int,)>)>(isLeaf: true)
 external int fcntl(int fd, int cmd, int arg);
 
-/// ioctl(2): the [request] ([tiocswinsz], …) on [fd] with [arg]; -1 on an
-/// error.
-@Native<Int Function(Int, UnsignedLong, VarArgs<(Pointer<Void>,)>)>(
-  isLeaf: true,
-)
-external int ioctl(int fd, int request, Pointer<Void> arg);
-
-/// tcgetattr(3): reads the attributes of the terminal [fd] into
-/// [termios]; 0, or -1.
-@Native<Int Function(Int, Pointer<Void>)>(isLeaf: true)
-external int tcgetattr(int fd, Pointer<Void> termios);
-
-/// tcsetattr(3): sets the attributes of the terminal [fd] to [termios],
-/// [when] ([tcsanow], [tcsaflush]) says when; 0, or -1.
-///
-/// Not a leaf call: with [tcsaflush] it waits for the output to be sent.
-@Native<Int Function(Int, Int, Pointer<Void>)>()
-external int tcsetattr(int fd, int when, Pointer<Void> termios);
-
 /// cfmakeraw(3): sets [termios] to raw mode: input byte by byte, no
 /// signals, no echo, no output processing.
 @Native<Void Function(Pointer<Void>)>(isLeaf: true)
 external void cfmakeraw(Pointer<Void> termios);
-
-/// pipe(2): a pipe, its read end in `fds[0]`, its write end in `fds[1]`;
-/// 0, or -1.
-@Native<Int Function(Pointer<Int>)>(isLeaf: true)
-external int pipe(Pointer<Int> fds);
-
-/// Blocks: not a leaf call, so the VM goes on while it waits.
-@Native<Int Function(Pointer<PollFd>, UnsignedLong, Int)>()
-external int poll(Pointer<PollFd> fds, int count, int timeout);
 
 /// waitpid(2): waits for the child [pid], its wait status into [status];
 /// with [wnohang] in [options], 0 where it has not ended. The child's id,
