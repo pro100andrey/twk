@@ -124,7 +124,7 @@ final class RenderStage extends RenderObject with RenderObjectWithChildMixin {
       return;
     }
     child.layout(
-      _fill ? BoxConstraints.tight(rw, rh) : BoxConstraints(0, rw, 0, rh),
+      _fill ? BoxConstraints.tight(rw, rh) : BoxConstraints(maxW: rw, maxH: rh),
       parentUsesSize: true,
     );
     final w = child.width;

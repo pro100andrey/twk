@@ -206,7 +206,7 @@ final class _RenderSections extends RenderObject
   /// Lays [child] out at most [w] wide and places it at [x], or at the
   /// right edge for -1.
   void _lay(RenderObject child, int w, int x) {
-    child.layout(BoxConstraints(0, w, 0, height), parentUsesSize: true);
+    child.layout(BoxConstraints(maxW: w, maxH: height), parentUsesSize: true);
     child.parentData
       ..dx = x < 0 ? width - child.width : x
       ..dy = 0;

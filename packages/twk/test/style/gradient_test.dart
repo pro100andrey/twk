@@ -119,7 +119,7 @@ void main() {
     await t.pumpWidget(
       topLeft(
         const ConstrainedBox(
-          constraints: BoxConstraints(0, 5, 0, 1),
+          constraints: BoxConstraints(maxW: 5, maxH: 1),
           child: GradientBackground(gradient: Gradient([black, red])),
         ),
       ),

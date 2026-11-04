@@ -87,7 +87,7 @@ final class Boundary extends RenderObject with RenderObjectWithChildMixin {
   void performLayout(BoxConstraints c) {
     final ch = child!
       ..layout(
-        BoxConstraints(c.minW, c.maxW, 0, BoxConstraints.unbounded),
+        BoxConstraints(minW: c.minW, maxW: c.maxW),
         parentUsesSize: true,
       );
     width = ch.width;

@@ -96,7 +96,10 @@ void main() {
 
     test('is as wide as its longest line and as tall as its lines within '
         'the constraints', () {
-      final box = laidOut('boom\nand more', const BoxConstraints(0, 40, 0, 9));
+      final box = laidOut(
+        'boom\nand more',
+        const BoxConstraints(maxW: 40, maxH: 9),
+      );
       expect((box.width, box.height), (15, 2));
       final tight = laidOut('boom', const BoxConstraints.tight(30, 5));
       expect((tight.width, tight.height), (30, 5));
@@ -104,13 +107,16 @@ void main() {
 
     test('breaks its lines between words where it can, within a word where '
         'it must', () {
-      final box = laidOut('boom and more', const BoxConstraints(0, 10, 0, 9));
+      final box = laidOut(
+        'boom and more',
+        const BoxConstraints(maxW: 10, maxH: 9),
+      );
       expect((box.width, box.height), (10, 3));
       expect(
         renderToString(box, 10, 3, styles: StyleTable()),
         'Bad state:\nboom and\nmore',
       );
-      final narrow = laidOut('abcdef', const BoxConstraints(0, 4, 0, 9));
+      final narrow = laidOut('abcdef', const BoxConstraints(maxW: 4, maxH: 9));
       expect(
         renderToString(narrow, 4, 5, styles: StyleTable()),
         'Bad\nstat\ne:\nabcd\nef',
@@ -137,7 +143,10 @@ void main() {
     });
 
     test('asks for as many rows as its lines at a width', () {
-      final box = laidOut('boom and more', const BoxConstraints(0, 10, 0, 9));
+      final box = laidOut(
+        'boom and more',
+        const BoxConstraints(maxW: 10, maxH: 9),
+      );
       expect(box.getMaxIntrinsicHeight(10), 3);
       expect(box.getMinIntrinsicHeight(30), 1);
       expect(box.getMaxIntrinsicWidth(1), 'Bad state: boom and more'.length);

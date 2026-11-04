@@ -27,12 +27,7 @@ List<String> drawn(
 }) {
   final o = RenderBigText(text, fonts: [font], missing: missing)
     ..layout(
-      const BoxConstraints(
-        0,
-        BoxConstraints.unbounded,
-        0,
-        BoxConstraints.unbounded,
-      ),
+      const BoxConstraints(),
     );
   return shown(
     BigText(text, font: font, missing: missing),
@@ -270,11 +265,11 @@ void main() {
 
     test('is as wide as its widest line and as tall as its lines', () {
       final o = RenderBigText('42\n1', fonts: const [BigFont.block])
-        ..layout(const BoxConstraints(0, 100, 0, 100));
+        ..layout(const BoxConstraints(maxW: 100, maxH: 100));
       expect((o.width, o.height), (11, 9));
-      o.layout(const BoxConstraints(20, 100, 10, 100));
+      o.layout(const BoxConstraints(minW: 20, maxW: 100, minH: 10, maxH: 100));
       expect((o.width, o.height), (20, 10));
-      o.layout(const BoxConstraints(0, 5, 0, 3));
+      o.layout(const BoxConstraints(maxW: 5, maxH: 3));
       expect((o.width, o.height), (5, 3));
     });
 

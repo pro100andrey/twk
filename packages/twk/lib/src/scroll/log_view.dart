@@ -1717,7 +1717,7 @@ final class _RenderLine extends RenderObject with RenderObjectWithChildMixin {
       height = child.height;
     } else {
       child.layout(
-        BoxConstraints(0, BoxConstraints.unbounded, c.minH, c.maxH),
+        BoxConstraints(minH: c.minH, maxH: c.maxH),
         parentUsesSize: true,
       );
       width = c.maxW;

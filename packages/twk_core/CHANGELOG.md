@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+Breaking:
+
+- `BoxConstraints` takes its bounds by name, as Flutter's does, a bound left out
+  limiting nothing: `BoxConstraints(maxW: n)`, where it was
+  `BoxConstraints(0, n, 0, BoxConstraints.unbounded)`.
 ## 0.2.0
 
 - On Windows Ctrl+Space (and Ctrl+@) reaches the app as NUL again, as it

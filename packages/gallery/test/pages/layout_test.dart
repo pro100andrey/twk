@@ -67,7 +67,9 @@ void main() {
       'layout/align-center?o=ax:left;ay:top': ['alignment: .topLeft,'],
       'layout/sizedbox?o=kind:.shrink': ['SizedBox.shrink('],
       'layout/sizedbox?o=width:30;height:5': ['width: 30,', 'height: 5,'],
-      'layout/constrainedbox?o=min:0;max:48': ['BoxConstraints(0, 48, 1, 3)'],
+      'layout/constrainedbox?o=min:0;max:48': [
+        'BoxConstraints(minW: 0, maxW: 48, minH: 1, maxH: 3)',
+      ],
       'layout/fractionallysizedbox?o=wf:1;hf:¼;alignment:bottomRight': [
         'alignment: .bottomRight,',
         'widthFactor: 1.0,',

@@ -35,7 +35,11 @@ List<String> paintAlone(
   final glyphs = GlyphTable();
   final canvas = Canvas(surface, StyleTable(), glyphs);
   p
-    ..layout(BoxConstraints(0, w, 0, ch), segmenter: segmenter, order: order)
+    ..layout(
+      BoxConstraints(maxW: w, maxH: ch),
+      segmenter: segmenter,
+      order: order,
+    )
     ..paint(canvas, x, y);
   return rows(surface, glyphs);
 }
@@ -61,7 +65,7 @@ List<String> paintInTree(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         RenderConstrainedBox(
-          additionalConstraints: BoxConstraints(0, w, 0, ch),
+          additionalConstraints: BoxConstraints(maxW: w, maxH: ch),
           child: RenderParagraph(
             spans,
             wrap: wrap,
@@ -81,15 +85,18 @@ void main() {
   group('layout', () {
     test('sizes itself to its widest line and its lines', () {
       final p = TextPainter([('hello big world', plain)])
-        ..layout(const BoxConstraints(0, 8, 0, 10), segmenter: segmenter);
+        ..layout(const BoxConstraints(maxW: 8, maxH: 10), segmenter: segmenter);
       expect((p.width, p.height), (5, 3), reason: '"hello" "big" "world"');
-      p.layout(const BoxConstraints(0, 40, 0, 10), segmenter: segmenter);
+      p.layout(const BoxConstraints(maxW: 40, maxH: 10), segmenter: segmenter);
       expect((p.width, p.height), (15, 1));
     });
 
     test('the constraints clamp the size', () {
       final p = TextPainter([('abc', plain)])
-        ..layout(const BoxConstraints(10, 20, 3, 5), segmenter: segmenter);
+        ..layout(
+          const BoxConstraints(minW: 10, maxW: 20, minH: 3, maxH: 5),
+          segmenter: segmenter,
+        );
       expect((p.width, p.height), (10, 3));
     });
 
@@ -105,7 +112,7 @@ void main() {
 
     test('a property that changes nothing invalidates nothing', () {
       final p = TextPainter([('abc', plain)])
-        ..layout(const BoxConstraints(0, 8, 0, 3), segmenter: segmenter);
+        ..layout(const BoxConstraints(maxW: 8, maxH: 3), segmenter: segmenter);
       expect(p.takeInvalidation(), TextInvalidation.none);
       p
         ..wrap = TextWrap.word
@@ -116,7 +123,7 @@ void main() {
 
     test('what a change invalidates', () {
       final p = TextPainter([('abc', plain)])
-        ..layout(const BoxConstraints(0, 8, 0, 3), segmenter: segmenter)
+        ..layout(const BoxConstraints(maxW: 8, maxH: 3), segmenter: segmenter)
         ..spans = [('abc', red)];
       expect(p.takeInvalidation(), TextInvalidation.paint, reason: 'pen only');
       p.align = TextAlign.right;
@@ -135,7 +142,7 @@ void main() {
       );
       p
         ..overflow = TextOverflow.ellipsis
-        ..layout(const BoxConstraints(0, 8, 0, 3), segmenter: segmenter);
+        ..layout(const BoxConstraints(maxW: 8, maxH: 3), segmenter: segmenter);
       expect(p.takeInvalidation(), TextInvalidation.none, reason: 'laid out');
       p.ellipsis = '...';
       expect(p.takeInvalidation(), TextInvalidation.layout);
@@ -143,7 +150,7 @@ void main() {
 
     test('another segmenter is noticed', () {
       final p = TextPainter([('abc', plain)])
-        ..layout(const BoxConstraints(0, 8, 0, 3), segmenter: segmenter);
+        ..layout(const BoxConstraints(maxW: 8, maxH: 3), segmenter: segmenter);
       expect(p.segmenterChanged(segmenter), isFalse);
       expect(p.segmenterChanged(TextSegmenter(ambiguousWidth: 2)), isTrue);
     });
@@ -160,7 +167,7 @@ void main() {
       final glyphs = GlyphTable();
       final canvas = Canvas(surface, StyleTable(), glyphs);
       final p = TextPainter([('hi', plain)])
-        ..layout(const BoxConstraints(0, 10, 0, 3), segmenter: segmenter)
+        ..layout(const BoxConstraints(maxW: 10, maxH: 3), segmenter: segmenter)
         ..paint(canvas, 0, 0);
       expect(rows(surface, glyphs), ['hi', '', '']);
       p.paint(canvas, 4, 2);
@@ -172,7 +179,7 @@ void main() {
       final styles = StyleTable();
       final canvas = Canvas(surface, styles, GlyphTable());
       TextPainter([('ab', red), ('cd', plain)])
-        ..layout(const BoxConstraints(0, 10, 0, 1), segmenter: segmenter)
+        ..layout(const BoxConstraints(maxW: 10, maxH: 1), segmenter: segmenter)
         ..paint(canvas, 0, 0);
       StyleId at(int x) => StyleId(surface.styles[x]);
       expect(styles.fgOf(at(0)), const Color.rgb(200, 0, 0));
@@ -241,7 +248,7 @@ void main() {
       final p = TextPainter(
         [('one ', plain), ('two', red)],
         wrap: TextWrap.none,
-      )..layout(const BoxConstraints(0, 20, 0, 1), segmenter: segmenter);
+      )..layout(const BoxConstraints(maxW: 20, maxH: 1), segmenter: segmenter);
       expect(p.textRangeAt(5, 0), (5, 6));
       expect(p.cellAt(5, 0), (start: 5, end: 6, isEllipsis: false));
       expect(p.cellAt(15, 0), isNull);
@@ -256,12 +263,16 @@ void main() {
     });
 
     test('an ellipsis cell stands for the clusters it hides', () {
-      final p = TextPainter(
-        [('abcdefgh', plain)],
-        wrap: TextWrap.none,
-        overflow: TextOverflow.ellipsis,
-        maxLines: 1,
-      )..layout(const BoxConstraints(5, 5, 0, 100), segmenter: segmenter);
+      final p =
+          TextPainter(
+            [('abcdefgh', plain)],
+            wrap: TextWrap.none,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          )..layout(
+            const BoxConstraints(minW: 5, maxW: 5, maxH: 100),
+            segmenter: segmenter,
+          );
       expect(p.cellAt(1, 0), (start: 1, end: 2, isEllipsis: false));
       expect(p.cellAt(4, 0), (start: 4, end: 8, isEllipsis: true));
     });

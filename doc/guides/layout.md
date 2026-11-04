@@ -232,7 +232,7 @@ Warnings (1…
 ## Limits and the room
 
 `SizedBox` gives one size. `ConstrainedBox` keeps its child within limits
-and leaves the rest to it: `BoxConstraints(minW, maxW, minH, maxH)`, in
+and leaves the rest to it: `BoxConstraints(minW: minW, maxW: maxW, minH: minH, maxH: maxH)`, in
 cells, positional (twk's names, not Flutter's `maxWidth`), with
 `BoxConstraints.unbounded` for a limit that limits nothing and
 `BoxConstraints.tight(w, h)` for one size. Whatever is inside still gets
@@ -260,7 +260,7 @@ final class Constraints extends StatelessWidget {
           Text('room: ${constraints.maxW} x ${constraints.maxH}'),
           // minW, maxW, minH, maxH: at most 30 wide, any height
           const ConstrainedBox(
-            constraints: BoxConstraints(10, 30, 0, BoxConstraints.unbounded),
+            constraints: BoxConstraints(minW: 10, maxW: 30),
             child: Box(
               border: .all(type: .rounded),
               child: Text(

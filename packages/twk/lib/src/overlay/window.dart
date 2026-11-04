@@ -1781,7 +1781,10 @@ final class _RenderWindows extends RenderObject
     child.layout(c, parentUsesSize: true);
     width = c.constrainW(child.width);
     height = c.constrainH(child.height);
-    strip.layout(BoxConstraints(0, width, 0, height), parentUsesSize: true);
+    strip.layout(
+      BoxConstraints(maxW: width, maxH: height),
+      parentUsesSize: true,
+    );
     strip.parentData
       ..dx = 0
       ..dy = height - strip.height;

@@ -259,7 +259,7 @@ void main() {
     test('along an unbounded main axis the children make one run', () {
       final wrap = RenderWrap(gap: 1, children: labels())
         ..layout(
-          const BoxConstraints(0, BoxConstraints.unbounded, 0, 5),
+          const BoxConstraints(maxH: 5),
           parentUsesSize: true,
         );
       expect([wrap.width, wrap.height], [13, 1]);
@@ -271,9 +271,12 @@ void main() {
       final block = Block('x', 20, 20);
       final wrap = RenderWrap(children: [Label('ab'), block]);
       printed(() {
-        wrap.layout(const BoxConstraints(0, 10, 0, 6), parentUsesSize: true);
+        wrap.layout(
+          const BoxConstraints(maxW: 10, maxH: 6),
+          parentUsesSize: true,
+        );
       });
-      expect(block.got, const BoxConstraints(0, 10, 0, 6));
+      expect(block.got, const BoxConstraints(maxW: 10, maxH: 6));
       expect(boxes(wrap), ['0,0 2x1', '0,1 10x6']);
     });
   });
@@ -282,19 +285,22 @@ void main() {
     test('as long as the longest run, as thick as the runs and the gaps '
         'between them', () {
       final wrap = RenderWrap(gap: 1, runGap: 1, children: labels())
-        ..layout(const BoxConstraints(0, 7, 0, 10), parentUsesSize: true);
+        ..layout(const BoxConstraints(maxW: 7, maxH: 10), parentUsesSize: true);
       expect([wrap.width, wrap.height], [6, 3]);
     });
 
     test('or as the constraints ask, if that is more', () {
       final wrap = RenderWrap(gap: 1, children: labels())
-        ..layout(const BoxConstraints(9, 9, 4, 10), parentUsesSize: true);
+        ..layout(
+          const BoxConstraints(minW: 9, maxW: 9, minH: 4, maxH: 10),
+          parentUsesSize: true,
+        );
       expect([wrap.width, wrap.height], [9, 4]);
     });
 
     test('nothing without children', () {
       final wrap = RenderWrap(gap: 1, runGap: 1)
-        ..layout(const BoxConstraints(0, 9, 0, 9), parentUsesSize: true);
+        ..layout(const BoxConstraints(maxW: 9, maxH: 9), parentUsesSize: true);
       expect([wrap.width, wrap.height], [0, 0]);
     });
   });
@@ -389,14 +395,14 @@ void main() {
             Block('c', 1, 2),
             Block('d', 3, 1),
           ],
-        )..layout(const BoxConstraints(0, 3, 0, 9), parentUsesSize: true);
+        )..layout(const BoxConstraints(maxW: 3, maxH: 9), parentUsesSize: true);
         expect([row.width, row.height], [3, 5]);
         expect(boxes(row), ['0,0 1x3', ...want, '0,4 3x1']);
         final column = RenderWrap(
           direction: Axis.vertical,
           crossAxisAlignment: alignment,
           children: [Block('a', 3, 1), Block('b', 1, 1), Block('c', 2, 1)],
-        )..layout(const BoxConstraints(0, 9, 0, 3), parentUsesSize: true);
+        )..layout(const BoxConstraints(maxW: 9, maxH: 3), parentUsesSize: true);
         expect([column.width, column.height], [3, 3]);
         expect(boxes(column), [
           '0,0 3x1',

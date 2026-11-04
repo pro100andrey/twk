@@ -283,7 +283,10 @@ final class _RenderLimitedBox extends RenderObject
       return;
     }
     child
-      ..layout(BoxConstraints(c.minW, maxW, c.minH, maxH), parentUsesSize: true)
+      ..layout(
+        BoxConstraints(minW: c.minW, maxW: maxW, minH: c.minH, maxH: maxH),
+        parentUsesSize: true,
+      )
       ..parentData.dx = 0
       ..parentData.dy = 0;
     width = child.width;
@@ -384,7 +387,10 @@ final class _RenderOverflowBox extends _RenderAligning {
     }
     final (minW, maxW) = _within(_limits.$1, _limits.$2, c.minW, c.maxW);
     final (minH, maxH) = _within(_limits.$3, _limits.$4, c.minH, c.maxH);
-    child.layout(BoxConstraints(minW, maxW, minH, maxH), parentUsesSize: true);
+    child.layout(
+      BoxConstraints(minW: minW, maxW: maxW, minH: minH, maxH: maxH),
+      parentUsesSize: true,
+    );
     width = c.maxW < _unbounded ? c.maxW : c.constrainW(child.width);
     height = c.maxH < _unbounded ? c.maxH : c.constrainH(child.height);
     _align(child);

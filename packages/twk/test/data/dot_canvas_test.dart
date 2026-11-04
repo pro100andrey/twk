@@ -269,9 +269,9 @@ void main() {
         draw: outline,
         xBounds: (0, 7),
         yBounds: (0, 7),
-      )..layout(const BoxConstraints(2, BoxConstraints.unbounded, 0, 5));
+      )..layout(const BoxConstraints(minW: 2, maxH: 5));
       expect((canvas.width, canvas.height), (2, 5));
-      canvas.layout(const BoxConstraints(0, 3, 1, BoxConstraints.unbounded));
+      canvas.layout(const BoxConstraints(maxW: 3, minH: 1));
       expect((canvas.width, canvas.height), (3, 1));
     });
 

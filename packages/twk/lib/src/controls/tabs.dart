@@ -991,10 +991,10 @@ final class _RenderPages extends RenderObject
     } else {
       shown.layout(
         BoxConstraints(
-          wide ? c.maxW : c.minW,
-          c.maxW,
-          tall ? c.maxH : c.minH,
-          c.maxH,
+          minW: wide ? c.maxW : c.minW,
+          maxW: c.maxW,
+          minH: tall ? c.maxH : c.minH,
+          maxH: c.maxH,
         ),
         parentUsesSize: true,
       );

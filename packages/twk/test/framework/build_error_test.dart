@@ -90,7 +90,8 @@ void main() {
     state.change(() => state.count++);
     guarded(tree.frame);
     expect(errors, [isA<StateError>()]);
-    final empty = tree.host.child!..layout(const BoxConstraints(1, 9, 2, 9));
+    final empty = tree.host.child!
+      ..layout(const BoxConstraints(minW: 1, maxW: 9, minH: 2, maxH: 9));
     expect(empty, isNot(isA<TestLeaf>()));
     expect((empty.width, empty.height), (1, 2));
 

@@ -249,8 +249,11 @@ void main() {
       final a = Label('abc');
       final b = Label('de');
       final stack = RenderStack(children: [a, b])
-        ..layout(const BoxConstraints(1, 10, 2, 5), parentUsesSize: true);
-      expect(a.got, const BoxConstraints(0, 10, 0, 5));
+        ..layout(
+          const BoxConstraints(minW: 1, maxW: 10, minH: 2, maxH: 5),
+          parentUsesSize: true,
+        );
+      expect(a.got, const BoxConstraints(maxW: 10, maxH: 5));
       expect([stack.width, stack.height], [3, 2]);
       expect([box(a), box(b)], ['0,0 3x1', '0,0 2x1']);
     });
@@ -274,13 +277,19 @@ void main() {
         'constraints with passthrough', () {
       final a = Label('abc');
       final stack = RenderStack(fit: StackFit.expand, children: [a])
-        ..layout(const BoxConstraints(1, 10, 2, 5), parentUsesSize: true);
+        ..layout(
+          const BoxConstraints(minW: 1, maxW: 10, minH: 2, maxH: 5),
+          parentUsesSize: true,
+        );
       expect(a.got, const BoxConstraints.tight(10, 5));
       expect([stack.width, stack.height], [10, 5]);
       stack
         ..fit = StackFit.passthrough
-        ..layout(const BoxConstraints(1, 10, 2, 5), parentUsesSize: true);
-      expect(a.got, const BoxConstraints(1, 10, 2, 5));
+        ..layout(
+          const BoxConstraints(minW: 1, maxW: 10, minH: 2, maxH: 5),
+          parentUsesSize: true,
+        );
+      expect(a.got, const BoxConstraints(minW: 1, maxW: 10, minH: 2, maxH: 5));
       expect([stack.width, stack.height], [3, 2]);
       expect(stack.fit, StackFit.passthrough);
     });
@@ -303,22 +312,28 @@ void main() {
   group('without children placed by the alignment the stack', () {
     test('is as big as its constraints allow', () {
       final stack = RenderStack(children: [pin(Label('ab'), left: 1)])
-        ..layout(const BoxConstraints(1, 10, 2, 5), parentUsesSize: true);
+        ..layout(
+          const BoxConstraints(minW: 1, maxW: 10, minH: 2, maxH: 5),
+          parentUsesSize: true,
+        );
       expect([stack.width, stack.height], [10, 5]);
       final empty = RenderStack()
-        ..layout(const BoxConstraints(1, 10, 2, 5), parentUsesSize: true);
+        ..layout(
+          const BoxConstraints(minW: 1, maxW: 10, minH: 2, maxH: 5),
+          parentUsesSize: true,
+        );
       expect([empty.width, empty.height], [10, 5]);
     });
 
     test('is as small as they allow along an unbounded axis', () {
       final stack = RenderStack()
         ..layout(
-          const BoxConstraints(1, BoxConstraints.unbounded, 2, 5),
+          const BoxConstraints(minW: 1, minH: 2, maxH: 5),
           parentUsesSize: true,
         );
       expect([stack.width, stack.height], [1, 5]);
       stack.layout(
-        const BoxConstraints(1, 4, 2, BoxConstraints.unbounded),
+        const BoxConstraints(minW: 1, maxW: 4, minH: 2),
         parentUsesSize: true,
       );
       expect([stack.width, stack.height], [4, 2]);
@@ -337,13 +352,13 @@ void main() {
     test('is pinned to the left and top edges', () {
       final a = inStack(pin(Label('abc'), left: 2, top: 1)) as Label;
       expect(box(a), '2,1 3x1');
-      expect(a.got, const BoxConstraints(0, 8, 0, 4));
+      expect(a.got, const BoxConstraints(maxW: 8, maxH: 4));
     });
 
     test('is pinned to the right and bottom edges', () {
       final a = inStack(pin(Label('abc'), right: 2, bottom: 1)) as Label;
       expect(box(a), '5,3 3x1');
-      expect(a.got, const BoxConstraints(0, 8, 0, 4));
+      expect(a.got, const BoxConstraints(maxW: 8, maxH: 4));
     });
 
     test('pinned to both edges is as long as the cells between them', () {
@@ -375,7 +390,7 @@ void main() {
         children: [a, b],
       ).layout(const BoxConstraints.tight(10, 5), parentUsesSize: true);
       expect([box(a), box(b)], ['6,1 4x1', '1,4 2x1']);
-      expect((a as Label).got, const BoxConstraints(0, 10, 0, 4));
+      expect((a as Label).got, const BoxConstraints(maxW: 10, maxH: 4));
     });
 
     test('is as long as it wants up to the far edge', () {

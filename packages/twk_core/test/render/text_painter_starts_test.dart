@@ -77,9 +77,11 @@ final class _Rig {
     return s;
   }
 
-  TextPainter painter(List<(String, Pen)> spans) =>
-      TextPainter(spans)
-        ..layout(const BoxConstraints(0, _width, 0, 1 << 20), segmenter: seg);
+  TextPainter painter(List<(String, Pen)> spans) => TextPainter(spans)
+    ..layout(
+      const BoxConstraints(maxW: _width, maxH: 1 << 20),
+      segmenter: seg,
+    );
 
   /// What [p] answers and draws, cell by cell over its first rows, and
   /// the ranges between them.
@@ -113,7 +115,7 @@ void main() {
         p
           ..spans = spans
           ..layout(
-            const BoxConstraints(0, _width, 0, 1 << 20),
+            const BoxConstraints(maxW: _width, maxH: 1 << 20),
             segmenter: rig.seg,
           );
         final reason = 'seed $seed, round $round';

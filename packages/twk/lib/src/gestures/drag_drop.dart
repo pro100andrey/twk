@@ -641,7 +641,10 @@ final class _RenderFeedback extends RenderObject
     height = c.maxH < BoxConstraints.unbounded ? c.maxH : c.minH;
     final child = this.child;
     if (child != null) {
-      child.layout(BoxConstraints(0, width, 0, height), parentUsesSize: true);
+      child.layout(
+        BoxConstraints(maxW: width, maxH: height),
+        parentUsesSize: true,
+      );
       child.parentData
         ..dx = _left
         ..dy = _top;

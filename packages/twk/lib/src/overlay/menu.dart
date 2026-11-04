@@ -2124,7 +2124,10 @@ final class _RenderMenuPlace extends RenderObject
     var level = 0;
     RenderObject? before;
     for (var child = firstChild; child != null; child = childAfter(child)) {
-      child.layout(BoxConstraints(0, width, 0, height), parentUsesSize: true);
+      child.layout(
+        BoxConstraints(maxW: width, maxH: height),
+        parentUsesSize: true,
+      );
       final w = child.width - _dw;
       final h = child.height - _dh;
       final int x;

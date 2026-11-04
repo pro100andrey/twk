@@ -295,7 +295,10 @@ Root             4×1
 
     test('constraints, insets and alignments', () {
       expect(describeConstraints(const BoxConstraints.tight(80, 24)), '80×24');
-      expect(describeConstraints(const BoxConstraints(0, 80, 1, 1)), '0..80×1');
+      expect(
+        describeConstraints(const BoxConstraints(maxW: 80, minH: 1, maxH: 1)),
+        '0..80×1',
+      );
       expect(describeConstraints(const BoxConstraints.tightFor()), '0..∞×0..∞');
       expect(describeInsets(const EdgeInsets.all(1)), '1');
       expect(describeInsets(const EdgeInsets.x(1)), '0 1');

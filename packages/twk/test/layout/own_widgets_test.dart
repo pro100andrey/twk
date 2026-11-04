@@ -24,7 +24,10 @@ final class _RenderIndent extends RenderObject with RenderObjectWithChildMixin {
     var h = 0;
     if (child case final child?) {
       child
-        ..layout(BoxConstraints(0, c.maxW - 1, 0, c.maxH), parentUsesSize: true)
+        ..layout(
+          BoxConstraints(maxW: c.maxW - 1, maxH: c.maxH),
+          parentUsesSize: true,
+        )
         ..parentData.dx = 1;
       h = child.height;
     }
@@ -67,7 +70,7 @@ final class _RenderLines extends RenderObject
     var y = 0;
     for (var o = firstChild; o != null; o = childAfter(o)) {
       o
-        ..layout(BoxConstraints(0, c.maxW, 0, 1))
+        ..layout(BoxConstraints(maxW: c.maxW, maxH: 1))
         ..parentData.dy = y;
       y += 1;
     }

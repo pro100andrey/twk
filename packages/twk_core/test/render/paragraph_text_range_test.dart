@@ -21,7 +21,7 @@ RenderParagraph laid(
   align: align,
   overflow: overflow,
   maxLines: maxLines,
-)..layout(BoxConstraints(width, width, 0, 100));
+)..layout(BoxConstraints(minW: width, maxW: width, maxH: 100));
 
 /// The ranges of the cells of row [y] from the column left of the
 /// paragraph to the one right of it, `start-end`, or `start` when empty.
@@ -227,7 +227,7 @@ void main() {
   test('new text: the ranges of its layout', () {
     final p = laid('ab', 6)
       ..spans = [('xyz', plain)]
-      ..layout(const BoxConstraints(6, 6, 0, 100));
+      ..layout(const BoxConstraints(minW: 6, maxW: 6, maxH: 100));
     expect(row(p, 0).sublist(0, 5), ['0', '0-1', '1-2', '2-3', '3']);
   });
 
@@ -250,12 +250,12 @@ void main() {
     expect(p.textRangeAt(1, 1), (7, 8));
     expect(p.textRangeAt(0, 0), (0, 1));
     expect(p.debugOffsetsFound, 1);
-    p.layout(const BoxConstraints(5, 5, 0, 100));
+    p.layout(const BoxConstraints(minW: 5, maxW: 5, maxH: 100));
     expect(p.textRangeAt(0, 1), (6, 7));
     expect(p.debugOffsetsFound, 1);
     p
       ..spans = [('xyz', plain)]
-      ..layout(const BoxConstraints(5, 5, 0, 100));
+      ..layout(const BoxConstraints(minW: 5, maxW: 5, maxH: 100));
     expect(p.debugOffsetsFound, 1);
     expect(p.textRangeAt(2, 0), (2, 3));
     expect(p.debugOffsetsFound, 2);

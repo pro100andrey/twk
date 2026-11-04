@@ -366,19 +366,22 @@ void main() {
         mainAxisAlignment: MainAxisAlignment.end,
         gap: 1,
         children: [Label('ab'), Label('c')],
-      )..layout(const BoxConstraints(0, 10, 0, 1), parentUsesSize: true);
+      )..layout(const BoxConstraints(maxW: 10, maxH: 1), parentUsesSize: true);
       expect([flex.width, flex.height], [4, 1]);
       // nothing free to align with
       expect(boxes(flex), ['0,0 2x1', '3,0 1x1']);
       // unless the constraints ask for more
-      flex.layout(const BoxConstraints(6, 10, 0, 1), parentUsesSize: true);
+      flex.layout(
+        const BoxConstraints(minW: 6, maxW: 10, maxH: 1),
+        parentUsesSize: true,
+      );
       expect(flex.width, 6);
       expect(boxes(flex), ['2,0 2x1', '5,0 1x1']);
     });
 
     test('MainAxisSize.max makes the flex as long as it may be', () {
       final flex = RenderFlex(children: [Label('ab')])
-        ..layout(const BoxConstraints(0, 10, 0, 1), parentUsesSize: true);
+        ..layout(const BoxConstraints(maxW: 10, maxH: 1), parentUsesSize: true);
       expect([flex.width, flex.height], [10, 1]);
     });
 
@@ -387,9 +390,9 @@ void main() {
       printed(() {
         RenderFlex(
           children: [Label('ab'), fill],
-        ).layout(const BoxConstraints(0, 10, 0, 3), parentUsesSize: true);
+        ).layout(const BoxConstraints(maxW: 10, maxH: 3), parentUsesSize: true);
       });
-      expect(fill.got, const BoxConstraints(0, 10, 0, 3));
+      expect(fill.got, const BoxConstraints(maxW: 10, maxH: 3));
     });
   });
 
@@ -404,17 +407,25 @@ void main() {
     };
     for (final MapEntry(key: alignment, value: box) in want.entries) {
       test('$alignment places a child in the flex', () {
-        final row = RenderFlex(
-          crossAxisAlignment: alignment,
-          children: [Sized(1, 4), Label('a')],
-        )..layout(const BoxConstraints(0, 10, 0, 6), parentUsesSize: true);
+        final row =
+            RenderFlex(
+              crossAxisAlignment: alignment,
+              children: [Sized(1, 4), Label('a')],
+            )..layout(
+              const BoxConstraints(maxW: 10, maxH: 6),
+              parentUsesSize: true,
+            );
         expect([row.width, row.height], [10, 4]);
         expect(boxes(row), ['0,0 1x4', box]);
-        final column = RenderFlex(
-          direction: Axis.vertical,
-          crossAxisAlignment: alignment,
-          children: [Sized(4, 1), Label('a')],
-        )..layout(const BoxConstraints(0, 6, 0, 10), parentUsesSize: true);
+        final column =
+            RenderFlex(
+              direction: Axis.vertical,
+              crossAxisAlignment: alignment,
+              children: [Sized(4, 1), Label('a')],
+            )..layout(
+              const BoxConstraints(maxW: 6, maxH: 10),
+              parentUsesSize: true,
+            );
         expect([column.width, column.height], [4, 10]);
         final [x, y] = box.split(' ').first.split(',');
         expect(boxes(column), ['0,0 4x1', '$y,$x 1x1']);
@@ -429,18 +440,24 @@ void main() {
         children: [Sized(1, 4), Label('a'), fill],
       );
       flexible(fill, 1);
-      row.layout(const BoxConstraints(0, 10, 0, 6), parentUsesSize: true);
+      row.layout(const BoxConstraints(maxW: 10, maxH: 6), parentUsesSize: true);
       expect([row.width, row.height], [10, 6]);
       expect(boxes(row), ['0,0 1x6', '1,0 1x6', '2,0 8x6']);
-      expect(fill.got, const BoxConstraints(8, 8, 6, 6));
+      expect(
+        fill.got,
+        const BoxConstraints(minW: 8, maxW: 8, minH: 6, maxH: 6),
+      );
     });
 
     test('other alignments leave the children as thin as they want', () {
       final fill = Fill('x');
       RenderFlex(
         children: [fill],
-      ).layout(const BoxConstraints(0, 10, 2, 6), parentUsesSize: true);
-      expect(fill.got, const BoxConstraints(0, 10, 0, 6));
+      ).layout(
+        const BoxConstraints(maxW: 10, minH: 2, maxH: 6),
+        parentUsesSize: true,
+      );
+      expect(fill.got, const BoxConstraints(maxW: 10, maxH: 6));
     });
   });
 
@@ -487,7 +504,7 @@ void main() {
       flexible(label, 1, FlexFit.loose);
       flexible(x, 1);
       expect(v.show(row), ['abxxxxx']);
-      expect(x.got, const BoxConstraints(5, 5, 0, 1));
+      expect(x.got, const BoxConstraints(minW: 5, maxW: 5, maxH: 1));
       // what the loose child left is free for the alignment
       row.mainAxisAlignment = MainAxisAlignment.end;
       v.frame();
@@ -495,7 +512,7 @@ void main() {
       flexible(x, 1, FlexFit.loose);
       row.markNeedsLayout();
       v.frame();
-      expect(x.got, const BoxConstraints(0, 5, 0, 1));
+      expect(x.got, const BoxConstraints(maxW: 5, maxH: 1));
     });
 
     test('get nothing when the others take it all', () {
@@ -504,7 +521,7 @@ void main() {
       final row = RenderFlex(children: [Label('abcdefghij'), x]);
       flexible(x, 1);
       expect(v.show(row), ['abcdefghij']);
-      expect(x.got, const BoxConstraints(0, 0, 0, 1));
+      expect(x.got, const BoxConstraints(maxW: 0, maxH: 1));
     });
 
     test('share what the constraints allow with MainAxisSize.min', () {
@@ -514,7 +531,7 @@ void main() {
         children: [Label('ab'), x],
       );
       flexible(x, 1);
-      row.layout(const BoxConstraints(0, 10, 0, 1), parentUsesSize: true);
+      row.layout(const BoxConstraints(maxW: 10, maxH: 1), parentUsesSize: true);
       expect(row.width, 10);
       expect(boxes(row), ['0,0 2x1', '2,0 8x1']);
     });
@@ -527,13 +544,13 @@ void main() {
       flexible(label, 1);
       flexible(sized, 2, FlexFit.loose);
       row.layout(
-        const BoxConstraints(0, BoxConstraints.unbounded, 0, 1),
+        const BoxConstraints(maxH: 1),
         parentUsesSize: true,
       );
       expect([row.width, row.height], [11, 1]);
       expect(boxes(row), ['0,0 2x1', '3,0 3x1', '7,0 4x1']);
       row.layout(
-        const BoxConstraints(12, BoxConstraints.unbounded, 0, 1),
+        const BoxConstraints(minW: 12, maxH: 1),
         parentUsesSize: true,
       );
       expect(row.width, 12);
@@ -624,7 +641,7 @@ void main() {
       flexible(b, 1);
       // 4.5 cells
       expect(row.getMinIntrinsicWidth(1), 5);
-      row.layout(const BoxConstraints(0, 5, 0, 1), parentUsesSize: true);
+      row.layout(const BoxConstraints(maxW: 5, maxH: 1), parentUsesSize: true);
       // 3.3 and 1.7, the leftover cell to the first
       expect([a.width, b.width], [4, 1]);
     });

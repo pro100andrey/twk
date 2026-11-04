@@ -24,7 +24,7 @@ final class _RenderCut extends RenderObject with RenderObjectWithChildMixin {
       return;
     }
     child.layout(
-      BoxConstraints(c.minW, c.maxW, 0, BoxConstraints.unbounded),
+      BoxConstraints(minW: c.minW, maxW: c.maxW),
       parentUsesSize: true,
     );
     width = c.constrainW(child.width);

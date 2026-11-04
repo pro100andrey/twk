@@ -30,10 +30,10 @@ final _constrainedBox = GalleryPage(
     final theme = Theme.of(context);
     Widget bounded(String text) => ConstrainedBox(
       constraints: BoxConstraints(
-        o(_constrainedBoxMin),
-        o(_constrainedBoxMax),
-        1,
-        3,
+        minW: o(_constrainedBoxMin),
+        maxW: o(_constrainedBoxMax),
+        minH: 1,
+        maxH: 3,
       ),
       child: Box(
         style: theme.selection,
@@ -55,9 +55,9 @@ final _constrainedBox = GalleryPage(
     'final theme = Theme.of(context);',
     'Widget bounded(String text) => ConstrainedBox(',
     codeLine([
-      '  constraints: const BoxConstraints(',
-      '${o.nameOf(_constrainedBoxMin)}, ',
-      '${o.nameOf(_constrainedBoxMax)}, 1, 3),',
+      '  constraints: const BoxConstraints(minW: ',
+      '${o.nameOf(_constrainedBoxMin)}, maxW: ',
+      '${o.nameOf(_constrainedBoxMax)}, minH: 1, maxH: 3),',
     ]),
     '  child: Box(',
     '    style: theme.selection,',

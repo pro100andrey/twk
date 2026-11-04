@@ -11,7 +11,7 @@ part of 'render.dart';
 /// one size, which makes it a relayout boundary.
 ///
 /// ```dart
-/// const c = BoxConstraints(0, 40, 1, 10);
+/// const c = BoxConstraints(maxW: 40, minH: 1, maxH: 10);
 /// assert(c.constrainW(60) == 40 && c.constrainH(0) == 1);
 /// assert(const BoxConstraints.tight(80, 24).isTight);
 /// ```
@@ -22,11 +22,18 @@ part of 'render.dart';
 ///    of its own.
 final class BoxConstraints {
   /// Constraints from [minW] to [maxW] wide and from [minH] to [maxH]
-  /// tall, each minimum at most its maximum.
-  const BoxConstraints(this.minW, this.maxW, this.minH, this.maxH);
+  /// tall, each minimum at most its maximum; a bound left out limits
+  /// nothing, as in Flutter.
+  const BoxConstraints({
+    this.minW = 0,
+    this.maxW = unbounded,
+    this.minH = 0,
+    this.maxH = unbounded,
+  });
 
   /// Exactly [w] wide and [h] tall.
-  const BoxConstraints.tight(int w, int h) : this(w, w, h, h);
+  const BoxConstraints.tight(int w, int h)
+    : this(minW: w, maxW: w, minH: h, maxH: h);
 
   /// Exactly [width] wide and [height] tall where given, any size along an
   /// axis left out.

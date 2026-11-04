@@ -262,12 +262,7 @@ void main() {
       RenderObject boxed(RenderFlex f) => height == null
           ? f
           : RenderConstrainedBox(
-              additionalConstraints: BoxConstraints(
-                0,
-                BoxConstraints.unbounded,
-                height,
-                height,
-              ),
+              additionalConstraints: BoxConstraints(minH: height, maxH: height),
               child: f,
             );
       final whole = View(30, 400, RenderViewport(child: boxed(build())))

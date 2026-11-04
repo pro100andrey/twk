@@ -2151,7 +2151,10 @@ final class _RenderTableRow extends RenderObject
     var i = 0;
     for (var child = firstChild; child != null; i++) {
       final w = i < widths.length ? widths[i] : 0;
-      child.layout(BoxConstraints(w, w, 0, maxH), parentUsesSize: true);
+      child.layout(
+        BoxConstraints(minW: w, maxW: w, maxH: maxH),
+        parentUsesSize: true,
+      );
       final at = child.parentData as _CellData
         ..dx = i < widths.length ? starts[i] : columns.total
         ..dy = 0;

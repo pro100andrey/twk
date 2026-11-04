@@ -169,7 +169,7 @@ final class Glyphs extends LeafRenderObjectWidget {
   }
 }
 
-const _loose = BoxConstraints(0, 10, 0, 1);
+const _loose = BoxConstraints(maxW: 10, maxH: 1);
 
 /// What [Glyphs] lays out and paints: its text shaped once.
 final class RenderGlyphs extends RenderObject {
@@ -275,7 +275,7 @@ final class RenderStrip extends RenderObject
     for (var o = firstChild; o != null; o = childAfter(o)) {
       final w = c.maxW * (o.parentData as ShareData).weight ~/ weights;
       o
-        ..layout(BoxConstraints(0, w, 0, c.maxH))
+        ..layout(BoxConstraints(maxW: w, maxH: c.maxH))
         ..parentData.dx = x;
       x += w;
     }
@@ -306,7 +306,10 @@ final class RenderFrame extends RenderObject with RenderObjectWithChildMixin {
     var h = 0;
     if (child case final child?) {
       child
-        ..layout(BoxConstraints(0, c.maxW - 1, 0, c.maxH), parentUsesSize: true)
+        ..layout(
+          BoxConstraints(maxW: c.maxW - 1, maxH: c.maxH),
+          parentUsesSize: true,
+        )
         ..parentData.dx = 1;
       w += child.width;
       h = child.height;

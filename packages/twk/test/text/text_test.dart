@@ -373,7 +373,10 @@ final class _RenderCounted extends RenderObject
   @override
   void performLayout(BoxConstraints c) {
     layouts++;
-    child!.layout(BoxConstraints(0, c.maxW, 0, c.maxH), parentUsesSize: true);
+    child!.layout(
+      BoxConstraints(maxW: c.maxW, maxH: c.maxH),
+      parentUsesSize: true,
+    );
     width = c.maxW;
     height = c.maxH;
   }

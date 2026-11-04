@@ -91,7 +91,7 @@ final class _RenderShifted extends RenderObject
     width = c.maxW;
     height = c.maxH;
     child
-      ?..layout(BoxConstraints(0, width, 0, height), parentUsesSize: true)
+      ?..layout(BoxConstraints(maxW: width, maxH: height), parentUsesSize: true)
       ..parentData.dx = dx.value;
   }
 

@@ -1430,8 +1430,8 @@ final class _RenderTreeRow extends RenderObject
           : (c.maxW > indent ? c.maxW - indent : 0);
       child.layout(
         room >= BoxConstraints.unbounded
-            ? BoxConstraints(0, room, 0, 1)
-            : BoxConstraints(room, room, 0, 1),
+            ? BoxConstraints(maxW: room, maxH: 1)
+            : BoxConstraints(minW: room, maxW: room, maxH: 1),
         parentUsesSize: true,
       );
       child.parentData

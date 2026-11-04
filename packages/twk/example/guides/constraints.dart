@@ -21,7 +21,7 @@ final class Constraints extends StatelessWidget {
           Text('room: ${constraints.maxW} x ${constraints.maxH}'),
           // minW, maxW, minH, maxH: at most 30 wide, any height
           const ConstrainedBox(
-            constraints: BoxConstraints(10, 30, 0, BoxConstraints.unbounded),
+            constraints: BoxConstraints(minW: 10, maxW: 30),
             child: Box(
               border: .all(type: .rounded),
               child: Text(

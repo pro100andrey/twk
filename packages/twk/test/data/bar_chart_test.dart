@@ -282,7 +282,7 @@ void main() {
 
     test('is as big as the constraints allow', () {
       final chart = RenderBarChart(groups: const [])
-        ..layout(const BoxConstraints(0, 5, 2, BoxConstraints.unbounded));
+        ..layout(const BoxConstraints(maxW: 5, minH: 2));
       expect((chart.width, chart.height), (5, 2));
     });
   });

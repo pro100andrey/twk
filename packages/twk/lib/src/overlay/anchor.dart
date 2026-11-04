@@ -375,7 +375,7 @@ final class RenderAnchorFollower extends RenderObject
         ? 0
         : (targetWidth < width ? targetWidth : width);
     child?.layout(
-      BoxConstraints(least, width, 0, height),
+      BoxConstraints(minW: least, maxW: width, maxH: height),
       parentUsesSize: true,
     );
     _place();

@@ -427,12 +427,7 @@ final class Dialog extends StatelessWidget {
     final sized = maxWidth == null
         ? box
         : ConstrainedBox(
-            constraints: BoxConstraints(
-              0,
-              maxWidth,
-              0,
-              BoxConstraints.unbounded,
-            ),
+            constraints: BoxConstraints(maxW: maxWidth),
             child: box,
           );
     return Semantics(
@@ -729,10 +724,10 @@ final class _RenderEdgeFit extends RenderObject
     }
     box.layout(
       BoxConstraints(
-        math.min(math.max(c.minW, _edgeWidth), c.maxW),
-        c.maxW,
-        c.minH,
-        c.maxH,
+        minW: math.min(math.max(c.minW, _edgeWidth), c.maxW),
+        maxW: c.maxW,
+        minH: c.minH,
+        maxH: c.maxH,
       ),
       parentUsesSize: true,
     );
@@ -743,7 +738,7 @@ final class _RenderEdgeFit extends RenderObject
     height = box.height;
     if (edge != null) {
       edge.layout(
-        BoxConstraints(0, math.max(0, width - 4), 0, height),
+        BoxConstraints(maxW: math.max(0, width - 4), maxH: height),
         parentUsesSize: true,
       );
       edge.parentData

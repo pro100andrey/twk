@@ -232,7 +232,7 @@ void main() {
             children: [
               Container(
                 width: 8,
-                constraints: BoxConstraints(0, 4, 0, 1),
+                constraints: BoxConstraints(maxW: 4, maxH: 1),
                 color: blue,
               ),
               Label('|'),

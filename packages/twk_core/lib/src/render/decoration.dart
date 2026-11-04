@@ -897,7 +897,7 @@ final class RenderDecoratedBox extends RenderObject
         painter
           ..overflow = e <= shown ? TextOverflow.ellipsis : TextOverflow.clip
           ..layout(
-            BoxConstraints(0, shown, 0, 1),
+            BoxConstraints(maxW: shown, maxH: 1),
             segmenter: seg,
             order: order,
           );

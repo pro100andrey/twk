@@ -107,7 +107,7 @@ base class Area extends RenderObject with RenderObjectWithChildMixin {
     height = c.maxH;
     final ch = child;
     if (ch != null) {
-      ch.layout(BoxConstraints(0, width, 0, height));
+      ch.layout(BoxConstraints(maxW: width, maxH: height));
       ch.parentData
         ..dx = dx
         ..dy = dy;

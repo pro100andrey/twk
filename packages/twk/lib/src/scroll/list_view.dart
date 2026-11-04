@@ -1105,7 +1105,10 @@ final class _RenderBottom extends RenderObject with RenderObjectWithChildMixin {
     _inLayout = true;
     try {
       for (var pass = 0; ; pass++) {
-        list.layout(BoxConstraints(width, width, at, at), parentUsesSize: true);
+        list.layout(
+          BoxConstraints(minW: width, maxW: width, minH: at, maxH: at),
+          parentUsesSize: true,
+        );
         final fits = _content < h ? _content : h;
         if (fits == at || pass == 2) {
           break;

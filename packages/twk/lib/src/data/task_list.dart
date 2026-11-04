@@ -575,7 +575,7 @@ final class _RenderTaskRow extends RenderObject
       final room = c.maxW >= BoxConstraints.unbounded
           ? c.maxW
           : (c.maxW > w ? c.maxW - w : 0);
-      child.layout(BoxConstraints(0, room, 0, 1), parentUsesSize: true);
+      child.layout(BoxConstraints(maxW: room, maxH: 1), parentUsesSize: true);
       child.parentData
         ..dx = indent
         ..dy = 0;

@@ -169,7 +169,7 @@ void main() {
       expect((l.width, l.height), (20, 5));
       expect(
         built.blocks[0]!.constraints,
-        const BoxConstraints(20, 20, 0, 1 << 30),
+        const BoxConstraints(minW: 20, maxW: 20),
       );
 
       // near the start, a window above it is built

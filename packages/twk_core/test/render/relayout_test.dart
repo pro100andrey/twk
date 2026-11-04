@@ -117,11 +117,14 @@ final class Holder extends RenderObject {
       case Hold.tight:
         child.layout(BoxConstraints.tight(width, height));
       case Hold.hug:
-        child.layout(BoxConstraints(0, width, 0, height), parentUsesSize: true);
+        child.layout(
+          BoxConstraints(maxW: width, maxH: height),
+          parentUsesSize: true,
+        );
         width = c.constrainW(child.width);
         height = c.constrainH(child.height);
       case Hold.loose:
-        child.layout(BoxConstraints(0, width, 0, height));
+        child.layout(BoxConstraints(maxW: width, maxH: height));
     }
   }
 
