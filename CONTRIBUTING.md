@@ -107,8 +107,14 @@ dart run tool/xtask.dart bench              # when the frame path changed (below
   package it cannot score fails it), `publish-dev` all seven in order,
   once `dart pub login` has: the version named in the changelog, the
   package as HEAD has it, then the upload, waited for until pub.dev
-  serves it. A version pub.dev serves already is skipped, so a run again
-  after one failed takes up where it stopped.
+  serves it, and the version tagged `<name>-v<version>` at HEAD, the tag
+  pushed and released on GitHub with its changelog entry (`gh` on the
+  `PATH`, else the release is left out, said so). A version pub.dev serves
+  already is skipped, and not tagged, so a run again after one failed
+  takes up where it stopped. `tag-release` tags a version published before
+  at the commit it went out from: `dart run tool/xtask.dart tag-release --
+  packages/twk_core <commit>` (HEAD where none is given); run again, it
+  makes only what is missing, and it never moves a tag.
 - A package that depends on riverpod, bloc, analyzer or dartssh2 needs
   the network on its first `dart pub get`. `packages/twk_ssh`'s tests run
   OpenSSH's `ssh` and `ssh-keygen` where they are on the `PATH`.

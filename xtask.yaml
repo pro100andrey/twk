@@ -446,6 +446,15 @@ tasks:
     do: publish
     args: [packages/twk_dev]
 
+  # Each publish tags what it uploads, `<name>-v<version>`, the tag pushed
+  # and released on GitHub with the version's changelog entry. A version
+  # published before, or one whose tag failed after its upload, is tagged
+  # here at the commit it went out from (HEAD where none is given):
+  # `dart run tool/xtask.dart tag-release -- packages/twk_core <commit>`.
+  tag-release:
+    desc: tag a published version at its commit and release it on GitHub
+    do: tag-release
+
   gallery-shots:
     # The gallery's pages as SVGs (packages/gallery/doc/shots/), drawn from
     # its golden screens alone: written again, and failed where that

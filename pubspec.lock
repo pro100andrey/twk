@@ -581,10 +581,10 @@ packages:
     dependency: "direct dev"
     description:
       name: xtask_kit
-      sha256: "33c364b860e0cfa0139a94260c976efd41c4e9fc073dfac8f86fba75367f2225"
+      sha256: "95880cf6efbd5eb6935c9c4040de9b20341898b32481cd2adb8832aa6f8285f9"
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.1"
+    version: "0.2.0"
   yaml:
     dependency: transitive
     description:
