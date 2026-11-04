@@ -5,6 +5,9 @@
 - `copyToClipboard(context, text)` is exported: an app copies as a
   `SelectionArea` and a `TextField` do, by OSC 52, wrapped inside tmux or GNU
   screen.
+- `RadioGroup` and `ValueStepper` take `canRequestFocus`, as `Button` and
+  `Pressable` do: false for a control of the mouse only, which Tab passes by
+  and a click leaves the focus where it was.
 
 ## 0.2.0
 

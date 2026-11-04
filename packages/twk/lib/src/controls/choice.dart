@@ -135,6 +135,7 @@ final class RadioGroup<T> extends StatelessWidget {
     this.direction = Axis.vertical,
     this.focusNode,
     this.autofocus = false,
+    this.canRequestFocus = true,
     this.mark,
     this.style,
     this.bracketStyle,
@@ -161,6 +162,11 @@ final class RadioGroup<T> extends StatelessWidget {
 
   /// See [Focus.autofocus].
   final bool autofocus;
+
+  /// Whether it can take the focus: false makes it a control of the mouse
+  /// only, as `Pressable.canRequestFocus`. Tab passes it by and a click
+  /// leaves the focus where it was, for a view that keeps the focus itself.
+  final bool canRequestFocus;
 
   /// What is between the brackets of the choice chosen, a character one
   /// column wide, in place of `Glyphs.radioOn`; null for the theme's. It is
@@ -214,6 +220,7 @@ final class RadioGroup<T> extends StatelessWidget {
     final vertical = direction == Axis.vertical;
     final pressable = Pressable(
       enabled: enabled,
+      canRequestFocus: canRequestFocus,
       focusNode: focusNode,
       autofocus: autofocus,
       bindings: {

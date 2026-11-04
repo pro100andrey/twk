@@ -258,4 +258,33 @@ void main() {
     );
     expect(t.binding.semantics.lines.first, endsWith('disabled'));
   });
+
+  testTwk('canRequestFocus: false, a click steps and the focus stays where it '
+      'was; Tab passes it by', (t) async {
+    final steps = <String>[];
+    final other = FocusNode(debugLabel: 'other');
+    addTearDown(other.dispose);
+    await t.pumpWidget(
+      Row(
+        children: [
+          ValueStepper<String>(
+            canRequestFocus: false,
+            values: modes,
+            value: 'light',
+            onChanged: steps.add,
+          ),
+          const SizedBox(width: 1),
+          Button('other', focusNode: other, onPressed: () {}),
+        ],
+      ),
+      size: (40, 2),
+    );
+    await t.press('tab');
+    await t.pump();
+    expect(focused(t), 'other');
+    await t.click(0, 0);
+    await t.pump();
+    expect(steps, ['dark']);
+    expect(focused(t), 'other');
+  });
 }
