@@ -3,8 +3,9 @@
 // written into it with WriteConsoleInputW: a key read, the buffer left
 // open and unread once the reader is cancelled, a second reader reading
 // keys (one a surrogate pair), a reader paused while it runs leaving what
-// comes after, and a program started after reading a line. It ends on its
-// own; its report goes to stderr. windows_input_test.dart runs it.
+// comes after, a program started after reading a line, and Ctrl+Space read
+// as NUL in VT input mode. It ends on its own; its report goes to stderr.
+// windows_input_test.dart runs it.
 //
 //   dart run test/terminal/windows_input_app.dart
 import 'dart:async';
@@ -71,6 +72,11 @@ final int Function(Pointer<Void>, Pointer<Uint32>) _getMode = _k
       Int32 Function(Pointer<Void>, Pointer<Uint32>),
       int Function(Pointer<Void>, Pointer<Uint32>)
     >('GetConsoleMode');
+final int Function(Pointer<Void>, int) _setMode = _k
+    .lookupFunction<
+      Int32 Function(Pointer<Void>, Uint32),
+      int Function(Pointer<Void>, int)
+    >('SetConsoleMode');
 final Pointer<Void> Function(int, int) _localAlloc = _k
     .lookupFunction<
       Pointer<Void> Function(Uint32, IntPtr),
@@ -103,6 +109,33 @@ void type(String text) {
   }
 }
 
+/// Writes Ctrl+Space into the console's input buffer as the keyboard
+/// makes it: Ctrl down, Space down and up with Ctrl held, Ctrl up.
+void typeCtrlSpace() {
+  // (down, virtual key, character, control keys: LEFT_CTRL_PRESSED)
+  const keys = [
+    (1, 0x11, 0, 8),
+    (1, 0x20, 0x20, 8),
+    (0, 0x20, 0x20, 8),
+    (0, 0x11, 0, 0),
+  ];
+  final records = _alloc<Uint8>(keys.length * 20);
+  for (var i = 0; i < keys.length; i++) {
+    final (down, key, char, state) = keys[i];
+    final at = records + i * 20;
+    at.cast<Uint16>().value = 1; // KEY_EVENT
+    (at + 4).cast<Int32>().value = down;
+    (at + 8).cast<Uint16>().value = 1; // repeat
+    (at + 10).cast<Uint16>().value = key;
+    (at + 14).cast<Uint16>().value = char;
+    (at + 16).cast<Uint32>().value = state;
+  }
+  final written = _alloc<Uint32>(4);
+  if (_writeInput(_console, records, keys.length, written) == 0) {
+    throw StateError('WriteConsoleInputW failed');
+  }
+}
+
 /// The records in the console's input buffer, unread.
 int unread() {
   final n = _alloc<Uint32>(4);
@@ -112,14 +145,16 @@ int unread() {
 /// Whether the console's handle is open.
 bool isOpen() => _getMode(_console, _alloc<Uint32>(4)) != 0;
 
-/// Reads with a reader of its own until what it read decodes to [want].
-Future<String> readUntil(String want) async {
+/// Reads with a reader of its own until what it read decodes to as many
+/// characters as [want] has, or ends with [last].
+Future<String> readUntil(String want, {String? last}) async {
   final got = <int>[];
   final done = Completer<String>();
   final input = IsolateInput(WindowsInput.open()!).stream.listen((bytes) {
     got.addAll(bytes);
     final text = utf8.decode(got, allowMalformed: true);
-    if (text.length >= want.length && !done.isCompleted) {
+    if ((text.length >= want.length || last != null && text.endsWith(last)) &&
+        !done.isCompleted) {
       done.complete(text);
     }
   });
@@ -189,10 +224,25 @@ Future<void> main() async {
   ], mode: ProcessStartMode.inheritStdio);
   final code = await child.exitCode;
 
+  // in the console's VT input mode, as a terminal app has it: Ctrl+Space
+  // is NUL, as ReadFile reads it
+  final mode = _alloc<Uint32>(4);
+  _getMode(_console, mode);
+  _setMode(
+    _console,
+    (mode.value | 0x0200 | 0x0080) & // VT input, extended flags
+        ~(0x0001 | 0x0002 | 0x0004 | 0x0008 | 0x0010 | 0x0040),
+  );
+  typeCtrlSpace();
+  type('q');
+  // up to the q, so that a NUL left out says so rather than waits
+  final nul = await readUntil('\x00q', last: 'q');
+
   stderr.writeln(
     // the code points, as stderr's encoding is the system's code page
     'first $first, left $leftAfterCancel open $open, second '
     '${second.runes.map((r) => r.toRadixString(16)).join(' ')}, '
-    'paused left $leftAfterPause, child exit $code',
+    'paused left $leftAfterPause, child exit $code, nul '
+    '${nul.codeUnits.map((u) => u.toRadixString(16)).join(' ')}',
   );
 }

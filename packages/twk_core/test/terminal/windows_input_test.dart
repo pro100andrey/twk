@@ -2,7 +2,8 @@
 // standard input is the console (windows_input_app.dart): keys written into
 // the console's input buffer are read, a reader cancelled or paused reads
 // nothing more and leaves the handle open, a second reader and a program
-// started after read what comes next, and the program ends on its own.
+// started after read what comes next, Ctrl+Space is read as NUL in VT
+// input mode, and the program ends on its own.
 @TestOn('windows')
 library;
 
@@ -37,7 +38,7 @@ void main() {
       contains(
         // b, 日 and 😀, the last typed as two units
         'first a, left 2 open true, second 62 65e5 1f600, paused left 2, '
-        'child exit 0',
+        'child exit 0, nul 0 71',
       ),
       reason: said,
     );
