@@ -66,6 +66,7 @@ final class TerminalInfo {
     int? kittyKeyboardFlags,
     this.alternateScreen = true,
     this.cursorColumn,
+    this.remote = false,
     this.colorSchemeReports = false,
     this.notifications = NotificationProtocol.none,
     this.multiplexer = Multiplexer.none,
@@ -194,6 +195,13 @@ final class TerminalInfo {
   /// OSC 22 sets ([pointerShapeSequence]): where it names the shapes
   /// ([pointerNames]).
   bool get pointerShapes => pointerNames != null;
+
+  /// Whether the terminal is at the far end of a network, where each report
+  /// of the mouse's motion crosses it: as it declares
+  /// ([TerminalDeclaration.remote]), else where the environment has
+  /// `SSH_TTY` or `SSH_CONNECTION`. A guess: tmux and mosh can hide a remote
+  /// session or keep the variables of one that ended.
+  final bool remote;
 
   /// How the terminal names the pointer's shapes in OSC 22; null where it
   /// isn't known to show them. As it declares
@@ -1465,6 +1473,9 @@ final class Terminal
       answeredQueries: answered,
       alternateScreen: o.alternateScreen,
       cursorColumn: column,
+      remote:
+          declared.remote ??
+          (env.containsKey('SSH_TTY') || env.containsKey('SSH_CONNECTION')),
       colorSchemeReports: supported(2031),
       declaredBrightness: brightnessFor(env),
       notifications: declared.notifications ?? notificationProtocolFor(told),

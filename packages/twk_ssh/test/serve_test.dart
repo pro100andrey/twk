@@ -165,6 +165,7 @@ void main() {
         'LANG': 'C.UTF-8',
         'TERM': 'xterm-kitty',
       });
+      expect(link.declaration.remote, isTrue);
       // the probe went out over the session, and the app is fullscreen
       expect('${remote.written}', contains('\x1b[c'));
       expect('${remote.written}', contains('\x1b[?1049h'));
@@ -303,6 +304,7 @@ void main() {
     expect(sessions.single.environment, asks);
     final binding = bindings.single;
     expect(binding.twkApp.environment, isEmpty);
+    expect(binding.twkApp.terminal.info.remote, isTrue);
     expect(binding.twkApp.debugNames, isEmpty);
     expect(binding.twkApp.terminal.info.settings, isEmpty);
     expect(

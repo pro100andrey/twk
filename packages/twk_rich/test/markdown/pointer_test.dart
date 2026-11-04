@@ -18,9 +18,14 @@ import 'package:twk_test/twk_test.dart' show FakeClock;
 /// [settle] moves the clock on, however long the machine takes to run
 /// them.
 final class _Run {
-  _Run(Widget app, {bool shapes = true}) {
+  _Run(Widget app, {bool shapes = true, bool remote = false}) {
     term = clock.run(
-      () => HeadlessTerminal(width: 30, height: 14, pointerShapes: shapes),
+      () => HeadlessTerminal(
+        width: 30,
+        height: 14,
+        pointerShapes: shapes,
+        remote: remote,
+      ),
     );
     _done = clock.run(
       () => AppBinding(term, maxFps: 1000, clock: clock.stopwatch).run(app),
@@ -161,7 +166,7 @@ void main() {
   });
 
   test('a link follows the theme: off shows no hand and asks for no motion, '
-      'as auto asks for none', () async {
+      'auto asks for it locally and not remotely', () async {
     Widget app(PointerMode mode) => Theme(
       data: const ThemeData.terminal(
         Brightness.dark,
@@ -177,8 +182,12 @@ void main() {
     await off.quit();
     final auto = _Run(app(PointerMode.auto));
     await auto.settle();
-    expect(auto.term.mouseTracking, MouseTracking.off);
+    expect(auto.term.mouseTracking, MouseTracking.motion);
     await auto.quit();
+    final remote = _Run(app(PointerMode.auto), remote: true);
+    await remote.settle();
+    expect(remote.term.mouseTracking, MouseTracking.off);
+    await remote.quit();
   });
 
   test('the mouse followed only while the view has a link', () async {

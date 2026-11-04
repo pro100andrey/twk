@@ -9,6 +9,7 @@ Breaking:
   Flutter: a build error was only logged, and the next frame built over it, so
   the test passed on broken code. Reading `t.logs` takes nothing.
 
+- `TwkTester.pumpWidget(remote:)`: the terminal of a remote session.
 - `FakeCliTerminal.interactive(answers:)` types an entry as each question shows,
   where `input` all went to the first one, and `FakeCliTerminal.onPrompt` is told
   of each question, for what a test does between two answers.

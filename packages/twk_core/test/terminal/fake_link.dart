@@ -4,8 +4,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:twk_core/src/terminal/link.dart'
-    show DeclaringLink, TerminalDeclaration;
 import 'package:twk_core/terminal.dart';
 
 /// The terminal a shell serves: what it was given to write, whether it is

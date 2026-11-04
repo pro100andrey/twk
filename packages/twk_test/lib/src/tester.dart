@@ -258,7 +258,8 @@ final class TwkTester {
   /// (`TWK_DEBUG`, `TWK_SCREEN_READER`, `TWK_LOG`, the editor's variables)
   /// changes nothing; a test that wants one gives it here. With
   /// [pointerShapes] the terminal shows the mouse pointer's shapes (OSC 22,
-  /// by their CSS names), which [pointerShape] reads. The app's wall
+  /// by their CSS names), which [pointerShape] reads, and with [remote] it
+  /// is a remote session's (`TerminalInfo.remote`). The app's wall
   /// time (`AppBinding.now`) is [startTime] when the clock reads zero,
   /// [defaultStartTime] by default, moved on by the clock: a screen that
   /// shows the time or today's date is the same on every run.
@@ -282,6 +283,7 @@ final class TwkTester {
     Map<String, String> environment = const {},
     DateTime? startTime,
     bool pointerShapes = false,
+    bool remote = false,
   }) async {
     final binding = _binding;
     if (binding == null) {
@@ -306,6 +308,7 @@ final class TwkTester {
         environment: environment,
         startTime: startTime ?? defaultStartTime,
         pointerShapes: pointerShapes,
+        remote: remote,
       );
     } else {
       final term = _running();
@@ -350,6 +353,7 @@ final class TwkTester {
     required Map<String, String> environment,
     required DateTime startTime,
     required bool pointerShapes,
+    required bool remote,
   }) {
     final (width, height) = size;
     final fullscreen = mode == ScreenMode.fullscreen;
@@ -400,6 +404,7 @@ final class TwkTester {
         multiplexer: multiplexer,
         notifications: notifications,
         pointerShapes: pointerShapes,
+        remote: remote,
         caps: TerminalCaps(
           graphics: graphics,
           graphicsMultiplexer: multiplexer,

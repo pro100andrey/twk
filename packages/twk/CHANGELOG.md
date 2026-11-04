@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- `PointerMode.auto` shows the hand everywhere in a local session, where a
+  control had it on one screen and not on another: it asks for the mouse's
+  motion, of a terminal that shows pointer shapes. In a remote session
+  (`TerminalInfo.remote`) it asks for none, as before. `PointerMode.off` asks
+  for none anywhere. `TerminalStatus.handAsksMotion` is the rule.
+
 - `CliTerminal.promptShown(question)`, told as a prompt takes its answer: nothing
   on the process's terminal, what a test's terminal answers by.
 - `Text.line` and `Text.richLine` take `align` and `overflow`: a line set right or

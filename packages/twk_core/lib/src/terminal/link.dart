@@ -151,6 +151,7 @@ final class TerminalDeclaration {
     this.repeatChar,
     this.graphics,
     this.styledUnderlines,
+    this.remote,
   });
 
   /// What the JSON object [json] declares, as a welcome carries it
@@ -177,6 +178,7 @@ final class TerminalDeclaration {
       repeatChar: flag(json['repeatChar']),
       graphics: named(GraphicsProtocol.values, json['graphics']),
       styledUnderlines: flag(json['styledUnderlines']),
+      remote: flag(json['remote']),
     );
   }
 
@@ -203,12 +205,17 @@ final class TerminalDeclaration {
   /// (`TerminalCaps.styledUnderlines`).
   final bool? styledUnderlines;
 
+  /// Whether the terminal is at the far end of a network
+  /// (`TerminalInfo.remote`).
+  final bool? remote;
+
   /// Whether it declares nothing.
   bool get isEmpty => toJson().isEmpty;
 
   /// What it declares as JSON, in this order: `notifications`,
   /// `progressReports`, `pointerShapes`, `repeatChar`, `graphics`,
-  /// `styledUnderlines`, each only where declared, the protocols by name.
+  /// `styledUnderlines`, `remote`, each only where declared, the protocols
+  /// by name.
   Map<String, Object> toJson() => {
     'notifications': ?notifications?.name,
     'progressReports': ?progressReports,
@@ -216,6 +223,7 @@ final class TerminalDeclaration {
     'repeatChar': ?repeatChar,
     'graphics': ?graphics?.name,
     'styledUnderlines': ?styledUnderlines,
+    'remote': ?remote,
   };
 
   @override
@@ -226,7 +234,8 @@ final class TerminalDeclaration {
       other.pointerShapes == pointerShapes &&
       other.repeatChar == repeatChar &&
       other.graphics == graphics &&
-      other.styledUnderlines == styledUnderlines;
+      other.styledUnderlines == styledUnderlines &&
+      other.remote == remote;
 
   @override
   int get hashCode => Object.hash(
@@ -236,6 +245,7 @@ final class TerminalDeclaration {
     repeatChar,
     graphics,
     styledUnderlines,
+    remote,
   );
 
   @override

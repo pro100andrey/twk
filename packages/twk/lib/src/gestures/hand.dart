@@ -4,6 +4,7 @@ library;
 
 import 'package:twk_core/twk_core.dart' show HitTestBehavior, PointerShape;
 
+import '../binding/terminal_status.dart';
 import '../framework/framework.dart';
 import '../style/theme.dart';
 import 'mouse.dart';
@@ -15,11 +16,10 @@ import 'mouse.dart';
 ///
 /// Over [child] where [active], else over the cells [where] says yes to
 /// (`x` and `y` in [child]'s own coordinates: a tab, not the bar around
-/// it); the theme's [PointerMode.off] shows none, [PointerMode.auto] only
-/// where the mouse's motion is reported already, [PointerMode.on] always,
-/// which asks for the motion. It is a [MouseRegion] in every mode and every
-/// state, so that a theme or a state changing does not rebuild [child]
-/// from nothing.
+/// it); the theme's [PointerMode.off] shows none, and the others ask for the
+/// motion as [TerminalStatus.handAsksMotion] says. It is a [MouseRegion] in
+/// every mode and every state, so that a theme or a state changing does not
+/// rebuild [child] from nothing.
 final class HandOver extends StatelessWidget {
   /// [child] with the hand over it while [active], or over the cells
   /// [where] gives.
@@ -64,7 +64,8 @@ final class HandOver extends StatelessWidget {
           ? (x, y) => where(x, y) ? shown : null
           : null,
       cursorAsksMotion: own == null
-          ? mode == PointerMode.on
+          ? mode != null &&
+                (TerminalStatus.of(context)?.handAsksMotion(mode) ?? false)
           : own != PointerShape.arrow,
       behavior: behavior,
       child: child,

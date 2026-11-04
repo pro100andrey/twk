@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- `TerminalInfo.remote`, whether the terminal is at the far end of a network: as
+  it declares (`TerminalDeclaration.remote`), else by `SSH_TTY` or
+  `SSH_CONNECTION` in its environment. `DeclaringLink` and `TerminalDeclaration`
+  are exported for a link that knows. `HeadlessTerminal(remote:)` for tests.
+
 Breaking:
 
 - `BoxConstraints` takes its bounds by name, as Flutter's does, a bound left out

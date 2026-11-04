@@ -51,7 +51,8 @@ export 'src/surface.dart'
         kSkip,
         kUncertain,
         kWide;
-export 'src/terminal/link.dart' show TerminalException, TerminalLink;
+export 'src/terminal/link.dart'
+    show DeclaringLink, TerminalDeclaration, TerminalException, TerminalLink;
 export 'src/terminal/plain.dart' show plainAsked, runsInCi;
 export 'src/terminal/sequences.dart'
     show

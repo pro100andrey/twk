@@ -410,23 +410,47 @@ void main() {
       expect(await shapeAt(t, 1, 0), PointerShape.arrow);
     });
 
-    testTwk('auto: no hand, and no motion asked for, where nothing else '
-        'asks', (t) async {
+    testTwk('auto, locally: the hand, the motion asked for it, where nothing '
+        'else asks', (t) async {
       await t.pumpWidget(
         checkbox(PointerMode.auto),
         size: (20, 3),
         pointerShapes: true,
       );
+      expect(tracking(t), MouseTracking.motion);
+      expect(await shapeAt(t, 1, 0), PointerShape.pointer);
+    });
+
+    testTwk('on, remotely: the hand, the motion asked for it', (t) async {
+      await t.pumpWidget(
+        checkbox(PointerMode.on),
+        size: (20, 3),
+        pointerShapes: true,
+        remote: true,
+      );
+      expect(tracking(t), MouseTracking.motion);
+      expect(await shapeAt(t, 1, 0), PointerShape.pointer);
+    });
+
+    testTwk('auto, remotely: no hand, and no motion asked for, where nothing '
+        'else asks', (t) async {
+      await t.pumpWidget(
+        checkbox(PointerMode.auto),
+        size: (20, 3),
+        pointerShapes: true,
+        remote: true,
+      );
       expect(tracking(t), isNot(MouseTracking.motion));
       expect(await shapeAt(t, 1, 0), isNot(PointerShape.pointer));
     });
 
-    testTwk('auto: the hand where something else asks for the motion, and '
-        'asks for nothing more', (t) async {
+    testTwk('auto, remotely: the hand where something else asks for the '
+        'motion, and asks for nothing more', (t) async {
       await t.pumpWidget(
         checkbox(PointerMode.auto, beside: hover),
         size: (20, 3),
         pointerShapes: true,
+        remote: true,
       );
       expect(tracking(t), MouseTracking.motion);
       expect(await shapeAt(t, 1, 0), PointerShape.pointer);
@@ -482,6 +506,7 @@ void main() {
         ),
         size: (20, 1),
         pointerShapes: true,
+        remote: true,
       );
       expect(inits, 1);
       mode.value = PointerMode.on;

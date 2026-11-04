@@ -9,7 +9,6 @@ import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:test/test.dart';
-import 'package:twk_core/src/terminal/link.dart' show TerminalDeclaration;
 import 'package:twk_core/src/terminal/terminal.dart' show openOwnOrShell;
 import 'package:twk_core/twk_core.dart';
 import 'package:twk_test/twk_test.dart'
@@ -406,6 +405,36 @@ void main() {
         ..type(_answers);
       return clock.open(link, _options);
     }
+
+    test(
+      'remote: by SSH_TTY or SSH_CONNECTION, unless it is declared',
+      () async {
+        Future<bool> remote(
+          Map<String, String> env, [
+          TerminalDeclaration declaration = const TerminalDeclaration(),
+        ]) async {
+          final link = FakeLink(
+            environment: {...kitty, ...env},
+            declaration: declaration,
+          )..type(_answers);
+          return (await clock.open(link, _options)).info.remote;
+        }
+
+        expect(await remote({}), isFalse);
+        expect(await remote({'SSH_TTY': '/dev/pts/1'}), isTrue);
+        expect(await remote({'SSH_CONNECTION': '1 2 3 4'}), isTrue);
+        expect(
+          await remote({}, const TerminalDeclaration(remote: true)),
+          isTrue,
+        );
+        expect(
+          await remote({
+            'SSH_TTY': '/dev/pts/1',
+          }, const TerminalDeclaration(remote: false)),
+          isFalse,
+        );
+      },
+    );
 
     test('is taken at its word over the guess by its name', () async {
       final guessed = (await open(const TerminalDeclaration())).info;

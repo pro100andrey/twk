@@ -32,14 +32,17 @@ enum PointerMode {
   /// asked for one.
   off,
 
-  /// The resize and grab shapes, which ask for the motion, as what they
-  /// mark is hard to find without them; the hand where the app has the
-  /// terminal report the motion already (a field, a hover, a
-  /// `SelectionArea`, one of those shapes), which asks for nothing more.
+  /// The resize and grab shapes, and the hand everywhere, which asks for
+  /// the motion in a local session. In a remote one
+  /// (`TerminalInfo.remote`), where each report crosses the network, the
+  /// hand asks for nothing: it shows where the app has the terminal report
+  /// the motion already (a field, a hover, a `SelectionArea`, one of those
+  /// shapes).
   auto,
 
-  /// Those, and the hand everywhere, which has the terminal report all
-  /// motion of the mouse while a control that shows it is on the screen.
+  /// Those, and the hand everywhere, in a remote session too: the terminal
+  /// reports all motion of the mouse while a control that shows it is on
+  /// the screen.
   on,
 }
 

@@ -895,7 +895,8 @@ final class _LinkPointerState extends State<_LinkPointer> {
       cursorAt: follows
           ? (x, y) => _linkUnder(x, y) != null ? PointerShape.pointer : null
           : null,
-      cursorAsksMotion: mode == PointerMode.on,
+      cursorAsksMotion:
+          TerminalStatus.of(context)?.handAsksMotion(mode) ?? false,
       behavior: HitTestBehavior.translucent,
       child: Listener(
         onDown: taps ? _down : null,
