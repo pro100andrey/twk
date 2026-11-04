@@ -12,6 +12,9 @@
   between the paragraphs of a `MarkdownView`, which ran together; those
   side by side or right under each other are joined by a line break, as
   they were.
+- `MenuItem(shortcut:)`, a key of the item's own: shown on its right and
+  pressed while its menu is open, where a key had to be bound to the same
+  function to show and a letter in the label to be pressed.
 
 ## 0.2.0
 

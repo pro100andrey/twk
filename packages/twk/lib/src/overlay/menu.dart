@@ -126,7 +126,7 @@ sealed class MenuEntry {
 /// `save`, not a closure made for the binding) or to an intent equal to
 /// [intent] ([ActiveKey.binding]); a sequence whole, `ctrl+x ctrl+s`
 /// ([ActiveKey.label]). A key the node takes in its own `onKeyEvent` is
-/// not among them.
+/// not among them. A [shortcut] is shown in its place.
 ///
 /// With [checked] not null, a check mark shows before its label while it
 /// is true: the app keeps the value, and flips it in [onSelected].
@@ -153,6 +153,7 @@ final class MenuItem extends MenuEntry {
     this.intent,
     this.checked,
     this.enabled = true,
+    this.shortcut,
   }) : assert(
          onSelected == null || intent == null,
          'onSelected or intent, not both',
@@ -174,6 +175,19 @@ final class MenuItem extends MenuEntry {
   /// Whether it can be chosen, as far as what it does can be done: true by
   /// default.
   final bool enabled;
+
+  /// A key of its own, one as `KeyBindings` names it: shown on its right,
+  /// in place of a key found bound to it, and pressed while its menu is
+  /// open it chooses it, before any mnemonic. For a key that is not in the
+  /// [label], or an item made anew for each menu. The keys the menu takes
+  /// itself (the arrows, Enter, Space, Escape) stay the menu's, and it
+  /// binds nothing while the menu is closed. A [FormatException] as the
+  /// menu shows it where it names no key, or more than one.
+  ///
+  /// ```dart
+  /// MenuItem('Remove', shortcut: 'x', onSelected: delete)
+  /// ```
+  final String? shortcut;
 }
 
 /// An entry that opens a menu of [items] beside the menu it is in, its
@@ -1576,6 +1590,9 @@ final class _MenuSession {
   /// A letter: a mnemonic of the menu the keys move in, or with Alt one of
   /// the bar's menus.
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
+    if (_chooseShortcut(event)) {
+      return KeyEventResult.handled;
+    }
     if (event.kind == KeyKind.release ||
         event.code != KeyCode.char ||
         event.ctrl ||
@@ -1604,6 +1621,24 @@ final class _MenuSession {
       );
     }
     return KeyEventResult.handled;
+  }
+
+  /// Chooses the first enabled item of the active menu whose
+  /// [MenuItem.shortcut] [event] presses; whether there is one.
+  bool _chooseShortcut(KeyEvent event) {
+    if (event.kind == KeyKind.release) {
+      return false;
+    }
+    final level = _active;
+    final items = _levels[level].items;
+    for (var i = 0; i < items.length; i++) {
+      if (items[i] case MenuItem(:final String shortcut)
+          when _enabled(items[i]) && KeyCombo.parse(shortcut).accepts(event)) {
+        _choose(level, i, byKey: true);
+        return true;
+      }
+    }
+    return false;
   }
 
   static String? _keyOf(MenuEntry entry) => switch (entry) {
@@ -1863,6 +1898,10 @@ final class _MenuSession {
 
   /// The name of the key that does what [item] does; null for none.
   String? _keyLabelOf(MenuItem item) {
+    if (item.shortcut case final shortcut?) {
+      final combo = KeyCombo.parse(shortcut);
+      return keyLabel?.call(combo) ?? '$combo';
+    }
     final bound = item.onSelected ?? item.intent;
     return (bound == null ? null : keys[bound])?.label(keyLabel);
   }
