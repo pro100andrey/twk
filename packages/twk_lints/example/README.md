@@ -5,7 +5,7 @@ An app built on twk takes the plugin as a dev dependency:
 ```yaml
 # pubspec.yaml
 dev_dependencies:
-  twk_lints: ^0.1.0
+  twk_lints: ^0.2.0
 ```
 
 and includes its recommended set, every rule on:

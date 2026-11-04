@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.0
 
 - On macOS `Pty.start` fails when the SIGCONT that lets its suspended
   program run is refused, killing and waiting for the program, where the

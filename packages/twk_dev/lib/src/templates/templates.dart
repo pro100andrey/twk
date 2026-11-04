@@ -69,7 +69,7 @@ const twkPackages = ['twk', 'twk_dev', 'twk_lints', 'twk_test'];
 
 /// The version of twk, twk_test, twk_dev and twk_lints a project takes
 /// from pub.
-const twkVersion = '0.1.0';
+const twkVersion = '0.2.0';
 
 /// [pubspec], a template's, with the [twkPackages] it takes by a path in
 /// the repository taken by path from the twk repository checked out at

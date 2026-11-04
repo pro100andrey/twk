@@ -141,8 +141,9 @@ a file the app reads arrives whenever the operating system delivers it.
   SGR mouse report, and `click(x, y)` sends a press and a release. Neither
   works in the inline mode, where the terminal keeps the mouse for itself.
 - `pointerShape` is the shape the app gave the mouse pointer last (OSC
-  22), on a terminal that shows them: `pumpWidget(pointerShapes: true)`;
-  `PointerShape.arrow` where it shows the terminal's default.
+  22), on a terminal that shows them: `pumpWidget(pointerShapes: true)`,
+  without which it throws a `StateError`; `PointerShape.arrow` where it
+  shows the terminal's default.
 - `resize(columns, rows)` resizes the terminal. The app gets a
   `ResizeEvent`, and the next frame repaints the screen.
 
@@ -201,10 +202,11 @@ The matchers of the screen take the tester: `expect(t, containsLine('ok'))`.
   the rows. Given a matcher (`startsWith('sent:')`), a row it matches.
 - `hasTextAt(x, y, text)`: the cells from column `x` of row `y` on show
   `text`. As many cells are read as `text` is wide.
-- `within:` on both, a finder or a rectangle, limits them to the cells of
-  a widget or a region, so a title printed twice on a row, in a list and
-  in a panel, is matched in the one: `expect(t, containsLine('> one',
-  within: find.byType(ListView)))`. For `hasTextAt` `x` and `y` count from
+- `within:` on both, a finder, or `withinRect:`, a rectangle (a
+  `CellRect`, as `t.rect(finder)` gives one; not both), limits them to the
+  cells of a widget or a region, so a title printed twice on a row, in a
+  list and in a panel, is matched in the one: `expect(t, containsLine('>
+  one', within: find.byType(ListView)))`. For `hasTextAt` `x` and `y` count from
   the region's first cell, and the cells read stop at its edge. A match
   that fails says where the screen shows the text outside the region, if
   it does: `has none in the cells (12, 0), 5×3, but the screen shows '> one'
@@ -434,7 +436,8 @@ screen, with `--step` each frame's and with `--frame=N` frame N's.
 - The screen as text, as the matchers and their failure messages give
   it: `rowText(vt, y, styles: true)` and `screenRows(vt)` (rows plain or
   with styles marked), `describeScreen(vt)` and `describeApp(vt, root)`
-  (the screen numbered, and the render tree), `styleOf(cell)`,
+  (the screen numbered, plain unless `describeScreen(vt, styles: true)`,
+  and the render tree), `styleOf(cell)`,
   `markedCell(cell)`, `colorName(color)`, `colorOf(color)` and
   `attrNames(attrs)`.
 - `FakeStderr` stands in for stderr under `IOOverrides`: it keeps each

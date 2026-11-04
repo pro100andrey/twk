@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.0
+
+- Takes twk and twk_core at 0.2.0, which have breaking
+  changes; nothing of this package changed.
+
 ## 0.1.0
 
 The first release.

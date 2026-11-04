@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.0
 
 - After a Ctrl+C ended the inline session, a program that handles SIGINT
   and goes on gets a new session for its next prompt or progress. The

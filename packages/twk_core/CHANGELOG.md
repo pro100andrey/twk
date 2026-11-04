@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.0
 
 - On Windows Ctrl+Space (and Ctrl+@) reaches the app as NUL again, as it
   did through dart:io's stdin: the console's VT input mode makes it the key
