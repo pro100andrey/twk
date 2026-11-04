@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- `Canvas.mergeRun` keeps a wide glyph whole: `under` leaves one the run's edge
+  or the clip cuts in its own style, where it painted one half, and a wide
+  glyph of the run is drawn as `Canvas.run` draws it, with its width, as the
+  documentation said, where it took one cell and asserted.
+
 - `TerminalInfo.remote`, whether the terminal is at the far end of a network: as
   it declares (`TerminalDeclaration.remote`), else by `SSH_TTY` or
   `SSH_CONNECTION` in its environment. `DeclaringLink` and `TerminalDeclaration`

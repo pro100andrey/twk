@@ -763,15 +763,17 @@ final class Canvas {
   /// other as [run] draws it. A cell that holds text (any glyph but a
   /// blank or a piece of line, a wide one whole) keeps it and its style:
   /// a line merged over the edge of a box joins its lines and leaves its
-  /// titles. A glyph in [r] that is no piece of line is drawn as [run]
-  /// draws it.
+  /// titles. A glyph in [r] that is no piece of line, or that is two
+  /// columns wide (a line where ambiguous characters are), is drawn as
+  /// [run] draws it.
   ///
   /// Where its cell holds a line to merge with, the first piece drops the
   /// arms [trimFirst] and the last one those of [trimLast] (up 1, right 2,
   /// down 4, left 8): the end of a line meets one in a joint rather than
   /// crossing it (`├`, not `┼`). With [under] each cell is painted with
   /// that pen first, under the line or the text it keeps, keeping its
-  /// glyph.
+  /// glyph; a wide glyph it keeps with one half outside the run stays in
+  /// its own style, as both its halves show one.
   int mergeRun(
     int x,
     int y,
@@ -787,6 +789,7 @@ final class Canvas {
     }
     var ax = x + _ox;
     final startX = ax;
+    final firstX = ax > _cx0 ? ax : _cx0;
     _begin(ay, pen);
     final g = r.glyphs;
     final last = g.length - 1;
@@ -796,12 +799,30 @@ final class Canvas {
       if (ax >= _cx1) {
         break;
       }
-      assert((g[i] & kWide) == 0, 'pieces of line one column wide');
+      if ((g[i] & kWide) != 0) {
+        if (under >= 0) {
+          for (var c = ax; c < ax + 2 && c < _cx1; c++) {
+            if (c >= _cx0) {
+              final at = _row + c;
+              sty[at] = styles.compose(StyleId(sty[at]), under).value;
+            }
+          }
+        }
+        _place(ax, 2, g[i] & ~kWide);
+        ax += 2;
+        continue;
+      }
       if (ax >= _cx0) {
         final at = _row + ax;
         final trim = (i == 0 ? trimFirst : 0) | (i == last ? trimLast : 0);
-        final glyph = _mergedLine(g[i], cells[at], trim);
-        if (under >= 0) {
+        final cell = cells[at];
+        final glyph = _mergedLine(g[i], cell, trim);
+        // kept, a wide glyph the run's edge cuts is left whole
+        final cut =
+            glyph < 0 &&
+            ((cell & kCont) != 0 && ax == firstX ||
+                (cell & kWide) != 0 && (i == last || ax + 1 >= _cx1));
+        if (under >= 0 && !cut) {
           sty[at] = styles.compose(StyleId(sty[at]), under).value;
         }
         if (glyph >= 0) {
