@@ -11,6 +11,8 @@ import 'dart:io';
 import 'package:test/test.dart';
 import 'package:twk_test/twk_test.dart' show runProcess;
 import 'package:xtask/xtask.dart';
+import 'package:xtask_kit/xtask_kit.dart'
+    show AlreadyServed, releaseTag, releaseTagPattern;
 
 import '../../tool/xtask/bench.dart';
 import '../../tool/xtask/cpus.dart';
@@ -311,6 +313,25 @@ void main() {
         ExitCode.success,
       );
       expect(out.ran, isEmpty);
+    });
+
+    test('a package is published to be skipped where pub.dev serves it, '
+        'tagged <name>-v<version>, and waited for', () {
+      final package = released('packages/twk_core');
+      expect(package.directory, 'packages/twk_core');
+      expect(package.alreadyServed, AlreadyServed.skip);
+      expect(package.tag, releaseTagPattern);
+      expect(releaseTag(package.tag!, 'twk_core', '0.2.0'), 'twk_core-v0.2.0');
+      // the next package's check resolves its dev dependencies by version
+      expect(package.waitUntilServed, isTrue);
+    });
+
+    test('tag-release is a verb, and a task', () {
+      expect(verbs().keys, contains('tag-release'));
+      expect(
+        File('xtask.yaml').readAsStringSync(),
+        contains('  tag-release:\n'),
+      );
     });
 
     test('package runs in the package of the path it is given', () {

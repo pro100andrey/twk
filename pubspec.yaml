@@ -41,4 +41,4 @@ dev_dependencies:
   twk_test:
     path: packages/twk_test
   xtask: ^0.5.1
-  xtask_kit: ^0.1.1
+  xtask_kit: ^0.2.0

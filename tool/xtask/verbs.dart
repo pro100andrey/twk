@@ -19,8 +19,13 @@
 //                      whether each package is ready for pub.dev: its
 //                      publish dry-run and pana's score (pub_check.dart)
 //   publish  PATH      the package at PATH published to pub.dev, after the
-//                      checks an upload can't take back, and waited for
-//                      until the registry serves it (xtask_kit's)
+//                      checks an upload can't take back, waited for until
+//                      the registry serves it, and tagged <name>-v<version>
+//                      with its GitHub release (xtask_kit's)
+//   tag-release PATH [COMMIT]
+//                      the version of the package at PATH that COMMIT
+//                      (HEAD) names, tagged there and released on GitHub
+//                      (xtask_kit's): a version published before
 import 'dart:io';
 
 import 'package:xtask/xtask.dart';
@@ -44,15 +49,17 @@ Map<String, Verb> verbs({Cpus? cpus}) {
     'vscode': (c) => vscode(c, host),
     'pub': (c) => pubCheck(c, host),
     'publish': publish,
+    'tag-release': pubTagRelease(),
   };
 }
 
 /// Publishes the package its one argument names, a path from the root,
 /// as xtask_kit's pubPublish does: the changelog naming the version, the
-/// package as HEAD has it, then the upload. A version pub.dev serves
-/// already is skipped, said so: the packages go out in a chain, which a
-/// run again after one of them failed takes up where it stopped, and a
-/// release bumps only some. [probe] asks pub.dev what it serves.
+/// package as HEAD has it, then the upload, and the version tagged
+/// ([released]). A version pub.dev serves already is skipped, said so: the
+/// packages go out in a chain, which a run again after one of them failed
+/// takes up where it stopped, and a release bumps only some. [probe] asks
+/// pub.dev what it serves.
 Future<int> publish(
   VerbContext c, {
   RegistryProbe probe = askRegistry,
@@ -61,11 +68,25 @@ Future<int> publish(
     c.log('publish: give the package to publish, its path from the root');
     return ExitCode.invalidFile;
   }
-  return pubPublish(
-    PubPackage(c.args.single, alreadyServed: AlreadyServed.skip),
-    probe: probe,
-  )(c);
+  return pubPublish(released(c.args.single), probe: probe)(c);
 }
+
+/// The package at [directory] as [publish] publishes it:
+///
+/// - skipped where pub.dev serves its version already, as only some
+///   packages are bumped in a release;
+/// - tagged `<name>-v<version>` once uploaded, the tag pushed and released
+///   on GitHub with its changelog entry, since the packages are released
+///   apart (a version published before is tagged with `tag-release`);
+/// - waited for until pub.dev serves it, every time: the next package's
+///   check scores it with pana, which resolves its dev dependencies by
+///   version too (twk_lints' tests take twk_test), and xtask_kit's
+///   `needsUnserved` counts its dependencies alone.
+PubPackage released(String directory) => PubPackage(
+  directory,
+  alreadyServed: AlreadyServed.skip,
+  tag: releaseTagPattern,
+);
 
 /// [argv] prefixed with `taskset -c <spare CPUs>`, leaving the benchmark's
 /// core and its sibling idle; unchanged where there is no such core, nothing
