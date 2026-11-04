@@ -292,10 +292,19 @@ void main() {
       expect(terminal.screenLines, ['✔ A? yes', '✔ B? no']);
     });
 
+    test('Tab highlights the first answer, then the other', () async {
+      final a = cli.confirm('A?');
+      await type(['\t', _enter]);
+      expect(await settle(a), isTrue);
+      final b = cli.confirm('B?');
+      await type(['\t', '\t', _enter]);
+      expect(await settle(b), isFalse);
+    });
+
     test('Enter answers its default, Right and Left moving it', () async {
       final a = cli.confirm('Proceed?', defaultValue: true);
       await type([]);
-      expect(terminal.screenLines, ['? Proceed?  Yes   No']);
+      expect(terminal.screenLines, ['? Proceed? (y/n)  Yes   No']);
       await type([_enter]);
       expect(await settle(a), isTrue);
       final b = cli.confirm('Overwrite?', defaultValue: true);
@@ -309,9 +318,14 @@ void main() {
         final ok = cli.confirm('Delete?');
         var answered = false;
         unawaited(ok.then((_) => answered = true));
+        await type([]);
+        expect(terminal.screenLines, ['? Delete? (y/n)  Yes   No']);
         await type([_enter, _enter]);
         expect(answered, isFalse);
-        expect(terminal.screenLines, ['? Delete?  Yes   No']);
+        expect(terminal.screenLines, [
+          '? Delete? (y/n)  Yes   No',
+          '✗ answer y or n',
+        ]);
         await type([_right, _enter]);
         expect(await settle(ok), isFalse);
         expect(terminal.screenLines, ['✔ Delete? no']);
