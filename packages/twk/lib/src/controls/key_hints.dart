@@ -69,6 +69,18 @@ import 'hand.dart';
 /// )
 /// ```
 ///
+/// Something pinned at the right of the row is the row's neighbour, the bar
+/// cut before it reaches it:
+///
+/// ```dart
+/// Row(
+///   children: [
+///     const Expanded(child: KeyHintsBar()),
+///     Button('? keys', onPressed: () => showKeyHelp(context)),
+///   ],
+/// )
+/// ```
+///
 /// See also:
 ///
 ///  * [FocusManagerKeys.activeKeys], the keys it shows.
