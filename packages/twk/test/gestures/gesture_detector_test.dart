@@ -5,6 +5,8 @@ import 'dart:convert';
 
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
+import 'package:twk_core/twk_core.dart'
+    show MouseTracking, MouseTrackingBackend;
 import 'package:twk_test/twk_test.dart';
 
 const ms = Duration(milliseconds: 1);
@@ -525,7 +527,7 @@ void main() {
             .having(
               (e) => e.path,
               'path',
-              "Column → GestureDetector-[<'a'>] → Listener",
+              "Column → GestureDetector-[<'a'>] → MouseRegion",
             )
             .having((e) => '${e.error}', 'error', 'Bad state: tap'),
       ),
@@ -554,7 +556,7 @@ void main() {
             .having(
               (e) => e.path,
               'path',
-              'Column → GestureDetector → Listener',
+              'Column → GestureDetector → MouseRegion',
             )
             .having((e) => '${e.error}', 'error', 'Bad state: long'),
       ),
@@ -586,5 +588,165 @@ void main() {
     host.currentState!.change(3);
     await t.pump();
     expect(mouseModes(t), hasLength(4));
+  });
+
+  group('the pointer follows the press', () {
+    Widget themed(HandPointer mode, Widget child) => Theme(
+      data: const ThemeData.terminal(
+        Brightness.dark,
+      ).copyWith(handPointer: mode),
+      child: Align(
+        alignment: Alignment.topLeft,
+        child: SizedBox(width: 10, height: 1, child: child),
+      ),
+    );
+
+    Future<PointerShape?> shapeOver(
+      TwkTester t,
+      Widget detector, {
+      HandPointer mode = HandPointer.on,
+      int x = 1,
+    }) async {
+      await t.pumpWidget(
+        themed(mode, detector),
+        size: (20, 3),
+        pointerShapes: true,
+      );
+      await t.mouse(MouseKind.move, x, 0);
+      await t.pump();
+      return t.pointerShape;
+    }
+
+    const blank = Text('          ');
+
+    testTwk('onTap and onTapDown show the hand, by the theme', (t) async {
+      final tap = GestureDetector(onTap: (_) {}, child: blank);
+      expect(await shapeOver(t, tap), PointerShape.pointer);
+      final down = GestureDetector(onTapDown: (_) {}, child: blank);
+      expect(await shapeOver(t, down), PointerShape.pointer);
+    });
+
+    testTwk('HandPointer.off shows none', (t) async {
+      final tap = GestureDetector(onTap: (_) {}, child: blank);
+      expect(
+        await shapeOver(t, tap, mode: HandPointer.off),
+        PointerShape.arrow,
+      );
+    });
+
+    testTwk('a double tap alone, a drag and another button show none', (
+      t,
+    ) async {
+      final double = GestureDetector(onDoubleTap: (_) {}, child: blank);
+      expect(await shapeOver(t, double), PointerShape.arrow);
+      final drag = GestureDetector(onDragUpdate: (_) {}, child: blank);
+      expect(await shapeOver(t, drag), PointerShape.arrow);
+      final right = GestureDetector(
+        buttons: const {2},
+        onTap: (_) {},
+        child: blank,
+      );
+      expect(await shapeOver(t, right), PointerShape.arrow);
+    });
+
+    testTwk('cursor replaces the hand, whatever the theme, and is over all '
+        'of a detector without a tap', (t) async {
+      final grab = GestureDetector(
+        cursor: PointerShape.grab,
+        onTap: (_) {},
+        child: blank,
+      );
+      expect(
+        await shapeOver(t, grab, mode: HandPointer.off),
+        PointerShape.grab,
+      );
+      final drag = GestureDetector(
+        cursor: PointerShape.move,
+        onDragUpdate: (_) {},
+        child: blank,
+      );
+      expect(await shapeOver(t, drag), PointerShape.move);
+    });
+
+    testTwk('tapAt narrows the hand and the tap; a press outside goes to the '
+        'detector around', (t) async {
+      final log = <String>[];
+      final row = GestureDetector(
+        onTap: (_) => log.add('around'),
+        cursor: PointerShape.arrow,
+        child: GestureDetector(
+          tapAt: (x, _) => x < 3,
+          onTap: (e) => log.add('tap ${e.x}'),
+          child: blank,
+        ),
+      );
+      expect(await shapeOver(t, row), PointerShape.pointer);
+      await t.mouse(MouseKind.move, 6, 0);
+      await t.pump();
+      expect(t.pointerShape, PointerShape.arrow);
+      await t.click(1, 0);
+      await t.click(6, 0);
+      await t.pump();
+      expect(log, ['tap 1', 'around']);
+    });
+
+    testTwk('onTapDown is told at the press and takes it from the detector '
+        'around; outside tapAt it is not told', (t) async {
+      final log = <String>[];
+      await t.pumpWidget(
+        themed(
+          HandPointer.auto,
+          GestureDetector(
+            onTap: (_) => log.add('around'),
+            child: GestureDetector(
+              tapAt: (x, _) => x < 3,
+              onTapDown: (e) => log.add('down ${e.x}'),
+              child: blank,
+            ),
+          ),
+        ),
+        size: (20, 3),
+      );
+      await t.mouse(MouseKind.down, 1, 0);
+      expect(log, ['down 1']);
+      await t.mouse(MouseKind.up, 1, 0);
+      await t.pump();
+      expect(log, ['down 1']);
+      await t.mouse(MouseKind.down, 6, 0);
+      await t.mouse(MouseKind.up, 6, 0);
+      await t.pump();
+      expect(log, ['down 1', 'around']);
+    });
+
+    testTwk('an arrow asks for no motion, another shape does', (t) async {
+      MouseTracking tracking() =>
+          (t.binding.twkApp.terminal as MouseTrackingBackend).mouseTracking;
+      await t.pumpWidget(
+        themed(
+          HandPointer.auto,
+          GestureDetector(
+            cursor: PointerShape.arrow,
+            onTap: (_) {},
+            child: blank,
+          ),
+        ),
+        size: (20, 3),
+        pointerShapes: true,
+      );
+      expect(tracking(), MouseTracking.buttons);
+      await t.pumpWidget(
+        themed(
+          HandPointer.auto,
+          GestureDetector(
+            cursor: PointerShape.grab,
+            onTap: (_) {},
+            child: blank,
+          ),
+        ),
+        size: (20, 3),
+        pointerShapes: true,
+      );
+      expect(tracking(), MouseTracking.motion);
+    });
   });
 }

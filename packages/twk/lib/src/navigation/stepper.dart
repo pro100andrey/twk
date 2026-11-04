@@ -19,7 +19,6 @@ import 'package:twk_core/twk_core.dart'
 import '../animation/spinner.dart';
 import '../binding/app_binding.dart';
 import '../controls/button.dart';
-import '../controls/hand.dart';
 import '../controls/pressable.dart';
 import '../focus/focus.dart';
 import '../foundation/change_notifier.dart';
@@ -725,26 +724,19 @@ final class _StepperState extends State<Stepper> {
             for (var i = 0; i < widget.steps.length; i++)
               _semantics(i, current),
           ],
-          child: HandOver(
-            where: (x, _) {
+          child: GestureDetector(
+            // the step shown now: a click may come before the build
+            tapAt: (x, _) {
               final step = _headers.at(x);
               return step >= 0 && _clickable(step, _step);
             },
-            child: GestureDetector(
-              onTap: (event) {
-                final step = _headers.at(event.x);
-                // the step shown now: a click may come before the build
-                if (step >= 0 && _clickable(step, _step)) {
-                  _click(step);
-                }
-              },
-              child: LayoutBuilder(
-                builder: (context, constraints) => _row(
-                  theme,
-                  segmenterOf(context),
-                  current,
-                  constraints.maxW,
-                ),
+            onTap: (event) => _click(_headers.at(event.x)),
+            child: LayoutBuilder(
+              builder: (context, constraints) => _row(
+                theme,
+                segmenterOf(context),
+                current,
+                constraints.maxW,
               ),
             ),
           ),
@@ -784,20 +776,14 @@ final class _StepperState extends State<Stepper> {
             Semantics(
               key: ValueKey(('header', i)),
               nodes: [_semantics(i, current)],
-              child: HandOver(
-                active: _clickable(i, _step),
-                child: GestureDetector(
-                  onTap: (_) {
-                    if (_clickable(i, _step)) {
-                      _click(i);
-                    }
-                  },
-                  child: Text.rich(
-                    _header(theme, i, current),
-                    style: theme.text,
-                    wrap: TextWrap.none,
-                    maxLines: 1,
-                  ),
+              child: GestureDetector(
+                tapAt: (_, _) => _clickable(i, _step),
+                onTap: (_) => _click(i),
+                child: Text.rich(
+                  _header(theme, i, current),
+                  style: theme.text,
+                  wrap: TextWrap.none,
+                  maxLines: 1,
                 ),
               ),
             ),

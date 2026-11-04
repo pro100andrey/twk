@@ -866,7 +866,7 @@ void main() {
         'nwse-resize',
         // the body, and the buttons
         'default',
-        '',
+        'pointer',
         'grab',
       ]);
       await run.press(5, 1);

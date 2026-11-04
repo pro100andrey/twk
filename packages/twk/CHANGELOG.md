@@ -15,6 +15,12 @@
 - `MenuItem(shortcut:)`, a key of the item's own: shown on its right and
   pressed while its menu is open, where a key had to be bound to the same
   function to show and a letter in the label to be pressed.
+- The pointer follows the press. A `GestureDetector` with `onTap` shows the
+  hand by `ThemeData.handPointer`, with nothing else to write; `cursor` puts
+  a `PointerShape` of its own in its place, `PointerShape.arrow` for a click
+  that presses nothing, and `tapAt` says which cells of a row a tap is on,
+  for the hand and the tap at once. `onTapDown` answers as the button goes
+  down.
 
 ## 0.2.0
 
