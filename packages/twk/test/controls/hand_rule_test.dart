@@ -236,6 +236,136 @@ void main() {
     });
   });
 
+  // Each widget a click presses, under the on mode. A new one goes here: a
+  // hand is what a press gives, and RadioGroup once had a press and no hand.
+  group('every widget a click presses shows the hand', () {
+    Future<void> over(
+      TwkTester t,
+      Widget app, {
+      (int, int) at = (1, 0),
+      (int, int) size = (40, 10),
+    }) async {
+      await t.pumpWidget(
+        themed(
+          HandPointer.on,
+          Align(alignment: Alignment.topLeft, child: app),
+        ),
+        size: size,
+        pointerShapes: true,
+      );
+      expect(await shapeAt(t, at.$1, at.$2), PointerShape.pointer);
+    }
+
+    testTwk('RadioGroup', (t) async {
+      await over(
+        t,
+        RadioGroup<int>(
+          choices: const [Choice(1, 'one'), Choice(2, 'two')],
+          value: 1,
+          onChanged: (_) {},
+        ),
+        at: (1, 1),
+      );
+    });
+
+    testTwk('ConfirmInput', (t) async {
+      await over(t, ConfirmInput('', onConfirmed: (_) {}));
+    });
+
+    testTwk('Button', (t) async {
+      await over(t, Button('go', onPressed: () {}));
+    });
+
+    testTwk('SelectionList', (t) async {
+      await over(
+        t,
+        SizedBox(
+          width: 20,
+          height: 3,
+          child: SelectionList<int>(
+            itemCount: 2,
+            keyOf: (i) => i,
+            itemBuilder: (_, i) => Text('item $i'),
+          ),
+        ),
+      );
+    });
+
+    testTwk('OptionList', (t) async {
+      await over(
+        t,
+        SizedBox(
+          width: 20,
+          child: OptionList(
+            options: const [Option('one'), Option('two')],
+            highlighted: 0,
+            onSelected: (_) {},
+          ),
+        ),
+      );
+    });
+
+    testTwk('TreeView', (t) async {
+      await over(
+        t,
+        SizedBox(
+          width: 20,
+          height: 3,
+          child: TreeView<String>(
+            roots: const ['root'],
+            children: (_) => const [],
+            label: (_, entry) => Text(entry.node),
+            nodeKey: (node) => node,
+          ),
+        ),
+      );
+    });
+
+    testTwk('Table, a row', (t) async {
+      await over(
+        t,
+        const SizedBox(
+          width: 20,
+          height: 4,
+          child: Table<String>(
+            rows: ['one'],
+            columns: [
+              TableColumn(title: 'Name', cell: TableCell.new),
+            ],
+          ),
+        ),
+        at: (1, 1),
+      );
+    });
+
+    testTwk('Calendar, a day', (t) async {
+      await over(
+        t,
+        Calendar(today: DateTime(2026, 11, 4)),
+        at: (10, 4),
+      );
+    });
+
+    testTwk('NumberInput, its arrows', (t) async {
+      await t.pumpWidget(
+        themed(
+          HandPointer.on,
+          Align(
+            alignment: Alignment.topLeft,
+            child: SizedBox(
+              width: 12,
+              child: NumberInput(value: 1, onChanged: (_) {}),
+            ),
+          ),
+        ),
+        size: (40, 4),
+        pointerShapes: true,
+      );
+      final arrows = t.lines.first.indexOf('▴');
+      expect(await shapeAt(t, arrows, 0), PointerShape.pointer);
+    });
+  });
+
   group('the modes', () {
     Widget checkbox(HandPointer mode, {Widget? beside}) => themed(
       mode,
