@@ -6,16 +6,16 @@ text
 │                        A row of a list: a title over a subtitle, something     │
 │     Form, FormFie…     before and after them; tapped by a click or Enter, li…  │
 │     TabBar, TabVi…   ──────────────────────────────────────────────────────────│
-│     KeyHintsBar       ┌                                                      ┐ │
-│     StatusMessage…      ▤ notes.md                                         ›   │
-│     Callout               2 KB, an hour ago                                    │
-│     Link                ▤ todo.md                                          ›   │
-│ ▎   ListTile              640 B, today                                         │
-│     StatusBar           ▤ photo.png                                        ›   │
-│                     ▐     1.2 MB, last week                                    │
-│   OVERLAYS      12  ▐   ▤ locked.txt                                       ›   │
-│     Overlay               no access                                            │
-│     App               └                                                      ┘ │
+│     KeyHintsBar                 ┌                                  ┐           │
+│     StatusMessage…      ·   ·     ▤ notes.md                     ›      ·   ·  │
+│     Callout                         2 KB, an hour ago                          │
+│     Link                ·   ·     ▤ todo.md                      ›      ·   ·  │
+│ ▎   ListTile                        640 B, today                               │
+│     StatusBar           ·   ·     ▤ photo.png                    ›      ·   ·  │
+│                     ▐               1.2 MB, last week                          │
+│   OVERLAYS      12  ▐   ·   ·     ▤ locked.txt                   ›      ·   ·  │
+│     Overlay                         no access                                  │
+│     App                         └                                  ┘           │
 │     Dialog           ──────────────────────────────────────────────────────────│
 │     Toast              leading   ▐  ●▌                                         │
 │     Tooltip                                                                    │
@@ -31,16 +31,16 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaggmgmmmgmmgmgmmmmmgmgmmmmmgmmmmgmgmmmmmmmmmgmmmmmmmmmggggg│
 │aaaaannnnnannnnnnnnaaaggmmmmmmgmmmgmmmmmgmmmmmgmmmmmmgmmgmgmmmmmgmmgmmmmmmgmmmgg│
 │aaaaannnnnnnannnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnnnnnaaaaaagoggggggggggggggggggggggggggggggggggggggggggggggggggggggog│
-│aaaaannnnnnnnnnnnnnaaagggpgllllllllgggggggggggggggggggggggggggggggggggggggggmggg│
-│aaaaannnnnnnaaaaaaaaaagggggmgmmmgmmgmmmmgmmmgggggggggggggggggggggggggggggggggggg│
-│aaaaannnnaaaaaaaaaaaaagggpgpppppppggggggggggggggggggggggggggggggggggggggggggmggg│
-│aqrrrssssssssrrrrrrrragggggmmmgmmgmmmmmggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnaaaaaaaagggpgpppppppppggggggggggggggggggggggggggggggggggggggggmggg│
-│aaaaaaaaaaaaaaaaaaaaadgggggmmmgmmmgmmmmgmmmmgggggggggggggggggggggggggggggggggggg│
-│aaaddddddddaaaaaaxxaadgggmgmmmmmmmmmmgggggggggggggggggggggggggggggggggggggggmggg│
-│aaaaannnnnnnaaaaaaaaaagggggmmgmmmmmmgggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnaaaaaaaaaaaaaagoggggggggggggggggggggggggggggggggggggggggggggggggggggggog│
+│aaaaannnnnnnnnnnaaaaaagggggggggggoggggggggggggggggggggggggggggggggggoggggggggggg│
+│aaaaannnnnnnnnnnnnnaaagggogggogggggpgllllllllgggggggggggggggggggggmggggggogggogg│
+│aaaaannnnnnnaaaaaaaaaagggggggggggggggmgmmmgmmgmmmmgmmmgggggggggggggggggggggggggg│
+│aaaaannnnaaaaaaaaaaaaagggogggogggggpgpppppppggggggggggggggggggggggmggggggogggogg│
+│aqrrrssssssssrrrrrrrragggggggggggggggmmmgmmgmmmmmggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnaaaaaaaagggogggogggggpgpppppppppggggggggggggggggggggmggggggogggogg│
+│aaaaaaaaaaaaaaaaaaaaadgggggggggggggggmmmgmmmgmmmmgmmmmgggggggggggggggggggggggggg│
+│aaaddddddddaaaaaaxxaadgggogggogggggmgmmmmmmmmmmgggggggggggggggggggmggggggogggogg│
+│aaaaannnnnnnaaaaaaaaaagggggggggggggggmmgmmmmmmgggggggggggggggggggggggggggggggggg│
+│aaaaannnaaaaaaaaaaaaaagggggggggggoggggggggggggggggggggggggggggggggggoggggggggggg│
 │aaaaannnnnnaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnaaaaaaaaaaaaggmmmmmmmggguvvwuggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│

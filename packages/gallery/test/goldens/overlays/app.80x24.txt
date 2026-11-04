@@ -6,18 +6,18 @@ text
 │                        The root of an app: its theme over the Overlay its      │
 │     Link               dialogs show in, over the app and its own keys.         │
 │     ListTile         ──────────────────────────────────────────────────────────│
-│     StatusBar                                                                  │
-│                         ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│     StatusBar                   ┌                                  ┐           │
+│                         ·   ·                                           ·   ·  │
 │   OVERLAYS      12                                                             │
-│     Overlay             ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
-│ ▎   App                                      ┌       ┐                         │
-│     Dialog              ·   ·   ·   ·   ·       Ask     ·   ·   ·   ·   ·   ·  │
-│     Toast           ▐                        └       ┘                         │
-│     Tooltip         ▐   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│     Overlay             ·   ·                                           ·   ·  │
+│ ▎   App                                                                        │
+│     Dialog              ·   ·                   Ask                     ·   ·  │
+│     Toast           ▐                                                          │
+│     Tooltip         ▐   ·   ·                                           ·   ·  │
 │     Popover                                                                    │
-│     MenuBar             ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
-│     ContextMenu                                                                │
-│     CommandPalette      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│     MenuBar             ·   ·                                           ·   ·  │
+│     ContextMenu                 └                                  ┘           │
+│     CommandPalette      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·32 × 9 ·   ·   ·  │
 │     OptionList                                                                 │
 │     ModalBarrier     ──────────────────────────────────────────────────────────│
 │     WindowLayer        theme   nord  light  dark                               │
@@ -31,18 +31,18 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaggmmmgmmmmgmmgmmgmmmmgmmmgmmmmmgmmmmgmmmgmmmmmmmgmmmgggggg│
 │aaaaannnnaaaaaaaaaaaaaggmmmmmmmgmmmmgmmmgmmmmgmmmgmmmgmmmgmmmgmmmgmmmmmggggggggg│
 │aaaaannnnnnnnaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnnnaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaaaaaaaaaaaaaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
+│aaaaannnnnnnnnaaaaaaaagggggggggggoggggggggggggggggggggggggggggggggggoggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaagggogggogggggggggggggggggggggggggggggggggggggggggggogggogg│
 │aaaddddddddaaaaaaffaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnaaaaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
-│apqqqrrrqqqqqqqqqqqqqaggggggggggggggggggggggggogggggggoggggggggggggggggggggggggg│
-│aaaaannnnnnaaaaaaaaaaagggogggogggogggogggoggggggstttsggggogggogggogggogggogggogg│
-│aaaaannnnnaaaaaaaaaaadggggggggggggggggggggggggogggggggoggggggggggggggggggggggggg│
-│aaaaannnnnnnaaaaaaaaadgggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
+│aaaaannnnnnnaaaaaaaaaagggogggogggggggggggggggggggggggggggggggggggggggggggogggogg│
+│apqqqrrrqqqqqqqqqqqqqagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnaaaaaaaaaaagggogggoggggggggggggggggggstttsggggggggggggggggggggogggogg│
+│aaaaannnnnaaaaaaaaaaadgggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnaaaaaaaaadgggogggogggggggggggggggggggggggggggggggggggggggggggogggogg│
 │aaaaannnnnnnaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnaaaaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
-│aaaaannnnnnnnnnnaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnnnnnaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
+│aaaaannnnnnnaaaaaaaaaagggogggogggggggggggggggggggggggggggggggggggggggggggogggogg│
+│aaaaannnnnnnnnnnaaaaaagggggggggggoggggggggggggggggggggggggggggggggggoggggggggggg│
+│aaaaannnnnnnnnnnnnnaaagggogggogggogggogggogggogggogggogggogggovvgvgvgogggogggogg│
 │aaaaannnnnnnnnnaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnnnnnnaaaaaaggmmmmmggqrrrrqhuuuuuhhuuuuhgggggggggggggggggggggggggggggg│
@@ -70,4 +70,5 @@ q on #2b4566
 r bold #e6e8eb on #2b4566
 s on #3b4252
 t bold #88c0d0 on #3b4252
+v #747a83 on #16181d
 u #8b929c on #13151a
