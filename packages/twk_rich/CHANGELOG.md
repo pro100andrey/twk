@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- A link in a `MarkdownView` shows the hand by `ThemeData.handPointer`, as a
+  `Text`'s link does: `HandPointer.auto` asks the terminal for no motion, where
+  a view with a link always did, and `HandPointer.off` shows none.
+
 ## 0.2.0
 
 - Takes twk and twk_core at 0.2.0, which have breaking

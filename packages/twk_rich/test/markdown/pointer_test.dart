@@ -160,16 +160,42 @@ void main() {
     expect(run.shapes(), ['']);
   });
 
+  test('a link follows the theme: off shows no hand and asks for no motion, '
+      'as auto asks for none', () async {
+    Widget app(HandPointer mode) => Theme(
+      data: const ThemeData.terminal(
+        Brightness.dark,
+      ).copyWith(handPointer: mode),
+      child: const MarkdownView('see [a link](https://x.dev)'),
+    );
+    final off = _Run(app(HandPointer.off));
+    await off.settle();
+    off.shapes();
+    expect(off.term.mouseTracking, MouseTracking.off);
+    await off.move(6, 0);
+    expect(off.shapes(), isEmpty);
+    await off.quit();
+    final auto = _Run(app(HandPointer.auto));
+    await auto.settle();
+    expect(auto.term.mouseTracking, MouseTracking.off);
+    await auto.quit();
+  });
+
   test('the mouse followed only while the view has a link', () async {
     final key = GlobalKey<_StepsState>();
     final run = _Run(
-      _Steps(key: key, const [
-        'plain text',
-        'plain text and [a link](https://x.dev)\n\nmore',
-        // the paragraph with the link kept, not made again
-        'plain text and [a link](https://x.dev)\n\nmore words',
-        'plain text again',
-      ]),
+      Theme(
+        data: const ThemeData.terminal(
+          Brightness.dark,
+        ).copyWith(handPointer: HandPointer.on),
+        child: _Steps(key: key, const [
+          'plain text',
+          'plain text and [a link](https://x.dev)\n\nmore',
+          // the paragraph with the link kept, not made again
+          'plain text and [a link](https://x.dev)\n\nmore words',
+          'plain text again',
+        ]),
+      ),
     );
     await run.settle();
     expect(run.shapes(), ['default']);
