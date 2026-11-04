@@ -6,14 +6,13 @@ import 'package:twk_core/twk_core.dart' show Attr, KeyCode;
 import '../binding/app_binding.dart' show AppBinding;
 import '../focus/focus.dart';
 import '../framework/framework.dart';
-import '../gestures/mouse.dart' show Listener;
+import '../gestures/gesture_detector.dart';
 import '../layout/basic.dart' show SizedBox;
 import '../layout/flex.dart';
 import '../overlay/dialog.dart';
 import '../style/style.dart';
 import '../text/hit_row.dart' show HitRow, HitSpan, segmenterOf;
 import '../text/widgets.dart';
-import 'hand.dart';
 
 // Examples can assume:
 // late BuildContext context;
@@ -374,25 +373,16 @@ final class _KeyHintsBarState extends State<KeyHintsBar> {
     }
     // the hand over a key or a hint that presses a key; the ellipsis of a
     // cut row presses nothing, nor does the key or hint it stands for
-    return HandOver(
-      where: (x, y) => _hits.at(x) >= 0,
-      child: Listener(
-        onDown: (event) {
-          if (event.button != 0) {
-            return;
-          }
-          final t = _hits.at(event.x);
-          if (t < 0) {
-            return;
-          }
-          final key = keys[t];
-          final binding = AppBinding.of(context);
-          for (final combo in [key.combo, ...key.then]) {
-            binding.pressKey(combo);
-          }
-        },
-        child: row,
-      ),
+    return GestureDetector(
+      tapAt: (x, _) => _hits.at(x) >= 0,
+      onTapDown: (event) {
+        final key = keys[_hits.at(event.x)];
+        final binding = AppBinding.of(context);
+        for (final combo in [key.combo, ...key.then]) {
+          binding.pressKey(combo);
+        }
+      },
+      child: row,
     );
   }
 }

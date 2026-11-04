@@ -35,13 +35,14 @@ import 'package:twk_core/twk_core.dart'
         TextOrder,
         TextSegmenter;
 
-import '../controls/hand.dart';
 import '../editing/caret.dart' show clearRestCursor, restCursor;
 import '../focus/focus.dart';
 import '../foundation/change_notifier.dart' show ChangeNotifier, VoidCallback;
 import '../foundation/controller_host.dart';
 import '../foundation/helpers.dart';
 import '../framework/framework.dart';
+import '../gestures/gesture_detector.dart';
+import '../gestures/hand.dart';
 import '../gestures/mouse.dart';
 import '../layout/child_list.dart';
 import '../layout/flex.dart';
@@ -1063,7 +1064,7 @@ final class _MenuBarState extends State<MenuBar> implements _MenuHost {
   }
 
   void _down(PointerEvent event) {
-    if (_session != null || event.button != 0) {
+    if (_session != null) {
       return;
     }
     if (_bar?.titleAt(event.x) case final title?) {
@@ -1103,7 +1104,6 @@ final class _MenuBarState extends State<MenuBar> implements _MenuHost {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Listener(
-            onDown: _down,
             onDrag: (event) => _session?._fromBar(event, release: false),
             onUp: (event) => _session?._fromBar(event, release: true),
             child: Semantics(
@@ -1119,11 +1119,12 @@ final class _MenuBarState extends State<MenuBar> implements _MenuHost {
                     ),
                   ),
               ],
-              child: HandOver(
-                where: (x, _) {
+              child: GestureDetector(
+                tapAt: (x, _) {
                   final title = _bar?.titleAt(x);
                   return title != null && _canOpen(title);
                 },
+                onTapDown: _down,
                 child: _BarRow(
                   key: _row,
                   titles: titles,

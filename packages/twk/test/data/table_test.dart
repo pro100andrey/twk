@@ -1465,9 +1465,10 @@ other'''),
       await run.drag(11, 0);
       expect(run.shapes(), ['ew-resize']);
       await run.release(11, 0);
-      // a row's cell under an edge is no edge
+      // a row's cell under an edge is no edge: the hand of a row a click
+      // selects
       await run.move(11, 2);
-      expect(run.shapes(), ['default']);
+      expect(run.shapes(), ['pointer']);
       await run.quit();
     });
 

@@ -10,7 +10,8 @@ import 'package:twk_core/twk_core.dart' show HitTestBehavior, PointerShape;
 
 import '../binding/app_binding.dart' show AppBinding;
 import '../framework/framework.dart';
-import '../style/theme.dart' show HandPointer, Theme, ThemeData;
+import '../style/theme.dart' show ThemeData;
+import 'hand.dart';
 import 'mouse.dart';
 
 /// A drag as a [GestureDetector] tells it: the event the mouse was
@@ -96,9 +97,9 @@ typedef DragListener = void Function(DragDetails details);
 /// and for the tap at once.
 ///
 /// [onTapDown] is told as the left button goes down, for what answers at
-/// once (a tab, a menu's title): it takes the press, so no tap, drag or long
-/// press of it follows here or in another detector. What goes on with the
-/// button held is a [Listener]'s around it.
+/// once (a tab, a menu's title). It is told apart from the competition: a
+/// tap, drag or long press of that press goes on as without it, here and
+/// in the detectors inside and around it.
 ///
 /// The intervals are timers of the app's zone, which a test's fake clock
 /// moves. While it has a callback, the terminal reports presses and
@@ -159,26 +160,19 @@ final class GestureDetector extends StatefulWidget {
     this.longPressDuration = const Duration(milliseconds: 500),
     this.behavior = HitTestBehavior.deferToChild,
     this.child,
-  }) : assert(
-         onTapDown == null ||
-             onTap == null &&
-                 onDoubleTap == null &&
-                 onLongPress == null &&
-                 onDragStart == null &&
-                 onDragUpdate == null,
-         'onTapDown takes the press: no other gesture of it can follow',
-       );
+  });
 
   /// A tap: the release.
   final PointerEventListener? onTap;
 
-  /// The left button pressed, which takes the press at once (see
-  /// [GestureDetector]).
+  /// The left button pressed, on a cell of a tap (see [GestureDetector]).
   final PointerEventListener? onTapDown;
 
   /// Whether the cell at `x`, `y` of it is a tap's: where false, the hand
   /// does not show, and a press there is told neither [onTap] nor
-  /// [onTapDown], a detector around it getting it. Null for all of it.
+  /// [onTapDown], a detector around it getting it. A tap is pressed and
+  /// released on such cells, so [onTap] may rely on it for the cell it is
+  /// told. Null for all of it.
   final bool Function(int x, int y)? tapAt;
 
   /// The pointer's shape in place of the hand, whatever
@@ -249,6 +243,14 @@ final class _GestureDetectorState extends State<GestureDetector> {
   // whether the press under way is on a cell of a tap
   var _tapHere = true;
 
+  /// Whether [event], a release, ends a tap: over this widget, pressed and
+  /// released on cells of [GestureDetector.tapAt].
+  bool _tapsAt(PointerEvent event) =>
+      _taps &&
+      _tapHere &&
+      _contains(event) &&
+      (widget.tapAt?.call(event.x, event.y) ?? true);
+
   /// Whether a tap of the left button is told.
   bool get _showsTap =>
       (widget.onTap != null || widget.onTapDown != null) &&
@@ -286,6 +288,9 @@ final class _GestureDetectorState extends State<GestureDetector> {
     _tapHere = widget.tapAt?.call(event.x, event.y) ?? true;
     if (MouseTracker.of(context) case final tracker?) {
       (_arena = _Arena.of(tracker)).down(this, event);
+      if (_tapHere && event.button == 0 && widget.buttons.contains(0)) {
+        _tell(widget.onTapDown, event);
+      }
     }
   }
 
@@ -303,23 +308,10 @@ final class _GestureDetectorState extends State<GestureDetector> {
   Widget build(BuildContext context) {
     final listens = _taps || widget.onTapDown != null || _longPresses || _drags;
     final taps = _showsTap;
-    final mode = taps && widget.cursor == null
-        ? Theme.of(context).handPointer
-        : null;
-    final shape =
-        widget.cursor ??
-        (taps && mode != HandPointer.off ? PointerShape.pointer : null);
-    final tapAt = taps ? widget.tapAt : null;
-    // a MouseRegion whatever it shows: a tap coming or going does not
-    // rebuild the child from nothing
-    return MouseRegion(
-      cursor: tapAt == null ? shape : null,
-      cursorAt: tapAt == null || shape == null
-          ? null
-          : (x, y) => tapAt(x, y) ? shape : null,
-      cursorAsksMotion: widget.cursor == null
-          ? mode == HandPointer.on
-          : widget.cursor != PointerShape.arrow,
+    return HandOver(
+      active: taps || widget.cursor != null,
+      where: taps ? widget.tapAt : null,
+      shape: widget.cursor,
       behavior: widget.behavior,
       child: Listener(
         onDown: listens ? _down : null,
@@ -390,14 +382,6 @@ final class _Arena {
       _interval!.cancel();
       _again = _press;
     }
-    if (_gesture == null &&
-        event.button == 0 &&
-        detector.widget.onTapDown != null &&
-        detector._tapHere) {
-      _take(detector, _Gesture.tap);
-      detector._tell(detector.widget.onTapDown, event);
-      return;
-    }
     if (detector._longPresses) {
       detector._longPress = AppBinding.of(detector.context).startTimer(
         detector.widget.longPressDuration,
@@ -457,8 +441,7 @@ final class _Arena {
     }
     _leavePress(detector);
     switch (_gesture) {
-      case null
-          when detector._taps && detector._tapHere && detector._contains(event):
+      case null when detector._tapsAt(event):
         _gesture = _Gesture.tap;
         _owner = detector;
         if (identical(_first, detector) && _again == _press) {

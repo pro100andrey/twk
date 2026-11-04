@@ -18,7 +18,6 @@ import '../foundation/change_notifier.dart';
 import '../foundation/controller_host.dart';
 import '../framework/framework.dart';
 import '../gestures/gesture_detector.dart';
-import '../gestures/mouse.dart';
 import '../layout/basic.dart';
 import '../layout/box.dart';
 import '../layout/flex.dart';
@@ -1282,37 +1281,31 @@ final class _FilePickerState extends State<FilePicker> {
         : _marked.contains(entry.path)
         ? '${boxes.on} '
         : '${boxes.off} ';
-    return Listener(
+    return GestureDetector(
       key: ValueKey<String>(entry.path),
-      onDown: (event) {
-        if (event.button == 0) {
-          setState(() => _cursor = entry.path);
-        }
-      },
-      child: GestureDetector(
-        onDoubleTap: (_) => _take(entry),
-        // the hidden cursor on the cursor's row
-        child: ActiveItem(
-          active: cursor,
-          child: Box(
+      onTapDown: (_) => setState(() => _cursor = entry.path),
+      onDoubleTap: (_) => _take(entry),
+      // the hidden cursor on the cursor's row
+      child: ActiveItem(
+        active: cursor,
+        child: Box(
+          style: style,
+          child: Text.rich(
+            [
+              if (widget.bar && cursor)
+                Span(
+                  ThemeMarks.of(context).text(Marks.cursor),
+                  (focused ? theme.primary : theme.muted).merge(
+                    const Style(attrsOff: Attr.bold),
+                  ),
+                )
+              else if (widget.bar)
+                const Span(' '),
+              Span('$mark${entry.label}'),
+            ],
             style: style,
-            child: Text.rich(
-              [
-                if (widget.bar && cursor)
-                  Span(
-                    ThemeMarks.of(context).text(Marks.cursor),
-                    (focused ? theme.primary : theme.muted).merge(
-                      const Style(attrsOff: Attr.bold),
-                    ),
-                  )
-                else if (widget.bar)
-                  const Span(' '),
-                Span('$mark${entry.label}'),
-              ],
-              style: style,
-              wrap: TextWrap.none,
-              maxLines: 1,
-            ),
+            wrap: TextWrap.none,
+            maxLines: 1,
           ),
         ),
       ),

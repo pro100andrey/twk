@@ -527,7 +527,7 @@ void main() {
             .having(
               (e) => e.path,
               'path',
-              "Column → GestureDetector-[<'a'>] → MouseRegion",
+              "Column → GestureDetector-[<'a'>] → HandOver → MouseRegion",
             )
             .having((e) => '${e.error}', 'error', 'Bad state: tap'),
       ),
@@ -556,7 +556,7 @@ void main() {
             .having(
               (e) => e.path,
               'path',
-              'Column → GestureDetector → MouseRegion',
+              'Column → GestureDetector → HandOver → MouseRegion',
             )
             .having((e) => '${e.error}', 'error', 'Bad state: long'),
       ),
@@ -690,8 +690,8 @@ void main() {
       expect(log, ['tap 1', 'around']);
     });
 
-    testTwk('onTapDown is told at the press and takes it from the detector '
-        'around; outside tapAt it is not told', (t) async {
+    testTwk('onTapDown is told at the press, apart from the taps inside and '
+        'around it; outside tapAt it is not told', (t) async {
       final log = <String>[];
       await t.pumpWidget(
         themed(
@@ -711,11 +711,37 @@ void main() {
       expect(log, ['down 1']);
       await t.mouse(MouseKind.up, 1, 0);
       await t.pump();
-      expect(log, ['down 1']);
+      expect(log, ['down 1', 'around']);
+      log.clear();
       await t.mouse(MouseKind.down, 6, 0);
+      expect(log, isEmpty);
       await t.mouse(MouseKind.up, 6, 0);
       await t.pump();
-      expect(log, ['down 1', 'around']);
+      expect(log, ['around']);
+    });
+
+    testTwk('a tap is pressed and released on cells of tapAt: a release off '
+        'them tells no onTap', (t) async {
+      final log = <String>[];
+      await t.pumpWidget(
+        themed(
+          HandPointer.auto,
+          GestureDetector(
+            tapAt: (x, _) => x < 3,
+            onTap: (e) => log.add('tap ${e.x}'),
+            child: blank,
+          ),
+        ),
+        size: (20, 3),
+      );
+      await t.mouse(MouseKind.down, 1, 0);
+      await t.mouse(MouseKind.up, 6, 0);
+      await t.pump();
+      expect(log, isEmpty);
+      await t.mouse(MouseKind.down, 1, 0);
+      await t.mouse(MouseKind.up, 2, 0);
+      await t.pump();
+      expect(log, ['tap 2']);
     });
 
     testTwk('an arrow asks for no motion, another shape does', (t) async {

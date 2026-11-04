@@ -9,6 +9,7 @@ import '../editing/text_field.dart';
 import '../focus/focus.dart';
 import '../foundation/change_notifier.dart';
 import '../framework/framework.dart';
+import '../gestures/gesture_detector.dart';
 import '../gestures/mouse.dart';
 import '../layout/flex.dart';
 import '../style/style.dart';
@@ -183,10 +184,8 @@ final class _NumberInputState extends State<NumberInput>
   double stepped(double from, int count) => _round(from + count * widget.step);
 
   void _arrow(PointerEvent event) {
-    if (event.button == 0) {
-      node.requestFocus();
-      stepBy(event.x == 0 ? 1 : -1);
-    }
+    node.requestFocus();
+    stepBy(event.x == 0 ? 1 : -1);
   }
 
   @override
@@ -207,8 +206,8 @@ final class _NumberInputState extends State<NumberInput>
       style: widget.style,
       focusedStyle: widget.focusedStyle,
       errorStyle: widget.errorStyle,
-      trailing: Listener(
-        onDown: enabled ? _arrow : null,
+      trailing: GestureDetector(
+        onTapDown: enabled ? _arrow : null,
         child: Text(
           '${marks.text(Marks.up)}${marks.text(Marks.down)}',
           style: theme.text.merge(

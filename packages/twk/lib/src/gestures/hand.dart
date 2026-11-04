@@ -1,16 +1,17 @@
-/// The hand over what a click presses, by one rule for every tap target:
+/// The pointer over what a click presses, by one rule for every tap target:
 /// [HandOver].
 library;
 
 import 'package:twk_core/twk_core.dart' show HitTestBehavior, PointerShape;
 
 import '../framework/framework.dart';
-import '../gestures/mouse.dart';
 import '../style/theme.dart';
+import 'mouse.dart';
 
 /// The hand (`PointerShape.pointer`) over what a click presses, by the one
-/// rule of [ThemeData.handPointer]: every widget with a tap target wraps it
-/// in this, and none sets the shape itself.
+/// rule of [ThemeData.handPointer], or [shape] in its place. A
+/// `GestureDetector` shows it from its taps: this is for what presses
+/// otherwise, a menu's press, drag and release.
 ///
 /// Over [child] where [active], else over the cells [where] says yes to
 /// (`x` and `y` in [child]'s own coordinates: a tab, not the bar around
@@ -27,6 +28,7 @@ final class HandOver extends StatelessWidget {
     super.key,
     this.active = true,
     this.where,
+    this.shape,
     this.behavior = HitTestBehavior.deferToChild,
   });
 
@@ -37,6 +39,11 @@ final class HandOver extends StatelessWidget {
   /// for all of it.
   final bool Function(int x, int y)? where;
 
+  /// The shape in place of the hand, whatever the theme says;
+  /// `PointerShape.arrow` asks for no motion, another does. Null for the
+  /// hand.
+  final PointerShape? shape;
+
   /// Where the mouse is in it.
   final HitTestBehavior behavior;
 
@@ -45,25 +52,22 @@ final class HandOver extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mode = Theme.of(context).handPointer;
-    final shows = active && mode != HandPointer.off;
+    final own = shape;
+    final mode = own == null && active ? Theme.of(context).handPointer : null;
+    final shown = active && mode != HandPointer.off
+        ? own ?? PointerShape.pointer
+        : null;
     final where = this.where;
     return MouseRegion(
-      cursor: shows && where == null ? PointerShape.pointer : null,
-      cursorAt: shows && where != null
-          ? (x, y) => where(x, y) ? PointerShape.pointer : null
+      cursor: where == null ? shown : null,
+      cursorAt: shown != null && where != null
+          ? (x, y) => where(x, y) ? shown : null
           : null,
-      cursorAsksMotion: mode == HandPointer.on,
+      cursorAsksMotion: own == null
+          ? mode == HandPointer.on
+          : own != PointerShape.arrow,
       behavior: behavior,
       child: child,
     );
   }
-
-  /// The shape for a [MouseRegion] that has callbacks and so has the
-  /// motion reported already: the hand where [active] and the theme asks
-  /// for it, else null.
-  static PointerShape? shapeFor(BuildContext context, {bool active = true}) =>
-      active && Theme.of(context).handPointer != HandPointer.off
-      ? PointerShape.pointer
-      : null;
 }

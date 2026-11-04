@@ -35,12 +35,12 @@ import 'package:twk_core/twk_core.dart'
         TextWrap;
 
 import '../binding/terminal_status.dart';
-import '../controls/hand.dart';
 import '../editing/caret.dart' show clearRestCursor, restCursor;
 import '../focus/focus.dart';
 import '../foundation/change_notifier.dart';
 import '../foundation/helpers.dart';
 import '../framework/framework.dart';
+import '../gestures/gesture_detector.dart';
 import '../gestures/mouse.dart';
 import '../layout/child_list.dart';
 import '../layout/flex.dart';
@@ -1145,9 +1145,15 @@ final class _TableState<T> extends State<Table<T>> {
       _resizing = column;
       _resizedFrom = _widthOf(column) ?? 0;
       _pressedAt = event.x;
-    } else if (_columns.at(event.x) case final column?) {
-      _sortOn(column);
     }
+  }
+
+  /// The column a click at [x] of the header sorts by; null off its edge.
+  int? _sortsAt(int x) {
+    final column = _columns.edgeAt(x) == null ? _columns.at(x) : null;
+    return column != null && widget.columns[column].compare != null
+        ? column
+        : null;
   }
 
   void _headerDrag(PointerEvent event) {
@@ -1346,11 +1352,9 @@ final class _TableState<T> extends State<Table<T>> {
   /// not reported for nothing.
   Widget _shaped(Widget titles) {
     // the hand over the title of a column that sorts, off its edge
-    final header = HandOver(
-      where: (x, _) {
-        final column = _columns.edgeAt(x) == null ? _columns.at(x) : null;
-        return column != null && widget.columns[column].compare != null;
-      },
+    final header = GestureDetector(
+      tapAt: (x, _) => _sortsAt(x) != null,
+      onTapDown: (event) => _sortOn(_sortsAt(event.x)!),
       child: titles,
     );
     final shows =
@@ -1423,8 +1427,8 @@ final class _TableState<T> extends State<Table<T>> {
     final cursor = _shownCursor;
     final columns = w.columns;
     final style = selected ? styles.base.merge(styles.selected) : styles.base;
-    return Listener(
-      onDown: w.selection == TableSelection.none ? null : onDown,
+    return GestureDetector(
+      onTapDown: w.selection == TableSelection.none ? null : onDown,
       child: _Row(
         columns: _columns,
         lines: Theme.of(context).glyphs.borderOf(w.border),

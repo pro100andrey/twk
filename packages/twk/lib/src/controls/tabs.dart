@@ -22,12 +22,12 @@ import '../focus/focus.dart';
 import '../foundation/change_notifier.dart';
 import '../foundation/helpers.dart';
 import '../framework/framework.dart';
+import '../gestures/gesture_detector.dart';
 import '../gestures/mouse.dart';
 import '../layout/child_list.dart';
 import '../semantics/semantics.dart';
 import '../style/style.dart';
 import '../text/label_painter.dart';
-import 'hand.dart';
 
 /// Holds which of [length] tabs is selected: [index], which a [TabBar]
 /// sets and a [TabView] shows.
@@ -295,9 +295,14 @@ final class _TabBarState extends State<TabBar> {
   _RenderTabBar? get _bar =>
       _strip.currentContext?.findRenderObject() as _RenderTabBar?;
 
+  bool _tapsAt(int x) {
+    final bar = _bar;
+    return bar != null && (bar.tabAt(x) != null || bar.edgeAt(x) != 0);
+  }
+
   void _down(PointerEvent event) {
     final bar = _bar;
-    if (bar == null || event.button != 0) {
+    if (bar == null) {
       return;
     }
     if (bar.edgeAt(event.x) case final edge when edge != 0) {
@@ -340,15 +345,11 @@ final class _TabBarState extends State<TabBar> {
         _keys,
         hints: _hints,
         child: Listener(
-          onDown: _down,
           onScroll: _scroll,
-          // the hand over a tab and the arrows that scroll to the next
-          child: HandOver(
-            where: (x, _) {
-              final bar = _bar;
-              return bar != null &&
-                  (bar.tabAt(x) != null || bar.edgeAt(x) != 0);
-            },
+          // a tab and the arrows that scroll to the next
+          child: GestureDetector(
+            tapAt: (x, _) => _tapsAt(x),
+            onTapDown: _down,
             child: _Strip(
               key: _strip,
               tabs: widget.tabs,

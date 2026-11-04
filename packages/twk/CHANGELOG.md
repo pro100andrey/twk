@@ -22,8 +22,9 @@
   for the hand and the tap at once. `onTapDown` answers as the button goes
   down.
 - The hand shows over everything a click presses, `RadioGroup`, `ConfirmInput`,
-  `Select`, `SelectionList`, `Calendar`, `Heatmap` and `Window`'s buttons among
-  them, which showed none.
+  `Select`, `SelectionList`, `Calendar`, `Heatmap`, `Window`'s buttons, a
+  `Table`'s and a `TreeView`'s rows, `OptionList`, `NumberInput`'s arrows and
+  `DatePicker`'s among them, which showed none.
 - `Pressable(behavior:)`: `HitTestBehavior.opaque` takes a press on its empty
   cells too.
 
