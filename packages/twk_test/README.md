@@ -333,7 +333,8 @@ ended.
 
 - `find.byType(Text)` (exactly the type, not its subtypes),
   `find.byKey(key)`, `find.text('Save')` (a `Text`'s string, or the spans
-  of a `Text.rich` joined) and `find.byWidgetPredicate(predicate,
+  of a `Text.rich` joined), `find.textContaining('Sav')` (a match in them, of
+  a `String` or a `RegExp`) and `find.byWidgetPredicate(predicate,
   description:)`.
 - `find.descendant(of:, matching:)`, what `matching` finds below what
   `of` finds (not itself), and `find.ancestor(of:, matching:)`, what it

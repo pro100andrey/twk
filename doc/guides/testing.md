@@ -178,13 +178,16 @@ the tester runs the app's microtasks before it returns, so a
   from the directory `dart test` runs in; where that package is not found it
   throws, saying to pass an absolute path. A golden holds the styles too;
   `styles: false` compares the text alone.
-- Finders as in Flutter: `find.text`, `find.byType`, `find.byKey`,
+- Finders as in Flutter: `find.text`, `find.textContaining`, `find.byType`,
+  `find.byKey`,
   `find.byWidgetPredicate`, `find.descendant` and `find.ancestor`, with
   `findsOneWidget`, `findsNothing`, `findsNWidgets(n)`. `find` is a
   constant, not the tester's: what it finds is the app's under test.
   `find.text('Save')` finds a `Text` whose whole string, or whose spans
   joined, is `Save`, not one that contains it, and only a `Text`: a
   `Button` draws its label itself, and is found by type or predicate.
+  `find.textContaining('Sav')` finds a match of a `String` or a `RegExp`
+  in the same text.
 - What a finder finds, read: `t.widget<T>(finder)`, `t.state<T>(finder)`,
   `t.element(finder)`, `t.renderObject<T>(finder)`, and `t.rect(finder)`,
   its cells (`x`, `y`, `width`, `height`), which turns a widget's text

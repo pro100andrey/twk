@@ -88,6 +88,18 @@ void main() {
     expect(find.byKey(const Key('open')), findsNothing);
   });
 
+  testTwk('find.textContaining finds the Texts a pattern matches in, a rich '
+      'one in its spans joined', (t) async {
+    await t.pumpWidget(const Menu(), size: (20, 6));
+    expect(find.textContaining('Open'), findsOneWidget);
+    expect(find.textContaining('ui'), findsOneWidget);
+    expect(t.widget<Text>(find.textContaining('ui')).spans, hasLength(2));
+    expect(find.textContaining(RegExp(r'\d$')), findsNWidgets(2));
+    expect(find.textContaining('Footer'), findsNothing);
+    expect(find.textContaining('Open').toString(), contains('"Open"'));
+    expect(t.rect(find.textContaining('Open')), t.rect(find.text('Open 0')));
+  });
+
   testTwk('find.text finds the Texts that show the text, a rich one by its '
       'spans joined', (t) async {
     await t.pumpWidget(const Menu(), size: (20, 6));

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- `find.textContaining(pattern)`, the `Text`s with a match of a `String` or a
+  `RegExp` in their string or their spans joined, where `find.text` takes the
+  whole of it.
+
 ## 0.2.0
 
 - `FakeCliTerminal.openInline` opens the inline terminal again once the
