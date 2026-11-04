@@ -25,7 +25,9 @@ import 'stream.dart';
 /// wrapped to [width] columns, in the styles of [theme] (the dark terminal
 /// theme's unless given, as `jsonLines` takes it): for an app that draws the
 /// lines itself, in a panel it cuts and colours by the cell, where a
-/// [MarkdownView] (which lays out its widgets itself) cannot go. A line is
+/// [MarkdownView] (which lays out its widgets itself) cannot go. For text
+/// the mouse selects, a [MarkdownView] in a `SelectionArea` is the way: it
+/// copies a wrapped line whole and leaves the marks out. A line is
 /// its spans; its cells are the columns of its text, with no cell beyond
 /// [width], and no trailing spaces except on a line of code, which a fill
 /// of the code block's style takes to [width]. An empty line, between

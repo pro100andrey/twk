@@ -5,7 +5,7 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math' show min;
+import 'dart:math' show max, min;
 
 import 'package:twk_core/twk_core.dart'
     show
@@ -65,9 +65,11 @@ export 'selectable.dart' hide selectInSelectable;
 /// to the system clipboard (`clipboardSequence`, OSC 52, wrapped for tmux
 /// or GNU screen when the app runs inside one) on the release that selected
 /// it with [copyOnRelease], and by [copyKey]; [onCopy] is told what was
-/// copied. The Texts are joined by line breaks; with [trimTrailingBlanks],
-/// the blanks that end a line are left out, as a terminal leaves them out,
-/// and [copyTransform] makes of that what is copied. While something is
+/// copied. The Texts are joined by line breaks, with a blank line where
+/// rows lie between one and the next, however many, as between a document's
+/// paragraphs; with [trimTrailingBlanks], the blanks that end a line are
+/// left out, as a terminal leaves them out, and [copyTransform] makes of
+/// that what is copied. While something is
 /// selected, [copyKey] and [clearKey] are among the keys a `KeyHintsBar`
 /// shows (`copy`, `clear`). A [controller] tells whether something is
 /// selected and what, and clears it, from outside.
@@ -292,14 +294,26 @@ final class _SelectionAreaState extends State<SelectionArea> {
   Timer? _watch;
   (RenderObject, _Scrollers)? _scroller;
 
-  /// What is selected as it is copied: the Texts joined by line breaks,
-  /// trimmed, and transformed ([SelectionArea.copyTransform]).
+  /// What is selected as it is copied: the Texts joined by line breaks, a
+  /// blank line where rows lie between them, trimmed, and transformed
+  /// ([SelectionArea.copyTransform]).
   String get _text {
-    final text = [
-      for (final MapEntry(key: p, value: (s, e)) in _selected.entries)
-        if (p.owner != null)
-          _copied(_textOf(p), s, e, trim: widget.trimTrailingBlanks),
-    ].join('\n');
+    final out = StringBuffer();
+    // the row under all that is copied so far, a Text beside a taller one
+    // not ending it; null before the first
+    int? bottom;
+    for (final MapEntry(key: p, value: (s, e)) in _selected.entries) {
+      if (p.owner == null) {
+        continue;
+      }
+      final (_, top) = _offsetOf(p);
+      if (bottom != null) {
+        out.write(top > bottom ? '\n\n' : '\n');
+      }
+      out.write(_copied(_textOf(p), s, e, trim: widget.trimTrailingBlanks));
+      bottom = max(bottom ?? top, top + p.height);
+    }
+    final text = out.toString();
     final transform = widget.copyTransform;
     return transform == null || text.isEmpty ? text : transform(text);
   }

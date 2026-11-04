@@ -438,7 +438,7 @@ void main() {
     await t.mouse(MouseKind.down, 0, 0);
     await t.mouse(MouseKind.drag, 7, 7);
     await t.mouse(MouseKind.up, 7, 7);
-    expect(copies, ['Title\none\ntwo\nquote\nfirst']);
+    expect(copies, ['Title\n\none\ntwo\n\nquote\n\nfirst']);
   });
 
   group('wide and CJK text', () {

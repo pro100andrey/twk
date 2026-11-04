@@ -8,6 +8,10 @@
 - `RadioGroup` and `ValueStepper` take `canRequestFocus`, as `Button` and
   `Pressable` do: false for a control of the mouse only, which Tab passes by
   and a click leaves the focus where it was.
+- A `SelectionArea` copies a blank line where rows lie between two `Text`s, as
+  between the paragraphs of a `MarkdownView`, which ran together; those
+  side by side or right under each other are joined by a line break, as
+  they were.
 
 ## 0.2.0
 
