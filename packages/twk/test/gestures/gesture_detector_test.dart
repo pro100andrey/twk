@@ -591,10 +591,10 @@ void main() {
   });
 
   group('the pointer follows the press', () {
-    Widget themed(HandPointer mode, Widget child) => Theme(
+    Widget themed(PointerMode mode, Widget child) => Theme(
       data: const ThemeData.terminal(
         Brightness.dark,
-      ).copyWith(handPointer: mode),
+      ).copyWith(pointerMode: mode),
       child: Align(
         alignment: Alignment.topLeft,
         child: SizedBox(width: 10, height: 1, child: child),
@@ -604,7 +604,7 @@ void main() {
     Future<PointerShape?> shapeOver(
       TwkTester t,
       Widget detector, {
-      HandPointer mode = HandPointer.on,
+      PointerMode mode = PointerMode.on,
       int x = 1,
     }) async {
       await t.pumpWidget(
@@ -626,10 +626,10 @@ void main() {
       expect(await shapeOver(t, down), PointerShape.pointer);
     });
 
-    testTwk('HandPointer.off shows none', (t) async {
+    testTwk('PointerMode.off shows none', (t) async {
       final tap = GestureDetector(onTap: (_) {}, child: blank);
       expect(
-        await shapeOver(t, tap, mode: HandPointer.off),
+        await shapeOver(t, tap, mode: PointerMode.off),
         PointerShape.arrow,
       );
     });
@@ -657,7 +657,7 @@ void main() {
         child: blank,
       );
       expect(
-        await shapeOver(t, grab, mode: HandPointer.off),
+        await shapeOver(t, grab, mode: PointerMode.off),
         PointerShape.grab,
       );
       final drag = GestureDetector(
@@ -695,7 +695,7 @@ void main() {
       final log = <String>[];
       await t.pumpWidget(
         themed(
-          HandPointer.auto,
+          PointerMode.auto,
           GestureDetector(
             onTap: (_) => log.add('around'),
             child: GestureDetector(
@@ -725,7 +725,7 @@ void main() {
       final log = <String>[];
       await t.pumpWidget(
         themed(
-          HandPointer.auto,
+          PointerMode.auto,
           GestureDetector(
             tapAt: (x, _) => x < 3,
             onTap: (e) => log.add('tap ${e.x}'),
@@ -749,7 +749,7 @@ void main() {
           (t.binding.twkApp.terminal as MouseTrackingBackend).mouseTracking;
       await t.pumpWidget(
         themed(
-          HandPointer.auto,
+          PointerMode.auto,
           GestureDetector(
             cursor: PointerShape.arrow,
             onTap: (_) {},
@@ -762,7 +762,7 @@ void main() {
       expect(tracking(), MouseTracking.buttons);
       await t.pumpWidget(
         themed(
-          HandPointer.auto,
+          PointerMode.auto,
           GestureDetector(
             cursor: PointerShape.grab,
             onTap: (_) {},

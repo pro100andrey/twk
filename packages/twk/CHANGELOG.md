@@ -15,6 +15,10 @@
 - `MenuItem(shortcut:)`, a key of the item's own: shown on its right and
   pressed while its menu is open, where a key had to be bound to the same
   function to show and a letter in the label to be pressed.
+- `ThemeData.pointerMode`, `PointerMode.off`, `.auto` or `.on`, is the one setting
+  of the shapes the widgets set: it replaces `ThemeData.handPointer` and
+  `HandPointer`, and the `pointerShapes` of `Window`, `SplitView`, `Table`,
+  `TreeTable` and `Draggable`, which a `Theme` around them does now. Breaking.
 - The pointer follows the press. A `GestureDetector` with `onTap` shows the
   hand by `ThemeData.handPointer`, with nothing else to write; `cursor` puts
   a `PointerShape` of its own in its place, `PointerShape.arrow` for a click
@@ -22,9 +26,8 @@
   for the hand and the tap at once. `onTapDown` answers as the button goes
   down.
 - The hand shows over everything a click presses, `RadioGroup`, `ConfirmInput`,
-  `Select`, `SelectionList`, `Calendar`, `Heatmap`, `Window`'s buttons, a
-  `Table`'s and a `TreeView`'s rows, `OptionList`, `NumberInput`'s arrows and
-  `DatePicker`'s among them, which showed none.
+  `Calendar`, `Heatmap`, `Window`'s buttons, `NumberInput`'s arrows and
+  `DatePicker`'s among them, which showed none. Rows of a list keep the arrow.
 - `Pressable(behavior:)`: `HitTestBehavior.opaque` takes a press on its empty
   cells too.
 

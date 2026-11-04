@@ -192,6 +192,7 @@ final class _OptionListState extends State<OptionList> {
       onScroll: widget.onHighlight == null ? null : _scroll,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
+        cursor: PointerShape.arrow,
         tapAt: (x, y) => _render?.optionAt(x, y) != null,
         onTapDown: widget.onSelected == null
             ? null

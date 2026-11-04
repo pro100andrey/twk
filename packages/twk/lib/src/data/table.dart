@@ -353,8 +353,9 @@ final class TableController extends ChangeNotifier {
 ///
 /// A drag from the gap after the title of a column (from the cell after
 /// it without a gap) makes the column as wide as the drag says, the
-/// pointer [PointerShape.ewResize] over that gap with [pointerShapes]
-/// where the terminal shows the pointer's shape (and then reports all
+/// pointer [PointerShape.ewResize] over that gap by
+/// [ThemeData.pointerMode] where the terminal shows the pointer's shape
+/// (and then reports all
 /// motion of the mouse over the header); while the
 /// table has the focus, Shift+Left and Shift+Right make the column of the
 /// cell selected (with [TableSelection.cell]), or that sorted by, or the
@@ -457,7 +458,6 @@ final class Table<T> extends StatefulWidget {
     this.selectedStyle,
     this.unfocusedSelectedStyle,
     this.cursorStyle,
-    this.pointerShapes = true,
     this.sortKeys = true,
   }) : source = null,
        assert(rowHeight == null || rowHeight > 0, 'rows a row tall or more'),
@@ -496,7 +496,6 @@ final class Table<T> extends StatefulWidget {
     this.selectedStyle,
     this.unfocusedSelectedStyle,
     this.cursorStyle,
-    this.pointerShapes = true,
     this.sortKeys = true,
   }) : rows = null,
        assert(rowHeight == null || rowHeight > 0, 'rows a row tall or more'),
@@ -587,10 +586,6 @@ final class Table<T> extends StatefulWidget {
   /// The cell selected while the table has the focus;
   /// [ThemeData.primary] reversed when null.
   final Style? cursorStyle;
-
-  /// Whether the pointer over the edge of a column is
-  /// [PointerShape.ewResize], where the terminal shows the pointer's shape.
-  final bool pointerShapes;
 
   /// Whether `s`, `<` and `>` sort the rows while the table has the focus,
   /// where a column sorts: false leaves them to the bindings above it (an
@@ -1347,7 +1342,7 @@ final class _TableState<T> extends State<Table<T>> {
 
   /// [titles] with the hand over a column that sorts, and in a region
   /// whose pointer is [PointerShape.ewResize] over the edge of a column,
-  /// with [Table.pointerShapes] where the terminal shows the pointer's
+  /// by [ThemeData.pointerMode] where the terminal shows the pointer's
   /// shape; without that region otherwise, so that the mouse's motion is
   /// not reported for nothing.
   Widget _shaped(Widget titles) {
@@ -1358,7 +1353,7 @@ final class _TableState<T> extends State<Table<T>> {
       child: titles,
     );
     final shows =
-        widget.pointerShapes &&
+        Theme.of(context).setsPointerShapes &&
         (TerminalStatus.of(context)?.showsPointerShape ?? false);
     if (!shows) {
       _edgeHovered = null;
@@ -1429,6 +1424,7 @@ final class _TableState<T> extends State<Table<T>> {
     final style = selected ? styles.base.merge(styles.selected) : styles.base;
     return GestureDetector(
       onTapDown: w.selection == TableSelection.none ? null : onDown,
+      cursor: PointerShape.arrow,
       child: _Row(
         columns: _columns,
         lines: Theme.of(context).glyphs.borderOf(w.border),

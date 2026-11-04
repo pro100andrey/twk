@@ -279,7 +279,7 @@ final appScenarios = <AppScenario>[
     },
     steps: 400,
   ),
-  for (final mode in HandPointer.values) _handScenario(mode),
+  for (final mode in PointerMode.values) _handScenario(mode),
   const AppScenario(
     'chips-narrow',
     'Chip, ChipList, ValueStepper, SegmentedButton and Breadcrumbs with long '
@@ -485,23 +485,23 @@ AppScenario _markdownStream(String name, String about, Glyphs? glyphs) =>
     );
 
 /// 20 mouse motions a frame over a screen of Buttons, a TabBar and a sortable
-/// Table, under the theme with [ThemeData.handPointer] as [mode].
+/// Table, under the theme with [ThemeData.pointerMode] as [mode].
 ///
 /// The rule it measures: every tap target is a MouseRegion that shows the
 /// hand where the mode says (`off` none, `auto` where motion is reported
 /// already, `on` everywhere, which has the terminal report all motion).
 /// The runs differ in the shapes the terminal is told and what the regions
 /// do as the pointer crosses them.
-AppScenario _handScenario(HandPointer mode) => AppScenario(
+AppScenario _handScenario(PointerMode mode) => AppScenario(
   'hand-${mode.name}',
   '20 mouse motions a frame over 3 rows of Buttons, a TabBar and a sortable '
-      'Table, under ThemeData.handPointer ${mode.name}',
+      'Table, under ThemeData.pointerMode ${mode.name}',
   (w, h) async {
     final tabs = TabController(length: 4);
     final table = TableController(sortColumn: 0);
     final r = await AppRun.start(
       Theme(
-        data: ThemeData.dark.copyWith(handPointer: mode),
+        data: ThemeData.dark.copyWith(pointerMode: mode),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

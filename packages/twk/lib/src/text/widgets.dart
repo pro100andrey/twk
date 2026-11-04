@@ -236,7 +236,7 @@ final class Text extends LeafRenderObjectWidget {
       }
       return;
     }
-    final hand = theme.handPointer;
+    final hand = theme.pointerMode;
     if (taps != null) {
       taps
         ..onLinkTap = onLinkTap
@@ -434,18 +434,18 @@ final class _LinkTaps {
   late final listener = RenderListener(onDown: _down, onUp: _up);
 
   /// The theme's choice of the hand over a phrase that taps.
-  HandPointer get hand => _hand;
-  HandPointer _hand;
+  PointerMode get hand => _hand;
+  PointerMode _hand;
 
-  set hand(HandPointer hand) {
+  set hand(PointerMode hand) {
     _hand = hand;
-    listener.cursorAsksMotion = hand == HandPointer.on;
+    listener.cursorAsksMotion = hand == PointerMode.on;
   }
 
   /// The hand over a phrase of a [Span.tap] and over a link, by the theme;
   /// null elsewhere.
   PointerShape? _cursorAt(int x, int y) {
-    if (_hand == HandPointer.off) {
+    if (_hand == PointerMode.off) {
       return null;
     }
     final cell = paragraph.cellAt(x, y);

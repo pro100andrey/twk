@@ -9,14 +9,14 @@ import '../style/theme.dart';
 import 'mouse.dart';
 
 /// The hand (`PointerShape.pointer`) over what a click presses, by the one
-/// rule of [ThemeData.handPointer], or [shape] in its place. A
+/// rule of [ThemeData.pointerMode], or [shape] in its place. A
 /// `GestureDetector` shows it from its taps: this is for what presses
 /// otherwise, a menu's press, drag and release.
 ///
 /// Over [child] where [active], else over the cells [where] says yes to
 /// (`x` and `y` in [child]'s own coordinates: a tab, not the bar around
-/// it); the theme's [HandPointer.off] shows none, [HandPointer.auto] only
-/// where the mouse's motion is reported already, [HandPointer.on] always,
+/// it); the theme's [PointerMode.off] shows none, [PointerMode.auto] only
+/// where the mouse's motion is reported already, [PointerMode.on] always,
 /// which asks for the motion. It is a [MouseRegion] in every mode and every
 /// state, so that a theme or a state changing does not rebuild [child]
 /// from nothing.
@@ -53,8 +53,8 @@ final class HandOver extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final own = shape;
-    final mode = own == null && active ? Theme.of(context).handPointer : null;
-    final shown = active && mode != HandPointer.off
+    final mode = own == null && active ? Theme.of(context).pointerMode : null;
+    final shown = active && mode != PointerMode.off
         ? own ?? PointerShape.pointer
         : null;
     final where = this.where;
@@ -64,7 +64,7 @@ final class HandOver extends StatelessWidget {
           ? (x, y) => where(x, y) ? shown : null
           : null,
       cursorAsksMotion: own == null
-          ? mode == HandPointer.on
+          ? mode == PointerMode.on
           : own != PointerShape.arrow,
       behavior: behavior,
       child: child,

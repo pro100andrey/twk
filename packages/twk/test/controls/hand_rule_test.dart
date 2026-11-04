@@ -1,5 +1,5 @@
 // The hand over everything a click presses, by one rule (ThemeData.
-// handPointer: off, auto, on): each tap target shows it over the cells it
+// pointerMode: off, auto, on): each tap target shows it over the cells it
 // presses and not beside them; the three modes, and what each has the
 // terminal report of the mouse; the shape written as it changes, not as
 // the mouse moves. Read off the tester's terminal, which shows pointer
@@ -10,10 +10,10 @@ import 'package:twk_core/twk_core.dart'
     show MouseTracking, MouseTrackingBackend;
 import 'package:twk_test/twk_test.dart';
 
-Widget themed(HandPointer mode, Widget child) => Theme(
+Widget themed(PointerMode mode, Widget child) => Theme(
   data: const ThemeData.terminal(
     Brightness.dark,
-  ).copyWith(handPointer: mode),
+  ).copyWith(pointerMode: mode),
   child: child,
 );
 
@@ -61,7 +61,7 @@ void main() {
       (int, int) size = (40, 6),
     }) async {
       await t.pumpWidget(
-        themed(HandPointer.on, app),
+        themed(PointerMode.on, app),
         size: size,
         pointerShapes: true,
       );
@@ -103,7 +103,7 @@ void main() {
         'or a divider', (t) async {
       await t.pumpWidget(
         themed(
-          HandPointer.on,
+          PointerMode.on,
           Overlay(
             child: MenuBar(
               look: PanelLook.bordered,
@@ -156,7 +156,7 @@ void main() {
     testTwk('the dismiss mark of a callout, not the callout', (t) async {
       await t.pumpWidget(
         themed(
-          HandPointer.on,
+          PointerMode.on,
           Callout.text('hello there', onDismissed: () {}),
         ),
         size: (30, 3),
@@ -247,7 +247,7 @@ void main() {
     }) async {
       await t.pumpWidget(
         themed(
-          HandPointer.on,
+          PointerMode.on,
           Align(alignment: Alignment.topLeft, child: app),
         ),
         size: size,
@@ -276,68 +276,6 @@ void main() {
       await over(t, Button('go', onPressed: () {}));
     });
 
-    testTwk('SelectionList', (t) async {
-      await over(
-        t,
-        SizedBox(
-          width: 20,
-          height: 3,
-          child: SelectionList<int>(
-            itemCount: 2,
-            keyOf: (i) => i,
-            itemBuilder: (_, i) => Text('item $i'),
-          ),
-        ),
-      );
-    });
-
-    testTwk('OptionList', (t) async {
-      await over(
-        t,
-        SizedBox(
-          width: 20,
-          child: OptionList(
-            options: const [Option('one'), Option('two')],
-            highlighted: 0,
-            onSelected: (_) {},
-          ),
-        ),
-      );
-    });
-
-    testTwk('TreeView', (t) async {
-      await over(
-        t,
-        SizedBox(
-          width: 20,
-          height: 3,
-          child: TreeView<String>(
-            roots: const ['root'],
-            children: (_) => const [],
-            label: (_, entry) => Text(entry.node),
-            nodeKey: (node) => node,
-          ),
-        ),
-      );
-    });
-
-    testTwk('Table, a row', (t) async {
-      await over(
-        t,
-        const SizedBox(
-          width: 20,
-          height: 4,
-          child: Table<String>(
-            rows: ['one'],
-            columns: [
-              TableColumn(title: 'Name', cell: TableCell.new),
-            ],
-          ),
-        ),
-        at: (1, 1),
-      );
-    });
-
     testTwk('Calendar, a day', (t) async {
       await over(
         t,
@@ -349,7 +287,7 @@ void main() {
     testTwk('NumberInput, its arrows', (t) async {
       await t.pumpWidget(
         themed(
-          HandPointer.on,
+          PointerMode.on,
           Align(
             alignment: Alignment.topLeft,
             child: SizedBox(
@@ -366,8 +304,89 @@ void main() {
     });
   });
 
+  // A row of a list keeps the arrow: a hand over all of it tells nothing.
+  group('rows of a list keep the arrow', () {
+    Future<void> arrowOver(
+      TwkTester t,
+      Widget app, {
+      (int, int) at = (1, 0),
+    }) async {
+      await t.pumpWidget(
+        themed(
+          PointerMode.on,
+          Align(alignment: Alignment.topLeft, child: app),
+        ),
+        size: (40, 10),
+        pointerShapes: true,
+      );
+      expect(await shapeAt(t, at.$1, at.$2), PointerShape.arrow);
+    }
+
+    testTwk('SelectionList', (t) async {
+      await arrowOver(
+        t,
+        SizedBox(
+          width: 20,
+          height: 3,
+          child: SelectionList<int>(
+            itemCount: 2,
+            keyOf: (i) => i,
+            itemBuilder: (_, i) => Text('item $i'),
+          ),
+        ),
+      );
+    });
+
+    testTwk('OptionList', (t) async {
+      await arrowOver(
+        t,
+        SizedBox(
+          width: 20,
+          child: OptionList(
+            options: const [Option('one'), Option('two')],
+            highlighted: 0,
+            onSelected: (_) {},
+          ),
+        ),
+      );
+    });
+
+    testTwk('TreeView', (t) async {
+      await arrowOver(
+        t,
+        SizedBox(
+          width: 20,
+          height: 3,
+          child: TreeView<String>(
+            roots: const ['root'],
+            children: (_) => const [],
+            label: (_, entry) => Text(entry.node),
+            nodeKey: (node) => node,
+          ),
+        ),
+      );
+    });
+
+    testTwk('Table, a row', (t) async {
+      await arrowOver(
+        t,
+        const SizedBox(
+          width: 20,
+          height: 4,
+          child: Table<String>(
+            rows: ['one'],
+            columns: [
+              TableColumn(title: 'Name', cell: TableCell.new),
+            ],
+          ),
+        ),
+        at: (1, 1),
+      );
+    });
+  });
+
   group('the modes', () {
-    Widget checkbox(HandPointer mode, {Widget? beside}) => themed(
+    Widget checkbox(PointerMode mode, {Widget? beside}) => themed(
       mode,
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -383,7 +402,7 @@ void main() {
 
     testTwk('off: no hand, whatever else asks for the motion', (t) async {
       await t.pumpWidget(
-        checkbox(HandPointer.off, beside: hover),
+        checkbox(PointerMode.off, beside: hover),
         size: (20, 3),
         pointerShapes: true,
       );
@@ -394,7 +413,7 @@ void main() {
     testTwk('auto: no hand, and no motion asked for, where nothing else '
         'asks', (t) async {
       await t.pumpWidget(
-        checkbox(HandPointer.auto),
+        checkbox(PointerMode.auto),
         size: (20, 3),
         pointerShapes: true,
       );
@@ -405,7 +424,7 @@ void main() {
     testTwk('auto: the hand where something else asks for the motion, and '
         'asks for nothing more', (t) async {
       await t.pumpWidget(
-        checkbox(HandPointer.auto, beside: hover),
+        checkbox(PointerMode.auto, beside: hover),
         size: (20, 3),
         pointerShapes: true,
       );
@@ -416,8 +435,8 @@ void main() {
 
     testTwk('auto is the default', (t) async {
       expect(
-        const ThemeData.terminal(Brightness.dark).handPointer,
-        HandPointer.auto,
+        const ThemeData.terminal(Brightness.dark).pointerMode,
+        PointerMode.auto,
       );
       await t.pumpWidget(
         Column(
@@ -437,7 +456,7 @@ void main() {
       t,
     ) async {
       await t.pumpWidget(
-        checkbox(HandPointer.on),
+        checkbox(PointerMode.on),
         size: (20, 3),
         pointerShapes: true,
       );
@@ -447,7 +466,7 @@ void main() {
     });
 
     testTwk('the mode changing keeps the state of what it wraps', (t) async {
-      final mode = ValueNotifier(HandPointer.off);
+      final mode = ValueNotifier(PointerMode.off);
       addTearDown(mode.dispose);
       var inits = 0;
       await t.pumpWidget(
@@ -465,10 +484,10 @@ void main() {
         pointerShapes: true,
       );
       expect(inits, 1);
-      mode.value = HandPointer.on;
+      mode.value = PointerMode.on;
       await t.pump();
       expect(tracking(t), MouseTracking.motion);
-      mode.value = HandPointer.auto;
+      mode.value = PointerMode.auto;
       await t.pump();
       expect(tracking(t), isNot(MouseTracking.motion));
       expect(inits, 1);
@@ -478,7 +497,7 @@ void main() {
       t,
     ) async {
       await t.pumpWidget(
-        checkbox(HandPointer.on),
+        checkbox(PointerMode.on),
         size: (20, 3),
         pointerShapes: true,
       );

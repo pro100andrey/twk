@@ -64,6 +64,13 @@ Future<void> arrive(TwkTester t) => t.pump(const Duration(milliseconds: 200));
 (int, int, int, int) rect(WindowController c) =>
     (c.left, c.top, c.width, c.height);
 
+Widget pointersOff(Widget child) => Theme(
+  data: const ThemeData.terminal(
+    Brightness.dark,
+  ).copyWith(pointerMode: PointerMode.off),
+  child: child,
+);
+
 void main() {
   // windows_closed.dart, run in a VM of its own, compiled once
   late String closed;
@@ -819,18 +826,16 @@ void main() {
   group('the pointer', () {
     /// A layer with a window of [c], 14 × 4 cells, its title bar between
     /// columns 3 and 9 of the top row, its buttons after it.
-    Widget layer(WindowController c, {bool pointerShapes = true}) =>
-        WindowLayer(
-          windows: [
-            Window(
-              title: 'w',
-              controller: c,
-              pointerShapes: pointerShapes,
-              child: const Text('body'),
-            ),
-          ],
-          child: const SizedBox(),
-        );
+    Widget layer(WindowController c) => WindowLayer(
+      windows: [
+        Window(
+          title: 'w',
+          controller: c,
+          child: const Text('body'),
+        ),
+      ],
+      child: const SizedBox(),
+    );
 
     test('grab over the title bar, grabbing while it moves the window, '
         'the resize shapes over the edges and the corners; none while it '
@@ -887,7 +892,7 @@ void main() {
     test('left alone with pointerShapes false', () async {
       final c = WindowController(left: 2, top: 1, width: 14, height: 4);
       final run = ShapeRun(
-        layer(c, pointerShapes: false),
+        pointersOff(layer(c)),
         width: 30,
         height: 8,
       );

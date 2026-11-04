@@ -863,7 +863,7 @@ final class _HeadingMark extends StatelessWidget {
 /// the mouse is over a link: a run of a paragraph that a [_Links] around it
 /// covers, or a cell whose style links it (OSC 8). Only where the view has
 /// a link ([linked]) and a link does something ([shaped]), by the theme's
-/// rule, as a `Text`'s link ([ThemeData.handPointer]). A click on a link,
+/// rule, as a `Text`'s link ([ThemeData.pointerMode]). A click on a link,
 /// pressed and released on the same cell, it tells [onLinkTap].
 final class _LinkPointer extends StatefulWidget {
   const _LinkPointer({
@@ -888,14 +888,14 @@ final class _LinkPointerState extends State<_LinkPointer> {
 
   @override
   Widget build(BuildContext context) {
-    final mode = Theme.of(context).handPointer;
-    final follows = widget.linked && widget.shaped && mode != HandPointer.off;
+    final mode = Theme.of(context).pointerMode;
+    final follows = widget.linked && widget.shaped && mode != PointerMode.off;
     final taps = widget.linked && widget.onLinkTap != null;
     return MouseRegion(
       cursorAt: follows
           ? (x, y) => _linkUnder(x, y) != null ? PointerShape.pointer : null
           : null,
-      cursorAsksMotion: mode == HandPointer.on,
+      cursorAsksMotion: mode == PointerMode.on,
       behavior: HitTestBehavior.translucent,
       child: Listener(
         onDown: taps ? _down : null,

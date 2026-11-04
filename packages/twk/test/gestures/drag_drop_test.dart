@@ -136,6 +136,13 @@ List<String> mouseModes(TwkTester t) => [
     '?${m[1]}${m[2]}',
 ];
 
+Widget pointersOff(Widget child) => Theme(
+  data: const ThemeData.terminal(
+    Brightness.dark,
+  ).copyWith(pointerMode: PointerMode.off),
+  child: child,
+);
+
 void main() {
   test('the details of a drag over a target are equal when their data and '
       'events are, and describe themselves', () {
@@ -538,17 +545,16 @@ void main() {
   group('the pointer', () {
     /// A Draggable of 'a' at the top left, a target of numbers at the
     /// top right and one of strings under it, 6 × 2 cells each.
-    Widget app({bool pointerShapes = true}) => Overlay(
+    Widget app() => Overlay(
       child: Stack(
         children: [
-          Positioned(
+          const Positioned(
             left: 0,
             top: 0,
             child: Draggable<String>(
               data: 'a',
-              feedback: const Text('[a]'),
-              pointerShapes: pointerShapes,
-              child: const Text('drag'),
+              feedback: Text('[a]'),
+              child: Text('drag'),
             ),
           ),
           Positioned(
@@ -596,7 +602,7 @@ void main() {
     });
 
     test('left alone with pointerShapes false', () async {
-      final run = ShapeRun(app(pointerShapes: false));
+      final run = ShapeRun(pointersOff(app()));
       await run.start();
       await run.move(1, 0);
       await run.press(1, 0);

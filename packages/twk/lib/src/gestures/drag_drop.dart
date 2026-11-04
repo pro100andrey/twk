@@ -18,6 +18,7 @@ import '../foundation/foundation.dart';
 import '../framework/framework.dart';
 import '../layout/one_child.dart';
 import '../overlay/layer.dart';
+import '../style/theme.dart' show Theme, ThemeData;
 import 'gesture_detector.dart';
 import 'mouse.dart';
 
@@ -80,16 +81,16 @@ typedef DragTargetBuilder<T extends Object> = Widget Function(
 /// with no button held. A Draggable that leaves the tree while dragged ends
 /// the drag and is told nothing.
 ///
-/// With [pointerShapes], the pointer shows what a drag would do, as a
-/// [MouseRegion.cursor] sets it where the terminal shows it:
+/// By [ThemeData.pointerMode], the pointer shows what a drag would do, as
+/// a [MouseRegion.cursor] sets it where the terminal shows it:
 /// [PointerShape.grab] over the child, [PointerShape.grabbing] while it is
 /// dragged, and [PointerShape.noDrop] while the drag is over [DragTarget]s
 /// none of which accepts it.
 ///
 /// While it is mounted, the terminal reports presses and releases, and
-/// motion with a button held while it is pressed (see [Listener]); with
-/// [pointerShapes], where the terminal shows the pointer's shape, all
-/// motion (see [MouseRegion]). Without an [Overlay] above it the build
+/// motion with a button held while it is pressed (see [Listener]); where
+/// it sets the pointer's shape and the terminal shows it, all motion (see
+/// [MouseRegion]). Without an [Overlay] above it the build
 /// fails with a [StateError] that says where to place one.
 ///
 /// A file dragged to the trash, which takes files only:
@@ -129,7 +130,6 @@ final class Draggable<T extends Object> extends StatefulWidget {
     this.onDragCompleted,
     this.onDragCanceled,
     this.behavior = HitTestBehavior.deferToChild,
-    this.pointerShapes = true,
   });
 
   /// What it drags: what a target it is dropped on gets, as it was when the
@@ -159,16 +159,14 @@ final class Draggable<T extends Object> extends StatefulWidget {
   /// Where it is hit.
   final HitTestBehavior behavior;
 
-  /// Whether it sets the pointer's shape: grab over the child, grabbing
-  /// while it is dragged, no-drop over targets that refuse it. False
-  /// leaves the pointer to the regions around it.
-  final bool pointerShapes;
-
   @override
   State<Draggable<T>> createState() => _DraggableState<T>();
 }
 
 final class _DraggableState<T extends Object> extends State<Draggable<T>> {
+  // whether the theme has it set the pointer's shape, as last built
+  var _shapes = true;
+
   // the left button pressed over it, held, until it is a drag
   PointerEvent? _pressed;
 
@@ -285,7 +283,7 @@ final class _DraggableState<T extends Object> extends State<Draggable<T>> {
         // over the whole overlay, so that the shape shows wherever the
         // mouse goes; what is under it is hit as well
         builder: (_) => MouseRegion(
-          cursor: !widget.pointerShapes
+          cursor: !_shapes
               ? null
               : (_refused ? PointerShape.noDrop : PointerShape.grabbing),
           behavior: HitTestBehavior.translucent,
@@ -398,6 +396,7 @@ final class _DraggableState<T extends Object> extends State<Draggable<T>> {
   Widget build(BuildContext context) {
     // fails here rather than at a drag
     Overlay.of(context);
+    _shapes = Theme.of(context).setsPointerShapes;
     final w = widget;
     return Listener(
       onDown: _down,
@@ -406,7 +405,7 @@ final class _DraggableState<T extends Object> extends State<Draggable<T>> {
       behavior: w.behavior,
       // hit where the listener is
       child: MouseRegion(
-        cursor: w.pointerShapes ? PointerShape.grab : null,
+        cursor: _shapes ? PointerShape.grab : null,
         behavior: w.behavior,
         child: _dragging ? w.childWhenDragging ?? w.child : w.child,
       ),

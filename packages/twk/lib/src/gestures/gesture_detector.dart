@@ -89,7 +89,7 @@ typedef DragListener = void Function(DragDetails details);
 ///
 /// A press is declared here once, and the pointer follows from it. Where a
 /// tap of the left button is told ([onTap], [onTapDown]), the pointer is the
-/// hand, by [ThemeData.handPointer], and there is no hand to remember. A
+/// hand, by [ThemeData.pointerMode], and there is no hand to remember. A
 /// double tap alone, or a press of another button alone, shows none.
 /// [cursor] puts a shape of its own in the hand's place, and over all of it
 /// where no tap is told, so that a drag has a pointer too. [tapAt] is for
@@ -176,7 +176,7 @@ final class GestureDetector extends StatefulWidget {
   final bool Function(int x, int y)? tapAt;
 
   /// The pointer's shape in place of the hand, whatever
-  /// [ThemeData.handPointer] says, over the cells of a tap, or over all of
+  /// [ThemeData.pointerMode] says, over the cells of a tap, or over all of
   /// it with neither [onTap] nor [onTapDown]; null for the hand.
   /// `PointerShape.arrow`, for a click that presses nothing (the ground
   /// around a dialog), has the terminal report no motion for it; another

@@ -162,20 +162,20 @@ void main() {
 
   test('a link follows the theme: off shows no hand and asks for no motion, '
       'as auto asks for none', () async {
-    Widget app(HandPointer mode) => Theme(
+    Widget app(PointerMode mode) => Theme(
       data: const ThemeData.terminal(
         Brightness.dark,
-      ).copyWith(handPointer: mode),
+      ).copyWith(pointerMode: mode),
       child: const MarkdownView('see [a link](https://x.dev)'),
     );
-    final off = _Run(app(HandPointer.off));
+    final off = _Run(app(PointerMode.off));
     await off.settle();
     off.shapes();
     expect(off.term.mouseTracking, MouseTracking.off);
     await off.move(6, 0);
     expect(off.shapes(), isEmpty);
     await off.quit();
-    final auto = _Run(app(HandPointer.auto));
+    final auto = _Run(app(PointerMode.auto));
     await auto.settle();
     expect(auto.term.mouseTracking, MouseTracking.off);
     await auto.quit();
@@ -187,7 +187,7 @@ void main() {
       Theme(
         data: const ThemeData.terminal(
           Brightness.dark,
-        ).copyWith(handPointer: HandPointer.on),
+        ).copyWith(pointerMode: PointerMode.on),
         child: _Steps(key: key, const [
           'plain text',
           'plain text and [a link](https://x.dev)\n\nmore',

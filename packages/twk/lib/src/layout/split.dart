@@ -254,7 +254,7 @@ final class SplitPane {
 /// fractions are set from the sizes each move leaves, a pane it collapses
 /// keeping its share; keys that come before the panes are laid out again,
 /// typed in one read, move the divider on from where the last one left it.
-/// With [pointerShapes] the pointer over a divider is
+/// By [ThemeData.pointerMode] the pointer over a divider is
 /// [PointerShape.ewResize] (between panes one below another
 /// [PointerShape.nsResize]), as [MouseRegion.cursor] sets it where the
 /// terminal shows it, which then reports all motion of the mouse.
@@ -321,7 +321,6 @@ final class SplitView extends StatefulWidget {
     this.type,
     this.style = const Style(),
     this.focusedStyle,
-    this.pointerShapes = true,
   });
 
   /// The panes, from the left or the top; a divider between each two.
@@ -348,10 +347,6 @@ final class SplitView extends StatefulWidget {
   /// Whether the panes on either side of a divider are laid out over its
   /// cells too, sharing their edges along it.
   final bool shareEdges;
-
-  /// Whether the pointer over a divider has the shape of a resize along
-  /// [direction]. False leaves it to the regions around the view.
-  final bool pointerShapes;
 
   @override
   State<SplitView> createState() => _SplitViewState();
@@ -608,7 +603,7 @@ final class _SplitViewState extends State<SplitView> {
         },
         hints: across ? _acrossHints : _downHints,
         child: MouseRegion(
-          cursor: !widget.pointerShapes
+          cursor: !Theme.of(context).setsPointerShapes
               ? null
               : (across ? PointerShape.ewResize : PointerShape.nsResize),
           behavior: HitTestBehavior.deferToChild,

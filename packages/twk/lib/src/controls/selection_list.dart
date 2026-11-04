@@ -5,7 +5,7 @@ library;
 
 import 'dart:collection';
 
-import 'package:twk_core/twk_core.dart' show Attr, TextWrap;
+import 'package:twk_core/twk_core.dart' show Attr, PointerShape, TextWrap;
 
 import '../focus/focus.dart';
 import '../foundation/change_notifier.dart';
@@ -591,6 +591,7 @@ final class _SelectionListState<K> extends State<SelectionList<K>> {
     }
     return GestureDetector(
       onTap: enabled ? (_) => _tap(index) : null,
+      cursor: PointerShape.arrow,
       // the hidden cursor on the cursor's row
       child: ActiveItem(
         active: index == _cursorAt,

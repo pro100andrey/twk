@@ -271,7 +271,7 @@ String _fruitCode(Options o) => [
   '',
   '/// [fruit] in the box [from], dragged with the mouse: the pointer a',
   '/// hand over it, a closed one while it is dragged, no-drop over a box',
-  "/// that refuses it (Draggable's pointerShapes).",
+  "/// that refuses it (Draggable's pointer shapes).",
   'Widget _draggable(String fruit, String from, ThemeData theme) {',
   '  Widget label([Style style = const Style()]) =>',
   _labelLine,

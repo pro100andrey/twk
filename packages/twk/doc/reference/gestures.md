@@ -52,8 +52,8 @@ presses, releases and the wheel (mode 1000) for `onDown`, `onUp` and
 for `onMove` and a `MouseRegion`; the mode is the terminal's, for the whole
 app, not for an area: one `MouseRegion` with a callback or a shown `cursor`,
 or a `Button`, has all motion reported everywhere, and
-`ThemeData.handPointer` is what keeps controls from asking
-for it: `HandPointer.auto`, the default, asks for nothing, and only `HandPointer.on` makes controls ask; meanwhile the terminal's selection and wheel work in an app that
+`ThemeData.pointerMode` is what keeps controls from asking
+for it: `PointerMode.auto`, the default, asks for nothing, and only `PointerMode.on` makes controls ask; meanwhile the terminal's selection and wheel work in an app that
 uses no mouse. In the inline mode the mouse stays the terminal's.
 
 ## `IgnorePointer`

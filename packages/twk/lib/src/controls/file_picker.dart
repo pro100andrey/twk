@@ -8,7 +8,8 @@ import 'dart:convert' show utf8;
 import 'dart:math' as math;
 
 import 'package:meta/meta.dart';
-import 'package:twk_core/twk_core.dart' show Attr, CrossAxisAlignment, TextWrap;
+import 'package:twk_core/twk_core.dart'
+    show Attr, CrossAxisAlignment, PointerShape, TextWrap;
 
 import '../editing/autocomplete.dart';
 import '../editing/text_editing.dart';
@@ -1284,6 +1285,7 @@ final class _FilePickerState extends State<FilePicker> {
     return GestureDetector(
       key: ValueKey<String>(entry.path),
       onTapDown: (_) => setState(() => _cursor = entry.path),
+      cursor: PointerShape.arrow,
       onDoubleTap: (_) => _take(entry),
       // the hidden cursor on the cursor's row
       child: ActiveItem(

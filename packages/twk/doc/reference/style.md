@@ -28,7 +28,7 @@ selection of a list without the focus), `hover` (what the mouse is over),
 `onPrimary` (text on a `primary` fill), `shade` and `shadeAlpha` (a
 barrier's dimming: black at half on a dark theme, at 28 % on a light one);
 on a theme of palette colors each of the others is the slot it starts from;
-`handPointer` (`HandPointer.off`, `auto` (the default) or `on`), the hand over
+`pointerMode` (`PointerMode.off`, `auto` (the default) or `on`), the hand over
 what a click presses, where the terminal shows pointer shapes: over buttons,
 boxes, switches, tabs, menu titles and items, stepper headers, a Callout's
 [x], sortable table titles, pressable key hints, `Span.tap` and `onLinkTap`

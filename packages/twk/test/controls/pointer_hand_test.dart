@@ -18,7 +18,7 @@ void main() {
       Theme(
         data: const ThemeData.terminal(
           Brightness.dark,
-        ).copyWith(handPointer: HandPointer.on),
+        ).copyWith(pointerMode: PointerMode.on),
         child: ValueListenableBuilder<bool>(
           valueListenable: enabled,
           builder: (context, on, _) => Row(

@@ -29,7 +29,7 @@ import '../text/widgets.dart';
 /// `GestureDetector`); while it is enabled with an [onTap], the pointer
 /// is the hand over it ([PointerShape.pointer], where the terminal shows
 /// pointer shapes) if the theme asks for it
-/// ([ThemeData.handPointer]). [builder] is called again as
+/// ([ThemeData.pointerMode]). [builder] is called again as
 /// the focus comes and goes.
 ///
 /// A control of its own, which Space and a click turn on and off, shown in
