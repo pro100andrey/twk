@@ -71,9 +71,9 @@ FileWriter createFile(String path, List<int> header) {
   return (write: file.writeFrom, close: file.close);
 }
 
-/// SIGINT (a CTRL_C_EVENT on Windows) calls [interrupt]; SIGTERM, or on
-/// Windows SIGHUP (the console being closed), awaits [terminate], then
-/// exits with 143 or 129.
+/// SIGINT (a CTRL_C_EVENT on Windows) calls [interrupt]; SIGTERM, where
+/// there is one, and SIGHUP (on Windows the console being closed) await
+/// [terminate], then exit with 143 and 129. SIGQUIT can't be watched.
 List<StreamSubscription<void>> watchSignals(
   void Function() interrupt,
   Future<void> Function() terminate,
@@ -89,10 +89,8 @@ List<StreamSubscription<void>> watchSignals(
   return [
     ProcessSignal.sigint.watch().listen((_) => interrupt()),
     // Windows: SIGHUP is the console being closed; SIGTERM isn't there
-    if (Platform.isWindows)
-      exitOn(ProcessSignal.sighup, 129)
-    else
-      exitOn(ProcessSignal.sigterm, 143),
+    exitOn(ProcessSignal.sighup, 129),
+    if (!Platform.isWindows) exitOn(ProcessSignal.sigterm, 143),
   ];
 }
 

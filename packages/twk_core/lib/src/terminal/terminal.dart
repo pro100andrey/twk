@@ -1141,9 +1141,9 @@ final class Terminal
 
   /// Ctrl+C typed while terminal-generated signals are on, or SIGINT sent
   /// from outside (a CTRL_C_EVENT on Windows), becomes a key, so the app
-  /// decides what it means. SIGTERM, or on Windows the console being closed
-  /// (SIGHUP), restores the terminal and exits. Windows' Ctrl+Break can't
-  /// be watched from Dart: it ends the process without the restore.
+  /// decides what it means. SIGTERM and SIGHUP (on Windows the console being
+  /// closed) restore the terminal and exit. Windows' Ctrl+Break and SIGQUIT
+  /// can't be watched from Dart: they end the process without the restore.
   static List<StreamSubscription<void>> _watchSignals(
     void Function(InputEvent e) interrupt,
     Future<void> Function() terminate,
@@ -2112,9 +2112,13 @@ final class Terminal
   @override
   Future<void> flush() => _out.flush();
 
+  /// How long [close] waits for the terminal to take what is written.
+  static const _closeFlushLimit = Duration(seconds: 1);
+
   /// Restores the terminal. Safe to call more than once. The console modes
   /// are restored even when writing the exit sequence fails (stdout gone);
-  /// that error is rethrown afterwards.
+  /// that error is rethrown afterwards. A terminal that reads nothing gets
+  /// a second to take the exit sequence, and the modes are restored then.
   @override
   Future<void> close() async {
     if (_closed) {
@@ -2141,7 +2145,9 @@ final class Terminal
         _writeString(popTitleSequence);
       }
       _link.restoreWith(const []);
-      await flush();
+      // a terminal that reads nothing is not to keep the process, nor its
+      // own mode: what it never took is lost with it
+      await flush().timeout(_closeFlushLimit, onTimeout: () {});
     } finally {
       if (!info.plain) {
         _link.restore();

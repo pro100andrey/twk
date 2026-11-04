@@ -27,9 +27,9 @@ process does in the cases that are not a user at a terminal.
   key, unless `stopOnCtrlZ` is false. The terminal is given back to the
   shell while it is stopped and taken again on `fg`. POSIX only; the shell
   has to do job control, or nothing stops.
-- SIGTERM restores the terminal and exits the process with code 143. The
-  Future does not complete: the process is gone. On Windows, the console
-  being closed (SIGHUP) does the same with 129.
+- SIGTERM restores the terminal and exits the process with code 143, and
+  SIGHUP (on Windows the console being closed) does the same with 129. The
+  Future does not complete: the process is gone.
 
 ## When there is no terminal
 

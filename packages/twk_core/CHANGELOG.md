@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- SIGHUP restores the terminal and exits with 129 on Linux and macOS too, where
+  it left it raw on the alternate screen. `Terminal.close` waits a second at
+  most for a link whose flush does not end, and restores the modes then.
+
 - `bidiMirror` finds every character: the table was in the order of the Unicode
   data file, not by code point, so a right-to-left run left six characters from
   U+1DB03 to U+1DB09 unmirrored.

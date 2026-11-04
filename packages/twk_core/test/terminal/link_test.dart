@@ -56,6 +56,21 @@ void main() {
   late FakeClock clock;
   setUp(() => clock = FakeClock());
 
+  test('close waits a second for a terminal that reads nothing, and puts '
+      'the modes back all the same', () async {
+    final link = FakeLink()..type(_answers);
+    final term = await clock.open(link, _options);
+    link.stalled = Completer<void>().future;
+    var closed = false;
+    unawaited(clock.run(term.close).then((_) => closed = true));
+    await clock.elapse(const Duration(milliseconds: 900));
+    expect(link.raw, isTrue);
+    expect(closed, isFalse);
+    await clock.elapse(const Duration(milliseconds: 200));
+    expect(link.raw, isFalse);
+    expect(closed, isTrue);
+  });
+
   test('the probe is answered, keys and resizes come in, and close puts '
       'the modes back', () async {
     final link = FakeLink()..type(_answers);

@@ -50,6 +50,10 @@ final class FakeLink implements DeclaringLink {
   String get text => latin1.decode(output.toBytes());
 
   var flushes = 0;
+
+  /// What a flush waits for: a terminal that reads nothing, while it is a
+  /// Future that does not complete.
+  Future<void>? stalled;
   var closed = false;
 
   final _input = StreamController<List<int>>();
@@ -92,6 +96,7 @@ final class FakeLink implements DeclaringLink {
   @override
   Future<void> flush() async {
     flushes++;
+    await stalled;
   }
 
   @override
