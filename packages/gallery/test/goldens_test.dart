@@ -34,6 +34,8 @@ const _extra = {
   'data/sparkline.keys': '#/data/sparkline?keys=tab,right,tab,right,tab,space',
   'data/table.keys': '#/data/table?keys=tab,down,down,s,s,right,tab,right',
   'overlays/dialog.open': '#/overlays/dialog?keys=tab,enter',
+  // the dialog in the App's own Overlay, inside the stage
+  'overlays/app.open': '#/overlays/app?keys=tab,enter',
   'overlays/dialog.keys-close':
       '#/overlays/dialog?keys=tab,enter,tab,tab,escape',
   'overlays/dialog.keys-confirm': '#/overlays/dialog?keys=tab,enter,enter',

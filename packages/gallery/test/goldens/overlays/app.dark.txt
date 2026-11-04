@@ -15,18 +15,18 @@ text
 │   OVERLAYS            12                                                                 │   nord  light  dark         │
 │     Overlay                    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │ ▎   App                                                                                  │                             │
-│     Dialog                     ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Dialog                     ·   ·    ┌                                  ┐   ·   ·     │                             │
 │     Toast                                                                                │                             │
-│     Tooltip               ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│     Popover               ▐                          ┌       ┐                           │                             │
-│     MenuBar               ▐    ·   ·   ·   ·   ·   ·    Ask    ·   ·   ·   ·   ·   ·     │                             │
-│     ContextMenu           ▐                          └       ┘                           │                             │
-│     CommandPalette        ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     Tooltip               ▐    ·   ·                                           ·   ·     │                             │
+│     Popover               ▐                                                              │                             │
+│     MenuBar               ▐    ·   ·                                           ·   ·     │                             │
+│     ContextMenu           ▐                             Ask                              │                             │
+│     CommandPalette        ▐    ·   ·                                           ·   ·     │                             │
 │     OptionList                                                                           │                             │
-│     ModalBarrier               ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│     ModalBarrier               ·   ·                                           ·   ·     │                             │
 │     WindowLayer                                                                          │                             │
-│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
-│   ANIMATION           17                                                                 │                             │
+│                                ·   ·    └                                  ┘   ·   ·     │                             │
+│   ANIMATION           17                                             32 × 9              │                             │
 │     Spinner                    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     TickerMode                                                                           │                             │
 │     ProgressBar                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
@@ -52,18 +52,18 @@ styles
 │aaaddddddddaaaaaaaaaaaaeeaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhrssssritttttiittttihhhhhhhh│
 │aaaaaoooooooaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aurrrsssrrrrrrrrrrrrrrrrrrrahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhphhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaaaaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaaaaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhvwwwvhhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooooaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaadhhhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaadhhhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhvwwwvhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooooaaaaaaaadhhhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaadddddddddaaaaaaaaaaaeeaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddddddaaaaaaaaaaaeeaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhmmhmhmhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
