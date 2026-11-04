@@ -3,7 +3,8 @@
 /// a click that focuses it: [Pressable].
 library;
 
-import 'package:twk_core/twk_core.dart' show Attr, Brightness, Color, TextWrap;
+import 'package:twk_core/twk_core.dart'
+    show Attr, Brightness, Color, HitTestBehavior, TextWrap;
 
 import '../animation/animation_controller.dart';
 import '../animation/ticker.dart';
@@ -16,7 +17,6 @@ import '../style/color_mix.dart';
 import '../style/style.dart';
 import '../text/hit_row.dart' show segmenterOf;
 import '../text/widgets.dart';
-import 'hand.dart';
 
 /// A control's node of the focus tree: what [builder] builds, which takes
 /// the focus, its keys and a click of the mouse while [enabled].
@@ -64,6 +64,7 @@ final class Pressable extends StatefulWidget {
     this.onTap,
     this.focusNode,
     this.autofocus = false,
+    this.behavior = HitTestBehavior.deferToChild,
   });
 
   /// Builds what it shows, by whether it has the focus.
@@ -96,6 +97,10 @@ final class Pressable extends StatefulWidget {
 
   /// See [Focus.autofocus].
   final bool autofocus;
+
+  /// Where a press hits it: where its child is by default,
+  /// `HitTestBehavior.opaque` for all of it, the empty cells too.
+  final HitTestBehavior behavior;
 
   @override
   State<Pressable> createState() => _PressableState();
@@ -151,13 +156,11 @@ final class _PressableState extends State<Pressable> {
         hints: enabled ? widget.hints : const {},
         child: Listener(
           onDown: enabled ? _down : null,
-          // the hand where a click does something, as over a link
-          child: HandOver(
-            active: enabled && widget.onTap != null,
-            child: GestureDetector(
-              onTap: widget.onTap,
-              child: widget.builder(context, _node.hasFocus),
-            ),
+          behavior: widget.behavior,
+          child: GestureDetector(
+            onTap: enabled ? widget.onTap : null,
+            behavior: widget.behavior,
+            child: widget.builder(context, _node.hasFocus),
           ),
         ),
       ),

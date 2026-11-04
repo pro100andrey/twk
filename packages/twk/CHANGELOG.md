@@ -24,6 +24,8 @@
 - The hand shows over everything a click presses, `RadioGroup`, `ConfirmInput`,
   `Select`, `SelectionList`, `Calendar`, `Heatmap` and `Window`'s buttons among
   them, which showed none.
+- `Pressable(behavior:)`: `HitTestBehavior.opaque` takes a press on its empty
+  cells too.
 
 ## 0.2.0
 
