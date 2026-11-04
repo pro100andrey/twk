@@ -166,7 +166,7 @@ the app, and its analysis options include twk_lints' set), by
 path from the checkout of the twk repository `--path-to-twk=<dir>` names,
 or else the one the command runs from: the nearest directory from the
 command's package up that holds `packages/twk`, `packages/twk_test`,
-`packages/twk_dev` and `packages/twk_lints`. Without either, from pub at `^0.1.0`. A `--path-to-twk` that is no checkout exits with 1,
+`packages/twk_dev` and `packages/twk_lints`. Without either, from pub at `^0.2.0`. A `--path-to-twk` that is no checkout exits with 1,
 as does a `<dir>` that is a file or under one, `--force` or not, and a
 directory that is not empty unless `--force`, which writes the template's files over those of the same paths
 and leaves the others: a file already as the template has it is left

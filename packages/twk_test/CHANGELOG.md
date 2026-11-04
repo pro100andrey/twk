@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.0
 
 - `FakeCliTerminal.openInline` opens the inline terminal again once the
   last one is closed (a session ended by a Ctrl+C, then another), as the

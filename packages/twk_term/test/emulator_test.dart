@@ -617,7 +617,7 @@ void main() {
       expect(
         r.takeSent(),
         r'\e[?62;22;52c\e[?62;22;52c\e[>1;10;0c\eP!|00000000\e\'
-        r'\eP>|twk_term 0.1.0\e\',
+        r'\eP>|twk_term 0.2.0\e\',
       );
     });
 

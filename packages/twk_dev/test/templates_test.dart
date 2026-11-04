@@ -163,7 +163,7 @@ void main() {
         '${dependencies}dependency_overrides:\n$twk$core'
         'flutter:\n  generate: true\n',
       ),
-      endsWith('  twk_test: ^0.1.0\nflutter:\n  generate: true\n'),
+      endsWith('  twk_test: ^$twkVersion\nflutter:\n  generate: true\n'),
     );
   });
 }

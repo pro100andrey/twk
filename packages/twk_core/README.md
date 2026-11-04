@@ -105,7 +105,7 @@ Future<void> main() async {
   final ask = styles.style(fg: Color.yellow, attrs: Attr.bold);
   final line = LineEncoder(styles, ansi: !terminal.info.plain)
     ..text(ask, 'Continue?')
-    ..text(0, ' [y/n] ')
+    ..text(StyleId.base, ' [y/n] ')
     ..end();
   terminal.write(line.out.view);
   final key = await terminal.events.firstWhere((e) => e is KeyEvent);
