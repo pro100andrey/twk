@@ -21,7 +21,8 @@ import 'link.dart' show TerminalException;
 /// (`ReadConsoleInputW` of no more than `GetNumberOfConsoleInputEvents`
 /// says, so it returns at once): the
 /// characters of the keys pressed, which in the console's VT input mode
-/// are the sequences of the keys, as UTF-8. It never blocks in a read, so
+/// are the sequences of the keys, as UTF-8, and NUL for Ctrl+Space, as
+/// ReadFile reads them. It never blocks in a read, so
 /// once the event is set it reads nothing more, and the console's handle
 /// is left open, for a program started after and a later terminal.
 final class WindowsInput implements InputDevice<int> {
@@ -67,6 +68,9 @@ final class WindowsInput implements InputDevice<int> {
 
 const _keyEvent = 0x0001;
 const _vkMenu = 0x12;
+const _vk2 = 0x32;
+// LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED
+const int _ctrl = 0x0008 | 0x0004;
 
 // the records one read takes
 const _records = 512;
@@ -80,6 +84,7 @@ const _keyDown = 4;
 const _repeat = 8;
 const _virtualKey = 10;
 const _char = 14;
+const _controlKeys = 16;
 
 /// Reads the console until the event [args].$1 is set, sending what it
 /// reads to [args].$2, or what failed.
@@ -141,10 +146,19 @@ void _read((int, SendPort) args) {
         }
         final char = view.getUint16(at + _char, Endian.little);
         final down = view.getInt32(at + _keyDown, Endian.little) != 0;
+        final key = view.getUint16(at + _virtualKey, Endian.little);
+        // NUL, Ctrl+Space or Ctrl+@: in VT input mode the console makes it
+        // the key 2 pressed with Ctrl and no character, which ReadFile (and
+        // so dart:io's stdin) reads as 0x00. The other keys without a
+        // character, Ctrl's own among them, are nothing to read
+        final nul =
+            char == 0 &&
+            down &&
+            key == _vk2 &&
+            view.getUint32(at + _controlKeys, Endian.little) & _ctrl != 0;
         // a character comes with its key down, but one typed as Alt and
         // digits with Alt let go
-        final alt = view.getUint16(at + _virtualKey, Endian.little) == _vkMenu;
-        if (char == 0 || !(down || alt)) {
+        if (!nul && (char == 0 || !(down || key == _vkMenu))) {
           continue;
         }
         final repeat = view.getUint16(at + _repeat, Endian.little);

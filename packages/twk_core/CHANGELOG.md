@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- On Windows Ctrl+Space (and Ctrl+@) reaches the app as NUL again, as it
+  did through dart:io's stdin: the console's VT input mode makes it the key
+  2 pressed with Ctrl and no character, which the terminal's own reader of
+  the console left out.
+
 - On Windows the keys read from the console are encoded to UTF-8 in one
   pass, where they went through a `String`, `utf8.encode` and a copy: a
   read of 512 keys of ASCII, sent to the isolate that listens, takes
