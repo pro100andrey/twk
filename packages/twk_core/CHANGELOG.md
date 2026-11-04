@@ -50,6 +50,14 @@
   title is cut and ellipsized in the same columns as before; the place it is
   shown in is unchanged.
 
+- `breakLines`, the lines a text breaks into as a paragraph breaks it.
+
+- An `Align` or a `Center` on an axis of any length is as long as its child,
+  as in Flutter: in a scroll view or a list's row it took 1 << 30 rows.
+
+- With the kitty keyboard protocol a lone ESC waits
+  `TerminalOptions.escapeTimeout`, as without it, where it waited 500 ms.
+
 Breaking:
 
 - A cell's style id is a `StyleId`, an extension type over int, apart from
