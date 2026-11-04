@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- `copyToClipboard(context, text)` is exported: an app copies as a
+  `SelectionArea` and a `TextField` do, by OSC 52, wrapped inside tmux or GNU
+  screen.
+
 ## 0.2.0
 
 - After a Ctrl+C ended the inline session, a program that handles SIGINT
