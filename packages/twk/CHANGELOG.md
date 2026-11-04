@@ -21,6 +21,9 @@
   that presses nothing, and `tapAt` says which cells of a row a tap is on,
   for the hand and the tap at once. `onTapDown` answers as the button goes
   down.
+- The hand shows over everything a click presses, `RadioGroup`, `ConfirmInput`,
+  `Select`, `SelectionList`, `Calendar`, `Heatmap` and `Window`'s buttons among
+  them, which showed none.
 
 ## 0.2.0
 
