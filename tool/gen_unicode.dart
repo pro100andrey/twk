@@ -396,7 +396,7 @@ Future<void> main(List<String> args) async {
     ..writeln()
     ..writeln('/// Flat [code point, Bidi_Mirroring_Glyph] pairs, sorted.')
     ..writeln('const bidiMirroring = <int>[')
-    ..write(_flat(mirroring, 2))
+    ..write(_flat(_sorted(mirroring, 2), 2))
     ..writeln('];')
     ..writeln()
     ..writeln(
@@ -404,7 +404,7 @@ Future<void> main(List<String> args) async {
     )
     ..writeln('/// triples (type 1 open, 2 close), sorted.')
     ..writeln('const bidiBrackets = <int>[')
-    ..write(_flat(brackets, 3))
+    ..write(_flat(_sorted(brackets, 3), 3))
     ..writeln('];');
   File('$core/lib/src/unicode/bidi_data.g.dart')
       .writeAsStringSync(bidi.toString());
@@ -480,6 +480,16 @@ String _ranges(List<int> values) {
     sb.writeln('  $line');
   }
   return sb.toString();
+}
+
+/// [flat], groups of [stride], by the first value of each: a data file's
+/// order is not by code point (BidiMirroring.txt's), and the tables are
+/// searched by halves.
+List<int> _sorted(List<int> flat, int stride) {
+  final groups = [
+    for (var i = 0; i < flat.length; i += stride) flat.sublist(i, i + stride),
+  ]..sort((a, b) => a.first.compareTo(b.first));
+  return [for (final group in groups) ...group];
 }
 
 /// [values] as hexadecimal code points, [width] to a line, the last of

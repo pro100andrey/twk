@@ -2,7 +2,8 @@ import 'dart:io';
 
 import 'package:test/test.dart';
 import 'package:twk_core/src/unicode/bidi.dart';
-import 'package:twk_core/src/unicode/unicode.dart' show unicodeVersion;
+import 'package:twk_core/src/unicode/bidi_data.g.dart';
+import 'package:twk_core/src/unicode/tables.g.dart';
 
 /// Where the conformance files of the tables' Unicode version are kept once
 /// downloaded: at 7.6 and 6.6 MB they are too large to commit.
@@ -269,6 +270,28 @@ void main() {
       expect(bidiMirror(0xAB), 0xBB);
       expect(bidiMirror(0x2264), 0x2265);
       expect(bidiMirror(0x61), 0x61);
+    });
+
+    test('every Bidi_Mirroring_Glyph is found, whatever its place', () {
+      for (var i = 0; i < bidiMirroring.length; i += 2) {
+        expect(bidiMirror(bidiMirroring[i]), bidiMirroring[i + 1]);
+      }
+      expect(bidiMirror(0x1DB03), 0x1DB04);
+      expect(bidiMirror(0x1DB09), 0x1DB08);
+    });
+
+    test('the tables searched by halves are sorted', () {
+      void sorted(String name, List<int> table, int stride) {
+        for (var i = stride; i < table.length; i += stride) {
+          expect(table[i], greaterThan(table[i - stride]), reason: name);
+        }
+      }
+
+      sorted('bidiClassRanges', bidiClassRanges, 3);
+      sorted('bidiMirroring', bidiMirroring, 2);
+      sorted('bidiBrackets', bidiBrackets, 3);
+      sorted('segmentationRanges', segmentationRanges, 3);
+      sorted('widthRanges', widthRanges, 3);
     });
   });
 
