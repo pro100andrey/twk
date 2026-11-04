@@ -37,7 +37,7 @@
   `HandPointer`, and the `pointerShapes` of `Window`, `SplitView`, `Table`,
   `TreeTable` and `Draggable`, which a `Theme` around them does now. Breaking.
 - The pointer follows the press. A `GestureDetector` with `onTap` shows the
-  hand by `ThemeData.handPointer`, with nothing else to write; `cursor` puts
+  hand by `ThemeData.pointerMode`, with nothing else to write; `cursor` puts
   a `PointerShape` of its own in its place, `PointerShape.arrow` for a click
   that presses nothing, and `tapAt` says which cells of a row a tap is on,
   for the hand and the tap at once. `onTapDown` answers as the button goes

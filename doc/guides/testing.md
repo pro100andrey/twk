@@ -358,7 +358,8 @@ An error the app logged fails the test when it ends, unless the test
 takes it: `t.takeErrors()` hands over the `LogRecord`s at `LogLevel.error`
 logged since its last call. A build that threw is shown in place and the
 next frame may build over it, so a test that passes has seen none, or said
-it expected them.
+it expected them. What the app logs as it quits counts too: a test that
+expects that takes it after `await t.quit()`.
 
 The rest of the tester — frames recorded and written as a trace, a widget
 drawn without an app (`Shot`), processes a test starts — is in

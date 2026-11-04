@@ -99,7 +99,9 @@ typedef DragListener = void Function(DragDetails details);
 /// [onTapDown] is told as the left button goes down, for what answers at
 /// once (a tab, a menu's title). It is told apart from the competition: a
 /// tap, drag or long press of that press goes on as without it, here and
-/// in the detectors inside and around it.
+/// in the detectors inside and around it. So every detector under the
+/// press is told, where only one is told [onTap]: one around another that
+/// answers on its own cells gives [tapAt] to leave them out.
 ///
 /// The intervals are timers of the app's zone, which a test's fake clock
 /// moves. While it has a callback, the terminal reports presses and

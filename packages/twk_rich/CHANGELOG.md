@@ -2,9 +2,9 @@
 
 ## Unreleased
 
-- A link in a `MarkdownView` shows the hand by `ThemeData.handPointer`, as a
-  `Text`'s link does: `HandPointer.auto` asks the terminal for no motion, where
-  a view with a link always did, and `HandPointer.off` shows none.
+- A link in a `MarkdownView` shows the hand by `ThemeData.pointerMode`, as a
+  `Text`'s link does: `PointerMode.auto` asks the terminal for no motion, where
+  a view with a link always did, and `PointerMode.off` shows none.
 
 ## 0.2.0
 
