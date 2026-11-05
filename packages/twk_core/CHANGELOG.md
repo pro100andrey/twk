@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- A `RenderEffect` keeps a two-column glyph across its edge whole: the second
+  half outside takes the first half's style, a half left alone is put back as a
+  blank, and a repaint boundary in it under such a glyph shows its new paint,
+  where it was lost until a whole repaint.
+
 - What a `TextPainter` paints does not depend on a query asked before it: spans
   given since the layout are painted as `textRangeAt`, `cellAt` and `columnsOf`
   take them, where they showed only once a query had split them.

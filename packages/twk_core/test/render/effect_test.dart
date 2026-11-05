@@ -203,7 +203,92 @@ final class Probe extends RenderEffect {
   }
 }
 
+/// Tints what its child shows, while [on].
+final class Tint extends RenderEffect {
+  Tint(RenderObject child) {
+    this.child = child;
+  }
+
+  var on = true;
+  late StyleTable _styles;
+  var _pen = 0;
+
+  void update({required bool on}) {
+    this.on = on;
+    markNeedsPaint();
+  }
+
+  @override
+  bool get hasEffect => on;
+
+  @override
+  void beginEffect(StyleTable styles) {
+    _styles = styles;
+    _pen = styles.pen(const Pen(bg: Color.rgb(0, 0, 100)));
+  }
+
+  @override
+  void effectCell(
+    int x,
+    int y,
+    int glyph,
+    StyleId style,
+    int underGlyph,
+    StyleId underStyle,
+  ) {
+    effectGlyph = glyph;
+    effectStyle = _styles.compose(style, _pen);
+  }
+}
+
 void main() {
+  test('a repaint boundary across a two-column glyph the effect shows '
+      'repaints in place, the effect painting its child again', () {
+    final view = View(6, 1);
+    final board = Board('mno');
+    final effect = Probe(
+      RenderFlex(
+        children: [Line('kl'), board],
+        mainAxisSize: MainAxisSize.min,
+      ),
+      hidden: {1},
+    );
+    expect(view.show(RenderStack(children: [Line('a中xyz'), effect])), [
+      'k中noz',
+    ]);
+    board.text = 'pqr';
+    expect(view.frame(), ['k中qrz']);
+  });
+
+  test('a two-column glyph across the right edge takes one style, and has '
+      'it back without the effect', () {
+    final view = View(4, 1);
+    final effect = Tint(Line('xy '));
+    // frame() holds the halves to one style
+    expect(view.show(RenderStack(children: [Line('ab🧪'), effect])), ['xy🧪']);
+    effect.update(on: false);
+    expect(view.frame(), ['xy🧪']);
+  });
+
+  test('a second half whose first half is gone is not put back', () {
+    final view = View(4, 1);
+    final child = Line('xy');
+    final effect = Tint(child)..on = false;
+    view.show(
+      RenderStack(
+        children: [
+          Line('中ab'),
+          RenderFlex(
+            children: [Line(' '), effect],
+            mainAxisSize: MainAxisSize.min,
+          ),
+        ],
+      ),
+    );
+    child.text = ' y';
+    expect(view.frame(), ['  yb']);
+  });
+
   test('shows the child through its effect, over what was under it; a new '
       'frame of the effect is shown from what it kept, painting neither the '
       'child nor what is under it', () {

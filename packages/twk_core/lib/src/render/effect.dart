@@ -364,9 +364,26 @@ abstract base class RenderEffect extends RenderObject
     for (var y = y0; y < y1; y++) {
       final to = y * surface.width + x0;
       final from = (y - gy) * _w + x0 - gx;
-      surface.cells.setRange(to, to + n, _underCells, from);
-      surface.styles.setRange(to, to + n, _underStyles, from);
-      surface.markDirty(y, x0, x1);
+      final cells = surface.cells;
+      final styles = surface.styles;
+      cells.setRange(to, to + n, _underCells, from);
+      styles.setRange(to, to + n, _underStyles, from);
+      // a glyph across the edges: its other half may have gone since
+      if ((cells[to] & kCont) != 0 &&
+          (x0 == 0 || (cells[to - 1] & kWide) == 0)) {
+        cells[to] = kBlank;
+      }
+      final last = to + n - 1;
+      var end = x1;
+      if ((cells[last] & kWide) != 0) {
+        if (x1 < surface.width && (cells[last + 1] & kCont) != 0) {
+          styles[last + 1] = styles[last];
+          end = x1 + 1;
+        } else {
+          cells[last] = kBlank;
+        }
+      }
+      surface.markDirty(y, x0, end);
     }
   }
 
@@ -425,10 +442,17 @@ abstract base class RenderEffect extends RenderObject
         sty[i] = effectStyle.value;
         wide = (glyph & kWide) != 0;
       }
-      if (wide && (x1 >= width || (cells[row + x1] & kCont) == 0)) {
-        cells[row + x1 - 1] = kBlank;
+      var end = x1;
+      if (wide) {
+        if (x1 < width && (cells[row + x1] & kCont) != 0) {
+          // its second half, outside: a glyph has one style
+          sty[row + x1] = sty[row + x1 - 1];
+          end = x1 + 1;
+        } else {
+          cells[row + x1 - 1] = kBlank;
+        }
       }
-      surface.markDirty(y, x0, x1);
+      surface.markDirty(y, x0, end);
     }
   }
 }
