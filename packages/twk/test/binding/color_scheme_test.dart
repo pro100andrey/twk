@@ -3,6 +3,9 @@
 // and blended with the default colors the terminal reports after them;
 // last in a pseudo-terminal (tool/pty_run.py --scheme) running
 // color_scheme_app.dart.
+@Tags(['process'])
+library;
+
 import 'dart:io';
 import 'dart:isolate';
 

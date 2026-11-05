@@ -6,6 +6,9 @@
 // when another one wrote it since; `twk inspect` in a terminal of the
 // test's (see terminal.dart) showing the tree of an app at its address;
 // and `twk inspect` without one closing the connection it opened.
+@Tags(['process'])
+library;
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';

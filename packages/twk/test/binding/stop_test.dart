@@ -3,6 +3,7 @@
 // nothing in the app takes it, so it stops the app for the shell, which
 // has the terminal as it was before the app took it; resized meanwhile,
 // fg gives it back to the app, drawn at the new size.
+@Tags(['process'])
 @TestOn('linux || mac-os')
 library;
 

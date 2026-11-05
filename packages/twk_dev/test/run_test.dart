@@ -10,6 +10,9 @@
 // of the command's own (a signal sent to it, what the app writes to the
 // stdio `twk run` leaves it), it is started as a developer starts it, and
 // the app uses its stdin and stdout.
+@Tags(['process'])
+library;
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';

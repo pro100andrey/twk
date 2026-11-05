@@ -1,5 +1,6 @@
 // A terminal with color scheme reports (DEC mode 2031), in a
 // pseudo-terminal (color_scheme_pty.py) running color_scheme_app.dart.
+@Tags(['process'])
 @TestOn('linux || mac-os')
 library;
 

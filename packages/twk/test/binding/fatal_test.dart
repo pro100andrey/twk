@@ -4,6 +4,9 @@
 // at, and the stack. Those lines are of the first frame neither in the
 // SDK, nor in twk, nor in the pub cache, read from its file, and left out
 // where that can't be read.
+@Tags(['process'])
+library;
+
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';

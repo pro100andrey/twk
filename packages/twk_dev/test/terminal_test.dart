@@ -2,6 +2,7 @@
 // passed to a process started meanwhile, which would hold the output open
 // until it ended — under `handover -j`, a compile of another suite in the
 // same VM made two suites wait out their 90 s for an output that had ended.
+@Tags(['process'])
 @TestOn('linux || mac-os')
 // past terminal.dart's wait, so that a failure says what was waited for
 @Timeout(Duration(minutes: 2))

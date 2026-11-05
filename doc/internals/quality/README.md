@@ -414,6 +414,12 @@ enough, and on a loaded machine the guess is wrong.
   `onTimeout` in a file under `test/`
   (timers made in `FakeClock.run`, `TwkTester.act` or app code are on a
   fake clock and not reported; nor is a program the tests start).
+- **A test that starts a real process or pseudo-terminal is tagged**
+  `@Tags(['process'])`: `pkg-test` leaves it out, and `process-test` runs
+  it after the others, two files of a package at once, as its deadlines
+  depend on a CPU the thousands of others would take.
+  `test/tool/process_tag_test.dart` fails on a file that starts one
+  without the tag.
 - **The only exceptions** are `// ignore: twk_lints/wall_time_in_tests`,
   with the reason on the comment above it: where real time is what is
   measured or an absence is checked (nothing happens for half a second),

@@ -1,6 +1,7 @@
 // Terminal.notify and Terminal.copyToClipboard in a pseudo-terminal
 // (tool/pty_run.py) running notify_app.dart in the environment of one
 // terminal or another.
+@Tags(['process'])
 @TestOn('linux || mac-os')
 library;
 

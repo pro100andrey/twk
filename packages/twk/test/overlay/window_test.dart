@@ -4,6 +4,9 @@
 // resized by the edges and corners, both by the keys too; minimised to the
 // strip, maximised, closed; kept in the layer as it shrinks; their state
 // kept; what repaints alone behind a window; a decoration around each.
+@Tags(['process'])
+library;
+
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';

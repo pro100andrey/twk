@@ -5,6 +5,7 @@
 // the terminal from it while it was stopped; what the command left on
 // turned off; the recording played through the test emulator to the
 // screen the terminal showed.
+@Tags(['process'])
 @TestOn('linux || mac-os')
 @Timeout(Duration(minutes: 4))
 library;

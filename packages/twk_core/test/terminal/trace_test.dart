@@ -2,6 +2,9 @@
 // fed to HeadlessTerminal; both traces of trace_app.dart in a
 // pseudo-terminal (tool/pty_run.py), the output one replayed by
 // tool/replay.dart.
+@Tags(['process'])
+library;
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';

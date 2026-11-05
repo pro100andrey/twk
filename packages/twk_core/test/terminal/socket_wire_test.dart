@@ -2,6 +2,9 @@
 // across reads and too long, a shell that doesn't answer or isn't there,
 // flushes left waiting, an app that speaks no hello or an unknown frame;
 // and the addresses they meet at.
+@Tags(['process'])
+library;
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';

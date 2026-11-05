@@ -3,6 +3,9 @@
 // nothing to read; what would watch does nothing, and what would open,
 // read, write or serve throws UnsupportedError; an error is printed to
 // the console (web_print.dart, in a process of its own).
+@Tags(['process'])
+library;
+
 import 'dart:io';
 
 import 'package:test/test.dart';

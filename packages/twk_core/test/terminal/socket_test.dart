@@ -4,6 +4,9 @@
 // address files, and Terminal.open finding the project's shell from a
 // process of its own (socket_app.dart), also on a terminal whose raw mode
 // can't be entered.
+@Tags(['process'])
+library;
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';

@@ -2,6 +2,7 @@
 // their terminal (controlling, in the foreground, its size and modes) and
 // their end. Every program a test starts is killed and waited for in its
 // tear-down.
+@Tags(['process'])
 @TestOn('linux || mac-os')
 library;
 

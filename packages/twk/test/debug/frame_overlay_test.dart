@@ -3,6 +3,9 @@
 // measured, its own frames and cost left out, shown and hidden without
 // repainting the app; the console and the debug paints turned on by the
 // keys.
+@Tags(['process'])
+library;
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';

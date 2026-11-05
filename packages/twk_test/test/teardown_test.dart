@@ -1,5 +1,8 @@
 // What testTwk does when a test returns, seen from outside: the tests of
 // fixtures/teardown.dart run in a process of their own.
+@Tags(['process'])
+library;
+
 import 'dart:convert';
 import 'dart:io';
 
