@@ -129,6 +129,37 @@ const solid = Pen(bg: Color.rgb(0, 0, 40));
 const decstbm = '\x1b[1;5r';
 
 void main() {
+  test('a background of no foreground takes none from what scrolled away', () {
+    final screen = Screen(10, 4);
+    final red = screen.styles.pen(const Pen(fg: Color.rgb(255, 0, 0)));
+    final plain = screen.styles.pen(const Pen());
+    final viewport = RenderViewport(
+      background: const Pen(bg: Color.rgb(0, 0, 40)),
+      child: RenderColumn([
+        (RenderText('AAAA', red), 3),
+        (RenderText('bbbb', plain), 3),
+      ]),
+    );
+    final owner = PipelineOwner(() {})
+      ..root = RenderColumn([(viewport, 3), (RenderText('-', plain), 1)]);
+    void frame() {
+      owner
+        ..flushLayout(10, 4)
+        ..flushPaint(
+          PaintContext(screen.canvas, screen.surface, screen.presenter),
+        );
+      screen.render();
+    }
+
+    frame();
+    viewport.scrollOffset = 3;
+    frame();
+    final scrolled = screen.surface.styles[0];
+    owner.markAllDirty();
+    frame();
+    expect(scrolled, screen.surface.styles[0]);
+  });
+
   group('layout', () {
     test('lays its child out as long as it likes along the axis and within '
         'its own constraints across, and is as big as it within its own', () {

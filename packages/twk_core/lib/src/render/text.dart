@@ -100,7 +100,8 @@ final class RenderText extends RenderObject {
   void paint(PaintContext ctx) {
     if (boundary) {
       assert(_opaqueBackground(ctx, pen), _translucentBoundary);
-      ctx.canvas.fill(0, 0, width, height, pen);
+      final canvas = ctx.canvas;
+      canvas.fill(0, 0, width, height, canvas.styles.ownPen(pen));
     }
     final cv = ctx.canvas;
     if (!identical(cv.glyphs, _runIn) || cv.glyphs.sweeps != _runSweeps) {

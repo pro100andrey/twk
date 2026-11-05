@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- A repaint boundary's cells do not depend on what was painted in them before: a
+  viewport, a list, a log, or a box or text that is a boundary fills with its pen
+  and, where that has no foreground, the terminal's own (`StyleTable.ownPen`),
+  where text in a pen of no foreground took the colour of what scrolled away.
+  `Canvas.fill` keeps what is under a pen of no foreground, as a highlight needs.
 - A `RenderEffect` keeps a two-column glyph across its edge whole: the second
   half outside takes the first half's style, a half left alone is put back as a
   blank, and a repaint boundary in it under such a glyph shows its new paint,
