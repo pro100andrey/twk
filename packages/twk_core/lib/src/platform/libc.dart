@@ -111,7 +111,10 @@ external int open(Pointer<Char> path, int flags, int mode);
 external Pointer<Char> ttyname(int fd);
 
 /// signal(2): [handler] called on [number] from now on; the one before it,
-/// or SIG_ERR. A leaf call, like [read].
+/// or SIG_ERR. A leaf call, like [read]. Only for a signal Dart can't watch:
+/// it replaces what `ProcessSignal.watch` set. The handler runs outside Dart,
+/// so it is a native function. The process's terminal holds SIGTSTP while
+/// raw (`PosixTty`).
 @Native<Pointer<Void> Function(Int, Pointer<Void>)>(isLeaf: true)
 external Pointer<Void> signal(int number, Pointer<Void> handler);
 

@@ -41,7 +41,8 @@
   data file, not by code point, so a right-to-left run left six characters from
   U+1DB03 to U+1DB09 unmirrored.
 
-- `Canvas.mergeRun` keeps a wide glyph whole: `under` leaves one the run's edge
+- `Canvas.mergeRun` says it returns the columns it advanced, two for a wide glyph
+  of the run, and keeps a wide glyph whole: `under` leaves one the run's edge
   or the clip cuts in its own style, where it painted one half, and a wide
   glyph of the run is drawn as `Canvas.run` draws it, with its width, as the
   documentation said, where it took one cell and asserted.

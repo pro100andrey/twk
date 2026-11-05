@@ -774,6 +774,9 @@ final class Canvas {
   /// that pen first, under the line or the text it keeps, keeping its
   /// glyph; a wide glyph it keeps with one half outside the run stays in
   /// its own style, as both its halves show one.
+  ///
+  /// Returns the columns it advanced, as [run] draws them: two for a glyph
+  /// of [r] that is two columns wide; 0 when the row is outside the clip.
   int mergeRun(
     int x,
     int y,

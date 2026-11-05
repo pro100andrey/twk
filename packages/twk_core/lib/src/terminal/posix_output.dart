@@ -95,8 +95,9 @@ final class PosixOutput {
     return done.future;
   }
 
-  /// Drops what the terminal did not take, and what comes after, ending
-  /// what waits for it.
+  /// Drops what the terminal did not take, and what comes after. What waits
+  /// in [flush] completes as if it was taken: the bytes are not to be held
+  /// for, and an error would say nothing that closing does not.
   void close() {
     if (_closed) {
       return;

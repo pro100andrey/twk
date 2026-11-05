@@ -147,9 +147,9 @@ final class TwkTester {
   /// from the test: each one the test does not take fails it when it ends,
   /// as `testTwk` says. An error at [LogLevel.error] counts: a build, a
   /// layout or a paint that threw, an async provider's with no `catchError`,
-  /// the app's own. The one the app ended with is not among them: a call of
-  /// the tester throws that. [logs] still has what is taken; reading [logs]
-  /// takes nothing.
+  /// the app's own. Those of the error the app ended with, the same object,
+  /// are not among them: a call of the tester throws that. [logs] still has
+  /// what is taken; reading [logs] takes nothing.
   ///
   /// A test of what a failure shows says so:
   ///

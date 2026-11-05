@@ -99,7 +99,8 @@ List<StreamSubscription<void>> watchSignals(
   ];
 }
 
-/// Whether SIGHUP is ignored (POSIX): signal(2) tells only by setting one.
+/// Whether SIGHUP is ignored (POSIX): signal(2) tells only by setting one,
+/// so one that comes between the two calls is lost, as the terminal opens.
 bool _ignoresHangup() {
   final ignore = Pointer<Void>.fromAddress(1); // SIG_IGN
   final before = c.signal(1, ignore);
