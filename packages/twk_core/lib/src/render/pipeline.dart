@@ -765,6 +765,8 @@ final class PipelineOwner {
       return;
     }
     _noteAbove(p, top, bottom);
+    // what it kept of its child does not have what [b] paints now
+    p.invalidatePaintCache();
     _repaint(ctx, p, top, bottom);
     if (top > 0 || bottom < p.height) {
       _forgetCut(p, top, bottom);
