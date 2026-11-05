@@ -387,7 +387,7 @@ final class RenderDecoratedBox extends RenderObject
     } else if (!samePens) {
       _pensIn = null;
       for (var i = 0; i < t.length; i++) {
-        _painters[i]?.spans = [(t[i].text, t[i].pen)];
+        _painters[i]?.spans = [(_oneLine(t[i].text), t[i].pen)];
       }
       markNeedsPaint();
     }

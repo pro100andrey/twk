@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- A box title with a line break stays whole when its pen changes, where it was
+  cut at the break.
+
 - A `RenderWrap` with no children lays out whatever its alignments, where
   `spaceAround` across its runs divided by zero: a `Wrap` whose last child went
   turned into an error.

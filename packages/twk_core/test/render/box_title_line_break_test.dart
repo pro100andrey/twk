@@ -25,6 +25,31 @@ String topRow(String title) {
 }
 
 void main() {
+  test('a title with a line break stays whole when its pen changes', () {
+    final screen = Screen(14, 3);
+    final box = RenderDecoratedBox(
+      border: const BoxBorder.all(),
+      titles: const [BoxTitle('ab\ncd')],
+    );
+    final owner = PipelineOwner(() {}, segmenter: screen.canvas.segmenter)
+      ..root = box;
+    String top() {
+      owner
+        ..flushLayout(14, 3)
+        ..flushPaint(
+          PaintContext(screen.canvas, screen.surface, screen.presenter),
+        );
+      final s = screen.surface;
+      return [
+        for (var x = 0; x < s.width; x++) screen.glyphs.stringOf(s.cells[x]),
+      ].join();
+    }
+
+    final before = top();
+    box.titles = const [BoxTitle('ab\ncd', pen: Pen(fg: Color.red))];
+    expect(top(), before);
+  });
+
   test('a title with line breaks draws whole without them', () {
     expect(topRow('ab\ncd'), topRow('abcd'));
     expect(topRow('ab\r\ncd'), topRow('abcd'));
