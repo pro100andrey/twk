@@ -149,13 +149,13 @@ void main() {
       final c = TreeController(expanded: ['a'], selectedKey: 'a9');
       final big = [
         N('a', 0, [for (var i = 0; i < 20; i++) N('a$i', i)]),
-        N('b', 1),
+        const N('b', 1),
       ];
       await t.pumpWidget(table(big, controller: c), size: (20, 6));
       await t.pump();
       await t.press('down');
       await t.pumpWidget(
-        table([N('a', 0, const []), const N('b', 1)], controller: c),
+        table([const N('a', 0), const N('b', 1)], controller: c),
         size: (20, 6),
       );
       await t.pump();
