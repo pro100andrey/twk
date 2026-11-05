@@ -19,7 +19,8 @@
   the terminal back first. Ctrl+Z stops the app for the shell as before.
 
 - A terminal that reads nothing blocks nothing: on Linux and macOS `StdioLink`
-  writes without blocking and keeps what is not taken, where `stdout` blocked
+  writes without blocking, through a descriptor of its own that the shell does
+  not share, and keeps what is not taken, where `stdout` blocked
   the main isolate in write(2), with no timer, key or signal handled until the
   terminal read again: SIGTERM, Ctrl+C or an error ended nothing and left the
   terminal raw.

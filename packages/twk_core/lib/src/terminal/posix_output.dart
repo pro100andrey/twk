@@ -4,32 +4,47 @@ library;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:ffi';
+import 'dart:typed_data';
 
 import '../platform/libc.dart' as c;
 import 'link.dart';
-
-const _stdoutFd = 1;
-
-/// How long one [PosixOutput._drain] stays for a terminal that reads.
-const _reading = Duration(milliseconds: 4);
-
-/// How much is copied out for one write.
-const int _chunk = 1 << 16;
 
 /// How soon a terminal that took nothing is tried again: one that took some
 /// reads, and is tried again at once.
 const _retry = Duration(milliseconds: 2);
 
-/// The process's stdout, written to without blocking.
+/// How long one [PosixOutput._drain] stays for a terminal that reads.
+const _reading = Duration(milliseconds: 4);
+
+/// How many passes in a row that take nothing a terminal gets before it is
+/// taken to read nothing, and left to [_retry].
+const _patience = 2;
+
+/// The process's terminal, written to without blocking.
 ///
 /// dart:io's `stdout` writes in the main isolate: on a terminal that reads
 /// nothing write(2) blocks it, and it runs no timer, no key and no handler of
 /// a signal until the terminal reads again. This writes what the terminal
-/// takes and keeps the rest for later. The descriptor is shared with
-/// the shell, which is not to find it non-blocking, so it is so only around
-/// the writes.
+/// takes and keeps the rest for later, through a descriptor of its own,
+/// opened anew so as not to be stdout's: O_NONBLOCK belongs to what is
+/// opened, and the one stdout has is the shell's too.
 final class PosixOutput {
-  final _pending = ListQueue<List<int>>();
+  PosixOutput._(this._fd);
+
+  /// An output to the terminal stdout is, or null where it can't be opened
+  /// again, for which `stdout` serves.
+  static PosixOutput? open() {
+    final name = c.ttyname(1);
+    if (name == nullptr) {
+      return null;
+    }
+    final fd = c.open(name, c.oWronly | c.oNoctty | c.oNonblock, 0);
+    return fd < 0 ? null : PosixOutput._(fd);
+  }
+
+  final int _fd;
+
+  final _pending = ListQueue<Uint8List>();
 
   /// How much of the first of [_pending] is written.
   var _offset = 0;
@@ -37,9 +52,11 @@ final class PosixOutput {
   /// Whether the terminal took anything in this [_drain].
   var _took = false;
 
+  /// How many passes in a row it took nothing.
+  var _refused = 0;
+
   final _flushes = <Completer<void>>[];
   Timer? _timer;
-  Pointer<Uint8>? _buffer;
   Pointer<c.PollFd>? _pollFd;
   Object? _failure;
   var _closed = false;
@@ -52,7 +69,7 @@ final class PosixOutput {
     if (bytes.isEmpty || _failure != null || _closed) {
       return;
     }
-    _pending.add(bytes);
+    _pending.add(bytes is Uint8List ? bytes : Uint8List.fromList(bytes));
     if (_timer == null) {
       _drain();
     }
@@ -77,17 +94,16 @@ final class PosixOutput {
   /// Drops what the terminal did not take, and what comes after, ending
   /// what waits for it.
   void close() {
+    if (_closed) {
+      return;
+    }
     _closed = true;
     _timer?.cancel();
     _timer = null;
     _pending.clear();
     _offset = 0;
     _finish();
-    final buffer = _buffer;
-    if (buffer != null) {
-      c.free(buffer.cast());
-      _buffer = null;
-    }
+    c.close(_fd);
     final fds = _pollFd;
     if (fds != null) {
       c.free(fds.cast());
@@ -98,18 +114,22 @@ final class PosixOutput {
   void _drain() {
     _timer = null;
     _took = false;
-    final waited = Stopwatch()..start();
-    while (true) {
-      _writeWhatFits();
-      if (_pending.isEmpty || !_took) {
+    Stopwatch? waited;
+    while (_pending.isNotEmpty) {
+      if (_writeFirst()) {
+        continue;
+      }
+      if (_pending.isEmpty || _refused >= _patience) {
         break;
       }
-      // it reads: a moment for it to take more, as a timer per piece of
-      // what it holds would cost a large frame milliseconds
+      // it may be reading: a moment for it to take more, as a timer per
+      // piece of what it holds would cost a large frame milliseconds
+      waited ??= Stopwatch()..start();
       if (waited.elapsed >= _reading || !_writable()) {
         break;
       }
     }
+    _refused = _took ? 0 : _refused + 1;
     if (_pending.isEmpty) {
       _finish();
     } else {
@@ -117,29 +137,11 @@ final class PosixOutput {
     }
   }
 
-  void _writeWhatFits() {
-    final flags = c.fcntl(_stdoutFd, c.fGetfl, 0);
-    if (flags >= 0) {
-      c.fcntl(_stdoutFd, c.fSetfl, flags | c.oNonblock);
-    }
-    try {
-      while (_pending.isNotEmpty) {
-        if (!_writeFirst()) {
-          break;
-        }
-      }
-    } finally {
-      if (flags >= 0) {
-        c.fcntl(_stdoutFd, c.fSetfl, flags);
-      }
-    }
-  }
-
   /// Waits a millisecond at most for the terminal to take more.
   bool _writable() {
     final fds = _pollFd ??= c.calloc(1, sizeOf<c.PollFd>()).cast<c.PollFd>();
     fds.ref
-      ..fd = _stdoutFd
+      ..fd = _fd
       ..events = c.pollOut
       ..revents = 0;
     return c.poll(fds, 1, 1) > 0;
@@ -149,23 +151,17 @@ final class PosixOutput {
   /// when it took no more.
   bool _writeFirst() {
     final bytes = _pending.first;
-    final buffer = _buffer ??= c.calloc(1, _chunk).cast<Uint8>();
     while (_offset < bytes.length) {
-      final end = _offset + _chunk < bytes.length
-          ? _offset + _chunk
-          : bytes.length;
-      final n = end - _offset;
-      buffer.asTypedList(n).setRange(0, n, bytes, _offset);
-      final written = c.write(_stdoutFd, buffer.cast(), n);
+      final rest = _offset == 0 ? bytes : Uint8List.sublistView(bytes, _offset);
+      final written = c.write(_fd, rest.address.cast(), rest.length);
       if (written < 0) {
         final errno = c.errno;
         if (errno == c.eintr) {
           continue;
         }
-        if (errno == c.eagain) {
-          return false;
+        if (errno != c.eagain) {
+          _fail(TerminalException('the terminal failed: errno $errno'));
         }
-        _fail(TerminalException('the terminal failed: errno $errno'));
         return false;
       }
       _offset += written;

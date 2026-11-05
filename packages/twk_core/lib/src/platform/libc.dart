@@ -41,13 +41,13 @@ const pollHup = 0x10;
 /// POLLNVAL: the descriptor is not open.
 const pollNval = 0x20;
 
-/// F_GETFL, for [fcntl]: the descriptor's status flags.
-const fGetfl = 3;
+/// O_WRONLY, for [open]: for writing.
+const oWronly = 1;
 
-/// F_SETFL, for [fcntl]: sets the descriptor's status flags.
-const fSetfl = 4;
+/// O_NOCTTY, for [open]: a terminal does not become the controlling one.
+final oNoctty = _macos ? 0x20000 : 0x100;
 
-/// O_NONBLOCK: a call on the descriptor does not block.
+/// O_NONBLOCK, for [open]: a call on the descriptor does not block.
 final oNonblock = _macos ? 0x4 : 0x800;
 
 /// SIGTSTP, for [signal]: what stops a job.
@@ -100,10 +100,15 @@ external int read(int fd, Pointer<Void> buf, int count);
 @Native<Long Function(Int, Pointer<Void>, Size)>(isLeaf: true)
 external int write(int fd, Pointer<Void> buf, int count);
 
-/// fcntl(2): [command] ([fGetfl], [fSetfl]) on [fd], with [arg]; what it
-/// gives, or -1. A leaf call, like [read].
-@Native<Int Function(Int, Int, VarArgs<(Int,)>)>(isLeaf: true)
-external int fcntl(int fd, int command, int arg);
+/// open(2): opens [path] as [flags] say, a new file of [mode]; a descriptor,
+/// or -1. A leaf call, like [read].
+@Native<Int Function(Pointer<Char>, Int, VarArgs<(Int,)>)>(isLeaf: true)
+external int open(Pointer<Char> path, int flags, int mode);
+
+/// ttyname(3): the path of the terminal [fd] is, in memory of libc's that
+/// the next call overwrites; null where it is none.
+@Native<Pointer<Char> Function(Int)>(isLeaf: true)
+external Pointer<Char> ttyname(int fd);
 
 /// signal(2): [handler] called on [number] from now on; the one before it,
 /// or SIG_ERR. A leaf call, like [read].

@@ -569,7 +569,8 @@ void main() {
     }
   });
 
-  test('SIGTSTP is caught only while the terminal is raw', () async {
+  test('SIGTSTP is caught only while the terminal is raw, and the stdout it '
+      'shares with the shell stays blocking', () async {
     final app = await compiledProgram(
       'test/pty/stop_app.dart',
       packages: (await Isolate.packageConfig)!.toFilePath(),
@@ -582,7 +583,7 @@ void main() {
     addTearDown(reading.cancel);
     await waitFor(pty.exitCode, 'the end of the app');
     await waitUntil(() => '$out'.contains(']'), 'what it says');
-    expect('$out', contains('[false,true,false,true,false]'));
+    expect('$out', contains('[false,true,false,true,false,true]'));
   }, testOn: 'linux');
 
   group('an app on a terminal that stops reading', () {
