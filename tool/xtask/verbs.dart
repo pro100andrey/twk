@@ -7,6 +7,9 @@
 //   tests    PATH ARGS...
 //                      dart test ARGS there, or nothing, said so, where
 //                      the package has no test/
+//   group-tests PATH [--groups=N] [--shuffle=SEED] ARGS...
+//                      dart test ARGS there, the suite's files joined in
+//                      generated entry points (test_groups.dart)
 //   e2e      MODE      a demo in a pseudo-terminal, then its output through
 //                      the test emulator (fullscreen or inline)
 //   bench    [ARGS]    the frame benchmark, locked, pinned, its report read
@@ -34,6 +37,7 @@ import 'package:xtask_kit/xtask_kit.dart';
 import 'bench.dart';
 import 'cpus.dart';
 import 'pub_check.dart';
+import 'test_groups.dart';
 import 'vscode.dart';
 
 /// The verbs, by the names xtask.yaml gives them.
@@ -43,6 +47,7 @@ Map<String, Verb> verbs({Cpus? cpus}) {
     'spare': (c) => spare(c, host),
     'package': (c) => package(c, host),
     'tests': (c) => tests(c, host),
+    'group-tests': (c) => groupTests(c, host),
     'e2e': (c) => e2e(c, host),
     'bench': (c) => bench(c, host),
     'browser': (c) => browser(c, host),
@@ -155,6 +160,52 @@ Future<int> tests(VerbContext c, Cpus cpus) async {
   }
   final argv = ['dart', 'test', ...args];
   c.log('$dir: ${argv.join(' ')}');
+  return answer(
+    await c.run(offBenchCore(c, cpus, argv), workingDirectory: dir),
+  );
+}
+
+/// Runs the suite of the package its first argument is in as [tests] does,
+/// its files joined in entry points written afresh (test_groups.dart) and
+/// balanced by the last run's times. `--groups=N` and `--shuffle=SEED` are
+/// for it, the other arguments `dart test`'s.
+Future<int> groupTests(VerbContext c, Cpus cpus) async {
+  if (c.args.isEmpty) {
+    c.log('group-tests: give a path in the package, then dart test arguments');
+    return ExitCode.invalidFile;
+  }
+  final [member, ...rest] = c.args;
+  final dir = packageOf(c.root, member);
+  if (dir == null) {
+    c.log('group-tests: no pubspec.yaml in $member or above it');
+    return ExitCode.invalidFile;
+  }
+  int? option(String name) => [
+    for (final arg in rest)
+      if (arg.startsWith('--$name=')) int.parse(arg.split('=').last),
+  ].lastOrNull;
+  final package = Directory('${c.root}/$dir');
+  final sources = testSources(package);
+  final log = File('${package.path}/$timesFile');
+  final plan = planGroups(
+    sources,
+    groups: option('groups') ?? 8,
+    shuffle: option('shuffle'),
+    times: log.existsSync() ? timesOf(log.readAsLinesSync()) : const {},
+  );
+  writeGroups(Directory('${package.path}/$groupsDirectory'), plan);
+  c.log(
+    '$dir: ${sources.length - plan.apart.length} files in '
+    '${plan.groups.length} groups, ${plan.apart.length} apart',
+  );
+  final argv = [
+    'dart',
+    'test',
+    '--file-reporter=json:$timesFile',
+    for (final arg in rest)
+      if (!arg.startsWith('--groups=') && !arg.startsWith('--shuffle=')) arg,
+    ...testArguments(plan, sources),
+  ];
   return answer(
     await c.run(offBenchCore(c, cpus, argv), workingDirectory: dir),
   );
