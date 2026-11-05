@@ -1,4 +1,5 @@
-// FilePicker over a temporary directory: the list of its entries under the
+// FilePicker over a tree in memory (and over a temporary directory, for
+// what only the real file system does): the list of its entries under the
 // field naming it, those starting with a dot and the files a filter leaves
 // out hidden; the cursor moved and an entry taken by the keys and the
 // mouse, from the list and from the field; the path typed completed and
@@ -16,6 +17,36 @@ import 'package:twk_test/twk_test.dart';
 import '../platform/native_paths.dart';
 
 late String root;
+
+/// The file system [picker] and the dialogs list by default: the tree in
+/// memory, or the machine's in the group of what only it does.
+late PickerFileSystem files;
+
+/// What a test of the list finds in [root], on disk or in memory: the
+/// files the tests of this file are written for.
+const treeDirs = ['.git', 'docs', 'src', 'src/util'];
+const treeFiles = [
+  '.env',
+  'docs/guide.md',
+  'docs/guidelines.md',
+  'src/main.dart',
+  'src/Model.dart',
+  'src/.secret.dart',
+  'README.md',
+  'notes.txt',
+  'pubspec.yaml',
+];
+
+/// The tree of [treeDirs] and [treeFiles] below [at], in memory.
+PickerFileSystem treeAt(String at) => PickerFileSystem.memory(
+  [
+    for (final d in treeDirs) '$at${native('/$d/')}',
+    for (final f in treeFiles) '$at${native('/$f')}',
+    rooted('/home/me/'),
+  ],
+  currentDirectory: at,
+  homeDirectory: rooted('/home/me'),
+);
 
 /// Columns enough for the field to show [root] whole, and the paths the
 /// tests put under it, however long the temporary directory's path is
@@ -51,27 +82,31 @@ String osError(void Function() list) {
 /// The machine's file system, counting the listings it has going: begun
 /// and neither ended nor cancelled.
 final class _Counted extends PickerFileSystem {
+  _Counted(this.inner);
+
+  /// The file system listed.
+  final PickerFileSystem inner;
+
   /// How many listings are going.
   var going = 0;
 
   @override
-  String get currentDirectory => PickerFileSystem.local.currentDirectory;
+  String get currentDirectory => inner.currentDirectory;
 
   @override
-  String? get homeDirectory => PickerFileSystem.local.homeDirectory;
+  String? get homeDirectory => inner.homeDirectory;
 
   @override
-  FileKind kindOf(String path) => PickerFileSystem.local.kindOf(path);
+  FileKind kindOf(String path) => inner.kindOf(path);
 
   @override
-  Future<String> read(String file) => PickerFileSystem.local.read(file);
+  Future<String> read(String file) => inner.read(file);
 
   @override
-  Future<int?> sizeOf(String file) => PickerFileSystem.local.sizeOf(file);
+  Future<int?> sizeOf(String file) => inner.sizeOf(file);
 
   @override
-  Stream<void> watch(String directory) =>
-      PickerFileSystem.local.watch(directory);
+  Stream<void> watch(String directory) => inner.watch(directory);
 
   @override
   Stream<DirectoryEntry> list(String directory) {
@@ -87,7 +122,7 @@ final class _Counted extends PickerFileSystem {
     late final StreamController<DirectoryEntry> out;
     out = StreamController(
       onListen: () {
-        final entries = PickerFileSystem.local
+        final entries = inner
             .list(directory)
             .listen(
               out.add,
@@ -199,7 +234,7 @@ String bottom(TwkTester t) => t.lines.last.trimRight();
 /// focused, in an overlay in the dark theme; [picked] gets each list of
 /// paths it picks.
 Widget picker({
-  PickerFileSystem fileSystem = PickerFileSystem.local,
+  PickerFileSystem? fileSystem,
   List<List<String>>? picked,
   FilePickerMode mode = FilePickerMode.open,
   String? directory,
@@ -218,7 +253,7 @@ Widget picker({
       filters: filters,
       showHidden: showHidden,
       multiple: multiple,
-      fileSystem: fileSystem,
+      fileSystem: fileSystem ?? files,
       autofocus: true,
     ),
   ),
@@ -234,25 +269,8 @@ void main() {
   memoryTests();
 
   setUp(() {
-    final dir = Directory.systemTemp.createTempSync('file_picker_');
-    addTearDown(() => dir.deleteSync(recursive: true));
-    root = dir.path;
-    for (final d in ['.git', 'docs', 'src', 'src/util']) {
-      Directory('$root/$d').createSync();
-    }
-    for (final f in [
-      '.env',
-      'docs/guide.md',
-      'docs/guidelines.md',
-      'src/main.dart',
-      'src/Model.dart',
-      'src/.secret.dart',
-      'README.md',
-      'notes.txt',
-      'pubspec.yaml',
-    ]) {
-      File('$root/$f').writeAsStringSync('');
-    }
+    root = rooted('/work/proj');
+    files = treeAt(root);
   });
 
   group('the list', () {
@@ -399,6 +417,7 @@ void main() {
             child: FilePicker(
               onPicked: (_) {},
               directory: root,
+              fileSystem: files,
               autofocus: true,
               bar: false,
               idleStyle: dark.selection,
@@ -418,31 +437,6 @@ void main() {
       await type(t, 'n');
       await t.pump();
       expect(t.lines.where((line) => line.contains('notes.txt')), isEmpty);
-    });
-
-    testTwk('says why a directory cannot be listed, below ../', (t) async {
-      await start(t, picker(directory: '$root/gone'));
-      expect(rows(t), [
-        native('../'),
-        'cannot list: ${osError(() => Directory('$root/gone').listSync())}',
-      ]);
-      expect(t.cell(1, 2).fg, ThemeData.dark.error.fg);
-      await press(t, 'enter');
-      await listed(t);
-      expect(field(t), native('$root/'));
-      expect(cursor(t), native('docs/'));
-    });
-
-    testTwk('shows no ../ in the root', (t) async {
-      // `/`, or on Windows the root of the drive the directory is on
-      var top = Directory(root);
-      while (top.parent.path != top.path) {
-        top = top.parent;
-      }
-      await start(t, picker(directory: top.path));
-      expect(field(t), top.path);
-      expect(rows(t), isNot(contains(native('../'))));
-      expect(cursor(t), rows(t).first);
     });
   });
 
@@ -502,13 +496,13 @@ void main() {
       expect(cursor(t), native('src/'));
       await press(t, 'up up enter');
       await listed(t);
-      expect(field(t), '${Directory(root).parent.path}$sep');
+      expect(field(t), '${rooted('/work')}$sep');
     });
 
     testTwk('Up, Down, Page Up and Page Down move the cursor from the '
         'field too; going into a directory keeps the name typed', (t) async {
-      final files = _Counted();
-      await start(t, picker(fileSystem: files));
+      final counted = _Counted(files);
+      await start(t, picker(fileSystem: counted));
       await type(t, 'gu');
       await press(t, 'down');
       expect(cursor(t), native('src/'));
@@ -523,7 +517,7 @@ void main() {
       // what a listing for suggestions would bring has come, and would
       // have faded in (160 ms)
       await waitUntil(
-        () => files.going == 0,
+        () => counted.going == 0,
         'the listings to end',
         between: t.pump,
       );
@@ -646,14 +640,12 @@ void main() {
       expect(bottom(t), contains('not a directory'));
     });
 
-    testTwk('~ is the home directory', (t) async {
+    testTwk('~ is the home directory of the file system', (t) async {
       await start(t, picker());
       await clear(t);
       await type(t, '~\r');
       await listed(t);
-      final home =
-          Platform.environment[Platform.isWindows ? 'USERPROFILE' : 'HOME'];
-      expect(field(t), '$home$sep');
+      expect(field(t), '${rooted('/home/me')}$sep');
     });
 
     testTwk('the status in the footer stays on one line, cut, in a picker too '
@@ -843,21 +835,6 @@ void main() {
       expect(suggestions(t), isEmpty);
     });
 
-    testTwk('lists a directory for suggestions again once another is gone '
-        'into', (t) async {
-      await start(t, picker());
-      await clear(t);
-      await type(t, 'src/m');
-      await suggested(t, 'Model.dart');
-      File('$root/src/mx.dart').writeAsStringSync('');
-      await press(t, 'escape');
-      await clear(t);
-      await type(t, 'docs\r');
-      await listed(t);
-      await t.paste('../src/m');
-      await suggested(t, 'mx.dart');
-    });
-
     testTwk('the path the picker puts in is no step to undo, as it starts '
         'and as it goes into a directory: a KeyHintsBar hints Ctrl+Z once '
         'a character is typed', (t) async {
@@ -871,6 +848,7 @@ void main() {
                   child: FilePicker(
                     onPicked: (_) {},
                     directory: root,
+                    fileSystem: files,
                     name: 'new',
                     autofocus: true,
                   ),
@@ -933,6 +911,68 @@ void main() {
       await press(t, 'd');
       await opened(t);
       expect(t, containsLine(endsWith('  Choose a directory')));
+    });
+  });
+
+  group("over the machine's file system", () {
+    test("the home directory is the environment's", () {
+      expect(
+        PickerFileSystem.local.homeDirectory,
+        Platform.environment[Platform.isWindows ? 'USERPROFILE' : 'HOME'],
+      );
+    });
+
+    setUp(() {
+      final dir = Directory.systemTemp.createTempSync('file_picker_');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      root = dir.path;
+      for (final d in treeDirs) {
+        Directory('$root/$d').createSync();
+      }
+      for (final f in treeFiles) {
+        File('$root/$f').writeAsStringSync('');
+      }
+      files = PickerFileSystem.local;
+    });
+
+    testTwk('says why a directory cannot be listed, below ../', (t) async {
+      await start(t, picker(directory: '$root/gone'));
+      expect(rows(t), [
+        native('../'),
+        'cannot list: ${osError(() => Directory('$root/gone').listSync())}',
+      ]);
+      expect(t.cell(1, 2).fg, ThemeData.dark.error.fg);
+      await press(t, 'enter');
+      await listed(t);
+      expect(field(t), native('$root/'));
+      expect(cursor(t), native('docs/'));
+    });
+
+    testTwk('shows no ../ in the root', (t) async {
+      // `/`, or on Windows the root of the drive the directory is on
+      var top = Directory(root);
+      while (top.parent.path != top.path) {
+        top = top.parent;
+      }
+      await start(t, picker(directory: top.path));
+      expect(field(t), top.path);
+      expect(rows(t), isNot(contains(native('../'))));
+      expect(cursor(t), rows(t).first);
+    });
+
+    testTwk('lists a directory for suggestions again once another is gone '
+        'into', (t) async {
+      await start(t, picker());
+      await clear(t);
+      await type(t, 'src/m');
+      await suggested(t, 'Model.dart');
+      File('$root/src/mx.dart').writeAsStringSync('');
+      await press(t, 'escape');
+      await clear(t);
+      await type(t, 'docs\r');
+      await listed(t);
+      await t.paste('../src/m');
+      await suggested(t, 'mx.dart');
     });
   });
 }
@@ -1090,6 +1130,7 @@ final class _Opener extends StatelessWidget {
     'o': () => showFilePicker(
       context,
       directory: root,
+      fileSystem: files,
       width: dialogColumns,
       height: 10,
     ).then(results.add),
@@ -1097,11 +1138,13 @@ final class _Opener extends StatelessWidget {
       context,
       mode: FilePickerMode.save,
       directory: root,
+      fileSystem: files,
     ).then(results.add),
     'd': () => showFilePicker(
       context,
       mode: FilePickerMode.directory,
       directory: root,
+      fileSystem: files,
     ).then(results.add),
   }, child: const Focus(autofocus: true, child: Text('app')));
 }

@@ -9,6 +9,8 @@ import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
+import '../platform/native_paths.dart';
+
 Widget themed(Glyphs glyphs, Widget child) => Theme(
   data: ThemeData.dark.copyWith(glyphs: glyphs),
   child: child,
@@ -186,19 +188,18 @@ void main() {
 
     testTwk('a multiple FilePicker with boxes of two widths shows the ASCII '
         'pair, a directory a blank as wide', (t) async {
-      final dir = Directory.systemTemp.createTempSync('glyph_width_');
-      addTearDown(() => dir.deleteSync(recursive: true));
-      // names with a hyphen, which the random part of the directory's own
-      // name in the picker's header never has
-      Directory('${dir.path}/sub-dir').createSync();
-      File('${dir.path}/a-file').writeAsStringSync('x');
+      final files = PickerFileSystem.memory([
+        rooted('/home/sub-dir/'),
+        rooted('/home/a-file'),
+      ]);
       await t.pumpWidget(
         themed(
           Glyphs.unicode.copyWith(checkboxOff: '🙂'),
           Overlay(
             child: FilePicker(
               onPicked: (_) {},
-              directory: dir.path,
+              fileSystem: files,
+              directory: rooted('/home'),
               multiple: true,
               autofocus: true,
             ),
@@ -206,11 +207,7 @@ void main() {
         ),
         size: (40, 12),
       );
-      await waitUntil(
-        () => t.lines.any((l) => l.contains('[ ] a-file')),
-        'the listing',
-        between: t.pump,
-      );
+      await t.pumpUntilIdle();
       final file = t.lines.firstWhere((l) => l.contains('[ ] a-file'));
       final directory = t.lines.firstWhere((l) => l.contains('sub-dir'));
       expect(directory.indexOf('sub-dir'), file.indexOf('a-file'));
