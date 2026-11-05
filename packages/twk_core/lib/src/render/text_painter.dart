@@ -3944,9 +3944,12 @@ final class TextPainter {
 
   /// Paints the text onto [canvas] with its top left cell at ([x], [y]), as
   /// the last [layout] placed it, cut off at the canvas's clip as any
-  /// drawing is.
+  /// drawing is. Spans given since are broken at the width it had, as
+  /// [textRangeAt], [cellAt] and [columnsOf] take them: what is drawn is the
+  /// same whether or not one of those was asked first. [width] and [height]
+  /// stay the layout's.
   void paint(Canvas canvas, int x, int y) {
-    if (_linesAt < 0) {
+    if (_linesAt < 0 || _textStale) {
       // split again since the layout: the lines at the width it had
       _layoutLines(_constraints!.maxW);
     }

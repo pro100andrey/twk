@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- What a `TextPainter` paints does not depend on a query asked before it: spans
+  given since the layout are painted as `textRangeAt`, `cellAt` and `columnsOf`
+  take them, where they showed only once a query had split them.
+
 - A box title with a line break stays whole when its pen changes, where it was
   cut at the break.
 

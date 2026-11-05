@@ -82,6 +82,26 @@ List<String> paintInTree(
 }
 
 void main() {
+  test('new spans are painted the same whether or not a query came first', () {
+    TextPainter changed() => TextPainter([('hello world', plain)])
+      ..layout(const BoxConstraints(maxW: 12, maxH: 1), segmenter: segmenter)
+      ..spans = [('abc', plain)];
+    String painted(TextPainter painter) {
+      final surface = Surface(12, 1);
+      final glyphs = GlyphTable();
+      painter.paint(Canvas(surface, StyleTable(), glyphs), 0, 0);
+      return rows(surface, glyphs).single;
+    }
+
+    final queried = changed();
+    final range = queried.textRangeAt(4, 0);
+    final plainly = changed();
+    expect(painted(plainly), painted(queried));
+    expect(painted(plainly), 'abc');
+    expect(plainly.textRangeAt(4, 0), range);
+    expect(queried.width, 11, reason: "the layout's");
+  });
+
   group('layout', () {
     test('sizes itself to its widest line and its lines', () {
       final p = TextPainter([('hello big world', plain)])
