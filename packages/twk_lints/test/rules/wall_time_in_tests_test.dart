@@ -62,6 +62,13 @@ class WallTimeInTestsTest extends TwkRuleTest {
           '  void cancel();',
     );
     _sdk(
+      'async/async.dart',
+      '  Future<T> whenComplete(FutureOr<void> action());',
+      '  Future<T> whenComplete(FutureOr<void> action());\n'
+          '  Future<T> timeout(Duration timeLimit, '
+          '{FutureOr<T> onTimeout()?});',
+    );
+    _sdk(
       'async/stream.dart',
       '  factory Stream.value(T value) => throw 0;',
       '  factory Stream.value(T value) => throw 0;\n'
@@ -118,6 +125,24 @@ Future<void> settle([int ms = 30]) async {
         code,
         'Stream<int>.periodic',
         messageContainsAll: ["'Stream.periodic'"],
+      ),
+    ]);
+  }
+
+  Future<void> test_a_timeout_that_says_nothing() async {
+    const code = '''
+import 'dart:async';
+
+Future<void> settle(Future<int> exit) async {
+  await exit.timeout(const Duration(seconds: 5));
+  await exit.timeout(const Duration(seconds: 5), onTimeout: () => 0);
+}
+''';
+    await assertDiagnostics(code, [
+      lintAt(
+        code,
+        'timeout',
+        messageContainsAll: ["'Future.timeout' waits on the wall clock"],
       ),
     ]);
   }

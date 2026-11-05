@@ -18,7 +18,10 @@ import 'package:twk_term/twk_term.dart';
 import 'package:twk_test/twk_test.dart'
     show compiledProgram, runProcess, startProcess, waitFor, waitUntil;
 
-const _timeout = Duration(seconds: 10);
+/// The exit code of [pty]'s program ([waitFor], which [Run] has one of its own
+/// beside).
+Future<int?> _exit(Pty pty, {String Function()? state}) =>
+    waitFor(pty.exitCode, 'the program to end', state: state);
 
 /// A descriptor without FD_CLOEXEC, as native code may leave one.
 @Native<Int Function(Int)>(isLeaf: true)
@@ -57,7 +60,7 @@ final class Run {
     unawaited(pty.exitCode.then((code) => exited = true));
     addTearDown(() async {
       pty.kill(ProcessSignal.sigkill);
-      await pty.exitCode.timeout(_timeout);
+      await _exit(pty);
       pty.close();
       await subscription.cancel();
     });
@@ -88,7 +91,7 @@ final class Run {
 
   /// The exit code once the program ended and the output did.
   Future<int?> ended() async {
-    final code = await pty.exitCode.timeout(_timeout);
+    final code = await _exit(pty, state: _state);
     await until(() => outputDone, 'the output to end');
     return code;
   }
@@ -98,18 +101,14 @@ final class Run {
   /// holds unread (`Pty.debugUnreadOutput`), and the program's
   /// processes as they were then ([_processes]): where a wait that has no
   /// cause found yet stopped.
-  Future<void> until(bool Function() done, String what) async {
-    try {
-      await waitUntil(done, what);
-    } on TestFailure catch (e) {
-      fail(
-        '${e.message}; output: ${jsonEncode(text)}; '
-        'typed: $_typed writes, $_typedBytes bytes; '
-        'unread on the master: ${pty.debugUnreadOutput} bytes; '
-        'processes:\n${_processes()}',
-      );
-    }
-  }
+  Future<void> until(bool Function() done, String what) =>
+      waitUntil(done, what, state: _state);
+
+  String _state() =>
+      'output: ${jsonEncode(text)}; '
+      'typed: $_typed writes, $_typedBytes bytes; '
+      'unread on the master: ${pty.debugUnreadOutput} bytes; '
+      'processes:\n${_processes()}';
 
   /// The program and the processes under it, a line each (`ps`: pid,
   /// parent, group, the terminal's foreground group, state, what it
@@ -474,7 +473,7 @@ void main() {
         r'i=$((i + 1)); sleep 0.05; done; echo late) & echo early',
         workingDirectory: dir.path,
       );
-      expect(await run.pty.exitCode.timeout(_timeout), exits(0));
+      expect(await _exit(run.pty), exits(0));
       expect(run.text, isNot(contains('late')));
       hold.deleteSync();
       expect(await run.ended(), exits(0));

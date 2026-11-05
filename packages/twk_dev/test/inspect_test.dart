@@ -16,7 +16,7 @@ import 'package:twk_dev/src/app_client.dart';
 import 'package:twk_dev/src/inspect.dart';
 import 'package:twk_dev/src/run.dart';
 import 'package:twk_test/twk_test.dart'
-    show runProcess, startProcess, waitUntil;
+    show runProcess, startProcess, waitFor, waitUntil;
 import 'package:vm_service/utils.dart';
 
 import 'terminal.dart';
@@ -120,7 +120,7 @@ void main() {
     final apps = StreamIterator(running.apps);
     Future<AppClient> next() async {
       expect(
-        await apps.moveNext().timeout(_start),
+        await waitFor(apps.moveNext(), 'the next app', timeout: _start),
         isTrue,
       );
       return apps.current;
@@ -152,7 +152,7 @@ void main() {
     expect(armed['select'], isTrue);
     final picked = app.picks.first;
     run.stdin.add(utf8.encode('\x1b[<0;6;2M\x1b[<0;6;2m'));
-    expect(await picked.timeout(const Duration(seconds: 10)), (5, 1));
+    expect(await waitFor(picked, 'the pick'), (5, 1));
     final there = await app.call('select', {'x': '5', 'y': '1'});
     expect(there['id'], text['id']);
     final shown = await app.call('highlight', {'id': '${text['id']}'});
@@ -173,7 +173,11 @@ void main() {
     // Ctrl+G H: twk run starts the app again, which is found again
     final gone = app.done;
     run.stdin.add(utf8.encode('\x07H'));
-    await gone.timeout(const Duration(seconds: 30));
+    await waitFor(
+      gone,
+      'the app to go',
+      timeout: const Duration(seconds: 30),
+    );
     app = await next();
     // its binding runs before its first frame, which mounts the tree
     late Json again;
@@ -285,7 +289,7 @@ void main() {
     ]);
     expect(result.exitCode, 1);
     expect(result.stderr, startsWith('twk inspect: not a terminal: '));
-    final socket = await connected.future.timeout(const Duration(seconds: 10));
+    final socket = await waitFor(connected.future, 'twk inspect to connect');
     addTearDown(socket.close);
     // the other end closes it; until then it would be open for good
     await socket.drain<void>().timeout(

@@ -1,0 +1,4 @@
+# behind the waits of a test, which each bound what they wait for and say what
+# it was: a few of them add up past the 30 s a test has by default, where the
+# failure would say nothing
+timeout: 2m

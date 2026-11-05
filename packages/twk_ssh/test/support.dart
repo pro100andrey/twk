@@ -148,7 +148,12 @@ Future<String> readUntil(
     },
   );
   try {
-    return await finished.future.timeout(timeout);
+    return await waitFor(
+      finished.future,
+      'the text awaited',
+      timeout: timeout,
+      state: () => 'read: $text',
+    );
   } finally {
     await sub.cancel();
   }
@@ -284,7 +289,11 @@ final class RawClient {
     Duration timeout = const Duration(seconds: 30),
   }) async {
     while (_payloads.isEmpty && !closed) {
-      await (_waiting ??= Completer<void>()).future.timeout(timeout);
+      await waitFor(
+        (_waiting ??= Completer<void>()).future,
+        'a message from the server',
+        timeout: timeout,
+      );
     }
     return _payloads.isEmpty ? null : _payloads.removeFirst();
   }
@@ -321,14 +330,14 @@ final class RawClient {
 
   /// Whether the server closes within [within].
   Future<bool> closes(Duration within) async {
-    try {
-      while (!closed) {
-        await (_waiting ??= Completer<void>()).future.timeout(within);
-      }
-      return true;
-    } on TimeoutException {
-      return false;
+    var inTime = true;
+    while (!closed && inTime) {
+      await (_waiting ??= Completer<void>()).future.timeout(
+        within,
+        onTimeout: () => inTime = false,
+      );
     }
+    return closed;
   }
 
   /// The client's side of a key exchange of [kex], strict, in aes128-ctr

@@ -173,10 +173,10 @@ void main() {
     final shell = await client.shell();
     await readUntil(shell.stdout, (s) => s == 'ready');
     unawaited(shell.stdin.close());
-    await eof.future.timeout(const Duration(seconds: 5));
+    await waitFor(eof.future, 'the end of the input');
     expect(ended.isCompleted, isFalse);
     await client.close();
-    await ended.future.timeout(const Duration(seconds: 5));
+    await waitFor(ended.future, 'the session to end');
   });
 
   test('one session per connection: a second channel is refused', () async {

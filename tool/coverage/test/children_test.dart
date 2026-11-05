@@ -12,7 +12,10 @@ import 'package:test/test.dart';
 import 'package:twk_coverage/children.dart';
 import 'package:twk_doc_snippets/packages.dart';
 import 'package:twk_test/twk_test.dart'
-    show compiledProgram, runProcess, waitUntil;
+    show compiledProgram, runProcess, waitFor, waitUntil;
+
+/// What a process of these tests gets to end in.
+const _run = Duration(seconds: 60);
 
 void main() {
   // let_go.dart, run in a process of its own, compiled once
@@ -80,9 +83,7 @@ void main(List<String> args) {
 
   test('a process started as the copied dart is measured, its output its '
       'own, and ends', () async {
-    final res = await run(['bin/main.dart']).timeout(
-      const Duration(seconds: 60),
-    );
+    final res = await waitFor(run(['bin/main.dart']), 'the run', timeout: _run);
     expect((res.exitCode, res.stdout, res.stderr), (0, '4\n', ''));
     await children.stop();
     expect((children.measured, children.lost), (1, 0));
@@ -104,24 +105,28 @@ void main(List<String> args) {
       'compiles under coverage, is no process measured; the kernel run as '
       'it is, as its source is', () async {
     final kernel = '${temp.path}/main.dill';
-    final compiled = await runProcess(
-      children.dart,
-      [
-        'compile',
-        'kernel',
-        '--no-link-platform',
-        '--packages=${package.path}/.dart_tool/package_config.json',
-        '--depfile=${temp.path}/main.d',
-        '-Ddart.vm.product=false',
-        '-o',
-        kernel,
-        'bin/main.dart',
-      ],
-      workingDirectory: package.path,
-      group: true,
-    ).timeout(const Duration(seconds: 60));
+    final compiled = await waitFor(
+      runProcess(
+        children.dart,
+        [
+          'compile',
+          'kernel',
+          '--no-link-platform',
+          '--packages=${package.path}/.dart_tool/package_config.json',
+          '--depfile=${temp.path}/main.d',
+          '-Ddart.vm.product=false',
+          '-o',
+          kernel,
+          'bin/main.dart',
+        ],
+        workingDirectory: package.path,
+        group: true,
+      ),
+      'the compile',
+      timeout: _run,
+    );
     expect(compiled.exitCode, 0, reason: '${compiled.stderr}');
-    final res = await run([kernel]).timeout(const Duration(seconds: 60));
+    final res = await waitFor(run([kernel]), 'the run', timeout: _run);
     expect((res.exitCode, res.stdout, res.stderr), (0, '4\n', ''));
     await children.stop();
     expect((children.measured, children.lost), (1, 0));
@@ -137,8 +142,10 @@ void main(List<String> args) {
   });
 
   test('a process ending by exit() is not measured, and ends', () async {
-    final res = await run(['bin/main.dart', 'exit']).timeout(
-      const Duration(seconds: 60),
+    final res = await waitFor(
+      run(['bin/main.dart', 'exit']),
+      'the run',
+      timeout: _run,
     );
     expect(res.exitCode, 3);
     await children.stop();
@@ -150,23 +157,29 @@ void main(List<String> args) {
     // a kernel's main runs before the service is up (no compile to wait
     // for), and its exit() ends it before the service writes its file
     final kernel = '${temp.path}/main.dill';
-    final compiled = await runProcess(
-      Platform.resolvedExecutable,
-      [
-        'compile',
-        'kernel',
-        '--no-link-platform',
-        '--packages=${package.path}/.dart_tool/package_config.json',
-        '-o',
-        kernel,
-        'bin/main.dart',
-      ],
-      workingDirectory: package.path,
-      group: true,
-    ).timeout(const Duration(seconds: 60));
+    final compiled = await waitFor(
+      runProcess(
+        Platform.resolvedExecutable,
+        [
+          'compile',
+          'kernel',
+          '--no-link-platform',
+          '--packages=${package.path}/.dart_tool/package_config.json',
+          '-o',
+          kernel,
+          'bin/main.dart',
+        ],
+        workingDirectory: package.path,
+        group: true,
+      ),
+      'the compile',
+      timeout: _run,
+    );
     expect(compiled.exitCode, 0, reason: '${compiled.stderr}');
-    final res = await run([kernel, 'exit']).timeout(
-      const Duration(seconds: 60),
+    final res = await waitFor(
+      run([kernel, 'exit']),
+      'the run',
+      timeout: _run,
     );
     expect((res.exitCode, res.stdout), (3, '4\n'));
     await children.stop();
@@ -175,10 +188,11 @@ void main(List<String> args) {
 
   test('a process with VM service flags of its own runs without the '
       "coverage tool's", () async {
-    final res = await run([
-      '--enable-vm-service=0',
-      'bin/main.dart',
-    ]).timeout(const Duration(seconds: 60));
+    final res = await waitFor(
+      run(['--enable-vm-service=0', 'bin/main.dart']),
+      'the run',
+      timeout: _run,
+    );
     expect(res.exitCode, 0);
     // its own service announced, as it would be
     expect(res.stdout, contains('The Dart VM service is listening on'));

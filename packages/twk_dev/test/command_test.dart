@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:twk_dev/twk_dev.dart';
+import 'package:twk_test/twk_test.dart' show waitFor;
 
 import 'twk.dart';
 
@@ -224,11 +225,11 @@ void main() {
     // pauses of playback are what is measured
     Future<Duration> play(List<String> options) async {
       final took = Stopwatch()..start();
-      final result = await twkHere([
-        'play',
-        ...options,
-        cast,
-      ]).timeout(const Duration(seconds: 20));
+      final result = await waitFor(
+        twkHere(['play', ...options, cast]),
+        'twk play to end',
+        timeout: const Duration(seconds: 20),
+      );
       expect(result.exitCode, 0, reason: '${result.stderr}');
       expect(result.stdout, 'first second');
       return took.elapsed;

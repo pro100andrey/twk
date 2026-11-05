@@ -42,7 +42,10 @@ final class Lines {
     }
     final done = Completer<void>();
     _waits.add((match, done));
-    return done.future.timeout(const Duration(seconds: 30));
+    return done.future.timeout(
+      const Duration(seconds: 30),
+      onTimeout: () => fail('no line has $pattern:\n${lines.join('\n')}'),
+    );
   }
 }
 

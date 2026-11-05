@@ -16,7 +16,7 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:twk_dev/twk_dev.dart';
 import 'package:twk_test/twk_test.dart' show ScreenFrame, screenFrames;
-import 'package:twk_test/twk_test.dart' show runProcess;
+import 'package:twk_test/twk_test.dart' show runProcess, waitFor;
 
 import 'terminal.dart';
 import 'twk.dart';
@@ -178,7 +178,7 @@ void main() {
         header.complete();
       }
     });
-    await header.future.timeout(wait);
+    await waitFor(header.future, 'the header', timeout: wait);
     await t.until(() => t.modes.raw && t.text.contains('tick'), 'a tick');
     // the recording's reader goes away: its next write fails
     await reader.cancel();

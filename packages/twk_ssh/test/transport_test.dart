@@ -356,7 +356,7 @@ void main() {
     rekeyed.complete();
     await shell.done;
     expect(shell.exitCode, 0);
-    await session.done.timeout(const Duration(seconds: 5));
+    await waitFor(session.done, 'the session to end');
   });
 
   test("a client that doesn't read can't make the server queue more", () async {

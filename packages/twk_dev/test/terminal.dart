@@ -10,7 +10,7 @@ import 'dart:typed_data';
 
 import 'package:test/test.dart';
 import 'package:twk_term/twk_term.dart';
-import 'package:twk_test/twk_test.dart' show waitUntil;
+import 'package:twk_test/twk_test.dart' show waitFor, waitUntil;
 
 import 'twk.dart';
 
@@ -212,16 +212,11 @@ final class Terminal {
   }
 
   /// Waits until [done], failing with [what] and the screen after [wait].
-  Future<void> until(bool Function() done, String what) async {
-    try {
-      await waitUntil(done, what, timeout: wait);
-    } on TestFailure catch (e) {
-      fail(
-        '${e.message}; screen:\n${lines.join('\n')}\n'
-        'output: ${jsonEncode(text)}',
-      );
-    }
-  }
+  Future<void> until(bool Function() done, String what) =>
+      waitUntil(done, what, timeout: wait, state: _state);
+
+  String _state() =>
+      'screen:\n${lines.join('\n')}\noutput: ${jsonEncode(text)}';
 
   /// Whether the program is stopped (by SIGSTOP): its state `T`, read
   /// from /proc on Linux, as running ps there would have the VM wait for
@@ -246,7 +241,12 @@ final class Terminal {
 
   /// The exit code once the program ended and the output did.
   Future<int?> ended() async {
-    final code = await pty.exitCode.timeout(wait);
+    final code = await waitFor(
+      pty.exitCode,
+      'the program to end',
+      timeout: wait,
+      state: _state,
+    );
     // as the pty read them at the end: macOS revokes the terminal of a
     // session whose leader ended, which the tty held here reads no more
     final end = pty.modesAtEnd;
