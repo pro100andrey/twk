@@ -50,6 +50,9 @@ const fSetfl = 4;
 /// O_NONBLOCK: a call on the descriptor does not block.
 final oNonblock = _macos ? 0x4 : 0x800;
 
+/// SIGTSTP, for [signal]: what stops a job.
+final sigtstp = _macos ? 18 : 20;
+
 /// EINTR: a call interrupted by a signal.
 const eintr = 4;
 
@@ -101,6 +104,15 @@ external int write(int fd, Pointer<Void> buf, int count);
 /// gives, or -1. A leaf call, like [read].
 @Native<Int Function(Int, Int, VarArgs<(Int,)>)>(isLeaf: true)
 external int fcntl(int fd, int command, int arg);
+
+/// signal(2): [handler] called on [number] from now on; the one before it,
+/// or SIG_ERR. A leaf call, like [read].
+@Native<Pointer<Void> Function(Int, Pointer<Void>)>(isLeaf: true)
+external Pointer<Void> signal(int number, Pointer<Void> handler);
+
+/// getppid(2), which can't fail and is safe in a signal handler.
+@Native<Int Function()>(isLeaf: true)
+external int getppid();
 
 /// pipe(2): a pipe, its read end in `fds[0]`, its write end in `fds[1]`;
 /// 0, or -1.

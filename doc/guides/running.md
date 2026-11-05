@@ -26,7 +26,8 @@ process does in the cases that are not a user at a terminal.
 - Ctrl+Z stops the app for the shell until `fg`, when no widget takes the
   key, unless `stopOnCtrlZ` is false. The terminal is given back to the
   shell while it is stopped and taken again on `fg`. POSIX only; the shell
-  has to do job control, or nothing stops.
+  has to do job control, or nothing stops. A SIGTSTP from outside (`kill
+  -TSTP`) does nothing while the app has the terminal.
 - SIGTERM restores the terminal and exits the process with code 143, and
   SIGHUP (on Windows the console being closed) does the same with 129. The
   Future does not complete: the process is gone. A terminal that reads

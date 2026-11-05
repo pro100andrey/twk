@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- A SIGTSTP from outside (`kill -TSTP`) does nothing while the app has the
+  terminal on Linux and macOS, where it stopped the process with the terminal
+  raw, on the alternate screen, the cursor hidden. Dart can't watch it, to give
+  the terminal back first. Ctrl+Z stops the app for the shell as before.
+
 - A terminal that reads nothing blocks nothing: on Linux and macOS `StdioLink`
   writes without blocking and keeps what is not taken, where `stdout` blocked
   the main isolate in write(2), with no timer, key or signal handled until the

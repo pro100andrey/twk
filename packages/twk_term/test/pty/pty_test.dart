@@ -569,6 +569,22 @@ void main() {
     }
   });
 
+  test('SIGTSTP is caught only while the terminal is raw', () async {
+    final app = await compiledProgram(
+      'test/pty/stop_app.dart',
+      packages: (await Isolate.packageConfig)!.toFilePath(),
+      cache: '.dart_tool/twk_test/programs',
+    );
+    final pty = Pty.start(Platform.resolvedExecutable, [app]);
+    addTearDown(pty.close);
+    final out = StringBuffer();
+    final reading = pty.output.listen((b) => out.write(latin1.decode(b)));
+    addTearDown(reading.cancel);
+    await waitFor(pty.exitCode, 'the end of the app');
+    await waitUntil(() => '$out'.contains(']'), 'what it says');
+    expect('$out', contains('[false,true,false,true,false]'));
+  }, testOn: 'linux');
+
   group('an app on a terminal that stops reading', () {
     late String app;
     setUpAll(
