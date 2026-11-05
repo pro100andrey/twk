@@ -23,8 +23,21 @@ import 'terminal.dart';
 /// the app, the terminal restored, and the session calls its
 /// `onInterrupt`.
 ///
-/// This is the seam the prompts and progress of the package build on; a
-/// program talks to its [Cli].
+/// This is the seam the prompts and progress of the package build on, and
+/// a program reaches it by [Cli.session] (in the interactive mode only:
+/// check [Cli.mode]) to show a live widget below the lines it logs. A
+/// program that has no need of it talks to its [Cli]: [Cli.show],
+/// [Cli.tasks] and [Cli.progress] work in every mode.
+///
+/// Several widgets may be mounted at once, one below another. A session
+/// that [isOpen] no more, closed by the program or ended by a Ctrl+C,
+/// takes nothing: [mount] returns a [CliLive] that is not [CliLive.isMounted]
+/// and [commit] completes at once, both without an error; [Cli.session]
+/// opens a new one for the next asking. Once the [Cli] is closed
+/// ([Cli.close], which [Cli.run] calls) its session ends with it and
+/// [Cli.session] throws a [StateError]. Unlike [Cli.tasks] and
+/// [Cli.progress], mounting writes no progress report to the terminal
+/// (OSC 9;4).
 final class CliSession {
   CliSession._(this._binding, this._theme, this._onInterrupt);
 

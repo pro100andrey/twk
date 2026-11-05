@@ -836,17 +836,39 @@ final class Cli {
 
   /// The inline session of the interactive mode, opened the first time it
   /// is asked for and kept until [close]: what the prompts and progress
-  /// of this package mount their widgets in. A Ctrl+C that ends it (the
-  /// process going on where it handles SIGINT) leaves the next asking to
-  /// open a new one, as the terminal's input is left as it was. A
-  /// [StateError] in another mode, or once the console is closed.
-  @internal
+  /// of this package mount their widgets in, and where a program mounts
+  /// a live widget ([CliSession.mount]) to show it below the lines it
+  /// logs, which are committed above it.
+  ///
+  /// A session that ended, by a Ctrl+C (the process going on where it
+  /// handles SIGINT) or by its own [CliSession.close], leaves the next
+  /// asking to open a new one, as the terminal's input is left as it was;
+  /// keep the session for no longer than [CliSession.isOpen] says. A
+  /// [StateError] in another mode, so check [mode] first, or once the
+  /// console is closed.
+  ///
+  /// ```dart
+  /// Future<void> watch(Cli cli) async {
+  ///   if (cli.mode != CliMode.interactive) {
+  ///     cli.info('watching');
+  ///     return;
+  ///   }
+  ///   final session = await cli.session();
+  ///   final live = session.mount(const Text('watching'));
+  ///   cli.info('started');
+  ///   live.update(const Text('still watching'));
+  ///   live.remove();
+  /// }
+  /// ```
   Future<CliSession> session() {
     if (mode != CliMode.interactive) {
       throw StateError('no inline session in the ${mode.name} mode');
     }
     if (_closed) {
       throw StateError('the console is closed');
+    }
+    if (_session case final ended? when !ended.isOpen) {
+      _forgetSession();
     }
     return _opening ??=
         CliSession.open(
@@ -877,17 +899,21 @@ final class Cli {
     _ => null,
   };
 
-  // a Ctrl+C ended the session, the terminal restored: the next one asked
-  // for is a new one, and what write left without a line break goes now,
-  // before what comes after
+  // a Ctrl+C ended the session, the terminal restored
   void _interrupted() {
+    _forgetSession();
+    terminal.interrupt();
+  }
+
+  // the session ended: the next one asked for is a new one, and what write
+  // left without a line break goes now, before what comes after
+  void _forgetSession() {
     _session = null;
     _opening = null;
     if (_partial.isNotEmpty) {
       terminal.out.write(_partial.toString());
       _partial.clear();
     }
-    terminal.interrupt();
   }
 
   /// Ends the inline session where one is open, what [write] left without
