@@ -3,6 +3,7 @@
 // first has it is refused, rather than a second reader of fd 0 that takes
 // the keys the first one is waiting for; a suspended first gives way to a
 // second and has it again after.
+@Tags(['process'])
 @TestOn('linux || mac-os')
 library;
 
