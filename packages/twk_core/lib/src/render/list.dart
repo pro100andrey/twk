@@ -906,7 +906,7 @@ final class RenderList extends RenderObject
     final canvas = ctx.canvas
       ..save()
       ..clipRect(0, from, width, to - from)
-      ..fill(0, from, width, to - from, pen);
+      ..fill(0, from, width, to - from, ctx.canvas.styles.ownPen(pen));
     for (var c = firstChild; c != null;) {
       final at = c.parentData as ListParentData;
       if (at.dy < to && at.dy + c.height > from) {

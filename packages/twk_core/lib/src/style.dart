@@ -450,6 +450,7 @@ final class StyleTable {
     }
     _sgr.clear();
     _transitions.clear();
+    _nearBlanks.clear();
     _blank.fillRange(0, _blank.length, -1);
     _clearComposeCache();
     _slotsOf(marks);
@@ -555,6 +556,7 @@ final class StyleTable {
     _colorMode = m;
     _sgr.clear();
     _transitions.clear();
+    _nearBlanks.clear();
   }
 
   final bool _styledUnderlines;
@@ -742,6 +744,31 @@ final class StyleTable {
     return StyleId(_blankSlow(id));
   }
 
+  final _nearBlanks = _PairCache<int>();
+
+  /// The style nearest [from] a blank of style [to] looks the same in, for
+  /// the terminal's state over blanks to change as little as it has to:
+  /// [from]'s foreground and what of its attributes a blank does not show.
+  /// [to] where a blank shows more of it.
+  StyleId nearBlank(StyleId from, StyleId to) {
+    final cached = _nearBlanks.get(from.value, to.value);
+    if (cached != null) {
+      return StyleId(cached);
+    }
+    final f = from.value;
+    final t = to.value;
+    final near = _intern(
+      _fg[f],
+      _bg[t],
+      (_attrs[f] & ~Attr.visibleOnBlank) | (_attrs[t] & Attr.visibleOnBlank),
+      _ul[t],
+      _link[t],
+    );
+    final best = blankStyleOf(StyleId(near)) == blankStyleOf(to) ? near : t;
+    _nearBlanks.put(f, t, best);
+    return StyleId(best);
+  }
+
   int _blankSlow(int id) {
     final a = _attrs[id];
     final int result;
@@ -808,6 +835,27 @@ final class StyleTable {
 
   /// The pen registered as [id] ([pen]).
   Pen penOf(int id) => _pens[id];
+
+  final _ownPens = <int, int>{};
+
+  /// [id], or the same pen with the terminal's own foreground where it has
+  /// none: what a repaint boundary fills its cells with. Those hold its own
+  /// old paint when it repaints alone, its parent's in a whole paint, so a
+  /// foreground taken from them would depend on what was painted there.
+  int ownPen(int id) => _ownPens[id] ??= switch (penOf(id)) {
+    Pen(fg: null) && final p => pen(
+      Pen(
+        fg: Color.defaultColor,
+        bg: p.bg,
+        fgAlpha: p.fgAlpha,
+        bgAlpha: p.bgAlpha,
+        attrs: p.attrs,
+        underlineColor: p.underlineColor,
+        link: p.link,
+      ),
+    ),
+    _ => id,
+  };
 
   /// The resolved style id a pen always produces, or [StyleId.none] when the
   /// result depends on the cell underneath (inherited or translucent colors).

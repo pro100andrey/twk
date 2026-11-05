@@ -122,7 +122,8 @@ final class RenderBox extends RenderObject with RenderObjectWithChildMixin {
   @override
   void paint(PaintContext ctx) {
     assert(!boundary || _opaqueBackground(ctx, pen), _translucentBoundary);
-    ctx.canvas.fill(0, 0, width, height, pen);
+    final styles = ctx.canvas.styles;
+    ctx.canvas.fill(0, 0, width, height, boundary ? styles.ownPen(pen) : pen);
     if (_child != null) {
       paintChild(ctx, _child!);
     }

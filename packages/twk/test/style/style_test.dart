@@ -394,10 +394,9 @@ void main() {
         const Span('a'),
         'b'.italic,
       ], under: const Pen(attrs: Attr.bold | Attr.underline));
-      expect(
-        [vt.cell(0, 0).attrs, vt.cell(1, 0).attrs, vt.cell(2, 0).attrs],
-        [0, Attr.italic, Attr.bold | Attr.underline],
-      );
+      expect([vt.cell(0, 0).attrs, vt.cell(1, 0).attrs], [0, Attr.italic]);
+      // the blank after them: what a blank shows of what it had
+      expect(vt.cell(2, 0).attrs & Attr.visibleOnBlank, Attr.underline);
     });
 
     test('add nothing to the style table after the first frame', () {

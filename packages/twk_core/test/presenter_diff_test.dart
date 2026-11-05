@@ -22,16 +22,16 @@ import 'support/harness.dart';
 
 /// The digest and the byte count of every configuration's scenes.
 const _recorded = <String, (int, int)>{
-  'agreeing terminal, BCE': (0xd4072bce, 4723143),
-  'REP': (0xc170ae3f, 4163865),
-  'DECSLRM': (0xe3e8573b, 4718287),
-  'no BCE': (0x55d3e4ef, 6186491),
-  'Konsole lines': (0xf92f60b6, 4730328),
-  'no sync, no hardware scroll': (0xf77f45c1, 5227421),
-  'one scroll block, short moves': (0x83be2e9c, 4769596),
-  'no scroll detection': (0xe022898f, 4919683),
-  'inline, BCE': (0x16613681, 2143799),
-  'inline, no BCE, REP': (0x481a2901, 1967837),
+  'agreeing terminal, BCE': (0x6436d468, 4634259),
+  'REP': (0xab613a1f, 4074965),
+  'DECSLRM': (0x54b68869, 4629762),
+  'no BCE': (0x1b544307, 6065509),
+  'Konsole lines': (0x3f50a678, 4638793),
+  'no sync, no hardware scroll': (0x49cc5024, 5097750),
+  'one scroll block, short moves': (0x34dc8914, 4679855),
+  'no scroll detection': (0x35574f50, 4827245),
+  'inline, BCE': (0x7cbf9c3d, 2097981),
+  'inline, no BCE, REP': (0x5f5114c1, 1921404),
 };
 
 final _record = Platform.environment['PRESENTER_DIFF_RECORD'] == '1';

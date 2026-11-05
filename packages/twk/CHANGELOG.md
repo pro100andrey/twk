@@ -2,16 +2,27 @@
 
 ## Unreleased
 
+Breaking:
+
+- `PointerMode.auto`, the default, shows the hand everywhere in a local session,
+  where a control had it on one screen and not on another: an app that sets
+  nothing now asks a terminal that shows pointer shapes for the mouse's motion
+  (mode 1003). In a remote session (`TerminalInfo.remote`) it asks for none, as
+  before. `PointerMode.off` asks for none anywhere, in a `Theme` around one
+  widget or the whole app. `TerminalStatus.handAsksMotion` is the rule.
+- A press on a cell a `GestureDetector`'s `tapAt` refuses goes to the detectors
+  around it, where the sites that moved to `tapAt` took it and did nothing: a
+  click on a `Stepper`'s step that can't be chosen, a `Calendar`'s day out of its
+  range or a `Select`'s empty row reaches what wraps them.
+- `ThemeData.handPointer`, `HandPointer` and the `pointerShapes` of `Window`,
+  `SplitView`, `Table`, `TreeTable` and `Draggable` are gone, see below.
+
+Changed:
+
 - A row a `ListView` kept, rebuilt as it comes back, can be marked again before
   the next build, where that failed an assert and ended the app with asserts on.
 - `GestureDetector.onTapDown` is told only of a press the detector takes part in,
   not of a left press while another button is held, which no tap comes of.
-
-- `PointerMode.auto` shows the hand everywhere in a local session, where a
-  control had it on one screen and not on another: it asks for the mouse's
-  motion, of a terminal that shows pointer shapes. In a remote session
-  (`TerminalInfo.remote`) it asks for none, as before. `PointerMode.off` asks
-  for none anywhere. `TerminalStatus.handAsksMotion` is the rule.
 
 - `CliTerminal.promptShown(question)`, told as a prompt takes its answer: nothing
   on the process's terminal, what a test's terminal answers by.

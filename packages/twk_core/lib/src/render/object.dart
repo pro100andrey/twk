@@ -29,7 +29,7 @@ final class BoxConstraints {
     this.maxW = unbounded,
     this.minH = 0,
     this.maxH = unbounded,
-  });
+  }) : assert(minW <= maxW && minH <= maxH, 'each minimum at most its maximum');
 
   /// Exactly [w] wide and [h] tall.
   const BoxConstraints.tight(int w, int h)

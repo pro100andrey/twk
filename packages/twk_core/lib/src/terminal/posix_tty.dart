@@ -79,6 +79,9 @@ final class PosixTty {
   /// SIG_IGN, which the programs it starts would inherit: exec resets a
   /// handler. Its own stop (`Terminal.stopForShell`) comes after [restore].
   bool enterRaw() {
+    // getppid as a handler that does nothing: safe in a signal handler, it
+    // leaves errno alone, takes no notice of the signal's number and has an
+    // address, where a function of Dart's can't run in a handler
     _stopHandler ??= c.signal(
       c.sigtstp,
       Native.addressOf<NativeFunction<Int Function()>>(c.getppid).cast(),

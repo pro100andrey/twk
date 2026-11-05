@@ -253,9 +253,11 @@ final class TerminalDeclaration {
 }
 
 /// A [TerminalLink] that says how much its terminal took, so that one that
-/// is slow is told from one that reads nothing.
+/// is slow is told from one that reads nothing. Not exported: the process's
+/// own link is one, and `Terminal.close` gives any other five seconds.
 abstract interface class DrainingLink implements TerminalLink {
-  /// How many bytes the terminal took so far; null where it can't be told.
+  /// How many bytes the terminal took since the link opened, never going
+  /// back; null where it can't be told.
   int? get taken;
 }
 

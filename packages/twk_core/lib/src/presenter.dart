@@ -681,6 +681,7 @@ final class Presenter {
   /// Clears the damage of [back].
   int present(Surface back) {
     out.reset();
+    _shiftsRefused = 0;
     final st = stats
       ..bytes = 0
       ..cellsCompared = 0
@@ -1616,7 +1617,7 @@ final class Presenter {
           end++;
         }
         _moveTo(x, y);
-        _setStyleFor(kBlank, s);
+        _setStyleFor(kBlank, _nearPen(s));
         if (styles.erasable(StyleId(blank)) &&
             (caps.backgroundColorErase ||
                 styles.bgOf(StyleId(blank)).isDefault)) {
@@ -1868,7 +1869,7 @@ final class Presenter {
         final n = end - x;
         if (end == w && n >= 4) {
           _moveTo(x, y);
-          _setStyleFor(kBlank, s);
+          _setStyleFor(kBlank, _nearPen(s));
           if (_shortOfEdge) {
             out.csi(n, 0x58); // ECH: EL would erase past the viewport
           } else {
@@ -2125,7 +2126,8 @@ final class Presenter {
   /// [row], diffed up to column [hi]) is drawn in. When the SGR state has
   /// to change for the blank anyway, that is the style of the next glyph
   /// the diff writes if a blank looks the same in it, so the glyph needs no
-  /// SGR of its own; otherwise [s].
+  /// SGR of its own; otherwise the style nearest the state a blank looks the
+  /// same in ([StyleTable.nearBlank]).
   int _blankPen(Uint32List bc, Uint32List bs, int row, int x, int hi, int s) {
     final cur = _sgr;
     if (s == cur) {
@@ -2142,16 +2144,25 @@ final class Presenter {
     while (i < end && bc[i] == kBlank && _blankOf(bs[i]) == blank) {
       i++;
     }
-    if (i >= end) {
-      return s;
+    if (i < end) {
+      final t = bs[i];
+      if ((bc[i] & (kCont | kSkip)) == 0 &&
+          _blankOf(t) == blank &&
+          _differs(bc, bs, i, _fc[i], _fs[i])) {
+        return t;
+      }
     }
-    final t = bs[i];
-    if ((bc[i] & (kCont | kSkip)) != 0 ||
-        _blankOf(t) != blank ||
-        !_differs(bc, bs, i, _fc[i], _fs[i])) {
-      return s;
-    }
-    return t;
+    return _nearPen(s);
+  }
+
+  /// The style nearest the SGR state a blank of style [s] looks the same in;
+  /// [s] where the state has to change for nothing ([_setStyleFor]).
+  @pragma('vm:prefer-inline')
+  int _nearPen(int s) {
+    final cur = _sgr;
+    return cur < 0 || _blankOf(cur) == _blankOf(s)
+        ? s
+        : styles.nearBlank(StyleId(cur), StyleId(s)).value;
   }
 
   @pragma('vm:prefer-inline')
@@ -2324,6 +2335,16 @@ final class Presenter {
     return c != kBlank || _blankOf(s) != _blankOf(fstyle);
   }
 
+  /// How many cells of a span tell a row that changed all over.
+  static const _shiftSamples = 16;
+
+  /// How many rows of a frame no shift explained before the others are only
+  /// sampled: a keystroke's row is searched in full, a repaint's are not.
+  static const _refusalsBeforeSamples = 4;
+
+  /// The rows of this frame no shift explained.
+  var _shiftsRefused = 0;
+
   /// If the change of row [y] (damaged in [lo, hi)) is cheaper to apply as
   /// "insert k blanks at column a" (ICH) or "delete k cells at a" (DCH) plus
   /// a few writes than as a rewrite of the tail, emits the ICH/DCH, applies
@@ -2399,9 +2420,13 @@ final class Presenter {
     final resetCost = konsole ? (plain ? 0 : 3) : (curOk ? 0 : 3);
 
     var bestK = 0;
-    var bestCost = changed;
+    // what a shift has to come under: a clear win over rewriting the span
+    var bestCost = changed * 4 ~/ 5 + 1;
     const maxK = 8;
     final last = row + e - 1;
+    final step = _shiftsRefused < _refusalsBeforeSamples
+        ? 0
+        : (e - a) ~/ _shiftSamples;
     for (var k = 1; k <= maxK && k < w - a; k++) {
       // inserted, then deleted: a loop of ints, as a for-in over a list
       // makes an iterator for each k
@@ -2420,6 +2445,21 @@ final class Presenter {
         } else if (e - 1 + k < w &&
             _differs(bc, bs, last, fc[last + k], fs[last + k])) {
           continue;
+        }
+        // a few cells across the span, for a row that changed all over:
+        // a shift that pays explains a good part of them
+        if (step > 0) {
+          var alike = 0;
+          final delta = insert ? -k : k;
+          for (var i = row + a + k; i < last; i += step) {
+            final from = i + delta;
+            if (from < row + w && !_differs(bc, bs, i, fc[from], fs[from])) {
+              alike++;
+            }
+          }
+          if (alike < 2) {
+            continue;
+          }
         }
         // the cells of [a, w) that differ from the shifted front, counted
         // until there are more than the best so far: a loop for each part
@@ -2459,8 +2499,8 @@ final class Presenter {
         }
       }
     }
-    // require a clear win over rewriting the tail
-    if (bestK == 0 || bestCost * 5 > changed * 4) {
+    if (bestK == 0) {
+      _shiftsRefused++;
       return -1;
     }
     // and a tail the terminal shows as the front has it: looked at last,

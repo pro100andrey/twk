@@ -819,7 +819,10 @@ abstract interface class WindowBackend implements TerminalBackend {
 /// the terminal ([info]) and turns its modes on ([options]). [events]
 /// then delivers what is typed and the size's changes, [write] and
 /// [flush] take frames, and [close] restores the terminal; opened with
-/// [open] or [connect], it is restored also when SIGTERM ends the process.
+/// [open] or [connect], it is restored also when SIGTERM or SIGHUP ends the
+/// process. The process's own terminal holds SIGTSTP while it is raw: one
+/// from outside does nothing, as Dart can't watch it to give the terminal
+/// back first, and [stopForShell] stops the process after [suspend].
 ///
 /// `TwkApp` runs the frame loop on one; a program can use it alone too:
 ///

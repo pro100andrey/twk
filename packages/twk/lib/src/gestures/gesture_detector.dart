@@ -167,7 +167,10 @@ final class GestureDetector extends StatefulWidget {
   /// A tap: the release.
   final PointerEventListener? onTap;
 
-  /// The left button pressed, on a cell of a tap (see [GestureDetector]).
+  /// The left button pressed, on a cell of a tap. Every detector under the
+  /// press is told, where one is told [onTap], and no tap need follow: for
+  /// what answers at once. One around another gives [tapAt] to leave out the
+  /// cells of the one inside.
   final PointerEventListener? onTapDown;
 
   /// Whether the cell at `x`, `y` of it is a tap's: where false, the hand
