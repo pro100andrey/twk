@@ -601,9 +601,12 @@ void main() {
       ('SIGINT', ProcessSignal.sigint, 0),
     ]) {
       test('ends on $name, the output blocking nothing', () async {
+        final dir = Directory.systemTemp.createTempSync('stalled');
+        addTearDown(() => dir.deleteSync(recursive: true));
+        final writing = File('${dir.path}/writing');
         final pty = Pty.start(
           Platform.resolvedExecutable,
-          [app],
+          [app, writing.path],
           width: 120,
           height: 40,
         );
@@ -619,10 +622,7 @@ void main() {
         reading.pause();
         // a megabyte: the app has far more to write than the terminal holds
         pty.write(const [0x67]);
-        await waitUntil(
-          () => (pty.debugUnreadOutput ?? 0) > 2000,
-          'the output to fill the terminal',
-        );
+        await waitUntil(writing.existsSync, 'the app to start writing');
         pty.kill(signal);
         expect(await waitFor(pty.exitCode, 'the end of the app'), code);
       });
