@@ -592,6 +592,43 @@ void main() {
       expect(submitted, isEmpty);
     });
 
+    testTwk('in a multiple list a row that cannot be selected has a blank for '
+        'its mark, unless it is selected', (t) async {
+      final list = ValueNotifier(['Header', 'locked', 'free']);
+      addTearDown(list.dispose);
+      final c = SelectionController<String>(multiple: true)..select('locked');
+      addTearDown(c.dispose);
+      await t.pumpWidget(
+        Theme.terminal(
+          child: names(
+            list,
+            controller: c,
+            disabled: (name) => name != 'free',
+          ),
+        ),
+        size: (14, 3),
+      );
+      expect(t.lines, [
+        '     Header',
+        ' [x] locked',
+        ' [ ] free',
+      ]);
+    });
+
+    testTwk('a disabled list keeps the marks of the rows it can select', (
+      t,
+    ) async {
+      final list = ValueNotifier(['a', 'b']);
+      addTearDown(list.dispose);
+      final c = SelectionController<String>(multiple: true);
+      addTearDown(c.dispose);
+      await t.pumpWidget(
+        Theme.terminal(child: names(list, controller: c, enabled: false)),
+        size: (8, 2),
+      );
+      expect(t.lines, [' [ ] a', ' [ ] b']);
+    });
+
     testTwk('a window down onto disabled items to the end stops at the last '
         'enabled one before them', (t) async {
       final list = ValueNotifier(letters('abcdef'));

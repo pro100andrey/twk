@@ -22,6 +22,9 @@ Breaking:
 
 Changed:
 
+- A row `SelectionList.itemEnabled` refuses, in a multiple list, has a blank for
+  its mark, where it drew a muted `[ ]`: such a row can be a group's header. One
+  that is selected, an option locked on, keeps its `[x]`.
 - `Cli.session()` is public: a program mounts a live widget, a `TaskList` with its
   steps, below what it logs. A session a program closed is forgotten, the next one
   asked for a new one.
