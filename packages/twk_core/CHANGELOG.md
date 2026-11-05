@@ -7,6 +7,10 @@
   and, where that has no foreground, the terminal's own (`StyleTable.ownPen`),
   where text in a pen of no foreground took the colour of what scrolled away.
   `Canvas.fill` keeps what is under a pen of no foreground, as a highlight needs.
+- A `RenderEffect` keeps a two-column glyph across its edge whole: the second
+  half outside takes the first half's style, a half left alone is put back as a
+  blank, and a repaint boundary in it under such a glyph shows its new paint,
+  where it was lost until a whole repaint.
 
 - What a `TextPainter` paints does not depend on a query asked before it: spans
   given since the layout are painted as `textRangeAt`, `cellAt` and `columnsOf`
