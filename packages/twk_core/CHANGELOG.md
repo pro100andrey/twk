@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- The presenter writes less and looks at less: over blanks it changes only what a
+  blank shows (`StyleTable.nearBlank`), a log's new line 8 % fewer bytes and one
+  beside a scrollbar 12 %; and once rows of a frame stop shifting the others are
+  told by a few cells, a full repaint of text taking half the time.
+
 - A repaint boundary's cells do not depend on what was painted in them before: a
   viewport, a list, a log, or a box or text that is a boundary fills with its pen
   and, where that has no foreground, the terminal's own (`StyleTable.ownPen`),

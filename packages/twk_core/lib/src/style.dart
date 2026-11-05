@@ -450,6 +450,7 @@ final class StyleTable {
     }
     _sgr.clear();
     _transitions.clear();
+    _nearBlanks.clear();
     _blank.fillRange(0, _blank.length, -1);
     _clearComposeCache();
     _slotsOf(marks);
@@ -555,6 +556,7 @@ final class StyleTable {
     _colorMode = m;
     _sgr.clear();
     _transitions.clear();
+    _nearBlanks.clear();
   }
 
   final bool _styledUnderlines;
@@ -740,6 +742,31 @@ final class StyleTable {
       }
     }
     return StyleId(_blankSlow(id));
+  }
+
+  final _nearBlanks = _PairCache<int>();
+
+  /// The style nearest [from] a blank of style [to] looks the same in, for
+  /// the terminal's state over blanks to change as little as it has to:
+  /// [from]'s foreground and what of its attributes a blank does not show.
+  /// [to] where a blank shows more of it.
+  StyleId nearBlank(StyleId from, StyleId to) {
+    final cached = _nearBlanks.get(from.value, to.value);
+    if (cached != null) {
+      return StyleId(cached);
+    }
+    final f = from.value;
+    final t = to.value;
+    final near = _intern(
+      _fg[f],
+      _bg[t],
+      (_attrs[f] & ~Attr.visibleOnBlank) | (_attrs[t] & Attr.visibleOnBlank),
+      _ul[t],
+      _link[t],
+    );
+    final best = blankStyleOf(StyleId(near)) == blankStyleOf(to) ? near : t;
+    _nearBlanks.put(f, t, best);
+    return StyleId(best);
   }
 
   int _blankSlow(int id) {

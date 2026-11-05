@@ -4,6 +4,25 @@ import 'package:test/test.dart';
 import 'package:twk_core/src/style.dart';
 
 void main() {
+  test('nearBlank keeps of the state what a blank does not show, and takes '
+      'the style itself where a blank shows more', () {
+    final styles = StyleTable();
+    StyleId styleOf(Pen pen) => styles.compose(StyleId.base, styles.pen(pen));
+    const red = Color.rgb(255, 0, 0);
+    const dark = Color.rgb(0, 0, 40);
+    final text = styleOf(const Pen(fg: red, bg: Color.black, attrs: Attr.bold));
+    final blank = styleOf(const Pen(fg: Color.defaultColor, bg: dark));
+    final near = styles.nearBlank(text, blank);
+    expect(styles.fgOf(near), red);
+    expect(styles.bgOf(near), dark);
+    expect(styles.attrsOf(near) & Attr.bold, Attr.bold);
+    expect(styles.blankStyleOf(near), styles.blankStyleOf(blank));
+    final reversed = styleOf(
+      const Pen(fg: Color.defaultColor, bg: dark, attrs: Attr.reverse),
+    );
+    expect(styles.nearBlank(text, reversed), reversed);
+  });
+
   test('rgbOf: an RGB its own, a palette entry as told or as xterm shows '
       'it, the default colors as told, null where they were not', () {
     final t = StyleTable();
