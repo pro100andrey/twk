@@ -10,10 +10,14 @@ import 'link.dart';
 
 const _stdoutFd = 1;
 
+/// How long one [PosixOutput._drain] stays for a terminal that reads.
+const _reading = Duration(milliseconds: 4);
+
 /// How much is copied out for one write.
 const int _chunk = 1 << 16;
 
-/// How soon what the terminal did not take is tried again.
+/// How soon a terminal that took nothing is tried again: one that took some
+/// reads, and is tried again at once.
 const _retry = Duration(milliseconds: 2);
 
 /// The process's stdout, written to without blocking.
@@ -21,7 +25,7 @@ const _retry = Duration(milliseconds: 2);
 /// dart:io's `stdout` writes in the main isolate: on a terminal that reads
 /// nothing write(2) blocks it, and it runs no timer, no key and no handler of
 /// a signal until the terminal reads again. This writes what the terminal
-/// takes and keeps the rest for [_retry] later. The descriptor is shared with
+/// takes and keeps the rest for later. The descriptor is shared with
 /// the shell, which is not to find it non-blocking, so it is so only around
 /// the writes.
 final class PosixOutput {
@@ -30,9 +34,13 @@ final class PosixOutput {
   /// How much of the first of [_pending] is written.
   var _offset = 0;
 
+  /// Whether the terminal took anything in this [_drain].
+  var _took = false;
+
   final _flushes = <Completer<void>>[];
   Timer? _timer;
   Pointer<Uint8>? _buffer;
+  Pointer<c.PollFd>? _pollFd;
   Object? _failure;
   var _closed = false;
 
@@ -80,10 +88,36 @@ final class PosixOutput {
       c.free(buffer.cast());
       _buffer = null;
     }
+    final fds = _pollFd;
+    if (fds != null) {
+      c.free(fds.cast());
+      _pollFd = null;
+    }
   }
 
   void _drain() {
     _timer = null;
+    _took = false;
+    final waited = Stopwatch()..start();
+    while (true) {
+      _writeWhatFits();
+      if (_pending.isEmpty || !_took) {
+        break;
+      }
+      // it reads: a moment for it to take more, as a timer per piece of
+      // what it holds would cost a large frame milliseconds
+      if (waited.elapsed >= _reading || !_writable()) {
+        break;
+      }
+    }
+    if (_pending.isEmpty) {
+      _finish();
+    } else {
+      _timer = Timer(_took ? Duration.zero : _retry, _drain);
+    }
+  }
+
+  void _writeWhatFits() {
     final flags = c.fcntl(_stdoutFd, c.fGetfl, 0);
     if (flags >= 0) {
       c.fcntl(_stdoutFd, c.fSetfl, flags | c.oNonblock);
@@ -99,11 +133,16 @@ final class PosixOutput {
         c.fcntl(_stdoutFd, c.fSetfl, flags);
       }
     }
-    if (_pending.isEmpty) {
-      _finish();
-    } else {
-      _timer = Timer(_retry, _drain);
-    }
+  }
+
+  /// Waits a millisecond at most for the terminal to take more.
+  bool _writable() {
+    final fds = _pollFd ??= c.calloc(1, sizeOf<c.PollFd>()).cast<c.PollFd>();
+    fds.ref
+      ..fd = _stdoutFd
+      ..events = c.pollOut
+      ..revents = 0;
+    return c.poll(fds, 1, 1) > 0;
   }
 
   /// Writes the first of [_pending] as far as the terminal takes it; false
@@ -130,6 +169,7 @@ final class PosixOutput {
         return false;
       }
       _offset += written;
+      _took = true;
     }
     _pending.removeFirst();
     _offset = 0;
