@@ -1,6 +1,7 @@
 // The process's terminal (CliTerminal.system) where its stdout is a
 // pipe: how wide it is by COLUMNS, as the core's plain output takes it,
 // in a process of its own.
+@Tags(['process'])
 @TestOn('vm')
 library;
 

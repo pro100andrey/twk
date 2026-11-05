@@ -2,6 +2,7 @@
 // program wrote, at its times divided by --speed with the pauses cut;
 // what is typed meanwhile dropped; Ctrl+C stopping, with what the
 // recording left on turned off; the terminal put back.
+@Tags(['process'])
 @TestOn('linux || mac-os')
 @Timeout(Duration(minutes: 4))
 library;

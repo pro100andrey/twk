@@ -356,13 +356,15 @@ void main() {
     rekeyed.complete();
     await shell.done;
     expect(shell.exitCode, 0);
-    await session.done.timeout(const Duration(seconds: 5));
+    await waitFor(session.done, 'the session to end');
   });
 
   test("a client that doesn't read can't make the server queue more", () async {
     SshTransport.maxQueued = 16 << 10;
     addTearDown(() => SshTransport.maxQueued = 1 << 20);
-    final client = await RawClient.connect(server, receiveBuffer: 4096);
+    // not less: at 4 KiB the kernels of GitHub's Linux runners trickle what
+    // the client reads later, 250 s for what takes 10
+    final client = await RawClient.connect(server, receiveBuffer: 1 << 16);
     await client.exchangeKeys();
     await client.logIn('alice', alice.pair);
     final transport = server.connections.single.transport;
@@ -370,7 +372,7 @@ void main() {
     // A message the server doesn't know is answered with UNIMPLEMENTED,
     // 48 bytes for 48: 9.6 MB of answers the client doesn't read, more
     // than the kernel takes in for it (4 MB at most for the server's
-    // socket, as Linux's tcp_wmem has it, and the client's 4 KiB), so the
+    // socket, as Linux's tcp_wmem has it, and the client's 64 KiB), so the
     // server's writes wait and its queue would grow.
     const n = 200000;
     for (var i = 0; i < n; i++) {
@@ -392,8 +394,7 @@ void main() {
       answers++;
     }
     expect(transport.maxQueuedSeen, lessThan(SshTransport.maxQueued + 1024));
-    // some 7 s on an idle machine: what the ciphers cost, both ways; past
-    // 90 s on a CI runner of 4 cores, running every package's suite at once
+    // some 7 s on an idle machine: what the ciphers cost, both ways
   }, timeout: const Timeout(Duration(minutes: 5)));
 
   test(

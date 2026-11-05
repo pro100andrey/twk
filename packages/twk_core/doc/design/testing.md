@@ -446,10 +446,10 @@ handed over drawing meanwhile.
 
 ## `test/terminal/notify_test.dart`
 
-`Terminal.notify` and `Terminal.copyToClipboard` in a pseudo-terminal
-(`tool/pty_run.py`) in the environment of kitty inside tmux, of foot, of a
-terminal without notifications, and for the clipboard inside tmux, inside
-GNU screen and outside both.
+`Terminal.notify` and `Terminal.copyToClipboard` over a `FakeLink` in the
+environment of kitty inside tmux, of foot, of a terminal without
+notifications, and for the clipboard inside tmux, inside GNU screen and
+outside both.
 
 What it catches: the protocol or the multiplexer not taken from the
 environment by the probe, bytes written where nothing is known to show them;
@@ -457,9 +457,8 @@ the clipboard not wrapped for tmux or screen, or wrapped outside them.
 
 ## `test/terminal/color_scheme_test.dart`
 
-`test/terminal/color_scheme_app.dart` in a pseudo-terminal
-(`test/terminal/color_scheme_pty.py`) that answers the probe as a dark
-terminal with mode 2031 and then reports a switch to light.
+A terminal over a `FakeLink` that answers the probe as a dark terminal with
+mode 2031 and then reports a switch to light.
 
 What it catches: the mode not asked for by the probe, not turned on while
 the app runs (or more than once) or not off at the end, the brightness not

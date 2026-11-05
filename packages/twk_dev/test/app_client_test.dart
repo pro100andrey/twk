@@ -176,7 +176,7 @@ void main() {
     expect(attached, isFalse);
 
     vm.register('isolates/2', 'ext.twk.tree');
-    final app = await attaching.timeout(const Duration(seconds: 5));
+    final app = await waitFor(attaching, 'the client to attach');
     expect(app.name, 'the app');
 
     vm.answer = (method, params) => {
@@ -197,7 +197,7 @@ void main() {
       ..post('isolates/2', 'twk.other', {'version': 1, 'x': 2, 'y': 2})
       ..post('isolates/2', 'twk.select', {'version': 1, 'x': 3, 'y': 4})
       ..post('isolates/2', 'twk.select', {'version': 1, 'x': null, 'y': null});
-    expect(await picks.timeout(const Duration(seconds: 5)), [(3, 4), null]);
+    expect(await waitFor(picks, 'the picks'), [(3, 4), null]);
     await vm.close();
   });
 
@@ -206,10 +206,10 @@ void main() {
     final vm = FakeVm({
       'isolates/3': ['ext.twk.tree', 'ext.twk.flags'],
     });
-    final app = await VmAppClient.attach(
-      vm.service,
-      'the app',
-    ).timeout(const Duration(seconds: 5));
+    final app = await waitFor(
+      VmAppClient.attach(vm.service, 'the app'),
+      'the client to attach',
+    );
     await app.call('flags');
     expect(vm.calls, ['ext.twk.flags isolates/3']);
     await vm.close();
@@ -255,7 +255,7 @@ void main() {
     );
 
     await vm.close();
-    await app.done.timeout(const Duration(seconds: 5));
+    await waitFor(app.done, 'the client to end');
     await expectLater(
       app.call('tree'),
       throwsA(
@@ -291,7 +291,7 @@ void main() {
     });
     final app = await VmAppClient.attach(vm.service, 'the app');
     await app.close();
-    await app.done.timeout(const Duration(seconds: 5));
+    await waitFor(app.done, 'the client to end');
     await vm.close();
   });
 

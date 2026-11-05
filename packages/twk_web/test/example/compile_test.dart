@@ -1,4 +1,5 @@
 // The example builds with dart2wasm into what web/index.html loads.
+@Tags(['process'])
 @TestOn('vm')
 library;
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- `wall_time_in_tests` reports a `Future.timeout` with no `onTimeout`, which
+  fails saying `TimeoutException after 0:00:05` and nothing of what was awaited:
+  twk_test's `waitFor` names it.
+
 ## 0.2.0
 
 - Takes twk, twk_core and twk_test at 0.2.0, which have breaking

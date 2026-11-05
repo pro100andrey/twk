@@ -1,6 +1,9 @@
 // TwkApp's frames on dart:developer's Timeline: timeline_app.dart run with
 // the VM's Dart timeline stream recorded to a file, with TWK_DEBUG naming
 // the timeline or not.
+@Tags(['process'])
+library;
+
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';

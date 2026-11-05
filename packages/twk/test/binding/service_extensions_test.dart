@@ -4,6 +4,9 @@
 // for the tool; registered once in the isolate, for the app that started
 // last, and not at all in product mode.
 // One test calls them over a real VM service, in a process of its own.
+@Tags(['process'])
+library;
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer' show ServiceExtensionHandler, ServiceExtensionResponse;

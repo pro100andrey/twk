@@ -1,8 +1,7 @@
-// `twk create`: each template written into a new directory makes a
-// package that gets its dependencies, analyzes with no issue, passes its
-// tests and is formatted; the name, the checkout and the directory as the
-// options and the arguments say, and refused when they are wrong. The
-// command runs in this process (`twkHere`).
+// `twk create`: the name, the checkout and the directory as the options and
+// the arguments say, and refused when they are wrong. The command runs in
+// this process (`twkHere`). What a template makes is its file's,
+// `create_<template>_test.dart` ([templateCycle]).
 import 'dart:convert';
 import 'dart:io';
 
@@ -12,44 +11,9 @@ import 'package:test/test.dart';
 import 'package:twk_dev/src/create.dart';
 import 'package:twk_dev/src/templates/templates.dart';
 import 'package:twk_dev/twk_dev.dart';
-import 'package:twk_test/twk_test.dart' show runProcess;
 
+import 'create_cycle.dart';
 import 'twk.dart';
-
-/// The checkout of the twk repository this package is in.
-Future<String> repository() async =>
-    p.normalize(p.join(await packageDirectory(), '..', '..'));
-
-/// A new empty directory, deleted after the test.
-Future<String> temporary() async {
-  final dir = await Directory.systemTemp.createTemp('twk_create_test');
-  addTearDown(() => dir.delete(recursive: true));
-  return dir.path;
-}
-
-/// Runs `dart` with [arguments] in [dir] and expects it to exit with 0.
-Future<ProcessResult> dart(String dir, List<String> arguments) async {
-  final result = await runProcess(
-    Platform.resolvedExecutable,
-    arguments,
-    workingDirectory: dir,
-    // dart test's own reporter, not GitHub's, whose output is read
-    environment: {'GITHUB_ACTIONS': ''},
-    group: true,
-  );
-  expect(
-    result.exitCode,
-    0,
-    reason: 'dart ${arguments.join(' ')}:\n${result.stdout}${result.stderr}',
-  );
-  return result;
-}
-
-/// The paths of the files under [dir], sorted.
-List<String> filesIn(String dir) => [
-  for (final entity in Directory(dir).listSync(recursive: true))
-    if (entity is File) p.relative(entity.path, from: dir),
-]..sort();
 
 void main() {
   test('--list names each template with what it is', () async {
@@ -64,46 +28,16 @@ dashboard  full screen: panels of live readings in a chart, a gauge and bars
 ''');
   });
 
-  for (final template in templates) {
-    test(
-      'the ${template.name} template makes a package that gets its '
-      'dependencies, analyzes with no issue, passes its tests and is '
-      'formatted',
-      () async {
-        final dir = p.join(await temporary(), '${template.name}_app');
-        final created = await twkHere([
-          'create',
-          dir,
-          '--template=${template.name}',
-          '--path-to-twk=${await repository()}',
-        ]);
-        expect(created.exitCode, 0, reason: '${created.stderr}');
-        final name = '${template.name}_app';
-        expect(filesIn(dir), [
-          '.gitignore',
-          'README.md',
-          'analysis_options.yaml',
-          'bin/main.dart',
-          'lib/$name.dart',
-          'pubspec.yaml',
-          'test/${name}_test.dart',
-        ]);
-
-        await dart(dir, ['pub', 'get', '--offline']);
-        final analyzed = await dart(dir, ['analyze']);
-        expect(analyzed.stdout, contains('No issues found!'));
-        final tested = await dart(dir, ['test']);
-        expect(tested.stdout, contains('All tests passed!'));
-        await dart(dir, [
-          'format',
-          '--output=none',
-          '--set-exit-if-changed',
-          '.',
-        ]);
-      },
-      timeout: const Timeout(Duration(minutes: 3)),
-    );
-  }
+  test('each template has a file of its cycle, which run at once', () async {
+    for (final template in templates) {
+      final file = p.join('test', 'create_${template.name}_test.dart');
+      expect(
+        File(p.join(await packageDirectory(), file)).existsSync(),
+        isTrue,
+        reason: 'templateCycle of ${template.name}',
+      );
+    }
+  });
 
   test('by default the app template, the package named after the '
       'directory, twk taken by path from the checkout the command runs '

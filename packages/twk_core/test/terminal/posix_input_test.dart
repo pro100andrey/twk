@@ -3,6 +3,7 @@
 // (posix_input_paused_app.dart), it reads nothing, and a program started
 // after it gets the line; paused while fd 0 has much more
 // (posix_input_flood_app.dart), it stops, leaving the rest.
+@Tags(['process'])
 @TestOn('linux || mac-os')
 library;
 

@@ -4,6 +4,7 @@
 // nothing more and leaves the handle open, a second reader and a program
 // started after read what comes next, Ctrl+Space is read as NUL in VT
 // input mode, and the program ends on its own.
+@Tags(['process'])
 @TestOn('windows')
 library;
 

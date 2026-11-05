@@ -17,7 +17,9 @@ import '../twk_types.dart';
 /// `sleep`, a `Timer` of such a duration, a `Timer.periodic` or a
 /// `Stream.periodic`. A test that waits a fixed time for a frame, a
 /// timer or another process guesses how long is long enough, and on a
-/// loaded machine the guess is wrong.
+/// loaded machine the guess is wrong. And a `Future.timeout` with no
+/// `onTimeout`, whose failure says nothing of what was awaited, where
+/// twk_test's `waitFor` names it.
 ///
 /// ```dart-nocheck
 /// testTwk('the spinner turns', (t) async {
@@ -53,7 +55,7 @@ final class WallTimeInTests extends AnalysisRule {
       );
 
   /// What it reports: what waits (`Future.delayed`, `sleep`, `Timer`,
-  /// `Timer.periodic`, `Stream.periodic`).
+  /// `Timer.periodic`, `Stream.periodic`, `Future.timeout`).
   static const code = LintCode(
     'wall_time_in_tests',
     "'{0}' waits on the wall clock in a test.",
@@ -131,8 +133,26 @@ final class _Visitor extends SimpleAstVisitor<void> {
         !_zero(node.argumentList.arguments.firstOrNull?.argumentExpression)) {
       rule.reportAtNode(node.methodName, arguments: ['sleep']);
     }
+    if (function is MethodElement &&
+        function.name == 'timeout' &&
+        _isFuture(function.enclosingElement) &&
+        !_hasOnTimeout(node) &&
+        !_onFakeClock(node)) {
+      rule.reportAtNode(node.methodName, arguments: ['Future.timeout']);
+    }
   }
 }
+
+/// Whether [element] is `Future` of `dart:async`.
+bool _isFuture(Element? element) =>
+    element is InterfaceElement &&
+    element.name == 'Future' &&
+    element.library.isDartAsync;
+
+/// Whether the call [node] of `Future.timeout` says what to do at the end.
+bool _hasOnTimeout(MethodInvocation node) => node.argumentList.arguments.any(
+  (a) => a is NamedArgument && a.name.lexeme == 'onTimeout',
+);
 
 /// Whether [duration] is a constant `Duration` of zero.
 bool _zero(Expression? duration) {

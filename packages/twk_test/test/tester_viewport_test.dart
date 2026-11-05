@@ -3,6 +3,9 @@
 // history around the rectangle left as it was; the mouse reported on the
 // normal screen, its events relative to the rectangle. Last, a capture of
 // such an app in a pseudo-terminal through tool/replay.dart.
+@Tags(['process'])
+library;
+
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';

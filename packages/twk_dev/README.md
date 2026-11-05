@@ -654,7 +654,8 @@ on the focus with new nodes expanded, a tree loaded again until the app
 has drawn its first frame, an error said, and apps that come and go.
 The app's side of the pick is tested in twk's
 `test/binding/service_extensions_test.dart`.
-`test/create_test.dart` runs `twk create` in the test's process
+`test/create_test.dart` and `test/create_<template>_test.dart`, a file
+each for the four to run at once, run `twk create` in the test's process
 (`runTwk`): each template, written
 with `--path-to-twk` at this checkout, must make a package of exactly its
 files that `dart pub get --offline`, `dart analyze` (no issues),

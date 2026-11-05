@@ -398,15 +398,23 @@ enough, and on a loaded machine the guess is wrong.
 - **What real time brings is awaited**: the output line, the exit, the
   file of a real process, pty, socket or file system, through twk_test's
   `waitFor(event, what)` or `waitUntil(condition, what)`, whose bound
-  fails with a message instead of hanging. Never a sleep, and no timeout
-  raised or retry added to make a test pass.
+  fails with a message instead of hanging, and with what `state:` gives
+  of the screen, the output, the processes where a helper holds them.
+  Never a sleep, and no timeout raised or retry added to make a test pass.
 - **Enforced** by twk_lints' `wall_time_in_tests` (README of
   `packages/twk_lints`), enabled in every package's and tool's
   `analysis_options.yaml`, so the analyze steps of handover fail on a
   `Future.delayed` of a non-zero duration, a `sleep`, a `Timer`, a
-  `Timer.periodic` or a `Stream.periodic` in a file under `test/`
+  `Timer.periodic`, a `Stream.periodic` or a `Future.timeout` with no
+  `onTimeout` in a file under `test/`
   (timers made in `FakeClock.run`, `TwkTester.act` or app code are on a
   fake clock and not reported; nor is a program the tests start).
+- **A test that starts a real process or pseudo-terminal is tagged**
+  `@Tags(['process'])`: `pkg-test` leaves it out, and `process-test` runs
+  it after the others, two files of a package at once, as its deadlines
+  depend on a CPU the thousands of others would take.
+  `test/tool/process_tag_test.dart` fails on a file that starts one
+  without the tag.
 - **The only exceptions** are `// ignore: twk_lints/wall_time_in_tests`,
   with the reason on the comment above it: where real time is what is
   measured or an absence is checked (nothing happens for half a second),

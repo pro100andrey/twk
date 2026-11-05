@@ -2,6 +2,9 @@
 // across reads and too long, a shell that doesn't answer or isn't there,
 // flushes left waiting, an app that speaks no hello or an unknown frame;
 // and the addresses they meet at.
+@Tags(['process'])
+library;
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -12,7 +15,7 @@ import 'package:test/test.dart';
 import 'package:twk_core/src/terminal/socket.dart';
 import 'package:twk_core/twk_core.dart';
 import 'package:twk_test/twk_test.dart'
-    show compiledProgram, runProcess, startProcess, waitUntil;
+    show compiledProgram, runProcess, startProcess, waitFor, waitUntil;
 
 import 'fake_link.dart';
 import 'wire_client.dart';
@@ -211,7 +214,7 @@ void main() {
     test('closes when nobody listened to its input', () async {
       final (address, _) = await silentShell(dir);
       final link = await SocketLink.connect(address);
-      await link.close().timeout(const Duration(seconds: 5));
+      await waitFor(link.close(), 'the link to close');
     });
   });
 

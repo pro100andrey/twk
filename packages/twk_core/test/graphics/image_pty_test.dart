@@ -1,6 +1,7 @@
 // An image in a pseudo-terminal (tool/pty_run.py) in each protocol, as
 // image_app.dart shows it: the terminal is handed back intact and the test
 // emulator takes every byte written (tool/replay.dart).
+@Tags(['process'])
 @TestOn('linux || mac-os')
 // what a loaded machine may take: the app's run, up to pty_run's own
 // timeout, and the replay

@@ -3,6 +3,7 @@
 // small scripts that read the keys and the mouse raw. Every program is
 // killed and waited for in its tear-down, and at the end none of the
 // test's children is left.
+@Tags(['process'])
 @TestOn('linux || mac-os')
 library;
 

@@ -2,6 +2,9 @@
 // in-memory one, and link_app.dart in a process of its own for what
 // belongs to the process (its signals, the trace its environment asks
 // for), which such a terminal leaves alone.
+@Tags(['process'])
+library;
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';

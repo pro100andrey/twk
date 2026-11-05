@@ -3,6 +3,7 @@
 // the shell saying when one comes and goes, Ctrl+C while no app has the
 // terminal and SIGTERM stopping it, the terminal put back. The app is
 // this test, on `Terminal.connect`.
+@Tags(['process'])
 @TestOn('linux || mac-os')
 @Timeout(Duration(minutes: 4))
 library;

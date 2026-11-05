@@ -2,6 +2,9 @@
 // compiled with dart2wasm, nothing of dart:io, dart:ffi, dart:isolate or
 // dart:mirrors reached, the build run in node. Without a node to run it in
 // (the tool's status 2) the test is skipped, not passed.
+@Tags(['process'])
+library;
+
 import 'dart:io';
 
 import 'package:test/test.dart';

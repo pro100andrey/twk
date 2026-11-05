@@ -2,6 +2,7 @@
 // pseudo-terminal (tool/pty_run.py), running suspend_app.dart: stopped
 // for the shell it was started from by Ctrl+Z and taken back, resized,
 // and ended by SIGTERM, the terminal put back each time.
+@Tags(['process'])
 @TestOn('linux || mac-os')
 library;
 
