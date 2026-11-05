@@ -307,9 +307,11 @@ final class Cli {
   /// what it throws, once the terminal is back.
   ///
   /// This is also how a twk app of its own runs in the middle of a
-  /// program that has used the console: `runApp(...)` while the session
-  /// holds stdin draws, but gets no keys. Run it inside [run], or [close]
-  /// the console first when nothing needs it after:
+  /// program that has used the console: a process has one terminal, so
+  /// `runApp(...)` while the session has it throws a `TerminalException`
+  /// (the session is open as long as it has been used and not closed).
+  /// Run it inside [run], or [close] the console first when nothing needs
+  /// it after:
   ///
   /// ```dart
   /// await Cli.current.suspend(() => runApp(const Text('hi')));
