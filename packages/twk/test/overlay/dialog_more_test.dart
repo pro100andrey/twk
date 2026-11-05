@@ -162,7 +162,7 @@ void main() {
     );
     await t.press('d');
     await t.pump(ms * 200);
-    expect(t.lines.join('\n'), contains('Title 1/2'));
+    expect(t, containsLine(contains('Title 1/2')));
   });
 
   testTwk('a scrollable child is bounded by the screen and scrolls', (
@@ -186,8 +186,8 @@ void main() {
     expect(t.lines.length, 10);
     expect(t.lines[1], '      Long');
     expect(t.lines[2], '      line 1');
-    expect(t.lines.join('\n'), isNot(contains('line 30')));
-    expect(t.lines.join('\n'), contains('line 6'));
+    expect(t, isNot(containsLine(contains('line 30'))));
+    expect(t, containsLine(contains('line 6')));
   });
 
   testTwk('without scrollable the child is laid out as before', (t) async {
@@ -225,12 +225,12 @@ void main() {
       for (final (key, _) in [('y', true), ('n', false), ('enter', true)]) {
         await t.press('d');
         await t.pump(ms * 200);
-        expect(t.lines.join('\n'), contains('Delete?'));
+        expect(t, containsLine(contains('Delete?')));
         await t.press(key);
         await t.pump(ms * 200);
       }
       expect(answers, [true, false, true]);
-      expect(t.lines.join('\n'), isNot(contains('Delete?')));
+      expect(t, isNot(containsLine(contains('Delete?'))));
     });
 
     testTwk('Escape answers null; defaultValue false gives false on Enter', (

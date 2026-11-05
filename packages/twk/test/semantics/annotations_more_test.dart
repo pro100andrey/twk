@@ -268,7 +268,7 @@ void main() {
       'textbox Password: protected',
       'textbox Again: protected',
     ]);
-    expect(t.lines.join('\n'), isNot(contains('hunter')));
+    expect(t, isNot(containsLine(contains('hunter'))));
   });
 
   testTwk('a progress bar reads as how much is done in percent, a value '

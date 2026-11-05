@@ -183,6 +183,6 @@ void main() {
     t.binding.screenReader = true;
     await t.pump();
     expect(t.lines.first, 'textbox Password: protected');
-    expect(t.lines.join('\n'), isNot(contains('hunter')));
+    expect(t, isNot(containsLine(contains('hunter'))));
   });
 }

@@ -78,8 +78,6 @@ Widget palette({CommandPaletteController? controller, Key? key}) =>
       child: const Focus(autofocus: true, child: Text('app')),
     );
 
-String screen(TwkTester t) => t.lines.join('\n');
-
 /// Fails on an error the app logged.
 void noErrors(TwkTester t) => expect([
   for (final r in t.logs.records)
@@ -118,10 +116,10 @@ void main() {
       );
       await t.press('ctrl+p');
       await t.pump();
-      expect(screen(t), contains('Print'));
+      expect(t, containsLine(contains('Print')));
       root.next();
       await t.pumpUntilIdle();
-      expect(screen(t), isNot(contains('Print')));
+      expect(t, isNot(containsLine(contains('Print'))));
       noErrors(t);
     });
   }
@@ -147,12 +145,12 @@ void main() {
     );
     c.open();
     await t.pump();
-    expect(screen(t), contains('Print'));
+    expect(t, containsLine(contains('Print')));
     root.next();
     await t.pumpUntilIdle();
     expect(c.isOpen, isFalse);
     expect(seen, [true, false]);
-    expect(screen(t), isNot(contains('Print')));
+    expect(t, isNot(containsLine(contains('Print'))));
     noErrors(t);
   });
 
@@ -172,10 +170,10 @@ void main() {
     );
     c.open();
     await t.pump();
-    expect(screen(t), contains('Print'));
+    expect(t, containsLine(contains('Print')));
     root.next();
     await t.pumpUntilIdle();
-    expect(screen(t), isNot(contains('Print')));
+    expect(t, isNot(containsLine(contains('Print'))));
     noErrors(t);
   });
 }

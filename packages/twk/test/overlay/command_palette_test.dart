@@ -561,8 +561,8 @@ editor
         size: (30, 9),
       );
       await press(t, 'ctrl+p');
-      expect(t.lines.join('\n'), contains('Quit'));
-      expect(t.lines.join('\n'), isNot(contains('reload')));
+      expect(t, containsLine(contains('Quit')));
+      expect(t, isNot(containsLine(contains('reload'))));
     });
 
     /// Opens a palette made by [palette] and waits out the barrier's fade.

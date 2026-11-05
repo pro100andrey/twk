@@ -26,10 +26,9 @@ void main() {
     );
     await t.press('d');
     await t.pump(const Duration(milliseconds: 200));
-    final text = t.lines.join('\n');
-    expect(text, contains('Yes'));
-    expect(text, contains('No'));
-    expect(text, contains('for good?'));
+    expect(t, containsLine(contains('Yes')));
+    expect(t, containsLine(contains('No')));
+    expect(t, containsLine(contains('for good?')));
   });
 
   testTwk('yes: and no: label the answers; y and n still answer', (t) async {
@@ -57,11 +56,10 @@ void main() {
     );
     await t.press('d');
     await t.pump(const Duration(milliseconds: 200));
-    final text = t.lines.join('\n');
-    expect(text, contains('Delete'));
-    expect(text, contains('Keep'));
-    expect(text, isNot(contains('Yes')));
-    expect(text, isNot(contains('No ')));
+    expect(t, containsLine(contains('Delete')));
+    expect(t, containsLine(contains('Keep')));
+    expect(t, isNot(containsLine(contains('Yes'))));
+    expect(t, isNot(containsLine(contains('No '))));
     await t.press('n');
     await t.pump(const Duration(milliseconds: 200));
     expect(done, isTrue);

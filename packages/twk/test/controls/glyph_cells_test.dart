@@ -156,8 +156,8 @@ void main() {
       );
       await t.press('enter');
       await t.pumpUntilIdle();
-      expect(t.lines.join('\n'), contains('[x] Apple'));
-      expect(t.lines.join('\n'), contains('[ ] Banana'));
+      expect(t, containsLine(contains('[x] Apple')));
+      expect(t, containsLine(contains('[ ] Banana')));
     });
 
     testTwk('a FilePicker with wide boxes aligns a directory with a file', (
@@ -318,7 +318,7 @@ void main() {
       await t.pump();
       expect(t.lines[1], startsWith('>item 1'));
       expect(t.lines[0], endsWith('#'));
-      expect(t.lines.join(), isNot(contains('🔽')));
+      expect(t, isNot(containsLine(contains('🔽'))));
       expect(warnings(t), hasLength(2));
     });
 
@@ -347,9 +347,9 @@ void main() {
       await t.press('f10');
       await t.pump(const Duration(milliseconds: 100));
       await t.pump();
-      expect(t.lines.join('\n'), isNot(contains('🔽')));
-      expect(t.lines.join('\n'), contains('v Wrap'));
-      expect(t.lines.join('\n'), contains('More'));
+      expect(t, isNot(containsLine(contains('🔽'))));
+      expect(t, containsLine(contains('v Wrap')));
+      expect(t, containsLine(contains('More')));
       expect(warnings(t).map((m) => m.split(' ')[0]).toSet(), {
         'Glyphs.check',
         'Glyphs.collapsed',
@@ -367,8 +367,8 @@ void main() {
       );
       await t.press('s');
       await t.pump(const Duration(seconds: 1));
-      expect(t.lines.join('\n'), isNot(contains('🔽')));
-      expect(t.lines.join('\n'), contains('|'));
+      expect(t, isNot(containsLine(contains('🔽'))));
+      expect(t, containsLine(contains('|')));
       expect(warnings(t), hasLength(1));
     });
 
