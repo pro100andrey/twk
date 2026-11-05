@@ -401,11 +401,6 @@ enough, and on a loaded machine the guess is wrong.
   fails with a message instead of hanging, and with what `state:` gives
   of the screen, the output, the processes where a helper holds them.
   Never a sleep, and no timeout raised or retry added to make a test pass.
-- **Which bound fires** is the wait's, which says what it waited for. The
-  test's own limit stands behind the waits (`timeout: 2m` in the
-  `dart_test.yaml` of the packages whose tests wait on real time), as a
-  few of them add up past the 30 s a test has by default, which would
-  fail saying nothing.
 - **Enforced** by twk_lints' `wall_time_in_tests` (README of
   `packages/twk_lints`), enabled in every package's and tool's
   `analysis_options.yaml`, so the analyze steps of handover fail on a

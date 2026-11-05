@@ -97,7 +97,6 @@ void templateCycle(String name) {
         '.',
       ]);
     },
-    // the four at once on a runner of four cores
-    timeout: const Timeout(Duration(minutes: 5)),
+    timeout: const Timeout(Duration(minutes: 3)),
   );
 }

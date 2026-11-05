@@ -448,7 +448,7 @@
   "scripts": {
     "compile": "tsc -p . && tsc -p tsconfig.webview.json",
     "watch": "tsc -watch -p . & tsc -watch -p tsconfig.webview.json",
-    "test:unit": "npm run compile && mocha --timeout 30000 'out/test/unit/**/*.test.js'",
+    "test:unit": "npm run compile && mocha 'out/test/unit/**/*.test.js'",
     "test": "npm run compile && node out/test/runTest.js"
   },
   "dependencies": {

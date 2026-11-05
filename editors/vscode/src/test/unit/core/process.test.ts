@@ -3,7 +3,12 @@ import * as assert from 'node:assert/strict';
 
 import { startNodeProcess } from '../../../core/process';
 
-describe('startNodeProcess', () => {
+/** What these tests get: each starts a real node, which on a loaded machine takes seconds. */
+const startsNode = 30000;
+
+describe('startNodeProcess', function () {
+  this.timeout(startsNode);
+
   it('a character whose UTF-8 bytes come in two reads is one character', async () => {
     // U+2500, e2 94 80: two bytes, then the last one once the first are read
     const script = `process.stdout.write(Buffer.from([0xe2, 0x94]), () => setTimeout(() => process.stdout.write(Buffer.from([0x80, 0x0a])), 200));`;
@@ -25,7 +30,9 @@ describe('startNodeProcess', () => {
   });
 });
 
-describe('startNodeProcess, written to once the app closed its stdin', () => {
+describe('startNodeProcess, written to once the app closed its stdin', function () {
+  this.timeout(startsNode);
+
   it('the broken pipe (EPIPE) ends nothing: no error thrown at the extension host', async () => {
     const script = `require('fs').closeSync(0); console.log('closed'); setTimeout(() => {}, 300);`;
     const p = startNodeProcess(process.execPath, ['-e', script], { cwd: process.cwd(), env: process.env });
