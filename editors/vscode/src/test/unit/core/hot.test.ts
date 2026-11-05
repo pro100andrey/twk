@@ -15,6 +15,16 @@ import { HotRun } from '../../../core/runner';
 import { Vm, VmClient, webSocketUri } from '../../../core/vm';
 import { FakeVm } from '../fakes';
 
+/** Lets everything the FakeVm has pending run: it has no timers, only promises. */
+const flush = () => new Promise<void>((r) => setImmediate(r));
+
+/** Turns of the event loop until [done], at most 1000: no time is waited on. */
+async function settled(done: () => boolean): Promise<void> {
+  for (let i = 0; i < 1000 && !done(); i++) {
+    await flush();
+  }
+}
+
 describe('HotApp', () => {
   const statuses: HotStatus['state'][] = [];
   const attach = (vm: Vm, restart = () => {}) => HotApp.attach(vm, (s) => statuses.push(s.state), restart);
@@ -60,7 +70,7 @@ describe('HotApp', () => {
     assert.equal(app.isolate, undefined);
     let done = false;
     const reload = app.reload().then((s) => ((done = true), s));
-    await new Promise((r) => setTimeout(r, 10));
+    await flush();
     assert.equal(done, false);
     assert.ok(!vm.calls.includes('reloadSources'));
     vm.streams.get('Isolate')!({ kind: 'ServiceExtensionAdded', extensionRPC: 'ext.twk.reassemble', isolate: { id: 'i/2' } });
@@ -75,7 +85,7 @@ describe('HotApp', () => {
     vm.streams.get('Extension')!({ kind: 'Extension', extensionKind: 'twk.restart' });
     assert.equal(restarts, 1);
     vm.streams.get('Extension')!({ kind: 'Extension', extensionKind: 'twk.reload' });
-    await new Promise((r) => setTimeout(r, 10));
+    await settled(() => vm.calls.includes('reloadSources'));
     assert.ok(vm.calls.includes('reloadSources'));
   });
 

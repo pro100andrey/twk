@@ -1,6 +1,9 @@
 // An app's log served for `twk logs` while it runs when TWK_DEBUG names
 // `logs`: served_app.dart in a process of its own, in a project of the
 // test's.
+@Tags(['process'])
+library;
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';

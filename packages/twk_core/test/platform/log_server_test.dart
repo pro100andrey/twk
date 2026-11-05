@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:test/test.dart';
 import 'package:twk_core/twk_core.dart';
+import 'package:twk_test/twk_test.dart' show waitFor;
 
 void main() {
   late Directory dir;
@@ -19,7 +20,7 @@ void main() {
     final got = <int>[];
     final done = client.listen(got.addAll).asFuture<void>();
     client.add(List.filled(300, 0x61));
-    await done.timeout(const Duration(seconds: 4));
+    await waitFor(done, 'the server to cut the client off');
     expect(got, isEmpty);
     client.destroy();
   });

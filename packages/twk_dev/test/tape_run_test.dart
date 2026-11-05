@@ -6,6 +6,7 @@
 // gone at the end of each. The walkthrough's app through a tape: the
 // keys reach it, the recording plays back to the screen it showed, the
 // screenshot and the animation are written.
+@Tags(['process'])
 @TestOn('linux || mac-os')
 @Timeout(Duration(seconds: 90))
 library;

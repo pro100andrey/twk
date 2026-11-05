@@ -1,6 +1,9 @@
 // Output that takes plain text only (a pipe, a file, CI): how it is
 // chosen, a Terminal over a PlainLink in memory, an app on one, and the
 // demo run with its stdout piped.
+@Tags(['process'])
+library;
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';

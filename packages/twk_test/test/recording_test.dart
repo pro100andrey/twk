@@ -1,6 +1,9 @@
 // Frame recording: each frame the app wrote with its time on the clock and
 // the screen it left, an output trace of them for tool/replay.dart, and the
 // last of them printed when a test fails.
+@Tags(['process'])
+library;
+
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';

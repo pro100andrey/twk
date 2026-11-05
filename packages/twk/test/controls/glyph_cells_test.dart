@@ -3,11 +3,11 @@
 // code units: tabs' edges, a slider's line and thumb, a slim scrollbar's
 // line, a checkbox, a chip's close, the boxes of a MultiSelect and of a
 // FilePicker.
-import 'dart:io';
-
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
+
+import '../platform/native_paths.dart';
 
 /// [child] in the dark theme with [glyphs].
 Widget themed(Glyphs glyphs, Widget child) => Theme(
@@ -163,17 +163,18 @@ void main() {
     testTwk('a FilePicker with wide boxes aligns a directory with a file', (
       t,
     ) async {
-      final dir = Directory.systemTemp.createTempSync('glyph_cells_');
-      addTearDown(() => dir.deleteSync(recursive: true));
-      Directory('${dir.path}/dd').createSync();
-      File('${dir.path}/ff').writeAsStringSync('x');
+      final files = PickerFileSystem.memory([
+        rooted('/home/dd/'),
+        rooted('/home/ff'),
+      ]);
       await t.pumpWidget(
         themed(
           Glyphs.unicode.copyWith(checkboxOn: '全', checkboxOff: '空'),
           Overlay(
             child: FilePicker(
               onPicked: (_) {},
-              directory: dir.path,
+              fileSystem: files,
+              directory: rooted('/home'),
               multiple: true,
               autofocus: true,
             ),
@@ -181,11 +182,7 @@ void main() {
         ),
         size: (40, 12),
       );
-      await waitUntil(
-        () => t.lines.any((l) => l.contains('[ ] ff')),
-        'the listing',
-        between: t.pump,
-      );
+      await t.pumpUntilIdle();
       final file = t.lines.firstWhere((l) => l.contains('[ ] ff'));
       final directory = t.lines.firstWhere((l) => l.contains('dd'));
       // a directory has no box, a blank as wide as one in its place: the

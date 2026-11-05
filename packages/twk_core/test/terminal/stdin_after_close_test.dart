@@ -3,6 +3,7 @@
 // closed, fd 0 is as it was, so a program that inherits it reads what is
 // typed, a second terminal opened after reads keys, and the process ends
 // on its own, the terminal put back.
+@Tags(['process'])
 @TestOn('linux || mac-os')
 library;
 

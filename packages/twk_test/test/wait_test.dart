@@ -58,6 +58,22 @@ void main() {
       expect(watch.elapsed, greaterThan(const Duration(milliseconds: 50)));
     });
 
+    test('says what state gives when it fails, read then', () async {
+      var looks = 0;
+      await expectLater(
+        waitUntil(
+          () {
+            looks++;
+            return false;
+          },
+          'what never comes',
+          timeout: const Duration(milliseconds: 5),
+          state: () => looks > 0 ? 'looked' : 'not looked',
+        ),
+        _failure('waited 0.005 s for what never comes, in vain; looked'),
+      );
+    });
+
     test('fails the same once the timeout passed while a future of the '
         'condition or of between never completes', () async {
       final never = Completer<bool>().future;
@@ -112,6 +128,20 @@ void main() {
           timeout: const Duration(milliseconds: 50),
         ),
         _failure('waited 0.050 s for the exit of the server, in vain'),
+      );
+    });
+
+    test('says what state gives when it fails', () async {
+      await expectLater(
+        waitFor(
+          Completer<int>().future,
+          'the exit of the server',
+          timeout: const Duration(milliseconds: 5),
+          state: () => 'output: none',
+        ),
+        _failure(
+          'waited 0.005 s for the exit of the server, in vain; output: none',
+        ),
       );
     });
   });

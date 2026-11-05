@@ -6,6 +6,9 @@
 // mouse relative to it; last in a pseudo-terminal (tool/pty_run.py)
 // running viewport_app.dart, whose terminal runApp opens with the mouse
 // reported on the normal screen and ordered as runApp's bidi says.
+@Tags(['process'])
+library;
+
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';

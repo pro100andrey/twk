@@ -26,7 +26,8 @@ import 'package:test/test.dart';
 /// after each look that failed, before the next, bound the same way: a
 /// tester's `pump` there lets an app on a [FakeClock] take in what
 /// arrived in real time. What [condition] or [between] throws, this
-/// throws.
+/// throws. What [state] gives is said after [what], for a failure to tell
+/// where things stood: the screen, the output, the processes.
 ///
 /// Its looks are real timers: called in a [FakeClock]'s zone it would
 /// wait for that clock, so it is called outside it, as a test's body is.
@@ -47,9 +48,10 @@ Future<void> waitUntil(
   String what, {
   Duration timeout = const Duration(seconds: 10),
   FutureOr<void> Function()? between,
+  String Function()? state,
 }) async {
   final watch = Stopwatch()..start();
-  Never late() => fail('waited ${_seconds(timeout)} for $what, in vain');
+  Never late() => _inVain(timeout, what, state);
   Future<T> bounded<T>(FutureOr<T> value) async {
     if (value is! Future<T>) {
       return value;
@@ -73,7 +75,8 @@ Future<void> waitUntil(
 /// What [event] completes with, once it has, in real time: a line a
 /// process prints, its exit code, the data a socket gets. A
 /// [TestFailure] naming [what] once [timeout] of real time passed
-/// without it; the error [event] completes with, it throws.
+/// without it, and saying what [state] gives; the error [event] completes
+/// with, it throws.
 ///
 /// Its bound is a real timer: called in a [FakeClock]'s zone it would
 /// wait for that clock, so it is called outside it, as a test's body is.
@@ -92,10 +95,13 @@ Future<T> waitFor<T>(
   Future<T> event,
   String what, {
   Duration timeout = const Duration(seconds: 10),
-}) => event.timeout(
-  timeout,
-  onTimeout: () => fail('waited ${_seconds(timeout)} for $what, in vain'),
-);
+  String Function()? state,
+}) => event.timeout(timeout, onTimeout: () => _inVain(timeout, what, state));
+
+Never _inVain(Duration timeout, String what, String Function()? state) {
+  final waited = 'waited ${_seconds(timeout)} for $what, in vain';
+  fail(state == null ? waited : '$waited; ${state()}');
+}
 
 String _seconds(Duration d) =>
     '${(d.inMicroseconds / 1e6).toStringAsFixed(3)} s';

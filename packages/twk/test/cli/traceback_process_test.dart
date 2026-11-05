@@ -3,6 +3,7 @@
 // leaves uncaught, ends it with the traceback on stderr, the paths from
 // its working directory, and the exit code; a prompt nobody can answer
 // with its question alone.
+@Tags(['process'])
 @TestOn('vm')
 library;
 

@@ -3,11 +3,11 @@
 // fades in, opened while it fades out and in the frame it has faded out
 // in; an Autocomplete closing as its suggestions fade in; a FilePicker's
 // field cleared as they do.
-import 'dart:io';
-
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
+
+import '../platform/native_paths.dart';
 
 const ThemeData theme = ThemeData.dark;
 const ms = Duration(milliseconds: 1);
@@ -143,19 +143,7 @@ void main() {
 
   testTwk("a FilePicker's field cleared as the name Ctrl+Z put back is "
       'suggested, fading in, takes the suggestions away', (t) async {
-    final dir = Directory.systemTemp.createTempSync('popover_fade_');
-    addTearDown(() => dir.deleteSync(recursive: true));
-    File('${dir.path}/notes.txt').writeAsStringSync('');
-    // the directory is listed in real time
-    Future<void> until(bool Function() done, String what) =>
-        waitUntil(
-          done,
-          what,
-          between: t.pump,
-        ).onError<TestFailure>(
-          (e, _) => fail('${e.message}:\n${t.lines.join('\n')}'),
-        );
-
+    final files = PickerFileSystem.memory([rooted('/home/me/notes.txt')]);
     await t.pumpWidget(
       app(
         Column(
@@ -164,7 +152,8 @@ void main() {
               child: FilePicker(
                 onPicked: (_) {},
                 mode: FilePickerMode.save,
-                directory: dir.path,
+                fileSystem: files,
+                directory: rooted('/home/me'),
                 name: 'notes',
                 autofocus: true,
               ),
@@ -172,30 +161,25 @@ void main() {
           ],
         ),
       ),
-      size: (dir.path.length + 40, 10),
+      size: (60, 10),
     );
-    await until(
-      () => !t.lines.any((l) => l.contains('listing')),
-      'the directory listed',
-    );
+    await t.pumpUntilIdle();
     await t.type('x');
     await t.pumpUntilIdle();
     expect(
       t.lines.first.trim(),
-      '${dir.path}${Platform.pathSeparator}notesx',
+      '${rooted('/home/me')}${native('/')}notesx',
     );
     await t.press('ctrl+z');
     // the suggestion over ../, fading in
-    await until(
-      () => t.lines[1].contains('notes.txt'),
-      'notes.txt suggested',
-    );
+    await t.pumpUntilIdle();
+    expect(t.lines[1], contains('notes.txt'));
     for (final key in ['ctrl+a', 'ctrl+k']) {
       await t.press(key);
       await t.pump();
     }
     await t.pumpUntilIdle();
     expect(t.lines.first.trim(), isEmpty);
-    expect(t.lines[1].trim(), '..${Platform.pathSeparator}');
+    expect(t.lines[1].trim(), native('../'));
   });
 }

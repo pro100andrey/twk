@@ -10,6 +10,9 @@
 // of the command's own (a signal sent to it, what the app writes to the
 // stdio `twk run` leaves it), it is started as a developer starts it, and
 // the app uses its stdin and stdout.
+@Tags(['process'])
+library;
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -486,7 +489,7 @@ void main() {
     final run = await startTwk(['run', project.entry]);
     final stderrText = StringBuffer();
     run.stderr.transform(utf8.decoder).listen(stderrText.write);
-    final code = await run.exitCode.timeout(_start);
+    final code = await waitFor(run.exitCode, 'twk run to end', timeout: _start);
     expect(code, 254);
     expect('$stderrText', contains("Expected ';' after this."));
   }, timeout: const Timeout(Duration(minutes: 3)));
@@ -510,6 +513,6 @@ void main() {
     run.kill();
     expect(await run.exitCode, 143);
     // the app wrote to the same stdout: it is closed once both ended
-    await screen.done.timeout(const Duration(seconds: 10));
+    await waitFor(screen.done, 'stdout to close');
   }, timeout: const Timeout(Duration(minutes: 3)));
 }

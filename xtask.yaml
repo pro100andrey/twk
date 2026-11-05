@@ -105,6 +105,18 @@ sets:
       - packages/twk/pubspec.yaml
       - packages/twk_test/pubspec.yaml
 
+  # The packages with tests tagged `process`, which start a real process or
+  # pseudo-terminal and wait for it: `process-test`.
+  process-suites:
+    include:
+      - packages/twk/pubspec.yaml
+      - packages/twk_core/pubspec.yaml
+      - packages/twk_dev/pubspec.yaml
+      - packages/twk_ssh/pubspec.yaml
+      - packages/twk_term/pubspec.yaml
+      - packages/twk_test/pubspec.yaml
+      - packages/twk_web/pubspec.yaml
+
 tasks:
   validate:
     desc: fail if this file is wrong (xtask --validate)
@@ -226,12 +238,24 @@ tasks:
     # beside the root's: three of them take most of the time (twk_dev's,
     # which compiles and starts apps, twk's and the core's), the others
     # seconds each.
-    desc: the tests of every package that has a test/
+    desc: the tests of every package that has a test/, but those of processes
     gate: [handover]
     needs: [get, pkg-get]
     each: packages
     do: tests
-    args: [$each, --reporter=failures-only]
+    args: [$each, --exclude-tags=process, --reporter=failures-only]
+
+  process-test:
+    # The tests that start a real process or pseudo-terminal, after the
+    # others, two files of a package at once: their deadlines depend on the
+    # CPU, which the thousands of others would take. A package at a time
+    # took a minute more of handover, for nothing a test showed.
+    desc: the tests that start a real process, after the others
+    gate: [handover]
+    needs: [pkg-test]
+    each: process-suites
+    do: tests
+    args: [$each, --tags=process, --concurrency=2, --reporter=failures-only]
 
   ci-test:
     # pkg-test's, split in two for CI's two Linux jobs: ci's, the packages
@@ -241,7 +265,7 @@ tasks:
     needs: [get, pkg-get]
     each: quick-suites
     do: tests
-    args: [$each, --reporter=failures-only]
+    args: [$each, --exclude-tags=process, --reporter=failures-only]
 
   slow-test:
     desc: the tests of the slowest packages, ci-tests' job beside ci
@@ -249,7 +273,16 @@ tasks:
     needs: [get, pkg-get]
     each: slow-suites
     do: tests
-    args: [$each, --reporter=failures-only]
+    args: [$each, --exclude-tags=process, --reporter=failures-only]
+
+  ci-process-test:
+    # process-test's on CI: every package's, in the job with the fewer others.
+    desc: the tests that start a real process, ci-tests' after the others
+    gate: [ci-tests]
+    needs: [slow-test]
+    each: process-suites
+    do: tests
+    args: [$each, --tags=process, --concurrency=2, --reporter=failures-only]
 
   os-test:
     # pkg-test's, over the portable packages only: ci-os, on Windows.
@@ -271,7 +304,17 @@ tasks:
     needs: [get, pkg-get]
     each: packages
     do: tests
-    args: [$each, --reporter=failures-only]
+    args: [$each, --exclude-tags=process, --reporter=failures-only]
+
+  mac-process-test:
+    # process-test's on macOS.
+    desc: the tests that start a real process, on macOS
+    gate: [ci-os]
+    platforms: [macos]
+    needs: [mac-test]
+    each: process-suites
+    do: tests
+    args: [$each, --tags=process, --concurrency=2, --reporter=failures-only]
 
   tool-test:
     desc: the tests of the tools' packages that have a test/

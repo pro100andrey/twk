@@ -1,0 +1,4 @@
+tags:
+  # starts a real process or pseudo-terminal: run apart, after the others
+  # (`process-test` in xtask.yaml)
+  process:

@@ -3,6 +3,9 @@
 // and fixtures/holder.dart run with `dart test` in processes of their own,
 // alone, as two isolates of one runner, and in two runners at once, while
 // processes these tests started themselves look on.
+@Tags(['process'])
+library;
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';

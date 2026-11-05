@@ -1,5 +1,6 @@
 // compiledProgram: a program of a temporary directory compiled once and
 // kept, compiled again when a file it is compiled from changes.
+@Tags(['process'])
 @TestOn('vm')
 library;
 

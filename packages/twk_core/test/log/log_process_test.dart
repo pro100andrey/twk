@@ -1,5 +1,8 @@
 // TWK_LOG and the real stdout and stderr: the app of log_app.dart in a
 // process of its own, its error left unhandled.
+@Tags(['process'])
+library;
+
 import 'dart:io';
 import 'dart:isolate';
 

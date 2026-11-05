@@ -5,6 +5,7 @@
 // formatted and its tests passing; the names it uses as twk and twk_test
 // export them, and the others as twk's cli, hooks and provider libraries
 // and twk_test's cli library do; and its pitfalls as twk behaves.
+@Tags(['process'])
 @Timeout(Duration(minutes: 5))
 library;
 
