@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- A `RenderWrap` with no children lays out whatever its alignments, where
+  `spaceAround` across its runs divided by zero: a `Wrap` whose last child went
+  turned into an error.
+
 - A SIGTSTP from outside (`kill -TSTP`) does nothing while the app has the
   terminal on Linux and macOS, where it stopped the process with the terminal
   raw, on the alternate screen, the cursor hidden. Dart can't watch it, to give

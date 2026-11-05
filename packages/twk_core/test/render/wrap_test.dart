@@ -191,6 +191,15 @@ List<String> printed(void Function() body) {
 }
 
 void main() {
+  test('with no children it lays out at the least it may, however its runs '
+      'are aligned', () {
+    for (final alignment in WrapAlignment.values) {
+      final wrap = RenderWrap(runAlignment: alignment)
+        ..layout(const BoxConstraints(maxW: 10, maxH: 4), parentUsesSize: true);
+      expect((wrap.width, wrap.height), (0, 0), reason: alignment.name);
+    }
+  });
+
   group('runs', () {
     // the runs of the labels at each width, gap 1 and run gap 1
     const runs = <int, List<String>>{
