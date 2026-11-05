@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- A repaint boundary's cells do not depend on what was painted in them before: a
+  viewport, a list, a log, or a box or text that is a boundary fills with its pen
+  and, where that has no foreground, the terminal's own (`StyleTable.ownPen`),
+  where text in a pen of no foreground took the colour of what scrolled away.
+  `Canvas.fill` keeps what is under a pen of no foreground, as a highlight needs.
+
 - What a `TextPainter` paints does not depend on a query asked before it: spans
   given since the layout are painted as `textRangeAt`, `cellAt` and `columnsOf`
   take them, where they showed only once a query had split them.

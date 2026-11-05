@@ -263,7 +263,7 @@ final class RenderViewport extends RenderObject
       canvas
         ..save()
         ..clipRect(0, from, width, to - from)
-        ..fill(0, from, width, to - from, pen);
+        ..fill(0, from, width, to - from, canvas.styles.ownPen(pen));
       if (ch != null) {
         paintChild(ctx, ch);
       }

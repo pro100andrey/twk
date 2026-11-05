@@ -809,6 +809,27 @@ final class StyleTable {
   /// The pen registered as [id] ([pen]).
   Pen penOf(int id) => _pens[id];
 
+  final _ownPens = <int, int>{};
+
+  /// [id], or the same pen with the terminal's own foreground where it has
+  /// none: what a repaint boundary fills its cells with. Those hold its own
+  /// old paint when it repaints alone, its parent's in a whole paint, so a
+  /// foreground taken from them would depend on what was painted there.
+  int ownPen(int id) => _ownPens[id] ??= switch (penOf(id)) {
+    Pen(fg: null) && final p => pen(
+      Pen(
+        fg: Color.defaultColor,
+        bg: p.bg,
+        fgAlpha: p.fgAlpha,
+        bgAlpha: p.bgAlpha,
+        attrs: p.attrs,
+        underlineColor: p.underlineColor,
+        link: p.link,
+      ),
+    ),
+    _ => id,
+  };
+
   /// The resolved style id a pen always produces, or [StyleId.none] when the
   /// result depends on the cell underneath (inherited or translucent colors).
   @pragma('vm:prefer-inline')

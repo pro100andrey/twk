@@ -185,11 +185,12 @@ final class RenderLog extends RenderObject {
       _runsSweeps = cv.glyphs.sweeps;
       _runs.fillRange(_runsFrom, _runsTo, null);
     }
+    final fill = cv.styles.ownPen(pen);
     for (var row = 0; row < height; row++) {
       if ((row < from || row >= to) && (row < newFrom || row >= newTo)) {
         continue;
       }
-      cv.fill(0, row, width, 1, pen);
+      cv.fill(0, row, width, 1, fill);
       final i = _first + row;
       if (i >= 0 && i < _lines.length) {
         final run = _runs[i] ??= cv.shape(_lines[i]);

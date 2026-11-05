@@ -37,6 +37,42 @@ final class View {
 }
 
 void main() {
+  test(
+    'a fill of no foreground takes none from the lines that scrolled away',
+    () {
+      final screen = Screen(10, 4);
+      final red = screen.styles.pen(const Pen(fg: Color.rgb(255, 0, 0)));
+      final plain = screen.styles.pen(const Pen());
+      final log = RenderLog(
+        pen: screen.styles.pen(const Pen(bg: Color.rgb(0, 0, 40))),
+        itemPen: (i, _) => i < 3 ? red : plain,
+      );
+      final owner = PipelineOwner(() {})
+        ..root = RenderColumn([(log, 3), (RenderText('-', plain), 1)]);
+      void frame() {
+        owner
+          ..flushLayout(10, 4)
+          ..flushPaint(
+            PaintContext(screen.canvas, screen.surface, screen.presenter),
+          );
+        screen.render();
+      }
+
+      for (var i = 0; i < 3; i++) {
+        log.add('red $i');
+      }
+      frame();
+      for (var i = 3; i < 6; i++) {
+        log.add('line $i');
+      }
+      frame();
+      final scrolled = screen.surface.styles[1];
+      owner.markAllDirty();
+      frame();
+      expect(scrolled, screen.surface.styles[1]);
+    },
+  );
+
   test('holds the lines added and shows the last ones, following its end', () {
     final v = View(8, 2);
     expect(v.log.length, 0);
