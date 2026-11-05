@@ -289,8 +289,8 @@ final class _GestureDetectorState extends State<GestureDetector> {
   void _down(PointerEvent event) {
     _tapHere = widget.tapAt?.call(event.x, event.y) ?? true;
     if (MouseTracker.of(context) case final tracker?) {
-      (_arena = _Arena.of(tracker)).down(this, event);
-      if (_tapHere && event.button == 0 && widget.buttons.contains(0)) {
+      final joined = (_arena = _Arena.of(tracker)).down(this, event);
+      if (joined && _tapHere && event.button == 0) {
         _tell(widget.onTapDown, event);
       }
     }
@@ -366,15 +366,16 @@ final class _Arena {
   Timer? _interval;
   int? _again;
 
-  void down(_GestureDetectorState detector, PointerEvent event) {
+  /// Whether [detector] takes part in the press.
+  bool down(_GestureDetectorState detector, PointerEvent event) {
     if (tracker.presses != _press) {
       _begin(event.button);
     } else if (event.button != _button) {
       // another button while the press's is held
-      return;
+      return false;
     }
     if (!detector.widget.buttons.contains(event.button)) {
-      return;
+      return false;
     }
     _members.add(detector);
     detector
@@ -390,6 +391,7 @@ final class _Arena {
         () => _heldLong(detector),
       );
     }
+    return true;
   }
 
   void drag(_GestureDetectorState detector, PointerEvent event) {

@@ -603,9 +603,11 @@ void main() {
       writing.path,
     ]);
     addTearDown(pty.close);
+    final out = StringBuffer();
     final opened = Completer<void>();
     final reading = pty.output.listen((bytes) {
-      if (!opened.isCompleted && latin1.decode(bytes).contains('opened')) {
+      out.write(latin1.decode(bytes));
+      if (!opened.isCompleted && '$out'.contains('opened')) {
         opened.complete();
       }
     });
@@ -645,9 +647,11 @@ void main() {
           height: 40,
         );
         addTearDown(pty.close);
+        final out = StringBuffer();
         final opened = Completer<void>();
         final reading = pty.output.listen((bytes) {
-          if (!opened.isCompleted && latin1.decode(bytes).contains('opened')) {
+          out.write(latin1.decode(bytes));
+          if (!opened.isCompleted && '$out'.contains('opened')) {
             opened.complete();
           }
         });
