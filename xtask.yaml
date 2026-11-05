@@ -279,7 +279,7 @@ tasks:
     needs: [get, pkg-get]
     each: quick-suites
     do: tests
-    args: [$each, --exclude-tags=process, --reporter=failures-only]
+    args: [$each, --exclude-tags=process, --concurrency=4, --reporter=failures-only]
 
   slow-test:
     desc: the tests of the slowest packages, ci-tests' job beside ci
@@ -287,7 +287,7 @@ tasks:
     needs: [get, pkg-get]
     each: slow-suites
     do: tests
-    args: [$each, --exclude-tags=process, --reporter=failures-only]
+    args: [$each, --exclude-tags=process, --concurrency=4, --reporter=failures-only]
 
   ci-process-test:
     # process-test's on CI: every package's, in the job with the fewer others.
