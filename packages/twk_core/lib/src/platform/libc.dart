@@ -41,6 +41,15 @@ const pollHup = 0x10;
 /// POLLNVAL: the descriptor is not open.
 const pollNval = 0x20;
 
+/// F_GETFL, for [fcntl]: the descriptor's status flags.
+const fGetfl = 3;
+
+/// F_SETFL, for [fcntl]: sets the descriptor's status flags.
+const fSetfl = 4;
+
+/// O_NONBLOCK: a call on the descriptor does not block.
+final oNonblock = _macos ? 0x4 : 0x800;
+
 /// EINTR: a call interrupted by a signal.
 const eintr = 4;
 
@@ -87,6 +96,11 @@ external int read(int fd, Pointer<Void> buf, int count);
 /// -1. A leaf call, like [read].
 @Native<Long Function(Int, Pointer<Void>, Size)>(isLeaf: true)
 external int write(int fd, Pointer<Void> buf, int count);
+
+/// fcntl(2): [command] ([fGetfl], [fSetfl]) on [fd], with [arg]; what it
+/// gives, or -1. A leaf call, like [read].
+@Native<Int Function(Int, Int, VarArgs<(Int,)>)>(isLeaf: true)
+external int fcntl(int fd, int command, int arg);
 
 /// pipe(2): a pipe, its read end in `fds[0]`, its write end in `fds[1]`;
 /// 0, or -1.

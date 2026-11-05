@@ -9,13 +9,14 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:test/test.dart';
 import 'package:twk_term/src/pty/pty.dart' show ptyEnvironment;
 import 'package:twk_term/twk_term.dart';
 import 'package:twk_test/twk_test.dart'
-    show runProcess, startProcess, waitUntil;
+    show compiledProgram, runProcess, startProcess, waitFor, waitUntil;
 
 const _timeout = Duration(seconds: 10);
 
@@ -565,6 +566,50 @@ void main() {
       () => Pty.start('sh', const [], workingDirectory: '/\x00'),
     ]) {
       expect(start, throwsArgumentError);
+    }
+  });
+
+  group('an app on a terminal that stops reading', () {
+    late String app;
+    setUpAll(
+      () async => app = await compiledProgram(
+        'test/pty/stalled_app.dart',
+        packages: (await Isolate.packageConfig)!.toFilePath(),
+        cache: '.dart_tool/twk_test/programs',
+      ),
+    );
+
+    for (final (name, signal, code) in [
+      ('SIGTERM', ProcessSignal.sigterm, 143),
+      ('SIGHUP', ProcessSignal.sighup, 129),
+      ('SIGINT', ProcessSignal.sigint, 0),
+    ]) {
+      test('ends on $name, the output blocking nothing', () async {
+        final pty = Pty.start(
+          Platform.resolvedExecutable,
+          [app],
+          width: 120,
+          height: 40,
+        );
+        addTearDown(pty.close);
+        final opened = Completer<void>();
+        final reading = pty.output.listen((bytes) {
+          if (!opened.isCompleted && latin1.decode(bytes).contains('opened')) {
+            opened.complete();
+          }
+        });
+        addTearDown(reading.cancel);
+        await waitFor(opened.future, 'the terminal to open');
+        reading.pause();
+        // a megabyte: the app has far more to write than the terminal holds
+        pty.write(const [0x67]);
+        await waitUntil(
+          () => (pty.debugUnreadOutput ?? 0) > 2000,
+          'the output to fill the terminal',
+        );
+        pty.kill(signal);
+        expect(await waitFor(pty.exitCode, 'the end of the app'), code);
+      });
     }
   });
 

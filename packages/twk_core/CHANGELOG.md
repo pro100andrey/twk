@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- A terminal that reads nothing blocks nothing: on Linux and macOS `StdioLink`
+  writes without blocking and keeps what is not taken, where `stdout` blocked
+  the main isolate in write(2), with no timer, key or signal handled until the
+  terminal read again: SIGTERM, Ctrl+C or an error ended nothing and left the
+  terminal raw.
+
 - SIGHUP restores the terminal and exits with 129 on Linux and macOS too, where
   it left it raw on the alternate screen. `Terminal.close` waits a second at
   most for a link whose flush does not end, and restores the modes then.
