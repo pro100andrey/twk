@@ -12,6 +12,26 @@ const _panel = Box(
 );
 
 void main() {
+  test(
+    'a live session warns of a list given no rows, as a pipe does',
+    () async {
+      final clock = FakeClock();
+      final terminal = FakeCliTerminal.interactive(
+        width: 20,
+        height: 6,
+        fakeClock: clock,
+      );
+      final cli = Cli(terminal: terminal);
+      await _settle(
+        clock,
+        cli.show(ListView(children: const [Text('a'), Text('b')])),
+      );
+      await _settle(clock, cli.close());
+      // above the live region, where a live session writes what is logged
+      expect(terminal.screenLines.join(), contains('no rows'));
+    },
+  );
+
   group('show', () {
     test('writes the text of a widget where nobody answers', () async {
       final terminal = FakeCliTerminal(columns: 20);

@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+Breaking:
+
+- A process has one terminal: `Terminal.open` on its own stdio throws a
+  `TerminalException` while another is open there and not suspended, in a release
+  build too, where the second took keys from the first and the tty stayed raw. A
+  terminal suspended gives way, and `resume` takes the stdio back or throws where
+  another has it. Terminals over a link are independent of it.
+
+Changed:
+
 - The presenter writes less and looks at less: over blanks it changes only what a
   blank shows (`StyleTable.nearBlank`), a log's new line 8 % fewer bytes and one
   beside a scrollbar 12 %; and once rows of a frame stop shifting the others are

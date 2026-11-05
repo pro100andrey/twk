@@ -890,6 +890,7 @@ final class Cli {
           terminal,
           theme: theme.data,
           onInterrupt: _interrupted,
+          onWarning: warn,
         ).then(
           (session) {
             _probedUnderlines = session.styledUnderlines;
