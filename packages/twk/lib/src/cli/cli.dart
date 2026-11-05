@@ -306,6 +306,15 @@ final class Cli {
   /// Without one, [run] just runs. Returns what [run] returns, or throws
   /// what it throws, once the terminal is back.
   ///
+  /// This is also how a twk app of its own runs in the middle of a
+  /// program that has used the console: `runApp(...)` while the session
+  /// holds stdin draws, but gets no keys. Run it inside [run], or [close]
+  /// the console first when nothing needs it after:
+  ///
+  /// ```dart
+  /// await Cli.current.suspend(() => runApp(const Text('hi')));
+  /// ```
+  ///
   /// ```dart
   /// final cli = Cli.current;
   /// final progress = cli.progress('Installing');
@@ -422,6 +431,10 @@ final class Cli {
   /// the terminal takes them; 80 columns wide where the output is no
   /// terminal and `COLUMNS` says nothing. Either way it is shown under
   /// the [theme]'s [CliTheme.data].
+  ///
+  /// The widget is as tall as it is, so one that scrolls (a `Table`, a
+  /// `ListView`) needs a bounded height, a `SizedBox` or a `ConstrainedBox`
+  /// round it, else it shows nothing of its body.
   ///
   /// ```dart
   /// await Cli.current.show(

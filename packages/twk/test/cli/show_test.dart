@@ -25,6 +25,19 @@ void main() {
       expect(terminal.opened, 0);
     });
 
+    test('shows nothing of a list without a bounded height', () async {
+      const rows = [Text('a'), Text('b')];
+      final unbounded = FakeCliTerminal(columns: 20);
+      await Cli(terminal: unbounded).show(ListView(children: rows));
+      expect(unbounded.out.toString(), '');
+
+      final bounded = FakeCliTerminal(columns: 20);
+      await Cli(
+        terminal: bounded,
+      ).show(SizedBox(height: 2, child: ListView(children: rows)));
+      expect(bounded.out.toString(), 'a\nb\n');
+    });
+
     test('lays it out at the terminal width, or the one given', () async {
       const text = Text('one two three four five six');
       final narrow = FakeCliTerminal(columns: 10);

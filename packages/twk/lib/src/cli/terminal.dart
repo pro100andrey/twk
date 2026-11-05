@@ -102,6 +102,13 @@ abstract class CliTerminal {
   /// ended and handed the terminal back: on the process's terminal it
   /// sends the process SIGINT, so it ends as it would at a cooked
   /// terminal, unless the program watches the signal.
+  ///
+  /// In a live session Ctrl+C is a key: the terminal is in raw mode, so
+  /// the line discipline sends no SIGINT, neither to the process group
+  /// nor to a child the program started; only this sends one, to the
+  /// process itself. A program that starts processes watches
+  /// `ProcessSignal.sigint` and stops them, else they run on after it
+  /// ends.
   void interrupt();
 
   /// Where the time of the session and its timers comes from.
