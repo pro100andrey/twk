@@ -66,7 +66,66 @@ final class Label extends InheritedWidget {
   bool updateShouldNotify(Label oldWidget) => value != oldWidget.value;
 }
 
+/// A row that keeps count of [_MarkedState.mark].
+final class _Marked extends StatefulWidget {
+  const _Marked(this.index, this.states, {super.key});
+
+  final int index;
+  final Map<int, _MarkedState> states;
+
+  @override
+  State<_Marked> createState() => _MarkedState();
+}
+
+final class _MarkedState extends State<_Marked> {
+  var _marks = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.states[widget.index] = this;
+  }
+
+  void mark() => setState(() => _marks++);
+
+  @override
+  Widget build(BuildContext context) =>
+      Text('row ${widget.index} marked $_marks');
+}
+
 void main() {
+  testTwk('a row that comes back rebuilt can be marked before the next build '
+      'scope', (t) async {
+    final controller = ScrollController();
+    addTearDown(controller.dispose);
+    final states = <int, _MarkedState>{};
+    await t.pumpWidget(
+      ListView.builder(
+        controller: controller,
+        itemCount: 200,
+        cacheExtent: 0,
+        itemBuilder: (_, i) => _Marked(i, states, key: ValueKey(i)),
+      ),
+      size: (20, 4),
+    );
+    final row = states[0]!;
+    controller.jumpTo(50);
+    await t.pump();
+    row.mark();
+    await t.pump();
+    controller.jumpTo(0);
+    var once = true;
+    t.binding.addPostFrameCallback((_) {
+      if (once) {
+        once = false;
+        row.mark();
+      }
+    });
+    await t.pump();
+    await t.pump();
+    expect(t.lines.first, 'row 0 marked 2');
+  });
+
   testTwk('of a hundred thousand items, builds those in view and the cache '
       'rows below them, and those it is scrolled to', (t) async {
     final built = <int>[];

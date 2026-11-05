@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- A row a `ListView` kept, rebuilt as it comes back, can be marked again before
+  the next build, where that failed an assert and ended the app with asserts on.
+- `GestureDetector.onTapDown` is told only of a press the detector takes part in,
+  not of a left press while another button is held, which no tap comes of.
+
 - `PointerMode.auto` shows the hand everywhere in a local session, where a
   control had it on one screen and not on another: it asks for the mouse's
   motion, of a terminal that shows pointer shapes. In a remote session

@@ -2549,10 +2549,16 @@ final class BuildOwner {
       // the build that marked it
       _needsSorting = true;
       assert(
-        false,
+        !_inScope,
         '${_pathOf(element)} was marked dirty again after it was rebuilt in '
         'the same build scope',
       );
+      // kept between scopes, and rebuilt as it came back ([holdBuilds]) or
+      // by its LayoutBuilder: the next scope is its turn
+      if (!_inScope && !_scheduled) {
+        _scheduled = true;
+        onBuildScheduled?.call();
+      }
       return;
     }
     if (!_scheduled) {
@@ -2577,10 +2583,12 @@ final class BuildOwner {
       return;
     }
     _scheduled = true;
+    _inScope = true;
     try {
       callback?.call();
       _rebuildDirty(null);
     } finally {
+      _inScope = false;
       _endScope();
     }
   }
@@ -2593,10 +2601,13 @@ final class BuildOwner {
   /// [finalizeTree] after the layout.
   void _buildInLayout(Element context, void Function() callback) {
     _scheduled = true;
+    final nested = _inScope;
+    _inScope = true;
     try {
       callback();
       _rebuildDirty(context);
     } finally {
+      _inScope = nested;
       _endScope();
     }
   }
@@ -2635,6 +2646,9 @@ final class BuildOwner {
   /// The [LayoutBuilder]s given a new widget or dependency whose builder
   /// has not run yet.
   final _layoutBuilds = <_LayoutBuilderElement>{};
+
+  // a build scope is running
+  var _inScope = false;
 
   // the elements out of the tree's use that a list keeps: see [holdBuilds]
   final _held = Set<Element>.identity();

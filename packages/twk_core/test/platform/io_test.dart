@@ -14,14 +14,8 @@ import 'package:twk_core/twk_core.dart';
 
 /// Whether stdin is a terminal whose modes can be set: what these tests
 /// would change, so they are skipped there.
-bool get _stdinIsTty {
-  try {
-    stdin.echoMode;
-    return true;
-  } on StdinException {
-    return false;
-  }
-}
+// dart:io's own answer, which /dev/null is one of
+bool get _stdinIsTty => stdin.hasTerminal;
 
 /// [name] in the environment as a positive number, [otherwise] where it is
 /// none.

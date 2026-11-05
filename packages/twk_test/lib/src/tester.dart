@@ -179,13 +179,18 @@ final class TwkTester {
     }
   }
 
+  /// How many of the errors not taken a test that fails on them prints.
+  static const _errorsOnFailure = 5;
+
   void _failOnErrors() {
     final errors = takeErrors();
     if (errors.isNotEmpty) {
       final count = errors.length == 1 ? 'an error' : '${errors.length} errors';
+      final more = errors.length - _errorsOnFailure;
       fail(
         'the app logged $count the test did not take (takeErrors):\n'
-        '${errors.join('\n')}',
+        '${errors.take(_errorsOnFailure).join('\n')}'
+        '${more > 0 ? '\nand $more more' : ''}',
       );
     }
   }

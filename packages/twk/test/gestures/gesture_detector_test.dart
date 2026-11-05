@@ -690,6 +690,24 @@ void main() {
       expect(log, ['tap 1', 'around']);
     });
 
+    testTwk('onTapDown is not told of a left press while another button is '
+        'held, which no tap comes of', (t) async {
+      final log = <String>[];
+      await t.pumpWidget(
+        GestureDetector(
+          buttons: const {0, 2},
+          onTapDown: (e) => log.add('down'),
+          child: const Text('press'),
+        ),
+        size: (20, 2),
+      );
+      await t.mouse(MouseKind.down, 1, 0, button: 2);
+      await t.mouse(MouseKind.down, 1, 0);
+      await t.mouse(MouseKind.up, 1, 0);
+      await t.mouse(MouseKind.up, 1, 0, button: 2);
+      expect(log, isEmpty);
+    });
+
     testTwk('onTapDown is told at the press, apart from the taps inside and '
         'around it; outside tapAt it is not told', (t) async {
       final log = <String>[];

@@ -168,6 +168,9 @@ final class PosixOutput {
         }
         return false;
       }
+      if (written == 0) {
+        return false;
+      }
       _offset += written;
       _taken += written;
       _took = true;
