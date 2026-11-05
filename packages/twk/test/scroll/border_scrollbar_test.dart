@@ -269,6 +269,7 @@ void axisTests() {
       size: (20, 6),
     );
     expect(t.lines.join(), contains('Failed assertion'));
+    expect(t.takeErrors(), isNotEmpty);
   });
 
   testTwk('a vertical scrollable and a bottom title: the bar on the right '
@@ -293,6 +294,7 @@ void axisTests() {
       size: (20, 10),
     );
     expect(t.lines.join(), contains('Failed assertion'));
+    expect(t.takeErrors(), isNotEmpty);
   });
 
   testTwk('a bar without a border: asserted', (t) async {
@@ -304,5 +306,6 @@ void axisTests() {
       size: (20, 10),
     );
     expect(t.lines.join(), contains('Failed assertion'));
+    expect(t.takeErrors(), isNotEmpty);
   });
 }

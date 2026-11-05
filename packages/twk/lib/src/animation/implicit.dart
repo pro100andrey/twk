@@ -406,7 +406,7 @@ final class _RenderAlignAt extends RenderObject
       return;
     }
     child
-      ..layout(BoxConstraints(0, c.maxW, 0, c.maxH), parentUsesSize: true)
+      ..layout(BoxConstraints(maxW: c.maxW, maxH: c.maxH), parentUsesSize: true)
       ..parentData.dx = _share(width - child.width, _x)
       ..parentData.dy = _share(height - child.height, _y);
   }

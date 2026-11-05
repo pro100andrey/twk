@@ -284,6 +284,10 @@ final class RenderWrap extends RenderObject
     final horizontal = _direction == Axis.horizontal;
     final runs = _runs;
     final count = _runCount;
+    if (count == 0) {
+      // nothing to place, nor to split the free cells among
+      return;
+    }
     final freeCross = cross - _thickness < 0 ? 0 : cross - _thickness;
     var across = _before(_runAlignment, freeCross, count);
     var child = _firstChild;

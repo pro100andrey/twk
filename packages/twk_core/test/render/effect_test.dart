@@ -401,7 +401,7 @@ void main() {
   test('is as big as its child, and asks for what its child asks for; '
       'without a child, as small as the constraints allow', () {
     final effect = Widen(RenderParagraph([('ab cd', const Pen())]))
-      ..layout(const BoxConstraints(0, 10, 0, 5), parentUsesSize: true);
+      ..layout(const BoxConstraints(maxW: 10, maxH: 5), parentUsesSize: true);
     expect((effect.width, effect.height), (5, 1));
     expect(
       [
@@ -413,7 +413,10 @@ void main() {
       [2, 5, 2, 2],
     );
     final empty = Widen(null)
-      ..layout(const BoxConstraints(1, 10, 2, 5), parentUsesSize: true);
+      ..layout(
+        const BoxConstraints(minW: 1, maxW: 10, minH: 2, maxH: 5),
+        parentUsesSize: true,
+      );
     expect((empty.width, empty.height), (1, 2));
     expect(
       [

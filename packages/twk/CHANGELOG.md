@@ -1,5 +1,59 @@
 # Changelog
 
+## Unreleased
+
+- `PointerMode.auto` shows the hand everywhere in a local session, where a
+  control had it on one screen and not on another: it asks for the mouse's
+  motion, of a terminal that shows pointer shapes. In a remote session
+  (`TerminalInfo.remote`) it asks for none, as before. `PointerMode.off` asks
+  for none anywhere. `TerminalStatus.handAsksMotion` is the rule.
+
+- `CliTerminal.promptShown(question)`, told as a prompt takes its answer: nothing
+  on the process's terminal, what a test's terminal answers by.
+- `Text.line` and `Text.richLine` take `align` and `overflow`: a line set right or
+  cut at its start needs the long form of `Text` no more.
+- `Cli.confirm` says what to press: `(y/n)` after the question, Tab moves the
+  highlight as Left and Right do, and Enter with no answer highlighted says
+  `answer y or n`, where a question with no default looked stuck.
+- A row a `ListView` keeps out of its window no longer rebuilds there: it builds
+  as it comes back. A `SelectionList`'s cursor moving rebuilt the kept rows too,
+  which asked `itemEnabled` and the like about an index the list no longer had.
+- What is dirty below a `LayoutBuilder` given a new widget waits for its build,
+  as in Flutter. It was rebuilt first, with the old widget above it, so a row
+  of a list could read a list that had shrunk with the old `itemCount` and
+  throw a `RangeError`.
+- A key flushes an `autofocus` still waiting, one a layout built, so it comes to
+  that node and not to the one that had the focus. `FocusManager.autofocusPending`
+  says one waits.
+- `copyToClipboard(context, text)` is exported: an app copies as a
+  `SelectionArea` and a `TextField` do, by OSC 52, wrapped inside tmux or GNU
+  screen.
+- `RadioGroup` and `ValueStepper` take `canRequestFocus`, as `Button` and
+  `Pressable` do: false for a control of the mouse only, which Tab passes by
+  and a click leaves the focus where it was.
+- A `SelectionArea` copies a blank line where rows lie between two `Text`s, as
+  between the paragraphs of a `MarkdownView`, which ran together; those
+  side by side or right under each other are joined by a line break, as
+  they were.
+- `MenuItem(shortcut:)`, a key of the item's own: shown on its right and
+  pressed while its menu is open, where a key had to be bound to the same
+  function to show and a letter in the label to be pressed.
+- `ThemeData.pointerMode`, `PointerMode.off`, `.auto` or `.on`, is the one setting
+  of the shapes the widgets set: it replaces `ThemeData.handPointer` and
+  `HandPointer`, and the `pointerShapes` of `Window`, `SplitView`, `Table`,
+  `TreeTable` and `Draggable`, which a `Theme` around them does now. Breaking.
+- The pointer follows the press. A `GestureDetector` with `onTap` shows the
+  hand by `ThemeData.pointerMode`, with nothing else to write; `cursor` puts
+  a `PointerShape` of its own in its place, `PointerShape.arrow` for a click
+  that presses nothing, and `tapAt` says which cells of a row a tap is on,
+  for the hand and the tap at once. `onTapDown` answers as the button goes
+  down.
+- The hand shows over everything a click presses, `RadioGroup`, `ConfirmInput`,
+  `Calendar`, `Heatmap`, `Window`'s buttons, `NumberInput`'s arrows and
+  `DatePicker`'s among them, which showed none. Rows of a list keep the arrow.
+- `Pressable(behavior:)`: `HitTestBehavior.opaque` takes a press on its empty
+  cells too.
+
 ## 0.2.0
 
 - After a Ctrl+C ended the inline session, a program that handles SIGINT
@@ -115,6 +169,17 @@
   package:twk), apart from a pen id, which stays an int: the effect cell's
   `EffectCell.style`, `childStyle` and `underStyle` are one, and so are
   the style arguments of a `RenderEffect`'s `effectCell`.
+
+Breaking:
+
+- A `Dialog` keeps to 72 columns by default (`Dialog.maxWidth`), where it
+  took the width of its child. What is wider is cut on the right, with no
+  error; a dialog that sets its own width gives `maxWidth: null`.
+- `Gauge` and `LineGauge` show no percentage unless `showPercentage: true`;
+  they showed it by default.
+- A `Sparkline` with fewer values than columns ends at the right edge
+  (`fromRight`, true by default), where it started at the left;
+  `fromRight: false` keeps that.
 - `Scrollbar` and the bar of `Box` read the axis from the scrollable
   inside, as Flutter's `Scrollbar` does. `Scrollbar(axis:)` is nullable and
   null by default: the outermost scrollable of either axis, where it was
@@ -130,6 +195,41 @@
   the right side for a vertical scrollable and on the bottom for a
   horizontal one; the border must have that side and a bottom title cannot
   share it with a horizontal bar, as asserted.
+
+New:
+
+- `App`, the root that puts the theme over the `Overlay` over the app.
+- `Glyphs`, the marks widgets draw by meaning, in `ThemeData.glyphs`, with
+  the presets `Glyphs.unicode` and `Glyphs.ascii`.
+- `ThemeData.handPointer`: `HandPointer.off`, `.auto` (the default) or `.on`
+  for the hand over what a click presses.
+- `AppBinding.addPostFrameCallback`, called once at the end of a frame;
+  `AppBinding.pressKey`, a press of a key from code, as if the terminal had
+  sent it; `AppBinding.now`, the app's wall time on its clock, which a
+  test's fake clock moves; `AppBinding.startTimer` and `startPeriodic`,
+  timers on the app's clock.
+- `showConfirm`, a yes-or-no dialog; `Dialog.trailing` and
+  `Dialog.scrollable`; `showKeyHelp`, a dialog of the keys in force.
+- `Chip`, `ChipList` and `ValueStepper`.
+- `Text.line` and `Text.richLine`, one line cut with an ellipsis;
+  `Button.rich`; `Span.tap`, a click on a piece of text;
+  `Callout(borderType:, titleStyle:)`.
+- `KeyHintsBar.fromPairs`, a bar of fixed pairs, and
+  `KeyHintsBar(pressable: true)`, a click on a hint presses its key.
+- `canRequestFocus` on `Button` and `Pressable`, for a control of the mouse
+  only.
+- `TickerMode`, set by `Offstage` and `Visibility`, mutes the tickers below
+  it; `useInterval`, a hook called every period on the app's clock.
+- `LogController.listen`, `addSpans`, and `addOutput` and `followFile`, which
+  return a `LogSource`.
+- `ScrollPhysics` and `NeverScrollableScrollPhysics`, taken by a `ListView`,
+  `Scrollable`, `SingleChildScrollView` and `TreeView`, which leave the wheel
+  and the keys to what is around them.
+- `TreeView(separateRoots:, maxIndent:, gutter:, gutterWidth:)`.
+- From package:twk: `fitText`, `padCells`, `breakLines`, `segmenterOf` and
+  `formatBytes` with `ByteUnits`, which `DirectoryTree`, `ProgressList` and
+  `Cli.tasks` take as `byteUnits`.
+- `'esc'` names the Escape key in a binding, as `'escape'` does.
 
 ## 0.1.0
 

@@ -148,7 +148,7 @@ void main() {
         overflow: TextOverflow.ellipsis,
         maxLines: 1,
         ellipsis: '...',
-      )..layout(const BoxConstraints(6, 6, 0, 100));
+      )..layout(const BoxConstraints(minW: 6, maxW: 6, maxH: 100));
       expect(
         [
           for (var x = 0; x < 6; x++)

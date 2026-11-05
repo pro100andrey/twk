@@ -362,10 +362,10 @@ final class Container extends StatelessWidget {
       return BoxConstraints.tightFor(width: w, height: h);
     }
     return BoxConstraints(
-      w == null ? c.minW : c.constrainW(w),
-      w == null ? c.maxW : c.constrainW(w),
-      h == null ? c.minH : c.constrainH(h),
-      h == null ? c.maxH : c.constrainH(h),
+      minW: w == null ? c.minW : c.constrainW(w),
+      maxW: w == null ? c.maxW : c.constrainW(w),
+      minH: h == null ? c.minH : c.constrainH(h),
+      maxH: h == null ? c.maxH : c.constrainH(h),
     );
   }
 

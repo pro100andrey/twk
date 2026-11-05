@@ -32,7 +32,12 @@ import '../fake_clock.dart';
 ///   memory ([backend]) that gets its `input`, keys as a terminal sends
 ///   them (`'\x1B[B'` the down arrow, `'\r'` Enter, `'\x03'` Ctrl+C), and
 ///   whose [screen] is an emulator fed everything written to it, the
-///   session's frames and the lines written around it.
+///   session's frames and the lines written around it. `answers` are
+///   keys too, each entry typed as the next question shows: `input` all
+///   goes to the first one.
+///
+/// [onPrompt] is told of each question as it shows, in any mode: for what a
+/// test does between two answers.
 ///
 /// [out] and [err] keep what was written as lines, outside a session;
 /// [interrupts] counts the Ctrl+C the console passed on. [clock] is where
@@ -73,6 +78,7 @@ final class FakeCliTerminal extends CliTerminal {
     this.height = 24,
     List<String> lines = const [],
     List<String> input = const [],
+    List<String> answers = const [],
     FakeClock? fakeClock,
     this.progressReports = false,
   }) : capabilities = CliCapabilities(
@@ -88,6 +94,7 @@ final class FakeCliTerminal extends CliTerminal {
        _columns = columns ?? (outputIsTerminal ? width : null),
        _lines = [...lines],
        _input = [...input],
+       _answers = [...answers],
        clock = fakeClock == null
            ? const CliClock.system()
            : _FakeCliClock(fakeClock),
@@ -117,10 +124,19 @@ final class FakeCliTerminal extends CliTerminal {
        );
 
   /// Somebody answers at a terminal that redraws, [width] × [height]
-  /// cells: the inline session gets [input] as typed. [fakeClock] times
-  /// it, the wall clock without one; [progressReports] as above.
+  /// cells: the inline session gets [input] as typed, and [answers] an
+  /// entry for each question as it shows. [fakeClock] times it, the wall
+  /// clock without one; [progressReports] as above.
+  ///
+  /// ```dart
+  /// final terminal = FakeCliTerminal.interactive(answers: ['ada\r', 'y']);
+  /// final cli = Cli(terminal: terminal);
+  /// final name = await cli.prompt('Name?');
+  /// final sure = await cli.confirm('Sure?');
+  /// ```
   FakeCliTerminal.interactive({
     List<String> input = const [],
+    List<String> answers = const [],
     int width = 80,
     int height = 24,
     FakeClock? fakeClock,
@@ -130,6 +146,7 @@ final class FakeCliTerminal extends CliTerminal {
          interactiveInput: true,
          outputIsTerminal: true,
          input: input,
+         answers: answers,
          width: width,
          height: height,
          fakeClock: fakeClock,
@@ -158,6 +175,10 @@ final class FakeCliTerminal extends CliTerminal {
   final int? _columns;
   final List<String> _lines;
   final List<String> _input;
+  final List<String> _answers;
+
+  /// Told of each question as it shows, before an answer is typed.
+  void Function(String question)? onPrompt;
 
   @override
   final CliClock clock;
@@ -269,6 +290,14 @@ final class FakeCliTerminal extends CliTerminal {
     }
     _input.clear();
     return backend;
+  }
+
+  @override
+  void promptShown(String question) {
+    onPrompt?.call(question);
+    if (_answers.isNotEmpty) {
+      type(_answers.removeAt(0));
+    }
   }
 
   @override

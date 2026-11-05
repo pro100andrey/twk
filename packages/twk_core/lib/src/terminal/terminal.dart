@@ -66,6 +66,7 @@ final class TerminalInfo {
     int? kittyKeyboardFlags,
     this.alternateScreen = true,
     this.cursorColumn,
+    this.remote = false,
     this.colorSchemeReports = false,
     this.notifications = NotificationProtocol.none,
     this.multiplexer = Multiplexer.none,
@@ -194,6 +195,13 @@ final class TerminalInfo {
   /// OSC 22 sets ([pointerShapeSequence]): where it names the shapes
   /// ([pointerNames]).
   bool get pointerShapes => pointerNames != null;
+
+  /// Whether the terminal is at the far end of a network, where each report
+  /// of the mouse's motion crosses it: as it declares
+  /// ([TerminalDeclaration.remote]), else where the environment has
+  /// `SSH_TTY` or `SSH_CONNECTION`. A guess: tmux and mosh can hide a remote
+  /// session or keep the variables of one that ended.
+  final bool remote;
 
   /// How the terminal names the pointer's shapes in OSC 22; null where it
   /// isn't known to show them. As it declares
@@ -1133,9 +1141,9 @@ final class Terminal
 
   /// Ctrl+C typed while terminal-generated signals are on, or SIGINT sent
   /// from outside (a CTRL_C_EVENT on Windows), becomes a key, so the app
-  /// decides what it means. SIGTERM, or on Windows the console being closed
-  /// (SIGHUP), restores the terminal and exits. Windows' Ctrl+Break can't
-  /// be watched from Dart: it ends the process without the restore.
+  /// decides what it means. SIGTERM and SIGHUP (on Windows the console being
+  /// closed) restore the terminal and exit. Windows' Ctrl+Break and SIGQUIT
+  /// can't be watched from Dart: they end the process without the restore.
   static List<StreamSubscription<void>> _watchSignals(
     void Function(InputEvent e) interrupt,
     Future<void> Function() terminate,
@@ -1465,6 +1473,9 @@ final class Terminal
       answeredQueries: answered,
       alternateScreen: o.alternateScreen,
       cursorColumn: column,
+      remote:
+          declared.remote ??
+          (env.containsKey('SSH_TTY') || env.containsKey('SSH_CONNECTION')),
       colorSchemeReports: supported(2031),
       declaredBrightness: brightnessFor(env),
       notifications: declared.notifications ?? notificationProtocolFor(told),
@@ -2101,9 +2112,38 @@ final class Terminal
   @override
   Future<void> flush() => _out.flush();
 
+  /// How long [close] waits for a terminal that takes nothing.
+  static const _closeFlushLimit = Duration(seconds: 1);
+
+  /// How long it waits for one that can't say what it took.
+  static const _closeBlindLimit = Duration(seconds: 5);
+
+  /// Flushes, for as long as the terminal takes what is written: one that
+  /// reads nothing is not to keep the process, nor its own mode, and what it
+  /// never took is lost with it.
+  Future<void> _flushForClose() async {
+    final link = _link;
+    var taken = link is DrainingLink ? link.taken : null;
+    if (link is! DrainingLink || taken == null) {
+      await flush().timeout(_closeBlindLimit, onTimeout: () {});
+      return;
+    }
+    var done = false;
+    final flushed = flush().whenComplete(() => done = true)..ignore();
+    while (!done) {
+      await flushed.timeout(_closeFlushLimit, onTimeout: () {});
+      if (link.taken == taken) {
+        return;
+      }
+      taken = link.taken;
+    }
+  }
+
   /// Restores the terminal. Safe to call more than once. The console modes
   /// are restored even when writing the exit sequence fails (stdout gone);
-  /// that error is rethrown afterwards.
+  /// that error is rethrown afterwards. A terminal that took nothing for a
+  /// second is left without the rest of the exit sequence, the modes
+  /// restored then; one that takes it slowly gets all of it.
   @override
   Future<void> close() async {
     if (_closed) {
@@ -2130,7 +2170,7 @@ final class Terminal
         _writeString(popTitleSequence);
       }
       _link.restoreWith(const []);
-      await flush();
+      await _flushForClose();
     } finally {
       if (!info.plain) {
         _link.restore();

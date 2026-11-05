@@ -93,6 +93,11 @@ abstract class CliTerminal {
   /// ends.
   Future<TerminalBackend> openInline();
 
+  /// A prompt asking [question] is about to take its answer: its row is on
+  /// the screen and takes keys, or a line is about to be read. Nothing
+  /// happens on a terminal of the process; a terminal of a test answers it.
+  void promptShown(String question) {}
+
   /// What a Ctrl+C nothing live took does once the inline session has
   /// ended and handed the terminal back: on the process's terminal it
   /// sends the process SIGINT, so it ends as it would at a cooked

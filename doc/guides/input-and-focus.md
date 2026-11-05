@@ -223,9 +223,15 @@ held (1002) for drags, all motion (1003) for `onHover`, `onEnter`,
 `onExit`, `onMove`, a `MouseRegion`'s `cursor` where the terminal shows
 the pointer's shape, and a `Button`'s hover look. One of them anywhere in
 the app turns 1003 on everywhere. The hand over what a click presses is
-`ThemeData.handPointer`, by default `HandPointer.auto`: shown only where motion
-is reported already, so a checkbox or a link asks for presses alone; `HandPointer.on`
+`ThemeData.pointerMode`, by default `PointerMode.auto`: shown only where motion
+is reported already, so a checkbox or a link asks for presses alone; `PointerMode.on`
 asks for motion.
+
+The pointer follows the press: a `GestureDetector` with `onTap` or `onTapDown`
+shows the hand by that rule, with nothing else to write. `cursor` puts a
+`PointerShape` of its own in its place (`PointerShape.arrow` for a click that
+presses nothing), and `tapAt: (x, y) => ...` says which cells of a row a tap is
+on, for the hand and the tap at once.
 
 A `ListView` or `Scrollable` that should leave the wheel (and the keys) to
 the view around takes `physics: const NeverScrollableScrollPhysics()`; its

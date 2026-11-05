@@ -125,7 +125,6 @@ final class TreeTable<T> extends StatefulWidget {
     this.selectedStyle,
     this.unfocusedSelectedStyle,
     this.cursorStyle,
-    this.pointerShapes = true,
   }) : assert(columnGap >= 0, 'a gap of 0 cells or more'),
        assert(
          border == BorderType.none || columnGap > 0,
@@ -213,9 +212,6 @@ final class TreeTable<T> extends StatefulWidget {
 
   /// See [Table.cursorStyle].
   final Style? cursorStyle;
-
-  /// See [Table.pointerShapes].
-  final bool pointerShapes;
 
   @override
   State<TreeTable<T>> createState() => _TreeTableState<T>();
@@ -818,7 +814,6 @@ final class _TreeTableState<T> extends State<TreeTable<T>>
           selectedStyle: w.selectedStyle,
           unfocusedSelectedStyle: w.unfocusedSelectedStyle,
           cursorStyle: w.cursorStyle,
-          pointerShapes: w.pointerShapes,
         ),
       ),
     );

@@ -190,10 +190,10 @@ final class _RenderShadow extends RenderObject with RenderObjectWithChildMixin {
     child
       ..layout(
         BoxConstraints(
-          _inside(c.minW, h),
-          _inside(c.maxW, h),
-          _inside(c.minH, v),
-          _inside(c.maxH, v),
+          minW: _inside(c.minW, h),
+          maxW: _inside(c.maxW, h),
+          minH: _inside(c.minH, v),
+          maxH: _inside(c.maxH, v),
         ),
         parentUsesSize: true,
       )

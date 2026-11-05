@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+
+Breaking:
+
+- A test fails on an error its app logged, a build that threw above all, unless
+  it takes it with `TwkTester.takeErrors()`, as `tester.takeException()` in
+  Flutter: a build error was only logged, and the next frame built over it, so
+  the test passed on broken code. Reading `t.logs` takes nothing.
+
+- `TwkTester.pumpWidget(remote:)`: the terminal of a remote session.
+- `FakeCliTerminal.interactive(answers:)` types an entry as each question shows,
+  where `input` all went to the first one, and `FakeCliTerminal.onPrompt` is told
+  of each question, for what a test does between two answers.
+- `find.textContaining(pattern)`, the `Text`s with a match of a `String` or a
+  `RegExp` in their string or their spans joined, where `find.text` takes the
+  whole of it.
+
 ## 0.2.0
 
 - `FakeCliTerminal.openInline` opens the inline terminal again once the

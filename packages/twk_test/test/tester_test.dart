@@ -480,10 +480,41 @@ void main() {
       'ended, and shown in place', (t) async {
     await t.pumpWidget(const Broken(), size: (20, 2));
     expect(t.cell(0, 0).bg, Color.red);
-    expect(t.logs.records.single.message, 'Broken failed to build');
+    expect(t.takeErrors().single.message, 'Broken failed to build');
     expect(t.stderrLines, isEmpty);
     await t.quit();
     expect(t.stderrLines, contains(contains('Broken failed to build')));
+  });
+
+  testTwk('takeErrors hands over each error once, the oldest first, whatever '
+      'the log keeps, and leaves the log as it is', (t) async {
+    await t.pumpWidget(const Text('x'), size: (20, 2));
+    LogRecord record(LogLevel level, String message) =>
+        LogRecord(DateTime(2026), level, message);
+    t.logs
+      ..add(record(LogLevel.warning, 'a warning'))
+      ..add(record(LogLevel.error, 'first'));
+    for (var i = 0; i < t.logs.capacity; i++) {
+      t.logs.add(record(LogLevel.info, 'filler'));
+    }
+    t.logs.add(record(LogLevel.error, 'second'));
+    expect(t.takeErrors().map((r) => r.message), ['first', 'second']);
+    expect(t.takeErrors(), isEmpty);
+    expect(t.logs.records.last.message, 'second');
+  });
+
+  testTwk('takeErrors leaves out the error the app ended with, which a call '
+      'of the tester throws', (t) async {
+    await t.pumpWidget(
+      KeyBindings(
+        {'x': () => throw StateError('boom')},
+        child: const Text('x'),
+      ),
+      size: (20, 2),
+    );
+    await expectLater(t.press('x'), throwsA(isA<WidgetError>()));
+    expect(t.logs.records.last.message, 'uncaught error');
+    expect(t.takeErrors(), isEmpty);
   });
 
   testTwk('quit runs the app to its end: the terminal restored, the tree '

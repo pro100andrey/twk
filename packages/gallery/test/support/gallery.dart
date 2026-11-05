@@ -96,6 +96,17 @@ List<String> clips(TwkTester t) => [
     utf8.decode(base64.decode(m.group(1)!)),
 ];
 
+/// Takes the build that App › ErrorWidget fails on purpose, on that page, so
+/// a test of every page fails on any other error.
+void takeOwnError(TwkTester t, String route) {
+  if (route.contains('app/errorwidget')) {
+    expect(
+      t.takeErrors().map((r) => r.message),
+      everyElement(contains('_Weather failed to build')),
+    );
+  }
+}
+
 /// What the app logged at warning or worse: an overflow, an error.
 List<String> problems(TwkTester t) => [
   for (final r in t.logs.records)

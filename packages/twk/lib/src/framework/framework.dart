@@ -2240,7 +2240,10 @@ typedef LayoutWidgetBuilder = Widget Function(
 /// the widget is replaced, and when an inherited widget the builder depends
 /// on changes; at no other layout. What it builds is laid out in the same
 /// frame, and the elements below it marked dirty meanwhile are rebuilt
-/// with it; those elsewhere wait for the next build scope. A build that
+/// with it; those elsewhere wait for the next build scope. While it has a
+/// build to do, what is dirty below it waits for that build, as in
+/// Flutter: built before it, a row would read the widget above it from
+/// before the change that made it dirty. A build that
 /// throws is reported as any build is ([BuildOwner.onBuildError]), and what
 /// the owner returns shown in place of the child.
 ///
@@ -2304,10 +2307,14 @@ final class _LayoutBuilderElement extends RenderObjectElement
   // a new widget, or a dependency that changed: the builder runs at the
   // next layout, where it registers its dependencies anew
   @override
-  void _updateRenderObject() => renderObject._markNeedsBuild();
+  void _updateRenderObject() {
+    owner!._layoutBuilds.add(this);
+    renderObject._markNeedsBuild();
+  }
 
   @override
   void unmount() {
+    owner!._layoutBuilds.remove(this);
     // there is none when mounting it threw
     final o = _renderObject;
     if (o is _RenderLayoutBuilder) {
@@ -2318,6 +2325,7 @@ final class _LayoutBuilderElement extends RenderObjectElement
 
   /// Builds the child for [constraints], as the render object is laid out.
   void _build(BoxConstraints constraints) => owner!._buildInLayout(this, () {
+    owner!._layoutBuilds.remove(this);
     Widget built;
     try {
       _beginDependencies();
@@ -2602,7 +2610,8 @@ final class BuildOwner {
     var i = 0;
     while (i < count) {
       final element = _dirty[i++];
-      if (within == null || element._isBelow(within)) {
+      if ((within == null || element._isBelow(within)) &&
+          !_waitsForLayout(element)) {
         try {
           element.rebuild();
         } on Object catch (error, stack) {
@@ -2623,14 +2632,60 @@ final class BuildOwner {
     }
   }
 
+  /// The [LayoutBuilder]s given a new widget or dependency whose builder
+  /// has not run yet.
+  final _layoutBuilds = <_LayoutBuilderElement>{};
+
+  // the elements out of the tree's use that a list keeps: see [holdBuilds]
+  final _held = Set<Element>.identity();
+
+  /// Holds the builds of [element] and what is below it until
+  /// [releaseBuilds]: for an element kept out of use, as a list keeps a row
+  /// gone from its window. Its widget is of a time that has passed, the
+  /// index of a row the data may no longer have: it builds as it is taken
+  /// back, with the widget it comes back with.
+  @internal
+  void holdBuilds(Element element) => _held.add(element);
+
+  /// Lets the builds [holdBuilds] held go on.
+  @internal
+  void releaseBuilds(Element element) {
+    if (_held.remove(element) && _dirty.isNotEmpty && !_scheduled) {
+      _scheduled = true;
+      onBuildScheduled?.call();
+    }
+  }
+
+  /// Whether [element] is below a [LayoutBuilder] that has a build to do,
+  /// which rebuilds it with what is above it up to date, or at or below
+  /// what [holdBuilds] holds.
+  bool _waitsForLayout(Element element) {
+    if (_layoutBuilds.isEmpty && _held.isEmpty) {
+      return false;
+    }
+    if (_held.contains(element)) {
+      return true;
+    }
+    for (var e = element._parent; e != null; e = e._parent) {
+      if (_held.contains(e) ||
+          e is _LayoutBuilderElement && _layoutBuilds.contains(e)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /// Ends a build scope: the elements left dirty (by an exception out of
   /// it, or outside a build during layout) stay for the next one, which is
-  /// asked for when there are any.
+  /// asked for when there are any. Those that wait for a [LayoutBuilder]
+  /// stay too and ask for nothing: its layout, already asked for, is theirs.
   void _endScope() {
     var kept = 0;
+    var asks = false;
     for (final e in _dirty) {
       if (e._dirty && e._lifecycle == _Lifecycle.active) {
         _dirty[kept++] = e;
+        asks = asks || !_waitsForLayout(e);
       } else {
         e._inDirtyList = false;
       }
@@ -2638,7 +2693,7 @@ final class BuildOwner {
     _dirty.length = kept;
     _scheduled = false;
     _needsSorting = false;
-    if (kept > 0) {
+    if (asks) {
       _scheduled = true;
       onBuildScheduled?.call();
     }

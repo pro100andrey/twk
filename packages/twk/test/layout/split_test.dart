@@ -105,6 +105,13 @@ List<double> rounded(List<double> shares) => [
   for (final s in shares) (s * 100).round() / 100,
 ];
 
+Widget pointersOff(Widget child) => Theme(
+  data: const ThemeData.terminal(
+    Brightness.dark,
+  ).copyWith(pointerMode: PointerMode.off),
+  child: child,
+);
+
 void main() {
   group('SplitView', () {
     testTwk('shares the room equally by default, a line between each two '
@@ -808,10 +815,8 @@ void main() {
     /// Two panes along `direction`.
     Widget split({
       Axis direction = Axis.horizontal,
-      bool pointerShapes = true,
     }) => SplitView(
       direction: direction,
-      pointerShapes: pointerShapes,
       panes: const [
         SplitPane(child: Text('a')),
         SplitPane(child: Text('b')),
@@ -844,7 +849,7 @@ void main() {
 
     test('is left alone with pointerShapes false', () async {
       final run = ShapeRun(
-        split(pointerShapes: false),
+        pointersOff(split()),
         width: 21,
       );
       await run.start();

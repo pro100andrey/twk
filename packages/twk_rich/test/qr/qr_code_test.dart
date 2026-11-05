@@ -352,6 +352,7 @@ void main() {
       size: (60, 6),
     );
     expect(t.lines.join(), contains('7090 characters'));
+    expect(t.takeErrors(), hasLength(1));
   });
 
   group('read by zbarimg', () {

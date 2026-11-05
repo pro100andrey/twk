@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- A `MarkdownView` asks for the mouse's motion by `PointerMode.auto` in a local
+  session, as every hand does now, and for none in a remote one.
+
+- A link in a `MarkdownView` shows the hand by `ThemeData.pointerMode`, as a
+  `Text`'s link does: `PointerMode.auto` asks the terminal for no motion, where
+  a view with a link always did, and `PointerMode.off` shows none.
+
 ## 0.2.0
 
 - Takes twk and twk_core at 0.2.0, which have breaking

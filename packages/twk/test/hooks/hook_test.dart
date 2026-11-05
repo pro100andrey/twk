@@ -171,13 +171,12 @@ final class Counter extends HookWidget {
 
 /// The errors the app logged, as the messages of the assertions.
 List<Object?> errors(TwkTester t) => [
-  for (final r in t.logs.records)
-    if (r.level == LogLevel.error)
-      switch (r.error) {
-        final AssertionError e => e.message,
-        final StateError e => e.message,
-        final e => e,
-      },
+  for (final r in t.takeErrors())
+    switch (r.error) {
+      final AssertionError e => e.message,
+      final StateError e => e.message,
+      final e => e,
+    },
 ];
 
 const rule =
@@ -517,7 +516,7 @@ void main() {
       expect(errors(t), ['not now']);
       fail = false;
       await t.pumpWidget(failing());
-      expect(errors(t), ['not now']);
+      expect(errors(t), isEmpty);
       expect(log, [
         'init a',
         'build a',

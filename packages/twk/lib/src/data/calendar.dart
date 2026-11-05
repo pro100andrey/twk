@@ -369,18 +369,23 @@ final class _CalendarState extends State<Calendar> {
 
   /// A click on a day: within the controller's bounds, it picks the day as
   /// Enter does, and focuses the calendar.
-  void _tapped(PointerEvent event) {
+  /// The date a click at [x], [y] chooses; null for none there.
+  DateTime? _dateAt(int x, int y) {
     final month = _month;
-    final node = _node;
-    if (month == null || month.owner == null || !node.canRequestFocus) {
+    if (month == null || month.owner == null || !_node.canRequestFocus) {
+      return null;
+    }
+    final date = month.dateAt(x, y);
+    return date != null && _controller._within(dayOf(date)) ? date : null;
+  }
+
+  void _tapped(PointerEvent event) {
+    final date = _dateAt(event.x, event.y);
+    if (date == null) {
       return;
     }
-    final date = month.dateAt(event.x, event.y);
     final c = _controller;
-    if (date == null || !c._within(dayOf(date))) {
-      return;
-    }
-    node.requestFocus();
+    _node.requestFocus();
     c.cursor = date;
     _select(c);
   }
@@ -461,6 +466,7 @@ final class _CalendarState extends State<Calendar> {
             widget.canRequestFocus ?? (widget.focusNode == null ? true : null),
         onKeyEvent: _onKey,
         child: GestureDetector(
+          tapAt: (x, y) => _dateAt(x, y) != null,
           // one that takes no focus has the terminal report no mouse
           onTap: widget.canRequestFocus ?? node.canRequestFocus
               ? _tapped

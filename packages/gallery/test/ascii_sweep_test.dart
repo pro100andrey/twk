@@ -5,6 +5,8 @@ import 'package:gallery/gallery.dart';
 import 'package:test/test.dart';
 import 'package:twk_test/twk_test.dart';
 
+import 'support/gallery.dart';
+
 /// The text of the page itself: a label, a sample, a demo's own marks.
 const _text = "the page's own text";
 
@@ -106,6 +108,7 @@ void main() {
           for (final MapEntry(:key, :value) in cells.entries)
             "'$key' U+${key.runes.first.toRadixString(16)} x$value",
         ], isEmpty);
+        takeOwnError(t, route);
       });
     }
   }

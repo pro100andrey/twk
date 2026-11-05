@@ -499,6 +499,68 @@ void main() {
     expect(log, ['save', 'save notes']);
   });
 
+  testTwk('a shortcut is shown on the right, in place of a bound key, and '
+      'chooses its item in the open menu, before a mnemonic; the keys of '
+      'the menu stay its own; closed, it does nothing', (t) async {
+    final log = <String>[];
+    void save() => log.add('save');
+    await t.pumpWidget(
+      Theme.terminal(
+        child: KeyBindings(
+          {'ctrl+s': save},
+          child: Overlay(
+            child: MenuBar(
+              look: PanelLook.bordered,
+              menus: [
+                Menu(
+                  '&File',
+                  items: [
+                    MenuItem('Sa&ve', shortcut: 'x', onSelected: save),
+                    MenuItem('&Xerox', onSelected: () => log.add('xerox')),
+                    MenuItem(
+                      'Off',
+                      shortcut: 'o',
+                      enabled: false,
+                      onSelected: () => log.add('off'),
+                    ),
+                    MenuItem(
+                      'Open',
+                      shortcut: 'enter',
+                      onSelected: () => log.add('open'),
+                    ),
+                  ],
+                ),
+              ],
+              child: const Field('editor', autofocus: true),
+            ),
+          ),
+        ),
+      ),
+      size: (24, 8),
+    );
+    await t.press('x');
+    await t.pump();
+    expect(log, isEmpty, reason: 'it binds nothing while closed');
+    await t.press('f10');
+    await t.pump();
+    final row = t.lines.firstWhere((l) => l.contains('Save'));
+    expect(row, contains('x'));
+    expect(row, isNot(contains('ctrl+s')));
+    await t.press('o');
+    await t.pump();
+    expect(log, isEmpty, reason: 'a disabled item is not chosen');
+    await t.press('down');
+    await t.press('enter');
+    await t.pump();
+    expect(log, ['xerox'], reason: 'Enter chooses what is highlighted');
+    log.clear();
+    await t.press('f10');
+    await t.pump();
+    await t.press('x');
+    await t.pump();
+    expect(log, ['save'], reason: 'before the mnemonic of Xerox');
+  });
+
   testTwk('keyLabel names the keys', (t) async {
     final doc = Doc([]);
     await t.pumpWidget(
@@ -1066,8 +1128,7 @@ void main() {
     );
     expect(
       [
-        for (final r in t.logs.records)
-          if (r.level == LogLevel.error) '${r.message}: ${r.error}',
+        for (final r in t.takeErrors()) '${r.message}: ${r.error}',
       ],
       [failed('MenuBar'), failed('ContextMenu')],
     );

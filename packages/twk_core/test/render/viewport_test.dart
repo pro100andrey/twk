@@ -139,7 +139,10 @@ void main() {
         onExtents: (v, c) => extents.add((v, c)),
       );
       View(20, 5, viewport).frame();
-      expect(child.constraints, const BoxConstraints(20, 20, 0, 1 << 30));
+      expect(
+        child.constraints,
+        const BoxConstraints(minW: 20, maxW: 20),
+      );
       expect((child.width, child.height), (20, 12));
       expect((viewport.width, viewport.height), (20, 5));
       expect(extents, [(5, 12)]);
@@ -172,7 +175,10 @@ void main() {
         onExtents: (v, c) => extents.add((v, c)),
       );
       View(10, 2, viewport).frame();
-      expect(ruler.constraints, const BoxConstraints(0, 1 << 30, 2, 2));
+      expect(
+        ruler.constraints,
+        const BoxConstraints(minH: 2, maxH: 2),
+      );
       expect((ruler.width, ruler.height), (30, 2));
       expect(extents, [(10, 30)]);
     });

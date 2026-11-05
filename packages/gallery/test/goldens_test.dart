@@ -9,6 +9,8 @@ import 'package:gallery/testing.dart';
 import 'package:test/test.dart';
 import 'package:twk_test/twk_test.dart';
 
+import 'support/gallery.dart';
+
 /// The variants every page is shown in, by the name its file ends in: the
 /// parameters added to its route.
 const _variants = {'dark': '', 'light': 'theme=light', '80x24': 'size=80x24'};
@@ -75,6 +77,7 @@ void main() {
     testTwk('$name: $route', (t) async {
       await showRoute(t, route);
       expect(t, matchesScreenFile('test/goldens/$name.txt'));
+      takeOwnError(t, route);
     });
   }
 }

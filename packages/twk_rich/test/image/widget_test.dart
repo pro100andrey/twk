@@ -482,6 +482,7 @@ void main() {
       expect(t.lines.first, contains('Neither a PNG nor a JPEG file'));
       await t.pumpWidget(topLeft(Image.file('/no/such/file.png')));
       expect(t.lines.first, contains('/no/such/file.png'));
+      expect(t.takeErrors(), hasLength(2));
     });
   });
 }

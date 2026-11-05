@@ -17,6 +17,7 @@ import 'package:twk_core/twk_core.dart'
 import '../editing/caret.dart' show clearRestCursor, restCursor;
 import '../foundation/helpers.dart';
 import '../framework/framework.dart';
+import '../gestures/gesture_detector.dart';
 import '../gestures/mouse.dart';
 import '../style/style.dart';
 import '../text/label_painter.dart';
@@ -189,11 +190,16 @@ final class _OptionListState extends State<OptionList> {
       behavior: HitTestBehavior.opaque,
       onMove: widget.onHighlight == null ? null : _move,
       onScroll: widget.onHighlight == null ? null : _scroll,
-      onDown: widget.onSelected == null
-          ? null
-          : (event) => _pressed = _at(event),
-      onUp: widget.onSelected == null ? null : _up,
-      child: list,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        cursor: PointerShape.arrow,
+        tapAt: (x, y) => _render?.optionAt(x, y) != null,
+        onTapDown: widget.onSelected == null
+            ? null
+            : (event) => _pressed = _at(event),
+        onTap: widget.onSelected == null ? null : _up,
+        child: list,
+      ),
     );
   }
 }

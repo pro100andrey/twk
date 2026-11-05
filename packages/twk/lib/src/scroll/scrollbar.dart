@@ -772,7 +772,12 @@ final class _RenderFrame extends RenderObject
       ..dy = 0;
     if (vertical) {
       child.layout(
-        BoxConstraints(_less(c.minW), _less(c.maxW), c.minH, c.maxH),
+        BoxConstraints(
+          minW: _less(c.minW),
+          maxW: _less(c.maxW),
+          minH: c.minH,
+          maxH: c.maxH,
+        ),
         parentUsesSize: true,
       );
       width = c.constrainW(child.width + _bar);
@@ -786,7 +791,12 @@ final class _RenderFrame extends RenderObject
       }
     } else {
       child.layout(
-        BoxConstraints(c.minW, c.maxW, _less(c.minH), _less(c.maxH)),
+        BoxConstraints(
+          minW: c.minW,
+          maxW: c.maxW,
+          minH: _less(c.minH),
+          maxH: _less(c.maxH),
+        ),
         parentUsesSize: true,
       );
       width = child.width;

@@ -15,26 +15,34 @@ export 'package:twk_core/twk_core.dart' show Brightness;
 export 'glyphs.dart';
 export 'marks.dart';
 
-/// When the pointer is the hand over what a click presses
-/// ([ThemeData.handPointer]).
+/// How far the widgets set the mouse pointer's shape, where the terminal
+/// shows it ([ThemeData.pointerMode]): the hand over what a click presses,
+/// the resize shapes over a window's edges, a split's dividers and a
+/// table's columns, grab and grabbing over what drags.
 ///
 /// The terminal tells the app where the mouse is only as it asks for its
-/// motion (mode 1003), which costs events and bytes, over ssh most of all;
-/// the hand needs the mouse's position, so the choice is whether it may
-/// ask.
-enum HandPointer {
-  /// Never: the pointer is the terminal's, or the arrow.
+/// motion (mode 1003), which costs events and bytes, over ssh most of all.
+/// A shape needs the mouse's position, so the choice is what may ask. A
+/// shape set by hand (`MouseRegion.cursor`, `GestureDetector.cursor`) is
+/// the app's and is not told apart here, nor is the I-beam of a field or a
+/// `SelectionArea`, which says what a press does there. Part of an app is
+/// set apart by a `Theme` around it.
+enum PointerMode {
+  /// None: the pointer is the terminal's, or the arrow, and no motion is
+  /// asked for one.
   off,
 
-  /// Where the app has the terminal report the mouse's motion already (a
-  /// field, a hover, a `SelectionArea`, an open menu): the hand shows
-  /// there and asks for nothing, so it costs the bytes of the shape
-  /// written when it changes and no more. Where motion is not reported, no
-  /// hand.
+  /// The resize and grab shapes, and the hand everywhere, which asks for
+  /// the motion in a local session. In a remote one
+  /// (`TerminalInfo.remote`), where each report crosses the network, the
+  /// hand asks for nothing: it shows where the app has the terminal report
+  /// the motion already (a field, a hover, a `SelectionArea`, one of those
+  /// shapes).
   auto,
 
-  /// Everywhere, which has the terminal report all motion of the mouse
-  /// while a control that shows it is on the screen.
+  /// Those, and the hand everywhere, in a remote session too: the terminal
+  /// reports all motion of the mouse while a control that shows it is on
+  /// the screen.
   on,
 }
 
@@ -93,7 +101,7 @@ final class ThemeData {
     this._shade,
     this._shadeAlpha,
     this.palette = const {},
-    this.handPointer = HandPointer.auto,
+    this.pointerMode = PointerMode.auto,
     this.glyphs = Glyphs.unicode,
   }) : assert(
          _shadeAlpha == null || (_shadeAlpha >= 0 && _shadeAlpha <= 1),
@@ -148,7 +156,7 @@ final class ThemeData {
       _shade = null,
       _shadeAlpha = null,
       palette = const {},
-      handPointer = HandPointer.auto,
+      pointerMode = PointerMode.auto,
       glyphs = Glyphs.unicode;
 
   /// The terminal's own colors on a terminal that told its default
@@ -274,7 +282,7 @@ final class ThemeData {
       shade: style(a.shade, b.shade),
       shadeAlpha: a.shadeAlpha + (b.shadeAlpha - a.shadeAlpha) * t,
       palette: t < 0.5 ? a.palette : b.palette,
-      handPointer: t < 0.5 ? a.handPointer : b.handPointer,
+      pointerMode: t < 0.5 ? a.pointerMode : b.pointerMode,
       glyphs: Glyphs.lerp(a.glyphs, b.glyphs, t),
     );
   }
@@ -289,12 +297,16 @@ final class ThemeData {
   /// [ThemeData.terminalOn] gives it.
   final Map<int, int> palette;
 
-  /// Whether the pointer is the hand (`PointerShape.pointer`) over what a
-  /// click presses (the buttons, boxes and switches, tabs, menu titles and
-  /// items, a stepper's steps, a dismiss `[x]`, a sortable table header,
-  /// the keys of a pressable `KeyHintsBar`, a `Span.tap`), where the
-  /// terminal shows pointer shapes: [HandPointer.auto] by default.
-  final HandPointer handPointer;
+  /// How far the widgets set the pointer's shape, where the terminal shows
+  /// it: [PointerMode.auto] by default. The hand shows over what a click
+  /// presses: the buttons, boxes and switches, tabs, menu titles and items,
+  /// a stepper's steps, a dismiss `[x]`, a sortable table header, the keys
+  /// of a pressable `KeyHintsBar`, a `Span.tap`. Rows of a list keep the
+  /// arrow: a hand over all of them would tell nothing.
+  final PointerMode pointerMode;
+
+  /// Whether the widgets set the pointer's shape at all.
+  bool get setsPointerShapes => pointerMode != PointerMode.off;
 
   /// The marks widgets draw (checks, cursor bars, a scrollbar's thumb and
   /// track, a gauge's line, the spinner) by what they mean:
@@ -569,7 +581,7 @@ final class ThemeData {
     Style? shade,
     double? shadeAlpha,
     Map<int, int>? palette,
-    HandPointer? handPointer,
+    PointerMode? pointerMode,
     Glyphs? glyphs,
   }) => ThemeData(
     brightness: brightness ?? this.brightness,
@@ -595,7 +607,7 @@ final class ThemeData {
     shade: shade ?? _shade,
     shadeAlpha: shadeAlpha ?? _shadeAlpha,
     palette: palette ?? this.palette,
-    handPointer: handPointer ?? this.handPointer,
+    pointerMode: pointerMode ?? this.pointerMode,
     glyphs: glyphs ?? this.glyphs,
   );
 
@@ -624,7 +636,7 @@ final class ThemeData {
       other.onPrimary == onPrimary &&
       other.shade == shade &&
       other.shadeAlpha == shadeAlpha &&
-      other.handPointer == handPointer &&
+      other.pointerMode == pointerMode &&
       other.glyphs == glyphs &&
       TerminalBrightness._samePalette(other.palette, palette);
 
@@ -656,7 +668,7 @@ final class ThemeData {
       Object.hashAllUnordered([
         for (final e in palette.entries) Object.hash(e.key, e.value),
       ]),
-      handPointer,
+      pointerMode,
       glyphs,
     ),
   );

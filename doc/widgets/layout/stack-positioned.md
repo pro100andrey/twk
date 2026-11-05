@@ -24,7 +24,7 @@ options as they start:
 final theme = Theme.of(context);
 return ConstrainedBox(
   // tight across, loose down: each fit lays the child out otherwise
-  constraints: const BoxConstraints(38, 38, 0, 9),
+  constraints: const BoxConstraints(minW: 38, maxW: 38, maxH: 9),
   child: Box(
     border: .all(type: .rounded, style: theme.border),
     child: Stack(

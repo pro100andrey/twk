@@ -28,6 +28,7 @@ import '../focus/focus.dart';
 import '../foundation/change_notifier.dart';
 import '../foundation/helpers.dart';
 import '../framework/framework.dart';
+import '../gestures/gesture_detector.dart';
 import '../gestures/mouse.dart';
 import '../layout/basic.dart' show SizedBox;
 import '../layout/box.dart' show Box;
@@ -1107,9 +1108,6 @@ final class _TreeViewState<T> extends State<TreeView<T>>
 
   /// A press on the row of [key], row [at] when it was built.
   void _rowDown(int at, Object key, PointerEvent event) {
-    if (event.button != 0) {
-      return;
-    }
     if (_node.canRequestFocus) {
       _node.requestFocus();
     }
@@ -1224,9 +1222,10 @@ final class _TreeViewState<T> extends State<TreeView<T>>
       // the hidden cursor on the selected node's label
       child: ActiveItem(active: selected, child: child),
     );
-    return Listener(
+    return GestureDetector(
       key: ValueKey<Object>(key),
-      onDown: (event) => _rowDown(i, key, event),
+      onTapDown: (event) => _rowDown(i, key, event),
+      cursor: PointerShape.arrow,
       child: DefaultTextStyle(
         style: style,
         child: gutter == null
@@ -1431,8 +1430,8 @@ final class _RenderTreeRow extends RenderObject
           : (c.maxW > indent ? c.maxW - indent : 0);
       child.layout(
         room >= BoxConstraints.unbounded
-            ? BoxConstraints(0, room, 0, 1)
-            : BoxConstraints(room, room, 0, 1),
+            ? BoxConstraints(maxW: room, maxH: 1)
+            : BoxConstraints(minW: room, maxW: room, maxH: 1),
         parentUsesSize: true,
       );
       child.parentData

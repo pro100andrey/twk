@@ -148,8 +148,8 @@ final class WindowController with ChangeNotifier {
 /// edge, the title bar, with the buttons that minimise and maximise it
 /// (while [minimisable] and [maximisable]) and close it (while there is
 /// an [onClose]), casting [shadow]; where it is and how it shows is its
-/// [controller]'s. With [pointerShapes], the pointer shows what a press
-/// would do there (see [WindowLayer]).
+/// [controller]'s. The pointer shows what a press would do there (see
+/// [WindowLayer]).
 ///
 /// A window that cannot be resized, with a close button and a shadow:
 ///
@@ -180,7 +180,6 @@ final class Window {
     this.minWidth = 12,
     this.minHeight = 3,
     this.shadow,
-    this.pointerShapes = true,
   }) : assert(minWidth >= 2 && minHeight >= 2, 'room for the frame');
 
   /// What the title bar says.
@@ -227,13 +226,6 @@ final class Window {
   /// The shadow the window casts on what is under it, outside its cells
   /// and painted with it ([Shadow]); null for none.
   final BoxShadow? shadow;
-
-  /// Whether its title bar and its edges set the pointer's shape, as a
-  /// [MouseRegion.cursor] does where the terminal shows it: grab over the
-  /// title bar, grabbing while it moves the window, the resize shapes
-  /// over the edges and the corners; none while the window is maximised.
-  /// False leaves the pointer to the regions around it.
-  final bool pointerShapes;
 }
 
 /// How a [WindowLayer] draws its windows.
@@ -283,7 +275,7 @@ enum WindowFrame {
 /// layer of the focus tree whose keys a `KeyHintsBar` shows.
 /// A maximised window does not move nor resize.
 ///
-/// With [Window.pointerShapes] the pointer shows what a press does, as
+/// By [ThemeData.pointerMode] the pointer shows what a press does, as
 /// [MouseRegion.cursor] sets it where the terminal shows it:
 /// [PointerShape.grab] over the title bar and [PointerShape.grabbing]
 /// while it moves the window, [PointerShape.ewResize] over the left and
@@ -1072,6 +1064,7 @@ final class _Frame extends StatelessWidget {
               right: _buttonsInset + buttonsWidth,
               height: 1,
               child: _shaped(
+                context,
                 slot.grip?.edges == 0
                     ? PointerShape.grabbing
                     : PointerShape.grab,
@@ -1106,7 +1099,7 @@ final class _Frame extends StatelessWidget {
                 // the title bar's keys stand for them
                 child: Semantics(nodes: const [], child: buttonRow),
               ),
-            if (window.resizable) ..._edges(),
+            if (window.resizable) ..._edges(context),
           ],
         ),
       ),
@@ -1221,25 +1214,30 @@ final class _Frame extends StatelessWidget {
   /// [child] in a region of the pointer in [shape], while the window
   /// sets the pointer's shape and is not maximised; hit where [child] is.
   /// With [edges], the mouse over it lights them in a raised frame.
-  Widget _shaped(PointerShape shape, Widget child, {int edges = 0}) =>
-      MouseRegion(
-        cursor: slot.window.pointerShapes && !slot.controller.maximised
-            ? shape
-            : null,
-        behavior: HitTestBehavior.deferToChild,
-        onEnter: raised && edges != 0
-            ? (_) => layer._hoverEdges(slot, edges)
-            : null,
-        onExit: raised && edges != 0
-            ? (_) => layer._hoverEdges(slot, 0, from: edges)
-            : null,
-        child: child,
-      );
+  Widget _shaped(
+    BuildContext context,
+    PointerShape shape,
+    Widget child, {
+    int edges = 0,
+  }) => MouseRegion(
+    cursor: Theme.of(context).setsPointerShapes && !slot.controller.maximised
+        ? shape
+        : null,
+    behavior: HitTestBehavior.deferToChild,
+    onEnter: raised && edges != 0
+        ? (_) => layer._hoverEdges(slot, edges)
+        : null,
+    onExit: raised && edges != 0
+        ? (_) => layer._hoverEdges(slot, 0, from: edges)
+        : null,
+    child: child,
+  );
 
   /// What drags the edges and the corners: the top edge between the
   /// corners is the title bar's.
-  List<Widget> _edges() {
+  List<Widget> _edges(BuildContext context) {
     Widget grip(int edges) => _shaped(
+      context,
       switch (edges) {
         _leftEdge || _rightEdge => PointerShape.ewResize,
         _bottomEdge => PointerShape.nsResize,
@@ -1783,7 +1781,10 @@ final class _RenderWindows extends RenderObject
     child.layout(c, parentUsesSize: true);
     width = c.constrainW(child.width);
     height = c.constrainH(child.height);
-    strip.layout(BoxConstraints(0, width, 0, height), parentUsesSize: true);
+    strip.layout(
+      BoxConstraints(maxW: width, maxH: height),
+      parentUsesSize: true,
+    );
     strip.parentData
       ..dx = 0
       ..dy = height - strip.height;

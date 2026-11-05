@@ -241,4 +241,23 @@ void main() {
       expect(t.cell(0, 0).fg, grey);
     });
   });
+
+  group('copyToClipboard', () {
+    testTwk('writes OSC 52 from package:twk; nothing for no text', (t) async {
+      late BuildContext at;
+      await t.pumpWidget(
+        Builder(
+          builder: (context) {
+            at = context;
+            return const Text('x');
+          },
+        ),
+        size: (20, 2),
+      );
+      copyToClipboard(at, '');
+      expect(copies(t), 0);
+      copyToClipboard(at, 'copied');
+      expect(t.written(), contains(clipboardSequence('copied')));
+    });
+  });
 }

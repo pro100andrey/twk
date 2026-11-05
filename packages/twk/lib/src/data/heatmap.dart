@@ -519,6 +519,7 @@ final class _HeatmapState extends State<Heatmap> {
         onHover: _hover,
         onExit: _exit,
         child: GestureDetector(
+          tapAt: (x, y) => _node.canRequestFocus && _grid?.cellAt(x, y) != null,
           onTap: _tapped,
           child: Stack(
             children: [

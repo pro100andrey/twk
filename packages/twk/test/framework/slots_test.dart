@@ -192,8 +192,7 @@ void main() {
     );
     expect(t.lines.first, 'left Bad state: boom right');
     final [error] = [
-      for (final r in t.logs.records)
-        if (r.level == LogLevel.error) r.error,
+      for (final r in t.takeErrors()) r.error,
     ];
     expect(error, isA<StateError>());
 

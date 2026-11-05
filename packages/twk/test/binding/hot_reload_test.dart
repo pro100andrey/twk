@@ -155,6 +155,7 @@ void main() {
       expect(t.binding.debug.console.isOpen, isTrue);
       expect(t.lines.join('\n'), contains('hot reload failed'));
       expect(t.lines.first, 'count', reason: 'the app goes on');
+      expect(t.takeErrors().single.message, 'hot reload failed');
     });
 
     testTwk('answers a message missing or a level not known with an '

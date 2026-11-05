@@ -51,18 +51,21 @@ void frame(PipelineOwner owner, Screen screen, int w, int h) => owner
 void main() {
   group('BoxConstraints', () {
     test('are equal, with equal hashes, when their limits are', () {
-      const a = BoxConstraints(0, 10, 1, 5);
-      expect(a, const BoxConstraints(0, 10, 1, 5));
-      expect(a.hashCode, const BoxConstraints(0, 10, 1, 5).hashCode);
-      expect(a, isNot(const BoxConstraints(0, 10, 1, 6)));
+      const a = BoxConstraints(maxW: 10, minH: 1, maxH: 5);
+      expect(a, const BoxConstraints(maxW: 10, minH: 1, maxH: 5));
+      expect(
+        a.hashCode,
+        const BoxConstraints(maxW: 10, minH: 1, maxH: 5).hashCode,
+      );
+      expect(a, isNot(const BoxConstraints(maxW: 10, minH: 1, maxH: 6)));
       expect(
         const BoxConstraints.tightFor(width: 3),
-        const BoxConstraints(3, 3, 0, BoxConstraints.unbounded),
+        const BoxConstraints(minW: 3, maxW: 3),
       );
     });
 
     test('hold a size between their limits', () {
-      const c = BoxConstraints(2, 10, 1, 5);
+      const c = BoxConstraints(minW: 2, maxW: 10, minH: 1, maxH: 5);
       expect([c.constrainW(0), c.constrainW(7), c.constrainW(99)], [2, 7, 10]);
       expect([c.constrainH(0), c.constrainH(3), c.constrainH(99)], [1, 3, 5]);
       expect(c.isTight, isFalse);
@@ -146,7 +149,7 @@ void main() {
       'for marks the parent for layout', () {
     final grower = Grower(2);
     final parent = RenderPadding(padding: EdgeInsets.zero, child: grower)
-      ..layout(const BoxConstraints(0, 10, 0, 1), parentUsesSize: true);
+      ..layout(const BoxConstraints(maxW: 10, maxH: 1), parentUsesSize: true);
     expect(parent.getMaxIntrinsicWidth(1), 2);
     expect(parent.debugNeedsLayout, isFalse);
     grower.invokeLayoutCallback(() => grower.columns = 5);
@@ -158,7 +161,7 @@ void main() {
       'alone', () {
     final grower = Grower(2);
     final parent = RenderPadding(padding: EdgeInsets.zero, child: grower)
-      ..layout(const BoxConstraints(0, 10, 0, 1), parentUsesSize: true);
+      ..layout(const BoxConstraints(maxW: 10, maxH: 1), parentUsesSize: true);
     expect(parent.getMaxIntrinsicWidth(1), 2);
     grower.invokeLayoutCallback(() {});
     expect(parent.debugNeedsLayout, isFalse);

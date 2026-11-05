@@ -285,11 +285,11 @@ final class _TextPromptViewState extends State<TextPromptView> {
   }
 }
 
-/// Yes or no: the question, then the answers of a `ConfirmInput`. `y` and
-/// `n` answer, either case; Left and Right highlight yes and no, Enter
-/// answers the one highlighted, [defaultValue]'s at first. Without a
-/// default neither is, and Enter answers nothing until one is: nothing is
-/// agreed to on anybody's behalf.
+/// Yes or no: the question with `(y/n)`, then the answers of a
+/// `ConfirmInput`. `y` and `n` answer, either case; Left, Right and Tab
+/// highlight yes and no, Enter answers the one highlighted, [defaultValue]'s
+/// at first. Without a default neither is, and Enter answers nothing until
+/// one is, saying so: nothing is agreed to on anybody's behalf.
 final class ConfirmPromptView extends StatefulWidget {
   /// Yes or no, answering through [answer].
   const ConfirmPromptView({
@@ -323,6 +323,14 @@ final class ConfirmPromptView extends StatefulWidget {
 final class _ConfirmPromptViewState extends State<ConfirmPromptView> {
   late bool? _highlighted = widget.defaultValue;
 
+  // Enter pressed with nothing highlighted: says what it takes, until one is
+  var _unanswered = false;
+
+  void _highlight(bool value) => setState(() {
+    _highlighted = value;
+    _unanswered = false;
+  });
+
   void _answer(bool value) {
     if (!widget.answer.isDone) {
       setState(() => _highlighted = value);
@@ -342,14 +350,16 @@ final class _ConfirmPromptViewState extends State<ConfirmPromptView> {
       case KeyCode.enter:
         if (_highlighted case final value?) {
           _answer(value);
+        } else {
+          setState(() => _unanswered = true);
         }
       case KeyCode.left:
-        setState(() => _highlighted = true);
+        _highlight(true);
       case KeyCode.right:
-        setState(() => _highlighted = false);
+        _highlight(false);
       case KeyCode.tab:
-        // the answers are shown, not focused
-        break;
+        // the first answer, then the other
+        _highlight(!(_highlighted ?? false));
       case _:
         return KeyEventResult.ignored;
     }
@@ -365,24 +375,32 @@ final class _ConfirmPromptViewState extends State<ConfirmPromptView> {
       child: Focus(
         autofocus: true,
         onKeyEvent: _key,
-        child: Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text.rich(
-              _asking(widget.theme, widget.question, null),
-              wrap: TextWrap.none,
+            Row(
+              children: [
+                Text.rich(
+                  _asking(widget.theme, widget.question, 'y/n'),
+                  wrap: TextWrap.none,
+                ),
+                ConfirmInput(
+                  '',
+                  // made anew as the highlight moves: it is shown, not
+                  // focused
+                  key: ValueKey(highlighted),
+                  defaultValue: highlighted ?? true,
+                  onConfirmed: (_) {},
+                  highlightedStyle: highlighted == null
+                      ? theme.surface.merge(
+                          theme.muted.merge(const Style(attrsOff: Attr.bold)),
+                        )
+                      : null,
+                ),
+              ],
             ),
-            ConfirmInput(
-              '',
-              // made anew as the highlight moves: it is shown, not focused
-              key: ValueKey(highlighted),
-              defaultValue: highlighted ?? true,
-              onConfirmed: (_) {},
-              highlightedStyle: highlighted == null
-                  ? theme.surface.merge(
-                      theme.muted.merge(const Style(attrsOff: Attr.bold)),
-                    )
-                  : null,
-            ),
+            if (_unanswered) _refusal(widget.theme, 'answer y or n'),
           ],
         ),
       ),

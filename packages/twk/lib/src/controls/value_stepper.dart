@@ -74,6 +74,7 @@ final class ValueStepper<T> extends StatefulWidget {
     super.key,
     this.focusNode,
     this.autofocus = false,
+    this.canRequestFocus = true,
     this.style,
     this.wrap = false,
   });
@@ -94,6 +95,11 @@ final class ValueStepper<T> extends StatefulWidget {
 
   /// See [Focus.autofocus].
   final bool autofocus;
+
+  /// Whether it can take the focus: false makes it a control of the mouse
+  /// only, as `Pressable.canRequestFocus`. Tab passes it by and a click
+  /// leaves the focus where it was, for a view that keeps the focus itself.
+  final bool canRequestFocus;
 
   /// The row, the theme's text under it.
   final Style? style;
@@ -174,6 +180,7 @@ final class _ValueStepperState<T> extends State<ValueStepper<T>> {
       ],
       child: Pressable(
         enabled: enabled,
+        canRequestFocus: widget.canRequestFocus,
         focusNode: widget.focusNode,
         autofocus: widget.autofocus,
         bindings: _bindings,

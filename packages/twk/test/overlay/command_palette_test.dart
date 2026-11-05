@@ -368,8 +368,7 @@ enter run   esc close'''),
         'whole app: App(child: …)';
     expect(
       [
-        for (final r in t.logs.records)
-          if (r.level == LogLevel.error) '${r.message}: ${r.error}',
+        for (final r in t.takeErrors()) '${r.message}: ${r.error}',
       ],
       [failed],
     );

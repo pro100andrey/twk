@@ -10,6 +10,7 @@ import '../focus/focus.dart';
 import '../focus/hinted_keys.dart';
 import '../foundation/helpers.dart';
 import '../framework/framework.dart';
+import '../gestures/gesture_detector.dart';
 import '../gestures/mouse.dart';
 import '../overlay/panel.dart';
 import '../overlay/popover.dart';
@@ -478,9 +479,6 @@ final class _DatePickerState extends State<DatePicker>
   }
 
   void _toggle(PointerEvent event) {
-    if (event.button != 0) {
-      return;
-    }
     node.requestFocus();
     if (_open) {
       _close();
@@ -543,8 +541,8 @@ final class _DatePickerState extends State<DatePicker>
         style: widget.style,
         focusedStyle: widget.focusedStyle,
         errorStyle: widget.errorStyle,
-        trailing: Listener(
-          onDown: enabled ? _toggle : null,
+        trailing: GestureDetector(
+          onTapDown: enabled ? _toggle : null,
           child: Text(
             ThemeMarks.of(context).text(Marks.down),
             style: theme.text.merge(

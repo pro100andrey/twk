@@ -80,7 +80,7 @@ extension on _SampleAppState {
         children: [
           Container(
             width: 14,
-            constraints: BoxConstraints(0, 16, 0, 3),
+            constraints: BoxConstraints(maxW: 16, maxH: 3),
             margin: EdgeInsets.only(right: 1),
             padding: EdgeInsets.x(1),
             alignment: Alignment.center,

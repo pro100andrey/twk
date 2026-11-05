@@ -156,6 +156,13 @@ final class _TallyState extends State<Tally> {
   Widget build(BuildContext context) => Text(_made);
 }
 
+Widget pointersOff(Widget child) => Theme(
+  data: const ThemeData.terminal(
+    Brightness.dark,
+  ).copyWith(pointerMode: PointerMode.off),
+  child: child,
+);
+
 void main() {
   group('columns', () {
     testTwk('a content column is as wide as its widest text, a fixed one '
@@ -1444,9 +1451,8 @@ other'''),
   });
 
   group('the pointer over the edge of a column', () {
-    Widget table({bool pointerShapes = true}) => Table<File>(
+    Widget table() => Table<File>(
       rows: files,
-      pointerShapes: pointerShapes,
       columns: [nameColumn(), sizeColumn(), kindColumn()],
     );
 
@@ -1473,7 +1479,7 @@ other'''),
 
     test('is left alone with pointerShapes false, and the motion of the '
         'mouse is not asked for', () async {
-      final run = ShapeRun(table(pointerShapes: false));
+      final run = ShapeRun(pointersOff(table()));
       await run.start();
       expect(run.term.mouseTracking, isNot(MouseTracking.motion));
       await run.move(9, 0);

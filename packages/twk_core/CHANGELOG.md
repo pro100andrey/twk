@@ -1,5 +1,56 @@
 # Changelog
 
+## Unreleased
+
+- What a `TextPainter` paints does not depend on a query asked before it: spans
+  given since the layout are painted as `textRangeAt`, `cellAt` and `columnsOf`
+  take them, where they showed only once a query had split them.
+
+- A box title with a line break stays whole when its pen changes, where it was
+  cut at the break.
+
+- A `RenderWrap` with no children lays out whatever its alignments, where
+  `spaceAround` across its runs divided by zero: a `Wrap` whose last child went
+  turned into an error.
+
+- A SIGTSTP from outside (`kill -TSTP`) does nothing while the app has the
+  terminal on Linux and macOS, where it stopped the process with the terminal
+  raw, on the alternate screen, the cursor hidden. Dart can't watch it, to give
+  the terminal back first. Ctrl+Z stops the app for the shell as before.
+
+- A terminal that reads nothing blocks nothing: on Linux and macOS `StdioLink`
+  writes without blocking, through a descriptor of its own that the shell does
+  not share, and keeps what is not taken, where `stdout` blocked
+  the main isolate in write(2), with no timer, key or signal handled until the
+  terminal read again: SIGTERM, Ctrl+C or an error ended nothing and left the
+  terminal raw.
+
+- SIGHUP restores the terminal and exits with 129 on Linux and macOS too, where
+  it left it raw on the alternate screen; one the process was started ignoring
+  (`nohup`) stays ignored. `Terminal.close` restores the modes when its terminal
+  took nothing for a second, or after five seconds on a link that can't say,
+  where a flush that did not end kept it for good; a slow terminal that reads
+  gets all of the exit sequence.
+
+- `bidiMirror` finds every character: the table was in the order of the Unicode
+  data file, not by code point, so a right-to-left run left six characters from
+  U+1DB03 to U+1DB09 unmirrored.
+
+- `Canvas.mergeRun` keeps a wide glyph whole: `under` leaves one the run's edge
+  or the clip cuts in its own style, where it painted one half, and a wide
+  glyph of the run is drawn as `Canvas.run` draws it, with its width, as the
+  documentation said, where it took one cell and asserted.
+
+- `TerminalInfo.remote`, whether the terminal is at the far end of a network: as
+  it declares (`TerminalDeclaration.remote`), else by `SSH_TTY` or
+  `SSH_CONNECTION` in its environment. `DeclaringLink` and `TerminalDeclaration`
+  are exported for a link that knows. `HeadlessTerminal(remote:)` for tests.
+
+Breaking:
+
+- `BoxConstraints` takes its bounds by name, as Flutter's does, a bound left out
+  limiting nothing: `BoxConstraints(maxW: n)`, where it was
+  `BoxConstraints(0, n, 0, BoxConstraints.unbounded)`.
 ## 0.2.0
 
 - On Windows Ctrl+Space (and Ctrl+@) reaches the app as NUL again, as it
@@ -49,6 +100,14 @@
   in or the text order changes, its ellipsis where the paragraph puts it. A
   title is cut and ellipsized in the same columns as before; the place it is
   shown in is unchanged.
+
+- `breakLines`, the lines a text breaks into as a paragraph breaks it.
+
+- An `Align` or a `Center` on an axis of any length is as long as its child,
+  as in Flutter: in a scroll view or a list's row it took 1 << 30 rows.
+
+- With the kitty keyboard protocol a lone ESC waits
+  `TerminalOptions.escapeTimeout`, as without it, where it waited 500 ms.
 
 Breaking:
 

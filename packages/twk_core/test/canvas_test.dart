@@ -5,6 +5,7 @@ import 'package:test/test.dart';
 import 'package:twk_core/src/canvas.dart';
 import 'package:twk_core/src/style.dart';
 import 'package:twk_core/src/surface.dart';
+import 'package:twk_core/src/unicode/unicode.dart';
 
 void main() {
   late StyleTable styles;
@@ -16,6 +17,89 @@ void main() {
     s = Surface(10, 2);
     cv = Canvas(s, styles, GlyphTable());
     pen = styles.pen(const Pen(fg: Color.red, bg: Color.blue));
+  });
+
+  group('mergeRun and wide glyphs', () {
+    late int under;
+    late int plain;
+    setUp(() {
+      under = styles.pen(const Pen(bg: Color.green));
+      plain = styles.pen(const Pen());
+    });
+
+    void expectWhole(int at) {
+      expect(s.cells[at] & kWide, kWide);
+      expect(s.cells[at + 1] & kCont, kCont);
+      expect(s.styles[at + 1], s.styles[at], reason: 'one style for both');
+    }
+
+    test('under leaves a wide glyph the start of the run cuts', () {
+      cv
+        ..text(0, 0, '你', plain)
+        ..mergeRun(1, 0, cv.shape('──'), plain, under: under);
+      expectWhole(0);
+      expect(styles.bgOf(StyleId(s.styles[0])), isNot(Color.green));
+      expect(styles.bgOf(StyleId(s.styles[2])), Color.green);
+    });
+
+    test('under leaves a wide glyph the end of the run cuts', () {
+      cv
+        ..text(2, 0, '你', plain)
+        ..mergeRun(1, 0, cv.shape('──'), plain, under: under);
+      expectWhole(2);
+      expect(styles.bgOf(StyleId(s.styles[2])), isNot(Color.green));
+      expect(styles.bgOf(StyleId(s.styles[1])), Color.green);
+    });
+
+    test('under leaves a wide glyph the clip cuts', () {
+      cv
+        ..text(2, 0, '你', plain)
+        ..text(6, 0, '好', plain)
+        ..save()
+        ..clipRect(3, 0, 4, 1)
+        ..mergeRun(0, 0, cv.shape('─' * 10), plain, under: under)
+        ..restore();
+      expectWhole(2);
+      expectWhole(6);
+      expect(styles.bgOf(StyleId(s.styles[2])), isNot(Color.green));
+      expect(styles.bgOf(StyleId(s.styles[6])), isNot(Color.green));
+      expect(styles.bgOf(StyleId(s.styles[4])), Color.green);
+    });
+
+    test('under paints a wide glyph the run covers, keeping it', () {
+      cv
+        ..text(2, 0, '你', plain)
+        ..mergeRun(1, 0, cv.shape('────'), plain, under: under);
+      expectWhole(2);
+      expect(styles.bgOf(StyleId(s.styles[2])), Color.green);
+    });
+
+    test('a wide glyph of the run is drawn as run draws it', () {
+      final w = cv.mergeRun(0, 0, cv.shape('你─'), plain, under: under);
+      expect(w, 3);
+      expectWhole(0);
+      expect(styles.bgOf(StyleId(s.styles[0])), Color.green);
+      expect(s.cells[2], 0x2500);
+      expect(styles.bgOf(StyleId(s.styles[2])), Color.green);
+    });
+
+    test(
+      'a line where ambiguous characters take two columns has its width',
+      () {
+        final wide = Canvas(
+          s,
+          styles,
+          GlyphTable(),
+          segmenter: TextSegmenter(ambiguousWidth: 2),
+        );
+        final run = wide.shape('───');
+        expect(wide.mergeRun(0, 0, run, plain), run.width);
+        for (final at in [0, 2, 4]) {
+          expectWhole(at);
+        }
+        expect(s.cells[6], kBlank);
+      },
+    );
   });
 
   test('covering the first half of a wide glyph damages the second', () {

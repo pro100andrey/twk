@@ -12,6 +12,7 @@ import '../controls/status_bar.dart' show StatusBar;
 import '../focus/focus.dart';
 import '../foundation/change_notifier.dart';
 import '../framework/framework.dart';
+import '../gestures/gesture_detector.dart';
 import '../gestures/mouse.dart';
 import '../layout/basic.dart';
 import '../layout/box.dart';
@@ -735,13 +736,9 @@ final class _ScaffoldState extends State<Scaffold> {
   Widget _headerRow(Widget header, Style chrome, bool left) {
     final toggle = widget.sidebar == null
         ? null
-        : Listener(
+        : GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onDown: (e) {
-              if (e.button == 0) {
-                _controller.toggleSidebar();
-              }
-            },
+            onTapDown: (_) => _controller.toggleSidebar(),
             child: Text(
               ThemeMarks.of(context).text(Marks.menu),
             ),

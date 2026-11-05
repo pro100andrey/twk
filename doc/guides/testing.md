@@ -178,13 +178,16 @@ the tester runs the app's microtasks before it returns, so a
   from the directory `dart test` runs in; where that package is not found it
   throws, saying to pass an absolute path. A golden holds the styles too;
   `styles: false` compares the text alone.
-- Finders as in Flutter: `find.text`, `find.byType`, `find.byKey`,
+- Finders as in Flutter: `find.text`, `find.textContaining`, `find.byType`,
+  `find.byKey`,
   `find.byWidgetPredicate`, `find.descendant` and `find.ancestor`, with
   `findsOneWidget`, `findsNothing`, `findsNWidgets(n)`. `find` is a
   constant, not the tester's: what it finds is the app's under test.
   `find.text('Save')` finds a `Text` whose whole string, or whose spans
   joined, is `Save`, not one that contains it, and only a `Text`: a
   `Button` draws its label itself, and is found by type or predicate.
+  `find.textContaining('Sav')` finds a match of a `String` or a `RegExp`
+  in the same text.
 - What a finder finds, read: `t.widget<T>(finder)`, `t.state<T>(finder)`,
   `t.element(finder)`, `t.renderObject<T>(finder)`, and `t.rect(finder)`,
   its cells (`x`, `y`, `width`, `height`), which turns a widget's text
@@ -350,6 +353,13 @@ and the warnings and errors the app reports (a layout that overflowed,
 a build that threw) are in `t.logs.records` (`LogRecord`s: `message`,
 `error`, `stack`), the last 20 of them printed when the test fails, and
 what it wrote to stderr once it ended in `t.stderrLines`.
+
+An error the app logged fails the test when it ends, unless the test
+takes it: `t.takeErrors()` hands over the `LogRecord`s at `LogLevel.error`
+logged since its last call. A build that threw is shown in place and the
+next frame may build over it, so a test that passes has seen none, or said
+it expected them. What the app logs as it quits counts too: a test that
+expects that takes it after `await t.quit()`.
 
 The rest of the tester — frames recorded and written as a trace, a widget
 drawn without an app (`Shot`), processes a test starts — is in

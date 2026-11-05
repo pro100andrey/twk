@@ -655,7 +655,10 @@ enum TextInvalidation {
 ///   ('Error: ', const Pen(fg: Color.rgb(220, 60, 60))),
 ///   ('disk full', const Pen()),
 /// ]);
-/// painter.layout(const BoxConstraints(0, 20, 0, 1), segmenter: segmenter);
+/// painter.layout(
+///   const BoxConstraints(maxW: 20, maxH: 1),
+///   segmenter: segmenter,
+/// );
 /// print('${painter.width} x ${painter.height}'); // 16 x 1
 /// painter.paint(canvas, 2, 0);
 /// ```
@@ -3873,7 +3876,7 @@ final class TextPainter {
   ///   ('one ', const Pen()),
   ///   ('two', const Pen()),
   /// ], wrap: TextWrap.none)
-  ///   ..layout(const BoxConstraints(0, 20, 0, 1), segmenter: segmenter);
+  ///   ..layout(const BoxConstraints(maxW: 20, maxH: 1), segmenter: segmenter);
   /// final two = p.columnsOf(4, 7, 0); // (4, 7)
   /// ```
   ///
@@ -3921,7 +3924,10 @@ final class TextPainter {
   ///   wrap: TextWrap.none,
   ///   overflow: TextOverflow.ellipsis,
   ///   maxLines: 1,
-  /// )..layout(const BoxConstraints(5, 5, 0, 100), segmenter: segmenter);
+  /// )..layout(
+  ///   const BoxConstraints(minW: 5, maxW: 5, maxH: 100),
+  ///   segmenter: segmenter,
+  /// );
   /// final b = p.cellAt(1, 0); // (start: 1, end: 2, isEllipsis: false)
   /// final cut = p.cellAt(4, 0); // (start: 4, end: 8, isEllipsis: true)
   /// final none = p.cellAt(9, 0); // null
@@ -3938,9 +3944,12 @@ final class TextPainter {
 
   /// Paints the text onto [canvas] with its top left cell at ([x], [y]), as
   /// the last [layout] placed it, cut off at the canvas's clip as any
-  /// drawing is.
+  /// drawing is. Spans given since are broken at the width it had, as
+  /// [textRangeAt], [cellAt] and [columnsOf] take them: what is drawn is the
+  /// same whether or not one of those was asked first. [width] and [height]
+  /// stay the layout's.
   void paint(Canvas canvas, int x, int y) {
-    if (_linesAt < 0) {
+    if (_linesAt < 0 || _textStale) {
       // split again since the layout: the lines at the width it had
       _layoutLines(_constraints!.maxW);
     }

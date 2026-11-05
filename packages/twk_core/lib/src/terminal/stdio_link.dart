@@ -6,16 +6,26 @@ import 'dart:io';
 import 'isolate_input.dart';
 import 'link.dart';
 import 'posix_input.dart';
+import 'posix_output.dart';
 import 'posix_tty.dart';
 import 'windows_console.dart';
 import 'windows_input.dart';
 
 /// The process's own terminal: stdin and stdout.
-final class StdioLink implements TerminalLink {
+final class StdioLink implements DrainingLink {
   WindowsConsole? _windowsConsole;
   PosixTty? _tty;
   var _echo = true;
   var _line = true;
+
+  /// What writes to a terminal on Linux and macOS, so that one that reads
+  /// nothing blocks nothing; elsewhere, and into a pipe or a file, `stdout`.
+  late final PosixOutput? _output = !Platform.isWindows && stdout.hasTerminal
+      ? PosixOutput.open()
+      : null;
+
+  @override
+  int? get taken => _output?.taken;
 
   @override
   Map<String, String> get environment => Platform.environment;
@@ -100,10 +110,17 @@ final class StdioLink implements TerminalLink {
       device == null ? null : IsolateInput(device).stream;
 
   @override
-  void add(List<int> bytes) => stdout.add(bytes);
+  void add(List<int> bytes) {
+    final output = _output;
+    if (output == null) {
+      stdout.add(bytes);
+    } else {
+      output.add(bytes);
+    }
+  }
 
   @override
-  Future<void> flush() => stdout.flush();
+  Future<void> flush() => _output?.flush() ?? stdout.flush();
 
   @override
   Stream<void> get resizes => Platform.isWindows
@@ -141,5 +158,5 @@ final class StdioLink implements TerminalLink {
   void restoreWith(List<int> bytes) {}
 
   @override
-  Future<void> close() async {}
+  Future<void> close() async => _output?.close();
 }

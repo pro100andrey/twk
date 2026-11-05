@@ -8,6 +8,8 @@ import 'package:gallery/testing.dart';
 import 'package:test/test.dart';
 import 'package:twk_test/twk_test.dart';
 
+import 'support/gallery.dart';
+
 final _size = RegExp(r'(\d+) × (\d+)');
 
 /// The stage size shown under the page at [route], or null where none.
@@ -28,6 +30,7 @@ void main() {
       final wide = await _stage(t, '#/${place.path}?size=200x36');
       final wider = await _stage(t, '#/${place.path}?size=253x36');
       expect(wider, wide);
+      takeOwnError(t, place.path);
     });
   }
 }

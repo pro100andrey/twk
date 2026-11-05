@@ -57,6 +57,9 @@ final class PosixTty {
   final int _ixon;
   final int _eraseOffset;
 
+  /// What SIGTSTP did before [enterRaw]; null while nothing holds it.
+  Pointer<Void>? _stopHandler;
+
   /// The bits [enterRaw] cleared, as they were; null when nothing to
   /// restore.
   (int, int)? _saved;
@@ -69,7 +72,17 @@ final class PosixTty {
   /// signals (ISIG), output flow control (IXON: Ctrl+S would freeze the
   /// screen until Ctrl+Q) and CR to NL translation of input (ICRNL: Enter
   /// and Ctrl+J would be the same byte). Returns false if that failed.
+  ///
+  /// A SIGTSTP from outside (`kill -TSTP`) does nothing until [restore]: it
+  /// would stop the process with the terminal as it has it, and Dart can't
+  /// watch it to give it back first. A handler that does nothing, not
+  /// SIG_IGN, which the programs it starts would inherit: exec resets a
+  /// handler. Its own stop (`Terminal.stopForShell`) comes after [restore].
   bool enterRaw() {
+    _stopHandler ??= c.signal(
+      c.sigtstp,
+      Native.addressOf<NativeFunction<Int Function()>>(c.getppid).cast(),
+    );
     final iMask = _ixon | _icrnl;
     final old = _update((i, l) => (i & ~iMask, l & ~_isig));
     if (old == null) {
@@ -80,8 +93,14 @@ final class PosixTty {
     return true;
   }
 
-  /// Puts the bits back as they were. Must run while stdin is still open.
+  /// Puts the bits back as they were, and SIGTSTP as [enterRaw] found it.
+  /// Must run while stdin is still open.
   void restore() {
+    final stop = _stopHandler;
+    if (stop != null) {
+      c.signal(c.sigtstp, stop);
+      _stopHandler = null;
+    }
     final saved = _saved;
     if (saved == null) {
       return;

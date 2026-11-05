@@ -93,7 +93,7 @@ void main() {
       expect(ascii.glyphs, Glyphs.ascii);
       expect(ascii, isNot(ThemeData.dark));
       expect(ascii.hashCode, isNot(ThemeData.dark.hashCode));
-      expect(ascii.copyWith(handPointer: HandPointer.on).glyphs, Glyphs.ascii);
+      expect(ascii.copyWith(pointerMode: PointerMode.on).glyphs, Glyphs.ascii);
       // the marks do not blend: the other's past halfway
       expect(ThemeData.lerp(ThemeData.dark, ascii, 0.4).glyphs, Glyphs.unicode);
       expect(ThemeData.lerp(ThemeData.dark, ascii, 0.6).glyphs, Glyphs.ascii);

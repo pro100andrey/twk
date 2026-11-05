@@ -62,7 +62,7 @@
 //                                  Hebrew in every 20th, in visual order
 //   hand-off, hand-auto, hand-on   20 mouse motions a frame over Buttons, a
 //                                  TabBar and a sortable Table, under
-//                                  ThemeData.handPointer off / auto / on
+//                                  ThemeData.pointerMode off / auto / on
 //   table-100k-ascii, gauges-live-ascii, markdown-stream-ascii
 //                                  the scenarios of those names under
 //                                  Glyphs.ascii

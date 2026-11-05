@@ -9,13 +9,14 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:test/test.dart';
 import 'package:twk_term/src/pty/pty.dart' show ptyEnvironment;
 import 'package:twk_term/twk_term.dart';
 import 'package:twk_test/twk_test.dart'
-    show runProcess, startProcess, waitUntil;
+    show compiledProgram, runProcess, startProcess, waitFor, waitUntil;
 
 const _timeout = Duration(seconds: 10);
 
@@ -565,6 +566,100 @@ void main() {
       () => Pty.start('sh', const [], workingDirectory: '/\x00'),
     ]) {
       expect(start, throwsArgumentError);
+    }
+  });
+
+  test('SIGTSTP is caught only while the terminal is raw, and the stdout it '
+      'shares with the shell stays blocking', () async {
+    final app = await compiledProgram(
+      'test/pty/stop_app.dart',
+      packages: (await Isolate.packageConfig)!.toFilePath(),
+      cache: '.dart_tool/twk_test/programs',
+    );
+    final pty = Pty.start(Platform.resolvedExecutable, [app]);
+    addTearDown(pty.close);
+    final out = StringBuffer();
+    final reading = pty.output.listen((b) => out.write(latin1.decode(b)));
+    addTearDown(reading.cancel);
+    await waitFor(pty.exitCode, 'the end of the app');
+    await waitUntil(() => '$out'.contains(']'), 'what it says');
+    expect('$out', contains('[false,true,false,true,false,true]'));
+  }, testOn: 'linux');
+
+  test('a SIGHUP the process was started ignoring stays ignored', () async {
+    final app = await compiledProgram(
+      'test/pty/stalled_app.dart',
+      packages: (await Isolate.packageConfig)!.toFilePath(),
+      cache: '.dart_tool/twk_test/programs',
+    );
+    final dir = Directory.systemTemp.createTempSync('nohup');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final writing = File('${dir.path}/writing');
+    final pty = Pty.start('/bin/sh', [
+      '-c',
+      r'trap "" HUP; exec "$0" "$@"',
+      Platform.resolvedExecutable,
+      app,
+      writing.path,
+    ]);
+    addTearDown(pty.close);
+    final opened = Completer<void>();
+    final reading = pty.output.listen((bytes) {
+      if (!opened.isCompleted && latin1.decode(bytes).contains('opened')) {
+        opened.complete();
+      }
+    });
+    addTearDown(reading.cancel);
+    await waitFor(opened.future, 'the terminal to open');
+    pty
+      ..kill(ProcessSignal.sighup)
+      ..write(const [0x67]);
+    await waitUntil(writing.existsSync, 'the app to take the key after it');
+    pty.kill();
+    expect(await waitFor(pty.exitCode, 'the end of the app'), 143);
+  });
+
+  group('an app on a terminal that stops reading', () {
+    late String app;
+    setUpAll(
+      () async => app = await compiledProgram(
+        'test/pty/stalled_app.dart',
+        packages: (await Isolate.packageConfig)!.toFilePath(),
+        cache: '.dart_tool/twk_test/programs',
+      ),
+    );
+
+    for (final (name, signal, code) in [
+      ('SIGTERM', ProcessSignal.sigterm, 143),
+      ('SIGHUP', ProcessSignal.sighup, 129),
+      ('SIGINT', ProcessSignal.sigint, 0),
+    ]) {
+      test('ends on $name, the output blocking nothing', () async {
+        final dir = Directory.systemTemp.createTempSync('stalled');
+        addTearDown(() => dir.deleteSync(recursive: true));
+        final writing = File('${dir.path}/writing');
+        final pty = Pty.start(
+          Platform.resolvedExecutable,
+          [app, writing.path],
+          width: 120,
+          height: 40,
+        );
+        addTearDown(pty.close);
+        final opened = Completer<void>();
+        final reading = pty.output.listen((bytes) {
+          if (!opened.isCompleted && latin1.decode(bytes).contains('opened')) {
+            opened.complete();
+          }
+        });
+        addTearDown(reading.cancel);
+        await waitFor(opened.future, 'the terminal to open');
+        reading.pause();
+        // a megabyte: the app has far more to write than the terminal holds
+        pty.write(const [0x67]);
+        await waitUntil(writing.existsSync, 'the app to start writing');
+        pty.kill(signal);
+        expect(await waitFor(pty.exitCode, 'the end of the app'), code);
+      });
     }
   });
 

@@ -1541,17 +1541,12 @@ final class _RenderCodeLine extends RenderObject
           ? math.max(0, c.maxW - gutter)
           : BoxConstraints.unbounded;
       p.layout(
-        BoxConstraints(0, room, 0, BoxConstraints.unbounded),
+        BoxConstraints(maxW: room),
         parentUsesSize: true,
       );
     } else {
       p.layout(
-        const BoxConstraints(
-          0,
-          BoxConstraints.unbounded,
-          0,
-          BoxConstraints.unbounded,
-        ),
+        const BoxConstraints(),
         parentUsesSize: true,
       );
     }

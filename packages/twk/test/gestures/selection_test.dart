@@ -337,4 +337,28 @@ void main() {
     expect(copies, ['one']);
     expect(marked(t, 0, 7), '.......');
   });
+
+  testTwk('rows between two Texts are one blank line in what is copied; Texts '
+      'side by side or right under each other are one line break', (t) async {
+    final copies = <String>[];
+    await t.pumpWidget(
+      Theme.terminal(
+        child: area(copies, const [
+          Text('one'),
+          SizedBox(height: 2),
+          Row(
+            children: [
+              Text('two\nthree'),
+              SizedBox(width: 1),
+              Text('four'),
+            ],
+          ),
+          Text('five'),
+        ]),
+      ),
+      size: (12, 7),
+    );
+    await drag(t, (0, 0), [(3, 5)]);
+    expect(copies, ['one\n\ntwo\nthree\nfour\nfive']);
+  });
 }

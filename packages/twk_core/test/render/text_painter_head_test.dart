@@ -61,7 +61,7 @@ void agree(
   TextOrder order, {
   required String what,
 }) {
-  final c = BoxConstraints(0, w, 0, 3);
+  final c = BoxConstraints(maxW: w, maxH: 3);
   fast.painter.layout(c, segmenter: seg, order: order);
   full.painter.layout(c, segmenter: seg, order: order);
   final p = fast.painter;
@@ -178,7 +178,7 @@ void main() {
         wrap: TextWrap.none,
         overflow: TextOverflow.ellipsis,
         maxLines: 1,
-      )..layout(const BoxConstraints(0, 20, 0, 1), segmenter: latin);
+      )..layout(const BoxConstraints(maxW: 20, maxH: 1), segmenter: latin);
       expect(p.debugHeadOnly, isTrue);
       expect(p.debugClustersSplit, lessThan(40));
       expect(p.debugLinesBroken, 1);
@@ -190,7 +190,7 @@ void main() {
               maxLines: 1,
             )
             ..debugForceFull = true
-            ..layout(const BoxConstraints(0, 20, 0, 1), segmenter: latin);
+            ..layout(const BoxConstraints(maxW: 20, maxH: 1), segmenter: latin);
       expect(full.debugClustersSplit, 400);
     });
 
@@ -300,7 +300,7 @@ void main() {
         [('ab${' ' * 60}${'cd' * 20}', plain)],
         overflow: TextOverflow.ellipsis,
         maxLines: 1,
-      )..layout(const BoxConstraints(0, 5, 0, 1), segmenter: latin);
+      )..layout(const BoxConstraints(maxW: 5, maxH: 1), segmenter: latin);
       expect(p.debugHeadOnly, isFalse, reason: 'the head gave up');
       expect(p.debugDiffFromFresh(latin), isNull);
     });
@@ -357,7 +357,7 @@ void main() {
         [('abc', plain)],
         overflow: TextOverflow.ellipsis,
         maxLines: 1,
-      )..layout(const BoxConstraints(0, 20, 0, 1), segmenter: latin);
+      )..layout(const BoxConstraints(maxW: 20, maxH: 1), segmenter: latin);
       expect(p.debugHeadOnly, isFalse, reason: 'the text ended in the room');
     });
 
@@ -424,7 +424,7 @@ void main() {
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
           )..layout(
-            const BoxConstraints(0, 20, 0, 1),
+            const BoxConstraints(maxW: 20, maxH: 1),
             segmenter: latin,
             order: TextOrder.visual,
           );
@@ -456,10 +456,10 @@ void main() {
         wrap: TextWrap.none,
         overflow: TextOverflow.ellipsis,
         maxLines: 1,
-      )..layout(const BoxConstraints(0, 20, 0, 1), segmenter: latin);
+      )..layout(const BoxConstraints(maxW: 20, maxH: 1), segmenter: latin);
       expect(p.debugHeadOnly, isTrue);
       p.layout(
-        const BoxConstraints(0, 20, 0, 1),
+        const BoxConstraints(maxW: 20, maxH: 1),
         segmenter: latin,
         order: TextOrder.visual,
       );
@@ -536,12 +536,16 @@ void main() {
       TextSegmenter? segmenter,
       bool headOnly = true,
     }) {
-      final p = TextPainter(
-        spans,
-        wrap: TextWrap.none,
-        overflow: TextOverflow.ellipsis,
-        maxLines: 1,
-      )..layout(BoxConstraints(0, w, 0, 1), segmenter: segmenter ?? latin);
+      final p =
+          TextPainter(
+            spans,
+            wrap: TextWrap.none,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          )..layout(
+            BoxConstraints(maxW: w, maxH: 1),
+            segmenter: segmenter ?? latin,
+          );
       expect(p.debugHeadOnly, headOnly, reason: '$spans w=$w');
       return p.debugClustersSplit;
     }
@@ -662,31 +666,31 @@ void main() {
 
     test('an edit after the head leaves it a head, split anew', () {
       final p = make([(text(500), plain)])
-        ..layout(const BoxConstraints(0, 20, 0, 1), segmenter: latin);
+        ..layout(const BoxConstraints(maxW: 20, maxH: 1), segmenter: latin);
       expect(p.debugHeadOnly, isTrue);
       final was = p.debugClustersSplit;
       p
         ..spans = [('${text(500)}!', plain)]
-        ..layout(const BoxConstraints(0, 20, 0, 1), segmenter: latin);
+        ..layout(const BoxConstraints(maxW: 20, maxH: 1), segmenter: latin);
       expect(p.debugHeadOnly, isTrue);
       expect(p.debugClustersSplit - was, lessThan(40));
     });
 
     test('a wider layout splits a head of its width, a narrower one none', () {
       final p = make([(text(500), plain)])
-        ..layout(const BoxConstraints(0, 20, 0, 1), segmenter: latin);
+        ..layout(const BoxConstraints(maxW: 20, maxH: 1), segmenter: latin);
       final n = p.debugClustersSplit;
-      p.layout(const BoxConstraints(0, 12, 0, 1), segmenter: latin);
+      p.layout(const BoxConstraints(maxW: 12, maxH: 1), segmenter: latin);
       expect(p.debugClustersSplit, n, reason: 'the head serves a narrower one');
       expect(p.debugHeadOnly, isTrue);
-      p.layout(const BoxConstraints(0, 60, 0, 1), segmenter: latin);
+      p.layout(const BoxConstraints(maxW: 60, maxH: 1), segmenter: latin);
       expect(p.debugHeadOnly, isTrue, reason: 'a head of 60 columns');
       expect(p.debugClustersSplit - n, lessThan(100));
       expect(p.debugDiffFromFresh(latin), isNull);
     });
 
     test('a new overflow, wrap, maxLines, ellipsis or segmenter', () {
-      const c = BoxConstraints(0, 20, 0, 3);
+      const c = BoxConstraints(maxW: 20, maxH: 3);
       for (final change in <void Function(TextPainter)>[
         (p) => p.overflow = TextOverflow.clip,
         (p) => p.overflow = TextOverflow.ellipsisStart,
@@ -720,7 +724,7 @@ void main() {
 
     test('the intrinsic height at another width', () {
       final p = make([(text(500), plain)])
-        ..layout(const BoxConstraints(0, 20, 0, 1), segmenter: latin);
+        ..layout(const BoxConstraints(maxW: 20, maxH: 1), segmenter: latin);
       final q = make([(text(500), plain)], full: true);
       for (final w in [5, 20, 3, 80, 1]) {
         expect(
@@ -740,7 +744,7 @@ void main() {
           wrap: TextWrap.none,
           overflow: TextOverflow.ellipsis,
           maxLines: 1,
-        )..layout(const BoxConstraints(0, 10, 0, 1), segmenter: latin);
+        )..layout(const BoxConstraints(maxW: 10, maxH: 1), segmenter: latin);
         expect(p.debugClustersSplit, inInclusiveRange(10, 40));
         expect(p.maxIntrinsicWidth(latin), 1000);
         expect(p.debugClustersSplit, greaterThanOrEqualTo(1000));
@@ -753,7 +757,7 @@ void main() {
         [('abc def ' * 100, plain)],
         overflow: TextOverflow.ellipsis,
         maxLines: 1,
-      )..layout(const BoxConstraints(0, 10, 0, 1), segmenter: latin);
+      )..layout(const BoxConstraints(maxW: 10, maxH: 1), segmenter: latin);
       expect(p.debugHeadOnly, isTrue);
       expect(p.debugLinesBroken, inInclusiveRange(1, 2));
     });
@@ -764,7 +768,7 @@ void main() {
         wrap: TextWrap.none,
         overflow: TextOverflow.ellipsis,
         maxLines: 1,
-      )..layout(const BoxConstraints(0, 10, 0, 1), segmenter: latin);
+      )..layout(const BoxConstraints(maxW: 10, maxH: 1), segmenter: latin);
       expect(p.debugOffsetsFound, 0);
       expect(p.textRangeAt(9, 0), (
         9,
@@ -784,7 +788,7 @@ void main() {
               overflow: TextOverflow.ellipsis,
               maxLines: 1,
             )..layout(
-              const BoxConstraints(0, 10, 0, 1),
+              const BoxConstraints(maxW: 10, maxH: 1),
               segmenter: latin,
               order: TextOrder.visual,
             );
@@ -800,7 +804,7 @@ void main() {
               overflow: TextOverflow.ellipsis,
               maxLines: 1,
             )..layout(
-              const BoxConstraints(0, 10, 0, 1),
+              const BoxConstraints(maxW: 10, maxH: 1),
               segmenter: latin,
               order: TextOrder.visual,
             );
@@ -817,11 +821,11 @@ void main() {
           wrap: TextWrap.none,
           overflow: TextOverflow.ellipsis,
           maxLines: 1,
-        )..layout(const BoxConstraints(0, 10, 0, 1), segmenter: latin);
+        )..layout(const BoxConstraints(maxW: 10, maxH: 1), segmenter: latin);
         expect(p.debugHeadOnly, isTrue);
         expect(p.debugDiffFromFresh(latin), isNull);
         expect(p.debugHeadOnly, isFalse);
-        p.layout(const BoxConstraints(0, 10, 0, 1), segmenter: latin);
+        p.layout(const BoxConstraints(maxW: 10, maxH: 1), segmenter: latin);
         expect(p.debugDiffFromFresh(latin), isNull);
       },
     );
@@ -834,7 +838,7 @@ void main() {
         wrap: TextWrap.none,
         overflow: TextOverflow.ellipsis,
         maxLines: 1,
-      )..layout(const BoxConstraints(0, 8, 0, 1), segmenter: latin);
+      )..layout(const BoxConstraints(maxW: 8, maxH: 1), segmenter: latin);
       final glyphs = GlyphTable();
       final surface = Surface(10, 1);
       p.paint(Canvas(surface, StyleTable(), glyphs), 0, 0);

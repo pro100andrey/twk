@@ -25,7 +25,8 @@ TextPainter laid(
     overflow: maxLines == null ? TextOverflow.clip : TextOverflow.ellipsis,
     maxLines: maxLines,
   )..debugForceFull = forceFull;
-  return p..layout(BoxConstraints(0, w, 0, 4), segmenter: seg ?? graphemes);
+  return p
+    ..layout(BoxConstraints(maxW: w, maxH: 4), segmenter: seg ?? graphemes);
 }
 
 /// The clusters drawn on row [y] of [p], as cellAt gives them, one a
@@ -132,7 +133,7 @@ void main() {
 List<String> visualRows(List<String> spans, int w) {
   final p = TextPainter([for (final s in spans) (s, const Pen())])
     ..layout(
-      BoxConstraints(0, w, 0, 8),
+      BoxConstraints(maxW: w, maxH: 8),
       segmenter: graphemes,
       order: TextOrder.visual,
     );

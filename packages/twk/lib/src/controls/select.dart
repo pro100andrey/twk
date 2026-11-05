@@ -14,6 +14,7 @@ import 'package:twk_core/twk_core.dart'
         KeyKind,
         MainAxisSize,
         Mod,
+        PointerShape,
         TextOverflow,
         TextSegmenter,
         TextWrap,
@@ -1018,12 +1019,9 @@ final class _PickerState<T> extends State<_Picker<T>>
     final choices = widget.choices;
     final top = _top;
     return GestureDetector(
-      onTap: (event) {
-        final k = top + event.y;
-        if (k >= 0 && k < matches.length) {
-          _choose(matches[k].index);
-        }
-      },
+      tapAt: (_, y) => top + y >= 0 && top + y < matches.length,
+      cursor: PointerShape.arrow,
+      onTap: (event) => _choose(matches[top + event.y].index),
       child: SizedBox(
         width: width,
         child: OptionList(

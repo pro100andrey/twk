@@ -477,7 +477,7 @@ final class RenderParagraph extends RenderObject {
   /// final p = RenderParagraph([
   ///   ('one ', const Pen()),
   ///   ('two', const Pen()),
-  /// ], wrap: TextWrap.none)..layout(const BoxConstraints(0, 20, 0, 1));
+  /// ], wrap: TextWrap.none)..layout(const BoxConstraints(maxW: 20, maxH: 1));
   /// final two = p.columnsOf(4, 7, 0); // (4, 7)
   /// ```
   ///
@@ -517,7 +517,7 @@ final class RenderParagraph extends RenderObject {
   ///   wrap: TextWrap.none,
   ///   overflow: TextOverflow.ellipsis,
   ///   maxLines: 1,
-  /// )..layout(const BoxConstraints(5, 5, 0, 100));
+  /// )..layout(const BoxConstraints(minW: 5, maxW: 5, maxH: 100));
   /// final b = p.cellAt(1, 0); // (start: 1, end: 2, isEllipsis: false)
   /// final cut = p.cellAt(4, 0); // (start: 4, end: 8, isEllipsis: true)
   /// final none = p.cellAt(9, 0); // null

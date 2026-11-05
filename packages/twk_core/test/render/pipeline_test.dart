@@ -347,7 +347,7 @@ final class _Frame extends RenderObject with RenderObjectWithChildMixin {
     order.add(name);
     width = c.maxW;
     height = c.maxH;
-    child!.layout(BoxConstraints(0, width, 0, height));
+    child!.layout(BoxConstraints(maxW: width, maxH: height));
   }
 
   @override

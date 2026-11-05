@@ -140,7 +140,7 @@ while it has it (as `KeyBindings` takes them, with their `hints`), a press
 of the left button over it focusing it and a tap calling `onTap`; enabled
 with an `onTap`, the pointer is the hand over it (`PointerShape.pointer`,
 where the terminal shows shapes) when the theme asks for it
-(`ThemeData.handPointer`, a `HandPointer`: `auto`, the default, shows
+(`ThemeData.pointerMode`, a `PointerMode`: `auto`, the default, shows
 the hand only where the terminal reports the mouse's motion already, `on`
 has it report every move, `off` never), as over the buttons, boxes and switches
 made of it.

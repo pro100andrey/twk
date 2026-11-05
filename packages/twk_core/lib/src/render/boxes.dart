@@ -94,7 +94,7 @@ final class RenderBox extends RenderObject with RenderObjectWithChildMixin {
     if (ch != null) {
       final w = width - 2 * padX < 0 ? 0 : width - 2 * padX;
       final h = height - 2 * padY < 0 ? 0 : height - 2 * padY;
-      ch.layout(BoxConstraints(0, w, 0, h));
+      ch.layout(BoxConstraints(maxW: w, maxH: h));
       ch.parentData
         ..dx = padX
         ..dy = padY;

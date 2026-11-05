@@ -921,7 +921,7 @@ final class _Doc extends _Scene {
     }
     wide = hs.surface.width;
     limit = RenderConstrainedBox(
-      additionalConstraints: BoxConstraints(0, wide, 0, hs.surface.height),
+      additionalConstraints: constraintsUpTo(wide, hs.surface.height),
     );
     owner.root = RenderBox(
       pen: hs.styles.pen(const Pen(bg: Color.rgb(16, 18, 24))),
@@ -960,10 +960,8 @@ final class _Doc extends _Scene {
   /// The paragraph laid out at the narrow width on odd frames, at the
   /// screen's on even ones.
   void resize(int i) {
-    limit.additionalConstraints = BoxConstraints(
-      0,
+    limit.additionalConstraints = constraintsUpTo(
       i.isOdd ? narrowTo : wide,
-      0,
       hs.surface.height,
     );
   }

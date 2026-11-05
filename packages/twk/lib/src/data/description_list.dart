@@ -429,7 +429,7 @@ final class _RenderRows extends RenderObject
         return h < maxH ? h : maxH;
       }
       child.layout(
-        BoxConstraints(minW, maxW, 0, maxH),
+        BoxConstraints(minW: minW, maxW: maxW, maxH: maxH),
         parentUsesSize: true,
       );
       child.parentData

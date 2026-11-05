@@ -462,7 +462,7 @@ void main() {
       size: (30, 3),
     );
     expect(t.lines, ['item 0', 'Bad state: no item 1', 'item 2']);
-    expect(t.logs.records.map((r) => '${r.error}'), ['Bad state: no item 1']);
+    expect(t.takeErrors().map((r) => '${r.error}'), ['Bad state: no item 1']);
   });
 
   testTwk('builds its items again when it is built again; a list of '

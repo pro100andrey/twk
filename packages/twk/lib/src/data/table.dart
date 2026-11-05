@@ -35,12 +35,12 @@ import 'package:twk_core/twk_core.dart'
         TextWrap;
 
 import '../binding/terminal_status.dart';
-import '../controls/hand.dart';
 import '../editing/caret.dart' show clearRestCursor, restCursor;
 import '../focus/focus.dart';
 import '../foundation/change_notifier.dart';
 import '../foundation/helpers.dart';
 import '../framework/framework.dart';
+import '../gestures/gesture_detector.dart';
 import '../gestures/mouse.dart';
 import '../layout/child_list.dart';
 import '../layout/flex.dart';
@@ -353,8 +353,9 @@ final class TableController extends ChangeNotifier {
 ///
 /// A drag from the gap after the title of a column (from the cell after
 /// it without a gap) makes the column as wide as the drag says, the
-/// pointer [PointerShape.ewResize] over that gap with [pointerShapes]
-/// where the terminal shows the pointer's shape (and then reports all
+/// pointer [PointerShape.ewResize] over that gap by
+/// [ThemeData.pointerMode] where the terminal shows the pointer's shape
+/// (and then reports all
 /// motion of the mouse over the header); while the
 /// table has the focus, Shift+Left and Shift+Right make the column of the
 /// cell selected (with [TableSelection.cell]), or that sorted by, or the
@@ -457,7 +458,6 @@ final class Table<T> extends StatefulWidget {
     this.selectedStyle,
     this.unfocusedSelectedStyle,
     this.cursorStyle,
-    this.pointerShapes = true,
     this.sortKeys = true,
   }) : source = null,
        assert(rowHeight == null || rowHeight > 0, 'rows a row tall or more'),
@@ -496,7 +496,6 @@ final class Table<T> extends StatefulWidget {
     this.selectedStyle,
     this.unfocusedSelectedStyle,
     this.cursorStyle,
-    this.pointerShapes = true,
     this.sortKeys = true,
   }) : rows = null,
        assert(rowHeight == null || rowHeight > 0, 'rows a row tall or more'),
@@ -587,10 +586,6 @@ final class Table<T> extends StatefulWidget {
   /// The cell selected while the table has the focus;
   /// [ThemeData.primary] reversed when null.
   final Style? cursorStyle;
-
-  /// Whether the pointer over the edge of a column is
-  /// [PointerShape.ewResize], where the terminal shows the pointer's shape.
-  final bool pointerShapes;
 
   /// Whether `s`, `<` and `>` sort the rows while the table has the focus,
   /// where a column sorts: false leaves them to the bindings above it (an
@@ -1145,9 +1140,15 @@ final class _TableState<T> extends State<Table<T>> {
       _resizing = column;
       _resizedFrom = _widthOf(column) ?? 0;
       _pressedAt = event.x;
-    } else if (_columns.at(event.x) case final column?) {
-      _sortOn(column);
     }
+  }
+
+  /// The column a click at [x] of the header sorts by; null off its edge.
+  int? _sortsAt(int x) {
+    final column = _columns.edgeAt(x) == null ? _columns.at(x) : null;
+    return column != null && widget.columns[column].compare != null
+        ? column
+        : null;
   }
 
   void _headerDrag(PointerEvent event) {
@@ -1341,20 +1342,18 @@ final class _TableState<T> extends State<Table<T>> {
 
   /// [titles] with the hand over a column that sorts, and in a region
   /// whose pointer is [PointerShape.ewResize] over the edge of a column,
-  /// with [Table.pointerShapes] where the terminal shows the pointer's
+  /// by [ThemeData.pointerMode] where the terminal shows the pointer's
   /// shape; without that region otherwise, so that the mouse's motion is
   /// not reported for nothing.
   Widget _shaped(Widget titles) {
     // the hand over the title of a column that sorts, off its edge
-    final header = HandOver(
-      where: (x, _) {
-        final column = _columns.edgeAt(x) == null ? _columns.at(x) : null;
-        return column != null && widget.columns[column].compare != null;
-      },
+    final header = GestureDetector(
+      tapAt: (x, _) => _sortsAt(x) != null,
+      onTapDown: (event) => _sortOn(_sortsAt(event.x)!),
       child: titles,
     );
     final shows =
-        widget.pointerShapes &&
+        Theme.of(context).setsPointerShapes &&
         (TerminalStatus.of(context)?.showsPointerShape ?? false);
     if (!shows) {
       _edgeHovered = null;
@@ -1423,8 +1422,9 @@ final class _TableState<T> extends State<Table<T>> {
     final cursor = _shownCursor;
     final columns = w.columns;
     final style = selected ? styles.base.merge(styles.selected) : styles.base;
-    return Listener(
-      onDown: w.selection == TableSelection.none ? null : onDown,
+    return GestureDetector(
+      onTapDown: w.selection == TableSelection.none ? null : onDown,
+      cursor: PointerShape.arrow,
       child: _Row(
         columns: _columns,
         lines: Theme.of(context).glyphs.borderOf(w.border),
@@ -2151,7 +2151,10 @@ final class _RenderTableRow extends RenderObject
     var i = 0;
     for (var child = firstChild; child != null; i++) {
       final w = i < widths.length ? widths[i] : 0;
-      child.layout(BoxConstraints(w, w, 0, maxH), parentUsesSize: true);
+      child.layout(
+        BoxConstraints(minW: w, maxW: w, maxH: maxH),
+        parentUsesSize: true,
+      );
       final at = child.parentData as _CellData
         ..dx = i < widths.length ? starts[i] : columns.total
         ..dy = 0;

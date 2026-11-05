@@ -13,6 +13,7 @@ import 'package:twk_core/twk_core.dart'
         TextSegmenter,
         TextWrap;
 
+import '../binding/terminal_status.dart';
 import '../framework/framework.dart';
 import '../gestures/mouse.dart'
     show PointerEvent, RenderListener, listenOver, stopListeningOver;
@@ -97,18 +98,22 @@ final class Text extends LeafRenderObjectWidget {
   /// wider than its room: [Text] with `wrap: TextWrap.none`,
   /// `overflow: TextOverflow.ellipsis` and `maxLines: 1`. The common case
   /// in a row, a panel or a status line, where a long text should not
-  /// grow the height.
+  /// grow the height. [align] and [overflow] set it right or cut it
+  /// elsewhere.
   ///
   /// ```dart
   /// Row(children: [Expanded(child: Text.line(notes)), const Text(' ▾')])
   /// ```
-  const Text.line(String this.data, {super.key, this.style = const Style()})
-    : spans = null,
-      wrap = TextWrap.none,
-      overflow = TextOverflow.ellipsis,
-      maxLines = 1,
-      align = TextAlign.left,
-      onLinkTap = null;
+  const Text.line(
+    String this.data, {
+    super.key,
+    this.style = const Style(),
+    this.align = TextAlign.left,
+    this.overflow = TextOverflow.ellipsis,
+  }) : spans = null,
+       wrap = TextWrap.none,
+       maxLines = 1,
+       onLinkTap = null;
 
   /// [spans] as [Text.line] shows a string: [Text.rich] on one line, cut
   /// off with `…`.
@@ -120,11 +125,11 @@ final class Text extends LeafRenderObjectWidget {
     List<Span> this.spans, {
     super.key,
     this.style = const Style(),
+    this.align = TextAlign.left,
+    this.overflow = TextOverflow.ellipsis,
   }) : data = null,
        wrap = TextWrap.none,
-       overflow = TextOverflow.ellipsis,
        maxLines = 1,
-       align = TextAlign.left,
        onLinkTap = null;
 
   /// The text, in [style]; null for [spans].
@@ -236,12 +241,15 @@ final class Text extends LeafRenderObjectWidget {
       }
       return;
     }
-    final hand = theme.handPointer;
+    final hand = theme.pointerMode;
+    final asksMotion =
+        TerminalStatus.of(context)?.handAsksMotion(hand) ?? false;
     if (taps != null) {
       taps
         ..onLinkTap = onLinkTap
         ..spans = spans
-        ..hand = hand;
+        ..hand = hand
+        ..listener.cursorAsksMotion = asksMotion;
       // counts what it needs again
       listenOver(context, paragraph, taps.listener);
     } else {
@@ -251,6 +259,7 @@ final class Text extends LeafRenderObjectWidget {
         spans,
         hand,
       );
+      taps.listener.cursorAsksMotion = asksMotion;
       listenOver(context, paragraph, taps.listener);
     }
   }
@@ -419,9 +428,8 @@ final _linkTaps = Expando<_LinkTaps>('Text.onLinkTap');
 /// What tells [onLinkTap] the links clicked on in [paragraph]: the
 /// [listener] of its presses and releases.
 final class _LinkTaps {
-  _LinkTaps(this.paragraph, this.onLinkTap, this.spans, this._hand) {
+  _LinkTaps(this.paragraph, this.onLinkTap, this.spans, this.hand) {
     listener.cursorAt = _cursorAt;
-    hand = _hand;
   }
 
   final RenderParagraph paragraph;
@@ -434,18 +442,12 @@ final class _LinkTaps {
   late final listener = RenderListener(onDown: _down, onUp: _up);
 
   /// The theme's choice of the hand over a phrase that taps.
-  HandPointer get hand => _hand;
-  HandPointer _hand;
-
-  set hand(HandPointer hand) {
-    _hand = hand;
-    listener.cursorAsksMotion = hand == HandPointer.on;
-  }
+  PointerMode hand;
 
   /// The hand over a phrase of a [Span.tap] and over a link, by the theme;
   /// null elsewhere.
   PointerShape? _cursorAt(int x, int y) {
-    if (_hand == HandPointer.off) {
+    if (hand == PointerMode.off) {
       return null;
     }
     final cell = paragraph.cellAt(x, y);

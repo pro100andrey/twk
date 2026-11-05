@@ -1,5 +1,6 @@
 /// The libc calls twk's packages share on Linux and macOS, bound through
-/// `dart:ffi`: [poll] and [PollFd], [read], [write], [pipe], [close],
+/// `dart:ffi`: [poll] and [PollFd], [read], [write], [open], [ttyname],
+/// [signal], [getppid], [pipe], [close],
 /// [ioctl] (with [fionread]), [tcgetattr] and [tcsetattr], [calloc] and
 /// [free], and [errno]. The core reads the process's terminal with them,
 /// twk_term's `Pty` drives a pseudo-terminal with them beside calls of its

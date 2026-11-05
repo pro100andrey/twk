@@ -9,7 +9,6 @@ import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:test/test.dart';
-import 'package:twk_core/src/terminal/link.dart' show TerminalDeclaration;
 import 'package:twk_core/src/terminal/terminal.dart' show openOwnOrShell;
 import 'package:twk_core/twk_core.dart';
 import 'package:twk_test/twk_test.dart'
@@ -56,6 +55,50 @@ void main() {
   // moves on, and what their link is given comes in as it flushes.
   late FakeClock clock;
   setUp(() => clock = FakeClock());
+
+  group('close, a terminal that does not end its flush', () {
+    Future<(FakeLink, void Function())> closing({int? taken}) async {
+      final link = FakeLink()..type(_answers);
+      final term = await clock.open(link, _options);
+      link
+        ..taken = taken
+        ..stalled = Completer<void>().future;
+      var closed = false;
+      unawaited(clock.run(term.close).then((_) => closed = true));
+      await clock.flushMicrotasks();
+      return (link, () => expect(closed, isTrue));
+    }
+
+    test('that took nothing for a second has its modes put back', () async {
+      final (link, closed) = await closing(taken: 0);
+      await clock.elapse(const Duration(milliseconds: 900));
+      expect(link.raw, isTrue);
+      await clock.elapse(const Duration(milliseconds: 200));
+      expect(link.raw, isFalse);
+      closed();
+    });
+
+    test('that takes output gets as long as it takes', () async {
+      final (link, closed) = await closing(taken: 0);
+      for (var i = 1; i <= 8; i++) {
+        link.taken = i;
+        await clock.elapse(const Duration(seconds: 1));
+        expect(link.raw, isTrue, reason: 'second $i');
+      }
+      await clock.elapse(const Duration(milliseconds: 1100));
+      expect(link.raw, isFalse);
+      closed();
+    });
+
+    test('that can not say what it took gets five seconds', () async {
+      final (link, closed) = await closing();
+      await clock.elapse(const Duration(milliseconds: 4900));
+      expect(link.raw, isTrue);
+      await clock.elapse(const Duration(milliseconds: 200));
+      expect(link.raw, isFalse);
+      closed();
+    });
+  });
 
   test('the probe is answered, keys and resizes come in, and close puts '
       'the modes back', () async {
@@ -406,6 +449,36 @@ void main() {
         ..type(_answers);
       return clock.open(link, _options);
     }
+
+    test(
+      'remote: by SSH_TTY or SSH_CONNECTION, unless it is declared',
+      () async {
+        Future<bool> remote(
+          Map<String, String> env, [
+          TerminalDeclaration declaration = const TerminalDeclaration(),
+        ]) async {
+          final link = FakeLink(
+            environment: {...kitty, ...env},
+            declaration: declaration,
+          )..type(_answers);
+          return (await clock.open(link, _options)).info.remote;
+        }
+
+        expect(await remote({}), isFalse);
+        expect(await remote({'SSH_TTY': '/dev/pts/1'}), isTrue);
+        expect(await remote({'SSH_CONNECTION': '1 2 3 4'}), isTrue);
+        expect(
+          await remote({}, const TerminalDeclaration(remote: true)),
+          isTrue,
+        );
+        expect(
+          await remote({
+            'SSH_TTY': '/dev/pts/1',
+          }, const TerminalDeclaration(remote: false)),
+          isFalse,
+        );
+      },
+    );
 
     test('is taken at its word over the guess by its name', () async {
       final guessed = (await open(const TerminalDeclaration())).info;

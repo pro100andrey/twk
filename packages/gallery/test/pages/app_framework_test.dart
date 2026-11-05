@@ -42,6 +42,7 @@ void main() {
             for (final p in problems(t))
               if (!_expected(page, p)) p,
           ], isEmpty);
+          takeOwnError(t, page);
         });
       }
     }

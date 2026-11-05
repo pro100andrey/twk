@@ -95,6 +95,7 @@ void main() {
           stack: vmStack(),
         ),
       );
+      t.takeErrors();
       await t.press('ctrl+g c up enter down down');
       await t.pump();
       expect(

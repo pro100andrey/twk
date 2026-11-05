@@ -167,8 +167,8 @@ final class RenderViewport extends RenderObject
     } else {
       ch.layout(
         vertical
-            ? BoxConstraints(c.minW, c.maxW, 0, BoxConstraints.unbounded)
-            : BoxConstraints(0, BoxConstraints.unbounded, c.minH, c.maxH),
+            ? BoxConstraints(minW: c.minW, maxW: c.maxW)
+            : BoxConstraints(minH: c.minH, maxH: c.maxH),
         parentUsesSize: true,
       );
       width = c.constrainW(ch.width);

@@ -928,7 +928,7 @@ final class RenderUnbounded extends RenderObject
   void performLayout(BoxConstraints c) {
     final child = this.child!
       ..layout(
-        BoxConstraints(0, c.maxW, 0, BoxConstraints.unbounded),
+        BoxConstraints(maxW: c.maxW),
         parentUsesSize: true,
       );
     width = c.constrainW(child.width);

@@ -186,12 +186,7 @@ void main() {
         child: column([
           ...rows(2),
           RenderConstrainedBox(
-            additionalConstraints: const BoxConstraints(
-              0,
-              BoxConstraints.unbounded,
-              3,
-              3,
-            ),
+            additionalConstraints: const BoxConstraints(minH: 3, maxH: 3),
             child: inner,
           ),
           ...rows(20),

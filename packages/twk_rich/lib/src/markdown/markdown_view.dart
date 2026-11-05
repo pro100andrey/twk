@@ -862,8 +862,8 @@ final class _HeadingMark extends StatelessWidget {
 /// [child] in a [MouseRegion] whose pointer has the shape of a hand while
 /// the mouse is over a link: a run of a paragraph that a [_Links] around it
 /// covers, or a cell whose style links it (OSC 8). Only where the view has
-/// a link ([linked]), a link does something ([shaped]) and the terminal
-/// shows the pointer's shape does it follow the mouse. A click on a link,
+/// a link ([linked]) and a link does something ([shaped]), by the theme's
+/// rule, as a `Text`'s link ([ThemeData.pointerMode]). A click on a link,
 /// pressed and released on the same cell, it tells [onLinkTap].
 final class _LinkPointer extends StatefulWidget {
   const _LinkPointer({
@@ -883,31 +883,20 @@ final class _LinkPointer extends StatefulWidget {
 }
 
 final class _LinkPointerState extends State<_LinkPointer> {
-  /// Whether the mouse is over a link.
-  var _over = false;
-
   /// The cell the left button was pressed on, while it is held.
   (int, int)? _pressed;
 
   @override
-  void didUpdateWidget(_LinkPointer oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (!widget.linked) {
-      _over = false;
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final follows =
-        widget.linked &&
-        widget.shaped &&
-        (TerminalStatus.of(context)?.showsPointerShape ?? false);
+    final mode = Theme.of(context).pointerMode;
+    final follows = widget.linked && widget.shaped && mode != PointerMode.off;
     final taps = widget.linked && widget.onLinkTap != null;
     return MouseRegion(
-      onHover: follows ? _hover : null,
-      onExit: follows ? _exit : null,
-      cursor: follows && _over ? PointerShape.pointer : null,
+      cursorAt: follows
+          ? (x, y) => _linkUnder(x, y) != null ? PointerShape.pointer : null
+          : null,
+      cursorAsksMotion:
+          TerminalStatus.of(context)?.handAsksMotion(mode) ?? false,
       behavior: HitTestBehavior.translucent,
       child: Listener(
         onDown: taps ? _down : null,
@@ -916,16 +905,6 @@ final class _LinkPointerState extends State<_LinkPointer> {
         child: widget.child,
       ),
     );
-  }
-
-  void _hover(PointerEvent event) => _show(_linkUnder(event) != null);
-
-  void _exit(PointerEvent event) => _show(false);
-
-  void _show(bool over) {
-    if (over != _over) {
-      setState(() => _over = over);
-    }
   }
 
   void _down(PointerEvent event) =>
@@ -937,15 +916,15 @@ final class _LinkPointerState extends State<_LinkPointer> {
     if (event.button != 0 || pressed != (event.x, event.y)) {
       return;
     }
-    if (_linkUnder(event) case final link?) {
+    if (_linkUnder(event.x, event.y) case final link?) {
       widget.onLinkTap?.call(link.destination, link.title);
     }
   }
 
-  /// The link under the mouse, if there is one.
-  InlineLink? _linkUnder(PointerEvent event) {
+  /// The link at the cell [x], [y] of the view, if there is one.
+  InlineLink? _linkUnder(int x, int y) {
     final region = context.findRenderObject();
-    return region == null ? null : _linkAt(region, event.x, event.y, null);
+    return region == null ? null : _linkAt(region, x, y, null);
   }
 
   /// The link at the cell [x], [y] of [object], in its coordinates: of the

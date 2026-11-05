@@ -34,6 +34,10 @@ typedef CellRect = ({int x, int y, int width, int height});
 /// ```
 const find = Finders._();
 
+/// The string of [text], or its spans joined.
+String _shown(Text text) =>
+    text.data ?? [for (final s in text.spans!) s.text].join();
+
 /// What [find] is.
 final class Finders {
   const Finders._();
@@ -49,9 +53,24 @@ final class Finders {
   /// ([Text.rich]).
   Finder text(String text) => _WidgetFinder(
     'text "$text"',
-    (w) =>
-        w is Text &&
-        (w.data ?? [for (final s in w.spans!) s.text].join()) == text,
+    (w) => w is Text && _shown(w) == text,
+  );
+
+  /// The [Text]s whose string, or their spans joined ([Text.rich]), has a
+  /// match of [pattern] in it, a [String] or a [RegExp]. `t.rect` then says
+  /// where it is drawn. As [text], only a [Text]: a row of several widgets
+  /// is found in each.
+  ///
+  /// ```dart
+  /// testTwk('the count is shown', (t) async {
+  ///   await t.pumpWidget(const Text('3 of 7 done'));
+  ///   expect(find.textContaining('of 7'), findsOneWidget);
+  ///   expect(find.textContaining(RegExp(r'^\d+ of')), findsOneWidget);
+  /// });
+  /// ```
+  Finder textContaining(Pattern pattern) => _WidgetFinder(
+    'text containing ${pattern is RegExp ? pattern.pattern : '"$pattern"'}',
+    (w) => w is Text && pattern.allMatches(_shown(w)).isNotEmpty,
   );
 
   /// The widgets [predicate] is true of, named [description] in messages.

@@ -17,6 +17,7 @@ import 'package:twk_core/twk_core.dart'
 
 import '../framework/framework.dart';
 import '../gestures/mouse.dart' show MouseRegion;
+import '../style/theme.dart' show PointerMode;
 import 'app_binding.dart';
 
 export 'package:twk_core/twk_core.dart' show ProgressState;
@@ -74,6 +75,15 @@ final class TerminalStatus {
   /// Whether the pointer's shape is shown: a [MouseRegion] with a cursor
   /// has the terminal report the mouse's motion only then.
   bool get showsPointerShape => terminal.info.pointerShapes && _backend != null;
+
+  /// Whether the hand of [mode] has the terminal report the mouse's motion:
+  /// always for [PointerMode.on], for [PointerMode.auto] where the terminal
+  /// is not remote (`TerminalInfo.remote`), and never for [PointerMode.off].
+  bool handAsksMotion(PointerMode mode) => switch (mode) {
+    PointerMode.off => false,
+    PointerMode.auto => !terminal.info.remote,
+    PointerMode.on => true,
+  };
 
   /// The pointer's shape over the app: null for the [defaultPointerShape].
   /// Once a [MouseRegion] has been mounted, the regions set it after each

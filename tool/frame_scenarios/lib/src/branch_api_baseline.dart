@@ -43,3 +43,18 @@ RenderParagraph cutParagraph(
     link: table.linkOf(raw) as String?,
   );
 }
+
+/// Constraints of up to [width] × [height] cells, on a core whose
+/// constructor takes its bounds by name or, an older one, by position: the
+/// call is dynamic, so that this file builds against both.
+BoxConstraints constraintsUpTo(int width, int height) {
+  const Function make = BoxConstraints.new;
+  try {
+    return Function.apply(make, const [], {#maxW: width, #maxH: height})
+        as BoxConstraints;
+    // the only way to tell a core by its constructor
+    // ignore: avoid_catching_errors
+  } on NoSuchMethodError {
+    return Function.apply(make, [0, width, 0, height]) as BoxConstraints;
+  }
+}

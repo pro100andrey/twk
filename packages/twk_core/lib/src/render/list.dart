@@ -393,7 +393,12 @@ final class RenderList extends RenderObject
     final maxH = fixed ?? BoxConstraints.unbounded;
     var ic = _itemConstraints;
     if (ic == null || ic.maxW != w || ic.minH != minH || ic.maxH != maxH) {
-      ic = _itemConstraints = BoxConstraints(w, w, minH, maxH);
+      ic = _itemConstraints = BoxConstraints(
+        minW: w,
+        maxW: w,
+        minH: minH,
+        maxH: maxH,
+      );
     }
     if (w != _measuredAt) {
       _measuredAt = w;

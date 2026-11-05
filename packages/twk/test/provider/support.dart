@@ -75,6 +75,5 @@ final class Show extends StatelessWidget {
 
 /// The errors the app logged, the builds that threw.
 List<Object?> loggedErrors(TwkTester t) => [
-  for (final r in t.logs.records)
-    if (r.level == LogLevel.error) r.error,
+  for (final r in t.takeErrors()) r.error,
 ];

@@ -6,7 +6,8 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
-import 'package:twk_core/twk_core.dart' show TerminalException, TerminalLink;
+import 'package:twk_core/twk_core.dart'
+    show DeclaringLink, TerminalDeclaration, TerminalException;
 
 import 'session.dart';
 
@@ -23,7 +24,7 @@ import 'session.dart';
 /// exits. [input] is what the client types, and ends with a
 /// [TerminalException] when the client sends EOF or the session ends;
 /// [add] and [flush] are the session's.
-final class SshTerminalLink implements TerminalLink {
+final class SshTerminalLink implements DeclaringLink {
   /// The link of [session], which must have a terminal ([SshSession.pty]);
   /// an [ArgumentError] if it has none.
   SshTerminalLink(this.session)
@@ -33,6 +34,10 @@ final class SshTerminalLink implements TerminalLink {
 
   /// The session the terminal is on.
   final SshSession session;
+
+  @override
+  TerminalDeclaration get declaration =>
+      const TerminalDeclaration(remote: true);
 
   /// Called at the end of [input] in place of its error, when set:
   /// `serveSsh` quits the app then, which unmounts it, rather than have it

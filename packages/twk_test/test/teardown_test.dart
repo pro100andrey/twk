@@ -9,7 +9,8 @@ import 'package:twk_test/twk_test.dart' show runProcess;
 void main() {
   test('when a test returns or fails, its app is quit; an error the app '
       'ended with that no call threw fails it, as do bytes the emulator does '
-      'not take, unless the test failed already', () async {
+      'not take and an error it logged that the test did not take, unless '
+      'the test failed already', () async {
     final run = await runProcess(Platform.resolvedExecutable, [
       'test',
       '--reporter=json',
@@ -49,6 +50,10 @@ void main() {
       'a test that fails, its app left running': 'failure',
       'an app that fails as it ends': 'error',
       'bytes the emulator does not take': 'error',
+      'a build that failed, a later frame building over it': 'failure',
+      'a build that failed, the error taken': 'success',
+      'a build that failed, the log only read': 'failure',
+      'a test that fails, and a build that failed': 'failure',
       'a test that fails, and bytes the emulator does not take': 'failure',
     });
     expect(errors['a test that fails, its app left running'], [
@@ -59,6 +64,15 @@ void main() {
     ]);
     expect(errors['bytes the emulator does not take'], [
       contains('unsupported private mode 999'),
+    ]);
+    expect(errors['a build that failed, a later frame building over it'], [
+      allOf(
+        contains('the app logged an error the test did not take'),
+        contains('BrokenOnce failed to build: Bad state: broken'),
+      ),
+    ]);
+    expect(errors['a test that fails, and a build that failed'], [
+      contains('the test failed'),
     ]);
     expect(
       errors['a test that fails, and bytes the emulator does not take'],

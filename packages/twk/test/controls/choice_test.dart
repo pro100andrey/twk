@@ -265,6 +265,34 @@ void main() {
     expect(a, isNot(const Choice('a', 'Apple', enabled: false)));
   });
 
+  testTwk('canRequestFocus: false, a click chooses and the focus stays where '
+      'it was; Tab passes the group by', (t) async {
+    final chosen = <String>[];
+    final other = FocusNode(debugLabel: 'other');
+    addTearDown(other.dispose);
+    await t.pumpWidget(
+      Column(
+        children: [
+          RadioGroup<String>(
+            canRequestFocus: false,
+            choices: const [Choice('a', 'alpha'), Choice('b', 'beta')],
+            value: 'a',
+            onChanged: chosen.add,
+          ),
+          Button('other', focusNode: other, onPressed: () {}),
+        ],
+      ),
+      size: (20, 4),
+    );
+    await t.press('tab');
+    await t.pump();
+    expect(t.binding.focusManager.primaryFocus, other);
+    await t.click(6, 1);
+    await t.pump();
+    expect(chosen, ['b']);
+    expect(t.binding.focusManager.primaryFocus, other);
+  });
+
   test('a Choice describes itself by its value and label', () {
     expect('${const Choice(1, 'One')}', 'Choice(1, One)');
   });

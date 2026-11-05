@@ -18,7 +18,7 @@ void main() {
       Theme(
         data: const ThemeData.terminal(
           Brightness.dark,
-        ).copyWith(handPointer: HandPointer.on),
+        ).copyWith(pointerMode: PointerMode.on),
         child: ValueListenableBuilder<bool>(
           valueListenable: enabled,
           builder: (context, on, _) => Row(
@@ -46,13 +46,30 @@ void main() {
     expect(t.pointerShape, PointerShape.arrow);
   });
 
-  testTwk("by the theme's default no hand where the motion is not reported, "
-      'and none asked for', (t) async {
+  testTwk("by the theme's default, in a local session, the hand, the motion "
+      'asked for it', (t) async {
+    await t.pumpWidget(
+      Checkbox(value: false, onChanged: (_) {}, label: 'ok'),
+      size: (20, 1),
+      pointerShapes: true,
+    );
+    await t.mouse(MouseKind.move, 1, 0);
+    await t.pump();
+    expect(t.pointerShape, PointerShape.pointer);
+    expect(
+      (t.binding.twkApp.terminal as MouseTrackingBackend).mouseTracking,
+      MouseTracking.motion,
+    );
+  });
+
+  testTwk("by the theme's default, in a remote session, no hand where the "
+      'motion is not reported, and none asked for', (t) async {
     // a box to check, whose look the hover does not change
     await t.pumpWidget(
       Checkbox(value: false, onChanged: (_) {}, label: 'ok'),
       size: (20, 1),
       pointerShapes: true,
+      remote: true,
     );
     await t.mouse(MouseKind.move, 1, 0);
     await t.pump();

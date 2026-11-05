@@ -139,11 +139,11 @@ void main() {
 
     test('is as wide as it may be and a row tall', () {
       final sparkline = RenderSparkline(data: const [])
-        ..layout(const BoxConstraints(0, 5, 0, BoxConstraints.unbounded));
+        ..layout(const BoxConstraints(maxW: 5));
       expect((sparkline.width, sparkline.height), (5, 1));
-      sparkline.layout(const BoxConstraints(2, BoxConstraints.unbounded, 0, 3));
+      sparkline.layout(const BoxConstraints(minW: 2, maxH: 3));
       expect((sparkline.width, sparkline.height), (2, 1));
-      sparkline.layout(const BoxConstraints(0, 5, 2, 4));
+      sparkline.layout(const BoxConstraints(maxW: 5, minH: 2, maxH: 4));
       expect((sparkline.width, sparkline.height), (5, 2));
     });
   });

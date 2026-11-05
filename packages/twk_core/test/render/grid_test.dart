@@ -337,7 +337,7 @@ void main() {
           cell(Fill('x'), 1, 0),
           cell(Fill('y'), 1, 1),
         ],
-      )..layout(const BoxConstraints(0, 20, 0, 10), parentUsesSize: true);
+      )..layout(const BoxConstraints(maxW: 20, maxH: 10), parentUsesSize: true);
       expect([grid.width, grid.height], [5, 3]);
       expect(boxes(grid), ['0,0 3x1', '3,0 2x1', '0,1 3x2', '3,1 2x2']);
       expect(a.got, const BoxConstraints.tight(3, 1));
@@ -475,7 +475,7 @@ void main() {
         columns: const [GridTrack.content(), GridTrack.content()],
         children: [Probe(minW: 2, maxW: 10), Probe(minW: 4, maxW: 6)],
       );
-      expect(widthsIn(grid(), const BoxConstraints(0, 30, 0, 1)), '10 6');
+      expect(widthsIn(grid(), const BoxConstraints(maxW: 30, maxH: 1)), '10 6');
       // 2 and 4 needed, 6 cells more: 2 each, then the second wants no more
       expect(widthsIn(grid(), const BoxConstraints.tight(12, 1)), '6 6');
       expect(widthsIn(grid(), const BoxConstraints.tight(11, 1)), '5 6');
@@ -497,7 +497,7 @@ void main() {
         ],
         children: [Label('ab'), long],
       );
-      expect(widthsIn(grid, const BoxConstraints(0, 30, 0, 5)), '3 5 3');
+      expect(widthsIn(grid, const BoxConstraints(maxW: 30, maxH: 5)), '3 5 3');
       expect([grid.width, grid.height], [11, 1]);
       expect(long.got, const BoxConstraints.tight(5, 1));
     });
@@ -509,7 +509,7 @@ void main() {
       final grid = RenderGrid(
         columns: const [GridTrack.fixed(4), GridTrack.fixed(2)],
         children: [cell(a, 0, 0, 1, 2), cell(b, 1, 0)],
-      )..layout(const BoxConstraints(0, 10, 0, 10), parentUsesSize: true);
+      )..layout(const BoxConstraints(maxW: 10, maxH: 10), parentUsesSize: true);
       expect(heights(grid), '2 3');
       expect([a.askedAt, b.askedAt], [6, 4]);
     });
@@ -529,7 +529,10 @@ void main() {
         children: [cell(Probe(minW: 5, maxW: 13), 0, 0, 1, 3)],
       );
       // it needs 1 more and wants 8 more than that: 4 each
-      expect(widthsIn(grid(), const BoxConstraints(0, 30, 0, 1)), '2 5 4');
+      expect(
+        widthsIn(grid(), const BoxConstraints(maxW: 30, maxH: 1)),
+        '2 5 4',
+      );
       expect(widthsIn(grid(), const BoxConstraints.tight(9, 1)), '2 3 2');
       expect(widthsIn(grid(), const BoxConstraints.tight(5, 1)), '2 1 0');
     });
@@ -539,7 +542,7 @@ void main() {
         columns: const [GridTrack.fixed(2)],
         rows: const [GridTrack.content(), GridTrack.content()],
         children: [cell(Probe(minH: 3, maxH: 3), 0, 0, 2)],
-      )..layout(const BoxConstraints(0, 10, 0, 10), parentUsesSize: true);
+      )..layout(const BoxConstraints(maxW: 10, maxH: 10), parentUsesSize: true);
       expect(heights(grid), '2 1');
     });
 
@@ -568,7 +571,7 @@ void main() {
         ],
       );
       // 2 and 2 for the second, then 1 and 1 more for the first
-      expect(widthsIn(grid, const BoxConstraints(0, 30, 0, 2)), '3 3 0');
+      expect(widthsIn(grid, const BoxConstraints(maxW: 30, maxH: 2)), '3 3 0');
     });
   });
 
@@ -580,10 +583,9 @@ void main() {
         rows: const [GridTrack.fr(1)],
         children: [Label('abc'), Label('ab'), Label('abcde')],
       );
-      const unbounded = BoxConstraints.unbounded;
       // 2 cells for the first part, 3 per part for the second
       expect(
-        widthsIn(grid, const BoxConstraints(0, unbounded, 0, unbounded)),
+        widthsIn(grid, const BoxConstraints()),
         '3 3 6',
       );
       expect([grid.width, grid.height], [12, 1]);
@@ -598,7 +600,7 @@ void main() {
       expect(
         widthsIn(
           grid,
-          const BoxConstraints(20, BoxConstraints.unbounded, 1, 1),
+          const BoxConstraints(minW: 20, minH: 1, maxH: 1),
         ),
         '3 6 11',
       );
@@ -682,8 +684,9 @@ void main() {
     });
 
     test('without columns, each such child is on a row of its own', () {
-      final grid = RenderGrid(children: [Label('a'), Label('bc')])
-        ..layout(const BoxConstraints(0, 10, 0, 10), parentUsesSize: true);
+      final grid = RenderGrid(
+        children: [Label('a'), Label('bc')],
+      )..layout(const BoxConstraints(maxW: 10, maxH: 10), parentUsesSize: true);
       expect(boxes(grid), ['0,0 2x1', '0,1 2x1']);
     });
 
@@ -799,7 +802,7 @@ void main() {
       rows: const [GridTrack.fixed(1), GridTrack.fixed(1)],
       children: [cell(Fill('a'), 0, 0), cell(Fill('b'), 1, 1)],
     );
-    const loose = BoxConstraints(0, 10, 0, 10);
+    const loose = BoxConstraints(maxW: 10, maxH: 10);
     List<String> after(void Function() change) {
       change();
       grid.layout(loose, parentUsesSize: true);

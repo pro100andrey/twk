@@ -11,7 +11,6 @@ import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:test/test.dart';
-import 'package:twk_core/src/terminal/link.dart' show TerminalDeclaration;
 import 'package:twk_core/src/terminal/socket.dart';
 import 'package:twk_core/src/terminal/terminal.dart' show openOwnOrShell;
 import 'package:twk_core/twk_core.dart';

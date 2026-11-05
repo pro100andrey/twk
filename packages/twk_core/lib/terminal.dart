@@ -65,7 +65,8 @@ export 'src/log.dart' show LogLevel, LogRecord, LogSink, log;
 export 'src/platform/platform.dart' show LocalAddress;
 export 'src/presenter.dart' show TerminalCaps;
 export 'src/style.dart' show Attr, Color, ColorMode, Pen, StyleId, StyleTable;
-export 'src/terminal/link.dart' show TerminalException, TerminalLink;
+export 'src/terminal/link.dart'
+    show DeclaringLink, TerminalDeclaration, TerminalException, TerminalLink;
 export 'src/terminal/plain.dart' show plainAsked, runsInCi;
 export 'src/terminal/sequences.dart'
     show

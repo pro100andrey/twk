@@ -10,7 +10,7 @@ import 'package:twk_core/twk_core.dart';
 final segmenter = TextSegmenter();
 
 const _width = 60;
-const _box = BoxConstraints(0, _width, 0, 1);
+const _box = BoxConstraints(maxW: _width, maxH: 1);
 
 /// What painting [p] onto a fresh row of [styles] gives each cell: its
 /// colors and attributes.

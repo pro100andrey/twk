@@ -6,10 +6,12 @@ library;
 import 'dart:async';
 
 import 'package:meta/meta.dart';
-import 'package:twk_core/twk_core.dart' show HitTestBehavior;
+import 'package:twk_core/twk_core.dart' show HitTestBehavior, PointerShape;
 
 import '../binding/app_binding.dart' show AppBinding;
 import '../framework/framework.dart';
+import '../style/theme.dart' show ThemeData;
+import 'hand.dart';
 import 'mouse.dart';
 
 /// A drag as a [GestureDetector] tells it: the event the mouse was
@@ -85,6 +87,22 @@ typedef DragListener = void Function(DragDetails details);
 /// did not report ends where the mouse was last when the next press over
 /// a detector comes.
 ///
+/// A press is declared here once, and the pointer follows from it. Where a
+/// tap of the left button is told ([onTap], [onTapDown]), the pointer is the
+/// hand, by [ThemeData.pointerMode], and there is no hand to remember. A
+/// double tap alone, or a press of another button alone, shows none.
+/// [cursor] puts a shape of its own in the hand's place, and over all of it
+/// where no tap is told, so that a drag has a pointer too. [tapAt] is for
+/// targets inside one row: it says which cells a tap is on, for the hand
+/// and for the tap at once.
+///
+/// [onTapDown] is told as the left button goes down, for what answers at
+/// once (a tab, a menu's title). It is told apart from the competition: a
+/// tap, drag or long press of that press goes on as without it, here and
+/// in the detectors inside and around it. So every detector under the
+/// press is told, where only one is told [onTap]: one around another that
+/// answers on its own cells gives [tapAt] to leave them out.
+///
 /// The intervals are timers of the app's zone, which a test's fake clock
 /// moves. While it has a callback, the terminal reports presses and
 /// releases, and motion with a button held for a long press or a drag (see
@@ -109,6 +127,18 @@ typedef DragListener = void Function(DragDetails details);
 /// );
 /// ```
 ///
+/// Steps in one row, a click on those that can be reached, the hand over
+/// the same cells:
+///
+/// ```dart
+/// late int Function(int x) stepAt;
+/// final steps = GestureDetector(
+///   tapAt: (x, y) => stepAt(x) >= 0,
+///   onTap: (event) => print('step ${stepAt(event.x)}'),
+///   child: const Text('one  two  three'),
+/// );
+/// ```
+///
 /// See also:
 ///
 ///  * [Listener], the events of the mouse themselves.
@@ -118,6 +148,9 @@ final class GestureDetector extends StatefulWidget {
   const GestureDetector({
     super.key,
     this.onTap,
+    this.onTapDown,
+    this.tapAt,
+    this.cursor,
     this.onDoubleTap,
     this.onLongPress,
     this.onLongPressEnd,
@@ -133,6 +166,24 @@ final class GestureDetector extends StatefulWidget {
 
   /// A tap: the release.
   final PointerEventListener? onTap;
+
+  /// The left button pressed, on a cell of a tap (see [GestureDetector]).
+  final PointerEventListener? onTapDown;
+
+  /// Whether the cell at `x`, `y` of it is a tap's: where false, the hand
+  /// does not show, and a press there is told neither [onTap] nor
+  /// [onTapDown], a detector around it getting it. A tap is pressed and
+  /// released on such cells, so [onTap] may rely on it for the cell it is
+  /// told. Null for all of it.
+  final bool Function(int x, int y)? tapAt;
+
+  /// The pointer's shape in place of the hand, whatever
+  /// [ThemeData.pointerMode] says, over the cells of a tap, or over all of
+  /// it with neither [onTap] nor [onTapDown]; null for the hand.
+  /// `PointerShape.arrow`, for a click that presses nothing (the ground
+  /// around a dialog), has the terminal report no motion for it; another
+  /// shape does, as [MouseRegion.cursor].
+  final PointerShape? cursor;
 
   /// A second tap within [doubleTapInterval] of a tap: its release.
   final PointerEventListener? onDoubleTap;
@@ -191,6 +242,22 @@ final class _GestureDetectorState extends State<GestureDetector> {
 
   bool get _taps => widget.onTap != null || widget.onDoubleTap != null;
 
+  // whether the press under way is on a cell of a tap
+  var _tapHere = true;
+
+  /// Whether [event], a release, ends a tap: over this widget, pressed and
+  /// released on cells of [GestureDetector.tapAt].
+  bool _tapsAt(PointerEvent event) =>
+      _taps &&
+      _tapHere &&
+      _contains(event) &&
+      (widget.tapAt?.call(event.x, event.y) ?? true);
+
+  /// Whether a tap of the left button is told.
+  bool get _showsTap =>
+      (widget.onTap != null || widget.onTapDown != null) &&
+      widget.buttons.contains(0);
+
   bool get _longPresses =>
       widget.onLongPress != null || widget.onLongPressEnd != null;
 
@@ -220,8 +287,12 @@ final class _GestureDetectorState extends State<GestureDetector> {
   }
 
   void _down(PointerEvent event) {
+    _tapHere = widget.tapAt?.call(event.x, event.y) ?? true;
     if (MouseTracker.of(context) case final tracker?) {
       (_arena = _Arena.of(tracker)).down(this, event);
+      if (_tapHere && event.button == 0 && widget.buttons.contains(0)) {
+        _tell(widget.onTapDown, event);
+      }
     }
   }
 
@@ -237,13 +308,20 @@ final class _GestureDetectorState extends State<GestureDetector> {
 
   @override
   Widget build(BuildContext context) {
-    final listens = _taps || _longPresses || _drags;
-    return Listener(
-      onDown: listens ? _down : null,
-      onUp: listens ? _up : null,
-      onDrag: _longPresses || _drags ? _drag : null,
+    final listens = _taps || widget.onTapDown != null || _longPresses || _drags;
+    final taps = _showsTap;
+    return HandOver(
+      active: taps || widget.cursor != null,
+      where: taps ? widget.tapAt : null,
+      shape: widget.cursor,
       behavior: widget.behavior,
-      child: widget.child,
+      child: Listener(
+        onDown: listens ? _down : null,
+        onUp: listens ? _up : null,
+        onDrag: _longPresses || _drags ? _drag : null,
+        behavior: widget.behavior,
+        child: widget.child,
+      ),
     );
   }
 }
@@ -365,7 +443,7 @@ final class _Arena {
     }
     _leavePress(detector);
     switch (_gesture) {
-      case null when detector._taps && detector._contains(event):
+      case null when detector._tapsAt(event):
         _gesture = _Gesture.tap;
         _owner = detector;
         if (identical(_first, detector) && _again == _press) {

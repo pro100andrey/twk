@@ -393,4 +393,30 @@ void main() {
       expect(focused(t), 'next');
     });
   });
+
+  testTwk('behavior: opaque takes a press on the empty cells too, and shows '
+      'the hand there; by default they are not hit', (t) async {
+    final taps = <int>[];
+    Widget app(HitTestBehavior behavior) => Align(
+      alignment: Alignment.topLeft,
+      child: SizedBox(
+        width: 10,
+        height: 1,
+        child: Pressable(
+          canRequestFocus: false,
+          behavior: behavior,
+          onTap: (e) => taps.add(e.x),
+          builder: (_, _) => const SizedBox(),
+        ),
+      ),
+    );
+    await t.pumpWidget(app(HitTestBehavior.deferToChild), size: (20, 2));
+    await t.click(5, 0);
+    await t.pump();
+    expect(taps, isEmpty);
+    await t.pumpWidget(app(HitTestBehavior.opaque), size: (20, 2));
+    await t.click(5, 0);
+    await t.pump();
+    expect(taps, [5]);
+  });
 }

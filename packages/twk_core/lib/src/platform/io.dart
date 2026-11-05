@@ -2,12 +2,14 @@
 library;
 
 import 'dart:async';
+import 'dart:ffi';
 import 'dart:io';
 import 'dart:typed_data';
 
 import '../terminal/link.dart';
 import '../terminal/plain.dart';
 import '../terminal/stdio_link.dart';
+import 'libc.dart' as c;
 
 export '../terminal/address.dart' show LocalAddress;
 export '../terminal/socket.dart' show ShellEvent, SocketLink, TerminalShell;
@@ -71,9 +73,11 @@ FileWriter createFile(String path, List<int> header) {
   return (write: file.writeFrom, close: file.close);
 }
 
-/// SIGINT (a CTRL_C_EVENT on Windows) calls [interrupt]; SIGTERM, or on
-/// Windows SIGHUP (the console being closed), awaits [terminate], then
-/// exits with 143 or 129.
+/// SIGINT (a CTRL_C_EVENT on Windows) calls [interrupt]; SIGTERM, where
+/// there is one, and SIGHUP (on Windows the console being closed) await
+/// [terminate], then exit with 143 and 129. SIGQUIT can't be watched. A
+/// SIGHUP the process was started ignoring (`nohup`) stays ignored: watching
+/// it would put a handler in its place.
 List<StreamSubscription<void>> watchSignals(
   void Function() interrupt,
   Future<void> Function() terminate,
@@ -89,11 +93,18 @@ List<StreamSubscription<void>> watchSignals(
   return [
     ProcessSignal.sigint.watch().listen((_) => interrupt()),
     // Windows: SIGHUP is the console being closed; SIGTERM isn't there
-    if (Platform.isWindows)
-      exitOn(ProcessSignal.sighup, 129)
-    else
-      exitOn(ProcessSignal.sigterm, 143),
+    if (Platform.isWindows || !_ignoresHangup())
+      exitOn(ProcessSignal.sighup, 129),
+    if (!Platform.isWindows) exitOn(ProcessSignal.sigterm, 143),
   ];
+}
+
+/// Whether SIGHUP is ignored (POSIX): signal(2) tells only by setting one.
+bool _ignoresHangup() {
+  final ignore = Pointer<Void>.fromAddress(1); // SIG_IGN
+  final before = c.signal(1, ignore);
+  c.signal(1, before);
+  return before == ignore;
 }
 
 /// SIGTSTP to the process's group (POSIX).
