@@ -7,7 +7,7 @@
 library;
 
 import 'package:twk_core/twk_core.dart'
-    show LineEncoder, PaintContext, PipelineOwner, Screen, StyleId;
+    show LineEncoder, PaintContext, PipelineOwner, RenderList, Screen, StyleId;
 
 import '../../twk.dart';
 
@@ -170,6 +170,12 @@ List<String> widgetLines(
       ..root = top;
     final height = top.getMaxIntrinsicHeight(width);
     if (height < 1) {
+      // nothing is drawn, but a list that measured no rows is told of
+      pipeline
+        ..markAllDirty()
+        ..flushLayout(width, 0);
+      _warnOfListsWithoutRows(top, onLog);
+      top.detach();
       return const [];
     }
     screen.resize(width, height);
@@ -179,6 +185,7 @@ List<String> widgetLines(
       ..flushPaint(
         PaintContext(screen.canvas, screen.surface, screen.presenter),
       );
+    _warnOfListsWithoutRows(top, onLog);
     top.detach();
     return _rows(screen, ansi: ansi, hyperlinks: hyperlinks);
   } finally {
@@ -187,6 +194,51 @@ List<String> widgetLines(
     owner
       ..buildScope()
       ..finalizeTree();
+  }
+}
+
+/// What a list that has items and was given no rows is told of: a list
+/// asks for no height of its own (it is virtual, and what it holds may be
+/// any number of rows), so a [Table], a [TreeTable] or a [ListView] shown
+/// without a bounded height has none to show.
+const noRowsWarning =
+    'A list of items was given no rows and shows none of them: inline a list '
+    'asks for no height of its own (give it one with a SizedBox).';
+
+/// Whether [root] holds a list of items that was laid out with no rows,
+/// which [noRowsWarning] tells of. Read from the render tree, so a build
+/// without asserts finds it too.
+bool hasListWithoutRows(RenderObject root) {
+  var found = false;
+  void visit(RenderObject object) {
+    if (found) {
+      return;
+    }
+    if (object is RenderList &&
+        object.itemCount > 0 &&
+        object.width > 0 &&
+        object.height == 0) {
+      found = true;
+      return;
+    }
+    object.visitChildren(visit);
+  }
+
+  visit(root);
+  return found;
+}
+
+void _warnOfListsWithoutRows(
+  RenderObject root,
+  void Function(LogRecord record)? onLog,
+) {
+  if (!hasListWithoutRows(root)) {
+    return;
+  }
+  if (onLog == null) {
+    log(noRowsWarning, level: LogLevel.warning);
+  } else {
+    onLog(LogRecord(DateTime.now(), LogLevel.warning, noRowsWarning));
   }
 }
 

@@ -9,6 +9,7 @@ import 'dart:async';
 
 import '../../twk.dart';
 
+import 'lines.dart';
 import 'terminal.dart';
 
 /// One inline twk app on a [CliTerminal] for the life of a [Cli]: stdin is
@@ -39,17 +40,25 @@ import 'terminal.dart';
 /// [Cli.progress], mounting writes no progress report to the terminal
 /// (OSC 9;4).
 final class CliSession {
-  CliSession._(this._binding, this._theme, this._onInterrupt);
+  CliSession._(
+    this._binding,
+    this._theme,
+    this._onInterrupt,
+    this._onWarning,
+  );
 
   /// Opens the session on [terminal]'s inline terminal
   /// ([CliTerminal.openInline]), the app's frames timed by its clock;
   /// widgets are shown under [theme] where there is one, else under the
   /// terminal's colors. [onInterrupt] is called once the app has ended on
-  /// a Ctrl+C nothing live took.
+  /// a Ctrl+C nothing live took. [onWarning] gets what the session warns
+  /// of (a list committed with items and no rows); without one it goes to
+  /// `log` as a warning.
   static Future<CliSession> open(
     CliTerminal terminal, {
     ThemeData? theme,
     void Function()? onInterrupt,
+    void Function(String message)? onWarning,
   }) async {
     final clock = terminal.clock;
     final backend = await clock.run(terminal.openInline);
@@ -60,7 +69,7 @@ final class CliSession {
         clock: clock.stopwatch(),
       ),
     );
-    final session = CliSession._(binding, theme, onInterrupt);
+    final session = CliSession._(binding, theme, onInterrupt, onWarning);
     session._running = clock.run(() => binding.run(_Host(session)));
     unawaited(session._watch());
     return session;
@@ -69,6 +78,7 @@ final class CliSession {
   final AppBinding _binding;
   final ThemeData? _theme;
   final void Function()? _onInterrupt;
+  final void Function(String message)? _onWarning;
   late final Future<void> _running;
 
   final _changes = _Changes();
@@ -131,6 +141,14 @@ final class CliSession {
       _changed();
     }
     return live;
+  }
+
+  void _warn(String message) {
+    if (_onWarning case final onWarning?) {
+      onWarning(message);
+    } else {
+      log(message, level: LogLevel.warning);
+    }
   }
 
   void _changed() {
@@ -312,5 +330,79 @@ final class _WrittenState extends State<_Written> {
   }
 
   @override
-  Widget build(BuildContext context) => widget.commit.widget;
+  Widget build(BuildContext context) => _WarnOfNoRows(
+    onNoRows: () => widget.session._warn(noRowsWarning),
+    child: widget.commit.widget,
+  );
+}
+
+/// [child], as big as it is, which says once when a list of items in it was
+/// laid out with no rows (a commit is as tall as its max intrinsic height,
+/// which a list answers 0 to).
+final class _WarnOfNoRows extends SingleChildRenderObjectWidget {
+  const _WarnOfNoRows({required this.onNoRows, super.child});
+
+  final void Function() onNoRows;
+
+  @override
+  SingleChildRenderObjectElement createElement() => OneChildElement(this);
+
+  @override
+  _RenderWarnOfNoRows createRenderObject(BuildContext context) =>
+      _RenderWarnOfNoRows(onNoRows);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderWarnOfNoRows renderObject,
+  ) => renderObject.onNoRows = onNoRows;
+}
+
+final class _RenderWarnOfNoRows extends RenderObject
+    with RenderObjectWithChildMixin {
+  _RenderWarnOfNoRows(this.onNoRows);
+
+  void Function() onNoRows;
+  var _told = false;
+
+  @override
+  void performLayout(BoxConstraints c) {
+    final child = this.child;
+    if (child == null) {
+      width = c.minW;
+      height = c.minH;
+      return;
+    }
+    child.layout(c, parentUsesSize: true);
+    width = child.width;
+    height = child.height;
+    if (!_told && hasListWithoutRows(child)) {
+      _told = true;
+      onNoRows();
+    }
+  }
+
+  @override
+  int computeMinIntrinsicWidth(int height) =>
+      child?.getMinIntrinsicWidth(height) ?? 0;
+
+  @override
+  int computeMaxIntrinsicWidth(int height) =>
+      child?.getMaxIntrinsicWidth(height) ?? 0;
+
+  @override
+  int computeMinIntrinsicHeight(int width) =>
+      child?.getMinIntrinsicHeight(width) ?? 0;
+
+  @override
+  int computeMaxIntrinsicHeight(int width) =>
+      child?.getMaxIntrinsicHeight(width) ?? 0;
+
+  @override
+  void paint(PaintContext ctx) {
+    final child = this.child;
+    if (child != null) {
+      paintChild(ctx, child);
+    }
+  }
 }
