@@ -2155,10 +2155,15 @@ final class Presenter {
     return _nearPen(s);
   }
 
-  /// The style nearest the SGR state a blank of style [s] looks the same in.
+  /// The style nearest the SGR state a blank of style [s] looks the same in;
+  /// [s] where the state has to change for nothing ([_setStyleFor]).
   @pragma('vm:prefer-inline')
-  int _nearPen(int s) =>
-      _sgr >= 0 ? styles.nearBlank(StyleId(_sgr), StyleId(s)).value : s;
+  int _nearPen(int s) {
+    final cur = _sgr;
+    return cur < 0 || _blankOf(cur) == _blankOf(s)
+        ? s
+        : styles.nearBlank(StyleId(cur), StyleId(s)).value;
+  }
 
   @pragma('vm:prefer-inline')
   void _setStyle(int s) {
