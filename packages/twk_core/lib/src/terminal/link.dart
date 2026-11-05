@@ -252,6 +252,13 @@ final class TerminalDeclaration {
   String toString() => 'TerminalDeclaration(${toJson()})';
 }
 
+/// A [TerminalLink] that says how much its terminal took, so that one that
+/// is slow is told from one that reads nothing.
+abstract interface class DrainingLink implements TerminalLink {
+  /// How many bytes the terminal took so far; null where it can't be told.
+  int? get taken;
+}
+
 /// A [TerminalLink] whose terminal declares what it does
 /// ([TerminalDeclaration]), which `Terminal` takes over its guess: the link
 /// to a `twk shell` (`SocketLink`, the welcome's `declares`), and the

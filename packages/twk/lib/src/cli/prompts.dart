@@ -382,9 +382,11 @@ final class Prompter {
     final session = await cli.session();
     final answer = PromptAnswer<T>(question);
     final live = session.mount(build(answer));
-    session.binding.addPostFrameCallback(
-      (_) => cli.terminal.promptShown(question),
-    );
+    session.binding.addPostFrameCallback((_) {
+      if (!answer.isDone) {
+        cli.terminal.promptShown(question);
+      }
+    });
     unawaited(
       session.done.then(
         (_) => answer.cancel(PromptCancelReason.interrupt),

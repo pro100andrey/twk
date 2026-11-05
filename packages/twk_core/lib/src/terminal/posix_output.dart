@@ -49,6 +49,10 @@ final class PosixOutput {
   /// How much of the first of [_pending] is written.
   var _offset = 0;
 
+  /// How many bytes the terminal took so far.
+  int get taken => _taken;
+  var _taken = 0;
+
   /// Whether the terminal took anything in this [_drain].
   var _took = false;
 
@@ -165,6 +169,7 @@ final class PosixOutput {
         return false;
       }
       _offset += written;
+      _taken += written;
       _took = true;
     }
     _pending.removeFirst();

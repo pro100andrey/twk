@@ -586,6 +586,39 @@ void main() {
     expect('$out', contains('[false,true,false,true,false,true]'));
   }, testOn: 'linux');
 
+  test('a SIGHUP the process was started ignoring stays ignored', () async {
+    final app = await compiledProgram(
+      'test/pty/stalled_app.dart',
+      packages: (await Isolate.packageConfig)!.toFilePath(),
+      cache: '.dart_tool/twk_test/programs',
+    );
+    final dir = Directory.systemTemp.createTempSync('nohup');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final writing = File('${dir.path}/writing');
+    final pty = Pty.start('/bin/sh', [
+      '-c',
+      r'trap "" HUP; exec "$0" "$@"',
+      Platform.resolvedExecutable,
+      app,
+      writing.path,
+    ]);
+    addTearDown(pty.close);
+    final opened = Completer<void>();
+    final reading = pty.output.listen((bytes) {
+      if (!opened.isCompleted && latin1.decode(bytes).contains('opened')) {
+        opened.complete();
+      }
+    });
+    addTearDown(reading.cancel);
+    await waitFor(opened.future, 'the terminal to open');
+    pty
+      ..kill(ProcessSignal.sighup)
+      ..write(const [0x67]);
+    await waitUntil(writing.existsSync, 'the app to take the key after it');
+    pty.kill();
+    expect(await waitFor(pty.exitCode, 'the end of the app'), 143);
+  });
+
   group('an app on a terminal that stops reading', () {
     late String app;
     setUpAll(

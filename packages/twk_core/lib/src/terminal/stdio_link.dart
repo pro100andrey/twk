@@ -12,7 +12,7 @@ import 'windows_console.dart';
 import 'windows_input.dart';
 
 /// The process's own terminal: stdin and stdout.
-final class StdioLink implements TerminalLink {
+final class StdioLink implements DrainingLink {
   WindowsConsole? _windowsConsole;
   PosixTty? _tty;
   var _echo = true;
@@ -23,6 +23,9 @@ final class StdioLink implements TerminalLink {
   late final PosixOutput? _output = !Platform.isWindows && stdout.hasTerminal
       ? PosixOutput.open()
       : null;
+
+  @override
+  int? get taken => _output?.taken;
 
   @override
   Map<String, String> get environment => Platform.environment;

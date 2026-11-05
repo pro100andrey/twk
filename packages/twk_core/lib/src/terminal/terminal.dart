@@ -2112,13 +2112,38 @@ final class Terminal
   @override
   Future<void> flush() => _out.flush();
 
-  /// How long [close] waits for the terminal to take what is written.
+  /// How long [close] waits for a terminal that takes nothing.
   static const _closeFlushLimit = Duration(seconds: 1);
+
+  /// How long it waits for one that can't say what it took.
+  static const _closeBlindLimit = Duration(seconds: 5);
+
+  /// Flushes, for as long as the terminal takes what is written: one that
+  /// reads nothing is not to keep the process, nor its own mode, and what it
+  /// never took is lost with it.
+  Future<void> _flushForClose() async {
+    final link = _link;
+    var taken = link is DrainingLink ? link.taken : null;
+    if (link is! DrainingLink || taken == null) {
+      await flush().timeout(_closeBlindLimit, onTimeout: () {});
+      return;
+    }
+    var done = false;
+    final flushed = flush().whenComplete(() => done = true)..ignore();
+    while (!done) {
+      await flushed.timeout(_closeFlushLimit, onTimeout: () {});
+      if (link.taken == taken) {
+        return;
+      }
+      taken = link.taken;
+    }
+  }
 
   /// Restores the terminal. Safe to call more than once. The console modes
   /// are restored even when writing the exit sequence fails (stdout gone);
-  /// that error is rethrown afterwards. A terminal that reads nothing gets
-  /// a second to take the exit sequence, and the modes are restored then.
+  /// that error is rethrown afterwards. A terminal that took nothing for a
+  /// second is left without the rest of the exit sequence, the modes
+  /// restored then; one that takes it slowly gets all of it.
   @override
   Future<void> close() async {
     if (_closed) {
@@ -2145,9 +2170,7 @@ final class Terminal
         _writeString(popTitleSequence);
       }
       _link.restoreWith(const []);
-      // a terminal that reads nothing is not to keep the process, nor its
-      // own mode: what it never took is lost with it
-      await flush().timeout(_closeFlushLimit, onTimeout: () {});
+      await _flushForClose();
     } finally {
       if (!info.plain) {
         _link.restore();

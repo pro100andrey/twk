@@ -56,19 +56,48 @@ void main() {
   late FakeClock clock;
   setUp(() => clock = FakeClock());
 
-  test('close waits a second for a terminal that reads nothing, and puts '
-      'the modes back all the same', () async {
-    final link = FakeLink()..type(_answers);
-    final term = await clock.open(link, _options);
-    link.stalled = Completer<void>().future;
-    var closed = false;
-    unawaited(clock.run(term.close).then((_) => closed = true));
-    await clock.elapse(const Duration(milliseconds: 900));
-    expect(link.raw, isTrue);
-    expect(closed, isFalse);
-    await clock.elapse(const Duration(milliseconds: 200));
-    expect(link.raw, isFalse);
-    expect(closed, isTrue);
+  group('close, a terminal that does not end its flush', () {
+    Future<(FakeLink, void Function())> closing({int? taken}) async {
+      final link = FakeLink()..type(_answers);
+      final term = await clock.open(link, _options);
+      link
+        ..taken = taken
+        ..stalled = Completer<void>().future;
+      var closed = false;
+      unawaited(clock.run(term.close).then((_) => closed = true));
+      await clock.flushMicrotasks();
+      return (link, () => expect(closed, isTrue));
+    }
+
+    test('that took nothing for a second has its modes put back', () async {
+      final (link, closed) = await closing(taken: 0);
+      await clock.elapse(const Duration(milliseconds: 900));
+      expect(link.raw, isTrue);
+      await clock.elapse(const Duration(milliseconds: 200));
+      expect(link.raw, isFalse);
+      closed();
+    });
+
+    test('that takes output gets as long as it takes', () async {
+      final (link, closed) = await closing(taken: 0);
+      for (var i = 1; i <= 8; i++) {
+        link.taken = i;
+        await clock.elapse(const Duration(seconds: 1));
+        expect(link.raw, isTrue, reason: 'second $i');
+      }
+      await clock.elapse(const Duration(milliseconds: 1100));
+      expect(link.raw, isFalse);
+      closed();
+    });
+
+    test('that can not say what it took gets five seconds', () async {
+      final (link, closed) = await closing();
+      await clock.elapse(const Duration(milliseconds: 4900));
+      expect(link.raw, isTrue);
+      await clock.elapse(const Duration(milliseconds: 200));
+      expect(link.raw, isFalse);
+      closed();
+    });
   });
 
   test('the probe is answered, keys and resizes come in, and close puts '
