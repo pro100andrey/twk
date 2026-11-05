@@ -379,6 +379,55 @@ void main() {
       await cli.close();
     });
 
+    test('mounts several widgets one below another, and a new one opens '
+        'after the program closed it', () async {
+      final clock = FakeClock();
+      final terminal = FakeCliTerminal.interactive(
+        width: 30,
+        height: 6,
+        fakeClock: clock,
+      );
+      final cli = Cli(terminal: terminal);
+      final session = await _settle(clock, cli.session());
+      final first = session.mount(const Text('first'));
+      final second = session.mount(const Text('second'));
+      cli.info('logged');
+      await clock.elapse(_frame);
+      expect(terminal.screenLines, ['logged', 'first', 'second']);
+      first.remove();
+      await clock.elapse(_frame);
+      expect(terminal.screenLines, ['logged', 'second']);
+      expect(second.isMounted, isTrue);
+
+      await _settle(clock, session.close());
+      expect(session.isOpen, isFalse);
+      // it takes nothing now, and says nothing
+      expect(session.mount(const Text('late')).isMounted, isFalse);
+      await _settle(clock, session.commit(const Text('late')));
+
+      final again = await _settle(clock, cli.session());
+      expect(again, isNot(same(session)));
+      expect(again.isOpen, isTrue);
+      expect(again.mount(const Text('new')).isMounted, isTrue);
+      await _settle(clock, cli.close());
+    });
+
+    test('is refused outside the interactive mode and once the console is '
+        'closed', () async {
+      expect(
+        Cli(terminal: FakeCliTerminal.plain()).session,
+        throwsStateError,
+      );
+      final clock = FakeClock();
+      final terminal = FakeCliTerminal.interactive(fakeClock: clock);
+      final cli = Cli(terminal: terminal);
+      final session = await _settle(clock, cli.session());
+      await _settle(clock, cli.close());
+      expect(session.isOpen, isFalse);
+      expect(session.mount(const Text('late')).isMounted, isFalse);
+      expect(cli.session, throwsStateError);
+    });
+
     test('runs on the fake clock when given one', () async {
       final clock = FakeClock();
       final terminal = FakeCliTerminal.interactive(

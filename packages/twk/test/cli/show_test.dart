@@ -12,6 +12,26 @@ const _panel = Box(
 );
 
 void main() {
+  test(
+    'a live session warns of a list given no rows, as a pipe does',
+    () async {
+      final clock = FakeClock();
+      final terminal = FakeCliTerminal.interactive(
+        width: 20,
+        height: 6,
+        fakeClock: clock,
+      );
+      final cli = Cli(terminal: terminal);
+      await _settle(
+        clock,
+        cli.show(ListView(children: const [Text('a'), Text('b')])),
+      );
+      await _settle(clock, cli.close());
+      // above the live region, where a live session writes what is logged
+      expect(terminal.screenLines.join(), contains('no rows'));
+    },
+  );
+
   group('show', () {
     test('writes the text of a widget where nobody answers', () async {
       final terminal = FakeCliTerminal(columns: 20);
@@ -23,6 +43,19 @@ void main() {
 ╰──────────────────╯
 ''');
       expect(terminal.opened, 0);
+    });
+
+    test('shows nothing of a list without a bounded height', () async {
+      const rows = [Text('a'), Text('b')];
+      final unbounded = FakeCliTerminal(columns: 20);
+      await Cli(terminal: unbounded).show(ListView(children: rows));
+      expect(unbounded.out.toString(), '');
+
+      final bounded = FakeCliTerminal(columns: 20);
+      await Cli(
+        terminal: bounded,
+      ).show(SizedBox(height: 2, child: ListView(children: rows)));
+      expect(bounded.out.toString(), 'a\nb\n');
     });
 
     test('lays it out at the terminal width, or the one given', () async {
@@ -109,6 +142,88 @@ void main() {
       expect(printed, isEmpty);
       expect(terminal.out.toString(), '    a\n    b\n');
       expect(terminal.err.toString(), isEmpty);
+    });
+
+    group('a list with items given no rows', () {
+      const columns = <TableColumn<String>>[
+        TableColumn(title: 'n', cell: TableCell.new),
+      ];
+      final widgets = <String, Widget Function()>{
+        'Table': () => const Table<String>(rows: ['a', 'b'], columns: columns),
+        'TreeTable': () => TreeTable<String>(
+          roots: const ['a', 'b'],
+          children: (_) => const [],
+          columns: columns,
+        ),
+        'ListView': () => ListView(children: const [Text('a'), Text('b')]),
+      };
+
+      for (final MapEntry(:key, :value) in widgets.entries) {
+        test('$key says so as a warning, in a build without asserts', () async {
+          final terminal = FakeCliTerminal(columns: 20);
+          final printed = await _printed(
+            () => Cli(terminal: terminal).show(value()),
+          );
+          expect(printed, isEmpty);
+          expect(
+            terminal.err.toString(),
+            allOf(contains('no rows'), contains('SizedBox')),
+          );
+        });
+
+        test('$key given a height says nothing', () async {
+          final terminal = FakeCliTerminal(columns: 20);
+          await Cli(terminal: terminal)
+              .show(SizedBox(height: 4, child: value()));
+          expect(terminal.err.toString(), isEmpty);
+        });
+
+        test('$key committed to a session warns through it', () async {
+          final clock = FakeClock();
+          final terminal = FakeCliTerminal.interactive(
+            width: 20,
+            height: 6,
+            fakeClock: clock,
+          );
+          final warned = <String>[];
+          final session = await _settle(
+            clock,
+            CliSession.open(terminal, onWarning: warned.add),
+          );
+          await _settle(clock, session.commit(value()));
+          expect(warned, hasLength(1));
+          expect(
+            warned.single,
+            allOf(contains('no rows'), contains('SizedBox')),
+          );
+
+          warned.clear();
+          await _settle(
+            clock,
+            session.commit(SizedBox(height: 4, child: value())),
+          );
+          expect(warned, isEmpty);
+          await _settle(clock, session.close());
+        });
+      }
+
+      test('a list with no items is not a warning', () async {
+        final terminal = FakeCliTerminal(columns: 20);
+        await Cli(terminal: terminal).show(ListView());
+        await Cli(
+          terminal: terminal,
+        ).show(const Table<String>(rows: [], columns: columns));
+        expect(terminal.err.toString(), isEmpty);
+      });
+
+      test('and not under quiet', () async {
+        final terminal = FakeCliTerminal(columns: 20);
+        await Cli(
+          terminal: terminal,
+          level: LogLevel.error,
+        ).show(ListView(children: const [Text('a')]));
+        expect(terminal.err.toString(), isEmpty);
+      });
     });
 
     test('commits it above what is live in the interactive mode', () async {

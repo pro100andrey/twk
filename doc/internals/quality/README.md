@@ -423,7 +423,7 @@ enough, and on a loaded machine the guess is wrong.
 
 ## Renames and moves
 
-A public member of a released package renamed or moved comes, in the
+From 1.0 on, a public member of a package renamed or moved comes, in the
 same commit, with an entry in its package's `lib/fix_data.yaml`
 (data-driven fixes, https://dart.dev/go/data-driven-fixes, which
 `dart fix --apply` and the IDE's quick fixes read) and a case in the
@@ -436,11 +436,11 @@ excludes `test_fixes/**`, whose inputs are errors on purpose;
 own, where dart fix still sees them. An entry's `uris` are the public
 libraries that export the element.
 
-A package that is not released has no fix data: no code is written
-against it. None is released yet, so no package has a `fix_data.yaml` or a
-`test_fixes/`, and xtask.yaml has no task for them: the first entry brings
-one into `handover` and `ci`, a compare over the packages that have a
-`test_fixes/` (`packages/*/test_fixes/analysis_options.yaml`).
+Before 1.0 the API changes as it needs to, what breaks said under Breaking
+in the changelog, and there is no fix data: no package has a `fix_data.yaml`
+or a `test_fixes/`, and xtask.yaml has no task for them. The first entry
+brings one into `handover` and `ci`, a compare over the packages that have
+a `test_fixes/` (`packages/*/test_fixes/analysis_options.yaml`).
 
 An entry can say: a class, function, field, getter or method renamed
 (`rename`); a named parameter renamed (`renameParameter`); a parameter

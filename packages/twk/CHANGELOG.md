@@ -16,9 +16,23 @@ Breaking:
   range or a `Select`'s empty row reaches what wraps them.
 - `ThemeData.handPointer`, `HandPointer` and the `pointerShapes` of `Window`,
   `SplitView`, `Table`, `TreeTable` and `Draggable` are gone, see below.
+- `runApp` while a `Cli` session has the terminal throws a `TerminalException`,
+  where it drew and never got a key: `Cli.suspend` around it, or `Cli.close` first
+  ([twk_core's changelog](../twk_core/CHANGELOG.md)).
 
 Changed:
 
+- A row `SelectionList.itemEnabled` refuses, in a multiple list, has a blank for
+  its mark, where it drew a muted `[ ]`: such a row can be a group's header. One
+  that is selected, an option locked on, keeps its `[x]`.
+- `Cli.session()` is public: a program mounts a live widget, a `TaskList` with its
+  steps, below what it logs. A session a program closed is forgotten, the next one
+  asked for a new one.
+- `Cli.show` of a `Table`, `TreeTable` or `ListView` with items and no height for
+  them warns, in a pipe and in a live session, in a release build too, where the
+  rows went missing without a word.
+- The docs of `Cli` say what `Cli.suspend` is for around `runApp`, what Ctrl+C
+  reaches, and that what scrolls needs a height in `Cli.show`.
 - A row a `ListView` kept, rebuilt as it comes back, can be marked again before
   the next build, where that failed an assert and ended the app with asserts on.
 - `GestureDetector.onTapDown` is told only of a press the detector takes part in,

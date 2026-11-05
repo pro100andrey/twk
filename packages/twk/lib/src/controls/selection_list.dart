@@ -4,6 +4,7 @@
 library;
 
 import 'dart:collection';
+import 'dart:math' as math;
 
 import 'package:twk_core/twk_core.dart' show Attr, PointerShape, TextWrap;
 
@@ -15,6 +16,7 @@ import '../layout/box.dart';
 import '../layout/flex.dart';
 import '../scroll/list_view.dart';
 import '../style/style.dart';
+import '../text/hit_row.dart' show segmenterOf;
 import '../text/widgets.dart';
 import 'pressable.dart';
 
@@ -150,10 +152,13 @@ final class SelectionController<K> extends ChangeNotifier {
 /// primary color in bold. The bar shows on the cursor's row while the list
 /// has the focus, in [ThemeData.primary], and on the item selected in a
 /// single selection while it has not, in [ThemeData.muted]. An item for
-/// which [itemEnabled] is false is passed by and cannot be clicked;
-/// disabled, the list takes neither the focus, which Tab passes by, nor
-/// the mouse. Without a [controller], the list has a single selection of
-/// its own. It takes all the room it is given, which must be bounded.
+/// which [itemEnabled] is false is passed by and cannot be clicked; in a
+/// multiple selection a blank takes the place of its mark, which makes it
+/// a group's header, unless it is selected, an option locked on keeping
+/// its `[x]`. Disabled, the list takes neither the focus, which Tab passes
+/// by, nor the mouse, and its items keep their marks. Without a
+/// [controller], the list has a single selection of its own. It takes all
+/// the room it is given, which must be bounded.
 ///
 /// The styles, each merged over those before it and the theme's text,
 /// under the items' own: [style] for an item; [selectedStyle] for one
@@ -230,7 +235,8 @@ final class SelectionList<K> extends StatefulWidget {
   // ignore: unsafe_variance
   final void Function(K key)? onSubmitted;
 
-  /// Whether an item, by its index, can be selected; null for all.
+  /// Whether an item, by its index, can be selected; null for all. In a
+  /// multiple selection, one that cannot and is not selected has no mark.
   final bool Function(int index)? itemEnabled;
 
   /// Whether the list takes the focus and the mouse.
@@ -556,6 +562,7 @@ final class _SelectionListState<K> extends State<SelectionList<K>> {
       }
     }
     final boxes = CheckboxMarks.of(context);
+    final segmenter = segmenterOf(context);
     final column = widget.bar;
     final Widget row;
     if (!column && !multiple) {
@@ -575,12 +582,21 @@ final class _SelectionListState<K> extends State<SelectionList<K>> {
           if (multiple)
             Text.rich(
               [
-                ...checkboxSpans(
-                  boxes,
-                  selected,
-                  brackets,
-                  enabled ? markStyle(theme) : _plain,
-                ),
+                if (_enabled(index) || selected)
+                  ...checkboxSpans(
+                    boxes,
+                    selected,
+                    brackets,
+                    enabled ? markStyle(theme) : _plain,
+                  )
+                else
+                  Span(
+                    ' ' *
+                        math.max(
+                          segmenter.width(boxes.on),
+                          segmenter.width(boxes.off),
+                        ),
+                  ),
                 const Span(' '),
               ],
               wrap: TextWrap.none,

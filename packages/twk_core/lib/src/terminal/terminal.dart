@@ -656,6 +656,11 @@ Future<Terminal> openOwnOrShell(
 ]) async {
   TerminalException? refused;
   if (own != null) {
+    // not caught below: a refusal is no terminal that cannot be set up,
+    // and no shell takes its place
+    if (isOwnTerminal(own)) {
+      Terminal._refuseIfTaken('opened');
+    }
     try {
       return await Terminal._open(own, options);
     } on TerminalException catch (e) {
@@ -937,6 +942,12 @@ final class Terminal
   /// it happened (see [TraceWriter]); a path that can't be written fails
   /// here, before raw mode.
   ///
+  /// The process has one terminal: with another open on it (not suspended,
+  /// [suspend]) this throws a [TerminalException], also in a release build,
+  /// before anything is done to the tty; [resume] does the same where
+  /// another has it by then. Terminals over a link ([overLink],
+  /// [connect]) are independent of it and of each other.
+  ///
   /// On the web, which has neither, throws [UnsupportedError]: a terminal
   /// there is one over a link ([overLink]).
   ///
@@ -1018,6 +1029,9 @@ final class Terminal
     bool ofProcess = true,
     bool plain = false,
   }) async {
+    // fd 0 and the tty are one for the process: a second reader of them
+    // would take keys from the first and the first would not know
+    final stdio = !plain && isOwnTerminal(link);
     // The process's signals are watched before raw mode is entered, but
     // not over a program's own link. Until the terminal exists, Ctrl+C
     // goes to the probe's early input and SIGTERM only restores the
@@ -1105,6 +1119,9 @@ final class Terminal
         inputTrace,
         outputTrace,
       );
+      if (stdio) {
+        _ofStdio = term;
+      }
       if (plain) {
         return term
           .._adoptInput(early)
@@ -1156,6 +1173,26 @@ final class Terminal
     ),
     terminate,
   );
+
+  /// The terminal open on the process's own stdin and stdout, not plain;
+  /// null when there is none. Terminals over any other link are not
+  /// counted: each has a link of its own.
+  static Terminal? _ofStdio;
+
+  /// Throws a [TerminalException] where another terminal holds the
+  /// process's stdio (open, and not suspended), as [what] would be a second
+  /// reader of it: raw mode would be entered twice (and left on), and keys
+  /// go to either one.
+  static void _refuseIfTaken(String what) {
+    final other = _ofStdio;
+    if (other != null && !other._closed && !other._suspended) {
+      throw TerminalException(
+        "the process's terminal cannot be $what while another terminal "
+        'has it: suspend() that one first (and resume() it after), or '
+        'close() it (Cli: Cli.suspend, or Cli.close)',
+      );
+    }
+  }
 
   // ------------------------------------------------------------- probing --
 
@@ -1972,10 +2009,16 @@ final class Terminal
     if (_closed || !_suspended) {
       return;
     }
+    if (!info.plain && isOwnTerminal(_link)) {
+      _refuseIfTaken('taken back');
+    }
     if (!info.plain) {
       _link.enterRaw();
     }
     _suspended = false;
+    if (!info.plain && isOwnTerminal(_link)) {
+      _ofStdio = this;
+    }
     _enterModes();
     // Where the cursor is (CSI 6 n) matters to the inline region, and the
     // answer is input: dart:io notes how much input is waiting also while
@@ -2153,6 +2196,9 @@ final class Terminal
       return;
     }
     _closed = true;
+    if (identical(_ofStdio, this)) {
+      _ofStdio = null;
+    }
     _escTimer?.cancel();
     _pasteTimer?.cancel();
     _lateProbeTimer?.cancel();
