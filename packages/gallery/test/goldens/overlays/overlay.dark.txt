@@ -5,7 +5,7 @@ text
 │   ⌕ Filter             /      Overlay                                                                         1 of 12  │
 │                               A layer over the app that dialogs, toasts, menus and tooltips go in; an entry of its     │
 │     Form, FormField           own goes in it too.                                                                      │
-│     TabBar, TabView                                                                                                    │
+│     TabBar, TabBarView                                                                                                 │
 │     KeyHintsBar               Preview   Code                                                                           │
 │     StatusMessage, Badge   ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
 │     Callout                                                                              │                             │
@@ -42,7 +42,7 @@ styles
 │aaiCiCCCCCCiiiiiiiiiiiiiDiaahhhlllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhEhEEhEEhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnhnnnnnhnnnnhnnnhnnnhnnnnhnnnnnnnnhnnnnnnnhnnnnnhnnnhnnnnnnnnhnnhnnnhnnhnnnnnhnnhnnnhhhhh│
 │aaaaaoooooaoooooooooaaaaaaaahhhnnnhnnnnhnnhnnhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaoooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaooooooooooaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooaoooooaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
 │aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

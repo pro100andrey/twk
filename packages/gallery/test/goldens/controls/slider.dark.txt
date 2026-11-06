@@ -19,7 +19,7 @@ text
 │     DatePicker            ▐                                                              │                             │
 │     FilePicker            ▐    ·   ·   · ┌                                ┐    ·   ·     │                             │
 │     Form, FormField       ▐                ──────────────▌▌──────────────                │                             │
-│     TabBar, TabView       ▐    ·   ·   ·                                       ·   ·     │                             │
+│     TabBar, TabBarView    ▐    ·   ·   ·                                       ·   ·     │                             │
 │     KeyHintsBar                            volume: 50%                                   │                             │
 │     StatusMessage, Badge       ·   ·   · └                                ┘    ·   ·     │                             │
 │     Callout                                                         30 × 3               │                             │
@@ -56,7 +56,7 @@ styles
 │aaaaaooooooooooaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooaaaaaaaaaaaadhhhhphhhphhhphphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooaoooooooooaaaaaaadhhhhhhhhhhhhhhhhwwwwwwwwwwwwwwxwnnnnnnnnnnnnnnhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaoooooooaaaaaaadhhhhphhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaooooooooooaaaadhhhhphhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhnnnnnnnhwwwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooaoooooaaahhhhphhhphhhphphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhBBhBhBhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

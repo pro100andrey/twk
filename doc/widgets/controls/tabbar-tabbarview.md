@@ -1,19 +1,19 @@
 ---
-title: "TabBar, TabView"
+title: "TabBar, TabBarView"
 group: "Controls"
 package: "twk"
 about: "Tabs to pick a view by: Left and Right, or a click."
-image: "packages/gallery/doc/shots/controls/tabbar-tabview.dark.svg"
-image_light: "packages/gallery/doc/shots/controls/tabbar-tabview.light.svg"
-route: "#/controls/tabbar-tabview"
+image: "packages/gallery/doc/shots/controls/tabbar-tabbarview.dark.svg"
+image_light: "packages/gallery/doc/shots/controls/tabbar-tabbarview.light.svg"
+route: "#/controls/tabbar-tabbarview"
 ---
-# TabBar, TabView
+# TabBar, TabBarView
 
 Tabs to pick a view by: Left and Right, or a click.
 
 | Dark | Light |
 | --- | --- |
-| ![TabBar, TabView, dark](../../../packages/gallery/doc/shots/controls/tabbar-tabview.dark.svg) | ![TabBar, TabView, light](../../../packages/gallery/doc/shots/controls/tabbar-tabview.light.svg) |
+| ![TabBar, TabBarView, dark](../../../packages/gallery/doc/shots/controls/tabbar-tabbarview.dark.svg) | ![TabBar, TabBarView, light](../../../packages/gallery/doc/shots/controls/tabbar-tabbarview.light.svg) |
 
 ## Code
 
@@ -107,8 +107,8 @@ What the gallery lets you change, and what each starts at:
 
 ## More
 
-- API: [`TabBar`](https://pub.dev/documentation/twk/latest/twk/TabBar-class.html).
+- API: [`TabBar`](https://pub.dev/documentation/twk/latest/twk/TabBar-class.html), [`TabBarView`](https://pub.dev/documentation/twk/latest/twk/TabBarView-class.html).
 - Also in Controls: [Button](button.md), [Pressable](pressable.md), [Checkbox, Switch](checkbox-switch.md), [RadioGroup](radiogroup.md), [SegmentedButton](segmentedbutton.md), [Chip, ChipList](chip-chiplist.md), [ValueStepper](valuestepper.md), [SelectionList](selectionlist.md), [Select, MultiSelect](select-multiselect.md), [ConfirmInput](confirminput.md), [Slider](slider.md), [NumberInput](numberinput.md), [DatePicker](datepicker.md), [FilePicker](filepicker.md), [Form, FormField](form-formfield.md), [KeyHintsBar](keyhintsbar.md), [StatusMessage, Badge](statusmessage-badge.md), [Callout](callout.md), [Hyperlink](hyperlink.md), [ListTile](listtile.md), [StatusBar](statusbar.md).
 - Live in the gallery:
-  `dart run packages/gallery/bin/gallery.dart --route='#/controls/tabbar-tabview'`.
+  `dart run packages/gallery/bin/gallery.dart --route='#/controls/tabbar-tabbarview'`.
 - [Controls](../controls.md) · [All groups](../README.md)

@@ -12,7 +12,7 @@ text
 │     DatePicker           ▎example/                                             │
 │ ▎   FilePicker            lib/                                                 │
 │     Form, FormFie…  ▐     test/                                                │
-│     TabBar, TabVi…  ▐                                                          │
+│     TabBar, TabBa…  ▐                                                          │
 │     KeyHintsBar                                                                │
 │     StatusMessage…        Dart      ▾ [ ] hidden                      Open     │
 │     Callout                                                                    │

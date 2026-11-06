@@ -17,7 +17,7 @@ text
 │ ▎   DatePicker                                                                           │   monday  sunday            │
 │     FilePicker            ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     Form, FormField       ▐                                                              │  popup look                 │
-│     TabBar, TabView       ▐    ·   ·   ┌                                    ┐  ·   ·     │   raised  bordered          │
+│     TabBar, TabBarView    ▐    ·   ·   ┌                                    ┐  ·   ·     │   raised  bordered          │
 │     KeyHintsBar           ▐              yyyy-mm-dd           ▾   Calendar               │                             │
 │     StatusMessage, Badge  ▐    ·   ·                                           ·   ·     │                             │
 │     Callout                              picked: nothing                                 │                             │
@@ -54,7 +54,7 @@ styles
 │auvvvwwwwwwwwwwvvvvvvvvvvvvahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhvwwwwwwvixxxxxxihhhhhhhhhhh│
 │aaaaaooooooooooaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooaoooooooooaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnhnnnnhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaoooooooaaaaaaadhhhhphhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhphhhphhhhhphhvwwwwwwvixxxxxxxxihhhhhhhhh│
+│aaaaaoooooooaooooooooooaaaadhhhhphhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhphhhphhhhhphhvwwwwwwvixxxxxxxxihhhhhhhhh│
 │aaaaaoooooooooooaaaaaaaaaaadhhhhhhhhhhhhhhxxxxxxxxxxiiiiiiiiiihnhhABBBBBBBBAhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooaoooooaadhhhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhnnnnnnnhnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

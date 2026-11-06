@@ -14,7 +14,7 @@ text
 │     DatePicker      ▐   ·   ·   ·    copies, 1 to 99 1       ▴▾     ·   ·   ·  │
 │     FilePicker      ▐                                                          │
 │     Form, FormFie…      ·   ·   ·    price, by 0.25  9.50    ▴▾     ·   ·   ·  │
-│     TabBar, TabVi…                                                             │
+│     TabBar, TabBa…                                                             │
 │     KeyHintsBar         ·   ·   ·    1 × 9.50 = 9.50                ·   ·   ·  │
 │     StatusMessage…                 └                            ┘              │
 │     Callout             ·   ·   ·   ·   ·   ·   ·   ·   · 26 × 5·   ·   ·   ·  │

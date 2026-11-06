@@ -2,7 +2,7 @@ screen 80×24, cursor hidden
 text
 │  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
 │                                                                                │
-│   ⌕ Filter       /     TabBar, TabView                         Preview   Code  │
+│   ⌕ Filter       /     TabBar, TabBarView                      Preview   Code  │
 │                        Tabs to pick a view by: Left and Right, or a click.     │
 │     ConfirmInput     ──────────────────────────────────────────────────────────│
 │     Slider                                                                     │
@@ -10,7 +10,7 @@ text
 │     DatePicker                 General  Editor  Keys                           │
 │     FilePicker          ·     ╭──────────────────────────────────────╮      ·  │
 │     Form, FormFie…            │ [x] wrap lines                       │         │
-│ ▎   TabBar, TabVi…      ·     │ [ ] show hidden files                │      ·  │
+│ ▎   TabBar, TabBa…      ·     │ [ ] show hidden files                │      ·  │
 │     KeyHintsBar     ▐         │                                      │         │
 │     StatusMessage…  ▐   ·     │                                      │      ·  │
 │     Callout                   ╰──────────────────────────────────────╯         │
@@ -27,7 +27,7 @@ text
 styles
 │aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeaxxxxxxaaaaaadaddddaa│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aahyhyyyyyyhhhhhhhzhaaggkkkkkkkgkkkkkkkggggggggggggggggggggggggglllllllgggmmmmgg│
+│aahyhyyyyyyhhhhhhhzhaaggkkkkkkkgkkkkkkkkkkgggggggggggggggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmmmmgmmgmmmmgmgmmmmgmmmgmmmmgmmmgmmmmmmgmmgmgmmmmmmggggg│
 │aaaaannnnnnnnnnnnaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│

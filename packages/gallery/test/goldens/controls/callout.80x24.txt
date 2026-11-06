@@ -7,7 +7,7 @@ text
 │     DatePicker         title on the top edge; [×] or Escape dismisses it, an…  │
 │     FilePicker       ──────────────────────────────────────────────────────────│
 │     Form, FormFie…        ┌                                              ┐     │
-│     TabBar, TabVi…      ·   ┌─ ℹ Info ─────────────────────────────[×]─┐    ·  │
+│     TabBar, TabBa…      ·   ┌─ ℹ Info ─────────────────────────────[×]─┐    ·  │
 │     KeyHintsBar             │ A newer version of twk is out: 0.2.0.    │       │
 │     StatusMessage…      ·   │                                  Update  │    ·  │
 │ ▎   Callout                 └──────────────────────────────────────────┘       │

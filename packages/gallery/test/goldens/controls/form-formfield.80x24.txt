@@ -11,7 +11,7 @@ text
 │     DatePicker                name                                             │
 │     FilePicker          ·                                                   ·  │
 │ ▎   Form, FormFie…            email                                            │
-│     TabBar, TabVi…  ▐   ·                                                   ·  │
+│     TabBar, TabBa…  ▐   ·                                                   ·  │
 │     KeyHintsBar     ▐         [ ] I accept the terms                           │
 │     StatusMessage…      ·                                                   ·  │
 │     Callout                    Submit    Reset    submitted: nothing           │

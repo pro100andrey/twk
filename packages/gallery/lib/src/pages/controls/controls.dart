@@ -28,7 +28,7 @@ part 'selectionlist.dart';
 part 'slider.dart';
 part 'statusbar.dart';
 part 'statusmessage_badge.dart';
-part 'tabbar_tabview.dart';
+part 'tabbar_tabbarview.dart';
 part 'valuestepper.dart';
 
 /// The group of the catalog these pages are in.

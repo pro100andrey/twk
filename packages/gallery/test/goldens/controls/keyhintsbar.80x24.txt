@@ -9,7 +9,7 @@ text
 │     DatePicker            ┌                                              ┐     │
 │     FilePicker          ·   a field                         [ ] autosave    ·  │
 │     Form, FormFie…                                                             │
-│     TabBar, TabVi…      ·   did: nothing                                    ·  │
+│     TabBar, TabBa…      ·   did: nothing                                    ·  │
 │ ▎   KeyHintsBar                                                                │
 │     StatusMessage…  ▐   ·   ╭──────────────────────────────────────────╮    ·  │
 │     Callout         ▐       │ ↑↓ pages   tab into the page   / filter… │       │

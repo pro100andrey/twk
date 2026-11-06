@@ -5,7 +5,7 @@ text
 │   ⌕ Filter       /     ListTile                                Preview   Code  │
 │                        A row of a list: a title over a subtitle, something     │
 │     Form, FormFie…     before and after them; tapped by a click or Enter, li…  │
-│     TabBar, TabVi…   ──────────────────────────────────────────────────────────│
+│     TabBar, TabBa…   ──────────────────────────────────────────────────────────│
 │     KeyHintsBar                 ┌                                  ┐           │
 │     StatusMessage…      ·   ·     ▤ notes.md                     ›      ·   ·  │
 │     Callout                         2 KB, an hour ago                          │

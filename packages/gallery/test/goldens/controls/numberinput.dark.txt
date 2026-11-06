@@ -18,7 +18,7 @@ text
 │     DatePicker            ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   │
 │     FilePicker            ▐                                                                                            │
 │     Form, FormField       ▐    ·   ·   ·   ·   ·   ·   ·  ┌                            ┐   ·   ·   ·   ·   ·   ·   ·   │
-│     TabBar, TabView       ▐                                 copies, 1 to 99 1       ▴▾                                 │
+│     TabBar, TabBarView    ▐                                 copies, 1 to 99 1       ▴▾                                 │
 │     KeyHintsBar           ▐    ·   ·   ·   ·   ·   ·   ·                                   ·   ·   ·   ·   ·   ·   ·   │
 │     StatusMessage, Badge                                    price, by 0.25  9.50    ▴▾                                 │
 │     Callout                    ·   ·   ·   ·   ·   ·   ·                                   ·   ·   ·   ·   ·   ·   ·   │
@@ -55,7 +55,7 @@ styles
 │aaaaaooooooooooaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhh│
 │aaaaaooooooooooaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooaoooooooooaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhphhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhphhhphhhphhhphhhphhhphhh│
-│aaaaaoooooooaoooooooaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhvvvvvvvhvhvvhvvhyiiiiiihnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaooooooooooaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhvvvvvvvhvhvvhvvhyiiiiiihnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhphhhphhhphhhphhhphhh│
 │aaaaaooooooooooooooaoooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhvvvvvvhvvhvvvvhhyyyyiiihnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhphhhphhhphhhphhhphhh│

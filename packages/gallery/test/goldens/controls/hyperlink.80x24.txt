@@ -6,7 +6,7 @@ text
 │                        Text linked to a URL, which a terminal that knows       │
 │     FilePicker         hyperlinks opens.                                       │
 │     Form, FormFie…   ──────────────────────────────────────────────────────────│
-│     TabBar, TabVi…                                                             │
+│     TabBar, TabBa…                                                             │
 │     KeyHintsBar         ·   ·   ·   ·  ┌                   ┐    ·   ·   ·   ·  │
 │     StatusMessage…                       The Dart language                     │
 │     Callout             ·   ·   ·   ·                           ·   ·   ·   ·  │

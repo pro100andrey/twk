@@ -20,7 +20,7 @@ text
 │     DatePicker            ▐                ┌                            ┐                │                             │
 │     FilePicker            ▐    ·   ·   ·     Delete 3 files?  Yes   No     ·   ·   ·     │                             │
 │     Form, FormField       ▐                                                              │                             │
-│     TabBar, TabView            ·   ·   ·     answer: nothing               ·   ·   ·     │                             │
+│     TabBar, TabBarView         ·   ·   ·     answer: nothing               ·   ·   ·     │                             │
 │     KeyHintsBar                            └                            ┘                │                             │
 │     StatusMessage, Badge       ·   ·   ·   ·   ·   ·   ·   ·   ·  26 × 3   ·   ·   ·     │                             │
 │     Callout                                                                              │                             │
@@ -57,7 +57,7 @@ styles
 │aaaaaooooooooooaaaaaaaaaaaadhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooaaaaaaaaaaaadhhhhphhhphhhphhhhhxxxxxxhxhxxxxxxhtyyythtuuthhhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooaoooooooooaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaoooooooaaaaaaaahhhhphhhphhhphhhhhnnnnnnnhnnnnnnnhhhhhhhhhhhhhhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaooooooooooaaaaahhhhphhhphhhphhhhhnnnnnnnhnnnnnnnhhhhhhhhhhhhhhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooaoooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhCChChChhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

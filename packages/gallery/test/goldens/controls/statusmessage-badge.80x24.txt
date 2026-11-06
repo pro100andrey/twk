@@ -8,7 +8,7 @@ text
 │     DatePicker       ──────────────────────────────────────────────────────────│
 │     FilePicker                                                                 │
 │     Form, FormFie…      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
-│     TabBar, TabVi…           ┌                                        ┐        │
+│     TabBar, TabBa…           ┌                                        ┐        │
 │     KeyHintsBar         ·      ℹ Saving runs in the background.         ·   ·  │
 │ ▎   StatusMessage…                                                             │
 │     Callout         ▐   ·      ℹ Disk                                   ·   ·  │

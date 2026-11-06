@@ -4,7 +4,7 @@ text
 │                                                                                                                        │
 │   ⌕ Filter             /      App                                                                             2 of 12  │
 │                               The root of an app: its theme over the Overlay its dialogs show in, over the app and     │
-│     TabBar, TabView           its own keys.                                                                            │
+│     TabBar, TabBarView        its own keys.                                                                            │
 │     KeyHintsBar                                                                                                        │
 │     StatusMessage, Badge      Preview   Code                                                                           │
 │     Callout                ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
@@ -41,7 +41,7 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaijijjjjjjiiiiiiiiiiiiikiaahhhlllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhmhmmhmmhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnhnnnnhnnhnnhnnnnhnnnhnnnnnhnnnnhnnnhnnnnnnnhnnnhnnnnnnnhnnnnhnnnhnnnnhnnnhnnnhnnnhhhhh│
-│aaaaaoooooooaoooooooaaaaaaaahhhnnnhnnnhnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaooooooooooaaaaahhhnnnhnnnhnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooaoooooaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaaaaaaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│

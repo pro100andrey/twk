@@ -1,7 +1,7 @@
-// The TabBar, TabView page.
+// The TabBar, TabBarView page.
 part of 'controls.dart';
 
-/// The TabBar, TabView page's `tabs` option.
+/// The TabBar, TabBarView page's `tabs` option.
 const _tabbarTabviewTabs = ChoiceOption<int>(
   'tabs',
   'tabs',
@@ -9,7 +9,7 @@ const _tabbarTabviewTabs = ChoiceOption<int>(
   initial: 3,
 );
 
-/// The TabBar, TabView page's `look` option.
+/// The TabBar, TabBarView page's `look` option.
 const _tabbarTabviewLook = ChoiceOption<String>(
   'look',
   'look',
@@ -18,7 +18,7 @@ const _tabbarTabviewLook = ChoiceOption<String>(
 
 final _tabbarTabviewPage = GalleryPage(
   group: _group,
-  title: 'TabBar, TabView',
+  title: 'TabBar, TabBarView',
   options: const [
     _tabbarTabviewTabs,
     _tabbarTabviewLook,

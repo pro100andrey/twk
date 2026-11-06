@@ -16,7 +16,7 @@ text
 │     DatePicker                                                                           │   open  open several        │
 │ ▎   FilePicker                 ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   save  directory           │
 │     Form, FormField       ▐    ┌                                                    ┐    │                             │
-│     TabBar, TabView       ▐      /home/user/twk/                                         │  show hidden         ▐●  ▌  │
+│     TabBar, TabBarView    ▐      /home/user/twk/                                         │  show hidden         ▐●  ▌  │
 │     KeyHintsBar           ▐       ../                                                    │                             │
 │     StatusMessage, Badge  ▐      ▎example/                                               │                             │
 │     Callout               ▐       lib/                                                   │                             │
@@ -53,7 +53,7 @@ styles
 │aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhLMMMMLtuuuutuuuuuuuthhhhhhh│
 │aNLLLMMMMMMMMMMLLLLLLLLLLLLahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhtuuuuttuuuuuuuuuthhhhhhhhhh│
 │aaaaaoooooaoooooooooaaaaaaadhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaoooooooaaaaaaadhhhhhhGGGGGGGGGGGGGGGiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiihhhhhhphhnnnnhnnnnnnhhhhhhhhhDEFFDhh│
+│aaaaaoooooooaooooooooooaaaadhhhhhhGGGGGGGGGGGGGGGiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiihhhhhhphhnnnnhnnnnnnhhhhhhhhhDEFFDhh│
 │aaaaaoooooooooooaaaaaaaaaaadhhhhhhhlllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooaoooooaadhhhhhhOPPPPPPPPQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaaaaaaaaaaaaaaadhhhhhhhllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

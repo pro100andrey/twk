@@ -13,7 +13,7 @@ text
 │ ▎   DatePicker                                                                 │
 │     FilePicker      ▐   ·   ·    picked: nothing                        ·   ·  │
 │     Form, FormFie…  ▐          └                                    ┘          │
-│     TabBar, TabVi…      ·   ·   ·   ·   ·   ·   ·   ·   ·   · 34 × 3·   ·   ·  │
+│     TabBar, TabBa…      ·   ·   ·   ·   ·   ·   ·   ·   ·   · 34 × 3·   ·   ·  │
 │     KeyHintsBar                                                                │
 │     StatusMessage…      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
 │     Callout                                                                    │

@@ -15,7 +15,7 @@ text
 │     DatePicker      ▐              volume: 50%                                 │
 │     FilePicker          ·   ·    └                                ┘ ·   ·   ·  │
 │     Form, FormFie…                                          30 × 3             │
-│     TabBar, TabVi…      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│     TabBar, TabBa…      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
 │     KeyHintsBar                                                                │
 │     StatusMessage…                                                             │
 │     Callout          ──────────────────────────────────────────────────────────│

@@ -16,7 +16,7 @@ text
 │     TreeTable                                                                            │  overflow                   │
 │                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   clip  ellipsis            │
 │   CONTROLS             3                ┌                                  ┐             │   ellipsisStart             │
-│     TabBar, TabView            ·   ·      ╭──────────────────────────────╮     ·   ·     │   ellipsisMiddle            │
+│     TabBar, TabBarView         ·   ·      ╭──────────────────────────────╮     ·   ·     │   ellipsisMiddle            │
 │     StatusMessage, Badge                  │Terminals draw text in a grid │               │                             │
 │     StatusBar                  ·   ·      │of cells. A paragraph breaks  │     ·   ·     │  align                      │
 │                                           │its lines between words to fit│               │   left  center  right       │
@@ -53,7 +53,7 @@ styles
 │aaaaappppqqqppaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhoooooooohhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhrhhhhhrhhivvvvituuuuuuuuthhhhhhhhhhh│
 │aaaddddddddaaaaaaaaaaaaazaaahhhhhhhhhhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhrhhhhhhhhhhhhhrhhivvvvvvvvvvvvvihhhhhhhhhhhh│
-│aaaaaqqpqpppapppppppaaaaaaaahhhhrhhhrhhhhhhwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwhhhhhrhhhrhhhhhrhhivvvvvvvvvvvvvvihhhhhhhhhhh│
+│aaaaaqqpqpppappppppppppaaaaahhhhrhhhrhhhhhhwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwhhhhhrhhhrhhhhhrhhivvvvvvvvvvvvvvihhhhhhhhhhh│
 │aaaaapqqpppppppppppaqppppaaahhhhhhhhhhhhhhhwxxxxxxxxxhxxxxhxxxxhxxhxhxxxxhwhhhhhhhhhhhhhhhrhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaapqqpppqppaaaaaaaaaaaaaahhhhrhhhrhhhhhhwxxhxxxxxxhxhxxxxxxxxxhxxxxxxhhwhhhhhrhhhrhhhhhrhhooooohhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhwxxxhxxxxxhxxxxxxxhxxxxxhxxhxxxwhhhhhhhhhhhhhhhrhhtuuuutivvvvvviivvvvvihhhhhh│

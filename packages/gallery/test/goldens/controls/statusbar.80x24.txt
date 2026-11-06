@@ -4,7 +4,7 @@ text
 │                                                                                │
 │   ⌕ Filter       /     StatusBar                               Preview   Code  │
 │                        A row of three sections, left, centre and right; those  │
-│     TabBar, TabVi…     that do not fit give way, the centre first.             │
+│     TabBar, TabBa…     that do not fit give way, the centre first.             │
 │     KeyHintsBar      ──────────────────────────────────────────────────────────│
 │     StatusMessage…                                                             │
 │     Callout             ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │

@@ -16,7 +16,7 @@ text
 │     DatePicker                                            26 × 3               │
 │     FilePicker          ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
 │     Form, FormFie…                                                             │
-│     TabBar, TabVi…      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│     TabBar, TabBa…      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
 │     KeyHintsBar                                                                │
 │     StatusMessage…   ──────────────────────────────────────────────────────────│
 │     Callout            default   yes  no                                       │

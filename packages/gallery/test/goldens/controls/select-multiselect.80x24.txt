@@ -17,7 +17,7 @@ text
 │     DatePicker                                                                 │
 │     FilePicker          ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
 │     Form, FormFie…                                                             │
-│     TabBar, TabVi…   ──────────────────────────────────────────────────────────│
+│     TabBar, TabBa…   ──────────────────────────────────────────────────────────│
 │     KeyHintsBar        inline      ▐●  ▌                                       │
 │     StatusMessage…     rows         4  8                                       │
 │     Callout            popup look   raised  bordered                           │

@@ -19,7 +19,7 @@ text
 │     DatePicker                                                                 │
 │     FilePicker          ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
 │     Form, FormFie…                                                             │
-│     TabBar, TabVi…   ──────────────────────────────────────────────────────────│
+│     TabBar, TabBa…   ──────────────────────────────────────────────────────────│
 │     KeyHintsBar        enabled  ▐  ●▌                                          │
 │     StatusMessage…                                                             │
 │                                                                                │

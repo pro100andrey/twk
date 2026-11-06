@@ -1,8 +1,8 @@
 screen 120×36, cursor hidden
 text
-│  ◆ twk gallery   Controls  ›  TabBar, TabView                                               ctrl+p search      ◐ Dark  │
+│  ◆ twk gallery   Controls  ›  TabBar, TabBarView                                            ctrl+p search      ◐ Dark  │
 │                                                                                                                        │
-│   ⌕ Filter             /      TabBar, TabView                                                                16 of 22  │
+│   ⌕ Filter             /      TabBar, TabBarView                                                             16 of 22  │
 │                               Tabs to pick a view by: Left and Right, or a click.                                      │
 │     Chip, ChipList                                                                                                     │
 │     ValueStepper              Preview   Code                                                                           │
@@ -14,7 +14,7 @@ text
 │     DatePicker                                                                           │   3  7                      │
 │     FilePicker                 ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
 │     Form, FormField                                                                      │  look                       │
-│ ▎   TabBar, TabView            ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   plain  strip              │
+│ ▎   TabBar, TabBarView         ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   plain  strip              │
 │     KeyHintsBar                     ┌                                          ┐         │                             │
 │     StatusMessage, Badge  ▐    ·       General  Editor  Keys                       ·     │                             │
 │     Callout               ▐           ╭──────────────────────────────────────╮           │                             │
@@ -37,9 +37,9 @@ text
 │                                                                                          │                             │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
 styles
-│aabacccadddddddaaazzzzzzzzaafaadddddddadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggazzzzzzaaaaaadaddddaa│
+│aabacccadddddddaaazzzzzzzzaafaadddddddaddddddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggazzzzzzaaaaaadaddddaa│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaiAiAAAAAAiiiiiiiiiiiiiBiaahhhlllllllhlllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhCChCChCChh│
+│aaiAiAAAAAAiiiiiiiiiiiiiBiaahhhlllllllhllllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhCChCChCChh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnhnnhnnnnhnhnnnnhnnnhnnnnhnnnhnnnnnnhnnhnhnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooaooooooooaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
@@ -51,7 +51,7 @@ styles
 │aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhrsritihhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooaoooooooooaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnhhhhhhhhhhhhhhhhhhhhhhh│
-│aurrrsssssssrsssssssrrrrrrrahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhrsssssritttttihhhhhhhhhhhhh│
+│aurrrsssssssrssssssssssrrrrahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhrsssssritttttihhhhhhhhhhhhh│
 │aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooaoooooaadhhhhphhhhhhhwwwwwwwhhnnnnnnhhnnnnhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaaaaaaaaaaaaaaadhhhhhhhhhhhxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
