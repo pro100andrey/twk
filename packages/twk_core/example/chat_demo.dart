@@ -5,6 +5,7 @@
 //   dart run example/chat_demo.dart --seconds=5  # quit automatically
 //   dart run example/chat_demo.dart --inline     # below the shell's history
 //   dart run example/chat_demo.dart --editor=nano
+//   dart run example/chat_demo.dart --fps=120    # most frames a second (60)
 //
 // Fullscreen, the log fills the alternate screen above the input and status
 // lines. With --inline the header, input and status lines are a region of
@@ -54,6 +55,10 @@ Future<void> main(List<String> args) async {
       .where((a) => a.startsWith('--seconds='))
       .map((a) => int.parse(a.substring(10)))
       .firstOrNull;
+  final fps = args
+      .where((a) => a.startsWith('--fps='))
+      .map((a) => int.parse(a.substring(6)))
+      .firstOrNull;
   final inline = args.contains('--inline');
   final editor =
       args
@@ -71,7 +76,7 @@ Future<void> main(List<String> args) async {
     exitCode = 2;
     return;
   }
-  final app = TwkApp(terminal);
+  final app = TwkApp(terminal, maxFps: fps ?? 60);
   final t = app.screen.styles;
 
   final bg = t.pen(
