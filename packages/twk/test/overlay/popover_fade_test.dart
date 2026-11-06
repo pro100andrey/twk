@@ -43,6 +43,7 @@ Widget popover(
     ListenableBuilder(
       listenable: open,
       builder: (context, _) => Popover(
+        onDismiss: null,
         open: open.value,
         fadeIn: fadeIn,
         fadeOut: fadeOut,

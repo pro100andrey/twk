@@ -39,7 +39,12 @@ Widget anchored(ValueNotifier<int> before) => Overlay(
               valueListenable: before,
               builder: (_, n, _) => SizedBox(width: n),
             ),
-            const Popover(open: true, popover: Text('pop'), child: Text('at')),
+            const Popover(
+              onDismiss: null,
+              open: true,
+              popover: Text('pop'),
+              child: Text('at'),
+            ),
           ],
         ),
       ),

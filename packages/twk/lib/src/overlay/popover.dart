@@ -13,7 +13,6 @@ import '../animation/curves.dart';
 import '../animation/switcher.dart' show Opacity;
 import '../animation/ticker.dart';
 import '../focus/focus_tree.dart';
-import '../focus/shortcuts.dart';
 import '../foundation/change_notifier.dart' show ChangeNotifier, VoidCallback;
 import '../foundation/listenable_builder.dart';
 import '../framework/framework.dart';
@@ -22,6 +21,7 @@ import '../layout/basic.dart';
 import '../layout/stack.dart';
 import 'anchor.dart';
 import 'layer.dart';
+import 'layer_escape.dart';
 
 // Examples can assume:
 // var open = false;
@@ -88,8 +88,8 @@ final class Popover extends StatefulWidget {
     required this.open,
     required this.popover,
     required this.child,
+    required this.onDismiss,
     super.key,
-    this.onDismiss,
     this.fadeIn = Duration.zero,
     this.fadeOut = Duration.zero,
     this.matchAnchorWidth = false,
@@ -115,7 +115,8 @@ final class Popover extends StatefulWidget {
   /// What the popover shows by.
   final Widget child;
 
-  /// Called when the popover is to close; null for one that does not.
+  /// Called when the popover is to close; null for one that does not,
+  /// stated rather than left out.
   final VoidCallback? onDismiss;
 
   @override
@@ -251,6 +252,12 @@ final class _PopoverState extends State<Popover>
 
   void _focusChanged() {
     if (mounted && !_anchor.hasFocus && !(_inside?.hasFocus ?? false)) {
+      // a modal layer opened above it (a dialog, a menu) took the focus:
+      // the popover stays, and gets it back as the layer closes
+      final primary = _anchor.manager?.primaryFocus;
+      if (primary != null && primary.inModalBeside(_anchor)) {
+        return;
+      }
       _dismiss();
     }
   }
@@ -258,9 +265,8 @@ final class _PopoverState extends State<Popover>
   /// Escape, bound while it is open and can be dismissed.
   Widget _escape(Widget child) {
     final closes = widget.open && widget.onDismiss != null;
-    return KeyBindings(
-      closes ? {'escape': _dismiss} : const {},
-      hints: closes ? const {'escape': 'close'} : const {},
+    return LayerEscape(
+      onEscape: closes ? _dismiss : null,
       debugLabel: 'popover',
       child: child,
     );
@@ -352,6 +358,7 @@ final class _InsideState extends State<_Inside> {
     super.initState();
     widget.popover._inside = _node;
     _scope.leaveTo = widget.popover._anchor;
+    _scope.returnTo = FocusNode.primaryAt(context);
   }
 
   @override

@@ -133,6 +133,7 @@ void main() {
       app(
         heard,
         (h) => const Popover(
+          onDismiss: null,
           open: true,
           popover: Box(
             border: Border.all(),

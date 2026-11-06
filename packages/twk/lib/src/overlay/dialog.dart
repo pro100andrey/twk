@@ -29,7 +29,6 @@ import '../animation/curves.dart';
 import '../animation/switcher.dart' show Opacity;
 import '../animation/ticker.dart';
 import '../focus/focus_tree.dart';
-import '../focus/shortcuts.dart';
 import '../foundation/listenable_builder.dart';
 import '../framework/framework.dart';
 import '../layout/basic.dart';
@@ -46,6 +45,7 @@ import '../text/hit_row.dart' show segmenterOf;
 import '../text/widgets.dart';
 import 'barrier.dart';
 import 'layer.dart';
+import 'layer_escape.dart';
 import 'panel.dart';
 
 // Examples can assume:
@@ -525,11 +525,15 @@ final class _DialogLayerState extends State<_DialogLayer>
     duration: widget.route.fadeIn,
   );
 
-  final _scope = FocusScopeNode(debugLabel: 'dialog');
+  final _scope = FocusScopeNode(debugLabel: 'dialog')..modal = true;
 
   @override
   void initState() {
     super.initState();
+    // on a navigator the route gives the focus back
+    if (widget.route._entry != null) {
+      _scope.returnTo = FocusNode.primaryAt(context);
+    }
     if (widget.route.fadeIn > Duration.zero) {
       _fade.forward();
     } else {
@@ -577,9 +581,8 @@ final class _DialogLayerState extends State<_DialogLayer>
             ],
           );
         },
-        child: KeyBindings(
-          route.dismissible ? {'escape': route.dismiss} : const {},
-          hints: route.dismissible ? const {'escape': 'close'} : const {},
+        child: LayerEscape(
+          onEscape: route.dismissible ? route.dismiss : null,
           debugLabel: 'dialog',
           child: FocusScope(
             node: _scope,

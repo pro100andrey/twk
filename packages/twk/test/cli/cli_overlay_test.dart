@@ -13,6 +13,7 @@ Widget _anchors() => Column(
   children: [
     const Tooltip(message: 'tip', child: Text('hover me')),
     const Popover(
+      onDismiss: null,
       open: false,
       popover: Text('pop'),
       child: Text('anchor'),

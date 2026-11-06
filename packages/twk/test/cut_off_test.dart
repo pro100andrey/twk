@@ -73,6 +73,7 @@ void main() {
                   children: [
                     for (var i = 0; i < 3; i++) Text('line $i'),
                     const Popover(
+                      onDismiss: null,
                       open: true,
                       popover: Text('pop'),
                       child: Text('anchor'),
