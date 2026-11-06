@@ -26,6 +26,12 @@ import '../framework/framework.dart';
 ///  * **Sparse** input, until then and always where events come one at a
 ///    time, moves [step] cells an event.
 ///
+/// So a mouse wheel is dense too where a terminal sends a notch as a burst,
+/// and a notch then moves as many cells as it has events, where a fixed
+/// step would move several times that. Timing is no sure way to tell a
+/// wheel from a trackpad: [ScrollBehavior.fixed] is a plain step an event,
+/// for a terminal it tells wrongly.
+///
 /// A stream ends after [streamGap] without an event, or at a turn, which
 /// moves at once. What is under a whole cell carries on to the next
 /// stream the same way only. The events of a frame are one move, applied

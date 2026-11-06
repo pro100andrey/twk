@@ -7,9 +7,13 @@ Breaking:
 - `ScrollBehavior` and `ScrollConfiguration`, as Flutter has them, say what the
   wheel does: `App(scrollBehavior:)` for the app, `ScrollConfiguration` for a
   subtree. A `Scrollable` gathers the wheel's events into whole cells once a frame,
-  a trackpad's dense events a cell each with an acceleration, a sparse wheel 3 as
-  before. `wheelStep`, `wheelAcceleration` and `WheelAcceleration` are gone, and a
-  wheel moves the view at the next frame, not in the event.
+  dense events a cell each with an acceleration, sparse ones 3 as before. Dense is
+  told by the events' timing, so it takes a mouse wheel too where a terminal sends
+  a notch as a burst: a notch is reported to move 3 rows where it moved 9 (kitty,
+  alacritty, Apple's Terminal) and 9 where it moved 27 (Ghostty, Warp).
+  `ScrollBehavior.fixed(3)` is a plain step an event. `wheelStep`,
+  `wheelAcceleration` and `WheelAcceleration` are gone, and a wheel moves the view
+  at the next frame, not in the event.
 - `Popover.onDismiss` is required: `null` for a popover the app never closes this
   way.
 - `Ticker.binding` and `Steps.binding` are typed by what they use of it, the

@@ -199,7 +199,8 @@ input, a wheel one event a notch, moves `step` (3) cells an event. A stream
 ends after `streamGap` (80 ms) without an event or at a turn, which moves at
 once; the fraction under a cell carries into the next stream the same way
 only; with `axisLock` a gesture along one axis drops the sideways events its
-trackpad adds. `ScrollBehavior.fixed(n)` moves `n` an event, dense or not.
+trackpad adds. `ScrollBehavior.fixed(n)` moves `n` an event, dense or not, for a terminal whose
+timing it reads wrongly: a mouse wheel is dense too where a notch comes as a burst.
 
 Each `Scrollable` owns a `ScrollInput`, a pure state machine (no clock, no
 I/O): `event(now, axis, way)` takes each wheel event with its time,
