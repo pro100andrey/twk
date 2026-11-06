@@ -108,6 +108,7 @@ final class TreeTable<T> extends StatefulWidget {
     this.nodeKey,
     this.controller,
     this.tableController,
+    this.marks,
     this.selection = TableSelection.row,
     this.onActivated,
     this.showGuides = true,
@@ -159,6 +160,14 @@ final class TreeTable<T> extends StatefulWidget {
   /// The order, the widths of the columns and the column of the cell
   /// selected; null for one of its own.
   final TableController? tableController;
+
+  /// The nodes marked, by their keys ([nodeKey]); null for none marked. As
+  /// [Table.marks] marks rows: a checkbox column before the columns, Space
+  /// and a click on a checkbox marking the node selected. A node marks
+  /// itself alone, not its children nor its parent: an app that marks a
+  /// subtree marks its nodes with [SelectionController.selectAll]. The
+  /// row of a load has no checkbox.
+  final SelectionController<Object>? marks;
 
   /// What the keys and the mouse select: a row, a cell, or nothing, the
   /// keys scrolling the rows.
@@ -743,6 +752,9 @@ final class _TreeTableState<T> extends State<TreeTable<T>>
     }
   }
 
+  // the row of a load is not marked
+  static bool _markable(Object key) => key is! _LoadKey;
+
   /// The key of row [i].
   Object _keyAt(int i) => _shown.keys[i];
 
@@ -799,6 +811,8 @@ final class _TreeTableState<T> extends State<TreeTable<T>>
           columns: _columns(),
           rowKey: _keyAt,
           controller: _table,
+          marks: w.marks,
+          markable: _markable,
           selection: w.selection,
           onActivated: w.onActivated == null ? null : _activated,
           columnGap: w.columnGap,

@@ -7,6 +7,7 @@
 library;
 
 import 'dart:collection';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
@@ -35,6 +36,9 @@ import 'package:twk_core/twk_core.dart'
         TextWrap;
 
 import '../binding/terminal_status.dart';
+import '../controls/pressable.dart'
+    show CheckboxMarks, checkboxSpans, markStyle;
+import '../controls/selection_list.dart' show SelectionController;
 import '../editing/caret.dart' show clearRestCursor, restCursor;
 import '../focus/focus.dart';
 import '../foundation/change_notifier.dart';
@@ -47,6 +51,7 @@ import '../layout/flex.dart';
 import '../layout/one_child.dart';
 import '../scroll/list_view.dart';
 import '../style/style.dart';
+import '../text/hit_row.dart' show segmenterOf;
 import '../text/widgets.dart';
 import 'chart_glyphs.dart';
 
@@ -442,6 +447,8 @@ final class Table<T> extends StatefulWidget {
     super.key,
     this.rowKey,
     this.controller,
+    this.marks,
+    this.markable,
     this.selection = TableSelection.row,
     this.onActivated,
     this.rowHeight = 1,
@@ -480,6 +487,8 @@ final class Table<T> extends StatefulWidget {
     super.key,
     this.rowKey,
     this.controller,
+    this.marks,
+    this.markable,
     this.selection = TableSelection.row,
     this.onActivated,
     this.rowHeight = 1,
@@ -530,6 +539,27 @@ final class Table<T> extends StatefulWidget {
   /// Its selection, its order and the widths of its columns; null for one
   /// of its own.
   final TableController? controller;
+
+  /// The rows marked, by their keys ([rowKey]); null for a table whose
+  /// rows are not marked.
+  ///
+  /// A checkbox column comes before the columns, `[x]` on a row marked and
+  /// `[ ]` on the others, a blank above it. While the table has the focus,
+  /// Space marks the row selected, or unmarks it; a click on its checkbox
+  /// does that as it selects the row. The marks are kept beside the row
+  /// selected, which keeps its meaning, and stay with their rows as they
+  /// are sorted; the controller's listeners are told of each change, and
+  /// the table draws the marks again. With [TableSelection.none] neither
+  /// the keys nor the mouse mark a row, and the app marks rows through the
+  /// controller. Its [SelectionController.multiple] asserts; its cursor is
+  /// not used.
+  final SelectionController<Object>? marks;
+
+  /// Whether the row of a key can be marked; null for all. A row that
+  /// cannot has a blank in place of its checkbox. What keeps the row of a
+  /// load in a `TreeTable` from being marked; not for apps.
+  @internal
+  final bool Function(Object key)? markable;
 
   /// What the keys and the mouse select: a row by default.
   final TableSelection selection;
@@ -660,6 +690,7 @@ final class _TableState<T> extends State<Table<T>> {
   // what each content column wants, and what it was measured for
   var _wants = const <int>[];
   Object? _wantsData;
+  var _wantsLead = 0;
   List<TableColumn<T>>? _wantsColumns;
   TextMode? _wantsMode;
   var _wantsAmbiguous = 0;
@@ -677,11 +708,20 @@ final class _TableState<T> extends State<Table<T>> {
   // the columns as laid out last, which the rows lay their cells out by
   final _columns = _Columns();
 
+  // the checkbox column: the theme's marks and how wide it is, as built
+  var _checkbox = const CheckboxMarks('[', 'x', ' ', ']');
+  var _checkboxWidth = 3;
+
   @override
   void initState() {
     super.initState();
+    assert(
+      widget.marks?.multiple ?? true,
+      'marks hold any number of rows: SelectionController(multiple: true)',
+    );
     _node.addListener(_focusChanged);
     _controller.addListener(_changed);
+    widget.marks?.addListener(_marksChanged);
     widget.source?.addListener(_sourceChanged);
     _follow();
   }
@@ -700,6 +740,14 @@ final class _TableState<T> extends State<Table<T>> {
       _controller.addListener(_changed);
       _follow();
     }
+    if (!identical(widget.marks, oldWidget.marks)) {
+      oldWidget.marks?.removeListener(_marksChanged);
+      widget.marks?.addListener(_marksChanged);
+      assert(
+        widget.marks?.multiple ?? true,
+        'marks hold any number of rows: SelectionController(multiple: true)',
+      );
+    }
     if (!identical(widget.source, oldWidget.source)) {
       oldWidget.source?.removeListener(_sourceChanged);
       widget.source?.addListener(_sourceChanged);
@@ -708,6 +756,7 @@ final class _TableState<T> extends State<Table<T>> {
 
   @override
   void dispose() {
+    widget.marks?.removeListener(_marksChanged);
     widget.source?.removeListener(_sourceChanged);
     _controller.removeListener(_changed);
     _node.removeListener(_focusChanged);
@@ -718,6 +767,47 @@ final class _TableState<T> extends State<Table<T>> {
   }
 
   void _focusChanged() => setState(() {});
+
+  // the marks changed: the rows built are built again, each alone
+  void _marksChanged() {
+    for (final row in _rows.values.toList()) {
+      row._rebuild();
+    }
+  }
+
+  /// The columns before the table's own: 1 for the checkbox column.
+  int get _lead => widget.marks == null ? 0 : 1;
+
+  /// The column of the table at [x] of a row, not the checkbox column;
+  /// null for a gap, the checkbox column or past the last.
+  int? _columnAt(int x) {
+    final at = _columns.at(x);
+    return at == null || at < _lead ? null : at - _lead;
+  }
+
+  /// The column whose edge is at [x] of a row; null for none, and for the
+  /// edge of the checkbox column.
+  int? _edgeAt(int x) {
+    final at = _columns.edgeAt(x);
+    return at == null || at < _lead ? null : at - _lead;
+  }
+
+  /// Whether the row shown at [index] can be marked.
+  bool _markable(int index) => widget.markable?.call(_keyAt(index)) ?? true;
+
+  /// Marks the row shown at [index], or unmarks it; whether it can be
+  /// marked.
+  bool _toggleMark(int index) {
+    final marks = widget.marks;
+    if (marks == null || index < 0 || !_markable(index)) {
+      return false;
+    }
+    marks.toggle(_keyAt(index));
+    return true;
+  }
+
+  /// Space: marks the row selected, or unmarks it; whether there is one.
+  bool _markSelected() => _toggleMark(_selectedIndex());
 
   void _sourceChanged() => setState(() => _changes++);
 
@@ -1043,7 +1133,8 @@ final class _TableState<T> extends State<Table<T>> {
       return _within(widget.columns[column].width, width);
     }
     final widths = _columns.widths;
-    return column < widths.length ? widths[column] : null;
+    final at = column + _lead;
+    return at < widths.length ? widths[at] : null;
   }
 
   /// Makes [column] [width] cells wide, within its bounds; whether that is
@@ -1082,6 +1173,7 @@ final class _TableState<T> extends State<Table<T>> {
       'left',
       'right',
       'enter',
+      'space',
       's',
       '<',
       '>',
@@ -1107,6 +1199,7 @@ final class _TableState<T> extends State<Table<T>> {
       'left' when cells => _moveColumn(-1),
       'right' when cells => _moveColumn(1),
       'enter' when !none => _activate(),
+      'space' when !none && widget.marks != null => _markSelected(),
       's' when widget.sortKeys => _sortHere(),
       '<' when widget.sortKeys => _sortNext(-1),
       '>' when widget.sortKeys => _sortNext(1),
@@ -1136,7 +1229,7 @@ final class _TableState<T> extends State<Table<T>> {
     if (event.button != 0) {
       return;
     }
-    if (_columns.edgeAt(event.x) case final column?) {
+    if (_edgeAt(event.x) case final column?) {
       _resizing = column;
       _resizedFrom = _widthOf(column) ?? 0;
       _pressedAt = event.x;
@@ -1145,7 +1238,7 @@ final class _TableState<T> extends State<Table<T>> {
 
   /// The column a click at [x] of the header sorts by; null off its edge.
   int? _sortsAt(int x) {
-    final column = _columns.edgeAt(x) == null ? _columns.at(x) : null;
+    final column = _columns.edgeAt(x) == null ? _columnAt(x) : null;
     return column != null && widget.columns[column].compare != null
         ? column
         : null;
@@ -1161,7 +1254,7 @@ final class _TableState<T> extends State<Table<T>> {
 
   // the mouse over the header, or out of it (null): over an edge or not
   void _headerHover(PointerEvent? event) {
-    final edge = event == null ? null : _columns.edgeAt(event.x);
+    final edge = event == null ? null : _edgeAt(event.x);
     if (edge != _edgeHovered) {
       setState(() => _edgeHovered = edge);
     }
@@ -1175,11 +1268,14 @@ final class _TableState<T> extends State<Table<T>> {
       _node.requestFocus();
     }
     if (widget.selection == TableSelection.cell) {
-      if (_columns.at(event.x) case final column?) {
+      if (_columnAt(event.x) case final column?) {
         _controller.selectedColumn = column;
       }
     }
     _select(index);
+    if (_lead > 0 && _columns.at(event.x) == 0) {
+      _toggleMark(index);
+    }
   }
 
   /// The cells each content column wants, as [segmenter] measures them,
@@ -1189,13 +1285,16 @@ final class _TableState<T> extends State<Table<T>> {
     final data = _data;
     final mode = segmenter?.mode ?? TextMode.graphemes;
     final ambiguous = segmenter?.ambiguousWidth ?? 1;
+    final lead = _lead;
     if (data == _wantsData &&
+        lead == _wantsLead &&
         identical(columns, _wantsColumns) &&
         mode == _wantsMode &&
         ambiguous == _wantsAmbiguous) {
       return _wants;
     }
     _wantsData = data;
+    _wantsLead = lead;
     _wantsColumns = columns;
     _wantsMode = mode;
     _wantsAmbiguous = ambiguous;
@@ -1205,6 +1304,7 @@ final class _TableState<T> extends State<Table<T>> {
     );
     final rows = measures ? _measured(height) : <T>[];
     return _wants = [
+      for (var i = 0; i < lead; i++) 0,
       for (final column in columns)
         if (column.width.kind != GridTrackKind.content)
           0
@@ -1278,6 +1378,15 @@ final class _TableState<T> extends State<Table<T>> {
       cursor: w.cursorStyle ?? theme.fill(theme.primary.fg),
     );
     final columns = w.columns;
+    final lead = _lead;
+    if (lead > 0) {
+      _checkbox = CheckboxMarks.of(context);
+      final segmenter = segmenterOf(context);
+      _checkboxWidth = math.max(
+        segmenter.width(_checkbox.on),
+        segmenter.width(_checkbox.off),
+      );
+    }
     _sort();
     _styles = styles;
     _shownSelected = _selectedIndex();
@@ -1292,6 +1401,7 @@ final class _TableState<T> extends State<Table<T>> {
       child: _Layout(
         columns: _columns,
         tracks: [
+          if (lead > 0) GridTrack.fixed(_checkboxWidth),
           for (var j = 0; j < columns.length; j++)
             switch (_controller._widths[j]) {
               final width? => GridTrack.fixed(_within(columns[j].width, width)),
@@ -1299,7 +1409,7 @@ final class _TableState<T> extends State<Table<T>> {
             },
         ],
         gap: w.columnGap,
-        measured: (_data, columns),
+        measured: (_data, columns, lead),
         measure: _measure,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1318,6 +1428,7 @@ final class _TableState<T> extends State<Table<T>> {
                     style: styles.header,
                     lineStyle: styles.border,
                     children: [
+                      if (lead > 0) Text('', style: styles.header),
                       for (var j = 0; j < columns.length; j++)
                         _title(columns[j], j, styles.header),
                     ],
@@ -1432,9 +1543,10 @@ final class _TableState<T> extends State<Table<T>> {
         style: style,
         lineStyle: styles.border,
         active: selected,
-        highlight: selected ? cursor : -1,
+        highlight: selected && cursor >= 0 ? cursor + _lead : -1,
         highlightStyle: styles.cursor,
         children: [
+          if (_lead > 0) _markCell(index, style),
           for (var j = 0; j < columns.length; j++)
             _cell(
               columns[j],
@@ -1445,6 +1557,26 @@ final class _TableState<T> extends State<Table<T>> {
             ),
         ],
       ),
+    );
+  }
+
+  /// The checkbox of the row shown at [index], in the row's [style]: a
+  /// blank for a row that cannot be marked.
+  Widget _markCell(int index, Style style) {
+    if (!_markable(index)) {
+      return Text('', style: style);
+    }
+    final theme = Theme.of(context);
+    final on = widget.marks!.isSelected(_keyAt(index));
+    return Text.rich(
+      checkboxSpans(
+        _checkbox,
+        on,
+        theme.muted,
+        on ? markStyle(theme) : const Style(),
+      ),
+      style: style,
+      wrap: TextWrap.none,
     );
   }
 
