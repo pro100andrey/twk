@@ -9,7 +9,7 @@ twk is Flutter's widget model on a terminal: `State`, `setState`,
 `BuildContext`, keys, constraints down and sizes up, `Navigator`,
 `Overlay`, `Focus` behave as in Flutter. The unit, the catalog and the
 input do not. Do not write Flutter's API from memory: there is no Material,
-no `TextStyle`, no `MediaQuery`, no pixels. Look a widget up (References) before using it.
+no TextStyle, no MediaQuery, no pixels. Look a widget up (References) before using it.
 
 An app imports `package:twk/twk.dart`, and besides it `package:twk/provider.dart`
 (`ChangeNotifierProvider`), `package:twk/hooks.dart` (`HookWidget`) or
@@ -191,7 +191,6 @@ the bytes the app wrote. `dart test` runs it.
 // test/todo_test.dart
 import 'package:my_app/todo.dart';
 import 'package:test/test.dart';
-import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
 void main() {
