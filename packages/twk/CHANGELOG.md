@@ -255,6 +255,8 @@ Added:
 
 - `Slider(onChangeStart:, onChangeEnd:)`, called with the value at the press of the mouse and at its release; a key or the wheel calls neither.
 
+- `BlockSemantics(blocking:)`; `State.reassemble` and `Element.reassemble`: a hot reload (`AppBinding.reassemble`, `ext.twk.reassemble`) tells each `State` of the app before it builds again. `WidgetBuilder` is spelled in the signatures that wrote `Widget Function(BuildContext)`.
+
 ## 0.2.0
 
 - After a Ctrl+C ended the inline session, a program that handles SIGINT

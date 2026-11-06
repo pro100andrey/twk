@@ -231,7 +231,7 @@ base class Semantics extends StatelessWidget {
 
 /// Leaves out of the semantics the nodes read before [child] in the node
 /// it is in ([SemanticsNode.of]): what is under it, as under a modal
-/// barrier.
+/// barrier. With [blocking] false it leaves out nothing.
 ///
 /// A dialog over a page, the page left unread while it shows:
 ///
@@ -246,14 +246,24 @@ base class Semantics extends StatelessWidget {
 /// )
 /// ```
 final class BlockSemantics extends StatelessWidget {
-  /// Leaves out what is read before [child].
-  const BlockSemantics({required this.child, super.key});
+  /// Leaves out what is read before [child], while [blocking].
+  const BlockSemantics({required this.child, this.blocking = true, super.key});
+
+  /// Whether what is read before [child] is left out; true by default.
+  final bool blocking;
 
   /// What is read, in place of what was read before it.
   final Widget child;
 
   @override
   Widget build(BuildContext context) => child;
+
+  /// Adds [blocking] when it is false.
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add('blocking', blocking, defaultValue: true);
+  }
 }
 
 /// Leaves out of the semantics what is below it while [excluding]
@@ -607,7 +617,7 @@ final class _Reader {
         if (widget.nodes == null) {
           e.visitChildren((c) => visit(c, r));
         }
-      case BlockSemantics():
+      case BlockSemantics(blocking: true):
         into.items.clear();
         e.visitChildren((c) => visit(c, into));
       case ExcludeSemantics(excluding: true):

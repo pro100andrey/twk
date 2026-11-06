@@ -299,6 +299,18 @@ void main() {
       ]);
     });
 
+    testTwk('a BlockSemantics that is not blocking leaves out nothing, and '
+        'blocks again when it is', (t) async {
+      Widget tree({required bool blocking}) => column([
+        const Text('covered'),
+        BlockSemantics(blocking: blocking, child: const Text('barrier')),
+      ]);
+      await t.pumpWidget(tree(blocking: false));
+      expect(read(t), ['covered', 'barrier']);
+      await t.pumpWidget(tree(blocking: true));
+      expect(read(t), ['barrier']);
+    });
+
     testTwk(
       'leaves out what was read before a BlockSemantics in the node '
       'it is in, and what is not laid out: a page of a TabBarView not shown',

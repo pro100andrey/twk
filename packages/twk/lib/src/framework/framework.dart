@@ -413,6 +413,14 @@ abstract class State<T extends StatefulWidget> {
   @mustCallSuper
   void deactivate() {}
 
+  /// Called when the app took up its code as a hot reload changed it
+  /// (`AppBinding.reassemble`), before the state is built again: the state
+  /// is kept, and what [initState] set up from the old code is set up again
+  /// here.
+  @protected
+  @mustCallSuper
+  void reassemble() {}
+
   /// Called when a [GlobalKey] put the element, removed from the tree
   /// earlier in the frame, back in it elsewhere, before it is built there:
   /// take up again what [deactivate] let go.
@@ -1109,6 +1117,15 @@ abstract class Element implements BuildContext {
   @mustCallSuper
   void didChangeDependencies() => markNeedsBuild();
 
+  /// Has this element and those below it rebuild, as a hot reload of the
+  /// app's code needs (`AppBinding.reassemble`): a [State] is told with
+  /// [State.reassemble].
+  @mustCallSuper
+  void reassemble() {
+    markNeedsBuild();
+    visitChildren((child) => child.reassemble());
+  }
+
   /// Rebuilds this element in its owner's next build scope.
   void markNeedsBuild() {
     if (_lifecycle != _Lifecycle.active || _dirty) {
@@ -1414,6 +1431,12 @@ class StatefulElement extends ComponentElement {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _didChangeDependencies = true;
+  }
+
+  @override
+  void reassemble() {
+    state.reassemble();
+    super.reassemble();
   }
 
   @override
