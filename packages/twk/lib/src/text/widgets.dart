@@ -444,7 +444,7 @@ final class _LinkTaps {
   /// string.
   List<Span>? spans;
 
-  late final listener = RenderListener(onDown: _down, onUp: _up);
+  late final listener = RenderListener(onPointerDown: _down, onPointerUp: _up);
 
   /// The theme's choice of the hand over a phrase that taps.
   PointerMode hand;

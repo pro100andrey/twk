@@ -76,8 +76,10 @@ void main() {
   testTwk('SingleTickerProviderStateMixin gives a new ticker once the first '
       'is disposed, and muting reaches the live one only', (t) async {
     final key = GlobalKey<SingleState>();
-    Widget app({required bool enabled}) =>
-        TickerMode(enabled: enabled, child: Single(key: key));
+    Widget app({required bool enabled}) => TickerMode(
+      enabled: enabled,
+      child: Single(key: key),
+    );
     await t.pumpWidget(app(enabled: true), size: (10, 1), maxFps: 100);
     final state = key.currentState!;
     state.ticker.dispose();
@@ -93,8 +95,10 @@ void main() {
   testTwk('TickerProviderStateMixin drops a disposed ticker: muting reaches '
       'the live ones only', (t) async {
     final key = GlobalKey<TickingState>();
-    Widget app({required bool enabled}) =>
-        TickerMode(enabled: enabled, child: Ticking(key: key));
+    Widget app({required bool enabled}) => TickerMode(
+      enabled: enabled,
+      child: Ticking(key: key),
+    );
     await t.pumpWidget(app(enabled: true), size: (10, 1), maxFps: 100);
     final state = key.currentState!;
     final a = state.a..dispose();
