@@ -920,6 +920,22 @@ void main() {
     expect(told, unorderedEquals(['outer true', 'inner false']));
   });
 
+  testTwk('FocusScopeNode.requestFocus is refused a node that is not below '
+      'the scope, the scope itself too', (t) async {
+    final scope = FocusScopeNode(debugLabel: 'scope');
+    addTearDown(scope.dispose);
+    final other = FocusNode(debugLabel: 'other');
+    addTearDown(other.dispose);
+    await t.pumpWidget(
+      column([
+        FocusScope(node: scope, child: const Field('a')),
+        Field('b', node: other),
+      ]),
+    );
+    expect(() => scope.requestFocus(scope), throwsA(isA<AssertionError>()));
+    expect(() => scope.requestFocus(other), throwsA(isA<AssertionError>()));
+  });
+
   testTwk('FocusScopeNode.requestFocus takes the node to focus, one below '
       'the scope', (t) async {
     final scope = FocusScopeNode(debugLabel: 'scope');
