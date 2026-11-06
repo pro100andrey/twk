@@ -232,8 +232,8 @@ final class Listener extends SingleChildRenderObjectWidget {
   @override
   RenderListener createRenderObject(BuildContext context) {
     final listener = RenderListener(
-      onDown: onPointerDown,
-      onUp: onPointerUp,
+      onPointerDown: onPointerDown,
+      onPointerUp: onPointerUp,
       onPointerHover: onPointerHover,
       onPointerMove: onPointerMove,
       onScroll: onScroll,
@@ -247,8 +247,8 @@ final class Listener extends SingleChildRenderObjectWidget {
   @override
   void updateRenderObject(BuildContext context, RenderListener renderObject) {
     renderObject
-      ..onDown = onPointerDown
-      ..onUp = onPointerUp
+      ..onPointerDown = onPointerDown
+      ..onPointerUp = onPointerUp
       ..onPointerHover = onPointerHover
       ..onPointerMove = onPointerMove
       ..onScroll = onScroll
@@ -470,8 +470,8 @@ abstract base class _RenderMouseTarget extends RenderObject
 final class RenderListener extends _RenderMouseTarget {
   /// The render object of a [Listener] of the callbacks given.
   RenderListener({
-    this.onDown,
-    this.onUp,
+    this.onPointerDown,
+    this.onPointerUp,
     this.onPointerHover,
     this.onPointerMove,
     this.onScroll,
@@ -480,10 +480,10 @@ final class RenderListener extends _RenderMouseTarget {
   }) : super(behavior);
 
   /// See [Listener.onPointerDown].
-  PointerEventListener? onDown;
+  PointerEventListener? onPointerDown;
 
   /// See [Listener.onPointerUp].
-  PointerEventListener? onUp;
+  PointerEventListener? onPointerUp;
 
   /// See [Listener.onPointerHover].
   PointerEventListener? onPointerHover;
@@ -521,15 +521,15 @@ final class RenderListener extends _RenderMouseTarget {
     if (onPointerMove != null) {
       return MouseTracking.drags;
     }
-    return onDown != null || onUp != null || onScroll != null
+    return onPointerDown != null || onPointerUp != null || onScroll != null
         ? MouseTracking.buttons
         : MouseTracking.off;
   }
 
   /// Its callback for [kind].
   PointerEventListener? _callbackFor(MouseKind kind) => switch (kind) {
-    MouseKind.down => onDown,
-    MouseKind.up => onUp,
+    MouseKind.down => onPointerDown,
+    MouseKind.up => onPointerUp,
     MouseKind.move => onPointerHover,
     MouseKind.drag => onPointerMove,
     _ => onScroll,
@@ -539,10 +539,10 @@ final class RenderListener extends _RenderMouseTarget {
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     final callbacks = [
-      if (onDown != null) 'down',
-      if (onUp != null) 'up',
-      if (onPointerHover != null) 'move',
-      if (onPointerMove != null) 'drag',
+      if (onPointerDown != null) 'pointerDown',
+      if (onPointerUp != null) 'pointerUp',
+      if (onPointerHover != null) 'pointerHover',
+      if (onPointerMove != null) 'pointerMove',
       if (onScroll != null) 'scroll',
     ];
     properties.add(

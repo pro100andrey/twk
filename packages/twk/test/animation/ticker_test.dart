@@ -73,6 +73,43 @@ void main() {
     expect(() => state.createTicker((_) {}), throwsA(isA<AssertionError>()));
   });
 
+  testTwk('SingleTickerProviderStateMixin gives a new ticker once the first '
+      'is disposed, and muting reaches the live one only', (t) async {
+    final key = GlobalKey<SingleState>();
+    Widget app({required bool enabled}) => TickerMode(
+      enabled: enabled,
+      child: Single(key: key),
+    );
+    await t.pumpWidget(app(enabled: true), size: (10, 1), maxFps: 100);
+    final state = key.currentState!;
+    state.ticker.dispose();
+    final again = state.createTicker((_) {});
+    expect(again, isNot(same(state.ticker)));
+    await t.pumpWidget(app(enabled: false));
+    expect(again.muted, isTrue);
+    await t.pumpWidget(app(enabled: true));
+    expect(again.muted, isFalse);
+    expect(state.ticker.muted, isFalse, reason: 'the disposed one is left');
+  });
+
+  testTwk('TickerProviderStateMixin drops a disposed ticker: muting reaches '
+      'the live ones only', (t) async {
+    final key = GlobalKey<TickingState>();
+    Widget app({required bool enabled}) => TickerMode(
+      enabled: enabled,
+      child: Ticking(key: key),
+    );
+    await t.pumpWidget(app(enabled: true), size: (10, 1), maxFps: 100);
+    final state = key.currentState!;
+    final a = state.a..dispose();
+    final b = state.b;
+    await t.pumpWidget(app(enabled: false));
+    expect(b.muted, isTrue);
+    expect(a.muted, isFalse, reason: 'the disposed one is out of the group');
+    await t.pumpWidget(app(enabled: true));
+    expect(b.muted, isFalse);
+  });
+
   testTwk('a ticker ticks once a frame from the next one, with the time '
       'since its first tick, and stopped asks for no frame', (t) async {
     final key = GlobalKey<TickingState>();

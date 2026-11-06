@@ -110,6 +110,35 @@ void main() {
     );
   });
 
+  group('the front matter', () {
+    String about(String json) =>
+        page('X', 'unused').replaceFirst('about: "unused"', 'about: $json');
+
+    test('decodes every escape of a JSON string', () {
+      final read = readWidgetPage(
+        'controls/x.md',
+        about(r'"a \" \\ \/ \b\f\n\r\t é 😀"'),
+      );
+      expect(read.about, 'a " \\ / \b\f\n\r\t é \u{1f600}');
+    });
+
+    test('fails naming the page where an escape is malformed', () {
+      for (final json in [r'"cut \u12"', r'"bad \q"', r'"\uzzzz"']) {
+        expect(
+          () => readWidgetPage('controls/x.md', about(json)),
+          throwsA(
+            isA<ReferenceError>().having(
+              (e) => e.message,
+              'message',
+              contains('doc/widgets/controls/x.md'),
+            ),
+          ),
+          reason: json,
+        );
+      }
+    });
+  });
+
   group('widgets/<group>.md', () {
     final text = build()['widgets/controls.md']!;
 

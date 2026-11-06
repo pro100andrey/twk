@@ -59,6 +59,7 @@ import '../debug/inspector.dart';
 import '../debug/key_hint.dart';
 import '../editing/caret.dart' show restingCell;
 import '../focus/focus.dart';
+import '../foundation/constants.dart' show kReleaseMode;
 import '../foundation/helpers.dart';
 import '../framework/framework.dart';
 import '../gestures/mouse.dart';
@@ -94,11 +95,6 @@ enum ScreenMode {
   /// the app ends (see `TwkApp`).
   inline,
 }
-
-/// Whether the program runs in product mode, as `dart compile exe`
-/// compiles it, without a VM service.
-// ignore: do_not_use_environment, the VM's own, not one an app is built with
-const _product = bool.fromEnvironment('dart.vm.product');
 
 /// Runs [app] in [mode] on the process's terminal, or on [terminal], which
 /// has to be in that mode (an [ArgumentError] if not), until the app quits
@@ -846,7 +842,7 @@ final class AppBinding implements FrameClock {
   /// The first app [run] in an isolate calls it.
   @visibleForTesting
   static void registerServiceExtensions({
-    bool product = _product,
+    bool product = kReleaseMode,
     void Function(String method, ServiceExtensionHandler handler) register =
         registerExtension,
   }) {

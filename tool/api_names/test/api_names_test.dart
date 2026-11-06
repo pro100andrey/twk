@@ -161,4 +161,63 @@ allow pkg Link -- right here
       expect(problems.single, contains('Remove the line'));
     });
   });
+
+  group('publishedPackages', () {
+    Directory packages(Map<String, String?> pubspecs) {
+      final dir = Directory.systemTemp.createTempSync('twk_api_names_pkgs_');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      pubspecs.forEach((name, text) {
+        final package = Directory('${dir.path}/$name')..createSync();
+        if (text != null) {
+          File('${package.path}/pubspec.yaml').writeAsStringSync(text);
+        }
+      });
+      return dir;
+    }
+
+    test('are the packages that do not say publish_to: none, by name', () {
+      final dir = packages({
+        'zeta': 'name: zeta\nversion: 1.0.0\n',
+        'alpha': 'name: alpha\n',
+        'app': 'name: app\npublish_to: none\n',
+        'quoted': "name: quoted\npublish_to: 'none'  # no upload\n",
+        'elsewhere': 'name: elsewhere\npublish_to: https://example.com\n',
+        'not_a_package': null,
+      });
+      expect(publishedPackages(dir.path), ['alpha', 'elsewhere', 'zeta']);
+    });
+
+    test('fail naming a package whose pubspec cannot be read', () {
+      for (final text in ['', 'just: words\n', 'name: [\n']) {
+        final dir = packages({'alpha': 'name: alpha\n', 'broken': text});
+        expect(
+          () => publishedPackages(dir.path),
+          throwsA(
+            isA<FormatException>().having(
+              (e) => e.message,
+              'message',
+              contains('broken/pubspec.yaml'),
+            ),
+          ),
+          reason: text,
+        );
+      }
+    });
+
+    test('are the repository own seven', () {
+      var root = Directory.current;
+      while (!File('${root.path}/xtask.yaml').existsSync()) {
+        root = root.parent;
+      }
+      expect(publishedPackages('${root.path}/packages'), [
+        'twk',
+        'twk_core',
+        'twk_dev',
+        'twk_lints',
+        'twk_rich',
+        'twk_term',
+        'twk_test',
+      ]);
+    });
+  });
 }

@@ -216,15 +216,6 @@ class FocusNode with ChangeNotifier {
   /// Tab moves the focus within.
   FocusScopeNode? get nearestScope => enclosingScope;
 
-  bool _isBelow(FocusNode ancestor) {
-    for (var n = _parent; n != null; n = n._parent) {
-      if (identical(n, ancestor)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   /// Whether this node has the primary focus.
   bool get hasPrimaryFocus => identical(_manager?._primary, this);
 
@@ -603,7 +594,7 @@ class FocusScopeNode extends FocusNode {
   void requestFocus([FocusNode? node]) {
     if (node != null) {
       assert(
-        node._attached && node._isBelow(this),
+        node._attached && !identical(node, this) && node.isBelow(this),
         'Focus was requested for a node that is not below the scope it was '
         'requested from.',
       );

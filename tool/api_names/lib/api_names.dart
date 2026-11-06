@@ -51,6 +51,43 @@ final class ApiName implements Comparable<ApiName> {
 Future<List<ApiName>> publicNames(String packagePath) async =>
     (await publicNamesOf([packagePath])).values.single;
 
+/// The packages of [packagesDir] that are published: each directory with a
+/// `pubspec.yaml` that does not say `publish_to: none`, by name, sorted.
+/// Throws a [FormatException] naming the pubspec of a package whose name it
+/// cannot read, or that is not the name of its directory.
+List<String> publishedPackages(String packagesDir) {
+  final names = <String>[];
+  final directories = Directory(packagesDir).listSync().whereType<Directory>();
+  for (final directory in directories) {
+    final file = File('${directory.path}/pubspec.yaml');
+    if (!file.existsSync()) {
+      continue;
+    }
+    final text = file.readAsStringSync();
+    final name = RegExp(
+      r'^name:[ \t]*([a-z0-9_]+)[ \t]*(#.*)?$',
+      multiLine: true,
+    ).firstMatch(text)?.group(1);
+    final directoryName = directory.uri.pathSegments
+        .where((segment) => segment.isNotEmpty)
+        .last;
+    if (name == null || name != directoryName) {
+      throw FormatException(
+        'cannot read the package name of ${file.path}: '
+        '${name == null ? 'no `name:` line' : '`$name` is not $directoryName'}',
+      );
+    }
+    final publishTo = RegExp(
+      r'''^publish_to:[ \t]*["']?(\S*?)["']?[ \t]*(#.*)?$''',
+      multiLine: true,
+    ).firstMatch(text)?.group(1);
+    if (publishTo != 'none') {
+      names.add(name);
+    }
+  }
+  return names..sort();
+}
+
 /// The public names of each of the packages at [packagePaths] (their
 /// directories), by directory, in one analysis: packages that depend on one
 /// another are resolved once.

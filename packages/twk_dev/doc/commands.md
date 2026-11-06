@@ -30,6 +30,13 @@ nothing and takes the `app` template and no files for agents
 writes the twk skill and a short block of `AGENTS.md` into the project, for a
 coding agent: [the section for agents](../README.md#for-coding-agents)
 
+Each skill directory gets a manifest, `.twk-agents.json`, of the files it
+wrote with their hashes. Run again after an upgrade, it removes the files the
+new skill no longer has that are still as it wrote them; one the project
+changed stays and is named, as does a file that is in no manifest (the
+project's own). With no manifest yet it removes nothing. `--dry-run` says
+what it would remove.
+
 ### `twk shell [-C <dir>]`
 
 owns this terminal and serves it over a local socket to an app of the project
