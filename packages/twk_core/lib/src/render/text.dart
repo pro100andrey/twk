@@ -283,7 +283,7 @@ final class RenderParagraph extends RenderObject {
          maxLines: maxLines,
          align: align,
          ellipsis: ellipsis,
-       );
+       )..tracksDamage = keepsPaint;
 
   // the layout engine: this object gives it the owner's segmenter and text
   // order, marks layout or paint by what its changes invalidated, and

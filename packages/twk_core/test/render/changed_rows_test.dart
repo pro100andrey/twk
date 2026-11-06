@@ -11,7 +11,7 @@ final segmenter = TextSegmenter();
 
 final class _Rig {
   _Rig(String text, {this.order = TextOrder.logical})
-    : painter = TextPainter([(text, plain)]),
+    : painter = TextPainter([(text, plain)])..tracksDamage = true,
       canvas = Canvas(Surface(20, 12), StyleTable(), GlyphTable());
 
   final TextPainter painter;
@@ -112,4 +112,10 @@ void main() {
       });
     });
   }
+
+  test('a painter that does not track counts nothing', () {
+    final r = _Rig('one\ntwo\nthree\nfour')..painter.tracksDamage = false;
+    expect(r.paint(), (0, 0));
+    expect(r.paint([('one\nTWO\nthree\nfour', plain)]), (0, 0));
+  });
 }
