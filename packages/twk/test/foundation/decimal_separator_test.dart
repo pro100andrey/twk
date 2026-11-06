@@ -44,12 +44,12 @@ void main() {
     testTwk('writes the time a task took with the separator', (t) async {
       Widget list(TwkStrings strings) => Localizations(
         strings: strings,
-        child: TaskList(
+        child: const TaskList(
           tasks: [
             TaskItem(
               'Build',
               status: TaskStatus.done,
-              elapsed: const Duration(milliseconds: 3190),
+              elapsed: Duration(milliseconds: 3190),
             ),
           ],
         ),

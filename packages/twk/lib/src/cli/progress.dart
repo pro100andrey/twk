@@ -518,7 +518,10 @@ final class _SpinnerViewState extends State<_SpinnerView> {
             ),
           ),
           Text(
-            ' (${formatTook(widget.clock.elapsed, decimalSeparator: TwkStrings.of(context).decimalSeparator)})',
+            ' (${formatTook(
+              widget.clock.elapsed,
+              decimalSeparator: TwkStrings.of(context).decimalSeparator,
+            )})',
             style: widget.hint,
             wrap: TextWrap.none,
           ),
