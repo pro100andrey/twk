@@ -257,13 +257,7 @@ tasks:
     needs: [get, pkg-get]
     each: packages
     do: tests
-    args:
-      - $each
-      - --exclude-tags=process
-      - --reporter=failures-only
-      # its files joined (tool/xtask/test_groups.dart), half the time and CPU;
-      # ci and ci-tests run it plain, against tests that depend on each other
-      - --joined=packages/twk
+    args: [$each, --exclude-tags=process, --reporter=failures-only]
 
   process-test:
     # The tests that start a real process or pseudo-terminal, after the
@@ -278,8 +272,9 @@ tasks:
     args: [$each, --tags=process, --concurrency=2, --reporter=failures-only]
 
   group-test:
-    # In no gate: packages/twk's suite with its files joined, as pkg-test runs
-    # it, to try other groups. Arguments after `--`: --shuffle=SEED, --groups=N
+    # In no gate yet: packages/twk's suite with its files joined, half the
+    # time and CPU of pkg-test's, until enough runs in random order say the
+    # join changes nothing. Arguments after `--`: --shuffle=SEED, --groups=N
     # and dart test's.
     desc: packages/twk's tests, its files joined in generated entry points
     needs: [get]
