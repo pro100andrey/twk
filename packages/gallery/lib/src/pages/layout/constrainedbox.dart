@@ -54,11 +54,12 @@ final _constrainedBox = GalleryPage(
   code: (o) => [
     'final theme = Theme.of(context);',
     'Widget bounded(String text) => ConstrainedBox(',
-    codeLine([
-      '  constraints: const BoxConstraints(minWidth: ',
-      '${o.nameOf(_constrainedBoxMin)}, maxWidth: ',
-      '${o.nameOf(_constrainedBoxMax)}, minHeight: 1, maxHeight: 3),',
-    ]),
+    '  constraints: const BoxConstraints(',
+    codeLine(['    minWidth: ', '${o.nameOf(_constrainedBoxMin)},']),
+    codeLine(['    maxWidth: ', '${o.nameOf(_constrainedBoxMax)},']),
+    '    minHeight: 1,',
+    '    maxHeight: 3,',
+    '  ),',
     '  child: Box(',
     '    style: theme.selection,',
     '    padding: const .x(1),',

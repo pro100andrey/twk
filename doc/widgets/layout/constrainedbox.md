@@ -23,7 +23,12 @@ options as they start:
 ```dart
 final theme = Theme.of(context);
 Widget bounded(String text) => ConstrainedBox(
-  constraints: const BoxConstraints(minWidth: 12, maxWidth: 32, minHeight: 1, maxHeight: 3),
+  constraints: const BoxConstraints(
+    minWidth: 12,
+    maxWidth: 32,
+    minHeight: 1,
+    maxHeight: 3,
+  ),
   child: Box(
     style: theme.selection,
     padding: const .x(1),
