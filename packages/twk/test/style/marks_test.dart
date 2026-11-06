@@ -2,6 +2,7 @@
 // rule, one warning for each (field, glyph), and what an empty mark is as
 // its descriptor says.
 import 'package:test/test.dart';
+import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_core/twk_core.dart'
     show PipelineOwner, RenderConstrainedBox, RenderObject;

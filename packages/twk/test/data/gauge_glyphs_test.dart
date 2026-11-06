@@ -3,6 +3,7 @@
 // ASCII mark of the same meaning, with one warning; an empty one is no
 // warning.
 import 'package:test/test.dart';
+import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 

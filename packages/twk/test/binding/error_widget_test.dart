@@ -2,6 +2,7 @@
 // of what the widget builds, the error logged with where the widget is,
 // and the app going on; the block's own layout and its text's colour.
 import 'package:test/test.dart';
+import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 

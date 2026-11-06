@@ -12,6 +12,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_core/twk_core.dart' show Terminal, TerminalLink;
 

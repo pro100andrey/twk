@@ -4,6 +4,10 @@
 
 Breaking:
 
+- `log`, `LogLevel`, `LogRecord` and `LogSink` are in `package:twk/log.dart`, out
+  of `twk.dart`, so that `log` clashes with no `dart:math` import: an app that
+  logs imports it, and one that had `hide log` or prefixed `dart:math` for
+  it drops that.
 - `formatBytes`, `formatTook` and `ByteUnits` are in `package:twk/format.dart`,
   out of `twk.dart`: an app that writes a size or a time, or sets a widget's
   `byteUnits:`, imports it.

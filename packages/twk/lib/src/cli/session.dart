@@ -7,6 +7,7 @@ library;
 
 import 'dart:async';
 
+import '../../log.dart';
 import '../../twk.dart';
 
 import 'lines.dart';

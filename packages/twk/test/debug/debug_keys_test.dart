@@ -4,6 +4,7 @@
 // app a Ctrl+G; the rainbow, turned on or off, shows at once on an app
 // that repaints nothing. Ctrl+G is sent as Konsole sends it, CSI 103;5u.
 import 'package:test/test.dart';
+import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 

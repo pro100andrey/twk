@@ -49,8 +49,10 @@ packages/gallery/bin/gallery.dart`).
   quits.
 - `print` and `log()` inside the app go to the app's log, not to the
   screen: the log console shows them (see Debug), and the warnings and
-  errors are printed to stderr once the app has ended. `log` is also a
-  name in `dart:math` and `dart:developer`: import those with a prefix.
+  errors are printed to stderr once the app has ended. `log`, `LogLevel`,
+  `LogRecord` and `LogSink` are in `package:twk/log.dart`, which an app that
+  logs imports besides `twk.dart` (`log` is also a name in `dart:math` and
+  `dart:developer`: import those with a prefix).
 - A build that throws shows a white-on-red box with the error in its place
   and logs it; the app goes on. An error thrown by a key binding, an
   `InputListener` or a mouse callback ends the app with a `WidgetError`

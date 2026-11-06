@@ -25,6 +25,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:twk_core/terminal.dart' show LogLevel, log;
 import 'package:twk_core/twk_core.dart';
 
 const _spinner = <String>['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧'];

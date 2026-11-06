@@ -26,8 +26,9 @@ here takes and returns, those a render object of an app's own is written
 with, and a terminal in memory for tests. The render objects the widgets
 create and the parent data they put on them, the frame loop and the
 terminal's machinery stay in `package:twk_core`; the library comment of
-`lib/twk.dart` gives the rule. `log` is also a function of `dart:math`
-and `dart:developer`: an app that imports either prefixes it.
+`lib/twk.dart` gives the rule. `log` and the log's names are in
+`package:twk/log.dart`, as `log` is also a function of `dart:math` and
+`dart:developer`: an app that imports either prefixes it.
 
 Three libraries of the package are not in `lib/twk.dart`, so that an app
 that uses none of them carries none: `package:twk/hooks.dart`, hooks in
@@ -43,7 +44,8 @@ its tests in `test/<library>/`, its examples in `example/<library>/`.
 `package:twk/format.dart` is a fourth, of three names: `formatBytes`,
 `formatTook` and `ByteUnits`, with which the widgets write a size and a time,
 for an app that writes them as they do (its source is
-`lib/src/foundation/format.dart`).
+`lib/src/foundation/format.dart`); `package:twk/log.dart` a fifth, of four:
+`log`, `LogLevel`, `LogRecord` and `LogSink`, those of twk_core's log.
 
 The package builds for the web with dart2wasm, where
 [twk_web](../../../twk_web/README.md) runs an app on xterm.js: what it takes

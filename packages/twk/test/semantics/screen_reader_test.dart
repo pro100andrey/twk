@@ -5,6 +5,7 @@
 // the app drawn again; the terminal keeping the mouse; and runApp reading
 // an app out on a terminal in the inline mode until it ends.
 import 'package:test/test.dart';
+import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_core/twk_core.dart' show MouseTracking;
 import 'package:twk_test/twk_test.dart';

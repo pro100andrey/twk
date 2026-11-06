@@ -6,6 +6,7 @@ import 'package:test/test.dart';
 import 'package:twk/cli.dart' show Cli;
 import 'package:twk/format.dart';
 import 'package:twk/hooks.dart' show HookWidget;
+import 'package:twk/log.dart';
 import 'package:twk/provider.dart' show Provider;
 // Imported so that this file fails to load when a library that twk.dart
 // exports is missing or does not compile.
@@ -92,8 +93,8 @@ void main() {
     expect(exports, [for (final topic in topics) 'src/$topic/$topic.dart']);
   });
 
-  test('cli.dart, format.dart, hooks.dart and provider.dart are libraries of '
-      'their own, '
+  test('cli.dart, format.dart, hooks.dart, log.dart and provider.dart are '
+      'libraries of their own, '
       'besides twk.dart, which exports none of their names', () async {
     final uri = await Isolate.resolvePackageUri(
       Uri.parse('package:twk/twk.dart'),
@@ -108,26 +109,30 @@ void main() {
         'cli.dart',
         'format.dart',
         'hooks.dart',
+        'log.dart',
         'provider.dart',
         'twk.dart',
       ],
     );
-    final format = _exported(
-      currentMirrorSystem().libraries[Uri.parse('package:twk/format.dart')]!,
-    );
-    expect(format.keys.map(MirrorSystem.getName), {
-      'ByteUnits',
-      'formatBytes',
-      'formatTook',
-    });
-    expect(
-      [
-        for (final name in format.keys)
-          if (exported.containsKey(name)) MirrorSystem.getName(name),
-      ],
-      isEmpty,
-      reason: 'twk.dart exports no name of format.dart',
-    );
+    for (final (library, declared) in [
+      ('format', {'ByteUnits', 'formatBytes', 'formatTook'}),
+      ('log', {'LogLevel', 'LogRecord', 'LogSink', 'log'}),
+    ]) {
+      final names = _exported(
+        currentMirrorSystem().libraries[Uri.parse(
+          'package:twk/$library.dart',
+        )]!,
+      );
+      expect(names.keys.map(MirrorSystem.getName), declared);
+      expect(
+        [
+          for (final name in names.keys)
+            if (exported.containsKey(name)) MirrorSystem.getName(name),
+        ],
+        isEmpty,
+        reason: 'twk.dart exports no name of $library.dart',
+      );
+    }
     for (final (library, widget) in [
       ('cli', Cli),
       ('hooks', HookWidget),
@@ -165,7 +170,7 @@ void main() {
   // sample app below names those
   test('twk.dart exports the core types that public signatures name, and '
       'those a core class it exports is made with, but the render objects '
-      'of its widgets', () {
+      'of its widgets, and those of the log, which log.dart has', () {
     final named = <String, String>{};
     for (final d in exported.values) {
       for (final (where, type) in [
@@ -184,9 +189,14 @@ void main() {
       }
     }
     expect(named.keys, containsAll(notExported));
+    // the log's names are in log.dart, which an app that logs imports
+    final logged = _exported(
+      currentMirrorSystem().libraries[Uri.parse('package:twk/log.dart')]!,
+    );
     expect({
       for (final MapEntry(:key, :value) in named.entries)
         if (!exported.containsKey(MirrorSystem.getSymbol(key)) &&
+            !logged.containsKey(MirrorSystem.getSymbol(key)) &&
             !notExported.contains(key))
           key: value,
     }, isEmpty);
@@ -203,7 +213,11 @@ void main() {
         ).allMatches(source))
           if (!m[1]!.startsWith('dart:')) m[1],
       ],
-      ['package:twk/format.dart', 'package:twk/twk.dart'],
+      [
+        'package:twk/format.dart',
+        'package:twk/log.dart',
+        'package:twk/twk.dart',
+      ],
     );
     final parts = [
       for (final m in RegExp(

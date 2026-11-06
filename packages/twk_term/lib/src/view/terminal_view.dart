@@ -7,6 +7,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:twk/twk.dart';
+import 'package:twk_core/terminal.dart' show LogLevel, log;
 import 'package:twk_core/twk_core.dart' show PipelineOwner, kBlank, kWide;
 
 import '../emulator/buffer.dart';

@@ -11,9 +11,6 @@ import 'package:twk_core/twk_core.dart'
         BoxConstraints,
         Canvas,
         DiagnosticPropertiesBuilder,
-        LogLevel,
-        LogRecord,
-        LogSink,
         PaintContext,
         PipelineOwner,
         RenderObject,
@@ -23,6 +20,7 @@ import 'package:twk_core/twk_core.dart'
         clipboardSequence,
         fitText;
 
+import '../../log.dart';
 import '../binding/app_binding.dart';
 import '../data/chart_glyphs.dart' show opaque;
 import '../foundation/change_notifier.dart';

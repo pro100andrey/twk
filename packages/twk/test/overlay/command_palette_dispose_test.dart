@@ -5,6 +5,7 @@
 // built in its place with its controller goes on with the palette open
 // (controller_handover_test.dart).
 import 'package:test/test.dart';
+import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 

@@ -5,8 +5,9 @@
 library;
 
 import 'package:stack_trace/stack_trace.dart';
-import 'package:twk_core/twk_core.dart' show LogRecord, stringWidth;
+import 'package:twk_core/twk_core.dart' show stringWidth;
 
+import '../../log.dart';
 import '../binding/source_excerpt.dart' show inPubCache, sdkOrTwk, shownPath;
 import '../platform/platform.dart' show sourcePath;
 

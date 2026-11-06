@@ -17,6 +17,7 @@
 import 'dart:async';
 import 'dart:math' show sin;
 
+import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
 
 Future<void> main() => runApp(const Dashboard());

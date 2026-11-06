@@ -7,6 +7,7 @@ import 'dart:io' show Platform;
 import 'dart:typed_data';
 
 import 'package:test/test.dart';
+import 'package:twk_core/terminal.dart' show LogLevel, log;
 import 'package:twk_core/twk_core.dart';
 import 'package:twk_test/twk_test.dart' show FakeClock;
 import 'package:twk_test/vt_terminal.dart';

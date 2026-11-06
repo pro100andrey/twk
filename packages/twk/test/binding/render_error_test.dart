@@ -4,6 +4,7 @@
 // widget above it; each is logged once with the path of its widget, and
 // the rest of the frame is painted as ever.
 import 'package:test/test.dart';
+import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
 
 import 'harness.dart';

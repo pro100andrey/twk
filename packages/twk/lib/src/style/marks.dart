@@ -4,16 +4,9 @@ library;
 
 import 'package:meta/meta.dart';
 import 'package:twk_core/twk_core.dart'
-    show
-        BorderType,
-        ClusterScan,
-        LogLevel,
-        LogRecord,
-        PipelineOwner,
-        RenderObject,
-        TextSegmenter,
-        log;
+    show BorderType, ClusterScan, PipelineOwner, RenderObject, TextSegmenter;
 
+import '../../log.dart';
 import '../binding/app_binding.dart' show AppBinding;
 import '../framework/framework.dart' show BuildContext;
 import '../text/hit_row.dart' show segmenterOf;

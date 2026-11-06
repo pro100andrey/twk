@@ -1,6 +1,7 @@
 // A checkbox's brackets are a field of the glyph set, as a radio button's
 // are: the marks between them are not cut out of a longer string by guess.
 import 'package:test/test.dart';
+import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 

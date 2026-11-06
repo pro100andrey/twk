@@ -32,7 +32,6 @@ export 'src/headless.dart' show HeadlessTerminal, renderToString;
 export 'src/input/events.dart';
 export 'src/input/parser.dart' show InputParser;
 export 'src/line_encoder.dart' show LineEncoder;
-export 'src/log.dart' show LogLevel, LogRecord, LogSink, log;
 export 'src/platform/platform.dart'
     show LocalAddress, ShellEvent, TerminalShell;
 export 'src/presenter.dart'
