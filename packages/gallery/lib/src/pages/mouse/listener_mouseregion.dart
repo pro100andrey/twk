@@ -88,8 +88,8 @@ final class _EventsState extends State<_Events> {
             onPointerDown: (event) =>
                 _saw('press of button ${event.button}', event),
             onPointerUp: (event) => _saw('release', event),
-            onMove: (event) => _saw('move', event),
-            onDrag: (event) => _saw('drag', event),
+            onPointerHover: (event) => _saw('move', event),
+            onPointerMove: (event) => _saw('drag', event),
             onScroll: (event) => _saw(event.kind.name, event),
             behavior: HitTestBehavior.opaque,
             child: SizedBox(
@@ -162,8 +162,8 @@ String _eventsCode(Options o) {
     '        child: Listener(',
     _pressLine,
     "          onPointerUp: (event) => _saw('release', event),",
-    "          onMove: (event) => _saw('move', event),",
-    "          onDrag: (event) => _saw('drag', event),",
+    "          onPointerHover: (event) => _saw('move', event),",
+    "          onPointerMove: (event) => _saw('drag', event),",
     '          onScroll: (event) => _saw(event.kind.name, event),',
     '          behavior: .opaque,',
     '          child: SizedBox(',

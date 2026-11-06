@@ -1234,7 +1234,7 @@ final class _DockAreaState extends State<DockArea> {
           windows: _floating(layout.windows),
           decorate: (context, window) => Listener(
             onPointerDown: _windowDown,
-            onDrag: _windowDrag,
+            onPointerMove: _windowDrag,
             onPointerUp: _windowUp,
             child: window,
           ),
@@ -1436,7 +1436,7 @@ final class _GroupState extends State<_Group> {
       children: [
         Listener(
           onPointerDown: (event) => area._tabDown(this, event),
-          onDrag: area._tabDrag,
+          onPointerMove: area._tabDrag,
           onPointerUp: area._tabUp,
           child: area.widget.tabStrip
               ? TabBar.strip(

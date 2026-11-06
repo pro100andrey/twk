@@ -205,7 +205,7 @@ final class _DraggableState<T extends Object> extends State<Draggable<T>> {
     _pressed = event;
     tracker.whenReleased(_lost);
     // the drags may come before the next frame builds the listener anew
-    setOnDrag(_listener, _drag);
+    setOnPointerMove(_listener, _drag);
     setState(() {});
   }
 
@@ -401,7 +401,7 @@ final class _DraggableState<T extends Object> extends State<Draggable<T>> {
     return Listener(
       onPointerDown: _down,
       onPointerUp: _up,
-      onDrag: _pressed != null || _dragging ? _drag : null,
+      onPointerMove: _pressed != null || _dragging ? _drag : null,
       behavior: w.behavior,
       // hit where the listener is
       child: MouseRegion(

@@ -551,7 +551,7 @@ final class GalleryShellState extends State<GalleryShell>
             debugLabel: 'gallery',
             child: Listener(
               behavior: HitTestBehavior.translucent,
-              onMove: (e) => _hover(e.screenX, e.screenY),
+              onPointerHover: (e) => _hover(e.screenX, e.screenY),
               onPointerDown: (e) => _pressed = true,
               onPointerUp: (e) => _pressed = false,
               child: LayoutBuilder(builder: _screen),

@@ -1418,7 +1418,7 @@ final class _TableState<T> extends State<Table<T>> {
               _shaped(
                 Listener(
                   onPointerDown: _headerDown,
-                  onDrag: _headerDrag,
+                  onPointerMove: _headerDrag,
                   onPointerUp: _headerUp,
                   child: _Row(
                     columns: _columns,

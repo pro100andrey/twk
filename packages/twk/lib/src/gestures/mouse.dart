@@ -136,10 +136,11 @@ typedef PointerEventListener = void Function(PointerEvent event);
 /// in the coordinates of this widget.
 ///
 /// The callbacks are a press ([onPointerDown]), a release ([onPointerUp]),
-/// motion with no button held ([onMove]) and with one ([onDrag]), the wheel
-/// ([onScroll]). Where it is hit is up to [behavior]: by default where its
-/// child is (a see-through cell of a `Box` without a background is not),
-/// anywhere in its bounds when [HitTestBehavior.opaque].
+/// motion with no button held ([onPointerHover]) and with one
+/// ([onPointerMove]), the wheel ([onScroll]). Where it is hit is up to
+/// [behavior]: by default where its child is (a see-through cell of a `Box`
+/// without a background is not), anywhere in its bounds when
+/// [HitTestBehavior.opaque].
 ///
 /// A press, release, move or drag goes to each Listener hit there with a
 /// callback for it, the deepest first. Once a button is pressed, drags and
@@ -156,9 +157,10 @@ typedef PointerEventListener = void Function(PointerEvent event);
 /// `InputListener`s.
 ///
 /// While one with a callback is mounted, the terminal reports the mouse
-/// as its callbacks need: all motion for [onMove] (mode 1003: a report for
-/// each cell the mouse crosses), motion while a button is held for
-/// [onDrag] (1002), presses, releases and the wheel for the others (1000).
+/// as its callbacks need: all motion for [onPointerHover] (mode 1003: a
+/// report for each cell the mouse crosses), motion while a button is held for
+/// [onPointerMove] (1002), presses, releases and the wheel for the others
+/// (1000).
 /// While none is mounted, nor a [MouseRegion], the mouse is the
 /// terminal's: its selection and its wheel work as without the app. In the
 /// inline mode the mouse stays the terminal's. Outside an app a Listener
@@ -186,8 +188,8 @@ final class Listener extends SingleChildRenderObjectWidget {
     super.key,
     this.onPointerDown,
     this.onPointerUp,
-    this.onMove,
-    this.onDrag,
+    this.onPointerHover,
+    this.onPointerMove,
     this.onScroll,
     this.scrollAxis,
     this.behavior = HitTestBehavior.deferToChild,
@@ -201,10 +203,10 @@ final class Listener extends SingleChildRenderObjectWidget {
   final PointerEventListener? onPointerUp;
 
   /// The mouse moved over it with no button held.
-  final PointerEventListener? onMove;
+  final PointerEventListener? onPointerHover;
 
   /// The mouse moved with a button held, over it or after a press over it.
-  final PointerEventListener? onDrag;
+  final PointerEventListener? onPointerMove;
 
   /// The wheel turned over it ([PointerEvent.scrollY],
   /// [PointerEvent.scrollX]), and over no Listener inside it that takes
@@ -232,8 +234,8 @@ final class Listener extends SingleChildRenderObjectWidget {
     final listener = RenderListener(
       onDown: onPointerDown,
       onUp: onPointerUp,
-      onMove: onMove,
-      onDrag: onDrag,
+      onPointerHover: onPointerHover,
+      onPointerMove: onPointerMove,
       onScroll: onScroll,
       scrollAxis: scrollAxis,
       behavior: behavior,
@@ -247,8 +249,8 @@ final class Listener extends SingleChildRenderObjectWidget {
     renderObject
       ..onDown = onPointerDown
       ..onUp = onPointerUp
-      ..onMove = onMove
-      ..onDrag = onDrag
+      ..onPointerHover = onPointerHover
+      ..onPointerMove = onPointerMove
       ..onScroll = onScroll
       ..scrollAxis = scrollAxis
       ..behavior = behavior
@@ -470,8 +472,8 @@ final class RenderListener extends _RenderMouseTarget {
   RenderListener({
     this.onDown,
     this.onUp,
-    this.onMove,
-    this.onDrag,
+    this.onPointerHover,
+    this.onPointerMove,
     this.onScroll,
     this.scrollAxis,
     HitTestBehavior behavior = HitTestBehavior.deferToChild,
@@ -483,11 +485,11 @@ final class RenderListener extends _RenderMouseTarget {
   /// See [Listener.onPointerUp].
   PointerEventListener? onUp;
 
-  /// See [Listener.onMove].
-  PointerEventListener? onMove;
+  /// See [Listener.onPointerHover].
+  PointerEventListener? onPointerHover;
 
-  /// See [Listener.onDrag].
-  PointerEventListener? onDrag;
+  /// See [Listener.onPointerMove].
+  PointerEventListener? onPointerMove;
 
   /// See [Listener.onScroll].
   PointerEventListener? onScroll;
@@ -512,11 +514,11 @@ final class RenderListener extends _RenderMouseTarget {
 
   @override
   MouseTracking get _needs {
-    if (onMove != null ||
+    if (onPointerHover != null ||
         cursorAt != null && cursorAsksMotion && _shapesShown) {
       return MouseTracking.motion;
     }
-    if (onDrag != null) {
+    if (onPointerMove != null) {
       return MouseTracking.drags;
     }
     return onDown != null || onUp != null || onScroll != null
@@ -528,8 +530,8 @@ final class RenderListener extends _RenderMouseTarget {
   PointerEventListener? _callbackFor(MouseKind kind) => switch (kind) {
     MouseKind.down => onDown,
     MouseKind.up => onUp,
-    MouseKind.move => onMove,
-    MouseKind.drag => onDrag,
+    MouseKind.move => onPointerHover,
+    MouseKind.drag => onPointerMove,
     _ => onScroll,
   };
 
@@ -539,8 +541,8 @@ final class RenderListener extends _RenderMouseTarget {
     final callbacks = [
       if (onDown != null) 'down',
       if (onUp != null) 'up',
-      if (onMove != null) 'move',
-      if (onDrag != null) 'drag',
+      if (onPointerHover != null) 'move',
+      if (onPointerMove != null) 'drag',
       if (onScroll != null) 'scroll',
     ];
     properties.add(
@@ -1111,12 +1113,15 @@ final class MouseTracker {
 // What a Draggable needs of its Listener; hidden from the library's
 // exports.
 
-/// Gives [listener] [onDrag] at once, as its [Listener] built again with
+/// Gives [listener] [onPointerMove] at once, as its [Listener] built again with
 /// it would, and counts what it needs again: a press that needs the drags
 /// after it gets those the terminal reports before the next frame.
-void setOnDrag(RenderListener listener, PointerEventListener? onDrag) {
+void setOnPointerMove(
+  RenderListener listener,
+  PointerEventListener? onPointerMove,
+) {
   listener
-    ..onDrag = onDrag
+    ..onPointerMove = onPointerMove
     .._recount();
 }
 

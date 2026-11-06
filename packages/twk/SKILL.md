@@ -93,8 +93,8 @@ packages/gallery/bin/gallery.dart`).
   `BoxConstraints` has `minWidth`, `maxWidth`, `minHeight`, `maxHeight` (in
   cells, as in Flutter), and `BoxConstraints.tight(w, h)` takes two ints, not
   one object;
-  a position is in cells, a `CellOffset` (`dx`, `dy`) where Flutter has an
-  `Offset`: `GestureDetector`'s `onTapDown` and `onTapUp` take it in their
+  a position is in cells, a record `(dx:, dy:)` of whole numbers where Flutter
+  has an Offset: `GestureDetector`'s `onTapDown` and `onTapUp` take it in their
   details (`localPosition`, `globalPosition`; `event.button` says which
   button), and `onPanStart`, `onPanUpdate` (`delta`) and `onPanEnd` too, while
   `onTap`, `onDoubleTap` and `onLongPress` take none, as Flutter's;

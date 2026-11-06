@@ -1109,7 +1109,7 @@ final class _MenuBarState extends State<MenuBar> implements _MenuHost {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Listener(
-            onDrag: (event) => _session?._fromBar(event, release: false),
+            onPointerMove: (event) => _session?._fromBar(event, release: false),
             onPointerUp: (event) => _session?._fromBar(event, release: true),
             child: Semantics(
               role: SemanticsRole.menuBar,
@@ -1809,8 +1809,8 @@ final class _MenuSession {
                 behavior: HitTestBehavior.opaque,
                 onPointerDown: _pressed,
                 onPointerUp: (event) => _release(event.x, event.y),
-                onMove: (event) => _hover(event.x, event.y),
-                onDrag: (event) => _hover(event.x, event.y),
+                onPointerHover: (event) => _hover(event.x, event.y),
+                onPointerMove: (event) => _hover(event.x, event.y),
                 onScroll: (_) {},
                 // the hand over an entry that can be chosen, and over the
                 // bar's titles, which the mouse moved to opens

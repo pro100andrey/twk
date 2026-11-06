@@ -294,7 +294,7 @@ final class _SliderState extends State<Slider> {
         }
         return Listener(
           onPointerDown: enabled ? _press : null,
-          onDrag: enabled ? _drag : null,
+          onPointerMove: enabled ? _drag : null,
           onScroll: enabled && focused ? _wheel : null,
           child: _Track(
             key: _track,

@@ -6,7 +6,8 @@ The mouse by a hit test of the last frame.
 
 ## `Listener`
 
-`Listener(onPointerDown:, onPointerUp:, onMove:, onDrag:, onScroll:, behavior:, child:)`
+`Listener(onPointerDown:, onPointerUp:, onPointerHover:, onPointerMove:,
+onScroll:, behavior:, child:)`
 (`RenderListener`) gets a press, a release, motion with no button held and
 with one, and the wheel, each a `PointerEvent`: its `kind`, the cell (`x`,
 `y`) in the coordinates of the widget and on the screen (`screenX`,
@@ -48,8 +49,8 @@ or a `MouseRegion` with a callback, or with a `cursor` the terminal shows,
 is mounted, from the frame that mounts the first to the one that unmounts
 the last, as little as their callbacks need (the core's `MouseTracking`):
 presses, releases and the wheel (mode 1000) for `onPointerDown`, `onPointerUp` and
-`onScroll`, motion with a button held (1002) for `onDrag`, all motion (1003)
-for `onMove` and a `MouseRegion`; the mode is the terminal's, for the whole
+`onScroll`, motion with a button held (1002) for `onPointerMove`, all motion (1003)
+for `onPointerHover` and a `MouseRegion`; the mode is the terminal's, for the whole
 app, not for an area: one `MouseRegion` with a callback or a shown `cursor`,
 or a `Button`, has all motion reported everywhere, and
 `ThemeData.pointerMode` is what keeps controls from asking

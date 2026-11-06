@@ -238,7 +238,7 @@ extension _Inspector on GalleryShellState {
       child: Listener(
         behavior: HitTestBehavior.opaque,
         onPointerDown: press,
-        onDrag: drag,
+        onPointerMove: drag,
         onPointerUp: (_) => _grab = null,
         child: CellPaint((cell) {
           // the option's rows from its top, [from] of them above the cell:

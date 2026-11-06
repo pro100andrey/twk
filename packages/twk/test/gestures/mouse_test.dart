@@ -45,8 +45,8 @@ Widget listener(
     child: Listener(
       onPointerDown: r,
       onPointerUp: r,
-      onMove: r,
-      onDrag: r,
+      onPointerHover: r,
+      onPointerMove: r,
       onScroll: scroll ? r : null,
       scrollAxis: scrollAxis,
       behavior: behavior,
@@ -683,7 +683,7 @@ void main() {
             onScroll: none,
             child: const Text('a'),
           ),
-          2 => Listener(onDrag: none, child: const Text('b')),
+          2 => Listener(onPointerMove: none, child: const Text('b')),
           3 => MouseRegion(onExit: none, child: const Text('c')),
           4 => Column(
             children: [

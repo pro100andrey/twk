@@ -453,7 +453,7 @@ final class _PressChipState extends State<PressChip>
       chip = Listener(
         onPointerDown: _down,
         onPointerUp: _up,
-        onDrag: _drag,
+        onPointerMove: _drag,
         child: chip,
       );
     }

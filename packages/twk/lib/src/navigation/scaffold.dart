@@ -688,7 +688,7 @@ final class _ScaffoldState extends State<Scaffold> {
               child: Listener(
                 behavior: HitTestBehavior.opaque,
                 onPointerDown: _down,
-                onDrag: _drag,
+                onPointerMove: _drag,
                 onPointerUp: (_) => _up(),
                 child: VerticalDivider(
                   style: active ? theme.primary : theme.faint,

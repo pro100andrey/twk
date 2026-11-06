@@ -220,7 +220,7 @@ parent that counts clicks itself, or that has to know of a tap anyway.
 The terminal reports the mouse by mode for the whole app, not by area:
 presses and the wheel (1000) for taps and `onScroll`, motion with a button
 held (1002) for drags, all motion (1003) for `onHover`, `onEnter`,
-`onExit`, `onMove`, a `MouseRegion`'s `cursor` where the terminal shows
+`onExit`, `onPointerHover`, a `MouseRegion`'s `cursor` where the terminal shows
 the pointer's shape, and a `Button`'s hover look. One of them anywhere in
 the app turns 1003 on everywhere. The hand over what a click presses is
 `ThemeData.pointerMode`, by default `PointerMode.auto`: shown only where motion

@@ -39,10 +39,10 @@ Breaking:
   same `DragTargetDetails`.
 - `showDialog` takes `barrierDismissible`, as Flutter names it, where it took
   `dismissible`.
-- `Listener` takes `onPointerDown` and `onPointerUp`, as Flutter names them,
-  where it took `onDown` and `onUp`. Its `onMove` stays: it is motion with no
-  button held, which is Flutter's `onPointerHover`, where Flutter's
-  `onPointerMove` is motion with one held, `onDrag` here.
+- `Listener` and `RenderListener` take `onPointerDown`, `onPointerUp`,
+  `onPointerHover` and `onPointerMove`, as Flutter names them, where they took
+  `onDown`, `onUp`, `onMove` (motion with no button held, Flutter's hover) and
+  `onDrag` (motion with a button held, Flutter's move). `onScroll` stays.
 - `GestureDetector` takes `onPanStart`, `onPanUpdate` and `onPanEnd`, as Flutter
   names them, where it took `onDragStart`, `onDragUpdate` and `onDragEnd`.
 - `ScrollMetrics` and `ScrollPosition` have `pixels`, `maxScrollExtent` and

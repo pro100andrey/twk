@@ -19,8 +19,8 @@ Widget listener(List<String> log, String name, {Widget? child}) {
   return Listener(
     onPointerDown: r,
     onPointerUp: r,
-    onMove: r,
-    onDrag: r,
+    onPointerHover: r,
+    onPointerMove: r,
     onScroll: r,
     behavior: HitTestBehavior.opaque,
     child: child ?? const SizedBox.expand(),

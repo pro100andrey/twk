@@ -188,7 +188,7 @@ final class _OptionListState extends State<OptionList> {
     }
     return Listener(
       behavior: HitTestBehavior.opaque,
-      onMove: widget.onHighlight == null ? null : _move,
+      onPointerHover: widget.onHighlight == null ? null : _move,
       onScroll: widget.onHighlight == null ? null : _scroll,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,

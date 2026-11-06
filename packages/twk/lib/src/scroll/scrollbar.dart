@@ -204,7 +204,7 @@ final class _ScrollbarState extends State<Scrollbar> {
               valueListenable: _track.axisOf,
               builder: (context, axis, _) => Listener(
                 onPointerDown: _track.press,
-                onDrag: _track.drag,
+                onPointerMove: _track.drag,
                 onScroll: _track.wheel,
                 scrollAxis: axis,
                 child: _Bar(
@@ -357,7 +357,7 @@ final class _BorderScrollbarState extends State<BorderScrollbar> {
             valueListenable: _track.axisOf,
             builder: (context, axis, _) => Listener(
               onPointerDown: _track.press,
-              onDrag: _track.drag,
+              onPointerMove: _track.drag,
               onScroll: _track.wheel,
               scrollAxis: axis,
               child: _Bar(
