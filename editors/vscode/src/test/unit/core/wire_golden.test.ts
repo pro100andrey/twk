@@ -15,7 +15,7 @@ import { fromVariable } from '../../../core/address';
 import { declarationOf, presetNamed } from '../../../core/capabilities';
 import { TerminalPane, TerminalShell } from '../../../core/shell';
 import { switchEnvironment, switchesOf } from '../../../core/switches';
-import { AppFrame, FrameReader, ShellFrame, Wire, appFrameOf, frame, jsonFrame, shellFrameOf } from '../../../core/wire';
+import { AppFrame, FrameReader, ShellFrame, Wire, appFrameOf, frame, jsonFrame } from '../../../core/wire';
 
 /** From out/test/unit/core, where this runs compiled, to the repository's root. */
 const goldenPath = path.resolve(__dirname, '../../../../../../packages/twk_core/test/terminal/shell_wire.golden.json');
@@ -194,18 +194,15 @@ describe('the golden of the wire', () => {
     );
   });
 
-  it('a byte is the frame of its direction, or none', () => {
+  it('a byte is a frame the app sends, or none', () => {
     for (const type of Object.values(AppFrame)) {
       assert.equal(appFrameOf(type), type);
-      assert.equal(shellFrameOf(type), undefined);
     }
     for (const type of Object.values(ShellFrame)) {
-      assert.equal(shellFrameOf(type), type);
       assert.equal(appFrameOf(type), undefined);
     }
     for (const type of [0, 6, 15, 21, 99, 255]) {
       assert.equal(appFrameOf(type), undefined);
-      assert.equal(shellFrameOf(type), undefined);
     }
   });
 

@@ -123,5 +123,8 @@ final t = AppLocale.ru.build();
 await Cli.runWithArgs(args, strings: twkStrings(t), body);
 ```
 
-An app puts `Localizations(strings: twkStrings(t), child: ...)` at its
-root, and builds it again with another `t` when the language changes.
+An app puts `Localizations(strings: ..., child: ...)` at its root, with
+strings it made once for the language, and makes them again when the
+language changes. The functions in them compare by identity: strings made
+in `build` differ from the last each time, and every widget that reads them
+is built again.

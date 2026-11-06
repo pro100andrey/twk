@@ -15,8 +15,13 @@ import 'package:test/test.dart';
 import 'package:twk_test/twk_test.dart';
 
 /// The routes checked besides each page's own, for a page whose options
-/// make another Code: App › Cli's other programs.
-const _more = ['#/app/cli?o=program:install', '#/app/cli?o=program:check'];
+/// make another Code: App › Cli's other programs, and a Popover that is not
+/// dismissed.
+const _more = [
+  '#/app/cli?o=program:install',
+  '#/app/cli?o=program:check',
+  '#/overlays/popover?o=dismissible:false',
+];
 
 void main(List<String> args) {
   final [out, ...given] = args;

@@ -6,6 +6,10 @@ Breaking:
 
 - `Popover.onDismiss` is required: `null` for a popover the app never closes this
   way.
+- `Ticker.binding` and `Steps.binding` are typed by what they use of it, the
+  time of the frame and frame callbacks, not `AppBinding?`: an `AppBinding` goes
+  in as before, and a test without an app gives twk_test's `FakeFrameClock`. Code
+  that read another member through them keeps its own `AppBinding`.
 - `Cli.current` is gone, with the zone value `Cli.run` set: the body gets its
   `cli` as a parameter, and a program passes it to the helpers that use it. A
   program that made its own `Cli()` closes it itself, as before. Nothing in

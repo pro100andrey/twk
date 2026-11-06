@@ -30,16 +30,10 @@ export const ShellFrame = {
 export type ShellFrame = (typeof ShellFrame)[keyof typeof ShellFrame];
 
 const appFrames: ReadonlySet<number> = new Set(Object.values(AppFrame));
-const shellFrames: ReadonlySet<number> = new Set(Object.values(ShellFrame));
 
 /** The frame [byte] is where the app sends it, or undefined for a byte this version does not know. */
 export function appFrameOf(byte: number): AppFrame | undefined {
   return appFrames.has(byte) ? (byte as AppFrame) : undefined;
-}
-
-/** The frame [byte] is where the shell sends it, or undefined for a byte this version does not know. */
-export function shellFrameOf(byte: number): ShellFrame | undefined {
-  return shellFrames.has(byte) ? (byte as ShellFrame) : undefined;
 }
 
 /** A frame of [type] with [payload]. */
