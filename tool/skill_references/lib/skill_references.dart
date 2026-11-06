@@ -11,6 +11,8 @@
 /// of the texts it is given, so that the same catalog gives the same bytes.
 library;
 
+import 'dart:convert';
+
 /// The marker line at the top of each generated reference that is not a
 /// copy of a guide.
 const generatedNote =
@@ -79,7 +81,12 @@ final class WidgetGroup {
 }
 
 /// The front matter of [text] (a JSON string a key) and the body after it.
-(Map<String, String>, String) splitFrontMatter(String text) {
+/// A value that is not valid JSON is a [ReferenceError] naming [source], the
+/// page it is in.
+(Map<String, String>, String) splitFrontMatter(
+  String text, {
+  String source = 'a page',
+}) {
   final lines = text.split('\n');
   if (lines.isEmpty || lines.first != '---') {
     return ({}, text);
@@ -96,34 +103,23 @@ final class WidgetGroup {
     }
     final value = line.substring(colon + 2);
     fields[line.substring(0, colon)] = value.startsWith('"')
-        ? _unquote(value)
+        ? _unquote(value, source)
         : value;
   }
   return (fields, lines.sublist(end + 1).join('\n'));
 }
 
-String _unquote(String json) {
-  final out = StringBuffer();
-  for (var i = 1; i < json.length - 1; i++) {
-    final c = json[i];
-    if (c != r'\') {
-      out.write(c);
-      continue;
+String _unquote(String json, String source) {
+  try {
+    if (jsonDecode(json) case final String text) {
+      return text;
     }
-    final n = json[++i];
-    switch (n) {
-      case 'n':
-        out.write('\n');
-      case 't':
-        out.write('\t');
-      case 'u':
-        out.writeCharCode(int.parse(json.substring(i + 1, i + 5), radix: 16));
-        i += 4;
-      default:
-        out.write(n);
-    }
+  } on FormatException catch (e) {
+    throw ReferenceError(
+      '$source: a front matter value is no JSON string ($json): ${e.message}',
+    );
   }
-  return out.toString();
+  throw ReferenceError('$source: a front matter value is no string: $json');
 }
 
 /// The anchor GitHub gives the heading [title]: lower case, punctuation
@@ -141,7 +137,7 @@ const _optionsIntro =
 
 /// Reads the widget page [text] of [path] (relative to `doc/widgets/`).
 WidgetPage readWidgetPage(String path, String text) {
-  final (front, body) = splitFrontMatter(text);
+  final (front, body) = splitFrontMatter(text, source: 'doc/widgets/$path');
   final title = front['title'];
   final about = front['about'];
   if (title == null || about == null) {
@@ -207,7 +203,10 @@ List<WidgetGroup> readCatalog(Map<String, String> docWidgets) {
   }
   final groups = <WidgetGroup>[];
   for (final slug in slugs) {
-    final (front, body) = splitFrontMatter(need('$slug.md'));
+    final (front, body) = splitFrontMatter(
+      need('$slug.md'),
+      source: 'doc/widgets/$slug.md',
+    );
     final paths = [for (final m in _widgetLink.allMatches(body)) m.group(1)!];
     final onDisk = docWidgets.keys.where((k) => k.startsWith('$slug/')).toSet();
     if (paths.toSet().length != paths.length ||
