@@ -9,5 +9,5 @@ export 'caret.dart' show clearRestCursor, hideCaret, restCursor, showCaret;
 export 'editing_keys.dart' show copyToClipboard;
 export 'input_decoration.dart' hide decoratedField;
 export 'text_area.dart';
-export 'text_editing.dart' hide TextBoundaries, textBufferOf;
+export 'text_editing.dart' hide textBufferOf;
 export 'text_field.dart';

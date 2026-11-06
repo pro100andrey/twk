@@ -6,7 +6,6 @@
 // of text in time, its text not put together until asked for.
 import 'package:test/test.dart';
 import 'package:twk/src/editing/text_buffer.dart' show TextBuffer;
-import 'package:twk/src/editing/text_editing.dart' show TextBoundaries;
 import 'package:twk/twk.dart';
 
 /// Every offset the caret stops at going right from the start of [text].
