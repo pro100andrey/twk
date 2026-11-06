@@ -111,12 +111,13 @@ Stream<void> watchDirectory(String path) {
 ///
 /// What is a start over and what to read is decided by a [FollowMachine];
 /// the stream is the file, the watch and the poll around it. The poll runs
-/// on a `Timer.periodic`, of the zone the stream is listened to in: a
-/// test's fake clock moves it.
+/// on `Timer.periodic` of the zone the stream is listened to in, so a
+/// test's fake clock moves it; [startPeriodic] starts it otherwise.
 Stream<TailEvent> tailFile(
   String path, {
   required bool fromEnd,
   required Duration poll,
+  Timer Function(Duration, void Function(Timer)) startPeriodic = Timer.periodic,
 }) {
   final file = File(path);
   final name = file.uri.pathSegments.last;
@@ -209,7 +210,7 @@ Stream<TailEvent> tailFile(
           // no watch of the directory: the poll alone
         }
       }
-      timer = Timer.periodic(poll, (_) => look());
+      timer = startPeriodic(poll, (_) => look());
       unawaited(look());
     },
     onCancel: () async {
