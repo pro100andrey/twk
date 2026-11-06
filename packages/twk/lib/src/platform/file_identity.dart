@@ -7,8 +7,10 @@
 /// name holds another file; its device and inode do. On Linux the event is
 /// true but can come after a look: a longer file renamed over the name would
 /// be read from the old position until it does, so a look asks the inode
-/// there too. Elsewhere nothing is asked: Windows refuses a rename over a
-/// file open anywhere, and its watch's events are the file's own.
+/// there too, beside the event and not in its place: ext4 gives a file
+/// deleted and made again the inode it had. Elsewhere nothing is asked:
+/// Windows refuses a rename over a file open anywhere, and its watch's
+/// events are the file's own.
 library;
 
 import 'dart:convert';

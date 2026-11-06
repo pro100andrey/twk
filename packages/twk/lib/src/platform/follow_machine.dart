@@ -40,12 +40,19 @@ final class FollowPlan {
 /// look says which events its stat may not have seen.
 final class FollowMachine {
   /// A machine for a platform that, when [tellsIdentity], gives the identity
-  /// of the file at the path with each look: it then decides a replacement
-  /// by the identity, and the watch's events decide nothing.
-  FollowMachine({required this.tellsIdentity});
+  /// of the file at the path with each look, and whose watch, when
+  /// [eventsTell], tells only real puts: a replacement is what either says.
+  /// macOS tells writes as creates, so there the identity alone decides;
+  /// Linux has both, and needs both: a file deleted and made again usually
+  /// gets the same inode, and an event can come after a look.
+  FollowMachine({required this.tellsIdentity, this.eventsTell = true})
+    : assert(tellsIdentity || eventsTell, 'nothing would tell a replacement');
 
   /// Whether looks bring the identity of the file.
   final bool tellsIdentity;
+
+  /// Whether a put of the watch says the name holds another file.
+  final bool eventsTell;
 
   /// How far the file was read: the next range starts here.
   int get position => _position;
@@ -66,6 +73,10 @@ final class FollowMachine {
   // how many creates and moves onto the name came
   var _puts = 0;
 
+  // replacements a look found by the identity before their event came: that
+  // event, when it does, tells nothing new
+  var _found = 0;
+
   /// Starts at the follow's start: [size] is the file's size, null where
   /// there is no file, [identity] its identity where [tellsIdentity]. With
   /// [fromEnd] the bytes there are not read.
@@ -81,9 +92,11 @@ final class FollowMachine {
     if (puts) {
       _puts++;
     }
-    if (!tellsIdentity && puts) {
+    if (eventsTell && puts) {
       if (_owed) {
         _owed = false;
+      } else if (_found > 0) {
+        _found--;
       } else {
         _replaced = true;
       }
@@ -98,12 +111,12 @@ final class FollowMachine {
       size == _position &&
       (!tellsIdentity || identity == null || identity == _held);
 
-  /// Whether a look's handle may be of the file a put replaced: a file was
-  /// put at the name since [began], and nothing else tells them apart. Where
-  /// [tellsIdentity] the identity taken around the open has, and an event
-  /// says nothing: macOS tells a write to a file made a moment ago as a
-  /// create, so a busy writer would have the look made again for ever.
-  bool putSince(int began) => !tellsIdentity && _puts != began;
+  /// Whether a look's handle may be of the file a put replaced: a put came
+  /// since [began], and puts are true. Where they are not, the identity taken
+  /// around the open has told: macOS tells a write to a file made a moment
+  /// ago as a create, so a busy writer would have the look made again for
+  /// ever.
+  bool putSince(int began) => eventsTell && _puts != began;
 
   /// Marks that a look is about to take its stat: pass what it returns to
   /// [look].
@@ -114,7 +127,12 @@ final class FollowMachine {
   /// before the stat was taken.
   FollowPlan look(int began, {required int? size, Object? identity}) {
     if (tellsIdentity && identity != null) {
-      _replaced = _replaced || (_held != null && identity != _held);
+      if (_held != null && identity != _held) {
+        if (eventsTell && !_replaced && !_owed) {
+          _found++;
+        }
+        _replaced = true;
+      }
       _held = identity;
     }
     var reset = false;
@@ -134,6 +152,8 @@ final class FollowMachine {
         return FollowPlan(reset: reset);
       }
       _owed = true;
+      // what comes back is read from its start: nothing to tell it from
+      _held = null;
     }
     final end = size ?? 0;
     if (end < _position) {

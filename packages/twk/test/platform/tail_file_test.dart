@@ -147,6 +147,22 @@ void main() {
     testOn: 'mac-os || linux',
   );
 
+  test('a file deleted and made again, longer, is read from its start, '
+      'though ext4 gives it the inode it had', () async {
+    File(path).writeAsStringSync('old line one\n');
+    final told = follow();
+    await clock.elapse(poll);
+    File(path).deleteSync();
+    final replacement = [for (var i = 0; i < 5; i++) 'NEW LINE $i\n'].join();
+    File(path).writeAsStringSync(replacement);
+    await waitUntil(
+      () => told.join().endsWith(replacement),
+      'the replacement, not $told',
+      between: () => clock.elapse(poll),
+    );
+    expect(told.skipWhile((e) => e != 'reset').skip(1).join(), replacement);
+  }, testOn: 'mac-os || linux');
+
   test('a look in flight when the stream is cancelled adds nothing after '
       'the close, and the cancel ends with its handle closed, under a clock '
       'nobody moves', () async {
