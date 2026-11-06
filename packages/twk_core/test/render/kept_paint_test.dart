@@ -356,7 +356,7 @@ void main() {
 
     paragraph.keepsPaint = true;
     final reads = paragraph.debugCellReads;
-    filled.owner.root!.markNeedsPaint();
+    filled.owner.root.markNeedsPaint();
     filled.frame();
     expect(paragraph.debugCellReads, reads, reason: 'forced, it reads none');
   });
