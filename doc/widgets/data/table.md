@@ -40,7 +40,8 @@ Widget build(BuildContext context) => SizedBox(
     selection: .row,
     border: .single,
     columnGap: 3,
-    onActivated: (row) => showToast(context, 'Activated ${row.$1}'),
+    onActivated: (row) =>
+        showToast(context: context, message: 'Activated ${row.$1}'),
     columns: [
       TableColumn(
         title: 'name',

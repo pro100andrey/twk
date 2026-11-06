@@ -105,8 +105,8 @@ none:
 | `DropdownButton` | `Select<T>` |
 | `TextField(decoration: InputDecoration(...))` | `TextField`, with `placeholder` and an `InputDecoration` whose parts are `labelText`, `helperText`, `errorText`, `prefixIcon` |
 | `Form`, `TextFormField` | the same names |
-| `AlertDialog`, `showDialog` | `Dialog`, `showDialog<T>(context, builder)`; the builder is positional |
-| `SnackBar` | `showToast(context, message)` |
+| `AlertDialog`, `showDialog` | `Dialog`, `showDialog<T>(context: context, builder: builder)`, as Flutter's |
+| `SnackBar` | `showToast(context: context, message: message)`, with `alignment:` and `duration:` |
 | `Tooltip` | `Tooltip(message:, child:)` |
 | `CircularProgressIndicator`, `LinearProgressIndicator` | `Spinner`, `ProgressBar` (`value: null` is indeterminate) |
 | `TabBar`, `TabBarView`, `TabController` | `TabBar`, `TabBarView`, `TabController` |
@@ -190,13 +190,13 @@ final class _ProfileState extends State<Profile> {
             children: [
               Button.filled(
                 'Save',
-                onPressed: () => showToast(context, 'saved'),
+                onPressed: () => showToast(context: context, message: 'saved'),
               ),
               Button.outlined(
                 'Delete',
                 onPressed: () => showDialog<void>(
-                  context,
-                  (context) => const Dialog(
+                  context: context,
+                  builder: (context) => const Dialog(
                     title: 'Delete?',
                     child: Text('This cannot be undone.'),
                   ),

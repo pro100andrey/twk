@@ -145,7 +145,6 @@ void main() {
               onTapUp: (d) => log.add('up ${at(d.event)}'),
               onTap: () => log.add('tap'),
               onLongPress: () => log.add('long'),
-              child: null,
             ),
           ),
         ],

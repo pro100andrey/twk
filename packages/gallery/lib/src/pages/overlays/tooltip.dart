@@ -78,8 +78,8 @@ final _tooltipPage = GalleryPage(
     '            child: Button(',
     '              label,',
     '              onPressed: () => showToast(',
-    '                context,',
-    '                done,',
+    '                context: context,',
+    '                message: done,',
     '                style: Theme.of(context).success,',
     '              ),',
     '            ),',
@@ -155,8 +155,8 @@ final class _TipsState extends State<_Tips> {
               child: Button(
                 label,
                 onPressed: () => showToast(
-                  context,
-                  done,
+                  context: context,
+                  message: done,
                   style: Theme.of(context).success,
                 ),
               ),

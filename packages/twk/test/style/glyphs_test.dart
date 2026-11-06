@@ -773,13 +773,13 @@ void main() {
               builder: (context) => KeyBindings({
                 's': () {
                   showToast(
-                    context,
-                    'Saved',
+                    context: context,
+                    message: 'Saved',
                     style: data.success,
                   );
                   showToast(
-                    context,
-                    'Warn',
+                    context: context,
+                    message: 'Warn',
                     style: data.warning,
                   );
                 },

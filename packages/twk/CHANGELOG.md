@@ -4,6 +4,10 @@
 
 Breaking:
 
+- `showDialog`, `showToast` and `showContextMenu` take their `context` by name,
+  as Flutter's `showDialog` does, with `builder` (`showDialog`), `message`
+  (`showToast`) and `items` (`showContextMenu`), where they took them
+  positionally: `showDialog(context: context, builder: (context) => ...)`.
 - `GestureDetector` and `Pressable`: `onTap`, and `GestureDetector`'s
   `onDoubleTap` and `onLongPress`, are `VoidCallback`s, as Flutter's, where
   they took the `PointerEvent`. `onTapDown` takes `TapDownDetails`, and the

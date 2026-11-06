@@ -25,8 +25,8 @@ final class Home extends StatelessWidget {
     {
       'd': () => unawaited(
         showDialog<void>(
-          context,
-          (_) => Dialog(
+          context: context,
+          builder: (_) => Dialog(
             title: 'Find',
             child: field
                 ? const TextField(autofocus: true)

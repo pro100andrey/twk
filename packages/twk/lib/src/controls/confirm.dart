@@ -258,8 +258,8 @@ Future<bool?> showConfirm(
   String yes = 'Yes',
   String no = 'No',
 }) => showDialog<bool>(
-  context,
-  (context) => Dialog(
+  context: context,
+  builder: (context) => Dialog(
     // the question wraps on its own lines, the answers on a row below
     child: Column(
       mainAxisSize: MainAxisSize.min,

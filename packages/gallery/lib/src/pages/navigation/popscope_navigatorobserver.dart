@@ -80,13 +80,13 @@ String _popScopeCode(Options o) {
   final shown = keep
       ? [
           '    // Escape and the barrier ask to pop the dialog too: kept',
-          '    (context) => PopScope<bool>(',
+          '    builder: (context) => PopScope<bool>(',
           '      canPop: false,',
           ..._pad(6, _child(dialog)),
           '    ),',
         ]
       : [
-          '    (context) => ${dialog.first}',
+          '    builder: (context) => ${dialog.first}',
           ..._pad(4, dialog.sublist(1, dialog.length - 1)),
           '    ${dialog.last},',
         ];
@@ -113,7 +113,7 @@ String _popScopeCode(Options o) {
       ? [
           'Future<void> _ask() async {',
           '  final discard = await showDialog<bool>(',
-          '    context,',
+          '    context: context,',
           ...shown,
           '  );',
           '  if ((discard ?? false) && mounted) {',
@@ -404,8 +404,8 @@ final class _EditState extends State<_Edit> {
       ),
     );
     final discard = await showDialog<bool>(
-      context,
-      keep
+      context: context,
+      builder: keep
           ? (context) => PopScope<bool>(canPop: false, child: dialog(context))
           : dialog,
     );

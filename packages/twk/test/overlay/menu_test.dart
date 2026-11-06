@@ -878,8 +878,9 @@ void main() {
                             '&Find',
                             onSelected: () => unawaited(
                               showDialog<void>(
-                                editor.currentContext!,
-                                (_) => const Dialog(child: Field('find')),
+                                context: editor.currentContext!,
+                                builder: (_) =>
+                                    const Dialog(child: Field('find')),
                                 fadeIn: Duration.zero,
                               ),
                             ),
@@ -1138,7 +1139,10 @@ void main() {
       Theme.terminal(child: SizedBox(key: key, width: 1, height: 1)),
     );
     expect(
-      () => showContextMenu(key.currentContext!, const [MenuItem('a')]),
+      () => showContextMenu(
+        context: key.currentContext!,
+        items: const [MenuItem('a')],
+      ),
       throwsA(
         isA<StateError>().having(
           (e) => e.message,
@@ -1172,19 +1176,28 @@ void main() {
       size: (30, 10),
     );
     final context = key.currentContext!;
-    showContextMenu(context, edits(log), at: (4, 1), look: PanelLook.bordered);
+    showContextMenu(
+      context: context,
+      items: edits(log),
+      at: (4, 1),
+      look: PanelLook.bordered,
+    );
     await t.pump();
     expect(t, hasTextAt(6, 2, '┌───────┐'));
     expect(highlighted(t), isEmpty);
     await press(t, 'down');
     await press(t, 'enter');
     expect(log, ['cut']);
-    showContextMenu(context, edits(log), look: PanelLook.bordered);
+    showContextMenu(
+      context: context,
+      items: edits(log),
+      look: PanelLook.bordered,
+    );
     await t.pump();
     expect(t, hasTextAt(2, 2, '┌───────┐'), reason: 'under the field');
     expect(highlighted(t), ['Cut']);
     await press(t, 'escape');
-    showContextMenu(context, const []);
+    showContextMenu(context: context, items: const []);
     await t.pump();
     expect(t, matchesScreen('\n  >a'));
   });
@@ -1207,8 +1220,8 @@ void main() {
     );
     await t.pumpWidget(app(anchor: true), size: (30, 10));
     showContextMenu(
-      key.currentContext!,
-      edits(log),
+      context: key.currentContext!,
+      items: edits(log),
       at: (4, 1),
       look: PanelLook.bordered,
     );

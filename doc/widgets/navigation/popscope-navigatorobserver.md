@@ -116,8 +116,8 @@ final class _EditState extends State<_Edit> {
 
   Future<void> _ask() async {
     final discard = await showDialog<bool>(
-      context,
-      (context) => Dialog(
+      context: context,
+      builder: (context) => Dialog(
         title: 'Discard the changes?',
         child: Column(
           mainAxisSize: .min,

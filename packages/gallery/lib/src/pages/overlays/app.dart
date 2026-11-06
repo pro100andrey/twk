@@ -33,8 +33,8 @@ final _appPage = GalleryPage(
             'Ask',
             onPressed: () => unawaited(
               showDialog<void>(
-                context,
-                (context) => Dialog(
+                context: context,
+                builder: (context) => Dialog(
                   title: 'In the theme',
                   child: Button(
                     'OK',
@@ -64,8 +64,8 @@ final _appPage = GalleryPage(
     "          'Ask',",
     '          onPressed: () => unawaited(',
     '            showDialog<void>(',
-    '              context,',
-    '              (context) => Dialog(',
+    '              context: context,',
+    '              builder: (context) => Dialog(',
     "                title: 'In the theme',",
     '                child: Button(',
     "                  'OK',",

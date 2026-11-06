@@ -80,7 +80,7 @@ final class _SettingsState extends State<_Settings> {
 
   void _submitted() {
     setState(() => _modified = false);
-    showToast(context, 'The settings are saved.');
+    showToast(context: context, message: 'The settings are saved.');
   }
 
   void _revert() {
@@ -93,8 +93,8 @@ final class _SettingsState extends State<_Settings> {
   /// Asks before the cache is cleared, then clears it.
   Future<void> _clearCache() async {
     final clear = await showDialog<bool>(
-      context,
-      (context) => _ClearCacheDialog(files: _cached),
+      context: context,
+      builder: (context) => _ClearCacheDialog(files: _cached),
     );
     if ((clear ?? false) && mounted) {
       setState(() => _clearing = Timer(clearingTime, _cleared));
@@ -107,7 +107,7 @@ final class _SettingsState extends State<_Settings> {
       _clearing = null;
       _cached = 0;
     });
-    showToast(context, done);
+    showToast(context: context, message: done);
     AppBinding.of(context).notify('Settings', done);
   }
 

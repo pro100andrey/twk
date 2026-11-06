@@ -522,8 +522,8 @@ void main() {
           builder: (context) => Button(
             'ask',
             onPressed: () => showDialog<void>(
-              context,
-              (context) => Dialog(
+              context: context,
+              builder: (context) => Dialog(
                 title: 'Q',
                 child: Button('ok', autofocus: true, onPressed: () {}),
               ),

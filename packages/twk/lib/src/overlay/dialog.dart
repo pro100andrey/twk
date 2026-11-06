@@ -108,8 +108,8 @@ import 'panel.dart';
 ///
 /// ```dart
 /// final delete = await showDialog<bool>(
-///   context,
-///   (context) => Dialog(
+///   context: context,
+///   builder: (context) => Dialog(
 ///     title: 'Delete the file?',
 ///     child: Row(
 ///       children: [
@@ -128,8 +128,8 @@ import 'panel.dart';
 ///
 /// ```dart
 /// showDialog<void>(
-///   context,
-///   (context) => SizedBox(
+///   context: context,
+///   builder: (context) => SizedBox(
 ///     width: 40,
 ///     child: Box(
 ///       style: Theme.of(context).surface,
@@ -145,9 +145,9 @@ import 'panel.dart';
 /// at a cell or by a widget is not a dialog: a menu at a row is a
 /// `ContextMenu` opened by `MenuController.open` with `at`, a panel by a
 /// widget a [Popover], neither dimming what is under it.
-Future<T?> showDialog<T>(
-  BuildContext context,
-  Widget Function(BuildContext context) builder, {
+Future<T?> showDialog<T>({
+  required BuildContext context,
+  required Widget Function(BuildContext context) builder,
   bool barrierDismissible = true,
   Alignment alignment = Alignment.center,
   Color? barrierColor,

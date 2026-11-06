@@ -38,8 +38,8 @@ final _dialogPage = GalleryPage(
     '',
     'void _ask() => unawaited(',
     '  showDialog<bool>(',
-    '    context,',
-    '    (context) => Dialog(',
+    '    context: context,',
+    '    builder: (context) => Dialog(',
     "      title: 'Delete',",
     if (o(_dialogShadow)) '      shadow: Panel.shadowOf(Theme.of(context)),',
     ..._lookLine(o, '      '),
@@ -133,8 +133,8 @@ final class _AskState extends State<_Ask> {
 
   void _ask() => unawaited(
     showDialog<bool>(
-      context,
-      (context) => Dialog(
+      context: context,
+      builder: (context) => Dialog(
         title: 'Delete',
         shadow: widget.shadow ? Panel.shadowOf(Theme.of(context)) : null,
         look: widget.look,

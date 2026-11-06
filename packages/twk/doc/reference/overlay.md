@@ -64,7 +64,7 @@ reach what is under it, and a click on it calls `onDismiss`.
 opacity:, onDismiss:)` is one whose shade follows an animation (a
 `ValueListenable<double>` from 0 to 1, along `curve`, times `opacity`),
 fading in and out as its animation runs, each tick repainting it with no
-build. `showDialog<T>(context, builder, barrierDismissible: true, alignment:
+build. `showDialog<T>(context:, builder:, barrierDismissible: true, alignment:
 Alignment.center, barrierColor:, barrierAlpha:, fadeIn: 160 ms,
 useRootNavigator: true)` shows what `builder` builds over a barrier (the
 theme's shade where `barrierColor` and `barrierAlpha` are null), both fading
@@ -130,7 +130,7 @@ keep the highlighted one among them, a `▐` in the theme's `border` down the
 last column saying where while not all show (`thumb`). The mouse moved onto
 a row calls `onHighlight` with it, as the wheel does with the one after or
 before, and a click calls `onSelected`; the app highlights.
-`showToast(context, message, duration: 3 s, alignment:
+`showToast(context:, message:, duration: 3 s, alignment:
 Alignment.bottomRight, style:, icon:, look: PanelLook.raised)`: the toasts
 of an overlay show in the order they came, three at a time, the others
 waiting, each for its `duration` from when it shows, one under another a
@@ -214,8 +214,7 @@ alone, no shadow and no fade).
 
 `ContextMenu(items:, child:, keyLabel:, look:, controller:)` opens a menu at
 the mouse on a right click and under the focused widget on Shift+F10 (hinted
-`shift+f10 menu`), and `showContextMenu(context, items, at:, keyLabel:,
-look:)` at a cell of a widget or under the focused one, kept on the overlay:
+`shift+f10 menu`), and `showContextMenu(context:, items:, at:, keyLabel:, look:)` at a cell of a widget or under the focused one, kept on the overlay:
 where it does not fit on the right or below, on the side with more room, and
 moved in as far as it has to; a `ContextMenu`'s open menu follows the items
 it is built with and closes as it leaves the tree. A `MenuController` given

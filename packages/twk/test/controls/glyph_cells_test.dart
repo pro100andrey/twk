@@ -411,6 +411,6 @@ final class _Toaster extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => KeyBindings({
-    's': () => showToast(context, 'Saved'),
+    's': () => showToast(context: context, message: 'Saved'),
   }, child: const SizedBox.expand());
 }

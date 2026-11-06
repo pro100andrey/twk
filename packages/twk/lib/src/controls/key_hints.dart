@@ -434,8 +434,8 @@ Future<void> showKeyHelp(BuildContext context, {String title = 'Keys'}) {
     }
   }
   return showDialog<void>(
-    context,
-    (context) {
+    context: context,
+    builder: (context) {
       final theme = Theme.of(context);
       return Dialog(
         title: title,

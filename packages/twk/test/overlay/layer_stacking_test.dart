@@ -50,8 +50,8 @@ void main() {
 
       unawaited(
         showDialog<void>(
-          at,
-          (context) => Dialog(
+          context: at,
+          builder: (context) => Dialog(
             child: Focus(
               focusNode: ok,
               autofocus: true,
@@ -89,8 +89,8 @@ void main() {
         builder: (context) => KeyBindings({
           'd': () => unawaited(
             showDialog<String>(
-              context,
-              (context) => Dialog(
+              context: context,
+              builder: (context) => Dialog(
                 child: StatefulBuilder(
                   builder: (context, setState) {
                     set = setState;
@@ -192,8 +192,8 @@ void main() {
 
     unawaited(
       showDialog<void>(
-        at,
-        (context) => Dialog(
+        context: at,
+        builder: (context) => Dialog(
           child: Focus(
             focusNode: ok,
             autofocus: true,
@@ -250,8 +250,8 @@ void main() {
 
     unawaited(
       showDialog<void>(
-        at,
-        (context) => Dialog(
+        context: at,
+        builder: (context) => Dialog(
           child: Focus(
             focusNode: ok,
             autofocus: true,
@@ -301,7 +301,11 @@ void main() {
     await t.pump();
     expect(inside.hasPrimaryFocus, isTrue);
 
-    showContextMenu(at, [MenuItem('Copy', onSelected: () {})], at: (2, 4));
+    showContextMenu(
+      context: at,
+      items: [MenuItem('Copy', onSelected: () {})],
+      at: (2, 4),
+    );
     await t.pump();
     await t.pump();
     expect(t, containsLine(contains('Copy')));

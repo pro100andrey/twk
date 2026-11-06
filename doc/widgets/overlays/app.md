@@ -35,8 +35,8 @@ Widget build(BuildContext context) => SizedBox(
           'Ask',
           onPressed: () => unawaited(
             showDialog<void>(
-              context,
-              (context) => Dialog(
+              context: context,
+              builder: (context) => Dialog(
                 title: 'In the theme',
                 child: Button(
                   'OK',

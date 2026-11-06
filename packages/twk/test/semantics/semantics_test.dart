@@ -689,8 +689,8 @@ final class _Ask extends StatelessWidget {
       'Ask',
       autofocus: true,
       onPressed: () => showDialog<void>(
-        context,
-        (_) => column([
+        context: context,
+        builder: (_) => column([
           const Text('Sure?'),
           Button('Yes', autofocus: true, onPressed: () {}),
         ]),

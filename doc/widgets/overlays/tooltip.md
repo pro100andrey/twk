@@ -50,8 +50,8 @@ Widget build(BuildContext context) => Column(
             child: Button(
               label,
               onPressed: () => showToast(
-                context,
-                done,
+                context: context,
+                message: done,
                 style: Theme.of(context).success,
               ),
             ),

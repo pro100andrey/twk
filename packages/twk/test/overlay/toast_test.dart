@@ -20,8 +20,8 @@ final class Toaster extends StatelessWidget {
       key: () {
         for (final (message, seconds, alignment) in shown) {
           showToast(
-            context,
-            message,
+            context: context,
+            message: message,
             duration: Duration(seconds: seconds),
             alignment: alignment,
             look: look,
@@ -156,7 +156,7 @@ void main() {
     final key = GlobalKey();
     await t.pumpWidget(SizedBox(key: key, width: 1, height: 1));
     expect(
-      () => showToast(key.currentContext!, 'Saved'),
+      () => showToast(context: key.currentContext!, message: 'Saved'),
       throwsA(
         isA<StateError>().having(
           (e) => e.message,
@@ -187,14 +187,18 @@ void main() {
                   ('Error', theme.error),
                 ]) {
                   showToast(
-                    context,
-                    message,
+                    context: context,
+                    message: message,
                     style: style,
                     alignment: alignment,
                   );
                 }
               },
-              'n': () => showToast(context, 'Plain', alignment: alignment),
+              'n': () => showToast(
+                context: context,
+                message: 'Plain',
+                alignment: alignment,
+              ),
             }, child: const SizedBox.expand()),
           ),
         ),
@@ -297,8 +301,8 @@ void main() {
         size: (20, 6),
       );
       showToast(
-        key.currentContext!,
-        'Held',
+        context: key.currentContext!,
+        message: 'Held',
         duration: const Duration(milliseconds: 500),
       );
       // real time is what is passed here: a real timer would have ended it
@@ -323,8 +327,8 @@ void main() {
         size: (20, 6),
       );
       showToast(
-        key.currentContext!,
-        'Brief',
+        context: key.currentContext!,
+        message: 'Brief',
         duration: const Duration(milliseconds: 200),
       );
       await t.pump();
@@ -348,7 +352,7 @@ void main() {
         child: Overlay(child: SizedBox.expand(key: key)),
       );
       await t.pumpWidget(app(theme), size: (20, 6));
-      showToast(key.currentContext!, 'Plain');
+      showToast(context: key.currentContext!, message: 'Plain');
       await t.pump(ms * 300);
       expect(t, styleAt(8, 2, hasFg(theme.primary.fg!)));
       const light = ThemeData.light;

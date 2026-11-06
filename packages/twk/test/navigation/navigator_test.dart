@@ -565,7 +565,9 @@ void main() {
               context,
               results,
               'detail',
-              keys: {'s': (context) => showToast(context, 'Saved')},
+              keys: {
+                's': (context) => showToast(context: context, message: 'Saved'),
+              },
             ),
           },
         ),

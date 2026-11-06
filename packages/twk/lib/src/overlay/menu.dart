@@ -465,16 +465,20 @@ bool _isIn(BuildContext context, BuildContext ancestor) {
 ///   builder: (context) => Listener(
 ///     onPointerDown: (event) {
 ///       if (event.button == 2) {
-///         showContextMenu(context, rowItems, at: (event.x, event.y));
+///         showContextMenu(
+///           context: context,
+///           items: rowItems,
+///           at: (event.x, event.y),
+///         );
 ///       }
 ///     },
 ///     child: Text('notes.md'),
 ///   ),
 /// )
 /// ```
-void showContextMenu(
-  BuildContext context,
-  List<MenuEntry> items, {
+void showContextMenu({
+  required BuildContext context,
+  required List<MenuEntry> items,
   (int, int)? at,
   String Function(KeyCombo combo)? keyLabel,
   PanelLook look = PanelLook.raised,

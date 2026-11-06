@@ -13,8 +13,8 @@ Widget app({int? barrierAlpha = 0}) => Overlay(
     builder: (context) => KeyBindings({
       'p': () => unawaited(
         showDialog<void>(
-          context,
-          (_) => const SizedBox(
+          context: context,
+          builder: (_) => const SizedBox(
             width: 8,
             child: Box(
               style: Style(bg: Color.rgb(0, 0, 90)),

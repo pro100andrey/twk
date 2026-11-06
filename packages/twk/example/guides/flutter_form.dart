@@ -44,13 +44,13 @@ final class _ProfileState extends State<Profile> {
             children: [
               Button.filled(
                 'Save',
-                onPressed: () => showToast(context, 'saved'),
+                onPressed: () => showToast(context: context, message: 'saved'),
               ),
               Button.outlined(
                 'Delete',
                 onPressed: () => showDialog<void>(
-                  context,
-                  (context) => const Dialog(
+                  context: context,
+                  builder: (context) => const Dialog(
                     title: 'Delete?',
                     child: Text('This cannot be undone.'),
                   ),

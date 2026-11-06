@@ -455,8 +455,8 @@ final class _CommandPaletteState extends State<CommandPalette> {
     final entries = _entries(target);
     unawaited(
       showDialog<_Entry>(
-        context,
-        (_) => _Palette(
+        context: context,
+        builder: (_) => _Palette(
           entries,
           owner: this,
           at: at,

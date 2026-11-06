@@ -300,8 +300,8 @@ void main() {
     );
     unawaited(
       showDialog<void>(
-        key.currentContext!,
-        (_) => const Dialog(
+        context: key.currentContext!,
+        builder: (_) => const Dialog(
           look: PanelLook.bordered,
           shadow: BoxShadow(),
           child: Text('hello'),

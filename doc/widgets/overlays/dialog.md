@@ -25,8 +25,8 @@ String? _answer;
 
 void _ask() => unawaited(
   showDialog<bool>(
-    context,
-    (context) => Dialog(
+    context: context,
+    builder: (context) => Dialog(
       title: 'Delete',
       child: Column(
         mainAxisSize: .min,

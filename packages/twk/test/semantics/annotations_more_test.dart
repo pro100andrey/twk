@@ -307,8 +307,8 @@ final class _Ask extends StatelessWidget {
       'Ask',
       autofocus: true,
       onPressed: () => showDialog<void>(
-        context,
-        (_) => Dialog(
+        context: context,
+        builder: (_) => Dialog(
           title: 'Sure',
           child: column([
             const Text('Unsaved work'),

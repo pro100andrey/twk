@@ -318,7 +318,7 @@ ${[for (final name in rest) '  $name,\n'].join()}];
     ) async {
       await t.pumpWidget(const Text('x'));
       expect(
-        () => showToast(t.element(find.text('x')), 'hi'),
+        () => showToast(context: t.element(find.text('x')), message: 'hi'),
         throwsA(
           isA<StateError>().having(
             (e) => e.message,

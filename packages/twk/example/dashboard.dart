@@ -485,7 +485,7 @@ final class _Deploys extends StatelessWidget {
         final deployed =
             '${day.toIso8601String().substring(0, 10)}: '
             '${deploys[day]?.join(', ') ?? 'nothing'} deployed';
-        showToast(context, deployed);
+        showToast(context: context, message: deployed);
         lines.add(deployed);
         log(deployed);
       },

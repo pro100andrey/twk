@@ -372,8 +372,8 @@ final class Home extends StatelessWidget {
 
   Future<void> _delete(BuildContext context) async {
     final sure = await showDialog<bool>(
-      context,
-      (context) => Dialog(
+      context: context,
+      builder: (context) => Dialog(
         title: 'Delete the file?',
         child: Row(
           mainAxisSize: .min,
@@ -390,7 +390,7 @@ final class Home extends StatelessWidget {
       ),
     );
     if ((sure ?? false) && context.mounted) {
-      showToast(context, 'Deleted.');
+      showToast(context: context, message: 'Deleted.');
     }
   }
 

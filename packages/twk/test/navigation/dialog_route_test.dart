@@ -70,16 +70,16 @@ final class Home extends StatelessWidget {
   Widget build(BuildContext context) => KeyBindings({
     'd': () => unawaited(
       showDialog<String>(
-        context,
-        (_) => Ask(results, 1, asked: asked),
+        context: context,
+        builder: (_) => Ask(results, 1, asked: asked),
         barrierDismissible: dismissible,
         fadeIn: Duration.zero,
       ).then(results.add),
     ),
     'r': () => unawaited(
       showDialog<String>(
-        context,
-        (_) => Ask(results, 1, asked: asked),
+        context: context,
+        builder: (_) => Ask(results, 1, asked: asked),
         useRootNavigator: false,
         fadeIn: Duration.zero,
       ).then(results.add),
@@ -107,8 +107,8 @@ final class Ask extends StatelessWidget {
         'x': () => Navigator.pop(context, 'done $depth'),
         'd': () => unawaited(
           showDialog<String>(
-            context,
-            (_) => Ask(results, depth + 1, asked: asked),
+            context: context,
+            builder: (_) => Ask(results, depth + 1, asked: asked),
             fadeIn: Duration.zero,
           ).then(results.add),
         ),
@@ -299,8 +299,8 @@ left     a
       size: (20, 6),
     );
     final result = showDialog<String>(
-      home,
-      (_) => ValueListenableBuilder(
+      context: home,
+      builder: (_) => ValueListenableBuilder(
         valueListenable: canPop,
         builder: (_, can, _) => PopScope<Object?>(
           canPop: can,

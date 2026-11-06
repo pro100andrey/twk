@@ -233,13 +233,17 @@ final class _BreadcrumbsState extends State<Breadcrumbs> {
       onSelected(stop.index);
       return;
     }
-    showContextMenu(context, [
-      for (final i in stop.hidden)
-        MenuItem(
-          _items[i].replaceAll('&', '&&'),
-          onSelected: () => onSelected(i),
-        ),
-    ], at: at);
+    showContextMenu(
+      context: context,
+      items: [
+        for (final i in stop.hidden)
+          MenuItem(
+            _items[i].replaceAll('&', '&&'),
+            onSelected: () => onSelected(i),
+          ),
+      ],
+      at: at,
+    );
   }
 
   // Made once: a map built anew each time would be parsed anew by the layer.
