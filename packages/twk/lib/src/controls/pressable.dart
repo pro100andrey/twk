@@ -155,7 +155,7 @@ final class _PressableState extends State<Pressable> {
         enabled ? widget.bindings : const {},
         hints: enabled ? widget.hints : const {},
         child: Listener(
-          onDown: enabled ? _down : null,
+          onPointerDown: enabled ? _down : null,
           behavior: widget.behavior,
           child: GestureDetector(
             onTap: enabled ? widget.onTap : null,
@@ -445,7 +445,12 @@ final class _PressChipState extends State<PressChip>
       null => Text(widget.text, style: style, wrap: TextWrap.none, maxLines: 1),
     };
     if (widget.enabled) {
-      chip = Listener(onDown: _down, onUp: _up, onDrag: _drag, child: chip);
+      chip = Listener(
+        onPointerDown: _down,
+        onPointerUp: _up,
+        onDrag: _drag,
+        child: chip,
+      );
     }
     if (hoverStyle != null && widget.enabled) {
       chip = MouseRegion(

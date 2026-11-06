@@ -10,7 +10,7 @@ extension on _SampleAppState {
             onEnter: (_) => _bump(),
             cursor: PointerShape.pointer,
             child: Listener(
-              onDown: (event) => _count.value += event.button,
+              onPointerDown: (event) => _count.value += event.button,
               behavior: HitTestBehavior.opaque,
               child: const Box(
                 style: Style(bg: Color.indexed(236)),

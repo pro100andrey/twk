@@ -15,8 +15,8 @@ void main() {
       ),
     );
     return Listener(
-      onDown: (e) => log.add('outer down ${e.x},${e.y}'),
-      onUp: (e) => log.add('outer up ${e.x},${e.y}'),
+      onPointerDown: (e) => log.add('outer down ${e.x},${e.y}'),
+      onPointerUp: (e) => log.add('outer up ${e.x},${e.y}'),
       child: GestureDetector(
         onTap: (_) => log.add('outer tap'),
         child: Box(

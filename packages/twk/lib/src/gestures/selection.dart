@@ -757,8 +757,8 @@ final class _SelectionAreaState extends State<SelectionArea> {
       child: MouseRegion(
         cursor: PointerShape.text,
         child: Listener(
-          onDown: _down,
-          onUp: _up,
+          onPointerDown: _down,
+          onPointerUp: _up,
           behavior: HitTestBehavior.translucent,
           child: GestureDetector(
             onPanUpdate: _drag,

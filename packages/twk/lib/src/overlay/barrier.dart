@@ -199,7 +199,11 @@ final class AnimatedModalBarrier extends StatelessWidget {
 Widget _blocking(Widget shade, void Function()? onDismiss) => BlockSemantics(
   child: onDismiss == null
       ? shade
-      : Listener(onDown: _ignore, onUp: (_) => onDismiss(), child: shade),
+      : Listener(
+          onPointerDown: _ignore,
+          onPointerUp: (_) => onDismiss(),
+          child: shade,
+        ),
 );
 
 void _ignore(PointerEvent event) {}

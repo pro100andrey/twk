@@ -212,8 +212,8 @@ takes the cells between. Below, a tap on the inner card says `inner`, one
 on the outer card's border `outer`, and F2 says whether the search field
 has the focus.
 
-To see a press the inner detector takes, put a `Listener` (`onDown:`,
-`onUp:`) around it: a `Listener` is not in the competition and gets every
+To see a press the inner detector takes, put a `Listener` (`onPointerDown:`,
+`onPointerUp:`) around it: a `Listener` is not in the competition and gets every
 press hit in it, as in Flutter, the deepest first. It is the answer for a
 parent that counts clicks itself, or that has to know of a tap anyway.
 

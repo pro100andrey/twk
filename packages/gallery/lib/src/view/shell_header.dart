@@ -18,7 +18,7 @@ extension _Header on GalleryShellState {
 
   Widget _header(Tokens t, int w) => Listener(
     behavior: HitTestBehavior.opaque,
-    onDown: (e) {
+    onPointerDown: (e) {
       if (e.button != 0) {
         return;
       }

@@ -575,7 +575,7 @@ void main() {
             Window(title: 'Beta', controller: b, child: const Text('beta')),
           ],
           child: Listener(
-            onDown: (_) => pressed++,
+            onPointerDown: (_) => pressed++,
             behavior: HitTestBehavior.opaque,
             child: Focus(focusNode: app, child: const SizedBox.expand()),
           ),
@@ -804,7 +804,7 @@ void main() {
             Window(title: 'Alpha', controller: c, child: const Text('alpha')),
           ],
           child: Listener(
-            onDown: (_) => pressed++,
+            onPointerDown: (_) => pressed++,
             behavior: HitTestBehavior.opaque,
             child: const SizedBox.expand(),
           ),
@@ -1247,7 +1247,7 @@ void main() {
               Window(title: 'Alpha', controller: c, child: const Text('alpha')),
             ],
             child: Listener(
-              onDown: (_) => pressed++,
+              onPointerDown: (_) => pressed++,
               behavior: HitTestBehavior.opaque,
               child: const SizedBox.expand(),
             ),

@@ -135,8 +135,8 @@ typedef PointerEventListener = void Function(PointerEvent event);
 /// Gives the mouse events over [child] to its callbacks, each with the cell
 /// in the coordinates of this widget.
 ///
-/// The callbacks are a press ([onDown]), a release ([onUp]), motion with
-/// no button held ([onMove]) and with one ([onDrag]), the wheel
+/// The callbacks are a press ([onPointerDown]), a release ([onPointerUp]),
+/// motion with no button held ([onMove]) and with one ([onDrag]), the wheel
 /// ([onScroll]). Where it is hit is up to [behavior]: by default where its
 /// child is (a see-through cell of a `Box` without a background is not),
 /// anywhere in its bounds when [HitTestBehavior.opaque].
@@ -184,8 +184,8 @@ final class Listener extends SingleChildRenderObjectWidget {
   /// Gives the events over [child] to the callbacks given.
   const Listener({
     super.key,
-    this.onDown,
-    this.onUp,
+    this.onPointerDown,
+    this.onPointerUp,
     this.onMove,
     this.onDrag,
     this.onScroll,
@@ -195,10 +195,10 @@ final class Listener extends SingleChildRenderObjectWidget {
   });
 
   /// A button pressed over it.
-  final PointerEventListener? onDown;
+  final PointerEventListener? onPointerDown;
 
   /// A button released over it, or after a press over it.
-  final PointerEventListener? onUp;
+  final PointerEventListener? onPointerUp;
 
   /// The mouse moved over it with no button held.
   final PointerEventListener? onMove;
@@ -230,8 +230,8 @@ final class Listener extends SingleChildRenderObjectWidget {
   @override
   RenderListener createRenderObject(BuildContext context) {
     final listener = RenderListener(
-      onDown: onDown,
-      onUp: onUp,
+      onDown: onPointerDown,
+      onUp: onPointerUp,
       onMove: onMove,
       onDrag: onDrag,
       onScroll: onScroll,
@@ -245,8 +245,8 @@ final class Listener extends SingleChildRenderObjectWidget {
   @override
   void updateRenderObject(BuildContext context, RenderListener renderObject) {
     renderObject
-      ..onDown = onDown
-      ..onUp = onUp
+      ..onDown = onPointerDown
+      ..onUp = onPointerUp
       ..onMove = onMove
       ..onDrag = onDrag
       ..onScroll = onScroll
@@ -477,10 +477,10 @@ final class RenderListener extends _RenderMouseTarget {
     HitTestBehavior behavior = HitTestBehavior.deferToChild,
   }) : super(behavior);
 
-  /// See [Listener.onDown].
+  /// See [Listener.onPointerDown].
   PointerEventListener? onDown;
 
-  /// See [Listener.onUp].
+  /// See [Listener.onPointerUp].
   PointerEventListener? onUp;
 
   /// See [Listener.onMove].

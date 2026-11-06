@@ -4,6 +4,10 @@
 
 Breaking:
 
+- `Listener` takes `onPointerDown` and `onPointerUp`, as Flutter names them,
+  where it took `onDown` and `onUp`. Its `onMove` stays: it is motion with no
+  button held, which is Flutter's `onPointerHover`, where Flutter's
+  `onPointerMove` is motion with one held, `onDrag` here.
 - `GestureDetector` takes `onPanStart`, `onPanUpdate` and `onPanEnd`, as Flutter
   names them, where it took `onDragStart`, `onDragUpdate` and `onDragEnd`; their
   `DragDetails` keeps its name.

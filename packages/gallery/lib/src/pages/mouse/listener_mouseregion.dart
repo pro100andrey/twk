@@ -36,7 +36,7 @@ final _listenerMouseregionPage = GalleryPage(
 const _log = 4;
 
 const _pressLine =
-    "          onDown: (event) => _saw('press of button "
+    "          onPointerDown: (event) => _saw('press of button "
     r"${event.button}', event),";
 
 const _overLine =
@@ -85,8 +85,9 @@ final class _EventsState extends State<_Events> {
           },
           cursor: widget.cursor,
           child: Listener(
-            onDown: (event) => _saw('press of button ${event.button}', event),
-            onUp: (event) => _saw('release', event),
+            onPointerDown: (event) =>
+                _saw('press of button ${event.button}', event),
+            onPointerUp: (event) => _saw('release', event),
             onMove: (event) => _saw('move', event),
             onDrag: (event) => _saw('drag', event),
             onScroll: (event) => _saw(event.kind.name, event),
@@ -160,7 +161,7 @@ String _eventsCode(Options o) {
     if (cursor != 'none') '        cursor: .$cursor,',
     '        child: Listener(',
     _pressLine,
-    "          onUp: (event) => _saw('release', event),",
+    "          onPointerUp: (event) => _saw('release', event),",
     "          onMove: (event) => _saw('move', event),",
     "          onDrag: (event) => _saw('drag', event),",
     '          onScroll: (event) => _saw(event.kind.name, event),',

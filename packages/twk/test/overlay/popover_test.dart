@@ -425,7 +425,7 @@ anchor
       Overlay(
         child: Listener(
           behavior: HitTestBehavior.opaque,
-          onDown: (event) => log.add('app ${event.x},${event.y}'),
+          onPointerDown: (event) => log.add('app ${event.x},${event.y}'),
           child: Stack(
             children: [
               Positioned(

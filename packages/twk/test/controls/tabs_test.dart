@@ -401,14 +401,14 @@ void main() {
               controller: c,
               children: [
                 Listener(
-                  onDown: (e) => downs.add('shown ${e.x}'),
+                  onPointerDown: (e) => downs.add('shown ${e.x}'),
                   behavior: HitTestBehavior.opaque,
                   child: const Probe('shown', 'shown'),
                 ),
                 MouseRegion(
                   onEnter: (e) => entered.add('hidden ${e.x}'),
                   child: Listener(
-                    onDown: (e) => downs.add('hidden ${e.x}'),
+                    onPointerDown: (e) => downs.add('hidden ${e.x}'),
                     behavior: HitTestBehavior.opaque,
                     child: Probe('hidden', 'hidden $step'),
                   ),

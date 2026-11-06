@@ -1417,9 +1417,9 @@ final class _TableState<T> extends State<Table<T>> {
             if (w.showHeader)
               _shaped(
                 Listener(
-                  onDown: _headerDown,
+                  onPointerDown: _headerDown,
                   onDrag: _headerDrag,
-                  onUp: _headerUp,
+                  onPointerUp: _headerUp,
                   child: _Row(
                     columns: _columns,
                     lines: Theme.of(context).glyphs.borderOf(w.border),

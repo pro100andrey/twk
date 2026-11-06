@@ -1045,7 +1045,7 @@ final class _Frame extends StatelessWidget {
     final frame = Focus(
       focusNode: slot.group,
       child: Listener(
-        onDown: (_) => layer._pressed(slot),
+        onPointerDown: (_) => layer._pressed(slot),
         child: Stack(
           children: [
             Focus(

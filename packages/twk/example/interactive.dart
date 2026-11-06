@@ -195,7 +195,7 @@ final class _Pane extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Listener(
-    onDown: (_) => node.requestFocus(),
+    onPointerDown: (_) => node.requestFocus(),
     behavior: .opaque,
     child: ListenableBuilder(
       listenable: node,

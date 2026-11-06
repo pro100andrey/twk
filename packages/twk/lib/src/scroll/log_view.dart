@@ -1218,7 +1218,7 @@ final class _LogViewState extends State<LogView> {
     if (widget.selectable) {
       view = SelectionArea(
         child: Listener(
-          onDown: _down,
+          onPointerDown: _down,
           behavior: HitTestBehavior.translucent,
           child: _Selected(state: this, child: view),
         ),

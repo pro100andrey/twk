@@ -1233,9 +1233,9 @@ final class _DockAreaState extends State<DockArea> {
           frame: widget.windowFrame,
           windows: _floating(layout.windows),
           decorate: (context, window) => Listener(
-            onDown: _windowDown,
+            onPointerDown: _windowDown,
             onDrag: _windowDrag,
-            onUp: _windowUp,
+            onPointerUp: _windowUp,
             child: window,
           ),
           child: root == null ? const SizedBox.expand() : _node(root, const []),
@@ -1435,9 +1435,9 @@ final class _GroupState extends State<_Group> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Listener(
-          onDown: (event) => area._tabDown(this, event),
+          onPointerDown: (event) => area._tabDown(this, event),
           onDrag: area._tabDrag,
-          onUp: area._tabUp,
+          onPointerUp: area._tabUp,
           child: area.widget.tabStrip
               ? TabBar.strip(
                   controller: _tabs,

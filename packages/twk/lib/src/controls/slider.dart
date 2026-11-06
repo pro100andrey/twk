@@ -293,7 +293,7 @@ final class _SliderState extends State<Slider> {
           thumb = track = widget.disabledStyle ?? theme.muted;
         }
         return Listener(
-          onDown: enabled ? _press : null,
+          onPointerDown: enabled ? _press : null,
           onDrag: enabled ? _drag : null,
           onScroll: enabled && focused ? _wheel : null,
           child: _Track(

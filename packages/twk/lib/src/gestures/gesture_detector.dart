@@ -319,8 +319,8 @@ final class _GestureDetectorState extends State<GestureDetector> {
       shape: widget.cursor,
       behavior: widget.behavior,
       child: Listener(
-        onDown: listens ? _down : null,
-        onUp: listens ? _up : null,
+        onPointerDown: listens ? _down : null,
+        onPointerUp: listens ? _up : null,
         onDrag: _longPresses || _drags ? _drag : null,
         behavior: widget.behavior,
         child: widget.child,

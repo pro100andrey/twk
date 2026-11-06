@@ -399,8 +399,8 @@ final class _DraggableState<T extends Object> extends State<Draggable<T>> {
     _shapes = Theme.of(context).setsPointerShapes;
     final w = widget;
     return Listener(
-      onDown: _down,
-      onUp: _up,
+      onPointerDown: _down,
+      onPointerUp: _up,
       onDrag: _pressed != null || _dragging ? _drag : null,
       behavior: w.behavior,
       // hit where the listener is

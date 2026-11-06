@@ -177,7 +177,7 @@ extension _Sidebar on GalleryShellState {
               autofocus: _firstFocus == 'list',
               child: Listener(
                 behavior: HitTestBehavior.opaque,
-                onDown: (e) {
+                onPointerDown: (e) {
                   if (e.button != 0) {
                     return;
                   }

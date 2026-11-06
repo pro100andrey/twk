@@ -687,9 +687,9 @@ final class _ScaffoldState extends State<Scaffold> {
               onExit: (_) => setState(() => _hovered = false),
               child: Listener(
                 behavior: HitTestBehavior.opaque,
-                onDown: _down,
+                onPointerDown: _down,
                 onDrag: _drag,
-                onUp: (_) => _up(),
+                onPointerUp: (_) => _up(),
                 child: VerticalDivider(
                   style: active ? theme.primary : theme.faint,
                 ),

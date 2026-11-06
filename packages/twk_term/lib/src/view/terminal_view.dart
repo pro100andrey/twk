@@ -374,8 +374,8 @@ final class _TerminalViewState extends State<TerminalView> {
         onKeyEvent: _onKey,
         child: Listener(
           behavior: HitTestBehavior.opaque,
-          onDown: _down,
-          onUp: tracked ? _mouse : null,
+          onPointerDown: _down,
+          onPointerUp: tracked ? _mouse : null,
           onDrag: drags ? _mouse : null,
           onMove: protocol == MouseProtocol.motion ? _mouse : null,
           onScroll: _scroll,

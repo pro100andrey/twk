@@ -899,8 +899,8 @@ final class _LinkPointerState extends State<_LinkPointer> {
           TerminalStatus.of(context)?.handAsksMotion(mode) ?? false,
       behavior: HitTestBehavior.translucent,
       child: Listener(
-        onDown: taps ? _down : null,
-        onUp: taps ? _up : null,
+        onPointerDown: taps ? _down : null,
+        onPointerUp: taps ? _up : null,
         behavior: HitTestBehavior.translucent,
         child: widget.child,
       ),

@@ -17,8 +17,8 @@ PointerEventListener record(List<String> log, String name) =>
 Widget listener(List<String> log, String name, {Widget? child}) {
   final r = record(log, name);
   return Listener(
-    onDown: r,
-    onUp: r,
+    onPointerDown: r,
+    onPointerUp: r,
     onMove: r,
     onDrag: r,
     onScroll: r,

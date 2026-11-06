@@ -463,7 +463,7 @@ bool _isIn(BuildContext context, BuildContext ancestor) {
 /// ```dart
 /// Builder(
 ///   builder: (context) => Listener(
-///     onDown: (event) {
+///     onPointerDown: (event) {
 ///       if (event.button == 2) {
 ///         showContextMenu(context, rowItems, at: (event.x, event.y));
 ///       }
@@ -705,7 +705,7 @@ final class _ContextMenuState extends State<ContextMenu> implements _MenuHost {
       debugLabel: 'context menu',
       child: Listener(
         behavior: HitTestBehavior.opaque,
-        onDown: (event) {
+        onPointerDown: (event) {
           if (event.button == 2) {
             _show((event.x, event.y), byKey: false);
           }
@@ -1106,7 +1106,7 @@ final class _MenuBarState extends State<MenuBar> implements _MenuHost {
         children: [
           Listener(
             onDrag: (event) => _session?._fromBar(event, release: false),
-            onUp: (event) => _session?._fromBar(event, release: true),
+            onPointerUp: (event) => _session?._fromBar(event, release: true),
             child: Semantics(
               role: SemanticsRole.menuBar,
               nodes: [
@@ -1803,8 +1803,8 @@ final class _MenuSession {
               onKeyEvent: _orphaned,
               child: Listener(
                 behavior: HitTestBehavior.opaque,
-                onDown: _pressed,
-                onUp: (event) => _release(event.x, event.y),
+                onPointerDown: _pressed,
+                onPointerUp: (event) => _release(event.x, event.y),
                 onMove: (event) => _hover(event.x, event.y),
                 onDrag: (event) => _hover(event.x, event.y),
                 onScroll: (_) {},

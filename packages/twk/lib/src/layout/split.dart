@@ -608,9 +608,9 @@ final class _SplitViewState extends State<SplitView> {
               : (across ? PointerShape.ewResize : PointerShape.nsResize),
           behavior: HitTestBehavior.deferToChild,
           child: Listener(
-            onDown: (event) => _down(k, event),
+            onPointerDown: (event) => _down(k, event),
             onDrag: (event) => _drag(k, event),
-            onUp: (event) => _up(k),
+            onPointerUp: (event) => _up(k),
             child: across
                 ? VerticalDivider(type: widget.type, style: style, merge: true)
                 : Divider(type: widget.type, style: style, merge: true),

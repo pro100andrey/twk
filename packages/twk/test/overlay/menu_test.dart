@@ -357,7 +357,7 @@ void main() {
     final log = <String>[];
     final below = Listener(
       behavior: HitTestBehavior.opaque,
-      onDown: (_) => log.add('below'),
+      onPointerDown: (_) => log.add('below'),
       child: const SizedBox(width: 30, height: 6),
     );
     await t.pumpWidget(

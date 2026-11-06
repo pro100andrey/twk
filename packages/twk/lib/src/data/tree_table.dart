@@ -679,7 +679,7 @@ final class _TreeTableState<T> extends State<TreeTable<T>>
   /// is the expander's, which [_pressed] takes after the table's. Inside
   /// the column only, however narrow it is.
   Widget _expander(_Rows<T> rows, int i, Widget text) => Listener(
-    onDown: (event) {
+    onPointerDown: (event) {
       final x = rows.depth(i) * 2;
       if (event.button == 0 && event.x >= x && event.x < x + 2) {
         _expanderOf = rows;
@@ -801,7 +801,7 @@ final class _TreeTableState<T> extends State<TreeTable<T>>
       }
     }
     return Listener(
-      onDown: _pressed,
+      onPointerDown: _pressed,
       child: Focus(
         canRequestFocus: false,
         skipTraversal: true,

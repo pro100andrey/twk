@@ -169,7 +169,7 @@ extension _Palette on GalleryShellState {
             autofocus: true,
             child: Listener(
               behavior: HitTestBehavior.opaque,
-              onDown: (e) {
+              onPointerDown: (e) {
                 if (e.button != 0) {
                   return;
                 }

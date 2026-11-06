@@ -552,8 +552,8 @@ final class GalleryShellState extends State<GalleryShell>
             child: Listener(
               behavior: HitTestBehavior.translucent,
               onMove: (e) => _hover(e.screenX, e.screenY),
-              onDown: (e) => _pressed = true,
-              onUp: (e) => _pressed = false,
+              onPointerDown: (e) => _pressed = true,
+              onPointerUp: (e) => _pressed = false,
               child: LayoutBuilder(builder: _screen),
             ),
           ),

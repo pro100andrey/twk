@@ -14,7 +14,7 @@ void main() {
     await t.pumpWidget(
       Listener(
         behavior: HitTestBehavior.opaque,
-        onDown: (e) => taps.add((e.x, e.y)),
+        onPointerDown: (e) => taps.add((e.x, e.y)),
         child: const SizedBox.expand(),
       ),
       size: (40, 20),

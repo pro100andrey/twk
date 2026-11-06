@@ -72,7 +72,7 @@ extension _PageArea on GalleryShellState {
     final aboutW = iw < 84 ? iw : 84;
     final titleRow = Listener(
       behavior: HitTestBehavior.opaque,
-      onDown: short ? pressTabs : null,
+      onPointerDown: short ? pressTabs : null,
       child: CellPaint(height: 1, (p) {
         p.text(pad, 0, page.title, Style(fg: t.text, attrs: Attr.bold));
         if (!short) {
@@ -84,7 +84,7 @@ extension _PageArea on GalleryShellState {
     );
     final tabRow = Listener(
       behavior: HitTestBehavior.opaque,
-      onDown: (e) {
+      onPointerDown: (e) {
         pressTabs(e);
         if (tab == GalleryTab.code &&
             (def?.hasCode ?? false) &&

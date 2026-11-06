@@ -492,7 +492,9 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
               children: [
                 Expanded(
                   child: Listener(
-                    onDown: enabled ? (e) => _pressed(e, onPressed) : null,
+                    onPointerDown: enabled
+                        ? (e) => _pressed(e, onPressed)
+                        : null,
                     child: TextField(
                       controller: controller,
                       focusNode: node,

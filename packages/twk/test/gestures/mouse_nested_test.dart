@@ -11,7 +11,7 @@ Widget _nest(List<String> log, int depth, [int level = 0]) {
       (e) => log.add('$name $what ${e.x},${e.y}');
   if (level == depth) {
     return Listener(
-      onDown: as('listener', 'down'),
+      onPointerDown: as('listener', 'down'),
       onMove: as('listener', 'move'),
       onScroll: as('listener', 'scroll'),
       behavior: HitTestBehavior.opaque,

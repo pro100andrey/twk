@@ -218,7 +218,7 @@ void main() {
 
   testTwk('the terminal keeps the mouse while the app is read out', (t) async {
     await t.pumpWidget(
-      Listener(onDown: (_) {}, child: const Text('click')),
+      Listener(onPointerDown: (_) {}, child: const Text('click')),
       size: (20, 3),
     );
     expect(t.terminal.mouseTracking, MouseTracking.buttons);

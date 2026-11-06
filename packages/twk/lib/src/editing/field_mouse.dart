@@ -175,8 +175,8 @@ final class _FieldMouseState extends State<FieldMouse> {
     return MouseRegion(
       cursor: listens ? PointerShape.text : null,
       child: Listener(
-        onDown: listens ? _down : null,
-        onUp: listens ? _up : null,
+        onPointerDown: listens ? _down : null,
+        onPointerUp: listens ? _up : null,
         behavior: HitTestBehavior.opaque,
         child: GestureDetector(
           onPanUpdate: listens ? _drag : null,

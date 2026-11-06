@@ -284,7 +284,7 @@ final appScenarios = <AppScenario>[
     'rows-listener',
     'a ListView of 100k rows, each a Listener, scrolled a row a frame: the '
         'baseline of rows-detector',
-    (i, row) => Listener(onDown: (_) {}, child: row),
+    (i, row) => Listener(onPointerDown: (_) {}, child: row),
   ),
   _rowsScenario(
     'rows-detector',

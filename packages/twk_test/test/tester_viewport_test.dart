@@ -94,7 +94,7 @@ void main() {
     await t.pumpWidget(
       Listener(
         behavior: HitTestBehavior.opaque,
-        onDown: (e) => presses.add('${e.x}, ${e.y}'),
+        onPointerDown: (e) => presses.add('${e.x}, ${e.y}'),
         child: const SizedBox(),
       ),
       mode: ScreenMode.inline,

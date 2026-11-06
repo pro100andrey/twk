@@ -202,7 +202,7 @@ void main() {
           children: [
             Listener(
               behavior: HitTestBehavior.opaque,
-              onDown: (_) => under++,
+              onPointerDown: (_) => under++,
               child: const SizedBox.expand(),
             ),
             Positioned(
@@ -211,7 +211,7 @@ void main() {
               child: Shadow(
                 child: Listener(
                   behavior: HitTestBehavior.opaque,
-                  onDown: (_) => child++,
+                  onPointerDown: (_) => child++,
                   child: block(),
                 ),
               ),
@@ -352,7 +352,7 @@ void main() {
           ],
           child: Listener(
             behavior: HitTestBehavior.opaque,
-            onDown: (_) => pressed++,
+            onPointerDown: (_) => pressed++,
             child: scene(const SizedBox.shrink()),
           ),
         ),
