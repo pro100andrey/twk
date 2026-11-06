@@ -64,7 +64,8 @@ typedef TickerCallback = void Function(Duration elapsed);
 final class Ticker implements Muteable {
   /// A ticker that calls [onTick] in the frames of [binding]'s app, not
   /// started; without a binding, one that never ticks.
-  Ticker(this.onTick, {this.binding});
+  Ticker(this.onTick, {this.binding, void Function(Ticker)? onDispose})
+    : _onDispose = onDispose;
 
   /// What it calls each frame while active, with the time since its first
   /// tick.
@@ -72,6 +73,8 @@ final class Ticker implements Muteable {
 
   /// The clock whose frames it ticks in: an app's [AppBinding].
   final FrameClock? binding;
+
+  final void Function(Ticker)? _onDispose;
 
   // the frame callback of the next tick; the time of the first tick
   int? _callback;
@@ -131,7 +134,10 @@ final class Ticker implements Muteable {
   /// Stops it for good; one disposed already is left as it is.
   void dispose() {
     stop();
-    _disposed = true;
+    if (!_disposed) {
+      _disposed = true;
+      _onDispose?.call(this);
+    }
   }
 
   void _schedule() {
@@ -236,8 +242,11 @@ mixin TickerProviderStateMixin<T extends StatefulWidget> on State<T>
     // and didChangeDependencies, called after it, depends and is told
     final mode = context.getInheritedWidgetOfExactType<TickerMode>();
     return _tickers.add(
-      Ticker(onTick, binding: AppBinding.maybeOf(context))
-        ..muted = !(mode?.enabled ?? true),
+      Ticker(
+        onTick,
+        binding: AppBinding.maybeOf(context),
+        onDispose: _tickers.remove,
+      )..muted = !(mode?.enabled ?? true),
     );
   }
 
@@ -253,7 +262,7 @@ mixin TickerProviderStateMixin<T extends StatefulWidget> on State<T>
   @protected
   @mustCallSuper
   void dispose() {
-    for (final ticker in _tickers.items) {
+    for (final ticker in [..._tickers.items]) {
       ticker.dispose();
     }
     super.dispose();
@@ -262,7 +271,8 @@ mixin TickerProviderStateMixin<T extends StatefulWidget> on State<T>
 
 /// A [TickerProviderStateMixin] for a state with one ticker, which is what
 /// one [AnimationController] needs: [createTicker] a second time, while the
-/// first is not disposed, is an assertion failure.
+/// first is not disposed, is an assertion failure; once it is disposed, a
+/// new one may be made.
 ///
 /// ```dart
 /// final class _OnceState extends State<Blink>
@@ -296,8 +306,11 @@ mixin SingleTickerProviderStateMixin<T extends StatefulWidget> on State<T>
     );
     final mode = context.getInheritedWidgetOfExactType<TickerMode>();
     return _tickers.add(
-      Ticker(onTick, binding: AppBinding.maybeOf(context))
-        ..muted = !(mode?.enabled ?? true),
+      Ticker(
+        onTick,
+        binding: AppBinding.maybeOf(context),
+        onDispose: _tickers.remove,
+      )..muted = !(mode?.enabled ?? true),
     );
   }
 
@@ -313,7 +326,7 @@ mixin SingleTickerProviderStateMixin<T extends StatefulWidget> on State<T>
   @protected
   @mustCallSuper
   void dispose() {
-    for (final ticker in _tickers.items) {
+    for (final ticker in [..._tickers.items]) {
       ticker.dispose();
     }
     super.dispose();
