@@ -12,9 +12,10 @@
 import 'dart:io';
 
 import 'package:twk_api_names/api_names.dart';
+import 'package:twk_doc_snippets/packages.dart' show findRoot;
 
 Future<void> main() async {
-  final root = _findRoot();
+  final root = findRoot();
   // the packages published to pub.dev: those whose pubspec does not say
   // `publish_to: none`
   final List<String> published;
@@ -45,16 +46,4 @@ Future<void> main() async {
   if (problems.isNotEmpty) {
     exitCode = 1;
   }
-}
-
-String _findRoot() {
-  var dir = Directory.current.absolute;
-  while (!File('${dir.path}/xtask.yaml').existsSync()) {
-    final up = dir.parent;
-    if (up.path == dir.path) {
-      throw StateError('no xtask.yaml in the current directory or above it');
-    }
-    dir = up;
-  }
-  return dir.path;
 }
