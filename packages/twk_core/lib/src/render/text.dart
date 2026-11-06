@@ -408,6 +408,9 @@ final class RenderParagraph extends RenderObject {
     _painter.tracksDamage = on;
     _keptOn = null;
     markNeedsLayout();
+    // its parent's paint is what copies the styles under a boundary, and it
+    // may be a relayout boundary, which the layout does not reach it from
+    parent?.markNeedsPaint();
   }
 
   // Whether a cell of rows [y0], [y1) of this paragraph, as far as the

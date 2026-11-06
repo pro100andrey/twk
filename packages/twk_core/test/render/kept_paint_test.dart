@@ -283,7 +283,72 @@ RenderFlex _stack(List<RenderObject> children) => RenderFlex(
   children: children,
 );
 
+/// A panel with [paragraph] filling it, so that the paragraph is a relayout
+/// boundary of its own, on a surface of its own.
+final class _Filled {
+  _Filled(this.styles, this.glyphs, this.paragraph)
+    : surface = Surface(_filledW, _filledH),
+      presenter = Presenter(_filledW, _filledH, styles, glyphs) {
+    canvas = Canvas(surface, styles, glyphs);
+    owner = PipelineOwner(() {}, segmenter: canvas.segmenter)
+      ..root = RenderBox(
+        pen: styles.pen(_backgrounds[0]),
+        boundary: true,
+        child: paragraph,
+      );
+    ctx = PaintContext(canvas, surface, presenter);
+  }
+
+  final StyleTable styles;
+  final GlyphTable glyphs;
+  final RenderParagraph paragraph;
+  final Surface surface;
+  final Presenter presenter;
+  late final Canvas canvas;
+  late final PipelineOwner owner;
+  late final PaintContext ctx;
+
+  int frame() {
+    owner
+      ..flushLayout(_filledW, _filledH)
+      ..flushPaint(ctx);
+    return presenter.present(surface);
+  }
+}
+
+const _filledW = 100;
+const _filledH = 30;
+
 void main() {
+  test('a paragraph that turns to keeping keeps the panel under it', () {
+    final words = 'the quick brown fox jumps over the lazy dog and away ' * 40;
+    List<(String, Pen)> spans(String typed) => [
+      ('$typed $words', _pens[0]),
+      (words, _pens[2]),
+    ];
+    final styles = StyleTable();
+    final glyphs = GlyphTable();
+    final plain = _Filled(styles, glyphs, RenderParagraph(spans('')));
+    final auto = _Filled(
+      styles,
+      glyphs,
+      RenderParagraph(spans(''), autoKeepsPaint: true),
+    );
+    plain.frame();
+    auto.frame();
+    const typed = 'hello there, and more';
+    for (var i = 0; i <= typed.length; i++) {
+      final text = spans(typed.substring(0, i));
+      plain.paragraph.spans = text;
+      auto.paragraph.spans = text;
+      final bytes = plain.frame();
+      expect(auto.frame(), bytes, reason: 'the bytes of frame $i');
+      expect(auto.surface.cells, plain.surface.cells, reason: 'frame $i');
+      expect(auto.surface.styles, plain.surface.styles, reason: 'frame $i');
+    }
+    expect(auto.paragraph.keepsPaint, isTrue);
+  });
+
   // a paragraph in a tree of `around` (in a root box), edited by `edit`
   ({RenderParagraph paragraph, void Function() frame}) rig(
     RenderObject Function(RenderParagraph) around,
