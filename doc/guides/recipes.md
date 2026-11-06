@@ -127,6 +127,7 @@ final class _PromptState extends State<Prompt> {
       Static(items: _sent, builder: (context, line) => Text('> $line')),
       TextField(
         controller: _text,
+        semanticsLabel: 'message',
         autofocus: true,
         onSubmitted: (line) {
           setState(() => _sent.add(line));

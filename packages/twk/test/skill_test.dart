@@ -186,8 +186,8 @@ void main() {
       r'^---\nname: ([a-z0-9-]+)\ndescription: (.+)\n---\n',
     ).firstMatch(skill);
     expect(front, isNotNull, reason: 'name and description between ---');
-    expect(front[1], 'twk');
-    expect(front![2]!.length, lessThanOrEqualTo(1024));
+    expect(front![1], 'twk');
+    expect(front[2]!.length, lessThanOrEqualTo(1024));
   });
 
   group('the code, as an app', () {
