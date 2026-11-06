@@ -3972,37 +3972,28 @@ final class TextPainter {
         _intern(canvas.glyphs, _internFrom, _internTo);
       }
     }
-    final track = tracksDamage;
-    if (track) {
+    if (_segmentsStale) {
+      _buildSegments();
+    } else if (tracksDamage) {
       _damageFirst = 1 << 30;
       _damageEnd = 0;
     }
-    if (_segmentsStale) {
-      _buildSegments();
-    }
     _resolvePens(canvas.styles);
-    if (track) {
-      _damagePens();
-    }
-  }
-
-  // The rows drawn in a pen looked up again are damaged, and no rows are
-  // 0 to 0. Apart from [prepare] so that what a plain paint runs stays as
-  // small as it was.
-  @pragma('vm:never-inline')
-  void _damagePens() {
     final seg = _segments;
-    if (_looked) {
-      for (var k = 0; k < _segmentCount; k++) {
-        final at = k * _segmentStride;
-        final span = seg[at + 2];
-        if (span >= _lookedFrom && span < _lookedTo) {
-          _damage(seg[at + 1]);
+    if (tracksDamage) {
+      if (_looked) {
+        // the rows drawn in a pen looked up again
+        for (var k = 0; k < _segmentCount; k++) {
+          final at = k * _segmentStride;
+          final span = seg[at + 2];
+          if (span >= _lookedFrom && span < _lookedTo) {
+            _damage(seg[at + 1]);
+          }
         }
       }
-    }
-    if (_damageFirst >= _damageEnd) {
-      _damageFirst = _damageEnd = 0;
+      if (_damageFirst >= _damageEnd) {
+        _damageFirst = _damageEnd = 0;
+      }
     }
   }
 
@@ -4077,6 +4068,11 @@ final class TextPainter {
   /// Works out what painting draws: a glyph run for each piece of a line
   /// in one span, the ellipsis, and the gaps a justified line stretches.
   void _buildSegments() {
+    final track = tracksDamage;
+    if (track) {
+      _damageFirst = 1 << 30;
+      _damageEnd = 0;
+    }
     final rows = _lineCount < height ? _lineCount : height;
     if (_bidiOn) {
       _buildOrdered(rows);
