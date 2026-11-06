@@ -47,7 +47,8 @@ const loose = BoxConstraints(maxWidth: 40);
 
 `Row`, `Column`, `Flex` and `Wrap` take `spacing` (and `Wrap` a
 `runSpacing`), as in Flutter, so the `SizedBox(height: 8)` between children
-is not written; here it is an `int` of cells. `Spacer` and
+is not written; here it is an `int` of cells. `StatusBar` and
+`DescriptionList` name the space between their parts `spacing` too. `Spacer` and
 `Expanded(flex: ...)` are as in Flutter.
 
 ## Text is a string with a `Style`
@@ -130,12 +131,21 @@ takes characters only when focused, so a single-letter binding such as `q`
 above a focused field is typed into the field.
 
 - Keys are named by strings: `KeyBindings({'ctrl+s': save, 'g g': top},
-  child: ...)`. `Shortcuts`, `Actions` and `Intent` are Flutter's and are
-  there as well; the string form is how an app usually binds. See
+  child: ...)`. `Shortcuts(shortcuts:, child:)`, `Actions(actions:, child:)` and
+  `Intent` are Flutter's and are there as well, and an `Action.invoke` returns
+  an `Object?`; the string form is how an app usually binds. See
   [Input and focus](input-and-focus.md).
 - The mouse is a plain `GestureDetector`, `MouseRegion`, `Draggable` and
-  `Listener`; not every terminal reports it, so an action reachable only by the
-  mouse is a bug here.
+  `Listener`, with Flutter's callbacks: `onTap`, `onDoubleTap` and
+  `onLongPress` take none, `onTapDown` and `onTapUp` take `TapDownDetails` and
+  `TapUpDetails`, `onPanStart`, `onPanUpdate` and `onPanEnd` take
+  `DragStartDetails`, `DragUpdateDetails` and `DragEndDetails`, and a
+  `Listener` has `onPointerDown`, `onPointerUp`, `onPointerHover` and
+  `onPointerMove`. The details have `localPosition` and `globalPosition` in
+  cells, and `delta` for an update, and also an `event`, which has the button
+  and the modifiers; they have no `kind`, `sourceTimeStamp` or `velocity`,
+  which a terminal does not report. Not every terminal reports the mouse, so
+  an action reachable only by the mouse is a bug here.
 - `hints:` on `KeyBindings` lists the keys on the bar at the bottom, which
   the widgets fill in too.
 
@@ -212,13 +222,37 @@ final class _ProfileState extends State<Profile> {
 ```
 
 What changed from the Flutter version: the sizes and the `spacing:` are ints of cells, the label belongs to the
-`Checkbox`, the buttons take a string, and the dialog's builder is a second positional argument. The `State`, its
-controller and its `dispose` are the same, and so is a controller you must
-dispose.
+`Checkbox`, and the buttons take a string. `showDialog(context:, builder:)`,
+the `State`, its controller and its `dispose` are the same, and so is a
+controller you must dispose.
 
 Dart's dot shorthands (`.all(1)`, `.start`, `.stretch`) are used
 throughout, as in the other guides; `EdgeInsets.all(1)` and
 `CrossAxisAlignment.start` mean the same and compile as well.
+
+## Spelled another way, on purpose
+
+A few names are not Flutter's, and are meant not to be:
+
+- A `Style` has `fg` and `bg`, not `color` and `backgroundColor`; there is no
+  `TextStyle`.
+- The theme presets are values, `ThemeData.dark`, `ThemeData.light` and
+  `ThemeData.nord`, to take `copyWith` of, where Flutter calls
+  `ThemeData.dark()`.
+- There is no `Size` and no `Offset`: a size is a width and a height, and a
+  position in a gesture's details is a `(dx:, dy:)` record of cells, a
+  `CellOffset`.
+- `Scaffold` has a `header` and a `statusBar` where Flutter's has an `appBar`
+  and a `bottomNavigationBar`, and `Select` has `choices` where a
+  `DropdownButton` has `items`.
+- `Semantics` takes `checked`, `selected`, `expanded` and `enabled` flat, with
+  Flutter's sense (`enabled: false` reads `disabled`), and `role` and `nodes`
+  besides; its `child` is optional, as in Flutter.
+- `TweenAnimationBuilder(tween:, builder:, duration:)` takes a `Tween` as
+  Flutter's does. A `Tween` here is immutable, so one of your own overrides
+  `withEnds` to make another of its kind.
+- `Localizations` is Flutter's, for a `Locale`; the words twk writes itself are
+  in `TwkLocalizations`.
 
 ## Lists and navigation
 

@@ -98,6 +98,11 @@ packages/gallery/bin/gallery.dart`).
   details (`localPosition`, `globalPosition`; `event.button` says which
   button), and `onPanStart`, `onPanUpdate` (`delta`) and `onPanEnd` too, while
   `onTap`, `onDoubleTap` and `onLongPress` take none, as Flutter's;
+  `Listener` has `onPointerDown`, `onPointerUp`, `onPointerHover` (no button
+  held) and `onPointerMove` (one held); `Semantics` takes `checked`,
+  `selected`, `expanded` and `enabled` flat (`enabled: false` reads
+  `disabled`); `TweenAnimationBuilder` takes `tween:` a `Tween`, as Flutter's;
+  the words twk writes itself are `TwkLocalizations`' (`strings:`);
   `LineGauge` and `Gauge` show no percentage unless `showPercentage: true`.
 
 ## Set up
