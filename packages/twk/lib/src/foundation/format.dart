@@ -47,10 +47,13 @@ String formatClock(Duration time) {
 /// final line = '✓ Built in ${formatTook(clock.elapsed)}';
 /// // line: ✓ Built in 3.1 s
 /// ```
-String formatTook(Duration time) {
+///
+/// The point of `3.1 s` is [decimalSeparator], `TwkStrings.decimalSeparator`
+/// for the widgets: `3,1 s`.
+String formatTook(Duration time, {String decimalSeparator = '.'}) {
   if (time.inSeconds < 60) {
     final tenths = time.inMilliseconds ~/ 100;
-    return '${tenths ~/ 10}.${tenths % 10} s';
+    return '${tenths ~/ 10}$decimalSeparator${tenths % 10} s';
   }
   return formatClock(time);
 }
@@ -117,14 +120,30 @@ enum ByteUnits {
 /// final binary = formatBytes(1536, byteUnits: ByteUnits.binary);
 /// // binary: 1.5 KiB
 /// ```
-String formatBytes(num bytes, {ByteUnits byteUnits = ByteUnits.decimal}) {
+///
+/// The point of `4.1 kB` is [decimalSeparator], `TwkStrings.decimalSeparator`
+/// for the widgets: `4,1 kB`.
+String formatBytes(
+  num bytes, {
+  ByteUnits byteUnits = ByteUnits.decimal,
+  String decimalSeparator = '.',
+}) {
   final (scale, suffix) = byteUnit(bytes, byteUnits: byteUnits);
   return scale == 1 && bytes == bytes.roundToDouble()
       ? '${bytes.round()} B'
-      : '${formatFigures(bytes / scale)} $suffix';
+      : '${formatFigures(bytes / scale, decimalSeparator: decimalSeparator)} '
+            '$suffix';
 }
 
 /// [n] whole from 100 on, to the tenth below: `620`, `4.1`; `100`, not
-/// `100.0`, for what rounds to it.
-String formatFigures(num n) =>
-    n.abs() >= 99.95 ? n.toStringAsFixed(0) : n.toStringAsFixed(1);
+/// `100.0`, for what rounds to it. The point is [decimalSeparator].
+String formatFigures(num n, {String decimalSeparator = '.'}) => n.abs() >= 99.95
+    ? n.toStringAsFixed(0)
+    : withSeparator(n.toStringAsFixed(1), decimalSeparator);
+
+/// [figures], as `toStringAsFixed` writes them, with [decimalSeparator] for
+/// the point.
+String withSeparator(String figures, String decimalSeparator) =>
+    decimalSeparator == '.'
+    ? figures
+    : figures.replaceFirst('.', decimalSeparator);

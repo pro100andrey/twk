@@ -338,14 +338,26 @@ final class _ConfirmPromptViewState extends State<ConfirmPromptView> {
     }
   }
 
+  // [char] is [english] or the first letter of [word], in either case, as a
+  // plain terminal takes an answer
+  static bool _isLetter(String? char, String english, String word) {
+    if (char == null || char.isEmpty) {
+      return false;
+    }
+    final c = char.toLowerCase();
+    return c == english ||
+        (word.isNotEmpty && c == word.substring(0, 1).toLowerCase());
+  }
+
   KeyEventResult _key(FocusNode node, KeyEvent event) {
     if (event.kind == KeyKind.release || event.modifiers & ~Mod.shift != 0) {
       return KeyEventResult.ignored;
     }
+    final strings = TwkStrings.of(context);
     switch (event.code) {
-      case KeyCode.char when event.char == 'y' || event.char == 'Y':
+      case KeyCode.char when _isLetter(event.char, 'y', strings.yes):
         _answer(true);
-      case KeyCode.char when event.char == 'n' || event.char == 'N':
+      case KeyCode.char when _isLetter(event.char, 'n', strings.no):
         _answer(false);
       case KeyCode.enter:
         if (_highlighted case final value?) {
@@ -369,6 +381,7 @@ final class _ConfirmPromptViewState extends State<ConfirmPromptView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final strings = TwkStrings.of(context);
     final highlighted = _highlighted;
     return _PromptKeys(
       answer: widget.answer,
@@ -382,7 +395,7 @@ final class _ConfirmPromptViewState extends State<ConfirmPromptView> {
             Row(
               children: [
                 Text.rich(
-                  _asking(widget.theme, widget.question, 'y/n'),
+                  _asking(widget.theme, widget.question, strings.confirmHint),
                   wrap: TextWrap.none,
                 ),
                 ConfirmInput(
@@ -391,6 +404,8 @@ final class _ConfirmPromptViewState extends State<ConfirmPromptView> {
                   // focused
                   key: ValueKey(highlighted),
                   defaultValue: highlighted ?? true,
+                  yes: strings.yesLabel,
+                  no: strings.noLabel,
                   onConfirmed: (_) {},
                   highlightedStyle: highlighted == null
                       ? theme.surface.merge(
@@ -400,7 +415,7 @@ final class _ConfirmPromptViewState extends State<ConfirmPromptView> {
                 ),
               ],
             ),
-            if (_unanswered) _refusal(widget.theme, 'answer y or n'),
+            if (_unanswered) _refusal(widget.theme, strings.answerYesOrNo),
           ],
         ),
       ),
@@ -562,15 +577,16 @@ final class _ChoicePromptViewState extends State<ChoicePromptView> {
   @override
   Widget build(BuildContext context) {
     final theme = widget.theme;
+    final strings = TwkStrings.of(context);
     final String hint;
     if (widget.filter && _query.isNotEmpty) {
       hint = '';
     } else if (widget.filter) {
       hint = widget.multiple
-          ? 'type to filter, space to toggle'
-          : 'type to filter';
+          ? strings.typeToFilterAndToggle
+          : strings.typeToFilter;
     } else {
-      hint = widget.multiple ? 'space to toggle' : '';
+      hint = widget.multiple ? strings.spaceToToggle : '';
     }
     final rows = math.min(_shown.length, choicesShown);
     final at = _cursorAt();

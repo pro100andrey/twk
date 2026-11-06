@@ -38,6 +38,7 @@ import '../layout/one_child.dart';
 import '../layout/stack.dart';
 import 'animation_controller.dart';
 import 'curves.dart';
+import 'mute.dart';
 import 'ticker.dart';
 
 // Examples can assume:
@@ -257,18 +258,19 @@ final class _AnimatedSwitcherState extends State<AnimatedSwitcher>
   /// on it, and didChangeDependencies follows at once).
   var _muted = false;
 
+  // the tickers of the entries there are; one goes when its entry does
+  final _tickers = MuteGroup<Ticker>();
+
   @override
-  Ticker createTicker(TickerCallback onTick) =>
-      _made = Ticker(onTick, binding: AppBinding.maybeOf(context))
-        ..muted = _muted;
+  Ticker createTicker(TickerCallback onTick) => _made = _tickers.add(
+    Ticker(onTick, binding: AppBinding.maybeOf(context))..muted = _muted,
+  );
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _muted = !TickerMode.of(context);
-    for (final entry in [?_current, ..._leaving]) {
-      entry.ticker.muted = _muted;
-    }
+    _tickers.mute(_muted);
   }
 
   @override
@@ -323,6 +325,7 @@ final class _AnimatedSwitcherState extends State<AnimatedSwitcher>
     if (controller.status == AnimationStatus.dismissed) {
       // it had not come in at all
       controller.dispose();
+      _tickers.remove(entry.ticker);
       return;
     }
     _leaving.add(entry);
@@ -330,6 +333,7 @@ final class _AnimatedSwitcherState extends State<AnimatedSwitcher>
       if (status == AnimationStatus.dismissed) {
         setState(() => _leaving.remove(entry));
         controller.dispose();
+        _tickers.remove(entry.ticker);
       }
     });
   }

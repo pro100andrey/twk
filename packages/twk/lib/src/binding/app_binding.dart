@@ -53,6 +53,7 @@ import 'package:twk_core/twk_core.dart'
         WindowBackend,
         log;
 
+import '../animation/frame_clock.dart';
 import '../debug/console.dart';
 import '../debug/editor.dart';
 import '../debug/frame_overlay.dart';
@@ -291,7 +292,7 @@ Future<void> runApp(
 ///   child: const Text('q quits'),
 /// )
 /// ```
-final class AppBinding {
+final class AppBinding implements FrameClock {
   /// A binding of a `TwkApp` on [terminal], made with [viewport], [maxFps],
   /// [maxInlineRows], [clearInlineOnExit], [logs] and [clock] (the app's
   /// clock, a new stopwatch by default); [exitOnCtrlC], [stopOnCtrlZ],
@@ -1006,6 +1007,7 @@ final class AppBinding {
 
   /// The time of the frame running, or of the last one between frames, on
   /// the app's clock ([TwkApp.clock]) as it started; zero before the first.
+  @override
   Duration get frameTime => _frameTime;
   Duration _frameTime = Duration.zero;
 
@@ -1025,6 +1027,7 @@ final class AppBinding {
   /// ended is dropped. One that throws ends the app with the error, as an
   /// error of the app's code does: [run] throws it, its states disposed.
   /// Returns the id [cancelFrameCallback] takes.
+  @override
   int scheduleFrameCallback(FrameCallback callback, {Duration? at}) {
     final id = ++_lastCallback;
     if (_over) {
@@ -1097,6 +1100,7 @@ final class AppBinding {
 
   /// Calls the callback [id] names ([scheduleFrameCallback]) at no frame;
   /// an id called already or cancelled is ignored.
+  @override
   void cancelFrameCallback(int id) {
     if (_callbacks.remove(id)?.$2 != null) {
       _waitForDue();

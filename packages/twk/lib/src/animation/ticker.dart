@@ -8,6 +8,8 @@ import 'package:meta/meta.dart';
 
 import '../binding/app_binding.dart';
 import '../framework/framework.dart';
+import 'frame_clock.dart';
+import 'mute.dart';
 
 // Examples can assume:
 // import 'dart:async';
@@ -59,7 +61,7 @@ typedef TickerCallback = void Function(Duration elapsed);
 ///   Widget build(BuildContext context) => Text('${shown.inSeconds} s');
 /// }
 /// ```
-final class Ticker {
+final class Ticker implements Muteable {
   /// A ticker that calls [onTick] in the frames of [binding]'s app, not
   /// started; without a binding, one that never ticks.
   Ticker(this.onTick, {this.binding});
@@ -68,8 +70,8 @@ final class Ticker {
   /// tick.
   final TickerCallback onTick;
 
-  /// The app whose frames it ticks in.
-  final AppBinding? binding;
+  /// The clock whose frames it ticks in: an app's [AppBinding].
+  final FrameClock? binding;
 
   // the frame callback of the next tick; the time of the first tick
   int? _callback;
@@ -86,7 +88,9 @@ final class Ticker {
   /// Whether it is kept from ticking while active: it asks for no frame
   /// and calls nothing, its time going on; unmuted, it ticks from the next
   /// frame. A [TickerProviderStateMixin] sets it from [TickerMode].
+  @override
   bool get muted => _muted;
+  @override
   set muted(bool on) {
     if (on == _muted) {
       return;
@@ -224,17 +228,17 @@ abstract interface class TickerProvider {
 /// ```
 mixin TickerProviderStateMixin<T extends StatefulWidget> on State<T>
     implements TickerProvider {
-  List<Ticker>? _tickers;
+  final _tickers = MuteGroup<Ticker>();
 
   @override
   Ticker createTicker(TickerCallback onTick) {
     // read without a dependency: a state may create a ticker in initState,
     // and didChangeDependencies, called after it, depends and is told
     final mode = context.getInheritedWidgetOfExactType<TickerMode>();
-    final ticker = Ticker(onTick, binding: AppBinding.maybeOf(context))
-      ..muted = !(mode?.enabled ?? true);
-    (_tickers ??= []).add(ticker);
-    return ticker;
+    return _tickers.add(
+      Ticker(onTick, binding: AppBinding.maybeOf(context))
+        ..muted = !(mode?.enabled ?? true),
+    );
   }
 
   @override
@@ -242,23 +246,15 @@ mixin TickerProviderStateMixin<T extends StatefulWidget> on State<T>
   @mustCallSuper
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final muted = !TickerMode.of(context);
-    if (_tickers case final tickers?) {
-      for (final ticker in tickers) {
-        ticker.muted = muted;
-      }
-    }
+    _tickers.sync(context);
   }
 
   @override
   @protected
   @mustCallSuper
   void dispose() {
-    final tickers = _tickers;
-    if (tickers != null) {
-      for (final ticker in tickers) {
-        ticker.dispose();
-      }
+    for (final ticker in _tickers.items) {
+      ticker.dispose();
     }
     super.dispose();
   }
