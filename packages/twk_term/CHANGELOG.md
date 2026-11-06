@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- A `TerminalSession` disposed before its program started ends: `exitCode`
+  completes with null, where it stayed pending.
+- A color spec with a sign or whitespace in a channel is no color: OSC 4, 10, 11
+  and 12 change nothing, where they set a negative one.
+
 ## 0.2.0
 
 - On macOS `Pty.start` fails when the SIGCONT that lets its suspended

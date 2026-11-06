@@ -19,10 +19,11 @@ first.
 
 Every size, offset, padding and gap is a whole number of cells: an `int`,
 not a `double`. A cell is one column wide and one row tall, and it is about
-twice as tall as it is wide, so `SizedBox(width: 20, height: 10)` is a
-tall box. There are no fractions of a cell, no device pixel ratio and no
+twice as tall as it is wide, so `SizedBox(width: 20, height: 10)` looks
+about square. There are no fractions of a cell, no device pixel ratio and no
 rounded corners other than the border characters of a `Box`.
 
+<!-- file: packages/twk/example/guides/flutter_cells.dart -->
 ```dart
 import 'package:twk/twk.dart';
 
@@ -66,6 +67,7 @@ There is no `TextStyle`, `TextSpan`, `RichText`, `Colors` or `Icon`.
   `Text.line` is one row with an ellipsis. A width is counted in cells, so
   a wide character (CJK, most emoji) is two.
 
+<!-- file: packages/twk/example/guides/flutter_text.dart -->
 ```dart
 import 'package:twk/twk.dart';
 
@@ -140,6 +142,7 @@ above a focused field is typed into the field.
 
 A Flutter form, as it is written here:
 
+<!-- file: packages/twk/example/guides/flutter_form.dart -->
 ```dart
 import 'package:twk/twk.dart';
 
@@ -189,9 +192,9 @@ final class _ProfileState extends State<Profile> {
                 'Delete',
                 onPressed: () => showDialog<void>(
                   context,
-                  (context) => Dialog(
+                  (context) => const Dialog(
                     title: 'Delete?',
-                    child: const Text('This cannot be undone.'),
+                    child: Text('This cannot be undone.'),
                   ),
                 ),
               ),
@@ -226,6 +229,7 @@ and scrolls with the arrow keys, Page keys and the wheel, and a `ListTile`'s
 `PageRoute(builder:)`, not a `MaterialPageRoute`. Escape pops by default
 (`backKey`), as a back button does.
 
+<!-- file: packages/twk/example/guides/flutter_list.dart -->
 ```dart
 import 'package:twk/twk.dart';
 
@@ -256,6 +260,7 @@ final class Items extends StatelessWidget {
 flutter_hooks'. Riverpod and bloc are the packages `twk_riverpod` and
 `twk_bloc`. [State](state.md) has them.
 
+<!-- file: packages/twk/example/guides/flutter_state.dart -->
 ```dart
 import 'package:twk/twk.dart';
 

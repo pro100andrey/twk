@@ -38,7 +38,17 @@ Changed:
   `TwkStrings.of(context)` give them to widgets, `Cli(strings:)`, `Cli.run` and
   `Cli.runWithArgs` to a console. A guide shows it with slang.
 - `formatBytes`, `formatTook` and `ProgressTask.summary` take `decimalSeparator:`.
-- A confirmation also takes the first letters of `TwkStrings.yes` and `no`.
+- A confirmation also takes the first letters of `TwkStrings.yes` and `no`, after
+  `y` and `n`; a letter both words start with asks again.
+- `Text` and `Text.rich` take `keepsPaint`, for a long text in a panel of its own:
+  an edit repaints the rows that changed.
+- A widget that watched a provider in one build and only selects in a later one
+  is told of what it selects, where it stayed told of every change.
+- `Semantics.nodes` keep their hints while the `Semantics` is not focused.
+- A popover closes when a layer over it gives the focus elsewhere as it closes,
+  where it stayed open without the focus.
+- A `ProgressList` that takes the room it needs takes that of its words, in
+  `TwkStrings.eta` and `moreTasks`, and lays out again when they change.
 - `Table` and `TreeTable` take `marks:`, a `SelectionController<Object>(multiple:
   true)` that marks rows by key, beside the row selected. A checkbox column comes
   before the columns; Space and a click on a checkbox toggle a mark, and marks

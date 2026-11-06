@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Inlines of Markdown nest 64 deep at most, past which their
+  delimiters stay text, where nesting some thousands deep overflowed the stack.
+- A highlighted escape takes the whole character after its backslash, where one
+  beyond U+FFFF was split between two tokens, in every language.
+- A `JsonView` filter marks the whole grapheme cluster it matched, where a key
+  with a character beyond U+FFFF or a combining mark lost it.
+
 - A `MarkdownView` asks for the mouse's motion by `PointerMode.auto` in a local
   session, as every hand does now, and for none in a remote one.
 

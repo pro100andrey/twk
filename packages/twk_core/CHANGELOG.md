@@ -16,10 +16,21 @@ Changed:
   replace the integer constants of `Wire`, which keeps `protocol` and
   `maxPayload`. A frame of a type the receiver does not know is ignored and logged
   (`twk.wire`) on both sides. The bytes on the wire are unchanged.
-- `RenderParagraph.keepsPaint`, false by default: the paragraph is a repaint
-  boundary that repaints only the rows that differ, over the styles its parent
-  left there. It must not be drawn over other objects' glyphs or be the tree's
-  root. With it off, painting costs what it did before.
+- Frames keep to a grid of `maxFps`: the next is due a gap after the last was
+  due, so a timer's lateness no longer adds up and 60 means 60. A frame late by a
+  gap or more starts the grid again.
+- An app started in the background (`app &`) stops as a job until `fg` gives it
+  the terminal, touching neither the terminal's modes nor its output, where it
+  went raw on the shell's terminal and wrote its queries over the prompt.
+- A welcome or a size frame of the wrong shape ends the link with a
+  `TerminalException`, which `SocketLink.connect` throws, where it ended the app.
+- `RenderLog.add` asks for a frame only when the line can show: one below a log
+  scrolled back is painted when scrolled into view.
+- `RenderParagraph.keepsPaint`, false by default and settable: the paragraph is a
+  repaint boundary that repaints only the rows that differ, over the styles its
+  parent left there, and an edit that holds its size leaves the parent alone. It
+  must not be drawn over other objects' glyphs or be the tree's root. With it off,
+  painting costs what it did before.
 - `TextPainter.prepare` and `draw`, which `paint` is both, and `tracksDamage` with
   `changedRows`: the rows the last paint drew otherwise than the one before.
 - The presenter writes less and looks at less: over blanks it changes only what a
