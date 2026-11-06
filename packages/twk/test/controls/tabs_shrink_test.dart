@@ -1,4 +1,4 @@
-// Tabs whose number changes: a TabView with fewer children than its
+// Tabs whose number changes: a TabBarView with fewer children than its
 // controller's index, the controller told before or after, and with more
 // again, or none; a TabBar with fewer labels; the focus and the state of
 // the children as those around them go; a DockArea's group, whose view
@@ -81,9 +81,9 @@ List<String> firstRows(TwkTester t, int from) => [
   for (final f in t.frames.skip(from)) f.lines.first,
 ];
 
-/// A [TabView] of [c] over a child for each of [labels].
+/// A [TabBarView] of [c] over a child for each of [labels].
 Widget view(TabController c, Iterable<String> labels) =>
-    TabView(controller: c, children: [for (final l in labels) Text(l)]);
+    TabBarView(controller: c, children: [for (final l in labels) Text(l)]);
 
 void main() {
   test('a TabController set to as many tabs as its index or fewer selects '
@@ -117,7 +117,7 @@ void main() {
     expect(() => TabController(length: 0), throwsA(isA<AssertionError>()));
   });
 
-  group('TabView', () {
+  group('TabBarView', () {
     testTwk('a new controller of fewer tabs with fewer children, as a '
         'DockArea makes one, shows the tab it selects', (t) async {
       final three = TabController(length: 3, initialIndex: 2);
@@ -244,7 +244,7 @@ void main() {
             children: [
               const Field('before'),
               Expanded(
-                child: TabView(
+                child: TabBarView(
                   controller: c,
                   children: [
                     if (step < 1) const Field('a', key: ValueKey('a')),

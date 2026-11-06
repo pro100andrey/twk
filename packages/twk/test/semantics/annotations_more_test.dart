@@ -159,7 +159,7 @@ void main() {
         TabBar(controller: tabs, tabs: const ['Files', 'Search', 'Git']),
         SizedBox(
           height: 1,
-          child: TabView(
+          child: TabBarView(
             controller: tabs,
             children: const [Text('file list'), Text('query'), Text('log')],
           ),

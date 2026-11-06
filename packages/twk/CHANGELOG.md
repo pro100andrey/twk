@@ -4,6 +4,7 @@
 
 Breaking:
 
+- `TabView` is `TabBarView`, as Flutter names the content of a `TabBar`.
 - `Text`, `Text.rich`, `Text.line` and `Text.richLine` take `textAlign`, as
   Flutter names it, where they took `align`; `RenderParagraph` keeps `align`.
 - `BoxConstraints` has `minWidth`, `maxWidth`, `minHeight` and `maxHeight`, and

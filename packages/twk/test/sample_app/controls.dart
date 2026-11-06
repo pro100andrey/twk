@@ -103,7 +103,7 @@ final class _TabsState extends State<_Tabs> {
     children: [
       TabBar(controller: _tabs, tabs: const ['one', 'two']),
       Expanded(
-        child: TabView(
+        child: TabBarView(
           controller: _tabs,
           children: const [Text('first'), Text('second')],
         ),

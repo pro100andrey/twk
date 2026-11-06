@@ -179,7 +179,7 @@ final class _SettingsState extends State<_Settings> {
                       key: _form,
                       onChanged: () => setState(() => _modified = true),
                       onSubmitted: _submitted,
-                      child: TabView(
+                      child: TabBarView(
                         controller: _tabs,
                         children: [
                           _GeneralTab(saved: _saved),

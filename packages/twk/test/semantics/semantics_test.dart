@@ -293,37 +293,40 @@ void main() {
       ]);
     });
 
-    testTwk('leaves out what was read before a BlockSemantics in the node '
-        'it is in, and what is not laid out: a page of a TabView not shown', (
-      t,
-    ) async {
-      final tabs = TabController(length: 2);
-      addTearDown(tabs.dispose);
-      await t.pumpWidget(
-        column([
-          const Text('above'),
-          Semantics(
-            role: SemanticsRole.list,
-            child: column([
-              const Text('covered'),
-              const BlockSemantics(child: Text('barrier')),
-              const Text('over it'),
-            ]),
-          ),
-          SizedBox(
-            height: 1,
-            child: TabView(
-              controller: tabs,
-              children: const [Text('first page'), Text('second page')],
+    testTwk(
+      'leaves out what was read before a BlockSemantics in the node '
+      'it is in, and what is not laid out: a page of a TabBarView not shown',
+      (
+        t,
+      ) async {
+        final tabs = TabController(length: 2);
+        addTearDown(tabs.dispose);
+        await t.pumpWidget(
+          column([
+            const Text('above'),
+            Semantics(
+              role: SemanticsRole.list,
+              child: column([
+                const Text('covered'),
+                const BlockSemantics(child: Text('barrier')),
+                const Text('over it'),
+              ]),
             ),
-          ),
-        ]),
-      );
-      expect(read(t), ['above', 'list', 'barrier', 'over it', 'first page']);
-      tabs.index = 1;
-      await t.pump();
-      expect(read(t), ['above', 'list', 'barrier', 'over it', 'second page']);
-    });
+            SizedBox(
+              height: 1,
+              child: TabBarView(
+                controller: tabs,
+                children: const [Text('first page'), Text('second page')],
+              ),
+            ),
+          ]),
+        );
+        expect(read(t), ['above', 'list', 'barrier', 'over it', 'first page']);
+        tabs.index = 1;
+        await t.pump();
+        expect(read(t), ['above', 'list', 'barrier', 'over it', 'second page']);
+      },
+    );
 
     testTwk('leaves out what is below an ExcludeSemantics, its Semantics and '
         'its texts, a label of the texts too; reads it while not excluding, '

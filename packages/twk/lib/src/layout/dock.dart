@@ -800,7 +800,7 @@ final class DockPanel {
 
 /// Shows [panels] where the [controller]'s [DockLayout] puts them: docked
 /// in a tree of splits, each a [SplitView] whose dividers resize its
-/// children, and groups of tabs, each a [TabBar] over a [TabView] of its
+/// children, and groups of tabs, each a [TabBar] over a [TabBarView] of its
 /// panels; floating in windows of a [WindowLayer] over them. A panel the
 /// layout names that [panels] has not is taken out of it; a panel it does
 /// not name is not shown. It fills the room it gets.
@@ -846,7 +846,7 @@ final class DockPanel {
 /// See also:
 ///
 ///  * [SplitView], panes the user resizes but does not move.
-///  * [TabView], one group of tabs.
+///  * [TabBarView], one group of tabs.
 final class DockArea extends StatefulWidget {
   /// Shows [panels] where [controller]'s layout puts them, the tabs of a
   /// group on a strip ([tabStrip]) by default.
@@ -1449,7 +1449,7 @@ final class _GroupState extends State<_Group> {
                 ),
         ),
         Expanded(
-          child: TabView(
+          child: TabBarView(
             controller: _tabs,
             children: [for (final p in panels) area._host(p)],
           ),

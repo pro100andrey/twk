@@ -75,7 +75,7 @@ final _tabbarTabviewPage = GalleryPage(
       '            padding: const .x(1),',
       '            child: view,',
       '          ),',
-      '          child: TabView(',
+      '          child: TabBarView(',
       '            controller: _tabs,',
       '            children: [',
       '              Column(',
@@ -200,7 +200,7 @@ final class _TabsState extends State<_Tabs> with KeptState {
                 padding: const EdgeInsets.x(1),
                 child: view,
               ),
-              child: TabView(
+              child: TabBarView(
                 controller: tabs,
                 children: [
                   Column(

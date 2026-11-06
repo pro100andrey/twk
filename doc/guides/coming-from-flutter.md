@@ -109,7 +109,7 @@ none:
 | `SnackBar` | `showToast(context, message)` |
 | `Tooltip` | `Tooltip(message:, child:)` |
 | `CircularProgressIndicator`, `LinearProgressIndicator` | `Spinner`, `ProgressBar` (`value: null` is indeterminate) |
-| `TabBar`, `TabBarView`, `TabController` | `TabBar`, `TabView`, `TabController` |
+| `TabBar`, `TabBarView`, `TabController` | `TabBar`, `TabBarView`, `TabController` |
 | `DataTable` | `Table<T>` (rows and columns, selection, sorting) |
 | `GridView` | `Grid` with column and row tracks |
 | `SelectableText` | `SelectionArea` |

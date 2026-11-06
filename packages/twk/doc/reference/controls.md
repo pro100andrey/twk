@@ -5,7 +5,7 @@
 ## `TabController`
 
 `TabController(length:, initialIndex:)`, the selected tab (`index`) that a
-`TabBar(controller:, tabs:, …)` sets and a `TabView(controller:, children:)`
+`TabBar(controller:, tabs:, …)` sets and a `TabBarView(controller:, children:)`
 shows. The bar is a row of the labels, the selected one marked: a tab
 clicked is selected, and while the bar has the focus Left and Right select
 the tab before and after (the first after the last), Home and End the first

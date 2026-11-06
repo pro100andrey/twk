@@ -139,7 +139,7 @@ edge cuts stays whole, and the mouse goes through it to what is under it.
 where its `DockController`'s `DockLayout(root:, windows:)` puts them: docked
 in a tree of `DockSplit`s (`direction`, `children`, `fractions`), each a
 `SplitView` whose dividers set its shares in the layout, and `DockTabs`
-groups (`panels`, `selected`), each a `TabBar` over a `TabView`, or floating
+groups (`panels`, `selected`), each a `TabBar` over a `TabBarView`, or floating
 in the windows of a `WindowLayer` over them (`DockWindow(panel, left:, top:,
 width:, height:)`, their moves and resizes set in the layout). The left
 button dragging a group's tab bar drags its selected panel, a chip with its

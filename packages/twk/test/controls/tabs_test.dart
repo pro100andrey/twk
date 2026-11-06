@@ -347,7 +347,7 @@ void main() {
     });
   });
 
-  group('TabView', () {
+  group('TabBarView', () {
     testTwk("shows the selected tab's child and keeps the state of the "
         'others', (t) async {
       final c = TabController(length: 2);
@@ -355,7 +355,7 @@ void main() {
       final second = GlobalKey<CounterState>();
       await t.pumpWidget(
         Theme.terminal(
-          child: TabView(
+          child: TabBarView(
             controller: c,
             children: [
               Counter('first', key: first),
@@ -396,7 +396,7 @@ void main() {
         Theme.terminal(
           child: Host(
             key: host,
-            (step) => TabView(
+            (step) => TabBarView(
               key: view,
               controller: c,
               children: [
@@ -469,7 +469,7 @@ void main() {
             children: [
               const Field('before'),
               Expanded(
-                child: TabView(
+                child: TabBarView(
                   controller: c,
                   children: [
                     const Column(
@@ -535,7 +535,7 @@ void main() {
                 tabs: const ['Inbox', 'Sent'],
               ),
               Expanded(
-                child: TabView(
+                child: TabBarView(
                   controller: c,
                   children: const [Text('3 new'), Text('none')],
                 ),
