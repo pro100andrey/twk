@@ -409,21 +409,45 @@ class FocusNode with ChangeNotifier {
     _manager?._mayChangeKeysBelow(_parent);
   }
 
+  /// The node of the app of [context] that has the primary focus, if any:
+  /// what a layer that opens remembers, to give the focus back to it.
+  @internal
+  static FocusNode? primaryAt(BuildContext context) =>
+      Focus.maybeOf(context, createDependency: false)?.manager?.primaryFocus;
+
+  /// The one way a layer gives the focus back as it closes: to [back], the
+  /// node it remembered as it opened, if that is still in the tree and can
+  /// take it; else to [fallback]. Whether [back] has it now.
+  @internal
+  static bool giveBack(FocusNode? back, [FocusNode? fallback]) {
+    if (back != null && back._attached && back._active) {
+      if (back.canRequestFocus || back is FocusScopeNode) {
+        back.requestFocus();
+      }
+      if (back.hasFocus) {
+        return true;
+      }
+    }
+    fallback?.requestFocus();
+    return false;
+  }
+
   /// Whether this node is in a modal scope ([FocusScopeNode.modal]) that
   /// [other] is not in: the focus is in a layer opened above the one
   /// [other] is in, or above its place.
   @internal
   bool inModalBeside(FocusNode other) {
     for (FocusNode? n = this; n != null; n = n._parent) {
-      if (n is FocusScopeNode && n.modal && !other._isBelow(n)) {
+      if (n is FocusScopeNode && n.modal && !other.isBelow(n)) {
         return true;
       }
     }
     return false;
   }
 
-  // whether this node is [ancestor] or below it
-  bool _isBelow(FocusNode ancestor) {
+  /// Whether this node is [ancestor] or below it.
+  @internal
+  bool isBelow(FocusNode ancestor) {
     for (FocusNode? n = this; n != null; n = n._parent) {
       if (identical(n, ancestor)) {
         return true;
@@ -531,23 +555,26 @@ class FocusScopeNode extends FocusNode {
   @internal
   var modal = false;
 
+  /// The node that had the primary focus as the layer this scope is the
+  /// content of opened; it gets the focus back when the scope leaves the
+  /// tree with the focus in it ([FocusNode.giveBack]), whichever the layer:
+  /// a dialog, a menu, a popover.
+  @internal
+  FocusNode? returnTo;
+
   // the nodes of this scope (and scopes inside it) that had the focus, the
   // last most recently
   final _history = <FocusNode>[];
 
   /// The node of this scope, or the scope inside it, that had the primary
   /// focus last and still can: one in the tree, under this scope, that
-  /// [canRequestFocus]; a scope inside it that takes no focus itself but
-  /// has a node that can (a popover's content) stands for that node.
+  /// [canRequestFocus].
   FocusNode? get focusedChild {
     while (_history.isNotEmpty) {
       final last = _history.last;
       if (last._attached &&
           last._active &&
-          // a scope that takes no focus itself stands for the node it
-          // focused last, as a popover's content does
-          (last.canRequestFocus ||
-              (last is FocusScopeNode && last.focusedChild != null)) &&
+          last.canRequestFocus &&
           identical(last.enclosingScope, this)) {
         return last;
       }
@@ -841,6 +868,15 @@ final class FocusManager {
     ) {
       final element = scope._element;
       if (!scope._active || element == null) {
+        // a layer that closes, with the focus in it, gives it back to what
+        // it remembered as it opened
+        final back = scope.returnTo;
+        scope.returnTo = null;
+        if (back != null &&
+            !back.isBelow(scope) &&
+            FocusNode.giveBack(back)) {
+          return;
+        }
         continue;
       }
       final open = scope._descendantsCanRequestFocus;

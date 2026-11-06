@@ -54,6 +54,7 @@ import '../text/label_painter.dart';
 import 'anchor.dart';
 import 'key_path.dart';
 import 'layer.dart';
+import 'layer_escape.dart';
 import 'panel.dart';
 
 // Examples can assume:
@@ -1777,60 +1778,63 @@ final class _MenuSession {
     return FocusScope(
       node: _scope,
       onKeyEvent: _onKey,
-      child: KeyBindings(
-        {
-          'up': _up,
-          'down': _down,
-          'home': _home,
-          'end': _end,
-          'left': _left,
-          'right': _right,
-          'enter': _enter,
-          'space': _enter,
-          'escape': _escape,
-          'f10': _closeAll,
-        },
-        hints: const {'enter': 'select', 'escape': 'close'},
-        debugLabel: 'menu keys',
-        child: Semantics(
-          nodes: _semantics(),
-          child: Focus(
-            autofocus: true,
-            debugLabel: 'menu',
-            onKeyEvent: _orphaned,
-            child: Listener(
-              behavior: HitTestBehavior.opaque,
-              onDown: _pressed,
-              onUp: (event) => _release(event.x, event.y),
-              onMove: (event) => _hover(event.x, event.y),
-              onDrag: (event) => _hover(event.x, event.y),
-              onScroll: (_) {},
-              // the hand over an entry that can be chosen, and over the
-              // bar's titles, which the mouse moved to opens
-              child: HandOver(
-                where: _pressableAt,
-                child: _MenuPlace(
-                  key: _place,
-                  anchor: anchor,
-                  rows: [
-                    for (var i = 1; i < _levels.length; i++)
-                      _levels[i - 1].highlighted,
-                  ],
-                  shadow: shadow,
-                  children: [
-                    for (final (l, level) in _levels.indexed)
-                      _shadowed(
-                        shadow,
-                        _MenuBox(
-                          rows: [
-                            for (final entry in level.items) _rowOf(entry),
-                          ],
-                          highlighted: level.highlighted,
-                          active: l == active,
-                          styles: styles,
+      child: LayerEscape(
+        onEscape: _escape,
+        debugLabel: 'menu',
+        child: KeyBindings(
+          {
+            'up': _up,
+            'down': _down,
+            'home': _home,
+            'end': _end,
+            'left': _left,
+            'right': _right,
+            'enter': _enter,
+            'space': _enter,
+            'f10': _closeAll,
+          },
+          hints: const {'enter': 'select'},
+          debugLabel: 'menu keys',
+          child: Semantics(
+            nodes: _semantics(),
+            child: Focus(
+              autofocus: true,
+              debugLabel: 'menu',
+              onKeyEvent: _orphaned,
+              child: Listener(
+                behavior: HitTestBehavior.opaque,
+                onDown: _pressed,
+                onUp: (event) => _release(event.x, event.y),
+                onMove: (event) => _hover(event.x, event.y),
+                onDrag: (event) => _hover(event.x, event.y),
+                onScroll: (_) {},
+                // the hand over an entry that can be chosen, and over the
+                // bar's titles, which the mouse moved to opens
+                child: HandOver(
+                  where: _pressableAt,
+                  child: _MenuPlace(
+                    key: _place,
+                    anchor: anchor,
+                    rows: [
+                      for (var i = 1; i < _levels.length; i++)
+                        _levels[i - 1].highlighted,
+                    ],
+                    shadow: shadow,
+                    children: [
+                      for (final (l, level) in _levels.indexed)
+                        _shadowed(
+                          shadow,
+                          _MenuBox(
+                            rows: [
+                              for (final entry in level.items) _rowOf(entry),
+                            ],
+                            highlighted: level.highlighted,
+                            active: l == active,
+                            styles: styles,
+                          ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -1923,6 +1927,12 @@ final class _MenuLayer extends StatefulWidget {
 }
 
 final class _MenuLayerState extends State<_MenuLayer> {
+  @override
+  void initState() {
+    super.initState();
+    widget.session._scope.returnTo = FocusNode.primaryAt(context);
+  }
+
   @override
   void dispose() {
     widget.session._gone();

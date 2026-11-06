@@ -833,7 +833,7 @@ final class NavigatorState extends State<Navigator> {
       // the route above now covers the one under it: the focus it took
       // from the route removed goes back where that one's would have
       final above = _history[i];
-      if (_isBelow(above._returnFocus, route._guard)) {
+      if (above._returnFocus?.isBelow(route._guard) ?? false) {
         above._returnFocus = route._returnFocus;
       }
       // the back key may do otherwise for the route in front, the first
@@ -846,11 +846,7 @@ final class NavigatorState extends State<Navigator> {
       // the back key may do otherwise for it, as the first route now
       .._guard.markKeysChanged();
     if (hadFocus) {
-      final back = route._returnFocus;
-      back?.requestFocus();
-      if (back == null || !back.hasFocus) {
-        top._scope.requestFocus();
-      }
+      FocusNode.giveBack(route._returnFocus, top._scope);
     }
   }
 
@@ -888,15 +884,6 @@ final class NavigatorState extends State<Navigator> {
       }
       _stage.removeAt(i);
     }
-  }
-
-  static bool _isBelow(FocusNode? node, FocusNode above) {
-    for (var n = node?.parent; n != null; n = n.parent) {
-      if (identical(n, above)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   @override
