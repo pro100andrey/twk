@@ -1,7 +1,7 @@
-// fileIdentity on macOS, where tailFile tells a replaced file by it: the
-// same file through a write, another one moved onto the name, none where
-// nothing is there.
-@TestOn('mac-os')
+// fileIdentity on macOS and Linux, where tailFile tells a replaced file by
+// it: the same file through a write, another one moved onto the name, none
+// where nothing is there.
+@TestOn('mac-os || linux')
 library;
 
 import 'dart:io';
@@ -19,7 +19,7 @@ void main() {
   });
   tearDown(() => dir.delete(recursive: true));
 
-  test('macOS tells files apart', () {
+  test('files are told apart here', () {
     expect(knowsFileIdentity, isTrue);
   });
 
