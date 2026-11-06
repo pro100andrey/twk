@@ -15,9 +15,10 @@ void main() {
         'again when they change', (t) async {
       final tracker = ProgressTracker(clock: t.clock.stopwatch);
       addTearDown(tracker.dispose);
-      tracker.add('a', total: 100).start();
-      tracker.add('b');
-      tracker.add('c');
+      tracker
+        ..add('a', total: 100).start()
+        ..add('b')
+        ..add('c');
       Widget list(TwkStrings strings) => Localizations(
         strings: strings,
         child: ProgressList(
