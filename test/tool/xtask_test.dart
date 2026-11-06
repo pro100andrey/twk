@@ -374,6 +374,52 @@ void main() {
       expect(f.log.first, 'packages/p: 1 files in 1 groups, 0 apart');
     });
 
+    test('tests joins the suite of the package named joined, unless files '
+        'are named, and of no other', () async {
+      final root = Directory.systemTemp.createTempSync('joined_tests');
+      addTearDown(() => root.deleteSync(recursive: true));
+      for (final name in ['p', 'q']) {
+        File('${root.path}/packages/$name/pubspec.yaml')
+          ..createSync(recursive: true)
+          ..writeAsStringSync('name: $name\n');
+        File('${root.path}/packages/$name/test/a_test.dart')
+          ..createSync(recursive: true)
+          ..writeAsStringSync('\nvoid main() {}\n');
+      }
+      Future<List<String>> ran(
+        String package, [
+        List<String> more = const [],
+      ]) async {
+        final f = fake([
+          package,
+          '--reporter=x',
+          '--joined=packages/p',
+          ...more,
+        ], root: root.path);
+        expect(await tests(f.context, cpus), 0);
+        return f.ran.single.sublist(3);
+      }
+
+      expect(await ran('packages/p/pubspec.yaml'), [
+        'dart',
+        'test',
+        '--file-reporter=json:.dart_tool/test_groups/times.json',
+        '--reporter=x',
+        '.dart_tool/test_groups/group_0_test.dart',
+      ]);
+      expect(await ran('packages/q/pubspec.yaml'), [
+        'dart',
+        'test',
+        '--reporter=x',
+      ]);
+      expect(await ran('packages/p/pubspec.yaml', ['test/a_test.dart']), [
+        'dart',
+        'test',
+        '--reporter=x',
+        'test/a_test.dart',
+      ]);
+    });
+
     test('tests runs dart test in a package with a test/ and skips one '
         'without, saying so', () async {
       final f = fake(['packages/twk/pubspec.yaml', '--reporter=x']);

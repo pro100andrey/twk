@@ -4,9 +4,9 @@
 //   spare    ARGV...   runs ARGV on the CPUs the benchmark leaves
 //   package  PATH ARGV...
 //                      the same in the package PATH is in
-//   tests    PATH ARGS...
+//   tests    PATH [--joined=PACKAGE] ARGS...
 //                      dart test ARGS there, or nothing, said so, where
-//                      the package has no test/
+//                      the package has no test/; in PACKAGE as group-tests
 //   group-tests PATH [--groups=N] [--shuffle=SEED] ARGS...
 //                      dart test ARGS there, the suite's files joined in
 //                      generated entry points (test_groups.dart)
@@ -148,7 +148,7 @@ Future<int> tests(VerbContext c, Cpus cpus) async {
     c.log('tests: give a path in the package, then the arguments of dart test');
     return ExitCode.invalidFile;
   }
-  final [member, ...args] = c.args;
+  final [member, ...given] = c.args;
   final dir = packageOf(c.root, member);
   if (dir == null) {
     c.log('tests: no pubspec.yaml in $member or above it');
@@ -158,12 +158,23 @@ Future<int> tests(VerbContext c, Cpus cpus) async {
     c.log('$dir: skipped, no test/');
     return ExitCode.success;
   }
+  final args = [
+    for (final arg in given)
+      if (!arg.startsWith(_joined)) arg,
+  ];
+  // files named are run as they are
+  if (given.contains('$_joined$dir') && args.every((a) => a.startsWith('-'))) {
+    return _runGroups(c, cpus, dir, args);
+  }
   final argv = ['dart', 'test', ...args];
   c.log('$dir: ${argv.join(' ')}');
   return answer(
     await c.run(offBenchCore(c, cpus, argv), workingDirectory: dir),
   );
 }
+
+/// The option of [tests] naming a package whose suite it runs in groups.
+const _joined = '--joined=';
 
 /// Runs the suite of the package its first argument is in as [tests] does,
 /// its files joined in entry points written afresh (test_groups.dart) and
@@ -180,8 +191,18 @@ Future<int> groupTests(VerbContext c, Cpus cpus) async {
     c.log('group-tests: no pubspec.yaml in $member or above it');
     return ExitCode.invalidFile;
   }
+  return _runGroups(c, cpus, dir, rest);
+}
+
+/// `dart test` with [args] in the package [dir], its files joined.
+Future<int> _runGroups(
+  VerbContext c,
+  Cpus cpus,
+  String dir,
+  List<String> args,
+) async {
   int? option(String name) => [
-    for (final arg in rest)
+    for (final arg in args)
       if (arg.startsWith('--$name=')) int.parse(arg.split('=').last),
   ].lastOrNull;
   final package = Directory('${c.root}/$dir');
@@ -202,7 +223,7 @@ Future<int> groupTests(VerbContext c, Cpus cpus) async {
     'dart',
     'test',
     '--file-reporter=json:$timesFile',
-    for (final arg in rest)
+    for (final arg in args)
       if (!arg.startsWith('--groups=') && !arg.startsWith('--shuffle=')) arg,
     ...testArguments(plan, sources),
   ];

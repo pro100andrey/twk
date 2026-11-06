@@ -415,6 +415,13 @@ enough, and on a loaded machine the guess is wrong.
   depend on a CPU the thousands of others would take.
   `test/tool/process_tag_test.dart` fails on a file that starts one
   without the tag.
+- **`pkg-test` runs packages/twk's suite with its files joined**, eight
+  entry points written afresh on each run (`tool/xtask/test_groups.dart`),
+  a file a join could change staying apart: half the time and CPU of one
+  isolate a file. A test sets no state another reads, as they may share an
+  isolate; `ci` and `ci-tests` run the suite plain, so one that does fails
+  in one and not the other. `group-test -- --shuffle=SEED
+  --test-randomize-ordering-seed=random` tries other groups.
 - **The only exceptions** are `// ignore: twk_lints/wall_time_in_tests`,
   with the reason on the comment above it: where real time is what is
   measured or an absence is checked (nothing happens for half a second),
