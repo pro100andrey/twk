@@ -247,6 +247,8 @@ Added:
 
 - `SingleTickerProviderStateMixin`; `AnimationController.forward`, `reverse`, `animateTo` and `repeat` return a `Future<void>` that completes when the run ends, and when something stops it (`stop`, `value` set, another run, `dispose`): unlike Flutter's `TickerFuture`, it does not stay pending after a stop, so an `await` does not hang. `AnimationController.toggle`, `isCompleted` and `isDismissed` (also on `AnimationStatus`).
 
+- The rest of Flutter's `Curves`: `fastLinearToSlowEaseIn`, `fastEaseInToSlowEaseOut`, `easeInToLinear`, `linearToEaseOut`, the `easeIn`, `easeOut` and `easeInOut` of Sine, Quad, Cubic, Quart, Quint, Expo, Circ and Back (`easeInOutCubicEmphasized` as well), `slowMiddle`, `bounceIn`, `bounceInOut`, `elasticIn` and `elasticInOut`, with Flutter's values. The Back and elastic ones go out of 0..1.
+
 ## 0.2.0
 
 - After a Ctrl+C ended the inline session, a program that handles SIGINT
