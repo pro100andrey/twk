@@ -199,7 +199,7 @@ final class DescriptionList extends StatelessWidget {
                 style: term,
                 wrap: TextWrap.none,
                 overflow: TextOverflow.ellipsis,
-                align: termAlign,
+                textAlign: termAlign,
               ),
             ),
             _read(

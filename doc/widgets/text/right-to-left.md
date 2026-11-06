@@ -50,7 +50,7 @@ final class RightToLeft extends StatelessWidget {
               'Hello is שלום in Hebrew,\n'
               'and مرحبا in Arabic.\n'
               'שלום עולם! (hello world)',
-              align: .start,
+              textAlign: .start,
             ),
           ),
         ),

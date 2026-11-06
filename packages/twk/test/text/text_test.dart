@@ -61,7 +61,7 @@ void main() {
           wrap: TextWrap.grapheme,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          align: TextAlign.right,
+          textAlign: TextAlign.right,
         ),
         10,
         3,
@@ -83,7 +83,7 @@ void main() {
           'the quick brown fox jumps',
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          align: TextAlign.right,
+          textAlign: TextAlign.right,
         ),
         10,
         3,
@@ -276,7 +276,7 @@ void main() {
           wrap: TextWrap.none,
           maxLines: 1,
           overflow: TextOverflow.ellipsisStart,
-          align: TextAlign.center,
+          textAlign: TextAlign.center,
         ),
       );
       expect(v.top, same(paragraph));

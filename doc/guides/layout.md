@@ -134,7 +134,7 @@ Text.line(label)), Text(' 12 KB')])`. The `Row` gives the fixed child its
 width, `Expanded` the label the rest, and `Text.line` cuts it with `…` in
 cells (wide letters whole; `Text.richLine` for spans). Columns of fixed
 widths are the same with `SizedBox(width: n, child: Text.line(…))`, a
-number aligned right `Text(n, align: .right, wrap: .none)`. Several rows
+number aligned right `Text(n, textAlign: .right, wrap: .none)`. Several rows
 that share their columns, with a header, sorting and a cursor, are a
 `Table`. The cursor's `▎` bar, the idle selection and the keys come from
 `SelectionList` (`itemBuilder` builds the row), a title over a subtitle

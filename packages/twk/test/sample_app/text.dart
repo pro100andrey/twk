@@ -19,7 +19,7 @@ extension on _SampleAppState {
             wrap: TextWrap.grapheme,
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
-            align: TextAlign.right,
+            textAlign: TextAlign.right,
           ),
           Text.rich([const Span('rich '), 'bold'.bold.fg(Color.red)]),
           const Spacer(),

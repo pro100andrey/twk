@@ -33,7 +33,7 @@ export 'package:twk_core/twk_core.dart' show TextAlign, TextOverflow, TextWrap;
 /// ([Text.rich]), a span with a gradient ([Span.gradient]) in its colors
 /// grapheme by grapheme, laid out as it would be without. Its lines are
 /// broken as [wrap] says, at most [maxLines] of them, each placed as
-/// [align] says; where text is cut off, [overflow] says how it shows. It
+/// [textAlign] says; where text is cut off, [overflow] says how it shows. It
 /// is as wide as its widest line and as tall as its lines, within its
 /// constraints. See [RenderParagraph]. Below a [SelectionArea] it can be
 /// selected with the mouse, what is selected drawn in the area's style
@@ -69,7 +69,7 @@ export 'package:twk_core/twk_core.dart' show TextAlign, TextOverflow, TextWrap;
 final class Text extends LeafRenderObjectWidget {
   /// Shows [data] in [style]; the text breaks at words ([wrap]), is clipped
   /// ([overflow]), shows as many lines as it has ([maxLines]) and is
-  /// aligned left ([align]) unless told otherwise.
+  /// aligned left ([textAlign]) unless told otherwise.
   const Text(
     String this.data, {
     super.key,
@@ -77,7 +77,7 @@ final class Text extends LeafRenderObjectWidget {
     this.wrap = TextWrap.word,
     this.overflow = TextOverflow.clip,
     this.maxLines,
-    this.align = TextAlign.left,
+    this.textAlign = TextAlign.left,
     this.onLinkTap,
   }) : spans = null;
 
@@ -94,7 +94,7 @@ final class Text extends LeafRenderObjectWidget {
     this.wrap = TextWrap.word,
     this.overflow = TextOverflow.clip,
     this.maxLines,
-    this.align = TextAlign.left,
+    this.textAlign = TextAlign.left,
     this.onLinkTap,
   }) : data = null;
 
@@ -102,7 +102,7 @@ final class Text extends LeafRenderObjectWidget {
   /// wider than its room: [Text] with `wrap: TextWrap.none`,
   /// `overflow: TextOverflow.ellipsis` and `maxLines: 1`. The common case
   /// in a row, a panel or a status line, where a long text should not
-  /// grow the height. [align] and [overflow] set it right or cut it
+  /// grow the height. [textAlign] and [overflow] set it right or cut it
   /// elsewhere.
   ///
   /// ```dart
@@ -112,7 +112,7 @@ final class Text extends LeafRenderObjectWidget {
     String this.data, {
     super.key,
     this.style = const Style(),
-    this.align = TextAlign.left,
+    this.textAlign = TextAlign.left,
     this.overflow = TextOverflow.ellipsis,
   }) : spans = null,
        wrap = TextWrap.none,
@@ -129,7 +129,7 @@ final class Text extends LeafRenderObjectWidget {
     List<Span> this.spans, {
     super.key,
     this.style = const Style(),
-    this.align = TextAlign.left,
+    this.textAlign = TextAlign.left,
     this.overflow = TextOverflow.ellipsis,
   }) : data = null,
        wrap = TextWrap.none,
@@ -161,7 +161,7 @@ final class Text extends LeafRenderObjectWidget {
   /// Where each line is placed in the width of the text: on the left
   /// ([TextAlign.left], the default), in the middle, on the right, or
   /// stretched to the whole width.
-  final TextAlign align;
+  final TextAlign textAlign;
 
   /// For a click on a phrase that is not a URL, [Span.tap] on the span
   /// instead.
@@ -190,7 +190,7 @@ final class Text extends LeafRenderObjectWidget {
       wrap: wrap,
       overflow: overflow,
       maxLines: maxLines,
-      align: align,
+      align: textAlign,
       ellipsis: theme.glyphs.ellipsis,
       autoKeepsPaint: true,
     );
@@ -207,7 +207,7 @@ final class Text extends LeafRenderObjectWidget {
       ..wrap = wrap
       ..overflow = overflow
       ..maxLines = maxLines
-      ..align = align
+      ..align = textAlign
       ..ellipsis = theme.glyphs.ellipsis;
     _tellTaps(context, renderObject, theme);
   }

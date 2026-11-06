@@ -1489,7 +1489,7 @@ final class _TableState<T> extends State<Table<T>> {
       wrap: TextWrap.none,
       overflow: column.overflow,
       maxLines: 1,
-      align: column.align,
+      textAlign: column.align,
     );
     if (index != _sorted) {
       return title;
@@ -1607,7 +1607,7 @@ final class _TableState<T> extends State<Table<T>> {
             wrap: TextWrap.none,
             overflow: column.overflow,
             maxLines: 1,
-            align: column.align,
+            textAlign: column.align,
           )
         : Text.rich(
             [
@@ -1621,7 +1621,7 @@ final class _TableState<T> extends State<Table<T>> {
             wrap: TextWrap.none,
             overflow: column.overflow,
             maxLines: 1,
-            align: column.align,
+            textAlign: column.align,
           );
     return cell._wrap?.call(text) ?? text;
   }

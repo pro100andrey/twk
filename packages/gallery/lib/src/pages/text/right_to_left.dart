@@ -64,7 +64,7 @@ final _rightToLeftPage = GalleryPage(
     '            padding: const .x(1),',
     '            child: const Text(',
     for (final (i, l) in _rtl.indexed) _rtlLine(l, last: i == _rtl.length - 1),
-    '              align: .${o.nameOf(_rightToLeftAlign)},',
+    '              textAlign: .${o.nameOf(_rightToLeftAlign)},',
     '            ),',
     '          ),',
     '        ),',
@@ -113,7 +113,7 @@ final class _RightToLeft extends StatelessWidget {
         AppBinding.maybeOf(context)?.textOrder ?? TextOrder.logical;
     final Widget text;
     if (order == appOrder) {
-      text = Text(_rtl.join('\n'), align: align);
+      text = Text(_rtl.join('\n'), textAlign: align);
     } else {
       text = Column(
         mainAxisSize: MainAxisSize.min,
@@ -155,6 +155,6 @@ final class _RightToLeft extends StatelessWidget {
         align == TextAlign.right ||
         (align == TextAlign.start && rtl) ||
         (align == TextAlign.end && !rtl);
-    return Text(shown, align: right ? TextAlign.right : TextAlign.left);
+    return Text(shown, textAlign: right ? TextAlign.right : TextAlign.left);
   }
 }

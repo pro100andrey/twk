@@ -30,7 +30,7 @@ Widget columns((String, String) f) => Row(
     SizedBox(width: 4, child: Text.line(f.$1.split('.').last)),
     SizedBox(
       width: 6,
-      child: Text(f.$2, align: TextAlign.right, wrap: TextWrap.none),
+      child: Text(f.$2, textAlign: TextAlign.right, wrap: TextWrap.none),
     ),
   ],
 );

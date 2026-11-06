@@ -4,6 +4,8 @@
 
 Breaking:
 
+- `Text`, `Text.rich`, `Text.line` and `Text.richLine` take `textAlign`, as
+  Flutter names it, where they took `align`; `RenderParagraph` keeps `align`.
 - `BoxConstraints` has `minWidth`, `maxWidth`, `minHeight` and `maxHeight`, and
   `constrainWidth` and `constrainHeight`, as Flutter names them: they were
   `minW`, `maxW`, `minH`, `maxH`, `constrainW` and `constrainH`.

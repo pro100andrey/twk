@@ -79,7 +79,7 @@ final class _Line extends StatelessWidget {
         width: 8,
         child: Text(name, style: Style(attrs: chosen ? Attr.bold : 0)),
       ),
-      SizedBox(width: 3, child: Text('$count', align: .right)),
+      SizedBox(width: 3, child: Text('$count', textAlign: .right)),
       Text('■' * count, style: const Style(fg: Color.green)),
     ],
   );

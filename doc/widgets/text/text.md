@@ -32,7 +32,7 @@ return SizedBox(
       '🙂, take two cells each.',
       wrap: .word,
       overflow: .ellipsis,
-      align: .left,
+      textAlign: .left,
     ),
   ),
 );

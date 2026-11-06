@@ -1411,7 +1411,10 @@ final class _ProgressState extends State<_Progress>
                 spacing: 1,
                 children: [
                   Expanded(child: ProgressBar(value: t.progress)),
-                  SizedBox(width: 4, child: Text('$percent%', align: .right)),
+                  SizedBox(
+                    width: 4,
+                    child: Text('$percent%', textAlign: .right),
+                  ),
                 ],
               ),
               Text(
