@@ -4,6 +4,10 @@
 
 Breaking:
 
+- `twk.dart` no longer exports `ModeReport`, `KeyboardFlagsReport`,
+  `DeviceAttributes`, `ColorReport`, `CursorReport` and `UnknownSequence`, the
+  terminal's answers an app seldom reads: `package:twk_core/terminal.dart` has
+  them. A `switch` over `InputEvent` that named them ends in `_ => ...` instead.
 - `ScrollBehavior` and `ScrollConfiguration`, as Flutter has them, say what the
   wheel does: `App(scrollBehavior:)` for the app, `ScrollConfiguration` for a
   subtree. A `Scrollable` gathers the wheel's events into whole cells once a frame,

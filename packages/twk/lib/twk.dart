@@ -44,23 +44,17 @@ export 'package:twk_core/twk_core.dart'
 export 'package:twk_core/twk_core.dart'
     show
         Brightness,
-        ColorReport,
         ColorSchemeReport,
-        CursorReport,
-        DeviceAttributes,
         FocusEvent,
         InputEvent,
         KeyCode,
         KeyEvent,
         KeyKind,
-        KeyboardFlagsReport,
         Mod,
-        ModeReport,
         MouseEvent,
         MouseKind,
         PasteEvent,
-        ResizeEvent,
-        UnknownSequence;
+        ResizeEvent;
 // what an app runs on and logs to
 export 'package:twk_core/twk_core.dart'
     show
