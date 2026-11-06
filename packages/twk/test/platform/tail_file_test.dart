@@ -5,6 +5,7 @@ library;
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:test/test.dart';
 import 'package:twk/src/platform/platform.dart';
@@ -106,30 +107,87 @@ void main() {
   });
 
   test('a look in flight when the stream is cancelled adds nothing after '
-      'the close', () async {
+      'the close, and the cancel ends with its handle closed, under a clock '
+      'nobody moves', () async {
     File(path).writeAsStringSync('old old\n');
     final inner = File(path);
+    final asked = Completer<void>();
     final answer = Completer<int>();
     final errors = <Object>[];
+    var closed = false;
+    var cancelled = false;
     await runZonedGuarded(() async {
-      final subscription = IOOverrides.runZoned(
-        () => tailFile(path, fromEnd: true, poll: poll).listen((_) {}),
-        createFile: (p) => _SlowLength(inner, answer.future),
+      final subscription = clock.run(
+        () => IOOverrides.runZoned(
+          () => tailFile(path, fromEnd: false, poll: poll).listen((_) {}),
+          createFile: (p) => _Hooked(
+            inner,
+            onLength: (_) {
+              asked.complete();
+              return answer.future;
+            },
+            onClose: () => closed = true,
+          ),
+        ),
       );
       // the first look has asked the length and waits for it; the stream is
-      // cancelled and closed, then the answer comes: the file was cut short
-      await subscription.cancel();
+      // cancelled, then the answer comes: the file was cut short
+      await waitFor(asked.future, 'the look to ask the length');
+      final cancel = subscription.cancel().then((_) => cancelled = true);
       await pumpEventQueue();
+      expect(cancelled, isFalse);
       answer.complete(0);
+      await waitFor(cancel, 'the cancel to end with the look');
+      expect(closed, isTrue);
       await pumpEventQueue();
     }, (e, _) => errors.add(e));
     expect(errors, isEmpty);
+  });
+
+  test('a look the name tells nothing new to opens nothing, so that Windows '
+      'does not refuse the writer a rename: the next write opens it', () async {
+    File(path).writeAsStringSync('old\n');
+    final inner = File(path);
+    final told = <String>[];
+    var named = 0;
+    var opened = 0;
+    final subscription = clock.run(
+      () => IOOverrides.runZoned(
+        () => tailFile(path, fromEnd: true, poll: poll).listen(
+          (e) => told.add(switch (e) {
+            FileBytes(:final bytes) => String.fromCharCodes(bytes),
+            FileReset() => 'reset',
+          }),
+        ),
+        createFile: (p) => _Hooked(
+          inner,
+          onNamedLength: () => named++,
+          onOpen: () => opened++,
+        ),
+      ),
+    );
+    addTearDown(subscription.cancel);
+    await waitUntil(
+      () => named >= 3,
+      'three looks',
+      between: () => clock.elapse(poll),
+    );
+    expect(opened, 0);
+    File(path).writeAsStringSync('more\n', mode: FileMode.append);
+    await waitUntil(
+      () => told.isNotEmpty,
+      'the write',
+      between: () => clock.elapse(poll),
+    );
+    expect(told, ['more\n']);
+    expect(opened, 1);
   });
 
   test('a read that fails midway is not told again by the next look: the '
       'chunks already told are not read twice', () async {
     File(path).writeAsStringSync('first\nsecond\n');
     final inner = File(path);
+    var reads = 0;
     final told = <String>[];
     final subscription = clock.run(
       () => IOOverrides.runZoned(
@@ -139,7 +197,21 @@ void main() {
             FileReset() => 'reset',
           }),
         ),
-        createFile: (p) => _FailsMidway(inner),
+        // 'first\n' is read, the next read fails as if rotated away midway;
+        // the later looks read as asked
+        createFile: (p) => _Hooked(
+          inner,
+          onRead: (raf, count) {
+            reads++;
+            if (reads == 1) {
+              return raf.read(6);
+            }
+            if (reads == 2) {
+              return Future.error(const FileSystemException('gone'));
+            }
+            return raf.read(count);
+          },
+        ),
       ),
     );
     addTearDown(subscription.cancel);
@@ -147,23 +219,160 @@ void main() {
     await clock.elapse(poll);
     expect(told, ['first\n', 'second\n']);
   });
+
+  // Windows refuses a rename over a file open anywhere: it cannot happen there
+  test('a file renamed over the name right after its length was taken is '
+      'not read at the old range: nothing of it is told before the reset, '
+      'then it is told from its start', () async {
+    File(path).writeAsStringSync('old line one\n');
+    final inner = File(path);
+    final other = '${dir.path}${Platform.pathSeparator}other.log';
+    final staged = File(other);
+    final replacement = [for (var i = 0; i < 5; i++) 'NEW LINE $i\n'].join();
+    var armed = false;
+    final told = <String>[];
+    final subscription = clock.run(
+      () => IOOverrides.runZoned(
+        () => tailFile(path, fromEnd: true, poll: poll).listen(
+          (e) => told.add(switch (e) {
+            FileBytes(:final bytes) => String.fromCharCodes(bytes),
+            FileReset() => 'reset',
+          }),
+        ),
+        createFile: (p) => _Hooked(
+          inner,
+          onLength: (raf) async {
+            final size = await raf.length();
+            if (armed) {
+              armed = false;
+              staged
+                ..writeAsStringSync(replacement)
+                ..renameSync(path);
+            }
+            return size;
+          },
+        ),
+      ),
+    );
+    addTearDown(subscription.cancel);
+    await clock.elapse(poll);
+    armed = true;
+    File(path).writeAsStringSync('second\n', mode: FileMode.append);
+    await waitUntil(
+      () => told.contains('reset') && told.join().endsWith(replacement),
+      'the reset and the replacement from its start, not $told',
+      between: () => clock.elapse(poll),
+    );
+    // the old file's own bytes may be told before the reset, the new
+    // file's middle may not
+    expect(told.takeWhile((e) => e != 'reset').join(), isIn(['', 'second\n']));
+    expect(told.skipWhile((e) => e != 'reset').skip(1).join(), replacement);
+  }, testOn: '!windows');
+
+  test(
+    'a file put at the name while a look holds the one it replaced: the '
+    'look is made again, nothing of the old file told after the reset',
+    () async {
+      File(path).writeAsStringSync('old line one\n');
+      final inner = File(path);
+      final staged = File('${dir.path}${Platform.pathSeparator}other.log');
+      final replacement = [for (var i = 0; i < 5; i++) 'NEW LINE $i\n'].join();
+      final events = StreamController<FileSystemEvent>();
+      addTearDown(events.close);
+      var armed = false;
+      final told = <String>[];
+      final subscription = clock.run(
+        () => IOOverrides.runZoned(
+          () => tailFile(path, fromEnd: true, poll: poll).listen(
+            (e) => told.add(switch (e) {
+              FileBytes(:final bytes) => String.fromCharCodes(bytes),
+              FileReset() => 'reset',
+            }),
+          ),
+          createFile: (p) => _Hooked(
+            inner,
+            watched: events.stream,
+            onLength: (raf) async {
+              final size = await raf.length();
+              if (armed) {
+                armed = false;
+                staged
+                  ..writeAsStringSync(replacement)
+                  ..renameSync(path);
+                // the watch tells it before the look goes on
+                events.add(FileSystemCreateEvent(path, false));
+                await pumpEventQueue();
+              }
+              return size;
+            },
+          ),
+        ),
+      );
+      addTearDown(subscription.cancel);
+      await clock.elapse(poll);
+      armed = true;
+      File(path).writeAsStringSync('second\n', mode: FileMode.append);
+      await waitUntil(
+        () => told.join().endsWith(replacement),
+        'the replacement, not $told',
+        between: () => clock.elapse(poll),
+      );
+      // where identity tells files apart the look ends with the old file's own
+      // bytes and the next one resets; what follows the reset is the new file
+      expect(
+        told.takeWhile((e) => e != 'reset').join(),
+        isIn(['', 'second\n']),
+      );
+      expect(told.skipWhile((e) => e != 'reset').skip(1).join(), replacement);
+    },
+    testOn: '!windows',
+  );
 }
 
-/// A file whose length is `answer`, when it comes.
-class _SlowLength implements File {
-  _SlowLength(this._file, this._answer);
+/// A file whose handles ask `onLength` for the length and `onRead` for each
+/// read, in place of the file's own where given, and that says when its
+/// length is asked by the name, a handle is opened and one is closed.
+class _Hooked implements File {
+  _Hooked(
+    this._file, {
+    this.onLength,
+    this.onRead,
+    this.onNamedLength,
+    this.onOpen,
+    this.onClose,
+    this.watched,
+  });
 
   final File _file;
-  final Future<int> _answer;
+  final Future<int> Function(RandomAccessFile)? onLength;
+  final Future<Uint8List> Function(RandomAccessFile, int)? onRead;
+  final void Function()? onNamedLength;
+  final void Function()? onOpen;
+  final void Function()? onClose;
+
+  /// What the watch of the directory tells, in place of the system's.
+  final Stream<FileSystemEvent>? watched;
 
   @override
-  Future<int> length() => _answer;
+  Future<int> length() {
+    onNamedLength?.call();
+    return _file.length();
+  }
+
+  @override
+  Future<RandomAccessFile> open({FileMode mode = FileMode.read}) async {
+    onOpen?.call();
+    return _Handle(await _file.open(), onLength, onRead, onClose);
+  }
 
   @override
   Uri get uri => _file.uri;
 
   @override
-  Directory get parent => _file.parent;
+  Directory get parent => switch (watched) {
+    final Stream<FileSystemEvent> events => _Watched(events),
+    null => _file.parent,
+  };
 
   @override
   int lengthSync() => _file.lengthSync();
@@ -172,40 +381,55 @@ class _SlowLength implements File {
   bool existsSync() => _file.existsSync();
 
   @override
-  Stream<List<int>> openRead([int? start, int? end]) =>
-      _file.openRead(start, end);
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('${invocation.memberName}');
+}
+
+/// A directory whose watch is [_events].
+class _Watched implements Directory {
+  _Watched(this._events);
+
+  final Stream<FileSystemEvent> _events;
+
+  @override
+  Stream<FileSystemEvent> watch({
+    int events = FileSystemEvent.all,
+    bool recursive = false,
+  }) => _events;
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>
       throw UnimplementedError('${invocation.memberName}');
 }
 
-/// A file whose first read tells 'first\n' and then fails, as one rotated
-/// away midway; the next ones read from where they are asked to.
-class _FailsMidway extends _SlowLength {
-  _FailsMidway(File file) : super(file, Future.value(0));
+class _Handle implements RandomAccessFile {
+  _Handle(this._raf, this._onLength, this._onRead, this._onClose);
 
-  var _failed = false;
-
-  @override
-  Future<int> length() => _file.length();
+  final RandomAccessFile _raf;
+  final Future<int> Function(RandomAccessFile)? _onLength;
+  final Future<Uint8List> Function(RandomAccessFile, int)? _onRead;
+  final void Function()? _onClose;
 
   @override
-  Stream<List<int>> openRead([int? start, int? end]) {
-    if (_failed) {
-      // not _file.openRead: it opens the name again, through the override
-      return Stream.value(_file.readAsBytesSync().sublist(start ?? 0, end));
-    }
-    _failed = true;
-    return Stream.fromIterable([
-      'first\n'.codeUnits,
-    ]).concatError(const FileSystemException('gone'));
-  }
-}
+  Future<int> length() => _onLength?.call(_raf) ?? _raf.length();
 
-extension on Stream<List<int>> {
-  Stream<List<int>> concatError(Exception error) async* {
-    yield* this;
-    throw error;
+  @override
+  Future<RandomAccessFile> setPosition(int position) async {
+    await _raf.setPosition(position);
+    return this;
   }
+
+  @override
+  Future<Uint8List> read(int count) =>
+      _onRead?.call(_raf, count) ?? _raf.read(count);
+
+  @override
+  Future<void> close() async {
+    await _raf.close();
+    _onClose?.call();
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('${invocation.memberName}');
 }

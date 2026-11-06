@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate' show Isolate;
-import 'dart:math' show max;
+import 'dart:math' show max, min;
 
 import 'file_identity.dart';
 import 'follow_machine.dart';
@@ -109,6 +109,20 @@ Stream<void> watchDirectory(String path) {
 /// without a directory watch (or on a drive where it misses events), and a
 /// longer one is read from the old position.
 ///
+/// A look that has something to read opens the file once: its length and
+/// the range read are of that one handle, so a file renamed over the name in
+/// the middle of a look is never read at the old file's range; the look is
+/// made again when the watch told a file put at the name since it began. A
+/// look the name tells nothing new to opens nothing: Windows refuses a
+/// writer the rename or delete of a file open anywhere, so a follower that
+/// held the file at each poll would fail its rotation.
+///
+/// The future of the subscription's `cancel` ends with the look under way,
+/// its handle closed: on Windows the file can be deleted after it. A look is
+/// real I/O and goes on in the root zone with the watch, their turns no fake
+/// clock's, so that the cancel ends under a clock nobody moves; only the poll
+/// is the zone's.
+///
 /// What is a start over and what to read is decided by a [FollowMachine];
 /// the stream is the file, the watch and the poll around it. The poll runs
 /// on `Timer.periodic` of the zone the stream is listened to in, so a
@@ -127,13 +141,26 @@ Stream<TailEvent> tailFile(
   var reading = false;
   var again = false;
   var cancelled = false;
+  var looked = Completer<void>()..complete();
   late final StreamController<TailEvent> out;
 
-  Future<int?> length() async {
-    try {
-      return await file.length();
-    } on FileSystemException {
-      return null;
+  // The file the name holds, opened once for a look, with its identity
+  // taken by the name on both sides of the open: where the two differ a file
+  // was put at the name meanwhile and the handle may be of either, so it is
+  // opened again. Null where there is no file.
+  Future<(RandomAccessFile, Object?)?> openFile() async {
+    for (var tries = 0; ; tries++) {
+      final before = fileIdentity(path);
+      final RandomAccessFile handle;
+      try {
+        handle = await file.open();
+      } on FileSystemException {
+        return null;
+      }
+      if (before == fileIdentity(path) || tries >= 3) {
+        return (handle, before);
+      }
+      await handle.close();
     }
   }
 
@@ -143,36 +170,76 @@ Stream<TailEvent> tailFile(
       return;
     }
     reading = true;
+    looked = Completer<void>();
     try {
       do {
         again = false;
         final began = machine.beginLook();
-        final identity = fileIdentity(path);
-        final size = await length();
+        int? named;
+        try {
+          named = await file.length();
+        } on FileSystemException {
+          named = null;
+        }
         if (cancelled) {
           return;
         }
-        final plan = machine.look(began, size: size, identity: identity);
-        if (plan.reset) {
-          out.add(const FileReset());
+        if (machine.settled(size: named, identity: fileIdentity(path))) {
+          continue;
         }
-        if (plan.reads) {
-          await for (final bytes in file.openRead(plan.from, plan.to)) {
-            if (cancelled) {
-              return;
-            }
-            out.add(FileBytes(bytes));
-            // told: a read that fails further on goes on from here
-            machine.told(bytes.length);
+        // one handle a look: the length and the range read are of the one
+        // file, whatever is renamed over the name in between
+        final opened = await openFile();
+        final handle = opened?.$1;
+        try {
+          if (cancelled) {
+            return;
           }
+          final size = await handle?.length();
+          if (cancelled) {
+            return;
+          }
+          if (handle != null && machine.putSince(began)) {
+            // a file was put at the name since the look began, and the
+            // handle may be of the file it replaced: the event stays, and
+            // the look is made again with a handle of the file now there
+            again = true;
+            continue;
+          }
+          final plan = machine.look(began, size: size, identity: opened?.$2);
+          if (plan.reset) {
+            out.add(const FileReset());
+          }
+          if (handle != null && plan.reads) {
+            await handle.setPosition(plan.from);
+            var at = plan.from;
+            while (at < plan.to) {
+              final bytes = await handle.read(min(plan.to - at, _readChunk));
+              if (cancelled) {
+                return;
+              }
+              if (bytes.isEmpty) {
+                break;
+              }
+              at += bytes.length;
+              out.add(FileBytes(bytes));
+              // told: a read that fails further on goes on from here
+              machine.told(bytes.length);
+            }
+          }
+        } finally {
+          await handle?.close();
         }
       } while (again && !cancelled);
     } on FileSystemException {
       // gone while it was read: looked at again at the next event or poll
     } finally {
       reading = false;
+      looked.complete();
     }
   }
+
+  void lookNow() => unawaited(Zone.root.run(look));
 
   out = StreamController<TailEvent>(
     onListen: () {
@@ -193,35 +260,44 @@ Stream<TailEvent> tailFile(
         try {
           void onEvent(FileSystemEvent e) {
             machine.nameEvent(puts: _replaces(e, name));
-            unawaited(look());
+            lookNow();
           }
 
           // a watch that fails (its queue overflowed, the directory gone)
           // has lost events: a look now, and the poll goes on, read what was
           // written; a file put at the name among the lost is told where
           // files are told apart, elsewhere only once it is shorter
-          void onError(Object _) => unawaited(look());
+          void onError(Object _) => lookNow();
 
-          watch = file.parent
-              .watch()
-              .where((e) => _names(e, name))
-              .listen(onEvent, onError: onError);
+          // in the zone of the looks: what a look reads and what the watch
+          // tells keep the order they happen in
+          watch = Zone.root.run(
+            () => file.parent
+                .watch()
+                .where((e) => _names(e, name))
+                .listen(onEvent, onError: onError),
+          );
         } on FileSystemException {
           // no watch of the directory: the poll alone
         }
       }
-      timer = startPeriodic(poll, (_) => look());
-      unawaited(look());
+      timer = startPeriodic(poll, (_) => lookNow());
+      lookNow();
     },
     onCancel: () async {
       cancelled = true;
       timer?.cancel();
       await watch?.cancel();
+      await looked.future;
       unawaited(out.close());
     },
   );
   return out.stream;
 }
+
+/// The most bytes one read of a look takes: what a file stream reads at a
+/// time.
+const int _readChunk = 64 * 1024;
 
 /// Whether [e] is of the entry called [name]: made, written, removed, or
 /// moved from or onto it.

@@ -56,14 +56,18 @@ final class PosixTty {
   /// once where stdin is no controlling terminal (a pipe, another session).
   ///
   /// The kernel would stop a background `tcsetattr` itself (SIGTTOU), but
-  /// the Dart VM does not take it, so the process asks.
+  /// the Dart VM does not take it, so the process asks. It asks with `raise`,
+  /// which stops this thread before it returns: `kill` of the process leaves
+  /// it running until the stop reaches it, long enough on a busy machine to
+  /// read the foreground group again, be stopped holding the old answer, and
+  /// after `fg` stop the process a second time for it.
   static void waitForForeground() {
     while (true) {
       final foreground = _tcgetpgrp(_stdinFd);
       if (foreground < 0 || foreground == _getpgrp()) {
         return;
       }
-      _kill(_getpid(), Platform.isMacOS ? _sigstopMacos : _sigstopLinux);
+      _raise(Platform.isMacOS ? _sigstopMacos : _sigstopLinux);
     }
   }
 
@@ -186,8 +190,6 @@ external int _tcgetpgrp(int fd);
 @Native<Int Function()>(symbol: 'getpgrp', isLeaf: true)
 external int _getpgrp();
 
-@Native<Int Function()>(symbol: 'getpid', isLeaf: true)
-external int _getpid();
-
-@Native<Int Function(Int, Int)>(symbol: 'kill', isLeaf: true)
-external int _kill(int pid, int sig);
+// not a leaf: the call returns when the process is continued
+@Native<Int Function(Int)>(symbol: 'raise')
+external int _raise(int sig);

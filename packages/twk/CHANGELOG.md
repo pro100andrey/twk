@@ -7,9 +7,13 @@ Breaking:
 - `ScrollBehavior` and `ScrollConfiguration`, as Flutter has them, say what the
   wheel does: `App(scrollBehavior:)` for the app, `ScrollConfiguration` for a
   subtree. A `Scrollable` gathers the wheel's events into whole cells once a frame,
-  a trackpad's dense events a cell each with an acceleration, a sparse wheel 3 as
-  before. `wheelStep`, `wheelAcceleration` and `WheelAcceleration` are gone, and a
-  wheel moves the view at the next frame, not in the event.
+  dense events a cell each with an acceleration, sparse ones 3 as before. Dense is
+  told by the events' timing, so it takes a mouse wheel too where a terminal sends
+  a notch as a burst: a notch is reported to move 3 rows where it moved 9 (kitty,
+  alacritty, Apple's Terminal) and 9 where it moved 27 (Ghostty, Warp).
+  `ScrollBehavior.fixed(3)` is a plain step an event. `wheelStep`,
+  `wheelAcceleration` and `WheelAcceleration` are gone, and a wheel moves the view
+  at the next frame, not in the event.
 - `Popover.onDismiss` is required: `null` for a popover the app never closes this
   way.
 - `Ticker.binding` and `Steps.binding` are typed by what they use of it, the
@@ -50,6 +54,11 @@ Changed:
   ([twk_core's changelog](../twk_core/CHANGELOG.md)).
 - A `Text` of eight rows or more that is edited without changing its size
   repaints only the rows that changed, by itself: nothing to set.
+- `tailFile` reads a look through one handle: a file renamed over the name
+  between its length and its read is no longer read at the old range, its first
+  lines lost. A look with nothing to read opens nothing, so Windows does not
+  refuse the writer a rename, and `cancel` ends with the handle closed, under a
+  fake clock too.
 - A widget that watched a provider in one build and only selects in a later one
   is told of what it selects, where it stayed told of every change.
 - `Semantics.nodes` keep their hints while the `Semantics` is not focused.

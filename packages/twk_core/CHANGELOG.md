@@ -32,6 +32,8 @@ Changed:
   in an inline region print the region again; in a fixed viewport an image no
   longer overwrites the cursor the viewport saved; a placement moved onto an
   identical one takes the new background.
+- A jump in a `RenderList` with an `itemExtent` takes one division, not a walk of
+  the items.
 - `RenderLog.add` asks for a frame only when the line can show: one below a log
   scrolled back is painted when scrolled into view.
 - `RenderParagraph.keepsPaint`, false by default and settable: the paragraph is a

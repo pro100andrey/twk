@@ -619,6 +619,17 @@ tasks:
     do: e2e
     args: [inline]
 
+  alloc-follow:
+    # A followed file's cancel under a clock nobody moves: the allocation
+    # profiler's log-follow scenario stops that way, and hung on it once with
+    # no other check seeing. The bound is what fails a hang.
+    desc: the allocation profiler's followed file ends within a minute
+    gate: [handover, ci]
+    platforms: [linux]
+    needs: [get]
+    do: spare
+    args: [timeout, '60', dart, run, tool/alloc/bin/alloc.dart, --only=log-follow]
+
   bench:
     # Not in a gate: CONTRIBUTING.md says when it is owed. BENCH_BASELINE names
     # the commit the work started from (HEAD unless set); arguments after
@@ -661,4 +672,5 @@ tasks:
       - vscode-unit
       - e2e-fullscreen
       - e2e-inline
+      - alloc-follow
     do: bench
