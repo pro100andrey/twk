@@ -341,6 +341,39 @@ void main() {
       expect(packageOf(root, 'nowhere/test'), isNull);
     });
 
+    test('group-tests writes the entries and gives dart test them, keeping '
+        'its own options', () async {
+      final root = Directory.systemTemp.createTempSync('group_tests');
+      addTearDown(() => root.deleteSync(recursive: true));
+      File('${root.path}/packages/p/pubspec.yaml')
+        ..createSync(recursive: true)
+        ..writeAsStringSync('name: p\n');
+      File('${root.path}/packages/p/test/a_test.dart')
+        ..createSync(recursive: true)
+        ..writeAsStringSync('\nvoid main() {}\n');
+      final f = fake([
+        'packages/p',
+        '--groups=2',
+        '--shuffle=1',
+        '--reporter=x',
+      ], root: root.path);
+      expect(await groupTests(f.context, cpus), 0);
+      expect(f.ran.single.sublist(3), [
+        'dart',
+        'test',
+        '--file-reporter=json:.dart_tool/test_groups/times.json',
+        '--reporter=x',
+        '.dart_tool/test_groups/group_0_test.dart',
+      ]);
+      expect(
+        File(
+          '${root.path}/packages/p/.dart_tool/test_groups/group_0_test.dart',
+        ).readAsStringSync(),
+        contains("group('test/a_test.dart', f0.main);"),
+      );
+      expect(f.log.first, 'packages/p: 1 files in 1 groups, 0 apart');
+    });
+
     test('tests runs dart test in a package with a test/ and skips one '
         'without, saying so', () async {
       final f = fake(['packages/twk/pubspec.yaml', '--reporter=x']);
