@@ -21,6 +21,11 @@ an unknown subcommand or option exits with 64.
 writes a new app into `<dir>` from a template (`app`, `inline`, `form`,
 `dashboard`): a package that runs, analyzes and passes its tests as it is
 
+### `twk agents [-C <dir>] [--dry-run]`
+
+writes the twk skill and a short block of `AGENTS.md` into the project, for a
+coding agent: [the section for agents](../README.md#for-coding-agents)
+
 ### `twk shell [-C <dir>]`
 
 owns this terminal and serves it over a local socket to an app of the project

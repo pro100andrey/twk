@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+Added:
+
+- `twk agents`: writes the twk skill, the one that comes with this twk_dev
+  (`SKILL.md` and its `references/`), into a project's `.agents/skills/twk`
+  and `.claude/skills/twk`, and a block of twk's own between two markers
+  into its `AGENTS.md`, for a coding agent to learn twk from rather than
+  from what it remembers of Flutter. Run again, it writes over what a newer
+  twk_dev changed and says so, or says there is nothing to do and changes
+  no file; what the project's `AGENTS.md` has outside the markers, and files
+  of its own in the skills' directories, it leaves. `--directory` names the
+  project, `--dry-run` writes nothing. `agentsPlan` is the same as a
+  function, for a caller that chooses which of the three to write.
+
 ## 0.2.0
 
 - Takes twk, twk_core and twk_term at 0.2.0, which have breaking

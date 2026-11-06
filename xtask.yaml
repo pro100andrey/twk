@@ -579,7 +579,10 @@ tasks:
     # (tool/skill_references reads the catalog's Markdown, so it needs no
     # build of the gallery, only that `catalog` has run first). Written
     # again, and failed where that changed a file. The Dart of SKILL.md is
-    # compiled by packages/twk's skill_test.dart, in pkg-test.
+    # compiled by packages/twk's skill_test.dart, in pkg-test. The whole
+    # skill is packed in twk_dev for `twk agents`: twk_dev's agents_test, in
+    # pkg-test, fails while that pack is stale (`dart run tool/pack_skill.dart`
+    # in packages/twk_dev), as templates_test does for the templates.
     desc: write the twk skill's references from the catalog and guides; fail if stale
     gate: [handover, ci]
     needs: [get, catalog]

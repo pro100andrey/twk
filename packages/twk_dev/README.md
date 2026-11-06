@@ -15,6 +15,8 @@ code while it runs, look inside it, read its log and record a session.
   app to pick a node.
 - **Logs:** `twk logs` tails the log of a running app, with levels and
   colours, while the app owns the screen.
+- **Agents:** `twk agents` writes the twk skill and a block of `AGENTS.md`
+  into a project, for coding agents.
 - **Debugger:** `twk shell` lends its terminal to an app started from the
   IDE, where the app has no terminal of its own.
 - **Record:** `twk record` and `twk play` record a session of an app as
@@ -42,6 +44,51 @@ the version its lock file names. In a second terminal in the same directory,
 `dart run twk_dev:twk inspect` shows the widgets of the running app.
 
 `twk run` is tested on Linux and macOS; it has not been run on Windows.
+
+## For coding agents
+
+A model that has not been taught twk writes Flutter's API from memory, and
+twk's names, units and defaults are not Flutter's. `twk agents` puts the twk
+skill into the project, so an agent reads what is right before it writes:
+
+```sh
+cd my_app
+dart run twk_dev:twk agents
+```
+
+It writes, in the project's directory (or the one `--directory` names):
+
+- `.agents/skills/twk` and `.claude/skills/twk`: the skill, the same files in
+  both (copies, not links, so they are the same on Windows): `SKILL.md` and
+  its `references/`, every widget with its options and the guides. It is
+  packed in this package, so it is the skill of the twk_dev you have and
+  needs no network.
+- `AGENTS.md`: a short block between `<!-- twk:agents begin -->` and
+  `<!-- twk:agents end -->` that points an agent to the skill. An
+  `AGENTS.md` of the project's own is kept as it is: the block is added at
+  its end, or, where it is there already, replaced; nothing outside the two
+  markers is touched. Markers that are not one begin before one end make
+  `twk agents` stop and say so, writing nothing.
+
+Run it again after upgrading twk_dev: it writes over the files the new
+skill changed, writes the ones it added, and says what it did. With nothing
+to do it says so, and no file is changed. A file of your own in a skill's
+directory, one the skill has no file of that name for, stays and is named.
+`--dry-run` says what it would write and writes nothing. A directory with
+no `pubspec.yaml` is refused (exit 1); a project that does not depend on twk
+is written to all the same, with a note.
+
+Without twk_dev, take the skill from the repository by hand: `skills/twk/`
+of [github.com/pro100andrey/twk](https://github.com/pro100andrey/twk) is
+the skill whole, `SKILL.md` and `references/`. Copy that directory to
+`.agents/skills/twk` (or `.claude/skills/twk` for Claude Code) in your
+project:
+
+```sh
+git clone --depth 1 https://github.com/pro100andrey/twk /tmp/twk
+mkdir -p .agents/skills
+cp -r /tmp/twk/skills/twk .agents/skills/twk
+```
 
 ## Learn more
 

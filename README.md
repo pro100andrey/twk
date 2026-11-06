@@ -25,6 +25,28 @@ dart pub get
 dart run packages/gallery/bin/gallery.dart
 ```
 
+## For coding agents
+
+A model that does not know twk writes Flutter's API from memory, and twk's
+names, units and defaults differ. The repository carries a skill for it,
+[`skills/twk/`](skills/twk/SKILL.md): where twk differs from Flutter, the
+catalog of widgets with every option, and the guides.
+
+In a project that uses twk, `dart run twk_dev:twk agents` writes the skill
+(the one that comes with the twk_dev you have, no network) to
+`.agents/skills/twk` and `.claude/skills/twk`, and a block pointing to it to
+`AGENTS.md`, keeping the rest of that file; run again, it updates them. See
+[twk_dev](packages/twk_dev/README.md#for-coding-agents).
+
+Or take the skill from here by hand: copy `skills/twk` to `.agents/skills/twk`
+(or `.claude/skills/twk` for Claude Code) in your project:
+
+```sh
+git clone --depth 1 https://github.com/pro100andrey/twk /tmp/twk
+mkdir -p .agents/skills
+cp -r /tmp/twk/skills/twk .agents/skills/twk
+```
+
 ## Documentation
 
 - [Guides](doc/README.md): from a first app to testing.

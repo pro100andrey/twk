@@ -34,7 +34,11 @@ What is here besides `packages/`:
 * `skills/twk/`: the skill that teaches a coding agent twk; its
   `references/` are written from `doc/widgets/` and `doc/guides/`
   (`tool/skill_references`), its Dart compiled by
-  `packages/twk/test/skill_test.dart`.
+  `packages/twk/test/skill_test.dart`. twk_dev packs it for `twk agents`
+  (`packages/twk_dev/tool/pack_skill.dart` into
+  `lib/src/agents/skill.g.dart`, as it packs the templates), and a change
+  to the skill fails twk_dev's `test/agents_test.dart` until
+  `dart run tool/pack_skill.dart` is run in `packages/twk_dev`.
 * `doc/internals/`: the conventions code, docs and tests are written to
   (`quality/`), the performance surveys against other terminal
   libraries (`perf/`) and the public names of the published packages

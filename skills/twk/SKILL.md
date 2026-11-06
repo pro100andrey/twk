@@ -246,17 +246,24 @@ space toggle   ctrl+q quit
 
 ## References
 
-Read the one that matches the widget, not all of them. `skills/twk/references/`
-is written from the widget catalog and the guides:
+Read the one that matches the widget, not all of them. `references/`, next
+to this file, is written from the widget catalog and the guides:
 
-- `skills/twk/references/widgets.md`: every widget, one line each, by group.
-- `skills/twk/references/widgets/<group>.md`: the group's widgets with
-  every option, and the Dart that builds them.
-- `skills/twk/references/guides/`: the guides (layout, input and focus,
-  theming, state, testing, screen modes, running, performance).
+- `references/widgets.md`: every widget, one line each, by group.
+- `references/widgets/<group>.md`: the group's widgets with every option,
+  and the Dart that builds them.
+- `references/guides/`: the guides (layout, input and focus, theming,
+  state, testing, screen modes, running, performance), and in them
+  `recipes.md` (a dialog, a table, a log, an inline prompt, a
+  command-line tool), `widgets-by-need.md` (which widget for which need)
+  and `details.md` (the debug aids and pitfalls in full).
 
-In the twk repository the same text is `doc/widgets/` and `doc/guides/`:
-`recipes.md` (a dialog, a table, a log, an inline prompt, a command-line
-tool), `widgets-by-need.md` and `details.md` (the debug aids and pitfalls
-in full). Whole apps to copy are in `packages/twk/example/`, each with its
-test; `dart run packages/gallery/bin/gallery.dart` shows every widget live.
+Whole apps to copy are in the twk repository, `packages/twk/example/`, each
+with its test; `dart run packages/gallery/bin/gallery.dart` there shows
+every widget live.
+
+If `references/` is not next to this file, the skill was copied short:
+`dart run twk_dev:twk agents` in the project writes the whole of it, or
+copy `skills/twk/` of the twk repository (github.com/pro100andrey/twk)
+whole, SKILL.md and `references/`, to `.agents/skills/twk` or
+`.claude/skills/twk`.
