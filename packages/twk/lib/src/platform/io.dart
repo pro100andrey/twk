@@ -118,7 +118,10 @@ Stream<void> watchDirectory(String path) {
 /// held the file at each poll would fail its rotation.
 ///
 /// The future of the subscription's `cancel` ends with the look under way,
-/// its handle closed: on Windows the file can be deleted after it.
+/// its handle closed: on Windows the file can be deleted after it. A look is
+/// real I/O and goes on in the root zone with the watch, their turns no fake
+/// clock's, so that the cancel ends under a clock nobody moves; only the poll
+/// is the zone's.
 ///
 /// What is a start over and what to read is decided by a [FollowMachine];
 /// the stream is the file, the watch and the poll around it. The poll runs
@@ -196,7 +199,7 @@ Stream<TailEvent> tailFile(
           if (cancelled) {
             return;
           }
-          if (handle != null && machine.beginLook() != began) {
+          if (handle != null && machine.putSince(began)) {
             // a file was put at the name since the look began, and the
             // handle may be of the file it replaced: the event stays, and
             // the look is made again with a handle of the file now there
@@ -207,20 +210,22 @@ Stream<TailEvent> tailFile(
           if (plan.reset) {
             out.add(const FileReset());
           }
-          var at = plan.from;
-          while (handle != null && at < plan.to) {
-            await handle.setPosition(at);
-            final bytes = await handle.read(min(plan.to - at, _readChunk));
-            if (cancelled) {
-              return;
+          if (handle != null && plan.reads) {
+            await handle.setPosition(plan.from);
+            var at = plan.from;
+            while (at < plan.to) {
+              final bytes = await handle.read(min(plan.to - at, _readChunk));
+              if (cancelled) {
+                return;
+              }
+              if (bytes.isEmpty) {
+                break;
+              }
+              at += bytes.length;
+              out.add(FileBytes(bytes));
+              // told: a read that fails further on goes on from here
+              machine.told(bytes.length);
             }
-            if (bytes.isEmpty) {
-              break;
-            }
-            at += bytes.length;
-            out.add(FileBytes(bytes));
-            // told: a read that fails further on goes on from here
-            machine.told(bytes.length);
           }
         } finally {
           await handle?.close();
@@ -233,6 +238,8 @@ Stream<TailEvent> tailFile(
       looked.complete();
     }
   }
+
+  void lookNow() => unawaited(Zone.root.run(look));
 
   out = StreamController<TailEvent>(
     onListen: () {
@@ -253,25 +260,29 @@ Stream<TailEvent> tailFile(
         try {
           void onEvent(FileSystemEvent e) {
             machine.nameEvent(puts: _replaces(e, name));
-            unawaited(look());
+            lookNow();
           }
 
           // a watch that fails (its queue overflowed, the directory gone)
           // has lost events: a look now, and the poll goes on, read what was
           // written; a file put at the name among the lost is told where
           // files are told apart, elsewhere only once it is shorter
-          void onError(Object _) => unawaited(look());
+          void onError(Object _) => lookNow();
 
-          watch = file.parent
-              .watch()
-              .where((e) => _names(e, name))
-              .listen(onEvent, onError: onError);
+          // in the zone of the looks: what a look reads and what the watch
+          // tells keep the order they happen in
+          watch = Zone.root.run(
+            () => file.parent
+                .watch()
+                .where((e) => _names(e, name))
+                .listen(onEvent, onError: onError),
+          );
         } on FileSystemException {
           // no watch of the directory: the poll alone
         }
       }
-      timer = startPeriodic(poll, (_) => look());
-      unawaited(look());
+      timer = startPeriodic(poll, (_) => lookNow());
+      lookNow();
     },
     onCancel: () async {
       cancelled = true;

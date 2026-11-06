@@ -155,7 +155,8 @@ Changed:
 - `tailFile` reads a look through one handle: a file renamed over the name
   between its length and its read is no longer read at the old range, its first
   lines lost. A look with nothing to read opens nothing, so Windows does not
-  refuse the writer a rename, and `cancel` ends with the handle closed.
+  refuse the writer a rename, and `cancel` ends with the handle closed, under a
+  fake clock too.
 - A widget that watched a provider in one build and only selects in a later one
   is told of what it selects, where it stayed told of every change.
 - `Semantics.nodes` keep their hints while the `Semantics` is not focused.

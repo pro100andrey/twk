@@ -98,6 +98,13 @@ final class FollowMachine {
       size == _position &&
       (!tellsIdentity || identity == null || identity == _held);
 
+  /// Whether a look's handle may be of the file a put replaced: a file was
+  /// put at the name since [began], and nothing else tells them apart. Where
+  /// [tellsIdentity] the identity taken around the open has, and an event
+  /// says nothing: macOS tells a write to a file made a moment ago as a
+  /// create, so a busy writer would have the look made again for ever.
+  bool putSince(int began) => !tellsIdentity && _puts != began;
+
   /// Marks that a look is about to take its stat: pass what it returns to
   /// [look].
   int beginLook() => _puts;

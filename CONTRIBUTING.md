@@ -87,6 +87,9 @@ dart run tool/xtask.dart bench              # when the frame path changed (below
   then through the test emulator (`e2e-fullscreen`, `e2e-inline`). The
   end to end is what a change to anything that reads from or writes to
   the terminal has to pass.
+- `alloc-follow`, in `handover` on Linux, runs the allocation profiler's
+  `log-follow` scenario under a minute's bound: a followed file's cancel
+  under a clock nobody moves, which nothing else runs.
 - The VS Code extension (`editors/vscode`) is in `handover` too: its
   `npm ci`, its compile (tsc) and its unit tests, run in a copy of their
   own under `.dart_tool/vscode/`. They need node and npm on the `PATH`

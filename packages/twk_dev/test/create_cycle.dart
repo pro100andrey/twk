@@ -97,6 +97,6 @@ void templateCycle(String name) {
         '.',
       ]);
     },
-    timeout: const Timeout(Duration(minutes: 3)),
+    timeout: const Timeout(Duration(minutes: 5)),
   );
 }

@@ -52,11 +52,44 @@ void main() {
       expect(m.settled(size: 10), isFalse);
     });
 
+    test('a look at a settled file reads nothing and starts nothing over', () {
+      final m = started();
+      expect(m.settled(size: 10), isTrue);
+      expectPlan(look(m, 10));
+      expect(m.position, 10);
+    });
+
     test('where files are told apart another file is not, whatever its '
         'size', () {
       final m = started(identity: true);
       expect(m.settled(size: 10, identity: 'a'), isTrue);
       expect(m.settled(size: 10, identity: 'b'), isFalse);
+    });
+  });
+
+  group('putSince', () {
+    test('a put since the look began counts where nothing tells files '
+        'apart', () {
+      final m = started();
+      final began = m.beginLook();
+      expect(m.putSince(began), isFalse);
+      m.nameEvent(puts: true);
+      expect(m.putSince(began), isTrue);
+    });
+
+    test('a write is no put', () {
+      final m = started();
+      final began = m.beginLook();
+      m.nameEvent(puts: false);
+      expect(m.putSince(began), isFalse);
+    });
+
+    test('where files are told apart it does not count: macOS tells writes '
+        'as creates, and the identity decides', () {
+      final m = started(identity: true);
+      final began = m.beginLook();
+      m.nameEvent(puts: true);
+      expect(m.putSince(began), isFalse);
     });
   });
 
