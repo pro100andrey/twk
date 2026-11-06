@@ -253,6 +253,8 @@ Added:
 
 - `SingleChildScrollView(padding:)`, empty cells round the child that scroll with it.
 
+- `Slider(onChangeStart:, onChangeEnd:)`, called with the value at the press of the mouse and at its release; a key or the wheel calls neither.
+
 ## 0.2.0
 
 - After a Ctrl+C ended the inline session, a program that handles SIGINT

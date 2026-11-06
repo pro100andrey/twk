@@ -4,6 +4,7 @@ library;
 import 'package:twk_core/twk_core.dart'
     show BoxConstraints, PaintContext, RenderObject;
 
+import '../foundation/change_notifier.dart' show ValueChanged;
 import '../data/chart_glyphs.dart' show opaque;
 import '../focus/focus.dart';
 import '../framework/framework.dart';
@@ -75,6 +76,18 @@ import 'pressable.dart';
 /// );
 /// ```
 ///
+/// [onChangeStart] and [onChangeEnd] are called when a press of the mouse
+/// starts and ends a change, for a value that is saved once, not on every
+/// step of the drag:
+///
+/// ```dart
+/// Slider(
+///   value: 0.5,
+///   onChanged: (v) {},
+///   onChangeEnd: (v) => print('saved $v'),
+/// )
+/// ```
+///
 /// See also:
 ///
 ///  * `NumberInput`, a number typed or stepped in a field.
@@ -89,6 +102,8 @@ final class Slider extends StatefulWidget {
     required this.value,
     required this.onChanged,
     super.key,
+    this.onChangeStart,
+    this.onChangeEnd,
     this.min = 0,
     this.max = 1,
     this.divisions,
@@ -108,6 +123,17 @@ final class Slider extends StatefulWidget {
   /// Called with the value the slider is to take; null for a disabled
   /// slider.
   final void Function(double value)? onChanged;
+
+  /// Called with the value the slider has when the left button is pressed
+  /// on it, before [onChanged] is called with the value the press gives. A
+  /// key or the wheel does not call it.
+  final ValueChanged<double>? onChangeStart;
+
+  /// Called with the value the slider has when the button is released after
+  /// a press: the last one [onChanged] was called with, or the value the
+  /// press found if that was not called. A key or the wheel does not call
+  /// it.
+  final ValueChanged<double>? onChangeEnd;
 
   /// The value at the start of the track; 0 by default.
   final double min;
@@ -231,6 +257,7 @@ final class _SliderState extends State<Slider> {
     );
     final at = event.x;
     _grabAt = at;
+    widget.onChangeStart?.call(_fit(_value));
     if (at * steps < start + steps && (at + 1) * steps > start) {
       _grabStart = start;
     } else {
@@ -256,7 +283,14 @@ final class _SliderState extends State<Slider> {
     }
   }
 
-  void _released() => _grabAt = null;
+  void _released() {
+    if (_grabAt != null) {
+      _grabAt = null;
+      if (mounted) {
+        widget.onChangeEnd?.call(_fit(_value));
+      }
+    }
+  }
 
   void _wheel(PointerEvent event) => _step(event.scrollX - event.scrollY);
 
