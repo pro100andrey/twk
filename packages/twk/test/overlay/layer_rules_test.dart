@@ -42,7 +42,7 @@ void main() {
                       ],
                       at: (2, 6),
                     ),
-                  }, child: Focus(autofocus: true, child: const Text('body'))),
+                  }, child: const Focus(autofocus: true, child: Text('body'))),
                 ),
                 fadeIn: Duration.zero,
               ).then(results.add),

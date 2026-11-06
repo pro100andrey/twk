@@ -872,9 +872,7 @@ final class FocusManager {
         // it remembered as it opened
         final back = scope.returnTo;
         scope.returnTo = null;
-        if (back != null &&
-            !back.isBelow(scope) &&
-            FocusNode.giveBack(back)) {
+        if (back != null && !back.isBelow(scope) && FocusNode.giveBack(back)) {
           return;
         }
         continue;
