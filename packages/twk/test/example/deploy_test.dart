@@ -1,8 +1,9 @@
 // The command-line tool's tests: the Recipes guide.
-import '../../example/guides/deploy.dart';
 import 'package:test/test.dart';
 import 'package:twk/cli.dart';
 import 'package:twk_test/cli.dart';
+
+import '../../example/guides/deploy.dart';
 
 void main() {
   test('where nobody can answer, the default is taken', () async {

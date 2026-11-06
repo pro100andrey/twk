@@ -1,8 +1,9 @@
 // The recipes' tests: the Recipes guide.
-import '../../example/guides/recipes.dart';
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
+
+import '../../example/guides/recipes.dart';
 
 void main() {
   testTwk('a dialog asks first, a toast says it is done', (t) async {

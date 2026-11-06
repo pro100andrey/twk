@@ -85,8 +85,7 @@ Set<String> namedInProse() {
   ];
   return {
     for (final span in spans)
-      for (final name in RegExp(r'\b[A-Z][a-z]\w*').allMatches(span))
-        name[0]!,
+      for (final name in RegExp(r'\b[A-Z][a-z]\w*').allMatches(span)) name[0]!,
   }..removeAll(others);
 }
 
@@ -187,7 +186,7 @@ void main() {
       r'^---\nname: ([a-z0-9-]+)\ndescription: (.+)\n---\n',
     ).firstMatch(skill);
     expect(front, isNotNull, reason: 'name and description between ---');
-    expect(front![1], 'twk');
+    expect(front[1], 'twk');
     expect(front![2]!.length, lessThanOrEqualTo(1024));
   });
 
