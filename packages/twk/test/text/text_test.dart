@@ -4,7 +4,8 @@
 // rebuild that changes nothing.
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
-import 'package:twk_core/twk_core.dart' show RenderParagraph, Screen;
+import 'package:twk_core/twk_core.dart'
+    show RenderPadding, RenderParagraph, Screen;
 import 'package:twk_test/twk_test.dart' show Shot, Vt;
 
 import '../layout/view.dart' show Toggle, toggleIn;
@@ -133,6 +134,26 @@ void main() {
       v.pump(text('cd', green));
       expect(paragraph.spans.single.$2, isNot(pen));
       expect(paragraph.spans.single.$2.fg, green);
+    });
+
+    test('keepsPaint repaints only the edited row, and cannot change', () {
+      Widget panel(String text, {bool keeps = true}) => Padding(
+        padding: const EdgeInsets.all(1),
+        child: Text(text, keepsPaint: keeps),
+      );
+      final v = Shot(panel('one\ntwo\nthree'), 8, 5);
+      final paragraph = (v.top as RenderPadding).child! as RenderParagraph;
+      expect(paragraph.isRepaintBoundary, isTrue);
+      v
+        ..pump(panel('one\ntwo\nthree'))
+        ..pump(panel('one\ntwo\nthrew'));
+      expect(v.rows[3].trim(), 'threw');
+      expect(paragraph.debugKeptPaints, 1);
+      // the render object cannot change it: another value is refused
+      expect(
+        () => v.pump(panel('one\ntwo\nthrew', keeps: false)),
+        throwsA(isA<AssertionError>()),
+      );
     });
 
     test('new settings change the same render object', () {

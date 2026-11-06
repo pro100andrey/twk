@@ -75,6 +75,7 @@ final class Text extends LeafRenderObjectWidget {
     this.maxLines,
     this.align = TextAlign.left,
     this.onLinkTap,
+    this.keepsPaint = false,
   }) : spans = null;
 
   /// Shows [spans], each in its style merged onto [style], as one
@@ -92,6 +93,7 @@ final class Text extends LeafRenderObjectWidget {
     this.maxLines,
     this.align = TextAlign.left,
     this.onLinkTap,
+    this.keepsPaint = false,
   }) : data = null;
 
   /// Shows [data] in [style] on one line, cut off with `…` where it is
@@ -113,7 +115,8 @@ final class Text extends LeafRenderObjectWidget {
   }) : spans = null,
        wrap = TextWrap.none,
        maxLines = 1,
-       onLinkTap = null;
+       onLinkTap = null,
+       keepsPaint = false;
 
   /// [spans] as [Text.line] shows a string: [Text.rich] on one line, cut
   /// off with `…`.
@@ -130,7 +133,8 @@ final class Text extends LeafRenderObjectWidget {
   }) : data = null,
        wrap = TextWrap.none,
        maxLines = 1,
-       onLinkTap = null;
+       onLinkTap = null,
+       keepsPaint = false;
 
   /// The text, in [style]; null for [spans].
   final String? data;
@@ -178,6 +182,24 @@ final class Text extends LeafRenderObjectWidget {
   /// ```
   final void Function(String url)? onLinkTap;
 
+  /// Whether the text keeps what it painted and repaints only the rows
+  /// that differ from it ([RenderParagraph.keepsPaint]): after an edit
+  /// that changes one row of sixty, that row, not all sixty. False, the
+  /// default.
+  ///
+  /// For a large multi-line text in a panel of its own: it paints every
+  /// cell of its bounds, over the styles its parent left there, so it must
+  /// not be drawn over other text, and it is not the root of the tree. It
+  /// costs a copy of the styles under it each time its parent paints it.
+  /// The gain is small (about 40 µs a frame in the benchmark's scenarios),
+  /// so measure before setting it.
+  ///
+  /// Fixed when the text is first built: the render object cannot change
+  /// it, and a rebuild with another value is refused in a debug build (an
+  /// assertion) and ignored in a release one. Give the text another
+  /// [key] to change it.
+  final bool keepsPaint;
+
   @override
   RenderParagraph createRenderObject(BuildContext context) {
     final theme = Theme.of(context);
@@ -188,6 +210,7 @@ final class Text extends LeafRenderObjectWidget {
       maxLines: maxLines,
       align: align,
       ellipsis: theme.glyphs.ellipsis,
+      keepsPaint: keepsPaint,
     );
     addToSelectionArea(context, paragraph);
     _tellTaps(context, paragraph, theme);
@@ -196,6 +219,10 @@ final class Text extends LeafRenderObjectWidget {
 
   @override
   void updateRenderObject(BuildContext context, RenderParagraph renderObject) {
+    assert(
+      renderObject.keepsPaint == keepsPaint,
+      'Text.keepsPaint cannot change once built: give the Text another key',
+    );
     final theme = Theme.of(context);
     renderObject
       ..spans = _spansIn(context, renderObject)
