@@ -253,6 +253,10 @@ final class Items extends StatelessWidget {
 }
 ```
 
+Scrolling has `ScrollPhysics` for its bounds and, as in Flutter,
+`ScrollConfiguration` and a `ScrollBehavior` for its input: what the wheel
+and a trackpad do, for the app (`App(scrollBehavior:)`) or a subtree.
+
 ## State
 
 `ChangeNotifier`, `ValueNotifier`, `ListenableBuilder`,
