@@ -317,10 +317,10 @@ final class Glyphs {
   /// A bullet between items on a line, and the mask of a hidden text.
   final String bullet;
 
-  /// The mark of a task not started (`TaskStatus.pending`).
+  /// The mark of a task not started (`TaskItemStatus.pending`).
   final String taskPending;
 
-  /// The mark of a task skipped (`TaskStatus.skipped`).
+  /// The mark of a task skipped (`TaskItemStatus.skipped`).
   final String taskSkipped;
 
   /// The line between the segments of a segmented button.

@@ -57,7 +57,7 @@ void main() {
       top(
         const TaskList(
           showElapsed: false,
-          tasks: [TaskItem(hebrew, status: TaskStatus.done)],
+          tasks: [TaskItem(hebrew, status: TaskItemStatus.done)],
         ),
       ),
       size: (14, 1),

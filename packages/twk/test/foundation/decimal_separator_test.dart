@@ -48,7 +48,7 @@ void main() {
           tasks: [
             TaskItem(
               'Build',
-              status: TaskStatus.done,
+              status: TaskItemStatus.done,
               elapsed: Duration(milliseconds: 3190),
             ),
           ],

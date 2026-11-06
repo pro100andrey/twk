@@ -344,7 +344,7 @@ Future<T> runTasks<T>(
     announce = null;
     finished = hideFinished
         ? tracker.onTaskFinished.listen((task) {
-            if (task.status != TaskStatus.failed) {
+            if (task.status != TaskItemStatus.failed) {
               summary(task);
             }
           })
@@ -354,7 +354,8 @@ Future<T> runTasks<T>(
     if (look == _Look.lines) {
       announce = () {
         for (final task in tracker.tasks) {
-          if (task.status == TaskStatus.running && labels[task] != task.label) {
+          if (task.status == TaskItemStatus.running &&
+              labels[task] != task.label) {
             labels[task] = task.label;
             cli.writeLine([Span(_oneLine(task.label))]);
           }
@@ -397,7 +398,7 @@ Future<T> runTasks<T>(
 
 /// Whether [task] stays in a list that hides the finished ones.
 bool _stays(ProgressTask task) =>
-    task.status != TaskStatus.done && task.status != TaskStatus.skipped;
+    task.status != TaskItemStatus.done && task.status != TaskItemStatus.skipped;
 
 /// [task]'s [ProgressTask.summary] as a line, its mark in the theme's
 /// success, error or hint.
@@ -421,8 +422,8 @@ List<Span> summaryLine(
   }
   return [
     Span(summary.substring(0, space), switch (task.status) {
-      TaskStatus.done => theme.success,
-      TaskStatus.failed => theme.error,
+      TaskItemStatus.done => theme.success,
+      TaskItemStatus.failed => theme.error,
       _ => theme.hint,
     }),
     Span(summary.substring(space)),
@@ -582,14 +583,14 @@ final class _TasksViewState extends State<_TasksView> {
   @override
   Widget build(BuildContext context) {
     final tasks = widget.tracker.tasks;
-    if (tasks.any((t) => t.status == TaskStatus.running)) {
+    if (tasks.any((t) => t.status == TaskItemStatus.running)) {
       // what the tasks did since is read again at the next step
       _ticks.next(AppBinding.maybeOf(context));
     } else {
       _ticks.stop();
     }
     return TerminalProgress(
-      state: tasks.any((t) => t.status == TaskStatus.failed)
+      state: tasks.any((t) => t.status == TaskItemStatus.failed)
           ? ProgressState.error
           : ProgressState.normal,
       value: overallFraction(tasks),
@@ -618,7 +619,8 @@ double? overallFraction(List<ProgressTask> tasks) {
   for (final task in tasks) {
     sum +=
         task.fraction ??
-        (task.status == TaskStatus.pending || task.status == TaskStatus.running
+        (task.status == TaskItemStatus.pending ||
+                task.status == TaskItemStatus.running
             ? 0
             : 1);
   }

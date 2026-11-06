@@ -4,6 +4,7 @@
 
 Breaking:
 
+- `TaskStatus` is `TaskItemStatus`, the status of a `TaskItem`.
 - `Link` is `Hyperlink`: an app that wrote `hide Link` for dart:io's `Link` drops it.
 - `twk.dart` no longer exports `ModeReport`, `KeyboardFlagsReport`,
   `DeviceAttributes`, `ColorReport`, `CursorReport` and `UnknownSequence`, the

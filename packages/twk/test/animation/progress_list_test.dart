@@ -39,12 +39,12 @@ void main() {
     test('rate over the window and the time left, by its clock', () async {
       final (tracker, clock) = tracked();
       final task = tracker.add('Download', total: 100);
-      expect(task.status, TaskStatus.pending);
+      expect(task.status, TaskItemStatus.pending);
       expect(task.rate, isNull);
       expect(task.eta, isNull);
       expect(task.fraction, 0);
       task.start();
-      expect(task.status, TaskStatus.running);
+      expect(task.status, TaskItemStatus.running);
       expect(task.rate, isNull, reason: 'no time has passed');
       await clock.elapse(s);
       task.update(20);
@@ -75,7 +75,7 @@ void main() {
       task
         ..advance()
         ..fail('late');
-      expect(task.status, TaskStatus.done);
+      expect(task.status, TaskItemStatus.done);
       expect(task.completed, 100);
       expect(tracker.finished, isTrue);
     });
@@ -89,7 +89,7 @@ void main() {
       expect(told, 1);
       expect(tracker.finished, isFalse);
       task.advance(3);
-      expect(task.status, TaskStatus.running);
+      expect(task.status, TaskItemStatus.running);
       expect(told, 2);
       for (var i = 0; i < 1000; i++) {
         task.advance();
@@ -109,7 +109,7 @@ void main() {
       expect(task.eta, isNotNull);
       task.skip();
       expect(told, 5);
-      expect(task.status, TaskStatus.skipped);
+      expect(task.status, TaskItemStatus.skipped);
       tracker.remove(task);
       expect(told, 6);
       expect(tracker.tasks, isEmpty);
@@ -123,12 +123,12 @@ void main() {
       final finished = <String>[];
       tracker.onTaskFinished.listen((t) => finished.add(t.summary()));
       final got = await tracker.run('Build', (task) async {
-        expect(task.status, TaskStatus.running);
+        expect(task.status, TaskItemStatus.running);
         await Future<void>.delayed(Duration.zero);
         return 42;
       });
       expect(got, 42);
-      expect(tracker.tasks.single.status, TaskStatus.done);
+      expect(tracker.tasks.single.status, TaskItemStatus.done);
       final error = StateError('disk full');
       await expectLater(
         tracker.run('Deploy', (task) async {
@@ -139,11 +139,11 @@ void main() {
         throwsA(same(error)),
       );
       final failed = tracker.tasks.last;
-      expect(failed.status, TaskStatus.failed);
+      expect(failed.status, TaskItemStatus.failed);
       expect(failed.error, same(error));
       // a body that finishes the task keeps what it said
       await tracker.run('Lint', (task) => task.skip());
-      expect(tracker.tasks.last.status, TaskStatus.skipped);
+      expect(tracker.tasks.last.status, TaskItemStatus.skipped);
       await tracker.run('Test', (task) => task.done('Tested'));
       expect(tracker.tasks.last.label, 'Tested');
       expect(finished, [

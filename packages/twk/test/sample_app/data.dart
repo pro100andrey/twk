@@ -43,7 +43,7 @@ extension on _SampleAppState {
               tasks: [
                 TaskItem(
                   'task',
-                  status: TaskStatus.done,
+                  status: TaskItemStatus.done,
                   children: [TaskItem('step', id: 1)],
                 ),
               ],

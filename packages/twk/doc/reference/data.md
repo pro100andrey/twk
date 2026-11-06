@@ -286,7 +286,7 @@ given, which must be bounded.
 `TaskList(tasks:, spinner: SpinnerFrames.dots, showElapsed: true, style:)`
 shows tasks and how far they have got, a row each (build steps, an
 installer's stages, what an agent does): each `TaskItem(label, status:, id:,
-elapsed:, children:)` is the mark of its `TaskStatus`, `◦` for `pending`, a
+elapsed:, children:)` is the mark of its `TaskItemStatus`, `◦` for `pending`, a
 spinner of `spinner`'s frames for `running`, `✓` for `done`, `✗` for
 `failed` and `↓` for `skipped`, in the theme's `muted`, `primary`,
 `success`, `error` and `muted` (a skipped task's label muted too), then its

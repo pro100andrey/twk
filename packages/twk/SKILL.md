@@ -762,10 +762,10 @@ What to know:
   (`StatusMessage`, `TreeView`), so that an app in `Glyphs.ascii` is ASCII
   all through.
 - `package:twk/twk.dart` exports all of twk, as Flutter's `material.dart`
-  does, generic names among them (`TaskStatus`, `Step`, `Gauge`, `Table`,
-  `Chip`, `Window`, `Callout`). Keep the app's own names and hide twk's
+  does, generic names among them (`Step`, `Gauge`, `Table`, `Chip`,
+  `Window`, `Callout`). Keep the app's own names and hide twk's
   where both are imported: `import 'package:twk/twk.dart' hide
-  TaskStatus;` (or a prefix on the app's own import); do not rename the
+  Gauge;` (or a prefix on the app's own import); do not rename the
   app's types around twk.
 - Give generic widgets their type argument: `Table<Entry>(rows:,
   columns: [TableColumn(cell: (e) => …)])`. Columns written inside the

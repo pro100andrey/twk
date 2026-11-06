@@ -8,13 +8,13 @@ void main() {
   test('mark gives each status its glyph, a running task the frame', () {
     const marks = TaskMarks.unicode;
     const g = Glyphs.unicode;
-    expect(marks.mark(TaskStatus.pending, 0), g.taskPending);
-    expect(marks.mark(TaskStatus.done, 0), g.check);
-    expect(marks.mark(TaskStatus.failed, 0), g.cross);
-    expect(marks.mark(TaskStatus.skipped, 0), g.taskSkipped);
+    expect(marks.mark(TaskItemStatus.pending, 0), g.taskPending);
+    expect(marks.mark(TaskItemStatus.done, 0), g.check);
+    expect(marks.mark(TaskItemStatus.failed, 0), g.cross);
+    expect(marks.mark(TaskItemStatus.skipped, 0), g.taskSkipped);
     final f = SpinnerFrames.dots.frames;
-    expect(marks.mark(TaskStatus.running, 1), f[1]);
-    expect(marks.mark(TaskStatus.running, f.length + 2), f[2]);
+    expect(marks.mark(TaskItemStatus.running, 1), f[1]);
+    expect(marks.mark(TaskItemStatus.running, f.length + 2), f[2]);
   });
 
   test('width is that of the widest mark or frame, one at least', () {
