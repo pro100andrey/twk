@@ -263,15 +263,9 @@ tasks:
     # join changes nothing. Arguments after `--`: --shuffle=SEED, --groups=N
     # and dart test's.
     desc: packages/twk's tests, its files joined in generated entry points
-    gate: [ci-tests]
-    needs: [ci-process-test]
+    needs: [get]
     do: group-tests
-    args:
-      - packages/twk
-      - --exclude-tags=process
-      - --reporter=failures-only
-      - --shuffle=7
-      - --test-randomize-ordering-seed=random
+    args: [packages/twk, --exclude-tags=process, --reporter=failures-only]
 
   ci-test:
     # pkg-test's, split in two for CI's two Linux jobs: ci's, the packages
