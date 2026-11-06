@@ -37,6 +37,32 @@ final class View {
 }
 
 void main() {
+  test('a line added below a log scrolled back asks for no paint, and shows '
+      'when scrolled into view', () {
+    final v = View(8, 2);
+    v.log
+      ..add('one')
+      ..add('two')
+      ..add('three');
+    v.frame();
+    v.log.scrollBy(-1);
+    expect(v.frame(), [' one', ' two']);
+    v.log.add('four');
+    expect(v.owner.hasWork, isFalse);
+    expect(v.frame(), [' one', ' two']);
+    v.log.scrollBy(2);
+    expect(v.frame(), [' three', ' four']);
+  });
+
+  test('a line added inside the window of a log scrolled back is painted', () {
+    final v = View(8, 3);
+    v.log.add('one');
+    v.frame();
+    v.log.add('two');
+    expect(v.owner.hasWork, isTrue);
+    expect(v.frame(), [' one', ' two', '']);
+  });
+
   test(
     'a fill of no foreground takes none from the lines that scrolled away',
     () {
