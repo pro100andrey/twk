@@ -1533,9 +1533,25 @@ final class Presenter {
               multiplexer: multiplexer,
             );
           case GraphicsProtocol.sixel:
-            sixelDraw(out, p, multiplexer: multiplexer);
+            sixelDraw(
+              out,
+              p,
+              multiplexer: multiplexer,
+              saveCursor: viewport == null,
+            );
+            if (viewport != null) {
+              _cx = _cy = -1; // the one DECSC is the viewport's
+            }
           case GraphicsProtocol.iterm2:
-            iterm2Draw(out, p, multiplexer: multiplexer);
+            iterm2Draw(
+              out,
+              p,
+              multiplexer: multiplexer,
+              saveCursor: viewport == null,
+            );
+            if (viewport != null) {
+              _cx = _cy = -1;
+            }
           case GraphicsProtocol.none:
         }
         stats.images++;
