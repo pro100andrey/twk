@@ -120,8 +120,8 @@ final class _HintedKeysState extends State<HintedKeys> {
       _intents = {for (final key in hints.keys) key: _HintedKey(this, key)};
     }
     return Actions(
-      _actions,
-      child: Shortcuts(_intents, hints: hints, child: widget.child),
+      actions: _actions,
+      child: Shortcuts(shortcuts: _intents, hints: hints, child: widget.child),
     );
   }
 }

@@ -104,7 +104,7 @@ all.
 `KeyBindings({'up': () => setState(() => _n++), 'q': () =>
 AppBinding.of(context).quit()}, child: …)` (the counter of
 `test/focus/shortcuts_test.dart`) binds keys to callbacks, and
-`Shortcuts({'ctrl+s': SaveIntent()}, child: …)` to `Intent`s, which the
+`Shortcuts(shortcuts: {'ctrl+s': SaveIntent()}, child: …)` to `Intent`s, which the
 nearest enabled `Action` for the intent's type in the `Actions` above the
 node the key started at does (`CallbackAction`; `Actions.maybeFind`,
 `Actions.maybeInvoke`); `.combos` take `KeyCombo`s, each bound alone, and

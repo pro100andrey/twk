@@ -91,7 +91,7 @@ final class Save extends Intent {
 }
 
 Widget f(void Function() go, Widget child) => Shortcuts(
-  {'ret': const Save(), 'cmd+s': const Save(), 'g  g': const Save()},
+  shortcuts: {'ret': const Save(), 'cmd+s': const Save(), 'g  g': const Save()},
   child: child,
 );
 ''';

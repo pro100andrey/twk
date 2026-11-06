@@ -59,7 +59,7 @@ Widget build(BuildContext context) {
     },
     hints: const {'up': 'passed on', 'down': 'passed on'},
     child: Actions(
-      {
+      actions: {
         _Up: CallbackAction<_Up>(
           onInvoke: (_) => _step(1, '↑ _Up → its action stepped up'),
         ),
@@ -68,7 +68,7 @@ Widget build(BuildContext context) {
         ),
       },
       child: Shortcuts(
-        const {'up': _Up(), 'down': _Down()},
+        shortcuts: const {'up': _Up(), 'down': _Down()},
         hints: const {'up': 'step up', 'down': 'step down'},
         child: Column(
           mainAxisSize: .min,

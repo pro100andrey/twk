@@ -327,8 +327,8 @@ final class KeyBindings extends StatefulWidget {
 }
 
 final class Shortcuts extends StatefulWidget {
-  const Shortcuts(
-    this.shortcuts, {
+  const Shortcuts({
+    required this.shortcuts,
     required this.child,
     this.hints = const {},
     super.key,

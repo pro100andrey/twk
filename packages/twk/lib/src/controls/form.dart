@@ -426,14 +426,14 @@ final class FormFieldState<T> extends State<FormField<T>> {
     return Focus(
       focusNode: _node,
       child: Shortcuts(
-        scope != null ? const {'enter': _Enter()} : const {},
+        shortcuts: scope != null ? const {'enter': _Enter()} : const {},
         hints: !entered
             ? const {}
             : scope.form._after(this).isEmpty
             ? const {'enter': 'submit'}
             : const {'enter': 'next'},
         child: Actions(
-          {_Enter: _enterAction},
+          actions: {_Enter: _enterAction},
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,

@@ -475,12 +475,12 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
     // right after the focus is its; the action passes on those that come
     // while it has not
     return Shortcuts(
-      enabled
+      shortcuts: enabled
           ? {for (final name in keys.keys) name: _Key(name), 'escape': _escape}
           : const {},
       hints: enabled ? hints : const {},
       child: Actions(
-        _actions,
+        actions: _actions,
         child: Focus(
           canRequestFocus: false,
           skipTraversal: true,

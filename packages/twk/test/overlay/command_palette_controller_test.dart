@@ -29,7 +29,7 @@ Widget app(
   FutureOr<Iterable<Command>> Function(String query)? provider,
 }) => Overlay(
   child: Actions(
-    {Save: CallbackAction<Save>(onInvoke: (_) => log.add('save'))},
+    actions: {Save: CallbackAction<Save>(onInvoke: (_) => log.add('save'))},
     child: CommandPalette(
       controller: controller,
       commandsFor: provider,

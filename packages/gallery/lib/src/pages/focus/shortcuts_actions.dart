@@ -85,7 +85,7 @@ final class _IntentsState extends State<_Intents> {
     },
     hints: const {'up': 'passed on', 'down': 'passed on'},
     child: Actions(
-      {
+      actions: {
         _Up: CallbackAction<_Up>(
           enabled: widget.enabled,
           onInvoke: (_) => _step(1, '↑ _Up → its action stepped up'),
@@ -96,7 +96,7 @@ final class _IntentsState extends State<_Intents> {
         ),
       },
       child: Shortcuts(
-        const {'up': _Up(), 'down': _Down()},
+        shortcuts: const {'up': _Up(), 'down': _Down()},
         hints: const {'up': 'step up', 'down': 'step down'},
         child: _withBar(
           _counter(_node, _count, _count),
@@ -158,7 +158,7 @@ String _intentsCode(Options o) {
     '    },',
     "    hints: const {'up': 'passed on', 'down': 'passed on'},",
     '    child: Actions(',
-    '      {',
+    '      actions: {',
     '        _Up: CallbackAction<_Up>(',
     if (disabled) '          enabled: false,',
     _upInvoke,
@@ -169,7 +169,7 @@ String _intentsCode(Options o) {
     '        ),',
     '      },',
     '      child: Shortcuts(',
-    "        const {'up': _Up(), 'down': _Down()},",
+    "        shortcuts: const {'up': _Up(), 'down': _Down()},",
     "        hints: const {'up': 'step up', 'down': 'step down'},",
     '        child: Column(',
     '          mainAxisSize: .min,',

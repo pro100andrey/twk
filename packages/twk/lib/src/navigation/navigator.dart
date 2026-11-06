@@ -902,9 +902,9 @@ final class NavigatorState extends State<Navigator> {
       child: OverlayHost(
         navigator: true,
         child: Actions(
-          _actions,
+          actions: _actions,
           child: Shortcuts(
-            {?back: _back},
+            shortcuts: {?back: _back},
             hints: {?back: 'back'},
             debugLabel: 'navigator',
             child: Overlay(

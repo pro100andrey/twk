@@ -81,7 +81,7 @@ final class CallbackAction<T extends Intent> extends Action<T> {
 /// }
 ///
 /// final list = Actions(
-///   {
+///   actions: {
 ///     DeleteIntent: CallbackAction<DeleteIntent>(
 ///       onInvoke: (_) => print('item deleted'),
 ///     ),
@@ -93,7 +93,7 @@ final class CallbackAction<T extends Intent> extends Action<T> {
 /// See [Shortcuts] for the keys bound to them.
 final class Actions extends InheritedWidget {
   /// Gives [actions] to the widgets below.
-  const Actions(this.actions, {required super.child, super.key});
+  const Actions({required this.actions, required super.child, super.key});
 
   /// The action for each type of intent, an `Action<T>` for the type `T`.
   final Map<Type, Action<Intent>> actions;
@@ -465,10 +465,10 @@ final class KeyBindings extends StatefulWidget {
 ///   onInvoke: (_) => print('saved'),
 /// );
 /// final app = Shortcuts(
-///   const {'ctrl+s': SaveIntent()},
+///   shortcuts: const {'ctrl+s': SaveIntent()},
 ///   hints: const {'ctrl+s': 'save'},
 ///   child: Actions(
-///     {SaveIntent: save},
+///     actions: {SaveIntent: save},
 ///     child: const Focus(autofocus: true, child: Text('editor')),
 ///   ),
 /// );
@@ -476,8 +476,8 @@ final class KeyBindings extends StatefulWidget {
 final class Shortcuts extends StatefulWidget {
   /// Binds the keys and sequences named in [shortcuts] for the nodes below
   /// [child].
-  const Shortcuts(
-    this.shortcuts, {
+  const Shortcuts({
+    required this.shortcuts,
     required this.child,
     this.hints = const {},
     this.sequenceTimeout = const Duration(seconds: 1),

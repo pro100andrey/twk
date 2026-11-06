@@ -423,12 +423,14 @@ void main() {
     await t.pumpWidget(
       Theme.terminal(
         child: Shortcuts(
-          const {'ctrl+s': Save(), 'f2': Save(), 'ctrl+p': Print()},
+          shortcuts: const {'ctrl+s': Save(), 'f2': Save(), 'ctrl+p': Print()},
           hints: const {'ctrl+s': 'save'},
           child: KeyBindings(
             {'ctrl+o': doc.open, 'ctrl+q': doc.quit},
             child: Actions(
-              {Save: CallbackAction<Save>(onInvoke: (_) => log.add('save'))},
+              actions: {
+                Save: CallbackAction<Save>(onInvoke: (_) => log.add('save')),
+              },
               child: Overlay(
                 child: MenuBar(
                   look: PanelLook.bordered,
@@ -452,7 +454,7 @@ void main() {
                         child: Field('editor', autofocus: true),
                       ),
                       Actions(
-                        {
+                        actions: {
                           Save: CallbackAction<Save>(
                             onInvoke: (_) => log.add('save notes'),
                           ),
@@ -592,9 +594,9 @@ void main() {
     Widget app({String Function(KeyCombo combo)? keyLabel}) => KeyBindings(
       {'ctrl+k q': doc.quit},
       child: Shortcuts(
-        const {'ctrl+x ctrl+s': Save()},
+        shortcuts: const {'ctrl+x ctrl+s': Save()},
         child: Actions(
-          {Save: CallbackAction<Save>(onInvoke: (_) {})},
+          actions: {Save: CallbackAction<Save>(onInvoke: (_) {})},
           child: Overlay(
             child: MenuBar(
               look: PanelLook.bordered,

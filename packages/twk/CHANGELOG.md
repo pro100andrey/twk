@@ -4,6 +4,9 @@
 
 Breaking:
 
+- `Actions` and `Shortcuts` take `actions:` and `shortcuts:` by name, as
+  Flutter's do, where they took the map positionally. `Shortcuts.combos` still
+  takes its map first.
 - `showDialog`, `showToast` and `showContextMenu` take their `context` by name,
   as Flutter's `showDialog` does, with `builder` (`showDialog`), `message`
   (`showToast`) and `items` (`showContextMenu`), where they took them
