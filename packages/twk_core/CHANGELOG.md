@@ -19,6 +19,9 @@ Changed:
 - Frames keep to a grid of `maxFps`: the next is due a gap after the last was
   due, so a timer's lateness no longer adds up and 60 means 60. A frame late by a
   gap or more starts the grid again.
+- `TwkApp(maxInputFps:)`: frames that input asks for come up to 120 a second by
+  default, tickers and the rest staying at `maxFps`. In a remote session it is
+  `maxFps` unless given, as scrolling at 120 writes about a third more bytes.
 - An app started in the background (`app &`) stops as a job until `fg` gives it
   the terminal, touching neither the terminal's modes nor its output, where it
   went raw on the shell's terminal and wrote its queries over the prompt.

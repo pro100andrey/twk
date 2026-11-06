@@ -278,7 +278,8 @@ There is no `AnimatedContainer`; `AnimatedBox`,
 `AnimatedPadding`, `AnimatedAlign`, `AnimatedPositioned`, `AnimatedOpacity`,
 `AnimatedSize`, `AnimatedSwitcher`, `AnimatedTheme` and
 `TweenAnimationBuilder` are there. Animation is cell by cell: a size
-animates in whole steps, and a frame is at most 1/60 s.
+animates in whole steps, at most 60 frames a second by default (`maxFps`);
+frames that input asks for come up to 120 (`maxInputFps`).
 
 ## Runs differently
 

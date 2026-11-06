@@ -170,12 +170,11 @@ final class _NotesState extends State<Notes> {
 ```
 
 It is a small gain, and a trade. In the benchmark's mixed-script paragraph
-over most of the screen, a word typed into it takes 85.5 us a frame and
-29.3 us with `keepsPaint` (one run here of `wrap` and `wrap-kept` with
-`hasKeepsPaint` switched on in `tool/frame_scenarios/lib/src/branch_api.dart`,
-unpinned on a busy machine, so the figures are rough; the ratio, about
-three, is what to take). The bytes written are the same, 311.6 a frame in
-both. The gain is tens of microseconds a frame; the doc comment of
+over most of the screen, a word typed into it takes 56.8 us a frame and
+19.6 us with `keepsPaint` (`wrap` and `wrap-kept`, pinned, on an idle
+machine, with `hasKeepsPaint` switched on in
+`tool/frame_scenarios/lib/src/branch_api.dart`). The bytes written are the
+same, 311.6 a frame in both. The gain is tens of microseconds a frame; the doc comment of
 `Text.keepsPaint` says about 40. A 16 600 us frame budget does not need it.
 Turn it on only after a measure shows the paint of that text is the cost.
 

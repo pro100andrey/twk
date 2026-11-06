@@ -40,6 +40,8 @@ Changed:
 - `formatBytes`, `formatTook` and `ProgressTask.summary` take `decimalSeparator:`.
 - A confirmation also takes the first letters of `TwkStrings.yes` and `no`, after
   `y` and `n`; a letter both words start with asks again.
+- `runApp` and `AppBinding` take `maxInputFps`
+  ([twk_core's changelog](../twk_core/CHANGELOG.md)).
 - `Text` and `Text.rich` take `keepsPaint`, for a long text in a panel of its own:
   an edit repaints the rows that changed.
 - A widget that watched a provider in one build and only selects in a later one
