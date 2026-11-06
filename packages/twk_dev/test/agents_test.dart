@@ -1,6 +1,7 @@
 // `twk agents`: the skill packed in twk_dev written into a project, written
 // again as the pack changed, a block of the project's own AGENTS.md put in
 // between its markers, and the pack held to skills/twk of the repository.
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -130,6 +131,122 @@ void main() {
     final again = await agents();
     expect(again.stdout, contains('nothing to do'));
     expect(again.stdout, contains('.agents/skills/twk/notes.md'));
+  });
+
+  group('the manifest of a skill directory', () {
+    const dirs = ['.agents/skills/twk', '.claude/skills/twk'];
+
+    /// A project that `twk agents` wrote with an older pack: [name] is a file
+    /// of it the pack no longer has, [text] what it holds, and the manifest
+    /// of each directory lists it (unless [listed] is false).
+    Future<void> oldPack(String name, String text, {bool listed = true}) async {
+      await agents();
+      for (final dir in dirs) {
+        File(p.join(project, dir, name))
+          ..createSync(recursive: true)
+          ..writeAsStringSync(text);
+        if (listed) {
+          final manifest = File(p.join(project, dir, agentsManifest));
+          final json = jsonDecode(manifest.readAsStringSync()) as Map;
+          (json['files'] as Map)[name] = agentsHash(utf8.encode(text));
+          manifest.writeAsStringSync(jsonEncode(json));
+        }
+      }
+    }
+
+    bool has(String path) => File(p.join(project, path)).existsSync();
+
+    test('is written with the skill, listing each file of the pack with its '
+        'hash, and is no file of the pack', () async {
+      await agents();
+      final pack = skillFiles();
+      for (final dir in dirs) {
+        final json =
+            jsonDecode(read('$dir/$agentsManifest')) as Map<String, dynamic>;
+        final files = (json['files'] as Map).cast<String, String>();
+        expect(files.keys.toList()..sort(), skillPaths());
+        for (final MapEntry(key: name, value: hash) in files.entries) {
+          expect(hash, agentsHash(pack[name]!), reason: name);
+        }
+      }
+      expect(skillPaths(), isNot(contains(agentsManifest)));
+    });
+
+    test('a file the pack dropped, as it was written, is removed, and its '
+        'emptied directory with it; --dry-run says it would', () async {
+      await oldPack('references/old/gone.md', 'old');
+      final dry = await agents(['--dry-run']);
+      expect(dry.stdout, contains('would remove references/old/gone.md'));
+      expect(has('.claude/skills/twk/references/old/gone.md'), isTrue);
+      final result = await agents();
+      expect(result.exitCode, 0, reason: '${result.stderr}');
+      expect(result.stdout, contains('removed references/old/gone.md'));
+      for (final dir in dirs) {
+        expect(has('$dir/references/old/gone.md'), isFalse);
+        expect(
+          Directory(p.join(project, dir, 'references/old')).existsSync(),
+          isFalse,
+        );
+        expect(has('$dir/references/widgets.md'), isTrue);
+        expect(
+          (jsonDecode(read('$dir/$agentsManifest')) as Map)['files'],
+          isNot(contains('references/old/gone.md')),
+        );
+      }
+      final before = snapshot(project);
+      final again = await agents();
+      expect(again.stdout, contains('nothing to do'));
+      expectSame(snapshot(project), before);
+    });
+
+    test('the same file changed by the project stays, and is named', () async {
+      await oldPack('references/old.md', 'old');
+      File(
+        p.join(project, '.claude/skills/twk/references/old.md'),
+      ).writeAsStringSync('mine now');
+      final result = await agents();
+      expect(has('.agents/skills/twk/references/old.md'), isFalse);
+      expect(read('.claude/skills/twk/references/old.md'), 'mine now');
+      expect(result.stdout, contains('.claude/skills/twk/references/old.md'));
+      expect(result.stdout, contains('changed since'));
+    });
+
+    test('a file in no manifest stays, and is named', () async {
+      await agents();
+      File(
+        p.join(project, '.agents/skills/twk/notes.md'),
+      ).writeAsStringSync('mine');
+      final result = await agents();
+      expect(read('.agents/skills/twk/notes.md'), 'mine');
+      expect(result.stdout, contains('.agents/skills/twk/notes.md'));
+    });
+
+    test('with no manifest nothing is removed', () async {
+      await oldPack('references/old.md', 'old');
+      for (final dir in dirs) {
+        File(p.join(project, dir, agentsManifest)).deleteSync();
+      }
+      File(
+        p.join(project, '.claude/skills/twk/SKILL.md'),
+      ).writeAsStringSync('an older skill\n');
+      final result = await agents();
+      expect(result.exitCode, 0);
+      for (final dir in dirs) {
+        expect(has('$dir/references/old.md'), isTrue, reason: dir);
+      }
+      expect(result.stdout, contains('references/old.md'));
+    });
+
+    test('a run with nothing to do writes no manifest', () async {
+      await agents();
+      for (final dir in dirs) {
+        File(p.join(project, dir, agentsManifest)).deleteSync();
+      }
+      final before = snapshot(project);
+      final result = await agents();
+      expect(result.stdout, contains('nothing to do'));
+      expectSame(snapshot(project), before);
+    });
   });
 
   group('AGENTS.md of the project own', () {
@@ -314,8 +431,9 @@ void main() {
         return;
       }
       agentsPlan(project, files: {AgentsFile.agentsSkill}).apply();
+      // the manifest is the project's record, no file of the pack
       expectSame(
-        snapshot(p.join(project, '.agents/skills/twk')),
+        snapshot(p.join(project, '.agents/skills/twk'))..remove(agentsManifest),
         snapshot(dir),
       );
     });

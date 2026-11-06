@@ -20,7 +20,11 @@ Added:
   from what it remembers of Flutter. Run again, it writes over what a newer
   twk_dev changed and says so, or says there is nothing to do and changes
   no file; what the project's `AGENTS.md` has outside the markers, and files
-  of its own in the skills' directories, it leaves. `--directory` names the
+  of its own in the skills' directories, it leaves. Each skill directory
+  holds a manifest, `.twk-agents.json`, of the files `twk agents` wrote with
+  their hashes: a file a newer twk_dev dropped is removed (with a directory
+  it empties) where it is still as written, and stays, named, where the
+  project changed it; with no manifest yet, nothing is removed. `--directory` names the
   project, `--dry-run` writes nothing. `agentsPlan` is the same as a
   function, for a caller that chooses which of the three to write.
 

@@ -105,7 +105,14 @@ final class AgentsChange {
 /// made by [agentsPlan] with nothing written, written by [apply].
 final class AgentsPlan {
   /// The plan for [project].
-  const AgentsPlan(this.project, this.changes, this.kept);
+  const AgentsPlan(
+    this.project,
+    this.changes,
+    this.kept, {
+    this.removed = const [],
+    this.edited = const [],
+    this.manifests = const [],
+  });
 
   /// The project's directory.
   final String project;
@@ -118,17 +125,54 @@ final class AgentsPlan {
   /// path: the project's own, which `twk agents` leaves as they are.
   final List<String> kept;
 
+  /// The files the pack dropped since `twk agents` wrote them, and the
+  /// project did not change since: removed by [apply], by path.
+  final List<String> removed;
+
+  /// The files the pack dropped that the project changed since `twk agents`
+  /// wrote them, by path: they stay.
+  final List<String> edited;
+
+  /// The manifest ([agentsManifest]) of each skill's directory, written
+  /// only where something else changes there.
+  final List<AgentsChange> manifests;
+
   /// The files that are written, new or over another.
   Iterable<AgentsChange> get writes =>
       changes.where((c) => c.action != AgentsAction.left);
 
-  /// Whether the project already has all of it: nothing to write.
-  bool get isUpToDate => writes.isEmpty;
+  /// Whether the project already has all of it: nothing to write, nothing
+  /// to remove.
+  bool get isUpToDate => writes.isEmpty && removed.isEmpty;
 
-  /// Writes [writes], the directories on the way made; a file that is
-  /// [AgentsAction.left] is not touched.
+  /// Removes [removed] and the directories that are then empty, and writes
+  /// [writes] and the manifests, the directories on the way made; a file
+  /// that is [AgentsAction.left] is not touched.
   void apply() {
-    for (final change in writes) {
+    for (final path in removed) {
+      final file = File(p.joinAll([project, ...path.split('/')]));
+      if (file.existsSync()) {
+        file.deleteSync();
+      }
+      final stop = AgentsFile.values
+          .where((f) => f.isSkill && path.startsWith('${f.path}/'))
+          .map((f) => p.joinAll([project, ...f.path.split('/')]))
+          .first;
+      for (
+        var dir = file.parent;
+        p.isWithin(stop, dir.path);
+        dir = dir.parent
+      ) {
+        if (!dir.existsSync() || dir.listSync().isNotEmpty) {
+          break;
+        }
+        dir.deleteSync();
+      }
+    }
+    for (final change in [
+      ...writes,
+      ...manifests.where((c) => c.action != AgentsAction.left),
+    ]) {
       final file = File(p.joinAll([project, ...change.path.split('/')]));
       file.parent.createSync(recursive: true);
       file.writeAsBytesSync(change.bytes);
@@ -154,7 +198,11 @@ final class AgentsException implements Exception {
 /// Nothing is written ([AgentsPlan.apply] does).
 ///
 /// A file of the project's own in a skill's directory, which the pack has
-/// no file of that path for, is in [AgentsPlan.kept], and stays. Throws
+/// no file of that path for, is in [AgentsPlan.kept], and stays. One that
+/// the manifest of the directory ([agentsManifest]) lists, from an older
+/// run, is in [AgentsPlan.removed] where it is still as that run wrote it,
+/// else in [AgentsPlan.edited], and stays; with no manifest nothing is
+/// removed. Throws
 /// an [AgentsException] where `AGENTS.md` cannot be merged into, or a skill's
 /// path is a file, and so nothing is changed.
 AgentsPlan agentsPlan(
@@ -163,6 +211,9 @@ AgentsPlan agentsPlan(
 }) {
   final changes = <AgentsChange>[];
   final kept = <String>[];
+  final removed = <String>[];
+  final edited = <String>[];
+  final manifests = <AgentsChange>[];
   final skill = skillFiles();
   for (final target in AgentsFile.values) {
     if (!files.contains(target)) {
@@ -188,6 +239,9 @@ AgentsPlan agentsPlan(
       };
       changes.add(AgentsChange(path, action, bytes, target));
     }
+    final manifest = File(p.join(dir, agentsManifest));
+    final listed = _readManifest(manifest);
+    var dropped = 0;
     if (Directory(dir).existsSync()) {
       for (final entity in Directory(dir).listSync(recursive: true)) {
         if (entity is Directory) {
@@ -196,14 +250,78 @@ AgentsPlan agentsPlan(
         final name = p.posix.joinAll(
           p.split(p.relative(entity.path, from: dir)),
         );
-        if (!skill.containsKey(name)) {
-          kept.add('${target.path}/$name');
+        if (skill.containsKey(name) || name == agentsManifest) {
+          continue;
+        }
+        final path = '${target.path}/$name';
+        final hash = listed[name];
+        if (hash == null) {
+          kept.add(path);
+        } else if (hash == agentsHash((entity as File).readAsBytesSync())) {
+          removed.add(path);
+          dropped++;
+        } else {
+          edited.add(path);
         }
       }
     }
+    final hashes = {
+      for (final name in skill.keys.toList()..sort())
+        name: agentsHash(skill[name]!),
+    };
+    final json = const JsonEncoder.withIndent('  ').convert({'files': hashes});
+    final bytes = utf8.encode('$json\n');
+    final writing =
+        dropped > 0 ||
+        changes.any(
+          (c) => c.file == target && c.action != AgentsAction.left,
+        );
+    manifests.add(
+      AgentsChange(
+        '${target.path}/$agentsManifest',
+        switch (manifest.existsSync()) {
+          _ when !writing => AgentsAction.left,
+          false => AgentsAction.wrote,
+          true when _same(manifest.readAsBytesSync(), bytes) =>
+            AgentsAction.left,
+          true => AgentsAction.changed,
+        },
+        bytes,
+        target,
+      ),
+    );
   }
   kept.sort();
-  return AgentsPlan(project, changes, kept);
+  removed.sort();
+  edited.sort();
+  return AgentsPlan(
+    project,
+    changes,
+    kept,
+    removed: removed,
+    edited: edited,
+    manifests: manifests,
+  );
+}
+
+/// The files a manifest lists, by path with their hashes; none where it is
+/// not there or not one.
+Map<String, String> _readManifest(File file) {
+  if (!file.existsSync()) {
+    return const {};
+  }
+  try {
+    final json = jsonDecode(utf8.decode(file.readAsBytesSync()));
+    if (json is Map && json['files'] is Map) {
+      return {
+        for (final MapEntry(:key, :value) in (json['files'] as Map).entries)
+          if (key is String && value is String) key: value,
+      };
+    }
+  } on FormatException {
+    // not a manifest of ours: as if there were none
+  }
+  return const {};
 }
 
 AgentsChange _mergeChange(String project, AgentsFile target) {
@@ -227,6 +345,21 @@ AgentsChange _mergeChange(String project, AgentsFile target) {
     _ => AgentsAction.changed,
   };
   return AgentsChange(target.path, action, bytes, target);
+}
+
+/// Where, in a skill's directory, `twk agents` lists the files it wrote.
+const agentsManifest = '.twk-agents.json';
+
+/// The fingerprint of [bytes] a manifest holds for a file (FNV-1a, 64 bits,
+/// in hex): to tell a file `twk agents` wrote from one the project changed,
+/// not to guard against anyone.
+String agentsHash(List<int> bytes) {
+  // the offset basis in two halves: a 64-bit literal is no JavaScript int
+  var hash = (0xcbf29ce4 << 32) | 0x84222325;
+  for (final byte in bytes) {
+    hash = (hash ^ byte) * 0x100000001b3;
+  }
+  return 'fnv1a64:${hash.toUnsigned(64).toRadixString(16).padLeft(16, '0')}';
 }
 
 /// The files of the packed skill by path in it, with `/`, with their bytes.
@@ -437,7 +570,12 @@ String describeAgents(AgentsPlan plan, {bool dryRun = false}) {
       final changed = count(AgentsAction.changed);
       final added = count(AgentsAction.added);
       final left = count(AgentsAction.left);
+      final removing = plan.removed
+          .where((r) => r.startsWith('${target.path}/'))
+          .toList();
+      final drop = dryRun ? 'would remove' : 'removed';
       final said = [
+        if (removing.isNotEmpty) '$drop ${_files(removing.length, target)}',
         if (wrote > 0)
           '${dryRun ? 'would write' : 'wrote'} ${_files(wrote, target)}',
         if (changed > 0)
@@ -448,6 +586,12 @@ String describeAgents(AgentsPlan plan, {bool dryRun = false}) {
           'left ${_files(left, target)} as ${left == 1 ? 'it is' : 'they are'}',
       ];
       out.writeln('  ${target.path.padRight(width)}  ${said.join(', ')}');
+      for (final path in removing) {
+        out.writeln(
+          '    ${dryRun ? 'would remove' : 'removed'} '
+          '${path.substring(target.path.length + 1)}',
+        );
+      }
       if (target.isSkill && (changed > 0 || (wrote > 0 && left > 0))) {
         for (final c in mine.where((c) => c.action != AgentsAction.left)) {
           out.writeln(
@@ -457,6 +601,12 @@ String describeAgents(AgentsPlan plan, {bool dryRun = false}) {
         }
       }
     }
+  }
+  if (plan.edited.isNotEmpty) {
+    out.writeln(
+      'Left as they are, files the skill dropped that the project changed '
+      'since twk agents wrote them: ${plan.edited.join(', ')}',
+    );
   }
   if (plan.kept.isNotEmpty) {
     out.writeln(
