@@ -877,14 +877,47 @@ void main() {
     );
     expect(told, isEmpty);
     expect(await tab(t, 'tab'), ['a']);
-    expect(told, containsAll(['a true', 's true']));
-    expect(told, isNot(contains('a false')));
+    expect(told, unorderedEquals(['a true', 's true']));
     told.clear();
     expect(await tab(t, 'tab'), ['a']);
     told.clear();
     t.binding.focusManager.primaryFocus!.unfocus();
     await t.pump();
-    expect(told, containsAll(['a false']));
+    expect(told, unorderedEquals(['a false', 's true']));
+  });
+
+  testTwk('onFocusChange of an outer Focus with an inner one: the calls are '
+      "Flutter's, the exact list, autofocus's first frame included", (t) async {
+    // the list Flutter 3.47 gives for the same widgets: a node that was the
+    // primary focus is told again with the hasFocus it keeps
+    final told = <String>[];
+    final inner = FocusNode(debugLabel: 'inner');
+    final outer = FocusNode(debugLabel: 'outer');
+    addTearDown(inner.dispose);
+    addTearDown(outer.dispose);
+    await t.pumpWidget(
+      Focus(
+        focusNode: outer,
+        autofocus: true,
+        onFocusChange: (has) => told.add('outer $has'),
+        child: Focus(
+          focusNode: inner,
+          onFocusChange: (has) => told.add('inner $has'),
+          child: const Text('x'),
+        ),
+      ),
+    );
+    await t.pump();
+    expect(told, ['outer true']);
+    told.clear();
+    inner.requestFocus();
+    await t.pump();
+    // the order within a frame is not promised: the exact calls are
+    expect(told, unorderedEquals(['outer true', 'inner true']));
+    told.clear();
+    outer.requestFocus();
+    await t.pump();
+    expect(told, unorderedEquals(['outer true', 'inner false']));
   });
 
   testTwk('FocusScopeNode.requestFocus takes the node to focus, one below '
