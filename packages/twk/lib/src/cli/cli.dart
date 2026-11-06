@@ -22,6 +22,7 @@ import 'theme.dart';
 // Future<void> build() async {}
 // Future<void> download(void Function(int bytes) received) async {}
 // const size = 3400000;
+// late Cli cli;
 
 /// The level a command line's `--verbose` and `--quiet` ask for: [verbose]
 /// shows everything ([LogLevel.debug]), [quiet] only errors
@@ -64,8 +65,9 @@ LogLevel levelFromFlags({bool verbose = false, bool quiet = false}) => verbose
 /// ([CliTheme]) is merged under its own.
 ///
 /// [Cli.run] and [Cli.runWithArgs] are the front door of a program: they
-/// set the console up from its flags, make it [Cli.current] for the body
-/// and [close] it on the way out.
+/// set the console up from its flags, hand it to the body
+/// and [close] it on the way out. A program's helpers take it as a
+/// parameter.
 ///
 /// ```dart
 /// Future<void> main(List<String> args) =>
@@ -87,22 +89,8 @@ final class Cli {
   }) : terminal = terminal ?? CliTerminal.system(),
        theme = theme ?? const CliTheme();
 
-  static final _zoneKey = Object();
-  static Cli? _default;
-
-  /// The console of the [Cli.run] the caller runs in, else one on the
-  /// process's stdio, made the first time it is asked for.
-  ///
-  /// The default one is never closed by anybody: a program that shows a
-  /// widget through it in the interactive mode has to [close] it, as
-  /// [Cli.run] does, or its inline session keeps stdin open.
-  // ignore: prefer_constructors_over_static_methods, the zone's, made once
-  static Cli get current =>
-      Zone.current[_zoneKey] as Cli? ?? (_default ??= Cli());
-
   /// Runs [body] with a console set up from a command line's flags, which
-  /// is [Cli.current] for the whole of it, its asynchronous continuations
-  /// included, and is [close]d when it ends, by an error too.
+  /// is [close]d when it ends, by an error too.
   ///
   /// [verbose] and [quiet] pick the level ([levelFromFlags]). `false` for
   /// [color] is `--no-color`: no escapes whatever the terminal takes.
@@ -152,10 +140,7 @@ final class Cli {
     );
     if (!handleErrors) {
       try {
-        return await runZoned(
-          () => Future<T>.sync(() => body(cli)),
-          zoneValues: {_zoneKey: cli},
-        );
+        return await body(cli);
       } finally {
         await cli.close();
       }
@@ -181,7 +166,6 @@ final class Cli {
         );
       },
       failed,
-      zoneValues: {_zoneKey: cli},
     );
     try {
       return await done.future;
@@ -314,11 +298,10 @@ final class Cli {
   /// it after:
   ///
   /// ```dart
-  /// await Cli.current.suspend(() => runApp(const Text('hi')));
+  /// await cli.suspend(() => runApp(const Text('hi')));
   /// ```
   ///
   /// ```dart
-  /// final cli = Cli.current;
   /// final progress = cli.progress('Installing');
   /// final code = await cli.suspend(() async {
   ///   final sudo = await Process.start(
@@ -439,7 +422,7 @@ final class Cli {
   /// round it, else it shows nothing of its body.
   ///
   /// ```dart
-  /// await Cli.current.show(
+  /// await cli.show(
   ///   const Column(
   ///     children: [
   ///       Text('Deployed', style: Style(attrs: Attr.bold)),
@@ -516,7 +499,7 @@ final class Cli {
   /// for it.
   ///
   /// ```dart
-  /// final name = await Cli.current.prompt(
+  /// final name = await cli.prompt(
   ///   'Project name?',
   ///   defaultValue: 'my_app',
   ///   validate: (name) => RegExp(r'^[a-z_]+$').hasMatch(name)
@@ -551,7 +534,7 @@ final class Cli {
   /// [PromptAnswerRequiredException].
   ///
   /// ```dart
-  /// final tags = await Cli.current.promptAny(
+  /// final tags = await cli.promptAny(
   ///   'Tags?',
   ///   defaultValues: ['cli', 'dart'],
   /// );
@@ -589,8 +572,8 @@ final class Cli {
   /// Ctrl+C, Ctrl+D and the end of input leave it as they leave [prompt].
   ///
   /// ```dart
-  /// if (await Cli.current.confirm('Proceed?', defaultValue: true)) {
-  ///   Cli.current.info('Proceeding.');
+  /// if (await cli.confirm('Proceed?', defaultValue: true)) {
+  ///   cli.info('Proceeding.');
   /// }
   /// ```
   Future<bool> confirm(String question, {bool? defaultValue}) =>
@@ -616,7 +599,7 @@ final class Cli {
   /// leave it as they leave [prompt].
   ///
   /// ```dart
-  /// final env = await Cli.current.chooseOne(
+  /// final env = await cli.chooseOne(
   ///   'Target environment?',
   ///   choices: ['dev', 'stage', 'prod'],
   ///   defaultValue: 'dev',
@@ -650,7 +633,7 @@ final class Cli {
   /// [PromptAnswerRequiredException].
   ///
   /// ```dart
-  /// final features = await Cli.current.chooseAny(
+  /// final features = await cli.chooseAny(
   ///   'Features?',
   ///   choices: ['Linter', 'Docker', 'Tests'],
   ///   defaultValues: ['Linter'],
@@ -684,7 +667,7 @@ final class Cli {
   /// try {
   ///   await build();
   /// } on Object catch (error, stack) {
-  ///   Cli.current.error(error, stack);
+  ///   cli.error(error, stack);
   /// }
   /// ```
   void error(Object error, StackTrace stack) => unawaited(_error(error, stack));
@@ -773,7 +756,7 @@ final class Cli {
   /// * Output that is no terminal: the closing line alone.
   ///
   /// ```dart
-  /// await Cli.current
+  /// await cli
   ///     .progress('Building')
   ///     .run(build, done: (_) => 'Built');
   /// ```
@@ -806,7 +789,7 @@ final class Cli {
   /// by 1024 as `ls -h` does (`3.2 MiB`).
   ///
   /// ```dart
-  /// await Cli.current.tasks(
+  /// await cli.tasks(
   ///   (tracker) => Future.wait([
   ///     tracker.run(
   ///       'Downloading assets.zip',
