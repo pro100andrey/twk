@@ -4,7 +4,7 @@
 library;
 
 import 'package:twk_core/twk_core.dart'
-    show Attr, Brightness, Color, HitTestBehavior, TextWrap;
+    show Attr, Brightness, Color, EdgeInsets, HitTestBehavior, TextWrap;
 
 import '../animation/animation_controller.dart';
 import '../animation/ticker.dart';
@@ -13,6 +13,7 @@ import '../foundation/change_notifier.dart';
 import '../framework/framework.dart';
 import '../gestures/gesture_detector.dart';
 import '../gestures/mouse.dart';
+import '../layout/box.dart';
 import '../style/color_mix.dart';
 import '../style/style.dart';
 import '../text/hit_row.dart' show segmenterOf;
@@ -303,7 +304,8 @@ Style buttonDisabledStyle(ThemeData theme) => theme.muted.merge(
 /// one, back to its own over [flash]. A background that is not RGB does
 /// not flash.
 final class PressChip extends StatefulWidget {
-  /// A chip of [text] in [style] that flashes as [presses] grows.
+  /// A chip of [text], a cell of [style] at either end, in [style], that
+  /// flashes as [presses] grows.
   const PressChip(
     this.text, {
     required this.style,
@@ -328,7 +330,8 @@ final class PressChip extends StatefulWidget {
     this.flash = const Duration(milliseconds: 260),
   }) : text = '';
 
-  /// What it shows, the blanks around it too; empty for a [builder].
+  /// What it shows between its two end cells, a `Text` of its own, so that
+  /// `find.text` finds it; empty for a [builder].
   final String text;
 
   /// Builds what it shows instead of [text]; null for [text].
@@ -447,7 +450,16 @@ final class _PressChipState extends State<PressChip>
     }
     var chip = switch (widget.builder) {
       final build? => build(context, style, _hovered && widget.enabled),
-      null => Text(widget.text, style: style, wrap: TextWrap.none, maxLines: 1),
+      null => Box(
+        style: style,
+        padding: const EdgeInsets.x(1),
+        child: Text(
+          widget.text,
+          style: style,
+          wrap: TextWrap.none,
+          maxLines: 1,
+        ),
+      ),
     };
     if (widget.enabled) {
       chip = Listener(

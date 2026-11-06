@@ -25,6 +25,13 @@ MouseTracking tracking(TwkTester t) =>
     (t.binding.twkApp.terminal as MouseTrackingBackend).mouseTracking;
 
 void main() {
+  testTwk('find.text finds its label: the blanks at its ends are no part of '
+      'the text', (t) async {
+    await t.pumpWidget(Button('OK', onPressed: () {}));
+    expect(find.text('OK'), findsOneWidget);
+    expect(t.lines.first.trimRight(), ' OK');
+  });
+
   testTwk('at rest the primary color in bold on a surface chip, a blank of '
       'it on either side; focused, the chip filled with the primary color '
       'and the text the background color', (t) async {

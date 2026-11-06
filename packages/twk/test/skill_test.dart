@@ -334,13 +334,6 @@ ${[for (final name in rest) '  $name,\n'].join()}];
       );
     });
 
-    testTwk('a Button holds no Text: find.text does not find its label, '
-        'containsLine does', (t) async {
-      await t.pumpWidget(Button('OK', onPressed: () {}));
-      expect(find.text('OK'), findsNothing);
-      expect(t, containsLine(contains('OK')));
-    });
-
     testTwk('a focused TextField takes q and Ctrl+A, a binding above it '
         'gets Ctrl+S', (t) async {
       final pressed = <String>[];

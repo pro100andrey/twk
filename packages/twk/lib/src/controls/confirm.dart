@@ -210,7 +210,7 @@ final class _ConfirmInputState extends State<ConfirmInput> {
           child: ActiveItem(
             active: value == _highlighted,
             child: PressChip(
-              ' $label ',
+              label,
               style: value == _highlighted ? highlighted : other,
               presses: value ? _yeses : _nos,
               enabled: enabled,

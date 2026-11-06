@@ -301,7 +301,7 @@ final class _ButtonState extends State<Button> {
         final spans = widget.spans;
         if (spans == null) {
           return PressChip(
-            ' ${widget.label} ',
+            widget.label,
             style: chipStyle,
             hoverStyle: hoverOver,
             presses: _presses,
