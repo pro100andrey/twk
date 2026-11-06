@@ -282,6 +282,7 @@ Widget table(List<Entry> entries) => Table(
       expect(rest, containsAll(['Cli', 'FakeCliTerminal']));
       expect(rest, containsAll(['HookWidget', 'ChangeNotifierProvider']));
       write(app, 'names/rest.dart', '''
+// the skill may name nothing of a library
 // ignore_for_file: unused_import
 
 import 'package:twk/cli.dart';
