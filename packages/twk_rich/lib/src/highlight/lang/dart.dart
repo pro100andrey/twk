@@ -243,7 +243,7 @@ int _escapeEnd(TokenScanner s) {
     case _u:
       return _hexEnd(s, start + 1, 4);
   }
-  return start + 1;
+  return s.characterEnd(start);
 }
 
 /// The end of up to [count] hexadecimal digits from [from].

@@ -73,6 +73,21 @@ final class TokenScanner {
     return i >= 0 && i < line.length ? line.codeUnitAt(i) : -1;
   }
 
+  /// The end of the character that starts at [index]: [index] + 2 for a
+  /// surrogate pair, else [index] + 1 (or [index] past the line's end).
+  ///
+  /// An escape that ends at this, after a backslash, takes the whole
+  /// character, never half a pair.
+  int characterEnd(int index) {
+    if (index >= line.length) {
+      return index;
+    }
+    final unit = line.codeUnitAt(index);
+    return unit >= 0xD800 && unit < 0xDC00 && index + 1 < line.length
+        ? index + 2
+        : index + 1;
+  }
+
   /// Whether [text] is at [pos] + [offset].
   bool startsWith(String text, [int offset = 0]) =>
       line.startsWith(text, _pos + offset);

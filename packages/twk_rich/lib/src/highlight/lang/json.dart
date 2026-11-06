@@ -80,8 +80,8 @@ final class _JsonLexer extends Lexer {
         s.emit(kind, end);
       } else {
         s.emit(kind, escape);
-        final length = s.peek(1) == _u ? 6 : 2;
-        s.emit(TokenKind.escape, escape + length > end ? end : escape + length);
+        final after = s.peek(1) == _u ? escape + 6 : s.characterEnd(escape + 1);
+        s.emit(TokenKind.escape, after > end ? end : after);
       }
     }
   }
