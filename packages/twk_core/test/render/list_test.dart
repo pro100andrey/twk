@@ -226,6 +226,32 @@ void main() {
       expect(metrics.last, (5, 2000, 1001));
     });
 
+    test('with an item extent, a jump gives the window and the metrics of '
+        'walking there, the item at the offset found by division', () {
+      for (final offset in [7, 1001, 1999, 2995, 2996, 2997, 2999]) {
+        final jumped = <(int, int, int)>[];
+        final walked = <(int, int, int)>[];
+        final a = list(Items(), 1000, metrics: jumped, itemExtent: 3);
+        final b = list(Items(), 1000, metrics: walked, itemExtent: 3);
+        final va = View(20, 5, a)..frame();
+        final vb = View(20, 5, b)..frame();
+        a.scrollOffset = offset;
+        va.frame();
+        for (var o = 0; o < offset;) {
+          o = o + 5 > offset ? offset : o + 5;
+          b.scrollOffset = o;
+          vb.frame();
+        }
+        expect(va.shown, vb.shown, reason: 'offset $offset');
+        expect(jumped.last, walked.last, reason: 'offset $offset');
+        // and back, further than a window
+        a.scrollOffset = 12;
+        va.frame();
+        expect(jumped.last.$3, 12);
+        expect(va.shown.first, 'item 4');
+      }
+    });
+
     test('a move of a window or less is exact, the items it passes laid '
         'out', () {
       final metrics = <(int, int, int)>[];
