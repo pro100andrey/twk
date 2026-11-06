@@ -176,11 +176,11 @@ motion; false leaves the pointer to the regions around it.
 
 ## `DragTarget<T>`
 
-`DragTarget<T>(builder:, onWillAccept:, onAccept:, onLeave:, onMove:,
+`DragTarget<T>(builder:, onWillAcceptWithDetails:, onAcceptWithDetails:, onLeave:, onMove:,
 behavior: translucent)` takes the data dropped on it: at each cell the drag
 goes to, the targets there are asked, the deepest first, as the drag comes
-over them, until one accepts it (its data is a `T` and `onWillAccept`, if
-any, says yes); that one gets the drop (`onAccept` with `DragTargetDetails`,
+over them, until one accepts it (its data is a `T` and `onWillAcceptWithDetails`, if
+any, says yes); that one gets the drop (`onAcceptWithDetails` with `DragTargetDetails`,
 the data and the event, at the release), those asked before it reject it,
 those around it are not asked. A target asked is not asked again until the
 drag leaves it (`onLeave`) and is told each cell the drag goes to over it

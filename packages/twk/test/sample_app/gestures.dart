@@ -52,8 +52,8 @@ extension on _SampleAppState {
             child: const Text('two '),
           ),
           DragTarget<int>(
-            onWillAccept: (drag) => drag.data > 0,
-            onAccept: (drop) => _count.value += drop.data,
+            onWillAcceptWithDetails: (drag) => drag.data > 0,
+            onAcceptWithDetails: (drop) => _count.value += drop.data,
             builder: (context, candidate, rejected) =>
                 Text(candidate == null ? 'drop' : 'drop $candidate'),
           ),

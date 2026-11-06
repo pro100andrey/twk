@@ -106,7 +106,7 @@ typedef DragTargetBuilder<T extends Object> = Widget Function(
 ///         child: Text('notes.txt'),
 ///       ),
 ///       DragTarget<String>(
-///         onAccept: (details) => print('deleted ${details.data}'),
+///         onAcceptWithDetails: (details) => print('deleted ${details.data}'),
 ///         builder: (context, candidate, rejected) =>
 ///             Text(candidate == null ? ' trash ' : '[trash]'),
 ///       ),
@@ -420,12 +420,12 @@ final class _DraggableState<T extends Object> extends State<Draggable<T>> {
 /// default anywhere in its bounds, what it covers hit too. At each cell
 /// the mouse drags to, the targets there are asked, the deepest first, as
 /// the drag comes over them, until one accepts it: its data is a [T] and
-/// [onWillAccept] says yes, or there is none. That one gets the drop;
-/// those asked before it reject it, those around it are not asked. A
+/// [onWillAcceptWithDetails] says yes, or there is none. That one gets the
+/// drop; those asked before it reject it, those around it are not asked. A
 /// target asked is not asked again until the drag leaves it ([onLeave]),
 /// and is told each cell the drag goes to over it ([onMove]). At the
-/// release, the target that accepts the drag gets the data ([onAccept]),
-/// and the others asked are told it left.
+/// release, the target that accepts the drag gets the data
+/// ([onAcceptWithDetails]), and the others asked are told it left.
 ///
 /// What its callbacks throw ends the app, in this widget.
 ///
@@ -434,8 +434,8 @@ final class _DraggableState<T extends Object> extends State<Draggable<T>> {
 ///
 /// ```dart
 /// DragTarget<int>(
-///   onWillAccept: (details) => details.data != 13,
-///   onAccept: (details) => print('got ${details.data}'),
+///   onWillAcceptWithDetails: (details) => details.data != 13,
+///   onAcceptWithDetails: (details) => print('got ${details.data}'),
 ///   builder: (context, candidate, rejected) => Text(
 ///     candidate != null ? '[bin]' : (rejected != null ? ' no! ' : ' bin '),
 ///   ),
@@ -448,8 +448,8 @@ final class DragTarget<T extends Object> extends StatefulWidget {
   const DragTarget({
     required this.builder,
     super.key,
-    this.onWillAccept,
-    this.onAccept,
+    this.onWillAcceptWithDetails,
+    this.onAcceptWithDetails,
     this.onLeave,
     this.onMove,
     this.behavior = HitTestBehavior.translucent,
@@ -464,11 +464,11 @@ final class DragTarget<T extends Object> extends StatefulWidget {
 
   /// Whether it accepts the data of a drag that came over it.
   // ignore: unsafe_variance
-  final bool Function(DragTargetDetails<T> details)? onWillAccept;
+  final bool Function(DragTargetDetails<T> details)? onWillAcceptWithDetails;
 
   /// The data was dropped on it: the release.
   // ignore: unsafe_variance
-  final void Function(DragTargetDetails<T> details)? onAccept;
+  final void Function(DragTargetDetails<T> details)? onAcceptWithDetails;
 
   /// The drag of data of its type left it, was dropped on another target,
   /// or ended.
@@ -507,9 +507,11 @@ final class _DragTargetState<T extends Object> extends State<DragTarget<T>> {
   /// The drag of [data] came over it, at [event]: whether it accepts it.
   bool _enter(Object data, PointerEvent event) {
     var accepts = data is T;
-    final onWillAccept = widget.onWillAccept;
-    if (data is T && onWillAccept != null) {
-      _call(() => accepts = onWillAccept(DragTargetDetails(data, event)));
+    final onWillAcceptWithDetails = widget.onWillAcceptWithDetails;
+    if (data is T && onWillAcceptWithDetails != null) {
+      _call(
+        () => accepts = onWillAcceptWithDetails(DragTargetDetails(data, event)),
+      );
     }
     setState(() {
       if (accepts) {
@@ -541,9 +543,9 @@ final class _DragTargetState<T extends Object> extends State<DragTarget<T>> {
 
   void _drop(Object data, PointerEvent event) {
     setState(() => _candidate = _rejected = null);
-    final onAccept = widget.onAccept;
-    if (onAccept != null) {
-      _call(() => onAccept(DragTargetDetails(data as T, event)));
+    final onAcceptWithDetails = widget.onAcceptWithDetails;
+    if (onAcceptWithDetails != null) {
+      _call(() => onAcceptWithDetails(DragTargetDetails(data as T, event)));
     }
   }
 

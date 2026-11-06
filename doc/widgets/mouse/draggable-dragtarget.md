@@ -55,9 +55,9 @@ Widget build(BuildContext context) {
         children: [
           for (final MapEntry(key: name, value: fruits) in _in.entries)
             DragTarget<String>(
-              onWillAccept: (drag) =>
+              onWillAcceptWithDetails: (drag) =>
                   name != 'red only' || _red.contains(drag.data),
-              onAccept: (drop) => setState(() {
+              onAcceptWithDetails: (drop) => setState(() {
                 // dropped back on its own box, it stays where it is
                 if (!fruits.contains(drop.data)) {
                   for (final list in _in.values) {

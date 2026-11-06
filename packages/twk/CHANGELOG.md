@@ -4,6 +4,9 @@
 
 Breaking:
 
+- `DragTarget` takes `onWillAcceptWithDetails` and `onAcceptWithDetails`, as
+  Flutter names them, where it took `onWillAccept` and `onAccept`; they take the
+  same `DragTargetDetails`.
 - `showDialog` takes `barrierDismissible`, as Flutter names it, where it took
   `dismissible`.
 - `Listener` takes `onPointerDown` and `onPointerUp`, as Flutter names them,

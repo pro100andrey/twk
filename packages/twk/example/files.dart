@@ -998,8 +998,9 @@ final class _DropTarget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => DragTarget<_Paths>(
-    onWillAccept: (details) => drops.accepts(details.data, directory),
-    onAccept: (details) => drops.drop(details.data, directory),
+    onWillAcceptWithDetails: (details) =>
+        drops.accepts(details.data, directory),
+    onAcceptWithDetails: (details) => drops.drop(details.data, directory),
     builder: (context, candidate, _) => builder(context, candidate != null),
   );
 }
