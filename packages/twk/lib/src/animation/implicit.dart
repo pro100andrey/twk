@@ -1088,8 +1088,10 @@ class EdgeInsetsTween extends Tween<EdgeInsets> {
 ///
 /// ```dart
 /// TweenAnimationBuilder<Style>(
-///   value: over ? Theme.of(context).error : Theme.of(context).text,
-///   tween: StyleTween.new,
+///   tween: StyleTween(
+///     begin: const Style(),
+///     end: over ? Theme.of(context).error : Theme.of(context).text,
+///   ),
 ///   duration: const Duration(milliseconds: 300),
 ///   builder: (context, style, child) => Text('$total', style: style),
 /// )
