@@ -9,7 +9,6 @@ import '../data/chart_glyphs.dart';
 import '../style/style.dart';
 
 // Examples can assume:
-// import 'package:twk/src/scroll/thumb.dart' show thumbSteps;
 // late int offset;
 // late int content;
 

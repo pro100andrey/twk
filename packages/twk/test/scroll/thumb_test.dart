@@ -2,7 +2,6 @@
 // or the glyph given, the cells covered in part eighth blocks; in its
 // color over the cells' own background; across as well as down.
 import 'package:test/test.dart';
-import 'package:twk/src/scroll/thumb.dart' show thumbSteps;
 import 'package:twk/twk.dart';
 import 'package:twk_core/twk_core.dart' show GlyphTable, Surface;
 import 'package:twk_test/twk_test.dart';
