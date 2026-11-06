@@ -15,6 +15,7 @@
 library;
 
 export 'src/fake_clock.dart' show FakeClock;
+export 'src/fake_frame_clock.dart' show FakeFrameClock;
 export 'src/fake_stderr.dart' show FakeStderr;
 export 'src/finders.dart' hide appRoot;
 export 'src/matchers.dart';
