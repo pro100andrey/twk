@@ -34,11 +34,11 @@ export 'src/view/tokens.dart' show galleryThemes;
 
 /// The gallery, opened at [route] (the first page, dark, when null), on
 /// [clock]: by default the app's, or stopped at the route's `t=`. The
-/// terminal's title is `twk gallery`, which a page's own `WindowTitle`
+/// terminal's title is `twk gallery`, which a page's own `TerminalTitle`
 /// gives way to while it shows (App › Window title).
 Widget galleryApp({GalleryRoute? route, Clock? clock}) {
   final t = route?.t;
-  return WindowTitle(
+  return TerminalTitle(
     title: 'twk gallery',
     child: GalleryShell(
       key: ValueKey(route?.toString()),

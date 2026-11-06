@@ -12,7 +12,7 @@ text
 │     KeyHintsBar         ·      ℹ Saving runs in the background.         ·   ·  │
 │ ▎   StatusMessage…                                                             │
 │     Callout         ▐   ·      ℹ Disk                                   ·   ·  │
-│     Link            ▐            The disk has 120 GB free.                     │
+│     Hyperlink       ▐            The disk has 120 GB free.                     │
 │     ListTile            ·                                               ·   ·  │
 │     StatusBar                   info   success   warning   error   3           │
 │                         ·    └                                        ┘ ·   ·  │
@@ -37,7 +37,7 @@ styles
 │aaaaannnnnnnnnnnaaaaaagggoggggggpgqqqqqqgqqqqgqqgqqqgqqqqqqqqqqqgggggggggogggogg│
 │arsssttttttttttttttssagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnaaaaaaaaadgggoggggggpgppppgggggggggggggggggggggggggggggggggggogggogg│
-│aaaaannnnaaaaaaaaaaaadggggggggggggqqqgqqqqgqqqgqqqgqqgqqqqqggggggggggggggggggggg│
+│aaaaannnnnnnnnaaaaaaadggggggggggggqqqgqqqqgqqqgqqqgqqgqqqqqggggggggggggggggggggg│
 │aaaaannnnnnnnaaaaaaaaagggogggggggggggggggggggggggggggggggggggggggggggggggogggogg│
 │aaaaannnnnnnnnaaaaaaaaggggggggggCDDDDCgEFFFFFFFEgGHHHHHHHGgIJJJJJIgKLKgggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggoggggoggggggggggggggggggggggggggggggggggggggggogogggogg│

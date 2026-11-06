@@ -14,7 +14,7 @@ text
 │     KeyHintsBar     ▐         │                                      │         │
 │     StatusMessage…  ▐   ·     │                                      │      ·  │
 │     Callout                   ╰──────────────────────────────────────╯         │
-│     Link                ·   └                                          ┘    ·  │
+│     Hyperlink           ·   └                                          ┘    ·  │
 │     ListTile                                                     40 × 7        │
 │     StatusBar           ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
 │                                                                                │
@@ -39,7 +39,7 @@ styles
 │aaaaannnnnnnnnnnaaaaadgggggggggpggggggggggggggggggggggggggggggggggggggpggggggggg│
 │aaaaannnnnnnnnnnnnnaadgggogggggpggggggggggggggggggggggggggggggggggggggpggggggogg│
 │aaaaannnnnnnaaaaaaaaaagggggggggppppppppppppppppppppppppppppppppppppppppggggggggg│
-│aaaaannnnaaaaaaaaaaaaagggogggoggggggggggggggggggggggggggggggggggggggggggoggggogg│
+│aaaaannnnnnnnnaaaaaaaagggogggoggggggggggggggggggggggggggggggggggggggggggoggggogg│
 │aaaaannnnnnnnaaaaaaaaaggggggggggggggggggggggggggggggggggggggggggggAAgAgAgggggggg│
 │aaaaannnnnnnnnaaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│

@@ -2,8 +2,9 @@
 /// same one two ways: a ratio as a whole percent ([formatPercent]), a
 /// time as a clock ([formatClock]) or as the time something took
 /// ([formatTook]), and bytes in decimal or binary units ([formatBytes]).
-/// [formatTook], [formatBytes] and [ByteUnits] are exported, for an app to
-/// write a time taken and a size as the widgets do; the others are internal.
+/// [formatTook], [formatBytes] and [ByteUnits] are exported by
+/// `package:twk/format.dart`, for an app to write a time taken and a size as
+/// the widgets do; the others are internal.
 library;
 
 import 'helpers.dart';

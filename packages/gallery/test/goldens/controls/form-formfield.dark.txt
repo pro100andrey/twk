@@ -19,7 +19,7 @@ text
 │     KeyHintsBar           ▐         ┌                                          ┐         │                             │
 │     StatusMessage, Badge  ▐    ·      name                                         ·     │                             │
 │     Callout               ▐                                                              │                             │
-│     Link                  ▐    ·      email                                        ·     │                             │
+│     Hyperlink             ▐    ·      email                                        ·     │                             │
 │     ListTile                                                                             │                             │
 │     StatusBar                  ·      [ ] I accept the terms                       ·     │                             │
 │                                                                                          │                             │
@@ -56,7 +56,7 @@ styles
 │aaaaaoooooooooooaaaaaaaaaaadhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooaoooooaadhhhhphhhhhhttttiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiihhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooaaaaaaaaaaaaaaaaaadhhhhphhhhhhtttttiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiihhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaadhhhhphhhhhhtttttiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiihhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhhhhnhnhyhyyyyyyhyyyhyyyyyhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

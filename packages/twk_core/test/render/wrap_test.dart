@@ -4,6 +4,7 @@
 import 'dart:async';
 
 import 'package:test/test.dart';
+import 'package:twk_core/terminal.dart' show LogLevel, LogRecord;
 import 'package:twk_core/twk_core.dart';
 
 /// A render tree filling a whole screen.

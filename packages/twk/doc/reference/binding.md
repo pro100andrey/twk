@@ -257,9 +257,9 @@ of another whole percent) and again every `TerminalStatus.progressRefresh`
 (10 s), as Ghostty drops a progress it was not told of for 15 s; the child
 is laid out as without it.
 
-## `WindowTitle`
+## `TerminalTitle`
 
-`WindowTitle(title:, child:)` sets the title of the terminal's window or tab
+`TerminalTitle(title:, child:)` sets the title of the terminal's window or tab
 while it is in the tree, and again when `title` changes, its control
 characters left out: through the core's `Terminal.setTitle`, which gives the
 user's title back when the app ends, and on a `HeadlessTerminal` as the
@@ -273,7 +273,7 @@ the app ends. The child is laid out as without it.
 `TerminalStatus.of(context)` is what shows the pointer's shape, the progress
 and the title on the app's terminal: `showsPointerShape` says whether a
 `MouseRegion`'s `cursor` is shown there, and `title` is the title the app
-set, null before a `WindowTitle` was mounted. With `runApp(screenReader:
+set, null before a `TerminalTitle` was mounted. With `runApp(screenReader:
 true)`, by default where `TWK_SCREEN_READER` is `1`, the app is read out as
 lines of text (`semantics`). Where the output is no terminal (piped, in CI),
 `runApp` runs the app on the core's plain output: no escape sequences, the

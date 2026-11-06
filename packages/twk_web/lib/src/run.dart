@@ -4,6 +4,7 @@ library;
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
 
+import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_core/twk_core.dart' show Terminal;
 import 'package:web/web.dart' as web;

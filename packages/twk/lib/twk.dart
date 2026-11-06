@@ -13,9 +13,10 @@
 /// sequences).
 ///
 /// No name is both twk's and the core's: a key of the keyboard is a
-/// `KeyCode`, a `Key` tells widgets apart. `log` is also a function of
-/// dart:math and dart:developer, which an app that calls it imports with a
-/// prefix.
+/// `KeyCode`, a `Key` tells widgets apart. `log` and the names of the log
+/// (`LogLevel`, `LogRecord`, `LogSink`) are in `package:twk/log.dart`, as
+/// `log` is also a function of dart:math and dart:developer; the sizes and
+/// times of the widgets are in `package:twk/format.dart`.
 library;
 
 // styles, geometry, layout and text
@@ -44,33 +45,20 @@ export 'package:twk_core/twk_core.dart'
 export 'package:twk_core/twk_core.dart'
     show
         Brightness,
-        ColorReport,
         ColorSchemeReport,
-        CursorReport,
-        DeviceAttributes,
         FocusEvent,
         InputEvent,
         KeyCode,
         KeyEvent,
         KeyKind,
-        KeyboardFlagsReport,
         Mod,
-        ModeReport,
         MouseEvent,
         MouseKind,
         PasteEvent,
-        ResizeEvent,
-        UnknownSequence;
-// what an app runs on and logs to
+        ResizeEvent;
+// what an app runs on
 export 'package:twk_core/twk_core.dart'
-    show
-        BidiReordering,
-        LogLevel,
-        LogRecord,
-        LogSink,
-        TerminalBackend,
-        Viewport,
-        log;
+    show BidiReordering, TerminalBackend, Viewport;
 // render objects of an app's own, and how they describe themselves
 export 'package:twk_core/twk_core.dart'
     show

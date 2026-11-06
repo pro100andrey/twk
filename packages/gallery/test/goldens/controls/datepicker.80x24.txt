@@ -17,7 +17,7 @@ text
 │     KeyHintsBar                                                                │
 │     StatusMessage…      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
 │     Callout                                                                    │
-│     Link             ──────────────────────────────────────────────────────────│
+│     Hyperlink        ──────────────────────────────────────────────────────────│
 │     ListTile           time of day  ▐●  ▌                                      │
 │     StatusBar          weeks start   monday  sunday                            │
 │                        popup look    raised  bordered                          │
@@ -42,7 +42,7 @@ styles
 │aaaaannnnnnnnnnnaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnnaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
 │aaaaannnnnnnaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnaaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnnnaaaaaaaaaggmmmmgmmgmmmggxyzzxgggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnaaaaaaaaggmmmmmgmmmmmggqrrrrrrqhAAAAAAhggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaaggmmmmmgmmmmgggqrrrrrrqhAAAAAAAAhggggggggggggggggggggggggg│

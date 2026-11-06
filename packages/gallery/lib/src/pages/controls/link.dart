@@ -1,7 +1,7 @@
-// The Link page.
+// The Hyperlink page.
 part of 'controls.dart';
 
-/// The Link page's `color` option.
+/// The Hyperlink page's `color` option.
 const _linkColor = ColorOption(
   'color',
   'style',
@@ -9,7 +9,7 @@ const _linkColor = ColorOption(
   initial: 'primary',
 );
 
-/// The Link page's `text` option.
+/// The Hyperlink page's `text` option.
 const _linkText = ChoiceOption<String>(
   'text',
   'shows',
@@ -19,7 +19,7 @@ const _linkText = ChoiceOption<String>(
 
 final _linkPage = GalleryPage(
   group: _group,
-  title: 'Link',
+  title: 'Hyperlink',
   options: const [
     _linkColor,
     _linkText,
@@ -37,13 +37,13 @@ final _linkPage = GalleryPage(
       crossAxisAlignment: CrossAxisAlignment.start,
       gap: 1,
       children: [
-        Link(
+        Hyperlink(
           'https://dart.dev',
           style: style,
           text: labelled ? 'The Dart language' : null,
         ),
-        Link('https://pub.dev', style: style),
-        Link(
+        Hyperlink('https://pub.dev', style: style),
+        Hyperlink(
           'file:///home/user/twk/README.md',
           style: style,
           text: labelled ? 'the README' : null,
@@ -71,9 +71,14 @@ final _linkPage = GalleryPage(
       '  crossAxisAlignment: .start,',
       '  gap: 1,',
       '  children: [',
-      ...call(4, 'Link', link('https://dart.dev', 'The Dart language'), ','),
-      ...call(4, 'Link', link('https://pub.dev', null), ','),
-      ...call(4, 'Link', link(_readme, 'the README'), ','),
+      ...call(
+        4,
+        'Hyperlink',
+        link('https://dart.dev', 'The Dart language'),
+        ',',
+      ),
+      ...call(4, 'Hyperlink', link('https://pub.dev', null), ','),
+      ...call(4, 'Hyperlink', link(_readme, 'the README'), ','),
       '  ],',
       ');',
     ].join('\n');

@@ -12,7 +12,7 @@ extension on _SampleAppState {
       child: TerminalProgress(
         state: ProgressState.paused,
         value: .5,
-        child: WindowTitle(
+        child: TerminalTitle(
           title: 'sample app',
           child: Static<String>(
             items: const ['finished'],
@@ -28,18 +28,11 @@ extension on _SampleAppState {
     KeyEvent(code: KeyCode.char, char: 'q', kind: KeyKind.press) => _quit(),
     MouseEvent(kind: MouseKind.wheelUp) => _bump(),
     ColorSchemeReport(brightness: Brightness.light) => false,
-    KeyEvent() ||
-    MouseEvent() ||
     PasteEvent() ||
     FocusEvent() ||
     ResizeEvent() ||
-    ModeReport() ||
-    KeyboardFlagsReport() ||
-    DeviceAttributes() ||
-    ColorReport() ||
-    ColorSchemeReport() ||
-    CursorReport() ||
-    UnknownSequence() => false,
+    // the events twk.dart does not export are matched by a wildcard
+    _ => false,
   };
 
   bool _quit() {

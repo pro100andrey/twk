@@ -4,6 +4,7 @@
 //
 //   dart run twk_dev:twk run example/tally.dart   # hot reloaded
 //   dart run example/tally.dart                   # on its own
+import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
 
 Future<void> main() => runApp(const Tally(['coffee', 'tea', 'water']));

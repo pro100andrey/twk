@@ -108,14 +108,14 @@ void main() {
     });
   });
 
-  group('Link', () {
+  group('Hyperlink', () {
     testTwk('links its text to the URL as an OSC 8 hyperlink, underlined in '
         'the primary color; the URL itself without a text', (t) async {
       await t.pumpWidget(
         Theme.terminal(
           child: column([
-            const Link('https://dart.dev', text: 'Dart'),
-            const Link('https://pub.dev'),
+            const Hyperlink('https://dart.dev', text: 'Dart'),
+            const Hyperlink('https://pub.dev'),
             const Text('plain'),
           ]),
         ),
@@ -138,7 +138,7 @@ void main() {
     testTwk('keeps the link under a style of its own', (t) async {
       await t.pumpWidget(
         const Theme.terminal(
-          child: Link(
+          child: Hyperlink(
             'https://dart.dev',
             text: 'Dart',
             style: Style(fg: Color.green),

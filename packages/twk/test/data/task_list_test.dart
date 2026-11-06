@@ -20,7 +20,7 @@ List<String> rows(TwkTester t) => [
 ];
 
 /// A list of one task, [label] at [status].
-TaskList one(String label, TaskStatus status) =>
+TaskList one(String label, TaskItemStatus status) =>
     TaskList(tasks: [TaskItem(label, status: status)]);
 
 void main() {
@@ -31,22 +31,22 @@ void main() {
         child: TaskList(
           showElapsed: false,
           tasks: [
-            TaskItem('Fetch', status: TaskStatus.done),
+            TaskItem('Fetch', status: TaskItemStatus.done),
             TaskItem(
               'Build',
-              status: TaskStatus.running,
+              status: TaskItemStatus.running,
               children: [
-                TaskItem('lib/a.dart', status: TaskStatus.done),
+                TaskItem('lib/a.dart', status: TaskItemStatus.done),
                 TaskItem(
                   'lib/b.dart',
-                  status: TaskStatus.running,
-                  children: [TaskItem('parse', status: TaskStatus.failed)],
+                  status: TaskItemStatus.running,
+                  children: [TaskItem('parse', status: TaskItemStatus.failed)],
                 ),
                 TaskItem('lib/c.dart'),
               ],
             ),
-            TaskItem('Lint', status: TaskStatus.failed),
-            TaskItem('Deploy', status: TaskStatus.skipped),
+            TaskItem('Lint', status: TaskItemStatus.failed),
+            TaskItem('Deploy', status: TaskItemStatus.skipped),
             TaskItem('Test'),
           ],
         ),
@@ -79,7 +79,7 @@ void main() {
       'seconds while it runs, to the tenth once it is done, and no timer is '
       'left', (t) async {
     await t.pumpWidget(
-      Theme.terminal(child: one('Build', TaskStatus.running)),
+      Theme.terminal(child: one('Build', TaskItemStatus.running)),
       size: (16, 1),
     );
     expect(rows(t), ['* Build 00:00']);
@@ -89,7 +89,9 @@ void main() {
     expect(rows(t), ['* Build 00:01']);
     await until(t, ms * 3250);
     expect(rows(t), ['* Build 00:03']);
-    await t.pumpWidget(Theme.terminal(child: one('Build', TaskStatus.done)));
+    await t.pumpWidget(
+      Theme.terminal(child: one('Build', TaskItemStatus.done)),
+    );
     expect(t.lines, ['✓ Build 3.2 s']);
     await t.pump(const Duration(seconds: 5));
     expect(t.lines, ['✓ Build 3.2 s']);
@@ -99,25 +101,35 @@ void main() {
   testTwk('a task set running counts from that frame, keeps its time when '
       'it fails, and shows none pending or skipped', (t) async {
     await t.pumpWidget(
-      Theme.terminal(child: one('Build', TaskStatus.pending)),
+      Theme.terminal(child: one('Build', TaskItemStatus.pending)),
       size: (16, 1),
     );
     expect(t.lines, ['◦ Build']);
     expect(t.clock.pendingTimers, 0);
     await until(t, ms * 500);
-    await t.pumpWidget(Theme.terminal(child: one('Build', TaskStatus.running)));
+    await t.pumpWidget(
+      Theme.terminal(child: one('Build', TaskItemStatus.running)),
+    );
     await until(t, ms * 1499);
     expect(rows(t), ['* Build 00:00']);
     await until(t, ms * 1500);
     expect(rows(t), ['* Build 00:01']);
     await until(t, ms * 2750);
-    await t.pumpWidget(Theme.terminal(child: one('Build', TaskStatus.failed)));
+    await t.pumpWidget(
+      Theme.terminal(child: one('Build', TaskItemStatus.failed)),
+    );
     expect(t.lines, ['✗ Build 2.2 s']);
-    await t.pumpWidget(Theme.terminal(child: one('Build', TaskStatus.running)));
+    await t.pumpWidget(
+      Theme.terminal(child: one('Build', TaskItemStatus.running)),
+    );
     expect(rows(t), ['* Build 00:00']);
-    await t.pumpWidget(Theme.terminal(child: one('Build', TaskStatus.skipped)));
+    await t.pumpWidget(
+      Theme.terminal(child: one('Build', TaskItemStatus.skipped)),
+    );
     expect(t.lines, ['↓ Build']);
-    await t.pumpWidget(Theme.terminal(child: one('Build', TaskStatus.done)));
+    await t.pumpWidget(
+      Theme.terminal(child: one('Build', TaskItemStatus.done)),
+    );
     expect(t.lines, ['✓ Build']);
   });
 
@@ -125,12 +137,15 @@ void main() {
       'and the row times it no more; without it, it times it again', (
     t,
   ) async {
-    TaskList given(TaskStatus status, Duration? elapsed) => TaskList(
+    TaskList given(TaskItemStatus status, Duration? elapsed) => TaskList(
       tasks: [TaskItem('Build', status: status, elapsed: elapsed)],
     );
     await t.pumpWidget(
       Theme.terminal(
-        child: given(TaskStatus.running, const Duration(milliseconds: 2600)),
+        child: given(
+          TaskItemStatus.running,
+          const Duration(milliseconds: 2600),
+        ),
       ),
       size: (16, 1),
     );
@@ -141,29 +156,31 @@ void main() {
     expect(t.clock.pendingTimers, 1, reason: "the spinner's alone");
     // a task shown done at once shows the time it is given
     await t.pumpWidget(
-      Theme.terminal(child: given(TaskStatus.done, ms * 1400)),
+      Theme.terminal(child: given(TaskItemStatus.done, ms * 1400)),
     );
     expect(t.lines, ['✓ Build 1.4 s']);
     await t.pumpWidget(
-      Theme.terminal(child: given(TaskStatus.failed, ms * 61500)),
+      Theme.terminal(child: given(TaskItemStatus.failed, ms * 61500)),
     );
     expect(t.lines, ['✗ Build 01:01']);
     await t.pumpWidget(
-      Theme.terminal(child: given(TaskStatus.skipped, ms * 1400)),
+      Theme.terminal(child: given(TaskItemStatus.skipped, ms * 1400)),
     );
     expect(t.lines, ['↓ Build']);
     await t.pumpWidget(
-      Theme.terminal(child: given(TaskStatus.pending, ms * 1400)),
+      Theme.terminal(child: given(TaskItemStatus.pending, ms * 1400)),
     );
     expect(t.lines, ['◦ Build']);
     expect(t.clock.pendingTimers, 0);
     // its time no longer given, it times it from the frame it was set
     // running in
     await t.pumpWidget(
-      Theme.terminal(child: given(TaskStatus.running, ms * 9000)),
+      Theme.terminal(child: given(TaskItemStatus.running, ms * 9000)),
     );
     expect(rows(t), ['* Build 00:09']);
-    await t.pumpWidget(Theme.terminal(child: given(TaskStatus.running, null)));
+    await t.pumpWidget(
+      Theme.terminal(child: given(TaskItemStatus.running, null)),
+    );
     expect(rows(t), ['* Build 00:00']);
     await t.pump(const Duration(seconds: 1));
     expect(rows(t), ['* Build 00:01']);
@@ -171,7 +188,9 @@ void main() {
       Theme.terminal(
         child: TaskList(
           showElapsed: false,
-          tasks: [TaskItem('Build', status: TaskStatus.done, elapsed: ms * 5)],
+          tasks: [
+            TaskItem('Build', status: TaskItemStatus.done, elapsed: ms * 5),
+          ],
         ),
       ),
     );
@@ -182,20 +201,20 @@ void main() {
       'shows the time it has run once it is', (t) async {
     final scroll = ScrollController();
     addTearDown(scroll.dispose);
-    Widget list(TaskStatus second) => SizedBox(
+    Widget list(TaskItemStatus second) => SizedBox(
       height: 1,
       child: SingleChildScrollView(
         controller: scroll,
         child: TaskList(
           tasks: [
-            const TaskItem('Fetch', status: TaskStatus.done),
+            const TaskItem('Fetch', status: TaskItemStatus.done),
             TaskItem('Build', status: second),
           ],
         ),
       ),
     );
     await t.pumpWidget(
-      Theme.terminal(child: list(TaskStatus.running)),
+      Theme.terminal(child: list(TaskItemStatus.running)),
       size: (16, 1),
     );
     final from = t.clock.elapsed;
@@ -207,24 +226,26 @@ void main() {
 
   testTwk('minutes and seconds, then hours, minutes and seconds', (t) async {
     await t.pumpWidget(
-      Theme.terminal(child: one('Build', TaskStatus.running)),
+      Theme.terminal(child: one('Build', TaskItemStatus.running)),
       size: (16, 1),
     );
     await until(t, const Duration(minutes: 1, seconds: 5));
     expect(rows(t), ['* Build 01:05']);
     await until(t, const Duration(hours: 1, minutes: 2, seconds: 3));
     expect(rows(t), ['* Build 1:02:03']);
-    await t.pumpWidget(Theme.terminal(child: one('Build', TaskStatus.done)));
+    await t.pumpWidget(
+      Theme.terminal(child: one('Build', TaskItemStatus.done)),
+    );
     expect(t.lines, ['✓ Build 1:02:03']);
   });
 
   testTwk('a change to one task repaints its row alone', (t) async {
     final count = PaintCount();
-    Widget list(TaskStatus second) => Column(
+    Widget list(TaskItemStatus second) => Column(
       children: [
         TaskList(
           tasks: [
-            const TaskItem('Fetch', status: TaskStatus.done),
+            const TaskItem('Fetch', status: TaskItemStatus.done),
             TaskItem('Build', status: second),
             const TaskItem('Test'),
           ],
@@ -233,15 +254,15 @@ void main() {
       ],
     );
     await t.pumpWidget(
-      Theme.terminal(child: list(TaskStatus.pending)),
+      Theme.terminal(child: list(TaskItemStatus.pending)),
       size: (12, 4),
     );
     final painted = count.paints;
     for (final status in [
-      TaskStatus.running,
-      TaskStatus.done,
-      TaskStatus.failed,
-      TaskStatus.skipped,
+      TaskItemStatus.running,
+      TaskItemStatus.done,
+      TaskItemStatus.failed,
+      TaskItemStatus.skipped,
     ]) {
       await t.pumpWidget(Theme.terminal(child: list(status)));
       expect(t.binding.twkApp.stats.lastRepaints, 1, reason: '$status');
@@ -261,8 +282,8 @@ void main() {
           children: [
             const TaskList(
               tasks: [
-                TaskItem('Fetch', status: TaskStatus.done),
-                TaskItem('Build', status: TaskStatus.running),
+                TaskItem('Fetch', status: TaskItemStatus.done),
+                TaskItem('Build', status: TaskItemStatus.running),
               ],
             ),
             Counted(count),
@@ -293,7 +314,7 @@ void main() {
     await t.pumpWidget(
       const Theme.terminal(
         child: TaskList(
-          tasks: [TaskItem('Build', status: TaskStatus.running)],
+          tasks: [TaskItem('Build', status: TaskItemStatus.running)],
         ),
       ),
       size: (16, 3),
@@ -303,8 +324,8 @@ void main() {
       const Theme.terminal(
         child: TaskList(
           tasks: [
-            TaskItem('Fetch', status: TaskStatus.done),
-            TaskItem('Build', status: TaskStatus.running),
+            TaskItem('Fetch', status: TaskItemStatus.done),
+            TaskItem('Build', status: TaskItemStatus.running),
           ],
         ),
       ),
@@ -315,8 +336,8 @@ void main() {
       const Theme.terminal(
         child: TaskList(
           tasks: [
-            TaskItem('Fetch', status: TaskStatus.done),
-            TaskItem('Build', id: 2, status: TaskStatus.running),
+            TaskItem('Fetch', status: TaskItemStatus.done),
+            TaskItem('Build', id: 2, status: TaskItemStatus.running),
           ],
         ),
       ),
@@ -329,7 +350,7 @@ void main() {
           tasks: [
             TaskItem(
               'a',
-              children: [TaskItem('x', status: TaskStatus.running)],
+              children: [TaskItem('x', status: TaskItemStatus.running)],
             ),
           ],
         ),
@@ -342,7 +363,7 @@ void main() {
           tasks: [
             TaskItem(
               'b',
-              children: [TaskItem('x', status: TaskStatus.running)],
+              children: [TaskItem('x', status: TaskItemStatus.running)],
             ),
             TaskItem('a'),
           ],
@@ -356,12 +377,12 @@ void main() {
     t,
   ) async {
     await t.pumpWidget(
-      Theme.terminal(child: one('Compile everything', TaskStatus.running)),
+      Theme.terminal(child: one('Compile everything', TaskItemStatus.running)),
       size: (15, 1),
     );
     expect(rows(t), ['* Compil… 00:00']);
     await t.pumpWidget(
-      Theme.terminal(child: one('Compile everything', TaskStatus.pending)),
+      Theme.terminal(child: one('Compile everything', TaskItemStatus.pending)),
     );
     expect(t.lines, ['◦ Compile ever…']);
   });
@@ -374,8 +395,8 @@ void main() {
           spinner: SpinnerFrames(['a', 'bbb'], interval: Duration(seconds: 1)),
           showElapsed: false,
           tasks: [
-            TaskItem('Build', status: TaskStatus.running),
-            TaskItem('Test', status: TaskStatus.done),
+            TaskItem('Build', status: TaskItemStatus.running),
+            TaskItem('Test', status: TaskItemStatus.done),
           ],
         ),
       ),
@@ -387,7 +408,7 @@ void main() {
   });
 
   test('outside an app the spinner shows its first frame and no time', () {
-    final v = View(10, 1)..pump(one('Build', TaskStatus.running));
+    final v = View(10, 1)..pump(one('Build', TaskItemStatus.running));
     expect(v.rows(), ['⠋ Build']);
   });
 }

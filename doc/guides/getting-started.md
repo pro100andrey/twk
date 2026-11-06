@@ -75,10 +75,10 @@ final class _CounterState extends State<Counter> {
 
 `package:twk/twk.dart` is all of twk in one import, as Flutter's
 `material.dart` is, and some of its names are words an app uses too:
-`TaskStatus` (of a `TaskList`), `Step` (of a `Stepper`), `Gauge`,
+`Step` (of a `Stepper`), `Gauge`,
 `Table`, `Chip`, `Window`. Where the app has one of its own, a file that
 imports both is told the name is defined in two libraries; hide twk's
-there, `import 'package:twk/twk.dart' hide TaskStatus;`, or import the
+there, `import 'package:twk/twk.dart' hide Gauge;`, or import the
 app's own library with a prefix (`import 'model.dart' as model;`).
 
 ## Run it

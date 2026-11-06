@@ -198,7 +198,7 @@ test's fake clock moves them.
 false, maxVisible:, spinner: SpinnerFrames.dots, byteUnits: ByteUnits.decimal)` shows the tasks a row each
 in the `ProgressColumn`s given (`mark`, `label`, `bar`, `percent`, `count`,
 `rate`, `eta`, `elapsed`; all but `count` and `elapsed` by default): the
-mark of the task's `TaskStatus` as a `TaskList` shows it, its label, a bar
+mark of the task's `TaskItemStatus` as a `TaskList` shows it, its label, a bar
 as a `ProgressBar` draws it, sweeping while the task runs without a total,
 then `62%`, `1.2 MB/s` (`ProgressUnit.bytes` in their units: by 1000, or with
 `byteUnits: ByteUnits.binary` by 1024, `1.1 MiB/s`) and `ETA

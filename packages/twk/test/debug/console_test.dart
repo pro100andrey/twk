@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:test/test.dart';
+import 'package:twk/log.dart';
 import 'package:twk/src/debug/console.dart' show RenderConsolePanel;
 import 'package:twk/twk.dart';
 import 'package:twk_core/twk_core.dart' show Multiplexer, clipboardSequence;

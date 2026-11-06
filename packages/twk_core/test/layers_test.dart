@@ -186,11 +186,14 @@ void main() {
       expect(above, isEmpty);
     });
 
-    test('exports only what package:twk_core/twk_core.dart exports', () {
+    test('exports only what package:twk_core/twk_core.dart exports, besides '
+        'the log, which only terminal.dart has', () {
       final core = _exports('twk_core.dart');
       final extra = [
         for (final MapEntry(key: path, value: names) in exports.entries)
-          if (!core.containsKey(path))
+          if (path == 'log.dart')
+            ...const <String>[]
+          else if (!core.containsKey(path))
             path
           else if (core[path] case final shown?)
             if (names == null)

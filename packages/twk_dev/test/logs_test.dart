@@ -8,6 +8,7 @@ import 'dart:typed_data';
 
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+import 'package:twk_core/terminal.dart' show LogLevel, LogRecord, LogSink;
 import 'package:twk_core/twk_core.dart';
 import 'package:twk_dev/src/logs.dart' show colorsLevels;
 import 'package:twk_dev/twk_dev.dart';

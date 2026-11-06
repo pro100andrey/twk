@@ -3,6 +3,7 @@
 // says why once, and does not blame the app field by field. A mark the app
 // chose still has its own warning.
 import 'package:test/test.dart';
+import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
 
 import '../text/ambiguous.dart';

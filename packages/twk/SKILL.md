@@ -49,8 +49,10 @@ packages/gallery/bin/gallery.dart`).
   quits.
 - `print` and `log()` inside the app go to the app's log, not to the
   screen: the log console shows them (see Debug), and the warnings and
-  errors are printed to stderr once the app has ended. `log` is also a
-  name in `dart:math` and `dart:developer`: import those with a prefix.
+  errors are printed to stderr once the app has ended. `log`, `LogLevel`,
+  `LogRecord` and `LogSink` are in `package:twk/log.dart`, which an app that
+  logs imports besides `twk.dart` (`log` is also a name in `dart:math` and
+  `dart:developer`: import those with a prefix).
 - A build that throws shows a white-on-red box with the error in its place
   and logs it; the app goes on. An error thrown by a key binding, an
   `InputListener` or a mouse callback ends the app with a `WidgetError`
@@ -328,7 +330,7 @@ Each is described, with every parameter, in its topic's page of
 | need | widgets |
 |------|---------|
 | layout | `Column`, `Row` (`gap:`; `crossAxisAlignment` is `.center` unless set), `Expanded`, `Flexible`, `Spacer`, `Padding`, `SizedBox`, `Center`, `Align`, `Box` (`border:`, `titles:`, `padding:`, `style:` fills it; `scrollbar: .always` (or `.onScroll`) draws the bar of the outermost scrollable inside on the border, in the border type's own line, at the right for a vertical scrollable and at the bottom for a horizontal one, which asserts under a bottom title), `Divider`, `Grid` + `GridPlacement`, `Stack` + `Positioned`, `Wrap`, `SplitView` (panes with draggable dividers), `ExpansionTile` + `Accordion` (sections that fold; `ExpansionController`), `Container` (Flutter's: `padding:`, `margin:`, `color:`, `decoration: BoxDecoration(…)`, `width:`, `height:`), `ColoredBox`, `DecoratedBox`, `ConstrainedBox(constraints: BoxConstraints(minW: minW, maxW: maxW, minH: minH, maxH: maxH))`, `LimitedBox`, `OverflowBox`, `SizedOverflowBox`, `Transform.translate` (whole cells; no rotation or scale), `Offstage` and `Visibility` (hide, keeping state; the tickers below are muted, an animation's time going on, as under `TickerMode(enabled: false)`), `RepaintBoundary` (isolate a part that changes often), `CustomPaint` + `CellPainter` (cells painted by hand) |
-| text and style | `Text(text, style:, wrap:, overflow:, maxLines:)`, `Text.rich([spans])`, `Text.line(text)` and `Text.richLine([spans])` (one line cut with `…`: a row's or a panel's label), `'x'.bold.fg(.green)` (a `Span`), `'task bl-42'.underline.tap(onTap)` (a click on a phrase of a `Text.rich` that is no URL), `Style(fg:, bg:, attrs:)`, `Theme(data: ThemeData.nord, child:)`, `Theme.adaptive` (dark or light by the terminal), `Theme.of(context).primary`, `Link` |
+| text and style | `Text(text, style:, wrap:, overflow:, maxLines:)`, `Text.rich([spans])`, `Text.line(text)` and `Text.richLine([spans])` (one line cut with `…`: a row's or a panel's label), `'x'.bold.fg(.green)` (a `Span`), `'task bl-42'.underline.tap(onTap)` (a click on a phrase of a `Text.rich` that is no URL), `Style(fg:, bg:, attrs:)`, `Theme(data: ThemeData.nord, child:)`, `Theme.adaptive` (dark or light by the terminal), `Theme.of(context).primary`, `Hyperlink` |
 | keys | `KeyBindings({'ctrl+s': save, 'g g': top}, hints: {'ctrl+s': 'save'}, child:)`, `Shortcuts` + `Actions` + `Intent`, `KeyHintsBar`, `InputListener` (keys nobody took, pastes, resizes) |
 | focus | `autofocus: true`, `FocusNode` (`requestFocus()`, `hasFocus`), `AppBinding.of(context).focusManager.primaryFocus` (the node that has the focus now, or null), `Focus`, `FocusScope`, `ExcludeFocus` (keep the focus out of a part) |
 | mouse (full screen) | `GestureDetector(onTap:, onDoubleTap:, onLongPress:, onDragUpdate:)`, `Listener`, `MouseRegion`, `Draggable` + `DragTarget` (`GestureDetector`s nested: the deepest one with a callback for the gesture takes the press, the outer one gets nothing of it), `SelectionArea` (select and copy text; `SelectionAreaController`; a render object of your own mixes in `Selectable`), `Tooltip` (also on focus; `TooltipController`), `IgnorePointer`, `AbsorbPointer` |
@@ -762,10 +764,10 @@ What to know:
   (`StatusMessage`, `TreeView`), so that an app in `Glyphs.ascii` is ASCII
   all through.
 - `package:twk/twk.dart` exports all of twk, as Flutter's `material.dart`
-  does, generic names among them (`TaskStatus`, `Step`, `Gauge`, `Table`,
-  `Chip`, `Window`, `Callout`). Keep the app's own names and hide twk's
+  does, generic names among them (`Step`, `Gauge`, `Table`, `Chip`,
+  `Window`, `Callout`). Keep the app's own names and hide twk's
   where both are imported: `import 'package:twk/twk.dart' hide
-  TaskStatus;` (or a prefix on the app's own import); do not rename the
+  Gauge;` (or a prefix on the app's own import); do not rename the
   app's types around twk.
 - Give generic widgets their type argument: `Table<Entry>(rows:,
   columns: [TableColumn(cell: (e) => …)])`. Columns written inside the

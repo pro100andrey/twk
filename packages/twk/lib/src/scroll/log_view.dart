@@ -15,8 +15,6 @@ import 'package:twk_core/twk_core.dart'
         DiagnosticPropertiesBuilder,
         HitTestBehavior,
         ListParentData,
-        LogLevel,
-        LogRecord,
         PaintContext,
         Pen,
         RenderList,
@@ -25,6 +23,7 @@ import 'package:twk_core/twk_core.dart'
         RenderParagraph,
         stringWidth;
 
+import '../../log.dart';
 import '../ansi/stream.dart' show AnsiStream;
 import '../editing/caret.dart' show clearRestCursor, restCursor;
 import '../focus/focus_tree.dart' show FocusNode;

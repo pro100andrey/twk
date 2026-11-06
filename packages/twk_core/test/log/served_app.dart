@@ -4,6 +4,7 @@
 // test's.
 import 'dart:io';
 
+import 'package:twk_core/terminal.dart' show log;
 import 'package:twk_core/twk_core.dart';
 
 Future<void> main() async {

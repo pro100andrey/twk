@@ -5,7 +5,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:test/test.dart';
-import 'package:twk_core/twk_core.dart';
+import 'package:twk_core/terminal.dart' show LogLevel, LogRecord, LogSink, log;
 
 final _at = DateTime(2026, 10, 19, 9, 5, 7, 42);
 

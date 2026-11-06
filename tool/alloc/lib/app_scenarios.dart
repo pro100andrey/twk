@@ -683,13 +683,13 @@ Future<(AppRun, FutureOr<void> Function(int))> _hiddenTab(int w, int h) async {
                 ProgressBar(),
                 TaskList(
                   tasks: [
-                    TaskItem('compile', status: TaskStatus.running),
+                    TaskItem('compile', status: TaskItemStatus.running),
                     TaskItem(
                       'test',
-                      status: TaskStatus.running,
+                      status: TaskItemStatus.running,
                       children: [
-                        TaskItem('core', status: TaskStatus.running),
-                        TaskItem('widgets', status: TaskStatus.running),
+                        TaskItem('core', status: TaskItemStatus.running),
+                        TaskItem('widgets', status: TaskItemStatus.running),
                       ],
                     ),
                   ],

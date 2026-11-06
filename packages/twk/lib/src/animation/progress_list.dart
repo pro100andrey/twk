@@ -65,7 +65,7 @@ enum ProgressBarShape {
 
 /// A column of a [ProgressList], in the order the list is given them.
 enum ProgressColumn {
-  /// The mark of the task's [TaskStatus], as a [TaskList] shows it: a
+  /// The mark of the task's [TaskItemStatus], as a [TaskList] shows it: a
   /// spinner while it runs, `✓`, `✗`, `↓`, `◦`.
   mark,
 
@@ -161,7 +161,9 @@ final class ProgressTracker extends ChangeNotifier {
 
   /// Whether no task is pending or running; true without tasks.
   bool get finished => !_tasks.any(
-    (t) => t.status == TaskStatus.pending || t.status == TaskStatus.running,
+    (t) =>
+        t.status == TaskItemStatus.pending ||
+        t.status == TaskItemStatus.running,
   );
 
   /// Adds a task named [label], pending, after the others: of [total]
@@ -283,10 +285,10 @@ final class ProgressTask {
   /// How much is done.
   num get completed => _completed;
 
-  TaskStatus _status = TaskStatus.pending;
+  TaskItemStatus _status = TaskItemStatus.pending;
 
   /// Where it stands.
-  TaskStatus get status => _status;
+  TaskItemStatus get status => _status;
 
   Object? _error;
 
@@ -303,17 +305,17 @@ final class ProgressTask {
   final _samples = ListQueue<_Sample>();
 
   bool get _over =>
-      _status != TaskStatus.pending && _status != TaskStatus.running;
+      _status != TaskItemStatus.pending && _status != TaskItemStatus.running;
 
   Duration get _now => _tracker?._now ?? _ended ?? _started ?? Duration.zero;
 
   /// Sets it going, from pending; otherwise does nothing.
   void start() {
-    if (_status != TaskStatus.pending) {
+    if (_status != TaskItemStatus.pending) {
       return;
     }
     final now = _now;
-    _status = TaskStatus.running;
+    _status = TaskItemStatus.running;
     _started = now;
     _samples
       ..clear()
@@ -329,7 +331,7 @@ final class ProgressTask {
     if (_over) {
       return;
     }
-    if (_status == TaskStatus.pending) {
+    if (_status == TaskItemStatus.pending) {
       start();
     }
     _completed = completed;
@@ -360,7 +362,7 @@ final class ProgressTask {
     if (_total case final total? when _completed < total) {
       _completed = total;
     }
-    _finish(TaskStatus.done);
+    _finish(TaskItemStatus.done);
   }
 
   /// Finishes it failed, with [error] where that is given.
@@ -369,7 +371,7 @@ final class ProgressTask {
       return;
     }
     _error = error;
-    _finish(TaskStatus.failed);
+    _finish(TaskItemStatus.failed);
   }
 
   /// Finishes it skipped: not done, and not to be.
@@ -377,10 +379,10 @@ final class ProgressTask {
     if (_over) {
       return;
     }
-    _finish(TaskStatus.skipped);
+    _finish(TaskItemStatus.skipped);
   }
 
-  void _finish(TaskStatus status) {
+  void _finish(TaskItemStatus status) {
     final now = _now;
     _started ??= now;
     _ended = now;
@@ -407,7 +409,7 @@ final class ProgressTask {
   /// the time it was set going until it has run that long; null before
   /// any time has passed, and once it is not running.
   double? get rate {
-    if (_status != TaskStatus.running || _samples.isEmpty) {
+    if (_status != TaskItemStatus.running || _samples.isEmpty) {
       return null;
     }
     final now = _now;
@@ -429,7 +431,7 @@ final class ProgressTask {
   /// nothing, and once it is not running.
   Duration? get eta {
     final total = _total;
-    if (_status != TaskStatus.running || total == null) {
+    if (_status != TaskItemStatus.running || total == null) {
       return null;
     }
     final left = total - _completed;
@@ -476,7 +478,7 @@ final class ProgressTask {
     if (_completed > 0 && (_total != null || unit == ProgressUnit.bytes)) {
       parts.add(_count(this, byteUnits, decimalSeparator));
     }
-    if (_status == TaskStatus.done || _status == TaskStatus.failed) {
+    if (_status == TaskItemStatus.done || _status == TaskItemStatus.failed) {
       parts.add(formatTook(elapsed, decimalSeparator: decimalSeparator));
     }
     if (_error case final error?) {
@@ -490,7 +492,7 @@ final class ProgressTask {
 }
 
 /// The tasks of a [tracker], a row each, with the [columns] it is given:
-/// the mark of each task's [TaskStatus] as a [TaskList] shows it, its
+/// the mark of each task's [TaskItemStatus] as a [TaskList] shows it, its
 /// label, a bar as a [ProgressBar] draws it — sweeping while the task
 /// runs without a total — and how far it has got, how fast it goes and
 /// the time it has left:
@@ -648,18 +650,19 @@ final class _ProgressListState extends State<ProgressList> {
     final tasks = [
       for (final t in widget.tracker.tasks)
         if (!hide ||
-            (t.status != TaskStatus.done && t.status != TaskStatus.skipped))
+            (t.status != TaskItemStatus.done &&
+                t.status != TaskItemStatus.skipped))
           t,
     ];
     final max = widget.maxVisible;
     if (max == null || tasks.length <= max) {
       return (tasks, 0);
     }
-    int rank(TaskStatus s) => switch (s) {
-      TaskStatus.running => 0,
-      TaskStatus.pending => 1,
-      TaskStatus.failed => 2,
-      TaskStatus.done || TaskStatus.skipped => 3,
+    int rank(TaskItemStatus s) => switch (s) {
+      TaskItemStatus.running => 0,
+      TaskItemStatus.pending => 1,
+      TaskItemStatus.failed => 2,
+      TaskItemStatus.done || TaskItemStatus.skipped => 3,
     };
     final order = [for (var i = 0; i < tasks.length; i++) i]
       ..sort((a, b) {
@@ -674,7 +677,7 @@ final class _ProgressListState extends State<ProgressList> {
   Widget build(BuildContext context) {
     final binding = AppBinding.maybeOf(context);
     final (rows, more) = _rows();
-    final running = rows.any((t) => t.status == TaskStatus.running);
+    final running = rows.any((t) => t.status == TaskItemStatus.running);
     final theme = Theme.of(context);
     final strings = TwkStrings.of(context);
     final frames = widget.spinner ?? theme.glyphs.spinner;
@@ -706,7 +709,7 @@ final class _ProgressListState extends State<ProgressList> {
                   final f? => formatPercent(f),
                   null => null,
                 },
-                hint: task.status == TaskStatus.running
+                hint: task.status == TaskItemStatus.running
                     ? null
                     : task.status.name,
               ),
@@ -727,7 +730,7 @@ final class _ProgressListState extends State<ProgressList> {
           base: base,
           muted: base.merge(theme.muted),
           marks: [
-            for (final status in TaskStatus.values)
+            for (final status in TaskItemStatus.values)
               base.merge(taskMarkStyle(theme, status)),
           ],
           border: base.merge(theme.border),
@@ -752,7 +755,7 @@ final class _Styles {
   final Style base;
   final Style muted;
 
-  /// The style of the mark and the bar of a task at each [TaskStatus], by
+  /// The style of the mark and the bar of a task at each [TaskItemStatus], by
   /// its index: a [TaskList]'s ([taskMarkStyle]).
   final List<Style> marks;
 
@@ -760,7 +763,7 @@ final class _Styles {
   final Style border;
 
   /// The style of the mark and the bar of a task at [status].
-  Style of(TaskStatus status) => marks[status.index];
+  Style of(TaskItemStatus status) => marks[status.index];
 
   @override
   bool operator ==(Object other) =>
@@ -1186,7 +1189,7 @@ final class _RenderProgressList extends RenderObject {
           x,
           y,
           task.label,
-          status == TaskStatus.skipped ? s.muted.pen : s.base.pen,
+          status == TaskItemStatus.skipped ? s.muted.pen : s.base.pen,
           room: labelW,
           ellipsis: _frames.glyphs.ellipsis,
         );
@@ -1196,8 +1199,8 @@ final class _RenderProgressList extends RenderObject {
         gap();
         final pen = opaque(s.of(status)).penIn(styles);
         final fraction =
-            task.fraction ?? (status == TaskStatus.done ? 1.0 : null);
-        final running = fraction == null && status == TaskStatus.running;
+            task.fraction ?? (status == TaskItemStatus.done ? 1.0 : null);
+        final running = fraction == null && status == TaskItemStatus.running;
         sweeping |= running;
         final run = running ? ChartGlyphs.sweep(barW, _sweep.current) : null;
         if (line) {
@@ -1277,12 +1280,12 @@ String _cell(
 }) {
   final sep = strings.decimalSeparator;
   final status = task.status;
-  final running = status == TaskStatus.running;
-  final over = status == TaskStatus.done || status == TaskStatus.failed;
+  final running = status == TaskItemStatus.running;
+  final over = status == TaskItemStatus.done || status == TaskItemStatus.failed;
   return switch (column) {
     ProgressColumn.percent => switch (task.fraction) {
       final f? => formatPercent(f),
-      null => status == TaskStatus.done ? '100%' : '',
+      null => status == TaskItemStatus.done ? '100%' : '',
     },
     ProgressColumn.count =>
       task.completed == 0 && task.total == null ? '' : _count(task, units, sep),

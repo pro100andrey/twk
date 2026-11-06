@@ -8,6 +8,5 @@ library;
 export 'async.dart';
 export 'change_notifier.dart';
 export 'controller_host.dart';
-export 'format.dart' show ByteUnits, formatBytes, formatTook;
 export 'listenable_builder.dart';
 export 'strings.dart';

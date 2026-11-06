@@ -415,7 +415,7 @@ const catalog = [
           'on it.',
     ),
     CatalogPage(
-      'Link',
+      'Hyperlink',
       'Text linked to a URL, which a terminal that knows hyperlinks opens.',
     ),
     CatalogPage(

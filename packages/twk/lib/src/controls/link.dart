@@ -1,4 +1,4 @@
-/// Text that links to a URL: [Link].
+/// Text that links to a URL: [Hyperlink].
 library;
 
 import 'package:twk_core/twk_core.dart' show Attr;
@@ -29,13 +29,19 @@ import '../text/widgets.dart';
 /// const Row(
 ///   children: [
 ///     Text('Docs: '),
-///     Link('https://dart.dev', text: 'dart.dev'),
+///     Hyperlink('https://dart.dev', text: 'dart.dev'),
 ///   ],
 /// )
 /// ```
-final class Link extends StatefulWidget {
+final class Hyperlink extends StatefulWidget {
   /// A link to [url] that shows [text], or the URL.
-  const Link(this.url, {super.key, this.text, this.style, this.hoverStyle});
+  const Hyperlink(
+    this.url, {
+    super.key,
+    this.text,
+    this.style,
+    this.hoverStyle,
+  });
 
   /// What the link opens: `https://…`, `file:///…`.
   final String url;
@@ -52,10 +58,10 @@ final class Link extends StatefulWidget {
   final Style? hoverStyle;
 
   @override
-  State<Link> createState() => _LinkState();
+  State<Hyperlink> createState() => _HyperlinkState();
 }
 
-final class _LinkState extends State<Link> {
+final class _HyperlinkState extends State<Hyperlink> {
   var _hovered = false;
 
   void _hover(bool hovered) {

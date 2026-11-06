@@ -17,7 +17,7 @@ text
 │ ▎   KeyHintsBar                                                                          │                             │
 │     StatusMessage, Badge       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  keys named by              │
 │     Callout               ▐       ┌                                              ┐       │   signs  names              │
-│     Link                  ▐    ·    a field                         [ ] autosave   ·     │                             │
+│     Hyperlink             ▐    ·    a field                         [ ] autosave   ·     │                             │
 │     ListTile              ▐                                                              │  separator                  │
 │     StatusBar             ▐    ·    did: nothing                                   ·     │   blanks  dot  line         │
 │                           ▐                                                              │                             │
@@ -54,7 +54,7 @@ styles
 │auvvvwwwwwwwwwwwvvvvvvvvvvvahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooaoooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnhnnnnnhnnhhhhhhhhhhhhhh│
 │aaaaaoooooooaaaaaaaaaaaaaaadhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhphhvwwwwwviEEEEEihhhhhhhhhhhhh│
-│aaaaaooooaaaaaaaaaaaaaaaaaadhhhhphhhhnhnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhnhnhAAAAAAAAhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaadhhhhphhhhnhnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhnhnhAAAAAAAAhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnnnnnhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooaaaaaaaaaaaaadhhhhphhhhnnnnhnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhvwwwwwwviEEEiiEEEEihhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

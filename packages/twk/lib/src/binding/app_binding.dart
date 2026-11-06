@@ -29,9 +29,6 @@ import 'package:twk_core/twk_core.dart'
         KeyCode,
         KeyEvent,
         KeyKind,
-        LogLevel,
-        LogRecord,
-        LogSink,
         Mod,
         MouseEvent,
         MouseKind,
@@ -50,9 +47,9 @@ import 'package:twk_core/twk_core.dart'
         TextSegmenter,
         TwkApp,
         Viewport,
-        WindowBackend,
-        log;
+        WindowBackend;
 
+import '../../log.dart';
 import '../animation/frame_clock.dart';
 import '../debug/console.dart';
 import '../debug/editor.dart';

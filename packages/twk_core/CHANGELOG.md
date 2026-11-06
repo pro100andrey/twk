@@ -4,6 +4,8 @@
 
 Breaking:
 
+- `log`, `LogLevel`, `LogRecord` and `LogSink` are out of `twk_core.dart`: they
+  are in `package:twk_core/terminal.dart` (and `package:twk/log.dart`).
 - A process has one terminal: `Terminal.open` on its own stdio throws a
   `TerminalException` while another is open there and not suspended, in a release
   build too, where the second took keys from the first and the tty stayed raw. A

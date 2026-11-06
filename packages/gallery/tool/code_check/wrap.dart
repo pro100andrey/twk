@@ -226,7 +226,8 @@ Wrapped wrap(String src) {
   final items = _items(src);
   final given = [
     "import 'dart:async';",
-    "import 'dart:math' hide log;",
+    "import 'dart:math';",
+    "import 'package:twk/log.dart';",
     "import 'package:twk/twk.dart';",
     // all the gallery's packages, whatever a Code names of them: a list of
     // their names would fail a Code that uses a widget added since

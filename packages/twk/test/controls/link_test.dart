@@ -1,4 +1,4 @@
-// Link: its URL as a hyperlink, and, as the design draws it, lighter and
+// Hyperlink: its URL as a hyperlink, and, as the design draws it, lighter and
 // bold while the mouse is over it; with no hover the mouse left to the
 // terminal.
 import 'package:test/test.dart';
@@ -28,7 +28,7 @@ void main() {
     t,
   ) async {
     await t.pumpWidget(
-      dark(const Link('https://dart.dev', text: 'Dart')),
+      dark(const Hyperlink('https://dart.dev', text: 'Dart')),
       size: (10, 2),
     );
     final rest = allOf(
@@ -58,7 +58,9 @@ void main() {
 
   testTwk('an empty hoverStyle: no hover, and the mouse unread', (t) async {
     await t.pumpWidget(
-      dark(const Link('https://dart.dev', text: 'Dart', hoverStyle: Style())),
+      dark(
+        const Hyperlink('https://dart.dev', text: 'Dart', hoverStyle: Style()),
+      ),
       size: (10, 2),
     );
     expect(tracking(t), MouseTracking.off);

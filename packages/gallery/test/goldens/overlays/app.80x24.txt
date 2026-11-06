@@ -4,7 +4,7 @@ text
 │                                                                                │
 │   ⌕ Filter       /     App                                     Preview   Code  │
 │                        The root of an app: its theme over the Overlay its      │
-│     Link               dialogs show in, over the app and its own keys.         │
+│     Hyperlink          dialogs show in, over the app and its own keys.         │
 │     ListTile         ──────────────────────────────────────────────────────────│
 │     StatusBar                   ┌                                  ┐           │
 │                         ·   ·                                           ·   ·  │
@@ -29,7 +29,7 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahihiiiiiihhhhhhhjhaaggkkkggggggggggggggggggggggggggggggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmmmgmmmmgmmgmmgmmmmgmmmgmmmmmgmmmmgmmmgmmmmmmmgmmmgggggg│
-│aaaaannnnaaaaaaaaaaaaaggmmmmmmmgmmmmgmmmgmmmmgmmmgmmmgmmmgmmmgmmmgmmmmmggggggggg│
+│aaaaannnnnnnnnaaaaaaaaggmmmmmmmgmmmmgmmmgmmmmgmmmgmmmgmmmgmmmgmmmgmmmmmggggggggg│
 │aaaaannnnnnnnaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnnnnaaaaaaaagggggggggggoggggggggggggggggggggggggggggggggggoggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggogggogggggggggggggggggggggggggggggggggggggggggggogggogg│

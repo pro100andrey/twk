@@ -11,7 +11,7 @@ text
 │     KeyHintsBar             │ A newer version of twk is out: 0.2.0.    │       │
 │     StatusMessage…      ·   │                                  Update  │    ·  │
 │ ▎   Callout                 └──────────────────────────────────────────┘       │
-│     Link                ·                                                   ·  │
+│     Hyperlink           ·                                                   ·  │
 │     ListTile        ▐       did: nothing                                       │
 │     StatusBar       ▐     └                                              ┘     │
 │                      ──────────────────────────────────────────────────────────│
@@ -36,7 +36,7 @@ styles
 │aaaaannnnnnnnnnnaaaaaagggggggpgrgrrrrrgrrrrrrrgrrgrrrgrrgrrrrgrrrrrrggggpggggggg│
 │aaaaannnnnnnnnnnnnnaaagggogggpgggggggggggggggggggggggggggggggggsttttttsgpggggogg│
 │auvvvwwwwwwwvvvvvvvvvagggggggppppppppppppppppppppppppppppppppppppppppppppggggggg│
-│aaaaannnnaaaaaaaaaaaaagggogggggggggggggggggggggggggggggggggggggggggggggggggggogg│
+│aaaaannnnnnnnnaaaaaaaagggogggggggggggggggggggggggggggggggggggggggggggggggggggogg│
 │aaaaannnnnnnnaaaaaaaadgggggggmmmmgmmmmmmmggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnaaaaaaadgggggoggggggggggggggggggggggggggggggggggggggggggggggoggggg│
 │aaaaaaaaaaaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│

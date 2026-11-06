@@ -4,6 +4,22 @@
 
 Breaking:
 
+- `log`, `LogLevel`, `LogRecord` and `LogSink` are in `package:twk/log.dart`, out
+  of `twk.dart`, so that `log` clashes with no `dart:math` import: an app that
+  logs imports it, and one that had `hide log` or prefixed `dart:math` for
+  it drops that.
+- `formatBytes`, `formatTook` and `ByteUnits` are in `package:twk/format.dart`,
+  out of `twk.dart`: an app that writes a size or a time, or sets a widget's
+  `byteUnits:`, imports it.
+- `Mark`, the base of `CellMark` and `TextMark`, is `GlyphMark`.
+- `WindowTitle` is `TerminalTitle`, as `TerminalProgress` is named: it sets the
+  terminal's title.
+- `TaskStatus` is `TaskItemStatus`, the status of a `TaskItem`.
+- `Link` is `Hyperlink`: an app that wrote `hide Link` for dart:io's `Link` drops it.
+- `twk.dart` no longer exports `ModeReport`, `KeyboardFlagsReport`,
+  `DeviceAttributes`, `ColorReport`, `CursorReport` and `UnknownSequence`, the
+  terminal's answers an app seldom reads: `package:twk_core/terminal.dart` has
+  them. A `switch` over `InputEvent` that named them ends in `_ => ...` instead.
 - `ScrollBehavior` and `ScrollConfiguration`, as Flutter has them, say what the
   wheel does: `App(scrollBehavior:)` for the app, `ScrollConfiguration` for a
   subtree. A `Scrollable` gathers the wheel's events into whole cells once a frame,

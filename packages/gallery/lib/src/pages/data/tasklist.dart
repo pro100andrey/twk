@@ -42,11 +42,11 @@ List<TaskItem> _liveTasks(
     List<TaskItem> children = const [],
   }) {
     final (status, ms) = step < from
-        ? (TaskStatus.pending, null)
+        ? (TaskItemStatus.pending, null)
         : step < to
-        ? (TaskStatus.running, into - starts[from])
+        ? (TaskItemStatus.running, into - starts[from])
         : (
-            fails ? TaskStatus.failed : TaskStatus.done,
+            fails ? TaskItemStatus.failed : TaskItemStatus.done,
             starts[to] - starts[from],
           );
     return TaskItem(
@@ -72,7 +72,7 @@ List<TaskItem> _liveTasks(
       task('Run the tests', 3, 4, fails: true),
       TaskItem(
         'Deploy',
-        status: step < 4 ? TaskStatus.pending : TaskStatus.skipped,
+        status: step < 4 ? TaskItemStatus.pending : TaskItemStatus.skipped,
       ),
     ] else ...[
       task('Run the tests', 3, 4),
@@ -85,12 +85,12 @@ List<TaskItem> _liveTasks(
 /// failed and those after it skipped, and those after it pending; the task
 /// running has run [ran].
 List<TaskItem> _stepTasks(int step, Duration ran, {required bool failed}) {
-  TaskStatus at(int i) => i < step
-      ? TaskStatus.done
+  TaskItemStatus at(int i) => i < step
+      ? TaskItemStatus.done
       : i > step
-      ? (failed ? TaskStatus.skipped : TaskStatus.pending)
-      : (failed ? TaskStatus.failed : TaskStatus.running);
-  Duration? time(int i) => at(i) == TaskStatus.running ? ran : null;
+      ? (failed ? TaskItemStatus.skipped : TaskItemStatus.pending)
+      : (failed ? TaskItemStatus.failed : TaskItemStatus.running);
+  Duration? time(int i) => at(i) == TaskItemStatus.running ? ran : null;
   return [
     TaskItem('Fetch dependencies', status: at(0), elapsed: time(0)),
     TaskItem(
@@ -100,7 +100,7 @@ List<TaskItem> _stepTasks(int step, Duration ran, {required bool failed}) {
       children: [
         TaskItem(
           'lib/core.dart',
-          status: step > 0 ? TaskStatus.done : TaskStatus.pending,
+          status: step > 0 ? TaskItemStatus.done : TaskItemStatus.pending,
         ),
         TaskItem('lib/widgets.dart', status: at(1), elapsed: time(1)),
       ],
@@ -257,7 +257,7 @@ final _taskList = GalleryPage(
         ]),
         '/// failed and those after it skipped, and those after it pending.',
         'List<TaskItem> _build(int step, {required bool failed}) {',
-        '  TaskStatus at(int i) => i < step',
+        '  TaskItemStatus at(int i) => i < step',
         '      ? .done',
         '      : i > step',
         '      ? (failed ? .skipped : .pending)',
@@ -305,7 +305,7 @@ final _taskList = GalleryPage(
       '',
       'List<TaskItem> get _tasks {',
       '  // a task that runs from step [from] to step [to]',
-      '  TaskStatus at(int from, int to) =>',
+      '  TaskItemStatus at(int from, int to) =>',
       '      _step < from ? .pending : (_step < to ? .running : .done);',
       '  return [',
       "    TaskItem('Fetch dependencies', status: at(0, 1)),",

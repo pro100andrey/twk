@@ -6,7 +6,7 @@ import 'package:meta/meta.dart';
 import 'package:twk_core/twk_core.dart' show BorderType;
 
 import '../animation/spinner.dart' show SpinnerFrames;
-import 'marks.dart' show Mark, Marks, ThemeMarks;
+import 'marks.dart' show GlyphMark, Marks, ThemeMarks;
 import 'theme.dart' show Theme, ThemeData;
 
 /// The marks widgets draw, by what each means (a check, a cross, a cursor
@@ -32,7 +32,7 @@ import 'theme.dart' show Theme, ThemeData;
 /// cell (a scrollbar's thumb, a gauge) and for one drawn as text (a radio
 /// button's, a switch's, a button's edge, a chip's close, a pagination's
 /// arrows) alike. An empty mark draws nothing and breaks nothing: what it
-/// draws is the [Mark.onEmpty] of its descriptor, nothing for most, a
+/// draws is the [GlyphMark.onEmpty] of its descriptor, nothing for most, a
 /// blank for the track of a scrollbar, a slider's, [switchKnob] and
 /// [previous] and [next], and [Glyphs.ascii]'s for a thumb or the line of a
 /// gauge. The checkbox is as the radio button is: its marks [checkboxOn]
@@ -317,10 +317,10 @@ final class Glyphs {
   /// A bullet between items on a line, and the mask of a hidden text.
   final String bullet;
 
-  /// The mark of a task not started (`TaskStatus.pending`).
+  /// The mark of a task not started (`TaskItemStatus.pending`).
   final String taskPending;
 
-  /// The mark of a task skipped (`TaskStatus.skipped`).
+  /// The mark of a task skipped (`TaskItemStatus.skipped`).
   final String taskSkipped;
 
   /// The line between the segments of a segmented button.

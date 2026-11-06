@@ -9,7 +9,7 @@ text
 │     KeyHintsBar                 ┌                                  ┐           │
 │     StatusMessage…      ·   ·     ▤ notes.md                     ›      ·   ·  │
 │     Callout                         2 KB, an hour ago                          │
-│     Link                ·   ·     ▤ todo.md                      ›      ·   ·  │
+│     Hyperlink           ·   ·     ▤ todo.md                      ›      ·   ·  │
 │ ▎   ListTile                        640 B, today                               │
 │     StatusBar           ·   ·     ▤ photo.png                    ›      ·   ·  │
 │                     ▐               1.2 MB, last week                          │
@@ -34,7 +34,7 @@ styles
 │aaaaannnnnnnnnnnaaaaaagggggggggggoggggggggggggggggggggggggggggggggggoggggggggggg│
 │aaaaannnnnnnnnnnnnnaaagggogggogggggpgllllllllgggggggggggggggggggggmggggggogggogg│
 │aaaaannnnnnnaaaaaaaaaagggggggggggggggmgmmmgmmgmmmmgmmmgggggggggggggggggggggggggg│
-│aaaaannnnaaaaaaaaaaaaagggogggogggggpgpppppppggggggggggggggggggggggmggggggogggogg│
+│aaaaannnnnnnnnaaaaaaaagggogggogggggpgpppppppggggggggggggggggggggggmggggggogggogg│
 │aqrrrssssssssrrrrrrrragggggggggggggggmmmgmmgmmmmmggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnaaaaaaaagggogggogggggpgpppppppppggggggggggggggggggggmggggggogggogg│
 │aaaaaaaaaaaaaaaaaaaaadgggggggggggggggmmmgmmmgmmmmgmmmmgggggggggggggggggggggggggg│

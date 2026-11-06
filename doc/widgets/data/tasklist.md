@@ -43,7 +43,7 @@ Future<void> _run() async {
 
 List<TaskItem> get _tasks {
   // a task that runs from step [from] to step [to]
-  TaskStatus at(int from, int to) =>
+  TaskItemStatus at(int from, int to) =>
       _step < from ? .pending : (_step < to ? .running : .done);
   return [
     TaskItem('Fetch dependencies', status: at(0, 1)),

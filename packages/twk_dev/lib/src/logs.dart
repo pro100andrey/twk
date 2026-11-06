@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
+import 'package:twk_core/terminal.dart' show LogLevel, LogRecord;
 import 'package:twk_core/twk_core.dart';
 
 import 'project.dart';
@@ -14,6 +15,7 @@ import 'project.dart';
 // Examples can assume:
 // import 'dart:convert';
 // import 'package:twk_core/twk_core.dart';
+// import 'package:twk_core/terminal.dart' show LogLevel, LogRecord;
 
 /// `twk logs`: tails the log an app of the project serves
 /// (`LogSink.serve`), one app after another, until stopped.

@@ -19,6 +19,8 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:math' show sin;
 
+import 'package:twk/format.dart';
+import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
 
 Future<void> main(List<String> args) => runApp(
