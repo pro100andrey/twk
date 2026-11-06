@@ -11,6 +11,7 @@ import 'dart:convert';
 import 'package:test/test.dart';
 import 'package:twk_core/src/graphics.dart';
 import 'package:twk_core/src/presenter.dart';
+import 'package:twk_core/src/surface.dart' show kSkip;
 
 import '../support/harness.dart';
 import 'graphics_test.dart' show image, notBlank, shown;
@@ -162,6 +163,31 @@ void main() {
     hs.frame();
     expect(hs.vt.images, hasLength(2));
     expect(hs.vt.kittyImages.keys, {1, 2});
+    expect(hs.mismatches(), isEmpty);
+  });
+
+  test('sixel: an image drawn over in part leaves no pixels to a scroll '
+      'up that Konsole moves them with', () {
+    final hs = konsole(GraphicsProtocol.sixel, told: true);
+    for (var y = 0; y < 8; y++) {
+      hs.canvas.text(0, y, 'line $y'.padRight(20), hs.pens[1]);
+    }
+    hs.canvas.image(2, 4, 4, 2, image(GraphicsProtocol.sixel));
+    hs.frame();
+    hs.canvas.text(2, 4, 'x', hs.pens[1]);
+    hs.frame();
+    // rows 0..3 scroll up above the image
+    hs.surface.scrollRows(0, 3, 1);
+    hs.canvas.text(0, 2, 'new line'.padRight(20), hs.pens[1]);
+    hs.frame();
+    final stale = [
+      for (var y = 0; y < 8; y++)
+        for (var x = 0; x < 20; x++)
+          if (hs.vt.cell(x, y).image != null &&
+              (hs.surface.cells[y * 20 + x] & kSkip) == 0)
+            '($x, $y)',
+    ];
+    expect(stale, isEmpty);
     expect(hs.mismatches(), isEmpty);
   });
 }

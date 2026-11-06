@@ -1406,12 +1406,21 @@ final class Presenter {
   @pragma('vm:never-inline')
   void _presentImages(Surface back, {required bool lost}) {
     final want = back.images;
+    final shown = _shown;
     for (var i = want.length - 1; i >= 0; i--) {
       if (!_reservedStill(back, want[i])) {
-        want.removeAt(i);
+        final p = want.removeAt(i);
+        // the cells still reserved keep the pixels of a sixel or iTerm2
+        // image shown there, which a scroll up moves on Konsole to cells no
+        // row writes ([_scrollsImage] looks at what is shown): erased at
+        // once
+        if (caps.konsoleImages &&
+            caps.graphics != GraphicsProtocol.kitty &&
+            shown.any((s) => s.drawn && s.at.sameAs(p))) {
+          _blankUnder(back, p, all: true);
+        }
       }
     }
-    final shown = _shown;
     if (lost) {
       _kittySent.clear();
     }
