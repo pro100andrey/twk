@@ -4,7 +4,7 @@
 import 'dart:io';
 
 import 'package:test/test.dart';
-import 'package:twk/twk.dart';
+import 'package:twk/src/debug/console_record.dart';
 
 /// The platform's separator, in the paths a stack's file: URIs give.
 final String sep = Platform.pathSeparator;

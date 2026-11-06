@@ -11,6 +11,9 @@ import '../../log.dart';
 import '../binding/source_excerpt.dart' show inPubCache, sdkOrTwk, shownPath;
 import '../platform/platform.dart' show sourcePath;
 
+// Examples can assume:
+// import 'package:twk/src/debug/console_record.dart' show stackLines;
+
 /// What a line of a record shown whole is.
 enum RecordLineKind {
   /// A line of the record's message.

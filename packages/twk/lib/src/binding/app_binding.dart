@@ -52,6 +52,7 @@ import 'package:twk_core/twk_core.dart'
 import '../../log.dart';
 import '../animation/frame_clock.dart';
 import '../debug/console.dart';
+import '../debug/console_record.dart' show RecordFrame;
 import '../debug/editor.dart';
 import '../debug/frame_overlay.dart';
 import '../debug/inspector.dart';

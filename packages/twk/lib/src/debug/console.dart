@@ -32,9 +32,6 @@ import '../style/style.dart';
 import '../text/label_painter.dart';
 import 'console_record.dart';
 
-export 'console_record.dart'
-    show RecordFrame, RecordLine, RecordLineKind, recordLines;
-
 /// What a log console shows of [sink] and what is done to it: whether it
 /// is open, the records listed — those at [level] and above, of the ones
 /// the sink keeps, which it takes as they are logged — the window onto
