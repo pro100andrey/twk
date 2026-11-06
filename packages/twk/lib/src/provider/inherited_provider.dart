@@ -562,11 +562,10 @@ final class _Scope<T> extends InheritedWidget {
 final class _Dependency<T> {
   _Dependency(this.build);
 
-  /// It watched the whole value once, and stays told of every change, as
-  /// with package:provider.
+  /// Its last build watched the whole value, and is told of every change.
   var all = false;
 
-  /// The rebuild count of the build that selected [parts].
+  /// The rebuild count of the build that asked for [all] or [parts].
   int build;
 
   /// Each says whether the value changed what it selected.
@@ -655,18 +654,24 @@ final class _ScopeElement<T> extends InheritedElement
   }
 
   void _dependOnAll(BuildContext dependent) {
-    (_dependencies[dependent] ??= _Dependency(_buildOf(dependent))).all = true;
+    _dependencyOf(dependent).all = true;
   }
 
   void _dependOnPart(BuildContext dependent, bool Function(T value) changed) {
+    _dependencyOf(dependent).parts.add(changed);
+  }
+
+  // what the dependent's current build asked for: a new build starts anew
+  _Dependency<T> _dependencyOf(BuildContext dependent) {
     final build = _buildOf(dependent);
     final dependency = _dependencies[dependent] ??= _Dependency(build);
     if (dependency.build != build) {
       dependency
         ..build = build
+        ..all = false
         ..parts.clear();
     }
-    dependency.parts.add(changed);
+    return dependency;
   }
 
   static int _buildOf(BuildContext dependent) => dependent.owner?.rebuilds ?? 0;
