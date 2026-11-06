@@ -4,6 +4,9 @@
 
 Breaking:
 
+- `Localizations` is `TwkLocalizations`: Flutter has a `Localizations` of its
+  own, which gives a widget the `Locale` and its delegates' objects, where this
+  one gives the words twk writes itself (`TwkStrings`).
 - `TweenAnimationBuilder` takes a `Tween` as Flutter's does: `tween:
   IntTween(begin: 0, end: total)`, where it took `value:`, `from:` and a
   constructor (`tween: IntTween.new`). The value runs from the tween's `begin`

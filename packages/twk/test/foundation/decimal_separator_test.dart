@@ -43,7 +43,7 @@ void main() {
 
   group('TaskList', () {
     testTwk('writes the time a task took with the separator', (t) async {
-      Widget list(TwkStrings strings) => Localizations(
+      Widget list(TwkStrings strings) => TwkLocalizations(
         strings: strings,
         child: const TaskList(
           tasks: [
@@ -69,7 +69,7 @@ void main() {
       tracker.add('a', total: 3200000, unit: ProgressUnit.bytes)
         ..start()
         ..advance(1200000);
-      Widget list(TwkStrings strings) => Localizations(
+      Widget list(TwkStrings strings) => TwkLocalizations(
         strings: strings,
         child: ProgressList(
           tracker: tracker,

@@ -1,6 +1,6 @@
 ---
 title: "Words in another language"
-about: "TwkStrings and Localizations: the words twk writes itself, in your language, from slang or anything else."
+about: "TwkStrings and TwkLocalizations: the words twk writes itself, in your language, from slang or anything else."
 order: 9
 ---
 # Words in another language
@@ -28,13 +28,13 @@ language puts it where it belongs.
 
 ## An app
 
-`Localizations(strings:, child:)` at the top of the app. Widgets read the
+`TwkLocalizations(strings:, child:)` at the top of the app. Widgets read the
 words with `TwkStrings.of(context)`; changing the object builds again those
 that read it, as it does for a `Theme`.
 
 ```text
 runApp(
-  Localizations(
+  TwkLocalizations(
     strings: german,
     child: const App(),
   ),
@@ -45,7 +45,7 @@ runApp(
 
 A `Cli` has no `BuildContext` in its plain text, so it takes the words
 itself: `Cli(strings:)`, or `strings:` of `Cli.run` and `Cli.runWithArgs`.
-What it shows or asks in its inline session is wrapped in `Localizations`
+What it shows or asks in its inline session is wrapped in `TwkLocalizations`
 for you, as it is in your `Theme`.
 
 ```text
@@ -123,7 +123,7 @@ final t = AppLocale.ru.build();
 await Cli.runWithArgs(args, strings: twkStrings(t), body);
 ```
 
-An app puts `Localizations(strings: ..., child: ...)` at its root, with
+An app puts `TwkLocalizations(strings: ..., child: ...)` at its root, with
 strings it made once for the language, and makes them again when the
 language changes. The functions in them compare by identity: strings made
 in `build` differ from the last each time, and every widget that reads them

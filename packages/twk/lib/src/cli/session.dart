@@ -309,7 +309,7 @@ final class _Host extends StatelessWidget {
     // App places one around an app
     final overlay = Overlay(child: host);
     final theme = session._theme;
-    return Localizations(
+    return TwkLocalizations(
       strings: session._strings,
       child: theme == null ? overlay : Theme(data: theme, child: overlay),
     );

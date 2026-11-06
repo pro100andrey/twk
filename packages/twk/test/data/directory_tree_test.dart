@@ -333,7 +333,7 @@ void main() {
         contents: {rooted('/p/a.txt'): 'x' * 1536},
       );
       await t.pumpWidget(
-        Localizations(
+        TwkLocalizations(
           strings: const TwkStrings(decimalSeparator: ','),
           child: Theme.terminal(
             child: DirectoryTree(

@@ -259,7 +259,7 @@ final class Cli {
 
   /// The words the console writes on its own (`answer y or n`, ` in 3 s`),
   /// English unless given others; widgets it shows are given them too
-  /// ([Localizations]).
+  /// ([TwkLocalizations]).
   final TwkStrings strings;
 
   /// The lines of code an error's [traceback] shows of the source it was

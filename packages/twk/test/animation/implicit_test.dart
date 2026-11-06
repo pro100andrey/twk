@@ -363,9 +363,9 @@ void main() {
     await expectIdle(t);
   });
 
-  testTwk("TweenAnimationBuilder takes the Tween itself: its begin is where "
+  testTwk('TweenAnimationBuilder takes the Tween itself: its begin is where '
       "the first run starts and a new tween's begin is not used, a run "
-      "going on from the value shown", (t) async {
+      'going on from the value shown', (t) async {
     final value = await start(
       t,
       10,
@@ -384,11 +384,11 @@ void main() {
     expect(await frames(t, 2, () => t.lines.single), ['10', '8']);
   });
 
-  testTwk('a tween of the app\'s own kind that does not say how to make '
+  testTwk("a tween of the app's own kind that does not say how to make "
       'another throws when TweenAnimationBuilder needs one', (t) async {
-    final value = await start(
+    final value = await start<double>(
       t,
-      1.0,
+      1,
       (value) => TweenAnimationBuilder<double>(
         tween: _Doubled(begin: value, end: value),
         duration: ms * 50,

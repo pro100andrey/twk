@@ -148,7 +148,7 @@ List<String> widgetLines(
   }
   final owner = BuildOwner();
   final root = RootWidget(
-    child: Localizations(
+    child: TwkLocalizations(
       strings: strings,
       child: theme == null
           ? Overlay(child: widget)
