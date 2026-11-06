@@ -140,7 +140,7 @@ the screen's). Then it shows the screen, rows numbered, as text, or for
 `styleAt` with the styles marked as above, with the empty rows at the end
 summed up (`matchesScreen(styles: true)` leaves it out: its diff shows it).
 Then comes the widget tree, from the widget `pumpWidget` showed down, as twk's
-`debugDumpTree` prints it (`none` before the first frame and once the app
+`debugDumpApp` prints it (`none` before the first frame and once the app
 ended), and last the render tree, from the binding's root render object down,
 which alone shows each render object's offset, constraints and flags.
 

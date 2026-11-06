@@ -4,6 +4,8 @@
 
 Breaking:
 
+- `debugDumpTree` is `debugDumpApp`, as Flutter names the function that prints
+  the element tree; it still takes a `BuildContext`.
 - `Scrollbar` takes `timeToFade`, as Flutter names it, where it took
   `hideAfter`.
 - `DragTarget` takes `onWillAcceptWithDetails` and `onAcceptWithDetails`, as

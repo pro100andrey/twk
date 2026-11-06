@@ -563,7 +563,7 @@ abstract class Element implements BuildContext {
   /// [debugFillProperties] adds; the size of its render object, or of the
   /// nearest below it, once laid out; whether it is to be rebuilt
   /// ([DiagnosticsFlag.needsBuild]); and the descriptions of its children.
-  /// `debugDumpTree` prints it.
+  /// `debugDumpApp` prints it.
   DiagnosticsNode describe() {
     final properties = DiagnosticPropertiesBuilder();
     debugFillProperties(properties);

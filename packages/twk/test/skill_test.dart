@@ -271,7 +271,7 @@ Widget table(List<Entry> entries) => Table(
       final named = namedInProse();
       expect(named, isNotEmpty);
       expect(names, containsAll(['showDialog', 'closeDialog', 'showToast']));
-      expect(names, containsAll(['showFilePicker', 'debugDumpTree', 'runApp']));
+      expect(names, containsAll(['showFilePicker', 'debugDumpApp', 'runApp']));
       expect(names, containsAll(['debugDumpRenderTree', 'testTwk', 'Builder']));
       // in the app, a name that none of twk's cli.dart, hooks.dart and
       // provider.dart and twk_test's cli.dart export does not analyze

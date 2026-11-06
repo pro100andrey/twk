@@ -344,7 +344,7 @@ Each is described, with every parameter, in its topic's page of
 | async and time | `FutureBuilder`, `StreamBuilder`, `ListenableBuilder`, `ValueListenableBuilder`, `AnimatedBuilder`, `Spinner`, `ProgressBar`, `ProgressList` + `ProgressTracker` (many tasks with bars, rate and time left), `Skeleton` and `Skeletonize` (placeholders that shimmer while content loads), `AnimationController` + `TickerProviderStateMixin`, `Tween`, `Curves` |
 | state over the tree, hooks | `package:twk/provider.dart`, Provider's API: `Provider`, `ChangeNotifierProvider`, `MultiProvider`, `context.read<T>()`, `context.watch<T>()`, `context.select`, `Consumer`, `Selector` (twk_bloc builds on it); `package:twk/hooks.dart`, flutter_hooks': `HookWidget`, `HookBuilder`, `useState`, `useEffect`, `useMemoized`, `useTextEditingController`. Each is imported besides `package:twk/twk.dart`, and has its page in `packages/twk/doc/reference/` (`provider.md`, `hooks.md`) |
 | inline output | `Static` |
-| other | `AppBinding.of(context).notify(title, body)` (a desktop notification), `AppBinding.of(context).now()` (the time to show: the app's start moved on by its clock, which a test fixes; not `DateTime.now()`), `AppBinding.of(context).addPostFrameCallback((time) { … })` (once, at the end of the frame, when sizes are laid out; one that throws ends the app, `runApp` throwing it), `AppBinding.of(context).attachRootWidget(widget)` (replace the whole app from the next frame on, the old root's states disposed; from a callback, not a build; `doc/guides/state.md`), `debugDumpTree(context)`, `Console`, `Semantics(hint:)` and `ExcludeSemantics` (what a screen reader reads) |
+| other | `AppBinding.of(context).notify(title, body)` (a desktop notification), `AppBinding.of(context).now()` (the time to show: the app's start moved on by its clock, which a test fixes; not `DateTime.now()`), `AppBinding.of(context).addPostFrameCallback((time) { … })` (once, at the end of the frame, when sizes are laid out; one that throws ends the app, `runApp` throwing it), `AppBinding.of(context).attachRootWidget(widget)` (replace the whole app from the next frame on, the old root's states disposed; from a callback, not a build; `doc/guides/state.md`), `debugDumpApp(context)`, `Console`, `Semantics(hint:)` and `ExcludeSemantics` (what a screen reader reads) |
 
 ## Recipes
 
@@ -718,7 +718,7 @@ What to know:
   `s`, then a click in the app picks the node there.
 - `TWK_DEBUG=logs dart run bin/main.dart`, and `dart run twk_dev:twk logs`
   in another terminal, tails the log.
-- `debugDumpTree(context)` and `debugDumpRenderTree(context)` print the
+- `debugDumpApp(context)` and `debugDumpRenderTree(context)` print the
   trees, to the log inside an app.
 - End to end in a pseudo-terminal, with the repository's tools:
   `python3 <twk>/tool/pty_run.py --size 80x24 --input '2:milk,2.5:\r,3:\x11' --out /tmp/app.bin -- dart run bin/main.dart`

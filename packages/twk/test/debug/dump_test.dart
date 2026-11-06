@@ -36,9 +36,9 @@ void main() {
     );
   });
 
-  test('debugDumpTree prints the element tree from its root', () {
+  test('debugDumpApp prints the element tree from its root', () {
     final context = _find<_Counter>(view.root);
-    expect(_printed(() => debugDumpTree(context)), [
+    expect(_printed(() => debugDumpApp(context)), [
       '''
 RootWidget                                                         30×12
 └─ Column ‹vertical›                                               30×12
@@ -78,7 +78,7 @@ RenderFlex ‹vertical, constraints: tight›                                   
   test('the dumps show what is to be built, laid out and painted', () {
     final counter = _find<_Counter>(view.root) as StatefulElement;
     (counter.state as _CounterState).increment();
-    final dump = _printed(() => debugDumpTree(counter)).single;
+    final dump = _printed(() => debugDumpApp(counter)).single;
     expect(
       dump.split('\n'),
       contains(
