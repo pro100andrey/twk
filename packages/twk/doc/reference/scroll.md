@@ -16,8 +16,9 @@ the focus is in it the keys that would move it now are among those a
 `KeyHintsBar` shows, unless `keyHints` is false: `scroll` for the arrows, `a
 window` for Page Up and Page Down, `the ends` for Home and End, those back
 left out at the start, those on at the end, and all of them with nothing to
-scroll; a notch of the wheel over it scrolls `Scrollable.wheelStep` (3)
-cells (along a horizontal axis the horizontal wheel's, or the vertical one's
+scroll; the wheel over it scrolls as the `ScrollBehavior` of the
+`ScrollConfiguration` above it says (below), the events of a frame moving it
+once at the start of the frame (along a horizontal axis the horizontal wheel's, or the vertical one's
 for a mouse without one), the innermost scrollable under the mouse alone,
 and while one is mounted the terminal reports presses and the wheel
 (`gestures`). With `physics:` a `NeverScrollableScrollPhysics()` (any
@@ -179,16 +180,33 @@ last, on the app's clock, and while the thumb is dragged, and `never` shows
 no bar, the child having all of the room. The thumb is in `style`'s
 foreground and the track in its background, over the theme's `muted` and
 `background`; the bar is a repaint boundary, a move that leaves the thumb
-where it is painting nothing of it. `wheelAcceleration` on a `Scrollable`, a
-`SingleChildScrollView` or a `ListView` (`WheelAcceleration(streak: 150 ms,
-max: 6)`; by default `WheelAcceleration.none`, every notch `wheelStep`
-cells) scrolls a notch further as the notches come faster: a notch on its
-own and the first of a streak scroll `wheelStep` cells, one that comes the
-same way within `streak` of the one before goes on the streak, times `1 +
-0.8 (e^(r / 3) - 1)` up to `max`, r being 100 ms over the average time
-between the last four notches of the streak; a notch less than 6 ms after
-the one before goes as far as that one, and what a notch scrolls past a
-whole cell is carried on to the next; timed on the app's clock.
+where it is painting nothing of it.
+
+## `ScrollBehavior`
+
+`ScrollBehavior` is how the wheel scrolls, for every scrollable below a
+`ScrollConfiguration(behavior:, child:)` (`ScrollConfiguration.of(context)`
+reads it; Flutter's names); `App(scrollBehavior:)` places one over the whole
+app, and without any the default `ScrollBehavior()` is taken. `ScrollPhysics`
+is the bounds, the behaviour the input. A terminal reports a wheel and a
+trackpad as events one a unit counted (a notch is 1 event in one terminal, 9
+in another; a trackpad a burst a refresh), so the behaviour measures the
+input itself, never the terminal's name: input is **dense** when two pairs of
+events of one stream (one axis, one way) come less than `denseGap` (2 ms)
+apart, for the session; dense events move `denseStep` (1) cells, the n-th of
+a stream `1 + n / accelEvents` (30) times that up to `accelMax` (3); **sparse**
+input, a wheel one event a notch, moves `step` (3) cells an event. A stream
+ends after `streamGap` (80 ms) without an event or at a turn, which moves at
+once; the fraction under a cell carries into the next stream the same way
+only; with `axisLock` a gesture along one axis drops the sideways events its
+trackpad adds. `ScrollBehavior.fixed(n)` moves `n` an event, dense or not.
+
+Each `Scrollable` owns a `ScrollInput`, a pure state machine (no clock, no
+I/O): `event(now, axis, way)` takes each wheel event with its time,
+`take()` gives the whole cells (`ScrollDelta(rows, columns)`) once a frame,
+which the scrollable applies at the start of the frame, so any number of
+events in a frame are one move. `cancel()` drops what waited: a key that moves
+the view does. Raw events and `Listener.onScroll` are as they were.
 
 ## `LogView`
 

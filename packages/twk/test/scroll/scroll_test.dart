@@ -149,12 +149,17 @@ void main() {
         size: (20, 8),
       );
       await t.mouse(MouseKind.wheelDown, 2, 1);
+      await t.pump();
       await t.mouse(MouseKind.wheelDown, 2, 1);
+      await t.pump();
       expect((outer.offset, inner.offset), (0, 6));
       await t.mouse(MouseKind.wheelDown, 2, 6);
+      await t.pump();
       expect((outer.offset, inner.offset), (3, 6));
       await t.mouse(MouseKind.wheelUp, 2, 6);
+      await t.pump();
       await t.mouse(MouseKind.wheelUp, 2, 6);
+      await t.pump();
       expect((outer.offset, inner.offset), (0, 6));
       await t.pump();
       expect(t.lines.take(5), [...items(6, 10), 'item 0']);
@@ -180,8 +185,10 @@ void main() {
         size: (10, 4),
       );
       await t.mouse(MouseKind.wheelRight, 2, 1);
+      await t.pump();
       expect((across.offset, down.offset), (3, 0));
       await t.mouse(MouseKind.wheelDown, 2, 1);
+      await t.pump();
       expect((across.offset, down.offset), (3, 3));
       // a view across inside a list down: the wheel down scrolls the list,
       // the wheel across the view
@@ -203,10 +210,13 @@ void main() {
         size: (10, 4),
       );
       await t.mouse(MouseKind.wheelDown, 2, 0);
+      await t.pump();
       expect((list.offset, row.offset), (3, 0));
       await t.mouse(MouseKind.wheelUp, 2, 1);
+      await t.pump();
       expect(list.offset, 0);
       await t.mouse(MouseKind.wheelRight, 2, 0);
+      await t.pump();
       expect((list.offset, row.offset), (0, 3));
     });
 
@@ -230,10 +240,13 @@ void main() {
       }
       expect(offsets, [1, 2, 1, 1, 20, 0]);
       await t.mouse(MouseKind.wheelDown, 1, 0);
+      await t.pump();
       expect(controller.offset, 3);
       await t.mouse(MouseKind.wheelRight, 1, 0);
+      await t.pump();
       expect(controller.offset, 6);
       await t.mouse(MouseKind.wheelLeft, 1, 0);
+      await t.pump();
       await t.pump();
       expect(t.lines, ['3456789012', '']);
     });
@@ -535,7 +548,8 @@ void main() {
 
   group('the wheel', () {
     /// Turns the wheel [kind] a notch over a view of [controller]'s after
-    /// [ms] milliseconds of the app's clock; returns how far it moved.
+    /// [ms] milliseconds of the app's clock, and lets the frame that
+    /// moves it run; returns how far it moved.
     Future<int> notch(
       TwkTester t,
       ScrollController controller,
@@ -547,11 +561,12 @@ void main() {
       }
       final from = controller.offset;
       await t.mouse(kind, 2, 2);
+      await t.pump();
       return controller.offset - from;
     }
 
-    testTwk('a notch scrolls three cells however fast they come, without an '
-        'acceleration', (t) async {
+    testTwk('a notch scrolls three cells however fast they come, while '
+        'the input is sparse', (t) async {
       final controller = ScrollController();
       await t.pumpWidget(
         SingleChildScrollView(controller: controller, child: column(100)),
@@ -559,75 +574,131 @@ void main() {
       );
       expect(
         [
-          for (final ms in [0, 10, 10, 2, 10])
+          for (final ms in [0, 10, 10, 20, 10])
             await notch(t, controller, MouseKind.wheelDown, ms),
         ],
         [3, 3, 3, 3, 3],
       );
     });
 
-    testTwk('with a WheelAcceleration, the notches of a streak scroll the '
-        'further the faster they come, up to its max; one after a pause, '
-        'or the other way, starts a streak, and one of a burst goes as far '
-        'as the one before', (t) async {
+    testTwk('the notches of a frame scroll it once, at the start of the '
+        'frame, not as each comes', (t) async {
+      final controller = ScrollController();
+      await t.pumpWidget(
+        SingleChildScrollView(controller: controller, child: column(100)),
+        size: (20, 5),
+      );
+      await t.mouse(MouseKind.wheelDown, 2, 2);
+      await t.mouse(MouseKind.wheelDown, 2, 2);
+      expect(controller.offset, 0);
+      await t.pump();
+      expect(controller.offset, 6);
+    });
+
+    testTwk('a burst of a trackpad, events 0 ms apart, turns dense: a row an '
+        'event, one move a frame, growing within a stroke', (t) async {
+      final controller = ScrollController();
+      await t.pumpWidget(
+        SingleChildScrollView(controller: controller, child: column(1000)),
+        size: (20, 5),
+      );
+      final moves = <int>[];
+      for (var frame = 0; frame < 4; frame++) {
+        final from = controller.offset;
+        for (var i = 0; i < 20; i++) {
+          await t.mouse(MouseKind.wheelDown, 2, 2);
+        }
+        await t.pump(const Duration(milliseconds: 8));
+        moves.add(controller.offset - from);
+      }
+      // the first three events are sparse: 3 rows each, a pair under 2 ms
+      // apart not yet twice; the rest a row an event, 1 + n / 30 times
+      expect(moves.first, greaterThan(20));
+      expect(moves.last, lessThan(3 * 20 + 1));
+      expect(controller.offset, moves.reduce((a, b) => a + b));
+    });
+
+    testTwk('a ScrollConfiguration above a view gives it its own '
+        'behavior; App.scrollBehavior gives the default of an app', (t) async {
+      final plain = ScrollController();
+      final fixed = ScrollController();
+      await t.pumpWidget(
+        App(
+          scrollBehavior: const ScrollBehavior(step: 2),
+          child: Row(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: plain,
+                  child: column(100),
+                ),
+              ),
+              Expanded(
+                child: ScrollConfiguration(
+                  behavior: const ScrollBehavior(step: 5),
+                  child: SingleChildScrollView(
+                    controller: fixed,
+                    child: column(100),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        size: (20, 5),
+      );
+      await t.mouse(MouseKind.wheelDown, 2, 2);
+      await t.mouse(MouseKind.wheelDown, 15, 2);
+      await t.pump();
+      expect((plain.offset, fixed.offset), (2, 5));
+    });
+
+    testTwk('a behavior of a ScrollConfiguration changed reaches the view '
+        'below it', (t) async {
+      final controller = ScrollController();
+      Widget view(int step) => ScrollConfiguration(
+        behavior: ScrollBehavior(step: step),
+        child: SingleChildScrollView(controller: controller, child: column(50)),
+      );
+      await t.pumpWidget(view(1), size: (20, 5));
+      expect(await notch(t, controller, MouseKind.wheelDown), 1);
+      await t.pumpWidget(view(4));
+      expect(await notch(t, controller, MouseKind.wheelDown), 4);
+    });
+
+    testTwk('a key that moves the view drops what the wheel gathered for '
+        'the frame', (t) async {
       final controller = ScrollController();
       await t.pumpWidget(
         SingleChildScrollView(
           controller: controller,
-          wheelAcceleration: const WheelAcceleration(),
-          child: column(1000),
+          autofocus: true,
+          child: column(100),
         ),
         size: (20, 5),
       );
-      final moves = [
-        for (final (kind, ms) in [
-          (MouseKind.wheelDown, 0),
-          (MouseKind.wheelDown, 10),
-          (MouseKind.wheelDown, 10),
-          (MouseKind.wheelDown, 2),
-          (MouseKind.wheelDown, 200),
-          (MouseKind.wheelDown, 50),
-          (MouseKind.wheelDown, 50),
-          (MouseKind.wheelDown, 50),
-          (MouseKind.wheelDown, 50),
-          (MouseKind.wheelUp, 10),
-          (MouseKind.wheelUp, 2),
-          (MouseKind.wheelUp, 120),
-        ])
-          await notch(t, controller, kind, ms),
-      ];
-      // 10 ms apart: the max, 6; 50 ms: 1.76, a cell carried every 4th;
-      // 122 ms: 1.25
-      expect(moves, [3, 18, 18, 18, 3, 5, 5, 5, 6, -3, -3, -3]);
-      expect(
-        const WheelAcceleration(max: 4).factor(
-          const Duration(milliseconds: 10),
-        ),
-        4,
-      );
-      expect(
-        const WheelAcceleration().factor(const Duration(milliseconds: 100)),
-        closeTo(1.3165, 0.0001),
-      );
+      await t.mouse(MouseKind.wheelDown, 2, 2);
+      await t.press('down');
+      await t.pump();
+      expect(controller.offset, 1);
     });
 
-    testTwk('a streak goes on through the wheel over a scrollbar of the '
-        'view', (t) async {
+    testTwk('the wheel over a scrollbar of the view goes through the '
+        "view's input", (t) async {
       final controller = ScrollController();
       await t.pumpWidget(
         Scrollbar(
           child: SingleChildScrollView(
             controller: controller,
-            wheelAcceleration: const WheelAcceleration(),
             child: column(1000),
           ),
         ),
         size: (20, 5),
       );
       await t.mouse(MouseKind.wheelDown, 2, 2);
-      await t.pump(const Duration(milliseconds: 10));
       await t.mouse(MouseKind.wheelDown, 19, 2);
-      expect(controller.offset, 21);
+      await t.pump();
+      expect(controller.offset, 6);
     });
   });
 
@@ -660,7 +731,9 @@ void main() {
       );
       await t.press('down');
       await t.mouse(MouseKind.wheelDown, 1, 1);
+      await t.pump();
       await t.mouse(MouseKind.wheelDown, 1, 1);
+      await t.pump();
       controller.jumpTo(0);
       await t.press('up');
       await t.press('pagedown');
@@ -862,33 +935,5 @@ void main() {
         'no Scrollable above Probe',
       ),
     );
-  });
-
-  group('WheelAcceleration', () {
-    test('two are equal, with the same hash, when their streaks and their '
-        'largest factors are', () {
-      // made apart, not as constants, which are one object
-      WheelAcceleration of(int ms) =>
-          WheelAcceleration(streak: Duration(milliseconds: ms));
-      final a = of(100);
-      final b = of(100);
-      expect(identical(a, b), isFalse);
-      expect(a, b);
-      expect(a.hashCode, b.hashCode);
-      expect(
-        a,
-        isNot(
-          const WheelAcceleration(streak: Duration(milliseconds: 100), max: 3),
-        ),
-      );
-      expect(a, isNot(of(150)));
-    });
-
-    test('says its streak and its largest factor in its toString', () {
-      expect(
-        '${const WheelAcceleration()}',
-        'WheelAcceleration(streak 150 ms, max 6.0)',
-      );
-    });
   });
 }

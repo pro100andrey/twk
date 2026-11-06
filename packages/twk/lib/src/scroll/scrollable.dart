@@ -3,8 +3,6 @@
 /// [ScrollNotification]s it sends up the tree as it moves.
 library;
 
-import 'dart:math' as math;
-
 import 'package:meta/meta.dart';
 import 'package:twk_core/twk_core.dart'
     show
@@ -21,6 +19,8 @@ import '../focus/hinted_keys.dart';
 import '../foundation/change_notifier.dart';
 import '../framework/framework.dart';
 import '../gestures/mouse.dart';
+import 'scroll_behavior.dart';
+import 'scroll_input.dart';
 
 // Examples can assume:
 // late String line;
@@ -538,56 +538,6 @@ final class NeverScrollableScrollPhysics extends ScrollPhysics {
   bool shouldAcceptUserOffset(ScrollMetrics metrics) => false;
 }
 
-/// How far a notch of the wheel scrolls a [Scrollable] as the notches come
-/// faster: [Scrollable.wheelStep] cells times a factor, what it scrolls
-/// past a whole cell carried on to the next notch. A notch on its own has
-/// a factor of 1, as has the first of a streak; one that comes the same
-/// way within [streak] of the one before it on the app's clock goes on the
-/// streak, with a factor of `1 + 0.8 (e^(r / 3) - 1)` up to [max], r being
-/// 100 ms over the average time between the last four notches of the
-/// streak: the faster they come, the further each goes, as on macOS. A
-/// notch less than 6 ms after the one before, as a terminal may send for
-/// one turn, goes as far as that one.
-///
-/// [none], what a scrollable takes by default, keeps every factor at 1.
-@immutable
-final class WheelAcceleration {
-  /// Notches less than [streak] apart (150 ms by default) go on a streak,
-  /// their factor up to [max] (6 by default); a [max] below 1 asserts.
-  const WheelAcceleration({
-    this.streak = const Duration(milliseconds: 150),
-    this.max = 6,
-  }) : assert(max >= 1, 'a factor of 1 or more');
-
-  /// Every notch scrolls [Scrollable.wheelStep] cells.
-  static const none = WheelAcceleration(max: 1);
-
-  /// The longest time between two notches of a streak.
-  final Duration streak;
-
-  /// The largest factor.
-  final double max;
-
-  /// The factor of a notch of a streak whose notches came [gap] apart on
-  /// average.
-  double factor(Duration gap) {
-    final us = gap.inMicroseconds;
-    final f = us <= 0 ? max : 1 + 0.8 * (math.exp(100000 / us / 3) - 1);
-    return f < max ? f : max;
-  }
-
-  @override
-  bool operator ==(Object other) =>
-      other is WheelAcceleration && other.streak == streak && other.max == max;
-
-  @override
-  int get hashCode => Object.hash(streak, max);
-
-  @override
-  String toString() =>
-      'WheelAcceleration(streak ${streak.inMilliseconds} ms, max $max)';
-}
-
 /// What a [Scrollable] shows its content in: a widget whose render object
 /// shows the content from [position]'s offset on, along the scrollable's
 /// axis, follows the position as it moves, and tells it the extents
@@ -608,10 +558,11 @@ typedef ViewportBuilder = Widget Function(
 /// [reverse], the content's start shown at the bottom (the right), the
 /// keys and the wheel go the way they go on the screen: Up, PageUp and
 /// the wheel up scroll on to the end of the content, Home to its end, End
-/// to its start. A notch
-/// of the wheel over it scrolls [wheelStep] cells, further as the notches
-/// come faster when [wheelAcceleration] says so: along a horizontal axis
-/// the horizontal wheel's, or the vertical one's for a mouse without one.
+/// to its start. The wheel over it
+/// scrolls as the `ScrollBehavior` of the `ScrollConfiguration` above it
+/// says, the events of a frame moving it once at the start of the frame:
+/// along a horizontal axis the horizontal wheel's, or the vertical one's
+/// for a mouse without one.
 /// The wheel goes to one scrollable alone: the innermost under the mouse
 /// along its axis, so that the wheel across over a list inside a view
 /// across scrolls the view, and the wheel down over a view across inside
@@ -665,15 +616,11 @@ final class Scrollable extends StatefulWidget {
     this.focusNode,
     this.autofocus = false,
     this.canRequestFocus,
-    this.wheelAcceleration = WheelAcceleration.none,
     this.physics,
     this.keyHints = true,
     this.reverse = false,
     super.key,
   });
-
-  /// What a notch of the wheel scrolls, in cells.
-  static const wheelStep = 3;
 
   /// Builds the viewport, on the scrollable's [ScrollPosition]; built
   /// again with the scrollable, not as the position moves.
@@ -690,9 +637,6 @@ final class Scrollable extends StatefulWidget {
 
   /// Reads and moves its position; none when null.
   final ScrollController? controller;
-
-  /// How much further the notches of the wheel scroll as they come faster.
-  final WheelAcceleration wheelAcceleration;
 
   /// Whether it takes the wheel and the keys; null takes both. Not taking
   /// the wheel, it goes to the scrollable around; not taking the keys, it
@@ -778,6 +722,8 @@ final class _ScrollableState extends State<Scrollable> {
 
   @override
   void deactivate() {
+    _dropWheelFrame();
+    _input.cancel();
     _unclaim();
     super.deactivate();
   }
@@ -832,9 +778,12 @@ final class _ScrollableState extends State<Scrollable> {
       return KeyEventResult.ignored;
     }
     final delta = _deltaOf(event.code);
-    return delta != null && delta != 0 && _position._scrollBy(delta)
-        ? KeyEventResult.handled
-        : KeyEventResult.ignored;
+    if (delta != null && delta != 0 && _position._scrollBy(delta)) {
+      // the view moved by a key: what the wheel gathered is stale
+      _input.cancel();
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
   }
 
   /// What [code], pressed alone, scrolls by now; null for a key that does
@@ -907,68 +856,57 @@ final class _ScrollableState extends State<Scrollable> {
     final way = _position.axis == Axis.vertical || event.scrollX == 0
         ? event.scrollY
         : event.scrollX;
-    if (way != 0) {
-      final cells = way * _notchCells(way);
+    if (way == 0) {
+      return;
+    }
+    final binding = AppBinding.maybeOf(context);
+    final input = _input;
+    if (binding == null) {
+      input.event(Duration.zero, _position.axis, way);
+      _applyWheel(Duration.zero);
+      return;
+    }
+    input.event(
+      Duration(microseconds: binding.twkApp.clock.elapsedMicroseconds),
+      _position.axis,
+      way,
+    );
+    // the events of a frame move it once, at the start of the frame
+    if (_wheelFrame == null && input.hasPending) {
+      _wheelFrame = binding.scheduleFrameCallback(_applyWheel);
+    }
+  }
+
+  // what gathers the wheel's events of this scrollable, applied at a frame
+  late final _input = ScrollInput(const ScrollBehavior());
+  int? _wheelFrame;
+
+  void _applyWheel(Duration _) {
+    _wheelFrame = null;
+    final delta = _input.take();
+    if (delta == null || !mounted) {
+      return;
+    }
+    final cells = _position.axis == Axis.vertical ? delta.rows : delta.columns;
+    if (cells != 0) {
       _position._scrollBy(_position._reverse ? -cells : cells);
     }
   }
 
-  // the streak of the wheel: the time of its last notch but those of a
-  // burst, in microseconds on the app's clock, which way it went, the
-  // times between its last notches, its factor and the part of a cell it
-  // scrolled past whole cells
-  int? _notchAt;
-  var _notchWay = 0;
-  final _gaps = <int>[];
-  var _factor = 1.0;
-  var _carry = 0.0;
-
-  /// What a notch of the wheel [way] (-1 or 1) scrolls now, in cells.
-  int _notchCells(int way) {
-    final acceleration = widget.wheelAcceleration;
-    if (acceleration.max <= 1) {
-      return Scrollable.wheelStep;
+  void _dropWheelFrame() {
+    final id = _wheelFrame;
+    if (id != null) {
+      _wheelFrame = null;
+      AppBinding.maybeOf(context)?.cancelFrameCallback(id);
     }
-    final now = AppBinding.maybeOf(context)?.twkApp.clock.elapsedMicroseconds;
-    final last = _notchAt;
-    if (now == null ||
-        last == null ||
-        way != _notchWay ||
-        now - last > acceleration.streak.inMicroseconds) {
-      _notchAt = now;
-      _notchWay = way;
-      _gaps.clear();
-      _factor = 1;
-      _carry = 0;
-    } else if (now - last >= _burst) {
-      _notchAt = now;
-      if (_gaps.length == _averaged) {
-        _gaps.removeAt(0);
-      }
-      _gaps.add(now - last);
-      final sum = _gaps.reduce((a, b) => a + b);
-      _factor = acceleration.factor(
-        Duration(microseconds: sum ~/ _gaps.length),
-      );
-    }
-    final cells = Scrollable.wheelStep * _factor + _carry;
-    final whole = cells.floor();
-    _carry = cells - whole;
-    return whole;
   }
-
-  // a notch this soon after the one before, in microseconds, is of the
-  // same burst
-  static const _burst = 6000;
-
-  // the times between notches the factor of a streak averages
-  static const _averaged = 3;
 
   @override
   Widget build(BuildContext context) {
     final bars = context.dependOnInheritedWidgetOfExactType<ScrollbarScope>();
     final bar = bars?.claimFor(_position.axis);
     _claim(bar);
+    _input.behavior = ScrollConfiguration.of(context);
     final viewport = Listener(
       onScroll: _userScrolls ? _onWheel : null,
       scrollAxis: _position.axis,

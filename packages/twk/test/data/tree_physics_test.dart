@@ -43,6 +43,7 @@ void main() {
     await t.pump();
     expect(t, containsLine(contains('n19')));
     await t.mouse(MouseKind.wheelDown, 2, 1);
+    await t.pump();
     expect(outer.offset, 3);
   });
 }

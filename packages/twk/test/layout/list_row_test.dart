@@ -153,6 +153,7 @@ void main() {
         () async {
           await t.press('down');
           await t.mouse(MouseKind.wheelDown, 1, 1);
+          await t.pump();
           await t.press('end');
         },
       );

@@ -211,7 +211,6 @@ final class ListView extends StatelessWidget {
     this.focusNode,
     this.autofocus = false,
     this.canRequestFocus,
-    this.wheelAcceleration = WheelAcceleration.none,
     this.physics,
     this.keyHints = true,
     this.reverse = false,
@@ -252,7 +251,6 @@ final class ListView extends StatelessWidget {
     this.focusNode,
     this.autofocus = false,
     this.canRequestFocus,
-    this.wheelAcceleration = WheelAcceleration.none,
     this.physics,
     this.keyHints = true,
     this.reverse = false,
@@ -289,7 +287,6 @@ final class ListView extends StatelessWidget {
     this.focusNode,
     this.autofocus = false,
     this.canRequestFocus,
-    this.wheelAcceleration = WheelAcceleration.none,
     this.physics,
     this.keyHints = true,
     this.reverse = false,
@@ -301,7 +298,7 @@ final class ListView extends StatelessWidget {
 
   /// The rows past either edge of the window whose items are built too: a
   /// notch of the wheel.
-  static const int defaultCacheExtent = Scrollable.wheelStep;
+  static const defaultCacheExtent = 3;
 
   /// The keyed items scrolled out of view that a list keeps.
   static const defaultMaxKept = 64;
@@ -358,9 +355,6 @@ final class ListView extends StatelessWidget {
   /// See [FocusNode.canRequestFocus].
   final bool? canRequestFocus;
 
-  /// See [Scrollable.wheelAcceleration].
-  final WheelAcceleration wheelAcceleration;
-
   /// See [Scrollable.physics].
   final ScrollPhysics? physics;
 
@@ -392,7 +386,6 @@ final class ListView extends StatelessWidget {
       focusNode: focusNode,
       autofocus: autofocus,
       canRequestFocus: canRequestFocus,
-      wheelAcceleration: wheelAcceleration,
       physics: physics,
       keyHints: keyHints,
       reverse: reverse,
