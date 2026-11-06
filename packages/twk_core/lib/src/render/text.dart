@@ -268,6 +268,19 @@ void _reorder(RenderObject o, TextOrder order) {
 ///  * [textRangeAt], the text at a cell as the last layout placed it.
 final class RenderParagraph extends RenderObject {
   /// [spans] as (text, pen); replace the list to change them.
+  ///
+  /// [keepsPaint] sets it to keep its paint ([keepsPaint]) from the start,
+  /// for good. [autoKeepsPaint] lets it turn to keeping itself where that
+  /// pays, and back to plain where it would erase text: it starts plain;
+  /// after three layouts in a row that held its size, at eight rows or
+  /// more, with a parent, its next paint of all of itself reads the cells
+  /// under it, and finding no glyph in them it keeps its paint from the
+  /// next edit. Kept, it reads them again at each paint that is not of
+  /// changed rows only, and finding a glyph is plain from the next edit
+  /// (and waits twice as long, up to sixteen times, before it tries again).
+  /// A plain one pays a comparison in a layout and one in an edit; a short
+  /// or a still one never reads the cells. What is drawn is the same
+  /// either way. Of no effect with [keepsPaint].
   RenderParagraph(
     List<(String, Pen)> spans, {
     TextWrap wrap = TextWrap.word,
@@ -276,7 +289,11 @@ final class RenderParagraph extends RenderObject {
     TextAlign align = TextAlign.left,
     String ellipsis = '\u2026',
     bool keepsPaint = false,
+    bool autoKeepsPaint = false,
   }) : _keeps = keepsPaint,
+       _forced = keepsPaint,
+       _auto = autoKeepsPaint,
+       _watching = autoKeepsPaint && !keepsPaint,
        _painter = TextPainter(
          spans,
          wrap: wrap,
@@ -327,8 +344,104 @@ final class RenderParagraph extends RenderObject {
     return true;
   }
 
+  // Keeping its paint by itself (autoKeepsPaint). The plain paragraph
+  // watches its layouts (_watching: one comparison in performLayout): when
+  // _need of them in a row held its size at _minRows rows or more, and it
+  // has a parent, it is a candidate, and its next paint of all of itself
+  // reads the cells under it (_glyphsUnder). Cells with no glyph in them
+  // set _flip to 1, and the next edit (_sync, the one comparison it pays)
+  // turns it to keeping, the way keepsPaint = true does. A keeping one
+  // reads the cells again at each paint that is not of changed rows only
+  // (paint); a glyph there paints it as a plain one this time and sets
+  // _flip to -1, which the next edit turns plain. The mode is never changed
+  // inside a paint, where the pipeline holds the object as the kind it
+  // was: the owner has settled the boundaries it repaints, and a boundary
+  // marked for paint (_paintMarks) is repainted as one.
+  //
+  // Not a mode that flips back and forth: a flip takes a layout and a paint
+  // of all of the paragraph, so a turn to plain doubles what the next turn
+  // to keeping waits for (_backoff, up to _maxBackoff times _need layouts),
+  // and a candidate that finds a glyph starts its count again.
+  static const _minRows = 8;
+  static const _need = 3;
+  static const _maxBackoff = 16;
+  final bool _auto;
+
+  /// Whether it turns to keeping its paint by itself ([RenderParagraph]'s
+  /// `autoKeepsPaint`).
+  bool get autoKeepsPaint => _auto;
+  // set by the constructor or keepsPaint: never turned plain by itself
+  bool _forced;
+  bool _watching;
+  var _streak = 0;
+  var _candidate = false;
+  var _backoff = 1;
+  var _flip = 0;
+
+  // counts a layout that held the size, in performLayout of a plain one
+  void _noteLayout(int w, int h) {
+    if (width == w && height == h && h >= _minRows && parent != null) {
+      if (++_streak >= _need * _backoff) {
+        _candidate = true;
+      }
+    } else {
+      _streak = 0;
+      _candidate = false;
+    }
+  }
+
+  // turns the mode at an edit, as the paint asked
+  void _turn() {
+    final on = _flip > 0;
+    _flip = 0;
+    _streak = 0;
+    _candidate = false;
+    if (!on && _backoff < _maxBackoff) {
+      _backoff *= 2;
+    }
+    _setKeeps(on);
+  }
+
+  void _setKeeps(bool on) {
+    _keeps = on;
+    _watching = _auto && !on && !_forced;
+    _painter.tracksDamage = on;
+    _keptOn = null;
+    markNeedsLayout();
+  }
+
+  // Whether a cell of rows [y0], [y1) of this paragraph, as far as the
+  // canvas's clip leaves them, holds anything but a blank: a glyph of
+  // another object, which a paragraph that fills its cells would erase.
+  bool _glyphsUnder(Canvas canvas, int y0, int y1) {
+    final (cx0, cy0, cx1, cy1) = canvas.clipBounds;
+    final ox = canvas.originX;
+    final oy = canvas.originY;
+    final x0 = cx0 > ox ? cx0 : ox;
+    final x1 = cx1 < ox + width ? cx1 : ox + width;
+    final top = cy0 > oy + y0 ? cy0 : oy + y0;
+    final bottom = cy1 < oy + y1 ? cy1 : oy + y1;
+    final surface = canvas.surface;
+    final cells = surface.cells;
+    final stride = surface.width;
+    for (var y = top; y < bottom; y++) {
+      final row = y * stride;
+      for (var x = x0; x < x1; x++) {
+        final c = cells[row + x];
+        final g = c & kGlyphMask;
+        if ((c & (kCont | kSkip)) != 0 || (g != kBlank && g != 0)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   // marks what the painter says its last change invalidated
   void _sync() {
+    if (_flip != 0) {
+      _turn();
+    }
     switch (_painter.takeInvalidation()) {
       case TextInvalidation.layout:
         if (!_layOutHere()) {
@@ -439,8 +552,13 @@ final class RenderParagraph extends RenderObject {
   @override
   void performLayout(BoxConstraints c) {
     _painter.layout(c, segmenter: _segmenter, order: _order);
+    final w = width;
+    final h = height;
     width = _painter.width;
     height = _painter.height;
+    if (_watching) {
+      _noteLayout(w, h);
+    }
   }
 
   @override
@@ -473,7 +591,12 @@ final class RenderParagraph extends RenderObject {
   /// it draws is the same either way.
   ///
   /// Meant to be the root of a box or panel it does not share with other
-  /// text; a root of the tree has nothing under it to keep.
+  /// text; a root of the tree has nothing under it to keep. Set, it
+  /// keeps whatever lies under it: [autoKeepsPaint] turns to keeping only
+  /// where nothing does, and back where something comes to.
+  ///
+  /// Set to false, it is the other kind from the next layout, and
+  /// [autoKeepsPaint] may turn it again.
   ///
   /// Takes effect when changed: it is laid out and painted again as the
   /// other kind.
@@ -482,10 +605,11 @@ final class RenderParagraph extends RenderObject {
     if (on == _keeps) {
       return;
     }
-    _keeps = on;
-    _painter.tracksDamage = on;
-    _keptOn = null;
-    markNeedsLayout();
+    _forced = on;
+    _flip = 0;
+    _streak = 0;
+    _candidate = false;
+    _setKeeps(on);
   }
 
   bool _keeps;
@@ -519,7 +643,22 @@ final class RenderParagraph extends RenderObject {
   @override
   void paint(PaintContext ctx) {
     final canvas = ctx.canvas;
-    if (!keepsPaint) {
+    if (!_keeps) {
+      if (_candidate &&
+          canvas.clipContains(
+            canvas.originX,
+            canvas.originY,
+            canvas.originX + width,
+            canvas.originY + height,
+          )) {
+        // all of it is painted: what is under it is what its parent left
+        _candidate = false;
+        if (_glyphsUnder(canvas, 0, height)) {
+          _streak = 0;
+        } else {
+          _flip = 1;
+        }
+      }
       _painter.paint(canvas, 0, 0);
       return;
     }
@@ -550,6 +689,15 @@ final class RenderParagraph extends RenderObject {
         return;
       }
       _keptPaints++;
+    } else if (!_forced &&
+        !identical(owner?._alone, this) &&
+        _glyphsUnder(canvas, first, end)) {
+      // painted from above (alone, the cells hold its own last paint),
+      // and not for it to erase: painted as a plain one, turned plain at the
+      // next edit
+      _flip = -1;
+      _painter.draw(canvas, 0, 0);
+      return;
     }
     canvas
       ..save()

@@ -38,9 +38,13 @@ const _backgrounds = <Pen>[
 /// text, or under a text in a stack; random edits from `seed`: two builders
 /// of one seed build the same tree and make the same edits.
 final class _Builder {
-  _Builder(int seed, this.styles, {required this.keeps})
-    : rng = Random(seed),
-      shape = seed % 6 {
+  _Builder(
+    int seed,
+    this.styles, {
+    required this.keeps,
+    this.auto = false,
+  }) : rng = Random(seed),
+       shape = seed % 8 {
     for (var i = 0, n = 1 + rng.nextInt(5); i < n; i++) {
       _parts.add([
         for (var k = 0, m = 8 + rng.nextInt(20); k < m; k++) _piece(),
@@ -55,6 +59,7 @@ final class _Builder {
       maxLines: rng.nextInt(3) == 0 ? 3 + rng.nextInt(5) : null,
       align: TextAlign.values[rng.nextInt(TextAlign.values.length)],
       keepsPaint: keeps,
+      autoKeepsPaint: auto,
     );
     limit = RenderConstrainedBox(
       additionalConstraints: const BoxConstraints(maxW: 24, maxH: 12),
@@ -65,10 +70,13 @@ final class _Builder {
       padX: rng.nextInt(2),
       padY: rng.nextInt(2),
       boundary: rng.nextBool(),
-      child: limit,
+      child: shape >= 6 ? null : limit,
     );
     header = RenderText('header', styles.pen(_backgrounds[0]));
-    note = RenderText('note 0', styles.pen(_backgrounds[0]));
+    note = RenderText(
+      shape >= 6 ? '' : 'note 0',
+      styles.pen(_backgrounds[0]),
+    );
     final body = switch (shape) {
       0 => panel,
       1 => RenderColumn([(header, 1), (panel, null), (note, 1)]),
@@ -99,6 +107,16 @@ final class _Builder {
         ),
         (note, 1),
       ]),
+      // text under the paragraph, which has no panel of its own
+      6 || 7 => RenderStack(
+        children: [
+          RenderPadding(
+            padding: EdgeInsets.only(left: 1 + rng.nextInt(4), top: 1),
+            child: note,
+          ),
+          limit,
+        ],
+      ),
       _ => RenderRow([(panel, 28), (note, null)]),
     };
     root = RenderBox(
@@ -111,6 +129,7 @@ final class _Builder {
   final Random rng;
   final StyleTable styles;
   final bool keeps;
+  final bool auto;
   final int shape;
   final _parts = <List<String>>[];
   final _pens2 = <Pen>[];
@@ -162,7 +181,7 @@ final class _Builder {
         paragraph.align =
             TextAlign.values[rng.nextInt(TextAlign.values.length)];
       case 9:
-        note.text = 'note ${rng.nextInt(1000)}';
+        note.text = rng.nextInt(4) == 0 ? '' : 'note ${rng.nextInt(1000)}';
       case 10:
         panel.pen = styles.pen(_backgrounds[rng.nextInt(_backgrounds.length)]);
       case 11 || 12:
@@ -412,6 +431,10 @@ void main() {
       var keptPaints = 0;
       var whole = 0;
       for (var seed = 0; seed < 300; seed++) {
+        if (seed % 8 >= 6) {
+          // text under it, which a paragraph set to keep must not have
+          continue;
+        }
         final styles = StyleTable();
         final canvas = Canvas(Surface(w, h), styles, GlyphTable());
         final a = _Painted(w, h, canvas, _Builder(seed, styles, keeps: true));
@@ -437,6 +460,58 @@ void main() {
       // it painted rows alone, and fewer cells than painting everything did
       expect(keptPaints, greaterThan(100));
       expect(kept, lessThan(whole));
+    },
+  );
+
+  test(
+    'a paragraph that keeps its paint by itself shows what one painted '
+    'whole does',
+    () {
+      const w = 40;
+      const h = 16;
+      var keptPaints = 0;
+      var turned = 0;
+      var turnedBack = 0;
+      var under = 0;
+      for (var seed = 0; seed < 400; seed++) {
+        final styles = StyleTable();
+        final canvas = Canvas(Surface(w, h), styles, GlyphTable());
+        final a = _Painted(
+          w,
+          h,
+          canvas,
+          _Builder(seed, styles, keeps: false, auto: true),
+        );
+        final b = _Painted(w, h, canvas, _Builder(seed, styles, keeps: false));
+        a.frame(whole: false);
+        b.frame(whole: true);
+        expect(_difference(a, b), isNull, reason: 'seed $seed, first frame');
+        final p = a.builder.paragraph;
+        var was = p.isRepaintBoundary;
+        for (var step = 0; step < 40; step++) {
+          final changes = 1 + a.builder.rng.nextInt(2);
+          b.builder.rng.nextInt(2);
+          for (var i = 0; i < changes; i++) {
+            a.builder.change();
+            b.builder.change();
+          }
+          a.frame(whole: false);
+          b.frame(whole: true);
+          expect(_difference(a, b), isNull, reason: 'seed $seed, step $step');
+          if (p.isRepaintBoundary != was) {
+            was = p.isRepaintBoundary;
+            was ? turned++ : turnedBack++;
+          }
+        }
+        keptPaints += p.debugKeptPaints;
+        if (a.builder.shape >= 6) {
+          under++;
+        }
+      }
+      expect(turned, greaterThan(20));
+      expect(keptPaints, greaterThan(50));
+      expect(turnedBack, greaterThan(0));
+      expect(under, greaterThan(50));
     },
   );
 }
