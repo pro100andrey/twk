@@ -304,7 +304,7 @@ left     a
         valueListenable: canPop,
         builder: (_, can, _) => PopScope<Object?>(
           canPop: can,
-          onPopInvoked: told.add,
+          onPopInvokedWithResult: (didPop, _) => told.add(didPop),
           child: const Text('dialog'),
         ),
       ),

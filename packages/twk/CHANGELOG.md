@@ -4,6 +4,8 @@
 
 Breaking:
 
+- `PopScope.onPopInvoked` is removed, as it is in Flutter:
+  `onPopInvokedWithResult` is told the same, with the result.
 - `debugDumpTree` is `debugDumpApp`, as Flutter names the function that prints
   the element tree; it still takes a `BuildContext`.
 - `Scrollbar` takes `timeToFade`, as Flutter names it, where it took

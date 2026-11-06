@@ -139,7 +139,6 @@ void main() {
                   canPop: value,
                   onPopInvokedWithResult: (didPop, result) =>
                       calls.add('invoked $didPop $result'),
-                  onPopInvoked: (didPop) => calls.add('didPop $didPop'),
                   child: const Text('form'),
                 ),
               ),
@@ -151,16 +150,16 @@ void main() {
     expect(activeKeys(t), ['escape back']);
     await press(t, 'escape');
     expect(t, matchesScreen('form'));
-    expect(calls, ['invoked false null', 'didPop false']);
+    expect(calls, ['invoked false null']);
     expect(navigator.currentState!.maybePop('x'), isTrue);
-    expect(calls.skip(2), ['invoked false x', 'didPop false']);
+    expect(calls.skip(1), ['invoked false x']);
 
     calls.clear();
     canPop.value = true;
     await t.pump();
     navigator.currentState!.pop('saved');
     await t.pump();
-    expect(calls, ['invoked true saved', 'didPop true']);
+    expect(calls, ['invoked true saved']);
     expect(results, ['saved']);
     expect(t, matchesScreen('home'));
   });
@@ -178,7 +177,7 @@ void main() {
         PageRoute<void>(
           builder: (_) => PopScope<void>(
             canPop: false,
-            onPopInvoked: calls.add,
+            onPopInvokedWithResult: (didPop, _) => calls.add(didPop),
             child: const Text('form'),
           ),
         ),
@@ -206,7 +205,8 @@ void main() {
               valueListenable: canPop,
               builder: (context, value, _) => PopScope<Object?>(
                 canPop: value,
-                onPopInvoked: (didPop) => calls.add('didPop $didPop'),
+                onPopInvokedWithResult: (didPop, _) =>
+                    calls.add('didPop $didPop'),
                 child: const Text('home'),
               ),
             ),

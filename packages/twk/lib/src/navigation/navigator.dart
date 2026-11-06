@@ -1005,7 +1005,6 @@ class NavigatorObserver {
 /// that it did not pop, with the result asked for. A pop that goes ahead
 /// ([NavigatorState.pop], which [canPop] does not stop, or the back key
 /// while it is true) tells it that it did, with the result.
-/// [onPopInvoked] is told the same, without the result.
 ///
 /// ```dart
 /// PopScope<Object?>(
@@ -1021,13 +1020,11 @@ class NavigatorObserver {
 /// that cannot pop is enough. Outside a route it does nothing.
 final class PopScope<T> extends StatefulWidget {
   /// Keeps the route [child] is in from being popped while [canPop] is
-  /// false, telling [onPopInvokedWithResult] and [onPopInvoked] of each
-  /// pop.
+  /// false, telling [onPopInvokedWithResult] of each pop.
   const PopScope({
     required this.child,
     this.canPop = true,
     this.onPopInvokedWithResult,
-    this.onPopInvoked,
     super.key,
   });
 
@@ -1042,9 +1039,6 @@ final class PopScope<T> extends StatefulWidget {
   // called with the results of its own T, cast as they come
   // ignore: unsafe_variance
   final PopInvokedWithResultCallback<T>? onPopInvokedWithResult;
-
-  /// Told of a pop of the route, whether it was popped or kept.
-  final void Function(bool didPop)? onPopInvoked;
 
   @override
   State<PopScope<T>> createState() => _PopScopeState<T>();
@@ -1091,7 +1085,6 @@ final class _PopScopeState<T> extends State<PopScope<T>> {
   void _invoked(bool didPop, Object? result) {
     final value = result as T?;
     widget.onPopInvokedWithResult?.call(didPop, value);
-    widget.onPopInvoked?.call(didPop);
   }
 
   @override
