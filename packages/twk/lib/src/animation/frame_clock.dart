@@ -1,12 +1,15 @@
 /// What [Ticker] and [Steps] ask for frames of: a [FrameClock].
 ///
+/// @docImport '../binding/app_binding.dart';
 /// @docImport 'steps.dart';
 /// @docImport 'ticker.dart';
 library;
 
 import 'package:meta/meta.dart';
 
-import '../binding/app_binding.dart';
+/// What [AppBinding.scheduleFrameCallback] calls: [time] is the frame's on
+/// the app's clock ([AppBinding.frameTime]).
+typedef FrameCallback = void Function(Duration time);
 
 /// The app's clock as the animations use it: the time of the frame, and
 /// frame callbacks for the next frame or for a time. [AppBinding] is the

@@ -73,6 +73,8 @@ import 'error_widget.dart';
 import 'source_excerpt.dart';
 import 'terminal_status.dart' show TerminalStatus;
 
+export '../animation/frame_clock.dart' show FrameCallback;
+
 // Examples can assume:
 // late BuildContext context;
 // late ValueNotifier<(int, int)> size;
@@ -94,10 +96,6 @@ enum ScreenMode {
   /// the app ends (see `TwkApp`).
   inline,
 }
-
-/// What [AppBinding.scheduleFrameCallback] calls: [time] is the frame's on
-/// the app's clock ([AppBinding.frameTime]).
-typedef FrameCallback = void Function(Duration time);
 
 /// Whether the program runs in product mode, as `dart compile exe`
 /// compiles it, without a VM service.

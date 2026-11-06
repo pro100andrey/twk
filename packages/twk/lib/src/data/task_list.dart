@@ -161,6 +161,7 @@ final class TaskList extends StatelessWidget {
       theme.background.merge(theme.text).merge(style ?? const Style()),
     );
     final binding = AppBinding.maybeOf(context);
+    final separator = TwkStrings.of(context).decimalSeparator;
     final rows = <Widget>[];
     void add(List<TaskItem> items, int depth, _TaskKey? parent) {
       for (final item in items) {
@@ -179,7 +180,7 @@ final class TaskList extends StatelessWidget {
               style: base,
               markStyle: base.merge(taskMarkStyle(theme, status)),
               elapsedStyle: base.merge(theme.muted),
-              decimalSeparator: TwkStrings.of(context).decimalSeparator,
+              decimalSeparator: separator,
               binding: binding,
               child: Text(
                 item.label,

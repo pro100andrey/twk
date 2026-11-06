@@ -135,29 +135,30 @@ final class TwkStrings {
 
   @override
   bool operator ==(Object other) =>
+      identical(this, other) ||
       other is TwkStrings &&
-      tookIn == other.tookIn &&
-      eta == other.eta &&
-      moreTasks == other.moreTasks &&
-      confirmHint == other.confirmHint &&
-      confirmHintYes == other.confirmHintYes &&
-      confirmHintNo == other.confirmHintNo &&
-      yes == other.yes &&
-      no == other.no &&
-      none == other.none &&
-      yesLabel == other.yesLabel &&
-      noLabel == other.noLabel &&
-      answerYesOrNo == other.answerYesOrNo &&
-      enterNumber == other.enterNumber &&
-      enterNumbers == other.enterNumbers &&
-      answerNumber == other.answerNumber &&
-      answerNumbers == other.answerNumbers &&
-      chooseAtLeast == other.chooseAtLeast &&
-      chooseAtMost == other.chooseAtMost &&
-      typeToFilter == other.typeToFilter &&
-      spaceToToggle == other.spaceToToggle &&
-      typeToFilterAndToggle == other.typeToFilterAndToggle &&
-      decimalSeparator == other.decimalSeparator;
+          tookIn == other.tookIn &&
+          eta == other.eta &&
+          moreTasks == other.moreTasks &&
+          confirmHint == other.confirmHint &&
+          confirmHintYes == other.confirmHintYes &&
+          confirmHintNo == other.confirmHintNo &&
+          yes == other.yes &&
+          no == other.no &&
+          none == other.none &&
+          yesLabel == other.yesLabel &&
+          noLabel == other.noLabel &&
+          answerYesOrNo == other.answerYesOrNo &&
+          enterNumber == other.enterNumber &&
+          enterNumbers == other.enterNumbers &&
+          answerNumber == other.answerNumber &&
+          answerNumbers == other.answerNumbers &&
+          chooseAtLeast == other.chooseAtLeast &&
+          chooseAtMost == other.chooseAtMost &&
+          typeToFilter == other.typeToFilter &&
+          spaceToToggle == other.spaceToToggle &&
+          typeToFilterAndToggle == other.typeToFilterAndToggle &&
+          decimalSeparator == other.decimalSeparator;
 
   @override
   int get hashCode => Object.hashAll([
