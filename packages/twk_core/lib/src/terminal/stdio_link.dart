@@ -62,6 +62,10 @@ final class StdioLink implements DrainingLink {
       _windowsConsole = first;
       return;
     }
+    // before anything touches the terminal: in the background, wait for it
+    if (stdin.hasTerminal) {
+      PosixTty.waitForForeground();
+    }
     try {
       // put back as found: a parent program may have turned echo off itself
       _echo = stdin.echoMode;
