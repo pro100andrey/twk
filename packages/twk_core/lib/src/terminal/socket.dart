@@ -339,14 +339,23 @@ final class SocketLink implements DeclaringLink {
         if (_welcome.isCompleted) {
           return;
         }
-        final json = jsonDecode(utf8.decode(payload)) as Map<String, Object?>;
-        columns = json['columns']! as int;
-        lines = json['lines']! as int;
-        eraseChar = json['eraseChar'] as int?;
-        windows = json['windows'] == true;
-        environment = (json['environment']! as Map<String, Object?>).map(
-          (k, v) => MapEntry(k, v! as String),
+        final json = _object(payload);
+        // read whole before any is taken: a welcome that is wrong in one
+        // field changes none
+        final width = _field<int>(json, 'columns');
+        final height = _field<int>(json, 'lines');
+        final erase = json['eraseChar'];
+        if (erase != null && erase is! int) {
+          throw FormatException('eraseChar is ${erase.runtimeType}');
+        }
+        final env = _field<Map<String, Object?>>(json, 'environment').map(
+          (k, v) => MapEntry(k, v is String ? v : _wrong('environment.$k', v)),
         );
+        columns = width;
+        lines = height;
+        eraseChar = erase as int?;
+        windows = json['windows'] == true;
+        environment = env;
         declaration = TerminalDeclaration.fromJson(json['declares']);
         _welcome.complete();
       case ShellFrame.refused:
@@ -358,9 +367,11 @@ final class SocketLink implements DeclaringLink {
       case ShellFrame.input:
         _input.add(payload);
       case ShellFrame.size:
-        final json = jsonDecode(utf8.decode(payload)) as Map<String, Object?>;
-        columns = json['columns']! as int;
-        lines = json['lines']! as int;
+        final json = _object(payload);
+        final width = _field<int>(json, 'columns');
+        final height = _field<int>(json, 'lines');
+        columns = width;
+        lines = height;
         _resizes.add(null);
       case ShellFrame.flushed:
         if (_acks.isNotEmpty) {
@@ -368,6 +379,29 @@ final class SocketLink implements DeclaringLink {
         }
     }
   }
+
+  /// The JSON object [payload] holds. Throws [FormatException] for
+  /// anything else.
+  static Map<String, Object?> _object(Uint8List payload) {
+    final json = jsonDecode(utf8.decode(payload));
+    if (json is! Map<String, Object?>) {
+      throw FormatException('a frame that is no JSON object: $json');
+    }
+    return json;
+  }
+
+  /// [json]'s [name], which must be a [T]. Throws [FormatException] when
+  /// it is missing or another type.
+  static T _field<T extends Object>(Map<String, Object?> json, String name) {
+    final value = json[name];
+    return value is T ? value : _wrong(name, value);
+  }
+
+  static Never _wrong(String name, Object? value) => throw FormatException(
+    value == null
+        ? '$name is missing or null'
+        : '$name is ${value.runtimeType}',
+  );
 
   void _gone(TerminalException reason) {
     if (_ended) {
