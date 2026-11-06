@@ -4,6 +4,14 @@
 
 Breaking:
 
+- `TweenAnimationBuilder` takes a `Tween` as Flutter's does: `tween:
+  IntTween(begin: 0, end: total)`, where it took `value:`, `from:` and a
+  constructor (`tween: IntTween.new`). The value runs from the tween's `begin`
+  at first, and to each new `end` from the one shown, the new tween's `begin`
+  not used. A `Tween` is immutable here, so `Tween.withEnds` is new: it makes
+  the tween of the same kind between two values, and a `Tween` of an app's own
+  (not `Tween<double>`, `IntTween`, `ColorTween`, `StyleTween`,
+  `EdgeInsetsTween` or `ThemeDataTween`) overrides it to be used in one.
 - `Action.invoke` returns `Object?` and `CallbackAction.onInvoke` is an
   `Object? Function(T)`, as Flutter's: an action can give what it did back. An
   `onInvoke: (_) {}` returns null instead: `(_) => null`. An `Action` that

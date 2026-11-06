@@ -752,50 +752,42 @@ final class _AnimatedBoxState
   }
 }
 
-/// Builds [builder] with a value that runs to [value] whenever it changes,
-/// from the one shown then, in [duration] along [curve], through the
-/// tweens [tween] makes between two values (`Tween<double>.new`,
-/// `ColorTween.new`, `StyleTween.new`); at first it shows [value], or
-/// runs to it from [from] when that is given. [child] is handed to
-/// [builder] as a [ListenableBuilder]'s.
+/// Builds [builder] with a value that runs to the end of [tween] whenever
+/// that changes, from the one shown then, in [duration] along [curve], as
+/// Flutter's does; at first it shows the end, or runs to it from the begin of
+/// [tween] when that is another value. [child] is handed to [builder] as a
+/// [ListenableBuilder]'s.
+///
+/// The tween a change runs along is [Tween.withEnds] of [tween]: a tween of
+/// a kind of your own overrides it ([IntTween], [ColorTween], [StyleTween]
+/// and [EdgeInsetsTween] do).
 ///
 /// A count that runs up to each new total:
 ///
 /// ```dart
 /// TweenAnimationBuilder<int>(
-///   value: total,
-///   tween: IntTween.new,
+///   tween: IntTween(begin: total, end: total),
 ///   duration: const Duration(milliseconds: 500),
 ///   builder: (context, value, child) => Text('$value files'),
 /// )
 /// ```
 final class TweenAnimationBuilder<T extends Object>
     extends ImplicitlyAnimatedWidget {
-  /// Builds [builder] with a value that runs to [value] in [duration],
-  /// from [from] at first when given.
+  /// Builds [builder] with a value that runs along [tween] in [duration], and
+  /// to a new end of it when that changes.
   const TweenAnimationBuilder({
-    required this.value,
     required this.tween,
     required this.builder,
     required super.duration,
     super.key,
     super.curve,
     super.onEnd,
-    this.from,
     this.child,
   });
 
-  /// What the value runs to.
-  final T value;
-
-  /// Where the value starts at first; null to start at [value].
-  final T? from;
-
-  /// Makes the tween between two values: `Tween<double>.new`,
-  /// `IntTween.new`, `ColorTween.new`, `StyleTween.new`.
-  // called by the state, whose T is the widget's own
-  // ignore: unsafe_variance
-  final TweenConstructor<T> tween;
+  /// Where the value runs to ([Tween.end]); at first it starts from
+  /// [Tween.begin], and a new end is run to from the value shown.
+  final Tween<T> tween;
 
   /// Builds the widget for the value shown, each frame of a run.
   // called by the state, whose T is the widget's own
@@ -815,19 +807,26 @@ final class _TweenAnimationBuilderState<T extends Object>
     extends ImplicitlyAnimatedWidgetState<TweenAnimationBuilder<T>> {
   Tween<T>? _value;
 
+  // the first tween is the widget's own, whatever its kind
+  var _first = true;
+
   @override
   void initState() {
     super.initState();
-    final from = widget.from;
-    if (from != null && from != widget.value) {
-      _value = widget.tween(begin: from, end: widget.value);
+    _first = false;
+    final tween = widget.tween;
+    if (tween.begin != tween.end) {
       controller.forward();
     }
   }
 
   @override
-  void forEachTween(TweenVisitor visit) =>
-      _value = visit(_value, widget.value, widget.tween);
+  void forEachTween(TweenVisitor visit) => _value = visit(
+    _value,
+    widget.tween.end,
+    ({required begin, required end}) =>
+        _first ? widget.tween : widget.tween.withEnds(begin, end),
+  );
 
   @override
   Widget build(BuildContext context) =>
@@ -1059,6 +1058,10 @@ class EdgeInsetsTween extends Tween<EdgeInsets> {
   const EdgeInsetsTween({required super.begin, required super.end});
 
   @override
+  EdgeInsetsTween withEnds(EdgeInsets begin, EdgeInsets end) =>
+      EdgeInsetsTween(begin: begin, end: end);
+
+  @override
   EdgeInsets lerp(double t) {
     int side(int a, int b) {
       final v = (a + (b - a) * t).round();
@@ -1094,6 +1097,10 @@ class EdgeInsetsTween extends Tween<EdgeInsets> {
 class StyleTween extends Tween<Style> {
   /// A tween of styles from [begin] to [end].
   const StyleTween({required super.begin, required super.end});
+
+  @override
+  StyleTween withEnds(Style begin, Style end) =>
+      StyleTween(begin: begin, end: end);
 
   @override
   Style lerp(double t) {
@@ -1136,6 +1143,10 @@ class StyleTween extends Tween<Style> {
 /// switching halfway.
 final class _BorderTween extends Tween<Border> {
   const _BorderTween({required super.begin, required super.end});
+
+  @override
+  _BorderTween withEnds(Border begin, Border end) =>
+      _BorderTween(begin: begin, end: end);
 
   @override
   Border lerp(double t) {

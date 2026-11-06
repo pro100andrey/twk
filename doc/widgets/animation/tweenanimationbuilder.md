@@ -43,9 +43,7 @@ void dispose() {
 
 @override
 Widget build(BuildContext context) => TweenAnimationBuilder<double>(
-  value: _values[_i],
-  from: 0,
-  tween: Tween.new,
+  tween: Tween<double>(begin: 0, end: _values[_i]),
   duration: const Duration(milliseconds: 600),
   curve: Curves.easeInOut,
   builder: (context, value, _) {

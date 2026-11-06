@@ -498,8 +498,8 @@ void main() {
     expect(seen, ["Instance of 'Save'", 'passed on']);
   });
 
-  testTwk('an Action\'s invoke returns what its callback returns, as '
-      'Flutter\'s does', (t) async {
+  testTwk("an Action's invoke returns what its callback returns, as "
+      "Flutter's does", (t) async {
     final action = CallbackAction<Save>(onInvoke: (_) => 42);
     expect(action.invoke(const Save()), 42);
     expect(

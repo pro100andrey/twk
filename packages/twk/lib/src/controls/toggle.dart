@@ -399,8 +399,7 @@ final class _Toggle extends StatelessWidget {
           return text(at);
         }
         return TweenAnimationBuilder<double>(
-          value: at,
-          tween: Tween<double>.new,
+          tween: Tween<double>(begin: at, end: at),
           duration: const Duration(milliseconds: 140),
           // the design's ease out, a cubic
           curve: const Cubic(0.33, 1, 0.68, 1),

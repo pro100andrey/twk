@@ -65,8 +65,7 @@ void main() {
       t,
       const Color.rgb(0, 0, 0),
       (value) => TweenAnimationBuilder<Color>(
-        value: value,
-        tween: ColorTween.new,
+        tween: ColorTween(begin: value, end: value),
         duration: ms * 40,
         builder: (_, color, _) => Text(rgb(color)),
       ),
@@ -88,9 +87,7 @@ void main() {
       t,
       const Color.rgb(0, 0, 0),
       (value) => TweenAnimationBuilder<Color>(
-        value: value,
-        from: const Color.rgb(200, 0, 0),
-        tween: ColorTween.new,
+        tween: ColorTween(begin: const Color.rgb(200, 0, 0), end: value),
         duration: ms * 40,
         builder: (_, color, _) => Text(rgb(color)),
       ),

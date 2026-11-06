@@ -81,9 +81,10 @@ a `Stack`, `AnimatedOpacity(opacity:)`, `AnimatedDefaultTextStyle(style:)`,
 `AnimatedBox(style:, border:, titles:, padding:, width:, height:)` (the
 border's type switching halfway), `AnimatedSize(duration:, curve:,
 alignment:)`, from the size shown to its child's, the child cut off
-meanwhile, and `TweenAnimationBuilder<T>(value:, from:, tween:, builder:)`,
-whose `tween` is a constructor (`EdgeInsetsTween.new`), since a `Tween` here
-is immutable. One of an app's own extends `ImplicitlyAnimatedWidget`, its
+meanwhile, and `TweenAnimationBuilder<T>(tween:, builder:)`,
+whose `tween` is a `Tween` as Flutter's: it runs from the `begin` at first and
+to each new `end` from the value shown, along `tween.withEnds`, which a `Tween`
+of an app's own overrides, since a `Tween` here is immutable. One of an app's own extends `ImplicitlyAnimatedWidget`, its
 state `ImplicitlyAnimatedWidgetState`, whose `forEachTween(visitor)` gives
 each of its tweens (a `TweenVisitor` of `TweenConstructor`s), started again
 from the value shown on a new target, and whose `progress` is how far the

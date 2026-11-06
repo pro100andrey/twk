@@ -77,8 +77,7 @@ extension on _SampleAppState {
               child: Text('$count', key: ValueKey(count)),
             ),
             TweenAnimationBuilder<double>(
-              value: odd ? 1 : 0,
-              tween: Tween.new,
+              tween: Tween<double>(begin: odd ? 1 : 0, end: odd ? 1 : 0),
               duration: duration,
               builder: (context, value, child) =>
                   SizedBox(width: 4, child: ProgressBar(value: value)),
