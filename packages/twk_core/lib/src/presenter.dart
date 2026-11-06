@@ -1267,12 +1267,18 @@ final class Presenter {
     }
   }
 
-  /// Inline mode: committed rows go in with `IL` (see [commit]).
+  /// Inline mode: committed rows go in with `IL` (see [commit]). Not while
+  /// Konsole shows a sixel or iTerm2 image: a scroll down moves none of its
+  /// images, so the pixels would stay over the cells the `IL` moved; the
+  /// region is printed again after an `ED 0`, which erases them.
   bool get _insertsCommitted =>
       !_frontInvalid &&
       caps.hardwareScroll &&
       height > 0 &&
-      screenHeight > height;
+      screenHeight > height &&
+      !(caps.konsoleImages &&
+          _shown.isNotEmpty &&
+          _scrollsImage(0, height, 0, width));
 
   /// Inline mode, before the region is placed: writes the committed rows
   /// from the region's first row down, after erasing it, with a line feed

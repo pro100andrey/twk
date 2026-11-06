@@ -9,9 +9,10 @@
 import 'dart:convert';
 
 import 'package:test/test.dart';
+import 'package:twk_core/src/canvas.dart' show Canvas;
 import 'package:twk_core/src/graphics.dart';
 import 'package:twk_core/src/presenter.dart';
-import 'package:twk_core/src/surface.dart' show kSkip;
+import 'package:twk_core/src/surface.dart' show Surface, kSkip;
 
 import '../support/harness.dart';
 import 'graphics_test.dart' show image, notBlank, shown;
@@ -188,6 +189,39 @@ void main() {
             '($x, $y)',
     ];
     expect(stale, isEmpty);
+    expect(hs.mismatches(), isEmpty);
+  });
+
+  test('sixel, inline: rows committed above a region that shows an image '
+      'leave no pixels where it was (an IL moves none on Konsole)', () {
+    final hs = Harness.inline(
+      20,
+      4,
+      screenHeight: 10,
+      history: [r'$ run'],
+      caps: const TerminalCaps(
+        graphics: GraphicsProtocol.sixel,
+        konsoleImages: true,
+      ),
+      vtKonsoleImages: true,
+    );
+    final img = image(GraphicsProtocol.sixel);
+    void region() {
+      hs.canvas
+        ..text(0, 0, 'header', hs.pens[1])
+        ..image(2, 2, 4, 2, img);
+    }
+
+    region();
+    hs.frame();
+    final rows = Surface(20, 2);
+    Canvas(rows, hs.styles, hs.glyphs)
+      ..text(0, 0, 'done 1', hs.pens[1])
+      ..text(0, 1, 'done 2', hs.pens[1]);
+    hs.commit(rows);
+    region();
+    hs.frame();
+    expect(hs.vt.images, hasLength(1));
     expect(hs.mismatches(), isEmpty);
   });
 }
