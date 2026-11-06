@@ -1051,7 +1051,7 @@ final class TerminalEmulator {
     }
     final line = _screen.lines[_y];
     final cells = line.cells;
-    var cell = cells[px];
+    final cell = cells[px];
     if (s.codeUnitAt(0) < 0x300 && (cell & kUncertain) == 0) {
       return 0; // below U+0300 only a Prepend joins
     }
