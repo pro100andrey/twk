@@ -127,69 +127,22 @@ it should not is where one goes.
 
 ## A long text edited one row at a time
 
-A `Text` that repaints paints all of its rows. For a long multi-line text
-in which an edit changes a row or two (a checklist, a log you edit, a
-rendered document) `keepsPaint: true` makes the paragraph keep what it
-painted and repaint only the rows that differ from it:
+A `Text` of eight rows or more, edited a few times without changing its
+size (a checklist, a log you edit, a rendered document), keeps what it
+painted by itself and from then on repaints only the rows that differ.
+There is nothing to set, and a text that lies over another object's text
+stays as it was, as does a short or a still one: it reads the cells under
+it before it turns, and turns back if a glyph comes there.
 
-<!-- file: packages/twk/example/guides/perf_kept.dart -->
-```dart
-import 'package:twk/twk.dart';
+It is a small gain. In the benchmark's mixed-script paragraph over most of
+the screen, a word typed into it takes 56.8 us a frame and 19.6 us kept
+(`wrap` and `wrap-kept`, pinned, on an idle machine, with `hasKeepsPaint`
+switched on in `tool/frame_scenarios/lib/src/branch_api.dart`), against a
+frame budget of 16 600 us. The bytes written are the same, 311.6 a frame
+in both.
 
-Future<void> main() => runApp(const Notes());
-
-final class Notes extends StatefulWidget {
-  const Notes({super.key});
-
-  @override
-  State<Notes> createState() => _NotesState();
-}
-
-final class _NotesState extends State<Notes> {
-  var _done = 0;
-
-  String get _text => [
-    for (var i = 0; i < 200; i++) '${i < _done ? '[x]' : '[ ]'} task $i',
-  ].join('\n');
-
-  @override
-  Widget build(BuildContext context) => KeyBindings(
-    {
-      'd': () => setState(() => _done++),
-      'q': () => AppBinding.of(context).quit(),
-    },
-    child: Focus(
-      autofocus: true,
-      child: Panel(
-        look: PanelLook.bordered,
-        child: Text(_text, keepsPaint: true),
-      ),
-    ),
-  );
-}
-```
-
-It is a small gain, and a trade. In the benchmark's mixed-script paragraph
-over most of the screen, a word typed into it takes 56.8 us a frame and
-19.6 us with `keepsPaint` (`wrap` and `wrap-kept`, pinned, on an idle
-machine, with `hasKeepsPaint` switched on in
-`tool/frame_scenarios/lib/src/branch_api.dart`). The bytes written are the
-same, 311.6 a frame in both. The gain is tens of microseconds a frame; the doc comment of
-`Text.keepsPaint` says about 40. A 16 600 us frame budget does not need it.
-Turn it on only after a measure shows the paint of that text is the cost.
-
-What you pay for it:
-
-- The text paints every cell of its bounds, over the styles its parent left
-  there, so it must not be drawn over other text, and it is not the root of
-  the tree. Give it a panel of its own.
-- It copies the styles under it each time its parent paints it.
-- Under `Panel`, `Box`, `Padding`, `SizedBox`, `Row` and `Column` alike it
-  repaints only the changed rows (`text_test.dart` holds that for the
-  shapes it lists); put it in a shape those tests do not cover and measure
-  again.
-
-It is off by default, and the plain path costs what it always did.
+A render object of your own has `RenderParagraph.keepsPaint` to force it,
+and its contract in the doc comment.
 
 ## Streams and logs
 

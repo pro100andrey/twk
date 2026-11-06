@@ -42,8 +42,8 @@ Changed:
   `y` and `n`; a letter both words start with asks again.
 - `runApp` and `AppBinding` take `maxInputFps`
   ([twk_core's changelog](../twk_core/CHANGELOG.md)).
-- `Text` and `Text.rich` take `keepsPaint`, for a long text in a panel of its own:
-  an edit repaints the rows that changed.
+- A `Text` of eight rows or more that is edited without changing its size
+  repaints only the rows that changed, by itself: nothing to set.
 - A widget that watched a provider in one build and only selects in a later one
   is told of what it selects, where it stayed told of every change.
 - `Semantics.nodes` keep their hints while the `Semantics` is not focused.

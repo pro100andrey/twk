@@ -34,6 +34,9 @@ Changed:
   parent left there, and an edit that holds its size leaves the parent alone. It
   must not be drawn over other objects' glyphs or be the tree's root. With it off,
   painting costs what it did before.
+- `RenderParagraph(autoKeepsPaint:)` turns to keeping by itself, at eight rows or
+  more, after layouts that held its size, where no glyph lies under it; `Text`
+  sets it.
 - `TextPainter.prepare` and `draw`, which `paint` is both, and `tracksDamage` with
   `changedRows`: the rows the last paint drew otherwise than the one before.
 - The presenter writes less and looks at less: over blanks it changes only what a
