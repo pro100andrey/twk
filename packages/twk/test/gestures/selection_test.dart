@@ -290,7 +290,7 @@ void main() {
       Theme.terminal(
         child: area(copies, [
           GestureDetector(
-            onDragUpdate: (d) => drags.add('${d.x},${d.y}'),
+            onPanUpdate: (d) => drags.add('${d.x},${d.y}'),
             child: const Text('drag me'),
           ),
           const Text('select me'),

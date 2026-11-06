@@ -43,7 +43,7 @@ final _gesturedetectorPage = GalleryPage(
 
 /// The Code's lines too long for a line of Dart.
 const _dragStartLine =
-    '        onDragStart: (drag) => setState(() => _from = (drag.x, drag.y)),';
+    '        onPanStart: (drag) => setState(() => _from = (drag.x, drag.y)),';
 
 const _draggedLine =
     r'          _dragged = (_dragged.$1 + drag.dx, _dragged.$2 + drag.dy);';
@@ -112,14 +112,14 @@ final class _GesturesState extends State<_Gestures> {
           }),
           longPressDuration: Duration(milliseconds: widget.longMs),
           buttons: widget.buttons,
-          onDragStart: (drag) => setState(() => _from = (drag.x, drag.y)),
-          onDragUpdate: (drag) => setState(() {
+          onPanStart: (drag) => setState(() => _from = (drag.x, drag.y)),
+          onPanUpdate: (drag) => setState(() {
             _dragged = (_dragged.$1 + drag.dx, _dragged.$2 + drag.dy);
             _drags++;
             _at = (drag.x, drag.y);
             _saw('drag', drag.event);
           }),
-          onDragEnd: (drag) => setState(() {
+          onPanEnd: (drag) => setState(() {
             _from = _at = null;
             _saw('drag ended', drag.event);
           }),
@@ -222,12 +222,12 @@ String _gesturesCode(Options o) => [
   if (o(_gesturedetectorButtons) case final b when b != 'left')
     '        buttons: const {${_buttons[b]!.join(', ')}},',
   _dragStartLine,
-  '        onDragUpdate: (drag) => setState(() {',
+  '        onPanUpdate: (drag) => setState(() {',
   _draggedLine,
   '          _at = (drag.x, drag.y);',
   "          _saw('drag', drag.event);",
   '        }),',
-  '        onDragEnd: (drag) => setState(() {',
+  '        onPanEnd: (drag) => setState(() {',
   '          _from = _at = null;',
   "          _saw('drag ended', drag.event);",
   '        }),',

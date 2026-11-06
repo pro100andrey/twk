@@ -45,9 +45,9 @@ Widget detector(
       onDoubleTap: double ? (e) => log.add('$name double ${at(e)}') : null,
       onLongPress: long ? (e) => log.add('$name long ${at(e)}') : null,
       onLongPressEnd: long ? (e) => log.add('$name long end ${at(e)}') : null,
-      onDragStart: drag ? (d) => log.add('$name start ${moved(d)}') : null,
-      onDragUpdate: drag ? (d) => log.add('$name update ${moved(d)}') : null,
-      onDragEnd: drag ? (d) => log.add('$name end ${moved(d)}') : null,
+      onPanStart: drag ? (d) => log.add('$name start ${moved(d)}') : null,
+      onPanUpdate: drag ? (d) => log.add('$name update ${moved(d)}') : null,
+      onPanEnd: drag ? (d) => log.add('$name end ${moved(d)}') : null,
       buttons: buttons,
       behavior: HitTestBehavior.opaque,
       child: child,
@@ -574,7 +574,7 @@ void main() {
           0 => const GestureDetector(child: Text('nothing')),
           1 => GestureDetector(onDoubleTap: none, child: const Text('tap')),
           2 => GestureDetector(onLongPressEnd: none, child: const Text('long')),
-          _ => GestureDetector(onDragEnd: none, child: const Text('drag')),
+          _ => GestureDetector(onPanEnd: none, child: const Text('drag')),
         },
       ),
     );
@@ -639,7 +639,7 @@ void main() {
     ) async {
       final double = GestureDetector(onDoubleTap: (_) {}, child: blank);
       expect(await shapeOver(t, double), PointerShape.arrow);
-      final drag = GestureDetector(onDragUpdate: (_) {}, child: blank);
+      final drag = GestureDetector(onPanUpdate: (_) {}, child: blank);
       expect(await shapeOver(t, drag), PointerShape.arrow);
       final right = GestureDetector(
         buttons: const {2},
@@ -662,7 +662,7 @@ void main() {
       );
       final drag = GestureDetector(
         cursor: PointerShape.move,
-        onDragUpdate: (_) {},
+        onPanUpdate: (_) {},
         child: blank,
       );
       expect(await shapeOver(t, drag), PointerShape.move);

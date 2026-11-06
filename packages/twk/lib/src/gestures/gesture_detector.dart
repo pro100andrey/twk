@@ -65,8 +65,8 @@ typedef DragListener = void Function(DragDetails details);
 /// It takes the presses of [buttons] (the left one by default), and tells
 /// each gesture with the cell in the coordinates of this widget and the
 /// button: a tap ([onTap]), a double tap ([onDoubleTap]), a long press
-/// ([onLongPress], [onLongPressEnd]) and a drag ([onDragStart],
-/// [onDragUpdate], [onDragEnd]). It is a [Listener] underneath, hit as
+/// ([onLongPress], [onLongPressEnd]) and a drag ([onPanStart],
+/// [onPanUpdate], [onPanEnd]). It is a [Listener] underneath, hit as
 /// [behavior] says: by default where its child is.
 ///
 /// A press is a drag once the mouse moves to another cell with the button
@@ -116,7 +116,7 @@ typedef DragListener = void Function(DragDetails details);
 /// var top = 0;
 /// final card = GestureDetector(
 ///   onDoubleTap: (_) => print('open'),
-///   onDragUpdate: (drag) {
+///   onPanUpdate: (drag) {
 ///     left += drag.dx;
 ///     top += drag.dy;
 ///   },
@@ -154,9 +154,9 @@ final class GestureDetector extends StatefulWidget {
     this.onDoubleTap,
     this.onLongPress,
     this.onLongPressEnd,
-    this.onDragStart,
-    this.onDragUpdate,
-    this.onDragEnd,
+    this.onPanStart,
+    this.onPanUpdate,
+    this.onPanEnd,
     this.buttons = const {0},
     this.doubleTapInterval = const Duration(milliseconds: 300),
     this.longPressDuration = const Duration(milliseconds: 500),
@@ -199,13 +199,13 @@ final class GestureDetector extends StatefulWidget {
   final PointerEventListener? onLongPressEnd;
 
   /// The start of a drag: the press, where the drag starts from.
-  final DragListener? onDragStart;
+  final DragListener? onPanStart;
 
   /// The mouse moved to another cell in a drag, wherever it is.
-  final DragListener? onDragUpdate;
+  final DragListener? onPanUpdate;
 
   /// The release that ends a drag, wherever the mouse is.
-  final DragListener? onDragEnd;
+  final DragListener? onPanEnd;
 
   /// The buttons whose presses it takes: 0 left, 1 middle, 2 right, 8 to
   /// 11 the side buttons.
@@ -265,9 +265,9 @@ final class _GestureDetectorState extends State<GestureDetector> {
       widget.onLongPress != null || widget.onLongPressEnd != null;
 
   bool get _drags =>
-      widget.onDragStart != null ||
-      widget.onDragUpdate != null ||
-      widget.onDragEnd != null;
+      widget.onPanStart != null ||
+      widget.onPanUpdate != null ||
+      widget.onPanEnd != null;
 
   /// Whether [event] is over this widget.
   bool _contains(PointerEvent event) {
@@ -410,9 +410,9 @@ final class _Arena {
               (event.x != pressed.x || event.y != pressed.y):
         _take(detector, _Gesture.drag);
         detector
-          .._tell(detector.widget.onDragStart, DragDetails(pressed))
+          .._tell(detector.widget.onPanStart, DragDetails(pressed))
           .._tell(
-            detector.widget.onDragUpdate,
+            detector.widget.onPanUpdate,
             DragDetails(
               event,
               dx: event.x - pressed.x,
@@ -423,7 +423,7 @@ final class _Arena {
           when identical(_owner, detector) &&
               (event.x != last.x || event.y != last.y):
         detector._tell(
-          detector.widget.onDragUpdate,
+          detector.widget.onPanUpdate,
           DragDetails(event, dx: event.x - last.x, dy: event.y - last.y),
         );
       case _:
@@ -468,7 +468,7 @@ final class _Arena {
         }
       case _Gesture.drag when identical(_owner, detector):
         detector._tell(
-          detector.widget.onDragEnd,
+          detector.widget.onPanEnd,
           DragDetails(event, dx: event.x - last.x, dy: event.y - last.y),
         );
       case _Gesture.longPress when identical(_owner, detector):
@@ -526,7 +526,7 @@ final class _Arena {
     if (owner != null && last != null) {
       switch (_gesture) {
         case _Gesture.drag:
-          owner._tell(owner.widget.onDragEnd, DragDetails(last));
+          owner._tell(owner.widget.onPanEnd, DragDetails(last));
         case _Gesture.longPress:
           owner._tell(owner.widget.onLongPressEnd, last);
         case _:

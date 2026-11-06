@@ -50,13 +50,13 @@ Widget build(BuildContext context) {
           _longPresses++;
           _saw('long press', event);
         }),
-        onDragStart: (drag) => setState(() => _from = (drag.x, drag.y)),
-        onDragUpdate: (drag) => setState(() {
+        onPanStart: (drag) => setState(() => _from = (drag.x, drag.y)),
+        onPanUpdate: (drag) => setState(() {
           _dragged = (_dragged.$1 + drag.dx, _dragged.$2 + drag.dy);
           _at = (drag.x, drag.y);
           _saw('drag', drag.event);
         }),
-        onDragEnd: (drag) => setState(() {
+        onPanEnd: (drag) => setState(() {
           _from = _at = null;
           _saw('drag ended', drag.event);
         }),

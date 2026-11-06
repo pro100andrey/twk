@@ -179,7 +179,7 @@ final class _FieldMouseState extends State<FieldMouse> {
         onUp: listens ? _up : null,
         behavior: HitTestBehavior.opaque,
         child: GestureDetector(
-          onDragUpdate: listens ? _drag : null,
+          onPanUpdate: listens ? _drag : null,
           behavior: HitTestBehavior.opaque,
           child: widget.child,
         ),

@@ -26,7 +26,7 @@ extension on _SampleAppState {
             child: GestureDetector(
               onTap: (_) => _bump(),
               onDoubleTap: (event) => _count.value += event.button,
-              onDragUpdate: (drag) => _count.value += drag.dx,
+              onPanUpdate: (drag) => _count.value += drag.dx,
               child: const Text('tap'),
             ),
           ),

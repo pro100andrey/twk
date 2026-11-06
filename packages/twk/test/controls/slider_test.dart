@@ -362,7 +362,7 @@ void main() {
       await t.pumpWidget(
         GestureDetector(
           onTap: (_) => told.add('tap'),
-          onDragStart: (_) => told.add('drag'),
+          onPanStart: (_) => told.add('drag'),
           child: slider(value),
         ),
         size: (20, 3),
@@ -471,7 +471,7 @@ void main() {
       Theme(
         data: ThemeData.dark,
         child: GestureDetector(
-          onDragStart: (d) => drags.add(d.x),
+          onPanStart: (d) => drags.add(d.x),
           child: Listener(
             onScroll: (e) => wheel.add(e.scrollY),
             child: slider(value, enabled: false),

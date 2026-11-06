@@ -196,7 +196,7 @@ final class _CounterState extends State<Counter> {
 ## The mouse
 
 Full screen, the terminal reports the mouse while a widget that needs it
-is mounted: `GestureDetector` (`onTap:`, `onDoubleTap:`, `onDragUpdate:`),
+is mounted: `GestureDetector` (`onTap:`, `onDoubleTap:`, `onPanUpdate:`),
 `Listener`, `MouseRegion` for hovers and the pointer's shape, `Draggable`
 and `DragTarget`. A click on a focusable widget focuses it. Inline, the
 mouse stays the terminal's: its own selection keeps working.

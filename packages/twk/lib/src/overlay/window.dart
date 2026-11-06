@@ -1070,9 +1070,9 @@ final class _Frame extends StatelessWidget {
                     : PointerShape.grab,
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
-                  onDragStart: (d) => layer._dragStart(slot, 0, d.event),
-                  onDragUpdate: (d) => layer._dragUpdate(slot, d.event),
-                  onDragEnd: (_) => layer._dragEnd(slot),
+                  onPanStart: (d) => layer._dragStart(slot, 0, d.event),
+                  onPanUpdate: (d) => layer._dragUpdate(slot, d.event),
+                  onPanEnd: (_) => layer._dragEnd(slot),
                   onDoubleTap: window.maximisable
                       ? (_) => layer._toggleMaximised(slot)
                       : null,
@@ -1247,9 +1247,9 @@ final class _Frame extends StatelessWidget {
       },
       GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onDragStart: (d) => layer._dragStart(slot, edges, d.event),
-        onDragUpdate: (d) => layer._dragUpdate(slot, d.event),
-        onDragEnd: (_) => layer._dragEnd(slot),
+        onPanStart: (d) => layer._dragStart(slot, edges, d.event),
+        onPanUpdate: (d) => layer._dragUpdate(slot, d.event),
+        onPanEnd: (_) => layer._dragEnd(slot),
       ),
       edges: edges,
     );

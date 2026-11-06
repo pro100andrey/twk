@@ -761,7 +761,7 @@ final class _SelectionAreaState extends State<SelectionArea> {
           onUp: _up,
           behavior: HitTestBehavior.translucent,
           child: GestureDetector(
-            onDragUpdate: _drag,
+            onPanUpdate: _drag,
             behavior: HitTestBehavior.translucent,
             child: _SelectionScope(
               this,

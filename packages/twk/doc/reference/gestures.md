@@ -74,7 +74,7 @@ hit as they would be (a scroll view around it still gets the wheel).
 ## `GestureDetector`
 
 `GestureDetector(onTap:, onDoubleTap:, onLongPress:, onLongPressEnd:,
-onDragStart:, onDragUpdate:, onDragEnd:, buttons: {0}, doubleTapInterval:
+onPanStart:, onPanUpdate:, onPanEnd:, buttons: {0}, doubleTapInterval:
 300 ms, longPressDuration: 500 ms, behavior:, child:)`, a `Listener`
 underneath, tells the gestures of the presses of the `buttons` it takes: a
 press is a drag once the mouse moves to another cell with the button held

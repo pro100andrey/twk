@@ -4,6 +4,9 @@
 
 Breaking:
 
+- `GestureDetector` takes `onPanStart`, `onPanUpdate` and `onPanEnd`, as Flutter
+  names them, where it took `onDragStart`, `onDragUpdate` and `onDragEnd`; their
+  `DragDetails` keeps its name.
 - `ScrollMetrics` and `ScrollPosition` have `pixels`, `maxScrollExtent` and
   `viewportDimension`, as Flutter names them, where they had `offset`,
   `maxOffset` and `viewportExtent`; `ScrollController.offset` stays.

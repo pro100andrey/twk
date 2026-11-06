@@ -388,8 +388,8 @@ void main() {
               feedback: const Text('[around]'),
               onDragStarted: () => log.add('around started'),
               child: GestureDetector(
-                onDragStart: (d) => log.add('inner start ${at(d.event)}'),
-                onDragEnd: (d) => log.add('inner end ${at(d.event)}'),
+                onPanStart: (d) => log.add('inner start ${at(d.event)}'),
+                onPanEnd: (d) => log.add('inner end ${at(d.event)}'),
                 child: const Text('inner'),
               ),
             ),
