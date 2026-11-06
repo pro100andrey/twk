@@ -1,0 +1,296 @@
+---
+title: "Coming from Flutter"
+about: "What is the same as Flutter, what is spelled differently, and what twk does not have."
+order: 10
+---
+# Coming from Flutter
+
+twk keeps Flutter's widget model: `StatelessWidget`, `StatefulWidget`,
+`State`, `setState`, `BuildContext`, `InheritedWidget`, keys, constraints
+going down and sizes going up, `Navigator`, `Overlay`, `Focus`. What you
+know of how a tree builds, rebuilds and lays out holds. What does not hold
+is the unit and the catalog: the screen is a grid of character cells, and
+there is no Material.
+
+If you write twk from Flutter's names, these are the mistakes that come
+first.
+
+## Cells, not pixels
+
+Every size, offset, padding and gap is a whole number of cells: an `int`,
+not a `double`. A cell is one column wide and one row tall, and it is about
+twice as tall as it is wide, so `SizedBox(width: 20, height: 10)` is a
+tall box. There are no fractions of a cell, no device pixel ratio and no
+rounded corners other than the border characters of a `Box`.
+
+```dart
+import 'package:twk/twk.dart';
+
+const sized = SizedBox(width: 20, height: 3);
+const insets = EdgeInsets.only(left: 2, right: 2);
+const loose = BoxConstraints(maxW: 40);
+```
+
+- `BoxConstraints` has `minW`, `maxW`, `minH`, `maxH`, not Flutter's
+  `minWidth` and the rest. `BoxConstraints.tight(w, h)` and `tightFor`
+  are there.
+- `EdgeInsets` has `all`, `only`, `x` (left and right) and `y` (top and
+  bottom). It has no `symmetric`, `fromLTRB` or `LTRB`.
+- A `double` is still a `double` where it is a proportion: `Slider`'s
+  value, `Opacity.opacity`, `ProgressBar.value`.
+- The screen's size is not in a `MediaQuery`: there is none. A widget
+  reads the room it was given, in cells, from a `LayoutBuilder`'s
+  constraints.
+
+## Gaps are a parameter
+
+`Row`, `Column`, `Flex` and `Wrap` take `gap` (and `Wrap` a `runGap`) in
+cells, so the `SizedBox(height: 8)` between children is not written.
+`Spacer` and `Expanded(flex: ...)` are as in Flutter.
+
+## Text is a string with a `Style`
+
+There is no `TextStyle`, `TextSpan`, `RichText`, `Colors` or `Icon`.
+
+- `Text('hi', style: ...)` takes a `Style`: `fg` and `bg` colors and
+  attributes (`Attr.bold`, `Attr.dim`, `Attr.italic`, underlines, `Attr.reverse`,
+  `Attr.strike`). A `Style` has no font, size or weight: the terminal draws
+  one font.
+- A `Color` is one of the terminal's sixteen (`Color.red`, `Color.blue`),
+  an indexed one or a `Color.rgb(r, g, b)`. There is no `Colors.red[500]`
+  and no opacity on a color other than the alphas of a `Style`.
+- Styled runs are `Span`s: `'error: '.bold.fg(.red)` is a `Span`, and
+  `Text.rich` takes a list of them where Flutter's takes a `TextSpan` tree.
+- An icon is a character, `Text('✉')`, or the glyphs of the theme.
+- `Text` wraps at words by default and clips (`TextOverflow.clip`);
+  `Text.line` is one row with an ellipsis. A width is counted in cells, so
+  a wide character (CJK, most emoji) is two.
+
+```dart
+import 'package:twk/twk.dart';
+
+const warn = Style(fg: Color.yellow, attrs: Attr.bold);
+final rich = Text.rich(['error: '.bold.fg(.red), 'disk full'.dim]);
+```
+
+The colors an app draws with come from a `Theme`: `Theme.of(context)`
+gives `text`, `muted`, `primary`, `border`, `error` and the other `Style`s
+of [Theming](theming.md), which follow the terminal's own colors by
+default. Writing a `Style` with a fixed color is the exception, not the
+way a Flutter app writes `Theme.of(context).colorScheme`.
+
+## No Material, and what is there
+
+twk has no `MaterialApp`, `AppBar`, `Card`, `FloatingActionButton`,
+`Drawer`, `SnackBar`, `Hero`, `InkWell`, `Dismissible`, `GridView`,
+`PageView`, `Image.network`, `AnimatedContainer`, `SafeArea`,
+`ClipRRect`, `AspectRatio`, `FittedBox`, `IndexedStack`,
+`ReorderableListView`, `RefreshIndicator`, `ScaffoldMessenger`,
+`FocusTraversalGroup` or `showModalBottomSheet`. Each has a counterpart or
+none:
+
+| Flutter | twk |
+| --- | --- |
+| `runApp(MaterialApp(...))` | `runApp(const App(child: ...))`; `App` gives a theme and an overlay, `runApp` alone gives neither |
+| `Scaffold(appBar, body, drawer)` | `Scaffold(header:, body:, sidebar:, statusBar:)` |
+| `Container(decoration: BoxDecoration(border: ...))` | `Box(border:, titles:, padding:, style:)`; `Container` exists too, with `color`, `decoration`, `margin` |
+| `Card`, `Material` | `Panel` |
+| `ElevatedButton`, `TextButton`, `OutlinedButton` | `Button`, `Button.filled`, `Button.outlined` (a label and `onPressed`, no `child`) |
+| `IconButton`, `InkWell` | `Pressable`, `GestureDetector` |
+| `Checkbox`, `Switch`, `Slider` | the same names; `Checkbox` and `Switch` take a `label`, and a null `onChanged` disables them |
+| `Radio`, `RadioListTile` | `RadioGroup<T>` |
+| `DropdownButton` | `Select<T>` |
+| `TextField(decoration: InputDecoration(...))` | `TextField`, with `placeholder` and an `InputDecoration` whose parts are `labelText`, `helperText`, `errorText`, `prefixIcon` |
+| `Form`, `TextFormField` | the same names |
+| `AlertDialog`, `showDialog` | `Dialog`, `showDialog<T>(context, builder)`; the builder is positional |
+| `SnackBar` | `showToast(context, message)` |
+| `Tooltip` | `Tooltip(message:, child:)` |
+| `CircularProgressIndicator`, `LinearProgressIndicator` | `Spinner`, `ProgressBar` (`value: null` is indeterminate) |
+| `TabBar`, `TabBarView`, `TabController` | `TabBar`, `TabView`, `TabController` |
+| `DataTable` | `Table<T>` (rows and columns, selection, sorting) |
+| `GridView` | `Grid` with column and row tracks |
+| `SelectableText` | `SelectionArea` |
+| `WillPopScope` | `PopScope` |
+| `Image` | `Image` in `twk_rich`, in the terminal's graphics or block characters |
+
+The [widget catalog](../widgets/README.md) lists what twk has that Flutter
+does not: `Sparkline`, `Chart`, `Gauge`, `Calendar`, `TreeView`,
+`SplitPane`, `CommandPalette`, `Stepper`, `Breadcrumbs`, `Console`,
+markdown and diff views and a terminal in a widget.
+
+## The keyboard is first
+
+A terminal has a keyboard before it has a mouse, and a widget that can be
+acted on is reached with Tab. A `Button` does nothing until it has the
+focus (Tab, or the mouse) and Enter or Space is pressed; a `TextField`
+takes characters only when focused, so a single-letter binding such as `q`
+above a focused field is typed into the field.
+
+- Keys are named by strings: `KeyBindings({'ctrl+s': save, 'g g': top},
+  child: ...)`. `Shortcuts`, `Actions` and `Intent` are Flutter's and are
+  there as well; the string form is how an app usually binds. See
+  [Input and focus](input-and-focus.md).
+- The mouse is a plain `GestureDetector`, `MouseRegion`, `Draggable` and
+  `Listener`; not every terminal reports it, so an action reachable only by the
+  mouse is a bug here.
+- `hints:` on `KeyBindings` lists the keys on the bar at the bottom, which
+  the widgets fill in too.
+
+## A screen, ported
+
+A Flutter form, as it is written here:
+
+```dart
+import 'package:twk/twk.dart';
+
+Future<void> main() => runApp(const App(child: Profile()));
+
+final class Profile extends StatefulWidget {
+  const Profile({super.key});
+
+  @override
+  State<Profile> createState() => _ProfileState();
+}
+
+final class _ProfileState extends State<Profile> {
+  final _name = TextEditingController();
+  var _news = false;
+
+  @override
+  void dispose() {
+    _name.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const .all(1),
+      child: Column(
+        crossAxisAlignment: .start,
+        gap: 1,
+        children: [
+          Text('Profile', style: theme.primary),
+          SizedBox(width: 30, child: TextField(controller: _name)),
+          Checkbox(
+            value: _news,
+            label: 'Send me the news',
+            onChanged: (value) => setState(() => _news = value),
+          ),
+          Row(
+            gap: 2,
+            children: [
+              Button.filled(
+                'Save',
+                onPressed: () => showToast(context, 'saved'),
+              ),
+              Button.outlined(
+                'Delete',
+                onPressed: () => showDialog<void>(
+                  context,
+                  (context) => Dialog(
+                    title: 'Delete?',
+                    child: const Text('This cannot be undone.'),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+What changed from the Flutter version: the sizes are ints, the gaps are
+`gap:`, the label belongs to the `Checkbox`, the buttons take a string, and
+the dialog's builder is a second positional argument. The `State`, its
+controller and its `dispose` are the same, and so is a controller you must
+dispose.
+
+Dart's dot shorthands (`.all(1)`, `.start`, `.stretch`) are used
+throughout, as in the other guides; `EdgeInsets.all(1)` and
+`CrossAxisAlignment.start` mean the same and compile as well.
+
+## Lists and navigation
+
+`ListView` takes `children`; `ListView.builder` takes `itemCount` and
+`itemBuilder`, and builds only the rows in view. A `ListView` is focusable
+and scrolls with the arrow keys, Page keys and the wheel, and a `ListTile`'s
+`onTap` runs on Enter, Space or a click.
+
+`Navigator` takes `home` and a `routes` map, and `Navigator.push`,
+`pushNamed`, `pop` and `popUntil` are static as in Flutter. A route is a
+`PageRoute(builder:)`, not a `MaterialPageRoute`. Escape pops by default
+(`backKey`), as a back button does.
+
+```dart
+import 'package:twk/twk.dart';
+
+final class Items extends StatelessWidget {
+  const Items({super.key});
+
+  @override
+  Widget build(BuildContext context) => ListView.builder(
+    itemCount: 100,
+    itemBuilder: (context, i) => ListTile(
+      title: Text('Item $i'),
+      onTap: () => Navigator.push<void>(
+        context,
+        PageRoute(builder: (context) => Text('Item $i')),
+      ),
+    ),
+  );
+}
+```
+
+## State
+
+`ChangeNotifier`, `ValueNotifier`, `ListenableBuilder`,
+`ValueListenableBuilder`, `FutureBuilder`, `StreamBuilder` and
+`AnimationController` with `TickerProviderStateMixin` are as in Flutter.
+`package:twk/provider.dart` is Provider's API (`ChangeNotifierProvider`,
+`Consumer`, `Selector`, `MultiProvider`), and `package:twk/hooks.dart` is
+flutter_hooks'. Riverpod and bloc are the packages `twk_riverpod` and
+`twk_bloc`. [State](state.md) has them.
+
+```dart
+import 'package:twk/twk.dart';
+
+final counter = ValueNotifier<int>(0);
+final built = ValueListenableBuilder<int>(
+  valueListenable: counter,
+  builder: (context, n, _) => Text('$n'),
+);
+```
+
+There is no `AnimatedContainer`; `AnimatedBox`,
+`AnimatedPadding`, `AnimatedAlign`, `AnimatedPositioned`, `AnimatedOpacity`,
+`AnimatedSize`, `AnimatedSwitcher`, `AnimatedTheme` and
+`TweenAnimationBuilder` are there. Animation is cell by cell: a size
+animates in whole steps, and a frame is at most 1/60 s.
+
+## Runs differently
+
+- `runApp(app, mode:)` runs full screen on the alternate screen or inline
+  below the prompt ([Screen modes](screen-modes.md)). Nothing is a window.
+- `print` goes to the app's log, not the screen ([Getting
+  started](getting-started.md)). Hot reload and the inspector are the
+  `twk` command, not `flutter run`.
+- Tests are `package:twk_test`, with a tester (`pumpWidget`, `pump`),
+  finders and a terminal in memory, whose screen a test reads as text:
+  no golden pictures of pixels ([Testing](testing.md)).
+- `package:twk/twk.dart` imports every widget, and some names are words an
+  app defines too (`Table`, `Step`, `Chip`, `Window`, `Gauge`): hide them
+  or import your own with a prefix.
+
+## Where to go next
+
+- [Layout](layout.md) for `Box`, `Grid`, `Stack` and the constraints in
+  cells.
+- [Input and focus](input-and-focus.md) for keys, focus and the mouse.
+- [Theming](theming.md) for `Theme` and the `Style`s it gives.
+- [State](state.md) and [Testing](testing.md).
+- [The widget catalog](../widgets/README.md).
