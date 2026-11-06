@@ -184,6 +184,13 @@ final class SizedBox extends SingleChildRenderObjectWidget {
   /// As small as the constraints allow.
   const SizedBox.shrink({super.key, super.child}) : width = 0, height = 0;
 
+  /// [dimension] columns wide and [dimension] rows tall; a cell is about
+  /// twice as tall as it is wide, so this is not square on the screen.
+  const SizedBox.square({super.key, int? dimension, super.child})
+    : assert((dimension ?? 0) >= 0, 'a size of 0 cells or more'),
+      width = dimension,
+      height = dimension;
+
   /// The width in cells; null leaves it to the child, or 0 without one.
   final int? width;
 

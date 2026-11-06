@@ -68,6 +68,14 @@ There is no `TextStyle`, `TextSpan`, `RichText`, `Colors` or `Icon`.
   and no opacity on a color other than the alphas of a `Style`.
 - Styled runs are `Span`s: `'error: '.bold.fg(.red)` is a `Span`, and
   `Text.rich` takes a list of them where Flutter's takes a `TextSpan` tree.
+- `DefaultTextStyle(style:, child:)` merges `style` onto the one above, field
+  by field, where Flutter's plain constructor replaces it: a field the style
+  leaves unset keeps the value from above. `DefaultTextStyle.merge` is there
+  and does the same, so code brought over from Flutter that used `.merge`
+  runs as it did. To start from nothing, set every field, or put the style on
+  the `Text`.
+- `style.copyWith(fg: Color.red)` changes a field of a `Style`; a field passed
+  as null stays, as it does in Flutter's `TextStyle.copyWith`.
 - An icon is a character, `Text('✉')`, or the glyphs of the theme.
 - `Text` wraps at words by default and clips (`TextOverflow.clip`);
   `Text.line` is one row with an ellipsis. A width is counted in cells, so

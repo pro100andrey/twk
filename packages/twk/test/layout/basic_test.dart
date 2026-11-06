@@ -221,6 +221,19 @@ void main() {
       expect(v.rows(), ['ab', '']);
     });
 
+    test('square is as wide as it is tall, in cells', () {
+      final v = View(8, 4)
+        ..pump(
+          const Align(
+            alignment: Alignment.topLeft,
+            child: SizedBox.square(dimension: 3, child: Fill('x')),
+          ),
+        );
+      expect(v.rows(), ['xxx', 'xxx', 'xxx', '']);
+      const none = SizedBox.square();
+      expect([none.width, none.height], [null, null]);
+    });
+
     test('a new size changes the same render object', () {
       final v = View(8, 1)
         ..pump(

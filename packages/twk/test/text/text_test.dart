@@ -455,6 +455,33 @@ void main() {
       );
     });
 
+    test('merge merges onto the one above it, as the plain one does', () {
+      final v = Shot(
+        const DefaultTextStyle(
+          style: Style(fg: red, attrs: Attr.bold),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              DefaultTextStyle.merge(
+                style: Style(bg: blue),
+                child: Text('a'),
+              ),
+              DefaultTextStyle.merge(child: Text('b')),
+            ],
+          ),
+        ),
+        4,
+        2,
+      );
+      expect(
+        [v.cells(0, 1), v.cells(1, 1)],
+        [
+          [('a', red.value, blue.value, Attr.bold)],
+          [('b', red.value, 0, Attr.bold)],
+        ],
+      );
+    });
+
     test('a new one repaints the Texts below it in its style', () {
       final v = Shot(
         Toggle(

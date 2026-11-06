@@ -8,6 +8,45 @@ const green = Color.rgb(0, 255, 0);
 const blue = Color.rgb(0, 0, 255);
 
 void main() {
+  group('copyWith', () {
+    test('changes the fields given and keeps the rest', () {
+      const base = Style(
+        fg: red,
+        fgAlpha: 100,
+        bg: blue,
+        underlineColor: green,
+        attrs: Attr.bold,
+        attrsOff: Attr.dim,
+        link: 'a',
+      );
+      expect(base.copyWith(), base);
+      expect(
+        base.copyWith(fg: green, attrs: Attr.italic, link: 'b'),
+        const Style(
+          fg: green,
+          fgAlpha: 100,
+          bg: blue,
+          underlineColor: green,
+          attrs: Attr.italic,
+          attrsOff: Attr.dim,
+          link: 'b',
+        ),
+      );
+      expect(
+        base.copyWith(bg: red, bgAlpha: 7, underlineColor: blue, attrsOff: 0),
+        const Style(
+          fg: red,
+          fgAlpha: 100,
+          bg: red,
+          bgAlpha: 7,
+          underlineColor: blue,
+          attrs: Attr.bold,
+          link: 'a',
+        ),
+      );
+    });
+  });
+
   group('merge', () {
     test('takes the fields the other style sets and keeps the rest', () {
       const base = Style(fg: red, bg: blue, underlineColor: green, link: 'a');

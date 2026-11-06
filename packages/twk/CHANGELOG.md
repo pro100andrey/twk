@@ -241,6 +241,8 @@ Added:
 
 - `ValueChanged`, `ValueGetter` and `ValueSetter`, the function types of Flutter's, and `kReleaseMode` and `kDebugMode`, the build's mode as constants.
 
+- `Style.copyWith`, `SizedBox.square(dimension:)` and `DefaultTextStyle.merge`, which merges onto the style above as the plain constructor does (unlike Flutter's, which replaces it).
+
 ## 0.2.0
 
 - After a Ctrl+C ended the inline session, a program that handles SIGINT
