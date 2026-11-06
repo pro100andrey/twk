@@ -712,6 +712,8 @@ tasks:
       - tool-test
       - doc-snippets
       - gallery-code
+      - api-names
+      - skill-references
       - browser-test
       - vscode-install
       - vscode-compile
