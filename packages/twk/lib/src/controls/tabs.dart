@@ -788,21 +788,15 @@ final class _TabBarViewState extends State<TabBarView> {
     to.node.descendantsAreFocusable = true;
     if (focused != null) {
       final last = to.last;
-      if (last != null && last.canRequestFocus && _isBelow(last, to.node)) {
+      if (last != null &&
+          last.canRequestFocus &&
+          !identical(last, to.node) &&
+          last.isBelow(to.node)) {
         last.requestFocus();
       } else {
         to.node.nextFocus();
       }
     }
-  }
-
-  static bool _isBelow(FocusNode node, FocusNode above) {
-    for (var n = node.parent; n != null; n = n.parent) {
-      if (identical(n, above)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   @override
