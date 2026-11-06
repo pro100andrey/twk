@@ -524,7 +524,15 @@ final class RenderList extends RenderObject
 
   /// Moves the window to [offset] as the estimate has it, building nothing.
   void _seek(int offset, int count) {
-    if (_anchorStart <= offset) {
+    final fixed = _itemExtent;
+    if (fixed != null) {
+      // every item is as tall: the one at the offset is a division away
+      final last = count - 1;
+      final at = offset ~/ fixed;
+      // nothing is measured with an itemExtent: nothing for _moveAnchor to
+      // keep
+      _anchor = at < last ? at : last;
+    } else if (_anchorStart <= offset) {
       while (_anchor < count - 1) {
         _moveAnchor(_anchor + 1);
         if (_anchorStart > offset) {
