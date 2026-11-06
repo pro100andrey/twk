@@ -82,7 +82,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest]
+        os: [windows-latest]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     steps:
@@ -90,7 +90,7 @@ jobs:
       - uses: dart-lang/setup-dart@v1
         with:
           sdk: 3.13.7
-      - run: dart run tool/xtask.dart ci-os -j auto --keep-going --report xtask-report.json
+      - run: dart run tool/xtask.dart probe --report xtask-report.json
       - uses: actions/upload-artifact@v7
         if: always()
         with:

@@ -35,7 +35,7 @@ entry: tool/xtask.dart
 # all the rest; ci-os the macOS and Windows ones: on macOS every package's
 # tests and the pseudo-terminal runs, on Windows those of the packages an
 # app takes on every platform (the `portable` set).
-gates: [quick, handover, ci, ci-tests, ci-os]
+gates: [quick, handover, ci, ci-tests, ci-os, probe]
 
 sets:
   # Every package of the repository, by its pubspec.yaml: those under
@@ -118,6 +118,11 @@ sets:
       - packages/twk_web/pubspec.yaml
 
 tasks:
+  web-repeat:
+    desc: THROWAWAY, web_check's twk case 30 times
+    gate: [probe]
+    run: [dart, run, tool/web_check_repeat.dart]
+
   validate:
     desc: fail if this file is wrong (xtask --validate)
     gate: [quick, handover, ci, ci-os]
