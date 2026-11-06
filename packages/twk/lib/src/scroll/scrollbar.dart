@@ -464,7 +464,7 @@ final class _Track with ChangeNotifier {
     }
     _position?.removeListener(_moved);
     _position = p?..addListener(_moved);
-    _offset = p != null && p.hasExtents ? p.offset : null;
+    _offset = p != null && p.hasExtents ? p.pixels : null;
     _grabAt = null;
     _axisNow();
     _changed();
@@ -474,9 +474,9 @@ final class _Track with ChangeNotifier {
     final p = _position!;
     if (p.hasExtents) {
       final was = _offset;
-      _offset = p.offset;
+      _offset = p.pixels;
       if (was != null &&
-          was != p.offset &&
+          was != p.pixels &&
           _visibility == ScrollbarVisibility.onScroll) {
         _show();
       }
@@ -494,16 +494,16 @@ final class _Track with ChangeNotifier {
   /// start and end in steps; null while there is nothing to scroll.
   (int, int)? _thumb(int length, int steps) {
     final p = _position;
-    if (p == null || !p.hasExtents || p.maxOffset <= 0 || length <= 0) {
+    if (p == null || !p.hasExtents || p.maxScrollExtent <= 0 || length <= 0) {
       return null;
     }
     final all = length * steps;
-    final max = p.maxOffset;
-    var size = _ratio(all, p.viewportExtent, max + p.viewportExtent);
+    final max = p.maxScrollExtent;
+    var size = _ratio(all, p.viewportDimension, max + p.viewportDimension);
     if (size < steps) {
       size = steps;
     }
-    final offset = p.offset < 0 ? 0 : (p.offset > max ? max : p.offset);
+    final offset = p.pixels < 0 ? 0 : (p.pixels > max ? max : p.pixels);
     // along the bar: in reverse, the cells after the window are above it
     final start = _ratio(all - size, p.reverse ? max - offset : offset, max);
     return (start, start + size);
@@ -513,7 +513,7 @@ final class _Track with ChangeNotifier {
   /// window.
   bool get scrolls {
     final p = _position;
-    return p != null && p.hasExtents && p.maxOffset > 0;
+    return p != null && p.hasExtents && p.maxScrollExtent > 0;
   }
 
   /// [a] × [b] / [c], rounded.
@@ -576,11 +576,11 @@ final class _Track with ChangeNotifier {
     }
     final at = axis == Axis.vertical ? event.y : event.x;
     final (start, end) = thumb;
-    final page = p.reverse ? -p.viewportExtent : p.viewportExtent;
+    final page = p.reverse ? -p.viewportDimension : p.viewportDimension;
     if ((at + 1) * _steps <= start) {
-      p.jumpTo(p.offset - page);
+      p.jumpTo(p.pixels - page);
     } else if (at * _steps >= end) {
-      p.jumpTo(p.offset + page);
+      p.jumpTo(p.pixels + page);
     } else {
       _grabAt = at;
       _grabStart = start;
@@ -604,8 +604,8 @@ final class _Track with ChangeNotifier {
     }
     final at = axis == Axis.vertical ? event.y : event.x;
     final start = _grabStart + (at - grabAt) * _steps;
-    final along = _ratio(p.maxOffset, start < 0 ? 0 : start, room);
-    p.jumpTo(p.reverse ? p.maxOffset - along : along);
+    final along = _ratio(p.maxScrollExtent, start < 0 ? 0 : start, room);
+    p.jumpTo(p.reverse ? p.maxScrollExtent - along : along);
   }
 
   void _released() {

@@ -1701,7 +1701,7 @@ abstract class Notification {
 /// ```dart
 /// NotificationListener<ScrollNotification>(
 ///   onNotification: (n) {
-///     log('scrolled to ${n.metrics.offset}');
+///     log('scrolled to ${n.metrics.pixels}');
 ///     return false;
 ///   },
 ///   child: ListView(children: const [Text('one'), Text('two')]),

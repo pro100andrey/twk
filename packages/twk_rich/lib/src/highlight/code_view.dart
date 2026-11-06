@@ -761,9 +761,9 @@ final class _CodeViewState extends State<CodeView> {
       return false;
     }
     final p = _list.position;
-    final from = p.offset;
+    final from = p.pixels;
     p.jumpTo(from + rows);
-    return p.offset != from;
+    return p.pixels != from;
   }
 
   /// The columns of the code in view, as last laid out; null before.

@@ -1025,7 +1025,7 @@ final class _TableState<T> extends State<Table<T>> {
 
   /// The rows of a window.
   int get _page {
-    final rows = _list.hasClients ? _list.position.viewportExtent : 1;
+    final rows = _list.hasClients ? _list.position.viewportDimension : 1;
     final per = widget.rowHeight ?? 1;
     return rows ~/ per > 1 ? rows ~/ per : 1;
   }
@@ -1060,7 +1060,7 @@ final class _TableState<T> extends State<Table<T>> {
 
   /// Scrolls the rows to their end; whether they moved.
   bool _scrollToEnd() =>
-      _list.hasClients && _scrollTo(_list.position.maxOffset);
+      _list.hasClients && _scrollTo(_list.position.maxScrollExtent);
 
   /// Calls [Table.onActivated] with the row selected; whether there is
   /// one.

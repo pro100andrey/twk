@@ -130,7 +130,7 @@ final class _Viewport extends SingleChildRenderObjectWidget {
   @override
   RenderViewport createRenderObject(BuildContext context) => RenderViewport(
     axis: position.axis,
-    scrollOffset: position.offset,
+    scrollOffset: position.pixels,
     background: background.pen,
     onExtents: position.applyExtents,
   );
@@ -141,7 +141,7 @@ final class _Viewport extends SingleChildRenderObjectWidget {
       ..axis = position.axis
       ..background = background.pen
       ..onExtents = position.applyExtents
-      ..scrollOffset = position.offset;
+      ..scrollOffset = position.pixels;
   }
 }
 
@@ -184,7 +184,7 @@ final class _ViewportElement extends SingleChildRenderObjectElement {
     }
   }
 
-  void _moved() => renderObject.scrollOffset = _position!.offset;
+  void _moved() => renderObject.scrollOffset = _position!.pixels;
 
   @override
   void insertRenderObjectChild(RenderObject child, Object? slot) =>

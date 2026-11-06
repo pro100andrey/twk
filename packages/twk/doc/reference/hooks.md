@@ -86,8 +86,8 @@ itself).
 | `useFocusNode(debugLabel:, onKeyEvent:, canRequestFocus:, skipTraversal:, descendantsAreFocusable:)` | a `FocusNode` that each build sets up with these |
 | `useFocusScopeNode(…)` | a `FocusScopeNode`, likewise |
 | `useTextEditingController(text:, keys:)`, `.fromValue(value, [keys])` | a `TextEditingController`; the text of later builds is ignored |
-| `useScrollController(initialOffset:, keys:)` | a `ScrollController` |
-| `useListController(initialOffset:, keys:)` | a `ListController` |
+| `useScrollController(initialScrollOffset:, keys:)` | a `ScrollController` |
+| `useListController(initialScrollOffset:, keys:)` | a `ListController` |
 
 When the stream or the future of a build is not the last one's, the hook
 goes over to it, the snapshot kept, not connected, with `preserveState`,

@@ -84,30 +84,31 @@ final _notifications = GalleryPage(
       '}',
       '',
       'bool _onOuter($outer notification) {',
-      '  final ScrollMetrics(:offset, :maxOffset) = notification.metrics;',
+      '  final ScrollMetrics(:pixels, :maxScrollExtent) =',
+      '      notification.metrics;',
       '  setState(() {',
       "    _trace.last.outer = 'heard';",
       ...switch (outer) {
         'ScrollNotification' => [
           '    _heard = switch (notification) {',
           '      ScrollUpdateNotification(:final scrollDelta) =>',
-          r"        'scrolled $scrollDelta to $offset of $maxOffset',",
+          r"        'scrolled $scrollDelta to $pixels of $maxScrollExtent',",
           '      OverscrollNotification(:final overscroll) =>',
-          r"        'overscrolled $overscroll at $offset of $maxOffset',",
+          r"        'overscrolled $overscroll at $pixels of $maxScrollExtent',",
           r"      _ => '$notification',",
           '    };',
         ],
         'ScrollUpdateNotification' => [
           codeLine([
             "    _heard = 'scrolled ",
-            r"${notification.scrollDelta} to $offset of $maxOffset';",
+            r"${notification.scrollDelta} to $pixels of $maxScrollExtent';",
           ]),
         ],
         _ => [
           '    _heard =',
           codeLine([
             "        'overscrolled ",
-            r"${notification.overscroll} at $offset of $maxOffset';",
+            r"${notification.overscroll} at $pixels of $maxScrollExtent';",
           ]),
         ],
       },
@@ -270,7 +271,7 @@ final class _Bubbling extends StatefulWidget {
 final class _BubblingState extends State<_Bubbling> with KeptState {
   late final _trace = (kept['trace'] ??= <_Sent>[]) as List<_Sent>;
   late final _controller = ScrollController(
-    initialOffset: (kept['offset'] ?? 0) as int,
+    initialScrollOffset: (kept['offset'] ?? 0) as int,
   );
 
   // the list's, so that its box shows where the focus is
@@ -294,7 +295,7 @@ final class _BubblingState extends State<_Bubbling> with KeptState {
       if (_trace.length > 20) {
         _trace.removeAt(0);
       }
-      kept['offset'] = notification.metrics.offset;
+      kept['offset'] = notification.metrics.pixels;
     });
     return false;
   }
@@ -313,15 +314,15 @@ final class _BubblingState extends State<_Bubbling> with KeptState {
     if (!hears) {
       return false;
     }
-    final ScrollMetrics(:offset, :maxOffset) = notification.metrics;
+    final ScrollMetrics(:pixels, :maxScrollExtent) = notification.metrics;
     setState(() {
       _trace.last.outer = 'heard';
       kept
         ..['heard'] = switch (notification) {
           ScrollUpdateNotification(:final scrollDelta) =>
-            'scrolled $scrollDelta to $offset of $maxOffset',
+            'scrolled $scrollDelta to $pixels of $maxScrollExtent',
           OverscrollNotification(:final overscroll) =>
-            'overscrolled $overscroll at $offset of $maxOffset',
+            'overscrolled $overscroll at $pixels of $maxScrollExtent',
           _ => '$notification',
         }
         ..['serial'] = _serial + 1;

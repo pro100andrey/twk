@@ -98,7 +98,7 @@ Widget build(BuildContext context) {
           Span('offset ', theme.muted),
           Span('${_controller.offset}'),
           Span(' of ', theme.muted),
-          Span('${_controller.position.maxOffset}'),
+          Span('${_controller.position.maxScrollExtent}'),
         ]),
       ),
     ],

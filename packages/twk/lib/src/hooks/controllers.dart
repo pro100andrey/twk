@@ -183,7 +183,7 @@ final class TextEditingControllerHookCreator {
 }
 
 /// A [ScrollController] of the first build, whose scrollable starts at
-/// [initialOffset], made anew when the [keys] of a build differ from the
+/// [initialScrollOffset], made anew when the [keys] of a build differ from the
 /// last one's.
 ///
 /// ```dart
@@ -200,18 +200,18 @@ final class TextEditingControllerHookCreator {
 /// )
 /// ```
 ScrollController useScrollController({
-  int initialOffset = 0,
+  int initialScrollOffset = 0,
   List<Object?>? keys,
 }) => use(
   _ControllerHook(
-    () => ScrollController(initialOffset: initialOffset),
+    () => ScrollController(initialScrollOffset: initialScrollOffset),
     keys,
     'useScrollController',
   ),
 );
 
 /// A [ListController] of the first build, whose list starts at
-/// [initialOffset], made anew when the [keys] of a build differ from the
+/// [initialScrollOffset], made anew when the [keys] of a build differ from the
 /// last one's.
 ///
 /// ```dart
@@ -227,11 +227,11 @@ ScrollController useScrollController({
 /// )
 /// ```
 ListController useListController({
-  int initialOffset = 0,
+  int initialScrollOffset = 0,
   List<Object?>? keys,
 }) => use(
   _ControllerHook(
-    () => ListController(initialOffset: initialOffset),
+    () => ListController(initialScrollOffset: initialScrollOffset),
     keys,
     'useListController',
   ),

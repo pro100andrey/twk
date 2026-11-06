@@ -25,65 +25,67 @@ import 'scroll_input.dart';
 // Examples can assume:
 // late String line;
 
-/// Where a scrollable view is along its [axis]: [offset] cells of its
-/// content scrolled off its start, out of [maxOffset], with
-/// [viewportExtent] cells of it in its window.
+/// Where a scrollable view is along its [axis]: [pixels] cells of its
+/// content scrolled off its start, out of [maxScrollExtent], with
+/// [viewportDimension] cells of it in its window.
 ///
 /// What a [ScrollNotification] carries, and [ScrollPosition.metrics]
 /// returns. Two are equal when all four are.
 @immutable
 final class ScrollMetrics {
-  /// Where a view is: [offset] of [maxOffset], [viewportExtent] cells in
-  /// the window, along [axis], vertical by default.
+  /// Where a view is: [pixels] of [maxScrollExtent], [viewportDimension]
+  /// cells in the window, along [axis], vertical by default.
   const ScrollMetrics({
-    required this.offset,
-    required this.maxOffset,
-    required this.viewportExtent,
+    required this.pixels,
+    required this.maxScrollExtent,
+    required this.viewportDimension,
     this.axis = Axis.vertical,
   });
 
   /// The cells of the content before the window.
-  final int offset;
+  final int pixels;
 
-  /// The largest [offset]: the content's extent less the window's, 0 when
+  /// The largest [pixels]: the content's extent less the window's, 0 when
   /// all of it fits.
-  final int maxOffset;
+  final int maxScrollExtent;
 
   /// The cells of the content the window shows.
-  final int viewportExtent;
+  final int viewportDimension;
 
   /// The axis the view scrolls along.
   final Axis axis;
 
   /// The cells of the content after the window; 0 at the end, and when
-  /// [offset] is past [maxOffset].
-  int get extentAfter => maxOffset - offset < 0 ? 0 : maxOffset - offset;
+  /// [pixels] is past [maxScrollExtent].
+  int get extentAfter =>
+      maxScrollExtent - pixels < 0 ? 0 : maxScrollExtent - pixels;
 
   /// Whether the window shows the content's start.
-  bool get atStart => offset <= 0;
+  bool get atStart => pixels <= 0;
 
   /// Whether the window shows the content's end.
-  bool get atEnd => offset >= maxOffset;
+  bool get atEnd => pixels >= maxScrollExtent;
 
   @override
   bool operator ==(Object other) =>
       other is ScrollMetrics &&
-      other.offset == offset &&
-      other.maxOffset == maxOffset &&
-      other.viewportExtent == viewportExtent &&
+      other.pixels == pixels &&
+      other.maxScrollExtent == maxScrollExtent &&
+      other.viewportDimension == viewportDimension &&
       other.axis == axis;
 
   @override
-  int get hashCode => Object.hash(offset, maxOffset, viewportExtent, axis);
+  int get hashCode =>
+      Object.hash(pixels, maxScrollExtent, viewportDimension, axis);
 
   @override
   String toString() =>
-      'ScrollMetrics(${axis.name} $offset of $maxOffset, '
-      'window $viewportExtent)';
+      'ScrollMetrics(${axis.name} $pixels of $maxScrollExtent, '
+      'window $viewportDimension)';
 }
 
 /// Where a [Scrollable] is scrolled to, in cells along its [axis]: the
-/// [offset], kept from 0 to [maxOffset] once its viewport has told it its
+/// [pixels], kept from 0 to [maxScrollExtent] once its viewport has told it its
 /// extents ([applyExtents]); an offset set before that is kept until then.
 /// The scrollable makes it and keeps it while it is mounted; a
 /// [ScrollController] given to the scrollable reads and moves it, and
@@ -96,12 +98,12 @@ final class ScrollMetrics {
 ///
 /// While its scrollable's controller [ScrollController.stickToEnd]s and
 /// the window shows the end, it keeps showing it as the content grows,
-/// [offset] following [maxOffset]; moved away from the end, it stays where
-/// it is until it is moved back. In [reverse], the end it keeps is the one
-/// End goes to: offset 0, at the bottom (the right).
+/// [pixels] following [maxScrollExtent]; moved away from the end, it stays
+/// where it is until it is moved back. In [reverse], the end it keeps is the
+/// one End goes to: offset 0, at the bottom (the right).
 final class ScrollPosition with ChangeNotifier {
-  ScrollPosition._(this._axis, this._offset, this._state, this._reverse)
-    : _stuck = _offset == 0;
+  ScrollPosition._(this._axis, this._pixels, this._state, this._reverse)
+    : _stuck = _pixels == 0;
 
   Axis _axis;
 
@@ -119,47 +121,47 @@ final class ScrollPosition with ChangeNotifier {
   // moved or settled; before its extents, whether it starts at the end
   bool _stuck;
 
-  int _offset;
+  int _pixels;
 
   /// The cells of the content scrolled off the start.
-  int get offset => _offset;
+  int get pixels => _pixels;
 
-  var _maxOffset = 0;
-  var _viewportExtent = 0;
+  var _maxScrollExtent = 0;
+  var _viewportDimension = 0;
   var _hasExtents = false;
 
   // the scrollable it is the position of, while mounted
   _ScrollableState? _state;
 
-  /// The largest [offset]: the content's extent less the window's; 0 until
+  /// The largest [pixels]: the content's extent less the window's; 0 until
   /// the viewport is laid out.
-  int get maxOffset => _maxOffset;
+  int get maxScrollExtent => _maxScrollExtent;
 
   /// The cells of the content the window shows; 0 until the viewport is
   /// laid out.
-  int get viewportExtent => _viewportExtent;
+  int get viewportDimension => _viewportDimension;
 
   /// Whether the viewport has told it its extents.
   bool get hasExtents => _hasExtents;
 
   /// Its offset and extents, as a notification carries them.
   ScrollMetrics get metrics => ScrollMetrics(
-    offset: _offset,
-    maxOffset: _maxOffset,
-    viewportExtent: _viewportExtent,
+    pixels: _pixels,
+    maxScrollExtent: _maxScrollExtent,
+    viewportDimension: _viewportDimension,
     axis: _axis,
   );
 
-  /// Scrolls to [offset], kept within 0 and [maxOffset]; a move sends a
+  /// Scrolls to [offset], kept within 0 and [maxScrollExtent]; a move sends a
   /// [ScrollUpdateNotification] up from the scrollable.
   void jumpTo(int offset) {
     final to = _clamp(offset);
-    final delta = to - _offset;
+    final delta = to - _pixels;
     if (delta == 0) {
       return;
     }
-    _offset = to;
-    _stuck = _reverse ? to <= 0 : _hasExtents && to >= _maxOffset;
+    _pixels = to;
+    _stuck = _reverse ? to <= 0 : _hasExtents && to >= _maxScrollExtent;
     notifyListeners();
     final state = _state;
     if (state != null && state.mounted) {
@@ -206,31 +208,31 @@ final class ScrollPosition with ChangeNotifier {
     }
     // along the axis on screen: in reverse, the cells of the content
     // above the window are those after it
-    final shown = _reverse ? _maxOffset - _offset : _offset;
+    final shown = _reverse ? _maxScrollExtent - _pixels : _pixels;
     final start = at + shown;
     final end = start + (vertical ? target.height : target.width);
-    final top = end - _viewportExtent;
+    final top = end - _viewportDimension;
     int? to;
     if (_reverse) {
-      if (end > shown + _viewportExtent) {
+      if (end > shown + _viewportDimension) {
         to = top;
       } else if (start < shown) {
         to = top > start ? top : start;
       }
     } else if (start < shown) {
       to = start;
-    } else if (end > shown + _viewportExtent) {
+    } else if (end > shown + _viewportDimension) {
       to = top < start ? top : start;
     }
     if (to != null) {
-      jumpTo(_reverse ? _maxOffset - to : to);
+      jumpTo(_reverse ? _maxScrollExtent - to : to);
     }
   }
 
   /// Takes the extents of the viewport, laid out: [viewport] cells of the
   /// content's [content] in the window. What the viewport's layout calls;
-  /// the offset is kept within the new [maxOffset]. A viewport that settles
-  /// its offset itself as it lays out (a list view's, whose content is
+  /// the offset is kept within the new [maxScrollExtent]. A viewport that
+  /// settles its offset itself as it lays out (a list view's, whose content is
   /// partly estimated) gives the [offset] it settled at, which the position
   /// takes without a [ScrollUpdateNotification], and which keeps to the end
   /// itself: one that does not, while it sticks to the end and showed it,
@@ -244,26 +246,28 @@ final class ScrollPosition with ChangeNotifier {
     int? offset,
     bool moved = false,
   }) {
-    final before = _offset;
+    final before = _pixels;
     final max = content - viewport > 0 ? content - viewport : 0;
     final changed =
-        !_hasExtents || viewport != _viewportExtent || max != _maxOffset;
+        !_hasExtents ||
+        viewport != _viewportDimension ||
+        max != _maxScrollExtent;
     final stick = offset == null && _stuck && _sticks;
     _hasExtents = true;
-    _viewportExtent = viewport;
-    _maxOffset = max;
-    final to = stick ? (_reverse ? 0 : max) : _clamp(offset ?? _offset);
+    _viewportDimension = viewport;
+    _maxScrollExtent = max;
+    final to = stick ? (_reverse ? 0 : max) : _clamp(offset ?? _pixels);
     _stuck = _reverse ? to <= 0 : to >= max;
-    if (changed || to != _offset) {
-      _offset = to;
+    if (changed || to != _pixels) {
+      _pixels = to;
       notifyListeners();
     }
     final state = _state;
-    if (moved && _offset != before && state != null && state.mounted) {
+    if (moved && _pixels != before && state != null && state.mounted) {
       ScrollUpdateNotification(
         metrics: metrics,
         context: state.context,
-        scrollDelta: _offset - before,
+        scrollDelta: _pixels - before,
       ).dispatch(state.context);
     }
   }
@@ -272,9 +276,9 @@ final class ScrollPosition with ChangeNotifier {
   /// what would go past one in an [OverscrollNotification]. Returns
   /// whether it moved.
   bool _scrollBy(int delta) {
-    final from = _offset;
+    final from = _pixels;
     jumpTo(from + delta);
-    final over = from + delta - _offset;
+    final over = from + delta - _pixels;
     final state = _state;
     if (over != 0 && _hasExtents && state != null && state.mounted) {
       OverscrollNotification(
@@ -283,7 +287,7 @@ final class ScrollPosition with ChangeNotifier {
         overscroll: over,
       ).dispatch(state.context);
     }
-    return _offset != from;
+    return _pixels != from;
   }
 
   /// Whether its scrollable's controller sticks to the end.
@@ -293,23 +297,24 @@ final class ScrollPosition with ChangeNotifier {
     if (offset < 0) {
       return 0;
     }
-    return _hasExtents && offset > _maxOffset ? _maxOffset : offset;
+    return _hasExtents && offset > _maxScrollExtent ? _maxScrollExtent : offset;
   }
 
   @override
-  String toString() => 'ScrollPosition(${axis.name} $_offset of $_maxOffset)';
+  String toString() =>
+      'ScrollPosition(${axis.name} $_pixels of $_maxScrollExtent)';
 }
 
 /// Reads and moves the position of the [Scrollable] it is given to:
 /// [offset], [jumpTo], [ensureVisible]. The scrollable starts at
-/// [initialOffset]. Its listeners are told whenever the position's are
+/// [initialScrollOffset]. Its listeners are told whenever the position's are
 /// ([ScrollPosition]).
 ///
 /// With [stickToEnd], a scrollable it is given to keeps showing the end of
 /// its content as the content grows, while the window shows the end, as a
 /// log or a chat does; scrolled away from the end, it stays where it is
 /// until it is scrolled back to the end (End, the wheel, [jumpTo]). Such a
-/// scrollable starts at the end, unless [initialOffset] says otherwise.
+/// scrollable starts at the end, unless [initialScrollOffset] says otherwise.
 ///
 /// Given to two scrollables at once, it moves both, and [ensureVisible]
 /// the one the widget is in; [position] and [offset] then fail.
@@ -331,14 +336,14 @@ final class ScrollPosition with ChangeNotifier {
 ///  * `ListController`, a list view's, which moves it to an item too.
 ///  * `LogController`, which holds a log view's lines and follows its end.
 class ScrollController with ChangeNotifier {
-  /// Reads and moves a scrollable that starts at [initialOffset] (0, the
+  /// Reads and moves a scrollable that starts at [initialScrollOffset] (0, the
   /// default, its start), and with [stickToEnd] (false by default) keeps
-  /// to its end; an [initialOffset] below 0 asserts.
-  ScrollController({this.initialOffset = 0, this.stickToEnd = false})
-    : assert(initialOffset >= 0, 'an offset of 0 cells or more');
+  /// to its end; an [initialScrollOffset] below 0 asserts.
+  ScrollController({this.initialScrollOffset = 0, this.stickToEnd = false})
+    : assert(initialScrollOffset >= 0, 'an offset of 0 cells or more');
 
   /// Where a scrollable it is given to starts.
-  final int initialOffset;
+  final int initialScrollOffset;
 
   /// Whether a scrollable it is given to keeps showing the end as its
   /// content grows, while it shows the end. The end is the one End scrolls
@@ -360,7 +365,7 @@ class ScrollController with ChangeNotifier {
   };
 
   /// The [position]'s offset.
-  int get offset => position.offset;
+  int get offset => position.pixels;
 
   /// Scrolls each of its scrollables to [offset] ([ScrollPosition.jumpTo]).
   void jumpTo(int offset) {
@@ -421,7 +426,7 @@ class ScrollController with ChangeNotifier {
 
   @override
   String toString() => switch (_positions) {
-    [final position] => 'ScrollController(offset ${position.offset})',
+    [final position] => 'ScrollController(offset ${position.pixels})',
     _ => 'ScrollController(${_positions.length} clients)',
   };
 }
@@ -594,7 +599,7 @@ typedef ViewportBuilder = Widget Function(
 ///       return ListenableBuilder(
 ///         listenable: position,
 ///         builder: (context, child) =>
-///             Text(line.substring(position.offset), maxLines: 1),
+///             Text(line.substring(position.pixels), maxLines: 1),
 ///       );
 ///     },
 ///   ),
@@ -693,7 +698,7 @@ final class Scrollable extends StatefulWidget {
 final class _ScrollableState extends State<Scrollable> {
   late final _position = ScrollPosition._(
     widget.scrollDirection,
-    widget.controller?.initialOffset ?? 0,
+    widget.controller?.initialScrollOffset ?? 0,
     this,
     widget.reverse,
   );
@@ -791,11 +796,11 @@ final class _ScrollableState extends State<Scrollable> {
   int? _deltaOf(KeyCode code) {
     final p = _position;
     final vertical = p.axis == Axis.vertical;
-    final page = p.viewportExtent > 1 ? p.viewportExtent : 1;
+    final page = p.viewportDimension > 1 ? p.viewportDimension : 1;
     // the way up (left) on the screen
     final back = p._reverse ? 1 : -1;
-    final toStart = -p.offset;
-    final toEnd = p.maxOffset - p.offset;
+    final toStart = -p.pixels;
+    final toEnd = p.maxScrollExtent - p.pixels;
     return switch (code) {
       KeyCode.up when vertical => back,
       KeyCode.down when vertical => -back,
@@ -817,7 +822,7 @@ final class _ScrollableState extends State<Scrollable> {
     return _userScrolls &&
         delta != null &&
         delta != 0 &&
-        p._clamp(p._offset + delta) != p._offset;
+        p._clamp(p._pixels + delta) != p._pixels;
   }
 
   static const Map<String, KeyCode> _codes = {

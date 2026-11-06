@@ -13,7 +13,7 @@ const _ruler = 100;
 
 /// The Code's lines too long for a line of Dart.
 const _rulerLine =
-    '                  _Ruler(position, offset: position.offset, length: '
+    '                  _Ruler(position, offset: position.pixels, length: '
     '$_ruler),';
 
 /// A ruler of numbered rows that a Scrollable scrolls.
@@ -47,7 +47,7 @@ final class _RulerPageState extends State<_RulerPage> {
           viewportBuilder: (context, position) => ListenableBuilder(
             listenable: position,
             builder: (_, _) =>
-                _Ruler(position, offset: position.offset, length: _ruler),
+                _Ruler(position, offset: position.pixels, length: _ruler),
           ),
         ),
       ),

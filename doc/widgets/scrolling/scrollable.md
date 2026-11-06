@@ -54,7 +54,7 @@ Widget build(BuildContext context) {
             viewportBuilder: (context, position) => ListenableBuilder(
               listenable: position,
               builder: (_, _) =>
-                  _Ruler(position, offset: position.offset, length: 100),
+                  _Ruler(position, offset: position.pixels, length: 100),
             ),
           ),
         ),
@@ -65,7 +65,7 @@ Widget build(BuildContext context) {
           Span('offset ', theme.muted),
           Span('${_controller.offset}'),
           Span(' of ', theme.muted),
-          Span('${_controller.position.maxOffset}'),
+          Span('${_controller.position.maxScrollExtent}'),
         ]),
       ),
     ],

@@ -836,7 +836,7 @@ final class _LogViewState extends State<LogView> {
       switch (c._move) {
         case _ToEnd():
           if (_list.hasClients) {
-            _list.jumpTo(_list.position.maxOffset);
+            _list.jumpTo(_list.position.maxScrollExtent);
           }
         case _ToLine(:final number):
           _list.ensureIndexVisible(c._shownIndexOf(number));
@@ -855,7 +855,7 @@ final class _LogViewState extends State<LogView> {
     }
     final p = _list.position;
     if (p.hasExtents) {
-      widget.controller._shownEnd(atEnd: p.offset >= p.maxOffset);
+      widget.controller._shownEnd(atEnd: p.pixels >= p.maxScrollExtent);
     }
   }
 
@@ -1114,9 +1114,9 @@ final class _LogViewState extends State<LogView> {
       }
     }
     final p = _list.position;
-    final from = p.offset;
+    final from = p.pixels;
     p.jumpTo(from + rows);
-    return p.offset != from;
+    return p.pixels != from;
   }
 
   void _down(PointerEvent event) {

@@ -1039,7 +1039,7 @@ final class _TreeViewState<T> extends State<TreeView<T>>
 
   /// The rows of a window.
   int get _page {
-    final rows = _list.hasClients ? _list.position.viewportExtent : 1;
+    final rows = _list.hasClients ? _list.position.viewportDimension : 1;
     return rows > 1 ? rows : 1;
   }
 

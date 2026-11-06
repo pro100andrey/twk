@@ -114,7 +114,10 @@ void main() {
     final controllers = <ScrollController>[];
     Widget scrolled(int key) => HookBuilder(
       builder: (context) {
-        final controller = useScrollController(initialOffset: 2, keys: [key]);
+        final controller = useScrollController(
+          initialScrollOffset: 2,
+          keys: [key],
+        );
         controllers.add(controller);
         return ListView(
           controller: controller,

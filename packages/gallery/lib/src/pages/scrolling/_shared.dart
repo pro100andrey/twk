@@ -50,7 +50,7 @@ Widget _offsetLine(ScrollController controller) => ListenableBuilder(
       Span('offset ', theme.muted),
       Span('${controller.offset}'),
       Span(' of ', theme.muted),
-      Span('${controller.position.maxOffset}'),
+      Span('${controller.position.maxScrollExtent}'),
     ]);
   },
 );
@@ -63,7 +63,7 @@ List<String> _offsetCode(String controller) => [
   "          Span('offset ', theme.muted),",
   "          Span('\${$controller.offset}'),",
   "          Span(' of ', theme.muted),",
-  "          Span('\${$controller.position.maxOffset}'),",
+  "          Span('\${$controller.position.maxScrollExtent}'),",
   '        ]),',
   '      ),',
 ];

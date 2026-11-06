@@ -981,7 +981,7 @@ final class _FilePickerState extends State<FilePicker> {
   void _move(int rows) => _moveTo(_cursorIn(_shown()) + rows);
 
   int get _page {
-    final rows = _list.hasClients ? _list.position.viewportExtent : 1;
+    final rows = _list.hasClients ? _list.position.viewportDimension : 1;
     return rows > 1 ? rows : 1;
   }
 

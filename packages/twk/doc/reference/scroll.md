@@ -28,11 +28,11 @@ of Tab and has no key hints; a controller, `jumpTo` and a scrollbar still move
 it. `Scrollable`, `SingleChildScrollView` and `ListView` take `physics`;
 `SelectionList`, `Table`, `TreeView`, `LogView` and `FilePicker` take none.
 Its `ScrollPosition`, a `ChangeNotifier` whose listeners are
-told when the offset or the extents change: `offset` in cells, kept from 0
-to `maxOffset` once the viewport told it the extents (`applyExtents`; an
+told when the offset or the extents change: `pixels` in cells, kept from 0
+to `maxScrollExtent` once the viewport told it the extents (`applyExtents`; an
 offset set before is kept until then; a viewport that settles its offset
-itself as it lays out, as a `ListView`'s does, gives the `offset` it settled
-at, taken without a `ScrollUpdateNotification`), `viewportExtent`, `metrics`
+itself as it lays out, as a `ListView`'s does, gives the `pixels` it settled
+at, taken without a `ScrollUpdateNotification`), `viewportDimension`, `metrics`
 (`ScrollMetrics`: also `extentAfter`, `atStart`, `atEnd`), `jumpTo`, and
 `ensureVisible(renderObject)`, which scrolls the least that shows a render
 object inside the viewport, its start when it is longer than the window (an
@@ -41,12 +41,12 @@ object inside the viewport, its start when it is longer than the window (an
 ## `Scrollable.of`
 
 `Scrollable.of` (`maybeOf`) finds it from below. A
-`ScrollController(initialOffset:)` given to a scrollable reads and moves its
+`ScrollController(initialScrollOffset:)` given to a scrollable reads and moves its
 position (`offset`, `position`, `hasClients`, `jumpTo`,
 `ensureVisible(context)`), its listeners told when the position's are; given
 to two at once it moves both, and `position` and `offset` fail. With
 `ScrollController(stickToEnd: true)` any scrollable it is given to (a
-`SingleChildScrollView` too) starts at the end, unless `initialOffset` says
+`SingleChildScrollView` too) starts at the end, unless `initialScrollOffset` says
 otherwise, and keeps showing the end as its content grows while the window
 shows the end, as a log or a chat does; a key, the wheel or `jumpTo` away
 from the end lets go, and back at the end it sticks again. The end is the
@@ -143,7 +143,7 @@ its bottom), `ensureIndexVisible` the least that shows it; of a move to an
 item and a move of the position (a key, the wheel, `jumpTo`) before the list
 is next laid out, the later wins. Given to no list, it keeps the last move
 to an item asked for until a list takes it, which makes that move as it is
-first laid out, in place of `initialOffset`; a `jumpTo` meanwhile drops it.
+first laid out, in place of `initialScrollOffset`; a `jumpTo` meanwhile drops it.
 
 ## `Scrollbar`
 

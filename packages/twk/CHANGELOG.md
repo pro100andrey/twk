@@ -4,6 +4,11 @@
 
 Breaking:
 
+- `ScrollMetrics` and `ScrollPosition` have `pixels`, `maxScrollExtent` and
+  `viewportDimension`, as Flutter names them, where they had `offset`,
+  `maxOffset` and `viewportExtent`; `ScrollController.offset` stays.
+  `ScrollController`, `ListController` and `useScrollController` take
+  `initialScrollOffset`, not `initialOffset`.
 - `TabView` is `TabBarView`, as Flutter names the content of a `TabBar`.
 - `Text`, `Text.rich`, `Text.line` and `Text.richLine` take `textAlign`, as
   Flutter names it, where they took `align`; `RenderParagraph` keeps `align`.

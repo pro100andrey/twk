@@ -32,7 +32,7 @@ extension on _SampleAppState {
             child: Scrollable(
               scrollDirection: Axis.horizontal,
               viewportBuilder: (context, position) =>
-                  Text('at ${position.offset}'),
+                  Text('at ${position.pixels}'),
             ),
           ),
           SizedBox(
