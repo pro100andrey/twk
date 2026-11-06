@@ -4,6 +4,10 @@
 
 Breaking:
 
+- `Action.invoke` returns `Object?` and `CallbackAction.onInvoke` is an
+  `Object? Function(T)`, as Flutter's: an action can give what it did back. An
+  `onInvoke: (_) {}` returns null instead: `(_) => null`. An `Action` that
+  overrides `invoke` with `void` still compiles.
 - `Semantics` and `SemanticsNode` take `checked`, `selected`, `expanded` and
   `enabled` flat, as Flutter's `Semantics` does, in place of `state:`;
   `SemanticsState` is removed. `enabled` has Flutter's sense, where

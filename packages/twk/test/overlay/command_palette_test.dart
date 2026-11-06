@@ -329,7 +329,7 @@ enter run   esc close'''),
         shortcuts: const {'ctrl+x ctrl+s': Save()},
         hints: const {'ctrl+x ctrl+s': 'save'},
         child: Actions(
-          actions: {Save: CallbackAction<Save>(onInvoke: (_) {})},
+          actions: {Save: CallbackAction<Save>(onInvoke: (_) => null)},
           child: CommandPalette(
             look: PanelLook.bordered,
             keyLabel: keyLabel,

@@ -498,6 +498,29 @@ void main() {
     expect(seen, ["Instance of 'Save'", 'passed on']);
   });
 
+  testTwk('an Action\'s invoke returns what its callback returns, as '
+      'Flutter\'s does', (t) async {
+    final action = CallbackAction<Save>(onInvoke: (_) => 42);
+    expect(action.invoke(const Save()), 42);
+    expect(
+      CallbackAction<Save>(onInvoke: (_) => null).invoke(const Save()),
+      isNull,
+    );
+    late BuildContext context;
+    await t.pumpWidget(
+      Actions(
+        actions: {Save: action},
+        child: Builder(
+          builder: (c) {
+            context = c;
+            return const Text('x');
+          },
+        ),
+      ),
+    );
+    expect(Actions.maybeFind(context, const Save())?.invoke(const Save()), 42);
+  });
+
   testTwk('a key a KeyBindings binds to null passes on', (t) async {
     final seen = <String>[];
     await t.pumpWidget(

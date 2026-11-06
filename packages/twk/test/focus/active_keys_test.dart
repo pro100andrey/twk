@@ -303,7 +303,7 @@ void main() {
       'for a key bound to another intent', (t) async {
     final actions = <Type, Action<Intent>>{
       Save: SaveAction(),
-      Open: CallbackAction<Open>(onInvoke: (_) {}),
+      Open: CallbackAction<Open>(onInvoke: (_) => null),
     };
     await t.pumpWidget(
       Host(

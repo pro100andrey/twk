@@ -41,8 +41,9 @@ abstract class Action<T extends Intent> {
   /// [FocusNode.markKeysChanged] of a node above its [Actions].
   bool isEnabled(T intent) => true;
 
-  /// Does what [intent] asks for.
-  void invoke(T intent);
+  /// Does what [intent] asks for, and returns what it gave, if anything: as
+  /// Flutter's `Action.invoke`. A key bound by [Shortcuts] drops it.
+  Object? invoke(T intent);
 }
 
 /// An [Action] that calls [onInvoke], while [enabled].
@@ -52,10 +53,10 @@ final class CallbackAction<T extends Intent> extends Action<T> {
   /// An action that calls [onInvoke], enabled unless [enabled] is false.
   CallbackAction({required this.onInvoke, this.enabled = true});
 
-  /// Does the intent.
+  /// Does the intent, and returns what [invoke] gives.
   // called with the intents of the type it is looked up by, its own T
   // ignore: unsafe_variance
-  final void Function(T intent) onInvoke;
+  final Object? Function(T intent) onInvoke;
 
   /// Whether it does the intents; a key bound to one passes on while it
   /// does not.
@@ -65,7 +66,7 @@ final class CallbackAction<T extends Intent> extends Action<T> {
   bool isEnabled(T intent) => enabled;
 
   @override
-  void invoke(T intent) => onInvoke(intent);
+  Object? invoke(T intent) => onInvoke(intent);
 }
 
 /// Gives the widgets below it [actions]: for a type of [Intent], the

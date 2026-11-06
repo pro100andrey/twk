@@ -596,7 +596,7 @@ void main() {
       child: Shortcuts(
         shortcuts: const {'ctrl+x ctrl+s': Save()},
         child: Actions(
-          actions: {Save: CallbackAction<Save>(onInvoke: (_) {})},
+          actions: {Save: CallbackAction<Save>(onInvoke: (_) => null)},
           child: Overlay(
             child: MenuBar(
               look: PanelLook.bordered,

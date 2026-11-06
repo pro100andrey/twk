@@ -116,7 +116,7 @@ void main() {
                   Actions(
                     actions: {
                       Save: CallbackAction<Save>(
-                        onInvoke: (_) {},
+                        onInvoke: (_) => null,
                         enabled: step != 2,
                       ),
                     },
