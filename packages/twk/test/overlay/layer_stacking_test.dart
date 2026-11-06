@@ -145,6 +145,80 @@ void main() {
     });
   }
 
+  testTwk('a popover closes when a dialog over it cannot give it the focus '
+      'back', (t) async {
+    final inside = FocusNode(debugLabel: 'inside');
+    final other = FocusNode(debugLabel: 'other');
+    final ok = FocusNode(debugLabel: 'ok');
+    var open = true;
+    var kept = true;
+    var dismissed = 0;
+    late StateSetter set;
+    late BuildContext at;
+    await t.pumpWidget(
+      App(
+        child: StatefulBuilder(
+          builder: (context, setState) {
+            set = setState;
+            at = context;
+            return Column(
+              children: [
+                Popover(
+                  open: open,
+                  onDismiss: () {
+                    dismissed++;
+                    setState(() => open = false);
+                  },
+                  popover: kept
+                      ? Focus(
+                          focusNode: inside,
+                          autofocus: true,
+                          child: const Text('popover'),
+                        )
+                      : const Text('popover'),
+                  child: const Text('anchor'),
+                ),
+                Focus(focusNode: other, child: const Text('other')),
+              ],
+            );
+          },
+        ),
+      ),
+      size: (40, 10),
+    );
+    await t.pump();
+    await t.pump();
+    expect(inside.hasPrimaryFocus, isTrue);
+
+    unawaited(
+      showDialog<void>(
+        at,
+        (context) => Dialog(
+          child: Focus(
+            focusNode: ok,
+            autofocus: true,
+            child: const Text('dialog'),
+          ),
+        ),
+        fadeIn: Duration.zero,
+      ),
+    );
+    await t.pump();
+    await t.pump();
+    expect(ok.hasPrimaryFocus, isTrue);
+    expect(dismissed, 0);
+
+    // what the dialog remembered goes while it is open
+    set(() => kept = false);
+    await t.pump();
+    await t.press('escape');
+    await t.pump();
+    await t.pump();
+
+    expect(ok.hasPrimaryFocus, isFalse);
+    expect(dismissed, 1, reason: 'no focus came back to the popover');
+  });
+
   testTwk('a menu opened from a popover leaves it open', (t) async {
     final inside = FocusNode(debugLabel: 'inside');
     var open = true;
