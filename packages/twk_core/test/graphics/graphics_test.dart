@@ -14,6 +14,7 @@ import 'package:twk_core/src/presenter.dart';
 import 'package:twk_core/src/style.dart' show StyleId;
 import 'package:twk_core/src/surface.dart';
 import 'package:twk_core/src/terminal/sequences.dart';
+import 'package:twk_core/twk_core.dart' show Color, Pen;
 import 'package:twk_test/vt.dart';
 
 import '../support/harness.dart';
@@ -457,5 +458,38 @@ void main() {
         }
       }
     }
+  });
+
+  test('a placement scrolled onto an identical one shows the background of '
+      'its new cells, scrolled rows or not damaged', () {
+    // kitty's image on a sixel terminal leaves its cells blank
+    final hs = Harness(
+      20,
+      6,
+      caps: const TerminalCaps(
+        graphics: GraphicsProtocol.sixel,
+        hardwareScroll: false,
+      ),
+    );
+    final a = hs.styles.pen(const Pen(bg: Color.rgb(200, 0, 0)));
+    final b = hs.styles.pen(const Pen(bg: Color.rgb(0, 0, 200)));
+    final img = image(GraphicsProtocol.kitty, cols: 2, rows: 1);
+    hs.canvas
+      ..fill(0, 2, 20, 1, a)
+      ..fill(0, 3, 20, 1, b)
+      ..image(12, 2, 2, 1, img)
+      ..image(12, 3, 2, 1, img);
+    hs.frame();
+    hs.surface.scrollRows(0, 6, 1);
+    hs.frame();
+    for (final p in hs.surface.images) {
+      final want = hs.styles
+          .bgOf(StyleId(hs.surface.styles[p.top * 20 + p.left]))
+          .value;
+      for (var x = p.left; x < p.right; x++) {
+        expect(hs.vt.cell(x, p.top).bg, want, reason: '($x, ${p.top})');
+      }
+    }
+    expect(hs.mismatches(), isEmpty);
   });
 }

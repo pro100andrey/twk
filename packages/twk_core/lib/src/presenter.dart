@@ -1596,16 +1596,14 @@ final class Presenter {
 
   /// Whether a cell [p] shows has a blank of another look in [back] than
   /// the one the image was drawn over (the cells under an image moved
-  /// there, still reserved): those of the rows damaged since the last
-  /// frame are looked at.
+  /// there, still reserved): every cell it shows is looked at, the rows a
+  /// scroll moved without damage included.
   bool _restyled(Surface back, ImagePlacement p) {
     final w = width;
     final bs = back.styles;
     final fs = _fs;
     for (var y = p.top; y < p.bottom; y++) {
-      final lo = back.dirtyLo[y] > p.left ? back.dirtyLo[y] : p.left;
-      final hi = back.dirtyHi[y] < p.right ? back.dirtyHi[y] : p.right;
-      for (var i = y * w + lo; i < y * w + hi; i++) {
+      for (var i = y * w + p.left; i < y * w + p.right; i++) {
         if (bs[i] != fs[i] && _blankOf(bs[i]) != _blankOf(fs[i])) {
           return true;
         }
