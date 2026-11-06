@@ -366,7 +366,7 @@ void awaitableTests() {
     expect(controller.isCompleted, isTrue);
   });
 
-  testTwk('stop, setting the value, another run and dispose complete the '
+  testTwk('stop, setting the value and another run complete the '
       'future of the run they end, so an await does not hang', (t) async {
     final state = await start(t);
     final controller = state.controller;
@@ -398,7 +398,36 @@ void awaitableTests() {
     await t.pump(ms * 20);
     await t.pumpWidget(const SizedBox());
     await t.pump();
-    expect(last.done, isTrue, reason: 'the state disposed the controller');
+    expect(
+      last.done,
+      isFalse,
+      reason: "dispose leaves the future pending, as Flutter's does",
+    );
+  });
+
+  testTwk('a loop of awaits across a dispose ends there: no error, no run '
+      'started on the disposed controller', (t) async {
+    final state = await start(t);
+    final controller = state.controller;
+    var rounds = 0;
+    var errors = 0;
+    unawaited(
+      runZonedGuarded(() async {
+        while (true) {
+          await controller.forward();
+          rounds++;
+          await controller.reverse();
+          rounds++;
+        }
+      }, (e, s) => errors++),
+    );
+    await t.pump(ms * 150);
+    expect(rounds, 1);
+    await t.pumpWidget(const SizedBox());
+    await t.pump(ms * 300);
+    expect(errors, 0);
+    expect(rounds, 1, reason: 'nothing resumed on the disposed controller');
+    expect(controller.isAnimating, isFalse);
   });
 
   testTwk('repeat completes only when stopped', (t) async {

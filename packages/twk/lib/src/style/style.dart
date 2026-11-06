@@ -92,7 +92,13 @@ final class Style {
 
   /// This style with the fields given in place of the ones it has. A field
   /// left out, or null, stays as it is: a color is not unset by passing
-  /// null; [merge] and the constructor set what they like.
+  /// null; [merge] and the constructor set what they like, as Flutter's
+  /// `copyWith` cannot unset a field either.
+  ///
+  /// Given [attrs] that this style has [attrsOff] of, or [attrsOff] that it
+  /// has [attrs] of, the ones given win, as with [merge]: the other side
+  /// loses those bits (an underline as a whole), and given both, [attrs]
+  /// wins.
   ///
   /// ```dart
   /// const warning = Style(fg: Color.yellow, attrs: Attr.bold);
@@ -114,10 +120,14 @@ final class Style {
     fgAlpha: fgAlpha ?? this.fgAlpha,
     bgAlpha: bgAlpha ?? this.bgAlpha,
     underlineColor: underlineColor ?? this.underlineColor,
-    attrs: attrs ?? this.attrs,
-    attrsOff: attrsOff ?? this.attrsOff,
+    attrs: attrs ?? this.attrs & ~_bitsOf(attrsOff ?? 0),
+    attrsOff: (attrsOff ?? this.attrsOff) & ~_bitsOf(attrs ?? 0),
     link: link ?? this.link,
   );
+
+  /// [bits] with the whole underline where it has a bit of it.
+  static int _bitsOf(int bits) =>
+      (bits & Attr.underlineMask) != 0 ? bits | Attr.underlineMask : bits;
 
   /// This style with the fields [other] sets taken from [other]: a color
   /// together with its alpha, an underline as a whole. This style itself

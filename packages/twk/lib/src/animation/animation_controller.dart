@@ -55,11 +55,12 @@ typedef AnimationStatusListener = void Function(AnimationStatus status);
 ///
 /// [forward], [reverse], [animateTo] and [repeat] return a [Future] that
 /// completes when the run ends: at its target, or when something stops it
-/// ([stop], [value] set, another run, [dispose]). Unlike Flutter's
-/// `TickerFuture`, which stays pending for ever when a run is canceled, it
-/// completes then too, so an `await` in a task does not hang on a stop; the
-/// controller's [status] and [value] say how it ended. A [repeat] completes
-/// only that way.
+/// ([stop], [value] set, another run). Unlike Flutter's `TickerFuture`,
+/// which stays pending for ever when a run is canceled, it completes then
+/// too, so an `await` in a task does not hang on a stop; the controller's
+/// [status] and [value] say how it ended. A [repeat] completes only that
+/// way. [dispose] leaves the future of a run under way pending, as Flutter's
+/// does: code awaiting it does not resume on a controller that is gone.
 ///
 /// A run that starts stops the one running. A [Tween] (an [Animatable])
 /// maps the value to what it animates, `tween.evaluate(controller)`; a
@@ -273,10 +274,12 @@ final class AnimationController extends ChangeNotifier
   void removeStatusListener(AnimationStatusListener listener) =>
       _statusListeners.remove(listener);
 
-  /// Stops it for good, its ticker disposed and its listeners dropped.
+  /// Stops it for good, its ticker disposed and its listeners dropped. The
+  /// future of a run under way stays pending, as Flutter's does, so code
+  /// awaiting it does not go on with a controller that is gone.
   @override
   void dispose() {
-    _finish();
+    _run = null;
     _ticker.dispose();
     _statusListeners.clear();
     super.dispose();

@@ -9,6 +9,29 @@ const blue = Color.rgb(0, 0, 255);
 
 void main() {
   group('copyWith', () {
+    test('attrs given win over the attrsOff the style has, and the other way '
+        'round, as merge does', () {
+      const off = Style(attrsOff: Attr.bold | Attr.italic);
+      final on = off.copyWith(attrs: Attr.bold);
+      expect(on.attrs, Attr.bold);
+      expect(on.attrsOff, Attr.italic);
+      expect(on, off.merge(const Style(attrs: Attr.bold)));
+
+      const bold = Style(attrs: Attr.bold | Attr.italic);
+      final dropped = bold.copyWith(attrsOff: Attr.bold);
+      expect(dropped.attrs, Attr.italic);
+      expect(dropped.attrsOff, Attr.bold);
+      expect(dropped, bold.merge(const Style(attrsOff: Attr.bold)));
+
+      // given both, the attrs win
+      final both = const Style().copyWith(
+        attrs: Attr.bold,
+        attrsOff: Attr.bold | Attr.dim,
+      );
+      expect(both.attrs, Attr.bold);
+      expect(both.attrsOff, Attr.dim);
+    });
+
     test('changes the fields given and keeps the rest', () {
       const base = Style(
         fg: red,

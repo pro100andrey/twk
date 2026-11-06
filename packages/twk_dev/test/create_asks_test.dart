@@ -302,6 +302,26 @@ void main() {
       expect(result.stdout, contains('twk_dev:twk agents  # the twk skill'));
     });
 
+    test('with a terminal nobody can answer at (CI set on a tty) nothing is '
+        'asked, and the next steps say how an agent gets the skill', () async {
+      final result = await create([], FakeCliTerminal.new);
+
+      expect(result.exitCode, 0, reason: '${result.stderr}');
+      expect(has('lib/my_app.dart'), isTrue);
+      expect(has('AGENTS.md'), isFalse);
+      expect(result.stdout, contains('twk_dev:twk agents  # the twk skill'));
+    });
+
+    test('in a terminal that is asked the hint is not shown', () async {
+      final result = await create(
+        [],
+        () => terminalWith([_enter, _enter], []),
+      );
+
+      expect(result.exitCode, 0, reason: '${result.stderr}');
+      expect(result.stdout, isNot(contains('# the twk skill')));
+    });
+
     test('without a terminal --agents=none says no file, and hears no more '
         'of it', () async {
       final result = await create(['--agents=none'], () => null);

@@ -459,7 +459,7 @@ final class RenderList extends RenderObject
     if (count == 0) {
       _dropOutside(0, -1);
       _moveAnchor(0);
-      _anchorOffset = 0;
+      _anchorOffset = -_padding.top;
       _offset = 0;
       _content = 0;
       _maxOffset = 0;
@@ -652,8 +652,12 @@ final class RenderList extends RenderObject
       }
     }
     _moveAnchor(index);
-    // the first item brought to the top shows the padding before it
-    _anchorOffset = index == 0 && !_indexAtTop ? -_padding.top : 0;
+    // the first item brought to the top shows the padding before it, where
+    // the item shows whole with it
+    _anchorOffset =
+        index == 0 && !_indexAtTop && _padding.top + _itemAt(0, ic) <= h
+        ? -_padding.top
+        : 0;
   }
 
   /// Item [index] laid out, built first when the list has no such item;

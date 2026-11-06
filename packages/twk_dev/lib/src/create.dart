@@ -191,7 +191,12 @@ final class CreateCommand extends Command<int> {
         );
       } else {
         final asked = await Cli.run<CreateAnswers?>(
-          (cli) => askCreate(cli, template: given, agents: agentsGiven),
+          (cli) {
+            // a terminal nobody can answer at (CI is set) asks nothing too
+            skillUnoffered =
+                agentsGiven == null && cli.mode == CliMode.nonInteractive;
+            return askCreate(cli, template: given, agents: agentsGiven);
+          },
           open: ({ansi, interactive}) => terminal,
         );
         if (asked == null) {

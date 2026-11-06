@@ -247,7 +247,7 @@ Added:
 
 - `Focus(onFocusChange:)` and `FocusScope(onFocusChange:)`, called with `hasFocus` when the node's focus changes; `FocusScopeNode.requestFocus([node])` focuses a node below the scope.
 
-- `SingleTickerProviderStateMixin`; `AnimationController.forward`, `reverse`, `animateTo` and `repeat` return a `Future<void>` that completes when the run ends, and when something stops it (`stop`, `value` set, another run, `dispose`): unlike Flutter's `TickerFuture`, it does not stay pending after a stop, so an `await` does not hang. `AnimationController.toggle`, `isCompleted` and `isDismissed` (also on `AnimationStatus`).
+- `SingleTickerProviderStateMixin`; `AnimationController.forward`, `reverse`, `animateTo` and `repeat` return a `Future<void>` that completes when the run ends, and when something stops it (`stop`, `value` set, another run; `dispose` leaves it pending, as Flutter's does): unlike Flutter's `TickerFuture`, it does not stay pending after a stop, so an `await` does not hang. `AnimationController.toggle`, `isCompleted` and `isDismissed` (also on `AnimationStatus`).
 
 - The rest of Flutter's `Curves`: `fastLinearToSlowEaseIn`, `fastEaseInToSlowEaseOut`, `easeInToLinear`, `linearToEaseOut`, the `easeIn`, `easeOut` and `easeInOut` of Sine, Quad, Cubic, Quart, Quint, Expo, Circ and Back (`easeInOutCubicEmphasized` as well), `slowMiddle`, `bounceIn`, `bounceInOut`, `elasticIn` and `elasticInOut`, with Flutter's values. The Back and elastic ones go out of 0..1.
 

@@ -24,7 +24,8 @@ Added:
   holds a manifest, `.twk-agents.json`, of the files `twk agents` wrote with
   their hashes: a file a newer twk_dev dropped is removed (with a directory
   it empties) where it is still as written, and stays, named, where the
-  project changed it; with no manifest yet, nothing is removed. `--directory` names the
+  project changed it, as does a file the skill still has that the project
+  changed; with no manifest yet, nothing is removed. `--directory` names the
   project, `--dry-run` writes nothing. `agentsPlan` is the same as a
   function, for a caller that chooses which of the three to write.
 

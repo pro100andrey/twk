@@ -79,7 +79,8 @@ the other guides leave out, from the notes written for coding agents.
   the style above, as `DefaultTextStyle.merge` does, where Flutter's plain
   constructor replaces it; the `Future` of `AnimationController.forward`,
   `reverse`, `animateTo` and `repeat` completes when something stops the run
-  too (Flutter's stays pending), so an `await` does not hang;
+  too (Flutter's stays pending; `dispose` leaves it pending in both), so an
+  `await` does not hang;
   a position is in cells, a record `(dx:, dy:)` of whole numbers where Flutter
   has an Offset: `GestureDetector`'s `onTapDown` and `onTapUp` take it in their
   details (`localPosition`, `globalPosition`; `event.button` says which

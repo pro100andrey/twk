@@ -7,10 +7,11 @@
 // xtask task fails where this changed a file.
 import 'dart:io';
 
+import 'package:twk_doc_snippets/packages.dart' show findRoot;
 import 'package:twk_skill_references/skill_references.dart';
 
 void main() {
-  final root = _findRoot();
+  final root = findRoot();
   final Map<String, String> files;
   try {
     files = buildReferences(
@@ -46,15 +47,3 @@ Map<String, String> _read(Directory dir) => {
     if (e.path.endsWith('.md'))
       e.path.substring(dir.path.length + 1): e.readAsStringSync(),
 };
-
-String _findRoot() {
-  var dir = Directory.current.absolute;
-  while (!File('${dir.path}/xtask.yaml').existsSync()) {
-    final parent = dir.parent;
-    if (parent.path == dir.path) {
-      throw StateError('no xtask.yaml above ${Directory.current.path}');
-    }
-    dir = parent;
-  }
-  return dir.path;
-}
