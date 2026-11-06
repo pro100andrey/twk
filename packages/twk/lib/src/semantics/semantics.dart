@@ -549,6 +549,7 @@ final class _Reading {
           label: n.label,
           value: n.value,
           state: n.state,
+          hint: n.hint,
           children: [for (final c in n.children) _unfocused(c)],
         );
 }

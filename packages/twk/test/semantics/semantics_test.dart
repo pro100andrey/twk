@@ -434,8 +434,13 @@ void main() {
       final node = FocusNode();
       addTearDown(node.dispose);
       const nodes = [
-        SemanticsNode(role: SemanticsRole.tab, label: 'One'),
-        SemanticsNode(role: SemanticsRole.tab, label: 'Two', focused: true),
+        SemanticsNode(role: SemanticsRole.tab, label: 'One', hint: 'Ctrl+1'),
+        SemanticsNode(
+          role: SemanticsRole.tab,
+          label: 'Two',
+          hint: 'Ctrl+2',
+          focused: true,
+        ),
       ];
       await t.pumpWidget(
         column([
@@ -447,7 +452,12 @@ void main() {
           Button('Go', onPressed: () {}, autofocus: true),
         ]),
       );
-      expect(read(t), ['tablist', 'tab One', 'tab Two', 'button Go']);
+      expect(read(t), [
+        'tablist',
+        'tab One, Ctrl+1',
+        'tab Two, Ctrl+2',
+        'button Go',
+      ]);
       expect(t.binding.semantics.focusedLine, 3);
       node.requestFocus();
       await t.pump();
