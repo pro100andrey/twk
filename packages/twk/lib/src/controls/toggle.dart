@@ -412,7 +412,8 @@ final class _Toggle extends StatelessWidget {
       role: role,
       // never null, for the mark not to be read
       label: label.isNotEmpty ? label : semanticsLabel ?? '',
-      state: SemanticsState(checked: on, disabled: !enabled),
+      checked: on,
+      enabled: enabled,
       child: pressable,
     );
   }

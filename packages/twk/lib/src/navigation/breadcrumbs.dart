@@ -283,7 +283,7 @@ final class _BreadcrumbsState extends State<Breadcrumbs> {
                   ? SemanticsRole.link
                   : SemanticsRole.listItem,
               label: _items[i],
-              state: SemanticsState(selected: i == current),
+              selected: i == current,
               focused: focused && i == highlighted,
             ),
         ],

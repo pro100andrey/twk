@@ -175,7 +175,7 @@ final class _ValueStepperState<T> extends State<ValueStepper<T>> {
         SemanticsNode(
           role: SemanticsRole.slider,
           label: _index < 0 ? '' : _values[_index].label,
-          state: SemanticsState(disabled: !enabled),
+          enabled: enabled,
         ),
       ],
       child: Pressable(

@@ -1,9 +1,9 @@
 /// What the widgets of an app are to a screen reader: a [Semantics] gives
-/// what is below it a [SemanticsRole], a label, a value, a
-/// [SemanticsState] and a hint, a [BlockSemantics] leaves out what it
-/// covers, an [ExcludeSemantics] what is below it, and [SemanticsNode.of]
-/// reads the tree of them, with the text of the [Text]s among them, as the
-/// lines of text the screen-reader mode of an app shows
+/// what is below it a [SemanticsRole], a label, a value, a state (checked,
+/// selected, expanded, enabled) and a hint, a [BlockSemantics] leaves out
+/// what it covers, an [ExcludeSemantics] what is below it, and
+/// [SemanticsNode.of] reads the tree of them, with the text of the [Text]s
+/// among them, as the lines of text the screen-reader mode of an app shows
 /// (`AppBinding.screenReader`).
 library;
 
@@ -12,6 +12,7 @@ import 'package:twk_core/twk_core.dart' show RenderObject;
 
 import '../focus/focus.dart';
 import '../framework/framework.dart';
+import '../layout/basic.dart' show SizedBox;
 import '../text/widgets.dart';
 
 // Examples can assume:
@@ -28,7 +29,7 @@ enum SemanticsRole {
   /// What runs an action when pressed.
   button('button'),
 
-  /// What is checked or not ([SemanticsState.checked]).
+  /// What is checked or not ([Semantics.checked]).
   checkbox('checkbox'),
 
   /// A window over the rest of the app, a container.
@@ -67,7 +68,7 @@ enum SemanticsRole {
   /// What the app says of itself: a status line.
   status('status'),
 
-  /// A tab of a [tabList], selected or not ([SemanticsState.selected]).
+  /// A tab of a [tabList], selected or not ([Semantics.selected]).
   tab('tab'),
 
   /// A row of [tab]s, a container.
@@ -88,62 +89,31 @@ enum SemanticsRole {
   final bool container;
 }
 
-/// The state of a node of the semantics, ARIA's states, as its line says
-/// it after the label: `checked` or `not checked` ([checked];
-/// `on` or `off` for a [SemanticsRole.toggle]), `selected`, `expanded` or
-/// `collapsed` ([expanded]), `disabled`.
-@immutable
-final class SemanticsState {
-  /// A state of the words given; by default none: neither checked nor
-  /// expanded, not selected, not disabled.
-  const SemanticsState({
-    this.checked,
-    this.selected = false,
-    this.expanded,
-    this.disabled = false,
-  });
-
-  /// Whether it is checked, or a switch on; null for what is neither.
-  final bool? checked;
-
-  /// Whether it is the one chosen of those around it (a tab, an item).
-  final bool selected;
-
-  /// Whether what it opens is shown; null for what opens nothing.
-  final bool? expanded;
-
-  /// Whether it cannot be used, as a button greyed out.
-  final bool disabled;
-
-  /// What the line of a node of [role] in this state says after its label.
-  List<String> wordsFor(SemanticsRole? role) {
-    final toggle = role == SemanticsRole.toggle;
-    return [
-      if (checked ?? false)
-        if (toggle) 'on' else 'checked'
-      else if (checked != null)
-        if (toggle) 'off' else 'not checked',
-      if (selected) 'selected',
-      if (expanded ?? false) 'expanded' else if (expanded != null) 'collapsed',
-      if (disabled) 'disabled',
-    ];
-  }
-
-  /// Whether [other] is a state of equal fields.
-  @override
-  bool operator ==(Object other) =>
-      other is SemanticsState &&
-      other.checked == checked &&
-      other.selected == selected &&
-      other.expanded == expanded &&
-      other.disabled == disabled;
-
-  @override
-  int get hashCode => Object.hash(checked, selected, expanded, disabled);
+/// The words a node of [role] in a state says after its label: `checked`
+/// or `not checked` (`on` or `off` for a [SemanticsRole.toggle]), `selected`,
+/// `expanded` or `collapsed`, `disabled`.
+List<String> _stateWords(
+  SemanticsRole? role, {
+  required bool? checked,
+  required bool? selected,
+  required bool? expanded,
+  required bool? enabled,
+}) {
+  final toggle = role == SemanticsRole.toggle;
+  return [
+    if (checked ?? false)
+      if (toggle) 'on' else 'checked'
+    else if (checked != null)
+      if (toggle) 'off' else 'not checked',
+    if (selected ?? false) 'selected',
+    if (expanded ?? false) 'expanded' else if (expanded != null) 'collapsed',
+    if (!(enabled ?? true)) 'disabled',
+  ];
 }
 
 /// Gives what [child] shows a node of the semantics ([SemanticsNode.of]):
-/// a [role], a [label], a [value], a [state] and a [hint]. Below a node with no
+/// a [role], a [label], a [value], a state ([checked], [selected], [expanded],
+/// [enabled]) and a [hint]. Below a node with no
 /// other node below it and a role that is no [SemanticsRole.container],
 /// the text of the [Text]s is its label when [label] is null, and left out
 /// when it is not; below any other, each text is a node of its own, read
@@ -168,33 +138,37 @@ final class SemanticsState {
 /// Semantics(
 ///   role: SemanticsRole.toggle,
 ///   label: 'Wi-Fi',
-///   state: SemanticsState(checked: wifi),
+///   checked: wifi,
 ///   child: Text(wifi ? '[on ] Wi-Fi' : '[off] Wi-Fi'),
 /// )
 /// ```
 ///
-/// Its line is `switch Wi-Fi, on` while [SemanticsState.checked] is true.
+/// Its line is `switch Wi-Fi, on` while [checked] is true.
 ///
 /// See also:
 ///
 ///  * [ExcludeSemantics], which leaves what is below it out.
 ///  * [SemanticsNode.of], which reads the tree.
 base class Semantics extends StatelessWidget {
-  /// Gives what [child] shows a node of [role], [label], [value], [state]
-  /// and [hint], or the [nodes] given.
+  /// Gives what [child] shows a node of [role], [label], [value], the state
+  /// given and [hint], or the [nodes] given. Without a [child] it is a node
+  /// that shows nothing.
   const Semantics({
-    required this.child,
     super.key,
+    this.child,
     this.role,
     this.label,
     this.value,
-    this.state = const SemanticsState(),
+    this.checked,
+    this.selected,
+    this.expanded,
+    this.enabled,
     this.hint,
     this.nodes,
   });
 
-  /// What the node is of.
-  final Widget child;
+  /// What the node is of; null for a node that shows nothing.
+  final Widget? child;
 
   /// What it is; null for a node that is its label alone.
   final SemanticsRole? role;
@@ -205,9 +179,19 @@ base class Semantics extends StatelessWidget {
   /// What it holds: a field's text, how far a bar is.
   final String? value;
 
-  /// Whether it is checked, selected, expanded or disabled; none of them
-  /// by default.
-  final SemanticsState state;
+  /// Whether it is checked, or a switch on; null for what is neither.
+  final bool? checked;
+
+  /// Whether it is the one chosen of those around it (a tab, an item); null
+  /// for what is not chosen from any.
+  final bool? selected;
+
+  /// Whether what it opens is shown; null for what opens nothing.
+  final bool? expanded;
+
+  /// Whether it can be used, as Flutter's `Semantics.enabled`: false reads
+  /// `disabled` (a button greyed out), true and null say nothing.
+  final bool? enabled;
 
   /// What more there is to say of it, read last: what it does, a tooltip's
   /// message.
@@ -218,7 +202,7 @@ base class Semantics extends StatelessWidget {
   final List<SemanticsNode>? nodes;
 
   @override
-  Widget build(BuildContext context) => child;
+  Widget build(BuildContext context) => child ?? const SizedBox.shrink();
 
   /// Adds those of the role, label, value, state, hint and the number of
   /// [nodes] that are given.
@@ -229,7 +213,17 @@ base class Semantics extends StatelessWidget {
       ..add('role', role?.word, defaultValue: null)
       ..add('label', label, defaultValue: null)
       ..add('value', value, defaultValue: null)
-      ..add('state', state.wordsFor(role).join(', '), defaultValue: '')
+      ..add(
+        'state',
+        _stateWords(
+          role,
+          checked: checked,
+          selected: selected,
+          expanded: expanded,
+          enabled: enabled,
+        ).join(', '),
+        defaultValue: '',
+      )
       ..add('hint', hint, defaultValue: null)
       ..add('nodes', nodes?.length, defaultValue: null);
   }
@@ -322,13 +316,16 @@ final class ExcludeSemantics extends StatelessWidget {
 /// ```
 @immutable
 final class SemanticsNode {
-  /// A node of [role], [label], [value], [state] and [hint], [focused] or
-  /// not, with [children] read in it.
+  /// A node of [role], [label], [value], the state given and [hint],
+  /// [focused] or not, with [children] read in it.
   const SemanticsNode({
     this.role,
     this.label,
     this.value,
-    this.state = const SemanticsState(),
+    this.checked,
+    this.selected,
+    this.expanded,
+    this.enabled,
     this.hint,
     this.focused = false,
     this.children = const [],
@@ -375,8 +372,17 @@ final class SemanticsNode {
   /// What it holds ([Semantics.value]).
   final String? value;
 
-  /// Whether it is checked, selected, expanded or disabled.
-  final SemanticsState state;
+  /// Whether it is checked ([Semantics.checked]).
+  final bool? checked;
+
+  /// Whether it is the one chosen ([Semantics.selected]).
+  final bool? selected;
+
+  /// Whether what it opens is shown ([Semantics.expanded]).
+  final bool? expanded;
+
+  /// Whether it can be used ([Semantics.enabled]); false reads `disabled`.
+  final bool? enabled;
 
   /// What more there is to say of it, read last ([line]).
   final String? hint;
@@ -415,7 +421,13 @@ final class SemanticsNode {
     final hint = this.hint ?? '';
     return [
       line,
-      ...state.wordsFor(role),
+      ..._stateWords(
+        role,
+        checked: checked,
+        selected: selected,
+        expanded: expanded,
+        enabled: enabled,
+      ),
       if (hint.isNotEmpty) hint,
     ].join(', ');
   }
@@ -441,7 +453,10 @@ final class SemanticsNode {
         role: role,
         label: label,
         value: value,
-        state: state,
+        checked: checked,
+        selected: selected,
+        expanded: expanded,
+        enabled: enabled,
         hint: hint ?? this.hint,
         focused: focused,
         children: children ?? this.children,
@@ -511,7 +526,10 @@ final class _Reading {
       role: w.role,
       label: w.label ?? (leaf ? items.map((r) => r.text).join(' ') : null),
       value: w.value,
-      state: w.state,
+      checked: w.checked,
+      selected: w.selected,
+      expanded: w.expanded,
+      enabled: w.enabled,
       hint: w.hint,
       focused: mine && !_hasFocused(nodes),
       children: [
@@ -548,7 +566,10 @@ final class _Reading {
           role: n.role,
           label: n.label,
           value: n.value,
-          state: n.state,
+          checked: n.checked,
+          selected: n.selected,
+          expanded: n.expanded,
+          enabled: n.enabled,
           hint: n.hint,
           children: [for (final c in n.children) _unfocused(c)],
         );

@@ -556,11 +556,8 @@ final class _AreaSemantics extends Semantics {
   String get value => editor._controller.text;
 
   @override
-  SemanticsState get state =>
-      editor.widget.enabled ? _enabled : const SemanticsState(disabled: true);
+  bool? get enabled => editor.widget.enabled ? null : false;
 }
-
-const _enabled = SemanticsState();
 
 /// The text of a [TextArea] as its controller has it, in its theme's
 /// styles where the area has none, the caret shown while the [Focus]

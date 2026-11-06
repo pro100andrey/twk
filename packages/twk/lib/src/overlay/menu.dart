@@ -1118,10 +1118,8 @@ final class _MenuBarState extends State<MenuBar> implements _MenuHost {
                   SemanticsNode(
                     role: SemanticsRole.menuItem,
                     label: titles[i].text,
-                    state: SemanticsState(
-                      expanded: i == _open ? true : null,
-                      disabled: !_canOpen(i),
-                    ),
+                    expanded: i == _open ? true : null,
+                    enabled: _canOpen(i),
                   ),
               ],
               child: GestureDetector(
@@ -1879,13 +1877,11 @@ final class _MenuSession {
                   role: SemanticsRole.menuItem,
                   label: label.text,
                   value: row.key,
-                  state: SemanticsState(
-                    checked: row.checked,
-                    expanded: row.submenu
-                        ? l + 1 < _levels.length && _levels[l].highlighted == i
-                        : null,
-                    disabled: !row.enabled,
-                  ),
+                  checked: row.checked,
+                  expanded: row.submenu
+                      ? l + 1 < _levels.length && _levels[l].highlighted == i
+                      : null,
+                  enabled: row.enabled,
                   focused: l == active && _levels[l].highlighted == i,
                 ),
           ],

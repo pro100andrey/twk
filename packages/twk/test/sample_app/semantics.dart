@@ -15,7 +15,7 @@ extension on _SampleAppState {
           SemanticsNode(
             role: SemanticsRole.tab,
             label: 'one',
-            state: SemanticsState(selected: true),
+            selected: true,
             focused: true,
           ),
           SemanticsNode(role: SemanticsRole.tab, label: 'two'),

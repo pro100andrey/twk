@@ -350,7 +350,7 @@ final class _ExpansionTileState extends State<ExpansionTile>
       children: [
         Semantics(
           role: SemanticsRole.button,
-          state: SemanticsState(expanded: expanded),
+          expanded: expanded,
           child: header,
         ),
         if (expanded || shown > 0)

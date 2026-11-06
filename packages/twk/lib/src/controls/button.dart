@@ -332,7 +332,7 @@ final class _ButtonState extends State<Button> {
     return Semantics(
       role: SemanticsRole.button,
       label: widget.label,
-      state: SemanticsState(disabled: !enabled),
+      enabled: enabled,
       child: pressable,
     );
   }

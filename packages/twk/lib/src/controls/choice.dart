@@ -268,10 +268,8 @@ final class RadioGroup<T> extends StatelessWidget {
               SemanticsNode(
                 role: SemanticsRole.radio,
                 label: choices[i].label,
-                state: SemanticsState(
-                  checked: i == chosen,
-                  disabled: !enabled || !choices[i].enabled,
-                ),
+                checked: i == chosen,
+                enabled: enabled && choices[i].enabled,
                 focused: focused && i == focus,
               ),
           ],

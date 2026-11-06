@@ -619,11 +619,8 @@ final class _FieldSemantics extends Semantics {
       editor.widget.obscureText ? 'protected' : editor._controller.text;
 
   @override
-  SemanticsState get state =>
-      editor.widget.enabled ? _enabled : const SemanticsState(disabled: true);
+  bool? get enabled => editor.widget.enabled ? null : false;
 }
-
-const _enabled = SemanticsState();
 
 /// How many characters [controller] holds of [max], as a decoration's
 /// counter shows them: `3/40`.

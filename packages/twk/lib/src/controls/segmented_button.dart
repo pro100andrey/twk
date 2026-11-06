@@ -283,10 +283,8 @@ final class _SegmentedButtonState<T> extends State<SegmentedButton<T>> {
                   ? SemanticsRole.checkbox
                   : SemanticsRole.radio,
               label: _segments[i].label,
-              state: SemanticsState(
-                checked: _on(i),
-                disabled: !enabled || !_segments[i].enabled,
-              ),
+              checked: _on(i),
+              enabled: enabled && _segments[i].enabled,
               focused: focused && i == current,
             ),
         ],

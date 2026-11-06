@@ -6,14 +6,15 @@ What the widgets of an app are to a screen reader.
 
 ## `Semantics`
 
-`Semantics(role:, label:, value:, state:, hint:, nodes:, child:)` gives what
+`Semantics(role:, label:, value:, checked:, selected:, expanded:, enabled:, hint:, nodes:, child:)` gives what
 is below it a `SemanticsRole` (`alert`, `button`, `checkbox`, `dialog`,
 `heading`, `link`, `list`, `listItem`, `menu`, `menuBar`, `menuItem`,
 `progressBar`, `radio`, `slider`, `status`, `tab`, `tabList`, `textBox`, and
 `toggle`, read as `switch`; a container, a dialog, list, menu, menu bar or
 tab list, has a line of its own, label or not, before those of the nodes in
-it), a label, a value, a `SemanticsState` (`checked`, `selected`,
-`expanded`, `disabled`) and a hint, what more there is to say of it, read
+it), a label, a value, a state (`checked`, `selected`,
+`expanded`, and `enabled`, whose `false` reads `disabled`, as Flutter's) and a
+hint, what more there is to say of it, read
 last (`button Save, disabled, Writes the file`; a `Tooltip`'s message is its
 child's); without a role it is its label alone, one with only a hint giving
 it to the first node below it that has a line, after any hint that node has,

@@ -372,7 +372,7 @@ final class _TabBarState extends State<TabBar> {
           SemanticsNode(
             role: SemanticsRole.tab,
             label: label,
-            state: SemanticsState(selected: i == marked),
+            selected: i == marked,
             focused: focused && i == marked,
           ),
       ],

@@ -4,6 +4,13 @@
 
 Breaking:
 
+- `Semantics` and `SemanticsNode` take `checked`, `selected`, `expanded` and
+  `enabled` flat, as Flutter's `Semantics` does, in place of `state:`;
+  `SemanticsState` is removed. `enabled` has Flutter's sense, where
+  `SemanticsState.disabled` had the opposite one: `enabled: false` reads
+  `disabled`, `true` and null say nothing (`disabled: !x` is `enabled: x`).
+  `selected` is a `bool?` too. `Semantics.child` is optional. `role` and
+  `nodes` stay.
 - `StatusBar` and `DescriptionList` take `spacing`, as `Row` and `Column` do,
   where they took `gap`; the render objects behind them have `spacing` too.
   `Table`'s `columnGap` stays.

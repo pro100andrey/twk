@@ -279,7 +279,8 @@ final class _PaginationState extends State<Pagination> {
             SemanticsNode(
               role: SemanticsRole.button,
               label: 'Page ${p + 1}',
-              state: SemanticsState(selected: p == page, disabled: !enabled),
+              selected: p == page,
+              enabled: enabled,
               focused: p == page,
             ),
         if (widget.showPrevNext)
@@ -295,7 +296,7 @@ final class _PaginationState extends State<Pagination> {
   static SemanticsNode _button(String label, bool enabled) => SemanticsNode(
     role: SemanticsRole.button,
     label: label,
-    state: SemanticsState(disabled: !enabled),
+    enabled: enabled,
   );
 
   /// The range of the page's items, `21–40 of 840`, where there is one.

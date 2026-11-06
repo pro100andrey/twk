@@ -25,21 +25,22 @@ void main() {
         SemanticsNode(
           role: SemanticsRole.checkbox,
           label: 'Remember me',
-          state: SemanticsState(checked: true),
+          checked: true,
         ),
         SemanticsNode(
           role: SemanticsRole.checkbox,
           label: 'Spam me',
-          state: SemanticsState(checked: false, disabled: true),
+          checked: false,
+          enabled: false,
         ),
         SemanticsNode(
           role: SemanticsRole.toggle,
           label: 'Wi-Fi',
-          state: SemanticsState(checked: true),
+          checked: true,
         ),
         SemanticsNode(
           role: SemanticsRole.toggle,
-          state: SemanticsState(checked: false),
+          checked: false,
         ),
         SemanticsNode(
           role: SemanticsRole.textBox,
@@ -50,17 +51,17 @@ void main() {
         SemanticsNode(
           role: SemanticsRole.tab,
           label: 'Files',
-          state: SemanticsState(selected: true),
+          selected: true,
         ),
         SemanticsNode(
           role: SemanticsRole.menuItem,
           label: 'Recent',
-          state: SemanticsState(expanded: false),
+          expanded: false,
         ),
         SemanticsNode(
           role: SemanticsRole.menuItem,
           label: 'Open',
-          state: SemanticsState(expanded: true),
+          expanded: true,
         ),
         SemanticsNode(label: 'just text'),
         SemanticsNode(value: '3 left'),
@@ -89,7 +90,7 @@ void main() {
         const SemanticsNode(
           role: SemanticsRole.button,
           label: 'Save',
-          state: SemanticsState(disabled: true),
+          enabled: false,
           hint: 'Writes the file',
         ).line,
         'button Save, disabled, Writes the file',
@@ -170,29 +171,34 @@ void main() {
     expect(const SemanticsNode(label: 'none').focusedLine, isNull);
   });
 
-  test('states of equal fields are equal and hash alike', () {
-    // made at run time, not the same constant
-    final checked = SemanticsState(checked: [true].single);
-    expect(checked, const SemanticsState(checked: true));
-    expect(checked.hashCode, const SemanticsState(checked: true).hashCode);
-    const others = [
-      SemanticsState(checked: false),
-      SemanticsState(selected: true),
-      SemanticsState(expanded: true),
-      SemanticsState(disabled: true),
-      SemanticsState(),
-    ];
-    for (final (i, a) in others.indexed) {
-      expect(a, isNot(checked), reason: '$i');
-      for (final b in others.skip(i + 1)) {
-        expect(a, isNot(b), reason: '$i');
-      }
-    }
-    expect({
-      checked,
-      const SemanticsState(checked: true),
-      ...others,
-    }, hasLength(6));
+  testTwk("enabled has Flutter's sense: false reads disabled, true and null "
+      'nothing, where the state said disabled: true; a Semantics needs no '
+      'child', (t) async {
+    await t.pumpWidget(
+      column([
+        const Semantics(
+          role: SemanticsRole.button,
+          label: 'Off',
+          enabled: false,
+        ),
+        const Semantics(role: SemanticsRole.button, label: 'On', enabled: true),
+        const Semantics(role: SemanticsRole.button, label: 'None'),
+        const Semantics(
+          role: SemanticsRole.checkbox,
+          label: 'Box',
+          checked: false,
+          selected: true,
+          expanded: false,
+          enabled: false,
+        ),
+      ]),
+    );
+    expect(SemanticsNode.of(t.element(find.byType(Column))).lines, [
+      'button Off, disabled',
+      'button On',
+      'button None',
+      'checkbox Box, not checked, selected, collapsed, disabled',
+    ]);
   });
 
   testTwk('a Semantics is described by what it gives, an ExcludeSemantics '
@@ -206,7 +212,7 @@ void main() {
           key: semantics,
           role: SemanticsRole.toggle,
           label: 'Wi-Fi',
-          state: const SemanticsState(checked: true),
+          checked: true,
           hint: 'Turns it on',
           nodes: const [SemanticsNode(label: 'on')],
           child: const Text('x'),
@@ -388,7 +394,7 @@ void main() {
             SemanticsNode(
               role: SemanticsRole.tab,
               label: 'Two',
-              state: SemanticsState(selected: true),
+              selected: true,
             ),
           ],
           child: Text('One  Two'),

@@ -965,7 +965,7 @@ final class _ListElement extends RenderObjectElement
     }
   }
 
-  static Key? _keyOf(Element item) => (item.widget as _Item).child.key;
+  static Key? _keyOf(Element item) => (item.widget as _Item).child?.key;
 
   /// The keyed items of [live] by key, but those [items] took before [k].
   static Map<Key, Element> _byKey(

@@ -869,7 +869,7 @@ final class _StepperState extends State<Stepper> {
     return Semantics(
       role: SemanticsRole.button,
       label: label,
-      state: const SemanticsState(disabled: true),
+      enabled: false,
       hint: 'validating',
       child: Box(
         style: Style(bg: chip.bg),
@@ -891,10 +891,8 @@ final class _StepperState extends State<Stepper> {
     return SemanticsNode(
       role: SemanticsRole.listItem,
       label: '${i + 1}. ${step.title}',
-      state: SemanticsState(
-        selected: i == current,
-        disabled: state == StepState.disabled,
-      ),
+      selected: i == current,
+      enabled: state != StepState.disabled,
       hint: switch (state) {
         StepState.complete => 'complete',
         StepState.error => _controller._errors[i] ?? 'error',

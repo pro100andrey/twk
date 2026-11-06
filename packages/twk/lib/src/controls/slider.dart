@@ -311,7 +311,7 @@ final class _SliderState extends State<Slider> {
       value: shown == shown.roundToDouble()
           ? '${shown.round()}'
           : shown.toStringAsFixed(2),
-      state: SemanticsState(disabled: !enabled),
+      enabled: enabled,
       child: pressable,
     );
   }

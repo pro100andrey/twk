@@ -439,12 +439,10 @@ final class _ChipListState<T> extends State<ChipList<T>> {
                   ? SemanticsRole.checkbox
                   : SemanticsRole.listItem,
               label: _chips[i].label,
-              state: SemanticsState(
-                checked: onSelectionChanged != null
-                    ? selected.contains(_chips[i].value)
-                    : null,
-                disabled: !enabled || !_chips[i].enabled,
-              ),
+              checked: onSelectionChanged != null
+                  ? selected.contains(_chips[i].value)
+                  : null,
+              enabled: enabled && _chips[i].enabled,
               focused: focused && i == current,
             ),
         ],
