@@ -317,7 +317,13 @@ void main() {
         'the replacement, not $told',
         between: () => clock.elapse(poll),
       );
-      expect(told, ['reset', replacement]);
+      // where identity tells files apart the look ends with the old file's own
+      // bytes and the next one resets; what follows the reset is the new file
+      expect(
+        told.takeWhile((e) => e != 'reset').join(),
+        isIn(['', 'second\n']),
+      );
+      expect(told.skipWhile((e) => e != 'reset').skip(1).join(), replacement);
     },
     testOn: '!windows',
   );
