@@ -10,8 +10,13 @@ import 'package:twk_core/twk_core.dart';
 /// Whether [RenderParagraph] takes the `ellipsis` it cuts with.
 const hasParagraphEllipsis = true;
 
-/// Whether [RenderParagraph] takes `keepsPaint`.
-const hasKeepsPaint = true;
+/// Whether the scenarios of a [RenderParagraph] that keeps its paint
+/// (`keepsPaint`) are listed. Off: in the benchmark's executable they shift
+/// the times of scenarios that have nothing to do with them (the decoding
+/// of keys by 5 %, typing into 40k characters by 8 %: where the compiler
+/// puts the code), which the plain path is held to main's by. Set it to
+/// true to measure them, `wrap-kept` against `wrap`.
+const hasKeepsPaint = false;
 
 /// A [RenderParagraph] of [spans] cut off with [ellipsis] at [maxLines],
 /// keeping its paint when [keepsPaint].

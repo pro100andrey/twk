@@ -3974,13 +3974,13 @@ final class TextPainter {
     }
     if (_segmentsStale) {
       _buildSegments();
-    } else {
+    } else if (tracksDamage) {
       _damageFirst = 0;
       _damageEnd = 0;
     }
     _resolvePens(canvas.styles);
     final seg = _segments;
-    if (_looked) {
+    if (tracksDamage && _looked) {
       // the rows drawn in a pen looked up again
       for (var k = 0; k < _segmentCount; k++) {
         final at = k * _segmentStride;
@@ -4063,8 +4063,11 @@ final class TextPainter {
   /// Works out what painting draws: a glyph run for each piece of a line
   /// in one span, the ellipsis, and the gaps a justified line stretches.
   void _buildSegments() {
-    _damageFirst = 1 << 30;
-    _damageEnd = 0;
+    final track = tracksDamage;
+    if (track) {
+      _damageFirst = 1 << 30;
+      _damageEnd = 0;
+    }
     final rows = _lineCount < height ? _lineCount : height;
     if (_bidiOn) {
       _buildOrdered(rows);
@@ -4076,7 +4079,7 @@ final class TextPainter {
     _changedTo = 0;
     _changedShift = 0;
     _spansMoved = false;
-    if (_damageFirst >= _damageEnd) {
+    if (track && _damageFirst >= _damageEnd) {
       _damageFirst = _damageEnd = 0;
     }
   }
@@ -4085,6 +4088,10 @@ final class TextPainter {
   // the one before
   var _damageFirst = 0;
   var _damageEnd = 0;
+
+  /// Whether [changedRows] is worked out. Off by default: painting costs
+  /// then what it did without it.
+  var tracksDamage = false;
 
   /// The rows the last [paint] drew otherwise than the paint before it, as
   /// (first, end): the rows from first up to, not including, end, in the
@@ -4098,6 +4105,9 @@ final class TextPainter {
   /// It is not narrower than an edit is: the rows an edit reaches are
   /// those with a cluster it split again, and a row with a pen looked up
   /// again is counted whole.
+  ///
+  /// Counted only while [tracksDamage]; otherwise it stays 0 to 0 and the
+  /// painter does none of the work of counting.
   (int, int) get changedRows => (_damageFirst, _damageEnd);
 
   void _damage(int y) {
@@ -4141,17 +4151,21 @@ final class TextPainter {
         j = _rowFound;
         if (kept) {
           _copyRow(j, y);
-          if (j != y) {
+          if (tracksDamage && j != y) {
             _damage(y);
           }
           continue;
         }
       }
-      _damage(y);
+      if (tracksDamage) {
+        _damage(y);
+      }
       _orderRow(y);
     }
-    for (var y = rows; y < _rowsWere; y++) {
-      _damage(y);
+    if (tracksDamage) {
+      for (var y = rows; y < _rowsWere; y++) {
+        _damage(y);
+      }
     }
     _rowAt[2 * rows] = _segmentCount;
     _rowAt[2 * rows + 1] = _runGlyphCount;
@@ -4305,17 +4319,21 @@ final class TextPainter {
         j = _rowFound;
         if (kept) {
           _copyStoredRow(j, y, _rowShift);
-          if (j != y) {
+          if (tracksDamage && j != y) {
             _damage(y);
           }
           continue;
         }
       }
-      _damage(y);
+      if (tracksDamage) {
+        _damage(y);
+      }
       _storeRow(y);
     }
-    for (var y = rows; y < _rowsWere; y++) {
-      _damage(y);
+    if (tracksDamage) {
+      for (var y = rows; y < _rowsWere; y++) {
+        _damage(y);
+      }
     }
     _rowAt[2 * rows] = _segmentCount;
     _rowAt[2 * rows + 1] = 0;
