@@ -27,6 +27,8 @@ writes only the cells that changed.
    with twk_test, and in a real pseudo-terminal.
 8. [Running an app](guides/running.md): what ends `runApp`, Ctrl+C,
    Ctrl+Z, SIGTERM, and a missing terminal.
+9. [Words in another language](guides/localization.md): `TwkStrings` and
+   `Localizations`, the words twk writes itself, with slang or without.
 
 ## Widget catalog
 

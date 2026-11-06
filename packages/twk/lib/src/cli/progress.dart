@@ -235,7 +235,7 @@ final class CliProgress {
         Span('${theme.glyphs.cross} ', theme.error),
       Span(_oneLine(message ?? _message)),
       if (_look == _Look.live)
-        Span(' in ${formatTook(_clock.elapsed)}', theme.hint),
+        Span(_cli.strings.tookIn(formatTook(_clock.elapsed)), theme.hint),
     ];
     if (_look != _Look.live || _openFailed) {
       _cli.writeLine(line);

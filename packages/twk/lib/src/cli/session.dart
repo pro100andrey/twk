@@ -43,6 +43,7 @@ final class CliSession {
   CliSession._(
     this._binding,
     this._theme,
+    this._strings,
     this._onInterrupt,
     this._onWarning,
   );
@@ -50,13 +51,15 @@ final class CliSession {
   /// Opens the session on [terminal]'s inline terminal
   /// ([CliTerminal.openInline]), the app's frames timed by its clock;
   /// widgets are shown under [theme] where there is one, else under the
-  /// terminal's colors. [onInterrupt] is called once the app has ended on
-  /// a Ctrl+C nothing live took. [onWarning] gets what the session warns
+  /// terminal's colors, and in the words [strings]. [onInterrupt] is
+  /// called once the app has ended on a Ctrl+C nothing live took.
+  /// [onWarning] gets what the session warns
   /// of (a list committed with items and no rows); without one it goes to
   /// `log` as a warning.
   static Future<CliSession> open(
     CliTerminal terminal, {
     ThemeData? theme,
+    TwkStrings strings = const TwkStrings(),
     void Function()? onInterrupt,
     void Function(String message)? onWarning,
   }) async {
@@ -69,7 +72,13 @@ final class CliSession {
         clock: clock.stopwatch(),
       ),
     );
-    final session = CliSession._(binding, theme, onInterrupt, onWarning);
+    final session = CliSession._(
+      binding,
+      theme,
+      strings,
+      onInterrupt,
+      onWarning,
+    );
     session._running = clock.run(() => binding.run(_Host(session)));
     unawaited(session._watch());
     return session;
@@ -77,6 +86,7 @@ final class CliSession {
 
   final AppBinding _binding;
   final ThemeData? _theme;
+  final TwkStrings _strings;
   final void Function()? _onInterrupt;
   final void Function(String message)? _onWarning;
   late final Future<void> _running;
@@ -298,7 +308,10 @@ final class _Host extends StatelessWidget {
     // App places one around an app
     final overlay = Overlay(child: host);
     final theme = session._theme;
-    return theme == null ? overlay : Theme(data: theme, child: overlay);
+    return Localizations(
+      strings: session._strings,
+      child: theme == null ? overlay : Theme(data: theme, child: overlay),
+    );
   }
 }
 

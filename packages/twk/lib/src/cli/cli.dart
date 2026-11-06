@@ -79,12 +79,13 @@ LogLevel levelFromFlags({bool verbose = false, bool quiet = false}) => verbose
 /// ```
 final class Cli {
   /// A console on [terminal], the process's stdio unless given one,
-  /// showing what [level] lets through in [theme], the source of an error
-  /// as [sourceLines] gives it.
+  /// showing what [level] lets through in [theme], in the words [strings],
+  /// the source of an error as [sourceLines] gives it.
   Cli({
     CliTerminal? terminal,
     this.level = LogLevel.info,
     CliTheme? theme,
+    this.strings = const TwkStrings(),
     this.sourceLines,
   }) : terminal = terminal ?? CliTerminal.system(),
        theme = theme ?? const CliTheme();
@@ -111,7 +112,8 @@ final class Cli {
   /// run has ended is shown, and sets the code, all the same. Without
   /// [handleErrors] what the body throws is the run's, as it is.
   ///
-  /// [sourceLines] is the console's [Cli.sourceLines].
+  /// [strings] and [sourceLines] are the console's [Cli.strings] and
+  /// [Cli.sourceLines].
   ///
   /// [open] makes the terminal from what the flags leave to detection
   /// (null) and what they decide: [CliTerminal.system] unless a test of
@@ -123,6 +125,7 @@ final class Cli {
     bool color = true,
     bool input = true,
     CliTheme? theme,
+    TwkStrings strings = const TwkStrings(),
     SourceLines? sourceLines,
     bool handleErrors = true,
     int errorExitCode = 1,
@@ -136,6 +139,7 @@ final class Cli {
       terminal: terminal,
       level: levelFromFlags(verbose: verbose, quiet: quiet),
       theme: theme,
+      strings: strings,
       sourceLines: sourceLines,
     );
     if (!handleErrors) {
@@ -195,6 +199,7 @@ final class Cli {
     List<String> args,
     FutureOr<T> Function(Cli cli, List<String> rest) body, {
     CliTheme? theme,
+    TwkStrings strings = const TwkStrings(),
     SourceLines? sourceLines,
     bool handleErrors = true,
     int errorExitCode = 1,
@@ -229,6 +234,7 @@ final class Cli {
       color: color,
       input: input,
       theme: theme,
+      strings: strings,
       sourceLines: sourceLines,
       handleErrors: handleErrors,
       errorExitCode: errorExitCode,
@@ -248,6 +254,11 @@ final class Cli {
 
   /// The style of each channel, and what widgets are shown in.
   CliTheme theme;
+
+  /// The words the console writes on its own (`answer y or n`, ` in 3 s`),
+  /// English unless given others; widgets it shows are given them too
+  /// ([Localizations]).
+  final TwkStrings strings;
 
   /// The lines of code an error's [traceback] shows of the source it was
   /// thrown in, as [Cli.error] and [Cli.run] show it: their text without,
@@ -448,6 +459,7 @@ final class Cli {
       widget,
       width ?? terminal.columns ?? 80,
       theme: theme.data,
+      strings: strings,
       // the core's warnings about it are the console's, at their level
       onLog: (record) => switch (record.level) {
         LogLevel.error => err(record.message),
@@ -872,6 +884,7 @@ final class Cli {
         CliSession.open(
           terminal,
           theme: theme.data,
+          strings: strings,
           onInterrupt: _interrupted,
           onWarning: warn,
         ).then(

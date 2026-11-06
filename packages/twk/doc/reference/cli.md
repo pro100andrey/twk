@@ -155,6 +155,18 @@ A program that makes its own `Cli()` instead of using `Cli.run` and shows a
 widget in the interactive mode has to `close()` it itself, or the session keeps
 stdin open.
 
+## Words
+
+The words the console writes itself (`answer y or n`, `Enter a number`,
+` in 3.1 s` after a progress, the hints of a prompt) are `TwkStrings`,
+English unless given: `Cli(strings:)`, or `strings:` of `Cli.run` and
+`Cli.runWithArgs`; `cli.strings` reads them. What the inline session shows
+is wrapped in `Localizations`, so a widget reads the same words with
+`TwkStrings.of(context)`; a widget `show`n in a log is too. On a plain
+terminal a yes or no takes `y`, `yes`, `n` and `no`, and the strings'
+`yes` and `no`, or their first letters. See
+[the guide](../../../../doc/guides/localization.md).
+
 ## Prompts
 
 ```dart
@@ -456,6 +468,9 @@ the emulator, the scrollback first, where it runs the inline session.
   terminal, `min` and `max`, Ctrl+C and Ctrl+D, the end of input, a
   prompt nobody can answer throwing and one asked while another is
   waiting for it.
+- `strings_test.dart`: the console's `TwkStrings` in each mode: the hints
+  and refusals of every prompt, what is assumed, the closing line of a
+  progress, a widget shown, and `Cli.run` handing them on.
 - `progress_test.dart`: a progress where the output is no terminal, at
   one that does not redraw and in the session (the spinner and its time,
   the closing line, a message updated and cut short, lines and prompts

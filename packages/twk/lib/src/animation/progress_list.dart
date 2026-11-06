@@ -24,6 +24,7 @@ import '../data/task_marks.dart';
 import '../foundation/change_notifier.dart';
 import '../foundation/format.dart';
 import '../foundation/helpers.dart';
+import '../foundation/strings.dart';
 import '../framework/framework.dart';
 import '../semantics/semantics.dart';
 import '../style/style.dart';
@@ -674,6 +675,7 @@ final class _ProgressListState extends State<ProgressList> {
     final (rows, more) = _rows();
     final running = rows.any((t) => t.status == TaskStatus.running);
     final theme = Theme.of(context);
+    final strings = TwkStrings.of(context);
     final frames = widget.spinner ?? theme.glyphs.spinner;
     final interval = frames.interval;
     var steps = _steps;
@@ -707,7 +709,7 @@ final class _ProgressListState extends State<ProgressList> {
                     ? null
                     : task.status.name,
               ),
-            if (more > 0) SemanticsNode(label: '+$more more'),
+            if (more > 0) SemanticsNode(label: strings.moreTasks(more)),
           ],
         ),
       ],
@@ -719,6 +721,7 @@ final class _ProgressListState extends State<ProgressList> {
         barShape: widget.barShape,
         maxBarWidth: widget.maxBarWidth,
         byteUnits: widget.byteUnits,
+        strings: strings,
         styles: _Styles(
           base: base,
           muted: base.merge(theme.muted),
@@ -780,6 +783,7 @@ final class _List extends LeafRenderObjectWidget {
     required this.barShape,
     required this.maxBarWidth,
     required this.byteUnits,
+    required this.strings,
     required this.styles,
     required this.binding,
     required this.spinner,
@@ -792,6 +796,7 @@ final class _List extends LeafRenderObjectWidget {
   final ProgressBarShape barShape;
   final int? maxBarWidth;
   final ByteUnits byteUnits;
+  final TwkStrings strings;
   final _Styles styles;
   final AppBinding? binding;
 
@@ -809,6 +814,7 @@ final class _List extends LeafRenderObjectWidget {
         barShape: barShape,
         maxBarWidth: maxBarWidth,
         byteUnits: byteUnits,
+        strings: strings,
         styles: styles,
         binding: binding,
         spinner: spinner,
@@ -826,6 +832,7 @@ final class _List extends LeafRenderObjectWidget {
       ..barShape = barShape
       ..maxBarWidth = maxBarWidth
       ..byteUnits = byteUnits
+      ..strings = strings
       ..styles = styles
       ..spinner = spinner
       ..muted = !TickerMode.of(context);
@@ -853,6 +860,7 @@ final class _RenderProgressList extends RenderObject {
     required this._barShape,
     required this._maxBarWidth,
     required this._byteUnits,
+    required this._strings,
     required this._styles,
     required this.binding,
     required this._spinner,
@@ -937,6 +945,15 @@ final class _RenderProgressList extends RenderObject {
   set byteUnits(ByteUnits u) {
     if (u != _byteUnits) {
       _byteUnits = u;
+      markNeedsPaint();
+    }
+  }
+
+  TwkStrings _strings;
+  TwkStrings get strings => _strings;
+  set strings(TwkStrings s) {
+    if (s != _strings) {
+      _strings = s;
       markNeedsPaint();
     }
   }
@@ -1048,7 +1065,13 @@ final class _RenderProgressList extends RenderObject {
       }
       final column = [
         for (final task in rows)
-          _cell(c, task, showsElapsed: showsElapsed, units: _byteUnits),
+          _cell(
+            c,
+            task,
+            showsElapsed: showsElapsed,
+            units: _byteUnits,
+            strings: _strings,
+          ),
       ];
       var w = 0;
       for (final cell in column) {
@@ -1212,7 +1235,7 @@ final class _RenderProgressList extends RenderObject {
         rows.length,
         fitText(
           segmenter,
-          '+$_more more',
+          _strings.moreTasks(_more),
           width,
           ellipsis: _frames.glyphs.ellipsis,
         ),
@@ -1239,6 +1262,7 @@ String _cell(
   ProgressTask task, {
   required bool showsElapsed,
   required ByteUnits units,
+  required TwkStrings strings,
 }) {
   final status = task.status;
   final running = status == TaskStatus.running;
@@ -1260,10 +1284,10 @@ String _cell(
       running
           ? (task.total == null
                 ? ''
-                : 'ETA ${switch (task.eta) {
+                : strings.eta(switch (task.eta) {
                     final e? => formatClock(e),
                     null => '--:--',
-                  }}')
+                  }))
           : (over && !showsElapsed ? formatTook(task.elapsed) : ''),
     ProgressColumn.elapsed =>
       running

@@ -170,7 +170,7 @@ final class Prompter {
   /// See [Cli.confirm].
   Future<bool> confirm(String question, {bool? defaultValue}) =>
       _serial(() async {
-        String shown(bool value) => value ? 'yes' : 'no';
+        String shown(bool value) => value ? cli.strings.yes : cli.strings.no;
         switch (_mode) {
           case CliMode.nonInteractive:
             if (defaultValue == null) {
@@ -180,21 +180,28 @@ final class Prompter {
             return defaultValue;
           case CliMode.plain:
             final hint = switch (defaultValue) {
-              true => 'Y/n',
-              false => 'y/N',
-              null => 'y/n',
+              true => cli.strings.confirmHintYes,
+              false => cli.strings.confirmHintNo,
+              null => cli.strings.confirmHint,
             };
             while (true) {
               _write(_asking(question, hint: hint, brackets: '[]'));
-              switch ((await _readLine(question)).trim().toLowerCase()) {
-                case '' when defaultValue != null:
-                  return defaultValue;
-                case 'y' || 'yes':
-                  return true;
-                case 'n' || 'no':
-                  return false;
+              final answer = (await _readLine(question)).trim().toLowerCase();
+              final yes = cli.strings.yes.toLowerCase();
+              final no = cli.strings.no.toLowerCase();
+              if (answer.isEmpty && defaultValue != null) {
+                return defaultValue;
               }
-              _writeLine(_refused('answer y or n'));
+              // the words of the strings answer as y and n do
+              if (answer.isNotEmpty) {
+                if (answer == 'y' || answer == 'yes' || _isWord(answer, yes)) {
+                  return true;
+                }
+                if (answer == 'n' || answer == 'no' || _isWord(answer, no)) {
+                  return false;
+                }
+              }
+              _writeLine(_refused(cli.strings.answerYesOrNo));
             }
           case CliMode.interactive:
             return _live<bool>(
@@ -233,7 +240,7 @@ final class Prompter {
         final fallback = initial < 0 ? 0 : initial;
         while (true) {
           _write([
-            Span('Enter a number', cli.theme.hint),
+            Span(cli.strings.enterNumber, cli.theme.hint),
             Span(' (${fallback + 1})', cli.theme.hint),
             const Span(': '),
           ]);
@@ -245,7 +252,7 @@ final class Prompter {
           if (picked != null) {
             return choices[picked];
           }
-          _writeLine(_refused('answer a number from 1 to ${labels.length}'));
+          _writeLine(_refused(cli.strings.answerNumber(labels.length)));
         }
       case CliMode.interactive:
         return _live<T>(
@@ -295,15 +302,15 @@ final class Prompter {
         if (picked.contains(i)) choices[i],
     ];
     String shown(Set<int> picked) => picked.isEmpty
-        ? 'none'
+        ? cli.strings.none
         : [
             for (var i = 0; i < choices.length; i++)
               if (picked.contains(i)) labels[i],
           ].join(', ');
     String? refuse(Set<int> picked) => picked.length < min
-        ? 'choose at least $min'
+        ? cli.strings.chooseAtLeast(min)
         : max != null && picked.length > max
-        ? 'choose at most $max'
+        ? cli.strings.chooseAtMost(max)
         : null;
     switch (_mode) {
       case CliMode.nonInteractive:
@@ -325,14 +332,14 @@ final class Prompter {
             : ([...initial]..sort()).map((i) => i + 1).join(',');
         while (true) {
           _write([
-            Span('Enter numbers separated by commas', cli.theme.hint),
+            Span(cli.strings.enterNumbers, cli.theme.hint),
             if (hint != null) Span(' ($hint)', cli.theme.hint),
             const Span(': '),
           ]);
           final line = (await _readLine(question)).trim();
           final picked = line.isEmpty ? {...initial} : _pickAll(line, labels);
           final refused = picked == null
-              ? 'answer numbers from 1 to ${labels.length}'
+              ? cli.strings.answerNumbers(labels.length)
               : refuse(picked);
           if (refused == null) {
             return inOrder(picked!);
@@ -465,6 +472,10 @@ final class Prompter {
   }
 
   /// `✗ message`: why an answer was refused.
+  /// Whether [answer] is [word] or its first letter.
+  static bool _isWord(String answer, String word) =>
+      word.isNotEmpty && (answer == word || answer == word[0]);
+
   List<Span> _refused(String message) {
     final error = cli.theme.error;
     return [Span('${cli.theme.glyphs.cross} ', error), Span(message, error)];
