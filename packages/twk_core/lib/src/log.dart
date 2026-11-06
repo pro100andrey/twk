@@ -122,6 +122,12 @@ final class LogRecord {
 }
 
 /// The zone value under which [log] finds the sink of the app it runs in.
+///
+/// It is a zone value on purpose, the one ambient link a call site may rely
+/// on, like `print`: [log] is called from anywhere in an app (a handler, a
+/// timer, a callback of a library that knows nothing of twk), where no sink
+/// can be passed, and a global would be shared by apps running side by side.
+/// Nothing else is found this way; a `Cli` is passed to what uses it.
 const logSinkKey = #twk_core.LogSink;
 
 /// The zone rule for `print`: a line printed becomes an info record of

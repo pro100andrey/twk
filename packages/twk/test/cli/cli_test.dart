@@ -257,22 +257,6 @@ void main() {
     );
   });
 
-  group('current', () {
-    test("is the run's, in its asynchronous continuations too", () async {
-      late Cli inside;
-      await Cli.run((cli) async {
-        await Future<void>.delayed(Duration.zero);
-        inside = Cli.current;
-        expect(Cli.current, same(cli));
-      }, open: ({ansi, interactive}) => FakeCliTerminal());
-      expect(Cli.current, isNot(same(inside)));
-    });
-
-    test('is one on stdio outside a run, the same each time', () {
-      expect(Cli.current, same(Cli.current));
-    });
-  });
-
   test("mode is the terminal's", () {
     expect(Cli(terminal: FakeCliTerminal()).mode, CliMode.nonInteractive);
     expect(Cli(terminal: FakeCliTerminal.plain()).mode, CliMode.plain);

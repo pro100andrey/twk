@@ -151,9 +151,9 @@ console for good. A SIGINT handler that ends the process awaits
 `cli.close()` first: a prompt the program asked meanwhile opened a new
 session, and `exit()` would leave the terminal raw.
 
-A program that uses `Cli.current` outside `Cli.run` and shows a widget in
-the interactive mode has to `close()` it itself, or the session keeps stdin
-open.
+A program that makes its own `Cli()` instead of using `Cli.run` and shows a
+widget in the interactive mode has to `close()` it itself, or the session keeps
+stdin open.
 
 ## Prompts
 
@@ -228,7 +228,7 @@ the sealed `PromptException`:
   once the console is closed.
 
 `close()` lets go of stdin once a plain prompt read it: a program that
-prompts through `Cli.current` outside `Cli.run` closes it, or the process
+prompts through a `Cli()` of its own, not `Cli.run`'s, closes it, or the process
 does not end.
 
 ## Progress
@@ -345,9 +345,9 @@ Future<void> main(List<String> args) => Cli.runWithArgs(args, (cli, rest) {
 `Cli.run(body, verbose:, quiet:, color:, input:)` takes them already
 parsed. `-v` shows everything (`LogLevel.debug`), `-q` errors only
 (`LogLevel.error`); given both, `-v` wins (`levelFromFlags`): `-q` tends to
-sit in an alias, `-v` is added by hand to see what went wrong. The console
-is `Cli.current` for the whole body, its asynchronous continuations
-included. `open:` makes the terminal from what the flags decide, for a
+sit in an alias, `-v` is added by hand to see what went wrong. The body gets the
+console as its parameter, and passes it to the helpers that need it: there is
+no ambient one. `open:` makes the terminal from what the flags decide, for a
 test of the program.
 
 ## Testing
@@ -440,7 +440,7 @@ the emulator, the scrollback first, where it runs the inline session.
 - `cli_test.dart`: the channels and their sinks, styles and themes, no
   escapes where the terminal takes none (the strings too), `write`,
   `delayed`, the levels and the flags (`-v` over `-q`, `runWithArgs`),
-  `link`, and `Cli.current`.
+  and `link`.
 - `lines_test.dart`: a string read as a terminal shows it (a carriage
   return writing over its line), spans and lists of them, a line encoded
   in each color mode, and a widget's lines as tall as it is.

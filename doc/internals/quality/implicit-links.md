@@ -14,7 +14,7 @@ Paths are under `packages/` unless they start with `tool/`.
 | --- | --- | --- | --- |
 | 1 | the `TWK_*` environment | the shell → `TwkApp` (`twk_core/lib/src/app.dart:40-41, 244`), `AppBinding` (`twk/lib/src/binding/app_binding.dart:343-344`, `1384`, `1912`) | read at the edge, given as a parameter |
 | 2 | `log()` finds its app's sink | `twk_core/lib/src/app.dart:556` → `twk_core/lib/src/log.dart:305` | like `print` |
-| 3 | `Cli.current` | `twk/lib/src/cli/cli.dart:156, 183` → `:99-100` | an accessor for a program's own helpers |
+| 3 | (gone) `Cli.current` | was a zone value of `Cli.run` | removed: the `Cli` is passed |
 | 4 | `runningTester` | `twk_test/lib/src/tester.dart:63` → `:89`, read at `finders.dart:89, 159` | a `Matcher` gets no tester |
 | 5 | fake time: FakeClock and SyncClock zones | `twk_test/lib/src/fake_clock.dart:50`, `tool/alloc/lib/sync_clock.dart:24` | replacing timers is what a zone is for |
 | 6 | the tester's stderr through `IOOverrides` | `twk_test/lib/src/tester.dart:121` → `twk_core/lib/src/platform/io.dart:47` (via `twk_core/lib/src/app.dart:1063`) | catches the app's own `stderr` |
@@ -60,11 +60,8 @@ Paths are under `packages/` unless they start with `tool/`.
   (`twk_core/lib/src/headless.dart:431-438`) and by the console's
   `widgetLines` (`twk/lib/src/cli/lines.dart:134, 161`; `cli.dart:412`),
   and fall back to `log()` only where no route is set.
-- **3, `Cli.current`.** `Cli.run` hands the body its `cli`. Nothing in
-  `lib/` reads `Cli.current`; it is for a program's own helpers, as
-  `log()` is. Outside a run it falls back to a `Cli` on process stdio made
-  at first use (`_default ??= Cli()`, `cli.dart:90, 100`) and never
-  closed; its doc says so (`:94-97`).
+- **3, `Cli.current`: gone.** `Cli.run` hands the body its `cli`, and a
+  program passes it on to its helpers; no zone value or default `Cli` is left.
 - **4, `runningTester`.** It exists so that `expect(find.text('x'),
   findsOneWidget)` works: package:test's convention, flutter_test's `find`
   works the same way. Outside `testTwk`, `Finder.evaluate` throws a

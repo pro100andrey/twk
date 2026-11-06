@@ -4,6 +4,10 @@
 
 Breaking:
 
+- `Cli.current` is gone, with the zone value `Cli.run` set: the body gets its
+  `cli` as a parameter, and a program passes it to the helpers that use it. A
+  program that made its own `Cli()` closes it itself, as before. Nothing in
+  the packages read it.
 - `PointerMode.auto`, the default, shows the hand everywhere in a local session,
   where a control had it on one screen and not on another: an app that sets
   nothing now asks a terminal that shows pointer shapes for the mouse's motion
