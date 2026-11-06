@@ -19,8 +19,8 @@ text
 │     Toast                                                                      │
 │     Tooltip                                                                    │
 │     Popover          ──────────────────────────────────────────────────────────│
-│     MenuBar            width  ───────────────────────────   50 cells           │
-│     ContextMenu        gap     0  1  3                                         │
+│     MenuBar            width    ───────────────────────────   50 cells         │
+│     ContextMenu        spacing   0  1  3                                       │
 │     CommandPalette                                                             │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
@@ -44,8 +44,8 @@ styles
 │aaaaannnnnaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnaaaaaaaaaaggmmmmmggyyyyyyyyyyyyyyyyyyyyyyyyyyyzggFFgFFFFFggggggggggg│
-│aaaaannnnnnnnnnnaaaaaaggmmmgggghAhqrqhAhgggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnaaaaaaaaaaggmmmmmggggyyyyyyyyyyyyyyyyyyyyyyyyyyyzggFFgFFFFFggggggggg│
+│aaaaannnnnnnnnnnaaaaaaggmmmmmmmgghAhqrqhAhgggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│

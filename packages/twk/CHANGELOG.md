@@ -4,6 +4,9 @@
 
 Breaking:
 
+- `StatusBar` and `DescriptionList` take `spacing`, as `Row` and `Column` do,
+  where they took `gap`; the render objects behind them have `spacing` too.
+  `Table`'s `columnGap` stays.
 - `Actions` and `Shortcuts` take `actions:` and `shortcuts:` by name, as
   Flutter's do, where they took the map positionally. `Shortcuts.combos` still
   takes its map first.

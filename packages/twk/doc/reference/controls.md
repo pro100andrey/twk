@@ -73,7 +73,7 @@ the theme's `primary` underlined by default.
 
 ## `StatusBar`
 
-`StatusBar(left:, center:, right:, gap: 1, style:)`, one row of three
+`StatusBar(left:, center:, right:, spacing: 1, style:)`, one row of three
 sections, `left` at its left edge, `right` at its right edge and `center` in
 its middle, at least `gap` columns between two, each as wide as it likes
 while they all fit; when they do not, `right` keeps its width first, as far

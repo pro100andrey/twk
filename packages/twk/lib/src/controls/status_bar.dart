@@ -21,8 +21,8 @@ import '../text/widgets.dart';
 /// A status bar: one row of three sections, [left] at its left edge,
 /// [right] at its right edge and [center] in its middle.
 ///
-/// At least [gap] columns are between two sections. Each is as wide as it
-/// likes while the row has room for them all. When it has not, [right]
+/// At least [spacing] columns are between two sections. Each is as wide as
+/// it likes while the row has room for them all. When it has not, [right]
 /// keeps its width first, as far as it fits, then [left] takes what it
 /// leaves, then [center] goes in the middle of the room between them; cut
 /// to that room, and gone when there is none. A section cut is laid out
@@ -56,15 +56,15 @@ import '../text/widgets.dart';
 ///
 ///  * `KeyHintsBar`, a row of the keys that can be pressed.
 final class StatusBar extends StatelessWidget {
-  /// A bar of the sections given, [gap] at least 0, which it asserts.
+  /// A bar of the sections given, [spacing] at least 0, which it asserts.
   const StatusBar({
     super.key,
     this.left,
     this.center,
     this.right,
-    this.gap = 1,
+    this.spacing = 1,
     this.style,
-  }) : assert(gap >= 0, 'a gap of 0 cells or more');
+  }) : assert(spacing >= 0, 'a spacing of 0 cells or more');
 
   /// The section at the left edge; null for none.
   final Widget? left;
@@ -77,7 +77,7 @@ final class StatusBar extends StatelessWidget {
   final Widget? right;
 
   /// The fewest columns between two sections.
-  final int gap;
+  final int spacing;
 
   /// The row, the theme's surface and text under it.
   final Style? style;
@@ -93,7 +93,7 @@ final class StatusBar extends StatelessWidget {
       child: DefaultTextStyle(
         style: style,
         child: _Sections(
-          gap: gap,
+          spacing: spacing,
           children: [
             left ?? const SizedBox.shrink(),
             center ?? const SizedBox.shrink(),
@@ -107,20 +107,20 @@ final class StatusBar extends StatelessWidget {
 
 /// The left, center and right sections of a [StatusBar].
 final class _Sections extends MultiChildRenderObjectWidget {
-  const _Sections({required this.gap, super.children});
+  const _Sections({required this.spacing, super.children});
 
-  final int gap;
+  final int spacing;
 
   @override
   MultiChildRenderObjectElement createElement() => ChildListElement(this);
 
   @override
   _RenderSections createRenderObject(BuildContext context) =>
-      _RenderSections(gap);
+      _RenderSections(spacing);
 
   @override
   void updateRenderObject(BuildContext context, _RenderSections renderObject) =>
-      renderObject.gap = gap;
+      renderObject.spacing = spacing;
 }
 
 final class _SectionData extends ParentData with ContainerParentDataMixin {}
@@ -129,13 +129,13 @@ final class _SectionData extends ParentData with ContainerParentDataMixin {}
 /// the center and the right section, one row tall, as [StatusBar] says.
 final class _RenderSections extends RenderObject
     with ContainerRenderObjectMixin<_SectionData> {
-  _RenderSections(this._gap);
+  _RenderSections(this._spacing);
 
-  int _gap;
-  int get gap => _gap;
-  set gap(int g) {
-    if (g != _gap) {
-      _gap = g;
+  int _spacing;
+  int get spacing => _spacing;
+  set spacing(int g) {
+    if (g != _spacing) {
+      _spacing = g;
       markNeedsLayout();
     }
   }
@@ -166,7 +166,7 @@ final class _RenderSections extends RenderObject
   int computeMaxIntrinsicWidth(int height) {
     final (l, c, r) = _natural();
     final shown = (l > 0 ? 1 : 0) + (c > 0 ? 1 : 0) + (r > 0 ? 1 : 0);
-    return l + c + r + (shown > 1 ? (shown - 1) * _gap : 0);
+    return l + c + r + (shown > 1 ? (shown - 1) * _spacing : 0);
   }
 
   @override
@@ -190,10 +190,10 @@ final class _RenderSections extends RenderObject
     final (l, cn, r) = _natural();
     final w = width;
     final rw = r < w ? r : w;
-    final lRoom = w - rw - (rw > 0 ? _gap : 0);
+    final lRoom = w - rw - (rw > 0 ? _spacing : 0);
     final lw = l < lRoom ? l : (lRoom > 0 ? lRoom : 0);
-    final from = lw > 0 ? lw + _gap : 0;
-    final to = rw > 0 ? w - rw - _gap : w;
+    final from = lw > 0 ? lw + _spacing : 0;
+    final to = rw > 0 ? w - rw - _spacing : w;
     final room = to > from ? to - from : 0;
     final cw = cn < room ? cn : room;
     final middle = (w - cw) ~/ 2;

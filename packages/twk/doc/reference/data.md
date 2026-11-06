@@ -307,7 +307,7 @@ are in `style` over the theme's background and text.
 
 ## `DescriptionList`
 
-`DescriptionList(items:, separator: ':', gap: 1, termAlign: TextAlign.left,
+`DescriptionList(items:, separator: ':', spacing: 1, termAlign: TextAlign.left,
 termWidth:, maxTermFraction: 0.4, stackBelowWidth: 30, termStyle:,
 valueStyle:)` shows terms and their values a row each, as `kubectl describe`
 or `docker inspect` print them: each `DescriptionItem(term, value,

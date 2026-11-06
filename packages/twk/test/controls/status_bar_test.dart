@@ -69,7 +69,7 @@ void main() {
           StatusBar(right: cut('right')),
           StatusBar(center: cut('center')),
           StatusBar(left: cut('left'), center: cut('a long middle')),
-          StatusBar(center: cut('middle'), right: cut('end'), gap: 3),
+          StatusBar(center: cut('middle'), right: cut('end'), spacing: 3),
         ],
       ),
       size: (20, 4),

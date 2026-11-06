@@ -42,7 +42,7 @@ What the gallery lets you change, and what each starts at:
 | option | values | starts at |
 | --- | --- | --- |
 | width | 12 cells to 50 cells | 50 |
-| gap | 0, 1, 3 | 1 |
+| spacing | 0, 1, 3 | 1 |
 
 ## More
 
