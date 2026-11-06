@@ -274,6 +274,47 @@ final frameScenarios = <FrameScenario>[
     },
     ambiguousWidth: 2,
   ),
+  if (hasKeepsPaint) ...[
+    FrameScenario(
+      'wrap-kept',
+      'the wrap scenario with the paragraph keeping its paint',
+      (hs) {
+        final s = _Prose(hs, keepsPaint: true)..render();
+        return (i) {
+          s.type(i);
+          return s.render();
+        };
+      },
+    ),
+    FrameScenario(
+      'ellipsis-kept',
+      'the ellipsis scenario with the paragraph keeping its paint',
+      (hs) {
+        final s = _Prose(
+          hs,
+          maxLines: hs.surface.height * 2 ~/ 3,
+          keepsPaint: true,
+        )..render();
+        _requireCut(hs, s.paragraph.maxLines!, '\u2026');
+        return (i) {
+          s.type(i);
+          return s.render();
+        };
+      },
+    ),
+    FrameScenario(
+      'wrap-ambig-kept',
+      'the wrap-ambig scenario with the paragraph keeping its paint',
+      (hs) {
+        final s = _Prose(hs, keepsPaint: true)..render();
+        return (i) {
+          s.type(i);
+          return s.render();
+        };
+      },
+      ambiguousWidth: 2,
+    ),
+  ],
   FrameScenario(
     'ellip-ambig',
     'the same cut off at 2/3 of the rows with "…", on that terminal, '
@@ -707,6 +748,7 @@ final class _Prose extends _Scene {
     List<(String, Pen)> sentences = _sentences,
     bool visual = false,
     String ellipsis = '\u2026',
+    bool keepsPaint = false,
   }) {
     if (visual) {
       owner.textOrder = TextOrder.visual;
@@ -718,7 +760,12 @@ final class _Prose extends _Scene {
       cells += stringWidth(s.$1);
     }
     _tail = base.first.$1.substring(_lead.length);
-    paragraph = cutParagraph(base, maxLines: maxLines, ellipsis: ellipsis);
+    paragraph = cutParagraph(
+      base,
+      maxLines: maxLines,
+      ellipsis: ellipsis,
+      keepsPaint: keepsPaint,
+    );
     owner.root = RenderBox(
       pen: hs.styles.pen(const Pen(bg: Color.rgb(16, 18, 24))),
       boundary: true,

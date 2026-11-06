@@ -275,6 +275,7 @@ final class RenderParagraph extends RenderObject {
     int? maxLines,
     TextAlign align = TextAlign.left,
     String ellipsis = '\u2026',
+    this.keepsPaint = false,
   }) : _painter = TextPainter(
          spans,
          wrap: wrap,
@@ -422,8 +423,99 @@ final class RenderParagraph extends RenderObject {
   int computeMaxIntrinsicHeight(int width) =>
       _painter.intrinsicHeight(width, segmenter: _segmenter);
 
+  /// Whether it is a repaint boundary that keeps what it painted and
+  /// repaints only the rows that differ from it: after an edit that
+  /// changes one row of sixty, that row, not all sixty. False by default.
+  ///
+  /// It paints every cell of its bounds (a blank where it has no text),
+  /// over the styles its parent left there ([keepsUnderlay]): it must not
+  /// be drawn over glyphs of another object, and it costs a copy of the
+  /// styles under it each time its parent paints it. What it kept is
+  /// forgotten ([invalidatePaintCache]) when anything else paints its
+  /// cells, when it moves or changes size, when it is drawn in another
+  /// surface or cut off by a clip, and then it paints all of itself. What
+  /// it draws is the same either way.
+  ///
+  /// Meant to be the root of a box or panel it does not share with other
+  /// text; a root of the tree has nothing under it to keep.
+  final bool keepsPaint;
+
   @override
-  void paint(PaintContext ctx) => _painter.paint(ctx.canvas, 0, 0);
+  bool get isRepaintBoundary => keepsPaint;
+
+  @override
+  bool get keepsUnderlay => keepsPaint;
+
+  @override
+  bool get putsUnderlayBack => false;
+
+  // what the cells hold of its last paint, when they do: the surface it was
+  // painted on, where, and how large
+  Surface? _keptOn;
+  var _keptX = 0;
+  var _keptY = 0;
+  var _keptW = 0;
+  var _keptH = 0;
+  var _keptPaints = 0;
+
+  /// How many paints were of the changed rows only ([keepsPaint]).
+  int get debugKeptPaints => _keptPaints;
+
+  @override
+  void invalidatePaintCache() {
+    _keptOn = null;
+  }
+
+  @override
+  void paint(PaintContext ctx) {
+    final canvas = ctx.canvas;
+    if (!keepsPaint) {
+      _painter.paint(canvas, 0, 0);
+      return;
+    }
+    final keptOn = _keptOn;
+    // kept again only when this paint ends
+    _keptOn = null;
+    _painter.prepare(canvas);
+    final w = width;
+    final h = height;
+    final surface = canvas.surface;
+    final x = canvas.originX;
+    final y = canvas.originY;
+    final whole = canvas.clipContains(x, y, x + w, y + h);
+    var first = 0;
+    var end = h;
+    if (whole &&
+        identical(keptOn, surface) &&
+        _keptX == x &&
+        _keptY == y &&
+        _keptW == w &&
+        _keptH == h) {
+      (first, end) = _painter.changedRows;
+      if (end > h) {
+        end = h;
+      }
+      if (first >= end) {
+        return;
+      }
+      _keptPaints++;
+    }
+    canvas
+      ..save()
+      ..clipRect(0, first, w, end - first);
+    putUnderlayBack(canvas, 0, first, w, end - first);
+    // the rows alone: what is drawn outside them is cut off
+    canvas.fill(0, first, w, end - first, canvas.styles.pen(const Pen()));
+    _painter.draw(canvas, 0, 0);
+    canvas.restore();
+    if (whole) {
+      _keptOn = surface;
+      _keptX = x;
+      _keptY = y;
+      _keptW = w;
+      _keptH = h;
+    }
+  }
 
   /// How many times this paragraph has found where its clusters start in
   /// its text, which [textRangeAt] does the first time it is asked after

@@ -9,12 +9,16 @@ import 'package:twk_core/twk_core.dart';
 /// The baseline's [RenderParagraph] has no `ellipsis`.
 const hasParagraphEllipsis = false;
 
+/// The baseline's [RenderParagraph] does not keep its paint.
+const hasKeepsPaint = false;
+
 /// A [RenderParagraph] of [spans] cut off at [maxLines] with the core's own
-/// ellipsis; [ellipsis] is not used.
+/// ellipsis; [ellipsis] and [keepsPaint] are not used.
 RenderParagraph cutParagraph(
   List<(String, Pen)> spans, {
   required int? maxLines,
   required String ellipsis,
+  bool keepsPaint = false,
 }) => RenderParagraph(
   spans,
   overflow: maxLines == null ? TextOverflow.clip : TextOverflow.ellipsis,
