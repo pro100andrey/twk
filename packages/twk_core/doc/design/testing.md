@@ -758,13 +758,13 @@ What it catches: see [its README](../../../twk_rich/README.md).
 The tester, its fake clock, its keys, matchers and finders, the frames it
 records, the emulator's passthrough strings.
 
-What it catches: see [its README](../../../twk_test/README.md).
+What it catches: see [its guide](../../../twk_test/doc/screen.md).
 
 ## `packages/twk_dev/test/`
 
 The `twk` command.
 
-What it catches: see [its README](../../../twk_dev/README.md).
+What it catches: see [its internals](../../../twk_dev/doc/internals.md).
 
 ## `packages/twk/test/cli/`
 

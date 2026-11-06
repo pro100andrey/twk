@@ -5,7 +5,7 @@ flutter_bloc is for Flutter's: blocs and cubits provided to a subtree and
 found by their type, and widgets that build and act on the states they
 emit. It takes package:bloc (`^9.2.1`, pure Dart) as a dependency, twk
 as a path one, and
-[twk_test](../twk_test/README.md), whose tester (`testTwk`) runs its
+[twk_test](../twk_test/doc/guide.md), whose tester (`testTwk`) runs its
 tests, as a path dev dependency.
 
 It builds on twk's provider library, `package:twk/provider.dart`

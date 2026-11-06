@@ -2,7 +2,7 @@
 /// `KeyCombo.parseSequence`, and [withoutKitty], how a terminal without
 /// the kitty keyboard protocol sends the key one names.
 ///
-/// The plugin does not import twk (see the README), so the parser is
+/// The plugin does not import twk (see doc/internals.md), so the parser is
 /// ported here, its messages too; `test/key_names_test.dart` holds both
 /// to twk's own: the names, the messages of the names that are not ones,
 /// and the keys an xterm sends, through twk_core's input parser.

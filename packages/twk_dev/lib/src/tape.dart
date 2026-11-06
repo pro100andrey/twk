@@ -42,7 +42,7 @@ final class TapeCommand extends Command<int> {
       'the recording. When the tape has run, the program is hung up. Ends '
       'with 0; 1 when the tape cannot be read or a Wait timed out, 127 '
       'when the program cannot be started, 128 and the number of a signal '
-      'that stopped it. See the README for the statements.';
+      'that stopped it. See doc/tape.md for the statements.';
 
   @override
   Future<int> run() async {

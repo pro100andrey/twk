@@ -401,8 +401,7 @@ enough, and on a loaded machine the guess is wrong.
   fails with a message instead of hanging, and with what `state:` gives
   of the screen, the output, the processes where a helper holds them.
   Never a sleep, and no timeout raised or retry added to make a test pass.
-- **Enforced** by twk_lints' `wall_time_in_tests` (README of
-  `packages/twk_lints`), enabled in every package's and tool's
+- **Enforced** by twk_lints' `wall_time_in_tests` (`packages/twk_lints/doc/reference.md`), enabled in every package's and tool's
   `analysis_options.yaml`, so the analyze steps of handover fail on a
   `Future.delayed` of a non-zero duration, a `sleep`, a `Timer`, a
   `Timer.periodic`, a `Stream.periodic` or a `Future.timeout` with no

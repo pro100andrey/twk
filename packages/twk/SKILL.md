@@ -15,8 +15,8 @@ Paths in `packages/` and `tool/` are in the twk repository; `lib/`,
 `bin/` and `test/` are the app's. The reference is
 `packages/twk/doc/reference/`, a page per topic (`layout.md`,
 `controls.md`, …) and a section per widget naming every parameter, key
-and default; `packages/twk_test/README.md` for the tester;
-`packages/twk_dev/README.md` for the `twk` command;
+and default; `packages/twk_test/doc/guide.md` and `screen.md` for the tester;
+`packages/twk_dev/doc/commands.md` for the `twk` command;
 `packages/twk/doc/reference/cli.md` for a command-line tool. Whole apps to copy
 from: `packages/twk/example/` (`counter.dart`; `interactive.dart`, a chat
 with lists, a field and focus; `settings.dart`, menus, tabs, a form, a

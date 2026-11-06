@@ -20,5 +20,5 @@ cd my_app && dart run twk_dev:twk run bin/main.dart
 ```
 
 The package's
-[README](https://github.com/pro100andrey/twk/tree/main/packages/twk_dev#a-walkthrough)
+[walkthrough](https://github.com/pro100andrey/twk/blob/main/packages/twk_dev/doc/walkthrough.md)
 walks through the tools with the tally.

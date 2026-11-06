@@ -33,7 +33,7 @@
   on a served terminal gives the shell's console back, but the other program
   runs in the app's own stdio; `suspendToShell` stops the app with no shell
   to continue it.
-* `twk run` (hot reload, [`packages/twk_dev`](../../../twk_dev/README.md)):
+* `twk run` (hot reload, [`packages/twk_dev`](../../../twk_dev/doc/run.md)):
   not run on Windows; on macOS by its tests (`ci-os`). On Windows, which has
   no SIGTERM, a restart (Ctrl+G H) kills the app without the terminal put
   back. A reload leaves what `main` built and code that ran already as they
