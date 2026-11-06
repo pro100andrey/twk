@@ -309,7 +309,7 @@ final class _Bracket {
 /// `toString`, `resolveReferences`) overflow the stack from about 2000
 /// levels (`toString`, the first to). 64 is far beyond any prose and about
 /// 30 times short of that, which leaves the room the blocks around (at most
-/// [maxNesting] deep) and the caller's own frames take.
+/// `maxNesting` deep) and the caller's own frames take.
 const maxInlineNesting = 64;
 
 final class _InlineParser {
