@@ -4,6 +4,8 @@
 
 Breaking:
 
+- `showDialog` takes `barrierDismissible`, as Flutter names it, where it took
+  `dismissible`.
 - `Listener` takes `onPointerDown` and `onPointerUp`, as Flutter names them,
   where it took `onDown` and `onUp`. Its `onMove` stays: it is motion with no
   button held, which is Flutter's `onPointerHover`, where Flutter's

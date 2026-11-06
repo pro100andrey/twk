@@ -72,7 +72,7 @@ final class Home extends StatelessWidget {
       showDialog<String>(
         context,
         (_) => Ask(results, 1, asked: asked),
-        dismissible: dismissible,
+        barrierDismissible: dismissible,
         fadeIn: Duration.zero,
       ).then(results.add),
     ),

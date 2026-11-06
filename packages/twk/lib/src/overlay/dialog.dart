@@ -62,7 +62,7 @@ import 'panel.dart';
 /// (the root one, the furthest above, unless [useRootNavigator] is
 /// false), which is not opaque: the barrier covers the navigator, and
 /// [Navigator.pop] closes the dialog too, as the navigator's back key does
-/// when it is [dismissible]. Without one it is shown in an entry of the
+/// when it is [barrierDismissible]. Without one it is shown in an entry of the
 /// [Overlay] above [context], and the barrier covers the overlay; a
 /// [StateError] that says where to place one if there is none.
 ///
@@ -71,7 +71,7 @@ import 'panel.dart';
 /// the keys go to the node focused in it and then to those above the
 /// overlay or the navigator, not to the widgets under it (those no node
 /// handles go on to the app's `InputListener`s, as ever). Closed, it gives
-/// the focus back to the node that had it before. When [dismissible],
+/// the focus back to the node that had it before. When [barrierDismissible],
 /// Escape (bound in a `KeyBindings` with the hint `close`, which a
 /// `KeyHintsBar` lists) and a click on the barrier close it with null; on
 /// a navigator, by a pop of its route as the back key pops a page
@@ -148,7 +148,7 @@ import 'panel.dart';
 Future<T?> showDialog<T>(
   BuildContext context,
   Widget Function(BuildContext context) builder, {
-  bool dismissible = true,
+  bool barrierDismissible = true,
   Alignment alignment = Alignment.center,
   Color? barrierColor,
   int? barrierAlpha,
@@ -161,7 +161,7 @@ Future<T?> showDialog<T>(
   );
   final route = _DialogRoute<T>(
     builder,
-    dismissible: dismissible,
+    barrierDismissible: barrierDismissible,
     alignment: alignment,
     barrierColor: barrierColor,
     barrierAlpha: barrierAlpha,
@@ -443,7 +443,7 @@ final class Dialog extends StatelessWidget {
 final class _DialogRoute<T> extends Route<T> {
   _DialogRoute(
     this.builder, {
-    required this.dismissible,
+    required this.barrierDismissible,
     required this.alignment,
     required this.barrierColor,
     required this.barrierAlpha,
@@ -451,7 +451,7 @@ final class _DialogRoute<T> extends Route<T> {
   });
 
   final Widget Function(BuildContext context) builder;
-  final bool dismissible;
+  final bool barrierDismissible;
   final Alignment alignment;
   final Color? barrierColor;
   final int? barrierAlpha;
@@ -466,7 +466,7 @@ final class _DialogRoute<T> extends Route<T> {
   bool get opaque => false;
 
   @override
-  bool get popsOnBack => dismissible;
+  bool get popsOnBack => barrierDismissible;
 
   @override
   Widget build(BuildContext context) => _DialogLayer(this);
@@ -575,14 +575,14 @@ final class _DialogLayerState extends State<_DialogLayer>
               ModalBarrier(
                 color: color,
                 opacity: opacity * k,
-                onDismiss: route.dismissible ? route.dismiss : null,
+                onDismiss: route.barrierDismissible ? route.dismiss : null,
               ),
               Opacity(opacity: k, child: child),
             ],
           );
         },
         child: LayerEscape(
-          onEscape: route.dismissible ? route.dismiss : null,
+          onEscape: route.barrierDismissible ? route.dismiss : null,
           debugLabel: 'dialog',
           child: FocusScope(
             node: _scope,

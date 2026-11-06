@@ -702,7 +702,7 @@ final class _BrowserState extends State<_Browser> {
     final error = await showDialog<String>(
       context,
       (_) => _Progress(transfer, bytesPerFrame: widget.bytesPerFrame),
-      dismissible: false,
+      barrierDismissible: false,
     );
     if (!mounted) {
       return;

@@ -64,7 +64,7 @@ reach what is under it, and a click on it calls `onDismiss`.
 opacity:, onDismiss:)` is one whose shade follows an animation (a
 `ValueListenable<double>` from 0 to 1, along `curve`, times `opacity`),
 fading in and out as its animation runs, each tick repainting it with no
-build. `showDialog<T>(context, builder, dismissible: true, alignment:
+build. `showDialog<T>(context, builder, barrierDismissible: true, alignment:
 Alignment.center, barrierColor:, barrierAlpha:, fadeIn: 160 ms,
 useRootNavigator: true)` shows what `builder` builds over a barrier (the
 theme's shade where `barrierColor` and `barrierAlpha` are null), both fading
@@ -72,14 +72,14 @@ in over `fadeIn` (160 ms; zero: at once), so that the dialog is not seen at
 its first frame: with a `Navigator` above, as a route pushed on it (the root
 one, the furthest above, or the nearest with `useRootNavigator: false`), not
 opaque, which `Navigator.pop` closes too, as the navigator's back key does
-when it is `dismissible`; without one, in an entry of the overlay above. It
+when it is `barrierDismissible`; without one, in an entry of the overlay above. It
 returns a future of the result `closeDialog(context, [result])` gives, null
 when it is dismissed or leaves the tree with its overlay or navigator. The
 dialog is a `FocusScope` that takes the focus as it is shown (a node in it
 with `autofocus` gets it), keeps Tab in it, and gives the focus back to the
 node that had it when it is closed, also to a dialog it was shown over; the
 keys go to the node focused in it and then to the nodes above the overlay or
-the navigator, not to the widgets under it; when `dismissible`, Escape and a
+the navigator, not to the widgets under it; when `barrierDismissible`, Escape and a
 click on the barrier close it with null: with a navigator they pop its route
 as the back key pops a page (`maybePop`), so a `PopScope` in it that cannot
 pop keeps it open, told it did not pop, and the navigator's observers see it

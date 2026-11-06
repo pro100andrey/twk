@@ -81,7 +81,7 @@ void main() {
         'commandpalette',
       ])
         'overlays/$page?o=look:bordered': ['look: .bordered'],
-      'overlays/dialog?o=dismissible:false': ['dismissible: false'],
+      'overlays/dialog?o=dismissible:false': ['barrierDismissible: false'],
       'overlays/windowlayer?o=frame:bordered;minimisable:false;'
           'maximisable:false': [
         'frame: .bordered',

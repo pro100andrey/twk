@@ -64,7 +64,7 @@ final _dialogPage = GalleryPage(
     '        ],',
     '      ),',
     '    ),',
-    if (!o(_dialogDismissible)) '    dismissible: false,',
+    if (!o(_dialogDismissible)) '    barrierDismissible: false,',
     '    alignment: .${o.nameOf(_dialogAlignment)},',
     '  ).then(',
     '    (delete) => setState(',
@@ -159,7 +159,7 @@ final class _AskState extends State<_Ask> {
           ],
         ),
       ),
-      dismissible: widget.dismissible,
+      barrierDismissible: widget.dismissible,
       alignment: _alignments[widget.alignment] ?? Alignment.center,
     ).then((delete) {
       if (mounted) {
