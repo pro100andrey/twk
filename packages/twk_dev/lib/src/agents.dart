@@ -80,6 +80,11 @@ enum AgentsAction {
 
   /// There was one, the same: left as it is.
   left,
+
+  /// There was one, another, that the project changed since `twk agents`
+  /// wrote it (the manifest of the directory lists the hash it wrote, and
+  /// the file has another): it stays, and is named.
+  edited,
 }
 
 /// One file of a project that `twk agents` writes, or leaves.
@@ -138,8 +143,16 @@ final class AgentsPlan {
   final List<AgentsChange> manifests;
 
   /// The files that are written, new or over another.
-  Iterable<AgentsChange> get writes =>
-      changes.where((c) => c.action != AgentsAction.left);
+  Iterable<AgentsChange> get writes => changes.where(
+    (c) => c.action != AgentsAction.left && c.action != AgentsAction.edited,
+  );
+
+  /// The files of the skill that the project changed since `twk agents`
+  /// wrote them, by path: they stay as they are.
+  Iterable<String> get modified => [
+    for (final c in changes)
+      if (c.action == AgentsAction.edited) c.path,
+  ];
 
   /// Whether the project already has all of it: nothing to write, nothing
   /// to remove.
@@ -202,7 +215,10 @@ final class AgentsException implements Exception {
 /// the manifest of the directory ([agentsManifest]) lists, from an older
 /// run, is in [AgentsPlan.removed] where it is still as that run wrote it,
 /// else in [AgentsPlan.edited], and stays; with no manifest nothing is
-/// removed. Throws
+/// removed. A file of the pack that the project changed since a run wrote
+/// it, which the manifest tells by the hash it lists, is [AgentsAction.edited]
+/// and stays (as does one the manifest does not list, where there is one);
+/// with no manifest it is written over. Throws
 /// an [AgentsException] where `AGENTS.md` cannot be merged into, or a skill's
 /// path is a file, and so nothing is changed.
 AgentsPlan agentsPlan(
@@ -229,21 +245,35 @@ AgentsPlan agentsPlan(
             type != FileSystemEntityType.directory) {
       throw AgentsException('${target.path} is not a directory');
     }
+    final manifest = File(p.join(dir, agentsManifest));
+    final listed = _readManifest(manifest);
+    final changedByProject = <String>{};
     for (final MapEntry(key: name, value: bytes) in skill.entries) {
       final path = '${target.path}/$name';
       final file = File(p.joinAll([project, ...path.split('/')]));
       final action = switch (file.existsSync()) {
         false => AgentsAction.wrote,
         true when _same(file.readAsBytesSync(), bytes) => AgentsAction.left,
+        // a manifest that does not list it, or lists another hash than the
+        // file has: not what a run wrote
+        true
+            when listed.isNotEmpty &&
+                listed[name] != agentsHash(file.readAsBytesSync()) =>
+          AgentsAction.edited,
         true => AgentsAction.changed,
       };
+      if (action == AgentsAction.edited) {
+        changedByProject.add(name);
+      }
       changes.add(AgentsChange(path, action, bytes, target));
     }
-    final manifest = File(p.join(dir, agentsManifest));
-    final listed = _readManifest(manifest);
     var dropped = 0;
     if (Directory(dir).existsSync()) {
-      for (final entity in Directory(dir).listSync(recursive: true)) {
+      // links are not followed: a link is one entry, kept as it is
+      for (final entity in Directory(dir).listSync(
+        recursive: true,
+        followLinks: false,
+      )) {
         if (entity is Directory) {
           continue;
         }
@@ -257,6 +287,10 @@ AgentsPlan agentsPlan(
         final hash = listed[name];
         if (hash == null) {
           kept.add(path);
+        } else if (entity is Link) {
+          // listed, and a link now: not what a run wrote, whatever it points
+          // at, and not for this run to remove
+          edited.add(path);
         } else if (hash == agentsHash((entity as File).readAsBytesSync())) {
           removed.add(path);
           dropped++;
@@ -267,14 +301,22 @@ AgentsPlan agentsPlan(
     }
     final hashes = {
       for (final name in skill.keys.toList()..sort())
-        name: agentsHash(skill[name]!),
+        // what was written: a file of the project's stays, with the hash of
+        // what was written before it (none: it was not listed)
+        if (!changedByProject.contains(name) || listed.containsKey(name))
+          name: changedByProject.contains(name)
+              ? listed[name]!
+              : agentsHash(skill[name]!),
     };
     final json = const JsonEncoder.withIndent('  ').convert({'files': hashes});
     final bytes = utf8.encode('$json\n');
     final writing =
         dropped > 0 ||
         changes.any(
-          (c) => c.file == target && c.action != AgentsAction.left,
+          (c) =>
+              c.file == target &&
+              c.action != AgentsAction.left &&
+              c.action != AgentsAction.edited,
         );
     manifests.add(
       AgentsChange(
@@ -570,6 +612,7 @@ String describeAgents(AgentsPlan plan, {bool dryRun = false}) {
       final changed = count(AgentsAction.changed);
       final added = count(AgentsAction.added);
       final left = count(AgentsAction.left);
+      final edited = count(AgentsAction.edited);
       final removing = plan.removed
           .where((r) => r.startsWith('${target.path}/'))
           .toList();
@@ -584,6 +627,7 @@ String describeAgents(AgentsPlan plan, {bool dryRun = false}) {
           '${dryRun ? 'would add' : 'added'} ${_files(added, target)}',
         if (left > 0)
           'left ${_files(left, target)} as ${left == 1 ? 'it is' : 'they are'}',
+        if (edited > 0) 'kept ${_files(edited, target)} the project changed',
       ];
       out.writeln('  ${target.path.padRight(width)}  ${said.join(', ')}');
       for (final path in removing) {
@@ -601,6 +645,13 @@ String describeAgents(AgentsPlan plan, {bool dryRun = false}) {
         }
       }
     }
+  }
+  if (plan.modified.isNotEmpty) {
+    out.writeln(
+      'Left as they are, files of the skill that the project changed since '
+      "twk agents wrote them (delete one to have the skill's again): "
+      '${plan.modified.join(', ')}',
+    );
   }
   if (plan.edited.isNotEmpty) {
     out.writeln(

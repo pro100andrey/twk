@@ -97,6 +97,13 @@ void main() {
     await agents();
     final skill = p.join(project, '.claude', 'skills', 'twk');
     File(p.join(skill, 'SKILL.md')).writeAsStringSync('an older skill\n');
+    // the older run wrote it: its manifest lists the hash of that text
+    final manifest = File(p.join(skill, agentsManifest));
+    final json = jsonDecode(manifest.readAsStringSync()) as Map;
+    (json['files'] as Map)['SKILL.md'] = agentsHash(
+      utf8.encode('an older skill\n'),
+    );
+    manifest.writeAsStringSync(jsonEncode(json));
     File(p.join(skill, 'references', 'widgets.md')).deleteSync();
     final count = skillPaths().length;
     final result = await agents();
@@ -209,6 +216,83 @@ void main() {
       expect(read('.claude/skills/twk/references/old.md'), 'mine now');
       expect(result.stdout, contains('.claude/skills/twk/references/old.md'));
       expect(result.stdout, contains('changed since'));
+    });
+
+    test('a file of the skill that the project changed stays, and is named; '
+        'the manifest keeps the hash of what was written, and a run with '
+        'nothing more to do changes nothing', () async {
+      await agents();
+      const path = '.claude/skills/twk/SKILL.md';
+      File(p.join(project, path)).writeAsStringSync('my own SKILL\n');
+      final dry = await agents(['--dry-run']);
+      expect(dry.stdout, contains(path));
+      expect(dry.stdout, contains('project changed'));
+      final manifestBefore = read('.claude/skills/twk/$agentsManifest');
+      final result = await agents();
+      expect(result.exitCode, 0, reason: '${result.stderr}');
+      expect(read(path), 'my own SKILL\n');
+      expect(result.stdout, contains(path));
+      expect(result.stdout, contains('project changed'));
+      expect(read('.claude/skills/twk/$agentsManifest'), manifestBefore);
+      final before = snapshot(project);
+      final again = await agents();
+      expect(again.stdout, contains('nothing to do'));
+      expect(again.stdout, contains(path));
+      expectSame(snapshot(project), before);
+      // the copy in the other directory was not touched by it
+      expect(read('.agents/skills/twk/SKILL.md'), isNot('my own SKILL\n'));
+    });
+
+    test('a file of the skill changed and a file of it older, as written, '
+        'are written over, the manifest saying what was written', () async {
+      await agents();
+      const edited = '.claude/skills/twk/SKILL.md';
+      File(p.join(project, edited)).writeAsStringSync('mine');
+      // an older pack's file: the manifest lists its hash
+      const old = '.agents/skills/twk/SKILL.md';
+      File(p.join(project, old)).writeAsStringSync('older');
+      final manifest = File(
+        p.join(project, '.agents/skills/twk/$agentsManifest'),
+      );
+      final json = jsonDecode(manifest.readAsStringSync()) as Map;
+      (json['files'] as Map)['SKILL.md'] = agentsHash(utf8.encode('older'));
+      manifest.writeAsStringSync(jsonEncode(json));
+      final result = await agents();
+      expect(read(old), isNot('older'));
+      expect(read(edited), 'mine');
+      expect(result.stdout, contains(edited));
+      expect(result.stdout, isNot(contains('.agents/skills/twk/SKILL.md,')));
+      final hashes =
+          (jsonDecode(manifest.readAsStringSync()) as Map)['files'] as Map;
+      expect(hashes['SKILL.md'], agentsHash(skillFiles()['SKILL.md']!));
+    });
+
+    test('a manifest-listed dropped path that is a link stays, and is '
+        'named', () async {
+      await oldPack('references/old.md', 'old');
+      final target = File(p.join(project, 'elsewhere.md'))
+        ..writeAsStringSync('old');
+      for (final dir in dirs) {
+        final path = p.join(project, dir, 'references/old.md');
+        File(path).deleteSync();
+        Link(path).createSync(target.path);
+      }
+      const dir = '.claude/skills/twk';
+      final result = await agents();
+      expect(result.exitCode, 0, reason: '${result.stderr}');
+      expect(result.stdout, contains('$dir/references/old.md'));
+      for (final d in dirs) {
+        expect(
+          FileSystemEntity.isLinkSync(p.join(project, d, 'references/old.md')),
+          isTrue,
+        );
+      }
+      expect(target.readAsStringSync(), 'old');
+      // a link to nothing is the same
+      File(p.join(project, 'elsewhere.md')).deleteSync();
+      final dangling = await agents();
+      expect(dangling.exitCode, 0, reason: '${dangling.stderr}');
+      expect(dangling.stdout, contains('$dir/references/old.md'));
     });
 
     test('a file in no manifest stays, and is named', () async {
