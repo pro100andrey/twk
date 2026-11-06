@@ -40,6 +40,10 @@ export 'package:twk_core/twk_core.dart' show TextAlign, TextOverflow, TextWrap;
 /// merged onto its own. A click on text that links ([Style.link]) is told
 /// to [onLinkTap].
 ///
+/// A text of eight lines or more that is edited line by line repaints only
+/// the lines that changed, by itself: no option to set
+/// ([RenderParagraph.autoKeepsPaint]).
+///
 /// A space at the end of the text, or of a line it breaks, is not counted
 /// with [wrap] at its default, [TextWrap.word]: it hangs past the line,
 /// neither drawn nor given width, so `Text('◐ ')` is one cell wide. Use
@@ -75,7 +79,6 @@ final class Text extends LeafRenderObjectWidget {
     this.maxLines,
     this.align = TextAlign.left,
     this.onLinkTap,
-    this.keepsPaint = false,
   }) : spans = null;
 
   /// Shows [spans], each in its style merged onto [style], as one
@@ -93,7 +96,6 @@ final class Text extends LeafRenderObjectWidget {
     this.maxLines,
     this.align = TextAlign.left,
     this.onLinkTap,
-    this.keepsPaint = false,
   }) : data = null;
 
   /// Shows [data] in [style] on one line, cut off with `…` where it is
@@ -115,8 +117,7 @@ final class Text extends LeafRenderObjectWidget {
   }) : spans = null,
        wrap = TextWrap.none,
        maxLines = 1,
-       onLinkTap = null,
-       keepsPaint = false;
+       onLinkTap = null;
 
   /// [spans] as [Text.line] shows a string: [Text.rich] on one line, cut
   /// off with `…`.
@@ -133,8 +134,7 @@ final class Text extends LeafRenderObjectWidget {
   }) : data = null,
        wrap = TextWrap.none,
        maxLines = 1,
-       onLinkTap = null,
-       keepsPaint = false;
+       onLinkTap = null;
 
   /// The text, in [style]; null for [spans].
   final String? data;
@@ -182,21 +182,6 @@ final class Text extends LeafRenderObjectWidget {
   /// ```
   final void Function(String url)? onLinkTap;
 
-  /// Whether the text keeps what it painted and repaints only the rows
-  /// that differ from it ([RenderParagraph.keepsPaint]): after an edit
-  /// that changes one row of sixty, that row, not all sixty. False, the
-  /// default.
-  ///
-  /// For a large multi-line text in a panel of its own: it paints every
-  /// cell of its bounds, over the styles its parent left there, so it must
-  /// not be drawn over other text, and it is not the root of the tree. It
-  /// costs a copy of the styles under it each time its parent paints it.
-  /// The gain is small (about 40 µs a frame in the benchmark's scenarios),
-  /// so measure before setting it.
-  ///
-  /// A rebuild with another value changes it.
-  final bool keepsPaint;
-
   @override
   RenderParagraph createRenderObject(BuildContext context) {
     final theme = Theme.of(context);
@@ -207,7 +192,7 @@ final class Text extends LeafRenderObjectWidget {
       maxLines: maxLines,
       align: align,
       ellipsis: theme.glyphs.ellipsis,
-      keepsPaint: keepsPaint,
+      autoKeepsPaint: true,
     );
     addToSelectionArea(context, paragraph);
     _tellTaps(context, paragraph, theme);
@@ -218,7 +203,6 @@ final class Text extends LeafRenderObjectWidget {
   void updateRenderObject(BuildContext context, RenderParagraph renderObject) {
     final theme = Theme.of(context);
     renderObject
-      ..keepsPaint = keepsPaint
       ..spans = _spansIn(context, renderObject)
       ..wrap = wrap
       ..overflow = overflow

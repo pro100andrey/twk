@@ -443,6 +443,17 @@ final frameScenarios = <FrameScenario>[
       },
     ),
     FrameScenario(
+      'wrap-auto',
+      'the wrap scenario with the paragraph left to keep its paint itself',
+      (hs) {
+        final s = _Prose(hs, autoKeepsPaint: true)..render();
+        return (i) {
+          s.type(i);
+          return s.render();
+        };
+      },
+    ),
+    FrameScenario(
       'ellipsis-kept',
       'the ellipsis scenario with the paragraph keeping its paint',
       (hs) {
@@ -749,6 +760,7 @@ final class _Prose extends _Scene {
     bool visual = false,
     String ellipsis = '\u2026',
     bool keepsPaint = false,
+    bool autoKeepsPaint = false,
   }) {
     if (visual) {
       owner.textOrder = TextOrder.visual;
@@ -765,6 +777,7 @@ final class _Prose extends _Scene {
       maxLines: maxLines,
       ellipsis: ellipsis,
       keepsPaint: keepsPaint,
+      autoKeepsPaint: autoKeepsPaint,
     );
     owner.root = RenderBox(
       pen: hs.styles.pen(const Pen(bg: Color.rgb(16, 18, 24))),

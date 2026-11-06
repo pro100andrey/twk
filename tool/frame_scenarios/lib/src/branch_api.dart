@@ -19,18 +19,20 @@ const hasParagraphEllipsis = true;
 const hasKeepsPaint = false;
 
 /// A [RenderParagraph] of [spans] cut off with [ellipsis] at [maxLines],
-/// keeping its paint when [keepsPaint].
+/// keeping its paint when [keepsPaint], or by itself when [autoKeepsPaint].
 RenderParagraph cutParagraph(
   List<(String, Pen)> spans, {
   required int? maxLines,
   required String ellipsis,
   bool keepsPaint = false,
+  bool autoKeepsPaint = false,
 }) => RenderParagraph(
   spans,
   overflow: maxLines == null ? TextOverflow.clip : TextOverflow.ellipsis,
   maxLines: maxLines,
   ellipsis: ellipsis,
   keepsPaint: keepsPaint,
+  autoKeepsPaint: autoKeepsPaint,
 );
 
 /// What [styles] holds of the style a cell of [Surface.styles] has, [raw]:

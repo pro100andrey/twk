@@ -136,37 +136,55 @@ void main() {
       expect(paragraph.spans.single.$2.fg, green);
     });
 
-    test('keepsPaint repaints only the edited row, and can change', () {
-      Widget panel(String text, {bool keeps = true}) => Padding(
+    // twelve lines, one of them edited at a time
+    String lines(int edit) => [
+      for (var i = 0; i < 12; i++)
+        if (i == edit % 12) 'LINE $i' else 'line $i',
+    ].join('\n');
+
+    test('a text of many lines edited in place keeps its paint by itself', () {
+      Widget panel(String text) => Padding(
         padding: const EdgeInsets.all(1),
-        child: Text(text, keepsPaint: keeps),
+        child: Text(text),
       );
-      final v = Shot(panel('one\ntwo\nthree'), 8, 5);
+      final v = Shot(panel(lines(0)), 12, 14);
       final paragraph = (v.top as RenderPadding).child! as RenderParagraph;
-      expect(paragraph.isRepaintBoundary, isTrue);
-      v
-        ..pump(panel('one\ntwo\nthree'))
-        ..pump(panel('one\ntwo\nthrew'));
-      expect(v.rows[3].trim(), 'threw');
-      expect(paragraph.debugKeptPaints, 1);
-      // another value changes it, in the same render object
-      v.pump(panel('one\ntwo\nthrew', keeps: false));
-      expect(paragraph.keepsPaint, isFalse);
       expect(paragraph.isRepaintBoundary, isFalse);
-      v.pump(panel('one\ntwo\nthrow', keeps: false));
-      expect(v.rows[3].trim(), 'throw');
-      v.pump(panel('one\ntwo\nthrow'));
+      // the edits that hold its size, the paint that reads the cells, the
+      // edit that turns it
+      for (var i = 1; i <= 5; i++) {
+        v.pump(panel(lines(i)));
+      }
       expect(paragraph.isRepaintBoundary, isTrue);
-      v.pump(panel('one\ntwo\nthrox'));
-      expect(v.rows[3].trim(), 'throx');
+      expect(paragraph.keepsPaint, isTrue);
+      v
+        ..pump(panel(lines(6)))
+        ..pump(panel(lines(7)));
+      expect(v.rows[8].trim(), 'LINE 7');
+      expect(v.rows[7].trim(), 'line 6');
+      expect(paragraph.debugKeptPaints, greaterThan(0));
     });
 
-    group('keepsPaint keeps three edits of three in', () {
-      const edits = [
-        'one\ntwo\nthree\nfour\nfivE',
-        'one\ntwo\nthree\nfour\nfiVE',
-        'one\ntwo\nthrEE\nfour\nfiVE',
-      ];
+    test('a short or a still text stays plain', () {
+      Widget panel(String text) => Padding(
+        padding: const EdgeInsets.all(1),
+        child: Text(text),
+      );
+      final short = Shot(panel('one\ntwo\nthree'), 8, 5);
+      final p = (short.top as RenderPadding).child! as RenderParagraph;
+      for (var i = 0; i < 8; i++) {
+        short.pump(panel('one\ntwo\nthre${i % 2}'));
+      }
+      expect(p.isRepaintBoundary, isFalse);
+      final still = Shot(panel(lines(0)), 12, 14);
+      final q = (still.top as RenderPadding).child! as RenderParagraph;
+      for (var i = 0; i < 8; i++) {
+        still.pump(panel(lines(0)));
+      }
+      expect(q.isRepaintBoundary, isFalse);
+    });
+
+    group('a text of many lines keeps its paint by itself in', () {
       final shapes = <String, Widget Function(Widget)>{
         'a column': (c) => Column(children: [const Text('head'), c]),
         'an expanded': (c) => Column(
@@ -208,23 +226,23 @@ void main() {
         'a sized box in a column': (c) => Column(
           children: [
             const Text('head'),
-            SizedBox(height: 7, child: c),
+            SizedBox(height: 12, child: c),
           ],
         ),
       };
       for (final MapEntry(key: name, value: around) in shapes.entries) {
         test(name, () {
-          final text = ValueNotifier('one\ntwo\nthree\nfour\nfive');
+          final text = ValueNotifier(lines(0));
           final tree = around(
             ListenableBuilder(
               listenable: text,
-              builder: (_, _) => Text(text.value, keepsPaint: true),
+              builder: (_, _) => Text(text.value),
             ),
           );
-          final v = Shot(tree, 20, 10);
+          final v = Shot(tree, 20, 20);
           late final RenderParagraph paragraph;
           void find(RenderObject r) {
-            if (r is RenderParagraph && r.keepsPaint) {
+            if (r is RenderParagraph && r.autoKeepsPaint && r.height > 1) {
               paragraph = r;
             }
             r.visitChildren(find);
@@ -232,11 +250,17 @@ void main() {
 
           find(v.top);
           v.pump(tree);
-          for (final edit in edits) {
-            text.value = edit;
+          for (var i = 1; i <= 6; i++) {
+            text.value = lines(i);
             v.pump(tree);
           }
-          expect(paragraph.debugKeptPaints, 3);
+          expect(paragraph.keepsPaint, isTrue);
+          final before = paragraph.debugKeptPaints;
+          for (var i = 7; i <= 9; i++) {
+            text.value = lines(i);
+            v.pump(tree);
+          }
+          expect(paragraph.debugKeptPaints - before, 3);
         });
       }
     });

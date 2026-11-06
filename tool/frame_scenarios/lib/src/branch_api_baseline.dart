@@ -13,12 +13,13 @@ const hasParagraphEllipsis = false;
 const hasKeepsPaint = false;
 
 /// A [RenderParagraph] of [spans] cut off at [maxLines] with the core's own
-/// ellipsis; [ellipsis] and [keepsPaint] are not used.
+/// ellipsis; [ellipsis], [keepsPaint] and [autoKeepsPaint] are not used.
 RenderParagraph cutParagraph(
   List<(String, Pen)> spans, {
   required int? maxLines,
   required String ellipsis,
   bool keepsPaint = false,
+  bool autoKeepsPaint = false,
 }) => RenderParagraph(
   spans,
   overflow: maxLines == null ? TextOverflow.clip : TextOverflow.ellipsis,
