@@ -367,6 +367,40 @@ void main() {
       expect(has('pubspec.yaml'), isFalse);
     });
 
+    test('a directory that is not empty is refused before any question, with '
+        'the message it has without a terminal', () async {
+      Directory(dir).createSync(recursive: true);
+      File(p.join(dir, 'mine.txt')).writeAsStringSync('mine');
+      final asked = <String>[];
+      final terminal = terminalWith([_enter, _enter], asked);
+      final result = await create([], () => terminal);
+
+      expect(result.exitCode, 1);
+      expect(asked, isEmpty);
+      expect(
+        result.stderr,
+        'twk create: Target already exists and is not empty: $dir; only an '
+        'overwrite unpack writes into one. --force writes into it.\n',
+      );
+      expect(has('pubspec.yaml'), isFalse);
+      final without = await create([], () => null);
+      expect(without.stderr, result.stderr);
+    });
+
+    test('with --force a directory that is not empty is asked about, as '
+        'before', () async {
+      Directory(dir).createSync(recursive: true);
+      File(p.join(dir, 'mine.txt')).writeAsStringSync('mine');
+      final asked = <String>[];
+      final terminal = terminalWith([_enter, _enter], asked);
+      final result = await create(['--force'], () => terminal);
+
+      expect(result.exitCode, 0, reason: '${result.stderr}');
+      expect(asked, ['Which app?', 'Files for coding agents?']);
+      expect(has('pubspec.yaml'), isTrue);
+      expect(has('mine.txt'), isTrue);
+    });
+
     test('--help lists --agents with its values', () async {
       final result = await twkHere(['create', '--help']);
 

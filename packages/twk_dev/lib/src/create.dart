@@ -159,6 +159,22 @@ final class CreateCommand extends Command<int> {
     final agentsGiven = args.wasParsed('agents')
         ? _agentsOf(args.multiOption('agents'))
         : null;
+    // a refusal of the directory comes before any question: planning
+    // writes nothing, and what the template changes is not a refusal
+    try {
+      createPlan(
+        given ?? templates.first,
+        name,
+        dir: dir,
+        checkout: checkout,
+        overwrite: args.flag('force'),
+      );
+    } on ValidationException catch (e) {
+      for (final error in e.errors) {
+        stderr.writeln('twk create: ${_hinted(error)}');
+      }
+      return 1;
+    }
     final CreateAnswers answers;
     if (given != null && agentsGiven != null) {
       answers = (template: given, agents: agentsGiven);
