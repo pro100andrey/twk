@@ -274,6 +274,128 @@ void main() {
     expect(pushes.names, ['/', 'a', 'b', 'd']);
     expect(pushes.navigator, same(state));
   });
+
+  testTwk('pushAndRemoveUntil pushes a route and removes those under it '
+      'until the predicate holds, not popping them', (t) async {
+    final log = Log();
+    final navigator = GlobalKey<NavigatorState>();
+    await t.pumpWidget(
+      Navigator(
+        key: navigator,
+        observers: [log],
+        routes: {'/': (_) => const Text('home')},
+      ),
+      size: (20, 3),
+    );
+    final state = navigator.currentState!;
+    final results = <String>[];
+    unawaited(state.push(page('a')).then((_) => results.add('a')));
+    unawaited(state.push(page('b')).then((_) => results.add('b')));
+    unawaited(state.push(page('c')).then((_) => results.add('c')));
+    await t.pump();
+    log.calls.clear();
+
+    unawaited(
+      state
+          .pushAndRemoveUntil(page('d'), Route.withName('a'))
+          .then((_) => results.add('d')),
+    );
+    await t.pump();
+    expect(log.calls, ['push d c', 'remove c b', 'remove b a']);
+    expect(t, matchesScreen('d'));
+    expect(results, ['c', 'b'], reason: 'removed, their futures completed');
+    state.pop();
+    await t.pump();
+    expect(t, matchesScreen('a'));
+    expect(results, ['c', 'b', 'd']);
+    expect(state.canPop(), isTrue);
+
+    // a predicate that holds for none removes every route
+    log.calls.clear();
+    unawaited(state.pushAndRemoveUntil(page('e'), (_) => false));
+    await t.pump();
+    expect(log.calls, ['push e a', 'remove a /', 'remove / -']);
+    expect(state.canPop(), isFalse);
+    expect(t, matchesScreen('e'));
+    expect(results, ['c', 'b', 'd', 'a']);
+  });
+
+  testTwk('pushNamedAndRemoveUntil pushes the route of the name with its '
+      'arguments; Navigator has them all as statics', (t) async {
+    final log = Log();
+    Object? seen;
+    late BuildContext context;
+    await t.pumpWidget(
+      Navigator(
+        observers: [log],
+        routes: {
+          '/': (c) {
+            context = c;
+            return const Text('home');
+          },
+          '/a': (_) => const Text('a'),
+          '/b': (c) {
+            seen = Route.of(c).settings.arguments;
+            return const Text('b');
+          },
+        },
+      ),
+      size: (20, 3),
+    );
+    unawaited(Navigator.pushNamed<void>(context, '/a'));
+    await t.pump();
+    log.calls.clear();
+    unawaited(
+      Navigator.pushNamedAndRemoveUntil<void>(
+        context,
+        '/b',
+        Route.withName('/'),
+        arguments: 7,
+      ),
+    );
+    await t.pump();
+    expect(log.calls, ['push /b /a', 'remove /a /']);
+    expect(seen, 7);
+    expect(t, matchesScreen('b'));
+
+    log.calls.clear();
+    unawaited(
+      Navigator.pushAndRemoveUntil<void>(context, page('c'), (_) => true),
+    );
+    await t.pump();
+    expect(log.calls, ['push c /b']);
+  });
+
+  testTwk('popAndPushNamed pops the route in front with the result and '
+      'pushes the route of the name', (t) async {
+    final log = Log();
+    final navigator = GlobalKey<NavigatorState>();
+    await t.pumpWidget(
+      Navigator(
+        key: navigator,
+        observers: [log],
+        routes: {
+          '/': (_) => const Text('home'),
+          '/a': (_) => const Text('a'),
+          '/b': (_) => const Text('b'),
+        },
+      ),
+      size: (20, 3),
+    );
+    final state = navigator.currentState!;
+    Object? popped;
+    unawaited(state.pushNamed<Object?>('/a').then((v) => popped = v));
+    await t.pump();
+    log.calls.clear();
+    unawaited(state.popAndPushNamed<void, String>('/b', result: 'bye'));
+    await t.pump();
+    expect(popped, 'bye');
+    expect(log.calls, ['pop /a /', 'push /b /']);
+    expect(t, matchesScreen('b'));
+    state.pop();
+    await t.pump();
+    expect(() => state.popAndPushNamed<void, void>('/a'), throwsStateError);
+  });
 }
 
 /// Writes down the name of each route pushed, and nothing else.

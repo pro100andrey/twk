@@ -249,6 +249,8 @@ Added:
 
 - The rest of Flutter's `Curves`: `fastLinearToSlowEaseIn`, `fastEaseInToSlowEaseOut`, `easeInToLinear`, `linearToEaseOut`, the `easeIn`, `easeOut` and `easeInOut` of Sine, Quad, Cubic, Quart, Quint, Expo, Circ and Back (`easeInOutCubicEmphasized` as well), `slowMiddle`, `bounceIn`, `bounceInOut`, `elasticIn` and `elasticInOut`, with Flutter's values. The Back and elastic ones go out of 0..1.
 
+- `Navigator.pushAndRemoveUntil`, `pushNamedAndRemoveUntil` and `popAndPushNamed`, static and on `NavigatorState`. The routes `pushAndRemoveUntil` removes are removed, not popped, as `removeRoute` does it. `popAndPushNamed` is a `StateError` on the only route, as `pop` is.
+
 ## 0.2.0
 
 - After a Ctrl+C ended the inline session, a program that handles SIGINT

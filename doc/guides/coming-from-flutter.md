@@ -274,7 +274,7 @@ and scrolls with the arrow keys, Page keys and the wheel, and a `ListTile`'s
 `onTap` runs on Enter, Space or a click.
 
 `Navigator` takes `home` and a `routes` map, and `Navigator.push`,
-`pushNamed`, `pop` and `popUntil` are static as in Flutter. A route is a
+`pushNamed`, `pop`, `popUntil`, `pushAndRemoveUntil`, `pushNamedAndRemoveUntil` and `popAndPushNamed` are static as in Flutter. A route is a
 `PageRoute(builder:)`, not a `MaterialPageRoute`. Escape pops by default
 (`backKey`), as a back button does.
 

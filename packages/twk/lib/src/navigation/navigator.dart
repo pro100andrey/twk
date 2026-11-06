@@ -509,6 +509,34 @@ final class Navigator extends StatefulWidget {
     context,
   ).pushReplacementNamed<T>(name, arguments: arguments, result: result);
 
+  /// [NavigatorState.pushAndRemoveUntil] on the navigator above [context].
+  static Future<T?> pushAndRemoveUntil<T>(
+    BuildContext context,
+    Route<T> route,
+    RoutePredicate predicate,
+  ) => of(context).pushAndRemoveUntil(route, predicate);
+
+  /// [NavigatorState.pushNamedAndRemoveUntil] on the navigator above
+  /// [context].
+  static Future<T?> pushNamedAndRemoveUntil<T>(
+    BuildContext context,
+    String name,
+    RoutePredicate predicate, {
+    Object? arguments,
+  }) => of(
+    context,
+  ).pushNamedAndRemoveUntil<T>(name, predicate, arguments: arguments);
+
+  /// [NavigatorState.popAndPushNamed] on the navigator above [context].
+  static Future<T?> popAndPushNamed<T extends Object?, TO extends Object?>(
+    BuildContext context,
+    String name, {
+    TO? result,
+    Object? arguments,
+  }) => of(
+    context,
+  ).popAndPushNamed<T, TO>(name, result: result, arguments: arguments);
+
   /// [NavigatorState.pop] on the navigator above [context].
   static void pop(BuildContext context, [Object? result]) =>
       of(context).pop(result);
@@ -670,6 +698,54 @@ final class NavigatorState extends State<Navigator> {
       observer.didPush(route, covered);
     }
     return route.popped;
+  }
+
+  /// [push]es [route], then takes off the routes under it, from the one
+  /// that was in front down, until [predicate] holds for one, which stays
+  /// ([Route.withName] tells one by its name); every route if it holds for
+  /// none. The ones taken off are removed as [removeRoute] removes them, not
+  /// popped: their [Route.popped] completes with null, their [PopScope]s are
+  /// not told, and the observers are told [NavigatorObserver.didPush] and
+  /// then [NavigatorObserver.didRemove] of each. The route that was in front
+  /// shows under [route] until it is in.
+  Future<T?> pushAndRemoveUntil<T>(Route<T> route, RoutePredicate predicate) {
+    final covered = _history.last;
+    final result = push(route);
+    final removed = <Route<Object?>>[];
+    for (var i = _history.length - 2; i >= 0; i--) {
+      if (predicate(_history[i])) {
+        break;
+      }
+      removed.add(_history[i]);
+    }
+    if (removed.isNotEmpty && identical(removed.first, covered)) {
+      covered._replaced = route._entering;
+    }
+    removed.forEach(removeRoute);
+    return result;
+  }
+
+  /// [pushAndRemoveUntil] the route of [name] ([Navigator]), [arguments] in
+  /// its settings.
+  Future<T?> pushNamedAndRemoveUntil<T>(
+    String name,
+    RoutePredicate predicate, {
+    Object? arguments,
+  }) => _typed<T>(
+    pushAndRemoveUntil<Object?>(_named<T>(name, arguments), predicate),
+  );
+
+  /// [pop]s the route in front with [result] and [pushNamed]s the route of
+  /// [name], [arguments] in its settings. Like [pop], a [StateError] when
+  /// the route in front is the only one ([canPop]); [pushReplacementNamed]
+  /// is for that.
+  Future<T?> popAndPushNamed<T extends Object?, TO extends Object?>(
+    String name, {
+    TO? result,
+    Object? arguments,
+  }) {
+    pop(result);
+    return pushNamed<T>(name, arguments: arguments);
   }
 
   /// [push]es the route of [name] ([Navigator]), [arguments] in its
