@@ -268,8 +268,10 @@ A few names are not Flutter's, and are meant not to be:
 
 ## Lists and navigation
 
-`SingleChildScrollView` takes `padding:`, which scrolls with the child. `ListView` has no
-`padding:`: pad each item with a `Padding`.
+`SingleChildScrollView`, `ListView` and `Table` take `padding:`, which scrolls with the
+content: the rows above the first item and below the last go with the scroll, and the
+columns on the left and the right inset every item, as in Flutter. A `Table`'s header stays
+where it is.
 
 `ListView` takes `children`; `ListView.builder` takes `itemCount` and
 `itemBuilder`, and builds only the rows in view. A `ListView` is focusable

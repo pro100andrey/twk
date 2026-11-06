@@ -18,6 +18,7 @@ import 'package:twk_core/twk_core.dart'
         BoxConstraints,
         ContainerParentDataMixin,
         ContainerRenderObjectMixin,
+        EdgeInsets,
         GridTrack,
         GridTrackKind,
         HitTestBehavior,
@@ -46,6 +47,7 @@ import '../foundation/helpers.dart';
 import '../framework/framework.dart';
 import '../gestures/gesture_detector.dart';
 import '../gestures/mouse.dart';
+import '../layout/box.dart' show Box;
 import '../layout/child_list.dart';
 import '../layout/flex.dart';
 import '../layout/one_child.dart';
@@ -466,6 +468,7 @@ final class Table<T> extends StatefulWidget {
     this.unfocusedSelectedStyle,
     this.cursorStyle,
     this.sortKeys = true,
+    this.padding,
   }) : source = null,
        assert(rowHeight == null || rowHeight > 0, 'rows a row tall or more'),
        assert(columnGap >= 0, 'a gap of 0 cells or more'),
@@ -506,6 +509,7 @@ final class Table<T> extends StatefulWidget {
     this.unfocusedSelectedStyle,
     this.cursorStyle,
     this.sortKeys = true,
+    this.padding,
   }) : rows = null,
        assert(rowHeight == null || rowHeight > 0, 'rows a row tall or more'),
        assert(columnGap >= 0, 'a gap of 0 cells or more'),
@@ -567,6 +571,15 @@ final class Table<T> extends StatefulWidget {
   /// Called with the row selected when Enter is pressed.
   // ignore: unsafe_variance
   final void Function(T row)? onActivated;
+
+  /// The cells around the rows, which scroll with them: [EdgeInsets.top]
+  /// rows before the first row and [EdgeInsets.bottom] after the last, as a
+  /// [ListView]'s [ListView.padding]. The header stays where it is above
+  /// them. [EdgeInsets.left] and [EdgeInsets.right] columns inset the
+  /// header and every row alike, so the columns keep their places, and the
+  /// widths of the columns are those of the table less them. Null or
+  /// [EdgeInsets.zero] for none.
+  final EdgeInsets? padding;
 
   /// The rows a row takes, 1 by default; null for as many as its tallest
   /// cell.
@@ -1378,6 +1391,7 @@ final class _TableState<T> extends State<Table<T>> {
       cursor: w.cursorStyle ?? theme.fill(theme.primary.fg),
     );
     final columns = w.columns;
+    final pad = w.padding ?? EdgeInsets.zero;
     final lead = _lead;
     if (lead > 0) {
       _checkbox = CheckboxMarks.of(context);
@@ -1409,34 +1423,40 @@ final class _TableState<T> extends State<Table<T>> {
             },
         ],
         gap: w.columnGap,
+        inset: pad.horizontal,
         measured: (_data, columns, lead),
         measure: _measure,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (w.showHeader)
-              _shaped(
-                Listener(
-                  onPointerDown: _headerDown,
-                  onPointerMove: _headerDrag,
-                  onPointerUp: _headerUp,
-                  child: _Row(
-                    columns: _columns,
-                    lines: Theme.of(context).glyphs.borderOf(w.border),
-                    rule: w.border != BorderType.none,
-                    background: styles.base,
-                    style: styles.header,
-                    lineStyle: styles.border,
-                    children: [
-                      if (lead > 0) Text('', style: styles.header),
-                      for (var j = 0; j < columns.length; j++)
-                        _title(columns[j], j, styles.header),
-                    ],
+              _inset(
+                pad,
+                _shaped(
+                  Listener(
+                    onPointerDown: _headerDown,
+                    onPointerMove: _headerDrag,
+                    onPointerUp: _headerUp,
+                    child: _Row(
+                      columns: _columns,
+                      lines: Theme.of(context).glyphs.borderOf(w.border),
+                      rule: w.border != BorderType.none,
+                      background: styles.base,
+                      style: styles.header,
+                      lineStyle: styles.border,
+                      children: [
+                        if (lead > 0) Text('', style: styles.header),
+                        for (var j = 0; j < columns.length; j++)
+                          _title(columns[j], j, styles.header),
+                      ],
+                    ),
                   ),
                 ),
+                styles.base,
               ),
             Expanded(
               child: ListView.builder(
+                padding: w.padding,
                 itemCount: _count,
                 itemExtent: w.rowHeight,
                 controller: _list,
@@ -1450,6 +1470,17 @@ final class _TableState<T> extends State<Table<T>> {
       ),
     );
   }
+
+  /// [header] inset by the columns [pad] has on either side, over
+  /// [style] there.
+  static Widget _inset(EdgeInsets pad, Widget header, Style style) =>
+      pad.horizontal == 0
+      ? header
+      : Box(
+          style: style,
+          padding: EdgeInsets.only(left: pad.left, right: pad.right),
+          child: header,
+        );
 
   /// [titles] with the hand over a column that sorts, and in a region
   /// whose pointer is [PointerShape.ewResize] over the edge of a column,
@@ -1915,6 +1946,7 @@ final class _Layout extends SingleChildRenderObjectWidget {
     required this.columns,
     required this.tracks,
     required this.gap,
+    required this.inset,
     required this.measured,
     required this.measure,
     super.child,
@@ -1923,6 +1955,9 @@ final class _Layout extends SingleChildRenderObjectWidget {
   final _Columns columns;
   final List<GridTrack> tracks;
   final int gap;
+
+  /// The cells on either side of the columns, which the rows are inset by.
+  final int inset;
 
   /// What [measure] measures: when it is new, it measures again.
   final Object measured;
@@ -1937,6 +1972,7 @@ final class _Layout extends SingleChildRenderObjectWidget {
     columns: columns,
     tracks: tracks,
     gap: gap,
+    inset: inset,
     measured: measured,
     measure: measure,
   );
@@ -1946,6 +1982,7 @@ final class _Layout extends SingleChildRenderObjectWidget {
     renderObject
       ..tracks = tracks
       ..gap = gap
+      ..inset = inset
       ..measured = measured
       ..measure = measure;
   }
@@ -1961,6 +1998,7 @@ final class _RenderTable extends RenderObject with RenderObjectWithChildMixin {
     required this.columns,
     required this._tracks,
     required this._gap,
+    required this._inset,
     required this._measured,
     required this.measure,
   });
@@ -1983,6 +2021,15 @@ final class _RenderTable extends RenderObject with RenderObjectWithChildMixin {
   set gap(int g) {
     if (g != _gap) {
       _gap = g;
+      markNeedsLayout();
+    }
+  }
+
+  int _inset;
+  int get inset => _inset;
+  set inset(int i) {
+    if (i != _inset) {
+      _inset = i;
       markNeedsLayout();
     }
   }
@@ -2017,7 +2064,7 @@ final class _RenderTable extends RenderObject with RenderObjectWithChildMixin {
     final widths = _columnWidths(
       _tracks,
       measure(owner?.segmenter, c.maxHeight),
-      c.maxWidth,
+      c.maxWidth > _inset ? c.maxWidth - _inset : 0,
       _gap,
     );
     if (columns.take(widths, _gap)) {

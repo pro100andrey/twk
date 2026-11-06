@@ -236,6 +236,8 @@ Changed:
   `DatePicker`'s among them, which showed none. Rows of a list keep the arrow.
 - `Pressable(behavior:)`: `HitTestBehavior.opaque` takes a press on its empty
   cells too.
+- Esc cancels a prompt of `package:twk/cli.dart` as Ctrl+C does, exit 130; with
+  suggestions open it hides them first.
 
 Added:
 
@@ -252,6 +254,8 @@ Added:
 - `Navigator.pushAndRemoveUntil`, `pushNamedAndRemoveUntil` and `popAndPushNamed`, static and on `NavigatorState`. The routes `pushAndRemoveUntil` removes are removed, not popped, as `removeRoute` does it. `popAndPushNamed` is a `StateError` on the only route, as `pop` is.
 
 - `SingleChildScrollView(padding:)`, empty cells round the child that scroll with it.
+
+- `ListView(padding:)` (all its constructors) and `Table(padding:)`, an `EdgeInsets` that scrolls with the items as Flutter's `ListView.padding` does: the top rows come before the first item and the bottom ones after the last, in the scrollable extent (offset 0 shows the top ones empty), and the left and right columns inset every item and stay. A move to keep an item in view (`ListController.ensureIndexVisible`, a `Table`'s selection) shows the padding before the first item and after the last; `jumpToIndex` puts the item at the top. In a reverse list the insets are the screen's. A `Table`'s header stays above its rows and is inset by the left and right columns, so the columns keep their places. Flutter's `Table` has no padding; a `TreeTable` has none yet.
 
 - `Slider(onChangeStart:, onChangeEnd:)`, called with the value at the press of the mouse and at its release; a key or the wheel calls neither.
 
