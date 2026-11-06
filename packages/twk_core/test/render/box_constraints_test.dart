@@ -30,7 +30,6 @@ void main() {
           minWidth: 4,
           maxWidth: 4,
           minHeight: unbounded,
-          maxHeight: unbounded,
         ),
       );
       // held within the parent's constraints it fills them
@@ -138,7 +137,7 @@ void main() {
         const EdgeInsets.only(left: 2, right: 2, top: 1, bottom: 1),
       );
       expect(const EdgeInsets.symmetric(vertical: 1), const EdgeInsets.y(1));
-      expect(const EdgeInsets.symmetric(), EdgeInsets.zero);
+      expect(const EdgeInsets.symmetric(horizontal: 3).top, 0);
     });
 
     test('fromLTRB takes left, top, right, bottom', () {

@@ -147,7 +147,7 @@ import 'panel.dart';
 /// widget a [Popover], neither dimming what is under it.
 Future<T?> showDialog<T>({
   required BuildContext context,
-  required Widget Function(BuildContext context) builder,
+  required WidgetBuilder builder,
   bool barrierDismissible = true,
   Alignment alignment = Alignment.center,
   Color? barrierColor,
@@ -450,7 +450,7 @@ final class _DialogRoute<T> extends Route<T> {
     required this.fadeIn,
   });
 
-  final Widget Function(BuildContext context) builder;
+  final WidgetBuilder builder;
   final bool barrierDismissible;
   final Alignment alignment;
   final Color? barrierColor;
@@ -630,7 +630,7 @@ final class _TakeFocusState extends State<_TakeFocus> {
 final class _Built extends StatelessWidget {
   const _Built(this.builder);
 
-  final Widget Function(BuildContext context) builder;
+  final WidgetBuilder builder;
 
   @override
   Widget build(BuildContext context) => builder(context);

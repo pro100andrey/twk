@@ -322,10 +322,10 @@ final class _NoTicks implements TickerProvider {
   Ticker createTicker(TickerCallback onTick) => Ticker(onTick);
 }
 
-/// Completes [flag] when [run] does.
+/// Whether the future it is given has completed.
 final class Done {
   Done(Future<void> run) {
-    run.then((_) => done = true);
+    unawaited(run.then((_) => done = true));
   }
 
   var done = false;

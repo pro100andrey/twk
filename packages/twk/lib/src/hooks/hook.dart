@@ -472,7 +472,7 @@ final class HookBuilder extends HookWidget {
   const HookBuilder({required this.builder, super.key});
 
   /// Builds what this widget shows, calling hooks; called by every build.
-  final Widget Function(BuildContext context) builder;
+  final WidgetBuilder builder;
 
   @override
   Widget build(BuildContext context) => builder(context);

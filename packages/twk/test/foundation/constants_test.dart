@@ -11,12 +11,17 @@ void main() {
 
   test('ValueChanged, ValueGetter and ValueSetter name the function types', () {
     final seen = <int>[];
-    ValueChanged<int> changed = seen.add;
-    ValueGetter<int> get = () => seen.length;
-    ValueSetter<int> set = seen.add;
-    changed(1);
-    set(2);
-    expect(get(), 2);
+    void use(
+      ValueChanged<int> changed,
+      ValueSetter<int> setter,
+      ValueGetter<int> getter,
+    ) {
+      changed(1);
+      setter(2);
+      expect(getter(), 2);
+    }
+
+    use(seen.add, seen.add, () => seen.length);
     expect(seen, [1, 2]);
   });
 }

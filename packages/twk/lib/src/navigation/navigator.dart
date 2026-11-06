@@ -324,7 +324,7 @@ final class PageRoute<T> extends Route<T> {
 
   /// Builds what the screen shows, again when the route's widgets ask for
   /// it.
-  final Widget Function(BuildContext context) builder;
+  final WidgetBuilder builder;
 
   @override
   final Duration transitionDuration;
@@ -422,7 +422,7 @@ final class Navigator extends StatefulWidget {
   final Widget? home;
 
   /// What the route of each name shows.
-  final Map<String, Widget Function(BuildContext context)> routes;
+  final Map<String, WidgetBuilder> routes;
 
   /// The name of the first route.
   final String? initialRoute;

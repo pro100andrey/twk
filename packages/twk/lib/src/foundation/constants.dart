@@ -10,7 +10,9 @@ library;
 /// ```dart
 /// kReleaseMode ? const SizedBox() : const Text('not for release')
 /// ```
-const bool kReleaseMode = bool.fromEnvironment('dart.vm.product');
+// The compiler's own constants, which Flutter's kReleaseMode reads too.
+// ignore: do_not_use_environment
+const kReleaseMode = bool.fromEnvironment('dart.vm.product');
 
 /// Whether the program runs in debug mode: neither release nor profile, as
 /// it does under `dart run` and `dart test`.
@@ -21,4 +23,6 @@ const bool kReleaseMode = bool.fromEnvironment('dart.vm.product');
 /// kDebugMode ? const Text('debug build') : const SizedBox()
 /// ```
 const bool kDebugMode =
+    // The compiler's constant, as kReleaseMode's.
+    // ignore: do_not_use_environment
     !kReleaseMode && !bool.fromEnvironment('dart.vm.profile');

@@ -40,7 +40,7 @@ final class SlotEntry {
 
   /// Builds what the entry shows, as an element of its own: what it throws
   /// is shown in place of this entry only ([BuildOwner.onBuildError]).
-  final Widget Function(BuildContext context) builder;
+  final WidgetBuilder builder;
 
   /// `SlotEntry(slot, id)`.
   @override

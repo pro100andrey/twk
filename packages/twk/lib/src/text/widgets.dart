@@ -577,17 +577,17 @@ final class DefaultTextStyle extends StatelessWidget {
   /// above.
   const DefaultTextStyle({required this.style, required this.child, super.key});
 
-  /// What the text below takes where its own style leaves a field unset.
-  final Style style;
-
   /// Gives the [Text]s in [child]'s subtree [style], merged onto the one
   /// above, as [DefaultTextStyle.new] does: a field [style] leaves unset
   /// stays as the style above has it. Without [style] it changes nothing.
   const DefaultTextStyle.merge({
-    Style? style,
     required this.child,
+    Style? style,
     super.key,
   }) : style = style ?? const Style();
+
+  /// What the text below takes where its own style leaves a field unset.
+  final Style style;
 
   /// The widgets whose text takes [style].
   final Widget child;

@@ -4,9 +4,9 @@ library;
 import 'package:twk_core/twk_core.dart'
     show BoxConstraints, PaintContext, RenderObject;
 
-import '../foundation/change_notifier.dart' show ValueChanged;
 import '../data/chart_glyphs.dart' show opaque;
 import '../focus/focus.dart';
+import '../foundation/change_notifier.dart' show ValueChanged;
 import '../framework/framework.dart';
 import '../gestures/gesture_detector.dart' show takeDrag;
 import '../gestures/mouse.dart';
