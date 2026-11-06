@@ -272,10 +272,10 @@ tasks:
     args: [$each, --tags=process, --concurrency=2, --reporter=failures-only]
 
   group-test:
-    # In no gate yet: packages/twk's suite with its files joined, half the
-    # time and CPU of pkg-test's, until enough runs in random order say the
-    # join changes nothing. Arguments after `--`: --shuffle=SEED, --groups=N
-    # and dart test's.
+    # In no gate: packages/twk's suite with its files joined, half the time
+    # and CPU of a plain run alone. It saved no time in handover, nor in
+    # mac-test, whose other suites take theirs. Arguments after `--`:
+    # --shuffle=SEED, --groups=N and dart test's.
     desc: packages/twk's tests, its files joined in generated entry points
     needs: [get]
     do: group-tests
