@@ -2428,9 +2428,7 @@ final class TextPainter {
       final o = old[a];
       final s = spans[a].$1;
       final most = o.length < s.length ? o.length : s.length;
-      while (p < most && o.codeUnitAt(p) == s.codeUnitAt(p)) {
-        p++;
-      }
+      p = _commonStart(o, s, most);
       // the last cluster that starts before p, and back from it
       final firstOfA = from;
       final lo = _firstFrom(a, p);
@@ -2467,11 +2465,7 @@ final class TextPainter {
       if (room < most) {
         most = room;
       }
-      var q = 0;
-      while (q < most &&
-          o.codeUnitAt(o.length - 1 - q) == s.codeUnitAt(s.length - 1 - q)) {
-        q++;
-      }
+      final q = _commonEnd(o, s, most);
       e
         ..pairedOld = oldEnd - 1
         ..suffixFrom = s.length - q + 1
@@ -4857,4 +4851,43 @@ final class TextPainter {
       ..[at + 5] = start
       ..[at + 6] = end;
   }
+}
+
+// An edit compares all of a long text with what it was, a code unit at a
+// time, every frame: the hottest loop of typing into one. Apart and small
+// they go through no bounds or interrupt check and stay out of the way of
+// the rest of [TextPainter._resplit]. How fast a loop like this runs depends
+// on its place against a 64-byte line (25 or 32 us for these on 40k
+// characters, the same code): a bench that moves by 8 % with no more
+// instructions a frame is that, not the change that moved it.
+
+/// How many code units [a] and [b] have in common from their starts, [most]
+/// at most, which neither is shorter than.
+@pragma('vm:never-inline')
+@pragma('vm:align-loops')
+@pragma('vm:unsafe:no-interrupts')
+@pragma('vm:unsafe:no-bounds-checks')
+int _commonStart(String a, String b, int most) {
+  var i = 0;
+  while (i < most && a.codeUnitAt(i) == b.codeUnitAt(i)) {
+    i++;
+  }
+  return i;
+}
+
+/// How many code units [a] and [b] have in common at their ends, [most] at
+/// most, which neither is shorter than.
+@pragma('vm:never-inline')
+@pragma('vm:align-loops')
+@pragma('vm:unsafe:no-interrupts')
+@pragma('vm:unsafe:no-bounds-checks')
+int _commonEnd(String a, String b, int most) {
+  var i = a.length - 1;
+  var j = b.length - 1;
+  final end = i - most;
+  while (i > end && a.codeUnitAt(i) == b.codeUnitAt(j)) {
+    i--;
+    j--;
+  }
+  return a.length - 1 - i;
 }
