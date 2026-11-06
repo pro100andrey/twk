@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- The emulator makes one screen wherever the program's writes are cut: a cluster
+  continued in a later write wraps, inserts and erases as one write does, and a
+  control ends the cluster before it.
 - A `TerminalSession` disposed before its program started ends: `exitCode`
   completes with null, where it stayed pending.
 - A color spec with a sign or whitespace in a channel is no color: OSC 4, 10, 11

@@ -27,6 +27,11 @@ Changed:
   went raw on the shell's terminal and wrote its queries over the prompt.
 - A welcome or a size frame of the wrong shape ends the link with a
   `TerminalException`, which `SocketLink.connect` throws, where it ended the app.
+- Images: a sixel or iTerm2 image drawn over on Konsole has its pixels erased, as
+  a scroll would move them onto cells no row writes, and rows committed above one
+  in an inline region print the region again; in a fixed viewport an image no
+  longer overwrites the cursor the viewport saved; a placement moved onto an
+  identical one takes the new background.
 - `RenderLog.add` asks for a frame only when the line can show: one below a log
   scrolled back is painted when scrolled into view.
 - `RenderParagraph.keepsPaint`, false by default and settable: the paragraph is a
