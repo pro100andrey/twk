@@ -314,6 +314,11 @@ final class TerminalEmulator {
   var _lastGlyph = -1;
   var _lastWidth = 1;
 
+  /// The column the last glyph printed starts in, and whether a control
+  /// since has ended its cluster (a mark in a later write has no base).
+  var _lastCol = -1;
+  var _joinBroken = false;
+
   /// Window title (OSC 0, 2).
   String get title => _title;
   var _title = '';
@@ -931,9 +936,19 @@ final class TerminalEmulator {
       }
       return;
     }
+    var i = start;
+    final left = _joinCell();
+    if (left >= 0 && (_screen.lines[_y].cells[left] & kUncertain) != 0) {
+      // a glyph that joins what follows (a Prepend): the first character
+      // goes the way text goes, as in one write with the glyph
+      _printText(String.fromCharCode(data[i]));
+      if (++i == end) {
+        return;
+      }
+    }
     final style = _styleNow;
     final w = _width;
-    var i = start;
+    var lastCol = 0;
     while (i < end) {
       if (_pendingWrap) {
         if (_autowrap) {
@@ -962,6 +977,7 @@ final class TerminalEmulator {
         styles[x0 + k] = style.value;
       }
       i += n;
+      lastCol = x1 >= w ? w - 1 : x1 - 1;
       if (x1 >= w) {
         _x = w - 1;
         if (_autowrap) {
@@ -976,6 +992,8 @@ final class TerminalEmulator {
     }
     _lastGlyph = data[end - 1];
     _lastWidth = 1;
+    _lastCol = lastCol;
+    _joinBroken = false;
   }
 
   int _mapCharset(int c) {
@@ -1003,7 +1021,7 @@ final class TerminalEmulator {
       }
       s = sb.toString();
     }
-    var i = s.codeUnitAt(0) >= 0x300 ? _joinLeft(s) : 0;
+    var i = _joinLeft(s);
     final scan = _scan;
     while (i < s.length) {
       final start = i;
@@ -1011,6 +1029,7 @@ final class TerminalEmulator {
       i = scan.end;
       final w = scan.width;
       if (w == 0) {
+        _joinBroken = true; // it ends the cluster before it
         continue; // a control, a mark without a base, a zero-width char
       }
       var glyph = scan.length == 1 ? scan.first : glyphs.intern(s, start, i);
@@ -1026,19 +1045,15 @@ final class TerminalEmulator {
   /// selector, an emoji ZWJ sequence arriving in pieces); returns the code
   /// units of [s] taken.
   int _joinLeft(String s) {
-    var px = _pendingWrap ? _x : _x - 1;
+    final px = _joinCell();
     if (px < 0) {
       return 0;
     }
     final line = _screen.lines[_y];
     final cells = line.cells;
     var cell = cells[px];
-    if ((cell & kCont) != 0) {
-      if (px == 0) {
-        return 0;
-      }
-      px--;
-      cell = cells[px];
+    if (s.codeUnitAt(0) < 0x300 && (cell & kUncertain) == 0) {
+      return 0; // below U+0300 only a Prepend joins
     }
     final prev = glyphs.stringOf(cell);
     final joined = prev + (s.length > 32 ? s.substring(0, 32) : s);
@@ -1052,28 +1067,50 @@ final class TerminalEmulator {
       glyph |= kUncertain;
     }
     final wide = (cell & kWide) != 0;
-    if (scan.width == 2 && !wide && px + 1 < _width) {
-      // wider now (a VS16): takes the column after it
-      if ((cells[px + 1] & kWide) != 0) {
-        line.breakWide(px + 1);
+    if (scan.width == 2 && !wide) {
+      // wider now (a VS16, a flag completed): printed again from where the
+      // glyph started, as if written whole, so that it wraps where it
+      // doesn't fit and moves the cells after it in insert mode
+      final style = line.styles[px];
+      final y = _y;
+      _x = px;
+      _pendingWrap = false;
+      if (_modes & _insertBit != 0) {
+        _deleteChars(1); // takes back the cell the narrow glyph inserted
       }
-      cells[px] = glyph | kWide;
-      cells[px + 1] = kCont;
-      line.styles[px + 1] = line.styles[px];
-      if (!_pendingWrap && _x == px + 1) {
-        _x = px + 2;
-        if (_x >= _width) {
-          _x = _width - 1;
-          _pendingWrap = _autowrap;
-        }
+      _putGlyph(glyph, 2);
+      if (_y == y && (_screen.lines[y].cells[px] & kWide) != 0) {
+        _screen.lines[y].styles[px] = style;
+        _screen.lines[y].styles[px + 1] = style;
       }
-      _lastWidth = 2;
     } else {
       cells[px] = wide ? glyph | kWide : glyph;
       _lastWidth = wide ? 2 : 1;
+      _lastGlyph = glyph;
     }
-    _lastGlyph = glyph;
     return scan.end - prev.length;
+  }
+
+  /// The column of the glyph a text written now continues, or -1.
+  int _joinCell() {
+    if (_joinBroken) {
+      return -1;
+    }
+    // with autowrap off the cursor stays on the glyph in the last column
+    var px = _pendingWrap || (!_autowrap && _x == _width - 1 && _lastCol == _x)
+        ? _x
+        : _x - 1;
+    if (px < 0) {
+      return -1;
+    }
+    final cells = _screen.lines[_y].cells;
+    if ((cells[px] & kCont) != 0) {
+      if (px == 0) {
+        return -1;
+      }
+      px--;
+    }
+    return px;
   }
 
   /// Prints one glyph of width [w] (1 or 2) at the cursor.
@@ -1109,6 +1146,7 @@ final class TerminalEmulator {
     final style = _styleNow;
     if (x > 0 && (cells[x] & kCont) != 0) {
       cells[x - 1] = kBlank;
+      styles[x - 1] = style.value; // as erasing it whole would
     }
     final end = x + w;
     if (end < _width && (cells[end] & kCont) != 0) {
@@ -1131,6 +1169,8 @@ final class TerminalEmulator {
     }
     _lastGlyph = glyph;
     _lastWidth = w;
+    _lastCol = x;
+    _joinBroken = false;
   }
 
   /// REP: the last glyph printed, [n] times more.

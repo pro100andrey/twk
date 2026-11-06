@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:test/test.dart';
+import 'package:twk_core/twk_core.dart';
 import 'package:twk_term/twk_term.dart';
 
 import 'support.dart';
@@ -48,6 +50,53 @@ void main() {
           }
           expect(snapshot(t), expected, reason: 'pieces of $size');
         }
+      });
+    }
+
+    // writes cut inside a cluster: the screen is the one of the whole
+    final cuts = <String, (int, TextMode, List<String>)>{
+      'a flag at the last column': (
+        3,
+        TextMode.graphemes,
+        ['bA\u{1F1FA}', '\u{1F1E6}'],
+      ),
+      'a mark after the last column, no autowrap': (
+        3,
+        TextMode.legacy,
+        ['\x1b[?7labक', '्'],
+      ),
+      'a glyph widened over a trailing half': (
+        4,
+        TextMode.graphemes,
+        ['\x1b[44m中中\x1b[m\x1b[1;4H❤', '\u{FE0F}'],
+      ),
+      'insert mode, widened by a VS16': (
+        6,
+        TextMode.graphemes,
+        ['abcd\r\x1b[4h❤', '\u{FE0F}'],
+      ),
+      'a Prepend, then ASCII': (6, TextMode.graphemes, ['x\u0600', 'y']),
+      'a control between a glyph and a mark': (
+        6,
+        TextMode.legacy,
+        ['e\u0080', '\u0301'],
+      ),
+    };
+    for (final MapEntry(key: name, value: (width, mode, pieces))
+        in cuts.entries) {
+      test('$name: the cut gives the screen of one write', () {
+        TerminalEmulator make() => TerminalEmulator(
+          width: width,
+          height: 2,
+          scrollbackLimit: 0,
+          textMode: mode,
+        );
+        final whole = make()..feed(utf8.encode(pieces.join()));
+        final split = make();
+        for (final piece in pieces) {
+          split.feed(utf8.encode(piece));
+        }
+        expect(snapshot(split), snapshot(whole));
       });
     }
   });
