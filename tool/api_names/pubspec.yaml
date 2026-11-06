@@ -1,0 +1,16 @@
+name: twk_api_names
+description: >-
+  The public names of each published package, listed from the analyzer's
+  element model into doc/internals/api/<package>.txt, and held to the list
+  of names too general for an export.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.13.5
+resolution: workspace
+dependencies:
+  analyzer: ^14.7.0
+dev_dependencies:
+  pro_lints: ^6.2.0
+  test: ^1.33.0

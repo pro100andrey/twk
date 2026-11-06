@@ -1,0 +1,39 @@
+# Names too general for an export of a published package, and the
+# exceptions to them. A name like these says nothing in an import list
+# (`show Link`) and collides with the application's own: a package's
+# export is read beside every other package's.
+#
+#   ban <name> -- <reason>
+#   allow <package> <name> -- <reason>
+#
+# Held by `dart run tool/xtask.dart api-names`: a banned name a package
+# exports with no `allow` line fails it, and so does an `allow` line that
+# matches no export (remove it). Every `allow` carries the reason the name
+# is right as it is. Names are matched exactly, top-level, in any library
+# of the package.
+
+ban Link -- renamed by export-names; says nothing about what it links
+ban Status -- renamed by export-names; the status of what
+ban Mark -- renamed by export-names; the mark of what
+ban log -- renamed by export-names; a top-level function named for a verb of every program
+ban Item -- the item of what
+ban Data -- the data of what
+ban Value -- the value of what
+ban Node -- the node of what
+ban Entry -- the entry of what
+ban Result -- the result of what
+ban Event -- the event of what
+ban Info -- the info of what
+ban Type -- the type of what
+ban Kind -- the kind of what
+ban Handler -- the handler of what
+ban Manager -- the manager of what
+ban Controller -- a Controller alone; name what it controls
+ban Widget -- Flutter's own name; a package's own Widget is an allow line away, with the reason
+
+# The exceptions. Each is a name a package exports today, found by the
+# first run over the names of export-names; the reason is why it stands.
+
+allow twk Widget -- Flutter's own name for the base of the widget tree, kept on purpose: the package is Flutter's widget model
+allow twk log -- exported only by its own library, package:twk/log.dart, which exists because dart:math and dart:developer also declare `log`: an app that imports either has no clash with twk.dart, and one that logs imports log.dart beside it
+allow twk_core log -- the logger's function, in the terminal library (package:twk_core/terminal.dart) that a logger without the render tree imports; twk re-exports it only through package:twk/log.dart, for the reason given there

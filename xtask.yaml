@@ -60,6 +60,12 @@ sets:
     include:
       - doc/widgets/**
 
+  # The public names of the published packages (doc/internals/api/), written
+  # by tool/api_names, which `api-names` writes again.
+  api:
+    include:
+      - doc/internals/api/**
+
   # The tools' own packages (the allocation profiler, the frame scenarios,
   # the docs and coverage tools). Not narrowed by --only packages.
   tools:
@@ -543,6 +549,21 @@ tasks:
     unchanged: catalog
     do: package
     args: [packages/gallery, dart, run, tool/catalog.dart]
+
+  api-names:
+    # The public names of each published package, as its libraries export
+    # them (the analyzer's element model), one `library kind name` line
+    # each in doc/internals/api/<package>.txt. Written again, and failed
+    # where that changed a file, so that a name added, renamed or removed
+    # shows in the diff of a pull request. It also fails a name too general
+    # for an export that has no exception, and an exception that matches no
+    # name (tool/api_names/banned_names.txt, each with its reason).
+    desc: write the published packages' public names; fail if stale or too general
+    gate: [handover, ci]
+    needs: [get]
+    unchanged: api
+    do: spare
+    args: [dart, run, tool/api_names/bin/api_names.dart]
 
   gallery-code:
     # Each page of the gallery: its Code tab made into a program, run in
