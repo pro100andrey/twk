@@ -525,7 +525,7 @@ final class _DialogLayerState extends State<_DialogLayer>
     duration: widget.route.fadeIn,
   );
 
-  final _scope = FocusScopeNode(debugLabel: 'dialog');
+  final _scope = FocusScopeNode(debugLabel: 'dialog')..modal = true;
 
   @override
   void initState() {

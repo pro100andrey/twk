@@ -27,7 +27,12 @@ Widget at(
       Positioned(
         left: left,
         top: top,
-        child: Popover(open: open, popover: boxed(text), child: child),
+        child: Popover(
+          onDismiss: null,
+          open: open,
+          popover: boxed(text),
+          child: child,
+        ),
       ),
     ],
   ),
@@ -178,6 +183,7 @@ void main() {
               builder: (context, _) => SizedBox(height: above.value),
             ),
             const Popover(
+              onDismiss: null,
               open: true,
               popover: Box(border: Border.all(), child: Text('pop')),
               child: Text('anchor'),
@@ -224,6 +230,7 @@ anchor
               child: Shifted(
                 dx,
                 child: const Popover(
+                  onDismiss: null,
                   open: true,
                   popover: Box(border: Border.all(), child: Text('pop')),
                   child: Text('anchor'),
@@ -377,6 +384,7 @@ anchor
           child: Align(
             alignment: Alignment.topLeft,
             child: Popover(
+              onDismiss: null,
               open: open,
               fadeIn: ms * 120,
               fadeOut: ms * 100,
@@ -449,7 +457,12 @@ anchor
     Widget app({required bool shown}) => Overlay(
       key: overlay,
       child: shown
-          ? Popover(open: false, popover: boxed('pop'), child: const Text('a'))
+          ? Popover(
+              onDismiss: null,
+              open: false,
+              popover: boxed('pop'),
+              child: const Text('a'),
+            )
           : const Text('a'),
     );
     await t.pumpWidget(app(shown: true));
@@ -463,7 +476,12 @@ anchor
   testTwk('a Popover without an Overlay above fails to build, saying where '
       'to place one', (t) async {
     await t.pumpWidget(
-      const Popover(open: true, popover: Text('pop'), child: Text('a')),
+      const Popover(
+        onDismiss: null,
+        open: true,
+        popover: Text('pop'),
+        child: Text('a'),
+      ),
     );
     const failed =
         'Popover failed to build: Bad state: Popover: no Overlay above it: '
@@ -482,6 +500,7 @@ anchor
     final key = GlobalKey();
     Widget app({required bool moved}) {
       final popover = Popover(
+        onDismiss: null,
         key: key,
         open: true,
         popover: const Text('pop'),
@@ -519,6 +538,7 @@ anchor
             builder: (context, w, _) => SizedBox(
               width: w,
               child: const Popover(
+                onDismiss: null,
                 open: true,
                 matchAnchorWidth: true,
                 popover: ColoredBox(color: Color.red, child: Text('x')),
@@ -552,6 +572,7 @@ anchor
           child: SizedBox(
             width: 10,
             child: Popover(
+              onDismiss: null,
               open: true,
               popover: ColoredBox(color: Color.red, child: Text('x')),
               child: Text('a'),

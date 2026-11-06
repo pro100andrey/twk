@@ -1324,6 +1324,9 @@ final class _MenuSession {
   final GlobalKey _place = GlobalKey();
   var _closed = false;
 
+  // the focus scope of the menus: modal, a popover under them stays
+  final _scope = FocusScopeNode(debugLabel: 'menu')..modal = true;
+
   _RenderMenuPlace? get _placed =>
       _place.currentContext?.findRenderObject() as _RenderMenuPlace?;
 
@@ -1772,7 +1775,7 @@ final class _MenuSession {
     final shadow = raised ? Panel.shadowOf(theme) : null;
     final active = _active;
     return FocusScope(
-      debugLabel: 'menu',
+      node: _scope,
       onKeyEvent: _onKey,
       child: KeyBindings(
         {
@@ -1923,6 +1926,7 @@ final class _MenuLayerState extends State<_MenuLayer> {
   @override
   void dispose() {
     widget.session._gone();
+    widget.session._scope.dispose();
     super.dispose();
   }
 

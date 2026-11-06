@@ -260,6 +260,15 @@ false`. It takes no focus: its content is in a focus scope of its own that reque
 nodes leave go to the nodes above the overlay. Its entry is inserted once it
 is first built, so one built open shows from the frame after.
 
+`onDismiss` is required, `null` for a popover the app never closes this way.
+A popover is a non-modal layer, as a dialog or a menu is a modal one: a
+modal layer opened above it (a dialog, a menu) takes the focus and does not
+dismiss it, and gives the focus back to the node the popover had it in as it
+closes; a popover opened in a dialog is dismissed by the focus leaving it
+for the dialog's own nodes. Escape goes to the binding nearest the focus:
+the popover's while the focus is in it or its child, the dialog's
+otherwise.
+
 ## `CommandPalette`
 
 `CommandPalette(child:, commands:, commandsFor:, controller:, openKey:

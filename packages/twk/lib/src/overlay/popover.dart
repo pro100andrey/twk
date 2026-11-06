@@ -88,8 +88,8 @@ final class Popover extends StatefulWidget {
     required this.open,
     required this.popover,
     required this.child,
+    required this.onDismiss,
     super.key,
-    this.onDismiss,
     this.fadeIn = Duration.zero,
     this.fadeOut = Duration.zero,
     this.matchAnchorWidth = false,
@@ -115,7 +115,8 @@ final class Popover extends StatefulWidget {
   /// What the popover shows by.
   final Widget child;
 
-  /// Called when the popover is to close; null for one that does not.
+  /// Called when the popover is to close; null for one that does not,
+  /// stated rather than left out.
   final VoidCallback? onDismiss;
 
   @override
@@ -251,6 +252,12 @@ final class _PopoverState extends State<Popover>
 
   void _focusChanged() {
     if (mounted && !_anchor.hasFocus && !(_inside?.hasFocus ?? false)) {
+      // a modal layer opened above it (a dialog, a menu) took the focus:
+      // the popover stays, and gets it back as the layer closes
+      final primary = _anchor.manager?.primaryFocus;
+      if (primary != null && primary.inModalBeside(_anchor)) {
+        return;
+      }
       _dismiss();
     }
   }

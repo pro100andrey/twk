@@ -409,6 +409,29 @@ class FocusNode with ChangeNotifier {
     _manager?._mayChangeKeysBelow(_parent);
   }
 
+  /// Whether this node is in a modal scope ([FocusScopeNode.modal]) that
+  /// [other] is not in: the focus is in a layer opened above the one
+  /// [other] is in, or above its place.
+  @internal
+  bool inModalBeside(FocusNode other) {
+    for (FocusNode? n = this; n != null; n = n._parent) {
+      if (n is FocusScopeNode && n.modal && !other._isBelow(n)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // whether this node is [ancestor] or below it
+  bool _isBelow(FocusNode ancestor) {
+    for (FocusNode? n = this; n != null; n = n._parent) {
+      if (identical(n, ancestor)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /// Takes this node out of the focus tree, the focus off it first.
   void _detach() {
     releaseKeys();
@@ -501,19 +524,30 @@ class FocusScopeNode extends FocusNode {
   /// When the scope above has no such stop, the focus goes round the scope.
   FocusNode? leaveTo;
 
+  /// Whether this scope is the content of a modal layer (a dialog, a menu):
+  /// the layer takes the focus as it opens and keeps it, so a non-modal
+  /// layer under it (a popover) does not take the focus leaving for it as
+  /// its own focus leaving ([FocusNode.inModalBeside]).
+  @internal
+  var modal = false;
+
   // the nodes of this scope (and scopes inside it) that had the focus, the
   // last most recently
   final _history = <FocusNode>[];
 
   /// The node of this scope, or the scope inside it, that had the primary
   /// focus last and still can: one in the tree, under this scope, that
-  /// [canRequestFocus].
+  /// [canRequestFocus]; a scope inside it that takes no focus itself but
+  /// has a node that can (a popover's content) stands for that node.
   FocusNode? get focusedChild {
     while (_history.isNotEmpty) {
       final last = _history.last;
       if (last._attached &&
           last._active &&
-          last.canRequestFocus &&
+          // a scope that takes no focus itself stands for the node it
+          // focused last, as a popover's content does
+          (last.canRequestFocus ||
+              (last is FocusScopeNode && last.focusedChild != null)) &&
           identical(last.enclosingScope, this)) {
         return last;
       }
