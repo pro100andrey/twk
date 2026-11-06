@@ -7,6 +7,7 @@ library;
 
 export 'async.dart';
 export 'change_notifier.dart';
+export 'constants.dart';
 export 'controller_host.dart';
 export 'listenable_builder.dart';
 export 'strings.dart';

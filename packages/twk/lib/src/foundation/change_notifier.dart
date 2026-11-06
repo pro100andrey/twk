@@ -12,6 +12,17 @@ import 'listenable_builder.dart' show ListenableBuilder, ValueListenableBuilder;
 /// A function with no arguments and no result, such as a listener.
 typedef VoidCallback = void Function();
 
+/// A function that is called with a value, such as the callback of a
+/// control that reports a change.
+typedef ValueChanged<T> = void Function(T value);
+
+/// A function that returns a value, such as a getter handed to a widget.
+typedef ValueGetter<T> = T Function();
+
+/// A function that takes a value and returns nothing, such as a setter
+/// handed to a widget.
+typedef ValueSetter<T> = void Function(T value);
+
 /// An object that calls its listeners when it changes.
 ///
 /// See also:

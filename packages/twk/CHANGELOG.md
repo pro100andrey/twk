@@ -237,6 +237,10 @@ Changed:
 - `Pressable(behavior:)`: `HitTestBehavior.opaque` takes a press on its empty
   cells too.
 
+Added:
+
+- `ValueChanged`, `ValueGetter` and `ValueSetter`, the function types of Flutter's, and `kReleaseMode` and `kDebugMode`, the build's mode as constants.
+
 ## 0.2.0
 
 - After a Ctrl+C ended the inline session, a program that handles SIGINT
