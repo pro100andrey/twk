@@ -124,6 +124,8 @@ Added:
 
 - `BoxConstraints.loose` and `expand`, `copyWith`, `loosen`, `enforce`, `tighten`, `deflate`, `widthConstraints` and `heightConstraints`, `hasTightWidth`, `hasBoundedWidth` and `hasInfiniteWidth` (and for the height), and `biggest` and `smallest` (a `({int width, int height})`, there being no `Size`); `EdgeInsets.symmetric` and `EdgeInsets.fromLTRB`. `EdgeInsets.x` and `EdgeInsets.y` stay.
 
+- `RenderList(padding:)`, an `EdgeInsets` around the items that scrolls with them: its top rows are the start of the content and its bottom ones the end (`onMetrics` and `scrollOffset` count them in, offset 0 shows the top ones empty), and the left and right columns inset every item, laid out that much narrower. `EdgeInsets.zero` by default, and then the list does what it did.
+
 ## 0.2.0
 
 - On Windows Ctrl+Space (and Ctrl+@) reaches the app as NUL again, as it
