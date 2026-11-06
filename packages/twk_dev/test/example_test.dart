@@ -1,4 +1,4 @@
-// The tally of example/tally.dart, the app the README walks through the
+// The tally of example/tally.dart, the app doc/walkthrough.md goes through the
 // tools with: Up and Down choose a line, + and - count it, each count in
 // the app's log, q quits; a hot reload's reassemble keeps the counts.
 import 'package:test/test.dart';

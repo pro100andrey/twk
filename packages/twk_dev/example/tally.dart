@@ -1,6 +1,6 @@
 // A tally of a few things, to try the twk command on: Up and Down choose a
 // line, + and - count, q quits; each count goes to the app's log. From
-// packages/twk_dev (README.md walks through the tools with it):
+// packages/twk_dev (doc/walkthrough.md goes through the tools with it):
 //
 //   dart run twk_dev:twk run example/tally.dart   # hot reloaded
 //   dart run example/tally.dart                   # on its own

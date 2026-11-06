@@ -14,7 +14,7 @@
 # dispose_controllers, key_names) are on wherever the plugin is; the lints
 # are turned on here. An app's own `plugins:` section replaces this one
 # whole rather than merging with it: to turn a rule off, name the plugin
-# there with its path and every rule it keeps (README, "Enabling it").
+# there with its path and every rule it keeps (doc/reference.md, "Enabling it").
 plugins:
   twk_lints:
     # this package, the one above lib/, wherever it is resolved from

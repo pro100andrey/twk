@@ -12,7 +12,7 @@ each with a doc comment naming what it is for. Widgets lay out and paint
 through the core's render tree
 ([§1.8](../../../twk_core/doc/design/render.md) of its design); a topic's
 tests are in `test/<topic>/`. Those that check what reaches a terminal
-feed it to the emulator of [twk_test](../../../twk_test/README.md), a dev
+feed it to the emulator of [twk_test](../../../twk_test/doc/libraries.md), a dev
 dependency by path: `package:twk_test/vt.dart`, and `VtTerminal`
 (`package:twk_test/vt_terminal.dart`) for an app in the inline mode. Those
 of every topic but the framework, foundation, style and text, and those of

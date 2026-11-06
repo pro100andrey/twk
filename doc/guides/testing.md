@@ -320,7 +320,7 @@ session (`--keys` its input too), `twk play` plays it back, and `twk tape`
 runs a script of what to type and what to wait for (`Wait /regexp/`) and
 writes the session and the screens it names. A recording is a regression
 test too, played through the emulator with twk_test's `screenFrames`. Their
-options are in [twk_dev's README](https://pub.dev/packages/twk_dev).
+options are in [twk_dev's guide](https://github.com/pro100andrey/twk/blob/main/packages/twk_dev/doc/record-play.md).
 
 ## Time
 

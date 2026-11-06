@@ -153,7 +153,7 @@ closures apart from one another, with its type argument still unknown, so a
 closure takes an `Object?`, and without the type argument the table is a
 `Table<Object?>`. Columns from elsewhere (a `List<TableColumn<File>>`), or a
 type argument on every column of the list, give the table its type as well;
-`untyped_table` of [`twk_lints`](../../../twk_lints/README.md) points at a
+`untyped_table` of [`twk_lints`](../../../twk_lints/doc/reference.md) points at a
 table whose row type was inferred as `Object?` or `dynamic`.
 
 ## `TreeView<T>`

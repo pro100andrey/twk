@@ -5,7 +5,7 @@ as flutter_riverpod is for Flutter's: a `ProviderScope` keeps the state of
 providers, and widgets watch them through a `WidgetRef`, rebuilt when what
 they watch changes and only then. It takes package:riverpod (`^3.4.3`,
 pure Dart) as a dependency and twk as a path one, and
-[twk_test](../twk_test/README.md), whose tester (`testTwk`) runs its
+[twk_test](../twk_test/doc/guide.md), whose tester (`testTwk`) runs its
 tests, as a path dev dependency.
 
 `lib/twk_riverpod.dart` exports package:riverpod's own library with the

@@ -54,5 +54,5 @@ number when a signal ended it, as a shell gives it. SIGINT, SIGTERM and SIGHUP
 end the app as a restart does, then `twk run`, with 128 and the signal's
 number; Ctrl+C reaches `twk run` only while no app has the terminal in raw
 mode, as while one starts. On Windows, which has no SIGTERM, a restart kills
-the app without the terminal put back; `twk run` has not been run on Windows
-or macOS.
+the app without the terminal put back; `twk run` has not been run on Windows;
+on macOS its tests run it.

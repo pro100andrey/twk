@@ -84,7 +84,7 @@ python3 tool/pty_run.py --input '2:\x1b[A,4:\x07H,9:q' --out /tmp/run.bin -- \
 dart run tool/replay.dart --fullscreen /tmp/run.bin 100 30
 
 # a running app's widget tree in a second terminal: twk inspect connects to
-# the app twk run runs from the same directory (packages/twk_dev's README)
+# the app twk run runs from the same directory (packages/twk_dev's doc/run.md)
 dart run packages/twk_dev/bin/twk.dart run packages/twk/example/counter.dart
 dart run packages/twk_dev/bin/twk.dart inspect     # in another terminal
 

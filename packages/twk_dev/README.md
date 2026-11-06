@@ -41,7 +41,7 @@ The app takes `twk_dev` as a dev dependency, so `dart run twk_dev:twk` runs
 the version its lock file names. In a second terminal in the same directory,
 `dart run twk_dev:twk inspect` shows the widgets of the running app.
 
-`twk run` has been run on Linux. It has not been run on Windows or macOS.
+`twk run` is tested on Linux and macOS; it has not been run on Windows.
 
 ## Learn more
 
