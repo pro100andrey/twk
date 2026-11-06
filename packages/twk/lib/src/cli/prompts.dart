@@ -23,7 +23,8 @@ const choicesShown = 7;
 
 /// What [typed] answers to a yes or no question, in either case: `y`,
 /// `yes`, `n` and `no` first, whatever the language, then the `yes` and `no`
-/// of [strings] or their first letters; null for none of them.
+/// of [strings], then a first letter that is of one of them alone; null for
+/// none of them, so that a letter they share asks again.
 bool? confirmAnswer(String typed, TwkStrings strings) {
   final answer = typed.toLowerCase();
   if (answer == 'y' || answer == 'yes') {
@@ -32,17 +33,18 @@ bool? confirmAnswer(String typed, TwkStrings strings) {
   if (answer == 'n' || answer == 'no') {
     return false;
   }
-  bool isWord(String word) {
-    final lower = word.toLowerCase();
-    return lower.isNotEmpty &&
-        (answer == lower || answer == String.fromCharCode(lower.runes.first));
+  final yes = strings.yes.toLowerCase();
+  final no = strings.no.toLowerCase();
+  if (answer.isNotEmpty && answer == yes) {
+    return true;
   }
-
-  return isWord(strings.yes)
-      ? true
-      : isWord(strings.no)
-      ? false
-      : null;
+  if (answer.isNotEmpty && answer == no) {
+    return false;
+  }
+  bool startsOf(String word) =>
+      word.isNotEmpty && answer == String.fromCharCode(word.runes.first);
+  final isYes = startsOf(yes);
+  return isYes == startsOf(no) ? null : isYes;
 }
 
 /// Asks the questions of a [Cli] the way its mode allows, one at a time:

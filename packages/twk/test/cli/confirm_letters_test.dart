@@ -62,6 +62,30 @@ void main() {
     expect(await answerWith('y'), isTrue);
   });
 
+  test('asks again at a first letter both words have', () async {
+    await clock.elapseUntil(cli.close(), step: _frame);
+    cli = Cli(
+      terminal: terminal,
+      strings: const TwkStrings(yes: 'हो', no: 'होइन'),
+    );
+    final answer = cli.confirm('Delete?');
+    var done = false;
+    unawaited(answer.then((_) => done = true));
+    for (var i = 0; i < 100; i++) {
+      if (terminal.screenLines.any((line) => line.startsWith('? '))) {
+        break;
+      }
+      await clock.elapse(_frame);
+    }
+    await clock.elapse(_frame);
+    terminal.type('ह');
+    await clock.elapse(_frame);
+    expect(done, isFalse, reason: 'the letter says neither');
+    terminal.type('n');
+    await clock.elapse(_frame);
+    expect(await answer, isFalse);
+  });
+
   test('takes n as no where the word for yes starts with it', () async {
     await clock.elapseUntil(cli.close(), step: _frame);
     cli = Cli(
