@@ -499,13 +499,13 @@ void main() {
       );
       await t.pumpWidget(Theme.terminal(child: saying('')), size: (30, 4));
       await settle(t);
-      expect(t.lines.join(), isNot(contains('now')));
+      expect(t, isNot(containsLine(contains('now'))));
       await t.pumpWidget(Theme.terminal(child: saying('now')));
       await settle(t);
       expect(t.lines[1], contains('now'));
       await t.pumpWidget(Theme.terminal(child: saying('')));
       await settle(t);
-      expect(t.lines.join(), isNot(contains('now')));
+      expect(t, isNot(containsLine(contains('now'))));
     });
 
     testTwk('without the focus or the mouse, no tooltip', (t) async {
@@ -529,13 +529,13 @@ void main() {
         size: (30, 8),
       );
       await settle(t);
-      expect(t.lines.join(), isNot(contains('tip')));
+      expect(t, isNot(containsLine(contains('tip'))));
       await t.mouse(MouseKind.move, 0, 1);
       await settle(t);
-      expect(t.lines.join(), contains('tip'));
+      expect(t, containsLine(contains('tip')));
       await t.mouse(MouseKind.move, 20, 6);
       await settle(t);
-      expect(t.lines.join(), isNot(contains('tip')));
+      expect(t, isNot(containsLine(contains('tip'))));
     });
 
     testTwk('without a tooltip or onSelected it takes no keys', (t) async {

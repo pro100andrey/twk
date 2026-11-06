@@ -104,11 +104,11 @@ void main() {
       t.binding.debug.console.open();
       t.logs.add(LogRecord(DateTime.now(), LogLevel.info, 'a record'));
       await t.pump();
-      expect(t.lines.join('\n'), contains('a record'));
+      expect(t, containsLine(contains('a record')));
       await call(t, 'ext.twk.reassemble');
       await t.pump();
       expect(t.lines.first, 'count');
-      expect(t.lines.join('\n'), contains('a record'));
+      expect(t, containsLine(contains('a record')));
     });
   });
 
@@ -153,7 +153,7 @@ void main() {
       });
       await t.pump();
       expect(t.binding.debug.console.isOpen, isTrue);
-      expect(t.lines.join('\n'), contains('hot reload failed'));
+      expect(t, containsLine(contains('hot reload failed')));
       expect(t.lines.first, 'count', reason: 'the app goes on');
       expect(t.takeErrors().single.message, 'hot reload failed');
     });

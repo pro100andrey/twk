@@ -63,7 +63,7 @@ void main() {
     expect(clips(t), [
       ' theme = Theme.of(context);\nreturn SizedBox(\n  width:',
     ]);
-    expect(t.lines.join('\n'), contains('Copied 3 lines'));
+    expect(t, containsLine(contains('Copied 3 lines')));
     expect(marked(t, top, x0, x0 + 34), '.....${'x' * 27}..');
     expect(marked(t, top + 1, x0 - 6, x0 + 18), '......${'x' * 16}..');
     expect(marked(t, top + 2, x0, x0 + 12), '${'x' * 9}...');
@@ -76,7 +76,7 @@ void main() {
     await open(t, '#/text/text?tab=code&t=2000');
     await drag(t, (x0 + 10, top), [(x0 + 6, top)]);
     expect(clips(t), ['theme']);
-    expect(t.lines.join('\n'), contains('Copied 5 characters'));
+    expect(t, containsLine(contains('Copied 5 characters')));
   });
 
   testTwk('a double click selects the word, a triple click the line; a '
@@ -197,7 +197,7 @@ void main() {
     expect(copied, startsWith('final _controller'));
     // the 25 rows of the view, then 3 more each of three steps
     expect('\n'.allMatches(copied).length, greaterThan(25));
-    expect(t.lines.join('\n'), contains('Copied '));
+    expect(t, containsLine(contains('Copied ')));
     // and past the top, back
     await t.pump(const Duration(milliseconds: 400));
     await t.mouse(MouseKind.down, x0, top + 2);
@@ -215,7 +215,7 @@ void main() {
     expect(marked(t, top, x0, x0 + 6), 'xxxxx.');
     await t.press('right');
     await t.pump();
-    expect(t.lines.join('\n'), contains('wrap: .grapheme,'));
+    expect(t, containsLine(contains('wrap: .grapheme,')));
     expect(marked(t, top, x0, x0 + 6), '......');
     await t.press('y');
     await t.pump();

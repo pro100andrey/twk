@@ -44,13 +44,13 @@ void main() {
     expect(t, containsLine(matches(r'↑↓\s+move')));
     expect(t, containsLine(matches(r'g g\s+top')));
     expect(t, containsLine(matches(r'\?\s+help')));
-    expect(t.lines.join('\n'), isNot(contains('f2')), reason: 'no hint');
+    expect(t, isNot(containsLine(contains('f2'))), reason: 'no hint');
     final row = t.lines.indexWhere((l) => l.contains('save'));
     final x = t.lines[row].indexOf('ctrl+s');
     expect(t.cell(x, row).attrs & Attr.bold, Attr.bold);
     await t.press('escape');
     await t.pumpUntilIdle();
-    expect(t.lines.join('\n'), isNot(contains('save')));
+    expect(t, isNot(containsLine(contains('save'))));
   });
 
   testTwk('the keys of each layer apart, the nearest first, a blank line '

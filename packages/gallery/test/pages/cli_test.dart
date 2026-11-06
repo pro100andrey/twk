@@ -151,9 +151,8 @@ void main() {
       duration: Duration.zero,
     );
     await t.pump(const Duration(milliseconds: 2000));
-    final text = t.lines.join('\n');
-    expect(text, contains('╭ terminal '));
-    expect(text, contains(r'$ dart run lib/cli/create.dart'));
-    expect(text, contains('✔ Project name? todo_cli'));
+    expect(t, containsLine(contains('╭ terminal ')));
+    expect(t, containsLine(contains(r'$ dart run lib/cli/create.dart')));
+    expect(t, containsLine(contains('✔ Project name? todo_cli')));
   });
 }

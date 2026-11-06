@@ -158,10 +158,9 @@ void main() {
       );
       await t.press('enter');
       await t.pumpUntilIdle();
-      final text = t.lines.join('\n');
-      expect(text, contains('[x] Apple'));
-      expect(text, contains('[ ] Banana'));
-      expect(text, isNot(contains('🙂')));
+      expect(t, containsLine(contains('[x] Apple')));
+      expect(t, containsLine(contains('[ ] Banana')));
+      expect(t, isNot(containsLine(contains('🙂'))));
       expect(warnings(t), hasLength(1));
     });
 
@@ -182,7 +181,7 @@ void main() {
         size: (8, 2),
       );
       expect(t.lines.first, startsWith(' [ ] a'));
-      expect(t.lines.join(), isNot(contains('🙂')));
+      expect(t, isNot(containsLine(contains('🙂'))));
       expect(warnings(t), hasLength(1));
     });
 
@@ -211,7 +210,7 @@ void main() {
       final file = t.lines.firstWhere((l) => l.contains('[ ] a-file'));
       final directory = t.lines.firstWhere((l) => l.contains('sub-dir'));
       expect(directory.indexOf('sub-dir'), file.indexOf('a-file'));
-      expect(t.lines.join(), isNot(contains('🙂')));
+      expect(t, isNot(containsLine(contains('🙂'))));
       expect(warnings(t), hasLength(1));
     });
 

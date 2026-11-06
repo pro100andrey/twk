@@ -153,10 +153,10 @@ void main() {
     await t.press('f10');
     await t.press('enter');
     await t.pump();
-    expect(t.lines.join('\n'), contains('${hebrew}x'));
-    expect(t.lines.join('\n'), contains('Open'));
+    expect(t, containsLine(contains('${hebrew}x')));
+    expect(t, containsLine(contains('Open')));
     await visual(t);
-    expect(t.lines.join('\n'), contains('x$reversed'));
-    expect(t.lines.join('\n'), contains('Open'));
+    expect(t, containsLine(contains('x$reversed')));
+    expect(t, containsLine(contains('Open')));
   });
 }

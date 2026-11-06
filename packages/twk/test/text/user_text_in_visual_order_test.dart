@@ -83,7 +83,7 @@ void main() {
       ..selectNext()
       ..showSelected();
     await t.pump();
-    expect(t.lines.join('\n'), contains(reversed));
+    expect(t, containsLine(contains(reversed)));
     controller.close();
   });
 
@@ -131,7 +131,7 @@ void main() {
     );
     await visual(t);
     expect(t.lines[0], startsWith(reversed));
-    expect(t.lines.join('\n'), contains(reversed));
+    expect(t, containsLine(contains(reversed)));
     await logical(t);
     expect(t.lines[0], startsWith(hebrew));
   });
@@ -156,8 +156,7 @@ void main() {
       size: (40, 12),
     );
     await logical(t);
-    final before = t.lines.join('\n');
-    expect(before, contains(hebrew));
+    expect(t, containsLine(contains(hebrew)));
     await visual(t);
     final after = t.lines.join('\n');
     expect(after, isNot(contains(hebrew)));
@@ -182,7 +181,7 @@ void main() {
       size: (30, 2),
     );
     await logical(t);
-    expect(t.lines.join('\n'), contains(hebrew));
+    expect(t, containsLine(contains(hebrew)));
     await visual(t);
     final shown = t.lines.join('\n');
     expect(shown, isNot(contains(hebrew)));
@@ -201,9 +200,9 @@ void main() {
       size: (20, 4),
     );
     await logical(t);
-    expect(t.lines.join('\n'), contains(hebrew));
+    expect(t, containsLine(contains(hebrew)));
     await visual(t);
-    expect(t.lines.join('\n'), contains(reversed));
+    expect(t, containsLine(contains(reversed)));
   });
 
   testTwk('a Calendar month and weekday names read as a Text does', (t) async {
@@ -252,9 +251,9 @@ void main() {
     await t.press('enter');
     await t.pump();
     await logical(t);
-    expect(t.lines.join('\n'), contains('Quit  $hebrew'));
+    expect(t, containsLine(contains('Quit  $hebrew')));
     await visual(t);
-    expect(t.lines.join('\n'), contains('Quit  $reversed'));
+    expect(t, containsLine(contains('Quit  $reversed')));
   });
 
   testTwk('an OptionList label too long for its row is cut at its end, with '

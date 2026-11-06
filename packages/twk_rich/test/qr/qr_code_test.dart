@@ -351,7 +351,7 @@ void main() {
       QrCode('1' * 7090, level: QrErrorCorrection.low),
       size: (60, 6),
     );
-    expect(t.lines.join(), contains('7090 characters'));
+    expect(t, containsLine(contains('7090 characters')));
     expect(t.takeErrors(), hasLength(1));
   });
 

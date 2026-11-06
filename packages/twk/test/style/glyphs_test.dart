@@ -248,7 +248,8 @@ void main() {
         ),
         size: (20, 4),
       );
-      expect(t.lines.join('\n'), allOf(contains('C 1.'), isNot(contains('S'))));
+      expect(t, containsLine(contains('C 1.')));
+      expect(t, isNot(containsLine(contains('S'))));
     });
 
     testTwk('a RadioGroup marks its choice with the dot, its own mark above '
@@ -587,9 +588,9 @@ void main() {
         themed(Glyphs.ascii, Overlay(child: decorated())),
         size: (20, 4),
       );
-      expect(t.lines.join('\n'), contains('Apple'));
-      expect(t.lines.join('\n'), contains(' v'));
-      expect(t.lines.join('\n'), isNot(contains('▾')));
+      expect(t, containsLine(contains('Apple')));
+      expect(t, containsLine(contains(' v')));
+      expect(t, isNot(containsLine(contains('▾'))));
     });
 
     testTwk('a NumberInput draws its arrows from the set', (t) async {
@@ -652,10 +653,10 @@ void main() {
         child: const Text('Built'),
       );
       await t.pumpWidget(themed(Glyphs.ascii, callout()), size: (20, 3));
-      expect(t.lines.join('\n'), contains('[x]'));
-      expect(t.lines.join('\n'), contains('v '));
+      expect(t, containsLine(contains('[x]')));
+      expect(t, containsLine(contains('v ')));
       await t.pumpWidget(themed(Glyphs.unicode, callout()), size: (20, 3));
-      expect(t.lines.join('\n'), contains('[×]'));
+      expect(t, containsLine(contains('[×]')));
     });
 
     testTwk('a Stepper draws its step marks from the set', (t) async {
@@ -668,11 +669,11 @@ void main() {
         direction: Axis.vertical,
       );
       await t.pumpWidget(themed(Glyphs.unicode, stepper()), size: (20, 8));
-      final unicode = t.lines.join('\n');
-      expect(unicode, allOf(contains('✔ 1.'), contains('✗ 2.')));
+      expect(t, containsLine(contains('✔ 1.')));
+      expect(t, containsLine(contains('✗ 2.')));
       await t.pumpWidget(themed(Glyphs.ascii, stepper()), size: (20, 8));
-      final ascii = t.lines.join('\n');
-      expect(ascii, allOf(contains('v 1.'), contains('x 2.')));
+      expect(t, containsLine(contains('v 1.')));
+      expect(t, containsLine(contains('x 2.')));
       expect(isAscii(t.lines), isTrue);
     });
   });
@@ -790,10 +791,9 @@ void main() {
       await t.pumpWidget(toasts(Glyphs.ascii), size: (20, 10));
       await t.press('s');
       await t.pump(const Duration(milliseconds: 300));
-      final screen = t.lines.join('\n');
-      expect(screen, contains('| v Saved'));
-      expect(screen, contains('| ! Warn'));
-      expect(screen, isNot(contains('▌')));
+      expect(t, containsLine(contains('| v Saved')));
+      expect(t, containsLine(contains('| ! Warn')));
+      expect(t, isNot(containsLine(contains('▌'))));
     });
   });
 
@@ -823,11 +823,13 @@ void main() {
       await t.pumpWidget(menu(Glyphs.unicode), size: (24, 8));
       await t.press('f10');
       await t.pump();
-      expect(t.lines.join('\n'), allOf(contains('✓ Wrap'), contains('▸')));
+      expect(t, containsLine(contains('✓ Wrap')));
+      expect(t, containsLine(contains('▸')));
       // still open: the set is the theme's, and a new theme repaints
       await t.pumpWidget(menu(Glyphs.ascii), size: (24, 8));
-      expect(t.lines.join('\n'), allOf(contains('v Wrap'), contains('>')));
-      expect(t.lines.join('\n'), isNot(contains('✓')));
+      expect(t, containsLine(contains('v Wrap')));
+      expect(t, containsLine(contains('>')));
+      expect(t, isNot(containsLine(contains('✓'))));
     });
   });
 }

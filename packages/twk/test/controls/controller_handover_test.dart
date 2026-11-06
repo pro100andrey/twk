@@ -106,8 +106,6 @@ T disposed<T extends ChangeNotifier>(T notifier) {
   return notifier;
 }
 
-String screen(TwkTester t) => t.lines.join('\n');
-
 void main() {
   for (final order in Order.values) {
     group('built in place ($order):', () {
@@ -177,14 +175,14 @@ void main() {
         );
         c.open(query: 'pr');
         await t.pump();
-        expect(screen(t), contains('Print'));
+        expect(t, containsLine(contains('Print')));
         expect(seen, ['true pr']);
         root.swap();
         await t.pump();
         await t.pump();
         expect(c.isOpen, isTrue);
         expect(c.query, 'pr');
-        expect(screen(t), contains('Print'));
+        expect(t, containsLine(contains('Print')));
         expect(seen, ['true pr']);
         await t.type('i');
         await t.pump();
@@ -200,7 +198,7 @@ void main() {
         c.close();
         await t.pump();
         expect(c.isOpen, isFalse);
-        expect(screen(t), isNot(contains('Print')));
+        expect(t, isNot(containsLine(contains('Print'))));
         noErrors(t);
       });
 
@@ -228,21 +226,21 @@ void main() {
         );
         c.open([1]);
         await t.pump();
-        expect(screen(t), contains('Wrap'));
+        expect(t, containsLine(contains('Wrap')));
         root.swap();
         await t.pump();
         await t.pump();
         expect(c.isOpen, isTrue);
         expect(c.path, [1]);
-        expect(screen(t), contains('Wrap'));
+        expect(t, containsLine(contains('Wrap')));
         expect(seen, ['[1]']);
         c.close();
         await t.pump();
-        expect(screen(t), isNot(contains('Wrap')));
+        expect(t, isNot(containsLine(contains('Wrap'))));
         expect(seen, ['[1]', '[]']);
         c.open([0]);
         await t.pump();
-        expect(screen(t), contains('New'));
+        expect(t, containsLine(contains('New')));
         noErrors(t);
       });
 
@@ -267,16 +265,16 @@ void main() {
         );
         c.open();
         await t.pump();
-        expect(screen(t), contains('Copy'));
+        expect(t, containsLine(contains('Copy')));
         root.swap();
         await t.pump();
         await t.pump();
         expect(c.isOpen, isTrue);
-        expect(screen(t), contains('Copy'));
+        expect(t, containsLine(contains('Copy')));
         expect(seen, ['true']);
         c.close();
         await t.pump();
-        expect(screen(t), isNot(contains('Copy')));
+        expect(t, isNot(containsLine(contains('Copy'))));
         expect(seen, ['true', 'false']);
         noErrors(t);
       });
@@ -385,21 +383,21 @@ void main() {
           );
           c.open();
           await t.pumpUntilIdle();
-          expect(screen(t), contains(shows));
+          expect(t, containsLine(contains(shows)));
           root.swap();
           await t.pumpUntilIdle();
           expect(c.isOpen, isTrue);
-          expect(screen(t), contains(shows));
+          expect(t, containsLine(contains(shows)));
           await t.press('escape');
           await t.pumpUntilIdle();
           expect(c.isOpen, isFalse);
-          expect(screen(t), isNot(contains(shows)));
+          expect(t, isNot(containsLine(contains(shows))));
           c.open();
           await t.pumpUntilIdle();
-          expect(screen(t), contains(shows));
+          expect(t, containsLine(contains(shows)));
           c.close();
           await t.pumpUntilIdle();
-          expect(screen(t), isNot(contains(shows)));
+          expect(t, isNot(containsLine(contains(shows))));
           expect(seen, [true, false, true, false]);
           noErrors(t);
         });
@@ -500,12 +498,12 @@ void main() {
         );
         c.open();
         await t.pumpUntilIdle();
-        expect(screen(t), contains(shows));
+        expect(t, containsLine(contains(shows)));
         await t.pumpWidget(
           Swapper((_) => make(c, enabled: false), key: key),
         );
         await t.pumpUntilIdle();
-        expect(screen(t), isNot(contains(shows)));
+        expect(t, isNot(containsLine(contains(shows))));
         expect(c.isOpen, isFalse);
         expect(seen, [true, false]);
         noErrors(t);
@@ -522,12 +520,12 @@ void main() {
         );
         c.open();
         await t.pumpUntilIdle();
-        expect(screen(t), contains(shows));
+        expect(t, containsLine(contains(shows)));
         await t.pumpWidget(Swapper((_) => make(null), key: key));
         await t.pumpUntilIdle();
         expect(c.isOpen, isFalse);
         expect(seen, [true, false]);
-        expect(screen(t), isNot(contains(shows)));
+        expect(t, isNot(containsLine(contains(shows))));
         noErrors(t);
       });
     }

@@ -268,7 +268,7 @@ void axisTests() {
       ),
       size: (20, 6),
     );
-    expect(t.lines.join(), contains('Failed assertion'));
+    expect(t, containsLine(contains('Failed assertion')));
     expect(t.takeErrors(), isNotEmpty);
   });
 
@@ -281,7 +281,7 @@ void axisTests() {
       ),
       size: (20, 10),
     );
-    expect(t.lines.join(), isNot(contains('Failed assertion')));
+    expect(t, isNot(containsLine(contains('Failed assertion'))));
     expect(t.lines[9], contains(' 12 '));
   });
 
@@ -293,7 +293,7 @@ void axisTests() {
       ),
       size: (20, 10),
     );
-    expect(t.lines.join(), contains('Failed assertion'));
+    expect(t, containsLine(contains('Failed assertion')));
     expect(t.takeErrors(), isNotEmpty);
   });
 
@@ -305,7 +305,7 @@ void axisTests() {
       ),
       size: (20, 10),
     );
-    expect(t.lines.join(), contains('Failed assertion'));
+    expect(t, containsLine(contains('Failed assertion')));
     expect(t.takeErrors(), isNotEmpty);
   });
 }

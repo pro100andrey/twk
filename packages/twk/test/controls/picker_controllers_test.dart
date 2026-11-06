@@ -226,11 +226,11 @@ void main() {
       );
       controller.open();
       await t.pumpUntilIdle();
-      expect(t.lines.join('\n'), contains('October 2026'));
+      expect(t, containsLine(contains('October 2026')));
       expect(focused(t), isNot(anyOf('next', 'date')));
       controller.close();
       await t.pumpUntilIdle();
-      expect(t.lines.join('\n'), isNot(contains('October 2026')));
+      expect(t, isNot(containsLine(contains('October 2026'))));
       expect(focused(t), 'date');
       expect(calls[0], 2);
       // its own keys: Alt+Down opens, Escape closes, Enter picks
@@ -262,10 +262,10 @@ void main() {
       );
       await t.pumpWidget(picker(null), size: (30, 12));
       await t.pumpUntilIdle();
-      expect(t.lines.join('\n'), isNot(contains('March 2020')));
+      expect(t, isNot(containsLine(contains('March 2020'))));
       await t.pumpWidget(picker(controller));
       await t.pumpUntilIdle();
-      expect(t.lines.join('\n'), contains('March 2020'));
+      expect(t, containsLine(contains('March 2020')));
     });
 
     testTwk('a disabled DatePicker stays closed', (t) async {
@@ -286,7 +286,7 @@ void main() {
       controller.open();
       await t.pumpUntilIdle();
       expect(controller.isOpen, isFalse);
-      expect(t.lines.join('\n'), isNot(contains('2026')));
+      expect(t, isNot(containsLine(contains('2026'))));
     });
   });
 

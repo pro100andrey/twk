@@ -85,14 +85,14 @@ void main() {
       size: (20, 7),
     );
     await press(t, 'd');
-    expect(t.lines.join('\n'), contains('sure?'));
+    expect(t, containsLine(contains('sure?')));
   }
 
   testTwk('a PopScope that cannot pop keeps a dialog open on Escape and '
       'is told it did not pop', (t) async {
     await show(t, pop: false);
     await press(t, 'escape');
-    expect(t.lines.join('\n'), contains('sure?'));
+    expect(t, containsLine(contains('sure?')));
     expect(calls, ['invoked false null']);
     expect(results, isEmpty);
     expect(log.calls, isEmpty);
@@ -101,7 +101,7 @@ void main() {
     canPop.value = true;
     await t.pump();
     await press(t, 'escape');
-    expect(t.lines.join('\n'), isNot(contains('sure?')));
+    expect(t, isNot(containsLine(contains('sure?'))));
     expect(calls, ['invoked false null', 'invoked true null']);
     expect(results, [null]);
     expect(log.calls, ['pop ? /']);
@@ -112,7 +112,7 @@ void main() {
     await show(t, pop: false);
     await t.click(0, 0);
     await t.pump();
-    expect(t.lines.join('\n'), contains('sure?'));
+    expect(t, containsLine(contains('sure?')));
     expect(calls, ['invoked false null']);
     expect(results, isEmpty);
     expect(log.calls, isEmpty);
@@ -124,14 +124,14 @@ void main() {
   ) async {
     await show(t, pop: true);
     await press(t, 'escape');
-    expect(t.lines.join('\n'), isNot(contains('sure?')));
+    expect(t, isNot(containsLine(contains('sure?'))));
     expect(calls, ['invoked true null']);
     expect(log.calls, ['pop ? /']);
 
     await press(t, 'd');
     await t.click(0, 0);
     await t.pump();
-    expect(t.lines.join('\n'), isNot(contains('sure?')));
+    expect(t, isNot(containsLine(contains('sure?'))));
     expect(calls, ['invoked true null', 'invoked true null']);
     expect(log.calls, ['pop ? /', 'pop ? /']);
     expect(results, [null, null]);
@@ -141,7 +141,7 @@ void main() {
       'PopScope cannot pop', (t) async {
     await show(t, pop: false);
     await press(t, 'x');
-    expect(t.lines.join('\n'), isNot(contains('sure?')));
+    expect(t, isNot(containsLine(contains('sure?'))));
     expect(results, ['done']);
   });
 }
