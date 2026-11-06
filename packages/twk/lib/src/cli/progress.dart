@@ -235,7 +235,15 @@ final class CliProgress {
         Span('${theme.glyphs.cross} ', theme.error),
       Span(_oneLine(message ?? _message)),
       if (_look == _Look.live)
-        Span(_cli.strings.tookIn(formatTook(_clock.elapsed)), theme.hint),
+        Span(
+          _cli.strings.tookIn(
+            formatTook(
+              _clock.elapsed,
+              decimalSeparator: _cli.strings.decimalSeparator,
+            ),
+          ),
+          theme.hint,
+        ),
     ];
     if (_look != _Look.live || _openFailed) {
       _cli.writeLine(line);
@@ -400,7 +408,11 @@ List<Span> summaryLine(
   ByteUnits byteUnits = ByteUnits.decimal,
 ]) {
   final summary = _oneLine(
-    task.summary(glyphs: cli.theme.glyphs, byteUnits: byteUnits),
+    task.summary(
+      glyphs: cli.theme.glyphs,
+      byteUnits: byteUnits,
+      decimalSeparator: cli.strings.decimalSeparator,
+    ),
   );
   final theme = cli.theme;
   final space = summary.indexOf(' ');
@@ -506,7 +518,7 @@ final class _SpinnerViewState extends State<_SpinnerView> {
             ),
           ),
           Text(
-            ' (${formatTook(widget.clock.elapsed)})',
+            ' (${formatTook(widget.clock.elapsed, decimalSeparator: TwkStrings.of(context).decimalSeparator)})',
             style: widget.hint,
             wrap: TextWrap.none,
           ),

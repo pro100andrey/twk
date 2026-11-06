@@ -51,6 +51,7 @@ final class TwkStrings {
     this.typeToFilter = 'type to filter',
     this.spaceToToggle = 'space to toggle',
     this.typeToFilterAndToggle = 'type to filter, space to toggle',
+    this.decimalSeparator = '.',
   });
 
   /// What follows a finished task's message in a log, from how long it
@@ -119,6 +120,10 @@ final class TwkStrings {
   /// The hint of a choice of any that can be filtered.
   final String typeToFilterAndToggle;
 
+  /// What stands for the point in the sizes and times twk writes: `4.5
+  /// GB` and `3.1 s` with the default `.`, `4,5 GB` and `3,1 s` with `,`.
+  final String decimalSeparator;
+
   /// The words at [context]: those of the nearest [Localizations], else
   /// English. [context] depends on them, so that a widget is built again
   /// when they change.
@@ -151,7 +156,8 @@ final class TwkStrings {
       chooseAtMost == other.chooseAtMost &&
       typeToFilter == other.typeToFilter &&
       spaceToToggle == other.spaceToToggle &&
-      typeToFilterAndToggle == other.typeToFilterAndToggle;
+      typeToFilterAndToggle == other.typeToFilterAndToggle &&
+      decimalSeparator == other.decimalSeparator;
 
   @override
   int get hashCode => Object.hashAll([
@@ -176,6 +182,7 @@ final class TwkStrings {
     typeToFilter,
     spaceToToggle,
     typeToFilterAndToggle,
+    decimalSeparator,
   ]);
 }
 

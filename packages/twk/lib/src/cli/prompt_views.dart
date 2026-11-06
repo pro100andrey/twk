@@ -338,14 +338,26 @@ final class _ConfirmPromptViewState extends State<ConfirmPromptView> {
     }
   }
 
+  // [char] is [english] or the first letter of [word], in either case, as a
+  // plain terminal takes an answer
+  static bool _isLetter(String? char, String english, String word) {
+    if (char == null || char.isEmpty) {
+      return false;
+    }
+    final c = char.toLowerCase();
+    return c == english ||
+        (word.isNotEmpty && c == word.substring(0, 1).toLowerCase());
+  }
+
   KeyEventResult _key(FocusNode node, KeyEvent event) {
     if (event.kind == KeyKind.release || event.modifiers & ~Mod.shift != 0) {
       return KeyEventResult.ignored;
     }
+    final strings = TwkStrings.of(context);
     switch (event.code) {
-      case KeyCode.char when event.char == 'y' || event.char == 'Y':
+      case KeyCode.char when _isLetter(event.char, 'y', strings.yes):
         _answer(true);
-      case KeyCode.char when event.char == 'n' || event.char == 'N':
+      case KeyCode.char when _isLetter(event.char, 'n', strings.no):
         _answer(false);
       case KeyCode.enter:
         if (_highlighted case final value?) {

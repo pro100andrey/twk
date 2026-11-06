@@ -38,3 +38,10 @@ does and named as the IEC does (`1023 B`, `1.0 KiB`, `1.5 MiB`)
 defaults, and `Localizations(strings:, child:)`, which gives them to the
 widgets below; `TwkStrings.of(context)` reads the nearest, English without
 one, and a widget that reads them is built again when they change.
+
+`TwkStrings.decimalSeparator` (`.` by default) is the point of the sizes and
+times twk writes: with `,` a `ProgressList`, a `TaskList` and `Cli` write
+`4,5 GB` and `3,1 s`. `formatBytes` and `formatTook` take it as
+`decimalSeparator:`, the point by default. An interactive yes or no answers to
+the first letters of the `yes` and `no` of the strings too (`д`, `н`), besides
+`y` and `n`.

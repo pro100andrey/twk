@@ -20,6 +20,7 @@ import '../animation/steps.dart';
 import '../animation/ticker.dart';
 import '../binding/app_binding.dart';
 import '../foundation/format.dart';
+import '../foundation/strings.dart';
 import '../framework/framework.dart';
 import '../layout/basic.dart';
 import '../layout/flex.dart';
@@ -178,6 +179,7 @@ final class TaskList extends StatelessWidget {
               style: base,
               markStyle: base.merge(taskMarkStyle(theme, status)),
               elapsedStyle: base.merge(theme.muted),
+              decimalSeparator: TwkStrings.of(context).decimalSeparator,
               binding: binding,
               child: Text(
                 item.label,
@@ -231,6 +233,7 @@ final class _TaskRow extends SingleChildRenderObjectWidget {
     required this.style,
     required this.markStyle,
     required this.elapsedStyle,
+    required this.decimalSeparator,
     required this.binding,
     super.child,
   });
@@ -243,6 +246,7 @@ final class _TaskRow extends SingleChildRenderObjectWidget {
   final Style style;
   final Style markStyle;
   final Style elapsedStyle;
+  final String decimalSeparator;
   final AppBinding? binding;
 
   @override
@@ -258,6 +262,7 @@ final class _TaskRow extends SingleChildRenderObjectWidget {
     style: style,
     markStyle: markStyle,
     elapsedStyle: elapsedStyle,
+    decimalSeparator: decimalSeparator,
     binding: binding,
   )..muted = !TickerMode.of(context);
 
@@ -272,14 +277,20 @@ final class _TaskRow extends SingleChildRenderObjectWidget {
       ..style = style
       ..markStyle = markStyle
       ..elapsedStyle = elapsedStyle
+      ..decimalSeparator = decimalSeparator
       ..muted = !TickerMode.of(context);
   }
 }
 
 /// [time] as a task's time, as a `ProgressList` writes it: a clock while
 /// it is [running] (`00:12`), else the time it took (`3.1 s`, `01:05`).
-String _elapsed(Duration time, {required bool running}) =>
-    running ? formatClock(time) : formatTook(time);
+String _elapsed(
+  Duration time, {
+  required bool running,
+  required String decimalSeparator,
+}) => running
+    ? formatClock(time)
+    : formatTook(time, decimalSeparator: decimalSeparator);
 
 /// What a row of a [TaskList] lays out and paints: [level] levels of two
 /// cells, the mark of [status] as wide as the widest mark and spinner frame
@@ -301,6 +312,7 @@ final class _RenderTaskRow extends RenderObject
     required this._style,
     required this._markStyle,
     required this._elapsedStyle,
+    required this._decimalSeparator,
     required this.binding,
   }) {
     if (_status == TaskStatus.running) {
@@ -441,6 +453,15 @@ final class _RenderTaskRow extends RenderObject
     }
   }
 
+  String _decimalSeparator;
+  String get decimalSeparator => _decimalSeparator;
+  set decimalSeparator(String s) {
+    if (s != _decimalSeparator) {
+      _decimalSeparator = s;
+      _show();
+    }
+  }
+
   Style _elapsedStyle;
   Style get elapsedStyle => _elapsedStyle;
   set elapsedStyle(Style s) {
@@ -456,7 +477,11 @@ final class _RenderTaskRow extends RenderObject
       return _showElapsed &&
               _status != TaskStatus.pending &&
               _status != TaskStatus.skipped
-          ? _elapsed(given, running: _status == TaskStatus.running)
+          ? _elapsed(
+              given,
+              running: _status == TaskStatus.running,
+              decimalSeparator: _decimalSeparator,
+            )
           : '';
     }
     final started = _started;
@@ -464,7 +489,11 @@ final class _RenderTaskRow extends RenderObject
     if (!_showElapsed || started == null || now == null) {
       return '';
     }
-    return _elapsed(now - started, running: _ended == null);
+    return _elapsed(
+      now - started,
+      running: _ended == null,
+      decimalSeparator: _decimalSeparator,
+    );
   }
 
   /// Shows the time at the frame running: lays the row out again when
