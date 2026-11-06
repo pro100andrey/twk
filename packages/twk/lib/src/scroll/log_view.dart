@@ -3,9 +3,7 @@
 /// and `N`.
 library;
 
-import 'dart:async'
-    show Completer, Stream, StreamController, StreamSubscription, unawaited;
-import 'dart:convert' show ByteConversionSink, Utf8Decoder;
+import 'dart:async' show Completer, Stream, StreamSubscription, unawaited;
 import 'dart:math' show max, min;
 
 import 'package:meta/meta.dart' show visibleForTesting;
@@ -235,18 +233,23 @@ final class LogController extends ChangeNotifier {
     Stream<String> output, {
     LogLevel level = LogLevel.info,
     int tabWidth = 8,
-  }) => _follow<String>(output, _Text.new, level, tabWidth);
+  }) => _follow<String>(
+    output,
+    (reader, text) => reader.add(text),
+    level,
+    tabWidth,
+  );
 
-  /// [addOutput] of [output], each event of it told by [piece] as text or as
-  /// a [_Cut], the end of the output so far, as of a file cut short: the line
-  /// not ended is dropped.
+  /// [addOutput] of [output], each event of it read into the stream by
+  /// [feed], which may [AnsiStream.reset] it, as a file cut short does: the
+  /// line not ended is dropped.
   LogSource _follow<T>(
     Stream<T> output,
-    _Piece Function(T) piece,
+    void Function(AnsiStream, T) feed,
     LogLevel level,
     int tabWidth,
   ) {
-    var reader = AnsiStream(tabWidth: tabWidth);
+    final reader = AnsiStream(tabWidth: tabWidth);
     void addEnded() {
       final ended = reader.takeSettled();
       if (ended.isEmpty) {
@@ -268,14 +271,8 @@ final class LogController extends ChangeNotifier {
 
     source._subscription = output.listen(
       (event) {
-        switch (piece(event)) {
-          case _Cut():
-            addEnded();
-            reader = AnsiStream(tabWidth: tabWidth);
-          case _Text(:final text):
-            reader.add(text);
-            addEnded();
-        }
+        feed(reader, event);
+        addEnded();
       },
       onError: (Object error, StackTrace stack) {
         finish(error, stack);
@@ -338,61 +335,17 @@ final class LogController extends ChangeNotifier {
     Duration poll = const Duration(seconds: 1),
     LogLevel level = LogLevel.info,
     int tabWidth = 8,
-  }) => _follow<_Piece>(
-    _decoded(tailFile(path, fromEnd: fromEnd, poll: poll)),
-    (piece) => piece,
+  }) => _follow<TailEvent>(
+    tailFile(path, fromEnd: fromEnd, poll: poll),
+    (reader, event) => switch (event) {
+      FileBytes(:final bytes) => reader.addBytes(bytes),
+      // the old file's unended line, and a character cut, are not the start
+      // of the next one
+      FileReset() => reader.reset(),
+    },
     level,
     tabWidth,
   );
-
-  /// The text of the bytes of [events], with a [_Cut] where the file was read
-  /// again from its start: what the old file left unended (a cut UTF-8
-  /// character too) is not the start of the next line.
-  static Stream<_Piece> _decoded(Stream<TailEvent> events) {
-    final pieces = <String>[];
-    ByteConversionSink? decoder;
-    late final StreamSubscription<TailEvent> subscription;
-    late final StreamController<_Piece> out;
-    ByteConversionSink fresh() => const Utf8Decoder(
-      allowMalformed: true,
-    ).startChunkedConversion(_Pieces(pieces));
-    void flush() {
-      for (final piece in pieces) {
-        out.add(_Text(piece));
-      }
-      pieces.clear();
-    }
-
-    out = StreamController<_Piece>(
-      // listened to at once: the file's end is taken as it is
-      onListen: () {
-        decoder = fresh();
-        subscription = events.listen(
-          (event) {
-            switch (event) {
-              case FileReset():
-                pieces.clear();
-                decoder = fresh();
-                out.add(const _Cut());
-              case FileBytes(:final bytes):
-                decoder!.add(bytes);
-                flush();
-            }
-          },
-          onError: out.addError,
-          onDone: () {
-            decoder!.close();
-            flush();
-            unawaited(out.close());
-          },
-        );
-      },
-      onPause: () => subscription.pause(),
-      onResume: () => subscription.resume(),
-      onCancel: () => subscription.cancel(),
-    );
-    return out.stream;
-  }
 
   static String _textOf(List<Span> spans) => switch (spans) {
     [] => '',
@@ -1785,35 +1738,4 @@ final class LogSource {
       _done.completeError(error, stack);
     }
   }
-}
-
-/// What [LogController._decoded] tells: [_Text] read, or a [_Cut].
-sealed class _Piece {
-  const _Piece();
-}
-
-/// Text of the output.
-final class _Text extends _Piece {
-  const _Text(this.text);
-
-  final String text;
-}
-
-/// Where a file was read again from its start.
-final class _Cut extends _Piece {
-  const _Cut();
-}
-
-/// The sink a chunked decoder writes the pieces of text to, kept in
-/// [pieces].
-final class _Pieces implements Sink<String> {
-  _Pieces(this.pieces);
-
-  final List<String> pieces;
-
-  @override
-  void add(String data) => pieces.add(data);
-
-  @override
-  void close() {}
 }

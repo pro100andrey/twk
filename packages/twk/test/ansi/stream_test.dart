@@ -174,4 +174,62 @@ void main() {
     ]);
     expect(stream.lines, isEmpty);
   });
+
+  group('reset', () {
+    test('forgets the line being written, with its style', () {
+      final stream = AnsiStream()
+        ..add('one\n\x1B[31mred')
+        ..reset()
+        ..add('new\n');
+      expect(stream.lines, [
+        [const Span('new')],
+      ]);
+      expect(stream.settled, 1);
+    });
+
+    test('forgets a UTF-8 character cut off, a surrogate and a sequence', () {
+      final bytes = AnsiStream()
+        ..addBytes([0x61, 0xE2, 0x82])
+        ..reset()
+        ..addBytes(utf8.encode('\u20AC\n'));
+      expect(bytes.lines, [
+        [const Span('\u20AC')],
+      ]);
+      final text = AnsiStream()
+        ..add('a\uD83D')
+        ..reset()
+        ..add('\uDE00b');
+      expect(
+        text.lines.single.map((s) => s.text).join(),
+        isNot(contains('\u{1F600}')),
+      );
+      final cut = AnsiStream()
+        ..add('a\x1B[3')
+        ..reset()
+        ..add('1mb');
+      expect(cut.lines, [
+        [const Span('1mb')],
+      ]);
+    });
+
+    test('opens a closed stream', () {
+      final stream = AnsiStream()
+        ..add('a')
+        ..close()
+        ..reset();
+      expect(stream.lines, isEmpty);
+      stream.add('b');
+      expect(stream.lines, [
+        [const Span('b')],
+      ]);
+    });
+
+    test('keeps the tab width', () {
+      final stream = AnsiStream(tabWidth: 4)
+        ..add('x')
+        ..reset()
+        ..add('\ty');
+      expect(stream.lines.single.map((s) => s.text).join(), '    y');
+    });
+  });
 }

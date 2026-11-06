@@ -77,8 +77,8 @@ final class AnsiStream {
   /// Columns between tab stops.
   final int tabWidth;
 
-  final _rendition = Rendition();
-  final _line = LineBuffer();
+  var _rendition = Rendition();
+  var _line = LineBuffer();
   final _settled = <List<Span>>[];
   List<List<Span>>? _lines;
   var _closed = false;
@@ -87,7 +87,9 @@ final class AnsiStream {
   String? _high;
   ByteConversionSink? _decoder;
 
-  late final _reader = EscapeReader(
+  late EscapeReader _reader = _newReader();
+
+  EscapeReader _newReader() => EscapeReader(
     text: (text) => _line.write(text, _rendition.style),
     control: _control,
     csi: _csi,
@@ -159,6 +161,23 @@ final class AnsiStream {
     }
     _closed = true;
     _lines = null;
+  }
+
+  /// Starts over, as a new stream does: the lines, the one being written,
+  /// a character or a sequence cut off, the style and a link are forgotten,
+  /// and a closed stream is open again. For output that begins again, as a
+  /// followed file does when it is cut short or replaced: what the old one
+  /// left unended is not the start of the next line. [takeSettled] first
+  /// for lines that are wanted.
+  void reset() {
+    _rendition = Rendition();
+    _line = LineBuffer();
+    _settled.clear();
+    _lines = null;
+    _high = null;
+    _decoder = null;
+    _reader = _newReader();
+    _closed = false;
   }
 
   void _checkOpen() {
