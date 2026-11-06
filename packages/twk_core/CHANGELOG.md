@@ -119,6 +119,11 @@ Breaking:
 - `BoxConstraints` takes its bounds by name, as Flutter's does, a bound left out
   limiting nothing: `BoxConstraints(maxW: n)`, where it was
   `BoxConstraints(0, n, 0, BoxConstraints.unbounded)`.
+
+Added:
+
+- `BoxConstraints.loose` and `expand`, `copyWith`, `loosen`, `enforce`, `tighten`, `deflate`, `widthConstraints` and `heightConstraints`, `hasTightWidth`, `hasBoundedWidth` and `hasInfiniteWidth` (and for the height), and `biggest` and `smallest` (a `({int width, int height})`, there being no `Size`); `EdgeInsets.symmetric` and `EdgeInsets.fromLTRB`. `EdgeInsets.x` and `EdgeInsets.y` stay.
+
 ## 0.2.0
 
 - On Windows Ctrl+Space (and Ctrl+@) reaches the app as NUL again, as it

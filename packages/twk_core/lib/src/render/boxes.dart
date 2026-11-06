@@ -137,6 +137,7 @@ final class RenderBox extends RenderObject with RenderObjectWithChildMixin {
 /// const insets = EdgeInsets.only(left: 2, top: 1);
 /// assert(insets.horizontal == 2 && insets.vertical == 1);
 /// assert(const EdgeInsets.x(1) == const EdgeInsets.only(left: 1, right: 1));
+/// assert(const EdgeInsets.symmetric(vertical: 1) == const EdgeInsets.y(1));
 /// ```
 ///
 /// See also:
@@ -159,6 +160,21 @@ final class EdgeInsets {
   /// [cells] on every side.
   const EdgeInsets.all(int cells)
     : this.only(left: cells, top: cells, right: cells, bottom: cells);
+
+  /// [left], [top], [right] and [bottom] cells, in the order Flutter's
+  /// `EdgeInsets.fromLTRB` takes them.
+  const EdgeInsets.fromLTRB(int left, int top, int right, int bottom)
+    : this.only(left: left, top: top, right: right, bottom: bottom);
+
+  /// [horizontal] cells on the left and on the right, [vertical] above and
+  /// below, each 0 unless given.
+  const EdgeInsets.symmetric({int horizontal = 0, int vertical = 0})
+    : this.only(
+        left: horizontal,
+        right: horizontal,
+        top: vertical,
+        bottom: vertical,
+      );
 
   /// [cells] on the left and on the right.
   const EdgeInsets.x(int cells) : this.only(left: cells, right: cells);

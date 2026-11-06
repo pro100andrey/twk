@@ -33,10 +33,14 @@ const loose = BoxConstraints(maxWidth: 40);
 ```
 
 - `BoxConstraints` has `minWidth`, `maxWidth`, `minHeight` and
-  `maxHeight`, as in Flutter, in cells. `BoxConstraints.tight(w, h)` takes the
-  two sizes, not a `Size`, and `tightFor` is there.
-- `EdgeInsets` has `all`, `only`, `x` (left and right) and `y` (top and
-  bottom). It has no `symmetric`, `fromLTRB` or `LTRB`.
+  `maxHeight`, as in Flutter, in cells. `BoxConstraints.tight(w, h)` and
+  `loose(w, h)` take the two sizes, not a `Size`, and `tightFor` and `expand`
+  are there; so are `copyWith`, `loosen`, `enforce`, `tighten`, `deflate`, the
+  `hasBounded`, `hasTight` and `hasInfinite` getters, and `biggest` and
+  `smallest`, which are `({int width, int height})` records.
+- `EdgeInsets` has `all`, `only`, `symmetric`, `fromLTRB`, and `x` (left and
+  right) and `y` (top and bottom), which are shorter than
+  `symmetric(horizontal:)` and `symmetric(vertical:)`.
 - A `double` is still a `double` where it is a proportion: `Slider`'s
   value, `Opacity.opacity`, `ProgressBar.value`.
 - The screen's size is not in a `MediaQuery`: there is none. A widget
