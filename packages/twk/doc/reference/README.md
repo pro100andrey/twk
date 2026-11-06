@@ -59,9 +59,10 @@ system on the web)` below its root, the console's `save` fails with an
 `test/platform/web_check_test.dart` builds an app with `runApp` there and
 runs it in node (`tool/web_check.dart twk`).
 
-[SKILL.md](../../SKILL.md) is a skill for coding agents that build apps with
-twk: the mental model, setting an app up, the widgets by need, recipes,
-tests with twk_test, debugging and the pitfalls.
+[SKILL.md](../../../../skills/twk/SKILL.md) is a skill for coding agents that build apps with
+twk: the rules that differ from Flutter, setting an app up, tests with
+twk_test and the pitfalls; its recipes, widgets by need and details are the
+guides `doc/guides/recipes.md`, `widgets-by-need.md` and `details.md`.
 `test/skill_test.dart` writes its code blocks into a package of their
 own, which must analyze, format and pass its tests as written, checks
 that every name its prose gives is exported, and that its pitfalls are
