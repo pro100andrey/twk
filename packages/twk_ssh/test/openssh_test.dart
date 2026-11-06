@@ -219,9 +219,13 @@ void main() {
     // it and goes after under the new keys, which then rekey again at the
     // next packet.
     expect(connection.transport.serverKeyExchanges, greaterThanOrEqualTo(2));
+    // The first exchange is counted in keyExchanges when it finishes and a
+    // server-started one when it starts, so one begun and not finished when
+    // ssh exits (nothing is lost by it) leaves keyExchanges one short: an
+    // equality with serverKeyExchanges + 1 would be a race with ssh's exit.
     expect(
       connection.transport.keyExchanges,
-      connection.transport.serverKeyExchanges + 1,
+      greaterThanOrEqualTo(connection.transport.serverKeyExchanges),
     );
     expect(connection.transport.kexAlgorithm, 'mlkem768x25519-sha256');
   });
