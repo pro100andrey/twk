@@ -9,7 +9,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:twk/twk.dart';
-import 'package:twk_core/twk_core.dart' show clipboardSequence;
+import 'package:twk_core/twk_core.dart'
+    show clipboardSequence, graphemeBoundaries;
 
 import '../highlight/syntax_theme.dart';
 

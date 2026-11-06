@@ -368,18 +368,13 @@ List<Span> _rowSpans(
       spans.add(Span(quoted, theme.key));
     } else {
       final marked = theme.key.merge(markStyle);
-      // A mark covers the whole character at its offset: both halves of a
-      // surrogate pair, never one.
-      final at = <int>{};
-      for (final mark in marks) {
-        at.add(mark);
-        if (mark >= 0 &&
-            mark + 1 < key.length &&
-            key.codeUnitAt(mark) >= 0xD800 &&
-            key.codeUnitAt(mark) < 0xDC00) {
-          at.add(mark + 1);
-        }
-      }
+      // a mark is where a cluster starts, and covers all of it
+      final starts = marks.toSet();
+      final at = <int>{
+        for (final (from, to) in graphemeBoundaries(key))
+          if (starts.contains(from))
+            for (var i = from; i < to; i++) i,
+      };
       spans.add(Span('"', theme.key));
       var from = 0;
       for (var i = 0; i <= key.length; i++) {
