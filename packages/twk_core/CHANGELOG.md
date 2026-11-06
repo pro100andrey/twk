@@ -17,8 +17,11 @@ Changed:
   `maxPayload`. A frame of a type the receiver does not know is ignored and logged
   (`twk.wire`) on both sides. The bytes on the wire are unchanged.
 - `RenderParagraph.keepsPaint`, false by default: the paragraph is a repaint
-  boundary that repaints only the rows that differ. `TextPainter.changedRows`
-  says which; `TextPainter.paint` is `prepare` and `draw`, with the same output.
+  boundary that repaints only the rows that differ, over the styles its parent
+  left there. It must not be drawn over other objects' glyphs or be the tree's
+  root. With it off, painting costs what it did before.
+- `TextPainter.prepare` and `draw`, which `paint` is both, and `tracksDamage` with
+  `changedRows`: the rows the last paint drew otherwise than the one before.
 - The presenter writes less and looks at less: over blanks it changes only what a
   blank shows (`StyleTable.nearBlank`), a log's new line 8 % fewer bytes and one
   beside a scrollbar 12 %; and once rows of a frame stop shifting the others are
