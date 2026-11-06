@@ -5,6 +5,7 @@ library;
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:test/test.dart';
 import 'package:twk/src/platform/platform.dart';
@@ -114,7 +115,7 @@ void main() {
     await runZonedGuarded(() async {
       final subscription = IOOverrides.runZoned(
         () => tailFile(path, fromEnd: true, poll: poll).listen((_) {}),
-        createFile: (p) => _SlowLength(inner, answer.future),
+        createFile: (p) => _Hooked(inner, onLength: (_) => answer.future),
       );
       // the first look has asked the length and waits for it; the stream is
       // cancelled and closed, then the answer comes: the file was cut short
@@ -130,6 +131,7 @@ void main() {
       'chunks already told are not read twice', () async {
     File(path).writeAsStringSync('first\nsecond\n');
     final inner = File(path);
+    var reads = 0;
     final told = <String>[];
     final subscription = clock.run(
       () => IOOverrides.runZoned(
@@ -139,7 +141,21 @@ void main() {
             FileReset() => 'reset',
           }),
         ),
-        createFile: (p) => _FailsMidway(inner),
+        // 'first\n' is read, the next read fails as if rotated away midway;
+        // the later looks read as asked
+        createFile: (p) => _Hooked(
+          inner,
+          onRead: (raf, count) {
+            reads++;
+            if (reads == 1) {
+              return raf.read(6);
+            }
+            if (reads == 2) {
+              return Future.error(const FileSystemException('gone'));
+            }
+            return raf.read(count);
+          },
+        ),
       ),
     );
     addTearDown(subscription.cancel);
@@ -147,17 +163,68 @@ void main() {
     await clock.elapse(poll);
     expect(told, ['first\n', 'second\n']);
   });
+
+  test('a file renamed over the name right after its length was taken is '
+      'not read at the old range: nothing of it is told before the reset, '
+      'then it is told from its start', () async {
+    File(path).writeAsStringSync('old line one\n');
+    final inner = File(path);
+    final other = '${dir.path}${Platform.pathSeparator}other.log';
+    final staged = File(other);
+    final replacement = [for (var i = 0; i < 5; i++) 'NEW LINE $i\n'].join();
+    var armed = false;
+    final told = <String>[];
+    final subscription = clock.run(
+      () => IOOverrides.runZoned(
+        () => tailFile(path, fromEnd: true, poll: poll).listen(
+          (e) => told.add(switch (e) {
+            FileBytes(:final bytes) => String.fromCharCodes(bytes),
+            FileReset() => 'reset',
+          }),
+        ),
+        createFile: (p) => _Hooked(
+          inner,
+          onLength: (raf) async {
+            final size = await raf.length();
+            if (armed) {
+              armed = false;
+              staged
+                ..writeAsStringSync(replacement)
+                ..renameSync(path);
+            }
+            return size;
+          },
+        ),
+      ),
+    );
+    addTearDown(subscription.cancel);
+    await clock.elapse(poll);
+    armed = true;
+    File(path).writeAsStringSync('second\n', mode: FileMode.append);
+    await waitUntil(
+      () => told.contains('reset') && told.join().endsWith(replacement),
+      'the reset and the replacement from its start, not $told',
+      between: () => clock.elapse(poll),
+    );
+    // the old file's own bytes may be told before the reset, the new
+    // file's middle may not
+    expect(told.takeWhile((e) => e != 'reset').join(), isIn(['', 'second\n']));
+    expect(told.skipWhile((e) => e != 'reset').skip(1).join(), replacement);
+  });
 }
 
-/// A file whose length is `answer`, when it comes.
-class _SlowLength implements File {
-  _SlowLength(this._file, this._answer);
+/// A file whose handles ask `onLength` for the length and `onRead` for each
+/// read, in place of the file's own where given.
+class _Hooked implements File {
+  _Hooked(this._file, {this.onLength, this.onRead});
 
   final File _file;
-  final Future<int> _answer;
+  final Future<int> Function(RandomAccessFile)? onLength;
+  final Future<Uint8List> Function(RandomAccessFile, int)? onRead;
 
   @override
-  Future<int> length() => _answer;
+  Future<RandomAccessFile> open({FileMode mode = FileMode.read}) async =>
+      _Handle(await _file.open(), onLength, onRead);
 
   @override
   Uri get uri => _file.uri;
@@ -172,40 +239,34 @@ class _SlowLength implements File {
   bool existsSync() => _file.existsSync();
 
   @override
-  Stream<List<int>> openRead([int? start, int? end]) =>
-      _file.openRead(start, end);
-
-  @override
   dynamic noSuchMethod(Invocation invocation) =>
       throw UnimplementedError('${invocation.memberName}');
 }
 
-/// A file whose first read tells 'first\n' and then fails, as one rotated
-/// away midway; the next ones read from where they are asked to.
-class _FailsMidway extends _SlowLength {
-  _FailsMidway(File file) : super(file, Future.value(0));
+class _Handle implements RandomAccessFile {
+  _Handle(this._raf, this._onLength, this._onRead);
 
-  var _failed = false;
-
-  @override
-  Future<int> length() => _file.length();
+  final RandomAccessFile _raf;
+  final Future<int> Function(RandomAccessFile)? _onLength;
+  final Future<Uint8List> Function(RandomAccessFile, int)? _onRead;
 
   @override
-  Stream<List<int>> openRead([int? start, int? end]) {
-    if (_failed) {
-      // not _file.openRead: it opens the name again, through the override
-      return Stream.value(_file.readAsBytesSync().sublist(start ?? 0, end));
-    }
-    _failed = true;
-    return Stream.fromIterable([
-      'first\n'.codeUnits,
-    ]).concatError(const FileSystemException('gone'));
-  }
-}
+  Future<int> length() => _onLength?.call(_raf) ?? _raf.length();
 
-extension on Stream<List<int>> {
-  Stream<List<int>> concatError(Exception error) async* {
-    yield* this;
-    throw error;
+  @override
+  Future<RandomAccessFile> setPosition(int position) async {
+    await _raf.setPosition(position);
+    return this;
   }
+
+  @override
+  Future<Uint8List> read(int count) =>
+      _onRead?.call(_raf, count) ?? _raf.read(count);
+
+  @override
+  Future<void> close() => _raf.close();
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('${invocation.memberName}');
 }
