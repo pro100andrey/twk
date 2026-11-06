@@ -298,7 +298,16 @@ void main() {
       expect(has('AGENTS.md'), isFalse);
       expect(has('.agents'), isFalse);
       expect(has('.claude'), isFalse);
-      expect(result.stdout, isNot(contains('twk agents')));
+      // nobody could be asked: the next steps say how an agent gets the skill
+      expect(result.stdout, contains('twk_dev:twk agents  # the twk skill'));
+    });
+
+    test('without a terminal --agents=none says no file, and hears no more '
+        'of it', () async {
+      final result = await create(['--agents=none'], () => null);
+
+      expect(result.exitCode, 0, reason: '${result.stderr}');
+      expect(result.stdout, isNot(contains('# the twk skill')));
     });
 
     test('without a terminal, what the flags say is taken as it is', () async {
@@ -311,6 +320,7 @@ void main() {
       expect(result.stdout, contains('of the template dashboard'));
       expect(has('.agents/skills/twk/SKILL.md'), isTrue);
       expect(has('AGENTS.md'), isFalse);
+      expect(result.stdout, isNot(contains('# the twk skill')));
     });
 
     test('Ctrl+C at the first question writes nothing and exits non-zero '

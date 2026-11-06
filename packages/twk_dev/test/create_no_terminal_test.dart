@@ -57,6 +57,7 @@ void main() {
     expect(code, 0, reason: err);
     expect(out, contains('of the template app'));
     expect(out, isNot(contains('?')));
+    expect(out, contains('dart run twk_dev:twk agents'));
     expect(File(p.join(dir, 'lib', 'my_app.dart')).existsSync(), isTrue);
     expect(filesIn(dir), isNot(contains('AGENTS.md')));
     expect(

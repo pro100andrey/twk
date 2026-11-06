@@ -23,7 +23,8 @@ writes a new app into `<dir>` from a template (`app`, `inline`, `form`,
 `--agents=agents-md,skill` also writes the files for coding agents, as
 `twk agents` does. In a terminal it asks for the template and the files
 that the flags did not say; without one (an agent, CI, a pipe) it asks
-nothing and takes the `app` template and no files for agents
+nothing and takes the `app` template and no files for agents, and its next
+steps name `twk agents` for the skill
 
 ### `twk agents [-C <dir>] [--dry-run]`
 

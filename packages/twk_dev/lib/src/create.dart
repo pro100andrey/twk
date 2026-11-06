@@ -176,11 +176,15 @@ final class CreateCommand extends Command<int> {
       return 1;
     }
     final CreateAnswers answers;
+    // a coding agent runs this with no terminal: nothing asked it, so the
+    // next steps say how it gets the skill
+    var skillUnoffered = false;
     if (given != null && agentsGiven != null) {
       answers = (template: given, agents: agentsGiven);
     } else {
       final terminal = _terminal();
       if (terminal == null) {
+        skillUnoffered = agentsGiven == null;
         answers = (
           template: given ?? templates.first,
           agents: agentsGiven ?? const {},
@@ -257,6 +261,11 @@ final class CreateCommand extends Command<int> {
         ..writeln('  dart run bin/main.dart')
         ..writeln('  dart run twk_dev:twk run bin/main.dart  # hot reloaded')
         ..writeln('  dart test');
+      if (skillUnoffered) {
+        stdout.writeln(
+          '  dart run twk_dev:twk agents  # the twk skill, for coding agents',
+        );
+      }
     }
     return 0;
   }
