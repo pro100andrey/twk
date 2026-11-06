@@ -60,9 +60,11 @@ Breaking:
   `RenderFlex` and `RenderWrap` have them, as Flutter names them: they were
   `gap` and `runGap`.
 - `log`, `LogLevel`, `LogRecord` and `LogSink` are in `package:twk/log.dart`, out
-  of `twk.dart`, so that `log` clashes with no `dart:math` import: an app that
-  logs imports it, and one that had `hide log` or prefixed `dart:math` for
-  it drops that.
+  of `twk.dart`, so that `twk.dart` beside `dart:math` no longer clashes over
+  `log`: an app that logs imports `log.dart`, and one that had `hide log` or
+  prefixed `dart:math` for it drops that where it does not import `log.dart`;
+  an app that imports both `log.dart` and `dart:math` still needs a prefix or a
+  `hide`.
 - `formatBytes`, `formatTook` and `ByteUnits` are in `package:twk/format.dart`,
   out of `twk.dart`: an app that writes a size or a time, or sets a widget's
   `byteUnits:`, imports it.
