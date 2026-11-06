@@ -243,6 +243,14 @@ space toggle   ctrl+q quit
   after Tab.
 - `pumpUntilIdle()` fails for an app with a periodic timer or a spinner:
   pump those by a duration.
+- A test's `pumpWidget` puts nothing above what it is given: a widget that
+  opens a dialog or a toast is pumped as `App(child: ...)`, which has the
+  `Overlay`.
+- A `Button` draws its label, it holds no `Text`: `find.text('OK')` finds
+  nothing, `containsLine(contains('OK'))` does.
+- The state may be gone when `await showDialog(...)` returns: `if (status !=
+  null && mounted)` before `setState`. Children made in a loop take a key,
+  `Button(key: ValueKey(s), ...)`. twk_lints says both.
 
 ## References
 
