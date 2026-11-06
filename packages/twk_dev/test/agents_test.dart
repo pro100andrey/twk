@@ -140,7 +140,11 @@ void main() {
       File(p.join(project, 'AGENTS.md')).writeAsStringSync(
         '${head}Last line, no break',
       );
-      await agents();
+      final dry = await agents(['--dry-run']);
+      expect(dry.stdout, contains('would add the block'));
+      final result = await agents();
+      expect(result.stdout, contains('added the block'));
+      expect(result.stdout, isNot(contains('changed the block')));
       expect(
         read('AGENTS.md'),
         '${head}Last line, no break\n\n$agentsBlock',

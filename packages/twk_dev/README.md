@@ -34,7 +34,10 @@ dart pub get
 dart run twk_dev:twk run bin/main.dart
 ```
 
-`twk create` makes `my_app` with a notes app in it: a list beside the note
+`twk create` asks which app and which files for coding agents to write (give
+`--template` and `--agents=agents-md,skill`, or `--agents=none`, to ask
+nothing; without a terminal it never asks: the notes app, no files for
+agents). `my_app` here is the notes app: a list beside the note
 chosen, full screen. `twk run` runs it in your terminal. Edit a file in
 `my_app/lib/` and save: the app shows the change, and keeps its state.
 Ctrl+G H starts it again, Ctrl+Q quits.

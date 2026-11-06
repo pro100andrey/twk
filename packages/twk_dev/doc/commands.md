@@ -16,10 +16,14 @@ an unknown subcommand or option exits with 64.
 
 ## Subcommands
 
-### `twk create <dir> [-t <template>]`
+### `twk create <dir> [-t <template>] [--agents=<files>]`
 
 writes a new app into `<dir>` from a template (`app`, `inline`, `form`,
-`dashboard`): a package that runs, analyzes and passes its tests as it is
+`dashboard`): a package that runs, analyzes and passes its tests as it is.
+`--agents=agents-md,skill` also writes the files for coding agents, as
+`twk agents` does. In a terminal it asks for the template and the files
+that the flags did not say; without one (an agent, CI, a pipe) it asks
+nothing and takes the `app` template and no files for agents
 
 ### `twk agents [-C <dir>] [--dry-run]`
 

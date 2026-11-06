@@ -4,6 +4,15 @@
 
 Added:
 
+- `twk create` asks, in a terminal, for what its flags did not say: the
+  template and the files for coding agents (the twk skill in
+  `.agents/skills/twk` and `.claude/skills/twk`, and the block of
+  `AGENTS.md`, written as `twk agents` writes them, after the package).
+  `--agents=agents-md,skill` says them, `--agents=none` says none; with
+  `--template` they ask nothing. Without a terminal it asks nothing and takes
+  the defaults as before (the `app` template, no files for agents). Ctrl+C
+  at a question writes nothing and exits with 130. `createApp`, `askCreate`
+  and `canAsk` are the writing, the asking and the check apart.
 - `twk agents`: writes the twk skill, the one that comes with this twk_dev
   (`SKILL.md` and its `references/`), into a project's `.agents/skills/twk`
   and `.claude/skills/twk`, and a block of twk's own between two markers

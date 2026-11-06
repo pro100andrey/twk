@@ -14,7 +14,24 @@ in `lib/<name>.dart`, its `testTwk` tests in `test/<name>_test.dart`, a
 `README.md` that says how to run, hot reload, inspect and test it, and a
 `.gitignore`. As written it gets its dependencies, analyzes with no issue,
 passes its tests and is formatted. `--template` (`-t`) picks the app, `--list`
-names them:
+names them, and `--agents` writes the files for coding agents (below).
+
+## What it asks
+
+In a terminal (stdin and stdout both one), `twk create` asks, on twk's own
+`Cli`, for what the flags did not say: which app (`--template`), and which
+files for coding agents (`--agents`, both at first). `--agents=agents-md,skill`
+says them and `--agents=none` says none, so with `--template` nothing is asked.
+`skill` is the twk skill in `.agents/skills/twk` and `.claude/skills/twk`;
+`agents-md` is the block of `AGENTS.md`; they are written by `twk agents`'
+code (`agentsPlan`), after the package is made, and the run says what it
+wrote. A bad value exits with 64. Ctrl+C at a question cancels: nothing is
+written, the exit code is 130 (1 for Ctrl+D), the terminal as it was.
+
+Without a terminal (an agent, CI, a pipe) it asks nothing, takes the `app`
+template and writes no file for agents unless `--agents` says so, so that the
+output of an existing run does not change. Under `CI` it asks nothing in a
+terminal either.
 
 ## Templates
 

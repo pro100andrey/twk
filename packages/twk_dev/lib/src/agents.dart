@@ -74,6 +74,10 @@ enum AgentsAction {
   /// There was one, another: it is written over.
   changed,
 
+  /// There was an `AGENTS.md` without twk's block: the block is put in at
+  /// its end, the rest kept.
+  added,
+
   /// There was one, the same: left as it is.
   left,
 }
@@ -219,6 +223,7 @@ AgentsChange _mergeChange(String project, AgentsFile target) {
   final action = switch (current) {
     null => AgentsAction.wrote,
     final text when text == merged => AgentsAction.left,
+    final text when !text.contains(agentsBegin) => AgentsAction.added,
     _ => AgentsAction.changed,
   };
   return AgentsChange(target.path, action, bytes, target);
@@ -430,12 +435,15 @@ String describeAgents(AgentsPlan plan, {bool dryRun = false}) {
       int count(AgentsAction a) => mine.where((c) => c.action == a).length;
       final wrote = count(AgentsAction.wrote);
       final changed = count(AgentsAction.changed);
+      final added = count(AgentsAction.added);
       final left = count(AgentsAction.left);
       final said = [
         if (wrote > 0)
           '${dryRun ? 'would write' : 'wrote'} ${_files(wrote, target)}',
         if (changed > 0)
           '${dryRun ? 'would change' : 'changed'} ${_files(changed, target)}',
+        if (added > 0)
+          '${dryRun ? 'would add' : 'added'} ${_files(added, target)}',
         if (left > 0)
           'left ${_files(left, target)} as ${left == 1 ? 'it is' : 'they are'}',
       ];
