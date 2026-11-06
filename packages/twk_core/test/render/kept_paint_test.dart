@@ -320,6 +320,47 @@ const _filledW = 100;
 const _filledH = 30;
 
 void main() {
+  test('layouts of a text that does not change read the cells once', () {
+    final styles = StyleTable();
+    final filled = _Filled(
+      styles,
+      GlyphTable(),
+      RenderParagraph([
+        ('the quick brown fox jumps ' * 200, _pens[0]),
+      ], autoKeepsPaint: true),
+    )..frame();
+    final paragraph = filled.paragraph;
+    for (var i = 0; i < 40; i++) {
+      paragraph.markNeedsLayout();
+      filled.frame();
+    }
+    expect(paragraph.debugCellReads, 1);
+  });
+
+  test('keepsPaint set on one that turned by itself is for good', () {
+    final filled = _Filled(
+      StyleTable(),
+      GlyphTable(),
+      RenderParagraph([
+        ('the quick brown fox jumps ' * 200, _pens[0]),
+      ], autoKeepsPaint: true),
+    )..frame();
+    final paragraph = filled.paragraph;
+    for (var i = 0; i < 12; i++) {
+      paragraph.spans = [
+        ('$i ${'the quick brown fox jumps ' * 200}', _pens[0]),
+      ];
+      filled.frame();
+    }
+    expect(paragraph.keepsPaint, isTrue);
+
+    paragraph.keepsPaint = true;
+    final reads = paragraph.debugCellReads;
+    filled.owner.root!.markNeedsPaint();
+    filled.frame();
+    expect(paragraph.debugCellReads, reads, reason: 'forced, it reads none');
+  });
+
   test('a paragraph that turns to keeping keeps the panel under it', () {
     final words = 'the quick brown fox jumps over the lazy dog and away ' * 40;
     List<(String, Pen)> spans(String typed) => [

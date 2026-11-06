@@ -361,7 +361,9 @@ final class RenderParagraph extends RenderObject {
   // Not a mode that flips back and forth: a flip takes a layout and a paint
   // of all of the paragraph, so a turn to plain doubles what the next turn
   // to keeping waits for (_backoff, up to _maxBackoff times _need layouts),
-  // and a candidate that finds a glyph starts its count again.
+  // and a candidate that finds a glyph waits as long, so a text over text
+  // reads the cells less and less; a turn asked for waits for its edit, and
+  // no layout before it reads them again.
   static const _minRows = 8;
   static const _need = 3;
   static const _maxBackoff = 16;
@@ -381,7 +383,8 @@ final class RenderParagraph extends RenderObject {
   // counts a layout that held the size, in performLayout of a plain one
   void _noteLayout(int w, int h) {
     if (width == w && height == h && h >= _minRows && parent != null) {
-      if (++_streak >= _need * _backoff) {
+      // a turn asked for waits for its edit: no reason to read the cells
+      if (_flip == 0 && ++_streak >= _need * _backoff) {
         _candidate = true;
       }
     } else {
@@ -417,6 +420,7 @@ final class RenderParagraph extends RenderObject {
   // canvas's clip leaves them, holds anything but a blank: a glyph of
   // another object, which a paragraph that fills its cells would erase.
   bool _glyphsUnder(Canvas canvas, int y0, int y1) {
+    _cellReads++;
     final (cx0, cy0, cx1, cy1) = canvas.clipBounds;
     final ox = canvas.originX;
     final oy = canvas.originY;
@@ -605,14 +609,13 @@ final class RenderParagraph extends RenderObject {
   /// other kind.
   bool get keepsPaint => _keeps;
   set keepsPaint(bool on) {
-    if (on == _keeps) {
-      return;
-    }
     _forced = on;
     _flip = 0;
     _streak = 0;
     _candidate = false;
-    _setKeeps(on);
+    if (on != _keeps) {
+      _setKeeps(on);
+    }
   }
 
   bool _keeps;
@@ -634,6 +637,10 @@ final class RenderParagraph extends RenderObject {
   var _keptW = 0;
   var _keptH = 0;
   var _keptPaints = 0;
+  var _cellReads = 0;
+
+  /// How many times it read the cells under it ([autoKeepsPaint]).
+  int get debugCellReads => _cellReads;
 
   /// How many paints were of the changed rows only ([keepsPaint]).
   int get debugKeptPaints => _keptPaints;
@@ -658,6 +665,9 @@ final class RenderParagraph extends RenderObject {
         _candidate = false;
         if (_glyphsUnder(canvas, 0, height)) {
           _streak = 0;
+          if (_backoff < _maxBackoff) {
+            _backoff *= 2;
+          }
         } else {
           _flip = 1;
         }

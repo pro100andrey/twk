@@ -25,6 +25,9 @@ import '../framework/framework.dart';
 /// String _eta(String time) => 'noch $time';
 /// ```
 ///
+/// Functions compare by identity: make the strings once for a language, not
+/// in a `build`, where each new closure tells every reader they changed.
+///
 /// A confirmation read from a log takes `y`, `yes`, `n` and `no` whatever
 /// the language, and [yes] and [no] too, or their first letters.
 final class TwkStrings {

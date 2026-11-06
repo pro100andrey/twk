@@ -894,10 +894,11 @@ final class _RenderProgressList extends RenderObject {
   int _more;
 
   /// Shows [rows] and a row for [more]: laid out again when the number of
-  /// rows changes, painted again otherwise, as what the tasks say may
-  /// have changed.
+  /// rows or [more] changes, painted again otherwise, as what the tasks say
+  /// may have changed.
   void update(List<ProgressTask> rows, int more) {
-    if (rows.length != _rows.length || (more > 0) != (_more > 0)) {
+    // the row of the tasks not shown may take other room
+    if (rows.length != _rows.length || more != _more) {
       markNeedsLayout();
     }
     _rows = rows;

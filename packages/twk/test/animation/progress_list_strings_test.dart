@@ -64,6 +64,34 @@ void main() {
       expect(t.lines.single, 'a verbleibend --:--   |');
     });
 
+    testTwk('takes the room of a longer count of tasks not shown', (t) async {
+      final tracker = ProgressTracker(clock: t.clock.stopwatch);
+      addTearDown(tracker.dispose);
+      for (var i = 0; i < 10; i++) {
+        tracker.add('a$i');
+      }
+      await t.pumpWidget(
+        Row(
+          children: [
+            IntrinsicWidth(
+              child: ProgressList(
+                tracker: tracker,
+                maxVisible: 1,
+                columns: const [ProgressColumn.label],
+              ),
+            ),
+            const Text('|'),
+          ],
+        ),
+        size: (20, 2),
+      );
+      expect(t.lines[1], '+9 more');
+
+      tracker.add('b');
+      await t.pump();
+      expect(t.lines[1], '+10 more');
+    });
+
     testTwk('writes English without Localizations', (t) async {
       final tracker = ProgressTracker(clock: t.clock.stopwatch);
       addTearDown(tracker.dispose);
