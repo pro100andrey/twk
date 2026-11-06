@@ -41,7 +41,7 @@ Widget build(BuildContext context) => SizedBox(
 /// under it, which dims, and out again as it is popped.
 abstract final class _Slide {
   static PageRoute<void> route(
-    Widget Function(BuildContext context) builder, [
+    WidgetBuilder builder, [
     RouteSettings settings = const RouteSettings(),
   ]) => PageRoute(
     builder: builder,

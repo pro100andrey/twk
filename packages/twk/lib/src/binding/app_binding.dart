@@ -727,8 +727,8 @@ final class AppBinding implements FrameClock {
 
   /// Has the app take up its code as a hot reload changed it (`twk run`,
   /// `ext.twk.reassemble`): the next frame rebuilds every element, each
-  /// state kept as in any rebuild and told with [State.reassemble], lays out and paints every render object
-  /// again and writes all of the screen again.
+  /// state kept as in any rebuild and told with [State.reassemble], lays out
+  /// and paints every render object again and writes all of the screen again.
   void reassemble() {
     void relayout(RenderObject o) {
       o
