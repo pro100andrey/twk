@@ -3949,6 +3949,15 @@ final class TextPainter {
   /// same whether or not one of those was asked first. [width] and [height]
   /// stay the layout's.
   void paint(Canvas canvas, int x, int y) {
+    prepare(canvas);
+    draw(canvas, x, y);
+  }
+
+  /// What [paint] does before it draws: finds the lines, the ids of the
+  /// clusters and pens in [canvas]'s tables, and what the rows are drawn
+  /// from, so that [changedRows] says which differ from the last
+  /// prepared. [draw] draws what it prepared.
+  void prepare(Canvas canvas) {
     if (_linesAt < 0 || _textStale) {
       // split again since the layout: the lines at the width it had
       _layoutLines(_constraints!.maxW);
@@ -3970,7 +3979,6 @@ final class TextPainter {
       _damageEnd = 0;
     }
     _resolvePens(canvas.styles);
-    final ids = _penIds;
     final seg = _segments;
     if (_looked) {
       // the rows drawn in a pen looked up again
@@ -3982,6 +3990,13 @@ final class TextPainter {
         }
       }
     }
+  }
+
+  /// Draws onto [canvas] with the top left cell at ([x], [y]) what
+  /// [prepare] prepared, cut off at the canvas's clip.
+  void draw(Canvas canvas, int x, int y) {
+    final ids = _penIds;
+    final seg = _segments;
     for (var k = 0; k < _segmentCount; k++) {
       final at = k * _segmentStride;
       final sx = x + seg[at];

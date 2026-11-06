@@ -10,16 +10,22 @@ import 'package:twk_core/twk_core.dart';
 /// Whether [RenderParagraph] takes the `ellipsis` it cuts with.
 const hasParagraphEllipsis = true;
 
-/// A [RenderParagraph] of [spans] cut off with [ellipsis] at [maxLines].
+/// Whether [RenderParagraph] takes `keepsPaint`.
+const hasKeepsPaint = true;
+
+/// A [RenderParagraph] of [spans] cut off with [ellipsis] at [maxLines],
+/// keeping its paint when [keepsPaint].
 RenderParagraph cutParagraph(
   List<(String, Pen)> spans, {
   required int? maxLines,
   required String ellipsis,
+  bool keepsPaint = false,
 }) => RenderParagraph(
   spans,
   overflow: maxLines == null ? TextOverflow.clip : TextOverflow.ellipsis,
   maxLines: maxLines,
   ellipsis: ellipsis,
+  keepsPaint: keepsPaint,
 );
 
 /// What [styles] holds of the style a cell of [Surface.styles] has, [raw]:
