@@ -49,11 +49,11 @@ const _nodeMajor = 22;
 const _exit = Duration(seconds: 10);
 
 /// How long node may take to start and to load, compile and instantiate a
-/// build, before its app's main and the app's bound start: the 10 s it had
-/// when one bound counted both. A run on windows-latest once ended at that
-/// bound saying nothing, its cause not found; the stages are there to say
-/// where the next one stops, not to wait it out.
-const _load = Duration(seconds: 10);
+/// build, before its app's main and the app's bound start. Runs on
+/// windows-latest ended at 10 s with node at no stage of the runner, the
+/// build beside it three times as slow as usual: a busy runner, not the app.
+/// The bound is for a hang, and has a margin for that.
+const _load = Duration(seconds: 30);
 
 /// What the runner writes to stderr before each of its stages, the stage
 /// after it; [_mainStage] last, as the app's main is called.
