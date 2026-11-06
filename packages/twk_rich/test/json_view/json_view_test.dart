@@ -472,6 +472,23 @@ void main() {
       expect(t.cell(8, 2), isNot(hasAttr(Attr.bold))); // o
     });
 
+    testTwk('a match on a character beyond U+FFFF marks the whole '
+        'character', (t) async {
+      await t.pumpWidget(
+        const JsonView(value: {'x🙂y': 1}, autofocus: true),
+        size: (30, 5),
+      );
+      await press(t, '/');
+      await t.pump();
+      await t.type('🙂');
+      await t.pump();
+      expect(shown(t)[1], '├── "x🙂y": 1');
+      // x plain, the emoji (two cells) marked, y plain
+      expect(t.cell(5, 1), isNot(hasAttr(Attr.bold)));
+      expect(t.cell(6, 1), hasAttr(Attr.bold));
+      expect(t.cell(8, 1), isNot(hasAttr(Attr.bold)));
+    });
+
     testTwk('the entries below a match all show', (t) async {
       const config = {
         'server': {'host': 'localhost', 'port': 80},
