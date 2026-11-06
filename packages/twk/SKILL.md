@@ -91,8 +91,8 @@ packages/gallery/bin/gallery.dart`).
   `.stretch`); the packages need SDK 3.13.5 or later.
 - Where the names differ from Flutter's, as code brought over trips on:
   `BoxConstraints` has `minWidth`, `maxWidth`, `minHeight`, `maxHeight` (in
-  cells, as in Flutter), and `BoxConstraints.tight(w, h)` takes two ints, not a
-  `Size`;
+  cells, as in Flutter), and `BoxConstraints.tight(w, h)` takes two ints, not
+  one object;
   `GestureDetector`'s `onTap`, `onDoubleTap` and `onLongPress` take the
   `PointerEvent` (`(event) {…}`, `(_) => …`), not a callback of none;
   `LineGauge` and `Gauge` show no percentage unless `showPercentage: true`.
@@ -355,6 +355,7 @@ Each stands on its own; `test/recipes_test.dart` below tests them.
 import 'dart:async';
 
 import 'package:twk/hooks.dart';
+import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
 
 /// The root of an app with dialogs: `App` puts the Overlay under the

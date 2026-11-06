@@ -281,6 +281,7 @@ Widget table(List<Entry> entries) => Table(
       write(app, 'names/rest.dart', '''
 import 'package:twk/cli.dart';
 import 'package:twk/hooks.dart';
+import 'package:twk/log.dart';
 import 'package:twk/provider.dart';
 import 'package:twk_test/cli.dart';
 
