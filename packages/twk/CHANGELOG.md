@@ -236,6 +236,8 @@ Changed:
   `DatePicker`'s among them, which showed none. Rows of a list keep the arrow.
 - `Pressable(behavior:)`: `HitTestBehavior.opaque` takes a press on its empty
   cells too.
+- Esc cancels a prompt of `package:twk/cli.dart` as Ctrl+C does, exit 130; with
+  suggestions open it hides them first.
 
 Added:
 
