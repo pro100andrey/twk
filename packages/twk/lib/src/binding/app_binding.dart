@@ -129,7 +129,9 @@ const _product = bool.fromEnvironment('dart.vm.product');
 /// the default, for what the process's terminal is found to do. A given
 /// [terminal] has to be ordered so (an [ArgumentError] if not).
 ///
-/// [maxFps] frames a second at most, 60 by default; [maxInlineRows] the
+/// [maxFps] frames a second at most, 60 by default, and [maxInputFps] the
+/// frames input asks for (`TwkApp.maxInputFps`: 120 by default, [maxFps] on
+/// a remote terminal); [maxInlineRows] the
 /// most rows the inline region grows to, null for the terminal's height,
 /// and [clearInlineOnExit] clears the region when the app ends instead of
 /// leaving it in the history; [logs] is where `log()` and `print` go (the
@@ -161,6 +163,7 @@ Future<void> runApp(
   Viewport? viewport,
   TerminalBackend? terminal,
   int maxFps = 60,
+  int? maxInputFps,
   int? maxInlineRows,
   bool clearInlineOnExit = false,
   LogSink? logs,
@@ -201,6 +204,7 @@ Future<void> runApp(
     term,
     viewport: viewport,
     maxFps: maxFps,
+    maxInputFps: maxInputFps,
     maxInlineRows: maxInlineRows,
     clearInlineOnExit: clearInlineOnExit,
     logs: logs,
@@ -292,12 +296,12 @@ Future<void> runApp(
 /// ```
 final class AppBinding implements FrameClock {
   /// A binding of a `TwkApp` on [terminal], made with [viewport], [maxFps],
-  /// [maxInlineRows], [clearInlineOnExit], [logs] and [clock] (the app's
-  /// clock, a new stopwatch by default); [exitOnCtrlC], [stopOnCtrlZ],
-  /// [restCursor] and [screenReader] are as [runApp] takes them. [run]
-  /// runs an app on it. `startTime` is what [now] is when [clock] reads
-  /// zero, which a test fixes; null (the default) leaves [now] the
-  /// system's time.
+  /// [maxInputFps], [maxInlineRows], [clearInlineOnExit], [logs] and [clock]
+  /// (the app's clock, a new stopwatch by default); [exitOnCtrlC],
+  /// [stopOnCtrlZ], [restCursor] and [screenReader] are as [runApp] takes
+  /// them. [run] runs an app on it. `startTime` is what [now] is when
+  /// [clock] reads zero, which a test fixes; null (the default) leaves
+  /// [now] the system's time.
   ///
   /// [environment] is what the app reads its variables from, null (the
   /// default) for the process's: given to its `TwkApp` (`TWK_LOG`,
@@ -317,6 +321,7 @@ final class AppBinding implements FrameClock {
     TerminalBackend terminal, {
     Viewport? viewport,
     int maxFps = 60,
+    int? maxInputFps,
     int? maxInlineRows,
     bool clearInlineOnExit = false,
     LogSink? logs,
@@ -331,6 +336,7 @@ final class AppBinding implements FrameClock {
          terminal,
          viewport: viewport,
          maxFps: maxFps,
+         maxInputFps: maxInputFps,
          maxInlineRows: maxInlineRows,
          clearInlineOnExit: clearInlineOnExit,
          logs: logs,

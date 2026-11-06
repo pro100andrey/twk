@@ -190,6 +190,7 @@ void main() {
   /// An app on [term], or on what [wrap] makes of it.
   void start({
     int maxFps = 1000,
+    int? maxInputFps,
     void Function(InputEvent e)? onEvent,
     TerminalBackend Function(HeadlessTerminal term)? wrap,
   }) {
@@ -197,6 +198,7 @@ void main() {
     app = TwkApp(
       wrap?.call(term) ?? term,
       maxFps: maxFps,
+      maxInputFps: maxInputFps,
       clock: clock.stopwatch,
       environment: const {},
     );
@@ -434,6 +436,116 @@ void main() {
     );
     app.quit();
     await clock.elapseUntil(done);
+  });
+
+  group('input frames', () {
+    // 50 frames a second (20 ms), 100 for the frames input asks for (10 ms)
+    List<int> gaps() => [
+      for (var i = 1; i < probe.paintedAt.length; i++)
+        probe.paintedAt[i] - probe.paintedAt[i - 1],
+    ];
+
+    void paintOnKey(InputEvent e) {
+      if (e is KeyEvent) {
+        probe.markNeedsPaint();
+      }
+    }
+
+    test('come at the input gap, a ticker alone at maxFps', () async {
+      start(maxFps: 50, maxInputFps: 100);
+      var ticks = 0;
+      final done = runOnClock(
+        app,
+        probe,
+        paintOnKey,
+        afterPresent: () {
+          // a ticker: each frame asks for the next, outside of input
+          if (ticks > 0) {
+            ticks--;
+            probe.markNeedsPaint();
+          }
+        },
+      );
+      await pass(100);
+      probe.paintedAt.clear();
+      ticks = 5;
+      probe.markNeedsPaint();
+      await pass(200);
+      expect(gaps(), everyElement(20000));
+      expect(probe.paintedAt, hasLength(6));
+      probe.paintedAt.clear();
+      for (var i = 0; i < 10; i++) {
+        term.type('a');
+        await pass(10);
+      }
+      expect(probe.paintedAt, hasLength(10));
+      expect(gaps(), everyElement(10000));
+      app.quit();
+      await clock.elapseUntil(done);
+    });
+
+    test('a ticker does not speed up with input: its frame after an input '
+        'frame waits maxFps', () async {
+      start(maxFps: 50, maxInputFps: 100);
+      var ticks = 0;
+      final done = runOnClock(
+        app,
+        probe,
+        paintOnKey,
+        afterPresent: () {
+          if (ticks > 0) {
+            ticks--;
+            probe.markNeedsPaint();
+          }
+        },
+      );
+      await pass(100);
+      probe.paintedAt.clear();
+      ticks = 2;
+      probe.markNeedsPaint();
+      await pass(5);
+      expect(probe.paintedAt, hasLength(1));
+      // the ticker's next frame is due 20 ms after the first: input at 10
+      // pulls it in and shares it
+      await pass(5);
+      term.type('a');
+      await pass(100);
+      final at = probe.paintedAt;
+      expect(at, hasLength(3));
+      expect(at[1] - at[0], 10000, reason: 'the input frame shares the tick');
+      expect(at[2] - at[1], 20000, reason: 'the ticker keeps maxFps');
+      app.quit();
+      await clock.elapseUntil(done);
+    });
+
+    test('frames of either gap keep to their grid', () async {
+      start(maxFps: 50, maxInputFps: 100);
+      final done = runOnClock(app, probe, paintOnKey);
+      await pass(100);
+      probe.paintedAt.clear();
+      for (var i = 0; i < 20; i++) {
+        term.type('a');
+        // typed a little off the grid
+        await clock.elapse(Duration(microseconds: i.isEven ? 7000 : 13000));
+      }
+      expect(gaps(), everyElement(greaterThanOrEqualTo(10000)));
+      for (final at in probe.paintedAt) {
+        expect(at % 10000, 0, reason: 'frame at $at is on the 10 ms grid');
+      }
+      app.quit();
+      await clock.elapseUntil(done);
+    });
+
+    test('maxInputFps is 120 by default and maxFps where remote; below '
+        'maxFps it is read as maxFps', () {
+      TwkApp on(HeadlessTerminal t, {int? input, int fps = 60}) =>
+          TwkApp(t, maxFps: fps, maxInputFps: input, environment: const {});
+      expect(on(HeadlessTerminal()).maxInputFps, 120);
+      expect(on(HeadlessTerminal(), fps: 144).maxInputFps, 144);
+      expect(on(HeadlessTerminal(remote: true)).maxInputFps, 60);
+      expect(on(HeadlessTerminal(remote: true), input: 90).maxInputFps, 90);
+      expect(on(HeadlessTerminal(), input: 30).maxInputFps, 60);
+    });
   });
 
   /// An app of 100 frames a second (a gap of 10 ms) on a clock that

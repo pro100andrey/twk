@@ -178,6 +178,14 @@ final class TwkApp {
   /// An app on [terminal], drawn at most [maxFps] frames a second, 60 by
   /// default.
   ///
+  /// [maxInputFps] is the most a second for frames that input asks for (a
+  /// key, the mouse, a resize): 120 by default, [maxFps] where the terminal
+  /// is [TerminalInfo.remote] (scrolling at 120 there writes about a third
+  /// more bytes). Tickers, timers and everything else that asks for a frame
+  /// stay at [maxFps]. Below [maxFps] it is read as [maxFps]. A terminal
+  /// does not say how fast its display draws, so this is a cap, not a sync
+  /// to it.
+  ///
   /// [logs] is where [log], `print` and uncaught errors go while [run]
   /// runs, by default a [LogSink] that also appends to the file `TWK_LOG`
   /// names. [maxInlineRows] and [clearInlineOnExit] are for the inline
@@ -203,6 +211,7 @@ final class TwkApp {
   factory TwkApp(
     TerminalBackend terminal, {
     int maxFps = 60,
+    int? maxInputFps,
     LogSink? logs,
     int? maxInlineRows,
     bool clearInlineOnExit = false,
@@ -219,6 +228,7 @@ final class TwkApp {
       on,
       _debugNames(on),
       maxFps: maxFps,
+      maxInputFps: maxInputFps,
       logs: logs,
       maxInlineRows: maxInlineRows,
       clearInlineOnExit: clearInlineOnExit,
@@ -235,6 +245,7 @@ final class TwkApp {
     this.environment,
     this.debugNames, {
     required this.maxFps,
+    required int? maxInputFps,
     required LogSink? logs,
     required this.maxInlineRows,
     required this.clearInlineOnExit,
@@ -244,6 +255,7 @@ final class TwkApp {
     required bool? serveLogs,
     required Stopwatch? clock,
   }) : clock = clock ?? (Stopwatch()..start()),
+       maxInputFps = _inputFps(maxFps, maxInputFps, terminal.info.remote),
        logs = logs ?? LogSink(path: environment['TWK_LOG']),
        _plain = terminal.info.plain,
        framesInRow =
@@ -325,6 +337,14 @@ final class TwkApp {
   /// waits for the gap.
   final int maxFps;
 
+  /// The most frames a second that input asks for, never below [maxFps].
+  final int maxInputFps;
+
+  static int _inputFps(int maxFps, int? given, bool remote) {
+    final fps = given ?? (remote ? maxFps : 120);
+    return fps < maxFps ? maxFps : fps;
+  }
+
   /// What frames are spaced by: the gap of [maxFps] passes on it. By
   /// default a started [Stopwatch]; a test gives one its fake clock moves.
   final Stopwatch clock;
@@ -400,6 +420,17 @@ final class TwkApp {
   var _scheduled = false;
   var _inFrame = false;
   var _again = false;
+
+  /// Input is being dispatched: a frame asked for now is the input's.
+  var _inInput = false;
+
+  /// The pending frame ([_scheduled], or [_again] after the running one) is
+  /// asked for by input, so it is spaced by the input gap.
+  var _inputFrame = false;
+  Timer? _frameTimer;
+
+  /// The gap the frame scheduled keeps ([_frameDue] is from it).
+  var _frameGap = 0;
   var _shrink = false;
 
   /// What [stats] time frames with.
@@ -542,7 +573,7 @@ final class TwkApp {
       () {
         _zone = Zone.current;
         owner.root = root;
-        _input = terminal.events.listen((e) {
+        void dispatch(InputEvent e) {
           var event = e;
           if (e is ResizeEvent) {
             if (viewport != null) {
@@ -568,6 +599,17 @@ final class TwkApp {
             event = inside;
           }
           onEvent(event);
+        }
+
+        _input = terminal.events.listen((e) {
+          // the line that makes a frame input's: what asks for one while
+          // the event is dispatched is spaced by the input gap
+          _inInput = true;
+          try {
+            dispatch(e);
+          } finally {
+            _inInput = false;
+          }
         })..pause();
         requestFrame();
       },
@@ -1148,20 +1190,28 @@ final class TwkApp {
   /// marks ([RenderObject.markNeedsLayout] and the like) request frames by
   /// themselves; this is for what changes outside the tree.
   void requestFrame() {
+    final input = _inInput;
     if (_inFrame) {
       _again = true;
+      _inputFrame |= input;
       return;
     }
+    final gap = 1000000 ~/ (input ? maxInputFps : maxFps);
     if (_scheduled) {
-      return;
+      if (!input || gap >= _frameGap) {
+        return;
+      }
+      // input while a frame waits for the longer gap: it comes sooner, with
+      // what that frame carries
+      _frameTimer?.cancel();
     }
     _scheduled = true;
-    final minGap = 1000000 ~/ maxFps;
+    _frameGap = gap;
     final now = clock.elapsedMicroseconds;
-    final wait = _lastFrameAt + minGap - now;
-    _frameDue = wait > 0 ? _lastFrameAt + minGap : now;
+    final wait = _lastFrameAt + gap - now;
+    _frameDue = wait > 0 ? _lastFrameAt + gap : now;
     // frames run in the app's zone even when requested from outside it
-    _zone.createTimer(
+    _frameTimer = _zone.createTimer(
       wait > 0 ? Duration(microseconds: wait) : Duration.zero,
       _runFrame,
     );
@@ -1180,9 +1230,7 @@ final class TwkApp {
       // grid again from where it began.
       final startedAt = clock.elapsedMicroseconds;
       final late = startedAt - _frameDue;
-      _lastFrameAt = late >= 0 && late < 1000000 ~/ maxFps
-          ? _frameDue
-          : startedAt;
+      _lastFrameAt = late >= 0 && late < _frameGap ? _frameDue : startedAt;
       final t0 = _statsClock.elapsedMicroseconds;
       _begin('Frame');
       _begin('Build');
@@ -1247,8 +1295,15 @@ final class TwkApp {
       }
     }
     if (_again || owner.hasWork || _committing != null || _commits.isNotEmpty) {
+      // the follow-up keeps the input gap only if input asked for it while
+      // the frame ran; a ticker's request after it waits the full gap
+      final input = _inputFrame;
       _again = false;
+      _inputFrame = false;
+      final was = _inInput;
+      _inInput = input;
       requestFrame();
+      _inInput = was;
     }
   }
 }
