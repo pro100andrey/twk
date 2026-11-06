@@ -176,13 +176,13 @@ bool _quoted(TokenScanner s, int quote, int close, TokenKind kind) {
   while (s.pos < end) {
     final c = s.current;
     if (quote == _doubleQuote && c == _backslash) {
-      final length = switch (s.peek(1)) {
-        0x78 => 4, // \xHH
-        0x75 => 6, // \uHHHH
-        0x55 => 10, // \UHHHHHHHH
-        _ => 2,
+      final after = switch (s.peek(1)) {
+        0x78 => s.pos + 4, // \xHH
+        0x75 => s.pos + 6, // \uHHHH
+        0x55 => s.pos + 10, // \UHHHHHHHH
+        _ => s.characterEnd(s.pos + 1),
       };
-      s.emit(TokenKind.escape, s.pos + length > end ? end : s.pos + length);
+      s.emit(TokenKind.escape, after > end ? end : after);
     } else if (quote == _quote && c == _quote && s.pos + 1 < end) {
       s.emitLength(TokenKind.escape, 2);
     } else {

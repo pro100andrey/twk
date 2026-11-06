@@ -53,6 +53,7 @@ import 'package:twk_core/twk_core.dart'
         WindowBackend,
         log;
 
+import '../animation/frame_clock.dart';
 import '../debug/console.dart';
 import '../debug/editor.dart';
 import '../debug/frame_overlay.dart';
@@ -71,6 +72,8 @@ import '../style/theme.dart';
 import 'error_widget.dart';
 import 'source_excerpt.dart';
 import 'terminal_status.dart' show TerminalStatus;
+
+export '../animation/frame_clock.dart' show FrameCallback;
 
 // Examples can assume:
 // late BuildContext context;
@@ -93,10 +96,6 @@ enum ScreenMode {
   /// the app ends (see `TwkApp`).
   inline,
 }
-
-/// What [AppBinding.scheduleFrameCallback] calls: [time] is the frame's on
-/// the app's clock ([AppBinding.frameTime]).
-typedef FrameCallback = void Function(Duration time);
 
 /// Whether the program runs in product mode, as `dart compile exe`
 /// compiles it, without a VM service.
@@ -130,7 +129,9 @@ const _product = bool.fromEnvironment('dart.vm.product');
 /// the default, for what the process's terminal is found to do. A given
 /// [terminal] has to be ordered so (an [ArgumentError] if not).
 ///
-/// [maxFps] frames a second at most, 60 by default; [maxInlineRows] the
+/// [maxFps] frames a second at most, 60 by default, and [maxInputFps] the
+/// frames input asks for (`TwkApp.maxInputFps`: 120 by default, [maxFps] on
+/// a remote terminal); [maxInlineRows] the
 /// most rows the inline region grows to, null for the terminal's height,
 /// and [clearInlineOnExit] clears the region when the app ends instead of
 /// leaving it in the history; [logs] is where `log()` and `print` go (the
@@ -162,6 +163,7 @@ Future<void> runApp(
   Viewport? viewport,
   TerminalBackend? terminal,
   int maxFps = 60,
+  int? maxInputFps,
   int? maxInlineRows,
   bool clearInlineOnExit = false,
   LogSink? logs,
@@ -202,6 +204,7 @@ Future<void> runApp(
     term,
     viewport: viewport,
     maxFps: maxFps,
+    maxInputFps: maxInputFps,
     maxInlineRows: maxInlineRows,
     clearInlineOnExit: clearInlineOnExit,
     logs: logs,
@@ -291,14 +294,14 @@ Future<void> runApp(
 ///   child: const Text('q quits'),
 /// )
 /// ```
-final class AppBinding {
+final class AppBinding implements FrameClock {
   /// A binding of a `TwkApp` on [terminal], made with [viewport], [maxFps],
-  /// [maxInlineRows], [clearInlineOnExit], [logs] and [clock] (the app's
-  /// clock, a new stopwatch by default); [exitOnCtrlC], [stopOnCtrlZ],
-  /// [restCursor] and [screenReader] are as [runApp] takes them. [run]
-  /// runs an app on it. `startTime` is what [now] is when [clock] reads
-  /// zero, which a test fixes; null (the default) leaves [now] the
-  /// system's time.
+  /// [maxInputFps], [maxInlineRows], [clearInlineOnExit], [logs] and [clock]
+  /// (the app's clock, a new stopwatch by default); [exitOnCtrlC],
+  /// [stopOnCtrlZ], [restCursor] and [screenReader] are as [runApp] takes
+  /// them. [run] runs an app on it. `startTime` is what [now] is when
+  /// [clock] reads zero, which a test fixes; null (the default) leaves
+  /// [now] the system's time.
   ///
   /// [environment] is what the app reads its variables from, null (the
   /// default) for the process's: given to its `TwkApp` (`TWK_LOG`,
@@ -318,6 +321,7 @@ final class AppBinding {
     TerminalBackend terminal, {
     Viewport? viewport,
     int maxFps = 60,
+    int? maxInputFps,
     int? maxInlineRows,
     bool clearInlineOnExit = false,
     LogSink? logs,
@@ -332,6 +336,7 @@ final class AppBinding {
          terminal,
          viewport: viewport,
          maxFps: maxFps,
+         maxInputFps: maxInputFps,
          maxInlineRows: maxInlineRows,
          clearInlineOnExit: clearInlineOnExit,
          logs: logs,
@@ -1006,6 +1011,7 @@ final class AppBinding {
 
   /// The time of the frame running, or of the last one between frames, on
   /// the app's clock ([TwkApp.clock]) as it started; zero before the first.
+  @override
   Duration get frameTime => _frameTime;
   Duration _frameTime = Duration.zero;
 
@@ -1025,6 +1031,7 @@ final class AppBinding {
   /// ended is dropped. One that throws ends the app with the error, as an
   /// error of the app's code does: [run] throws it, its states disposed.
   /// Returns the id [cancelFrameCallback] takes.
+  @override
   int scheduleFrameCallback(FrameCallback callback, {Duration? at}) {
     final id = ++_lastCallback;
     if (_over) {
@@ -1097,6 +1104,7 @@ final class AppBinding {
 
   /// Calls the callback [id] names ([scheduleFrameCallback]) at no frame;
   /// an id called already or cancelled is ignored.
+  @override
   void cancelFrameCallback(int id) {
     if (_callbacks.remove(id)?.$2 != null) {
       _waitForDue();

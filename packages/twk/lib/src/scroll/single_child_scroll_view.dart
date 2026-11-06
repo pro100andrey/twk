@@ -50,7 +50,6 @@ final class SingleChildScrollView extends StatelessWidget {
     this.focusNode,
     this.autofocus = false,
     this.canRequestFocus,
-    this.wheelAcceleration = WheelAcceleration.none,
     this.physics,
     this.keyHints = true,
     this.child,
@@ -74,9 +73,6 @@ final class SingleChildScrollView extends StatelessWidget {
 
   /// See [FocusNode.canRequestFocus].
   final bool? canRequestFocus;
-
-  /// See [Scrollable.wheelAcceleration].
-  final WheelAcceleration wheelAcceleration;
 
   /// See [Scrollable.physics]: with `NeverScrollableScrollPhysics` the
   /// wheel over it goes to the scrollable around, and it has no key hints
@@ -104,7 +100,6 @@ final class SingleChildScrollView extends StatelessWidget {
       focusNode: focusNode,
       autofocus: autofocus,
       canRequestFocus: canRequestFocus,
-      wheelAcceleration: wheelAcceleration,
       physics: physics,
       keyHints: keyHints,
       viewportBuilder: (context, position) => _Viewport(

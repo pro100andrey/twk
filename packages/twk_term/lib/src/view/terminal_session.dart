@@ -241,6 +241,11 @@ final class TerminalSession with ChangeNotifier {
   @override
   void dispose() {
     _disposed = true;
+    if (_start != null) {
+      // disposed before its program started: none will, so it ends here
+      _ended = true;
+      _exit.complete(null);
+    }
     _start = null;
     _pty?.close();
     unawaited(_output?.cancel());

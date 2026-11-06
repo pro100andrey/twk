@@ -211,7 +211,6 @@ final class _ListState extends State<_List> with MotionState {
                   controller: _list,
                   stickToBottom: sticks,
                   reverse: chat,
-                  wheelAcceleration: const WheelAcceleration(),
                   itemBuilder: item,
                   separatorBuilder: (context, i) =>
                       Divider(style: Theme.of(context).border),
@@ -221,7 +220,6 @@ final class _ListState extends State<_List> with MotionState {
                   controller: _list,
                   stickToBottom: sticks,
                   reverse: chat,
-                  wheelAcceleration: const WheelAcceleration(),
                   itemBuilder: item,
                 ),
         ),
@@ -372,7 +370,6 @@ String _listCode(Options o) {
     '            controller: _list,',
     if (growing && !byEnd) '            stickToBottom: true,',
     if (chat) '            reverse: true,',
-    '            wheelAcceleration: const WheelAcceleration(),',
     ...item,
     if (separated) _separatorLine,
     '          ),',

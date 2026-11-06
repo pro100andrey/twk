@@ -24,6 +24,7 @@ import '../data/task_marks.dart';
 import '../foundation/change_notifier.dart';
 import '../foundation/format.dart';
 import '../foundation/helpers.dart';
+import '../foundation/strings.dart';
 import '../framework/framework.dart';
 import '../semantics/semantics.dart';
 import '../style/style.dart';
@@ -467,15 +468,16 @@ final class ProgressTask {
   String summary({
     Glyphs glyphs = Glyphs.unicode,
     ByteUnits byteUnits = ByteUnits.decimal,
+    String decimalSeparator = '.',
   }) {
     final parts = [
       '${TaskMarks(SpinnerFrames.dots, glyphs).mark(_status, 0)} $_label',
     ];
     if (_completed > 0 && (_total != null || unit == ProgressUnit.bytes)) {
-      parts.add(_count(this, byteUnits));
+      parts.add(_count(this, byteUnits, decimalSeparator));
     }
     if (_status == TaskStatus.done || _status == TaskStatus.failed) {
-      parts.add(formatTook(elapsed));
+      parts.add(formatTook(elapsed, decimalSeparator: decimalSeparator));
     }
     if (_error case final error?) {
       parts.add('$error');
@@ -674,6 +676,7 @@ final class _ProgressListState extends State<ProgressList> {
     final (rows, more) = _rows();
     final running = rows.any((t) => t.status == TaskStatus.running);
     final theme = Theme.of(context);
+    final strings = TwkStrings.of(context);
     final frames = widget.spinner ?? theme.glyphs.spinner;
     final interval = frames.interval;
     var steps = _steps;
@@ -707,7 +710,7 @@ final class _ProgressListState extends State<ProgressList> {
                     ? null
                     : task.status.name,
               ),
-            if (more > 0) SemanticsNode(label: '+$more more'),
+            if (more > 0) SemanticsNode(label: strings.moreTasks(more)),
           ],
         ),
       ],
@@ -719,6 +722,7 @@ final class _ProgressListState extends State<ProgressList> {
         barShape: widget.barShape,
         maxBarWidth: widget.maxBarWidth,
         byteUnits: widget.byteUnits,
+        strings: strings,
         styles: _Styles(
           base: base,
           muted: base.merge(theme.muted),
@@ -780,6 +784,7 @@ final class _List extends LeafRenderObjectWidget {
     required this.barShape,
     required this.maxBarWidth,
     required this.byteUnits,
+    required this.strings,
     required this.styles,
     required this.binding,
     required this.spinner,
@@ -792,6 +797,7 @@ final class _List extends LeafRenderObjectWidget {
   final ProgressBarShape barShape;
   final int? maxBarWidth;
   final ByteUnits byteUnits;
+  final TwkStrings strings;
   final _Styles styles;
   final AppBinding? binding;
 
@@ -809,6 +815,7 @@ final class _List extends LeafRenderObjectWidget {
         barShape: barShape,
         maxBarWidth: maxBarWidth,
         byteUnits: byteUnits,
+        strings: strings,
         styles: styles,
         binding: binding,
         spinner: spinner,
@@ -826,6 +833,7 @@ final class _List extends LeafRenderObjectWidget {
       ..barShape = barShape
       ..maxBarWidth = maxBarWidth
       ..byteUnits = byteUnits
+      ..strings = strings
       ..styles = styles
       ..spinner = spinner
       ..muted = !TickerMode.of(context);
@@ -853,6 +861,7 @@ final class _RenderProgressList extends RenderObject {
     required this._barShape,
     required this._maxBarWidth,
     required this._byteUnits,
+    required this._strings,
     required this._styles,
     required this.binding,
     required this._spinner,
@@ -885,10 +894,11 @@ final class _RenderProgressList extends RenderObject {
   int _more;
 
   /// Shows [rows] and a row for [more]: laid out again when the number of
-  /// rows changes, painted again otherwise, as what the tasks say may
-  /// have changed.
+  /// rows or [more] changes, painted again otherwise, as what the tasks say
+  /// may have changed.
   void update(List<ProgressTask> rows, int more) {
-    if (rows.length != _rows.length || (more > 0) != (_more > 0)) {
+    // the row of the tasks not shown may take other room
+    if (rows.length != _rows.length || more != _more) {
       markNeedsLayout();
     }
     _rows = rows;
@@ -937,6 +947,17 @@ final class _RenderProgressList extends RenderObject {
   set byteUnits(ByteUnits u) {
     if (u != _byteUnits) {
       _byteUnits = u;
+      markNeedsPaint();
+    }
+  }
+
+  TwkStrings _strings;
+  TwkStrings get strings => _strings;
+  set strings(TwkStrings s) {
+    if (s != _strings) {
+      _strings = s;
+      // the words may take other room where the list takes what it needs
+      markNeedsLayout();
       markNeedsPaint();
     }
   }
@@ -996,8 +1017,15 @@ final class _RenderProgressList extends RenderObject {
     // room for the amounts as they are written at most
     for (final c in shown) {
       if (_textColumns.contains(c)) {
-        w += 12;
+        final eta = c == ProgressColumn.eta
+            ? segmenter.width(_strings.eta('00:00:00'))
+            : 0;
+        w += eta > 12 ? eta : 12;
       }
+    }
+    if (_more > 0) {
+      final more = segmenter.width(_strings.moreTasks(_more));
+      w = more > w ? more : w;
     }
     return w;
   }
@@ -1048,7 +1076,13 @@ final class _RenderProgressList extends RenderObject {
       }
       final column = [
         for (final task in rows)
-          _cell(c, task, showsElapsed: showsElapsed, units: _byteUnits),
+          _cell(
+            c,
+            task,
+            showsElapsed: showsElapsed,
+            units: _byteUnits,
+            strings: _strings,
+          ),
       ];
       var w = 0;
       for (final cell in column) {
@@ -1212,7 +1246,7 @@ final class _RenderProgressList extends RenderObject {
         rows.length,
         fitText(
           segmenter,
-          '+$_more more',
+          _strings.moreTasks(_more),
           width,
           ellipsis: _frames.glyphs.ellipsis,
         ),
@@ -1239,7 +1273,9 @@ String _cell(
   ProgressTask task, {
   required bool showsElapsed,
   required ByteUnits units,
+  required TwkStrings strings,
 }) {
+  final sep = strings.decimalSeparator;
   final status = task.status;
   final running = status == TaskStatus.running;
   final over = status == TaskStatus.done || status == TaskStatus.failed;
@@ -1249,59 +1285,61 @@ String _cell(
       null => status == TaskStatus.done ? '100%' : '',
     },
     ProgressColumn.count =>
-      task.completed == 0 && task.total == null ? '' : _count(task, units),
+      task.completed == 0 && task.total == null ? '' : _count(task, units, sep),
     ProgressColumn.rate => switch (running && task.completed != 0
         ? task.rate
         : null) {
-      final r? => _rate(r, task.unit, units),
+      final r? => _rate(r, task.unit, units, sep),
       null => '',
     },
     ProgressColumn.eta =>
       running
           ? (task.total == null
                 ? ''
-                : 'ETA ${switch (task.eta) {
+                : strings.eta(switch (task.eta) {
                     final e? => formatClock(e),
                     null => '--:--',
-                  }}')
-          : (over && !showsElapsed ? formatTook(task.elapsed) : ''),
+                  }))
+          : (over && !showsElapsed
+                ? formatTook(task.elapsed, decimalSeparator: sep)
+                : ''),
     ProgressColumn.elapsed =>
       running
           ? formatClock(task.elapsed)
-          : (over ? formatTook(task.elapsed) : ''),
+          : (over ? formatTook(task.elapsed, decimalSeparator: sep) : ''),
     ProgressColumn.mark || ProgressColumn.label || ProgressColumn.bar => '',
   };
 }
 
 /// How much of how much [task] has done, in its unit: `12/40`,
 /// `1.2/3.4 MB`, `1.2 MB`.
-String _count(ProgressTask task, ByteUnits units) {
+String _count(ProgressTask task, ByteUnits units, String sep) {
   final total = task.total;
   if (task.unit == ProgressUnit.count) {
-    final done = _number(task.completed);
-    return total == null ? done : '$done/${_number(total)}';
+    final done = _number(task.completed, sep);
+    return total == null ? done : '$done/${_number(total, sep)}';
   }
   if (total == null) {
-    return formatBytes(task.completed, byteUnits: units);
+    return formatBytes(task.completed, byteUnits: units, decimalSeparator: sep);
   }
   final (scale, suffix) = byteUnit(total, byteUnits: units);
   if (scale == 1) {
-    return '${_number(task.completed)}/${_number(total)} B';
+    return '${_number(task.completed, sep)}/${_number(total, sep)} B';
   }
-  return '${(task.completed / scale).toStringAsFixed(1)}/'
-      '${(total / scale).toStringAsFixed(1)} $suffix';
+  return '${withSeparator((task.completed / scale).toStringAsFixed(1), sep)}/'
+      '${withSeparator((total / scale).toStringAsFixed(1), sep)} $suffix';
 }
 
 /// [n] whole where it is, else to the tenth.
-String _number(num n) => n == n.roundToDouble() && n.abs() < 1e15
+String _number(num n, String sep) => n == n.roundToDouble() && n.abs() < 1e15
     ? '${n.round()}'
-    : n.toStringAsFixed(1);
+    : withSeparator(n.toStringAsFixed(1), sep);
 
 /// [rate] a second in [unit], as [formatBytes] writes an amount: `1.2 MB/s`,
 /// `3.5/s`, `120/s`, `1.2k/s`.
-String _rate(double rate, ProgressUnit unit, ByteUnits units) {
+String _rate(double rate, ProgressUnit unit, ByteUnits units, String sep) {
   if (unit == ProgressUnit.bytes) {
-    return '${formatBytes(rate, byteUnits: units)}/s';
+    return '${formatBytes(rate, byteUnits: units, decimalSeparator: sep)}/s';
   }
   const prefixes = ['', 'k', 'M', 'G'];
   var scaled = rate;
@@ -1310,5 +1348,5 @@ String _rate(double rate, ProgressUnit unit, ByteUnits units) {
     scaled /= 1000;
     i++;
   }
-  return '${formatFigures(scaled)}${prefixes[i]}/s';
+  return '${formatFigures(scaled, decimalSeparator: sep)}${prefixes[i]}/s';
 }

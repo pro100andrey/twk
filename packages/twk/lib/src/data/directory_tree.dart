@@ -15,6 +15,7 @@ import '../focus/focus.dart';
 import '../foundation/change_notifier.dart';
 import '../foundation/controller_host.dart';
 import '../foundation/format.dart';
+import '../foundation/strings.dart';
 import '../framework/framework.dart';
 import '../gestures/gesture_detector.dart';
 import '../layout/flex.dart';
@@ -873,7 +874,11 @@ final class _DirectoryTreeState extends State<DirectoryTree> {
               children: [
                 Expanded(child: label),
                 Text(
-                  ' ${formatBytes(size, byteUnits: widget.byteUnits)}',
+                  ' ${formatBytes(
+                    size,
+                    byteUnits: widget.byteUnits,
+                    decimalSeparator: TwkStrings.of(context).decimalSeparator,
+                  )}',
                   style: theme.muted,
                 ),
               ],

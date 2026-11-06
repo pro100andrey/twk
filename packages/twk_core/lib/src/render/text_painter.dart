@@ -2428,9 +2428,7 @@ final class TextPainter {
       final o = old[a];
       final s = spans[a].$1;
       final most = o.length < s.length ? o.length : s.length;
-      while (p < most && o.codeUnitAt(p) == s.codeUnitAt(p)) {
-        p++;
-      }
+      p = _commonStart(o, s, most);
       // the last cluster that starts before p, and back from it
       final firstOfA = from;
       final lo = _firstFrom(a, p);
@@ -2467,11 +2465,7 @@ final class TextPainter {
       if (room < most) {
         most = room;
       }
-      var q = 0;
-      while (q < most &&
-          o.codeUnitAt(o.length - 1 - q) == s.codeUnitAt(s.length - 1 - q)) {
-        q++;
-      }
+      final q = _commonEnd(o, s, most);
       e
         ..pairedOld = oldEnd - 1
         ..suffixFrom = s.length - q + 1
@@ -3949,6 +3943,15 @@ final class TextPainter {
   /// same whether or not one of those was asked first. [width] and [height]
   /// stay the layout's.
   void paint(Canvas canvas, int x, int y) {
+    prepare(canvas);
+    draw(canvas, x, y);
+  }
+
+  /// What [paint] does before it draws: finds the lines, the ids of the
+  /// clusters and pens in [canvas]'s tables, and what the rows are drawn
+  /// from, so that [changedRows] says which differ from the last
+  /// prepared. [draw] draws what it prepared.
+  void prepare(Canvas canvas) {
     if (_linesAt < 0 || _textStale) {
       // split again since the layout: the lines at the width it had
       _layoutLines(_constraints!.maxW);
@@ -3965,8 +3968,32 @@ final class TextPainter {
     }
     if (_segmentsStale) {
       _buildSegments();
+    } else if (tracksDamage) {
+      _damageFirst = 1 << 30;
+      _damageEnd = 0;
     }
     _resolvePens(canvas.styles);
+    final seg = _segments;
+    if (tracksDamage) {
+      if (_looked) {
+        // the rows drawn in a pen looked up again
+        for (var k = 0; k < _segmentCount; k++) {
+          final at = k * _segmentStride;
+          final span = seg[at + 2];
+          if (span >= _lookedFrom && span < _lookedTo) {
+            _damage(seg[at + 1]);
+          }
+        }
+      }
+      if (_damageFirst >= _damageEnd) {
+        _damageFirst = _damageEnd = 0;
+      }
+    }
+  }
+
+  /// Draws onto [canvas] with the top left cell at ([x], [y]) what
+  /// [prepare] prepared, cut off at the canvas's clip.
+  void draw(Canvas canvas, int x, int y) {
     final ids = _penIds;
     final seg = _segments;
     for (var k = 0; k < _segmentCount; k++) {
@@ -3987,6 +4014,11 @@ final class TextPainter {
     }
   }
 
+  // the spans whose pens the last paint looked up
+  var _looked = false;
+  var _lookedFrom = 0;
+  var _lookedTo = 0;
+
   /// Looks the pens of the spans up in [styles] unless they were.
   void _resolvePens(StyleTable styles) {
     var from = 0;
@@ -4004,6 +4036,9 @@ final class TextPainter {
     for (var k = from; k < to; k++) {
       ids[k] = styles.pen(_spans[k].$2);
     }
+    _looked = from < to;
+    _lookedFrom = from;
+    _lookedTo = to;
     _pensFrom = _pensTo = _spans.length;
   }
 
@@ -4027,6 +4062,11 @@ final class TextPainter {
   /// Works out what painting draws: a glyph run for each piece of a line
   /// in one span, the ellipsis, and the gaps a justified line stretches.
   void _buildSegments() {
+    final track = tracksDamage;
+    if (track) {
+      _damageFirst = 1 << 30;
+      _damageEnd = 0;
+    }
     final rows = _lineCount < height ? _lineCount : height;
     if (_bidiOn) {
       _buildOrdered(rows);
@@ -4038,6 +4078,41 @@ final class TextPainter {
     _changedTo = 0;
     _changedShift = 0;
     _spansMoved = false;
+  }
+
+  // the rows [_damageFirst, _damageEnd) the last paint drew otherwise than
+  // the one before
+  var _damageFirst = 0;
+  var _damageEnd = 0;
+
+  /// Whether [changedRows] is worked out. Off by default: painting costs
+  /// then what it did without it.
+  var tracksDamage = false;
+
+  /// The rows the last [paint] drew otherwise than the paint before it, as
+  /// (first, end): the rows from first up to, not including, end, in the
+  /// rows of the text; both 0 when it drew the same. A row is counted that
+  /// is built again, that is where the row before it was not, or that is
+  /// past the last row the paint before it drew: those that went. All the
+  /// rows are counted after a change that built them again (the width, the
+  /// alignment, the spans' styles looked up again, the glyph table swept),
+  /// and the first paint.
+  ///
+  /// It is not narrower than an edit is: the rows an edit reaches are
+  /// those with a cluster it split again, and a row with a pen looked up
+  /// again is counted whole.
+  ///
+  /// Counted only while [tracksDamage]; otherwise it stays 0 to 0 and the
+  /// painter does none of the work of counting.
+  (int, int) get changedRows => (_damageFirst, _damageEnd);
+
+  void _damage(int y) {
+    if (y < _damageFirst) {
+      _damageFirst = y;
+    }
+    if (y >= _damageEnd) {
+      _damageEnd = y + 1;
+    }
   }
 
   /// [_buildSegments] for [rows] rows of a line ordered for drawing each:
@@ -4072,10 +4147,21 @@ final class TextPainter {
         j = _rowFound;
         if (kept) {
           _copyRow(j, y);
+          if (tracksDamage && j != y) {
+            _damage(y);
+          }
           continue;
         }
       }
+      if (tracksDamage) {
+        _damage(y);
+      }
       _orderRow(y);
+    }
+    if (tracksDamage) {
+      for (var y = rows; y < _rowsWere; y++) {
+        _damage(y);
+      }
     }
     _rowAt[2 * rows] = _segmentCount;
     _rowAt[2 * rows + 1] = _runGlyphCount;
@@ -4229,10 +4315,21 @@ final class TextPainter {
         j = _rowFound;
         if (kept) {
           _copyStoredRow(j, y, _rowShift);
+          if (tracksDamage && j != y) {
+            _damage(y);
+          }
           continue;
         }
       }
+      if (tracksDamage) {
+        _damage(y);
+      }
       _storeRow(y);
+    }
+    if (tracksDamage) {
+      for (var y = rows; y < _rowsWere; y++) {
+        _damage(y);
+      }
     }
     _rowAt[2 * rows] = _segmentCount;
     _rowAt[2 * rows + 1] = 0;
@@ -4754,4 +4851,43 @@ final class TextPainter {
       ..[at + 5] = start
       ..[at + 6] = end;
   }
+}
+
+// An edit compares all of a long text with what it was, a code unit at a
+// time, every frame: the hottest loop of typing into one. Apart and small
+// they go through no bounds or interrupt check and stay out of the way of
+// the rest of [TextPainter._resplit]. How fast a loop like this runs depends
+// on its place against a 64-byte line (25 or 32 us for these on 40k
+// characters, the same code): a bench that moves by 8 % with no more
+// instructions a frame is that, not the change that moved it.
+
+/// How many code units [a] and [b] have in common from their starts, [most]
+/// at most, which neither is shorter than.
+@pragma('vm:never-inline')
+@pragma('vm:align-loops')
+@pragma('vm:unsafe:no-interrupts')
+@pragma('vm:unsafe:no-bounds-checks')
+int _commonStart(String a, String b, int most) {
+  var i = 0;
+  while (i < most && a.codeUnitAt(i) == b.codeUnitAt(i)) {
+    i++;
+  }
+  return i;
+}
+
+/// How many code units [a] and [b] have in common at their ends, [most] at
+/// most, which neither is shorter than.
+@pragma('vm:never-inline')
+@pragma('vm:align-loops')
+@pragma('vm:unsafe:no-interrupts')
+@pragma('vm:unsafe:no-bounds-checks')
+int _commonEnd(String a, String b, int most) {
+  var i = a.length - 1;
+  var j = b.length - 1;
+  final end = i - most;
+  while (i > end && a.codeUnitAt(i) == b.codeUnitAt(j)) {
+    i--;
+    j--;
+  }
+  return a.length - 1 - i;
 }

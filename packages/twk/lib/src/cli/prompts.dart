@@ -21,6 +21,32 @@ const hiddenAnswer = '******';
 /// filtered by what is typed unless told.
 const choicesShown = 7;
 
+/// What [typed] answers to a yes or no question, in either case: `y`,
+/// `yes`, `n` and `no` first, whatever the language, then the `yes` and `no`
+/// of [strings], then a first letter that is of one of them alone; null for
+/// none of them, so that a letter they share asks again.
+bool? confirmAnswer(String typed, TwkStrings strings) {
+  final answer = typed.toLowerCase();
+  if (answer == 'y' || answer == 'yes') {
+    return true;
+  }
+  if (answer == 'n' || answer == 'no') {
+    return false;
+  }
+  final yes = strings.yes.toLowerCase();
+  final no = strings.no.toLowerCase();
+  if (answer.isNotEmpty && answer == yes) {
+    return true;
+  }
+  if (answer.isNotEmpty && answer == no) {
+    return false;
+  }
+  bool startsOf(String word) =>
+      word.isNotEmpty && answer == String.fromCharCode(word.runes.first);
+  final isYes = startsOf(yes);
+  return isYes == startsOf(no) ? null : isYes;
+}
+
 /// Asks the questions of a [Cli] the way its mode allows, one at a time:
 ///
 /// * interactive: a widget mounted in the inline session, which goes once
@@ -170,7 +196,7 @@ final class Prompter {
   /// See [Cli.confirm].
   Future<bool> confirm(String question, {bool? defaultValue}) =>
       _serial(() async {
-        String shown(bool value) => value ? 'yes' : 'no';
+        String shown(bool value) => value ? cli.strings.yes : cli.strings.no;
         switch (_mode) {
           case CliMode.nonInteractive:
             if (defaultValue == null) {
@@ -180,21 +206,20 @@ final class Prompter {
             return defaultValue;
           case CliMode.plain:
             final hint = switch (defaultValue) {
-              true => 'Y/n',
-              false => 'y/N',
-              null => 'y/n',
+              true => cli.strings.confirmHintYes,
+              false => cli.strings.confirmHintNo,
+              null => cli.strings.confirmHint,
             };
             while (true) {
               _write(_asking(question, hint: hint, brackets: '[]'));
-              switch ((await _readLine(question)).trim().toLowerCase()) {
-                case '' when defaultValue != null:
-                  return defaultValue;
-                case 'y' || 'yes':
-                  return true;
-                case 'n' || 'no':
-                  return false;
+              final answer = (await _readLine(question)).trim().toLowerCase();
+              if (answer.isEmpty && defaultValue != null) {
+                return defaultValue;
               }
-              _writeLine(_refused('answer y or n'));
+              if (confirmAnswer(answer, cli.strings) case final value?) {
+                return value;
+              }
+              _writeLine(_refused(cli.strings.answerYesOrNo));
             }
           case CliMode.interactive:
             return _live<bool>(
@@ -233,7 +258,7 @@ final class Prompter {
         final fallback = initial < 0 ? 0 : initial;
         while (true) {
           _write([
-            Span('Enter a number', cli.theme.hint),
+            Span(cli.strings.enterNumber, cli.theme.hint),
             Span(' (${fallback + 1})', cli.theme.hint),
             const Span(': '),
           ]);
@@ -245,7 +270,7 @@ final class Prompter {
           if (picked != null) {
             return choices[picked];
           }
-          _writeLine(_refused('answer a number from 1 to ${labels.length}'));
+          _writeLine(_refused(cli.strings.answerNumber(labels.length)));
         }
       case CliMode.interactive:
         return _live<T>(
@@ -295,15 +320,15 @@ final class Prompter {
         if (picked.contains(i)) choices[i],
     ];
     String shown(Set<int> picked) => picked.isEmpty
-        ? 'none'
+        ? cli.strings.none
         : [
             for (var i = 0; i < choices.length; i++)
               if (picked.contains(i)) labels[i],
           ].join(', ');
     String? refuse(Set<int> picked) => picked.length < min
-        ? 'choose at least $min'
+        ? cli.strings.chooseAtLeast(min)
         : max != null && picked.length > max
-        ? 'choose at most $max'
+        ? cli.strings.chooseAtMost(max)
         : null;
     switch (_mode) {
       case CliMode.nonInteractive:
@@ -325,14 +350,14 @@ final class Prompter {
             : ([...initial]..sort()).map((i) => i + 1).join(',');
         while (true) {
           _write([
-            Span('Enter numbers separated by commas', cli.theme.hint),
+            Span(cli.strings.enterNumbers, cli.theme.hint),
             if (hint != null) Span(' ($hint)', cli.theme.hint),
             const Span(': '),
           ]);
           final line = (await _readLine(question)).trim();
           final picked = line.isEmpty ? {...initial} : _pickAll(line, labels);
           final refused = picked == null
-              ? 'answer numbers from 1 to ${labels.length}'
+              ? cli.strings.answerNumbers(labels.length)
               : refuse(picked);
           if (refused == null) {
             return inOrder(picked!);

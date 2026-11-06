@@ -117,7 +117,8 @@ final _encoders = <(ColorMode, bool, bool), LineEncoder>{};
 const _maxStyles = 1024;
 
 /// [widget] laid out [width] columns wide, as tall as its max intrinsic
-/// height there, under [theme] where there is one, painted once, and its
+/// height there, under [theme] where there is one, in the words
+/// [strings], painted once, and its
 /// rows as lines: without the blanks that end them, and, with [ansi], in
 /// the SGR sequences of the cells' styles, a styled underline a plain one
 /// without [styledUnderlines], and with OSC 8 links where [hyperlinks] are
@@ -134,6 +135,7 @@ List<String> widgetLines(
   Widget widget,
   int width, {
   ThemeData? theme,
+  TwkStrings strings = const TwkStrings(),
   void Function(LogRecord record)? onLog,
   bool ansi = false,
   bool hyperlinks = false,
@@ -145,12 +147,15 @@ List<String> widgetLines(
   }
   final owner = BuildOwner();
   final root = RootWidget(
-    child: theme == null
-        ? Overlay(child: widget)
-        : Theme(
-            data: theme,
-            child: Overlay(child: widget),
-          ),
+    child: Localizations(
+      strings: strings,
+      child: theme == null
+          ? Overlay(child: widget)
+          : Theme(
+              data: theme,
+              child: Overlay(child: widget),
+            ),
+    ),
   ).attach(owner);
   try {
     owner.buildScope();

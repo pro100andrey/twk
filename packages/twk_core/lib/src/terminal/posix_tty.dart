@@ -47,6 +47,29 @@ final class PosixTty {
         : PosixTty._(8, 24, 0x80, 0x200, 32 + 3);
   }
 
+  /// Returns once this process's group is the foreground group of the
+  /// terminal on stdin, stopping itself (SIGSTOP, as a job is stopped that
+  /// wants the terminal) for as long as it is not: an app started with `&`
+  /// waits here, before it changes a mode or writes a query, for the shell's
+  /// `fg`, which hands over the terminal and then continues the job. A
+  /// SIGCONT without the terminal (`kill -CONT`) stops it again. Returns at
+  /// once where stdin is no controlling terminal (a pipe, another session).
+  ///
+  /// The kernel would stop a background `tcsetattr` itself (SIGTTOU), but
+  /// the Dart VM does not take it, so the process asks.
+  static void waitForForeground() {
+    while (true) {
+      final foreground = _tcgetpgrp(_stdinFd);
+      if (foreground < 0 || foreground == _getpgrp()) {
+        return;
+      }
+      _kill(_getpid(), Platform.isMacOS ? _sigstopMacos : _sigstopLinux);
+    }
+  }
+
+  static const _sigstopLinux = 19;
+  static const _sigstopMacos = 17;
+
   /// c_iflag is the first field everywhere; ICRNL has the same value.
   static const _iflagOffset = 0;
   static const _icrnl = 0x100;
@@ -156,3 +179,15 @@ final class PosixTty {
     }
   }
 }
+
+@Native<Int Function(Int)>(symbol: 'tcgetpgrp', isLeaf: true)
+external int _tcgetpgrp(int fd);
+
+@Native<Int Function()>(symbol: 'getpgrp', isLeaf: true)
+external int _getpgrp();
+
+@Native<Int Function()>(symbol: 'getpid', isLeaf: true)
+external int _getpid();
+
+@Native<Int Function(Int, Int)>(symbol: 'kill', isLeaf: true)
+external int _kill(int pid, int sig);

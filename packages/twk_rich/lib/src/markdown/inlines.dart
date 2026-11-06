@@ -210,7 +210,13 @@ final class _Node {
   _Node? first;
   _Node? last;
 
+  /// How many levels of nodes lie below this one: 0 for a leaf.
+  var depth = 0;
+
   void append(_Node child) {
+    if (child.depth >= depth) {
+      depth = child.depth + 1;
+    }
     child
       ..unlink()
       ..parent = this
@@ -296,6 +302,16 @@ final class _Bracket {
   var active = true;
 }
 
+/// How many emphasis, strikethrough, link or image levels inlines nest,
+/// the innermost counted: a delimiter or bracket that would close one
+/// deeper stays text. Without a limit the text nests as deep as it is long,
+/// and the conversion and the walks of the result (`==`, `hashCode`,
+/// `toString`, `resolveReferences`) overflow the stack from about 2000
+/// levels (`toString`, the first to). 64 is far beyond any prose and about
+/// 30 times short of that, which leaves the room the blocks around (at most
+/// `maxNesting` deep) and the caller's own frames take.
+const maxInlineNesting = 64;
+
 final class _InlineParser {
   _InlineParser(this.s, {this.cuts = false});
 
@@ -320,6 +336,26 @@ final class _InlineParser {
   /// each plain text would cost a walk past them each time: emphasis is
   /// matched at the end alone from then on, and no cut comes.
   var _gaveUp = false;
+
+  /// Whether the nodes from [first] up to [stop] (to the last where null)
+  /// nest [maxInlineNesting] levels already, so that a node around them
+  /// would be too deep. Once one is, nothing else is wrapped: the text that
+  /// gets there is hostile, and looking at what lies between the delimiters
+  /// of each of its thousands would take as long as the square of its
+  /// length.
+  bool _tooDeep(_Node? first, _Node? stop) {
+    if (!_overflowed) {
+      for (var n = first; n != null && n != stop; n = n.next) {
+        if (n.depth >= maxInlineNesting) {
+          _overflowed = true;
+          break;
+        }
+      }
+    }
+    return _overflowed;
+  }
+
+  var _overflowed = false;
 
   /// The last cut, in the plain text from [_cutStart] of [_cutNode]; 0 for
   /// none.
@@ -541,7 +577,7 @@ final class _InlineParser {
       _text(']');
       return;
     }
-    if (!opener.active) {
+    if (!opener.active || _overflowed) {
       _brackets = opener.prev;
       _text(']');
       return;
@@ -553,6 +589,11 @@ final class _InlineParser {
     }
     _brackets = opener.prev;
     if (node == null) {
+      _text(']');
+      return;
+    }
+    if (_tooDeep(opener.node.next, null)) {
+      pos = after;
       _text(']');
       return;
     }
@@ -1200,6 +1241,12 @@ final class _InlineParser {
     _Delimiter closer, {
     required bool dry,
   }) {
+    if (!dry && _tooDeep(opener.node.next, closer.node)) {
+      // too deep to wrap: the closer stays text
+      final next = closer.next;
+      _remove(closer);
+      return next;
+    }
     final c = closer.char;
     final use = c == _tilde
         ? closer.count

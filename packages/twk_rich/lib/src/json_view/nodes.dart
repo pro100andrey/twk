@@ -368,7 +368,13 @@ List<Span> _rowSpans(
       spans.add(Span(quoted, theme.key));
     } else {
       final marked = theme.key.merge(markStyle);
-      final at = marks.toSet();
+      // a mark is where a cluster starts, and covers all of it
+      final starts = marks.toSet();
+      final at = <int>{
+        for (final (from, to) in graphemeBoundaries(key))
+          if (starts.contains(from))
+            for (var i = from; i < to; i++) i,
+      };
       spans.add(Span('"', theme.key));
       var from = 0;
       for (var i = 0; i <= key.length; i++) {

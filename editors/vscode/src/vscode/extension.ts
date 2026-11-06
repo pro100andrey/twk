@@ -79,7 +79,8 @@ export function activate(context: vscode.ExtensionContext): Api {
 
   const terminals = new Terminals({
     views: (title) => openWebviewTerminal(title, context.extensionUri),
-    startShell: (pane, serves) => TerminalShell.start(pane, { ...serves, temporaryRoot: os.tmpdir(), tcp: process.platform === 'win32' }),
+    startShell: (pane, serves) =>
+      TerminalShell.start(pane, { ...serves, temporaryRoot: os.tmpdir(), tcp: process.platform === 'win32', log: (message) => log.appendLine(message) }),
     settings,
     log,
     desktop,

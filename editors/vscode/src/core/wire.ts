@@ -1,25 +1,40 @@
 // The frames of twk's socket terminal (packages/twk_core/lib/src/terminal/
-// socket.dart, `Wire`): a type byte, the payload's length (4 bytes, big
+// socket.dart, `Wire`, `AppFrame`, `ShellFrame`): a type byte, the payload's length (4 bytes, big
 // endian) and the payload. This file must say what that one says:
 // packages/twk_core/test/terminal/shell_wire.golden.json holds both to the
 // same bytes (test/unit/core/wire_golden.test.ts here).
 
 export const Wire = {
   protocol: 1,
-  // app to shell
+  maxPayload: 1 << 26,
+} as const;
+
+/** The frames from the app to the shell, by name: the type byte of each. */
+export const AppFrame = {
   hello: 1,
   output: 2,
   flush: 3,
   lost: 4,
   raw: 5,
-  // shell to app
+} as const;
+export type AppFrame = (typeof AppFrame)[keyof typeof AppFrame];
+
+/** The frames from the shell to the app, by name: the type byte of each. */
+export const ShellFrame = {
   welcome: 16,
   refused: 17,
   input: 18,
   size: 19,
   flushed: 20,
-  maxPayload: 1 << 26,
 } as const;
+export type ShellFrame = (typeof ShellFrame)[keyof typeof ShellFrame];
+
+const appFrames: ReadonlySet<number> = new Set(Object.values(AppFrame));
+
+/** The frame [byte] is where the app sends it, or undefined for a byte this version does not know. */
+export function appFrameOf(byte: number): AppFrame | undefined {
+  return appFrames.has(byte) ? (byte as AppFrame) : undefined;
+}
 
 /** A frame of [type] with [payload]. */
 export function frame(type: number, payload: Uint8Array = new Uint8Array()): Buffer {

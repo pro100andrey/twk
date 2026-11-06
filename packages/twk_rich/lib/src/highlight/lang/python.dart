@@ -329,7 +329,7 @@ final class _Line {
       case >= 0x30 && <= 0x37:
         return _digitsEnd(start, 3, (unit) => unit >= 0x30 && unit <= 0x37);
     }
-    return start + 1;
+    return s.characterEnd(start);
   }
 
   /// The end of up to [count] digits that pass [test] from [from].

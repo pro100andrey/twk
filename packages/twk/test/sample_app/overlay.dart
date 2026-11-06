@@ -37,6 +37,7 @@ extension on _SampleAppState {
                     items: [MenuItem('&Bump', intent: _Bump())],
                     child: Center(
                       child: Popover(
+                        onDismiss: null,
                         open: false,
                         popover: Text('a popover'),
                         child: Tooltip(

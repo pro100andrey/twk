@@ -24,6 +24,7 @@ import 'package:twk_core/twk_core.dart'
 
 import '../animation/spinner.dart';
 import '../binding/app_binding.dart';
+import '../controls/selection_list.dart' show SelectionController;
 import '../focus/focus.dart';
 import '../foundation/change_notifier.dart';
 import '../foundation/helpers.dart';

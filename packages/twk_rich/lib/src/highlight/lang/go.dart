@@ -201,7 +201,7 @@ int _escapeEnd(TokenScanner s) {
     0x75 => _digitsEnd(s, start + 1, 4, TokenScanner.isHexDigit), // u
     0x55 => _digitsEnd(s, start + 1, 8, TokenScanner.isHexDigit), // U
     >= 0x30 && <= 0x37 => _digitsEnd(s, start, 3, _isOctalDigit),
-    _ => start + 1,
+    _ => s.characterEnd(start),
   };
 }
 

@@ -16,7 +16,7 @@ import * as path from 'node:path';
 
 import { ShellAddress, toVariable } from './address';
 import { Declaration } from './capabilities';
-import { FrameReader, Wire, frame, jsonFrame } from './wire';
+import { AppFrame, FrameReader, ShellFrame, Wire, appFrameOf, frame, jsonFrame } from './wire';
 
 /** Throws for bytes that are no UTF-8, as Dart's utf8.decode does. */
 const utf8 = new TextDecoder('utf-8', { fatal: true });
@@ -50,6 +50,8 @@ export interface ShellOptions {
   readonly tcp: boolean;
   /** The token an app opens with: a new random one when not given (a test gives the golden's). */
   readonly token?: string;
+  /** Where a frame of a type this version does not know is logged, as it is ignored (the console's warning when not given). */
+  readonly log?: (message: string) => void;
 }
 
 class Session {
@@ -59,13 +61,13 @@ class Session {
 
   constructor(readonly socket: net.Socket) {}
 
-  send(type: number, payload?: Uint8Array): void {
+  send(type: ShellFrame, payload?: Uint8Array): void {
     if (!this.ended) {
       this.socket.write(frame(type, payload));
     }
   }
 
-  sendJson(type: number, json: unknown): void {
+  sendJson(type: ShellFrame, json: unknown): void {
     if (!this.ended) {
       this.socket.write(jsonFrame(type, json));
     }
@@ -151,13 +153,13 @@ export class TerminalShell {
   input(bytes: Uint8Array): void {
     const s = this.session;
     if (s?.raw) {
-      s.send(Wire.input, bytes);
+      s.send(ShellFrame.input, bytes);
     }
   }
 
   /** The terminal's size changed. */
   resized(): void {
-    this.session?.sendJson(Wire.size, { columns: this.pane.columns, lines: this.pane.lines });
+    this.session?.sendJson(ShellFrame.size, { columns: this.pane.columns, lines: this.pane.lines });
   }
 
   /** Writes [text] to the terminal: a line of the shell's while no app has it. */
@@ -214,7 +216,7 @@ export class TerminalShell {
     let refusal: string | undefined;
     let json: unknown;
     try {
-      json = type === Wire.hello ? JSON.parse(utf8.decode(payload)) : undefined;
+      json = type === AppFrame.hello ? JSON.parse(utf8.decode(payload)) : undefined;
     } catch {
       json = undefined;
     }
@@ -229,7 +231,7 @@ export class TerminalShell {
       }
     }
     if (refusal !== undefined) {
-      session.send(Wire.refused, Buffer.from(refusal, 'utf8'));
+      session.send(ShellFrame.refused, Buffer.from(refusal, 'utf8'));
       session.ended = true;
       session.socket.end();
       return;
@@ -242,7 +244,7 @@ export class TerminalShell {
     session.raw = true;
     this.options.onEvent('connected');
     const { environment, declares } = this.options.welcome();
-    session.sendJson(Wire.welcome, {
+    session.sendJson(ShellFrame.welcome, {
       columns: this.pane.columns,
       lines: this.pane.lines,
       // xterm.js's Backspace
@@ -254,26 +256,38 @@ export class TerminalShell {
   }
 
   private frame(session: Session, type: number, payload: Buffer): void {
-    switch (type) {
-      case Wire.output:
+    const kind = appFrameOf(type);
+    if (kind === undefined) {
+      // not of this version: a newer app may send what this one does not know
+      (this.options.log ?? ((m) => console.warn(m)))(`twk shell: ignored a frame of type ${type} from an app`);
+      return;
+    }
+    switch (kind) {
+      case AppFrame.hello:
+        // a second hello is not of this protocol: the app is cut off
+        this.end(session);
+        break;
+      case AppFrame.output:
         // what the terminal answers, xterm.js's or the webview's, comes as its input
         this.write(payload);
         break;
-      case Wire.flush:
+      case AppFrame.flush:
         this.written.then(
-          () => session.send(Wire.flushed),
-          () => session.send(Wire.flushed),
+          () => session.send(ShellFrame.flushed),
+          () => session.send(ShellFrame.flushed),
         );
         break;
-      case Wire.lost:
+      case AppFrame.lost:
         session.lost = payload;
         break;
-      case Wire.raw:
+      case AppFrame.raw:
         // xterm.js has no line discipline: raw is whether input goes to the app
         session.raw = payload.length > 0 && payload[0] === 1;
         break;
-      default:
-        this.end(session);
+      default: {
+        const unhandled: never = kind;
+        throw new Error(`an app frame not handled: ${String(unhandled)}`);
+      }
     }
   }
 

@@ -73,7 +73,7 @@ a label whose style sets no text color in the theme's text color.
 
 ## `Table<T>`
 
-`Table<T>(rows:, columns:, rowKey:, controller:, selection:
+`Table<T>(rows:, columns:, rowKey:, controller:, marks:, selection:
 TableSelection.row, onActivated:, rowHeight: 1, columnGap: 1, border:
 BorderType.none, showHeader: true, sampleRows: 100, focusNode:, autofocus:,
 canRequestFocus:, style:, headerStyle:, borderStyle:, selectedStyle:,
@@ -125,7 +125,13 @@ rows by it, keeping the order of rows that compare equal, and again the
 other way, the title marked `▴` or `▾`; while the table has the focus, `s`
 does that for the column of the cell selected (`TableSelection.cell`) or the
 one sorted by (the first that sorts for none), `<` and `>` for the column
-that sorts before or after the one sorted by. A
+that sorts before or after the one sorted by. Rows are marked apart from the one selected: `marks:` takes a
+`SelectionController<Object>(multiple: true)`, as a `SelectionList` does,
+and its keys are the rows' (`rowKey`), so the marks stay with their rows as
+they are sorted. A checkbox column `[x]` / `[ ]` then comes before the
+columns, a blank above it; Space marks or unmarks the row selected and a
+click on a checkbox does that as it selects the row. The selected row keeps
+its meaning. A
 `TableController(selectedKey:, selectedColumn:, sortColumn:, sortAscending:,
 columnWidths:)` holds the selection, a row's key, which stays on its row as
 the rows are sorted, added and removed, the order (`sortBy`) and the widths
@@ -213,8 +219,8 @@ scroll it to the row. It takes all the room it is given, which must be bounded.
 ## `TreeTable<T>`
 
 `TreeTable<T>(roots:, children:, columns:, hasChildren:, nodeKey:,
-controller:, tableController:, selection: TableSelection.row, onActivated:,
-showGuides: true, columnGap: 1, border: BorderType.none, showHeader: true,
+controller:, tableController:, marks:, selection: TableSelection.row,
+onActivated:, showGuides: true, columnGap: 1, border: BorderType.none, showHeader: true,
 sampleRows:, focusNode:, autofocus:, canRequestFocus:, style:, headerStyle:,
 borderStyle:, guideStyle:, selectedStyle:, unfocusedSelectedStyle:,
 cursorStyle:, pointerShapes: true)` is a tree whose nodes are the rows of a
@@ -224,7 +230,9 @@ expander before the node's text, the others the node's columns, sized,
 measured and resized as a `Table`'s, the nodes shown walked as a `TreeView`
 walks them and children that come in a future shown as its are. Sorting by a
 column orders the children of each node among themselves, every node above
-its children, the guides following the order shown. The keys and the mouse
+its children, the guides following the order shown. `marks:` marks nodes by their keys as a `Table`'s marks rows, each node
+alone (no cascade: a parent does not mark its children, an app marks them
+with `selectAll`), and the row of a load has no checkbox. The keys and the mouse
 are a `Table`'s and a `TreeView`'s: with `TableSelection.row` Right expands
 the node selected or selects its first child shown and Left collapses it or
 selects its parent (with `cell` they move the cell), `+`, `-` and `*` expand

@@ -17,7 +17,7 @@ import { ShellStarter } from '../../app/terminal';
 import { WebviewPanelPort } from '../../app/webview_view';
 import { PlayerControl, PlayerState, ToWebview } from '../../webview/protocol';
 import { Vm, VmEvent } from '../../core/vm';
-import { FrameReader, Wire, jsonFrame } from '../../core/wire';
+import { AppFrame, FrameReader, Wire, jsonFrame } from '../../core/wire';
 import {
   InspectorView,
   Notice,
@@ -445,7 +445,7 @@ export class App {
     const socket = net.connect(address.where.substring('unix:'.length));
     await new Promise((r) => socket.once('connect', r));
     const app = new App(socket);
-    socket.write(jsonFrame(Wire.hello, { protocol: Wire.protocol, token: token ?? address.token }));
+    socket.write(jsonFrame(AppFrame.hello, { protocol: Wire.protocol, token: token ?? address.token }));
     return app;
   }
   async next(type: number): Promise<Buffer> {

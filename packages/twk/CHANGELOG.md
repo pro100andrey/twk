@@ -4,6 +4,18 @@
 
 Breaking:
 
+- `ScrollBehavior` and `ScrollConfiguration`, as Flutter has them, say what the
+  wheel does: `App(scrollBehavior:)` for the app, `ScrollConfiguration` for a
+  subtree. A `Scrollable` gathers the wheel's events into whole cells once a frame,
+  a trackpad's dense events a cell each with an acceleration, a sparse wheel 3 as
+  before. `wheelStep`, `wheelAcceleration` and `WheelAcceleration` are gone, and a
+  wheel moves the view at the next frame, not in the event.
+- `Popover.onDismiss` is required: `null` for a popover the app never closes this
+  way.
+- `Ticker.binding` and `Steps.binding` are typed by what they use of it, the
+  time of the frame and frame callbacks, not `AppBinding?`: an `AppBinding` goes
+  in as before, and a test without an app gives twk_test's `FakeFrameClock`. Code
+  that read another member through them keeps its own `AppBinding`.
 - `Cli.current` is gone, with the zone value `Cli.run` set: the body gets its
   `cli` as a parameter, and a program passes it to the helpers that use it. A
   program that made its own `Cli()` closes it itself, as before. Nothing in
@@ -26,6 +38,34 @@ Breaking:
 
 Changed:
 
+- `TwkStrings`, a const class with English defaults, holds the words twk writes
+  itself (`ETA`, ` in 3.1 s`, `+3 more`, `Y/n`, refusals, prompts, filter hints)
+  and `decimalSeparator`. `Localizations(strings:, child:)` and
+  `TwkStrings.of(context)` give them to widgets, `Cli(strings:)`, `Cli.run` and
+  `Cli.runWithArgs` to a console. A guide shows it with slang.
+- `formatBytes`, `formatTook` and `ProgressTask.summary` take `decimalSeparator:`.
+- A confirmation also takes the first letters of `TwkStrings.yes` and `no`, after
+  `y` and `n`; a letter both words start with asks again.
+- `runApp` and `AppBinding` take `maxInputFps`
+  ([twk_core's changelog](../twk_core/CHANGELOG.md)).
+- A `Text` of eight rows or more that is edited without changing its size
+  repaints only the rows that changed, by itself: nothing to set.
+- A widget that watched a provider in one build and only selects in a later one
+  is told of what it selects, where it stayed told of every change.
+- `Semantics.nodes` keep their hints while the `Semantics` is not focused.
+- A popover closes when a layer over it gives the focus elsewhere as it closes,
+  where it stayed open without the focus.
+- A `ProgressList` that takes the room it needs takes that of its words, in
+  `TwkStrings.eta` and `moreTasks`, and lays out again when they change.
+- `Table` and `TreeTable` take `marks:`, a `SelectionController<Object>(multiple:
+  true)` that marks rows by key, beside the row selected. A checkbox column comes
+  before the columns; Space and a click on a checkbox toggle a mark, and marks
+  stay with their rows as they are sorted. A tree's node marks itself alone.
+- A dialog or menu opened from a `Popover` no longer dismisses it. A closing
+  dialog, menu or popover gives the focus back to the node that had it as it
+  opened, and Escape closes the layer the focus is in.
+- `twk shell` no longer drops an app that sends a frame of a type it does not
+  know: it is ignored and logged. The VS Code extension's shell does the same.
 - `AnsiStream.reset()` starts it over: the line, a character or an escape
   sequence cut short, the style. A followed file that starts over uses it.
 - A row `SelectionList.itemEnabled` refuses, in a multiple list, has a blank for

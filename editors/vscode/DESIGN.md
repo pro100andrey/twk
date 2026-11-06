@@ -222,7 +222,7 @@ speaks the same protocol and is found by `TWK_SHELL` only.
   (exit 0), the shell's screen back on the normal buffer.
 - The stop button: exit 143, the shell back on the normal buffer.
 - `kill -9` of the app (a compiled counter, started without a tty): the
-  shell writes the bytes the app left it (`Wire.lost`) and the screen is
+  shell writes the bytes the app left it (`AppFrame.lost`) and the screen is
   back on the normal buffer. This is what A can't do.
 - In VS Code with Dart-Code 3.144.0 (installed in a throwaway
   `--extensions-dir`): the test "twk terminal under Dart-Code" below. The
@@ -1295,7 +1295,7 @@ What the repository offers for the wished features:
    the screen reader switched on and off across hot restarts.
 3. **Capabilities a terminal declares instead of twk guessing them from
    known terminal names.** The welcome's `declares`
-   (`Wire.welcome`, the golden's welcome frame), read by `SocketLink`
+   (`ShellFrame.welcome`, the golden's welcome frame), read by `SocketLink`
    into a `TerminalDeclaration` (`link.dart`: notifications, progress
    reports, pointer shapes, REP, images; each null where not declared),
    and passed on by a `TerminalShell` whose link declares

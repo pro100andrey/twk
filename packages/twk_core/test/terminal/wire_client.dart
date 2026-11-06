@@ -37,19 +37,24 @@ final class WireClient {
   /// Completes when the shell closes the connection.
   Future<void> get closed => _closed.future;
 
-  void send(int type, [List<int> payload = const []]) =>
+  void send(AppFrame type, [List<int> payload = const []]) =>
+      sendByte(type.byte, payload);
+
+  /// A frame of a type byte [type], of this protocol or not.
+  void sendByte(int type, [List<int> payload = const []]) =>
       socket.add(frame(type, payload));
 
   /// Completes once the shell has taken in everything sent before: it
   /// answers a flush after the frames that came before it.
   Future<void> sync() async {
-    int answers() => frames.where((f) => f.$1 == Wire.flushed).length;
+    int answers() =>
+        frames.where((f) => f.$1 == ShellFrame.flushed.byte).length;
     final before = answers();
-    send(Wire.flush);
+    send(AppFrame.flush);
     await waitUntil(() => answers() > before, 'the flush answered');
   }
 
   void hello(String token, {int protocol = Wire.protocol}) => socket.add(
-    jsonFrame(Wire.hello, {'protocol': protocol, 'token': token}),
+    jsonFrame(AppFrame.hello.byte, {'protocol': protocol, 'token': token}),
   );
 }

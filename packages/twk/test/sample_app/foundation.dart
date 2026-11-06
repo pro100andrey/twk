@@ -25,6 +25,12 @@ extension on _SampleAppState {
             builder: (context, snapshot) => Text('${snapshot.data}'),
           ),
           Counted(stream: _ticks.stream),
+          Localizations(
+            strings: const TwkStrings(),
+            child: Builder(
+              builder: (context) => Text(TwkStrings.of(context).yesLabel),
+            ),
+          ),
         ],
       ),
     ),

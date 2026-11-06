@@ -299,7 +299,7 @@ int _escapeEnd(TokenScanner s) {
       final close = s.line.indexOf('}', start);
       return close < 0 ? s.line.length : close + 1;
   }
-  return start + 1;
+  return s.characterEnd(start);
 }
 
 TokenKind _typeOrPlain(String name) =>

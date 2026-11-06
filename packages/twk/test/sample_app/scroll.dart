@@ -39,11 +39,13 @@ extension on _SampleAppState {
             width: 13,
             child: Scrollbar(
               visibility: ScrollbarVisibility.onScroll,
-              child: ListView.builder(
-                itemCount: 1000,
-                controller: _items,
-                wheelAcceleration: const WheelAcceleration(),
-                itemBuilder: (context, index) => Text('item $index'),
+              child: ScrollConfiguration(
+                behavior: const ScrollBehavior(step: 2),
+                child: ListView.builder(
+                  itemCount: 1000,
+                  controller: _items,
+                  itemBuilder: (context, index) => Text('item $index'),
+                ),
               ),
             ),
           ),

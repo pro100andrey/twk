@@ -12,6 +12,9 @@ import 'package:twk/twk.dart';
 /// The widgets the packages export that no page builds, and why.
 const unpaged = {
   'RootWidget': 'every app, the gallery too, is mounted in one',
+  'Localizations':
+      'gives the widgets below it the words twk writes (TwkStrings); '
+      'nothing of its own to see, the localization guide shows it',
   'InputDecorator':
       "what a TextField's and a Select's decoration are drawn in: every "
       'field of the InputDecoration page',

@@ -27,6 +27,12 @@ writes only the cells that changed.
    with twk_test, and in a real pseudo-terminal.
 8. [Running an app](guides/running.md): what ends `runApp`, Ctrl+C,
    Ctrl+Z, SIGTERM, and a missing terminal.
+9. [Words in another language](guides/localization.md): `TwkStrings` and
+   `Localizations`, the words twk writes itself, with slang or without.
+10. [Coming from Flutter](guides/coming-from-flutter.md): what is the same,
+    what is spelled differently and what twk does not have.
+11. [Performance](guides/performance.md): what costs nothing, what to
+    narrow, and how to measure.
 
 ## Widget catalog
 

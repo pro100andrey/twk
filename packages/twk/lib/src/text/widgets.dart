@@ -40,6 +40,10 @@ export 'package:twk_core/twk_core.dart' show TextAlign, TextOverflow, TextWrap;
 /// merged onto its own. A click on text that links ([Style.link]) is told
 /// to [onLinkTap].
 ///
+/// A text of eight lines or more that is edited line by line repaints only
+/// the lines that changed, by itself: no option to set
+/// ([RenderParagraph.autoKeepsPaint]).
+///
 /// A space at the end of the text, or of a line it breaks, is not counted
 /// with [wrap] at its default, [TextWrap.word]: it hangs past the line,
 /// neither drawn nor given width, so `Text('◐ ')` is one cell wide. Use
@@ -188,6 +192,7 @@ final class Text extends LeafRenderObjectWidget {
       maxLines: maxLines,
       align: align,
       ellipsis: theme.glyphs.ellipsis,
+      autoKeepsPaint: true,
     );
     addToSelectionArea(context, paragraph);
     _tellTaps(context, paragraph, theme);

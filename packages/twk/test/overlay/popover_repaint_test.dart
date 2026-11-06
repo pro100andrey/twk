@@ -109,6 +109,7 @@ final class Scene {
                     builder: (_, n, _) => SizedBox(width: n),
                   ),
                 Popover(
+                  onDismiss: null,
                   open: true,
                   popover: SizedBox(
                     width: 8,
@@ -266,6 +267,7 @@ void main() {
                     builder: (_, n, _) => SizedBox(height: n),
                   ),
                   const Popover(
+                    onDismiss: null,
                     open: true,
                     popover: Text('pop 0\npop 1\npop 2'),
                     child: Text('anchor'),
@@ -335,6 +337,7 @@ void main() {
                   children: [
                     for (var i = 0; i < 4; i++) Text('line $i'),
                     const Popover(
+                      onDismiss: null,
                       open: true,
                       popover: Text('pop 0\npop 1'),
                       child: Text('anchor'),

@@ -5,90 +5,67 @@
 /// @docImport 'ticker.dart';
 library;
 
-import '../binding/app_binding.dart';
+import '../binding/app_binding.dart' show AppBinding, FrameCallback;
+import 'frame_clock.dart';
+import 'mute.dart';
+import 'step_count.dart';
 
-/// Steps of [interval] on the clock of [binding]'s app, counted from its
-/// start: the one a frame is in ([current]), and, while started, [onStep]
-/// called at the first frame of each, a frame callback for the time it
-/// starts at ([AppBinding.scheduleFrameCallback]). All that step by the
-/// same interval step in the same frames, which one timer asks for.
-/// Without a binding it stays at the first step.
+/// Steps of [interval] on the clock of [binding], counted from its start:
+/// the one a frame is in ([current]), and, while started, [onStep] called
+/// at the first frame of each, a frame callback for the time it starts at
+/// ([FrameClock.scheduleFrameCallback]). All that step by the same
+/// interval step in the same frames, which one timer asks for. Without a
+/// binding it stays at the first step.
 ///
 /// A [TickerMode] that is off mutes it ([muted]).
 ///
 /// A [Spinner] steps its frames, and a [ProgressBar] its sweep, with one.
-final class Steps {
-  /// Steps of [_interval] for the app of [binding], not started; an
+final class Steps implements Muteable {
+  /// Steps of [interval] on the clock of [binding], not started; an
   /// interval not longer than zero is an [ArgumentError].
-  Steps(this._interval, this.onStep, {this.binding}) {
-    _check(_interval);
-  }
-
-  /// Throws where [interval] is not longer than zero: [current] divides by
-  /// it.
-  static void _check(Duration interval) {
-    if (interval <= Duration.zero) {
-      throw ArgumentError.value(interval, 'interval', 'a step takes no time');
-    }
-  }
+  Steps(Duration interval, this.onStep, {this.binding})
+    : _count = StepCount(interval);
 
   /// What it calls at the first frame of each step while started.
   final void Function() onStep;
 
-  /// The app whose clock it steps by; null for none, where it stays at the
-  /// first step and calls [onStep] never.
-  final AppBinding? binding;
+  /// The clock it steps by (an app's [AppBinding]); null for none, where it
+  /// stays at the first step and calls [onStep] never.
+  final FrameClock? binding;
 
-  Duration _interval;
+  final StepCount _count;
+
+  Duration get _now => binding?.frameTime ?? Duration.zero;
 
   /// How long a step is; set, a started one goes on at the next step of
   /// the new interval. One not longer than zero is an [ArgumentError].
-  Duration get interval => _interval;
+  Duration get interval => _count.interval;
   set interval(Duration i) {
-    _check(i);
-    if (i != _interval) {
-      // the steps muted for are counted in the old interval: counted anew
-      // in the new one, the step it is in stays the one it is in
-      final keep = !_muted && _shifted ? current : null;
-      _interval = i;
-      if (keep != null) {
-        _skipped = _live - keep;
-      }
-      if (_callback != null) {
-        _cancel();
-        start();
-      }
+    if (_count.setInterval(i, _now) && _callback != null) {
+      _cancel();
+      start();
     }
   }
 
   int? _callback;
 
   var _wanted = false;
-  var _muted = false;
-  var _frozen = 0;
-  var _shifted = false;
-  var _skipped = 0;
-  var _resume = false;
 
   /// Whether it is muted: no frame asked for and [current] kept at the
   /// step it was in, for a [TickerMode] that is off. Unmuted, a started one
   /// goes on from that step.
-  bool get muted => _muted;
+  @override
+  bool get muted => _count.muted;
+  @override
   set muted(bool on) {
-    if (on == _muted) {
+    if (on == _count.muted) {
       return;
     }
     if (on) {
-      _frozen = current;
-      _shifted = true;
-      _resume = false;
-      _muted = true;
+      _count.mute(_now);
       _cancel();
     } else {
-      // the time it was muted for is taken off when the step is next read,
-      // in a frame, whose time is the one that counts
-      _resume = true;
-      _muted = false;
+      _count.unmute();
       if (_wanted) {
         start();
       }
@@ -98,34 +75,16 @@ final class Steps {
   late final FrameCallback _stepCallback = _step;
 
   /// The step the frame running is in, or the last one between frames.
-  int get current {
-    if (_muted) {
-      return _frozen;
-    }
-    if (_resume) {
-      _resume = false;
-      // the steps skipped, as many as the clock has gone on past the step
-      // it stood at: counted anew, not added to those of the mutes before
-      _skipped = _live - _frozen;
-    }
-    return _live - _skipped;
-  }
-
-  int get _live {
-    final b = binding;
-    return b == null
-        ? 0
-        : b.frameTime.inMicroseconds ~/ _interval.inMicroseconds;
-  }
+  int get current => _count.current(_now);
 
   /// Calls [onStep] from the next step on.
   void start() {
     _wanted = true;
     final b = binding;
-    if (b != null && !_muted && _callback == null) {
+    if (b != null && !_count.muted && _callback == null) {
       _callback = b.scheduleFrameCallback(
         _stepCallback,
-        at: _interval * (_live + 1),
+        at: _count.nextAt(_now),
       );
     }
   }

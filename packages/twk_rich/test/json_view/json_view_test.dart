@@ -472,6 +472,46 @@ void main() {
       expect(t.cell(8, 2), isNot(hasAttr(Attr.bold))); // o
     });
 
+    testTwk('a match on a character beyond U+FFFF marks the whole '
+        'character', (t) async {
+      await t.pumpWidget(
+        const JsonView(value: {'x🙂y': 1}, autofocus: true),
+        size: (30, 5),
+      );
+      await press(t, '/');
+      await t.pump();
+      await t.type('🙂');
+      await t.pump();
+      expect(shown(t)[1], '├── "x🙂y": 1');
+      // x plain, the emoji (two cells) marked, y plain
+      expect(t.cell(5, 1), isNot(hasAttr(Attr.bold)));
+      expect(t.cell(6, 1), hasAttr(Attr.bold));
+      expect(t.cell(8, 1), isNot(hasAttr(Attr.bold)));
+    });
+
+    for (final (what, cluster) in [
+      ('a flag', '🇺🇦'),
+      ('a letter with a mark', 'e\u0301'),
+    ]) {
+      testTwk('a match on $what marks the whole cluster', (t) async {
+        await t.pumpWidget(
+          JsonView(value: {'x${cluster}y': 1}, autofocus: true),
+          size: (30, 5),
+        );
+        await press(t, '/');
+        await t.pump();
+        await t.type(cluster);
+        await t.pump();
+        expect(shown(t)[1], '├── "x${cluster}y": 1');
+        // x plain, the cluster marked, whatever its width, then y plain
+        final row = shown(t)[1];
+        final y = TextSegmenter().width(row.substring(0, row.indexOf('y')));
+        expect(t.cell(5, 1), isNot(hasAttr(Attr.bold)));
+        expect(t.cell(6, 1), hasAttr(Attr.bold));
+        expect(t.cell(y, 1), isNot(hasAttr(Attr.bold)));
+      });
+    }
+
     testTwk('the entries below a match all show', (t) async {
       const config = {
         'server': {'host': 'localhost', 'port': 80},

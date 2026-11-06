@@ -3,6 +3,7 @@
 library;
 
 import '../framework/framework.dart';
+import '../scroll/scroll_behavior.dart';
 import '../style/theme.dart';
 import 'layer.dart';
 
@@ -27,6 +28,11 @@ import 'layer.dart';
 /// [Theme] has its dialogs in that theme. Without [theme] it places none,
 /// and the widgets below take [Theme.of]'s.
 ///
+/// With [scrollBehavior] the app's scrollables scroll as it says, a
+/// [ScrollConfiguration] above all of it; by default the [ScrollBehavior]
+/// every scrollable takes where there is none, which measures how dense
+/// the wheel's events are.
+///
 /// A theme given or taken away keeps the state below, as a new one does.
 ///
 /// ```dart
@@ -41,10 +47,20 @@ import 'layer.dart';
 ///    itself.
 final class App extends StatefulWidget {
   /// [child] under [theme] and an overlay.
-  const App({required this.child, super.key, this.theme});
+  const App({
+    required this.child,
+    super.key,
+    this.theme,
+    this.scrollBehavior,
+  });
 
   /// The theme of the app; null for none of its own, [Theme.of]'s.
   final ThemeData? theme;
+
+  /// How the wheel scrolls the app's scrollables; null for none of its own,
+  /// [ScrollBehavior.new]'s, which a [ScrollConfiguration] inside the app
+  /// may change for a subtree.
+  final ScrollBehavior? scrollBehavior;
 
   /// The app, its own `KeyBindings` at its root.
   final Widget child;
@@ -62,6 +78,10 @@ final class _AppState extends State<App> {
   Widget build(BuildContext context) {
     final theme = widget.theme;
     final overlay = Overlay(key: _overlay, child: widget.child);
-    return theme == null ? overlay : Theme(data: theme, child: overlay);
+    final themed = theme == null ? overlay : Theme(data: theme, child: overlay);
+    final behavior = widget.scrollBehavior;
+    return behavior == null
+        ? themed
+        : ScrollConfiguration(behavior: behavior, child: themed);
   }
 }

@@ -27,7 +27,51 @@ List<MdInline> inlines(String text) =>
   }
 }
 
+int nestingOf(List<MdInline> list) {
+  var deepest = 0;
+  for (final i in list) {
+    final d = switch (i) {
+      MdEmphasis(:final children) ||
+      MdStrong(:final children) ||
+      MdStrikethrough(:final children) ||
+      MdLink(:final children) ||
+      MdImage(:final children) => 1 + nestingOf(children),
+      _ => 0,
+    };
+    if (d > deepest) {
+      deepest = d;
+    }
+  }
+  return deepest;
+}
+
 void main() {
+  // Inlines nest within a limit, so that the conversion and the walks of
+  // the result fit the stack whatever the text.
+  group('inline nesting', () {
+    final docs = <String, String Function(int)>{
+      'emphasis': (n) => '${'*a ' * n}${' b*' * n}',
+      'strikethrough': (n) => '${'~~x ' * n}a${' y~~' * n}',
+      'images': (n) => '${'![' * n}a${'](x)' * n}',
+      'brackets': (n) => '${'[' * n}a${']' * n}',
+    };
+    for (final MapEntry(key: name, value: doc) in docs.entries) {
+      test('$name 100000 deep parses, compares and prints', () {
+        final a = parseMarkdown(doc(100000)).first;
+        final b = parseMarkdown(doc(100000)).first;
+        expect(a, b);
+        expect(a.hashCode, b.hashCode);
+        expect(a.toString(), isNotEmpty);
+      });
+    }
+
+    test('the limit still nests, past it the delimiters are text', () {
+      expect(nestingOf(inlines('${'*a ' * 64}b${' c*' * 64}')), 64);
+      expect(nestingOf(inlines('${'*a ' * 65}b${' c*' * 65}')), 64);
+      expect(nestingOf(inlines('${'![' * 65}a${'](x)' * 65}')), 64);
+    });
+  });
+
   group('blocks', () {
     test('headings, ATX and setext', () {
       expect(parseMarkdown('### Three ###\n\nOne\n===\nTwo\n---'), [

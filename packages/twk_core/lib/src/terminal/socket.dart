@@ -11,10 +11,14 @@
 /// by the debugger).
 ///
 /// The wire: frames of a type byte, the payload's length (4 bytes, big
-/// endian) and the payload ([Wire], [frame]). The app opens with
-/// [Wire.hello] and the token of the shell's address file; the shell
-/// answers with [Wire.welcome] (size, environment, erase character, what
-/// the terminal declares it does) or [Wire.refused]. `test/terminal/shell_wire.golden.json` describes it
+/// endian) and the payload ([Wire], [frame]). Each direction has a type of
+/// its own, [AppFrame] and [ShellFrame]; a byte a receiver does not know
+/// is ignored and logged, so that a newer end can send what an older one
+/// does not understand. The app opens with [AppFrame.hello] and the token
+/// of the shell's address file; the shell answers with
+/// [ShellFrame.welcome] (size, environment, erase character, what the
+/// terminal declares it does) or [ShellFrame.refused].
+/// `test/terminal/shell_wire.golden.json` describes it
 /// frame by frame, and holds this file and the VS Code extension's port of
 /// it (`editors/vscode/src/core/wire.ts`, `shell.ts`) to the same bytes: a
 /// change here is made there and in the golden too.
@@ -23,6 +27,7 @@ library;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -31,51 +36,90 @@ import 'link.dart';
 import 'outbox.dart';
 import 'stdio_link.dart';
 
-/// The frames between a [SocketLink] and a [TerminalShell].
+/// The wire's constants, those of both directions.
 abstract final class Wire {
   /// The version of the wire both ends must speak.
   static const protocol = 1;
 
-  /// App to shell, first: JSON `{"protocol": 1, "token": "..."}`.
-  static const hello = 1;
-
-  /// App to shell: bytes for the terminal.
-  static const output = 2;
-
-  /// App to shell: answer with [flushed] once the output before it is
-  /// written.
-  static const flush = 3;
-
-  /// App to shell: the bytes that put the terminal back as it was, written
-  /// by the shell if the app goes away without writing them (empty once
-  /// the app has).
-  static const lost = 4;
-
-  /// App to shell: `[1]` raw mode, `[0]` the console modes as found.
-  static const raw = 5;
-
-  /// Shell to app, answering [hello]: JSON `{"columns", "lines",
-  /// "eraseChar", "windows", "environment"}`, and `"declares"` where the
-  /// terminal declares what it does ([TerminalDeclaration.toJson]), which
-  /// the app takes over its guess by the environment.
-  static const welcome = 16;
-
-  /// Shell to app, answering [hello]: why not (UTF-8); the shell closes
-  /// the connection.
-  static const refused = 17;
-
-  /// Shell to app: the terminal's input.
-  static const input = 18;
-
-  /// Shell to app: JSON `{"columns", "lines"}`, the terminal's new size.
-  static const size = 19;
-
-  /// Shell to app: what was asked with [flush] is written.
-  static const flushed = 20;
-
   /// The longest payload either end accepts.
   static const int maxPayload = 1 << 26;
 }
+
+/// A frame from the app to the shell.
+enum AppFrame {
+  /// First, JSON `{"protocol": 1, "token": "..."}`.
+  hello(1),
+
+  /// Bytes for the terminal.
+  output(2),
+
+  /// Answer with [ShellFrame.flushed] once the output before it is
+  /// written.
+  flush(3),
+
+  /// The bytes that put the terminal back as it was, written by the shell
+  /// if the app goes away without writing them (empty once the app has).
+  lost(4),
+
+  /// `[1]` raw mode, `[0]` the console modes as found.
+  raw(5);
+
+  const AppFrame(this.byte);
+
+  /// The type byte on the wire.
+  final int byte;
+
+  /// The frame [byte] is, or null for a byte this version does not know.
+  static AppFrame? fromByte(int byte) {
+    for (final frame in values) {
+      if (frame.byte == byte) {
+        return frame;
+      }
+    }
+    return null;
+  }
+}
+
+/// A frame from the shell to the app.
+enum ShellFrame {
+  /// Answering [AppFrame.hello]: JSON `{"columns", "lines", "eraseChar",
+  /// "windows", "environment"}`, and `"declares"` where the terminal
+  /// declares what it does ([TerminalDeclaration.toJson]), which the app
+  /// takes over its guess by the environment.
+  welcome(16),
+
+  /// Answering [AppFrame.hello]: why not (UTF-8); the shell closes the
+  /// connection.
+  refused(17),
+
+  /// The terminal's input.
+  input(18),
+
+  /// JSON `{"columns", "lines"}`, the terminal's new size.
+  size(19),
+
+  /// What was asked with [AppFrame.flush] is written.
+  flushed(20);
+
+  const ShellFrame(this.byte);
+
+  /// The type byte on the wire.
+  final int byte;
+
+  /// The frame [byte] is, or null for a byte this version does not know.
+  static ShellFrame? fromByte(int byte) {
+    for (final frame in values) {
+      if (frame.byte == byte) {
+        return frame;
+      }
+    }
+    return null;
+  }
+}
+
+/// Logs a frame of a type this version does not know, which is ignored.
+void _ignored(String from, int byte) =>
+    developer.log('ignored a frame of type $byte from $from', name: 'twk.wire');
 
 /// The header of a frame of [type] with a payload of [length] bytes.
 Uint8List frameHeader(int type, int length) => Uint8List(5)
@@ -194,7 +238,7 @@ final class SocketLink implements DeclaringLink {
     final link = SocketLink._(socket);
     try {
       socket.add(
-        jsonFrame(Wire.hello, {
+        jsonFrame(AppFrame.hello.byte, {
           'protocol': Wire.protocol,
           'token': address.token,
         }),
@@ -285,35 +329,79 @@ final class SocketLink implements DeclaringLink {
   int? eraseChar;
 
   void _onFrame(int type, Uint8List payload) {
-    switch (type) {
-      case Wire.welcome when !_welcome.isCompleted:
-        final json = jsonDecode(utf8.decode(payload)) as Map<String, Object?>;
-        columns = json['columns']! as int;
-        lines = json['lines']! as int;
-        eraseChar = json['eraseChar'] as int?;
-        windows = json['windows'] == true;
-        environment = (json['environment']! as Map<String, Object?>).map(
-          (k, v) => MapEntry(k, v! as String),
+    final kind = ShellFrame.fromByte(type);
+    if (kind == null) {
+      _ignored('the shell', type);
+      return;
+    }
+    switch (kind) {
+      case ShellFrame.welcome:
+        if (_welcome.isCompleted) {
+          return;
+        }
+        final json = _object(payload);
+        // read whole before any is taken: a welcome that is wrong in one
+        // field changes none
+        final width = _field<int>(json, 'columns');
+        final height = _field<int>(json, 'lines');
+        final erase = json['eraseChar'];
+        if (erase != null && erase is! int) {
+          throw FormatException('eraseChar is ${erase.runtimeType}');
+        }
+        final env = _field<Map<String, Object?>>(json, 'environment').map(
+          (k, v) => MapEntry(k, v is String ? v : _wrong('environment.$k', v)),
         );
+        columns = width;
+        lines = height;
+        eraseChar = erase as int?;
+        windows = json['windows'] == true;
+        environment = env;
         declaration = TerminalDeclaration.fromJson(json['declares']);
         _welcome.complete();
-      case Wire.refused when !_welcome.isCompleted:
-        _welcome.completeError(
-          TerminalException('the shell refused: ${utf8.decode(payload)}'),
-        );
-      case Wire.input:
+      case ShellFrame.refused:
+        if (!_welcome.isCompleted) {
+          _welcome.completeError(
+            TerminalException('the shell refused: ${utf8.decode(payload)}'),
+          );
+        }
+      case ShellFrame.input:
         _input.add(payload);
-      case Wire.size:
-        final json = jsonDecode(utf8.decode(payload)) as Map<String, Object?>;
-        columns = json['columns']! as int;
-        lines = json['lines']! as int;
+      case ShellFrame.size:
+        final json = _object(payload);
+        final width = _field<int>(json, 'columns');
+        final height = _field<int>(json, 'lines');
+        columns = width;
+        lines = height;
         _resizes.add(null);
-      case Wire.flushed when _acks.isNotEmpty:
-        _acks.removeFirst().complete();
-      default:
-      // nothing else comes from a shell that speaks this protocol
+      case ShellFrame.flushed:
+        if (_acks.isNotEmpty) {
+          _acks.removeFirst().complete();
+        }
     }
   }
+
+  /// The JSON object [payload] holds. Throws [FormatException] for
+  /// anything else.
+  static Map<String, Object?> _object(Uint8List payload) {
+    final json = jsonDecode(utf8.decode(payload));
+    if (json is! Map<String, Object?>) {
+      throw FormatException('a frame that is no JSON object: $json');
+    }
+    return json;
+  }
+
+  /// [json]'s [name], which must be a [T]. Throws [FormatException] when
+  /// it is missing or another type.
+  static T _field<T extends Object>(Map<String, Object?> json, String name) {
+    final value = json[name];
+    return value is T ? value : _wrong(name, value);
+  }
+
+  static Never _wrong(String name, Object? value) => throw FormatException(
+    value == null
+        ? '$name is missing or null'
+        : '$name is ${value.runtimeType}',
+  );
 
   void _gone(TerminalException reason) {
     if (_ended) {
@@ -331,17 +419,17 @@ final class SocketLink implements DeclaringLink {
     unawaited(_resizes.close());
   }
 
-  void _send(int type, [List<int> payload = const []]) {
+  void _send(AppFrame type, [List<int> payload = const []]) {
     if (!_ended) {
-      _socket.add(frame(type, payload));
+      _socket.add(frame(type.byte, payload));
     }
   }
 
   @override
-  void enterRaw() => _send(Wire.raw, const [1]);
+  void enterRaw() => _send(AppFrame.raw, const [1]);
 
   @override
-  void restore() => _send(Wire.raw, const [0]);
+  void restore() => _send(AppFrame.raw, const [0]);
 
   @override
   Stream<List<int>> get input => _input.stream;
@@ -350,7 +438,7 @@ final class SocketLink implements DeclaringLink {
   void add(List<int> bytes) {
     if (!_ended && bytes.isNotEmpty) {
       _socket
-        ..add(frameHeader(Wire.output, bytes.length))
+        ..add(frameHeader(AppFrame.output.byte, bytes.length))
         ..add(bytes);
     }
   }
@@ -366,7 +454,7 @@ final class SocketLink implements DeclaringLink {
     }
     final ack = Completer<void>();
     _acks.add(ack);
-    _send(Wire.flush);
+    _send(AppFrame.flush);
     return ack.future;
   }
 
@@ -374,7 +462,7 @@ final class SocketLink implements DeclaringLink {
   Stream<void> get resizes => _resizes.stream;
 
   @override
-  void restoreWith(List<int> bytes) => _send(Wire.lost, bytes);
+  void restoreWith(List<int> bytes) => _send(AppFrame.lost, bytes);
 
   /// Closes the connection once what was written is sent: the shell puts
   /// the terminal back as [restoreWith] said, which is nothing once the
@@ -422,8 +510,8 @@ enum ShellEvent {
 /// it, its output written. A newer app takes the terminal over from the
 /// one that has it: that one is disconnected. When the app goes away,
 /// closing the connection or killed, the terminal is put back as it was
-/// before the app came: what its last [Wire.lost] bytes say, and the
-/// console modes as found. Output is written a whole [Wire.output] frame
+/// before the app came: what its last [AppFrame.lost] bytes say, and the
+/// console modes as found. Output is written a whole [AppFrame.output] frame
 /// at a time, and a frame of `Terminal` holds whole sequences (a frame of
 /// `TwkApp` its synchronized update too): an app killed while writing
 /// leaves no sequence cut short. Input that comes while no app has the
@@ -460,11 +548,11 @@ final class TerminalShell {
     _inputs = _link.input.listen((bytes) {
       final session = _session;
       if (session != null && session.raw) {
-        session.send(Wire.input, bytes);
+        session.send(ShellFrame.input, bytes);
       }
     });
     _sizes = _link.resizes.listen(
-      (_) => _session?.sendJson(Wire.size, {
+      (_) => _session?.sendJson(ShellFrame.size, {
         'columns': _link.columns,
         'lines': _link.lines,
       }),
@@ -545,7 +633,9 @@ final class TerminalShell {
       }
     }
 
-    final reader = FrameReader((type, _) => answer(type == Wire.refused));
+    final reader = FrameReader(
+      (type, _) => answer(type == ShellFrame.refused.byte),
+    );
     unawaited(socket.done.then<void>((_) {}, onError: (Object _) {}));
     socket
       ..listen(
@@ -559,7 +649,7 @@ final class TerminalShell {
         onError: (Object _) => answer(false),
         onDone: () => answer(false),
       )
-      ..add(jsonFrame(Wire.hello, {'protocol': 0}));
+      ..add(jsonFrame(AppFrame.hello.byte, {'protocol': 0}));
     try {
       return await refused.future.timeout(timeout, onTimeout: () => false);
     } finally {
@@ -645,7 +735,7 @@ final class TerminalShell {
 
   void _hello(_Session session, int type, Uint8List payload) {
     String? refusal;
-    if (type != Wire.hello) {
+    if (type != AppFrame.hello.byte) {
       refusal = 'no hello';
     } else {
       Object? json;
@@ -666,7 +756,7 @@ final class TerminalShell {
     }
     if (refusal != null) {
       session
-        ..send(Wire.refused, utf8.encode(refusal))
+        ..send(ShellFrame.refused, utf8.encode(refusal))
         ..close();
       return;
     }
@@ -683,7 +773,7 @@ final class TerminalShell {
         : const <String, Object>{};
     session
       ..raw = true
-      ..sendJson(Wire.welcome, {
+      ..sendJson(ShellFrame.welcome, {
         'columns': link.columns,
         'lines': link.lines,
         'eraseChar': link.eraseChar,
@@ -694,19 +784,27 @@ final class TerminalShell {
   }
 
   void _frame(_Session session, int type, Uint8List payload) {
-    switch (type) {
-      case Wire.output:
+    final kind = AppFrame.fromByte(type);
+    if (kind == null) {
+      _ignored('an app', type);
+      return;
+    }
+    switch (kind) {
+      case AppFrame.hello:
+        // a second hello is not of this protocol: the app is cut off
+        _end(session);
+      case AppFrame.output:
         _out.add(payload);
-      case Wire.flush:
+      case AppFrame.flush:
         unawaited(
           _out
               .flush()
               .then<void>((_) {}, onError: (Object _) {})
-              .whenComplete(() => session.send(Wire.flushed)),
+              .whenComplete(() => session.send(ShellFrame.flushed)),
         );
-      case Wire.lost:
+      case AppFrame.lost:
         session.lost = payload;
-      case Wire.raw:
+      case AppFrame.raw:
         final raw = payload.isNotEmpty && payload[0] == 1;
         if (raw && !session.raw) {
           _link.enterRaw();
@@ -714,9 +812,6 @@ final class TerminalShell {
           _link.restore();
         }
         session.raw = raw;
-      default:
-        // not of this protocol: the app is cut off
-        _end(session);
     }
   }
 
@@ -790,7 +885,7 @@ final class _Session {
   /// The console is in raw mode for it.
   var raw = false;
 
-  /// What puts the terminal back if it goes away ([Wire.lost]).
+  /// What puts the terminal back if it goes away ([AppFrame.lost]).
   List<int> lost = const [];
 
   var ended = false;
@@ -815,13 +910,13 @@ final class _Session {
     );
   }
 
-  void send(int type, [List<int> payload = const []]) {
+  void send(ShellFrame type, [List<int> payload = const []]) {
     if (!ended) {
-      _socket.add(frame(type, payload));
+      _socket.add(frame(type.byte, payload));
     }
   }
 
-  void sendJson(int type, Object json) =>
+  void sendJson(ShellFrame type, Object json) =>
       send(type, utf8.encode(jsonEncode(json)));
 
   /// Closes once what was sent is on its way.

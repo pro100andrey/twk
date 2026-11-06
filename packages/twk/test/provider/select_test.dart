@@ -42,6 +42,33 @@ void main() {
       expect(log, ['half', 'watcher']);
     });
 
+    testTwk('a widget that watched in one build and only selects in the next '
+        'is told as a selector', (t) async {
+      final log = <String>[];
+      final counter = Counter(1);
+      var watching = true;
+      Widget probe() => Built('probe', log, (context) {
+        if (watching) {
+          return Text('${context.watch<Counter>().count}');
+        }
+        return Text('${context.select<Counter, bool>((c) => c.count.isEven)}');
+      });
+      Widget app(Widget child) =>
+          ChangeNotifierProvider.value(value: counter, child: child);
+      await t.pumpWidget(app(probe()), size: (6, 1));
+      // the same element builds again, now only selecting
+      watching = false;
+      final selecting = probe();
+      await t.pumpWidget(app(selecting), size: (6, 1));
+      expect(t.lines, ['false']);
+      log.clear();
+      await t.act(() => counter.count = 3);
+      expect(log, isEmpty);
+      await t.act(() => counter.count = 4);
+      expect(log, ['probe']);
+      expect(t.lines, ['true']);
+    });
+
     testTwk('compares lists, sets and maps element by element', (t) async {
       final log = <String>[];
       final counter = Counter();

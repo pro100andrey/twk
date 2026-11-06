@@ -27,6 +27,7 @@ import 'dialog.dart';
 import 'fuzzy.dart';
 import 'key_path.dart';
 import 'layer.dart';
+import 'layer_escape.dart';
 import 'options.dart';
 import 'panel.dart';
 
@@ -783,22 +784,25 @@ final class _PaletteState extends State<_Palette> {
     }
   }
 
-  Widget _field() => KeyBindings(
-    {
-      'up': () => _move(-1),
-      'down': () => _move(1),
-      'enter': _choose,
-      'escape': _close,
-    },
-    hints: const {'enter': 'run', 'escape': 'close'},
+  Widget _field() => LayerEscape(
+    onEscape: _close,
     debugLabel: 'command palette',
-    // the palette's hints alone
-    child: TextField(
-      controller: _query,
-      semanticsLabel: 'Command',
-      placeholder: widget.placeholder,
-      autofocus: true,
-      keyHints: false,
+    child: KeyBindings(
+      {
+        'up': () => _move(-1),
+        'down': () => _move(1),
+        'enter': _choose,
+      },
+      hints: const {'enter': 'run'},
+      debugLabel: 'command palette keys',
+      // the palette's hints alone
+      child: TextField(
+        controller: _query,
+        semanticsLabel: 'Command',
+        placeholder: widget.placeholder,
+        autofocus: true,
+        keyHints: false,
+      ),
     ),
   );
 

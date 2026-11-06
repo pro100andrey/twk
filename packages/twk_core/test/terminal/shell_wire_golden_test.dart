@@ -96,34 +96,12 @@ String get token => (frames['hello']!['json']! as Json)['token']! as String;
 /// The terminal of the golden's welcome.
 Json get welcome => frames['welcome']!['json']! as Json;
 
-/// The frames' types socket.dart's [Wire] declares, read from its source:
-/// a kind added there and not to the golden fails, as one left out.
-Map<String, String> declaredInSource() {
-  final source = File('lib/src/terminal/socket.dart').readAsStringSync();
-  final body = RegExp(
-    r'abstract final class Wire \{(.*?)\n\}',
-    dotAll: true,
-  ).firstMatch(source)![1]!;
-  return {
-    for (final m in RegExp(
-      r'static const (?:int )?(\w+) = ([^;]+);',
-    ).allMatches(body))
-      m[1]!: m[2]!,
-  };
-}
-
-/// [Wire]'s kinds by name.
-const Map<String, int> wireKinds = {
-  'hello': Wire.hello,
-  'output': Wire.output,
-  'flush': Wire.flush,
-  'lost': Wire.lost,
-  'raw': Wire.raw,
-  'welcome': Wire.welcome,
-  'refused': Wire.refused,
-  'input': Wire.input,
-  'size': Wire.size,
-  'flushed': Wire.flushed,
+/// The frames' types by name, and the direction each is of, as
+/// socket.dart's [AppFrame] and [ShellFrame] declare them: a kind added
+/// there and not to the golden fails, as one left out.
+final Map<String, (String, int)> wireKinds = {
+  for (final f in AppFrame.values) f.name: ('app', f.byte),
+  for (final f in ShellFrame.values) f.name: ('shell', f.byte),
 };
 
 /// Plays the app's side of a `side: shell` conversation against a
@@ -315,16 +293,30 @@ void main() {
     expect(golden['maxPayload'], Wire.maxPayload);
   });
 
-  test("the golden's kinds are Wire's, of its types, none left out", () {
-    expect(declaredInSource().keys.toSet(), {
-      ...wireKinds.keys,
-      'protocol',
-      'maxPayload',
-    }, reason: 'Wire declares a kind wireKinds and the golden lack');
+  test("the golden's kinds are AppFrame's and ShellFrame's, of their types "
+      'and directions, none left out', () {
     expect(
-      {for (final MapEntry(:key, :value) in kinds.entries) key: value['type']},
+      {
+        for (final MapEntry(:key, :value) in kinds.entries)
+          key: (value['from'], value['type']),
+      },
       wireKinds,
     );
+  });
+
+  test('a byte is the frame of its direction, or none', () {
+    for (final f in AppFrame.values) {
+      expect(AppFrame.fromByte(f.byte), f);
+      expect(ShellFrame.fromByte(f.byte), isNull, reason: '${f.name} is $f');
+    }
+    for (final f in ShellFrame.values) {
+      expect(ShellFrame.fromByte(f.byte), f);
+      expect(AppFrame.fromByte(f.byte), isNull, reason: '${f.name} is $f');
+    }
+    for (final byte in [0, 6, 15, 21, 99, 255]) {
+      expect(AppFrame.fromByte(byte), isNull);
+      expect(ShellFrame.fromByte(byte), isNull);
+    }
   });
 
   group('each frame', () {

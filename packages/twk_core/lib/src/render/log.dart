@@ -95,7 +95,14 @@ final class RenderLog extends RenderObject {
     if (stickToEnd) {
       _first = _maxFirst;
     }
-    markNeedsPaint();
+    // a line below a window kept where it was changes no cell: it is
+    // painted when scrolled into view, as any row a scroll exposes
+    if (stickToEnd ||
+        _fullRepaint ||
+        _paintedFirst < 0 ||
+        _lines.length - 1 < _paintedFirst + _paintedHeight) {
+      markNeedsPaint();
+    }
   }
 
   int get _maxFirst => _lines.length - height > 0 ? _lines.length - height : 0;

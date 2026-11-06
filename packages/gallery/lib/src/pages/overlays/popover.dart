@@ -30,7 +30,9 @@ final _popoverPage = GalleryPage(
     '  return Popover(',
     '    open: _open,',
     if (o(_popoverDismissible))
-      '    onDismiss: () => setState(() => _open = false),',
+      '    onDismiss: () => setState(() => _open = false),'
+    else
+      '    onDismiss: null,',
     '    popover: Panel(',
     ..._lookLine(o, '      '),
     '      padding: const .x(1),',

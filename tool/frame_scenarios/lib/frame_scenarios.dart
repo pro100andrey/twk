@@ -215,11 +215,12 @@ final frameScenarios = <FrameScenario>[
   ),
   FrameScenario(
     'wrap',
-    'a word typed into a mixed-script paragraph, re-wrapped',
+    'a word typed into a mixed-script paragraph, re-wrapped, as a Text is: '
+        'keeping its paint by itself',
     (
       hs,
     ) {
-      final s = _Prose(hs)..render();
+      final s = _Prose(hs, autoKeepsPaint: true)..render();
       return (i) {
         s.type(i);
         return s.render();
@@ -430,6 +431,58 @@ final frameScenarios = <FrameScenario>[
       return 0;
     };
   }, write: false),
+  if (hasKeepsPaint) ...[
+    FrameScenario(
+      'wrap-kept',
+      'the wrap scenario with the paragraph keeping its paint',
+      (hs) {
+        final s = _Prose(hs, keepsPaint: true)..render();
+        return (i) {
+          s.type(i);
+          return s.render();
+        };
+      },
+    ),
+    FrameScenario(
+      'wrap-auto',
+      'the wrap scenario with the paragraph left to keep its paint itself',
+      (hs) {
+        final s = _Prose(hs, autoKeepsPaint: true)..render();
+        return (i) {
+          s.type(i);
+          return s.render();
+        };
+      },
+    ),
+    FrameScenario(
+      'ellipsis-kept',
+      'the ellipsis scenario with the paragraph keeping its paint',
+      (hs) {
+        final s = _Prose(
+          hs,
+          maxLines: hs.surface.height * 2 ~/ 3,
+          keepsPaint: true,
+        )..render();
+        _requireCut(hs, s.paragraph.maxLines!, '\u2026');
+        return (i) {
+          s.type(i);
+          return s.render();
+        };
+      },
+    ),
+    FrameScenario(
+      'wrap-ambig-kept',
+      'the wrap-ambig scenario with the paragraph keeping its paint',
+      (hs) {
+        final s = _Prose(hs, keepsPaint: true)..render();
+        return (i) {
+          s.type(i);
+          return s.render();
+        };
+      },
+      ambiguousWidth: 2,
+    ),
+  ],
 ];
 
 /// Throws [ScenarioBroken] unless line [line] (from 1) of the rig's
@@ -707,6 +760,8 @@ final class _Prose extends _Scene {
     List<(String, Pen)> sentences = _sentences,
     bool visual = false,
     String ellipsis = '\u2026',
+    bool keepsPaint = false,
+    bool autoKeepsPaint = false,
   }) {
     if (visual) {
       owner.textOrder = TextOrder.visual;
@@ -718,7 +773,13 @@ final class _Prose extends _Scene {
       cells += stringWidth(s.$1);
     }
     _tail = base.first.$1.substring(_lead.length);
-    paragraph = cutParagraph(base, maxLines: maxLines, ellipsis: ellipsis);
+    paragraph = cutParagraph(
+      base,
+      maxLines: maxLines,
+      ellipsis: ellipsis,
+      keepsPaint: keepsPaint,
+      autoKeepsPaint: autoKeepsPaint,
+    );
     owner.root = RenderBox(
       pen: hs.styles.pen(const Pen(bg: Color.rgb(16, 18, 24))),
       boundary: true,
