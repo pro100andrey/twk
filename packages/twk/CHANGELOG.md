@@ -245,6 +245,8 @@ Added:
 
 - `Focus(onFocusChange:)` and `FocusScope(onFocusChange:)`, called with `hasFocus` when the node's focus changes; `FocusScopeNode.requestFocus([node])` focuses a node below the scope.
 
+- `SingleTickerProviderStateMixin`; `AnimationController.forward`, `reverse`, `animateTo` and `repeat` return a `Future<void>` that completes when the run ends, and when something stops it (`stop`, `value` set, another run, `dispose`): unlike Flutter's `TickerFuture`, it does not stay pending after a stop, so an `await` does not hang. `AnimationController.toggle`, `isCompleted` and `isDismissed` (also on `AnimationStatus`).
+
 ## 0.2.0
 
 - After a Ctrl+C ended the inline session, a program that handles SIGINT

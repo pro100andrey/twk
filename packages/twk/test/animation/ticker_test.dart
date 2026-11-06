@@ -29,7 +29,50 @@ final class TickingState extends State<Ticking> with TickerProviderStateMixin {
   Widget build(BuildContext context) => const Text('ticking');
 }
 
+/// A state with one ticker.
+final class Single extends StatefulWidget {
+  const Single({super.key});
+
+  @override
+  State<Single> createState() => SingleState();
+}
+
+final class SingleState extends State<Single>
+    with SingleTickerProviderStateMixin {
+  var ticks = 0;
+
+  late final Ticker ticker = createTicker((_) => ticks++);
+
+  @override
+  Widget build(BuildContext context) => const Text('single');
+}
+
 void main() {
+  testTwk('SingleTickerProviderStateMixin gives one ticker that ticks in '
+      'the frames of the app and stops with the state', (t) async {
+    final key = GlobalKey<SingleState>();
+    await t.pumpWidget(Single(key: key), size: (10, 1), maxFps: 100);
+    final state = key.currentState!..ticker.start();
+    await t.pump(ms * 25);
+    expect(state.ticks, 3);
+    await t.pumpWidget(const SizedBox());
+    final ticked = state.ticks;
+    expect(state.ticker.isActive, isFalse);
+    await t.pump(ms * 50);
+    expect(state.ticks, ticked);
+    expect(t.clock.pendingTimers, 0);
+  });
+
+  testTwk('SingleTickerProviderStateMixin asserts on a second ticker', (
+    t,
+  ) async {
+    final key = GlobalKey<SingleState>();
+    await t.pumpWidget(Single(key: key), size: (10, 1));
+    final state = key.currentState!;
+    expect(state.ticker, isNotNull);
+    expect(() => state.createTicker((_) {}), throwsA(isA<AssertionError>()));
+  });
+
   testTwk('a ticker ticks once a frame from the next one, with the time '
       'since its first tick, and stopped asks for no frame', (t) async {
     final key = GlobalKey<TickingState>();

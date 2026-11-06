@@ -307,7 +307,13 @@ and a trackpad do, for the app (`App(scrollBehavior:)`) or a subtree.
 
 `ChangeNotifier`, `ValueNotifier`, `ListenableBuilder`,
 `ValueListenableBuilder`, `FutureBuilder`, `StreamBuilder` and
-`AnimationController` with `TickerProviderStateMixin` are as in Flutter.
+`AnimationController` with `TickerProviderStateMixin` or
+`SingleTickerProviderStateMixin` are as in Flutter. `forward`, `reverse`,
+`animateTo`, `repeat` and `toggle` return a `Future<void>` that completes when
+the run ends, and also when something stops it (`stop`, a new run, `dispose`),
+where Flutter's `TickerFuture` then stays pending for ever and has `orCancel`
+to tell: an `await controller.forward()` here does not hang on a stop, and
+`controller.status` and `value` say how it ended.
 `package:twk/provider.dart` is Provider's API (`ChangeNotifierProvider`,
 `Consumer`, `Selector`, `MultiProvider`), and `package:twk/hooks.dart` is
 flutter_hooks'. Riverpod and bloc are the packages `twk_riverpod` and

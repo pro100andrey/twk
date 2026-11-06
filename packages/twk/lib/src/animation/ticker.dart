@@ -259,3 +259,63 @@ mixin TickerProviderStateMixin<T extends StatefulWidget> on State<T>
     super.dispose();
   }
 }
+
+/// A [TickerProviderStateMixin] for a state with one ticker, which is what
+/// one [AnimationController] needs: [createTicker] a second time, while the
+/// first is not disposed, is an assertion failure.
+///
+/// ```dart
+/// final class _OnceState extends State<Blink>
+///     with SingleTickerProviderStateMixin {
+///   late final controller = AnimationController(
+///     vsync: this,
+///     duration: const Duration(seconds: 1),
+///   )..repeat();
+///
+///   @override
+///   void dispose() {
+///     controller.dispose();
+///     super.dispose();
+///   }
+///
+///   @override
+///   Widget build(BuildContext context) =>
+///       Text(controller.value < 0.5 ? '█' : ' ');
+/// }
+/// ```
+mixin SingleTickerProviderStateMixin<T extends StatefulWidget> on State<T>
+    implements TickerProvider {
+  final _tickers = MuteGroup<Ticker>();
+
+  @override
+  Ticker createTicker(TickerCallback onTick) {
+    assert(
+      _tickers.items.isEmpty,
+      '$runtimeType is a SingleTickerProviderStateMixin but creates more '
+      'than one Ticker: use TickerProviderStateMixin.',
+    );
+    final mode = context.getInheritedWidgetOfExactType<TickerMode>();
+    return _tickers.add(
+      Ticker(onTick, binding: AppBinding.maybeOf(context))
+        ..muted = !(mode?.enabled ?? true),
+    );
+  }
+
+  @override
+  @protected
+  @mustCallSuper
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _tickers.sync(context);
+  }
+
+  @override
+  @protected
+  @mustCallSuper
+  void dispose() {
+    for (final ticker in _tickers.items) {
+      ticker.dispose();
+    }
+    super.dispose();
+  }
+}
