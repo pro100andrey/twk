@@ -461,7 +461,7 @@ final class _SelectionAreaState extends State<SelectionArea> {
     }
   }
 
-  void _drag(DragDetails details) {
+  void _drag(DragUpdateDetails details) {
     if (_anchor == null) {
       return;
     }

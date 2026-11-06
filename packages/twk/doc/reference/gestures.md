@@ -78,9 +78,10 @@ onPanStart:, onPanUpdate:, onPanEnd:, buttons: {0}, doubleTapInterval:
 300 ms, longPressDuration: 500 ms, behavior:, child:)`, a `Listener`
 underneath, tells the gestures of the presses of the `buttons` it takes: a
 press is a drag once the mouse moves to another cell with the button held
-(`DragDetails`, the event and the cells moved since the drag was told last,
-`dx` and `dy`: the start at the press, then each cell it moves to, the end
-at the release), a long press once it is held for `longPressDuration` with
+(`DragStartDetails`, `DragUpdateDetails` and `DragEndDetails`, as Flutter's,
+each with the `event`, the `localPosition` and `globalPosition` in cells
+(`dx`, `dy`) and, for an update, the `delta` since the drag was told last: the
+start at the press, then each cell it moves to, the end at the release), a long press once it is held for `longPressDuration` with
 the mouse over the detector, else a tap when it is released over it. With an
 `onDoubleTap` a tap waits `doubleTapInterval` for the next press: a tap of
 the same button then is a double tap, else `onTap` is told of the first

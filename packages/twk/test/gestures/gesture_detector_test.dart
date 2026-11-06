@@ -34,7 +34,8 @@ Widget detector(
   final double = gestures.contains('double');
   final long = gestures.contains('long');
   final drag = gestures.contains('drag');
-  String moved(DragDetails d) => '${at(d.event)} ${d.dx},${d.dy}';
+  String moved(PointerEvent e, [CellOffset d = (dx: 0, dy: 0)]) =>
+      '${at(e)} ${d.dx},${d.dy}';
   return Positioned(
     left: left,
     top: top,
@@ -45,9 +46,11 @@ Widget detector(
       onDoubleTap: double ? (e) => log.add('$name double ${at(e)}') : null,
       onLongPress: long ? (e) => log.add('$name long ${at(e)}') : null,
       onLongPressEnd: long ? (e) => log.add('$name long end ${at(e)}') : null,
-      onPanStart: drag ? (d) => log.add('$name start ${moved(d)}') : null,
-      onPanUpdate: drag ? (d) => log.add('$name update ${moved(d)}') : null,
-      onPanEnd: drag ? (d) => log.add('$name end ${moved(d)}') : null,
+      onPanStart: drag ? (d) => log.add('$name start ${moved(d.event)}') : null,
+      onPanUpdate: drag
+          ? (d) => log.add('$name update ${moved(d.event, d.delta)}')
+          : null,
+      onPanEnd: drag ? (d) => log.add('$name end ${at(d.event)}') : null,
       buttons: buttons,
       behavior: HitTestBehavior.opaque,
       child: child,
@@ -293,7 +296,7 @@ void main() {
       'd update 2,1 1,0',
       'd update 4,0 2,-1',
       'd update 13,3 9,3',
-      'd end 13,3 0,0',
+      'd end 13,3',
     ]);
 
     // a release the terminal did not report: the next press ends the drag
@@ -306,22 +309,47 @@ void main() {
     expect(log, [
       'd start 1,1 0,0',
       'd update 2,1 1,0',
-      'd end 2,1 0,0',
+      'd end 2,1',
       'd tap 3,1',
     ]);
   });
 
-  test('drag details are equal when their events and moves are, and '
-      'describe themselves', () {
+  test('drag details are equal when their events and moves are, give the '
+      'cell in the detector and on the screen, and describe themselves', () {
     // not constants, which are one object when equal
     final x = int.parse('4');
-    final press = PointerEvent(MouseKind.drag, x, 1, screenX: x, screenY: 1);
-    final details = DragDetails(press, dx: 1, dy: -1);
-    expect((details.x, details.y), (4, 1));
-    expect(details, DragDetails(press, dx: 1, dy: -1));
-    expect(details.hashCode, DragDetails(press, dx: 1, dy: -1).hashCode);
-    expect(details, isNot(DragDetails(press, dx: 1)));
-    expect('$details', 'Drag($press, 1,-1)');
+    final press = PointerEvent(
+      MouseKind.drag,
+      x,
+      1,
+      screenX: x + 10,
+      screenY: 3,
+    );
+    final start = DragStartDetails(press);
+    expect(start.localPosition, (dx: 4, dy: 1));
+    expect(start.globalPosition, (dx: 14, dy: 3));
+    expect(start, DragStartDetails(press));
+    expect(start.hashCode, DragStartDetails(press).hashCode);
+    expect('$start', 'DragStartDetails($press)');
+
+    final update = DragUpdateDetails(press, delta: (dx: 1, dy: -1));
+    expect(update.localPosition, (dx: 4, dy: 1));
+    expect(update.globalPosition, (dx: 14, dy: 3));
+    expect(update, DragUpdateDetails(press, delta: (dx: 1, dy: -1)));
+    expect(
+      update.hashCode,
+      DragUpdateDetails(press, delta: (dx: 1, dy: -1)).hashCode,
+    );
+    expect(update, isNot(DragUpdateDetails(press, delta: (dx: 1, dy: 0))));
+    expect(DragUpdateDetails(press).delta, (dx: 0, dy: 0));
+    expect('$update', 'DragUpdateDetails($press, 1,-1)');
+
+    final end = DragEndDetails(press);
+    expect(end.localPosition, (dx: 4, dy: 1));
+    expect(end.globalPosition, (dx: 14, dy: 3));
+    expect(end, DragEndDetails(press));
+    expect(end.hashCode, DragEndDetails(press).hashCode);
+    expect('$end', 'DragEndDetails($press)');
   });
 
   testTwk('detectors one inside another: each gesture goes to the deepest '
@@ -372,7 +400,7 @@ void main() {
       'outer tap 3,2 b2',
       'outer start 3,2 0,0',
       'outer update 4,2 1,0',
-      'outer end 4,2 0,0',
+      'outer end 4,2',
       'outer long 3,2',
       'outer long end 3,2',
     ]);
@@ -390,7 +418,7 @@ void main() {
       'outer tap 3,2',
       'inner start 1,1 0,0',
       'inner update 2,1 1,0',
-      'inner end 7,2 5,1',
+      'inner end 7,2',
       'outer tap 9,3',
     ]);
 
@@ -456,7 +484,7 @@ void main() {
       'a tap 1,1',
       'b start 1,1 0,0',
       'b update 2,1 1,0',
-      'b end 2,1 0,0',
+      'b end 2,1',
       'a tap 1,1',
       'a long 2,1',
       'a long end 2,1',

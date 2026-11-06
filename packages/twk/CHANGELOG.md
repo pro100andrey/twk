@@ -4,6 +4,14 @@
 
 Breaking:
 
+- `DragDetails` is Flutter's `DragStartDetails`, `DragUpdateDetails` and
+  `DragEndDetails`: `onPanStart`, `onPanUpdate` and `onPanEnd` take one each,
+  and `DragListener` is `GestureDragStartCallback`, `GestureDragUpdateCallback`
+  and `GestureDragEndCallback`. Each has `localPosition` and `globalPosition`
+  in cells, a `CellOffset` (`dx`, `dy`), where it had `x` and `y`; the update
+  has `delta` for `dx` and `dy`, and the end no move. They keep `event` for the
+  button and the modifiers. Flutter's `sourceTimeStamp`, `kind`, `primaryDelta`,
+  `velocity` and `primaryVelocity` are not there: a terminal gives none.
 - `PopScope.onPopInvoked` is removed, as it is in Flutter:
   `onPopInvokedWithResult` is told the same, with the result.
 - `debugDumpTree` is `debugDumpApp`, as Flutter names the function that prints
@@ -20,8 +28,7 @@ Breaking:
   button held, which is Flutter's `onPointerHover`, where Flutter's
   `onPointerMove` is motion with one held, `onDrag` here.
 - `GestureDetector` takes `onPanStart`, `onPanUpdate` and `onPanEnd`, as Flutter
-  names them, where it took `onDragStart`, `onDragUpdate` and `onDragEnd`; their
-  `DragDetails` keeps its name.
+  names them, where it took `onDragStart`, `onDragUpdate` and `onDragEnd`.
 - `ScrollMetrics` and `ScrollPosition` have `pixels`, `maxScrollExtent` and
   `viewportDimension`, as Flutter names them, where they had `offset`,
   `maxOffset` and `viewportExtent`; `ScrollController.offset` stays.

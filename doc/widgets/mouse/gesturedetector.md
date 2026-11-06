@@ -24,7 +24,7 @@ options as they start:
 var _taps = 0, _doubleTaps = 0, _longPresses = 0;
 var _dragged = (0, 0);
 String? _last;
-(int, int)? _from, _at; // the drag: where it started, where it is
+CellOffset? _from, _at; // the drag: where it started, where it is
 
 void _saw(String what, PointerEvent event) =>
     _last = '$what at ${event.x}, ${event.y}';
@@ -50,10 +50,10 @@ Widget build(BuildContext context) {
           _longPresses++;
           _saw('long press', event);
         }),
-        onPanStart: (drag) => setState(() => _from = (drag.x, drag.y)),
+        onPanStart: (drag) => setState(() => _from = drag.localPosition),
         onPanUpdate: (drag) => setState(() {
-          _dragged = (_dragged.$1 + drag.dx, _dragged.$2 + drag.dy);
-          _at = (drag.x, drag.y);
+          _dragged = (_dragged.$1 + drag.delta.dx, _dragged.$2 + drag.delta.dy);
+          _at = drag.localPosition;
           _saw('drag', drag.event);
         }),
         onPanEnd: (drag) => setState(() {
@@ -76,13 +76,13 @@ Widget build(BuildContext context) {
                     ),
                   ),
                   // the detector's cells, less the border
-                  if (_from case (final x, final y))
+                  if (_from case (dx: final x, dy: final y))
                     Positioned(
                       left: x - 1,
                       top: y - 1,
                       child: Text('○', style: theme.muted),
                     ),
-                  if (_at case (final x, final y))
+                  if (_at case (dx: final x, dy: final y))
                     Positioned(
                       left: x - 1,
                       top: y - 1,

@@ -43,10 +43,10 @@ final _gesturedetectorPage = GalleryPage(
 
 /// The Code's lines too long for a line of Dart.
 const _dragStartLine =
-    '        onPanStart: (drag) => setState(() => _from = (drag.x, drag.y)),';
+    '        onPanStart: (drag) => setState(() => _from = drag.localPosition),';
 
 const _draggedLine =
-    r'          _dragged = (_dragged.$1 + drag.dx, _dragged.$2 + drag.dy);';
+    r'          _dragged = (_dragged.$1 + drag.delta.dx, _dragged.$2 + drag.delta.dy);';
 
 const _dragCountLine =
     r"            Span('${_dragged.$1} across, ${_dragged.$2} down'),";
@@ -81,8 +81,8 @@ final class _GesturesState extends State<_Gestures> {
   var _dragged = (0, 0);
   var _drags = 0;
   String? _last;
-  (int, int)? _from;
-  (int, int)? _at;
+  CellOffset? _from;
+  CellOffset? _at;
 
   void _saw(String what, PointerEvent event) =>
       _last = '$what at ${event.x}, ${event.y}';
@@ -112,11 +112,14 @@ final class _GesturesState extends State<_Gestures> {
           }),
           longPressDuration: Duration(milliseconds: widget.longMs),
           buttons: widget.buttons,
-          onPanStart: (drag) => setState(() => _from = (drag.x, drag.y)),
+          onPanStart: (drag) => setState(() => _from = drag.localPosition),
           onPanUpdate: (drag) => setState(() {
-            _dragged = (_dragged.$1 + drag.dx, _dragged.$2 + drag.dy);
+            _dragged = (
+              _dragged.$1 + drag.delta.dx,
+              _dragged.$2 + drag.delta.dy,
+            );
             _drags++;
-            _at = (drag.x, drag.y);
+            _at = drag.localPosition;
             _saw('drag', drag.event);
           }),
           onPanEnd: (drag) => setState(() {
@@ -138,13 +141,13 @@ final class _GesturesState extends State<_Gestures> {
                         style: _last == null ? theme.muted : const Style(),
                       ),
                     ),
-                    if (_from case (final x, final y))
+                    if (_from case (dx: final x, dy: final y))
                       Positioned(
                         left: x - 1,
                         top: y - 1,
                         child: Text('○', style: theme.muted),
                       ),
-                    if (_at case (final x, final y))
+                    if (_at case (dx: final x, dy: final y))
                       Positioned(
                         left: x - 1,
                         top: y - 1,
@@ -189,7 +192,7 @@ String _gesturesCode(Options o) => [
   'var _taps = 0, _doubleTaps = 0, _longPresses = 0;',
   'var _dragged = (0, 0);',
   'String? _last;',
-  '(int, int)? _from, _at; // the drag: where it started, where it is',
+  'CellOffset? _from, _at; // the drag: where it started, where it is',
   '',
   'void _saw(String what, PointerEvent event) =>',
   r"    _last = '$what at ${event.x}, ${event.y}';",
@@ -224,7 +227,7 @@ String _gesturesCode(Options o) => [
   _dragStartLine,
   '        onPanUpdate: (drag) => setState(() {',
   _draggedLine,
-  '          _at = (drag.x, drag.y);',
+  '          _at = drag.localPosition;',
   "          _saw('drag', drag.event);",
   '        }),',
   '        onPanEnd: (drag) => setState(() {',
@@ -247,13 +250,13 @@ String _gesturesCode(Options o) => [
   '                    ),',
   '                  ),',
   "                  // the detector's cells, less the border",
-  '                  if (_from case (final x, final y))',
+  '                  if (_from case (dx: final x, dy: final y))',
   '                    Positioned(',
   '                      left: x - 1,',
   '                      top: y - 1,',
   "                      child: Text('○', style: theme.muted),",
   '                    ),',
-  '                  if (_at case (final x, final y))',
+  '                  if (_at case (dx: final x, dy: final y))',
   '                    Positioned(',
   '                      left: x - 1,',
   '                      top: y - 1,',

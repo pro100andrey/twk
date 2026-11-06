@@ -471,7 +471,7 @@ void main() {
       Theme(
         data: ThemeData.dark,
         child: GestureDetector(
-          onPanStart: (d) => drags.add(d.x),
+          onPanStart: (d) => drags.add(d.localPosition.dx),
           child: Listener(
             onScroll: (e) => wheel.add(e.scrollY),
             child: slider(value, enabled: false),

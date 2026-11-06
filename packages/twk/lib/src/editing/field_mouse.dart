@@ -141,12 +141,15 @@ final class _FieldMouseState extends State<FieldMouse> {
     );
   }
 
-  void _drag(DragDetails details) {
+  void _drag(DragUpdateDetails details) {
     final anchor = _anchor;
     if (anchor == null) {
       return;
     }
-    final offset = widget.offsetAt(details.x, details.y);
+    final offset = widget.offsetAt(
+      details.localPosition.dx,
+      details.localPosition.dy,
+    );
     if (offset == null) {
       return;
     }
