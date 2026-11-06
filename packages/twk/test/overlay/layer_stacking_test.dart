@@ -219,6 +219,54 @@ void main() {
     expect(dismissed, 1, reason: 'no focus came back to the popover');
   });
 
+  testTwk('a closed popover does not watch a dialog over it', (t) async {
+    final field = FocusNode(debugLabel: 'field');
+    final ok = FocusNode(debugLabel: 'ok');
+    late BuildContext at;
+    await t.pumpWidget(
+      App(
+        child: Builder(
+          builder: (context) {
+            at = context;
+            return Popover(
+              open: false,
+              onDismiss: () {},
+              popover: const Text('popover'),
+              child: Focus(
+                focusNode: field,
+                autofocus: true,
+                child: const Text('anchor'),
+              ),
+            );
+          },
+        ),
+      ),
+      size: (40, 10),
+    );
+    await t.pump();
+    expect(field.hasPrimaryFocus, isTrue);
+    final keys = field.manager!.keysChanged as ChangeNotifier;
+    expect(keys.hasListeners, isFalse);
+
+    unawaited(
+      showDialog<void>(
+        at,
+        (context) => Dialog(
+          child: Focus(
+            focusNode: ok,
+            autofocus: true,
+            child: const Text('dialog'),
+          ),
+        ),
+        fadeIn: Duration.zero,
+      ),
+    );
+    await t.pump();
+    await t.pump();
+    expect(ok.hasPrimaryFocus, isTrue);
+    expect(keys.hasListeners, isFalse);
+  });
+
   testTwk('a menu opened from a popover leaves it open', (t) async {
     final inside = FocusNode(debugLabel: 'inside');
     var open = true;

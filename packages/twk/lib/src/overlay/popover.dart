@@ -254,7 +254,10 @@ final class _PopoverState extends State<Popover>
 
   void _focusChanged() {
     _watchLayer(null);
-    if (mounted && !_anchor.hasFocus && !(_inside?.hasFocus ?? false)) {
+    if (mounted &&
+        widget.open &&
+        !_anchor.hasFocus &&
+        !(_inside?.hasFocus ?? false)) {
       // a modal layer opened above it (a dialog, a menu) took the focus:
       // the popover stays, and gets it back as the layer closes; the layer
       // is watched for a focus that goes elsewhere then, which none of the
