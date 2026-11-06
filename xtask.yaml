@@ -131,6 +131,20 @@ tasks:
     gate: [handover, ci]
     run: [dart, run, tool/xtask.dart, --check-ci]
 
+  machine:
+    # CI's runners differ by half in speed: two runs compare only on one
+    # processor, which the log of each says.
+    desc: the processor of a Linux runner, in the log of its run
+    gate: [ci, ci-tests]
+    platforms: [linux]
+    run: [lscpu]
+
+  mac-machine:
+    desc: the processor of a macOS runner, in the log of its run
+    gate: [ci-os]
+    platforms: [macos]
+    run: [sysctl, -n, machdep.cpu.brand_string, hw.ncpu]
+
   format:
     # The root's own Dart files: its tools and their tests. The packages',
     # the core's among them, are pkg-format's.
