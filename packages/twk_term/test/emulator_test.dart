@@ -706,6 +706,20 @@ void main() {
       r.feed(r'\e]104;1^G');
       expect(r.t.palette[1], 0xCD0000);
     });
+
+    test(
+      'a channel with a sign or a blank is no color (OSC 4, 10, 11, 12)',
+      () {
+        final r = fed(
+          r'\e]4;1;rgb:-f/0/0^G\e]4;2;rgb: f/+f/0^G\e]4;3;#-f0000^G',
+        )..feed(r'\e]10;rgb:-1/0/0^G\e]11;rgb:-1/0/0^G\e]12;#+f0000^G');
+        expect(r.t.palette[1], 0xCD0000);
+        expect(r.t.palette[2], 0x00CD00);
+        expect(r.t.palette[3], 0xCDCD00);
+        expect(r.t.foregroundColor, 0xE5E5E5);
+        expect(r.events.whereType<ColorsChanged>(), isEmpty);
+      },
+    );
   });
 
   group('OSC', () {
