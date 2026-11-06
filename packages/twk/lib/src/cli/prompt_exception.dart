@@ -35,14 +35,14 @@ sealed class PromptException implements Exception {
 
 /// How a person left a prompt without answering.
 enum PromptCancelReason {
-  /// Ctrl+C.
+  /// Ctrl+C, or Esc.
   interrupt,
 
   /// Ctrl+D at an empty line, or the end of input.
   endOfInput,
 }
 
-/// The person left the prompt without answering ([reason]): Ctrl+C,
+/// The person left the prompt without answering ([reason]): Ctrl+C, Esc,
 /// Ctrl+D, or input ended. What the prompt showed is gone by the time it
 /// is thrown, and in the interactive mode `✗ question` is committed in its
 /// place.

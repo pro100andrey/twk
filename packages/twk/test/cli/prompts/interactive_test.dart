@@ -173,6 +173,33 @@ void main() {
       expect(terminal.screenLines, ['✗ Name?', '✔ Again? y']);
     });
 
+    test('Esc cancels it as Ctrl+C does, what was typed or not', () async {
+      final name = cli.prompt('Name?');
+      await type(['ko']);
+      await escape();
+      await expectLater(
+        settle(name),
+        throwsA(_cancelled('Name?', PromptCancelReason.interrupt)),
+      );
+      expect(terminal.screenLines, ['✗ Name?']);
+    });
+
+    test(
+      'Esc with suggestions open hides them, the next one cancels',
+      () async {
+        final lang = cli.prompt('Language?', suggest: (typed) => ['dart']);
+        await type(['d']);
+        expect(terminal.screenLines, hasLength(2));
+        await escape();
+        expect(terminal.screenLines, ['? Language? d']);
+        await escape();
+        await expectLater(
+          settle(lang),
+          throwsA(_cancelled('Language?', PromptCancelReason.interrupt)),
+        );
+      },
+    );
+
     test('Ctrl+D at an empty field cancels it as the end of input', () async {
       final name = cli.prompt('Name?');
       await type(['a', _ctrlD]);
@@ -332,6 +359,16 @@ void main() {
       },
     );
 
+    test('Esc cancels it', () async {
+      final a = cli.confirm('A?');
+      await type([]);
+      await escape();
+      await expectLater(
+        settle(a),
+        throwsA(_cancelled('A?', PromptCancelReason.interrupt)),
+      );
+    });
+
     test('Ctrl+C and Ctrl+D cancel it', () async {
       final a = cli.confirm('A?');
       await type([_ctrlC]);
@@ -453,6 +490,16 @@ void main() {
         expect(await settle(b), '1');
       },
     );
+
+    test('Esc cancels it', () async {
+      final a = cli.chooseOne('A?', choices: ['x']);
+      await type([]);
+      await escape();
+      await expectLater(
+        settle(a),
+        throwsA(_cancelled('A?', PromptCancelReason.interrupt)),
+      );
+    });
 
     test('Ctrl+C cancels it, Ctrl+D with nothing typed to filter', () async {
       final a = cli.chooseOne('A?', choices: ['x'], filter: true);

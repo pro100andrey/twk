@@ -497,7 +497,7 @@ final class Cli {
   ///   what to choose from for the text before the caret, shown under it
   ///   (`Autocomplete`: Up and Down choose, Enter or Tab put it in). Once
   ///   answered the field goes and `✔ question answer` is committed in its
-  ///   place. Ctrl+C throws [PromptCancelledException] with
+  ///   place. Ctrl+C or Esc throws [PromptCancelledException] with
   ///   [PromptCancelReason.interrupt], Ctrl+D at an empty field with
   ///   [PromptCancelReason.endOfInput], `✗ question` committed.
   /// * [CliMode.plain]: `? question (default) `, then the line read as the

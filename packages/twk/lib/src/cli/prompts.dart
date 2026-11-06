@@ -51,7 +51,7 @@ bool? confirmAnswer(String typed, TwkStrings strings) {
 ///
 /// * interactive: a widget mounted in the inline session, which goes once
 ///   it is answered, `✔ question answer` committed in its place; Ctrl+C
-///   cancels it (`✗ question`), as Ctrl+D at an empty line does;
+///   or Esc cancels it (`✗ question`), as Ctrl+D at an empty line does;
 /// * plain: a line read as the terminal reads it, the choices numbered,
 ///   asked again until the answer is one;
 /// * non-interactive: nothing is read, the default is the answer, written
