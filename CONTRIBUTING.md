@@ -31,6 +31,10 @@ What is here besides `packages/`:
   (`packages/twk/test/example/guides_test.dart` holds them together).
 * `doc/widgets/`: the widget catalog, written from the gallery
   (`packages/gallery/tool/catalog.dart`).
+* `skills/twk/`: the skill that teaches a coding agent twk; its
+  `references/` are written from `doc/widgets/` and `doc/guides/`
+  (`tool/skill_references`), its Dart compiled by
+  `packages/twk/test/skill_test.dart`.
 * `doc/internals/`: the conventions code, docs and tests are written to
   (`quality/`), the performance surveys against other terminal
   libraries (`perf/`) and the public names of the published packages
@@ -83,7 +87,9 @@ dart run tool/xtask.dart bench              # when the frame path changed (below
   the gallery's golden screens being its `dart test`, drawn as the SVGs of
   `packages/gallery/doc/shots/` and failed where those are stale
   (`gallery-shots`), and written into the widget catalog, `doc/widgets/`,
-  failed where it is stale (`catalog`); the public names of the seven
+  failed where it is stale (`catalog`), and from the catalog and the guides
+  the twk skill's references, `skills/twk/references/` (`tool/skill_references`),
+  failed where they are stale (`skill-references`); the public names of the seven
   published packages, top-level, as their libraries export them (the
   analyzer's element model), one `library kind name` line each in
   `doc/internals/api/<package>.txt`, failed where those are stale or a name

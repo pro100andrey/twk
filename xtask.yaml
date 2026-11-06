@@ -66,6 +66,13 @@ sets:
     include:
       - doc/internals/api/**
 
+  # The twk skill's references (skills/twk/references/), written from the
+  # widget catalog and the guides by tool/skill_references, which
+  # `skill-references` writes again.
+  skill-references:
+    include:
+      - skills/twk/references/**
+
   # The tools' own packages (the allocation profiler, the frame scenarios,
   # the docs and coverage tools). Not narrowed by --only packages.
   tools:
@@ -564,6 +571,21 @@ tasks:
     unchanged: api
     do: spare
     args: [dart, run, tool/api_names/bin/api_names.dart]
+
+  skill-references:
+    # The twk skill's reading for a coding agent, skills/twk/references/:
+    # widgets.md (a line a widget), widgets/<group>.md (each widget's about,
+    # options and code) and guides/, written from doc/widgets and doc/guides
+    # (tool/skill_references reads the catalog's Markdown, so it needs no
+    # build of the gallery, only that `catalog` has run first). Written
+    # again, and failed where that changed a file. The Dart of SKILL.md is
+    # compiled by packages/twk's skill_test.dart, in pkg-test.
+    desc: write the twk skill's references from the catalog and guides; fail if stale
+    gate: [handover, ci]
+    needs: [get, catalog]
+    unchanged: skill-references
+    do: spare
+    args: [dart, run, tool/skill_references/bin/skill_references.dart]
 
   gallery-code:
     # Each page of the gallery: its Code tab made into a program, run in

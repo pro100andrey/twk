@@ -1,0 +1,13 @@
+name: twk_skill_references
+description: >-
+  Writes skills/twk/references, the twk skill's reading for a coding agent,
+  from the widget catalog (doc/widgets) and the guides (doc/guides).
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.13.5
+resolution: workspace
+dev_dependencies:
+  pro_lints: ^6.2.0
+  test: ^1.33.0

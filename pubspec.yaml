@@ -30,6 +30,7 @@ workspace:
   - tool/coverage
   - tool/doc_snippets
   - tool/frame_scenarios
+  - tool/skill_references
 dev_dependencies:
   pro_lints: ^6.2.0
   test: ^1.33.0
