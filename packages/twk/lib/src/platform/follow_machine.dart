@@ -74,7 +74,10 @@ final class FollowMachine {
   var _puts = 0;
 
   // replacements a look found by the identity before their event came: that
-  // event, when it does, tells nothing new
+  // event, when it does, tells nothing new. A look that finds nothing new
+  // clears it, as does a watch that lost events: an event that never comes
+  // would else swallow the next real put, and one that is only very late
+  // costs a second reset, the lesser harm
   var _found = 0;
 
   /// Starts at the follow's start: [size] is the file's size, null where
@@ -102,6 +105,10 @@ final class FollowMachine {
       }
     }
   }
+
+  /// The watch failed and has lost events: none of the replacements a look
+  /// found is waited for any more.
+  void eventsLost() => _found = 0;
 
   /// Whether a look at a file of [size] and [identity] would change nothing
   /// and read nothing, so that it need not open the file. A file not there
@@ -132,6 +139,8 @@ final class FollowMachine {
           _found++;
         }
         _replaced = true;
+      } else if (_held != null) {
+        _found = 0;
       }
       _held = identity;
     }

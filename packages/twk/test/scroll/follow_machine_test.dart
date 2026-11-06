@@ -101,6 +101,36 @@ void main() {
       expectPlan(read(m, 20, 'b'), reset: true, from: 0, to: 20);
     });
 
+    test('an event that was lost is not waited for past the next look that '
+        'finds nothing new: a real create with the same inode resets', () {
+      final m = linux();
+      expectPlan(read(m, 12, 'b'), reset: true, from: 0, to: 12);
+      // the event of that replacement never comes; the file grows
+      expectPlan(read(m, 14, 'b'), from: 12, to: 14);
+      // deleted and made again with the inode of the one before
+      m.nameEvent(puts: true);
+      expectPlan(read(m, 20, 'b'), reset: true, from: 0, to: 20);
+    });
+
+    test('a lost event told by the watch is not waited for', () {
+      final m = linux();
+      read(m, 12, 'b');
+      m.eventsLost();
+      m.nameEvent(puts: true);
+      expectPlan(read(m, 14, 'b'), reset: true, from: 0, to: 14);
+    });
+
+    test('a late event within looks that found something new is still one '
+        'replacement', () {
+      final m = linux();
+      read(m, 12, 'b');
+      read(m, 14, 'c');
+      m
+        ..nameEvent(puts: true)
+        ..nameEvent(puts: true);
+      expectPlan(read(m, 15, 'c'), from: 14, to: 15);
+    });
+
     test('a file not there that comes back owes nothing more', () {
       final m = linux();
       read(m, null);

@@ -270,7 +270,10 @@ Stream<TailEvent> tailFile(
           // has lost events: a look now, and the poll goes on, read what was
           // written; a file put at the name among the lost is told where
           // files are told apart, elsewhere only once it is shorter
-          void onError(Object _) => lookNow();
+          void onError(Object _) {
+            machine.eventsLost();
+            lookNow();
+          }
 
           // in the zone of the looks: what a look reads and what the watch
           // tells keep the order they happen in
