@@ -70,6 +70,25 @@ void main() {
       expect(t.lines, items(0, 5));
     });
 
+    testTwk('padding is empty cells round the child that scroll with it', (
+      t,
+    ) async {
+      final controller = ScrollController();
+      await t.pumpWidget(
+        SingleChildScrollView(
+          controller: controller,
+          padding: const EdgeInsets.fromLTRB(2, 1, 0, 2),
+          child: column(6),
+        ),
+        size: (12, 5),
+      );
+      expect(t.lines, ['', '  item 0', '  item 1', '  item 2', '  item 3']);
+      controller.jumpTo(99);
+      await t.pump();
+      expect(controller.offset, 4);
+      expect(t.lines, ['  item 3', '  item 4', '  item 5', '', '']);
+    });
+
     testTwk('Down and Up scroll it a row, PageDown and PageUp a window, End '
         'and Home to the ends, while it has the focus', (t) async {
       final controller = ScrollController();

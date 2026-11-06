@@ -251,6 +251,8 @@ Added:
 
 - `Navigator.pushAndRemoveUntil`, `pushNamedAndRemoveUntil` and `popAndPushNamed`, static and on `NavigatorState`. The routes `pushAndRemoveUntil` removes are removed, not popped, as `removeRoute` does it. `popAndPushNamed` is a `StateError` on the only route, as `pop` is.
 
+- `SingleChildScrollView(padding:)`, empty cells round the child that scroll with it.
+
 ## 0.2.0
 
 - After a Ctrl+C ended the inline session, a program that handles SIGINT
