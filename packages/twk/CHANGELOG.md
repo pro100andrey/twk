@@ -243,6 +243,8 @@ Added:
 
 - `Style.copyWith`, `SizedBox.square(dimension:)` and `DefaultTextStyle.merge`, which merges onto the style above as the plain constructor does (unlike Flutter's, which replaces it).
 
+- `Focus(onFocusChange:)` and `FocusScope(onFocusChange:)`, called with `hasFocus` when the node's focus changes; `FocusScopeNode.requestFocus([node])` focuses a node below the scope.
+
 ## 0.2.0
 
 - After a Ctrl+C ended the inline session, a program that handles SIGINT

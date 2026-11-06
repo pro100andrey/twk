@@ -857,4 +857,59 @@ void main() {
       ),
     );
   });
+
+  testTwk('onFocusChange of a Focus and a FocusScope is told hasFocus when '
+      'the node or one below it gains or loses the focus', (t) async {
+    final told = <String>[];
+    await t.pumpWidget(
+      column([
+        FocusScope(
+          debugLabel: 's',
+          onFocusChange: (has) => told.add('s $has'),
+          child: Focus(
+            debugLabel: 'a',
+            onFocusChange: (has) => told.add('a $has'),
+            child: const Text('a'),
+          ),
+        ),
+        const Field('b'),
+      ]),
+    );
+    expect(told, isEmpty);
+    expect(await tab(t, 'tab'), ['a']);
+    expect(told, containsAll(['a true', 's true']));
+    expect(told, isNot(contains('a false')));
+    told.clear();
+    expect(await tab(t, 'tab'), ['a']);
+    told.clear();
+    t.binding.focusManager.primaryFocus!.unfocus();
+    await t.pump();
+    expect(told, containsAll(['a false']));
+  });
+
+  testTwk('FocusScopeNode.requestFocus takes the node to focus, one below '
+      'the scope', (t) async {
+    final scope = FocusScopeNode(debugLabel: 'scope');
+    addTearDown(scope.dispose);
+    final b = FocusNode(debugLabel: 'b');
+    addTearDown(b.dispose);
+    await t.pumpWidget(
+      FocusScope(
+        node: scope,
+        child: column([
+          const Field('a', autofocus: true),
+          Field('b', node: b),
+        ]),
+      ),
+    );
+    scope.requestFocus(b);
+    await t.pump();
+    expect(focused(t), 'b');
+    scope.requestFocus();
+    await t.pump();
+    expect(focused(t), 'b');
+    final other = FocusNode(debugLabel: 'other');
+    addTearDown(other.dispose);
+    expect(() => scope.requestFocus(other), throwsA(isA<AssertionError>()));
+  });
 }
