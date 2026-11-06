@@ -1,4 +1,4 @@
-// SKILL.md, the guide for coding agents that build apps with twk: its
+// skills/twk/SKILL.md, the skill for coding agents that build apps with twk: its
 // front matter; its code as the app it describes (the pubspec it gives,
 // pointed at this checkout, and each ```dart block in the file its first
 // line names), resolved, analyzed under this repository's rules,
@@ -18,7 +18,7 @@ import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
-final String skill = File('SKILL.md').readAsStringSync();
+final String skill = File('../../skills/twk/SKILL.md').readAsStringSync();
 
 final _fence = RegExp(r'^```(\w*)\n(.*?)^```$', multiLine: true, dotAll: true);
 
@@ -71,20 +71,21 @@ Set<String> twkNames() {
   };
 }
 
-/// The names in the code spans of [prose]: each word that starts with a
-/// capital and a small letter, but Dart's, the core's and the recipes'
-/// own.
+/// The names in the code spans of [prose] and in the right lines of its
+/// `diff` blocks (those that start with `+`; the wrong ones, Flutter's,
+/// are free): each word that starts with a capital and a small letter, but
+/// Dart's, the core's and the example's own.
 Set<String> namedInProse() {
-  const others = {
-    ...{'DateTime', 'StateError', 'Stopwatch', 'RenderFlex'},
-    ...{'App', 'Entry'},
-    // a word of the output it shows
-    'Target',
-  };
+  const others = {'StateError', 'RenderFlex', 'Entry'};
+  final spans = [
+    for (final span in RegExp('`([^`]+)`').allMatches(prose)) span[1]!,
+    for (final diff in blocks('diff'))
+      for (final line in diff.split('\n'))
+        if (line.startsWith('+ ')) line,
+  ];
   return {
-    for (final span in RegExp('`([^`]+)`').allMatches(prose))
-      for (final name in RegExp(r'\b[A-Z][a-z]\w*').allMatches(span[1]!))
-        name[0]!,
+    for (final span in spans)
+      for (final name in RegExp(r'\b[A-Z][a-z]\w*').allMatches(span)) name[0]!,
   }..removeAll(others);
 }
 
@@ -185,7 +186,8 @@ void main() {
       r'^---\nname: ([a-z0-9-]+)\ndescription: (.+)\n---\n',
     ).firstMatch(skill);
     expect(front, isNotNull, reason: 'name and description between ---');
-    expect(front![2]!.length, lessThanOrEqualTo(1024));
+    expect(front![1], 'twk');
+    expect(front[2]!.length, lessThanOrEqualTo(1024));
   });
 
   group('the code, as an app', () {
@@ -279,6 +281,9 @@ Widget table(List<Entry> entries) => Table(
       expect(rest, containsAll(['Cli', 'FakeCliTerminal']));
       expect(rest, containsAll(['HookWidget', 'ChangeNotifierProvider']));
       write(app, 'names/rest.dart', '''
+// the skill may name nothing of a library
+// ignore_for_file: unused_import
+
 import 'package:twk/cli.dart';
 import 'package:twk/hooks.dart';
 import 'package:twk/log.dart';
