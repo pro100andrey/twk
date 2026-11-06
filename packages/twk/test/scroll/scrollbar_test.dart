@@ -477,7 +477,7 @@ void main() {
       final controller = ScrollController();
       await t.pumpWidget(
         GestureDetector(
-          onTap: (_) => taps++,
+          onTap: () => taps++,
           child: Scrollbar(
             child: SingleChildScrollView(
               controller: controller,

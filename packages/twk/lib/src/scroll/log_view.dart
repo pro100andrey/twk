@@ -1265,7 +1265,7 @@ final class _LogViewState extends State<LogView> {
                 right: 0,
                 bottom: 0,
                 child: GestureDetector(
-                  onTap: (_) => c.follow(),
+                  onTap: c.follow,
                   child: Text(
                     ' $arrow $fresh new '
                     "${fresh == 1 ? 'line' : 'lines'} ",

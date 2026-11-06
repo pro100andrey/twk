@@ -26,7 +26,7 @@ const _backdropW = 36;
 const _backdropH = 7;
 
 const _backdropTap =
-    "            onTap: (_) => setState(() => _heard = 'the backdrop'),";
+    "            onTap: () => setState(() => _heard = 'the backdrop'),";
 
 const _backdropTitle =
     "                titles: [BorderTitle(' backdrop ', style: theme.muted)],";
@@ -64,7 +64,7 @@ final class _GatedState extends State<_Gated> {
       onEnter: (_) => setState(() => _over = true),
       onExit: (_) => setState(() => _over = false),
       child: GestureDetector(
-        onTap: (_) => _hear('the button'),
+        onTap: () => _hear('the button'),
         child: Box(
           border: Border.all(
             type: BorderType.rounded,
@@ -83,7 +83,7 @@ final class _GatedState extends State<_Gated> {
         Stack(
           children: [
             GestureDetector(
-              onTap: (_) => _hear('the backdrop'),
+              onTap: () => _hear('the backdrop'),
               behavior: HitTestBehavior.opaque,
               child: SizedBox(
                 width: _backdropW,
@@ -128,7 +128,7 @@ String _gatedCode(Options o) {
     '  onEnter: (_) => setState(() => _over = true),',
     '  onExit: (_) => setState(() => _over = false),',
     '  child: GestureDetector(',
-    "    onTap: (_) => setState(() => _heard = 'the button'),",
+    "    onTap: () => setState(() => _heard = 'the button'),",
     '    child: Box(',
     '      border: .all(',
     '        type: .rounded,',

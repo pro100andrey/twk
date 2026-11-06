@@ -38,7 +38,7 @@ Widget _star(String name, {bool enabled = true}) => Pressable(
   enabled: enabled,
   bindings: {'space': () => _toggle(name)},
   hints: const {'space': 'star'},
-  onTap: enabled ? (_) => _toggle(name) : null,
+  onTap: enabled ? () => _toggle(name) : null,
   builder: (context, focused) {
     final theme = Theme.of(context);
     final on = _starred.contains(name);

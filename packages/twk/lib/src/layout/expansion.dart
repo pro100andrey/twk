@@ -340,7 +340,7 @@ final class _ExpansionTileState extends State<ExpansionTile>
         'down': slot?.down,
       },
       hints: {'enter': expanded ? 'collapse' : 'expand'},
-      onTap: (_) => controller.toggle(),
+      onTap: controller.toggle,
       builder: _buildHeader,
     );
     final shown = _fold.value;

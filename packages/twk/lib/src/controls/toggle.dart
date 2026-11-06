@@ -376,7 +376,7 @@ final class _Toggle extends StatelessWidget {
       autofocus: autofocus,
       bindings: {'space': toggle, 'enter': toggle},
       hints: const {'space': 'toggle'},
-      onTap: enabled ? (_) => toggle() : null,
+      onTap: enabled ? toggle : null,
       builder: (context, focused) {
         final theme = Theme.of(context);
         final row = rowStyle(

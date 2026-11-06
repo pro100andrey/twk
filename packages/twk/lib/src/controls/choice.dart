@@ -292,7 +292,7 @@ final class RadioGroup<T> extends StatelessWidget {
   }) {
     final choice = choices[i];
     return GestureDetector(
-      onTap: enabled ? (_) => _choose(i) : null,
+      onTap: enabled ? () => _choose(i) : null,
       // the hidden cursor on the choice that shows the focus
       child: ActiveItem(
         active: focused,

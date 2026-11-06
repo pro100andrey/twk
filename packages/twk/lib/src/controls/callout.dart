@@ -316,7 +316,7 @@ final class _DismissState extends State<_Dismiss> {
         onEnter: (_) => _hover(true),
         onExit: (_) => _hover(false),
         child: GestureDetector(
-          onTap: (_) => widget.onDismissed(),
+          onTap: widget.onDismissed,
           child: Text(
             '[${ThemeMarks.of(context).text(Marks.close)}]',
             style: _hovered

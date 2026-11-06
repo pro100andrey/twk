@@ -361,7 +361,7 @@ void main() {
       final told = <String>[];
       await t.pumpWidget(
         GestureDetector(
-          onTap: (_) => told.add('tap'),
+          onTap: () => told.add('tap'),
           onPanStart: (_) => told.add('drag'),
           child: slider(value),
         ),

@@ -1286,7 +1286,7 @@ final class _FilePickerState extends State<FilePicker> {
       key: ValueKey<String>(entry.path),
       onTapDown: (_) => setState(() => _cursor = entry.path),
       cursor: PointerShape.arrow,
-      onDoubleTap: (_) => _take(entry),
+      onDoubleTap: () => _take(entry),
       // the hidden cursor on the cursor's row
       child: ActiveItem(
         active: cursor,

@@ -1036,7 +1036,7 @@ final class _Frame extends StatelessWidget {
           for (final (glyph, onTap) in buttons)
             GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: (_) => onTap(),
+              onTap: onTap,
               child: Text('$glyph ', style: border, wrap: TextWrap.none),
             ),
         ],
@@ -1074,7 +1074,7 @@ final class _Frame extends StatelessWidget {
                   onPanUpdate: (d) => layer._dragUpdate(slot, d.event),
                   onPanEnd: (_) => layer._dragEnd(slot),
                   onDoubleTap: window.maximisable
-                      ? (_) => layer._toggleMaximised(slot)
+                      ? () => layer._toggleMaximised(slot)
                       : null,
                   // read as the window's label
                   child: Semantics(
@@ -1157,7 +1157,7 @@ final class _Frame extends StatelessWidget {
             onExit: (_) => layer._hoverButton(slot, -1, from: i),
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: (_) => onTap(),
+              onTap: onTap,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -1483,7 +1483,7 @@ final class _Strip extends StatelessWidget {
                   layer,
                   slot,
                   GestureDetector(
-                    onTap: (_) => layer._restore(slot),
+                    onTap: () => layer._restore(slot),
                     child: Text(
                       ' ${slot.window.title} ',
                       style: slot.chip.hasFocus

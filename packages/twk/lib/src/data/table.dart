@@ -1460,7 +1460,7 @@ final class _TableState<T> extends State<Table<T>> {
     // the hand over the title of a column that sorts, off its edge
     final header = GestureDetector(
       tapAt: (x, _) => _sortsAt(x) != null,
-      onTapDown: (event) => _sortOn(_sortsAt(event.x)!),
+      onTapDown: (tap) => _sortOn(_sortsAt(tap.localPosition.dx)!),
       child: titles,
     );
     final shows =
@@ -1534,7 +1534,9 @@ final class _TableState<T> extends State<Table<T>> {
     final columns = w.columns;
     final style = selected ? styles.base.merge(styles.selected) : styles.base;
     return GestureDetector(
-      onTapDown: w.selection == TableSelection.none ? null : onDown,
+      onTapDown: w.selection == TableSelection.none
+          ? null
+          : (tap) => onDown(tap.event),
       cursor: PointerShape.arrow,
       child: _Row(
         columns: _columns,

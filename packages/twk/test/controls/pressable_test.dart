@@ -405,7 +405,7 @@ void main() {
         child: Pressable(
           canRequestFocus: false,
           behavior: behavior,
-          onTap: (e) => taps.add(e.x),
+          onTapUp: (tap) => taps.add(tap.localPosition.dx),
           builder: (_, _) => const SizedBox(),
         ),
       ),

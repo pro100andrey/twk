@@ -262,9 +262,9 @@ final class _BreadcrumbsState extends State<Breadcrumbs> {
       focusNode: widget.focusNode,
       bindings: _bindings,
       hints: _hints,
-      onTap: enabled
-          ? (event) {
-              final s = _hits.at(event.x);
+      onTapUp: enabled
+          ? (tap) {
+              final s = _hits.at(tap.localPosition.dx);
               if (s >= 0) {
                 _select(s, at: (_hits.startOf(s), 1));
               }

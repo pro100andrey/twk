@@ -606,7 +606,7 @@ final class _SelectionListState<K> extends State<SelectionList<K>> {
       );
     }
     return GestureDetector(
-      onTap: enabled ? (_) => _tap(index) : null,
+      onTap: enabled ? () => _tap(index) : null,
       cursor: PointerShape.arrow,
       // the hidden cursor on the cursor's row
       child: ActiveItem(

@@ -468,8 +468,8 @@ final class _CalendarState extends State<Calendar> {
         child: GestureDetector(
           tapAt: (x, y) => _dateAt(x, y) != null,
           // one that takes no focus has the terminal report no mouse
-          onTap: widget.canRequestFocus ?? node.canRequestFocus
-              ? _tapped
+          onTapUp: widget.canRequestFocus ?? node.canRequestFocus
+              ? (tap) => _tapped(tap.event)
               : null,
           child: ListenableBuilder(
             listenable: controller,

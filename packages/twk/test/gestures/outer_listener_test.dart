@@ -8,7 +8,7 @@ import 'package:twk_test/twk_test.dart';
 void main() {
   Widget card(List<String> log) {
     final inner = GestureDetector(
-      onTap: (_) => log.add('inner tap'),
+      onTap: () => log.add('inner tap'),
       child: const Box(
         border: Border.all(),
         child: Text('in'),
@@ -18,7 +18,7 @@ void main() {
       onPointerDown: (e) => log.add('outer down ${e.x},${e.y}'),
       onPointerUp: (e) => log.add('outer up ${e.x},${e.y}'),
       child: GestureDetector(
-        onTap: (_) => log.add('outer tap'),
+        onTap: () => log.add('outer tap'),
         child: Box(
           border: const Border.all(type: BorderType.rounded),
           padding: const EdgeInsets.all(1),
@@ -44,7 +44,7 @@ void main() {
     final log = <String>[];
     Widget padded(HitTestBehavior behavior) => GestureDetector(
       behavior: behavior,
-      onTap: (_) => log.add('tap'),
+      onTap: () => log.add('tap'),
       child: const Box(
         border: Border.all(type: BorderType.rounded),
         padding: EdgeInsets.all(1),

@@ -730,7 +730,7 @@ final class _StepperState extends State<Stepper> {
               final step = _headers.at(x);
               return step >= 0 && _clickable(step, _step);
             },
-            onTap: (event) => _click(_headers.at(event.x)),
+            onTapUp: (tap) => _click(_headers.at(tap.localPosition.dx)),
             child: LayoutBuilder(
               builder: (context, constraints) => _row(
                 theme,
@@ -778,7 +778,7 @@ final class _StepperState extends State<Stepper> {
               nodes: [_semantics(i, current)],
               child: GestureDetector(
                 tapAt: (_, _) => _clickable(i, _step),
-                onTap: (_) => _click(i),
+                onTap: () => _click(i),
                 child: Text.rich(
                   _header(theme, i, current),
                   style: theme.text,

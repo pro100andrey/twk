@@ -375,8 +375,8 @@ final class _KeyHintsBarState extends State<KeyHintsBar> {
     // cut row presses nothing, nor does the key or hint it stands for
     return GestureDetector(
       tapAt: (x, _) => _hits.at(x) >= 0,
-      onTapDown: (event) {
-        final key = keys[_hits.at(event.x)];
+      onTapDown: (tap) {
+        final key = keys[_hits.at(tap.localPosition.dx)];
         final binding = AppBinding.of(context);
         for (final combo in [key.combo, ...key.then]) {
           binding.pressKey(combo);

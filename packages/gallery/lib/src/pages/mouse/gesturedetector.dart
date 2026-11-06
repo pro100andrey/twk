@@ -45,9 +45,6 @@ final _gesturedetectorPage = GalleryPage(
 const _dragStartLine =
     '        onPanStart: (drag) => setState(() => _from = drag.localPosition),';
 
-const _draggedLine =
-    r'          _dragged = (_dragged.$1 + drag.delta.dx, _dragged.$2 + drag.delta.dy);';
-
 const _dragCountLine =
     r"            Span('${_dragged.$1} across, ${_dragged.$2} down'),";
 
@@ -84,8 +81,8 @@ final class _GesturesState extends State<_Gestures> {
   CellOffset? _from;
   CellOffset? _at;
 
-  void _saw(String what, PointerEvent event) =>
-      _last = '$what at ${event.x}, ${event.y}';
+  void _saw(String what, [CellOffset? at]) =>
+      _last = at == null ? what : '$what at ${at.dx}, ${at.dy}';
 
   @override
   Widget build(BuildContext context) {
@@ -96,19 +93,19 @@ final class _GesturesState extends State<_Gestures> {
       spacing: 1,
       children: [
         GestureDetector(
-          onTap: (event) => setState(() {
+          onTap: () => setState(() {
             _taps++;
-            _saw('tap', event);
+            _saw('tap');
           }),
           onDoubleTap: widget.doubleTap
-              ? (event) => setState(() {
+              ? () => setState(() {
                   _doubleTaps++;
-                  _saw('double tap', event);
+                  _saw('double tap');
                 })
               : null,
-          onLongPress: (event) => setState(() {
+          onLongPress: () => setState(() {
             _longPresses++;
-            _saw('long press', event);
+            _saw('long press');
           }),
           longPressDuration: Duration(milliseconds: widget.longMs),
           buttons: widget.buttons,
@@ -120,11 +117,11 @@ final class _GesturesState extends State<_Gestures> {
             );
             _drags++;
             _at = drag.localPosition;
-            _saw('drag', drag.event);
+            _saw('drag', drag.localPosition);
           }),
           onPanEnd: (drag) => setState(() {
             _from = _at = null;
-            _saw('drag ended', drag.event);
+            _saw('drag ended', drag.localPosition);
           }),
           child: SizedBox(
             width: _padW,
@@ -194,8 +191,8 @@ String _gesturesCode(Options o) => [
   'String? _last;',
   'CellOffset? _from, _at; // the drag: where it started, where it is',
   '',
-  'void _saw(String what, PointerEvent event) =>',
-  r"    _last = '$what at ${event.x}, ${event.y}';",
+  'void _saw(String what, [CellOffset? at]) =>',
+  r"    _last = at == null ? what : '$what at ${at.dx}, ${at.dy}';",
   '',
   '@override',
   'Widget build(BuildContext context) {',
@@ -206,19 +203,19 @@ String _gesturesCode(Options o) => [
   '    spacing: 1,',
   '    children: [',
   '      GestureDetector(',
-  '        onTap: (event) => setState(() {',
+  '        onTap: () => setState(() {',
   '          _taps++;',
-  "          _saw('tap', event);",
+  "          _saw('tap');",
   '        }),',
   if (o(_gesturedetectorDouble)) ...[
-    '        onDoubleTap: (event) => setState(() {',
+    '        onDoubleTap: () => setState(() {',
     '          _doubleTaps++;',
-    "          _saw('double tap', event);",
+    "          _saw('double tap');",
     '        }),',
   ],
-  '        onLongPress: (event) => setState(() {',
+  '        onLongPress: () => setState(() {',
   '          _longPresses++;',
-  "          _saw('long press', event);",
+  "          _saw('long press');",
   '        }),',
   if (o(_gesturedetectorLong) != 500)
     '        longPressDuration: const Duration(seconds: 1),',
@@ -226,13 +223,16 @@ String _gesturesCode(Options o) => [
     '        buttons: const {${_buttons[b]!.join(', ')}},',
   _dragStartLine,
   '        onPanUpdate: (drag) => setState(() {',
-  _draggedLine,
+  '          _dragged = (',
+  r'            _dragged.$1 + drag.delta.dx,',
+  r'            _dragged.$2 + drag.delta.dy,',
+  '          );',
   '          _at = drag.localPosition;',
-  "          _saw('drag', drag.event);",
+  "          _saw('drag', drag.localPosition);",
   '        }),',
   '        onPanEnd: (drag) => setState(() {',
   '          _from = _at = null;',
-  "          _saw('drag ended', drag.event);",
+  "          _saw('drag ended', drag.localPosition);",
   '        }),',
   '        child: SizedBox(',
   '          width: $_padW,',

@@ -133,12 +133,12 @@ without a chip it is a flat clickable word that takes no part in the focus.
 ## `Pressable`
 
 `Pressable(builder: (context, focused) => …, enabled:, bindings:, hints:,
-onKeyEvent:, onTap:, focusNode:, autofocus:)` is what the controls are made
+onKeyEvent:, onTap:, onTapUp:, focusNode:, autofocus:)` is what the controls are made
 of, for one of an app's own: a node of the focus tree that takes the focus
 while `enabled` (disabled, Tab passes it by), `bindings` the keys it takes
 while it has it (as `KeyBindings` takes them, with their `hints`), a press
-of the left button over it focusing it and a tap calling `onTap`; enabled
-with an `onTap`, the pointer is the hand over it (`PointerShape.pointer`,
+of the left button over it focusing it and a tap calling `onTapUp`, with the
+cell, then `onTap`; enabled with an `onTap` or `onTapUp`, the pointer is the hand over it (`PointerShape.pointer`,
 where the terminal shows shapes) when the theme asks for it
 (`ThemeData.pointerMode`, a `PointerMode`: `auto`, the default, shows
 the hand only where the terminal reports the mouse's motion already, `on`

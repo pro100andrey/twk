@@ -24,9 +24,9 @@ extension on _SampleAppState {
           IgnorePointer(
             ignoring: false,
             child: GestureDetector(
-              onTap: (_) => _bump(),
-              onDoubleTap: (event) => _count.value += event.button,
-              onPanUpdate: (drag) => _count.value += drag.dx,
+              onTap: _bump,
+              onDoubleTap: () => _count.value += 1,
+              onPanUpdate: (drag) => _count.value += drag.delta.dx,
               child: const Text('tap'),
             ),
           ),

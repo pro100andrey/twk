@@ -42,9 +42,9 @@ Widget detector(
     width: width,
     height: height,
     child: GestureDetector(
-      onTap: tap ? (e) => log.add('$name tap ${at(e)}') : null,
-      onDoubleTap: double ? (e) => log.add('$name double ${at(e)}') : null,
-      onLongPress: long ? (e) => log.add('$name long ${at(e)}') : null,
+      onTapUp: tap ? (d) => log.add('$name tap ${at(d.event)}') : null,
+      onDoubleTap: double ? () => log.add('$name double') : null,
+      onLongPress: long ? () => log.add('$name long') : null,
       onLongPressEnd: long ? (e) => log.add('$name long end ${at(e)}') : null,
       onPanStart: drag ? (d) => log.add('$name start ${moved(d.event)}') : null,
       onPanUpdate: drag
@@ -123,6 +123,50 @@ void main() {
     expect(log, ['d tap 1,0 b2', 'd tap 2,0']);
   });
 
+  testTwk('onTap, onDoubleTap and onLongPress are VoidCallbacks: a tap tells '
+      'onTapDown at the press, then onTapUp with the release and its button, '
+      'then onTap, with an onDoubleTap and a long press as well', (t) async {
+    final log = <String>[];
+    await t.pumpWidget(
+      Stack(
+        children: [
+          Positioned(
+            left: 2,
+            top: 1,
+            width: 6,
+            height: 2,
+            child: GestureDetector(
+              buttons: const {0, 2},
+              behavior: HitTestBehavior.opaque,
+              onTapDown: (d) => log.add(
+                'down ${d.localPosition.dx},${d.localPosition.dy} '
+                '${d.globalPosition.dx},${d.globalPosition.dy}',
+              ),
+              onTapUp: (d) => log.add('up ${at(d.event)}'),
+              onTap: () => log.add('tap'),
+              onLongPress: () => log.add('long'),
+              child: null,
+            ),
+          ),
+        ],
+      ),
+      size: (20, 5),
+    );
+    await t.click(3, 2);
+    expect(log, ['down 1,1 3,2', 'up 1,1', 'tap']);
+
+    log.clear();
+    await t.click(4, 1, button: 2);
+    // the left button alone tells the press; the right one its release
+    expect(log, ['up 2,0 b2', 'tap']);
+
+    log.clear();
+    await t.mouse(MouseKind.down, 3, 1);
+    await t.pump(const Duration(milliseconds: 500));
+    await t.mouse(MouseKind.up, 3, 1);
+    expect(log, ['down 1,0 3,1', 'long']);
+  });
+
   testTwk('with an onDoubleTap, a tap waits for the next press: a tap of '
       'the same button within the interval is a double tap, else the first '
       'is told when the interval is over', (t) async {
@@ -148,7 +192,7 @@ void main() {
     expect(log, isEmpty);
     await t.pump(ms * 299);
     await t.click(4, 2);
-    expect(log, ['d double 2,1']);
+    expect(log, ['d double']);
 
     log.clear();
     await t.click(3, 2);
@@ -199,7 +243,7 @@ void main() {
     await t.click(6, 0);
     await t.pump(ms * 100);
     await t.click(6, 0);
-    expect(log, ['tap tap 1,0', 'double double 1,0']);
+    expect(log, ['tap tap 1,0', 'double double']);
   });
 
   testTwk('a press held with the mouse over it is a long press, the end '
@@ -226,10 +270,10 @@ void main() {
     await t.pump(ms * 499);
     expect(log, isEmpty);
     await t.pump(ms);
-    expect(log, ['d long 1,1']);
+    expect(log, ['d long']);
     await t.mouse(MouseKind.drag, 15, 4);
     await t.mouse(MouseKind.up, 15, 4);
-    expect(log, ['d long 1,1', 'd long end 13,3']);
+    expect(log, ['d long', 'd long end 13,3']);
 
     log.clear();
     await t.mouse(MouseKind.down, 3, 2);
@@ -249,7 +293,7 @@ void main() {
     await t.mouse(MouseKind.drag, 6, 1);
     await t.pump(ms * 500);
     await t.mouse(MouseKind.up, 6, 1);
-    expect(log, ['d long 4,0', 'd long end 4,0']);
+    expect(log, ['d long', 'd long end 4,0']);
 
     // a release the terminal did not report: the next press ends the long
     // press where the mouse was last
@@ -259,7 +303,7 @@ void main() {
     await t.pump(ms * 500);
     await t.mouse(MouseKind.down, 5, 2);
     await t.mouse(MouseKind.up, 5, 2);
-    expect(log, ['d long 2,1', 'd long end 2,1', 'd tap 3,1']);
+    expect(log, ['d long', 'd long end 2,1', 'd tap 3,1']);
   });
 
   testTwk('a press is a drag once the mouse moves to another cell: the '
@@ -401,7 +445,7 @@ void main() {
       'outer start 3,2 0,0',
       'outer update 4,2 1,0',
       'outer end 4,2',
-      'outer long 3,2',
+      'outer long',
       'outer long end 3,2',
     ]);
 
@@ -433,9 +477,9 @@ void main() {
     await t.pump(ms * 500);
     await t.mouse(MouseKind.up, 3, 2);
     expect(log, [
-      'outer long 3,3',
+      'outer long',
       'outer long end 3,2',
-      'inner long 1,1',
+      'inner long',
       'inner long end 1,1',
     ]);
   });
@@ -486,7 +530,7 @@ void main() {
       'b update 2,1 1,0',
       'b end 2,1',
       'a tap 1,1',
-      'a long 2,1',
+      'a long',
       'a long end 2,1',
     ]);
   });
@@ -539,11 +583,11 @@ void main() {
         children: [
           GestureDetector(
             key: const ValueKey('a'),
-            onTap: (_) => throw StateError('tap'),
-            onDoubleTap: (_) {},
+            onTap: () => throw StateError('tap'),
+            onDoubleTap: () {},
             child: const Text('a'),
           ),
-          GestureDetector(onTap: (_) {}, child: const Text('b')),
+          GestureDetector(onTap: () {}, child: const Text('b')),
         ],
       ),
     );
@@ -570,7 +614,7 @@ void main() {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           GestureDetector(
-            onLongPress: (_) => throw StateError('long'),
+            onLongPress: () => throw StateError('long'),
             child: const Text('a'),
           ),
         ],
@@ -594,15 +638,21 @@ void main() {
   testTwk('the terminal reports presses and releases for taps, motion with '
       'a button held too for long presses and drags; nothing for a '
       'detector with no callback', (t) async {
-    void none(Object _) {}
+    void none() {}
     await t.pumpWidget(
       Host(
         key: host,
         (s) => switch (s.step) {
           0 => const GestureDetector(child: Text('nothing')),
           1 => GestureDetector(onDoubleTap: none, child: const Text('tap')),
-          2 => GestureDetector(onLongPressEnd: none, child: const Text('long')),
-          _ => GestureDetector(onPanEnd: none, child: const Text('drag')),
+          2 => GestureDetector(
+            onLongPressEnd: (_) => none(),
+            child: const Text('long'),
+          ),
+          _ => GestureDetector(
+            onPanEnd: (_) => none(),
+            child: const Text('drag'),
+          ),
         },
       ),
     );
@@ -648,14 +698,14 @@ void main() {
     const blank = Text('          ');
 
     testTwk('onTap and onTapDown show the hand, by the theme', (t) async {
-      final tap = GestureDetector(onTap: (_) {}, child: blank);
+      final tap = GestureDetector(onTap: () {}, child: blank);
       expect(await shapeOver(t, tap), PointerShape.pointer);
       final down = GestureDetector(onTapDown: (_) {}, child: blank);
       expect(await shapeOver(t, down), PointerShape.pointer);
     });
 
     testTwk('PointerMode.off shows none', (t) async {
-      final tap = GestureDetector(onTap: (_) {}, child: blank);
+      final tap = GestureDetector(onTap: () {}, child: blank);
       expect(
         await shapeOver(t, tap, mode: PointerMode.off),
         PointerShape.arrow,
@@ -665,13 +715,13 @@ void main() {
     testTwk('a double tap alone, a drag and another button show none', (
       t,
     ) async {
-      final double = GestureDetector(onDoubleTap: (_) {}, child: blank);
+      final double = GestureDetector(onDoubleTap: () {}, child: blank);
       expect(await shapeOver(t, double), PointerShape.arrow);
       final drag = GestureDetector(onPanUpdate: (_) {}, child: blank);
       expect(await shapeOver(t, drag), PointerShape.arrow);
       final right = GestureDetector(
         buttons: const {2},
-        onTap: (_) {},
+        onTap: () {},
         child: blank,
       );
       expect(await shapeOver(t, right), PointerShape.arrow);
@@ -681,7 +731,7 @@ void main() {
         'of a detector without a tap', (t) async {
       final grab = GestureDetector(
         cursor: PointerShape.grab,
-        onTap: (_) {},
+        onTap: () {},
         child: blank,
       );
       expect(
@@ -700,11 +750,11 @@ void main() {
         'detector around', (t) async {
       final log = <String>[];
       final row = GestureDetector(
-        onTap: (_) => log.add('around'),
+        onTap: () => log.add('around'),
         cursor: PointerShape.arrow,
         child: GestureDetector(
           tapAt: (x, _) => x < 3,
-          onTap: (e) => log.add('tap ${e.x}'),
+          onTapUp: (tap) => log.add('tap ${tap.localPosition.dx}'),
           child: blank,
         ),
       );
@@ -743,10 +793,10 @@ void main() {
         themed(
           PointerMode.auto,
           GestureDetector(
-            onTap: (_) => log.add('around'),
+            onTap: () => log.add('around'),
             child: GestureDetector(
               tapAt: (x, _) => x < 3,
-              onTapDown: (e) => log.add('down ${e.x}'),
+              onTapDown: (tap) => log.add('down ${tap.localPosition.dx}'),
               child: blank,
             ),
           ),
@@ -774,7 +824,7 @@ void main() {
           PointerMode.auto,
           GestureDetector(
             tapAt: (x, _) => x < 3,
-            onTap: (e) => log.add('tap ${e.x}'),
+            onTapUp: (tap) => log.add('tap ${tap.localPosition.dx}'),
             child: blank,
           ),
         ),
@@ -798,7 +848,7 @@ void main() {
           PointerMode.auto,
           GestureDetector(
             cursor: PointerShape.arrow,
-            onTap: (_) {},
+            onTap: () {},
             child: blank,
           ),
         ),
@@ -811,7 +861,7 @@ void main() {
           PointerMode.auto,
           GestureDetector(
             cursor: PointerShape.grab,
-            onTap: (_) {},
+            onTap: () {},
             child: blank,
           ),
         ),

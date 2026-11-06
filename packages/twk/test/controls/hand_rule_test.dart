@@ -499,7 +499,7 @@ void main() {
           builder: (_, m, _) => themed(
             m,
             Pressable(
-              onTap: (_) {},
+              onTap: () {},
               builder: (_, _) => Probe(() => inits++),
             ),
           ),

@@ -376,7 +376,7 @@ void main() {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             GestureDetector(
-              onTap: (e) => log.add('tap ${at(e)}'),
+              onTapUp: (tap) => log.add('tap ${at(tap.event)}'),
               child: Draggable<String>(
                 data: 'outer',
                 feedback: const Text('[outer]'),

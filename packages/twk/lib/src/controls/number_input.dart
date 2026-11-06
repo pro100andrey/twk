@@ -207,7 +207,7 @@ final class _NumberInputState extends State<NumberInput>
       focusedStyle: widget.focusedStyle,
       errorStyle: widget.errorStyle,
       trailing: GestureDetector(
-        onTapDown: enabled ? _arrow : null,
+        onTapDown: enabled ? (tap) => _arrow(tap.event) : null,
         child: Text(
           '${marks.text(Marks.up)}${marks.text(Marks.down)}',
           style: theme.text.merge(

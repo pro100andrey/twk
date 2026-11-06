@@ -9,6 +9,7 @@ import 'package:meta/meta.dart';
 import 'package:twk_core/twk_core.dart' show HitTestBehavior, PointerShape;
 
 import '../binding/app_binding.dart' show AppBinding;
+import '../foundation/change_notifier.dart' show VoidCallback;
 import '../framework/framework.dart';
 import '../style/theme.dart' show ThemeData;
 import 'hand.dart';
@@ -17,6 +18,74 @@ import 'mouse.dart';
 /// A position, or a move, in cells: the columns `dx` and the rows `dy`, as
 /// Flutter's `Offset` names them, whole.
 typedef CellOffset = ({int dx, int dy});
+
+/// A press of the left button as a [GestureDetector] tells it going down, as
+/// Flutter's `TapDownDetails`: where it is, in cells.
+///
+/// Left out of Flutter's: `kind`, which a terminal does not report. Two
+/// details are equal when their events are.
+@immutable
+final class TapDownDetails {
+  /// A press at [event].
+  const TapDownDetails(this.event);
+
+  /// The press, the cell in the coordinates of the detector: its modifiers
+  /// are the tap's.
+  final PointerEvent event;
+
+  /// The cell of the press from the top left of the detector.
+  CellOffset get localPosition => (dx: event.x, dy: event.y);
+
+  /// The cell of the press from the top left of the screen.
+  CellOffset get globalPosition => (dx: event.screenX, dy: event.screenY);
+
+  @override
+  bool operator ==(Object other) =>
+      other is TapDownDetails && other.event == event;
+
+  @override
+  int get hashCode => event.hashCode;
+
+  @override
+  String toString() => 'TapDownDetails($event)';
+}
+
+/// The release that ends a tap as a [GestureDetector] tells it, as Flutter's
+/// `TapUpDetails`: where it is, in cells.
+///
+/// Left out of Flutter's: `kind`, which a terminal does not report. Two
+/// details are equal when their events are.
+@immutable
+final class TapUpDetails {
+  /// A release at [event].
+  const TapUpDetails(this.event);
+
+  /// The release, the cell in the coordinates of the detector: its button
+  /// says which of the detector's `buttons` tapped.
+  final PointerEvent event;
+
+  /// The cell of the release from the top left of the detector.
+  CellOffset get localPosition => (dx: event.x, dy: event.y);
+
+  /// The cell of the release from the top left of the screen.
+  CellOffset get globalPosition => (dx: event.screenX, dy: event.screenY);
+
+  @override
+  bool operator ==(Object other) =>
+      other is TapUpDetails && other.event == event;
+
+  @override
+  int get hashCode => event.hashCode;
+
+  @override
+  String toString() => 'TapUpDetails($event)';
+}
+
+/// What a [GestureDetector] tells the press of a tap with.
+typedef GestureTapDownCallback = void Function(TapDownDetails details);
+
+/// What a [GestureDetector] tells the release of a tap with.
+typedef GestureTapUpCallback = void Function(TapUpDetails details);
 
 /// The start of a drag as a [GestureDetector] tells it, as Flutter's
 /// `DragStartDetails`: where the press was, in cells.
@@ -131,11 +200,12 @@ typedef GestureDragEndCallback = void Function(DragEndDetails details);
 /// presses and drags.
 ///
 /// It takes the presses of [buttons] (the left one by default), and tells
-/// each gesture with the cell in the coordinates of this widget and the
-/// button: a tap ([onTap]), a double tap ([onDoubleTap]), a long press
-/// ([onLongPress], [onLongPressEnd]) and a drag ([onPanStart],
-/// [onPanUpdate], [onPanEnd]). It is a [Listener] underneath, hit as
-/// [behavior] says: by default where its child is.
+/// each gesture: a tap ([onTap]; where and with which button, [onTapDown] and
+/// [onTapUp] say, with the cell in the coordinates of this widget), a double
+/// tap ([onDoubleTap]), a long press ([onLongPress], [onLongPressEnd]) and a
+/// drag ([onPanStart], [onPanUpdate], [onPanEnd], with the cell too). It is a
+/// [Listener] underneath, hit as [behavior] says: by default where its child
+/// is.
 ///
 /// A press is a drag once the mouse moves to another cell with the button
 /// held; a long press once it is held for [longPressDuration] with the
@@ -183,7 +253,7 @@ typedef GestureDragEndCallback = void Function(DragEndDetails details);
 /// var left = 0;
 /// var top = 0;
 /// final card = GestureDetector(
-///   onDoubleTap: (_) => print('open'),
+///   onDoubleTap: () => print('open'),
 ///   onPanUpdate: (drag) {
 ///     left += drag.delta.dx;
 ///     top += drag.delta.dy;
@@ -202,7 +272,7 @@ typedef GestureDragEndCallback = void Function(DragEndDetails details);
 /// late int Function(int x) stepAt;
 /// final steps = GestureDetector(
 ///   tapAt: (x, y) => stepAt(x) >= 0,
-///   onTap: (event) => print('step ${stepAt(event.x)}'),
+///   onTapUp: (tap) => print('step ${stepAt(tap.localPosition.dx)}'),
 ///   child: const Text('one  two  three'),
 /// );
 /// ```
@@ -217,6 +287,7 @@ final class GestureDetector extends StatefulWidget {
     super.key,
     this.onTap,
     this.onTapDown,
+    this.onTapUp,
     this.tapAt,
     this.cursor,
     this.onDoubleTap,
@@ -232,14 +303,19 @@ final class GestureDetector extends StatefulWidget {
     this.child,
   });
 
-  /// A tap: the release.
-  final PointerEventListener? onTap;
+  /// A tap: the release, told after [onTapUp]. Which button tapped, and
+  /// where, [onTapUp] says.
+  final VoidCallback? onTap;
 
   /// The left button pressed, on a cell of a tap. Every detector under the
   /// press is told, where one is told [onTap], and no tap need follow: for
   /// what answers at once. One around another gives [tapAt] to leave out the
   /// cells of the one inside.
-  final PointerEventListener? onTapDown;
+  final GestureTapDownCallback? onTapDown;
+
+  /// A tap's release, on a cell of a tap, with where it is and the button:
+  /// told with [onTap], before it.
+  final GestureTapUpCallback? onTapUp;
 
   /// Whether the cell at `x`, `y` of it is a tap's: where false, the hand
   /// does not show, and a press there is told neither [onTap] nor
@@ -257,11 +333,10 @@ final class GestureDetector extends StatefulWidget {
   final PointerShape? cursor;
 
   /// A second tap within [doubleTapInterval] of a tap: its release.
-  final PointerEventListener? onDoubleTap;
+  final VoidCallback? onDoubleTap;
 
-  /// A press held for [longPressDuration]: the event the mouse was
-  /// reported in last, the press or a drag after it.
-  final PointerEventListener? onLongPress;
+  /// A press held for [longPressDuration].
+  final VoidCallback? onLongPress;
 
   /// The release of a long press, wherever the mouse is.
   final PointerEventListener? onLongPressEnd;
@@ -311,7 +386,10 @@ final class _GestureDetectorState extends State<GestureDetector> {
   // when the press is held long enough
   Timer? _longPress;
 
-  bool get _taps => widget.onTap != null || widget.onDoubleTap != null;
+  bool get _taps =>
+      widget.onTap != null ||
+      widget.onTapUp != null ||
+      widget.onDoubleTap != null;
 
   // whether the press under way is on a cell of a tap
   var _tapHere = true;
@@ -326,7 +404,9 @@ final class _GestureDetectorState extends State<GestureDetector> {
 
   /// Whether a tap of the left button is told.
   bool get _showsTap =>
-      (widget.onTap != null || widget.onTapDown != null) &&
+      (widget.onTap != null ||
+          widget.onTapDown != null ||
+          widget.onTapUp != null) &&
       widget.buttons.contains(0);
 
   bool get _longPresses =>
@@ -357,12 +437,26 @@ final class _GestureDetectorState extends State<GestureDetector> {
     }
   }
 
+  /// Calls [callback], unless it is null, as [_tell] does.
+  void _call(VoidCallback? callback) {
+    if (callback != null) {
+      _arena!.tracker.guard(context.findRenderObject()!, callback);
+    }
+  }
+
+  /// Tells a tap that ended with [event]: [GestureDetector.onTapUp], then
+  /// [GestureDetector.onTap].
+  void _tapped(PointerEvent event) {
+    _tell(widget.onTapUp, TapUpDetails(event));
+    _call(widget.onTap);
+  }
+
   void _down(PointerEvent event) {
     _tapHere = widget.tapAt?.call(event.x, event.y) ?? true;
     if (MouseTracker.of(context) case final tracker?) {
       final joined = (_arena = _Arena.of(tracker)).down(this, event);
       if (joined && _tapHere && event.button == 0) {
-        _tell(widget.onTapDown, event);
+        _tell(widget.onTapDown, TapDownDetails(event));
       }
     }
   }
@@ -523,11 +617,11 @@ final class _Arena {
         _owner = detector;
         if (identical(_first, detector) && _again == _press) {
           _first = _firstUp = _again = null;
-          detector._tell(detector.widget.onDoubleTap, event);
+          detector._call(detector.widget.onDoubleTap);
         } else {
           _flush();
           if (detector.widget.onDoubleTap == null) {
-            detector._tell(detector.widget.onTap, event);
+            detector._tapped(event);
           } else {
             _first = detector;
             _firstUp = event;
@@ -556,7 +650,7 @@ final class _Arena {
       return;
     }
     _take(detector, _Gesture.longPress);
-    detector._tell(detector.widget.onLongPress, last);
+    detector._call(detector.widget.onLongPress);
   }
 
   /// [detector] takes the press as [gesture], or a widget that is not a
@@ -580,7 +674,7 @@ final class _Arena {
     _interval?.cancel();
     _interval = null;
     if (first != null) {
-      first._tell(first.widget.onTap, up!);
+      first._tapped(up!);
     }
   }
 

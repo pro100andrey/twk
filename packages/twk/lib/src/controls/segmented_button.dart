@@ -274,7 +274,7 @@ final class _SegmentedButtonState<T> extends State<SegmentedButton<T>> {
       autofocus: widget.autofocus,
       bindings: _bindings,
       hints: _hints,
-      onTap: enabled ? (event) => _press(_hits.at(event.x)) : null,
+      onTapUp: enabled ? (tap) => _press(_hits.at(tap.localPosition.dx)) : null,
       builder: (context, focused) => Semantics(
         nodes: [
           for (var i = 0; i < _segments.length; i++)

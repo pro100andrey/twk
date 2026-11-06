@@ -26,7 +26,7 @@ final _pressablePage = GalleryPage(
     '  enabled: enabled,',
     "  bindings: {'space': () => _toggle(name)},",
     "  hints: const {'space': 'star'},",
-    '  onTap: enabled ? (_) => _toggle(name) : null,',
+    '  onTap: enabled ? () => _toggle(name) : null,',
     '  builder: (context, focused) {',
     '    final theme = Theme.of(context);',
     '    final on = _starred.contains(name);',
@@ -113,7 +113,7 @@ final class _StarsState extends State<_Stars> with KeptState {
     enabled: enabled,
     bindings: {'space': () => _toggle(name)},
     hints: const {'space': 'star'},
-    onTap: enabled ? (_) => _toggle(name) : null,
+    onTap: enabled ? () => _toggle(name) : null,
     builder: (context, focused) {
       final theme = Theme.of(context);
       final on = _starred.contains(name);

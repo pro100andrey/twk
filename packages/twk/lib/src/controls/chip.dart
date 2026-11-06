@@ -428,7 +428,9 @@ final class _ChipListState<T> extends State<ChipList<T>> {
       autofocus: widget.autofocus,
       bindings: _bindings,
       hints: _hints,
-      onTap: enabled ? (event) => _tap(event.x, event.y) : null,
+      onTapUp: enabled
+          ? (tap) => _tap(tap.localPosition.dx, tap.localPosition.dy)
+          : null,
       builder: (context, focused) => Semantics(
         nodes: [
           for (var i = 0; i < _chips.length; i++)

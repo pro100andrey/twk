@@ -205,7 +205,7 @@ final class _ConfirmInputState extends State<ConfirmInput> {
               : rest;
         }
         Widget answer(String label, bool value) => GestureDetector(
-          onTap: enabled ? (_) => _answer(value) : null,
+          onTap: enabled ? () => _answer(value) : null,
           // the hidden cursor on the highlighted answer
           child: ActiveItem(
             active: value == _highlighted,

@@ -1225,7 +1225,7 @@ final class _TreeViewState<T> extends State<TreeView<T>>
     );
     return GestureDetector(
       key: ValueKey<Object>(key),
-      onTapDown: (event) => _rowDown(i, key, event),
+      onTapDown: (tap) => _rowDown(i, key, tap.event),
       cursor: PointerShape.arrow,
       child: DefaultTextStyle(
         style: style,

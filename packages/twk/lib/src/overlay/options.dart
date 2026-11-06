@@ -196,8 +196,8 @@ final class _OptionListState extends State<OptionList> {
         tapAt: (x, y) => _render?.optionAt(x, y) != null,
         onTapDown: widget.onSelected == null
             ? null
-            : (event) => _pressed = _at(event),
-        onTap: widget.onSelected == null ? null : _up,
+            : (tap) => _pressed = _at(tap.event),
+        onTapUp: widget.onSelected == null ? null : (tap) => _up(tap.event),
         child: list,
       ),
     );

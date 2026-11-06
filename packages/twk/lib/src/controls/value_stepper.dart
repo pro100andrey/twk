@@ -185,9 +185,9 @@ final class _ValueStepperState<T> extends State<ValueStepper<T>> {
         autofocus: widget.autofocus,
         bindings: _bindings,
         hints: _hints,
-        onTap: enabled
-            ? (event) {
-                switch (_hits.at(event.x)) {
+        onTapUp: enabled
+            ? (tap) {
+                switch (_hits.at(tap.localPosition.dx)) {
                   case 0:
                     _step(-1);
                   case 1:

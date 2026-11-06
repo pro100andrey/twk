@@ -210,7 +210,7 @@ const _focusableMutedCode = [
   '  Widget build(BuildContext context) {',
   '    final theme = Theme.of(context);',
   '    return GestureDetector(',
-  '      onTap: (_) => node.requestFocus(),',
+  '      onTap: () => node.requestFocus(),',
   '      child: Focus(',
   '        focusNode: node,',
   '        child: ListenableBuilder(',

@@ -227,7 +227,7 @@ the app turns 1003 on everywhere. The hand over what a click presses is
 is reported already, so a checkbox or a link asks for presses alone; `PointerMode.on`
 asks for motion.
 
-The pointer follows the press: a `GestureDetector` with `onTap` or `onTapDown`
+The pointer follows the press: a `GestureDetector` with `onTap`, `onTapUp` or `onTapDown`
 shows the hand by that rule, with nothing else to write. `cursor` puts a
 `PointerShape` of its own in its place (`PointerShape.arrow` for a click that
 presses nothing), and `tapAt: (x, y) => ...` says which cells of a row a tap is
@@ -275,13 +275,13 @@ final class _WhoState extends State<Who> {
       children: [
         Text(_said),
         GestureDetector(
-          onTap: (_) => setState(() => _said = 'outer'),
+          onTap: () => setState(() => _said = 'outer'),
           child: Box(
             border: const .all(type: .rounded),
             padding: const .all(1),
             child: GestureDetector(
               // the deepest detector with an onTap takes the tap
-              onTap: (_) => setState(() => _said = 'inner'),
+              onTap: () => setState(() => _said = 'inner'),
               child: const Box(
                 border: .all(type: .single),
                 child: Text('inner'),

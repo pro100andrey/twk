@@ -984,7 +984,7 @@ final class _TickingState extends State<Ticking> {
   Widget build(BuildContext context) {
     widget.log.add('build $_count');
     return GestureDetector(
-      onTap: (_) => widget.taps.add('tap $_count'),
+      onTap: () => widget.taps.add('tap $_count'),
       child: SizedBox(
         width: 20,
         height: 3,

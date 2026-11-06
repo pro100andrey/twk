@@ -26,8 +26,8 @@ var _dragged = (0, 0);
 String? _last;
 CellOffset? _from, _at; // the drag: where it started, where it is
 
-void _saw(String what, PointerEvent event) =>
-    _last = '$what at ${event.x}, ${event.y}';
+void _saw(String what, [CellOffset? at]) =>
+    _last = at == null ? what : '$what at ${at.dx}, ${at.dy}';
 
 @override
 Widget build(BuildContext context) {
@@ -38,27 +38,30 @@ Widget build(BuildContext context) {
     spacing: 1,
     children: [
       GestureDetector(
-        onTap: (event) => setState(() {
+        onTap: () => setState(() {
           _taps++;
-          _saw('tap', event);
+          _saw('tap');
         }),
-        onDoubleTap: (event) => setState(() {
+        onDoubleTap: () => setState(() {
           _doubleTaps++;
-          _saw('double tap', event);
+          _saw('double tap');
         }),
-        onLongPress: (event) => setState(() {
+        onLongPress: () => setState(() {
           _longPresses++;
-          _saw('long press', event);
+          _saw('long press');
         }),
         onPanStart: (drag) => setState(() => _from = drag.localPosition),
         onPanUpdate: (drag) => setState(() {
-          _dragged = (_dragged.$1 + drag.delta.dx, _dragged.$2 + drag.delta.dy);
+          _dragged = (
+            _dragged.$1 + drag.delta.dx,
+            _dragged.$2 + drag.delta.dy,
+          );
           _at = drag.localPosition;
-          _saw('drag', drag.event);
+          _saw('drag', drag.localPosition);
         }),
         onPanEnd: (drag) => setState(() {
           _from = _at = null;
-          _saw('drag ended', drag.event);
+          _saw('drag ended', drag.localPosition);
         }),
         child: SizedBox(
           width: 36,

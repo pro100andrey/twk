@@ -26,9 +26,9 @@ import '../text/widgets.dart';
 /// [hints]: they get its keys from the moment it has the focus, and
 /// [onKeyEvent] those they leave. A press of the left button over it
 /// focuses it, while it is enabled, and a tap over it calls [onTap] (see
-/// `GestureDetector`); while it is enabled with an [onTap], the pointer
-/// is the hand over it ([PointerShape.pointer], where the terminal shows
-/// pointer shapes) if the theme asks for it
+/// `GestureDetector`); while it is enabled with an [onTap] or [onTapUp], the
+/// pointer is the hand over it ([PointerShape.pointer], where the terminal
+/// shows pointer shapes) if the theme asks for it
 /// ([ThemeData.pointerMode]). [builder] is called again as
 /// the focus comes and goes.
 ///
@@ -39,7 +39,7 @@ import '../text/widgets.dart';
 /// Pressable(
 ///   bindings: {'space': () => print('toggled')},
 ///   hints: const {'space': 'toggle'},
-///   onTap: (_) => print('toggled'),
+///   onTap: () => print('toggled'),
 ///   builder: (context, focused) => Text(
 ///     '[ power ]',
 ///     style: focused ? Theme.of(context).primary : const Style(),
@@ -62,6 +62,7 @@ final class Pressable extends StatefulWidget {
     this.hints = const {},
     this.onKeyEvent,
     this.onTap,
+    this.onTapUp,
     this.focusNode,
     this.autofocus = false,
     this.behavior = HitTestBehavior.deferToChild,
@@ -88,9 +89,12 @@ final class Pressable extends StatefulWidget {
   /// Gets the keys while it has the focus, those the [bindings] leave.
   final FocusOnKeyEventCallback? onKeyEvent;
 
-  /// A tap of the left button over it, the cell in its coordinates; null
-  /// for a disabled control.
-  final PointerEventListener? onTap;
+  /// A tap of the left button over it; null for a disabled control.
+  final VoidCallback? onTap;
+
+  /// A tap's release over it, with the cell in its coordinates, told before
+  /// [onTap]; for a control that is hit at a cell of it.
+  final GestureTapUpCallback? onTapUp;
 
   /// See [Focus.focusNode].
   final FocusNode? focusNode;
@@ -159,6 +163,7 @@ final class _PressableState extends State<Pressable> {
           behavior: widget.behavior,
           child: GestureDetector(
             onTap: enabled ? widget.onTap : null,
+            onTapUp: enabled ? widget.onTapUp : null,
             behavior: widget.behavior,
             child: widget.builder(context, _node.hasFocus),
           ),

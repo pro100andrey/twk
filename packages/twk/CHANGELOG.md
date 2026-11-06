@@ -4,6 +4,15 @@
 
 Breaking:
 
+- `GestureDetector` and `Pressable`: `onTap`, and `GestureDetector`'s
+  `onDoubleTap` and `onLongPress`, are `VoidCallback`s, as Flutter's, where
+  they took the `PointerEvent`. `onTapDown` takes `TapDownDetails`, and the
+  new `onTapUp` (on `Pressable` too, told before `onTap`) `TapUpDetails`, each
+  with `localPosition` and `globalPosition` in cells (`CellOffset`, `dx` and
+  `dy`) and the `event` for the button and the modifiers: where a tap, a double
+  tap or a long press was, and with which button, is `onTapUp`'s now. Flutter's
+  `kind` of the details is not there: a terminal reports none. `onLongPressEnd`
+  still takes the `PointerEvent`.
 - `DragDetails` is Flutter's `DragStartDetails`, `DragUpdateDetails` and
   `DragEndDetails`: `onPanStart`, `onPanUpdate` and `onPanEnd` take one each,
   and `DragListener` is `GestureDragStartCallback`, `GestureDragUpdateCallback`

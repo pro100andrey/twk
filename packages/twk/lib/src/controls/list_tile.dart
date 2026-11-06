@@ -205,7 +205,7 @@ final class _ListTileState extends State<ListTile> {
           autofocus: widget.autofocus,
           bindings: {'enter': _tap, 'space': _tap},
           hints: const {'enter': 'open'},
-          onTap: enabled ? (_) => _tap() : null,
+          onTap: enabled ? _tap : null,
           builder: (context, focused) => _row(context, focused: focused),
         ),
       ),

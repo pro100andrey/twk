@@ -349,7 +349,7 @@ final class _TabBarState extends State<TabBar> {
           // a tab and the arrows that scroll to the next
           child: GestureDetector(
             tapAt: (x, _) => _tapsAt(x),
-            onTapDown: _down,
+            onTapDown: (tap) => _down(tap.event),
             child: _Strip(
               key: _strip,
               tabs: widget.tabs,

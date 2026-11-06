@@ -270,7 +270,7 @@ final class _ButtonState extends State<Button> {
       canRequestFocus: widget.canRequestFocus,
       bindings: {'enter': _press, 'space': _press},
       hints: const {'enter': 'press'},
-      onTap: enabled ? (_) => _press() : null,
+      onTap: enabled ? _press : null,
       builder: (context, focused) {
         final theme = Theme.of(context);
         if (widget._look != _Look.chip) {

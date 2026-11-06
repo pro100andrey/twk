@@ -792,7 +792,7 @@ final class _PickerState<T> extends State<_Picker<T>>
       bindings: bindings,
       hints: hints,
       onKeyEvent: _onKey,
-      onTap: widget.inline || !_enabled ? null : (_) => _toggleOpen(),
+      onTap: widget.inline || !_enabled ? null : _toggleOpen,
       builder: !widget.inline
           ? _field
           : (context, focused) => Column(
@@ -1021,7 +1021,7 @@ final class _PickerState<T> extends State<_Picker<T>>
     return GestureDetector(
       tapAt: (_, y) => top + y >= 0 && top + y < matches.length,
       cursor: PointerShape.arrow,
-      onTap: (event) => _choose(matches[top + event.y].index),
+      onTapUp: (tap) => _choose(matches[top + tap.localPosition.dy].index),
       child: SizedBox(
         width: width,
         child: OptionList(

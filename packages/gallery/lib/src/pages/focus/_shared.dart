@@ -31,7 +31,7 @@ final class _Focusable extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return GestureDetector(
-      onTap: (_) => node.requestFocus(),
+      onTap: node.requestFocus,
       child: Focus(
         focusNode: node,
         skipTraversal: skipTraversal,
@@ -77,7 +77,7 @@ List<String> _focusableCode({required bool args}) => [
   '  Widget build(BuildContext context) {',
   '    final theme = Theme.of(context);',
   '    return GestureDetector(',
-  '      onTap: (_) => node.requestFocus(),',
+  '      onTap: node.requestFocus,',
   '      child: Focus(',
   '        focusNode: node,',
   if (args) ...[

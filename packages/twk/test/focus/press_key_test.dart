@@ -20,7 +20,7 @@ final class HintRow extends StatelessWidget {
         for (final key in binding.focusManager.activeKeys)
           if (key.hint case final hint?)
             GestureDetector(
-              onTap: (_) {
+              onTap: () {
                 for (final combo in [key.combo, ...key.then]) {
                   binding.pressKey(combo);
                 }

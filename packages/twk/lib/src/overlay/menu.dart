@@ -1125,7 +1125,7 @@ final class _MenuBarState extends State<MenuBar> implements _MenuHost {
                   final title = _bar?.titleAt(x);
                   return title != null && _canOpen(title);
                 },
-                onTapDown: _down,
+                onTapDown: (tap) => _down(tap.event),
                 child: _BarRow(
                   key: _row,
                   titles: titles,

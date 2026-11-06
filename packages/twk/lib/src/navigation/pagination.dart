@@ -250,9 +250,9 @@ final class _PaginationState extends State<Pagination> {
         '0': '${Theme.of(context).glyphs.ellipsis}9 page',
         if (typing) 'enter': 'go',
       },
-      onTap: enabled
-          ? (event) {
-              final i = _hits.at(event.x);
+      onTapUp: enabled
+          ? (tap) {
+              final i = _hits.at(tap.localPosition.dx);
               if (i >= 0 && _parts[i].to >= 0) {
                 _go(_parts[i].to);
               }

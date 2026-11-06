@@ -73,24 +73,29 @@ hit as they would be (a scroll view around it still gets the wheel).
 
 ## `GestureDetector`
 
-`GestureDetector(onTap:, onDoubleTap:, onLongPress:, onLongPressEnd:,
-onPanStart:, onPanUpdate:, onPanEnd:, buttons: {0}, doubleTapInterval:
-300 ms, longPressDuration: 500 ms, behavior:, child:)`, a `Listener`
-underneath, tells the gestures of the presses of the `buttons` it takes: a
-press is a drag once the mouse moves to another cell with the button held
-(`DragStartDetails`, `DragUpdateDetails` and `DragEndDetails`, as Flutter's,
-each with the `event`, the `localPosition` and `globalPosition` in cells
-(`dx`, `dy`) and, for an update, the `delta` since the drag was told last: the
-start at the press, then each cell it moves to, the end at the release), a long press once it is held for `longPressDuration` with
-the mouse over the detector, else a tap when it is released over it. With an
-`onDoubleTap` a tap waits `doubleTapInterval` for the next press: a tap of
-the same button then is a double tap, else `onTap` is told of the first
-before any gesture that follows. Detectors one inside another compete for a
-press: each gesture goes to the deepest that recognises it (a callback for
-it and, for a tap or a long press, the mouse over it), and a press is one
-gesture; a `Listener` around them is not in the competition and gets
-every press hit in it. A `Box` without a background is hit on its border and
-its child only, so the cells of its padding reach a detector around it with
+`GestureDetector(onTap:, onTapDown:, onTapUp:, onDoubleTap:, onLongPress:,
+onLongPressEnd:, onPanStart:, onPanUpdate:, onPanEnd:, buttons: {0},
+doubleTapInterval: 300 ms, longPressDuration: 500 ms, behavior:, child:)`, a
+`Listener` underneath, tells the gestures of the presses of the `buttons` it
+takes. A press is a drag once the mouse moves to another cell with the button
+held (`DragStartDetails`, `DragUpdateDetails` and `DragEndDetails`, as
+Flutter's, each with the `event`, the `localPosition` and `globalPosition` in
+cells, a `CellOffset` (`dx`, `dy`) and, for an update, the `delta` since the
+drag was told last: the start at the press, then each cell it moves to, the
+end at the release); a long press once it is held for `longPressDuration`
+with the mouse over the detector (`onLongPress`, a `VoidCallback`); else a tap
+when it is released over it. A tap is told as it goes down by `onTapDown`
+(`TapDownDetails`, the cell and `event`), and as it ends by `onTapUp`
+(`TapUpDetails`: the cell, and `event.button`, which of the `buttons` tapped)
+and then `onTap`, a `VoidCallback`. With an `onDoubleTap` (a `VoidCallback`) a
+tap waits `doubleTapInterval` for the next press: a tap of the same button
+then is a double tap, else `onTapUp` and `onTap` are told of the first before
+any gesture that follows. Detectors one inside another compete for a press:
+each gesture goes to the deepest that recognises it (a callback for it and,
+for a tap or a long press, the mouse over it), and a press is one gesture; a
+`Listener` around them is not in the competition and gets every press hit in
+it. A `Box` without a background is hit on its border and its child only, so
+the cells of its padding reach a detector around it with
 `behavior: HitTestBehavior.opaque` alone. The intervals are timers of the
 app's zone, which a test moves with `t.pump(duration)`; while it has a
 callback the terminal reports presses and releases, and motion with a button

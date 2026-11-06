@@ -290,7 +290,7 @@ final appScenarios = <AppScenario>[
     'rows-detector',
     'the same, each row a GestureDetector with onTap: what its MouseRegion '
         'and HandOver cost a row',
-    (i, row) => GestureDetector(onTap: (_) {}, child: row),
+    (i, row) => GestureDetector(onTap: () {}, child: row),
   ),
   const AppScenario(
     'chips-narrow',
