@@ -34,6 +34,32 @@ void expectPlan(FollowPlan plan, {bool reset = false, int? from, int? to}) {
 }
 
 void main() {
+  group('settled', () {
+    test('a file read to its end, and the same at the name, is', () {
+      final m = started();
+      expect(m.settled(size: 10), isTrue);
+    });
+
+    test('a file longer, shorter or not there is not', () {
+      final m = started();
+      expect(m.settled(size: 11), isFalse);
+      expect(m.settled(size: 9), isFalse);
+      expect(m.settled(size: null), isFalse);
+    });
+
+    test('a file put at the name is not, whatever its size', () {
+      final m = started()..nameEvent(puts: true);
+      expect(m.settled(size: 10), isFalse);
+    });
+
+    test('where files are told apart another file is not, whatever its '
+        'size', () {
+      final m = started(identity: true);
+      expect(m.settled(size: 10, identity: 'a'), isTrue);
+      expect(m.settled(size: 10, identity: 'b'), isFalse);
+    });
+  });
+
   group('sizes', () {
     test('from the end, what is there is not read, what is added is', () {
       final m = started();

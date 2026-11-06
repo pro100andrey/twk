@@ -90,6 +90,14 @@ final class FollowMachine {
     }
   }
 
+  /// Whether a look at a file of [size] and [identity] would change nothing
+  /// and read nothing, so that it need not open the file. A file not there
+  /// is not settled: the look says so.
+  bool settled({required int? size, Object? identity}) =>
+      !_replaced &&
+      size == _position &&
+      (!tellsIdentity || identity == null || identity == _held);
+
   /// Marks that a look is about to take its stat: pass what it returns to
   /// [look].
   int beginLook() => _puts;

@@ -109,10 +109,16 @@ Stream<void> watchDirectory(String path) {
 /// without a directory watch (or on a drive where it misses events), and a
 /// longer one is read from the old position.
 ///
-/// A look opens the file once: its length and the range read are of that
-/// one handle, so a file renamed over the name in the middle of a look is
-/// never read at the old file's range; the look is made again when the
-/// watch told a file put at the name since it began.
+/// A look that has something to read opens the file once: its length and
+/// the range read are of that one handle, so a file renamed over the name in
+/// the middle of a look is never read at the old file's range; the look is
+/// made again when the watch told a file put at the name since it began. A
+/// look the name tells nothing new to opens nothing: Windows refuses a
+/// writer the rename or delete of a file open anywhere, so a follower that
+/// held the file at each poll would fail its rotation.
+///
+/// The future of the subscription's `cancel` ends with the look under way,
+/// its handle closed: on Windows the file can be deleted after it.
 ///
 /// What is a start over and what to read is decided by a [FollowMachine];
 /// the stream is the file, the watch and the poll around it. The poll runs
@@ -132,6 +138,7 @@ Stream<TailEvent> tailFile(
   var reading = false;
   var again = false;
   var cancelled = false;
+  var looked = Completer<void>()..complete();
   late final StreamController<TailEvent> out;
 
   // The file the name holds, opened once for a look, with its identity
@@ -160,10 +167,23 @@ Stream<TailEvent> tailFile(
       return;
     }
     reading = true;
+    looked = Completer<void>();
     try {
       do {
         again = false;
         final began = machine.beginLook();
+        int? named;
+        try {
+          named = await file.length();
+        } on FileSystemException {
+          named = null;
+        }
+        if (cancelled) {
+          return;
+        }
+        if (machine.settled(size: named, identity: fileIdentity(path))) {
+          continue;
+        }
         // one handle a look: the length and the range read are of the one
         // file, whatever is renamed over the name in between
         final opened = await openFile();
@@ -210,6 +230,7 @@ Stream<TailEvent> tailFile(
       // gone while it was read: looked at again at the next event or poll
     } finally {
       reading = false;
+      looked.complete();
     }
   }
 
@@ -256,6 +277,7 @@ Stream<TailEvent> tailFile(
       cancelled = true;
       timer?.cancel();
       await watch?.cancel();
+      await looked.future;
       unawaited(out.close());
     },
   );

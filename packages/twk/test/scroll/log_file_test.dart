@@ -32,13 +32,26 @@ void main() {
   });
   tearDown(() => dir.delete(recursive: true));
 
+  /// [cancel] to its end: it waits for the look under way, whose turns come
+  /// as the clock moves.
+  Future<void> ended(Future<void> Function() cancel) async {
+    var over = false;
+    final cancelling = cancel().whenComplete(() => over = true);
+    await waitUntil(
+      () => over,
+      'the cancel to end',
+      between: () => clock.elapse(poll),
+    );
+    await cancelling;
+  }
+
   /// Follows [path] into a new controller, on the fake clock.
   LogController follow({bool fromEnd = true}) {
     final c = LogController();
     final subscription = clock.run(
       () => c.followFile(path, fromEnd: fromEnd, poll: poll),
     );
-    addTearDown(subscription.cancel);
+    addTearDown(() => ended(subscription.cancel));
     return c;
   }
 
@@ -152,7 +165,7 @@ void main() {
     File(path).writeAsStringSync('new\n', mode: FileMode.append);
     await clock.elapse(poll);
     await clock.elapse(poll);
-    await fromFile.cancel();
+    await ended(fromFile.cancel);
   });
 
   test('followFile takes the tabWidth', () async {
@@ -162,7 +175,7 @@ void main() {
     final source = clock.run(
       () => c.followFile(path, fromEnd: false, poll: poll, tabWidth: 4),
     );
-    addTearDown(source.cancel);
+    addTearDown(() => ended(source.cancel));
     await holds(c, ['a   b']);
   });
 }

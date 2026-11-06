@@ -25,6 +25,19 @@ void main() {
   });
   tearDown(() => dir.delete(recursive: true));
 
+  /// [cancel] to its end: it waits for the look under way, whose turns come
+  /// as the clock moves.
+  Future<void> ended(Future<void> Function() cancel) async {
+    var over = false;
+    final cancelling = cancel().whenComplete(() => over = true);
+    await waitUntil(
+      () => over,
+      'the cancel to end',
+      between: () => clock.elapse(poll),
+    );
+    await cancelling;
+  }
+
   /// What [tailFile] tells of [path], as `text` for bytes and `reset`.
   List<String> follow({bool fromEnd = true}) {
     final told = <String>[];
@@ -36,7 +49,7 @@ void main() {
         }),
       ),
     );
-    addTearDown(subscription.cancel);
+    addTearDown(() => ended(subscription.cancel));
     return told;
   }
 
@@ -107,24 +120,77 @@ void main() {
   });
 
   test('a look in flight when the stream is cancelled adds nothing after '
-      'the close', () async {
+      'the close, and the cancel ends with its handle closed', () async {
     File(path).writeAsStringSync('old old\n');
     final inner = File(path);
+    final asked = Completer<void>();
     final answer = Completer<int>();
     final errors = <Object>[];
+    var closed = false;
+    var cancelled = false;
     await runZonedGuarded(() async {
       final subscription = IOOverrides.runZoned(
-        () => tailFile(path, fromEnd: true, poll: poll).listen((_) {}),
-        createFile: (p) => _Hooked(inner, onLength: (_) => answer.future),
+        () => tailFile(path, fromEnd: false, poll: poll).listen((_) {}),
+        createFile: (p) => _Hooked(
+          inner,
+          onLength: (_) {
+            asked.complete();
+            return answer.future;
+          },
+          onClose: () => closed = true,
+        ),
       );
       // the first look has asked the length and waits for it; the stream is
-      // cancelled and closed, then the answer comes: the file was cut short
-      await subscription.cancel();
+      // cancelled, then the answer comes: the file was cut short
+      await waitFor(asked.future, 'the look to ask the length');
+      final cancel = subscription.cancel().then((_) => cancelled = true);
       await pumpEventQueue();
+      expect(cancelled, isFalse);
       answer.complete(0);
+      await waitFor(cancel, 'the cancel to end with the look');
+      expect(closed, isTrue);
       await pumpEventQueue();
     }, (e, _) => errors.add(e));
     expect(errors, isEmpty);
+  });
+
+  test('a look the name tells nothing new to opens nothing, so that Windows '
+      'does not refuse the writer a rename: the next write opens it', () async {
+    File(path).writeAsStringSync('old\n');
+    final inner = File(path);
+    final told = <String>[];
+    var named = 0;
+    var opened = 0;
+    final subscription = clock.run(
+      () => IOOverrides.runZoned(
+        () => tailFile(path, fromEnd: true, poll: poll).listen(
+          (e) => told.add(switch (e) {
+            FileBytes(:final bytes) => String.fromCharCodes(bytes),
+            FileReset() => 'reset',
+          }),
+        ),
+        createFile: (p) => _Hooked(
+          inner,
+          onNamedLength: () => named++,
+          onOpen: () => opened++,
+        ),
+      ),
+    );
+    addTearDown(() => ended(subscription.cancel));
+    await waitUntil(
+      () => named >= 3,
+      'three looks',
+      between: () => clock.elapse(poll),
+    );
+    expect(opened, 0);
+    File(path).writeAsStringSync('more\n', mode: FileMode.append);
+    await waitUntil(
+      () => told.isNotEmpty,
+      'the write',
+      between: () => clock.elapse(poll),
+    );
+    expect(told, ['more\n']);
+    expect(opened, 1);
   });
 
   test('a read that fails midway is not told again by the next look: the '
@@ -158,12 +224,13 @@ void main() {
         ),
       ),
     );
-    addTearDown(subscription.cancel);
+    addTearDown(() => ended(subscription.cancel));
     await holds(told, ['first\n', 'second\n']);
     await clock.elapse(poll);
     expect(told, ['first\n', 'second\n']);
   });
 
+  // Windows refuses a rename over a file open anywhere: it cannot happen there
   test('a file renamed over the name right after its length was taken is '
       'not read at the old range: nothing of it is told before the reset, '
       'then it is told from its start', () async {
@@ -197,7 +264,7 @@ void main() {
         ),
       ),
     );
-    addTearDown(subscription.cancel);
+    addTearDown(() => ended(subscription.cancel));
     await clock.elapse(poll);
     armed = true;
     File(path).writeAsStringSync('second\n', mode: FileMode.append);
@@ -210,21 +277,40 @@ void main() {
     // file's middle may not
     expect(told.takeWhile((e) => e != 'reset').join(), isIn(['', 'second\n']));
     expect(told.skipWhile((e) => e != 'reset').skip(1).join(), replacement);
-  });
+  }, testOn: '!windows');
 }
 
 /// A file whose handles ask `onLength` for the length and `onRead` for each
-/// read, in place of the file's own where given.
+/// read, in place of the file's own where given, and that says when its
+/// length is asked by the name, a handle is opened and one is closed.
 class _Hooked implements File {
-  _Hooked(this._file, {this.onLength, this.onRead});
+  _Hooked(
+    this._file, {
+    this.onLength,
+    this.onRead,
+    this.onNamedLength,
+    this.onOpen,
+    this.onClose,
+  });
 
   final File _file;
   final Future<int> Function(RandomAccessFile)? onLength;
   final Future<Uint8List> Function(RandomAccessFile, int)? onRead;
+  final void Function()? onNamedLength;
+  final void Function()? onOpen;
+  final void Function()? onClose;
 
   @override
-  Future<RandomAccessFile> open({FileMode mode = FileMode.read}) async =>
-      _Handle(await _file.open(), onLength, onRead);
+  Future<int> length() {
+    onNamedLength?.call();
+    return _file.length();
+  }
+
+  @override
+  Future<RandomAccessFile> open({FileMode mode = FileMode.read}) async {
+    onOpen?.call();
+    return _Handle(await _file.open(), onLength, onRead, onClose);
+  }
 
   @override
   Uri get uri => _file.uri;
@@ -244,11 +330,12 @@ class _Hooked implements File {
 }
 
 class _Handle implements RandomAccessFile {
-  _Handle(this._raf, this._onLength, this._onRead);
+  _Handle(this._raf, this._onLength, this._onRead, this._onClose);
 
   final RandomAccessFile _raf;
   final Future<int> Function(RandomAccessFile)? _onLength;
   final Future<Uint8List> Function(RandomAccessFile, int)? _onRead;
+  final void Function()? _onClose;
 
   @override
   Future<int> length() => _onLength?.call(_raf) ?? _raf.length();
@@ -264,7 +351,10 @@ class _Handle implements RandomAccessFile {
       _onRead?.call(_raf, count) ?? _raf.read(count);
 
   @override
-  Future<void> close() => _raf.close();
+  Future<void> close() async {
+    await _raf.close();
+    _onClose?.call();
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>
