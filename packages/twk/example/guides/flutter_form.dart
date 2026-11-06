@@ -30,7 +30,10 @@ final class _ProfileState extends State<Profile> {
         gap: 1,
         children: [
           Text('Profile', style: theme.primary),
-          SizedBox(width: 30, child: TextField(controller: _name)),
+          SizedBox(
+            width: 30,
+            child: TextField(controller: _name, semanticsLabel: 'Name'),
+          ),
           Checkbox(
             value: _news,
             label: 'Send me the news',
