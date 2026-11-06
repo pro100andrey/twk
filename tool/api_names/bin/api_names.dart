@@ -13,19 +13,18 @@ import 'dart:io';
 
 import 'package:twk_api_names/api_names.dart';
 
-/// The packages published to pub.dev (xtask.yaml's `pub-check`).
-const published = [
-  'twk_core',
-  'twk',
-  'twk_test',
-  'twk_lints',
-  'twk_term',
-  'twk_rich',
-  'twk_dev',
-];
-
 Future<void> main() async {
   final root = _findRoot();
+  // the packages published to pub.dev: those whose pubspec does not say
+  // `publish_to: none`
+  final List<String> published;
+  try {
+    published = publishedPackages('$root/packages');
+  } on FormatException catch (e) {
+    stderr.writeln('api_names: ${e.message}');
+    exitCode = 1;
+    return;
+  }
   final rules = Rules.parse(
     File('$root/tool/api_names/banned_names.txt').readAsStringSync(),
   );
