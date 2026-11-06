@@ -1,4 +1,4 @@
-// WindowTitle: the title of the terminal's window or tab as the one
+// TerminalTitle: the title of the terminal's window or tab as the one
 // mounted last says, set again when its title changes or it goes, through
 // Terminal.setTitle, which gives the user's title back when the app ends;
 // on a HeadlessTerminal, the sequence that sets it written to its frames.
@@ -143,45 +143,45 @@ final class _Link implements TerminalLink {
 void main() {
   test('sets the title as the app starts, again when it changes, not when '
       'it is built the same', () async {
-    final run = _Run((child) => WindowTitle(title: 'build', child: child));
+    final run = _Run((child) => TerminalTitle(title: 'build', child: child));
     await run.settle();
     expect(run.titles(), ['build']);
     expect(run.status.title, 'build');
 
-    await run.show((child) => WindowTitle(title: 'test', child: child));
+    await run.show((child) => TerminalTitle(title: 'test', child: child));
     expect(run.titles(), ['test']);
     expect(run.status.title, 'test');
 
-    await run.show((child) => WindowTitle(title: 'test', child: child));
+    await run.show((child) => TerminalTitle(title: 'test', child: child));
     expect(run.titles(), isEmpty);
     await run.quit();
   });
 
   test('the one mounted last sets it, the innermost of nested ones; once '
       'it goes, the one before it sets its own again', () async {
-    final run = _Run((child) => WindowTitle(title: 'app', child: child));
+    final run = _Run((child) => TerminalTitle(title: 'app', child: child));
     await run.settle();
     expect(run.titles(), ['app']);
 
     await run.show(
-      (child) => WindowTitle(
+      (child) => TerminalTitle(
         title: 'app',
-        child: WindowTitle(title: 'page', child: child),
+        child: TerminalTitle(title: 'page', child: child),
       ),
     );
     expect(run.titles(), ['page']);
 
     // the outer one changes under the inner one, which stays shown
     await run.show(
-      (child) => WindowTitle(
+      (child) => TerminalTitle(
         title: 'app 2',
-        child: WindowTitle(title: 'page', child: child),
+        child: TerminalTitle(title: 'page', child: child),
       ),
     );
     expect(run.titles(), isEmpty);
     expect(run.status.title, 'page');
 
-    await run.show((child) => WindowTitle(title: 'app 2', child: child));
+    await run.show((child) => TerminalTitle(title: 'app 2', child: child));
     expect(run.titles(), ['app 2']);
 
     // none: the title stays as the last one set it
@@ -205,7 +205,7 @@ void main() {
     );
     final done = clock.run(
       () => binding.run(
-        const WindowTitle(title: 'twk · chat', child: Text('working')),
+        const TerminalTitle(title: 'twk · chat', child: Text('working')),
       ),
     );
     await clock.settle();

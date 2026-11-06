@@ -801,7 +801,7 @@ abstract interface class MouseTrackingBackend implements TerminalBackend {
 /// A [TerminalBackend] that sets the title of the terminal's window or tab
 /// and shows desktop notifications ([Terminal], `HeadlessTerminal`). A
 /// backend that wraps a terminal implements it to pass both on; twk's
-/// `WindowTitle` and `AppBinding.notify` do nothing on a backend without
+/// `TerminalTitle` and `AppBinding.notify` do nothing on a backend without
 /// it.
 abstract interface class WindowBackend implements TerminalBackend {
   /// Sets the title of the terminal's window or tab to [title]. Ignored

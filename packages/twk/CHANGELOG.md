@@ -4,6 +4,8 @@
 
 Breaking:
 
+- `WindowTitle` is `TerminalTitle`, as `TerminalProgress` is named: it sets the
+  terminal's title.
 - `TaskStatus` is `TaskItemStatus`, the status of a `TaskItem`.
 - `Link` is `Hyperlink`: an app that wrote `hide Link` for dart:io's `Link` drops it.
 - `twk.dart` no longer exports `ModeReport`, `KeyboardFlagsReport`,

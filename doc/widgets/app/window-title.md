@@ -24,7 +24,7 @@ options as they start:
 // the title of the terminal's window or tab while this is in the
 // tree, set again when it changes: of nested ones the innermost, as
 // Flutter's Title. The user's own comes back when the app ends.
-return WindowTitle(
+return TerminalTitle(
   title: 'twk gallery',
   child: const Text('In the title bar: twk gallery'),
 );

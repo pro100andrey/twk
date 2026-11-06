@@ -12,7 +12,7 @@ extension on _SampleAppState {
       child: TerminalProgress(
         state: ProgressState.paused,
         value: .5,
-        child: WindowTitle(
+        child: TerminalTitle(
           title: 'sample app',
           child: Static<String>(
             items: const ['finished'],

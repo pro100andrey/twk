@@ -40,7 +40,7 @@ final _windowTitle = GalleryPage(
       'of nested ones the innermost, as',
     ]),
     "// Flutter's Title. The user's own comes back when the app ends.",
-    'return WindowTitle(',
+    'return TerminalTitle(',
     "  title: '${o.nameOf(_windowTitleTitle)}',",
     "  child: const Text('In the title bar: ${o.nameOf(_windowTitleTitle)}'),",
     ');',
@@ -48,7 +48,7 @@ final _windowTitle = GalleryPage(
 );
 
 /// A terminal's window whose title bar shows [title] while the app runs,
-/// the user's own once it ended; the app, a real WindowTitle.
+/// the user's own once it ended; the app, a real TerminalTitle.
 final class _Titled extends StatefulWidget {
   const _Titled({required this.title, required this.running});
 
@@ -102,7 +102,7 @@ final class _TitledState extends TimedState<_Titled> {
       under: under,
       // the app, on the alternate screen
       at: widget.running ? (3, 3, _ww - 6, 1) : null,
-      app: WindowTitle(
+      app: TerminalTitle(
         title: widget.title,
         child: Text('In the title bar: ${widget.title}'),
       ),
