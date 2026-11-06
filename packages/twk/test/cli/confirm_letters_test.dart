@@ -62,6 +62,15 @@ void main() {
     expect(await answerWith('y'), isTrue);
   });
 
+  test('takes n as no where the word for yes starts with it', () async {
+    await clock.elapseUntil(cli.close(), step: _frame);
+    cli = Cli(
+      terminal: terminal,
+      strings: const TwkStrings(yes: 'ndiyo', no: 'hapana'),
+    );
+    expect(await answerWith('n'), isFalse);
+  });
+
   test('a progress closes with the time in the decimal separator', () async {
     final comma = Cli(
       terminal: terminal,

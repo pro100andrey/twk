@@ -21,6 +21,30 @@ const hiddenAnswer = '******';
 /// filtered by what is typed unless told.
 const choicesShown = 7;
 
+/// What [typed] answers to a yes or no question, in either case: `y`,
+/// `yes`, `n` and `no` first, whatever the language, then the `yes` and `no`
+/// of [strings] or their first letters; null for none of them.
+bool? confirmAnswer(String typed, TwkStrings strings) {
+  final answer = typed.toLowerCase();
+  if (answer == 'y' || answer == 'yes') {
+    return true;
+  }
+  if (answer == 'n' || answer == 'no') {
+    return false;
+  }
+  bool isWord(String word) {
+    final lower = word.toLowerCase();
+    return lower.isNotEmpty &&
+        (answer == lower || answer == String.fromCharCode(lower.runes.first));
+  }
+
+  return isWord(strings.yes)
+      ? true
+      : isWord(strings.no)
+      ? false
+      : null;
+}
+
 /// Asks the questions of a [Cli] the way its mode allows, one at a time:
 ///
 /// * interactive: a widget mounted in the inline session, which goes once
@@ -187,19 +211,11 @@ final class Prompter {
             while (true) {
               _write(_asking(question, hint: hint, brackets: '[]'));
               final answer = (await _readLine(question)).trim().toLowerCase();
-              final yes = cli.strings.yes.toLowerCase();
-              final no = cli.strings.no.toLowerCase();
               if (answer.isEmpty && defaultValue != null) {
                 return defaultValue;
               }
-              // the words of the strings answer as y and n do
-              if (answer.isNotEmpty) {
-                if (answer == 'y' || answer == 'yes' || _isWord(answer, yes)) {
-                  return true;
-                }
-                if (answer == 'n' || answer == 'no' || _isWord(answer, no)) {
-                  return false;
-                }
+              if (confirmAnswer(answer, cli.strings) case final value?) {
+                return value;
               }
               _writeLine(_refused(cli.strings.answerYesOrNo));
             }
@@ -472,10 +488,6 @@ final class Prompter {
   }
 
   /// `✗ message`: why an answer was refused.
-  /// Whether [answer] is [word] or its first letter.
-  static bool _isWord(String answer, String word) =>
-      word.isNotEmpty && (answer == word || answer == word[0]);
-
   List<Span> _refused(String message) {
     final error = cli.theme.error;
     return [Span('${cli.theme.glyphs.cross} ', error), Span(message, error)];

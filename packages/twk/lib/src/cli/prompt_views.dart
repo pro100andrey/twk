@@ -11,7 +11,7 @@ import 'dart:math' as math;
 import '../../twk.dart';
 
 import 'prompt_exception.dart';
-import 'prompts.dart' show choicesShown;
+import 'prompts.dart' show choicesShown, confirmAnswer;
 import 'theme.dart';
 
 /// Where the widget of a prompt puts its answer, or why there is none,
@@ -338,26 +338,15 @@ final class _ConfirmPromptViewState extends State<ConfirmPromptView> {
     }
   }
 
-  // [char] is [english] or the first letter of [word], in either case, as a
-  // plain terminal takes an answer
-  static bool _isLetter(String? char, String english, String word) {
-    if (char == null || char.isEmpty) {
-      return false;
-    }
-    final c = char.toLowerCase();
-    return c == english ||
-        (word.isNotEmpty && c == word.substring(0, 1).toLowerCase());
-  }
-
   KeyEventResult _key(FocusNode node, KeyEvent event) {
     if (event.kind == KeyKind.release || event.modifiers & ~Mod.shift != 0) {
       return KeyEventResult.ignored;
     }
     final strings = TwkStrings.of(context);
     switch (event.code) {
-      case KeyCode.char when _isLetter(event.char, 'y', strings.yes):
+      case KeyCode.char when confirmAnswer(event.char ?? '', strings) == true:
         _answer(true);
-      case KeyCode.char when _isLetter(event.char, 'n', strings.no):
+      case KeyCode.char when confirmAnswer(event.char ?? '', strings) == false:
         _answer(false);
       case KeyCode.enter:
         if (_highlighted case final value?) {
