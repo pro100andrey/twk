@@ -54,6 +54,9 @@ Changed:
   ([twk_core's changelog](../twk_core/CHANGELOG.md)).
 - A `Text` of eight rows or more that is edited without changing its size
   repaints only the rows that changed, by itself: nothing to set.
+- `tailFile` reads a look through one handle: a file renamed over the name
+  between its length and its read is no longer read at the old range, its first
+  lines lost.
 - A widget that watched a provider in one build and only selects in a later one
   is told of what it selects, where it stayed told of every change.
 - `Semantics.nodes` keep their hints while the `Semantics` is not focused.
