@@ -44,7 +44,7 @@ Future<(LocalAddress, List<Socket>)> silentShell(Directory dir) async {
     socket
       ..listen((_) {}, onError: (Object _) {})
       ..add(
-        jsonFrame(Wire.welcome, {
+        jsonFrame(ShellFrame.welcome.byte, {
           'columns': 10,
           'lines': 2,
           'eraseChar': 0x7F,
@@ -76,9 +76,9 @@ void main() {
         'than its buffer too', () {
       final big = Uint8List.fromList(List.generate(10000, (i) => i % 251));
       final bytes = [
-        ...frame(Wire.output, big),
-        ...frame(Wire.flush),
-        ...frame(Wire.raw, const [1]),
+        ...frame(AppFrame.output.byte, big),
+        ...frame(AppFrame.flush.byte),
+        ...frame(AppFrame.raw.byte, const [1]),
       ];
       final frames = <(int, List<int>)>[];
       final reader = FrameReader(
@@ -89,7 +89,11 @@ void main() {
           bytes.sublist(i, i + 7 > bytes.length ? bytes.length : i + 7),
         );
       }
-      expect(frames.map((f) => f.$1), [Wire.output, Wire.flush, Wire.raw]);
+      expect(frames.map((f) => f.$1), [
+        AppFrame.output.byte,
+        AppFrame.flush.byte,
+        AppFrame.raw.byte,
+      ]);
       expect(frames[0].$2, big);
       expect(frames[1].$2, isEmpty);
       expect(frames[2].$2, [1]);
@@ -100,10 +104,17 @@ void main() {
       final frames = <(int, List<int>)>[];
       FrameReader((type, payload) => frames.add((type, payload)))
         ..add([
-          ...frame(Wire.raw, const [1]),
+          ...frame(AppFrame.raw.byte, const [1]),
         ])
-        ..add([...frame(Wire.output, big), ...frame(Wire.flush)]);
-      expect(frames.map((f) => f.$1), [Wire.raw, Wire.output, Wire.flush]);
+        ..add([
+          ...frame(AppFrame.output.byte, big),
+          ...frame(AppFrame.flush.byte),
+        ]);
+      expect(frames.map((f) => f.$1), [
+        AppFrame.raw.byte,
+        AppFrame.output.byte,
+        AppFrame.flush.byte,
+      ]);
       expect(frames[1].$2, big);
     });
 
@@ -112,13 +123,17 @@ void main() {
       final big = Uint8List.fromList(List.generate(20000, (i) => i % 251));
       final frames = <(int, List<int>)>[];
       final reader = FrameReader((type, payload) => frames.add((type, payload)))
-        ..add(frame(Wire.output, big))
-        ..add(frame(Wire.raw, const [1]));
-      final split = frame(Wire.output, const [7, 8, 9]);
+        ..add(frame(AppFrame.output.byte, big))
+        ..add(frame(AppFrame.raw.byte, const [1]));
+      final split = frame(AppFrame.output.byte, const [7, 8, 9]);
       reader
         ..add(split.sublist(0, 3))
         ..add(split.sublist(3));
-      expect(frames.map((f) => f.$1), [Wire.output, Wire.raw, Wire.output]);
+      expect(frames.map((f) => f.$1), [
+        AppFrame.output.byte,
+        AppFrame.raw.byte,
+        AppFrame.output.byte,
+      ]);
       expect(frames[0].$2, big);
       expect(frames[1].$2, [1]);
       expect(frames[2].$2, [7, 8, 9]);
@@ -127,7 +142,8 @@ void main() {
     test('refuses a frame longer than the wire takes', () {
       final reader = FrameReader((_, _) => fail('no frame'));
       expect(
-        () => reader.add(frameHeader(Wire.output, Wire.maxPayload + 1)),
+        () =>
+            reader.add(frameHeader(AppFrame.output.byte, Wire.maxPayload + 1)),
         throwsFormatException,
       );
     });
@@ -139,7 +155,7 @@ void main() {
       final address = await listen(dir, (socket) {
         socket
           ..listen((_) {}, onError: (Object _) {})
-          ..add(frameHeader(Wire.welcome, Wire.maxPayload + 1));
+          ..add(frameHeader(ShellFrame.welcome.byte, Wire.maxPayload + 1));
       });
       await expectLater(
         SocketLink.connect(address),
@@ -270,22 +286,27 @@ void main() {
 
     test('a hello that is no JSON is refused', () async {
       final app = await WireClient.connect(shell.address);
-      app.send(Wire.hello, utf8.encode('{not json'));
+      app.send(AppFrame.hello, utf8.encode('{not json'));
       await app.closed;
-      expect(app.frames.single.$1, Wire.refused);
+      expect(app.frames.single.$1, ShellFrame.refused.byte);
       expect(utf8.decode(app.frames.single.$2), 'no hello');
       expect(events, isEmpty);
     });
 
-    test('an app that sends a frame of no known type is cut off, and the '
-        'terminal put back', () async {
+    test('an app that sends a frame of no known type is not cut off: the '
+        'frame is ignored', () async {
       final app = await WireClient.connect(shell.address);
       app
         ..hello(shell.address.token)
-        ..send(Wire.lost, latin1.encode('<restore>'));
+        ..send(AppFrame.lost, latin1.encode('<restore>'));
       await app.sync();
-      app.send(99);
-      await app.closed;
+      app.sendByte(99);
+      await app.sync();
+      expect(events, [ShellEvent.connected]);
+      expect(shell.serving, isTrue);
+      expect(link.raw, isTrue);
+      app.socket.destroy();
+      await waitUntil(() => !shell.serving, 'the app gone');
       expect(link.text, '<restore>');
       expect(link.raw, isFalse);
       expect(events, [ShellEvent.connected, ShellEvent.disconnected]);
@@ -295,7 +316,7 @@ void main() {
       final app = await WireClient.connect(shell.address);
       app.hello(shell.address.token);
       await app.sync();
-      app.socket.add(frameHeader(Wire.output, Wire.maxPayload + 1));
+      app.socket.add(frameHeader(AppFrame.output.byte, Wire.maxPayload + 1));
       await app.closed;
       expect(events, [ShellEvent.connected, ShellEvent.disconnected]);
       expect(link.raw, isFalse);

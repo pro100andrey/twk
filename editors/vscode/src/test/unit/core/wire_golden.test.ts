@@ -15,7 +15,7 @@ import { fromVariable } from '../../../core/address';
 import { declarationOf, presetNamed } from '../../../core/capabilities';
 import { TerminalPane, TerminalShell } from '../../../core/shell';
 import { switchEnvironment, switchesOf } from '../../../core/switches';
-import { FrameReader, Wire, frame, jsonFrame } from '../../../core/wire';
+import { AppFrame, FrameReader, ShellFrame, Wire, appFrameOf, frame, jsonFrame, shellFrameOf } from '../../../core/wire';
 
 /** From out/test/unit/core, where this runs compiled, to the repository's root. */
 const goldenPath = path.resolve(__dirname, '../../../../../../packages/twk_core/test/terminal/shell_wire.golden.json');
@@ -23,6 +23,7 @@ const goldenPath = path.resolve(__dirname, '../../../../../../packages/twk_core/
 interface Kind {
   readonly name: string;
   readonly type: number;
+  readonly from: 'app' | 'shell';
 }
 
 interface GoldenFrame {
@@ -182,9 +183,30 @@ describe('the golden of the wire', () => {
     assert.equal(golden.maxPayload, Wire.maxPayload);
   });
 
-  it("has wire.ts's kinds, of their types, none left out", () => {
-    const { protocol: _p, maxPayload: _m, ...kinds } = Wire;
-    assert.deepEqual(Object.fromEntries(golden.kinds.map((k) => [k.name, k.type])), kinds);
+  it("has wire.ts's kinds, of their types and directions, none left out", () => {
+    const kinds = [
+      ...Object.entries(AppFrame).map(([name, type]) => ({ name, type, from: 'app' })),
+      ...Object.entries(ShellFrame).map(([name, type]) => ({ name, type, from: 'shell' })),
+    ];
+    assert.deepEqual(
+      golden.kinds.map(({ name, type, from }) => ({ name, type, from })),
+      kinds,
+    );
+  });
+
+  it('a byte is the frame of its direction, or none', () => {
+    for (const type of Object.values(AppFrame)) {
+      assert.equal(appFrameOf(type), type);
+      assert.equal(shellFrameOf(type), undefined);
+    }
+    for (const type of Object.values(ShellFrame)) {
+      assert.equal(shellFrameOf(type), type);
+      assert.equal(appFrameOf(type), undefined);
+    }
+    for (const type of [0, 6, 15, 21, 99, 255]) {
+      assert.equal(appFrameOf(type), undefined);
+      assert.equal(shellFrameOf(type), undefined);
+    }
   });
 
   describe('each frame', () => {
@@ -218,7 +240,7 @@ describe('the golden of the wire', () => {
     for (let i = 0; i < big.length; i++) {
       big[i] = (i * 7) & 0xff;
     }
-    const sent = [frame(Wire.output, Buffer.from('a')), frame(Wire.output, big), frame(Wire.flush), frame(Wire.input, Buffer.from('bc'))];
+    const sent = [frame(AppFrame.output, Buffer.from('a')), frame(AppFrame.output, big), frame(AppFrame.flush), frame(ShellFrame.input, Buffer.from('bc'))];
     const all = Buffer.concat(sent);
     for (const size of [1, 3, 5, 6, 4096, 65536, all.length]) {
       const read: Buffer[] = [];

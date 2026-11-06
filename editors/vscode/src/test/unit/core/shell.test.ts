@@ -8,7 +8,7 @@ import * as path from 'node:path';
 
 import { fromVariable, toVariable } from '../../../core/address';
 import { TerminalPane, TerminalShell, Welcome } from '../../../core/shell';
-import { Wire, frame } from '../../../core/wire';
+import { AppFrame, ShellFrame, frame } from '../../../core/wire';
 import { App } from '../fakes';
 
 class FakePane implements TerminalPane {
@@ -31,14 +31,22 @@ describe('TerminalShell', () => {
   const xterm: Welcome = { environment: { TERM: 'xterm-256color', COLORTERM: 'truecolor' }, declares: {} };
   let welcomes: Welcome[] = [];
   const events: string[] = [];
+  const logged: string[] = [];
   const start = (temporaryRoot = root) =>
-    TerminalShell.start(pane, { welcome: () => welcomes.shift() ?? xterm, onEvent: (e) => events.push(e), temporaryRoot, tcp: false });
+    TerminalShell.start(pane, {
+      welcome: () => welcomes.shift() ?? xterm,
+      onEvent: (e) => events.push(e),
+      temporaryRoot,
+      tcp: false,
+      log: (m) => logged.push(m),
+    });
 
   beforeEach(async () => {
     root = fs.mkdtempSync(path.join(os.tmpdir(), 'twk-vscode-'));
     pane = new FakePane();
     welcomes = [];
     events.length = 0;
+    logged.length = 0;
     shell = await start();
   });
 
@@ -49,40 +57,40 @@ describe('TerminalShell', () => {
 
   it('welcomes an app with the size and the environment, and passes output and input', async () => {
     const app = await App.connect(shell.variable);
-    const welcome = JSON.parse((await app.next(Wire.welcome)).toString());
+    const welcome = JSON.parse((await app.next(ShellFrame.welcome)).toString());
     assert.equal(welcome.columns, 100);
     assert.equal(welcome.lines, 30);
     assert.equal(welcome.eraseChar, 0x7f);
     assert.equal(welcome.environment.COLORTERM, 'truecolor');
     assert.deepEqual(events, ['connected']);
 
-    app.socket.write(frame(Wire.output, Buffer.from('hello')));
-    app.socket.write(frame(Wire.flush));
-    await app.next(Wire.flushed);
+    app.socket.write(frame(AppFrame.output, Buffer.from('hello')));
+    app.socket.write(frame(AppFrame.flush));
+    await app.next(ShellFrame.flushed);
     assert.equal(pane.text, 'hello');
 
     shell.input(Buffer.from('q'));
-    assert.equal((await app.next(Wire.input)).toString(), 'q');
+    assert.equal((await app.next(ShellFrame.input)).toString(), 'q');
 
     pane.columns = 50;
     shell.resized();
-    assert.deepEqual(JSON.parse((await app.next(Wire.size)).toString()), { columns: 50, lines: 30 });
+    assert.deepEqual(JSON.parse((await app.next(ShellFrame.size)).toString()), { columns: 50, lines: 30 });
     app.socket.destroy();
   });
 
   it('refuses a wrong token', async () => {
     const app = await App.connect(shell.variable, 'nope');
-    assert.equal((await app.next(Wire.refused)).toString(), 'not the token of this shell');
+    assert.equal((await app.next(ShellFrame.refused)).toString(), 'not the token of this shell');
     assert.equal(shell.serving, false);
     app.socket.destroy();
   });
 
   it('puts the terminal back with the lost bytes when the app goes away', async () => {
     const app = await App.connect(shell.variable);
-    await app.next(Wire.welcome);
-    app.socket.write(frame(Wire.lost, Buffer.from('\x1b[?1049l')));
-    app.socket.write(frame(Wire.flush));
-    await app.next(Wire.flushed);
+    await app.next(ShellFrame.welcome);
+    app.socket.write(frame(AppFrame.lost, Buffer.from('\x1b[?1049l')));
+    app.socket.write(frame(AppFrame.flush));
+    await app.next(ShellFrame.flushed);
     const gone = new Promise<void>((r) => {
       const poll = () => (shell.serving ? setImmediate(poll) : r());
       poll();
@@ -95,17 +103,30 @@ describe('TerminalShell', () => {
 
   it('a newer app takes the terminal over: the older one cut off, and no "went away" between them', async () => {
     const first = await App.connect(shell.variable);
-    await first.next(Wire.welcome);
-    first.socket.write(frame(Wire.lost, Buffer.from('\x1b[?1049l')));
-    first.socket.write(frame(Wire.flush));
-    await first.next(Wire.flushed);
+    await first.next(ShellFrame.welcome);
+    first.socket.write(frame(AppFrame.lost, Buffer.from('\x1b[?1049l')));
+    first.socket.write(frame(AppFrame.flush));
+    await first.next(ShellFrame.flushed);
     const closed = new Promise((r) => first.socket.once('close', r));
     const second = await App.connect(shell.variable);
-    await second.next(Wire.welcome);
+    await second.next(ShellFrame.welcome);
     await closed;
     assert.deepEqual(events, ['connected', 'connected']);
     assert.equal(pane.text, '\x1b[?1049l', "the older one's terminal put back all the same");
     second.socket.destroy();
+  });
+
+  it('ignores and logs a frame of a type it does not know: the app keeps the terminal', async () => {
+    const app = await App.connect(shell.variable);
+    await app.next(ShellFrame.welcome);
+    app.socket.write(frame(99, Buffer.from('later')));
+    app.socket.write(frame(AppFrame.flush));
+    await app.next(ShellFrame.flushed);
+    assert.equal(shell.serving, true);
+    assert.deepEqual(events, ['connected']);
+    assert.equal(logged.length, 1);
+    assert.match(logged[0], /type 99/);
+    app.socket.destroy();
   });
 
   it('listens on a socket of its own in a new directory, which no project knows of; two shells, two sockets', async () => {
@@ -143,7 +164,7 @@ describe('TerminalShell', () => {
   it('welcomes each app with what its welcome is as it is taken: the environment, and what the terminal declares, left out where nothing', async () => {
     const welcome = async (): Promise<Record<string, unknown>> => {
       const app = await App.connect(shell.variable);
-      const json = JSON.parse((await app.next(Wire.welcome)).toString()) as Record<string, unknown>;
+      const json = JSON.parse((await app.next(ShellFrame.welcome)).toString()) as Record<string, unknown>;
       app.socket.destroy();
       return json;
     };
@@ -161,10 +182,10 @@ describe('TerminalShell', () => {
 
   it("passes the app's queries to the terminal as they are: what it answers is the webview's", async () => {
     const app = await App.connect(shell.variable);
-    await app.next(Wire.welcome);
-    app.socket.write(frame(Wire.output, Buffer.from('\x1b[?2026$p\x1b[?2027$p\x1b[c')));
-    app.socket.write(frame(Wire.flush));
-    await app.next(Wire.flushed);
+    await app.next(ShellFrame.welcome);
+    app.socket.write(frame(AppFrame.output, Buffer.from('\x1b[?2026$p\x1b[?2027$p\x1b[c')));
+    app.socket.write(frame(AppFrame.flush));
+    await app.next(ShellFrame.flushed);
     assert.equal(pane.text, '\x1b[?2026$p\x1b[?2027$p\x1b[c');
     app.socket.destroy();
   });

@@ -3,7 +3,7 @@
 import * as assert from 'node:assert/strict';
 
 import { Terminals } from '../../../app/terminals';
-import { Wire } from '../../../core/wire';
+import { ShellFrame } from '../../../core/wire';
 import { answersOf, presetNamed } from '../../../core/capabilities';
 import { App, FakeDesktop, FakeLog, FakeSettings, FakeView, realShell, until } from '../fakes';
 
@@ -45,14 +45,14 @@ describe('Terminals', () => {
     assert.equal(views[0].title, 'counter.dart · twk 100x30 · xterm.js (waiting)');
 
     const app = await App.connect(t.variable);
-    const welcome = JSON.parse((await app.next(Wire.welcome)).toString()) as { columns: number; lines: number };
+    const welcome = JSON.parse((await app.next(ShellFrame.welcome)).toString()) as { columns: number; lines: number };
     assert.deepEqual([welcome.columns, welcome.lines], [100, 30]);
     await until('the title', () => views[0].title === 'counter.dart · twk 100x30 · xterm.js');
 
     views[0].type('q');
-    assert.equal((await app.next(Wire.input)).toString(), 'q');
+    assert.equal((await app.next(ShellFrame.input)).toString(), 'q');
     views[0].resize(70, 10);
-    assert.deepEqual(JSON.parse((await app.next(Wire.size)).toString()), { columns: 70, lines: 10 });
+    assert.deepEqual(JSON.parse((await app.next(ShellFrame.size)).toString()), { columns: 70, lines: 10 });
     app.socket.destroy();
     await until('the line saying so', () => /the app went away/.test(views[0].text));
     assert.equal(t.isClosed, false);
@@ -62,7 +62,7 @@ describe('Terminals', () => {
     const t = await terminals.create('counter.dart');
     settings.switchesOn = { screenReader: true, debug: ['overlay'] };
     const app = await App.connect(t.variable);
-    const welcome = JSON.parse((await app.next(Wire.welcome)).toString()) as { environment: Record<string, string> };
+    const welcome = JSON.parse((await app.next(ShellFrame.welcome)).toString()) as { environment: Record<string, string> };
     assert.equal(welcome.environment.TWK_SCREEN_READER, '1');
     assert.equal(welcome.environment.TWK_DEBUG, 'keys,overlay');
     await until('the title', () => views[0].title === 'counter.dart · twk 100x30 · xterm.js + screen reader, overlay');
@@ -73,7 +73,7 @@ describe('Terminals', () => {
     const t = await terminals.create('counter.dart');
     settings.changes = { kittyKeyboard: true, notifications: false, graphics: 'sixel' };
     const first = await App.connect(t.variable);
-    const welcome = JSON.parse((await first.next(Wire.welcome)).toString()) as { environment: Record<string, string>; declares: unknown };
+    const welcome = JSON.parse((await first.next(ShellFrame.welcome)).toString()) as { environment: Record<string, string>; declares: unknown };
     assert.deepEqual(welcome.environment, { TERM: 'xterm-256color', COLORTERM: 'truecolor', TERM_PROGRAM: 'twk-vscode' });
     assert.deepEqual(welcome.declares, { notifications: 'none', progressReports: true, pointerShapes: true, repeatChar: true, graphics: 'sixel' });
     assert.equal(views[0].answered.length, 1, 'told as the app was taken');
@@ -84,7 +84,7 @@ describe('Terminals', () => {
     settings.profileName = 'no answers';
     settings.changes = {};
     const second = await App.connect(t.variable);
-    const again = JSON.parse((await second.next(Wire.welcome)).toString()) as { declares: { repeatChar: boolean } };
+    const again = JSON.parse((await second.next(ShellFrame.welcome)).toString()) as { declares: { repeatChar: boolean } };
     assert.equal(again.declares.repeatChar, false);
     assert.deepEqual(views[0].answered[1], answersOf(presetNamed('no answers').capabilities));
     assert.ok(views[0].answered[1].deny.includes('deviceAttributes'));
@@ -94,7 +94,7 @@ describe('Terminals', () => {
   it("passes what the app asks of the editor to the desktop, a link only to the web or mail, and takes the app's progress away as it goes", async () => {
     const t = await terminals.create('counter.dart');
     const app = await App.connect(t.variable);
-    await app.next(Wire.welcome);
+    await app.next(ShellFrame.welcome);
     const v = views[0];
     v.request({ type: 'notify', title: 'Build', body: 'done' });
     v.request({ type: 'progress', state: 1, percent: 40 });
@@ -116,7 +116,7 @@ describe('Terminals', () => {
     await until('the first shell stopped', () => first.shell === undefined);
     assert.deepEqual(terminals.all(), [second]);
     const app = await App.connect(second.variable);
-    await app.next(Wire.welcome);
+    await app.next(ShellFrame.welcome);
     app.socket.destroy();
   });
 
@@ -131,10 +131,10 @@ describe('Terminals', () => {
   it('a newer app taking it over: no line between the two apps', async () => {
     const t = await terminals.create('a.dart');
     const first = await App.connect(t.variable);
-    await first.next(Wire.welcome);
+    await first.next(ShellFrame.welcome);
     const closed = new Promise((r) => first.socket.once('close', r));
     const second = await App.connect(t.variable);
-    await second.next(Wire.welcome);
+    await second.next(ShellFrame.welcome);
     await closed;
     assert.doesNotMatch(views[0].text, /went away/);
     second.socket.destroy();
@@ -148,9 +148,9 @@ describe('Terminals', () => {
     let reloads = 0;
     t.onDidReload(() => reloads++);
     const app = await App.connect(t.variable);
-    await app.next(Wire.welcome);
+    await app.next(ShellFrame.welcome);
     views[0].reload(90, 20);
-    assert.deepEqual(JSON.parse((await app.next(Wire.size)).toString()), { columns: 90, lines: 20 });
+    assert.deepEqual(JSON.parse((await app.next(ShellFrame.size)).toString()), { columns: 90, lines: 20 });
     assert.deepEqual(views[0].sizes, [
       { columns: 90, lines: 20 },
       { columns: 90, lines: 20 },
@@ -166,7 +166,7 @@ describe('Terminals', () => {
     const t = await terminals.createForAnyApp();
     assert.ok(views[0].text.includes(`TWK_SHELL='${t.variable}'`), views[0].text);
     const app = await App.connect(t.variable);
-    await app.next(Wire.welcome);
+    await app.next(ShellFrame.welcome);
     app.socket.destroy();
   });
 });

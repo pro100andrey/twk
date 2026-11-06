@@ -9,7 +9,7 @@ import * as path from 'node:path';
 import { HotApps } from '../../../app/hot_apps';
 import { Terminals } from '../../../app/terminals';
 import { Vm } from '../../../core/vm';
-import { Wire } from '../../../core/wire';
+import { ShellFrame } from '../../../core/wire';
 import { App, FakeClock, FakeDebugger, FakeDesktop, FakeLog, FakeRun, FakeSettings, FakeStatus, FakeView, FakeVm, realShell, until } from '../fakes';
 
 describe('HotApps', () => {
@@ -95,7 +95,7 @@ describe('HotApps', () => {
     assert.equal(apps.hots()[0].terminal, terminal);
     assert.deepEqual(context, [true]);
     const app = await App.connect(run.options.env!.TWK_SHELL);
-    await app.next(Wire.welcome);
+    await app.next(ShellFrame.welcome);
     app.socket.destroy();
 
     run.options.onOutput('hello\n');

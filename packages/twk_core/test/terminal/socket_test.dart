@@ -78,9 +78,9 @@ final class HandShell {
 
   void _onFrame(int type, Uint8List payload) {
     frames.add((type, payload));
-    switch (type) {
-      case Wire.hello:
-        _sendJson(Wire.welcome, {
+    switch (AppFrame.fromByte(type)) {
+      case AppFrame.hello:
+        _sendJson(ShellFrame.welcome.byte, {
           'columns': columns,
           'lines': lines,
           'eraseChar': 0x7F,
@@ -88,32 +88,35 @@ final class HandShell {
           'environment': environment,
           'declares': ?declares,
         });
-      case Wire.output:
+      case AppFrame.output:
         output.add(payload);
         if (latin1.decode(payload).contains('\x1b[c')) {
           input('\x1b[?62c'); // DA1: the probe's answers are in
         }
-      case Wire.flush:
+      case AppFrame.flush:
         if (holdFlushes) {
           unanswered++;
         } else {
-          _socket!.add(frame(Wire.flushed));
+          _socket!.add(frame(ShellFrame.flushed.byte));
         }
+      case AppFrame.lost || AppFrame.raw || null:
+        break;
     }
   }
 
   void _sendJson(int type, Object json) => _socket!.add(jsonFrame(type, json));
 
   /// The terminal's input.
-  void input(String text) => _socket!.add(frame(Wire.input, utf8.encode(text)));
+  void input(String text) =>
+      _socket!.add(frame(ShellFrame.input.byte, utf8.encode(text)));
 
   /// The terminal was resized.
   void resize(int columns, int lines) =>
-      _sendJson(Wire.size, {'columns': columns, 'lines': lines});
+      _sendJson(ShellFrame.size.byte, {'columns': columns, 'lines': lines});
 
   void answerFlushes() {
     for (; unanswered > 0; unanswered--) {
-      _socket!.add(frame(Wire.flushed));
+      _socket!.add(frame(ShellFrame.flushed.byte));
     }
   }
 
@@ -130,7 +133,7 @@ final class HandShell {
   /// left out.
   List<int> get controlTypes => [
     for (final (type, _) in frames)
-      if (type != Wire.output && type != Wire.flush) type,
+      if (type != AppFrame.output.byte && type != AppFrame.flush.byte) type,
   ];
 
   /// The payload of the last frame of [type].
@@ -193,7 +196,7 @@ void main() {
         utf8.decode(shell.frames.first.$2),
       ) as Map<String, Object?>;
       expect(hello, {'protocol': Wire.protocol, 'token': shell.address.token});
-      expect(shell.frames[1].$1, Wire.raw);
+      expect(shell.frames[1].$1, AppFrame.raw.byte);
       expect(shell.frames[1].$2, [1]);
       expect((term.width, term.height), (30, 5));
       // the shell's NO_COLOR and TERM, not this process's
@@ -222,15 +225,19 @@ void main() {
       expect(events.last, const ResizeEvent(40, 6));
       expect((term.width, term.height), (40, 6));
 
-      final restore = latin1.decode(shell.last(Wire.lost));
+      final restore = latin1.decode(shell.last(AppFrame.lost.byte));
       expect(restore, contains('\x1b[?1049l'), reason: 'leaves the alt screen');
       app.quit();
       await done;
       await shell.closed;
       expect(shell.text, endsWith(restore));
-      expect(shell.last(Wire.lost), isEmpty, reason: 'restored itself');
-      expect(shell.controlTypes.last, Wire.raw);
-      expect(shell.last(Wire.raw), [0]);
+      expect(
+        shell.last(AppFrame.lost.byte),
+        isEmpty,
+        reason: 'restored itself',
+      );
+      expect(shell.controlTypes.last, AppFrame.raw.byte);
+      expect(shell.last(AppFrame.raw.byte), [0]);
     });
 
     test("TWK_SCREEN_READER and TWK_DEBUG of the shell's environment are "
@@ -320,7 +327,10 @@ void main() {
       final term = await Terminal.connect(shell.address)
         ..setTitle('app');
       await term.flush();
-      expect(latin1.decode(shell.last(Wire.lost)), endsWith(popTitleSequence));
+      expect(
+        latin1.decode(shell.last(AppFrame.lost.byte)),
+        endsWith(popTitleSequence),
+      );
       await term.close();
     });
 
@@ -334,7 +344,8 @@ void main() {
       await term.flush();
       expect(term.mouseTracking, MouseTracking.off);
       expect(mouseModes(shell.text), isEmpty);
-      List<String> lost() => mouseModes(latin1.decode(shell.last(Wire.lost)));
+      List<String> lost() =>
+          mouseModes(latin1.decode(shell.last(AppFrame.lost.byte)));
       expect(lost(), isEmpty);
 
       var from = shell.output.length;
@@ -432,12 +443,15 @@ void main() {
       final term = await Terminal.connect(shell.address);
       await term.suspend();
       await term.flush();
-      expect(shell.last(Wire.lost), isEmpty);
-      expect(shell.last(Wire.raw), [0]);
+      expect(shell.last(AppFrame.lost.byte), isEmpty);
+      expect(shell.last(AppFrame.raw.byte), [0]);
       await term.resume();
       await term.flush();
-      expect(latin1.decode(shell.last(Wire.lost)), contains('\x1b[?1049l'));
-      expect(shell.last(Wire.raw), [1]);
+      expect(
+        latin1.decode(shell.last(AppFrame.lost.byte)),
+        contains('\x1b[?1049l'),
+      );
+      expect(shell.last(AppFrame.raw.byte), [1]);
       await term.close();
     });
 
@@ -639,7 +653,7 @@ void main() {
         await waitUntil(() => app.frames.isNotEmpty, 'the welcome');
         app.socket.destroy();
         final (type, payload) = app.frames.first;
-        expect(type, Wire.welcome);
+        expect(type, ShellFrame.welcome.byte);
         return jsonDecode(utf8.decode(payload)) as Map<String, Object?>;
       }
 
@@ -673,11 +687,14 @@ void main() {
       final app = await WireClient.connect(shell.address);
       app
         ..hello(shell.address.token)
-        ..send(Wire.output, latin1.encode('<frame>'))
-        ..send(Wire.lost, latin1.encode('<restore>'));
+        ..send(AppFrame.output, latin1.encode('<frame>'))
+        ..send(AppFrame.lost, latin1.encode('<restore>'));
       await app.sync();
-      expect(app.frames.first.$1, Wire.welcome);
-      final cut = frame(Wire.output, latin1.encode('\x1b[?2026h<next>'));
+      expect(app.frames.first.$1, ShellFrame.welcome.byte);
+      final cut = frame(
+        AppFrame.output.byte,
+        latin1.encode('\x1b[?2026h<next>'),
+      );
       app.socket.add(cut.sublist(0, cut.length - 3));
       await app.socket.flush();
       app.socket.destroy();
@@ -692,13 +709,13 @@ void main() {
       final first = await WireClient.connect(shell.address);
       first
         ..hello(shell.address.token)
-        ..send(Wire.lost, latin1.encode('<first>'));
+        ..send(AppFrame.lost, latin1.encode('<first>'));
       await first.sync();
       final second = await WireClient.connect(shell.address);
       second.hello(shell.address.token);
       await first.closed;
       await waitUntil(() => second.frames.isNotEmpty, 'the welcome');
-      expect(second.frames.first.$1, Wire.welcome);
+      expect(second.frames.first.$1, ShellFrame.welcome.byte);
       expect(link.text, '<first>');
       expect(events, [
         ShellEvent.connected,
@@ -709,7 +726,7 @@ void main() {
 
       link.type('k');
       await waitUntil(() => second.frames.length > 1, 'the key');
-      expect(second.frames.last.$1, Wire.input);
+      expect(second.frames.last.$1, ShellFrame.input.byte);
       expect(utf8.decode(second.frames.last.$2), 'k');
       second.socket.destroy();
     });
@@ -719,7 +736,7 @@ void main() {
       final wrong = await WireClient.connect(shell.address);
       wrong.hello('not the token');
       await wrong.closed;
-      expect(wrong.frames.single.$1, Wire.refused);
+      expect(wrong.frames.single.$1, ShellFrame.refused.byte);
       final newer = await WireClient.connect(shell.address);
       newer.hello(shell.address.token, protocol: Wire.protocol + 1);
       await newer.closed;
@@ -746,16 +763,16 @@ void main() {
         final app = await WireClient.connect(shell.address);
         app
           ..hello(shell.address.token)
-          ..send(Wire.raw, const [0]);
+          ..send(AppFrame.raw, const [0]);
         await app.sync();
         link.type('cooked');
         await app.sync();
-        app.send(Wire.raw, const [1]);
+        app.send(AppFrame.raw, const [1]);
         await app.sync();
         link.type('raw');
         List<String> inputs() => [
           for (final (type, payload) in app.frames)
-            if (type == Wire.input) utf8.decode(payload),
+            if (type == ShellFrame.input.byte) utf8.decode(payload),
         ];
         await waitUntil(() => inputs().isNotEmpty, 'the input');
         expect(inputs(), ['raw']);
@@ -789,7 +806,7 @@ void main() {
       final app = await WireClient.connect(shell.address);
       app
         ..hello(shell.address.token)
-        ..send(Wire.lost, latin1.encode('<restore>'));
+        ..send(AppFrame.lost, latin1.encode('<restore>'));
       await app.sync();
       await shell.stop();
       await app.closed;

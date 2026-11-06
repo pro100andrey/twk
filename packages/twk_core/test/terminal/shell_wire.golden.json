@@ -252,7 +252,7 @@
     {
       "name": "unknown",
       "type": 99,
-      "description": "A type of no kind of protocol 1: a shell cuts the app off.",
+      "description": "A type of no kind of protocol 1, in either direction: the receiver ignores it and goes on.",
       "text": "",
       "hex": "63 00000000"
     },
@@ -481,7 +481,7 @@
     {
       "name": "a frame of no kind",
       "side": "shell",
-      "description": "The app is cut off and the terminal put back.",
+      "description": "The shell ignores it: the app keeps the terminal, its flush is still answered, and what puts the terminal back is still kept for when it goes away.",
       "steps": [
         {
           "sends": "hello"
@@ -496,7 +496,13 @@
           "sends": "unknown"
         },
         {
-          "closed": true
+          "sends": "flush"
+        },
+        {
+          "gets": "flushed"
+        },
+        {
+          "closes": true
         },
         {
           "shows": "\u001b[?1049l"
@@ -580,6 +586,34 @@
         {
           "by": 2,
           "closes": true
+        }
+      ]
+    },
+    {
+      "name": "a frame of no kind from the shell",
+      "side": "app",
+      "description": "The link ignores it: the input that follows still reaches the app.",
+      "steps": [
+        {
+          "gets": "hello"
+        },
+        {
+          "sends": "welcome"
+        },
+        {
+          "sends": "unknown"
+        },
+        {
+          "sends": "input"
+        },
+        {
+          "reads": "q"
+        },
+        {
+          "link": "close"
+        },
+        {
+          "closed": true
         }
       ]
     },
