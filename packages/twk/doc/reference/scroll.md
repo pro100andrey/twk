@@ -148,7 +148,7 @@ first laid out, in place of `initialScrollOffset`; a `jumpTo` meanwhile drops it
 ## `Scrollbar`
 
 `Scrollbar(child:, axis:, visibility:
-ScrollbarVisibility.always, hideAfter: 1 s, style:, slim: false,
+ScrollbarVisibility.always, timeToFade: 1 s, style:, slim: false,
 trackStyle:)` (`slim`: the track a thin line in `trackStyle`, the theme's
 `faint` by default, the thumb a heavy one at rest and the whole cell over
 the line while the mouse is over the bar or drags its thumb) shows the
@@ -175,7 +175,7 @@ the wheel over the bar scrolls the scrollable.
 ## `ScrollbarVisibility.always`
 
 `ScrollbarVisibility.always` shows the thumb while there is something to
-scroll, `onScroll` from a move of the scrollable until `hideAfter` after the
+scroll, `onScroll` from a move of the scrollable until `timeToFade` after the
 last, on the app's clock, and while the thumb is dragged, and `never` shows
 no bar, the child having all of the room. The thumb is in `style`'s
 foreground and the track in its background, over the theme's `muted` and

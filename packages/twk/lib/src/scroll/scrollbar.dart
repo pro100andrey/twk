@@ -30,7 +30,7 @@ import 'scrollable.dart';
 import 'thumb.dart';
 
 // how long a thumb stays after a move, by default
-const _hideAfter = Duration(seconds: 1);
+const _timeToFade = Duration(seconds: 1);
 
 /// When a [Scrollbar] shows its thumb.
 enum ScrollbarVisibility {
@@ -38,7 +38,7 @@ enum ScrollbarVisibility {
   always,
 
   /// While there is something to scroll, from a move of the scrollable
-  /// until [Scrollbar.hideAfter] after the last one, and while the thumb is
+  /// until [Scrollbar.timeToFade] after the last one, and while the thumb is
   /// dragged.
   onScroll,
 
@@ -104,13 +104,13 @@ enum ScrollbarVisibility {
 final class Scrollbar extends StatefulWidget {
   /// A scrollbar for the scrollable in [child], along its axis or [axis];
   /// its thumb shows [ScrollbarVisibility.always] by default, or as
-  /// [visibility] says, for [hideAfter] (a second by default) after a move.
+  /// [visibility] says, for [timeToFade] (a second by default) after a move.
   const Scrollbar({
     required this.child,
     super.key,
     this.axis,
     this.visibility = ScrollbarVisibility.always,
-    this.hideAfter = _hideAfter,
+    this.timeToFade = _timeToFade,
     this.style,
     this.slim = false,
     this.trackStyle,
@@ -129,7 +129,7 @@ final class Scrollbar extends StatefulWidget {
 
   /// How long the thumb stays after the last move of the scrollable, on
   /// the app's clock, when [visibility] is [ScrollbarVisibility.onScroll].
-  final Duration hideAfter;
+  final Duration timeToFade;
 
   /// The thumb's color ([Style.fg]) and the track's ([Style.bg]), over the
   /// theme's [ThemeData.muted] and [ThemeData.background].
@@ -184,7 +184,7 @@ final class _ScrollbarState extends State<Scrollbar> {
     final theme = Theme.of(context);
     _track
       ..declared = widget.axis
-      ..hideAfter = widget.hideAfter
+      ..timeToFade = widget.timeToFade
       ..visibility = widget.visibility;
     final look = (
       opaque(
@@ -259,7 +259,7 @@ final class BorderScrollbar extends StatefulWidget {
     this.bottomTitled = false,
     this.axis,
     this.visibility = ScrollbarVisibility.always,
-    this.hideAfter = _hideAfter,
+    this.timeToFade = _timeToFade,
     this.type,
     super.key,
   });
@@ -276,8 +276,8 @@ final class BorderScrollbar extends StatefulWidget {
   /// When it shows its thumb.
   final ScrollbarVisibility visibility;
 
-  /// See [Scrollbar.hideAfter].
-  final Duration hideAfter;
+  /// See [Scrollbar.timeToFade].
+  final Duration timeToFade;
 
   /// The style of the border's right side, opaque; null where it has none.
   final Style? right;
@@ -328,7 +328,7 @@ final class _BorderScrollbarState extends State<BorderScrollbar> {
     final outer = context.dependOnInheritedWidgetOfExactType<ScrollbarScope>();
     _track
       ..declared = widget.axis
-      ..hideAfter = widget.hideAfter
+      ..timeToFade = widget.timeToFade
       ..visibility = widget.visibility;
     // the foreground opaque, the background the box's or none: what is
     // under the bar shows where the box gives none
@@ -416,8 +416,8 @@ final class _Track with ChangeNotifier {
     axisOf.value = _declared ?? _position?.axis ?? Axis.vertical;
   }
 
-  /// See [Scrollbar.hideAfter].
-  Duration hideAfter = Duration.zero;
+  /// See [Scrollbar.timeToFade].
+  Duration timeToFade = Duration.zero;
 
   /// See [Scrollbar.visibility].
   ScrollbarVisibility get visibility => _visibility;
@@ -549,7 +549,7 @@ final class _Track with ChangeNotifier {
     if (b == null) {
       return;
     }
-    _hideAt = b.twkApp.clock.elapsed + hideAfter;
+    _hideAt = b.twkApp.clock.elapsed + timeToFade;
     _hiding ??= b.scheduleFrameCallback(_hide, at: _hideAt);
   }
 

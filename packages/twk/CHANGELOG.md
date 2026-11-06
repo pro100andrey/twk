@@ -4,6 +4,8 @@
 
 Breaking:
 
+- `Scrollbar` takes `timeToFade`, as Flutter names it, where it took
+  `hideAfter`.
 - `DragTarget` takes `onWillAcceptWithDetails` and `onAcceptWithDetails`, as
   Flutter names them, where it took `onWillAccept` and `onAccept`; they take the
   same `DragTargetDetails`.

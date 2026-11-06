@@ -393,7 +393,7 @@ void main() {
       await t.pumpWidget(
         Scrollbar(
           visibility: ScrollbarVisibility.onScroll,
-          hideAfter: const Duration(milliseconds: 100),
+          timeToFade: const Duration(milliseconds: 100),
           child: SingleChildScrollView(
             controller: controller,
             child: column(30),
@@ -768,13 +768,13 @@ void main() {
       expect(t.lines.take(2), ['a' * 19, 'a']);
     });
 
-    testTwk('onScroll: the thumb from a move until hideAfter after the last '
+    testTwk('onScroll: the thumb from a move until timeToFade after the last '
         'one on the clock of the app, and while it is dragged', (t) async {
       final controller = ScrollController();
       await t.pumpWidget(
         Scrollbar(
           visibility: ScrollbarVisibility.onScroll,
-          hideAfter: const Duration(milliseconds: 500),
+          timeToFade: const Duration(milliseconds: 500),
           child: SingleChildScrollView(
             controller: controller,
             child: column(30),
