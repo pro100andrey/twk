@@ -275,8 +275,9 @@ final class RenderParagraph extends RenderObject {
     int? maxLines,
     TextAlign align = TextAlign.left,
     String ellipsis = '\u2026',
-    this.keepsPaint = false,
-  }) : _painter = TextPainter(
+    bool keepsPaint = false,
+  }) : _keeps = keepsPaint,
+       _painter = TextPainter(
          spans,
          wrap: wrap,
          overflow: overflow,
@@ -293,11 +294,46 @@ final class RenderParagraph extends RenderObject {
   // the owner's text order, given to the painter at each layout
   TextOrder _order = TextOrder.logical;
 
+  // A paragraph that keeps its paint lays itself out again after an edit,
+  // within the constraints it was laid out in last, and when nothing its
+  // parent read of it changed (its size, the intrinsic sizes it answered)
+  // marks only itself for paint: asking the parent for a layout would mark
+  // the parent for paint, and the parent's paint forgets what it kept
+  // (paintChild). False when the parent has to lay it out: it leaves the
+  // size it had, so that the layout that follows sees the change.
+  bool _layOutHere() {
+    final c = _constraints;
+    if (!_keeps || c == null || _needsLayout || owner == null) {
+      return false;
+    }
+    final w = width;
+    final h = height;
+    // forgotten, to be worked out again below as invokeLayoutCallback does
+    final asked = _intrinsicsCached;
+    _intrinsicsCached = 0;
+    _layOut(c);
+    var held = _errorShown == _shownNot && width == w && height == h;
+    if (held && asked != 0) {
+      held = !_intrinsicsChanged(asked);
+    }
+    if (!held) {
+      width = w;
+      height = h;
+      // the sizes the parent read are not the ones it will read
+      _intrinsicsCached = asked;
+      return false;
+    }
+    markNeedsPaint();
+    return true;
+  }
+
   // marks what the painter says its last change invalidated
   void _sync() {
     switch (_painter.takeInvalidation()) {
       case TextInvalidation.layout:
-        markNeedsLayout();
+        if (!_layOutHere()) {
+          markNeedsLayout();
+        }
       case TextInvalidation.paint:
         markNeedsPaint();
       case TextInvalidation.none:
@@ -438,13 +474,27 @@ final class RenderParagraph extends RenderObject {
   ///
   /// Meant to be the root of a box or panel it does not share with other
   /// text; a root of the tree has nothing under it to keep.
-  final bool keepsPaint;
+  ///
+  /// Takes effect when changed: it is laid out and painted again as the
+  /// other kind.
+  bool get keepsPaint => _keeps;
+  set keepsPaint(bool on) {
+    if (on == _keeps) {
+      return;
+    }
+    _keeps = on;
+    _painter.tracksDamage = on;
+    _keptOn = null;
+    markNeedsLayout();
+  }
+
+  bool _keeps;
 
   @override
-  bool get isRepaintBoundary => keepsPaint;
+  bool get isRepaintBoundary => _keeps;
 
   @override
-  bool get keepsUnderlay => keepsPaint;
+  bool get keepsUnderlay => _keeps;
 
   @override
   bool get putsUnderlayBack => false;

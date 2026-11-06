@@ -40,7 +40,7 @@ const _backgrounds = <Pen>[
 final class _Builder {
   _Builder(int seed, this.styles, {required this.keeps})
     : rng = Random(seed),
-      shape = seed % 4 {
+      shape = seed % 6 {
     for (var i = 0, n = 1 + rng.nextInt(5); i < n; i++) {
       _parts.add([
         for (var k = 0, m = 8 + rng.nextInt(20); k < m; k++) _piece(),
@@ -81,6 +81,24 @@ final class _Builder {
           ),
         ],
       ),
+      4 => RenderColumn([
+        (header, 1),
+        (
+          RenderPadding(padding: const EdgeInsets.all(1), child: panel),
+          null,
+        ),
+      ]),
+      // a paragraph whose parents are not relayout boundaries
+      5 => RenderColumn([
+        (header, 1),
+        (
+          RenderRow([
+            (RenderPadding(padding: EdgeInsets.zero, child: panel), null),
+          ]),
+          null,
+        ),
+        (note, 1),
+      ]),
       _ => RenderRow([(panel, 28), (note, null)]),
     };
     root = RenderBox(
@@ -240,7 +258,110 @@ String? _difference(_Painted a, _Painted b) {
   return null;
 }
 
+RenderFlex _stack(List<RenderObject> children) => RenderFlex(
+  direction: Axis.vertical,
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: children,
+);
+
 void main() {
+  // a paragraph in a tree of `around` (in a root box), edited by `edit`
+  ({RenderParagraph paragraph, void Function() frame}) rig(
+    RenderObject Function(RenderParagraph) around,
+    String text, {
+    TextWrap wrap = TextWrap.word,
+  }) {
+    final styles = StyleTable();
+    final surface = Surface(30, 12);
+    final canvas = Canvas(surface, styles, GlyphTable());
+    final paragraph = RenderParagraph(
+      [(text, const Pen())],
+      wrap: wrap,
+      keepsPaint: true,
+    );
+    final owner = PipelineOwner(() {}, segmenter: canvas.segmenter)
+      ..root = RenderBox(
+        pen: styles.pen(_backgrounds[0]),
+        boundary: true,
+        child: around(paragraph),
+      );
+    final ctx = PaintContext(
+      canvas,
+      surface,
+      Presenter(30, 12, styles, canvas.glyphs),
+    );
+    void frame() => owner
+      ..flushLayout(30, 12)
+      ..flushPaint(ctx);
+    frame();
+    frame();
+    return (paragraph: paragraph, frame: frame);
+  }
+
+  test('an edit that holds the size lays out only the paragraph', () {
+    final note = RenderText('note', 0);
+    final r = rig(
+      (p) => _stack([p, note]),
+      'one\ntwo\nthree',
+    );
+    r.paragraph.spans = const [('one\ntwo\nthrew', Pen())];
+    r.frame();
+    expect(r.paragraph.debugKeptPaints, 1);
+  });
+
+  test('an edit that changes the size lays the parent out', () {
+    final note = RenderText('note', 0);
+    final r = rig(
+      (p) => _stack([p, note]),
+      'one\ntwo\nthree',
+    );
+    expect(note.parentData.dy, 3);
+    r.paragraph.spans = const [('one\ntwo\nthree\nfour', Pen())];
+    r.frame();
+    expect(r.paragraph.height, 4);
+    expect(note.parentData.dy, 4);
+    r.paragraph.spans = const [('one\ntwo', Pen())];
+    r.frame();
+    expect(note.parentData.dy, 2);
+  });
+
+  test('an edit that changes what a parent read of it lays it out', () {
+    // the paragraph is as wide as the widest line, in a box as wide as it
+    // is: its own width holds at the tight constraints it was given
+    final note = RenderText('note', 0);
+    late RenderIntrinsicWidth wide;
+    final r = rig(
+      (p) {
+        wide = RenderIntrinsicWidth(child: p);
+        return _stack([wide, note]);
+      },
+      'ab\ncd',
+      wrap: TextWrap.none,
+    );
+    expect(wide.width, 2);
+    r.paragraph.spans = const [('ab\ncdefgh', Pen())];
+    r.frame();
+    expect(wide.width, 6);
+    expect(r.paragraph.width, 6);
+  });
+
+  test('keepsPaint changed on a paragraph laid out takes effect', () {
+    final r = rig((p) => RenderColumn([(p, null)]), 'one\ntwo');
+    final p = r.paragraph;
+    expect(p.isRepaintBoundary, isTrue);
+    p.keepsPaint = false;
+    r.frame();
+    expect(p.isRepaintBoundary, isFalse);
+    p.spans = const [('one\ntwa', Pen())];
+    r.frame();
+    expect(p.debugKeptPaints, 0);
+    p.keepsPaint = true;
+    r.frame();
+    p.spans = const [('one\ntwb', Pen())];
+    r.frame();
+    expect(p.debugKeptPaints, 1);
+  });
+
   test('a paint with nothing changed goes on keeping the paint', () {
     const w = 20;
     const h = 4;

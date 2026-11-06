@@ -194,10 +194,7 @@ final class Text extends LeafRenderObjectWidget {
   /// The gain is small (about 40 µs a frame in the benchmark's scenarios),
   /// so measure before setting it.
   ///
-  /// Fixed when the text is first built: the render object cannot change
-  /// it, and a rebuild with another value is refused in a debug build (an
-  /// assertion) and ignored in a release one. Give the text another
-  /// [key] to change it.
+  /// A rebuild with another value changes it.
   final bool keepsPaint;
 
   @override
@@ -219,12 +216,9 @@ final class Text extends LeafRenderObjectWidget {
 
   @override
   void updateRenderObject(BuildContext context, RenderParagraph renderObject) {
-    assert(
-      renderObject.keepsPaint == keepsPaint,
-      'Text.keepsPaint cannot change once built: give the Text another key',
-    );
     final theme = Theme.of(context);
     renderObject
+      ..keepsPaint = keepsPaint
       ..spans = _spansIn(context, renderObject)
       ..wrap = wrap
       ..overflow = overflow

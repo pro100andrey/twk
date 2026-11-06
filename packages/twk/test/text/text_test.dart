@@ -5,7 +5,7 @@
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_core/twk_core.dart'
-    show RenderPadding, RenderParagraph, Screen;
+    show RenderObject, RenderPadding, RenderParagraph, Screen;
 import 'package:twk_test/twk_test.dart' show Shot, Vt;
 
 import '../layout/view.dart' show Toggle, toggleIn;
@@ -136,7 +136,7 @@ void main() {
       expect(paragraph.spans.single.$2.fg, green);
     });
 
-    test('keepsPaint repaints only the edited row, and cannot change', () {
+    test('keepsPaint repaints only the edited row, and can change', () {
       Widget panel(String text, {bool keeps = true}) => Padding(
         padding: const EdgeInsets.all(1),
         child: Text(text, keepsPaint: keeps),
@@ -149,11 +149,96 @@ void main() {
         ..pump(panel('one\ntwo\nthrew'));
       expect(v.rows[3].trim(), 'threw');
       expect(paragraph.debugKeptPaints, 1);
-      // the render object cannot change it: another value is refused
-      expect(
-        () => v.pump(panel('one\ntwo\nthrew', keeps: false)),
-        throwsA(isA<AssertionError>()),
-      );
+      // another value changes it, in the same render object
+      v.pump(panel('one\ntwo\nthrew', keeps: false));
+      expect(paragraph.keepsPaint, isFalse);
+      expect(paragraph.isRepaintBoundary, isFalse);
+      v.pump(panel('one\ntwo\nthrow', keeps: false));
+      expect(v.rows[3].trim(), 'throw');
+      v.pump(panel('one\ntwo\nthrow'));
+      expect(paragraph.isRepaintBoundary, isTrue);
+      v.pump(panel('one\ntwo\nthrox'));
+      expect(v.rows[3].trim(), 'throx');
+    });
+
+    group('keepsPaint keeps three edits of three in', () {
+      const edits = [
+        'one\ntwo\nthree\nfour\nfivE',
+        'one\ntwo\nthree\nfour\nfiVE',
+        'one\ntwo\nthrEE\nfour\nfiVE',
+      ];
+      final shapes = <String, Widget Function(Widget)>{
+        'a column': (c) => Column(children: [const Text('head'), c]),
+        'an expanded': (c) => Column(
+          children: [
+            const Text('head'),
+            Expanded(child: c),
+          ],
+        ),
+        'a row in a column': (c) => Column(
+          children: [
+            const Text('head'),
+            Row(children: [Expanded(child: c)]),
+          ],
+        ),
+        'a panel in a column': (c) => Column(
+          children: [
+            const Text('head'),
+            Panel(child: c),
+          ],
+        ),
+        'a panel in an expanded': (c) => Column(
+          children: [
+            const Text('head'),
+            Expanded(child: Panel(child: c)),
+          ],
+        ),
+        'a box in a column': (c) => Column(
+          children: [
+            const Text('head'),
+            Box(child: c),
+          ],
+        ),
+        'a padding in a column': (c) => Column(
+          children: [
+            const Text('head'),
+            Padding(padding: const EdgeInsets.all(1), child: c),
+          ],
+        ),
+        'a sized box in a column': (c) => Column(
+          children: [
+            const Text('head'),
+            SizedBox(height: 7, child: c),
+          ],
+        ),
+      };
+      for (final MapEntry(key: name, value: around) in shapes.entries) {
+        test(name, () {
+          final text = ValueNotifier('one\ntwo\nthree\nfour\nfive');
+          final tree = around(
+            ListenableBuilder(
+              listenable: text,
+              builder: (_, _) => Text(text.value, keepsPaint: true),
+            ),
+          );
+          final v = Shot(tree, 20, 10);
+          late final RenderParagraph paragraph;
+          void find(RenderObject r) {
+            if (r is RenderParagraph && r.keepsPaint) {
+              paragraph = r;
+            }
+            r.visitChildren(find);
+          }
+
+          find(v.top);
+          v.pump(tree);
+          for (final edit in edits) {
+            text.value = edit;
+            v.pump(tree);
+          }
+          expect(paragraph.debugKeptPaints, 3);
+        });
+      }
     });
 
     test('new settings change the same render object', () {
