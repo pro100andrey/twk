@@ -404,7 +404,13 @@ final class TwkApp {
 
   /// What [stats] time frames with.
   final _statsClock = Stopwatch()..start();
+
+  /// When the last frame was due on the grid (when it began, if it began
+  /// a gap late or more); the next is due a gap after.
   var _lastFrameAt = -1000000;
+
+  /// When the scheduled frame is due, on [clock].
+  var _frameDue = 0;
   final _done = Completer<void>();
 
   /// What [run] runs at the start of each frame.
@@ -1151,7 +1157,9 @@ final class TwkApp {
     }
     _scheduled = true;
     final minGap = 1000000 ~/ maxFps;
-    final wait = _lastFrameAt + minGap - clock.elapsedMicroseconds;
+    final now = clock.elapsedMicroseconds;
+    final wait = _lastFrameAt + minGap - now;
+    _frameDue = wait > 0 ? _lastFrameAt + minGap : now;
     // frames run in the app's zone even when requested from outside it
     _zone.createTimer(
       wait > 0 ? Duration(microseconds: wait) : Duration.zero,
@@ -1166,7 +1174,15 @@ final class TwkApp {
     }
     _inFrame = true;
     try {
-      _lastFrameAt = clock.elapsedMicroseconds;
+      // Frames keep to a grid of gaps: the next is due a gap after when
+      // this one was due, so a timer's lateness does not add up. One late
+      // by a gap or more (after idle, a suspend, a long frame) starts the
+      // grid again from where it began.
+      final startedAt = clock.elapsedMicroseconds;
+      final late = startedAt - _frameDue;
+      _lastFrameAt = late >= 0 && late < 1000000 ~/ maxFps
+          ? _frameDue
+          : startedAt;
       final t0 = _statsClock.elapsedMicroseconds;
       _begin('Frame');
       _begin('Build');

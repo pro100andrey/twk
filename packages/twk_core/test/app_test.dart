@@ -130,6 +130,21 @@ final class Pair extends RenderObject {
   }
 }
 
+/// A stopwatch that reads the fake clock's time and [extra]: the time the
+/// timers lost, which makes them fire late by it.
+final class _Late implements Stopwatch {
+  _Late(this.clock);
+  final FakeClock clock;
+  var extra = 0;
+
+  @override
+  int get elapsedMicroseconds => clock.elapsed.inMicroseconds + extra;
+
+  @override
+  Never noSuchMethod(Invocation invocation) =>
+      throw UnsupportedError('Stopwatch.${invocation.memberName}');
+}
+
 /// A stopwatch that reads [micros], which only the test moves.
 final class _Clock implements Stopwatch {
   var micros = 0;
@@ -417,6 +432,105 @@ void main() {
       probe.paintedAt[1] - probe.paintedAt[0],
       greaterThanOrEqualTo(50000),
     );
+    app.quit();
+    await clock.elapseUntil(done);
+  });
+
+  /// An app of 100 frames a second (a gap of 10 ms) on a clock that
+  /// [late] runs ahead of its timers after each frame; the app starts
+  /// frames while [more] says so. Returns when each frame began.
+  Future<List<int>> lateRun(void Function(_Late clock, int frame) late) async {
+    final given = _Late(clock);
+    term = HeadlessTerminal(width: 20, height: 4);
+    app = TwkApp(term, maxFps: 100, clock: given, environment: const {});
+    probe = Probe(
+      app.screen.styles.pen(const Pen(bg: Color.rgb(0, 0, 0))),
+      clock: given,
+    );
+    var frames = 0;
+    final done = runOnClock(
+      app,
+      probe,
+      (_) {},
+      afterPresent: () {
+        final n = frames++;
+        probe.markNeedsPaint();
+        // a microsecond after the frame, before its next one is due; the
+        // timer is the fake clock's, the app's zone is its own
+        // ignore: twk_lints/wall_time_in_tests
+        Timer(const Duration(microseconds: 1), () => late(given, n));
+      },
+    );
+    await pass(400);
+    final starts = [...probe.paintedAt];
+    app.quit();
+    await clock.elapseUntil(done);
+    return starts;
+  }
+
+  test('a late timer does not delay the frames after it: they keep to the '
+      'grid of the gap', () async {
+    // every timer fires 3 ms late: from a frame's start, not from when it
+    // was due, the gap would come to 13 ms
+    final starts = await lateRun((c, _) => c.extra += 3000);
+    expect(starts.length, greaterThan(30));
+    for (var i = 1; i < 30; i++) {
+      expect(starts[i + 1] - starts[i], 10000, reason: 'frame ${i + 1}');
+    }
+  });
+
+  test('a frame late by a gap or more starts the grid again, and the frames '
+      'after it do not catch up', () async {
+    final starts = await lateRun((c, n) {
+      if (n == 3) {
+        c.extra += 25000;
+      }
+    });
+    expect(starts.sublist(0, 4), [0, 10000, 20000, 30000]);
+    expect(starts[4], 65000, reason: 'it began when it could');
+    expect(
+      [for (var i = 5; i < 20; i++) starts[i] - starts[i - 1]],
+      [
+        for (var i = 5; i < 20; i++) 10000,
+      ],
+    );
+  });
+
+  test('a frame requested after idle runs at once, and the next a gap '
+      'after it', () async {
+    start(maxFps: 100);
+    final done = runOnClock(app, probe, (_) {});
+    await pass(5);
+    await pass(1000);
+    final idle = clock.elapsed.inMicroseconds;
+    probe.markNeedsPaint();
+    app.requestFrame();
+    await pass(1);
+    expect(probe.paintedAt.last, idle);
+    probe.markNeedsPaint();
+    await pass(20);
+    expect(probe.paintedAt.last, idle + 10000);
+    app.quit();
+    await clock.elapseUntil(done);
+  });
+
+  test('a frame requested while the terminal is handed over waits for it, '
+      'and runs when it is back', () async {
+    start(maxFps: 100);
+    final done = runOnClock(app, probe, (_) {});
+    await pass(5);
+    final before = probe.paints;
+    final back = Completer<void>();
+    final handed = app.suspend(() => back.future);
+    probe.markNeedsPaint();
+    app.requestFrame();
+    await pass(500);
+    expect(probe.paints, before, reason: 'no frame while handed over');
+    back.complete();
+    await pass(1);
+    await handed;
+    await pass();
+    expect(probe.paints, before + 1);
     app.quit();
     await clock.elapseUntil(done);
   });
