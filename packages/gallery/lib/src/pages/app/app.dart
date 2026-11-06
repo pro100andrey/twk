@@ -17,9 +17,9 @@ part 'errorwidget.dart';
 part 'inputlistener.dart';
 part 'notifications.dart';
 part 'static.dart';
+part 'terminal_title.dart';
 part 'terminalprogress.dart';
 part 'viewport.dart';
-part 'window_title.dart';
 
 /// The group of the catalog these pages are in.
 const _group = 'App';
