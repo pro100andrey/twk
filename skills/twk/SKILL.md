@@ -62,7 +62,8 @@ right (`+`).
 - `DefaultTextStyle(style:)` merges onto the style above (Flutter's plain
   constructor replaces it). The `Future` of `AnimationController.forward`,
   `reverse`, `animateTo` and `repeat` completes when something stops the
-  run too, so an `await` does not hang.
+  run too (`stop`, a new run, a value set), so an `await` does not hang;
+  `dispose` leaves it pending, as Flutter's.
 - `package:twk/twk.dart` exports all of twk, `Step`, `Gauge`, `Table`,
   `Chip`, `Window` among them: `import 'package:twk/twk.dart' hide Gauge;`
   where an app defines the same name, not a rename of the app's types.
