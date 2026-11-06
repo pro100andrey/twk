@@ -22,6 +22,8 @@ Breaking:
 
 Changed:
 
+- `AnsiStream.reset()` starts it over: the line, a character or an escape
+  sequence cut short, the style. A followed file that starts over uses it.
 - A row `SelectionList.itemEnabled` refuses, in a multiple list, has a blank for
   its mark, where it drew a muted `[ ]`: such a row can be a group's header. One
   that is selected, an option locked on, keeps its `[x]`.
