@@ -407,8 +407,8 @@ final class RenderFrameOverlay extends RenderObject {
   @override
   void performLayout(BoxConstraints c) {
     _layoutWatch.start();
-    width = c.constrainW(columns);
-    height = c.constrainH(rows);
+    width = c.constrainWidth(columns);
+    height = c.constrainHeight(rows);
     _layoutWatch.stop();
   }
 

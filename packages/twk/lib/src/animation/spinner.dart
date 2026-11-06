@@ -278,8 +278,8 @@ final class RenderSpinner extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.constrainW(_width());
-    height = c.constrainH(1);
+    width = c.constrainWidth(_width());
+    height = c.constrainHeight(1);
   }
 
   @override

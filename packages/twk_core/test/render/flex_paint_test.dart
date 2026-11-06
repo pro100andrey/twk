@@ -59,8 +59,8 @@ final class Line extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.constrainW(w);
-    height = c.constrainH(h);
+    width = c.constrainWidth(w);
+    height = c.constrainHeight(h);
   }
 
   @override
@@ -262,7 +262,10 @@ void main() {
       RenderObject boxed(RenderFlex f) => height == null
           ? f
           : RenderConstrainedBox(
-              additionalConstraints: BoxConstraints(minH: height, maxH: height),
+              additionalConstraints: BoxConstraints(
+                minHeight: height,
+                maxHeight: height,
+              ),
               child: f,
             );
       final whole = View(30, 400, RenderViewport(child: boxed(build())))

@@ -43,7 +43,9 @@ void main() {
       final p = RenderParagraph([(text, const Pen())]);
       final rows = <String>[];
       final tester = breakLines(TextSegmenter(), text, width);
-      p.layout(BoxConstraints(minW: width, maxW: width, maxH: 100));
+      p.layout(
+        BoxConstraints(minWidth: width, maxWidth: width, maxHeight: 100),
+      );
       for (var y = 0; y < p.height; y++) {
         final (from, _) = p.textRangeAt(0, y);
         final (_, to) = p.textRangeAt(width - 1, y);

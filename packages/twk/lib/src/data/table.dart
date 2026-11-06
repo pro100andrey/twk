@@ -2014,8 +2014,8 @@ final class _RenderTable extends RenderObject with RenderObjectWithChildMixin {
   void performLayout(BoxConstraints c) {
     final widths = _columnWidths(
       _tracks,
-      measure(owner?.segmenter, c.maxH),
-      c.maxW,
+      measure(owner?.segmenter, c.maxHeight),
+      c.maxWidth,
       _gap,
     );
     if (columns.take(widths, _gap)) {
@@ -2032,13 +2032,13 @@ final class _RenderTable extends RenderObject with RenderObjectWithChildMixin {
     }
     final child = this.child;
     if (child == null) {
-      width = c.minW;
-      height = c.minH;
+      width = c.minWidth;
+      height = c.minHeight;
       return;
     }
     child.layout(c, parentUsesSize: true);
-    width = c.constrainW(child.width);
-    height = c.constrainH(child.height);
+    width = c.constrainWidth(child.width);
+    height = c.constrainHeight(child.height);
   }
 
   @override
@@ -2276,15 +2276,15 @@ final class _RenderTableRow extends RenderObject
     final widths = columns.widths;
     final starts = columns.starts;
     final rule = _rule ? 1 : 0;
-    final maxH = c.maxH >= BoxConstraints.unbounded
-        ? c.maxH
-        : (c.maxH - rule > 0 ? c.maxH - rule : 0);
+    final maxH = c.maxHeight >= BoxConstraints.unbounded
+        ? c.maxHeight
+        : (c.maxHeight - rule > 0 ? c.maxHeight - rule : 0);
     var h = 1;
     var i = 0;
     for (var child = firstChild; child != null; i++) {
       final w = i < widths.length ? widths[i] : 0;
       child.layout(
-        BoxConstraints(minW: w, maxW: w, maxH: maxH),
+        BoxConstraints(minWidth: w, maxWidth: w, maxHeight: maxH),
         parentUsesSize: true,
       );
       final at = child.parentData as _CellData
@@ -2293,8 +2293,8 @@ final class _RenderTableRow extends RenderObject
       h = child.height > h ? child.height : h;
       child = at.nextSibling;
     }
-    width = c.constrainW(columns.total);
-    height = c.constrainH(h + rule);
+    width = c.constrainWidth(columns.total);
+    height = c.constrainHeight(h + rule);
   }
 
   @override

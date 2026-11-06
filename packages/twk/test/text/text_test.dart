@@ -504,11 +504,11 @@ final class _RenderCounted extends RenderObject
   void performLayout(BoxConstraints c) {
     layouts++;
     child!.layout(
-      BoxConstraints(maxW: c.maxW, maxH: c.maxH),
+      BoxConstraints(maxWidth: c.maxWidth, maxHeight: c.maxHeight),
       parentUsesSize: true,
     );
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
   }
 
   @override

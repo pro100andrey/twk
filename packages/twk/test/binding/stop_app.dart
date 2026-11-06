@@ -15,7 +15,7 @@ final class _Stop extends StatelessWidget {
     child: Focus(
       autofocus: true,
       child: LayoutBuilder(
-        builder: (context, c) => Text('stop app ${c.maxW}x${c.maxH}'),
+        builder: (context, c) => Text('stop app ${c.maxWidth}x${c.maxHeight}'),
       ),
     ),
   );

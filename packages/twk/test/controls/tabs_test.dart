@@ -107,8 +107,8 @@ final class RenderProbe extends RenderObject {
   @override
   void performLayout(BoxConstraints c) {
     layouts[name] = (layouts[name] ?? 0) + 1;
-    width = c.constrainW(text.length);
-    height = c.constrainH(1);
+    width = c.constrainWidth(text.length);
+    height = c.constrainHeight(1);
   }
 
   @override

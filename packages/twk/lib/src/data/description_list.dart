@@ -429,7 +429,11 @@ final class _RenderRows extends RenderObject
         return h < maxH ? h : maxH;
       }
       child.layout(
-        BoxConstraints(minW: minW, maxW: maxW, maxH: maxH),
+        BoxConstraints(
+          minWidth: minW,
+          maxWidth: maxW,
+          maxHeight: maxH,
+        ),
         parentUsesSize: true,
       );
       child.parentData
@@ -506,9 +510,11 @@ final class _RenderRows extends RenderObject
   @override
   void performLayout(BoxConstraints c) {
     final children = _children;
-    final w = c.maxW < BoxConstraints.unbounded ? c.maxW : _widest(children);
-    width = c.constrainW(w);
-    height = c.constrainH(_rows(children, width, place: true));
+    final w = c.maxWidth < BoxConstraints.unbounded
+        ? c.maxWidth
+        : _widest(children);
+    width = c.constrainWidth(w);
+    height = c.constrainHeight(_rows(children, width, place: true));
   }
 
   @override

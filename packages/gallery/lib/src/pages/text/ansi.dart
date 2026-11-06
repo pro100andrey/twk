@@ -19,16 +19,16 @@ final class _RenderCut extends RenderObject with RenderObjectWithChildMixin {
   void performLayout(BoxConstraints c) {
     final child = this.child;
     if (child == null) {
-      width = c.minW;
-      height = c.minH;
+      width = c.minWidth;
+      height = c.minHeight;
       return;
     }
     child.layout(
-      BoxConstraints(minW: c.minW, maxW: c.maxW),
+      BoxConstraints(minWidth: c.minWidth, maxWidth: c.maxWidth),
       parentUsesSize: true,
     );
-    width = c.constrainW(child.width);
-    height = c.constrainH(child.height);
+    width = c.constrainWidth(child.width);
+    height = c.constrainHeight(child.height);
   }
 
   @override

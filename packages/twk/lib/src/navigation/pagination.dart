@@ -262,7 +262,7 @@ final class _PaginationState extends State<Pagination> {
         builder: (context, constraints) => _row(
           Theme.of(context),
           segmenterOf(context),
-          constraints.maxW,
+          constraints.maxWidth,
           enabled: enabled,
           focused: focused,
         ),

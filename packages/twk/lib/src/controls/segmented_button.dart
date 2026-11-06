@@ -294,7 +294,7 @@ final class _SegmentedButtonState<T> extends State<SegmentedButton<T>> {
           builder: (context, constraints) => _row(
             Theme.of(context),
             segmenterOf(context),
-            constraints.maxW,
+            constraints.maxWidth,
             enabled: enabled,
             highlight: focused ? current : -1,
             plain: plain,

@@ -265,8 +265,8 @@ final class _RenderWidth extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.minW;
-    height = c.constrainH(1);
+    width = c.minWidth;
+    height = c.constrainHeight(1);
   }
 
   @override

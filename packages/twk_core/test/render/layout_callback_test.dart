@@ -18,8 +18,8 @@ final class Label extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.constrainW(text.length);
-    height = c.constrainH(1);
+    width = c.constrainWidth(text.length);
+    height = c.constrainHeight(1);
   }
 
   @override
@@ -77,10 +77,12 @@ final class Hug extends RenderObject {
   @override
   void performLayout(BoxConstraints c) {
     layouts++;
-    width = c.maxW;
-    height = c.maxH;
-    final w = asks ? child.getMaxIntrinsicWidth(c.maxH) : c.maxW - inset;
-    child.layout(BoxConstraints.tight(w, c.maxH), parentUsesSize: true);
+    width = c.maxWidth;
+    height = c.maxHeight;
+    final w = asks
+        ? child.getMaxIntrinsicWidth(c.maxHeight)
+        : c.maxWidth - inset;
+    child.layout(BoxConstraints.tight(w, c.maxHeight), parentUsesSize: true);
   }
 
   @override
@@ -99,8 +101,8 @@ final class Changes extends RenderObject with RenderObjectWithChildMixin {
   @override
   void performLayout(BoxConstraints c) {
     invokeLayoutCallback(change);
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
     child!.layout(c);
   }
 
@@ -161,7 +163,7 @@ void main() {
   test('what a layout callback changes is laid out with the object, and '
       'asks for no layout on the next frame', () {
     final owner = PipelineOwner(() {});
-    final builds = Builds((c) => Label('${c.maxW}'));
+    final builds = Builds((c) => Label('${c.maxWidth}'));
     final hug = Hug(builds);
     owner.root = hug;
     frame(owner, 10);
@@ -181,7 +183,7 @@ void main() {
       'is laid out again on the next frame, once they hold', () {
     final owner = PipelineOwner(() {});
     final builds = Builds(
-      (c) => Label(c.maxW < 4 ? 'narrow' : 'wide'),
+      (c) => Label(c.maxWidth < 4 ? 'narrow' : 'wide'),
     );
     final hug = Hug(builds, asks: true);
     owner.root = hug;
@@ -293,7 +295,7 @@ void main() {
 
   test('a parent that asked for no intrinsic size is not laid out again', () {
     final owner = PipelineOwner(() {});
-    final builds = Builds((c) => Label(c.maxW < 6 ? 'narrow' : 'wide'));
+    final builds = Builds((c) => Label(c.maxWidth < 6 ? 'narrow' : 'wide'));
     final hug = Hug(builds);
     owner.root = hug;
     frame(owner, 10);

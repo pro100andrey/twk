@@ -256,11 +256,19 @@ void main() {
           const Row(
             children: [
               ConstrainedBox(
-                constraints: BoxConstraints(minW: 4, maxW: 5, maxH: 1),
+                constraints: BoxConstraints(
+                  minWidth: 4,
+                  maxWidth: 5,
+                  maxHeight: 1,
+                ),
                 child: Label('abcdefg'),
               ),
               ConstrainedBox(
-                constraints: BoxConstraints(minW: 2, maxW: 5, maxH: 1),
+                constraints: BoxConstraints(
+                  minWidth: 2,
+                  maxWidth: 5,
+                  maxHeight: 1,
+                ),
                 child: Label('a'),
               ),
               Label('|'),
@@ -274,14 +282,14 @@ void main() {
       final v = View(8, 1)
         ..pump(
           const ConstrainedBox(
-            constraints: BoxConstraints(maxW: 3, maxH: 1),
+            constraints: BoxConstraints(maxWidth: 3, maxHeight: 1),
             child: Label('abcdef'),
           ),
         );
       final box = v.top;
       v.pump(
         const ConstrainedBox(
-          constraints: BoxConstraints(maxW: 5, maxH: 1),
+          constraints: BoxConstraints(maxWidth: 5, maxHeight: 1),
           child: Label('abcdef'),
         ),
       );
@@ -289,7 +297,7 @@ void main() {
       // the screen's constraints are tight
       expect(
         (box as RenderConstrainedBox).additionalConstraints,
-        const BoxConstraints(maxW: 5, maxH: 1),
+        const BoxConstraints(maxWidth: 5, maxHeight: 1),
       );
     });
   });

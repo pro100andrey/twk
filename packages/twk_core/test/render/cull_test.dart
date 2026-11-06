@@ -55,8 +55,10 @@ final class Row extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW < BoxConstraints.unbounded ? c.maxW : c.constrainW(10);
-    height = c.constrainH(1);
+    width = c.maxWidth < BoxConstraints.unbounded
+        ? c.maxWidth
+        : c.constrainWidth(10);
+    height = c.constrainHeight(1);
   }
 
   @override
@@ -79,8 +81,8 @@ final class Box extends RenderObject with RenderObjectWithChildMixin {
   void performLayout(BoxConstraints c) {
     final ch = child;
     if (ch == null) {
-      width = c.minW;
-      height = c.minH;
+      width = c.minWidth;
+      height = c.minHeight;
       return;
     }
     ch.layout(c, parentUsesSize: true);
@@ -186,7 +188,10 @@ void main() {
         child: column([
           ...rows(2),
           RenderConstrainedBox(
-            additionalConstraints: const BoxConstraints(minH: 3, maxH: 3),
+            additionalConstraints: const BoxConstraints(
+              minHeight: 3,
+              maxHeight: 3,
+            ),
             child: inner,
           ),
           ...rows(20),

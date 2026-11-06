@@ -81,8 +81,10 @@ final class Lines extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW < BoxConstraints.unbounded ? c.maxW : c.constrainW(columns);
-    height = c.constrainH(_count);
+    width = c.maxWidth < BoxConstraints.unbounded
+        ? c.maxWidth
+        : c.constrainWidth(columns);
+    height = c.constrainHeight(_count);
   }
 
   /// How many times it was painted.
@@ -106,8 +108,8 @@ final class Ruler extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.constrainW(count);
-    height = c.constrainH(1);
+    width = c.constrainWidth(count);
+    height = c.constrainHeight(1);
   }
 
   @override
@@ -173,7 +175,7 @@ void main() {
       View(20, 5, viewport).frame();
       expect(
         child.constraints,
-        const BoxConstraints(minW: 20, maxW: 20),
+        const BoxConstraints(minWidth: 20, maxWidth: 20),
       );
       expect((child.width, child.height), (20, 12));
       expect((viewport.width, viewport.height), (20, 5));
@@ -209,7 +211,7 @@ void main() {
       View(10, 2, viewport).frame();
       expect(
         ruler.constraints,
-        const BoxConstraints(minH: 2, maxH: 2),
+        const BoxConstraints(minHeight: 2, maxHeight: 2),
       );
       expect((ruler.width, ruler.height), (30, 2));
       expect(extents, [(10, 30)]);

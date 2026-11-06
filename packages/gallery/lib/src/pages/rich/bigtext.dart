@@ -46,8 +46,8 @@ int _bigHeightIn(Options o, StageRoom room) {
             : [BigFont.values.firstWhere((f) => f.name == name)],
       )..layout(
         BoxConstraints(
-          maxW: room.width,
-          maxH: clock ? room.height : math.max(0, room.height - 4),
+          maxWidth: room.width,
+          maxHeight: clock ? room.height : math.max(0, room.height - 4),
         ),
       );
   return clock ? big.height : big.height + 4;

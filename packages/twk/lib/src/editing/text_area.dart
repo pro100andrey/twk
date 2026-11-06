@@ -867,11 +867,11 @@ final class _RenderTextArea extends RenderObject {
   /// parent asked for it (else -1), and the rows it would like where [c]
   /// leaves the height to it or a parent asked for it (else -1).
   (int, int) _measure(BoxConstraints c) {
-    final widthFollows = _widthAsked || c.maxW >= _unbounded;
+    final widthFollows = _widthAsked || c.maxWidth >= _unbounded;
     final wanted = widthFollows ? _widestLine() + 1 : -1;
-    final heightFollows = _heightAsked || c.minH < c.maxH;
-    final at = c.maxW >= _unbounded ? wanted : c.maxW;
-    final most = _heightAsked ? _unbounded : c.maxH;
+    final heightFollows = _heightAsked || c.minHeight < c.maxHeight;
+    final at = c.maxWidth >= _unbounded ? wanted : c.maxWidth;
+    final most = _heightAsked ? _unbounded : c.maxHeight;
     return _measured = (wanted, heightFollows ? _rowsWanted(at, most) : -1);
   }
 
@@ -916,8 +916,8 @@ final class _RenderTextArea extends RenderObject {
   @override
   void performLayout(BoxConstraints c) {
     final (wanted, rows) = _measure(c);
-    width = c.maxW >= _unbounded ? c.constrainW(wanted) : c.maxW;
-    height = c.constrainH(rows);
+    width = c.maxWidth >= _unbounded ? c.constrainWidth(wanted) : c.maxWidth;
+    height = c.constrainHeight(rows);
   }
 
   @override

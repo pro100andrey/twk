@@ -928,11 +928,11 @@ final class RenderUnbounded extends RenderObject
   void performLayout(BoxConstraints c) {
     final child = this.child!
       ..layout(
-        BoxConstraints(maxW: c.maxW),
+        BoxConstraints(maxWidth: c.maxWidth),
         parentUsesSize: true,
       );
-    width = c.constrainW(child.width);
-    height = c.constrainH(child.height);
+    width = c.constrainWidth(child.width);
+    height = c.constrainHeight(child.height);
   }
 
   @override
@@ -1031,8 +1031,8 @@ final class RenderProbe extends RenderObject {
   @override
   void performLayout(BoxConstraints c) {
     log.add('layout $_value');
-    width = c.constrainW(1);
-    height = c.constrainH(1);
+    width = c.constrainWidth(1);
+    height = c.constrainHeight(1);
   }
 
   @override

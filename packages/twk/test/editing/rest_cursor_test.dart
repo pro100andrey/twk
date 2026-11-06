@@ -198,8 +198,8 @@ final class _RenderRows extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.constrainW(10);
-    height = c.constrainH(4);
+    width = c.constrainWidth(10);
+    height = c.constrainHeight(4);
   }
 
   @override

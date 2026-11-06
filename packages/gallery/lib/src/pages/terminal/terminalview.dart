@@ -47,8 +47,8 @@ final _terminalView = GalleryPage(
       const most = 1 << 20;
       final (w, h) = _boxSize(
         StageRoom(
-          c.maxW < BoxConstraints.unbounded ? c.maxW : most,
-          c.maxH < BoxConstraints.unbounded ? c.maxH : most,
+          c.maxWidth < BoxConstraints.unbounded ? c.maxWidth : most,
+          c.maxHeight < BoxConstraints.unbounded ? c.maxHeight : most,
         ),
       );
       return _Shell(width: w, height: h, wheelLines: o(_terminalViewWheel));

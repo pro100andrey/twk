@@ -4,6 +4,9 @@
 
 Breaking:
 
+- `BoxConstraints` has `minWidth`, `maxWidth`, `minHeight` and `maxHeight`, and
+  `constrainWidth` and `constrainHeight`, as Flutter names them: they were
+  `minW`, `maxW`, `minH`, `maxH`, `constrainW` and `constrainH`.
 - `Flex`, `Row`, `Column` and `Wrap` take `spacing` and `runSpacing`, and
   `RenderFlex` and `RenderWrap` have them, as Flutter names them: they were
   `gap` and `runGap`.

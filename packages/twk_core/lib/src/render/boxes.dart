@@ -88,13 +88,13 @@ final class RenderBox extends RenderObject with RenderObjectWithChildMixin {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
     final ch = _child;
     if (ch != null) {
       final w = width - 2 * padX < 0 ? 0 : width - 2 * padX;
       final h = height - 2 * padY < 0 ? 0 : height - 2 * padY;
-      ch.layout(BoxConstraints(maxW: w, maxH: h));
+      ch.layout(BoxConstraints(maxWidth: w, maxHeight: h));
       ch.parentData
         ..dx = padX
         ..dy = padY;
@@ -272,7 +272,7 @@ final class Alignment {
 /// `min..max` or one number where they agree, [BoxConstraints.unbounded]
 /// as `∞` (`80×24`, `0..80×1`, `0..∞×0..24`).
 String describeConstraints(BoxConstraints c) =>
-    '${_range(c.minW, c.maxW)}×${_range(c.minH, c.maxH)}';
+    '${_range(c.minWidth, c.maxWidth)}×${_range(c.minHeight, c.maxHeight)}';
 
 String _range(int min, int max) =>
     min >= max ? _extent(min) : '${_extent(min)}..${_extent(max)}';
@@ -339,19 +339,19 @@ final class RenderPadding extends RenderObject with RenderObjectWithChildMixin {
     final v = p.vertical;
     final child = _child;
     if (child == null) {
-      width = c.constrainW(h);
-      height = c.constrainH(v);
+      width = c.constrainWidth(h);
+      height = c.constrainHeight(v);
       return;
     }
     _layoutChild(
       child,
-      _less(c.minW, h),
-      _less(c.maxW, h),
-      _less(c.minH, v),
-      _less(c.maxH, v),
+      _less(c.minWidth, h),
+      _less(c.maxWidth, h),
+      _less(c.minHeight, v),
+      _less(c.maxHeight, v),
     );
-    width = c.constrainW(child.width + h);
-    height = c.constrainH(child.height + v);
+    width = c.constrainWidth(child.width + h);
+    height = c.constrainHeight(child.height + v);
     child.parentData
       ..dx = p.left
       ..dy = p.top;
@@ -457,8 +457,8 @@ final class RenderPositionedBox extends RenderObject
     return _widthFactor == null &&
         _heightFactor == null &&
         (c == null ||
-            c.maxW < BoxConstraints.unbounded &&
-                c.maxH < BoxConstraints.unbounded);
+            c.maxWidth < BoxConstraints.unbounded &&
+                c.maxHeight < BoxConstraints.unbounded);
   }
 
   @override
@@ -485,17 +485,17 @@ final class RenderPositionedBox extends RenderObject
     const unbounded = BoxConstraints.unbounded;
     // an axis without a factor that the constraints leave unbounded takes
     // the child's length, a factor of 1
-    final wf = _widthFactor ?? (c.maxW < unbounded ? null : 1);
-    final hf = _heightFactor ?? (c.maxH < unbounded ? null : 1);
+    final wf = _widthFactor ?? (c.maxWidth < unbounded ? null : 1);
+    final hf = _heightFactor ?? (c.maxHeight < unbounded ? null : 1);
     final child = _child;
     if (child == null) {
-      width = wf == null ? c.maxW : c.minW;
-      height = hf == null ? c.maxH : c.minH;
+      width = wf == null ? c.maxWidth : c.minWidth;
+      height = hf == null ? c.maxHeight : c.minHeight;
       return;
     }
-    _layoutChild(child, 0, c.maxW, 0, c.maxH);
-    width = wf == null ? c.maxW : c.constrainW(child.width * wf);
-    height = hf == null ? c.maxH : c.constrainH(child.height * hf);
+    _layoutChild(child, 0, c.maxWidth, 0, c.maxHeight);
+    width = wf == null ? c.maxWidth : c.constrainWidth(child.width * wf);
+    height = hf == null ? c.maxHeight : c.constrainHeight(child.height * hf);
     child.parentData
       ..dx = _alignment.dx(width - child.width)
       ..dy = _alignment.dy(height - child.height);
@@ -566,15 +566,21 @@ final class RenderConstrainedBox extends RenderObject
   @override
   void performLayout(BoxConstraints c) {
     final a = _additionalConstraints;
-    final minW = c.constrainW(a.minW);
-    final minH = c.constrainH(a.minH);
+    final minW = c.constrainWidth(a.minWidth);
+    final minH = c.constrainHeight(a.minHeight);
     final child = _child;
     if (child == null) {
       width = minW;
       height = minH;
       return;
     }
-    _layoutChild(child, minW, c.constrainW(a.maxW), minH, c.constrainH(a.maxH));
+    _layoutChild(
+      child,
+      minW,
+      c.constrainWidth(a.maxWidth),
+      minH,
+      c.constrainHeight(a.maxHeight),
+    );
     width = child.width;
     height = child.height;
   }
@@ -597,20 +603,20 @@ final class RenderConstrainedBox extends RenderObject
 
   int _width(int kind, int height) {
     final a = _additionalConstraints;
-    if (a.minW >= a.maxW && a.maxW < BoxConstraints.unbounded) {
-      return a.minW;
+    if (a.minWidth >= a.maxWidth && a.maxWidth < BoxConstraints.unbounded) {
+      return a.minWidth;
     }
     final w = _child?._intrinsic(kind, height) ?? 0;
-    return a.minW >= BoxConstraints.unbounded ? w : a.constrainW(w);
+    return a.minWidth >= BoxConstraints.unbounded ? w : a.constrainWidth(w);
   }
 
   int _height(int kind, int width) {
     final a = _additionalConstraints;
-    if (a.minH >= a.maxH && a.maxH < BoxConstraints.unbounded) {
-      return a.minH;
+    if (a.minHeight >= a.maxHeight && a.maxHeight < BoxConstraints.unbounded) {
+      return a.minHeight;
     }
     final h = _child?._intrinsic(kind, width) ?? 0;
-    return a.minH >= BoxConstraints.unbounded ? h : a.constrainH(h);
+    return a.minHeight >= BoxConstraints.unbounded ? h : a.constrainHeight(h);
   }
 
   @override
@@ -734,25 +740,27 @@ final class RenderFractionallySizedBox extends RenderObject
     const unbounded = BoxConstraints.unbounded;
     final child = _child;
     if (child == null) {
-      width = c.maxW < unbounded ? c.maxW : c.minW;
-      height = c.maxH < unbounded ? c.maxH : c.minH;
+      width = c.maxWidth < unbounded ? c.maxWidth : c.minWidth;
+      height = c.maxHeight < unbounded ? c.maxHeight : c.minHeight;
       return;
     }
-    var minW = c.minW;
-    var maxW = c.maxW;
-    var minH = c.minH;
-    var maxH = c.maxH;
+    var minW = c.minWidth;
+    var maxW = c.maxWidth;
+    var minH = c.minHeight;
+    var maxH = c.maxHeight;
     final wf = _widthFactor;
     if (wf != null && maxW < unbounded) {
-      minW = maxW = _fraction(c.maxW, wf);
+      minW = maxW = _fraction(c.maxWidth, wf);
     }
     final hf = _heightFactor;
     if (hf != null && maxH < unbounded) {
-      minH = maxH = _fraction(c.maxH, hf);
+      minH = maxH = _fraction(c.maxHeight, hf);
     }
     _layoutChild(child, minW, maxW, minH, maxH);
-    width = c.maxW < unbounded ? c.maxW : c.constrainW(child.width);
-    height = c.maxH < unbounded ? c.maxH : c.constrainH(child.height);
+    width = c.maxWidth < unbounded ? c.maxWidth : c.constrainWidth(child.width);
+    height = c.maxHeight < unbounded
+        ? c.maxHeight
+        : c.constrainHeight(child.height);
     child.parentData
       ..dx = _alignment.dx(width - child.width)
       ..dy = _alignment.dy(height - child.height);
@@ -878,22 +886,22 @@ final class RenderIntrinsicWidth extends RenderObject
   void performLayout(BoxConstraints c) {
     final child = _child;
     if (child == null) {
-      width = c.minW;
-      height = c.minH;
+      width = c.minWidth;
+      height = c.minHeight;
       return;
     }
-    var minW = c.minW;
-    var maxW = c.maxW;
-    var minH = c.minH;
-    var maxH = c.maxH;
+    var minW = c.minWidth;
+    var maxW = c.maxWidth;
+    var minH = c.minHeight;
+    var maxH = c.maxHeight;
     if (minW < maxW) {
-      minW = maxW = c.constrainW(
+      minW = maxW = c.constrainWidth(
         _step(child.getMaxIntrinsicWidth(maxH), _stepWidth),
       );
     }
     final step = _stepHeight;
     if (step != null) {
-      minH = maxH = c.constrainH(
+      minH = maxH = c.constrainHeight(
         _step(child.getMaxIntrinsicHeight(maxW), step),
       );
     }
@@ -954,16 +962,16 @@ final class RenderIntrinsicHeight extends RenderObject
   void performLayout(BoxConstraints c) {
     final child = _child;
     if (child == null) {
-      width = c.minW;
-      height = c.minH;
+      width = c.minWidth;
+      height = c.minHeight;
       return;
     }
-    var minH = c.minH;
-    var maxH = c.maxH;
+    var minH = c.minHeight;
+    var maxH = c.maxHeight;
     if (minH < maxH) {
-      minH = maxH = c.constrainH(child.getMaxIntrinsicHeight(c.maxW));
+      minH = maxH = c.constrainHeight(child.getMaxIntrinsicHeight(c.maxWidth));
     }
-    _layoutChild(child, c.minW, c.maxW, minH, maxH);
+    _layoutChild(child, c.minWidth, c.maxWidth, minH, maxH);
     width = child.width;
     height = child.height;
   }

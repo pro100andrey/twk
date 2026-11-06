@@ -79,7 +79,7 @@ final class _Rig {
 
   TextPainter painter(List<(String, Pen)> spans) => TextPainter(spans)
     ..layout(
-      const BoxConstraints(maxW: _width, maxH: 1 << 20),
+      const BoxConstraints(maxWidth: _width, maxHeight: 1 << 20),
       segmenter: seg,
     );
 
@@ -115,7 +115,7 @@ void main() {
         p
           ..spans = spans
           ..layout(
-            const BoxConstraints(maxW: _width, maxH: 1 << 20),
+            const BoxConstraints(maxWidth: _width, maxHeight: 1 << 20),
             segmenter: rig.seg,
           );
         final reason = 'seed $seed, round $round';

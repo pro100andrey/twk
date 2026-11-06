@@ -47,8 +47,8 @@ final class Fill extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
   }
 
   @override
@@ -103,11 +103,11 @@ base class Area extends RenderObject with RenderObjectWithChildMixin {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
     final ch = child;
     if (ch != null) {
-      ch.layout(BoxConstraints(maxW: width, maxH: height));
+      ch.layout(BoxConstraints(maxWidth: width, maxHeight: height));
       ch.parentData
         ..dx = dx
         ..dy = dy;

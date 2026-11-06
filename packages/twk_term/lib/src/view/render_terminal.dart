@@ -232,12 +232,12 @@ final class _RenderTerminal extends RenderObject {
   @override
   void performLayout(BoxConstraints c) {
     final em = _session.emulator;
-    width = c.maxW >= BoxConstraints.unbounded
-        ? c.constrainW(em.width)
-        : c.maxW;
-    height = c.maxH >= BoxConstraints.unbounded
-        ? c.constrainH(em.height)
-        : c.maxH;
+    width = c.maxWidth >= BoxConstraints.unbounded
+        ? c.constrainWidth(em.width)
+        : c.maxWidth;
+    height = c.maxHeight >= BoxConstraints.unbounded
+        ? c.constrainHeight(em.height)
+        : c.maxHeight;
     if (width > 0 && height > 0) {
       _session.resize(width, height);
     }

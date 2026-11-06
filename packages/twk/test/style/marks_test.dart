@@ -285,7 +285,7 @@ void main() {
     final logs = <String, List<String>>{'a': [], 'b': []};
     RenderObject objectOf(String name) {
       final object = RenderConstrainedBox(
-        additionalConstraints: const BoxConstraints(maxW: 1, maxH: 1),
+        additionalConstraints: const BoxConstraints(maxWidth: 1, maxHeight: 1),
       );
       PipelineOwner(() {}, segmenter: seg)
         ..onLog = (r) {
@@ -308,7 +308,7 @@ void main() {
     final logs = <String, List<String>>{'a': [], 'b': []};
     RenderObject objectOf(String name) {
       final object = RenderConstrainedBox(
-        additionalConstraints: const BoxConstraints(maxW: 1, maxH: 1),
+        additionalConstraints: const BoxConstraints(maxWidth: 1, maxHeight: 1),
       );
       PipelineOwner(() {}, segmenter: seg)
         ..onLog = (r) {

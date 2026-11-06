@@ -68,7 +68,7 @@ void main() {
       'layout/sizedbox?o=kind:.shrink': ['SizedBox.shrink('],
       'layout/sizedbox?o=width:30;height:5': ['width: 30,', 'height: 5,'],
       'layout/constrainedbox?o=min:0;max:48': [
-        'BoxConstraints(minW: 0, maxW: 48, minH: 1, maxH: 3)',
+        'BoxConstraints(minWidth: 0, maxWidth: 48, minHeight: 1, maxHeight: 3)',
       ],
       'layout/fractionallysizedbox?o=wf:1;hf:¼;alignment:bottomRight': [
         'alignment: .bottomRight,',

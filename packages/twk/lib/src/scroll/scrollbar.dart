@@ -747,8 +747,8 @@ final class _RenderFrame extends RenderObject
   void performLayout(BoxConstraints c) {
     final child = firstChild;
     if (child == null) {
-      width = c.minW;
-      height = c.minH;
+      width = c.minWidth;
+      height = c.minHeight;
       return;
     }
     // a scrollable first built while the child is laid out (in a
@@ -773,14 +773,14 @@ final class _RenderFrame extends RenderObject
     if (vertical) {
       child.layout(
         BoxConstraints(
-          minW: _less(c.minW),
-          maxW: _less(c.maxW),
-          minH: c.minH,
-          maxH: c.maxH,
+          minWidth: _less(c.minWidth),
+          maxWidth: _less(c.maxWidth),
+          minHeight: c.minHeight,
+          maxHeight: c.maxHeight,
         ),
         parentUsesSize: true,
       );
-      width = c.constrainW(child.width + _bar);
+      width = c.constrainWidth(child.width + _bar);
       height = child.height;
       if (bar != null) {
         final thick = width - child.width < _bar ? width - child.width : _bar;
@@ -792,15 +792,15 @@ final class _RenderFrame extends RenderObject
     } else {
       child.layout(
         BoxConstraints(
-          minW: c.minW,
-          maxW: c.maxW,
-          minH: _less(c.minH),
-          maxH: _less(c.maxH),
+          minWidth: c.minWidth,
+          maxWidth: c.maxWidth,
+          minHeight: _less(c.minHeight),
+          maxHeight: _less(c.maxHeight),
         ),
         parentUsesSize: true,
       );
       width = child.width;
-      height = c.constrainH(child.height + _bar);
+      height = c.constrainHeight(child.height + _bar);
       if (bar != null) {
         final thick = height - child.height < _bar
             ? height - child.height
@@ -937,8 +937,8 @@ final class _RenderBorderFrame extends RenderObject
   void performLayout(BoxConstraints c) {
     final child = firstChild;
     if (child == null) {
-      width = c.minW;
-      height = c.minH;
+      width = c.minWidth;
+      height = c.minHeight;
       return;
     }
     child.parentData
@@ -1133,8 +1133,8 @@ final class _RenderBar extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW < BoxConstraints.unbounded ? c.maxW : c.minW;
-    height = c.maxH < BoxConstraints.unbounded ? c.maxH : c.minH;
+    width = c.maxWidth < BoxConstraints.unbounded ? c.maxWidth : c.minWidth;
+    height = c.maxHeight < BoxConstraints.unbounded ? c.maxHeight : c.minHeight;
   }
 
   @override

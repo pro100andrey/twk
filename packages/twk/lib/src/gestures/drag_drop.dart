@@ -637,12 +637,12 @@ final class _RenderFeedback extends RenderObject
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW < BoxConstraints.unbounded ? c.maxW : c.minW;
-    height = c.maxH < BoxConstraints.unbounded ? c.maxH : c.minH;
+    width = c.maxWidth < BoxConstraints.unbounded ? c.maxWidth : c.minWidth;
+    height = c.maxHeight < BoxConstraints.unbounded ? c.maxHeight : c.minHeight;
     final child = this.child;
     if (child != null) {
       child.layout(
-        BoxConstraints(maxW: width, maxH: height),
+        BoxConstraints(maxWidth: width, maxHeight: height),
         parentUsesSize: true,
       );
       child.parentData
@@ -671,8 +671,8 @@ abstract base class _RenderProxy extends RenderObject
   void performLayout(BoxConstraints c) {
     final child = this.child;
     if (child == null) {
-      width = c.minW;
-      height = c.minH;
+      width = c.minWidth;
+      height = c.minHeight;
       return;
     }
     child.layout(c, parentUsesSize: true);

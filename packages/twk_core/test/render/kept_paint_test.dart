@@ -62,7 +62,7 @@ final class _Builder {
       autoKeepsPaint: auto,
     );
     limit = RenderConstrainedBox(
-      additionalConstraints: const BoxConstraints(maxW: 24, maxH: 12),
+      additionalConstraints: const BoxConstraints(maxWidth: 24, maxHeight: 12),
       child: paragraph,
     );
     panel = RenderBox(
@@ -172,8 +172,8 @@ final class _Builder {
         _set();
       case 6:
         limit.additionalConstraints = BoxConstraints(
-          maxW: 10 + rng.nextInt(20),
-          maxH: 4 + rng.nextInt(12),
+          maxWidth: 10 + rng.nextInt(20),
+          maxHeight: 4 + rng.nextInt(12),
         );
       case 7:
         paragraph.maxLines = rng.nextBool() ? null : 2 + rng.nextInt(6);
@@ -507,10 +507,10 @@ void main() {
         boundary: true,
         child: RenderConstrainedBox(
           additionalConstraints: const BoxConstraints(
-            minW: w,
-            maxW: w,
-            minH: h,
-            maxH: h,
+            minWidth: w,
+            maxWidth: w,
+            minHeight: h,
+            maxHeight: h,
           ),
           child: paragraph,
         ),

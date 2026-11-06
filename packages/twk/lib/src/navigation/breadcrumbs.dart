@@ -287,7 +287,7 @@ final class _BreadcrumbsState extends State<Breadcrumbs> {
           builder: (context, constraints) => _row(
             Theme.of(context),
             segmenterOf(context),
-            constraints.maxW,
+            constraints.maxWidth,
             enabled: enabled,
             focused: focused,
           ),

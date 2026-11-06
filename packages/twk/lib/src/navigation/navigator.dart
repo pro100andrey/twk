@@ -1446,24 +1446,24 @@ final class _RenderTheater extends RenderObject
       }
     }
     const unbounded = BoxConstraints.unbounded;
-    final wide = c.maxW < unbounded;
-    final tall = c.maxH < unbounded;
+    final wide = c.maxWidth < unbounded;
+    final tall = c.maxHeight < unbounded;
     if (first == null) {
-      width = wide ? c.maxW : c.minW;
-      height = tall ? c.maxH : c.minH;
+      width = wide ? c.maxWidth : c.minWidth;
+      height = tall ? c.maxHeight : c.minHeight;
       return;
     }
     var rest = first;
     if (wide && tall) {
-      width = c.maxW;
-      height = c.maxH;
+      width = c.maxWidth;
+      height = c.maxHeight;
     } else {
       first.layout(
         BoxConstraints(
-          minW: wide ? c.maxW : c.minW,
-          maxW: c.maxW,
-          minH: tall ? c.maxH : c.minH,
-          maxH: c.maxH,
+          minWidth: wide ? c.maxWidth : c.minWidth,
+          maxWidth: c.maxWidth,
+          minHeight: tall ? c.maxHeight : c.minHeight,
+          maxHeight: c.maxHeight,
         ),
         parentUsesSize: true,
       );

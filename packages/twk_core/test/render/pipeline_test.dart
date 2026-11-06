@@ -67,8 +67,10 @@ final class Cell extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW < BoxConstraints.unbounded ? c.maxW : c.constrainW(8);
-    height = c.constrainH(rows);
+    width = c.maxWidth < BoxConstraints.unbounded
+        ? c.maxWidth
+        : c.constrainWidth(8);
+    height = c.constrainHeight(rows);
   }
 
   @override
@@ -345,9 +347,9 @@ final class _Frame extends RenderObject with RenderObjectWithChildMixin {
   @override
   void performLayout(BoxConstraints c) {
     order.add(name);
-    width = c.maxW;
-    height = c.maxH;
-    child!.layout(BoxConstraints(maxW: width, maxH: height));
+    width = c.maxWidth;
+    height = c.maxHeight;
+    child!.layout(BoxConstraints(maxWidth: width, maxHeight: height));
   }
 
   @override
@@ -367,8 +369,8 @@ final class _Toggle extends RenderObject with RenderObjectWithChildMixin {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
     child!.layout(BoxConstraints.tight(width, height));
   }
 

@@ -89,7 +89,7 @@ final _qrCode = GalleryPage(
         children: [
           QrCode.symbol(
             symbol,
-            quietZone: _qrQuietIn(symbol, quiet, constraints.maxH),
+            quietZone: _qrQuietIn(symbol, quiet, constraints.maxHeight),
             dark: invert ? QrCode.white : QrCode.black,
             light: invert ? QrCode.black : QrCode.white,
           ),
@@ -102,7 +102,7 @@ final _qrCode = GalleryPage(
             Span(symbol.mode.name),
             // taller than the room even without a quiet zone, so cut off
             // at its bottom: the rows it needs
-            if (_qrLeast(symbol) > constraints.maxH) ...[
+            if (_qrLeast(symbol) > constraints.maxHeight) ...[
               Span('\n\nneeds ', theme.warning),
               Span('${_qrLeast(symbol)} rows'),
             ],
@@ -127,7 +127,7 @@ final _qrCode = GalleryPage(
     // the quiet zone that leaves the symbol whole in the rows there are
     final zone = quiet == 0
         ? '0'
-        : '((2 * constraints.maxH - symbol.size) ~/ 2).clamp(0, $quiet)';
+        : '((2 * constraints.maxHeight - symbol.size) ~/ 2).clamp(0, $quiet)';
     return [
       '@override',
       'Widget build(BuildContext context) {',
@@ -170,7 +170,7 @@ final _qrCode = GalleryPage(
       '          Span(symbol.mode.name),',
       '          // taller than the rows there are even without a quiet',
       "          // zone: cut off at its bottom, which a camera can't read",
-      '          if ((symbol.size + 1) ~/ 2 > constraints.maxH) ...[',
+      '          if ((symbol.size + 1) ~/ 2 > constraints.maxHeight) ...[',
       r"            Span('\n\nneeds ', theme.warning),",
       r"            Span('${(symbol.size + 1) ~/ 2} rows'),",
       '          ],',

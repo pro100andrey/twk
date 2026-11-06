@@ -355,15 +355,15 @@ final class RenderList extends RenderObject
 
   @override
   void performLayout(BoxConstraints c) {
-    if (c.maxW >= BoxConstraints.unbounded ||
-        c.maxH >= BoxConstraints.unbounded) {
+    if (c.maxWidth >= BoxConstraints.unbounded ||
+        c.maxHeight >= BoxConstraints.unbounded) {
       throw StateError(
         'a list takes all the room it is given, which must be bounded, not '
         '${describeConstraints(c)}',
       );
     }
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
     assert(_debugReportNoRows(), 'reports a list given no rows');
     // once more when onMetrics moved it; a third time on the next frame
     for (var pass = 0; pass < 2; pass++) {
@@ -392,12 +392,15 @@ final class RenderList extends RenderObject
     final minH = fixed ?? 0;
     final maxH = fixed ?? BoxConstraints.unbounded;
     var ic = _itemConstraints;
-    if (ic == null || ic.maxW != w || ic.minH != minH || ic.maxH != maxH) {
+    if (ic == null ||
+        ic.maxWidth != w ||
+        ic.minHeight != minH ||
+        ic.maxHeight != maxH) {
       ic = _itemConstraints = BoxConstraints(
-        minW: w,
-        maxW: w,
-        minH: minH,
-        maxH: maxH,
+        minWidth: w,
+        maxWidth: w,
+        minHeight: minH,
+        maxHeight: maxH,
       );
     }
     if (w != _measuredAt) {

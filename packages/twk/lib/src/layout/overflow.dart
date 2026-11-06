@@ -274,17 +274,26 @@ final class _RenderLimitedBox extends RenderObject
 
   @override
   void performLayout(BoxConstraints c) {
-    final maxW = c.maxW >= _unbounded ? c.constrainW(_maxWidth) : c.maxW;
-    final maxH = c.maxH >= _unbounded ? c.constrainH(_maxHeight) : c.maxH;
+    final maxW = c.maxWidth >= _unbounded
+        ? c.constrainWidth(_maxWidth)
+        : c.maxWidth;
+    final maxH = c.maxHeight >= _unbounded
+        ? c.constrainHeight(_maxHeight)
+        : c.maxHeight;
     final child = this.child;
     if (child == null) {
-      width = c.minW;
-      height = c.minH;
+      width = c.minWidth;
+      height = c.minHeight;
       return;
     }
     child
       ..layout(
-        BoxConstraints(minW: c.minW, maxW: maxW, minH: c.minH, maxH: maxH),
+        BoxConstraints(
+          minWidth: c.minWidth,
+          maxWidth: maxW,
+          minHeight: c.minHeight,
+          maxHeight: maxH,
+        ),
         parentUsesSize: true,
       )
       ..parentData.dx = 0
@@ -381,18 +390,37 @@ final class _RenderOverflowBox extends _RenderAligning {
   void performLayout(BoxConstraints c) {
     final child = this.child;
     if (child == null) {
-      width = c.maxW < _unbounded ? c.maxW : c.minW;
-      height = c.maxH < _unbounded ? c.maxH : c.minH;
+      width = c.maxWidth < _unbounded ? c.maxWidth : c.minWidth;
+      height = c.maxHeight < _unbounded ? c.maxHeight : c.minHeight;
       return;
     }
-    final (minW, maxW) = _within(_limits.$1, _limits.$2, c.minW, c.maxW);
-    final (minH, maxH) = _within(_limits.$3, _limits.$4, c.minH, c.maxH);
+    final (minW, maxW) = _within(
+      _limits.$1,
+      _limits.$2,
+      c.minWidth,
+      c.maxWidth,
+    );
+    final (minH, maxH) = _within(
+      _limits.$3,
+      _limits.$4,
+      c.minHeight,
+      c.maxHeight,
+    );
     child.layout(
-      BoxConstraints(minW: minW, maxW: maxW, minH: minH, maxH: maxH),
+      BoxConstraints(
+        minWidth: minW,
+        maxWidth: maxW,
+        minHeight: minH,
+        maxHeight: maxH,
+      ),
       parentUsesSize: true,
     );
-    width = c.maxW < _unbounded ? c.maxW : c.constrainW(child.width);
-    height = c.maxH < _unbounded ? c.maxH : c.constrainH(child.height);
+    width = c.maxWidth < _unbounded
+        ? c.maxWidth
+        : c.constrainWidth(child.width);
+    height = c.maxHeight < _unbounded
+        ? c.maxHeight
+        : c.constrainHeight(child.height);
     _align(child);
   }
 
@@ -445,8 +473,8 @@ final class _RenderSizedOverflowBox extends _RenderAligning {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.constrainW(_size.$1);
-    height = c.constrainH(_size.$2);
+    width = c.constrainWidth(_size.$1);
+    height = c.constrainHeight(_size.$2);
     final child = this.child;
     if (child != null) {
       child.layout(c, parentUsesSize: true);
@@ -499,8 +527,8 @@ final class _RenderTranslate extends RenderObject
   void performLayout(BoxConstraints c) {
     final child = this.child;
     if (child == null) {
-      width = c.minW;
-      height = c.minH;
+      width = c.minWidth;
+      height = c.minHeight;
       return;
     }
     child.layout(c, parentUsesSize: true);

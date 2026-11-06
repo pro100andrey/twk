@@ -99,7 +99,7 @@ void main() {
         'the constraints', () {
       final box = laidOut(
         'boom\nand more',
-        const BoxConstraints(maxW: 40, maxH: 9),
+        const BoxConstraints(maxWidth: 40, maxHeight: 9),
       );
       expect((box.width, box.height), (15, 2));
       final tight = laidOut('boom', const BoxConstraints.tight(30, 5));
@@ -110,14 +110,17 @@ void main() {
         'it must', () {
       final box = laidOut(
         'boom and more',
-        const BoxConstraints(maxW: 10, maxH: 9),
+        const BoxConstraints(maxWidth: 10, maxHeight: 9),
       );
       expect((box.width, box.height), (10, 3));
       expect(
         renderToString(box, 10, 3, styles: StyleTable()),
         'Bad state:\nboom and\nmore',
       );
-      final narrow = laidOut('abcdef', const BoxConstraints(maxW: 4, maxH: 9));
+      final narrow = laidOut(
+        'abcdef',
+        const BoxConstraints(maxWidth: 4, maxHeight: 9),
+      );
       expect(
         renderToString(narrow, 4, 5, styles: StyleTable()),
         'Bad\nstat\ne:\nabcd\nef',
@@ -146,7 +149,7 @@ void main() {
     test('asks for as many rows as its lines at a width', () {
       final box = laidOut(
         'boom and more',
-        const BoxConstraints(maxW: 10, maxH: 9),
+        const BoxConstraints(maxWidth: 10, maxHeight: 9),
       );
       expect(box.getMaxIntrinsicHeight(10), 3);
       expect(box.getMinIntrinsicHeight(30), 1);

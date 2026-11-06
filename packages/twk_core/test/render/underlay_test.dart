@@ -25,7 +25,7 @@ final class _Leaf extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
+    width = c.maxWidth;
     height = 1;
   }
 

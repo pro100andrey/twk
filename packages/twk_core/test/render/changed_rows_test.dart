@@ -24,7 +24,7 @@ final class _Rig {
     }
     painter
       ..layout(
-        BoxConstraints(maxW: width ?? 10, maxH: 12),
+        BoxConstraints(maxWidth: width ?? 10, maxHeight: 12),
         segmenter: segmenter,
         order: order,
       )

@@ -31,8 +31,8 @@ final class _RenderBad extends RenderObject {
     if (layoutThrows) {
       throw StateError('oops');
     }
-    width = c.constrainW(8);
-    height = c.constrainH(1);
+    width = c.constrainWidth(8);
+    height = c.constrainHeight(1);
   }
 
   @override

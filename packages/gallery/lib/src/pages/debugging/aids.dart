@@ -811,8 +811,8 @@ final class _AidsState extends TimedState<_Aids> {
     final ms = now;
     return LayoutBuilder(
       builder: (context, c) {
-        final w = math.min(_aw, c.maxW);
-        final h = math.min(_ah, c.maxH);
+        final w = math.min(_aw, c.maxWidth);
+        final h = math.min(_ah, c.maxHeight);
         kept
           ..['w'] = w
           ..['h'] = h;

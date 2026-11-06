@@ -379,8 +379,8 @@ final class RenderBarChart extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW < BoxConstraints.unbounded ? c.maxW : c.minW;
-    height = c.maxH < BoxConstraints.unbounded ? c.maxH : c.minH;
+    width = c.maxWidth < BoxConstraints.unbounded ? c.maxWidth : c.minWidth;
+    height = c.maxHeight < BoxConstraints.unbounded ? c.maxHeight : c.minHeight;
   }
 
   // what a paint draws with: the chart's style, the label pen, the

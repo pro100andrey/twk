@@ -590,7 +590,7 @@ typedef ViewportBuilder = Widget Function(
 ///   scrollDirection: Axis.horizontal,
 ///   viewportBuilder: (context, position) => LayoutBuilder(
 ///     builder: (context, constraints) {
-///       position.applyExtents(constraints.maxW, line.length);
+///       position.applyExtents(constraints.maxWidth, line.length);
 ///       return ListenableBuilder(
 ///         listenable: position,
 ///         builder: (context, child) =>

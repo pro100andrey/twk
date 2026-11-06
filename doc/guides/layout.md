@@ -232,12 +232,12 @@ Warnings (1…
 ## Limits and the room
 
 `SizedBox` gives one size. `ConstrainedBox` keeps its child within limits
-and leaves the rest to it: `BoxConstraints(minW: minW, maxW: maxW, minH: minH, maxH: maxH)`, in
+and leaves the rest to it: `BoxConstraints(minWidth: minWidth, maxWidth: maxWidth, minHeight: minHeight, maxHeight: maxHeight)`, in
 cells, positional (twk's names, not Flutter's `maxWidth`), with
 `BoxConstraints.unbounded` for a limit that limits nothing and
 `BoxConstraints.tight(w, h)` for one size. Whatever is inside still gets
 no more than its parent gave. `LayoutBuilder` hands its builder the
-constraints it was given, `maxW` and `maxH` the room in cells, to choose
+constraints it was given, `maxWidth` and `maxHeight` the room in cells, to choose
 by: the app below shows the room and keeps a text to 30 cells.
 
 <!-- file: packages/twk/example/guides/constraints.dart -->
@@ -257,10 +257,10 @@ final class Constraints extends StatelessWidget {
         crossAxisAlignment: .start,
         children: [
           // the room this part of the app is given, in cells
-          Text('room: ${constraints.maxW} x ${constraints.maxH}'),
-          // minW, maxW, minH, maxH: at most 30 wide, any height
+          Text('room: ${constraints.maxWidth} x ${constraints.maxHeight}'),
+          // minWidth, maxWidth, minHeight, maxHeight: at most 30 wide, any height
           const ConstrainedBox(
-            constraints: BoxConstraints(minW: 10, maxW: 30),
+            constraints: BoxConstraints(minWidth: 10, maxWidth: 30),
             child: Box(
               border: .all(type: .rounded),
               child: Text(
@@ -327,7 +327,7 @@ final class _HintsState extends State<Hints> {
         Expanded(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final wide = constraints.maxW >= 40;
+              final wide = constraints.maxWidth >= 40;
               const one = Box(child: Text('one'));
               const two = Box(child: Text('two'));
               // below the LayoutBuilder, so the layout decides the key; the

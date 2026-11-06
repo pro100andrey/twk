@@ -13,8 +13,8 @@ final class TestLeaf extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
   }
 
   @override
@@ -50,8 +50,8 @@ final class TestSingle extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
     _child?.layout(c);
   }
 
@@ -105,8 +105,8 @@ final class TestMulti extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
     for (final child in children) {
       child.layout(c);
     }

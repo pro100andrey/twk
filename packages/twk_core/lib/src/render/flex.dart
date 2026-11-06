@@ -113,12 +113,17 @@ void _layoutChild(
   final c = child._constraints;
   child.layout(
     c != null &&
-            c.minW == minW &&
-            c.maxW == maxW &&
-            c.minH == minH &&
-            c.maxH == maxH
+            c.minWidth == minW &&
+            c.maxWidth == maxW &&
+            c.minHeight == minH &&
+            c.maxHeight == maxH
         ? c
-        : BoxConstraints(minW: minW, maxW: maxW, minH: minH, maxH: maxH),
+        : BoxConstraints(
+            minWidth: minW,
+            maxWidth: maxW,
+            minHeight: minH,
+            maxHeight: maxH,
+          ),
     parentUsesSize: true,
   );
 }
@@ -324,8 +329,8 @@ final class RenderFlex extends RenderObject
   void performLayout(BoxConstraints c) {
     _childrenListed = false;
     final horizontal = _direction == Axis.horizontal;
-    final maxMain = horizontal ? c.maxW : c.maxH;
-    final maxCross = horizontal ? c.maxH : c.maxW;
+    final maxMain = horizontal ? c.maxWidth : c.maxHeight;
+    final maxCross = horizontal ? c.maxHeight : c.maxWidth;
     final minCross = _crossAxisAlignment == CrossAxisAlignment.stretch
         ? maxCross
         : 0;
@@ -380,8 +385,8 @@ final class RenderFlex extends RenderObject
     }
     final main = _mainAxisSize == MainAxisSize.max && bounded
         ? maxMain
-        : (horizontal ? c.constrainW(used) : c.constrainH(used));
-    cross = horizontal ? c.constrainH(cross) : c.constrainW(cross);
+        : (horizontal ? c.constrainWidth(used) : c.constrainHeight(used));
+    cross = horizontal ? c.constrainHeight(cross) : c.constrainWidth(cross);
     width = horizontal ? main : cross;
     height = horizontal ? cross : main;
     assert(_debugReportOverflow(used - main), 'reports the overflow');

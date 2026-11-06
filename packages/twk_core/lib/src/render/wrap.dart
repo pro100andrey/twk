@@ -235,8 +235,8 @@ final class RenderWrap extends RenderObject
   @override
   void performLayout(BoxConstraints c) {
     final horizontal = _direction == Axis.horizontal;
-    final maxMain = horizontal ? c.maxW : c.maxH;
-    final maxCross = horizontal ? c.maxH : c.maxW;
+    final maxMain = horizontal ? c.maxWidth : c.maxHeight;
+    final maxCross = horizontal ? c.maxHeight : c.maxWidth;
     _runCount = 0;
     var longest = 0;
     var thickness = 0;
@@ -271,10 +271,12 @@ final class RenderWrap extends RenderObject
       thickness += thick;
     }
     _thickness = thickness;
-    final main = horizontal ? c.constrainW(longest) : c.constrainH(longest);
+    final main = horizontal
+        ? c.constrainWidth(longest)
+        : c.constrainHeight(longest);
     final cross = horizontal
-        ? c.constrainH(thickness)
-        : c.constrainW(thickness);
+        ? c.constrainHeight(thickness)
+        : c.constrainWidth(thickness);
     width = horizontal ? main : cross;
     height = horizontal ? cross : main;
     assert(_debugReportOverflow(thickness - cross), 'reports the overflow');

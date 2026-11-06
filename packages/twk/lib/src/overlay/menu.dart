@@ -2131,15 +2131,15 @@ final class _RenderMenuPlace extends RenderObject
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW < BoxConstraints.unbounded ? c.maxW : c.minW;
-    height = c.maxH < BoxConstraints.unbounded ? c.maxH : c.minH;
+    width = c.maxWidth < BoxConstraints.unbounded ? c.maxWidth : c.minWidth;
+    height = c.maxHeight < BoxConstraints.unbounded ? c.maxHeight : c.minHeight;
     final target = _anchor.target;
     final at = _at = target == null ? null : offsetIn(this, target);
     var level = 0;
     RenderObject? before;
     for (var child = firstChild; child != null; child = childAfter(child)) {
       child.layout(
-        BoxConstraints(maxW: width, maxH: height),
+        BoxConstraints(maxWidth: width, maxHeight: height),
         parentUsesSize: true,
       );
       final w = child.width - _dw;
@@ -2353,8 +2353,8 @@ final class _RenderMenuBox extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.constrainW(_measure());
-    height = c.constrainH(_rows.length + 2);
+    width = c.constrainWidth(_measure());
+    height = c.constrainHeight(_rows.length + 2);
   }
 
   @override
@@ -2638,8 +2638,10 @@ final class _RenderBarRow extends RenderObject {
   @override
   void performLayout(BoxConstraints c) {
     final total = _measure().last;
-    width = c.maxW < BoxConstraints.unbounded ? c.maxW : c.constrainW(total);
-    height = c.constrainH(1);
+    width = c.maxWidth < BoxConstraints.unbounded
+        ? c.maxWidth
+        : c.constrainWidth(total);
+    height = c.constrainHeight(1);
   }
 
   @override

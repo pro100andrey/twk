@@ -70,8 +70,8 @@ final class _RenderArea extends RenderObject {
   @override
   void performLayout(BoxConstraints c) {
     counts.layouts++;
-    width = c.maxW;
-    height = c.constrainH(rows);
+    width = c.maxWidth;
+    height = c.constrainHeight(rows);
   }
 
   @override
@@ -125,8 +125,8 @@ final class RenderLine extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.constrainH(1);
+    width = c.maxWidth;
+    height = c.constrainHeight(1);
   }
 
   @override

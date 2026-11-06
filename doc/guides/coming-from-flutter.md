@@ -29,12 +29,12 @@ import 'package:twk/twk.dart';
 
 const sized = SizedBox(width: 20, height: 3);
 const insets = EdgeInsets.only(left: 2, right: 2);
-const loose = BoxConstraints(maxW: 40);
+const loose = BoxConstraints(maxWidth: 40);
 ```
 
-- `BoxConstraints` has `minW`, `maxW`, `minH`, `maxH`, not Flutter's
-  `minWidth` and the rest. `BoxConstraints.tight(w, h)` and `tightFor`
-  are there.
+- `BoxConstraints` has `minWidth`, `maxWidth`, `minHeight` and
+  `maxHeight`, as in Flutter, in cells. `BoxConstraints.tight(w, h)` takes the
+  two sizes, not a `Size`, and `tightFor` is there.
 - `EdgeInsets` has `all`, `only`, `x` (left and right) and `y` (top and
   bottom). It has no `symmetric`, `fromLTRB` or `LTRB`.
 - A `double` is still a `double` where it is a proportion: `Slider`'s

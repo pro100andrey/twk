@@ -60,8 +60,8 @@ final class _RenderCounted extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.constrainH(1);
+    width = c.maxWidth;
+    height = c.constrainHeight(1);
   }
 
   @override

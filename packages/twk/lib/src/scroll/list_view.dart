@@ -1099,8 +1099,8 @@ final class _RenderBottom extends RenderObject with RenderObjectWithChildMixin {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
     final list = child;
     if (list == null) {
       return;
@@ -1113,7 +1113,12 @@ final class _RenderBottom extends RenderObject with RenderObjectWithChildMixin {
     try {
       for (var pass = 0; ; pass++) {
         list.layout(
-          BoxConstraints(minW: width, maxW: width, minH: at, maxH: at),
+          BoxConstraints(
+            minWidth: width,
+            maxWidth: width,
+            minHeight: at,
+            maxHeight: at,
+          ),
           parentUsesSize: true,
         );
         final fits = _content < h ? _content : h;

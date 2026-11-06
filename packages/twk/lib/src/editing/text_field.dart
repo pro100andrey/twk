@@ -907,7 +907,7 @@ final class _RenderTextField extends RenderObject {
     _masked = null;
     final c = constraints;
     final follows =
-        c == null || _widthAsked || c.maxW >= BoxConstraints.unbounded;
+        c == null || _widthAsked || c.maxWidth >= BoxConstraints.unbounded;
     if (follows && _measured != _measure()) {
       markNeedsLayout();
     } else {
@@ -940,10 +940,10 @@ final class _RenderTextField extends RenderObject {
   @override
   void performLayout(BoxConstraints c) {
     final measured = _measure();
-    width = c.maxW >= BoxConstraints.unbounded
-        ? c.constrainW(measured)
-        : c.maxW;
-    height = c.constrainH(1);
+    width = c.maxWidth >= BoxConstraints.unbounded
+        ? c.constrainWidth(measured)
+        : c.maxWidth;
+    height = c.constrainHeight(1);
   }
 
   @override

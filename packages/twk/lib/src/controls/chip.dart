@@ -449,7 +449,7 @@ final class _ChipListState<T> extends State<ChipList<T>> {
         child: LayoutBuilder(
           builder: (context, constraints) => _rows(
             segmenterOf(context),
-            constraints.maxW,
+            constraints.maxWidth,
             enabled: enabled,
             highlight: focused ? current : -1,
             plain:

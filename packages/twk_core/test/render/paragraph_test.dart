@@ -125,8 +125,8 @@ final class Hug extends RenderObject with RenderObjectWithChildMixin {
   @override
   void performLayout(BoxConstraints c) {
     layouts++;
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
     final w = child!.getMaxIntrinsicWidth(height);
     child!.layout(BoxConstraints.tight(w < width ? w : width, height));
   }

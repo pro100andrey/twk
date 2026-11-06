@@ -1041,10 +1041,10 @@ final class _RenderProgressList extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW < BoxConstraints.unbounded
-        ? c.maxW
-        : c.constrainW(computeMaxIntrinsicWidth(_height));
-    height = c.constrainH(_height);
+    width = c.maxWidth < BoxConstraints.unbounded
+        ? c.maxWidth
+        : c.constrainWidth(computeMaxIntrinsicWidth(_height));
+    height = c.constrainHeight(_height);
   }
 
   @override

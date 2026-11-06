@@ -67,8 +67,8 @@ final class _RenderFirstRow extends RenderObject
   @override
   void performLayout(BoxConstraints c) {
     child?.layout(c);
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
   }
 
   @override

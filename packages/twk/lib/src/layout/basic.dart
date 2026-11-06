@@ -220,7 +220,7 @@ final class SizedBox extends SingleChildRenderObjectWidget {
 ///
 /// ```dart
 /// const ConstrainedBox(
-///   constraints: BoxConstraints(minW: 10, maxW: 40),
+///   constraints: BoxConstraints(minWidth: 10, maxWidth: 40),
 ///   child: Text('A message that wraps at forty cells'),
 /// )
 /// ```

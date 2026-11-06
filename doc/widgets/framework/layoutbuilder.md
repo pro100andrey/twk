@@ -29,7 +29,7 @@ return SizedBox(
   // constraints the SizedBox gives, and again when they change
   child: LayoutBuilder(
     builder: (context, constraints) {
-      final wide = constraints.maxW >= 30;
+      final wide = constraints.maxWidth >= 30;
       final panes = [
         for (final name in const ['one', 'two'])
           Expanded(

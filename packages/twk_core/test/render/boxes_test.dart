@@ -91,8 +91,8 @@ final class Label extends RenderObject {
   @override
   void performLayout(BoxConstraints c) {
     got = c;
-    width = c.constrainW(_text.length);
-    height = c.constrainH(1);
+    width = c.constrainWidth(_text.length);
+    height = c.constrainHeight(1);
   }
 
   @override
@@ -111,8 +111,8 @@ final class Fill extends RenderObject {
   @override
   void performLayout(BoxConstraints c) {
     got = c;
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
   }
 
   @override
@@ -159,8 +159,8 @@ final class Probe extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
   }
 
   @override
@@ -184,10 +184,10 @@ final class Hug extends RenderObject {
   @override
   void performLayout(BoxConstraints c) {
     layouts++;
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
     child.layout(
-      BoxConstraints(maxW: c.maxW - 1, maxH: c.maxH),
+      BoxConstraints(maxWidth: c.maxWidth - 1, maxHeight: c.maxHeight),
       parentUsesSize: true,
     );
   }
@@ -216,10 +216,10 @@ final class Unbounded extends RenderObject {
   @override
   void performLayout(BoxConstraints c) {
     layouts++;
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
     child.layout(
-      BoxConstraints(maxH: c.maxH),
+      BoxConstraints(maxHeight: c.maxHeight),
       parentUsesSize: true,
     );
   }
@@ -253,8 +253,8 @@ final class Tall extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.constrainW(1);
-    height = c.constrainH(rows);
+    width = c.constrainWidth(1);
+    height = c.constrainHeight(rows);
   }
 
   @override
@@ -319,10 +319,10 @@ void main() {
         child: label,
       );
       expect(
-        layOut(padding, const BoxConstraints(maxW: 10, maxH: 5)),
+        layOut(padding, const BoxConstraints(maxWidth: 10, maxHeight: 5)),
         '2,1 2x1',
       );
-      expect(label.got, const BoxConstraints(maxW: 5, maxH: 3));
+      expect(label.got, const BoxConstraints(maxWidth: 5, maxHeight: 3));
       // as big as the child and the padding
       expect([padding.width, padding.height], [7, 3]);
     });
@@ -336,13 +336,23 @@ void main() {
       expect(
         layOut(
           padding,
-          const BoxConstraints(minW: 6, maxW: 10, minH: 4, maxH: 5),
+          const BoxConstraints(
+            minWidth: 6,
+            maxWidth: 10,
+            minHeight: 4,
+            maxHeight: 5,
+          ),
         ),
         '1,1 4x2',
       );
       expect(
         label.got,
-        const BoxConstraints(minW: 4, maxW: 8, minH: 2, maxH: 3),
+        const BoxConstraints(
+          minWidth: 4,
+          maxWidth: 8,
+          minHeight: 2,
+          maxHeight: 3,
+        ),
       );
       expect([padding.width, padding.height], [6, 4]);
     });
@@ -354,16 +364,22 @@ void main() {
         child: label,
       );
       expect(
-        layOut(padding, const BoxConstraints(minW: 2, maxW: 5, maxH: 1)),
+        layOut(
+          padding,
+          const BoxConstraints(minWidth: 2, maxWidth: 5, maxHeight: 1),
+        ),
         '3,0 0x1',
       );
-      expect(label.got, const BoxConstraints(maxW: 0, maxH: 1));
+      expect(label.got, const BoxConstraints(maxWidth: 0, maxHeight: 1));
       expect([padding.width, padding.height], [5, 1]);
     });
 
     test('without a child is as big as the padding', () {
       final padding = RenderPadding(padding: const EdgeInsets.all(2))
-        ..layout(const BoxConstraints(maxW: 10, maxH: 3), parentUsesSize: true);
+        ..layout(
+          const BoxConstraints(maxWidth: 10, maxHeight: 3),
+          parentUsesSize: true,
+        );
       expect([padding.width, padding.height], [4, 3]);
     });
 
@@ -474,7 +490,7 @@ void main() {
             child: Label('ab'),
           );
           expect(
-            layOut(box, BoxConstraints(maxW: w, maxH: h)),
+            layOut(box, BoxConstraints(maxWidth: w, maxHeight: h)),
             '${at[i]} 2x1',
             reason: '$w x $h, ${alignment.x} ${alignment.y}',
           );
@@ -488,10 +504,15 @@ void main() {
       RenderPositionedBox(
         child: fill,
       ).layout(
-        const BoxConstraints(minW: 4, maxW: 8, minH: 2, maxH: 3),
+        const BoxConstraints(
+          minWidth: 4,
+          maxWidth: 8,
+          minHeight: 2,
+          maxHeight: 3,
+        ),
         parentUsesSize: true,
       );
-      expect(fill.got, const BoxConstraints(maxW: 8, maxH: 3));
+      expect(fill.got, const BoxConstraints(maxWidth: 8, maxHeight: 3));
     });
 
     test('centres its child by default', () {
@@ -506,19 +527,28 @@ void main() {
     test('is its factor times as long as its child along an axis with '
         'one', () {
       final box = RenderPositionedBox(widthFactor: 2, child: Label('ab'));
-      expect(layOut(box, const BoxConstraints(maxW: 10, maxH: 5)), '1,2 2x1');
+      expect(
+        layOut(box, const BoxConstraints(maxWidth: 10, maxHeight: 5)),
+        '1,2 2x1',
+      );
       expect([box.width, box.height], [4, 5]);
       box
         ..widthFactor = null
         ..heightFactor = 3;
-      expect(layOut(box, const BoxConstraints(maxW: 10, maxH: 5)), '4,1 2x1');
+      expect(
+        layOut(box, const BoxConstraints(maxWidth: 10, maxHeight: 5)),
+        '4,1 2x1',
+      );
       expect([box.width, box.height], [10, 3]);
       // within the constraints
       box
         ..widthFactor = 6
         ..heightFactor = 0;
       expect(
-        layOut(box, const BoxConstraints(maxW: 10, minH: 2, maxH: 5)),
+        layOut(
+          box,
+          const BoxConstraints(maxWidth: 10, minHeight: 2, maxHeight: 5),
+        ),
         '4,0 2x1',
       );
       expect([box.width, box.height], [10, 2]);
@@ -527,7 +557,12 @@ void main() {
 
     test('without a child is as long as the constraints allow, or as short '
         'along an axis with a factor', () {
-      const c = BoxConstraints(minW: 1, maxW: 10, minH: 2, maxH: 5);
+      const c = BoxConstraints(
+        minWidth: 1,
+        maxWidth: 10,
+        minHeight: 2,
+        maxHeight: 5,
+      );
       final box = RenderPositionedBox(heightFactor: 2)
         ..layout(c, parentUsesSize: true);
       expect([box.width, box.height], [10, 2]);
@@ -594,12 +629,12 @@ void main() {
         'allow', () {
       final box = RenderPositionedBox(child: Label('ab'))
         ..layout(
-          const BoxConstraints(maxW: 10),
+          const BoxConstraints(maxWidth: 10),
           parentUsesSize: true,
         );
       expect([box.width, box.height], [10, 1]);
       box.layout(
-        const BoxConstraints(maxH: 3),
+        const BoxConstraints(maxHeight: 3),
         parentUsesSize: true,
       );
       expect([box.width, box.height], [2, 3]);
@@ -608,13 +643,13 @@ void main() {
             padding: const EdgeInsets.all(1),
             child: RenderPositionedBox(child: Label('ab')),
           )..layout(
-            const BoxConstraints(maxW: 10),
+            const BoxConstraints(maxWidth: 10),
             parentUsesSize: true,
           );
       expect([padded.width, padded.height], [10, 3]);
       final empty = RenderPositionedBox()
         ..layout(
-          const BoxConstraints(minH: 2),
+          const BoxConstraints(minHeight: 2),
           parentUsesSize: true,
         );
       expect([empty.width, empty.height], [0, 2]);
@@ -652,32 +687,52 @@ void main() {
         'additional ones', () {
       final label = Label('abcdefgh');
       final box = RenderConstrainedBox(
-        additionalConstraints: const BoxConstraints(minW: 2, maxW: 6, minH: 1),
+        additionalConstraints: const BoxConstraints(
+          minWidth: 2,
+          maxWidth: 6,
+          minHeight: 1,
+        ),
         child: label,
       );
-      expect(layOut(box, const BoxConstraints(maxW: 10, maxH: 5)), '0,0 6x1');
+      expect(
+        layOut(box, const BoxConstraints(maxWidth: 10, maxHeight: 5)),
+        '0,0 6x1',
+      );
       expect(
         label.got,
-        const BoxConstraints(minW: 2, maxW: 6, minH: 1, maxH: 5),
+        const BoxConstraints(
+          minWidth: 2,
+          maxWidth: 6,
+          minHeight: 1,
+          maxHeight: 5,
+        ),
       );
       expect([box.width, box.height], [6, 1]);
       // additional constraints beyond its own are brought within them
       box.additionalConstraints = const BoxConstraints(
-        minW: 12,
-        maxW: 20,
-        maxH: 3,
+        minWidth: 12,
+        maxWidth: 20,
+        maxHeight: 3,
       );
       expect(
-        layOut(box, const BoxConstraints(maxW: 10, minH: 2, maxH: 5)),
+        layOut(
+          box,
+          const BoxConstraints(maxWidth: 10, minHeight: 2, maxHeight: 5),
+        ),
         '0,0 10x2',
       );
       expect(
         label.got,
-        const BoxConstraints(minW: 10, maxW: 10, minH: 2, maxH: 3),
+        const BoxConstraints(
+          minWidth: 10,
+          maxWidth: 10,
+          minHeight: 2,
+          maxHeight: 3,
+        ),
       );
       expect(
         box.additionalConstraints,
-        const BoxConstraints(minW: 12, maxW: 20, maxH: 3),
+        const BoxConstraints(minWidth: 12, maxWidth: 20, maxHeight: 3),
       );
     });
 
@@ -686,7 +741,7 @@ void main() {
           RenderConstrainedBox(
             additionalConstraints: const BoxConstraints.tightFor(width: 4),
           )..layout(
-            const BoxConstraints(maxW: 10, minH: 1, maxH: 5),
+            const BoxConstraints(maxWidth: 10, minHeight: 1, maxHeight: 5),
             parentUsesSize: true,
           );
       expect([box.width, box.height], [4, 1]);
@@ -694,13 +749,17 @@ void main() {
 
     test('with unbounded tight constraints fills its own', () {
       final fill = Fill('x');
-      final box = RenderConstrainedBox(
-        additionalConstraints: const BoxConstraints.tightFor(
-          width: BoxConstraints.unbounded,
-          height: BoxConstraints.unbounded,
-        ),
-        child: fill,
-      )..layout(const BoxConstraints(maxW: 10, maxH: 5), parentUsesSize: true);
+      final box =
+          RenderConstrainedBox(
+            additionalConstraints: const BoxConstraints.tightFor(
+              width: BoxConstraints.unbounded,
+              height: BoxConstraints.unbounded,
+            ),
+            child: fill,
+          )..layout(
+            const BoxConstraints(maxWidth: 10, maxHeight: 5),
+            parentUsesSize: true,
+          );
       expect(fill.got, const BoxConstraints.tight(10, 5));
       expect([box.width, box.height], [10, 5]);
     });
@@ -723,7 +782,7 @@ void main() {
         'constraints', () {
       final child = Probe(minW: 3, maxW: 7, minH: 1, maxH: 2);
       final box = RenderConstrainedBox(
-        additionalConstraints: const BoxConstraints(minW: 4, maxW: 6),
+        additionalConstraints: const BoxConstraints(minWidth: 4, maxWidth: 6),
         child: child,
       );
       expect(intrinsics(box, 10), [4, 6, 1, 2]);
@@ -761,10 +820,10 @@ void main() {
         intrinsics(
           RenderConstrainedBox(
             additionalConstraints: const BoxConstraints(
-              minW: 2,
-              maxW: 3,
-              minH: 1,
-              maxH: 4,
+              minWidth: 2,
+              maxWidth: 3,
+              minHeight: 1,
+              maxHeight: 4,
             ),
           ),
           5,
@@ -783,7 +842,10 @@ void main() {
         heightFactor: 1 / 3,
         child: fill,
       );
-      expect(layOut(box, const BoxConstraints(maxW: 10, maxH: 7)), '2,2 5x2');
+      expect(
+        layOut(box, const BoxConstraints(maxWidth: 10, maxHeight: 7)),
+        '2,2 5x2',
+      );
       expect(fill.got, const BoxConstraints.tight(5, 2));
       expect([box.width, box.height], [10, 7]);
     });
@@ -805,10 +867,10 @@ void main() {
       for (final (extent, factor, cells) in cases) {
         final fill = Fill('x');
         RenderFractionallySizedBox(widthFactor: factor, child: fill).layout(
-          BoxConstraints(maxW: extent, maxH: 1),
+          BoxConstraints(maxWidth: extent, maxHeight: 1),
           parentUsesSize: true,
         );
-        expect(fill.got!.maxW, cells, reason: '$factor of $extent');
+        expect(fill.got!.maxWidth, cells, reason: '$factor of $extent');
       }
     });
 
@@ -817,12 +879,20 @@ void main() {
       final fill = Fill('x');
       final box = RenderFractionallySizedBox(widthFactor: 0.5, child: fill);
       expect(
-        layOut(box, const BoxConstraints(maxW: 10, minH: 2, maxH: 6)),
+        layOut(
+          box,
+          const BoxConstraints(maxWidth: 10, minHeight: 2, maxHeight: 6),
+        ),
         '2,0 5x6',
       );
       expect(
         fill.got,
-        const BoxConstraints(minW: 5, maxW: 5, minH: 2, maxH: 6),
+        const BoxConstraints(
+          minWidth: 5,
+          maxWidth: 5,
+          minHeight: 2,
+          maxHeight: 6,
+        ),
       );
     });
 
@@ -836,12 +906,12 @@ void main() {
         child: label,
       );
       expect(
-        layOut(box, const BoxConstraints(maxW: 10)),
+        layOut(box, const BoxConstraints(maxWidth: 10)),
         '0,0 5x1',
       );
       expect(
         label.got,
-        const BoxConstraints(minW: 5, maxW: 5),
+        const BoxConstraints(minWidth: 5, maxWidth: 5),
       );
       expect([box.width, box.height], [10, 1]);
     });
@@ -850,7 +920,7 @@ void main() {
         'along an unbounded axis', () {
       final box = RenderFractionallySizedBox(widthFactor: 0.5)
         ..layout(
-          const BoxConstraints(maxW: 10, minH: 1),
+          const BoxConstraints(maxWidth: 10, minHeight: 1),
           parentUsesSize: true,
         );
       expect([box.width, box.height], [10, 1]);
@@ -900,10 +970,10 @@ void main() {
       // which is what the child then gets: 13 columns give it 7
       final fill = Fill('x');
       RenderFractionallySizedBox(widthFactor: 0.5, child: fill).layout(
-        const BoxConstraints(maxW: 13, maxH: 1),
+        const BoxConstraints(maxWidth: 13, maxHeight: 1),
         parentUsesSize: true,
       );
-      expect(fill.got!.maxW, 7);
+      expect(fill.got!.maxWidth, 7);
       // no fraction of any extent gives the child anything
       expect(
         intrinsics(
@@ -936,10 +1006,10 @@ void main() {
       expect(box.getMaxIntrinsicWidth(1), 46);
       final fill = Fill('x');
       RenderFractionallySizedBox(widthFactor: 0.7, child: fill).layout(
-        const BoxConstraints(maxW: 15, maxH: 1),
+        const BoxConstraints(maxWidth: 15, maxHeight: 1),
         parentUsesSize: true,
       );
-      expect(fill.got!.maxW, 11);
+      expect(fill.got!.maxWidth, 11);
     });
 
     test('a new height factor lays it out again; the factors and the '
@@ -966,7 +1036,10 @@ void main() {
         'height', () {
       final child = Probe(maxW: 4);
       final box = RenderIntrinsicWidth(child: child);
-      expect(layOut(box, const BoxConstraints(maxW: 10, maxH: 5)), '0,0 4x5');
+      expect(
+        layOut(box, const BoxConstraints(maxWidth: 10, maxHeight: 5)),
+        '0,0 4x5',
+      );
       expect(child.asked[1], 5);
       expect([box.width, box.height], [4, 5]);
     });
@@ -975,13 +1048,19 @@ void main() {
       final child = Probe(maxW: 4);
       final box = RenderIntrinsicWidth(child: child);
       expect(
-        layOut(box, const BoxConstraints(minW: 6, maxW: 10, maxH: 5)),
+        layOut(
+          box,
+          const BoxConstraints(minWidth: 6, maxWidth: 10, maxHeight: 5),
+        ),
         '0,0 6x5',
       );
       final other = Probe(maxW: 4);
       final tight = RenderIntrinsicWidth(child: other);
       expect(
-        layOut(tight, const BoxConstraints(minW: 8, maxW: 8, maxH: 5)),
+        layOut(
+          tight,
+          const BoxConstraints(minWidth: 8, maxWidth: 8, maxHeight: 5),
+        ),
         '0,0 8x5',
       );
       expect(other.asked, [-1, -1, -1, -1]);
@@ -994,7 +1073,10 @@ void main() {
         stepHeight: 2,
         child: child,
       );
-      expect(layOut(box, const BoxConstraints(maxW: 10, maxH: 8)), '0,0 6x4');
+      expect(
+        layOut(box, const BoxConstraints(maxWidth: 10, maxHeight: 8)),
+        '0,0 6x4',
+      );
       // the height at the width it gets
       expect(child.asked, [-1, 8, -1, 6]);
     });
@@ -1017,7 +1099,12 @@ void main() {
     test('without a child is as small as the constraints allow', () {
       final box = RenderIntrinsicWidth(stepWidth: 2)
         ..layout(
-          const BoxConstraints(minW: 1, maxW: 10, minH: 2, maxH: 5),
+          const BoxConstraints(
+            minWidth: 1,
+            maxWidth: 10,
+            minHeight: 2,
+            maxHeight: 5,
+          ),
           parentUsesSize: true,
         );
       expect([box.width, box.height], [1, 2]);
@@ -1050,14 +1137,17 @@ void main() {
         'width', () {
       final child = Probe(maxH: 3);
       final box = RenderIntrinsicHeight(child: child);
-      expect(layOut(box, const BoxConstraints(maxW: 10, maxH: 8)), '0,0 10x3');
+      expect(
+        layOut(box, const BoxConstraints(maxWidth: 10, maxHeight: 8)),
+        '0,0 10x3',
+      );
       expect(child.asked[3], 10);
       expect([box.width, box.height], [10, 3]);
       final other = Probe(maxH: 3);
       expect(
         layOut(
           RenderIntrinsicHeight(child: other),
-          const BoxConstraints(maxW: 10, minH: 5, maxH: 5),
+          const BoxConstraints(maxWidth: 10, minHeight: 5, maxHeight: 5),
         ),
         '0,0 10x5',
       );
@@ -1096,7 +1186,12 @@ void main() {
     test('without a child is as small as the constraints allow', () {
       final box = RenderIntrinsicHeight()
         ..layout(
-          const BoxConstraints(minW: 1, maxW: 10, minH: 2, maxH: 5),
+          const BoxConstraints(
+            minWidth: 1,
+            maxWidth: 10,
+            minHeight: 2,
+            maxHeight: 5,
+          ),
           parentUsesSize: true,
         );
       expect([box.width, box.height], [1, 2]);
@@ -1113,7 +1208,7 @@ void main() {
       RenderPadding(padding: const EdgeInsets.all(1), child: a),
       RenderPositionedBox(widthFactor: 1, heightFactor: 1, child: b),
       RenderConstrainedBox(
-        additionalConstraints: const BoxConstraints(maxW: 5, maxH: 1),
+        additionalConstraints: const BoxConstraints(maxWidth: 5, maxHeight: 1),
         child: c,
       ),
     ];

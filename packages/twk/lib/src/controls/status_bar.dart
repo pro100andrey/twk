@@ -177,10 +177,10 @@ final class _RenderSections extends RenderObject
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW < BoxConstraints.unbounded
-        ? c.maxW
-        : c.constrainW(computeMaxIntrinsicWidth(1));
-    height = c.constrainH(1);
+    width = c.maxWidth < BoxConstraints.unbounded
+        ? c.maxWidth
+        : c.constrainWidth(computeMaxIntrinsicWidth(1));
+    height = c.constrainHeight(1);
     final left = firstChild;
     final center = left == null ? null : childAfter(left);
     final right = center == null ? null : childAfter(center);
@@ -206,7 +206,10 @@ final class _RenderSections extends RenderObject
   /// Lays [child] out at most [w] wide and places it at [x], or at the
   /// right edge for -1.
   void _lay(RenderObject child, int w, int x) {
-    child.layout(BoxConstraints(maxW: w, maxH: height), parentUsesSize: true);
+    child.layout(
+      BoxConstraints(maxWidth: w, maxHeight: height),
+      parentUsesSize: true,
+    );
     child.parentData
       ..dx = x < 0 ? width - child.width : x
       ..dy = 0;

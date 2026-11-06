@@ -476,16 +476,20 @@ final class _RenderFold extends RenderObject with RenderObjectWithChildMixin {
   void performLayout(BoxConstraints c) {
     final child = this.child;
     if (child == null) {
-      width = c.minW;
-      height = c.minH;
+      width = c.minWidth;
+      height = c.minHeight;
       return;
     }
     child.layout(
-      BoxConstraints(minW: c.minW, maxW: c.maxW, maxH: c.maxH),
+      BoxConstraints(
+        minWidth: c.minWidth,
+        maxWidth: c.maxWidth,
+        maxHeight: c.maxHeight,
+      ),
       parentUsesSize: true,
     );
-    width = c.constrainW(child.width);
-    height = c.constrainH(_rows(child.height));
+    width = c.constrainWidth(child.width);
+    height = c.constrainHeight(_rows(child.height));
     child.parentData
       ..dx = 0
       ..dy = 0;

@@ -86,8 +86,8 @@ final class Label extends RenderObject {
   void performLayout(BoxConstraints c) {
     layouts++;
     got = c;
-    width = c.constrainW(_text.length);
-    height = c.constrainH(1);
+    width = c.constrainWidth(_text.length);
+    height = c.constrainHeight(1);
   }
 
   @override
@@ -117,8 +117,8 @@ final class Fill extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
   }
 
   @override
@@ -165,8 +165,8 @@ final class Probe extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
   }
 
   @override
@@ -201,8 +201,8 @@ final class Words extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
   }
 
   @override
@@ -231,8 +231,8 @@ final class Panel extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
   }
 
   @override
@@ -329,16 +329,20 @@ void main() {
     test('take their cells, each child laid out exactly as big as its '
         'cells', () {
       final a = Label('abcd');
-      final grid = RenderGrid(
-        columns: const [GridTrack.fixed(3), GridTrack.fixed(2)],
-        rows: const [GridTrack.fixed(1), GridTrack.fixed(2)],
-        children: [
-          cell(a, 0, 0),
-          cell(Label('ef'), 0, 1),
-          cell(Fill('x'), 1, 0),
-          cell(Fill('y'), 1, 1),
-        ],
-      )..layout(const BoxConstraints(maxW: 20, maxH: 10), parentUsesSize: true);
+      final grid =
+          RenderGrid(
+            columns: const [GridTrack.fixed(3), GridTrack.fixed(2)],
+            rows: const [GridTrack.fixed(1), GridTrack.fixed(2)],
+            children: [
+              cell(a, 0, 0),
+              cell(Label('ef'), 0, 1),
+              cell(Fill('x'), 1, 0),
+              cell(Fill('y'), 1, 1),
+            ],
+          )..layout(
+            const BoxConstraints(maxWidth: 20, maxHeight: 10),
+            parentUsesSize: true,
+          );
       expect([grid.width, grid.height], [5, 3]);
       expect(boxes(grid), ['0,0 3x1', '3,0 2x1', '0,1 3x2', '3,1 2x2']);
       expect(a.got, const BoxConstraints.tight(3, 1));
@@ -476,7 +480,10 @@ void main() {
         columns: const [GridTrack.content(), GridTrack.content()],
         children: [Probe(minW: 2, maxW: 10), Probe(minW: 4, maxW: 6)],
       );
-      expect(widthsIn(grid(), const BoxConstraints(maxW: 30, maxH: 1)), '10 6');
+      expect(
+        widthsIn(grid(), const BoxConstraints(maxWidth: 30, maxHeight: 1)),
+        '10 6',
+      );
       // 2 and 4 needed, 6 cells more: 2 each, then the second wants no more
       expect(widthsIn(grid(), const BoxConstraints.tight(12, 1)), '6 6');
       expect(widthsIn(grid(), const BoxConstraints.tight(11, 1)), '5 6');
@@ -498,7 +505,10 @@ void main() {
         ],
         children: [Label('ab'), long],
       );
-      expect(widthsIn(grid, const BoxConstraints(maxW: 30, maxH: 5)), '3 5 3');
+      expect(
+        widthsIn(grid, const BoxConstraints(maxWidth: 30, maxHeight: 5)),
+        '3 5 3',
+      );
       expect([grid.width, grid.height], [11, 1]);
       expect(long.got, const BoxConstraints.tight(5, 1));
     });
@@ -507,10 +517,14 @@ void main() {
         'columns they span', () {
       final a = Words(12);
       final b = Words(12);
-      final grid = RenderGrid(
-        columns: const [GridTrack.fixed(4), GridTrack.fixed(2)],
-        children: [cell(a, 0, 0, 1, 2), cell(b, 1, 0)],
-      )..layout(const BoxConstraints(maxW: 10, maxH: 10), parentUsesSize: true);
+      final grid =
+          RenderGrid(
+            columns: const [GridTrack.fixed(4), GridTrack.fixed(2)],
+            children: [cell(a, 0, 0, 1, 2), cell(b, 1, 0)],
+          )..layout(
+            const BoxConstraints(maxWidth: 10, maxHeight: 10),
+            parentUsesSize: true,
+          );
       expect(heights(grid), '2 3');
       expect([a.askedAt, b.askedAt], [6, 4]);
     });
@@ -531,7 +545,7 @@ void main() {
       );
       // it needs 1 more and wants 8 more than that: 4 each
       expect(
-        widthsIn(grid(), const BoxConstraints(maxW: 30, maxH: 1)),
+        widthsIn(grid(), const BoxConstraints(maxWidth: 30, maxHeight: 1)),
         '2 5 4',
       );
       expect(widthsIn(grid(), const BoxConstraints.tight(9, 1)), '2 3 2');
@@ -539,11 +553,15 @@ void main() {
     });
 
     test('grows the content rows it spans', () {
-      final grid = RenderGrid(
-        columns: const [GridTrack.fixed(2)],
-        rows: const [GridTrack.content(), GridTrack.content()],
-        children: [cell(Probe(minH: 3, maxH: 3), 0, 0, 2)],
-      )..layout(const BoxConstraints(maxW: 10, maxH: 10), parentUsesSize: true);
+      final grid =
+          RenderGrid(
+            columns: const [GridTrack.fixed(2)],
+            rows: const [GridTrack.content(), GridTrack.content()],
+            children: [cell(Probe(minH: 3, maxH: 3), 0, 0, 2)],
+          )..layout(
+            const BoxConstraints(maxWidth: 10, maxHeight: 10),
+            parentUsesSize: true,
+          );
       expect(heights(grid), '2 1');
     });
 
@@ -572,7 +590,10 @@ void main() {
         ],
       );
       // 2 and 2 for the second, then 1 and 1 more for the first
-      expect(widthsIn(grid, const BoxConstraints(maxW: 30, maxH: 2)), '3 3 0');
+      expect(
+        widthsIn(grid, const BoxConstraints(maxWidth: 30, maxHeight: 2)),
+        '3 3 0',
+      );
     });
   });
 
@@ -601,7 +622,7 @@ void main() {
       expect(
         widthsIn(
           grid,
-          const BoxConstraints(minW: 20, minH: 1, maxH: 1),
+          const BoxConstraints(minWidth: 20, minHeight: 1, maxHeight: 1),
         ),
         '3 6 11',
       );
@@ -685,9 +706,13 @@ void main() {
     });
 
     test('without columns, each such child is on a row of its own', () {
-      final grid = RenderGrid(
-        children: [Label('a'), Label('bc')],
-      )..layout(const BoxConstraints(maxW: 10, maxH: 10), parentUsesSize: true);
+      final grid =
+          RenderGrid(
+            children: [Label('a'), Label('bc')],
+          )..layout(
+            const BoxConstraints(maxWidth: 10, maxHeight: 10),
+            parentUsesSize: true,
+          );
       expect(boxes(grid), ['0,0 2x1', '0,1 2x1']);
     });
 
@@ -803,7 +828,7 @@ void main() {
       rows: const [GridTrack.fixed(1), GridTrack.fixed(1)],
       children: [cell(Fill('a'), 0, 0), cell(Fill('b'), 1, 1)],
     );
-    const loose = BoxConstraints(maxW: 10, maxH: 10);
+    const loose = BoxConstraints(maxWidth: 10, maxHeight: 10);
     List<String> after(void Function() change) {
       change();
       grid.layout(loose, parentUsesSize: true);

@@ -38,7 +38,7 @@ extension _Inspector on GalleryShellState {
     final w = pw - pad - 2;
     return LayoutBuilder(
       builder: (context, c) {
-        final h = c.maxH < BoxConstraints.unbounded ? c.maxH : 0;
+        final h = c.maxHeight < BoxConstraints.unbounded ? c.maxHeight : 0;
         final view = h - 1 < 0 ? 0 : h - 1;
         final rows = <({int y, int h})>[];
         var content = 0;

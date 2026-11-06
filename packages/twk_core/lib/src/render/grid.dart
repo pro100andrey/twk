@@ -400,14 +400,26 @@ final class RenderGrid extends RenderObject
   @override
   void performLayout(BoxConstraints c) {
     _place();
-    final columns = _columnAt = _fit(true, _columnAt, c.minW, c.maxW, null);
+    final columns = _columnAt = _fit(
+      true,
+      _columnAt,
+      c.minWidth,
+      c.maxWidth,
+      null,
+    );
     _columnCount = _placedColumns;
-    final rows = _rowAt = _fit(false, _rowAt, c.minH, c.maxH, columns);
+    final rows = _rowAt = _fit(
+      false,
+      _rowAt,
+      c.minHeight,
+      c.maxHeight,
+      columns,
+    );
     _rowCount = _placedRows;
     final w = _length(columns, _columnCount, _columnGap);
     final h = _length(rows, _rowCount, _rowGap);
-    width = c.constrainW(w);
-    height = c.constrainH(h);
+    width = c.constrainWidth(w);
+    height = c.constrainHeight(h);
     assert(_debugReportOverflow(w - width, h - height), 'reports overflow');
     for (var child = _firstChild; child != null;) {
       final at = child.parentData as GridParentData;

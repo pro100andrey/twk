@@ -74,8 +74,8 @@ final class Panel extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
   }
 
   @override
@@ -101,7 +101,7 @@ final class Narrow extends RenderObject with RenderObjectWithChildMixin {
   @override
   void performLayout(BoxConstraints c) {
     width = w;
-    height = c.maxH;
+    height = c.maxHeight;
     child!.layout(BoxConstraints.tight(childWidth, height));
   }
 
@@ -123,8 +123,8 @@ final class Frame extends RenderObject with RenderObjectWithChildMixin {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
     child!.layout(BoxConstraints.tight(width, height));
   }
 

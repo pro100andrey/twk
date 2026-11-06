@@ -2651,8 +2651,8 @@ final class _RenderView extends RenderObject with RenderObjectWithChildMixin {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
     final console = _console;
     final child = this.child;
     if (child != null && _rows != null) {

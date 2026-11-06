@@ -26,7 +26,8 @@ final List<String> _history = [
 ];
 
 /// Shows the size it is laid out at.
-Widget _size() => LayoutBuilder(builder: (_, c) => Text('${c.maxW}x${c.maxH}'));
+Widget _size() =>
+    LayoutBuilder(builder: (_, c) => Text('${c.maxWidth}x${c.maxHeight}'));
 
 void main() {
   // twk's viewport app and the replay, run in processes of their own,

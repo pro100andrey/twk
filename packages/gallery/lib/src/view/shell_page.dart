@@ -126,7 +126,7 @@ extension _PageArea on GalleryShellState {
       // the Code in the room the stage would give the widget here
       body = LayoutBuilder(
         builder: (context, c) {
-          final room = stageRoomIn(c.maxW, c.maxH);
+          final room = stageRoomIn(c.maxWidth, c.maxHeight);
           _rooms[key] = room;
           // built in layout, after the screen's build: its own frame time
           _motion.begin(context);

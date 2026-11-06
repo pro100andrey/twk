@@ -55,7 +55,7 @@ final class _CounterState extends State<Counter> {
         child: Column(
           children: [
             Text.rich(['Hello, '.dim, widget.user.bold]),
-            Text('${size.maxW}x${size.maxH}'),
+            Text('${size.maxWidth}x${size.maxHeight}'),
             Text.rich(['Count: '.dim, '$_n'.bold.fg(.green)]),
           ],
         ),

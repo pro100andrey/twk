@@ -1474,8 +1474,8 @@ final class _RenderSelected extends RenderObject
   void performLayout(BoxConstraints c) {
     final child = this.child;
     if (child == null) {
-      width = c.minW;
-      height = c.minH;
+      width = c.minWidth;
+      height = c.minHeight;
       return;
     }
     child.layout(c, parentUsesSize: true);
@@ -1669,11 +1669,11 @@ final class _RenderLine extends RenderObject with RenderObjectWithChildMixin {
       height = child.height;
     } else {
       child.layout(
-        BoxConstraints(minH: c.minH, maxH: c.maxH),
+        BoxConstraints(minHeight: c.minHeight, maxHeight: c.maxHeight),
         parentUsesSize: true,
       );
-      width = c.maxW;
-      height = c.constrainH(child.height);
+      width = c.maxWidth;
+      height = c.constrainHeight(child.height);
     }
     _place();
   }

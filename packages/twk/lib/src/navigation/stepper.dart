@@ -736,7 +736,7 @@ final class _StepperState extends State<Stepper> {
                 theme,
                 segmenterOf(context),
                 current,
-                constraints.maxW,
+                constraints.maxWidth,
               ),
             ),
           ),

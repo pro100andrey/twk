@@ -583,8 +583,8 @@ final class GalleryShellState extends State<GalleryShell>
   Widget _screen(BuildContext context, BoxConstraints c) {
     _motion.begin(context);
     final t = Tokens(Theme.of(context));
-    final w = c.maxW < BoxConstraints.unbounded ? c.maxW : 120;
-    final h = c.maxH < BoxConstraints.unbounded ? c.maxH : 36;
+    final w = c.maxWidth < BoxConstraints.unbounded ? c.maxWidth : 120;
+    final h = c.maxHeight < BoxConstraints.unbounded ? c.maxHeight : 36;
     final sw = sidebarWidth(w);
     final children = <Widget>[
       Positioned(

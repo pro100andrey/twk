@@ -405,8 +405,8 @@ final class _RenderEdge extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.constrainW(1);
-    height = c.constrainH(0);
+    width = c.constrainWidth(1);
+    height = c.constrainHeight(0);
   }
 
   @override

@@ -291,7 +291,7 @@ void main() {
         title: 'Table',
         options: const [SwitchOption('on', 'on')],
         build: (context, o) => LayoutBuilder(
-          builder: (context, c) => Text('stage ${c.maxW} x ${c.maxH}'),
+          builder: (context, c) => Text('stage ${c.maxWidth} x ${c.maxHeight}'),
         ),
         codeIn: (o, room) => '// code ${room.width} x ${room.height}',
       );
@@ -448,7 +448,7 @@ void main() {
       options: const [SwitchOption('on', 'on')],
       minWidth: minWidth,
       build: (context, o) => LayoutBuilder(
-        builder: (context, c) => Text('stage ${c.maxW} wide'),
+        builder: (context, c) => Text('stage ${c.maxWidth} wide'),
       ),
     );
     // 120 columns: the page 92, the inspector beside the stage leaves the

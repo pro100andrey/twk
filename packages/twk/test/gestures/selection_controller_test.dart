@@ -107,8 +107,8 @@ final class RenderGrid extends RenderObject with Selectable {
   @override
   void performLayout(BoxConstraints c) {
     final widest = lines.fold(0, (w, l) => l.length > w ? l.length : w);
-    width = c.constrainW(columns ?? widest);
-    height = c.constrainH(rows ?? lines.length);
+    width = c.constrainWidth(columns ?? widest);
+    height = c.constrainHeight(rows ?? lines.length);
   }
 
   @override

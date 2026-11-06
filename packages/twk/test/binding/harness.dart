@@ -167,8 +167,8 @@ final class RenderLabel extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.constrainW(_text.length);
-    height = c.constrainH(1);
+    width = c.constrainWidth(_text.length);
+    height = c.constrainHeight(1);
   }
 
   @override
@@ -193,8 +193,8 @@ final class _RenderFill extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
   }
 
   @override

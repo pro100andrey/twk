@@ -320,8 +320,8 @@ final class _RenderLog extends RenderObject with Selectable {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.constrainH(5);
+    width = c.maxWidth;
+    height = c.constrainHeight(5);
   }
 
   @override
@@ -481,8 +481,8 @@ String _selectionLogCode(Options o) => [
   '',
   '  @override',
   '  void performLayout(BoxConstraints c) {',
-  '    width = c.maxW;',
-  '    height = c.constrainH(5);',
+  '    width = c.maxWidth;',
+  '    height = c.constrainHeight(5);',
   '  }',
   '',
   '  @override',

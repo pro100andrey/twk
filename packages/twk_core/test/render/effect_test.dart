@@ -98,8 +98,8 @@ final class Line extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.constrainW(stringWidth(_text));
-    height = c.constrainH(1);
+    width = c.constrainWidth(stringWidth(_text));
+    height = c.constrainHeight(1);
   }
 
   @override
@@ -133,8 +133,8 @@ final class Board extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.constrainW(_text.length);
-    height = c.constrainH(1);
+    width = c.constrainWidth(_text.length);
+    height = c.constrainHeight(1);
   }
 
   @override
@@ -486,7 +486,10 @@ void main() {
   test('is as big as its child, and asks for what its child asks for; '
       'without a child, as small as the constraints allow', () {
     final effect = Widen(RenderParagraph([('ab cd', const Pen())]))
-      ..layout(const BoxConstraints(maxW: 10, maxH: 5), parentUsesSize: true);
+      ..layout(
+        const BoxConstraints(maxWidth: 10, maxHeight: 5),
+        parentUsesSize: true,
+      );
     expect((effect.width, effect.height), (5, 1));
     expect(
       [
@@ -499,7 +502,12 @@ void main() {
     );
     final empty = Widen(null)
       ..layout(
-        const BoxConstraints(minW: 1, maxW: 10, minH: 2, maxH: 5),
+        const BoxConstraints(
+          minWidth: 1,
+          maxWidth: 10,
+          minHeight: 2,
+          maxHeight: 5,
+        ),
         parentUsesSize: true,
       );
     expect((empty.width, empty.height), (1, 2));

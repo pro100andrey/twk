@@ -238,8 +238,8 @@ final class RenderQrCode extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.constrainW(_columns);
-    height = c.constrainH(_lines);
+    width = c.constrainWidth(_columns);
+    height = c.constrainHeight(_lines);
   }
 
   @override

@@ -428,12 +428,12 @@ extension on _ButtonState {
         final inner = Padding(padding: const EdgeInsets.x(1), child: label);
         return LayoutBuilder(
           builder: (context, c) => Row(
-            mainAxisSize: c.minW == c.maxW
+            mainAxisSize: c.minWidth == c.maxWidth
                 ? MainAxisSize.max
                 : MainAxisSize.min,
             children: [
               open,
-              if (c.minW == c.maxW) Expanded(child: inner) else inner,
+              if (c.minWidth == c.maxWidth) Expanded(child: inner) else inner,
               close,
             ],
           ),

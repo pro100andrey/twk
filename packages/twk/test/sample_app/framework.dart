@@ -15,7 +15,7 @@ extension on _SampleAppState {
             ),
             IntrinsicWidth(
               stepWidth: 2,
-              child: Text('${constraints.maxW} wide'),
+              child: Text('${constraints.maxWidth} wide'),
             ),
             const IntrinsicHeight(child: Text('content')),
             StatefulBuilder(
@@ -169,7 +169,7 @@ final class Glyphs extends LeafRenderObjectWidget {
   }
 }
 
-const _loose = BoxConstraints(maxW: 10, maxH: 1);
+const _loose = BoxConstraints(maxWidth: 10, maxHeight: 1);
 
 /// What [Glyphs] lays out and paints: its text shaped once.
 final class RenderGlyphs extends RenderObject {
@@ -207,8 +207,8 @@ final class RenderGlyphs extends RenderObject {
     assert(fitText(segmenter, _text, columns) == _text, _text);
     assert(padCells(segmenter, _text, columns) == _text, _text);
     assert(breakLines(TextSegmenter(), _text, columns + 1).isNotEmpty, _text);
-    width = c.constrainW(columns);
-    height = c.constrainH(1);
+    width = c.constrainWidth(columns);
+    height = c.constrainHeight(1);
   }
 
   @override
@@ -273,14 +273,14 @@ final class RenderStrip extends RenderObject
     }
     var x = 0;
     for (var o = firstChild; o != null; o = childAfter(o)) {
-      final w = c.maxW * (o.parentData as ShareData).weight ~/ weights;
+      final w = c.maxWidth * (o.parentData as ShareData).weight ~/ weights;
       o
-        ..layout(BoxConstraints(maxW: w, maxH: c.maxH))
+        ..layout(BoxConstraints(maxWidth: w, maxHeight: c.maxHeight))
         ..parentData.dx = x;
       x += w;
     }
-    width = c.maxW;
-    height = c.constrainH(1);
+    width = c.maxWidth;
+    height = c.constrainHeight(1);
   }
 
   @override
@@ -307,15 +307,15 @@ final class RenderFrame extends RenderObject with RenderObjectWithChildMixin {
     if (child case final child?) {
       child
         ..layout(
-          BoxConstraints(maxW: c.maxW - 1, maxH: c.maxH),
+          BoxConstraints(maxWidth: c.maxWidth - 1, maxHeight: c.maxHeight),
           parentUsesSize: true,
         )
         ..parentData.dx = 1;
       w += child.width;
       h = child.height;
     }
-    width = c.constrainW(w);
-    height = c.constrainH(h);
+    width = c.constrainWidth(w);
+    height = c.constrainHeight(h);
   }
 
   @override

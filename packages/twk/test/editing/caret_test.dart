@@ -63,8 +63,8 @@ final class _RenderCell extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.constrainW(1);
-    height = c.constrainH(1);
+    width = c.constrainWidth(1);
+    height = c.constrainHeight(1);
   }
 
   @override

@@ -435,7 +435,7 @@ void main() {
         datasets: const [],
         xAxis: const ChartAxis(bounds: (0, 1)),
         yAxis: const ChartAxis(bounds: (0, 1)),
-      )..layout(const BoxConstraints(maxW: 5, minH: 2));
+      )..layout(const BoxConstraints(maxWidth: 5, minHeight: 2));
       expect((chart.width, chart.height), (5, 2));
     });
   });

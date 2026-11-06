@@ -258,8 +258,8 @@ final class _RenderCustomPaint extends RenderObject
   void performLayout(BoxConstraints c) {
     final child = this.child;
     if (child == null) {
-      width = c.constrainW(_size.$1);
-      height = c.constrainH(_size.$2);
+      width = c.constrainWidth(_size.$1);
+      height = c.constrainHeight(_size.$2);
       return;
     }
     child

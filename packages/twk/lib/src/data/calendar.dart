@@ -812,8 +812,8 @@ final class RenderCalendar extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.constrainW(_left + 20);
-    height = c.constrainH(_top + 6);
+    width = c.constrainWidth(_left + 20);
+    height = c.constrainHeight(_top + 6);
   }
 
   /// The first day of the month shown, its length, and the first day of

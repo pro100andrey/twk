@@ -131,7 +131,7 @@ final class _Run {
 /// screen reader reads.
 Widget _size(List<String> sizes) => LayoutBuilder(
   builder: (_, c) {
-    sizes.add('${c.maxW} x ${c.maxH}');
+    sizes.add('${c.maxWidth} x ${c.maxHeight}');
     return Text(sizes.last);
   },
 );

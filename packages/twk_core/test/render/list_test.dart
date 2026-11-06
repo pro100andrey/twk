@@ -88,8 +88,8 @@ final class Block extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.constrainH(_rows);
+    width = c.maxWidth;
+    height = c.constrainHeight(_rows);
   }
 
   @override
@@ -170,7 +170,7 @@ void main() {
       expect((l.width, l.height), (20, 5));
       expect(
         built.blocks[0]!.constraints,
-        const BoxConstraints(minW: 20, maxW: 20),
+        const BoxConstraints(minWidth: 20, maxWidth: 20),
       );
 
       // near the start, a window above it is built

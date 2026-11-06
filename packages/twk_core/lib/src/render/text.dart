@@ -77,8 +77,8 @@ final class RenderText extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.constrainH(1);
+    width = c.maxWidth;
+    height = c.constrainHeight(1);
   }
 
   // one line, as wide as the canvas draws it: no line break splits it, so
@@ -786,7 +786,8 @@ final class RenderParagraph extends RenderObject {
   /// final p = RenderParagraph([
   ///   ('one ', const Pen()),
   ///   ('two', const Pen()),
-  /// ], wrap: TextWrap.none)..layout(const BoxConstraints(maxW: 20, maxH: 1));
+  /// ], wrap: TextWrap.none)
+  ///   ..layout(const BoxConstraints(maxWidth: 20, maxHeight: 1));
   /// final two = p.columnsOf(4, 7, 0); // (4, 7)
   /// ```
   ///
@@ -826,7 +827,7 @@ final class RenderParagraph extends RenderObject {
   ///   wrap: TextWrap.none,
   ///   overflow: TextOverflow.ellipsis,
   ///   maxLines: 1,
-  /// )..layout(const BoxConstraints(minW: 5, maxW: 5, maxH: 100));
+  /// )..layout(const BoxConstraints(minWidth: 5, maxWidth: 5, maxHeight: 100));
   /// final b = p.cellAt(1, 0); // (start: 1, end: 2, isEllipsis: false)
   /// final cut = p.cellAt(4, 0); // (start: 4, end: 8, isEllipsis: true)
   /// final none = p.cellAt(9, 0); // null

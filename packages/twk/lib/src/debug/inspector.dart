@@ -146,10 +146,10 @@ final class Inspector {
       'name': '${o.runtimeType}',
       if (c != null)
         'constraints': {
-          'minWidth': _limit(c.minW),
-          'maxWidth': _limit(c.maxW),
-          'minHeight': _limit(c.minH),
-          'maxHeight': _limit(c.maxH),
+          'minWidth': _limit(c.minWidth),
+          'maxWidth': _limit(c.maxWidth),
+          'minHeight': _limit(c.minHeight),
+          'maxHeight': _limit(c.maxHeight),
         },
       if (c != null) 'size': {'width': o.width, 'height': o.height},
       'offset': {'x': at.dx, 'y': at.dy},

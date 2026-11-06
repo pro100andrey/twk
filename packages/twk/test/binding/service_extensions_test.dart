@@ -1037,8 +1037,8 @@ final class RenderLine extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.constrainW(_text.length + 2);
-    height = c.constrainH(1);
+    width = c.constrainWidth(_text.length + 2);
+    height = c.constrainHeight(1);
   }
 
   /// Paints all of its cells, as a repaint boundary does, their

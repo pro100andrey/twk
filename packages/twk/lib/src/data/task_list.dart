@@ -602,17 +602,20 @@ final class _RenderTaskRow extends RenderObject
     final tail = _tail;
     var w = indent + tail;
     if (child case final child?) {
-      final room = c.maxW >= BoxConstraints.unbounded
-          ? c.maxW
-          : (c.maxW > w ? c.maxW - w : 0);
-      child.layout(BoxConstraints(maxW: room, maxH: 1), parentUsesSize: true);
+      final room = c.maxWidth >= BoxConstraints.unbounded
+          ? c.maxWidth
+          : (c.maxWidth > w ? c.maxWidth - w : 0);
+      child.layout(
+        BoxConstraints(maxWidth: room, maxHeight: 1),
+        parentUsesSize: true,
+      );
       child.parentData
         ..dx = indent
         ..dy = 0;
       w += child.width;
     }
-    width = c.constrainW(w);
-    height = c.constrainH(1);
+    width = c.constrainWidth(w);
+    height = c.constrainHeight(1);
   }
 
   @override

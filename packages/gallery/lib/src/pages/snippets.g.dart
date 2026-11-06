@@ -92,8 +92,8 @@ final class _RenderRuler extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
     _position.applyExtents(height, _length);
   }
 

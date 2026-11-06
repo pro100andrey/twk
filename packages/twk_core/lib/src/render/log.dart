@@ -131,8 +131,8 @@ final class RenderLog extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
     // a view that grew may now reach the end: then it follows it again
     if (stickToEnd || _first > _maxFirst) {
       _first = _maxFirst;

@@ -199,7 +199,7 @@ final class _ValueStepperState<T> extends State<ValueStepper<T>> {
           builder: (context, constraints) => _row(
             Theme.of(context),
             segmenterOf(context),
-            constraints.maxW,
+            constraints.maxWidth,
             enabled: enabled,
             focused: focused,
           ),

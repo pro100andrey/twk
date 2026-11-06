@@ -430,8 +430,8 @@ abstract base class _RenderMouseTarget extends RenderObject
   void performLayout(BoxConstraints c) {
     final child = this.child;
     if (child == null) {
-      width = c.minW;
-      height = c.minH;
+      width = c.minWidth;
+      height = c.minHeight;
       return;
     }
     child.layout(c, parentUsesSize: true);

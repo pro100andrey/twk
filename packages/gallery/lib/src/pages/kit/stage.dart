@@ -43,8 +43,8 @@ Widget inRoom(Widget Function(int width, int height) build) => LayoutBuilder(
   builder: (context, c) {
     const most = 1 << 20;
     return build(
-      c.maxW < BoxConstraints.unbounded ? c.maxW : most,
-      c.maxH < BoxConstraints.unbounded ? c.maxH : most,
+      c.maxWidth < BoxConstraints.unbounded ? c.maxWidth : most,
+      c.maxHeight < BoxConstraints.unbounded ? c.maxHeight : most,
     );
   },
 );

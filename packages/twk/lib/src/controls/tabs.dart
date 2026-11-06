@@ -517,8 +517,8 @@ final class _RenderTabBar extends RenderObject {
   @override
   void performLayout(BoxConstraints c) {
     final total = _measure().last;
-    width = c.constrainW(total);
-    height = c.constrainH(1);
+    width = c.constrainWidth(total);
+    height = c.constrainHeight(1);
     if (_reveal) {
       _reveal = false;
       _show(_selected);
@@ -979,22 +979,22 @@ final class _RenderPages extends RenderObject
       }
     }
     const unbounded = BoxConstraints.unbounded;
-    final wide = c.maxW < unbounded;
-    final tall = c.maxH < unbounded;
+    final wide = c.maxWidth < unbounded;
+    final tall = c.maxHeight < unbounded;
     if (shown == null) {
-      width = wide ? c.maxW : c.minW;
-      height = tall ? c.maxH : c.minH;
+      width = wide ? c.maxWidth : c.minWidth;
+      height = tall ? c.maxHeight : c.minHeight;
       return;
     }
     if (wide && tall) {
-      shown.layout(BoxConstraints.tight(c.maxW, c.maxH));
+      shown.layout(BoxConstraints.tight(c.maxWidth, c.maxHeight));
     } else {
       shown.layout(
         BoxConstraints(
-          minW: wide ? c.maxW : c.minW,
-          maxW: c.maxW,
-          minH: tall ? c.maxH : c.minH,
-          maxH: c.maxH,
+          minWidth: wide ? c.maxWidth : c.minWidth,
+          maxWidth: c.maxWidth,
+          minHeight: tall ? c.maxHeight : c.minHeight,
+          maxHeight: c.maxHeight,
         ),
         parentUsesSize: true,
       );
@@ -1002,8 +1002,8 @@ final class _RenderPages extends RenderObject
     shown.parentData
       ..dx = 0
       ..dy = 0;
-    width = c.constrainW(shown.width);
-    height = c.constrainH(shown.height);
+    width = c.constrainWidth(shown.width);
+    height = c.constrainHeight(shown.height);
   }
 
   @override

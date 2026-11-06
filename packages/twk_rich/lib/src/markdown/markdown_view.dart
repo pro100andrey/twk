@@ -1120,8 +1120,8 @@ final class _RenderMarker extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.constrainW(_columnWidth);
-    height = c.constrainH(1);
+    width = c.constrainWidth(_columnWidth);
+    height = c.constrainHeight(1);
   }
 
   @override
@@ -1175,8 +1175,8 @@ abstract class _RenderProxy extends RenderObject
   void performLayout(BoxConstraints c) {
     final child = this.child;
     if (child == null) {
-      width = c.minW;
-      height = c.minH;
+      width = c.minWidth;
+      height = c.minHeight;
       return;
     }
     child.layout(c, parentUsesSize: true);

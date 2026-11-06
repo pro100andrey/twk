@@ -705,8 +705,8 @@ final class RenderConsolePanel extends RenderObject {
   void performLayout(BoxConstraints c) {
     _laidOutOpen = _controller.isOpen;
     _laidOutRecord = _controller._shown != null;
-    width = c.maxW < BoxConstraints.unbounded ? c.maxW : c.minW;
-    height = c.constrainH(_laidOutOpen ? _openRows : 0);
+    width = c.maxWidth < BoxConstraints.unbounded ? c.maxWidth : c.minWidth;
+    height = c.constrainHeight(_laidOutOpen ? _openRows : 0);
     if (_laidOutOpen) {
       _controller
         .._rows = height > 1 ? height - 1 : 0

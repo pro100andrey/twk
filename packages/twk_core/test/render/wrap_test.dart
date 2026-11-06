@@ -75,8 +75,8 @@ final class Label extends RenderObject {
   @override
   void performLayout(BoxConstraints c) {
     layouts++;
-    width = c.constrainW(_text.length);
-    height = c.constrainH(1);
+    width = c.constrainWidth(_text.length);
+    height = c.constrainHeight(1);
   }
 
   @override
@@ -99,8 +99,8 @@ final class Block extends RenderObject {
   @override
   void performLayout(BoxConstraints c) {
     got = c;
-    width = c.constrainW(w);
-    height = c.constrainH(h);
+    width = c.constrainWidth(w);
+    height = c.constrainHeight(h);
   }
 
   @override
@@ -153,8 +153,8 @@ final class Probe extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
   }
 
   @override
@@ -196,7 +196,10 @@ void main() {
       'are aligned', () {
     for (final alignment in WrapAlignment.values) {
       final wrap = RenderWrap(runAlignment: alignment)
-        ..layout(const BoxConstraints(maxW: 10, maxH: 4), parentUsesSize: true);
+        ..layout(
+          const BoxConstraints(maxWidth: 10, maxHeight: 4),
+          parentUsesSize: true,
+        );
       expect((wrap.width, wrap.height), (0, 0), reason: alignment.name);
     }
   });
@@ -269,7 +272,7 @@ void main() {
     test('along an unbounded main axis the children make one run', () {
       final wrap = RenderWrap(spacing: 1, children: labels())
         ..layout(
-          const BoxConstraints(maxH: 5),
+          const BoxConstraints(maxHeight: 5),
           parentUsesSize: true,
         );
       expect([wrap.width, wrap.height], [13, 1]);
@@ -282,11 +285,11 @@ void main() {
       final wrap = RenderWrap(children: [Label('ab'), block]);
       printed(() {
         wrap.layout(
-          const BoxConstraints(maxW: 10, maxH: 6),
+          const BoxConstraints(maxWidth: 10, maxHeight: 6),
           parentUsesSize: true,
         );
       });
-      expect(block.got, const BoxConstraints(maxW: 10, maxH: 6));
+      expect(block.got, const BoxConstraints(maxWidth: 10, maxHeight: 6));
       expect(boxes(wrap), ['0,0 2x1', '0,1 10x6']);
     });
   });
@@ -295,14 +298,22 @@ void main() {
     test('as long as the longest run, as thick as the runs and the gaps '
         'between them', () {
       final wrap = RenderWrap(spacing: 1, runSpacing: 1, children: labels())
-        ..layout(const BoxConstraints(maxW: 7, maxH: 10), parentUsesSize: true);
+        ..layout(
+          const BoxConstraints(maxWidth: 7, maxHeight: 10),
+          parentUsesSize: true,
+        );
       expect([wrap.width, wrap.height], [6, 3]);
     });
 
     test('or as the constraints ask, if that is more', () {
       final wrap = RenderWrap(spacing: 1, children: labels())
         ..layout(
-          const BoxConstraints(minW: 9, maxW: 9, minH: 4, maxH: 10),
+          const BoxConstraints(
+            minWidth: 9,
+            maxWidth: 9,
+            minHeight: 4,
+            maxHeight: 10,
+          ),
           parentUsesSize: true,
         );
       expect([wrap.width, wrap.height], [9, 4]);
@@ -310,7 +321,10 @@ void main() {
 
     test('nothing without children', () {
       final wrap = RenderWrap(spacing: 1, runSpacing: 1)
-        ..layout(const BoxConstraints(maxW: 9, maxH: 9), parentUsesSize: true);
+        ..layout(
+          const BoxConstraints(maxWidth: 9, maxHeight: 9),
+          parentUsesSize: true,
+        );
       expect([wrap.width, wrap.height], [0, 0]);
     });
   });
@@ -396,23 +410,31 @@ void main() {
     for (final MapEntry(key: alignment, value: want)
         in crossAlignments.entries) {
       test('$alignment places each child in its run', () {
-        final row = RenderWrap(
-          crossAxisAlignment: alignment,
-          runSpacing: 1,
-          children: [
-            Block('a', 1, 3),
-            Block('b', 1, 1),
-            Block('c', 1, 2),
-            Block('d', 3, 1),
-          ],
-        )..layout(const BoxConstraints(maxW: 3, maxH: 9), parentUsesSize: true);
+        final row =
+            RenderWrap(
+              crossAxisAlignment: alignment,
+              runSpacing: 1,
+              children: [
+                Block('a', 1, 3),
+                Block('b', 1, 1),
+                Block('c', 1, 2),
+                Block('d', 3, 1),
+              ],
+            )..layout(
+              const BoxConstraints(maxWidth: 3, maxHeight: 9),
+              parentUsesSize: true,
+            );
         expect([row.width, row.height], [3, 5]);
         expect(boxes(row), ['0,0 1x3', ...want, '0,4 3x1']);
-        final column = RenderWrap(
-          direction: Axis.vertical,
-          crossAxisAlignment: alignment,
-          children: [Block('a', 3, 1), Block('b', 1, 1), Block('c', 2, 1)],
-        )..layout(const BoxConstraints(maxW: 9, maxH: 3), parentUsesSize: true);
+        final column =
+            RenderWrap(
+              direction: Axis.vertical,
+              crossAxisAlignment: alignment,
+              children: [Block('a', 3, 1), Block('b', 1, 1), Block('c', 2, 1)],
+            )..layout(
+              const BoxConstraints(maxWidth: 9, maxHeight: 3),
+              parentUsesSize: true,
+            );
         expect([column.width, column.height], [3, 3]);
         expect(boxes(column), [
           '0,0 3x1',
@@ -622,7 +644,8 @@ void main() {
     expect(
       '${wrap.describe()}',
       'RenderWrap ‹vertical, alignment: end, runAlignment: end, '
-          'crossAxisAlignment: end, spacing: 1, runSpacing: 1, constraints: tight›',
+          'crossAxisAlignment: end, spacing: 1, runSpacing: 1, '
+          'constraints: tight›',
     );
   });
 

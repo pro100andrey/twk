@@ -181,8 +181,8 @@ final class _RenderShadow extends RenderObject with RenderObjectWithChildMixin {
   void performLayout(BoxConstraints c) {
     final child = this.child;
     if (child == null) {
-      width = c.minW;
-      height = c.minH;
+      width = c.minWidth;
+      height = c.minHeight;
       return;
     }
     final h = _across;
@@ -190,17 +190,17 @@ final class _RenderShadow extends RenderObject with RenderObjectWithChildMixin {
     child
       ..layout(
         BoxConstraints(
-          minW: _inside(c.minW, h),
-          maxW: _inside(c.maxW, h),
-          minH: _inside(c.minH, v),
-          maxH: _inside(c.maxH, v),
+          minWidth: _inside(c.minWidth, h),
+          maxWidth: _inside(c.maxWidth, h),
+          minHeight: _inside(c.minHeight, v),
+          maxHeight: _inside(c.maxHeight, v),
         ),
         parentUsesSize: true,
       )
       ..parentData.dx = _shadow.dx < 0 ? h : 0
       ..parentData.dy = _shadow.dy < 0 ? v : 0;
-    width = c.constrainW(child.width + h);
-    height = c.constrainH(child.height + v);
+    width = c.constrainWidth(child.width + h);
+    height = c.constrainHeight(child.height + v);
   }
 
   // the columns and the rows the shadow takes beside the child

@@ -36,8 +36,8 @@ final class Probe extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
   }
 
   @override
@@ -296,7 +296,9 @@ Root             4×1
     test('constraints, insets and alignments', () {
       expect(describeConstraints(const BoxConstraints.tight(80, 24)), '80×24');
       expect(
-        describeConstraints(const BoxConstraints(maxW: 80, minH: 1, maxH: 1)),
+        describeConstraints(
+          const BoxConstraints(maxWidth: 80, minHeight: 1, maxHeight: 1),
+        ),
         '0..80×1',
       );
       expect(describeConstraints(const BoxConstraints.tightFor()), '0..∞×0..∞');

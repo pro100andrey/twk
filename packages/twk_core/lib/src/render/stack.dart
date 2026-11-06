@@ -151,8 +151,8 @@ final class RenderStack extends RenderObject
   void performLayout(BoxConstraints c) {
     // the children placed by the alignment first: the stack is as big as
     // the biggest
-    var w = c.minW;
-    var h = c.minH;
+    var w = c.minWidth;
+    var h = c.minHeight;
     var placed = false;
     for (var child = _firstChild; child != null;) {
       final at = child.parentData as StackParentData;
@@ -160,11 +160,23 @@ final class RenderStack extends RenderObject
         placed = true;
         switch (_fit) {
           case StackFit.loose:
-            _layoutChild(child, 0, c.maxW, 0, c.maxH);
+            _layoutChild(child, 0, c.maxWidth, 0, c.maxHeight);
           case StackFit.expand:
-            _layoutChild(child, c.maxW, c.maxW, c.maxH, c.maxH);
+            _layoutChild(
+              child,
+              c.maxWidth,
+              c.maxWidth,
+              c.maxHeight,
+              c.maxHeight,
+            );
           case StackFit.passthrough:
-            _layoutChild(child, c.minW, c.maxW, c.minH, c.maxH);
+            _layoutChild(
+              child,
+              c.minWidth,
+              c.maxWidth,
+              c.minHeight,
+              c.maxHeight,
+            );
         }
         w = child.width > w ? child.width : w;
         h = child.height > h ? child.height : h;
@@ -172,11 +184,13 @@ final class RenderStack extends RenderObject
       child = at.nextSibling;
     }
     if (placed) {
-      width = c.constrainW(w);
-      height = c.constrainH(h);
+      width = c.constrainWidth(w);
+      height = c.constrainHeight(h);
     } else {
-      width = c.maxW < BoxConstraints.unbounded ? c.maxW : c.minW;
-      height = c.maxH < BoxConstraints.unbounded ? c.maxH : c.minH;
+      width = c.maxWidth < BoxConstraints.unbounded ? c.maxWidth : c.minWidth;
+      height = c.maxHeight < BoxConstraints.unbounded
+          ? c.maxHeight
+          : c.minHeight;
     }
     for (var child = _firstChild; child != null;) {
       final at = child.parentData as StackParentData;

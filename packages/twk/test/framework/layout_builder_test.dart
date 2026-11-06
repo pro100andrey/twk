@@ -98,7 +98,7 @@ final class Ui {
 }
 
 /// `W×H` of [c]'s maximum.
-String sizeOf(BoxConstraints c) => '${c.maxW}×${c.maxH}';
+String sizeOf(BoxConstraints c) => '${c.maxWidth}×${c.maxHeight}';
 
 /// Shows [value] to the widgets below it that depend on it.
 final class Value extends InheritedWidget {
@@ -247,8 +247,10 @@ void main() {
     final ui = Ui(10, 1)
       ..pump(
         LayoutBuilder(
-          builder: (context, c) =>
-              Value(c.maxW > 5 ? 'wide' : 'narrow', child: const ShowValue()),
+          builder: (context, c) => Value(
+            c.maxWidth > 5 ? 'wide' : 'narrow',
+            child: const ShowValue(),
+          ),
         ),
       );
     expect(ui.rows(), ['wide']);
@@ -265,7 +267,7 @@ void main() {
       ..pump(
         LayoutBuilder(
           builder: (context, c) => Value(
-            '${c.maxW}',
+            '${c.maxWidth}',
             child: Probe(
               'probe',
               log,
@@ -327,7 +329,7 @@ void main() {
         LayoutBuilder(
           builder: (context, c) {
             final pane = Probe('pane', log, key: key, child: const Label('p'));
-            return c.maxW >= 8
+            return c.maxWidth >= 8
                 ? Row(children: [const Label('wide'), pane])
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -362,7 +364,7 @@ void main() {
     final ui = Ui(10, 2);
     void pumpTwice() => ui.pump(
       LayoutBuilder(
-        builder: (context, c) => c.maxW > 8
+        builder: (context, c) => c.maxWidth > 8
             ? Column(
                 children: [
                   Label('a', key: key),
@@ -391,7 +393,7 @@ void main() {
         ..pump(
           LayoutBuilder(
             builder: (context, c) =>
-                c.maxW > 5 ? Probe('wide', log) : const Label('narrow'),
+                c.maxWidth > 5 ? Probe('wide', log) : const Label('narrow'),
           ),
         );
       log.clear();
@@ -406,7 +408,7 @@ void main() {
         ..pump(
           LayoutBuilder(
             builder: (context, c) =>
-                c.maxW > 5 ? Probe('wide', log) : const Label('narrow'),
+                c.maxWidth > 5 ? Probe('wide', log) : const Label('narrow'),
           ),
         );
       log.clear();
@@ -438,8 +440,9 @@ void main() {
             },
           )..pump(
             LayoutBuilder(
-              builder: (context, c) =>
-                  c.maxW > 8 ? throw StateError('too wide') : Label(sizeOf(c)),
+              builder: (context, c) => c.maxWidth > 8
+                  ? throw StateError('too wide')
+                  : Label(sizeOf(c)),
             ),
           );
       expect(ui.rows(), ['! Bad state:']);
@@ -476,7 +479,7 @@ void main() {
               const Label('above'),
               LayoutBuilder(
                 builder: (context, c) => Value(
-                  c.maxW > 20 ? 'ok' : 'throw',
+                  c.maxWidth > 20 ? 'ok' : 'throw',
                   child: const _ThrowsOnUpdate(),
                 ),
               ),
@@ -574,7 +577,8 @@ RootWidget       10×1
           children: [
             IntrinsicWidth(
               child: LayoutBuilder(
-                builder: (context, c) => Text(c.maxW < 4 ? 'narrow' : 'wide'),
+                builder: (context, c) =>
+                    Text(c.maxWidth < 4 ? 'narrow' : 'wide'),
               ),
             ),
             const Label('|'),

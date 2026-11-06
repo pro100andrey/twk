@@ -1762,8 +1762,8 @@ final class _NotificationElement<T extends Notification> extends ProxyElement {
 /// final class _RenderDots extends RenderObject {
 ///   @override
 ///   void performLayout(BoxConstraints c) {
-///     width = c.constrainW(3);
-///     height = c.constrainH(1);
+///     width = c.constrainWidth(3);
+///     height = c.constrainHeight(1);
 ///   }
 ///
 ///   @override
@@ -2257,7 +2257,7 @@ typedef LayoutWidgetBuilder = Widget Function(
 ///
 /// ```dart
 /// LayoutBuilder(
-///   builder: (context, constraints) => constraints.maxW >= 80
+///   builder: (context, constraints) => constraints.maxWidth >= 80
 ///       ? Row(children: const [Text('list'), Text('details')])
 ///       : Column(children: const [Text('list'), Text('details')]),
 /// )
@@ -2395,13 +2395,13 @@ final class _RenderLayoutBuilder extends RenderObject
     }
     final child = this.child;
     if (child == null) {
-      width = c.minW;
-      height = c.minH;
+      width = c.minWidth;
+      height = c.minHeight;
       return;
     }
     child.layout(c, parentUsesSize: true);
-    width = c.constrainW(child.width);
-    height = c.constrainH(child.height);
+    width = c.constrainWidth(child.width);
+    height = c.constrainHeight(child.height);
   }
 
   @override
@@ -2925,8 +2925,8 @@ final class _RenderNothing extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.minW;
-    height = c.minH;
+    width = c.minWidth;
+    height = c.minHeight;
   }
 
   @override

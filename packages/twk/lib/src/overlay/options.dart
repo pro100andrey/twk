@@ -414,8 +414,8 @@ final class _RenderOptionList extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.constrainW(_measure());
-    height = c.constrainH(_shown);
+    width = c.constrainWidth(_measure());
+    height = c.constrainHeight(_shown);
   }
 
   @override

@@ -344,7 +344,7 @@ void main() {
     final disposedIn = <int>[];
     final run = Run(
       LayoutBuilder(
-        builder: (context, c) => c.maxW > 6
+        builder: (context, c) => c.maxWidth > 6
             ? Probe(
                 (_) => const Label('wide'),
                 onDispose: () => disposedIn.add(frames),

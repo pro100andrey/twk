@@ -158,8 +158,10 @@ final class LabelPainter {
       }
       _painter.layout(
         BoxConstraints(
-          maxW: room == null ? BoxConstraints.unbounded : (room < 0 ? 0 : room),
-          maxH: 1,
+          maxWidth: room == null
+              ? BoxConstraints.unbounded
+              : (room < 0 ? 0 : room),
+          maxHeight: 1,
         ),
         segmenter: segmenter,
         order: order,

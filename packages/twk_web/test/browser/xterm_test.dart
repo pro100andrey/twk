@@ -233,7 +233,7 @@ final class _App extends StatelessWidget {
     builder: (context, constraints) {
       seen
         ..binding = AppBinding.of(context)
-        ..sizes.add((constraints.maxW, constraints.maxH));
+        ..sizes.add((constraints.maxWidth, constraints.maxHeight));
       return const Text('in a page');
     },
   );

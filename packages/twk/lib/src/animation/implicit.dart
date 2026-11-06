@@ -399,14 +399,17 @@ final class _RenderAlignAt extends RenderObject
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
     final child = this.child;
     if (child == null) {
       return;
     }
     child
-      ..layout(BoxConstraints(maxW: c.maxW, maxH: c.maxH), parentUsesSize: true)
+      ..layout(
+        BoxConstraints(maxWidth: c.maxWidth, maxHeight: c.maxHeight),
+        parentUsesSize: true,
+      )
       ..parentData.dx = _share(width - child.width, _x)
       ..parentData.dy = _share(height - child.height, _y);
   }
@@ -990,8 +993,8 @@ final class _RenderSizeTo extends RenderObject with RenderObjectWithChildMixin {
   void performLayout(BoxConstraints c) {
     final child = this.child;
     if (child == null) {
-      width = c.minW;
-      height = c.minH;
+      width = c.minWidth;
+      height = c.minHeight;
       return;
     }
     child.layout(c, parentUsesSize: true);
@@ -1010,8 +1013,8 @@ final class _RenderSizeTo extends RenderObject with RenderObjectWithChildMixin {
     _toW = w;
     _toH = h;
     final e = curve.transform(_t);
-    width = c.constrainW((_fromW + (w - _fromW) * e).round());
-    height = c.constrainH((_fromH + (h - _fromH) * e).round());
+    width = c.constrainWidth((_fromW + (w - _fromW) * e).round());
+    height = c.constrainHeight((_fromH + (h - _fromH) * e).round());
     child.parentData
       ..dx = _alignment.dx(width - w)
       ..dy = _alignment.dy(height - h);

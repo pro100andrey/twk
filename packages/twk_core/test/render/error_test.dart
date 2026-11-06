@@ -90,8 +90,8 @@ final class Faulty extends RenderObject {
     if (error != null) {
       throw Failure(error);
     }
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
   }
 
   @override
@@ -125,8 +125,8 @@ final class Cover extends RenderObject with RenderObjectWithChildMixin {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
     child!.layout(BoxConstraints.tight(width, height));
   }
 
