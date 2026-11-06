@@ -4,6 +4,7 @@ import 'dart:mirrors';
 
 import 'package:test/test.dart';
 import 'package:twk/cli.dart' show Cli;
+import 'package:twk/format.dart';
 import 'package:twk/hooks.dart' show HookWidget;
 import 'package:twk/provider.dart' show Provider;
 // Imported so that this file fails to load when a library that twk.dart
@@ -72,7 +73,7 @@ void main() {
     currentMirrorSystem().libraries[Uri.parse('package:twk/twk.dart')]!,
   );
 
-  test('twk.dart exports formatBytes and formatTook, for an app to write '
+  test('format.dart exports formatBytes and formatTook, for an app to write '
       'sizes and times as the widgets do', () {
     expect(formatBytes(4096), '4.1 kB');
     expect(formatBytes(4096, byteUnits: ByteUnits.binary), '4.0 KiB');
@@ -91,7 +92,8 @@ void main() {
     expect(exports, [for (final topic in topics) 'src/$topic/$topic.dart']);
   });
 
-  test('cli.dart, hooks.dart and provider.dart are libraries of their own, '
+  test('cli.dart, format.dart, hooks.dart and provider.dart are libraries of '
+      'their own, '
       'besides twk.dart, which exports none of their names', () async {
     final uri = await Isolate.resolvePackageUri(
       Uri.parse('package:twk/twk.dart'),
@@ -102,7 +104,29 @@ void main() {
           if (entity is File && entity.path.endsWith('.dart'))
             entity.uri.pathSegments.last,
       ]..sort(),
-      ['cli.dart', 'hooks.dart', 'provider.dart', 'twk.dart'],
+      [
+        'cli.dart',
+        'format.dart',
+        'hooks.dart',
+        'provider.dart',
+        'twk.dart',
+      ],
+    );
+    final format = _exported(
+      currentMirrorSystem().libraries[Uri.parse('package:twk/format.dart')]!,
+    );
+    expect(format.keys.map(MirrorSystem.getName), {
+      'ByteUnits',
+      'formatBytes',
+      'formatTook',
+    });
+    expect(
+      [
+        for (final name in format.keys)
+          if (exported.containsKey(name)) MirrorSystem.getName(name),
+      ],
+      isEmpty,
+      reason: 'twk.dart exports no name of format.dart',
     );
     for (final (library, widget) in [
       ('cli', Cli),
@@ -179,7 +203,7 @@ void main() {
         ).allMatches(source))
           if (!m[1]!.startsWith('dart:')) m[1],
       ],
-      ['package:twk/twk.dart'],
+      ['package:twk/format.dart', 'package:twk/twk.dart'],
     );
     final parts = [
       for (final m in RegExp(

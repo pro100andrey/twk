@@ -40,6 +40,11 @@ A program that uses one imports it besides `package:twk/twk.dart`; each
 builds on twk's public API alone, its sources in `lib/src/<library>/`,
 its tests in `test/<library>/`, its examples in `example/<library>/`.
 
+`package:twk/format.dart` is a fourth, of three names: `formatBytes`,
+`formatTook` and `ByteUnits`, with which the widgets write a size and a time,
+for an app that writes them as they do (its source is
+`lib/src/foundation/format.dart`).
+
 The package builds for the web with dart2wasm, where
 [twk_web](../../../twk_web/README.md) runs an app on xterm.js: what it takes
 from dart:io goes through `lib/src/platform/`, as the core's does

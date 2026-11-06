@@ -1,6 +1,7 @@
 // The decimal separator of TwkStrings: the sizes and times the widgets and
 // the exported functions write, with a comma where the language has one.
 import 'package:test/test.dart';
+import 'package:twk/format.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 

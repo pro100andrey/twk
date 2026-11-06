@@ -12,6 +12,7 @@ library;
 
 import 'dart:async';
 
+import 'package:twk/format.dart';
 import 'package:twk/twk.dart';
 
 part 'sample_app/animation.dart';

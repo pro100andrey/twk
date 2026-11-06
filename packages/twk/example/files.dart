@@ -29,6 +29,7 @@ import 'dart:io';
 import 'dart:math' show max, min;
 import 'dart:typed_data';
 
+import 'package:twk/format.dart';
 import 'package:twk/twk.dart';
 
 Future<void> main(List<String> args) async {

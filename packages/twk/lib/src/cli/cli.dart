@@ -8,6 +8,7 @@ import 'package:meta/meta.dart';
 
 import '../../twk.dart';
 
+import '../foundation/format.dart';
 import 'capabilities.dart';
 import 'lines.dart';
 import 'progress.dart';
