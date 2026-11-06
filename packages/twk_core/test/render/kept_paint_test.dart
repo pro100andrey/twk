@@ -330,11 +330,12 @@ void main() {
       ], autoKeepsPaint: true),
     )..frame();
     final paragraph = filled.paragraph;
+    final before = RenderParagraph.debugCellReads;
     for (var i = 0; i < 40; i++) {
       paragraph.markNeedsLayout();
       filled.frame();
     }
-    expect(paragraph.debugCellReads, 1);
+    expect(RenderParagraph.debugCellReads - before, 1);
   });
 
   test('keepsPaint set on one that turned by itself is for good', () {
@@ -355,10 +356,14 @@ void main() {
     expect(paragraph.keepsPaint, isTrue);
 
     paragraph.keepsPaint = true;
-    final reads = paragraph.debugCellReads;
+    final reads = RenderParagraph.debugCellReads;
     filled.owner.root.markNeedsPaint();
     filled.frame();
-    expect(paragraph.debugCellReads, reads, reason: 'forced, it reads none');
+    expect(
+      RenderParagraph.debugCellReads,
+      reads,
+      reason: 'forced, it reads none',
+    );
   });
 
   test('a paragraph that turns to keeping keeps the panel under it', () {

@@ -215,11 +215,12 @@ final frameScenarios = <FrameScenario>[
   ),
   FrameScenario(
     'wrap',
-    'a word typed into a mixed-script paragraph, re-wrapped',
+    'a word typed into a mixed-script paragraph, re-wrapped, as a Text is: '
+        'keeping its paint by itself',
     (
       hs,
     ) {
-      final s = _Prose(hs)..render();
+      final s = _Prose(hs, autoKeepsPaint: true)..render();
       return (i) {
         s.type(i);
         return s.render();

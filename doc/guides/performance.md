@@ -135,10 +135,9 @@ stays as it was, as does a short or a still one: it reads the cells under
 it before it turns, and turns back if a glyph comes there.
 
 It is a small gain. In the benchmark's mixed-script paragraph over most of
-the screen, a word typed into it takes 56.8 us a frame and 19.6 us kept
-(`wrap` and `wrap-kept`, pinned, on an idle machine, with `hasKeepsPaint`
-switched on in `tool/frame_scenarios/lib/src/branch_api.dart`), against a
-frame budget of 16 600 us. The bytes written are the same, 311.6 a frame
+the screen, a word typed into it takes 56.8 us a frame plain and 20 us kept
+(the `wrap` scenario, pinned, on an idle machine), against a frame budget
+of 16 600 us. The bytes written are the same, 311.6 a frame
 in both.
 
 A render object of your own has `RenderParagraph.keepsPaint` to force it,

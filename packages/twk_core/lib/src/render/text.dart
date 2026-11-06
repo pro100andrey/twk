@@ -420,7 +420,10 @@ final class RenderParagraph extends RenderObject {
   // canvas's clip leaves them, holds anything but a blank: a glyph of
   // another object, which a paragraph that fills its cells would erase.
   bool _glyphsUnder(Canvas canvas, int y0, int y1) {
-    _cellReads++;
+    assert(() {
+      debugCellReads++;
+      return true;
+    }(), 'counts');
     final (cx0, cy0, cx1, cy1) = canvas.clipBounds;
     final ox = canvas.originX;
     final oy = canvas.originY;
@@ -637,10 +640,11 @@ final class RenderParagraph extends RenderObject {
   var _keptW = 0;
   var _keptH = 0;
   var _keptPaints = 0;
-  var _cellReads = 0;
 
-  /// How many times it read the cells under it ([autoKeepsPaint]).
-  int get debugCellReads => _cellReads;
+  /// How many times paragraphs read the cells under them
+  /// ([autoKeepsPaint]), while asserts are on. Not a field of a paragraph:
+  /// one more slowed typing into a long text by 9 %.
+  static var debugCellReads = 0;
 
   /// How many paints were of the changed rows only ([keepsPaint]).
   int get debugKeptPaints => _keptPaints;
