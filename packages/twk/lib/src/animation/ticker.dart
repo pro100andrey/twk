@@ -63,7 +63,7 @@ typedef TickerCallback = void Function(Duration elapsed);
 /// ```
 final class Ticker implements Muteable {
   /// A ticker that calls [onTick] in the frames of [binding]'s app, not
-  /// started; without a binding, one that never ticks. [onDispose] is
+  /// started; without a binding, one that never ticks. `onDispose` is
   /// called with it once, when it is disposed.
   Ticker(this.onTick, {this.binding, this._onDispose});
 
