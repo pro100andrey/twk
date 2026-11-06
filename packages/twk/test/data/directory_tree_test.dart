@@ -326,6 +326,29 @@ void main() {
       ]);
     });
 
+    testTwk('the sizes take the decimal separator of the strings', (t) async {
+      final files = InMemoryFileSystem(
+        [rooted('/p/')],
+        contents: {rooted('/p/a.txt'): 'x' * 1536},
+      );
+      await t.pumpWidget(
+        Localizations(
+          strings: const TwkStrings(decimalSeparator: ','),
+          child: Theme.terminal(
+            child: DirectoryTree(
+              root: rooted('/p'),
+              fileSystem: files,
+              showSizes: true,
+              byteUnits: ByteUnits.binary,
+            ),
+          ),
+        ),
+        size: (22, 2),
+      );
+      await t.pump();
+      expect(rows(t).last, '    a.txt      1,5 KiB');
+    });
+
     testTwk('a directory that does not list shows why below it, muted', (
       t,
     ) async {

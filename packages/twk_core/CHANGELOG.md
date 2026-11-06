@@ -12,6 +12,13 @@ Breaking:
 
 Changed:
 
+- The shell wire's frames have a type per direction: `AppFrame` and `ShellFrame`
+  replace the integer constants of `Wire`, which keeps `protocol` and
+  `maxPayload`. A frame of a type the receiver does not know is ignored and logged
+  (`twk.wire`) on both sides. The bytes on the wire are unchanged.
+- `RenderParagraph.keepsPaint`, false by default: the paragraph is a repaint
+  boundary that repaints only the rows that differ. `TextPainter.changedRows`
+  says which; `TextPainter.paint` is `prepare` and `draw`, with the same output.
 - The presenter writes less and looks at less: over blanks it changes only what a
   blank shows (`StyleTable.nearBlank`), a log's new line 8 % fewer bytes and one
   beside a scrollbar 12 %; and once rows of a frame stop shifting the others are

@@ -4,6 +4,8 @@
 
 Breaking:
 
+- `Popover.onDismiss` is required: `null` for a popover the app never closes this
+  way.
 - `Cli.current` is gone, with the zone value `Cli.run` set: the body gets its
   `cli` as a parameter, and a program passes it to the helpers that use it. A
   program that made its own `Cli()` closes it itself, as before. Nothing in
@@ -26,6 +28,22 @@ Breaking:
 
 Changed:
 
+- `TwkStrings`, a const class with English defaults, holds the words twk writes
+  itself (`ETA`, ` in 3.1 s`, `+3 more`, `Y/n`, refusals, prompts, filter hints)
+  and `decimalSeparator`. `Localizations(strings:, child:)` and
+  `TwkStrings.of(context)` give them to widgets, `Cli(strings:)`, `Cli.run` and
+  `Cli.runWithArgs` to a console. A guide shows it with slang.
+- `formatBytes`, `formatTook` and `ProgressTask.summary` take `decimalSeparator:`.
+- A confirmation also takes the first letters of `TwkStrings.yes` and `no`.
+- `Table` and `TreeTable` take `marks:`, a `SelectionController<Object>(multiple:
+  true)` that marks rows by key, beside the row selected. A checkbox column comes
+  before the columns; Space and a click on a checkbox toggle a mark, and marks
+  stay with their rows as they are sorted. A tree's node marks itself alone.
+- A dialog or menu opened from a `Popover` no longer dismisses it. A closing
+  dialog, menu or popover gives the focus back to the node that had it as it
+  opened, and Escape closes the layer the focus is in.
+- `twk shell` no longer drops an app that sends a frame of a type it does not
+  know: it is ignored and logged. The VS Code extension's shell does the same.
 - `AnsiStream.reset()` starts it over: the line, a character or an escape
   sequence cut short, the style. A followed file that starts over uses it.
 - A row `SelectionList.itemEnabled` refuses, in a multiple list, has a blank for
