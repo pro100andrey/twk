@@ -25,19 +25,6 @@ void main() {
   });
   tearDown(() => dir.delete(recursive: true));
 
-  /// [cancel] to its end: it waits for the look under way, whose turns come
-  /// as the clock moves.
-  Future<void> ended(Future<void> Function() cancel) async {
-    var over = false;
-    final cancelling = cancel().whenComplete(() => over = true);
-    await waitUntil(
-      () => over,
-      'the cancel to end',
-      between: () => clock.elapse(poll),
-    );
-    await cancelling;
-  }
-
   /// What [tailFile] tells of [path], as `text` for bytes and `reset`.
   List<String> follow({bool fromEnd = true}) {
     final told = <String>[];
@@ -49,7 +36,7 @@ void main() {
         }),
       ),
     );
-    addTearDown(() => ended(subscription.cancel));
+    addTearDown(subscription.cancel);
     return told;
   }
 
@@ -120,7 +107,8 @@ void main() {
   });
 
   test('a look in flight when the stream is cancelled adds nothing after '
-      'the close, and the cancel ends with its handle closed', () async {
+      'the close, and the cancel ends with its handle closed, under a clock '
+      'nobody moves', () async {
     File(path).writeAsStringSync('old old\n');
     final inner = File(path);
     final asked = Completer<void>();
@@ -129,15 +117,17 @@ void main() {
     var closed = false;
     var cancelled = false;
     await runZonedGuarded(() async {
-      final subscription = IOOverrides.runZoned(
-        () => tailFile(path, fromEnd: false, poll: poll).listen((_) {}),
-        createFile: (p) => _Hooked(
-          inner,
-          onLength: (_) {
-            asked.complete();
-            return answer.future;
-          },
-          onClose: () => closed = true,
+      final subscription = clock.run(
+        () => IOOverrides.runZoned(
+          () => tailFile(path, fromEnd: false, poll: poll).listen((_) {}),
+          createFile: (p) => _Hooked(
+            inner,
+            onLength: (_) {
+              asked.complete();
+              return answer.future;
+            },
+            onClose: () => closed = true,
+          ),
         ),
       );
       // the first look has asked the length and waits for it; the stream is
@@ -176,7 +166,7 @@ void main() {
         ),
       ),
     );
-    addTearDown(() => ended(subscription.cancel));
+    addTearDown(subscription.cancel);
     await waitUntil(
       () => named >= 3,
       'three looks',
@@ -224,7 +214,7 @@ void main() {
         ),
       ),
     );
-    addTearDown(() => ended(subscription.cancel));
+    addTearDown(subscription.cancel);
     await holds(told, ['first\n', 'second\n']);
     await clock.elapse(poll);
     expect(told, ['first\n', 'second\n']);
@@ -264,7 +254,7 @@ void main() {
         ),
       ),
     );
-    addTearDown(() => ended(subscription.cancel));
+    addTearDown(subscription.cancel);
     await clock.elapse(poll);
     armed = true;
     File(path).writeAsStringSync('second\n', mode: FileMode.append);
@@ -278,6 +268,59 @@ void main() {
     expect(told.takeWhile((e) => e != 'reset').join(), isIn(['', 'second\n']));
     expect(told.skipWhile((e) => e != 'reset').skip(1).join(), replacement);
   }, testOn: '!windows');
+
+  test(
+    'a file put at the name while a look holds the one it replaced: the '
+    'look is made again, nothing of the old file told after the reset',
+    () async {
+      File(path).writeAsStringSync('old line one\n');
+      final inner = File(path);
+      final staged = File('${dir.path}${Platform.pathSeparator}other.log');
+      final replacement = [for (var i = 0; i < 5; i++) 'NEW LINE $i\n'].join();
+      final events = StreamController<FileSystemEvent>();
+      addTearDown(events.close);
+      var armed = false;
+      final told = <String>[];
+      final subscription = clock.run(
+        () => IOOverrides.runZoned(
+          () => tailFile(path, fromEnd: true, poll: poll).listen(
+            (e) => told.add(switch (e) {
+              FileBytes(:final bytes) => String.fromCharCodes(bytes),
+              FileReset() => 'reset',
+            }),
+          ),
+          createFile: (p) => _Hooked(
+            inner,
+            watched: events.stream,
+            onLength: (raf) async {
+              final size = await raf.length();
+              if (armed) {
+                armed = false;
+                staged
+                  ..writeAsStringSync(replacement)
+                  ..renameSync(path);
+                // the watch tells it before the look goes on
+                events.add(FileSystemCreateEvent(path, false));
+                await pumpEventQueue();
+              }
+              return size;
+            },
+          ),
+        ),
+      );
+      addTearDown(subscription.cancel);
+      await clock.elapse(poll);
+      armed = true;
+      File(path).writeAsStringSync('second\n', mode: FileMode.append);
+      await waitUntil(
+        () => told.join().endsWith(replacement),
+        'the replacement, not $told',
+        between: () => clock.elapse(poll),
+      );
+      expect(told, ['reset', replacement]);
+    },
+    testOn: '!windows',
+  );
 }
 
 /// A file whose handles ask `onLength` for the length and `onRead` for each
@@ -291,6 +334,7 @@ class _Hooked implements File {
     this.onNamedLength,
     this.onOpen,
     this.onClose,
+    this.watched,
   });
 
   final File _file;
@@ -299,6 +343,9 @@ class _Hooked implements File {
   final void Function()? onNamedLength;
   final void Function()? onOpen;
   final void Function()? onClose;
+
+  /// What the watch of the directory tells, in place of the system's.
+  final Stream<FileSystemEvent>? watched;
 
   @override
   Future<int> length() {
@@ -316,13 +363,33 @@ class _Hooked implements File {
   Uri get uri => _file.uri;
 
   @override
-  Directory get parent => _file.parent;
+  Directory get parent => switch (watched) {
+    final Stream<FileSystemEvent> events => _Watched(events),
+    null => _file.parent,
+  };
 
   @override
   int lengthSync() => _file.lengthSync();
 
   @override
   bool existsSync() => _file.existsSync();
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('${invocation.memberName}');
+}
+
+/// A directory whose watch is [_events].
+class _Watched implements Directory {
+  _Watched(this._events);
+
+  final Stream<FileSystemEvent> _events;
+
+  @override
+  Stream<FileSystemEvent> watch({
+    int events = FileSystemEvent.all,
+    bool recursive = false,
+  }) => _events;
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>
