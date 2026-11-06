@@ -13,6 +13,44 @@ repository, each with its own `dart pub get` and lock.
 The conventions code, docs and tests are written to are in
 [doc/internals/quality/README.md](doc/internals/quality/README.md).
 
+What is here besides `packages/`:
+
+* `tool/`: the checks (`tool/xtask.dart`, the tasks of `xtask.yaml`), the
+  frame benchmark (`tool/bench.dart`, its scenarios in
+  `tool/frame_scenarios/`, the allocation profiler in `tool/alloc/`),
+  end to end runs in a pseudo-terminal (`tool/pty_run.py`, its output
+  replayed into the test emulator by `tool/replay.dart`), the web builds
+  (`tool/web_check.dart`), the docs and coverage reports
+  (`tool/doc_snippets/`, `tool/coverage/`) and the generator of the
+  core's Unicode tables (`tool/gen_unicode.dart`);
+* `test/tool/`: the tests of those tools;
+* `editors/vscode/`: a VS Code extension, experimental: twk apps run and
+  debugged in a terminal of its own, with hot reload and an inspector;
+* `doc/`: the documentation, its index `doc/README.md`; `doc/guides/`,
+  the guides, their Dart the files of `packages/twk/example/guides/`
+  (`packages/twk/test/example/guides_test.dart` holds them together).
+* `doc/widgets/`: the widget catalog, written from the gallery
+  (`packages/gallery/tool/catalog.dart`).
+* `doc/internals/`: the conventions code, docs and tests are written to
+  (`quality/`) and the performance surveys against other terminal
+  libraries (`perf/`).
+
+```bash
+dart pub get                                       # the whole workspace
+dart run tool/xtask.dart quick                     # pub get, analyze, format
+dart run tool/xtask.dart handover -j auto          # every check of a handover
+dart run tool/xtask.dart --list                    # the checks, by gate
+dart run packages/twk_core/example/chat_demo.dart  # the core's demo
+dart run packages/gallery/bin/gallery.dart         # the widget gallery
+```
+
+[CONTRIBUTING.md](CONTRIBUTING.md) says what each check is and when the
+benchmark is owed; the core's design
+([packages/twk_core/doc/design/](packages/twk_core/doc/design/README.md)),
+[§2](packages/twk_core/doc/design/testing.md) and
+[§4](packages/twk_core/doc/design/running.md), how the end to end runs and
+the benchmark work.
+
 ## Checks
 
 The checks are tasks in `xtask.yaml`, run by
