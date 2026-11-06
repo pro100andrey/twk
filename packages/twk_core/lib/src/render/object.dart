@@ -132,12 +132,17 @@ final class BoxConstraints {
 
   /// These with [insets] taken off: the room left inside them. The
   /// minimums and the maximums shrink by the insets, none below 0, and a
-  /// maximum that is [unbounded] stays so.
+  /// bound that is [unbounded] stays so, a minimum too (an infinite one
+  /// minus a finite is infinite, as in Flutter).
   BoxConstraints deflate(EdgeInsets insets) {
     final h = insets.horizontal;
     final v = insets.vertical;
-    final minW = minWidth > h ? minWidth - h : 0;
-    final minH = minHeight > v ? minHeight - v : 0;
+    final minW = hasInfiniteWidth
+        ? unbounded
+        : (minWidth > h ? minWidth - h : 0);
+    final minH = hasInfiniteHeight
+        ? unbounded
+        : (minHeight > v ? minHeight - v : 0);
     return BoxConstraints(
       minWidth: minW,
       maxWidth: hasBoundedWidth

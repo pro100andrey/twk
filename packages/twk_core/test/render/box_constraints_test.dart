@@ -100,6 +100,25 @@ void main() {
       );
     });
 
+    test('deflate leaves an infinite minimum infinite, as Flutter does', () {
+      const expand = BoxConstraints.expand();
+      final deflated = expand.deflate(const EdgeInsets.all(1));
+      expect(deflated, expand);
+      expect(deflated.hasInfiniteWidth, isTrue);
+      expect(deflated.hasInfiniteHeight, isTrue);
+      expect(deflated.minWidth, BoxConstraints.unbounded);
+      // the same as under an unbounded parent, which enforce leaves alone
+      expect(deflated.enforce(const BoxConstraints()), deflated);
+      expect(
+        const BoxConstraints.expand(width: 5).deflate(const EdgeInsets.x(1)),
+        const BoxConstraints(
+          minWidth: 3,
+          maxWidth: 3,
+          minHeight: BoxConstraints.unbounded,
+        ),
+      );
+    });
+
     test('widthConstraints and heightConstraints keep one axis', () {
       expect(
         c.widthConstraints(),
