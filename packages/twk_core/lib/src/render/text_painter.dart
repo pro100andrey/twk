@@ -3975,19 +3975,24 @@ final class TextPainter {
     if (_segmentsStale) {
       _buildSegments();
     } else if (tracksDamage) {
-      _damageFirst = 0;
+      _damageFirst = 1 << 30;
       _damageEnd = 0;
     }
     _resolvePens(canvas.styles);
     final seg = _segments;
-    if (tracksDamage && _looked) {
-      // the rows drawn in a pen looked up again
-      for (var k = 0; k < _segmentCount; k++) {
-        final at = k * _segmentStride;
-        final span = seg[at + 2];
-        if (span >= _lookedFrom && span < _lookedTo) {
-          _damage(seg[at + 1]);
+    if (tracksDamage) {
+      if (_looked) {
+        // the rows drawn in a pen looked up again
+        for (var k = 0; k < _segmentCount; k++) {
+          final at = k * _segmentStride;
+          final span = seg[at + 2];
+          if (span >= _lookedFrom && span < _lookedTo) {
+            _damage(seg[at + 1]);
+          }
         }
+      }
+      if (_damageFirst >= _damageEnd) {
+        _damageFirst = _damageEnd = 0;
       }
     }
   }
@@ -4079,9 +4084,6 @@ final class TextPainter {
     _changedTo = 0;
     _changedShift = 0;
     _spansMoved = false;
-    if (track && _damageFirst >= _damageEnd) {
-      _damageFirst = _damageEnd = 0;
-    }
   }
 
   // the rows [_damageFirst, _damageEnd) the last paint drew otherwise than

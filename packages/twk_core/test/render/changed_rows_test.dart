@@ -83,6 +83,17 @@ void main() {
         expect(end, 6);
       });
 
+      test('a pen of the last rows changed counts from those rows', () {
+        final r = _Rig('', order: order)
+          ..paint([('aaa\nbbb\nccc\n', plain), ('ddd\neee\nfff', plain)]);
+        final (first, end) = r.paint([
+          ('aaa\nbbb\nccc\n', plain),
+          ('ddd\neee\nfff', red),
+        ]);
+        expect(first, 3);
+        expect(end, 6);
+      });
+
       test('a row inserted moves those below it', () {
         final r = _Rig(six, order: order)..paint();
         final (first, end) = r.paint([

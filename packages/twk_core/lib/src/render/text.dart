@@ -496,6 +496,7 @@ final class RenderParagraph extends RenderObject {
         end = h;
       }
       if (first >= end) {
+        _keptOn = surface;
         return;
       }
       _keptPaints++;

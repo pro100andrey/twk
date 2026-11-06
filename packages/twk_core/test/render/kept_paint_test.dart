@@ -241,6 +241,47 @@ String? _difference(_Painted a, _Painted b) {
 }
 
 void main() {
+  test('a paint with nothing changed goes on keeping the paint', () {
+    const w = 20;
+    const h = 4;
+    final styles = StyleTable();
+    final surface = Surface(w, h);
+    final canvas = Canvas(surface, styles, GlyphTable());
+    final paragraph = RenderParagraph(const [
+      ('one\ntwo\nthree', Pen()),
+    ], keepsPaint: true);
+    final owner = PipelineOwner(() {}, segmenter: canvas.segmenter)
+      ..root = RenderBox(
+        pen: styles.pen(_backgrounds[0]),
+        boundary: true,
+        child: RenderConstrainedBox(
+          additionalConstraints: const BoxConstraints(
+            minW: w,
+            maxW: w,
+            minH: h,
+            maxH: h,
+          ),
+          child: paragraph,
+        ),
+      );
+    final ctx = PaintContext(
+      canvas,
+      surface,
+      Presenter(w, h, styles, canvas.glyphs),
+    );
+    void frame() => owner
+      ..flushLayout(w, h)
+      ..flushPaint(ctx);
+
+    frame();
+    paragraph.markNeedsPaint();
+    frame();
+    paragraph.spans = const [('one\ntwo\nthrew', Pen())];
+    frame();
+
+    expect(paragraph.debugKeptPaints, 1);
+  });
+
   test(
     'a paragraph that keeps its paint shows what one painted whole does',
     () {
