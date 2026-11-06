@@ -3,7 +3,6 @@
 // ignore_for_file: implementation_imports, invalid_use_of_internal_member
 
 import 'package:twk/src/animation/frame_clock.dart';
-import 'package:twk/src/binding/app_binding.dart' show FrameCallback;
 
 /// A [FrameClock] without an app, for what steps by frames alone: [advance]
 /// moves its time and calls the frame callbacks due, as the app's frame
