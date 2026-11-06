@@ -18,7 +18,7 @@ text
 │     KeyHintsBar                     ┌                                          ┐         │                             │
 │     StatusMessage, Badge  ▐    ·       General  Editor  Keys                       ·     │                             │
 │     Callout               ▐           ╭──────────────────────────────────────╮           │                             │
-│     Link                  ▐    ·      │ [x] wrap lines                       │     ·     │                             │
+│     Hyperlink             ▐    ·      │ [x] wrap lines                       │     ·     │                             │
 │     ListTile              ▐           │ [ ] show hidden files                │           │                             │
 │     StatusBar             ▐    ·      │                                      │     ·     │                             │
 │                                       │                                      │           │                             │
@@ -55,7 +55,7 @@ styles
 │aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooaoooooaadhhhhphhhhhhhwwwwwwwhhnnnnnnhhnnnnhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaaaaaaaaaaaaaaadhhhhhhhhhhhxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooaaaaaaaaaaaaaaaaaadhhhhphhhhhhxhnwnhyyyyhyyyyyhhhhhhhhhhhhhhhhhhhhhhhxhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaadhhhhphhhhhhxhnwnhyyyyhyyyyyhhhhhhhhhhhhhhhhhhhhhhhxhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaadhhhhhhhhhhhxhnhnhyyyyhyyyyyyhyyyyyhhhhhhhhhhhhhhhhxhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooaaaaaaaaaaaaadhhhhphhhhhhxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhxhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhxhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhxhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

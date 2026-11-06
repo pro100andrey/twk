@@ -95,7 +95,7 @@ import 'pressable.dart';
 ///
 /// See also:
 ///
-///  * `Link`, text that opens a URL when clicked.
+///  * `Hyperlink`, text that opens a URL when clicked.
 ///  * `ConfirmInput`, a yes-or-no question with two answers to press.
 final class Button extends StatefulWidget {
   /// A button showing [label] that calls [onPressed], disabled when that

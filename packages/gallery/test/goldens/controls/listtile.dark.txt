@@ -13,7 +13,7 @@ text
 │     KeyHintsBar                                                                          │                             │
 │     StatusMessage, Badge       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  leading             ▐  ●▌  │
 │     Callout                                                                              │                             │
-│     Link                       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  subtitle            ▐  ●▌  │
+│     Hyperlink                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  subtitle            ▐  ●▌  │
 │ ▎   ListTile                                                                             │                             │
 │     StatusBar                  ·   ·    ┌                                  ┐   ·   ·     │  trailing            ▐  ●▌  │
 │                           ▐               ▤ notes.md                     ›               │                             │
@@ -50,7 +50,7 @@ styles
 │aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooaoooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhqrrsqhh│
 │aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnnhhhhhhhhhhhhqrrsqhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnnhhhhhhhhhhhhqrrsqhh│
 │atuuuvvvvvvvvuuuuuuuuuuuuuuahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhphhhhhphhnnnnnnnnhhhhhhhhhhhhqrrsqhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhxhyyyyyyyyhhhhhhhhhhhhhhhhhhhhhnhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

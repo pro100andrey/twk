@@ -24,7 +24,7 @@ const _pages = {
   'controls/tabbar-tabview': 'wrap lines',
   'controls/keyhintsbar': 'did: nothing',
   'controls/statusmessage-badge': 'Saving runs in the background.',
-  'controls/link': 'The Dart language',
+  'controls/hyperlink': 'The Dart language',
   'controls/statusbar': 'NORMAL',
 };
 
@@ -73,7 +73,7 @@ void main() {
       'controls/tabbar-tabview?o=tabs:7': ['length: 7'],
       'controls/keyhintsbar?o=unhinted:true': ['showUnhinted: true'],
       'controls/statusmessage-badge?o=kind:error': ['kind: .error'],
-      'controls/link?o=color:accent': ['theme.accent'],
+      'controls/hyperlink?o=color:accent': ['theme.accent'],
       'controls/statusbar?o=width:20': ['width: 20'],
     };
     for (final MapEntry(key: route, value: code) in routes.entries) {

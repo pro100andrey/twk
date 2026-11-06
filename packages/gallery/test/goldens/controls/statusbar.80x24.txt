@@ -8,7 +8,7 @@ text
 │     KeyHintsBar      ──────────────────────────────────────────────────────────│
 │     StatusMessage…                                                             │
 │     Callout             ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
-│     Link                                                                       │
+│     Hyperlink                                                                  │
 │     ListTile            ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
 │ ▎   StatusBar          ┌                                                    ┐  │
 │                           NORMAL     example/widgets/main.dart Ln 12, Col 4    │
@@ -33,7 +33,7 @@ styles
 │aaaaannnnnnnnnnnaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnaaaaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
-│aaaaannnnaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnaaaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
 │apqqqrrrrrrrrrqqqqqqqaggoggggggggggggggggggggggggggggggggggggggggggggggggggggogg│
 │aaaaaaaaaaaaaaaaaaaaaaggggBCCCCCCBttttuuuuuuuuuuuuuuuuuuuuuuuuutvvtvvvtvvvtvgggg│

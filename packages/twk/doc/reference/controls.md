@@ -66,9 +66,9 @@ color of the theme;
 `Badge(label, kind:, style:)`, a short label reversed in a kind's color, or
 the theme's `primary`;
 
-## `Link`
+## `Hyperlink`
 
-`Link(url, text:, style:)`, text linked to a URL as an OSC 8 hyperlink, in
+`Hyperlink(url, text:, style:)`, text linked to a URL as an OSC 8 hyperlink, in
 the theme's `primary` underlined by default.
 
 ## `StatusBar`

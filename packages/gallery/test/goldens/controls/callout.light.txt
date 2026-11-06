@@ -15,7 +15,7 @@ text
 │     KeyHintsBar                                                                          │   info  success  warning    │
 │     StatusMessage, Badge       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   error                     │
 │ ▎   Callout                                                                              │                             │
-│     Link                       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  dismissible         ▐  ●▌  │
+│     Hyperlink                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  dismissible         ▐  ●▌  │
 │     ListTile              ▐       ┌                                              ┐       │                             │
 │     StatusBar             ▐    ·    ┌─ ℹ Info ─────────────────────────────[×]─┐   ·     │  actions             ▐  ●▌  │
 │                           ▐         │ A newer version of twk is out: 0.2.0.    │         │                             │
@@ -52,7 +52,7 @@ styles
 │aaaaaoooooooooooaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhIJJJJItuuuuuuuttuuuuuuuthhh│
 │aaaaaooooooooooooooaoooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhtuuuuuthhhhhhhhhhhhhhhhhhhh│
 │aKIIIJJJJJJJIIIIIIIIIIIIIIIahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnnnnnhhhhhhhhhqwwxqhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnnnnnhhhhhhhhhqwwxqhh│
 │aaaaaooooooooaaaaaaaaaaaaaadhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooaaaaaaaaaaaaadhhhhphhhhzAhAhAAAAhAzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzhhhphhhhhphhnnnnnnnhhhhhhhhhhhhhqwwxqhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhhhhhhzhBhBBBBBhBBBBBBBhBBhBBBhBBhBBBBhBBBBBBhhhhzhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

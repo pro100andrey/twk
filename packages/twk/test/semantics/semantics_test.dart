@@ -574,8 +574,8 @@ void main() {
             onChanged: (_) {},
             autofocus: true,
           ),
-          const Link('https://dart.dev', text: 'Dart'),
-          const Link('https://pub.dev'),
+          const Hyperlink('https://dart.dev', text: 'Dart'),
+          const Hyperlink('https://pub.dev'),
           SizedBox(
             width: 10,
             child: Slider(value: 0.25, onChanged: (_) {}),

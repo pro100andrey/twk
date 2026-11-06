@@ -29,7 +29,7 @@ import 'dart:io';
 import 'dart:math' show max, min;
 import 'dart:typed_data';
 
-import 'package:twk/twk.dart' hide Link;
+import 'package:twk/twk.dart';
 
 Future<void> main(List<String> args) async {
   final directory = args.isEmpty ? Directory.current.path : args.first;

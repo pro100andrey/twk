@@ -20,7 +20,7 @@ text
 │     KeyHintsBar                                                                │
 │     StatusMessage…   ──────────────────────────────────────────────────────────│
 │     Callout            default   yes  no                                       │
-│     Link               answers   Yes, No  Delete, Keep                         │
+│     Hyperlink          answers   Yes, No  Delete, Keep                         │
 │     ListTile                                                                   │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
@@ -45,7 +45,7 @@ styles
 │aaaaannnnnnnnnnnaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnnaaaaaaaaaaggmmmmmmmgguvvvuhyyhgggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnaaaaaaaaaaaaaggmmmmmmmgguvvvvuvvuhyyyyyyyhyyyyhgggggggggggggggggggggggg│
+│aaaaannnnnnnnnaaaaaaaaggmmmmmmmgguvvvvuvvuhyyyyyyyhyyyyhgggggggggggggggggggggggg│
 │aaaaannnnnnnnaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│

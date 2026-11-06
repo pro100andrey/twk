@@ -5,7 +5,7 @@ text
 │   ⌕ Filter             /      Tooltip                                                                         5 of 12  │
 │                               A message by a widget while the mouse or the keyboard focus rests on it, or while a      │
 │     Callout                   TooltipController says, centred under it by an AnchorFollower in the overlay; above      │
-│     Link                      it where there is no room below.                                                         │
+│     Hyperlink                 it where there is no room below.                                                         │
 │     ListTile                                                                                                           │
 │     StatusBar                 Preview   Code                                                                           │
 │                            ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
@@ -42,7 +42,7 @@ styles
 │aaiBiBBBBBBiiiiiiiiiiiiiCiaahhhlllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhDhDDhDDhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnhnnnnnnnhnnhnhnnnnnnhnnnnnhnnnhnnnnnhnnhnnnhnnnnnnnnhnnnnnhnnnnnhnnhnnnhnnhnnnnnhnhhhhhh│
 │aaaaaoooooooaaaaaaaaaaaaaaaahhhnnnnnnnnnnnnnnnnnhnnnnnhnnnnnnnhnnnnnhnnhnnhnnhnnnnnnnnnnnnnnhnnhnnnhnnnnnnnnhnnnnnhhhhhh│
-│aaaaaooooaaaaaaaaaaaaaaaaaaahhhnnhnnnnnhnnnnnhnnhnnhnnnnhnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhnnhnnnnnhnnnnnhnnhnnhnnnnhnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooaaaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│

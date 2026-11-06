@@ -10,7 +10,7 @@ extension on _SampleAppState {
           SizedBox(width: 16, child: _Tabs()),
           Badge('3', kind: StatusKind.success),
           StatusMessage('saved', kind: StatusKind.success),
-          Link('https://dart.dev', text: 'dart'),
+          Hyperlink('https://dart.dev', text: 'dart'),
           SizedBox(width: 4, child: ListTile(title: Text('tile'))),
           SizedBox(
             width: 16,

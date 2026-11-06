@@ -43,7 +43,7 @@ OK`, `checkbox Remember me, checked`, `textbox Name: anna`), `lines`, depth
 first, and `focusedLine`. The node focused is the nearest with a line at or
 above the primary focus, or the focused one of its `nodes`, else the first
 below it. The controls say what they are: `Button`, `Checkbox`, `Switch`,
-`RadioGroup` (a radio a choice), `Slider`, `Link`, `ListView` (a list of `N
+`RadioGroup` (a radio a choice), `Slider`, `Hyperlink`, `ListView` (a list of `N
 items`, an item a row), `MenuBar` and its menus (the entries with their
 keys, checked, expanded or disabled, the highlighted one focused),
 `ModalBarrier` (a `BlockSemantics`), `Dialog` (a dialog of its title), the

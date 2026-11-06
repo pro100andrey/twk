@@ -1,19 +1,19 @@
 ---
-title: "Link"
+title: "Hyperlink"
 group: "Controls"
 package: "twk"
 about: "Text linked to a URL, which a terminal that knows hyperlinks opens."
-image: "packages/gallery/doc/shots/controls/link.dark.svg"
-image_light: "packages/gallery/doc/shots/controls/link.light.svg"
-route: "#/controls/link"
+image: "packages/gallery/doc/shots/controls/hyperlink.dark.svg"
+image_light: "packages/gallery/doc/shots/controls/hyperlink.light.svg"
+route: "#/controls/hyperlink"
 ---
-# Link
+# Hyperlink
 
 Text linked to a URL, which a terminal that knows hyperlinks opens.
 
 | Dark | Light |
 | --- | --- |
-| ![Link, dark](../../../packages/gallery/doc/shots/controls/link.dark.svg) | ![Link, light](../../../packages/gallery/doc/shots/controls/link.light.svg) |
+| ![Hyperlink, dark](../../../packages/gallery/doc/shots/controls/hyperlink.dark.svg) | ![Hyperlink, light](../../../packages/gallery/doc/shots/controls/hyperlink.light.svg) |
 
 ## Code
 
@@ -26,9 +26,9 @@ return const Column(
   crossAxisAlignment: .start,
   gap: 1,
   children: [
-    Link('https://dart.dev', text: 'The Dart language'),
-    Link('https://pub.dev'),
-    Link('file:///home/user/twk/README.md', text: 'the README'),
+    Hyperlink('https://dart.dev', text: 'The Dart language'),
+    Hyperlink('https://pub.dev'),
+    Hyperlink('file:///home/user/twk/README.md', text: 'the README'),
   ],
 );
 ```
@@ -44,8 +44,8 @@ What the gallery lets you change, and what each starts at:
 
 ## More
 
-- API: [`Link`](https://pub.dev/documentation/twk/latest/twk/Link-class.html).
+- API: [`Hyperlink`](https://pub.dev/documentation/twk/latest/twk/Hyperlink-class.html).
 - Also in Controls: [Button](button.md), [Pressable](pressable.md), [Checkbox, Switch](checkbox-switch.md), [RadioGroup](radiogroup.md), [SegmentedButton](segmentedbutton.md), [Chip, ChipList](chip-chiplist.md), [ValueStepper](valuestepper.md), [SelectionList](selectionlist.md), [Select, MultiSelect](select-multiselect.md), [ConfirmInput](confirminput.md), [Slider](slider.md), [NumberInput](numberinput.md), [DatePicker](datepicker.md), [FilePicker](filepicker.md), [Form, FormField](form-formfield.md), [TabBar, TabView](tabbar-tabview.md), [KeyHintsBar](keyhintsbar.md), [StatusMessage, Badge](statusmessage-badge.md), [Callout](callout.md), [ListTile](listtile.md), [StatusBar](statusbar.md).
 - Live in the gallery:
-  `dart run packages/gallery/bin/gallery.dart --route='#/controls/link'`.
+  `dart run packages/gallery/bin/gallery.dart --route='#/controls/hyperlink'`.
 - [Controls](../controls.md) · [All groups](../README.md)
