@@ -333,7 +333,11 @@ tasks:
     needs: [get, pkg-get]
     each: packages
     do: tests
-    args: [$each, --exclude-tags=process, --reporter=failures-only]
+    args:
+      - $each
+      - --exclude-tags=process
+      - --reporter=failures-only
+      - --joined=packages/twk
 
   mac-process-test:
     # process-test's on macOS.
