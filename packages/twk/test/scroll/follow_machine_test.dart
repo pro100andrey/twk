@@ -115,8 +115,9 @@ void main() {
     test('a lost event told by the watch is not waited for', () {
       final m = linux();
       read(m, 12, 'b');
-      m.eventsLost();
-      m.nameEvent(puts: true);
+      m
+        ..eventsLost()
+        ..nameEvent(puts: true);
       expectPlan(read(m, 14, 'b'), reset: true, from: 0, to: 14);
     });
 

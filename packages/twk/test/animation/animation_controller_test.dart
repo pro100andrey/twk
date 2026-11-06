@@ -401,7 +401,7 @@ void awaitableTests() {
     expect(
       last.done,
       isFalse,
-      reason: 'dispose leaves the future pending, as Flutter\'s does',
+      reason: "dispose leaves the future pending, as Flutter's does",
     );
   });
 
