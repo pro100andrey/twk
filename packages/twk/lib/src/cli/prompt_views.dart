@@ -342,12 +342,10 @@ final class _ConfirmPromptViewState extends State<ConfirmPromptView> {
     if (event.kind == KeyKind.release || event.modifiers & ~Mod.shift != 0) {
       return KeyEventResult.ignored;
     }
-    final strings = TwkStrings.of(context);
+    final answer = confirmAnswer(event.char, TwkStrings.of(context));
     switch (event.code) {
-      case KeyCode.char when confirmAnswer(event.char ?? '', strings) == true:
-        _answer(true);
-      case KeyCode.char when confirmAnswer(event.char ?? '', strings) == false:
-        _answer(false);
+      case KeyCode.char when answer != null:
+        _answer(answer);
       case KeyCode.enter:
         if (_highlighted case final value?) {
           _answer(value);
