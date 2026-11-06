@@ -6,6 +6,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:test/test.dart';
+import 'package:twk_core/src/graphics.dart';
 import 'package:twk_core/src/presenter.dart';
 import 'package:twk_core/src/style.dart' show StyleId;
 import 'package:twk_core/src/surface.dart';
@@ -337,4 +338,38 @@ void main() {
     final f = Fixture(const Viewport.fixed(1, 1, 4, 2), 8, 4);
     expect(f.leave(), isEmpty);
   });
+
+  for (final protocol in [GraphicsProtocol.sixel, GraphicsProtocol.iterm2]) {
+    test('${protocol.name}: an image in the viewport does not take the '
+        'cursor it saved: it is back where it was after the frame and after '
+        'leaving', () {
+      final hs = Harness(12, 4);
+      final vt = Vt(30, 8)..feed(utf8.encode('\x1b[8;6H'));
+      final presenter = Presenter(
+        12,
+        4,
+        hs.styles,
+        hs.glyphs,
+        caps: TerminalCaps(graphics: protocol),
+        viewport: const Viewport.fixed(10, 1, 12, 4),
+      )..screenWidth = 30;
+      final data = protocol == GraphicsProtocol.sixel
+          ? Uint8List.fromList(ascii.encode('0;1;0q"1;1;20;20#0;2;0;0;0#0~~~~'))
+          : Uint8List.fromList(List.generate(30, (i) => i));
+      hs.canvas.image(
+        3,
+        1,
+        2,
+        1,
+        TerminalImage(protocol, data, pixelWidth: 20, pixelHeight: 20),
+      );
+      presenter.present(hs.surface);
+      vt.feed(presenter.out.view);
+      expect((vt.cx, vt.cy), (5, 7), reason: 'after the frame');
+      presenter.leave();
+      vt.feed(presenter.out.view);
+      expect((vt.cx, vt.cy), (5, 7), reason: 'after leaving');
+      expect(vt.errors, isEmpty);
+    });
+  }
 }

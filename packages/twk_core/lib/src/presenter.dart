@@ -1267,12 +1267,18 @@ final class Presenter {
     }
   }
 
-  /// Inline mode: committed rows go in with `IL` (see [commit]).
+  /// Inline mode: committed rows go in with `IL` (see [commit]). Not while
+  /// Konsole shows a sixel or iTerm2 image: a scroll down moves none of its
+  /// images, so the pixels would stay over the cells the `IL` moved; the
+  /// region is printed again after an `ED 0`, which erases them.
   bool get _insertsCommitted =>
       !_frontInvalid &&
       caps.hardwareScroll &&
       height > 0 &&
-      screenHeight > height;
+      screenHeight > height &&
+      !(caps.konsoleImages &&
+          _shown.isNotEmpty &&
+          _scrollsImage(0, height, 0, width));
 
   /// Inline mode, before the region is placed: writes the committed rows
   /// from the region's first row down, after erasing it, with a line feed
@@ -1406,12 +1412,21 @@ final class Presenter {
   @pragma('vm:never-inline')
   void _presentImages(Surface back, {required bool lost}) {
     final want = back.images;
+    final shown = _shown;
     for (var i = want.length - 1; i >= 0; i--) {
       if (!_reservedStill(back, want[i])) {
-        want.removeAt(i);
+        final p = want.removeAt(i);
+        // the cells still reserved keep the pixels of a sixel or iTerm2
+        // image shown there, which a scroll up moves on Konsole to cells no
+        // row writes ([_scrollsImage] looks at what is shown): erased at
+        // once
+        if (caps.konsoleImages &&
+            caps.graphics != GraphicsProtocol.kitty &&
+            shown.any((s) => s.drawn && s.at.sameAs(p))) {
+          _blankUnder(back, p, all: true);
+        }
       }
     }
-    final shown = _shown;
     if (lost) {
       _kittySent.clear();
     }
@@ -1518,9 +1533,25 @@ final class Presenter {
               multiplexer: multiplexer,
             );
           case GraphicsProtocol.sixel:
-            sixelDraw(out, p, multiplexer: multiplexer);
+            sixelDraw(
+              out,
+              p,
+              multiplexer: multiplexer,
+              saveCursor: viewport == null,
+            );
+            if (viewport != null) {
+              _cx = _cy = -1; // the one DECSC is the viewport's
+            }
           case GraphicsProtocol.iterm2:
-            iterm2Draw(out, p, multiplexer: multiplexer);
+            iterm2Draw(
+              out,
+              p,
+              multiplexer: multiplexer,
+              saveCursor: viewport == null,
+            );
+            if (viewport != null) {
+              _cx = _cy = -1;
+            }
           case GraphicsProtocol.none:
         }
         stats.images++;
@@ -1565,16 +1596,14 @@ final class Presenter {
 
   /// Whether a cell [p] shows has a blank of another look in [back] than
   /// the one the image was drawn over (the cells under an image moved
-  /// there, still reserved): those of the rows damaged since the last
-  /// frame are looked at.
+  /// there, still reserved): every cell it shows is looked at, the rows a
+  /// scroll moved without damage included.
   bool _restyled(Surface back, ImagePlacement p) {
     final w = width;
     final bs = back.styles;
     final fs = _fs;
     for (var y = p.top; y < p.bottom; y++) {
-      final lo = back.dirtyLo[y] > p.left ? back.dirtyLo[y] : p.left;
-      final hi = back.dirtyHi[y] < p.right ? back.dirtyHi[y] : p.right;
-      for (var i = y * w + lo; i < y * w + hi; i++) {
+      for (var i = y * w + p.left; i < y * w + p.right; i++) {
         if (bs[i] != fs[i] && _blankOf(bs[i]) != _blankOf(fs[i])) {
           return true;
         }

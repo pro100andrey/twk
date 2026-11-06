@@ -224,28 +224,35 @@ void kittyDelete(
 /// The bytes that draw the sixel image of [p] at the cursor and put the
 /// cursor back (DECSC, DECRC), with the cursor left to the right of the
 /// image meanwhile (DEC mode 8452), so that an image on the last row
-/// doesn't scroll the screen.
+/// doesn't scroll the screen. Without [saveCursor] (the terminal has one
+/// saved cursor, which the caller may be using) neither is written, and
+/// the cursor is left where the image ends.
 void sixelDraw(
   ByteSink out,
   ImagePlacement p, {
   Multiplexer multiplexer = Multiplexer.none,
+  bool saveCursor = true,
 }) {
-  out.ascii('\x1b7\x1b[?8452h');
+  out.ascii(saveCursor ? '\x1b7\x1b[?8452h' : '\x1b[?8452h');
   final data = p.image.data;
   putImageData(out, '\x1bP', data, 0, data.length, '\x1b\\', multiplexer);
-  out.ascii('\x1b[?8452l\x1b8');
+  out.ascii(saveCursor ? '\x1b[?8452l\x1b8' : '\x1b[?8452l');
 }
 
 /// The bytes that draw the iTerm2 image of [p] at the cursor, scaled to
 /// its cells, the cursor kept where it is (`doNotMoveCursor`, and DECSC,
-/// DECRC where that is not known).
+/// DECRC where that is not known; neither without [saveCursor], for a
+/// caller that uses the one saved cursor itself).
 void iterm2Draw(
   ByteSink out,
   ImagePlacement p, {
   Multiplexer multiplexer = Multiplexer.none,
+  bool saveCursor = true,
 }) {
   final image = p.image;
-  out.ascii('\x1b7');
+  if (saveCursor) {
+    out.ascii('\x1b7');
+  }
   putImageData(
     out,
     '\x1b]1337;File=inline=1;size=${image.data.length};width=${p.cols};'
@@ -256,7 +263,9 @@ void iterm2Draw(
     '\x07',
     multiplexer,
   );
-  out.ascii('\x1b8');
+  if (saveCursor) {
+    out.ascii('\x1b8');
+  }
 }
 
 /// [s] (ASCII), wrapped for [multiplexer].
