@@ -93,23 +93,28 @@ final class _ParagraphsState extends State<_Paragraphs> {
         _boxed(
           _boxW,
           _scrollH,
-          SingleChildScrollView(
-            scrollDirection: widget.vertical ? Axis.vertical : Axis.horizontal,
-            controller: _controller,
-            child: widget.vertical
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    gap: 1,
-                    children: paragraphs,
-                  )
-                : Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    gap: 2,
-                    children: [
-                      for (final paragraph in paragraphs)
-                        SizedBox(width: _colW, child: paragraph),
-                    ],
-                  ),
+          ScrollConfiguration(
+            behavior: const ScrollBehavior(),
+            child: SingleChildScrollView(
+              scrollDirection: widget.vertical
+                  ? Axis.vertical
+                  : Axis.horizontal,
+              controller: _controller,
+              child: widget.vertical
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      gap: 1,
+                      children: paragraphs,
+                    )
+                  : Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      gap: 2,
+                      children: [
+                        for (final paragraph in paragraphs)
+                          SizedBox(width: _colW, child: paragraph),
+                      ],
+                    ),
+            ),
           ),
         ),
         Button('next paragraph', onPressed: _showNext),
@@ -172,25 +177,28 @@ String _paragraphsCode(Options o) {
     '        width: $_boxW,',
     '        height: $_scrollH,',
     ..._focusBox('        '),
-    '          child: SingleChildScrollView(',
-    if (!vertical) '            scrollDirection: .horizontal,',
-    '            controller: _controller,',
+    '          child: ScrollConfiguration(',
+    '            behavior: const ScrollBehavior(),',
+    '            child: SingleChildScrollView(',
+    if (!vertical) '              scrollDirection: .horizontal,',
+    '              controller: _controller,',
     if (vertical) ...[
-      '            child: Column(',
-      '              crossAxisAlignment: .start,',
-      '              gap: 1,',
-      '              children: paragraphs,',
-      '            ),',
+      '              child: Column(',
+      '                crossAxisAlignment: .start,',
+      '                gap: 1,',
+      '                children: paragraphs,',
+      '              ),',
     ] else ...[
-      '            child: Row(',
-      '              crossAxisAlignment: .start,',
-      '              gap: 2,',
-      '              children: [',
-      '                for (final paragraph in paragraphs)',
-      '                  SizedBox(width: $_colW, child: paragraph),',
-      '              ],',
-      '            ),',
+      '              child: Row(',
+      '                crossAxisAlignment: .start,',
+      '                gap: 2,',
+      '                children: [',
+      '                  for (final paragraph in paragraphs)',
+      '                    SizedBox(width: $_colW, child: paragraph),',
+      '                ],',
+      '              ),',
     ],
+    '            ),',
     '          ),',
     '        ),',
     '      ),',

@@ -78,12 +78,15 @@ Widget build(BuildContext context) {
             ),
             child: child,
           ),
-          child: SingleChildScrollView(
-            controller: _controller,
-            child: Column(
-              crossAxisAlignment: .start,
-              gap: 1,
-              children: paragraphs,
+          child: ScrollConfiguration(
+            behavior: const ScrollBehavior(),
+            child: SingleChildScrollView(
+              controller: _controller,
+              child: Column(
+                crossAxisAlignment: .start,
+                gap: 1,
+                children: paragraphs,
+              ),
             ),
           ),
         ),

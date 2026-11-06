@@ -34,6 +34,7 @@ void main() {
     final inner = ScrollController();
     await t.pumpWidget(around(outer, inner), size: (20, 8));
     await t.mouse(MouseKind.wheelDown, 2, 1);
+    await t.pump();
     expect((outer.offset, inner.offset), (0, 3));
   });
 
@@ -46,6 +47,7 @@ void main() {
       size: (20, 8),
     );
     await t.mouse(MouseKind.wheelDown, 2, 1);
+    await t.pump();
     expect((outer2.offset, inner2.offset), (3, 0));
   });
 

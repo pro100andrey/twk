@@ -38,6 +38,7 @@ void main() {
       size: (20, 8),
     );
     await t.mouse(MouseKind.wheelDown, 2, 1);
+    await t.pump();
     expect((outer.offset, inner.offset), (3, 0));
     inner.jumpTo(5);
     await t.pump();

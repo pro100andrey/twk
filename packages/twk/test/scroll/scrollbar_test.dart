@@ -506,8 +506,11 @@ void main() {
         size: (20, 10),
       );
       await t.mouse(MouseKind.wheelDown, 19, 5);
+      await t.pump();
       await t.mouse(MouseKind.wheelDown, 19, 5);
+      await t.pump();
       await t.mouse(MouseKind.wheelUp, 19, 5);
+      await t.pump();
       expect(controller.offset, 3);
     });
 
@@ -535,8 +538,10 @@ void main() {
       view.jumpTo(20);
       await t.pump();
       await t.mouse(MouseKind.wheelDown, 19, 5);
+      await t.pump();
       expect((view.offset, list.offset), (20, 3));
       await t.mouse(MouseKind.wheelLeft, 19, 5);
+      await t.pump();
       expect((view.offset, list.offset), (17, 3));
     });
   });
@@ -721,7 +726,9 @@ void main() {
       view.jumpTo(20);
       await t.pump();
       await t.mouse(MouseKind.wheelDown, 19, 5);
+      await t.pump();
       await t.mouse(MouseKind.wheelLeft, 19, 5);
+      await t.pump();
       expect((view.offset, list.offset), (17, 3));
     });
   });
@@ -787,6 +794,7 @@ void main() {
       ]);
       await t.pump(const Duration(milliseconds: 300));
       await t.mouse(MouseKind.wheelUp, 4, 4);
+      await t.pump();
       await t.pump(const Duration(milliseconds: 400));
       expect(down(t, 19, 10), [
         ...track(2),
@@ -831,7 +839,6 @@ void main() {
           itemCount: 100000,
           controller: list,
           autofocus: true,
-          wheelAcceleration: const WheelAcceleration(),
           itemBuilder: (context, index) {
             built++;
             return Text('item $index');
@@ -856,9 +863,9 @@ void main() {
     expect(down(t, 19, 10), [...track(4), ...thumb(1), ...track(5)]);
     expect(built, lessThan(30));
     await t.mouse(MouseKind.wheelDown, 4, 4);
-    await t.pump(const Duration(milliseconds: 10));
+    await t.pump();
     await t.mouse(MouseKind.wheelDown, 4, 4);
     await t.pump();
-    expect(t.lines.first, 'item 44461');
+    expect(t.lines.first, 'item 44446');
   });
 }

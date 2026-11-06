@@ -379,7 +379,8 @@ void main() {
   });
 
   testTwk('of a move of the wheel and a ListController request in one '
-      'frame, which builds the list again, the later wins', (t) async {
+      'frame, which builds the list again, the wheel wins: a frame applies '
+      'it first, and a request waits for the position it leaves', (t) async {
     final controller = ListController();
     Widget view(int count) => ListView.builder(
       itemCount: count,
@@ -394,22 +395,16 @@ void main() {
     await t.mouse(MouseKind.wheelUp, 1, 1);
     controller.ensureIndexVisible(20);
     await t.pumpWidget(view(21));
-    expect(t.lines, items(16, 21));
-    expect(controller.offset, 16);
+    expect(t.lines, items(12, 17));
+    expect(controller.offset, 12);
 
-    controller.ensureIndexVisible(21);
+    // a request made after the frame that took the wheel is kept
     await t.mouse(MouseKind.wheelUp, 1, 1);
-    await t.pumpWidget(view(22));
-    expect(t.lines, items(13, 18));
-    expect(controller.offset, 13);
-
-    // the wheel back to where the list is, after the request
-    await t.mouse(MouseKind.wheelDown, 1, 1);
+    await t.pump();
     controller.jumpToIndex(0);
-    await t.mouse(MouseKind.wheelUp, 1, 1);
-    await t.pumpWidget(view(23));
-    expect(t.lines, items(13, 18));
-    expect(controller.offset, 13);
+    await t.pumpWidget(view(22));
+    expect(t.lines, items(0, 5));
+    expect(controller.offset, 0);
   });
 
   testTwk('a ListController request made as the list tells its position '

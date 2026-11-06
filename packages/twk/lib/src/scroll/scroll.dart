@@ -4,6 +4,8 @@ library;
 
 export 'list_view.dart';
 export 'log_view.dart';
+export 'scroll_behavior.dart';
+export 'scroll_input.dart';
 export 'scrollable.dart' hide ScrollbarScope, scrollByWheel;
 export 'scrollbar.dart' hide BorderScrollbar;
 export 'single_child_scroll_view.dart';

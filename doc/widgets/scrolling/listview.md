@@ -54,7 +54,6 @@ Widget build(BuildContext context) {
           child: ListView.builder(
             itemCount: _count,
             controller: _list,
-            wheelAcceleration: const WheelAcceleration(),
             itemBuilder: (context, i) => Text('item ${i + 1}'),
           ),
         ),
