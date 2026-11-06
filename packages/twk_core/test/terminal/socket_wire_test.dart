@@ -169,6 +169,83 @@ void main() {
       );
     });
 
+    for (final (name, welcome) in <(String, Object)>[
+      (
+        'columns a string',
+        {'columns': '80', 'lines': 24, 'environment': <String, Object?>{}},
+      ),
+      ('columns missing', {'lines': 24, 'environment': <String, Object?>{}}),
+      ('environment missing', {'columns': 80, 'lines': 24}),
+      (
+        'a null in environment',
+        {
+          'columns': 80,
+          'lines': 24,
+          'environment': {'A': null},
+        },
+      ),
+      (
+        'eraseChar text',
+        {
+          'columns': 80,
+          'lines': 24,
+          'eraseChar': 'x',
+          'environment': <String, Object?>{},
+        },
+      ),
+      ('a list', [1, 2]),
+    ]) {
+      test('a welcome with $name fails connecting', () async {
+        final address = await listen(dir, (socket) {
+          socket
+            ..listen((_) {}, onError: (Object _) {})
+            ..add(jsonFrame(ShellFrame.welcome.byte, welcome));
+        });
+        await expectLater(
+          SocketLink.connect(address),
+          throwsA(
+            isA<TerminalException>().having(
+              (e) => e.message,
+              'message',
+              startsWith('the shell sent'),
+            ),
+          ),
+        );
+      });
+    }
+
+    test(
+      'a size frame of the wrong shape ends the link, not the app',
+      () async {
+        final address = await listen(dir, (socket) {
+          socket
+            ..listen((_) {}, onError: (Object _) {})
+            ..add(
+              jsonFrame(ShellFrame.welcome.byte, {
+                'columns': 80,
+                'lines': 24,
+                'environment': <String, Object?>{},
+              }),
+            )
+            ..add(
+              jsonFrame(ShellFrame.size.byte, {'columns': '9', 'lines': 1}),
+            );
+        });
+        final link = await SocketLink.connect(address);
+        await expectLater(
+          link.input,
+          emitsError(
+            isA<TerminalException>().having(
+              (e) => e.message,
+              'message',
+              startsWith('the shell sent'),
+            ),
+          ),
+        );
+        expect(link.columns, 80);
+      },
+    );
+
     test("a shell that doesn't answer the hello in time: connecting "
         'fails', () async {
       final address = await listen(dir, (socket) {
