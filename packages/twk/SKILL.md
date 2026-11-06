@@ -91,8 +91,13 @@ packages/gallery/bin/gallery.dart`).
   `.stretch`); the packages need SDK 3.13.5 or later.
 - Where the names differ from Flutter's, as code brought over trips on:
   `BoxConstraints` has `minWidth`, `maxWidth`, `minHeight`, `maxHeight` (in
-  cells, as in Flutter), and `BoxConstraints.tight(w, h)` takes two ints, not
-  one object;
+  cells, as in Flutter), and `BoxConstraints.tight(w, h)` and `loose(w, h)` take
+  two ints, not one object (`biggest` and `smallest` are
+  `({int width, int height})` records); `DefaultTextStyle(style:)` merges onto
+  the style above, as `DefaultTextStyle.merge` does, where Flutter's plain
+  constructor replaces it; the `Future` of `AnimationController.forward`,
+  `reverse`, `animateTo` and `repeat` completes when something stops the run
+  too (Flutter's stays pending), so an `await` does not hang;
   a position is in cells, a record `(dx:, dy:)` of whole numbers where Flutter
   has an Offset: `GestureDetector`'s `onTapDown` and `onTapUp` take it in their
   details (`localPosition`, `globalPosition`; `event.button` says which
