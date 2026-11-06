@@ -49,7 +49,7 @@ on);
 
 ## `Flex`
 
-`Flex`, `Row` and `Column` with a `gap` (along an unbounded main axis, as in
+`Flex`, `Row` and `Column` with a `spacing` (along an unbounded main axis, as in
 a `SingleChildScrollView`, each child, flexible or not, as long as it likes,
 and the flex as long as its children, whatever its `mainAxisSize`);
 
@@ -75,10 +75,10 @@ after the one before it);
 
 ## `Wrap`
 
-`Wrap(direction:, alignment:, runAlignment:, crossAxisAlignment:, gap: 0,
-runGap: 0, children:)` (the core's `RenderWrap`), which lays its children
-out one after another along `direction`, `gap` cells apart, each as long as
-it likes up to the whole main axis, and starts a new run `runGap` cells on
+`Wrap(direction:, alignment:, runAlignment:, crossAxisAlignment:, spacing: 0,
+runSpacing: 0, children:)` (the core's `RenderWrap`), which lays its children
+out one after another along `direction`, `spacing` cells apart, each as long as
+it likes up to the whole main axis, and starts a new run `runSpacing` cells on
 where the next does not fit (tags, buttons, hints that flow onto the next
 row as the terminal narrows): `alignment` places the children of each run in
 the cells it leaves and `runAlignment` the runs (`WrapAlignment`: `start`,

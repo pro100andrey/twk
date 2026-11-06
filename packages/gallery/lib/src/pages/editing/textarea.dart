@@ -76,7 +76,7 @@ final _textareaPage = GalleryPage(
       '  return Column(',
       '    mainAxisSize: .min,',
       '    crossAxisAlignment: .start,',
-      '    gap: 1,',
+      '    spacing: 1,',
       '    children: [',
       '      SizedBox(',
       '        width: 40,',
@@ -200,7 +200,7 @@ final class _AreaState extends State<_Area> with KeptState {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         SizedBox(
           width: 40,

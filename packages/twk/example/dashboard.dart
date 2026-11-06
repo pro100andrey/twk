@@ -326,7 +326,7 @@ final class _Header extends StatelessWidget {
     return Padding(
       padding: const .x(1),
       child: Row(
-        gap: 2,
+        spacing: 2,
         children: [
           Text.rich([
             Span('◆ ', theme.primary),

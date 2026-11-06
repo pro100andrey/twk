@@ -4,6 +4,9 @@
 
 Breaking:
 
+- `Flex`, `Row`, `Column` and `Wrap` take `spacing` and `runSpacing`, and
+  `RenderFlex` and `RenderWrap` have them, as Flutter names them: they were
+  `gap` and `runGap`.
 - `log`, `LogLevel`, `LogRecord` and `LogSink` are out of `twk_core.dart`: they
   are in `package:twk_core/terminal.dart` (and `package:twk/log.dart`).
 - A process has one terminal: `Terminal.open` on its own stdio throws a

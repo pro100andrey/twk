@@ -193,7 +193,7 @@ final _bigText = GalleryPage(
       '  final theme = Theme.of(context);',
       '  return Column(',
       '    mainAxisSize: .min,',
-      '    gap: 1,',
+      '    spacing: 1,',
       '    children: [',
       '      // what the field and the gap leave: the font that fits in it',
       codeLine([
@@ -259,7 +259,7 @@ final class _TypedBigState extends State<_TypedBig> with KeptState {
     final theme = Theme.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
-      gap: 1,
+      spacing: 1,
       children: [
         // what the field and the gap leave: the font that fits in it
         Flexible(

@@ -43,7 +43,7 @@ Widget build(BuildContext context) {
   return Column(
     mainAxisSize: .min,
     crossAxisAlignment: .start,
-    gap: 1,
+    spacing: 1,
     children: [
       // as tall as the room leaves it, at most 11
       Flexible(

@@ -26,12 +26,12 @@ const tasks = ['Resolving packages…', 'Compiling…', 'Running 214 tests…'];
 return Column(
   mainAxisSize: .min,
   crossAxisAlignment: .start,
-  gap: 1,
+  spacing: 1,
   children: [
     for (final task in tasks)
       Row(
         mainAxisSize: .min,
-        gap: 1,
+        spacing: 1,
         children: [
           Spinner(style: theme.primary),
           Text(task),

@@ -37,7 +37,7 @@ final class _RulerPageState extends State<_RulerPage> {
   Widget build(BuildContext context) => Column(
     mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.start,
-    gap: 1,
+    spacing: 1,
     children: [
       _boxed(
         _boxW,
@@ -152,7 +152,7 @@ final String _rulerCode = [
   '  return Column(',
   '    mainAxisSize: .min,',
   '    crossAxisAlignment: .start,',
-  '    gap: 1,',
+  '    spacing: 1,',
   '    children: [',
   '      SizedBox(',
   '        width: $_boxW,',

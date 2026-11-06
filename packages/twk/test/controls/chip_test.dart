@@ -78,7 +78,7 @@ void main() {
     await t.pumpWidget(
       const Theme.terminal(
         child: Row(
-          gap: 1,
+          spacing: 1,
           children: [Chip('a'), Chip('b', selected: true)],
         ),
       ),

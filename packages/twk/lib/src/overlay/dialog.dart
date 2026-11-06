@@ -395,7 +395,7 @@ final class Dialog extends StatelessWidget {
                       SizedBox(
                         height: 1,
                         child: Row(
-                          gap: 1,
+                          spacing: 1,
                           children: [
                             Expanded(
                               child: title == null

@@ -58,7 +58,7 @@ final class _Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: .start,
-    gap: 1,
+    spacing: 1,
     children: [
       const Text('Home'),
       Button(
@@ -83,11 +83,11 @@ final class _Item extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: .start,
-    gap: 1,
+    spacing: 1,
     children: [
       Text('Item $n', style: Theme.of(context).primary),
       Row(
-        gap: 2,
+        spacing: 2,
         children: [
           Button(
             'Back',
@@ -112,7 +112,7 @@ final class _Settings extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: .start,
-    gap: 1,
+    spacing: 1,
     children: [
       Text('Settings', style: Theme.of(context).primary),
       Button(

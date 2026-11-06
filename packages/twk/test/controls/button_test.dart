@@ -81,7 +81,7 @@ void main() {
               // a box with no background is passed by
               child: Box(
                 child: Row(
-                  gap: 1,
+                  spacing: 1,
                   children: [
                     Button('Keep', onPressed: () {}),
                     Button(
@@ -259,7 +259,7 @@ void main() {
         dark(
           Row(
             mainAxisSize: MainAxisSize.min,
-            gap: 1,
+            spacing: 1,
             children: [
               Button.outlined('No', onPressed: () {}),
               Button.filled('Yes', onPressed: () {}),

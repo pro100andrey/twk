@@ -199,7 +199,7 @@ final class Skeletonize extends StatelessWidget {
 ///
 /// ```dart
 /// const Row(
-///   gap: 1,
+///   spacing: 1,
 ///   children: [
 ///     Text('User:'),
 ///     Skeleton(width: 12),

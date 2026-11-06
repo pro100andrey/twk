@@ -49,7 +49,7 @@ Widget build(BuildContext context) {
     child: Column(
       mainAxisSize: .min,
       crossAxisAlignment: .stretch,
-      gap: 1,
+      spacing: 1,
       children: [
         SizedBox(
           height: 8,
@@ -63,7 +63,7 @@ Widget build(BuildContext context) {
         ),
         Row(
           crossAxisAlignment: .start,
-          gap: 2,
+          spacing: 2,
           children: [
             Button(
               'In a dialog',

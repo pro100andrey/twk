@@ -34,7 +34,7 @@ final _tween = GalleryPage(
         final theme = Theme.of(context);
         return Row(
           mainAxisSize: .min,
-          gap: 1,
+          spacing: 1,
           children: [
             SizedBox(
               width: 30,
@@ -62,7 +62,7 @@ final _tween = GalleryPage(
       '    final theme = Theme.of(context);',
       '    return Row(',
       '      mainAxisSize: .min,',
-      '      gap: 1,',
+      '      spacing: 1,',
       '      children: [',
       '        SizedBox(',
       '          width: 30,',

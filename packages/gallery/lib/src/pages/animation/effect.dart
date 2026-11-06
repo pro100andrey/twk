@@ -77,7 +77,7 @@ final _effect = GalleryPage(
       'return Column(',
       '  mainAxisSize: .min,',
       '  crossAxisAlignment: .start,',
-      '  gap: 1,',
+      '  spacing: 1,',
       '  children: [',
       '    Box(',
       '      style: theme.surface,',
@@ -93,7 +93,7 @@ final _effect = GalleryPage(
       '            children: [',
       "              Text('Effects over a subtree', style: theme.primary),",
       '              Row(',
-      '                gap: 1,',
+      '                spacing: 1,',
       '                children: [',
       '                  Spinner(style: theme.accent),',
       "                  const Text('repainting underneath'),",
@@ -110,7 +110,7 @@ final _effect = GalleryPage(
       '    ),',
       '    Row(',
       '      mainAxisSize: .min,',
-      '      gap: 2,',
+      '      spacing: 2,',
       '      children: [',
       "        Button('Again', onPressed: () => setState(() => _runs++)),",
       "        Text('a new key runs it from its start', style: theme.muted),",
@@ -189,7 +189,7 @@ final class _EffectsState extends State<_Effects> {
     return Column(
       mainAxisSize: .min,
       crossAxisAlignment: .start,
-      gap: 1,
+      spacing: 1,
       children: [
         Box(
           style: theme.surface,
@@ -205,7 +205,7 @@ final class _EffectsState extends State<_Effects> {
                 children: [
                   Text('Effects over a subtree', style: theme.primary),
                   Row(
-                    gap: 1,
+                    spacing: 1,
                     children: [
                       Spinner(style: theme.accent),
                       const Text('repainting underneath'),
@@ -219,7 +219,7 @@ final class _EffectsState extends State<_Effects> {
         ),
         Row(
           mainAxisSize: .min,
-          gap: 2,
+          spacing: 2,
           children: [
             Button('Again', onPressed: () => setState(() => _runs++)),
             Text('a new key runs it from its start', style: theme.muted),

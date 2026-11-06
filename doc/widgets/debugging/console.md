@@ -79,10 +79,10 @@ Widget build(BuildContext context) {
         rows: 6,
         child: Column(
           crossAxisAlignment: .start,
-          gap: 1,
+          spacing: 1,
           children: [
             Row(
-              gap: 1,
+              spacing: 1,
               children: [
                 Button('Info', onPressed: () => _log(.info, 'all is well')),
                 Button(

@@ -200,7 +200,7 @@ final class Callout extends StatelessWidget {
           child,
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
-            gap: 1,
+            spacing: 1,
             children: actions,
           ),
         ],

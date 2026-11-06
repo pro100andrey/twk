@@ -50,7 +50,7 @@ Widget build(BuildContext context) {
   return Column(
     mainAxisSize: .min,
     crossAxisAlignment: .start,
-    gap: 1,
+    spacing: 1,
     children: [
       // the list takes no keys: a Pressable around it
       // does, its border primary while it has the focus

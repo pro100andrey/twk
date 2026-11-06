@@ -595,7 +595,7 @@ final class _MarkdownViewState extends State<MarkdownView> {
       Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        gap: gap,
+        spacing: gap,
         children: [for (final block in blocks) _block(block, depth, uses)],
       );
 
@@ -711,7 +711,7 @@ final class _MarkdownViewState extends State<MarkdownView> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      gap: gap,
+      spacing: gap,
       children: [
         for (var k = 0; k < items.length; k++)
           _item(
@@ -757,7 +757,7 @@ final class _MarkdownViewState extends State<MarkdownView> {
     uses,
     (uses) => Row(
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         _Marker(marker, column: column, end: end, style: _theme.marker),
         Expanded(child: _column(item.children, depth + 1, by.$2, uses)),

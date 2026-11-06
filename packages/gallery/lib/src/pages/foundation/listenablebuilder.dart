@@ -45,11 +45,11 @@ final _listenable = GalleryPage(
       'Widget build(BuildContext context) => Column(',
       '  mainAxisSize: .min,',
       '  crossAxisAlignment: .start,',
-      '  gap: 1,',
+      '  spacing: 1,',
       '  children: [',
       '    Row(',
       '      mainAxisSize: .min,',
-      '      gap: 2,',
+      '      spacing: 2,',
       '      children: [',
       "        Button('Count', onPressed: () => _count.value++),",
       '        // notifies no one when it is 0 already',
@@ -136,11 +136,11 @@ final class _CountingState extends TimedState<_Counting> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         Row(
           mainAxisSize: MainAxisSize.min,
-          gap: 2,
+          spacing: 2,
           children: [
             Button('Count', onPressed: () => _set((v) => v + 1)),
             Button('Reset', onPressed: () => _set((_) => 0)),

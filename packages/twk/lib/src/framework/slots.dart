@@ -161,7 +161,7 @@ final class SlotScope extends InheritedWidget {
 /// ```dart
 /// Slot(
 ///   'toolbar',
-///   layout: (context, children) => Row(gap: 1, children: children),
+///   layout: (context, children) => Row(spacing: 1, children: children),
 /// )
 /// ```
 ///

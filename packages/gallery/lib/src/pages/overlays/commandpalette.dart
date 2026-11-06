@@ -124,11 +124,11 @@ final _commandpalettePage = GalleryPage(
     '    child: Column(',
     '      mainAxisSize: .min,',
     '      crossAxisAlignment: .start,',
-    '      gap: 1,',
+    '      spacing: 1,',
     '      children: [',
     '        Row(',
     '          mainAxisSize: .min,',
-    '          gap: 2,',
+    '          spacing: 2,',
     '          children: [',
     "            Button('Focus me', onPressed: () => _run('press')),",
     '            // opens the palette with dart typed',
@@ -235,11 +235,11 @@ final class _PaletteState extends State<_Palette> with KeptState {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
-        gap: 1,
+        spacing: 1,
         children: [
           Row(
             mainAxisSize: MainAxisSize.min,
-            gap: 2,
+            spacing: 2,
             children: [
               Button('Focus me', onPressed: () => _run('press')),
               Button(

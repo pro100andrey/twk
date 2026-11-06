@@ -609,17 +609,17 @@ String _syncCode(Options o, String title) {
     '        padding: const .all(1),',
     '        child: Column(',
     '          crossAxisAlignment: .start,',
-    '          gap: 1,',
+    '          spacing: 1,',
     '          children: [',
     '            Row(',
-    '              gap: 1,',
+    '              spacing: 1,',
     '              children: [',
     '                if (!_paused) const Spinner(),',
     "                Text(_paused ? 'paused' : 'syncing'),",
     '              ],',
     '            ),',
     '            Row(',
-    '              gap: 1,',
+    '              spacing: 1,',
     '              children: [',
     "                Text('copy', style: theme.muted),",
     codeLine([
@@ -629,7 +629,7 @@ String _syncCode(Options o, String title) {
     '              ],',
     '            ),',
     '            Row(',
-    '              gap: 1,',
+    '              spacing: 1,',
     '              children: [',
     "                Text('load', style: theme.muted),",
     '                SizedBox(',
@@ -874,17 +874,17 @@ final class _Sync extends StatelessWidget {
       padding: const EdgeInsets.all(1),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        gap: 1,
+        spacing: 1,
         children: [
           Row(
-            gap: 1,
+            spacing: 1,
             children: [
               if (!app.paused) const Spinner(),
               Text(app.paused ? 'paused' : 'syncing'),
             ],
           ),
           Row(
-            gap: 1,
+            spacing: 1,
             children: [
               Text('copy', style: theme.muted),
               SizedBox(
@@ -894,7 +894,7 @@ final class _Sync extends StatelessWidget {
             ],
           ),
           Row(
-            gap: 1,
+            spacing: 1,
             children: [
               Text('load', style: theme.muted),
               SizedBox(

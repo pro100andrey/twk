@@ -24,7 +24,7 @@ options as they start:
 final theme = Theme.of(context);
 return Row(
   mainAxisSize: .min,
-  gap: 1,
+  spacing: 1,
   children: [
     SizedBox(
       width: 40,

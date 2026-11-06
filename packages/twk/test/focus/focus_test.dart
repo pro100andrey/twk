@@ -95,7 +95,7 @@ void main() {
     await t.pumpWidget(
       column([
         const Field('a'),
-        const Row(gap: 1, children: [Field('b'), Field('c')]),
+        const Row(spacing: 1, children: [Field('b'), Field('c')]),
         const Field('d'),
       ]),
       size: (10, 3),

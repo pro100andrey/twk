@@ -560,7 +560,7 @@ void main() {
         },
         child: Row(
           mainAxisSize: MainAxisSize.min,
-          gap: 1,
+          spacing: 1,
           children: [
             Button('a', onPressed: () {}),
             Button('b', onPressed: () {}),

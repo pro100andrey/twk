@@ -35,7 +35,7 @@ Widget build(BuildContext context) {
   final theme = Theme.of(context);
   return Column(
     crossAxisAlignment: .start,
-    gap: 1,
+    spacing: 1,
     children: [
       Button('Notify', onPressed: _notify),
       Text.rich([

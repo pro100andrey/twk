@@ -29,13 +29,13 @@ Widget build(BuildContext context) {
   return Row(
     mainAxisSize: .min,
     crossAxisAlignment: .start,
-    gap: 2,
+    spacing: 2,
     children: [
       SizedBox(
         width: 24,
         child: Column(
           mainAxisSize: .min,
-          gap: 1,
+          spacing: 1,
           children: [
             Select<String>(
               choices: const [
@@ -69,7 +69,7 @@ Widget build(BuildContext context) {
         width: 24,
         child: Column(
           mainAxisSize: .min,
-          gap: 1,
+          spacing: 1,
           children: [
             TextField(
               placeholder: 'files, commands',

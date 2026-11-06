@@ -33,7 +33,7 @@ Widget build(BuildContext context) {
     builder: (context, constraints) => Row(
       mainAxisSize: .min,
       crossAxisAlignment: .start,
-      gap: 2,
+      spacing: 2,
       children: [
         // in half blocks, black on white; in fewer rows than it
         // asks for, a narrower quiet zone, the whole symbol shown

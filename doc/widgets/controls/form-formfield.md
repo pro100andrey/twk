@@ -34,7 +34,7 @@ Widget build(BuildContext context) => Form(
     child: Column(
       mainAxisSize: .min,
       crossAxisAlignment: .stretch,
-      gap: 1,
+      spacing: 1,
       children: [
         TextFormField(
           placeholder: 'name',
@@ -57,7 +57,7 @@ Widget build(BuildContext context) => Form(
           ),
         ),
         Row(
-          gap: 2,
+          spacing: 2,
           children: [
             Button('Submit', onPressed: () => _form.currentState!.submit()),
             Button('Reset', onPressed: () => _form.currentState!.reset()),

@@ -27,7 +27,7 @@ bool? _answer;
 Widget build(BuildContext context) => Column(
   mainAxisSize: .min,
   crossAxisAlignment: .start,
-  gap: 1,
+  spacing: 1,
   children: [
     ConfirmInput(
       'Delete 3 files?',

@@ -59,7 +59,7 @@ final _autocompletePage = GalleryPage(
       '  return Column(',
       '    mainAxisSize: .min,',
       '    crossAxisAlignment: .start,',
-      '    gap: 1,',
+      '    spacing: 1,',
       '    children: [',
       '      // the suggestions show under the box, from its left edge',
       '      Autocomplete(',
@@ -163,7 +163,7 @@ final class _CompleteState extends State<_Complete> with KeptState {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         Autocomplete(
           controller: _controller,

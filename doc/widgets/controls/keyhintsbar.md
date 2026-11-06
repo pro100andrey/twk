@@ -41,10 +41,10 @@ Widget build(BuildContext context) {
       child: Column(
         mainAxisSize: .min,
         crossAxisAlignment: .stretch,
-        gap: 1,
+        spacing: 1,
         children: [
           Row(
-            gap: 2,
+            spacing: 2,
             children: [
               // a field without a box shows the focus on the selection
               Expanded(

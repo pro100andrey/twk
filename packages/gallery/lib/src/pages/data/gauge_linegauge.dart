@@ -99,7 +99,7 @@ final _gauge = GalleryPage(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        gap: 1,
+        spacing: 1,
         children: [
           SizedBox(
             height: 3,
@@ -162,7 +162,7 @@ final _gauge = GalleryPage(
       '    child: Column(',
       '      mainAxisSize: .min,',
       '      crossAxisAlignment: .stretch,',
-      '      gap: 1,',
+      '      spacing: 1,',
       '      children: [',
       '        SizedBox(',
       '          height: 3,',

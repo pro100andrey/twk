@@ -43,11 +43,12 @@ const loose = BoxConstraints(maxW: 40);
   reads the room it was given, in cells, from a `LayoutBuilder`'s
   constraints.
 
-## Gaps are a parameter
+## Spacing is a parameter, as in Flutter
 
-`Row`, `Column`, `Flex` and `Wrap` take `gap` (and `Wrap` a `runGap`) in
-cells, so the `SizedBox(height: 8)` between children is not written.
-`Spacer` and `Expanded(flex: ...)` are as in Flutter.
+`Row`, `Column`, `Flex` and `Wrap` take `spacing` (and `Wrap` a
+`runSpacing`), as in Flutter, so the `SizedBox(height: 8)` between children
+is not written; here it is an `int` of cells. `Spacer` and
+`Expanded(flex: ...)` are as in Flutter.
 
 ## Text is a string with a `Style`
 
@@ -172,7 +173,7 @@ final class _ProfileState extends State<Profile> {
       padding: const .all(1),
       child: Column(
         crossAxisAlignment: .start,
-        gap: 1,
+        spacing: 1,
         children: [
           Text('Profile', style: theme.primary),
           SizedBox(
@@ -185,7 +186,7 @@ final class _ProfileState extends State<Profile> {
             onChanged: (value) => setState(() => _news = value),
           ),
           Row(
-            gap: 2,
+            spacing: 2,
             children: [
               Button.filled(
                 'Save',
@@ -210,9 +211,8 @@ final class _ProfileState extends State<Profile> {
 }
 ```
 
-What changed from the Flutter version: the sizes are ints, the gaps are
-`gap:`, the label belongs to the `Checkbox`, the buttons take a string, and
-the dialog's builder is a second positional argument. The `State`, its
+What changed from the Flutter version: the sizes and the `spacing:` are ints of cells, the label belongs to the
+`Checkbox`, the buttons take a string, and the dialog's builder is a second positional argument. The `State`, its
 controller and its `dispose` are the same, and so is a controller you must
 dispose.
 

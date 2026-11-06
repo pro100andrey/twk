@@ -219,7 +219,7 @@ final class _ConfirmInputState extends State<ConfirmInput> {
         );
         return Row(
           mainAxisSize: MainAxisSize.min,
-          gap: 1,
+          spacing: 1,
           children: [
             if (widget.prompt.isNotEmpty)
               Text(widget.prompt, style: row, wrap: TextWrap.none, maxLines: 1),

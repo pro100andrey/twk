@@ -39,7 +39,7 @@ Widget build(BuildContext context) {
   final theme = Theme.of(context);
   Widget shown(Widget what, AsyncSnapshot<Object?> snapshot) => Row(
     mainAxisSize: .min,
-    gap: 1,
+    spacing: 1,
     children: [
       SizedBox(width: 26, child: what),
       Text(snapshot.connectionState.name, style: theme.muted),
@@ -48,7 +48,7 @@ Widget build(BuildContext context) {
   return Column(
     mainAxisSize: .min,
     crossAxisAlignment: .start,
-    gap: 1,
+    spacing: 1,
     children: [
       Button('Load', onPressed: _start),
       FutureBuilder<String>(
@@ -57,7 +57,7 @@ Widget build(BuildContext context) {
           switch (snapshot.connectionState) {
             ConnectionState.none => const Text('future: not started'),
             ConnectionState.waiting => Row(
-              gap: 1,
+              spacing: 1,
               children: [
                 const Text('future:'),
                 const Spinner(),

@@ -79,7 +79,7 @@ void main() {
         '      menu,',
         'IntrinsicHeight(child: cards)',
       ],
-      'layout/row-column-flex?o=dir:column;main:end;cross:stretch;gap:0': [
+      'layout/row-column-flex?o=dir:column;main:end;cross:stretch;spacing:0': [
         'child: Column(',
         'mainAxisAlignment: .end,',
         'crossAxisAlignment: .stretch,',
@@ -93,9 +93,9 @@ void main() {
         '.fixed(12), .fr(1), .fr(1)]',
         'rowGap: 1,',
       ],
-      'layout/wrap?o=alignment:center;runGap:1': [
+      'layout/wrap?o=alignment:center;runSpacing:1': [
         'alignment: .center,',
-        'runGap: 1,',
+        'runSpacing: 1,',
       ],
       'layout/wrap?o=live:true': ['Timer.periodic('],
       'layout/coloredbox-decoratedbox?o=position:foreground;titles:false': [

@@ -72,7 +72,7 @@ final class _EventsState extends State<_Events> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         MouseRegion(
           onEnter: (event) {
@@ -146,7 +146,7 @@ String _eventsCode(Options o) {
     '  return Column(',
     '    mainAxisSize: .min,',
     '    crossAxisAlignment: .start,',
-    '    gap: 1,',
+    '    spacing: 1,',
     '    children: [',
     '      MouseRegion(',
     '        onEnter: (event) {',

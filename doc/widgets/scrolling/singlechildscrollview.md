@@ -64,7 +64,7 @@ Widget build(BuildContext context) {
   return Column(
     mainAxisSize: .min,
     crossAxisAlignment: .start,
-    gap: 1,
+    spacing: 1,
     children: [
       SizedBox(
         width: 34,
@@ -84,7 +84,7 @@ Widget build(BuildContext context) {
               controller: _controller,
               child: Column(
                 crossAxisAlignment: .start,
-                gap: 1,
+                spacing: 1,
                 children: paragraphs,
               ),
             ),

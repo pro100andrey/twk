@@ -68,7 +68,7 @@ Widget build(BuildContext context) {
   return Column(
     mainAxisSize: .min,
     crossAxisAlignment: .start,
-    gap: 1,
+    spacing: 1,
     children: [
       Box(
         style: theme.surface,
@@ -84,7 +84,7 @@ Widget build(BuildContext context) {
               children: [
                 Text('Effects over a subtree', style: theme.primary),
                 Row(
-                  gap: 1,
+                  spacing: 1,
                   children: [
                     Spinner(style: theme.accent),
                     const Text('repainting underneath'),
@@ -98,7 +98,7 @@ Widget build(BuildContext context) {
       ),
       Row(
         mainAxisSize: .min,
-        gap: 2,
+        spacing: 2,
         children: [
           Button('Again', onPressed: () => setState(() => _runs++)),
           Text('a new key runs it from its start', style: theme.muted),

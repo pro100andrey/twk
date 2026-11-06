@@ -13,7 +13,7 @@ final _numberinputPage = GalleryPage(
     'Widget build(BuildContext context) => Column(',
     '  mainAxisSize: .min,',
     '  crossAxisAlignment: .start,',
-    '  gap: 1,',
+    '  spacing: 1,',
     '  children: [',
     '    Row(',
     '      mainAxisSize: .min,',
@@ -78,7 +78,7 @@ final class _NumbersState extends State<_Numbers> with KeptState {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         row(
           'copies, 1 to 99',

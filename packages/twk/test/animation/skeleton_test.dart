@@ -86,7 +86,7 @@ void main() {
               enabled: true,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
-                gap: 2,
+                spacing: 2,
                 children: [
                   Text('a b', style: Style(bg: bg)),
                   Text('c'),
@@ -316,7 +316,7 @@ void main() {
         Skeletonize(
           enabled: enabled,
           child: const Row(
-            gap: 1,
+            spacing: 1,
             children: [
               Text('name'),
               Skeleton(width: 3),

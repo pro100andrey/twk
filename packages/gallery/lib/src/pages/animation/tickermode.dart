@@ -14,7 +14,7 @@ final _tickerMode = GalleryPage(
     enabled: o(_tickerEnabled),
     child: Row(
       mainAxisSize: .min,
-      gap: 1,
+      spacing: 1,
       children: [
         Spinner(style: Theme.of(context).primary),
         const Text('Compiling…'),
@@ -27,7 +27,7 @@ final _tickerMode = GalleryPage(
     '  enabled: ${o(_tickerEnabled)},',
     '  child: Row(',
     '    mainAxisSize: .min,',
-    '    gap: 1,',
+    '    spacing: 1,',
     '    children: [',
     '      Spinner(style: theme.primary),',
     "      const Text('Compiling…'),",

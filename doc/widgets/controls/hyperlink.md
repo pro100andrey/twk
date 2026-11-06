@@ -24,7 +24,7 @@ options as they start:
 return const Column(
   mainAxisSize: .min,
   crossAxisAlignment: .start,
-  gap: 1,
+  spacing: 1,
   children: [
     Hyperlink('https://dart.dev', text: 'The Dart language'),
     Hyperlink('https://pub.dev'),

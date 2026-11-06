@@ -8,7 +8,7 @@ extension on _SampleAppState {
         final odd = count.isOdd;
         const duration = Duration(milliseconds: 200);
         return Row(
-          gap: 1,
+          spacing: 1,
           children: [
             const TickerMode(enabled: true, child: Spinner()),
             const Spinner(
@@ -114,7 +114,7 @@ extension on _SampleAppState {
       builder: (context, count, child) => SkeletonTheme(
         period: const Duration(seconds: 1),
         child: Row(
-          gap: 1,
+          spacing: 1,
           children: [
             Skeletonize(
               enabled: count.isEven,

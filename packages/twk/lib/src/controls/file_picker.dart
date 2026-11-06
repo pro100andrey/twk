@@ -1176,7 +1176,7 @@ final class _FilePickerState extends State<FilePicker> {
           ),
           Expanded(child: _files(theme)),
           Row(
-            gap: 1,
+            spacing: 1,
             children: [
               if (filters.length > 1)
                 Select<int>(

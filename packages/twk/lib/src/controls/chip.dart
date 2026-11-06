@@ -41,7 +41,7 @@ String _chipText(
 ///
 /// ```dart
 /// const Row(
-///   gap: 1,
+///   spacing: 1,
 ///   children: [
 ///     Chip('dart'),
 ///     Chip('tui', selected: true),
@@ -535,7 +535,7 @@ final class _ChipListState<T> extends State<ChipList<T>> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         for (final line in lines)
-          Row(mainAxisSize: MainAxisSize.min, gap: 1, children: line),
+          Row(mainAxisSize: MainAxisSize.min, spacing: 1, children: line),
       ],
     );
   }

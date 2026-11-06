@@ -35,7 +35,7 @@ final _linkPage = GalleryPage(
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         Hyperlink(
           'https://dart.dev',
@@ -69,7 +69,7 @@ final _linkPage = GalleryPage(
       'return ${primary ? 'const ' : ''}Column(',
       '  mainAxisSize: .min,',
       '  crossAxisAlignment: .start,',
-      '  gap: 1,',
+      '  spacing: 1,',
       '  children: [',
       ...call(
         4,

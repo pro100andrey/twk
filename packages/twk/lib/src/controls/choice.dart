@@ -249,7 +249,7 @@ final class RadioGroup<T> extends StatelessWidget {
           direction: direction,
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
-          gap: vertical ? 0 : 2,
+          spacing: vertical ? 0 : 2,
           children: [
             for (var i = 0; i < choices.length; i++)
               _choice(

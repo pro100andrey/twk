@@ -29,7 +29,7 @@ final _opacity = GalleryPage(
     Widget over(Widget child, String name) => Column(
       mainAxisSize: .min,
       crossAxisAlignment: .start,
-      gap: 1,
+      spacing: 1,
       children: [
         Box(
           style: theme.surface,
@@ -51,7 +51,7 @@ final _opacity = GalleryPage(
     );
     return Row(
       mainAxisSize: .min,
-      gap: 2,
+      spacing: 2,
       children: [
         over(
           AnimatedOpacity(opacity: opacity, duration: _duration, child: shown),
@@ -68,7 +68,7 @@ final _opacity = GalleryPage(
       'Widget over(Widget child, String name) => Column(',
       '  mainAxisSize: .min,',
       '  crossAxisAlignment: .start,',
-      '  gap: 1,',
+      '  spacing: 1,',
       '  children: [',
       '    Box(',
       '      style: theme.surface,',
@@ -90,7 +90,7 @@ final _opacity = GalleryPage(
       ');',
       'return Row(',
       '  mainAxisSize: .min,',
-      '  gap: 2,',
+      '  spacing: 2,',
       '  children: [',
       '    over(',
       '      AnimatedOpacity(',

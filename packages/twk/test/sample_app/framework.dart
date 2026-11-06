@@ -81,7 +81,7 @@ final class _PluggedState extends State<_Plugged> {
     registry: _registry,
     child: Row(
       mainAxisSize: .min,
-      gap: 1,
+      spacing: 1,
       children: [
         for (final name in ['status', 'empty'])
           Slot(

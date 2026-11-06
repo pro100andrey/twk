@@ -27,7 +27,7 @@ final class _ProfileState extends State<Profile> {
       padding: const .all(1),
       child: Column(
         crossAxisAlignment: .start,
-        gap: 1,
+        spacing: 1,
         children: [
           Text('Profile', style: theme.primary),
           SizedBox(
@@ -40,7 +40,7 @@ final class _ProfileState extends State<Profile> {
             onChanged: (value) => setState(() => _news = value),
           ),
           Row(
-            gap: 2,
+            spacing: 2,
             children: [
               Button.filled(
                 'Save',

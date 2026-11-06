@@ -79,11 +79,11 @@ final class _FruitState extends State<_Fruit> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         Row(
           mainAxisSize: MainAxisSize.min,
-          gap: _fruitGap,
+          spacing: _fruitGap,
           children: [
             for (final MapEntry(key: name, value: fruits) in _in.entries)
               DragTarget<String>(
@@ -200,11 +200,11 @@ String _fruitCode(Options o) => [
   '  return Column(',
   '    mainAxisSize: .min,',
   '    crossAxisAlignment: .start,',
-  '    gap: 1,',
+  '    spacing: 1,',
   '    children: [',
   '      Row(',
   '        mainAxisSize: .min,',
-  '        gap: $_fruitGap,',
+  '        spacing: $_fruitGap,',
   '        children: [',
   '          for (final MapEntry(key: name, value: fruits) in _in.entries)',
   '            DragTarget<String>(',

@@ -333,7 +333,10 @@ void main() {
         RenderStack(
           children: [
             Fill('under'),
-            RenderFlex(gap: 1, children: [Sized('a', 2, 1), Sized('b', 2, 1)]),
+            RenderFlex(
+              spacing: 1,
+              children: [Sized('a', 2, 1), Sized('b', 2, 1)],
+            ),
           ],
         ),
       );

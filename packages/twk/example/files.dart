@@ -1324,7 +1324,7 @@ final class _TransferDialogState extends State<_TransferDialog> {
                 Text(replacing, style: Theme.of(context).warning),
               Row(
                 mainAxisSize: .min,
-                gap: 2,
+                spacing: 2,
                 children: [
                   for (final op
                       in operation == null ? Operation.values : [operation])
@@ -1408,7 +1408,7 @@ final class _ProgressState extends State<_Progress>
             children: [
               Text(_name(t.current), wrap: .none, overflow: .ellipsis),
               Row(
-                gap: 1,
+                spacing: 1,
                 children: [
                   Expanded(child: ProgressBar(value: t.progress)),
                   SizedBox(width: 4, child: Text('$percent%', align: .right)),
@@ -1498,7 +1498,7 @@ final class _NameDialogState extends State<_NameDialog> {
             ),
             Row(
               mainAxisSize: .min,
-              gap: 2,
+              spacing: 2,
               children: [
                 Button(
                   widget.action,
@@ -1597,7 +1597,7 @@ final class _SettingsScreenState extends State<_SettingsScreen> {
                     const SizedBox(height: 1),
                     Row(
                       mainAxisSize: .min,
-                      gap: 2,
+                      spacing: 2,
                       children: [
                         Button('Save', onPressed: _save),
                         Button(

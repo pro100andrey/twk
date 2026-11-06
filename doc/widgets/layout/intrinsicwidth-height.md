@@ -36,7 +36,7 @@ final menu = Column(
 final cards = Row(
   mainAxisSize: .min,
   crossAxisAlignment: .stretch,
-  gap: 1,
+  spacing: 1,
   children: [
     for (final text in ['one', 'three lines here'])
       SizedBox(
@@ -53,7 +53,7 @@ return SizedBox(
   height: 7,
   child: Row(
     crossAxisAlignment: .start,
-    gap: 4,
+    spacing: 4,
     children: [
       IntrinsicWidth(child: menu),
       IntrinsicHeight(child: cards),

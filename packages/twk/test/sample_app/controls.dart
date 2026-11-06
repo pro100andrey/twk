@@ -5,7 +5,7 @@ extension on _SampleAppState {
     SizedBox(
       height: 3,
       child: Row(
-        gap: 1,
+        spacing: 1,
         children: [
           SizedBox(width: 16, child: _Tabs()),
           Badge('3', kind: StatusKind.success),
@@ -25,7 +25,7 @@ extension on _SampleAppState {
       // the file picker's field, a row of its list and its buttons
       height: 3,
       child: Row(
-        gap: 2,
+        spacing: 2,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(child: _SignUp()),
@@ -57,7 +57,7 @@ final class _NoticesState extends State<_Notices> {
   Widget build(BuildContext context) => Row(
     mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.start,
-    gap: 1,
+    spacing: 1,
     children: [
       if (_shown)
         Callout.text('new', onDismissed: () => setState(() => _shown = false)),
@@ -145,7 +145,7 @@ final class _ChoicesState extends State<_Choices> {
   @override
   Widget build(BuildContext context) => Row(
     mainAxisSize: MainAxisSize.min,
-    gap: 1,
+    spacing: 1,
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Column(
@@ -212,7 +212,7 @@ final class _SignUp extends StatelessWidget {
   Widget build(BuildContext context) => Form(
     autovalidateMode: AutovalidateMode.onUserInteraction,
     child: Row(
-      gap: 1,
+      spacing: 1,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
@@ -252,7 +252,7 @@ final class _InputsState extends State<_Inputs> {
   @override
   Widget build(BuildContext context) => Row(
     mainAxisSize: MainAxisSize.min,
-    gap: 1,
+    spacing: 1,
     children: [
       SizedBox(
         width: 12,

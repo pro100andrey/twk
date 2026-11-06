@@ -46,12 +46,12 @@ final _dialogPage = GalleryPage(
     '      child: Column(',
     '        mainAxisSize: .min,',
     '        crossAxisAlignment: .start,',
-    '        gap: 1,',
+    '        spacing: 1,',
     '        children: [',
     "          const Text('Delete 3 files?'),",
     '          Row(',
     '            mainAxisSize: .min,',
-    '            gap: 2,',
+    '            spacing: 2,',
     '            children: [',
     '              Button(',
     "                'Delete',",
@@ -81,7 +81,7 @@ final _dialogPage = GalleryPage(
     'Widget build(BuildContext context) => Column(',
     '  mainAxisSize: .min,',
     '  crossAxisAlignment: .start,',
-    '  gap: 1,',
+    '  spacing: 1,',
     '  children: [',
     "    Button('Ask', onPressed: _ask),",
     '    Text.rich([',
@@ -141,12 +141,12 @@ final class _AskState extends State<_Ask> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
-          gap: 1,
+          spacing: 1,
           children: [
             const Text('Delete 3 files?'),
             Row(
               mainAxisSize: MainAxisSize.min,
-              gap: 2,
+              spacing: 2,
               children: [
                 Button(
                   'Delete',
@@ -179,7 +179,7 @@ final class _AskState extends State<_Ask> {
   Widget build(BuildContext context) => Column(
     mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.start,
-    gap: 1,
+    spacing: 1,
     children: [
       Button('Ask', onPressed: _ask),
       LitLine([

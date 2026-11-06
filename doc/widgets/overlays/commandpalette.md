@@ -72,11 +72,11 @@ Widget build(BuildContext context) => CommandPalette(
     child: Column(
       mainAxisSize: .min,
       crossAxisAlignment: .start,
-      gap: 1,
+      spacing: 1,
       children: [
         Row(
           mainAxisSize: .min,
-          gap: 2,
+          spacing: 2,
           children: [
             Button('Focus me', onPressed: () => _run('press')),
             // opens the palette with dart typed

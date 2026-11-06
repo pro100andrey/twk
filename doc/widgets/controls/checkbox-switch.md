@@ -28,7 +28,7 @@ var _dark = false;
 Widget build(BuildContext context) => Column(
   mainAxisSize: .min,
   crossAxisAlignment: .start,
-  gap: 1,
+  spacing: 1,
   children: [
     Checkbox(
       value: _wrap,

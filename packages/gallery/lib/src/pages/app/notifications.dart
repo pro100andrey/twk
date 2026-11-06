@@ -74,7 +74,7 @@ final _notifications = GalleryPage(
     '  final theme = Theme.of(context);',
     '  return Column(',
     '    crossAxisAlignment: .start,',
-    '    gap: 1,',
+    '    spacing: 1,',
     '    children: [',
     "      Button('Notify', onPressed: _notify),",
     '      Text.rich([',
@@ -201,7 +201,7 @@ final class _NotifyState extends TimedState<_Notify> {
       at: (2, ty + 1, _nx - 2, _nh - ty - 2),
       app: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        gap: 1,
+        spacing: 1,
         children: [
           Button('Notify', onPressed: _notify),
           Text.rich([

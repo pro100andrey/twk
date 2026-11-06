@@ -31,12 +31,12 @@ void _ask() => unawaited(
       child: Column(
         mainAxisSize: .min,
         crossAxisAlignment: .start,
-        gap: 1,
+        spacing: 1,
         children: [
           const Text('Delete 3 files?'),
           Row(
             mainAxisSize: .min,
-            gap: 2,
+            spacing: 2,
             children: [
               Button(
                 'Delete',
@@ -65,7 +65,7 @@ void _ask() => unawaited(
 Widget build(BuildContext context) => Column(
   mainAxisSize: .min,
   crossAxisAlignment: .start,
-  gap: 1,
+  spacing: 1,
   children: [
     Button('Ask', onPressed: _ask),
     Text.rich([

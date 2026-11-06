@@ -71,7 +71,7 @@ final class _SwatchesState extends State<_Swatches> with KeptState {
             if (name != null) ...[
               const SizedBox(height: 1),
               Row(
-                gap: 3,
+                spacing: 3,
                 children: [
                   Button('Button', onPressed: () {}),
                   Checkbox(
@@ -88,7 +88,7 @@ final class _SwatchesState extends State<_Swatches> with KeptState {
               ),
               const SizedBox(height: 1),
               const Row(
-                gap: 2,
+                spacing: 2,
                 children: [
                   StatusMessage('Saved', kind: StatusKind.success),
                   Expanded(
@@ -186,7 +186,7 @@ List<String> _swatchesCode({required bool named}) => [
   if (named) ...[
     '            const SizedBox(height: 1),',
     '            Row(',
-    '              gap: 3,',
+    '              spacing: 3,',
     '              children: [',
     "                Button('Button', onPressed: () {}),",
     '                Checkbox(',
@@ -203,7 +203,7 @@ List<String> _swatchesCode({required bool named}) => [
     '            ),',
     '            const SizedBox(height: 1),',
     '            const Row(',
-    '              gap: 2,',
+    '              spacing: 2,',
     '              children: [',
     "                StatusMessage('Saved', kind: StatusKind.success),",
     '                Expanded(',

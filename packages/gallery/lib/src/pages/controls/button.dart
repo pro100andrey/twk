@@ -61,11 +61,11 @@ final _buttonPage = GalleryPage(
       '  return Column(',
       '    mainAxisSize: .min,',
       '    crossAxisAlignment: .start,',
-      '    gap: 1,',
+      '    spacing: 1,',
       '    children: [',
       '      Row(',
       '        mainAxisSize: .min,',
-      '        gap: 2,',
+      '        spacing: 2,',
       '        children: [',
       ...call(10, button, [
         "'Save'",
@@ -141,11 +141,11 @@ final class _ButtonsState extends State<_Buttons> with KeptState {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         Row(
           mainAxisSize: MainAxisSize.min,
-          gap: 2,
+          spacing: 2,
           children: [
             for (final (label, onPressed) in [
               ('Save', () => setState(() => _saved++)),

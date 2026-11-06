@@ -33,7 +33,7 @@ Widget bounded(String text) => ConstrainedBox(
 return Column(
   mainAxisSize: .min,
   crossAxisAlignment: .start,
-  gap: 1,
+  spacing: 1,
   children: [
     bounded('short'),
     bounded('A child as wide as its text, within the bounds.'),

@@ -449,7 +449,7 @@ Future<void> showKeyHelp(BuildContext context, {String title = 'Keys'}) {
               for (final (keys, hint) in entries)
                 Row(
                   mainAxisSize: MainAxisSize.min,
-                  gap: 2,
+                  spacing: 2,
                   children: [
                     SizedBox(
                       width: widest,

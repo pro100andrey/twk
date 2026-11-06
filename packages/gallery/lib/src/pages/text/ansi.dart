@@ -143,7 +143,7 @@ final _ansi = GalleryPage(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            gap: 1,
+            spacing: 1,
             children: [
               SizedBox(
                 height: rows + 2,
@@ -265,7 +265,7 @@ final _ansi = GalleryPage(
         '    child: Column(',
         '      mainAxisSize: .min,',
         '      crossAxisAlignment: .stretch,',
-        '      gap: 1,',
+        '      spacing: 1,',
         '      children: [',
         for (final l in box('_lines')) '  $l',
         '        Text.rich([',
@@ -337,7 +337,7 @@ final _ansi = GalleryPage(
       '    child: Column(',
       '      mainAxisSize: .min,',
       '      crossAxisAlignment: .stretch,',
-      '      gap: 1,',
+      '      spacing: 1,',
       '      children: [',
       for (final l in box('_stream.lines')) '  $l',
       '        Column(',

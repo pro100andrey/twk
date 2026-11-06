@@ -203,7 +203,7 @@ final class _SettingsState extends State<_Settings> {
                     ? null
                     : Row(
                         mainAxisSize: .min,
-                        gap: 1,
+                        spacing: 1,
                         children: [
                           Spinner(style: theme.primary),
                           const Text('clearing the cache…'),
@@ -235,12 +235,12 @@ final class _ClearCacheDialog extends StatelessWidget {
     child: Column(
       mainAxisSize: .min,
       crossAxisAlignment: .start,
-      gap: 1,
+      spacing: 1,
       children: [
         Text('Delete the $files files of the cache?\nThis cannot be undone.'),
         Row(
           mainAxisSize: .min,
-          gap: 2,
+          spacing: 2,
           children: [
             Button(
               'Cancel',

@@ -65,7 +65,7 @@ Widget build(BuildContext context) {
         padding: const .all(1),
         child: Column(
           crossAxisAlignment: .start,
-          gap: 1,
+          spacing: 1,
           children: [
             Button('New note', onPressed: () => setState(() => _notes++)),
             Text.rich([Span('notes: ', theme.muted), Span('$_notes')]),

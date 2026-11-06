@@ -72,7 +72,7 @@ final class _Line extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
-    gap: 1,
+    spacing: 1,
     children: [
       SizedBox(width: 1, child: chosen ? const Text('›') : null),
       SizedBox(

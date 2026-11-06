@@ -78,7 +78,7 @@ final _stepper = GalleryPage(
     '  return Column(',
     '    mainAxisSize: .min,',
     '    crossAxisAlignment: .start,',
-    '    gap: 1,',
+    '    spacing: 1,',
     '    children: [',
     '      SizedBox(',
     '        width: 50,',
@@ -185,7 +185,7 @@ final class _WizardState extends State<_Wizard> {
   Widget build(BuildContext context) => Column(
     mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.start,
-    gap: 1,
+    spacing: 1,
     children: [
       SizedBox(
         width: 50,

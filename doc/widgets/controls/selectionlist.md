@@ -50,7 +50,7 @@ Widget build(BuildContext context) {
     height: 8,
     child: Row(
       crossAxisAlignment: .start,
-      gap: 2,
+      spacing: 2,
       children: [
         SizedBox(
           width: 18,

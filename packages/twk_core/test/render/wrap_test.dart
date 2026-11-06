@@ -215,7 +215,7 @@ void main() {
     for (final MapEntry(key: width, value: want) in runs.entries) {
       test('children of mixed widths wrap at $width columns', () {
         final v = View(width, 7);
-        final wrap = RenderWrap(gap: 1, runGap: 1, children: labels());
+        final wrap = RenderWrap(spacing: 1, runSpacing: 1, children: labels());
         expect(v.show(wrap), [
           ...want,
           for (var i = want.length; i < 7; i++) '',
@@ -241,8 +241,8 @@ void main() {
       final v = View(10, 4);
       final wrap = RenderWrap(
         direction: Axis.vertical,
-        gap: 1,
-        runGap: 1,
+        spacing: 1,
+        runSpacing: 1,
         children: [
           Block('a', 1, 2),
           Block('b', 2, 1),
@@ -267,7 +267,7 @@ void main() {
     });
 
     test('along an unbounded main axis the children make one run', () {
-      final wrap = RenderWrap(gap: 1, children: labels())
+      final wrap = RenderWrap(spacing: 1, children: labels())
         ..layout(
           const BoxConstraints(maxH: 5),
           parentUsesSize: true,
@@ -294,13 +294,13 @@ void main() {
   group('size', () {
     test('as long as the longest run, as thick as the runs and the gaps '
         'between them', () {
-      final wrap = RenderWrap(gap: 1, runGap: 1, children: labels())
+      final wrap = RenderWrap(spacing: 1, runSpacing: 1, children: labels())
         ..layout(const BoxConstraints(maxW: 7, maxH: 10), parentUsesSize: true);
       expect([wrap.width, wrap.height], [6, 3]);
     });
 
     test('or as the constraints ask, if that is more', () {
-      final wrap = RenderWrap(gap: 1, children: labels())
+      final wrap = RenderWrap(spacing: 1, children: labels())
         ..layout(
           const BoxConstraints(minW: 9, maxW: 9, minH: 4, maxH: 10),
           parentUsesSize: true,
@@ -309,7 +309,7 @@ void main() {
     });
 
     test('nothing without children', () {
-      final wrap = RenderWrap(gap: 1, runGap: 1)
+      final wrap = RenderWrap(spacing: 1, runSpacing: 1)
         ..layout(const BoxConstraints(maxW: 9, maxH: 9), parentUsesSize: true);
       expect([wrap.width, wrap.height], [0, 0]);
     });
@@ -377,7 +377,7 @@ void main() {
       test('$alignment shares the free cells across the runs', () {
         final v = View(3, 7);
         final wrap = RenderWrap(
-          gap: 1,
+          spacing: 1,
           runAlignment: alignment,
           children: [Label('ab'), Label('c'), Label('de')],
         );
@@ -398,7 +398,7 @@ void main() {
       test('$alignment places each child in its run', () {
         final row = RenderWrap(
           crossAxisAlignment: alignment,
-          runGap: 1,
+          runSpacing: 1,
           children: [
             Block('a', 1, 3),
             Block('b', 1, 1),
@@ -432,7 +432,7 @@ void main() {
     test('are cut off at the bounds of the wrap', () {
       final v = View(5, 2);
       printed(() {
-        expect(v.show(RenderWrap(gap: 1, children: labels())), [
+        expect(v.show(RenderWrap(spacing: 1, children: labels())), [
           'ab',
           'cde f',
         ]);
@@ -441,7 +441,7 @@ void main() {
 
     test('are reported once, in debug', () {
       final v = View(5, 2);
-      final wrap = RenderWrap(gap: 1, children: [Label('ab'), Label('cd')]);
+      final wrap = RenderWrap(spacing: 1, children: [Label('ab'), Label('cd')]);
       final lines = printed(() {
         v.show(wrap);
         wrap.add(Label('ef'));
@@ -499,7 +499,7 @@ void main() {
 
     test('are described with what overflows', () {
       final v = View(5, 2);
-      final wrap = RenderWrap(gap: 1, runGap: 1, children: labels());
+      final wrap = RenderWrap(spacing: 1, runSpacing: 1, children: labels());
       printed(() => v.show(wrap));
       final node = wrap.describe();
       expect('$node', contains('overflow: 3 rows'));
@@ -516,7 +516,7 @@ void main() {
       final a = Probe(minW: 2, maxW: 3);
       final b = Probe(minW: 4, maxW: 5);
       final c = Probe(minW: 1, maxW: 2);
-      final wrap = RenderWrap(gap: 1, runGap: 3, children: [a, b, c]);
+      final wrap = RenderWrap(spacing: 1, runSpacing: 3, children: [a, b, c]);
       expect(wrap.getMinIntrinsicWidth(7), 4);
       expect(wrap.getMaxIntrinsicWidth(7), 3 + 5 + 2 + 2);
       expect([a.asked[0], b.asked[0], c.asked[0]], [7, 7, 7]);
@@ -528,7 +528,7 @@ void main() {
       final a = Probe(maxW: 3, cells: 6);
       final b = Probe(maxW: 5, cells: 5);
       final c = Probe(maxW: 2, cells: 2);
-      final wrap = RenderWrap(gap: 1, runGap: 1, children: [a, b, c]);
+      final wrap = RenderWrap(spacing: 1, runSpacing: 1, children: [a, b, c]);
       // a; b and c
       expect(wrap.getMinIntrinsicHeight(8), 2 + 1 + 1);
       expect([a.asked[2], b.asked[2], c.asked[2]], [3, 5, 2]);
@@ -549,8 +549,8 @@ void main() {
     test('of a vertical wrap', () {
       final column = RenderWrap(
         direction: Axis.vertical,
-        gap: 1,
-        runGap: 1,
+        spacing: 1,
+        runSpacing: 1,
         children: labels(),
       );
       expect(column.getMinIntrinsicHeight(5), 1);
@@ -566,7 +566,10 @@ void main() {
       'go to another run', () {
     final v = View(8, 2);
     final [a, b, c] = [Label('ab'), Label('cd'), Label('ef')];
-    expect(v.show(RenderWrap(gap: 1, children: [a, b, c])), ['ab cd ef', '']);
+    expect(v.show(RenderWrap(spacing: 1, children: [a, b, c])), [
+      'ab cd ef',
+      '',
+    ]);
     a.text = 'abx';
     v.frame();
     expect(v.rows(), ['abx cd', 'ef']);
@@ -579,10 +582,10 @@ void main() {
     final wrap = RenderWrap(children: [Label('ab'), Label('c'), Label('de')]);
     v.show(wrap);
     expect(boxes(wrap), ['0,0 2x1', '2,0 1x1', '3,0 2x1']);
-    wrap.gap = 1;
+    wrap.spacing = 1;
     v.frame();
     expect(boxes(wrap), ['0,0 2x1', '3,0 1x1', '0,1 2x1']);
-    wrap.runGap = 1;
+    wrap.runSpacing = 1;
     v.frame();
     expect(boxes(wrap), ['0,0 2x1', '3,0 1x1', '0,2 2x1']);
     wrap.alignment = WrapAlignment.end;
@@ -604,8 +607,8 @@ void main() {
         wrap.alignment,
         wrap.runAlignment,
         wrap.crossAxisAlignment,
-        wrap.gap,
-        wrap.runGap,
+        wrap.spacing,
+        wrap.runSpacing,
       ],
       [
         Axis.vertical,
@@ -619,14 +622,14 @@ void main() {
     expect(
       '${wrap.describe()}',
       'RenderWrap ‹vertical, alignment: end, runAlignment: end, '
-          'crossAxisAlignment: end, gap: 1, runGap: 1, constraints: tight›',
+          'crossAxisAlignment: end, spacing: 1, runSpacing: 1, constraints: tight›',
     );
   });
 
   test('a hit finds the child of a later run at its cell', () {
     final v = View(5, 2);
     final [a, b, c] = [Label('ab'), Label('cd'), Label('e')];
-    v.show(RenderWrap(gap: 1, children: [a, b, c]));
+    v.show(RenderWrap(spacing: 1, children: [a, b, c]));
     final result = HitTestResult();
     v.owner.hitTest(result, 0, 1);
     expect(result[0], same(c));

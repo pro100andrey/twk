@@ -84,7 +84,7 @@ Widget build(BuildContext context) {
     width: 56,
     child: Row(
       crossAxisAlignment: .start,
-      gap: 2,
+      spacing: 2,
       children: [
         SizedBox(
           width: 19,
@@ -92,7 +92,7 @@ Widget build(BuildContext context) {
             key: _form,
             mainAxisSize: .min,
             crossAxisAlignment: .start,
-            gap: 1,
+            spacing: 1,
             children: [
               Column(
                 mainAxisSize: .min,
@@ -120,7 +120,7 @@ Widget build(BuildContext context) {
                 ],
               ),
               Row(
-                gap: 1,
+                spacing: 1,
                 children: [
                   // on the screen, not read: nodes: [] reads nothing of it
                   Semantics(
@@ -138,7 +138,7 @@ Widget build(BuildContext context) {
                 ],
               ),
               Row(
-                gap: 1,
+                spacing: 1,
                 children: [
                   Button(
                     'More',
@@ -183,7 +183,7 @@ Widget build(BuildContext context) {
                   style: node.focused ? theme.selection : null,
                   child: Row(
                     crossAxisAlignment: .start,
-                    gap: 1,
+                    spacing: 1,
                     children: [
                       SizedBox(
                         width: 1,

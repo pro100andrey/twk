@@ -24,7 +24,7 @@ options as they start:
 return Column(
   mainAxisSize: .min,
   crossAxisAlignment: .start,
-  gap: 1,
+  spacing: 1,
   children: [
     const StatusMessage('Saving runs in the background.', kind: .info),
     const StatusMessage(
@@ -34,7 +34,7 @@ return Column(
     ),
     Row(
       mainAxisSize: .min,
-      gap: 1,
+      spacing: 1,
       children: [
         for (final kind in StatusKind.values) Badge(kind.name, kind: kind),
         const Badge('3'),

@@ -80,7 +80,7 @@ void main() {
       await t.pumpWidget(
         const Theme.terminal(
           child: Row(
-            gap: 1,
+            spacing: 1,
             children: [
               Badge('3'),
               Badge('failed', kind: StatusKind.error),

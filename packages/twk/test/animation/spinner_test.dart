@@ -117,7 +117,7 @@ void main() {
     await until(t, ms * 50);
     await t.pumpWidget(
       const Theme.terminal(
-        child: Row(gap: 1, children: [Spinner(), Spinner()]),
+        child: Row(spacing: 1, children: [Spinner(), Spinner()]),
       ),
     );
     expect(t.lines, ['⠋ ⠋']);
@@ -139,7 +139,7 @@ void main() {
       Theme.terminal(
         child: Column(
           children: [
-            const Row(gap: 1, children: [Spinner(), Built('working')]),
+            const Row(spacing: 1, children: [Spinner(), Built('working')]),
             Counted(count),
           ],
         ),

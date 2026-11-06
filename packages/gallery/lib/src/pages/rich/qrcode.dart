@@ -85,7 +85,7 @@ final _qrCode = GalleryPage(
       builder: (context, constraints) => Row(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
-        gap: 2,
+        spacing: 2,
         children: [
           QrCode.symbol(
             symbol,
@@ -146,7 +146,7 @@ final _qrCode = GalleryPage(
       '    builder: (context, constraints) => Row(',
       '      mainAxisSize: .min,',
       '      crossAxisAlignment: .start,',
-      '      gap: 2,',
+      '      spacing: 2,',
       '      children: [',
       if (o(_qrCodeInvert))
         '        // in half blocks, white on black; in fewer rows than it'

@@ -93,7 +93,7 @@ final class _GesturesState extends State<_Gestures> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         GestureDetector(
           onTap: (event) => setState(() {
@@ -200,7 +200,7 @@ String _gesturesCode(Options o) => [
   '  return Column(',
   '    mainAxisSize: .min,',
   '    crossAxisAlignment: .start,',
-  '    gap: 1,',
+  '    spacing: 1,',
   '    children: [',
   '      GestureDetector(',
   '        onTap: (event) => setState(() {',

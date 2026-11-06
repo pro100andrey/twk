@@ -27,7 +27,7 @@ var _volume = 0.5;
 Widget build(BuildContext context) => Column(
   mainAxisSize: .min,
   crossAxisAlignment: .start,
-  gap: 1,
+  spacing: 1,
   children: [
     SizedBox(
       width: 30,

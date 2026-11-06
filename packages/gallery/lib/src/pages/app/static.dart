@@ -111,7 +111,7 @@ final _static = GalleryPage(
       '        ),',
       '        if (_done.length < _did.length)',
       '          Row(',
-      '            gap: 1,',
+      '            spacing: 1,',
       '            children: [',
       '              const Spinner(),',
       r"              Text('${_doing[_done.length]}…'),",
@@ -268,7 +268,7 @@ final class _StaticRunState extends TimedState<_StaticRun> {
           ),
           if (busy)
             Row(
-              gap: 1,
+              spacing: 1,
               children: [
                 const Spinner(),
                 Text('${_doing[done]}…'),

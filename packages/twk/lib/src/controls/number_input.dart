@@ -488,7 +488,7 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
           child: Listener(
             onScroll: on ? onWheel : null,
             child: Row(
-              gap: 1,
+              spacing: 1,
               children: [
                 Expanded(
                   child: Listener(

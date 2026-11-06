@@ -30,10 +30,10 @@ const _flexCross = ChoiceOption<String>(
   initial: 'center',
 );
 
-/// The Row, Column, Flex page's `gap` option.
-const _flexGap = ChoiceOption<int>(
-  'gap',
-  'gap',
+/// The Row, Column, Flex page's `spacing` option.
+const _flexSpacing = ChoiceOption<int>(
+  'spacing',
+  'spacing',
   values: [0, 1, 2],
   initial: 1,
 );
@@ -52,7 +52,7 @@ final _flex = GalleryPage(
     _flexDir,
     _flexMain,
     _flexCross,
-    _flexGap,
+    _flexSpacing,
     _flexSize,
   ],
   build: (context, o) {
@@ -79,21 +79,21 @@ final _flex = GalleryPage(
     ];
     final main = MainAxisAlignment.values.byName(o(_flexMain));
     final cross = CrossAxisAlignment.values.byName(o(_flexCross));
-    final gap = o(_flexGap);
+    final spacing = o(_flexSpacing);
     final size = MainAxisSize.values.byName(o(_flexSize));
     final Widget flex = o(_flexDir) == 'row'
         ? Row(
             mainAxisAlignment: main,
             mainAxisSize: size,
             crossAxisAlignment: cross,
-            gap: gap,
+            spacing: spacing,
             children: children,
           )
         : Column(
             mainAxisAlignment: main,
             mainAxisSize: size,
             crossAxisAlignment: cross,
-            gap: gap,
+            spacing: spacing,
             children: children,
           );
     return SizedBox(
@@ -116,7 +116,7 @@ final _flex = GalleryPage(
       if (min) '  mainAxisSize: .min,',
       if (o(_flexCross) != 'center')
         '  crossAxisAlignment: .${o.nameOf(_flexCross)},',
-      if (o(_flexGap) != 0) '  gap: ${o.nameOf(_flexGap)},',
+      if (o(_flexSpacing) != 0) '  spacing: ${o.nameOf(_flexSpacing)},',
       '  children: [',
       "    chip('one', theme.primary),",
       "    chip('two', theme.accent, const .all(1)),",

@@ -139,7 +139,7 @@ final _viewport = GalleryPage(
       '        children: [',
       '          if (busy)',
       codeLine([
-        '            Row(gap: 1, children: ',
+        '            Row(spacing: 1, children: ',
         r"[const Spinner(), Text('${_steps[_done]}…')])",
       ]),
       '          else',
@@ -171,7 +171,7 @@ Widget _buildBox(ThemeData theme, int done) {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (busy)
-          Row(gap: 1, children: [const Spinner(), Text('${_steps[done]}…')])
+          Row(spacing: 1, children: [const Spinner(), Text('${_steps[done]}…')])
         else
           Text.rich([Span('✓ ', theme.success), const Span('built')]),
         Text('${busy ? done + 1 : done}/${_steps.length}', style: theme.muted),

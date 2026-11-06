@@ -107,7 +107,7 @@ final _callout = GalleryPage(
       '  return Column(',
       '    mainAxisSize: .min,',
       '    crossAxisAlignment: .start,',
-      '    gap: 1,',
+      '    spacing: 1,',
       '    children: [',
       '      if (_shown)',
       '        SizedBox(',
@@ -210,7 +210,7 @@ final class _NoticeState extends State<_Notice> with KeptState {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         if (keptOr('shown', true))
           SizedBox(

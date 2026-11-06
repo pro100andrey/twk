@@ -135,7 +135,7 @@ final class _Labeled extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Row(
     crossAxisAlignment: .start,
-    gap: 1,
+    spacing: 1,
     children: [
       SizedBox(width: 6, child: Text(label)),
       Expanded(child: field),

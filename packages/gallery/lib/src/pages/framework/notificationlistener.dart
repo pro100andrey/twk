@@ -123,11 +123,11 @@ final _notifications = GalleryPage(
       '    child: Column(',
       '      mainAxisSize: .min,',
       '      crossAxisAlignment: .start,',
-      '      gap: 1,',
+      '      spacing: 1,',
       '      children: [',
       '        Row(',
       '          crossAxisAlignment: .start,',
-      '          gap: 2,',
+      '          spacing: 2,',
       '          children: [',
       '            SizedBox(',
       '              width: $_nw,',
@@ -338,11 +338,11 @@ final class _BubblingState extends State<_Bubbling> with KeptState {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
-        gap: 1,
+        spacing: 1,
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
-            gap: 2,
+            spacing: 2,
             children: [
               SizedBox(
                 width: _nw,

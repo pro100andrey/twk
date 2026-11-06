@@ -149,7 +149,7 @@ final _error = GalleryPage(
       '    height: $_eh,',
       '    child: Row(',
       '      crossAxisAlignment: .stretch,',
-      '      gap: 1,',
+      '      spacing: 1,',
       '      children: [',
       '        card(',
       "          'cpu',",
@@ -256,7 +256,7 @@ final class _CardsState extends TimedState<_Cards> {
       height: _eh,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        gap: 1,
+        spacing: 1,
         children: [
           card(
             'cpu',

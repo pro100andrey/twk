@@ -45,9 +45,9 @@ final class WrapParentData extends ParentData with ContainerParentDataMixin {
 }
 
 /// Lays its children out in runs (Yoga's flexWrap): one after another
-/// along its main axis ([direction]), [gap] cells apart, each as long as it
+/// along its main axis ([direction]), [spacing] cells apart, each as long as it
 /// wants up to the whole main axis, until the next would not fit; that one
-/// starts a new run, [runGap] cells on across the main axis. Each run is
+/// starts a new run, [runSpacing] cells on across the main axis. Each run is
 /// as thick as its thickest child. [alignment] places the children of each
 /// run along it, [crossAxisAlignment] each child in its run, and
 /// [runAlignment] the runs across the wrap.
@@ -66,7 +66,7 @@ final class WrapParentData extends ParentData with ContainerParentDataMixin {
 ///
 /// ```dart
 /// final tags = RenderWrap(
-///   gap: 1,
+///   spacing: 1,
 ///   children: [
 ///     for (final tag in ['dart', 'twk', 'terminal', 'unicode'])
 ///       RenderParagraph([('#$tag', const Pen())]),
@@ -81,17 +81,20 @@ final class WrapParentData extends ParentData with ContainerParentDataMixin {
 final class RenderWrap extends RenderObject
     with ContainerRenderObjectMixin<WrapParentData> {
   /// A wrap of [children] along [direction], horizontal unless given,
-  /// [gap] cells apart in a run and [runGap] between runs, each 0 or more;
-  /// everything at the start unless given.
+  /// [spacing] cells apart in a run and [runSpacing] between runs, each 0 or
+  /// more; everything at the start unless given.
   RenderWrap({
     List<RenderObject>? children,
     this._direction = Axis.horizontal,
     this._alignment = WrapAlignment.start,
     this._runAlignment = WrapAlignment.start,
     this._crossAxisAlignment = WrapCrossAlignment.start,
-    this._gap = 0,
-    this._runGap = 0,
-  }) : assert(_gap >= 0 && _runGap >= 0, 'gaps of 0 cells or more') {
+    this._spacing = 0,
+    this._runSpacing = 0,
+  }) : assert(
+         _spacing >= 0 && _runSpacing >= 0,
+         'spacings of 0 cells or more',
+       ) {
     addAll(children);
   }
 
@@ -143,26 +146,26 @@ final class RenderWrap extends RenderObject
     }
   }
 
-  int _gap;
+  int _spacing;
 
   /// The cells between one child of a run and the next, 0 or more.
-  int get gap => _gap;
-  set gap(int g) {
-    assert(g >= 0, 'a gap of 0 cells or more');
-    if (g != _gap) {
-      _gap = g;
+  int get spacing => _spacing;
+  set spacing(int g) {
+    assert(g >= 0, 'a spacing of 0 cells or more');
+    if (g != _spacing) {
+      _spacing = g;
       markNeedsLayout();
     }
   }
 
-  int _runGap;
+  int _runSpacing;
 
   /// The cells between one run and the next, 0 or more.
-  int get runGap => _runGap;
-  set runGap(int g) {
-    assert(g >= 0, 'a gap of 0 cells or more');
-    if (g != _runGap) {
-      _runGap = g;
+  int get runSpacing => _runSpacing;
+  set runSpacing(int g) {
+    assert(g >= 0, 'a spacing of 0 cells or more');
+    if (g != _runSpacing) {
+      _runSpacing = g;
       markNeedsLayout();
     }
   }
@@ -194,8 +197,8 @@ final class RenderWrap extends RenderObject
         _crossAxisAlignment,
         defaultValue: WrapCrossAlignment.start,
       )
-      ..add('gap', _gap, defaultValue: 0)
-      ..add('runGap', _runGap, defaultValue: 0);
+      ..add('spacing', _spacing, defaultValue: 0)
+      ..add('runSpacing', _runSpacing, defaultValue: 0);
     if (_constraints == null) {
       return;
     }
@@ -249,15 +252,15 @@ final class RenderWrap extends RenderObject
       }
       final long = horizontal ? child.width : child.height;
       final t = horizontal ? child.height : child.width;
-      if (n > 0 && length + _gap + long > maxMain) {
+      if (n > 0 && length + _spacing + long > maxMain) {
         _addRun(length, thick, n);
         longest = length > longest ? length : longest;
-        thickness += thick + _runGap;
+        thickness += thick + _runSpacing;
         length = 0;
         thick = 0;
         n = 0;
       }
-      length += (n > 0 ? _gap : 0) + long;
+      length += (n > 0 ? _spacing : 0) + long;
       thick = t > thick ? t : thick;
       n++;
       child = (child.parentData as WrapParentData).nextSibling;
@@ -313,11 +316,12 @@ final class RenderWrap extends RenderObject
           ..dy = horizontal ? at : along;
         along +=
             (horizontal ? c.width : c.height) +
-            _gap +
+            _spacing +
             _after(_alignment, free, n, i);
         child = data.nextSibling;
       }
-      across += thick + _runGap + _after(_runAlignment, freeCross, count, r);
+      across +=
+          thick + _runSpacing + _after(_runAlignment, freeCross, count, r);
     }
   }
 
@@ -333,7 +337,7 @@ final class RenderWrap extends RenderObject
       };
 
   /// The cells [alignment] puts after child or run [i] of [n], [free]
-  /// cells free, besides the gap.
+  /// cells free, besides the spacing.
   static int _after(WrapAlignment alignment, int free, int n, int i) =>
       switch (alignment) {
         WrapAlignment.spaceBetween => n > 1 ? _part(free, n - 1, i) : 0,
@@ -393,7 +397,7 @@ final class RenderWrap extends RenderObject
   /// The intrinsic size of [kind] along the main axis, [cross] across it,
   /// with all the children in one run: what they ask for and the gaps.
   int _inOneRun(int kind, int cross) {
-    var sum = _childCount > 1 ? _gap * (_childCount - 1) : 0;
+    var sum = _childCount > 1 ? _spacing * (_childCount - 1) : 0;
     for (var child = _firstChild; child != null;) {
       sum += child._intrinsic(kind, cross);
       child = (child.parentData as WrapParentData).nextSibling;
@@ -416,14 +420,14 @@ final class RenderWrap extends RenderObject
       if (long > main) {
         long = main;
       }
-      if (n > 0 && length + _gap + long > main) {
+      if (n > 0 && length + _spacing + long > main) {
         sum += thick;
         runs++;
         length = 0;
         thick = 0;
         n = 0;
       }
-      length += (n > 0 ? _gap : 0) + long;
+      length += (n > 0 ? _spacing : 0) + long;
       final t = child._intrinsic(kind, long);
       thick = t > thick ? t : thick;
       n++;
@@ -433,7 +437,7 @@ final class RenderWrap extends RenderObject
       sum += thick;
       runs++;
     }
-    return sum + (runs > 1 ? _runGap * (runs - 1) : 0);
+    return sum + (runs > 1 ? _runSpacing * (runs - 1) : 0);
   }
 
   @override

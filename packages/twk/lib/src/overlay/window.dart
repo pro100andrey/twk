@@ -1463,7 +1463,7 @@ final class _Strip extends StatelessWidget {
     final style = theme.surface.merge(theme.text);
     return Row(
       mainAxisSize: MainAxisSize.min,
-      gap: 1,
+      spacing: 1,
       children: [
         for (final slot in slots)
           Semantics(

@@ -4,6 +4,9 @@
 
 Breaking:
 
+- `Flex`, `Row`, `Column` and `Wrap` take `spacing` and `runSpacing`, and
+  `RenderFlex` and `RenderWrap` have them, as Flutter names them: they were
+  `gap` and `runGap`.
 - `log`, `LogLevel`, `LogRecord` and `LogSink` are in `package:twk/log.dart`, out
   of `twk.dart`, so that `log` clashes with no `dart:math` import: an app that
   logs imports it, and one that had `hide log` or prefixed `dart:math` for

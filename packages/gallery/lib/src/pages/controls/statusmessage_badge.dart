@@ -20,13 +20,13 @@ final _statusmessageBadgePage = GalleryPage(
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         StatusMessage(said, kind: kind),
         StatusMessage(disk, kind: kind, title: 'Disk'),
         Row(
           mainAxisSize: MainAxisSize.min,
-          gap: 1,
+          spacing: 1,
           children: [
             for (final kind in StatusKind.values) Badge(kind.name, kind: kind),
             const Badge('3'),
@@ -42,7 +42,7 @@ final _statusmessageBadgePage = GalleryPage(
       'return Column(',
       '  mainAxisSize: .min,',
       '  crossAxisAlignment: .start,',
-      '  gap: 1,',
+      '  spacing: 1,',
       '  children: [',
       "    const StatusMessage('$said', kind: .$k),",
       '    const StatusMessage(',
@@ -52,7 +52,7 @@ final _statusmessageBadgePage = GalleryPage(
       '    ),',
       '    Row(',
       '      mainAxisSize: .min,',
-      '      gap: 1,',
+      '      spacing: 1,',
       '      children: [',
       _badgesLine,
       "        const Badge('3'),",

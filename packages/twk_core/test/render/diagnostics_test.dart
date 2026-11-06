@@ -390,7 +390,7 @@ RenderBox ‹pen: ${view.pen}› ⟳
       final root = view.owner.root.describe();
       expect('$root', contains('overflow: 2 rows'));
       expect(root.flags, contains(DiagnosticsFlag.overflow));
-      final row = RenderFlex(gap: 1, children: [Probe(), Probe()]);
+      final row = RenderFlex(spacing: 1, children: [Probe(), Probe()]);
       view.owner.root = RenderRow([(row, 5)]);
       row.visitChildren(
         (c) => (c.parentData as FlexParentData)
@@ -400,7 +400,7 @@ RenderBox ‹pen: ${view.pen}› ⟳
       view.frame();
       expect(
         '${row.describe()}',
-        'RenderFlex ‹horizontal, gap: 1, extent: 5, constraints: tight›',
+        'RenderFlex ‹horizontal, spacing: 1, extent: 5, constraints: tight›',
       );
       expect(
         '${row.describe().children.first}',

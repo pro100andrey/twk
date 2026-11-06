@@ -55,7 +55,7 @@ final _rightToLeftPage = GalleryPage(
     '    return Column(',
     '      mainAxisSize: .min,',
     '      crossAxisAlignment: .start,',
-    '      gap: 1,',
+    '      spacing: 1,',
     '      children: [',
     '        SizedBox(',
     '          width: $_rtlWidth,',
@@ -124,7 +124,7 @@ final class _RightToLeft extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         SizedBox(
           width: _rtlWidth,

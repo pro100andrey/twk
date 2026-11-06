@@ -81,11 +81,11 @@ Widget build(BuildContext context) {
     child: Column(
       mainAxisSize: .min,
       crossAxisAlignment: .start,
-      gap: 1,
+      spacing: 1,
       children: [
         Row(
           crossAxisAlignment: .start,
-          gap: 2,
+          spacing: 2,
           children: [
             SizedBox(
               width: 16,

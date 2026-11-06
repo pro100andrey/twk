@@ -78,7 +78,7 @@ final class _GatedState extends State<_Gated> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         Stack(
           children: [
@@ -165,7 +165,7 @@ String _gatedCode(Options o) {
     '  return Column(',
     '    mainAxisSize: .min,',
     '    crossAxisAlignment: .start,',
-    '    gap: 1,',
+    '    spacing: 1,',
     '    children: [',
     '      Stack(',
     '        children: [',

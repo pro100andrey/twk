@@ -88,7 +88,7 @@ Widget build(BuildContext context) => SizedBox(
     children: [
       Column(
         crossAxisAlignment: .start,
-        gap: 1,
+        spacing: 1,
         children: [
           const Text(
             'The text under the barrier, dimmed by it: the mouse does not '
@@ -189,7 +189,7 @@ final class _BarrierState extends State<_Barrier>
       children: [
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          gap: 1,
+          spacing: 1,
           children: [
             const Text(
               'The text under the barrier, dimmed by it: the mouse does not '

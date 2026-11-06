@@ -55,11 +55,11 @@ Widget build(BuildContext context) {
       child: Column(
         mainAxisSize: .min,
         crossAxisAlignment: .start,
-        gap: 1,
+        spacing: 1,
         children: [
           Row(
             mainAxisSize: .min,
-            gap: 2,
+            spacing: 2,
             children: [
               _Focusable(_node),
               Text.rich([Span('count: ', theme.muted), Span('$_count')]),

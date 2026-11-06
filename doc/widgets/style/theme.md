@@ -96,7 +96,7 @@ final class _SwatchesState extends State<_Swatches> {
             ),
             const SizedBox(height: 1),
             Row(
-              gap: 3,
+              spacing: 3,
               children: [
                 Button('Button', onPressed: () {}),
                 Checkbox(
@@ -113,7 +113,7 @@ final class _SwatchesState extends State<_Swatches> {
             ),
             const SizedBox(height: 1),
             const Row(
-              gap: 2,
+              spacing: 2,
               children: [
                 StatusMessage('Saved', kind: StatusKind.success),
                 Expanded(

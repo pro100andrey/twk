@@ -66,11 +66,11 @@ final class _NodesState extends State<_Nodes> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         Row(
           mainAxisSize: MainAxisSize.min,
-          gap: 1,
+          spacing: 1,
           children: [
             _Focusable(one),
             switch (widget.two) {
@@ -161,11 +161,11 @@ String _nodesCode(Options o) {
     '  return Column(',
     '    mainAxisSize: .min,',
     '    crossAxisAlignment: .start,',
-    '    gap: 1,',
+    '    spacing: 1,',
     '    children: [',
     '      Row(',
     '        mainAxisSize: .min,',
-    '        gap: 1,',
+    '        spacing: 1,',
     '        children: [',
     '          _Focusable(one),',
     if (two == null)

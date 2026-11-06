@@ -185,7 +185,7 @@ void main() {
         registry: registry,
         child: Slot(
           'status',
-          layout: (context, children) => Row(gap: 1, children: children),
+          layout: (context, children) => Row(spacing: 1, children: children),
         ),
       ),
       size: (40, 2),

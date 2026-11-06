@@ -11,7 +11,7 @@ final _gradientforegroundPage = GalleryPage(
     build: (context, gradient) => Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         GradientForeground(
           gradient: gradient,
@@ -28,7 +28,7 @@ final _gradientforegroundPage = GalleryPage(
     'Column(',
     '  mainAxisSize: .min,',
     '  crossAxisAlignment: .start,',
-    '  gap: 1,',
+    '  spacing: 1,',
     '  children: [',
     '    GradientForeground(',
     '      gradient: gradient,',

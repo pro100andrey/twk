@@ -57,7 +57,7 @@ final _chipsPage = GalleryPage(
     '  return Column(',
     '    mainAxisSize: .min,',
     '    crossAxisAlignment: .start,',
-    '    gap: 1,',
+    '    spacing: 1,',
     '    children: [',
     '      SizedBox(',
     '        width: ${o(_chipsWidth).toInt()},',
@@ -119,7 +119,7 @@ final class _TagsState extends State<_Tags> with KeptState {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         SizedBox(
           width: widget.width,

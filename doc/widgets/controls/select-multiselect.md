@@ -51,12 +51,12 @@ void dispose() {
 Widget build(BuildContext context) => Column(
   mainAxisSize: .min,
   crossAxisAlignment: .start,
-  gap: 1,
+  spacing: 1,
   children: [
     Row(
       mainAxisSize: .min,
       crossAxisAlignment: .start,
-      gap: 4,
+      spacing: 4,
       children: [
         Select<String>(
           choices: _fruit,

@@ -27,7 +27,7 @@ DateTime? _selected;
 Widget build(BuildContext context) => Column(
   mainAxisSize: .min,
   crossAxisAlignment: .start,
-  gap: 1,
+  spacing: 1,
   children: [
     Calendar(
       today: DateTime(2026, 10, 19),

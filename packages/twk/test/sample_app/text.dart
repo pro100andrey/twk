@@ -11,7 +11,7 @@ extension on _SampleAppState {
     SizedBox(
       height: 2,
       child: Row(
-        gap: 1,
+        spacing: 1,
         children: [
           const Text(
             'plain',

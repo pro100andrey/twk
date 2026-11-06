@@ -5,7 +5,7 @@ extension on _SampleAppState {
     SizedBox(
       height: 1,
       child: Row(
-        gap: 1,
+        spacing: 1,
         children: [
           SizedBox(width: 12, child: TextField(placeholder: 'type here')),
           SizedBox(width: 12, child: TextArea(placeholder: 'notes')),
@@ -17,7 +17,7 @@ extension on _SampleAppState {
     SizedBox(
       height: 1,
       child: Row(
-        gap: 1,
+        spacing: 1,
         children: [
           Expanded(
             child: TextField(

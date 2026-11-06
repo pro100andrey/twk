@@ -88,7 +88,7 @@ final class _ParagraphsState extends State<_Paragraphs> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         _boxed(
           _boxW,
@@ -103,12 +103,12 @@ final class _ParagraphsState extends State<_Paragraphs> {
               child: widget.vertical
                   ? Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      gap: 1,
+                      spacing: 1,
                       children: paragraphs,
                     )
                   : Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      gap: 2,
+                      spacing: 2,
                       children: [
                         for (final paragraph in paragraphs)
                           SizedBox(width: _colW, child: paragraph),
@@ -171,7 +171,7 @@ String _paragraphsCode(Options o) {
     '  return Column(',
     '    mainAxisSize: .min,',
     '    crossAxisAlignment: .start,',
-    '    gap: 1,',
+    '    spacing: 1,',
     '    children: [',
     '      SizedBox(',
     '        width: $_boxW,',
@@ -185,13 +185,13 @@ String _paragraphsCode(Options o) {
     if (vertical) ...[
       '              child: Column(',
       '                crossAxisAlignment: .start,',
-      '                gap: 1,',
+      '                spacing: 1,',
       '                children: paragraphs,',
       '              ),',
     ] else ...[
       '              child: Row(',
       '                crossAxisAlignment: .start,',
-      '                gap: 2,',
+      '                spacing: 2,',
       '                children: [',
       '                  for (final paragraph in paragraphs)',
       '                    SizedBox(width: $_colW, child: paragraph),',

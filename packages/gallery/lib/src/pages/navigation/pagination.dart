@@ -67,7 +67,7 @@ final _pagination = GalleryPage(
     '  return Column(',
     '    mainAxisSize: .min,',
     '    crossAxisAlignment: .start,',
-    '    gap: 1,',
+    '    spacing: 1,',
     '    children: [',
     '      SizedBox(',
     '        width: ${o.nameOf(_paginationWidth)},',
@@ -124,7 +124,7 @@ final class _PagesState extends State<_Pages> with KeptState {
   Widget build(BuildContext context) => Column(
     mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.start,
-    gap: 1,
+    spacing: 1,
     children: [
       SizedBox(
         width: widget.width,

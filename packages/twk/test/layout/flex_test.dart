@@ -10,7 +10,7 @@ import 'view.dart';
 void main() {
   test('a Row lays its children out side by side, gap cells apart', () {
     final v = View(12, 1)
-      ..pump(const Row(gap: 1, children: [Label('ab'), Label('cd')]));
+      ..pump(const Row(spacing: 1, children: [Label('ab'), Label('cd')]));
     expect(v.rows(), ['ab cd']);
   });
 
@@ -33,7 +33,7 @@ void main() {
           mainAxisAlignment: MainAxisAlignment.end,
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.end,
-          gap: 1,
+          spacing: 1,
           children: [Label('a'), Label('b')],
         ),
       );
@@ -44,7 +44,7 @@ void main() {
         flex.mainAxisAlignment,
         flex.mainAxisSize,
         flex.crossAxisAlignment,
-        flex.gap,
+        flex.spacing,
       ],
       [
         Axis.vertical,
@@ -66,7 +66,7 @@ void main() {
         mainAxisAlignment: MainAxisAlignment.end,
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        gap: 2,
+        spacing: 2,
         children: [Label('a'), Label('b')],
       ),
     );
@@ -77,7 +77,7 @@ void main() {
         (flex as RenderFlex).mainAxisAlignment,
         flex.mainAxisSize,
         flex.crossAxisAlignment,
-        flex.gap,
+        flex.spacing,
       ],
       [
         MainAxisAlignment.end,

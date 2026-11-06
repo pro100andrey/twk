@@ -164,7 +164,7 @@ void main() {
       final l = lines(10000);
       final vp = RenderViewport(
         scrollOffset: 2 * 7000,
-        child: RenderFlex(direction: Axis.vertical, gap: 1, children: l),
+        child: RenderFlex(direction: Axis.vertical, spacing: 1, children: l),
       );
       View(20, 5, vp).frame();
       expect(visitedTimes(l, 1), [7000, 7001, 7002]);
@@ -298,7 +298,8 @@ void main() {
 
     test('with gaps', () {
       same(
-        () => RenderFlex(direction: Axis.vertical, gap: 2, children: mixed()),
+        () =>
+            RenderFlex(direction: Axis.vertical, spacing: 2, children: mixed()),
         rows: 5,
         offsets: offsets,
       );

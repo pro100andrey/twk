@@ -15,7 +15,7 @@ final class HintRow extends StatelessWidget {
     final binding = AppBinding.of(context);
     return Row(
       mainAxisSize: MainAxisSize.min,
-      gap: 1,
+      spacing: 1,
       children: [
         for (final key in binding.focusManager.activeKeys)
           if (key.hint case final hint?)

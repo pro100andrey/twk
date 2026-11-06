@@ -29,7 +29,7 @@ return SizedBox(
     border: .all(type: .rounded, style: theme.border),
     child: Wrap(
       crossAxisAlignment: .center,
-      gap: 1,
+      spacing: 1,
       children: [
         const Badge('dart'),
         const Badge('terminal', kind: .info),
@@ -59,8 +59,8 @@ What the gallery lets you change, and what each starts at:
 | alignment | start, end, center, spaceBetween, spaceAround, spaceEvenly | start |
 | run alignment | start, end, center, spaceBetween, spaceAround, spaceEvenly | start |
 | cross axis | start, end, center | center |
-| gap | 0, 1, 2 | 1 |
-| run gap | 0, 1 | 0 |
+| spacing | 0, 1, 2 | 1 |
+| run spacing | 0, 1 | 0 |
 
 ## More
 

@@ -176,7 +176,7 @@ the same merged or not.
 ## `RenderFlex`
 
 `RenderFlex` lays its children out one after another along `direction`,
-`gap` cells apart. The inflexible ones (`FlexParentData.flex` 0) come
+`spacing` cells apart. The inflexible ones (`FlexParentData.flex` 0) come
 first, each as long as it wants up to the whole main axis; the flexible
 ones share the cells left by their flex factors, in whole cells, those left
 over going to the first of them, and fill their share (`FlexFit.tight`) or
@@ -252,9 +252,9 @@ one.
 ## `RenderWrap`
 
 `RenderWrap` lays its children out in runs (Yoga's flexWrap): one after
-another along `direction`, `gap` cells apart, each as long as it wants up
+another along `direction`, `spacing` cells apart, each as long as it wants up
 to the whole main axis, until the next would not fit; that one starts a
-new run, `runGap` cells on across the main axis. Each run is as thick as
+new run, `runSpacing` cells on across the main axis. Each run is as thick as
 its thickest child. `alignment` places the children of each run along it
 and `runAlignment` the runs across the wrap, each a `WrapAlignment`: at
 the `start`, the `end` or the `center` (the odd cell after them), or with

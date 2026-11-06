@@ -80,7 +80,7 @@ final class Layout extends StatelessWidget {
 
 - `Column` and `Row` lay their children out along their axis. A child
   with a fixed size gets it first; `Expanded` and `Flexible` share the
-  rest by their `flex`, and `Spacer` is an empty `Expanded`. `gap:` puts
+  rest by their `flex`, and `Spacer` is an empty `Expanded`. `spacing:` puts
   cells between the children.
 - Across their axis they centre their children unless
   `crossAxisAlignment` says otherwise: `.stretch` makes each as wide (or
