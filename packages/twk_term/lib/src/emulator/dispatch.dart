@@ -742,17 +742,17 @@ final class _Dispatch implements VtHandler {
         '${ch(rgb & 0xFF)}';
   }
 
+  // int.tryParse would take a sign or whitespace as well
+  static final _channel = RegExp(r'^[0-9a-fA-F]{1,4}$');
+
   /// `rgb:r/g/b` (1 to 4 hex digits each) or `#rgb` (1 to 4 digits a
   /// channel) as 0xRRGGBB.
   static int? _parseColor(String spec) {
     int? channel(String hex) {
-      if (hex.isEmpty || hex.length > 4) {
+      if (!_channel.hasMatch(hex)) {
         return null;
       }
-      final v = int.tryParse(hex, radix: 16);
-      if (v == null) {
-        return null;
-      }
+      final v = int.parse(hex, radix: 16);
       final max = (1 << (4 * hex.length)) - 1;
       return (v * 255 / max).round();
     }
