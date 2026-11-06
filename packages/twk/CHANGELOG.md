@@ -4,6 +4,7 @@
 
 Breaking:
 
+- `Mark`, the base of `CellMark` and `TextMark`, is `GlyphMark`.
 - `WindowTitle` is `TerminalTitle`, as `TerminalProgress` is named: it sets the
   terminal's title.
 - `TaskStatus` is `TaskItemStatus`, the status of a `TaskItem`.

@@ -67,7 +67,7 @@ Glyphs allAs(String mark) => Glyphs.unicode.copyWith(
 
 /// [Marks.all] resolved in a widget: as text, and as the code point of a
 /// cell.
-({Map<Mark, String> text, Map<Mark, int?> cell}) resolve(
+({Map<GlyphMark, String> text, Map<GlyphMark, int?> cell}) resolve(
   BuildContext context,
 ) {
   final marks = ThemeMarks.of(context);
@@ -107,7 +107,7 @@ void main() {
 
   testTwk('a mark two columns wide is the ASCII one in text and in a cell, '
       'and warned of once for each field', (t) async {
-    late ({Map<Mark, String> text, Map<Mark, int?> cell}) got;
+    late ({Map<GlyphMark, String> text, Map<GlyphMark, int?> cell}) got;
     await t.pumpWidget(
       themed(
         allAs(wide),
@@ -160,7 +160,7 @@ void main() {
   });
 
   testTwk('a custom mark of one column is kept', (t) async {
-    late ({Map<Mark, String> text, Map<Mark, int?> cell}) got;
+    late ({Map<GlyphMark, String> text, Map<GlyphMark, int?> cell}) got;
     await t.pumpWidget(
       themed(
         allAs('λ'),
@@ -199,7 +199,7 @@ void main() {
   testTwk('an empty mark is what its descriptor says, with no warning', (
     t,
   ) async {
-    late ({Map<Mark, String> text, Map<Mark, int?> cell}) got;
+    late ({Map<GlyphMark, String> text, Map<GlyphMark, int?> cell}) got;
     await t.pumpWidget(
       themed(
         allAs(''),
@@ -232,7 +232,7 @@ void main() {
 
   test('on an ambiguous-wide terminal the marks that are ambiguous are '
       'ASCII, with the one line naming the terminal', () async {
-    late ({Map<Mark, String> text, Map<Mark, int?> cell}) got;
+    late ({Map<GlyphMark, String> text, Map<GlyphMark, int?> cell}) got;
     final app = await WideApp.start(
       Builder(
         builder: (context) {

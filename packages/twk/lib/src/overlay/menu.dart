@@ -2675,7 +2675,7 @@ void _mark(
   int x,
   int y,
   int pen,
-  Mark mark,
+  GlyphMark mark,
   Glyphs glyphs,
 ) {
   final cell = ThemeMarks.ofObject(
