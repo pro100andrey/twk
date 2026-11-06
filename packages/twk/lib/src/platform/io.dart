@@ -9,6 +9,7 @@ import 'dart:isolate' show Isolate;
 import 'dart:math' show max;
 
 import 'file_identity.dart';
+import 'follow_machine.dart';
 import 'tail_event.dart';
 
 /// The process's environment.
@@ -102,15 +103,16 @@ Stream<void> watchDirectory(String path) {
 /// (before the stream was listened to, or by a look) is that file's
 /// appearance, however late after a look found it, and replaces nothing; any
 /// other is a replacement, whatever the bytes the two files start with. The
-/// order of the events among themselves is not relied on. The poll alone cannot
-/// tell it, `dart:io` giving no inode, so a replacement no longer than
-/// what was read goes unseen on a platform without a directory watch (or
-/// on a drive where it misses events), and a longer one is read from the
-/// old position.
+/// order of the events among themselves, and of them and a look, is not
+/// relied on. The poll alone cannot tell it, `dart:io` giving no inode, so a
+/// replacement no longer than what was read goes unseen on a platform
+/// without a directory watch (or on a drive where it misses events), and a
+/// longer one is read from the old position.
 ///
-/// The poll runs on the timer [startPeriodic] starts (`Timer.periodic` by
-/// default): an app's passes its binding's (`AppBinding.startPeriodic`), so
-/// that its clock moves the poll wherever the stream is listened to.
+/// What is a start over and what to read is decided by a [FollowMachine];
+/// the stream is the file, the watch and the poll around it. The poll runs
+/// on `Timer.periodic` of the zone the stream is listened to in, so a
+/// test's fake clock moves it; [startPeriodic] starts it otherwise.
 Stream<TailEvent> tailFile(
   String path, {
   required bool fromEnd,
@@ -119,31 +121,19 @@ Stream<TailEvent> tailFile(
 }) {
   final file = File(path);
   final name = file.uri.pathSegments.last;
+  final machine = FollowMachine(tellsIdentity: knowsFileIdentity);
   StreamSubscription<FileSystemEvent>? watch;
   Timer? timer;
-  var position = 0;
   var reading = false;
   var again = false;
   var cancelled = false;
-  // a file made or moved onto the name: read from its start
-  var replaced = false;
-  // the file was seen not there (at the start, or by a look) and has not been
-  // put there by an event since: the next create or move onto the name is
-  // that file's own appearance, however late after a look found it, and
-  // replaces nothing
-  var owed = false;
-  // where the platform tells files apart (macOS): the file the name held at
-  // the last look, a look that finds another replacing it whatever the
-  // watch's events said
-  FileIdentity? held;
   late final StreamController<TailEvent> out;
 
-  Future<int> length() async {
+  Future<int?> length() async {
     try {
       return await file.length();
     } on FileSystemException {
-      owed = true;
-      return 0;
+      return null;
     }
   }
 
@@ -156,36 +146,24 @@ Stream<TailEvent> tailFile(
     try {
       do {
         again = false;
-        if (knowsFileIdentity) {
-          final now = fileIdentity(path);
-          if (now != null) {
-            replaced = replaced || (held != null && now != held);
-            held = now;
-          }
-        }
-        if (replaced) {
-          replaced = false;
-          if (position > 0) {
-            out.add(const FileReset());
-            position = 0;
-          }
-        }
-        final end = await length();
+        final began = machine.beginLook();
+        final identity = fileIdentity(path);
+        final size = await length();
         if (cancelled) {
           return;
         }
-        if (end < position) {
+        final plan = machine.look(began, size: size, identity: identity);
+        if (plan.reset) {
           out.add(const FileReset());
-          position = 0;
         }
-        if (end > position) {
-          await for (final bytes in file.openRead(position, end)) {
+        if (plan.reads) {
+          await for (final bytes in file.openRead(plan.from, plan.to)) {
             if (cancelled) {
               return;
             }
             out.add(FileBytes(bytes));
             // told: a read that fails further on goes on from here
-            position += bytes.length;
+            machine.told(bytes.length);
           }
         }
       } while (again && !cancelled);
@@ -200,29 +178,21 @@ Stream<TailEvent> tailFile(
     onListen: () {
       // the end as the stream is listened to, before anything else can
       // write: a write after it is read
-      held = fileIdentity(path);
-      if (fromEnd) {
-        try {
-          position = file.lengthSync();
-        } on FileSystemException {
-          position = 0;
-          owed = true;
-        }
-      } else {
-        owed = !file.existsSync();
+      int? size;
+      try {
+        size = file.lengthSync();
+      } on FileSystemException {
+        size = null;
       }
+      machine.start(
+        fromEnd: fromEnd,
+        size: size,
+        identity: fileIdentity(path),
+      );
       if (FileSystemEntity.isWatchSupported) {
         try {
           void onEvent(FileSystemEvent e) {
-            // where files are told apart the look decides; macOS tells a
-            // write to a file made just before the watch as its making
-            if (!knowsFileIdentity && _replaces(e, name)) {
-              if (owed) {
-                owed = false;
-              } else {
-                replaced = true;
-              }
-            }
+            machine.nameEvent(puts: _replaces(e, name));
             unawaited(look());
           }
 
