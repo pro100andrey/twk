@@ -3965,10 +3965,23 @@ final class TextPainter {
     }
     if (_segmentsStale) {
       _buildSegments();
+    } else {
+      _damageFirst = 0;
+      _damageEnd = 0;
     }
     _resolvePens(canvas.styles);
     final ids = _penIds;
     final seg = _segments;
+    if (_looked) {
+      // the rows drawn in a pen looked up again
+      for (var k = 0; k < _segmentCount; k++) {
+        final at = k * _segmentStride;
+        final span = seg[at + 2];
+        if (span >= _lookedFrom && span < _lookedTo) {
+          _damage(seg[at + 1]);
+        }
+      }
+    }
     for (var k = 0; k < _segmentCount; k++) {
       final at = k * _segmentStride;
       final sx = x + seg[at];
@@ -3987,6 +4000,11 @@ final class TextPainter {
     }
   }
 
+  // the spans whose pens the last paint looked up
+  var _looked = false;
+  var _lookedFrom = 0;
+  var _lookedTo = 0;
+
   /// Looks the pens of the spans up in [styles] unless they were.
   void _resolvePens(StyleTable styles) {
     var from = 0;
@@ -4004,6 +4022,9 @@ final class TextPainter {
     for (var k = from; k < to; k++) {
       ids[k] = styles.pen(_spans[k].$2);
     }
+    _looked = from < to;
+    _lookedFrom = from;
+    _lookedTo = to;
     _pensFrom = _pensTo = _spans.length;
   }
 
@@ -4027,6 +4048,8 @@ final class TextPainter {
   /// Works out what painting draws: a glyph run for each piece of a line
   /// in one span, the ellipsis, and the gaps a justified line stretches.
   void _buildSegments() {
+    _damageFirst = 1 << 30;
+    _damageEnd = 0;
     final rows = _lineCount < height ? _lineCount : height;
     if (_bidiOn) {
       _buildOrdered(rows);
@@ -4038,6 +4061,37 @@ final class TextPainter {
     _changedTo = 0;
     _changedShift = 0;
     _spansMoved = false;
+    if (_damageFirst >= _damageEnd) {
+      _damageFirst = _damageEnd = 0;
+    }
+  }
+
+  // the rows [_damageFirst, _damageEnd) the last paint drew otherwise than
+  // the one before
+  var _damageFirst = 0;
+  var _damageEnd = 0;
+
+  /// The rows the last [paint] drew otherwise than the paint before it, as
+  /// (first, end): the rows from first up to, not including, end, in the
+  /// rows of the text; both 0 when it drew the same. A row is counted that
+  /// is built again, that is where the row before it was not, or that is
+  /// past the last row the paint before it drew: those that went. All the
+  /// rows are counted after a change that built them again (the width, the
+  /// alignment, the spans' styles looked up again, the glyph table swept),
+  /// and the first paint.
+  ///
+  /// It is not narrower than an edit is: the rows an edit reaches are
+  /// those with a cluster it split again, and a row with a pen looked up
+  /// again is counted whole.
+  (int, int) get changedRows => (_damageFirst, _damageEnd);
+
+  void _damage(int y) {
+    if (y < _damageFirst) {
+      _damageFirst = y;
+    }
+    if (y >= _damageEnd) {
+      _damageEnd = y + 1;
+    }
   }
 
   /// [_buildSegments] for [rows] rows of a line ordered for drawing each:
@@ -4072,10 +4126,17 @@ final class TextPainter {
         j = _rowFound;
         if (kept) {
           _copyRow(j, y);
+          if (j != y) {
+            _damage(y);
+          }
           continue;
         }
       }
+      _damage(y);
       _orderRow(y);
+    }
+    for (var y = rows; y < _rowsWere; y++) {
+      _damage(y);
     }
     _rowAt[2 * rows] = _segmentCount;
     _rowAt[2 * rows + 1] = _runGlyphCount;
@@ -4229,10 +4290,17 @@ final class TextPainter {
         j = _rowFound;
         if (kept) {
           _copyStoredRow(j, y, _rowShift);
+          if (j != y) {
+            _damage(y);
+          }
           continue;
         }
       }
+      _damage(y);
       _storeRow(y);
+    }
+    for (var y = rows; y < _rowsWere; y++) {
+      _damage(y);
     }
     _rowAt[2 * rows] = _segmentCount;
     _rowAt[2 * rows + 1] = 0;
