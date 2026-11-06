@@ -7,7 +7,10 @@ import 'package:twk_test/twk_test.dart';
 String _eta(String time) => 'noch $time';
 String _more(int count) => '+$count weitere';
 
+String _left(String time) => 'verbleibend $time';
+
 const _german = TwkStrings(eta: _eta, moreTasks: _more);
+const _long = TwkStrings(eta: _left);
 
 void main() {
   group('ProgressList with strings', () {
@@ -32,6 +35,33 @@ void main() {
 
       await t.pumpWidget(list(_german), size: (20, 3));
       expect(t.lines, ['a noch --:--', '+2 weitere', '']);
+    });
+
+    testTwk('takes the room the words need where it takes what it needs', (
+      t,
+    ) async {
+      final tracker = ProgressTracker(clock: t.clock.stopwatch);
+      addTearDown(tracker.dispose);
+      tracker.add('a', total: 100).start();
+      Widget list(TwkStrings strings) => Localizations(
+        strings: strings,
+        child: Row(
+          children: [
+            IntrinsicWidth(
+              child: ProgressList(
+                tracker: tracker,
+                columns: const [ProgressColumn.label, ProgressColumn.eta],
+              ),
+            ),
+            const Text('|'),
+          ],
+        ),
+      );
+      await t.pumpWidget(list(const TwkStrings()), size: (40, 1));
+      expect(t.lines.single, 'a ETA --:--   |');
+
+      await t.pumpWidget(list(_long), size: (40, 1));
+      expect(t.lines.single, 'a verbleibend --:--   |');
     });
 
     testTwk('writes English without Localizations', (t) async {

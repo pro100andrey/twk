@@ -955,6 +955,8 @@ final class _RenderProgressList extends RenderObject {
   set strings(TwkStrings s) {
     if (s != _strings) {
       _strings = s;
+      // the words may take other room where the list takes what it needs
+      markNeedsLayout();
       markNeedsPaint();
     }
   }
@@ -1014,8 +1016,15 @@ final class _RenderProgressList extends RenderObject {
     // room for the amounts as they are written at most
     for (final c in shown) {
       if (_textColumns.contains(c)) {
-        w += 12;
+        final eta = c == ProgressColumn.eta
+            ? segmenter.width(_strings.eta('00:00:00'))
+            : 0;
+        w += eta > 12 ? eta : 12;
       }
+    }
+    if (_more > 0) {
+      final more = segmenter.width(_strings.moreTasks(_more));
+      w = more > w ? more : w;
     }
     return w;
   }
