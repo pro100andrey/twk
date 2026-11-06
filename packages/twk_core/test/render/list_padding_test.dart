@@ -105,6 +105,26 @@ void main() {
       expect(v.shown, ['', '', '', '', '']);
     });
 
+    test('a list that starts empty and is filled shows its leading rows', () {
+      final metrics = <(int, int, int)>[];
+      final l = padded(Items(), 0, pad, metrics: metrics);
+      final v = View(20, 5, l)..frame();
+      l.itemCount = 10;
+      v.frame();
+      expect(v.shown, ['', '', 'item 0', 'item 1', 'item 2']);
+      expect(metrics.last, (5, 13, 0));
+    });
+
+    test('a list that stuck to the bottom and was emptied starts over', () {
+      final l = padded(Items(), 10, pad);
+      final v = View(20, 5, l)..frame();
+      l.itemCount = 0;
+      v.frame();
+      l.itemCount = 4;
+      v.frame();
+      expect(v.shown, ['', '', 'item 0', 'item 1', 'item 2']);
+    });
+
     test('a list that sticks to the bottom shows the trailing rows', () {
       final metrics = <(int, int, int)>[];
       final l = padded(
@@ -134,6 +154,24 @@ void main() {
       v.frame();
       expect(v.shown, ['item 1.1', 'item 2', 'item 3', 'item 3.1', '']);
       expect(metrics.last, (5, 9, 4));
+    });
+  });
+
+  group('showIndex of the first item', () {
+    test('shows the item, not the leading rows, where both do not fit', () {
+      // 3 rows of padding and a 3 row item in a window of 4
+      final built = Items((i) => 3);
+      final l = padded(
+        built,
+        5,
+        const EdgeInsets.only(top: 3),
+      );
+      final v = View(20, 4, l)..frame();
+      l.showIndex(3);
+      v.frame();
+      l.showIndex(0);
+      v.frame();
+      expect(v.shown.first, 'item 0');
     });
   });
 
