@@ -27,7 +27,7 @@ export 'package:twk_core/twk_core.dart'
 // Examples can assume:
 // late bool wide;
 
-/// Lays its children out one after another along [direction], [gap] cells
+/// Lays its children out one after another along [direction], [spacing] cells
 /// apart: the inflexible ones first, each as long as it wants, then the
 /// [Flexible] ones, which share the cells left by their flex factors. See
 /// [RenderFlex].
@@ -38,12 +38,12 @@ export 'package:twk_core/twk_core.dart'
 /// ```dart
 /// Flex(
 ///   direction: wide ? Axis.horizontal : Axis.vertical,
-///   gap: 1,
+///   spacing: 1,
 ///   children: const [Text('Name'), Expanded(child: TextField())],
 /// )
 /// ```
 final class Flex extends MultiChildRenderObjectWidget {
-  /// Lays [children] out along [direction], [gap] cells apart (0 or
+  /// Lays [children] out along [direction], [spacing] cells apart (0 or
   /// more): from the start, as long as it may be, each child in the middle
   /// across, by default.
   const Flex({
@@ -52,9 +52,9 @@ final class Flex extends MultiChildRenderObjectWidget {
     this.mainAxisAlignment = MainAxisAlignment.start,
     this.mainAxisSize = MainAxisSize.max,
     this.crossAxisAlignment = CrossAxisAlignment.center,
-    this.gap = 0,
+    this.spacing = 0,
     super.children,
-  }) : assert(gap >= 0, 'a gap of 0 cells or more');
+  }) : assert(spacing >= 0, 'a spacing of 0 cells or more');
 
   /// The main axis.
   final Axis direction;
@@ -70,7 +70,7 @@ final class Flex extends MultiChildRenderObjectWidget {
   final CrossAxisAlignment crossAxisAlignment;
 
   /// Cells between one child and the next.
-  final int gap;
+  final int spacing;
 
   @override
   MultiChildRenderObjectElement createElement() => ChildListElement(this);
@@ -81,7 +81,7 @@ final class Flex extends MultiChildRenderObjectWidget {
     mainAxisAlignment: mainAxisAlignment,
     mainAxisSize: mainAxisSize,
     crossAxisAlignment: crossAxisAlignment,
-    gap: gap,
+    spacing: spacing,
   );
 
   @override
@@ -91,7 +91,7 @@ final class Flex extends MultiChildRenderObjectWidget {
       ..mainAxisAlignment = mainAxisAlignment
       ..mainAxisSize = mainAxisSize
       ..crossAxisAlignment = crossAxisAlignment
-      ..gap = gap;
+      ..spacing = spacing;
   }
 }
 
@@ -101,7 +101,7 @@ final class Flex extends MultiChildRenderObjectWidget {
 ///
 /// ```dart
 /// Row(
-///   gap: 1,
+///   spacing: 1,
 ///   children: [
 ///     const Text('Search'),
 ///     const Expanded(child: TextField()),
@@ -121,7 +121,7 @@ final class Row extends Flex {
     super.mainAxisAlignment,
     super.mainAxisSize,
     super.crossAxisAlignment,
-    super.gap,
+    super.spacing,
     super.children,
   }) : super(direction: Axis.horizontal);
 }
@@ -152,7 +152,7 @@ final class Column extends Flex {
     super.mainAxisAlignment,
     super.mainAxisSize,
     super.crossAxisAlignment,
-    super.gap,
+    super.spacing,
     super.children,
   }) : super(direction: Axis.vertical);
 }

@@ -11,7 +11,7 @@ extension on _SampleAppState {
     SizedBox(
       height: 2,
       child: Row(
-        gap: 1,
+        spacing: 1,
         children: [
           const Text(
             'plain',
@@ -19,7 +19,7 @@ extension on _SampleAppState {
             wrap: TextWrap.grapheme,
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
-            align: TextAlign.right,
+            textAlign: TextAlign.right,
           ),
           Text.rich([const Span('rich '), 'bold'.bold.fg(Color.red)]),
           const Spacer(),

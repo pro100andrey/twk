@@ -11,10 +11,10 @@ final _statusbarWidth = SliderOption(
   format: (v) => '$v cells',
 );
 
-/// The StatusBar page's `gap` option.
-const _statusbarGap = ChoiceOption<int>(
-  'gap',
-  'gap',
+/// The StatusBar page's `spacing` option.
+const _statusbarSpacing = ChoiceOption<int>(
+  'spacing',
+  'spacing',
   values: [0, 1, 3],
   initial: 1,
 );
@@ -24,12 +24,12 @@ final _statusbarPage = GalleryPage(
   title: 'StatusBar',
   options: [
     _statusbarWidth,
-    _statusbarGap,
+    _statusbarSpacing,
   ],
   build: (context, o) => SizedBox(
     width: o(_statusbarWidth).toInt(),
     child: StatusBar(
-      gap: o(_statusbarGap),
+      spacing: o(_statusbarSpacing),
       left: const Badge('NORMAL'),
       center: const Text(
         'example/widgets/main.dart',
@@ -43,7 +43,8 @@ final _statusbarPage = GalleryPage(
     'return SizedBox(',
     '  width: ${o.nameOf(_statusbarWidth)},',
     '  child: StatusBar(',
-    if (o(_statusbarGap) != 1) '    gap: ${o.nameOf(_statusbarGap)},',
+    if (o(_statusbarSpacing) != 1)
+      '    spacing: ${o.nameOf(_statusbarSpacing)},',
     "    left: const Badge('NORMAL'),",
     '    center: const Text(',
     "      'example/widgets/main.dart',",

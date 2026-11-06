@@ -5,7 +5,7 @@
 ## `TabController`
 
 `TabController(length:, initialIndex:)`, the selected tab (`index`) that a
-`TabBar(controller:, tabs:, …)` sets and a `TabView(controller:, children:)`
+`TabBar(controller:, tabs:, …)` sets and a `TabBarView(controller:, children:)`
 shows. The bar is a row of the labels, the selected one marked: a tab
 clicked is selected, and while the bar has the focus Left and Right select
 the tab before and after (the first after the last), Home and End the first
@@ -66,14 +66,14 @@ color of the theme;
 `Badge(label, kind:, style:)`, a short label reversed in a kind's color, or
 the theme's `primary`;
 
-## `Link`
+## `Hyperlink`
 
-`Link(url, text:, style:)`, text linked to a URL as an OSC 8 hyperlink, in
+`Hyperlink(url, text:, style:)`, text linked to a URL as an OSC 8 hyperlink, in
 the theme's `primary` underlined by default.
 
 ## `StatusBar`
 
-`StatusBar(left:, center:, right:, gap: 1, style:)`, one row of three
+`StatusBar(left:, center:, right:, spacing: 1, style:)`, one row of three
 sections, `left` at its left edge, `right` at its right edge and `center` in
 its middle, at least `gap` columns between two, each as wide as it likes
 while they all fit; when they do not, `right` keeps its width first, as far
@@ -133,12 +133,12 @@ without a chip it is a flat clickable word that takes no part in the focus.
 ## `Pressable`
 
 `Pressable(builder: (context, focused) => …, enabled:, bindings:, hints:,
-onKeyEvent:, onTap:, focusNode:, autofocus:)` is what the controls are made
+onKeyEvent:, onTap:, onTapUp:, focusNode:, autofocus:)` is what the controls are made
 of, for one of an app's own: a node of the focus tree that takes the focus
 while `enabled` (disabled, Tab passes it by), `bindings` the keys it takes
 while it has it (as `KeyBindings` takes them, with their `hints`), a press
-of the left button over it focusing it and a tap calling `onTap`; enabled
-with an `onTap`, the pointer is the hand over it (`PointerShape.pointer`,
+of the left button over it focusing it and a tap calling `onTapUp`, with the
+cell, then `onTap`; enabled with an `onTap` or `onTapUp`, the pointer is the hand over it (`PointerShape.pointer`,
 where the terminal shows shapes) when the theme asks for it
 (`ThemeData.pointerMode`, a `PointerMode`: `auto`, the default, shows
 the hand only where the terminal reports the mouse's motion already, `on`

@@ -7,6 +7,8 @@ library;
 
 import 'dart:async';
 
+import 'package:meta/meta.dart' show awaitNotRequired;
+
 import '../foundation/change_notifier.dart';
 import 'curves.dart';
 import 'ticker.dart';
@@ -25,7 +27,13 @@ enum AnimationStatus {
   reverse,
 
   /// At the upper bound, or ended a run towards it.
-  completed,
+  completed;
+
+  /// Whether it is stopped at the lower bound: [dismissed].
+  bool get isDismissed => this == dismissed;
+
+  /// Whether it is stopped at the upper bound: [completed].
+  bool get isCompleted => this == completed;
 }
 
 /// What [AnimationController.addStatusListener] calls with the new status.
@@ -44,6 +52,14 @@ typedef AnimationStatusListener = void Function(AnimationStatus status);
 /// where it started, at the frame whose time is the duration on or past it
 /// ends at its target. Then the ticker stops, and so do the frames it had
 /// the app run: a controller that does not run asks for none.
+///
+/// [forward], [reverse], [animateTo] and [repeat] return a [Future] that
+/// completes when the run ends: at its target, or when something stops it
+/// ([stop], [value] set, another run, [dispose]). Unlike Flutter's
+/// `TickerFuture`, which stays pending for ever when a run is canceled, it
+/// completes then too, so an `await` in a task does not hang on a stop; the
+/// controller's [status] and [value] say how it ended. A [repeat] completes
+/// only that way.
 ///
 /// A run that starts stops the one running. A [Tween] (an [Animatable])
 /// maps the value to what it animates, `tween.evaluate(controller)`; a
@@ -124,6 +140,9 @@ final class AnimationController extends ChangeNotifier
 
   late final Ticker _ticker;
 
+  // completed when the run under way ends, however it ends
+  Completer<void>? _run;
+
   double _value = 0;
   late AnimationStatus _status;
   final _statusListeners = <AnimationStatusListener>[];
@@ -162,60 +181,85 @@ final class AnimationController extends ChangeNotifier
   /// Whether a run is under way.
   bool get isAnimating => _ticker.isActive;
 
-  /// Runs to the upper bound, from [from] when given.
-  void forward({double? from}) {
+  /// Whether it is at the lower bound, [AnimationStatus.dismissed].
+  bool get isDismissed => _status.isDismissed;
+
+  /// Whether it is at the upper bound, [AnimationStatus.completed].
+  bool get isCompleted => _status.isCompleted;
+
+  /// Runs to the upper bound, from [from] when given. The future completes
+  /// when the run ends.
+  @awaitNotRequired
+  Future<void> forward({double? from}) {
     if (from != null) {
       value = from;
     }
     _forward = true;
-    _runTo(upperBound, duration, Curves.linear);
+    return _runTo(upperBound, duration, Curves.linear);
   }
 
-  /// Runs back to the lower bound, from [from] when given.
-  void reverse({double? from}) {
+  /// Runs back to the lower bound, from [from] when given. The future
+  /// completes when the run ends.
+  @awaitNotRequired
+  Future<void> reverse({double? from}) {
     if (from != null) {
       value = from;
     }
     _forward = false;
-    _runTo(lowerBound, reverseDuration ?? duration, Curves.linear);
+    return _runTo(lowerBound, reverseDuration ?? duration, Curves.linear);
   }
+
+  /// Runs back to the lower bound if it is at the upper one or running
+  /// towards it, else forward to the upper one, from [from] when given. The
+  /// future completes when the run ends.
+  @awaitNotRequired
+  Future<void> toggle({double? from}) =>
+      _status == AnimationStatus.forward || _status == AnimationStatus.completed
+      ? reverse(from: from)
+      : forward(from: from);
 
   /// Runs to [target] along [curve], in [duration] when given, else in the
   /// share of [duration] the way is of the bounds'; its status is
   /// [AnimationStatus.forward] on the way and [AnimationStatus.completed]
-  /// at the end, as of a run [forward].
-  void animateTo(
+  /// at the end, as of a run [forward]. The future completes when the run
+  /// ends.
+  @awaitNotRequired
+  Future<void> animateTo(
     double target, {
     Duration? duration,
     Curve curve = Curves.linear,
   }) {
     _forward = true;
     final to = _clamp(target);
-    if (duration != null) {
-      _start(to, duration.inMicroseconds, curve);
-    } else {
-      _runTo(to, this.duration, curve);
-    }
+    return duration != null
+        ? _start(to, duration.inMicroseconds, curve)
+        : _runTo(to, this.duration, curve);
   }
 
   /// Runs from where it is to the upper bound, then from the lower one
   /// again, or with [reverse] back to it, round after round until stopped:
-  /// each round takes [period], or [duration] when null.
-  void repeat({bool reverse = false, Duration? period}) {
+  /// each round takes [period], or [duration] when null. The future
+  /// completes when something stops it.
+  @awaitNotRequired
+  Future<void> repeat({bool reverse = false, Duration? period}) {
     final each = (period ?? duration ?? (throw _noDuration())).inMicroseconds;
     stop();
+    final run = _run = Completer<void>();
     _period = each < 1 ? 1 : each;
     _bounce = reverse;
     _phase = (_value - lowerBound) / (upperBound - lowerBound);
     _forward = true;
     _setStatus(AnimationStatus.forward);
     _ticker.start();
+    return run.future;
   }
 
-  /// Ends the run where it is; the status stays as it is.
+  /// Ends the run where it is; the status stays as it is. The future of
+  /// the run completes.
   void stop() {
     _ticker.stop();
     _period = null;
+    _finish();
   }
 
   /// Back at the lower bound at once: [value] set to it.
@@ -232,25 +276,36 @@ final class AnimationController extends ChangeNotifier
   /// Stops it for good, its ticker disposed and its listeners dropped.
   @override
   void dispose() {
+    _finish();
     _ticker.dispose();
     _statusListeners.clear();
     super.dispose();
   }
 
   /// Runs to [target] in the share of [full] the way is of the bounds'.
-  void _runTo(double target, Duration? full, Curve curve) {
+  Future<void> _runTo(double target, Duration? full, Curve curve) {
     final micros = (full ?? (throw _noDuration())).inMicroseconds;
     final share = (target - _value).abs() / (upperBound - lowerBound);
-    _start(target, (micros * share).round(), curve);
+    return _start(target, (micros * share).round(), curve);
   }
 
-  void _start(double target, int micros, Curve curve) {
+  /// Completes the future of the run under way, if any.
+  void _finish() {
+    final run = _run;
+    if (run != null) {
+      _run = null;
+      run.complete();
+    }
+  }
+
+  Future<void> _start(double target, int micros, Curve curve) {
     stop();
     if (micros <= 0 || target == _value) {
       _set(target);
       _setStatus(_ended);
-      return;
+      return Future<void>.value();
     }
+    final run = _run = Completer<void>();
     _from = _value;
     _to = target;
     _micros = micros;
@@ -259,6 +314,7 @@ final class AnimationController extends ChangeNotifier
       _forward ? AnimationStatus.forward : AnimationStatus.reverse,
     );
     _ticker.start();
+    return run.future;
   }
 
   void _tick(Duration elapsed) {
@@ -274,6 +330,8 @@ final class AnimationController extends ChangeNotifier
     }
     if (e >= _micros) {
       _ticker.stop();
+      // before the listeners, which may start the next run
+      _finish();
       _set(_to);
       _setStatus(_ended);
     } else {

@@ -30,13 +30,13 @@ void main() {
     'TaskList': (
       (_) => const TaskList(
         showElapsed: false,
-        tasks: [TaskItem('Build', status: TaskStatus.running)],
+        tasks: [TaskItem('Build', status: TaskItemStatus.running)],
       ),
       20,
     ),
     'TaskList with the time': (
       (_) => const TaskList(
-        tasks: [TaskItem('Build', status: TaskStatus.running)],
+        tasks: [TaskItem('Build', status: TaskItemStatus.running)],
       ),
       20,
     ),

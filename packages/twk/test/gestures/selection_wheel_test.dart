@@ -62,8 +62,8 @@ final class RenderLines extends RenderObject with Selectable {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.constrainW(10);
-    height = c.constrainH(3);
+    width = c.constrainWidth(10);
+    height = c.constrainHeight(3);
   }
 
   @override

@@ -105,7 +105,7 @@ String _optionListCode(Options o) {
     '  return Column(',
     '    mainAxisSize: .min,',
     '    crossAxisAlignment: .start,',
-    '    gap: 1,',
+    '    spacing: 1,',
     '    children: [',
     '      // the list takes no keys: a Pressable around it',
     '      // does, its border primary while it has the focus',
@@ -199,7 +199,7 @@ final class _OptionsState extends State<_Options> with KeptState {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         Pressable(
           bindings: {

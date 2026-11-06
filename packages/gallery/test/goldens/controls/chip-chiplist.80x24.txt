@@ -20,7 +20,7 @@ text
 │     DatePicker         toggle     ▐  ●▌                                        │
 │     FilePicker                                                                 │
 │     Form, FormFie…     removable  ▐  ●▌                                        │
-│     TabBar, TabVi…     width      ────────────▋▋──────────────  34 cells       │
+│     TabBar, TabBa…     width      ────────────▋▋──────────────  34 cells       │
 │     KeyHintsBar                                                                │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │

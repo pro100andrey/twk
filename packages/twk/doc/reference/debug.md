@@ -2,7 +2,7 @@
 
 [The reference](README.md) · `lib/src/debug/`, `test/debug/`
 
-`debugDumpTree(context)` and `debugDumpRenderTree(context)`, which print the
+`debugDumpApp(context)` and `debugDumpRenderTree(context)`, which print the
 element tree or the render tree `context` is in, from its root, as
 `DiagnosticsNode.toStringDeep` renders it (guides, sizes, flags and their
 legend, long runs of siblings folded); `print` in an app goes to its log, and `LogSink.run(body)` runs `body` with

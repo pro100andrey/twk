@@ -202,6 +202,36 @@ void main() {
     expect(t.lines, ['>home', '']);
   });
 
+  testTwk('a route pushed with pushAndRemoveUntil slides in over the route '
+      'that was in front, which goes once it is in', (t) async {
+    final navigator = GlobalKey<NavigatorState>();
+    await t.pumpWidget(
+      Theme(
+        data: theme,
+        child: Box(
+          style: theme.background,
+          child: Navigator(key: navigator, home: screen('home')),
+        ),
+      ),
+      size: (20, 2),
+    );
+    unawaited(navigator.currentState!.push(detail()));
+    await t.pump(ms * 300);
+    final next = PageRoute<String>(
+      transitionDuration: ms * 200,
+      builder: (_) => screen('next'),
+    );
+    unawaited(
+      navigator.currentState!.pushAndRemoveUntil(next, (_) => false),
+    );
+    await t.pump(ms * 80);
+    expect(t.lines[0], startsWith(' detail'));
+    expect(t.lines[0], contains('>next'));
+    await t.pump(ms * 200);
+    expect(t.lines, ['>next', '']);
+    expect(navigator.currentState!.canPop(), isFalse);
+  });
+
   testTwk('the mouse does not reach the route under one sliding in, and '
       'goes past one sliding out to the route in front', (t) async {
     final navigator = GlobalKey<NavigatorState>();

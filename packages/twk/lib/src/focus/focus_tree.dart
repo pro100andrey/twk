@@ -587,10 +587,20 @@ class FocusScopeNode extends FocusNode {
   @override
   FocusScopeNode get nearestScope => this;
 
-  /// Focuses the node this scope focused last ([focusedChild]), or the
-  /// scope itself when there is none.
+  /// Focuses [node], one of the nodes below this scope, or, without one, the
+  /// node this scope focused last ([focusedChild]), or the scope itself when
+  /// there is none.
   @override
-  void requestFocus() {
+  void requestFocus([FocusNode? node]) {
+    if (node != null) {
+      assert(
+        node._attached && !identical(node, this) && node.isBelow(this),
+        'Focus was requested for a node that is not below the scope it was '
+        'requested from.',
+      );
+      node.requestFocus();
+      return;
+    }
     final child = focusedChild;
     if (child != null) {
       child.requestFocus();
@@ -1274,6 +1284,7 @@ final class Focus extends StatefulWidget {
     required this.child,
     this.focusNode,
     this.autofocus = false,
+    this.onFocusChange,
     this.onKeyEvent,
     this.canRequestFocus,
     this.skipTraversal,
@@ -1293,6 +1304,12 @@ final class Focus extends StatefulWidget {
   /// Whether the node gets the focus once mounted, when its scope has
   /// none yet; false by default.
   final bool autofocus;
+
+  /// Called with the node's [FocusNode.hasFocus] each time its focus
+  /// changes: the node or one below it gains or loses the primary focus.
+  /// To rebuild with the focus, a widget below reads [Focus.of] or a
+  /// `FocusBuilder` shows it.
+  final ValueChanged<bool>? onFocusChange;
 
   /// See [FocusNode.onKeyEvent].
   final FocusOnKeyEventCallback? onKeyEvent;
@@ -1359,6 +1376,7 @@ final class FocusScope extends StatefulWidget {
     required this.child,
     this.node,
     this.autofocus = false,
+    this.onFocusChange,
     this.onKeyEvent,
     this.canRequestFocus,
     this.skipTraversal,
@@ -1375,6 +1393,9 @@ final class FocusScope extends StatefulWidget {
 
   /// See [Focus.autofocus].
   final bool autofocus;
+
+  /// See [Focus.onFocusChange].
+  final ValueChanged<bool>? onFocusChange;
 
   /// See [FocusNode.onKeyEvent].
   final FocusOnKeyEventCallback? onKeyEvent;
@@ -1414,6 +1435,7 @@ abstract class _NodeState<W extends StatefulWidget, N extends FocusNode>
   N? get _given;
   N _create();
   bool get _autofocus;
+  ValueChanged<bool>? get _onFocusChange;
   Widget get _child;
   FocusOnKeyEventCallback? get _onKeyEvent;
   bool? get _canRequestFocus;
@@ -1516,7 +1538,10 @@ abstract class _NodeState<W extends StatefulWidget, N extends FocusNode>
     super.dispose();
   }
 
-  void _changed() => setState(() {});
+  void _changed() {
+    _onFocusChange?.call(_node.hasFocus);
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) => _FocusMarker(
@@ -1539,6 +1564,9 @@ final class _FocusState extends _NodeState<Focus, FocusNode> {
 
   @override
   bool get _autofocus => widget.autofocus;
+
+  @override
+  ValueChanged<bool>? get _onFocusChange => widget.onFocusChange;
 
   @override
   Widget get _child => widget.child;
@@ -1568,6 +1596,9 @@ final class _FocusScopeState extends _NodeState<FocusScope, FocusScopeNode> {
 
   @override
   bool get _autofocus => widget.autofocus;
+
+  @override
+  ValueChanged<bool>? get _onFocusChange => widget.onFocusChange;
 
   @override
   Widget get _child => widget.child;

@@ -33,11 +33,11 @@ void dispose() {
 Widget build(BuildContext context) => Column(
   mainAxisSize: .min,
   crossAxisAlignment: .start,
-  gap: 1,
+  spacing: 1,
   children: [
     Row(
       mainAxisSize: .min,
-      gap: 2,
+      spacing: 2,
       children: [
         for (final (label, message, done) in const [
           ('Save', 'Saves the file', 'Saved'),
@@ -50,8 +50,8 @@ Widget build(BuildContext context) => Column(
             child: Button(
               label,
               onPressed: () => showToast(
-                context,
-                done,
+                context: context,
+                message: done,
                 style: Theme.of(context).success,
               ),
             ),

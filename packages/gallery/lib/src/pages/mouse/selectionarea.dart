@@ -79,7 +79,7 @@ final class _SelectionState extends State<_Selection> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
-        gap: 1,
+        spacing: 1,
         children: [
           SelectionArea(
             copyOnRelease: widget.copyOnRelease,
@@ -91,7 +91,7 @@ final class _SelectionState extends State<_Selection> {
             child: const Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
-              gap: 1,
+              spacing: 1,
               children: [
                 Text(_readsMouse),
                 Text('A drag goes on from one paragraph to the next.'),
@@ -100,7 +100,7 @@ final class _SelectionState extends State<_Selection> {
           ),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
-            gap: 1,
+            spacing: 1,
             children: [
               Text('copied:', style: theme.muted),
               Expanded(
@@ -130,7 +130,7 @@ String _selectionCode(Options o) => [
   '    child: Column(',
   '      mainAxisSize: .min,',
   '      crossAxisAlignment: .start,',
-  '      gap: 1,',
+  '      spacing: 1,',
   '      children: [',
   '        SelectionArea(',
   if (!o(_selectionareaCopy)) '          copyOnRelease: false,',
@@ -140,7 +140,7 @@ String _selectionCode(Options o) => [
   '          child: const Column(',
   '            mainAxisSize: .min,',
   '            crossAxisAlignment: .start,',
-  '            gap: 1,',
+  '            spacing: 1,',
   '            children: [',
   '              Text(',
   "                'An app that reads the mouse keeps the terminal from '",
@@ -153,7 +153,7 @@ String _selectionCode(Options o) => [
   '        // what was copied, in the width the label leaves',
   '        Row(',
   '          crossAxisAlignment: .start,',
-  '          gap: 1,',
+  '          spacing: 1,',
   '          children: [',
   "            Text('copied:', style: theme.muted),",
   '            Expanded(',
@@ -202,7 +202,7 @@ final class _SelectionLogState extends State<_SelectionLog> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
-        gap: 1,
+        spacing: 1,
         children: [
           SelectionArea(
             copyOnRelease: widget.copyOnRelease,
@@ -224,7 +224,7 @@ final class _SelectionLogState extends State<_SelectionLog> {
           ),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
-            gap: 1,
+            spacing: 1,
             children: [
               Text('copied:', style: theme.muted),
               Expanded(
@@ -320,8 +320,8 @@ final class _RenderLog extends RenderObject with Selectable {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.constrainH(5);
+    width = c.maxWidth;
+    height = c.constrainHeight(5);
   }
 
   @override
@@ -364,7 +364,7 @@ String _selectionLogCode(Options o) => [
   '    child: Column(',
   '      mainAxisSize: .min,',
   '      crossAxisAlignment: .start,',
-  '      gap: 1,',
+  '      spacing: 1,',
   '      children: [',
   '        SelectionArea(',
   if (!o(_selectionareaCopy)) '          copyOnRelease: false,',
@@ -386,7 +386,7 @@ String _selectionLogCode(Options o) => [
   '        // what was copied, in the width the label leaves',
   '        Row(',
   '          crossAxisAlignment: .start,',
-  '          gap: 1,',
+  '          spacing: 1,',
   '          children: [',
   "            Text('copied:', style: theme.muted),",
   '            Expanded(',
@@ -481,8 +481,8 @@ String _selectionLogCode(Options o) => [
   '',
   '  @override',
   '  void performLayout(BoxConstraints c) {',
-  '    width = c.maxW;',
-  '    height = c.constrainH(5);',
+  '    width = c.maxWidth;',
+  '    height = c.constrainHeight(5);',
   '  }',
   '',
   '  @override',

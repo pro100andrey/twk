@@ -622,7 +622,7 @@ final class _ScaffoldState extends State<Scaffold> {
 
   Widget _frame(BuildContext context, BoxConstraints c) {
     final theme = Theme.of(context);
-    final screen = c.maxW < BoxConstraints.unbounded ? c.maxW : 80;
+    final screen = c.maxWidth < BoxConstraints.unbounded ? c.maxWidth : 80;
     _screen = screen;
     final below = widget.collapsedBelow;
     final narrow = below != null && screen < below;
@@ -687,9 +687,9 @@ final class _ScaffoldState extends State<Scaffold> {
               onExit: (_) => setState(() => _hovered = false),
               child: Listener(
                 behavior: HitTestBehavior.opaque,
-                onDown: _down,
-                onDrag: _drag,
-                onUp: (_) => _up(),
+                onPointerDown: _down,
+                onPointerMove: _drag,
+                onPointerUp: (_) => _up(),
                 child: VerticalDivider(
                   style: active ? theme.primary : theme.faint,
                 ),

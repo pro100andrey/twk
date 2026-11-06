@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:test/test.dart';
+import 'package:twk_core/terminal.dart' show LogLevel, LogSink, log;
 import 'package:twk_core/twk_core.dart';
 import 'package:twk_test/twk_test.dart' show FakeClock, FakeStderr;
 

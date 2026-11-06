@@ -95,7 +95,7 @@ void main() {
     await t.pumpWidget(
       column([
         const Field('a'),
-        const Row(gap: 1, children: [Field('b'), Field('c')]),
+        const Row(spacing: 1, children: [Field('b'), Field('c')]),
         const Field('d'),
       ]),
       size: (10, 3),
@@ -856,5 +856,109 @@ void main() {
         ),
       ),
     );
+  });
+
+  testTwk('onFocusChange of a Focus and a FocusScope is told hasFocus when '
+      'the node or one below it gains or loses the focus', (t) async {
+    final told = <String>[];
+    await t.pumpWidget(
+      column([
+        FocusScope(
+          debugLabel: 's',
+          onFocusChange: (has) => told.add('s $has'),
+          child: Focus(
+            debugLabel: 'a',
+            onFocusChange: (has) => told.add('a $has'),
+            child: const Text('a'),
+          ),
+        ),
+        const Field('b'),
+      ]),
+    );
+    expect(told, isEmpty);
+    expect(await tab(t, 'tab'), ['a']);
+    expect(told, unorderedEquals(['a true', 's true']));
+    told.clear();
+    expect(await tab(t, 'tab'), ['a']);
+    told.clear();
+    t.binding.focusManager.primaryFocus!.unfocus();
+    await t.pump();
+    expect(told, unorderedEquals(['a false', 's true']));
+  });
+
+  testTwk('onFocusChange of an outer Focus with an inner one: the calls are '
+      "Flutter's, the exact list, autofocus's first frame included", (t) async {
+    // the list Flutter 3.47 gives for the same widgets: a node that was the
+    // primary focus is told again with the hasFocus it keeps
+    final told = <String>[];
+    final inner = FocusNode(debugLabel: 'inner');
+    final outer = FocusNode(debugLabel: 'outer');
+    addTearDown(inner.dispose);
+    addTearDown(outer.dispose);
+    await t.pumpWidget(
+      Focus(
+        focusNode: outer,
+        autofocus: true,
+        onFocusChange: (has) => told.add('outer $has'),
+        child: Focus(
+          focusNode: inner,
+          onFocusChange: (has) => told.add('inner $has'),
+          child: const Text('x'),
+        ),
+      ),
+    );
+    await t.pump();
+    expect(told, ['outer true']);
+    told.clear();
+    inner.requestFocus();
+    await t.pump();
+    // the order within a frame is not promised: the exact calls are
+    expect(told, unorderedEquals(['outer true', 'inner true']));
+    told.clear();
+    outer.requestFocus();
+    await t.pump();
+    expect(told, unorderedEquals(['outer true', 'inner false']));
+  });
+
+  testTwk('FocusScopeNode.requestFocus is refused a node that is not below '
+      'the scope, the scope itself too', (t) async {
+    final scope = FocusScopeNode(debugLabel: 'scope');
+    addTearDown(scope.dispose);
+    final other = FocusNode(debugLabel: 'other');
+    addTearDown(other.dispose);
+    await t.pumpWidget(
+      column([
+        FocusScope(node: scope, child: const Field('a')),
+        Field('b', node: other),
+      ]),
+    );
+    expect(() => scope.requestFocus(scope), throwsA(isA<AssertionError>()));
+    expect(() => scope.requestFocus(other), throwsA(isA<AssertionError>()));
+  });
+
+  testTwk('FocusScopeNode.requestFocus takes the node to focus, one below '
+      'the scope', (t) async {
+    final scope = FocusScopeNode(debugLabel: 'scope');
+    addTearDown(scope.dispose);
+    final b = FocusNode(debugLabel: 'b');
+    addTearDown(b.dispose);
+    await t.pumpWidget(
+      FocusScope(
+        node: scope,
+        child: column([
+          const Field('a', autofocus: true),
+          Field('b', node: b),
+        ]),
+      ),
+    );
+    scope.requestFocus(b);
+    await t.pump();
+    expect(focused(t), 'b');
+    scope.requestFocus();
+    await t.pump();
+    expect(focused(t), 'b');
+    final other = FocusNode(debugLabel: 'other');
+    addTearDown(other.dispose);
+    expect(() => scope.requestFocus(other), throwsA(isA<AssertionError>()));
   });
 }

@@ -20,6 +20,7 @@ dependencies:
   twk_core: ^0.2.0
   twk_term: ^0.2.0
   vm_service: ^15.4.0
+  yaml: ^3.1.3
 dev_dependencies:
   pro_lints: ^6.2.0
   test: ^1.33.0

@@ -205,12 +205,12 @@ final class _ConfirmInputState extends State<ConfirmInput> {
               : rest;
         }
         Widget answer(String label, bool value) => GestureDetector(
-          onTap: enabled ? (_) => _answer(value) : null,
+          onTap: enabled ? () => _answer(value) : null,
           // the hidden cursor on the highlighted answer
           child: ActiveItem(
             active: value == _highlighted,
             child: PressChip(
-              ' $label ',
+              label,
               style: value == _highlighted ? highlighted : other,
               presses: value ? _yeses : _nos,
               enabled: enabled,
@@ -219,7 +219,7 @@ final class _ConfirmInputState extends State<ConfirmInput> {
         );
         return Row(
           mainAxisSize: MainAxisSize.min,
-          gap: 1,
+          spacing: 1,
           children: [
             if (widget.prompt.isNotEmpty)
               Text(widget.prompt, style: row, wrap: TextWrap.none, maxLines: 1),
@@ -258,8 +258,8 @@ Future<bool?> showConfirm(
   String yes = 'Yes',
   String no = 'No',
 }) => showDialog<bool>(
-  context,
-  (context) => Dialog(
+  context: context,
+  builder: (context) => Dialog(
     // the question wraps on its own lines, the answers on a row below
     child: Column(
       mainAxisSize: MainAxisSize.min,

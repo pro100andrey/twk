@@ -26,7 +26,7 @@ Widget cliStage(
           'browser has not. The run of $program.dart shows in the gallery '
           'at a terminal: dart run packages/gallery/bin/gallery.dart',
           style: theme.muted,
-          align: TextAlign.center,
+          textAlign: TextAlign.center,
         ),
       ),
     ),

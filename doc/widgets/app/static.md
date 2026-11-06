@@ -88,7 +88,7 @@ final class _BuildState extends State<Build> {
         ),
         if (_done.length < _did.length)
           Row(
-            gap: 1,
+            spacing: 1,
             children: [
               const Spinner(),
               Text('${_doing[_done.length]}…'),

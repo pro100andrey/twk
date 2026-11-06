@@ -463,18 +463,22 @@ bool _isIn(BuildContext context, BuildContext ancestor) {
 /// ```dart
 /// Builder(
 ///   builder: (context) => Listener(
-///     onDown: (event) {
+///     onPointerDown: (event) {
 ///       if (event.button == 2) {
-///         showContextMenu(context, rowItems, at: (event.x, event.y));
+///         showContextMenu(
+///           context: context,
+///           items: rowItems,
+///           at: (event.x, event.y),
+///         );
 ///       }
 ///     },
 ///     child: Text('notes.md'),
 ///   ),
 /// )
 /// ```
-void showContextMenu(
-  BuildContext context,
-  List<MenuEntry> items, {
+void showContextMenu({
+  required BuildContext context,
+  required List<MenuEntry> items,
   (int, int)? at,
   String Function(KeyCombo combo)? keyLabel,
   PanelLook look = PanelLook.raised,
@@ -705,7 +709,7 @@ final class _ContextMenuState extends State<ContextMenu> implements _MenuHost {
       debugLabel: 'context menu',
       child: Listener(
         behavior: HitTestBehavior.opaque,
-        onDown: (event) {
+        onPointerDown: (event) {
           if (event.button == 2) {
             _show((event.x, event.y), byKey: false);
           }
@@ -1105,8 +1109,8 @@ final class _MenuBarState extends State<MenuBar> implements _MenuHost {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Listener(
-            onDrag: (event) => _session?._fromBar(event, release: false),
-            onUp: (event) => _session?._fromBar(event, release: true),
+            onPointerMove: (event) => _session?._fromBar(event, release: false),
+            onPointerUp: (event) => _session?._fromBar(event, release: true),
             child: Semantics(
               role: SemanticsRole.menuBar,
               nodes: [
@@ -1114,10 +1118,8 @@ final class _MenuBarState extends State<MenuBar> implements _MenuHost {
                   SemanticsNode(
                     role: SemanticsRole.menuItem,
                     label: titles[i].text,
-                    state: SemanticsState(
-                      expanded: i == _open ? true : null,
-                      disabled: !_canOpen(i),
-                    ),
+                    expanded: i == _open ? true : null,
+                    enabled: _canOpen(i),
                   ),
               ],
               child: GestureDetector(
@@ -1125,7 +1127,7 @@ final class _MenuBarState extends State<MenuBar> implements _MenuHost {
                   final title = _bar?.titleAt(x);
                   return title != null && _canOpen(title);
                 },
-                onTapDown: _down,
+                onTapDown: (tap) => _down(tap.event),
                 child: _BarRow(
                   key: _row,
                   titles: titles,
@@ -1803,10 +1805,10 @@ final class _MenuSession {
               onKeyEvent: _orphaned,
               child: Listener(
                 behavior: HitTestBehavior.opaque,
-                onDown: _pressed,
-                onUp: (event) => _release(event.x, event.y),
-                onMove: (event) => _hover(event.x, event.y),
-                onDrag: (event) => _hover(event.x, event.y),
+                onPointerDown: _pressed,
+                onPointerUp: (event) => _release(event.x, event.y),
+                onPointerHover: (event) => _hover(event.x, event.y),
+                onPointerMove: (event) => _hover(event.x, event.y),
                 onScroll: (_) {},
                 // the hand over an entry that can be chosen, and over the
                 // bar's titles, which the mouse moved to opens
@@ -1875,13 +1877,11 @@ final class _MenuSession {
                   role: SemanticsRole.menuItem,
                   label: label.text,
                   value: row.key,
-                  state: SemanticsState(
-                    checked: row.checked,
-                    expanded: row.submenu
-                        ? l + 1 < _levels.length && _levels[l].highlighted == i
-                        : null,
-                    disabled: !row.enabled,
-                  ),
+                  checked: row.checked,
+                  expanded: row.submenu
+                      ? l + 1 < _levels.length && _levels[l].highlighted == i
+                      : null,
+                  enabled: row.enabled,
                   focused: l == active && _levels[l].highlighted == i,
                 ),
           ],
@@ -2131,15 +2131,15 @@ final class _RenderMenuPlace extends RenderObject
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW < BoxConstraints.unbounded ? c.maxW : c.minW;
-    height = c.maxH < BoxConstraints.unbounded ? c.maxH : c.minH;
+    width = c.maxWidth < BoxConstraints.unbounded ? c.maxWidth : c.minWidth;
+    height = c.maxHeight < BoxConstraints.unbounded ? c.maxHeight : c.minHeight;
     final target = _anchor.target;
     final at = _at = target == null ? null : offsetIn(this, target);
     var level = 0;
     RenderObject? before;
     for (var child = firstChild; child != null; child = childAfter(child)) {
       child.layout(
-        BoxConstraints(maxW: width, maxH: height),
+        BoxConstraints(maxWidth: width, maxHeight: height),
         parentUsesSize: true,
       );
       final w = child.width - _dw;
@@ -2353,8 +2353,8 @@ final class _RenderMenuBox extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.constrainW(_measure());
-    height = c.constrainH(_rows.length + 2);
+    width = c.constrainWidth(_measure());
+    height = c.constrainHeight(_rows.length + 2);
   }
 
   @override
@@ -2638,8 +2638,10 @@ final class _RenderBarRow extends RenderObject {
   @override
   void performLayout(BoxConstraints c) {
     final total = _measure().last;
-    width = c.maxW < BoxConstraints.unbounded ? c.maxW : c.constrainW(total);
-    height = c.constrainH(1);
+    width = c.maxWidth < BoxConstraints.unbounded
+        ? c.maxWidth
+        : c.constrainWidth(total);
+    height = c.constrainHeight(1);
   }
 
   @override
@@ -2675,7 +2677,7 @@ void _mark(
   int x,
   int y,
   int pen,
-  Mark mark,
+  GlyphMark mark,
   Glyphs glyphs,
 ) {
   final cell = ThemeMarks.ofObject(

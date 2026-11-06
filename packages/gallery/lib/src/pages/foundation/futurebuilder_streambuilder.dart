@@ -59,7 +59,7 @@ final _async = GalleryPage(
       '  final theme = Theme.of(context);',
       '  Widget shown(Widget what, AsyncSnapshot<Object?> snapshot) => Row(',
       '    mainAxisSize: .min,',
-      '    gap: 1,',
+      '    spacing: 1,',
       '    children: [',
       '      SizedBox(width: $_col, child: what),',
       '      Text(snapshot.connectionState.name, style: theme.muted),',
@@ -68,7 +68,7 @@ final _async = GalleryPage(
       '  return Column(',
       '    mainAxisSize: .min,',
       '    crossAxisAlignment: .start,',
-      '    gap: 1,',
+      '    spacing: 1,',
       '    children: [',
       "      Button('Load', onPressed: _start),",
       '      FutureBuilder<String>(',
@@ -80,7 +80,7 @@ final _async = GalleryPage(
         "const Text('future: not started'),",
       ]),
       '            ConnectionState.waiting => Row(',
-      '              gap: 1,',
+      '              spacing: 1,',
       '              children: [',
       "                const Text('future:'),",
       '                const Spinner(),',
@@ -204,7 +204,7 @@ final class _AsyncState extends TimedState<_Async> {
     final stream = _stream();
     Widget shown(Widget what, AsyncSnapshot<Object?> snapshot) => Row(
       mainAxisSize: MainAxisSize.min,
-      gap: 1,
+      spacing: 1,
       children: [
         SizedBox(width: _col, child: what),
         Text(snapshot.connectionState.name, style: theme.muted),
@@ -213,7 +213,7 @@ final class _AsyncState extends TimedState<_Async> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         Button('Load', onPressed: _start),
         FutureBuilder<String>(
@@ -222,7 +222,7 @@ final class _AsyncState extends TimedState<_Async> {
             switch (snapshot.connectionState) {
               ConnectionState.none => const Text('future: not started'),
               ConnectionState.waiting => const Row(
-                gap: 1,
+                spacing: 1,
                 children: [Text('future:'), Spinner()],
               ),
               _ when snapshot.hasError => Text(

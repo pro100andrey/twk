@@ -3,6 +3,7 @@
 import 'dart:convert';
 
 import 'package:test/test.dart';
+import 'package:twk_core/terminal.dart' show LogLevel, LogRecord;
 import 'package:twk_core/twk_core.dart';
 import 'package:twk_test/vt.dart';
 
@@ -13,8 +14,8 @@ final class Lines extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
   }
 
   @override

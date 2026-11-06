@@ -17,10 +17,10 @@ PointerEventListener record(List<String> log, String name) =>
 Widget listener(List<String> log, String name, {Widget? child}) {
   final r = record(log, name);
   return Listener(
-    onDown: r,
-    onUp: r,
-    onMove: r,
-    onDrag: r,
+    onPointerDown: r,
+    onPointerUp: r,
+    onPointerHover: r,
+    onPointerMove: r,
     onScroll: r,
     behavior: HitTestBehavior.opaque,
     child: child ?? const SizedBox.expand(),

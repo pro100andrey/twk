@@ -68,16 +68,16 @@ import 'panel.dart';
 ///
 /// ```dart
 /// showToast(
-///   context,
-///   'Saved notes.md',
+///   context: context,
+///   message: 'Saved notes.md',
 ///   style: Theme.of(context).success,
 ///   alignment: Alignment.topRight,
 ///   duration: const Duration(seconds: 5),
 /// );
 /// ```
-void showToast(
-  BuildContext context,
-  String message, {
+void showToast({
+  required BuildContext context,
+  required String message,
   Duration duration = const Duration(seconds: 3),
   Alignment alignment = Alignment.bottomRight,
   Style? style,
@@ -405,8 +405,8 @@ final class _RenderEdge extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.constrainW(1);
-    height = c.constrainH(0);
+    width = c.constrainWidth(1);
+    height = c.constrainHeight(0);
   }
 
   @override

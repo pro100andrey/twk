@@ -47,11 +47,11 @@ final _datepickerPage = GalleryPage(
       'Widget build(BuildContext context) => Column(',
       '  mainAxisSize: .min,',
       '  crossAxisAlignment: .start,',
-      '  gap: 1,',
+      '  spacing: 1,',
       '  children: [',
       '    Row(',
       '      mainAxisSize: .min,',
-      '      gap: 2,',
+      '      spacing: 2,',
       '      children: [',
       '        SizedBox(',
       '          width: 22,',
@@ -139,11 +139,11 @@ final class _DateState extends State<_Date> with KeptState {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         Row(
           mainAxisSize: MainAxisSize.min,
-          gap: 2,
+          spacing: 2,
           children: [
             SizedBox(
               width: 22,

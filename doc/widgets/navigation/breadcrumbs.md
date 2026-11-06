@@ -28,7 +28,7 @@ var _at = _path.length - 1;
 Widget build(BuildContext context) => Column(
   mainAxisSize: .min,
   crossAxisAlignment: .start,
-  gap: 1,
+  spacing: 1,
   children: [
     SizedBox(
       width: 36,

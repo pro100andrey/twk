@@ -12,11 +12,11 @@ text
 │     DatePicker           ▎example/                                             │
 │ ▎   FilePicker            lib/                                                 │
 │     Form, FormFie…  ▐     test/                                                │
-│     TabBar, TabVi…  ▐                                                          │
+│     TabBar, TabBa…  ▐                                                          │
 │     KeyHintsBar                                                                │
 │     StatusMessage…        Dart      ▾ [ ] hidden                      Open     │
 │     Callout                                                                    │
-│     Link                  In a dialog    lib/src   picked: nothing             │
+│     Hyperlink             In a dialog    lib/src   picked: nothing             │
 │     ListTile           └                                                    ┘  │
 │     StatusBar        ──────────────────────────────────────────────────────────│
 │                        mode          open  open several  save  directory       │
@@ -41,7 +41,7 @@ styles
 │aaaaannnnnnnnnnnaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnnaaaggggqppppqqqqqqygmgmgzzzzzzgggggggggggggggggggggqAAAAqgggg│
 │aaaaannnnnnnaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnaaaaaaaaaaaaaggggqAAqAqAAAAAAqggqAAAAAAAqggmmmmmmmgmmmmmmmggggggggggggg│
+│aaaaannnnnnnnnaaaaaaaaggggqAAqAqAAAAAAqggqAAAAAAAqggmmmmmmmgmmmmmmmggggggggggggg│
 │aaaaannnnnnnnaaaaaaaaaggoggggggggggggggggggggggggggggggggggggggggggggggggggggogg│
 │aaaaannnnnnnnnaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaaaaaaaaaaaaaaaaaaaggmmmmgggggggggvwwwwvhCCCChCCCCCCChhCCCChhCCCCCCCCChgggggg│

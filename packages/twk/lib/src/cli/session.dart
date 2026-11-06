@@ -7,6 +7,7 @@ library;
 
 import 'dart:async';
 
+import '../../log.dart';
 import '../../twk.dart';
 
 import 'lines.dart';
@@ -308,7 +309,7 @@ final class _Host extends StatelessWidget {
     // App places one around an app
     final overlay = Overlay(child: host);
     final theme = session._theme;
-    return Localizations(
+    return TwkLocalizations(
       strings: session._strings,
       child: theme == null ? overlay : Theme(data: theme, child: overlay),
     );
@@ -382,8 +383,8 @@ final class _RenderWarnOfNoRows extends RenderObject
   void performLayout(BoxConstraints c) {
     final child = this.child;
     if (child == null) {
-      width = c.minW;
-      height = c.minH;
+      width = c.minWidth;
+      height = c.minHeight;
       return;
     }
     child.layout(c, parentUsesSize: true);

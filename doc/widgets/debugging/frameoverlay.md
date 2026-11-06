@@ -83,24 +83,24 @@ final class _SyncState extends State<Sync> {
         padding: const .all(1),
         child: Column(
           crossAxisAlignment: .start,
-          gap: 1,
+          spacing: 1,
           children: [
             Row(
-              gap: 1,
+              spacing: 1,
               children: [
                 if (!_paused) const Spinner(),
                 Text(_paused ? 'paused' : 'syncing'),
               ],
             ),
             Row(
-              gap: 1,
+              spacing: 1,
               children: [
                 Text('copy', style: theme.muted),
                 SizedBox(width: 16, child: ProgressBar(value: _done / 100)),
               ],
             ),
             Row(
-              gap: 1,
+              spacing: 1,
               children: [
                 Text('load', style: theme.muted),
                 SizedBox(

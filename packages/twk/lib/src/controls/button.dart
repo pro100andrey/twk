@@ -95,7 +95,7 @@ import 'pressable.dart';
 ///
 /// See also:
 ///
-///  * `Link`, text that opens a URL when clicked.
+///  * `Hyperlink`, text that opens a URL when clicked.
 ///  * `ConfirmInput`, a yes-or-no question with two answers to press.
 final class Button extends StatefulWidget {
   /// A button showing [label] that calls [onPressed], disabled when that
@@ -270,7 +270,7 @@ final class _ButtonState extends State<Button> {
       canRequestFocus: widget.canRequestFocus,
       bindings: {'enter': _press, 'space': _press},
       hints: const {'enter': 'press'},
-      onTap: enabled ? (_) => _press() : null,
+      onTap: enabled ? _press : null,
       builder: (context, focused) {
         final theme = Theme.of(context);
         if (widget._look != _Look.chip) {
@@ -301,7 +301,7 @@ final class _ButtonState extends State<Button> {
         final spans = widget.spans;
         if (spans == null) {
           return PressChip(
-            ' ${widget.label} ',
+            widget.label,
             style: chipStyle,
             hoverStyle: hoverOver,
             presses: _presses,
@@ -332,7 +332,7 @@ final class _ButtonState extends State<Button> {
     return Semantics(
       role: SemanticsRole.button,
       label: widget.label,
-      state: SemanticsState(disabled: !enabled),
+      enabled: enabled,
       child: pressable,
     );
   }
@@ -428,12 +428,12 @@ extension on _ButtonState {
         final inner = Padding(padding: const EdgeInsets.x(1), child: label);
         return LayoutBuilder(
           builder: (context, c) => Row(
-            mainAxisSize: c.minW == c.maxW
+            mainAxisSize: c.minWidth == c.maxWidth
                 ? MainAxisSize.max
                 : MainAxisSize.min,
             children: [
               open,
-              if (c.minW == c.maxW) Expanded(child: inner) else inner,
+              if (c.minWidth == c.maxWidth) Expanded(child: inner) else inner,
               close,
             ],
           ),

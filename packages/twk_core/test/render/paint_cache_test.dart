@@ -61,8 +61,8 @@ final class Rows extends RenderObject with ContainerRenderObjectMixin<RowData> {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
     var y = 0;
     var i = 0;
     for (var child = firstChild; child != null; i++) {
@@ -113,8 +113,8 @@ final class Line extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
   }
 
   @override

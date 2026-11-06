@@ -4,6 +4,7 @@
 //
 //   dart run twk_dev:twk run example/tally.dart   # hot reloaded
 //   dart run example/tally.dart                   # on its own
+import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
 
 Future<void> main() => runApp(const Tally(['coffee', 'tea', 'water']));
@@ -71,14 +72,14 @@ final class _Line extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
-    gap: 1,
+    spacing: 1,
     children: [
       SizedBox(width: 1, child: chosen ? const Text('›') : null),
       SizedBox(
         width: 8,
         child: Text(name, style: Style(attrs: chosen ? Attr.bold : 0)),
       ),
-      SizedBox(width: 3, child: Text('$count', align: .right)),
+      SizedBox(width: 3, child: Text('$count', textAlign: .right)),
       Text('■' * count, style: const Style(fg: Color.green)),
     ],
   );

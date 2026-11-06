@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+Breaking:
+
+- `BoxConstraints` has `minWidth`, `maxWidth`, `minHeight` and `maxHeight`, and
+  `constrainWidth` and `constrainHeight`, as Flutter names them: they were
+  `minW`, `maxW`, `minH`, `maxH`, `constrainW` and `constrainH`.
+- `Flex`, `Row`, `Column` and `Wrap` take `spacing` and `runSpacing`, and
+  `RenderFlex` and `RenderWrap` have them, as Flutter names them: they were
+  `gap` and `runGap`.
+
 - Inlines of Markdown nest 64 deep at most, past which their
   delimiters stay text, where nesting some thousands deep overflowed the stack.
 - A highlighted escape takes the whole character after its backslash, where one

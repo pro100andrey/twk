@@ -413,6 +413,14 @@ abstract class State<T extends StatefulWidget> {
   @mustCallSuper
   void deactivate() {}
 
+  /// Called when the app took up its code as a hot reload changed it
+  /// (`AppBinding.reassemble`), before the state is built again: the state
+  /// is kept, and what [initState] set up from the old code is set up again
+  /// here.
+  @protected
+  @mustCallSuper
+  void reassemble() {}
+
   /// Called when a [GlobalKey] put the element, removed from the tree
   /// earlier in the frame, back in it elsewhere, before it is built there:
   /// take up again what [deactivate] let go.
@@ -563,7 +571,7 @@ abstract class Element implements BuildContext {
   /// [debugFillProperties] adds; the size of its render object, or of the
   /// nearest below it, once laid out; whether it is to be rebuilt
   /// ([DiagnosticsFlag.needsBuild]); and the descriptions of its children.
-  /// `debugDumpTree` prints it.
+  /// `debugDumpApp` prints it.
   DiagnosticsNode describe() {
     final properties = DiagnosticPropertiesBuilder();
     debugFillProperties(properties);
@@ -1109,6 +1117,15 @@ abstract class Element implements BuildContext {
   @mustCallSuper
   void didChangeDependencies() => markNeedsBuild();
 
+  /// Has this element and those below it rebuild, as a hot reload of the
+  /// app's code needs (`AppBinding.reassemble`): a [State] is told with
+  /// [State.reassemble].
+  @mustCallSuper
+  void reassemble() {
+    markNeedsBuild();
+    visitChildren((child) => child.reassemble());
+  }
+
   /// Rebuilds this element in its owner's next build scope.
   void markNeedsBuild() {
     if (_lifecycle != _Lifecycle.active || _dirty) {
@@ -1417,6 +1434,12 @@ class StatefulElement extends ComponentElement {
   }
 
   @override
+  void reassemble() {
+    state.reassemble();
+    super.reassemble();
+  }
+
+  @override
   void deactivate() {
     if (!_initializing) {
       state.deactivate();
@@ -1701,7 +1724,7 @@ abstract class Notification {
 /// ```dart
 /// NotificationListener<ScrollNotification>(
 ///   onNotification: (n) {
-///     log('scrolled to ${n.metrics.offset}');
+///     log('scrolled to ${n.metrics.pixels}');
 ///     return false;
 ///   },
 ///   child: ListView(children: const [Text('one'), Text('two')]),
@@ -1762,8 +1785,8 @@ final class _NotificationElement<T extends Notification> extends ProxyElement {
 /// final class _RenderDots extends RenderObject {
 ///   @override
 ///   void performLayout(BoxConstraints c) {
-///     width = c.constrainW(3);
-///     height = c.constrainH(1);
+///     width = c.constrainWidth(3);
+///     height = c.constrainHeight(1);
 ///   }
 ///
 ///   @override
@@ -2257,7 +2280,7 @@ typedef LayoutWidgetBuilder = Widget Function(
 ///
 /// ```dart
 /// LayoutBuilder(
-///   builder: (context, constraints) => constraints.maxW >= 80
+///   builder: (context, constraints) => constraints.maxWidth >= 80
 ///       ? Row(children: const [Text('list'), Text('details')])
 ///       : Column(children: const [Text('list'), Text('details')]),
 /// )
@@ -2395,13 +2418,13 @@ final class _RenderLayoutBuilder extends RenderObject
     }
     final child = this.child;
     if (child == null) {
-      width = c.minW;
-      height = c.minH;
+      width = c.minWidth;
+      height = c.minHeight;
       return;
     }
     child.layout(c, parentUsesSize: true);
-    width = c.constrainW(child.width);
-    height = c.constrainH(child.height);
+    width = c.constrainWidth(child.width);
+    height = c.constrainHeight(child.height);
   }
 
   @override
@@ -2925,8 +2948,8 @@ final class _RenderNothing extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.minW;
-    height = c.minH;
+    width = c.minWidth;
+    height = c.minHeight;
   }
 
   @override

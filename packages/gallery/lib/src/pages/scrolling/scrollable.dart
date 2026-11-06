@@ -13,7 +13,7 @@ const _ruler = 100;
 
 /// The Code's lines too long for a line of Dart.
 const _rulerLine =
-    '                  _Ruler(position, offset: position.offset, length: '
+    '                  _Ruler(position, offset: position.pixels, length: '
     '$_ruler),';
 
 /// A ruler of numbered rows that a Scrollable scrolls.
@@ -37,7 +37,7 @@ final class _RulerPageState extends State<_RulerPage> {
   Widget build(BuildContext context) => Column(
     mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.start,
-    gap: 1,
+    spacing: 1,
     children: [
       _boxed(
         _boxW,
@@ -47,7 +47,7 @@ final class _RulerPageState extends State<_RulerPage> {
           viewportBuilder: (context, position) => ListenableBuilder(
             listenable: position,
             builder: (_, _) =>
-                _Ruler(position, offset: position.offset, length: _ruler),
+                _Ruler(position, offset: position.pixels, length: _ruler),
           ),
         ),
       ),
@@ -113,8 +113,8 @@ final class _RenderRuler extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
     _position.applyExtents(height, _length);
   }
 
@@ -152,7 +152,7 @@ final String _rulerCode = [
   '  return Column(',
   '    mainAxisSize: .min,',
   '    crossAxisAlignment: .start,',
-  '    gap: 1,',
+  '    spacing: 1,',
   '    children: [',
   '      SizedBox(',
   '        width: $_boxW,',

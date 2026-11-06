@@ -81,7 +81,7 @@ final class _BuildState extends State<Build> {
         crossAxisAlignment: .start,
         children: [
           if (busy)
-            Row(gap: 1, children: [const Spinner(), Text('${_steps[_done]}…')])
+            Row(spacing: 1, children: [const Spinner(), Text('${_steps[_done]}…')])
           else
             Text.rich([Span('✓ ', theme.success), const Span('built')]),
           Text(

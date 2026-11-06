@@ -18,8 +18,8 @@ Future<void> press(TwkTester t, String key) async {
 /// A dialog of a button, shown from [context].
 void open(BuildContext context) => unawaited(
   showDialog<void>(
-    context,
-    (_) => Dialog(
+    context: context,
+    builder: (_) => Dialog(
       title: 'Find',
       child: Button('OK', autofocus: true, onPressed: () {}),
     ),

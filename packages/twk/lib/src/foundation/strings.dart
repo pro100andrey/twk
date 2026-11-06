@@ -1,4 +1,4 @@
-/// The words twk writes itself: [TwkStrings], and [Localizations] that
+/// The words twk writes itself: [TwkStrings], and [TwkLocalizations] that
 /// gives them to the widgets below.
 library;
 
@@ -13,9 +13,9 @@ import '../framework/framework.dart';
 ///
 /// Plain data: the words of a language are a [TwkStrings] an app builds
 /// from whatever holds its translations (slang, `intl`, a map) and gives
-/// to [Localizations] for its widgets, or to `Cli(strings:)` for a
+/// to [TwkLocalizations] for its widgets, or to `Cli(strings:)` for a
 /// console. There is no global and no default to set: a widget with no
-/// [Localizations] above it writes English.
+/// [TwkLocalizations] above it writes English.
 ///
 /// A message with a number or a time in it is a function of that value, so
 /// that a language can put it where it belongs.
@@ -127,13 +127,13 @@ final class TwkStrings {
   /// GB` and `3.1 s` with the default `.`, `4,5 GB` and `3,1 s` with `,`.
   final String decimalSeparator;
 
-  /// The words at [context]: those of the nearest [Localizations], else
+  /// The words at [context]: those of the nearest [TwkLocalizations], else
   /// English. [context] depends on them, so that a widget is built again
   /// when they change.
   // a lookup in the tree, as Theme.of is, not a constructor
   // ignore: prefer_constructors_over_static_methods
   static TwkStrings of(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<Localizations>()?.strings ??
+      context.dependOnInheritedWidgetOfExactType<TwkLocalizations>()?.strings ??
       const TwkStrings();
 
   @override
@@ -203,14 +203,14 @@ String _chooseAtMost(int max) => 'choose at most $max';
 /// console gets one from `Cli(strings:)`.
 ///
 /// ```dart
-/// Localizations(
+/// TwkLocalizations(
 ///   strings: const TwkStrings(yes: 'ja', no: 'nein'),
 ///   child: app,
 /// )
 /// ```
-final class Localizations extends InheritedWidget {
+final class TwkLocalizations extends InheritedWidget {
   /// Gives [child]'s subtree [strings].
-  const Localizations({
+  const TwkLocalizations({
     required this.strings,
     required super.child,
     super.key,
@@ -220,6 +220,6 @@ final class Localizations extends InheritedWidget {
   final TwkStrings strings;
 
   @override
-  bool updateShouldNotify(Localizations oldWidget) =>
+  bool updateShouldNotify(TwkLocalizations oldWidget) =>
       strings != oldWidget.strings;
 }

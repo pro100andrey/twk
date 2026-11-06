@@ -66,7 +66,7 @@ final class _PulseState extends State<_Pulse>
           child: Column(
             mainAxisSize: .min,
             crossAxisAlignment: .stretch,
-            gap: 1,
+            spacing: 1,
             children: [
               Box(
                 border: .all(type: .rounded, style: theme.border),
@@ -83,7 +83,7 @@ final class _PulseState extends State<_Pulse>
                 ],
               ),
               Row(
-                gap: 2,
+                spacing: 2,
                 children: [
                   Button(
                     _controller.isAnimating ? 'Stop' : 'Run',

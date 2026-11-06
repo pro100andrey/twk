@@ -15,8 +15,6 @@ import 'package:twk_core/twk_core.dart'
         DiagnosticPropertiesBuilder,
         HitTestBehavior,
         ListParentData,
-        LogLevel,
-        LogRecord,
         PaintContext,
         Pen,
         RenderList,
@@ -25,6 +23,7 @@ import 'package:twk_core/twk_core.dart'
         RenderParagraph,
         stringWidth;
 
+import '../../log.dart';
 import '../ansi/stream.dart' show AnsiStream;
 import '../editing/caret.dart' show clearRestCursor, restCursor;
 import '../focus/focus_tree.dart' show FocusNode;
@@ -837,7 +836,7 @@ final class _LogViewState extends State<LogView> {
       switch (c._move) {
         case _ToEnd():
           if (_list.hasClients) {
-            _list.jumpTo(_list.position.maxOffset);
+            _list.jumpTo(_list.position.maxScrollExtent);
           }
         case _ToLine(:final number):
           _list.ensureIndexVisible(c._shownIndexOf(number));
@@ -856,7 +855,7 @@ final class _LogViewState extends State<LogView> {
     }
     final p = _list.position;
     if (p.hasExtents) {
-      widget.controller._shownEnd(atEnd: p.offset >= p.maxOffset);
+      widget.controller._shownEnd(atEnd: p.pixels >= p.maxScrollExtent);
     }
   }
 
@@ -1115,9 +1114,9 @@ final class _LogViewState extends State<LogView> {
       }
     }
     final p = _list.position;
-    final from = p.offset;
+    final from = p.pixels;
     p.jumpTo(from + rows);
-    return p.offset != from;
+    return p.pixels != from;
   }
 
   void _down(PointerEvent event) {
@@ -1219,7 +1218,7 @@ final class _LogViewState extends State<LogView> {
     if (widget.selectable) {
       view = SelectionArea(
         child: Listener(
-          onDown: _down,
+          onPointerDown: _down,
           behavior: HitTestBehavior.translucent,
           child: _Selected(state: this, child: view),
         ),
@@ -1266,7 +1265,7 @@ final class _LogViewState extends State<LogView> {
                 right: 0,
                 bottom: 0,
                 child: GestureDetector(
-                  onTap: (_) => c.follow(),
+                  onTap: c.follow,
                   child: Text(
                     ' $arrow $fresh new '
                     "${fresh == 1 ? 'line' : 'lines'} ",
@@ -1475,8 +1474,8 @@ final class _RenderSelected extends RenderObject
   void performLayout(BoxConstraints c) {
     final child = this.child;
     if (child == null) {
-      width = c.minW;
-      height = c.minH;
+      width = c.minWidth;
+      height = c.minHeight;
       return;
     }
     child.layout(c, parentUsesSize: true);
@@ -1670,11 +1669,11 @@ final class _RenderLine extends RenderObject with RenderObjectWithChildMixin {
       height = child.height;
     } else {
       child.layout(
-        BoxConstraints(minH: c.minH, maxH: c.maxH),
+        BoxConstraints(minHeight: c.minHeight, maxHeight: c.maxHeight),
         parentUsesSize: true,
       );
-      width = c.maxW;
-      height = c.constrainH(child.height);
+      width = c.maxWidth;
+      height = c.constrainHeight(child.height);
     }
     _place();
   }

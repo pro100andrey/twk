@@ -44,8 +44,8 @@ Widget screen(String name, {List<String>? inner}) => Builder(
         Overlay.of(context).insert(entry);
       },
       'm': () => showContextMenu(
-        context,
-        [
+        context: context,
+        items: [
           MenuItem('Copy', onSelected: () {}),
         ],
         at: (2, 2),

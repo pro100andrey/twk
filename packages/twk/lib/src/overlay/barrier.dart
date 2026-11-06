@@ -199,7 +199,11 @@ final class AnimatedModalBarrier extends StatelessWidget {
 Widget _blocking(Widget shade, void Function()? onDismiss) => BlockSemantics(
   child: onDismiss == null
       ? shade
-      : Listener(onDown: _ignore, onUp: (_) => onDismiss(), child: shade),
+      : Listener(
+          onPointerDown: _ignore,
+          onPointerUp: (_) => onDismiss(),
+          child: shade,
+        ),
 );
 
 void _ignore(PointerEvent event) {}
@@ -306,8 +310,8 @@ final class _RenderShade extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW < BoxConstraints.unbounded ? c.maxW : c.minW;
-    height = c.maxH < BoxConstraints.unbounded ? c.maxH : c.minH;
+    width = c.maxWidth < BoxConstraints.unbounded ? c.maxWidth : c.minWidth;
+    height = c.maxHeight < BoxConstraints.unbounded ? c.maxHeight : c.minHeight;
   }
 
   @override

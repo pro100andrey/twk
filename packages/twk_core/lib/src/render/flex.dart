@@ -113,12 +113,17 @@ void _layoutChild(
   final c = child._constraints;
   child.layout(
     c != null &&
-            c.minW == minW &&
-            c.maxW == maxW &&
-            c.minH == minH &&
-            c.maxH == maxH
+            c.minWidth == minW &&
+            c.maxWidth == maxW &&
+            c.minHeight == minH &&
+            c.maxHeight == maxH
         ? c
-        : BoxConstraints(minW: minW, maxW: maxW, minH: minH, maxH: maxH),
+        : BoxConstraints(
+            minWidth: minW,
+            maxWidth: maxW,
+            minHeight: minH,
+            maxHeight: maxH,
+          ),
     parentUsesSize: true,
   );
 }
@@ -129,7 +134,7 @@ int _part(int free, int parts, int k) =>
     free ~/ parts + (k < free % parts ? 1 : 0);
 
 /// Lays its children out one after another along its main axis
-/// ([direction]), [gap] cells apart. The inflexible ones (a
+/// ([direction]), [spacing] cells apart. The inflexible ones (a
 /// [FlexParentData.flex] of 0) come first, each as long as it wants up to
 /// the whole main axis; the flexible ones share the cells left by their
 /// flex factors, in whole cells, those left over going to the first
@@ -149,7 +154,7 @@ int _part(int free, int parts, int k) =>
 /// RenderParagraph label(String s) => RenderParagraph([(s, const Pen())]);
 /// final middle = RenderBox(pen: StyleTable().pen(const Pen()));
 /// final bar = RenderFlex(
-///   gap: 1,
+///   spacing: 1,
 ///   children: [label('main'), middle, label('12:00')],
 /// );
 /// (middle.parentData as FlexParentData).flex = 1;
@@ -163,7 +168,7 @@ int _part(int free, int parts, int k) =>
 final class RenderFlex extends RenderObject
     with ContainerRenderObjectMixin<FlexParentData> {
   /// A flex of [children] along [direction], horizontal unless given,
-  /// [gap] cells apart, 0 or more; as long as it may be, the children at
+  /// [spacing] cells apart, 0 or more; as long as it may be, the children at
   /// the start and in the middle across unless given.
   RenderFlex({
     List<RenderObject>? children,
@@ -171,8 +176,8 @@ final class RenderFlex extends RenderObject
     this._mainAxisSize = MainAxisSize.max,
     this._mainAxisAlignment = MainAxisAlignment.start,
     this._crossAxisAlignment = CrossAxisAlignment.center,
-    this._gap = 0,
-  }) : assert(_gap >= 0, 'a gap of 0 cells or more') {
+    this._spacing = 0,
+  }) : assert(_spacing >= 0, 'a spacing of 0 cells or more') {
     addAll(children);
   }
 
@@ -223,15 +228,15 @@ final class RenderFlex extends RenderObject
     }
   }
 
-  int _gap;
+  int _spacing;
 
   /// The cells between one child and the next, 0 or more, on top of what
   /// [mainAxisAlignment] puts between them.
-  int get gap => _gap;
-  set gap(int g) {
-    assert(g >= 0, 'a gap of 0 cells or more');
-    if (g != _gap) {
-      _gap = g;
+  int get spacing => _spacing;
+  set spacing(int g) {
+    assert(g >= 0, 'a spacing of 0 cells or more');
+    if (g != _spacing) {
+      _spacing = g;
       markNeedsLayout();
     }
   }
@@ -264,7 +269,7 @@ final class RenderFlex extends RenderObject
         _crossAxisAlignment,
         defaultValue: CrossAxisAlignment.center,
       )
-      ..add('gap', _gap, defaultValue: 0);
+      ..add('spacing', _spacing, defaultValue: 0);
     if (_constraints == null) {
       return;
     }
@@ -304,7 +309,7 @@ final class RenderFlex extends RenderObject
     }
   }
 
-  int get _gaps => _childCount > 1 ? _gap * (_childCount - 1) : 0;
+  int get _gaps => _childCount > 1 ? _spacing * (_childCount - 1) : 0;
 
   /// The cells the flexible children, [total] flex factors in all, share
   /// of [free] cells before the cells left over.
@@ -324,8 +329,8 @@ final class RenderFlex extends RenderObject
   void performLayout(BoxConstraints c) {
     _childrenListed = false;
     final horizontal = _direction == Axis.horizontal;
-    final maxMain = horizontal ? c.maxW : c.maxH;
-    final maxCross = horizontal ? c.maxH : c.maxW;
+    final maxMain = horizontal ? c.maxWidth : c.maxHeight;
+    final maxCross = horizontal ? c.maxHeight : c.maxWidth;
     final minCross = _crossAxisAlignment == CrossAxisAlignment.stretch
         ? maxCross
         : 0;
@@ -380,8 +385,8 @@ final class RenderFlex extends RenderObject
     }
     final main = _mainAxisSize == MainAxisSize.max && bounded
         ? maxMain
-        : (horizontal ? c.constrainW(used) : c.constrainH(used));
-    cross = horizontal ? c.constrainH(cross) : c.constrainW(cross);
+        : (horizontal ? c.constrainWidth(used) : c.constrainHeight(used));
+    cross = horizontal ? c.constrainHeight(cross) : c.constrainWidth(cross);
     width = horizontal ? main : cross;
     height = horizontal ? cross : main;
     assert(_debugReportOverflow(used - main), 'reports the overflow');
@@ -422,7 +427,7 @@ final class RenderFlex extends RenderObject
       data
         ..dx = horizontal ? at : across
         ..dy = horizontal ? across : at;
-      at += (horizontal ? child.width : child.height) + _gap;
+      at += (horizontal ? child.width : child.height) + _spacing;
       if (parts > 0) {
         at += switch (_mainAxisAlignment) {
           MainAxisAlignment.spaceBetween => _part(free, parts, i),

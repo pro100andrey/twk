@@ -345,8 +345,10 @@ final class _CliRunState extends State<CliRun> {
     final now = (time.inMicroseconds + _step * 500) ~/ (_step * 1000) * _step;
     return LayoutBuilder(
       builder: (context, c) {
-        final width = c.maxW < BoxConstraints.unbounded ? c.maxW : 72;
-        final height = c.maxH < BoxConstraints.unbounded ? c.maxH : 20;
+        final width = c.maxWidth < BoxConstraints.unbounded ? c.maxWidth : 72;
+        final height = c.maxHeight < BoxConstraints.unbounded
+            ? c.maxHeight
+            : 20;
         final rows = _advance(now, width, height, brightness);
         return SizedBox(
           width: width,

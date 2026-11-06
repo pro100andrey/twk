@@ -106,8 +106,8 @@ final class Fill extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
   }
 
   @override
@@ -132,8 +132,8 @@ final class Block extends RenderObject {
   @override
   void performLayout(BoxConstraints c) {
     got = c;
-    width = c.constrainW(w);
-    height = c.constrainH(h);
+    width = c.constrainWidth(w);
+    height = c.constrainHeight(h);
   }
 
   @override
@@ -173,10 +173,10 @@ final class Holder extends RenderObject with RenderObjectWithChildMixin {
   @override
   void performLayout(BoxConstraints c) {
     layouts++;
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
     child!.layout(
-      limits ?? BoxConstraints(maxW: c.maxW, maxH: c.maxH),
+      limits ?? BoxConstraints(maxWidth: c.maxWidth, maxHeight: c.maxHeight),
       parentUsesSize: true,
     );
   }
@@ -657,16 +657,26 @@ void main() {
       final v = View(8, 4);
       expect(v.show(holder), ['┌───┐xxx', '│x##│xxx', '└───┘xxx', 'xxxxxxxx']);
       expect((box.width, box.height), (5, 3));
-      expect(child.got, const BoxConstraints(maxW: 5, maxH: 2));
+      expect(child.got, const BoxConstraints(maxWidth: 5, maxHeight: 2));
       // the insets taken off the minimum too
       holder
-        ..limits = const BoxConstraints(minW: 6, maxW: 8, minH: 4, maxH: 4)
+        ..limits = const BoxConstraints(
+          minWidth: 6,
+          maxWidth: 8,
+          minHeight: 4,
+          maxHeight: 4,
+        )
         ..markNeedsLayout();
       v.frame();
       expect((box.width, box.height), (6, 4));
       expect(
         child.got,
-        const BoxConstraints(minW: 3, maxW: 5, minH: 2, maxH: 2),
+        const BoxConstraints(
+          minWidth: 3,
+          maxWidth: 5,
+          minHeight: 2,
+          maxHeight: 2,
+        ),
       );
       expect(box.inner, (2, 1, 3, 2));
     });
@@ -695,7 +705,7 @@ void main() {
       expect(v.show(holder), ['┌──┐', '│xx│', '└──┘']);
       // as small along an axis they leave unbounded
       holder
-        ..limits = const BoxConstraints(maxW: 3)
+        ..limits = const BoxConstraints(maxWidth: 3)
         ..markNeedsLayout();
       expect(v.frame(), ['┌─┐x', '└─┘x', 'xxxx']);
       expect((box.width, box.height), (3, 2));
@@ -785,7 +795,7 @@ void main() {
       );
       final holder = Holder(
         box,
-        const BoxConstraints(maxH: 3),
+        const BoxConstraints(maxHeight: 3),
       );
       final a = View(8, 3);
       expect(a.show(holder)[0], '┌αβ┐xxxx');
@@ -889,12 +899,12 @@ void main() {
     test('as short as the constraints allow along an unbounded axis', () {
       final d = RenderDivider();
       View(4, 3).show(
-        Holder(d, const BoxConstraints(minW: 2, maxH: 3)),
+        Holder(d, const BoxConstraints(minWidth: 2, maxHeight: 3)),
       );
       expect((d.width, d.height), (2, 1));
       final e = RenderDivider(direction: .vertical);
       View(4, 3).show(
-        Holder(e, const BoxConstraints(maxW: 4, minH: 1)),
+        Holder(e, const BoxConstraints(maxWidth: 4, minHeight: 1)),
       );
       expect((e.width, e.height), (1, 1));
     });

@@ -43,7 +43,7 @@ final _alignCenter = GalleryPage(
     );
     return Column(
       mainAxisSize: MainAxisSize.min,
-      gap: 1,
+      spacing: 1,
       children: [
         room(
           '.${_alignmentOf(o)}',
@@ -96,7 +96,7 @@ final _alignCenter = GalleryPage(
       ],
       'return Column(',
       '  mainAxisSize: .min,',
-      '  gap: 1,',
+      '  spacing: 1,',
       '  children: [',
       "    room('.${_alignmentOf(o)}', const Align(",
       '      alignment: .${_alignmentOf(o)},',

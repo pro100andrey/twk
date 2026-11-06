@@ -16,6 +16,10 @@ class ThemeDataTween extends Tween<ThemeData> {
   /// The themes from [begin] at 0 to [end] at 1.
   const ThemeDataTween({required super.begin, required super.end});
 
+  @override
+  ThemeDataTween withEnds(ThemeData begin, ThemeData end) =>
+      ThemeDataTween(begin: begin, end: end);
+
   /// The theme [t] of the way from [begin] to [end] ([ThemeData.lerp]).
   @override
   ThemeData lerp(double t) => ThemeData.lerp(begin, end, t);

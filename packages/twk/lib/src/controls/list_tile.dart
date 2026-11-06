@@ -195,7 +195,7 @@ final class _ListTileState extends State<ListTile> {
     // Pressable and its node stay
     return Semantics(
       role: SemanticsRole.button,
-      state: SemanticsState(disabled: !enabled),
+      enabled: enabled,
       child: MouseRegion(
         onEnter: (_) => _hover(true),
         onExit: (_) => _hover(false),
@@ -205,7 +205,7 @@ final class _ListTileState extends State<ListTile> {
           autofocus: widget.autofocus,
           bindings: {'enter': _tap, 'space': _tap},
           hints: const {'enter': 'open'},
-          onTap: enabled ? (_) => _tap() : null,
+          onTap: enabled ? _tap : null,
           builder: (context, focused) => _row(context, focused: focused),
         ),
       ),

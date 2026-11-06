@@ -51,7 +51,7 @@ final _radiogroupPage = GalleryPage(
     '  return Column(',
     '    mainAxisSize: .min,',
     '    crossAxisAlignment: .start,',
-    '    gap: 1,',
+    '    spacing: 1,',
     '    children: [',
     if (o(_radiogroupLook) == '◉ ○') ...[
       "      // marks and brackets are the theme's glyphs",
@@ -142,7 +142,7 @@ final class _RadiosState extends State<_Radios> with KeptState {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         _themed(
           theme,

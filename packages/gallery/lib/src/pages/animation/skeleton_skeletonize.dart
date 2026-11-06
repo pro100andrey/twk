@@ -50,7 +50,7 @@ final _skeleton = GalleryPage(
       child: Column(
         mainAxisSize: .min,
         crossAxisAlignment: .start,
-        gap: 1,
+        spacing: 1,
         children: [
           SizedBox(
             width: 40,
@@ -75,7 +75,7 @@ final _skeleton = GalleryPage(
           const SizedBox(width: 40, child: Skeleton.text(lines: 3)),
           const Row(
             mainAxisSize: .min,
-            gap: 1,
+            spacing: 1,
             children: [
               Skeleton(width: 8),
               Skeleton(width: 12),
@@ -99,7 +99,7 @@ final _skeleton = GalleryPage(
       '  child: Column(',
       '    mainAxisSize: .min,',
       '    crossAxisAlignment: .start,',
-      '    gap: 1,',
+      '    spacing: 1,',
       '    children: [',
       '      SizedBox(',
       '        width: 40,',
@@ -126,7 +126,7 @@ final _skeleton = GalleryPage(
       '      const SizedBox(width: 40, child: Skeleton.text(lines: 3)),',
       '      const Row(',
       '        mainAxisSize: .min,',
-      '        gap: 1,',
+      '        spacing: 1,',
       '        children: [Skeleton(width: 8), Skeleton(width: 12)],',
       '      ),',
       '    ],',

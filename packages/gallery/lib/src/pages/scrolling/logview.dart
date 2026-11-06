@@ -182,7 +182,9 @@ final class _LogState extends State<_Log> with MotionState {
     return LayoutBuilder(
       builder: (context, c) => _boxed(
         _logW,
-        _logRows(c.maxH < BoxConstraints.unbounded ? c.maxH : 1 << 20),
+        _logRows(
+          c.maxHeight < BoxConstraints.unbounded ? c.maxHeight : 1 << 20,
+        ),
         LogView(
           controller: log,
           wrap: widget.wrap,

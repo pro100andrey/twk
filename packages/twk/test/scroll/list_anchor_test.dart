@@ -52,7 +52,7 @@ void main() {
   group('a list scrolled down', () {
     testTwk('keeps the rows it shows as items are inserted above the '
         'window', (t) async {
-      final controller = ScrollController(initialOffset: 10);
+      final controller = ScrollController(initialScrollOffset: 10);
       await t.pumpWidget(
         list(ids(0, 50), controller: controller),
         size: (20, 5),
@@ -66,7 +66,7 @@ void main() {
     });
 
     testTwk('and as items are removed above it', (t) async {
-      final controller = ScrollController(initialOffset: 10);
+      final controller = ScrollController(initialScrollOffset: 10);
       await t.pumpWidget(
         list(ids(0, 50), controller: controller),
         size: (20, 5),
@@ -100,7 +100,7 @@ void main() {
 
     testTwk('finds where the item it shows went by findChildIndexCallback '
         'when it went further than the items built', (t) async {
-      final controller = ScrollController(initialOffset: 10);
+      final controller = ScrollController(initialScrollOffset: 10);
       await t.pumpWidget(
         list(ids(0, 50), controller: controller, find: true),
         size: (20, 5),
@@ -119,7 +119,7 @@ void main() {
 
     testTwk('asks findChildIndexCallback before it builds an item to read '
         'its key', (t) async {
-      final controller = ScrollController(initialOffset: 10);
+      final controller = ScrollController(initialScrollOffset: 10);
       final built = <int>[];
       Widget counted(List<int> ids) => ListView.builder(
         autofocus: true,
@@ -144,7 +144,7 @@ void main() {
 
     testTwk('keeps the rows the next item it shows has when the first is '
         'removed', (t) async {
-      final controller = ScrollController(initialOffset: 10);
+      final controller = ScrollController(initialScrollOffset: 10);
       await t.pumpWidget(
         list(ids(0, 50), controller: controller),
         size: (20, 5),
@@ -156,7 +156,7 @@ void main() {
     });
 
     testTwk('without keys keeps its offset: what it shows moves', (t) async {
-      final controller = ScrollController(initialOffset: 10);
+      final controller = ScrollController(initialScrollOffset: 10);
       await t.pumpWidget(
         list(ids(0, 50), controller: controller, keyed: false),
         size: (20, 5),
@@ -194,7 +194,7 @@ void main() {
       list([-1, ...ids(0, 22)], controller: controller),
     );
     expect(t.lines, items(17, 22));
-    expect(controller.offset, controller.position.maxOffset);
+    expect(controller.offset, controller.position.maxScrollExtent);
   });
 
   group('a reverse chat', () {

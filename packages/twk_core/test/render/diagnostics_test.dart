@@ -36,8 +36,8 @@ final class Probe extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
   }
 
   @override
@@ -296,7 +296,9 @@ Root             4×1
     test('constraints, insets and alignments', () {
       expect(describeConstraints(const BoxConstraints.tight(80, 24)), '80×24');
       expect(
-        describeConstraints(const BoxConstraints(maxW: 80, minH: 1, maxH: 1)),
+        describeConstraints(
+          const BoxConstraints(maxWidth: 80, minHeight: 1, maxHeight: 1),
+        ),
         '0..80×1',
       );
       expect(describeConstraints(const BoxConstraints.tightFor()), '0..∞×0..∞');
@@ -390,7 +392,7 @@ RenderBox ‹pen: ${view.pen}› ⟳
       final root = view.owner.root.describe();
       expect('$root', contains('overflow: 2 rows'));
       expect(root.flags, contains(DiagnosticsFlag.overflow));
-      final row = RenderFlex(gap: 1, children: [Probe(), Probe()]);
+      final row = RenderFlex(spacing: 1, children: [Probe(), Probe()]);
       view.owner.root = RenderRow([(row, 5)]);
       row.visitChildren(
         (c) => (c.parentData as FlexParentData)
@@ -400,7 +402,7 @@ RenderBox ‹pen: ${view.pen}› ⟳
       view.frame();
       expect(
         '${row.describe()}',
-        'RenderFlex ‹horizontal, gap: 1, extent: 5, constraints: tight›',
+        'RenderFlex ‹horizontal, spacing: 1, extent: 5, constraints: tight›',
       );
       expect(
         '${row.describe().children.first}',

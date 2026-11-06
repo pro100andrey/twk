@@ -19,16 +19,16 @@ final class _RenderCut extends RenderObject with RenderObjectWithChildMixin {
   void performLayout(BoxConstraints c) {
     final child = this.child;
     if (child == null) {
-      width = c.minW;
-      height = c.minH;
+      width = c.minWidth;
+      height = c.minHeight;
       return;
     }
     child.layout(
-      BoxConstraints(minW: c.minW, maxW: c.maxW),
+      BoxConstraints(minWidth: c.minWidth, maxWidth: c.maxWidth),
       parentUsesSize: true,
     );
-    width = c.constrainW(child.width);
-    height = c.constrainH(child.height);
+    width = c.constrainWidth(child.width);
+    height = c.constrainHeight(child.height);
   }
 
   @override
@@ -143,7 +143,7 @@ final _ansi = GalleryPage(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            gap: 1,
+            spacing: 1,
             children: [
               SizedBox(
                 height: rows + 2,
@@ -265,7 +265,7 @@ final _ansi = GalleryPage(
         '    child: Column(',
         '      mainAxisSize: .min,',
         '      crossAxisAlignment: .stretch,',
-        '      gap: 1,',
+        '      spacing: 1,',
         '      children: [',
         for (final l in box('_lines')) '  $l',
         '        Text.rich([',
@@ -337,7 +337,7 @@ final _ansi = GalleryPage(
       '    child: Column(',
       '      mainAxisSize: .min,',
       '      crossAxisAlignment: .stretch,',
-      '      gap: 1,',
+      '      spacing: 1,',
       '      children: [',
       for (final l in box('_stream.lines')) '  $l',
       '        Column(',

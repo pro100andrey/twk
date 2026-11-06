@@ -35,7 +35,7 @@ Widget build(BuildContext context) {
   return Column(
     mainAxisSize: .min,
     crossAxisAlignment: .start,
-    gap: 1,
+    spacing: 1,
     children: [
       SizedBox(
         width: 34,
@@ -54,7 +54,7 @@ Widget build(BuildContext context) {
             viewportBuilder: (context, position) => ListenableBuilder(
               listenable: position,
               builder: (_, _) =>
-                  _Ruler(position, offset: position.offset, length: 100),
+                  _Ruler(position, offset: position.pixels, length: 100),
             ),
           ),
         ),
@@ -65,7 +65,7 @@ Widget build(BuildContext context) {
           Span('offset ', theme.muted),
           Span('${_controller.offset}'),
           Span(' of ', theme.muted),
-          Span('${_controller.position.maxOffset}'),
+          Span('${_controller.position.maxScrollExtent}'),
         ]),
       ),
     ],
@@ -126,8 +126,8 @@ final class _RenderRuler extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
     _position.applyExtents(height, _length);
   }
 

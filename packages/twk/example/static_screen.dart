@@ -23,7 +23,7 @@ final class StaticScreen extends StatelessWidget {
         const Expanded(
           child: Row(
             crossAxisAlignment: .stretch,
-            gap: 1,
+            spacing: 1,
             children: [
               Expanded(
                 child: _Panel(

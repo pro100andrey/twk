@@ -57,7 +57,7 @@ Widget build(BuildContext context) => ContextMenu(
         children: [
           const Text('Right click in here.'),
           Row(
-            gap: 2,
+            spacing: 2,
             children: [
               Button('Or focus me', onPressed: () {}),
               // at a cell of the child, as a right click there

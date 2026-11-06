@@ -64,8 +64,8 @@ final class Label extends RenderObject {
   @override
   void performLayout(BoxConstraints c) {
     layouts++;
-    width = sizedByParent ? c.maxW : c.constrainW(_text.length);
-    height = c.constrainH(1);
+    width = sizedByParent ? c.maxWidth : c.constrainWidth(_text.length);
+    height = c.constrainHeight(1);
   }
 
   @override
@@ -111,20 +111,20 @@ final class Holder extends RenderObject {
   @override
   void performLayout(BoxConstraints c) {
     layouts++;
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
     switch (_hold) {
       case Hold.tight:
         child.layout(BoxConstraints.tight(width, height));
       case Hold.hug:
         child.layout(
-          BoxConstraints(maxW: width, maxH: height),
+          BoxConstraints(maxWidth: width, maxHeight: height),
           parentUsesSize: true,
         );
-        width = c.constrainW(child.width);
-        height = c.constrainH(child.height);
+        width = c.constrainWidth(child.width);
+        height = c.constrainHeight(child.height);
       case Hold.loose:
-        child.layout(BoxConstraints(maxW: width, maxH: height));
+        child.layout(BoxConstraints(maxWidth: width, maxHeight: height));
     }
   }
 
@@ -159,8 +159,8 @@ final class Indent extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
     final at = child.parentData as IndentData;
     child.layout(BoxConstraints.tight(width - at.columns, height));
     at.dx = at.columns;

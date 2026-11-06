@@ -1,7 +1,7 @@
 /// What an app shows of itself on the terminal outside its cells: the
 /// shape of the mouse pointer over it ([MouseRegion.cursor]), its progress
 /// in the terminal's tab or taskbar ([TerminalProgress]) and the title of
-/// its window or tab ([WindowTitle]).
+/// its window or tab ([TerminalTitle]).
 library;
 
 import 'package:meta/meta.dart' show internal;
@@ -45,7 +45,7 @@ export 'package:twk_core/twk_core.dart' show ProgressState;
 ///
 /// See also:
 ///
-///  * [TerminalProgress] and [WindowTitle], the widgets that show the
+///  * [TerminalProgress] and [TerminalTitle], the widgets that show the
 ///    progress and the title.
 final class TerminalStatus {
   /// The status shown on [terminal]; [of] gives that of an app's.
@@ -188,15 +188,15 @@ final class TerminalStatus {
   static const _progressKey = #progress;
 
   // the titles mounted, the last one shown
-  final _titles = <_WindowTitleState>[];
+  final _titles = <_TerminalTitleState>[];
 
   /// The title of the terminal's window or tab the app set: that of the
-  /// [WindowTitle] mounted last, or, once none is, of the last one
+  /// [TerminalTitle] mounted last, or, once none is, of the last one
   /// removed; null before one was mounted.
   String? get title => _title;
   String? _title;
 
-  /// Sets the title of the last [WindowTitle] mounted, unless it is the
+  /// Sets the title of the last [TerminalTitle] mounted, unless it is the
   /// one set last, through [WindowBackend.setTitle] (`Terminal.setTitle`,
   /// which gives the user's title back as it closes; on a
   /// `HeadlessTerminal`, the sequence that sets it written to its frames).
@@ -299,11 +299,11 @@ final class _TerminalProgressState extends State<TerminalProgress> {
 /// as without it.
 ///
 /// ```dart
-/// WindowTitle(title: 'notes.txt — editor', child: Text('…'))
+/// TerminalTitle(title: 'notes.txt — editor', child: Text('…'))
 /// ```
-final class WindowTitle extends StatefulWidget {
+final class TerminalTitle extends StatefulWidget {
   /// Sets the title to [title] while [child] is in the tree.
-  const WindowTitle({required this.title, required this.child, super.key});
+  const TerminalTitle({required this.title, required this.child, super.key});
 
   /// What the terminal shows as its window's or tab's title; the control
   /// characters in it are left out (`titleSequence`).
@@ -313,10 +313,10 @@ final class WindowTitle extends StatefulWidget {
   final Widget child;
 
   @override
-  State<WindowTitle> createState() => _WindowTitleState();
+  State<TerminalTitle> createState() => _TerminalTitleState();
 }
 
-final class _WindowTitleState extends State<WindowTitle> {
+final class _TerminalTitleState extends State<TerminalTitle> {
   TerminalStatus? _status;
 
   @override
@@ -328,7 +328,7 @@ final class _WindowTitleState extends State<WindowTitle> {
   }
 
   @override
-  void didUpdateWidget(WindowTitle oldWidget) {
+  void didUpdateWidget(TerminalTitle oldWidget) {
     super.didUpdateWidget(oldWidget);
     _status?._showTitle();
   }

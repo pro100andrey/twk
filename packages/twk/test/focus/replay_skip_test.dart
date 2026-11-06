@@ -36,8 +36,8 @@ Widget app(List<String> heard, {required bool inDialog}) => App(
         builder: (context) => KeyBindings(
           {
             'd': () => showDialog<void>(
-              context,
-              (_) => Dialog(
+              context: context,
+              builder: (_) => Dialog(
                 title: 'Dialog',
                 child: sequenceLayer('in dialog', heard),
               ),

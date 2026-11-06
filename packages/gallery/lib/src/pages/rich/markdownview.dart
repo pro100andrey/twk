@@ -150,7 +150,7 @@ final _markdownView = GalleryPage(
         height: h,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          gap: 1,
+          spacing: 1,
           children: [
             Text.rich([
               Span('› ', theme.primary.merge(const Style(attrs: Attr.bold))),
@@ -173,7 +173,7 @@ final _markdownView = GalleryPage(
               ),
             ),
             Row(
-              gap: 1,
+              spacing: 1,
               children: [
                 if (done)
                   Text('✓', style: theme.success)
@@ -228,7 +228,7 @@ final _markdownView = GalleryPage(
         '  height: $h,',
         '  child: Column(',
         '    crossAxisAlignment: .stretch,',
-        '    gap: 1,',
+        '    spacing: 1,',
         '    children: [',
         '      Expanded(',
         '        child: Scrollbar(',
@@ -321,7 +321,7 @@ final _markdownView = GalleryPage(
       '    height: $h,',
       '    child: Column(',
       '      crossAxisAlignment: .stretch,',
-      '      gap: 1,',
+      '      spacing: 1,',
       '      children: [',
       '        Text.rich([',
       codeLine([
@@ -347,7 +347,7 @@ final _markdownView = GalleryPage(
       '          ),',
       '        ),',
       '        Row(',
-      '          gap: 1,',
+      '          spacing: 1,',
       '          children: [',
       codeLine([
         "            if (done) Text('✓', style: theme.success) else ",
@@ -402,7 +402,7 @@ final class _AppLinksState extends State<_AppLinks> {
   @override
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
-    gap: 1,
+    spacing: 1,
     children: [
       Expanded(
         child: Scrollbar(

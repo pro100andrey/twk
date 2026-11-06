@@ -10,6 +10,7 @@
 import 'dart:async';
 
 import 'package:test/test.dart';
+import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
@@ -356,7 +357,7 @@ void main() {
     final log = <String>[];
     final below = Listener(
       behavior: HitTestBehavior.opaque,
-      onDown: (_) => log.add('below'),
+      onPointerDown: (_) => log.add('below'),
       child: const SizedBox(width: 30, height: 6),
     );
     await t.pumpWidget(
@@ -422,12 +423,14 @@ void main() {
     await t.pumpWidget(
       Theme.terminal(
         child: Shortcuts(
-          const {'ctrl+s': Save(), 'f2': Save(), 'ctrl+p': Print()},
+          shortcuts: const {'ctrl+s': Save(), 'f2': Save(), 'ctrl+p': Print()},
           hints: const {'ctrl+s': 'save'},
           child: KeyBindings(
             {'ctrl+o': doc.open, 'ctrl+q': doc.quit},
             child: Actions(
-              {Save: CallbackAction<Save>(onInvoke: (_) => log.add('save'))},
+              actions: {
+                Save: CallbackAction<Save>(onInvoke: (_) => log.add('save')),
+              },
               child: Overlay(
                 child: MenuBar(
                   look: PanelLook.bordered,
@@ -451,7 +454,7 @@ void main() {
                         child: Field('editor', autofocus: true),
                       ),
                       Actions(
-                        {
+                        actions: {
                           Save: CallbackAction<Save>(
                             onInvoke: (_) => log.add('save notes'),
                           ),
@@ -591,9 +594,9 @@ void main() {
     Widget app({String Function(KeyCombo combo)? keyLabel}) => KeyBindings(
       {'ctrl+k q': doc.quit},
       child: Shortcuts(
-        const {'ctrl+x ctrl+s': Save()},
+        shortcuts: const {'ctrl+x ctrl+s': Save()},
         child: Actions(
-          {Save: CallbackAction<Save>(onInvoke: (_) {})},
+          actions: {Save: CallbackAction<Save>(onInvoke: (_) => null)},
           child: Overlay(
             child: MenuBar(
               look: PanelLook.bordered,
@@ -877,8 +880,9 @@ void main() {
                             '&Find',
                             onSelected: () => unawaited(
                               showDialog<void>(
-                                editor.currentContext!,
-                                (_) => const Dialog(child: Field('find')),
+                                context: editor.currentContext!,
+                                builder: (_) =>
+                                    const Dialog(child: Field('find')),
                                 fadeIn: Duration.zero,
                               ),
                             ),
@@ -1137,7 +1141,10 @@ void main() {
       Theme.terminal(child: SizedBox(key: key, width: 1, height: 1)),
     );
     expect(
-      () => showContextMenu(key.currentContext!, const [MenuItem('a')]),
+      () => showContextMenu(
+        context: key.currentContext!,
+        items: const [MenuItem('a')],
+      ),
       throwsA(
         isA<StateError>().having(
           (e) => e.message,
@@ -1171,19 +1178,28 @@ void main() {
       size: (30, 10),
     );
     final context = key.currentContext!;
-    showContextMenu(context, edits(log), at: (4, 1), look: PanelLook.bordered);
+    showContextMenu(
+      context: context,
+      items: edits(log),
+      at: (4, 1),
+      look: PanelLook.bordered,
+    );
     await t.pump();
     expect(t, hasTextAt(6, 2, '┌───────┐'));
     expect(highlighted(t), isEmpty);
     await press(t, 'down');
     await press(t, 'enter');
     expect(log, ['cut']);
-    showContextMenu(context, edits(log), look: PanelLook.bordered);
+    showContextMenu(
+      context: context,
+      items: edits(log),
+      look: PanelLook.bordered,
+    );
     await t.pump();
     expect(t, hasTextAt(2, 2, '┌───────┐'), reason: 'under the field');
     expect(highlighted(t), ['Cut']);
     await press(t, 'escape');
-    showContextMenu(context, const []);
+    showContextMenu(context: context, items: const []);
     await t.pump();
     expect(t, matchesScreen('\n  >a'));
   });
@@ -1206,8 +1222,8 @@ void main() {
     );
     await t.pumpWidget(app(anchor: true), size: (30, 10));
     showContextMenu(
-      key.currentContext!,
-      edits(log),
+      context: key.currentContext!,
+      items: edits(log),
       at: (4, 1),
       look: PanelLook.bordered,
     );

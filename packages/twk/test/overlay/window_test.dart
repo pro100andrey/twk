@@ -12,6 +12,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:test/test.dart';
+import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
@@ -574,7 +575,7 @@ void main() {
             Window(title: 'Beta', controller: b, child: const Text('beta')),
           ],
           child: Listener(
-            onDown: (_) => pressed++,
+            onPointerDown: (_) => pressed++,
             behavior: HitTestBehavior.opaque,
             child: Focus(focusNode: app, child: const SizedBox.expand()),
           ),
@@ -803,7 +804,7 @@ void main() {
             Window(title: 'Alpha', controller: c, child: const Text('alpha')),
           ],
           child: Listener(
-            onDown: (_) => pressed++,
+            onPointerDown: (_) => pressed++,
             behavior: HitTestBehavior.opaque,
             child: const SizedBox.expand(),
           ),
@@ -1246,7 +1247,7 @@ void main() {
               Window(title: 'Alpha', controller: c, child: const Text('alpha')),
             ],
             child: Listener(
-              onDown: (_) => pressed++,
+              onPointerDown: (_) => pressed++,
               behavior: HitTestBehavior.opaque,
               child: const SizedBox.expand(),
             ),

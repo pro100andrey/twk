@@ -32,12 +32,12 @@ void main() {
           builder: (context) => KeyBindings({
             'd': () => unawaited(
               showDialog<String>(
-                context,
-                (context) => Dialog(
+                context: context,
+                builder: (context) => Dialog(
                   child: KeyBindings({
                     'm': () => showContextMenu(
-                      context,
-                      [
+                      context: context,
+                      items: [
                         MenuItem('Copy', onSelected: () {}),
                       ],
                       at: (2, 6),
@@ -109,8 +109,8 @@ void main() {
         final results = <Object?>[];
         unawaited(
           showDialog<String>(
-            at,
-            (context) => const Dialog(child: Text('dialog')),
+            context: at,
+            builder: (context) => const Dialog(child: Text('dialog')),
             alignment: Alignment.bottomCenter,
             fadeIn: Duration.zero,
           ).then(results.add),

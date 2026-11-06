@@ -27,7 +27,7 @@ final class _HintsState extends State<Hints> {
         Expanded(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final wide = constraints.maxW >= 40;
+              final wide = constraints.maxWidth >= 40;
               const one = Box(child: Text('one'));
               const two = Box(child: Text('two'));
               // below the LayoutBuilder, so the layout decides the key; the

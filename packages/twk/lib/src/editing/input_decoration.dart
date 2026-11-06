@@ -377,7 +377,7 @@ Widget _decorated(
       aroundBox(framed),
       if (under != null || counter != null)
         Row(
-          gap: 1,
+          spacing: 1,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
@@ -399,7 +399,7 @@ Widget _decorated(
   // on the row of the text: under the box's top edge, or the label
   final above = outlined || label != null ? 1 : 0;
   return Row(
-    gap: 1,
+    spacing: 1,
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Padding(

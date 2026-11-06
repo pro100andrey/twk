@@ -11,11 +11,11 @@ text
 │     DatePicker                name                                             │
 │     FilePicker          ·                                                   ·  │
 │ ▎   Form, FormFie…            email                                            │
-│     TabBar, TabVi…  ▐   ·                                                   ·  │
+│     TabBar, TabBa…  ▐   ·                                                   ·  │
 │     KeyHintsBar     ▐         [ ] I accept the terms                           │
 │     StatusMessage…      ·                                                   ·  │
 │     Callout                    Submit    Reset    submitted: nothing           │
-│     Link                ·   └                                          ┘    ·  │
+│     Hyperlink           ·   └                                          ┘    ·  │
 │     ListTile                                                     40 × 7        │
 │     StatusBar                                                                  │
 │                      ──────────────────────────────────────────────────────────│
@@ -40,7 +40,7 @@ styles
 │aaaaannnnnnnnnnnaaaaadgggggggggmgmgvgvvvvvvgvvvgvvvvvggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnnaaagggogggggggggggggggggggggggggggggggggggggggggggggggggggogg│
 │aaaaannnnnnnaaaaaaaaaagggggggggqwwwwwwqggqwwwwwqgggmmmmmmmmmmgmmmmmmmggggggggggg│
-│aaaaannnnaaaaaaaaaaaaagggogggoggggggggggggggggggggggggggggggggggggggggggoggggogg│
+│aaaaannnnnnnnnaaaaaaaagggogggoggggggggggggggggggggggggggggggggggggggggggoggggogg│
 │aaaaannnnnnnnaaaaaaaaaggggggggggggggggggggggggggggggggggggggggggggBBgBgBgggggggg│
 │aaaaannnnnnnnnaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│

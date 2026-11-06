@@ -39,7 +39,7 @@ return SizedBox(
     border: .all(type: .rounded, style: theme.border),
     child: Row(
       mainAxisAlignment: .spaceBetween,
-      gap: 1,
+      spacing: 1,
       children: [
         chip('one', theme.primary),
         chip('two', theme.accent, const .all(1)),
@@ -59,7 +59,7 @@ What the gallery lets you change, and what each starts at:
 | direction | row, column | row |
 | main axis | start, end, center, spaceBetween, spaceAround, spaceEvenly | spaceBetween |
 | cross axis | start, end, center, stretch | center |
-| gap | 0, 1, 2 | 1 |
+| spacing | 0, 1, 2 | 1 |
 | main axis size | max, min | max |
 
 ## More

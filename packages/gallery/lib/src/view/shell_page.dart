@@ -72,7 +72,7 @@ extension _PageArea on GalleryShellState {
     final aboutW = iw < 84 ? iw : 84;
     final titleRow = Listener(
       behavior: HitTestBehavior.opaque,
-      onDown: short ? pressTabs : null,
+      onPointerDown: short ? pressTabs : null,
       child: CellPaint(height: 1, (p) {
         p.text(pad, 0, page.title, Style(fg: t.text, attrs: Attr.bold));
         if (!short) {
@@ -84,7 +84,7 @@ extension _PageArea on GalleryShellState {
     );
     final tabRow = Listener(
       behavior: HitTestBehavior.opaque,
-      onDown: (e) {
+      onPointerDown: (e) {
         pressTabs(e);
         if (tab == GalleryTab.code &&
             (def?.hasCode ?? false) &&
@@ -126,7 +126,7 @@ extension _PageArea on GalleryShellState {
       // the Code in the room the stage would give the widget here
       body = LayoutBuilder(
         builder: (context, c) {
-          final room = stageRoomIn(c.maxW, c.maxH);
+          final room = stageRoomIn(c.maxWidth, c.maxHeight);
           _rooms[key] = room;
           // built in layout, after the screen's build: its own frame time
           _motion.begin(context);

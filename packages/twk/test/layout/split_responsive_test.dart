@@ -41,7 +41,7 @@ void main() {
           child: LayoutBuilder(
             builder: (context, constraints) => SplitView(
               controller: c,
-              direction: constraints.maxW < 20
+              direction: constraints.maxWidth < 20
                   ? Axis.vertical
                   : Axis.horizontal,
               panes: [

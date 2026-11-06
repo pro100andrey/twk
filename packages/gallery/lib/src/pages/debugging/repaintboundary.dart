@@ -133,7 +133,7 @@ String _paintsCode(Options o) {
     '    return Column(',
     '      mainAxisSize: .min,',
     '      crossAxisAlignment: .start,',
-    '      gap: 1,',
+    '      spacing: 1,',
     '      children: [',
     '        CustomPaint(',
     '          painter: _dots,',
@@ -225,7 +225,7 @@ final class _PaintsState extends TimedState<_Paints> {
     return Column(
       mainAxisSize: .min,
       crossAxisAlignment: .start,
-      gap: 1,
+      spacing: 1,
       children: [
         CustomPaint(
           painter: _DotsPainter(theme.border),

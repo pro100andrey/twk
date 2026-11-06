@@ -1,6 +1,7 @@
 // runApp on a terminal in memory, on a fake clock it is handed: each
 // option it takes reaches the binding it runs the app with.
 import 'package:test/test.dart';
+import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart' show FakeClock;
 

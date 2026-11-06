@@ -250,9 +250,9 @@ final class _PaginationState extends State<Pagination> {
         '0': '${Theme.of(context).glyphs.ellipsis}9 page',
         if (typing) 'enter': 'go',
       },
-      onTap: enabled
-          ? (event) {
-              final i = _hits.at(event.x);
+      onTapUp: enabled
+          ? (tap) {
+              final i = _hits.at(tap.localPosition.dx);
               if (i >= 0 && _parts[i].to >= 0) {
                 _go(_parts[i].to);
               }
@@ -262,7 +262,7 @@ final class _PaginationState extends State<Pagination> {
         builder: (context, constraints) => _row(
           Theme.of(context),
           segmenterOf(context),
-          constraints.maxW,
+          constraints.maxWidth,
           enabled: enabled,
           focused: focused,
         ),
@@ -279,7 +279,8 @@ final class _PaginationState extends State<Pagination> {
             SemanticsNode(
               role: SemanticsRole.button,
               label: 'Page ${p + 1}',
-              state: SemanticsState(selected: p == page, disabled: !enabled),
+              selected: p == page,
+              enabled: enabled,
               focused: p == page,
             ),
         if (widget.showPrevNext)
@@ -295,7 +296,7 @@ final class _PaginationState extends State<Pagination> {
   static SemanticsNode _button(String label, bool enabled) => SemanticsNode(
     role: SemanticsRole.button,
     label: label,
-    state: SemanticsState(disabled: !enabled),
+    enabled: enabled,
   );
 
   /// The range of the page's items, `21–40 of 840`, where there is one.

@@ -4,7 +4,7 @@ text
 │                                                                                                                        │
 │   ⌕ Filter             /      Popover                                                                         6 of 12  │
 │                               A widget by another while the app says so, placed by an AnchorTarget around it and       │
-│     Link                      an AnchorFollower in the overlay; Escape or a click outside closes it.                   │
+│     Hyperlink                 an AnchorFollower in the overlay; Escape or a click outside closes it.                   │
 │     ListTile                                                                                                           │
 │     StatusBar                 Preview   Code                                                                           │
 │                            ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
@@ -41,7 +41,7 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaiBiBBBBBBiiiiiiiiiiiiiCiaahhhlllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhDhDDhDDhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnhnnnnnnhnnhnnnnnnnhnnnnnhnnnhnnnhnnnnhnnnhnnnnnnhnnhnnhnnnnnnnnnnnnhnnnnnnhnnhnnnhhhhhhh│
-│aaaaaooooaaaaaaaaaaaaaaaaaaahhhnnhnnnnnnnnnnnnnnhnnhnnnhnnnnnnnnhnnnnnnhnnhnhnnnnnhnnnnnnnhnnnnnnhnnnhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhnnhnnnnnnnnnnnnnnhnnhnnnhnnnnnnnnhnnnnnnhnnhnhnnnnnhnnnnnnnhnnnnnnhnnnhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooaaaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│

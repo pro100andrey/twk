@@ -14,6 +14,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:test/test.dart';
+import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_core/twk_core.dart' show MouseTracking;
 import 'package:twk_test/twk_test.dart'
@@ -130,7 +131,7 @@ final class _Run {
 /// screen reader reads.
 Widget _size(List<String> sizes) => LayoutBuilder(
   builder: (_, c) {
-    sizes.add('${c.maxW} x ${c.maxH}');
+    sizes.add('${c.maxWidth} x ${c.maxHeight}');
     return Text(sizes.last);
   },
 );
@@ -210,7 +211,7 @@ void main() {
         key: key,
         (_) => Listener(
           behavior: HitTestBehavior.opaque,
-          onDown: (e) => presses.add('${e.x}, ${e.y}'),
+          onPointerDown: (e) => presses.add('${e.x}, ${e.y}'),
           child: const SizedBox(),
         ),
       ),

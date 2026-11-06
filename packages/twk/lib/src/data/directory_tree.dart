@@ -867,7 +867,7 @@ final class _DirectoryTreeState extends State<DirectoryTree> {
     );
     final size = node.size;
     return GestureDetector(
-      onDoubleTap: (_) => _activate(node),
+      onDoubleTap: () => _activate(node),
       child: size == null || !widget.showSizes
           ? label
           : Row(

@@ -221,6 +221,19 @@ void main() {
       expect(v.rows(), ['ab', '']);
     });
 
+    test('square is as wide as it is tall, in cells', () {
+      final v = View(8, 4)
+        ..pump(
+          const Align(
+            alignment: Alignment.topLeft,
+            child: SizedBox.square(dimension: 3, child: Fill('x')),
+          ),
+        );
+      expect(v.rows(), ['xxx', 'xxx', 'xxx', '']);
+      const none = SizedBox.square();
+      expect([none.width, none.height], [null, null]);
+    });
+
     test('a new size changes the same render object', () {
       final v = View(8, 1)
         ..pump(
@@ -256,11 +269,19 @@ void main() {
           const Row(
             children: [
               ConstrainedBox(
-                constraints: BoxConstraints(minW: 4, maxW: 5, maxH: 1),
+                constraints: BoxConstraints(
+                  minWidth: 4,
+                  maxWidth: 5,
+                  maxHeight: 1,
+                ),
                 child: Label('abcdefg'),
               ),
               ConstrainedBox(
-                constraints: BoxConstraints(minW: 2, maxW: 5, maxH: 1),
+                constraints: BoxConstraints(
+                  minWidth: 2,
+                  maxWidth: 5,
+                  maxHeight: 1,
+                ),
                 child: Label('a'),
               ),
               Label('|'),
@@ -274,14 +295,14 @@ void main() {
       final v = View(8, 1)
         ..pump(
           const ConstrainedBox(
-            constraints: BoxConstraints(maxW: 3, maxH: 1),
+            constraints: BoxConstraints(maxWidth: 3, maxHeight: 1),
             child: Label('abcdef'),
           ),
         );
       final box = v.top;
       v.pump(
         const ConstrainedBox(
-          constraints: BoxConstraints(maxW: 5, maxH: 1),
+          constraints: BoxConstraints(maxWidth: 5, maxHeight: 1),
           child: Label('abcdef'),
         ),
       );
@@ -289,7 +310,7 @@ void main() {
       // the screen's constraints are tight
       expect(
         (box as RenderConstrainedBox).additionalConstraints,
-        const BoxConstraints(maxW: 5, maxH: 1),
+        const BoxConstraints(maxWidth: 5, maxHeight: 1),
       );
     });
   });

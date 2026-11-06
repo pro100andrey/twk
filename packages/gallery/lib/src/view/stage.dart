@@ -113,8 +113,8 @@ final class RenderStage extends RenderObject with RenderObjectWithChildMixin {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW < BoxConstraints.unbounded ? c.maxW : c.minW;
-    height = c.maxH < BoxConstraints.unbounded ? c.maxH : c.minH;
+    width = c.maxWidth < BoxConstraints.unbounded ? c.maxWidth : c.minWidth;
+    height = c.maxHeight < BoxConstraints.unbounded ? c.maxHeight : c.minHeight;
     final room = stageRoomIn(width, height);
     final rw = room.width;
     final rh = room.height;
@@ -124,7 +124,9 @@ final class RenderStage extends RenderObject with RenderObjectWithChildMixin {
       return;
     }
     child.layout(
-      _fill ? BoxConstraints.tight(rw, rh) : BoxConstraints(maxW: rw, maxH: rh),
+      _fill
+          ? BoxConstraints.tight(rw, rh)
+          : BoxConstraints(maxWidth: rw, maxHeight: rh),
       parentUsesSize: true,
     );
     final w = child.width;

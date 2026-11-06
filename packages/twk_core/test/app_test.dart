@@ -7,6 +7,7 @@ import 'dart:io' show Platform;
 import 'dart:typed_data';
 
 import 'package:test/test.dart';
+import 'package:twk_core/terminal.dart' show LogLevel, log;
 import 'package:twk_core/twk_core.dart';
 import 'package:twk_test/twk_test.dart' show FakeClock;
 import 'package:twk_test/vt_terminal.dart';
@@ -32,8 +33,8 @@ final class Probe extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
   }
 
   @override
@@ -60,8 +61,8 @@ final class Rows extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
   }
 
   @override
@@ -90,8 +91,8 @@ final class Slow extends RenderObject {
   @override
   void performLayout(BoxConstraints c) {
     _wait(layoutMicros);
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
   }
 
   @override
@@ -115,8 +116,8 @@ final class Pair extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
     top.layout(BoxConstraints.tight(width, 1));
     rest
       ..layout(BoxConstraints.tight(width, height - 1))

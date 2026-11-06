@@ -299,7 +299,7 @@ final class SplitPane {
 /// LayoutBuilder(
 ///   builder: (context, constraints) => SplitView(
 ///     controller: split,
-///     direction: constraints.maxW < 60 ? Axis.vertical : Axis.horizontal,
+///     direction: constraints.maxWidth < 60 ? Axis.vertical : Axis.horizontal,
 ///     panes: [SplitPane(child: tree), SplitPane(child: editor)],
 ///   ),
 /// )
@@ -608,9 +608,9 @@ final class _SplitViewState extends State<SplitView> {
               : (across ? PointerShape.ewResize : PointerShape.nsResize),
           behavior: HitTestBehavior.deferToChild,
           child: Listener(
-            onDown: (event) => _down(k, event),
-            onDrag: (event) => _drag(k, event),
-            onUp: (event) => _up(k),
+            onPointerDown: (event) => _down(k, event),
+            onPointerMove: (event) => _drag(k, event),
+            onPointerUp: (event) => _up(k),
             child: across
                 ? VerticalDivider(type: widget.type, style: style, merge: true)
                 : Divider(type: widget.type, style: style, merge: true),
@@ -980,10 +980,10 @@ final class _RenderSplit extends RenderObject
   void performLayout(BoxConstraints c) {
     const unbounded = BoxConstraints.unbounded;
     final across = _across;
-    final maxMain = across ? c.maxW : c.maxH;
-    final maxCross = across ? c.maxH : c.maxW;
-    final minMain = across ? c.minW : c.minH;
-    final minCross = across ? c.minH : c.minW;
+    final maxMain = across ? c.maxWidth : c.maxHeight;
+    final maxCross = across ? c.maxHeight : c.maxWidth;
+    final minMain = across ? c.minWidth : c.minHeight;
+    final minCross = across ? c.minHeight : c.minWidth;
     var main = maxMain;
     final List<int> own;
     if (main < unbounded) {

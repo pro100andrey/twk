@@ -25,16 +25,18 @@ Widget screen(String name, List<String> heard, {bool openPopover = false}) =>
         {
           'd': () => unawaited(
             showDialog<void>(
-              context,
-              (_) => const Focus(autofocus: true, child: Text('dialog')),
+              context: context,
+              builder: (_) =>
+                  const Focus(autofocus: true, child: Text('dialog')),
               useRootNavigator: false,
               fadeIn: Duration.zero,
             ),
           ),
           'r': () => unawaited(
             showDialog<void>(
-              context,
-              (_) => const Focus(autofocus: true, child: Text('dialog')),
+              context: context,
+              builder: (_) =>
+                  const Focus(autofocus: true, child: Text('dialog')),
               fadeIn: Duration.zero,
             ),
           ),

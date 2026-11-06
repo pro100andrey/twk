@@ -49,11 +49,11 @@ final class _ExcludedState extends State<_Excluded> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         Row(
           mainAxisSize: MainAxisSize.min,
-          gap: 1,
+          spacing: 1,
           children: [
             _Focusable(one),
             ListenableBuilder(
@@ -132,11 +132,11 @@ String _excludedCode(Options o) {
     '  return Column(',
     '    mainAxisSize: .min,',
     '    crossAxisAlignment: .start,',
-    '    gap: 1,',
+    '    spacing: 1,',
     '    children: [',
     '      Row(',
     '        mainAxisSize: .min,',
-    '        gap: 1,',
+    '        spacing: 1,',
     '        children: [',
     '          _Focusable(one),',
     '          ListenableBuilder(',
@@ -210,7 +210,7 @@ const _focusableMutedCode = [
   '  Widget build(BuildContext context) {',
   '    final theme = Theme.of(context);',
   '    return GestureDetector(',
-  '      onTap: (_) => node.requestFocus(),',
+  '      onTap: () => node.requestFocus(),',
   '      child: Focus(',
   '        focusNode: node,',
   '        child: ListenableBuilder(',

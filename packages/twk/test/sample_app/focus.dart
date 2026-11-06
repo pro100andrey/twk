@@ -21,9 +21,9 @@ extension on _SampleAppState {
 
   /// [child] below the keys of [_focused].
   Widget _keys(Widget child) => Actions(
-    {_Bump: CallbackAction<_Bump>(onInvoke: (_) => _bump())},
+    actions: {_Bump: CallbackAction<_Bump>(onInvoke: (_) => _bump())},
     child: Shortcuts(
-      const {'shift+down': _Bump(), 'g g': _Bump()},
+      shortcuts: const {'shift+down': _Bump(), 'g g': _Bump()},
       unmatched: UnmatchedKeys.replay,
       child: LeaderKey(
         ',',

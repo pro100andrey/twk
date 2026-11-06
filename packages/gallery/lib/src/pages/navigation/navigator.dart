@@ -65,7 +65,7 @@ $back      home: const _Home(),
 /// under it, which dims, and out again as it is popped.
 abstract final class _Slide {
   static PageRoute<void> route(
-    Widget Function(BuildContext context) builder, [
+    WidgetBuilder builder, [
     RouteSettings settings = const RouteSettings(),
   ]) => PageRoute(
     builder: builder,
@@ -82,7 +82,7 @@ final class _Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: .start,
-    gap: 1,
+    spacing: 1,
     children: [
       const Text('Home'),
       Button(
@@ -107,11 +107,11 @@ final class _Item extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: .start,
-    gap: 1,
+    spacing: 1,
     children: [
       Text('Item \$n', style: Theme.of(context).primary),
       Row(
-        gap: 2,
+        spacing: 2,
         children: [
           Button(
             'Back',
@@ -136,7 +136,7 @@ final class _Settings extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: .start,
-    gap: 1,
+    spacing: 1,
     children: [
       Text('Settings', style: Theme.of(context).primary),
       Button(
@@ -154,7 +154,7 @@ final class _Settings extends StatelessWidget {
 /// clock stands still, as its other motion is.
 PageRoute<void> _slide(
   BuildContext context,
-  Widget Function(BuildContext context) builder, [
+  WidgetBuilder builder, [
   RouteSettings settings = const RouteSettings(),
 ]) {
   final still = Clock.of(context).frozen;
@@ -177,7 +177,7 @@ final class _Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
-    gap: 1,
+    spacing: 1,
     children: [
       const Text('Home'),
       Button(
@@ -202,11 +202,11 @@ final class _Item extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
-    gap: 1,
+    spacing: 1,
     children: [
       Text('Item $n', style: Theme.of(context).primary),
       Row(
-        gap: 2,
+        spacing: 2,
         children: [
           Button(
             'Back',
@@ -231,7 +231,7 @@ final class _Settings extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
-    gap: 1,
+    spacing: 1,
     children: [
       Text('Settings', style: Theme.of(context).primary),
       Button(

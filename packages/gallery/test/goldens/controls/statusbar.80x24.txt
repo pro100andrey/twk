@@ -4,11 +4,11 @@ text
 │                                                                                │
 │   ⌕ Filter       /     StatusBar                               Preview   Code  │
 │                        A row of three sections, left, centre and right; those  │
-│     TabBar, TabVi…     that do not fit give way, the centre first.             │
+│     TabBar, TabBa…     that do not fit give way, the centre first.             │
 │     KeyHintsBar      ──────────────────────────────────────────────────────────│
 │     StatusMessage…                                                             │
 │     Callout             ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
-│     Link                                                                       │
+│     Hyperlink                                                                  │
 │     ListTile            ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
 │ ▎   StatusBar          ┌                                                    ┐  │
 │                           NORMAL     example/widgets/main.dart Ln 12, Col 4    │
@@ -19,8 +19,8 @@ text
 │     Toast                                                                      │
 │     Tooltip                                                                    │
 │     Popover          ──────────────────────────────────────────────────────────│
-│     MenuBar            width  ───────────────────────────   50 cells           │
-│     ContextMenu        gap     0  1  3                                         │
+│     MenuBar            width    ───────────────────────────   50 cells         │
+│     ContextMenu        spacing   0  1  3                                       │
 │     CommandPalette                                                             │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
@@ -33,7 +33,7 @@ styles
 │aaaaannnnnnnnnnnaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnaaaaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
-│aaaaannnnaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnaaaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
 │apqqqrrrrrrrrrqqqqqqqaggoggggggggggggggggggggggggggggggggggggggggggggggggggggogg│
 │aaaaaaaaaaaaaaaaaaaaaaggggBCCCCCCBttttuuuuuuuuuuuuuuuuuuuuuuuuutvvtvvvtvvvtvgggg│
@@ -44,8 +44,8 @@ styles
 │aaaaannnnnaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnaaaaaaaaaaggmmmmmggyyyyyyyyyyyyyyyyyyyyyyyyyyyzggFFgFFFFFggggggggggg│
-│aaaaannnnnnnnnnnaaaaaaggmmmgggghAhqrqhAhgggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnaaaaaaaaaaggmmmmmggggyyyyyyyyyyyyyyyyyyyyyyyyyyyzggFFgFFFFFggggggggg│
+│aaaaannnnnnnnnnnaaaaaaggmmmmmmmgghAhqrqhAhgggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│

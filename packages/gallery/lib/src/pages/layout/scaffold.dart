@@ -60,7 +60,7 @@ final class _NotesPageState extends State<_Notes> {
           padding: const EdgeInsets.all(1),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            gap: 1,
+            spacing: 1,
             children: [
               Button('New note', onPressed: () => setState(() => k.notes++)),
               Text.rich([Span('notes: ', theme.muted), Span('${k.notes}')]),
@@ -191,7 +191,7 @@ final _scaffold = GalleryPage(
     '        padding: const .all(1),',
     '        child: Column(',
     '          crossAxisAlignment: .start,',
-    '          gap: 1,',
+    '          spacing: 1,',
     '          children: [',
     codeLine([
       "            Button('New note', ",

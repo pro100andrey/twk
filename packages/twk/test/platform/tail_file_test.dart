@@ -106,6 +106,63 @@ void main() {
     expect(told, ['first\n', 'second\n']);
   });
 
+  test(
+    'a longer file renamed over the name before its event comes is read '
+    'from its start: no fragment of it is told, however late the event',
+    () async {
+      File(path).writeAsStringSync('old line one\n');
+      final inner = File(path);
+      final replacement = [for (var i = 0; i < 5; i++) 'NEW LINE $i\n'].join();
+      final events = StreamController<FileSystemEvent>();
+      addTearDown(events.close);
+      final told = <String>[];
+      final subscription = clock.run(
+        () => IOOverrides.runZoned(
+          () => tailFile(path, fromEnd: true, poll: poll).listen(
+            (e) => told.add(switch (e) {
+              FileBytes(:final bytes) => String.fromCharCodes(bytes),
+              FileReset() => 'reset',
+            }),
+          ),
+          createFile: (p) => _Hooked(inner, watched: events.stream),
+        ),
+      );
+      addTearDown(subscription.cancel);
+      await clock.elapse(poll);
+      File('${dir.path}${Platform.pathSeparator}other.log')
+        ..writeAsStringSync(replacement)
+        ..renameSync(path);
+      // the poll comes first, the watch has told nothing yet
+      await waitUntil(
+        () => told.join().endsWith(replacement),
+        'the replacement, not $told',
+        between: () => clock.elapse(poll),
+      );
+      expect(told, ['reset', replacement]);
+      events.add(FileSystemCreateEvent(path, false));
+      await clock.elapse(poll);
+      await clock.elapse(poll);
+      expect(told, ['reset', replacement]);
+    },
+    testOn: 'mac-os || linux',
+  );
+
+  test('a file deleted and made again, longer, is read from its start, '
+      'though ext4 gives it the inode it had', () async {
+    File(path).writeAsStringSync('old line one\n');
+    final told = follow();
+    await clock.elapse(poll);
+    File(path).deleteSync();
+    final replacement = [for (var i = 0; i < 5; i++) 'NEW LINE $i\n'].join();
+    File(path).writeAsStringSync(replacement);
+    await waitUntil(
+      () => told.join().endsWith(replacement),
+      'the replacement, not $told',
+      between: () => clock.elapse(poll),
+    );
+    expect(told.skipWhile((e) => e != 'reset').skip(1).join(), replacement);
+  }, testOn: 'mac-os || linux');
+
   test('a look in flight when the stream is cancelled adds nothing after '
       'the close, and the cancel ends with its handle closed, under a clock '
       'nobody moves', () async {

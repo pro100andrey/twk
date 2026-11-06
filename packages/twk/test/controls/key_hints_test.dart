@@ -105,7 +105,7 @@ void main() {
         child: Host(
           key: host,
           (step) => Shortcuts(
-            const {'ctrl+s': Save()},
+            shortcuts: const {'ctrl+s': Save()},
             hints: const {'ctrl+s': 'save'},
             child: KeyBindings(
               {'d': step == 1 ? null : nothing},
@@ -114,9 +114,9 @@ void main() {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Actions(
-                    {
+                    actions: {
                       Save: CallbackAction<Save>(
-                        onInvoke: (_) {},
+                        onInvoke: (_) => null,
                         enabled: step != 2,
                       ),
                     },

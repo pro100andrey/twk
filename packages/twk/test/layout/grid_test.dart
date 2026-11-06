@@ -22,9 +22,9 @@ void main() {
           columns: [GridTrack.content(), GridTrack.fr(1)],
           columnGap: 1,
           children: [
-            Text('Name', align: TextAlign.right),
+            Text('Name', textAlign: TextAlign.right),
             Label('Bob'),
-            Text('E-mail', align: TextAlign.right),
+            Text('E-mail', textAlign: TextAlign.right),
             Label('bob@example.com'),
           ],
         ),

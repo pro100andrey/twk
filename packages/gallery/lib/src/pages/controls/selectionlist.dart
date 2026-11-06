@@ -53,7 +53,7 @@ final _selectionlistPage = GalleryPage(
     '    height: 8,',
     '    child: Row(',
     '      crossAxisAlignment: .start,',
-    '      gap: 2,',
+    '      spacing: 2,',
     '      children: [',
     '        SizedBox(',
     '          width: 18,',
@@ -167,7 +167,7 @@ final class _PlanetsState extends State<_Planets> with KeptState {
       height: 8,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        gap: 2,
+        spacing: 2,
         children: [
           SizedBox(
             width: 18,

@@ -1039,7 +1039,7 @@ final class _TreeViewState<T> extends State<TreeView<T>>
 
   /// The rows of a window.
   int get _page {
-    final rows = _list.hasClients ? _list.position.viewportExtent : 1;
+    final rows = _list.hasClients ? _list.position.viewportDimension : 1;
     return rows > 1 ? rows : 1;
   }
 
@@ -1225,7 +1225,7 @@ final class _TreeViewState<T> extends State<TreeView<T>>
     );
     return GestureDetector(
       key: ValueKey<Object>(key),
-      onTapDown: (event) => _rowDown(i, key, event),
+      onTapDown: (tap) => _rowDown(i, key, tap.event),
       cursor: PointerShape.arrow,
       child: DefaultTextStyle(
         style: style,
@@ -1426,13 +1426,13 @@ final class _RenderTreeRow extends RenderObject
     final indent = _indent;
     var w = indent;
     if (child case final child?) {
-      final room = c.maxW >= BoxConstraints.unbounded
-          ? c.maxW
-          : (c.maxW > indent ? c.maxW - indent : 0);
+      final room = c.maxWidth >= BoxConstraints.unbounded
+          ? c.maxWidth
+          : (c.maxWidth > indent ? c.maxWidth - indent : 0);
       child.layout(
         room >= BoxConstraints.unbounded
-            ? BoxConstraints(maxW: room, maxH: 1)
-            : BoxConstraints(minW: room, maxW: room, maxH: 1),
+            ? BoxConstraints(maxWidth: room, maxHeight: 1)
+            : BoxConstraints(minWidth: room, maxWidth: room, maxHeight: 1),
         parentUsesSize: true,
       );
       child.parentData
@@ -1440,8 +1440,8 @@ final class _RenderTreeRow extends RenderObject
         ..dy = 0;
       w += child.width;
     }
-    width = c.constrainW(w);
-    height = c.constrainH(1);
+    width = c.constrainWidth(w);
+    height = c.constrainHeight(1);
   }
 
   @override

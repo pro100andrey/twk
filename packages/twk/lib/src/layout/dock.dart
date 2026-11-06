@@ -800,7 +800,7 @@ final class DockPanel {
 
 /// Shows [panels] where the [controller]'s [DockLayout] puts them: docked
 /// in a tree of splits, each a [SplitView] whose dividers resize its
-/// children, and groups of tabs, each a [TabBar] over a [TabView] of its
+/// children, and groups of tabs, each a [TabBar] over a [TabBarView] of its
 /// panels; floating in windows of a [WindowLayer] over them. A panel the
 /// layout names that [panels] has not is taken out of it; a panel it does
 /// not name is not shown. It fills the room it gets.
@@ -846,7 +846,7 @@ final class DockPanel {
 /// See also:
 ///
 ///  * [SplitView], panes the user resizes but does not move.
-///  * [TabView], one group of tabs.
+///  * [TabBarView], one group of tabs.
 final class DockArea extends StatefulWidget {
   /// Shows [panels] where [controller]'s layout puts them, the tabs of a
   /// group on a strip ([tabStrip]) by default.
@@ -1233,9 +1233,9 @@ final class _DockAreaState extends State<DockArea> {
           frame: widget.windowFrame,
           windows: _floating(layout.windows),
           decorate: (context, window) => Listener(
-            onDown: _windowDown,
-            onDrag: _windowDrag,
-            onUp: _windowUp,
+            onPointerDown: _windowDown,
+            onPointerMove: _windowDrag,
+            onPointerUp: _windowUp,
             child: window,
           ),
           child: root == null ? const SizedBox.expand() : _node(root, const []),
@@ -1435,9 +1435,9 @@ final class _GroupState extends State<_Group> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Listener(
-          onDown: (event) => area._tabDown(this, event),
-          onDrag: area._tabDrag,
-          onUp: area._tabUp,
+          onPointerDown: (event) => area._tabDown(this, event),
+          onPointerMove: area._tabDrag,
+          onPointerUp: area._tabUp,
           child: area.widget.tabStrip
               ? TabBar.strip(
                   controller: _tabs,
@@ -1449,7 +1449,7 @@ final class _GroupState extends State<_Group> {
                 ),
         ),
         Expanded(
-          child: TabView(
+          child: TabBarView(
             controller: _tabs,
             children: [for (final p in panels) area._host(p)],
           ),

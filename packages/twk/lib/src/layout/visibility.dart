@@ -241,14 +241,14 @@ final class _RenderHidden extends RenderObject with RenderObjectWithChildMixin {
   void performLayout(BoxConstraints c) {
     final child = this.child;
     if (child == null) {
-      width = c.minW;
-      height = c.minH;
+      width = c.minWidth;
+      height = c.minHeight;
       return;
     }
     if (_shrunk) {
       child.layout(c);
-      width = c.minW;
-      height = c.minH;
+      width = c.minWidth;
+      height = c.minHeight;
     } else {
       child.layout(c, parentUsesSize: true);
       width = child.width;

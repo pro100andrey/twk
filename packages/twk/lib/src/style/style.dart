@@ -90,6 +90,35 @@ final class Style {
   /// Hyperlink target (OSC 8); empty for none.
   final String? link;
 
+  /// This style with the fields given in place of the ones it has. A field
+  /// left out, or null, stays as it is: a color is not unset by passing
+  /// null; [merge] and the constructor set what they like.
+  ///
+  /// ```dart
+  /// const warning = Style(fg: Color.yellow, attrs: Attr.bold);
+  /// final error = warning.copyWith(fg: Color.red);
+  /// assert(error.fg == Color.red && error.attrs == Attr.bold);
+  /// ```
+  Style copyWith({
+    Color? fg,
+    Color? bg,
+    int? fgAlpha,
+    int? bgAlpha,
+    Color? underlineColor,
+    int? attrs,
+    int? attrsOff,
+    String? link,
+  }) => Style(
+    fg: fg ?? this.fg,
+    bg: bg ?? this.bg,
+    fgAlpha: fgAlpha ?? this.fgAlpha,
+    bgAlpha: bgAlpha ?? this.bgAlpha,
+    underlineColor: underlineColor ?? this.underlineColor,
+    attrs: attrs ?? this.attrs,
+    attrsOff: attrsOff ?? this.attrsOff,
+    link: link ?? this.link,
+  );
+
   /// This style with the fields [other] sets taken from [other]: a color
   /// together with its alpha, an underline as a whole. This style itself
   /// where [other] sets nothing, and [other] itself where this one sets

@@ -18,7 +18,7 @@ final class _App extends StatelessWidget {
   const _App();
 
   @override
-  Widget build(BuildContext context) => WindowTitle(
+  Widget build(BuildContext context) => TerminalTitle(
     title: 'Editor',
     child: KeyBindings({
       'n': () => AppBinding.of(context).notify('Build', 'done'),

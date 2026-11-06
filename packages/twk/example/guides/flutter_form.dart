@@ -27,7 +27,7 @@ final class _ProfileState extends State<Profile> {
       padding: const .all(1),
       child: Column(
         crossAxisAlignment: .start,
-        gap: 1,
+        spacing: 1,
         children: [
           Text('Profile', style: theme.primary),
           SizedBox(
@@ -40,17 +40,17 @@ final class _ProfileState extends State<Profile> {
             onChanged: (value) => setState(() => _news = value),
           ),
           Row(
-            gap: 2,
+            spacing: 2,
             children: [
               Button.filled(
                 'Save',
-                onPressed: () => showToast(context, 'saved'),
+                onPressed: () => showToast(context: context, message: 'saved'),
               ),
               Button.outlined(
                 'Delete',
                 onPressed: () => showDialog<void>(
-                  context,
-                  (context) => const Dialog(
+                  context: context,
+                  builder: (context) => const Dialog(
                     title: 'Delete?',
                     child: Text('This cannot be undone.'),
                   ),

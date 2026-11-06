@@ -81,9 +81,10 @@ a `Stack`, `AnimatedOpacity(opacity:)`, `AnimatedDefaultTextStyle(style:)`,
 `AnimatedBox(style:, border:, titles:, padding:, width:, height:)` (the
 border's type switching halfway), `AnimatedSize(duration:, curve:,
 alignment:)`, from the size shown to its child's, the child cut off
-meanwhile, and `TweenAnimationBuilder<T>(value:, from:, tween:, builder:)`,
-whose `tween` is a constructor (`EdgeInsetsTween.new`), since a `Tween` here
-is immutable. One of an app's own extends `ImplicitlyAnimatedWidget`, its
+meanwhile, and `TweenAnimationBuilder<T>(tween:, builder:)`,
+whose `tween` is a `Tween` as Flutter's: it runs from the `begin` at first and
+to each new `end` from the value shown, along `tween.withEnds`, which a `Tween`
+of an app's own overrides, since a `Tween` here is immutable. One of an app's own extends `ImplicitlyAnimatedWidget`, its
 state `ImplicitlyAnimatedWidgetState`, whose `forEachTween(visitor)` gives
 each of its tweens (a `TweenVisitor` of `TweenConstructor`s), started again
 from the value shown on a new target, and whose `progress` is how far the
@@ -198,7 +199,7 @@ test's fake clock moves them.
 false, maxVisible:, spinner: SpinnerFrames.dots, byteUnits: ByteUnits.decimal)` shows the tasks a row each
 in the `ProgressColumn`s given (`mark`, `label`, `bar`, `percent`, `count`,
 `rate`, `eta`, `elapsed`; all but `count` and `elapsed` by default): the
-mark of the task's `TaskStatus` as a `TaskList` shows it, its label, a bar
+mark of the task's `TaskItemStatus` as a `TaskList` shows it, its label, a bar
 as a `ProgressBar` draws it, sweeping while the task runs without a total,
 then `62%`, `1.2 MB/s` (`ProgressUnit.bytes` in their units: by 1000, or with
 `byteUnits: ByteUnits.binary` by 1024, `1.1 MiB/s`) and `ETA

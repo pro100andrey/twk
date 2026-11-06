@@ -16,11 +16,11 @@ text
 │     DatePicker                                                                           │   open  open several        │
 │ ▎   FilePicker                 ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   save  directory           │
 │     Form, FormField       ▐    ┌                                                    ┐    │                             │
-│     TabBar, TabView       ▐      /home/user/twk/                                         │  show hidden         ▐●  ▌  │
+│     TabBar, TabBarView    ▐      /home/user/twk/                                         │  show hidden         ▐●  ▌  │
 │     KeyHintsBar           ▐       ../                                                    │                             │
 │     StatusMessage, Badge  ▐      ▎example/                                               │                             │
 │     Callout               ▐       lib/                                                   │                             │
-│     Link                          test/                                                  │                             │
+│     Hyperlink                     test/                                                  │                             │
 │     ListTile                                                                             │                             │
 │     StatusBar                                                                            │                             │
 │                                   Dart      ▾ [ ] hidden                      Open       │                             │
@@ -53,11 +53,11 @@ styles
 │aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhrssssrittttitttttttihhhhhhh│
 │aurrrssssssssssrrrrrrrrrrrrahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhittttiitttttttttihhhhhhhhhh│
 │aaaaaoooooaoooooooooaaaaaaadhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaoooooooaaaaaaadhhhhhhHHHHHHHHHHHHHHHiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiihhhhhhphhnnnnhnnnnnnhhhhhhhhhEFGGEhh│
+│aaaaaoooooooaooooooooooaaaadhhhhhhHHHHHHHHHHHHHHHiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiihhhhhhphhnnnnhnnnnnnhhhhhhhhhEFGGEhh│
 │aaaaaoooooooooooaaaaaaaaaaadhhhhhhhlllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooaoooooaadhhhhhhMNNNNNNNNOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaaaaaaaaaaaaaaadhhhhhhhllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooaaaaaaaaaaaaaaaaaaahhhhhhhlllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhlllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhxwwwwxxxxxxBhnhnhCCCCCChhhhhhhhhhhhhhhhhhhhhxDDDDxhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│

@@ -12,7 +12,8 @@ const ms = Duration(milliseconds: 1);
 Widget app(Dialog dialog) => Overlay(
   child: Builder(
     builder: (context) => KeyBindings({
-      'd': () => unawaited(showDialog<void>(context, (_) => dialog)),
+      'd': () =>
+          unawaited(showDialog<void>(context: context, builder: (_) => dialog)),
     }, child: const Text('under')),
   ),
 );

@@ -130,6 +130,9 @@ Map<String, Set<String>?> _exports(String library) {
   };
 }
 
+/// What log.dart shows.
+const _logNames = {'LogLevel', 'LogRecord', 'LogSink', 'log'};
+
 void main() {
   final imports = _imports();
 
@@ -186,11 +189,19 @@ void main() {
       expect(above, isEmpty);
     });
 
-    test('exports only what package:twk_core/twk_core.dart exports', () {
+    test('exports only what package:twk_core/twk_core.dart exports, besides '
+        'the log, which only terminal.dart has', () {
       final core = _exports('twk_core.dart');
       final extra = [
         for (final MapEntry(key: path, value: names) in exports.entries)
-          if (!core.containsKey(path))
+          if (path == 'log.dart')
+            if (names == null ||
+                !names.containsAll(_logNames) ||
+                names.length != _logNames.length)
+              'log.dart: $names, not $_logNames'
+            else
+              ...const <String>[]
+          else if (!core.containsKey(path))
             path
           else if (core[path] case final shown?)
             if (names == null)
@@ -199,6 +210,11 @@ void main() {
               for (final name in names.difference(shown)) '$path: $name',
       ];
       expect(extra, isEmpty);
+    });
+
+    test('has the log, which package:twk_core/twk_core.dart does not', () {
+      expect(exports, contains('log.dart'));
+      expect(_exports('twk_core.dart'), isNot(contains('log.dart')));
     });
   });
   group('package:twk_core/libc.dart', () {

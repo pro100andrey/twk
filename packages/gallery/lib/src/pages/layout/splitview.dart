@@ -88,7 +88,7 @@ final _splitView = GalleryPage(
       '  return Column(',
       '    mainAxisSize: .min,',
       '    crossAxisAlignment: .start,',
-      '    gap: 1,',
+      '    spacing: 1,',
       '    children: [',
       '      // as tall as the room leaves it, at most $_sph',
       '      Flexible(',
@@ -166,7 +166,7 @@ final class _Split extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         // as tall as the room leaves it, at most 11
         Flexible(

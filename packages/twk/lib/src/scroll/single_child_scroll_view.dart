@@ -3,10 +3,11 @@
 library;
 
 import 'package:twk_core/twk_core.dart'
-    show Axis, Color, RenderObject, RenderViewport;
+    show Axis, Color, EdgeInsets, RenderObject, RenderViewport;
 
 import '../focus/focus.dart';
 import '../framework/framework.dart';
+import '../layout/basic.dart' show Padding;
 import '../style/style.dart';
 import 'scrollable.dart';
 
@@ -52,6 +53,7 @@ final class SingleChildScrollView extends StatelessWidget {
     this.canRequestFocus,
     this.physics,
     this.keyHints = true,
+    this.padding,
     this.child,
   });
 
@@ -84,6 +86,11 @@ final class SingleChildScrollView extends StatelessWidget {
   /// ([Scrollable.keyHints]).
   final bool keyHints;
 
+  /// The empty cells round the child, inside the window: they scroll with
+  /// it, so the child's first row is [EdgeInsets.top] rows down at offset 0
+  /// and its last [EdgeInsets.bottom] rows above the end; null for none.
+  final EdgeInsets? padding;
+
   /// What it scrolls; null shows nothing.
   final Widget? child;
 
@@ -105,7 +112,9 @@ final class SingleChildScrollView extends StatelessWidget {
       viewportBuilder: (context, position) => _Viewport(
         position: position,
         background: background,
-        child: child,
+        child: padding == null
+            ? child
+            : Padding(padding: padding!, child: child),
       ),
     );
   }
@@ -130,7 +139,7 @@ final class _Viewport extends SingleChildRenderObjectWidget {
   @override
   RenderViewport createRenderObject(BuildContext context) => RenderViewport(
     axis: position.axis,
-    scrollOffset: position.offset,
+    scrollOffset: position.pixels,
     background: background.pen,
     onExtents: position.applyExtents,
   );
@@ -141,7 +150,7 @@ final class _Viewport extends SingleChildRenderObjectWidget {
       ..axis = position.axis
       ..background = background.pen
       ..onExtents = position.applyExtents
-      ..scrollOffset = position.offset;
+      ..scrollOffset = position.pixels;
   }
 }
 
@@ -184,7 +193,7 @@ final class _ViewportElement extends SingleChildRenderObjectElement {
     }
   }
 
-  void _moved() => renderObject.scrollOffset = _position!.offset;
+  void _moved() => renderObject.scrollOffset = _position!.pixels;
 
   @override
   void insertRenderObjectChild(RenderObject child, Object? slot) =>

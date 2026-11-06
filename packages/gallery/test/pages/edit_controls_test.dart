@@ -21,10 +21,10 @@ const _pages = {
   'controls/datepicker': 'picked: nothing',
   'controls/filepicker': 'In a dialog',
   'controls/form-formfield': 'I accept the terms',
-  'controls/tabbar-tabview': 'wrap lines',
+  'controls/tabbar-tabbarview': 'wrap lines',
   'controls/keyhintsbar': 'did: nothing',
   'controls/statusmessage-badge': 'Saving runs in the background.',
-  'controls/link': 'The Dart language',
+  'controls/hyperlink': 'The Dart language',
   'controls/statusbar': 'NORMAL',
 };
 
@@ -70,10 +70,10 @@ void main() {
       ],
       'controls/filepicker?o=mode:directory': ['mode: .directory'],
       'controls/form-formfield?o=validate:always': ['.always'],
-      'controls/tabbar-tabview?o=tabs:7': ['length: 7'],
+      'controls/tabbar-tabbarview?o=tabs:7': ['length: 7'],
       'controls/keyhintsbar?o=unhinted:true': ['showUnhinted: true'],
       'controls/statusmessage-badge?o=kind:error': ['kind: .error'],
-      'controls/link?o=color:accent': ['theme.accent'],
+      'controls/hyperlink?o=color:accent': ['theme.accent'],
       'controls/statusbar?o=width:20': ['width: 20'],
     };
     for (final MapEntry(key: route, value: code) in routes.entries) {
@@ -94,7 +94,7 @@ void main() {
       expect(screen(t), contains('Keep'));
       await open(t, '#/controls/statusmessage-badge?o=kind:error&t=2000');
       expect(screen(t), contains('Could not save 3 files.'));
-      await open(t, '#/controls/tabbar-tabview?o=tabs:7&t=2000');
+      await open(t, '#/controls/tabbar-tabbarview?o=tabs:7&t=2000');
       expect(screen(t), contains('Plugins'));
       expect(problems(t), isEmpty);
     });
@@ -252,7 +252,7 @@ void main() {
     });
 
     testTwk('the arrows pick a tab', (t) async {
-      await open(t, '#/controls/tabbar-tabview?t=2000');
+      await open(t, '#/controls/tabbar-tabbarview?t=2000');
       await keys(t, 'tab,right');
       expect(screen(t), contains('Indent with'));
     });

@@ -18,7 +18,7 @@ text
 │     DatePicker          ·   ·    └                               ┘  ·   ·   ·  │
 │     FilePicker                                             29 × 8              │
 │     Form, FormFie…   ──────────────────────────────────────────────────────────│
-│     TabBar, TabVi…     multiple    ▐●  ▌                                       │
+│     TabBar, TabBa…     multiple    ▐●  ▌                                       │
 │     KeyHintsBar                                                                │
 │     StatusMessage…     cursor bar  ▐  ●▌                                       │
 │     Callout                                                                    │

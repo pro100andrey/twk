@@ -5,6 +5,7 @@
 // the app drawn again; the terminal keeping the mouse; and runApp reading
 // an app out on a terminal in the inline mode until it ends.
 import 'package:test/test.dart';
+import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_core/twk_core.dart' show MouseTracking;
 import 'package:twk_test/twk_test.dart';
@@ -217,7 +218,7 @@ void main() {
 
   testTwk('the terminal keeps the mouse while the app is read out', (t) async {
     await t.pumpWidget(
-      Listener(onDown: (_) {}, child: const Text('click')),
+      Listener(onPointerDown: (_) {}, child: const Text('click')),
       size: (20, 3),
     );
     expect(t.terminal.mouseTracking, MouseTracking.buttons);

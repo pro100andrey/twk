@@ -43,11 +43,11 @@ Widget build(BuildContext context) {
   return Column(
     mainAxisSize: .min,
     crossAxisAlignment: .start,
-    gap: 1,
+    spacing: 1,
     children: [
       Row(
         mainAxisSize: .min,
-        gap: 1,
+        spacing: 1,
         children: [
           _Focusable(one),
           _Focusable(two),
@@ -108,7 +108,7 @@ final class _Focusable extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return GestureDetector(
-      onTap: (_) => node.requestFocus(),
+      onTap: node.requestFocus,
       child: Focus(
         focusNode: node,
         child: ListenableBuilder(

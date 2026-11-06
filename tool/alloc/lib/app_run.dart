@@ -7,6 +7,7 @@ library;
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
 
 import 'sync_clock.dart';

@@ -50,7 +50,7 @@ String _menuBarCode(Options o) {
     '    padding: const .all(1),',
     '    child: Column(',
     '      crossAxisAlignment: .start,',
-    '      gap: 1,',
+    '      spacing: 1,',
     '      children: [',
     '        Text.rich([',
     "          Span('chosen: ', Theme.of(context).muted),",
@@ -60,7 +60,7 @@ String _menuBarCode(Options o) {
     '          },',
     '        ]),',
     '        Row(',
-    '          gap: 2,',
+    '          spacing: 2,',
     '          children: [',
     '            Checkbox(',
     '              value: _wrap,',
@@ -200,14 +200,14 @@ final class _BarState extends State<_Bar> with KeptState {
       padding: const EdgeInsets.all(1),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        gap: 1,
+        spacing: 1,
         children: [
           LitLine([
             ('chosen: ', true),
             (_chosen ?? 'nothing', _chosen == null),
           ], serial: _serial),
           Row(
-            gap: 2,
+            spacing: 2,
             children: [
               Checkbox(
                 value: _wrap,

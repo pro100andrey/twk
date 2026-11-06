@@ -33,13 +33,13 @@ Widget build(BuildContext context) {
     builder: (context, constraints) => Row(
       mainAxisSize: .min,
       crossAxisAlignment: .start,
-      gap: 2,
+      spacing: 2,
       children: [
         // in half blocks, black on white; in fewer rows than it
         // asks for, a narrower quiet zone, the whole symbol shown
         QrCode.symbol(
           symbol,
-          quietZone: ((2 * constraints.maxH - symbol.size) ~/ 2).clamp(0, 4),
+          quietZone: ((2 * constraints.maxHeight - symbol.size) ~/ 2).clamp(0, 4),
         ),
         Text.rich([
           Span('version ', theme.muted),
@@ -50,7 +50,7 @@ Widget build(BuildContext context) {
           Span(symbol.mode.name),
           // taller than the rows there are even without a quiet
           // zone: cut off at its bottom, which a camera can't read
-          if ((symbol.size + 1) ~/ 2 > constraints.maxH) ...[
+          if ((symbol.size + 1) ~/ 2 > constraints.maxHeight) ...[
             Span('\n\nneeds ', theme.warning),
             Span('${(symbol.size + 1) ~/ 2} rows'),
           ],

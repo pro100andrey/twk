@@ -49,7 +49,7 @@ final class _SignInState extends State<SignIn> {
               child: Column(
                 mainAxisSize: .min,
                 crossAxisAlignment: .stretch,
-                gap: 1,
+                spacing: 1,
                 children: [
                   _Labeled(
                     'Name',
@@ -70,7 +70,7 @@ final class _SignInState extends State<SignIn> {
                   _Labeled(
                     '',
                     child: Row(
-                      gap: 2,
+                      spacing: 2,
                       children: [
                         Button('Sign in', onPressed: _save),
                         Text(_status, style: theme.muted),
@@ -99,7 +99,7 @@ final class _Labeled extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
-    gap: 1,
+    spacing: 1,
     children: [
       SizedBox(width: 8, child: Text(label)),
       Expanded(child: child),

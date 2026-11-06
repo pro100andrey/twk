@@ -53,7 +53,7 @@ Widget build(BuildContext context) {
     child: Column(
       mainAxisSize: .min,
       crossAxisAlignment: .stretch,
-      gap: 1,
+      spacing: 1,
       children: [
         SizedBox(
           height: 3,

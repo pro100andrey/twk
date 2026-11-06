@@ -9,65 +9,203 @@ import 'package:meta/meta.dart';
 import 'package:twk_core/twk_core.dart' show HitTestBehavior, PointerShape;
 
 import '../binding/app_binding.dart' show AppBinding;
+import '../foundation/change_notifier.dart' show VoidCallback;
 import '../framework/framework.dart';
 import '../style/theme.dart' show ThemeData;
 import 'hand.dart';
 import 'mouse.dart';
 
-/// A drag as a [GestureDetector] tells it: the event the mouse was
-/// reported in, and the cells it moved since the drag was told last.
-///
-/// Two details are equal when their events and moves are. See
-/// [GestureDetector] for one in use.
-@immutable
-final class DragDetails {
-  /// A drag in [event] that moved [dx] columns and [dy] rows.
-  const DragDetails(this.event, {this.dx = 0, this.dy = 0});
+/// A position, or a move, in cells: the columns `dx` and the rows `dy`, as
+/// Flutter's `Offset` names them, whole.
+typedef CellOffset = ({int dx, int dy});
 
-  /// The press for the start, a drag for an update, the release for the
-  /// end; the cell in the coordinates of the detector.
+/// A press of the left button as a [GestureDetector] tells it going down, as
+/// Flutter's `TapDownDetails`: where it is, in cells.
+///
+/// Left out of Flutter's: `kind`, which a terminal does not report. Two
+/// details are equal when their events are.
+@immutable
+final class TapDownDetails {
+  /// A press at [event].
+  const TapDownDetails(this.event);
+
+  /// The press, the cell in the coordinates of the detector: its modifiers
+  /// are the tap's.
   final PointerEvent event;
 
-  /// The columns the mouse moved since the drag was told last: 0 at the
-  /// start.
-  final int dx;
+  /// The cell of the press from the top left of the detector.
+  CellOffset get localPosition => (dx: event.x, dy: event.y);
 
-  /// The rows the mouse moved since the drag was told last: 0 at the
-  /// start.
-  final int dy;
-
-  /// The column of the cell from the left of the detector.
-  int get x => event.x;
-
-  /// The row of the cell from the top of the detector.
-  int get y => event.y;
+  /// The cell of the press from the top left of the screen.
+  CellOffset get globalPosition => (dx: event.screenX, dy: event.screenY);
 
   @override
   bool operator ==(Object other) =>
-      other is DragDetails &&
-      other.event == event &&
-      other.dx == dx &&
-      other.dy == dy;
+      other is TapDownDetails && other.event == event;
 
   @override
-  int get hashCode => Object.hash(event, dx, dy);
+  int get hashCode => event.hashCode;
 
   @override
-  String toString() => 'Drag($event, $dx,$dy)';
+  String toString() => 'TapDownDetails($event)';
 }
 
-/// What a [GestureDetector] tells a drag with.
-typedef DragListener = void Function(DragDetails details);
+/// The release that ends a tap as a [GestureDetector] tells it, as Flutter's
+/// `TapUpDetails`: where it is, in cells.
+///
+/// Left out of Flutter's: `kind`, which a terminal does not report. Two
+/// details are equal when their events are.
+@immutable
+final class TapUpDetails {
+  /// A release at [event].
+  const TapUpDetails(this.event);
+
+  /// The release, the cell in the coordinates of the detector: its button
+  /// says which of the detector's `buttons` tapped.
+  final PointerEvent event;
+
+  /// The cell of the release from the top left of the detector.
+  CellOffset get localPosition => (dx: event.x, dy: event.y);
+
+  /// The cell of the release from the top left of the screen.
+  CellOffset get globalPosition => (dx: event.screenX, dy: event.screenY);
+
+  @override
+  bool operator ==(Object other) =>
+      other is TapUpDetails && other.event == event;
+
+  @override
+  int get hashCode => event.hashCode;
+
+  @override
+  String toString() => 'TapUpDetails($event)';
+}
+
+/// What a [GestureDetector] tells the press of a tap with.
+typedef GestureTapDownCallback = void Function(TapDownDetails details);
+
+/// What a [GestureDetector] tells the release of a tap with.
+typedef GestureTapUpCallback = void Function(TapUpDetails details);
+
+/// The start of a drag as a [GestureDetector] tells it, as Flutter's
+/// `DragStartDetails`: where the press was, in cells.
+///
+/// Left out of Flutter's: `sourceTimeStamp` and `kind`, which a terminal
+/// does not report. Two details are equal when their events are.
+@immutable
+final class DragStartDetails {
+  /// A drag that starts at the press [event].
+  const DragStartDetails(this.event);
+
+  /// The press, the cell in the coordinates of the detector: its button and
+  /// modifiers are the drag's.
+  final PointerEvent event;
+
+  /// The cell of the press from the top left of the detector.
+  CellOffset get localPosition => (dx: event.x, dy: event.y);
+
+  /// The cell of the press from the top left of the screen.
+  CellOffset get globalPosition => (dx: event.screenX, dy: event.screenY);
+
+  @override
+  bool operator ==(Object other) =>
+      other is DragStartDetails && other.event == event;
+
+  @override
+  int get hashCode => event.hashCode;
+
+  @override
+  String toString() => 'DragStartDetails($event)';
+}
+
+/// A move in a drag as a [GestureDetector] tells it, as Flutter's
+/// `DragUpdateDetails`: where the mouse is, in cells, and the cells it
+/// moved since the drag was told last.
+///
+/// Left out of Flutter's: `sourceTimeStamp`, `kind` and `primaryDelta`
+/// (null for a pan, as it is there). Two details are equal when their events
+/// and deltas are.
+@immutable
+final class DragUpdateDetails {
+  /// A drag that moved [delta] to [event].
+  const DragUpdateDetails(this.event, {this.delta = (dx: 0, dy: 0)});
+
+  /// The drag, the cell in the coordinates of the detector.
+  final PointerEvent event;
+
+  /// The columns and rows the mouse moved since the drag was told last.
+  final CellOffset delta;
+
+  /// The cell of the mouse from the top left of the detector.
+  CellOffset get localPosition => (dx: event.x, dy: event.y);
+
+  /// The cell of the mouse from the top left of the screen.
+  CellOffset get globalPosition => (dx: event.screenX, dy: event.screenY);
+
+  @override
+  bool operator ==(Object other) =>
+      other is DragUpdateDetails &&
+      other.event == event &&
+      other.delta == delta;
+
+  @override
+  int get hashCode => Object.hash(event, delta);
+
+  @override
+  String toString() => 'DragUpdateDetails($event, ${delta.dx},${delta.dy})';
+}
+
+/// The end of a drag as a [GestureDetector] tells it, as Flutter's
+/// `DragEndDetails`: where the mouse was released, in cells.
+///
+/// Left out of Flutter's: `velocity` and `primaryVelocity`, which are in
+/// pixels per second, where a terminal has cells and reports no time. Two
+/// details are equal when their events are.
+@immutable
+final class DragEndDetails {
+  /// A drag that ends at the release [event].
+  const DragEndDetails(this.event);
+
+  /// The release (the last cell reported, where the terminal reported none),
+  /// the cell in the coordinates of the detector.
+  final PointerEvent event;
+
+  /// The cell of the release from the top left of the detector.
+  CellOffset get localPosition => (dx: event.x, dy: event.y);
+
+  /// The cell of the release from the top left of the screen.
+  CellOffset get globalPosition => (dx: event.screenX, dy: event.screenY);
+
+  @override
+  bool operator ==(Object other) =>
+      other is DragEndDetails && other.event == event;
+
+  @override
+  int get hashCode => event.hashCode;
+
+  @override
+  String toString() => 'DragEndDetails($event)';
+}
+
+/// What a [GestureDetector] tells the start of a drag with.
+typedef GestureDragStartCallback = void Function(DragStartDetails details);
+
+/// What a [GestureDetector] tells a move in a drag with.
+typedef GestureDragUpdateCallback = void Function(DragUpdateDetails details);
+
+/// What a [GestureDetector] tells the end of a drag with.
+typedef GestureDragEndCallback = void Function(DragEndDetails details);
 
 /// Tells the gestures of the presses over [child]: taps, double taps, long
 /// presses and drags.
 ///
 /// It takes the presses of [buttons] (the left one by default), and tells
-/// each gesture with the cell in the coordinates of this widget and the
-/// button: a tap ([onTap]), a double tap ([onDoubleTap]), a long press
-/// ([onLongPress], [onLongPressEnd]) and a drag ([onDragStart],
-/// [onDragUpdate], [onDragEnd]). It is a [Listener] underneath, hit as
-/// [behavior] says: by default where its child is.
+/// each gesture: a tap ([onTap]; where and with which button, [onTapDown] and
+/// [onTapUp] say, with the cell in the coordinates of this widget), a double
+/// tap ([onDoubleTap]), a long press ([onLongPress], [onLongPressEnd]) and a
+/// drag ([onPanStart], [onPanUpdate], [onPanEnd], with the cell too). It is a
+/// [Listener] underneath, hit as [behavior] says: by default where its child
+/// is.
 ///
 /// A press is a drag once the mouse moves to another cell with the button
 /// held; a long press once it is held for [longPressDuration] with the
@@ -115,10 +253,10 @@ typedef DragListener = void Function(DragDetails details);
 /// var left = 0;
 /// var top = 0;
 /// final card = GestureDetector(
-///   onDoubleTap: (_) => print('open'),
-///   onDragUpdate: (drag) {
-///     left += drag.dx;
-///     top += drag.dy;
+///   onDoubleTap: () => print('open'),
+///   onPanUpdate: (drag) {
+///     left += drag.delta.dx;
+///     top += drag.delta.dy;
 ///   },
 ///   child: const Box(
 ///     border: Border.all(type: BorderType.rounded),
@@ -134,7 +272,7 @@ typedef DragListener = void Function(DragDetails details);
 /// late int Function(int x) stepAt;
 /// final steps = GestureDetector(
 ///   tapAt: (x, y) => stepAt(x) >= 0,
-///   onTap: (event) => print('step ${stepAt(event.x)}'),
+///   onTapUp: (tap) => print('step ${stepAt(tap.localPosition.dx)}'),
 ///   child: const Text('one  two  three'),
 /// );
 /// ```
@@ -149,14 +287,15 @@ final class GestureDetector extends StatefulWidget {
     super.key,
     this.onTap,
     this.onTapDown,
+    this.onTapUp,
     this.tapAt,
     this.cursor,
     this.onDoubleTap,
     this.onLongPress,
     this.onLongPressEnd,
-    this.onDragStart,
-    this.onDragUpdate,
-    this.onDragEnd,
+    this.onPanStart,
+    this.onPanUpdate,
+    this.onPanEnd,
     this.buttons = const {0},
     this.doubleTapInterval = const Duration(milliseconds: 300),
     this.longPressDuration = const Duration(milliseconds: 500),
@@ -164,14 +303,19 @@ final class GestureDetector extends StatefulWidget {
     this.child,
   });
 
-  /// A tap: the release.
-  final PointerEventListener? onTap;
+  /// A tap: the release, told after [onTapUp]. Which button tapped, and
+  /// where, [onTapUp] says.
+  final VoidCallback? onTap;
 
   /// The left button pressed, on a cell of a tap. Every detector under the
   /// press is told, where one is told [onTap], and no tap need follow: for
   /// what answers at once. One around another gives [tapAt] to leave out the
   /// cells of the one inside.
-  final PointerEventListener? onTapDown;
+  final GestureTapDownCallback? onTapDown;
+
+  /// A tap's release, on a cell of a tap, with where it is and the button:
+  /// told with [onTap], before it.
+  final GestureTapUpCallback? onTapUp;
 
   /// Whether the cell at `x`, `y` of it is a tap's: where false, the hand
   /// does not show, and a press there is told neither [onTap] nor
@@ -189,23 +333,22 @@ final class GestureDetector extends StatefulWidget {
   final PointerShape? cursor;
 
   /// A second tap within [doubleTapInterval] of a tap: its release.
-  final PointerEventListener? onDoubleTap;
+  final VoidCallback? onDoubleTap;
 
-  /// A press held for [longPressDuration]: the event the mouse was
-  /// reported in last, the press or a drag after it.
-  final PointerEventListener? onLongPress;
+  /// A press held for [longPressDuration].
+  final VoidCallback? onLongPress;
 
   /// The release of a long press, wherever the mouse is.
   final PointerEventListener? onLongPressEnd;
 
   /// The start of a drag: the press, where the drag starts from.
-  final DragListener? onDragStart;
+  final GestureDragStartCallback? onPanStart;
 
   /// The mouse moved to another cell in a drag, wherever it is.
-  final DragListener? onDragUpdate;
+  final GestureDragUpdateCallback? onPanUpdate;
 
   /// The release that ends a drag, wherever the mouse is.
-  final DragListener? onDragEnd;
+  final GestureDragEndCallback? onPanEnd;
 
   /// The buttons whose presses it takes: 0 left, 1 middle, 2 right, 8 to
   /// 11 the side buttons.
@@ -243,7 +386,10 @@ final class _GestureDetectorState extends State<GestureDetector> {
   // when the press is held long enough
   Timer? _longPress;
 
-  bool get _taps => widget.onTap != null || widget.onDoubleTap != null;
+  bool get _taps =>
+      widget.onTap != null ||
+      widget.onTapUp != null ||
+      widget.onDoubleTap != null;
 
   // whether the press under way is on a cell of a tap
   var _tapHere = true;
@@ -258,16 +404,18 @@ final class _GestureDetectorState extends State<GestureDetector> {
 
   /// Whether a tap of the left button is told.
   bool get _showsTap =>
-      (widget.onTap != null || widget.onTapDown != null) &&
+      (widget.onTap != null ||
+          widget.onTapDown != null ||
+          widget.onTapUp != null) &&
       widget.buttons.contains(0);
 
   bool get _longPresses =>
       widget.onLongPress != null || widget.onLongPressEnd != null;
 
   bool get _drags =>
-      widget.onDragStart != null ||
-      widget.onDragUpdate != null ||
-      widget.onDragEnd != null;
+      widget.onPanStart != null ||
+      widget.onPanUpdate != null ||
+      widget.onPanEnd != null;
 
   /// Whether [event] is over this widget.
   bool _contains(PointerEvent event) {
@@ -289,12 +437,26 @@ final class _GestureDetectorState extends State<GestureDetector> {
     }
   }
 
+  /// Calls [callback], unless it is null, as [_tell] does.
+  void _call(VoidCallback? callback) {
+    if (callback != null) {
+      _arena!.tracker.guard(context.findRenderObject()!, callback);
+    }
+  }
+
+  /// Tells a tap that ended with [event]: [GestureDetector.onTapUp], then
+  /// [GestureDetector.onTap].
+  void _tapped(PointerEvent event) {
+    _tell(widget.onTapUp, TapUpDetails(event));
+    _call(widget.onTap);
+  }
+
   void _down(PointerEvent event) {
     _tapHere = widget.tapAt?.call(event.x, event.y) ?? true;
     if (MouseTracker.of(context) case final tracker?) {
       final joined = (_arena = _Arena.of(tracker)).down(this, event);
       if (joined && _tapHere && event.button == 0) {
-        _tell(widget.onTapDown, event);
+        _tell(widget.onTapDown, TapDownDetails(event));
       }
     }
   }
@@ -319,9 +481,9 @@ final class _GestureDetectorState extends State<GestureDetector> {
       shape: widget.cursor,
       behavior: widget.behavior,
       child: Listener(
-        onDown: listens ? _down : null,
-        onUp: listens ? _up : null,
-        onDrag: _longPresses || _drags ? _drag : null,
+        onPointerDown: listens ? _down : null,
+        onPointerUp: listens ? _up : null,
+        onPointerMove: _longPresses || _drags ? _drag : null,
         behavior: widget.behavior,
         child: widget.child,
       ),
@@ -410,21 +572,23 @@ final class _Arena {
               (event.x != pressed.x || event.y != pressed.y):
         _take(detector, _Gesture.drag);
         detector
-          .._tell(detector.widget.onDragStart, DragDetails(pressed))
+          .._tell(detector.widget.onPanStart, DragStartDetails(pressed))
           .._tell(
-            detector.widget.onDragUpdate,
-            DragDetails(
+            detector.widget.onPanUpdate,
+            DragUpdateDetails(
               event,
-              dx: event.x - pressed.x,
-              dy: event.y - pressed.y,
+              delta: (dx: event.x - pressed.x, dy: event.y - pressed.y),
             ),
           );
       case _Gesture.drag
           when identical(_owner, detector) &&
               (event.x != last.x || event.y != last.y):
         detector._tell(
-          detector.widget.onDragUpdate,
-          DragDetails(event, dx: event.x - last.x, dy: event.y - last.y),
+          detector.widget.onPanUpdate,
+          DragUpdateDetails(
+            event,
+            delta: (dx: event.x - last.x, dy: event.y - last.y),
+          ),
         );
       case _:
     }
@@ -453,11 +617,11 @@ final class _Arena {
         _owner = detector;
         if (identical(_first, detector) && _again == _press) {
           _first = _firstUp = _again = null;
-          detector._tell(detector.widget.onDoubleTap, event);
+          detector._call(detector.widget.onDoubleTap);
         } else {
           _flush();
           if (detector.widget.onDoubleTap == null) {
-            detector._tell(detector.widget.onTap, event);
+            detector._tapped(event);
           } else {
             _first = detector;
             _firstUp = event;
@@ -467,10 +631,7 @@ final class _Arena {
           }
         }
       case _Gesture.drag when identical(_owner, detector):
-        detector._tell(
-          detector.widget.onDragEnd,
-          DragDetails(event, dx: event.x - last.x, dy: event.y - last.y),
-        );
+        detector._tell(detector.widget.onPanEnd, DragEndDetails(event));
       case _Gesture.longPress when identical(_owner, detector):
         detector._tell(detector.widget.onLongPressEnd, event);
       case _:
@@ -489,7 +650,7 @@ final class _Arena {
       return;
     }
     _take(detector, _Gesture.longPress);
-    detector._tell(detector.widget.onLongPress, last);
+    detector._call(detector.widget.onLongPress);
   }
 
   /// [detector] takes the press as [gesture], or a widget that is not a
@@ -513,7 +674,7 @@ final class _Arena {
     _interval?.cancel();
     _interval = null;
     if (first != null) {
-      first._tell(first.widget.onTap, up!);
+      first._tapped(up!);
     }
   }
 
@@ -526,7 +687,7 @@ final class _Arena {
     if (owner != null && last != null) {
       switch (_gesture) {
         case _Gesture.drag:
-          owner._tell(owner.widget.onDragEnd, DragDetails(last));
+          owner._tell(owner.widget.onPanEnd, DragEndDetails(last));
         case _Gesture.longPress:
           owner._tell(owner.widget.onLongPressEnd, last);
         case _:

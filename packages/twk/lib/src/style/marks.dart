@@ -4,16 +4,9 @@ library;
 
 import 'package:meta/meta.dart';
 import 'package:twk_core/twk_core.dart'
-    show
-        BorderType,
-        ClusterScan,
-        LogLevel,
-        LogRecord,
-        PipelineOwner,
-        RenderObject,
-        TextSegmenter,
-        log;
+    show BorderType, ClusterScan, PipelineOwner, RenderObject, TextSegmenter;
 
+import '../../log.dart';
 import '../binding/app_binding.dart' show AppBinding;
 import '../framework/framework.dart' show BuildContext;
 import '../text/hit_row.dart' show segmenterOf;
@@ -23,7 +16,7 @@ import 'theme.dart' show Theme;
 // Examples can assume:
 // late BuildContext context;
 
-/// What an empty mark of [Glyphs] is, as a [Mark] says it.
+/// What an empty mark of [Glyphs] is, as a [GlyphMark] says it.
 enum OnEmpty {
   /// A blank: a space, where the mark is a cell to be filled or a place in
   /// a row to be held.
@@ -160,8 +153,8 @@ enum _Field {
 /// A [CellMark] or a [TextMark] says how the field is mostly drawn; either
 /// resolves under [ThemeMarks.cell] and [ThemeMarks.text].
 @immutable
-sealed class Mark {
-  const Mark._(this._field, this.onEmpty);
+sealed class GlyphMark {
+  const GlyphMark._(this._field, this.onEmpty);
 
   final _Field _field;
 
@@ -183,13 +176,13 @@ sealed class Mark {
 
 /// A mark filled into one cell by a render object (a scrollbar's thumb, a
 /// gauge's line, the cursor bar of a list).
-final class CellMark extends Mark {
+final class CellMark extends GlyphMark {
   const CellMark._(super._field, [super.onEmpty = OnEmpty.none]) : super._();
 }
 
 /// A mark drawn as text in a widget (a radio button's, a chip's close, an
 /// arrow of a key hint).
-final class TextMark extends Mark {
+final class TextMark extends GlyphMark {
   const TextMark._(super._field, [super.onEmpty = OnEmpty.none]) : super._();
 }
 
@@ -198,7 +191,7 @@ final class TextMark extends Mark {
 /// the `first` and `last` of a pagination, the lines) are not here.
 abstract final class Marks {
   /// Every mark, in the order of [Glyphs].
-  static const all = <Mark>[
+  static const all = <GlyphMark>[
     cursor,
     accent,
     check,
@@ -424,8 +417,8 @@ abstract final class Marks {
   static const shade = CellMark._(_Field.shade, OnEmpty.blank);
 }
 
-/// The marks of the theme as a terminal draws them: each [Mark] resolved to
-/// the theme's own where it is one column wide and one code point, else to
+/// The marks of the theme as a terminal draws them: each [GlyphMark] resolved
+/// to the theme's own where it is one column wide and one code point, else to
 /// [Glyphs.ascii]'s, with one warning in the app's log for each such
 /// (field, glyph).
 ///
@@ -481,9 +474,9 @@ final class ThemeMarks {
   /// drawn.
   ///
   /// Of the theme's own while it is one column wide and one code point,
-  /// else [Mark.fallback], with the one warning. An empty mark is what
-  /// [Mark.onEmpty] says, with no warning.
-  int? cell(Mark mark, [Glyphs? glyphs]) {
+  /// else [GlyphMark.fallback], with the one warning. An empty mark is what
+  /// [GlyphMark.onEmpty] says, with no warning.
+  int? cell(GlyphMark mark, [Glyphs? glyphs]) {
     final value = mark.of(_of(glyphs));
     if (value.isEmpty) {
       return switch (mark.onEmpty) {
@@ -502,10 +495,10 @@ final class ThemeMarks {
 
   /// [mark] as text in a row, of [glyphs] (the theme's of [ThemeMarks.of],
   /// when null): the theme's own while it is one column wide and one code
-  /// point, else [Mark.fallback], with the one warning. An empty mark is
-  /// what [Mark.onEmpty] says (an empty string, a space, or the
+  /// point, else [GlyphMark.fallback], with the one warning. An empty mark is
+  /// what [GlyphMark.onEmpty] says (an empty string, a space, or the
   /// fallback), with no warning.
-  String text(Mark mark, [Glyphs? glyphs]) {
+  String text(GlyphMark mark, [Glyphs? glyphs]) {
     final value = mark.of(_of(glyphs));
     if (value.isEmpty) {
       return switch (mark.onEmpty) {
@@ -598,7 +591,7 @@ final class ThemeMarks {
         : Glyphs.ascii.shades;
   }
 
-  bool _fits(Mark mark, String glyph) {
+  bool _fits(GlyphMark mark, String glyph) {
     final cache = _cache..refresh();
     final seen = cache.verdicts[mark];
     if (seen != null) {
@@ -641,7 +634,7 @@ final class ThemeMarks {
   // pipeline that meets it: the verdict is a segmenter's, which pipelines
   // share, and [told] the ones it has warned, so a frame asking again
   // warns no more and allocates nothing
-  void _warnOnce(Mark mark, String glyph, _Told told) {
+  void _warnOnce(GlyphMark mark, String glyph, _Told told) {
     final owner = _owner;
     if (owner == null) {
       if (told.none) {
@@ -752,7 +745,7 @@ final class _Cache {
   _Cache(this.segmenter);
 
   final TextSegmenter segmenter;
-  final verdicts = <Mark, _Verdict>{};
+  final verdicts = <GlyphMark, _Verdict>{};
   final _stricts = <int, bool>{};
   final borders = <BorderType, bool>{};
   var _mode = -1;

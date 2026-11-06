@@ -337,10 +337,10 @@ final class RenderBigText extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    _font = _fit(c.maxW, c.maxH);
+    _font = _fit(c.maxWidth, c.maxHeight);
     final set = _setIn(_font);
-    width = c.constrainW(set.width);
-    height = c.constrainH(set.height);
+    width = c.constrainWidth(set.width);
+    height = c.constrainHeight(set.height);
   }
 
   // the narrowest it can be is in the last font, whatever the height

@@ -26,8 +26,9 @@ here takes and returns, those a render object of an app's own is written
 with, and a terminal in memory for tests. The render objects the widgets
 create and the parent data they put on them, the frame loop and the
 terminal's machinery stay in `package:twk_core`; the library comment of
-`lib/twk.dart` gives the rule. `log` is also a function of `dart:math`
-and `dart:developer`: an app that imports either prefixes it.
+`lib/twk.dart` gives the rule. `log` and the log's names are in
+`package:twk/log.dart`, as `log` is also a function of `dart:math` and
+`dart:developer`: an app that imports either prefixes it.
 
 Three libraries of the package are not in `lib/twk.dart`, so that an app
 that uses none of them carries none: `package:twk/hooks.dart`, hooks in
@@ -39,6 +40,12 @@ the console of a command-line tool that is no app ([its page](cli.md)).
 A program that uses one imports it besides `package:twk/twk.dart`; each
 builds on twk's public API alone, its sources in `lib/src/<library>/`,
 its tests in `test/<library>/`, its examples in `example/<library>/`.
+
+`package:twk/format.dart` is a fourth, of three names: `formatBytes`,
+`formatTook` and `ByteUnits`, with which the widgets write a size and a time,
+for an app that writes them as they do (its source is
+`lib/src/foundation/format.dart`); `package:twk/log.dart` a fifth, of four:
+`log`, `LogLevel`, `LogRecord` and `LogSink`, those of twk_core's log.
 
 The package builds for the web with dart2wasm, where
 [twk_web](../../../twk_web/README.md) runs an app on xterm.js: what it takes
@@ -52,9 +59,10 @@ system on the web)` below its root, the console's `save` fails with an
 `test/platform/web_check_test.dart` builds an app with `runApp` there and
 runs it in node (`tool/web_check.dart twk`).
 
-[SKILL.md](../../SKILL.md) is a skill for coding agents that build apps with
-twk: the mental model, setting an app up, the widgets by need, recipes,
-tests with twk_test, debugging and the pitfalls.
+[SKILL.md](../../../../skills/twk/SKILL.md) is a skill for coding agents that build apps with
+twk: the rules that differ from Flutter, setting an app up, tests with
+twk_test and the pitfalls; its recipes, widgets by need and details are the
+guides `doc/guides/recipes.md`, `widgets-by-need.md` and `details.md`.
 `test/skill_test.dart` writes its code blocks into a package of their
 own, which must analyze, format and pass its tests as written, checks
 that every name its prose gives is exported, and that its pitfalls are
@@ -71,7 +79,7 @@ A page a topic, a section a widget or a class:
 - [`ansi`](ansi.md): `parseAnsi`, `AnsiStream`, `stripAnsi`
 - [`layout`](layout.md): `Padding`, `FractionallySizedBox`, `IntrinsicWidth`, `IntrinsicHeight`, `Box`, `Flex`, `Flexible`, `Stack`, …
 - [`data`](data.md): `DotCanvas`, `Gauge`, `BarChart`, `Chart`, `Calendar`, `RenderCalendar.dateAt`, `Sparkline`, `Table<T>`, …
-- [`binding`](binding.md): `InputListener`, `ErrorWidget`, `WidgetError`, `Static<T>`, `AppBinding.debug`, `TerminalProgress`, `WindowTitle`, `TerminalStatus.of`
+- [`binding`](binding.md): `InputListener`, `ErrorWidget`, `WidgetError`, `Static<T>`, `AppBinding.debug`, `TerminalProgress`, `TerminalTitle`, `TerminalStatus.of`
 - [`animation`](animation.md): `Ticker`, `TickerProviderStateMixin`, `AnimationController`, `Animatable<T>`, `Spinner`, `ProgressBar`, `EdgeInsetsTween`, `StyleTween`, …
 - [`focus`](focus.md): `Focus`, `Focus.of`, `FocusScope.of`, `FocusBuilder`, `ExcludeFocus`, `KeyBindings`, `FocusManager.activeKeys`, `ActiveKey.label`, …
 - [`gestures`](gestures.md): `Listener`, `MouseRegion`, `IgnorePointer`, `AbsorbPointer`, `GestureDetector`, `SelectionArea`, `Draggable<T>`, `DragTarget<T>`
@@ -79,7 +87,7 @@ A page a topic, a section a widget or a class:
 - [`editing`](editing.md): `TextField`, `TextEditingController`, `TextBoundaries`, `TextArea`, `Autocomplete`
 - [`overlay`](overlay.md): `Overlay`, `Overlay.of`, `OverlayState.insert`, `ModalBarrier`, `AnimatedModalBarrier`, `Dialog`, `Panel`, `OptionList`, …
 - [`navigation`](navigation.md): `Navigator`, `Navigator.of`, `PopScope<T>`, `Scaffold`, `Breadcrumbs`, `Pagination`, `Stepper`, `Axis.vertical`
-- [`controls`](controls.md): `TabController`, `KeyHintsBar`, `StatusMessage`, `Badge`, `Link`, `StatusBar`, `ListTile`, `Button.outlined`, …
+- [`controls`](controls.md): `TabController`, `KeyHintsBar`, `StatusMessage`, `Badge`, `Hyperlink`, `StatusBar`, `ListTile`, `Button.outlined`, …
 - [`debug`](debug.md): `Console`, `traceback`
 - [`semantics`](semantics.md): `Semantics`, `BlockSemantics`, `ExcludeSemantics`, `SemanticsNode.of`, `AppBinding.screenReader`
 

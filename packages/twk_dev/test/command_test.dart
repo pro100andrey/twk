@@ -14,6 +14,7 @@ import 'twk.dart';
 
 /// The subcommands `twk --help` lists, by name.
 const subcommands = [
+  'agents',
   'create',
   'inspect',
   'logs',

@@ -4,6 +4,14 @@
 
 Breaking:
 
+- `BoxConstraints` has `minWidth`, `maxWidth`, `minHeight` and `maxHeight`, and
+  `constrainWidth` and `constrainHeight`, as Flutter names them: they were
+  `minW`, `maxW`, `minH`, `maxH`, `constrainW` and `constrainH`.
+- `Flex`, `Row`, `Column` and `Wrap` take `spacing` and `runSpacing`, and
+  `RenderFlex` and `RenderWrap` have them, as Flutter names them: they were
+  `gap` and `runGap`.
+- `log`, `LogLevel`, `LogRecord` and `LogSink` are out of `twk_core.dart`: they
+  are in `package:twk_core/terminal.dart` (and `package:twk/log.dart`).
 - A process has one terminal: `Terminal.open` on its own stdio throws a
   `TerminalException` while another is open there and not suspended, in a release
   build too, where the second took keys from the first and the tty stayed raw. A
@@ -111,6 +119,13 @@ Breaking:
 - `BoxConstraints` takes its bounds by name, as Flutter's does, a bound left out
   limiting nothing: `BoxConstraints(maxW: n)`, where it was
   `BoxConstraints(0, n, 0, BoxConstraints.unbounded)`.
+
+Added:
+
+- `BoxConstraints.loose` and `expand`, `copyWith`, `loosen`, `enforce`, `tighten`, `deflate`, `widthConstraints` and `heightConstraints`, `hasTightWidth`, `hasBoundedWidth` and `hasInfiniteWidth` (and for the height), and `biggest` and `smallest` (a `({int width, int height})`, there being no `Size`); `EdgeInsets.symmetric` and `EdgeInsets.fromLTRB`. `EdgeInsets.x` and `EdgeInsets.y` stay.
+
+- `RenderList(padding:)`, an `EdgeInsets` around the items that scrolls with them: its top rows are the start of the content and its bottom ones the end (`onMetrics` and `scrollOffset` count them in, offset 0 shows the top ones empty), and the left and right columns inset every item, laid out that much narrower. `EdgeInsets.zero` by default, and then the list does what it did.
+
 ## 0.2.0
 
 - On Windows Ctrl+Space (and Ctrl+@) reaches the app as NUL again, as it

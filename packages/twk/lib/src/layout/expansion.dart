@@ -340,7 +340,7 @@ final class _ExpansionTileState extends State<ExpansionTile>
         'down': slot?.down,
       },
       hints: {'enter': expanded ? 'collapse' : 'expand'},
-      onTap: (_) => controller.toggle(),
+      onTap: controller.toggle,
       builder: _buildHeader,
     );
     final shown = _fold.value;
@@ -350,7 +350,7 @@ final class _ExpansionTileState extends State<ExpansionTile>
       children: [
         Semantics(
           role: SemanticsRole.button,
-          state: SemanticsState(expanded: expanded),
+          expanded: expanded,
           child: header,
         ),
         if (expanded || shown > 0)
@@ -476,16 +476,20 @@ final class _RenderFold extends RenderObject with RenderObjectWithChildMixin {
   void performLayout(BoxConstraints c) {
     final child = this.child;
     if (child == null) {
-      width = c.minW;
-      height = c.minH;
+      width = c.minWidth;
+      height = c.minHeight;
       return;
     }
     child.layout(
-      BoxConstraints(minW: c.minW, maxW: c.maxW, maxH: c.maxH),
+      BoxConstraints(
+        minWidth: c.minWidth,
+        maxWidth: c.maxWidth,
+        maxHeight: c.maxHeight,
+      ),
       parentUsesSize: true,
     );
-    width = c.constrainW(child.width);
-    height = c.constrainH(_rows(child.height));
+    width = c.constrainWidth(child.width);
+    height = c.constrainHeight(_rows(child.height));
     child.parentData
       ..dx = 0
       ..dy = 0;

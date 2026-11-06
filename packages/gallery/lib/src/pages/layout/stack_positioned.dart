@@ -25,7 +25,11 @@ final _stack = GalleryPage(
     final theme = Theme.of(context);
     return ConstrainedBox(
       // tight across, loose down: each fit lays the child out otherwise
-      constraints: const BoxConstraints(minW: _sw, maxW: _sw, maxH: _sh),
+      constraints: const BoxConstraints(
+        minWidth: _sw,
+        maxWidth: _sw,
+        maxHeight: _sh,
+      ),
       child: Box(
         border: _rounded(theme),
         child: Stack(
@@ -55,7 +59,11 @@ final _stack = GalleryPage(
     'final theme = Theme.of(context);',
     'return ConstrainedBox(',
     '  // tight across, loose down: each fit lays the child out otherwise',
-    '  constraints: const BoxConstraints(minW: $_sw, maxW: $_sw, maxH: $_sh),',
+    '  constraints: const BoxConstraints(',
+    '    minWidth: $_sw,',
+    '    maxWidth: $_sw,',
+    '    maxHeight: $_sh,',
+    '  ),',
     '  child: Box(',
     '    border: .all(type: .rounded, style: theme.border),',
     '    child: Stack(',

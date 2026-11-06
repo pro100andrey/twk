@@ -4,6 +4,7 @@
 // widget above it; each is logged once with the path of its widget, and
 // the rest of the frame is painted as ever.
 import 'package:test/test.dart';
+import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
 
 import 'harness.dart';
@@ -30,8 +31,8 @@ final class _RenderBad extends RenderObject {
     if (layoutThrows) {
       throw StateError('oops');
     }
-    width = c.constrainW(8);
-    height = c.constrainH(1);
+    width = c.constrainWidth(8);
+    height = c.constrainHeight(1);
   }
 
   @override

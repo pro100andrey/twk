@@ -17,11 +17,11 @@ text
 │     DatePicker                                                                 │
 │     FilePicker          ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
 │     Form, FormFie…                                                             │
-│     TabBar, TabVi…   ──────────────────────────────────────────────────────────│
+│     TabBar, TabBa…   ──────────────────────────────────────────────────────────│
 │     KeyHintsBar        inline      ▐●  ▌                                       │
 │     StatusMessage…     rows         4  8                                       │
 │     Callout            popup look   raised  bordered                           │
-│     Link                                                                       │
+│     Hyperlink                                                                  │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
@@ -46,7 +46,7 @@ styles
 │aaaaannnnnnnnnnnaaaaaaggmmmmmmggggggxyzzxggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnnaaaggmmmmggggggggqrqhAhgggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnaaaaaaaaaaggmmmmmgmmmmggqrrrrrrqhAAAAAAAAhgggggggggggggggggggggggggg│
-│aaaaannnnaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend

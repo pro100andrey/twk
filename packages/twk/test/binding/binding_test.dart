@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:test/test.dart';
+import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 import 'package:twk_test/vt_terminal.dart';
@@ -343,7 +344,7 @@ void main() {
     final disposedIn = <int>[];
     final run = Run(
       LayoutBuilder(
-        builder: (context, c) => c.maxW > 6
+        builder: (context, c) => c.maxWidth > 6
             ? Probe(
                 (_) => const Label('wide'),
                 onDispose: () => disposedIn.add(frames),

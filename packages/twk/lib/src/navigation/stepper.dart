@@ -730,13 +730,13 @@ final class _StepperState extends State<Stepper> {
               final step = _headers.at(x);
               return step >= 0 && _clickable(step, _step);
             },
-            onTap: (event) => _click(_headers.at(event.x)),
+            onTapUp: (tap) => _click(_headers.at(tap.localPosition.dx)),
             child: LayoutBuilder(
               builder: (context, constraints) => _row(
                 theme,
                 segmenterOf(context),
                 current,
-                constraints.maxW,
+                constraints.maxWidth,
               ),
             ),
           ),
@@ -778,7 +778,7 @@ final class _StepperState extends State<Stepper> {
               nodes: [_semantics(i, current)],
               child: GestureDetector(
                 tapAt: (_, _) => _clickable(i, _step),
-                onTap: (_) => _click(i),
+                onTap: () => _click(i),
                 child: Text.rich(
                   _header(theme, i, current),
                   style: theme.text,
@@ -869,7 +869,7 @@ final class _StepperState extends State<Stepper> {
     return Semantics(
       role: SemanticsRole.button,
       label: label,
-      state: const SemanticsState(disabled: true),
+      enabled: false,
       hint: 'validating',
       child: Box(
         style: Style(bg: chip.bg),
@@ -891,10 +891,8 @@ final class _StepperState extends State<Stepper> {
     return SemanticsNode(
       role: SemanticsRole.listItem,
       label: '${i + 1}. ${step.title}',
-      state: SemanticsState(
-        selected: i == current,
-        disabled: state == StepState.disabled,
-      ),
+      selected: i == current,
+      enabled: state != StepState.disabled,
       hint: switch (state) {
         StepState.complete => 'complete',
         StepState.error => _controller._errors[i] ?? 'error',

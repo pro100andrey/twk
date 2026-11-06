@@ -65,11 +65,11 @@ final _overlayPage = GalleryPage(
     'Widget build(BuildContext context) => Column(',
     '  mainAxisSize: .min,',
     '  crossAxisAlignment: .start,',
-    '  gap: 1,',
+    '  spacing: 1,',
     '  children: [',
     '    Row(',
     '      mainAxisSize: .min,',
-    '      gap: 2,',
+    '      spacing: 2,',
     '      children: [',
     '        Button(',
     "          'Insert an entry',",
@@ -204,11 +204,11 @@ final class _EntriesState extends State<_Entries> with KeptState {
   Widget build(BuildContext context) => Column(
     mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.start,
-    gap: 1,
+    spacing: 1,
     children: [
       Row(
         mainAxisSize: MainAxisSize.min,
-        gap: 2,
+        spacing: 2,
         children: [
           Button(
             'Insert an entry',

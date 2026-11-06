@@ -60,6 +60,19 @@ sets:
     include:
       - doc/widgets/**
 
+  # The public names of the published packages (doc/internals/api/), written
+  # by tool/api_names, which `api-names` writes again.
+  api:
+    include:
+      - doc/internals/api/**
+
+  # The twk skill's references (skills/twk/references/), written from the
+  # widget catalog and the guides by tool/skill_references, which
+  # `skill-references` writes again.
+  skill-references:
+    include:
+      - skills/twk/references/**
+
   # The tools' own packages (the allocation profiler, the frame scenarios,
   # the docs and coverage tools). Not narrowed by --only packages.
   tools:
@@ -544,6 +557,39 @@ tasks:
     do: package
     args: [packages/gallery, dart, run, tool/catalog.dart]
 
+  api-names:
+    # The public names of each published package, as its libraries export
+    # them (the analyzer's element model), one `library kind name` line
+    # each in doc/internals/api/<package>.txt. Written again, and failed
+    # where that changed a file, so that a name added, renamed or removed
+    # shows in the diff of a pull request. It also fails a name too general
+    # for an export that has no exception, and an exception that matches no
+    # name (tool/api_names/banned_names.txt, each with its reason).
+    desc: write the published packages' public names; fail if stale or too general
+    gate: [handover, ci]
+    needs: [get]
+    unchanged: api
+    do: spare
+    args: [dart, run, tool/api_names/bin/api_names.dart]
+
+  skill-references:
+    # The twk skill's reading for a coding agent, skills/twk/references/:
+    # widgets.md (a line a widget), widgets/<group>.md (each widget's about,
+    # options and code) and guides/, written from doc/widgets and doc/guides
+    # (tool/skill_references reads the catalog's Markdown, so it needs no
+    # build of the gallery, only that `catalog` has run first). Written
+    # again, and failed where that changed a file. The Dart of SKILL.md is
+    # compiled by packages/twk's skill_test.dart, in pkg-test. The whole
+    # skill is packed in twk_dev for `twk agents`: twk_dev's agents_test, in
+    # pkg-test, fails while that pack is stale (`dart run tool/pack_skill.dart`
+    # in packages/twk_dev), as templates_test does for the templates.
+    desc: write the twk skill's references from the catalog and guides; fail if stale
+    gate: [handover, ci]
+    needs: [get, catalog]
+    unchanged: skill-references
+    do: spare
+    args: [dart, run, tool/skill_references/bin/skill_references.dart]
+
   gallery-code:
     # Each page of the gallery: its Code tab made into a program, run in
     # twk's tester at the stage's room, theme and time, its cells against
@@ -666,6 +712,8 @@ tasks:
       - tool-test
       - doc-snippets
       - gallery-code
+      - api-names
+      - skill-references
       - browser-test
       - vscode-install
       - vscode-compile

@@ -126,7 +126,7 @@ final class _Visitor extends SimpleAstVisitor<void> {
     switch (element?.name) {
       case 'KeyBindings' || 'Shortcuts'
           when constructor == null && _isTwk(element):
-        _layer(node);
+        _layer(node, shortcuts: element?.name == 'Shortcuts');
       case 'LeaderKey' when _isTwk(element):
         if (arguments.firstOrNull case final StringLiteral leader?) {
           _name(leader, one: true);
@@ -173,8 +173,10 @@ final class _Visitor extends SimpleAstVisitor<void> {
 
   /// The maps of a `KeyBindings` or a `Shortcuts`: their names, the same
   /// keys twice in one, and hints for keys not bound.
-  void _layer(InstanceCreationExpression node) {
-    final bindings = node.argumentList.arguments.firstOrNull;
+  void _layer(InstanceCreationExpression node, {required bool shortcuts}) {
+    final bindings = shortcuts
+        ? _named(node, 'shortcuts')
+        : node.argumentList.arguments.firstOrNull;
     final bound = <String, String>{};
     var complete = false;
     if (bindings is SetOrMapLiteral) {

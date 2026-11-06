@@ -58,12 +58,12 @@ String _popScopeCode(Options o) {
     '  child: Column(',
     '    mainAxisSize: .min,',
     '    crossAxisAlignment: .start,',
-    '    gap: 1,',
+    '    spacing: 1,',
     '    children: [',
     "      const Text('The note was changed.'),",
     '      Row(',
     '        mainAxisSize: .min,',
-    '        gap: 2,',
+    '        spacing: 2,',
     '        children: [',
     '          Button(',
     "            'Discard',",
@@ -80,20 +80,20 @@ String _popScopeCode(Options o) {
   final shown = keep
       ? [
           '    // Escape and the barrier ask to pop the dialog too: kept',
-          '    (context) => PopScope<bool>(',
+          '    builder: (context) => PopScope<bool>(',
           '      canPop: false,',
           ..._pad(6, _child(dialog)),
           '    ),',
         ]
       : [
-          '    (context) => ${dialog.first}',
+          '    builder: (context) => ${dialog.first}',
           ..._pad(4, dialog.sublist(1, dialog.length - 1)),
           '    ${dialog.last},',
         ];
   const column = [
     'Column(',
     '  crossAxisAlignment: .start,',
-    '  gap: 1,',
+    '  spacing: 1,',
     '  children: [',
     "    Text('Edit the note', style: Theme.of(context).primary),",
     '    Checkbox(',
@@ -113,7 +113,7 @@ String _popScopeCode(Options o) {
       ? [
           'Future<void> _ask() async {',
           '  final discard = await showDialog<bool>(',
-          '    context,',
+          '    context: context,',
           ...shown,
           '  );',
           '  if ((discard ?? false) && mounted) {',
@@ -152,7 +152,7 @@ String _popScopeCode(Options o) {
     'Widget build(BuildContext context) => Column(',
     '  mainAxisSize: .min,',
     '  crossAxisAlignment: .start,',
-    '  gap: 1,',
+    '  spacing: 1,',
     '  children: [',
     '    SizedBox(',
     '      width: 44,',
@@ -214,7 +214,7 @@ String _popScopeCode(Options o) {
     '  @override',
     '  Widget build(BuildContext context) => Column(',
     '    crossAxisAlignment: .start,',
-    '    gap: 1,',
+    '    spacing: 1,',
     '    children: [',
     "      const Text('Notes'),",
     '      Button(',
@@ -299,7 +299,7 @@ final class _AsksState extends State<_Asks> {
   Widget build(BuildContext context) => Column(
     mainAxisSize: .min,
     crossAxisAlignment: .start,
-    gap: 1,
+    spacing: 1,
     children: [
       SizedBox(
         width: 44,
@@ -356,7 +356,7 @@ final class _Notes extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: .start,
-    gap: 1,
+    spacing: 1,
     children: [
       const Text('Notes'),
       Button(
@@ -385,12 +385,12 @@ final class _EditState extends State<_Edit> {
       child: Column(
         mainAxisSize: .min,
         crossAxisAlignment: .start,
-        gap: 1,
+        spacing: 1,
         children: [
           const Text('The note was changed.'),
           Row(
             mainAxisSize: .min,
-            gap: 2,
+            spacing: 2,
             children: [
               Button(
                 'Discard',
@@ -404,8 +404,8 @@ final class _EditState extends State<_Edit> {
       ),
     );
     final discard = await showDialog<bool>(
-      context,
-      keep
+      context: context,
+      builder: keep
           ? (context) => PopScope<bool>(canPop: false, child: dialog(context))
           : dialog,
     );
@@ -418,7 +418,7 @@ final class _EditState extends State<_Edit> {
   Widget build(BuildContext context) {
     final column = Column(
       crossAxisAlignment: .start,
-      gap: 1,
+      spacing: 1,
       children: [
         Text('Edit the note', style: Theme.of(context).primary),
         Checkbox(

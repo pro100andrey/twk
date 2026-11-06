@@ -551,9 +551,9 @@ final class GalleryShellState extends State<GalleryShell>
             debugLabel: 'gallery',
             child: Listener(
               behavior: HitTestBehavior.translucent,
-              onMove: (e) => _hover(e.screenX, e.screenY),
-              onDown: (e) => _pressed = true,
-              onUp: (e) => _pressed = false,
+              onPointerHover: (e) => _hover(e.screenX, e.screenY),
+              onPointerDown: (e) => _pressed = true,
+              onPointerUp: (e) => _pressed = false,
               child: LayoutBuilder(builder: _screen),
             ),
           ),
@@ -583,8 +583,8 @@ final class GalleryShellState extends State<GalleryShell>
   Widget _screen(BuildContext context, BoxConstraints c) {
     _motion.begin(context);
     final t = Tokens(Theme.of(context));
-    final w = c.maxW < BoxConstraints.unbounded ? c.maxW : 120;
-    final h = c.maxH < BoxConstraints.unbounded ? c.maxH : 36;
+    final w = c.maxWidth < BoxConstraints.unbounded ? c.maxWidth : 120;
+    final h = c.maxHeight < BoxConstraints.unbounded ? c.maxHeight : 36;
     final sw = sidebarWidth(w);
     final children = <Widget>[
       Positioned(

@@ -2,6 +2,7 @@
 // there, the wheel scrolls the console, a press selects the row's record;
 // outside it the app gets the mouse as ever.
 import 'package:test/test.dart';
+import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
@@ -13,7 +14,7 @@ void main() {
     await t.pumpWidget(
       Listener(
         behavior: HitTestBehavior.opaque,
-        onDown: (e) => taps.add((e.x, e.y)),
+        onPointerDown: (e) => taps.add((e.x, e.y)),
         child: const SizedBox.expand(),
       ),
       size: (40, 20),

@@ -51,10 +51,10 @@ Widget app(
   PanelLook look = PanelLook.bordered,
 }) => Overlay(
   child: Shortcuts(
-    const {'ctrl+s': Save(), 'ctrl+o': Print()},
+    shortcuts: const {'ctrl+s': Save(), 'ctrl+o': Print()},
     hints: const {'ctrl+s': 'save', 'ctrl+o': 'print'},
     child: Actions(
-      {Save: CallbackAction<Save>(onInvoke: (_) => log.add('save'))},
+      actions: {Save: CallbackAction<Save>(onInvoke: (_) => log.add('save'))},
       child: CommandPalette(
         rows: rows,
         look: look,
@@ -75,7 +75,7 @@ Widget app(
               },
               hints: const {'ctrl+r': 'reload'},
               child: Actions(
-                {
+                actions: {
                   Save: CallbackAction<Save>(
                     onInvoke: (_) => log.add('save editor'),
                   ),
@@ -326,10 +326,10 @@ enter run   esc close'''),
     void top() {}
     Widget app({String Function(KeyCombo combo)? keyLabel}) => Overlay(
       child: Shortcuts(
-        const {'ctrl+x ctrl+s': Save()},
+        shortcuts: const {'ctrl+x ctrl+s': Save()},
         hints: const {'ctrl+x ctrl+s': 'save'},
         child: Actions(
-          {Save: CallbackAction<Save>(onInvoke: (_) {})},
+          actions: {Save: CallbackAction<Save>(onInvoke: (_) => null)},
           child: CommandPalette(
             look: PanelLook.bordered,
             keyLabel: keyLabel,

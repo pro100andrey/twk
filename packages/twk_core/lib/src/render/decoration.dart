@@ -649,21 +649,23 @@ final class RenderDecoratedBox extends RenderObject
     final titles = _measureTitles();
     final child = _child;
     if (child == null) {
-      width = c.maxW >= BoxConstraints.unbounded
-          ? c.constrainW(h > titles ? h : titles)
-          : c.maxW;
-      height = c.maxH >= BoxConstraints.unbounded ? c.constrainH(v) : c.maxH;
+      width = c.maxWidth >= BoxConstraints.unbounded
+          ? c.constrainWidth(h > titles ? h : titles)
+          : c.maxWidth;
+      height = c.maxHeight >= BoxConstraints.unbounded
+          ? c.constrainHeight(v)
+          : c.maxHeight;
     } else {
       _layoutChild(
         child,
-        _less(c.minW, h),
-        _less(c.maxW, h),
-        _less(c.minH, v),
-        _less(c.maxH, v),
+        _less(c.minWidth, h),
+        _less(c.maxWidth, h),
+        _less(c.minHeight, v),
+        _less(c.maxHeight, v),
       );
       final w = child.width + h;
-      width = c.constrainW(w > titles ? w : titles);
-      height = c.constrainH(child.height + v);
+      width = c.constrainWidth(w > titles ? w : titles);
+      height = c.constrainHeight(child.height + v);
       child.parentData
         ..dx = _insetL
         ..dy = _insetT;
@@ -897,7 +899,7 @@ final class RenderDecoratedBox extends RenderObject
         painter
           ..overflow = e <= shown ? TextOverflow.ellipsis : TextOverflow.clip
           ..layout(
-            BoxConstraints(maxW: shown, maxH: 1),
+            BoxConstraints(maxWidth: shown, maxHeight: 1),
             segmenter: seg,
             order: order,
           );
@@ -1055,11 +1057,13 @@ final class RenderDivider extends RenderObject {
   @override
   void performLayout(BoxConstraints c) {
     if (_horizontal) {
-      width = c.maxW >= BoxConstraints.unbounded ? c.minW : c.maxW;
-      height = c.constrainH(1);
+      width = c.maxWidth >= BoxConstraints.unbounded ? c.minWidth : c.maxWidth;
+      height = c.constrainHeight(1);
     } else {
-      width = c.constrainW(1);
-      height = c.maxH >= BoxConstraints.unbounded ? c.minH : c.maxH;
+      width = c.constrainWidth(1);
+      height = c.maxHeight >= BoxConstraints.unbounded
+          ? c.minHeight
+          : c.maxHeight;
     }
   }
 

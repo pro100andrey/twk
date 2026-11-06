@@ -23,7 +23,8 @@ a future or a stream;
 `ControllerHost`, which a controller given to one widget at a time keeps its
 widget in, handed over to one built in that one's place (a key changed) with
 what the controller holds, and what is to happen when none takes it over run
-after the build; `formatTook(time)`, the time something took as a
+after the build; `formatTook(time)` (with `formatBytes` and `ByteUnits` in
+`package:twk/format.dart`, not in `twk.dart`), the time something took as a
 `ProgressList` and a `TaskList` write it, to the tenth of a second, cut,
 under a minute (`3.1 s`), else a clock (`01:05`, `1:02:03`); `formatBytes(bytes,
 byteUnits: ByteUnits.decimal)`, a size as a `DirectoryTree` and a `ProgressList`
@@ -35,7 +36,7 @@ does and named as the IEC does (`1023 B`, `1.0 KiB`, `1.5 MiB`)
 
 `TwkStrings`, the words twk's widgets and `Cli` write themselves (`ETA`,
 `+3 more`, `Y/n`, what a refused answer says), plain data with English
-defaults, and `Localizations(strings:, child:)`, which gives them to the
+defaults, and `TwkLocalizations(strings:, child:)`, which gives them to the
 widgets below; `TwkStrings.of(context)` reads the nearest, English without
 one, and a widget that reads them is built again when they change.
 

@@ -50,7 +50,7 @@ ${_lookLine(o, '  ').map((l) => '$l\n').join()}  items: [
         children: [
           const Text('Right click in here.'),
           Row(
-            gap: 2,
+            spacing: 2,
             children: [
               Button('Or focus me', onPressed: () {}),
               // at a cell of the child, as a right click there
@@ -128,7 +128,7 @@ final class _ContextState extends State<_Context> with KeptState {
           children: [
             const Text('Right click in here.'),
             Row(
-              gap: 2,
+              spacing: 2,
               children: [
                 Button('Or focus me', onPressed: () {}),
                 Button(

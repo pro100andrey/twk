@@ -19,7 +19,7 @@ text
 │     Shadow                 ▎    9        '🙂, take two cells each.',                     │   ellipsisMiddle            │
 │     Padding                ▎   10        wrap: .word,                                    │                             │
 │     Align, Center          ▎   11        overflow: .ellipsis,                            │  align                      │
-│     SizedBox               ▎   12        align: .left,                                   │   left  center  right       │
+│     SizedBox               ▎   12        textAlign: .left,                               │   left  center  right       │
 │     ConstrainedBox         ▎   13      ),                                                │   justify                   │
 │     LimitedBox, Overflo…   ▎   14    ),                                                  │                             │
 │     FractionallySizedBox   ▎   15  );                                                    │  max lines                  │
@@ -56,7 +56,7 @@ styles
 │aaaaattttttaaaaaaaaaaaaaaaaawiiiiIiiiiiiiiEEEEiEEEEiEEEiEEEEEiEEEEEEyiiiiiiiiiiiiiiiiiiiiiuhhiDDDDDDDDDDDDDDihhhhhhhhhhh│
 │aaaaatttttttaaaaaaaaaaaaaaaawiiiIIiiiiiiiiyyyyyiyyyyyyiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiuhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaattttttattttttaaaaaaaaaawiiiIIiiiiiiiiyyyyyyyyyiyyyyyyyyyyiiiiiiiiiiiiiiiiiiiiiiiiiiiiuhhnnnnnhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaattttttttaaaaaaaaaaaaaaawiiiIIiiiiiiiiyyyyyyiyyyyyyiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiuhhBCCCCBiDDDDDDiiDDDDDihhhhhh│
+│aaaaattttttttaaaaaaaaaaaaaaawiiiIIiiiiiiiiyyyyyyyyyyiyyyyyyiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiuhhBCCCCBiDDDDDDiiDDDDDihhhhhh│
 │aaaaattttttttttttttaaaaaaaaawiiiIIiiiiiiyyiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiuhhiDDDDDDDihhhhhhhhhhhhhhhhhh│
 │aaaaatttttttttttattttttttaaawiiiIIiiiiyyiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiuhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaattttttttttttttttttttaaawiiiIIiiyyiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiuhhnnnhnnnnnhhhhhhhhhhhhhhhhhh│

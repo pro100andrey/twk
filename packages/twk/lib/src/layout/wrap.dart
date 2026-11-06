@@ -13,8 +13,8 @@ import 'child_list.dart';
 export 'package:twk_core/twk_core.dart' show WrapAlignment, WrapCrossAlignment;
 
 /// Lays its children out in runs: one after another along [direction],
-/// [gap] cells apart, each as long as it wants up to the whole main axis,
-/// until the next would not fit, which starts a new run [runGap] cells on
+/// [spacing] cells apart, each as long as it wants up to the whole main axis,
+/// until the next would not fit, which starts a new run [runSpacing] cells on
 /// (Yoga's flexWrap); tags, buttons, key hints that flow onto the next row
 /// as the terminal narrows. [alignment] places the children of each run,
 /// [crossAxisAlignment] each child in its run, [runAlignment] the runs.
@@ -25,7 +25,7 @@ export 'package:twk_core/twk_core.dart' show WrapAlignment, WrapCrossAlignment;
 ///
 /// ```dart
 /// const Wrap(
-///   gap: 1,
+///   spacing: 1,
 ///   children: [Text('[dart]'), Text('[twk]'), Text('[terminal]')],
 /// )
 /// ```
@@ -35,17 +35,17 @@ export 'package:twk_core/twk_core.dart' show WrapAlignment, WrapCrossAlignment;
 ///  * [Row] and [Column], which keep their children on one line.
 final class Wrap extends MultiChildRenderObjectWidget {
   /// Lays [children] out in runs along [direction], across by default,
-  /// [gap] and [runGap] cells apart, each 0 or more.
+  /// [spacing] and [runSpacing] cells apart, each 0 or more.
   const Wrap({
     super.key,
     this.direction = Axis.horizontal,
     this.alignment = WrapAlignment.start,
     this.runAlignment = WrapAlignment.start,
     this.crossAxisAlignment = WrapCrossAlignment.start,
-    this.gap = 0,
-    this.runGap = 0,
+    this.spacing = 0,
+    this.runSpacing = 0,
     super.children,
-  }) : assert(gap >= 0 && runGap >= 0, 'gaps of 0 cells or more');
+  }) : assert(spacing >= 0 && runSpacing >= 0, 'spacings of 0 cells or more');
 
   /// The main axis, along which a run goes.
   final Axis direction;
@@ -62,10 +62,10 @@ final class Wrap extends MultiChildRenderObjectWidget {
   final WrapCrossAlignment crossAxisAlignment;
 
   /// Cells between one child of a run and the next.
-  final int gap;
+  final int spacing;
 
   /// Cells between one run and the next.
-  final int runGap;
+  final int runSpacing;
 
   @override
   MultiChildRenderObjectElement createElement() => ChildListElement(this);
@@ -76,8 +76,8 @@ final class Wrap extends MultiChildRenderObjectWidget {
     alignment: alignment,
     runAlignment: runAlignment,
     crossAxisAlignment: crossAxisAlignment,
-    gap: gap,
-    runGap: runGap,
+    spacing: spacing,
+    runSpacing: runSpacing,
   );
 
   @override
@@ -87,7 +87,7 @@ final class Wrap extends MultiChildRenderObjectWidget {
       ..alignment = alignment
       ..runAlignment = runAlignment
       ..crossAxisAlignment = crossAxisAlignment
-      ..gap = gap
-      ..runGap = runGap;
+      ..spacing = spacing
+      ..runSpacing = runSpacing;
   }
 }

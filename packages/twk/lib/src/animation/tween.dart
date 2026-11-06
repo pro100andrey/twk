@@ -65,6 +65,18 @@ class Tween<T> extends Animatable<T> {
   /// The value at 1.
   final T end;
 
+  /// A tween of this kind from [begin] to [end]: what a
+  /// [TweenAnimationBuilder] runs between the value it shows and a new end.
+  /// A tween that is not a `Tween<double>` itself overrides it with the one
+  /// of its own kind (`IntTween` does), else the builder throws when it needs
+  /// one.
+  Tween<T> withEnds(T begin, T end) {
+    if (runtimeType != Tween<T>) {
+      throw UnsupportedError('$runtimeType.withEnds is not overridden');
+    }
+    return Tween<T>(begin: begin, end: end);
+  }
+
   /// The value at [t]: for doubles `begin + (end - begin) * t`; an
   /// [UnsupportedError] for another type, which overrides it.
   @protected
@@ -89,6 +101,9 @@ class IntTween extends Tween<int> {
   const IntTween({required super.begin, required super.end});
 
   @override
+  IntTween withEnds(int begin, int end) => IntTween(begin: begin, end: end);
+
+  @override
   int lerp(double t) => (begin + (end - begin) * t).round();
 }
 
@@ -101,10 +116,14 @@ class IntTween extends Tween<int> {
 ///
 /// ```dart
 /// TweenAnimationBuilder<Color>(
-///   value: failed
-///       ? const Color.rgb(220, 50, 50)
-///       : const Color.rgb(50, 200, 80),
-///   tween: ColorTween.new,
+///   tween: ColorTween(
+///     begin: failed
+///         ? const Color.rgb(220, 50, 50)
+///         : const Color.rgb(50, 200, 80),
+///     end: failed
+///         ? const Color.rgb(220, 50, 50)
+///         : const Color.rgb(50, 200, 80),
+///   ),
 ///   duration: const Duration(milliseconds: 300),
 ///   builder: (context, color, child) =>
 ///       Text('●', style: Style(fg: color)),
@@ -118,6 +137,10 @@ class IntTween extends Tween<int> {
 class ColorTween extends Tween<Color> {
   /// A tween of colors from [begin] to [end].
   const ColorTween({required super.begin, required super.end});
+
+  @override
+  ColorTween withEnds(Color begin, Color end) =>
+      ColorTween(begin: begin, end: end);
 
   @override
   Color lerp(double t) => Color.lerp(begin, end, t);

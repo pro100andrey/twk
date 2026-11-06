@@ -455,8 +455,8 @@ final class _CommandPaletteState extends State<CommandPalette> {
     final entries = _entries(target);
     unawaited(
       showDialog<_Entry>(
-        context,
-        (_) => _Palette(
+        context: context,
+        builder: (_) => _Palette(
           entries,
           owner: this,
           at: at,
@@ -851,7 +851,7 @@ final class _PaletteState extends State<_Palette> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Row(
-                      gap: 1,
+                      spacing: 1,
                       children: [
                         if (widget.prompt.isNotEmpty) Text(widget.prompt),
                         Expanded(child: _field()),
@@ -883,7 +883,7 @@ final class _PaletteState extends State<_Palette> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Row(
-                gap: 1,
+                spacing: 1,
                 children: [
                   if (widget.prompt.isNotEmpty) Text(widget.prompt),
                   Expanded(child: _field()),

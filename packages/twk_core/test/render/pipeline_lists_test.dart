@@ -13,7 +13,7 @@ final class _Cell extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW < BoxConstraints.unbounded ? c.maxW : 8;
+    width = c.maxWidth < BoxConstraints.unbounded ? c.maxWidth : 8;
     height = 1;
   }
 

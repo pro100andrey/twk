@@ -25,16 +25,14 @@ final _tween = GalleryPage(
     _tweenValue,
     _opacities,
     (context, i) => TweenAnimationBuilder<double>(
-      value: _opacities[i],
-      from: 0,
-      tween: Tween.new,
+      tween: Tween<double>(begin: 0, end: _opacities[i]),
       duration: _duration,
       curve: _curveOf(o),
       builder: (context, value, _) {
         final theme = Theme.of(context);
         return Row(
           mainAxisSize: .min,
-          gap: 1,
+          spacing: 1,
           children: [
             SizedBox(
               width: 30,
@@ -53,16 +51,14 @@ final _tween = GalleryPage(
   code: (o) {
     List<String> body(String value) => [
       'return TweenAnimationBuilder<double>(',
-      '  value: $value,',
-      '  from: 0,',
-      '  tween: Tween.new,',
+      '  tween: Tween<double>(begin: 0, end: $value),',
       '  duration: $_dur,',
       ..._curveLine(o, 2),
       '  builder: (context, value, _) {',
       '    final theme = Theme.of(context);',
       '    return Row(',
       '      mainAxisSize: .min,',
-      '      gap: 1,',
+      '      spacing: 1,',
       '      children: [',
       '        SizedBox(',
       '          width: 30,',

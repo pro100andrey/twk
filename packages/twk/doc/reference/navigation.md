@@ -54,7 +54,7 @@ route under it); an observer is given to one navigator at a time, its
 
 ## `PopScope<T>`
 
-`PopScope<T>(canPop: true, onPopInvokedWithResult:, onPopInvoked:, child:)`
+`PopScope<T>(canPop: true, onPopInvokedWithResult:, child:)`
 refuses or intercepts a pop of the route it is in: while one in the route in
 front cannot pop, the back key and `maybePop` leave the route, even the
 first one, whose back key otherwise goes on past the navigator, take the

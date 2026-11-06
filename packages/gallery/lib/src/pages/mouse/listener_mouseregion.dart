@@ -36,7 +36,7 @@ final _listenerMouseregionPage = GalleryPage(
 const _log = 4;
 
 const _pressLine =
-    "          onDown: (event) => _saw('press of button "
+    "          onPointerDown: (event) => _saw('press of button "
     r"${event.button}', event),";
 
 const _overLine =
@@ -72,7 +72,7 @@ final class _EventsState extends State<_Events> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         MouseRegion(
           onEnter: (event) {
@@ -85,10 +85,11 @@ final class _EventsState extends State<_Events> {
           },
           cursor: widget.cursor,
           child: Listener(
-            onDown: (event) => _saw('press of button ${event.button}', event),
-            onUp: (event) => _saw('release', event),
-            onMove: (event) => _saw('move', event),
-            onDrag: (event) => _saw('drag', event),
+            onPointerDown: (event) =>
+                _saw('press of button ${event.button}', event),
+            onPointerUp: (event) => _saw('release', event),
+            onPointerHover: (event) => _saw('move', event),
+            onPointerMove: (event) => _saw('drag', event),
             onScroll: (event) => _saw(event.kind.name, event),
             behavior: HitTestBehavior.opaque,
             child: SizedBox(
@@ -146,7 +147,7 @@ String _eventsCode(Options o) {
     '  return Column(',
     '    mainAxisSize: .min,',
     '    crossAxisAlignment: .start,',
-    '    gap: 1,',
+    '    spacing: 1,',
     '    children: [',
     '      MouseRegion(',
     '        onEnter: (event) {',
@@ -160,9 +161,9 @@ String _eventsCode(Options o) {
     if (cursor != 'none') '        cursor: .$cursor,',
     '        child: Listener(',
     _pressLine,
-    "          onUp: (event) => _saw('release', event),",
-    "          onMove: (event) => _saw('move', event),",
-    "          onDrag: (event) => _saw('drag', event),",
+    "          onPointerUp: (event) => _saw('release', event),",
+    "          onPointerHover: (event) => _saw('move', event),",
+    "          onPointerMove: (event) => _saw('drag', event),",
     '          onScroll: (event) => _saw(event.kind.name, event),',
     '          behavior: .opaque,',
     '          child: SizedBox(',

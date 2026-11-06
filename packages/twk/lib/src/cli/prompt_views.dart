@@ -55,7 +55,8 @@ final class PromptAnswer<T> {
 
 /// Ctrl+C cancels [answer] as an interrupt and Ctrl+D as the end of
 /// input, where [atEmpty] says the prompt is empty; the other keys that
-/// reach it go to [onKey].
+/// reach it go to [onKey]. Esc, once nothing below it took it, is Ctrl+C:
+/// a prompt that seems to ignore it reads as hung.
 final class _PromptKeys extends StatelessWidget {
   const _PromptKeys({
     required this.answer,
@@ -87,7 +88,14 @@ final class _PromptKeys extends StatelessWidget {
         answer.cancel(PromptCancelReason.endOfInput);
         return KeyEventResult.handled;
       }
-      return onKey?.call(event) ?? KeyEventResult.ignored;
+      final told = onKey?.call(event) ?? KeyEventResult.ignored;
+      if (told == KeyEventResult.ignored &&
+          event.code == KeyCode.escape &&
+          event.modifiers == 0) {
+        answer.cancel(PromptCancelReason.interrupt);
+        return KeyEventResult.handled;
+      }
+      return told;
     },
     child: child,
   );

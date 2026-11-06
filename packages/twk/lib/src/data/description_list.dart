@@ -75,7 +75,7 @@ final class DescriptionItem {
 ///
 /// Each term is followed by [separator] (`:` by default; empty for none)
 /// and placed in its column as [termAlign] says, on the left by default.
-/// The values start [gap] columns after the term column, which is
+/// The values start [spacing] columns after the term column, which is
 /// [termWidth] wide, or where that is null, as wide as the longest term
 /// of its group with its separator; but where the group's rows do not all
 /// fit so, no wider than [maxTermFraction] of the list's width: a term
@@ -130,14 +130,14 @@ final class DescriptionList extends StatelessWidget {
     required this.items,
     super.key,
     this.separator = ':',
-    this.gap = 1,
+    this.spacing = 1,
     this.termAlign = TextAlign.left,
     this.termWidth,
     this.maxTermFraction = 0.4,
     this.stackBelowWidth = 30,
     this.termStyle,
     this.valueStyle,
-  }) : assert(gap >= 0, 'a gap of 0 columns or more'),
+  }) : assert(spacing >= 0, 'a spacing of 0 columns or more'),
        assert(termWidth == null || termWidth >= 0, 'a term width of 0 or more'),
        assert(
          maxTermFraction >= 0 && maxTermFraction <= 1,
@@ -152,7 +152,7 @@ final class DescriptionList extends StatelessWidget {
   final String separator;
 
   /// The columns between the term column and the values.
-  final int gap;
+  final int spacing;
 
   /// Where a term is placed in its column.
   final TextAlign termAlign;
@@ -186,7 +186,7 @@ final class DescriptionList extends StatelessWidget {
     final heading = theme.text.merge(const Style(attrs: Attr.bold));
     return _Rows(
       groups: [for (final item in items) item.isGroup],
-      gap: gap,
+      spacing: spacing,
       termWidth: termWidth,
       maxTermFraction: maxTermFraction,
       stackBelowWidth: stackBelowWidth,
@@ -199,7 +199,7 @@ final class DescriptionList extends StatelessWidget {
                 style: term,
                 wrap: TextWrap.none,
                 overflow: TextOverflow.ellipsis,
-                align: termAlign,
+                textAlign: termAlign,
               ),
             ),
             _read(
@@ -247,7 +247,7 @@ String? _textOf(Widget value) => switch (value) {
 final class _Rows extends MultiChildRenderObjectWidget {
   const _Rows({
     required this.groups,
-    required this.gap,
+    required this.spacing,
     required this.termWidth,
     required this.maxTermFraction,
     required this.stackBelowWidth,
@@ -255,7 +255,7 @@ final class _Rows extends MultiChildRenderObjectWidget {
   });
 
   final List<bool> groups;
-  final int gap;
+  final int spacing;
   final int? termWidth;
   final double maxTermFraction;
   final int stackBelowWidth;
@@ -266,7 +266,7 @@ final class _Rows extends MultiChildRenderObjectWidget {
   @override
   _RenderRows createRenderObject(BuildContext context) => _RenderRows(
     groups: groups,
-    gap: gap,
+    spacing: spacing,
     termWidth: termWidth,
     maxTermFraction: maxTermFraction,
     stackBelowWidth: stackBelowWidth,
@@ -276,7 +276,7 @@ final class _Rows extends MultiChildRenderObjectWidget {
   void updateRenderObject(BuildContext context, _RenderRows renderObject) {
     renderObject
       ..groups = groups
-      ..gap = gap
+      ..spacing = spacing
       ..termWidth = termWidth
       ..maxTermFraction = maxTermFraction
       ..stackBelowWidth = stackBelowWidth;
@@ -296,7 +296,7 @@ final class _RenderRows extends RenderObject
     with ContainerRenderObjectMixin<_RowData> {
   _RenderRows({
     required this._groups,
-    required this._gap,
+    required this._spacing,
     required this._termWidth,
     required this._maxTermFraction,
     required this._stackBelowWidth,
@@ -311,11 +311,11 @@ final class _RenderRows extends RenderObject
     }
   }
 
-  int _gap;
-  int get gap => _gap;
-  set gap(int g) {
-    if (g != _gap) {
-      _gap = g;
+  int _spacing;
+  int get spacing => _spacing;
+  set spacing(int g) {
+    if (g != _spacing) {
+      _spacing = g;
       markNeedsLayout();
     }
   }
@@ -374,9 +374,11 @@ final class _RenderRows extends RenderObject
     void group(int end) {
       var column =
           _termWidth ??
-          (longest < most || longest + _gap + widest <= width ? longest : most);
+          (longest < most || longest + _spacing + widest <= width
+              ? longest
+              : most);
       if (bounded) {
-        final room = width - _gap - 1;
+        final room = width - _spacing - 1;
         column = column < room ? column : (room > 0 ? room : 0);
       }
       for (var i = start; i < end; i++) {
@@ -429,7 +431,11 @@ final class _RenderRows extends RenderObject
         return h < maxH ? h : maxH;
       }
       child.layout(
-        BoxConstraints(minW: minW, maxW: maxW, maxH: maxH),
+        BoxConstraints(
+          minWidth: minW,
+          maxWidth: maxW,
+          maxHeight: maxH,
+        ),
         parentUsesSize: true,
       );
       child.parentData
@@ -456,7 +462,7 @@ final class _RenderRows extends RenderObject
       } else {
         final column = columns[i];
         final t = lay(term, 0, y, column, column, 1);
-        final x = column + _gap;
+        final x = column + _spacing;
         final room = bounded ? (width > x ? width - x : 0) : width;
         final v = lay(value, x, y, 0, room, tall);
         y += t > v ? t : v;
@@ -477,7 +483,10 @@ final class _RenderRows extends RenderObject
         w = children[k++].getMaxIntrinsicWidth(unbounded);
       } else {
         k++;
-        w = columns[i] + _gap + children[k++].getMaxIntrinsicWidth(unbounded);
+        w =
+            columns[i] +
+            _spacing +
+            children[k++].getMaxIntrinsicWidth(unbounded);
       }
       most = w > most ? w : most;
     }
@@ -506,9 +515,11 @@ final class _RenderRows extends RenderObject
   @override
   void performLayout(BoxConstraints c) {
     final children = _children;
-    final w = c.maxW < BoxConstraints.unbounded ? c.maxW : _widest(children);
-    width = c.constrainW(w);
-    height = c.constrainH(_rows(children, width, place: true));
+    final w = c.maxWidth < BoxConstraints.unbounded
+        ? c.maxWidth
+        : _widest(children);
+    width = c.constrainWidth(w);
+    height = c.constrainHeight(_rows(children, width, place: true));
   }
 
   @override

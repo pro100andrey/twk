@@ -7,8 +7,9 @@ FollowMachine started({
   int? size = 10,
   bool fromEnd = true,
   bool identity = false,
+  bool? events,
 }) =>
-    FollowMachine(tellsIdentity: identity)
+    FollowMachine(tellsIdentity: identity, eventsTell: events ?? !identity)
       ..start(fromEnd: fromEnd, size: size, identity: identity ? 'a' : null);
 
 /// A look with nothing in between.
@@ -64,6 +65,54 @@ void main() {
       final m = started(identity: true);
       expect(m.settled(size: 10, identity: 'a'), isTrue);
       expect(m.settled(size: 10, identity: 'b'), isFalse);
+    });
+  });
+
+  group('where the identity and the events both tell, as on Linux', () {
+    FollowMachine linux() => started(identity: true, events: true);
+
+    test('a file deleted and made again with the same inode is a replacement '
+        'by its create, however long it is', () {
+      final m = linux()..nameEvent(puts: true);
+      expect(m.settled(size: 10, identity: 'a'), isFalse);
+      expectPlan(read(m, 12, 'a'), reset: true, from: 0, to: 12);
+    });
+
+    test('the event first and then the identity is one replacement', () {
+      final m = linux()..nameEvent(puts: true);
+      expectPlan(read(m, 12, 'b'), reset: true, from: 0, to: 12);
+      expectPlan(read(m, 12, 'b'));
+    });
+
+    test('the identity first and the event late is one replacement', () {
+      final m = linux();
+      expectPlan(read(m, 12, 'b'), reset: true, from: 0, to: 12);
+      m.nameEvent(puts: true);
+      expect(m.settled(size: 12, identity: 'b'), isTrue);
+      expectPlan(read(m, 12, 'b'));
+    });
+
+    test('after a late event the next replacement counts again', () {
+      final m = linux();
+      read(m, 12, 'b');
+      m
+        ..nameEvent(puts: true)
+        ..nameEvent(puts: true);
+      expectPlan(read(m, 20, 'b'), reset: true, from: 0, to: 20);
+    });
+
+    test('a file not there that comes back owes nothing more', () {
+      final m = linux();
+      read(m, null);
+      m.nameEvent(puts: true);
+      read(m, 4, 'b');
+      m.nameEvent(puts: true);
+      expectPlan(read(m, 6, 'b'), reset: true, from: 0, to: 6);
+    });
+
+    test('a write is no replacement', () {
+      final m = linux()..nameEvent(puts: false);
+      expectPlan(read(m, 12, 'a'), from: 10, to: 12);
     });
   });
 

@@ -40,7 +40,7 @@ final class SlotEntry {
 
   /// Builds what the entry shows, as an element of its own: what it throws
   /// is shown in place of this entry only ([BuildOwner.onBuildError]).
-  final Widget Function(BuildContext context) builder;
+  final WidgetBuilder builder;
 
   /// `SlotEntry(slot, id)`.
   @override
@@ -161,7 +161,7 @@ final class SlotScope extends InheritedWidget {
 /// ```dart
 /// Slot(
 ///   'toolbar',
-///   layout: (context, children) => Row(gap: 1, children: children),
+///   layout: (context, children) => Row(spacing: 1, children: children),
 /// )
 /// ```
 ///

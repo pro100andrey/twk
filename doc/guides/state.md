@@ -205,7 +205,7 @@ final class Search extends HookWidget {
           crossAxisAlignment: .stretch,
           children: [
             Row(
-              gap: 1,
+              spacing: 1,
               children: [
                 Text('⌕', style: theme.primary),
                 Expanded(
@@ -226,7 +226,7 @@ final class Search extends HookWidget {
               )
             else
               Row(
-                gap: 1,
+                spacing: 1,
                 children: [
                   Spinner(style: theme.primary),
                   Text('loading the packages', style: theme.muted),

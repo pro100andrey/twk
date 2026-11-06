@@ -44,7 +44,7 @@ final _intrinsic = GalleryPage(
     final cards = Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      gap: 1,
+      spacing: 1,
       children: [
         for (final text in ['one', 'three lines here'])
           SizedBox(
@@ -58,7 +58,7 @@ final _intrinsic = GalleryPage(
       height: _ih,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        gap: 4,
+        spacing: 4,
         children: [
           if (o(_intrinsicIw)) IntrinsicWidth(child: menu) else menu,
           if (o(_intrinsicIh)) IntrinsicHeight(child: cards) else cards,
@@ -85,7 +85,7 @@ final _intrinsic = GalleryPage(
     'final cards = Row(',
     '  mainAxisSize: .min,',
     '  crossAxisAlignment: .stretch,',
-    '  gap: 1,',
+    '  spacing: 1,',
     '  children: [',
     "    for (final text in ['one', 'three lines here'])",
     '      SizedBox(',
@@ -102,7 +102,7 @@ final _intrinsic = GalleryPage(
     '  height: $_ih,',
     '  child: Row(',
     '    crossAxisAlignment: .start,',
-    '    gap: 4,',
+    '    spacing: 4,',
     '    children: [',
     '      ${o(_intrinsicIw) ? 'IntrinsicWidth(child: menu)' : 'menu'},',
     '      ${o(_intrinsicIh) ? 'IntrinsicHeight(child: cards)' : 'cards'},',

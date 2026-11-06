@@ -199,7 +199,7 @@ final class _ConversationState extends State<_Conversation> {
               border: Border.all(type: .rounded, style: theme.border),
               padding: const .x(1),
               child: Row(
-                gap: 1,
+                spacing: 1,
                 children: [
                   Text.rich([Span('›', theme.primary).bold]),
                   Expanded(
@@ -215,7 +215,7 @@ final class _ConversationState extends State<_Conversation> {
             ),
           ),
           Row(
-            gap: 1,
+            spacing: 1,
             children: [
               if (answer != null) ...[
                 Spinner(style: theme.accent),

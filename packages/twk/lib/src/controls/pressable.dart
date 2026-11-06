@@ -4,7 +4,7 @@
 library;
 
 import 'package:twk_core/twk_core.dart'
-    show Attr, Brightness, Color, HitTestBehavior, TextWrap;
+    show Attr, Brightness, Color, EdgeInsets, HitTestBehavior, TextWrap;
 
 import '../animation/animation_controller.dart';
 import '../animation/ticker.dart';
@@ -13,6 +13,7 @@ import '../foundation/change_notifier.dart';
 import '../framework/framework.dart';
 import '../gestures/gesture_detector.dart';
 import '../gestures/mouse.dart';
+import '../layout/box.dart';
 import '../style/color_mix.dart';
 import '../style/style.dart';
 import '../text/hit_row.dart' show segmenterOf;
@@ -26,9 +27,9 @@ import '../text/widgets.dart';
 /// [hints]: they get its keys from the moment it has the focus, and
 /// [onKeyEvent] those they leave. A press of the left button over it
 /// focuses it, while it is enabled, and a tap over it calls [onTap] (see
-/// `GestureDetector`); while it is enabled with an [onTap], the pointer
-/// is the hand over it ([PointerShape.pointer], where the terminal shows
-/// pointer shapes) if the theme asks for it
+/// `GestureDetector`); while it is enabled with an [onTap] or [onTapUp], the
+/// pointer is the hand over it ([PointerShape.pointer], where the terminal
+/// shows pointer shapes) if the theme asks for it
 /// ([ThemeData.pointerMode]). [builder] is called again as
 /// the focus comes and goes.
 ///
@@ -39,7 +40,7 @@ import '../text/widgets.dart';
 /// Pressable(
 ///   bindings: {'space': () => print('toggled')},
 ///   hints: const {'space': 'toggle'},
-///   onTap: (_) => print('toggled'),
+///   onTap: () => print('toggled'),
 ///   builder: (context, focused) => Text(
 ///     '[ power ]',
 ///     style: focused ? Theme.of(context).primary : const Style(),
@@ -62,6 +63,7 @@ final class Pressable extends StatefulWidget {
     this.hints = const {},
     this.onKeyEvent,
     this.onTap,
+    this.onTapUp,
     this.focusNode,
     this.autofocus = false,
     this.behavior = HitTestBehavior.deferToChild,
@@ -88,9 +90,12 @@ final class Pressable extends StatefulWidget {
   /// Gets the keys while it has the focus, those the [bindings] leave.
   final FocusOnKeyEventCallback? onKeyEvent;
 
-  /// A tap of the left button over it, the cell in its coordinates; null
-  /// for a disabled control.
-  final PointerEventListener? onTap;
+  /// A tap of the left button over it; null for a disabled control.
+  final VoidCallback? onTap;
+
+  /// A tap's release over it, with the cell in its coordinates, told before
+  /// [onTap]; for a control that is hit at a cell of it.
+  final GestureTapUpCallback? onTapUp;
 
   /// See [Focus.focusNode].
   final FocusNode? focusNode;
@@ -155,10 +160,11 @@ final class _PressableState extends State<Pressable> {
         enabled ? widget.bindings : const {},
         hints: enabled ? widget.hints : const {},
         child: Listener(
-          onDown: enabled ? _down : null,
+          onPointerDown: enabled ? _down : null,
           behavior: widget.behavior,
           child: GestureDetector(
             onTap: enabled ? widget.onTap : null,
+            onTapUp: enabled ? widget.onTapUp : null,
             behavior: widget.behavior,
             child: widget.builder(context, _node.hasFocus),
           ),
@@ -298,7 +304,8 @@ Style buttonDisabledStyle(ThemeData theme) => theme.muted.merge(
 /// one, back to its own over [flash]. A background that is not RGB does
 /// not flash.
 final class PressChip extends StatefulWidget {
-  /// A chip of [text] in [style] that flashes as [presses] grows.
+  /// A chip of [text], a cell of [style] at either end, in [style], that
+  /// flashes as [presses] grows.
   const PressChip(
     this.text, {
     required this.style,
@@ -323,7 +330,8 @@ final class PressChip extends StatefulWidget {
     this.flash = const Duration(milliseconds: 260),
   }) : text = '';
 
-  /// What it shows, the blanks around it too; empty for a [builder].
+  /// What it shows between its two end cells, a `Text` of its own, so that
+  /// `find.text` finds it; empty for a [builder].
   final String text;
 
   /// Builds what it shows instead of [text]; null for [text].
@@ -442,10 +450,24 @@ final class _PressChipState extends State<PressChip>
     }
     var chip = switch (widget.builder) {
       final build? => build(context, style, _hovered && widget.enabled),
-      null => Text(widget.text, style: style, wrap: TextWrap.none, maxLines: 1),
+      null => Box(
+        style: style,
+        padding: const EdgeInsets.x(1),
+        child: Text(
+          widget.text,
+          style: style,
+          wrap: TextWrap.none,
+          maxLines: 1,
+        ),
+      ),
     };
     if (widget.enabled) {
-      chip = Listener(onDown: _down, onUp: _up, onDrag: _drag, child: chip);
+      chip = Listener(
+        onPointerDown: _down,
+        onPointerUp: _up,
+        onPointerMove: _drag,
+        child: chip,
+      );
     }
     if (hoverStyle != null && widget.enabled) {
       chip = MouseRegion(

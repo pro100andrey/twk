@@ -13,8 +13,7 @@ import 'console_record.dart';
 // late BuildContext context;
 
 export 'console.dart' hide RenderConsolePanel;
-export 'console_record.dart' show stackLines;
-export 'editor.dart';
+export 'editor.dart' hide editorCommand;
 export 'traceback.dart';
 
 /// Prints the element tree [context] is in, from its root down, as
@@ -28,7 +27,7 @@ export 'traceback.dart';
 ///
 /// ```dart
 /// KeyBindings(
-///   {'f12': () => debugDumpTree(context)},
+///   {'f12': () => debugDumpApp(context)},
 ///   child: const Text('app'),
 /// )
 /// ```
@@ -36,7 +35,7 @@ export 'traceback.dart';
 /// See also:
 ///
 ///  * [debugDumpRenderTree], the render objects instead.
-void debugDumpTree(BuildContext context) =>
+void debugDumpApp(BuildContext context) =>
     Zone.current.print(_rootOf(context).describe().toStringDeep());
 
 /// Prints the render tree [context]'s render object is in, from its root

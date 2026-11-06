@@ -12,8 +12,8 @@ void main() {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text.line('tag', align: TextAlign.right),
-            Text.richLine([Span('tag')], align: TextAlign.right),
+            Text.line('tag', textAlign: TextAlign.right),
+            Text.richLine([Span('tag')], textAlign: TextAlign.right),
             Text.line('a long line', overflow: TextOverflow.clip),
             Text.line('a long line', overflow: TextOverflow.ellipsisStart),
           ],

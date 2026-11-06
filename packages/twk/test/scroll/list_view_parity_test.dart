@@ -58,7 +58,7 @@ void main() {
       );
       expect(t.lines, down(4, -1));
       expect(controller.offset, 0);
-      expect(controller.position.maxOffset, 25);
+      expect(controller.position.maxScrollExtent, 25);
       await t.press('tab');
       final shown = <List<Object>>[];
       for (final key in ['up', 'up', 'down', 'pageup', 'home', 'end']) {
@@ -136,7 +136,7 @@ void main() {
 
     testTwk('starts at the initial offset of its controller, from the '
         'bottom', (t) async {
-      final controller = ScrollController(initialOffset: 4);
+      final controller = ScrollController(initialScrollOffset: 4);
       await t.pumpWidget(
         ListView.builder(
           reverse: true,
@@ -249,7 +249,8 @@ void main() {
     testTwk('a jumpToIndex asked before the list has the controller puts the '
         'item at the bottom as the list is first laid out, in place of the '
         'initial offset', (t) async {
-      final controller = ListController(initialOffset: 4)..jumpToIndex(10);
+      final controller = ListController(initialScrollOffset: 4)
+        ..jumpToIndex(10);
       await t.pumpWidget(
         ListView.builder(
           reverse: true,
@@ -309,7 +310,7 @@ void main() {
       await t.pump();
       expect(t.lines, bottom);
       // from above it, the same
-      controller.jumpTo(controller.position.maxOffset);
+      controller.jumpTo(controller.position.maxScrollExtent);
       await t.pump();
       controller.ensureIndexVisible(10);
       await t.pump();
@@ -373,7 +374,7 @@ void main() {
       expect(t.lines, ['item 0', '-- 0', 'item 1', '-- 1', 'item 2']);
       // the window's five rows and the three of the cache
       expect(built, ['i0', 's0', 'i1', 's1', 'i2', 's2', 'i3', 's3']);
-      expect(controller.position.maxOffset, 1999 - 5);
+      expect(controller.position.maxScrollExtent, 1999 - 5);
 
       built.clear();
       controller.jumpTo(1000);

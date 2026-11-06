@@ -9,7 +9,7 @@ RenderParagraph cut(String text, int width, {String? ellipsis}) =>
       overflow: TextOverflow.ellipsis,
       maxLines: 1,
       ellipsis: ellipsis ?? '…',
-    )..layout(BoxConstraints(minW: width, maxW: width, maxH: 100));
+    )..layout(BoxConstraints(minWidth: width, maxWidth: width, maxHeight: 100));
 
 void main() {
   test('the ellipsis cell reports isEllipsis and the text it stands for', () {

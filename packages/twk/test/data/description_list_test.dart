@@ -47,7 +47,7 @@ void main() {
           items: _server,
           termAlign: TextAlign.right,
           separator: '',
-          gap: 3,
+          spacing: 3,
         ),
       ),
       size: (40, 6),

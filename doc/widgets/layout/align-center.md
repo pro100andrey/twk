@@ -33,7 +33,7 @@ Widget room(String title, Widget child) => SizedBox(
 );
 return Column(
   mainAxisSize: .min,
-  gap: 1,
+  spacing: 1,
   children: [
     room('.bottomRight', const Align(
       alignment: .bottomRight,

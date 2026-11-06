@@ -1036,7 +1036,7 @@ final class _Frame extends StatelessWidget {
           for (final (glyph, onTap) in buttons)
             GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: (_) => onTap(),
+              onTap: onTap,
               child: Text('$glyph ', style: border, wrap: TextWrap.none),
             ),
         ],
@@ -1045,7 +1045,7 @@ final class _Frame extends StatelessWidget {
     final frame = Focus(
       focusNode: slot.group,
       child: Listener(
-        onDown: (_) => layer._pressed(slot),
+        onPointerDown: (_) => layer._pressed(slot),
         child: Stack(
           children: [
             Focus(
@@ -1070,11 +1070,11 @@ final class _Frame extends StatelessWidget {
                     : PointerShape.grab,
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
-                  onDragStart: (d) => layer._dragStart(slot, 0, d.event),
-                  onDragUpdate: (d) => layer._dragUpdate(slot, d.event),
-                  onDragEnd: (_) => layer._dragEnd(slot),
+                  onPanStart: (d) => layer._dragStart(slot, 0, d.event),
+                  onPanUpdate: (d) => layer._dragUpdate(slot, d.event),
+                  onPanEnd: (_) => layer._dragEnd(slot),
                   onDoubleTap: window.maximisable
-                      ? (_) => layer._toggleMaximised(slot)
+                      ? () => layer._toggleMaximised(slot)
                       : null,
                   // read as the window's label
                   child: Semantics(
@@ -1157,7 +1157,7 @@ final class _Frame extends StatelessWidget {
             onExit: (_) => layer._hoverButton(slot, -1, from: i),
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: (_) => onTap(),
+              onTap: onTap,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -1247,9 +1247,9 @@ final class _Frame extends StatelessWidget {
       },
       GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onDragStart: (d) => layer._dragStart(slot, edges, d.event),
-        onDragUpdate: (d) => layer._dragUpdate(slot, d.event),
-        onDragEnd: (_) => layer._dragEnd(slot),
+        onPanStart: (d) => layer._dragStart(slot, edges, d.event),
+        onPanUpdate: (d) => layer._dragUpdate(slot, d.event),
+        onPanEnd: (_) => layer._dragEnd(slot),
       ),
       edges: edges,
     );
@@ -1369,8 +1369,8 @@ final class _RenderChrome extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
   }
 
   @override
@@ -1463,7 +1463,7 @@ final class _Strip extends StatelessWidget {
     final style = theme.surface.merge(theme.text);
     return Row(
       mainAxisSize: MainAxisSize.min,
-      gap: 1,
+      spacing: 1,
       children: [
         for (final slot in slots)
           Semantics(
@@ -1483,7 +1483,7 @@ final class _Strip extends StatelessWidget {
                   layer,
                   slot,
                   GestureDetector(
-                    onTap: (_) => layer._restore(slot),
+                    onTap: () => layer._restore(slot),
                     child: Text(
                       ' ${slot.window.title} ',
                       style: slot.chip.hasFocus
@@ -1779,10 +1779,10 @@ final class _RenderWindows extends RenderObject
     final child = firstChild!;
     final strip = lastChild!;
     child.layout(c, parentUsesSize: true);
-    width = c.constrainW(child.width);
-    height = c.constrainH(child.height);
+    width = c.constrainWidth(child.width);
+    height = c.constrainHeight(child.height);
     strip.layout(
-      BoxConstraints(maxW: width, maxH: height),
+      BoxConstraints(maxWidth: width, maxHeight: height),
       parentUsesSize: true,
     );
     strip.parentData

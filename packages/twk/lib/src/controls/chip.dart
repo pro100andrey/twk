@@ -41,7 +41,7 @@ String _chipText(
 ///
 /// ```dart
 /// const Row(
-///   gap: 1,
+///   spacing: 1,
 ///   children: [
 ///     Chip('dart'),
 ///     Chip('tui', selected: true),
@@ -428,7 +428,9 @@ final class _ChipListState<T> extends State<ChipList<T>> {
       autofocus: widget.autofocus,
       bindings: _bindings,
       hints: _hints,
-      onTap: enabled ? (event) => _tap(event.x, event.y) : null,
+      onTapUp: enabled
+          ? (tap) => _tap(tap.localPosition.dx, tap.localPosition.dy)
+          : null,
       builder: (context, focused) => Semantics(
         nodes: [
           for (var i = 0; i < _chips.length; i++)
@@ -437,19 +439,17 @@ final class _ChipListState<T> extends State<ChipList<T>> {
                   ? SemanticsRole.checkbox
                   : SemanticsRole.listItem,
               label: _chips[i].label,
-              state: SemanticsState(
-                checked: onSelectionChanged != null
-                    ? selected.contains(_chips[i].value)
-                    : null,
-                disabled: !enabled || !_chips[i].enabled,
-              ),
+              checked: onSelectionChanged != null
+                  ? selected.contains(_chips[i].value)
+                  : null,
+              enabled: enabled && _chips[i].enabled,
               focused: focused && i == current,
             ),
         ],
         child: LayoutBuilder(
           builder: (context, constraints) => _rows(
             segmenterOf(context),
-            constraints.maxW,
+            constraints.maxWidth,
             enabled: enabled,
             highlight: focused ? current : -1,
             plain:
@@ -535,7 +535,7 @@ final class _ChipListState<T> extends State<ChipList<T>> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         for (final line in lines)
-          Row(mainAxisSize: MainAxisSize.min, gap: 1, children: line),
+          Row(mainAxisSize: MainAxisSize.min, spacing: 1, children: line),
       ],
     );
   }

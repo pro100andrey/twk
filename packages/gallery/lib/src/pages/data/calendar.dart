@@ -65,7 +65,7 @@ final _calendar = GalleryPage(
     'Widget build(BuildContext context) => Column(',
     '  mainAxisSize: .min,',
     '  crossAxisAlignment: .start,',
-    '  gap: 1,',
+    '  spacing: 1,',
     '  children: [',
     '    Calendar(',
     '      today: DateTime(2026, 10, 19),',
@@ -122,7 +122,7 @@ final class _MonthState extends State<_Month> with KeptState {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         Calendar(
           controller: _controller,

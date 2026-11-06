@@ -376,7 +376,7 @@ final class _Toggle extends StatelessWidget {
       autofocus: autofocus,
       bindings: {'space': toggle, 'enter': toggle},
       hints: const {'space': 'toggle'},
-      onTap: enabled ? (_) => toggle() : null,
+      onTap: enabled ? toggle : null,
       builder: (context, focused) {
         final theme = Theme.of(context);
         final row = rowStyle(
@@ -399,8 +399,7 @@ final class _Toggle extends StatelessWidget {
           return text(at);
         }
         return TweenAnimationBuilder<double>(
-          value: at,
-          tween: Tween<double>.new,
+          tween: Tween<double>(begin: at, end: at),
           duration: const Duration(milliseconds: 140),
           // the design's ease out, a cubic
           curve: const Cubic(0.33, 1, 0.68, 1),
@@ -412,7 +411,8 @@ final class _Toggle extends StatelessWidget {
       role: role,
       // never null, for the mark not to be read
       label: label.isNotEmpty ? label : semanticsLabel ?? '',
-      state: SemanticsState(checked: on, disabled: !enabled),
+      checked: on,
+      enabled: enabled,
       child: pressable,
     );
   }

@@ -130,7 +130,7 @@ implement, and the app asks the backend it runs on for each one:
 | `SuspendableBackend` | `suspend()`, `resume()`: hands the terminal to another program and takes it back (`TwkApp.suspend`) | only the frames wait |
 | `MouseTrackingBackend` | `mouseTracking`: switches the mouse reports to what the app listens to | the reports stay as the terminal opened with them |
 | `TerminalStateBackend` | `setTerminalState`, `restoreTerminalState`: the pointer's shape and the progress in the tab, put back on every way out | neither is shown |
-| `WindowBackend` | `setTitle`, `notify`: the window's title (twk's `WindowTitle`) and desktop notifications (`AppBinding.notify`) | neither is sent |
+| `WindowBackend` | `setTitle`, `notify`: the window's title (twk's `TerminalTitle`) and desktop notifications (`AppBinding.notify`) | neither is sent |
 
 A backend that wraps a terminal (to add to its input, as the gallery's
 `Typing` does, or to record what is written) implements and passes on

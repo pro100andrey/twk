@@ -41,10 +41,10 @@ Widget build(BuildContext context) {
       child: Column(
         mainAxisSize: .min,
         crossAxisAlignment: .stretch,
-        gap: 1,
+        spacing: 1,
         children: [
           Row(
-            gap: 2,
+            spacing: 2,
             children: [
               // a field without a box shows the focus on the selection
               Expanded(
@@ -93,7 +93,7 @@ What the gallery lets you change, and what each starts at:
 ## More
 
 - API: [`KeyHintsBar`](https://pub.dev/documentation/twk/latest/twk/KeyHintsBar-class.html).
-- Also in Controls: [Button](button.md), [Pressable](pressable.md), [Checkbox, Switch](checkbox-switch.md), [RadioGroup](radiogroup.md), [SegmentedButton](segmentedbutton.md), [Chip, ChipList](chip-chiplist.md), [ValueStepper](valuestepper.md), [SelectionList](selectionlist.md), [Select, MultiSelect](select-multiselect.md), [ConfirmInput](confirminput.md), [Slider](slider.md), [NumberInput](numberinput.md), [DatePicker](datepicker.md), [FilePicker](filepicker.md), [Form, FormField](form-formfield.md), [TabBar, TabView](tabbar-tabview.md), [StatusMessage, Badge](statusmessage-badge.md), [Callout](callout.md), [Link](link.md), [ListTile](listtile.md), [StatusBar](statusbar.md).
+- Also in Controls: [Button](button.md), [Pressable](pressable.md), [Checkbox, Switch](checkbox-switch.md), [RadioGroup](radiogroup.md), [SegmentedButton](segmentedbutton.md), [Chip, ChipList](chip-chiplist.md), [ValueStepper](valuestepper.md), [SelectionList](selectionlist.md), [Select, MultiSelect](select-multiselect.md), [ConfirmInput](confirminput.md), [Slider](slider.md), [NumberInput](numberinput.md), [DatePicker](datepicker.md), [FilePicker](filepicker.md), [Form, FormField](form-formfield.md), [TabBar, TabBarView](tabbar-tabbarview.md), [StatusMessage, Badge](statusmessage-badge.md), [Callout](callout.md), [Hyperlink](hyperlink.md), [ListTile](listtile.md), [StatusBar](statusbar.md).
 - Live in the gallery:
   `dart run packages/gallery/bin/gallery.dart --route='#/controls/keyhintsbar'`.
 - [Controls](../controls.md) · [All groups](../README.md)

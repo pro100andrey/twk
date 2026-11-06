@@ -4,6 +4,7 @@
 /// tests of the rows that the mouse hits by parts run on.
 library;
 
+import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 

@@ -30,10 +30,10 @@ final _constrainedBox = GalleryPage(
     final theme = Theme.of(context);
     Widget bounded(String text) => ConstrainedBox(
       constraints: BoxConstraints(
-        minW: o(_constrainedBoxMin),
-        maxW: o(_constrainedBoxMax),
-        minH: 1,
-        maxH: 3,
+        minWidth: o(_constrainedBoxMin),
+        maxWidth: o(_constrainedBoxMax),
+        minHeight: 1,
+        maxHeight: 3,
       ),
       child: Box(
         style: theme.selection,
@@ -44,7 +44,7 @@ final _constrainedBox = GalleryPage(
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         bounded('short'),
         bounded('A child as wide as its text, within the bounds.'),
@@ -54,11 +54,12 @@ final _constrainedBox = GalleryPage(
   code: (o) => [
     'final theme = Theme.of(context);',
     'Widget bounded(String text) => ConstrainedBox(',
-    codeLine([
-      '  constraints: const BoxConstraints(minW: ',
-      '${o.nameOf(_constrainedBoxMin)}, maxW: ',
-      '${o.nameOf(_constrainedBoxMax)}, minH: 1, maxH: 3),',
-    ]),
+    '  constraints: const BoxConstraints(',
+    codeLine(['    minWidth: ', '${o.nameOf(_constrainedBoxMin)},']),
+    codeLine(['    maxWidth: ', '${o.nameOf(_constrainedBoxMax)},']),
+    '    minHeight: 1,',
+    '    maxHeight: 3,',
+    '  ),',
     '  child: Box(',
     '    style: theme.selection,',
     '    padding: const .x(1),',
@@ -68,7 +69,7 @@ final _constrainedBox = GalleryPage(
     'return Column(',
     '  mainAxisSize: .min,',
     '  crossAxisAlignment: .start,',
-    '  gap: 1,',
+    '  spacing: 1,',
     '  children: [',
     "    bounded('short'),",
     "    bounded('A child as wide as its text, within the bounds.'),",

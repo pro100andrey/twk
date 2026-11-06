@@ -542,7 +542,7 @@ final class _DatePickerState extends State<DatePicker>
         focusedStyle: widget.focusedStyle,
         errorStyle: widget.errorStyle,
         trailing: GestureDetector(
-          onTapDown: enabled ? _toggle : null,
+          onTapDown: enabled ? (tap) => _toggle(tap.event) : null,
           child: Text(
             ThemeMarks.of(context).text(Marks.down),
             style: theme.text.merge(

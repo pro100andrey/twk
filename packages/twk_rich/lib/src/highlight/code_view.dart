@@ -761,9 +761,9 @@ final class _CodeViewState extends State<CodeView> {
       return false;
     }
     final p = _list.position;
-    final from = p.offset;
+    final from = p.pixels;
     p.jumpTo(from + rows);
-    return p.offset != from;
+    return p.pixels != from;
   }
 
   /// The columns of the code in view, as last laid out; null before.
@@ -1161,13 +1161,13 @@ final class _RenderCodeSelection extends RenderObject
 
   @override
   void performLayout(BoxConstraints c) {
-    if (c.maxH < BoxConstraints.unbounded) {
-      invokeLayoutCallback(() => state._move(c.maxH));
+    if (c.maxHeight < BoxConstraints.unbounded) {
+      invokeLayoutCallback(() => state._move(c.maxHeight));
     }
     final child = this.child;
     if (child == null) {
-      width = c.minW;
-      height = c.minH;
+      width = c.minWidth;
+      height = c.minHeight;
       return;
     }
     child.layout(c, parentUsesSize: true);
@@ -1537,11 +1537,11 @@ final class _RenderCodeLine extends RenderObject
     final gutter = _gutter;
     final p = _paragraph;
     if (_shift == null) {
-      final room = c.maxW < BoxConstraints.unbounded
-          ? math.max(0, c.maxW - gutter)
+      final room = c.maxWidth < BoxConstraints.unbounded
+          ? math.max(0, c.maxWidth - gutter)
           : BoxConstraints.unbounded;
       p.layout(
-        BoxConstraints(maxW: room),
+        BoxConstraints(maxWidth: room),
         parentUsesSize: true,
       );
     } else {
@@ -1550,8 +1550,8 @@ final class _RenderCodeLine extends RenderObject
         parentUsesSize: true,
       );
     }
-    width = c.constrainW(gutter + p.width);
-    height = c.constrainH(math.max(1, p.height));
+    width = c.constrainWidth(gutter + p.width);
+    height = c.constrainHeight(math.max(1, p.height));
     codeWidth = math.max(0, width - gutter);
     p.parentData
       ..dx = gutter - (_shift ?? 0)

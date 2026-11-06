@@ -136,7 +136,7 @@ final _heatmap = GalleryPage(
         '  return Column(',
         '    mainAxisSize: .min,',
         '    crossAxisAlignment: .start,',
-        '    gap: 1,',
+        '    spacing: 1,',
         '    children: [',
         '      ActivityHeatmap(',
         '        counts: _commits,',
@@ -179,7 +179,7 @@ final _heatmap = GalleryPage(
       '  return Column(',
       '    mainAxisSize: .min,',
       '    crossAxisAlignment: .start,',
-      '    gap: 1,',
+      '    spacing: 1,',
       '    children: [',
       '      Heatmap(',
       '        rows: 7,',
@@ -257,7 +257,7 @@ final class _HeatState extends State<_Heat> with KeptState {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         if (widget.activity)
           ActivityHeatmap(

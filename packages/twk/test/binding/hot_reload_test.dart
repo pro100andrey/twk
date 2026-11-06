@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'dart:developer' show ServiceExtensionResponse;
 
 import 'package:test/test.dart';
+import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
@@ -48,6 +49,8 @@ void main() {
     _label = 'count';
     _fill = '.';
     _width = 3;
+    _CounterState.reassembled = 0;
+    _CounterState.builtAfter = null;
   });
 
   group('ext.twk.reassemble', () {
@@ -72,6 +75,20 @@ void main() {
       await t.type('+');
       await t.pump();
       expect(t.lines, ['clicks', '3', '#####', '']);
+    });
+
+    testTwk('tells each state with State.reassemble, once, before it builds '
+        'again; the states are kept', (t) async {
+      await t.pumpWidget(const _Counter(), size: (20, 4));
+      await t.type('+');
+      await t.pump();
+      expect(_CounterState.reassembled, 0);
+      await call(t, 'ext.twk.reassemble');
+      expect(_CounterState.reassembled, 1);
+      expect(_CounterState.builtAfter, isNull, reason: 'told before building');
+      await t.pump();
+      expect(_CounterState.builtAfter, 1);
+      expect(t.lines[1], '1');
     });
 
     test('before the first frame leaves the app to it', () async {
@@ -238,8 +255,27 @@ final class _Counter extends StatefulWidget {
 final class _CounterState extends State<_Counter> {
   var _count = 0;
 
+  /// How many times a state was told it was reassembled, and how many it
+  /// was by the build after the first of them.
+  static var reassembled = 0;
+  static int? builtAfter;
+
   @override
-  Widget build(BuildContext context) => InputListener(
+  void reassemble() {
+    super.reassemble();
+    reassembled++;
+    builtAfter = null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (reassembled > 0) {
+      builtAfter ??= reassembled;
+    }
+    return _view();
+  }
+
+  Widget _view() => InputListener(
     onEvent: (event) {
       if (event is! KeyEvent || event.char != '+') {
         return false;
@@ -287,8 +323,8 @@ final class _RenderBar extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.constrainW(_width);
-    height = c.constrainH(1);
+    width = c.constrainWidth(_width);
+    height = c.constrainHeight(1);
   }
 
   @override

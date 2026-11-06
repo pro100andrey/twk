@@ -26,7 +26,7 @@ return TickerMode(
   enabled: true,
   child: Row(
     mainAxisSize: .min,
-    gap: 1,
+    spacing: 1,
     children: [
       Spinner(style: theme.primary),
       const Text('Compiling…'),

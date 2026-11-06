@@ -9,11 +9,11 @@ text
 │     DatePicker            ┌                                              ┐     │
 │     FilePicker          ·   a field                         [ ] autosave    ·  │
 │     Form, FormFie…                                                             │
-│     TabBar, TabVi…      ·   did: nothing                                    ·  │
+│     TabBar, TabBa…      ·   did: nothing                                    ·  │
 │ ▎   KeyHintsBar                                                                │
 │     StatusMessage…  ▐   ·   ╭──────────────────────────────────────────╮    ·  │
 │     Callout         ▐       │ ↑↓ pages   tab into the page   / filter… │       │
-│     Link                ·   ╰──────────────────────────────────────────╯    ·  │
+│     Hyperlink           ·   ╰──────────────────────────────────────────╯    ·  │
 │     ListTile              └                                              ┘     │
 │     StatusBar        ──────────────────────────────────────────────────────────│
 │                        unhinted keys  ▐●  ▌                                    │
@@ -38,7 +38,7 @@ styles
 │astttuuuuuuuuuuutttttagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnnaadgggogggwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwggggogg│
 │aaaaannnnnnnaaaaaaaaadgggggggwgkkgmmmmmgggkkkgmmmmgmmmgmmmmgggkgmmmmmmrgwggggggg│
-│aaaaannnnaaaaaaaaaaaaagggogggwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwggggogg│
+│aaaaannnnnnnnnaaaaaaaagggogggwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwggggogg│
 │aaaaannnnnnnnaaaaaaaaagggggoggggggggggggggggggggggggggggggggggggggggggggggoggggg│
 │aaaaannnnnnnnnaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaaaaaaaaaaaaaaaaaaaggmmmmmmmmgmmmmggyzAAygggggggggggggggggggggggggggggggggggg│

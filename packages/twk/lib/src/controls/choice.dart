@@ -249,7 +249,7 @@ final class RadioGroup<T> extends StatelessWidget {
           direction: direction,
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
-          gap: vertical ? 0 : 2,
+          spacing: vertical ? 0 : 2,
           children: [
             for (var i = 0; i < choices.length; i++)
               _choice(
@@ -268,10 +268,8 @@ final class RadioGroup<T> extends StatelessWidget {
               SemanticsNode(
                 role: SemanticsRole.radio,
                 label: choices[i].label,
-                state: SemanticsState(
-                  checked: i == chosen,
-                  disabled: !enabled || !choices[i].enabled,
-                ),
+                checked: i == chosen,
+                enabled: enabled && choices[i].enabled,
                 focused: focused && i == focus,
               ),
           ],
@@ -292,7 +290,7 @@ final class RadioGroup<T> extends StatelessWidget {
   }) {
     final choice = choices[i];
     return GestureDetector(
-      onTap: enabled ? (_) => _choose(i) : null,
+      onTap: enabled ? () => _choose(i) : null,
       // the hidden cursor on the choice that shows the focus
       child: ActiveItem(
         active: focused,

@@ -81,6 +81,8 @@ Future<AnimatedState> start(
 }
 
 void main() {
+  awaitableTests();
+
   testTwk('forward runs from the lower bound to the upper one in its '
       'duration, a value each frame, then the app asks for no frame', (
     t,
@@ -318,4 +320,135 @@ void main() {
 final class _NoTicks implements TickerProvider {
   @override
   Ticker createTicker(TickerCallback onTick) => Ticker(onTick);
+}
+
+/// Whether the future it is given has completed.
+final class Done {
+  Done(Future<void> run) {
+    unawaited(run.then((_) => done = true));
+  }
+
+  var done = false;
+}
+
+void awaitableTests() {
+  testTwk('forward, reverse and animateTo return a future that completes '
+      'when the run reaches its target', (t) async {
+    final state = await start(t);
+    final controller = state.controller;
+    final forward = Done(controller.forward());
+    await t.pump(ms * 50);
+    expect(forward.done, isFalse);
+    await t.pump(ms * 60);
+    expect(forward.done, isTrue);
+    final to = Done(controller.animateTo(0.5, duration: ms * 20));
+    await t.pump(ms * 10);
+    expect(to.done, isFalse);
+    await t.pump(ms * 20);
+    expect(to.done, isTrue);
+    final reverse = Done(controller.reverse());
+    await t.pump(ms * 30);
+    expect(reverse.done, isFalse);
+    await t.pump(ms * 40);
+    expect(reverse.done, isTrue);
+    expect(controller.isDismissed, isTrue);
+  });
+
+  testTwk('a run with nothing to run has completed already', (t) async {
+    final state = await start(t);
+    final controller = state.controller;
+    // at the lower bound already: nothing to run
+    await controller.reverse();
+    expect(controller.status, AnimationStatus.dismissed);
+    await controller.animateTo(0, duration: ms * 20);
+    controller.duration = Duration.zero;
+    await controller.forward();
+    expect(controller.isCompleted, isTrue);
+  });
+
+  testTwk('stop, setting the value, another run and dispose complete the '
+      'future of the run they end, so an await does not hang', (t) async {
+    final state = await start(t);
+    final controller = state.controller;
+    final stopped = Done(controller.forward());
+    await t.pump(ms * 30);
+    expect(stopped.done, isFalse);
+    controller.stop();
+    await t.pump();
+    expect(stopped.done, isTrue);
+    expect(controller.value, lessThan(1));
+    expect(controller.isAnimating, isFalse);
+
+    final set = Done(controller.forward());
+    await t.pump(ms * 20);
+    controller.value = 0.2;
+    await t.pump();
+    expect(set.done, isTrue);
+
+    final first = Done(controller.forward());
+    await t.pump(ms * 20);
+    final second = Done(controller.reverse());
+    await t.pump();
+    expect(first.done, isTrue, reason: 'ended by the next run');
+    expect(second.done, isFalse);
+    await t.pump(ms * 200);
+    expect(second.done, isTrue);
+
+    final last = Done(controller.forward());
+    await t.pump(ms * 20);
+    await t.pumpWidget(const SizedBox());
+    await t.pump();
+    expect(last.done, isTrue, reason: 'the state disposed the controller');
+  });
+
+  testTwk('repeat completes only when stopped', (t) async {
+    final state = await start(t);
+    final controller = state.controller;
+    final repeat = Done(controller.repeat(reverse: true));
+    await t.pump(ms * 500);
+    expect(repeat.done, isFalse);
+    controller.stop();
+    await t.pump();
+    expect(repeat.done, isTrue);
+  });
+
+  testTwk('a listener that starts the next run when one ends does not '
+      'complete the next run', (t) async {
+    final state = await start(t);
+    final controller = state.controller;
+    late Done second;
+    controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        second = Done(controller.reverse());
+      }
+    });
+    final first = Done(controller.forward());
+    await t.pump(ms * 110);
+    expect(first.done, isTrue);
+    expect(second.done, isFalse);
+    await t.pump(ms * 110);
+    expect(second.done, isTrue);
+  });
+
+  testTwk('toggle runs back from the upper bound or on the way to it, '
+      'forward from the lower bound or on the way back', (t) async {
+    final state = await start(t);
+    final controller = state.controller;
+    expect(controller.isDismissed && !controller.isCompleted, isTrue);
+    final up = Done(controller.toggle());
+    await t.pump(ms * 50);
+    expect(controller.status, AnimationStatus.forward);
+    await t.pump(ms * 60);
+    expect(up.done && controller.isCompleted, isTrue);
+    controller.toggle();
+    await t.pump(ms * 30);
+    expect(controller.status, AnimationStatus.reverse);
+    controller.toggle();
+    expect(controller.status, AnimationStatus.forward);
+    await t.pump(ms * 200);
+    expect(controller.isCompleted, isTrue);
+    controller.toggle(from: 0.4);
+    expect(controller.value, 0.4);
+    expect(controller.status, AnimationStatus.reverse);
+  });
 }

@@ -324,7 +324,7 @@ final class PageRoute<T> extends Route<T> {
 
   /// Builds what the screen shows, again when the route's widgets ask for
   /// it.
-  final Widget Function(BuildContext context) builder;
+  final WidgetBuilder builder;
 
   @override
   final Duration transitionDuration;
@@ -422,7 +422,7 @@ final class Navigator extends StatefulWidget {
   final Widget? home;
 
   /// What the route of each name shows.
-  final Map<String, Widget Function(BuildContext context)> routes;
+  final Map<String, WidgetBuilder> routes;
 
   /// The name of the first route.
   final String? initialRoute;
@@ -508,6 +508,34 @@ final class Navigator extends StatefulWidget {
   }) => of(
     context,
   ).pushReplacementNamed<T>(name, arguments: arguments, result: result);
+
+  /// [NavigatorState.pushAndRemoveUntil] on the navigator above [context].
+  static Future<T?> pushAndRemoveUntil<T>(
+    BuildContext context,
+    Route<T> route,
+    RoutePredicate predicate,
+  ) => of(context).pushAndRemoveUntil(route, predicate);
+
+  /// [NavigatorState.pushNamedAndRemoveUntil] on the navigator above
+  /// [context].
+  static Future<T?> pushNamedAndRemoveUntil<T>(
+    BuildContext context,
+    String name,
+    RoutePredicate predicate, {
+    Object? arguments,
+  }) => of(
+    context,
+  ).pushNamedAndRemoveUntil<T>(name, predicate, arguments: arguments);
+
+  /// [NavigatorState.popAndPushNamed] on the navigator above [context].
+  static Future<T?> popAndPushNamed<T extends Object?, TO extends Object?>(
+    BuildContext context,
+    String name, {
+    TO? result,
+    Object? arguments,
+  }) => of(
+    context,
+  ).popAndPushNamed<T, TO>(name, result: result, arguments: arguments);
 
   /// [NavigatorState.pop] on the navigator above [context].
   static void pop(BuildContext context, [Object? result]) =>
@@ -670,6 +698,54 @@ final class NavigatorState extends State<Navigator> {
       observer.didPush(route, covered);
     }
     return route.popped;
+  }
+
+  /// [push]es [route], then takes off the routes under it, from the one
+  /// that was in front down, until [predicate] holds for one, which stays
+  /// ([Route.withName] tells one by its name); every route if it holds for
+  /// none. The ones taken off are removed as [removeRoute] removes them, not
+  /// popped: their [Route.popped] completes with null, their [PopScope]s are
+  /// not told, and the observers are told [NavigatorObserver.didPush] and
+  /// then [NavigatorObserver.didRemove] of each. The route that was in front
+  /// shows under [route] until it is in.
+  Future<T?> pushAndRemoveUntil<T>(Route<T> route, RoutePredicate predicate) {
+    final covered = _history.last;
+    final result = push(route);
+    final removed = <Route<Object?>>[];
+    for (var i = _history.length - 2; i >= 0; i--) {
+      if (predicate(_history[i])) {
+        break;
+      }
+      removed.add(_history[i]);
+    }
+    if (removed.isNotEmpty && identical(removed.first, covered)) {
+      covered._replaced = route._entering;
+    }
+    removed.forEach(removeRoute);
+    return result;
+  }
+
+  /// [pushAndRemoveUntil] the route of [name] ([Navigator]), [arguments] in
+  /// its settings.
+  Future<T?> pushNamedAndRemoveUntil<T>(
+    String name,
+    RoutePredicate predicate, {
+    Object? arguments,
+  }) => _typed<T>(
+    pushAndRemoveUntil<Object?>(_named<T>(name, arguments), predicate),
+  );
+
+  /// [pop]s the route in front with [result] and [pushNamed]s the route of
+  /// [name], [arguments] in its settings. Like [pop], a [StateError] when
+  /// the route in front is the only one ([canPop]); [pushReplacementNamed]
+  /// is for that.
+  Future<T?> popAndPushNamed<T extends Object?, TO extends Object?>(
+    String name, {
+    TO? result,
+    Object? arguments,
+  }) {
+    pop(result);
+    return pushNamed<T>(name, arguments: arguments);
   }
 
   /// [push]es the route of [name] ([Navigator]), [arguments] in its
@@ -902,9 +978,9 @@ final class NavigatorState extends State<Navigator> {
       child: OverlayHost(
         navigator: true,
         child: Actions(
-          _actions,
+          actions: _actions,
           child: Shortcuts(
-            {?back: _back},
+            shortcuts: {?back: _back},
             hints: {?back: 'back'},
             debugLabel: 'navigator',
             child: Overlay(
@@ -1005,7 +1081,6 @@ class NavigatorObserver {
 /// that it did not pop, with the result asked for. A pop that goes ahead
 /// ([NavigatorState.pop], which [canPop] does not stop, or the back key
 /// while it is true) tells it that it did, with the result.
-/// [onPopInvoked] is told the same, without the result.
 ///
 /// ```dart
 /// PopScope<Object?>(
@@ -1021,13 +1096,11 @@ class NavigatorObserver {
 /// that cannot pop is enough. Outside a route it does nothing.
 final class PopScope<T> extends StatefulWidget {
   /// Keeps the route [child] is in from being popped while [canPop] is
-  /// false, telling [onPopInvokedWithResult] and [onPopInvoked] of each
-  /// pop.
+  /// false, telling [onPopInvokedWithResult] of each pop.
   const PopScope({
     required this.child,
     this.canPop = true,
     this.onPopInvokedWithResult,
-    this.onPopInvoked,
     super.key,
   });
 
@@ -1042,9 +1115,6 @@ final class PopScope<T> extends StatefulWidget {
   // called with the results of its own T, cast as they come
   // ignore: unsafe_variance
   final PopInvokedWithResultCallback<T>? onPopInvokedWithResult;
-
-  /// Told of a pop of the route, whether it was popped or kept.
-  final void Function(bool didPop)? onPopInvoked;
 
   @override
   State<PopScope<T>> createState() => _PopScopeState<T>();
@@ -1091,7 +1161,6 @@ final class _PopScopeState<T> extends State<PopScope<T>> {
   void _invoked(bool didPop, Object? result) {
     final value = result as T?;
     widget.onPopInvokedWithResult?.call(didPop, value);
-    widget.onPopInvoked?.call(didPop);
   }
 
   @override
@@ -1446,24 +1515,24 @@ final class _RenderTheater extends RenderObject
       }
     }
     const unbounded = BoxConstraints.unbounded;
-    final wide = c.maxW < unbounded;
-    final tall = c.maxH < unbounded;
+    final wide = c.maxWidth < unbounded;
+    final tall = c.maxHeight < unbounded;
     if (first == null) {
-      width = wide ? c.maxW : c.minW;
-      height = tall ? c.maxH : c.minH;
+      width = wide ? c.maxWidth : c.minWidth;
+      height = tall ? c.maxHeight : c.minHeight;
       return;
     }
     var rest = first;
     if (wide && tall) {
-      width = c.maxW;
-      height = c.maxH;
+      width = c.maxWidth;
+      height = c.maxHeight;
     } else {
       first.layout(
         BoxConstraints(
-          minW: wide ? c.maxW : c.minW,
-          maxW: c.maxW,
-          minH: tall ? c.maxH : c.minH,
-          maxH: c.maxH,
+          minWidth: wide ? c.maxWidth : c.minWidth,
+          maxWidth: c.maxWidth,
+          minHeight: tall ? c.maxHeight : c.minHeight,
+          maxHeight: c.maxHeight,
         ),
         parentUsesSize: true,
       );

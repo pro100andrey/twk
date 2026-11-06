@@ -44,7 +44,7 @@ final _progressBar = GalleryPage(
     final value = o(_progressBarValue).toInt();
     return Row(
       mainAxisSize: .min,
-      gap: 1,
+      spacing: 1,
       children: [
         SizedBox(
           width: 40,
@@ -67,7 +67,7 @@ final _progressBar = GalleryPage(
       'final theme = Theme.of(context);',
       'return Row(',
       '  mainAxisSize: .min,',
-      '  gap: 1,',
+      '  spacing: 1,',
       '  children: [',
       '    SizedBox(',
       '      width: 40,',

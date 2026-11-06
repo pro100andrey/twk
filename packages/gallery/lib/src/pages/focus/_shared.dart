@@ -31,7 +31,7 @@ final class _Focusable extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return GestureDetector(
-      onTap: (_) => node.requestFocus(),
+      onTap: node.requestFocus,
       child: Focus(
         focusNode: node,
         skipTraversal: skipTraversal,
@@ -77,7 +77,7 @@ List<String> _focusableCode({required bool args}) => [
   '  Widget build(BuildContext context) {',
   '    final theme = Theme.of(context);',
   '    return GestureDetector(',
-  '      onTap: (_) => node.requestFocus(),',
+  '      onTap: node.requestFocus,',
   '      child: Focus(',
   '        focusNode: node,',
   if (args) ...[
@@ -114,7 +114,7 @@ const _boldCode = 'const bold = Style(attrs: Attr.bold);';
 /// The box and the count by it, lit a moment when [serial] changes.
 Widget _counter(FocusNode node, int count, int serial) => Row(
   mainAxisSize: MainAxisSize.min,
-  gap: 2,
+  spacing: 2,
   children: [
     _Focusable(node),
     LitLine([('count: ', true), ('$count', false)], serial: serial),
@@ -129,7 +129,7 @@ Widget _withBar(Widget counter, Widget bar, [Widget? did]) => FocusBuilder(
   builder: (context, hasFocus, _) => Column(
     mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.start,
-    gap: 1,
+    spacing: 1,
     children: [
       counter,
       if (hasFocus) bar else const SizedBox(height: 1),

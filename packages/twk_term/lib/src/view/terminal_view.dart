@@ -7,6 +7,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:twk/twk.dart';
+import 'package:twk_core/terminal.dart' show LogLevel, log;
 import 'package:twk_core/twk_core.dart' show PipelineOwner, kBlank, kWide;
 
 import '../emulator/buffer.dart';
@@ -373,10 +374,10 @@ final class _TerminalViewState extends State<TerminalView> {
         onKeyEvent: _onKey,
         child: Listener(
           behavior: HitTestBehavior.opaque,
-          onDown: _down,
-          onUp: tracked ? _mouse : null,
-          onDrag: drags ? _mouse : null,
-          onMove: protocol == MouseProtocol.motion ? _mouse : null,
+          onPointerDown: _down,
+          onPointerUp: tracked ? _mouse : null,
+          onPointerMove: drags ? _mouse : null,
+          onPointerHover: protocol == MouseProtocol.motion ? _mouse : null,
           onScroll: _scroll,
           child: _View(
             this,

@@ -38,7 +38,7 @@ extension _Inspector on GalleryShellState {
     final w = pw - pad - 2;
     return LayoutBuilder(
       builder: (context, c) {
-        final h = c.maxH < BoxConstraints.unbounded ? c.maxH : 0;
+        final h = c.maxHeight < BoxConstraints.unbounded ? c.maxHeight : 0;
         final view = h - 1 < 0 ? 0 : h - 1;
         final rows = <({int y, int h})>[];
         var content = 0;
@@ -237,9 +237,9 @@ extension _Inspector on GalleryShellState {
       skipTraversal: off,
       child: Listener(
         behavior: HitTestBehavior.opaque,
-        onDown: press,
-        onDrag: drag,
-        onUp: (_) => _grab = null,
+        onPointerDown: press,
+        onPointerMove: drag,
+        onPointerUp: (_) => _grab = null,
         child: CellPaint((cell) {
           // the option's rows from its top, [from] of them above the cell:
           // a painter as tall as the option, the cell's clip keeping what

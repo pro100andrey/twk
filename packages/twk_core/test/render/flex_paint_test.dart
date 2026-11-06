@@ -59,8 +59,8 @@ final class Line extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.constrainW(w);
-    height = c.constrainH(h);
+    width = c.constrainWidth(w);
+    height = c.constrainHeight(h);
   }
 
   @override
@@ -164,7 +164,7 @@ void main() {
       final l = lines(10000);
       final vp = RenderViewport(
         scrollOffset: 2 * 7000,
-        child: RenderFlex(direction: Axis.vertical, gap: 1, children: l),
+        child: RenderFlex(direction: Axis.vertical, spacing: 1, children: l),
       );
       View(20, 5, vp).frame();
       expect(visitedTimes(l, 1), [7000, 7001, 7002]);
@@ -262,7 +262,10 @@ void main() {
       RenderObject boxed(RenderFlex f) => height == null
           ? f
           : RenderConstrainedBox(
-              additionalConstraints: BoxConstraints(minH: height, maxH: height),
+              additionalConstraints: BoxConstraints(
+                minHeight: height,
+                maxHeight: height,
+              ),
               child: f,
             );
       final whole = View(30, 400, RenderViewport(child: boxed(build())))
@@ -298,7 +301,8 @@ void main() {
 
     test('with gaps', () {
       same(
-        () => RenderFlex(direction: Axis.vertical, gap: 2, children: mixed()),
+        () =>
+            RenderFlex(direction: Axis.vertical, spacing: 2, children: mixed()),
         rows: 5,
         offsets: offsets,
       );

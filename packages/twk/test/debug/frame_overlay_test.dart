@@ -11,6 +11,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:test/test.dart';
+import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_core/twk_core.dart' show clipboardSequence;
 import 'package:twk_test/twk_test.dart';
@@ -58,8 +59,8 @@ final class _RenderArea extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.constrainH(rows);
+    width = c.maxWidth;
+    height = c.constrainHeight(rows);
   }
 
   @override
@@ -118,8 +119,8 @@ final class RenderLine extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.constrainH(1);
+    width = c.maxWidth;
+    height = c.constrainHeight(1);
   }
 
   @override

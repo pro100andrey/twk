@@ -354,11 +354,11 @@ void main() {
     ]);
     // a row for the file, one for each line of the old text and each line
     // added
-    expect(controller.position.maxOffset, 1 + 50000 + 10000 - 20);
+    expect(controller.position.maxScrollExtent, 1 + 50000 + 10000 - 20);
     expect(find.byType(Text).evaluate(), hasLength(lessThanOrEqualTo(26)));
     expect(lexed.single, lessThan(1000));
 
-    controller.jumpTo(controller.position.maxOffset);
+    controller.jumpTo(controller.position.maxScrollExtent);
     await t.pump();
     expect(t.lines.last, '50000 50000   line 49999');
     expect(find.byType(Text).evaluate(), hasLength(lessThanOrEqualTo(26)));

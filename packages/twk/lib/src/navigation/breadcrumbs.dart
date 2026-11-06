@@ -233,13 +233,17 @@ final class _BreadcrumbsState extends State<Breadcrumbs> {
       onSelected(stop.index);
       return;
     }
-    showContextMenu(context, [
-      for (final i in stop.hidden)
-        MenuItem(
-          _items[i].replaceAll('&', '&&'),
-          onSelected: () => onSelected(i),
-        ),
-    ], at: at);
+    showContextMenu(
+      context: context,
+      items: [
+        for (final i in stop.hidden)
+          MenuItem(
+            _items[i].replaceAll('&', '&&'),
+            onSelected: () => onSelected(i),
+          ),
+      ],
+      at: at,
+    );
   }
 
   // Made once: a map built anew each time would be parsed anew by the layer.
@@ -262,9 +266,9 @@ final class _BreadcrumbsState extends State<Breadcrumbs> {
       focusNode: widget.focusNode,
       bindings: _bindings,
       hints: _hints,
-      onTap: enabled
-          ? (event) {
-              final s = _hits.at(event.x);
+      onTapUp: enabled
+          ? (tap) {
+              final s = _hits.at(tap.localPosition.dx);
               if (s >= 0) {
                 _select(s, at: (_hits.startOf(s), 1));
               }
@@ -279,7 +283,7 @@ final class _BreadcrumbsState extends State<Breadcrumbs> {
                   ? SemanticsRole.link
                   : SemanticsRole.listItem,
               label: _items[i],
-              state: SemanticsState(selected: i == current),
+              selected: i == current,
               focused: focused && i == highlighted,
             ),
         ],
@@ -287,7 +291,7 @@ final class _BreadcrumbsState extends State<Breadcrumbs> {
           builder: (context, constraints) => _row(
             Theme.of(context),
             segmenterOf(context),
-            constraints.maxW,
+            constraints.maxWidth,
             enabled: enabled,
             focused: focused,
           ),

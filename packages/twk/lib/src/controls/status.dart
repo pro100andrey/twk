@@ -125,7 +125,7 @@ final class StatusMessage extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         Text(
           icon ?? ThemeMarks.of(context).text(kind.mark),

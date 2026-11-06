@@ -27,7 +27,7 @@ are told at the start of the next build when its focus changed, takes the
 primary focus with `requestFocus` and gives it up with `unfocus`, to the
 nearest scope above it; it cannot take it while `canRequestFocus` is false
 or a node above it keeps it from the nodes below (`descendantsAreFocusable`
-false, as a `TabView` does for the tabs it hides), and set so while it has
+false, as a `TabBarView` does for the tabs it hides), and set so while it has
 it (a button disabled, a window minimised), it passes it on at the next
 flush to the node of its scope that Tab stops at right after its place, else
 the one right before it, else the scope, so that a keyboard user keeps the
@@ -104,7 +104,7 @@ all.
 `KeyBindings({'up': () => setState(() => _n++), 'q': () =>
 AppBinding.of(context).quit()}, child: …)` (the counter of
 `test/focus/shortcuts_test.dart`) binds keys to callbacks, and
-`Shortcuts({'ctrl+s': SaveIntent()}, child: …)` to `Intent`s, which the
+`Shortcuts(shortcuts: {'ctrl+s': SaveIntent()}, child: …)` to `Intent`s, which the
 nearest enabled `Action` for the intent's type in the `Actions` above the
 node the key started at does (`CallbackAction`; `Actions.maybeFind`,
 `Actions.maybeInvoke`); `.combos` take `KeyCombo`s, each bound alone, and

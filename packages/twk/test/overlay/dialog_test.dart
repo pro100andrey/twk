@@ -75,9 +75,9 @@ final class Home extends StatelessWidget {
   Widget build(BuildContext context) => KeyBindings({
     'd': () => unawaited(
       showDialog<String>(
-        context,
-        (_) => Ask(results, 1),
-        dismissible: dismissible,
+        context: context,
+        builder: (_) => Ask(results, 1),
+        barrierDismissible: dismissible,
         fadeIn: Duration.zero,
       ).then(results.add),
     ),
@@ -101,8 +101,8 @@ final class Ask extends StatelessWidget {
       'x': () => closeDialog(context, 'done $depth'),
       'd': () => unawaited(
         showDialog<String>(
-          context,
-          (_) => Ask(results, depth + 1),
+          context: context,
+          builder: (_) => Ask(results, depth + 1),
           fadeIn: Duration.zero,
         ).then(results.add),
       ),
@@ -148,8 +148,9 @@ void main() {
     unawaited(
       t.clock.run(
         () => showDialog<void>(
-          context,
-          (_) => column([const Field('c'), const Field('e', autofocus: true)]),
+          context: context,
+          builder: (_) =>
+              column([const Field('c'), const Field('e', autofocus: true)]),
         ),
       ),
     );
@@ -339,7 +340,7 @@ void main() {
     await t.pumpWidget(SizedBox(key: key, width: 1, height: 1));
     final context = key.currentContext!;
     expect(
-      () => showDialog<void>(context, (_) => const Text('?')),
+      () => showDialog<void>(context: context, builder: (_) => const Text('?')),
       throwsA(
         isA<StateError>().having(
           (e) => e.message,
@@ -374,8 +375,8 @@ void main() {
             builder: (context) => KeyBindings({
               'd': () => unawaited(
                 showDialog<void>(
-                  context,
-                  (_) => const Dialog(
+                  context: context,
+                  builder: (_) => const Dialog(
                     title: 'Delete',
                     child: Text('Delete 3 files?'),
                   ),
@@ -468,7 +469,11 @@ void main() {
       child: Builder(
         builder: (context) => KeyBindings({
           'd': () => unawaited(
-            showDialog<void>(context, (_) => dialog, fadeIn: Duration.zero),
+            showDialog<void>(
+              context: context,
+              builder: (_) => dialog,
+              fadeIn: Duration.zero,
+            ),
           ),
         }, child: const Focus(autofocus: true, child: Text('app'))),
       ),

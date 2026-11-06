@@ -398,12 +398,15 @@ void main() {
         KeyBindings(
           {'ctrl+s': () => seen.add('outer ctrl+s')},
           child: Shortcuts(
-            const {'ctrl+s': Save(), 'escape': Close()},
+            shortcuts: const {'ctrl+s': Save(), 'escape': Close()},
             child: Actions(
-              {Save: all},
+              actions: {Save: all},
               child: Column(
                 children: [
-                  Actions({Save: mine}, child: Field('a', node: a)),
+                  Actions(
+                    actions: {Save: mine},
+                    child: Field('a', node: a),
+                  ),
                   Field('b', node: b),
                 ],
               ),
@@ -437,9 +440,9 @@ void main() {
     late BuildContext context;
     await t.pumpWidget(
       Actions(
-        {Save: SaveAction('outer', seen)},
+        actions: {Save: SaveAction('outer', seen)},
         child: Actions(
-          {Save: inner},
+          actions: {Save: inner},
           child: Probe((c) => context = c),
         ),
       ),
@@ -459,9 +462,9 @@ void main() {
     final seen = <String>[];
     await t.pumpWidget(
       Shortcuts(
-        const {'ctrl+s': Save()},
+        shortcuts: const {'ctrl+s': Save()},
         child: Actions(
-          {Save: _Always(seen)},
+          actions: {Save: _Always(seen)},
           child: const Field('f', autofocus: true),
         ),
       ),
@@ -476,9 +479,9 @@ void main() {
     Widget app({required bool enabled}) => KeyBindings(
       {'ctrl+s': () => seen.add('passed on')},
       child: Shortcuts(
-        const {'ctrl+s': Save()},
+        shortcuts: const {'ctrl+s': Save()},
         child: Actions(
-          {
+          actions: {
             Save: CallbackAction<Save>(
               onInvoke: (intent) => seen.add('$intent'),
               enabled: enabled,
@@ -493,6 +496,29 @@ void main() {
     await t.pumpWidget(app(enabled: false));
     await t.press('ctrl+s');
     expect(seen, ["Instance of 'Save'", 'passed on']);
+  });
+
+  testTwk("an Action's invoke returns what its callback returns, as "
+      "Flutter's does", (t) async {
+    final action = CallbackAction<Save>(onInvoke: (_) => 42);
+    expect(action.invoke(const Save()), 42);
+    expect(
+      CallbackAction<Save>(onInvoke: (_) => null).invoke(const Save()),
+      isNull,
+    );
+    late BuildContext context;
+    await t.pumpWidget(
+      Actions(
+        actions: {Save: action},
+        child: Builder(
+          builder: (c) {
+            context = c;
+            return const Text('x');
+          },
+        ),
+      ),
+    );
+    expect(Actions.maybeFind(context, const Save())?.invoke(const Save()), 42);
   });
 
   testTwk('a key a KeyBindings binds to null passes on', (t) async {
@@ -514,7 +540,7 @@ void main() {
     final seen = <String>[];
     await t.pumpWidget(
       Actions(
-        {Save: SaveAction('s', seen)},
+        actions: {Save: SaveAction('s', seen)},
         child: KeyBindings.combos(
           {
             const KeyCombo(KeyCode.up): () => seen.add('up'),
@@ -538,12 +564,15 @@ void main() {
           // the failure is what is tested
           // ignore: twk_lints/key_names
           KeyBindings({'ctlr+s': () {}}, child: const Text('a')),
-          const Shortcuts({
-            'A': Save(),
-            // the failure is what is tested
-            // ignore: twk_lints/key_names
-            'shift+a': Close(),
-          }, child: Text('b')),
+          const Shortcuts(
+            shortcuts: {
+              'A': Save(),
+              // the failure is what is tested
+              // ignore: twk_lints/key_names
+              'shift+a': Close(),
+            },
+            child: Text('b'),
+          ),
         ],
       ),
     );

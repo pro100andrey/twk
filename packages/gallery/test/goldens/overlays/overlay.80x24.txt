@@ -5,7 +5,7 @@ text
 │   ⌕ Filter       /     Overlay                                 Preview   Code  │
 │                        A layer over the app that dialogs, toasts, menus and    │
 │     Callout            tooltips go in; an entry of its own goes in it too.     │
-│     Link             ──────────────────────────────────────────────────────────│
+│     Hyperlink        ──────────────────────────────────────────────────────────│
 │     ListTile                                                                   │
 │     StatusBar           ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
 │                                 ┌                                 ┐            │
@@ -30,7 +30,7 @@ styles
 │aahChCCCCCChhhhhhhDhaaggkkkkkkkggggggggggggggggggggggggggggggggglllllllgggmmmmgg│
 │aaaaaaaaaaaaaaaaaaaaaaggmgmmmmmgmmmmgmmmgmmmgmmmmgmmmmmmmmgmmmmmmmgmmmmmgmmmgggg│
 │aaaaannnnnnnaaaaaaaaaaggmmmmmmmmgmmgmmmgmmgmmmmmgmmgmmmgmmmgmmmmgmmgmmgmmmmggggg│
-│aaaaannnnaaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnnnaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnaaaaaaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggogggggggggggggggggggggggggggggggggogggggggggggg│

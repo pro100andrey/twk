@@ -5,7 +5,7 @@ extension on _SampleAppState {
     SizedBox(
       height: 1,
       child: Row(
-        gap: 1,
+        spacing: 1,
         children: [
           ListenableBuilder(
             listenable: _count,
@@ -25,7 +25,7 @@ extension on _SampleAppState {
             builder: (context, snapshot) => Text('${snapshot.data}'),
           ),
           Counted(stream: _ticks.stream),
-          Localizations(
+          TwkLocalizations(
             strings: const TwkStrings(),
             child: Builder(
               builder: (context) => Text(TwkStrings.of(context).yesLabel),

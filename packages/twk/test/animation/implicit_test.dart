@@ -338,9 +338,7 @@ void main() {
       t,
       10,
       (value) => TweenAnimationBuilder<int>(
-        value: value,
-        from: 0,
-        tween: IntTween.new,
+        tween: IntTween(begin: 0, end: value),
         duration: ms * 50,
         builder: (_, value, _) => Text('$value'),
       ),
@@ -363,6 +361,46 @@ void main() {
       '0',
     ]);
     await expectIdle(t);
+  });
+
+  testTwk('TweenAnimationBuilder takes the Tween itself: its begin is where '
+      "the first run starts and a new tween's begin is not used, a run "
+      'going on from the value shown', (t) async {
+    final value = await start(
+      t,
+      10,
+      (value) => TweenAnimationBuilder<int>(
+        tween: IntTween(begin: 99, end: value),
+        duration: ms * 50,
+        builder: (_, value, _) => Text('$value'),
+      ),
+    );
+    // the first tween's begin, 99, is where it starts
+    expect(await frames(t, 1, () => t.lines.single), ['81']);
+    await t.pump(ms * 100);
+    expect(t.lines.single, '10');
+    // the new tween's begin, 99, is not used: the run is from 10
+    value.value = 0;
+    expect(await frames(t, 2, () => t.lines.single), ['10', '8']);
+  });
+
+  testTwk("a tween of the app's own kind that does not say how to make "
+      'another throws when TweenAnimationBuilder needs one', (t) async {
+    final value = await start<double>(
+      t,
+      1,
+      (value) => TweenAnimationBuilder<double>(
+        tween: _Doubled(begin: value, end: value),
+        duration: ms * 50,
+        builder: (_, value, _) => Text('$value'),
+      ),
+    );
+    value.value = 2;
+    await t.pump(ms * 10);
+    expect(
+      [for (final r in t.takeErrors()) r.error],
+      [isA<UnsupportedError>()],
+    );
   });
 
   testTwk("a widget of the app's own on ImplicitlyAnimatedWidget runs the "
@@ -564,4 +602,12 @@ void main() {
     await frames(t, 2, () {});
     expect(described(), contains('running to: 6×1'));
   });
+}
+
+/// A tween with a lerp of its own and no `withEnds`.
+final class _Doubled extends Tween<double> {
+  const _Doubled({required super.begin, required super.end});
+
+  @override
+  double lerp(double t) => (begin + (end - begin) * t) * 2;
 }

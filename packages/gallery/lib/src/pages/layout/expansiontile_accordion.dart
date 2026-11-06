@@ -117,7 +117,7 @@ final _expansion = GalleryPage(
       '  return Column(',
       '    mainAxisSize: .min,',
       '    crossAxisAlignment: .start,',
-      '    gap: 1,',
+      '    spacing: 1,',
       '    children: [',
       '      SizedBox(',
       '        width: $_sectionsW,',
@@ -213,7 +213,7 @@ final class _SectionsState extends State<_Sections> with KeptState {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         SizedBox(
           width: _sectionsW,

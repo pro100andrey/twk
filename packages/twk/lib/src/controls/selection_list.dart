@@ -442,7 +442,7 @@ final class _SelectionListState<K> extends State<SelectionList<K>> {
   void _down() => _by(1);
 
   int get _page {
-    final rows = _list.hasClients ? _list.position.viewportExtent : 1;
+    final rows = _list.hasClients ? _list.position.viewportDimension : 1;
     final per = rows ~/ (widget.itemExtent ?? 1);
     return per > 1 ? per : 1;
   }
@@ -606,7 +606,7 @@ final class _SelectionListState<K> extends State<SelectionList<K>> {
       );
     }
     return GestureDetector(
-      onTap: enabled ? (_) => _tap(index) : null,
+      onTap: enabled ? () => _tap(index) : null,
       cursor: PointerShape.arrow,
       // the hidden cursor on the cursor's row
       child: ActiveItem(

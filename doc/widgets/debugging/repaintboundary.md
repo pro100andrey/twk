@@ -98,7 +98,7 @@ final class _PaintsState extends State<Paints> {
     return Column(
       mainAxisSize: .min,
       crossAxisAlignment: .start,
-      gap: 1,
+      spacing: 1,
       children: [
         CustomPaint(
           painter: _dots,

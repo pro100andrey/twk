@@ -11,8 +11,8 @@ Widget _nest(List<String> log, int depth, [int level = 0]) {
       (e) => log.add('$name $what ${e.x},${e.y}');
   if (level == depth) {
     return Listener(
-      onDown: as('listener', 'down'),
-      onMove: as('listener', 'move'),
+      onPointerDown: as('listener', 'down'),
+      onPointerHover: as('listener', 'move'),
       onScroll: as('listener', 'scroll'),
       behavior: HitTestBehavior.opaque,
     );
@@ -56,5 +56,30 @@ void main() {
       for (var i = depth - 1; i >= 10; i--) 'r$i exit ${10 - 1 - i},1',
       for (var i = 9; i >= 0; i--) 'r$i hover ${10 - 1 - i},1',
     ]);
+  });
+
+  test('a RenderListener takes the names of the Listener and says them in '
+      'its description', () {
+    void ignore(PointerEvent _) {}
+    String listens(RenderListener listener) {
+      final properties = DiagnosticPropertiesBuilder();
+      listener.debugFillProperties(properties);
+      return properties.properties.firstWhere((p) => p.name == 'listens').value;
+    }
+
+    expect(
+      listens(RenderListener(onPointerDown: ignore)),
+      contains('pointerDown'),
+    );
+    expect(listens(RenderListener(onPointerUp: ignore)), contains('pointerUp'));
+    expect(
+      listens(RenderListener(onPointerHover: ignore)),
+      contains('pointerHover'),
+    );
+    expect(
+      listens(RenderListener(onPointerMove: ignore)),
+      contains('pointerMove'),
+    );
+    expect(listens(RenderListener(onScroll: ignore)), contains('scroll'));
   });
 }

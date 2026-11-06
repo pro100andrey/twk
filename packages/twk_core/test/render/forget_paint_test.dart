@@ -62,8 +62,8 @@ final class Line extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.constrainW(label.length);
-    height = c.constrainH(1);
+    width = c.constrainWidth(label.length);
+    height = c.constrainHeight(1);
   }
 
   @override
@@ -87,11 +87,11 @@ final class Boundary extends RenderObject with RenderObjectWithChildMixin {
   void performLayout(BoxConstraints c) {
     final ch = child!
       ..layout(
-        BoxConstraints(minW: c.minW, maxW: c.maxW),
+        BoxConstraints(minWidth: c.minWidth, maxWidth: c.maxWidth),
         parentUsesSize: true,
       );
     width = ch.width;
-    height = c.constrainH(ch.height);
+    height = c.constrainHeight(ch.height);
   }
 
   @override

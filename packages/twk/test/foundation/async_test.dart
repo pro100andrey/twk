@@ -465,8 +465,8 @@ final class _Leaf extends LeafRenderObjectWidget {
 final class _RenderLeaf extends RenderObject {
   @override
   void performLayout(BoxConstraints c) {
-    width = c.minW;
-    height = c.minH;
+    width = c.minWidth;
+    height = c.minHeight;
   }
 
   @override

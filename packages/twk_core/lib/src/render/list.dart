@@ -60,6 +60,14 @@ abstract interface class ListItemManager {
 /// window shows the end, it keeps showing the end as items are added or
 /// grow; such a list starts at the end.
 ///
+/// Its [padding] scrolls with the items, as Flutter's `ListView.padding`
+/// does: the rows above the first item and below the last are part of the
+/// content, [scrollOffset] 0 shows the top ones empty, and the columns on
+/// either side inset every item without scrolling. An item an
+/// [itemExtent] tall and the padding add up in the content's extent, which
+/// [onMetrics] gets; with [EdgeInsets.zero] the list does what it does
+/// without.
+///
 /// It takes all the room it is given, which must be bounded, and is its own
 /// repaint boundary, filled with [background] under the items, which needs
 /// an opaque background. When its window moved since it last painted, by
@@ -101,8 +109,8 @@ final class RenderList extends RenderObject
   /// A list of [itemCount] items built by [items], 0 unless given, each
   /// [itemExtent] rows tall or as tall as it likes; [cacheExtent] rows, 3
   /// unless given, built past each edge; [scrollOffset] rows of the content
-  /// above the window. [background] is the terminal's own colors unless
-  /// given.
+  /// above the window; [padding] around the items. [background] is the
+  /// terminal's own colors unless given.
   RenderList({
     required this.items,
     this._itemCount = 0,
@@ -110,6 +118,7 @@ final class RenderList extends RenderObject
     this._cacheExtent = 3,
     this._stickToBottom = false,
     this._background = _defaultColors,
+    this._padding = EdgeInsets.zero,
     int scrollOffset = 0,
     this.onMetrics,
   }) : assert(_itemCount >= 0, 'a count of 0 items or more'),
@@ -117,6 +126,7 @@ final class RenderList extends RenderObject
        assert(_cacheExtent >= 0, 'a cache of 0 rows or more'),
        assert(scrollOffset >= 0, 'an offset of 0 rows or more'),
        _stuck = _stickToBottom,
+       _anchorOffset = -_padding.top,
        _target = scrollOffset > 0 ? scrollOffset : null;
 
   /// Builds the items as they come into the window, and drops them.
@@ -176,6 +186,28 @@ final class RenderList extends RenderObject
     }
   }
 
+  EdgeInsets _padding;
+
+  /// The cells around the items, which scroll with them: [EdgeInsets.top]
+  /// rows before the first item and [EdgeInsets.bottom] after the last
+  /// are part of the content ([onMetrics] counts them in, and so does
+  /// [scrollOffset]: offset 0 shows the top rows empty), and the columns on
+  /// the [EdgeInsets.left] and [EdgeInsets.right] inset every item, which
+  /// are laid out that much narrower. [EdgeInsets.zero] by default; a new
+  /// one lays the list out again.
+  EdgeInsets get padding => _padding;
+  set padding(EdgeInsets p) {
+    if (p != _padding) {
+      // at the very top, it stays there
+      if (_anchor == 0 && _anchorOffset == -_padding.top) {
+        _anchorOffset = -p.top;
+      }
+      _padding = p;
+      _fullRepaint = true;
+      markNeedsLayout();
+    }
+  }
+
   Pen _background;
 
   /// What the list is filled with under the items, with an opaque
@@ -196,9 +228,11 @@ final class RenderList extends RenderObject
   /// end.
   void Function(int viewport, int content, int offset)? onMetrics;
 
-  // the item at the top of the window, and its rows above the window
+  // the item at the top of the window, and its rows above the window: less
+  // than none, for the first item, are the rows of the padding before it
+  // that the window shows
   var _anchor = 0;
-  var _anchorOffset = 0;
+  int _anchorOffset;
 
   // a move asked for since the last layout: to an offset, or to an item,
   // at the top of the window or where it shows with the least move
@@ -269,7 +303,9 @@ final class RenderList extends RenderObject
   void jumpToIndex(int index) => _toIndex(index, atTop: true);
 
   /// Moves the window in the next layout the least that shows item
-  /// [index]: its top when it is taller than the window.
+  /// [index]: its top when it is taller than the window. The first item
+  /// shows the [padding] before it, and the last the padding after it where
+  /// that fits the window too, when the move brings them in.
   void showIndex(int index) => _toIndex(index, atTop: false);
 
   void _toIndex(int index, {required bool atTop}) {
@@ -338,7 +374,8 @@ final class RenderList extends RenderObject
       ..add('itemCount', _itemCount)
       ..add('scrollOffset', scrollOffset, defaultValue: 0)
       ..add('itemExtent', _itemExtent, defaultValue: null)
-      ..add('cacheExtent', _cacheExtent, defaultValue: 3);
+      ..add('cacheExtent', _cacheExtent, defaultValue: 3)
+      ..add('padding', _padding, defaultValue: EdgeInsets.zero);
     if (_stickToBottom) {
       properties.addTag('stickToBottom');
     }
@@ -355,15 +392,15 @@ final class RenderList extends RenderObject
 
   @override
   void performLayout(BoxConstraints c) {
-    if (c.maxW >= BoxConstraints.unbounded ||
-        c.maxH >= BoxConstraints.unbounded) {
+    if (c.maxWidth >= BoxConstraints.unbounded ||
+        c.maxHeight >= BoxConstraints.unbounded) {
       throw StateError(
         'a list takes all the room it is given, which must be bounded, not '
         '${describeConstraints(c)}',
       );
     }
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
     assert(_debugReportNoRows(), 'reports a list given no rows');
     // once more when onMetrics moved it; a third time on the next frame
     for (var pass = 0; pass < 2; pass++) {
@@ -385,19 +422,23 @@ final class RenderList extends RenderObject
   }
 
   void _layOutItems() {
-    final w = width;
     final h = height;
+    final inset = _padding.left + _padding.right;
+    final w = width > inset ? width - inset : 0;
     final count = _itemCount;
     final fixed = _itemExtent;
     final minH = fixed ?? 0;
     final maxH = fixed ?? BoxConstraints.unbounded;
     var ic = _itemConstraints;
-    if (ic == null || ic.maxW != w || ic.minH != minH || ic.maxH != maxH) {
+    if (ic == null ||
+        ic.maxWidth != w ||
+        ic.minHeight != minH ||
+        ic.maxHeight != maxH) {
       ic = _itemConstraints = BoxConstraints(
-        minW: w,
-        maxW: w,
-        minH: minH,
-        maxH: maxH,
+        minWidth: w,
+        maxWidth: w,
+        minHeight: minH,
+        maxHeight: maxH,
       );
     }
     if (w != _measuredAt) {
@@ -438,7 +479,7 @@ final class RenderList extends RenderObject
     } else if (target != null) {
       if (target <= 0) {
         _moveAnchor(0);
-        _anchorOffset = 0;
+        _anchorOffset = -_padding.top;
       } else if (target >= _maxOffset) {
         toEnd = true;
       } else if ((target - _offset).abs() <= h) {
@@ -459,9 +500,18 @@ final class RenderList extends RenderObject
   /// either edge of it, places the items and takes the measure of where it
   /// settled; drops the items outside.
   void _fill(int count, BoxConstraints ic, int h) {
+    final lead = _padding.top;
+    final trail = _padding.bottom;
     final e = _itemAt(_anchor, ic);
-    if (_anchorOffset >= e) {
-      _anchorOffset = e > 0 ? e - 1 : 0;
+    // the top of the first item may be below the window's (the padding
+    // before it), the bottom of the last above its (the padding after it)
+    final most = _anchor == count - 1 ? e + trail : e;
+    if (_anchorOffset >= most) {
+      _anchorOffset = most > 0 ? most - 1 : 0;
+    }
+    final least = _anchor == 0 ? -lead : 0;
+    if (_anchorOffset < least) {
+      _anchorOffset = least;
     }
     // the items in the window; the end in it with rows left below: as far
     // down as the items above allow
@@ -470,10 +520,10 @@ final class RenderList extends RenderObject
     while (i < count && y < h) {
       y += _itemAt(i++, ic);
     }
-    if (y < h && (_anchor > 0 || _anchorOffset > 0)) {
+    if (i >= count && y + trail < h && (_anchor > 0 || _anchorOffset > -lead)) {
       y = _alignBottom(count - 1, ic, h);
     }
-    final offset = _anchorStart + _anchorOffset;
+    final offset = _anchorStart + _anchorOffset + lead;
     final near = h > _cacheExtent ? h : _cacheExtent;
     // past the bottom: the cache, or a window when the end is a window
     // away or less, so that a move of a window stops at the end exactly
@@ -483,6 +533,7 @@ final class RenderList extends RenderObject
     }
     // past the top likewise
     final above = offset <= h ? near : _cacheExtent;
+    final left = _padding.left;
     var top = -_anchorOffset;
     var j = _anchor - 1;
     while (j >= 0 && top > -above) {
@@ -491,12 +542,12 @@ final class RenderList extends RenderObject
     _dropOutside(j + 1, i - 1);
     for (var c = firstChild; c != null;) {
       final at = c.parentData as ListParentData
-        ..dx = 0
+        ..dx = left
         ..dy = top;
       top += c.height;
       c = at.nextSibling;
     }
-    _offset = _anchorStart + _anchorOffset;
+    _offset = _anchorStart + _anchorOffset + lead;
     _content = _contentExtent;
     _maxOffset = _content - h > 0 ? _content - h : 0;
     _atEnd = _offset >= _maxOffset;
@@ -519,16 +570,20 @@ final class RenderList extends RenderObject
         rows += _itemAt(_anchor, ic);
       }
     }
-    _anchorOffset = rows < 0 ? 0 : rows;
+    // the first item may be moved on past, to the padding before it
+    final least = -_padding.top;
+    _anchorOffset = rows < least ? least : rows;
   }
 
-  /// Moves the window to [offset] as the estimate has it, building nothing.
-  void _seek(int offset, int count) {
+  /// Moves the window to `content` as the estimate has it, building nothing.
+  void _seek(int content, int count) {
+    // the rows among the items: the padding before them is not
+    final offset = content - _padding.top;
     final fixed = _itemExtent;
     if (fixed != null) {
       // every item is as tall: the one at the offset is a division away
       final last = count - 1;
-      final at = offset ~/ fixed;
+      final at = offset > 0 ? offset ~/ fixed : 0;
       // nothing is measured with an itemExtent: nothing for _moveAnchor to
       // keep
       _anchor = at < last ? at : last;
@@ -550,9 +605,11 @@ final class RenderList extends RenderObject
 
   /// Puts the bottom of item [last] at the bottom of the window, or item 0
   /// at the top when the items up to [last] are not as tall as the window;
-  /// returns the row the items up to [last] end at.
-  int _alignBottom(int last, BoxConstraints ic, int h) {
-    var bottom = h;
+  /// the padding before the first and after the last item shows where the
+  /// window reaches it, with `padded`. Returns the row the items up to
+  /// [last] end at.
+  int _alignBottom(int last, BoxConstraints ic, int h, {bool padded = true}) {
+    var bottom = padded && last == _itemCount - 1 ? h - _padding.bottom : h;
     for (var i = last; i >= 0; i--) {
       final e = _itemAt(i, ic);
       if (e >= bottom) {
@@ -563,7 +620,8 @@ final class RenderList extends RenderObject
       bottom -= e;
     }
     _moveAnchor(0);
-    _anchorOffset = 0;
+    final lead = padded ? _padding.top : 0;
+    _anchorOffset = bottom < lead ? -bottom : -lead;
     return h - bottom;
   }
 
@@ -571,7 +629,7 @@ final class RenderList extends RenderObject
   /// is above the window or taller than it; to its bottom when it is below.
   void _showItem(int index, BoxConstraints ic, int h) {
     if (!_indexAtTop &&
-        (index > _anchor || (index == _anchor && _anchorOffset == 0))) {
+        (index > _anchor || (index == _anchor && _anchorOffset <= 0))) {
       // the rows down to its top, as far as the window reaches
       var y = -_anchorOffset;
       var i = _anchor;
@@ -583,12 +641,19 @@ final class RenderList extends RenderObject
         return;
       }
       if (e < h) {
-        _alignBottom(index, ic, h);
+        // the last item shows the padding after it where that fits too
+        _alignBottom(
+          index,
+          ic,
+          h,
+          padded: index < _itemCount - 1 || e + _padding.bottom <= h,
+        );
         return;
       }
     }
     _moveAnchor(index);
-    _anchorOffset = 0;
+    // the first item brought to the top shows the padding before it
+    _anchorOffset = index == 0 && !_indexAtTop ? -_padding.top : 0;
   }
 
   /// Item [index] laid out, built first when the list has no such item;
@@ -693,7 +758,8 @@ final class RenderList extends RenderObject
   int get _anchorStart => _sumBefore + _est(_anchor - _knownBefore);
 
   /// The rows of the content.
-  int get _contentExtent => _sum + _est(_itemCount - _known);
+  int get _contentExtent =>
+      _padding.top + _sum + _est(_itemCount - _known) + _padding.bottom;
 
   var _noRows = false;
 

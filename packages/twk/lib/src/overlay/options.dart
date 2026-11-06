@@ -188,7 +188,7 @@ final class _OptionListState extends State<OptionList> {
     }
     return Listener(
       behavior: HitTestBehavior.opaque,
-      onMove: widget.onHighlight == null ? null : _move,
+      onPointerHover: widget.onHighlight == null ? null : _move,
       onScroll: widget.onHighlight == null ? null : _scroll,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -196,8 +196,8 @@ final class _OptionListState extends State<OptionList> {
         tapAt: (x, y) => _render?.optionAt(x, y) != null,
         onTapDown: widget.onSelected == null
             ? null
-            : (event) => _pressed = _at(event),
-        onTap: widget.onSelected == null ? null : _up,
+            : (tap) => _pressed = _at(tap.event),
+        onTapUp: widget.onSelected == null ? null : (tap) => _up(tap.event),
         child: list,
       ),
     );
@@ -414,8 +414,8 @@ final class _RenderOptionList extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.constrainW(_measure());
-    height = c.constrainH(_shown);
+    width = c.constrainWidth(_measure());
+    height = c.constrainHeight(_shown);
   }
 
   @override

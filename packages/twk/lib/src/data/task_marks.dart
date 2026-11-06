@@ -26,18 +26,18 @@ final class TaskMarks {
 
   /// The mark of a task at [status]: for a running task, the frame at
   /// [step].
-  String mark(TaskStatus status, int step) {
+  String mark(TaskItemStatus status, int step) {
     switch (status) {
-      case TaskStatus.pending:
+      case TaskItemStatus.pending:
         return glyphs.taskPending;
-      case TaskStatus.running:
+      case TaskItemStatus.running:
         final f = frames.frames;
         return f[step % f.length];
-      case TaskStatus.done:
+      case TaskItemStatus.done:
         return glyphs.check;
-      case TaskStatus.failed:
+      case TaskItemStatus.failed:
         return glyphs.cross;
-      case TaskStatus.skipped:
+      case TaskItemStatus.skipped:
         return glyphs.taskSkipped;
     }
   }
@@ -69,9 +69,9 @@ final class TaskMarks {
 
 /// The style of the mark of a task at [status] in [theme], as a
 /// [TaskList] and a `ProgressList` paint it.
-Style taskMarkStyle(ThemeData theme, TaskStatus status) => switch (status) {
-  TaskStatus.pending || TaskStatus.skipped => theme.muted,
-  TaskStatus.running => theme.primary,
-  TaskStatus.done => theme.success,
-  TaskStatus.failed => theme.error,
+Style taskMarkStyle(ThemeData theme, TaskItemStatus status) => switch (status) {
+  TaskItemStatus.pending || TaskItemStatus.skipped => theme.muted,
+  TaskItemStatus.running => theme.primary,
+  TaskItemStatus.done => theme.success,
+  TaskItemStatus.failed => theme.error,
 };

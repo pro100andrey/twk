@@ -284,13 +284,13 @@ final appScenarios = <AppScenario>[
     'rows-listener',
     'a ListView of 100k rows, each a Listener, scrolled a row a frame: the '
         'baseline of rows-detector',
-    (i, row) => Listener(onDown: (_) {}, child: row),
+    (i, row) => Listener(onPointerDown: (_) {}, child: row),
   ),
   _rowsScenario(
     'rows-detector',
     'the same, each row a GestureDetector with onTap: what its MouseRegion '
         'and HandOver cost a row',
-    (i, row) => GestureDetector(onTap: (_) {}, child: row),
+    (i, row) => GestureDetector(onTap: () {}, child: row),
   ),
   const AppScenario(
     'chips-narrow',
@@ -683,13 +683,13 @@ Future<(AppRun, FutureOr<void> Function(int))> _hiddenTab(int w, int h) async {
                 ProgressBar(),
                 TaskList(
                   tasks: [
-                    TaskItem('compile', status: TaskStatus.running),
+                    TaskItem('compile', status: TaskItemStatus.running),
                     TaskItem(
                       'test',
-                      status: TaskStatus.running,
+                      status: TaskItemStatus.running,
                       children: [
-                        TaskItem('core', status: TaskStatus.running),
-                        TaskItem('widgets', status: TaskStatus.running),
+                        TaskItem('core', status: TaskItemStatus.running),
+                        TaskItem('widgets', status: TaskItemStatus.running),
                       ],
                     ),
                   ],

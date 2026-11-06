@@ -146,9 +146,9 @@ final class RenderErrorBox extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.constrainW(_messageWidth(this, _message));
+    width = c.constrainWidth(_messageWidth(this, _message));
     _lines = _messageLines(this, _message, width);
-    height = c.constrainH(_lines.length);
+    height = c.constrainHeight(_lines.length);
   }
 
   @override

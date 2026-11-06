@@ -45,7 +45,7 @@ typedef ChildIndexGetter = int? Function(Key key);
 /// to an item and a move of the position before the list is next laid
 /// out, the later wins. Given to no list, it keeps the last move to an
 /// item asked for until it is given to one, which makes that move as it is
-/// first laid out, in place of its [initialOffset]; a [jumpTo] meanwhile
+/// first laid out, in place of its [initialScrollOffset]; a [jumpTo] meanwhile
 /// drops it. A move to an item that changes the offset sends a
 /// [ScrollUpdateNotification] up, as a [jumpTo] does.
 ///
@@ -60,10 +60,10 @@ typedef ChildIndexGetter = int? Function(Key key);
 /// );
 /// ```
 final class ListController extends ScrollController {
-  /// Moves the lists it is given to, which start at [initialOffset] (0 by
+  /// Moves the lists it is given to, which start at [initialScrollOffset] (0 by
   /// default) and, with [stickToEnd], keep to their end
   /// ([ScrollController.new]).
-  ListController({super.initialOffset, super.stickToEnd});
+  ListController({super.initialScrollOffset, super.stickToEnd});
 
   // the lists of the list views it is given to; the move to an item asked
   // for while there were none, and whether to the top
@@ -164,7 +164,8 @@ final class ListController extends ScrollController {
 /// list keeps it whether its controller sticks or not.
 ///
 /// It takes all the room it is given, which must be bounded, filled with
-/// [style] over the theme's background and text under the items. Scrolled
+/// [style] over the theme's background and text under the items. Its
+/// [padding] scrolls with the items. Scrolled
 /// while all of it is on the screen, it has the terminal move the rows
 /// that stay in view (a hardware scroll), and paints those the scroll
 /// brought in and those of the items that changed.
@@ -214,6 +215,7 @@ final class ListView extends StatelessWidget {
     this.physics,
     this.keyHints = true,
     this.reverse = false,
+    this.padding,
   }) : itemCount = children.length,
        itemBuilder = ((_, index) => children[index]),
        separatorBuilder = null,
@@ -254,6 +256,7 @@ final class ListView extends StatelessWidget {
     this.physics,
     this.keyHints = true,
     this.reverse = false,
+    this.padding,
     ChildIndexGetter? findChildIndexCallback,
   }) : separatorBuilder = null,
        findItemIndexCallback = findChildIndexCallback,
@@ -290,6 +293,7 @@ final class ListView extends StatelessWidget {
     this.physics,
     this.keyHints = true,
     this.reverse = false,
+    this.padding,
     this.findItemIndexCallback,
   }) : itemExtent = null,
        assert(itemCount >= 0, 'a count of 0 items or more'),
@@ -315,6 +319,17 @@ final class ListView extends StatelessWidget {
 
   /// Whether item 0 is at the bottom, the others above it.
   final bool reverse;
+
+  /// The cells around the items, which scroll with them as Flutter's
+  /// `ListView.padding` does: [EdgeInsets.top] rows before the first item
+  /// and [EdgeInsets.bottom] after the last are part of the scrollable
+  /// extent (a list not [reverse] at offset 0 shows the top ones empty), and
+  /// [EdgeInsets.left] and
+  /// [EdgeInsets.right] columns inset every item, which are laid out that
+  /// much narrower, and stay where they are. The insets are the screen's:
+  /// in a [reverse] list the top ones are still at the top, where the
+  /// list ends. Null or [EdgeInsets.zero] for none.
+  final EdgeInsets? padding;
 
   /// The index the item whose widget has a key has now, null for none:
   /// where the item a scrolled list keeps in place went when it is not
@@ -433,7 +448,8 @@ final class _ListViewport extends RenderObjectWidget {
       cacheExtent: view.cacheExtent,
       stickToBottom: view._sticks,
       background: background.pen,
-      scrollOffset: view.reverse ? 0 : position.offset,
+      padding: view.padding ?? EdgeInsets.zero,
+      scrollOffset: view.reverse ? 0 : position.pixels,
       onMetrics: element._settled,
     );
   }
@@ -445,6 +461,7 @@ final class _ListViewport extends RenderObjectWidget {
       ..itemExtent = view.itemExtent
       ..cacheExtent = view.cacheExtent
       ..stickToBottom = view._sticks
+      ..padding = view.padding ?? EdgeInsets.zero
       ..background = background.pen;
   }
 }
@@ -605,9 +622,9 @@ final class _ListElement extends RenderObjectElement
     final p = _position!;
     final int offset;
     if (!widget.view.reverse) {
-      offset = p.offset;
+      offset = p.pixels;
     } else if (p.hasExtents) {
-      offset = p.maxOffset - p.offset;
+      offset = p.maxScrollExtent - p.pixels;
     } else {
       return;
     }
@@ -656,7 +673,7 @@ final class _ListElement extends RenderObjectElement
     final p = _position!;
     if (!widget.view.reverse) {
       p.applyExtents(viewport, content, offset: offset, moved: toItem);
-    } else if (!p.hasExtents && p.offset > 0 && !toItem) {
+    } else if (!p.hasExtents && p.pixels > 0 && !toItem) {
       p.applyExtents(viewport, content);
     } else {
       final max = content - viewport > 0 ? content - viewport : 0;
@@ -965,7 +982,7 @@ final class _ListElement extends RenderObjectElement
     }
   }
 
-  static Key? _keyOf(Element item) => (item.widget as _Item).child.key;
+  static Key? _keyOf(Element item) => (item.widget as _Item).child?.key;
 
   /// The keyed items of [live] by key, but those [items] took before [k].
   static Map<Key, Element> _byKey(
@@ -1099,8 +1116,8 @@ final class _RenderBottom extends RenderObject with RenderObjectWithChildMixin {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
     final list = child;
     if (list == null) {
       return;
@@ -1113,7 +1130,12 @@ final class _RenderBottom extends RenderObject with RenderObjectWithChildMixin {
     try {
       for (var pass = 0; ; pass++) {
         list.layout(
-          BoxConstraints(minW: width, maxW: width, minH: at, maxH: at),
+          BoxConstraints(
+            minWidth: width,
+            maxWidth: width,
+            minHeight: at,
+            maxHeight: at,
+          ),
           parentUsesSize: true,
         );
         final fits = _content < h ? _content : h;

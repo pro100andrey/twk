@@ -4,6 +4,104 @@
 
 Breaking:
 
+- `Localizations` is `TwkLocalizations`: Flutter has a `Localizations` of its
+  own, which gives a widget the `Locale` and its delegates' objects, where this
+  one gives the words twk writes itself (`TwkStrings`).
+- `TweenAnimationBuilder` takes a `Tween` as Flutter's does: `tween:
+  IntTween(begin: 0, end: total)`, where it took `value:`, `from:` and a
+  constructor (`tween: IntTween.new`). The value runs from the tween's `begin`
+  at first, and to each new `end` from the one shown, the new tween's `begin`
+  not used. A `Tween` is immutable here, so `Tween.withEnds` is new: it makes
+  the tween of the same kind between two values, and a `Tween` of an app's own
+  (not `Tween<double>`, `IntTween`, `ColorTween`, `StyleTween`,
+  `EdgeInsetsTween` or `ThemeDataTween`) overrides it to be used in one.
+- `Action.invoke` returns `Object?` and `CallbackAction.onInvoke` is an
+  `Object? Function(T)`, as Flutter's: an action can give what it did back. An
+  `onInvoke: (_) {}` returns null instead: `(_) => null`. An `Action` that
+  overrides `invoke` with `void` still compiles.
+- `Semantics` and `SemanticsNode` take `checked`, `selected`, `expanded` and
+  `enabled` flat, as Flutter's `Semantics` does, in place of `state:`;
+  `SemanticsState` is removed. `enabled` has Flutter's sense, where
+  `SemanticsState.disabled` had the opposite one: `enabled: false` reads
+  `disabled`, `true` and null say nothing (`disabled: !x` is `enabled: x`).
+  `selected` is a `bool?` too. `Semantics.child` is optional. `role` and
+  `nodes` stay.
+- `StatusBar` and `DescriptionList` take `spacing`, as `Row` and `Column` do,
+  where they took `gap`; the render objects behind them have `spacing` too.
+  `Table`'s `columnGap` stays.
+- `Actions` and `Shortcuts` take `actions:` and `shortcuts:` by name, as
+  Flutter's do, where they took the map positionally. `Shortcuts.combos` still
+  takes its map first.
+- `showDialog`, `showToast` and `showContextMenu` take their `context` by name,
+  as Flutter's `showDialog` does, with `builder` (`showDialog`), `message`
+  (`showToast`) and `items` (`showContextMenu`), where they took them
+  positionally: `showDialog(context: context, builder: (context) => ...)`.
+- `GestureDetector` and `Pressable`: `onTap`, and `GestureDetector`'s
+  `onDoubleTap` and `onLongPress`, are `VoidCallback`s, as Flutter's, where
+  they took the `PointerEvent`. `onTapDown` takes `TapDownDetails`, and the
+  new `onTapUp` (on `Pressable` too, told before `onTap`) `TapUpDetails`, each
+  with `localPosition` and `globalPosition` in cells (`CellOffset`, `dx` and
+  `dy`) and the `event` for the button and the modifiers: where a tap, a double
+  tap or a long press was, and with which button, is `onTapUp`'s now. Flutter's
+  `kind` of the details is not there: a terminal reports none. `onLongPressEnd`
+  still takes the `PointerEvent`.
+- `DragDetails` is Flutter's `DragStartDetails`, `DragUpdateDetails` and
+  `DragEndDetails`: `onPanStart`, `onPanUpdate` and `onPanEnd` take one each,
+  and `DragListener` is `GestureDragStartCallback`, `GestureDragUpdateCallback`
+  and `GestureDragEndCallback`. Each has `localPosition` and `globalPosition`
+  in cells, a `CellOffset` (`dx`, `dy`), where it had `x` and `y`; the update
+  has `delta` for `dx` and `dy`, and the end no move. They keep `event` for the
+  button and the modifiers. Flutter's `sourceTimeStamp`, `kind`, `primaryDelta`,
+  `velocity` and `primaryVelocity` are not there: a terminal gives none.
+- `PopScope.onPopInvoked` is removed, as it is in Flutter:
+  `onPopInvokedWithResult` is told the same, with the result.
+- `debugDumpTree` is `debugDumpApp`, as Flutter names the function that prints
+  the element tree; it still takes a `BuildContext`.
+- `Scrollbar` takes `timeToFade`, as Flutter names it, where it took
+  `hideAfter`.
+- `DragTarget` takes `onWillAcceptWithDetails` and `onAcceptWithDetails`, as
+  Flutter names them, where it took `onWillAccept` and `onAccept`; they take the
+  same `DragTargetDetails`.
+- `showDialog` takes `barrierDismissible`, as Flutter names it, where it took
+  `dismissible`.
+- `Listener` and `RenderListener` take `onPointerDown`, `onPointerUp`,
+  `onPointerHover` and `onPointerMove`, as Flutter names them, where they took
+  `onDown`, `onUp`, `onMove` (motion with no button held, Flutter's hover) and
+  `onDrag` (motion with a button held, Flutter's move). `onScroll` stays.
+- `GestureDetector` takes `onPanStart`, `onPanUpdate` and `onPanEnd`, as Flutter
+  names them, where it took `onDragStart`, `onDragUpdate` and `onDragEnd`.
+- `ScrollMetrics` and `ScrollPosition` have `pixels`, `maxScrollExtent` and
+  `viewportDimension`, as Flutter names them, where they had `offset`,
+  `maxOffset` and `viewportExtent`; `ScrollController.offset` stays.
+  `ScrollController`, `ListController` and `useScrollController` take
+  `initialScrollOffset`, not `initialOffset`.
+- `TabView` is `TabBarView`, as Flutter names the content of a `TabBar`.
+- `Text`, `Text.rich`, `Text.line` and `Text.richLine` take `textAlign`, as
+  Flutter names it, where they took `align`; `RenderParagraph` keeps `align`.
+- `BoxConstraints` has `minWidth`, `maxWidth`, `minHeight` and `maxHeight`, and
+  `constrainWidth` and `constrainHeight`, as Flutter names them: they were
+  `minW`, `maxW`, `minH`, `maxH`, `constrainW` and `constrainH`.
+- `Flex`, `Row`, `Column` and `Wrap` take `spacing` and `runSpacing`, and
+  `RenderFlex` and `RenderWrap` have them, as Flutter names them: they were
+  `gap` and `runGap`.
+- `log`, `LogLevel`, `LogRecord` and `LogSink` are in `package:twk/log.dart`, out
+  of `twk.dart`, so that `twk.dart` beside `dart:math` no longer clashes over
+  `log`: an app that logs imports `log.dart`, and one that had `hide log` or
+  prefixed `dart:math` for it drops that where it does not import `log.dart`;
+  an app that imports both `log.dart` and `dart:math` still needs a prefix or a
+  `hide`.
+- `formatBytes`, `formatTook` and `ByteUnits` are in `package:twk/format.dart`,
+  out of `twk.dart`: an app that writes a size or a time, or sets a widget's
+  `byteUnits:`, imports it.
+- `Mark`, the base of `CellMark` and `TextMark`, is `GlyphMark`.
+- `WindowTitle` is `TerminalTitle`, as `TerminalProgress` is named: it sets the
+  terminal's title.
+- `TaskStatus` is `TaskItemStatus`, the status of a `TaskItem`.
+- `Link` is `Hyperlink`: an app that wrote `hide Link` for dart:io's `Link` drops it.
+- `twk.dart` no longer exports `ModeReport`, `KeyboardFlagsReport`,
+  `DeviceAttributes`, `ColorReport`, `CursorReport` and `UnknownSequence`, the
+  terminal's answers an app seldom reads: `package:twk_core/terminal.dart` has
+  them. A `switch` over `InputEvent` that named them ends in `_ => ...` instead.
 - `ScrollBehavior` and `ScrollConfiguration`, as Flutter has them, say what the
   wheel does: `App(scrollBehavior:)` for the app, `ScrollConfiguration` for a
   subtree. A `Scrollable` gathers the wheel's events into whole cells once a frame,
@@ -138,6 +236,30 @@ Changed:
   `DatePicker`'s among them, which showed none. Rows of a list keep the arrow.
 - `Pressable(behavior:)`: `HitTestBehavior.opaque` takes a press on its empty
   cells too.
+- Esc cancels a prompt of `package:twk/cli.dart` as Ctrl+C does, exit 130; with
+  suggestions open it hides them first.
+
+Added:
+
+- `ValueChanged`, `ValueGetter` and `ValueSetter`, the function types of Flutter's, and `kReleaseMode` and `kDebugMode`, the build's mode as constants.
+
+- `Style.copyWith`, `SizedBox.square(dimension:)` and `DefaultTextStyle.merge`, which merges onto the style above as the plain constructor does (unlike Flutter's, which replaces it).
+
+- `Focus(onFocusChange:)` and `FocusScope(onFocusChange:)`, called with `hasFocus` when the node's focus changes; `FocusScopeNode.requestFocus([node])` focuses a node below the scope.
+
+- `SingleTickerProviderStateMixin`; `AnimationController.forward`, `reverse`, `animateTo` and `repeat` return a `Future<void>` that completes when the run ends, and when something stops it (`stop`, `value` set, another run, `dispose`): unlike Flutter's `TickerFuture`, it does not stay pending after a stop, so an `await` does not hang. `AnimationController.toggle`, `isCompleted` and `isDismissed` (also on `AnimationStatus`).
+
+- The rest of Flutter's `Curves`: `fastLinearToSlowEaseIn`, `fastEaseInToSlowEaseOut`, `easeInToLinear`, `linearToEaseOut`, the `easeIn`, `easeOut` and `easeInOut` of Sine, Quad, Cubic, Quart, Quint, Expo, Circ and Back (`easeInOutCubicEmphasized` as well), `slowMiddle`, `bounceIn`, `bounceInOut`, `elasticIn` and `elasticInOut`, with Flutter's values. The Back and elastic ones go out of 0..1.
+
+- `Navigator.pushAndRemoveUntil`, `pushNamedAndRemoveUntil` and `popAndPushNamed`, static and on `NavigatorState`. The routes `pushAndRemoveUntil` removes are removed, not popped, as `removeRoute` does it. `popAndPushNamed` is a `StateError` on the only route, as `pop` is.
+
+- `SingleChildScrollView(padding:)`, empty cells round the child that scroll with it.
+
+- `ListView(padding:)` (all its constructors) and `Table(padding:)`, an `EdgeInsets` that scrolls with the items as Flutter's `ListView.padding` does: the top rows come before the first item and the bottom ones after the last, in the scrollable extent (offset 0 shows the top ones empty), and the left and right columns inset every item and stay. A move to keep an item in view (`ListController.ensureIndexVisible`, a `Table`'s selection) shows the padding before the first item and after the last; `jumpToIndex` puts the item at the top. In a reverse list the insets are the screen's. A `Table`'s header stays above its rows and is inset by the left and right columns, so the columns keep their places. Flutter's `Table` has no padding; a `TreeTable` has none yet.
+
+- `Slider(onChangeStart:, onChangeEnd:)`, called with the value at the press of the mouse and at its release; a key or the wheel calls neither.
+
+- `BlockSemantics(blocking:)`; `State.reassemble` and `Element.reassemble`: a hot reload (`AppBinding.reassemble`, `ext.twk.reassemble`) tells each `State` of the app before it builds again. `WidgetBuilder` is spelled in the signatures that wrote `Widget Function(BuildContext)`.
 
 ## 0.2.0
 

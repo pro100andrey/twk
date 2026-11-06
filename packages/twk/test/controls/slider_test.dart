@@ -338,6 +338,52 @@ void main() {
       expect(changes, [0.35, 0, 0.1]);
     });
 
+    testTwk('onChangeStart is told the value the press found, before '
+        'onChanged; onChangeEnd the value the release leaves; keys call '
+        'neither', (t) async {
+      final value = ValueNotifier<double>(0.25);
+      addTearDown(value.dispose);
+      final log = <String>[];
+      await t.pumpWidget(
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 11,
+              child: ValueListenableBuilder<double>(
+                valueListenable: value,
+                builder: (context, v, _) => Slider(
+                  value: v,
+                  autofocus: true,
+                  onChanged: (next) {
+                    log.add('changed $next');
+                    value.value = next;
+                  },
+                  onChangeStart: (v) => log.add('start $v'),
+                  onChangeEnd: (v) => log.add('end $v'),
+                ),
+              ),
+            ),
+          ],
+        ),
+        size: (20, 3),
+      );
+      // on the track, not the thumb
+      await mouse(t, MouseKind.down, 8);
+      await mouse(t, MouseKind.drag, 9);
+      expect(log, ['start 0.25', 'changed 0.8', 'changed 0.9']);
+      await mouse(t, MouseKind.up, 9);
+      expect(log.last, 'end 0.9');
+      log.clear();
+      // on the thumb, released where it was
+      await mouse(t, MouseKind.down, 9);
+      await mouse(t, MouseKind.up, 9);
+      expect(log, ['start 0.9', 'end 0.9']);
+      log.clear();
+      await press(t, 'left');
+      expect(log, ['changed 0.89']);
+    });
+
     testTwk('a drag goes on the divisions', (t) async {
       final value = ValueNotifier<double>(0);
       addTearDown(value.dispose);
@@ -361,8 +407,8 @@ void main() {
       final told = <String>[];
       await t.pumpWidget(
         GestureDetector(
-          onTap: (_) => told.add('tap'),
-          onDragStart: (_) => told.add('drag'),
+          onTap: () => told.add('tap'),
+          onPanStart: (_) => told.add('drag'),
           child: slider(value),
         ),
         size: (20, 3),
@@ -471,7 +517,7 @@ void main() {
       Theme(
         data: ThemeData.dark,
         child: GestureDetector(
-          onDragStart: (d) => drags.add(d.x),
+          onPanStart: (d) => drags.add(d.localPosition.dx),
           child: Listener(
             onScroll: (e) => wheel.add(e.scrollY),
             child: slider(value, enabled: false),

@@ -38,7 +38,7 @@ final _layout = GalleryPage(
       height: _lh,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final wide = constraints.maxW >= at;
+          final wide = constraints.maxWidth >= at;
           final panes = [
             for (final name in const ['one', 'two'])
               Expanded(
@@ -92,7 +92,7 @@ final _layout = GalleryPage(
     '  // constraints the SizedBox gives, and again when they change',
     '  child: LayoutBuilder(',
     '    builder: (context, constraints) {',
-    '      final wide = constraints.maxW >= ${o.nameOf(_layoutAt)};',
+    '      final wide = constraints.maxWidth >= ${o.nameOf(_layoutAt)};',
     '      final panes = [',
     "        for (final name in const ['one', 'two'])",
     '          Expanded(',

@@ -80,7 +80,7 @@ Widget build(BuildContext context) {
     height: 5,
     child: Row(
       crossAxisAlignment: .stretch,
-      gap: 1,
+      spacing: 1,
       children: [
         card(
           'cpu',

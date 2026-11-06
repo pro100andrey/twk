@@ -76,7 +76,7 @@ final class _ChatState extends State<Chat> {
           ),
           if (_thinking != null)
             Row(
-              gap: 1,
+              spacing: 1,
               children: [
                 Spinner(style: theme.primary),
                 const Text('thinking…'),

@@ -4,6 +4,7 @@
 // app a Ctrl+G; the rainbow, turned on or off, shows at once on an app
 // that repaints nothing. Ctrl+G is sent as Konsole sends it, CSI 103;5u.
 import 'package:test/test.dart';
+import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
@@ -69,8 +70,8 @@ final class _RenderArea extends RenderObject {
   @override
   void performLayout(BoxConstraints c) {
     counts.layouts++;
-    width = c.maxW;
-    height = c.constrainH(rows);
+    width = c.maxWidth;
+    height = c.constrainHeight(rows);
   }
 
   @override
@@ -124,8 +125,8 @@ final class RenderLine extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.constrainH(1);
+    width = c.maxWidth;
+    height = c.constrainHeight(1);
   }
 
   @override

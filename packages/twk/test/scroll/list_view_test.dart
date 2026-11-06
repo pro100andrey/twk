@@ -143,10 +143,10 @@ void main() {
     );
     expect(t.lines, items(0, 5));
     expect(built, range(0, 8));
-    expect(controller.position.maxOffset, 100000 - 5);
+    expect(controller.position.maxScrollExtent, 100000 - 5);
 
     built.clear();
-    controller.jumpTo(controller.position.maxOffset);
+    controller.jumpTo(controller.position.maxScrollExtent);
     await t.pump();
     expect(t.lines, items(99995, 100000));
     expect(built, unorderedEquals(range(99992, 100000)));
@@ -187,7 +187,7 @@ void main() {
       ['item 0', 'item 1', 'item 1.1', 'item 2', 'item 2.1'],
     ]);
     // 30 items, 1 + 2 + 3 rows in each three
-    expect(controller.position.maxOffset, 60 - 5);
+    expect(controller.position.maxScrollExtent, 60 - 5);
   });
 
   testTwk('the wheel over it scrolls it three rows', (t) async {
@@ -271,7 +271,7 @@ void main() {
   testTwk('keeps at most maxKept keyed items, letting go of the one that '
       'left the view longest ago', (t) async {
     final log = <String>[];
-    final controller = ScrollController(initialOffset: 10);
+    final controller = ScrollController(initialScrollOffset: 10);
     await t.pumpWidget(
       ListView.builder(
         itemCount: 1000,
@@ -434,7 +434,7 @@ void main() {
   testTwk('a ListController keeps the latest request made while it has no '
       'list for the next list mounted, in place of its offset; a jumpTo '
       'after it drops it', (t) async {
-    final controller = ListController(initialOffset: 30)
+    final controller = ListController(initialScrollOffset: 30)
       ..jumpToIndex(500)
       ..ensureIndexVisible(80);
     Widget view() => ListView.builder(

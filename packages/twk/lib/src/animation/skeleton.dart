@@ -199,7 +199,7 @@ final class Skeletonize extends StatelessWidget {
 ///
 /// ```dart
 /// const Row(
-///   gap: 1,
+///   spacing: 1,
 ///   children: [
 ///     Text('User:'),
 ///     Skeleton(width: 12),
@@ -571,8 +571,8 @@ final class _RenderPaintHook extends RenderObject
   void performLayout(BoxConstraints c) {
     final child = this.child;
     if (child == null) {
-      width = c.minW;
-      height = c.minH;
+      width = c.minWidth;
+      height = c.minHeight;
       return;
     }
     child.layout(c, parentUsesSize: true);
@@ -686,9 +686,9 @@ final class _RenderBlocks extends RenderObject {
   void performLayout(BoxConstraints c) {
     final w = _blockWidth;
     width = w != null
-        ? c.constrainW(w)
-        : (c.maxW < BoxConstraints.unbounded ? c.maxW : c.minW);
-    height = c.constrainH(_rows);
+        ? c.constrainWidth(w)
+        : (c.maxWidth < BoxConstraints.unbounded ? c.maxWidth : c.minWidth);
+    height = c.constrainHeight(_rows);
   }
 
   @override

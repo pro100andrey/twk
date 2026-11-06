@@ -23,7 +23,7 @@ text
 │     ConstrainedBox             ·    │                                          │   ·     │   start  end  center        │
 │     LimitedBox, Overflo…            │                                          │         │   stretch                   │
 │     FractionallySizedBox       ·    │                                          │   ·     │                             │
-│     IntrinsicWidth/Heig…            │                                          │         │  gap                        │
+│     IntrinsicWidth/Heig…            │                                          │         │  spacing                    │
 │ ▎   Row, Column, Flex          ·    ╰──────────────────────────────────────────╯   ·     │   0  1  2                   │
 │     Expanded, Spacer              └                                              ┘       │                             │
 │     Stack, Positioned          ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  44 × 11  ·     │  main axis size             │
@@ -60,7 +60,7 @@ styles
 │aaaaappppppppppppppaaaaaaaaahhhhqhhhhvhhhhhhhhhhhhhhhhhhwwwwwhhhhhhhhhhhhhhhhhhhvhhhqhhhhhqhhiuuuuuiiuuuisttttttshhhhhhh│
 │aaaaapppppppppppappppppppaaahhhhhhhhhvhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhvhhhhhhhhhqhhiuuuuuuuihhhhhhhhhhhhhhhhhh│
 │aaaaappppppppppppppppppppaaahhhhqhhhhvhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhvhhhqhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaappppppppppppppppppppaaahhhhhhhhhvhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhvhhhhhhhhhqhhnnnhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaappppppppppppppppppppaaahhhhhhhhhvhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhvhhhhhhhhhqhhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
 │azsssttttstttttttsttttsssssahhhhqhhhhvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvhhhqhhhhhqhhiuistsiuihhhhhhhhhhhhhhhhhh│
 │aaaaapppppppppappppppaaaaaaahhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhqhhhhhhhqhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaappppppappppppppppaaaaaahhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhhqhhDDhDhDDhhqhhhhhqhhnnnnhnnnnhnnnnhhhhhhhhhhhhh│

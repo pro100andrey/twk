@@ -9,6 +9,7 @@ library;
 import 'package:twk_core/twk_core.dart'
     show LineEncoder, PaintContext, PipelineOwner, RenderList, Screen, StyleId;
 
+import '../../log.dart';
 import '../../twk.dart';
 
 /// The lines of [message], each a list of spans, every span's style merged
@@ -147,7 +148,7 @@ List<String> widgetLines(
   }
   final owner = BuildOwner();
   final root = RootWidget(
-    child: Localizations(
+    child: TwkLocalizations(
       strings: strings,
       child: theme == null
           ? Overlay(child: widget)

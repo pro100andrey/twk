@@ -36,7 +36,7 @@ Widget build(BuildContext context) {
   return Column(
     mainAxisSize: .min,
     crossAxisAlignment: .start,
-    gap: 1,
+    spacing: 1,
     children: [
       MouseRegion(
         onEnter: (event) {
@@ -49,10 +49,10 @@ Widget build(BuildContext context) {
         },
         cursor: .pointer,
         child: Listener(
-          onDown: (event) => _saw('press of button ${event.button}', event),
-          onUp: (event) => _saw('release', event),
-          onMove: (event) => _saw('move', event),
-          onDrag: (event) => _saw('drag', event),
+          onPointerDown: (event) => _saw('press of button ${event.button}', event),
+          onPointerUp: (event) => _saw('release', event),
+          onPointerHover: (event) => _saw('move', event),
+          onPointerMove: (event) => _saw('drag', event),
           onScroll: (event) => _saw(event.kind.name, event),
           behavior: .opaque,
           child: SizedBox(

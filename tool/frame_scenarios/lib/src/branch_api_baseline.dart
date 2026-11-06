@@ -50,16 +50,26 @@ RenderParagraph cutParagraph(
 }
 
 /// Constraints of up to [width] × [height] cells, on a core whose
-/// constructor takes its bounds by name or, an older one, by position: the
-/// call is dynamic, so that this file builds against both.
+/// constructor takes its bounds as `maxWidth` and `maxHeight`, as `maxW` and
+/// `maxH` (the core before `parity-renames`) or, an older one, by position:
+/// the call is dynamic, so that this file builds against all.
 BoxConstraints constraintsUpTo(int width, int height) {
   const Function make = BoxConstraints.new;
   try {
-    return Function.apply(make, const [], {#maxW: width, #maxH: height})
-        as BoxConstraints;
+    return Function.apply(make, const [], {
+      #maxWidth: width,
+      #maxHeight: height,
+    }) as BoxConstraints;
     // the only way to tell a core by its constructor
     // ignore: avoid_catching_errors
   } on NoSuchMethodError {
-    return Function.apply(make, [0, width, 0, height]) as BoxConstraints;
+    try {
+      return Function.apply(make, const [], {#maxW: width, #maxH: height})
+          as BoxConstraints;
+      // an older core than the one before `parity-renames`
+      // ignore: avoid_catching_errors
+    } on NoSuchMethodError {
+      return Function.apply(make, [0, width, 0, height]) as BoxConstraints;
+    }
   }
 }

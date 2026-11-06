@@ -1,9 +1,9 @@
 // Drag and drop in an app: the data carried to the target under the mouse,
 // highlighted while it is, the feedback following the mouse in the
-// overlay; targets that reject the data by type or by onWillAccept, nested
-// targets, a list reordered by drag, the press shared with gesture
-// detectors, what the terminal is to report, lost releases, a draggable
-// leaving the tree, errors.
+// overlay; targets that reject the data by type or by
+// onWillAcceptWithDetails, nested targets, a list reordered by drag, the
+// press shared with gesture detectors, what the terminal is to report, lost
+// releases, a draggable leaving the tree, errors.
 import 'dart:convert';
 
 import 'package:test/test.dart';
@@ -33,11 +33,12 @@ Widget target<T extends Object>(
   width: 8,
   height: 2,
   child: DragTarget<T>(
-    onWillAccept: (d) {
+    onWillAcceptWithDetails: (d) {
       log.add('$name will ${d.data} ${at(d.event)}');
       return accepts?.call(d.data) ?? true;
     },
-    onAccept: (d) => log.add('$name accept ${d.data} ${at(d.event)}'),
+    onAcceptWithDetails: (d) =>
+        log.add('$name accept ${d.data} ${at(d.event)}'),
     onLeave: (data) => log.add('$name leave $data'),
     onMove: moves
         ? (d) => log.add('$name move ${d.data} ${at(d.event)}')
@@ -114,8 +115,8 @@ final class _FruitsState extends State<Fruits> {
         for (final (i, fruit) in fruits.indexed)
           DragTarget<int>(
             key: ValueKey(fruit),
-            onWillAccept: (d) => d.data != i,
-            onAccept: (d) =>
+            onWillAcceptWithDetails: (d) => d.data != i,
+            onAcceptWithDetails: (d) =>
                 setState(() => fruits.insert(i, fruits.removeAt(d.data))),
             builder: (context, candidate, rejected) => Draggable<int>(
               data: i,
@@ -207,8 +208,8 @@ void main() {
   });
 
   testTwk('a target rejects data of another type without asking, and what '
-      'its onWillAccept says no to; dropped there, or on no target, the '
-      'drag is canceled', (t) async {
+      'its onWillAcceptWithDetails says no to; dropped there, or on no target, '
+      'the drag is canceled', (t) async {
     final log = <String>[];
     await t.pumpWidget(
       stage([
@@ -267,11 +268,12 @@ void main() {
           width: 20,
           height: 4,
           child: DragTarget<String>(
-            onWillAccept: (d) {
+            onWillAcceptWithDetails: (d) {
               log.add('O will ${d.data} ${at(d.event)}');
               return true;
             },
-            onAccept: (d) => log.add('O accept ${d.data} ${at(d.event)}'),
+            onAcceptWithDetails: (d) =>
+                log.add('O accept ${d.data} ${at(d.event)}'),
             onLeave: (data) => log.add('O leave $data'),
             builder: (context, candidate, rejected) => Stack(
               children: [
@@ -374,7 +376,7 @@ void main() {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             GestureDetector(
-              onTap: (e) => log.add('tap ${at(e)}'),
+              onTapUp: (tap) => log.add('tap ${at(tap.event)}'),
               child: Draggable<String>(
                 data: 'outer',
                 feedback: const Text('[outer]'),
@@ -388,8 +390,8 @@ void main() {
               feedback: const Text('[around]'),
               onDragStarted: () => log.add('around started'),
               child: GestureDetector(
-                onDragStart: (d) => log.add('inner start ${at(d.event)}'),
-                onDragEnd: (d) => log.add('inner end ${at(d.event)}'),
+                onPanStart: (d) => log.add('inner start ${at(d.event)}'),
+                onPanEnd: (d) => log.add('inner end ${at(d.event)}'),
                 child: const Text('inner'),
               ),
             ),
@@ -501,7 +503,7 @@ void main() {
           left: 10,
           top: 2,
           child: DragTarget<String>(
-            onAccept: (_) => throw StateError('drop'),
+            onAcceptWithDetails: (_) => throw StateError('drop'),
             builder: (context, candidate, rejected) => const Text('A'),
           ),
         ),

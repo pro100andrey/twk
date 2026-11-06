@@ -5,7 +5,7 @@ extension on _SampleAppState {
     SizedBox(
       height: 1,
       child: Row(
-        gap: 1,
+        spacing: 1,
         children: [
           SizedBox(width: 12, child: TextField(placeholder: 'type here')),
           SizedBox(width: 12, child: TextArea(placeholder: 'notes')),
@@ -17,7 +17,7 @@ extension on _SampleAppState {
     SizedBox(
       height: 1,
       child: Row(
-        gap: 1,
+        spacing: 1,
         children: [
           Expanded(
             child: TextField(
@@ -136,8 +136,8 @@ final class _RenderBlockCell extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.constrainW(1);
-    height = c.constrainH(1);
+    width = c.constrainWidth(1);
+    height = c.constrainHeight(1);
   }
 
   @override

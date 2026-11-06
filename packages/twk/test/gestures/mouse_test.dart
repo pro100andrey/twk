@@ -43,10 +43,10 @@ Widget listener(
     width: width,
     height: height,
     child: Listener(
-      onDown: r,
-      onUp: r,
-      onMove: r,
-      onDrag: r,
+      onPointerDown: r,
+      onPointerUp: r,
+      onPointerHover: r,
+      onPointerMove: r,
       onScroll: scroll ? r : null,
       scrollAxis: scrollAxis,
       behavior: behavior,
@@ -155,8 +155,8 @@ void main() {
               child: Padding(
                 padding: const EdgeInsets.only(left: 4),
                 child: Listener(
-                  onDown: record(log, 'inner'),
-                  onUp: record(log, 'inner'),
+                  onPointerDown: record(log, 'inner'),
+                  onPointerUp: record(log, 'inner'),
                   child: const Text('inner'),
                 ),
               ),
@@ -190,7 +190,7 @@ void main() {
     final events = <PointerEvent>[];
     await t.pumpWidget(
       Listener(
-        onDown: events.add,
+        onPointerDown: events.add,
         behavior: HitTestBehavior.opaque,
         child: const SizedBox.expand(),
       ),
@@ -449,11 +449,11 @@ void main() {
           height: 3,
           child: behavior == null
               ? Listener(
-                  onDown: record(log, 'over'),
+                  onPointerDown: record(log, 'over'),
                   child: const Box(border: Border.all()),
                 )
               : Listener(
-                  onDown: record(log, 'over'),
+                  onPointerDown: record(log, 'over'),
                   behavior: behavior,
                   child: const Box(border: Border.all()),
                 ),
@@ -678,12 +678,16 @@ void main() {
         key: host,
         (s) => switch (s.step) {
           0 => const Listener(child: Text('nothing')),
-          1 => Listener(onDown: none, onScroll: none, child: const Text('a')),
-          2 => Listener(onDrag: none, child: const Text('b')),
+          1 => Listener(
+            onPointerDown: none,
+            onScroll: none,
+            child: const Text('a'),
+          ),
+          2 => Listener(onPointerMove: none, child: const Text('b')),
           3 => MouseRegion(onExit: none, child: const Text('c')),
           4 => Column(
             children: [
-              Listener(onDown: none, child: const Text('d')),
+              Listener(onPointerDown: none, child: const Text('d')),
               MouseRegion(onHover: none, child: const Text('e')),
             ],
           ),
@@ -744,7 +748,7 @@ void main() {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Listener(
-            onDown: (_) => throw StateError('down'),
+            onPointerDown: (_) => throw StateError('down'),
             child: const Text('click'),
           ),
         ],

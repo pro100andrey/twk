@@ -6,8 +6,10 @@ import 'dart:async';
 
 import 'package:meta/meta.dart';
 
+import '../../log.dart';
 import '../../twk.dart';
 
+import '../foundation/format.dart';
 import 'capabilities.dart';
 import 'lines.dart';
 import 'progress.dart';
@@ -257,7 +259,7 @@ final class Cli {
 
   /// The words the console writes on its own (`answer y or n`, ` in 3 s`),
   /// English unless given others; widgets it shows are given them too
-  /// ([Localizations]).
+  /// ([TwkLocalizations]).
   final TwkStrings strings;
 
   /// The lines of code an error's [traceback] shows of the source it was
@@ -495,7 +497,7 @@ final class Cli {
   ///   what to choose from for the text before the caret, shown under it
   ///   (`Autocomplete`: Up and Down choose, Enter or Tab put it in). Once
   ///   answered the field goes and `✔ question answer` is committed in its
-  ///   place. Ctrl+C throws [PromptCancelledException] with
+  ///   place. Ctrl+C or Esc throws [PromptCancelledException] with
   ///   [PromptCancelReason.interrupt], Ctrl+D at an empty field with
   ///   [PromptCancelReason.endOfInput], `✗ question` committed.
   /// * [CliMode.plain]: `? question (default) `, then the line read as the

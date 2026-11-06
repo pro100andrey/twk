@@ -258,7 +258,7 @@ void main() {
       await t.click(x, y);
       await t.pump(const Duration(milliseconds: 400));
       expect(screen(t), contains('taps 1, double 0, long 0'));
-      expect(screen(t), contains('tap at '));
+      expect(screen(t), isNot(contains('tap, hold or drag me')));
       await t.click(x, y);
       await t.pump();
       await t.click(x, y);

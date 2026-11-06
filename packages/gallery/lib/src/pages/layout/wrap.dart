@@ -63,18 +63,18 @@ const _wrapCross = ChoiceOption<String>(
   initial: 'center',
 );
 
-/// The Wrap page's `gap` option.
-const _wrapGap = ChoiceOption<int>(
-  'gap',
-  'gap',
+/// The Wrap page's `spacing` option.
+const _wrapSpacing = ChoiceOption<int>(
+  'spacing',
+  'spacing',
   values: [0, 1, 2],
   initial: 1,
 );
 
-/// The Wrap page's `runGap` option.
-const _wrapRunGap = ChoiceOption<int>(
-  'runGap',
-  'run gap',
+/// The Wrap page's `runSpacing` option.
+const _wrapRunSpacing = ChoiceOption<int>(
+  'runSpacing',
+  'run spacing',
   values: [0, 1],
 );
 
@@ -88,8 +88,8 @@ final _wrap = GalleryPage(
     _wrapAlignment,
     _wrapRunAlignment,
     _wrapCross,
-    _wrapGap,
-    _wrapRunGap,
+    _wrapSpacing,
+    _wrapRunSpacing,
   ],
   build: (context, o) => Timed((context, ms, wake) {
     var width = o(_wrapWidth).toInt();
@@ -118,8 +118,8 @@ final _wrap = GalleryPage(
           crossAxisAlignment: WrapCrossAlignment.values.byName(
             o(_wrapCross),
           ),
-          gap: o(_wrapGap),
-          runGap: o(_wrapRunGap),
+          spacing: o(_wrapSpacing),
+          runSpacing: o(_wrapRunSpacing),
           children: [
             for (final (label, kind, badge) in _tags)
               if (badge)
@@ -141,8 +141,9 @@ final _wrap = GalleryPage(
         '      runAlignment: .${o.nameOf(_wrapRunAlignment)},',
       if (o(_wrapCross) != 'start')
         '      crossAxisAlignment: .${o.nameOf(_wrapCross)},',
-      if (o(_wrapGap) != 0) '      gap: ${o.nameOf(_wrapGap)},',
-      if (o(_wrapRunGap) != 0) '      runGap: ${o.nameOf(_wrapRunGap)},',
+      if (o(_wrapSpacing) != 0) '      spacing: ${o.nameOf(_wrapSpacing)},',
+      if (o(_wrapRunSpacing) != 0)
+        '      runSpacing: ${o.nameOf(_wrapRunSpacing)},',
       '      children: [',
       for (final (label, kind, badge) in _tags)
         if (!badge) ...[

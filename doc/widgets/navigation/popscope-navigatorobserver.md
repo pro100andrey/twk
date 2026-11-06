@@ -33,7 +33,7 @@ void dispose() {
 Widget build(BuildContext context) => Column(
   mainAxisSize: .min,
   crossAxisAlignment: .start,
-  gap: 1,
+  spacing: 1,
   children: [
     SizedBox(
       width: 44,
@@ -92,7 +92,7 @@ final class _Notes extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: .start,
-    gap: 1,
+    spacing: 1,
     children: [
       const Text('Notes'),
       Button(
@@ -116,18 +116,18 @@ final class _EditState extends State<_Edit> {
 
   Future<void> _ask() async {
     final discard = await showDialog<bool>(
-      context,
-      (context) => Dialog(
+      context: context,
+      builder: (context) => Dialog(
         title: 'Discard the changes?',
         child: Column(
           mainAxisSize: .min,
           crossAxisAlignment: .start,
-          gap: 1,
+          spacing: 1,
           children: [
             const Text('The note was changed.'),
             Row(
               mainAxisSize: .min,
-              gap: 2,
+              spacing: 2,
               children: [
                 Button(
                   'Discard',
@@ -157,7 +157,7 @@ final class _EditState extends State<_Edit> {
     },
     child: Column(
       crossAxisAlignment: .start,
-      gap: 1,
+      spacing: 1,
       children: [
         Text('Edit the note', style: Theme.of(context).primary),
         Checkbox(

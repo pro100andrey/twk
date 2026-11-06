@@ -1,6 +1,7 @@
 // The decimal separator of TwkStrings: the sizes and times the widgets and
 // the exported functions write, with a comma where the language has one.
 import 'package:test/test.dart';
+import 'package:twk/format.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
@@ -42,13 +43,13 @@ void main() {
 
   group('TaskList', () {
     testTwk('writes the time a task took with the separator', (t) async {
-      Widget list(TwkStrings strings) => Localizations(
+      Widget list(TwkStrings strings) => TwkLocalizations(
         strings: strings,
         child: const TaskList(
           tasks: [
             TaskItem(
               'Build',
-              status: TaskStatus.done,
+              status: TaskItemStatus.done,
               elapsed: Duration(milliseconds: 3190),
             ),
           ],
@@ -68,7 +69,7 @@ void main() {
       tracker.add('a', total: 3200000, unit: ProgressUnit.bytes)
         ..start()
         ..advance(1200000);
-      Widget list(TwkStrings strings) => Localizations(
+      Widget list(TwkStrings strings) => TwkLocalizations(
         strings: strings,
         child: ProgressList(
           tracker: tracker,

@@ -375,8 +375,8 @@ final class _KeyHintsBarState extends State<KeyHintsBar> {
     // cut row presses nothing, nor does the key or hint it stands for
     return GestureDetector(
       tapAt: (x, _) => _hits.at(x) >= 0,
-      onTapDown: (event) {
-        final key = keys[_hits.at(event.x)];
+      onTapDown: (tap) {
+        final key = keys[_hits.at(tap.localPosition.dx)];
         final binding = AppBinding.of(context);
         for (final combo in [key.combo, ...key.then]) {
           binding.pressKey(combo);
@@ -434,8 +434,8 @@ Future<void> showKeyHelp(BuildContext context, {String title = 'Keys'}) {
     }
   }
   return showDialog<void>(
-    context,
-    (context) {
+    context: context,
+    builder: (context) {
       final theme = Theme.of(context);
       return Dialog(
         title: title,
@@ -449,7 +449,7 @@ Future<void> showKeyHelp(BuildContext context, {String title = 'Keys'}) {
               for (final (keys, hint) in entries)
                 Row(
                   mainAxisSize: MainAxisSize.min,
-                  gap: 2,
+                  spacing: 2,
                   children: [
                     SizedBox(
                       width: widest,

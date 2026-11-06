@@ -161,7 +161,7 @@ The words the console writes itself (`answer y or n`, `Enter a number`,
 ` in 3.1 s` after a progress, the hints of a prompt) are `TwkStrings`,
 English unless given: `Cli(strings:)`, or `strings:` of `Cli.run` and
 `Cli.runWithArgs`; `cli.strings` reads them. What the inline session shows
-is wrapped in `Localizations`, so a widget reads the same words with
+is wrapped in `TwkLocalizations`, so a widget reads the same words with
 `TwkStrings.of(context)`; a widget `show`n in a log is too. On a plain
 terminal a yes or no takes `y`, `yes`, `n` and `no`, and the strings'
 `yes` and `no`, or their first letters. See

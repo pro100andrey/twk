@@ -657,8 +657,8 @@ void main() {
       final got = <String>[];
       await t.pumpWidget(
         Listener(
-          onDown: (_) => got.add('down'),
-          onUp: (_) => got.add('up'),
+          onPointerDown: (_) => got.add('down'),
+          onPointerUp: (_) => got.add('up'),
           child: app(),
         ),
         size: (20, 5),
@@ -752,7 +752,7 @@ void main() {
         'it', (t) async {
       final got = <String>[];
       await t.pumpWidget(
-        Listener(onDown: (_) => got.add('down'), child: app()),
+        Listener(onPointerDown: (_) => got.add('down'), child: app()),
         size: (20, 5),
       );
       final armed = await call(t, 'ext.twk.flags', {
@@ -1037,8 +1037,8 @@ final class RenderLine extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.constrainW(_text.length + 2);
-    height = c.constrainH(1);
+    width = c.constrainWidth(_text.length + 2);
+    height = c.constrainHeight(1);
   }
 
   /// Paints all of its cells, as a repaint boundary does, their

@@ -12,4 +12,4 @@ export 'error_widget.dart';
 export 'source_excerpt.dart' show SourceExcerpt;
 export 'static.dart';
 export 'terminal_status.dart'
-    show ProgressState, TerminalProgress, TerminalStatus, WindowTitle;
+    show ProgressState, TerminalProgress, TerminalStatus, TerminalTitle;

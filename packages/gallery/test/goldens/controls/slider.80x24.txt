@@ -15,11 +15,11 @@ text
 │     DatePicker      ▐              volume: 50%                                 │
 │     FilePicker          ·   ·    └                                ┘ ·   ·   ·  │
 │     Form, FormFie…                                          30 × 3             │
-│     TabBar, TabVi…      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
+│     TabBar, TabBa…      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
 │     KeyHintsBar                                                                │
 │     StatusMessage…                                                             │
 │     Callout          ──────────────────────────────────────────────────────────│
-│     Link               divisions   none  10  4                                 │
+│     Hyperlink          divisions   none  10  4                                 │
 │     ListTile           width      ────────────────── ─────────  30 cells       │
 │     StatusBar                                                                  │
 │                                                                                │
@@ -44,7 +44,7 @@ styles
 │aaaaannnnnnnnnnnaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnnaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnaaaaaaaaaaaaaggmmmmmmmmmggqrrrrqhwwhhwhgggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnaaaaaaaaggmmmmmmmmmggqrrrrqhwwhhwhgggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnaaaaaaaaaggmmmmmggggggsssssssssssssssssstmmmmmmmmmggAAgAAAAAggggggg│
 │aaaaannnnnnnnnaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│

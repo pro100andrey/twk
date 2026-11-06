@@ -1,4 +1,4 @@
-// The words a ProgressList writes, another language's under Localizations,
+// The words a ProgressList writes, another language's under TwkLocalizations,
 // and written again when they change.
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
@@ -22,7 +22,7 @@ void main() {
         ..add('a', total: 100).start()
         ..add('b')
         ..add('c');
-      Widget list(TwkStrings strings) => Localizations(
+      Widget list(TwkStrings strings) => TwkLocalizations(
         strings: strings,
         child: ProgressList(
           tracker: tracker,
@@ -43,7 +43,7 @@ void main() {
       final tracker = ProgressTracker(clock: t.clock.stopwatch);
       addTearDown(tracker.dispose);
       tracker.add('a', total: 100).start();
-      Widget list(TwkStrings strings) => Localizations(
+      Widget list(TwkStrings strings) => TwkLocalizations(
         strings: strings,
         child: Row(
           children: [
@@ -92,7 +92,7 @@ void main() {
       expect(t.lines[1], '+10 more');
     });
 
-    testTwk('writes English without Localizations', (t) async {
+    testTwk('writes English without TwkLocalizations', (t) async {
       final tracker = ProgressTracker(clock: t.clock.stopwatch);
       addTearDown(tracker.dispose);
       tracker.add('a', total: 100).start();
@@ -107,7 +107,7 @@ void main() {
     });
   });
 
-  group('Localizations', () {
+  group('TwkLocalizations', () {
     testTwk('rebuilds what reads TwkStrings only when they change', (t) async {
       var builds = 0;
       final probe = Builder(
@@ -117,7 +117,7 @@ void main() {
         },
       );
       Widget under(TwkStrings strings) =>
-          Localizations(strings: strings, child: probe);
+          TwkLocalizations(strings: strings, child: probe);
       await t.pumpWidget(under(const TwkStrings(yesLabel: 'Ja')));
       expect(t.lines.first, startsWith('Ja'));
       expect(builds, 1);

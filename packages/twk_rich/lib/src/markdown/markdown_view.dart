@@ -595,7 +595,7 @@ final class _MarkdownViewState extends State<MarkdownView> {
       Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        gap: gap,
+        spacing: gap,
         children: [for (final block in blocks) _block(block, depth, uses)],
       );
 
@@ -711,7 +711,7 @@ final class _MarkdownViewState extends State<MarkdownView> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      gap: gap,
+      spacing: gap,
       children: [
         for (var k = 0; k < items.length; k++)
           _item(
@@ -757,7 +757,7 @@ final class _MarkdownViewState extends State<MarkdownView> {
     uses,
     (uses) => Row(
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         _Marker(marker, column: column, end: end, style: _theme.marker),
         Expanded(child: _column(item.children, depth + 1, by.$2, uses)),
@@ -899,8 +899,8 @@ final class _LinkPointerState extends State<_LinkPointer> {
           TerminalStatus.of(context)?.handAsksMotion(mode) ?? false,
       behavior: HitTestBehavior.translucent,
       child: Listener(
-        onDown: taps ? _down : null,
-        onUp: taps ? _up : null,
+        onPointerDown: taps ? _down : null,
+        onPointerUp: taps ? _up : null,
         behavior: HitTestBehavior.translucent,
         child: widget.child,
       ),
@@ -1120,8 +1120,8 @@ final class _RenderMarker extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.constrainW(_columnWidth);
-    height = c.constrainH(1);
+    width = c.constrainWidth(_columnWidth);
+    height = c.constrainHeight(1);
   }
 
   @override
@@ -1175,8 +1175,8 @@ abstract class _RenderProxy extends RenderObject
   void performLayout(BoxConstraints c) {
     final child = this.child;
     if (child == null) {
-      width = c.minW;
-      height = c.minH;
+      width = c.minWidth;
+      height = c.minHeight;
       return;
     }
     child.layout(c, parentUsesSize: true);

@@ -59,14 +59,15 @@ bool _onInner(ScrollUpdateNotification notification) {
 }
 
 bool _onOuter(ScrollNotification notification) {
-  final ScrollMetrics(:offset, :maxOffset) = notification.metrics;
+  final ScrollMetrics(:pixels, :maxScrollExtent) =
+      notification.metrics;
   setState(() {
     _trace.last.outer = 'heard';
     _heard = switch (notification) {
       ScrollUpdateNotification(:final scrollDelta) =>
-        'scrolled $scrollDelta to $offset of $maxOffset',
+        'scrolled $scrollDelta to $pixels of $maxScrollExtent',
       OverscrollNotification(:final overscroll) =>
-        'overscrolled $overscroll at $offset of $maxOffset',
+        'overscrolled $overscroll at $pixels of $maxScrollExtent',
       _ => '$notification',
     };
   });
@@ -81,11 +82,11 @@ Widget build(BuildContext context) {
     child: Column(
       mainAxisSize: .min,
       crossAxisAlignment: .start,
-      gap: 1,
+      spacing: 1,
       children: [
         Row(
           crossAxisAlignment: .start,
-          gap: 2,
+          spacing: 2,
           children: [
             SizedBox(
               width: 16,

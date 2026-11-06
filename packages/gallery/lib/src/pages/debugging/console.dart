@@ -140,10 +140,10 @@ final _console = GalleryPage(
       '        rows: ${o.nameOf(_consoleRowsOption)},',
       '        child: Column(',
       '          crossAxisAlignment: .start,',
-      '          gap: 1,',
+      '          spacing: 1,',
       '          children: [',
       '            Row(',
-      '              gap: 1,',
+      '              spacing: 1,',
       '              children: [',
       codeLine([
         '                ',
@@ -256,10 +256,10 @@ final class _LoggedState extends TimedState<_Logged> {
           rows: widget.rows,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            gap: 1,
+            spacing: 1,
             children: [
               Row(
-                gap: 1,
+                spacing: 1,
                 children: [
                   Button(
                     'Info',

@@ -38,20 +38,20 @@ final _dialogPage = GalleryPage(
     '',
     'void _ask() => unawaited(',
     '  showDialog<bool>(',
-    '    context,',
-    '    (context) => Dialog(',
+    '    context: context,',
+    '    builder: (context) => Dialog(',
     "      title: 'Delete',",
     if (o(_dialogShadow)) '      shadow: Panel.shadowOf(Theme.of(context)),',
     ..._lookLine(o, '      '),
     '      child: Column(',
     '        mainAxisSize: .min,',
     '        crossAxisAlignment: .start,',
-    '        gap: 1,',
+    '        spacing: 1,',
     '        children: [',
     "          const Text('Delete 3 files?'),",
     '          Row(',
     '            mainAxisSize: .min,',
-    '            gap: 2,',
+    '            spacing: 2,',
     '            children: [',
     '              Button(',
     "                'Delete',",
@@ -64,7 +64,7 @@ final _dialogPage = GalleryPage(
     '        ],',
     '      ),',
     '    ),',
-    if (!o(_dialogDismissible)) '    dismissible: false,',
+    if (!o(_dialogDismissible)) '    barrierDismissible: false,',
     '    alignment: .${o.nameOf(_dialogAlignment)},',
     '  ).then(',
     '    (delete) => setState(',
@@ -81,7 +81,7 @@ final _dialogPage = GalleryPage(
     'Widget build(BuildContext context) => Column(',
     '  mainAxisSize: .min,',
     '  crossAxisAlignment: .start,',
-    '  gap: 1,',
+    '  spacing: 1,',
     '  children: [',
     "    Button('Ask', onPressed: _ask),",
     '    Text.rich([',
@@ -133,20 +133,20 @@ final class _AskState extends State<_Ask> {
 
   void _ask() => unawaited(
     showDialog<bool>(
-      context,
-      (context) => Dialog(
+      context: context,
+      builder: (context) => Dialog(
         title: 'Delete',
         shadow: widget.shadow ? Panel.shadowOf(Theme.of(context)) : null,
         look: widget.look,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
-          gap: 1,
+          spacing: 1,
           children: [
             const Text('Delete 3 files?'),
             Row(
               mainAxisSize: MainAxisSize.min,
-              gap: 2,
+              spacing: 2,
               children: [
                 Button(
                   'Delete',
@@ -159,7 +159,7 @@ final class _AskState extends State<_Ask> {
           ],
         ),
       ),
-      dismissible: widget.dismissible,
+      barrierDismissible: widget.dismissible,
       alignment: _alignments[widget.alignment] ?? Alignment.center,
     ).then((delete) {
       if (mounted) {
@@ -179,7 +179,7 @@ final class _AskState extends State<_Ask> {
   Widget build(BuildContext context) => Column(
     mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.start,
-    gap: 1,
+    spacing: 1,
     children: [
       Button('Ask', onPressed: _ask),
       LitLine([

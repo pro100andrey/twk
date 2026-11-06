@@ -1,5 +1,5 @@
 /// Tasks and how far they have got: a [TaskList] of [TaskItem]s, each with
-/// its [TaskStatus].
+/// its [TaskItemStatus].
 library;
 
 import 'package:meta/meta.dart';
@@ -31,7 +31,7 @@ import 'chart_glyphs.dart';
 import 'task_marks.dart';
 
 /// Where a [TaskItem] stands, shown by the mark before its label.
-enum TaskStatus {
+enum TaskItemStatus {
   /// Not started: `◦`, in [ThemeData.muted].
   pending,
 
@@ -56,7 +56,7 @@ final class TaskItem {
   /// [children].
   const TaskItem(
     this.label, {
-    this.status = TaskStatus.pending,
+    this.status = TaskItemStatus.pending,
     this.id,
     this.elapsed,
     this.children = const [],
@@ -66,7 +66,7 @@ final class TaskItem {
   final String label;
 
   /// Where the task stands: the mark before [label].
-  final TaskStatus status;
+  final TaskItemStatus status;
 
   /// What tells the task from its siblings while the list changes, which
   /// keeps its row and the time it has run; null for its [label]. Siblings
@@ -87,7 +87,7 @@ final class TaskItem {
 
 /// Tasks and how far they have got, a row each: build steps, an
 /// installer's stages, what an agent does. A row shows the mark of the
-/// task's [TaskStatus], its label, cut off with an ellipsis, and with
+/// task's [TaskItemStatus], its label, cut off with an ellipsis, and with
 /// [showElapsed], in [ThemeData.muted] after it, the time it has run on the
 /// app's clock, from the frame that showed it running, as a
 /// `ProgressList` writes it: a clock in whole seconds while it runs
@@ -112,13 +112,13 @@ final class TaskItem {
 /// ```dart
 /// const TaskList(
 ///   tasks: [
-///     TaskItem('Fetch', status: TaskStatus.done),
+///     TaskItem('Fetch', status: TaskItemStatus.done),
 ///     TaskItem(
 ///       'Compile',
-///       status: TaskStatus.running,
+///       status: TaskItemStatus.running,
 ///       children: [
-///         TaskItem('core', status: TaskStatus.done),
-///         TaskItem('widgets', status: TaskStatus.running),
+///         TaskItem('core', status: TaskItemStatus.done),
+///         TaskItem('widgets', status: TaskItemStatus.running),
 ///       ],
 ///     ),
 ///     TaskItem('Test'),
@@ -184,7 +184,7 @@ final class TaskList extends StatelessWidget {
               binding: binding,
               child: Text(
                 item.label,
-                style: status == TaskStatus.skipped
+                style: status == TaskItemStatus.skipped
                     ? base.merge(theme.muted)
                     : base,
                 wrap: TextWrap.none,
@@ -240,7 +240,7 @@ final class _TaskRow extends SingleChildRenderObjectWidget {
   });
 
   final int level;
-  final TaskStatus status;
+  final TaskItemStatus status;
   final TaskMarks frames;
   final bool showElapsed;
   final Duration? elapsed;
@@ -316,7 +316,7 @@ final class _RenderTaskRow extends RenderObject
     required this._decimalSeparator,
     required this.binding,
   }) {
-    if (_status == TaskStatus.running) {
+    if (_status == TaskItemStatus.running) {
       _started = binding?.frameTime;
     }
     _shown = _elapsedNow();
@@ -367,24 +367,24 @@ final class _RenderTaskRow extends RenderObject
     }
   }
 
-  TaskStatus _status;
-  TaskStatus get status => _status;
-  set status(TaskStatus s) {
+  TaskItemStatus _status;
+  TaskItemStatus get status => _status;
+  set status(TaskItemStatus s) {
     if (s == _status) {
       return;
     }
     final now = binding?.frameTime;
-    if (s == TaskStatus.running) {
+    if (s == TaskItemStatus.running) {
       _started = now;
       _ended = null;
-    } else if (_status == TaskStatus.running) {
+    } else if (_status == TaskItemStatus.running) {
       _ended = now;
     }
-    if (s == TaskStatus.pending || s == TaskStatus.skipped) {
+    if (s == TaskItemStatus.pending || s == TaskItemStatus.skipped) {
       _started = null;
       _ended = null;
     }
-    if (s != TaskStatus.running) {
+    if (s != TaskItemStatus.running) {
       _steps.stop();
       _stopTicking();
     }
@@ -476,11 +476,11 @@ final class _RenderTaskRow extends RenderObject
   String _elapsedNow() {
     if (_given case final given?) {
       return _showElapsed &&
-              _status != TaskStatus.pending &&
-              _status != TaskStatus.skipped
+              _status != TaskItemStatus.pending &&
+              _status != TaskItemStatus.skipped
           ? _elapsed(
               given,
-              running: _status == TaskStatus.running,
+              running: _status == TaskItemStatus.running,
               decimalSeparator: _decimalSeparator,
             )
           : '';
@@ -522,7 +522,7 @@ final class _RenderTaskRow extends RenderObject
     final b = binding;
     final started = _started;
     if (b == null ||
-        _status != TaskStatus.running ||
+        _status != TaskItemStatus.running ||
         owner == null ||
         started == null ||
         _steps.muted ||
@@ -602,17 +602,20 @@ final class _RenderTaskRow extends RenderObject
     final tail = _tail;
     var w = indent + tail;
     if (child case final child?) {
-      final room = c.maxW >= BoxConstraints.unbounded
-          ? c.maxW
-          : (c.maxW > w ? c.maxW - w : 0);
-      child.layout(BoxConstraints(maxW: room, maxH: 1), parentUsesSize: true);
+      final room = c.maxWidth >= BoxConstraints.unbounded
+          ? c.maxWidth
+          : (c.maxWidth > w ? c.maxWidth - w : 0);
+      child.layout(
+        BoxConstraints(maxWidth: room, maxHeight: 1),
+        parentUsesSize: true,
+      );
       child.parentData
         ..dx = indent
         ..dy = 0;
       w += child.width;
     }
-    width = c.constrainW(w);
-    height = c.constrainH(1);
+    width = c.constrainWidth(w);
+    height = c.constrainHeight(1);
   }
 
   @override
@@ -621,7 +624,7 @@ final class _RenderTaskRow extends RenderObject
     final styles = canvas.styles;
     canvas.fill(0, 0, width, height, _style.penIn(styles));
     final x = _level * 2;
-    if (_status == TaskStatus.running) {
+    if (_status == TaskItemStatus.running) {
       _steps.start();
       _startTicking();
     }

@@ -44,7 +44,7 @@ Widget build(BuildContext context) {
   final theme = Theme.of(context);
   return Column(
     mainAxisSize: .min,
-    gap: 1,
+    spacing: 1,
     children: [
       // what the field and the gap leave: the font that fits in it
       Flexible(child: BigText(_controller.text, style: theme.primary)),

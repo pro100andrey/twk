@@ -108,7 +108,7 @@ List<String> _form(Options o, String pad, {required bool nodes}) => [
   '  ],',
   '),',
   'Row(',
-  '  gap: 1,',
+  '  spacing: 1,',
   '  children: [',
   '    // on the screen, not read: nodes: [] reads nothing of it',
   '    Semantics(',
@@ -129,7 +129,7 @@ List<String> _form(Options o, String pad, {required bool nodes}) => [
   '  ],',
   '),',
   'Row(',
-  '  gap: 1,',
+  '  spacing: 1,',
   '  children: [',
   '    Button(',
   "      'More',",
@@ -194,7 +194,7 @@ String _code(Options o) {
       '    return Column(',
       '      mainAxisSize: .min,',
       '      crossAxisAlignment: .start,',
-      '      gap: 1,',
+      '      spacing: 1,',
       '      children: [',
       ..._form(o, '        ', nodes: false),
       '      ],',
@@ -276,7 +276,7 @@ String _code(Options o) {
     '    width: $_w,',
     '    child: Row(',
     '      crossAxisAlignment: .start,',
-    '      gap: 2,',
+    '      spacing: 2,',
     '      children: [',
     '        SizedBox(',
     '          width: $_fw,',
@@ -284,7 +284,7 @@ String _code(Options o) {
     '            key: _form,',
     '            mainAxisSize: .min,',
     '            crossAxisAlignment: .start,',
-    '            gap: 1,',
+    '            spacing: 1,',
     '            children: [',
     ..._form(o, '              ', nodes: true),
     '            ],',
@@ -302,7 +302,7 @@ String _code(Options o) {
     '                  style: node.focused ? theme.selection : null,',
     '                  child: Row(',
     '                    crossAxisAlignment: .start,',
-    '                    gap: 1,',
+    '                    spacing: 1,',
     '                    children: [',
     '                      SizedBox(',
     '                        width: 1,',
@@ -457,7 +457,7 @@ final class _SignInState extends State<_SignIn> with KeptState {
       ],
     ),
     Row(
-      gap: 1,
+      spacing: 1,
       children: [
         // on the screen, not read: nodes: [] reads nothing of it
         Semantics(
@@ -474,7 +474,7 @@ final class _SignInState extends State<_SignIn> with KeptState {
       ],
     ),
     Row(
-      gap: 1,
+      spacing: 1,
       children: [
         Button(
           'More',
@@ -518,7 +518,7 @@ final class _SignInState extends State<_SignIn> with KeptState {
         key: _form,
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
-        gap: 1,
+        spacing: 1,
         children: _formChildren(theme),
       ),
     );
@@ -555,7 +555,7 @@ final class _SignInState extends State<_SignIn> with KeptState {
       width: _w,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        gap: 2,
+        spacing: 2,
         children: [
           form,
           Expanded(
@@ -570,7 +570,7 @@ final class _SignInState extends State<_SignIn> with KeptState {
                     style: node.focused ? theme.selection : null,
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      gap: 1,
+                      spacing: 1,
                       children: [
                         SizedBox(
                           width: 1,

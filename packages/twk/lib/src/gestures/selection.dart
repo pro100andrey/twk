@@ -461,7 +461,7 @@ final class _SelectionAreaState extends State<SelectionArea> {
     }
   }
 
-  void _drag(DragDetails details) {
+  void _drag(DragUpdateDetails details) {
     if (_anchor == null) {
       return;
     }
@@ -757,11 +757,11 @@ final class _SelectionAreaState extends State<SelectionArea> {
       child: MouseRegion(
         cursor: PointerShape.text,
         child: Listener(
-          onDown: _down,
-          onUp: _up,
+          onPointerDown: _down,
+          onPointerUp: _up,
           behavior: HitTestBehavior.translucent,
           child: GestureDetector(
-            onDragUpdate: _drag,
+            onPanUpdate: _drag,
             behavior: HitTestBehavior.translucent,
             child: _SelectionScope(
               this,
@@ -801,9 +801,9 @@ bool _scrollOn(ScrollPosition position, int by) {
   if (by == 0) {
     return false;
   }
-  final from = position.offset;
+  final from = position.pixels;
   position.jumpTo(from + by);
-  return position.offset != from;
+  return position.pixels != from;
 }
 
 /// Where [o] is from the top left of the screen, as last laid out.

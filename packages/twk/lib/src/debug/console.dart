@@ -11,9 +11,6 @@ import 'package:twk_core/twk_core.dart'
         BoxConstraints,
         Canvas,
         DiagnosticPropertiesBuilder,
-        LogLevel,
-        LogRecord,
-        LogSink,
         PaintContext,
         PipelineOwner,
         RenderObject,
@@ -23,6 +20,7 @@ import 'package:twk_core/twk_core.dart'
         clipboardSequence,
         fitText;
 
+import '../../log.dart';
 import '../binding/app_binding.dart';
 import '../data/chart_glyphs.dart' show opaque;
 import '../foundation/change_notifier.dart';
@@ -33,9 +31,6 @@ import '../platform/platform.dart' show writeFile;
 import '../style/style.dart';
 import '../text/label_painter.dart';
 import 'console_record.dart';
-
-export 'console_record.dart'
-    show RecordFrame, RecordLine, RecordLineKind, recordLines;
 
 /// What a log console shows of [sink] and what is done to it: whether it
 /// is open, the records listed — those at [level] and above, of the ones
@@ -710,8 +705,8 @@ final class RenderConsolePanel extends RenderObject {
   void performLayout(BoxConstraints c) {
     _laidOutOpen = _controller.isOpen;
     _laidOutRecord = _controller._shown != null;
-    width = c.maxW < BoxConstraints.unbounded ? c.maxW : c.minW;
-    height = c.constrainH(_laidOutOpen ? _openRows : 0);
+    width = c.maxWidth < BoxConstraints.unbounded ? c.maxWidth : c.minWidth;
+    height = c.constrainHeight(_laidOutOpen ? _openRows : 0);
     if (_laidOutOpen) {
       _controller
         .._rows = height > 1 ? height - 1 : 0

@@ -21,7 +21,7 @@ text
 │     DatePicker                                                                 │
 │     FilePicker         selected icon  ▐●  ▌                                    │
 │     Form, FormFie…     caps            square  round                           │
-│     TabBar, TabVi…                                                             │
+│     TabBar, TabBa…                                                             │
 │                                                                                │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles

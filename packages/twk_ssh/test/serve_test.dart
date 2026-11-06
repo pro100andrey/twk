@@ -112,7 +112,8 @@ final class _ProbeState extends State<Probe> {
     },
     child: LayoutBuilder(
       builder: (context, size) => Text(
-        'user ${widget.session.user} ${size.maxW}x${size.maxH} count $_n',
+        'user ${widget.session.user} '
+        '${size.maxWidth}x${size.maxHeight} count $_n',
       ),
     ),
   );

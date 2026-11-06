@@ -168,7 +168,7 @@ void main() {
         key: overlay,
         child: Listener(
           behavior: HitTestBehavior.opaque,
-          onDown: (e) => log.add('child ${e.x},${e.y}'),
+          onPointerDown: (e) => log.add('child ${e.x},${e.y}'),
           child: const SizedBox.expand(),
         ),
       ),
@@ -178,7 +178,7 @@ void main() {
       OverlayEntry(
         builder: (_) => Center(
           child: Listener(
-            onDown: (e) => log.add('entry ${e.x},${e.y}'),
+            onPointerDown: (e) => log.add('entry ${e.x},${e.y}'),
             child: const Text('[]'),
           ),
         ),

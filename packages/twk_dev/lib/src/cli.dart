@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 
+import 'agents.dart';
 import 'create.dart';
 import 'inspect.dart';
 import 'logs.dart';
@@ -37,6 +38,7 @@ Future<int> runTwk(List<String> arguments) async {
   final runner =
       CommandRunner<int>('twk', 'Developer tools for apps built on twk.')
         ..addCommand(CreateCommand())
+        ..addCommand(AgentsCommand())
         ..addCommand(RunCommand())
         ..addCommand(InspectCommand())
         ..addCommand(LogsCommand())

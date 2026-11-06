@@ -39,7 +39,7 @@ final class RightToLeft extends StatelessWidget {
     return Column(
       mainAxisSize: .min,
       crossAxisAlignment: .start,
-      gap: 1,
+      spacing: 1,
       children: [
         SizedBox(
           width: 32,
@@ -50,7 +50,7 @@ final class RightToLeft extends StatelessWidget {
               'Hello is שלום in Hebrew,\n'
               'and مرحبا in Arabic.\n'
               'שלום עולם! (hello world)',
-              align: .start,
+              textAlign: .start,
             ),
           ),
         ),

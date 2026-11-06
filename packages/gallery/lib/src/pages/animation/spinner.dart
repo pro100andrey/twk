@@ -33,12 +33,12 @@ final _spinner = GalleryPage(
     return Column(
       mainAxisSize: .min,
       crossAxisAlignment: .start,
-      gap: 1,
+      spacing: 1,
       children: [
         for (final task in _tasks)
           Row(
             mainAxisSize: .min,
-            gap: 1,
+            spacing: 1,
             children: [
               Spinner(frames: frames, style: style),
               Text(task),
@@ -59,12 +59,12 @@ final _spinner = GalleryPage(
       'return Column(',
       '  mainAxisSize: .min,',
       '  crossAxisAlignment: .start,',
-      '  gap: 1,',
+      '  spacing: 1,',
       '  children: [',
       '    for (final task in tasks)',
       '      Row(',
       '        mainAxisSize: .min,',
-      '        gap: 1,',
+      '        spacing: 1,',
       '        children: [',
       if (frames == 'dots')
         '          Spinner(style: theme.$color),'

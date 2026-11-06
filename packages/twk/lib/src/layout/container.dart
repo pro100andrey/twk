@@ -362,10 +362,10 @@ final class Container extends StatelessWidget {
       return BoxConstraints.tightFor(width: w, height: h);
     }
     return BoxConstraints(
-      minW: w == null ? c.minW : c.constrainW(w),
-      maxW: w == null ? c.maxW : c.constrainW(w),
-      minH: h == null ? c.minH : c.constrainH(h),
-      maxH: h == null ? c.maxH : c.constrainH(h),
+      minWidth: w == null ? c.minWidth : c.constrainWidth(w),
+      maxWidth: w == null ? c.maxWidth : c.constrainWidth(w),
+      minHeight: h == null ? c.minHeight : c.constrainHeight(h),
+      maxHeight: h == null ? c.maxHeight : c.constrainHeight(h),
     );
   }
 
@@ -449,8 +449,8 @@ final class _RenderColoredBox extends RenderObject
   void performLayout(BoxConstraints c) {
     final child = this.child;
     if (child == null) {
-      width = c.minW;
-      height = c.minH;
+      width = c.minWidth;
+      height = c.minHeight;
       return;
     }
     child

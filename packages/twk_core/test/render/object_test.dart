@@ -17,8 +17,8 @@ final class Grower extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.constrainW(columns);
-    height = c.constrainH(1);
+    width = c.constrainWidth(columns);
+    height = c.constrainHeight(1);
   }
 
   @override
@@ -34,8 +34,8 @@ final class Checked extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
   }
 
   @override
@@ -51,23 +51,37 @@ void frame(PipelineOwner owner, Screen screen, int w, int h) => owner
 void main() {
   group('BoxConstraints', () {
     test('are equal, with equal hashes, when their limits are', () {
-      const a = BoxConstraints(maxW: 10, minH: 1, maxH: 5);
-      expect(a, const BoxConstraints(maxW: 10, minH: 1, maxH: 5));
+      const a = BoxConstraints(maxWidth: 10, minHeight: 1, maxHeight: 5);
+      expect(a, const BoxConstraints(maxWidth: 10, minHeight: 1, maxHeight: 5));
       expect(
         a.hashCode,
-        const BoxConstraints(maxW: 10, minH: 1, maxH: 5).hashCode,
+        const BoxConstraints(maxWidth: 10, minHeight: 1, maxHeight: 5).hashCode,
       );
-      expect(a, isNot(const BoxConstraints(maxW: 10, minH: 1, maxH: 6)));
+      expect(
+        a,
+        isNot(const BoxConstraints(maxWidth: 10, minHeight: 1, maxHeight: 6)),
+      );
       expect(
         const BoxConstraints.tightFor(width: 3),
-        const BoxConstraints(minW: 3, maxW: 3),
+        const BoxConstraints(minWidth: 3, maxWidth: 3),
       );
     });
 
     test('hold a size between their limits', () {
-      const c = BoxConstraints(minW: 2, maxW: 10, minH: 1, maxH: 5);
-      expect([c.constrainW(0), c.constrainW(7), c.constrainW(99)], [2, 7, 10]);
-      expect([c.constrainH(0), c.constrainH(3), c.constrainH(99)], [1, 3, 5]);
+      const c = BoxConstraints(
+        minWidth: 2,
+        maxWidth: 10,
+        minHeight: 1,
+        maxHeight: 5,
+      );
+      expect(
+        [c.constrainWidth(0), c.constrainWidth(7), c.constrainWidth(99)],
+        [2, 7, 10],
+      );
+      expect(
+        [c.constrainHeight(0), c.constrainHeight(3), c.constrainHeight(99)],
+        [1, 3, 5],
+      );
       expect(c.isTight, isFalse);
       expect(const BoxConstraints.tight(4, 2).isTight, isTrue);
     });
@@ -149,7 +163,10 @@ void main() {
       'for marks the parent for layout', () {
     final grower = Grower(2);
     final parent = RenderPadding(padding: EdgeInsets.zero, child: grower)
-      ..layout(const BoxConstraints(maxW: 10, maxH: 1), parentUsesSize: true);
+      ..layout(
+        const BoxConstraints(maxWidth: 10, maxHeight: 1),
+        parentUsesSize: true,
+      );
     expect(parent.getMaxIntrinsicWidth(1), 2);
     expect(parent.debugNeedsLayout, isFalse);
     grower.invokeLayoutCallback(() => grower.columns = 5);
@@ -161,7 +178,10 @@ void main() {
       'alone', () {
     final grower = Grower(2);
     final parent = RenderPadding(padding: EdgeInsets.zero, child: grower)
-      ..layout(const BoxConstraints(maxW: 10, maxH: 1), parentUsesSize: true);
+      ..layout(
+        const BoxConstraints(maxWidth: 10, maxHeight: 1),
+        parentUsesSize: true,
+      );
     expect(parent.getMaxIntrinsicWidth(1), 2);
     grower.invokeLayoutCallback(() {});
     expect(parent.debugNeedsLayout, isFalse);

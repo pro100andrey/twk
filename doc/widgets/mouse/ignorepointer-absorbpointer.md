@@ -30,12 +30,12 @@ Widget build(BuildContext context) {
   return Column(
     mainAxisSize: .min,
     crossAxisAlignment: .start,
-    gap: 1,
+    spacing: 1,
     children: [
       Stack(
         children: [
           GestureDetector(
-            onTap: (_) => setState(() => _heard = 'the backdrop'),
+            onTap: () => setState(() => _heard = 'the backdrop'),
             behavior: .opaque,
             child: SizedBox(
               width: 36,
@@ -53,7 +53,7 @@ Widget build(BuildContext context) {
                   onEnter: (_) => setState(() => _over = true),
                   onExit: (_) => setState(() => _over = false),
                   child: GestureDetector(
-                    onTap: (_) => setState(() => _heard = 'the button'),
+                    onTap: () => setState(() => _heard = 'the button'),
                     child: Box(
                       border: .all(
                         type: .rounded,

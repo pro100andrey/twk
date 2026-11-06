@@ -111,11 +111,11 @@ final _slots = GalleryPage(
     '    child: Column(',
     '      mainAxisSize: .min,',
     '      crossAxisAlignment: .start,',
-    '      gap: 1,',
+    '      spacing: 1,',
     '      children: [',
     '        Row(',
     '          mainAxisSize: .min,',
-    '          gap: 2,',
+    '          spacing: 2,',
     '          children: [',
     '            for (final plugin in _plugins)',
     '              Checkbox(',
@@ -139,7 +139,7 @@ final _slots = GalleryPage(
     "              'status',",
     codeLine([
       '              layout: (context, children) => ',
-      'Row(gap: 2, children: children),',
+      'Row(spacing: 2, children: children),',
     ]),
     if (o(_slotsPlaceholder))
       codeLine([
@@ -222,11 +222,11 @@ final class _PluginsState extends State<_Plugins> with KeptState {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
-        gap: 1,
+        spacing: 1,
         children: [
           Row(
             mainAxisSize: MainAxisSize.min,
-            gap: 2,
+            spacing: 2,
             children: [
               for (final plugin in _entries)
                 Checkbox(
@@ -244,7 +244,8 @@ final class _PluginsState extends State<_Plugins> with KeptState {
               padding: const EdgeInsets.x(1),
               child: Slot(
                 'status',
-                layout: (context, children) => Row(gap: 2, children: children),
+                layout: (context, children) =>
+                    Row(spacing: 2, children: children),
                 placeholder: widget.placeholder
                     ? Text('no plugins', style: theme.muted)
                     : null,

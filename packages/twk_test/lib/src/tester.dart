@@ -10,6 +10,7 @@ import 'dart:io';
 
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
+import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
 
 import '../vt.dart';

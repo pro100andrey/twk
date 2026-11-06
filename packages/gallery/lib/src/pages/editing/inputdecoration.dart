@@ -62,13 +62,13 @@ final _inputdecorationPage = GalleryPage(
       '  return Row(',
       '    mainAxisSize: .min,',
       '    crossAxisAlignment: .start,',
-      '    gap: 2,',
+      '    spacing: 2,',
       '    children: [',
       '      SizedBox(',
       '        width: 24,',
       '        child: Column(',
       '          mainAxisSize: .min,',
-      '          gap: 1,',
+      '          spacing: 1,',
       '          children: [',
       '            Select<String>(',
       '              choices: const [',
@@ -103,7 +103,7 @@ final _inputdecorationPage = GalleryPage(
       '        width: 24,',
       '        child: Column(',
       '          mainAxisSize: .min,',
-      '          gap: 1,',
+      '          spacing: 1,',
       '          children: [',
       '            TextField(',
       "              placeholder: 'files, commands',",
@@ -188,13 +188,13 @@ final class _DecoratedState extends State<_Decorated> with KeptState {
     return Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 2,
+      spacing: 2,
       children: [
         SizedBox(
           width: 24,
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            gap: 1,
+            spacing: 1,
             children: [
               Select<String>(
                 choices: const [
@@ -234,7 +234,7 @@ final class _DecoratedState extends State<_Decorated> with KeptState {
           width: 24,
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            gap: 1,
+            spacing: 1,
             children: [
               TextField(
                 controller: _controller('search'),

@@ -17,6 +17,7 @@
 import 'dart:async';
 import 'dart:math' show sin;
 
+import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
 
 Future<void> main() => runApp(const Dashboard());
@@ -325,7 +326,7 @@ final class _Header extends StatelessWidget {
     return Padding(
       padding: const .x(1),
       child: Row(
-        gap: 2,
+        spacing: 2,
         children: [
           Text.rich([
             Span('◆ ', theme.primary),
@@ -484,7 +485,7 @@ final class _Deploys extends StatelessWidget {
         final deployed =
             '${day.toIso8601String().substring(0, 10)}: '
             '${deploys[day]?.join(', ') ?? 'nothing'} deployed';
-        showToast(context, deployed);
+        showToast(context: context, message: deployed);
         lines.add(deployed);
         log(deployed);
       },

@@ -29,8 +29,8 @@ final _cli = GalleryPage(
       const most = 1 << 20;
       final (w, h) = _cliBox(
         StageRoom(
-          c.maxW < BoxConstraints.unbounded ? c.maxW : most,
-          c.maxH < BoxConstraints.unbounded ? c.maxH : most,
+          c.maxWidth < BoxConstraints.unbounded ? c.maxWidth : most,
+          c.maxHeight < BoxConstraints.unbounded ? c.maxHeight : most,
         ),
       );
       return cliStage(context, o.nameOf(_cliProgram), width: w, height: h);

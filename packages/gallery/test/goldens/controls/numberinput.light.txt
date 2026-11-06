@@ -18,11 +18,11 @@ text
 │     DatePicker            ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   │
 │     FilePicker            ▐                                                                                            │
 │     Form, FormField       ▐    ·   ·   ·   ·   ·   ·   ·  ┌                            ┐   ·   ·   ·   ·   ·   ·   ·   │
-│     TabBar, TabView       ▐                                 copies, 1 to 99 1       ▴▾                                 │
+│     TabBar, TabBarView    ▐                                 copies, 1 to 99 1       ▴▾                                 │
 │     KeyHintsBar           ▐    ·   ·   ·   ·   ·   ·   ·                                   ·   ·   ·   ·   ·   ·   ·   │
 │     StatusMessage, Badge                                    price, by 0.25  9.50    ▴▾                                 │
 │     Callout                    ·   ·   ·   ·   ·   ·   ·                                   ·   ·   ·   ·   ·   ·   ·   │
-│     Link                                                    1 × 9.50 = 9.50                                            │
+│     Hyperlink                                               1 × 9.50 = 9.50                                            │
 │     ListTile                   ·   ·   ·   ·   ·   ·   ·  └                            ┘   ·   ·   ·   ·   ·   ·   ·   │
 │     StatusBar                                                                    26 × 5                                │
 │                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   │
@@ -55,11 +55,11 @@ styles
 │aaaaaooooooooooaaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhh│
 │aaaaaooooooooooaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooaoooooooooaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhphhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhphhhphhhphhhphhhphhhphhh│
-│aaaaaoooooooaoooooooaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhvvvvvvvhvhvvhvvhyiiiiiihnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaooooooooooaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhvvvvvvvhvhvvhvvhyiiiiiihnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooaaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhphhhphhhphhhphhhphhh│
 │aaaaaooooooooooooooaoooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhvvvvvvhvvhvvvvhhyyyyiiihnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhphhhphhhphhhphhhphhh│
-│aaaaaooooaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhvhvhvvvvhvhvvvvhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhvhvhvvvvhvhvvvvhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhphhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhphhhphhhphhhphhhphhhphhh│
 │aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhAAhAhAhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhh│

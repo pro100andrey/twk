@@ -79,17 +79,17 @@ final class _FruitState extends State<_Fruit> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         Row(
           mainAxisSize: MainAxisSize.min,
-          gap: _fruitGap,
+          spacing: _fruitGap,
           children: [
             for (final MapEntry(key: name, value: fruits) in _in.entries)
               DragTarget<String>(
-                onWillAccept: (drag) =>
+                onWillAcceptWithDetails: (drag) =>
                     name != 'red only' || _red.contains(drag.data),
-                onAccept: (drop) => setState(() {
+                onAcceptWithDetails: (drop) => setState(() {
                   if (!fruits.contains(drop.data)) {
                     for (final list in _in.values) {
                       list.remove(drop.data);
@@ -200,17 +200,17 @@ String _fruitCode(Options o) => [
   '  return Column(',
   '    mainAxisSize: .min,',
   '    crossAxisAlignment: .start,',
-  '    gap: 1,',
+  '    spacing: 1,',
   '    children: [',
   '      Row(',
   '        mainAxisSize: .min,',
-  '        gap: $_fruitGap,',
+  '        spacing: $_fruitGap,',
   '        children: [',
   '          for (final MapEntry(key: name, value: fruits) in _in.entries)',
   '            DragTarget<String>(',
-  '              onWillAccept: (drag) =>',
+  '              onWillAcceptWithDetails: (drag) =>',
   "                  name != 'red only' || _red.contains(drag.data),",
-  '              onAccept: (drop) => setState(() {',
+  '              onAcceptWithDetails: (drop) => setState(() {',
   '                // dropped back on its own box, it stays where it is',
   '                if (!fruits.contains(drop.data)) {',
   '                  for (final list in _in.values) {',

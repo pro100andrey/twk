@@ -26,7 +26,7 @@ void main() {
   };
   for (final MapEntry(key: width, value: want) in runs.entries) {
     test('a Wrap of tags of mixed widths wraps at $width columns', () {
-      final v = View(width, 4)..pump(const Wrap(gap: 1, children: tags));
+      final v = View(width, 4)..pump(const Wrap(spacing: 1, children: tags));
       expect(shown(v), [...want, for (var i = want.length; i < 4; i++) '']);
     });
   }
@@ -39,7 +39,7 @@ void main() {
           children: [
             Wrap(
               alignment: WrapAlignment.end,
-              gap: 1,
+              spacing: 1,
               children: [Text('abc'), Text('de'), Text('fghi')],
             ),
           ],
@@ -57,8 +57,8 @@ void main() {
           alignment: WrapAlignment.end,
           runAlignment: WrapAlignment.center,
           crossAxisAlignment: WrapCrossAlignment.end,
-          gap: 1,
-          runGap: 2,
+          spacing: 1,
+          runSpacing: 2,
           children: [Label('ab'), Label('c'), Label('d')],
         ),
       );
@@ -69,8 +69,8 @@ void main() {
         wrap.alignment,
         wrap.runAlignment,
         wrap.crossAxisAlignment,
-        wrap.gap,
-        wrap.runGap,
+        wrap.spacing,
+        wrap.runSpacing,
       ],
       [
         Axis.vertical,
@@ -91,8 +91,8 @@ void main() {
         wrap.alignment,
         wrap.runAlignment,
         wrap.crossAxisAlignment,
-        wrap.gap,
-        wrap.runGap,
+        wrap.spacing,
+        wrap.runSpacing,
       ],
       [
         Axis.horizontal,
@@ -109,7 +109,7 @@ void main() {
   test('the render objects of children inserted, moved and removed keep '
       'their order', () {
     Widget wrap(List<String> keys) => Wrap(
-      gap: 1,
+      spacing: 1,
       children: [for (final k in keys) Label(k, key: ValueKey(k))],
     );
     final v = View(5, 3)..pump(wrap(['a', 'c']));

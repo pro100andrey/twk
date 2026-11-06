@@ -65,7 +65,7 @@ final class _PanelState extends State<_Panel> {
       onEvent: _onEvent,
       child: Listener(
         behavior: HitTestBehavior.opaque,
-        onDown: (e) => setState(() => _pressed = 'at ${e.x}, ${e.y}'),
+        onPointerDown: (e) => setState(() => _pressed = 'at ${e.x}, ${e.y}'),
         child: Box(
           border: const Border.all(type: BorderType.rounded),
           child: Column(

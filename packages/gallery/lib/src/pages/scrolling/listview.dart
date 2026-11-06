@@ -200,7 +200,7 @@ final class _ListState extends State<_List> with MotionState {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         _boxed(
           _boxW,
@@ -225,7 +225,7 @@ final class _ListState extends State<_List> with MotionState {
         ),
         Row(
           mainAxisSize: MainAxisSize.min,
-          gap: 1,
+          spacing: 1,
           children: chat || widget.feed
               ? [
                   Button('newest', onPressed: () => _list.jumpTo(0)),
@@ -359,7 +359,7 @@ String _listCode(Options o) {
     '  return Column(',
     '    mainAxisSize: .min,',
     '    crossAxisAlignment: .start,',
-    '    gap: 1,',
+    '    spacing: 1,',
     '    children: [',
     '      SizedBox(',
     '        width: $_boxW,',
@@ -377,7 +377,7 @@ String _listCode(Options o) {
     '      ),',
     '      Row(',
     '        mainAxisSize: .min,',
-    '        gap: 1,',
+    '        spacing: 1,',
     '        children: [',
     ...buttons,
     '        ],',

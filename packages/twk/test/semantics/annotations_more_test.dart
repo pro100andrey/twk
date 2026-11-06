@@ -159,7 +159,7 @@ void main() {
         TabBar(controller: tabs, tabs: const ['Files', 'Search', 'Git']),
         SizedBox(
           height: 1,
-          child: TabView(
+          child: TabBarView(
             controller: tabs,
             children: const [Text('file list'), Text('query'), Text('log')],
           ),
@@ -307,8 +307,8 @@ final class _Ask extends StatelessWidget {
       'Ask',
       autofocus: true,
       onPressed: () => showDialog<void>(
-        context,
-        (_) => Dialog(
+        context: context,
+        builder: (_) => Dialog(
           title: 'Sure',
           child: column([
             const Text('Unsaved work'),

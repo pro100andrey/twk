@@ -29,25 +29,31 @@ import 'package:twk/twk.dart';
 
 const sized = SizedBox(width: 20, height: 3);
 const insets = EdgeInsets.only(left: 2, right: 2);
-const loose = BoxConstraints(maxW: 40);
+const loose = BoxConstraints(maxWidth: 40);
 ```
 
-- `BoxConstraints` has `minW`, `maxW`, `minH`, `maxH`, not Flutter's
-  `minWidth` and the rest. `BoxConstraints.tight(w, h)` and `tightFor`
-  are there.
-- `EdgeInsets` has `all`, `only`, `x` (left and right) and `y` (top and
-  bottom). It has no `symmetric`, `fromLTRB` or `LTRB`.
+- `BoxConstraints` has `minWidth`, `maxWidth`, `minHeight` and
+  `maxHeight`, as in Flutter, in cells. `BoxConstraints.tight(w, h)` and
+  `loose(w, h)` take the two sizes, not a `Size`, and `tightFor` and `expand`
+  are there; so are `copyWith`, `loosen`, `enforce`, `tighten`, `deflate`, the
+  `hasBounded`, `hasTight` and `hasInfinite` getters, and `biggest` and
+  `smallest`, which are `({int width, int height})` records.
+- `EdgeInsets` has `all`, `only`, `symmetric`, `fromLTRB`, and `x` (left and
+  right) and `y` (top and bottom), which are shorter than
+  `symmetric(horizontal:)` and `symmetric(vertical:)`.
 - A `double` is still a `double` where it is a proportion: `Slider`'s
   value, `Opacity.opacity`, `ProgressBar.value`.
 - The screen's size is not in a `MediaQuery`: there is none. A widget
   reads the room it was given, in cells, from a `LayoutBuilder`'s
   constraints.
 
-## Gaps are a parameter
+## Spacing is a parameter, as in Flutter
 
-`Row`, `Column`, `Flex` and `Wrap` take `gap` (and `Wrap` a `runGap`) in
-cells, so the `SizedBox(height: 8)` between children is not written.
-`Spacer` and `Expanded(flex: ...)` are as in Flutter.
+`Row`, `Column`, `Flex` and `Wrap` take `spacing` (and `Wrap` a
+`runSpacing`), as in Flutter, so the `SizedBox(height: 8)` between children
+is not written; here it is an `int` of cells. `StatusBar` and
+`DescriptionList` name the space between their parts `spacing` too. `Spacer` and
+`Expanded(flex: ...)` are as in Flutter.
 
 ## Text is a string with a `Style`
 
@@ -62,6 +68,14 @@ There is no `TextStyle`, `TextSpan`, `RichText`, `Colors` or `Icon`.
   and no opacity on a color other than the alphas of a `Style`.
 - Styled runs are `Span`s: `'error: '.bold.fg(.red)` is a `Span`, and
   `Text.rich` takes a list of them where Flutter's takes a `TextSpan` tree.
+- `DefaultTextStyle(style:, child:)` merges `style` onto the one above, field
+  by field, where Flutter's plain constructor replaces it: a field the style
+  leaves unset keeps the value from above. `DefaultTextStyle.merge` is there
+  and does the same, so code brought over from Flutter that used `.merge`
+  runs as it did. To start from nothing, set every field, or put the style on
+  the `Text`.
+- `style.copyWith(fg: Color.red)` changes a field of a `Style`; a field passed
+  as null stays, as it does in Flutter's `TextStyle.copyWith`.
 - An icon is a character, `Text('✉')`, or the glyphs of the theme.
 - `Text` wraps at words by default and clips (`TextOverflow.clip`);
   `Text.line` is one row with an ellipsis. A width is counted in cells, so
@@ -104,11 +118,11 @@ none:
 | `DropdownButton` | `Select<T>` |
 | `TextField(decoration: InputDecoration(...))` | `TextField`, with `placeholder` and an `InputDecoration` whose parts are `labelText`, `helperText`, `errorText`, `prefixIcon` |
 | `Form`, `TextFormField` | the same names |
-| `AlertDialog`, `showDialog` | `Dialog`, `showDialog<T>(context, builder)`; the builder is positional |
-| `SnackBar` | `showToast(context, message)` |
+| `AlertDialog`, `showDialog` | `Dialog`, `showDialog<T>(context: context, builder: builder)`, as Flutter's |
+| `SnackBar` | `showToast(context: context, message: message)`, with `alignment:` and `duration:` |
 | `Tooltip` | `Tooltip(message:, child:)` |
 | `CircularProgressIndicator`, `LinearProgressIndicator` | `Spinner`, `ProgressBar` (`value: null` is indeterminate) |
-| `TabBar`, `TabBarView`, `TabController` | `TabBar`, `TabView`, `TabController` |
+| `TabBar`, `TabBarView`, `TabController` | `TabBar`, `TabBarView`, `TabController` |
 | `DataTable` | `Table<T>` (rows and columns, selection, sorting) |
 | `GridView` | `Grid` with column and row tracks |
 | `SelectableText` | `SelectionArea` |
@@ -129,12 +143,21 @@ takes characters only when focused, so a single-letter binding such as `q`
 above a focused field is typed into the field.
 
 - Keys are named by strings: `KeyBindings({'ctrl+s': save, 'g g': top},
-  child: ...)`. `Shortcuts`, `Actions` and `Intent` are Flutter's and are
-  there as well; the string form is how an app usually binds. See
+  child: ...)`. `Shortcuts(shortcuts:, child:)`, `Actions(actions:, child:)` and
+  `Intent` are Flutter's and are there as well, and an `Action.invoke` returns
+  an `Object?`; the string form is how an app usually binds. See
   [Input and focus](input-and-focus.md).
 - The mouse is a plain `GestureDetector`, `MouseRegion`, `Draggable` and
-  `Listener`; not every terminal reports it, so an action reachable only by the
-  mouse is a bug here.
+  `Listener`, with Flutter's callbacks: `onTap`, `onDoubleTap` and
+  `onLongPress` take none, `onTapDown` and `onTapUp` take `TapDownDetails` and
+  `TapUpDetails`, `onPanStart`, `onPanUpdate` and `onPanEnd` take
+  `DragStartDetails`, `DragUpdateDetails` and `DragEndDetails`, and a
+  `Listener` has `onPointerDown`, `onPointerUp`, `onPointerHover` and
+  `onPointerMove`. The details have `localPosition` and `globalPosition` in
+  cells, and `delta` for an update, and also an `event`, which has the button
+  and the modifiers; they have no `kind`, `sourceTimeStamp` or `velocity`,
+  which a terminal does not report. Not every terminal reports the mouse, so
+  an action reachable only by the mouse is a bug here.
 - `hints:` on `KeyBindings` lists the keys on the bar at the bottom, which
   the widgets fill in too.
 
@@ -172,7 +195,7 @@ final class _ProfileState extends State<Profile> {
       padding: const .all(1),
       child: Column(
         crossAxisAlignment: .start,
-        gap: 1,
+        spacing: 1,
         children: [
           Text('Profile', style: theme.primary),
           SizedBox(
@@ -185,17 +208,17 @@ final class _ProfileState extends State<Profile> {
             onChanged: (value) => setState(() => _news = value),
           ),
           Row(
-            gap: 2,
+            spacing: 2,
             children: [
               Button.filled(
                 'Save',
-                onPressed: () => showToast(context, 'saved'),
+                onPressed: () => showToast(context: context, message: 'saved'),
               ),
               Button.outlined(
                 'Delete',
                 onPressed: () => showDialog<void>(
-                  context,
-                  (context) => const Dialog(
+                  context: context,
+                  builder: (context) => const Dialog(
                     title: 'Delete?',
                     child: Text('This cannot be undone.'),
                   ),
@@ -210,17 +233,45 @@ final class _ProfileState extends State<Profile> {
 }
 ```
 
-What changed from the Flutter version: the sizes are ints, the gaps are
-`gap:`, the label belongs to the `Checkbox`, the buttons take a string, and
-the dialog's builder is a second positional argument. The `State`, its
-controller and its `dispose` are the same, and so is a controller you must
-dispose.
+What changed from the Flutter version: the sizes and the `spacing:` are ints of cells, the label belongs to the
+`Checkbox`, and the buttons take a string. `showDialog(context:, builder:)`,
+the `State`, its controller and its `dispose` are the same, and so is a
+controller you must dispose.
 
 Dart's dot shorthands (`.all(1)`, `.start`, `.stretch`) are used
 throughout, as in the other guides; `EdgeInsets.all(1)` and
 `CrossAxisAlignment.start` mean the same and compile as well.
 
+## Spelled another way, on purpose
+
+A few names are not Flutter's, and are meant not to be:
+
+- A `Style` has `fg` and `bg`, not `color` and `backgroundColor`; there is no
+  `TextStyle`.
+- The theme presets are values, `ThemeData.dark`, `ThemeData.light` and
+  `ThemeData.nord`, to take `copyWith` of, where Flutter calls
+  `ThemeData.dark()`.
+- There is no `Size` and no `Offset`: a size is a width and a height, and a
+  position in a gesture's details is a `(dx:, dy:)` record of cells, a
+  `CellOffset`.
+- `Scaffold` has a `header` and a `statusBar` where Flutter's has an `appBar`
+  and a `bottomNavigationBar`, and `Select` has `choices` where a
+  `DropdownButton` has `items`.
+- `Semantics` takes `checked`, `selected`, `expanded` and `enabled` flat, with
+  Flutter's sense (`enabled: false` reads `disabled`), and `role` and `nodes`
+  besides; its `child` is optional, as in Flutter.
+- `TweenAnimationBuilder(tween:, builder:, duration:)` takes a `Tween` as
+  Flutter's does. A `Tween` here is immutable, so one of your own overrides
+  `withEnds` to make another of its kind.
+- `Localizations` is Flutter's, for a `Locale`; the words twk writes itself are
+  in `TwkLocalizations`.
+
 ## Lists and navigation
+
+`SingleChildScrollView`, `ListView` and `Table` take `padding:`, which scrolls with the
+content: the rows above the first item and below the last go with the scroll, and the
+columns on the left and the right inset every item, as in Flutter. A `Table`'s header stays
+where it is.
 
 `ListView` takes `children`; `ListView.builder` takes `itemCount` and
 `itemBuilder`, and builds only the rows in view. A `ListView` is focusable
@@ -228,7 +279,7 @@ and scrolls with the arrow keys, Page keys and the wheel, and a `ListTile`'s
 `onTap` runs on Enter, Space or a click.
 
 `Navigator` takes `home` and a `routes` map, and `Navigator.push`,
-`pushNamed`, `pop` and `popUntil` are static as in Flutter. A route is a
+`pushNamed`, `pop`, `popUntil`, `pushAndRemoveUntil`, `pushNamedAndRemoveUntil` and `popAndPushNamed` are static as in Flutter. A route is a
 `PageRoute(builder:)`, not a `MaterialPageRoute`. Escape pops by default
 (`backKey`), as a back button does.
 
@@ -261,7 +312,13 @@ and a trackpad do, for the app (`App(scrollBehavior:)`) or a subtree.
 
 `ChangeNotifier`, `ValueNotifier`, `ListenableBuilder`,
 `ValueListenableBuilder`, `FutureBuilder`, `StreamBuilder` and
-`AnimationController` with `TickerProviderStateMixin` are as in Flutter.
+`AnimationController` with `TickerProviderStateMixin` or
+`SingleTickerProviderStateMixin` are as in Flutter. `forward`, `reverse`,
+`animateTo`, `repeat` and `toggle` return a `Future<void>` that completes when
+the run ends, and also when something stops it (`stop`, a new run, `dispose`),
+where Flutter's `TickerFuture` then stays pending for ever and has `orCancel`
+to tell: an `await controller.forward()` here does not hang on a stop, and
+`controller.status` and `value` say how it ended.
 `package:twk/provider.dart` is Provider's API (`ChangeNotifierProvider`,
 `Consumer`, `Selector`, `MultiProvider`), and `package:twk/hooks.dart` is
 flutter_hooks'. Riverpod and bloc are the packages `twk_riverpod` and

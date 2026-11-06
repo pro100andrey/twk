@@ -33,7 +33,7 @@ final _formFormfieldPage = GalleryPage(
     '    child: Column(',
     '      mainAxisSize: .min,',
     '      crossAxisAlignment: .stretch,',
-    '      gap: 1,',
+    '      spacing: 1,',
     '      children: [',
     '        TextFormField(',
     "          placeholder: 'name',",
@@ -56,7 +56,7 @@ final _formFormfieldPage = GalleryPage(
     '          ),',
     '        ),',
     '        Row(',
-    '          gap: 2,',
+    '          spacing: 2,',
     '          children: [',
     _submitLine,
     _resetLine,
@@ -116,7 +116,7 @@ final class _SignupState extends State<_Signup> with KeptState {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          gap: 1,
+          spacing: 1,
           children: [
             TextFormField(
               placeholder: 'name',
@@ -139,7 +139,7 @@ final class _SignupState extends State<_Signup> with KeptState {
               ),
             ),
             Row(
-              gap: 2,
+              spacing: 2,
               children: [
                 Button(
                   'Submit',

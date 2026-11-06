@@ -57,7 +57,7 @@ final _segmented = GalleryPage(
       '  return Column(',
       '    mainAxisSize: .min,',
       '    crossAxisAlignment: .start,',
-      '    gap: 1,',
+      '    spacing: 1,',
       '    children: [',
       '      SegmentedButton<String>(',
       '        segments: const [',
@@ -115,7 +115,7 @@ final class _SegmentsState extends State<_Segments> with KeptState {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         SegmentedButton<String>(
           segments: _kinds,

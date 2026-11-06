@@ -207,7 +207,7 @@ final class _NumberInputState extends State<NumberInput>
       focusedStyle: widget.focusedStyle,
       errorStyle: widget.errorStyle,
       trailing: GestureDetector(
-        onTapDown: enabled ? _arrow : null,
+        onTapDown: enabled ? (tap) => _arrow(tap.event) : null,
         child: Text(
           '${marks.text(Marks.up)}${marks.text(Marks.down)}',
           style: theme.text.merge(
@@ -475,12 +475,12 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
     // right after the focus is its; the action passes on those that come
     // while it has not
     return Shortcuts(
-      enabled
+      shortcuts: enabled
           ? {for (final name in keys.keys) name: _Key(name), 'escape': _escape}
           : const {},
       hints: enabled ? hints : const {},
       child: Actions(
-        _actions,
+        actions: _actions,
         child: Focus(
           canRequestFocus: false,
           skipTraversal: true,
@@ -488,11 +488,13 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
           child: Listener(
             onScroll: on ? onWheel : null,
             child: Row(
-              gap: 1,
+              spacing: 1,
               children: [
                 Expanded(
                   child: Listener(
-                    onDown: enabled ? (e) => _pressed(e, onPressed) : null,
+                    onPointerDown: enabled
+                        ? (e) => _pressed(e, onPressed)
+                        : null,
                     child: TextField(
                       controller: controller,
                       focusNode: node,

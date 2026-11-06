@@ -395,7 +395,7 @@ const catalog = [
           'field, and from the last submits the form.',
     ),
     CatalogPage(
-      'TabBar, TabView',
+      'TabBar, TabBarView',
       'Tabs to pick a view by: Left and Right, or a click.',
     ),
     CatalogPage(
@@ -415,7 +415,7 @@ const catalog = [
           'on it.',
     ),
     CatalogPage(
-      'Link',
+      'Hyperlink',
       'Text linked to a URL, which a terminal that knows hyperlinks opens.',
     ),
     CatalogPage(

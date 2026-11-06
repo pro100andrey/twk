@@ -75,7 +75,7 @@ final class _DemoState extends State<Demo> {
           padding: const .only(left: 2, right: 2, top: 1, bottom: 1),
           child: Column(
             crossAxisAlignment: .start,
-            gap: 1,
+            spacing: 1,
             children: [
               Column(
                 mainAxisSize: .min,
@@ -90,7 +90,7 @@ final class _DemoState extends State<Demo> {
                 ],
               ),
               Row(
-                gap: 2,
+                spacing: 2,
                 children: [
                   Button(
                     'Press',
@@ -101,7 +101,7 @@ final class _DemoState extends State<Demo> {
                 ],
               ),
               Row(
-                gap: 1,
+                spacing: 1,
                 children: [
                   const Spinner(),
                   Text.rich(['last input '.dim, Span(_last)]),

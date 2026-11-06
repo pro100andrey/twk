@@ -23,7 +23,7 @@ final _checkboxSwitchPage = GalleryPage(
     'Widget build(BuildContext context) => Column(',
     '  mainAxisSize: .min,',
     '  crossAxisAlignment: .start,',
-    '  gap: 1,',
+    '  spacing: 1,',
     '  children: [',
     '    Checkbox(',
     '      value: _wrap,',
@@ -58,7 +58,7 @@ final class _TogglesState extends State<_Toggles> with KeptState {
   Widget build(BuildContext context) => Column(
     mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.start,
-    gap: 1,
+    spacing: 1,
     children: [
       Checkbox(
         value: keptOr('wrap', true),

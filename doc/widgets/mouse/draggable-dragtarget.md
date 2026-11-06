@@ -47,17 +47,17 @@ Widget build(BuildContext context) {
   return Column(
     mainAxisSize: .min,
     crossAxisAlignment: .start,
-    gap: 1,
+    spacing: 1,
     children: [
       Row(
         mainAxisSize: .min,
-        gap: 2,
+        spacing: 2,
         children: [
           for (final MapEntry(key: name, value: fruits) in _in.entries)
             DragTarget<String>(
-              onWillAccept: (drag) =>
+              onWillAcceptWithDetails: (drag) =>
                   name != 'red only' || _red.contains(drag.data),
-              onAccept: (drop) => setState(() {
+              onAcceptWithDetails: (drop) => setState(() {
                 // dropped back on its own box, it stays where it is
                 if (!fruits.contains(drop.data)) {
                   for (final list in _in.values) {

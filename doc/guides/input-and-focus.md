@@ -59,7 +59,7 @@ final class _SignInState extends State<SignIn> {
               child: Column(
                 mainAxisSize: .min,
                 crossAxisAlignment: .stretch,
-                gap: 1,
+                spacing: 1,
                 children: [
                   _Labeled(
                     'Name',
@@ -80,7 +80,7 @@ final class _SignInState extends State<SignIn> {
                   _Labeled(
                     '',
                     child: Row(
-                      gap: 2,
+                      spacing: 2,
                       children: [
                         Button('Sign in', onPressed: _save),
                         Text(_status, style: theme.muted),
@@ -109,7 +109,7 @@ final class _Labeled extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
-    gap: 1,
+    spacing: 1,
     children: [
       SizedBox(width: 8, child: Text(label)),
       Expanded(child: child),
@@ -196,7 +196,7 @@ final class _CounterState extends State<Counter> {
 ## The mouse
 
 Full screen, the terminal reports the mouse while a widget that needs it
-is mounted: `GestureDetector` (`onTap:`, `onDoubleTap:`, `onDragUpdate:`),
+is mounted: `GestureDetector` (`onTap:`, `onDoubleTap:`, `onPanUpdate:`),
 `Listener`, `MouseRegion` for hovers and the pointer's shape, `Draggable`
 and `DragTarget`. A click on a focusable widget focuses it. Inline, the
 mouse stays the terminal's: its own selection keeps working.
@@ -212,22 +212,22 @@ takes the cells between. Below, a tap on the inner card says `inner`, one
 on the outer card's border `outer`, and F2 says whether the search field
 has the focus.
 
-To see a press the inner detector takes, put a `Listener` (`onDown:`,
-`onUp:`) around it: a `Listener` is not in the competition and gets every
+To see a press the inner detector takes, put a `Listener` (`onPointerDown:`,
+`onPointerUp:`) around it: a `Listener` is not in the competition and gets every
 press hit in it, as in Flutter, the deepest first. It is the answer for a
 parent that counts clicks itself, or that has to know of a tap anyway.
 
 The terminal reports the mouse by mode for the whole app, not by area:
 presses and the wheel (1000) for taps and `onScroll`, motion with a button
 held (1002) for drags, all motion (1003) for `onHover`, `onEnter`,
-`onExit`, `onMove`, a `MouseRegion`'s `cursor` where the terminal shows
+`onExit`, `onPointerHover`, a `MouseRegion`'s `cursor` where the terminal shows
 the pointer's shape, and a `Button`'s hover look. One of them anywhere in
 the app turns 1003 on everywhere. The hand over what a click presses is
 `ThemeData.pointerMode`, by default `PointerMode.auto`: shown only where motion
 is reported already, so a checkbox or a link asks for presses alone; `PointerMode.on`
 asks for motion.
 
-The pointer follows the press: a `GestureDetector` with `onTap` or `onTapDown`
+The pointer follows the press: a `GestureDetector` with `onTap`, `onTapUp` or `onTapDown`
 shows the hand by that rule, with nothing else to write. `cursor` puts a
 `PointerShape` of its own in its place (`PointerShape.arrow` for a click that
 presses nothing), and `tapAt: (x, y) => ...` says which cells of a row a tap is
@@ -275,13 +275,13 @@ final class _WhoState extends State<Who> {
       children: [
         Text(_said),
         GestureDetector(
-          onTap: (_) => setState(() => _said = 'outer'),
+          onTap: () => setState(() => _said = 'outer'),
           child: Box(
             border: const .all(type: .rounded),
             padding: const .all(1),
             child: GestureDetector(
               // the deepest detector with an onTap takes the tap
-              onTap: (_) => setState(() => _said = 'inner'),
+              onTap: () => setState(() => _said = 'inner'),
               child: const Box(
                 border: .all(type: .single),
                 child: Text('inner'),

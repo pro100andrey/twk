@@ -31,9 +31,18 @@ What is here besides `packages/`:
   (`packages/twk/test/example/guides_test.dart` holds them together).
 * `doc/widgets/`: the widget catalog, written from the gallery
   (`packages/gallery/tool/catalog.dart`).
+* `skills/twk/`: the skill that teaches a coding agent twk; its
+  `references/` are written from `doc/widgets/` and `doc/guides/`
+  (`tool/skill_references`), its Dart compiled by
+  `packages/twk/test/skill_test.dart`. twk_dev packs it for `twk agents`
+  (`packages/twk_dev/tool/pack_skill.dart` into
+  `lib/src/agents/skill.g.dart`, as it packs the templates), and a change
+  to the skill fails twk_dev's `test/agents_test.dart` until
+  `dart run tool/pack_skill.dart` is run in `packages/twk_dev`.
 * `doc/internals/`: the conventions code, docs and tests are written to
-  (`quality/`) and the performance surveys against other terminal
-  libraries (`perf/`).
+  (`quality/`), the performance surveys against other terminal
+  libraries (`perf/`) and the public names of the published packages
+  (`api/`, written by `tool/api_names/`).
 
 ```bash
 dart pub get                                       # the whole workspace
@@ -82,7 +91,15 @@ dart run tool/xtask.dart bench              # when the frame path changed (below
   the gallery's golden screens being its `dart test`, drawn as the SVGs of
   `packages/gallery/doc/shots/` and failed where those are stale
   (`gallery-shots`), and written into the widget catalog, `doc/widgets/`,
-  failed where it is stale (`catalog`); and the chat demo
+  failed where it is stale (`catalog`), and from the catalog and the guides
+  the twk skill's references, `skills/twk/references/` (`tool/skill_references`),
+  failed where they are stale (`skill-references`); the public names of the seven
+  published packages, top-level, as their libraries export them (the
+  analyzer's element model), one `library kind name` line each in
+  `doc/internals/api/<package>.txt`, failed where those are stale or a name
+  too general for an export has no exception
+  (`tool/api_names/banned_names.txt`, each exception with its reason; an
+  exception that matches nothing fails too) (`api-names`); and the chat demo
   end to end in a pseudo-terminal, fullscreen and inline, its output
   then through the test emulator (`e2e-fullscreen`, `e2e-inline`). The
   end to end is what a change to anything that reads from or writes to
@@ -131,6 +148,17 @@ dart run tool/xtask.dart bench              # when the frame path changed (below
   runs one gate: `workflows-check` (`--check-ci`), in `handover`, refuses
   anything else, so a check is added to `xtask.yaml`, never to the
   workflow.
+- The public names are files, `doc/internals/api/<package>.txt`, so that
+  every public name added, renamed or removed shows in the diff of the
+  pull request that does it: `api-names` writes them again, and fails
+  where that changed a file (commit the new files with the change). Before
+  each release up to 1.0, the diff of these files over the cycle is read;
+  at 1.0 they freeze, additions only. A name too general for an export
+  (`Link`, `Status`, `log`, ...) fails the task unless
+  `tool/api_names/banned_names.txt` has an `allow <package> <name> -- <reason>`
+  line for it; an `allow` line that matches no name fails as well, so the
+  list does not rot. The packages' `exports_test` stays for what it
+  does, which is another thing: the names say nothing of it.
 - On demand, not in a gate: `undocumented` and `coverage` write reports
   to `doc/internals/quality/` (not committed); `-- <package>...` makes
   those packages' only. `pub-check` says whether the seven packages of a

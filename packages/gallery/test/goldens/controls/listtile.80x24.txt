@@ -5,11 +5,11 @@ text
 │   ⌕ Filter       /     ListTile                                Preview   Code  │
 │                        A row of a list: a title over a subtitle, something     │
 │     Form, FormFie…     before and after them; tapped by a click or Enter, li…  │
-│     TabBar, TabVi…   ──────────────────────────────────────────────────────────│
+│     TabBar, TabBa…   ──────────────────────────────────────────────────────────│
 │     KeyHintsBar                 ┌                                  ┐           │
 │     StatusMessage…      ·   ·     ▤ notes.md                     ›      ·   ·  │
 │     Callout                         2 KB, an hour ago                          │
-│     Link                ·   ·     ▤ todo.md                      ›      ·   ·  │
+│     Hyperlink           ·   ·     ▤ todo.md                      ›      ·   ·  │
 │ ▎   ListTile                        640 B, today                               │
 │     StatusBar           ·   ·     ▤ photo.png                    ›      ·   ·  │
 │                     ▐               1.2 MB, last week                          │
@@ -34,7 +34,7 @@ styles
 │aaaaannnnnnnnnnnaaaaaagggggggggggoggggggggggggggggggggggggggggggggggoggggggggggg│
 │aaaaannnnnnnnnnnnnnaaagggogggogggggpgllllllllgggggggggggggggggggggmggggggogggogg│
 │aaaaannnnnnnaaaaaaaaaagggggggggggggggmgmmmgmmgmmmmgmmmgggggggggggggggggggggggggg│
-│aaaaannnnaaaaaaaaaaaaagggogggogggggpgpppppppggggggggggggggggggggggmggggggogggogg│
+│aaaaannnnnnnnnaaaaaaaagggogggogggggpgpppppppggggggggggggggggggggggmggggggogggogg│
 │aqrrrssssssssrrrrrrrragggggggggggggggmmmgmmgmmmmmggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnaaaaaaaagggogggogggggpgpppppppppggggggggggggggggggggmggggggogggogg│
 │aaaaaaaaaaaaaaaaaaaaadgggggggggggggggmmmgmmmgmmmmgmmmmgggggggggggggggggggggggggg│

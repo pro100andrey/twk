@@ -10,6 +10,7 @@
 import 'dart:async';
 
 import 'package:test/test.dart';
+import 'package:twk/format.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
@@ -332,7 +333,7 @@ void main() {
         contents: {rooted('/p/a.txt'): 'x' * 1536},
       );
       await t.pumpWidget(
-        Localizations(
+        TwkLocalizations(
           strings: const TwkStrings(decimalSeparator: ','),
           child: Theme.terminal(
             child: DirectoryTree(

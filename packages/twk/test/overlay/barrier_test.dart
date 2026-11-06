@@ -92,8 +92,8 @@ void main() {
     unawaited(
       t.clock.run(
         () => showDialog<void>(
-          context,
-          (_) => const SizedBox(width: 1, height: 1),
+          context: context,
+          builder: (_) => const SizedBox(width: 1, height: 1),
           fadeIn: const Duration(milliseconds: 100),
         ),
       ),

@@ -400,10 +400,10 @@ void main() {
       listener(
         seen,
         Shortcuts(
-          const {'ctrl+x ctrl+s': Save()},
+          shortcuts: const {'ctrl+x ctrl+s': Save()},
           hints: const {'ctrl+x ctrl+s': 'save'},
           child: Actions(
-            {Save: save},
+            actions: {Save: save},
             child: Field('field', seen, autofocus: true),
           ),
         ),
@@ -540,12 +540,15 @@ void main() {
             hints: const {'g e': 'end'},
             child: const Text('b'),
           ),
-          const Shortcuts({
-            'G g': Save(),
-            // the failure is what is tested
-            // ignore: twk_lints/key_names
-            'shift+g g': Save(),
-          }, child: Text('c')),
+          const Shortcuts(
+            shortcuts: {
+              'G g': Save(),
+              // the failure is what is tested
+              // ignore: twk_lints/key_names
+              'shift+g g': Save(),
+            },
+            child: Text('c'),
+          ),
           LeaderKey(
             // the failure is what is tested
             // ignore: twk_lints/key_names

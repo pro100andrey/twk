@@ -13,11 +13,11 @@ text
 │ ▎   DatePicker                                                                 │
 │     FilePicker      ▐   ·   ·    picked: nothing                        ·   ·  │
 │     Form, FormFie…  ▐          └                                    ┘          │
-│     TabBar, TabVi…      ·   ·   ·   ·   ·   ·   ·   ·   ·   · 34 × 3·   ·   ·  │
+│     TabBar, TabBa…      ·   ·   ·   ·   ·   ·   ·   ·   ·   · 34 × 3·   ·   ·  │
 │     KeyHintsBar                                                                │
 │     StatusMessage…      ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  │
 │     Callout                                                                    │
-│     Link             ──────────────────────────────────────────────────────────│
+│     Hyperlink        ──────────────────────────────────────────────────────────│
 │     ListTile           time of day  ▐●  ▌                                      │
 │     StatusBar          weeks start   monday  sunday                            │
 │                        popup look    raised  bordered                          │
@@ -42,7 +42,7 @@ styles
 │aaaaannnnnnnnnnnaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnnnaaagggogggogggogggogggogggogggogggogggogggogggogggogggogggogg│
 │aaaaannnnnnnaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaannnnaaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnnnaaaaaaaaaggmmmmgmmgmmmggxyzzxgggggggggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnaaaaaaaaggmmmmmgmmmmmggqrrrrrrqhAAAAAAhggggggggggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaaggmmmmmgmmmmgggqrrrrrrqhAAAAAAAAhggggggggggggggggggggggggg│

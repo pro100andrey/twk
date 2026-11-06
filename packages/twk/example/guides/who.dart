@@ -39,13 +39,13 @@ final class _WhoState extends State<Who> {
       children: [
         Text(_said),
         GestureDetector(
-          onTap: (_) => setState(() => _said = 'outer'),
+          onTap: () => setState(() => _said = 'outer'),
           child: Box(
             border: const .all(type: .rounded),
             padding: const .all(1),
             child: GestureDetector(
               // the deepest detector with an onTap takes the tap
-              onTap: (_) => setState(() => _said = 'inner'),
+              onTap: () => setState(() => _said = 'inner'),
               child: const Box(
                 border: .all(type: .single),
                 child: Text('inner'),

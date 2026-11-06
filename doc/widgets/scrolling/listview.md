@@ -37,7 +37,7 @@ Widget build(BuildContext context) {
   return Column(
     mainAxisSize: .min,
     crossAxisAlignment: .start,
-    gap: 1,
+    spacing: 1,
     children: [
       SizedBox(
         width: 34,
@@ -60,7 +60,7 @@ Widget build(BuildContext context) {
       ),
       Row(
         mainAxisSize: .min,
-        gap: 1,
+        spacing: 1,
         children: [
           Button('top', onPressed: () => _list.jumpTo(0)),
           // the least move that shows it
@@ -75,7 +75,7 @@ Widget build(BuildContext context) {
           Span('offset ', theme.muted),
           Span('${_list.offset}'),
           Span(' of ', theme.muted),
-          Span('${_list.position.maxOffset}'),
+          Span('${_list.position.maxScrollExtent}'),
         ]),
       ),
     ],

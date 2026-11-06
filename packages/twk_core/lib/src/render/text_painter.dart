@@ -656,7 +656,7 @@ enum TextInvalidation {
 ///   ('disk full', const Pen()),
 /// ]);
 /// painter.layout(
-///   const BoxConstraints(maxW: 20, maxH: 1),
+///   const BoxConstraints(maxWidth: 20, maxHeight: 1),
 ///   segmenter: segmenter,
 /// );
 /// print('${painter.width} x ${painter.height}'); // 16 x 1
@@ -3408,7 +3408,7 @@ final class TextPainter {
   }
 
   /// Lays the text out within [constraints]: splits it into clusters as
-  /// [segmenter] does, breaks it into lines at most [BoxConstraints.maxW]
+  /// [segmenter] does, breaks it into lines at most [BoxConstraints.maxWidth]
   /// columns wide and sets [width] and [height], clearing what
   /// [takeInvalidation] holds. In [order] text with right-to-left
   /// characters is drawn as stored or as read. Lays out again only what
@@ -3426,14 +3426,14 @@ final class TextPainter {
       _bidiStale = true;
     }
     _invalidation = TextInvalidation.none;
-    _layoutLines(c.maxW);
+    _layoutLines(c.maxWidth);
     var widest = 0;
     for (var i = 0; i < _lineCount; i++) {
       final w = _lines[i * _lineStride + 5];
       widest = w > widest ? w : widest;
     }
-    _width = c.constrainW(widest);
-    _height = c.constrainH(_lineCount);
+    _width = c.constrainWidth(widest);
+    _height = c.constrainHeight(_lineCount);
     _segmentsStale = true;
   }
 
@@ -3687,7 +3687,7 @@ final class TextPainter {
   // the cells drawing text of [start, end) ([columnsOf]). What it found is
   // left in [_walk].
   void _walkRow(int y, int x, int start, int end) {
-    _layoutLines(_constraints!.maxW);
+    _layoutLines(_constraints!.maxWidth);
     if (_offsetsStale) {
       _findOffsets();
     }
@@ -3870,7 +3870,10 @@ final class TextPainter {
   ///   ('one ', const Pen()),
   ///   ('two', const Pen()),
   /// ], wrap: TextWrap.none)
-  ///   ..layout(const BoxConstraints(maxW: 20, maxH: 1), segmenter: segmenter);
+  ///   ..layout(
+  ///     const BoxConstraints(maxWidth: 20, maxHeight: 1),
+  ///     segmenter: segmenter,
+  ///   );
   /// final two = p.columnsOf(4, 7, 0); // (4, 7)
   /// ```
   ///
@@ -3919,7 +3922,7 @@ final class TextPainter {
   ///   overflow: TextOverflow.ellipsis,
   ///   maxLines: 1,
   /// )..layout(
-  ///   const BoxConstraints(minW: 5, maxW: 5, maxH: 100),
+  ///   const BoxConstraints(minWidth: 5, maxWidth: 5, maxHeight: 100),
   ///   segmenter: segmenter,
   /// );
   /// final b = p.cellAt(1, 0); // (start: 1, end: 2, isEllipsis: false)
@@ -3954,7 +3957,7 @@ final class TextPainter {
   void prepare(Canvas canvas) {
     if (_linesAt < 0 || _textStale) {
       // split again since the layout: the lines at the width it had
-      _layoutLines(_constraints!.maxW);
+      _layoutLines(_constraints!.maxWidth);
     }
     if (_hasMulti) {
       if (!identical(_internedIn, canvas.glyphs) ||

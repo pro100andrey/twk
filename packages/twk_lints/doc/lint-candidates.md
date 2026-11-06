@@ -268,7 +268,7 @@ context of … used after dispose()`, `framework/framework.dart:379`).
 
 **What the Dart linter does.** `use_build_context_synchronously` does not
 see twk. A scratch package depending on twk, with the lint on and three
-plain violations (a `showToast(context, …)` and a `Theme.of(context)`
+plain violations (a `showToast(context: context, …)` and a `Theme.of(context)`
 after an `await` in a `State`, and a `Theme.of(context)` after an `await`
 in a button's async callback), gave "No issues found".
 
@@ -285,7 +285,7 @@ with the use being a `SimpleIdentifier` whose element is `State`'s
 false alarms.** There were four causes:
 
 - **(a) 6 hits: the context is an argument of the awaited call itself**
-  (`await showDialog(context, …)`, `await Navigator.of(context).push(…)`),
+  (`await showDialog(context: context, …)`, `await Navigator.of(context).push(…)`),
   which is evaluated before the suspension. Examples:
   `packages/twk/example/files.dart:672`, `:735`, `:773`, `:802`,
   `settings.dart:96` and gallery `navigation.dart:647`.
@@ -407,7 +407,10 @@ around the call:
 ```
 Future<void> go(bool ask) async {
   if (ask) {
-    final ok = await showDialog<bool>(context, (_) => const Text('?'));
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => const Text('?'),
+    );
     if (ok == null || !mounted) {
       return;
     }

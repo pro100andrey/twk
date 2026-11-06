@@ -50,7 +50,7 @@ final _breadcrumbs = GalleryPage(
     'Widget build(BuildContext context) => Column(',
     '  mainAxisSize: .min,',
     '  crossAxisAlignment: .start,',
-    '  gap: 1,',
+    '  spacing: 1,',
     '  children: [',
     '    SizedBox(',
     '      width: ${o.nameOf(_breadcrumbsWidth)},',
@@ -98,7 +98,7 @@ final class _CrumbsState extends State<_Crumbs> with KeptState {
   Widget build(BuildContext context) => Column(
     mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.start,
-    gap: 1,
+    spacing: 1,
     children: [
       SizedBox(
         width: widget.width,

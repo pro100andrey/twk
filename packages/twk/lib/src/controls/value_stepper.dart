@@ -175,7 +175,7 @@ final class _ValueStepperState<T> extends State<ValueStepper<T>> {
         SemanticsNode(
           role: SemanticsRole.slider,
           label: _index < 0 ? '' : _values[_index].label,
-          state: SemanticsState(disabled: !enabled),
+          enabled: enabled,
         ),
       ],
       child: Pressable(
@@ -185,9 +185,9 @@ final class _ValueStepperState<T> extends State<ValueStepper<T>> {
         autofocus: widget.autofocus,
         bindings: _bindings,
         hints: _hints,
-        onTap: enabled
-            ? (event) {
-                switch (_hits.at(event.x)) {
+        onTapUp: enabled
+            ? (tap) {
+                switch (_hits.at(tap.localPosition.dx)) {
                   case 0:
                     _step(-1);
                   case 1:
@@ -199,7 +199,7 @@ final class _ValueStepperState<T> extends State<ValueStepper<T>> {
           builder: (context, constraints) => _row(
             Theme.of(context),
             segmenterOf(context),
-            constraints.maxW,
+            constraints.maxWidth,
             enabled: enabled,
             focused: focused,
           ),

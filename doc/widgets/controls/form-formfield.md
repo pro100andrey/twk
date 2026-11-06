@@ -34,7 +34,7 @@ Widget build(BuildContext context) => Form(
     child: Column(
       mainAxisSize: .min,
       crossAxisAlignment: .stretch,
-      gap: 1,
+      spacing: 1,
       children: [
         TextFormField(
           placeholder: 'name',
@@ -57,7 +57,7 @@ Widget build(BuildContext context) => Form(
           ),
         ),
         Row(
-          gap: 2,
+          spacing: 2,
           children: [
             Button('Submit', onPressed: () => _form.currentState!.submit()),
             Button('Reset', onPressed: () => _form.currentState!.reset()),
@@ -93,7 +93,7 @@ What the gallery lets you change, and what each starts at:
 ## More
 
 - API: [`Form`](https://pub.dev/documentation/twk/latest/twk/Form-class.html), [`FormField`](https://pub.dev/documentation/twk/latest/twk/FormField-class.html).
-- Also in Controls: [Button](button.md), [Pressable](pressable.md), [Checkbox, Switch](checkbox-switch.md), [RadioGroup](radiogroup.md), [SegmentedButton](segmentedbutton.md), [Chip, ChipList](chip-chiplist.md), [ValueStepper](valuestepper.md), [SelectionList](selectionlist.md), [Select, MultiSelect](select-multiselect.md), [ConfirmInput](confirminput.md), [Slider](slider.md), [NumberInput](numberinput.md), [DatePicker](datepicker.md), [FilePicker](filepicker.md), [TabBar, TabView](tabbar-tabview.md), [KeyHintsBar](keyhintsbar.md), [StatusMessage, Badge](statusmessage-badge.md), [Callout](callout.md), [Link](link.md), [ListTile](listtile.md), [StatusBar](statusbar.md).
+- Also in Controls: [Button](button.md), [Pressable](pressable.md), [Checkbox, Switch](checkbox-switch.md), [RadioGroup](radiogroup.md), [SegmentedButton](segmentedbutton.md), [Chip, ChipList](chip-chiplist.md), [ValueStepper](valuestepper.md), [SelectionList](selectionlist.md), [Select, MultiSelect](select-multiselect.md), [ConfirmInput](confirminput.md), [Slider](slider.md), [NumberInput](numberinput.md), [DatePicker](datepicker.md), [FilePicker](filepicker.md), [TabBar, TabBarView](tabbar-tabbarview.md), [KeyHintsBar](keyhintsbar.md), [StatusMessage, Badge](statusmessage-badge.md), [Callout](callout.md), [Hyperlink](hyperlink.md), [ListTile](listtile.md), [StatusBar](statusbar.md).
 - Live in the gallery:
   `dart run packages/gallery/bin/gallery.dart --route='#/controls/form-formfield'`.
 - [Controls](../controls.md) · [All groups](../README.md)

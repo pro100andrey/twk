@@ -29,7 +29,8 @@ import 'dart:io';
 import 'dart:math' show max, min;
 import 'dart:typed_data';
 
-import 'package:twk/twk.dart' hide Link;
+import 'package:twk/format.dart';
+import 'package:twk/twk.dart';
 
 Future<void> main(List<String> args) async {
   final directory = args.isEmpty ? Directory.current.path : args.first;
@@ -665,14 +666,14 @@ final class _BrowserState extends State<_Browser> {
     Operation? operation,
   ) async {
     if (sources.isEmpty) {
-      showToast(context, 'Nothing is selected.');
+      showToast(context: context, message: 'Nothing is selected.');
       return;
     }
     var (op, to) = (operation ?? Operation.copy, target);
     if (operation == null || _settings.confirm) {
       final answer = await showDialog<(Operation, String)>(
-        context,
-        (_) => _TransferDialog(
+        context: context,
+        builder: (_) => _TransferDialog(
           sources: sources,
           target: target,
           base: _directory,
@@ -684,24 +685,27 @@ final class _BrowserState extends State<_Browser> {
       }
       (op, to) = answer;
     } else if (_refusal(sources, to) case final refusal?) {
-      showToast(context, refusal);
+      showToast(context: context, message: refusal);
       return;
     }
     if (op == .move && sources.any(_holdsRoot)) {
-      showToast(context, _rootStays);
+      showToast(context: context, message: _rootStays);
       return;
     }
     final Transfer transfer;
     try {
       transfer = Transfer(op, sources, to);
     } on FileSystemException catch (e) {
-      showToast(context, '${op.label} failed: ${_message(e)}');
+      showToast(
+        context: context,
+        message: '${op.label} failed: ${_message(e)}',
+      );
       return;
     }
     final error = await showDialog<String>(
-      context,
-      (_) => _Progress(transfer, bytesPerFrame: widget.bytesPerFrame),
-      dismissible: false,
+      context: context,
+      builder: (_) => _Progress(transfer, bytesPerFrame: widget.bytesPerFrame),
+      barrierDismissible: false,
     );
     if (!mounted) {
       return;
@@ -710,8 +714,8 @@ final class _BrowserState extends State<_Browser> {
     _refresh();
     final what = _describe(sources);
     showToast(
-      context,
-      error != null
+      context: context,
+      message: error != null
           ? '${op.label} failed: $error'
           : transfer.isCancelled
           ? 'Cancelled: ${transfer.items} of ${sources.length} '
@@ -729,13 +733,16 @@ final class _BrowserState extends State<_Browser> {
         ? null
         : selected.path;
     if (path == null || _holdsRoot(path)) {
-      showToast(context, path == null ? 'Nothing is selected.' : _rootStays);
+      showToast(
+        context: context,
+        message: path == null ? 'Nothing is selected.' : _rootStays,
+      );
       return;
     }
     final directory = _parent(path)!;
     final name = await showDialog<String>(
-      context,
-      (_) => _NameDialog(
+      context: context,
+      builder: (_) => _NameDialog(
         title: 'Rename',
         action: 'Rename',
         directory: directory,
@@ -753,7 +760,7 @@ final class _BrowserState extends State<_Browser> {
         File(path).renameSync(to);
       }
     } on FileSystemException catch (e) {
-      showToast(context, 'Rename failed: ${_message(e)}');
+      showToast(context: context, message: 'Rename failed: ${_message(e)}');
       return;
     }
     if (_directory == path || _isWithin(_directory, path)) {
@@ -772,8 +779,8 @@ final class _BrowserState extends State<_Browser> {
   Future<void> _makeDirectoryIn() async {
     final directory = _treeActive ? _treeDirectory : _directory;
     final name = await showDialog<String>(
-      context,
-      (_) => _NameDialog(
+      context: context,
+      builder: (_) => _NameDialog(
         title: 'New directory',
         action: 'Create',
         directory: directory,
@@ -786,7 +793,10 @@ final class _BrowserState extends State<_Browser> {
     try {
       Directory(path).createSync();
     } on FileSystemException catch (e) {
-      showToast(context, 'Making the directory failed: ${_message(e)}');
+      showToast(
+        context: context,
+        message: 'Making the directory failed: ${_message(e)}',
+      );
       return;
     }
     _refresh();
@@ -997,8 +1007,9 @@ final class _DropTarget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => DragTarget<_Paths>(
-    onWillAccept: (details) => drops.accepts(details.data, directory),
-    onAccept: (details) => drops.drop(details.data, directory),
+    onWillAcceptWithDetails: (details) =>
+        drops.accepts(details.data, directory),
+    onAcceptWithDetails: (details) => drops.drop(details.data, directory),
     builder: (context, candidate, _) => builder(context, candidate != null),
   );
 }
@@ -1323,7 +1334,7 @@ final class _TransferDialogState extends State<_TransferDialog> {
                 Text(replacing, style: Theme.of(context).warning),
               Row(
                 mainAxisSize: .min,
-                gap: 2,
+                spacing: 2,
                 children: [
                   for (final op
                       in operation == null ? Operation.values : [operation])
@@ -1407,10 +1418,13 @@ final class _ProgressState extends State<_Progress>
             children: [
               Text(_name(t.current), wrap: .none, overflow: .ellipsis),
               Row(
-                gap: 1,
+                spacing: 1,
                 children: [
                   Expanded(child: ProgressBar(value: t.progress)),
-                  SizedBox(width: 4, child: Text('$percent%', align: .right)),
+                  SizedBox(
+                    width: 4,
+                    child: Text('$percent%', textAlign: .right),
+                  ),
                 ],
               ),
               Text(
@@ -1497,7 +1511,7 @@ final class _NameDialogState extends State<_NameDialog> {
             ),
             Row(
               mainAxisSize: .min,
-              gap: 2,
+              spacing: 2,
               children: [
                 Button(
                   widget.action,
@@ -1596,7 +1610,7 @@ final class _SettingsScreenState extends State<_SettingsScreen> {
                     const SizedBox(height: 1),
                     Row(
                       mainAxisSize: .min,
-                      gap: 2,
+                      spacing: 2,
                       children: [
                         Button('Save', onPressed: _save),
                         Button(

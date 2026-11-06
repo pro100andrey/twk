@@ -18,10 +18,11 @@ final class Constraints extends StatelessWidget {
         crossAxisAlignment: .start,
         children: [
           // the room this part of the app is given, in cells
-          Text('room: ${constraints.maxW} x ${constraints.maxH}'),
-          // minW, maxW, minH, maxH: at most 30 wide, any height
+          Text('room: ${constraints.maxWidth} x ${constraints.maxHeight}'),
+          // minWidth, maxWidth, minHeight, maxHeight: at most 30 wide, any
+          // height
           const ConstrainedBox(
-            constraints: BoxConstraints(minW: 10, maxW: 30),
+            constraints: BoxConstraints(minWidth: 10, maxWidth: 30),
             child: Box(
               border: .all(type: .rounded),
               child: Text(

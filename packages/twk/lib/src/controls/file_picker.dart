@@ -526,8 +526,8 @@ Future<List<String>?> showFilePicker(
   int width = 60,
   int height = 20,
 }) => showDialog<List<String>>(
-  context,
-  (context) => SizedBox(
+  context: context,
+  builder: (context) => SizedBox(
     width: width,
     height: height,
     child: Dialog(
@@ -981,7 +981,7 @@ final class _FilePickerState extends State<FilePicker> {
   void _move(int rows) => _moveTo(_cursorIn(_shown()) + rows);
 
   int get _page {
-    final rows = _list.hasClients ? _list.position.viewportExtent : 1;
+    final rows = _list.hasClients ? _list.position.viewportDimension : 1;
     return rows > 1 ? rows : 1;
   }
 
@@ -1176,7 +1176,7 @@ final class _FilePickerState extends State<FilePicker> {
           ),
           Expanded(child: _files(theme)),
           Row(
-            gap: 1,
+            spacing: 1,
             children: [
               if (filters.length > 1)
                 Select<int>(
@@ -1286,7 +1286,7 @@ final class _FilePickerState extends State<FilePicker> {
       key: ValueKey<String>(entry.path),
       onTapDown: (_) => setState(() => _cursor = entry.path),
       cursor: PointerShape.arrow,
-      onDoubleTap: (_) => _take(entry),
+      onDoubleTap: () => _take(entry),
       // the hidden cursor on the cursor's row
       child: ActiveItem(
         active: cursor,

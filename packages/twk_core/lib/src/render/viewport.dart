@@ -162,17 +162,17 @@ final class RenderViewport extends RenderObject
     final ch = _child;
     var content = 0;
     if (ch == null) {
-      width = c.minW;
-      height = c.minH;
+      width = c.minWidth;
+      height = c.minHeight;
     } else {
       ch.layout(
         vertical
-            ? BoxConstraints(minW: c.minW, maxW: c.maxW)
-            : BoxConstraints(minH: c.minH, maxH: c.maxH),
+            ? BoxConstraints(minWidth: c.minWidth, maxWidth: c.maxWidth)
+            : BoxConstraints(minHeight: c.minHeight, maxHeight: c.maxHeight),
         parentUsesSize: true,
       );
-      width = c.constrainW(ch.width);
-      height = c.constrainH(ch.height);
+      width = c.constrainWidth(ch.width);
+      height = c.constrainHeight(ch.height);
       content = vertical ? ch.height : ch.width;
     }
     final extent = vertical ? height : width;

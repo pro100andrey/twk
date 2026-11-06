@@ -1,6 +1,7 @@
 import 'package:test/test.dart';
 import 'package:twk/cli.dart';
-import 'package:twk/twk.dart' show LogLevel;
+
+import 'package:twk/log.dart';
 import 'package:twk_test/cli.dart';
 
 Matcher _required(String question, {Object? invalidDefault}) =>

@@ -26,7 +26,7 @@ final _stepperPage = GalleryPage(
     '  return Column(',
     '    mainAxisSize: .min,',
     '    crossAxisAlignment: .start,',
-    '    gap: 1,',
+    '    spacing: 1,',
     '    children: [',
     '      ValueStepper<String>(',
     '        values: const [',
@@ -66,7 +66,7 @@ final class _StepsState extends State<_Steps> with KeptState {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         ValueStepper<String>(
           values: _stepModes,

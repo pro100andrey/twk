@@ -68,7 +68,7 @@ final _textfieldPage = GalleryPage(
     '  return Column(',
     '    mainAxisSize: .min,',
     '    crossAxisAlignment: .start,',
-    '    gap: 1,',
+    '    spacing: 1,',
     '    children: [',
     '      SizedBox(',
     '        width: 30,',
@@ -178,7 +178,7 @@ final class _FieldState extends State<_Field> with KeptState {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         SizedBox(
           width: 30,

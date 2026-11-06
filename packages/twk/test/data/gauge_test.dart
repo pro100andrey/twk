@@ -158,9 +158,11 @@ void main() {
 
     test('is as wide as it may be and a row tall', () {
       final gauge = RenderGauge(ratio: 0)
-        ..layout(const BoxConstraints(maxW: 5));
+        ..layout(const BoxConstraints(maxWidth: 5));
       expect((gauge.width, gauge.height), (5, 1));
-      gauge.layout(const BoxConstraints(minW: 2, minH: 3, maxH: 4));
+      gauge.layout(
+        const BoxConstraints(minWidth: 2, minHeight: 3, maxHeight: 4),
+      );
       expect((gauge.width, gauge.height), (2, 3));
     });
 
@@ -474,7 +476,7 @@ void main() {
     ]) {
       expect(gauge.getMinIntrinsicHeight(10), 1);
       expect(gauge.getMaxIntrinsicHeight(10), 1);
-      gauge.layout(const BoxConstraints(maxW: 10, maxH: 5));
+      gauge.layout(const BoxConstraints(maxWidth: 10, maxHeight: 5));
       expect(gauge.height, 1);
     }
   });

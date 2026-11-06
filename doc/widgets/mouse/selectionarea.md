@@ -31,14 +31,14 @@ Widget build(BuildContext context) {
     child: Column(
       mainAxisSize: .min,
       crossAxisAlignment: .start,
-      gap: 1,
+      spacing: 1,
       children: [
         SelectionArea(
           onCopy: (text) => setState(() => _copied = text),
           child: const Column(
             mainAxisSize: .min,
             crossAxisAlignment: .start,
-            gap: 1,
+            spacing: 1,
             children: [
               Text(
                 'An app that reads the mouse keeps the terminal from '
@@ -51,7 +51,7 @@ Widget build(BuildContext context) {
         // what was copied, in the width the label leaves
         Row(
           crossAxisAlignment: .start,
-          gap: 1,
+          spacing: 1,
           children: [
             Text('copied:', style: theme.muted),
             Expanded(

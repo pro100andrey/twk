@@ -93,10 +93,13 @@ final class _RenderShifted extends RenderObject
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
     child
-      ?..layout(BoxConstraints(maxW: width, maxH: height), parentUsesSize: true)
+      ?..layout(
+        BoxConstraints(maxWidth: width, maxHeight: height),
+        parentUsesSize: true,
+      )
       ..parentData.dx = dx.value;
   }
 
@@ -422,7 +425,7 @@ anchor
       Overlay(
         child: Listener(
           behavior: HitTestBehavior.opaque,
-          onDown: (event) => log.add('app ${event.x},${event.y}'),
+          onPointerDown: (event) => log.add('app ${event.x},${event.y}'),
           child: Stack(
             children: [
               Positioned(

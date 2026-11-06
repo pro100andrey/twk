@@ -135,7 +135,10 @@ Stream<TailEvent> tailFile(
 }) {
   final file = File(path);
   final name = file.uri.pathSegments.last;
-  final machine = FollowMachine(tellsIdentity: knowsFileIdentity);
+  final machine = FollowMachine(
+    tellsIdentity: knowsFileIdentity,
+    eventsTell: !Platform.isMacOS,
+  );
   StreamSubscription<FileSystemEvent>? watch;
   Timer? timer;
   var reading = false;

@@ -10,7 +10,7 @@ extension on _SampleAppState {
             onEnter: (_) => _bump(),
             cursor: PointerShape.pointer,
             child: Listener(
-              onDown: (event) => _count.value += event.button,
+              onPointerDown: (event) => _count.value += event.button,
               behavior: HitTestBehavior.opaque,
               child: const Box(
                 style: Style(bg: Color.indexed(236)),
@@ -24,9 +24,9 @@ extension on _SampleAppState {
           IgnorePointer(
             ignoring: false,
             child: GestureDetector(
-              onTap: (_) => _bump(),
-              onDoubleTap: (event) => _count.value += event.button,
-              onDragUpdate: (drag) => _count.value += drag.dx,
+              onTap: _bump,
+              onDoubleTap: () => _count.value += 1,
+              onPanUpdate: (drag) => _count.value += drag.delta.dx,
               child: const Text('tap'),
             ),
           ),
@@ -52,8 +52,8 @@ extension on _SampleAppState {
             child: const Text('two '),
           ),
           DragTarget<int>(
-            onWillAccept: (drag) => drag.data > 0,
-            onAccept: (drop) => _count.value += drop.data,
+            onWillAcceptWithDetails: (drag) => drag.data > 0,
+            onAcceptWithDetails: (drop) => _count.value += drop.data,
             builder: (context, candidate, rejected) =>
                 Text(candidate == null ? 'drop' : 'drop $candidate'),
           ),

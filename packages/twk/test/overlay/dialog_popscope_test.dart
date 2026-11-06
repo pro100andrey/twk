@@ -45,8 +45,8 @@ final class Home extends StatelessWidget {
   Widget build(BuildContext context) => KeyBindings({
     'd': () => unawaited(
       showDialog<String>(
-        context,
-        (context) => ListenableBuilder(
+        context: context,
+        builder: (context) => ListenableBuilder(
           listenable: canPop,
           builder: (context, _) => PopScope<String>(
             canPop: canPop.value,

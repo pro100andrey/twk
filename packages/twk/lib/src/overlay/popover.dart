@@ -304,7 +304,7 @@ final class _PopoverState extends State<Popover>
       this,
       child: Listener(
         behavior: HitTestBehavior.translucent,
-        onDown: _pressed,
+        onPointerDown: _pressed,
         child: AnchorFollower(
           link: _link,
           matchTargetWidth: widget.matchAnchorWidth,

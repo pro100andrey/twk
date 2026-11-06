@@ -253,7 +253,7 @@ final class OverlayEntry {
   });
 
   /// Builds the widget of the entry, a [Positioned] to place it.
-  final Widget Function(BuildContext context) builder;
+  final WidgetBuilder builder;
 
   /// How long it takes to fade in once inserted; zero for at once.
   final Duration fadeIn;

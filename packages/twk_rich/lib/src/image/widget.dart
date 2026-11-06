@@ -402,15 +402,15 @@ final class RenderImage extends RenderObject {
   /// The box within [c]: [boxWidth] and [boxHeight] where given, the rest
   /// by the image's aspect, starting from the cells its pixels take.
   (int, int) _sizeFor(BoxConstraints c) {
-    var minW = c.minW;
-    var maxW = c.maxW;
-    var minH = c.minH;
-    var maxH = c.maxH;
+    var minW = c.minWidth;
+    var maxW = c.maxWidth;
+    var minH = c.minHeight;
+    var maxH = c.maxHeight;
     if (_boxWidth case final w?) {
-      minW = maxW = c.constrainW(w);
+      minW = maxW = c.constrainWidth(w);
     }
     if (_boxHeight case final h?) {
-      minH = maxH = c.constrainH(h);
+      minH = maxH = c.constrainHeight(h);
     }
     if (minW >= maxW && minH >= maxH) {
       return (minW, minH);

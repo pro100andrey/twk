@@ -43,7 +43,7 @@ Widget build(BuildContext context) {
     padding: const .all(1),
     child: Column(
       crossAxisAlignment: .start,
-      gap: 1,
+      spacing: 1,
       children: [
         Text.rich([
           Span('chosen: ', Theme.of(context).muted),
@@ -53,7 +53,7 @@ Widget build(BuildContext context) {
           },
         ]),
         Row(
-          gap: 2,
+          spacing: 2,
           children: [
             Checkbox(
               value: _wrap,

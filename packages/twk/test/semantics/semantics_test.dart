@@ -25,21 +25,22 @@ void main() {
         SemanticsNode(
           role: SemanticsRole.checkbox,
           label: 'Remember me',
-          state: SemanticsState(checked: true),
+          checked: true,
         ),
         SemanticsNode(
           role: SemanticsRole.checkbox,
           label: 'Spam me',
-          state: SemanticsState(checked: false, disabled: true),
+          checked: false,
+          enabled: false,
         ),
         SemanticsNode(
           role: SemanticsRole.toggle,
           label: 'Wi-Fi',
-          state: SemanticsState(checked: true),
+          checked: true,
         ),
         SemanticsNode(
           role: SemanticsRole.toggle,
-          state: SemanticsState(checked: false),
+          checked: false,
         ),
         SemanticsNode(
           role: SemanticsRole.textBox,
@@ -50,17 +51,17 @@ void main() {
         SemanticsNode(
           role: SemanticsRole.tab,
           label: 'Files',
-          state: SemanticsState(selected: true),
+          selected: true,
         ),
         SemanticsNode(
           role: SemanticsRole.menuItem,
           label: 'Recent',
-          state: SemanticsState(expanded: false),
+          expanded: false,
         ),
         SemanticsNode(
           role: SemanticsRole.menuItem,
           label: 'Open',
-          state: SemanticsState(expanded: true),
+          expanded: true,
         ),
         SemanticsNode(label: 'just text'),
         SemanticsNode(value: '3 left'),
@@ -89,7 +90,7 @@ void main() {
         const SemanticsNode(
           role: SemanticsRole.button,
           label: 'Save',
-          state: SemanticsState(disabled: true),
+          enabled: false,
           hint: 'Writes the file',
         ).line,
         'button Save, disabled, Writes the file',
@@ -170,29 +171,34 @@ void main() {
     expect(const SemanticsNode(label: 'none').focusedLine, isNull);
   });
 
-  test('states of equal fields are equal and hash alike', () {
-    // made at run time, not the same constant
-    final checked = SemanticsState(checked: [true].single);
-    expect(checked, const SemanticsState(checked: true));
-    expect(checked.hashCode, const SemanticsState(checked: true).hashCode);
-    const others = [
-      SemanticsState(checked: false),
-      SemanticsState(selected: true),
-      SemanticsState(expanded: true),
-      SemanticsState(disabled: true),
-      SemanticsState(),
-    ];
-    for (final (i, a) in others.indexed) {
-      expect(a, isNot(checked), reason: '$i');
-      for (final b in others.skip(i + 1)) {
-        expect(a, isNot(b), reason: '$i');
-      }
-    }
-    expect({
-      checked,
-      const SemanticsState(checked: true),
-      ...others,
-    }, hasLength(6));
+  testTwk("enabled has Flutter's sense: false reads disabled, true and null "
+      'nothing, where the state said disabled: true; a Semantics needs no '
+      'child', (t) async {
+    await t.pumpWidget(
+      column([
+        const Semantics(
+          role: SemanticsRole.button,
+          label: 'Off',
+          enabled: false,
+        ),
+        const Semantics(role: SemanticsRole.button, label: 'On', enabled: true),
+        const Semantics(role: SemanticsRole.button, label: 'None'),
+        const Semantics(
+          role: SemanticsRole.checkbox,
+          label: 'Box',
+          checked: false,
+          selected: true,
+          expanded: false,
+          enabled: false,
+        ),
+      ]),
+    );
+    expect(SemanticsNode.of(t.element(find.byType(Column))).lines, [
+      'button Off, disabled',
+      'button On',
+      'button None',
+      'checkbox Box, not checked, selected, collapsed, disabled',
+    ]);
   });
 
   testTwk('a Semantics is described by what it gives, an ExcludeSemantics '
@@ -206,7 +212,7 @@ void main() {
           key: semantics,
           role: SemanticsRole.toggle,
           label: 'Wi-Fi',
-          state: const SemanticsState(checked: true),
+          checked: true,
           hint: 'Turns it on',
           nodes: const [SemanticsNode(label: 'on')],
           child: const Text('x'),
@@ -293,37 +299,52 @@ void main() {
       ]);
     });
 
-    testTwk('leaves out what was read before a BlockSemantics in the node '
-        'it is in, and what is not laid out: a page of a TabView not shown', (
-      t,
-    ) async {
-      final tabs = TabController(length: 2);
-      addTearDown(tabs.dispose);
-      await t.pumpWidget(
-        column([
-          const Text('above'),
-          Semantics(
-            role: SemanticsRole.list,
-            child: column([
-              const Text('covered'),
-              const BlockSemantics(child: Text('barrier')),
-              const Text('over it'),
-            ]),
-          ),
-          SizedBox(
-            height: 1,
-            child: TabView(
-              controller: tabs,
-              children: const [Text('first page'), Text('second page')],
-            ),
-          ),
-        ]),
-      );
-      expect(read(t), ['above', 'list', 'barrier', 'over it', 'first page']);
-      tabs.index = 1;
-      await t.pump();
-      expect(read(t), ['above', 'list', 'barrier', 'over it', 'second page']);
+    testTwk('a BlockSemantics that is not blocking leaves out nothing, and '
+        'blocks again when it is', (t) async {
+      Widget tree({required bool blocking}) => column([
+        const Text('covered'),
+        BlockSemantics(blocking: blocking, child: const Text('barrier')),
+      ]);
+      await t.pumpWidget(tree(blocking: false));
+      expect(read(t), ['covered', 'barrier']);
+      await t.pumpWidget(tree(blocking: true));
+      expect(read(t), ['barrier']);
     });
+
+    testTwk(
+      'leaves out what was read before a BlockSemantics in the node '
+      'it is in, and what is not laid out: a page of a TabBarView not shown',
+      (
+        t,
+      ) async {
+        final tabs = TabController(length: 2);
+        addTearDown(tabs.dispose);
+        await t.pumpWidget(
+          column([
+            const Text('above'),
+            Semantics(
+              role: SemanticsRole.list,
+              child: column([
+                const Text('covered'),
+                const BlockSemantics(child: Text('barrier')),
+                const Text('over it'),
+              ]),
+            ),
+            SizedBox(
+              height: 1,
+              child: TabBarView(
+                controller: tabs,
+                children: const [Text('first page'), Text('second page')],
+              ),
+            ),
+          ]),
+        );
+        expect(read(t), ['above', 'list', 'barrier', 'over it', 'first page']);
+        tabs.index = 1;
+        await t.pump();
+        expect(read(t), ['above', 'list', 'barrier', 'over it', 'second page']);
+      },
+    );
 
     testTwk('leaves out what is below an ExcludeSemantics, its Semantics and '
         'its texts, a label of the texts too; reads it while not excluding, '
@@ -385,7 +406,7 @@ void main() {
             SemanticsNode(
               role: SemanticsRole.tab,
               label: 'Two',
-              state: SemanticsState(selected: true),
+              selected: true,
             ),
           ],
           child: Text('One  Two'),
@@ -574,8 +595,8 @@ void main() {
             onChanged: (_) {},
             autofocus: true,
           ),
-          const Link('https://dart.dev', text: 'Dart'),
-          const Link('https://pub.dev'),
+          const Hyperlink('https://dart.dev', text: 'Dart'),
+          const Hyperlink('https://pub.dev'),
           SizedBox(
             width: 10,
             child: Slider(value: 0.25, onChanged: (_) {}),
@@ -686,8 +707,8 @@ final class _Ask extends StatelessWidget {
       'Ask',
       autofocus: true,
       onPressed: () => showDialog<void>(
-        context,
-        (_) => column([
+        context: context,
+        builder: (_) => column([
           const Text('Sure?'),
           Button('Yes', autofocus: true, onPressed: () {}),
         ]),

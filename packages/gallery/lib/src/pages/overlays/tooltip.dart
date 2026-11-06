@@ -57,11 +57,11 @@ final _tooltipPage = GalleryPage(
     'Widget build(BuildContext context) => Column(',
     '  mainAxisSize: .min,',
     '  crossAxisAlignment: .start,',
-    '  gap: 1,',
+    '  spacing: 1,',
     '  children: [',
     '    Row(',
     '      mainAxisSize: .min,',
-    '      gap: 2,',
+    '      spacing: 2,',
     '      children: [',
     '        for (final (label, message, done) in const [',
     for (final (label, message, done) in _tips)
@@ -78,8 +78,8 @@ final _tooltipPage = GalleryPage(
     '            child: Button(',
     '              label,',
     '              onPressed: () => showToast(',
-    '                context,',
-    '                done,',
+    '                context: context,',
+    '                message: done,',
     '                style: Theme.of(context).success,',
     '              ),',
     '            ),',
@@ -138,11 +138,11 @@ final class _TipsState extends State<_Tips> {
   Widget build(BuildContext context) => Column(
     mainAxisSize: MainAxisSize.min,
     crossAxisAlignment: CrossAxisAlignment.start,
-    gap: 1,
+    spacing: 1,
     children: [
       Row(
         mainAxisSize: MainAxisSize.min,
-        gap: 2,
+        spacing: 2,
         children: [
           for (final (label, message, done) in _tips)
             Tooltip(
@@ -155,8 +155,8 @@ final class _TipsState extends State<_Tips> {
               child: Button(
                 label,
                 onPressed: () => showToast(
-                  context,
-                  done,
+                  context: context,
+                  message: done,
                   style: Theme.of(context).success,
                 ),
               ),

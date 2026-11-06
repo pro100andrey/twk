@@ -141,12 +141,15 @@ final class _FieldMouseState extends State<FieldMouse> {
     );
   }
 
-  void _drag(DragDetails details) {
+  void _drag(DragUpdateDetails details) {
     final anchor = _anchor;
     if (anchor == null) {
       return;
     }
-    final offset = widget.offsetAt(details.x, details.y);
+    final offset = widget.offsetAt(
+      details.localPosition.dx,
+      details.localPosition.dy,
+    );
     if (offset == null) {
       return;
     }
@@ -175,11 +178,11 @@ final class _FieldMouseState extends State<FieldMouse> {
     return MouseRegion(
       cursor: listens ? PointerShape.text : null,
       child: Listener(
-        onDown: listens ? _down : null,
-        onUp: listens ? _up : null,
+        onPointerDown: listens ? _down : null,
+        onPointerUp: listens ? _up : null,
         behavior: HitTestBehavior.opaque,
         child: GestureDetector(
-          onDragUpdate: listens ? _drag : null,
+          onPanUpdate: listens ? _drag : null,
           behavior: HitTestBehavior.opaque,
           child: widget.child,
         ),

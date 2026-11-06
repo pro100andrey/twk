@@ -216,7 +216,7 @@ void axisTests() {
   });
 
   testTwk("onScroll: the border's own line while the thumb is hidden, the "
-      'thumb from a move until hideAfter after it', (t) async {
+      'thumb from a move until timeToFade after it', (t) async {
     final controller = ScrollController();
     addTearDown(controller.dispose);
     await t.pumpWidget(

@@ -63,7 +63,7 @@ final _filepickerPage = GalleryPage(
       '    child: Column(',
       '      mainAxisSize: .min,',
       '      crossAxisAlignment: .stretch,',
-      '      gap: 1,',
+      '      spacing: 1,',
       '      children: [',
       '        SizedBox(',
       '          height: 8,',
@@ -78,7 +78,7 @@ final _filepickerPage = GalleryPage(
       '        ),',
       '        Row(',
       '          crossAxisAlignment: .start,',
-      '          gap: 2,',
+      '          spacing: 2,',
       '          children: [',
       '            Button(',
       "              'In a dialog',",
@@ -211,7 +211,7 @@ final class _FilesState extends State<_Files> with KeptState {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        gap: 1,
+        spacing: 1,
         children: [
           SizedBox(
             height: 8,
@@ -229,7 +229,7 @@ final class _FilesState extends State<_Files> with KeptState {
           ),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
-            gap: 2,
+            spacing: 2,
             children: [
               Button(
                 'In a dialog',

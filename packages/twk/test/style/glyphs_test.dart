@@ -474,9 +474,9 @@ void main() {
       Widget tasks() => const TaskList(
         tasks: [
           TaskItem('p'),
-          TaskItem('d', status: TaskStatus.done),
-          TaskItem('f', status: TaskStatus.failed),
-          TaskItem('s', status: TaskStatus.skipped),
+          TaskItem('d', status: TaskItemStatus.done),
+          TaskItem('f', status: TaskItemStatus.failed),
+          TaskItem('s', status: TaskItemStatus.skipped),
         ],
         showElapsed: false,
       );
@@ -773,13 +773,13 @@ void main() {
               builder: (context) => KeyBindings({
                 's': () {
                   showToast(
-                    context,
-                    'Saved',
+                    context: context,
+                    message: 'Saved',
                     style: data.success,
                   );
                   showToast(
-                    context,
-                    'Warn',
+                    context: context,
+                    message: 'Warn',
                     style: data.warning,
                   );
                 },

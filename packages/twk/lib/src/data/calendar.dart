@@ -468,8 +468,8 @@ final class _CalendarState extends State<Calendar> {
         child: GestureDetector(
           tapAt: (x, y) => _dateAt(x, y) != null,
           // one that takes no focus has the terminal report no mouse
-          onTap: widget.canRequestFocus ?? node.canRequestFocus
-              ? _tapped
+          onTapUp: widget.canRequestFocus ?? node.canRequestFocus
+              ? (tap) => _tapped(tap.event)
               : null,
           child: ListenableBuilder(
             listenable: controller,
@@ -812,8 +812,8 @@ final class RenderCalendar extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.constrainW(_left + 20);
-    height = c.constrainH(_top + 6);
+    width = c.constrainWidth(_left + 20);
+    height = c.constrainHeight(_top + 6);
   }
 
   /// The first day of the month shown, its length, and the first day of

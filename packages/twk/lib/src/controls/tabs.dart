@@ -1,5 +1,5 @@
 /// Tabs: a [TabBar] of their labels, which the keys and the mouse switch
-/// and which scrolls when they do not fit, and a [TabView] that shows the
+/// and which scrolls when they do not fit, and a [TabBarView] that shows the
 /// selected one's content and keeps the others with their state; the
 /// [TabController] they share.
 library;
@@ -30,7 +30,7 @@ import '../style/style.dart';
 import '../text/label_painter.dart';
 
 /// Holds which of [length] tabs is selected: [index], which a [TabBar]
-/// sets and a [TabView] shows.
+/// sets and a [TabBarView] shows.
 ///
 /// It notifies its listeners of each change. A bar and a view that share
 /// one, the second tab selected at first:
@@ -41,7 +41,7 @@ import '../text/label_painter.dart';
 ///   children: [
 ///     TabBar(controller: tabs, tabs: const ['Files', 'Search', 'Git']),
 ///     Expanded(
-///       child: TabView(
+///       child: TabBarView(
 ///         controller: tabs,
 ///         children: const [Text('files'), Text('search'), Text('git')],
 ///       ),
@@ -134,7 +134,7 @@ final class TabController extends ChangeNotifier {
 ///       autofocus: true,
 ///     ),
 ///     Expanded(
-///       child: TabView(
+///       child: TabBarView(
 ///         controller: tabs,
 ///         children: const [Text('1'), Text('2'), Text('3')],
 ///       ),
@@ -145,7 +145,7 @@ final class TabController extends ChangeNotifier {
 ///
 /// See also:
 ///
-///  * [TabView], which shows the content of the selected tab.
+///  * [TabBarView], which shows the content of the selected tab.
 ///  * [TabController], which they share.
 final class TabBar extends StatefulWidget {
   /// A tab bar of [tabs], marked in the theme's primary color.
@@ -349,7 +349,7 @@ final class _TabBarState extends State<TabBar> {
           // a tab and the arrows that scroll to the next
           child: GestureDetector(
             tapAt: (x, _) => _tapsAt(x),
-            onTapDown: _down,
+            onTapDown: (tap) => _down(tap.event),
             child: _Strip(
               key: _strip,
               tabs: widget.tabs,
@@ -372,7 +372,7 @@ final class _TabBarState extends State<TabBar> {
           SemanticsNode(
             role: SemanticsRole.tab,
             label: label,
-            state: SemanticsState(selected: i == marked),
+            selected: i == marked,
             focused: focused && i == marked,
           ),
       ],
@@ -517,8 +517,8 @@ final class _RenderTabBar extends RenderObject {
   @override
   void performLayout(BoxConstraints c) {
     final total = _measure().last;
-    width = c.constrainW(total);
-    height = c.constrainH(1);
+    width = c.constrainWidth(total);
+    height = c.constrainHeight(1);
     if (_reveal) {
       _reveal = false;
       _show(_selected);
@@ -676,16 +676,20 @@ final class _RenderTabBar extends RenderObject {
 ///
 /// ```dart
 /// final tabs = TabController(length: 2);
-/// final pages = TabView(
+/// final pages = TabBarView(
 ///   controller: tabs,
 ///   children: const [Text('General'), Text('Advanced')],
 /// );
 /// ```
 ///
 /// See [TabController] for one under a [TabBar].
-final class TabView extends StatefulWidget {
+final class TabBarView extends StatefulWidget {
   /// A view of the [children] of the [controller]'s tabs.
-  const TabView({required this.controller, required this.children, super.key});
+  const TabBarView({
+    required this.controller,
+    required this.children,
+    super.key,
+  });
 
   /// The tabs and the selected one.
   final TabController controller;
@@ -695,10 +699,10 @@ final class TabView extends StatefulWidget {
   final List<Widget> children;
 
   @override
-  State<TabView> createState() => _TabViewState();
+  State<TabBarView> createState() => _TabBarViewState();
 }
 
-final class _TabViewState extends State<TabView> {
+final class _TabBarViewState extends State<TabBarView> {
   // the tab of each child, in order
   var _tabs = const <_Tab>[];
 
@@ -714,7 +718,7 @@ final class _TabViewState extends State<TabView> {
   }
 
   @override
-  void didUpdateWidget(TabView oldWidget) {
+  void didUpdateWidget(TabBarView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!identical(widget.controller, oldWidget.controller)) {
       oldWidget.controller.removeListener(_changed);
@@ -741,7 +745,7 @@ final class _TabViewState extends State<TabView> {
     ];
     assert(
       {for (final tab in _tabs) tab.id}.length == _tabs.length,
-      'two children of a TabView share a key',
+      'two children of a TabBarView share a key',
     );
     _show(_target);
   }
@@ -818,7 +822,7 @@ final class _TabViewState extends State<TabView> {
   }
 }
 
-/// A child of a [TabView]: what tells it apart, the node above it, which
+/// A child of a [TabBarView]: what tells it apart, the node above it, which
 /// keeps the focus from it while it is hidden, and the node below that
 /// had the focus when another child was shown.
 final class _Tab {
@@ -835,7 +839,7 @@ final class _Tab {
   FocusNode? last;
 }
 
-/// A child of a [TabView] under the node of its tab, which it disposes as
+/// A child of a [TabBarView] under the node of its tab, which it disposes as
 /// it goes: at the end of the build, once what moved out from under it,
 /// by a [GlobalKey], is attached elsewhere.
 final class _Page extends StatefulWidget {
@@ -860,7 +864,7 @@ final class _PageState extends State<_Page> {
       Focus(focusNode: widget.node, child: widget.child);
 }
 
-/// The children of a [TabView], the one at [shown] laid out and painted.
+/// The children of a [TabBarView], the one at [shown] laid out and painted.
 final class _Pages extends MultiChildRenderObjectWidget {
   const _Pages({required this.shown, super.children});
 
@@ -879,7 +883,7 @@ final class _Pages extends MultiChildRenderObjectWidget {
 
 final class _PageData extends ParentData with ContainerParentDataMixin {}
 
-/// What a [TabView] lays out and paints: the child at [shown]. The others
+/// What a [TabBarView] lays out and paints: the child at [shown]. The others
 /// are detached from the pipeline, so that what changes in them is not
 /// laid out or painted, nor marks this object; laid out last within tight
 /// constraints, each is a relayout boundary, where a mark inside it stops.
@@ -979,22 +983,22 @@ final class _RenderPages extends RenderObject
       }
     }
     const unbounded = BoxConstraints.unbounded;
-    final wide = c.maxW < unbounded;
-    final tall = c.maxH < unbounded;
+    final wide = c.maxWidth < unbounded;
+    final tall = c.maxHeight < unbounded;
     if (shown == null) {
-      width = wide ? c.maxW : c.minW;
-      height = tall ? c.maxH : c.minH;
+      width = wide ? c.maxWidth : c.minWidth;
+      height = tall ? c.maxHeight : c.minHeight;
       return;
     }
     if (wide && tall) {
-      shown.layout(BoxConstraints.tight(c.maxW, c.maxH));
+      shown.layout(BoxConstraints.tight(c.maxWidth, c.maxHeight));
     } else {
       shown.layout(
         BoxConstraints(
-          minW: wide ? c.maxW : c.minW,
-          maxW: c.maxW,
-          minH: tall ? c.maxH : c.minH,
-          maxH: c.maxH,
+          minWidth: wide ? c.maxWidth : c.minWidth,
+          maxWidth: c.maxWidth,
+          minHeight: tall ? c.maxHeight : c.minHeight,
+          maxHeight: c.maxHeight,
         ),
         parentUsesSize: true,
       );
@@ -1002,8 +1006,8 @@ final class _RenderPages extends RenderObject
     shown.parentData
       ..dx = 0
       ..dy = 0;
-    width = c.constrainW(shown.width);
-    height = c.constrainH(shown.height);
+    width = c.constrainWidth(shown.width);
+    height = c.constrainHeight(shown.height);
   }
 
   @override

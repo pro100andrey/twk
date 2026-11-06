@@ -61,7 +61,7 @@ void main() {
           wrap: TextWrap.grapheme,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          align: TextAlign.right,
+          textAlign: TextAlign.right,
         ),
         10,
         3,
@@ -83,7 +83,7 @@ void main() {
           'the quick brown fox jumps',
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          align: TextAlign.right,
+          textAlign: TextAlign.right,
         ),
         10,
         3,
@@ -276,7 +276,7 @@ void main() {
           wrap: TextWrap.none,
           maxLines: 1,
           overflow: TextOverflow.ellipsisStart,
-          align: TextAlign.center,
+          textAlign: TextAlign.center,
         ),
       );
       expect(v.top, same(paragraph));
@@ -455,6 +455,33 @@ void main() {
       );
     });
 
+    test('merge merges onto the one above it, as the plain one does', () {
+      final v = Shot(
+        const DefaultTextStyle(
+          style: Style(fg: red, attrs: Attr.bold),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              DefaultTextStyle.merge(
+                style: Style(bg: blue),
+                child: Text('a'),
+              ),
+              DefaultTextStyle.merge(child: Text('b')),
+            ],
+          ),
+        ),
+        4,
+        2,
+      );
+      expect(
+        [v.cells(0, 1), v.cells(1, 1)],
+        [
+          [('a', red.value, blue.value, Attr.bold)],
+          [('b', red.value, 0, Attr.bold)],
+        ],
+      );
+    });
+
     test('a new one repaints the Texts below it in its style', () {
       final v = Shot(
         Toggle(
@@ -504,11 +531,11 @@ final class _RenderCounted extends RenderObject
   void performLayout(BoxConstraints c) {
     layouts++;
     child!.layout(
-      BoxConstraints(maxW: c.maxW, maxH: c.maxH),
+      BoxConstraints(maxWidth: c.maxWidth, maxHeight: c.maxHeight),
       parentUsesSize: true,
     );
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
   }
 
   @override

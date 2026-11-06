@@ -1,7 +1,8 @@
 part of 'render.dart';
 
 /// The sizes a parent lets a child take in [RenderObject.layout]: a width
-/// from [minW] to [maxW] and a height from [minH] to [maxH], in cells.
+/// from [minWidth] to [maxWidth] and a height from [minHeight] to
+/// [maxHeight], in cells.
 ///
 /// Constraints go down the tree and sizes come up, as in Flutter: a parent
 /// lays each child out within constraints, the child sets its
@@ -11,9 +12,10 @@ part of 'render.dart';
 /// one size, which makes it a relayout boundary.
 ///
 /// ```dart
-/// const c = BoxConstraints(maxW: 40, minH: 1, maxH: 10);
-/// assert(c.constrainW(60) == 40 && c.constrainH(0) == 1);
+/// const c = BoxConstraints(maxWidth: 40, minHeight: 1, maxHeight: 10);
+/// assert(c.constrainWidth(60) == 40 && c.constrainHeight(0) == 1);
 /// assert(const BoxConstraints.tight(80, 24).isTight);
+/// assert(c.loosen() == const BoxConstraints.loose(40, 10));
 /// ```
 ///
 /// See also:
@@ -21,64 +23,181 @@ part of 'render.dart';
 ///  * [RenderConstrainedBox], which lays its child out within constraints
 ///    of its own.
 final class BoxConstraints {
-  /// Constraints from [minW] to [maxW] wide and from [minH] to [maxH]
-  /// tall, each minimum at most its maximum; a bound left out limits
-  /// nothing, as in Flutter.
+  /// Constraints from [minWidth] to [maxWidth] wide and from [minHeight] to
+  /// [maxHeight] tall, each minimum at most its maximum; a bound left out
+  /// limits nothing, as in Flutter.
   const BoxConstraints({
-    this.minW = 0,
-    this.maxW = unbounded,
-    this.minH = 0,
-    this.maxH = unbounded,
-  }) : assert(minW <= maxW && minH <= maxH, 'each minimum at most its maximum');
+    this.minWidth = 0,
+    this.maxWidth = unbounded,
+    this.minHeight = 0,
+    this.maxHeight = unbounded,
+  }) : assert(
+         minWidth <= maxWidth && minHeight <= maxHeight,
+         'each minimum at most its maximum',
+       );
 
   /// Exactly [w] wide and [h] tall.
   const BoxConstraints.tight(int w, int h)
-    : this(minW: w, maxW: w, minH: h, maxH: h);
+    : this(minWidth: w, maxWidth: w, minHeight: h, maxHeight: h);
 
   /// Exactly [width] wide and [height] tall where given, any size along an
   /// axis left out.
   const BoxConstraints.tightFor({int? width, int? height})
-    : minW = width ?? 0,
-      maxW = width ?? unbounded,
-      minH = height ?? 0,
-      maxH = height ?? unbounded;
+    : minWidth = width ?? 0,
+      maxWidth = width ?? unbounded,
+      minHeight = height ?? 0,
+      maxHeight = height ?? unbounded;
+
+  /// At most [w] wide and [h] tall, any size down to nothing.
+  const BoxConstraints.loose(int w, int h) : this(maxWidth: w, maxHeight: h);
+
+  /// As big as these allow along each axis: [width] and [height] exactly
+  /// where given, the biggest the parent allows ([unbounded] as a minimum,
+  /// which the parent's constraints bring down to its maximum) where left
+  /// out.
+  const BoxConstraints.expand({int? width, int? height})
+    : minWidth = width ?? unbounded,
+      maxWidth = width ?? unbounded,
+      minHeight = height ?? unbounded,
+      maxHeight = height ?? unbounded;
 
   /// An extent no screen reaches: a limit that limits nothing, as Flutter's
   /// infinity does.
   static const int unbounded = 1 << 30;
 
   /// The fewest columns the child may be wide.
-  final int minW;
+  final int minWidth;
 
   /// The most columns the child may be wide; [unbounded] for any number.
-  final int maxW;
+  final int maxWidth;
 
   /// The fewest rows the child may be tall.
-  final int minH;
+  final int minHeight;
 
   /// The most rows the child may be tall; [unbounded] for any number.
-  final int maxH;
+  final int maxHeight;
 
-  /// The width nearest to [w] these constraints allow: [w] held between
-  /// [minW] and [maxW].
-  int constrainW(int w) => w < minW ? minW : (w > maxW ? maxW : w);
+  /// The width nearest to [width] these constraints allow: [width] held
+  /// between [minWidth] and [maxWidth].
+  int constrainWidth(int width) =>
+      width < minWidth ? minWidth : (width > maxWidth ? maxWidth : width);
 
-  /// The height nearest to [h] these constraints allow: [h] held between
-  /// [minH] and [maxH].
-  int constrainH(int h) => h < minH ? minH : (h > maxH ? maxH : h);
+  /// The height nearest to [height] these constraints allow: [height] held
+  /// between [minHeight] and [maxHeight].
+  int constrainHeight(int height) => height < minHeight
+      ? minHeight
+      : (height > maxHeight ? maxHeight : height);
 
   /// Only one size fits.
-  bool get isTight => minW >= maxW && minH >= maxH;
+  bool get isTight => minWidth >= maxWidth && minHeight >= maxHeight;
+
+  /// Only one width fits.
+  bool get hasTightWidth => minWidth >= maxWidth;
+
+  /// Only one height fits.
+  bool get hasTightHeight => minHeight >= maxHeight;
+
+  /// The width has a limit: [maxWidth] is less than [unbounded].
+  bool get hasBoundedWidth => maxWidth < unbounded;
+
+  /// The height has a limit: [maxHeight] is less than [unbounded].
+  bool get hasBoundedHeight => maxHeight < unbounded;
+
+  /// No width fits but [unbounded] ones: [minWidth] is [unbounded].
+  bool get hasInfiniteWidth => minWidth >= unbounded;
+
+  /// No height fits but [unbounded] ones: [minHeight] is [unbounded].
+  bool get hasInfiniteHeight => minHeight >= unbounded;
+
+  /// The largest size these allow: [maxWidth] by [maxHeight].
+  ({int width, int height}) get biggest =>
+      (width: constrainWidth(unbounded), height: constrainHeight(unbounded));
+
+  /// The smallest size these allow: [minWidth] by [minHeight].
+  ({int width, int height}) get smallest =>
+      (width: constrainWidth(0), height: constrainHeight(0));
+
+  /// These with the bounds given in place of the ones they have.
+  BoxConstraints copyWith({
+    int? minWidth,
+    int? maxWidth,
+    int? minHeight,
+    int? maxHeight,
+  }) => BoxConstraints(
+    minWidth: minWidth ?? this.minWidth,
+    maxWidth: maxWidth ?? this.maxWidth,
+    minHeight: minHeight ?? this.minHeight,
+    maxHeight: maxHeight ?? this.maxHeight,
+  );
+
+  /// These with [insets] taken off: the room left inside them. The
+  /// minimums and the maximums shrink by the insets, none below 0, and a
+  /// bound that is [unbounded] stays so, a minimum too (an infinite one
+  /// minus a finite is infinite, as in Flutter).
+  BoxConstraints deflate(EdgeInsets insets) {
+    final h = insets.horizontal;
+    final v = insets.vertical;
+    final minW = hasInfiniteWidth
+        ? unbounded
+        : (minWidth > h ? minWidth - h : 0);
+    final minH = hasInfiniteHeight
+        ? unbounded
+        : (minHeight > v ? minHeight - v : 0);
+    return BoxConstraints(
+      minWidth: minW,
+      maxWidth: hasBoundedWidth
+          ? (maxWidth - h > minW ? maxWidth - h : minW)
+          : unbounded,
+      minHeight: minH,
+      maxHeight: hasBoundedHeight
+          ? (maxHeight - v > minH ? maxHeight - v : minH)
+          : unbounded,
+    );
+  }
+
+  /// These with no minimum: any size down to nothing, up to the same
+  /// maximum.
+  BoxConstraints loosen() => BoxConstraints(
+    maxWidth: maxWidth,
+    maxHeight: maxHeight,
+  );
+
+  /// These held within [constraints]: each bound brought between the
+  /// minimum and the maximum of the same axis there.
+  BoxConstraints enforce(BoxConstraints constraints) => BoxConstraints(
+    minWidth: constraints.constrainWidth(minWidth),
+    maxWidth: constraints.constrainWidth(maxWidth),
+    minHeight: constraints.constrainHeight(minHeight),
+    maxHeight: constraints.constrainHeight(maxHeight),
+  );
+
+  /// These with [width] and [height] made the only size that fits along
+  /// their axes, held within the bounds these have; an axis left out stays
+  /// as it is.
+  BoxConstraints tighten({int? width, int? height}) => BoxConstraints(
+    minWidth: width == null ? minWidth : constrainWidth(width),
+    maxWidth: width == null ? maxWidth : constrainWidth(width),
+    minHeight: height == null ? minHeight : constrainHeight(height),
+    maxHeight: height == null ? maxHeight : constrainHeight(height),
+  );
+
+  /// The widths of these, any height.
+  BoxConstraints widthConstraints() =>
+      BoxConstraints(minWidth: minWidth, maxWidth: maxWidth);
+
+  /// The heights of these, any width.
+  BoxConstraints heightConstraints() =>
+      BoxConstraints(minHeight: minHeight, maxHeight: maxHeight);
 
   @override
   bool operator ==(Object other) =>
       other is BoxConstraints &&
-      other.minW == minW &&
-      other.maxW == maxW &&
-      other.minH == minH &&
-      other.maxH == maxH;
+      other.minWidth == minWidth &&
+      other.maxWidth == maxWidth &&
+      other.minHeight == minHeight &&
+      other.maxHeight == maxHeight;
   @override
-  int get hashCode => Object.hash(minW, maxW, minH, maxH);
+  int get hashCode => Object.hash(minWidth, maxWidth, minHeight, maxHeight);
 }
 
 /// What a frame paints with: the canvas a [RenderObject.paint] draws on,
@@ -511,8 +630,8 @@ final class HitTestResult {
 ///
 ///   @override
 ///   void performLayout(BoxConstraints c) {
-///     width = c.constrainW(_label.length);
-///     height = c.constrainH(1);
+///     width = c.constrainWidth(_label.length);
+///     height = c.constrainHeight(1);
 ///   }
 ///
 ///   @override
@@ -1254,8 +1373,8 @@ abstract class RenderObject {
   void _layoutFailed(BoxConstraints c, Object error, StackTrace stack) {
     final message = '$error';
     _errorShown = _shownUntilLayout;
-    width = c.constrainW(_messageWidth(this, message));
-    height = c.constrainH(_messageLines(this, message, width).length);
+    width = c.constrainWidth(_messageWidth(this, message));
+    height = c.constrainHeight(_messageLines(this, message, width).length);
     _failed(message, RenderPhase.layout, error, stack);
   }
 

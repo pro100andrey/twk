@@ -98,12 +98,12 @@ void main() {
     final save = SaveAction();
     await t.pumpWidget(
       Actions(
-        {Save: save},
+        actions: {Save: save},
         child: const KeyBindings(
           {'q': nothing, 'ctrl+s': nothing, 'x': nothing},
           hints: {'q': 'quit', 'ctrl+s': 'save all'},
           child: Shortcuts(
-            {'ctrl+s': Save(), 'enter': Open()},
+            shortcuts: {'ctrl+s': Save(), 'enter': Open()},
             hints: {'ctrl+s': 'save', 'enter': 'open'},
             child: KeyBindings(
               {'x': nothing, 'q': null, 'up': nothing},
@@ -124,11 +124,11 @@ void main() {
     final save = SaveAction();
     await t.pumpWidget(
       Actions(
-        {Save: save},
+        actions: {Save: save},
         child: const KeyBindings(
           {'q': quit, 'ctrl+s': nothing},
           child: Shortcuts(
-            {'ctrl+s': Save()},
+            shortcuts: {'ctrl+s': Save()},
             hints: {'ctrl+s': 'save'},
             child: KeyBindings(
               {'x': cut, 'q': null},
@@ -256,9 +256,9 @@ void main() {
       Host(
         key: host,
         (step) => Actions(
-          step == 4 ? {Save: save} : const {},
+          actions: step == 4 ? {Save: save} : const {},
           child: Shortcuts(
-            const {'ctrl+s': Save()},
+            shortcuts: const {'ctrl+s': Save()},
             child: Row(
               children: [
                 KeyBindings(
@@ -303,15 +303,15 @@ void main() {
       'for a key bound to another intent', (t) async {
     final actions = <Type, Action<Intent>>{
       Save: SaveAction(),
-      Open: CallbackAction<Open>(onInvoke: (_) {}),
+      Open: CallbackAction<Open>(onInvoke: (_) => null),
     };
     await t.pumpWidget(
       Host(
         key: host,
         (step) => Actions(
-          actions,
+          actions: actions,
           child: Shortcuts(
-            {'enter': step == 2 ? const Save() : const Open()},
+            shortcuts: {'enter': step == 2 ? const Save() : const Open()},
             child: KeyBindings(
               {'a': () {}},
               child: const Field('on', autofocus: true),
@@ -379,7 +379,7 @@ void main() {
             child: Text('a'),
           ),
           Shortcuts(
-            {'enter': Open(), 'A': Open()},
+            shortcuts: {'enter': Open(), 'A': Open()},
             // the failure is what is tested
             // ignore: twk_lints/key_names
             hints: {'A': 'all', 'shift+a': 'all'},

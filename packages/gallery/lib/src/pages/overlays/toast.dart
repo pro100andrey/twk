@@ -42,8 +42,8 @@ final _toastPage = GalleryPage(
     "    ('Upload failed.', theme.error),",
     '  ][_n++ % 4];',
     '  showToast(',
-    '    context,',
-    '    message,',
+    '    context: context,',
+    '    message: message,',
     '    alignment: .${o.nameOf(_toastAlignment)},',
     if (o(_toastDuration) != 3000)
       '    duration: const Duration(seconds: ${_seconds(o)}),',
@@ -93,8 +93,8 @@ final class _ToastsState extends State<_Toasts> with KeptState {
       ('Upload failed.', theme.error),
     ][n % 4];
     showToast(
-      context,
-      message,
+      context: context,
+      message: message,
       alignment: alignmentByName[widget.alignment] ?? Alignment.bottomRight,
       duration: Duration(milliseconds: widget.ms),
       style: style,

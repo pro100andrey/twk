@@ -99,7 +99,7 @@ final _jsonView = GalleryPage(
       '  return Column(',
       '    mainAxisSize: .min,',
       '    crossAxisAlignment: .start,',
-      '    gap: 1,',
+      '    spacing: 1,',
       '    children: [',
       '      SizedBox(',
       '        width: $_jsonW,',
@@ -161,7 +161,7 @@ final class _JsonState extends State<_Json> with KeptState {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      gap: 1,
+      spacing: 1,
       children: [
         SizedBox(
           width: _jsonW,

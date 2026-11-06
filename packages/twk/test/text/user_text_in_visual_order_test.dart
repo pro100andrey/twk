@@ -5,6 +5,7 @@
 // month and weekday names and the key labels of a menu's entries. Text('שלום
 // עולם') draws 'םלוע םולש'; a left-to-right text draws as it did.
 import 'package:test/test.dart';
+import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_core/twk_core.dart' show PipelineTextOrder, TextOrder;
 import 'package:twk_test/twk_test.dart';
@@ -57,7 +58,7 @@ void main() {
       top(
         const TaskList(
           showElapsed: false,
-          tasks: [TaskItem(hebrew, status: TaskStatus.done)],
+          tasks: [TaskItem(hebrew, status: TaskItemStatus.done)],
         ),
       ),
       size: (14, 1),

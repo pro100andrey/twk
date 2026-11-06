@@ -4,8 +4,13 @@
 /// On macOS the directory watch tells a write to a file made shortly
 /// before it began as that file's making too (FSEvents keeps the item's
 /// created flag), so a create event there says nothing about whether the
-/// name holds another file; its device and inode do. Elsewhere the watch's
-/// create events are the file's own, and nothing is asked.
+/// name holds another file; its device and inode do. On Linux the event is
+/// true but can come after a look: a longer file renamed over the name would
+/// be read from the old position until it does, so a look asks the inode
+/// there too, beside the event and not in its place: ext4 gives a file
+/// deleted and made again the inode it had. Elsewhere nothing is asked:
+/// Windows refuses a rename over a file open anywhere, and its watch's
+/// events are the file's own.
 library;
 
 import 'dart:convert';
@@ -18,19 +23,26 @@ import 'package:twk_core/libc.dart' as c;
 /// The file a path names: `stat`'s `st_dev` and `st_ino`.
 typedef FileIdentity = ({int device, int inode});
 
-/// Whether [fileIdentity] tells files apart here: on macOS, where libc can
-/// be reached.
+/// Whether [fileIdentity] tells files apart here: on macOS and 64-bit Linux,
+/// where libc has a `stat` of the layout read.
 bool get knowsFileIdentity => _stat != null;
 
 /// The file [path] names now, or null where there is none or
 /// [knowsFileIdentity] is false.
 FileIdentity? fileIdentity(String path) => _stat?.of(path);
 
-final _Stat? _stat = Platform.isMacOS ? _Stat.open() : null;
+final _Stat? _stat = Platform.isMacOS || _linux64 ? _Stat.open() : null;
+
+/// Linux where `struct stat` starts with a 64-bit `st_dev` and `st_ino`.
+final bool _linux64 = const {
+  Abi.linuxX64,
+  Abi.linuxArm64,
+  Abi.linuxRiscv64,
+}.contains(Abi.current());
 
 typedef _StatD = int Function(Pointer<Uint8>, Pointer<Uint8>);
 
-/// macOS's `stat` with 64-bit inodes, the memory it writes into taken from
+/// libc's `stat` with 64-bit inodes, the memory it writes into taken from
 /// the core's libc.
 final class _Stat {
   _Stat._(DynamicLibrary libc, String symbol)
@@ -42,7 +54,8 @@ final class _Stat {
 
   /// libc's, or null where it has none. x86_64 names the `stat` of 64-bit
   /// inodes `stat$INODE64`; arm64 has that one alone, as `stat`: a symbol
-  /// of its own, so looked up here rather than bound by the core.
+  /// of its own, so looked up here rather than bound by the core. A glibc
+  /// before 2.33 exports no `stat`: files are not told apart there.
   static _Stat? open() {
     final libc = DynamicLibrary.process();
     for (final symbol in [r'stat$INODE64', 'stat']) {
@@ -55,7 +68,7 @@ final class _Stat {
 
   final _StatD _call;
 
-  /// The room for `struct stat`, 144 bytes on macOS, with some to spare;
+  /// The room for `struct stat`, 144 bytes at most, with some to spare;
   /// the path follows it, so the struct is at the aligned start.
   static const _room = 256;
 
@@ -72,11 +85,13 @@ final class _Stat {
       if (_call(memory + _room, memory) != 0) {
         return null;
       }
-      // dev_t (32 bits) first, then mode_t and nlink_t (16 bits each), then
-      // the 64-bit ino_t at 8
+      // macOS: dev_t (32 bits), then mode_t and nlink_t (16 bits each);
+      // Linux: dev_t (64 bits). The 64-bit ino_t is at 8 on both
       final bytes = ByteData.sublistView(memory.asTypedList(16));
       return (
-        device: bytes.getInt32(0, Endian.host),
+        device: Platform.isMacOS
+            ? bytes.getInt32(0, Endian.host)
+            : bytes.getUint64(0, Endian.host),
         inode: bytes.getUint64(8, Endian.host),
       );
     } finally {

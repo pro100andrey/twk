@@ -28,11 +28,17 @@ writes only the cells that changed.
 8. [Running an app](guides/running.md): what ends `runApp`, Ctrl+C,
    Ctrl+Z, SIGTERM, and a missing terminal.
 9. [Words in another language](guides/localization.md): `TwkStrings` and
-   `Localizations`, the words twk writes itself, with slang or without.
+   `TwkLocalizations`, the words twk writes itself, with slang or without.
 10. [Coming from Flutter](guides/coming-from-flutter.md): what is the same,
     what is spelled differently and what twk does not have.
 11. [Performance](guides/performance.md): what costs nothing, what to
     narrow, and how to measure.
+12. [Recipes](guides/recipes.md): a dialog, a table, a log, an inline
+    prompt, a future, a timer, and a command-line tool on twk's console.
+13. [Widgets by need](guides/widgets-by-need.md): the widgets by what an app
+    needs, with the options that are easy to miss.
+14. [Details and pitfalls](guides/details.md): how an app runs, what the
+    tester does, the debug aids and the mistakes that bite.
 
 ## Widget catalog
 

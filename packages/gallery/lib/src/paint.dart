@@ -287,11 +287,11 @@ final class RenderCellPaint extends RenderObject {
     final w = _width;
     final h = _height;
     width = w != null
-        ? c.constrainW(w)
-        : (c.maxW < BoxConstraints.unbounded ? c.maxW : c.minW);
+        ? c.constrainWidth(w)
+        : (c.maxWidth < BoxConstraints.unbounded ? c.maxWidth : c.minWidth);
     height = h != null
-        ? c.constrainH(h)
-        : (c.maxH < BoxConstraints.unbounded ? c.maxH : c.minH);
+        ? c.constrainHeight(h)
+        : (c.maxHeight < BoxConstraints.unbounded ? c.maxHeight : c.minHeight);
   }
 
   @override

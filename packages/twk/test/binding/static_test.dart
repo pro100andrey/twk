@@ -6,6 +6,7 @@
 import 'dart:io';
 
 import 'package:test/test.dart';
+import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart' show FakeClock, FakeStderr;
 import 'package:twk_test/vt_terminal.dart';
@@ -264,8 +265,8 @@ final class _RenderWidth extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.minW;
-    height = c.constrainH(1);
+    width = c.minWidth;
+    height = c.constrainHeight(1);
   }
 
   @override

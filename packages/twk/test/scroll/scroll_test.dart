@@ -70,6 +70,25 @@ void main() {
       expect(t.lines, items(0, 5));
     });
 
+    testTwk('padding is empty cells round the child that scroll with it', (
+      t,
+    ) async {
+      final controller = ScrollController();
+      await t.pumpWidget(
+        SingleChildScrollView(
+          controller: controller,
+          padding: const EdgeInsets.fromLTRB(2, 1, 0, 2),
+          child: column(6),
+        ),
+        size: (12, 5),
+      );
+      expect(t.lines, ['', '  item 0', '  item 1', '  item 2', '  item 3']);
+      controller.jumpTo(99);
+      await t.pump();
+      expect(controller.offset, 4);
+      expect(t.lines, ['  item 3', '  item 4', '  item 5', '', '']);
+    });
+
     testTwk('Down and Up scroll it a row, PageDown and PageUp a window, End '
         'and Home to the ends, while it has the focus', (t) async {
       final controller = ScrollController();
@@ -253,7 +272,7 @@ void main() {
 
     testTwk('keeps its offset within its content as the content and the '
         'window change', (t) async {
-      final controller = ScrollController(initialOffset: 100);
+      final controller = ScrollController(initialScrollOffset: 100);
       Widget view(int count) =>
           SingleChildScrollView(controller: controller, child: column(count));
       await t.pumpWidget(view(30), size: (20, 5));
@@ -340,7 +359,7 @@ void main() {
       final heard = <String>[];
       void hear() {
         final p = controller.position;
-        heard.add('${p.offset}/${p.maxOffset}/${p.viewportExtent}');
+        heard.add('${p.pixels}/${p.maxScrollExtent}/${p.viewportDimension}');
       }
 
       controller.addListener(hear);
@@ -359,7 +378,11 @@ void main() {
       expect(heard, ['0/6/4', '3/6/4', '3/4/6']);
       expect(
         controller.position.metrics,
-        const ScrollMetrics(offset: 3, maxOffset: 4, viewportExtent: 6),
+        const ScrollMetrics(
+          pixels: 3,
+          maxScrollExtent: 4,
+          viewportDimension: 6,
+        ),
       );
 
       controller.removeListener(hear);
@@ -501,7 +524,7 @@ void main() {
     expect(t.lines, items(5, 9));
     await t.pumpWidget(app(reverse: true));
     expect(t.lines, items(5, 9).reversed);
-    controller.jumpTo(controller.position.maxOffset);
+    controller.jumpTo(controller.position.maxScrollExtent);
     await t.pumpWidget(app(reverse: false));
     expect(t.lines, items(16, 20), reason: 'the end, at the bottom');
     await t.pumpWidget(app(reverse: true));
@@ -714,9 +737,9 @@ void main() {
             final m = n.metrics;
             heard.add(switch (n) {
               ScrollUpdateNotification(:final scrollDelta) =>
-                'update $scrollDelta to ${m.offset}/${m.maxOffset}',
+                'update $scrollDelta to ${m.pixels}/${m.maxScrollExtent}',
               OverscrollNotification(:final overscroll) =>
-                'over $overscroll at ${m.offset}',
+                'over $overscroll at ${m.pixels}',
               _ => '$n',
             });
             return false;
@@ -756,7 +779,7 @@ void main() {
       final inner = ScrollController();
       final outer = ScrollController();
       bool hear(String name, ScrollNotification n, {bool stop = false}) {
-        heard.add('$name ${n.depth} ${n.metrics.offset}');
+        heard.add('$name ${n.depth} ${n.metrics.pixels}');
         return stop;
       }
 
@@ -791,9 +814,9 @@ void main() {
       expect(
         ScrollUpdateNotification(
           metrics: const ScrollMetrics(
-            offset: 1,
-            maxOffset: 3,
-            viewportExtent: 2,
+            pixels: 1,
+            maxScrollExtent: 3,
+            viewportDimension: 2,
           ),
           context: t.binding.focusManager.rootScope.context!,
           scrollDelta: 1,
@@ -821,7 +844,11 @@ void main() {
     });
 
     test('of an offset past the largest have nothing after the window', () {
-      const m = ScrollMetrics(offset: 8, maxOffset: 6, viewportExtent: 4);
+      const m = ScrollMetrics(
+        pixels: 8,
+        maxScrollExtent: 6,
+        viewportDimension: 4,
+      );
       expect(m.extentAfter, 0);
       expect(m.atEnd, isTrue);
     });
@@ -829,8 +856,11 @@ void main() {
     test('are equal, with the same hash, when their offsets, extents and '
         'axes are', () {
       // made apart, not as constants, which are one object
-      ScrollMetrics at(int offset) =>
-          ScrollMetrics(offset: offset, maxOffset: 6, viewportExtent: 4);
+      ScrollMetrics at(int offset) => ScrollMetrics(
+        pixels: offset,
+        maxScrollExtent: 6,
+        viewportDimension: 4,
+      );
       final a = at(2);
       final b = at(2);
       expect(identical(a, b), isFalse);
@@ -841,9 +871,9 @@ void main() {
         a,
         isNot(
           const ScrollMetrics(
-            offset: 2,
-            maxOffset: 6,
-            viewportExtent: 4,
+            pixels: 2,
+            maxScrollExtent: 6,
+            viewportDimension: 4,
             axis: Axis.horizontal,
           ),
         ),
@@ -888,7 +918,11 @@ void main() {
     late BuildContext context;
     await t.pumpWidget(Probe((c) => context = c));
     final n = Settled(
-      metrics: const ScrollMetrics(offset: 1, maxOffset: 6, viewportExtent: 4),
+      metrics: const ScrollMetrics(
+        pixels: 1,
+        maxScrollExtent: 6,
+        viewportDimension: 4,
+      ),
       context: context,
     );
     expect(

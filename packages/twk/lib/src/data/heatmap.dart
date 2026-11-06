@@ -520,7 +520,7 @@ final class _HeatmapState extends State<Heatmap> {
         onExit: _exit,
         child: GestureDetector(
           tapAt: (x, y) => _node.canRequestFocus && _grid?.cellAt(x, y) != null,
-          onTap: _tapped,
+          onTapUp: (tap) => _tapped(tap.event),
           child: Stack(
             children: [
               grid,
@@ -951,8 +951,8 @@ final class RenderHeatmap extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.constrainW(_naturalWidth);
-    height = c.constrainH(_naturalHeight);
+    width = c.constrainWidth(_naturalWidth);
+    height = c.constrainHeight(_naturalHeight);
   }
 
   /// The row and the column of the cell at ([x], [y]), on any of its

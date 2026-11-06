@@ -90,8 +90,8 @@ final class RenderLog extends RenderObject with Selectable {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.constrainW(gutter + 10);
-    height = c.constrainH(rows ?? lines.length);
+    width = c.constrainWidth(gutter + 10);
+    height = c.constrainHeight(rows ?? lines.length);
   }
 
   @override
@@ -530,8 +530,8 @@ final class _RenderWord extends RenderObject with Selectable {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.constrainW(word.length);
-    height = c.constrainH(1);
+    width = c.constrainWidth(word.length);
+    height = c.constrainHeight(1);
   }
 
   @override

@@ -38,7 +38,7 @@ import '../twk_types.dart';
 /// ```dart-nocheck
 /// Future<void> _save() async {
 ///   await store.save(_draft);
-///   showToast(context, 'Saved'); // reported: after an await
+///   showToast(context: context, message: 'Saved'); // reported: after an await
 /// }
 /// ```
 ///
@@ -48,7 +48,7 @@ import '../twk_types.dart';
 /// Future<void> _save() async {
 ///   await store.save(_draft);
 ///   if (!mounted) return;
-///   showToast(context, 'Saved');
+///   showToast(context: context, message: 'Saved');
 /// }
 /// ```
 final class ContextAfterAwait extends AnalysisRule {

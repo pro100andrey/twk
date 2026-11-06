@@ -21,7 +21,7 @@ final class TileState extends State<Tile> {
 
   @override
   Widget build(BuildContext context) => Listener(
-    onDown: (e) => setState(() => pressedAt.add((e.screenX, e.screenY))),
+    onPointerDown: (e) => setState(() => pressedAt.add((e.screenX, e.screenY))),
     child: Text('${widget.label} ${pressedAt.length}'),
   );
 }

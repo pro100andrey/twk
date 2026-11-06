@@ -93,8 +93,8 @@ void main() {
           builder: (context) => KeyBindings(
             {
               'm': () => showContextMenu(
-                context,
-                [
+                context: context,
+                items: [
                   MenuItem('Copy', onSelected: () {}),
                 ],
                 at: (2, 2),

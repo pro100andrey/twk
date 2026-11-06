@@ -29,9 +29,6 @@ import 'package:twk_core/twk_core.dart'
         KeyCode,
         KeyEvent,
         KeyKind,
-        LogLevel,
-        LogRecord,
-        LogSink,
         Mod,
         MouseEvent,
         MouseKind,
@@ -50,17 +47,19 @@ import 'package:twk_core/twk_core.dart'
         TextSegmenter,
         TwkApp,
         Viewport,
-        WindowBackend,
-        log;
+        WindowBackend;
 
+import '../../log.dart';
 import '../animation/frame_clock.dart';
 import '../debug/console.dart';
+import '../debug/console_record.dart' show RecordFrame;
 import '../debug/editor.dart';
 import '../debug/frame_overlay.dart';
 import '../debug/inspector.dart';
 import '../debug/key_hint.dart';
 import '../editing/caret.dart' show restingCell;
 import '../focus/focus.dart';
+import '../foundation/constants.dart' show kReleaseMode;
 import '../foundation/helpers.dart';
 import '../framework/framework.dart';
 import '../gestures/mouse.dart';
@@ -96,11 +95,6 @@ enum ScreenMode {
   /// the app ends (see `TwkApp`).
   inline,
 }
-
-/// Whether the program runs in product mode, as `dart compile exe`
-/// compiles it, without a VM service.
-// ignore: do_not_use_environment, the VM's own, not one an app is built with
-const _product = bool.fromEnvironment('dart.vm.product');
 
 /// Runs [app] in [mode] on the process's terminal, or on [terminal], which
 /// has to be in that mode (an [ArgumentError] if not), until the app quits
@@ -729,25 +723,16 @@ final class AppBinding implements FrameClock {
 
   /// Has the app take up its code as a hot reload changed it (`twk run`,
   /// `ext.twk.reassemble`): the next frame rebuilds every element, each
-  /// state kept as in any rebuild, lays out and paints every render object
-  /// again and writes all of the screen again.
+  /// state kept as in any rebuild and told with [State.reassemble], lays out
+  /// and paints every render object again and writes all of the screen again.
   void reassemble() {
-    void rebuild(Element e) {
-      e
-        ..markNeedsBuild()
-        ..visitChildren(rebuild);
-    }
-
     void relayout(RenderObject o) {
       o
         ..markNeedsLayout()
         ..visitChildren(relayout);
     }
 
-    final root = _root;
-    if (root != null) {
-      rebuild(root);
-    }
+    _root?.reassemble();
     // each object laid out repaints
     relayout(_view);
     twkApp.screen.presenter.invalidate();
@@ -857,7 +842,7 @@ final class AppBinding implements FrameClock {
   /// The first app [run] in an isolate calls it.
   @visibleForTesting
   static void registerServiceExtensions({
-    bool product = _product,
+    bool product = kReleaseMode,
     void Function(String method, ServiceExtensionHandler handler) register =
         registerExtension,
   }) {
@@ -2653,8 +2638,8 @@ final class _RenderView extends RenderObject with RenderObjectWithChildMixin {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = c.maxW;
-    height = c.maxH;
+    width = c.maxWidth;
+    height = c.maxHeight;
     final console = _console;
     final child = this.child;
     if (child != null && _rows != null) {
