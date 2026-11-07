@@ -17,7 +17,7 @@
   idle frame still writes nothing (an inline region and a fixed viewport
   leave it as they need it);
 * SGR only on a style change; blanks compare by how they look (background,
-  attributes visible on a space and the colour of lines drawn on it), so a
+  attributes visible on a space and the color of lines drawn on it), so a
   space inside text doesn't toggle SGR; a blank that needs an SGR change
   anyway takes the style of the text written right after it when a blank
   looks the same in both, so that text needs no SGR of its own;

@@ -26,10 +26,10 @@ limited or off; a frame with no changes must produce 0 bytes.
 
 Presenter edge cases the random frames don't reach.
 
-What it catches: decorated blanks not rewritten when only their colour
+What it catches: decorated blanks not rewritten when only their color
 changes, a one-column rectangle scrolled with DECSLRM, `invalidate()`
 keeping the cursor state, link targets not percent-encoded, underline
-colours not in the colon form of SGR 58, fills putting side by side what a
+colors not in the colon form of SGR 58, fills putting side by side what a
 terminal would join, a cursor-only frame hiding the cursor, a blank before
 text not taking the text's SGR, a parameter equal to its default written,
 reserved cells written, an inline region rewriting more than the row it
@@ -68,8 +68,8 @@ the clip.
 
 Pens, blending and SGR.
 
-What it catches: alpha blended over the wrong background or default colour,
-blends not recomputed for new default colours, SGR per colour mode, a pen id
+What it catches: alpha blended over the wrong background or default color,
+blends not recomputed for new default colors, SGR per color mode, a pen id
 from another table accepted.
 
 ## `test/fill_test.dart`, `test/byte_sink_test.dart`
@@ -82,14 +82,14 @@ reused while the length is the same, growth from a small capacity.
 
 ## `test/screen_test.dart`, `test/terminal_test.dart`, `test/sequences_test.dart`
 
-`Screen`, the colour mode, notifications and multiplexer from the
+`Screen`, the color mode, notifications and multiplexer from the
 environment, dark or light by the background, the OSC strings.
 
 What it catches: a screen resized away and back not rewritten, an empty
 screen with a visible cursor, committed rows not written by an inline
 screen's next render; `NO_COLOR`, `COLORTERM`, `TERM` and Windows defaults;
 a terminal taken for another (by a variable it inherited, inside tmux or
-screen); a colour on the wrong side of half white's luma; control characters
+screen); a color on the wrong side of half white's luma; control characters
 escaping the title or a notification, a notification not cut between
 graphemes, a tmux or screen wrapping that ends early or a screen piece over
 252 bytes; the clipboard inside tmux not sent as it is before its wrapping,
@@ -100,7 +100,7 @@ or inside screen not in pieces ended by BEL.
 Each kind of input and reply, 300 random splits of the stream + 2000 junk
 inputs + 5000 strings of sequence pieces.
 
-What it catches: a sequence decoded otherwise (a colour scheme report other
+What it catches: a sequence decoded otherwise (a color scheme report other
 than `997;1` or `997;2` taken for one), parser robustness.
 
 ## `test/input/parser_test.dart`, `test/input/events_test.dart`
@@ -412,7 +412,7 @@ The repaint rainbow and the relayout highlight of a `PipelineOwner`.
 
 What it catches: a boundary tinted that didn't repaint, or not tinted anew
 on each repaint; a tint not blended over the background or changing a cell's
-glyph, colours or attributes; a tint beyond where the boundary's ancestors
+glyph, colors or attributes; a tint beyond where the boundary's ancestors
 let it paint; the rows of a log tinted twice (scrolled, or painted by its
 parent); a flag reaching another owner's tree; turning a flag on or off not
 repainting everything; an outline around more or fewer objects than those

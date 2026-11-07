@@ -180,16 +180,16 @@ columns (a terminal of 80) says so with `minWidth:`, so that the options
 go under the stage where beside it they would leave fewer. `modalTab: false` says
 that what the page opens over the gallery takes Tab itself (a menu, a
 command palette), so the hint bar leaves `tab next` out while it is open.
-`hintLabel` names a key as the gallery's hint bar does (`alt+↓`, `esc`,
-`pgdn`), for a page's own `KeyHintsBar(keyLabel: hintLabel)`. The hint bar
+A page's own `KeyHintsBar` names a key as the gallery's hint bar does
+(`alt+↓`, `esc`, `pgdn`): `KeyHintsBar.signs`, its default. The hint bar
 lists the hinted keys of the layers above the focus; hints that are no
 key a layer binds (`type take over`, `wheel scroll back`) come from `PageHints(hints: [...], child:
 …)` around the focusable widget, listed first while the focus is in it.
 
 `Options` gives each option's value by the option's constant (`o(_wrap)`,
 of the option's type: a `ChoiceOption<T>`'s `T`, a switch's `bool`, a
-slider's `num`, a colour's name), its name as the inspector and a route
-write it (`o.nameOf`), and the theme's style of a colour option
+slider's `num`, a color's name), its name as the inspector and a route
+write it (`o.nameOf`), and the theme's style of a color option
 (`o.styleOf`); a key mistyped is a name the analyzer does not know.
 Options that several pages share are one constant (`pageColorOption`,
 Animation's `_cycleOption`); an option a function makes for each page
@@ -256,7 +256,7 @@ goes on has another by the route's time), made into a program
 (`tool/code_check/wrap.dart`: a `main`, a `State`, a State's members or a
 `build()`'s body), run in twk's tester on a terminal the size of the
 stage's room, in the page's theme, to the route's time; then its cells
-against those of the widget on the stage, the glyph, the colours (the
+against those of the widget on the stage, the glyph, the colors (the
 default ones as the theme's) and the attributes, a blank by its
 background.
 
@@ -296,7 +296,7 @@ same file and lines; the routes of its other programs are checked with
 every page's own (`tool/code_check/stages.dart`, `_more`).
 
 Where the stage is the app's terminal in the terminal's own
-colours, as `runApp` gives them (Debugging › FrameOverlay, Repaint
+colors, as `runApp` gives them (Debugging › FrameOverlay, Repaint
 rainbow: `codeInTerminalColors`), the Code runs under
 `ThemeData.terminal` on a terminal the widget's size.
 

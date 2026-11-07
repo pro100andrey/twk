@@ -201,7 +201,7 @@ dart format --output=none --set-exit-if-changed lib test example
 
 The fixtures in `test/image/fixtures` are made by `tool/image/fixtures.py`,
 each image with `<name>.rgba`, the pixels it decodes to. The PNGs are written
-there with zlib and struct alone: every colour type at every bit depth,
+there with zlib and struct alone: every color type at every bit depth,
 interlaced and not (down to 1 × 1 and 2 × 3, whose Adam7 passes are partly
 empty), tRNS of each kind, the IDAT split in several chunks, ancillary chunks
 to skip, each row filtered with each of the five filters in turn; their pixels
@@ -220,9 +220,9 @@ chunk, and round-trips noise, alpha, gradients and a single pixel through
 to libjpeg's pixels, data cut short as far as it goes, and rejects the kinds
 it does not read. `test/image/sixel_test.dart` reads what `encodeSixel` writes
 back as a terminal would (`test/image/sixel_reader.dart`, which fails on a
-pixel drawn outside the raster attributes): an image of few colours in them
+pixel drawn outside the raster attributes): an image of few colors in them
 exactly, transparency undrawn, a background blended, runs, a picture quantised
-with and without dithering within a mean error, fewer colours, and
+with and without dithering within a mean error, fewer colors, and
 `sixelImage`'s whole bands. `test/image/blocks_test.dart` checks the cells of
 half blocks and quadrants, transparency, the fit and `toAnsi`;
 `test/image/scale_test.dart` each `ImageFit`, bands, the fallback cell and
@@ -233,7 +233,7 @@ under `testTwk`, the terminal given each protocol and a cell size
 its size from its pixels, a width or a height, both, and the constraints, and
 its intrinsic sizes; the placement for kitty, sixel and iTerm2, kitty's PNG
 padded to the cells, sixel's whole bands; half blocks and quadrants in the
-image's colours, transparency over what is under it, `forceBlocks`; each fit
+image's colors, transparency over what is under it, `forceBlocks`; each fit
 and alignment; the image kept through a repaint and encoded anew for a new box
 or fit; PNG and JPEG files from memory and from a path, and the errors of a
 file that is no image or none. `test/image/zlib_web_test.dart` runs the web's

@@ -96,7 +96,7 @@ width it is given, which must be bounded, and is as tall as its blocks (in a
 theme, glyphs: Glyphs.unicode)` makes the same document lines of styled text,
 `List<List<Span>>` wrapped to `width` columns (an empty line between blocks
 has no spans), for an app that draws it itself in a panel that cuts and
-colours by the cell: it parses, styles and words as the view does (wrapping by
+colors by the cell: it parses, styles and words as the view does (wrapping by
 words, CJK between characters; list markers, quote bars, table lines), the
 styles of its spans resolved (the quote's, a heading's and an emphasis's
 merged in), its links hyperlinks, to the web or an address, as the view's by

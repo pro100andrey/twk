@@ -127,7 +127,7 @@ looked for: one where nobody listens, or a value of no such form, is a
 `TerminalException` (plain output where stdout is no terminal, as with
 no shell), the address file not read; empty is unset. Over the
 socket the app does what it does on its own terminal — the probe (with
-the shell's size, environment and erase character, so colours,
+the shell's size, environment and erase character, so colors,
 notifications and the multiplexer are those of the shell's terminal),
 the modes, the frames, the restore — and `flush()` completes once the
 shell has written the bytes. The shell keeps what the app's process

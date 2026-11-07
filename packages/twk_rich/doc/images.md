@@ -6,7 +6,7 @@ no image compiles none of it, nor carries the licences the
 [README](../README.md#license) names: PNG, JPEG and GIF
 files decoded, scaled to a box of cells, and encoded for the terminal's
 graphics protocol — PNG for kitty and iTerm2, sixel — or drawn with block
-characters in coloured cells where there is none; the `Image` widget shows one
+characters in colored cells where there is none; the `Image` widget shows one
 in an app. The decoders and encoders use nothing but the Dart SDK (dart:io's
 zlib inflates and deflates PNG on the VM; on the web, which has no dart:io, an
 inflater of the package's own, and stored deflate blocks, so that a PNG
@@ -29,11 +29,11 @@ its tests are in `test/image/`, its examples in `example/image/`.
 
 ## `png`
 
-`decodePng(bytes)`: every colour type at every bit depth PNG allows (grey 1,
+`decodePng(bytes)`: every color type at every bit depth PNG allows (grey 1,
 2, 4, 8 and 16 bits, RGB 8 and 16, palette 1 to 8, grey and RGB with alpha 8
 and 16), interlaced (Adam7) or not, with a tRNS chunk's transparency (alpha
-for palette entries, a grey or RGB colour key compared at the full depth); a
-16-bit sample keeps its high byte. Gamma and colour space chunks (gAMA, cHRM,
+for palette entries, a grey or RGB color key compared at the full depth); a
+16-bit sample keeps its high byte. Gamma and color space chunks (gAMA, cHRM,
 sRGB, iCCP) are ignored, the samples taken as they are, and so are the other
 ancillary chunks: an APNG decodes to its default image. `decodeApng(bytes)`
 reads an APNG's frames, composed on the canvas by each frame's dispose
@@ -69,11 +69,11 @@ tables) and progressive JPEG with restart intervals, of one component (grey),
 three (YCbCr, or RGB where an Adobe marker says so or the components are named
 R, G and B) or four (CMYK and YCCK, the inks inverted as Adobe stores them),
 any sampling factors from 1 to 4. Its samples are libjpeg's: the integer IDCT
-and colour conversion are libjpeg's own, so that it decodes as `djpeg -dct int
+and color conversion are libjpeg's own, so that it decodes as `djpeg -dct int
 -nosmooth` does, byte for byte; subsampled chroma is replicated, not
 interpolated. Not read: arithmetic coding, lossless, hierarchical and 12-bit
 JPEG, a height given by a DNL marker (each a `FormatException`); the Exif
-orientation and colour profiles are not applied. Entropy-coded data cut short
+orientation and color profiles are not applied. Entropy-coded data cut short
 decodes as zeros. `isJpeg(bytes)`
 
 ## `image_file`
@@ -100,15 +100,15 @@ image so scaled; the box's height is taken down to a multiple of `bandHeight`.
 `resize(image, width, height, cropX:, cropY:, cropWidth:, cropHeight:)`:
 shrinking, each pixel the mean of those under it, weighed by how much of each
 is; growing, bilinear; alpha premultiplied, so that a transparent pixel's
-colour does not bleed
+color does not bleed
 
 ## `sixel`
 
 `encodeSixel(image, colors: 256, dither: true, background:)`: the bytes a
 terminal takes between `ESC P` and `ESC \` — `0;1;0` (pixels not drawn keep
 what is under them), `q`, the raster attributes `"1;1;W;H`, the palette in
-percent, the bands of six rows a colour at a time, runs of four or more `!n`.
-The palette is the image's own colours where it has no more than `colors`,
+percent, the bands of six rows a color at a time, runs of four or more `!n`.
+The palette is the image's own colors where it has no more than `colors`,
 else median cut's (5 bits a channel, the box with the most pixels times its
 longest side split at its median), Floyd–Steinberg dithered where `dither`
 says. A pixel whose alpha is below 128 is not drawn; where `background` is
@@ -120,11 +120,11 @@ given, every pixel is blended over it
 fallback for a terminal without graphics: the image fitted to the box
 (`CellFit`) and drawn in `BlockCell`s, a `glyph` in `fg` on `bg` (`0xRRGGBB`,
 null for what is under the cell) — `BlockMode.half`, two pixels a cell, `▀` in
-the upper's colour on the lower's (`▄` where only the lower is drawn), or
+the upper's color on the lower's (`▄` where only the lower is drawn), or
 `quadrant`, four pixels a cell, the quadrant block that splits them best in
-two colours. `BlockImage.fromPixels(bitmap, mode:)` draws a bitmap's pixels as
+two colors. `BlockImage.fromPixels(bitmap, mode:)` draws a bitmap's pixels as
 they are; `cells`, `cellAt(column, row)`; `toAnsi()`, the rows as text with
-24-bit SGR colours, to print as they are
+24-bit SGR colors, to print as they are
 
 ## `protocols`
 

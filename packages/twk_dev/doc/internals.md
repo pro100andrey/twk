@@ -42,7 +42,7 @@ on what it can't do (a statement there is not with its line), and an unknown
 subcommand must exit with 64. `test/tape_test.dart` parses a tape of every
 statement, the errors with their lines, the times and the themes; draws a
 known screen as a still SVG, to the byte (runs of a style, a background, box
-lines, a wide character, escaping), the theme's colours, a reversed cell, dim
+lines, a wide character, escaping), the theme's colors, a reversed cell, dim
 text, blocks and the cursor; plays frames at their times, a row drawn once, a
 frame within the gap taking the last one's place and one that shows the same
 none; and draws a screen with `redraw` into a second emulator, which must then
@@ -128,7 +128,7 @@ walkthrough's app with `testTwk`: a line for each name, the keys counting the
 line chosen and choosing, `-` stopping at 0, each count in the log, `q`
 quitting, and the counts and the line chosen kept by `AppBinding.reassemble`,
 which a hot reload calls. `test/logs_test.dart` checks how a record is printed
-(padding, colours, the stack), and a line of the log that is one, and runs
+(padding, colors, the stack), and a line of the log that is one, and runs
 `twk logs` against sinks served in the test: waiting for an app, the records
 kept and live, the next app after one ended. `test/project_test.dart` checks
 the project a directory is in. The shell's ends are tested in twk_core

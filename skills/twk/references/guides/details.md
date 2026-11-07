@@ -223,16 +223,16 @@ from the bytes the app wrote. `dart test` runs it.
   had not.
   - `LineGauge`: `type: .heavy` is `━` over `─`, `.ascii` too; with
     `type` null the marks are `glyphs.gaugeFilled`/`gaugeEmpty`;
-    `segmented`; colour by level is a `filledStyle` picked from the
+    `segmented`; color by level is a `filledStyle` picked from the
     ratio; its width is the room it gets.
-  - `Callout`: `kind` (colour and icon), `icon: ''` for none, `title`,
+  - `Callout`: `kind` (color and icon), `icon: ''` for none, `title`,
     `actions`, `style`, `borderType` (`.rounded`), `titleStyle`;
     `onDismissed` null draws no close mark (`[${glyphs.close}]`: `[×]`,
     `[x]` in ASCII).
   - `Button`: chip, `.outlined`, `.filled`, `tall`, the state styles; a
     flat clickable word is `canRequestFocus: false` with a style without
     a chip; `Button.rich([key, caption])` a label of spans (a key in its
-    colour, the caption in another).
+    color, the caption in another).
   - `RadioGroup`'s marks are the theme's `glyphs.radioOn`/`radioOff`
     between `radioBrackets` (`●`/` ` in `(`, `)`; `radioOn: '◉'`,
     `radioOff: '○'`, `radioBrackets: ('', '')` for `◉ ○`), `mark` over

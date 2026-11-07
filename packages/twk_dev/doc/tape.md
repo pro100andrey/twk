@@ -44,8 +44,8 @@ the terminal's size: 80 by 24
 
 ### `Set Theme <name>`
 
-the terminal's colours: `dark` (the default), `light`, `xterm`, or a JSON
-object of `#rrggbb` colours, VHS's and iTerm2's keys (`background`,
+the terminal's colors: `dark` (the default), `light`, `xterm`, or a JSON
+object of `#rrggbb` colors, VHS's and iTerm2's keys (`background`,
 `foreground`, `cursor`, `black` to `white`, `brightBlack` to `brightWhite`,
 `purple` for `magenta`), dark's for those left out
 
@@ -146,9 +146,9 @@ something. Paths are the current directory's, a file's directory made when
 missing; the program runs in it too.
 
 The program's terminal is `xterm-256color` with `COLORTERM=truecolor`, of the
-theme's colours, and `CI=false`, so that a twk app draws in it in CI too
+theme's colors, and `CI=false`, so that a twk app draws in it in CI too
 (where it would write plain text, as for a log): the emulator answers the
-program's queries (the cursor's position, the colours by OSC 10, 11 and 4, the
+program's queries (the cursor's position, the colors by OSC 10, 11 and 4, the
 modes) as a terminal does, and what the tape types goes through it too,
 encoded as the program's modes want it (an arrow as `ESC O A` once the program
 asked for application cursor keys; the kitty keyboard protocol). A Wait looks
@@ -171,7 +171,7 @@ long as its cells (`textLength`), a wide character one of its own, and a
 `<rect>` a run of cells of a background; box-drawing lines (light and heavy,
 rounded corners) are paths and block elements rectangles, so that they meet
 the next cell's and the next row's as a terminal draws them; double and dashed
-lines are text. Colours 0 to 15 are the theme's, the rest xterm's.
+lines are text. Colors 0 to 15 are the theme's, the rest xterm's.
 
 When the tape has run, the recording ends, the program is ended through its
 terminal (the session's `close`: killed, and its terminal hung up, which hangs

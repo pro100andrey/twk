@@ -159,7 +159,7 @@ compile while it is edited would take every rule down, in every package);
 `KeyCode`'s, every name and message to `KeyCombo.parseSequence`'s, and what
 arrives to the bytes twk_test sends for an xterm, read by twk_core's input
 parser. Blind spots: names built at run time or kept in variables, maps that
-are not written in place, and APIs not on the list (twk_test's `sendKeys`).
+are not written in place, and APIs not on the list (twk_test's `press`).
 
 Fix: None: which key to take instead is the author's call.
 

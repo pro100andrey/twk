@@ -90,7 +90,7 @@ tables and its refinement of progressive AC coefficients are translated
 from libjpeg and keep the IJG's licence, whose README is
 [README.ijg](README.ijg). Its walk through a scan, its decoding of the
 blocks of baseline scans and of progressive scans' first passes, and its
-colour transform of three components follow jpgjs, as pdf.js keeps it
+color transform of three components follow jpgjs, as pdf.js keeps it
 (Apache License 2.0) and as package:image ports it to Dart (MIT License),
 and keep those licences. [NOTICE](NOTICE) names the files and lines each
 part follows and what was changed, and carries the licences. They apply

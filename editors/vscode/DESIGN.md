@@ -30,7 +30,7 @@ says it was not.
   reload does not; a compile error is shown and the app runs on.
 - **What the terminal is**: a preset (`xterm.js`, `everything`,
   `256 colors`, `16 colors`, `no color`, `no synchronized output`, `bare`,
-  `no answers`) and each switch of it (colours, sixel or iTerm2 images,
+  `no answers`) and each switch of it (colors, sixel or iTerm2 images,
   the probe's answers, synchronized output, kitty's keyboard protocol, the
   cell size, notifications, progress, pointer shapes, REP, links, the
   clipboard), for the apps that connect next; the screen reader and twk's
@@ -206,7 +206,7 @@ wrote, `←` what the terminal sent, `·` a note: an app connected or went
 away, a size, the extension's own lines), the name and the bytes (ESC as
 `ESC`, controls as `^M`). Names are those of the sequences
 (`CUP cursor to row 3, column 5`, `SGR bold, fg green`, `DECSET 1049
-alternate screen, cursor saved`, `OSC 11 query: the background colour`,
+alternate screen, cursor saved`, `OSC 11 query: the background color`,
 `DCS sixel image (…)`) and of what the terminal sent (`key Ctrl+Up`,
 `key Escape (kitty)`, `mouse left press at column 10, row 5`,
 `DECRPM answer: mode 2026 synchronized output set`, `DA1 answer: 1;2`).
@@ -352,7 +352,7 @@ Code: that a key reaches the app and not the command, which only a keyboard
 shows; the test holds the bindings and the command.
 
 **Copy the screen**: the rows the terminal shows now, without the blanks
-that end them or the blank rows at the bottom, as plain text (no colours).
+that end them or the blank rows at the bottom, as plain text (no colors).
 
 ### New Project and Install Agent Skill
 
@@ -680,7 +680,7 @@ The code is in layers (part 2b); what each part does:
     the switch panel (part 3), in quick picks: a preset (`xterm.js`,
     `everything`, `256 colors`, `16 colors`, `no color`, `no synchronized
     output`, `bare`, `no answers`), or each switch from the preset's:
-    the colours, the images (none, sixel, iTerm2), then the toggles at
+    the colors, the images (none, sixel, iTerm2), then the toggles at
     once (answers, synchronized output, kitty keyboard, cell size,
     notifications, progress, pointer shapes, REP, links, clipboard).
     Kept in `twk.terminal.profile` and `twk.terminal.capabilities` (the
@@ -795,7 +795,7 @@ What the tests cover:
   switches changed kept and read back, the title, the environment, the
   declaration in twk_core's order, the webview's answers, the presets, the
   toggles picked), the emulation's pure parts (`emulation.test.ts`, 6:
-  DECRQM denied, XTVERSION and the cell size, colour queries, an app's
+  DECRQM denied, XTVERSION and the cell size, color queries, an app's
   requests parsed, links only to the web and mail, the progress's text)
   and kitty's keyboard protocol (`kitty_keyboard.test.ts`, 22: the stacks,
   the keys encoded for each flag and for the flags together, those left to xterm.js); the emulation on
@@ -805,7 +805,7 @@ What the tests cover:
   twk itself (`twk_probe.test.ts`, 8): twk_core's `info_app.dart` in a Dart
   VM of its own on a headless xterm.js with the emulation, served by
   core's shell and welcomed as `app/terminal.ts` welcomes, prints what it
-  found for each preset and switch (colours, everything, iTerm2, no
+  found for each preset and switch (colors, everything, iTerm2, no
   synchronized output, no cell size, bare, no answers), and reads Escape,
   Ctrl+C, Alt+X, Shift+Enter, a, Ctrl+Q back from kitty's encodings.
   TWK_SHELL's form (`address.test.ts`, 2, the strings of twk_core's test).
@@ -859,7 +859,7 @@ What the tests cover:
   rest declared, and a cell's size the real webview measured; its
   progress in the status bar and gone as it ends; the image addon loaded
   (it answers XTSMGRAPHICS) and the terminal drawing on after a sixel
-  image; with switches changed from `xterm.js`, 16 colours, no cell size,
+  image; with switches changed from `xterm.js`, 16 colors, no cell size,
   no progress (its OSC 9;4 dropped), no image addon, and the title saying
   so.
 - VS Code, the tooling features (without Dart-Code; `TWK_TEST_GREP=<mocha
@@ -1440,7 +1440,7 @@ read waits for the next, as twk_test's `Vt` and xterm.js wait; of what
 the terminal sends each read is whole (a lone ESC is the Escape key, `CSI
 M` and three bytes an X10 mouse report). Each piece is named twice over:
 as the app wrote it (`describeOutput`: the CSIs twk and the probe write,
-SGR's attributes and colours, DEC modes by name, OSC by number, sixel,
+SGR's attributes and colors, DEC modes by name, OSC by number, sixel,
 kitty graphics, the queries) and as the terminal sent it (`describeInput`:
 keys with their modifiers in xterm's and kitty's encodings, SGR and X10
 mouse reports, focus, bracketed paste, and the answers: DA1, DA2, DECRPM,
@@ -1786,7 +1786,7 @@ The switches, each held to what twk finds by a twk app in the unit tests
 
 | switch | how | twk finds |
 |---|---|---|
-| colours: 24-bit, 256, 16, none | environment (`COLORTERM`, `TERM`, `NO_COLOR`) | trueColor, ansi256, ansi16, none |
+| colors: 24-bit, 256, 16, none | environment (`COLORTERM`, `TERM`, `NO_COLOR`) | trueColor, ansi256, ansi16, none |
 | answers off (`no answers`) | DECRQM denied "not recognised", OSC 10/11/4 queries and DA1 dropped, nothing of the webview's | answered false (after the probe's timeout) |
 | synchronized output off | DECRQM 2026 "not recognised" | sync off |
 | kitty keyboard | the webview answers `CSI ? u` with the flags in force, keeps the flags pushed, popped and set (`CSI > u`, `CSI < u`, `CSI = u`), one stack per screen, and encodes keys as the flags ask, all five (`core/kitty_keyboard.ts`; the flags told back are those pushed, masked to 31). 1, disambiguation (what twk pushes): Escape, Ctrl and Alt keys, modified Enter, Tab and Backspace as `CSI code ; mods u`, by the key's place for letters and digits (a layout does not change the code unless 4 is on), and F13 to F24 (57376 and on); 2, event types: `:2` a repeat and `:3` a release after the modifiers (`CSI 97 ; 5:3 u`; the legacy forms `CSI 1 ; 1:3 A`, `CSI 3 ; 1:2 ~`, a press of those left to xterm.js, which sends the same), the text keys released as `CSI u` and repeated as their text, Enter, Tab and Backspace never released without 8, and without 2 a repeat a press and a release nothing (the page's `keydown`/`repeat`/`keyup`); 4, alternate keys: `CSI code : shifted : base u`, the code the layout's lower case (`1089` for `с`), the shifted key where Shift is held, the base layout key (a US layout's, from `KeyboardEvent.code`) where it differs, as `CSI 1089::99;5u`; macOS Option's letters stay by place; 8, all keys: text, Enter, Tab and Backspace as `CSI u`, the modifier keys alone (57441 to 57453, AltGr 57453, the modifier in the press's own field), lock, Print Screen, Pause, Menu and some media keys, the keypad's own codes (57399 and on, by `location` 3; Num Lock off by what the key does), Caps Lock and Num Lock among the modifiers (64, 128); 16, associated text, with 8: the code points the key typed after the modifiers (`CSI 97 ; 2 ; 65 u`), for a press and a repeat of text without Ctrl or Alt. Meta (Cmd) and a key in an input method's composition are left to VS Code and xterm.js | kittyKeyboard, flags 1; the keys read back as Escape, Ctrl+C, Alt+X, Shift+Enter, Ctrl+Q; and with all flags pushed the text, its release, Enter, an arrow's release and a shortcut read back (`twk_probe.test.ts`) |
@@ -1813,7 +1813,7 @@ none of the names twk knows a terminal by. Offered, and why not:
 - **Bidi**: xterm.js reorders nothing and doesn't know BDSM, so the only
   true answer is what twk finds anyway (the app orders right-to-left
   text); a terminal that reorders can't be emulated. Not offered.
-- **Graphemes (2027), in-band resize (2048), margins (69), colour scheme
+- **Graphemes (2027), in-band resize (2048), margins (69), color scheme
   reports (2031) on**: an answer alone would draw wrong cells; xterm.js
   has none of them.
 
@@ -1908,7 +1908,7 @@ What the repository offers for the wished features:
    and passed on by a `TerminalShell` whose link declares
    (`DeclaringLink`). The probe takes each declared one over the guess by
    the environment (`notificationProtocolFor`, `progressReportsFor`,
-   `pointerShapesFor`, REP's known terminals, `graphicsProtocolFor`),
+   `pointerNamesFor`, REP's known terminals, `graphicsProtocolFor`),
    which stays for real terminals, as they declare nothing; a field of
    another type or value declares nothing (`fromJson`). Not an
    environment variable: the process's own environment is the app's, and

@@ -15,7 +15,7 @@ code while it runs, look inside it, read its log and record a session.
   tree, with the properties and layout of the node you select. Click in the
   app to pick a node.
 - **Logs:** `twk logs` tails the log of a running app, with levels and
-  colours, while the app owns the screen.
+  colors, while the app owns the screen.
 - **Drive:** `twk mcp` is an MCP server that lets a coding agent run your
   app, read its screen, press keys, tap and reload it.
 - **Agents:** `twk agents` writes the twk skill and a block of `AGENTS.md`

@@ -62,7 +62,7 @@ started without a terminal (from the IDE, under the debugger)
 ### `twk logs [-C <dir>] [--[no-]color]`
 
 tails the log an app of the project serves over a local socket, with levels
-and colours
+and colors
 
 ### `twk run [--no-asserts] [--no-watch-deps] [--debug=<aids>] [--screen-reader] [--plain] <file> [<arguments>...]`
 

@@ -16,7 +16,7 @@ show how it looks now.
 | ![The Dialog page, its dialog open](shots/screens/dialog-dark.svg) | ![The command palette over the Text page](shots/screens/palette-dark.svg) |
 
 Nothing in it is beyond a terminal: cells of one grapheme each, 24-bit
-colours, the SGR attributes (bold, dim, italic, the underlines, reverse,
+colors, the SGR attributes (bold, dim, italic, the underlines, reverse,
 strike, overline), box drawing, block elements and braille.
 
 ## Layout
@@ -47,11 +47,11 @@ it, its corners marked (`┌ ┐ └ ┘`) and its size under the right corner
 **The inspector**: `OPTIONS` in small capitals, then each option, its
 label above its control, a row between. Four controls: a segmented
 choice (the choices on a sunken track, the chosen one raised in the
-selection colour, filled with the primary colour while focused, the
+selection color, filled with the primary color while focused, the
 highlight gliding to the new choice), a switch (a pill: `▐ ● ▌`), a
 slider (twk's: a light line `─`, the thumb and the line before it in the
-thumb's colour, the line after it muted, the thumb in eighths of a cell,
-the value at the right of the label), colour swatches (`██` each, the
+thumb's color, the line after it muted, the thumb in eighths of a cell,
+the value at the right of the label), color swatches (`██` each, the
 chosen one underlined `▔▔`, its name at the right of the label). The
 focused option has its label bold and a primary bar `▎` at its left. An
 option that does not apply with the others as they are is dim, and Tab,
@@ -64,7 +64,7 @@ each control: a choice and the swatches `← previous` `→ next`, a switch
 `fuzzyMatch`, ties by when each was last run, then by list order; with
 nothing typed, the ones run before come first.
 
-## Colour
+## Color
 
 twk's `ThemeData` presets as they are (dark, light, nord,
 catppuccinMocha, catppuccinLatte), then the terminal's own colors
@@ -84,7 +84,7 @@ slots by mixing (`mix(a, b, k)` is `Color.lerp`; `lib/src/view/tokens.dart`):
 
 One accent: `primary`, for what has the focus and what is chosen (the
 selection's bar `▎`, the tab's underline, a focused control, matches in
-the filter and the palette). `accent` and the status colours appear only
+the filter and the palette). `accent` and the status colors appear only
 in examples and code.
 
 **Scroll thumbs** in `muted`, as twk's `Scrollbar` draws them.
@@ -95,7 +95,7 @@ sizes in `dim`; keys bold in `text`, their hints `muted`.
 
 **Borders.** Rounded (`╭╮╰╯`) for the boxes inside a page (a Text's box,
 a field). A surface that floats (dialog, palette, toast) has no outline:
-it is the surface colour, a cell of room around its content, over a
+it is the surface color, a cell of room around its content, over a
 barrier or with a shadow. Lines that meet join, as a merged twk Divider
 joins them.
 
@@ -106,7 +106,7 @@ option) takes the `selection` background, and a list's or an option's
 row a `primary` bar `▎` at its left. What is selected but not focused
 takes `selectionIdle` and the bar turns `muted`. A Table's and a
 Calendar's cursor is `primary` reversed: its text in the cell's
-background colour, as twk's default cursor style draws it. The
+background color, as twk's default cursor style draws it. The
 terminal's cursor shows in a field, the filter and the palette: a bar,
 or the shape a field's `cursorShape` asks for.
 
@@ -118,12 +118,12 @@ Motion explains, and is short (ease-out unless said; `lib/src/motion.dart`):
 | --- | --- | --- |
 | a new page | backgrounds at once; each glyph fades in from the background at a time of its own (no two pages' text ever mix) | 300 |
 | Preview ↔ Code | the same, over the body | 300 |
-| the theme | every colour cross-fades (ease-in-out) | 280 |
+| the theme | every color cross-fades (ease-in-out) | 280 |
 | the list's selection | the bar glides to the new row | 70 + 18 a row, at most 220 |
 | the list's scroll | glides | 160 |
 | the tab underline | glides under the new tab | 160 |
 | a segmented choice | the highlight glides to the new choice | 140 |
-| a switch | the knob runs, the track's colour fades | 130–140 |
+| a switch | the knob runs, the track's color fades | 130–140 |
 | a slider | the thumb runs | 90 |
 | a toast | slides in from the right edge; fades into what is under it, its shadow with it | 200, 260 |
 | an Overlay entry | fades in, and out | 160, 120 |
@@ -153,7 +153,7 @@ The mouse selects in the code with twk's `SelectionArea`, as in a Text:
 a drag selects the characters between two cells, those of both cells
 too, across lines; a double click the word (or the run of blanks), a
 triple click the line, and a drag after either goes on by words or by
-lines; a click clears it. It is drawn in the `selection` colour under
+lines; a click clears it. It is drawn in the `selection` color under
 the highlighting. A drag past the top or bottom of the view scrolls it,
 every 50 ms by the rows it is past (3 at most), and past its left or
 right edge sideways, by the columns; the wheel scrolls while something

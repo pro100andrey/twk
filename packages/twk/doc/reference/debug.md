@@ -68,6 +68,6 @@ marked one after a `▶`, the code as `sourceLines` gives it (a
 without; then the frames, a line each, the location and the member, the
 runs not of the app's own code folded (`stackLines`) unless `allFrames`.
 Places, numbers and folded frames are in `hintStyle` (the theme's `muted`,
-the terminal's own colour dim without one),
+the terminal's own color dim without one),
 each place a link to its file. twk_rich's `dartSourceLines` highlights the
 code as Dart. `test/debug/traceback_test.dart`.
