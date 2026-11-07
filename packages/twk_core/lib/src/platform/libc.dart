@@ -118,6 +118,12 @@ external Pointer<Char> ttyname(int fd);
 @Native<Pointer<Void> Function(Int, Pointer<Void>)>(isLeaf: true)
 external Pointer<Void> signal(int number, Pointer<Void> handler);
 
+/// sigaction(2): [number]'s disposition set from [action] unless that is
+/// `nullptr`, and the one before it put in [old] unless that is; 0, or -1.
+/// A leaf call, like [read]. The structs are the caller's to lay out.
+@Native<Int Function(Int, Pointer<Void>, Pointer<Void>)>(isLeaf: true)
+external int sigaction(int number, Pointer<Void> action, Pointer<Void> old);
+
 /// getppid(2), which can't fail and is safe in a signal handler.
 @Native<Int Function()>(isLeaf: true)
 external int getppid();

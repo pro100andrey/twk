@@ -117,9 +117,19 @@ enum ShellFrame {
   }
 }
 
-/// Logs a frame of a type this version does not know, which is ignored.
-void _ignored(String from, int byte) =>
-    developer.log('ignored a frame of type $byte from $from', name: 'twk.wire');
+/// Logs a frame of a type this version does not know, which is ignored: once
+/// for each type and sender, as a peer may send a great many.
+void _ignored(String from, int byte) {
+  if (_ignoredTypes.add('$from $byte')) {
+    developer.log(
+      'ignored a frame of type $byte from $from',
+      name: 'twk.wire',
+    );
+  }
+}
+
+/// What [_ignored] logged: at most 256 types from each of two senders.
+final _ignoredTypes = <String>{};
 
 /// The header of a frame of [type] with a payload of [length] bytes.
 Uint8List frameHeader(int type, int length) => Uint8List(5)

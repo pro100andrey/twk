@@ -33,6 +33,10 @@ TerminalLink? ownTerminalLink() =>
 /// controlling terminal of the shell that started it.
 bool isOwnTerminal(TerminalLink link) => link is StdioLink;
 
+/// Returns once the process may touch its own terminal, stopping it for as
+/// long as it is in the background ([StdioLink.waitForTerminal]).
+void waitForOwnTerminal() => StdioLink.waitForTerminal();
+
 /// Whether stdout is a terminal.
 bool get outputIsTerminal => stdout.hasTerminal;
 
@@ -99,14 +103,20 @@ List<StreamSubscription<void>> watchSignals(
   ];
 }
 
-/// Whether SIGHUP is ignored (POSIX): signal(2) tells only by setting one,
-/// so one that comes between the two calls is lost, as the terminal opens.
+/// Whether SIGHUP is ignored (POSIX), read with sigaction(2), which sets
+/// nothing: the handler is the first word of its struct on Linux and macOS.
 bool _ignoresHangup() {
-  final ignore = Pointer<Void>.fromAddress(1); // SIG_IGN
-  final before = c.signal(1, ignore);
-  c.signal(1, before);
-  return before == ignore;
+  final action = c.calloc(1, _sigactionBytes);
+  try {
+    return c.sigaction(1, nullptr, action) == 0 &&
+        action.cast<IntPtr>().value == 1; // SIG_IGN
+  } finally {
+    c.free(action);
+  }
 }
+
+/// More than `struct sigaction` takes on Linux (152) and macOS (16).
+const _sigactionBytes = 256;
 
 /// SIGTSTP to the process's group (POSIX).
 void stopProcessGroup() {

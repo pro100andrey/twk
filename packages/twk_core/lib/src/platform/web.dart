@@ -27,6 +27,9 @@ TerminalLink? ownTerminalLink() => null;
 /// False: there is no terminal of the process's own on the web.
 bool isOwnTerminal(TerminalLink link) => false;
 
+/// Returns at once: there is no terminal of the process's own on the web.
+void waitForOwnTerminal() {}
+
 /// False: there is no stdout on the web.
 bool get outputIsTerminal => false;
 
