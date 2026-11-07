@@ -1,7 +1,7 @@
 name: twk_test
 description: >-
-  Tests for twk apps: the real app on a terminal in memory under a fake
-  clock, input as a terminal's bytes, the screen read by an emulator.
+  Tests for twk apps with no sleeps and no flakes: the real app on a terminal
+  in memory, input as a terminal's bytes, the screen read by an emulator.
 version: 0.3.0
 repository: https://github.com/pro100andrey/twk/tree/main/packages/twk_test
 issue_tracker: https://github.com/pro100andrey/twk/issues

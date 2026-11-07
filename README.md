@@ -37,8 +37,9 @@ dart pub get
 dart run twk_dev:twk run bin/main.dart
 ```
 
-That is a notes app, running in your terminal. Edit a file in `my_app/lib/`
-and save: the app shows the change and keeps its state. Ctrl+Q quits.
+`twk create` asks which app to write: with the notes app, the default, that
+is a list of notes running in your terminal. Edit a file in `my_app/lib/` and
+save: the app shows the change and keeps its state. Ctrl+Q quits.
 
 To see every widget, clone this repository and run the gallery:
 

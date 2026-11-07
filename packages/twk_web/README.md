@@ -5,7 +5,7 @@ and mouse, on [xterm.js](https://xtermjs.org), with nothing to install for
 whoever opens it. The [gallery](../gallery/README.md) runs this way.
 
 `runWebApp` mounts the app into a DOM element. The package is in this
-repository, not on pub.dev: it takes twk and the core as path dependencies.
+repository, not on pub.dev yet: it takes twk and the core as path dependencies.
 
 ```dart
 import 'package:twk/twk.dart';

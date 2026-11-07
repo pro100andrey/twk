@@ -9,7 +9,7 @@ a `WidgetRef`, rebuilt when what they watch changes and only then.
 widgets, so an app imports nothing else; `misc.dart` exports riverpod's
 library of that name (`ProviderListenable`, `Override`).
 
-The package is in this repository, not on pub.dev. It takes package:riverpod
+The package is in this repository, not on pub.dev yet. It takes package:riverpod
 (`^3.4.3`, pure Dart) as a dependency and twk as a path one, and
 [twk_test](../twk_test/doc/guide.md), whose tester (`testTwk`) runs its
 tests, as a path dev dependency.

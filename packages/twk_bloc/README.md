@@ -10,7 +10,7 @@ emit.
 `SingleChildWidget` and `ProviderNotFoundException`, so an app imports
 nothing else.
 
-The package is in this repository, not on pub.dev. It takes package:bloc
+The package is in this repository, not on pub.dev yet. It takes package:bloc
 (`^9.2.1`, pure Dart) as a dependency, twk as a path one, and
 [twk_test](../twk_test/doc/guide.md), whose tester (`testTwk`) runs its
 tests, as a path dev dependency.

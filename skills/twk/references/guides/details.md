@@ -364,6 +364,6 @@ the Dart that builds it: the gallery, `packages/gallery` (`dart run
 packages/gallery/bin/gallery.dart`).
 
 An app outside the repository takes the packages from pub.dev (`dart pub add
-twk dev:twk_test`). To run it on a checkout instead, depend on the packages
+twk dev:twk_test dev:test`). To run it on a checkout instead, depend on the packages
 by path and override those under them with the checkout's: the published
 packages take each other by version, and pub takes one source of a package.

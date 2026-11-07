@@ -4,7 +4,7 @@ Serve an app of [twk](../twk/README.md) over SSH: anyone with `ssh` gets it
 in their own terminal, with nothing to install. Each client that logs in
 gets a session of its own, as `ssh host` gets a shell. It is a package of
 its own so that apps which serve nothing over SSH do not carry it, and it
-is in this repository, not on pub.dev.
+is in this repository, not on pub.dev yet.
 
 **This is a minimal server, and it has not been audited.** It speaks
 the few algorithms below, does one thing (a session per connection),
@@ -121,9 +121,9 @@ does not apply them: their keys are refused. There is no `none` method
 and no keyboard-interactive or host-based login.
 
 A connection gets `maxAttempts` failures (6), then it is ended, and
-`loginTimeout` (2 minutes) to log in. At most `maxUnauthenticated` connections (10) may
-be at it at once: one that comes while that many have not logged in is
-closed before a byte is sent or read, as OpenSSH's `MaxStartups` starts
+`loginTimeout` (2 minutes) to log in. At most `maxUnauthenticated`
+connections (10) may be at it at once: one that comes while that many have
+not logged in is closed before a byte is sent or read, as OpenSSH's `MaxStartups` starts
 to do at 10. That keeps a flood of half-open logins from costing more
 than ten key exchanges at a time; it also means ten clients that never
 log in hold the door for `loginTimeout`, so a server facing the open
