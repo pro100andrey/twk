@@ -291,12 +291,13 @@ String renderGroup(WidgetGroup g) {
   return b.toString();
 }
 
-final _image = RegExp(r'!\[[^\]]*\]\([^)]*\)(<br>)?');
+final _image = RegExp(r'!\[[^\]]*\]\([^)]*\)(?:<br>)?');
 final _link = RegExp(r'(?<!!)\[([^\]]*)\]\(([^)\s]*)\)');
 
-/// A code span or a [_link]: the span first, so that `f[i](e)` in one is left
-/// as code, while a link whose text has one is still a link.
-final _spanOrLink = RegExp('`[^`\n]*`|${_link.pattern}');
+/// A code span, an [_image] or a [_link]: the span first, so that `f[i](e)`
+/// in one is left as code, while a link whose text has one is still a link.
+/// Its groups are the link's, which neither of the others has.
+final _spanOrLink = RegExp('`[^`\n]*`|${_image.pattern}|${_link.pattern}');
 final _guideFile = RegExp(r'^[a-z0-9-]+\.md$');
 final _groupFile = RegExp(r'^\.\./widgets/[a-z0-9-]+\.md$');
 final _pageFile = RegExp(r'^\.\./widgets/([a-z0-9-]+/[a-z0-9-]+\.md)$');
@@ -327,12 +328,13 @@ final _fence = RegExp(
 );
 
 String _rewriteProse(String name, String prose, Map<String, String> anchors) =>
-    prose.replaceAll(_image, '').replaceAllMapped(_spanOrLink, (m) {
-      if (m.group(0)!.startsWith('`')) {
-        return m.group(0)!;
+    prose.replaceAllMapped(_spanOrLink, (m) {
+      final whole = m.group(0)!;
+      final target = m.group(2);
+      if (target == null) {
+        return whole.startsWith('`') ? whole : '';
       }
       final text = m.group(1)!;
-      final target = m.group(2)!;
       if (RegExp('^[a-z]+:|^#').hasMatch(target)) {
         return m.group(0)!;
       }
@@ -384,10 +386,10 @@ Map<String, String> buildReferences({
     }
     // what is shown as code links to nothing
     for (final m in _spanOrLink.allMatches(value.replaceAll(_fence, ''))) {
-      if (m.group(0)!.startsWith('`')) {
+      final file = m.group(2)?.split('#').first;
+      if (file == null) {
         continue;
       }
-      final file = m.group(2)!.split('#').first;
       if (_guideFile.hasMatch(file) && !files.containsKey('guides/$file')) {
         throw ReferenceError('$key links to $file, which is not there');
       }

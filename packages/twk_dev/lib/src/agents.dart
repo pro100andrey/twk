@@ -234,8 +234,10 @@ final class AgentsException implements Exception {
 /// with no manifest it is written over. Throws
 /// an [AgentsException] where `AGENTS.md` cannot be merged into, a skill's
 /// path is a file or a file's path in it a directory, and so nothing is
-/// changed. A link at a file's path or on the way to it is the project's: it
-/// stays as [AgentsAction.edited], and what it points at is not written.
+/// changed. A link at a file's path, or on the way to it inside the skill's
+/// directory, is the project's: it stays as [AgentsAction.edited], and what
+/// it points at is not written. The directory itself may be a link, one skill
+/// shared by two directories: what is in it is written as in any other.
 AgentsPlan agentsPlan(
   String project, {
   Set<AgentsFile> files = const {...AgentsFile.values},

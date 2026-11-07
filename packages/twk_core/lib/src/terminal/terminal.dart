@@ -1072,7 +1072,9 @@ final class Terminal
     try {
       // before the first await, and where the catch below puts it back: a
       // second open is refused from here on
-      _stdioOpening = stdio;
+      if (stdio) {
+        _stdioOpening = true;
+      }
       // the traces' paths are the process's: one file for all terminals
       final env = ofProcess ? environment : const <String, String>{};
       // one clock: reads and writes on one time line

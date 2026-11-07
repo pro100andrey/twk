@@ -175,7 +175,7 @@ void main() {
   group('guides', () {
     test('code is left as it is: a span, a fence with its indent', () {
       const guide =
-          'Call `handlers[i](event)` here.\n\n'
+          'Call `handlers[i](event)` here, and write `![a](b.svg)`.\n\n'
           '- A list:\n\n'
           '  ```dart\n'
           '  callbacks[i](e);\n'

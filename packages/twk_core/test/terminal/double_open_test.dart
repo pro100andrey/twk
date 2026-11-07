@@ -43,6 +43,6 @@ void main() {
       group: true,
     );
     expect(res.exitCode, 0, reason: '${res.stdout}${res.stderr}');
-    expect(said.readAsStringSync(), 'opened TerminalException');
+    expect(said.readAsStringSync(), 'opened opened TerminalException');
   }, timeout: const Timeout(Duration(minutes: 2)));
 }
