@@ -1557,7 +1557,7 @@ final class _TableState<T> extends State<Table<T>> {
   /// [row], shown at [index]: in the selected style when it is the row
   /// selected, the cell of the cursor in the cursor's; [onDown] a press on
   /// it.
-  Widget _row(int index, T row, void Function(PointerEvent event) onDown) {
+  Widget _row(int index, T row, void Function(TapDownDetails tap) onDown) {
     final w = widget;
     final styles = _styles;
     final selected = index == _shownSelected;
@@ -1565,9 +1565,7 @@ final class _TableState<T> extends State<Table<T>> {
     final columns = w.columns;
     final style = selected ? styles.base.merge(styles.selected) : styles.base;
     return GestureDetector(
-      onTapDown: w.selection == TableSelection.none
-          ? null
-          : (tap) => onDown(tap.event),
+      onTapDown: w.selection == TableSelection.none ? null : onDown,
       cursor: PointerShape.arrow,
       child: _Row(
         columns: _columns,
@@ -1733,10 +1731,10 @@ final class _RowSlotState<T> extends State<_RowSlot<T>> {
   }
 
   // made once, not at each build
-  late final void Function(PointerEvent event) _down = _onDown;
+  late final void Function(TapDownDetails tap) _down = _onDown;
 
-  void _onDown(PointerEvent event) =>
-      widget.table._rowDown(widget.index, event);
+  void _onDown(TapDownDetails tap) =>
+      widget.table._rowDown(widget.index, tap.event);
 
   @override
   Widget build(BuildContext context) =>

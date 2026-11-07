@@ -60,9 +60,7 @@ final class HandOver extends StatelessWidget {
     final where = this.where;
     return MouseRegion(
       cursor: where == null ? shown : null,
-      cursorAt: shown != null && where != null
-          ? (x, y) => where(x, y) ? shown : null
-          : null,
+      cursorAt: shown != null && where != null ? _at(where, shown) : null,
       cursorAsksMotion: own == null
           ? mode != null &&
                 (TerminalStatus.of(context)?.handAsksMotion(mode) ?? false)
@@ -71,4 +69,11 @@ final class HandOver extends StatelessWidget {
       child: child,
     );
   }
+
+  // apart from build, whose every call would else make the closure's context
+  static PointerShape? Function(int x, int y) _at(
+    bool Function(int x, int y) where,
+    PointerShape shown,
+  ) =>
+      (x, y) => where(x, y) ? shown : null;
 }
