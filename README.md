@@ -1,7 +1,7 @@
 # twk
 
 Flutter's widget model for terminal apps in Dart: widgets, layout, the mouse,
-hot reload, and tests that run the real app on a fake clock.
+hot reload, and tests that run the real app, with no sleeps and no flakes.
 
 ![The widget gallery: the Table page in the dark theme](packages/gallery/doc/shots/screens/table-dark.svg)
 
