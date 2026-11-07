@@ -193,6 +193,19 @@ final class AgentsPlan {
   }
 }
 
+/// Whether the path [name] of [dir] goes through a link, its last part too:
+/// what it points at may be outside the project.
+bool _throughLink(String dir, String name) {
+  var path = dir;
+  for (final part in name.split('/')) {
+    path = p.join(path, part);
+    if (FileSystemEntity.isLinkSync(path)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /// A reason `twk agents` cannot write into a project, to be said as it is.
 final class AgentsException implements Exception {
   /// An exception that says [message].
@@ -219,8 +232,10 @@ final class AgentsException implements Exception {
 /// it, which the manifest tells by the hash it lists, is [AgentsAction.edited]
 /// and stays (as does one the manifest does not list, where there is one);
 /// with no manifest it is written over. Throws
-/// an [AgentsException] where `AGENTS.md` cannot be merged into, or a skill's
-/// path is a file, and so nothing is changed.
+/// an [AgentsException] where `AGENTS.md` cannot be merged into, a skill's
+/// path is a file or a file's path in it a directory, and so nothing is
+/// changed. A link at a file's path or on the way to it is the project's: it
+/// stays as [AgentsAction.edited], and what it points at is not written.
 AgentsPlan agentsPlan(
   String project, {
   Set<AgentsFile> files = const {...AgentsFile.values},
@@ -256,8 +271,7 @@ AgentsPlan agentsPlan(
         // refused here, before apply has changed anything
         throw AgentsException('$path is a directory');
       }
-      // a link is the project's: what it points at may be outside of it
-      final link = type == FileSystemEntityType.link;
+      final link = _throughLink(dir, name);
       final action = switch (file.existsSync()) {
         false when link => AgentsAction.edited,
         false => AgentsAction.wrote,

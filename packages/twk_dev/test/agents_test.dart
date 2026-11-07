@@ -191,6 +191,26 @@ void main() {
       expect(FileSystemEntity.isLinkSync(path), isTrue);
     });
 
+    test(
+      'nor is what a link on the way to a file of the pack points at',
+      () async {
+        await agents();
+        final inside = skillPaths().firstWhere((n) => n.contains('/'));
+        final part = inside.split('/').first;
+        final outside = Directory(p.join(root.path, 'outside'))..createSync();
+        final there =
+            File(p.join(outside.path, inside.split('/').skip(1).join('/')))
+              ..createSync(recursive: true)
+              ..writeAsStringSync('mine\n');
+        final linked = p.join(project, dirs.first, part);
+        Directory(linked).deleteSync(recursive: true);
+        Link(linked).createSync(outside.path);
+        final result = await agents();
+        expect(result.exitCode, 0, reason: '${result.stderr}');
+        expect(there.readAsStringSync(), 'mine\n');
+      },
+    );
+
     test('is written with the skill, listing each file of the pack with its '
         'hash, and is no file of the pack', () async {
       await agents();

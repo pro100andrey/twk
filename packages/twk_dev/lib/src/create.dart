@@ -436,6 +436,9 @@ Future<CreatedApp> createApp(
 /// is rewritten as mold plans it rather than by the template, so what
 /// the plan says of it, whether the one there is the same among it, is
 /// about the pubspec written.
+///
+/// With [warn] mold's warnings go to stderr: false for a plan made only to
+/// see whether it is refused, as [createApp] plans again.
 UnpackPlan createPlan(
   Template template,
   String name, {
