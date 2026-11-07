@@ -29,7 +29,8 @@ Changed:
   gap or more starts the grid again.
 - `TwkApp(maxInputFps:)`: frames that input asks for come up to 120 a second by
   default, tickers and the rest staying at `maxFps`. In a remote session it is
-  `maxFps` unless given, as scrolling at 120 writes about a third more bytes.
+  `maxFps` unless given, as scrolling at 120 writes about a third more bytes, and
+  so it is where `maxFps` is below 60: a cap lowered to save work holds for input.
 - An app started in the background (`app &`) stops as a job until `fg` gives it
   the terminal, touching neither the terminal's modes nor its output, where it
   went raw on the shell's terminal and wrote its queries over the prompt.

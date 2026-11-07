@@ -181,10 +181,11 @@ final class TwkApp {
   /// [maxInputFps] is the most a second for frames that input asks for (a
   /// key, the mouse, a resize): 120 by default, [maxFps] where the terminal
   /// is [TerminalInfo.remote] (scrolling at 120 there writes about a third
-  /// more bytes). Tickers, timers and everything else that asks for a frame
-  /// stay at [maxFps]. Below [maxFps] it is read as [maxFps]. A terminal
-  /// does not say how fast its display draws, so this is a cap, not a sync
-  /// to it.
+  /// more bytes) or [maxFps] is below 60, as a cap lowered to save work
+  /// holds for input too. Tickers, timers and everything else that asks for
+  /// a frame stay at [maxFps]. Below [maxFps] it is read as [maxFps]. A
+  /// terminal does not say how fast its display draws, so this is a cap, not
+  /// a sync to it.
   ///
   /// [logs] is where [log], `print` and uncaught errors go while [run]
   /// runs, by default a [LogSink] that also appends to the file `TWK_LOG`
@@ -341,7 +342,7 @@ final class TwkApp {
   final int maxInputFps;
 
   static int _inputFps(int maxFps, int? given, bool remote) {
-    final fps = given ?? (remote ? maxFps : 120);
+    final fps = given ?? (remote || maxFps < 60 ? maxFps : 120);
     return fps < maxFps ? maxFps : fps;
   }
 

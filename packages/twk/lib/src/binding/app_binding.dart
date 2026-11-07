@@ -125,7 +125,7 @@ enum ScreenMode {
 ///
 /// [maxFps] frames a second at most, 60 by default, and [maxInputFps] the
 /// frames input asks for (`TwkApp.maxInputFps`: 120 by default, [maxFps] on
-/// a remote terminal); [maxInlineRows] the
+/// a remote terminal or below 60); [maxInlineRows] the
 /// most rows the inline region grows to, null for the terminal's height,
 /// and [clearInlineOnExit] clears the region when the app ends instead of
 /// leaving it in the history; [logs] is where `log()` and `print` go (the
