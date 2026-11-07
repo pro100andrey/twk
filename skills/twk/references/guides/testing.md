@@ -9,7 +9,8 @@ order: 7
 same `runApp` binding — on a terminal in memory, under a fake clock. Keys,
 the mouse and pasted text go in as the bytes a terminal sends, and the
 screen is rebuilt from the bytes the app wrote by a strict terminal
-emulator, which the matchers read.
+emulator, which the matchers read. Timers and animations move only when the
+test says, so a test has no sleeps and no flakes.
 
 ```sh
 dart pub add dev:twk_test

@@ -8,7 +8,8 @@ The testing package for widgets of [twk](https://pub.dev/packages/twk): a test
 runs the real app — `runApp`'s binding on a terminal in memory — under a fake
 clock. Keys, the mouse and pasted text go in as the bytes a terminal sends,
 decoded by the core's parser, and the screen is rebuilt from the frames' bytes
-by a strict terminal emulator, which matchers and finders read.
+by a strict terminal emulator, which matchers and finders read. Timers and
+animations move only when the test says, so a test has no sleeps and no flakes.
 
 ```sh
 dart pub add dev:twk_test

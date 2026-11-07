@@ -17,7 +17,7 @@ packages in `templates/`, packed by `tool/pack_templates.dart` into
 `lib/src/record.dart`, over twk_term's `Pty`; `twk play` `lib/src/play.dart`;
 both write and read asciicast v2 with `lib/src/cast.dart` (`Cast`,
 `CastWriter`, exported by `package:twk_dev/twk_dev.dart`), put the terminal in
-raw mode with `lib/src/raw_tty.dart` and turn off what the output left on with
+raw mode with twk_term's `RawTty` and turn off what the output left on with
 `lib/src/modes.dart`. `twk tape` is `lib/src/tape.dart`, the command,
 `TapeRunner` (its pauses and the session's timeouts those of a `TapeClock`, the
 real time by default) and `redraw`; the runner is a client of twk_driver's

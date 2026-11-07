@@ -67,8 +67,7 @@ screen showing the answer in place.
 `test/bigtext/big_text_test.dart` draws each font, what it covers and what
 stands in, missing glyphs, braille and ASCII at an ambiguous width of 2,
 fitting, alignment and the style, on a screen whose frames go through the
-emulator of twk_test (`package:twk_test/vt.dart`, in
-`test/bigtext/shot.dart`).
+emulator of twk_test (its `Shot`).
 
 ## Syntax highlighting
 
@@ -131,7 +130,7 @@ level in each mode those qrencode puts in it. And the modes, the versions
 chosen, data too long, the remainder bits of Table 1, the alignment patterns,
 the generator polynomial of Annex A, the format and version information and
 the masks. `qr_code_test.dart` draws `QrCode` on a screen whose frames go
-through twk_test's emulator (`test/bigtext/shot.dart`) and reads the modules
+through twk_test's emulator (its `Shot`) and reads the modules
 back from its cells, a half block's color in its half and the background's in
 the other: versions 1 to 40 at each level, the quiet zone, the colors under
 either theme and given, two columns to a module at an ambiguous width of 2,
