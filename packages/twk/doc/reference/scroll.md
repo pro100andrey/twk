@@ -25,8 +25,8 @@ and while one is mounted the terminal reports presses and the wheel
 `ScrollPhysics` whose `shouldAcceptUserOffset` is false) it takes neither the
 wheel, which goes to the scrollable around it, nor the keys: it is then no stop
 of Tab and has no key hints; a controller, `jumpTo` and a scrollbar still move
-it. `Scrollable`, `SingleChildScrollView` and `ListView` take `physics`;
-`SelectionList`, `Table`, `TreeView`, `LogView` and `FilePicker` take none.
+it. `Scrollable`, `SingleChildScrollView`, `ListView` and `TreeView` take
+`physics`; `SelectionList`, `Table`, `LogView` and `FilePicker` take none.
 Its `ScrollPosition`, a `ChangeNotifier` whose listeners are
 told when the offset or the extents change: `pixels` in cells, kept from 0
 to `maxScrollExtent` once the viewport told it the extents (`applyExtents`; an
@@ -121,7 +121,7 @@ separator `i` between item `i` and item `i + 1`, as it builds the items, as
 they come into view, a screen reader leaving the separators out, and a
 `ListController` naming items, never separators.
 
-## `ListView`
+## `ListView(reverse: true)`
 
 `ListView(reverse: true)` shows item 0 at the bottom and the others above
 it, as a chat shows its messages, the newest first: offset 0 is the bottom,

@@ -45,8 +45,8 @@ that post `twk.reload` and `twk.restart`, only while the debug keys are
 taken, and say in the log that no tool listens.
 `test/exports_test.dart` checks that `lib/twk.dart` exports the library of
 every topic and that they load; that `lib/` holds besides it only
-`hooks.dart` and `provider.dart`, which export their own declarations,
-none of them a name `lib/twk.dart` exports; that it exports every core type a public
+`cli.dart`, `format.dart`, `hooks.dart`, `log.dart` and `provider.dart`,
+libraries of their own, none of whose names `lib/twk.dart` exports; that it exports every core type a public
 signature names, or a constructor of a core class it exports takes, but
 the render objects of the widgets, the parent data they put on them, the
 core's `TwkApp` and what the frame loop makes for the paint (`Presenter`,

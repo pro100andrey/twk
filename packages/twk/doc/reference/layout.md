@@ -91,7 +91,7 @@ its children make one run;
 ## `SplitView`
 
 `SplitView(panes:, direction:, controller:, shareEdges: false, type:,
-style:, focusedStyle:, pointerShapes: true)`, its `SplitPane(child:,
+style:, focusedStyle:)`, its `SplitPane(child:,
 minSize: 1, maxSize:, collapsible: false)`s side by side or one below
 another, a divider line between each two: the panes share the cells the
 dividers leave by the fractions of a `SplitController`, kept across resizes,
@@ -104,11 +104,10 @@ panes on either side of it), and then Left and Right (Up and Down between
 panes one below another) move it a cell, collapsing a collapsible pane it
 moves past the least of and expanding a collapsed one, and Home and End as
 far as it goes, the arrows hinted in a `KeyHintsBar`; focused or dragged, it
-is drawn in `focusedStyle` (the theme's `primary`) over `style`. With
-`pointerShapes`, where the terminal shows the pointer's shape, the pointer
-over a divider is `ewResize` (`nsResize` between panes one below another),
-and the terminal reports all motion; false leaves the pointer to the regions
-around the view. A collapsed pane gets no cells and is not painted, hit or
+is drawn in `focusedStyle` (the theme's `primary`) over `style`. By
+`ThemeData.pointerMode`, where the terminal shows the pointer's shape, the
+pointer over a divider is `ewResize` (`nsResize` between panes one below
+another), and the terminal reports all motion. A collapsed pane gets no cells and is not painted, hit or
 focusable, its dividers kept. A move sets the controller's `fractions` from
 the sizes it leaves, a pane it collapses keeping its share; an app saves and
 restores `fractions` and `collapsed` (`collapse`, `expand`, `isCollapsed`;

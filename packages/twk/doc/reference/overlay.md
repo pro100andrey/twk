@@ -341,8 +341,7 @@ Home()))`.
 ## `Window`
 
 `Window(title:, child:, key:, controller:, onClose:, resizable:,
-minimisable:, maximisable:, minWidth: 12, minHeight: 3, shadow:,
-pointerShapes: true)` is told apart from the others by its `key`, else by
+minimisable:, maximisable:, minWidth: 12, minHeight: 3, shadow:)` is told apart from the others by its `key`, else by
 its index; its `WindowController(left:, top:, width: 40, height: 12,
 minimised:, maximised:)` (`moveTo`, `resizeTo`), its own where none is
 given, holds where it asks to be. The windows are shown inside the layer,
@@ -357,13 +356,12 @@ a double click on the title bar maximises or restores it, and the buttons `─
 minimise, maximise and close it (`onClose`). With the title bar focused the
 arrows move it, Shift and the arrows resize it, Enter maximises or restores
 it, `m` minimises and `x` closes it (hinted). A maximised window neither
-moves nor resizes. With `pointerShapes`, where the terminal shows the
+moves nor resizes. By `ThemeData.pointerMode`, where the terminal shows the
 pointer's shape, the pointer shows what a press does: `grab` over the title
 bar and `grabbing` while it moves the window, `ewResize` over the left and
 right edges, `nsResize` over the bottom one, `nwseResize` and `neswResize`
 over the corners, none of them over a maximised window; the terminal then
-reports all motion. False leaves the pointer to the regions around it. A
-minimised one keeps its state, out of view and of the focus, as a chip in a
+reports all motion. A minimised one keeps its state, out of view and of the focus, as a chip in a
 strip on the layer's bottom row (in the order minimised, after the windows
 in Tab order), which a click, Enter or Space restores and focuses; the
 windows are shown above the strip. Maximising, restoring and minimising a

@@ -9,7 +9,7 @@ legend, long runs of siblings folded); `print` in an app goes to its log, and `L
 `log` and `print` writing to that sink, as they do in the app whose sink it is
 (a test or a tool that has no app), returning what `body` returns.
 
-## `Console`
+## `ConsoleController`
 
 `Console(controller:, child:, rows:)`, the log console: a
 `ConsoleController` over an app's `LogSink`

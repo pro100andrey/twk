@@ -161,7 +161,7 @@ nothing is selected.
 ## `Draggable<T>`
 
 `Draggable<T>(data:, feedback:, child:, childWhenDragging:, onDragStarted:,
-onDragCompleted:, onDragCanceled:, behavior:, pointerShapes: true)` drags
+onDragCompleted:, onDragCanceled:, behavior:)` drags
 its `data` with the left button once the mouse moves to another cell:
 `feedback` follows the mouse in the `Overlay` above (without one its build
 fails), placed where the child was at the press and moved as the mouse moved
@@ -175,11 +175,11 @@ first as a drag or a long press. A drag whose release the terminal did not
 report is canceled at the next press, or at motion with no button held; a
 `Draggable` that leaves the tree while dragged ends the drag. Mounted, it
 has the terminal report presses and releases, and motion with a button held
-only while it is pressed. With `pointerShapes`, where the terminal shows the
-pointer's shape, the pointer is `grab` over the child, `grabbing` while it
+only while it is pressed. By `ThemeData.pointerMode`, where the terminal shows
+the pointer's shape, the pointer is `grab` over the child, `grabbing` while it
 is dragged and `noDrop` while the drag is over targets none of which accepts
 it, as a `MouseRegion`'s `cursor` sets it, and the terminal reports all
-motion; false leaves the pointer to the regions around it.
+motion.
 
 ## `DragTarget<T>`
 

@@ -94,7 +94,7 @@ that is plain (`Enter`, `ret`, `cmd`); `toString` writes a combo as it is
 parsed (`KeyCombo(code)`, `KeyCombo.char`, `KeyCombo.fromEvent`, and
 `accepts` for a press or a repeat of the key). Without the kitty keyboard
 protocol a terminal sends some combos as others: `ctrl+i` as `tab`, `ctrl+m`
-and `ctrl+j` as `enter`, `ctrl+[` as `escape`, `ctrl+h` as `backspace`,
+and `ctrl+j` as `enter`, `ctrl+[` as `escape`, `ctrl+h` as `ctrl+backspace`,
 `ctrl+2` as `ctrl+space`, Ctrl, Shift and a letter as Ctrl and the letter,
 Ctrl or Shift with `enter` or `escape` as the key alone, and Super not at
 all.

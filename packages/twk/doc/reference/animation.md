@@ -54,7 +54,7 @@ and `elasticOut`, `Cubic(a, b, c, d)` as CSS's `cubic-bezier` and
 
 `Spinner(frames:, style:)` shows the frames of its `SpinnerFrames` in turn
 (null for the theme's `glyphs.spinner`, `dots`, braille, 80 ms each, in
-`Glyphs.unicode`, `line` in `Glyphs.ascii`; `dots` `line`, ASCII, 130 ms; `arc`, 100
+`Glyphs.unicode`, `line` in `Glyphs.ascii`; `line`, ASCII, 130 ms; `arc`, 100
 ms; or frames and an `interval` of one's own): the frame of the step of the
 app's clock the frame is in, so spinners of the same frames show the same
 one and step in the same frames, on one timer, building nothing; as wide as
