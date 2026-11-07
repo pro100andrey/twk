@@ -8,7 +8,7 @@ text
 │     FilePicker       ──────────────────────────────────────────────────────────│
 │     Form, FormFie…        ┌                                              ┐     │
 │     TabBar, TabBa…      ·   ┌─ ℹ Info ─────────────────────────────[×]─┐    ·  │
-│     KeyHintsBar             │ A newer version of twk is out: 0.2.0.    │       │
+│     KeyHintsBar             │ A newer version of twk is out: 0.3.0.    │       │
 │     StatusMessage…      ·   │                                  Update  │    ·  │
 │ ▎   Callout                 └──────────────────────────────────────────┘       │
 │     Hyperlink           ·                                                   ·  │

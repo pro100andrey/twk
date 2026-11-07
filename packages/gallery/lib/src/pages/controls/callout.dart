@@ -4,7 +4,7 @@ part of 'controls.dart';
 /// What a callout of each kind says, the button that acts on it, and its
 /// own title.
 const Map<StatusKind, (String, String, String)> _notices = {
-  StatusKind.info: ('A newer version of twk is out: 0.2.0.', 'Update', 'twk'),
+  StatusKind.info: ('A newer version of twk is out: 0.3.0.', 'Update', 'twk'),
   StatusKind.success: ('The build finished in 4.2 s.', 'Open it', 'Build'),
   StatusKind.warning: (
     'The disk is 95 % full: 2.1 GB are left.',

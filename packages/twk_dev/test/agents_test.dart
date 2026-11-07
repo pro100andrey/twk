@@ -42,7 +42,7 @@ void main() {
     project = p.normalize(root.absolute.path);
     File(p.join(project, 'pubspec.yaml')).writeAsStringSync(
       'name: demo\nenvironment:\n  sdk: ^3.13.5\ndependencies:\n'
-      '  twk: ^0.2.0\n',
+      '  twk: ^0.3.0\n',
     );
   });
   tearDown(() => root.deleteSync(recursive: true));

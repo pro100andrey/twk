@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.3.0
 
 - `key_names` reads the `shortcuts:` map of `Shortcuts`.
 - `wall_time_in_tests` reports a `Future.timeout` with no `onTimeout`.

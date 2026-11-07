@@ -391,42 +391,42 @@ packages:
       path: "../../../twk"
       relative: true
     source: path
-    version: "0.2.0"
+    version: "0.3.0"
   twk_core:
     dependency: "direct overridden"
     description:
       path: "../../../twk_core"
       relative: true
     source: path
-    version: "0.2.0"
+    version: "0.3.0"
   twk_dev:
     dependency: "direct dev"
     description:
       path: "../.."
       relative: true
     source: path
-    version: "0.2.0"
+    version: "0.3.0"
   twk_lints:
     dependency: "direct dev"
     description:
       path: "../../../twk_lints"
       relative: true
     source: path
-    version: "0.2.0"
+    version: "0.3.0"
   twk_term:
     dependency: "direct overridden"
     description:
       path: "../../../twk_term"
       relative: true
     source: path
-    version: "0.2.0"
+    version: "0.3.0"
   twk_test:
     dependency: "direct dev"
     description:
       path: "../../../twk_test"
       relative: true
     source: path
-    version: "0.2.0"
+    version: "0.3.0"
   typed_data:
     dependency: transitive
     description:

@@ -46,7 +46,7 @@ true` makes it a `FormatException`, for tests).
   capital of a letter typed with Shift), all keys as escape codes and their
   text, as kitty sends them.
 - **Answers**: DA1 (`CSI ? 62 ; 22 ; 52 c`), DA2, DA3, XTVERSION (`twk_term
-  0.2.0`), DSR 5 and 6, DECXCPR, DSR 15, 25, 26 and 996 (the color scheme,
+  0.3.0`), DSR 5 and 6, DECXCPR, DSR 15, 25, 26 and 996 (the color scheme,
   from the background), DECRQM for every mode it knows (0 for those it
   doesn't, 4 for 132 columns, smooth scrolling, reverse wraparound and xterm's
   meta and keypad variants), DECRQSS for SGR, DECSTBM, DECSCUSR, DECSCL and

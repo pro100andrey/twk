@@ -273,7 +273,7 @@ final class _Dispatch implements VtHandler {
         }
       case (0x3E, 0x71): // > q XTVERSION
         if (p.at(0) == 0) {
-          t._reply('\x1bP>|twk_term 0.2.0\x1b\\');
+          t._reply('\x1bP>|twk_term 0.3.0\x1b\\');
         }
       case (0x3F, 0x75): // ? u: the kitty keyboard flags asked for
         t._reply('\x1b[?${t.keyboardFlags}u');
