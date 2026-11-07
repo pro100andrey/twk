@@ -81,9 +81,9 @@ enum AgentsAction {
   /// There was one, the same: left as it is.
   left,
 
-  /// There was one, another, that the project changed since `twk agents`
-  /// wrote it (the manifest of the directory lists the hash it wrote, and
-  /// the file has another): it stays, and is named.
+  /// There was one, another, that is not as `twk agents` wrote it: the
+  /// manifest of the directory lists another hash, or does not list it, or
+  /// there is no manifest. It stays, and is named.
   edited,
 }
 
@@ -139,7 +139,8 @@ final class AgentsPlan {
   final List<String> edited;
 
   /// The manifest ([agentsManifest]) of each skill's directory, written
-  /// only where something else changes there.
+  /// where there is none, where something else changes there, or where a
+  /// file that is as the pack has it is listed otherwise.
   final List<AgentsChange> manifests;
 
   /// The files that are written, new or over another.
@@ -147,8 +148,8 @@ final class AgentsPlan {
     (c) => c.action != AgentsAction.left && c.action != AgentsAction.edited,
   );
 
-  /// The files of the skill that the project changed since `twk agents`
-  /// wrote them, by path: they stay as they are.
+  /// The files of the skill that are not as `twk agents` wrote them, by
+  /// path: they stay as they are.
   Iterable<String> get modified => [
     for (final c in changes)
       if (c.action == AgentsAction.edited) c.path,
@@ -156,7 +157,10 @@ final class AgentsPlan {
 
   /// Whether the project already has all of it: nothing to write, nothing
   /// to remove.
-  bool get isUpToDate => writes.isEmpty && removed.isEmpty;
+  bool get isUpToDate =>
+      writes.isEmpty &&
+      removed.isEmpty &&
+      manifests.every((c) => c.action == AgentsAction.left);
 
   /// Removes [removed] and the directories that are then empty, and writes
   /// [writes] and the manifests, the directories on the way made; a file
@@ -193,6 +197,19 @@ final class AgentsPlan {
   }
 }
 
+/// Whether the path [name] of [dir] goes through a link, its last part too:
+/// what it points at may be outside the project.
+bool _throughLink(String dir, String name) {
+  var path = dir;
+  for (final part in name.split('/')) {
+    path = p.join(path, part);
+    if (FileSystemEntity.isLinkSync(path)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /// A reason `twk agents` cannot write into a project, to be said as it is.
 final class AgentsException implements Exception {
   /// An exception that says [message].
@@ -215,12 +232,16 @@ final class AgentsException implements Exception {
 /// the manifest of the directory ([agentsManifest]) lists, from an older
 /// run, is in [AgentsPlan.removed] where it is still as that run wrote it,
 /// else in [AgentsPlan.edited], and stays; with no manifest nothing is
-/// removed. A file of the pack that the project changed since a run wrote
-/// it, which the manifest tells by the hash it lists, is [AgentsAction.edited]
-/// and stays (as does one the manifest does not list, where there is one);
-/// with no manifest it is written over. Throws
-/// an [AgentsException] where `AGENTS.md` cannot be merged into, or a skill's
-/// path is a file, and so nothing is changed.
+/// removed. A file of the pack that is not as a run wrote it, which the
+/// manifest tells by the hash it lists, is [AgentsAction.edited] and stays,
+/// as does one that differs from the pack and that no manifest lists:
+/// nothing says a run wrote it. Throws
+/// an [AgentsException] where `AGENTS.md` cannot be merged into, a skill's
+/// path is a file or a file's path in it a directory, and so nothing is
+/// changed. A link at a file's path, or on the way to it inside the skill's
+/// directory, is the project's: it stays as [AgentsAction.edited], and what
+/// it points at is not written. The directory itself may be a link, one skill
+/// shared by two directories: what is in it is written as in any other.
 AgentsPlan agentsPlan(
   String project, {
   Set<AgentsFile> files = const {...AgentsFile.values},
@@ -251,14 +272,20 @@ AgentsPlan agentsPlan(
     for (final MapEntry(key: name, value: bytes) in skill.entries) {
       final path = '${target.path}/$name';
       final file = File(p.joinAll([project, ...path.split('/')]));
+      final type = FileSystemEntity.typeSync(file.path, followLinks: false);
+      if (type == FileSystemEntityType.directory) {
+        // refused here, before apply has changed anything
+        throw AgentsException('$path is a directory');
+      }
+      final link = _throughLink(dir, name);
       final action = switch (file.existsSync()) {
+        false when link => AgentsAction.edited,
         false => AgentsAction.wrote,
         true when _same(file.readAsBytesSync(), bytes) => AgentsAction.left,
-        // a manifest that does not list it, or lists another hash than the
-        // file has: not what a run wrote
-        true
-            when listed.isNotEmpty &&
-                listed[name] != agentsHash(file.readAsBytesSync()) =>
+        true when link => AgentsAction.edited,
+        // no manifest, one that does not list it, or one that lists another
+        // hash than the file has: not what a run wrote
+        true when listed[name] != agentsHash(file.readAsBytesSync()) =>
           AgentsAction.edited,
         true => AgentsAction.changed,
       };
@@ -310,20 +337,27 @@ AgentsPlan agentsPlan(
     };
     final json = const JsonEncoder.withIndent('  ').convert({'files': hashes});
     final bytes = utf8.encode('$json\n');
+    // a file back at the pack's content is listed as what was written
+    bool listedOtherwise(AgentsChange c) =>
+        c.action == AgentsAction.left &&
+        listed[c.path.substring(target.path.length + 1)] != agentsHash(c.bytes);
     final writing =
         dropped > 0 ||
         changes.any(
           (c) =>
               c.file == target &&
-              c.action != AgentsAction.left &&
-              c.action != AgentsAction.edited,
+              (listedOtherwise(c) ||
+                  (c.action != AgentsAction.left &&
+                      c.action != AgentsAction.edited)),
         );
     manifests.add(
       AgentsChange(
         '${target.path}/$agentsManifest',
         switch (manifest.existsSync()) {
-          _ when !writing => AgentsAction.left,
+          // also where nothing else is written: from here on the project's
+          // edits are told from what a run wrote
           false => AgentsAction.wrote,
+          true when !writing => AgentsAction.left,
           true when _same(manifest.readAsBytesSync(), bytes) =>
             AgentsAction.left,
           true => AgentsAction.changed,
@@ -547,8 +581,8 @@ final class AgentsCommand extends Command<int> {
       "AGENTS.md of the project's own, which keeps all its text outside "
       'them, replaced where it has one. A second run writes over what the '
       'pack changed, leaves what is the same, and says so; files of the '
-      "project's own in the skills' directories are left. --dry-run "
-      'names what it would do.';
+      "project's own in the skills' directories, and those not as it wrote "
+      'them, are left. --dry-run names what it would do.';
 
   @override
   Future<int> run() async {
@@ -617,7 +651,14 @@ String describeAgents(AgentsPlan plan, {bool dryRun = false}) {
           .where((r) => r.startsWith('${target.path}/'))
           .toList();
       final drop = dryRun ? 'would remove' : 'removed';
+      final listing =
+          wrote == 0 &&
+          changed == 0 &&
+          plan.manifests.any(
+            (m) => m.file == target && m.action != AgentsAction.left,
+          );
       final said = [
+        if (listing) '${dryRun ? 'would write' : 'wrote'} its manifest',
         if (removing.isNotEmpty) '$drop ${_files(removing.length, target)}',
         if (wrote > 0)
           '${dryRun ? 'would write' : 'wrote'} ${_files(wrote, target)}',
@@ -627,7 +668,7 @@ String describeAgents(AgentsPlan plan, {bool dryRun = false}) {
           '${dryRun ? 'would add' : 'added'} ${_files(added, target)}',
         if (left > 0)
           'left ${_files(left, target)} as ${left == 1 ? 'it is' : 'they are'}',
-        if (edited > 0) 'kept ${_files(edited, target)} the project changed',
+        if (edited > 0) 'kept ${_files(edited, target)} not as it wrote them',
       ];
       out.writeln('  ${target.path.padRight(width)}  ${said.join(', ')}');
       for (final path in removing) {
@@ -648,8 +689,8 @@ String describeAgents(AgentsPlan plan, {bool dryRun = false}) {
   }
   if (plan.modified.isNotEmpty) {
     out.writeln(
-      'Left as they are, files of the skill that the project changed since '
-      "twk agents wrote them (delete one to have the skill's again): "
+      'Left as they are, files of the skill that are not as twk agents wrote '
+      "them (delete one to have the skill's again): "
       '${plan.modified.join(', ')}',
     );
   }

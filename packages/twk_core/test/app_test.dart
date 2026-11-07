@@ -537,8 +537,8 @@ void main() {
       await clock.elapseUntil(done);
     });
 
-    test('maxInputFps is 120 by default and maxFps where remote; below '
-        'maxFps it is read as maxFps', () {
+    test('maxInputFps is 120 by default and maxFps where remote or where '
+        'maxFps is lowered; below maxFps it is read as maxFps', () {
       TwkApp on(HeadlessTerminal t, {int? input, int fps = 60}) =>
           TwkApp(t, maxFps: fps, maxInputFps: input, environment: const {});
       expect(on(HeadlessTerminal()).maxInputFps, 120);
@@ -546,6 +546,9 @@ void main() {
       expect(on(HeadlessTerminal(remote: true)).maxInputFps, 60);
       expect(on(HeadlessTerminal(remote: true), input: 90).maxInputFps, 90);
       expect(on(HeadlessTerminal(), input: 30).maxInputFps, 60);
+      // a cap lowered to save work holds for input, unless input is given
+      expect(on(HeadlessTerminal(), fps: 30).maxInputFps, 30);
+      expect(on(HeadlessTerminal(), fps: 30, input: 120).maxInputFps, 120);
     });
   });
 

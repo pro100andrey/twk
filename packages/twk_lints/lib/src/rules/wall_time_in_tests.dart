@@ -151,7 +151,10 @@ bool _isFuture(Element? element) =>
 
 /// Whether the call [node] of `Future.timeout` says what to do at the end.
 bool _hasOnTimeout(MethodInvocation node) => node.argumentList.arguments.any(
-  (a) => a is NamedArgument && a.name.lexeme == 'onTimeout',
+  (a) =>
+      a is NamedArgument &&
+      a.name.lexeme == 'onTimeout' &&
+      a.argumentExpression is! NullLiteral,
 );
 
 /// Whether [duration] is a constant `Duration` of zero.

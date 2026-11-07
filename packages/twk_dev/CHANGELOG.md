@@ -1,33 +1,24 @@
 # Changelog
 
-## Unreleased
+## 0.3.0
 
 Added:
 
-- `twk create` asks, in a terminal, for what its flags did not say: the
-  template and the files for coding agents (the twk skill in
-  `.agents/skills/twk` and `.claude/skills/twk`, and the block of
-  `AGENTS.md`, written as `twk agents` writes them, after the package).
-  `--agents=agents-md,skill` says them, `--agents=none` says none; with
-  `--template` they ask nothing. Without a terminal it asks nothing and takes
-  the defaults as before (the `app` template, no files for agents). Ctrl+C
-  at a question writes nothing and exits with 130. `createApp`, `askCreate`
-  and `canAsk` are the writing, the asking and the check apart.
-- `twk agents`: writes the twk skill, the one that comes with this twk_dev
-  (`SKILL.md` and its `references/`), into a project's `.agents/skills/twk`
-  and `.claude/skills/twk`, and a block of twk's own between two markers
-  into its `AGENTS.md`, for a coding agent to learn twk from rather than
-  from what it remembers of Flutter. Run again, it writes over what a newer
-  twk_dev changed and says so, or says there is nothing to do and changes
-  no file; what the project's `AGENTS.md` has outside the markers, and files
-  of its own in the skills' directories, it leaves. Each skill directory
-  holds a manifest, `.twk-agents.json`, of the files `twk agents` wrote with
-  their hashes: a file a newer twk_dev dropped is removed (with a directory
-  it empties) where it is still as written, and stays, named, where the
-  project changed it, as does a file the skill still has that the project
-  changed; with no manifest yet, nothing is removed. `--directory` names the
-  project, `--dry-run` writes nothing. `agentsPlan` is the same as a
-  function, for a caller that chooses which of the three to write.
+- `twk create` asks, in a terminal, for what its flags did not say: the template
+  and the files for coding agents. `--agents=agents-md,skill` says them,
+  `--agents=none` says none. Without a terminal it asks nothing and takes the
+  defaults. `createApp`, `askCreate` and `canAsk` are the steps apart.
+- `twk agents` writes the twk skill into a project's `.agents/skills/twk` and
+  `.claude/skills/twk`, and a block between two markers into its `AGENTS.md`. Run
+  again, it updates what a newer twk_dev changed. A manifest, `.twk-agents.json`,
+  lists what it wrote: files not as it wrote them, and links, stay and are named.
+  `--directory` names the project, `--dry-run` writes nothing. `agentsPlan` is the
+  same as a function.
+
+Changed:
+
+- `twk create` makes a project take twk, twk_dev, twk_lints and twk_test at
+  `^0.3.0`.
 
 ## 0.2.0
 

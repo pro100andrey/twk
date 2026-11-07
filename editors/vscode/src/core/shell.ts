@@ -58,6 +58,7 @@ class Session {
   raw = false;
   lost: Buffer = Buffer.alloc(0);
   ended = false;
+  readonly ignoredTypes = new Set<number>();
 
   constructor(readonly socket: net.Socket) {}
 
@@ -258,8 +259,12 @@ export class TerminalShell {
   private frame(session: Session, type: number, payload: Buffer): void {
     const kind = appFrameOf(type);
     if (kind === undefined) {
-      // not of this version: a newer app may send what this one does not know
-      (this.options.log ?? ((m) => console.warn(m)))(`twk shell: ignored a frame of type ${type} from an app`);
+      // not of this version: a newer app may send what this one does not
+      // know, a great many of them, so each type is logged once
+      if (!session.ignoredTypes.has(type)) {
+        session.ignoredTypes.add(type);
+        (this.options.log ?? ((m) => console.warn(m)))(`twk shell: ignored a frame of type ${type} from an app`);
+      }
       return;
     }
     switch (kind) {

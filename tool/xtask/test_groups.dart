@@ -38,7 +38,10 @@ final _reasons = <String, RegExp>{
   ),
 };
 
-final _processTag = RegExp(r"^@Tags\(\[.*'process'.*\]\)", multiLine: true);
+final _processTag = RegExp(
+  r"^@Tags\(\[[^\]]*'process'[^\]]*\]\)",
+  multiLine: true,
+);
 
 /// Files left out by hand, for what a pattern cannot see: the value says
 /// what in the file a join would change.

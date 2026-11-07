@@ -465,6 +465,11 @@ final class _GestureDetectorState extends State<GestureDetector> {
 
   void _up(PointerEvent event) => _arena?.up(this, event);
 
+  // made once, not at each build: a list builds a detector a row
+  late final void Function(PointerEvent event) _onDown = _down;
+  late final void Function(PointerEvent event) _onUp = _up;
+  late final void Function(PointerEvent event) _onDrag = _drag;
+
   @override
   void dispose() {
     _arena?.leave(this);
@@ -481,9 +486,9 @@ final class _GestureDetectorState extends State<GestureDetector> {
       shape: widget.cursor,
       behavior: widget.behavior,
       child: Listener(
-        onPointerDown: listens ? _down : null,
-        onPointerUp: listens ? _up : null,
-        onPointerMove: _longPresses || _drags ? _drag : null,
+        onPointerDown: listens ? _onDown : null,
+        onPointerUp: listens ? _onUp : null,
+        onPointerMove: _longPresses || _drags ? _onDrag : null,
         behavior: widget.behavior,
         child: widget.child,
       ),

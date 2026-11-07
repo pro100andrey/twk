@@ -147,6 +147,23 @@ Future<void> settle(Future<int> exit) async {
     ]);
   }
 
+  Future<void> test_a_timeout_whose_handler_is_null_says_nothing() async {
+    const code = '''
+import 'dart:async';
+
+Future<void> settle(Future<int> exit) async {
+  await exit.timeout(const Duration(seconds: 5), onTimeout: null);
+}
+''';
+    await assertDiagnostics(code, [
+      lintAt(
+        code,
+        'timeout',
+        messageContainsAll: ["'Future.timeout' waits on the wall clock"],
+      ),
+    ]);
+  }
+
   Future<void> test_zero() async {
     await assertNoDiagnostics('''
 import 'dart:async';

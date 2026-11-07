@@ -168,6 +168,8 @@ final class CreateCommand extends Command<int> {
         dir: dir,
         checkout: checkout,
         overwrite: args.flag('force'),
+        // createApp plans again, with the template chosen by then, and warns
+        warn: false,
       );
     } on ValidationException catch (e) {
       for (final error in e.errors) {
@@ -434,12 +436,16 @@ Future<CreatedApp> createApp(
 /// is rewritten as mold plans it rather than by the template, so what
 /// the plan says of it, whether the one there is the same among it, is
 /// about the pubspec written.
+///
+/// With [warn] mold's warnings go to stderr: false for a plan made only to
+/// see whether it is refused, as [createApp] plans again.
 UnpackPlan createPlan(
   Template template,
   String name, {
   required String dir,
   String? checkout,
   bool overwrite = false,
+  bool warn = true,
 }) => const Unbundler().plan(
   bytes: template.archive,
   targetDir: dir,
@@ -449,7 +455,7 @@ UnpackPlan createPlan(
   rewrite: (path, bytes) => path == 'pubspec.yaml'
       ? utf8.encode(withTwkFrom(utf8.decode(bytes), checkout: checkout))
       : bytes,
-  onWarning: _warn,
+  onWarning: warn ? _warn : null,
 );
 
 /// [error]'s message, with the option of `twk create` that gets past it

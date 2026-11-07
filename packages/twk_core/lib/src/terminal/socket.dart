@@ -117,9 +117,17 @@ enum ShellFrame {
   }
 }
 
-/// Logs a frame of a type this version does not know, which is ignored.
-void _ignored(String from, int byte) =>
-    developer.log('ignored a frame of type $byte from $from', name: 'twk.wire');
+/// Logs a frame of a type this version does not know, which is ignored: once
+/// for each type of a connection, [seen] being its own, as a peer may send a
+/// great many.
+void _ignored(Set<int> seen, String from, int byte) {
+  if (seen.add(byte)) {
+    developer.log(
+      'ignored a frame of type $byte from $from',
+      name: 'twk.wire',
+    );
+  }
+}
 
 /// The header of a frame of [type] with a payload of [length] bytes.
 Uint8List frameHeader(int type, int length) => Uint8List(5)
@@ -328,10 +336,13 @@ final class SocketLink implements DeclaringLink {
   @override
   int? eraseChar;
 
+  /// The frame types [_ignored] logged of this connection.
+  final _ignoredTypes = <int>{};
+
   void _onFrame(int type, Uint8List payload) {
     final kind = ShellFrame.fromByte(type);
     if (kind == null) {
-      _ignored('the shell', type);
+      _ignored(_ignoredTypes, 'the shell', type);
       return;
     }
     switch (kind) {
@@ -786,7 +797,7 @@ final class TerminalShell {
   void _frame(_Session session, int type, Uint8List payload) {
     final kind = AppFrame.fromByte(type);
     if (kind == null) {
-      _ignored('an app', type);
+      _ignored(session.ignoredTypes, 'an app', type);
       return;
     }
     switch (kind) {
@@ -887,6 +898,9 @@ final class _Session {
 
   /// What puts the terminal back if it goes away ([AppFrame.lost]).
   List<int> lost = const [];
+
+  /// The frame types [_ignored] logged of this app.
+  final ignoredTypes = <int>{};
 
   var ended = false;
 

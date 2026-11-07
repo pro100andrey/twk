@@ -36,7 +36,7 @@ Widget build(BuildContext context) {
         SizedBox(
           width: 44,
           child: Callout.text(
-            'A newer version of twk is out: 0.2.0.',
+            'A newer version of twk is out: 0.3.0.',
             onDismissed: () => setState(() {
               _shown = false;
               _did = 'dismissed';

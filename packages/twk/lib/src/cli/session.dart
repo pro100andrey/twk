@@ -392,7 +392,8 @@ final class _RenderWarnOfNoRows extends RenderObject
     height = child.height;
     if (!_told && hasListWithoutRows(child)) {
       _told = true;
-      onNoRows();
+      // after the layout: it reaches the caller's onWarning or the log
+      scheduleMicrotask(onNoRows);
     }
   }
 

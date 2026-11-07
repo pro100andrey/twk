@@ -16,6 +16,7 @@ libc.dart function open
 libc.dart function pipe
 libc.dart function poll
 libc.dart function read
+libc.dart function sigaction
 libc.dart function signal
 libc.dart function tcgetattr
 libc.dart function tcsetattr

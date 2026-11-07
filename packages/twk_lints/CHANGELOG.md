@@ -1,12 +1,9 @@
 # Changelog
 
-## Unreleased
+## 0.3.0
 
-- `key_names` reads the `shortcuts:` map of `Shortcuts`, which twk takes by
-  name now.
-- `wall_time_in_tests` reports a `Future.timeout` with no `onTimeout`, which
-  fails saying `TimeoutException after 0:00:05` and nothing of what was awaited:
-  twk_test's `waitFor` names it.
+- `key_names` reads the `shortcuts:` map of `Shortcuts`.
+- `wall_time_in_tests` reports a `Future.timeout` with no `onTimeout`.
 
 ## 0.2.0
 

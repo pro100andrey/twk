@@ -42,7 +42,7 @@ void main() {
     project = p.normalize(root.absolute.path);
     File(p.join(project, 'pubspec.yaml')).writeAsStringSync(
       'name: demo\nenvironment:\n  sdk: ^3.13.5\ndependencies:\n'
-      '  twk: ^0.2.0\n',
+      '  twk: ^0.3.0\n',
     );
   });
   tearDown(() => root.deleteSync(recursive: true));
@@ -163,6 +163,54 @@ void main() {
 
     bool has(String path) => File(p.join(project, path)).existsSync();
 
+    test('a directory where the pack has a file is refused with nothing '
+        'changed', () async {
+      await agents();
+      final dir = p.join(project, dirs.first);
+      File(p.join(dir, 'SKILL.md')).deleteSync();
+      Directory(p.join(dir, 'SKILL.md')).createSync();
+      File(p.join(project, dirs.last, 'SKILL.md')).writeAsStringSync('old\n');
+      final before = snapshot(project);
+      final result = await agents();
+      expect(result.exitCode, 1);
+      expect(result.stderr, contains('SKILL.md is a directory'));
+      expectSame(snapshot(project), before);
+    });
+
+    test("a link where the pack has a file is the project's, and what it "
+        'points at is not written', () async {
+      await agents();
+      final outside = File(p.join(root.path, 'outside.md'))
+        ..writeAsStringSync('mine\n');
+      final path = p.join(project, dirs.first, 'SKILL.md');
+      File(path).deleteSync();
+      Link(path).createSync(outside.path);
+      final result = await agents();
+      expect(result.exitCode, 0, reason: '${result.stderr}');
+      expect(outside.readAsStringSync(), 'mine\n');
+      expect(FileSystemEntity.isLinkSync(path), isTrue);
+    });
+
+    test(
+      'nor is what a link on the way to a file of the pack points at',
+      () async {
+        await agents();
+        final inside = skillPaths().firstWhere((n) => n.contains('/'));
+        final part = inside.split('/').first;
+        final outside = Directory(p.join(root.path, 'outside'))..createSync();
+        final there =
+            File(p.join(outside.path, inside.split('/').skip(1).join('/')))
+              ..createSync(recursive: true)
+              ..writeAsStringSync('mine\n');
+        final linked = p.join(project, dirs.first, part);
+        Directory(linked).deleteSync(recursive: true);
+        Link(linked).createSync(outside.path);
+        final result = await agents();
+        expect(result.exitCode, 0, reason: '${result.stderr}');
+        expect(there.readAsStringSync(), 'mine\n');
+      },
+    );
+
     test('is written with the skill, listing each file of the pack with its '
         'hash, and is no file of the pack', () async {
       await agents();
@@ -226,13 +274,13 @@ void main() {
       File(p.join(project, path)).writeAsStringSync('my own SKILL\n');
       final dry = await agents(['--dry-run']);
       expect(dry.stdout, contains(path));
-      expect(dry.stdout, contains('project changed'));
+      expect(dry.stdout, contains('not as twk agents wrote'));
       final manifestBefore = read('.claude/skills/twk/$agentsManifest');
       final result = await agents();
       expect(result.exitCode, 0, reason: '${result.stderr}');
       expect(read(path), 'my own SKILL\n');
       expect(result.stdout, contains(path));
-      expect(result.stdout, contains('project changed'));
+      expect(result.stdout, contains('not as twk agents wrote'));
       expect(read('.claude/skills/twk/$agentsManifest'), manifestBefore);
       final before = snapshot(project);
       final again = await agents();
@@ -321,15 +369,71 @@ void main() {
       expect(result.stdout, contains('references/old.md'));
     });
 
-    test('a run with nothing to do writes no manifest', () async {
+    test('where the pack is there with no manifest, one is written and no '
+        "other file, so that the project's edits stay from then on", () async {
       await agents();
       for (final dir in dirs) {
         File(p.join(project, dir, agentsManifest)).deleteSync();
       }
-      final before = snapshot(project);
       final result = await agents();
-      expect(result.stdout, contains('nothing to do'));
+      expect(result.stdout, contains('wrote its manifest'));
+      expect(result.stdout, isNot(contains('nothing to do')));
+      for (final dir in dirs) {
+        expect(has('$dir/$agentsManifest'), isTrue, reason: dir);
+      }
+      final before = snapshot(project);
+      expect((await agents()).stdout, contains('nothing to do'));
       expectSame(snapshot(project), before);
+
+      const edit = 'the project wrote this\n';
+      final skill = File(p.join(project, dirs.first, 'SKILL.md'))
+        ..writeAsStringSync(edit);
+      await agents();
+      expect(skill.readAsStringSync(), edit);
+    });
+
+    test('a file back at the content of the pack is listed again, so that '
+        'the next pack writes over it', () async {
+      await agents();
+      final path = '${dirs.first}/SKILL.md';
+      final skill = File(p.join(project, path));
+      final pack = skill.readAsBytesSync();
+      skill.writeAsStringSync('the project wrote this\n');
+      final manifest = File(p.join(project, dirs.first, agentsManifest));
+      final json = jsonDecode(manifest.readAsStringSync()) as Map;
+      (json['files'] as Map).remove('SKILL.md');
+      manifest.writeAsStringSync(jsonEncode(json));
+      skill.writeAsBytesSync(pack);
+      expect((await agents()).stdout, contains('wrote its manifest'));
+      final listed = jsonDecode(manifest.readAsStringSync()) as Map;
+      expect((listed['files'] as Map)['SKILL.md'], agentsHash(pack));
+      expect(skill.readAsBytesSync(), pack);
+      expect((await agents()).stdout, contains('nothing to do'));
+
+      // a hash of another text, listed: the same
+      (listed['files'] as Map)['SKILL.md'] = agentsHash(utf8.encode('old'));
+      manifest.writeAsStringSync(jsonEncode(listed));
+      expect((await agents()).stdout, contains('wrote its manifest'));
+      expect((await agents()).stdout, contains('nothing to do'));
+    });
+
+    test('with no manifest a file that differs from the pack stays, and is '
+        'named: nothing says a run wrote it', () async {
+      await agents();
+      for (final dir in dirs) {
+        File(p.join(project, dir, agentsManifest)).deleteSync();
+      }
+      const copied = 'copied by hand\n';
+      final skill = File(p.join(project, dirs.first, 'SKILL.md'))
+        ..writeAsStringSync(copied);
+      final result = await agents();
+      expect(result.exitCode, 0, reason: '${result.stderr}');
+      expect(skill.readAsStringSync(), copied);
+      expect(result.stdout, contains('${dirs.first}/SKILL.md'));
+      // deleted, it is the skill's again
+      skill.deleteSync();
+      await agents();
+      expect(skill.readAsStringSync(), isNot(copied));
     });
   });
 

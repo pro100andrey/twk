@@ -1,265 +1,150 @@
 # Changelog
 
-## Unreleased
+## 0.3.0
 
 Breaking:
 
-- `Localizations` is `TwkLocalizations`: Flutter has a `Localizations` of its
-  own, which gives a widget the `Locale` and its delegates' objects, where this
-  one gives the words twk writes itself (`TwkStrings`).
-- `TweenAnimationBuilder` takes a `Tween` as Flutter's does: `tween:
-  IntTween(begin: 0, end: total)`, where it took `value:`, `from:` and a
-  constructor (`tween: IntTween.new`). The value runs from the tween's `begin`
-  at first, and to each new `end` from the one shown, the new tween's `begin`
-  not used. A `Tween` is immutable here, so `Tween.withEnds` is new: it makes
-  the tween of the same kind between two values, and a `Tween` of an app's own
-  (not `Tween<double>`, `IntTween`, `ColorTween`, `StyleTween`,
-  `EdgeInsetsTween` or `ThemeDataTween`) overrides it to be used in one.
+- Renamed:
+
+  | Was | Is |
+  | --- | --- |
+  | `Localizations` | `TwkLocalizations` |
+  | `TabView` | `TabBarView` |
+  | `WindowTitle` | `TerminalTitle` |
+  | `TaskStatus` | `TaskItemStatus` |
+  | `Link` | `Hyperlink` |
+  | `Mark` | `GlyphMark` |
+  | `debugDumpTree` | `debugDumpApp` |
+  | `DragDetails` | `DragStartDetails`, `DragUpdateDetails`, `DragEndDetails` |
+  | `DragListener` | `GestureDragStartCallback`, `GestureDragUpdateCallback`, `GestureDragEndCallback` |
+  | `GestureDetector`: `onDragStart`, `onDragUpdate`, `onDragEnd` | `onPanStart`, `onPanUpdate`, `onPanEnd` |
+  | `Listener`, `RenderListener`: `onDown`, `onUp`, `onMove`, `onDrag` | `onPointerDown`, `onPointerUp`, `onPointerHover`, `onPointerMove` |
+  | `ScrollMetrics`, `ScrollPosition`: `offset`, `maxOffset`, `viewportExtent` | `pixels`, `maxScrollExtent`, `viewportDimension` |
+  | `ScrollController`, `ListController`, `useScrollController`: `initialOffset` | `initialScrollOffset` |
+  | `Text`, `Text.rich`, `Text.line`, `Text.richLine`: `align` | `textAlign` |
+  | `StatusBar`, `DescriptionList`: `gap` | `spacing` |
+  | `Scrollbar`: `hideAfter` | `timeToFade` |
+  | `DragTarget`: `onWillAccept`, `onAccept` | `onWillAcceptWithDetails`, `onAcceptWithDetails` |
+  | `showDialog`: `dismissible` | `barrierDismissible` |
+  | `PopScope`: `onPopInvoked` | `onPopInvokedWithResult` |
+
+- `BoxConstraints`, `Flex`, `Row`, `Column`, `Wrap` and `Terminal`:
+  [twk_core's changelog](../twk_core/CHANGELOG.md).
+- `TweenAnimationBuilder` takes a `Tween`: `tween: IntTween(begin: 0, end: total)`
+  in place of `value:`, `from:` and a constructor. A `Tween` of an app's own
+  overrides the new `Tween.withEnds`.
 - `Action.invoke` returns `Object?` and `CallbackAction.onInvoke` is an
-  `Object? Function(T)`, as Flutter's: an action can give what it did back. An
-  `onInvoke: (_) {}` returns null instead: `(_) => null`. An `Action` that
-  overrides `invoke` with `void` still compiles.
+  `Object? Function(T)`: `onInvoke: (_) {}` is `(_) => null`.
 - `Semantics` and `SemanticsNode` take `checked`, `selected`, `expanded` and
-  `enabled` flat, as Flutter's `Semantics` does, in place of `state:`;
-  `SemanticsState` is removed. `enabled` has Flutter's sense, where
-  `SemanticsState.disabled` had the opposite one: `enabled: false` reads
-  `disabled`, `true` and null say nothing (`disabled: !x` is `enabled: x`).
-  `selected` is a `bool?` too. `Semantics.child` is optional. `role` and
-  `nodes` stay.
-- `StatusBar` and `DescriptionList` take `spacing`, as `Row` and `Column` do,
-  where they took `gap`; the render objects behind them have `spacing` too.
-  `Table`'s `columnGap` stays.
-- `Actions` and `Shortcuts` take `actions:` and `shortcuts:` by name, as
-  Flutter's do, where they took the map positionally. `Shortcuts.combos` still
-  takes its map first.
-- `showDialog`, `showToast` and `showContextMenu` take their `context` by name,
-  as Flutter's `showDialog` does, with `builder` (`showDialog`), `message`
-  (`showToast`) and `items` (`showContextMenu`), where they took them
-  positionally: `showDialog(context: context, builder: (context) => ...)`.
-- `GestureDetector` and `Pressable`: `onTap`, and `GestureDetector`'s
-  `onDoubleTap` and `onLongPress`, are `VoidCallback`s, as Flutter's, where
-  they took the `PointerEvent`. `onTapDown` takes `TapDownDetails`, and the
-  new `onTapUp` (on `Pressable` too, told before `onTap`) `TapUpDetails`, each
-  with `localPosition` and `globalPosition` in cells (`CellOffset`, `dx` and
-  `dy`) and the `event` for the button and the modifiers: where a tap, a double
-  tap or a long press was, and with which button, is `onTapUp`'s now. Flutter's
-  `kind` of the details is not there: a terminal reports none. `onLongPressEnd`
-  still takes the `PointerEvent`.
-- `DragDetails` is Flutter's `DragStartDetails`, `DragUpdateDetails` and
-  `DragEndDetails`: `onPanStart`, `onPanUpdate` and `onPanEnd` take one each,
-  and `DragListener` is `GestureDragStartCallback`, `GestureDragUpdateCallback`
-  and `GestureDragEndCallback`. Each has `localPosition` and `globalPosition`
-  in cells, a `CellOffset` (`dx`, `dy`), where it had `x` and `y`; the update
-  has `delta` for `dx` and `dy`, and the end no move. They keep `event` for the
-  button and the modifiers. Flutter's `sourceTimeStamp`, `kind`, `primaryDelta`,
-  `velocity` and `primaryVelocity` are not there: a terminal gives none.
-- `PopScope.onPopInvoked` is removed, as it is in Flutter:
-  `onPopInvokedWithResult` is told the same, with the result.
-- `debugDumpTree` is `debugDumpApp`, as Flutter names the function that prints
-  the element tree; it still takes a `BuildContext`.
-- `Scrollbar` takes `timeToFade`, as Flutter names it, where it took
-  `hideAfter`.
-- `DragTarget` takes `onWillAcceptWithDetails` and `onAcceptWithDetails`, as
-  Flutter names them, where it took `onWillAccept` and `onAccept`; they take the
-  same `DragTargetDetails`.
-- `showDialog` takes `barrierDismissible`, as Flutter names it, where it took
-  `dismissible`.
-- `Listener` and `RenderListener` take `onPointerDown`, `onPointerUp`,
-  `onPointerHover` and `onPointerMove`, as Flutter names them, where they took
-  `onDown`, `onUp`, `onMove` (motion with no button held, Flutter's hover) and
-  `onDrag` (motion with a button held, Flutter's move). `onScroll` stays.
-- `GestureDetector` takes `onPanStart`, `onPanUpdate` and `onPanEnd`, as Flutter
-  names them, where it took `onDragStart`, `onDragUpdate` and `onDragEnd`.
-- `ScrollMetrics` and `ScrollPosition` have `pixels`, `maxScrollExtent` and
-  `viewportDimension`, as Flutter names them, where they had `offset`,
-  `maxOffset` and `viewportExtent`; `ScrollController.offset` stays.
-  `ScrollController`, `ListController` and `useScrollController` take
-  `initialScrollOffset`, not `initialOffset`.
-- `TabView` is `TabBarView`, as Flutter names the content of a `TabBar`.
-- `Text`, `Text.rich`, `Text.line` and `Text.richLine` take `textAlign`, as
-  Flutter names it, where they took `align`; `RenderParagraph` keeps `align`.
-- `BoxConstraints` has `minWidth`, `maxWidth`, `minHeight` and `maxHeight`, and
-  `constrainWidth` and `constrainHeight`, as Flutter names them: they were
-  `minW`, `maxW`, `minH`, `maxH`, `constrainW` and `constrainH`.
-- `Flex`, `Row`, `Column` and `Wrap` take `spacing` and `runSpacing`, and
-  `RenderFlex` and `RenderWrap` have them, as Flutter names them: they were
-  `gap` and `runGap`.
-- `log`, `LogLevel`, `LogRecord` and `LogSink` are in `package:twk/log.dart`, out
-  of `twk.dart`, so that `twk.dart` beside `dart:math` no longer clashes over
-  `log`: an app that logs imports `log.dart`, and one that had `hide log` or
-  prefixed `dart:math` for it drops that where it does not import `log.dart`;
-  an app that imports both `log.dart` and `dart:math` still needs a prefix or a
-  `hide`.
-- `formatBytes`, `formatTook` and `ByteUnits` are in `package:twk/format.dart`,
-  out of `twk.dart`: an app that writes a size or a time, or sets a widget's
-  `byteUnits:`, imports it.
-- `Mark`, the base of `CellMark` and `TextMark`, is `GlyphMark`.
-- `WindowTitle` is `TerminalTitle`, as `TerminalProgress` is named: it sets the
-  terminal's title.
-- `TaskStatus` is `TaskItemStatus`, the status of a `TaskItem`.
-- `Link` is `Hyperlink`: an app that wrote `hide Link` for dart:io's `Link` drops it.
+  `enabled` in place of `state:`; `SemanticsState` is removed. `disabled: !x` is
+  `enabled: x`. `Semantics.child` is optional.
+- `Actions` and `Shortcuts` take `actions:` and `shortcuts:` by name.
+  `Shortcuts.combos` still takes its map first.
+- `showDialog`, `showToast` and `showContextMenu` take `context` by name, with
+  `builder`, `message` and `items`:
+  `showDialog(context: context, builder: (context) => ...)`.
+- `GestureDetector` and `Pressable`: `onTap`, `onDoubleTap` and `onLongPress` are
+  `VoidCallback`s. `onTapDown` takes `TapDownDetails` and the new `onTapUp`
+  `TapUpDetails`, with `localPosition` and `globalPosition` in cells (`CellOffset`,
+  `dx` and `dy`) and the `event`. `onLongPressEnd` still takes the `PointerEvent`.
+- The drag details have `localPosition` and `globalPosition`, the update `delta`,
+  and keep `event`.
+- `log`, `LogLevel`, `LogRecord` and `LogSink` moved to `package:twk/log.dart`;
+  `formatBytes`, `formatTook` and `ByteUnits` to `package:twk/format.dart`.
 - `twk.dart` no longer exports `ModeReport`, `KeyboardFlagsReport`,
-  `DeviceAttributes`, `ColorReport`, `CursorReport` and `UnknownSequence`, the
-  terminal's answers an app seldom reads: `package:twk_core/terminal.dart` has
-  them. A `switch` over `InputEvent` that named them ends in `_ => ...` instead.
-- `ScrollBehavior` and `ScrollConfiguration`, as Flutter has them, say what the
-  wheel does: `App(scrollBehavior:)` for the app, `ScrollConfiguration` for a
-  subtree. A `Scrollable` gathers the wheel's events into whole cells once a frame,
-  dense events a cell each with an acceleration, sparse ones 3 as before. Dense is
-  told by the events' timing, so it takes a mouse wheel too where a terminal sends
-  a notch as a burst: a notch is reported to move 3 rows where it moved 9 (kitty,
-  alacritty, Apple's Terminal) and 9 where it moved 27 (Ghostty, Warp).
-  `ScrollBehavior.fixed(3)` is a plain step an event. `wheelStep`,
-  `wheelAcceleration` and `WheelAcceleration` are gone, and a wheel moves the view
-  at the next frame, not in the event.
-- `Popover.onDismiss` is required: `null` for a popover the app never closes this
-  way.
-- `Ticker.binding` and `Steps.binding` are typed by what they use of it, the
-  time of the frame and frame callbacks, not `AppBinding?`: an `AppBinding` goes
-  in as before, and a test without an app gives twk_test's `FakeFrameClock`. Code
-  that read another member through them keeps its own `AppBinding`.
-- `Cli.current` is gone, with the zone value `Cli.run` set: the body gets its
-  `cli` as a parameter, and a program passes it to the helpers that use it. A
-  program that made its own `Cli()` closes it itself, as before. Nothing in
-  the packages read it.
-- `PointerMode.auto`, the default, shows the hand everywhere in a local session,
-  where a control had it on one screen and not on another: an app that sets
-  nothing now asks a terminal that shows pointer shapes for the mouse's motion
-  (mode 1003). In a remote session (`TerminalInfo.remote`) it asks for none, as
-  before. `PointerMode.off` asks for none anywhere, in a `Theme` around one
-  widget or the whole app. `TerminalStatus.handAsksMotion` is the rule.
+  `DeviceAttributes`, `ColorReport`, `CursorReport` and `UnknownSequence`:
+  `package:twk_core/terminal.dart` has them.
+- The wheel goes through `ScrollBehavior` and `ScrollConfiguration`:
+  `App(scrollBehavior:)` for the app, `ScrollConfiguration` for a subtree. A
+  `Scrollable` applies it once a frame, dense events a cell each with an
+  acceleration, sparse ones 3. `ScrollBehavior.fixed(3)` is a plain step.
+  `wheelStep`, `wheelAcceleration` and `WheelAcceleration` are gone.
+- `Popover.onDismiss` is required.
+- `Ticker.binding` and `Steps.binding` take what they use of it, not `AppBinding?`;
+  twk_test's `FakeFrameClock` is one.
+- `Cli.current` is gone: `Cli.run` gives the body its `cli` as a parameter.
+- `ThemeData.pointerMode`, `PointerMode.off`, `.auto` or `.on`, replaces
+  `ThemeData.handPointer`, `HandPointer` and the `pointerShapes` of `Window`,
+  `SplitView`, `Table`, `TreeTable` and `Draggable`. `PointerMode.auto`, the
+  default, shows the hand in a local session and asks a terminal that shows
+  pointer shapes for the mouse's motion (mode 1003), and for none in a remote one.
+  `TerminalStatus.handAsksMotion` is the rule.
 - A press on a cell a `GestureDetector`'s `tapAt` refuses goes to the detectors
-  around it, where the sites that moved to `tapAt` took it and did nothing: a
-  click on a `Stepper`'s step that can't be chosen, a `Calendar`'s day out of its
-  range or a `Select`'s empty row reaches what wraps them.
-- `ThemeData.handPointer`, `HandPointer` and the `pointerShapes` of `Window`,
-  `SplitView`, `Table`, `TreeTable` and `Draggable` are gone, see below.
-- `runApp` while a `Cli` session has the terminal throws a `TerminalException`,
-  where it drew and never got a key: `Cli.suspend` around it, or `Cli.close` first
-  ([twk_core's changelog](../twk_core/CHANGELOG.md)).
-
-Changed:
-
-- `TwkStrings`, a const class with English defaults, holds the words twk writes
-  itself (`ETA`, ` in 3.1 s`, `+3 more`, `Y/n`, refusals, prompts, filter hints)
-  and `decimalSeparator`. `Localizations(strings:, child:)` and
-  `TwkStrings.of(context)` give them to widgets, `Cli(strings:)`, `Cli.run` and
-  `Cli.runWithArgs` to a console. A guide shows it with slang.
-- `formatBytes`, `formatTook` and `ProgressTask.summary` take `decimalSeparator:`.
-- A confirmation also takes the first letters of `TwkStrings.yes` and `no`, after
-  `y` and `n`; a letter both words start with asks again.
-- `runApp` and `AppBinding` take `maxInputFps`
-  ([twk_core's changelog](../twk_core/CHANGELOG.md)).
-- A `Text` of eight rows or more that is edited without changing its size
-  repaints only the rows that changed, by itself: nothing to set.
-- `tailFile` reads a look through one handle: a file renamed over the name
-  between its length and its read is no longer read at the old range, its first
-  lines lost. A look with nothing to read opens nothing, so Windows does not
-  refuse the writer a rename, and `cancel` ends with the handle closed, under a
-  fake clock too.
-- A widget that watched a provider in one build and only selects in a later one
-  is told of what it selects, where it stayed told of every change.
-- `Semantics.nodes` keep their hints while the `Semantics` is not focused.
-- A popover closes when a layer over it gives the focus elsewhere as it closes,
-  where it stayed open without the focus.
-- A `ProgressList` that takes the room it needs takes that of its words, in
-  `TwkStrings.eta` and `moreTasks`, and lays out again when they change.
-- `Table` and `TreeTable` take `marks:`, a `SelectionController<Object>(multiple:
-  true)` that marks rows by key, beside the row selected. A checkbox column comes
-  before the columns; Space and a click on a checkbox toggle a mark, and marks
-  stay with their rows as they are sorted. A tree's node marks itself alone.
-- A dialog or menu opened from a `Popover` no longer dismisses it. A closing
-  dialog, menu or popover gives the focus back to the node that had it as it
-  opened, and Escape closes the layer the focus is in.
-- `twk shell` no longer drops an app that sends a frame of a type it does not
-  know: it is ignored and logged. The VS Code extension's shell does the same.
-- `AnsiStream.reset()` starts it over: the line, a character or an escape
-  sequence cut short, the style. A followed file that starts over uses it.
-- A row `SelectionList.itemEnabled` refuses, in a multiple list, has a blank for
-  its mark, where it drew a muted `[ ]`: such a row can be a group's header. One
-  that is selected, an option locked on, keeps its `[x]`.
-- `Cli.session()` is public: a program mounts a live widget, a `TaskList` with its
-  steps, below what it logs. A session a program closed is forgotten, the next one
-  asked for a new one.
-- `Cli.show` of a `Table`, `TreeTable` or `ListView` with items and no height for
-  them warns, in a pipe and in a live session, in a release build too, where the
-  rows went missing without a word.
-- The docs of `Cli` say what `Cli.suspend` is for around `runApp`, what Ctrl+C
-  reaches, and that what scrolls needs a height in `Cli.show`.
-- A row a `ListView` kept, rebuilt as it comes back, can be marked again before
-  the next build, where that failed an assert and ended the app with asserts on.
-- `GestureDetector.onTapDown` is told only of a press the detector takes part in,
-  not of a left press while another button is held, which no tap comes of.
-
-- `CliTerminal.promptShown(question)`, told as a prompt takes its answer: nothing
-  on the process's terminal, what a test's terminal answers by.
-- `Text.line` and `Text.richLine` take `align` and `overflow`: a line set right or
-  cut at its start needs the long form of `Text` no more.
-- `Cli.confirm` says what to press: `(y/n)` after the question, Tab moves the
-  highlight as Left and Right do, and Enter with no answer highlighted says
-  `answer y or n`, where a question with no default looked stuck.
-- A row a `ListView` keeps out of its window no longer rebuilds there: it builds
-  as it comes back. A `SelectionList`'s cursor moving rebuilt the kept rows too,
-  which asked `itemEnabled` and the like about an index the list no longer had.
-- What is dirty below a `LayoutBuilder` given a new widget waits for its build,
-  as in Flutter. It was rebuilt first, with the old widget above it, so a row
-  of a list could read a list that had shrunk with the old `itemCount` and
-  throw a `RangeError`.
-- A key flushes an `autofocus` still waiting, one a layout built, so it comes to
-  that node and not to the one that had the focus. `FocusManager.autofocusPending`
-  says one waits.
-- `copyToClipboard(context, text)` is exported: an app copies as a
-  `SelectionArea` and a `TextField` do, by OSC 52, wrapped inside tmux or GNU
-  screen.
-- `RadioGroup` and `ValueStepper` take `canRequestFocus`, as `Button` and
-  `Pressable` do: false for a control of the mouse only, which Tab passes by
-  and a click leaves the focus where it was.
-- A `SelectionArea` copies a blank line where rows lie between two `Text`s, as
-  between the paragraphs of a `MarkdownView`, which ran together; those
-  side by side or right under each other are joined by a line break, as
-  they were.
-- `MenuItem(shortcut:)`, a key of the item's own: shown on its right and
-  pressed while its menu is open, where a key had to be bound to the same
-  function to show and a letter in the label to be pressed.
-- `ThemeData.pointerMode`, `PointerMode.off`, `.auto` or `.on`, is the one setting
-  of the shapes the widgets set: it replaces `ThemeData.handPointer` and
-  `HandPointer`, and the `pointerShapes` of `Window`, `SplitView`, `Table`,
-  `TreeTable` and `Draggable`, which a `Theme` around them does now. Breaking.
-- The pointer follows the press. A `GestureDetector` with `onTap` shows the
-  hand by `ThemeData.pointerMode`, with nothing else to write; `cursor` puts
-  a `PointerShape` of its own in its place, `PointerShape.arrow` for a click
-  that presses nothing, and `tapAt` says which cells of a row a tap is on,
-  for the hand and the tap at once. `onTapDown` answers as the button goes
-  down.
-- The hand shows over everything a click presses, `RadioGroup`, `ConfirmInput`,
-  `Calendar`, `Heatmap`, `Window`'s buttons, `NumberInput`'s arrows and
-  `DatePicker`'s among them, which showed none. Rows of a list keep the arrow.
-- `Pressable(behavior:)`: `HitTestBehavior.opaque` takes a press on its empty
-  cells too.
-- Esc cancels a prompt of `package:twk/cli.dart` as Ctrl+C does, exit 130; with
-  suggestions open it hides them first.
+  around it.
+- `runApp` while a `Cli` session has the terminal throws a `TerminalException`:
+  `Cli.suspend` around it, or `Cli.close` first.
 
 Added:
 
-- `ValueChanged`, `ValueGetter` and `ValueSetter`, the function types of Flutter's, and `kReleaseMode` and `kDebugMode`, the build's mode as constants.
+- `TwkStrings`, the words twk writes itself and `decimalSeparator`:
+  `TwkLocalizations(strings:, child:)` and `TwkStrings.of(context)` for widgets,
+  `Cli(strings:)`, `Cli.run` and `Cli.runWithArgs` for a console.
+  `formatBytes`, `formatTook` and `ProgressTask.summary` take `decimalSeparator:`.
+- `runApp` and `AppBinding` take `maxInputFps`.
+- `Table` and `TreeTable` take `marks:`, a `SelectionController<Object>(multiple:
+  true)` that marks rows by key, with a checkbox column.
+- `ListView(padding:)`, `Table(padding:)` and `SingleChildScrollView(padding:)`,
+  which scroll with the content.
+- `Cli.session()`, `CliTerminal.promptShown(question)`.
+- `AnsiStream.reset()`.
+- `Text.line` and `Text.richLine` take `align` and `overflow`.
+- `MenuItem(shortcut:)`.
+- `copyToClipboard(context, text)`.
+- `RadioGroup` and `ValueStepper` take `canRequestFocus`.
+- `Pressable(behavior:)`, and `GestureDetector`'s `cursor` and `tapAt`.
+- `FocusManager.autofocusPending`.
+- `ValueChanged`, `ValueGetter`, `ValueSetter`, `kReleaseMode`, `kDebugMode`.
+- `Style.copyWith`, `SizedBox.square(dimension:)`, `DefaultTextStyle.merge` (which
+  merges onto the style above, unlike Flutter's).
+- `Focus(onFocusChange:)`, `FocusScope(onFocusChange:)`,
+  `FocusScopeNode.requestFocus([node])`.
+- `SingleTickerProviderStateMixin`. `AnimationController.forward`, `reverse`,
+  `animateTo` and `repeat` return a `Future<void>` that completes when the run ends
+  or is stopped; `dispose` leaves it pending. `AnimationController.toggle`,
+  `isCompleted` and `isDismissed` (also on `AnimationStatus`).
+- The rest of Flutter's `Curves`.
+- `Navigator.pushAndRemoveUntil`, `pushNamedAndRemoveUntil` and `popAndPushNamed`,
+  static and on `NavigatorState`.
+- `Slider(onChangeStart:, onChangeEnd:)`.
+- `BlockSemantics(blocking:)`, `State.reassemble`, `Element.reassemble` and
+  `AppBinding.reassemble`.
 
-- `Style.copyWith`, `SizedBox.square(dimension:)` and `DefaultTextStyle.merge`, which merges onto the style above as the plain constructor does (unlike Flutter's, which replaces it).
+Changed:
 
-- `Focus(onFocusChange:)` and `FocusScope(onFocusChange:)`, called with `hasFocus` when the node's focus changes; `FocusScopeNode.requestFocus([node])` focuses a node below the scope.
+- A `Text` of eight rows or more that is edited without changing its size repaints
+  only the rows that changed.
+- The pointer follows the press: a `GestureDetector` with `onTap` shows the hand by
+  `ThemeData.pointerMode`, over all that a click presses. Rows of a list keep the
+  arrow.
+- A confirmation takes the first letters of `TwkStrings.yes` and `no` too.
+  `Cli.confirm` says `(y/n)`, Tab moves the highlight, and Enter with no answer
+  highlighted says `answer y or n`.
+- Esc cancels a prompt of `package:twk/cli.dart`, exit 130; with suggestions open
+  it hides them first.
+- `Cli.show` of a `Table`, `TreeTable` or `ListView` with items and no height warns.
+- A closing dialog, menu or popover gives the focus back to the node that had it,
+  and Escape closes the layer the focus is in. A dialog or menu opened from a
+  `Popover` no longer dismisses it.
+- `twk shell` ignores and logs a frame of a type it does not know, as the VS Code
+  extension's shell does.
+- A row `SelectionList.itemEnabled` refuses, in a multiple list, has a blank for its
+  mark; a selected one keeps its `[x]`.
+- A row a `ListView` keeps out of its window builds as it comes back.
+- What is dirty below a `LayoutBuilder` given a new widget waits for its build.
+- A key flushes an `autofocus` still waiting.
+- A `SelectionArea` copies a blank line where rows lie between two `Text`s.
+- `GestureDetector.onTapDown` is told only of a press the detector takes part in.
 
-- `SingleTickerProviderStateMixin`; `AnimationController.forward`, `reverse`, `animateTo` and `repeat` return a `Future<void>` that completes when the run ends, and when something stops it (`stop`, `value` set, another run; `dispose` leaves it pending, as Flutter's does): unlike Flutter's `TickerFuture`, it does not stay pending after a stop, so an `await` does not hang. `AnimationController.toggle`, `isCompleted` and `isDismissed` (also on `AnimationStatus`).
+Fixed:
 
-- The rest of Flutter's `Curves`: `fastLinearToSlowEaseIn`, `fastEaseInToSlowEaseOut`, `easeInToLinear`, `linearToEaseOut`, the `easeIn`, `easeOut` and `easeInOut` of Sine, Quad, Cubic, Quart, Quint, Expo, Circ and Back (`easeInOutCubicEmphasized` as well), `slowMiddle`, `bounceIn`, `bounceInOut`, `elasticIn` and `elasticInOut`, with Flutter's values. The Back and elastic ones go out of 0..1.
-
-- `Navigator.pushAndRemoveUntil`, `pushNamedAndRemoveUntil` and `popAndPushNamed`, static and on `NavigatorState`. The routes `pushAndRemoveUntil` removes are removed, not popped, as `removeRoute` does it. `popAndPushNamed` is a `StateError` on the only route, as `pop` is.
-
-- `SingleChildScrollView(padding:)`, empty cells round the child that scroll with it.
-
-- `ListView(padding:)` (all its constructors) and `Table(padding:)`, an `EdgeInsets` that scrolls with the items as Flutter's `ListView.padding` does: the top rows come before the first item and the bottom ones after the last, in the scrollable extent (offset 0 shows the top ones empty), and the left and right columns inset every item and stay. A move to keep an item in view (`ListController.ensureIndexVisible`, a `Table`'s selection) shows the padding before the first item and after the last; `jumpToIndex` puts the item at the top. In a reverse list the insets are the screen's. A `Table`'s header stays above its rows and is inset by the left and right columns, so the columns keep their places. Flutter's `Table` has no padding; a `TreeTable` has none yet.
-
-- `Slider(onChangeStart:, onChangeEnd:)`, called with the value at the press of the mouse and at its release; a key or the wheel calls neither.
-
-- `BlockSemantics(blocking:)`; `State.reassemble` and `Element.reassemble`: a hot reload (`AppBinding.reassemble`, `ext.twk.reassemble`) tells each `State` of the app before it builds again. `WidgetBuilder` is spelled in the signatures that wrote `Widget Function(BuildContext)`.
+- `tailFile` reads a look through one handle: a rename over the name loses no
+  lines, and a look with nothing to read opens nothing.
+- A widget that watched a provider and later only selects is told of what it
+  selects.
+- `Semantics.nodes` keep their hints while the `Semantics` is not focused.
+- A popover closes when a layer over it gives the focus elsewhere.
+- A `ProgressList` lays out again when `TwkStrings.eta` and `moreTasks` change.
+- A row a `ListView` kept can be marked again before the next build.
 
 ## 0.2.0
 

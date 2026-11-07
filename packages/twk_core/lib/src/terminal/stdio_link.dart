@@ -42,6 +42,15 @@ final class StdioLink implements DrainingLink {
   @override
   int? get eraseChar => _tty?.eraseChar;
 
+  /// Returns once this process may touch its terminal: in the background it
+  /// stops until it is given it ([PosixTty.waitForForeground]). At once on
+  /// Windows and where stdin is no terminal.
+  static void waitForTerminal() {
+    if (!Platform.isWindows && stdin.hasTerminal) {
+      PosixTty.waitForForeground();
+    }
+  }
+
   @override
   void enterRaw() {
     if (Platform.isWindows) {
@@ -63,9 +72,7 @@ final class StdioLink implements DrainingLink {
       return;
     }
     // before anything touches the terminal: in the background, wait for it
-    if (stdin.hasTerminal) {
-      PosixTty.waitForForeground();
-    }
+    waitForTerminal();
     try {
       // put back as found: a parent program may have turned echo off itself
       _echo = stdin.echoMode;

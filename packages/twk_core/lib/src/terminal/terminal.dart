@@ -1032,6 +1032,12 @@ final class Terminal
     // fd 0 and the tty are one for the process: a second reader of them
     // would take keys from the first and the first would not know
     final stdio = !plain && isOwnTerminal(link);
+    if (stdio) {
+      // Before the signals are watched: a process stopped here has touched
+      // nothing, so SIGTERM ends it as it stands, where a watcher would wait
+      // for this isolate, which stops itself again.
+      waitForOwnTerminal();
+    }
     // The process's signals are watched before raw mode is entered, but
     // not over a program's own link. Until the terminal exists, Ctrl+C
     // goes to the probe's early input and SIGTERM only restores the
@@ -1064,6 +1070,11 @@ final class Terminal
     TraceWriter? inputTrace;
     TraceWriter? outputTrace;
     try {
+      // before the first await, and where the catch below puts it back: a
+      // second open is refused from here on
+      if (stdio) {
+        _stdioOpening = true;
+      }
       // the traces' paths are the process's: one file for all terminals
       final env = ofProcess ? environment : const <String, String>{};
       // one clock: reads and writes on one time line
@@ -1121,6 +1132,7 @@ final class Terminal
       );
       if (stdio) {
         _ofStdio = term;
+        _stdioOpening = false;
       }
       if (plain) {
         return term
@@ -1137,6 +1149,9 @@ final class Terminal
         .._enterModes()
         .._watchResize();
     } on Object {
+      if (stdio) {
+        _stdioOpening = false;
+      }
       final term = t;
       if (term != null) {
         try {
@@ -1179,13 +1194,18 @@ final class Terminal
   /// counted: each has a link of its own.
   static Terminal? _ofStdio;
 
+  /// Whether a terminal on the process's stdio is being opened, and so is
+  /// not [_ofStdio] yet: its probe takes a while.
+  static var _stdioOpening = false;
+
   /// Throws a [TerminalException] where another terminal holds the
   /// process's stdio (open, and not suspended), as [what] would be a second
   /// reader of it: raw mode would be entered twice (and left on), and keys
   /// go to either one.
   static void _refuseIfTaken(String what) {
     final other = _ofStdio;
-    if (other != null && !other._closed && !other._suspended) {
+    if (_stdioOpening ||
+        (other != null && !other._closed && !other._suspended)) {
       throw TerminalException(
         "the process's terminal cannot be $what while another terminal "
         'has it: suspend() that one first (and resume() it after), or '

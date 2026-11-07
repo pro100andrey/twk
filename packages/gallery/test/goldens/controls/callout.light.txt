@@ -18,7 +18,7 @@ text
 │     Hyperlink                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  dismissible         ▐  ●▌  │
 │     ListTile              ▐       ┌                                              ┐       │                             │
 │     StatusBar             ▐    ·    ┌─ ℹ Info ─────────────────────────────[×]─┐   ·     │  actions             ▐  ●▌  │
-│                           ▐         │ A newer version of twk is out: 0.2.0.    │         │                             │
+│                           ▐         │ A newer version of twk is out: 0.3.0.    │         │                             │
 │   OVERLAYS            12  ▐    ·    │                                  Update  │   ·     │  title                      │
 │     Overlay               ▐         └──────────────────────────────────────────┘         │   kind  own                 │
 │     App                        ·                                                   ·     │                             │

@@ -70,6 +70,15 @@ void main() {
       expect(nestingOf(inlines('${'*a ' * 65}b${' c*' * 65}')), 64);
       expect(nestingOf(inlines('${'![' * 65}a${'](x)' * 65}')), 64);
     });
+
+    test('emphasis built inside a link or an image counts towards it', () {
+      var text = 'x';
+      for (var i = 0; i < 40; i++) {
+        text = '![${'*a ' * 30}$text${' a*' * 30}](u)';
+      }
+      // one over: the bracket is measured before what is wrapped inside it
+      expect(nestingOf(inlines(text)), lessThanOrEqualTo(65));
+    });
   });
 
   group('blocks', () {

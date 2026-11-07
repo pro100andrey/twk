@@ -6,7 +6,7 @@ description: >-
 repository: https://github.com/pro100andrey/twk/tree/main/packages/twk_core
 issue_tracker: https://github.com/pro100andrey/twk/issues
 topics: [terminal, tui, cli, ansi, console]
-version: 0.2.0
+version: 0.3.0
 
 environment:
   sdk: ^3.13.5

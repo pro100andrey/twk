@@ -83,4 +83,56 @@ void main() {
     expect(bytes.substring(state), contains('\x1b[?1049h'));
     expect(said, contains('handed over 0 times'));
   }, timeout: const Timeout(Duration(minutes: 3)));
+
+  test('an app stopped for want of the terminal ends on SIGTERM, as `timeout` '
+      'sends it with SIGCONT, having touched nothing', () async {
+    final dir = await Directory.systemTemp.createTemp('twk_background_term');
+    addTearDown(() => dir.delete(recursive: true));
+    final out = '${dir.path}/out.bin';
+    final line =
+        '"${Platform.resolvedExecutable}" "$app" 2>&3 & '
+        r'job=$!; n=0; '
+        r'while [ $n -lt 400 ]; do '
+        r's=$(ps -o stat= -p $job); '
+        r'case "$s" in T*) break;; esac; '
+        r'n=$((n+1)); sleep 0.05; done; '
+        r'echo "job state: $s"; kill -TERM $job; kill -CONT $job; '
+        // a zombie passes `kill -0`, so ps says whether it is gone
+        r'n=0; while [ $n -lt 60 ]; do '
+        r's=$(ps -o stat= -p $job); case "$s" in Z*|"") break;; esac; '
+        r'n=$((n+1)); sleep 0.05; done; '
+        r'case "$s" in Z*|"") echo "job gone";; '
+        r'*) echo "job still there: $s"; kill -KILL $job;; esac';
+    final res = await runProcess(
+      'python3',
+      [
+        '../../tool/pty_run.py',
+        '--timeout',
+        '60',
+        '--input',
+        'none',
+        '--out',
+        out,
+        '--',
+        '/bin/sh',
+        '-c',
+        r'exec 3>&2 2>&0 "$@"',
+        'sh',
+        'bash',
+        '--norc',
+        '--noprofile',
+        '-i',
+        '-c',
+        line,
+      ],
+      environment: childEnvironment(),
+      includeParentEnvironment: false,
+      group: true,
+    );
+    final said = '${res.stdout}${res.stderr}';
+    final bytes = String.fromCharCodes(await File(out).readAsBytes());
+    expect(bytes, contains('job state: T'), reason: said);
+    expect(bytes, contains('job gone'), reason: '$bytes$said');
+    expect(bytes, isNot(contains('\x1b[?1049h')));
+  }, timeout: const Timeout(Duration(minutes: 2)));
 }
