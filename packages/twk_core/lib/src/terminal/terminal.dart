@@ -1033,8 +1033,6 @@ final class Terminal
     // would take keys from the first and the first would not know
     final stdio = !plain && isOwnTerminal(link);
     if (stdio) {
-      // taken before the first await: a second open is refused from here on
-      _stdioOpening = true;
       // Before the signals are watched: a process stopped here has touched
       // nothing, so SIGTERM ends it as it stands, where a watcher would wait
       // for this isolate, which stops itself again.
@@ -1072,6 +1070,9 @@ final class Terminal
     TraceWriter? inputTrace;
     TraceWriter? outputTrace;
     try {
+      // before the first await, and where the catch below puts it back: a
+      // second open is refused from here on
+      _stdioOpening = stdio;
       // the traces' paths are the process's: one file for all terminals
       final env = ofProcess ? environment : const <String, String>{};
       // one clock: reads and writes on one time line

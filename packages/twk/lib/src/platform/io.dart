@@ -160,10 +160,11 @@ Stream<TailEvent> tailFile(
       } on FileSystemException {
         return null;
       }
-      // given up on, the later identity: the handle is likelier the file's
+      // given up on, the later identity, the handle being likelier that
+      // file's, unless the name holds nothing by now
       final after = fileIdentity(path);
       if (before == after || tries >= 3) {
-        return (handle, after);
+        return (handle, after ?? before);
       }
       await handle.close();
     }
