@@ -186,6 +186,13 @@ void main() {
       expect(rewriteGuide('g.md', guide, const {}), guide);
     });
 
+    test('a linked picture leaves its link, the picture gone', () {
+      expect(
+        rewriteGuide('g.md', 'See [![a](s.svg)](other.md).\n', const {}),
+        'See [](other.md).\n',
+      );
+    });
+
     test('a link whose text is a code span is still a link', () {
       expect(
         rewriteGuide('g.md', 'See [`Text`](../dropped/x.md).\n', const {}),

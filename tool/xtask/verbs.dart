@@ -185,9 +185,12 @@ Future<int> groupTests(VerbContext c, Cpus cpus) async {
       if (arg.startsWith('--$name=')) int.tryParse(arg.split('=').last) ?? -1,
   ].lastOrNull;
   if ((option('groups') ?? 1) < 1 || (option('shuffle') ?? 0) < 0) {
+    final given = rest.where(
+      (a) => a.startsWith('--groups=') || a.startsWith('--shuffle='),
+    );
     c.log(
-      'group-tests: --groups is a number from 1, --shuffle one from 0, in '
-      '${rest.join(' ')}',
+      'group-tests: --groups is a number from 1, --shuffle one from 0: '
+      '${given.join(' ')}',
     );
     return ExitCode.invalidFile;
   }

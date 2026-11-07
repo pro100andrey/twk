@@ -1,6 +1,8 @@
 // Two opens at once of the process's terminal, in a pseudo-terminal
 // (tool/pty_run.py): the probe takes a while, and the second must not get
 // past the guard during it, entering raw mode twice beside a second reader.
+// Between the two, a terminal over a link of its own, which ends at once:
+// the first is still opening, and that one must not say otherwise.
 @Tags(['process'])
 @TestOn('linux || mac-os')
 library;

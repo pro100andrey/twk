@@ -294,10 +294,13 @@ String renderGroup(WidgetGroup g) {
 final _image = RegExp(r'!\[[^\]]*\]\([^)]*\)(?:<br>)?');
 final _link = RegExp(r'(?<!!)\[([^\]]*)\]\(([^)\s]*)\)');
 
-/// A code span, an [_image] or a [_link]: the span first, so that `f[i](e)`
-/// in one is left as code, while a link whose text has one is still a link.
-/// Its groups are the link's, which neither of the others has.
-final _spanOrLink = RegExp('`[^`\n]*`|${_image.pattern}|${_link.pattern}');
+/// A code span or a [_link]: the span first, so that `f[i](e)` in one is left
+/// as code, while a link whose text has one is still a link.
+final _spanOrLink = RegExp('`[^`\n]*`|${_link.pattern}');
+
+/// A code span or an [_image], which go before the links: a picture may be
+/// the text of one, and its `]` would end that text.
+final _spanOrImage = RegExp('`[^`\n]*`|${_image.pattern}');
 final _guideFile = RegExp(r'^[a-z0-9-]+\.md$');
 final _groupFile = RegExp(r'^\.\./widgets/[a-z0-9-]+\.md$');
 final _pageFile = RegExp(r'^\.\./widgets/([a-z0-9-]+/[a-z0-9-]+\.md)$');
@@ -328,33 +331,40 @@ final _fence = RegExp(
 );
 
 String _rewriteProse(String name, String prose, Map<String, String> anchors) =>
-    prose.replaceAllMapped(_spanOrLink, (m) {
-      final whole = m.group(0)!;
-      final target = m.group(2);
-      if (target == null) {
-        return whole.startsWith('`') ? whole : '';
-      }
-      final text = m.group(1)!;
-      if (RegExp('^[a-z]+:|^#').hasMatch(target)) {
-        return m.group(0)!;
-      }
-      final hash = target.indexOf('#');
-      final file = hash < 0 ? target : target.substring(0, hash);
-      if (_guideFile.hasMatch(file) || _groupFile.hasMatch(file)) {
-        return m.group(0)!;
-      }
-      if (file == '../widgets/README.md') {
-        return '[$text](../widgets.md)';
-      }
-      final page = _pageFile.firstMatch(file)?.group(1);
-      if (page != null) {
-        final to =
-            anchors[page] ??
-            (throw ReferenceError('guides/$name links to $file, not a page'));
-        return '[$text](../widgets/$to)';
-      }
-      return text;
-    });
+    prose
+        .replaceAllMapped(
+          _spanOrImage,
+          (m) => m.group(0)!.startsWith('`') ? m.group(0)! : '',
+        )
+        .replaceAllMapped(_spanOrLink, (m) {
+          final whole = m.group(0)!;
+          final target = m.group(2);
+          if (target == null) {
+            return whole;
+          }
+          final text = m.group(1)!;
+          if (RegExp('^[a-z]+:|^#').hasMatch(target)) {
+            return m.group(0)!;
+          }
+          final hash = target.indexOf('#');
+          final file = hash < 0 ? target : target.substring(0, hash);
+          if (_guideFile.hasMatch(file) || _groupFile.hasMatch(file)) {
+            return m.group(0)!;
+          }
+          if (file == '../widgets/README.md') {
+            return '[$text](../widgets.md)';
+          }
+          final page = _pageFile.firstMatch(file)?.group(1);
+          if (page != null) {
+            final to =
+                anchors[page] ??
+                (throw ReferenceError(
+                  'guides/$name links to $file, not a page',
+                ));
+            return '[$text](../widgets/$to)';
+          }
+          return text;
+        });
 
 /// Every file of the references, by its path under `skills/twk/references/`,
 /// from [docWidgets] (the files of `doc/widgets/` by path) and [docGuides]
