@@ -139,7 +139,8 @@ final class AgentsPlan {
   final List<String> edited;
 
   /// The manifest ([agentsManifest]) of each skill's directory, written
-  /// where there is none, or where something else changes there.
+  /// where there is none, where something else changes there, or where a
+  /// file that is as the pack has it is listed otherwise.
   final List<AgentsChange> manifests;
 
   /// The files that are written, new or over another.
@@ -147,8 +148,8 @@ final class AgentsPlan {
     (c) => c.action != AgentsAction.left && c.action != AgentsAction.edited,
   );
 
-  /// The files of the skill that the project changed since `twk agents`
-  /// wrote them, by path: they stay as they are.
+  /// The files of the skill that are not as `twk agents` wrote them, by
+  /// path: they stay as they are.
   Iterable<String> get modified => [
     for (final c in changes)
       if (c.action == AgentsAction.edited) c.path,
@@ -231,10 +232,10 @@ final class AgentsException implements Exception {
 /// the manifest of the directory ([agentsManifest]) lists, from an older
 /// run, is in [AgentsPlan.removed] where it is still as that run wrote it,
 /// else in [AgentsPlan.edited], and stays; with no manifest nothing is
-/// removed. A file of the pack that the project changed since a run wrote
-/// it, which the manifest tells by the hash it lists, is [AgentsAction.edited]
-/// and stays, as does one that differs from the pack and that no manifest
-/// lists: nothing says a run wrote it. Throws
+/// removed. A file of the pack that is not as a run wrote it, which the
+/// manifest tells by the hash it lists, is [AgentsAction.edited] and stays,
+/// as does one that differs from the pack and that no manifest lists:
+/// nothing says a run wrote it. Throws
 /// an [AgentsException] where `AGENTS.md` cannot be merged into, a skill's
 /// path is a file or a file's path in it a directory, and so nothing is
 /// changed. A link at a file's path, or on the way to it inside the skill's
@@ -652,8 +653,9 @@ String describeAgents(AgentsPlan plan, {bool dryRun = false}) {
       final drop = dryRun ? 'would remove' : 'removed';
       final listing =
           wrote == 0 &&
+          changed == 0 &&
           plan.manifests.any(
-            (m) => m.file == target && m.action == AgentsAction.wrote,
+            (m) => m.file == target && m.action != AgentsAction.left,
           );
       final said = [
         if (listing) '${dryRun ? 'would write' : 'wrote'} its manifest',
@@ -666,7 +668,7 @@ String describeAgents(AgentsPlan plan, {bool dryRun = false}) {
           '${dryRun ? 'would add' : 'added'} ${_files(added, target)}',
         if (left > 0)
           'left ${_files(left, target)} as ${left == 1 ? 'it is' : 'they are'}',
-        if (edited > 0) 'kept ${_files(edited, target)} the project changed',
+        if (edited > 0) 'kept ${_files(edited, target)} not as it wrote them',
       ];
       out.writeln('  ${target.path.padRight(width)}  ${said.join(', ')}');
       for (final path in removing) {

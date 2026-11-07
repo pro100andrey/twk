@@ -36,12 +36,12 @@ wrote with their hashes. Run again after an upgrade, it removes the files the
 new skill no longer has that are still as it wrote them; one the project
 changed stays and is named, as does a file that is in no manifest (the
 project's own) and a link where the manifest lists a file. A file the new
-skill still has that the project changed since the run that wrote it (its
-hash is not the one the manifest lists) stays too, and is named: delete it to
-have the skill's again. The manifest keeps the hash of what was written, so
-that such a file stays one until then. With no manifest yet it writes one,
-removes nothing and leaves what differs from the skill, naming it. `--dry-run`
-says what it would remove.
+skill still has that is not as a run wrote it (its hash is not the one the
+manifest lists, or it lists none) stays too, and is named: delete it to have
+the skill's again. The manifest keeps the hash of what was written, so that
+such a file stays one until it is deleted or as the skill has it. With no
+manifest yet it writes one, removes nothing and leaves what differs from the
+skill, naming it. `--dry-run` says what it would remove.
 
 ### `twk shell [-C <dir>]`
 

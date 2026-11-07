@@ -11,7 +11,7 @@ Added:
 - `twk agents` writes the twk skill into a project's `.agents/skills/twk` and
   `.claude/skills/twk`, and a block between two markers into its `AGENTS.md`. Run
   again, it updates what a newer twk_dev changed. A manifest, `.twk-agents.json`,
-  lists what it wrote: files the project changed, and links, stay and are named.
+  lists what it wrote: files not as it wrote them, and links, stay and are named.
   `--directory` names the project, `--dry-run` writes nothing. `agentsPlan` is the
   same as a function.
 

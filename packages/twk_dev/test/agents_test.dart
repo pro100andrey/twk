@@ -404,9 +404,17 @@ void main() {
       (json['files'] as Map).remove('SKILL.md');
       manifest.writeAsStringSync(jsonEncode(json));
       skill.writeAsBytesSync(pack);
-      await agents();
+      expect((await agents()).stdout, contains('wrote its manifest'));
       final listed = jsonDecode(manifest.readAsStringSync()) as Map;
       expect((listed['files'] as Map)['SKILL.md'], agentsHash(pack));
+      expect(skill.readAsBytesSync(), pack);
+      expect((await agents()).stdout, contains('nothing to do'));
+
+      // a hash of another text, listed: the same
+      (listed['files'] as Map)['SKILL.md'] = agentsHash(utf8.encode('old'));
+      manifest.writeAsStringSync(jsonEncode(listed));
+      expect((await agents()).stdout, contains('wrote its manifest'));
+      expect((await agents()).stdout, contains('nothing to do'));
     });
 
     test('with no manifest a file that differs from the pack stays, and is '
