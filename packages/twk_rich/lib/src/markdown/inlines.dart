@@ -241,6 +241,14 @@ final class _Node {
       next!.prev = sibling;
     }
     next = sibling;
+    // what is built under a link after its children went in counts too
+    for (
+      var n = parent, below = sibling.depth;
+      n != null && n.depth <= below;
+      n = n.parent
+    ) {
+      n.depth = ++below;
+    }
   }
 
   void unlink() {
