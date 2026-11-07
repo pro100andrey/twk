@@ -15,6 +15,11 @@ Added:
   `--directory` names the project, `--dry-run` writes nothing. `agentsPlan` is the
   same as a function.
 
+Changed:
+
+- `twk create` makes a project take twk, twk_dev, twk_lints and twk_test at
+  `^0.3.0`.
+
 ## 0.2.0
 
 - Takes twk, twk_core and twk_term at 0.2.0, which have breaking

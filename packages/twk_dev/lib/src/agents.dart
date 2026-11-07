@@ -81,9 +81,9 @@ enum AgentsAction {
   /// There was one, the same: left as it is.
   left,
 
-  /// There was one, another, that the project changed since `twk agents`
-  /// wrote it (the manifest of the directory lists the hash it wrote, and
-  /// the file has another): it stays, and is named.
+  /// There was one, another, that is not as `twk agents` wrote it: the
+  /// manifest of the directory lists another hash, or does not list it, or
+  /// there is no manifest. It stays, and is named.
   edited,
 }
 
@@ -336,13 +336,18 @@ AgentsPlan agentsPlan(
     };
     final json = const JsonEncoder.withIndent('  ').convert({'files': hashes});
     final bytes = utf8.encode('$json\n');
+    // a file back at the pack's content is listed as what was written
+    bool listedOtherwise(AgentsChange c) =>
+        c.action == AgentsAction.left &&
+        listed[c.path.substring(target.path.length + 1)] != agentsHash(c.bytes);
     final writing =
         dropped > 0 ||
         changes.any(
           (c) =>
               c.file == target &&
-              c.action != AgentsAction.left &&
-              c.action != AgentsAction.edited,
+              (listedOtherwise(c) ||
+                  (c.action != AgentsAction.left &&
+                      c.action != AgentsAction.edited)),
         );
     manifests.add(
       AgentsChange(
@@ -575,8 +580,8 @@ final class AgentsCommand extends Command<int> {
       "AGENTS.md of the project's own, which keeps all its text outside "
       'them, replaced where it has one. A second run writes over what the '
       'pack changed, leaves what is the same, and says so; files of the '
-      "project's own in the skills' directories are left. --dry-run "
-      'names what it would do.';
+      "project's own in the skills' directories, and those not as it wrote "
+      'them, are left. --dry-run names what it would do.';
 
   @override
   Future<int> run() async {
@@ -682,8 +687,8 @@ String describeAgents(AgentsPlan plan, {bool dryRun = false}) {
   }
   if (plan.modified.isNotEmpty) {
     out.writeln(
-      'Left as they are, files of the skill that the project changed since '
-      "twk agents wrote them (delete one to have the skill's again): "
+      'Left as they are, files of the skill that are not as twk agents wrote '
+      "them (delete one to have the skill's again): "
       '${plan.modified.join(', ')}',
     );
   }

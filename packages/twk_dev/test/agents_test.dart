@@ -274,13 +274,13 @@ void main() {
       File(p.join(project, path)).writeAsStringSync('my own SKILL\n');
       final dry = await agents(['--dry-run']);
       expect(dry.stdout, contains(path));
-      expect(dry.stdout, contains('project changed'));
+      expect(dry.stdout, contains('not as twk agents wrote'));
       final manifestBefore = read('.claude/skills/twk/$agentsManifest');
       final result = await agents();
       expect(result.exitCode, 0, reason: '${result.stderr}');
       expect(read(path), 'my own SKILL\n');
       expect(result.stdout, contains(path));
-      expect(result.stdout, contains('project changed'));
+      expect(result.stdout, contains('not as twk agents wrote'));
       expect(read('.claude/skills/twk/$agentsManifest'), manifestBefore);
       final before = snapshot(project);
       final again = await agents();
@@ -390,6 +390,23 @@ void main() {
         ..writeAsStringSync(edit);
       await agents();
       expect(skill.readAsStringSync(), edit);
+    });
+
+    test('a file back at the content of the pack is listed again, so that '
+        'the next pack writes over it', () async {
+      await agents();
+      final path = '${dirs.first}/SKILL.md';
+      final skill = File(p.join(project, path));
+      final pack = skill.readAsBytesSync();
+      skill.writeAsStringSync('the project wrote this\n');
+      final manifest = File(p.join(project, dirs.first, agentsManifest));
+      final json = jsonDecode(manifest.readAsStringSync()) as Map;
+      (json['files'] as Map).remove('SKILL.md');
+      manifest.writeAsStringSync(jsonEncode(json));
+      skill.writeAsBytesSync(pack);
+      await agents();
+      final listed = jsonDecode(manifest.readAsStringSync()) as Map;
+      expect((listed['files'] as Map)['SKILL.md'], agentsHash(pack));
     });
 
     test('with no manifest a file that differs from the pack stays, and is '
