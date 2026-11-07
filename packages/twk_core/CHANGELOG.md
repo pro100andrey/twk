@@ -33,7 +33,10 @@ Changed:
   so it is where `maxFps` is below 60: a cap lowered to save work holds for input.
 - An app started in the background (`app &`) stops as a job until `fg` gives it
   the terminal, touching neither the terminal's modes nor its output, where it
-  went raw on the shell's terminal and wrote its queries over the prompt.
+  went raw on the shell's terminal and wrote its queries over the prompt. So
+  does one under `timeout`, which takes it out of the foreground: it waits, opens
+  nothing and ends at the timeout, where 0.2.0 ran it. `timeout --foreground`
+  runs it.
 - A welcome or a size frame of the wrong shape ends the link with a
   `TerminalException`, which `SocketLink.connect` throws, where it ended the app.
 - Images: a sixel or iTerm2 image drawn over on Konsole has its pixels erased, as
