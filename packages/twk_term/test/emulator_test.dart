@@ -142,6 +142,16 @@ void main() {
       expect(wrapped.t.wrapPending, isTrue);
     });
 
+    test('without autowrap, the glyph it stays on is the last printed there, '
+        'not on a row printed in before', () {
+      final same = fed(r'\e[?7labc', width: 3)..feed('\u0301');
+      expect(same.t.cellText(2, 0), 'c\u0301');
+      final other = fed(r'\e[?7labc\e[2;1Hxy\e[1;3Hz\e[2;3H', width: 3)
+        ..feed('\u0301');
+      expect(other.t.cellText(1, 1), 'y\u0301');
+      expect(other.t.cellText(2, 1), ' ');
+    });
+
     test('a character split between writes', () {
       final r = Rig();
       r.t

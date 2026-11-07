@@ -314,9 +314,11 @@ final class TerminalEmulator {
   var _lastGlyph = -1;
   var _lastWidth = 1;
 
-  /// The column the last glyph printed starts in, and whether a control
-  /// since has ended its cluster (a mark in a later write has no base).
+  /// The column and the row the last glyph printed starts in, and whether a
+  /// control since has ended its cluster (a mark in a later write has no
+  /// base).
   var _lastCol = -1;
+  var _lastRow = -1;
   var _joinBroken = false;
 
   /// Window title (OSC 0, 2).
@@ -993,6 +995,7 @@ final class TerminalEmulator {
     _lastGlyph = data[end - 1];
     _lastWidth = 1;
     _lastCol = lastCol;
+    _lastRow = _y;
     _joinBroken = false;
   }
 
@@ -1097,9 +1100,9 @@ final class TerminalEmulator {
       return -1;
     }
     // with autowrap off the cursor stays on the glyph in the last column
-    var px = _pendingWrap || (!_autowrap && _x == _width - 1 && _lastCol == _x)
-        ? _x
-        : _x - 1;
+    final onLast =
+        !_autowrap && _x == _width - 1 && _lastCol == _x && _lastRow == _y;
+    var px = _pendingWrap || onLast ? _x : _x - 1;
     if (px < 0) {
       return -1;
     }
@@ -1170,6 +1173,7 @@ final class TerminalEmulator {
     _lastGlyph = glyph;
     _lastWidth = w;
     _lastCol = x;
+    _lastRow = _y;
     _joinBroken = false;
   }
 
