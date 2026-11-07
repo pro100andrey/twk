@@ -232,8 +232,8 @@ Warnings (1…
 ## Limits and the room
 
 `SizedBox` gives one size. `ConstrainedBox` keeps its child within limits
-and leaves the rest to it: `BoxConstraints(minWidth: minWidth, maxWidth: maxWidth, minHeight: minHeight, maxHeight: maxHeight)`, in
-cells, positional (twk's names, not Flutter's `maxWidth`), with
+and leaves the rest to it: `BoxConstraints(minWidth:, maxWidth:, minHeight:,
+maxHeight:)`, named as in Flutter and counted in cells, with
 `BoxConstraints.unbounded` for a limit that limits nothing and
 `BoxConstraints.tight(w, h)` for one size. Whatever is inside still gets
 no more than its parent gave. `LayoutBuilder` hands its builder the

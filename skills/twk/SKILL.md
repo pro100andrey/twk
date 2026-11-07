@@ -82,9 +82,11 @@ right (`+`).
 
 ## An app
 
-Depend on the packages by path, and override `twk` and `twk_core` with the
-checkout's. `dart pub get`, then `dart run bin/main.dart`: type a task and
-Enter adds it, Tab goes to the list, Space marks the task done there.
+Take the packages from pub.dev: `dart pub add twk dev:twk_test dev:test`. On
+a checkout of twk instead, depend on them by path and override those under
+them, as this pubspec does. `dart pub get`, then `dart run bin/main.dart`:
+type a task and Enter adds it, Tab goes to the list, Space marks the task
+done there.
 
 ```yaml
 # pubspec.yaml; <twk> is where the twk repository is checked out

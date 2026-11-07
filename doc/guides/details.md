@@ -340,7 +340,7 @@ from the bytes the app wrote. `dart test` runs it.
 - Write nothing to stdout or stderr while the app runs; `print` and
   `log()` already go to the log.
 - In the twk repository itself, a new public widget of `packages/twk`
-  also needs a row in its README, a build in
+  also needs a build in
   `packages/twk/test/sample_app/<topic>.dart` and a gallery page in
   `packages/gallery/lib/src/pages/<group>.dart`, without which
   `test/exports_test.dart` and `packages/gallery/test/widgets_test.dart`
@@ -363,4 +363,7 @@ dialog and toasts; `monitor.dart`, a sorted table and a tree;
 the Dart that builds it: the gallery, `packages/gallery` (`dart run
 packages/gallery/bin/gallery.dart`).
 
-To set an app up outside the repository, depend on the packages by path and override twk and twk_core with the checkout's: twk and twk_test take the packages under them by version, the others by path, and pub takes one source of a package.
+An app outside the repository takes the packages from pub.dev (`dart pub add
+twk dev:twk_test`). To run it on a checkout instead, depend on the packages
+by path and override those under them with the checkout's: the published
+packages take each other by version, and pub takes one source of a package.
