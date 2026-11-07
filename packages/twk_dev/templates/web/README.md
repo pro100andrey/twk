@@ -27,10 +27,11 @@ dart analyze
 dart format --output=none --set-exit-if-changed .
 ```
 
-`testTwk` (twk_test) runs the app on a terminal in memory under a fake
-clock: keys go in as a terminal sends them, the screen is read back. The
-page itself is checked by building it: `dart compile wasm web/main.dart -o
-web/main.wasm` must succeed.
+`testTwk` (twk_test) runs the app on a terminal in memory: keys go in as a
+terminal sends them, the screen is read back, and timers move only when the
+test says, so a test has no sleeps and no flakes. The page itself is checked
+by building it: `dart compile wasm web/main.dart -o web/main.wasm` must
+succeed.
 
 ## Files
 

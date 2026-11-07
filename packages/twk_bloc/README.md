@@ -1,27 +1,19 @@
 # twk_bloc — Bloc for twk widgets
 
-[Bloc](https://bloclibrary.dev) for widgets of [twk](../twk/README.md), as
-flutter_bloc is for Flutter's: blocs and cubits provided to a subtree and
+Run a [twk](../twk/README.md) app on [Bloc](https://bloclibrary.dev), as
+flutter_bloc does for Flutter's: blocs and cubits provided to a subtree and
 found by their type, and widgets that build and act on the states they
-emit. It takes package:bloc (`^9.2.1`, pure Dart) as a dependency, twk
-as a path one, and
-[twk_test](../twk_test/doc/guide.md), whose tester (`testTwk`) runs its
-tests, as a path dev dependency.
-
-It builds on twk's provider library, `package:twk/provider.dart`
-([twk's reference](../twk/doc/reference/provider.md)), as
-flutter_bloc does on provider: its providers are that library's
-(`BlocProvider` an `InheritedProvider` that tells its dependents of each
-state, `RepositoryProvider` one of any object), what it nests are its
-`SingleChildWidget`s, and blocs are found with its `context.read`,
-`context.watch` and `context.select`. A file may import both libraries:
-their providers mix in either's Multi widgets, and there is one `read`
-and one `watch`.
+emit.
 
 `lib/twk_bloc.dart` exports package:bloc with the widgets, and of
 `package:twk/provider.dart` `ReadContext`, `WatchContext`, `SelectContext`,
 `SingleChildWidget` and `ProviderNotFoundException`, so an app imports
 nothing else.
+
+The package is in this repository, not on pub.dev. It takes package:bloc
+(`^9.2.1`, pure Dart) as a dependency, twk as a path one, and
+[twk_test](../twk_test/doc/guide.md), whose tester (`testTwk`) runs its
+tests, as a path dev dependency.
 
 ## A counter
 
@@ -103,6 +95,18 @@ emits now.
 A widget that looks for its bloc depends on its provider only for which
 bloc it provides (`context.select` of its identity): the provider's
 states rebuild it through its own subscription, as its condition says.
+
+## On twk's provider library
+
+It builds on twk's provider library, `package:twk/provider.dart`
+([twk's reference](../twk/doc/reference/provider.md)), as
+flutter_bloc does on provider: its providers are that library's
+(`BlocProvider` an `InheritedProvider` that tells its dependents of each
+state, `RepositoryProvider` one of any object), what it nests are its
+`SingleChildWidget`s, and blocs are found with its `context.read`,
+`context.watch` and `context.select`. A file may import both libraries:
+their providers mix in either's Multi widgets, and there is one `read`
+and one `watch`.
 
 ## Checks
 

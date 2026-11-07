@@ -1,10 +1,13 @@
 # gallery
 
-The twk gallery: every widget of `twk`, `twk_rich` (its
-`package:twk_rich/image.dart` too) and `twk_term` on a page of its own, live, with its options and the Dart that
-builds it, and a run of a program on twk's console as a terminal shows it. It is its own design: how it looks and why, and the rules a
-page keeps, are in [doc/design.md](doc/design.md); how every page looks
-is held by its golden screens (below).
+See every widget of twk at work before you write a line: `twk`, `twk_rich`
+(its `package:twk_rich/image.dart` too) and `twk_term`, each on a page of its
+own, live, with its options to change and the Dart that builds it, and a run
+of a program on twk's console as a terminal shows it.
+
+It is its own design: how it looks and why, and the rules a page keeps, are
+in [doc/design.md](doc/design.md); how every page looks is held by its golden
+screens (below).
 
 | Dark, 120×36 | Light, 120×36 |
 | --- | --- |

@@ -5,6 +5,28 @@ hot reload, and tests that run the real app, with no sleeps and no flakes.
 
 ![The widget gallery: the Table page in the dark theme](packages/gallery/doc/shots/screens/table-dark.svg)
 
+## What it looks like
+
+A widget is the one you know from Flutter, and its test runs it for real:
+
+```dart
+final class _CounterState extends State<Counter> {
+  var _n = 0;
+
+  @override
+  Widget build(BuildContext context) => KeyBindings({
+    'up': () => setState(() => _n++),
+  }, child: Text('Count: $_n'));
+}
+
+testTwk('Up counts', (t) async {
+  await t.pumpWidget(const Counter(), size: (20, 3));
+  await t.press('up up up');
+  await t.pump();
+  expect(t, containsLine('Count: 3'));
+});
+```
+
 ## Getting started
 
 ```sh

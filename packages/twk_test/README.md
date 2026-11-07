@@ -8,8 +8,9 @@ screen the user would see.
 
 - **The real app:** `testTwk` runs your widget under `runApp`'s binding, not
   a stand-in, so a test sees what the user sees.
-- **A fake clock:** timers, animations and frames wait for the test, which
-  moves time with `pump`. No test waits on the wall clock.
+- **No sleeps, no flakes:** timers, animations and frames wait for the test,
+  which moves time with `pump`, so waiting out a five-second timeout costs a
+  test no time.
 - **Input as a terminal sends it:** `press('ctrl+s')`, `type('text')`,
   `paste`, `click` and `resize`, decoded by the same parser the app uses.
 - **The screen as text:** `lines`, `cell(x, y)` for colors and attributes,

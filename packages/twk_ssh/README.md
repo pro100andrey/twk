@@ -1,15 +1,10 @@
 # twk_ssh — serve twk apps over SSH
 
-A minimal SSH server for apps of [twk](../twk/README.md): each client
-that logs in gets a session of its own, on a terminal fed by the
-session's channel, as `ssh host` gets a shell. It is a package of its
-own so that apps which serve nothing over SSH do not carry it. The
-cryptography is
-[pinenacl](https://pub.dev/packages/pinenacl),
-[pointycastle](https://pub.dev/packages/pointycastle) and, for ML-KEM,
-[cipherlib](https://pub.dev/packages/cipherlib), and
-[dartssh2](https://pub.dev/packages/dartssh2) reads and writes the key
-files and is the client of the tests.
+Serve an app of [twk](../twk/README.md) over SSH: anyone with `ssh` gets it
+in their own terminal, with nothing to install. Each client that logs in
+gets a session of its own, as `ssh host` gets a shell. It is a package of
+its own so that apps which serve nothing over SSH do not carry it, and it
+is in this repository, not on pub.dev.
 
 **This is a minimal server, and it has not been audited.** It speaks
 the few algorithms below, does one thing (a session per connection),
@@ -35,21 +30,26 @@ Future<void> main() async {
 ```
 
 `serveSsh` runs an app per session that a client opens on a terminal,
-full screen, built by `app(session)`: who logged in, what the client
-sent (`session.user`, `environment`, `command`) reach the app through
-`session`, and nothing else does — the app's own twk settings
-(`TWK_DEBUG`, `TWK_LOG`, `TWK_EDITOR`) are read from an empty
-environment, neither the server's nor the client's. The terminal is the
-client's (`SshTerminalLink`, which `Terminal.overLink` opens a
-`Terminal` over): its `TERM`, size (80 by 24 where the client sent none,
-as `ssh -tt` without a terminal of its own does) and Backspace byte, its
-window's changes as resizes, what it types as input. The app quits as
-any does (`AppBinding.quit`, Ctrl+C): the terminal is restored and the
-client gets exit status 0; an app that ends with an error exits with 1,
-the error going to `onError`. A client that goes away quits its app. A
-session without a terminal (`ssh -T`, a command without `-t`) is told
-so and exits with 1. The server listens on the loopback interface
-unless `address` says otherwise. `example/serve.dart` serves a counter:
+full screen, built by `app(session)`:
+
+- **What reaches the app:** who logged in and what the client sent
+  (`session.user`, `environment`, `command`), through `session`, and nothing
+  else. The app's own twk settings (`TWK_DEBUG`, `TWK_LOG`, `TWK_EDITOR`) are
+  read from an empty environment, neither the server's nor the client's.
+- **The terminal is the client's** (`SshTerminalLink`, which
+  `Terminal.overLink` opens a `Terminal` over): its `TERM`, size (80 by 24
+  where the client sent none, as `ssh -tt` without a terminal of its own
+  does) and Backspace byte, its window's changes as resizes, what it types
+  as input.
+- **How it ends:** the app quits as any does (`AppBinding.quit`, Ctrl+C): the
+  terminal is restored and the client gets exit status 0. An app that ends
+  with an error exits with 1, the error going to `onError`. A client that
+  goes away quits its app.
+- **Without a terminal:** a session with none (`ssh -T`, a command without
+  `-t`) is told so and exits with 1.
+
+The server listens on the loopback interface unless `address` says
+otherwise. `example/serve.dart` serves a counter:
 
 ```sh
 dart run example/serve.dart        # ssh -p 2222 localhost
@@ -118,16 +118,18 @@ authorized_keys file at each attempt, any user name accepted (so
 there is `session.publicKey`). Lines with
 options (`from=`, `command=`, `restrict`) are skipped, since the server
 does not apply them: their keys are refused. There is no `none` method
-and no keyboard-interactive or host-based login. A connection gets
-`maxAttempts` failures (6), then it is ended, and `loginTimeout` (2
-minutes) to log in. At most `maxUnauthenticated` connections (10) may
+and no keyboard-interactive or host-based login.
+
+A connection gets `maxAttempts` failures (6), then it is ended, and
+`loginTimeout` (2 minutes) to log in. At most `maxUnauthenticated` connections (10) may
 be at it at once: one that comes while that many have not logged in is
 closed before a byte is sent or read, as OpenSSH's `MaxStartups` starts
 to do at 10. That keeps a flood of half-open logins from costing more
 than ten key exchanges at a time; it also means ten clients that never
 log in hold the door for `loginTimeout`, so a server facing the open
-internet wants a shorter one, and a firewall's per-address limit. An
-address whose connection ends without a login after a failed attempt is
+internet wants a shorter one, and a firewall's per-address limit.
+
+An address whose connection ends without a login after a failed attempt is
 refused for 5 seconds more for each, up to 10 minutes (`penalty`, an
 `SshPenalty`), as OpenSSH's `PerSourcePenalties`: guessing passwords
 costs time, not only connections. Behind a reverse proxy, a load balancer
@@ -143,6 +145,12 @@ on Windows the directory's permissions apply). `fingerprint` and
 `publicKeyLine` are what clients see and put in `known_hosts`.
 
 ## What it speaks
+
+The cryptography is [pinenacl](https://pub.dev/packages/pinenacl),
+[pointycastle](https://pub.dev/packages/pointycastle) and, for ML-KEM,
+[cipherlib](https://pub.dev/packages/cipherlib);
+[dartssh2](https://pub.dev/packages/dartssh2) reads and writes the key
+files and is the client of the tests.
 
 | | |
 |---|---|

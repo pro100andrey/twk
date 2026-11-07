@@ -37,13 +37,15 @@ dart pub get
 dart run twk_dev:twk run bin/main.dart
 ```
 
-`twk create` asks which app and which files for coding agents to write (give
+`my_app` here is the notes app: a list beside the note chosen, full screen.
+`twk run` runs it in your terminal. Edit a file in `my_app/lib/` and save:
+the app shows the change, and keeps its state. Ctrl+G H starts it again,
+Ctrl+Q quits.
+
+`twk create` asks which app and which files for coding agents to write. Give
 `--template` and `--agents=agents-md,skill`, or `--agents=none`, to ask
-nothing; without a terminal it never asks: the notes app, no files for
-agents). `my_app` here is the notes app: a list beside the note
-chosen, full screen. `twk run` runs it in your terminal. Edit a file in
-`my_app/lib/` and save: the app shows the change, and keeps its state.
-Ctrl+G H starts it again, Ctrl+Q quits.
+nothing; without a terminal it never asks, and writes the notes app with no
+files for agents.
 
 The app takes `twk_dev` as a dev dependency, so `dart run twk_dev:twk` runs
 the version its lock file names. In a second terminal in the same directory,
