@@ -251,9 +251,18 @@ AgentsPlan agentsPlan(
     for (final MapEntry(key: name, value: bytes) in skill.entries) {
       final path = '${target.path}/$name';
       final file = File(p.joinAll([project, ...path.split('/')]));
+      final type = FileSystemEntity.typeSync(file.path, followLinks: false);
+      if (type == FileSystemEntityType.directory) {
+        // refused here, before apply has changed anything
+        throw AgentsException('$path is a directory');
+      }
+      // a link is the project's: what it points at may be outside of it
+      final link = type == FileSystemEntityType.link;
       final action = switch (file.existsSync()) {
+        false when link => AgentsAction.edited,
         false => AgentsAction.wrote,
         true when _same(file.readAsBytesSync(), bytes) => AgentsAction.left,
+        true when link => AgentsAction.edited,
         // a manifest that does not list it, or lists another hash than the
         // file has: not what a run wrote
         true

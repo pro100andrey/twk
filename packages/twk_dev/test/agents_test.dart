@@ -163,6 +163,34 @@ void main() {
 
     bool has(String path) => File(p.join(project, path)).existsSync();
 
+    test('a directory where the pack has a file is refused with nothing '
+        'changed', () async {
+      await agents();
+      final dir = p.join(project, dirs.first);
+      File(p.join(dir, 'SKILL.md')).deleteSync();
+      Directory(p.join(dir, 'SKILL.md')).createSync();
+      File(p.join(project, dirs.last, 'SKILL.md')).writeAsStringSync('old\n');
+      final before = snapshot(project);
+      final result = await agents();
+      expect(result.exitCode, 1);
+      expect(result.stderr, contains('SKILL.md is a directory'));
+      expectSame(snapshot(project), before);
+    });
+
+    test("a link where the pack has a file is the project's, and what it "
+        'points at is not written', () async {
+      await agents();
+      final outside = File(p.join(root.path, 'outside.md'))
+        ..writeAsStringSync('mine\n');
+      final path = p.join(project, dirs.first, 'SKILL.md');
+      File(path).deleteSync();
+      Link(path).createSync(outside.path);
+      final result = await agents();
+      expect(result.exitCode, 0, reason: '${result.stderr}');
+      expect(outside.readAsStringSync(), 'mine\n');
+      expect(FileSystemEntity.isLinkSync(path), isTrue);
+    });
+
     test('is written with the skill, listing each file of the pack with its '
         'hash, and is no file of the pack', () async {
       await agents();
