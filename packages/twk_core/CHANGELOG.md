@@ -4,131 +4,79 @@
 
 Breaking:
 
-- `BoxConstraints` has `minWidth`, `maxWidth`, `minHeight` and `maxHeight`, and
-  `constrainWidth` and `constrainHeight`, as Flutter names them: they were
-  `minW`, `maxW`, `minH`, `maxH`, `constrainW` and `constrainH`.
-- `Flex`, `Row`, `Column` and `Wrap` take `spacing` and `runSpacing`, and
-  `RenderFlex` and `RenderWrap` have them, as Flutter names them: they were
-  `gap` and `runGap`.
-- `log`, `LogLevel`, `LogRecord` and `LogSink` are out of `twk_core.dart`: they
-  are in `package:twk_core/terminal.dart` (and `package:twk/log.dart`).
+- `BoxConstraints` takes its bounds by name: `BoxConstraints(maxWidth: n)`, a
+  bound left out limiting nothing. `minW`, `maxW`, `minH`, `maxH`, `constrainW`
+  and `constrainH` are `minWidth`, `maxWidth`, `minHeight`, `maxHeight`,
+  `constrainWidth` and `constrainHeight`.
+- `Flex`, `Row`, `Column`, `Wrap`, `RenderFlex` and `RenderWrap`: `gap` and
+  `runGap` are `spacing` and `runSpacing`.
+- `log`, `LogLevel`, `LogRecord` and `LogSink` moved from `twk_core.dart` to
+  `package:twk_core/terminal.dart` (and `package:twk/log.dart`).
+- `AppFrame` and `ShellFrame` replace the integer constants of `Wire`, which
+  keeps `protocol` and `maxPayload`. The bytes on the wire are unchanged.
 - A process has one terminal: `Terminal.open` on its own stdio throws a
-  `TerminalException` while another is open there and not suspended, in a release
-  build too, where the second took keys from the first and the tty stayed raw. A
-  terminal suspended gives way, and `resume` takes the stdio back or throws where
-  another has it. Terminals over a link are independent of it.
-
-Changed:
-
-- The shell wire's frames have a type per direction: `AppFrame` and `ShellFrame`
-  replace the integer constants of `Wire`, which keeps `protocol` and
-  `maxPayload`. A frame of a type the receiver does not know is ignored and logged
-  (`twk.wire`) on both sides. The bytes on the wire are unchanged.
-- Frames keep to a grid of `maxFps`: the next is due a gap after the last was
-  due, so a timer's lateness no longer adds up and 60 means 60. A frame late by a
-  gap or more starts the grid again.
-- `TwkApp(maxInputFps:)`: frames that input asks for come up to 120 a second by
-  default, tickers and the rest staying at `maxFps`. In a remote session it is
-  `maxFps` unless given, as scrolling at 120 writes about a third more bytes, and
-  so it is where `maxFps` is below 60: a cap lowered to save work holds for input.
-- An app started in the background (`app &`) stops as a job until `fg` gives it
-  the terminal, touching neither the terminal's modes nor its output, where it
-  went raw on the shell's terminal and wrote its queries over the prompt. So
-  does one under `timeout`, which takes it out of the foreground: it waits, opens
-  nothing and ends at the timeout, where 0.2.0 ran it. `timeout --foreground`
-  runs it.
-- A welcome or a size frame of the wrong shape ends the link with a
-  `TerminalException`, which `SocketLink.connect` throws, where it ended the app.
-- Images: a sixel or iTerm2 image drawn over on Konsole has its pixels erased, as
-  a scroll would move them onto cells no row writes, and rows committed above one
-  in an inline region print the region again; in a fixed viewport an image no
-  longer overwrites the cursor the viewport saved; a placement moved onto an
-  identical one takes the new background.
-- A jump in a `RenderList` with an `itemExtent` takes one division, not a walk of
-  the items.
-- `RenderLog.add` asks for a frame only when the line can show: one below a log
-  scrolled back is painted when scrolled into view.
-- `RenderParagraph.keepsPaint`, false by default and settable: the paragraph is a
-  repaint boundary that repaints only the rows that differ, over the styles its
-  parent left there, and an edit that holds its size leaves the parent alone. It
-  must not be drawn over other objects' glyphs or be the tree's root. With it off,
-  painting costs what it did before.
-- `RenderParagraph(autoKeepsPaint:)` turns to keeping by itself, at eight rows or
-  more, after layouts that held its size, where no glyph lies under it; `Text`
-  sets it.
-- `TextPainter.prepare` and `draw`, which `paint` is both, and `tracksDamage` with
-  `changedRows`: the rows the last paint drew otherwise than the one before.
-- The presenter writes less and looks at less: over blanks it changes only what a
-  blank shows (`StyleTable.nearBlank`), a log's new line 8 % fewer bytes and one
-  beside a scrollbar 12 %; and once rows of a frame stop shifting the others are
-  told by a few cells, a full repaint of text taking half the time.
-
-- A repaint boundary's cells do not depend on what was painted in them before: a
-  viewport, a list, a log, or a box or text that is a boundary fills with its pen
-  and, where that has no foreground, the terminal's own (`StyleTable.ownPen`),
-  where text in a pen of no foreground took the colour of what scrolled away.
-  `Canvas.fill` keeps what is under a pen of no foreground, as a highlight needs.
-- A `RenderEffect` keeps a two-column glyph across its edge whole: the second
-  half outside takes the first half's style, a half left alone is put back as a
-  blank, and a repaint boundary in it under such a glyph shows its new paint,
-  where it was lost until a whole repaint.
-
-- What a `TextPainter` paints does not depend on a query asked before it: spans
-  given since the layout are painted as `textRangeAt`, `cellAt` and `columnsOf`
-  take them, where they showed only once a query had split them.
-
-- A box title with a line break stays whole when its pen changes, where it was
-  cut at the break.
-
-- A `RenderWrap` with no children lays out whatever its alignments, where
-  `spaceAround` across its runs divided by zero: a `Wrap` whose last child went
-  turned into an error.
-
-- A SIGTSTP from outside (`kill -TSTP`) does nothing while the app has the
-  terminal on Linux and macOS, where it stopped the process with the terminal
-  raw, on the alternate screen, the cursor hidden. Dart can't watch it, to give
-  the terminal back first. Ctrl+Z stops the app for the shell as before.
-
-- A terminal that reads nothing blocks nothing: on Linux and macOS `StdioLink`
-  writes without blocking, through a descriptor of its own that the shell does
-  not share, and keeps what is not taken, where `stdout` blocked
-  the main isolate in write(2), with no timer, key or signal handled until the
-  terminal read again: SIGTERM, Ctrl+C or an error ended nothing and left the
-  terminal raw.
-
-- SIGHUP restores the terminal and exits with 129 on Linux and macOS too, where
-  it left it raw on the alternate screen; one the process was started ignoring
-  (`nohup`) stays ignored. `Terminal.close` restores the modes when its terminal
-  took nothing for a second, or after five seconds on a link that can't say,
-  where a flush that did not end kept it for good; a slow terminal that reads
-  gets all of the exit sequence.
-
-- `bidiMirror` finds every character: the table was in the order of the Unicode
-  data file, not by code point, so a right-to-left run left six characters from
-  U+1DB03 to U+1DB09 unmirrored.
-
-- `Canvas.mergeRun` says it returns the columns it advanced, two for a wide glyph
-  of the run, and keeps a wide glyph whole: `under` leaves one the run's edge
-  or the clip cuts in its own style, where it painted one half, and a wide
-  glyph of the run is drawn as `Canvas.run` draws it, with its width, as the
-  documentation said, where it took one cell and asserted.
-
-- `TerminalInfo.remote`, whether the terminal is at the far end of a network: as
-  it declares (`TerminalDeclaration.remote`), else by `SSH_TTY` or
-  `SSH_CONNECTION` in its environment. `DeclaringLink` and `TerminalDeclaration`
-  are exported for a link that knows. `HeadlessTerminal(remote:)` for tests.
-
-Breaking:
-
-- `BoxConstraints` takes its bounds by name, as Flutter's does, a bound left out
-  limiting nothing: `BoxConstraints(maxW: n)`, where it was
-  `BoxConstraints(0, n, 0, BoxConstraints.unbounded)`.
+  `TerminalException` while another is open there and not suspended, and
+  `resume` while another has it. Terminals over a link are independent.
+- An app in the background stops until it has the terminal: `app &` until `fg`.
+  `timeout ./app` stops it too, and it ends at the timeout without opening; use
+  `timeout --foreground ./app`.
 
 Added:
 
-- `BoxConstraints.loose` and `expand`, `copyWith`, `loosen`, `enforce`, `tighten`, `deflate`, `widthConstraints` and `heightConstraints`, `hasTightWidth`, `hasBoundedWidth` and `hasInfiniteWidth` (and for the height), and `biggest` and `smallest` (a `({int width, int height})`, there being no `Size`); `EdgeInsets.symmetric` and `EdgeInsets.fromLTRB`. `EdgeInsets.x` and `EdgeInsets.y` stay.
+- `TwkApp(maxInputFps:)`, the cap on frames that input asks for: 120 by default,
+  `maxFps` in a remote session or where `maxFps` is below 60.
+- `RenderParagraph.keepsPaint`: the paragraph is a repaint boundary that repaints
+  only the rows that differ. It must not be drawn over other objects' glyphs or
+  be the tree's root. `RenderParagraph(autoKeepsPaint:)`, which `Text` sets, turns
+  to it at eight rows or more, after layouts that held its size.
+- `TextPainter.prepare` and `draw`, which `paint` is both, and `tracksDamage` with
+  `changedRows`.
+- `TerminalInfo.remote`, from `TerminalDeclaration.remote` or `SSH_TTY` and
+  `SSH_CONNECTION`. `DeclaringLink` and `TerminalDeclaration` are exported.
+  `HeadlessTerminal(remote:)` for tests.
+- `BoxConstraints.loose`, `expand`, `copyWith`, `loosen`, `enforce`, `tighten`,
+  `deflate`, `widthConstraints` and `heightConstraints`, `hasTightWidth`,
+  `hasBoundedWidth` and `hasInfiniteWidth` (and for the height), `biggest` and
+  `smallest` (a `({int width, int height})`).
+- `EdgeInsets.symmetric` and `EdgeInsets.fromLTRB`.
+- `RenderList(padding:)`, an `EdgeInsets` around the items that scrolls with them.
+- `StyleTable.nearBlank` and `StyleTable.ownPen`.
 
-- `RenderList(padding:)`, an `EdgeInsets` around the items that scrolls with them: its top rows are the start of the content and its bottom ones the end (`onMetrics` and `scrollOffset` count them in, offset 0 shows the top ones empty), and the left and right columns inset every item, laid out that much narrower. `EdgeInsets.zero` by default, and then the list does what it did.
+Changed:
+
+- Frames keep to a grid of `maxFps`; a frame late by a gap or more starts it
+  again.
+- A frame of a type the receiver does not know is ignored and logged (`twk.wire`)
+  on both sides, once a type on a connection.
+- A welcome or a size frame of the wrong shape ends the link with a
+  `TerminalException`, which `SocketLink.connect` throws.
+- SIGHUP restores the terminal and exits with 129 on Linux and macOS. One the
+  process was started ignoring (`nohup`) stays ignored.
+- `kill -TSTP` does nothing while the app has the terminal on Linux and macOS.
+  Ctrl+Z stops the app for the shell as before.
+- `StdioLink` writes without blocking on Linux and macOS, through a descriptor of
+  its own, and keeps what the terminal does not take.
+- `Terminal.close` restores the modes when its terminal took nothing for a
+  second, or after five seconds on a link that can't say.
+- A repaint boundary's cells do not depend on what was painted in them before: it
+  fills with its pen. `Canvas.fill` keeps what is under a pen of no foreground.
+- `Canvas.mergeRun` returns the columns it advanced and keeps a wide glyph whole.
+- `RenderLog.add` asks for a frame only when the line can show.
+- A jump in a `RenderList` with an `itemExtent` takes one division.
+- The presenter writes fewer bytes over blanks and compares fewer cells once rows
+  stop shifting.
+
+Fixed:
+
+- Images on Konsole, in an inline region and in a fixed viewport: pixels left
+  behind, a region not printed again, the saved cursor overwritten, a moved
+  placement keeping its old background.
+- A `RenderEffect` keeps a two-column glyph across its edge whole.
+- A `TextPainter` paints spans given since the layout whether or not a query came
+  first.
+- A box title with a line break stays whole when its pen changes.
+- A `RenderWrap` with no children and `spaceAround` no longer divides by zero.
+- `bidiMirror` finds U+1DB03 to U+1DB09.
 
 ## 0.2.0
 

@@ -4,20 +4,17 @@
 
 Breaking:
 
-- A test fails on an error its app logged, a build that threw above all, unless
-  it takes it with `TwkTester.takeErrors()`, as `tester.takeException()` in
-  Flutter: a build error was only logged, and the next frame built over it, so
-  the test passed on broken code. Reading `t.logs` takes nothing.
+- A test fails on an error its app logged, unless it takes it with
+  `TwkTester.takeErrors()`. Reading `t.logs` takes nothing.
+
+Added:
 
 - `waitFor` and `waitUntil` take `state`: what a failure says of where things
-  stood, the screen, the output, the processes.
-- `TwkTester.pumpWidget(remote:)`: the terminal of a remote session.
-- `FakeCliTerminal.interactive(answers:)` types an entry as each question shows,
-  where `input` all went to the first one, and `FakeCliTerminal.onPrompt` is told
-  of each question, for what a test does between two answers.
-- `find.textContaining(pattern)`, the `Text`s with a match of a `String` or a
-  `RegExp` in their string or their spans joined, where `find.text` takes the
-  whole of it.
+  stood.
+- `TwkTester.pumpWidget(remote:)`.
+- `FakeCliTerminal.interactive(answers:)`, an entry typed as each question shows,
+  and `FakeCliTerminal.onPrompt`.
+- `find.textContaining(pattern)`, a `String` or a `RegExp`.
 
 ## 0.2.0
 

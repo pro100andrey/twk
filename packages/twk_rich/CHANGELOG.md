@@ -4,26 +4,20 @@
 
 Breaking:
 
-- `BoxConstraints` has `minWidth`, `maxWidth`, `minHeight` and `maxHeight`, and
-  `constrainWidth` and `constrainHeight`, as Flutter names them: they were
-  `minW`, `maxW`, `minH`, `maxH`, `constrainW` and `constrainH`.
-- `Flex`, `Row`, `Column` and `Wrap` take `spacing` and `runSpacing`, and
-  `RenderFlex` and `RenderWrap` have them, as Flutter names them: they were
-  `gap` and `runGap`.
+- `BoxConstraints`, `Flex`, `Row`, `Column` and `Wrap`:
+  [twk_core's changelog](../twk_core/CHANGELOG.md).
 
-- Inlines of Markdown nest 64 deep at most, past which their
-  delimiters stay text, where nesting some thousands deep overflowed the stack.
-- A highlighted escape takes the whole character after its backslash, where one
-  beyond U+FFFF was split between two tokens, in every language.
-- A `JsonView` filter marks the whole grapheme cluster it matched, where a key
-  with a character beyond U+FFFF or a combining mark lost it.
+Changed:
 
-- A `MarkdownView` asks for the mouse's motion by `PointerMode.auto` in a local
-  session, as every hand does now, and for none in a remote one.
+- Inlines of Markdown nest 64 deep at most; past that their delimiters stay text.
+- A `MarkdownView` and its links follow `ThemeData.pointerMode`: `PointerMode.auto`
+  asks for the mouse's motion in a local session and for none in a remote one,
+  `PointerMode.off` shows no hand.
 
-- A link in a `MarkdownView` shows the hand by `ThemeData.pointerMode`, as a
-  `Text`'s link does: `PointerMode.auto` asks the terminal for no motion, where
-  a view with a link always did, and `PointerMode.off` shows none.
+Fixed:
+
+- A highlighted escape takes the whole character after its backslash.
+- A `JsonView` filter marks the whole grapheme cluster it matched.
 
 ## 0.2.0
 
