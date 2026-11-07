@@ -139,7 +139,7 @@ final class AgentsPlan {
   final List<String> edited;
 
   /// The manifest ([agentsManifest]) of each skill's directory, written
-  /// only where something else changes there.
+  /// where there is none, or where something else changes there.
   final List<AgentsChange> manifests;
 
   /// The files that are written, new or over another.
@@ -156,7 +156,10 @@ final class AgentsPlan {
 
   /// Whether the project already has all of it: nothing to write, nothing
   /// to remove.
-  bool get isUpToDate => writes.isEmpty && removed.isEmpty;
+  bool get isUpToDate =>
+      writes.isEmpty &&
+      removed.isEmpty &&
+      manifests.every((c) => c.action == AgentsAction.left);
 
   /// Removes [removed] and the directories that are then empty, and writes
   /// [writes] and the manifests, the directories on the way made; a file
@@ -230,8 +233,8 @@ final class AgentsException implements Exception {
 /// else in [AgentsPlan.edited], and stays; with no manifest nothing is
 /// removed. A file of the pack that the project changed since a run wrote
 /// it, which the manifest tells by the hash it lists, is [AgentsAction.edited]
-/// and stays (as does one the manifest does not list, where there is one);
-/// with no manifest it is written over. Throws
+/// and stays, as does one that differs from the pack and that no manifest
+/// lists: nothing says a run wrote it. Throws
 /// an [AgentsException] where `AGENTS.md` cannot be merged into, a skill's
 /// path is a file or a file's path in it a directory, and so nothing is
 /// changed. A link at a file's path, or on the way to it inside the skill's
@@ -279,11 +282,9 @@ AgentsPlan agentsPlan(
         false => AgentsAction.wrote,
         true when _same(file.readAsBytesSync(), bytes) => AgentsAction.left,
         true when link => AgentsAction.edited,
-        // a manifest that does not list it, or lists another hash than the
-        // file has: not what a run wrote
-        true
-            when listed.isNotEmpty &&
-                listed[name] != agentsHash(file.readAsBytesSync()) =>
+        // no manifest, one that does not list it, or one that lists another
+        // hash than the file has: not what a run wrote
+        true when listed[name] != agentsHash(file.readAsBytesSync()) =>
           AgentsAction.edited,
         true => AgentsAction.changed,
       };
@@ -347,8 +348,10 @@ AgentsPlan agentsPlan(
       AgentsChange(
         '${target.path}/$agentsManifest',
         switch (manifest.existsSync()) {
-          _ when !writing => AgentsAction.left,
+          // also where nothing else is written: from here on the project's
+          // edits are told from what a run wrote
           false => AgentsAction.wrote,
+          true when !writing => AgentsAction.left,
           true when _same(manifest.readAsBytesSync(), bytes) =>
             AgentsAction.left,
           true => AgentsAction.changed,
@@ -642,7 +645,13 @@ String describeAgents(AgentsPlan plan, {bool dryRun = false}) {
           .where((r) => r.startsWith('${target.path}/'))
           .toList();
       final drop = dryRun ? 'would remove' : 'removed';
+      final listing =
+          wrote == 0 &&
+          plan.manifests.any(
+            (m) => m.file == target && m.action == AgentsAction.wrote,
+          );
       final said = [
+        if (listing) '${dryRun ? 'would write' : 'wrote'} its manifest',
         if (removing.isNotEmpty) '$drop ${_files(removing.length, target)}',
         if (wrote > 0)
           '${dryRun ? 'would write' : 'wrote'} ${_files(wrote, target)}',

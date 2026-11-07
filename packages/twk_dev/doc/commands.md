@@ -39,8 +39,9 @@ project's own) and a link where the manifest lists a file. A file the new
 skill still has that the project changed since the run that wrote it (its
 hash is not the one the manifest lists) stays too, and is named: delete it to
 have the skill's again. The manifest keeps the hash of what was written, so
-that such a file stays one until then. With no manifest yet it removes
-nothing and writes over what differs. `--dry-run` says what it would remove.
+that such a file stays one until then. With no manifest yet it writes one,
+removes nothing and leaves what differs from the skill, naming it. `--dry-run`
+says what it would remove.
 
 ### `twk shell [-C <dir>]`
 

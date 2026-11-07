@@ -369,15 +369,46 @@ void main() {
       expect(result.stdout, contains('references/old.md'));
     });
 
-    test('a run with nothing to do writes no manifest', () async {
+    test('where the pack is there with no manifest, one is written and no '
+        "other file, so that the project's edits stay from then on", () async {
       await agents();
       for (final dir in dirs) {
         File(p.join(project, dir, agentsManifest)).deleteSync();
       }
-      final before = snapshot(project);
       final result = await agents();
-      expect(result.stdout, contains('nothing to do'));
+      expect(result.stdout, contains('wrote its manifest'));
+      expect(result.stdout, isNot(contains('nothing to do')));
+      for (final dir in dirs) {
+        expect(has('$dir/$agentsManifest'), isTrue, reason: dir);
+      }
+      final before = snapshot(project);
+      expect((await agents()).stdout, contains('nothing to do'));
       expectSame(snapshot(project), before);
+
+      const edit = 'the project wrote this\n';
+      final skill = File(p.join(project, dirs.first, 'SKILL.md'))
+        ..writeAsStringSync(edit);
+      await agents();
+      expect(skill.readAsStringSync(), edit);
+    });
+
+    test('with no manifest a file that differs from the pack stays, and is '
+        'named: nothing says a run wrote it', () async {
+      await agents();
+      for (final dir in dirs) {
+        File(p.join(project, dir, agentsManifest)).deleteSync();
+      }
+      const copied = 'copied by hand\n';
+      final skill = File(p.join(project, dirs.first, 'SKILL.md'))
+        ..writeAsStringSync(copied);
+      final result = await agents();
+      expect(result.exitCode, 0, reason: '${result.stderr}');
+      expect(skill.readAsStringSync(), copied);
+      expect(result.stdout, contains('${dirs.first}/SKILL.md'));
+      // deleted, it is the skill's again
+      skill.deleteSync();
+      await agents();
+      expect(skill.readAsStringSync(), isNot(copied));
     });
   });
 

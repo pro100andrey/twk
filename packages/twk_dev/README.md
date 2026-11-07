@@ -75,8 +75,9 @@ It writes, in the project's directory (or the one `--directory` names):
 
 Run it again after upgrading twk_dev: it writes over the files the new
 skill changed, writes the ones it added, and says what it did. With nothing
-to do it says so, and no file is changed. A file of your own in a skill's
-directory, one the skill has no file of that name for, stays and is named.
+to do it says so, and no file is changed. A file you changed stays and is
+named, as does a file of your own in a skill's directory, one the skill has
+no file of that name for.
 `--dry-run` says what it would write and writes nothing. A directory with
 no `pubspec.yaml` is refused (exit 1); a project that does not depend on twk
 is written to all the same, with a note.
