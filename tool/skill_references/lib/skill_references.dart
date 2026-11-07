@@ -293,6 +293,10 @@ String renderGroup(WidgetGroup g) {
 
 final _image = RegExp(r'!\[[^\]]*\]\([^)]*\)(<br>)?');
 final _link = RegExp(r'(?<!!)\[([^\]]*)\]\(([^)\s]*)\)');
+
+/// A code span or a [_link]: the span first, so that `f[i](e)` in one is left
+/// as code, while a link whose text has one is still a link.
+final _spanOrLink = RegExp('`[^`\n]*`|${_link.pattern}');
 final _guideFile = RegExp(r'^[a-z0-9-]+\.md$');
 final _groupFile = RegExp(r'^\.\./widgets/[a-z0-9-]+\.md$');
 final _pageFile = RegExp(r'^\.\./widgets/([a-z0-9-]+/[a-z0-9-]+\.md)$');
@@ -316,10 +320,17 @@ String rewriteGuide(String name, String guide, Map<String, String> anchors) {
   return out.toString();
 }
 
-final _fence = RegExp(r'^```.*?^```[^\n]*$', multiLine: true, dotAll: true);
+final _fence = RegExp(
+  r'^[ \t]*(```|~~~).*?^[ \t]*\1[^\n]*$',
+  multiLine: true,
+  dotAll: true,
+);
 
 String _rewriteProse(String name, String prose, Map<String, String> anchors) =>
-    prose.replaceAll(_image, '').replaceAllMapped(_link, (m) {
+    prose.replaceAll(_image, '').replaceAllMapped(_spanOrLink, (m) {
+      if (m.group(0)!.startsWith('`')) {
+        return m.group(0)!;
+      }
       final text = m.group(1)!;
       final target = m.group(2)!;
       if (RegExp('^[a-z]+:|^#').hasMatch(target)) {
@@ -371,7 +382,11 @@ Map<String, String> buildReferences({
     if (!key.startsWith('guides/')) {
       continue;
     }
-    for (final m in _link.allMatches(value)) {
+    // what is shown as code links to nothing
+    for (final m in _spanOrLink.allMatches(value.replaceAll(_fence, ''))) {
+      if (m.group(0)!.startsWith('`')) {
+        continue;
+      }
       final file = m.group(2)!.split('#').first;
       if (_guideFile.hasMatch(file) && !files.containsKey('guides/$file')) {
         throw ReferenceError('$key links to $file, which is not there');

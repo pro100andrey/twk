@@ -227,6 +227,18 @@ final frameScenarios = <FrameScenario>[
       };
     },
   ),
+  FrameScenario(
+    'wrap-plain',
+    'the same with the paragraph not keeping its paint: what wrap measures '
+        'against a core from before it could',
+    (hs) {
+      final s = _Prose(hs)..render();
+      return (i) {
+        s.type(i);
+        return s.render();
+      };
+    },
+  ),
   FrameScenario('ellipsis', 'the same cut off at 2/3 of the rows with "…"', (
     hs,
   ) {

@@ -173,6 +173,26 @@ void main() {
   });
 
   group('guides', () {
+    test('code is left as it is: a span, a fence with its indent', () {
+      const guide =
+          'Call `handlers[i](event)` here.\n\n'
+          '- A list:\n\n'
+          '  ```dart\n'
+          '  callbacks[i](e);\n'
+          '  ```\n\n'
+          '~~~\n'
+          '[a](b)\n'
+          '~~~\n';
+      expect(rewriteGuide('g.md', guide, const {}), guide);
+    });
+
+    test('a link whose text is a code span is still a link', () {
+      expect(
+        rewriteGuide('g.md', 'See [`Text`](../dropped/x.md).\n', const {}),
+        'See `Text`.\n',
+      );
+    });
+
     final text = build()['guides/layout.md']!;
 
     test('keep links to guides, groups and addresses', () {
