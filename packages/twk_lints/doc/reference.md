@@ -283,7 +283,7 @@ LSP client's code action of kind `quickfix.twk.fix.<id>`); one that is also
 offered for the whole file applies itself to each of the rule's diagnostics
 there in one edit. `dart fix` applies none of them: checked from a scratch app
 on the SDK of this repository (3.13.7), with diagnostics of the five rules
-that have a fix, `dart fix --dry-run` and `dart fix --apply` answered "Nothing
+that had a fix then, `dart fix --dry-run` and `dart fix --apply` answered "Nothing
 to fix!" and changed no file, the fixes marked for use in bulk
 (`CorrectionApplicability.acrossFiles`, and `automatically` tried too); the
 plugin server of `analysis_server_plugin` 0.3.24 answers `edit.getFixes`, the
