@@ -1,7 +1,8 @@
 // skills/twk/SKILL.md, the skill for coding agents that build apps with twk: its
-// front matter; its code as the app it describes (the pubspec it gives,
-// pointed at this checkout, and each ```dart block in the file its first
-// line names), resolved, analyzed under this repository's rules,
+// front matter; the versions its pubspec takes; its code as the app it
+// describes (that pubspec, its packages overridden with this checkout's,
+// and each ```dart block in the file its first line names), resolved,
+// analyzed under this repository's rules,
 // formatted and its tests passing; the names it uses as twk and twk_test
 // export them, and the others as twk's cli, hooks and provider libraries
 // and twk_test's cli library do; and its pitfalls as twk behaves.
@@ -46,6 +47,24 @@ Future<String> dart(Directory dir, List<String> args) async {
   expect(got.exitCode, 0, reason: 'dart ${args.join(' ')}:\n$output');
   return output;
 }
+
+/// The pubspec the skill gives.
+String pubspec() =>
+    blocks('yaml').singleWhere((b) => b.startsWith('# pubspec.yaml'));
+
+/// What points an app of the skill at the checkout in [root]: an agent's takes
+/// the packages from pub.dev, and the skill is held here to this code.
+String overrides(String root) => [
+  'dependency_overrides:',
+  for (final package in [
+    'twk',
+    'twk_core',
+    'twk_driver',
+    'twk_term',
+    'twk_test',
+  ])
+    '  $package:\n    path: $root/packages/$package',
+].join('\n');
 
 /// Writes [text] to [path] in [dir].
 void write(Directory dir, String path, String text) => File('${dir.path}/$path')
@@ -164,16 +183,24 @@ void main() {
     expect(front[2]!.length, lessThanOrEqualTo(1024));
   });
 
+  test('its pubspec takes the versions of this checkout', () {
+    for (final package in ['twk', 'twk_test']) {
+      final own = File('../$package/pubspec.yaml').readAsStringSync();
+      final version = RegExp(
+        r'^version: (.+)$',
+        multiLine: true,
+      ).firstMatch(own);
+      expect(pubspec(), contains('  $package: ^${version![1]}\n'));
+    }
+  });
+
   group('the code, as an app', () {
     late Directory app;
 
     setUpAll(() async {
       app = await Directory.systemTemp.createTemp('twk_skill_test');
       final root = Directory.current.parent.parent.path;
-      final pubspec = blocks(
-        'yaml',
-      ).singleWhere((b) => b.startsWith('# pubspec.yaml'));
-      write(app, 'pubspec.yaml', pubspec.replaceAll('<twk>', root));
+      write(app, 'pubspec.yaml', '${pubspec()}${overrides(root)}\n');
       final lints = await Isolate.resolvePackageUri(
         Uri.parse('package:pro_lints/recommended.yaml'),
       );

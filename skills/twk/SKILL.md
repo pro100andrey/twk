@@ -82,34 +82,21 @@ right (`+`).
 
 ## An app
 
-Take the packages from pub.dev: `dart pub add twk dev:twk_test dev:test`. On
-a checkout of twk instead, depend on them by path and override those under
-them, as this pubspec does. `dart pub get`, then `dart run bin/main.dart`:
-type a task and Enter adds it, Tab goes to the list, Space marks the task
-done there.
+Take the packages from pub.dev (`dart pub add twk dev:twk_test dev:test`, or
+this pubspec). `dart pub get`, then `dart run bin/main.dart`: type a task and
+Enter adds it, Tab goes to the list, Space marks the task done there.
 
 ```yaml
-# pubspec.yaml; <twk> is where the twk repository is checked out
+# pubspec.yaml
 name: my_app
 publish_to: none
 environment:
   sdk: ^3.13.5
 dependencies:
-  twk:
-    path: <twk>/packages/twk
+  twk: ^0.3.0
 dev_dependencies:
   test: ^1.33.0
-  twk_test:
-    path: <twk>/packages/twk_test
-dependency_overrides:
-  twk:
-    path: <twk>/packages/twk
-  twk_core:
-    path: <twk>/packages/twk_core
-  twk_driver:
-    path: <twk>/packages/twk_driver
-  twk_term:
-    path: <twk>/packages/twk_term
+  twk_test: ^0.3.0
 ```
 
 ```dart
@@ -233,23 +220,6 @@ space toggle   ctrl+q quit
   `styleAt`; find widgets with `find.text`, `find.byType`, `find.byKey`.
   `t.logs.records` holds what the app printed. A test never sleeps: it pumps
   the clock, or `waitUntil`s a real event.
-
-## Driving the running app
-
-To see and operate the app while you build it, register the MCP server
-`twk mcp` (Claude Code: `claude mcp add twk -- dart run twk_dev:twk mcp`,
-run in the project). Its tools, one app at a time: `start_app` (the app's
-main file), `screen`, `tree`, `find`, `press`, `type`, `tap`, `wait_for`,
-`elapse`, `hot_reload`, `logs`, `stop_app`. Each answers with the screen
-after it and a line with the frame, the input the app has read and whether
-it is quiet.
-
-The app runs on time the server moves: nothing in it fires on its own, so
-there is nothing to sleep for. `wait_for` moves it until the screen has the
-text; a failure says why (`never`: the app is quiet and will not change,
-more waiting does not help; `not within` the budget, with the timers that
-wait; `covered by`, what is on top of a tap's target; the app exited). Read
-the reason, then fix the app or the finder.
 
 ## Pitfalls
 
