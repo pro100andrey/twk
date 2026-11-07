@@ -206,6 +206,31 @@ abstract interface class TickerProvider {
   Ticker createTicker(TickerCallback onTick);
 }
 
+/// A ticker of the state at [context], added to [tickers].
+Ticker _newTicker(
+  MuteGroup<Ticker> tickers,
+  BuildContext context,
+  TickerCallback onTick,
+) {
+  // read without a dependency: a state may create a ticker in initState, and
+  // didChangeDependencies, called after it, depends and is told
+  final mode = context.getInheritedWidgetOfExactType<TickerMode>();
+  return tickers.add(
+    Ticker(
+      onTick,
+      binding: AppBinding.maybeOf(context),
+      onDispose: tickers.remove,
+    )..muted = !(mode?.enabled ?? true),
+  );
+}
+
+/// Disposes every ticker of [tickers], which each takes out of it.
+void _disposeTickers(MuteGroup<Ticker> tickers) {
+  for (final ticker in [...tickers.items]) {
+    ticker.dispose();
+  }
+}
+
 /// Makes a [State] a [TickerProvider]: its tickers tick in the frames of
 /// the app it is in ([AppBinding.maybeOf]), and are disposed with it.
 ///
@@ -237,18 +262,8 @@ mixin TickerProviderStateMixin<T extends StatefulWidget> on State<T>
   final _tickers = MuteGroup<Ticker>();
 
   @override
-  Ticker createTicker(TickerCallback onTick) {
-    // read without a dependency: a state may create a ticker in initState,
-    // and didChangeDependencies, called after it, depends and is told
-    final mode = context.getInheritedWidgetOfExactType<TickerMode>();
-    return _tickers.add(
-      Ticker(
-        onTick,
-        binding: AppBinding.maybeOf(context),
-        onDispose: _tickers.remove,
-      )..muted = !(mode?.enabled ?? true),
-    );
-  }
+  Ticker createTicker(TickerCallback onTick) =>
+      _newTicker(_tickers, context, onTick);
 
   @override
   @protected
@@ -262,9 +277,7 @@ mixin TickerProviderStateMixin<T extends StatefulWidget> on State<T>
   @protected
   @mustCallSuper
   void dispose() {
-    for (final ticker in [..._tickers.items]) {
-      ticker.dispose();
-    }
+    _disposeTickers(_tickers);
     super.dispose();
   }
 }
@@ -304,14 +317,7 @@ mixin SingleTickerProviderStateMixin<T extends StatefulWidget> on State<T>
       '$runtimeType is a SingleTickerProviderStateMixin but creates more '
       'than one Ticker: use TickerProviderStateMixin.',
     );
-    final mode = context.getInheritedWidgetOfExactType<TickerMode>();
-    return _tickers.add(
-      Ticker(
-        onTick,
-        binding: AppBinding.maybeOf(context),
-        onDispose: _tickers.remove,
-      )..muted = !(mode?.enabled ?? true),
-    );
+    return _newTicker(_tickers, context, onTick);
   }
 
   @override
@@ -326,9 +332,7 @@ mixin SingleTickerProviderStateMixin<T extends StatefulWidget> on State<T>
   @protected
   @mustCallSuper
   void dispose() {
-    for (final ticker in [..._tickers.items]) {
-      ticker.dispose();
-    }
+    _disposeTickers(_tickers);
     super.dispose();
   }
 }
