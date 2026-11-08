@@ -33,7 +33,7 @@ const _logviewShowLevel = SwitchOption(
 );
 
 /// The LogView page's `wrap` option.
-const _logviewWrap = SwitchOption('wrap', 'wrap');
+const _logviewWrap = SwitchOption('wrap', 'wrap', initial: true);
 
 /// The LogView page's `live` option.
 const _logviewLive = SwitchOption('live', 'live', initial: true);
@@ -208,7 +208,7 @@ String _logCode(Options o, StageRoom room) {
     if (query != 'none') "query: '$query'",
   ];
   final view = [
-    if (o(_logviewWrap)) 'wrap: true,',
+    if (!o(_logviewWrap)) 'wrap: false,',
     if (!o(_logviewTime)) 'showTime: false,',
     if (!o(_logviewShowLevel)) 'showLevel: false,',
     if (o(_logviewScrollbar) != 'always')

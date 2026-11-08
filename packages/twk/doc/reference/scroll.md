@@ -211,7 +211,7 @@ the view does. Raw events and `Listener.onScroll` are as they were.
 
 ## `LogView`
 
-`LogView(controller:, wrap: false, showTime: true, showLevel: true,
+`LogView(controller:, wrap: true, showTime: true, showLevel: true,
 selectable: true, scrollbar: ScrollbarVisibility.always, style:,
 matchStyle:, currentMatchStyle:, focusNode:, autofocus:)` is `tail -f` for
 an app, over a `LogController(maxLines: 10000, level: LogLevel.debug,
@@ -243,8 +243,10 @@ level tag (`DEBUG`, `INFO`, `WARN`, `ERROR` in the theme's `muted`, `info`,
 `warning` and `error`, a debug line's text muted) and its text, wrapped with
 `wrap` at words in a column right of the time and level (below them where
 they would take more than half the width), else cut off and scrolled across
-by Left and Right
-`LogView.sideStep` (4) columns at a time, as far as the widest line. The
+by Left and Right `LogView.sideStep` (4) columns at a time, as far as the
+widest line; `w` (hinted, `w wrap`) turns the wrapping over in the view,
+which stays on the line at its top, until the widget is built with another
+`wrap`. The
 scrollbar at its right shows the window of the lines shown, filtered or not
 (`ScrollbarVisibility.never` for none). With `selectable`, below a
 `SelectionArea` its lines are one `Selectable`: a drag past its top or

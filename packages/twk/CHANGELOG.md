@@ -4,6 +4,8 @@
 
 Breaking:
 
+- `LogView` wraps by default (`wrap: true`): `wrap: false` keeps a line a
+  row, cut off and scrolled across by Left and Right.
 - `LogController.followFile`: `fromEnd` is `backlog`, the bytes before the
   end read too: `0` (the default) for `fromEnd: true`, `null` for
   `fromEnd: false`, and a number of bytes for the whole lines among the last
@@ -21,6 +23,7 @@ Added:
 - `Table(rowMenu:)`, the entries of a row's menu: a right click on a row
   selects it and opens the menu at the mouse, Shift+F10 the selected row's
   under it.
+- `LogView`: `w` turns the wrapping over (`w wrap` in a `KeyHintsBar`).
 
 Changed:
 

@@ -405,7 +405,7 @@ Widget build(BuildContext context) {
 | search | none, items, timeout | none |
 | time | on, off | true |
 | show level | on, off | true |
-| wrap | on, off | false |
+| wrap | on, off | true |
 | live | on, off | true |
 | scrollbar | always, onScroll, never | always |
 

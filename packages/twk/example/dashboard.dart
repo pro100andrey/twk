@@ -263,8 +263,10 @@ final class _Board extends StatelessWidget {
                       columnSpan: 5,
                       child: _Panel(
                         title: 'Log',
+                        // a narrow panel: a line a row, cut off
                         child: LogView(
                           controller: log,
+                          wrap: false,
                           scrollbar: .never,
                           style: base,
                         ),

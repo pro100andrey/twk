@@ -281,6 +281,50 @@ void main() {
     expect(told, 1);
   });
 
+  testTwk('w turns the wrapping over, the view on the line at its top, '
+      'hinted; the widget built with another wrap sets it again', (t) async {
+    final c = LogController();
+    for (var i = 0; i < 40; i++) {
+      c.add('line $i ${'word ' * (i.isEven ? 6 : 1)}');
+    }
+    Widget view({required bool wrap}) =>
+        Theme.terminal(child: plain(c, wrap: wrap));
+    await t.pumpWidget(view(wrap: false), size: (20, 5));
+    expect(
+      t.binding.focusManager.activeKeys.map((k) => k.hint),
+      contains('wrap'),
+    );
+    for (var i = 0; i < 4; i++) {
+      await t.press('pageup');
+      await t.pump();
+    }
+    await t.pump();
+    const cut = ['line 15 word', 'line 16 word word wo', 'line 17 word'];
+    expect(t.lines.take(3), cut);
+
+    await t.press('w');
+    await t.pump();
+    await t.pump();
+    expect(t.lines.take(3), [
+      'line 15 word',
+      'line 16 word word',
+      'word word word word',
+    ]);
+
+    await t.press('w');
+    await t.pump();
+    await t.pump();
+    expect(t.lines.take(3), cut);
+
+    // turned over in the view, then the widget's own wrap again
+    await t.press('w');
+    await t.pump();
+    await t.pumpWidget(view(wrap: true), size: (20, 5));
+    await t.pumpWidget(view(wrap: false), size: (20, 5));
+    await t.pump();
+    expect(t.lines[1], 'line 16 word word wo');
+  });
+
   testTwk('n and N go to the next and the previous match, round past the '
       'ends, scrolling to it; what the query finds is highlighted', (
     t,
@@ -487,7 +531,6 @@ void main() {
       Theme.terminal(
         child: LogView(
           controller: c,
-          wrap: true,
           scrollbar: ScrollbarVisibility.never,
         ),
       ),

@@ -733,13 +733,13 @@ final class _ToLine extends _Move {
 ///
 ///  * [ListView], what it shows its lines in, for a list of one's own.
 final class LogView extends StatefulWidget {
-  /// Shows the lines of [controller], each with its time and level, cut
-  /// off at the window's edge unless [wrap], selectable with the mouse,
-  /// with a scrollbar always shown.
+  /// Shows the lines of [controller], each with its time and level,
+  /// wrapped unless [wrap] is false, selectable with the mouse, with a
+  /// scrollbar always shown.
   const LogView({
     required this.controller,
     super.key,
-    this.wrap = false,
+    this.wrap = true,
     this.showTime = true,
     this.showLevel = true,
     this.selectable = true,
@@ -754,8 +754,10 @@ final class LogView extends StatefulWidget {
   /// The lines, and what is done to them.
   final LogController controller;
 
-  /// Whether a line too long for the window goes on below; without, Left
-  /// and Right scroll the lines across.
+  /// Whether a line too long for the window goes on below, as it does by
+  /// default; without, Left and Right scroll the lines across. `w` turns
+  /// it over in the view (`w wrap` in a `KeyHintsBar`), until the widget
+  /// is built with another [wrap].
   final bool wrap;
 
   /// Whether a line shows its time, when it has one.
@@ -829,6 +831,9 @@ final class _LogViewState extends State<LogView> {
   // the columns the lines are scrolled across
   var _shift = 0;
 
+  // whether the lines wrap: LogView.wrap, until `w` turns it over
+  late bool _wrap = widget.wrap;
+
   // the lines built, by number, as of _look; and the current match then
   final _built = <int, Widget>{};
   _Look? _look;
@@ -854,6 +859,9 @@ final class _LogViewState extends State<LogView> {
   @override
   void didUpdateWidget(LogView oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (widget.wrap != oldWidget.wrap) {
+      _wrap = widget.wrap;
+    }
     if (!identical(oldWidget.controller, widget.controller)) {
       _detach(oldWidget.controller);
       _attach(widget.controller);
@@ -1191,6 +1199,16 @@ final class _LogViewState extends State<LogView> {
     }
   }
 
+  /// Wraps the lines, or stops wrapping them: `w`. The view stays on the
+  /// line at its top.
+  void _toggleWrap() {
+    final top = _windowEdge(top: true);
+    setState(() => _wrap = !_wrap);
+    if (top != null && !widget.controller.following) {
+      _list.jumpToIndex(widget.controller._shownIndexOf(top));
+    }
+  }
+
   /// The widest a line is, in columns.
   int get _widest =>
       widget.controller._widest +
@@ -1212,7 +1230,7 @@ final class _LogViewState extends State<LogView> {
   void _showAcross(int number) {
     final c = widget.controller;
     final width = _render?.width ?? 0;
-    if (widget.wrap || width <= 0 || !c._kept(number)) {
+    if (_wrap || width <= 0 || !c._kept(number)) {
       return;
     }
     final line = c._line(number);
@@ -1247,8 +1265,8 @@ final class _LogViewState extends State<LogView> {
           widget.currentMatchStyle ??
           theme.fill(theme.accent.fg).merge(const Style(attrs: Attr.bold)),
       query: c._queryCase,
-      shift: widget.wrap ? 0 : _shift,
-      wrap: widget.wrap,
+      shift: _wrap ? 0 : _shift,
+      wrap: _wrap,
       showTime: widget.showTime,
       showLevel: widget.showLevel,
     );
@@ -1269,7 +1287,7 @@ final class _LogViewState extends State<LogView> {
     }
     Widget view = ListView.builder(
       itemCount: c.shownLength,
-      itemExtent: widget.wrap ? null : 1,
+      itemExtent: _wrap ? null : 1,
       maxKept: 0,
       stickToBottom: true,
       controller: _list,
@@ -1296,7 +1314,7 @@ final class _LogViewState extends State<LogView> {
     final keysFor = (
       c,
       c.query.isNotEmpty,
-      widget.wrap,
+      _wrap,
       _shift > 0,
       room == null || _shift < _widest - room,
     );
@@ -1304,6 +1322,7 @@ final class _LogViewState extends State<LogView> {
       _keysFor = keysFor;
       final (_, matches, wrap, left, right) = keysFor;
       _keys = {
+        'w': _toggleWrap,
         if (matches) ...{'n': c.nextMatch, 'N': c.previousMatch},
         if (!wrap) ...{
           'left': left ? () => _scrollAcross(-LogView.sideStep) : null,
@@ -1311,8 +1330,8 @@ final class _LogViewState extends State<LogView> {
         },
       };
       _keyHints = matches
-          ? const {'n': 'next match', 'N': 'previous match'}
-          : const {};
+          ? const {'w': 'wrap', 'n': 'next match', 'N': 'previous match'}
+          : const {'w': 'wrap'};
     }
     final arrow = fresh > 0
         ? ThemeMarks.of(context).text(Marks.arrowDown, theme.glyphs)
