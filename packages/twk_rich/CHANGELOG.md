@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+Fixed:
+
+- `changedWords`, and with it `DiffView`'s highlighting of the words a
+  line changed, gives none for lines of more than 20000 words between
+  them, which a diff of their words took up to a minute on in a frame
+  (two random lines of 3.7 million characters); the line shows changed
+  whole.
+
 ## 0.3.0
 
 Breaking:
