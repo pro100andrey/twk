@@ -265,6 +265,22 @@ void main() {
     expect(t.lines.first, 'req 56');
   });
 
+  test('where set again to the same function tests the lines again', () {
+    final kinds = {'req', 'poll'};
+    bool shown(LogLine line) => kinds.any(line.text.startsWith);
+    final c = LogController(where: shown)
+      ..add('req 1')
+      ..add('poll 2');
+    expect(c.shownLength, 2);
+    kinds.remove('poll');
+    var told = 0;
+    c
+      ..addListener(() => told++)
+      ..where = shown;
+    expect(c.shownLength, 1);
+    expect(told, 1);
+  });
+
   testTwk('n and N go to the next and the previous match, round past the '
       'ends, scrolling to it; what the query finds is highlighted', (
     t,

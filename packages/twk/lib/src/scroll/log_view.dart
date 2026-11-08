@@ -440,25 +440,31 @@ final class LogController extends ChangeNotifier {
   /// Which lines are shown, of those at [level] and above that contain
   /// [filter]: those it returns true for; null for every one. Set, it
   /// tests every line kept, and the view stays on the lines it shows, as
-  /// it does for [filter]; set again to another function (a new closure)
-  /// to test them again when what it tests by changed. It is called for
-  /// each line added too, so it should be quick, and give a line the same
+  /// it does for [filter]; set again, to the same function too, it tests
+  /// them again, for when what it tests by changed. It is called for each
+  /// line added too, so it should be quick, and give a line the same
   /// answer until it is set again.
   ///
-  /// The lines of some kinds only, told by their text:
+  /// The lines of some kinds only, told by their text, the kinds changed
+  /// later:
   ///
   /// ```dart
   /// final log = LogController();
   /// final kinds = {'GET', 'POST'};
-  /// log.where = (line) => kinds.any(line.text.startsWith);
+  /// bool shown(LogLine line) => kinds.any(line.text.startsWith);
+  /// log.where = shown;
+  /// kinds.remove('GET');
+  /// log.where = shown; // the lines tested again
   /// ```
   bool Function(LogLine line)? get where => _where;
   bool Function(LogLine line)? _where;
   set where(bool Function(LogLine line)? where) {
-    if (identical(where, _where)) {
+    // the same function may answer otherwise now; a narrower test is not
+    // known: every line kept is tested, unless there is no test before or
+    // after
+    if (where == null && _where == null) {
       return;
     }
-    // a narrower test is not known: every line kept is tested
     _where = where;
     _refilter(narrower: false);
   }
