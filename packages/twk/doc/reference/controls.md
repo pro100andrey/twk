@@ -280,7 +280,9 @@ field on the theme's `selection` while it has the focus, `focusedStyle`, its
 selection a step towards `primary`; `▴▾` `primary` then and `muted` at rest,
 `arrowStyle`; a `DatePicker`'s, a `TextFormField`'s and a `FilePicker`'s
 field the same): the text typed is taken on Enter, which goes on to the
-nodes above (a `Form` moves to the next field), and as the focus leaves it,
+nodes above (a `Form` moves to the next field), on any other key the field
+leaves to the nodes above before it goes on (a dialog's Ctrl+S that saves
+finds the number typed), and as the focus leaves it,
 rounded to `decimals` digits and kept within the bounds, and text that is no
 number gives way to the value then; meanwhile such text shows in
 `errorStyle` (the theme's `error`), and Escape puts the value back. Up and

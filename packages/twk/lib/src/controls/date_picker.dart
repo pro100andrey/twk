@@ -43,14 +43,15 @@ import 'select.dart' show PopupController, PopupHostState;
 /// ```
 ///
 /// The text typed is taken as Enter is pressed, which goes on to the nodes
-/// above (a `Form` moves to the next field), and as the focus leaves the
-/// field: a date of the calendar, the month and the day of one digit or
-/// two, the time left out for midnight; one before [firstDate] or after
-/// [lastDate] as that bound's date, at the same time. Text that is no date
-/// gives way to the value. Meanwhile the field shows such text in
-/// [errorStyle], [ThemeData.error] when null, and Escape puts the value
-/// back; taken out of the tree, the field takes nothing. The bounds are of
-/// the day: the time of day is any.
+/// above (a `Form` moves to the next field), as any other key the field leaves
+/// to the nodes above is, before it goes on (Ctrl+S that saves finds the date
+/// typed), and as the focus leaves the field: a date of the calendar, the month
+/// and the day of one digit or two, the time left out for midnight; one before
+/// [firstDate] or after [lastDate] as that bound's date, at the same time. Text
+/// that is no date gives way to the value. Meanwhile the field shows such text
+/// in [errorStyle], [ThemeData.error] when null, and Escape puts the value
+/// back; taken out of the tree, the field takes nothing. The bounds are of the
+/// day: the time of day is any.
 ///
 /// While the field has the focus, Up and Down (and the wheel over it)
 /// step the part of the date the caret is in, as a calendar does: a year

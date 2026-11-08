@@ -41,6 +41,9 @@ Fixed:
 - What `map` throws in `LogController.addOutput` or `followFile` ends the
   source, its `done` completing with it, the lines before it added and the
   listeners told; it was thrown uncaught, the rest of the lines lost.
+- `NumberInput` and `DatePicker` take the text typed on a key they leave
+  to the bindings above, before it goes on: a dialog's Ctrl+S that saves,
+  pressed with 45 typed over 30, found 30.
 
 ## 0.3.0
 

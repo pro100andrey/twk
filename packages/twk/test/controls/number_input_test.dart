@@ -197,6 +197,52 @@ void main() {
     expect(value.value, 3.14159);
   });
 
+  for (final pumped in [true, false]) {
+    testTwk('a key it leaves to a binding above takes the text typed first, '
+        'so the binding sees it (a frame between: $pumped)', (t) async {
+      final value = ValueNotifier<double>(30);
+      addTearDown(value.dispose);
+      final saved = <double>[];
+      await t.pumpWidget(
+        KeyBindings(
+          {'ctrl+s': () => saved.add(value.value)},
+          child: input(value, autofocus: true),
+        ),
+        size: (20, 3),
+      );
+      await press(t, 'backspace backspace');
+      await t.type('45');
+      if (pumped) {
+        await t.pump();
+      }
+      await t.press('ctrl+s');
+      await t.pump();
+      expect(saved, [45]);
+      expect(value.value, 45);
+    });
+  }
+
+  testTwk('Escape and its own keys are not taken as a key left to the '
+      'bindings above: Escape puts the value back, Up steps once from the '
+      'text', (t) async {
+    final value = ValueNotifier<double>(30);
+    addTearDown(value.dispose);
+    final changes = <double>[];
+    await t.pumpWidget(
+      input(value, changes: changes, autofocus: true),
+      size: (20, 3),
+    );
+    await press(t, 'backspace');
+    await type(t, '5');
+    await press(t, 'escape');
+    expect(changes, isEmpty);
+    expect(value.value, 30);
+    await press(t, 'backspace');
+    await type(t, '5');
+    await press(t, 'up');
+    expect(changes, [36]);
+  });
+
   testTwk('taken out of the tree with the focus and text typed, it takes '
       'nothing', (t) async {
     final changes = <double>[];
