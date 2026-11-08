@@ -30,6 +30,11 @@ Changed:
 - `LogView(wrap: true)` wraps a line's text in a column of its own right
   of its time and level, not back under them at the left edge.
 
+Fixed:
+
+- `LogView` scrolled across and its controller cleared: the lines added
+  next show from their start, not scrolled out of view.
+
 ## 0.3.0
 
 Breaking:

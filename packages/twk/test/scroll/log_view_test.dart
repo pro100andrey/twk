@@ -325,6 +325,22 @@ void main() {
     expect(t.lines[1], 'line 16 word word wo');
   });
 
+  testTwk('scrolled across, cleared: the lines added next show from their '
+      'start', (t) async {
+    final c = LogController()..add('x' * 100);
+    await t.pumpWidget(Theme.terminal(child: plain(c)), size: (20, 3));
+    for (var i = 0; i < 10; i++) {
+      await t.press('right');
+    }
+    await t.pump();
+    expect(t.lines.first, 'x' * 20);
+    c
+      ..clear()
+      ..add('short');
+    await t.pump();
+    expect(t.lines.first, 'short');
+  });
+
   testTwk('n and N go to the next and the previous match, round past the '
       'ends, scrolling to it; what the query finds is highlighted', (
     t,

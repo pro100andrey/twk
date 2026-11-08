@@ -902,6 +902,12 @@ final class _LogViewState extends State<LogView> {
     final c = widget.controller;
     if (c._reshaped != _reshaped) {
       _reshaped = c._reshaped;
+      // the lines across no further than the widest kept now: cleared, the
+      // new ones from their start
+      final most = max(0, _widest - (_render?.width ?? 0));
+      if (_shift > most) {
+        _shift = most;
+      }
       // scrolled away from the end, it stays on the line at its top, or on
       // the first shown after it when that one is not shown now
       final top = c._following ? null : _windowEdge(top: true);
