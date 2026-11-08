@@ -11,6 +11,9 @@ Fixed:
   whole.
 - `MarkdownView` given a `theme` draws its list markers in the glyphs of
   the app as they change, not in those it was first built in.
+- `markdownLines`: a list's markers, a quote's bar and a table's columns
+  give way where they would leave too few columns for a wide character, so
+  no line is wider than `width` (`- 你好` at 3 columns was 4 wide).
 
 ## 0.3.0
 

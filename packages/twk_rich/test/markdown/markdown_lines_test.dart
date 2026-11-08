@@ -92,6 +92,35 @@ var a = 1;
 String text(List<Span> line) => line.map((span) => span.text).join();
 
 void main() {
+  test('a wide character a decoration would leave too few columns for: the '
+      'decoration gives way, no line wider than the width', () {
+    const documents = [
+      '- 你好世界你好世界',
+      '> > 你好',
+      '- a\n  - 🙂 b',
+      '| 你好 | b |\n| --- | --- |\n| c | d |',
+    ];
+    for (final markdown in documents) {
+      for (var width = 2; width <= 7; width++) {
+        for (final line in markdownLines(
+          TextSegmenter(),
+          markdown,
+          width,
+          theme: theme,
+        )) {
+          expect(
+            columns(line),
+            lessThanOrEqualTo(width),
+            reason: '${text(line)} of $markdown at $width',
+          );
+        }
+      }
+    }
+    // with room, the decoration stays
+    expect(texts('- 你好', 10), ['• 你好']);
+    expect(texts('> 你好', 10), ['│ 你好']);
+  });
+
   test("the theme is optional: the dark terminal theme's", () {
     final given = markdownLines(
       TextSegmenter(),

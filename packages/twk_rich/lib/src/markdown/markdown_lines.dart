@@ -52,9 +52,11 @@ import 'stream.dart';
 ///
 /// Where it differs from the widgets: the rule under a table's header
 /// ends with its last column, not at the view's edge, and a column too
-/// wide for [width] is shrunk by its widest cells rather than clipped. At a
-/// [width] too narrow for its decoration, the decoration gives way and the
-/// text keeps its column: a table's separators shrink to a line alone, and
+/// wide for [width] is shrunk by its widest cells rather than clipped, no
+/// narrower than its widest character. At a [width] too narrow for its
+/// decoration, or that would leave too few columns for the widest
+/// character of its text, the decoration gives way and the text keeps its
+/// column: a table's separators shrink to a line alone, and
 /// then its last columns are left out; a quote's bar loses its space, then
 /// itself; a list loses its markers and indent; a block of code its padding.
 /// Only a character wider than [width] itself is beyond it.
@@ -178,15 +180,26 @@ final class _Renderer {
     Style base,
   ) {
     // the bar and the space after it, as many columns of them as leave one
-    // for the text: at 2 the bar alone, at 1 neither
-    final gutter = math.min(2, width - 1);
-    final lines = _blocks(
+    // for the text: at 2 the bar alone, at 1 neither; and fewer where the
+    // text does not fit in what they leave (a wide character in a column)
+    var gutter = math.min(2, width - 1);
+    var lines = _blocks(
       children,
       width - gutter,
       1,
       depth,
       base.merge(theme.quote),
     );
+    while (gutter > 0 && _widest(lines) > width - gutter) {
+      gutter--;
+      lines = _blocks(
+        children,
+        width - gutter,
+        1,
+        depth,
+        base.merge(theme.quote),
+      );
+    }
     if (gutter == 0) {
       return lines;
     }
@@ -205,9 +218,20 @@ final class _Renderer {
     );
     final ordered = list.start != null;
     final gap = list.tight ? 0 : 1;
-    // no marker column where it leaves no column for the text
-    final prefix = columnWidth + 1 < width ? columnWidth + 1 : 0;
-    final inner = width - prefix;
+    // no marker column where it leaves no column for the text, or too few
+    // for it (a wide character in a column)
+    var prefix = columnWidth + 1 < width ? columnWidth + 1 : 0;
+    var items = [
+      for (final item in list.items)
+        _blocks(item.children, width - prefix, gap, depth + 1, base),
+    ];
+    if (prefix > 0 && items.any((lines) => _widest(lines) > width - prefix)) {
+      prefix = 0;
+      items = [
+        for (final item in list.items)
+          _blocks(item.children, width, gap, depth + 1, base),
+      ];
+    }
     final markerStyle = base.merge(theme.marker);
     final out = <List<Span>>[];
     for (var k = 0; k < list.items.length; k++) {
@@ -216,13 +240,7 @@ final class _Renderer {
           out.add(const []);
         }
       }
-      final lines = _blocks(
-        list.items[k].children,
-        inner,
-        gap,
-        depth + 1,
-        base,
-      );
+      final lines = items[k];
       if (prefix == 0) {
         out.addAll(lines);
         continue;
@@ -339,9 +357,27 @@ final class _Renderer {
     // the columns shown: all, unless even one cell wide each they do not fit
     // with their separators, which are then a line alone, and then the first
     // that do
+    // a column is no narrower than its widest character
     final all = table.align.length;
-    final sep = all + 3 * (all - 1) <= width ? 3 : 1;
-    final columns = sep == 3 ? all : math.min(all, (width + 1) ~/ 2);
+    final least = [
+      for (var j = 0; j < all; j++)
+        [
+          table.header[j],
+          for (final row in table.rows) row[j],
+        ].fold(1, (w, cell) => math.max(w, _widestCluster(cell))),
+    ];
+    final sep = least.fold(0, (a, b) => a + b) + 3 * (all - 1) <= width ? 3 : 1;
+    var columns = all;
+    if (sep == 1) {
+      columns = 0;
+      for (var used = 0; columns < all; columns++) {
+        used += least[columns] + (columns > 0 ? 1 : 0);
+        if (used > width) {
+          break;
+        }
+      }
+      columns = math.max(columns, 1);
+    }
     final headerStyle = base.merge(theme.tableHeader);
     final header = [
       for (var j = 0; j < columns; j++)
@@ -372,13 +408,14 @@ final class _Renderer {
     }
     final gaps = sep * (columns - 1);
     while (widths.fold(0, (a, b) => a + b) + gaps > width) {
-      var at = 0;
-      for (var j = 1; j < columns; j++) {
-        if (widths[j] > widths[at]) {
+      // the widest of those wider than their widest character
+      var at = -1;
+      for (var j = 0; j < columns; j++) {
+        if (widths[j] > least[j] && (at < 0 || widths[j] > widths[at])) {
           at = j;
         }
       }
-      if (widths[at] == 1) {
+      if (at < 0) {
         break;
       }
       widths[at]--;
@@ -424,6 +461,31 @@ final class _Renderer {
       ],
       for (final cells in body) ...row(cells, base),
     ];
+  }
+
+  /// The columns of the widest of [lines].
+  int _widest(List<List<Span>> lines) {
+    var most = 0;
+    for (final line in lines) {
+      var w = 0;
+      for (final span in line) {
+        w += segmenter.width(span.text);
+      }
+      most = math.max(most, w);
+    }
+    return most;
+  }
+
+  /// The columns of the widest grapheme of the inlines of [cell].
+  int _widestCluster(List<MdInline> cell) {
+    var most = 1;
+    for (final span in _spans(cell)) {
+      final text = span.text;
+      for (final (from, to) in graphemeBoundaries(text)) {
+        most = math.max(most, segmenter.width(text.substring(from, to)));
+      }
+    }
+    return most;
   }
 
   /// [line] without the spaces of no style that end it.
