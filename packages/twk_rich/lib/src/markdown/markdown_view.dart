@@ -510,8 +510,12 @@ final class _MarkdownViewState extends State<MarkdownView> {
   @override
   Widget build(BuildContext context) {
     _theme = widget.theme ?? _themeFrom(Theme.of(context));
+    // the list markers are of the app's glyphs and marks, apart from a
+    // theme given
     final madeWith = (
       _theme,
+      Theme.of(context).glyphs,
+      ThemeMarks.of(context),
       widget.codeWrap,
       widget.tabWidth,
       widget.hyperlinks,

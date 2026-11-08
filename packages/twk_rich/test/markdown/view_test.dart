@@ -66,6 +66,18 @@ Widget view(
 List<String> rows(TwkTester t, int count) => t.lines.take(count).toList();
 
 void main() {
+  testTwk('a theme given, the list markers follow the glyphs of the app '
+      'as they change', (t) async {
+    Widget under(Glyphs glyphs) => Theme(
+      data: ThemeData.dark.copyWith(glyphs: glyphs),
+      child: view('- a\n\n> q'),
+    );
+    await t.pumpWidget(under(Glyphs.unicode), size: (20, 4));
+    expect(t.lines.first, startsWith('•'));
+    await t.pumpWidget(under(Glyphs.ascii), size: (20, 4));
+    expect(t.lines.first, startsWith('*'));
+  });
+
   group('inlines', () {
     testTwk('emphasis, strong, struck text and code in their styles', (
       t,

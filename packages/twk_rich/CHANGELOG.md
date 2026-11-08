@@ -9,6 +9,8 @@ Fixed:
   them, which a diff of their words took up to a minute on in a frame
   (two random lines of 3.7 million characters); the line shows changed
   whole.
+- `MarkdownView` given a `theme` draws its list markers in the glyphs of
+  the app as they change, not in those it was first built in.
 
 ## 0.3.0
 
