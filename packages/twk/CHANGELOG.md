@@ -22,6 +22,11 @@ Added:
   selects it and opens the menu at the mouse, Shift+F10 the selected row's
   under it.
 
+Changed:
+
+- `LogView(wrap: true)` wraps a line's text in a column of its own right
+  of its time and level, not back under them at the left edge.
+
 ## 0.3.0
 
 Breaking:

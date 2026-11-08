@@ -14,6 +14,7 @@ import 'package:twk_core/twk_core.dart'
         BoxConstraints,
         DiagnosticPropertiesBuilder,
         HitTestBehavior,
+        HitTestResult,
         ListParentData,
         PaintContext,
         Pen,
@@ -689,8 +690,11 @@ final class _ToLine extends _Move {
 /// reverse video and bold). `n` and `N` go to the next and the previous
 /// match while there is a query.
 ///
-/// With [wrap] a line too long for the window goes on on the rows below;
-/// without, each line is a row, and Left and Right scroll the lines
+/// With [wrap] a line too long for the window goes on on the rows below,
+/// its text broken at words in a column of its own right of its time and
+/// level, which stay alone at its left; where they would take more than
+/// half the width, the text starts on the row below them, the whole width
+/// its. Without, each line is a row, and Left and Right scroll the lines
 /// across, a few columns at a time, as far as the widest line kept; going
 /// to a match scrolls across to show it. A [Scrollbar] at its right shows
 /// where the window is among the lines shown, as [scrollbar] says.
@@ -1152,12 +1156,8 @@ final class _LogViewState extends State<LogView> {
     if (hit == null) {
       return above ? (start, start) : (next, next);
     }
-    final paragraph = line.child;
-    if (paragraph is! RenderParagraph) {
-      return (start, start);
-    }
-    final (px, py) = _offsetIn(paragraph, view);
-    final (s, e) = paragraph.textRangeAt(x - px, y - py);
+    final (px, py) = _offsetIn(line, view);
+    final (s, e) = line.textRangeAt(x - px, y - py);
     if (s >= end - start) {
       return (next, next);
     }
@@ -1382,12 +1382,13 @@ final class _LogViewState extends State<LogView> {
     final time = line.time;
     final text = line.text;
     final base = line.level == LogLevel.debug ? look.debug : look.text;
-    final spans = <(String, Style)>[
+    final head = <(String, Style)>[
       if (look.showTime && time != null)
         ('${LogRecord.formatTime(time)} ', look.time),
       if (look.showLevel)
         (_tags[line.level.index], look.levels[line.level.index]),
     ];
+    final spans = <(String, Style)>[];
     final query = look.query;
     final current = line.number == widget.controller._match;
     final found = current ? look.current : look.match;
@@ -1413,6 +1414,7 @@ final class _LogViewState extends State<LogView> {
       key: ValueKey(line.number),
       number: line.number,
       shift: look.wrap ? null : look.shift,
+      head: head,
       spans: spans,
       current: current,
     );
@@ -1560,13 +1562,14 @@ final class _RenderSelected extends RenderObject
   }
 }
 
-/// A line of a [LogView]: its [number], and its [spans] scrolled [shift]
-/// columns across, or wrapped when [shift] is null; [current] the line of
-/// the current match.
+/// A line of a [LogView]: its [number], its [head] (the time and the
+/// level) and its text's [spans], scrolled [shift] columns across, or
+/// wrapped when [shift] is null; [current] the line of the current match.
 final class _Line extends LeafRenderObjectWidget {
   const _Line({
     required this.number,
     required this.shift,
+    required this.head,
     required this.spans,
     required this.current,
     super.key,
@@ -1574,43 +1577,61 @@ final class _Line extends LeafRenderObjectWidget {
 
   final int number;
   final int? shift;
+  final List<(String, Style)> head;
   final List<(String, Style)> spans;
   final bool current;
 
   /// [spans], their styles merged onto the [DefaultTextStyle] above.
-  List<(String, Style)> _spansIn(BuildContext context) {
+  static List<(String, Style)> _in(
+    BuildContext context,
+    List<(String, Style)> spans,
+  ) {
     final style = DefaultTextStyle.of(context);
     return [for (final (text, s) in spans) (text, style.merge(s))];
   }
 
   @override
   _RenderLine createRenderObject(BuildContext context) =>
-      _RenderLine(number, shift, _spansIn(context))..current = current;
+      _RenderLine(number, shift, _in(context, head), _in(context, spans))
+        ..current = current;
 
   @override
   void updateRenderObject(BuildContext context, _RenderLine renderObject) =>
       renderObject
         ..number = number
         ..shift = shift
-        ..spans = _spansIn(context)
+        ..head = _in(context, head)
+        ..spans = _in(context, spans)
         ..current = current;
 }
 
-/// What a [_Line] lays out and paints: a paragraph of its spans, what is
-/// selected of it in the selection's style, as wide as it may be, or,
-/// with a [shift], as wide as it likes, [shift] columns of it off to the
-/// left and what does not fit cut off. The paragraph is its own, no
-/// [Text]'s: a [SelectionArea] selects in the line through the
-/// [_RenderSelected] above. The line of the current match puts the hidden
-/// cursor on its first cell (`restCursor`), as an `ActiveItem` would, the
-/// list's items left lines.
-final class _RenderLine extends RenderObject with RenderObjectWithChildMixin {
-  _RenderLine(this._number, this._shift, this._spans) {
-    child = RenderParagraph(
-      _pens(),
-      wrap: _shift == null ? TextWrap.word : TextWrap.none,
-    );
+/// What a [_Line] lays out and paints: a paragraph of its head (the time
+/// and the level) and one of its text, what is selected of them in the
+/// selection's style. Wrapped (no [shift]), the text goes on its own
+/// column right of the head, its rows under one another, as wide as the
+/// line may be; where the head would take more than half the width, the
+/// text starts on the row below it, the whole width its; with a [shift],
+/// the two are one row as wide as they like, [shift] columns of it off to
+/// the left and what does not fit cut off.
+/// The paragraphs are its own, no [Text]'s: a [SelectionArea] selects in
+/// the line through the [_RenderSelected] above, by [textRangeAt]. The line
+/// of the current match puts the hidden cursor on its first cell
+/// (`restCursor`), as an `ActiveItem` would, the list's items left lines.
+final class _RenderLine extends RenderObject {
+  _RenderLine(this._number, this._shift, this._headSpans, this._spans)
+    : _headLength = _lengthOf(_headSpans) {
+    _head = RenderParagraph(_pens(_headSpans, 0), wrap: TextWrap.none);
+    _body = RenderParagraph(_pens(_spans, _headLength), wrap: _bodyWrap);
+    adopt(_head);
+    adopt(_body);
   }
+
+  late final RenderParagraph _head;
+  late final RenderParagraph _body;
+
+  // the code units of the head's text: where the text's offsets start in
+  // the line's
+  int _headLength;
 
   /// The number of the line.
   int get number => _number;
@@ -1622,17 +1643,45 @@ final class _RenderLine extends RenderObject with RenderObjectWithChildMixin {
     }
   }
 
+  List<(String, Style)> get head => _headSpans;
+  List<(String, Style)> _headSpans;
+  set head(List<(String, Style)> s) {
+    if (!_same(s, _headSpans)) {
+      _headSpans = s;
+      _headLength = _lengthOf(s);
+      _head.spans = _pens(s, 0);
+      // the text's offsets in the line moved
+      _body.spans = _pens(_spans, _headLength);
+    }
+  }
+
   List<(String, Style)> get spans => _spans;
   List<(String, Style)> _spans;
   set spans(List<(String, Style)> s) {
-    var same = s.length == _spans.length;
-    for (var i = 0; same && i < s.length; i++) {
-      same = s[i] == _spans[i];
-    }
-    if (!same) {
+    if (!_same(s, _spans)) {
       _spans = s;
-      _paragraph.spans = _pens();
+      _body.spans = _pens(s, _headLength);
     }
+  }
+
+  static bool _same(List<(String, Style)> a, List<(String, Style)> b) {
+    if (a.length != b.length) {
+      return false;
+    }
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  static int _lengthOf(List<(String, Style)> spans) {
+    var n = 0;
+    for (final (text, _) in spans) {
+      n += text.length;
+    }
+    return n;
   }
 
   int? _shift;
@@ -1641,15 +1690,18 @@ final class _RenderLine extends RenderObject with RenderObjectWithChildMixin {
     if (s == _shift) {
       return;
     }
-    if ((s == null) != (_shift == null)) {
-      _paragraph.wrap = s == null ? TextWrap.word : TextWrap.none;
+    final wrapped = (s == null) != (_shift == null);
+    _shift = s;
+    if (wrapped) {
+      _body.wrap = _bodyWrap;
       markNeedsLayout();
     } else {
       markNeedsPaint();
+      _place();
     }
-    _shift = s;
-    _place();
   }
+
+  TextWrap get _bodyWrap => _shift == null ? TextWrap.word : TextWrap.none;
 
   /// Whether it is the line of the current match.
   bool get current => _current;
@@ -1664,8 +1716,6 @@ final class _RenderLine extends RenderObject with RenderObjectWithChildMixin {
   // what is selected of it, offsets in its text, and in what style
   (int, int)? _selected;
   Style? _selectedStyle;
-
-  RenderParagraph get _paragraph => child! as RenderParagraph;
 
   /// Asks the [_RenderSelected] above what is selected of the line, and
   /// paints it so when that changed.
@@ -1684,21 +1734,23 @@ final class _RenderLine extends RenderObject with RenderObjectWithChildMixin {
     }
     _selected = selected;
     _selectedStyle = style;
-    _paragraph.spans = _pens();
+    _head.spans = _pens(_headSpans, 0);
+    _body.spans = _pens(_spans, _headLength);
   }
 
-  /// The spans as (text, pen), each split where the selection starts and
-  /// ends, the part selected in its style merged onto theirs.
-  List<(String, Pen)> _pens() {
+  /// [spans], which start at offset [from] of the line's text, as (text,
+  /// pen), each split where the selection starts and ends, the part
+  /// selected in its style merged onto theirs.
+  List<(String, Pen)> _pens(List<(String, Style)> spans, int from) {
     final selected = _selected;
     final style = _selectedStyle;
     if (selected == null || style == null) {
-      return [for (final (text, s) in _spans) (text, s.pen)];
+      return [for (final (text, s) in spans) (text, s.pen)];
     }
     final (start, end) = selected;
     final out = <(String, Pen)>[];
-    var at = 0;
-    for (final (text, s) in _spans) {
+    var at = from;
+    for (final (text, s) in spans) {
       final a = (start - at).clamp(0, text.length);
       final b = (end - at).clamp(a, text.length);
       if (a > 0) {
@@ -1715,6 +1767,40 @@ final class _RenderLine extends RenderObject with RenderObjectWithChildMixin {
     return out;
   }
 
+  /// The range of the line's text the cell [x], [y] of it stands for, as
+  /// its paragraphs give it: a cell of the head's row left of the text, of
+  /// the head; one of the text's column, or left of it on a row below the
+  /// first, of the text.
+  (int, int) textRangeAt(int x, int y) {
+    final head = _head.parentData;
+    final body = _body.parentData;
+    if (_headLength > 0 && (y < body.dy || y == 0 && x < body.dx)) {
+      return _head.textRangeAt(x - head.dx, y - head.dy);
+    }
+    final (s, e) = _body.textRangeAt(max(x - body.dx, 0), y - body.dy);
+    return (s + _headLength, e + _headLength);
+  }
+
+  @override
+  void visitChildren(void Function(RenderObject child) visit) {
+    visit(_head);
+    visit(_body);
+  }
+
+  @override
+  HitTestBehavior get hitTestBehavior => HitTestBehavior.deferToChild;
+
+  @override
+  bool hitTestChildren(HitTestResult result, int x, int y) {
+    for (final c in [_body, _head]) {
+      final at = c.parentData;
+      if (c.hitTest(result, x - at.dx, y - at.dy)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -1725,29 +1811,53 @@ final class _RenderLine extends RenderObject with RenderObjectWithChildMixin {
       ..add('selected', _selected, defaultValue: null);
   }
 
+  // the columns the head takes: none without one; where the text starts,
+  // right of the head or on the row below it
+  var _headWidth = 0;
+  var _bodyAt = (0, 0);
+
   @override
   void performLayout(BoxConstraints c) {
     reselect();
-    final child = _paragraph;
+    final row = BoxConstraints(minHeight: c.minHeight, maxHeight: c.maxHeight);
+    _head.layout(row, parentUsesSize: true);
+    _headWidth = _headLength == 0 ? 0 : _head.width;
     if (_shift == null) {
-      child.layout(c, parentUsesSize: true);
-      width = child.width;
-      height = child.height;
-    } else {
-      child.layout(
-        BoxConstraints(minHeight: c.minHeight, maxHeight: c.maxHeight),
+      // the text on its own column, or below a head wider than the room
+      // it would leave
+      final room = c.maxWidth - _headWidth;
+      final below = _headWidth > 0 && room < _headWidth;
+      _bodyAt = below ? (0, _head.height) : (_headWidth, 0);
+      _body.layout(
+        BoxConstraints(
+          maxWidth: below ? c.maxWidth : room,
+          maxHeight: c.maxHeight,
+        ),
         parentUsesSize: true,
       );
+      width = c.constrainWidth(
+        below ? max(_headWidth, _body.width) : _headWidth + _body.width,
+      );
+      height = c.constrainHeight(
+        below ? _head.height + _body.height : max(_head.height, _body.height),
+      );
+    } else {
+      _bodyAt = (_headWidth, 0);
+      _body.layout(row, parentUsesSize: true);
       width = c.maxWidth;
-      height = c.constrainHeight(child.height);
+      height = c.constrainHeight(max(_head.height, _body.height));
     }
     _place();
   }
 
   void _place() {
-    _paragraph.parentData
-      ..dx = -(_shift ?? 0)
+    final shift = _shift ?? 0;
+    _head.parentData
+      ..dx = -shift
       ..dy = 0;
+    _body.parentData
+      ..dx = _bodyAt.$1 - shift
+      ..dy = _bodyAt.$2;
   }
 
   @override
@@ -1761,7 +1871,10 @@ final class _RenderLine extends RenderObject with RenderObjectWithChildMixin {
     ctx.canvas
       ..save()
       ..clipRect(0, 0, width, height);
-    paintChild(ctx, _paragraph);
+    if (_headLength > 0) {
+      paintChild(ctx, _head);
+    }
+    paintChild(ctx, _body);
     ctx.canvas.restore();
   }
 }

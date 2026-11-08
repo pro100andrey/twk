@@ -478,7 +478,8 @@ void main() {
   });
 
   testTwk('a selection copies a line as it reads, its time and level too; '
-      'in a line wrapped, from the row and column pressed', (t) async {
+      'in a line wrapped, from the row and column pressed, the indent under '
+      "the level its row's start", (t) async {
     final c = LogController()
       ..add('up', time: DateTime(2026, 1, 1, 9, 5, 7, 42))
       ..add('a long line that goes on', level: LogLevel.warning);
@@ -496,7 +497,7 @@ void main() {
       '09:05:07.042 INFO',
       'up',
       'WARN  a long line',
-      'that goes on',
+      '      that goes on',
     ]);
     var from = t.terminal.frames.length;
     await t.mouse(MouseKind.down, 0, 0);
@@ -507,11 +508,19 @@ void main() {
 
     await t.pump(const Duration(milliseconds: 400));
     from = t.terminal.frames.length;
-    await t.mouse(MouseKind.down, 2, 3);
+    await t.mouse(MouseKind.down, 8, 3);
     await t.mouse(MouseKind.drag, 19, 3);
     await t.mouse(MouseKind.up, 19, 3);
     await t.pump();
     expect(copiedSince(t, from), 'at goes on');
+
+    await t.pump(const Duration(milliseconds: 400));
+    from = t.terminal.frames.length;
+    await t.mouse(MouseKind.down, 2, 3);
+    await t.mouse(MouseKind.drag, 19, 3);
+    await t.mouse(MouseKind.up, 19, 3);
+    await t.pump();
+    expect(copiedSince(t, from), 'that goes on');
   });
 
   group('a drag past its edge', () {

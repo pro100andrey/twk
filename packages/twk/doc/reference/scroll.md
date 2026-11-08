@@ -241,7 +241,9 @@ its matches highlighted (`matchStyle`, the current one in
 while there is a query (hinted), going round them. Each line is its time and
 level tag (`DEBUG`, `INFO`, `WARN`, `ERROR` in the theme's `muted`, `info`,
 `warning` and `error`, a debug line's text muted) and its text, wrapped with
-`wrap`, else cut off and scrolled across by Left and Right
+`wrap` at words in a column right of the time and level (below them where
+they would take more than half the width), else cut off and scrolled across
+by Left and Right
 `LogView.sideStep` (4) columns at a time, as far as the widest line. The
 scrollbar at its right shows the window of the lines shown, filtered or not
 (`ScrollbarVisibility.never` for none). With `selectable`, below a
