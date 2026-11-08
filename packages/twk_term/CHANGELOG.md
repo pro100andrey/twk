@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+Added:
+
+- `Pty.foregroundProcessGroup`, the process group in the foreground of the
+  terminal: another than the program's while a shell runs a job, to ask
+  before closing one that is busy.
+
 ## 0.3.0
 
 Fixed:

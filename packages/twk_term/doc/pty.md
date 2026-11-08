@@ -14,7 +14,10 @@ too (`tool/web_check.dart`'s gallery case).
 - **The program's terminal**: the program leads a session of its own with the
   pseudo-terminal as its controlling terminal and its process group in the
   foreground, so `tty` names `ttyName` and `/dev/tty` opens, Ctrl+C, Ctrl+Z
-  and Ctrl+\ written to it are signals to that group, and a shell runs jobs.
+  and Ctrl+\ written to it are signals to that group, and a shell runs jobs:
+  `foregroundProcessGroup` (tcgetpgrp on the master) is the program's `pid`
+  while it waits, a job's while one runs, so an app can ask before closing a
+  busy shell.
   Its descriptors 0, 1 and 2 are the terminal, nothing else is inherited;
   every signal is at its default (the VM's ignored SIGPIPE isn't passed on)
   and none is blocked. IUTF8 is set, so the line discipline erases a UTF-8

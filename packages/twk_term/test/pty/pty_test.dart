@@ -211,6 +211,39 @@ void main() {
     expect(await run.ended(), exits(-ProcessSignal.sigint.signalNumber));
   });
 
+  test("the foreground process group: the shell's own while it waits, a "
+      "job's while one runs; none once the master is closed", () async {
+    final bash = ['/bin/bash', '/usr/bin/bash'].where(
+      (path) => File(path).existsSync(),
+    );
+    if (bash.isEmpty) {
+      markTestSkipped('no bash');
+      return;
+    }
+    final run = Run(
+      bash.first,
+      ['--norc', '--noprofile', '-i'],
+      environment: {'PS1': r'$ '},
+    );
+    await run.waitFor(r'$ ');
+    expect(run.pty.foregroundProcessGroup, run.pty.pid);
+    run.pty.write(utf8.encode("sh -c 'echo started; read x'\r"));
+    await run.waitFor('started\r\n');
+    final job = run.pty.foregroundProcessGroup;
+    expect(job, isNotNull);
+    expect(job, isNot(run.pty.pid));
+    final at = run.text.length;
+    run.pty.write(utf8.encode('\r'));
+    await run.waitFor(r'$ ', from: at);
+    expect(run.pty.foregroundProcessGroup, run.pty.pid);
+    // the master closes as the I/O isolate ends, after the call
+    run.pty.close();
+    await run.until(
+      () => run.pty.foregroundProcessGroup == null,
+      'no foreground group once the master is closed',
+    );
+  });
+
   test('a shell runs jobs: Ctrl+Z stops one, fg continues it', () async {
     final bash = ['/bin/bash', '/usr/bin/bash'].where(
       (path) => File(path).existsSync(),
