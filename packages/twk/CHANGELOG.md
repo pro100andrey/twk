@@ -48,6 +48,10 @@ Fixed:
   terminal around it: a background job, CI) takes it for a terminal, its
   width `COLUMNS` or none; it wrote to it as to a file, without colours or
   a progress line written over.
+- A focus change a mouse event made is told before the next mouse event
+  is handled: a click whose press and release came in one frame pressed a
+  button before the field it took the focus from had taken its text (a
+  `NumberInput` with 45 typed over 30 saved 30).
 
 ## 0.3.0
 

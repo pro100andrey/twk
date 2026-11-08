@@ -222,6 +222,39 @@ void main() {
     });
   }
 
+  testTwk('a click on a button after text typed, its press and release in '
+      'one frame: the button finds the value typed', (t) async {
+    final value = ValueNotifier<double>(30);
+    addTearDown(value.dispose);
+    final saved = <double>[];
+    await t.pumpWidget(
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 10,
+            child: ValueListenableBuilder<double>(
+              valueListenable: value,
+              builder: (context, v, _) => NumberInput(
+                value: v,
+                onChanged: (next) => value.value = next,
+                autofocus: true,
+              ),
+            ),
+          ),
+          Button('Save', onPressed: () => saved.add(value.value)),
+        ],
+      ),
+      size: (20, 4),
+    );
+    await press(t, 'backspace backspace');
+    await type(t, '45');
+    final y = t.lines.indexWhere((l) => l.contains('Save'));
+    await t.click(t.lines[y].indexOf('Save'), y);
+    await t.pump();
+    expect(saved, [45]);
+  });
+
   testTwk('Escape and its own keys are not taken as a key left to the '
       'bindings above: Escape puts the value back, Up steps once from the '
       'text', (t) async {

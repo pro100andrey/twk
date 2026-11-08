@@ -1385,6 +1385,13 @@ final class AppBinding implements FrameClock {
     if (event is MouseEvent && debug._takeMouse(event)) {
       return;
     }
+    // a focus change the event before made (a press that focused a
+    // button) is told before this one is handled (its release, which
+    // presses the button): the node that lost the focus has done with it,
+    // a field taken what was typed in it
+    if (event is MouseEvent && focusManager.needsFlush) {
+      focusManager.flush();
+    }
     if (event is MouseEvent && _mouse.dispatch(event)) {
       return;
     }
