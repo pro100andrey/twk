@@ -394,15 +394,26 @@ bool get stdinIsTerminal => stdin.hasTerminal;
 /// Stdout, or stderr with [error].
 Stdout _stdio({required bool error}) => error ? stderr : stdout;
 
-/// Whether stdout, or stderr with [error], is a terminal.
-bool stdioIsTerminal({bool error = false}) => _stdio(error: error).hasTerminal;
+/// Whether stdout, or stderr with [error], is a terminal: by what it is
+/// (`stdioType`), not by `hasTerminal`, which a pseudo-terminal of no size
+/// fails (one `script` opens with no terminal around it: a background job,
+/// CI).
+bool stdioIsTerminal({bool error = false}) =>
+    stdioType(_stdio(error: error)) == StdioType.terminal;
 
 /// Whether stdout, or stderr with [error], takes ANSI escapes.
 bool stdioSupportsAnsi({bool error = false}) =>
     _stdio(error: error).supportsAnsiEscapes;
 
-/// How many columns wide the terminal stdout (stderr with [error]) is.
-int stdioColumns({bool error = false}) => _stdio(error: error).terminalColumns;
+/// How many columns wide the terminal stdout (stderr with [error]) is; 0
+/// where it has no size.
+int stdioColumns({bool error = false}) {
+  try {
+    return _stdio(error: error).terminalColumns;
+  } on StdoutException {
+    return 0;
+  }
+}
 
 /// Stdout, or stderr with [error], as the sink text is written to.
 StringSink stdioSink({bool error = false}) => _stdio(error: error);

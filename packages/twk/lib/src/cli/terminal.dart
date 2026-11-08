@@ -170,7 +170,11 @@ final class _SystemTerminal extends CliTerminal {
   @override
   int? get columns {
     if (platform.stdioIsTerminal(error: _reserveStdout)) {
-      return platform.stdioColumns(error: _reserveStdout);
+      final columns = platform.stdioColumns(error: _reserveStdout);
+      if (columns > 0) {
+        return columns;
+      }
+      // a terminal of no size: as a pipe
     }
     // a positive number only, as twk_core's plain output takes it
     final columns = int.tryParse(_env['COLUMNS'] ?? '');

@@ -44,6 +44,10 @@ Fixed:
 - `NumberInput` and `DatePicker` take the text typed on a key they leave
   to the bindings above, before it goes on: a dialog's Ctrl+S that saves,
   pressed with 45 typed over 30, found 30.
+- A CLI on a pseudo-terminal of no size (one `script` opens with no
+  terminal around it: a background job, CI) takes it for a terminal, its
+  width `COLUMNS` or none; it wrote to it as to a file, without colours or
+  a progress line written over.
 
 ## 0.3.0
 
