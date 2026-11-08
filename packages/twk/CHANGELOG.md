@@ -18,6 +18,9 @@ Added:
 - `showKeyHelp(extra:)`: what no binding in force tells, as pairs of what
   is done and what it does (`('right click', 'menu')`), listed after the
   keys.
+- `Table(rowMenu:)`, the entries of a row's menu: a right click on a row
+  selects it and opens the menu at the mouse, Shift+F10 the selected row's
+  under it.
 
 ## 0.3.0
 

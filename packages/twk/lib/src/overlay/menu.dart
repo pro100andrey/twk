@@ -505,6 +505,34 @@ void showContextMenu({
   );
 }
 
+/// [showContextMenu] of [items] under the first row of the widget of
+/// [context], its first entry highlighted, as Shift+F10 opens one: for a
+/// part of the widget that has the focus, which a menu by the focus would
+/// not be under (a row of a `Table`). Not exported: the library's own.
+void showContextMenuUnder(BuildContext context, List<MenuEntry> items) {
+  final overlay = Overlay.maybeOf(context);
+  if (overlay == null) {
+    throw StateError(
+      'showContextMenu: no Overlay above ${context.widget.runtimeType}: '
+      'place an Overlay above it, as App does around the whole app: '
+      'App(child: …)',
+    );
+  }
+  if (items.isEmpty) {
+    return;
+  }
+  final widget = context.findRenderObject();
+  _MenuSession(
+    overlay,
+    items,
+    anchor: _Anchor(widget, 0, 0, widget?.width ?? 0, 1, below: true),
+    target: keyTarget(context),
+    keyLabel: null,
+    byKey: true,
+    look: PanelLook.raised,
+  );
+}
+
 /// [child], with a menu of [items] that a right click on it opens at the
 /// mouse, and Shift+F10 under the focused widget while the focus is in it
 /// ([showContextMenu]); in a layer of the focus tree around it, whose
