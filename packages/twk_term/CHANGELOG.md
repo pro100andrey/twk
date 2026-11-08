@@ -7,6 +7,9 @@ Added:
 - `Pty.foregroundProcessGroup`, the process group in the foreground of the
   terminal: another than the program's while a shell runs a job, to ask
   before closing one that is busy.
+- `TerminalView(canRequestFocus: false)`: a terminal to read only, as of
+  a log a program writes, which a press does not focus and no key reaches;
+  the wheel scrolls its scrollback.
 
 ## 0.3.0
 

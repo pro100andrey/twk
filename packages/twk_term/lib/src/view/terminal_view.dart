@@ -106,6 +106,7 @@ final class TerminalView extends StatefulWidget {
     super.key,
     this.focusNode,
     this.autofocus = false,
+    this.canRequestFocus = true,
     this.ignoredKeys = const [],
     this.wheelLines = 3,
     this.defaultStyle,
@@ -121,6 +122,12 @@ final class TerminalView extends StatefulWidget {
 
   /// See [Focus.focusNode].
   final FocusNode? focusNode;
+
+  /// Whether the view takes the focus, as by default; false for a view to
+  /// read only, as of a log a program writes (`tail -F`): a press does not
+  /// focus it, and no key or paste reaches the program. The wheel scrolls
+  /// the scrollback all the same. See [Focus.canRequestFocus].
+  final bool canRequestFocus;
 
   /// See [Focus.autofocus].
   final bool autofocus;
@@ -374,6 +381,7 @@ final class _TerminalViewState extends State<TerminalView> {
       child: Focus(
         focusNode: _node,
         autofocus: widget.autofocus,
+        canRequestFocus: widget.canRequestFocus,
         onKeyEvent: _onKey,
         child: Listener(
           behavior: HitTestBehavior.opaque,

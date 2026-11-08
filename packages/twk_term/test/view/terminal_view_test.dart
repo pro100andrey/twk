@@ -200,6 +200,42 @@ void main() {
     });
   });
 
+  testTwk('canRequestFocus false: a view to read, which a press does not '
+      'focus, no key reaches the program, the wheel scrolls all the same', (
+    t,
+  ) async {
+    final link = Link(t);
+    await t.pumpWidget(
+      KeyBindings(
+        const {},
+        child: Column(
+          children: [
+            const Focus(autofocus: true, child: Text('list')),
+            SizedBox(
+              height: 4,
+              child: TerminalView(
+                session: link.session,
+                canRequestFocus: false,
+              ),
+            ),
+          ],
+        ),
+      ),
+      size: (10, 5),
+    );
+    link.write([for (var i = 1; i <= 12; i++) 'line $i'].join('\r\n'));
+    await t.pump();
+    await t.click(2, 2);
+    await t.pump();
+    await t.type('x');
+    await t.pump();
+    expect(link.takeSent(), isEmpty);
+    expect(t.lines[1], 'line 9');
+    await t.mouse(MouseKind.wheelUp, 2, 2);
+    await t.pump();
+    expect(t.lines[1], 'line 6');
+  });
+
   group('the scrollback', () {
     Future<Link> filled(TwkTester t) async {
       final link = Link(t);
