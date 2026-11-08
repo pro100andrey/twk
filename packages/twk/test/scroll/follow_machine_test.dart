@@ -5,12 +5,12 @@ import 'package:twk/src/platform/follow_machine.dart';
 
 FollowMachine started({
   int? size = 10,
-  bool fromEnd = true,
+  int? backlog = 0,
   bool identity = false,
   bool? events,
 }) =>
     FollowMachine(tellsIdentity: identity, eventsTell: events ?? !identity)
-      ..start(fromEnd: fromEnd, size: size, identity: identity ? 'a' : null);
+      ..start(backlog: backlog, size: size, identity: identity ? 'a' : null);
 
 /// A look with nothing in between.
 FollowPlan look(FollowMachine m, int? size, [Object? identity]) =>
@@ -182,7 +182,7 @@ void main() {
     });
 
     test('from the start, all of it is read', () {
-      final m = started(fromEnd: false);
+      final m = started(backlog: null);
       expectPlan(read(m, 10), from: 0, to: 10);
     });
 
@@ -196,6 +196,39 @@ void main() {
       final m = started();
       expectPlan(read(m, null), reset: true);
       expectPlan(read(m, 3), from: 0, to: 3);
+    });
+
+    test('a backlog within the file is read from the byte before it, the '
+        'line it cuts dropped', () {
+      final m = started(backlog: 4);
+      expectPlan(look(m, 10), from: 5, to: 10);
+      // "ab\ncd": the line before the break is the end of one cut
+      expect(m.lineStart('ab\ncd'.codeUnits), 'cd'.codeUnits);
+      expect(m.lineStart('ef'.codeUnits), 'ef'.codeUnits);
+    });
+
+    test('a backlog that begins at a line keeps it: the byte before is its '
+        'break', () {
+      final m = started(backlog: 4);
+      expect(m.lineStart('\nabcd'.codeUnits), 'abcd'.codeUnits);
+    });
+
+    test('a line cut that has not ended tells nothing until it does', () {
+      final m = started(backlog: 4);
+      expect(m.lineStart('abc'.codeUnits), isEmpty);
+      expect(m.lineStart('d\ne'.codeUnits), 'e'.codeUnits);
+    });
+
+    test('a backlog as long as the file reads all of it, nothing cut', () {
+      final m = started(backlog: 10);
+      expectPlan(look(m, 10), from: 0, to: 10);
+      expect(m.lineStart('ab'.codeUnits), 'ab'.codeUnits);
+    });
+
+    test('a file cut short ends the cut: read from its start whole', () {
+      final m = started(backlog: 4);
+      expectPlan(read(m, 3), reset: true, from: 0, to: 3);
+      expect(m.lineStart('ab'.codeUnits), 'ab'.codeUnits);
     });
 
     test('a read told in parts goes on from the last part', () {
@@ -222,7 +255,7 @@ void main() {
     });
 
     test('before anything was read there is nothing to reset', () {
-      final m = started(size: 0, fromEnd: false)..nameEvent(puts: true);
+      final m = started(size: 0, backlog: null)..nameEvent(puts: true);
       expectPlan(look(m, 8), from: 0, to: 8);
     });
 
@@ -235,21 +268,21 @@ void main() {
 
   group('the appearance of a file not there', () {
     test('its create event, before the look that finds it, resets nothing', () {
-      final m = started(size: null, fromEnd: false)..nameEvent(puts: true);
+      final m = started(size: null, backlog: null)..nameEvent(puts: true);
       expectPlan(read(m, 5), from: 0, to: 5);
       m.nameEvent(puts: false);
       expectPlan(read(m, 8), from: 5, to: 8);
     });
 
     test('its create event, after the look that finds it, resets nothing', () {
-      final m = started(size: null, fromEnd: false);
+      final m = started(size: null, backlog: null);
       expectPlan(read(m, 5), from: 0, to: 5);
       m.nameEvent(puts: true);
       expectPlan(read(m, 8), from: 5, to: 8);
     });
 
     test('a second put after the appearance is a replacement', () {
-      final m = started(size: null, fromEnd: false);
+      final m = started(size: null, backlog: null);
       expectPlan(read(m, 5), from: 0, to: 5);
       m
         ..nameEvent(puts: true)
@@ -287,7 +320,7 @@ void main() {
 
     test('the same for a file that was not there at the start, its '
         'appearance told before the look that found it absent answers', () {
-      final m = started(size: null, fromEnd: false);
+      final m = started(size: null, backlog: null);
       final began = m.beginLook();
       m
         ..nameEvent(puts: true)
@@ -299,7 +332,7 @@ void main() {
 
     test('the appearance event after a look whose stat saw the file absent '
         'is not a replacement', () {
-      final m = started(size: null, fromEnd: false);
+      final m = started(size: null, backlog: null);
       final began = m.beginLook();
       m
         ..look(began, size: null)

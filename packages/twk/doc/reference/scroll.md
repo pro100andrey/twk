@@ -220,8 +220,11 @@ filter: '', query: '')`: lines added with `add(text, level:, time:)`
 level's; `addOutput(stream)` for a program's output as it comes, read as an
 `AnsiStream` reads it, a line once it ends, in its escape sequences'
 colors, a carriage return writing it over, the unended line when the
-stream is done; `followFile(path, fromEnd: true, poll: 1 s, tabWidth: 8)` for a file
-being written, the same way, its writes told by a watch of its directory and
+stream is done, each line through `map:` where it is given, which returns the
+spans to add or null to leave the line out; `followFile(path, backlog: 0,
+poll: 1 s, tabWidth: 8, map:)` for a file being written, the same way, the
+whole lines among its last `backlog` bytes first (null for the whole file),
+its writes told by a watch of its directory and
 found by a look at its size each `poll` as well, a file cut short read again
 from its start, one not there yet waited for, not on the web; `clear()`)
 follow the end while the view shows it; scrolled up it

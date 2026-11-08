@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+Breaking:
+
+- `LogController.followFile`: `fromEnd` is `backlog`, the bytes before the
+  end read too: `0` (the default) for `fromEnd: true`, `null` for
+  `fromEnd: false`, and a number of bytes for the whole lines among the last
+  of them, the line they begin within left out.
+
+Added:
+
+- `LogController.addOutput` and `followFile` take `map`, which gives each
+  line's spans back, changed, or null to leave the line out.
+
 ## 0.3.0
 
 Breaking:

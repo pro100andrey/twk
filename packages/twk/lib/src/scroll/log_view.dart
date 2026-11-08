@@ -218,9 +218,11 @@ final class LogController extends ChangeNotifier {
   /// reads it, so a carriage return writes the line over (a progress bar
   /// leaves its last state), a tab moves to the next multiple of
   /// [tabWidth] columns, and no sequence reaches the terminal. The line not
-  /// ended when [output] is done is added then. Returns the [LogSource]:
-  /// cancel it once the lines are not wanted; an error of [output] ends it,
-  /// and its [LogSource.done] completes with that error.
+  /// ended when [output] is done is added then. Each line is added as
+  /// [map] gives it back, when it is given: the spans to add in its place
+  /// (shortened, restyled), or null to leave it out. Returns the
+  /// [LogSource]: cancel it once the lines are not wanted; an error of
+  /// [output] ends it, and its [LogSource.done] completes with that error.
   ///
   /// ```dart
   /// final log = LogController();
@@ -232,11 +234,13 @@ final class LogController extends ChangeNotifier {
     Stream<String> output, {
     LogLevel level = LogLevel.info,
     int tabWidth = 8,
+    List<Span>? Function(List<Span> spans)? map,
   }) => _follow<String>(
     output,
     (reader, text) => reader.add(text),
     level,
     tabWidth,
+    map,
   );
 
   /// [addOutput] of [output], each event of it read into the stream by
@@ -247,15 +251,24 @@ final class LogController extends ChangeNotifier {
     void Function(AnsiStream, T) feed,
     LogLevel level,
     int tabWidth,
+    List<Span>? Function(List<Span> spans)? map,
   ) {
     final reader = AnsiStream(tabWidth: tabWidth);
     void addEnded() {
       final ended = reader.takeSettled();
-      if (ended.isEmpty) {
-        return;
+      var added = false;
+      for (final line in ended) {
+        final spans = map == null ? line : map(line);
+        if (spans != null) {
+          final kept = identical(spans, line)
+              ? line
+              : List<Span>.unmodifiable(spans);
+          _add(_textOf(kept), level, null, kept);
+          added = true;
+        }
       }
-      for (final spans in ended) {
-        _add(_textOf(spans), level, null, spans);
+      if (!added) {
+        return;
       }
       _trim();
       notifyListeners();
@@ -301,8 +314,11 @@ final class LogController extends ChangeNotifier {
 
   /// Follows the file at [path], adding the lines written to it as [addOutput]
   /// adds those of a program's output (in its colors, a carriage return
-  /// writing a line over), each line once it ends: those written from the
-  /// call on, or with [fromEnd] false the file's from its start too. A write
+  /// writing a line over, each through [map] when it is given), each line
+  /// once it ends: those written from the call on, and before them the whole
+  /// lines among the last [backlog] bytes the file had (none by default, the
+  /// file's from its start for null); a line the backlog begins within is
+  /// left out. A write
   /// is told by a watch of the file's directory where the system has one, and
   /// found by a look at the file's size each [poll] all the same; a file cut
   /// short (truncated after a clean, written anew) is read again from its
@@ -328,14 +344,28 @@ final class LogController extends ChangeNotifier {
   /// final source = log.followFile('build.log', tabWidth: 4);
   /// await source.cancel();
   /// ```
+  ///
+  /// A server's log, the lines of its last 64 KiB at the start, without
+  /// the lines of the health checks:
+  ///
+  /// ```dart
+  /// final log = LogController();
+  /// log.followFile(
+  ///   'server.log',
+  ///   backlog: 64 * 1024,
+  ///   map: (spans) =>
+  ///       spans.any((s) => s.text.contains('GET /health')) ? null : spans,
+  /// );
+  /// ```
   LogSource followFile(
     String path, {
-    bool fromEnd = true,
+    int? backlog = 0,
     Duration poll = const Duration(seconds: 1),
     LogLevel level = LogLevel.info,
     int tabWidth = 8,
+    List<Span>? Function(List<Span> spans)? map,
   }) => _follow<TailEvent>(
-    tailFile(path, fromEnd: fromEnd, poll: poll),
+    tailFile(path, backlog: backlog, poll: poll),
     (reader, event) => switch (event) {
       FileBytes(:final bytes) => reader.addBytes(bytes),
       // the old file's unended line, and a character cut, are not the start
@@ -344,6 +374,7 @@ final class LogController extends ChangeNotifier {
     },
     level,
     tabWidth,
+    map,
   );
 
   static String _textOf(List<Span> spans) => switch (spans) {
