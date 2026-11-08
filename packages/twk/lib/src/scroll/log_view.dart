@@ -225,7 +225,8 @@ final class LogController extends ChangeNotifier {
   /// [map] gives it back, when it is given: the spans to add in its place
   /// (shortened, restyled), or null to leave it out. Returns the
   /// [LogSource]: cancel it once the lines are not wanted; an error of
-  /// [output] ends it, and its [LogSource.done] completes with that error.
+  /// [output], or one [map] throws, ends it (the lines before it added),
+  /// and its [LogSource.done] completes with that error.
   ///
   /// ```dart
   /// final log = LogController();
@@ -257,24 +258,27 @@ final class LogController extends ChangeNotifier {
     List<Span>? Function(List<Span> spans)? map,
   ) {
     final reader = AnsiStream(tabWidth: tabWidth);
+    // what map throws ends the source; the lines before it are added
     void addEnded() {
       final ended = reader.takeSettled();
       var added = false;
-      for (final line in ended) {
-        final spans = map == null ? line : map(line);
-        if (spans != null) {
-          final kept = identical(spans, line)
-              ? line
-              : List<Span>.unmodifiable(spans);
-          _add(_textOf(kept), level, null, kept);
-          added = true;
+      try {
+        for (final line in ended) {
+          final spans = map == null ? line : map(line);
+          if (spans != null) {
+            final kept = identical(spans, line)
+                ? line
+                : List<Span>.unmodifiable(spans);
+            _add(_textOf(kept), level, null, kept);
+            added = true;
+          }
+        }
+      } finally {
+        if (added) {
+          _trim();
+          notifyListeners();
         }
       }
-      if (!added) {
-        return;
-      }
-      _trim();
-      notifyListeners();
     }
 
     final source = LogSource._();
@@ -284,18 +288,29 @@ final class LogController extends ChangeNotifier {
       source._finish(error, stack);
     }
 
+    void fail(Object error, StackTrace stack) {
+      finish(error, stack);
+      unawaited(source.cancel());
+    }
+
     source._subscription = output.listen(
       (event) {
-        feed(reader, event);
-        addEnded();
+        try {
+          feed(reader, event);
+          addEnded();
+        } on Object catch (error, stack) {
+          fail(error, stack);
+        }
       },
-      onError: (Object error, StackTrace stack) {
-        finish(error, stack);
-        unawaited(source.cancel());
-      },
+      onError: fail,
       onDone: () {
-        reader.close();
-        addEnded();
+        try {
+          reader.close();
+          addEnded();
+        } on Object catch (error, stack) {
+          finish(error, stack);
+          return;
+        }
         finish();
       },
     );

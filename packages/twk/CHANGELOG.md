@@ -38,6 +38,9 @@ Fixed:
   next show from their start, not scrolled out of view.
 - `LogView` scrolled up into a wrapped line stays on its row as lines are
   dropped past `maxLines`, not moved to the line's start at each one added.
+- What `map` throws in `LogController.addOutput` or `followFile` ends the
+  source, its `done` completing with it, the lines before it added and the
+  listeners told; it was thrown uncaught, the rest of the lines lost.
 
 ## 0.3.0
 
