@@ -48,10 +48,12 @@ of fixed `(key, hint)` pairs, whatever is in force, drawn, cut and (with
 bar of the keys in force; `keyLabel`, `separator`, `style`, `keyStyle` and
 `hintStyle` as above.
 
-`showKeyHelp(context, title: 'Keys')` shows the same keys, those in force
+`showKeyHelp(context, title: 'Keys', extra: [])` shows the same keys, those in force
 where `context` is as it is called, in a dialog (`Dialog(scrollable:
 true)`), a line each: the keys in bold (`KeyHintsBar.entries`, the nearest
-layer's first), their hint after them, a column apart, and last, a blank line apart, its
+layer's first), their hint after them, a column apart, then `extra`, pairs
+of what no binding tells and what it does (`('right click', 'menu')`), as
+a layer of its own, and last, a blank line apart, its
 own `esc  close` (alone when no key in force has a hint; keys without a
 hint are not listed); Escape or a click outside closes it. Bound to `?` it is a screen's help.
 

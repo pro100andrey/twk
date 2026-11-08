@@ -391,13 +391,17 @@ final class _KeyHintsBarState extends State<KeyHintsBar> {
 /// dialog titled [title]: the keys a [KeyHintsBar] would show there, one a
 /// line, as [KeyHintsBar.entries] makes them, the nearest layer's first
 /// ([ActiveKey.layer]), a blank line between the layers, the key in bold
-/// and its hint after it. A key without a hint is not listed. The last
-/// layer, apart from the others, is the dialog's own: `esc  close`, which
-/// closes it. It comes last because the dialog is about the screen's keys,
-/// and Escape is the footnote to them, as the bar's keys are; it is there
-/// with no hinted key in force too. A list taller than the screen
-/// scrolls. The keys are those in force as it is called, before
-/// the dialog takes the focus; Escape or a click outside closes it.
+/// and its hint after it. A key without a hint is not listed. After them
+/// come [extra], what no binding in force tells, as pairs of what is done
+/// and what it does, in that order: a key a widget takes itself (Tab
+/// moving the focus), the mouse (`'right click'`), each listed as a key is.
+/// The last layer, apart from the others, is the dialog's own:
+/// `esc  close`, which closes it. It comes last because the dialog is
+/// about the screen's keys, and Escape is the footnote to them, as the
+/// bar's keys are; it is there with no hinted key in force too. A list
+/// taller than the screen scrolls. The keys are those in force as it is
+/// called, before the dialog takes the focus; Escape or a click outside
+/// closes it.
 ///
 /// A help key that shows what the screen's keys do:
 ///
@@ -408,7 +412,20 @@ final class _KeyHintsBarState extends State<KeyHintsBar> {
 ///   child: const Focus(autofocus: true, child: Text('editor')),
 /// )
 /// ```
-Future<void> showKeyHelp(BuildContext context, {String title = 'Keys'}) {
+///
+/// The same, with what the mouse does:
+///
+/// ```dart
+/// showKeyHelp(
+///   context,
+///   extra: const [('click', 'select'), ('right click', 'menu')],
+/// );
+/// ```
+Future<void> showKeyHelp(
+  BuildContext context, {
+  String title = 'Keys',
+  List<(String, String)> extra = const [],
+}) {
   final glyphs = _fitArrows(context, Theme.of(context).glyphs);
   final active = AppBinding.of(context).focusManager.activeKeys;
   final byLayer = <int, List<ActiveKey>>{};
@@ -419,6 +436,7 @@ Future<void> showKeyHelp(BuildContext context, {String title = 'Keys'}) {
   final layers = [
     for (final i in byLayer.keys.toList()..sort())
       KeyHintsBar.entries(byLayer[i]!, glyphs: glyphs),
+    extra,
     // the dialog's own binding (Dialog: `escape` with the hint `close`) is
     // not built until the dialog is, so it is named here, as it is there
     [(KeyHintsBar.signs(KeyCombo.parse('escape'), glyphs: glyphs), 'close')],

@@ -15,6 +15,9 @@ Added:
   line's spans back, changed, or null to leave the line out.
 - `LogController.where`, which lines are shown by a test of each, beside
   `level` and `filter`; set, the view stays on the lines it shows.
+- `showKeyHelp(extra:)`: what no binding in force tells, as pairs of what
+  is done and what it does (`('right click', 'menu')`), listed after the
+  keys.
 
 ## 0.3.0
 
