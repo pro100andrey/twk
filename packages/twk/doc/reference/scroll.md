@@ -233,7 +233,8 @@ its bottom right) until End, a click on the count or `follow()` takes it
 back (`following`). It keeps `maxLines` lines, the oldest dropped (`length`,
 `[i]`, each a `LogLine`: `number`, `text`, `level`, `time`, `spans`), and shows those
 at `level` and above whose text has `filter` in it, ignoring the case while
-it is all in lower case (`shownLength`, `shownAt`), a filter typed on or a
+it is all in lower case, and that `where` keeps, a test of each line, null
+for every one (`shownLength`, `shownAt`), a filter typed on or a
 higher level refining only the lines shown; `query` is found the same way,
 its matches highlighted (`matchStyle`, the current one in
 `currentMatchStyle`), `nextMatch()` and `previousMatch()`, and `n` and `N`

@@ -13,6 +13,8 @@ Added:
 
 - `LogController.addOutput` and `followFile` take `map`, which gives each
   line's spans back, changed, or null to leave the line out.
+- `LogController.where`, which lines are shown by a test of each, beside
+  `level` and `filter`; set, the view stays on the lines it shows.
 
 ## 0.3.0
 

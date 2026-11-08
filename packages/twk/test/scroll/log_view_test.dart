@@ -233,6 +233,38 @@ void main() {
     expect(c.shownLength, 6);
   });
 
+  testTwk('where shows the lines it keeps, lines added too; set, the view '
+      'stays on the lines it shows, scrolled up', (t) async {
+    final c = LogController();
+    for (var i = 0; i < 80; i++) {
+      c.add(i.isEven ? 'req $i' : 'poll $i');
+    }
+    await t.pumpWidget(Theme.terminal(child: plain(c)), size: (30, 5));
+    for (var i = 0; i < 4; i++) {
+      await t.press('pageup');
+      await t.pump();
+    }
+    await t.pump();
+    expect(t.lines, ['poll 55', 'req 56', 'poll 57', 'req 58', 'poll 59']);
+
+    // the first line it showed is left out: it stays on the next one kept
+    c.where = (line) => line.text.startsWith('req');
+    await t.pump();
+    expect(t.lines, ['req 56', 'req 58', 'req 60', 'req 62', 'req 64']);
+    expect(c.shownLength, 40);
+    expect(c.following, isFalse);
+
+    c
+      ..add('poll 80')
+      ..add('req 81');
+    expect(c.shownLength, 41);
+
+    c.where = null;
+    await t.pump();
+    expect(c.shownLength, 82);
+    expect(t.lines.first, 'req 56');
+  });
+
   testTwk('n and N go to the next and the previous match, round past the '
       'ends, scrolling to it; what the query finds is highlighted', (
     t,

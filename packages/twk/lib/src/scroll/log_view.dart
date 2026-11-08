@@ -82,11 +82,11 @@ final class LogLine {
 /// searched and followed.
 ///
 /// It holds the lines kept, at most [maxLines] of them, the oldest dropped
-/// as new ones come; those shown of them, at [level] and above and
-/// containing [filter]; the [query] searched for and the line of the
-/// current [match]; and whether the view is [following] the newest line,
-/// or else how many [newLines] came since it stopped. It notifies its
-/// listeners of each change.
+/// as new ones come; those shown of them, at [level] and above,
+/// containing [filter] and kept by [where]; the [query] searched for and
+/// the line of the current [match]; and whether the view is [following]
+/// the newest line, or else how many [newLines] came since it stopped. It
+/// notifies its listeners of each change.
 ///
 /// A line added costs the time it takes to test it against the filter,
 /// whatever the lines kept. A [filter] that contains the one before, or a
@@ -109,12 +109,14 @@ final class LogLine {
 final class LogController extends ChangeNotifier {
   /// Keeps [maxLines] lines at most (10000 by default; fewer than 1
   /// asserts), and shows those at [level] and above (every level by
-  /// default) that contain [filter], with [query] searched for (both empty
-  /// by default, for every line and for none).
+  /// default) that contain [filter] and that [where] keeps, with [query]
+  /// searched for (both empty by default, for every line and for none;
+  /// [where] null for every line).
   LogController({
     int maxLines = 10000,
     this._level = LogLevel.debug,
     this._filter = '',
+    this._where,
     this._query = '',
   }) : assert(maxLines > 0, 'a cap of 1 line or more'),
        _maxLines = maxLines;
@@ -183,7 +185,7 @@ final class LogController extends ChangeNotifier {
   }
 
   /// The lines shown: those kept at [level] and above that contain
-  /// [filter].
+  /// [filter] and that [where] keeps.
   int get shownLength => _shown.length - _shownHead;
 
   /// The line shown at [index], the oldest at 0.
@@ -435,6 +437,32 @@ final class LogController extends ChangeNotifier {
     _refilter(narrower: narrower);
   }
 
+  /// Which lines are shown, of those at [level] and above that contain
+  /// [filter]: those it returns true for; null for every one. Set, it
+  /// tests every line kept, and the view stays on the lines it shows, as
+  /// it does for [filter]; set again to another function (a new closure)
+  /// to test them again when what it tests by changed. It is called for
+  /// each line added too, so it should be quick, and give a line the same
+  /// answer until it is set again.
+  ///
+  /// The lines of some kinds only, told by their text:
+  ///
+  /// ```dart
+  /// final log = LogController();
+  /// final kinds = {'GET', 'POST'};
+  /// log.where = (line) => kinds.any(line.text.startsWith);
+  /// ```
+  bool Function(LogLine line)? get where => _where;
+  bool Function(LogLine line)? _where;
+  set where(bool Function(LogLine line)? where) {
+    if (identical(where, _where)) {
+      return;
+    }
+    // a narrower test is not known: every line kept is tested
+    _where = where;
+    _refilter(narrower: false);
+  }
+
   /// What [nextMatch] and [previousMatch] look for, highlighted in the
   /// lines shown; empty for nothing. Set, there is no current [match].
   String get query => _query;
@@ -536,7 +564,8 @@ final class LogController extends ChangeNotifier {
 
   bool _passes(LogLine line) =>
       line.level.index >= _level.index &&
-      (_filter.isEmpty || _filterCase.isIn(line.text));
+      (_filter.isEmpty || _filterCase.isIn(line.text)) &&
+      (_where?.call(line) ?? true);
 
   bool _kept(int number) =>
       length > 0 && number >= _lines[_head].number && number < _next;
