@@ -385,20 +385,20 @@ final class TableController extends ChangeNotifier {
 /// or after the one sorted by; with [sortKeys] false they are left to the
 /// bindings above it. Sorting reads every row.
 ///
-/// As [selection] says, a click selects a row or a cell, and gives the
-/// table the focus; while it has the focus, Up and Down select the row
-/// above and below, Page Up and Page Down a window's rows away, Home and
-/// End the first and the last, Left and Right the cell before and after
-/// in the row; Enter calls [onActivated] with the row selected, and a
+/// As [selection] says, a click selects a row or a cell, and gives the table
+/// the focus; while it has the focus, Up and Down select the row above and
+/// below, Page Up and Page Down a window's rows away, Home and End the first
+/// and the last, Left and Right the cell before and after in the row; Enter
+/// calls [onActivated] with the row selected (without [onActivated] it goes on
+/// to the nodes above, so a `KeyBindings` around the table can bind it), and a
 /// right click or Shift+F10 opens the menu of a row ([rowMenu]). A key that
-/// selects no other row or cell, or resizes no column, at an end or a
-/// bound, goes on to the nodes above. The view scrolls the least that
-/// shows the row selected, after each of them and after the rows are
-/// sorted, and shows it from the first frame and with a new [controller].
-/// With [TableSelection.none] the keys scroll the rows instead.
-/// A key of [rowKey] the controller selects is looked for out from where
-/// the last one was found, a row below and a row above at a time; an
-/// index is found at once.
+/// selects no other row or cell, or resizes no column, at an end or a bound,
+/// goes on to the nodes above. The view scrolls the least that shows the row
+/// selected, after each of them and after the rows are sorted, and shows it
+/// from the first frame and with a new [controller]. With [TableSelection.none]
+/// the keys scroll the rows instead. A key of [rowKey] the controller selects
+/// is looked for out from where the last one was found, a row below and a row
+/// above at a time; an index is found at once.
 ///
 /// The styles, each merged over those before it: [style] for every cell,
 /// over the theme's background and text; [headerStyle] for the header,

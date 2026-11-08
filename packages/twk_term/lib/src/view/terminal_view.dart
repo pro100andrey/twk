@@ -33,7 +33,10 @@ part 'terminal_session.dart';
 /// keys, the kitty keyboard protocol when the program pushed its flags),
 /// Tab, Ctrl+C and Escape among them; none goes up to the nodes above its
 /// [Focus], but those [ignoredKeys] names (as `KeyBindings` names keys:
-/// `'ctrl+q'`, `'alt+1'`) and the releases the program doesn't hear of. A
+/// `'ctrl+q'`, `'alt+1'`) and the releases the program doesn't hear of:
+/// those are the app's way out of the view, which keeps Tab and Escape, a
+/// key of them bound above it giving the focus to another pane
+/// (`'alt+1': () => listNode.requestFocus()`). A
 /// key pressed while the view shows its scrollback brings it back to the
 /// screen. A paste goes to the program as typed, bracketed when it asked
 /// (mode 2004). The program is told when the view gains or loses the
