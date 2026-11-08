@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+Fixed:
+
+- A `testTwk` tear-down that awaits a future of the app's zone completes:
+  the microtasks of the zone run on the real event loop once the body is
+  done. A stream a callback of the app closed (`input` of a
+  `TerminalSession` closing it on `q`), its `close()` awaited again in a
+  tear-down, hung until the test's timeout.
+
 ## 0.3.0
 
 Breaking:

@@ -46,16 +46,19 @@ import 'screen_text.dart';
 /// });
 /// ```
 ///
-/// When [body] returns, an app still running is quit, and what it wrote is
-/// fed to the emulator: an error the app ended with that no call of the
-/// tester has thrown fails the test, as do bytes the emulator does not
-/// take (see [Vt]) and an error the app logged that the test did not take
-/// ([TwkTester.takeErrors]): a build that threw, which the next frame may
-/// well build over. A test that fails prints the last [framesOnFailure]
-/// frames of the app that changed the screen ([TwkTester.frames]), as
-/// text, and then the app's log ([TwkTester.logs]), its last 20 records:
-/// what it printed, its warnings (a layout that overflowed) and its
-/// errors (a build that threw), which its screen shows none of.
+/// When [body] returns, an app still running is quit, the microtasks of the
+/// app's zone run on the real event loop from then on, so that a tear-down
+/// awaiting a future of that zone completes (a stream's `close()` that a
+/// callback of the app called first), and what the app wrote is fed to the
+/// emulator: an error the app ended with that no call of the tester has thrown
+/// fails the test, as do bytes the emulator does not take (see [Vt]) and an
+/// error the app logged that the test did not take ([TwkTester.takeErrors]): a
+/// build that threw, which the next frame may well build over. A test that
+/// fails prints the last [framesOnFailure] frames of the app that changed the
+/// screen ([TwkTester.frames]), as text, and then the app's log
+/// ([TwkTester.logs]), its last 20 records: what it printed, its warnings (a
+/// layout that overflowed) and its errors (a build that threw), which its
+/// screen shows none of.
 @isTest
 void testTwk(
   String description,
@@ -77,6 +80,7 @@ void testTwk(
       } on Object {
         // the test failed already: its own error is the one to report
       }
+      t.clock.letGoOfMicrotasks();
       rethrow;
     }
     try {
@@ -85,6 +89,9 @@ void testTwk(
     } on Object {
       t._printOnFailure(framesOnFailure);
       rethrow;
+    } finally {
+      // the tear-downs run on: what they await of the app's zone completes
+      t.clock.letGoOfMicrotasks();
     }
   },
   timeout: timeout,
