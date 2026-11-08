@@ -137,7 +137,8 @@ background and text under the items; scrolled while all of it is on the
 screen, it has the terminal move the rows that stay in view and paints those
 the scroll brought in and those of the items that changed. A
 `ListController`, a `ScrollController`, moves its lists to an item, built or
-not, as they are next laid out: `jumpToIndex` to the top (in a reverse list
+not, as they are next laid out: `jumpToIndex` to the top, `rows:` of it
+above the window to keep a tall item part way into it (in a reverse list
 the bottom, the edge it reads from, an item taller than the window showing
 its bottom), `ensureIndexVisible` the least that shows it; of a move to an
 item and a move of the position (a key, the wheel, `jumpTo`) before the list

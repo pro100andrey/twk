@@ -908,11 +908,16 @@ final class _LogViewState extends State<LogView> {
       if (_shift > most) {
         _shift = most;
       }
-      // scrolled away from the end, it stays on the line at its top, or on
-      // the first shown after it when that one is not shown now
-      final top = c._following ? null : _windowEdge(top: true);
-      if (top != null) {
-        _list.jumpToIndex(c._shownIndexOf(top));
+      // scrolled away from the end, it stays on the line at its top, the
+      // list keeping that line's row as the lines before it come and go;
+      // on the first shown after it when that one is not shown now
+      final top = c._following ? null : _windowTop();
+      if (top case (final number, final rows)?) {
+        final at = c._shownIndexOf(number);
+        // the rows of it above the window too, where it is still shown: a
+        // wrapped line part way into it stays as it was
+        final shown = at < c.shownLength && c.shownAt(at).number == number;
+        _list.jumpToIndex(at, rows: shown ? rows : 0);
       }
     }
     if (c._moves != _moves) {
@@ -984,6 +989,26 @@ final class _LogViewState extends State<LogView> {
   (int, int)? _window() {
     final top = _windowEdge(top: true);
     return top == null ? null : (top, _windowEdge(top: false)!);
+  }
+
+  /// The number of the first line in the window, as it was last laid out,
+  /// and how many of its rows are above the window; null with none.
+  (int, int)? _windowTop() {
+    final list = mounted ? _render : null;
+    if (list == null) {
+      return null;
+    }
+    for (var c = list.firstChild; c != null;) {
+      LogView.renderVisits++;
+      final at = c.parentData as ListParentData;
+      if (at.dy + c.height > 0 && at.dy < list.height) {
+        if (_lineIn(c) case final line?) {
+          return (line.number, at.dy < 0 ? -at.dy : 0);
+        }
+      }
+      c = at.nextSibling;
+    }
+    return null;
   }
 
   /// The number of the first line in the window, as it was last laid out,

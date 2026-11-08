@@ -413,6 +413,27 @@ void main() {
       expect(v.shown.first, 'item 600.1');
     });
 
+    test('jumpToIndex with rows shows a tall item part way into it, at most '
+        'its last row at the top', () {
+      final l = list(Items((i) => i == 500 ? 3 : 1), 1000);
+      final v = View(20, 5, l)..frame();
+      l.jumpToIndex(500, rows: 2);
+      v.frame();
+      expect(v.shown, ['item 500.2', ...items(501, 505)]);
+      l.jumpToIndex(500, rows: 9);
+      v.frame();
+      expect(v.shown.first, 'item 500.2');
+      // a move of another kind after it takes no rows from it
+      l.jumpToIndex(500);
+      v.frame();
+      expect(v.shown.first, 'item 500');
+      l
+        ..jumpToIndex(500, rows: 1)
+        ..showIndex(500);
+      v.frame();
+      expect(v.shown.first, 'item 500');
+    });
+
     test('jumpToIndex shows an item at the top; showIndex scrolls the least '
         'that shows it', () {
       final l = list(Items(), 1000);

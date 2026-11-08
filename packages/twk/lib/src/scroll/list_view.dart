@@ -68,12 +68,15 @@ final class ListController extends ScrollController {
   // the lists of the list views it is given to; the move to an item asked
   // for while there were none, and whether to the top
   final _lists = <_ListElement>[];
-  (int, bool)? _pending;
+  (int, bool, int)? _pending;
 
   /// Scrolls each of its lists to show item [index] at the top of the
-  /// window, as the list is next laid out; a [ListView.reverse] list, read
-  /// from the bottom up, at the bottom.
-  void jumpToIndex(int index) => _toIndex(index, atTop: true);
+  /// window, as the list is next laid out, [rows] of its rows above the
+  /// window (none by default; at most all but its last), to keep a tall
+  /// item where it was, part way into it; a [ListView.reverse] list, read
+  /// from the bottom up, at the bottom, [rows] not counted.
+  void jumpToIndex(int index, {int rows = 0}) =>
+      _toIndex(index, atTop: true, rows: rows);
 
   /// Scrolls each of its lists the least that shows item [index], as the
   /// list is next laid out: to its top when it is taller than the window,
@@ -86,27 +89,32 @@ final class ListController extends ScrollController {
     super.jumpTo(offset);
   }
 
-  void _toIndex(int index, {required bool atTop}) {
+  void _toIndex(int index, {required bool atTop, int rows = 0}) {
     assert(index >= 0, 'an index of 0 or more');
+    assert(rows >= 0, 'rows of 0 or more');
     if (_lists.isEmpty) {
-      _pending = (index, atTop);
+      _pending = (index, atTop, rows);
     }
     for (final list in _lists) {
-      _move(list, index, atTop: atTop);
+      _move(list, index, atTop: atTop, rows: rows);
     }
   }
 
   /// Takes [list], making the move asked for while it had none.
   void _attach(_ListElement list) {
     _lists.add(list);
-    if (_pending case (final index, final atTop)?) {
+    if (_pending case (final index, final atTop, final rows)?) {
       _pending = null;
-      _move(list, index, atTop: atTop);
+      _move(list, index, atTop: atTop, rows: rows);
     }
   }
 
-  static void _move(_ListElement list, int index, {required bool atTop}) =>
-      list._toItem(index, atTop: atTop);
+  static void _move(
+    _ListElement list,
+    int index, {
+    required bool atTop,
+    int rows = 0,
+  }) => list._toItem(index, atTop: atTop, rows: rows);
 }
 
 /// A list of [itemCount] items one below another, each as wide as the
@@ -566,10 +574,10 @@ final class _ListElement extends RenderObjectElement
   /// Moves the render list to item [index] in its next layout: to the top
   /// of the window (the bottom, in reverse) when [atTop], the least that
   /// shows it otherwise.
-  void _toItem(int index, {required bool atTop}) {
+  void _toItem(int index, {required bool atTop, int rows = 0}) {
     final at = _childOf(index);
     if (atTop && !widget.view.reverse) {
-      renderObject.jumpToIndex(at);
+      renderObject.jumpToIndex(at, rows: rows);
     } else {
       renderObject.showIndex(at);
     }

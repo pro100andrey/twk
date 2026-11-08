@@ -24,6 +24,8 @@ Added:
   selects it and opens the menu at the mouse, Shift+F10 the selected row's
   under it.
 - `LogView`: `w` turns the wrapping over (`w wrap` in a `KeyHintsBar`).
+- `ListController.jumpToIndex(rows:)`: the item at the top part way into
+  it, `rows` of it above the window.
 
 Changed:
 
@@ -34,6 +36,8 @@ Fixed:
 
 - `LogView` scrolled across and its controller cleared: the lines added
   next show from their start, not scrolled out of view.
+- `LogView` scrolled up into a wrapped line stays on its row as lines are
+  dropped past `maxLines`, not moved to the line's start at each one added.
 
 ## 0.3.0
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+Added:
+
+- `RenderList.jumpToIndex(rows:)`: the item at the top part way into it,
+  `rows` of it above the window.
+
 ## 0.3.0
 
 Breaking:

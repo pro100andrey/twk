@@ -325,6 +325,29 @@ void main() {
     expect(t.lines[1], 'line 16 word word wo');
   });
 
+  testTwk('scrolled up to the middle of a wrapped line, lines dropped past '
+      'the cap above the window move nothing', (t) async {
+    final c = LogController(maxLines: 10);
+    for (var i = 0; i < 10; i++) {
+      c.add('L$i ${'wordwo ' * 8}');
+    }
+    await t.pumpWidget(
+      Theme.terminal(child: plain(c, wrap: true)),
+      size: (20, 6),
+    );
+    await t.press('up');
+    await t.press('up');
+    await t.pump();
+    // the indicator of the new lines takes the last row
+    final shown = t.lines.take(5).toList();
+    expect(shown.first, isNot(startsWith('L')), reason: 'within a line');
+    for (var i = 10; i < 13; i++) {
+      c.add('L$i ${'wordwo ' * 8}');
+      await t.pump();
+      expect(t.lines.take(5), shown);
+    }
+  });
+
   testTwk('scrolled across, cleared: the lines added next show from their '
       'start', (t) async {
     final c = LogController()..add('x' * 100);
