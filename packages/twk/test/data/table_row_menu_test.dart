@@ -147,4 +147,67 @@ void main() {
     await t.pumpUntilIdle();
     expect(log, ['open n3']);
   });
+
+  testTwk('a row menu given and taken away keeps the state of the table: the '
+      'selection, the scroll and the State of the rows', (t) async {
+    final log = <String>[];
+    Widget app({required bool menu}) => App(
+      child: Table<File>(
+        rows: files,
+        controller: controller,
+        autofocus: true,
+        columns: [
+          TableColumn(
+            title: 'Name',
+            cell: (f) => TableCell.widget(_Made(f.name, log)),
+          ),
+        ],
+        rowMenu: menu ? (f) => [MenuItem('Open', onSelected: () {})] : null,
+      ),
+    );
+    await t.pumpWidget(app(menu: false), size: (30, 8));
+    for (var i = 0; i < 12; i++) {
+      await t.press('down');
+    }
+    await t.pumpUntilIdle();
+    final selected = controller.selectedKey;
+    final shown = [...t.lines];
+    log.clear();
+    await t.pumpWidget(app(menu: true), size: (30, 8));
+    expect(log, isEmpty);
+    expect(controller.selectedKey, selected);
+    expect(t.lines, shown);
+    await t.pumpWidget(app(menu: false), size: (30, 8));
+    expect(log, isEmpty);
+    expect(controller.selectedKey, selected);
+    expect(t.lines, shown);
+  });
+}
+
+/// Logs `+<label>` when its State is made and `-<label>` when disposed.
+final class _Made extends StatefulWidget {
+  const _Made(this.label, this.log);
+
+  final String label;
+  final List<String> log;
+
+  @override
+  State<_Made> createState() => _MadeState();
+}
+
+final class _MadeState extends State<_Made> {
+  @override
+  void initState() {
+    super.initState();
+    widget.log.add('+${widget.label}');
+  }
+
+  @override
+  void dispose() {
+    widget.log.add('-${widget.label}');
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Text(widget.label);
 }

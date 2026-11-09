@@ -298,7 +298,8 @@ final class _SelectionListState<K> extends State<SelectionList<K>> {
   SelectionController<K> get _controller =>
       widget.controller ?? (_own ??= SelectionController<K>());
 
-  // O(itemCount), in an assert: no two items have the same key
+  // O(itemCount), in an assert: no two items have the same key; at an
+  // update only when the count or the keyOf given changed
   bool _distinctKeys() {
     final seen = <K>{};
     for (var i = 0; i < widget.itemCount; i++) {
@@ -322,7 +323,15 @@ final class _SelectionListState<K> extends State<SelectionList<K>> {
   @override
   void didUpdateWidget(SelectionList<K> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    assert(_distinctKeys(), 'duplicate keys');
+    // unchanged: the same count and the very same keyOf, so that a list
+    // rebuilt with a keyOf kept (a field or a tear-off, not a closure made
+    // at each build) is not read item by item at every rebuild
+    assert(
+      (widget.itemCount == oldWidget.itemCount &&
+              identical(widget.keyOf, oldWidget.keyOf)) ||
+          _distinctKeys(),
+      'duplicate keys',
+    );
     if (!identical(widget.controller, oldWidget.controller)) {
       (oldWidget.controller ?? _own)?.removeListener(_changed);
       _controller.addListener(_changed);

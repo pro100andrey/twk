@@ -592,7 +592,13 @@ final class _PickerState<T> extends State<_Picker<T>>
   @override
   void initState() {
     super.initState();
-    assert(_distinctChoices(widget.choices, 'Select'), 'duplicate choices');
+    assert(
+      _distinctChoices(
+        widget.choices,
+        widget.multiple ? 'MultiSelect' : 'Select',
+      ),
+      'duplicate choices',
+    );
     _popup.addListener(_popupChanged);
     final tookOver = attachPopup(widget.controller);
     _open = _popup.isOpen && _enabled;
@@ -604,7 +610,10 @@ final class _PickerState<T> extends State<_Picker<T>>
     super.didUpdateWidget(oldWidget);
     assert(
       identical(widget.choices, oldWidget.choices) ||
-          _distinctChoices(widget.choices, 'Select'),
+          _distinctChoices(
+            widget.choices,
+            widget.multiple ? 'MultiSelect' : 'Select',
+          ),
       'duplicate choices',
     );
     if (!identical(widget.controller, oldWidget.controller)) {

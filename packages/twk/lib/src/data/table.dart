@@ -1561,12 +1561,12 @@ final class _TableState<T> extends State<Table<T>> {
         ),
       ),
     );
-    if (w.rowMenu == null) {
-      return table;
-    }
+    // the same wrappers with or without a row menu, the key unbound
+    // without one: a menu given or taken away keeps the subtree's state
+    final menu = w.rowMenu != null;
     return KeyBindings.combos(
-      {_shiftF10: _openRowMenu},
-      hints: {_shiftF10: 'menu'},
+      {_shiftF10: menu ? _openRowMenu : null},
+      hints: {if (menu) _shiftF10: 'menu'},
       debugLabel: 'row menu',
       child: table,
     );
@@ -1846,12 +1846,12 @@ final class _RowSlotState<T> extends State<_RowSlot<T>> {
   @override
   Widget build(BuildContext context) {
     final row = widget.table._row(widget.index, widget.row, _down);
-    if (widget.table.widget.rowMenu == null) {
-      return row;
-    }
+    // always the Listener, so that a menu given or taken away keeps the
+    // row's State; it takes no press, and is not opaque, without a menu
+    final menu = widget.table.widget.rowMenu != null;
     return Listener(
-      behavior: HitTestBehavior.opaque,
-      onPointerDown: _menuDown,
+      behavior: menu ? HitTestBehavior.opaque : HitTestBehavior.deferToChild,
+      onPointerDown: menu ? _menuDown : null,
       child: row,
     );
   }

@@ -914,6 +914,47 @@ void main() {
     });
   });
 
+  group('showFilePicker on a small terminal', () {
+    for (final rows in [24, 12, 9]) {
+      testTwk('at 70x$rows, the Cancel and Open buttons are on the screen, '
+          'whatever the height asked', (t) async {
+        final results = <List<String>?>[];
+        await t.pumpWidget(
+          Overlay(child: _Opener(results)),
+          size: (70, rows),
+        );
+        // 's' asks for the default height (20 rows), 'o' for 10
+        await press(t, 's');
+        await opened(t);
+        expect(t, containsLine(contains('Cancel')));
+        expect(t, containsLine(contains('Save')));
+        expect(t.takeErrors(), isEmpty);
+      });
+    }
+
+    testTwk('a height under the title and the room does not '
+        'assert', (t) async {
+      await t.pumpWidget(
+        Overlay(
+          child: Builder(
+            builder: (context) => KeyBindings({
+              'o': () => showFilePicker(
+                context,
+                directory: root,
+                fileSystem: files,
+                height: 2,
+              ),
+            }, child: const SizedBox()),
+          ),
+        ),
+        size: (70, 12),
+      );
+      await press(t, 'o');
+      await t.pump(const Duration(milliseconds: 200));
+      expect(t.takeErrors(), isEmpty);
+    });
+  });
+
   group("over the machine's file system", () {
     test("the home directory is the environment's", () {
       expect(

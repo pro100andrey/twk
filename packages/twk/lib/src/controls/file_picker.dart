@@ -527,35 +527,42 @@ Future<List<String>?> showFilePicker(
   int height = 20,
 }) => showDialog<List<String>>(
   context: context,
-  builder: (context) => SizedBox(
-    width: width,
-    height: height,
-    child: Dialog(
-      title:
-          title ??
-          switch (mode) {
-            FilePickerMode.open => 'Open',
-            FilePickerMode.save => 'Save as',
-            FilePickerMode.directory => 'Choose a directory',
-          },
-      // the title row and the dialog's room are the other rows of [height]
-      child: SizedBox(
-        height: height - 3,
-        child: FilePicker(
-          fieldStyle: Theme.of(context).well,
-          onPicked: (paths) => closeDialog(context, paths),
-          onCancelled: () => closeDialog(context),
-          mode: mode,
-          directory: directory,
-          fileSystem: fileSystem,
-          name: name,
-          filters: filters,
-          showHidden: showHidden,
-          multiple: multiple,
-          autofocus: true,
+  builder: (context) => LayoutBuilder(
+    builder: (context, room) {
+      // [height] rows, or the room the dialog has when that is less
+      final tall = math.min(height, room.maxHeight);
+      return SizedBox(
+        width: width,
+        height: tall,
+        child: Dialog(
+          title:
+              title ??
+              switch (mode) {
+                FilePickerMode.open => 'Open',
+                FilePickerMode.save => 'Save as',
+                FilePickerMode.directory => 'Choose a directory',
+              },
+          // the title row and the dialog's room are the other rows of
+          // the height
+          child: SizedBox(
+            height: math.max(1, tall - 3),
+            child: FilePicker(
+              fieldStyle: Theme.of(context).well,
+              onPicked: (paths) => closeDialog(context, paths),
+              onCancelled: () => closeDialog(context),
+              mode: mode,
+              directory: directory,
+              fileSystem: fileSystem,
+              name: name,
+              filters: filters,
+              showHidden: showHidden,
+              multiple: multiple,
+              autofocus: true,
+            ),
+          ),
         ),
-      ),
-    ),
+      );
+    },
   ),
 );
 

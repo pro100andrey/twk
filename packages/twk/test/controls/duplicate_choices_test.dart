@@ -42,7 +42,9 @@ void main() {
       await t.pumpWidget(select(fine));
       expect(errors(t), isEmpty);
       await t.pumpWidget(select(dup));
-      expect(errors(t), [contains('Select has two choices with the value a')]);
+      expect(errors(t), [
+        contains('MultiSelect has two choices with the value a'),
+      ]);
     });
 
     testTwk('a value no choice has is legal', (t) async {
@@ -102,6 +104,32 @@ void main() {
       expect(errors(t), [
         contains('SelectionList has two items with the key 0 (at 2)'),
       ]);
+    });
+
+    testTwk('an update with the same count and keyOf does not read the keys '
+        'again; a new count does', (t) async {
+      var reads = 0;
+      int keyOf(int i) {
+        reads++;
+        return i;
+      }
+
+      Widget list(int count) => SizedBox(
+        height: 4,
+        child: SelectionList<int>(
+          itemCount: count,
+          keyOf: keyOf,
+          itemBuilder: (context, i) => Text('$i'),
+        ),
+      );
+      await t.pumpWidget(list(1000));
+      reads = 0;
+      await t.pumpWidget(list(1000));
+      // the items in view, not the thousand
+      expect(reads, lessThan(100));
+      await t.pumpWidget(list(1001));
+      expect(reads, greaterThanOrEqualTo(1001));
+      expect(errors(t), isEmpty);
     });
 
     testTwk('a list refused for its keys leaves no controller undisposed', (
