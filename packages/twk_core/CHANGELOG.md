@@ -5,9 +5,17 @@
 Changed:
 
 - `renderToString` draws no overflow marker (its output is data, as `Cli.show`'s
-  and `Shot`'s); the warning still goes to `onLog`.
+  and `Shot`'s); the warning still goes to `onLog`. Nor do the inline
+  commits (`TwkApp.commit`, a line written to the scrollback) and
+  `Shot`'s captures (twk_test): they are made by `PipelineOwner.forData`.
 
 Added:
+
+- `PipelineOwner.forData`, a constructor for an owner whose output is data
+  (what `renderToString` returns, a line written to a pipe or a file, a
+  capture held to goldens, a commit to the scrollback):
+  `debugOverflowIndicator` is off in it whatever
+  `debugOverflowIndicatorByDefault` says, and can be turned on afterwards.
 
 - `debugAssertsEnabled`, whether asserts are on, exported by the core; the
   render pipeline's overflow marker and `package:twk`'s binding read this

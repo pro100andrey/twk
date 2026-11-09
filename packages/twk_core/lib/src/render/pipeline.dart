@@ -119,7 +119,10 @@ final class PipelineOwner {
     }
     _overflowIndicator = on;
     if (on) {
-      // the layouts note an overflow only while the marker is on
+      // the layouts note an overflow only while the marker is on, so
+      // _overflowRight, _overflowBottom and _overflowed of the objects are
+      // stale until they are laid out again here; read them only while the
+      // flag is on
       void again(RenderObject o) {
         if (o is _OverflowIndicator) {
           o.markNeedsLayout();

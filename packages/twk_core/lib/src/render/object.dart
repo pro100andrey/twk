@@ -758,11 +758,15 @@ abstract class RenderObject {
   var _sizeW = 0;
   var _sizeH = 0;
 
-  // debug only: the objects whose last layout call was made without
-  // parentUsesSize, by a parent that is not told the size otherwise (a tight
-  // constraint or sizedByParent also make a boundary, but one whose size
-  // can't change within the constraints); see _debugStates.
-
+  // debug only: throws when the parent reads this object's size in its own
+  // performLayout, after laying it out without parentUsesSize (the
+  // sizeNotUsed flag of _debugStates; a tight constraint or sizedByParent
+  // also make a boundary, but one whose size can't change within the
+  // constraints, so they don't set it). "The parent in its own
+  // performLayout" is _debugInLayout, the innermost object in layout, being
+  // the parent: so a sibling or another non-parent reading a boundary
+  // child's size during the parent's layout is not flagged, nor is a read
+  // while a deeper object (a child laid out by the parent) is the innermost.
   bool _debugParentMayReadSize(String which) {
     final p = parent;
     // the object in its own performLayout now is the parent: a static test,

@@ -45,7 +45,12 @@ const _overflowPen = Pen(fg: Color.yellow, bg: Color.black);
 /// report.
 mixin _OverflowIndicator on RenderObject {
   // the cells cut off at the right and at the bottom, as the last layout
-  // found them
+  // found them. Meaningful only while the owner's debugOverflowIndicator is
+  // on: the layouts measure the overflow only then (a release bench's
+  // cost), so with the flag off they hold what the last measuring left,
+  // not the truth. Turning the flag on lays every such object out again
+  // (see the setter in pipeline.dart). Read them, and _overflowed, only
+  // behind that flag.
   var _overflowRight = 0;
   var _overflowBottom = 0;
 

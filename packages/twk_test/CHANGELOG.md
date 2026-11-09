@@ -21,6 +21,10 @@ Added:
 
 Changed:
 
+- `Shot` draws no overflow marker over its capture (it is data, held to
+  goldens): its pipeline is a `PipelineOwner.forData`. The warning of an
+  overflow is still kept in `logs`; a test of the marker sets
+  `pipeline.debugOverflowIndicator` and runs a `frame`.
 - `Vt`'s docs say how to read another program's output (a real terminal's
   recording replayed): `strict: false` and `allowLineFeed: true`.
 
