@@ -137,7 +137,12 @@ Fixed:
   listener, when `where` throws during the refilter, as `where` does.
 - `NumberInput` and `DatePicker` keep a number typed until the parent
   takes it or gives another value; a rebuild with the old value no longer
-  clears it.
+  clears it. A value handed over that the parent never took is given up
+  when the focus leaves, the field showing the parent's value again.
+- A widget leaving ends only the two-hosts graces it is in, not those of
+  other hosts still in the tree.
+- `LogController` tells its listeners after a refilter is whole, outside
+  the undo of a `where` that throws.
 - The duplicate checks of `Select`, `MultiSelect`, `SegmentedButton`,
   `SelectionList` and `Table` read at most the first 1000 values or keys,
   so a huge list rebuilt with an inline `keyOf` no longer costs a pass
