@@ -422,6 +422,10 @@ final class PipelineOwner {
     list.clear();
     ctx.canvas.reset();
     _throwFirst();
+    assert(
+      ctx.surface.debugCheckWide(),
+      'a wide glyph of the surface is split',
+    );
   }
 
   /// Calls [RenderObject.beforePaint] on the objects

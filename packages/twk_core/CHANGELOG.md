@@ -4,6 +4,11 @@
 
 Added:
 
+- `Surface.debugCheckWide`, run at the end of every paint flush in debug
+  mode: a wide glyph split in the damaged cells (a wide cell without its
+  continuation, at the last column too, or a continuation cell without a
+  wide cell before it) asserts, naming the row and column, where a painter
+  that writes `Surface.cells` itself is to blame.
 - `PipelineOwner.onObjectLog`: the tree's own warnings (a flex, wrap or
   grid overflow, a viewport or list given no room) with the render object
   that raised each, ahead of `onLog`, so a binding can name where it is.
