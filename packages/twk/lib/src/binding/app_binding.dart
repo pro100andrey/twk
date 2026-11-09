@@ -394,12 +394,6 @@ final class AppBinding implements FrameClock {
   static AppBinding? maybeOf(BuildContext context) =>
       context.getInheritedWidgetOfExactType<_Scope>()?.binding;
 
-  /// The [startTimer] of the app [state] is in, null where it is in none.
-  /// `State.appTimer` gives the same without the binding; `ControllerHost`
-  /// needs neither, and what still passes this as its `timerOf` can drop it.
-  static Timer Function(Duration, void Function())? startTimerOf(State state) =>
-      maybeOf(state.context)?.startTimer;
-
   /// Starts a timer that calls [callback] after [duration] on the app's
   /// clock, in the zone its frames run in (an error the callback throws ends
   /// the app, as one of a frame's), wherever it is called from: a

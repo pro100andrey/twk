@@ -27,7 +27,6 @@ import '../animation/animation_controller.dart';
 import '../animation/curves.dart';
 import '../animation/switcher.dart' show FractionalTranslation;
 import '../animation/ticker.dart';
-import '../binding/app_binding.dart' show AppBinding;
 import '../focus/focus_tree.dart';
 import '../focus/shortcuts.dart';
 import '../foundation/controller_host.dart';
@@ -1062,9 +1061,7 @@ final class _BackAction extends Action<_BackIntent> {
 class NavigatorObserver {
   /// The navigator the observer is on; null while it is on none.
   NavigatorState? get navigator => _hosts.host;
-  final _hosts = ControllerHost<NavigatorState>(
-    timerOf: AppBinding.startTimerOf,
-  );
+  final _hosts = ControllerHost<NavigatorState>();
 
   /// [route] was pushed, over [previousRoute]; the first route is told
   /// with none.

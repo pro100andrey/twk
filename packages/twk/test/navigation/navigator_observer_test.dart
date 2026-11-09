@@ -425,8 +425,9 @@ void main() {
     unawaited(state.push(d));
     unawaited(state.push(page('e')));
     unawaited(state.push(page('f')));
-    state.removeRoute(d);
-    state.popUntil((r) => r.isFirst);
+    state
+      ..removeRoute(d)
+      ..popUntil((r) => r.isFirst);
     await t.pump();
   }, trackDisposables: true);
 }

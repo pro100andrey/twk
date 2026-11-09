@@ -389,6 +389,7 @@ abstract class State<T extends StatefulWidget> {
   /// The clock of the app this state is in (the [AppClock] above it), null
   /// where there is no app: for what waits on the app's time and does
   /// something else without one (`ControllerHost`'s grace).
+  @internal
   StartTimer? get appTimer =>
       _element?.getInheritedWidgetOfExactType<AppClock>()?.startTimer;
 
