@@ -222,6 +222,37 @@ void main() {
     });
   }
 
+  testTwk('a key above that does not act on the value leaves the typing as '
+      'it was: text that is no number yet, and a number, which Escape '
+      'gives up', (t) async {
+    final value = ValueNotifier<double>(30);
+    addTearDown(value.dispose);
+    final changes = <double>[];
+    var helped = 0;
+    await t.pumpWidget(
+      KeyBindings(
+        {'f1': () => helped++},
+        child: input(value, changes: changes, autofocus: true),
+      ),
+      size: (20, 3),
+    );
+    await press(t, 'backspace backspace');
+    await type(t, '-');
+    await press(t, 'f1');
+    expect(helped, 1);
+    expect(t.lines.first, startsWith('-'));
+    expect(changes, isEmpty);
+    await type(t, '4');
+    expect(t.lines.first, startsWith('-4'));
+    await press(t, 'f1');
+    expect(t.lines.first, startsWith('-4'));
+    expect(changes, [-4]);
+    await press(t, 'escape');
+    expect(t.lines.first, startsWith('30'));
+    expect(changes, [-4, 30]);
+    expect(value.value, 30);
+  });
+
   testTwk('a click on a button after text typed, its press and release in '
       'one frame: the button finds the value typed', (t) async {
     final value = ValueNotifier<double>(30);

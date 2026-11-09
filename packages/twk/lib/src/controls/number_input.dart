@@ -290,7 +290,21 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
   bool _takes(_Key key) =>
       node.hasFocus && (key != _escape ? _keys[key.name] != null : _typed);
 
-  void _does(_Key key) => key == _escape ? revert() : _keys[key.name]?.call();
+  void _does(_Key key) => key == _escape ? _untype() : _keys[key.name]?.call();
+
+  // the value before the text typed was handed over ([_handOver]), while
+  // it is typed
+  ({T value})? _untyped;
+
+  /// Escape: the value as it was before the text was typed, [onChanged]
+  /// told again where the text typed was handed over.
+  void _untype() {
+    if (_untyped case (:final value)) {
+      change(value);
+    } else {
+      revert();
+    }
+  }
 
   /// Whether it takes the focus and changes.
   bool get enabled => onChanged != null;
@@ -381,6 +395,7 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
   }
 
   void _show() {
+    _untyped = null;
     if (_typed) {
       _typed = false;
       // Escape is taken no more
@@ -434,10 +449,10 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
   var _combosOf = const <String, VoidCallback?>{};
   var _combos = const <KeyCombo>[];
 
-  /// The keys the field leaves come here: Enter takes the text typed, and
-  /// so does any other press but the field's own keys and Escape, before
-  /// it goes on to the bindings above, so that one (Ctrl+S that saves)
-  /// finds the value typed.
+  /// The keys the field leaves come here, on their way to the bindings
+  /// above: Enter takes the text typed ([commit]); each other but the
+  /// field's own keys and Escape hands it over ([_handOver]), so that one
+  /// (Ctrl+S that saves) finds the value typed.
   KeyEventResult _onKey(FocusNode _, KeyEvent event) {
     if (event.kind == KeyKind.release || !_typed) {
       return KeyEventResult.ignored;
@@ -450,8 +465,27 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
         _combos.any((combo) => combo.accepts(event))) {
       return KeyEventResult.ignored;
     }
-    commit();
+    if (event.code == KeyCode.enter && event.modifiers == 0) {
+      commit();
+    } else {
+      _handOver();
+    }
     return KeyEventResult.ignored;
+  }
+
+  /// Gives [onChanged] the text typed where it is a value within the
+  /// bounds, the text left as typed: a key above may act on the value,
+  /// and one that does not (a palette, help) leaves the typing as it was.
+  /// Text that is no value yet (`-`) or beyond the bounds is left alone,
+  /// for Enter or the focus leaving to take.
+  void _handOver() {
+    final typed = parse(controller.text);
+    if (typed == null || !fits(typed.value) || typed.value == _value) {
+      return;
+    }
+    _untyped ??= (value: _value);
+    _value = typed.value;
+    onChanged?.call(typed.value);
   }
 
   void _pressed(PointerEvent event, VoidCallback? onPressed) {

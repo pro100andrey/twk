@@ -41,9 +41,12 @@ Fixed:
 - What `map` throws in `LogController.addOutput` or `followFile` ends the
   source, its `done` completing with it, the lines before it added and the
   listeners told; it was thrown uncaught, the rest of the lines lost.
-- `NumberInput` and `DatePicker` take the text typed on a key they leave
-  to the bindings above, before it goes on: a dialog's Ctrl+S that saves,
-  pressed with 45 typed over 30, found 30.
+- `NumberInput` and `DatePicker` give `onChanged` the text typed on a key
+  they leave to the bindings above, before it goes on, where it is a value
+  within the bounds, and leave the text as typed: a dialog's Ctrl+S that
+  saves, pressed with 45 typed over 30, found 30. Text that is no value
+  yet (`-`) stays for Enter or the focus leaving to take, and Escape gives
+  back the value from before the typing.
 - A CLI on a pseudo-terminal of no size (one `script` opens with no
   terminal around it: a background job, CI) takes it for a terminal, its
   width `COLUMNS` or none; it wrote to it as to a file, without colours or
