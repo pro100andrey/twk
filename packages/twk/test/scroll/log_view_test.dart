@@ -88,6 +88,45 @@ void main() {
     expect(c.shownLength, 3);
   });
 
+  test('a level that makes where throw leaves the controller as it was', () {
+    final c =
+        LogController(
+            level: LogLevel.info,
+            where: (line) => line.text == 'boom' ? throw StateError('x') : true,
+          )
+          ..addAll(['a', 'b'])
+          ..add('boom', level: LogLevel.debug);
+    var told = 0;
+    c.addListener(() => told++);
+    expect(() => c.level = LogLevel.debug, throwsStateError);
+    expect(c.level, LogLevel.info);
+    expect(c.shownLength, 2);
+    expect(told, 0);
+    // a later line is tested under the level it was left with
+    c.add('c', level: LogLevel.debug);
+    expect(c.shownLength, 2);
+    c.add('d');
+    expect(c.shownLength, 3);
+  });
+
+  test('a filter that makes where throw leaves the controller as it was', () {
+    final c = LogController(
+      filter: 'a',
+      where: (line) => line.text == 'boom' ? throw StateError('x') : true,
+    )..addAll(['a1', 'a2', 'boom']);
+    expect(c.shownLength, 2);
+    var told = 0;
+    c.addListener(() => told++);
+    expect(() => c.filter = '', throwsStateError);
+    expect(c.filter, 'a');
+    expect(c.shownLength, 2);
+    expect(told, 0);
+    c.add('b');
+    expect(c.shownLength, 2);
+    c.add('a3');
+    expect(c.shownLength, 3);
+  });
+
   testTwk('follows the end as lines are added; scrolled up it stays, '
       'counting the lines that came; End goes back and follows', (t) async {
     final c = LogController();

@@ -253,6 +253,72 @@ void main() {
     expect(value.value, 30);
   });
 
+  /// A field whose parent holds [shown], rebuilt by [rebuild] (to the same
+  /// value too); [changes] gets each value the field gives, which the parent
+  /// takes only when it sets [shown].
+  Widget lazyParent(
+    ValueNotifier<double> shown,
+    ValueNotifier<int> rebuild,
+    List<double> changes,
+  ) {
+    final node = FocusNode(debugLabel: 'input');
+    addTearDown(node.dispose);
+    return KeyBindings(
+      {'f1': () {}},
+      child: ValueListenableBuilder<int>(
+        valueListenable: rebuild,
+        builder: (context, _, _) => SizedBox(
+          width: 10,
+          child: NumberInput(
+            value: shown.value,
+            onChanged: changes.add,
+            focusNode: node,
+            autofocus: true,
+          ),
+        ),
+      ),
+    );
+  }
+
+  testTwk('a parent that has not taken the value handed over yet, and '
+      'rebuilds, leaves the text typed; one that takes it one build later '
+      'keeps it', (t) async {
+    final shown = ValueNotifier<double>(30);
+    final rebuild = ValueNotifier<int>(0);
+    addTearDown(shown.dispose);
+    addTearDown(rebuild.dispose);
+    final changes = <double>[];
+    await t.pumpWidget(lazyParent(shown, rebuild, changes), size: (20, 3));
+    await press(t, 'backspace backspace');
+    await type(t, '45');
+    await press(t, 'f1');
+    expect(changes, [45]);
+    rebuild.value++;
+    await t.pump();
+    expect(t.lines[1], startsWith('45'));
+    shown.value = 45;
+    await t.pump();
+    expect(t.lines[1], startsWith('45'));
+    expect(changes, [45]);
+  });
+
+  testTwk('a parent that gives another value after one was handed over '
+      'replaces the text typed', (t) async {
+    final shown = ValueNotifier<double>(30);
+    final rebuild = ValueNotifier<int>(0);
+    addTearDown(shown.dispose);
+    addTearDown(rebuild.dispose);
+    final changes = <double>[];
+    await t.pumpWidget(lazyParent(shown, rebuild, changes), size: (20, 3));
+    await press(t, 'backspace backspace');
+    await type(t, '45');
+    await press(t, 'f1');
+    shown.value = 12;
+    rebuild.value++;
+    await t.pump();
+    expect(t.lines[1], startsWith('12'));
+  });
+
   testTwk('a click on a button after text typed, its press and release in '
       'one frame: the button finds the value typed', (t) async {
     final value = ValueNotifier<double>(30);

@@ -450,8 +450,8 @@ final class LogController extends ChangeNotifier {
       return;
     }
     final narrower = level.index > _level.index;
-    _level = level;
-    _refilter(narrower: narrower);
+    final before = _level;
+    _refilterWith(() => _level = level, () => _level = before, narrower);
   }
 
   /// What the lines shown contain; empty for every line.
@@ -462,9 +462,19 @@ final class LogController extends ChangeNotifier {
       return;
     }
     final narrower = filter.contains(_filter);
-    _filter = filter;
-    _filterCase = Smartcase(filter);
-    _refilter(narrower: narrower);
+    final before = _filter;
+    final beforeCase = _filterCase;
+    _refilterWith(
+      () {
+        _filter = filter;
+        _filterCase = Smartcase(filter);
+      },
+      () {
+        _filter = before;
+        _filterCase = beforeCase;
+      },
+      narrower,
+    );
   }
 
   /// Which lines are shown, of those at [level] and above that contain
@@ -495,15 +505,8 @@ final class LogController extends ChangeNotifier {
     if (where == null && _where == null) {
       return;
     }
-    // a test that throws leaves the controller as it was
     final before = _where;
-    _where = where;
-    try {
-      _refilter(narrower: false);
-    } catch (_) {
-      _where = before;
-      rethrow;
-    }
+    _refilterWith(() => _where = where, () => _where = before, false);
   }
 
   /// What [nextMatch] and [previousMatch] look for, highlighted in the
@@ -593,6 +596,23 @@ final class LogController extends ChangeNotifier {
     }
     _reshaped++;
     return true;
+  }
+
+  /// Applies a change of what the lines are tested by and refilters; a
+  /// test that throws leaves the controller as it was: [undo] restores
+  /// the change, nothing else was written, and the error goes on.
+  void _refilterWith(
+    void Function() apply,
+    void Function() undo,
+    bool narrower,
+  ) {
+    apply();
+    try {
+      _refilter(narrower: narrower);
+    } catch (_) {
+      undo();
+      rethrow;
+    }
   }
 
   void _refilter({required bool narrower}) {

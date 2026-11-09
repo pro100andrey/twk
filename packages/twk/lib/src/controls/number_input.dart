@@ -266,6 +266,9 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
   T get value => _value;
   late T _value = widgetValue;
 
+  // the value the widget gave as built last
+  late T _seen = widgetValue;
+
   /// What holds the text.
   late final controller = TextEditingController(text: format(_value));
 
@@ -312,6 +315,7 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
   @override
   void initState() {
     super.initState();
+    _seen = widgetValue;
     _given = focusNode;
     node.addListener(_focusChanged);
   }
@@ -326,8 +330,14 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
       _given = focusNode;
       node.addListener(_focusChanged);
     }
-    if (widgetValue != _value) {
-      _value = widgetValue;
+    final given = widgetValue;
+    final seen = _seen;
+    _seen = given;
+    if (given != _value && !(_untyped != null && given == seen)) {
+      // another value: the widget's, but not that of a text handed over
+      // ([_handOver]) that the parent has not taken yet; one it never
+      // takes is given up with Escape or the focus leaving
+      _value = given;
       _show();
     } else if (!_typed) {
       // as the widget shows it now
