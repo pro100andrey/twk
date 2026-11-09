@@ -117,6 +117,63 @@ void main() {
     expect(log, ['open n1']);
   });
 
+  testTwk('Shift+F10 with no row selected passes to an enclosing binding, '
+      "and is the table's once a row is selected", (t) async {
+    final outer = <String>[];
+    await t.pumpWidget(
+      App(
+        child: KeyBindings(
+          {'shift+f10': () => outer.add('outer')},
+          child: Table<File>(
+            rows: files,
+            controller: controller,
+            autofocus: true,
+            columns: [
+              TableColumn(title: 'Name', cell: (f) => TableCell(f.name)),
+            ],
+            rowMenu: (f) => [MenuItem('Open', onSelected: () {})],
+          ),
+        ),
+      ),
+      size: (30, 10),
+    );
+    await t.press('shift+f10');
+    await t.pumpUntilIdle();
+    expect(outer, ['outer']);
+    expect(lineOf(t, 'Open'), -1);
+    await t.press('down');
+    await t.pumpUntilIdle();
+    await t.press('shift+f10');
+    await t.pumpUntilIdle();
+    expect(outer, ['outer']);
+    expect(lineOf(t, 'Open'), isNonNegative);
+  });
+
+  testTwk('with TableSelection.none a click selects nothing, the right one '
+      'opens the menu of the row under it', (t) async {
+    await t.pumpWidget(
+      App(
+        child: Table<File>(
+          rows: files,
+          controller: controller,
+          selection: TableSelection.none,
+          autofocus: true,
+          columns: [
+            TableColumn(title: 'Name', cell: (f) => TableCell(f.name)),
+          ],
+          rowMenu: (f) => [MenuItem('Open', onSelected: () {})],
+        ),
+      ),
+      size: (30, 10),
+    );
+    await t.click(1, 3);
+    await t.pumpUntilIdle();
+    expect(controller.selectedKey, isNull);
+    await rightClick(t, 1, 3);
+    expect(controller.selectedKey, isNull);
+    expect(lineOf(t, 'Open'), isNonNegative);
+  });
+
   testTwk('rows two tall: the row under the mouse', (t) async {
     await t.pumpWidget(table(rowHeight: 2), size: (30, 12));
     // the header, then n0 on rows 1 and 2, n1 on rows 3 and 4
@@ -127,15 +184,20 @@ void main() {
   testTwk('Shift+F10 opens the menu of the row selected under it, its first '
       'entry highlighted; told as shift+f10 menu', (t) async {
     await t.pumpWidget(table(), size: (30, 12));
+    // the key is bound, and told, while a row is selected
     expect(
       t.binding.focusManager.activeKeys.map((k) => k.hint),
-      contains('menu'),
+      isNot(contains('menu')),
     );
     // the first Down selects the first row
     for (var i = 0; i < 4; i++) {
       await t.press('down');
     }
     await t.pumpUntilIdle();
+    expect(
+      t.binding.focusManager.activeKeys.map((k) => k.hint),
+      contains('menu'),
+    );
     expect(controller.selectedKey, 3);
     final row = lineOf(t, 'n3');
     await t.press('shift+f10');

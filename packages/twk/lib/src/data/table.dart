@@ -903,6 +903,10 @@ final class _TableState<T> extends State<Table<T>> {
     }
     _shownSelected = selected;
     _shownCursor = cursor;
+    if (widget.rowMenu != null && (was < 0) != (selected < 0)) {
+      // Shift+F10 is bound while a row is selected
+      setState(() {});
+    }
     _rows[was]?._rebuild();
     if (selected != was) {
       _rows[selected]?._rebuild();
@@ -1344,20 +1348,37 @@ final class _TableState<T> extends State<Table<T>> {
     _select(index);
   }
 
-  /// A press on the row shown at [index], whose slot's context is
-  /// [context]: the right button opens the row's menu at the mouse, the
-  /// row selected first.
-  void _rowMenuDown(int index, BuildContext context, PointerEvent event) {
+  /// A press anywhere over the rows: the right button opens the menu of the
+  /// row under the mouse at the mouse, the row selected first. The row is
+  /// found among the rows built, by where each is on the screen.
+  void _rowsDown(PointerEvent event) {
     final menu = widget.rowMenu;
     if (event.button != 2 || menu == null) {
       return;
     }
-    _pressRow(index, event.x);
-    showContextMenu(
-      context: context,
-      items: menu(_rowAt(_order?[index] ?? index)),
-      at: (event.x, event.y),
-    );
+    for (final MapEntry(key: index, value: slot) in _rows.entries) {
+      // a row out of view, kept by the list, is not placed
+      if (!slot.mounted || (slot.context as Element).slot == null) {
+        continue;
+      }
+      final box = slot.context.findRenderObject();
+      if (box == null) {
+        continue;
+      }
+      final (gx, gy) = box.globalOffset;
+      final x = event.screenX - gx;
+      final y = event.screenY - gy;
+      if (x < 0 || y < 0 || x >= box.width || y >= box.height) {
+        continue;
+      }
+      _pressRow(index, x);
+      showContextMenu(
+        context: slot.context,
+        items: menu(_rowAt(_order?[index] ?? index)),
+        at: (x, y),
+      );
+      return;
+    }
   }
 
   /// Opens the menu of the row selected under it, once the row is
@@ -1545,14 +1566,23 @@ final class _TableState<T> extends State<Table<T>> {
                 styles.base,
               ),
             Expanded(
-              child: ListView.builder(
-                padding: w.padding,
-                itemCount: _count,
-                itemExtent: w.rowHeight,
-                controller: _list,
-                canRequestFocus: false,
-                style: w.style,
-                itemBuilder: (context, i) => _slot(i),
+              // one Listener over the rows, always, so that a menu given or
+              // taken away keeps the rows' State; it takes no press, and is
+              // not opaque, without a menu
+              child: Listener(
+                behavior: w.rowMenu != null
+                    ? HitTestBehavior.opaque
+                    : HitTestBehavior.deferToChild,
+                onPointerDown: w.rowMenu != null ? _rowsDown : null,
+                child: ListView.builder(
+                  padding: w.padding,
+                  itemCount: _count,
+                  itemExtent: w.rowHeight,
+                  controller: _list,
+                  canRequestFocus: false,
+                  style: w.style,
+                  itemBuilder: (context, i) => _slot(i),
+                ),
               ),
             ),
           ],
@@ -1560,8 +1590,9 @@ final class _TableState<T> extends State<Table<T>> {
       ),
     );
     // the same wrappers with or without a row menu, the key unbound
-    // without one: a menu given or taken away keeps the subtree's state
-    final menu = w.rowMenu != null;
+    // while no row is selected to open one for (and passing on to an outer
+    // binding): a menu given or taken away keeps the subtree's state
+    final menu = w.rowMenu != null && _shownSelected >= 0;
     return KeyBindings.combos(
       {_shiftF10: menu ? _openRowMenu : null},
       hints: {if (menu) _shiftF10: 'menu'},
@@ -1835,24 +1866,9 @@ final class _RowSlotState<T> extends State<_RowSlot<T>> {
   void _onDown(TapDownDetails tap) =>
       widget.table._rowDown(widget.index, tap.event);
 
-  // made once, not at each build
-  late final void Function(PointerEvent event) _menuDown = _onMenuDown;
-
-  void _onMenuDown(PointerEvent event) =>
-      widget.table._rowMenuDown(widget.index, context, event);
-
   @override
-  Widget build(BuildContext context) {
-    final row = widget.table._row(widget.index, widget.row, _down);
-    // always the Listener, so that a menu given or taken away keeps the
-    // row's State; it takes no press, and is not opaque, without a menu
-    final menu = widget.table.widget.rowMenu != null;
-    return Listener(
-      behavior: menu ? HitTestBehavior.opaque : HitTestBehavior.deferToChild,
-      onPointerDown: menu ? _menuDown : null,
-      child: row,
-    );
-  }
+  Widget build(BuildContext context) =>
+      widget.table._row(widget.index, widget.row, _down);
 }
 
 /// The widths of columns [tracks], [gap] cells apart, in [available]
