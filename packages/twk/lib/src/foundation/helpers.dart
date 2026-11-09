@@ -4,11 +4,18 @@
 /// Internal: not exported.
 library;
 
+/// How many keys [debugDistinct] reads at most.
+const int debugDistinctLimit = 1000;
+
 /// For an assert: that the [count] keys [at] gives are all different, else
 /// the assertion fails with [message] of the key twice and the index of its
-/// second place. O(count). [unchanged] skips the reading, for an update
-/// where what the keys come from, and the function that reads them, are
-/// `==` to the last build's; true either way.
+/// second place. O(min(count, [debugDistinctLimit])): only the first
+/// [debugDistinctLimit] keys are read, so a virtualized list of a million
+/// items costs what a small one does, and a duplicate further on goes
+/// unseen; the common mistake, a small list with one, is caught.
+/// [unchanged] skips the reading, for an update where what the keys come
+/// from, and the function that reads them, are `==` to the last build's;
+/// true either way.
 bool debugDistinct<K>(
   int count,
   K Function(int index) at,
@@ -19,7 +26,8 @@ bool debugDistinct<K>(
     return true;
   }
   final seen = <K>{};
-  for (var i = 0; i < count; i++) {
+  final n = count < debugDistinctLimit ? count : debugDistinctLimit;
+  for (var i = 0; i < n; i++) {
     final key = at(i);
     assert(seen.add(key), message(key, i));
   }
