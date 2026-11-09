@@ -1126,6 +1126,7 @@ void main() {
       'logs',
       'rainbow',
       'relayout',
+      'overflow',
     });
 
     final none = TwkApp(HeadlessTerminal(), environment: const {});

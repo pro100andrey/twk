@@ -529,6 +529,9 @@ final class _SignInState extends State<_SignIn> with KeptState {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: 1,
+        // read out, the form is laid out under the lines and not painted,
+        // in the room they leave
+        overflowIntended: widget.reader,
         children: _formChildren(theme),
       ),
     );

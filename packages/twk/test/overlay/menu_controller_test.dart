@@ -274,6 +274,7 @@ void main() {
                   ),
                 ],
                 child: const Column(
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Field('a'),

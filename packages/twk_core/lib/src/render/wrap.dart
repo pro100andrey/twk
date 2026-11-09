@@ -79,7 +79,7 @@ final class WrapParentData extends ParentData with ContainerParentDataMixin {
 ///  * [RenderFlex], which keeps its children on one line and shares out
 ///    the cells they leave.
 final class RenderWrap extends RenderObject
-    with ContainerRenderObjectMixin<WrapParentData> {
+    with ContainerRenderObjectMixin<WrapParentData>, _OverflowIndicator {
   /// A wrap of [children] along [direction], horizontal unless given,
   /// [spacing] cells apart in a run and [runSpacing] between runs, each 0 or
   /// more; everything at the start unless given.
@@ -179,9 +179,6 @@ final class RenderWrap extends RenderObject
   // the cells the runs and the gaps between them took across the main axis
   var _thickness = 0;
 
-  // the overflow was reported (debug)
-  var _overflowReported = false;
-
   /// The direction and the settings that aren't the defaults; once laid
   /// out, the cells its runs and gaps need beyond it across the main axis,
   /// if any, with the [DiagnosticsFlag.overflow] flag.
@@ -279,7 +276,14 @@ final class RenderWrap extends RenderObject
         : c.constrainWidth(thickness);
     width = horizontal ? main : cross;
     height = horizontal ? cross : main;
-    assert(_debugReportOverflow(thickness - cross), 'reports the overflow');
+    assert(
+      _debugOverflow(
+        'RenderWrap',
+        horizontal ? 0 : thickness - cross,
+        horizontal ? thickness - cross : 0,
+      ),
+      'notes the overflow',
+    );
     _place(main, cross);
   }
 
@@ -348,19 +352,6 @@ final class RenderWrap extends RenderObject
         WrapAlignment.spaceEvenly => _part(free, n + 1, i + 1),
         _ => 0,
       };
-
-  /// Logs a warning the first time runs overflow the wrap, with the cells
-  /// they need beyond it.
-  bool _debugReportOverflow(int over) {
-    if (over > 0 && !_overflowReported) {
-      _overflowReported = true;
-      final horizontal = _direction == Axis.horizontal;
-      final unit = '${horizontal ? 'row' : 'column'}${over == 1 ? '' : 's'}';
-      final side = horizontal ? 'bottom' : 'right';
-      _warn('A RenderWrap overflowed by $over $unit on the $side.');
-    }
-    return true;
-  }
 
   // what the children ask for, worked out as the layout makes the runs
 
@@ -448,5 +439,22 @@ final class RenderWrap extends RenderObject
       paintChild(ctx, child);
       child = (child.parentData as WrapParentData).nextSibling;
     }
+    paintOverflowIndicator(ctx);
   }
+
+  /// Whether the marker of an overflow is over the cells.
+  @override
+  bool paintsOver(RenderObject child, int x, int y, int w, int h) =>
+      _overflowOver(x, y, w, h);
+
+  /// Paints the marker again in the cells.
+  @override
+  void paintOver(
+    PaintContext ctx,
+    RenderObject child,
+    int x,
+    int y,
+    int w,
+    int h,
+  ) => paintOverflowIndicator(ctx);
 }

@@ -29,6 +29,7 @@ final class RenderKeyHint extends RenderObject {
     ('r', 'rainbow'),
     ('c', 'console'),
     ('l', 'relayout'),
+    ('w', 'overflow'),
     ('f', 'level'),
     ('y', 'copy'),
     ('s', 'save'),

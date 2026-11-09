@@ -1548,9 +1548,11 @@ final class AppBinding implements FrameClock {
   }
 }
 
-/// The debug aids of an app ([AppBinding.debug]), all off by default: the
+/// The debug aids of an app ([AppBinding.debug]), all off by default but
+/// the overflow marker, which is on while asserts are: the
 /// frame overlay ([overlay]), the log console ([console]), the repaint
-/// rainbow ([rainbow]), the relayout highlight ([relayout]), the outline
+/// rainbow ([rainbow]), the relayout highlight ([relayout]), the overflow
+/// marker ([overflow]), the outline
 /// over a render object ([highlight]) and the pick of a node on the screen
 /// for a tool ([select]). The app turns them on and off, or the debug
 /// keys do, or a tool by the service extensions
@@ -1567,7 +1569,9 @@ final class AppBinding implements FrameClock {
 /// `TWK_DEBUG` names `keys` or any of the aids: Ctrl+G, then
 ///
 /// * `o` shows or hides the frame overlay, `c` opens or closes the
-///   console, `r` turns the rainbow on or off, `l` the relayout highlight;
+///   console, `r` turns the rainbow on or off, `l` the relayout highlight,
+///   `w` the marker of an overflow (on from the start while asserts are on,
+///   `TWK_DEBUG=overflow` names it too);
 /// * `f` lists the console's next level and above (debug, info, warning,
 ///   error, then debug again), `y` copies its selected record to the
 ///   clipboard, `s` saves the records it lists to a file in the system's
@@ -1646,7 +1650,14 @@ final class DebugAids {
     }
   }
 
-  static const _names = {'keys', 'overlay', 'console', 'rainbow', 'relayout'};
+  static const _names = {
+    'keys',
+    'overlay',
+    'console',
+    'rainbow',
+    'relayout',
+    'overflow',
+  };
 
   final AppBinding _binding;
 
@@ -1808,6 +1819,12 @@ final class DebugAids {
   bool get relayout => _binding.twkApp.owner.debugRelayoutHighlight;
   set relayout(bool on) => _binding.twkApp.owner.debugRelayoutHighlight = on;
 
+  /// Whether a flex, a wrap or a grid its children overflow shows the
+  /// marker of it (`PipelineOwner.debugOverflowIndicator`): on from the
+  /// start while asserts are on.
+  bool get overflow => _binding.twkApp.owner.debugOverflowIndicator;
+  set overflow(bool on) => _binding.twkApp.owner.debugOverflowIndicator = on;
+
   /// The render object outlined over the app, null for none: the cells of
   /// it the screen shows, those an ancestor cuts off left out, their
   /// backgrounds blended with blue, its edges' more, their glyphs and text
@@ -1930,6 +1947,7 @@ final class DebugAids {
     final console = asked('console');
     final rainbow = asked('rainbow');
     final relayout = asked('relayout');
+    final overflow = asked('overflow');
     final keys = asked('keys');
     final select = asked('select');
     final selectMany = asked('selectMany');
@@ -1950,6 +1968,9 @@ final class DebugAids {
     if (relayout != null) {
       this.relayout = relayout;
     }
+    if (overflow != null) {
+      this.overflow = overflow;
+    }
     if (keys != null) {
       this.keys = keys;
     }
@@ -1967,6 +1988,7 @@ final class DebugAids {
       'console': _console?.isOpen ?? false,
       'rainbow': this.rainbow,
       'relayout': this.relayout,
+      'overflow': this.overflow,
       'keys': this.keys,
       'select': this.select,
       'selectMany': this.selectMany,
@@ -2041,6 +2063,8 @@ final class DebugAids {
         rainbow = !rainbow;
       case 'l':
         relayout = !relayout;
+      case 'w':
+        overflow = !overflow;
       case 'f':
         const levels = LogLevel.values;
         console.level = levels[(console.level.index + 1) % levels.length];

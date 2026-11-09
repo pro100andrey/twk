@@ -89,6 +89,7 @@ part 'grid.dart';
 part 'list.dart';
 part 'log.dart';
 part 'object.dart';
+part 'overflow_indicator.dart';
 part 'pipeline.dart';
 part 'stack.dart';
 part 'text.dart';

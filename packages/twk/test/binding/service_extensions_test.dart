@@ -525,6 +525,8 @@ void main() {
         'console': false,
         'rainbow': false,
         'relayout': false,
+        // on while asserts are
+        'overflow': true,
         'keys': false,
         'select': false,
         'selectMany': false,
@@ -547,6 +549,7 @@ void main() {
         'console': true,
         'rainbow': true,
         'relayout': true,
+        'overflow': true,
         'keys': true,
         'select': false,
         'selectMany': false,

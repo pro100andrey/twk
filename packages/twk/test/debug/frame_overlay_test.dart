@@ -262,8 +262,8 @@ void main() {
         errors,
         contains(
           "TWK_DEBUG names nothing it knows as 'timelines': it takes keys, "
-          'overlay, console, rainbow, relayout, frames, timeline, logs, '
-          'comma-separated',
+          'overlay, console, rainbow, relayout, overflow, frames, timeline, '
+          'logs, comma-separated',
         ),
       );
     });

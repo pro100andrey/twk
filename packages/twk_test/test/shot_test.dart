@@ -108,7 +108,7 @@ void main() {
       4,
       2,
     );
-    expect(shot.rows, [' a', ' b']);
+    expect(shot.rows, [' a', '▚▚+1']);
     var asserts = false;
     assert(asserts = true, 'only in debug');
     expect(shot.logs, hasLength(asserts ? 1 : 0));

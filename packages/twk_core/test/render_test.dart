@@ -74,6 +74,9 @@ final class LogView extends View {
 }
 
 void main() {
+  // these tests cut children off on purpose and read the cells; the marker
+  // of an overflow has a file of its own
+  PipelineOwner.debugOverflowIndicatorByDefault = false;
   test('lines appended between frames are all painted', () {
     final v = LogView(20, 6);
     for (final s in ['one', 'two', 'three']) {

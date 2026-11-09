@@ -44,6 +44,7 @@ final class Wrap extends MultiChildRenderObjectWidget {
     this.crossAxisAlignment = WrapCrossAlignment.start,
     this.spacing = 0,
     this.runSpacing = 0,
+    this.overflowIntended = false,
     super.children,
   }) : assert(spacing >= 0 && runSpacing >= 0, 'spacings of 0 cells or more');
 
@@ -67,6 +68,12 @@ final class Wrap extends MultiChildRenderObjectWidget {
   /// Cells between one run and the next.
   final int runSpacing;
 
+  /// Whether the runs are meant to be cut off where they do not fit:
+  /// a strip that shows the start of what is longer than it. Then, where
+  /// they overflow, there is neither the marker over the edge in debug mode
+  /// nor the warning in the log ([RenderWrap]). False by default.
+  final bool overflowIntended;
+
   @override
   MultiChildRenderObjectElement createElement() => ChildListElement(this);
 
@@ -78,7 +85,7 @@ final class Wrap extends MultiChildRenderObjectWidget {
     crossAxisAlignment: crossAxisAlignment,
     spacing: spacing,
     runSpacing: runSpacing,
-  );
+  )..overflowIntended = overflowIntended;
 
   @override
   void updateRenderObject(BuildContext context, RenderWrap renderObject) {
@@ -88,6 +95,7 @@ final class Wrap extends MultiChildRenderObjectWidget {
       ..runAlignment = runAlignment
       ..crossAxisAlignment = crossAxisAlignment
       ..spacing = spacing
-      ..runSpacing = runSpacing;
+      ..runSpacing = runSpacing
+      ..overflowIntended = overflowIntended;
   }
 }

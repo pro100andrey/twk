@@ -52,6 +52,7 @@ void main() {
   });
 
   timerTests();
+  overflowTests();
 }
 
 /// Starts a periodic timer, and cancels it unless [leak].
@@ -102,5 +103,32 @@ void timerTests() {
 
   testTwk('a plain app', (t) async {
     await t.pumpWidget(const Text('x'));
+  });
+}
+
+void overflowTests() {
+  // a row of six cells on a screen of four
+  const row = Row(children: [Text('ab'), Text('cd'), Text('ef')]);
+
+  testTwk('a row overflowed', (t) async {
+    await t.pumpWidget(row, size: (4, 1));
+  });
+
+  testTwk('a row overflowed, checking off', failOnOverflow: false, (t) async {
+    await t.pumpWidget(row, size: (4, 1));
+  });
+
+  testTwk('a row overflowed on purpose', (t) async {
+    await t.pumpWidget(
+      const Row(
+        overflowIntended: true,
+        children: [Text('ab'), Text('cd'), Text('ef')],
+      ),
+      size: (4, 1),
+    );
+  });
+
+  testTwk('a row that fits', (t) async {
+    await t.pumpWidget(row, size: (6, 1));
   });
 }

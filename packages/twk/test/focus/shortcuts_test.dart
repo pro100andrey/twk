@@ -319,6 +319,7 @@ void main() {
                 debugLabel: 'b all',
                 {'x': on('b all x')},
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     KeyBindings({'y': on('part y')}, child: const Text('one')),
                     KeyBindings({'y': on('part y')}, child: const Text('two')),

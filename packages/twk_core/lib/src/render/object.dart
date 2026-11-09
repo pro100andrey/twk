@@ -708,8 +708,12 @@ abstract class RenderObject {
   // a record of the tree itself, a warning unless [level] says another, to
   // where its owner routes them (PipelineOwner.onObjectLog, else onLog), and
   // to log() where it routes none
-  void _warn(String message, {LogLevel level = LogLevel.warning}) {
-    final record = LogRecord(DateTime.now(), level, message);
+  void _warn(
+    String message, {
+    LogLevel level = LogLevel.warning,
+    Object? error,
+  }) {
+    final record = LogRecord(DateTime.now(), level, message, error: error);
     final withSource = owner?.onObjectLog;
     if (withSource != null) {
       withSource(this, record);

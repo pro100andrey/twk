@@ -4,6 +4,12 @@
 
 Added:
 
+- `testTwk(failOnOverflow:)` fails the test when a row, column, wrap or
+  grid of its app was overflowed by its children (the warning of the log
+  that the debug marker of the screen shows), naming each with the widget
+  it is in. On by default: `failOnOverflow: false` turns it off in a test
+  of what an overflow shows; a layout that clips on purpose says so with
+  `overflowIntended`.
 - `testTwk(trackDisposables: true)` (off by default) fails the test, once
   its app is quit, naming each controller or notifier made during it and not
   disposed, with the stack that made it (`DisposalTracker` of twk).

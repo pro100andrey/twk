@@ -478,7 +478,8 @@ void main() {
     ];
     const mine =
         "TWK_DEBUG names nothing it knows as 'mine': it takes keys, overlay, "
-        'console, rainbow, relayout, frames, timeline, logs, comma-separated';
+        'console, rainbow, relayout, overflow, frames, timeline, logs, '
+        'comma-separated';
     expect(warnings, [mine]);
     expect(
       AppBinding(

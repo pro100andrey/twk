@@ -4,6 +4,21 @@
 
 Added:
 
+- The overflow marker. A `RenderFlex`, `RenderWrap` or `RenderGrid` whose
+  content needs more room than it has now paints, in debug mode, over the
+  edge it is cut off at: a hatch `▚` in yellow on black down the right
+  edge or along the bottom one (`/` where the terminal draws `▚` two cells
+  wide), and the cells cut off, `+3`, in the corner. It is on while asserts
+  are (`PipelineOwner.debugOverflowIndicator`, which
+  `PipelineOwner.debugOverflowIndicatorByDefault` sets for the owners made
+  afterwards; `TWK_DEBUG=overflow` turns it on, the debug key `w` of twk
+  toggles it). `RenderFlex.overflowIntended`, `RenderWrap.overflowIntended`
+  and `RenderGrid.overflowIntended` say a box clips on purpose: it shows
+  neither the marker nor the warning.
+- The warning of an overflow carries an `OverflowReport` as the `error` of
+  its record, and is logged again once an overflow that went away starts
+  anew (it was logged once for the life of the object, and the three
+  copies of the check are one now).
 - In debug mode, `RenderObject.width` and `RenderObject.height` assert when
   the parent reads them in its own `performLayout` after laying the object
   out without `parentUsesSize: true` (and without tight constraints or

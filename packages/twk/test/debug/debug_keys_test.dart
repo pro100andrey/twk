@@ -19,8 +19,8 @@ const hint40 = ' ctrl+g  o overlay  r rainbow  c console';
 
 /// Every command, on a screen wide enough for all of them.
 const hintAll =
-    ' ctrl+g  o overlay  r rainbow  c console  l relayout  f level  y copy'
-    '  s save  x clear  h reload  H restart  ctrl+g to the app';
+    ' ctrl+g  o overlay  r rainbow  c console  l relayout  w overflow  f level'
+    '  y copy  s save  x clear  h reload  H restart  ctrl+g to the app';
 
 /// [child] under a listener that takes every key and adds it to [keys], as
 /// a key binding names it.
@@ -225,7 +225,7 @@ void main() {
   });
 
   testTwk('on a screen wide enough the line lists every command', (t) async {
-    await t.pumpWidget(const Label('app'), size: (130, 4));
+    await t.pumpWidget(const Label('app'), size: (150, 4));
     t.binding.debug.keys = true;
     await t.type(ctrlG);
     await t.pump();

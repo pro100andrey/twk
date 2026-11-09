@@ -56,11 +56,18 @@ void main() {
       'a timer left running, checking off': 'success',
       'the timer cancelled': 'success',
       'a plain app': 'success',
+      'a row overflowed': 'failure',
+      'a row overflowed, checking off': 'success',
+      'a row overflowed on purpose': 'success',
+      'a row that fits': 'success',
     });
     final timer = errors['a timer left running']!.single;
     expect(timer, contains('failOnPendingTimers'));
     expect(timer, contains('a periodic timer, every 1.000 s'));
     expect(timer, contains('disposables.dart'));
+    final overflow = errors['a row overflowed']!.single;
+    expect(overflow, contains('failOnOverflow'));
+    expect(overflow, contains('A RenderFlex overflowed by 2 columns'));
     final error = errors['a controller left undisposed']!.single;
     expect(error, contains('the test made an object it did not dispose'));
     expect(error, contains('ScrollController created at:'));

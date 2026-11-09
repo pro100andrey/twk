@@ -492,12 +492,19 @@ void main() {
             ],
           ),
         ]),
-        size: (12, 5),
+        size: (12, 6),
       );
-      expect(t.lines, ['▸ A', '▾ B', '  line 1', '▾ C', '  line 1']);
+      expect(t.lines, ['▸ A', '▾ B', '  line 1', '▾ C', '  line 1', '']);
       await t.click(2, 0);
       await t.pump();
-      expect(t.lines, ['▾ A', '  line 1', '▾ B', '  line 1', '▾ C']);
+      expect(t.lines, [
+        '▾ A',
+        '  line 1',
+        '▾ B',
+        '  line 1',
+        '▾ C',
+        '  line 1',
+      ]);
     });
 
     testTwk('a tile with a controller of its own keeps it, collapsed by '

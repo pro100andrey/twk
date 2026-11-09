@@ -543,6 +543,8 @@ void main() {
       Theme.terminal(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          // the field is cut off, on purpose
+          overflowIntended: true,
           children: [
             const Text('one'),
             const Text('two'),

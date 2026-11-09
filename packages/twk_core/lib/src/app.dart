@@ -297,6 +297,9 @@ final class TwkApp {
           : TextOrder.logical
       ..debugRepaintRainbow = debugNames.contains('rainbow')
       ..debugRelayoutHighlight = debugNames.contains('relayout');
+    if (debugNames.contains('overflow')) {
+      owner.debugOverflowIndicator = true;
+    }
   }
 
   /// The process's environment, in which [terminal]'s settings
@@ -310,14 +313,17 @@ final class TwkApp {
 
   /// The names of `TWK_DEBUG` the app reads ([debugNames]): `frames`
   /// ([framesInRow]), `timeline`, `logs` ([serveLogs]), `rainbow` and
-  /// `relayout` ([owner]'s debug paints). A layer above that reads more of
-  /// them, as twk's debug aids do, takes these as known too.
+  /// `relayout` ([owner]'s debug paints) and `overflow` (its overflow
+  /// markers, which are on by default while asserts are). A layer above
+  /// that reads more of them, as twk's debug aids do, takes these as known
+  /// too.
   static const debugNamesRead = {
     'frames',
     'timeline',
     'logs',
     'rainbow',
     'relayout',
+    'overflow',
   };
 
   /// The environment the app's defaults were read from when it was made:
@@ -407,7 +413,9 @@ final class TwkApp {
   /// Lays out and paints the tree. Its debug paints are on from the start
   /// when `TWK_DEBUG` names them: `rainbow`
   /// ([PipelineOwner.debugRepaintRainbow]), `relayout`
-  /// ([PipelineOwner.debugRelayoutHighlight]). Its text order
+  /// ([PipelineOwner.debugRelayoutHighlight]), `overflow`
+  /// ([PipelineOwner.debugOverflowIndicator], on without it while asserts
+  /// are on). Its text order
   /// ([PipelineTextOrder.textOrder]) starts as the terminal needs it
   /// ([TerminalInfo.bidi]): visual where right-to-left text is left to the
   /// app, logical where the terminal reorders it; what is committed is

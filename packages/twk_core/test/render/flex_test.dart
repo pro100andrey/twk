@@ -195,6 +195,9 @@ List<String> printed(void Function() body) {
 }
 
 void main() {
+  // these tests cut children off on purpose and read the cells; the marker
+  // of an overflow has a file of its own
+  PipelineOwner.debugOverflowIndicatorByDefault = false;
   PipelineOwner.debugCheckIntrinsicsByDefault = true;
   group('the children of a container', () {
     test('are kept in the order they are inserted, moved and removed', () {

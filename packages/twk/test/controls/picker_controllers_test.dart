@@ -155,6 +155,7 @@ void main() {
       await t.pumpWidget(
         app(
           Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               MultiSelect<String>(

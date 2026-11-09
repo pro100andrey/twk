@@ -91,6 +91,34 @@ final class PipelineOwner {
   bool get debugRelayoutHighlight => (_debug & _debugRelayout) != 0;
   set debugRelayoutHighlight(bool on) => _setDebug(_debugRelayout, on);
 
+  /// Whether a flex, a wrap or a grid that its children overflow shows
+  /// the marker of it (see [RenderFlex]): a hatch along the cut edge and
+  /// the cells cut off. On from the start while asserts are on
+  /// ([debugOverflowIndicatorByDefault]), as the overflow is known only
+  /// to them; turned on or off, everything is repainted. A box that
+  /// clips on purpose ([RenderFlex.overflowIntended]) shows none.
+  bool get debugOverflowIndicator => _overflowIndicator;
+  set debugOverflowIndicator(bool on) {
+    if (on == _overflowIndicator) {
+      return;
+    }
+    _overflowIndicator = on;
+    markAllDirty();
+  }
+
+  /// What [debugOverflowIndicator] is in an owner made from now on: on
+  /// while asserts are on. A test file whose screens overflow on purpose
+  /// sets it once, in `main`.
+  static bool debugOverflowIndicatorByDefault = _assertsOn();
+
+  static bool _assertsOn() {
+    var on = false;
+    assert(on = true, 'an assert that runs only where asserts are on');
+    return on;
+  }
+
+  bool _overflowIndicator = debugOverflowIndicatorByDefault;
+
   /// Checks, in debug mode, the intrinsic sizes of each object as it is laid
   /// out: each of the four answers, at the object's own width and height
   /// and at [BoxConstraints.unbounded], is not negative, and a minimum is

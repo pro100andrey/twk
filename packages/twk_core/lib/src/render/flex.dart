@@ -166,7 +166,7 @@ int _part(int free, int parts, int k) =>
 ///    length or flexible, stretched across.
 ///  * [RenderWrap], which starts a new run where a child would not fit.
 final class RenderFlex extends RenderObject
-    with ContainerRenderObjectMixin<FlexParentData> {
+    with ContainerRenderObjectMixin<FlexParentData>, _OverflowIndicator {
   /// A flex of [children] along [direction], horizontal unless given,
   /// [spacing] cells apart, 0 or more; as long as it may be, the children at
   /// the start and in the middle across unless given.
@@ -240,9 +240,6 @@ final class RenderFlex extends RenderObject
       markNeedsLayout();
     }
   }
-
-  // the overflow was reported (debug)
-  var _overflowReported = false;
 
   // the children in order, for the bisection that finds those the clip
   // shows ([paint]); listed by the first paint that needs them after a
@@ -389,7 +386,14 @@ final class RenderFlex extends RenderObject
     cross = horizontal ? c.constrainHeight(cross) : c.constrainWidth(cross);
     width = horizontal ? main : cross;
     height = horizontal ? cross : main;
-    assert(_debugReportOverflow(used - main), 'reports the overflow');
+    assert(
+      _debugOverflow(
+        'RenderFlex',
+        horizontal ? used - main : 0,
+        horizontal ? 0 : used - main,
+      ),
+      'notes the overflow',
+    );
     _place(main - used < 0 ? 0 : main - used, cross);
   }
 
@@ -439,19 +443,6 @@ final class RenderFlex extends RenderObject
       i++;
       child = data.nextSibling;
     }
-  }
-
-  /// Logs a warning the first time children overflow the flex, with the
-  /// cells they need beyond it.
-  bool _debugReportOverflow(int over) {
-    if (over > 0 && !_overflowReported) {
-      _overflowReported = true;
-      final horizontal = _direction == Axis.horizontal;
-      final unit = '${horizontal ? 'column' : 'row'}${over == 1 ? '' : 's'}';
-      final side = horizontal ? 'right' : 'bottom';
-      _warn('A RenderFlex overflowed by $over $unit on the $side.');
-    }
-    return true;
   }
 
   // what the children ask for, worked out as the layout shares the cells
@@ -557,6 +548,27 @@ final class RenderFlex extends RenderObject
   /// unless something inside it is [paintedWhenCutOff].
   @override
   void paint(PaintContext ctx) {
+    _paintChildren(ctx);
+    paintOverflowIndicator(ctx);
+  }
+
+  /// Whether the marker of an overflow is over the cells.
+  @override
+  bool paintsOver(RenderObject child, int x, int y, int w, int h) =>
+      _overflowOver(x, y, w, h);
+
+  /// Paints the marker again in the cells.
+  @override
+  void paintOver(
+    PaintContext ctx,
+    RenderObject child,
+    int x,
+    int y,
+    int w,
+    int h,
+  ) => paintOverflowIndicator(ctx);
+
+  void _paintChildren(PaintContext ctx) {
     final n = _childCount;
     final canvas = ctx.canvas;
     if (n < 3 ||

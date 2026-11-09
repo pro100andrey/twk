@@ -63,6 +63,7 @@ void main() {
           Focus(
             focusNode: list,
             child: const Column(
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ActiveItem(active: false, child: Text('a')),

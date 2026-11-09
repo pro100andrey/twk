@@ -12,6 +12,7 @@ import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
+import 'package:twk_core/twk_core.dart' show OverflowReport;
 
 import '../vt.dart';
 import 'fake_clock.dart';
@@ -76,6 +77,14 @@ import 'screen_text.dart';
 /// first, so the frame timer of the framework, which the quit leaves for that
 /// long, is not counted; a timer due later than that is. The failure names
 /// each timer with where it was started ([FakeClock.describeTimers]).
+///
+/// With [failOnOverflow] (on by default; `false` turns it off) the test also
+/// fails when a flex, a wrap or a grid of the app was overflowed by its
+/// children (the warning of the log that the debug marker of the screen
+/// shows), naming each with the widget it is in. A layout that clips on
+/// purpose says so with `overflowIntended` and is not counted; `false`
+/// is for a test of what an overflow shows. It needs asserts, as the
+/// warning does.
 @isTest
 void testTwk(
   String description,
@@ -83,6 +92,7 @@ void testTwk(
   int framesOnFailure = 3,
   bool trackDisposables = false,
   bool failOnPendingTimers = true,
+  bool failOnOverflow = true,
   Timeout? timeout,
   Object? skip,
   Object? tags,
@@ -107,6 +117,9 @@ void testTwk(
     try {
       await t._end();
       t._failOnErrors();
+      if (failOnOverflow) {
+        t._failOnOverflows();
+      }
       _failOnUndisposed(tracker);
       if (failOnPendingTimers) {
         await t._failOnPendingTimers();
@@ -225,6 +238,23 @@ final class TwkTester {
   void _keepError(LogRecord record) {
     if (record.level == LogLevel.error) {
       _errors.add(record);
+    } else if (record.error is OverflowReport) {
+      _overflows.add(record);
+    }
+  }
+
+  // the warnings of an overflow the app logged
+  final _overflows = <LogRecord>[];
+
+  void _failOnOverflows() {
+    if (_overflows.isNotEmpty) {
+      final count = _overflows.length == 1
+          ? 'an overflow'
+          : '${_overflows.length} overflows';
+      fail(
+        'the app logged $count (failOnOverflow; overflowIntended says a clip '
+        'is meant):\n${_overflows.map((r) => r.message).join('\n')}',
+      );
     }
   }
 

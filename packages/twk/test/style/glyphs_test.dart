@@ -568,15 +568,15 @@ void main() {
         hint: 'fruit?',
         inline: true,
       );
-      await t.pumpWidget(themed(Glyphs.unicode, select()), size: (12, 1));
-      expect(t.lines.single, endsWith('▾'));
-      await t.pumpWidget(themed(Glyphs.ascii, select()), size: (12, 1));
-      expect(t.lines.single, endsWith('v'));
+      await t.pumpWidget(themed(Glyphs.unicode, select()), size: (12, 4));
+      expect(t.lines.first, endsWith('▾'));
+      await t.pumpWidget(themed(Glyphs.ascii, select()), size: (12, 4));
+      expect(t.lines.first, endsWith('v'));
       await t.pumpWidget(
         themed(Glyphs.unicode.copyWith(down: '+'), select()),
-        size: (12, 1),
+        size: (12, 4),
       );
-      expect(t.lines.single, endsWith('+'));
+      expect(t.lines.first, endsWith('+'));
       // in a decoration too
       Widget decorated() => Select<String>(
         choices: const [Choice('a', 'Apple')],

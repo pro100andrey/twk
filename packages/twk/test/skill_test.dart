@@ -347,23 +347,28 @@ ${[for (final name in rest) '  $name,\n'].join()}];
       expect(pressed, ['ctrl+s']);
     });
 
-    testTwk('a list in a Column outside Expanded takes the whole height, '
-        'the rest overflowing', (t) async {
-      await t.pumpWidget(
-        Column(
-          children: [
-            ListView(children: const [Text('a')]),
-            const Text('below'),
-          ],
-        ),
-        size: (20, 4),
-      );
-      expect(t, isNot(containsLine(contains('below'))));
-      expect(
-        t.logs.records.map((r) => r.message),
-        contains(startsWith('A RenderFlex overflowed')),
-      );
-    });
+    // the overflow is what the test is about
+    testTwk(
+      'a list in a Column outside Expanded takes the whole height, '
+      'the rest overflowing',
+      failOnOverflow: false,
+      (t) async {
+        await t.pumpWidget(
+          Column(
+            children: [
+              ListView(children: const [Text('a')]),
+              const Text('below'),
+            ],
+          ),
+          size: (20, 4),
+        );
+        expect(t, isNot(containsLine(contains('below'))));
+        expect(
+          t.logs.records.map((r) => r.message),
+          contains(startsWith('A RenderFlex overflowed')),
+        );
+      },
+    );
 
     testTwk('inline, a list asks for no rows', (t) async {
       await t.pumpWidget(
