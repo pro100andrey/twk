@@ -276,13 +276,10 @@ final class RenderWrap extends RenderObject
         : c.constrainWidth(thickness);
     width = horizontal ? main : cross;
     height = horizontal ? cross : main;
-    assert(
-      _debugOverflow(
-        'RenderWrap',
-        horizontal ? 0 : thickness - cross,
-        horizontal ? thickness - cross : 0,
-      ),
-      'notes the overflow',
+    _noteOverflow(
+      'RenderWrap',
+      horizontal ? 0 : thickness - cross,
+      horizontal ? thickness - cross : 0,
     );
     _place(main, cross);
   }

@@ -39,11 +39,13 @@ const _overflowPen = Pen(fg: Color.yellow, bg: Color.black);
 /// edge that is cut, with the number of cells cut off, `+3`, in the corner;
 /// a box of no cell shows none. It is painted while
 /// [PipelineOwner.debugOverflowIndicator] is on, which it is while asserts
-/// are. A box that clips on purpose says so with [overflowIntended], and
-/// shows neither the marker nor the report.
+/// are, and with asserts off when `TWK_DEBUG=overflow` or Ctrl+G w turns it
+/// on (the report is logged with asserts only). A box that clips on purpose
+/// says so with [overflowIntended], and shows neither the marker nor the
+/// report.
 mixin _OverflowIndicator on RenderObject {
   // the cells cut off at the right and at the bottom, as the last layout
-  // found them (debug only: they stay 0 with asserts off)
+  // found them
   var _overflowRight = 0;
   var _overflowBottom = 0;
 
@@ -67,16 +69,21 @@ mixin _OverflowIndicator on RenderObject {
     markNeedsPaint();
   }
 
-  /// Notes, from layout and in an assert, the cells the content needs
-  /// beyond the [right] and [bottom] edges (0 or less for none): marks the
-  /// paint when they changed, and logs a warning for [name] the first time
-  /// they are more than 0, again after they were gone. Returns true.
-  bool _debugOverflow(String name, int right, int bottom) {
+  /// Notes, from layout, the cells the content needs beyond the [right] and
+  /// [bottom] edges (0 or less for none), which the marker shows (with
+  /// asserts off too, for [PipelineOwner.debugOverflowIndicator]: two integer
+  /// stores), and logs a warning for [name] the first time they are more than
+  /// 0, again after they were gone (asserts only).
+  void _noteOverflow(String name, int right, int bottom) {
     final r = right > 0 ? right : 0;
     final b = bottom > 0 ? bottom : 0;
     // layout marks the paint of what it laid out
     _overflowRight = r;
     _overflowBottom = b;
+    assert(_reportOverflow(name, r, b), 'logs the overflow');
+  }
+
+  bool _reportOverflow(String name, int r, int b) {
     if (r == 0 && b == 0) {
       _overflowReported = false;
     } else if (!_overflowReported && !_overflowIntended) {

@@ -417,10 +417,7 @@ final class RenderGrid extends RenderObject
     final h = _length(rows, _rowCount, _rowGap);
     width = c.constrainWidth(w);
     height = c.constrainHeight(h);
-    assert(
-      _debugOverflow('RenderGrid', w - width, h - height),
-      'notes the overflow',
-    );
+    _noteOverflow('RenderGrid', w - width, h - height);
     for (var child = _firstChild; child != null;) {
       final at = child.parentData as GridParentData;
       final cw = _span(columns, at._column, at.columnSpan, _columnGap);

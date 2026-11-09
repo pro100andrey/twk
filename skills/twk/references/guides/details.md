@@ -186,7 +186,8 @@ from the bytes the app wrote. `dart test` runs it.
 - A row, column, wrap or grid whose children need more room than it has
   paints a hatch `▚` (yellow on black) over the edge they are cut off at,
   with the cells cut off, `+3`, and logs a warning once; it is on while
-  asserts are (`TWK_DEBUG=overflow` names it, Ctrl+G then `w` toggles it).
+  asserts are, and with asserts off `TWK_DEBUG=overflow` or Ctrl+G then `w`
+  turns it on (the warning is logged with asserts only).
   A layout that clips on purpose says so with `overflowIntended: true` and
   shows neither. `testTwk` fails a test whose app overflows
   (`failOnOverflow: false` turns that off).

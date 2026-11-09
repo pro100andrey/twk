@@ -1308,7 +1308,7 @@ abstract class RenderObject {
       final p = parent;
       if (p != null) {
         _needsLayout = true;
-        p.markNeedsLayout();
+        p._markNeedsLayout();
         return;
       }
     }
@@ -1488,6 +1488,25 @@ abstract class RenderObject {
     }(), 'sets the layout flag');
     try {
       performLayout(c);
+      assert(() {
+        _debugLayingOut = outer;
+        return true;
+      }(), 'restores the layout flag');
+      // inside the try: a layout bug found here is this object's error box
+      // on the relayout path too, not an exception out of flushLayout
+      assert(
+        _sizeW >= c.minWidth &&
+            _sizeW <= c.maxWidth &&
+            _sizeH >= c.minHeight &&
+            _sizeH <= c.maxHeight,
+        '$this laid out at ${_sizeW}x$_sizeH, outside its constraints $c: '
+        'performLayout sets a size within them (c.constrain, '
+        'c.constrainWidth, c.constrainHeight).',
+      );
+      assert(
+        owner?.debugCheckIntrinsics != true || _intrinsicsAreSane(),
+        'unreachable: the check asserts itself',
+      );
     } on Object catch (error, stack) {
       assert(() {
         _debugLayingOut = outer;
@@ -1496,23 +1515,6 @@ abstract class RenderObject {
       _layoutFailed(c, error, stack);
       return;
     }
-    assert(() {
-      _debugLayingOut = outer;
-      return true;
-    }(), 'restores the layout flag');
-    assert(
-      _sizeW >= c.minWidth &&
-          _sizeW <= c.maxWidth &&
-          _sizeH >= c.minHeight &&
-          _sizeH <= c.maxHeight,
-      '$this laid out at ${_sizeW}x$_sizeH, outside its constraints $c: '
-      'performLayout sets a size within them (c.constrain, c.constrainWidth, '
-      'c.constrainHeight).',
-    );
-    assert(
-      owner?.debugCheckIntrinsics != true || _intrinsicsAreSane(),
-      'unreachable: the check asserts itself',
-    );
     if (_errorShown != _shownNot) {
       _errorShown = _shownNot;
     }

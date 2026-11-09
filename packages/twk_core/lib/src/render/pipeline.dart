@@ -94,8 +94,9 @@ final class PipelineOwner {
   /// Whether a flex, a wrap or a grid that its children overflow shows
   /// the marker of it (see [RenderFlex]): a hatch along the cut edge and
   /// the cells cut off. On from the start while asserts are on
-  /// ([debugOverflowIndicatorByDefault]), as the overflow is known only
-  /// to them; turned on or off, everything is repainted. A box that
+  /// ([debugOverflowIndicatorByDefault]); with asserts off, turned on
+  /// (`TWK_DEBUG=overflow`, Ctrl+G w) it shows the overflow the layouts
+  /// measure anyway. Turned on or off, everything is repainted. A box that
   /// clips on purpose ([RenderFlex.overflowIntended]) shows none.
   bool get debugOverflowIndicator => _overflowIndicator;
   set debugOverflowIndicator(bool on) {

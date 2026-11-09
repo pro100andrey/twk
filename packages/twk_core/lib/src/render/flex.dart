@@ -386,13 +386,10 @@ final class RenderFlex extends RenderObject
     cross = horizontal ? c.constrainHeight(cross) : c.constrainWidth(cross);
     width = horizontal ? main : cross;
     height = horizontal ? cross : main;
-    assert(
-      _debugOverflow(
-        'RenderFlex',
-        horizontal ? used - main : 0,
-        horizontal ? 0 : used - main,
-      ),
-      'notes the overflow',
+    _noteOverflow(
+      'RenderFlex',
+      horizontal ? used - main : 0,
+      horizontal ? 0 : used - main,
     );
     _place(main - used < 0 ? 0 : main - used, cross);
   }

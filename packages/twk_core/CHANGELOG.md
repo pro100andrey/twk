@@ -9,7 +9,8 @@ Added:
   edge it is cut off at: a hatch `▚` in yellow on black down the right
   edge or along the bottom one (`/` where the terminal draws `▚` two cells
   wide), and the cells cut off, `+3`, in the corner. It is on while asserts
-  are (`PipelineOwner.debugOverflowIndicator`, which
+  are, and with asserts off where it is turned on, the layout measuring the
+  cells cut off either way (`PipelineOwner.debugOverflowIndicator`, which
   `PipelineOwner.debugOverflowIndicatorByDefault` sets for the owners made
   afterwards; `TWK_DEBUG=overflow` turns it on, the debug key `w` of twk
   toggles it). `RenderFlex.overflowIntended`, `RenderWrap.overflowIntended`
@@ -63,6 +64,20 @@ Added:
 
 Fixed:
 
+- A layout bug found after `performLayout` (a size outside the constraints,
+  an intrinsic size against the contract) is the error box of the object
+  that has it also when the owner lays it out alone (a relayout boundary
+  marked for layout); the assertion escaped `flushLayout` there, leaving its
+  list uncleared, and on the parent-driven path showed on the parent.
+- An object that moves its own children as it is laid out (a list sorting
+  its items) while its parent asks it for intrinsic sizes in the parent's
+  own layout (`IntrinsicHeight` over a reordered `ListView.builder`) no
+  longer fails the parent's layout with "marked itself for layout inside its
+  own performLayout".
+- The overflow marker shows where asserts are off and `TWK_DEBUG=overflow`
+  or Ctrl+G `w` turned it on: the cells cut off are measured by the layout
+  (two integer stores), not inside an assert; the warning is logged with
+  asserts only.
 - An app on a pseudo-terminal of no size (one `script` opens with no
   terminal around it: a background job, CI) has it for its terminal, as
   wide and tall as `COLUMNS` and `LINES` say, else 80 × 24; it ran as plain

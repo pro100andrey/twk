@@ -297,6 +297,53 @@ void main() {
     expect(t.lines, moved, reason: 'as a whole repaint shows it');
   });
 
+  testTwk('a target that keeps moving, frame after frame, to rows the frame '
+      'does not repaint, is followed without the rule against a paint that '
+      'marks itself in every frame', (t) async {
+    final link = AnchorLink();
+    final key = GlobalKey();
+    await t.pumpWidget(
+      Overlay(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('top'),
+            SizedBox(
+              key: key,
+              height: 3,
+              child: _MovedInPaint(
+                child: AnchorTarget(link: link, child: const Text('target')),
+              ),
+            ),
+          ],
+        ),
+      ),
+      size: (8, 8),
+    );
+    Overlay.of(key.currentContext!).insert(
+      OverlayEntry(
+        builder: (_) => AnchorFollower(link: link, child: const Text('x\ny')),
+        fadeIn: Duration.zero,
+        fadeOut: Duration.zero,
+      ),
+    );
+    await t.pump();
+    final mover = t.renderObject<_RenderMovedInPaint>(
+      find.byType(_MovedInPaint),
+    );
+    for (var i = 0; i < 8; i++) {
+      mover
+        ..dy = i.isEven ? 1 : 0
+        ..markNeedsPaint();
+      await t.pump();
+    }
+    // settled: the target at the top of its box, the follower under it. The
+    // mark the follower makes to catch up with a late move is followed by a
+    // frame that repaints all of it, so it never marks in a row of three.
+    await t.pump();
+    expect(t.lines, ['top', 'target', '', '', 'x', 'y', '', '']);
+  });
+
   test('placeAlong puts a box after when it fits there, else on the side '
       'with more room, moved in as far as it has to; within keeps a place '
       'in its range', () {
