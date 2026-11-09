@@ -23,7 +23,7 @@ void randomImage(Harness hs, Random rnd, List<TerminalImage> pool) {
   final y = rnd.nextInt(h + 2) - 2;
   hs.canvas.save();
   if (rnd.nextInt(4) == 0) {
-    hs.canvas.clipRect(0, 1, w, h - 2);
+    hs.canvas.clipRect(0, 1, w, max(0, h - 2));
   }
   hs.canvas
     ..fill(x, y, cols, rows, hs.pens[rnd.nextInt(hs.pens.length)])

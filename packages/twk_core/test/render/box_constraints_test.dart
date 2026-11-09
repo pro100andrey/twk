@@ -164,4 +164,32 @@ void main() {
       expect([e.left, e.top, e.right, e.bottom], [1, 2, 3, 4]);
     });
   });
+
+  group('negative bounds', () {
+    Matcher misuse() => throwsA(
+      isA<AssertionError>().having(
+        (e) => '${e.message}',
+        'message',
+        contains('floor of 0'),
+      ),
+    );
+    final negative = <String, void Function()>{
+      'constructor': () => BoxConstraints(minWidth: -1),
+      'constructor max': () => BoxConstraints(maxHeight: -1),
+      'tight': () => BoxConstraints.tight(-1, 2),
+      'loose': () => BoxConstraints.loose(2, -1),
+      'tightFor': () => BoxConstraints.tightFor(width: -1),
+      'expand': () => BoxConstraints.expand(height: -1),
+      'copyWith': () => const BoxConstraints().copyWith(maxWidth: -2),
+    };
+    negative.forEach((name, make) {
+      test(name, () => expect(make, misuse()));
+    });
+    test('deflate clamps instead', () {
+      final c = const BoxConstraints.loose(3, 3).deflate(
+        const EdgeInsets.all(5),
+      );
+      expect(c, const BoxConstraints.tight(0, 0));
+    });
+  });
 }

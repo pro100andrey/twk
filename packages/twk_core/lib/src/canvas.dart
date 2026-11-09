@@ -235,6 +235,12 @@ final class Canvas {
 
   /// Intersects the clip with the rectangle (local coordinates).
   void clipRect(int x, int y, int w, int h) {
+    assert(
+      w >= 0 && h >= 0,
+      'clipRect($x, $y, $w, $h): a negative size clips everything; a size '
+      'computed by subtracting needs a floor of 0 (max(0, width - padding)); '
+      'a rectangle off the surface is fine',
+    );
     final x0 = x + _ox;
     final y0 = y + _oy;
     if (x0 > _cx0) {
@@ -274,6 +280,12 @@ final class Canvas {
   /// stand in a cell of its own (a control, a mark, or one a terminal
   /// would join with its neighbours) fills with blanks.
   void fill(int x, int y, int w, int h, int pen, [int cp = kBlank]) {
+    assert(
+      w >= 0 && h >= 0,
+      'fill($x, $y, $w, $h): a negative size fills nothing; a size computed '
+      'by subtracting needs a floor of 0 (max(0, width - padding)); a '
+      'rectangle off the surface is fine',
+    );
     final ax = x + _ox;
     var x0 = ax;
     var y0 = y + _oy;

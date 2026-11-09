@@ -13,6 +13,11 @@ Added:
   which shifted and clipped everything painted after it; the canvas is
   brought back to its depth, so only that object shows the error.
   `Canvas.debugSaveDepth` counts the saves kept.
+- Debug-mode asserts for negative sizes: a `BoxConstraints` with a negative
+  bound (any constructor, `copyWith`) and `Canvas.fill` or `Canvas.clipRect`
+  with a negative width or height, which drew nothing and hid a
+  `width - padding` that needed a floor of 0, fail with a hint. A rectangle
+  partly or wholly off the surface stays legal.
 
 Fixed:
 

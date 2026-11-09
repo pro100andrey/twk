@@ -32,6 +32,11 @@ final class BoxConstraints {
     this.minHeight = 0,
     this.maxHeight = unbounded,
   }) : assert(
+         minWidth >= 0 && minHeight >= 0 && maxWidth >= 0 && maxHeight >= 0,
+         'a constraint is never negative; a size computed by subtracting '
+         'insets or a gap needs a floor of 0 (max(0, width - padding))',
+       ),
+       assert(
          minWidth <= maxWidth && minHeight <= maxHeight,
          'each minimum at most its maximum',
        );
@@ -46,7 +51,12 @@ final class BoxConstraints {
     : minWidth = width ?? 0,
       maxWidth = width ?? unbounded,
       minHeight = height ?? 0,
-      maxHeight = height ?? unbounded;
+      maxHeight = height ?? unbounded,
+      assert(
+        (width ?? 0) >= 0 && (height ?? 0) >= 0,
+        'a constraint is never negative; a size computed by subtracting '
+        'insets or a gap needs a floor of 0 (max(0, width - padding))',
+      );
 
   /// At most [w] wide and [h] tall, any size down to nothing.
   const BoxConstraints.loose(int w, int h) : this(maxWidth: w, maxHeight: h);
@@ -59,7 +69,12 @@ final class BoxConstraints {
     : minWidth = width ?? unbounded,
       maxWidth = width ?? unbounded,
       minHeight = height ?? unbounded,
-      maxHeight = height ?? unbounded;
+      maxHeight = height ?? unbounded,
+      assert(
+        (width ?? 0) >= 0 && (height ?? 0) >= 0,
+        'a constraint is never negative; a size computed by subtracting '
+        'insets or a gap needs a floor of 0 (max(0, width - padding))',
+      );
 
   /// An extent no screen reaches: a limit that limits nothing, as Flutter's
   /// infinity does.

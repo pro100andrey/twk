@@ -19,6 +19,31 @@ void main() {
     pen = styles.pen(const Pen(fg: Color.red, bg: Color.blue));
   });
 
+  group('negative sizes', () {
+    Matcher misuse(String part) => throwsA(
+      isA<AssertionError>().having(
+        (e) => '${e.message}',
+        'message',
+        contains(part),
+      ),
+    );
+    test('fill and clipRect assert on a negative size', () {
+      expect(() => cv.fill(0, 0, -1, 1, pen), misuse('floor of 0'));
+      expect(() => cv.fill(0, 0, 1, -1, pen), misuse('floor of 0'));
+      expect(() => cv.clipRect(0, 0, -3, 1), misuse('floor of 0'));
+      expect(() => cv.clipRect(0, 0, 1, -3), misuse('floor of 0'));
+    });
+    test('an empty or off-surface rectangle stays legal', () {
+      cv.fill(0, 0, 0, 0, pen);
+      cv.fill(-5, -5, 3, 3, pen);
+      cv.fill(50, 50, 3, 3, pen);
+      cv.save();
+      cv.clipRect(-5, -5, 2, 2);
+      cv.clipRect(0, 0, 0, 0);
+      cv.restore();
+    });
+  });
+
   group('mergeRun and wide glyphs', () {
     late int under;
     late int plain;
