@@ -10,7 +10,8 @@ import 'package:test/test.dart';
 import 'package:twk/log.dart';
 import 'package:twk/src/debug/console.dart' show RenderConsolePanel;
 import 'package:twk/twk.dart';
-import 'package:twk_core/twk_core.dart' show Multiplexer, clipboardSequence;
+import 'package:twk_core/twk_core.dart'
+    show Multiplexer, OverflowReport, clipboardSequence;
 import 'package:twk_test/twk_test.dart' show FakeClock, Shot;
 import 'package:twk_test/vt_terminal.dart';
 
@@ -137,6 +138,22 @@ void main() {
         '${row('INFO', 'one')}      +1',
         '${row('ERROR', 'fa')} +1 stack',
         row('INFO', 'a long messa'),
+      ]);
+    });
+
+    test('show an overflow warning once: its report is data, not an error '
+        'line, nor a "more" mark', () {
+      final sink = LogSink()
+        ..add(
+          record(
+            'A RenderFlex overflowed by 2 columns on the right.',
+            level: LogLevel.warning,
+            error: const OverflowReport(2, 0),
+          ),
+        );
+      expect(panel(ConsoleController(sink), width: 72, rows: 2).rows, [
+        ' console  debug+  1 of 1',
+        row('WARN', 'A RenderFlex overflowed by 2 columns on the right.'),
       ]);
     });
 

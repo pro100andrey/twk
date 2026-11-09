@@ -45,6 +45,7 @@ terminal.dart class KeyboardFlagsReport
 terminal.dart class KittyKeyboardFlags
 terminal.dart class LineEncoder
 terminal.dart class LocalAddress
+terminal.dart class LogData
 terminal.dart class LogRecord
 terminal.dart class LogSink
 terminal.dart class Mod

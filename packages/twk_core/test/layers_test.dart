@@ -133,7 +133,7 @@ Map<String, Set<String>?> _exports(String library) {
 }
 
 /// What log.dart shows.
-const _logNames = {'LogLevel', 'LogRecord', 'LogSink', 'log'};
+const _logNames = {'LogData', 'LogLevel', 'LogRecord', 'LogSink', 'log'};
 
 void main() {
   final imports = _imports();

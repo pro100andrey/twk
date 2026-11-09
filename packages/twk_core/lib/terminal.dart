@@ -61,7 +61,7 @@ export 'src/graphics.dart' show GraphicsProtocol;
 export 'src/input/events.dart';
 export 'src/input/parser.dart' show InputParser;
 export 'src/line_encoder.dart' show LineEncoder;
-export 'src/log.dart' show LogLevel, LogRecord, LogSink, log;
+export 'src/log.dart' show LogData, LogLevel, LogRecord, LogSink, log;
 export 'src/platform/platform.dart' show LocalAddress;
 export 'src/presenter.dart' show TerminalCaps;
 export 'src/style.dart' show Attr, Color, ColorMode, Pen, StyleId, StyleTable;

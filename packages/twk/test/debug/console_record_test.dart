@@ -8,6 +8,7 @@ import 'package:test/test.dart';
 import 'package:twk/log.dart';
 import 'package:twk/src/debug/console_record.dart';
 import 'package:twk/twk.dart';
+import 'package:twk_core/twk_core.dart' show OverflowReport;
 import 'package:twk_test/twk_test.dart' show Shot;
 
 import 'console_test.dart' show record;
@@ -46,6 +47,19 @@ void main() {
           (RecordLineKind.error, 'boom'),
           (RecordLineKind.error, '  ${'x' * 18}'),
           (RecordLineKind.error, 'x' * 12),
+        ],
+      );
+    });
+
+    test('an overflow report is no error line: the message says it', () {
+      final lines = recordLines(
+        record('overflowed', error: const OverflowReport(2, 0)),
+        40,
+      );
+      expect(
+        [for (final l in lines) (l.kind, l.text)],
+        [
+          (RecordLineKind.message, 'overflowed'),
         ],
       );
     });

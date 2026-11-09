@@ -37,7 +37,10 @@ Added:
 - The warning of an overflow carries an `OverflowReport` as the `error` of
   its record, and is logged again once an overflow that went away starts
   anew (it was logged once for the life of the object, and the three
-  copies of the check are one now).
+  copies of the check are one now). `OverflowReport` is `LogData`
+  (`terminal.dart`, `package:twk/log.dart`), which is not an error to
+  print: `LogRecord.toJson` leaves it out and the twk console shows the
+  message alone, where the warning showed twice.
 - In debug mode, `RenderObject.width` and `RenderObject.height` assert when
   the parent reads them in its own `performLayout` after laying the object
   out without `parentUsesSize: true` (and without tight constraints or
@@ -53,11 +56,13 @@ Added:
   above its maximum. Its questions are not cached, so the check changes
   nothing else. `PipelineOwner.debugCheckIntrinsicsByDefault` sets it for
   the owners made afterwards; the core's render tests turn it on.
-- `Surface.debugCheckWide`, run at the end of every paint flush in debug
+- `Surface.debugRepairWide`, run at the end of every paint flush in debug
   mode: a wide glyph split in the damaged cells (a wide cell without its
   continuation, at the last column too, or a continuation cell without a
-  wide cell before it) asserts, naming the row and column, where a painter
-  that writes `Surface.cells` itself is to blame.
+  wide cell before it) is logged as an error naming the row and column,
+  where a painter that writes `Surface.cells` itself is to blame, and the
+  cell is blanked; it does not throw out of the frame, as the
+  painter that split it is not known.
 - `PipelineOwner.onObjectLog`: the tree's own warnings (a flex, wrap or
   grid overflow, a viewport or list given no room) with the render object
   that raised each, ahead of `onLog`, so a binding can name where it is.

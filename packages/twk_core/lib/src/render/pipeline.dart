@@ -494,9 +494,21 @@ final class PipelineOwner {
     ctx.canvas.reset();
     _throwFirst();
     assert(
-      ctx.surface.debugCheckWide(),
+      ctx.surface.debugRepairWide(_reportWide),
       'a wide glyph of the surface is split',
     );
+  }
+
+  // a split wide glyph (asserts only): logged as an error, not thrown, as
+  // the painter that split it is not known; the surface repaired it
+  void _reportWide(String message) {
+    final record = LogRecord(DateTime.now(), LogLevel.error, message);
+    final route = onLog;
+    if (route == null) {
+      log(message, level: LogLevel.error);
+    } else {
+      route(record);
+    }
   }
 
   /// Calls [RenderObject.beforePaint] on the objects

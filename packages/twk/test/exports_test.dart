@@ -116,7 +116,7 @@ void main() {
     );
     for (final (library, declared) in [
       ('format', {'ByteUnits', 'formatBytes', 'formatTook'}),
-      ('log', {'LogLevel', 'LogRecord', 'LogSink', 'log'}),
+      ('log', {'LogData', 'LogLevel', 'LogRecord', 'LogSink', 'log'}),
     ]) {
       final names = _exported(
         currentMirrorSystem().libraries[Uri.parse(

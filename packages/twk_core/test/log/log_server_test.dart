@@ -90,6 +90,16 @@ void main() {
     expect((plain.error, plain.stack), (null, null));
   });
 
+  test('an overflow report is no error of the JSON: the message says it', () {
+    final json = LogRecord(
+      _at,
+      LogLevel.warning,
+      'A RenderFlex overflowed by 2 columns on the right.',
+      error: const OverflowReport(2, 0),
+    ).toJson();
+    expect(json.containsKey('error'), isFalse);
+  });
+
   test('a client gets the records kept, then each one as it is added, '
       "until the sink stops serving; the project's address file names "
       'the socket meanwhile', () async {

@@ -512,13 +512,14 @@ final class Surface {
   /// cell followed by a [kCont] cell, and no [kCont] cell stands without a
   /// [kWide] before it. A glyph cut by the surface edge or a clip is blanked
   /// by the canvas, so none is legal at the last column or at column 0.
-  /// Throws an [AssertionError] naming the row and column; returns true
-  /// otherwise.
+  /// Each split half found is blanked, so that the presenter's diff stays in
+  /// step with the terminal, and [report] is called with a message naming
+  /// the row and column; returns true, for the `assert`.
   ///
   /// A painter that writes [cells] itself, and splits a wide glyph, would
   /// show half of it in the terminal, and the presenter's diff would be out
   /// of step with the terminal until a full repaint.
-  bool debugCheckWide() {
+  bool debugRepairWide(void Function(String message) report) {
     final w = width;
     final c = cells;
     for (var y = 0; y < height; y++) {
@@ -534,22 +535,26 @@ final class Surface {
         final cell = c[row + x];
         if ((cell & kWide) != 0 &&
             (x + 1 >= w || (c[row + x + 1] & kCont) == 0)) {
-          throw AssertionError(
+          report(
             'A wide glyph at column $x of row $y has no continuation cell '
             '${x + 1 >= w ? '(it is at the last column)' : 'after it'}: '
             'a painter that writes Surface.cells directly split it. Use '
             'Surface.breakWideAt before overwriting either half of a wide '
             'glyph, or blank the glyph whole.',
           );
-        }
-        if ((cell & kCont) != 0 && (x == 0 || (c[row + x - 1] & kWide) == 0)) {
-          throw AssertionError(
+          c[row + x] = kBlank;
+          markDirty(y, x, x + 1);
+        } else if ((cell & kCont) != 0 &&
+            (x == 0 || (c[row + x - 1] & kWide) == 0)) {
+          report(
             'A continuation cell at column $x of row $y has no wide glyph '
             'before it: a painter that writes Surface.cells directly '
             'overwrote the first half of a wide glyph. Use '
             'Surface.breakWideAt before overwriting either half of a wide '
             'glyph, or blank the glyph whole.',
           );
+          c[row + x] = kBlank;
+          markDirty(y, x, x + 1);
         }
       }
     }

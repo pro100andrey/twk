@@ -5,7 +5,7 @@ part of 'render.dart';
 /// What a record of the log says when a [RenderFlex], a [RenderWrap] or a
 /// [RenderGrid] overflowed: the record's `error`, so that a sink tells it
 /// from the other warnings of the tree (`testTwk`'s `failOnOverflow` does).
-final class OverflowReport {
+final class OverflowReport implements LogData {
   /// An overflow of [right] columns beyond the right edge and [bottom] rows
   /// beyond the bottom, either 0 for none.
   const OverflowReport(this.right, this.bottom);
