@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+Added:
+
+- Debug-mode asserts for the layout contract of a `RenderObject`: a size
+  from `performLayout` outside the constraints, a child painted by
+  `paintChild` before it was laid out (it painted 0 x 0, unseen), and
+  `markNeedsLayout` on an object from inside its own `performLayout` (the
+  mark was lost when the layout ended) each fail with a hint.
+
 Fixed:
 
 - An app on a pseudo-terminal of no size (one `script` opens with no

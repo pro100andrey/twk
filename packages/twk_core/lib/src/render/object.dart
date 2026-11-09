@@ -358,7 +358,7 @@ mixin ContainerRenderObjectMixin<P extends ContainerParentDataMixin>
     }
     _unlink(child);
     _link(child, after);
-    markNeedsLayout();
+    _markNeedsLayout();
   }
 
   void _link(RenderObject child, RenderObject? after) {
@@ -716,6 +716,10 @@ abstract class RenderObject {
   var height = 0;
   BoxConstraints? _constraints;
   var _needsLayout = true;
+
+  // debug only, written inside assert: this object is in its own
+  // performLayout, where a mark on it would be cleared by the layout
+  var _debugLayingOut = false;
 
   // laid out last so that its size can't change the parent's layout: a
   // layout mark stops here, and this subtree is laid out on its own
@@ -1130,7 +1134,7 @@ abstract class RenderObject {
     if (owner != null) {
       child.attach(owner!);
     }
-    markNeedsLayout();
+    _markNeedsLayout();
   }
 
   /// Removes [child] from this object (the parent's own list of children
@@ -1140,7 +1144,7 @@ abstract class RenderObject {
     child
       ..parent = null
       ..detach();
-    markNeedsLayout();
+    _markNeedsLayout();
   }
 
   /// Joins the pipeline of [o], with everything inside it: the owner lays
@@ -1205,6 +1209,19 @@ abstract class RenderObject {
   /// intrinsic sizes worked out so far; when any was asked for, the parent
   /// is marked too, boundary or not, since its layout may have used them.
   void markNeedsLayout() {
+    assert(
+      !_debugLayingOut,
+      '$this marked itself for layout inside its own performLayout: the mark '
+      'is lost when the layout ends. Change what the layout reads before it '
+      'runs (or in invokeLayoutCallback), not while it runs.',
+    );
+    _markNeedsLayout();
+  }
+
+  // markNeedsLayout without the check of the contract: for what an object
+  // does to its own children as it lays them out (a list sorting them), which
+  // the layout in progress takes into account
+  void _markNeedsLayout() {
     if (_intrinsicsCached != 0) {
       _intrinsicsCached = 0;
       final p = parent;
@@ -1327,7 +1344,17 @@ abstract class RenderObject {
     // forgotten, so that marks from below stop here
     _intrinsicsCached = 0;
     _needsLayout = true;
+    var outer = false;
+    assert(() {
+      outer = _debugLayingOut;
+      _debugLayingOut = false;
+      return true;
+    }(), 'sets the layout flag');
     callback();
+    assert(() {
+      _debugLayingOut = outer;
+      return true;
+    }(), 'restores the layout flag');
     if (asked != 0 && _intrinsicsChanged(asked)) {
       final asker = parent ?? this;
       final o = owner;
@@ -1357,12 +1384,35 @@ abstract class RenderObject {
   /// Runs [performLayout] within [c]; what it throws, this object shows.
   void _layOut(BoxConstraints c) {
     _laidOut = true;
+    var outer = false;
+    assert(() {
+      outer = _debugLayingOut;
+      _debugLayingOut = true;
+      return true;
+    }(), 'sets the layout flag');
     try {
       performLayout(c);
     } on Object catch (error, stack) {
+      assert(() {
+        _debugLayingOut = outer;
+        return true;
+      }(), 'restores the layout flag');
       _layoutFailed(c, error, stack);
       return;
     }
+    assert(() {
+      _debugLayingOut = outer;
+      return true;
+    }(), 'restores the layout flag');
+    assert(
+      width >= c.minWidth &&
+          width <= c.maxWidth &&
+          height >= c.minHeight &&
+          height <= c.maxHeight,
+      '$this laid out at ${width}x$height, outside its constraints $c: '
+      'performLayout sets a size within them (c.constrain, c.constrainWidth, '
+      'c.constrainHeight).',
+    );
     if (_errorShown != _shownNot) {
       _errorShown = _shownNot;
     }
@@ -1488,6 +1538,11 @@ abstract class RenderObject {
   /// something inside it is [paintedWhenCutOff]; one not painted keeps
   /// what it kept of its paint, since its cells are as it left them.
   void paintChild(PaintContext ctx, RenderObject child) {
+    assert(
+      child._constraints != null,
+      '$child is painted by $this before it was laid out: lay every child '
+      'out in performLayout, or it is painted 0x0.',
+    );
     final at = child.parentData;
     final canvas = ctx.canvas
       ..save()

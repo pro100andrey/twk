@@ -97,7 +97,7 @@ final class Label extends RenderObject {
   }
 }
 
-/// [text] on [h] rows, [w] × [h] whatever the constraints say.
+/// [text] on [h] rows, [w] × [h] as far as the constraints allow.
 final class Stubborn extends RenderObject {
   Stubborn(this.text, this.w, this.h);
 
@@ -107,8 +107,8 @@ final class Stubborn extends RenderObject {
 
   @override
   void performLayout(BoxConstraints c) {
-    width = w;
-    height = h;
+    width = c.constrainWidth(w);
+    height = c.constrainHeight(h);
   }
 
   @override
@@ -321,7 +321,8 @@ void main() {
       final v = View(8, 3);
       final stack = RenderStack(
         alignment: Alignment.center,
-        children: [Stubborn('abcdefg', 7, 3)],
+        // a size of its own, as a positioned child may take
+        children: [pin(Stubborn('abcdefg', 7, 3), width: 7, height: 3)],
       );
       // four columns and one row in the middle of the screen
       final root = RenderPadding(
@@ -585,7 +586,7 @@ void main() {
       final stack = RenderStack(
         children: [
           pin(under, left: 0, top: 0, width: 8, height: 3),
-          pin(Stubborn('abcdefgh', 8, 1), left: 0, top: 0),
+          pin(Stubborn('abcdefgh', 8, 1), left: 0, top: 0, width: 8, height: 1),
         ],
       );
       final root = RenderBox(
