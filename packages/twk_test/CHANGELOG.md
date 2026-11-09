@@ -7,10 +7,11 @@ Added:
 - `testTwk(trackDisposables: true)` (off by default) fails the test, once
   its app is quit, naming each controller or notifier made during it and not
   disposed, with the stack that made it (`DisposalTracker` of twk).
-- `testTwk(failOnPendingTimers: true)` (off by default) fails the test when a
-  timer of its clock still waits one frame after the app is quit (a
-  `Timer.periodic` left running by `dispose`), naming it and where it was
-  started.
+- `testTwk(failOnPendingTimers:)` fails the test when a timer of its clock
+  still waits one frame after the app is quit (a `Timer.periodic` left
+  running by `dispose`), naming it and where it was started. On by default:
+  `failOnPendingTimers: false` turns it off in a test whose app is meant to
+  leave a timer running.
 
 Changed:
 

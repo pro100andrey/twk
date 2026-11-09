@@ -104,10 +104,10 @@ and `useEffect`: each new value cancels the timer the last one started
 (what the effect returns is its cleanup, run before it runs again and
 when the widget goes) and starts its own. Around it, the field's
 controller comes from `useTextEditingController`, which disposes it,
-the text typed from `useValueListenable`, the packages from one request
-(`useFuture` of a `useMemoized` future) and the matches from
-`useMemoized`, filtered again only when the settled query or the list
-changes.
+the text typed from `useValueListenable`, the packages from a
+`useState` that a `useEffect` fills after a timer, which its cleanup
+cancels if the widget goes first, and the matches from `useMemoized`,
+filtered again only when the settled query or the list changes.
 
 <!-- file: packages/twk/example/hooks/search.dart -->
 ```dart
@@ -127,27 +127,24 @@ const loadingTime = Duration(milliseconds: 600);
 /// How long the typing pauses before the list is filtered.
 const pause = Duration(milliseconds: 300);
 
-/// The packages, after [loadingTime], as a request to a server gives them.
-Future<List<Package>> loadPackages() => Future.delayed(
-  loadingTime,
-  () => [
-    (name: 'args', about: 'parses command-line arguments'),
-    (name: 'async', about: 'utilities for streams and futures'),
-    (name: 'collection', about: 'collections and what to do with them'),
-    (name: 'crypto', about: 'hashes: SHA-1, SHA-256, MD5'),
-    (name: 'http', about: 'makes HTTP requests'),
-    (name: 'intl', about: 'messages, dates and numbers by locale'),
-    (name: 'json_annotation', about: 'annotations for JSON code'),
-    (name: 'logging', about: 'hierarchical loggers'),
-    (name: 'markdown', about: 'Markdown to HTML'),
-    (name: 'meta', about: 'annotations for static analysis'),
-    (name: 'path', about: 'joins and splits paths on any platform'),
-    (name: 'shelf', about: 'web servers made of middleware'),
-    (name: 'stream_channel', about: 'two-way streams'),
-    (name: 'test', about: 'writes and runs tests'),
-    (name: 'yaml', about: 'parses YAML'),
-  ],
-);
+/// The packages, as a request to a server gives them.
+const List<Package> packageList = [
+  (name: 'args', about: 'parses command-line arguments'),
+  (name: 'async', about: 'utilities for streams and futures'),
+  (name: 'collection', about: 'collections and what to do with them'),
+  (name: 'crypto', about: 'hashes: SHA-1, SHA-256, MD5'),
+  (name: 'http', about: 'makes HTTP requests'),
+  (name: 'intl', about: 'messages, dates and numbers by locale'),
+  (name: 'json_annotation', about: 'annotations for JSON code'),
+  (name: 'logging', about: 'hierarchical loggers'),
+  (name: 'markdown', about: 'Markdown to HTML'),
+  (name: 'meta', about: 'annotations for static analysis'),
+  (name: 'path', about: 'joins and splits paths on any platform'),
+  (name: 'shelf', about: 'web servers made of middleware'),
+  (name: 'stream_channel', about: 'two-way streams'),
+  (name: 'test', about: 'writes and runs tests'),
+  (name: 'yaml', about: 'parses YAML'),
+];
 
 /// [value] once it has stayed the same for [delay]: a hook of its own,
 /// made of two others. Each new [value] cancels the timer the last one
@@ -172,9 +169,14 @@ final class Search extends HookWidget {
     // rebuilt on each key typed
     final query = useValueListenable(field).text.trim().toLowerCase();
     final settled = useDebounced(query, pause);
-    // one request, not one a build
-    final packages = useFuture(useMemoized(loadPackages));
-    final all = packages.data ?? const <Package>[];
+    // the packages arrive after [loadingTime]; the effect's cleanup cancels
+    // the timer if the widget goes first
+    final loaded = useState<List<Package>?>(null);
+    useEffect(() {
+      final timer = Timer(loadingTime, () => loaded.value = packageList);
+      return timer.cancel;
+    }, []);
+    final all = loaded.value ?? const <Package>[];
     // filtered again only when the settled query or the list changes
     final matches = useMemoized(
       () => [
@@ -217,7 +219,7 @@ final class Search extends HookWidget {
                 ),
               ],
             ),
-            if (packages.hasData)
+            if (loaded.value != null)
               Text(
                 query != settled
                     ? 'searching…'

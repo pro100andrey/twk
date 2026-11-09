@@ -69,20 +69,20 @@ import 'screen_text.dart';
 /// one to track: leave the option off in that test. It needs asserts, so a
 /// test run with them off checks nothing.
 ///
-/// With [failOnPendingTimers] (off by default) the test also fails when a
-/// timer of the app's clock ([TwkTester.clock]) still waits one frame after
-/// the app is quit: a `Timer.periodic` that `dispose` left running, a delayed
-/// call nobody cancelled. The clock moves one frame first, so the frame
-/// timer of the framework, which the quit leaves for that long, is not
-/// counted; a timer due later than that is. The failure names each timer
-/// with where it was started ([FakeClock.describeTimers]).
+/// With [failOnPendingTimers] (on by default; `false` turns it off) the test
+/// also fails when a timer of the app's clock ([TwkTester.clock]) still waits
+/// one frame after the app is quit: a `Timer.periodic` that `dispose` left
+/// running, a delayed call nobody cancelled. The clock moves one frame
+/// first, so the frame timer of the framework, which the quit leaves for that
+/// long, is not counted; a timer due later than that is. The failure names
+/// each timer with where it was started ([FakeClock.describeTimers]).
 @isTest
 void testTwk(
   String description,
   FutureOr<void> Function(TwkTester t) body, {
   int framesOnFailure = 3,
   bool trackDisposables = false,
-  bool failOnPendingTimers = false,
+  bool failOnPendingTimers = true,
   Timeout? timeout,
   Object? skip,
   Object? tags,

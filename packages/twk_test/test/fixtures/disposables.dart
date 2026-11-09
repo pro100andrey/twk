@@ -86,19 +86,21 @@ final class _TickerState extends State<Ticker> {
 }
 
 void timerTests() {
-  testTwk('a timer left running', failOnPendingTimers: true, (t) async {
+  testTwk('a timer left running', (t) async {
     await t.pumpWidget(const Ticker(leak: true));
   });
 
-  testTwk('a timer left running, checking off', (t) async {
+  testTwk('a timer left running, checking off', failOnPendingTimers: false, (
+    t,
+  ) async {
     await t.pumpWidget(const Ticker(leak: true));
   });
 
-  testTwk('the timer cancelled', failOnPendingTimers: true, (t) async {
+  testTwk('the timer cancelled', (t) async {
     await t.pumpWidget(const Ticker(leak: false));
   });
 
-  testTwk('a plain app', failOnPendingTimers: true, (t) async {
+  testTwk('a plain app', (t) async {
     await t.pumpWidget(const Text('x'));
   });
 }
