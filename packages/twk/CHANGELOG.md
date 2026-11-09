@@ -120,6 +120,13 @@ Fixed:
 - The "asserts are off" log line is written only in a debug run, not in
   profile or release builds; `LogView.selectionLines`, a test counter,
   counts only when asserts are on.
+- `LogController.where` keeps the predicate it had when a new one throws,
+  instead of leaving every later line to throw.
+- `SelectionList` skips its duplicate-key check for a `keyOf` that is
+  `==` to the last, a method tear-off included.
+- The Ctrl+G hint line shows copy and save at 80 columns again.
+- The `setState` Future assert names the arrow form too
+  (`setState(() => _future = fetch())`) and the fix, a block body.
 
 ## 0.3.0
 
