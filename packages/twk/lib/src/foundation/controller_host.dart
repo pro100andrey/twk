@@ -4,6 +4,8 @@ library;
 
 import 'dart:async' show scheduleMicrotask;
 
+import '../framework/framework.dart' show State;
+
 /// The host of a controller given to one widget at a time — the `State`
 /// that serves its calls — kept by the controller, privately, and the
 /// handover from one host to the next.
@@ -27,6 +29,13 @@ import 'dart:async' show scheduleMicrotask;
 /// host has attached by then; what a host tells the listeners of a change
 /// made in a build waits for [afterBuild]. Nothing tells them while
 /// widgets build.
+///
+/// A controller given to two widgets that are both in the tree is a
+/// mistake: the first goes dead. A handover is not that, and happens in
+/// one frame, so in debug mode [attach] checks after the build, not at
+/// once, that the host it took over from is no longer mounted
+/// (`State.mounted`, or the `mounted` of the constructor, which a host that
+/// is no `State` needs), and fails with a [StateError] where it is.
 ///
 /// A controller of a popup, which its widget's state serves; it is said
 /// closed when that widget leaves and none takes over:
@@ -52,8 +61,13 @@ import 'dart:async' show scheduleMicrotask;
 /// }
 /// ```
 final class ControllerHost<H extends Object> {
-  /// A handover with no host.
-  ControllerHost();
+  /// A handover with no host. [mounted] says whether a host is still in the
+  /// tree, for the check that no two are at once; by default a `State`
+  /// asks its own `mounted`, and any other host is taken as gone.
+  ControllerHost({bool Function(H host)? mounted})
+    : _mounted = mounted == null ? null : ((host) => mounted(host as H));
+
+  final bool Function(Object host)? _mounted;
 
   H? _host;
   var _disposed = false;
@@ -73,7 +87,33 @@ final class ControllerHost<H extends Object> {
   H? attach(H host) {
     final old = _host;
     _host = host;
-    return identical(old, host) ? null : old;
+    if (identical(old, host)) {
+      return null;
+    }
+    assert(() {
+      if (old != null) {
+        afterBuild(() => _checkOneHost(old));
+      }
+      return true;
+    }(), 'the check that no two hosts are in the tree at once');
+    return old;
+  }
+
+  bool _isMounted(H host) =>
+      _mounted?.call(host) ?? (host is State && host.mounted);
+
+  void _checkOneHost(H old) {
+    final current = _host;
+    if (current == null || identical(current, old)) {
+      return;
+    }
+    if (_isMounted(old) && _isMounted(current)) {
+      throw StateError(
+        'A controller has two hosts in the tree at once: $old and $current. '
+        'The first is dead now, the last one attached serves the controller. '
+        'Give each widget a controller of its own.',
+      );
+    }
   }
 
   /// [host] lets go of the controller: where it is still the host, there
