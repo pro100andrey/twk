@@ -14,6 +14,8 @@ Fixed:
 - `markdownLines`: a list's markers, a quote's bar and a table's columns
   give way where they would leave too few columns for a wide character, so
   no line is wider than `width` (`- 你好` at 3 columns was 4 wide).
+- A paragraph of many lines is made into spans in time linear in them, not
+  quadratic: 8000 lines took 0.5 s, now 25 ms.
 
 ## 0.3.0
 
