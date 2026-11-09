@@ -1940,13 +1940,12 @@ final class _RenderLine extends RenderObject {
 
   @override
   bool hitTestChildren(HitTestResult result, int x, int y) {
-    for (final c in [_body, _head]) {
-      final at = c.parentData;
-      if (c.hitTest(result, x - at.dx, y - at.dy)) {
-        return true;
-      }
+    final body = _body.parentData;
+    if (_body.hitTest(result, x - body.dx, y - body.dy)) {
+      return true;
     }
-    return false;
+    final head = _head.parentData;
+    return _head.hitTest(result, x - head.dx, y - head.dy);
   }
 
   @override

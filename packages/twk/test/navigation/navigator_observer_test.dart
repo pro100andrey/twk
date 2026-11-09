@@ -412,6 +412,23 @@ void main() {
     state.removeRoute(d);
     await t.pump();
   }, trackDisposables: true);
+
+  testTwk('a route no frame hosted makes no focus node, even when covered '
+      'and removed', (t) async {
+    final navigator = GlobalKey<NavigatorState>();
+    await t.pumpWidget(
+      Navigator(key: navigator, routes: {'/': (_) => const Text('home')}),
+      size: (20, 3),
+    );
+    final state = navigator.currentState!;
+    final d = page('d');
+    unawaited(state.push(d));
+    unawaited(state.push(page('e')));
+    unawaited(state.push(page('f')));
+    state.removeRoute(d);
+    state.popUntil((r) => r.isFirst);
+    await t.pump();
+  }, trackDisposables: true);
 }
 
 /// Writes down the name of each route pushed, and nothing else.

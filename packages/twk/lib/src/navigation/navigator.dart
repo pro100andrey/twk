@@ -187,7 +187,7 @@ abstract class Route<T> {
   /// otherwise now, which what lists the keys is told.
   void _popScopesChanged() {
     if (isActive) {
-      _guard.markKeysChanged();
+      _guardNode?.markKeysChanged();
     }
   }
 
@@ -222,38 +222,18 @@ abstract class Route<T> {
   /// Whether it covers what is under it now: opaque, and not sliding.
   bool get _covers => opaque && !_entering && !_leaving;
 
-  // above the route's scope: keeps the focus from it while it is covered
-  // made when the host first asks for it; until then what it is to be
-  // told is kept here, so that a route that never has a host makes none
-  FocusNode get _guard => _guardNode ??= FocusNode(
-    canRequestFocus: false,
-    skipTraversal: true,
-    debugLabel: 'route guard',
-  )..descendantsAreFocusable = _guardFocusable;
-  FocusNode? _guardNode;
+  // the route's focus nodes belong to its host, which makes them as it is
+  // made and disposes them as it goes: a route no frame ever hosted makes
+  // none. The guard sits above the route's scope and keeps the focus from
+  // it while it is covered; what it is to be told before it has a host is
+  // kept here.
+  FocusNode? get _guardNode => _host?._guard;
+  FocusScopeNode? get _scopeNode => _host?._scope;
   var _guardFocusable = true;
 
   void _focusableBelow(bool value) {
     _guardFocusable = value;
     _guardNode?.descendantsAreFocusable = value;
-  }
-
-  FocusScopeNode get _scope =>
-      _scopeNode ??= FocusScopeNode(debugLabel: settings.name ?? 'route');
-  FocusScopeNode? _scopeNode;
-
-  var _focusDisposed = false;
-
-  // The guard and the scope go with the route's host. A route that never
-  // had one (removed before a frame built it) never made them, so there is
-  // nothing to dispose and none is made to be.
-  void _disposeFocus() {
-    if (_focusDisposed) {
-      return;
-    }
-    _focusDisposed = true;
-    _guardNode?.dispose();
-    _scopeNode?.dispose();
   }
 
   /// The navigator the route is on, from its push until it is popped.
@@ -646,11 +626,6 @@ final class NavigatorState extends State<Navigator> {
       route._navigator = null;
       route._popped.complete();
     }
-    for (final route in {..._history, ..._stage}) {
-      if (route._host == null) {
-        route._disposeFocus();
-      }
-    }
     _history.clear();
     _stage.clear();
     super.dispose();
@@ -953,7 +928,7 @@ final class NavigatorState extends State<Navigator> {
     // the back key may do otherwise for it, as the first route now
     top._guardNode?.markKeysChanged();
     if (hadFocus) {
-      FocusNode.giveBack(route._returnFocus, top._scope);
+      FocusNode.giveBack(route._returnFocus, top._scopeNode);
     }
   }
 
@@ -990,9 +965,6 @@ final class NavigatorState extends State<Navigator> {
         continue;
       }
       _stage.removeAt(i);
-      if (route._host == null) {
-        route._disposeFocus();
-      }
     }
   }
 
@@ -1243,10 +1215,20 @@ final class _RouteHostState extends State<_RouteHost>
   // all the way in; as it came when it goes back out from part of the way
   Curve _curve = Curves.easeOut;
 
+  // made here, with the host, and disposed with it
+  late final FocusNode _guard;
+  late final FocusScopeNode _scope;
+
   @override
   void initState() {
     super.initState();
     final route = widget.route.._host = this;
+    _guard = FocusNode(
+      canRequestFocus: false,
+      skipTraversal: true,
+      debugLabel: 'route guard',
+    )..descendantsAreFocusable = route._guardFocusable;
+    _scope = FocusScopeNode(debugLabel: route.settings.name ?? 'route');
     final push = route.transitionDuration;
     final pop = route.reverseTransitionDuration;
     if (push > Duration.zero || pop > Duration.zero) {
@@ -1289,9 +1271,9 @@ final class _RouteHostState extends State<_RouteHost>
   // the same widget at each build: the route is built again only as its
   // own widgets ask
   late final Widget _child = Focus(
-    focusNode: widget.route._guard,
+    focusNode: _guard,
     child: FocusScope(
-      node: widget.route._scope,
+      node: _scope,
       // the first route takes the focus when nothing has it
       autofocus: !widget.route._takesFocus,
       child: _RoutePage(widget.route),
@@ -1305,7 +1287,8 @@ final class _RouteHostState extends State<_RouteHost>
       route._host = null;
     }
     _run?.dispose();
-    route._disposeFocus();
+    _guard.dispose();
+    _scope.dispose();
     super.dispose();
   }
 
@@ -1385,7 +1368,7 @@ final class _RoutePageState extends State<_RoutePage> {
     final route = widget.route;
     if (route._takesFocus) {
       route._takesFocus = false;
-      route._scope.requestFocus();
+      route._scopeNode?.requestFocus();
     }
   }
 
