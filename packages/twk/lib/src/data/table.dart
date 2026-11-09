@@ -1293,18 +1293,28 @@ final class _TableState<T> extends State<Table<T>> {
     if (event.button != 0) {
       return;
     }
+    _pressRow(index, event.x);
+    if (_lead > 0 && _columns.at(event.x) == 0) {
+      _toggleMark(index);
+    }
+  }
+
+  /// A press on the row shown at [index], at the column [x]: the table
+  /// focused, and where rows are selected the row selected, its cell's
+  /// column too where cells are.
+  void _pressRow(int index, int x) {
     if (_node.canRequestFocus) {
       _node.requestFocus();
     }
+    if (widget.selection == TableSelection.none) {
+      return;
+    }
     if (widget.selection == TableSelection.cell) {
-      if (_columnAt(event.x) case final column?) {
+      if (_columnAt(x) case final column?) {
         _controller.selectedColumn = column;
       }
     }
     _select(index);
-    if (_lead > 0 && _columns.at(event.x) == 0) {
-      _toggleMark(index);
-    }
   }
 
   /// A press on the row shown at [index], whose slot's context is
@@ -1315,17 +1325,7 @@ final class _TableState<T> extends State<Table<T>> {
     if (event.button != 2 || menu == null) {
       return;
     }
-    if (_node.canRequestFocus) {
-      _node.requestFocus();
-    }
-    if (widget.selection != TableSelection.none) {
-      if (widget.selection == TableSelection.cell) {
-        if (_columnAt(event.x) case final column?) {
-          _controller.selectedColumn = column;
-        }
-      }
-      _select(index);
-    }
+    _pressRow(index, event.x);
     showContextMenu(
       context: context,
       items: menu(_rowAt(_order?[index] ?? index)),

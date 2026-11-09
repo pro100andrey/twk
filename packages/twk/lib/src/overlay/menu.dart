@@ -482,6 +482,35 @@ void showContextMenu({
   (int, int)? at,
   String Function(KeyCombo combo)? keyLabel,
   PanelLook look = PanelLook.raised,
+}) => _openContextMenu(
+  context,
+  items,
+  () => _contextAnchor(context, at, within: false),
+  keyLabel: keyLabel,
+  byKey: at == null,
+  look: look,
+);
+
+/// [showContextMenu] of [items] under the first row of the widget of
+/// [context], its first entry highlighted, as Shift+F10 opens one: for a
+/// part of the widget that has the focus, which a menu by the focus would
+/// not be under (a row of a `Table`). Not exported: the library's own.
+void showContextMenuUnder(BuildContext context, List<MenuEntry> items) =>
+    _openContextMenu(context, items, () {
+      final widget = context.findRenderObject();
+      return _Anchor(widget, 0, 0, widget?.width ?? 0, 1, below: true);
+    });
+
+/// Opens a menu of [items] at the [anchor] it gives, in the [Overlay]
+/// above [context], whose keys go where they went from [context]; a
+/// [StateError] where there is no Overlay, nothing for no items.
+void _openContextMenu(
+  BuildContext context,
+  List<MenuEntry> items,
+  _Anchor Function() anchor, {
+  String Function(KeyCombo combo)? keyLabel,
+  bool byKey = true,
+  PanelLook look = PanelLook.raised,
 }) {
   final overlay = Overlay.maybeOf(context);
   if (overlay == null) {
@@ -497,39 +526,11 @@ void showContextMenu({
   _MenuSession(
     overlay,
     items,
-    anchor: _contextAnchor(context, at, within: false),
+    anchor: anchor(),
     target: keyTarget(context),
     keyLabel: keyLabel,
-    byKey: at == null,
+    byKey: byKey,
     look: look,
-  );
-}
-
-/// [showContextMenu] of [items] under the first row of the widget of
-/// [context], its first entry highlighted, as Shift+F10 opens one: for a
-/// part of the widget that has the focus, which a menu by the focus would
-/// not be under (a row of a `Table`). Not exported: the library's own.
-void showContextMenuUnder(BuildContext context, List<MenuEntry> items) {
-  final overlay = Overlay.maybeOf(context);
-  if (overlay == null) {
-    throw StateError(
-      'showContextMenu: no Overlay above ${context.widget.runtimeType}: '
-      'place an Overlay above it, as App does around the whole app: '
-      'App(child: …)',
-    );
-  }
-  if (items.isEmpty) {
-    return;
-  }
-  final widget = context.findRenderObject();
-  _MenuSession(
-    overlay,
-    items,
-    anchor: _Anchor(widget, 0, 0, widget?.width ?? 0, 1, below: true),
-    target: keyTarget(context),
-    keyLabel: null,
-    byKey: true,
-    look: PanelLook.raised,
   );
 }
 
