@@ -326,6 +326,21 @@ void main() {
       expect(t, styleAt(0, 2, hasAttr(Attr.italic)));
     });
 
+    testTwk('a table growing a row at a time: a reference in a row made '
+        'before its definition came is a link once it does', (t) async {
+      const head = '| a | b |\n|---|---|\n| [x][r] | 1 |\n';
+      await t.pumpWidget(view(head), size: (20, 6));
+      expect(rows(t, 3)[2], '[x][r] │ 1');
+      await t.pumpWidget(view('$head| y | 2 |\n'), size: (20, 6));
+      expect(rows(t, 4)[3], 'y      │ 2');
+      await t.pumpWidget(
+        view('$head| y | 2 |\n\n[r]: https://x.dev\n'),
+        size: (20, 6),
+      );
+      expect(rows(t, 4).sublist(2), ['x │ 1', 'y │ 2']);
+      expect(t, styleAt(0, 2, hasFg(link)));
+    });
+
     testTwk('the wheel over a table scrolls the document around it', (
       t,
     ) async {
