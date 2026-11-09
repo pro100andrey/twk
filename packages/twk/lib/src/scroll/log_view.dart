@@ -339,8 +339,8 @@ final class LogController extends ChangeNotifier {
   /// writing a line over, each through [map] when it is given), each line
   /// once it ends: those written from the call on, and before them the whole
   /// lines among the last [backlog] bytes the file had (none by default, the
-  /// file's from its start for null); a line the backlog begins within is
-  /// left out. A write
+  /// file's from its start for null; a negative one is a [RangeError]); a
+  /// line the backlog begins within is left out. A write
   /// is told by a watch of the file's directory where the system has one, and
   /// found by a look at the file's size each [poll] all the same; a file cut
   /// short (truncated after a clean, written anew) is read again from its
@@ -386,18 +386,23 @@ final class LogController extends ChangeNotifier {
     LogLevel level = LogLevel.info,
     int tabWidth = 8,
     List<Span>? Function(List<Span> spans)? map,
-  }) => _follow<TailEvent>(
-    tailFile(path, backlog: backlog, poll: poll),
-    (reader, event) => switch (event) {
-      FileBytes(:final bytes) => reader.addBytes(bytes),
-      // the old file's unended line, and a character cut, are not the start
-      // of the next one
-      FileReset() => reader.reset(),
-    },
-    level,
-    tabWidth,
-    map,
-  );
+  }) {
+    if (backlog != null) {
+      RangeError.checkNotNegative(backlog, 'backlog');
+    }
+    return _follow<TailEvent>(
+      tailFile(path, backlog: backlog, poll: poll),
+      (reader, event) => switch (event) {
+        FileBytes(:final bytes) => reader.addBytes(bytes),
+        // the old file's unended line, and a character cut, are not the
+        // start of the next one
+        FileReset() => reader.reset(),
+      },
+      level,
+      tabWidth,
+      map,
+    );
+  }
 
   static String _textOf(List<Span> spans) => switch (spans) {
     [] => '',
@@ -412,11 +417,15 @@ final class LogController extends ChangeNotifier {
     LogLevel level = LogLevel.info,
     DateTime? time,
   }) {
-    for (final text in texts) {
-      _add(text, level, time, null);
+    // what [where] throws ends it, the lines before added
+    try {
+      for (final text in texts) {
+        _add(text, level, time, null);
+      }
+    } finally {
+      _trim();
+      notifyListeners();
     }
-    _trim();
-    notifyListeners();
   }
 
   /// Drops every line; the view follows the lines added next.
@@ -538,14 +547,17 @@ final class LogController extends ChangeNotifier {
     _ask(const _ToEnd());
   }
 
+  /// Adds the line, tested by [where] first: what that throws adds none.
   void _add(String text, LogLevel level, DateTime? time, List<Span>? spans) {
-    final line = LogLine._(_next++, text, level, time, spans);
+    final line = LogLine._(_next, text, level, time, spans);
+    final passes = _passes(line);
+    _next++;
     _lines.add(line);
     final w = stringWidth(text);
     if (w > _widest) {
       _widest = w;
     }
-    if (_passes(line)) {
+    if (passes) {
       _shown.add(line.number);
     }
   }
@@ -1019,33 +1031,19 @@ final class _LogViewState extends State<LogView> {
 
   /// The number of the first line in the window, as it was last laid out,
   /// and how many of its rows are above the window; null with none.
-  (int, int)? _windowTop() {
-    final list = mounted ? _render : null;
-    if (list == null) {
-      return null;
-    }
-    for (var c = list.firstChild; c != null;) {
-      LogView.renderVisits++;
-      final at = c.parentData as ListParentData;
-      if (at.dy + c.height > 0 && at.dy < list.height) {
-        if (_lineIn(c) case final line?) {
-          return (line.number, at.dy < 0 ? -at.dy : 0);
-        }
-      }
-      c = at.nextSibling;
-    }
-    return null;
-  }
+  (int, int)? _windowTop() => _windowAt(top: true);
 
   /// The number of the first line in the window, as it was last laid out,
-  /// or with [top] false of the last; null with none. The items are in
-  /// the order of their rows: those laid out past the edge are looked at,
-  /// not the window.
-  int? _windowEdge({required bool top}) {
-    if (!mounted) {
-      return null;
-    }
-    final list = _render;
+  /// or with [top] false of the last; null with none.
+  int? _windowEdge({required bool top}) => _windowAt(top: top)?.$1;
+
+  /// The number of the first line in the window, as it was last laid out,
+  /// or with [top] false of the last, and how many of its rows are past
+  /// that edge of the window; null with none. The items are in the order
+  /// of their rows: those laid out past the edge are looked at, not the
+  /// window.
+  (int, int)? _windowAt({required bool top}) {
+    final list = mounted ? _render : null;
     if (list == null) {
       return null;
     }
@@ -1054,7 +1052,8 @@ final class _LogViewState extends State<LogView> {
       final at = c.parentData as ListParentData;
       if (at.dy + c.height > 0 && at.dy < list.height) {
         if (_lineIn(c) case final line?) {
-          return line.number;
+          final past = top ? -at.dy : at.dy + c.height - list.height;
+          return (line.number, past > 0 ? past : 0);
         }
       }
       c = top ? at.nextSibling : at.previousSibling;
@@ -1291,7 +1290,8 @@ final class _LogViewState extends State<LogView> {
   }
 
   /// Wraps the lines, or stops wrapping them: `w`. The view stays on the
-  /// line at its top.
+  /// line at its top, from its first row: the rows of it above the window
+  /// are others once it is wrapped otherwise.
   void _toggleWrap() {
     final top = _windowEdge(top: true);
     setState(() => _wrap = !_wrap);

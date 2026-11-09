@@ -97,6 +97,14 @@ void main() {
     await holds(c, ['third', 'fourth']);
   });
 
+  test('a negative backlog is refused at the call', () {
+    final c = LogController();
+    expect(
+      () => c.followFile(path, backlog: -1),
+      throwsA(isA<RangeError>()),
+    );
+  });
+
   test('map: a line in its place, or none', () async {
     File(path).writeAsStringSync('keep\npoll\nlong line\n');
     final c = follow(

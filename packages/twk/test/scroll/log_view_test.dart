@@ -281,6 +281,26 @@ void main() {
     expect(told, 1);
   });
 
+  test('a where that throws adds no line of its own, the lines before it '
+      'added and the listeners told', () {
+    var told = 0;
+    final c = LogController(
+      maxLines: 2,
+      where: (line) => line.text == 'bad' ? throw StateError('bad') : true,
+    )..addListener(() => told++);
+    expect(() => c.addAll(['a', 'b', 'c', 'bad', 'd']), throwsStateError);
+    expect([for (var i = 0; i < c.length; i++) c[i].text], ['b', 'c']);
+    expect(
+      [for (var i = 0; i < c.shownLength; i++) c.shownAt(i).text],
+      ['b', 'c'],
+    );
+    expect(told, 1);
+    expect(() => c.add('bad'), throwsStateError);
+    c.add('e');
+    expect([for (var i = 0; i < c.length; i++) c[i].text], ['c', 'e']);
+    expect(c.shownLength, 2);
+  });
+
   testTwk('w turns the wrapping over, the view on the line at its top, '
       'hinted; the widget built with another wrap sets it again', (t) async {
     final c = LogController();
