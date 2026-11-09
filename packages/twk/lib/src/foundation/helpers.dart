@@ -4,6 +4,28 @@
 /// Internal: not exported.
 library;
 
+/// For an assert: that the [count] keys [at] gives are all different, else
+/// the assertion fails with [message] of the key twice and the index of its
+/// second place. O(count). [unchanged] skips the reading, for an update
+/// where what the keys come from, and the function that reads them, are
+/// `==` to the last build's; true either way.
+bool debugDistinct<K>(
+  int count,
+  K Function(int index) at,
+  String Function(K key, int index) message, {
+  bool unchanged = false,
+}) {
+  if (unchanged) {
+    return true;
+  }
+  final seen = <K>{};
+  for (var i = 0; i < count; i++) {
+    final key = at(i);
+    assert(seen.add(key), message(key, i));
+  }
+  return true;
+}
+
 /// Whether [a] and [b] hold equal elements in the same order.
 bool sameList<T>(List<T> a, List<T> b) {
   if (identical(a, b)) {

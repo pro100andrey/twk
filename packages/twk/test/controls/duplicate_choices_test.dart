@@ -132,6 +132,27 @@ void main() {
       expect(errors(t), isEmpty);
     });
 
+    testTwk('an update with a keyOf that is a method tear-off of one object '
+        'does not read the keys again', (t) async {
+      final keys = _Keys();
+      // the premise: two tear-offs of a method are == but not identical
+      expect(identical(keys.keyOf, keys.keyOf), isFalse);
+      expect(keys.keyOf == keys.keyOf, isTrue);
+      Widget list() => SizedBox(
+        height: 4,
+        child: SelectionList<int>(
+          itemCount: 1000,
+          keyOf: keys.keyOf,
+          itemBuilder: (context, i) => Text('$i'),
+        ),
+      );
+      await t.pumpWidget(list());
+      keys.reads = 0;
+      await t.pumpWidget(list());
+      expect(keys.reads, lessThan(100));
+      expect(errors(t), isEmpty);
+    });
+
     testTwk('a list refused for its keys leaves no controller undisposed', (
       t,
     ) async {
@@ -148,4 +169,13 @@ void main() {
       expect(errors(t), isNotEmpty);
     }, trackDisposables: true);
   });
+}
+
+final class _Keys {
+  var reads = 0;
+
+  int keyOf(int i) {
+    reads++;
+    return i;
+  }
 }

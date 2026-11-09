@@ -38,6 +38,7 @@ import 'package:twk_core/twk_core.dart'
         RenderObject,
         RenderObjectWithChildMixin;
 
+import '../foundation/render_elements.dart';
 import 'builder.dart' show Builder;
 
 export 'package:twk_core/twk_core.dart'
@@ -460,10 +461,12 @@ abstract class State<T extends StatefulWidget> {
     assert(
       result is! Future,
       'setState() callback returned a Future: $this.\n'
-      'The callback is probably marked "async"; what it changes after its '
-      'first await is not followed by a rebuild.\n'
+      'Either the callback is marked "async", and what it changes after its '
+      'first await is not followed by a rebuild, or it is an arrow function '
+      'whose value is a Future, as in setState(() => _future = fetch()).\n'
       'Do the asynchronous work first, outside of setState(), then change '
-      'the state synchronously inside a call to setState().',
+      'the state synchronously inside a call to setState(); or give the '
+      'callback a block body, setState(() { _future = fetch(); }).',
     );
     _element!.markNeedsBuild();
   }
@@ -2011,7 +2014,8 @@ abstract class RenderObjectElement extends Element {
   @override
   void mount(Element? parent, Object? newSlot) {
     super.mount(parent, newSlot);
-    _renderObject = widget.createRenderObject(this);
+    final o = _renderObject = widget.createRenderObject(this);
+    renderElements[o] = this;
     attachRenderObject(newSlot);
     _dirty = false;
   }
@@ -2128,6 +2132,7 @@ abstract class RenderObjectElement extends Element {
     // there is none when createRenderObject threw
     final o = _renderObject;
     if (o != null) {
+      renderElements[o] = null;
       oldWidget.didUnmountRenderObject(o);
     }
     _renderObject = null;

@@ -25,6 +25,7 @@ import '../editing/text_editing.dart' show TextBoundaries;
 import '../focus/focus.dart';
 import '../foundation/change_notifier.dart';
 import '../foundation/controller_host.dart';
+import '../foundation/helpers.dart';
 import '../framework/framework.dart';
 import '../gestures/gesture_detector.dart';
 import '../layout/basic.dart';
@@ -467,17 +468,18 @@ final class MultiSelect<T> extends StatelessWidget {
 
 /// Asserts that no two of [choices] have equal values: they would be
 /// chosen together.
-bool _distinctChoices<T>(List<Choice<T>> choices, String widget) {
-  final seen = <T>{};
-  for (final c in choices) {
-    assert(
-      seen.add(c.value),
-      '$widget has two choices with the value ${c.value}: choices equal in '
+bool _distinctChoices<T>(
+  List<Choice<T>> choices,
+  String widget, {
+  bool unchanged = false,
+}) => debugDistinct<T>(
+  choices.length,
+  (i) => choices[i].value,
+  (value, _) =>
+      '$widget has two choices with the value $value: choices equal in '
       'value are chosen together, so give each its own value',
-    );
-  }
-  return true;
-}
+  unchanged: unchanged,
+);
 
 /// What a [Select] and a [MultiSelect] are: a field and the list of the
 /// choices, [chosen] those of them chosen.
@@ -609,11 +611,11 @@ final class _PickerState<T> extends State<_Picker<T>>
   void didUpdateWidget(_Picker<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
     assert(
-      identical(widget.choices, oldWidget.choices) ||
-          _distinctChoices(
-            widget.choices,
-            widget.multiple ? 'MultiSelect' : 'Select',
-          ),
+      _distinctChoices(
+        widget.choices,
+        widget.multiple ? 'MultiSelect' : 'Select',
+        unchanged: widget.choices == oldWidget.choices,
+      ),
       'duplicate choices',
     );
     if (!identical(widget.controller, oldWidget.controller)) {

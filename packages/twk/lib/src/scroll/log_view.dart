@@ -495,8 +495,15 @@ final class LogController extends ChangeNotifier {
     if (where == null && _where == null) {
       return;
     }
+    // a test that throws leaves the controller as it was
+    final before = _where;
     _where = where;
-    _refilter(narrower: false);
+    try {
+      _refilter(narrower: false);
+    } catch (_) {
+      _where = before;
+      rethrow;
+    }
   }
 
   /// What [nextMatch] and [previousMatch] look for, highlighted in the

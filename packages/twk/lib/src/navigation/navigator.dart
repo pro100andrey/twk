@@ -222,26 +222,37 @@ abstract class Route<T> {
   bool get _covers => opaque && !_entering && !_leaving;
 
   // above the route's scope: keeps the focus from it while it is covered
-  late final _guard = FocusNode(
+  // made when the host first asks for it; until then what it is to be
+  // told is kept here, so that a route that never has a host makes none
+  FocusNode get _guard => _guardNode ??= FocusNode(
     canRequestFocus: false,
     skipTraversal: true,
     debugLabel: 'route guard',
-  );
+  )..descendantsAreFocusable = _guardFocusable;
+  FocusNode? _guardNode;
+  var _guardFocusable = true;
 
-  late final _scope = FocusScopeNode(debugLabel: settings.name ?? 'route');
+  void _focusableBelow(bool value) {
+    _guardFocusable = value;
+    _guardNode?.descendantsAreFocusable = value;
+  }
+
+  FocusScopeNode get _scope =>
+      _scopeNode ??= FocusScopeNode(debugLabel: settings.name ?? 'route');
+  FocusScopeNode? _scopeNode;
 
   var _focusDisposed = false;
 
   // The guard and the scope go with the route's host. A route that never
-  // had one (removed before a frame built it) hands them back from the
-  // navigator, so they are not made and left.
+  // had one (removed before a frame built it) never made them, so there is
+  // nothing to dispose and none is made to be.
   void _disposeFocus() {
     if (_focusDisposed) {
       return;
     }
     _focusDisposed = true;
-    _guard.dispose();
-    _scope.dispose();
+    _guardNode?.dispose();
+    _scopeNode?.dispose();
   }
 
   /// The navigator the route is on, from its push until it is popped.
@@ -709,7 +720,7 @@ final class NavigatorState extends State<Navigator> {
       route
         .._takesFocus = true
         .._returnFocus = _primaryFocus;
-      covered._guard.descendantsAreFocusable = false;
+      covered._focusableBelow(false);
       _history.add(route);
       _enter(route);
     });
@@ -782,7 +793,7 @@ final class NavigatorState extends State<Navigator> {
       _history.removeLast();
       old
         .._navigator = null
-        .._guard.descendantsAreFocusable = false;
+        .._focusableBelow(false);
       route
         .._takesFocus = true
         .._returnFocus = old._returnFocus;
@@ -913,12 +924,12 @@ final class NavigatorState extends State<Navigator> {
   /// has a time for that ([Route.reverseTransitionDuration]).
   void _remove(Route<Object?> route, Object? result, {bool slide = false}) {
     route._complete(result);
-    final hadFocus = route._guard.hasFocus;
+    final hadFocus = route._guardNode?.hasFocus ?? false;
     final i = _history.indexOf(route);
     _history.removeAt(i);
     route
       .._navigator = null
-      .._guard.descendantsAreFocusable = false
+      .._focusableBelow(false)
       .._entering = false;
     if (slide) {
       route._leaving = route._host?._leave() ?? false;
@@ -928,18 +939,18 @@ final class NavigatorState extends State<Navigator> {
       // the route above now covers the one under it: the focus it took
       // from the route removed goes back where that one's would have
       final above = _history[i];
-      if (above._returnFocus?.isBelow(route._guard) ?? false) {
+      final guard = route._guardNode;
+      if (guard != null && (above._returnFocus?.isBelow(guard) ?? false)) {
         above._returnFocus = route._returnFocus;
       }
       // the back key may do otherwise for the route in front, the first
       // one now
-      _history.last._guard.markKeysChanged();
+      _history.last._guardNode?.markKeysChanged();
       return;
     }
-    final top = _history.last
-      .._guard.descendantsAreFocusable = true
-      // the back key may do otherwise for it, as the first route now
-      .._guard.markKeysChanged();
+    final top = _history.last.._focusableBelow(true);
+    // the back key may do otherwise for it, as the first route now
+    top._guardNode?.markKeysChanged();
     if (hadFocus) {
       FocusNode.giveBack(route._returnFocus, top._scope);
     }

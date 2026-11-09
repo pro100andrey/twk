@@ -10,6 +10,7 @@ import 'package:twk_core/twk_core.dart' show Attr, PointerShape, TextWrap;
 
 import '../focus/focus.dart';
 import '../foundation/change_notifier.dart';
+import '../foundation/helpers.dart';
 import '../framework/framework.dart';
 import '../gestures/gesture_detector.dart';
 import '../layout/box.dart';
@@ -300,18 +301,14 @@ final class _SelectionListState<K> extends State<SelectionList<K>> {
 
   // O(itemCount), in an assert: no two items have the same key; at an
   // update only when the count or the keyOf given changed
-  bool _distinctKeys() {
-    final seen = <K>{};
-    for (var i = 0; i < widget.itemCount; i++) {
-      final key = widget.keyOf(i);
-      assert(
-        seen.add(key),
+  bool _distinctKeys({bool unchanged = false}) => debugDistinct<K>(
+    widget.itemCount,
+    widget.keyOf,
+    (key, i) =>
         'SelectionList has two items with the key $key (at $i): items are '
         'selected by their keys, so keyOf gives each its own',
-      );
-    }
-    return true;
-  }
+    unchanged: unchanged,
+  );
 
   @override
   void initState() {
@@ -323,13 +320,16 @@ final class _SelectionListState<K> extends State<SelectionList<K>> {
   @override
   void didUpdateWidget(SelectionList<K> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // unchanged: the same count and the very same keyOf, so that a list
-    // rebuilt with a keyOf kept (a field or a tear-off, not a closure made
-    // at each build) is not read item by item at every rebuild
+    // unchanged: the same count and a keyOf that is ==, so that a list
+    // rebuilt with a keyOf kept (a field, or a tear-off of a method of one
+    // object, which == holds for though identical does not; not a closure
+    // made at each build) is not read item by item at every rebuild
     assert(
-      (widget.itemCount == oldWidget.itemCount &&
-              identical(widget.keyOf, oldWidget.keyOf)) ||
-          _distinctKeys(),
+      _distinctKeys(
+        unchanged:
+            widget.itemCount == oldWidget.itemCount &&
+            widget.keyOf == oldWidget.keyOf,
+      ),
       'duplicate keys',
     );
     if (!identical(widget.controller, oldWidget.controller)) {

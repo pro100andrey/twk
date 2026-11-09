@@ -745,22 +745,20 @@ final class _TableState<T> extends State<Table<T>> {
   var _checkboxWidth = 3;
 
   // O(rows), in an assert; the rows of a lazy source are not read
-  bool _distinctRowKeys() {
+  bool _distinctRowKeys({bool unchanged = false}) {
     final rows = widget.rows;
     final key = widget.rowKey;
     if (rows == null || key == null) {
       return true;
     }
-    final seen = <Object>{};
-    for (var i = 0; i < rows.length; i++) {
-      final k = key(rows[i]);
-      assert(
-        seen.add(k),
-        'Table has two rows with the key $k (at $i): rows are kept and '
-        'selected by their keys, so rowKey gives each its own',
-      );
-    }
-    return true;
+    return debugDistinct<Object>(
+      rows.length,
+      (i) => key(rows[i]),
+      (k, i) =>
+          'Table has two rows with the key $k (at $i): rows are kept and '
+          'selected by their keys, so rowKey gives each its own',
+      unchanged: unchanged,
+    );
   }
 
   @override
@@ -782,9 +780,10 @@ final class _TableState<T> extends State<Table<T>> {
   void didUpdateWidget(Table<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
     assert(
-      (identical(widget.rows, oldWidget.rows) &&
-              widget.rowKey == oldWidget.rowKey) ||
-          _distinctRowKeys(),
+      _distinctRowKeys(
+        unchanged:
+            widget.rows == oldWidget.rows && widget.rowKey == oldWidget.rowKey,
+      ),
       'duplicate row keys',
     );
     if (!identical(widget.focusNode, oldWidget.focusNode)) {

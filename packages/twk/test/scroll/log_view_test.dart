@@ -72,6 +72,22 @@ String bar(TwkTester t, int x, int rows) => [
 void addLines(LogController c, int from, int to) => c.addAll(lines(from, to));
 
 void main() {
+  test('a where that throws leaves the controller as it was', () {
+    final c = LogController(where: (line) => line.text != 'b')
+      ..addAll(['a', 'b', 'c']);
+    expect(c.shownLength, 2);
+    final before = c.where;
+    expect(
+      () => c.where = (line) => throw StateError('boom'),
+      throwsStateError,
+    );
+    expect(c.where, same(before));
+    expect(c.shownLength, 2);
+    // later lines are tested by the test it was left with
+    c.add('d');
+    expect(c.shownLength, 3);
+  });
+
   testTwk('follows the end as lines are added; scrolled up it stays, '
       'counting the lines that came; End goes back and follows', (t) async {
     final c = LogController();

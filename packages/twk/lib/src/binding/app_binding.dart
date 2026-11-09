@@ -62,6 +62,7 @@ import '../focus/focus.dart';
 import '../foundation/constants.dart'
     show debugAssertsEnabled, kDebugMode, kReleaseMode;
 import '../foundation/helpers.dart';
+import '../foundation/render_elements.dart';
 import '../framework/framework.dart';
 import '../gestures/mouse.dart';
 import '../layout/one_child.dart';
@@ -1413,24 +1414,15 @@ final class AppBinding implements FrameClock {
   /// the one whose render object is its child, if none, for a commit that
   /// holds one of the tree's (`Static`).
   String _renderPathOf(RenderObject object) {
-    final elements = Map<RenderObject, Element>.identity();
-    void visit(Element e) {
-      if (e is RenderObjectElement) {
-        elements[e.renderObject] = e;
-      }
-      e.visitChildren(visit);
-    }
-
-    _root?.visitChildren(visit);
     for (RenderObject? o = object; o != null; o = o.parent) {
-      final element = elements[o];
+      final element = renderElements[o];
       if (element != null) {
         final path = _pathOf(element);
         return identical(o, object) ? path : '$path → ${object.runtimeType}';
       }
     }
     Element? held;
-    object.visitChildren((child) => held ??= elements[child]);
+    object.visitChildren((child) => held ??= renderElements[child]);
     return held == null ? '${object.runtimeType}' : _pathOf(held!);
   }
 
