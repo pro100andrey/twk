@@ -65,7 +65,15 @@ final class Ticker implements Muteable {
   /// A ticker that calls [onTick] in the frames of [binding]'s app, not
   /// started; without a binding, one that never ticks. `onDispose` is
   /// called with it once, when it is disposed.
-  Ticker(this.onTick, {this.binding, this._onDispose});
+  Ticker(this.onTick, {this.binding, this._onDispose}) {
+    assert(
+      () {
+        _debugCreatedAt = StackTrace.current;
+        return true;
+      }(),
+      'records where it was made',
+    );
+  }
 
   /// What it calls each frame while active, with the time since its first
   /// tick.
@@ -84,6 +92,19 @@ final class Ticker implements Muteable {
   var _muted = false;
 
   late final FrameCallback _tickCallback = _tick;
+
+  // debug only: where it was made, for the message of a state disposed with
+  // it active
+  StackTrace? _debugCreatedAt;
+
+  @override
+  String toString() {
+    final created = _debugCreatedAt;
+    final lines = created?.toString().trimRight().split('\n').take(6);
+    final where = lines == null ? '' : ', created at:\n${lines.join('\n')}';
+    return 'Ticker(${_active ? 'active' : 'stopped'}${_muted ? ', muted' : ''}'
+        '$where)';
+  }
 
   /// Whether it ticks: [start]ed and not stopped since.
   bool get isActive => _active;
@@ -224,8 +245,28 @@ Ticker _newTicker(
   );
 }
 
-/// Disposes every ticker of [tickers], which each takes out of it.
-void _disposeTickers(MuteGroup<Ticker> tickers) {
+String _activeMessage(State owner, MuteGroup<Ticker> tickers) {
+  final active = [
+    for (final ticker in tickers.items)
+      if (ticker.isActive) ticker,
+  ];
+  final name = owner.runtimeType;
+  final count = active.length == 1 ? 'a Ticker' : '${active.length} Tickers';
+  return '$name was disposed with an active Ticker.\n'
+      '$name made $count still active when the State was disposed: '
+      '${active.join(', ')}.\n'
+      'The AnimationController (or the Ticker) it came from has to be '
+      'disposed, or stopped, in dispose(), before super.dispose().';
+}
+
+/// Disposes every ticker of [tickers], which each takes out of it; in debug
+/// mode, an assertion failure if [owner] still has one active, which is a
+/// controller it forgot to dispose.
+void _disposeTickers(State owner, MuteGroup<Ticker> tickers) {
+  assert(
+    !tickers.items.any((ticker) => ticker.isActive),
+    _activeMessage(owner, tickers),
+  );
   for (final ticker in [...tickers.items]) {
     ticker.dispose();
   }
@@ -277,7 +318,7 @@ mixin TickerProviderStateMixin<T extends StatefulWidget> on State<T>
   @protected
   @mustCallSuper
   void dispose() {
-    _disposeTickers(_tickers);
+    _disposeTickers(this, _tickers);
     super.dispose();
   }
 }
@@ -332,7 +373,7 @@ mixin SingleTickerProviderStateMixin<T extends StatefulWidget> on State<T>
   @protected
   @mustCallSuper
   void dispose() {
-    _disposeTickers(_tickers);
+    _disposeTickers(this, _tickers);
     super.dispose();
   }
 }

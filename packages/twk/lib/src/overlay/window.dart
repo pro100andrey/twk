@@ -534,6 +534,7 @@ final class _WindowLayerState extends State<WindowLayer>
       slot.controller.removeListener(slot.changed);
       slot.dispose();
     }
+    _ticker?.dispose();
     super.dispose();
   }
 

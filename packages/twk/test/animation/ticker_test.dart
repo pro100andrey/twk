@@ -21,9 +21,29 @@ final class TickingState extends State<Ticking> with TickerProviderStateMixin {
   late final Ticker a = _ticker('a');
   late final Ticker b = _ticker('b');
 
-  Ticker _ticker(String name) => createTicker(
-    (elapsed) => ticks.add((name, AppBinding.of(context).frameTime, elapsed)),
-  );
+  final _made = <Ticker>[];
+
+  /// Whether dispose() stops the tickers first; off, a ticker still active
+  /// is a state disposed with an active ticker.
+  var stopsOnDispose = true;
+
+  Ticker _ticker(String name) {
+    final ticker = createTicker(
+      (elapsed) => ticks.add((name, AppBinding.of(context).frameTime, elapsed)),
+    );
+    _made.add(ticker);
+    return ticker;
+  }
+
+  @override
+  void dispose() {
+    if (stopsOnDispose) {
+      for (final ticker in _made) {
+        ticker.stop();
+      }
+    }
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) => const Text('ticking');
@@ -42,6 +62,16 @@ final class SingleState extends State<Single>
   var ticks = 0;
 
   late final Ticker ticker = createTicker((_) => ticks++);
+
+  var stopsOnDispose = true;
+
+  @override
+  void dispose() {
+    if (stopsOnDispose) {
+      ticker.stop();
+    }
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) => const Text('single');
@@ -152,12 +182,11 @@ void main() {
     ]);
   });
 
-  testTwk("a state's tickers are disposed with it: one ticking stops", (
-    t,
-  ) async {
+  testTwk("a state's tickers are disposed with it", (t) async {
     final key = GlobalKey<TickingState>();
     await t.pumpWidget(Ticking(key: key), size: (10, 1), maxFps: 100);
     final state = key.currentState!..a.start();
+    state.a.stop();
     final ticker = state.a;
     await t.pumpWidget(const Text('gone'));
     expect(ticker.isActive, isFalse);
@@ -166,6 +195,49 @@ void main() {
     final ticks = state.ticks.length;
     await t.pump(const Duration(seconds: 1));
     expect(state.ticks, hasLength(ticks));
+  });
+
+  testTwk('a TickerProviderStateMixin disposed with an active ticker is an '
+      'assertion failure naming the state and the ticker', (t) async {
+    final key = GlobalKey<TickingState>();
+    await t.pumpWidget(Ticking(key: key), size: (10, 1), maxFps: 100);
+    final state = key.currentState!
+      ..stopsOnDispose = false
+      ..a.start();
+    await expectLater(
+      t.pumpWidget(const Text('gone')),
+      throwsA(
+        isA<AssertionError>().having(
+          (e) => '${e.message}',
+          'message',
+          allOf(
+            contains('TickingState was disposed with an active Ticker'),
+            contains('Ticker('),
+          ),
+        ),
+      ),
+    );
+    state.a.stop();
+  });
+
+  testTwk('a SingleTickerProviderStateMixin disposed with an active ticker '
+      'is an assertion failure', (t) async {
+    final key = GlobalKey<SingleState>();
+    await t.pumpWidget(Single(key: key), size: (10, 1), maxFps: 100);
+    final state = key.currentState!
+      ..stopsOnDispose = false
+      ..ticker.start();
+    await expectLater(
+      t.pumpWidget(const Text('gone')),
+      throwsA(
+        isA<AssertionError>().having(
+          (e) => '${e.message}',
+          'message',
+          contains('SingleState was disposed with an active Ticker'),
+        ),
+      ),
+    );
+    state.ticker.stop();
   });
 
   test('a ticker outside an app never ticks', () async {
