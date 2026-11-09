@@ -216,7 +216,8 @@ final class SelectionList<K> extends StatefulWidget {
   /// How many items the list has.
   final int itemCount;
 
-  /// The key of an item, by its index: one no other item has.
+  /// The key of an item, by its index: one no other item has, which the
+  /// list asserts.
   final K Function(int index) keyOf;
 
   /// Builds an item, by its index, as it comes into view and as the list
@@ -294,15 +295,31 @@ final class _SelectionListState<K> extends State<SelectionList<K>> {
   SelectionController<K> get _controller =>
       widget.controller ?? (_own ??= SelectionController<K>());
 
+  // O(itemCount), in an assert: no two items have the same key
+  bool _distinctKeys() {
+    final seen = <K>{};
+    for (var i = 0; i < widget.itemCount; i++) {
+      final key = widget.keyOf(i);
+      assert(
+        seen.add(key),
+        'SelectionList has two items with the key $key (at $i): items are '
+        'selected by their keys, so keyOf gives each its own',
+      );
+    }
+    return true;
+  }
+
   @override
   void initState() {
     super.initState();
+    assert(_distinctKeys(), 'duplicate keys');
     _controller.addListener(_changed);
   }
 
   @override
   void didUpdateWidget(SelectionList<K> oldWidget) {
     super.didUpdateWidget(oldWidget);
+    assert(_distinctKeys(), 'duplicate keys');
     if (!identical(widget.controller, oldWidget.controller)) {
       (oldWidget.controller ?? _own)?.removeListener(_changed);
       _controller.addListener(_changed);

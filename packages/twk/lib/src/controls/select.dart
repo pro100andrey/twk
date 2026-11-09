@@ -255,7 +255,8 @@ final class Select<T> extends StatelessWidget {
     this.decoration,
   }) : assert(rows > 0, 'rows below 1');
 
-  /// What can be chosen, in the order the list shows them.
+  /// What can be chosen, in the order the list shows them; no two have
+  /// the same value, which it asserts.
   final List<Choice<T>> choices;
 
   /// The value of the choice chosen; none is when no choice has it.
@@ -391,7 +392,8 @@ final class MultiSelect<T> extends StatelessWidget {
     this.decoration,
   }) : assert(rows > 0, 'rows below 1');
 
-  /// What can be selected, in the order the list shows them.
+  /// What can be selected, in the order the list shows them; no two have
+  /// the same value, which it asserts.
   final List<Choice<T>> choices;
 
   /// The values of the choices selected.
@@ -461,6 +463,20 @@ final class MultiSelect<T> extends StatelessWidget {
     popupFadeIn: popupFadeIn,
     decoration: decoration,
   );
+}
+
+/// Asserts that no two of [choices] have equal values: they would be
+/// chosen together.
+bool _distinctChoices<T>(List<Choice<T>> choices, String widget) {
+  final seen = <T>{};
+  for (final c in choices) {
+    assert(
+      seen.add(c.value),
+      '$widget has two choices with the value ${c.value}: choices equal in '
+      'value are chosen together, so give each its own value',
+    );
+  }
+  return true;
 }
 
 /// What a [Select] and a [MultiSelect] are: a field and the list of the
@@ -576,6 +592,7 @@ final class _PickerState<T> extends State<_Picker<T>>
   @override
   void initState() {
     super.initState();
+    assert(_distinctChoices(widget.choices, 'Select'), 'duplicate choices');
     _popup.addListener(_popupChanged);
     final tookOver = attachPopup(widget.controller);
     _open = _popup.isOpen && _enabled;
@@ -585,6 +602,11 @@ final class _PickerState<T> extends State<_Picker<T>>
   @override
   void didUpdateWidget(_Picker<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
+    assert(
+      identical(widget.choices, oldWidget.choices) ||
+          _distinctChoices(widget.choices, 'Select'),
+      'duplicate choices',
+    );
     if (!identical(widget.controller, oldWidget.controller)) {
       (oldWidget.controller ?? _ownPopup)?.removeListener(_popupChanged);
       detachPopup(oldWidget.controller);

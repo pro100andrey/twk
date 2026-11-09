@@ -108,7 +108,8 @@ final class SegmentedButton<T> extends StatefulWidget {
   });
 
   /// What can be chosen, in the order shown: each [Choice]'s value, label
-  /// and whether it is enabled.
+  /// and whether it is enabled. No two have the same value, which it
+  /// asserts.
   final List<Choice<T>> segments;
 
   /// The values of the segments that are on.
@@ -153,6 +154,34 @@ final class _SegmentedButtonState<T> extends State<SegmentedButton<T>> {
   /// Where each segment is along the row, as last built, and the one the
   /// mouse is over.
   final _hits = HitRow();
+
+  @override
+  void initState() {
+    super.initState();
+    assert(_distinctSegments(widget.segments), 'duplicate segments');
+  }
+
+  @override
+  void didUpdateWidget(SegmentedButton<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    assert(
+      identical(widget.segments, oldWidget.segments) ||
+          _distinctSegments(widget.segments),
+      'duplicate segments',
+    );
+  }
+
+  bool _distinctSegments(List<Choice<T>> segments) {
+    final seen = <T>{};
+    for (final s in segments) {
+      assert(
+        seen.add(s.value),
+        'SegmentedButton has two segments with the value ${s.value}: '
+        'segments equal in value are on together, so give each its own value',
+      );
+    }
+    return true;
+  }
 
   List<Choice<T>> get _segments => widget.segments;
 

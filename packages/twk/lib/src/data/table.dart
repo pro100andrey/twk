@@ -342,7 +342,7 @@ final class TableController extends ChangeNotifier {
 /// moves past an edge: a row restyled repaints alone. A row's key
 /// ([rowKey], by default its index in the rows) keeps its widgets'
 /// [State] while the rows are sorted, and is what the controller selects;
-/// no two rows have the same.
+/// no two rows have the same, which it asserts.
 ///
 /// The columns are [columnGap] cells apart, and sized as a grid sizes
 /// them: a fixed column takes its cells; a content column wants the
@@ -741,6 +741,25 @@ final class _TableState<T> extends State<Table<T>> {
   var _checkbox = const CheckboxMarks('[', 'x', ' ', ']');
   var _checkboxWidth = 3;
 
+  // O(rows), in an assert; the rows of a lazy source are not read
+  bool _distinctRowKeys() {
+    final rows = widget.rows;
+    final key = widget.rowKey;
+    if (rows == null || key == null) {
+      return true;
+    }
+    final seen = <Object>{};
+    for (var i = 0; i < rows.length; i++) {
+      final k = key(rows[i]);
+      assert(
+        seen.add(k),
+        'Table has two rows with the key $k (at $i): rows are kept and '
+        'selected by their keys, so rowKey gives each its own',
+      );
+    }
+    return true;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -748,6 +767,7 @@ final class _TableState<T> extends State<Table<T>> {
       widget.marks?.multiple ?? true,
       'marks hold any number of rows: SelectionController(multiple: true)',
     );
+    assert(_distinctRowKeys(), 'duplicate row keys');
     _node.addListener(_focusChanged);
     _controller.addListener(_changed);
     widget.marks?.addListener(_marksChanged);
@@ -758,6 +778,12 @@ final class _TableState<T> extends State<Table<T>> {
   @override
   void didUpdateWidget(Table<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
+    assert(
+      (identical(widget.rows, oldWidget.rows) &&
+              widget.rowKey == oldWidget.rowKey) ||
+          _distinctRowKeys(),
+      'duplicate row keys',
+    );
     if (!identical(widget.focusNode, oldWidget.focusNode)) {
       // the Focus below lets an own node go after this build: it is
       // disposed with this state
