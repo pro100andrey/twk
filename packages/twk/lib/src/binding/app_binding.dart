@@ -59,7 +59,8 @@ import '../debug/inspector.dart';
 import '../debug/key_hint.dart';
 import '../editing/caret.dart' show restingCell;
 import '../focus/focus.dart';
-import '../foundation/constants.dart' show debugAssertsEnabled, kReleaseMode;
+import '../foundation/constants.dart'
+    show debugAssertsEnabled, kDebugMode, kReleaseMode;
 import '../foundation/helpers.dart';
 import '../framework/framework.dart';
 import '../gestures/mouse.dart';
@@ -319,8 +320,11 @@ final class AppBinding implements FrameClock {
   /// others, as twk_ssh's `serveSsh` does, whose clients are not to turn
   /// the server's debug aids on. [assertsEnabled] is whether the
   /// program runs with asserts, null (the default) as it does
-  /// ([debugAssertsEnabled]); off, one info line says so in the app's log.
-  /// A test passes it to see that line, which a test run, with asserts,
+  /// ([debugAssertsEnabled]); off, in a debug run ([kDebugMode]: not a
+  /// profile or release build, whose advice to run with asserts is of no
+  /// use), one info line says so in the app's log.
+  /// [debugMode] is for a test to play the other builds. A test passes
+  /// [assertsEnabled] to see that line, which a test run, with asserts,
   /// never gets. [onError] is as [runApp] takes it.
   AppBinding(
     TerminalBackend terminal, {
@@ -338,6 +342,7 @@ final class AppBinding implements FrameClock {
     bool? screenReader,
     Map<String, String>? environment,
     bool? assertsEnabled,
+    @visibleForTesting bool debugMode = kDebugMode,
     this.onError,
   }) : twkApp = TwkApp(
          terminal,
@@ -357,7 +362,7 @@ final class AppBinding implements FrameClock {
     twkApp.owner.onError = _renderFailed;
     twkApp.owner.onObjectLog = _renderLogged;
     debug = DebugAids._(this);
-    if (!(assertsEnabled ?? debugAssertsEnabled)) {
+    if (debugMode && !(assertsEnabled ?? debugAssertsEnabled)) {
       twkApp.logs.add(
         LogRecord(
           DateTime.now(),

@@ -1159,7 +1159,10 @@ final class _LogViewState extends State<LogView> {
       _numbers.add(line.number);
       _starts.add(out.length);
       out.write(_textOf(line));
-      LogView.selectionLines++;
+      assert(() {
+        LogView.selectionLines++;
+        return true;
+      }(), 'counts the lines of a selection, for a test');
     }
     _text = out.toString();
   }

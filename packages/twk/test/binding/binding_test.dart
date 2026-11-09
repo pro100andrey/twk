@@ -457,6 +457,17 @@ void main() {
     expect(records.single.message, contains('twk run'));
   });
 
+  test('a binding of a profile or release build, asserts off, says nothing '
+      'of them: its advice is of no use there', () {
+    final b = AppBinding(
+      HeadlessTerminal(),
+      environment: const {},
+      assertsEnabled: false,
+      debugMode: false,
+    );
+    expect(b.twkApp.logs.records, isEmpty);
+  });
+
   test('the environment given is what the binding reads: TWK_SCREEN_READER '
       "and TWK_DEBUG, the core's names known without a list of its own; "
       'given none, nothing is on', () {

@@ -661,16 +661,24 @@ final class _Frame extends MultiChildRenderObjectWidget {
 
 final class _FrameData extends ParentData with ContainerParentDataMixin {}
 
-/// What a [_Frame] lays out and paints: its first child within the
-/// constraints but for a cell across the [_track]'s axis, and its second,
-/// the bar, in that cell at the far edge, along all of the first. The axis
-/// is known when the scrollable inside is built, before the layout, and a
-/// change of it lays out again.
-final class _RenderFrame extends RenderObject
-    with ContainerRenderObjectMixin<_FrameData> {
-  _RenderFrame(this._track);
+/// What the frames of a scrollbar share: a change of the [_Track]'s axis
+/// lays the frame out again, except while it lays its child out (a
+/// scrollable first built in a LayoutBuilder): the layout in progress reads
+/// the axis after the child, so it takes the change in, and a mark would be
+/// lost with it.
+mixin _AxisFrame on RenderObject {
+  _Track get _track;
 
-  final _Track _track;
+  var _laying = false;
+
+  void _axisChanged() {
+    if (!_laying) {
+      markNeedsLayout();
+    }
+  }
+
+  /// The layout proper, with [_laying] set around it.
+  void _layoutFrame(BoxConstraints c);
 
   @override
   void attach(PipelineOwner o) {
@@ -683,6 +691,29 @@ final class _RenderFrame extends RenderObject
     _track.axisOf.removeListener(_axisChanged);
     super.detach();
   }
+
+  @override
+  void performLayout(BoxConstraints c) {
+    _laying = true;
+    try {
+      _layoutFrame(c);
+    } finally {
+      _laying = false;
+    }
+  }
+}
+
+/// What a [_Frame] lays out and paints: its first child within the
+/// constraints but for a cell across the [_track]'s axis, and its second,
+/// the bar, in that cell at the far edge, along all of the first. The axis
+/// is known when the scrollable inside is built, before the layout, and a
+/// change of it lays out again.
+final class _RenderFrame extends RenderObject
+    with ContainerRenderObjectMixin<_FrameData>, _AxisFrame {
+  _RenderFrame(this._track);
+
+  @override
+  final _Track _track;
 
   @override
   void setupParentData(RenderObject child) {
@@ -745,27 +776,7 @@ final class _RenderFrame extends RenderObject
         : child.getMaxIntrinsicHeight(width) + _bar;
   }
 
-  // The axis changes while this frame lays its child out (a scrollable first
-  // built in a LayoutBuilder): the layout in progress reads the axis after
-  // the child, so it takes the change in, and a mark would be lost with it.
-  var _laying = false;
-
-  void _axisChanged() {
-    if (!_laying) {
-      markNeedsLayout();
-    }
-  }
-
   @override
-  void performLayout(BoxConstraints c) {
-    _laying = true;
-    try {
-      _layoutFrame(c);
-    } finally {
-      _laying = false;
-    }
-  }
-
   void _layoutFrame(BoxConstraints c) {
     final child = firstChild;
     if (child == null) {
@@ -888,9 +899,10 @@ final class _BorderFrame extends MultiChildRenderObjectWidget {
 /// out again. Where there is a scrollable, the border has to have the side
 /// its bar is on, and a bottom bar cannot share its edge with a title.
 final class _RenderBorderFrame extends RenderObject
-    with ContainerRenderObjectMixin<_FrameData> {
+    with ContainerRenderObjectMixin<_FrameData>, _AxisFrame {
   _RenderBorderFrame(this._track, this._inset, this._sides, this._titled);
 
+  @override
   final _Track _track;
 
   ((int, int), (int, int)) _inset;
@@ -928,18 +940,6 @@ final class _RenderBorderFrame extends RenderObject
   }
 
   @override
-  void attach(PipelineOwner o) {
-    super.attach(o);
-    _track.axisOf.addListener(_axisChanged);
-  }
-
-  @override
-  void detach() {
-    _track.axisOf.removeListener(_axisChanged);
-    super.detach();
-  }
-
-  @override
   int computeMinIntrinsicWidth(int height) =>
       firstChild?.getMinIntrinsicWidth(height) ?? 0;
 
@@ -955,27 +955,7 @@ final class _RenderBorderFrame extends RenderObject
   int computeMaxIntrinsicHeight(int width) =>
       firstChild?.getMaxIntrinsicHeight(width) ?? 0;
 
-  // The axis changes while this frame lays its child out (a scrollable first
-  // built in a LayoutBuilder): the layout in progress reads the axis after
-  // the child, so it takes the change in, and a mark would be lost with it.
-  var _laying = false;
-
-  void _axisChanged() {
-    if (!_laying) {
-      markNeedsLayout();
-    }
-  }
-
   @override
-  void performLayout(BoxConstraints c) {
-    _laying = true;
-    try {
-      _layoutFrame(c);
-    } finally {
-      _laying = false;
-    }
-  }
-
   void _layoutFrame(BoxConstraints c) {
     final child = firstChild;
     if (child == null) {
