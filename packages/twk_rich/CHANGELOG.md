@@ -4,6 +4,9 @@
 
 Fixed:
 
+- A `MarkdownView` table answers its height to a parent that asks for
+  intrinsic sizes (the inline screen's root) in the frame it is built, not
+  one build late: no overflow on the first frame or on each appended row.
 - A `CodeView` narrower than its gutter paints (its code clip was of a
   negative width, which fails `Canvas.clipRect`'s assert in debug).
 - The inline chat example shows the newest lines of an answer's block that

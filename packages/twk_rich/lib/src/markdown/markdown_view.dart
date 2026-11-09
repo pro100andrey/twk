@@ -923,39 +923,45 @@ final class _MarkdownViewState extends State<MarkdownView> {
           },
       ],
     );
+    // a line for each row, the header and its rule: the height the
+    // LayoutBuilder, whose intrinsic sizes are those of its last build,
+    // would answer a parent that asks for them one build late
     final inert = _Inert(
-      child: LayoutBuilder(
-        builder: (context, c) {
-          final widths = _columnWidths(wants, c.maxWidth, _tableGap);
-          // the rows as wide as the room, filled, the rule across it, as a
-          // Table's are; as wide as their columns where it has no bound
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: c.maxWidth < BoxConstraints.unbounded
-                ? CrossAxisAlignment.stretch
-                : CrossAxisAlignment.start,
-            children: [
-              _TableRow(
-                widths: widths,
-                look: look,
-                style: look.header,
-                rule: true,
-                children: [
-                  for (var j = 0; j < count; j++)
-                    Text(
-                      j < header.length ? header[j] : '',
-                      style: look.header,
-                      wrap: TextWrap.none,
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                      textAlign: look.align[j],
-                    ),
-                ],
-              ),
-              for (final row in rows) row.widgetFor(widths, look),
-            ],
-          );
-        },
+      child: SizedBox(
+        height: rows.length + 2,
+        child: LayoutBuilder(
+          builder: (context, c) {
+            final widths = _columnWidths(wants, c.maxWidth, _tableGap);
+            // the rows as wide as the room, filled, the rule across it, as a
+            // Table's are; as wide as their columns where it has no bound
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: c.maxWidth < BoxConstraints.unbounded
+                  ? CrossAxisAlignment.stretch
+                  : CrossAxisAlignment.start,
+              children: [
+                _TableRow(
+                  widths: widths,
+                  look: look,
+                  style: look.header,
+                  rule: true,
+                  children: [
+                    for (var j = 0; j < count; j++)
+                      Text(
+                        j < header.length ? header[j] : '',
+                        style: look.header,
+                        wrap: TextWrap.none,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        textAlign: look.align[j],
+                      ),
+                  ],
+                ),
+                for (final row in rows) row.widgetFor(widths, look),
+              ],
+            );
+          },
+        ),
       ),
     );
     return links.isEmpty ? inert : _Links(links, cells: true, child: inert);
