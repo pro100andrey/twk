@@ -38,7 +38,8 @@ void main() {
   test("the process's own terminal is there only where stdin and stdout "
       'both are one', () {
     final both = stdin.hasTerminal && stdout.hasTerminal;
-    expect(outputIsTerminal, stdout.hasTerminal);
+    expect(stdioIsTerminal(), stdout.hasTerminal);
+    expect(stdioIsTerminal(error: true), stderr.hasTerminal);
     expect(ownTerminalLink(), both ? isA<StdioLink>() : isNull);
   });
 

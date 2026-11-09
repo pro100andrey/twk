@@ -9,9 +9,15 @@ Fixed:
   wide and tall as `COLUMNS` and `LINES` say, else 80 × 24; it ran as plain
   output, by `stdout.hasTerminal`, which such a terminal fails. A stdout a
   test puts in (`IOOverrides`) that says it is a terminal by `hasTerminal`
-  still is one.
+  still is one, and `/dev/null` is none: an app with its output there runs
+  as plain output. `twk shell` (`TerminalShell.start`) serves such a
+  terminal too.
 
 Added:
+
+- `stdioIsTerminal()`: whether stdout, or stderr, is a terminal, as an app
+  of the core takes it: a pseudo-terminal of no size is one, `/dev/null`,
+  a character device, is not.
 
 - `RenderList.jumpToIndex(rows:)`: the item at the top part way into it,
   `rows` of it above the window.

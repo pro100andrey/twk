@@ -3,6 +3,7 @@ library;
 
 import 'dart:io';
 
+import '../platform/io.dart' show stdioIsTerminal;
 import 'isolate_input.dart';
 import 'link.dart';
 import 'posix_input.dart';
@@ -20,9 +21,7 @@ final class StdioLink implements DrainingLink {
 
   /// What writes to a terminal on Linux and macOS, so that one that reads
   /// nothing blocks nothing; elsewhere, and into a pipe or a file, `stdout`.
-  late final PosixOutput? _output =
-      !Platform.isWindows &&
-          (stdout.hasTerminal || stdioType(stdout) == StdioType.terminal)
+  late final PosixOutput? _output = !Platform.isWindows && stdioIsTerminal()
       ? PosixOutput.open()
       : null;
 

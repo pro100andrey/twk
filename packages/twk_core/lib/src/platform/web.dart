@@ -30,8 +30,8 @@ bool isOwnTerminal(TerminalLink link) => false;
 /// Returns at once: there is no terminal of the process's own on the web.
 void waitForOwnTerminal() {}
 
-/// False: there is no stdout on the web.
-bool get outputIsTerminal => false;
+/// False: there is no stdout or stderr on the web.
+bool stdioIsTerminal({bool error = false}) => false;
 
 /// Throws [UnsupportedError]: there is no stdout on the web.
 TerminalLink plainStdio() =>

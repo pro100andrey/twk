@@ -8,6 +8,8 @@ import 'dart:io';
 import 'dart:isolate' show Isolate;
 import 'dart:math' show max, min;
 
+import 'package:twk_core/twk_core.dart' as core show stdioIsTerminal;
+
 import 'file_identity.dart';
 import 'follow_machine.dart';
 import 'tail_event.dart';
@@ -394,15 +396,11 @@ bool get stdinIsTerminal => stdin.hasTerminal;
 /// Stdout, or stderr with [error].
 Stdout _stdio({required bool error}) => error ? stderr : stdout;
 
-/// Whether stdout, or stderr with [error], is a terminal: as `hasTerminal`
-/// says, or by what it is (`stdioType`), which a pseudo-terminal of no size
-/// passes (one `script` opens with no terminal around it: a background
-/// job, CI) though it fails `hasTerminal`; a stdout a test puts in
-/// (`IOOverrides`) says it by `hasTerminal` alone.
-bool stdioIsTerminal({bool error = false}) {
-  final stdio = _stdio(error: error);
-  return stdio.hasTerminal || stdioType(stdio) == StdioType.terminal;
-}
+/// Whether stdout, or stderr with [error], is a terminal, as the core
+/// tells it ([core.stdioIsTerminal]): a pseudo-terminal of no size is one,
+/// `/dev/null` is not.
+bool stdioIsTerminal({bool error = false}) =>
+    core.stdioIsTerminal(error: error);
 
 /// Whether stdout, or stderr with [error], takes ANSI escapes.
 bool stdioSupportsAnsi({bool error = false}) =>

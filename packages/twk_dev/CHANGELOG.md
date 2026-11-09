@@ -5,7 +5,7 @@
 Fixed:
 
 - `twk logs` and `twk create` take a pseudo-terminal of no size for a
-  terminal: colours in the log, questions asked.
+  terminal: colours in the log, questions asked; `/dev/null` is none.
 
 ## 0.3.0
 

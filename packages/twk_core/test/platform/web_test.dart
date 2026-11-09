@@ -19,7 +19,8 @@ void main() {
     expect(web.isWindows, isFalse);
     expect(web.processId, 0);
     expect(web.ownTerminalLink(), isNull);
-    expect(web.outputIsTerminal, isFalse);
+    expect(web.stdioIsTerminal(), isFalse);
+    expect(web.stdioIsTerminal(error: true), isFalse);
   });
 
   test('watching the signals watches none', () {

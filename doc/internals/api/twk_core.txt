@@ -12,6 +12,7 @@ libc.dart function close
 libc.dart function free
 libc.dart function getppid
 libc.dart function ioctl
+libc.dart function isatty
 libc.dart function open
 libc.dart function pipe
 libc.dart function poll
@@ -281,6 +282,7 @@ twk_core.dart function pointerShapeSequence
 twk_core.dart function progressSequence
 twk_core.dart function renderToString
 twk_core.dart function runsInCi
+twk_core.dart function stdioIsTerminal
 twk_core.dart function stringWidth
 twk_core.dart function styledUnderlinesFor
 twk_core.dart function titleSequence

@@ -27,15 +27,22 @@ int get processId => pid;
 /// The process's own terminal, stdin and stdout; null when either is not
 /// one.
 TerminalLink? ownTerminalLink() =>
-    stdin.hasTerminal && _stdoutIsTerminal ? StdioLink() : null;
+    stdin.hasTerminal && stdioIsTerminal() ? StdioLink() : null;
 
-/// Whether stdout is a terminal: as `hasTerminal` says, or by what it is
-/// (`stdioType`), which a pseudo-terminal of no size passes (one `script`
-/// opens with no terminal around it: a background job, CI) though it fails
-/// `hasTerminal`; a stdout a test puts in (`IOOverrides`) says it by
-/// `hasTerminal` alone.
-bool get _stdoutIsTerminal =>
-    stdout.hasTerminal || stdioType(stdout) == StdioType.terminal;
+/// Whether stdout, or stderr with [error], is a terminal: as `hasTerminal`
+/// says, or, on Linux and macOS, as isatty(3) says of one that is a
+/// character device (`stdioType`). A pseudo-terminal of no size (one
+/// `script` opens with no terminal around it: a background job, CI) fails
+/// `hasTerminal` and passes isatty; `/dev/null`, a character device too,
+/// fails both; a stdout a test puts in (`IOOverrides`) says it by
+/// `hasTerminal`.
+bool stdioIsTerminal({bool error = false}) {
+  final stdio = error ? stderr : stdout;
+  return stdio.hasTerminal ||
+      !Platform.isWindows &&
+          stdioType(stdio) == StdioType.terminal &&
+          c.isatty(error ? 2 : 1) == 1;
+}
 
 /// Whether [link] is the process's own terminal ([ownTerminalLink]), the
 /// controlling terminal of the shell that started it.
@@ -44,9 +51,6 @@ bool isOwnTerminal(TerminalLink link) => link is StdioLink;
 /// Returns once the process may touch its own terminal, stopping it for as
 /// long as it is in the background ([StdioLink.waitForTerminal]).
 void waitForOwnTerminal() => StdioLink.waitForTerminal();
-
-/// Whether stdout is a terminal ([_stdoutIsTerminal]).
-bool get outputIsTerminal => _stdoutIsTerminal;
 
 /// The process's output as plain text ([PlainLink]): stdout, with stdin
 /// as its input where that is a terminal, and none otherwise.

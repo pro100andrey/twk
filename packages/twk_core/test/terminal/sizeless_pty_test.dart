@@ -1,7 +1,8 @@
 // The process's own terminal on a pseudo-terminal of no size, as `script`
 // opens one with no terminal around it (a background job, CI): a terminal
 // all the same, as wide and tall as COLUMNS and LINES say, else 80 × 24,
-// in a process of its own.
+// in a process of its own; and on /dev/null, a character device that is
+// no terminal, none.
 @Tags(['process'])
 @TestOn('linux')
 library;
@@ -15,12 +16,15 @@ import 'package:twk_test/twk_test.dart' show compiledProgram, runProcess;
 
 const _program = '''
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:twk_core/src/platform/io.dart';
 
 void main() {
   final link = ownTerminalLink();
-  print(jsonEncode([outputIsTerminal, link != null, link?.columns, link?.lines]));
+  stderr.writeln(
+    jsonEncode([stdioIsTerminal(), link != null, link?.columns, link?.lines]),
+  );
 }
 ''';
 
@@ -53,6 +57,10 @@ void main() {
     );
   });
 
+  List<Object?> said(String output) => jsonDecode(
+    output.split(RegExp(r'\r?\n')).lastWhere((l) => l.startsWith('[')),
+  ) as List<Object?>;
+
   Future<List<Object?>> run(Map<String, String> environment) async {
     final result = await runProcess(
       script.first,
@@ -64,10 +72,7 @@ void main() {
       includeParentEnvironment: false,
     );
     expect(result.exitCode, 0, reason: '${result.stderr}');
-    final line = '${result.stdout}'
-        .split(RegExp(r'\r?\n'))
-        .lastWhere((l) => l.startsWith('['));
-    return jsonDecode(line) as List<Object?>;
+    return said('${result.stdout}');
   }
 
   test(
@@ -81,5 +86,19 @@ void main() {
       );
     },
     skip: script.isEmpty ? 'no script(1) here' : false,
+  );
+
+  test(
+    'stdin and stdout on /dev/null, a character device, are no terminal',
+    () async {
+      final result = await runProcess('/bin/sh', [
+        '-c',
+        r'exec "$0" "$1" </dev/null >/dev/null',
+        Platform.resolvedExecutable,
+        kernel,
+      ]);
+      expect(result.exitCode, 0, reason: '${result.stderr}');
+      expect(said('${result.stderr}'), [false, false, null, null]);
+    },
   );
 }

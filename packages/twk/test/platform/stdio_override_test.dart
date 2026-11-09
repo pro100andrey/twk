@@ -8,7 +8,7 @@ import 'dart:io';
 
 import 'package:test/test.dart';
 import 'package:twk/src/platform/io.dart' show stdioIsTerminal;
-import 'package:twk_core/src/platform/io.dart' show outputIsTerminal;
+import 'package:twk_core/twk_core.dart' as core show stdioIsTerminal;
 
 /// A stdout that says whether it is a terminal, and does nothing else.
 final class _Said implements Stdout {
@@ -27,7 +27,7 @@ void main() {
         'terminal is ${terminal ? 'one' : 'none'}', () {
       IOOverrides.runZoned(() {
         expect(stdioIsTerminal(), terminal);
-        expect(outputIsTerminal, terminal);
+        expect(core.stdioIsTerminal(), terminal);
       }, stdout: () => _Said(hasTerminal: terminal));
     });
   }
