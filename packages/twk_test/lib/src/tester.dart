@@ -59,21 +59,33 @@ import 'screen_text.dart';
 /// ([TwkTester.logs]), its last 20 records: what it printed, its warnings (a
 /// layout that overflowed) and its errors (a build that threw), which its
 /// screen shows none of.
+///
+/// With [trackDisposables] (off by default) the test also fails when, after
+/// the app is quit, a controller or notifier made during it was never
+/// disposed (a `ScrollController`, a `TextEditingController`, a
+/// `FocusNode`, an `AnimationController`, any `ValueNotifier`, and the
+/// classes of the app that join a `DisposalTracker`), naming each with the
+/// stack that made it. An app-owned singleton that outlives the test is not
+/// one to track: leave the option off in that test. It needs asserts, so a
+/// test run with them off checks nothing.
 @isTest
 void testTwk(
   String description,
   FutureOr<void> Function(TwkTester t) body, {
   int framesOnFailure = 3,
+  bool trackDisposables = false,
   Timeout? timeout,
   Object? skip,
   Object? tags,
 }) => test(
   description,
   () async {
+    final tracker = trackDisposables ? DisposalTracker.start() : null;
     final t = TwkTester._();
     try {
       await runZoned(() => body(t), zoneValues: {_testerKey: t});
     } on Object {
+      tracker?.stop();
       t._printOnFailure(framesOnFailure);
       try {
         await t._end();
@@ -86,7 +98,9 @@ void testTwk(
     try {
       await t._end();
       t._failOnErrors();
+      _failOnUndisposed(tracker);
     } on Object {
+      tracker?.stop();
       t._printOnFailure(framesOnFailure);
       rethrow;
     } finally {
@@ -98,6 +112,21 @@ void testTwk(
   skip: skip,
   tags: tags,
 );
+
+/// Fails the test with what [tracker] saw created and not disposed.
+void _failOnUndisposed(DisposalTracker? tracker) {
+  if (tracker == null) {
+    return;
+  }
+  final leaked = tracker.stop();
+  if (leaked.isNotEmpty) {
+    final count = leaked.length == 1 ? 'an object' : '${leaked.length} objects';
+    fail(
+      'the test made $count it did not dispose (trackDisposables):\n'
+      '${leaked.join('\n')}',
+    );
+  }
+}
 
 final _testerKey = Object();
 

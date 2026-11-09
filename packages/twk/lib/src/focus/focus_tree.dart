@@ -69,7 +69,12 @@ class FocusNode with ChangeNotifier {
     this.skipTraversal = false,
     this._descendantsAreFocusable = true,
     this._takesText = false,
-  });
+  }) {
+    assert(
+      DisposalTracker.created(this),
+      'tracks the object',
+    );
+  }
 
   /// Names the node in [toString].
   String? debugLabel;
@@ -633,6 +638,11 @@ final class FocusManager {
   /// changes; the binding makes one.
   FocusManager({this.onFlushScheduled}) {
     rootScope._manager = this;
+    // lives as long as the app, which does not dispose it
+    assert(
+      DisposalTracker.forget(rootScope),
+      'tracks the object',
+    );
   }
 
   /// Called when the focus changed while no [flush] is pending: the frame

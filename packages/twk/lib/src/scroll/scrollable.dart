@@ -340,7 +340,12 @@ class ScrollController with ChangeNotifier {
   /// default, its start), and with [stickToEnd] (false by default) keeps
   /// to its end; an [initialScrollOffset] below 0 asserts.
   ScrollController({this.initialScrollOffset = 0, this.stickToEnd = false})
-    : assert(initialScrollOffset >= 0, 'an offset of 0 cells or more');
+    : assert(initialScrollOffset >= 0, 'an offset of 0 cells or more') {
+    assert(
+      DisposalTracker.created(this),
+      'tracks the object',
+    );
+  }
 
   /// Where a scrollable it is given to starts.
   final int initialScrollOffset;

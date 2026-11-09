@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+Added:
+
+- `testTwk(trackDisposables: true)` (off by default) fails the test, once
+  its app is quit, naming each controller or notifier made during it and not
+  disposed, with the stack that made it (`DisposalTracker` of twk).
+
 Changed:
 
 - `Vt`'s docs say how to read another program's output (a real terminal's

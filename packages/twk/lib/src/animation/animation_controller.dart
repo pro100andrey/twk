@@ -124,6 +124,10 @@ final class AnimationController extends ChangeNotifier
     _ticker = vsync.createTicker(_tick);
     _value = _clamp(value ?? lowerBound);
     _status = _statusAt(_value);
+    assert(
+      DisposalTracker.created(this),
+      'tracks the object',
+    );
   }
 
   /// How long a run from one bound to the other takes; a run without one
